@@ -1,0 +1,7 @@
+{
+  "name": "gearplan",
+  "version": "1.0.0",
+  "dependencies": {
+    "@webcomponents/webcomponentsjs": "^2.8.0"
+  }
+}

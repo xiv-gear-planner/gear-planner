@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Gear Planner</title>
+    <!-- hack for TS or something -->
+    <!-- TODO I think webpack is the correct way to solve this -->
+    <script>var exports = {};</script>
+    <script src="../build/stuff.js" type="module"></script>
+</head>
+<body>
+
+<h1>Stuff</h1>
+<div id="gear-plan-table"></div>
+<gear-plan-row></gear-plan-row>
+<button onclick="planner.loadItems()">Foo</button>
+
+</body>
+</html>
