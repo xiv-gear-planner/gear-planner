@@ -82,19 +82,29 @@ export class GearSet {
             listener();
         }
     }
+
+    getItemInSlot(slot: string) : GearItem | null {
+        const inSlot = this.equipment[slot];
+        if (inSlot instanceof EquippedItem) {
+            return inSlot.gearItem;
+        }
+        else {
+            return null;
+        }
+    }
 }
 
 export class EquipmentSet {
-    Weapon: EquippedItem;
-    Head: EquippedItem;
-    Body: EquippedItem;
-    Hand: EquippedItem;
-    Legs: EquippedItem;
-    Feet: EquippedItem;
-    Neck: EquippedItem;
-    Wrist: EquippedItem;
-    RingLeft: EquippedItem;
-    RingRight: EquippedItem;
+    Weapon: EquippedItem | null;
+    Head: EquippedItem | null;
+    Body: EquippedItem | null;
+    Hand: EquippedItem | null;
+    Legs: EquippedItem | null;
+    Feet: EquippedItem | null;
+    Neck: EquippedItem | null;
+    Wrist: EquippedItem | null;
+    RingLeft: EquippedItem | null;
+    RingRight: EquippedItem | null;
 }
 
 export class XivApiGearInfo implements GearItem {
@@ -182,4 +192,14 @@ export class XivApiGearInfo implements GearItem {
     }
 
 
+}
+
+type Foo = string | number;
+
+class Bar<X = Foo> {
+    something: X | Foo;
+
+    doStuff() {
+        this.something = 123;
+    }
 }

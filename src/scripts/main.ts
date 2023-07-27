@@ -3,18 +3,16 @@
 
 // import {GearSet, XivApiGearInfo} from "./geartypes";
 
+import {EquipmentSet, EquippedItem, EquipSlots, GearItem, GearSet, GearSlot, XivApiGearInfo} from "./geartypes";
 import {
-    EquipmentSet,
-    EquippedItem,
-    EquipSlot,
-    EquipSlots,
-    GearItem,
-    GearSet,
-    GearSlot,
-    GearStats,
-    XivApiGearInfo
-} from "./geartypes";
-
+    CustomCell,
+    CustomColumnDef,
+    CustomRow,
+    CustomTable,
+    SelectionModel, SingleCellRowOrHeaderSelect,
+    SingleSelectionModel,
+    TableSelection
+} from "./tables";
 
 // let primarySelectionElement: SelectableDataElement | undefined;
 let primarySelectionValue: Object | undefined;
@@ -160,245 +158,9 @@ class GearPlanner extends HTMLElement {
 //     }
 // }
 
-class CustomTableHeaderRow<X> extends HTMLTableRowElement {
+type GearSetSel = SingleCellRowOrHeaderSelect<GearSet>;
 
-}
-
-interface Selection<X> {
-    // If no row is selected, but a column is, then it is the header row's column that is selected
-    row: X | undefined;
-    column: CustomColumnDef<X> | undefined;
-}
-
-const noSelection: Selection<any> = {
-    row: undefined,
-    column: undefined
-}
-
-interface SelectionModel<X> {
-    selection: Selection<X> | undefined;
-}
-
-const noopSelectionModel: SelectionModel<any> = {
-    get selection() {
-        return noSelection;
-    },
-    set selection(selection) {
-        // do nothing
-    },
-}
-
-interface SimpleSelectionListener<X> {
-    onNewSelection(newSelection: Selection<X> | undefined);
-}
-
-class SimpleSelectionModel<X> implements SelectionModel<X> {
-
-    private _selection: Selection<X> = undefined;
-    private _listeners: SimpleSelectionListener<X>[] = [];
-
-    set selection(newSelection: Selection<X> | undefined) {
-        if (newSelection === this._selection) {
-            return;
-        }
-        console.log("New Selection: ");
-        console.log(newSelection);
-        this._selection = newSelection;
-        for (let listener of this._listeners) {
-            listener.onNewSelection(newSelection);
-        }
-    }
-
-    get selection(): Selection<X> | undefined {
-        return this._selection;
-    }
-
-    addListener(listener: SimpleSelectionListener<X>) {
-        this._listeners.push(listener);
-    }
-
-    // TODO
-    // removeListener(listener: SimpleSelectionListener<X>) {
-    //     this._listeners.
-    // }
-
-}
-
-class CustomTable<X> extends HTMLTableElement {
-    _data: X[];
-    dataRowMap: Map<X, CustomRow<X>> = new Map<X, CustomRow<X>>();
-    columns: CustomColumnDef<X>[];
-    headerRow: CustomTableHeaderRow<X>;
-    // TODO
-    // selectionEnabled: boolean;
-    selectionModel: SelectionModel<X> = noopSelectionModel;
-    curSelection: Selection<X> | undefined;
-
-    constructor() {
-        super();
-        this.headerRow = new CustomTableHeaderRow();
-        this.appendChild(this.createTHead());
-        this.appendChild(this.createTBody());
-        this.tHead.appendChild(this.headerRow);
-        this.addEventListener('click', ev => {
-            console.info(ev);
-            this.handleClick(ev);
-        })
-    }
-
-    set data(newData: X[]) {
-        // TODO
-        this._data = newData;
-        this.refreshFull();
-    }
-
-    refreshFull() {
-        const newRowElements: CustomRow<X>[] = [];
-        for (let item of this._data) {
-            if (this.dataRowMap.has(item)) {
-                newRowElements.push(this.dataRowMap.get(item));
-            }
-            else {
-                const newRow = new CustomRow<X>(item, this);
-                this.dataRowMap.set(item, newRow);
-                newRowElements.push(newRow);
-            }
-        }
-        this.tBodies[0].replaceChildren(...newRowElements);
-        for (let value of newRowElements.values()) {
-            value.refresh();
-        }
-        this.refreshSelection();
-    }
-
-    refreshSelection() {
-        this.curSelection = this.selectionModel.selection;
-        for (let value of this.dataRowMap.values()) {
-            value.refreshSelection();
-        }
-    }
-
-    handleClick(ev) {
-        console.log(ev);
-        if (ev.target instanceof CustomRow) {
-            this.selectionModel.selection = {
-                row: (ev.target as CustomRow<X>).dataItem,
-                column: undefined,
-            }
-        }
-        else if (ev.target instanceof CustomCell) {
-            const cell = ev.target as CustomCell<X>;
-            if (cell.colDef.allowCellSelection) {
-                this.selectionModel.selection = {
-                    row: (ev.target as CustomRow<X>).dataItem,
-                    column: cell.colDef,
-                }
-            }
-            else {
-                this.selectionModel.selection = {
-                    row: (ev.target as CustomRow<X>).dataItem,
-                    column: undefined,
-                }
-            }
-        }
-        this.refreshSelection();
-    }
-}
-
-class CustomColumnDef<X> {
-    shortName: string;
-    displayName: string;
-    getter: (item: X) => Node;
-    allowHeaderSelection: boolean = false;
-    allowCellSelection: boolean = false;
-}
-
-class CustomRow<X> extends HTMLTableRowElement {
-    dataItem: X;
-    table: CustomTable<X>;
-    dataColMap: Map<CustomColumnDef<X>, CustomCell<X>> = new Map<CustomColumnDef<X>, CustomCell<X>>();
-    private _selected: boolean = false;
-
-    constructor(dataItem: X, table: CustomTable<X>) {
-        super();
-        this.dataItem = dataItem;
-        this.table = table;
-        this.refresh();
-    }
-
-    refresh() {
-        const newColElements: CustomCell<X>[] = [];
-        for (let col of this.table.columns) {
-            if (this.dataColMap.has(col)) {
-                newColElements.push(this.dataColMap.get(col));
-            }
-            else {
-                const newRow = new CustomCell<X>(this.dataItem, col, this);
-                this.dataColMap.set(col, newRow);
-                newColElements.push(newRow);
-            }
-        }
-        // @ts-ignore
-        this.replaceChildren(...newColElements);
-        for (let value of this.dataColMap.values()) {
-            value.refresh();
-        }
-        this.refreshSelection();
-    }
-
-    refreshSelection() {
-        this.selected = (this.table.curSelection !== undefined && this.table.curSelection.row === this.dataItem && this.table.curSelection.column === undefined);
-        for (let value of this.dataColMap.values()) {
-            value.refreshSelection();
-        }
-    }
-
-    set selected(selected) {
-        if (this._selected === selected) {
-            return;
-        }
-        this._selected = selected;
-        this.setAttribute("is-selected", selected);
-    }
-}
-
-class CustomCell<X> extends HTMLTableCellElement {
-
-    private dataItem: X;
-    colDef: CustomColumnDef<X>;
-    private row: CustomRow<X>;
-    private _selected: boolean = false;
-
-    constructor(dataItem: X, colDef: CustomColumnDef<X>, row: CustomRow<X>) {
-        super();
-        this.dataItem = dataItem;
-        this.colDef = colDef;
-        this.row = row;
-        this.setAttribute("col-id", colDef.shortName);
-        this.refresh();
-    }
-
-    refresh() {
-        this.replaceChildren(this.colDef.getter(this.dataItem));
-        console.log(this.row.table.curSelection);
-        this.refreshSelection();
-    }
-
-    refreshSelection() {
-        this.selected = (this.row.table.curSelection !== undefined && this.dataItem === this.row.table.curSelection.row && this.row.table.curSelection.column === undefined);
-    }
-
-    set selected(selected) {
-        if (this._selected === selected) {
-            return;
-        }
-        this._selected = selected;
-        this.setAttribute("is-selected", selected);
-    }
-
-}
-
-class GearPlanTable extends CustomTable<GearSet> {
+class GearPlanTable extends CustomTable<GearSet, GearSetSel> {
 
     private gearSets: GearSet[] = [];
 
@@ -409,21 +171,17 @@ class GearPlanTable extends CustomTable<GearSet> {
                 shortName: "name",
                 displayName: "Set Name",
                 getter: gearSet => document.createTextNode(gearSet.name),
-                allowHeaderSelection: false,
-                allowCellSelection: false
             },
             {
                 shortName: "bar",
                 displayName: "Foo bar Baz",
                 getter: stuff => document.createTextNode("Stuff"),
-                allowHeaderSelection: false,
-                allowCellSelection: false
-            }
+            },
         ]
-        const selModel = new SimpleSelectionModel<GearSet>();
+        const selModel = new SingleSelectionModel<GearSet, GearSetSel>();
         super.selectionModel = selModel;
         selModel.addListener({
-            onNewSelection(newSelection: Selection<GearSet> | undefined) {
+            onNewSelection(newSelection: TableSelection<GearSet> | undefined) {
                 const sel = newSelection.row;
                 setSelection(sel)
             }
@@ -451,6 +209,76 @@ class GearPlanTable extends CustomTable<GearSet> {
     }
 }
 
+class GearItemsTable extends CustomTable<GearItem, EquipmentSet> {
+    constructor(gearSet: GearSet, slot: string, items: GearItem[]) {
+        super();
+        super.columns = [
+            {
+                shortName: "ilvl",
+                displayName: "Item Level",
+                getter: item => {
+                    return item.ilvl.toString();
+                },
+            },
+            {
+                shortName: "name",
+                displayName: "Name",
+                getter: item => {
+                    return item.name.toString();
+                },
+            },
+            {
+                shortName: "icon",
+                displayName: "Icon",
+                getter: item => {
+                    const image = document.createElement('img');
+                    image.src = item.icon.toString();
+                    return image;
+                }
+            },
+            {
+                shortName: "mind",
+                displayName: "MND",
+                getter: item => {
+                    return item.stats.mind.toString();
+                }
+            },
+            {
+                shortName: "crit",
+                displayName: "CRT",
+                getter: item => {
+                    return item.stats.crit.toString();
+                }
+            }
+        ]
+        this.data = items;
+        const selModel: SelectionModel<GearItem, EquipmentSet> = {
+            clickCell(cell: CustomCell<GearItem>) {
+
+            }, clickColumnHeader(col: CustomColumnDef<GearItem>) {
+
+            }, clickRow(row: CustomRow<GearItem>) {
+                gearSet.setEquip(slot, {gearItem: row.dataItem} as EquippedItem);
+            }, getSelection(): EquipmentSet {
+                return gearSet.equipment;
+            }, isCellSelectedDirectly(cell: CustomCell<GearItem>) {
+                return false;
+            }, isColumnHeaderSelected(col: CustomColumnDef<GearItem>) {
+                return false;
+            }, isRowSelected(row: CustomRow<GearItem>) {
+                return gearSet.getItemInSlot(slot) === row.dataItem;
+            }
+        }
+        super.selectionModel = selModel;
+        // selModel.addListener({
+        //     onNewSelection(newSelection: Selection<GearSet> | undefined) {
+        //         const sel = newSelection.row;
+        //         setSelection(sel)
+        //     }
+        // })
+    }
+}
+
 class GearSetEditor extends HTMLElement {
     constructor(gearPlanner: GearPlanner, gearSet: GearSet) {
         super();
@@ -470,14 +298,18 @@ class GearSetEditor extends HTMLElement {
         })
         console.log(itemMapping);
         for (const [name, slot] of Object.entries(EquipSlots)) {
+
             const slotNode = document.createElement("div");
             const header = document.createElement("h4");
             header.textContent = slot.name;
             slotNode.appendChild(header);
             const itemsInSlot = itemMapping.get(slot.gearSlot);
-            for (let gearItem of itemsInSlot) {
-                slotNode.appendChild(new GearItemDisplay(gearItem, selectedItem => gearSet.setEquip(name, {gearItem: selectedItem} as EquippedItem)));
-            }
+            const table = new GearItemsTable(gearSet, name, itemsInSlot);
+            table.id = "gear-items-table";
+            slotNode.appendChild(table);
+            // for (let gearItem of itemsInSlot) {
+            //     slotNode.appendChild(new GearItemDisplay(gearItem, selectedItem => gearSet.setEquip(name, {gearItem: selectedItem} as EquippedItem)));
+            // }
             this.appendChild(slotNode);
         }
     }
@@ -488,10 +320,7 @@ customElements.define("gear-set-editor", GearSetEditor)
 customElements.define("gear-plan-table", GearPlanTable, {extends: "table"})
 customElements.define("gear-item-display", GearItemDisplay)
 customElements.define("gear-plan", GearPlanner)
-customElements.define("custom-table-row", CustomRow, {extends: "tr"})
-customElements.define("custom-table", CustomTable, {extends: "table"})
-customElements.define("custom-table-cell", CustomCell, {extends: "td"})
-customElements.define("custom-table-header-row", CustomTableHeaderRow, {extends: "tr"})
+customElements.define("gear-items-table", GearItemsTable, {extends: "table"})
 
 
 const planner = new GearPlanner()
