@@ -3,22 +3,30 @@
 
 // import {GearSet, XivApiGearInfo} from "./geartypes";
 
-import {EquipmentSet, EquippedItem, EquipSlots, GearItem, GearSet, GearSlot, XivApiGearInfo} from "./geartypes";
+import {
+    EquipmentSet,
+    EquippedItem,
+    EquipSlot,
+    EquipSlots,
+    GearItem,
+    GearSet,
+    GearSlot,
+    XivApiGearInfo
+} from "./geartypes";
 import {
     CustomCell,
     CustomColumnDef,
     CustomRow,
-    CustomTable,
-    SelectionModel, SingleCellRowOrHeaderSelect,
-    SingleSelectionModel,
-    TableSelection
+    CustomTable, HeaderRow,
+    SelectionModel,
+    SingleCellRowOrHeaderSelect,
+    SingleSelectionModel, TitleRow
 } from "./tables";
 
 // let primarySelectionElement: SelectableDataElement | undefined;
 let primarySelectionValue: Object | undefined;
 
 function setSelection(sel: Object | undefined) {
-    console.log("Selection: " + sel)
     primarySelectionValue = sel;
     if (primarySelectionValue instanceof GearSet) {
         var editorArea = document.getElementById("editor-area");
@@ -66,34 +74,6 @@ function setSelection(sel: Object | undefined) {
 //     }
 // }
 
-class GearItemDisplay extends HTMLElement {
-    constructor(item: GearItem, selectionCallback: undefined | ((item: GearItem) => void)) {
-        super();
-        console.log(item.stats)
-        this.textContent += item.ilvl;
-        this.textContent += ': ';
-        this.textContent += item.name;
-        this.appendChild(document.createElement('br'));
-        const image = document.createElement('img');
-        image.src = item.icon.toString();
-        this.appendChild(image);
-        this.appendChild(document.createElement('br'));
-        for (let statsKey in item.stats) {
-            var stat = item.stats[statsKey];
-            if (stat) {
-                let str = `${statsKey}: ${JSON.stringify(stat)}`
-                this.appendChild(document.createTextNode(str));
-                this.appendChild(document.createTextNode(";  "));
-            }
-        }
-        this.appendChild(document.createElement('br'));
-        if (selectionCallback !== undefined) {
-            this.addEventListener('click', e => selectionCallback(item));
-        }
-    }
-}
-
-
 class GearPlanner extends HTMLElement {
     gearPlanTable: GearPlanTable;
 
@@ -111,14 +91,13 @@ class GearPlanner extends HTMLElement {
     classJob = 'WHM'
 
     loadItems() {
-        console.log("loading items (not really)")
+        console.log("loading items");
         fetch(`https://xivapi.com/search?indexes=Item&filters=LevelItem%3E=${this.minIlvl},LevelItem%3C=${this.maxIlvl},ClassJobCategory.${this.classJob}=1&columns=ID,IconHD,Name,LevelItem,Stats,EquipSlotCategory`)
             .then((response) => {
                 return response.json()
             }, (reason) => {
                 console.error(reason)
             }).then((data) => {
-            console.log(data)
             console.log(`Got ${data['Results'].length} Items`)
             return data['Results'];
         }).then((rawItems) => {
@@ -181,9 +160,10 @@ class GearPlanTable extends CustomTable<GearSet, GearSetSel> {
         const selModel = new SingleSelectionModel<GearSet, GearSetSel>();
         super.selectionModel = selModel;
         selModel.addListener({
-            onNewSelection(newSelection: TableSelection<GearSet> | undefined) {
-                const sel = newSelection.row;
-                setSelection(sel)
+            onNewSelection(newSelection: GearSetSel) {
+                if (newSelection instanceof CustomRow) {
+                    setSelection(newSelection.dataItem);
+                }
             }
         })
         // var header = document.createElement("h1")
@@ -209,22 +189,28 @@ class GearPlanTable extends CustomTable<GearSet, GearSetSel> {
     }
 }
 
-class GearItemsTable extends CustomTable<GearItem, EquipmentSet> {
-    constructor(gearSet: GearSet, slot: string, items: GearItem[]) {
+class GearSlotItem {
+    slot: EquipSlot;
+    item: GearItem;
+    slotName: string;
+}
+
+class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
+    constructor(gearSet: GearSet, itemMapping: Map<GearSlot, GearItem[]>) {
         super();
         super.columns = [
             {
                 shortName: "ilvl",
                 displayName: "Item Level",
                 getter: item => {
-                    return item.ilvl.toString();
+                    return item.item.ilvl.toString();
                 },
             },
             {
                 shortName: "name",
                 displayName: "Name",
                 getter: item => {
-                    return item.name.toString();
+                    return item.item.name.toString();
                 },
             },
             {
@@ -232,7 +218,7 @@ class GearItemsTable extends CustomTable<GearItem, EquipmentSet> {
                 displayName: "Icon",
                 getter: item => {
                     const image = document.createElement('img');
-                    image.src = item.icon.toString();
+                    image.src = item.item.icon.toString();
                     return image;
                 }
             },
@@ -240,36 +226,75 @@ class GearItemsTable extends CustomTable<GearItem, EquipmentSet> {
                 shortName: "mind",
                 displayName: "MND",
                 getter: item => {
-                    return item.stats.mind.toString();
+                    return item.item.stats.mind.toString();
                 }
             },
             {
                 shortName: "crit",
                 displayName: "CRT",
                 getter: item => {
-                    return item.stats.crit.toString();
+                    return item.item.stats.crit.toString();
                 }
-            }
+            },
+            {
+                shortName: "dhit",
+                displayName: "DHT",
+                getter: item => {
+                    return item.item.stats.dhit.toString();
+                }
+            },
+            {
+                shortName: "det",
+                displayName: "DET",
+                getter: item => {
+                    return item.item.stats.det.toString();
+                }
+            },
+            {
+                shortName: "sps",
+                displayName: "SPS",
+                getter: item => {
+                    return item.item.stats.spellspeed.toString();
+                }
+            },
+            {
+                shortName: "piety",
+                displayName: "PIE",
+                getter: item => {
+                    return item.item.stats.crit.toString();
+                }
+            },
         ]
-        this.data = items;
-        const selModel: SelectionModel<GearItem, EquipmentSet> = {
-            clickCell(cell: CustomCell<GearItem>) {
+        const selModel: SelectionModel<GearSlotItem, EquipmentSet> = {
+            clickCell(cell: CustomCell<GearSlotItem>) {
 
-            }, clickColumnHeader(col: CustomColumnDef<GearItem>) {
+            }, clickColumnHeader(col: CustomColumnDef<GearSlotItem>) {
 
-            }, clickRow(row: CustomRow<GearItem>) {
-                gearSet.setEquip(slot, {gearItem: row.dataItem} as EquippedItem);
+            }, clickRow(row: CustomRow<GearSlotItem>) {
+                gearSet.setEquip(row.dataItem.slotName, {gearItem: row.dataItem.item} as EquippedItem);
             }, getSelection(): EquipmentSet {
                 return gearSet.equipment;
-            }, isCellSelectedDirectly(cell: CustomCell<GearItem>) {
+            }, isCellSelectedDirectly(cell: CustomCell<GearSlotItem>) {
                 return false;
-            }, isColumnHeaderSelected(col: CustomColumnDef<GearItem>) {
+            }, isColumnHeaderSelected(col: CustomColumnDef<GearSlotItem>) {
                 return false;
-            }, isRowSelected(row: CustomRow<GearItem>) {
-                return gearSet.getItemInSlot(slot) === row.dataItem;
+            }, isRowSelected(row: CustomRow<GearSlotItem>) {
+                return gearSet.getItemInSlot(row.dataItem.slotName) === row.dataItem.item;
             }
         }
         super.selectionModel = selModel;
+        const data : (TitleRow | HeaderRow | GearSlotItem)[] = [];
+        for (const [name, slot] of Object.entries(EquipSlots)) {
+            // @ts-ignore
+            console.log(name)
+            data.push(new TitleRow(slot.name));
+            data.push(new HeaderRow());
+            const itemsInSlot = itemMapping.get(slot.gearSlot);
+            for (const gearItem of itemsInSlot) {
+                data.push({slot: slot, item: gearItem, slotName: name});
+            }
+        }
+        this.data = data;
         // selModel.addListener({
         //     onNewSelection(newSelection: Selection<GearSet> | undefined) {
         //         const sel = newSelection.row;
@@ -287,7 +312,6 @@ class GearSetEditor extends HTMLElement {
         this.appendChild(header)
         let itemMapping: Map<GearSlot, GearItem[]> = new Map();
         gearPlanner.items.forEach((item) => {
-            console.log(item.name);
             let slot = item.slot;
             if (itemMapping.has(slot)) {
                 itemMapping.get(slot).push(item);
@@ -296,29 +320,19 @@ class GearSetEditor extends HTMLElement {
                 itemMapping.set(slot, [item]);
             }
         })
-        console.log(itemMapping);
-        for (const [name, slot] of Object.entries(EquipSlots)) {
 
-            const slotNode = document.createElement("div");
-            const header = document.createElement("h4");
-            header.textContent = slot.name;
-            slotNode.appendChild(header);
-            const itemsInSlot = itemMapping.get(slot.gearSlot);
-            const table = new GearItemsTable(gearSet, name, itemsInSlot);
-            table.id = "gear-items-table";
-            slotNode.appendChild(table);
-            // for (let gearItem of itemsInSlot) {
-            //     slotNode.appendChild(new GearItemDisplay(gearItem, selectedItem => gearSet.setEquip(name, {gearItem: selectedItem} as EquippedItem)));
-            // }
-            this.appendChild(slotNode);
-        }
+        const table = new GearItemsTable(gearSet, itemMapping);
+        table.id = "gear-items-table";
+        // for (let gearItem of itemsInSlot) {
+        //     slotNode.appendChild(new GearItemDisplay(gearItem, selectedItem => gearSet.setEquip(name, {gearItem: selectedItem} as EquippedItem)));
+        // }
+        this.appendChild(table);
     }
 }
 
 // customElements.define("gear-plan-row", GearPlanRow)
 customElements.define("gear-set-editor", GearSetEditor)
 customElements.define("gear-plan-table", GearPlanTable, {extends: "table"})
-customElements.define("gear-item-display", GearItemDisplay)
 customElements.define("gear-plan", GearPlanner)
 customElements.define("gear-items-table", GearItemsTable, {extends: "table"})
 

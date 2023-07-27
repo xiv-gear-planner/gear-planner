@@ -31,7 +31,7 @@ export const EquipSlots: Record<string, EquipSlot> = {
     Neck: {name: 'Neck', gearSlot: GearSlots.Neck},
     Wrist: {name: 'Wrist', gearSlot: GearSlots.Wrist},
     RingLeft: {name: 'Left Ring', gearSlot: GearSlots.Ring},
-    RingRight: {name: 'Right Ring', gearSlot: GearSlots.Head}
+    RingRight: {name: 'Right Ring', gearSlot: GearSlots.Ring}
 }
 
 export interface GearStats {
@@ -44,7 +44,9 @@ export interface GearStats {
     crit: number,
     dhit: number,
     det: number,
-    tenacity: number
+    tenacity: number,
+    spellspeed: number,
+    skillspeed: number
 }
 
 export interface GearItem {
@@ -85,12 +87,10 @@ export class GearSet {
 
     getItemInSlot(slot: string) : GearItem | null {
         const inSlot = this.equipment[slot];
-        if (inSlot instanceof EquippedItem) {
-            return inSlot.gearItem;
-        }
-        else {
+        if (inSlot === null || inSlot === undefined) {
             return null;
         }
+        return inSlot.gearItem;
     }
 }
 
@@ -187,7 +187,9 @@ export class XivApiGearInfo implements GearItem {
             crit: this.getStatRaw("CriticalHit"),
             dhit: this.getStatRaw("DirectHit"),
             det: this.getStatRaw("Determination"),
-            tenacity: this.getStatRaw("Tenacity")
+            tenacity: this.getStatRaw("Tenacity"),
+            spellspeed: this.getStatRaw("SpellSpeed"),
+            skillspeed: this.getStatRaw("SkillSpeed"),
         }
     }
 
