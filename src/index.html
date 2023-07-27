@@ -3,17 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <title>Gear Planner</title>
-    <!-- hack for TS or something -->
-    <!-- TODO I think webpack is the correct way to solve this -->
-    <script>var exports = {};</script>
-    <script src="../build/stuff.js" type="module"></script>
+    <script src="../dist/bundle.js" type="module"></script>
+    <style>
+        .data-item-selected {
+            border-style: double;
+            border-color: blue;
+        }
+
+        gear-plan-row {
+            width: 300px;
+            height: 50px;
+            display: block;
+            border-width: 2px;
+            border-style: solid;
+            border-color: transparent;
+            box-sizing: border-box;
+        }
+
+        table {
+            border-collapse: collapse;
+        }
+
+        td {
+            /*border: 1px solid #ff00ff;*/
+            /*border-top: 1px solid #ff00ff;*/
+            /*border-bottom: 1px solid #ff00ff;*/
+            /*border-left: 0;*/
+            /*border-right: 0;*/
+            margin: 0;
+            padding: 3px;
+        }
+
+        tr {
+            /*border: 2px solid #666666;*/
+            border: 1px solid #ff00ff;
+            background-color: #dddddd;
+        }
+
+        tr[is-selected="true"] {
+            border: 1px double #006600;
+        }
+
+    </style>
 </head>
 <body>
 
-<h1>Stuff</h1>
-<div id="gear-plan-table"></div>
-<gear-plan-row></gear-plan-row>
-<button onclick="planner.loadItems()">Foo</button>
+<div id="content-area"></div>
+<div id="editor-area"></div>
 
 </body>
 </html>
