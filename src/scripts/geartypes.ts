@@ -49,6 +49,21 @@ export interface GearStats {
     skillspeed: number
 }
 
+export class GearStats implements GearStats {
+    crit: number = 0;
+    det: number = 0;
+    dexterity: number = 0;
+    dhit: number = 0;
+    intelligence: number = 0;
+    mind: number = 0;
+    piety: number = 0;
+    skillspeed: number = 0;
+    spellspeed: number = 0;
+    strength: number = 0;
+    tenacity: number = 0;
+    vitality: number = 0;
+}
+
 export interface GearItem {
     name: string;
     id: number;
@@ -56,6 +71,10 @@ export interface GearItem {
     slot: GearSlot;
     ilvl: number;
     stats: GearStats;
+}
+
+export interface ComputedSetStats extends GearStats {
+    gcd: number,
 }
 
 export interface Materia {
@@ -67,10 +86,12 @@ export class EquippedItem {
     melds: Materia[] = [];
 }
 
-export class GearSet {
+export class CharacterGearSet {
     name: string;
     equipment: EquipmentSet;
     listeners: (() => void)[] = [];
+    private _dirtyComp: boolean = true;
+    private _computedStats: ComputedSetStats;
 
     constructor() {
         this.name = "foo name goes here"
@@ -78,6 +99,7 @@ export class GearSet {
     }
 
     setEquip(slot: string, item: EquippedItem) {
+        this._dirtyComp = true;
         this.equipment[slot] = item;
         console.log(`Set ${this.name}: slot ${slot} => ${item.gearItem.name}`);
         for (let listener of this.listeners) {
@@ -85,12 +107,45 @@ export class GearSet {
         }
     }
 
+    addListener(listener: () => void) {
+        this.listeners.push(listener);
+    }
+
     getItemInSlot(slot: string) : GearItem | null {
         const inSlot = this.equipment[slot];
         if (inSlot === null || inSlot === undefined) {
             return null;
         }
+
         return inSlot.gearItem;
+    }
+
+    get allItems() : GearItem[] {
+        return Object.values(this.equipment)
+            .filter(slotEquipment => slotEquipment)
+            .map(slotEquipment => slotEquipment.gearItem);
+    }
+
+    // TODO: cache result?
+    get computedStats() : ComputedSetStats {
+        if (!this._dirtyComp) {
+            return this._computedStats;
+        }
+        const all = this.allItems;
+        const combinedStats = new GearStats();
+        for (let item of all) {
+            for (let entry of Object.entries(combinedStats)) {
+                const stat = entry[0] as keyof GearStats;
+                combinedStats[stat] = item.stats[stat] + (combinedStats[stat] ?? 0);
+            }
+        }
+        // @ts-ignore
+        this._computedStats = {
+            ...combinedStats,
+            gcd: 1.234,
+        }
+        this._dirtyComp = false;
+        return this._computedStats;
     }
 }
 

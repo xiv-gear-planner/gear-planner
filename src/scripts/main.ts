@@ -9,7 +9,7 @@ import {
     EquipSlot,
     EquipSlots,
     GearItem,
-    GearSet,
+    CharacterGearSet,
     GearSlot,
     XivApiGearInfo
 } from "./geartypes";
@@ -17,10 +17,12 @@ import {
     CustomCell,
     CustomColumnDef,
     CustomRow,
-    CustomTable, HeaderRow,
+    CustomTable, CustomTableHeaderRow,
+    HeaderRow,
     SelectionModel,
     SingleCellRowOrHeaderSelect,
-    SingleSelectionModel, TitleRow
+    SingleSelectionModel,
+    TitleRow
 } from "./tables";
 
 // let primarySelectionElement: SelectableDataElement | undefined;
@@ -28,7 +30,7 @@ let primarySelectionValue: Object | undefined;
 
 function setSelection(sel: Object | undefined) {
     primarySelectionValue = sel;
-    if (primarySelectionValue instanceof GearSet) {
+    if (primarySelectionValue instanceof CharacterGearSet) {
         var editorArea = document.getElementById("editor-area");
         editorArea.replaceChildren(new GearSetEditor(planner, primarySelectionValue))
     }
@@ -137,11 +139,11 @@ class GearPlanner extends HTMLElement {
 //     }
 // }
 
-type GearSetSel = SingleCellRowOrHeaderSelect<GearSet>;
+type GearSetSel = SingleCellRowOrHeaderSelect<CharacterGearSet>;
 
-class GearPlanTable extends CustomTable<GearSet, GearSetSel> {
+class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
 
-    private gearSets: GearSet[] = [];
+    private gearSets: CharacterGearSet[] = [];
 
     constructor() {
         super();
@@ -149,15 +151,45 @@ class GearPlanTable extends CustomTable<GearSet, GearSetSel> {
             {
                 shortName: "name",
                 displayName: "Set Name",
-                getter: gearSet => document.createTextNode(gearSet.name),
+                getter: gearSet => gearSet.name
             },
             {
-                shortName: "bar",
-                displayName: "Foo bar Baz",
-                getter: stuff => document.createTextNode("Stuff"),
+                shortName: "vit",
+                displayName: "Vitality",
+                getter: gearSet => gearSet.computedStats.vitality.toString(),
+            },
+            {
+                shortName: "mind",
+                displayName: "MND",
+                getter: gearSet => gearSet.computedStats.mind.toString(),
+            },
+            {
+                shortName: "crit",
+                displayName: "CRT",
+                getter: gearSet => gearSet.computedStats.crit.toString(),
+            },
+            {
+                shortName: "dhit",
+                displayName: "DHT",
+                getter: gearSet => gearSet.computedStats.dhit.toString(),
+            },
+            {
+                shortName: "det",
+                displayName: "DET",
+                getter: gearSet => gearSet.computedStats.det.toString(),
+            },
+            {
+                shortName: "sps",
+                displayName: "SPS",
+                getter: gearSet => gearSet.computedStats.spellspeed.toString(),
+            },
+            {
+                shortName: "piety",
+                displayName: "PIE",
+                getter: gearSet => gearSet.computedStats.piety.toString(),
             },
         ]
-        const selModel = new SingleSelectionModel<GearSet, GearSetSel>();
+        const selModel = new SingleSelectionModel<CharacterGearSet, GearSetSel>();
         super.selectionModel = selModel;
         selModel.addListener({
             onNewSelection(newSelection: GearSetSel) {
@@ -182,9 +214,11 @@ class GearPlanTable extends CustomTable<GearSet, GearSetSel> {
         // this.appendChild(newButton);
     }
 
-    addRow(gearSet: GearSet) {
+    addRow(gearSet: CharacterGearSet) {
+        // TODO: make this only refresh the specific row
+        gearSet.addListener(() => this.refreshFull());
         this.gearSets.push(gearSet);
-        super.data = this.gearSets;
+        super.data = [new HeaderRow(), ...this.gearSets];
         super.refreshFull();
     }
 }
@@ -196,7 +230,7 @@ class GearSlotItem {
 }
 
 class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
-    constructor(gearSet: GearSet, itemMapping: Map<GearSlot, GearItem[]>) {
+    constructor(gearSet: CharacterGearSet, itemMapping: Map<GearSlot, GearItem[]>, updateCallback = () => undefined) {
         super();
         super.columns = [
             {
@@ -220,6 +254,13 @@ class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
                     const image = document.createElement('img');
                     image.src = item.item.icon.toString();
                     return image;
+                }
+            },
+            {
+                shortName: "vit",
+                displayName: "VIT",
+                getter: item => {
+                    return item.item.stats.vitality.toString();
                 }
             },
             {
@@ -265,7 +306,7 @@ class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
                 }
             },
         ]
-        const selModel: SelectionModel<GearSlotItem, EquipmentSet> = {
+        super.selectionModel = {
             clickCell(cell: CustomCell<GearSlotItem>) {
 
             }, clickColumnHeader(col: CustomColumnDef<GearSlotItem>) {
@@ -281,12 +322,9 @@ class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
             }, isRowSelected(row: CustomRow<GearSlotItem>) {
                 return gearSet.getItemInSlot(row.dataItem.slotName) === row.dataItem.item;
             }
-        }
-        super.selectionModel = selModel;
+        };
         const data : (TitleRow | HeaderRow | GearSlotItem)[] = [];
         for (const [name, slot] of Object.entries(EquipSlots)) {
-            // @ts-ignore
-            console.log(name)
             data.push(new TitleRow(slot.name));
             data.push(new HeaderRow());
             const itemsInSlot = itemMapping.get(slot.gearSlot);
@@ -305,7 +343,7 @@ class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
 }
 
 class GearSetEditor extends HTMLElement {
-    constructor(gearPlanner: GearPlanner, gearSet: GearSet) {
+    constructor(gearPlanner: GearPlanner, gearSet: CharacterGearSet) {
         super();
         var header = document.createElement("h1");
         header.textContent = "Editor Area"
@@ -344,11 +382,11 @@ document.addEventListener("DOMContentLoaded", () => {
     console.log("Loaded")
     planner.loadItems();
     document.getElementById("content-area").appendChild(planner)
-    var gs1 = new GearSet();
+    var gs1 = new CharacterGearSet();
     gs1.name = "Other name";
     planner.gearPlanTable.addRow(gs1)
-    planner.gearPlanTable.addRow(new GearSet())
-    planner.gearPlanTable.addRow(new GearSet())
-    planner.gearPlanTable.addRow(new GearSet())
+    planner.gearPlanTable.addRow(new CharacterGearSet())
+    planner.gearPlanTable.addRow(new CharacterGearSet())
+    planner.gearPlanTable.addRow(new CharacterGearSet())
 })
 
