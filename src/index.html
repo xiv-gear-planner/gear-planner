@@ -6,24 +6,25 @@
     <script src="../dist/bundle.js" type="module"></script>
     <style>
         body {
-            color: #cccccc;
-            background-color: #181818;
+            --bg-color: #181818;
+            --fg-color: #bbbbbb;
+            --border-color: #666666;
+            --table-bg-color: #252525;
+            --table-bg-color-selected: #333333;
+            --table-selected-outline-color: #00bbbb;
+            --color-sps-sks: #22ff22;
+            --color-crit: #ff2222;
+            --color-dhit: #ff8800;
+            --color-det: #0099ff;
+            --color-tnc: #ffff00;
+            --color-piety: #ff00ff;
+            --stat-mix-primary: 70%;
+            --stat-mix-primary-bg: 12%;
+            --stat-mix-secondary: 12%;
+            --stat-mix-secondary-bg: 6%;
+            color: var(--fg-color);
+            background-color: var(--bg-color);
             font-family: sans-serif;
-        }
-
-        .data-item-selected {
-            border-style: double;
-            border-color: blue;
-        }
-
-        gear-plan-row {
-            width: 300px;
-            height: 50px;
-            display: block;
-            border-width: 2px;
-            border-style: solid;
-            border-color: transparent;
-            box-sizing: border-box;
         }
 
         table {
@@ -36,28 +37,125 @@
             /*border-bottom: 1px solid #ff00ff;*/
             /*border-left: 0;*/
             /*border-right: 0;*/
-            border: 1px solid #666666;
+            border: 1px solid var(--border-color);
 
             margin: 0;
             padding: 3px;
+            text-overflow: ellipsis;
+            overflow: hidden;
         }
 
         tr {
             /*border: 2px solid #666666;*/
-            border: 3px solid #666666;
-            background-color: #252525;
+            border: 3px solid var(--border-color);
+            background-color: var(--table-bg-color);
         }
 
         tr[is-selected="true"] {
             /*border: 3px solid #00bbbb;*/
-            outline: 3px solid #00bbbb;
-            background-color: #333333;
+            outline: 3px solid var(--table-selected-outline-color);
+            background-color: var(--table-bg-color-selected);
+        }
+
+        table.gear-items-table tr {
+            height: 25px;
+        }
+        table.gear-items-table td {
+            height: 25px;
+        }
+        table.gear-items-table img {
+            height: 100%;
+            /*width: 50px;*/
+        }
+
+        td.stat-sps.primary {
+            color: color-mix(in srgb, var(--color-sps-sks) var(--stat-mix-primary), currentColor);
+            background-color: color-mix(in srgb, var(--color-sps-sks) var(--stat-mix-primary-bg), var(--table-bg-color));
+        }
+
+        td.stat-sps.secondary {
+            color: color-mix(in srgb, var(--color-sps-sks) var(--stat-mix-secondary), currentColor);
+            background-color: color-mix(in srgb, var(--color-sps-sks) var(--stat-mix-secondary-bg), var(--table-bg-color));
+        }
+
+        td.stat-dhit.primary {
+            color: color-mix(in srgb, var(--color-dhit) var(--stat-mix-primary), currentColor);
+            background-color: color-mix(in srgb, var(--color-dhit) var(--stat-mix-primary-bg), var(--table-bg-color));
+        }
+
+        td.stat-dhit.secondary {
+            color: color-mix(in srgb, var(--color-dhit) var(--stat-mix-secondary), currentColor);
+            background-color: color-mix(in srgb, var(--color-dhit) var(--stat-mix-secondary-bg), var(--table-bg-color));
+        }
+
+        td.stat-det.primary {
+            color: color-mix(in srgb, var(--color-det) var(--stat-mix-primary), currentColor);
+            background-color: color-mix(in srgb, var(--color-det) var(--stat-mix-primary-bg), var(--table-bg-color));
+        }
+
+        td.stat-det.secondary {
+            color: color-mix(in srgb, var(--color-det) var(--stat-mix-secondary), currentColor);
+            background-color: color-mix(in srgb, var(--color-det) var(--stat-mix-secondary-bg), var(--table-bg-color));
+        }
+
+        td.stat-tnc.primary {
+            color: color-mix(in srgb, var(--color-tnc) var(--stat-mix-primary), currentColor);
+            background-color: color-mix(in srgb, var(--color-tnc) var(--stat-mix-primary-bg), var(--table-bg-color));
+        }
+
+        td.stat-tnc.secondary {
+            color: color-mix(in srgb, var(--color-tnc) var(--stat-mix-secondary), currentColor);
+            background-color: color-mix(in srgb, var(--color-tnc) var(--stat-mix-secondary-bg), var(--table-bg-color));
+        }
+
+        td.stat-piety.primary {
+            color: color-mix(in srgb, var(--color-piety) var(--stat-mix-primary), currentColor);
+            background-color: color-mix(in srgb, var(--color-piety) var(--stat-mix-primary-bg), var(--table-bg-color));
+        }
+
+        td.stat-piety.secondary {
+            color: color-mix(in srgb, var(--color-piety) var(--stat-mix-secondary), currentColor);
+            background-color: color-mix(in srgb, var(--color-piety) var(--stat-mix-secondary-bg), var(--table-bg-color));
+        }
+
+        td.stat-crit.primary {
+            color: color-mix(in srgb, var(--color-crit) var(--stat-mix-primary), currentColor);
+            background-color: color-mix(in srgb, var(--color-crit) var(--stat-mix-primary-bg), var(--table-bg-color));
+        }
+
+        td.stat-crit.secondary {
+            color: color-mix(in srgb, var(--color-crit) var(--stat-mix-secondary), currentColor);
+            background-color: color-mix(in srgb, var(--color-crit) var(--stat-mix-secondary-bg), var(--table-bg-color));
+        }
+        td.stat-zero {
+            color: color-mix(in srgb, var(--table-bg-color) 50%, var(--fg-color));
+        }
+        td.primary {
+            font-weight: bold;
+        }
+        .slot-materia-manager select {
+            color: var(--fg-color);
+            background-color: var(--bg-color);
+            border: 1px solid var(--border-color);
+        }
+
+        div#top-menu-area {
+            margin: 10px;
+            padding: 5px;
+            border: 1px solid var(--border-color);
+        }
+
+        div#top-menu-area button {
+            margin: 10px;
+            color: var(--fg-color);
+            background-color: var(--bg-color);
         }
 
     </style>
 </head>
 <body>
 
+<div id="top-menu-area"></div>
 <div id="content-area"></div>
 <div id="editor-area"></div>
 

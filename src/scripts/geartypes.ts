@@ -1,3 +1,10 @@
+import {
+    MATERIA_LEVEL_MAX_NORMAL,
+    MATERIA_LEVEL_MAX_OVERMELD,
+    MATERIA_LEVEL_MIN_RELEVANT,
+    MATERIA_SLOTS_MAX
+} from "./xivconstants";
+
 export interface GearSlot {
 
 }
@@ -17,6 +24,7 @@ export const GearSlots: Record<string, GearSlot> = {
 
 export interface EquipSlot {
     get gearSlot(): GearSlot;
+
     name: string;
 }
 
@@ -64,30 +72,59 @@ export class GearStats implements GearStats {
     vitality: number = 0;
 }
 
-export interface GearItem {
+
+export interface XivItem {
     name: string;
     id: number;
-    icon: URL;
-    slot: GearSlot;
-    ilvl: number;
+    iconUrl: URL;
+}
+
+export interface XivCombatItem extends XivItem {
     stats: GearStats;
+}
+
+export interface GearItem extends XivCombatItem {
+    gearSlot: GearSlot;
+    ilvl: number;
+    primarySubstat: keyof GearStats | null;
+    secondarySubstat: keyof GearStats | null;
+    substatCap: number;
+    materiaSlots: MateriaSlot[];
+}
+
+export interface Materia extends XivCombatItem {
+
 }
 
 export interface ComputedSetStats extends GearStats {
     gcd: number,
 }
 
-export interface Materia {
-    // TODO
+export interface MeldableMateriaSlot {
+    materiaSlot: MateriaSlot;
+    equippedMatiera: Materia | null;
 }
 
 export class EquippedItem {
+    constructor(gearItem: GearItem, melds: MeldableMateriaSlot[] | undefined = undefined) {
+        this.gearItem = gearItem;
+        if (melds === undefined) {
+            this.melds = [];
+            for (let materiaSlot of gearItem.materiaSlots) {
+                this.melds.push({
+                    materiaSlot: materiaSlot,
+                    equippedMatiera: null
+                })
+            }
+        }
+    }
+
     gearItem: GearItem;
-    melds: Materia[] = [];
+    melds: MeldableMateriaSlot[];
 }
 
 export class CharacterGearSet {
-    name: string;
+    _name: string;
     equipment: EquipmentSet;
     listeners: (() => void)[] = [];
     private _dirtyComp: boolean = true;
@@ -98,20 +135,40 @@ export class CharacterGearSet {
         this.equipment = new EquipmentSet();
     }
 
-    setEquip(slot: string, item: EquippedItem) {
+    set name(name) {
+        this._name = name;
+        this.notifyListeners();
+    }
+
+    get name() {
+        return this._name;
+    }
+
+
+    setEquip(slot: string, item: GearItem) {
         this._dirtyComp = true;
-        this.equipment[slot] = item;
-        console.log(`Set ${this.name}: slot ${slot} => ${item.gearItem.name}`);
+        this.equipment[slot] = new EquippedItem(item);
+        console.log(`Set ${this.name}: slot ${slot} => ${item.name}`);
+        this.notifyListeners()
+    }
+
+    private notifyListeners() {
         for (let listener of this.listeners) {
             listener();
         }
+    }
+
+
+    notifyMateriaChange() {
+        this._dirtyComp = true;
+        this.notifyListeners();
     }
 
     addListener(listener: () => void) {
         this.listeners.push(listener);
     }
 
-    getItemInSlot(slot: string) : GearItem | null {
+    getItemInSlot(slot: string): GearItem | null {
         const inSlot = this.equipment[slot];
         if (inSlot === null || inSlot === undefined) {
             return null;
@@ -120,18 +177,18 @@ export class CharacterGearSet {
         return inSlot.gearItem;
     }
 
-    get allItems() : GearItem[] {
+    get allStatPieces(): XivCombatItem[] {
         return Object.values(this.equipment)
-            .filter(slotEquipment => slotEquipment)
-            .map(slotEquipment => slotEquipment.gearItem);
+            .filter(slotEquipment => slotEquipment && slotEquipment.gearItem)
+            .flatMap((slotEquipment : EquippedItem) => [slotEquipment.gearItem, ...slotEquipment.melds.map(meldSlot => meldSlot.equippedMatiera).filter(item => item)]);
     }
 
     // TODO: cache result?
-    get computedStats() : ComputedSetStats {
+    get computedStats(): ComputedSetStats {
         if (!this._dirtyComp) {
             return this._computedStats;
         }
-        const all = this.allItems;
+        const all = this.allStatPieces;
         const combinedStats = new GearStats();
         for (let item of all) {
             for (let entry of Object.entries(combinedStats)) {
@@ -148,6 +205,11 @@ export class CharacterGearSet {
         return this._computedStats;
     }
 }
+export class GearSlotItem {
+    slot: EquipSlot;
+    item: GearItem;
+    slotName: string;
+}
 
 export class EquipmentSet {
     Weapon: EquippedItem | null;
@@ -162,13 +224,22 @@ export class EquipmentSet {
     RingRight: EquippedItem | null;
 }
 
+export interface MateriaSlot {
+    maxGrade: number,
+}
+
 export class XivApiGearInfo implements GearItem {
     id: number;
     name: string;
     Icon: URL;
     Stats: Object;
     ilvl: number;
-    slot: GearSlot;
+    gearSlot: GearSlot;
+    stats: GearStats;
+    primarySubstat: keyof GearStats | null;
+    secondarySubstat: keyof GearStats | null;
+    substatCap: number;
+    materiaSlots: MateriaSlot[];
 
     constructor(data: Object) {
         this.id = data['ID'];
@@ -178,43 +249,102 @@ export class XivApiGearInfo implements GearItem {
         this.Stats = data['Stats'];
         var eqs = data['EquipSlotCategory'];
         if (eqs['MainHand']) {
-            this.slot = GearSlots.Weapon;
+            this.gearSlot = GearSlots.Weapon;
         }
         else if (eqs['Head']) {
-            this.slot = GearSlots.Head;
+            this.gearSlot = GearSlots.Head;
         }
         else if (eqs['Body']) {
-            this.slot = GearSlots.Body;
+            this.gearSlot = GearSlots.Body;
         }
         else if (eqs['Gloves']) {
-            this.slot = GearSlots.Hand;
+            this.gearSlot = GearSlots.Hand;
         }
         else if (eqs['Legs']) {
-            this.slot = GearSlots.Legs;
+            this.gearSlot = GearSlots.Legs;
         }
         else if (eqs['Feet']) {
-            this.slot = GearSlots.Feet;
+            this.gearSlot = GearSlots.Feet;
         }
         else if (eqs['Ears']) {
-            this.slot = GearSlots.Ears;
+            this.gearSlot = GearSlots.Ears;
         }
         else if (eqs['Neck']) {
-            this.slot = GearSlots.Neck;
+            this.gearSlot = GearSlots.Neck;
         }
         else if (eqs['Wrists']) {
-            this.slot = GearSlots.Wrist;
+            this.gearSlot = GearSlots.Wrist;
         }
         else if (eqs['FingerL'] || eqs['FingerR']) {
-            this.slot = GearSlots.Ring;
+            this.gearSlot = GearSlots.Ring;
         }
         else {
             console.error("Unknown slot data!")
             console.error(eqs);
         }
+
+        this.stats = {
+            vitality: this.getStatRaw("Vitality"),
+            strength: this.getStatRaw("Strength"),
+            dexterity: this.getStatRaw("Dexterity"),
+            intelligence: this.getStatRaw("Intelligence"),
+            mind: this.getStatRaw("Mind"),
+            piety: this.getStatRaw("Piety"),
+            crit: this.getStatRaw("CriticalHit"),
+            dhit: this.getStatRaw("DirectHit"),
+            det: this.getStatRaw("Determination"),
+            tenacity: this.getStatRaw("Tenacity"),
+            spellspeed: this.getStatRaw("SpellSpeed"),
+            skillspeed: this.getStatRaw("SkillSpeed"),
+        }
+        const sortedStats = Object.entries({
+            crit: this.stats.crit,
+            dhit: this.stats.dhit,
+            det: this.stats.det,
+            spellspeed: this.stats.spellspeed,
+            skillspeed: this.stats.skillspeed,
+            piety: this.stats.piety,
+            tenacity: this.stats.tenacity,
+        })
+            .sort((left, right) => {
+                if (left[1] > right[1]) {
+                    return 1;
+                }
+                else if (left[1] < right[1]) {
+                    return -1;
+                }
+                return 0;
+            })
+            .filter(item => item[1])
+            .reverse();
+        if (sortedStats.length < 2) {
+            this.primarySubstat = null;
+            this.secondarySubstat = null;
+            // TODO idk
+            this.substatCap = 1000;
+        }
+        else {
+            this.primarySubstat = sortedStats[0][0] as keyof GearStats;
+            this.secondarySubstat = sortedStats[1][0] as keyof GearStats;
+            this.substatCap = sortedStats[0][1];
+        }
+        this.materiaSlots = [];
+        const baseMatCount: number = data['MateriaSlotCount'];
+        const overmeld: boolean = data['IsAdvancedMeldingPermitted'] as boolean;
+        for (let i = 0; i < baseMatCount; i++) {
+            // TODO: figure out grade automatically
+            this.materiaSlots.push({maxGrade: MATERIA_LEVEL_MAX_NORMAL});
+        }
+        if (overmeld) {
+            this.materiaSlots.push({maxGrade: MATERIA_LEVEL_MAX_NORMAL})
+            for (let i = this.materiaSlots.length; i < MATERIA_SLOTS_MAX; i++) {
+                this.materiaSlots.push({maxGrade: MATERIA_LEVEL_MAX_OVERMELD});
+            }
+        }
     }
 
 
-    get icon() {
+    get iconUrl() {
         return new URL(`https://xivapi.com/${this.Icon}`);
     }
 
@@ -230,33 +360,66 @@ export class XivApiGearInfo implements GearItem {
             return statValues['NQ'];
         }
     }
+}
 
-    get stats() {
-        return {
-            vitality: this.getStatRaw("Vitality"),
-            strength: this.getStatRaw("Strength"),
-            dexterity: this.getStatRaw("Dexterity"),
-            intelligence: this.getStatRaw("Intelligence"),
-            mind: this.getStatRaw("Mind"),
-            piety: this.getStatRaw("Piety"),
-            crit: this.getStatRaw("CriticalHit"),
-            dhit: this.getStatRaw("DirectHit"),
-            det: this.getStatRaw("Determination"),
-            tenacity: this.getStatRaw("Tenacity"),
-            spellspeed: this.getStatRaw("SpellSpeed"),
-            skillspeed: this.getStatRaw("SkillSpeed"),
+export function processRawMateriaInfo(data: Object): Materia[] {
+    const out: Materia[] = []
+    for (let i = MATERIA_LEVEL_MIN_RELEVANT - 1; i < MATERIA_LEVEL_MAX_NORMAL; i++) {
+        const itemData = data['Item' + i];
+        const itemName = itemData["Name"];
+        const stats = new GearStats();
+        const stat = statById(data['BaseParam']['ID']);
+        if (!stat || !itemName) {
+            continue;
         }
+        stats[stat] = data['Value' + i];
+        out.push({
+            name: itemName,
+            id: itemData["ID"],
+            iconUrl: itemData["IconHD"],
+            stats: stats,
+        })
     }
-
-
+    return out;
 }
 
-type Foo = string | number;
-
-class Bar<X = Foo> {
-    something: X | Foo;
-
-    doStuff() {
-        this.something = 123;
+// TODO: move to constants
+export function statById(id: number): keyof GearStats {
+    switch (id) {
+        case 6:
+            return "piety";
+        case 19:
+            return "tenacity";
+        case 22:
+            return "dhit";
+        case 27:
+            return "crit";
+        case 45:
+            return "skillspeed";
+        case 46:
+            return "spellspeed";
+        default:
+            return undefined;
     }
 }
+
+
+export interface SheetExport {
+    name: string,
+    sets: SetExport[]
+}
+
+export type EquipSlotKeys = keyof EquipmentSet;
+
+export interface SetExport {
+    name: string,
+    items: {
+        [K in EquipSlotKeys]?: ItemSlotExport
+    };
+}
+
+export interface ItemSlotExport {
+    id: number,
+    materia: ({ id: number } | undefined)[]
+}
+

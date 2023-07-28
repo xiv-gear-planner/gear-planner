@@ -5,6 +5,9 @@ export class CustomTableHeaderRow<X> extends HTMLTableRowElement {
             const headerCell = document.createElement("th");
             headerCell.textContent = column.displayName;
             headerCell.setAttribute("col-id", column.shortName);
+            if (column.initialWidth !== undefined) {
+                headerCell.style.width = column.initialWidth + "px";
+            }
             this.appendChild(headerCell);
         }
     }
@@ -31,13 +34,13 @@ export class CustomTableTitleRow extends HTMLTableRowElement {
 export interface SelectionModel<X, Y> {
     getSelection(): Y;
 
-    clickCell(cell: CustomCell<X>);
+    clickCell(cell: CustomCell<X, Y>);
 
     clickColumnHeader(col: CustomColumnDef<X>);
 
     clickRow(row: CustomRow<X>);
 
-    isCellSelectedDirectly(cell: CustomCell<X>);
+    isCellSelectedDirectly(cell: CustomCell<X, Y>);
 
     isRowSelected(row: CustomRow<X>);
 
@@ -45,10 +48,10 @@ export interface SelectionModel<X, Y> {
 }
 
 export const noopSelectionModel: SelectionModel<any, undefined> = {
-    isCellSelectedDirectly(cell: CustomCell<any>) {
+    isCellSelectedDirectly(cell: CustomCell<any, any>) {
         return false;
     },
-    clickCell(cell: CustomCell<any>) {
+    clickCell(cell: CustomCell<any, any>) {
     }, clickColumnHeader(col: CustomColumnDef<any>) {
     }, clickRow(cell: CustomRow<any>) {
     }, getSelection(): undefined {
@@ -64,7 +67,7 @@ export interface SelectionListener<Y> {
     onNewSelection(newSelection: Y);
 }
 
-export type SingleCellRowOrHeaderSelect<X> = CustomColumnDef<X> | CustomCell<X> | CustomRow<X> | undefined;
+export type SingleCellRowOrHeaderSelect<X> = CustomColumnDef<X> | CustomCell<X, any> | CustomRow<X> | undefined;
 
 export class SingleSelectionModel<X, Y = never> implements SelectionModel<X, SingleCellRowOrHeaderSelect<X> | Y> {
 
@@ -85,7 +88,7 @@ export class SingleSelectionModel<X, Y = never> implements SelectionModel<X, Sin
         return this._selection;
     }
 
-    clickCell(cell: CustomCell<X>) {
+    clickCell(cell: CustomCell<X, Y>) {
         this._selection = cell;
         this.notifyListeners();
     }
@@ -100,7 +103,7 @@ export class SingleSelectionModel<X, Y = never> implements SelectionModel<X, Sin
         this.notifyListeners();
     }
 
-    isCellSelectedDirectly(cell: CustomCell<X>) {
+    isCellSelectedDirectly(cell: CustomCell<X, Y>) {
         return cell === this._selection;
     }
 
@@ -124,15 +127,25 @@ export class HeaderRow {
 
 export class TitleRow {
     title: string;
+
     constructor(title: string) {
         this.title = title;
     }
 }
 
+export class SpecialRow<X, Y> {
+
+    creator: (table: CustomTable<X, Y>) => Node
+
+    constructor(creator) {
+        this.creator = creator;
+    }
+}
+
 export class CustomTable<X, Y = never> extends HTMLTableElement {
-    _data: (X | HeaderRow | TitleRow)[];
+    _data: (X | HeaderRow | TitleRow)[] = [];
     dataRowMap: Map<X, CustomRow<X>> = new Map<X, CustomRow<X>>();
-    columns: CustomColumnDef<X>[];
+    _columns: CustomColumnDef<X, any>[];
     // TODO
     // selectionEnabled: boolean;
     selectionModel: SelectionModel<X, Y> = noopSelectionModel;
@@ -144,6 +157,18 @@ export class CustomTable<X, Y = never> extends HTMLTableElement {
         this.appendChild(this.createTBody());
         this.addEventListener('click', ev => {
             this.handleClick(ev);
+        })
+    }
+
+    get columns() {
+        return this._columns;
+    }
+
+    set columns(cols) {
+        this._columns = cols.map(colDefPartial => {
+            const out = new CustomColumnDef();
+            Object.assign(out, colDefPartial);
+            return out;
         })
     }
 
@@ -162,7 +187,11 @@ export class CustomTable<X, Y = never> extends HTMLTableElement {
             }
             else if (item instanceof TitleRow) {
                 newRowElements.push(new CustomTableTitleRow(this, item.title));
-            } else {
+            }
+            else if (item instanceof SpecialRow) {
+                newRowElements.push(new CustomTableTitleRow(this, item.creator(this)));
+            }
+            else {
                 if (this.dataRowMap.has(item)) {
                     newRowElements.push(this.dataRowMap.get(item));
                 }
@@ -190,33 +219,54 @@ export class CustomTable<X, Y = never> extends HTMLTableElement {
     }
 
     handleClick(ev) {
-        if (ev.target instanceof CustomRow) {
-            this.selectionModel.clickRow(ev.target);
+        this._handleClick(ev.target);
+    }
+
+    _handleClick(target) {
+        if (target instanceof CustomRow) {
+            this.selectionModel.clickRow(target);
+            this.refreshSelection();
         }
-        else if (ev.target instanceof CustomCell) {
-            if (ev.target.colDef.allowCellSelection) {
-                this.selectionModel.clickCell(ev.target);
+        else if (target instanceof CustomCell) {
+            if (target.colDef.allowCellSelection) {
+                this.selectionModel.clickCell(target);
             }
             else {
-                this.selectionModel.clickRow(ev.target.row);
+                this.selectionModel.clickRow(target.row);
             }
+            this.refreshSelection();
         }
-        this.refreshSelection();
+        else if (target === undefined || target === null) {
+            return;
+        }
+        else {
+            this._handleClick(target.parentElement);
+        }
     }
 }
 
-export class CustomColumnDef<X> {
+export class CustomColumnDef<X, Y = string> {
     shortName: string;
     displayName: string;
-    getter: (item: X) => Node | string;
     allowHeaderSelection?: boolean = false;
     allowCellSelection?: boolean = false;
+    getter: (item: X) => Y;
+    renderer?: (value: Y) => Node = (value) => document.createTextNode(value.toString());
+    colStyler?: (value: Y, colElement: CustomCell<X, Y>, internalElement: Node) => void = (value, colElement, internalElement) => {
+        if (value) {
+            colElement.classList.add("value-truthy")
+        }
+        else {
+            colElement.classList.add("value-falsey")
+        }
+    };
+    initialWidth?: number | undefined = undefined;
 }
 
 export class CustomRow<X> extends HTMLTableRowElement {
     dataItem: X;
     table: CustomTable<X, any>;
-    dataColMap: Map<CustomColumnDef<X>, CustomCell<X>> = new Map<CustomColumnDef<X>, CustomCell<X>>();
+    dataColMap: Map<CustomColumnDef<X>, CustomCell<X, any>> = new Map<CustomColumnDef<X>, CustomCell<X, any>>();
     private _selected: boolean = false;
 
     constructor(dataItem: X, table: CustomTable<X, any>) {
@@ -227,15 +277,15 @@ export class CustomRow<X> extends HTMLTableRowElement {
     }
 
     refresh() {
-        const newColElements: CustomCell<X>[] = [];
+        const newColElements: CustomCell<X, any>[] = [];
         for (let col of this.table.columns) {
             if (this.dataColMap.has(col)) {
                 newColElements.push(this.dataColMap.get(col));
             }
             else {
-                const newRow = new CustomCell<X>(this.dataItem, col, this);
-                this.dataColMap.set(col, newRow);
-                newColElements.push(newRow);
+                const newCell = new CustomCell<X, any>(this.dataItem, col, this);
+                this.dataColMap.set(col, newCell);
+                newColElements.push(newCell);
             }
         }
         // @ts-ignore
@@ -262,35 +312,37 @@ export class CustomRow<X> extends HTMLTableRowElement {
     }
 }
 
-export class CustomCell<X> extends HTMLTableCellElement {
+export class CustomCell<X, Y> extends HTMLTableCellElement {
 
-    private dataItem: X;
-    colDef: CustomColumnDef<X>;
+    dataItem: X;
+    colDef: CustomColumnDef<X, Y>;
     row: CustomRow<X>;
+    _value: Y;
     private _selected: boolean = false;
 
-    constructor(dataItem: X, colDef: CustomColumnDef<X>, row: CustomRow<X>) {
+    constructor(dataItem: X, colDef: CustomColumnDef<X, Y>, row: CustomRow<X>) {
         super();
         this.dataItem = dataItem;
         this.colDef = colDef;
         this.row = row;
         this.setAttribute("col-id", colDef.shortName);
         this.refresh();
+        if (colDef.initialWidth !== undefined) {
+            this.style.width = colDef.initialWidth + "px";
+        }
     }
 
     refresh() {
-
-        let result: Node | string;
+        let node: Node;
         try {
-            result = this.colDef.getter(this.dataItem);
+            this._value = this.colDef.getter(this.dataItem);
+            node = this.colDef.renderer(this._value);
+            this.colDef.colStyler(this._value, this, node);
         } catch (e) {
             console.error(e);
-            result = "Error";
+            node = document.createTextNode("Error");
         }
-        if (result instanceof String) {
-            result = document.createTextNode(result as string);
-        }
-        this.replaceChildren(result);
+        this.replaceChildren(node);
         this.refreshSelection();
     }
 
@@ -298,12 +350,20 @@ export class CustomCell<X> extends HTMLTableCellElement {
         this.selected = (this.row.table.selectionModel.isCellSelectedDirectly(this));
     }
 
+    get value() {
+        return this._value;
+    }
+
     set selected(selected) {
         if (this._selected === selected) {
             return;
         }
         this._selected = selected;
-        this.setAttribute("is-selected", selected);
+        this.setAttribute("is-selected", String(selected));
+    }
+
+    get selected() {
+        return this._selected;
     }
 
 }
