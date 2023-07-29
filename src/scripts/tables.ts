@@ -1,17 +1,25 @@
+
+function setCellProps(cell: HTMLTableCellElement, colDef: CustomColumnDef<any, any>) {
+    cell.setAttribute("col-id", colDef.shortName);
+    if (colDef.initialWidth !== undefined) {
+        cell.style.width = cell.style.minWidth = cell.style.maxWidth = colDef.initialWidth + "px";
+    }
+    if (colDef.fixedWidth !== undefined) {
+        // Do the same thing but consider it non-resizable
+        cell.style.width = cell.style.minWidth = cell.style.maxWidth = colDef.fixedWidth + "px";
+    }
+}
+
 export class CustomTableHeaderRow<X> extends HTMLTableRowElement {
     constructor(table: CustomTable<any, any>) {
         super();
         for (let column of table.columns) {
             const headerCell = document.createElement("th");
             headerCell.textContent = column.displayName;
-            headerCell.setAttribute("col-id", column.shortName);
-            if (column.initialWidth !== undefined) {
-                headerCell.style.width = column.initialWidth + "px";
-            }
+            setCellProps(headerCell, column);
             this.appendChild(headerCell);
         }
     }
-
 }
 
 export class CustomTableTitleRow extends HTMLTableRowElement {
@@ -272,6 +280,7 @@ export class CustomColumnDef<X, Y = string> {
         }
     };
     initialWidth?: number | undefined = undefined;
+    fixedWidth?: number | undefined = undefined;
 }
 
 export class CustomRow<X> extends HTMLTableRowElement {
@@ -338,9 +347,7 @@ export class CustomCell<X, Y> extends HTMLTableCellElement {
         this.row = row;
         this.setAttribute("col-id", colDef.shortName);
         this.refresh();
-        if (colDef.initialWidth !== undefined) {
-            this.style.width = colDef.initialWidth + "px";
-        }
+        setCellProps(this, colDef);
     }
 
     refresh() {

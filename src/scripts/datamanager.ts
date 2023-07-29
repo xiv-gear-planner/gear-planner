@@ -1,13 +1,15 @@
-import {GearItem, Materia, processRawMateriaInfo, XivApiGearInfo} from "./geartypes";
-import {MATERIA_LEVEL_MAX_NORMAL} from "./xivconstants";
+import {GearItem, Materia, processRawMateriaInfo, XivApiGearInfo} from "./gear";
+import {JobName, MATERIA_LEVEL_MAX_NORMAL, RaceName, SupportedLevels} from "./xivconstants";
 
 export class DataManager {
     items: XivApiGearInfo[];
     materiaTypes: Materia[];
 
-    minIlvl = 650;
+    minIlvl = 640;
     maxIlvl = 665;
-    classJob = 'WHM'
+    classJob : JobName = 'WHM'
+    race : RaceName | null = null;
+    level: SupportedLevels = 90;
 
     itemById(id: number): (GearItem | undefined) {
         return this.items.find(item => item.id === id);
@@ -22,7 +24,7 @@ export class DataManager {
 
     loadItems() {
         console.log("loading items");
-        const itemsPromise = fetch(`https://xivapi.com/search?indexes=Item&filters=LevelItem%3E=${this.minIlvl},LevelItem%3C=${this.maxIlvl},ClassJobCategory.${this.classJob}=1&columns=ID,IconHD,Name,LevelItem,Stats,EquipSlotCategory,MateriaSlotCount,IsAdvancedMeldingPermitted`)
+        const itemsPromise = fetch(`https://xivapi.com/search?indexes=Item&filters=LevelItem%3E=${this.minIlvl},LevelItem%3C=${this.maxIlvl},ClassJobCategory.${this.classJob}=1&columns=ID,IconHD,Name,LevelItem,Stats,EquipSlotCategory,MateriaSlotCount,IsAdvancedMeldingPermitted,DamageMag,DamagePhys`)
             .then((response) => {
                 return response.json()
             }, (reason) => {

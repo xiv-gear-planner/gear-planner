@@ -18,14 +18,14 @@ import {
     GearItem,
     GearSlot,
     GearSlotItem,
-    GearStats,
     ItemSlotExport,
     Materia,
     MeldableMateriaSlot,
     SetExport,
     SheetExport
-} from "./geartypes";
+} from "./gear";
 import {DataManager} from "./datamanager";
+import {RawStats} from "./geartypes";
 
 type GearSetSel = SingleCellRowOrHeaderSelect<CharacterGearSet>;
 
@@ -37,6 +37,41 @@ function makeButton(label: string, action: () => void) {
         action();
     });
     return button;
+}
+
+interface MultiplierStat {
+    stat: number,
+    multiplier: number
+}
+
+interface ChanceStat {
+    stat: number,
+    chance: number,
+    multiplier: number
+}
+
+function multiplierStatDisplay(stats: MultiplierStat) {
+    const outerDiv = document.createElement("div");
+    const leftSpan = document.createElement("span");
+    leftSpan.textContent = stats.stat.toString();
+    outerDiv.appendChild(leftSpan);
+    const rightSpan = document.createElement("span");
+    rightSpan.textContent = (`(x${stats.multiplier.toFixed(3)})`)
+    rightSpan.classList.add("extra-stat-info");
+    outerDiv.appendChild(rightSpan);
+    return outerDiv;
+}
+
+function chanceStatDisplay(stats: ChanceStat) {
+    const outerDiv = document.createElement("div");
+    const leftSpan = document.createElement("span");
+    leftSpan.textContent = stats.stat.toString();
+    outerDiv.appendChild(leftSpan);
+    const rightSpan = document.createElement("span");
+    rightSpan.textContent = (`(${(stats.chance * 100.0).toFixed(1)}%x${stats.multiplier.toFixed(3)})`)
+    rightSpan.classList.add("extra-stat-info");
+    outerDiv.appendChild(rightSpan);
+    return outerDiv;
 }
 
 /**
@@ -53,6 +88,8 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
         this.sheet = sheet;
         this.classList.add("gear-plan-table");
         const statColWidth = 40;
+        const chanceStatColWidth = 160;
+        const multiStatColWidth = 120;
         super.columns = [
             {
                 shortName: "actions",
@@ -66,10 +103,22 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                 }
             },
             {
-                shortName: "name",
+                shortName: "setname",
                 displayName: "Set Name",
                 getter: gearSet => gearSet.name,
                 initialWidth: 300,
+            },
+            {
+                shortName: "gcd",
+                displayName: "GCD",
+                getter: gearSet => Math.min(gearSet.computedStats.gcdMag, gearSet.computedStats.gcdPhys),
+                initialWidth: statColWidth + 10,
+            },
+            {
+                shortName: "wd",
+                displayName: "WD",
+                getter: gearSet => Math.max(gearSet.computedStats.wdMag, gearSet.computedStats.wdPhys),
+                initialWidth: statColWidth,
             },
             {
                 shortName: "vit",
@@ -86,20 +135,30 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
             {
                 shortName: "crit",
                 displayName: "CRT",
-                getter: gearSet => gearSet.computedStats.crit,
-                initialWidth: statColWidth,
+                getter: gearSet => ({stat: gearSet.computedStats.crit, chance: gearSet.computedStats.critChance, multiplier: gearSet.computedStats.critDamage}) as ChanceStat,
+                renderer: (stats: ChanceStat) => {
+                    return chanceStatDisplay(stats);
+                },
+                initialWidth: chanceStatColWidth,
             },
             {
                 shortName: "dhit",
                 displayName: "DHT",
-                getter: gearSet => gearSet.computedStats.dhit,
-                initialWidth: statColWidth,
+                getter: gearSet => ({stat: gearSet.computedStats.dhit, chance: gearSet.computedStats.dhitChance, multiplier: gearSet.computedStats.dhitDamage}) as ChanceStat,
+                renderer: (stats: ChanceStat) => {
+                    return chanceStatDisplay(stats);
+                },
+                initialWidth: chanceStatColWidth,
             },
             {
                 shortName: "det",
                 displayName: "DET",
-                getter: gearSet => gearSet.computedStats.det,
-                initialWidth: statColWidth,
+                getter: gearSet => ({stat: gearSet.computedStats.determination, multiplier: gearSet.computedStats.detDamage}) as MultiplierStat,
+                renderer: (stats: MultiplierStat) => {
+                    // TODO: make these fancy
+                    return multiplierStatDisplay(stats);
+                },
+                initialWidth: multiStatColWidth,
             },
             {
                 shortName: "sps",
@@ -130,8 +189,9 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
         const addRowButton = document.createElement("button");
         addRowButton.textContent = "New Gear Set";
         addRowButton.addEventListener('click', (ev) => {
-            const newSet = new CharacterGearSet();
+            const newSet = new CharacterGearSet(this.sheet.dataManager);
             newSet.name = "New Set";
+            sheet.addGearSet(newSet);
         });
         this.buttonRow.appendChild(addRowButton)
     }
@@ -170,7 +230,7 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
  * @param stat
  * @param statCssStub
  */
-function statCallStyler(cell, stat: keyof GearStats, statCssStub: string) {
+function statCallStyler(cell, stat: keyof RawStats, statCssStub: string) {
 
     cell.classList.add("stat-" + statCssStub);
     if (cell.dataItem.item.primarySubstat === stat) {
@@ -215,18 +275,35 @@ class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
                 },
             },
             {
-                shortName: "name",
+                shortName: "itemname",
                 displayName: "Name",
                 getter: item => {
                     return item.item.name;
                 },
-                initialWidth: 350,
+                initialWidth: 300,
             },
             {
                 shortName: "mats",
                 displayName: "Mat",
                 getter: item => {
                     return item.item.materiaSlots.length;
+                },
+                initialWidth: 30,
+            },
+            {
+                shortName: "wd",
+                displayName: "WD",
+                getter: item => {
+                    // return Math.max(item.item.stats.wdMag, item.item.stats.wdPhys);
+                    return Math.max(item.item.stats.wdMag, item.item.stats.wdPhys);
+                },
+                renderer: value => {
+                    if (value) {
+                        return document.createTextNode(value);
+                    }
+                    else {
+                        return document.createTextNode("");
+                    }
                 },
                 initialWidth: 30,
             },
@@ -268,10 +345,10 @@ class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
                 shortName: "det",
                 displayName: "DET",
                 getter: item => {
-                    return item.item.stats.det;
+                    return item.item.stats.determination;
                 },
                 initialWidth: 30,
-                colStyler: (value, cell, node) => statCallStyler(cell, 'det', 'det'),
+                colStyler: (value, cell, node) => statCallStyler(cell, 'determination', 'det'),
             },
             {
                 shortName: "sps",
@@ -378,7 +455,7 @@ export class GearPlanSheet extends HTMLElement {
     private _defaultName: string;
     name: string;
     sets: CharacterGearSet[] = [];
-    private dataManager: DataManager;
+    dataManager: DataManager;
 
     constructor(dataManager: DataManager, editorArea: HTMLElement, sheetKey: string, defaultName: string) {
         super();
@@ -403,7 +480,7 @@ export class GearPlanSheet extends HTMLElement {
             console.log("Found Saved Data")
             this.name = saved.name;
             for (let importedSet of saved.sets) {
-                const set = new CharacterGearSet();
+                const set = new CharacterGearSet(this.dataManager);
                 set.name = importedSet.name;
                 for (let equipmentSlot in importedSet.items) {
                     const importedItem: ItemSlotExport = importedSet.items[equipmentSlot];
@@ -429,7 +506,7 @@ export class GearPlanSheet extends HTMLElement {
             }
         }
         else {
-            const set = new CharacterGearSet();
+            const set = new CharacterGearSet(this.dataManager);
             set.name = "Default Set";
             this.addGearSet(set);
             this.name = "Default Sheet";

@@ -41,7 +41,7 @@
             border: 1px solid var(--border-color);
 
             margin: 0;
-            padding: 3px;
+            padding: 1px 3px 1px 3px;
             text-overflow: ellipsis;
             overflow: hidden;
         }
@@ -55,6 +55,7 @@
         tr[is-selected="true"] {
             /*border: 3px solid #00bbbb;*/
             outline: 3px solid var(--table-selected-outline-color);
+            border-radius: 5px;
             background-color: var(--table-bg-color-selected);
         }
 
@@ -156,6 +157,28 @@
         }
         div#top-menu-area button {
             margin: 10px;
+        }
+        .extra-stat-info {
+            float: right;
+            padding-right: 8px;
+        }
+        table all-slot-materia-manager {
+            width: 100%;
+            display: table-caption;
+        }
+        td[col-id="icon"] {
+            padding: 0;
+            margin: 0;
+            border-right: none;
+        }
+        td[col-id="itemname"] {
+            border-left: none;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+        td[col-id="icon"] img {
+            display: block;
         }
 
     </style>
