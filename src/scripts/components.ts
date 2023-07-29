@@ -1,5 +1,6 @@
 import {
-    CustomCell, CustomColumnDef,
+    CustomCell,
+    CustomColumnDef,
     CustomRow,
     CustomTable,
     HeaderRow,
@@ -11,16 +12,32 @@ import {
 import {
     CharacterGearSet,
     EquipmentSet,
-    EquippedItem, EquipSlotKeys,
+    EquippedItem,
+    EquipSlotKeys,
     EquipSlots,
     GearItem,
     GearSlot,
-    GearSlotItem, GearStats, ItemSlotExport, Materia,
-    MeldableMateriaSlot, SetExport, SheetExport
+    GearSlotItem,
+    GearStats,
+    ItemSlotExport,
+    Materia,
+    MeldableMateriaSlot,
+    SetExport,
+    SheetExport
 } from "./geartypes";
 import {DataManager} from "./datamanager";
 
 type GearSetSel = SingleCellRowOrHeaderSelect<CharacterGearSet>;
+
+function makeButton(label: string, action: () => void) {
+    const button = document.createElement("button");
+    button.textContent = label;
+    button.addEventListener('click', ev => {
+        ev.stopPropagation();
+        action();
+    });
+    return button;
+}
 
 /**
  * A table of gear sets
@@ -28,12 +45,26 @@ type GearSetSel = SingleCellRowOrHeaderSelect<CharacterGearSet>;
 export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
 
     private gearSets: CharacterGearSet[] = [];
+    private buttonRow: HTMLDivElement;
+    private sheet: GearPlanSheet;
 
-    constructor(setSelection: (item: CharacterGearSet) => void) {
+    constructor(sheet: GearPlanSheet, setSelection: (item: CharacterGearSet | undefined) => void) {
         super();
+        this.sheet = sheet;
         this.classList.add("gear-plan-table");
         const statColWidth = 40;
         super.columns = [
+            {
+                shortName: "actions",
+                displayName: "",
+                getter: gearSet => gearSet,
+                renderer: gearSet => {
+                    const div = document.createElement("div");
+                    div.appendChild(makeButton('🗑️', () => sheet.delGearSet(gearSet)));
+                    div.appendChild(makeButton('📃', () => sheet.addGearSet(gearSet.clone())));
+                    return div;
+                }
+            },
             {
                 shortName: "name",
                 displayName: "Set Name",
@@ -90,21 +121,45 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                 if (newSelection instanceof CustomRow) {
                     setSelection(newSelection.dataItem);
                 }
+                else if (newSelection === undefined) {
+                    setSelection(undefined);
+                }
             }
         })
+        this.buttonRow = document.createElement("div");
+        const addRowButton = document.createElement("button");
+        addRowButton.textContent = "New Gear Set";
+        addRowButton.addEventListener('click', (ev) => {
+            const newSet = new CharacterGearSet();
+            newSet.name = "New Set";
+        });
+        this.buttonRow.appendChild(addRowButton)
     }
 
-    addRow(...gearSets: CharacterGearSet[]) {
+    addRow(...toAdd: CharacterGearSet[]) {
         // TODO: make this only refresh the specific row
-        for (let gearSet of gearSets) {
+        for (let gearSet of toAdd) {
             gearSet.addListener(() => this.refreshFull());
             this.gearSets.push(gearSet);
         }
+        this.dataChanged();
+    }
+
+    delRow(...toDelete: CharacterGearSet[]) {
+        this.gearSets = this.gearSets.filter(gs => {
+            return !toDelete.includes(gs);
+        });
+        this.dataChanged();
     }
 
     dataChanged() {
-        super.data = [new HeaderRow(), ...this.gearSets];
+        const curSelection = this.selectionModel.getSelection();
+        super.data = [new HeaderRow(), ...this.gearSets, new SpecialRow((table) => this.buttonRow)];
         super.refreshFull();
+        // Special case for deleting the currently selected row
+        if (curSelection instanceof CustomRow && !(this.gearSets.includes(curSelection.dataItem))) {
+            this.selectionModel.clearSelection();
+        }
     }
 }
 
@@ -268,15 +323,12 @@ class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
                 return false;
             }, isRowSelected(row: CustomRow<GearSlotItem>) {
                 return gearSet.getItemInSlot(row.dataItem.slotName) === row.dataItem.item;
+            },
+            clearSelection() {
+                // no-op
             }
         };
         this.data = data;
-        // selModel.addListener({
-        //     onNewSelection(newSelection: Selection<GearSet> | undefined) {
-        //         const sel = newSelection.row;
-        //         setSelection(sel)
-        //     }
-        // })
     }
 }
 
@@ -331,7 +383,14 @@ export class GearPlanSheet extends HTMLElement {
     constructor(dataManager: DataManager, editorArea: HTMLElement, sheetKey: string, defaultName: string) {
         super();
         this.dataManager = dataManager;
-        this.gearPlanTable = new GearPlanTable(item => editorArea.replaceChildren(new GearSetEditor(this, item, dataManager)));
+        this.gearPlanTable = new GearPlanTable(this, item => {
+            if (item) {
+                editorArea.replaceChildren(new GearSetEditor(this, item, dataManager));
+            }
+            else {
+                editorArea.replaceChildren();
+            }
+        });
         this.appendChild(this.gearPlanTable);
         this._saveKey = 'sheet-save-' + sheetKey;
         this._defaultName = defaultName;
@@ -379,17 +438,24 @@ export class GearPlanSheet extends HTMLElement {
         this.gearPlanTable.dataChanged();
     }
 
-    private addGearSet(gearSet: CharacterGearSet) {
+    addGearSet(gearSet: CharacterGearSet) {
         this.sets.push(gearSet);
         this.gearPlanTable.addRow(gearSet);
         gearSet.addListener(() => this.saveData());
+        this.saveData();
+    }
+
+    delGearSet(gearSet: CharacterGearSet) {
+        this.sets = this.sets.filter(gs => gs !== gearSet);
+        this.gearPlanTable.delRow(gearSet);
+        this.saveData();
     }
 
     saveData() {
         // TODO: make this async
-        const sets  : SetExport[] = []
+        const sets: SetExport[] = []
         for (let set of this.sets) {
-            const items : {[K in EquipSlotKeys] ?: ItemSlotExport} = {};
+            const items: { [K in EquipSlotKeys]?: ItemSlotExport } = {};
             for (let equipmentKey in set.equipment) {
                 const inSlot: EquippedItem = set.equipment[equipmentKey];
                 if (inSlot) {
@@ -497,6 +563,7 @@ class SlotMateriaManager extends HTMLElement {
         this.classList.add("slot-materia-manager")
     }
 }
+
 customElements.define("gear-set-editor", GearSetEditor)
 customElements.define("gear-plan-table", GearPlanTable, {extends: "table"})
 customElements.define("gear-plan", GearPlanSheet)

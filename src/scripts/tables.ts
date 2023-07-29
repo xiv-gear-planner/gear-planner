@@ -45,6 +45,8 @@ export interface SelectionModel<X, Y> {
     isRowSelected(row: CustomRow<X>);
 
     isColumnHeaderSelected(col: CustomColumnDef<X>);
+
+    clearSelection(): void;
 }
 
 export const noopSelectionModel: SelectionModel<any, undefined> = {
@@ -60,6 +62,7 @@ export const noopSelectionModel: SelectionModel<any, undefined> = {
         return false;
     }, isRowSelected(item: any) {
         return false;
+    }, clearSelection() {
     }
 }
 
@@ -115,6 +118,11 @@ export class SingleSelectionModel<X, Y = never> implements SelectionModel<X, Sin
         return col === this._selection;
     }
 
+    clearSelection() {
+        this._selection = undefined;
+        this.notifyListeners();
+    }
+
     // TODO
     // removeListener(listener: SimpleSelectionListener<X>) {
     //     this._listeners.
@@ -155,7 +163,7 @@ export class CustomTable<X, Y = never> extends HTMLTableElement {
         super();
         this.appendChild(this.createTHead());
         this.appendChild(this.createTBody());
-        this.addEventListener('click', ev => {
+        this.addEventListener('mousedown', ev => {
             this.handleClick(ev);
         })
     }
@@ -235,6 +243,9 @@ export class CustomTable<X, Y = never> extends HTMLTableElement {
                 this.selectionModel.clickRow(target.row);
             }
             this.refreshSelection();
+        }
+        else if (target instanceof HTMLButtonElement) {
+            // Assume buttons will handle themselves
         }
         else if (target === undefined || target === null) {
             return;

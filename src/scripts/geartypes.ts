@@ -117,6 +117,9 @@ export class EquippedItem {
                 })
             }
         }
+        else {
+            this.melds = [...melds];
+        }
     }
 
     gearItem: GearItem;
@@ -203,6 +206,19 @@ export class CharacterGearSet {
         }
         this._dirtyComp = false;
         return this._computedStats;
+    }
+
+    clone(): CharacterGearSet {
+        const out = new CharacterGearSet();
+        for (let slot in this.equipment) {
+            const equip: EquippedItem = this.equipment[slot];
+            if (!equip) {
+                continue;
+            }
+            out.equipment[slot] = new EquippedItem(equip.gearItem, equip.melds);
+        }
+        out.name = this.name + ' copy';
+        return out;
     }
 }
 export class GearSlotItem {
