@@ -34,6 +34,7 @@ jobs:
         run: |
           npm install
           npx webpack
+          npm install -g less
           lessc --source-map ./src/style.less dist/style.css
   #      - name: Deploy to Github Pages
 #        uses: peaceiris/actions-gh-pages@v3
