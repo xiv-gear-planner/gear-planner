@@ -620,6 +620,7 @@ export class GearSetEditor extends HTMLElement {
         header.textContent = "Gear Set Editor";
         this.appendChild(header)
 
+        // Name editor
         const nameEditor = document.createElement("input");
         nameEditor.type = 'text';
         nameEditor.value = gearSet.name;
@@ -629,6 +630,9 @@ export class GearSetEditor extends HTMLElement {
         nameEditor.classList.add("gear-set-name-editor");
         this.appendChild(nameEditor);
 
+        // Put items in categories by slot
+        // Not enough to just use the items, because rings can be in either ring slot, so we
+        // need options to reflect that.
         let itemMapping: Map<GearSlot, GearItem[]> = new Map();
         dataManager.items.forEach((item) => {
             let slot = item.gearSlot;
@@ -640,16 +644,16 @@ export class GearSetEditor extends HTMLElement {
             }
         })
 
+
+        // Gear table
+        const gearTable = new GearItemsTable(dataManager, gearSet, itemMapping);
+        gearTable.id = "gear-items-table";
+        this.appendChild(gearTable);
+
+        // Food table
         const foodTable = new FoodItemsTable(dataManager, gearSet);
         foodTable.id = "food-items-table";
         this.appendChild(foodTable);
-
-        const gearTable = new GearItemsTable(dataManager, gearSet, itemMapping);
-        gearTable.id = "gear-items-table";
-        // for (let gearItem of itemsInSlot) {
-        //     slotNode.appendChild(new GearItemDisplay(gearItem, selectedItem => gearSet.setEquip(name, {gearItem: selectedItem} as EquippedItem)));
-        // }
-        this.appendChild(gearTable);
     }
 }
 
