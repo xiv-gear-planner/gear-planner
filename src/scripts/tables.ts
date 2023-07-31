@@ -248,6 +248,7 @@ export class CustomTable<X, Y = never> extends HTMLTableElement {
         if (target instanceof CustomRow) {
             this.selectionModel.clickRow(target);
             this.refreshSelection();
+            target.scrollIntoView({behavior: 'instant', block: 'nearest'})
         }
         else if (target instanceof CustomCell) {
             if (target.colDef.allowCellSelection) {
@@ -256,6 +257,7 @@ export class CustomTable<X, Y = never> extends HTMLTableElement {
             else {
                 this.selectionModel.clickRow(target.row);
             }
+            target.scrollIntoView({behavior: 'instant', block: 'nearest'})
             this.refreshSelection();
         }
         else if (target instanceof HTMLButtonElement) {

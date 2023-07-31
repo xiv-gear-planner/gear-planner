@@ -5,9 +5,16 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="01e19508-db61-4dcd-b3d6-0e159da8f9e7" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/README.md" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/style.less" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.github/workflows/webpack.yml" beforeDir="false" afterPath="$PROJECT_DIR$/.github/workflows/webpack.yml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/scripts/components.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/scripts/components.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/scripts/datamanager.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/scripts/datamanager.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/scripts/main.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/scripts/main.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/scripts/tables.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/scripts/tables.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/webpack.config.js" beforeDir="false" afterPath="$PROJECT_DIR$/webpack.config.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -59,7 +66,7 @@
     "project.structure.last.edited": "Project",
     "project.structure.proportion": "0.15",
     "project.structure.side.proportion": "0.2",
-    "settings.editor.selected.configurable": "editor.preferences.tabs",
+    "settings.editor.selected.configurable": "watcher.settings",
     "ts.external.directory.path": "C:\\Program Files\\JetBrains\\WebStorm 2023.2\\plugins\\javascript-impl\\jsLanguageServicesImpl\\external",
     "vue.rearranger.settings.migration": "true"
   },
@@ -119,7 +126,8 @@
       <workItem from="1690469090564" duration="22305000" />
       <workItem from="1690551249658" duration="37207000" />
       <workItem from="1690649800512" duration="24231000" />
-      <workItem from="1690734523205" duration="33523000" />
+      <workItem from="1690734523205" duration="34691000" />
+      <workItem from="1690810215081" duration="7311000" />
     </task>
     <servers />
   </component>

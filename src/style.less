@@ -1,0 +1,316 @@
+body {
+  --bg-color: #181818;
+  --fg-color: #bbbbbb;
+  --border-color: #666666;
+  --table-bg-color: #252525;
+  --table-bg-color-selected: #333333;
+  --table-selected-outline-color: #00bbbb;
+  --color-sps-sks: #22ff22;
+  --color-crit: #ff2222;
+  --color-dhit: #ff8800;
+  --color-det: #0099ff;
+  --color-tnc: #ffff00;
+  --color-piety: #ff00ff;
+  --stat-mix-primary: 70%;
+  --stat-mix-primary-bg: 12%;
+  --stat-mix-secondary: 12%;
+  --stat-mix-secondary-bg: 6%;
+  color: var(--fg-color);
+  background-color: var(--bg-color);
+  font-family: sans-serif;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100vh;
+  overflow-y: hidden;
+  margin: 0;
+}
+
+div#dev-menu-area {
+  flex: 0;
+  margin: 10px;
+  padding: 5px;
+  border: 1px solid var(--border-color);
+
+  button {
+    margin: 10px;
+  }
+}
+
+div#content-area {
+  /*flex-grow: 0;*/
+  /*flex-shrink: 9999;*/
+  flex-basis: content;
+  overflow-y: scroll;
+  min-height: 0;
+  flex-shrink: 1;
+  flex-grow: 1;
+  max-height: 100%;
+}
+
+/* Doesn't work on Firefox yet */
+/*div#content-area:has(gear-plan) {*/
+/*    max-height: 50vh;*/
+/*}*/
+
+div#editor-area {
+  text-align: center;
+  overflow-y: scroll;
+  flex-basis: 60%;
+  //flex-shrink: 99;
+  flex-grow: 9999;
+  min-height: 60%;
+  max-height: 100%;
+
+  table {
+    text-align: left;
+  }
+}
+
+table {
+  border-collapse: collapse;
+}
+
+td {
+  border: 1px solid var(--border-color);
+  margin: 0;
+  padding: 1px 3px 1px 3px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+tr {
+  /*border: 2px solid #666666;*/
+  border: 3px solid var(--border-color);
+  background-color: var(--table-bg-color);
+  &[is-selected="true"] {
+    outline: 3px solid var(--table-selected-outline-color);
+    border-radius: 5px;
+    background-color: var(--table-bg-color-selected);
+  }
+}
+
+select {
+  color: var(--fg-color);
+  background-color: var(--bg-color);
+  border: 1px solid var(--border-color);
+}
+
+button {
+  color: var(--fg-color);
+  background-color: var(--bg-color);
+  border-radius: 5px;
+  border: 1px solid var(--border-color);
+
+  &:hover {
+    background-color: #333333;
+  }
+
+  &:active {
+    //color: #999999;
+    background-color: #555555;
+    border-color: #ffffff;
+  }
+}
+
+.extra-stat-info {
+  float: right;
+  padding-right: 8px;
+}
+
+table all-slot-materia-manager {
+  width: 100%;
+  display: table-caption;
+}
+
+td[col-id="actions"] div {
+  display: inline-flex;
+}
+
+td[col-id="icon"] {
+  padding: 0;
+  margin: 0;
+  border-right: none;
+}
+
+td[col-id="itemname"] {
+  border-left: none;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+td[col-id="icon"] img {
+  display: block;
+}
+
+input[type="text"] {
+  color: var(--fg-color);
+  background-color: var(--bg-color);
+  border-radius: 5px;
+  border-color: var(--border-color);
+}
+
+.gear-set-name-editor {
+  margin-bottom: 10px;
+  width: 400px;
+}
+
+table.gear-plan-table tr:first-child th {
+  height: 48px;
+}
+
+#content-area {
+  text-align: center;
+}
+
+tbody, thead, tfoot {
+  text-align: left;
+}
+
+#content-area table {
+  margin: auto;
+}
+
+#new-sheet-form fieldset {
+  text-align: center;
+  display: inline-grid;
+  border: none;
+}
+
+gear-plan {
+  margin: auto;
+}
+
+gear-plan table {
+  margin: auto;
+}
+
+table#gear-items-table {
+  margin: auto;
+
+  tr, td {
+    height: 25px;
+  }
+
+  img {
+    height: 100%;
+  }
+}
+
+
+div#main-menu-area {
+  border-bottom: 2px solid var(--border-color);
+  text-align: center;
+  margin-bottom: 10px;
+
+  a:link,
+  a:active,
+  a:visited,
+  a:hover {
+    color: var(--bg-color);
+    background-color: var(--fg-color);
+    border-radius: 3px;
+    padding: 5px;
+    text-decoration: none;
+    display: inline-block;
+    margin: 5px;
+  }
+
+  a:hover {
+    background-color: #ccccdd;
+  }
+}
+
+
+h1.js-warning {
+  color: #ff0000;
+  text-decoration: underline 2px double #ff0000;
+}
+
+table.gear-sheets-table {
+  min-width: 800px;
+
+  td[col-id="sheetactions"] {
+    width: 150px;
+
+    div {
+      display: flex;
+
+      button {
+        flex: 1;
+      }
+    }
+  }
+}
+
+
+// Stat-related stuff
+td.stat-sps.primary {
+  color: color-mix(in srgb, var(--color-sps-sks) var(--stat-mix-primary), var(--fg-color));
+  background-color: color-mix(in srgb, var(--color-sps-sks) var(--stat-mix-primary-bg), var(--table-bg-color));
+}
+
+td.stat-sps.secondary {
+  color: color-mix(in srgb, var(--color-sps-sks) var(--stat-mix-secondary), var(--fg-color));
+  background-color: color-mix(in srgb, var(--color-sps-sks) var(--stat-mix-secondary-bg), var(--table-bg-color));
+}
+
+td.stat-dhit.primary {
+  color: color-mix(in srgb, var(--color-dhit) var(--stat-mix-primary), var(--fg-color));
+  background-color: color-mix(in srgb, var(--color-dhit) var(--stat-mix-primary-bg), var(--table-bg-color));
+}
+
+td.stat-dhit.secondary {
+  color: color-mix(in srgb, var(--color-dhit) var(--stat-mix-secondary), var(--fg-color));
+  background-color: color-mix(in srgb, var(--color-dhit) var(--stat-mix-secondary-bg), var(--table-bg-color));
+}
+
+td.stat-det.primary {
+  color: color-mix(in srgb, var(--color-det) var(--stat-mix-primary), var(--fg-color));
+  background-color: color-mix(in srgb, var(--color-det) var(--stat-mix-primary-bg), var(--table-bg-color));
+}
+
+td.stat-det.secondary {
+  color: color-mix(in srgb, var(--color-det) var(--stat-mix-secondary), var(--fg-color));
+  background-color: color-mix(in srgb, var(--color-det) var(--stat-mix-secondary-bg), var(--table-bg-color));
+}
+
+td.stat-tnc.primary {
+  color: color-mix(in srgb, var(--color-tnc) var(--stat-mix-primary), var(--fg-color));
+  background-color: color-mix(in srgb, var(--color-tnc) var(--stat-mix-primary-bg), var(--table-bg-color));
+}
+
+td.stat-tnc.secondary {
+  color: color-mix(in srgb, var(--color-tnc) var(--stat-mix-secondary), var(--fg-color));
+  background-color: color-mix(in srgb, var(--color-tnc) var(--stat-mix-secondary-bg), var(--table-bg-color));
+}
+
+td.stat-piety.primary {
+  color: color-mix(in srgb, var(--color-piety) var(--stat-mix-primary), var(--fg-color));
+  background-color: color-mix(in srgb, var(--color-piety) var(--stat-mix-primary-bg), var(--table-bg-color));
+}
+
+td.stat-piety.secondary {
+  color: color-mix(in srgb, var(--color-piety) var(--stat-mix-secondary), var(--fg-color));
+  background-color: color-mix(in srgb, var(--color-piety) var(--stat-mix-secondary-bg), var(--table-bg-color));
+}
+
+td.stat-crit.primary {
+  color: color-mix(in srgb, var(--color-crit) var(--stat-mix-primary), var(--fg-color));
+  background-color: color-mix(in srgb, var(--color-crit) var(--stat-mix-primary-bg), var(--table-bg-color));
+}
+
+td.stat-crit.secondary {
+  color: color-mix(in srgb, var(--color-crit) var(--stat-mix-secondary), var(--fg-color));
+  background-color: color-mix(in srgb, var(--color-crit) var(--stat-mix-secondary-bg), var(--table-bg-color));
+}
+
+td.stat-zero {
+  color: color-mix(in srgb, var(--table-bg-color) 50%, var(--fg-color));
+}
+
+td.primary {
+  font-weight: bold;
+}
+

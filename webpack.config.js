@@ -1,9 +1,9 @@
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 module.exports = {
-    entry: "./src/scripts/main.ts",
+    entry: ["./src/scripts/main.ts"],
     output: {
         path: __dirname + "/dist",
-        clean: true
+        clean: false
     },
     devtool: 'inline-source-map',
     module: {
@@ -13,6 +13,14 @@ module.exports = {
                 use: 'ts-loader',
                 exclude: /node_modules/,
             },
+            // {
+            //     test: /\.less$/,
+            //     use: [
+            //         'style-loader',
+            //         'css-loader',
+            //         'less-loader'
+            //     ]
+            // }
         ],
     },
     plugins: [

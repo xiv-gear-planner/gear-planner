@@ -6,7 +6,9 @@ export class DataManager {
     materiaTypes: Materia[];
 
     minIlvl = 640;
-    maxIlvl = 665;
+    maxIlvl = 999;
+    minIlvlFood = 610;
+    maxIlvlFood = 999;
     classJob : JobName = 'WHM'
     race : RaceName | null = null;
     level: SupportedLevel = 90;
@@ -62,6 +64,7 @@ export class DataManager {
                 });
                 console.log(`Processed ${this.materiaTypes.length} total Materia items`);
             })
+        // const foodPromise = fetch(`https://xivapi.com/search?indexes=Item&filters=ItemKind.ID=5,ItemSearchCategory.ID=45,LevelItem%3E=${this.minIlvl},LevelItem%3C=${this.maxIlvl}&columns=ID,IconHD,Name,LevelItem,Stats,EquipSlotCategory,MateriaSlotCount,IsAdvancedMeldingPermitted,DamageMag,DamagePhys`)
         return Promise.all([itemsPromise, materiaPromise]);
     }
 }

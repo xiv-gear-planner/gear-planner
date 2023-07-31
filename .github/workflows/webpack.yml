@@ -34,8 +34,8 @@ jobs:
         run: |
           npm install
           npx webpack
-
-#      - name: Deploy to Github Pages
+          lessc --source-map ./src/style.less dist/style.css
+  #      - name: Deploy to Github Pages
 #        uses: peaceiris/actions-gh-pages@v3
 #        with:
 #          publish_dir: ./dist # Replace 'dist' with the directory where your build output resides

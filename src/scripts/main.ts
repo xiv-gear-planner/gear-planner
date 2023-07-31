@@ -6,25 +6,42 @@
 import {GearPlanSheet, NewSheetForm, SheetPickerTable} from "./components";
 import {DataManager} from "./datamanager";
 
-
 // customElements.define("gear-plan-row", GearPlanRow)
 
 
 export const contentArea = document.getElementById("content-area");
 export const topMenuArea = document.getElementById("dev-menu-area");
-export const editorArea = document.getElementById("editor-area");
+const editorArea = document.getElementById("editor-area");
 
 async function initialLoad() {
     processHash();
 }
 
-let expectedHash = [];
+let expectedHash = undefined;
+
+function arrayEq(left: any[], right: any[]) {
+    if (left === undefined && right === undefined) {
+        return true;
+    }
+    if (left === undefined || right === undefined) {
+        return false;
+    }
+    if (left.length !== right.length) {
+        return false;
+    }
+    for (let i = 0; i < left.length; i++) {
+        if (left[i] !== right[i]) {
+            return false;
+        }
+    }
+    return true;
+}
 
 function processHash() {
     // Remove the literal #
     const hash = (location.hash.startsWith("#") ? location.hash.substring(1) : location.hash).split('/').filter(item => item);
     console.log("processHash", hash);
-    if (hash === expectedHash) {
+    if (arrayEq(hash, expectedHash)) {
         console.log("Ignoring internal hash change")
         return;
     }
@@ -46,6 +63,7 @@ function processHash() {
 export function showNewSheetForm() {
     setHash('newsheet');
     contentArea.replaceChildren(new NewSheetForm(openSheet));
+    setEditorAreaContent();
 }
 
 function setHash(...hashParts: string[]) {
@@ -63,7 +81,7 @@ function setHash(...hashParts: string[]) {
 export async function openSheetByKey(sheet: string) {
     console.log('openSheetByKey: ', sheet);
     const dataManager = new DataManager();
-    const planner = new GearPlanSheet(dataManager, sheet, undefined, editorArea);
+    const planner = new GearPlanSheet(dataManager, sheet, undefined, setEditorAreaContent);
     await openSheet(planner);
 }
 
@@ -76,7 +94,18 @@ export async function openSheet(planner: GearPlanSheet) {
 
 function showSheetPickerMenu() {
     contentArea.replaceChildren(new SheetPickerTable());
-    editorArea.replaceChildren();
+    setEditorAreaContent();
+}
+
+export function setEditorAreaContent(...nodes: Node[]) {
+    if (nodes.length === 0) {
+        editorArea.replaceChildren();
+        editorArea.style.display = 'none';
+    }
+    else {
+        editorArea.replaceChildren(...nodes);
+        editorArea.style.display = 'block';
+    }
 }
 
 function earlyUiSetup() {

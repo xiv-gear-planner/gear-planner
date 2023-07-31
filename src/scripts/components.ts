@@ -30,7 +30,7 @@ import {dummySim, SimCurrentResult, SimResult, Simulation} from "./simulation";
 import {getJobStats, JOB_DATA, JobName, LEVEL_STATS, SupportedLevel, LEVEL_MAX, SupportedLevels} from "./xivconstants";
 import {whmSheetSim} from "./sims/whm_sheet_sim";
 import * as http from "http";
-import {editorArea, openSheetByKey, showNewSheetForm} from "./main";
+import {openSheetByKey, setEditorAreaContent, showNewSheetForm} from "./main";
 
 type GearSetSel = SingleCellRowOrHeaderSelect<CharacterGearSet>;
 
@@ -526,28 +526,29 @@ export class GearPlanSheet extends HTMLElement {
     dataManager: DataManager;
     job: JobName;
     level: SupportedLevel;
-    private editorArea: HTMLElement;
+    private _editorAreaSetup: (...nodes: Node[]) => void;
 
-    constructor(dataManager: DataManager, sheetKey: string, defaultName?: string, editorArea?: HTMLElement) {
+    constructor(dataManager: DataManager, sheetKey: string, defaultName?: string, editorAreaSetup?: (...nodes: Node[]) => void) {
         super();
         if (!sheetKey) {
             console.error("No sheet key!")
         }
-        if (editorArea) {
-            this.editorArea = editorArea;
+        if (editorAreaSetup) {
+            this._editorAreaSetup = editorAreaSetup;
         }
         else {
-            this.editorArea = document.createElement("div");
-            this.editorArea.id = "editor-area";
-            this.appendChild(this.editorArea);
+            const editorArea = document.createElement("div");
+            editorArea.id = "editor-area";
+            this.appendChild(editorArea);
+            this._editorAreaSetup = editorArea.replaceChildren;
         }
         this.dataManager = dataManager;
         this.gearPlanTable = new GearPlanTable(this, item => {
             if (item) {
-                this.editorArea.replaceChildren(new GearSetEditor(this, item, dataManager));
+                this._editorAreaSetup(new GearSetEditor(this, item, dataManager));
             }
             else {
-                this.editorArea.replaceChildren();
+                this._editorAreaSetup();
             }
         });
         this.appendChild(this.gearPlanTable);
@@ -951,15 +952,45 @@ export class NewSheetForm extends HTMLFormElement {
 
     private doSubmit() {
         const nextSheetSaveStub = getNextSheetInternalName();
-        const gearPlanSheet = new GearPlanSheet(new DataManager(), nextSheetSaveStub, undefined, editorArea);
+        const gearPlanSheet = new GearPlanSheet(new DataManager(), nextSheetSaveStub, undefined, setEditorAreaContent);
         gearPlanSheet.name = this.nameInput.value;
         gearPlanSheet.job = this.jobDropdown.selectedItem;
         gearPlanSheet.level = this.levelDropdown.selectedItem;
         this.sheetOpenCallback(gearPlanSheet);
     }
-
-
 }
+
+export interface XivApiJobData {
+    Name: string,
+    Abbreviation: string,
+    ID: number,
+    Icon: string
+}
+
+let jobData: XivApiJobData[];
+
+const jobIconMap  = new Map<JobName, string>();
+
+async function ensureJobDataLoaded() {
+    if (jobData !== undefined) {
+        return;
+    }
+    await fetch("https://xivapi.com/ClassJob?columns=Name,Abbreviation,ID,Icon")
+        .then(response => response.json())
+        .then(response => response['results'] as XivApiJobData[])
+        .then(data => jobData = data);
+    for (let jobDatum of jobData) {
+        jobIconMap.set(jobDatum.Abbreviation as JobName, jobDatum.Icon);
+    }
+}
+
+export class JobIcon extends HTMLImageElement {
+    constructor(job: JobName) {
+        super();
+        ensureJobDataLoaded().then(() => this.src = "https://xivapi.com/" + jobIconMap.get(job));
+    }
+}
+
 
 customElements.define("gear-set-editor", GearSetEditor);
 customElements.define("gear-plan-table", GearPlanTable, {extends: "table"});
@@ -971,3 +1002,4 @@ customElements.define("option-data-element", OptionDataElement, {extends: "optio
 customElements.define("gear-sheet-picker", SheetPickerTable, {extends: "table"});
 customElements.define("new-sheet-form", NewSheetForm, {extends: "form"});
 customElements.define("data-select", DataSelect, {extends: "select"});
+customElements.define("ffxiv-job-icon", JobIcon, {extends: "img"});
