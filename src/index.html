@@ -285,10 +285,10 @@
             text-align: center;
             margin-bottom: 10px;
         }
-        div#main-menu-area a:link:link,
-        div#main-menu-area a:link:active,
-        div#main-menu-area a:link:visited,
-        div#main-menu-area a:link:hover
+        div#main-menu-area a:link,
+        div#main-menu-area a:active,
+        div#main-menu-area a:visited,
+        div#main-menu-area a:hover
         {
             color: var(--bg-color);
             background-color: var(--fg-color);
@@ -296,19 +296,26 @@
             padding: 5px;
             text-decoration: none;
             display: inline-block;
+            margin: 5px;
+        }
+        div#main-menu-area a:hover {
+            background-color: #ccccdd;
         }
 
         table.gear-sheets-table {
             min-width: 800px;
         }
 
+        h1.js-warning {
+            color: #ff0000;
+        }
 
     </style>
 </head>
 <body>
 
 <noscript>
-    <div>Please enable JS</div>
+    <h1 class="js-warning">Please enable JS</h1>
 </noscript>
 <div id="dev-menu-area"></div>
 <div id="main-menu-area"><a href="#/">My Sheets</a></div>
