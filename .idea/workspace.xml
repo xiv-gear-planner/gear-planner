@@ -5,13 +5,17 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="01e19508-db61-4dcd-b3d6-0e159da8f9e7" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/scripts/gear.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/scripts/sims/whm_sheet_sim.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/scripts/simulation.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/scripts/xivmath.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/src/index.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/scripts/components.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/scripts/components.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/scripts/datamanager.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/scripts/datamanager.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/scripts/gear.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/scripts/gear.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/scripts/geartypes.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/scripts/geartypes.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/scripts/main.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/scripts/main.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/scripts/tables.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/scripts/tables.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/scripts/xivconstants.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/scripts/xivconstants.ts" afterDir="false" />
     </list>
@@ -68,6 +72,11 @@
     "settings.editor.selected.configurable": "editor.preferences.tabs",
     "ts.external.directory.path": "C:\\Program Files\\JetBrains\\WebStorm 2023.2\\plugins\\javascript-impl\\jsLanguageServicesImpl\\external",
     "vue.rearranger.settings.migration": "true"
+  },
+  "keyToStringList": {
+    "com.intellij.ide.scratch.ScratchImplUtil$2/New Scratch File": [
+      "TypeScript"
+    ]
   }
 }]]></component>
   <component name="RecentsManager">
@@ -76,6 +85,9 @@
     </key>
   </component>
   <component name="RunManager" selected="npm.build">
+    <configuration name="index.html (1)" type="JavascriptDebugType" temporary="true" nameIsGenerated="true" uri="http://localhost:63342/gearplan/dist/index.html" useBuiltInWebServerPort="true">
+      <method v="2" />
+    </configuration>
     <configuration name="webpack.config.js" type="NodeJSConfigurationType" temporary="true" nameIsGenerated="true" path-to-js-file="$PROJECT_DIR$/webpack.config.js" working-dir="$PROJECT_DIR$">
       <method v="2" />
     </configuration>
@@ -91,11 +103,13 @@
     </configuration>
     <list>
       <item itemvalue="JavaScript Debug.index.html" />
+      <item itemvalue="JavaScript Debug.index.html (1)" />
       <item itemvalue="Node.js.webpack.config.js" />
       <item itemvalue="npm.build" />
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="JavaScript Debug.index.html (1)" />
         <item itemvalue="Node.js.webpack.config.js" />
       </list>
     </recent_temporary>
@@ -114,7 +128,8 @@
       <workItem from="1690376556747" duration="40995000" />
       <workItem from="1690469090564" duration="22305000" />
       <workItem from="1690551249658" duration="37207000" />
-      <workItem from="1690649800512" duration="15538000" />
+      <workItem from="1690649800512" duration="24231000" />
+      <workItem from="1690734523205" duration="32903000" />
     </task>
     <servers />
   </component>

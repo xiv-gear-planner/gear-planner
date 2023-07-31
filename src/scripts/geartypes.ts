@@ -1,3 +1,5 @@
+import {ComputedSetStats} from "./gear";
+
 export interface RawStats {
     hp: number,
     vitality: number,
@@ -56,9 +58,22 @@ export const REAL_MAIN_STATS = ['strength', 'dexterity', 'intelligence', 'mind']
 export const FAKE_MAIN_STATS: (keyof RawStats)[] = ['determination', 'piety', 'vitality']
 export const SPECIAL_SUB_STATS: (keyof RawStats)[] = ['dexterity', 'crit', 'dhit', 'spellspeed', 'skillspeed', 'tenacity']
 
+export const ROLES = ['Healer', 'Melee', 'Ranged', 'Caster', 'Tank'] as const;
+
+export type RoleKey = typeof ROLES[number];
+
 export type Mainstat = typeof REAL_MAIN_STATS[number];
 
-export interface JobStats {
-    stats: RawStats,
+export interface JobData {
+    jobStatMulipliers: RawStats,
+    role: RoleKey,
     mainStat: Mainstat;
+    traitMulti?: (level: number) => number;
+    traits?: JobTrait[];
 }
+
+export interface JobTrait {
+    minLevel?: number,
+    maxLevel?: number,
+    apply: (stats: ComputedSetStats) => void;
+};

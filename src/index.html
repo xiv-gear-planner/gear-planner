@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <title>Gear Planner</title>
     <script src="./main.js" type="module"></script>
-<!--    foo-->
+    <!--    foo-->
     <style>
         body {
             --bg-color: #181818;
@@ -33,11 +33,6 @@
         }
 
         td {
-            /*border: 1px solid #ff00ff;*/
-            /*border-top: 1px solid #ff00ff;*/
-            /*border-bottom: 1px solid #ff00ff;*/
-            /*border-left: 0;*/
-            /*border-right: 0;*/
             border: 1px solid var(--border-color);
 
             margin: 0;
@@ -62,9 +57,11 @@
         table.gear-items-table tr {
             height: 25px;
         }
+
         table.gear-items-table td {
             height: 25px;
         }
+
         table.gear-items-table img {
             height: 100%;
             /*width: 50px;*/
@@ -129,19 +126,22 @@
             color: color-mix(in srgb, var(--color-crit) var(--stat-mix-secondary), var(--fg-color));
             background-color: color-mix(in srgb, var(--color-crit) var(--stat-mix-secondary-bg), var(--table-bg-color));
         }
+
         td.stat-zero {
             color: color-mix(in srgb, var(--table-bg-color) 50%, var(--fg-color));
         }
+
         td.primary {
             font-weight: bold;
         }
-        .slot-materia-manager select {
+
+        select {
             color: var(--fg-color);
             background-color: var(--bg-color);
             border: 1px solid var(--border-color);
         }
 
-        div#top-menu-area {
+        div#dev-menu-area {
             margin: 10px;
             padding: 5px;
             border: 1px solid var(--border-color);
@@ -152,40 +152,166 @@
             background-color: var(--bg-color);
             border-radius: 5px;
         }
+
         table button {
             border: 1px solid var(--border-color);
         }
-        div#top-menu-area button {
+
+        div#dev-menu-area button {
             margin: 10px;
         }
+
         .extra-stat-info {
             float: right;
             padding-right: 8px;
         }
+
         table all-slot-materia-manager {
             width: 100%;
             display: table-caption;
         }
+
+        td[col-id="actions"] div {
+            display: inline-flex;
+        }
+
         td[col-id="icon"] {
             padding: 0;
             margin: 0;
             border-right: none;
         }
+
         td[col-id="itemname"] {
             border-left: none;
             text-overflow: ellipsis;
             overflow: hidden;
             white-space: nowrap;
         }
+
         td[col-id="icon"] img {
             display: block;
         }
+
+        input[type="text"] {
+            color: var(--fg-color);
+            background-color: var(--bg-color);
+            border-radius: 5px;
+            border-color: var(--border-color);
+        }
+
+        .gear-set-name-editor {
+            margin-bottom: 10px;
+            width: 400px;
+        }
+
+        table.gear-plan-table tr:first-child th {
+            height: 48px;
+        }
+
+        #content-area {
+            text-align: center;
+        }
+
+        tbody, thead, tfoot {
+            text-align: left;
+        }
+
+        #content-area table {
+            margin: auto;
+        }
+
+        #new-sheet-form fieldset {
+            text-align: center;
+            display: inline-grid;
+            border: none;
+        }
+
+        gear-plan {
+            margin: auto;
+        }
+
+        gear-plan table {
+            margin: auto;
+        }
+
+        table#gear-items-table {
+            margin: auto;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            height: 100vh;
+            overflow-y: hidden;
+            margin: 0;
+        }
+
+        div#dev-menu-area {
+            flex: 0;
+        }
+
+        div#content-area {
+            /*flex-grow: 0;*/
+            /*flex-shrink: 9999;*/
+            flex-basis: content;
+            overflow-y: scroll;
+            min-height: 0;
+            flex-shrink: 99;
+            flex-grow: 0;
+        }
+
+        /* Doesn't work on Firefox yet */
+        /*div#content-area:has(gear-plan) {*/
+        /*    max-height: 50vh;*/
+        /*}*/
+
+        div#editor-area {
+            text-align: center;
+            overflow-y: scroll;
+            flex-basis: content;
+            flex-shrink: 99;
+            flex-grow: 1;
+            min-height: 0;
+            max-height: 50vh;
+        }
+
+        div#editor-area table {
+            text-align: left;
+        }
+
+        div#main-menu-area {
+            border-bottom: 2px solid var(--border-color);
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        div#main-menu-area a:link:link,
+        div#main-menu-area a:link:active,
+        div#main-menu-area a:link:visited,
+        div#main-menu-area a:link:hover
+        {
+            color: var(--bg-color);
+            background-color: var(--fg-color);
+            border-radius: 3px;
+            padding: 5px;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        table.gear-sheets-table {
+            min-width: 800px;
+        }
+
 
     </style>
 </head>
 <body>
 
-<div id="top-menu-area"></div>
+<noscript>
+    <div>Please enable JS</div>
+</noscript>
+<div id="dev-menu-area"></div>
+<div id="main-menu-area"><a href="#/">My Sheets</a></div>
 <div id="content-area"></div>
 <div id="editor-area"></div>
 

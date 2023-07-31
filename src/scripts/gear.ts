@@ -1,5 +1,5 @@
 import {
-    BASE_STATS, critChance, critDmg, detDmg, dhitChance, dhitDmg, EMPTY_STATS,
+    EMPTY_STATS,
     getJobStats,
     getLevelStats,
     getRaceStats,
@@ -8,11 +8,20 @@ import {
     MATERIA_LEVEL_MAX_OVERMELD,
     MATERIA_LEVEL_MIN_RELEVANT,
     MATERIA_SLOTS_MAX,
-    RaceName,
-    sksToGcd,
-    spsToGcd
+    RaceName, SupportedLevel,
 } from "./xivconstants";
-import {FAKE_MAIN_STATS, RawStats, REAL_MAIN_STATS, SPECIAL_SUB_STATS} from "./geartypes";
+import {
+    mainStatMulti,
+    critChance,
+    critDmg,
+    detDmg,
+    dhitChance,
+    dhitDmg,
+    sksToGcd,
+    spsToGcd,
+    wdMulti, autoDhBonusDmg
+} from "./xivmath";
+import {FAKE_MAIN_STATS, JobData, LevelStats, RawStats, REAL_MAIN_STATS, SPECIAL_SUB_STATS} from "./geartypes";
 import {DataManager} from "./datamanager";
 
 export interface GearSlot {
@@ -77,13 +86,66 @@ export interface Materia extends XivCombatItem {
 }
 
 export interface ComputedSetStats extends RawStats {
+    /**
+     * Current level
+     */
+    level: number,
+    /**
+     * Current level stats modifier
+     */
+    levelStats: LevelStats,
+    /**
+     * Current class/job
+     */
+    job: JobName,
+    /**
+     * Job modifier data
+     */
+    jobStats: JobData,
+    /**
+     * Physical GCD time
+     */
     gcdPhys: number,
+    /**
+     * Magical GCD time
+     */
     gcdMag: number,
+    /**
+     * Crit chance. Ranges from 0 to 1.
+     */
     critChance: number,
-    critDamage: number,
+    /**
+     * Crit multiplier. 1.0 would be the base, e.g. +50% would be 1.5.
+     */
+    critMulti: number,
+    /**
+     * Direct hit chance. Ranges from 0 to 1.
+     */
     dhitChance: number,
-    dhitDamage: number,
-    detDamage: number,
+    /**
+     * Direct hit multiplier. Fixed at 1.25.
+     */
+    dhitMulti: number,
+    /**
+     * Multiplier from determination stat.
+     */
+    detMulti: number,
+    /**
+     * Multiplier from weapon damage.
+     */
+    wdMulti: number,
+    /**
+     * Multiplier from main stat.
+     */
+    mainStatMulti: number
+    /**
+     * Trait multiplier
+     */
+    traitMulti: number;
+    /**
+     * Bonus added to det multiplier for automatic direct hits
+     */
+    autoDhBonus: number;
 }
 
 export interface MeldableMateriaSlot {
@@ -186,11 +248,12 @@ export class CharacterGearSet {
         const classJob = this._jobOverride ?? this._dataManager.classJob;
         const jobStats = getJobStats(classJob);
         const raceStats = getRaceStats(this._raceOverride ?? this._dataManager.race)
-        const levelStats = getLevelStats(this._dataManager.level);
+        const level = this._dataManager.level;
+        const levelStats = getLevelStats(level);
 
         // Base stats based on job and level
         for (let statKey of REAL_MAIN_STATS) {
-            combinedStats[statKey] = Math.floor(levelStats.baseMainStat * jobStats.stats[statKey] / 100);
+            combinedStats[statKey] = Math.floor(levelStats.baseMainStat * jobStats.jobStatMulipliers[statKey] / 100);
         }
         for (let statKey of FAKE_MAIN_STATS) {
             combinedStats[statKey] = Math.floor(levelStats.baseMainStat);
@@ -206,15 +269,36 @@ export class CharacterGearSet {
         for (let item of all) {
             addStats(combinedStats, item.stats);
         }
+        const mainStat = combinedStats[jobStats.mainStat];
         this._computedStats = {
             ...combinedStats,
+            level: level,
+            levelStats: levelStats,
+            job: classJob,
+            jobStats: jobStats,
             gcdPhys: sksToGcd(combinedStats.skillspeed),
             gcdMag: spsToGcd(2.5, levelStats, combinedStats.spellspeed),
             critChance: critChance(levelStats, combinedStats.crit),
-            critDamage: critDmg(levelStats, combinedStats.crit),
+            critMulti: critDmg(levelStats, combinedStats.crit),
             dhitChance: dhitChance(levelStats, combinedStats.dhit),
-            dhitDamage: dhitDmg(levelStats, combinedStats.dhit),
-            detDamage: detDmg(levelStats, combinedStats.determination),
+            dhitMulti: dhitDmg(levelStats, combinedStats.dhit),
+            detMulti: detDmg(levelStats, combinedStats.determination),
+            // TODO: does this need to be phys/magic split?
+            wdMulti: wdMulti(levelStats, jobStats, Math.max(combinedStats.wdMag, combinedStats.wdPhys)),
+            mainStatMulti: mainStatMulti(levelStats, jobStats, mainStat),
+            traitMulti: jobStats.traitMulti ? jobStats.traitMulti(level) : 1,
+            autoDhBonus: autoDhBonusDmg(levelStats, combinedStats.dhit),
+        }
+        if (jobStats.traits) {
+            jobStats.traits.forEach(trait => {
+                if (trait.minLevel && trait.minLevel > level) {
+                    return;
+                }
+                if (trait.maxLevel && trait.maxLevel < level) {
+                    return;
+                }
+                trait.apply(this._computedStats);
+            });
         }
         this._dirtyComp = false;
         return this._computedStats;
@@ -453,7 +537,10 @@ export function statById(id: number): keyof RawStats {
 
 export interface SheetExport {
     name: string,
-    sets: SetExport[]
+    saveKey: string,
+    job: JobName,
+    level: SupportedLevel,
+    sets: SetExport[],
 }
 
 export type EquipSlotKeys = keyof EquipmentSet;

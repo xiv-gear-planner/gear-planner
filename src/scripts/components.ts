@@ -26,6 +26,11 @@ import {
 } from "./gear";
 import {DataManager} from "./datamanager";
 import {RawStats} from "./geartypes";
+import {dummySim, SimCurrentResult, SimResult, Simulation} from "./simulation";
+import {getJobStats, JOB_DATA, JobName, LEVEL_STATS, SupportedLevel, LEVEL_MAX, SupportedLevels} from "./xivconstants";
+import {whmSheetSim} from "./sims/whm_sheet_sim";
+import * as http from "http";
+import {editorArea, openSheetByKey, showNewSheetForm} from "./main";
 
 type GearSetSel = SingleCellRowOrHeaderSelect<CharacterGearSet>;
 
@@ -80,6 +85,7 @@ function chanceStatDisplay(stats: ChanceStat) {
 export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
 
     private gearSets: CharacterGearSet[] = [];
+    private sims: Simulation<any>[] = [];
     private buttonRow: HTMLDivElement;
     private sheet: GearPlanSheet;
 
@@ -87,92 +93,7 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
         super();
         this.sheet = sheet;
         this.classList.add("gear-plan-table");
-        const statColWidth = 40;
-        const chanceStatColWidth = 160;
-        const multiStatColWidth = 120;
-        super.columns = [
-            {
-                shortName: "actions",
-                displayName: "",
-                getter: gearSet => gearSet,
-                renderer: gearSet => {
-                    const div = document.createElement("div");
-                    div.appendChild(makeButton('🗑️', () => sheet.delGearSet(gearSet)));
-                    div.appendChild(makeButton('📃', () => sheet.addGearSet(gearSet.clone())));
-                    return div;
-                }
-            },
-            {
-                shortName: "setname",
-                displayName: "Set Name",
-                getter: gearSet => gearSet.name,
-                initialWidth: 300,
-            },
-            {
-                shortName: "gcd",
-                displayName: "GCD",
-                getter: gearSet => Math.min(gearSet.computedStats.gcdMag, gearSet.computedStats.gcdPhys),
-                initialWidth: statColWidth + 10,
-            },
-            {
-                shortName: "wd",
-                displayName: "WD",
-                getter: gearSet => Math.max(gearSet.computedStats.wdMag, gearSet.computedStats.wdPhys),
-                initialWidth: statColWidth,
-            },
-            {
-                shortName: "vit",
-                displayName: "VIT",
-                getter: gearSet => gearSet.computedStats.vitality,
-                initialWidth: statColWidth,
-            },
-            {
-                shortName: "mind",
-                displayName: "MND",
-                getter: gearSet => gearSet.computedStats.mind,
-                initialWidth: statColWidth,
-            },
-            {
-                shortName: "crit",
-                displayName: "CRT",
-                getter: gearSet => ({stat: gearSet.computedStats.crit, chance: gearSet.computedStats.critChance, multiplier: gearSet.computedStats.critDamage}) as ChanceStat,
-                renderer: (stats: ChanceStat) => {
-                    return chanceStatDisplay(stats);
-                },
-                initialWidth: chanceStatColWidth,
-            },
-            {
-                shortName: "dhit",
-                displayName: "DHT",
-                getter: gearSet => ({stat: gearSet.computedStats.dhit, chance: gearSet.computedStats.dhitChance, multiplier: gearSet.computedStats.dhitDamage}) as ChanceStat,
-                renderer: (stats: ChanceStat) => {
-                    return chanceStatDisplay(stats);
-                },
-                initialWidth: chanceStatColWidth,
-            },
-            {
-                shortName: "det",
-                displayName: "DET",
-                getter: gearSet => ({stat: gearSet.computedStats.determination, multiplier: gearSet.computedStats.detDamage}) as MultiplierStat,
-                renderer: (stats: MultiplierStat) => {
-                    // TODO: make these fancy
-                    return multiplierStatDisplay(stats);
-                },
-                initialWidth: multiStatColWidth,
-            },
-            {
-                shortName: "sps",
-                displayName: "SPS",
-                getter: gearSet => gearSet.computedStats.spellspeed,
-                initialWidth: statColWidth,
-            },
-            {
-                shortName: "piety",
-                displayName: "PIE",
-                getter: gearSet => gearSet.computedStats.piety,
-                initialWidth: statColWidth,
-            },
-        ]
+        this.setupColumns();
         const selModel = new SingleSelectionModel<CharacterGearSet, GearSetSel>();
         super.selectionModel = selModel;
         selModel.addListener({
@@ -220,6 +141,150 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
         if (curSelection instanceof CustomRow && !(this.gearSets.includes(curSelection.dataItem))) {
             this.selectionModel.clearSelection();
         }
+    }
+
+    addSim(sim: Simulation<any>) {
+        this.sims.push(sim);
+        this.setupColumns();
+    }
+
+    delSim(sim: Simulation<any>) {
+        this.sims = this.sims.filter(s => s !== sim);
+        this.setupColumns();
+    }
+
+    private setupColumns() {
+        const statColWidth = 40;
+        const chanceStatColWidth = 160;
+        const multiStatColWidth = 120;
+        const columns: typeof this._columns = [
+            {
+                shortName: "actions",
+                displayName: "",
+                getter: gearSet => gearSet,
+                renderer: gearSet => {
+                    const div = document.createElement("div");
+                    div.appendChild(makeButton('🗑️', () => this.sheet.delGearSet(gearSet)));
+                    div.appendChild(makeButton('📃', () => this.sheet.addGearSet(gearSet.clone())));
+                    return div;
+                }
+            },
+            {
+                shortName: "setname",
+                displayName: "Set Name",
+                getter: gearSet => gearSet.name,
+                initialWidth: 300,
+            },
+            {
+                shortName: "gcd",
+                displayName: "GCD",
+                getter: gearSet => Math.min(gearSet.computedStats.gcdMag, gearSet.computedStats.gcdPhys),
+                initialWidth: statColWidth + 10,
+            },
+            {
+                shortName: "wd",
+                displayName: "WD",
+                getter: gearSet => Math.max(gearSet.computedStats.wdMag, gearSet.computedStats.wdPhys),
+                initialWidth: statColWidth,
+            },
+            {
+                shortName: "vit",
+                displayName: "VIT",
+                getter: gearSet => gearSet.computedStats.vitality,
+                initialWidth: statColWidth,
+            },
+            {
+                shortName: "dex",
+                displayName: "DEX",
+                getter: gearSet => gearSet.computedStats.dexterity,
+                initialWidth: statColWidth,
+                // TODO: make dataManager retrieve this object once
+                condition: () => getJobStats(this.sheet.dataManager.classJob).mainStat === 'dexterity',
+            },
+            {
+                shortName: "strength",
+                displayName: "STR",
+                getter: gearSet => gearSet.computedStats.strength,
+                initialWidth: statColWidth,
+                condition: () => getJobStats(this.sheet.dataManager.classJob).mainStat === 'strength',
+            },
+            {
+                shortName: "mind",
+                displayName: "MND",
+                getter: gearSet => gearSet.computedStats.mind,
+                initialWidth: statColWidth,
+                condition: () => getJobStats(this.sheet.dataManager.classJob).mainStat === 'mind',
+            },
+            {
+                shortName: "int",
+                displayName: "INT",
+                getter: gearSet => gearSet.computedStats.intelligence,
+                initialWidth: statColWidth,
+                condition: () => getJobStats(this.sheet.dataManager.classJob).mainStat === 'intelligence',
+            },
+            {
+                shortName: "crit",
+                displayName: "CRT",
+                getter: gearSet => ({stat: gearSet.computedStats.crit, chance: gearSet.computedStats.critChance, multiplier: gearSet.computedStats.critMulti}) as ChanceStat,
+                renderer: (stats: ChanceStat) => {
+                    return chanceStatDisplay(stats);
+                },
+                initialWidth: chanceStatColWidth,
+            },
+            {
+                shortName: "dhit",
+                displayName: "DHT",
+                getter: gearSet => ({stat: gearSet.computedStats.dhit, chance: gearSet.computedStats.dhitChance, multiplier: gearSet.computedStats.dhitMulti}) as ChanceStat,
+                renderer: (stats: ChanceStat) => {
+                    return chanceStatDisplay(stats);
+                },
+                initialWidth: chanceStatColWidth,
+            },
+            {
+                shortName: "det",
+                displayName: "DET",
+                getter: gearSet => ({stat: gearSet.computedStats.determination, multiplier: gearSet.computedStats.detMulti}) as MultiplierStat,
+                renderer: (stats: MultiplierStat) => {
+                    // TODO: make these fancy
+                    return multiplierStatDisplay(stats);
+                },
+                initialWidth: multiStatColWidth,
+            },
+            {
+                shortName: "sps",
+                displayName: "SPS",
+                getter: gearSet => gearSet.computedStats.spellspeed,
+                initialWidth: statColWidth,
+            },
+            {
+                shortName: "piety",
+                displayName: "PIE",
+                getter: gearSet => gearSet.computedStats.piety,
+                initialWidth: statColWidth,
+            },
+        ]
+        for (const sim of this.sims) {
+            columns.push({
+                shortName: sim.shortName,
+                displayName: sim.displayName,
+                getter: gearSet => this.sheet.getSimResult(sim, gearSet),
+                renderer: result => {
+                    if (result.status === 'Done') {
+                        const node = document.createElement("span");
+                        node.textContent = result.result.mainDpsResult.toFixed(2);
+                        const tooltip = Object.entries(result.result).map(entry => `${entry[0]}: ${entry[1]}`)
+                            .join('\n');
+                        node.setAttribute('title', tooltip);
+                        return node;
+                    }
+                    else {
+                        return document.createTextNode(result.status);
+                    }
+                },
+                allowHeaderSelection: true,
+            } as CustomColumnDef<CharacterGearSet, SimCurrentResult<SimResult>>);
+        }
+        this.columns = columns;
     }
 }
 
@@ -416,8 +481,18 @@ export class GearSetEditor extends HTMLElement {
     constructor(gearPlanner: GearPlanSheet, gearSet: CharacterGearSet, dataManager: DataManager) {
         super();
         const header = document.createElement("h1");
-        header.textContent = "Editor Area"
+        header.textContent = "Gear Set Editor";
         this.appendChild(header)
+
+        const nameEditor = document.createElement("input");
+        nameEditor.type = 'text';
+        nameEditor.value = gearSet.name;
+        nameEditor.addEventListener('input', (e) => {
+            gearSet.name = nameEditor.value;
+        });
+        nameEditor.classList.add("gear-set-name-editor");
+        this.appendChild(nameEditor);
+
         let itemMapping: Map<GearSlot, GearItem[]> = new Map();
         dataManager.items.forEach((item) => {
             let slot = item.gearSlot;
@@ -429,13 +504,6 @@ export class GearSetEditor extends HTMLElement {
             }
         })
 
-        const nameEditor = document.createElement("input");
-        nameEditor.type = 'text';
-        nameEditor.value = gearSet.name;
-        nameEditor.addEventListener('input', (e) => {
-            gearSet.name = nameEditor.value;
-        });
-        this.appendChild(nameEditor);
 
         const table = new GearItemsTable(dataManager, gearSet, itemMapping);
         table.id = "gear-items-table";
@@ -452,33 +520,51 @@ export class GearSetEditor extends HTMLElement {
 export class GearPlanSheet extends HTMLElement {
     gearPlanTable: GearPlanTable;
     private _saveKey: string;
-    private _defaultName: string;
     name: string;
     sets: CharacterGearSet[] = [];
+    sims: Simulation<any>[] = [];
     dataManager: DataManager;
+    job: JobName;
+    level: SupportedLevel;
+    private editorArea: HTMLElement;
 
-    constructor(dataManager: DataManager, editorArea: HTMLElement, sheetKey: string, defaultName: string) {
+    constructor(dataManager: DataManager, sheetKey: string, defaultName?: string, editorArea?: HTMLElement) {
         super();
+        if (!sheetKey) {
+            console.error("No sheet key!")
+        }
+        if (editorArea) {
+            this.editorArea = editorArea;
+        }
+        else {
+            this.editorArea = document.createElement("div");
+            this.editorArea.id = "editor-area";
+            this.appendChild(this.editorArea);
+        }
         this.dataManager = dataManager;
         this.gearPlanTable = new GearPlanTable(this, item => {
             if (item) {
-                editorArea.replaceChildren(new GearSetEditor(this, item, dataManager));
+                this.editorArea.replaceChildren(new GearSetEditor(this, item, dataManager));
             }
             else {
-                editorArea.replaceChildren();
+                this.editorArea.replaceChildren();
             }
         });
         this.appendChild(this.gearPlanTable);
-        this._saveKey = 'sheet-save-' + sheetKey;
-        this._defaultName = defaultName;
-
+        this._saveKey = sheetKey;
+        this.name = defaultName;
     }
 
-    loadData() {
+    async loadData() {
         const saved = JSON.parse(localStorage.getItem(this._saveKey)) as SheetExport;
         if (saved) {
             console.log("Found Saved Data")
             this.name = saved.name;
+            this.level = saved.level ?? 90;
+            this.job = saved.job ?? 'WHM';
+            this.dataManager.classJob = this.job;
+            this.dataManager.level = this.level;
+            await this.dataManager.loadData();
             for (let importedSet of saved.sets) {
                 const set = new CharacterGearSet(this.dataManager);
                 set.name = importedSet.name;
@@ -509,8 +595,17 @@ export class GearPlanSheet extends HTMLElement {
             const set = new CharacterGearSet(this.dataManager);
             set.name = "Default Set";
             this.addGearSet(set);
-            this.name = "Default Sheet";
+            if (!this.name) {
+                this.name = "Default Sheet";
+            }
+            this.job = 'WHM';
+            this.level = 90;
+            this.dataManager.classJob = this.job;
+            this.dataManager.level = this.level;
+            await this.dataManager.loadData();
         }
+        this.addSim(whmSheetSim);
+        this.addSim(dummySim);
         // needed for empty table
         this.gearPlanTable.dataChanged();
     }
@@ -526,6 +621,22 @@ export class GearPlanSheet extends HTMLElement {
         this.sets = this.sets.filter(gs => gs !== gearSet);
         this.gearPlanTable.delRow(gearSet);
         this.saveData();
+    }
+
+    addSim(sim: Simulation<any>) {
+        this.sims.push(sim);
+        this.gearPlanTable.addSim(sim);
+        this.saveData();
+    }
+
+    delSim(sim: Simulation<any>) {
+        this.sims = this.sims.filter(s => s !== sim);
+        this.gearPlanTable.delSim(sim);
+        this.saveData();
+    }
+
+    getSimResult(simulation: Simulation<any>, set: CharacterGearSet): SimCurrentResult<SimResult> {
+        return {result: simulation.simulate(set), status: 'Done'}
     }
 
     saveData() {
@@ -552,9 +663,16 @@ export class GearPlanSheet extends HTMLElement {
         }
         const fullExport: SheetExport = {
             name: this.name,
-            sets: sets
+            sets: sets,
+            level: this.level,
+            job: this.job,
+            saveKey: this._saveKey,
         }
         localStorage.setItem(this._saveKey, JSON.stringify(fullExport));
+    }
+
+    get saveKey() {
+        return this._saveKey;
     }
 }
 
@@ -599,6 +717,31 @@ class OptionDataElement<X> extends HTMLOptionElement {
     }
 }
 
+export class DataSelect<X> extends HTMLSelectElement {
+    constructor(items: X[], textGetter: (item: X) => string, callback: ((newValue: X) => void) | undefined, initialSelectedItem: X | undefined = undefined) {
+        super();
+        for (let item of items) {
+            const opt = new OptionDataElement(item);
+            opt.textContent = textGetter(item);
+            this.options.add(opt);
+            if (initialSelectedItem !== undefined && initialSelectedItem === item) {
+                this.selectedIndex = this.options.length - 1;
+            }
+        }
+        if (callback !== undefined) {
+            this.addEventListener('change', (event) => {
+                callback(this.selectedItem);
+            })
+        }
+    }
+
+    get selectedItem(): X {
+        return (this.selectedOptions.item(0) as OptionDataElement<X>).dataValue;
+    }
+
+}
+
+
 /**
  * UI for picking a single materia slot
  */
@@ -608,29 +751,44 @@ class SlotMateriaManager extends HTMLElement {
 
     constructor(dataManager: DataManager, materiaSlot: MeldableMateriaSlot, callback: () => void) {
         super();
+        this.classList.add("slot-materia-manager")
         this.materiaSlot = materiaSlot;
         this.callback = callback;
-        const selector = document.createElement("select");
-        const nullOpt = new OptionDataElement(null);
-        this.classList.add("slot-materia-manager")
-        nullOpt.textContent = "None";
-        selector.options.add(nullOpt);
-        for (let materiaType of dataManager.materiaTypes) {
-            const opt = new OptionDataElement(materiaType);
-            const text = materiaType.name + ": " +
-                Object.entries(materiaType.stats)
-                    .filter(entry => entry[1])
-                    .map(entry => `+${entry[1]} ${entry[0]}`);
-            const img = document.createElement("img");
-            // TODO
-            img.src = "https://xivapi.com/" + materiaType.iconUrl;
-            opt.appendChild(img);
-            opt.appendChild(document.createTextNode(text));
-            selector.options.add(opt)
-            if (materiaSlot.equippedMatiera === materiaType) {
-                selector.selectedIndex = selector.options.length - 1;
-            }
-        }
+        // const selector = document.createElement("select");
+        // const nullOpt = new OptionDataElement(null);
+        // nullOpt.textContent = "None";
+        // selector.options.add(nullOpt);
+        // for (let materiaType of dataManager.materiaTypes) {
+        //     const opt = new OptionDataElement(materiaType);
+        //     const text = materiaType.name + ": " +
+        //         Object.entries(materiaType.stats)
+        //             .filter(entry => entry[1])
+        //             .map(entry => `+${entry[1]} ${entry[0]}`);
+        //     const img = document.createElement("img");
+        //     // TODO
+        //     img.src = "https://xivapi.com/" + materiaType.iconUrl;
+        //     opt.appendChild(img);
+        //     opt.appendChild(document.createTextNode(text));
+        //     selector.options.add(opt)
+        //     if (materiaSlot.equippedMatiera === materiaType) {
+        //         selector.selectedIndex = selector.options.length - 1;
+        //     }
+        // }
+        const selector = new DataSelect<Materia>([null, ...dataManager.materiaTypes], (materiaType) => {
+                if (materiaType === null) {
+                    return "None";
+                }
+                else {
+                    return materiaType.name + ": " +
+                        Object.entries(materiaType.stats)
+                            .filter(entry => entry[1])
+                            .map(entry => `+${entry[1]} ${entry[0]}`);
+                }
+            }, (selected) => {
+                materiaSlot.equippedMatiera = selected;
+                callback();
+            },
+            materiaSlot.equippedMatiera);
         this.replaceChildren(selector);
         selector.addEventListener('change', (event) => {
             const selected = selector.selectedOptions.item(0) as OptionDataElement<Materia>
@@ -641,10 +799,175 @@ class SlotMateriaManager extends HTMLElement {
     }
 }
 
-customElements.define("gear-set-editor", GearSetEditor)
-customElements.define("gear-plan-table", GearPlanTable, {extends: "table"})
-customElements.define("gear-plan", GearPlanSheet)
-customElements.define("gear-items-table", GearItemsTable, {extends: "table"})
-customElements.define("all-slot-materia-manager", AllSlotMateriaManager)
-customElements.define("slot-materia-manager", SlotMateriaManager)
-customElements.define("option-data-element", OptionDataElement, {extends: "option"})
+function deleteSheetByKey(saveKey: string) {
+    localStorage.removeItem(saveKey);
+}
+
+function startNewSheet() {
+    showNewSheetForm();
+}
+
+export class SheetPickerTable extends CustomTable<SheetExport> {
+    constructor() {
+        super();
+        this.classList.add("gear-sheets-table");
+        this.columns = [
+            {
+                shortName: "sheetactions",
+                displayName: "",
+                getter: sheet => sheet,
+                renderer: (sheet: SheetExport) => {
+                    const div = document.createElement("div");
+                    div.appendChild(makeButton('Open', () => openSheetByKey(sheet.saveKey)));
+                    div.appendChild(makeButton('Delete️', () => {
+                        deleteSheetByKey(sheet.saveKey);
+                        this.readData();
+                    }));
+                    return div;
+                }
+            },
+            {
+                shortName: "sheetjob",
+                displayName: "Job",
+                getter: sheet => sheet.job,
+            },
+            {
+                shortName: "sheetlevel",
+                displayName: "Lvl",
+                getter: sheet => sheet.level,
+            },
+            {
+                shortName: "sheetname",
+                displayName: "Sheet Name",
+                getter: sheet => sheet.name,
+            }
+        ]
+        this.readData();
+    }
+
+    readData() {
+        const data: typeof this.data = [];
+        data.push(new SpecialRow((table) => {
+            const div = document.createElement("div");
+            div.appendChild(makeButton("New Sheet", () => startNewSheet()));
+            return div;
+        }))
+        for (let localStorageKey in localStorage) {
+            if (localStorageKey.startsWith("sheet-save-")) {
+                const imported = JSON.parse(localStorage.getItem(localStorageKey)) as SheetExport;
+                if (imported.saveKey) {
+                    data.push(imported);
+                }
+            }
+        }
+        if (data.length === 1) {
+            data.push(new TitleRow("You don't have any sheets. Click 'New Sheet' to get started."));
+        }
+        this.data = data;
+    }
+}
+
+function labelFor(label: string, labelFor: HTMLElement) {
+    const element = document.createElement("label");
+    element.textContent = label;
+    if (labelFor.id) {
+        element.htmlFor = labelFor.id;
+    }
+    else {
+        console.warn("labelFor requires an element with an ID (for label '" + label + "')");
+    }
+    return element;
+}
+
+function getNextSheetInternalName() {
+    const lastRaw = localStorage.getItem("last-sheet-number");
+    const lastSheetNum = lastRaw ? parseInt(lastRaw) : 0;
+    const next = lastSheetNum + 1;
+    localStorage.setItem("last-sheet-number", next.toString());
+    return "sheet-save-" + next;
+}
+
+export class NewSheetForm extends HTMLFormElement {
+    private nameInput: HTMLInputElement;
+    private jobDropdown: DataSelect<JobName>;
+    private levelDropdown: DataSelect<SupportedLevel>;
+    private fieldSet: HTMLFieldSetElement;
+    private sheetOpenCallback: (GearPlanSheet) => void;
+
+    constructor(sheetOpenCallback: (GearPlanSheet) => void) {
+        super();
+        this.sheetOpenCallback = sheetOpenCallback;
+        // Header
+        const header = document.createElement("h1");
+        header.textContent = "New Gear Planning Sheet";
+        this.id = "new-sheet-form";
+        this.appendChild(header);
+
+        this.fieldSet = document.createElement("fieldset");
+
+        // Sheet Name
+        this.nameInput = document.createElement("input");
+        this.nameInput.id = "new-sheet-name-input";
+        this.nameInput.required = true;
+        this.nameInput.type = 'text';
+        this.nameInput.width = 400;
+        this.fieldSet.appendChild(labelFor("Sheet Name: ", this.nameInput));
+        this.fieldSet.appendChild(this.nameInput);
+        this.fieldSet.appendChild(document.createElement("br"));
+
+        // Job selection
+        // @ts-ignore
+        this.jobDropdown = new DataSelect<JobName>(Object.keys(JOB_DATA), item => item, () => this.recheck());
+        this.jobDropdown.id = "new-sheet-job-dropdown";
+        this.jobDropdown.required = true;
+        this.fieldSet.appendChild(labelFor('Job: ', this.jobDropdown));
+        this.fieldSet.appendChild(this.jobDropdown);
+        this.fieldSet.appendChild(document.createElement("br"));
+
+        // Level selection
+        this.levelDropdown = new DataSelect<SupportedLevel>([...SupportedLevels], item => item.toString(), () => this.recheck(), Math.max(...SupportedLevels) as SupportedLevel);
+        this.levelDropdown.id = "new-sheet-level-dropdown";
+        this.levelDropdown.required = true;
+        this.fieldSet.appendChild(labelFor('Level: ', this.levelDropdown));
+        this.fieldSet.appendChild(this.levelDropdown);
+        this.fieldSet.appendChild(document.createElement("br"));
+
+        this.appendChild(this.fieldSet);
+        this.appendChild(document.createElement("br"));
+
+        this.submitButton = document.createElement("button");
+        this.submitButton.type = 'submit';
+        this.submitButton.textContent = "New Sheet";
+        this.appendChild(this.submitButton);
+
+        onsubmit = (ev) => {
+            this.doSubmit();
+        }
+    }
+
+    recheck() {
+        // TODO
+    }
+
+    private doSubmit() {
+        const nextSheetSaveStub = getNextSheetInternalName();
+        const gearPlanSheet = new GearPlanSheet(new DataManager(), nextSheetSaveStub, undefined, editorArea);
+        gearPlanSheet.name = this.nameInput.value;
+        gearPlanSheet.job = this.jobDropdown.selectedItem;
+        gearPlanSheet.level = this.levelDropdown.selectedItem;
+        this.sheetOpenCallback(gearPlanSheet);
+    }
+
+
+}
+
+customElements.define("gear-set-editor", GearSetEditor);
+customElements.define("gear-plan-table", GearPlanTable, {extends: "table"});
+customElements.define("gear-plan", GearPlanSheet);
+customElements.define("gear-items-table", GearItemsTable, {extends: "table"});
+customElements.define("all-slot-materia-manager", AllSlotMateriaManager);
+customElements.define("slot-materia-manager", SlotMateriaManager);
+customElements.define("option-data-element", OptionDataElement, {extends: "option"});
+customElements.define("gear-sheet-picker", SheetPickerTable, {extends: "table"});
+customElements.define("new-sheet-form", NewSheetForm, {extends: "form"});
+customElements.define("data-select", DataSelect, {extends: "select"});

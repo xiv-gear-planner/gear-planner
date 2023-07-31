@@ -1,4 +1,3 @@
-
 function setCellProps(cell: HTMLTableCellElement, colDef: CustomColumnDef<any, any>) {
     cell.setAttribute("col-id", colDef.shortName);
     if (colDef.initialWidth !== undefined) {
@@ -181,11 +180,18 @@ export class CustomTable<X, Y = never> extends HTMLTableElement {
     }
 
     set columns(cols) {
-        this._columns = cols.map(colDefPartial => {
+        this._columns = cols.flatMap(colDefPartial => {
             const out = new CustomColumnDef();
             Object.assign(out, colDefPartial);
-            return out;
+            if (out.condition()) {
+                return [out];
+            }
+            else {
+                return []
+            }
         })
+        // TODO: see if successive refreshFull calls can be coalesced
+        this.refreshFull();
     }
 
     set data(newData: (X | HeaderRow | TitleRow)[]) {
@@ -279,6 +285,7 @@ export class CustomColumnDef<X, Y = string> {
             colElement.classList.add("value-falsey")
         }
     };
+    condition?: () => boolean = () => true;
     initialWidth?: number | undefined = undefined;
     fixedWidth?: number | undefined = undefined;
 }
