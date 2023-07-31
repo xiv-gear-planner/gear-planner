@@ -14,7 +14,7 @@ import {
     EquipmentSet,
     EquippedItem,
     EquipSlotKeys,
-    EquipSlots,
+    EquipSlots, FoodItem,
     GearItem,
     GearSlot,
     GearSlotItem,
@@ -22,7 +22,7 @@ import {
     Materia,
     MeldableMateriaSlot,
     SetExport,
-    SheetExport
+    SheetExport, StatBonus
 } from "./gear";
 import {DataManager} from "./datamanager";
 import {RawStats} from "./geartypes";
@@ -295,7 +295,7 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
  * @param stat
  * @param statCssStub
  */
-function statCallStyler(cell, stat: keyof RawStats, statCssStub: string) {
+function statCellStyler(cell: CustomCell<GearSlotItem, any>, stat: keyof RawStats, statCssStub: string) {
 
     cell.classList.add("stat-" + statCssStub);
     if (cell.dataItem.item.primarySubstat === stat) {
@@ -309,12 +309,148 @@ function statCallStyler(cell, stat: keyof RawStats, statCssStub: string) {
     }
 }
 
+function foodStatCellStyler(cell: CustomCell<FoodItem, any>, stat: keyof RawStats, statCssStub: string) {
+
+    cell.classList.add("stat-" + statCssStub);
+    if (cell.dataItem.primarySubStat === stat) {
+        cell.classList.add("primary");
+    }
+    else if (cell.dataItem.secondarySubStat === stat) {
+        cell.classList.add("secondary");
+    }
+    if (cell._value === 0) {
+        cell.classList.add("stat-zero");
+    }
+}
+
+function statBonusDisplay(value: StatBonus) {
+    if (value) {
+        return document.createTextNode(`+${value.percentage}% (max ${value.max})`);
+    }
+    else {
+        return document.createTextNode("");
+    }
+}
+
+class FoodItemsTable extends CustomTable<FoodItem, FoodItem> {
+    constructor(dataManager: DataManager, gearSet: CharacterGearSet) {
+        super();
+        this.classList.add("food-items-table");
+        const foodStatColWidth = 120;
+        super.columns = [
+            {
+                shortName: "ilvl",
+                displayName: "iLvl",
+                getter: item => item.ilvl,
+            },
+            {
+                shortName: "icon",
+                displayName: "",
+                getter: item => {
+                    return item.iconUrl;
+                },
+                renderer: img => {
+                    const image = document.createElement('img');
+                    image.src = img.toString();
+                    return image;
+                },
+            },
+            {
+                shortName: "itemname",
+                displayName: "Name",
+                getter: item => {
+                    return item.name;
+                },
+                initialWidth: 200,
+            },
+            {
+                shortName: "vit",
+                displayName: "VIT",
+                getter: item => {
+                    return item.bonuses.vitality;
+                },
+                renderer: value => statBonusDisplay(value),
+                initialWidth: foodStatColWidth,
+                colStyler: (value, cell) => foodStatCellStyler(cell, 'vitality', 'vit'),
+            },
+            {
+                shortName: "crit",
+                displayName: "CRT",
+                getter: item => {
+                    return item.bonuses.crit;
+                },
+                renderer: value => statBonusDisplay(value),
+                initialWidth: foodStatColWidth,
+                colStyler: (value, cell, node) => foodStatCellStyler(cell, 'crit', 'crit')
+            },
+            {
+                shortName: "dhit",
+                displayName: "DHT",
+                getter: item => {
+                    return item.bonuses.dhit;
+                },
+                renderer: value => statBonusDisplay(value),
+                initialWidth: foodStatColWidth,
+                colStyler: (value, cell, node) => foodStatCellStyler(cell, 'dhit', 'dhit')
+            },
+            {
+                shortName: "det",
+                displayName: "DET",
+                getter: item => {
+                    return item.bonuses.determination;
+                },
+                renderer: value => statBonusDisplay(value),
+                initialWidth: foodStatColWidth,
+                colStyler: (value, cell, node) => foodStatCellStyler(cell, 'determination', 'det'),
+            },
+            {
+                shortName: "sps",
+                displayName: "SPS",
+                getter: item => {
+                    return item.bonuses.spellspeed;
+                },
+                renderer: value => statBonusDisplay(value),
+                initialWidth: foodStatColWidth,
+                colStyler: (value, cell, node) => foodStatCellStyler(cell, 'spellspeed', 'sps')
+            },
+            {
+                shortName: "piety",
+                displayName: "PIE",
+                getter: item => {
+                    return item.bonuses.piety;
+                },
+                renderer: value => statBonusDisplay(value),
+                initialWidth: foodStatColWidth,
+                colStyler: (value, cell, node) => foodStatCellStyler(cell, 'piety', 'piety')
+            },
+        ]
+        super.selectionModel = {
+            clickCell(cell: CustomCell<FoodItem, FoodItem>) {
+
+            }, clickColumnHeader(col: CustomColumnDef<FoodItem>) {
+
+            }, clickRow(row: CustomRow<FoodItem>) {
+                gearSet.food = row.dataItem;
+            }, getSelection(): FoodItem {
+                return gearSet.food;
+            }, isCellSelectedDirectly(cell: CustomCell<FoodItem, FoodItem>) {
+                return false;
+            }, isColumnHeaderSelected(col: CustomColumnDef<FoodItem>) {
+                return false;
+            }, isRowSelected(row: CustomRow<FoodItem>) {
+                return gearSet.food === row.dataItem;
+            }, clearSelection(): void {
+
+            }
+        }
+        super.data = [new HeaderRow(), ...dataManager.foodItems];
+    }
+}
 
 /**
  * Table for displaying gear options for all slots
  */
 class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
-    private matMgrs: AllSlotMateriaManager[] = [];
 
     constructor(dataManager: DataManager, gearSet: CharacterGearSet, itemMapping: Map<GearSlot, GearItem[]>) {
         super();
@@ -395,7 +531,7 @@ class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
                     return item.item.stats.crit;
                 },
                 initialWidth: 30,
-                colStyler: (value, cell, node) => statCallStyler(cell, 'crit', 'crit')
+                colStyler: (value, cell, node) => statCellStyler(cell, 'crit', 'crit')
             },
             {
                 shortName: "dhit",
@@ -404,7 +540,7 @@ class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
                     return item.item.stats.dhit;
                 },
                 initialWidth: 30,
-                colStyler: (value, cell, node) => statCallStyler(cell, 'dhit', 'dhit')
+                colStyler: (value, cell, node) => statCellStyler(cell, 'dhit', 'dhit')
             },
             {
                 shortName: "det",
@@ -413,7 +549,7 @@ class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
                     return item.item.stats.determination;
                 },
                 initialWidth: 30,
-                colStyler: (value, cell, node) => statCallStyler(cell, 'determination', 'det'),
+                colStyler: (value, cell, node) => statCellStyler(cell, 'determination', 'det'),
             },
             {
                 shortName: "sps",
@@ -422,7 +558,7 @@ class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
                     return item.item.stats.spellspeed;
                 },
                 initialWidth: 30,
-                colStyler: (value, cell, node) => statCallStyler(cell, 'spellspeed', 'sps')
+                colStyler: (value, cell, node) => statCellStyler(cell, 'spellspeed', 'sps')
             },
             {
                 shortName: "piety",
@@ -431,11 +567,11 @@ class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
                     return item.item.stats.piety;
                 },
                 initialWidth: 30,
-                colStyler: (value, cell, node) => statCallStyler(cell, 'piety', 'piety')
+                colStyler: (value, cell, node) => statCellStyler(cell, 'piety', 'piety')
             },
         ]
         const data: (TitleRow | HeaderRow | GearSlotItem)[] = [];
-        const slotMateriaManagers = this.matMgrs;
+        const slotMateriaManagers = [];
         for (const [name, slot] of Object.entries(EquipSlots)) {
             data.push(new TitleRow(slot.name));
             data.push(new HeaderRow());
@@ -504,13 +640,16 @@ export class GearSetEditor extends HTMLElement {
             }
         })
 
+        const foodTable = new FoodItemsTable(dataManager, gearSet);
+        foodTable.id = "food-items-table";
+        this.appendChild(foodTable);
 
-        const table = new GearItemsTable(dataManager, gearSet, itemMapping);
-        table.id = "gear-items-table";
+        const gearTable = new GearItemsTable(dataManager, gearSet, itemMapping);
+        gearTable.id = "gear-items-table";
         // for (let gearItem of itemsInSlot) {
         //     slotNode.appendChild(new GearItemDisplay(gearItem, selectedItem => gearSet.setEquip(name, {gearItem: selectedItem} as EquippedItem)));
         // }
-        this.appendChild(table);
+        this.appendChild(gearTable);
     }
 }
 
@@ -589,6 +728,9 @@ export class GearPlanSheet extends HTMLElement {
                     }
                     set.equipment[equipmentSlot] = equipped;
                 }
+                if (importedSet.food) {
+                    set.food = this.dataManager.foodById(importedSet.food);
+                }
                 this.addGearSet(set);
             }
         }
@@ -658,7 +800,8 @@ export class GearPlanSheet extends HTMLElement {
             }
             const setExport: SetExport = {
                 name: set.name,
-                items: items
+                items: items,
+                food: set.food ? set.food.id : undefined
             };
             sets.push(setExport);
         }
@@ -755,26 +898,6 @@ class SlotMateriaManager extends HTMLElement {
         this.classList.add("slot-materia-manager")
         this.materiaSlot = materiaSlot;
         this.callback = callback;
-        // const selector = document.createElement("select");
-        // const nullOpt = new OptionDataElement(null);
-        // nullOpt.textContent = "None";
-        // selector.options.add(nullOpt);
-        // for (let materiaType of dataManager.materiaTypes) {
-        //     const opt = new OptionDataElement(materiaType);
-        //     const text = materiaType.name + ": " +
-        //         Object.entries(materiaType.stats)
-        //             .filter(entry => entry[1])
-        //             .map(entry => `+${entry[1]} ${entry[0]}`);
-        //     const img = document.createElement("img");
-        //     // TODO
-        //     img.src = "https://xivapi.com/" + materiaType.iconUrl;
-        //     opt.appendChild(img);
-        //     opt.appendChild(document.createTextNode(text));
-        //     selector.options.add(opt)
-        //     if (materiaSlot.equippedMatiera === materiaType) {
-        //         selector.selectedIndex = selector.options.length - 1;
-        //     }
-        // }
         const selector = new DataSelect<Materia>([null, ...dataManager.materiaTypes], (materiaType) => {
                 if (materiaType === null) {
                     return "None";
@@ -996,6 +1119,7 @@ customElements.define("gear-set-editor", GearSetEditor);
 customElements.define("gear-plan-table", GearPlanTable, {extends: "table"});
 customElements.define("gear-plan", GearPlanSheet);
 customElements.define("gear-items-table", GearItemsTable, {extends: "table"});
+customElements.define("food-items-table", FoodItemsTable, {extends: "table"});
 customElements.define("all-slot-materia-manager", AllSlotMateriaManager);
 customElements.define("slot-materia-manager", SlotMateriaManager);
 customElements.define("option-data-element", OptionDataElement, {extends: "option"});

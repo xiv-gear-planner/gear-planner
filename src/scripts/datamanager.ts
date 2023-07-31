@@ -1,9 +1,10 @@
-import {GearItem, Materia, processRawMateriaInfo, XivApiGearInfo} from "./gear";
+import {GearItem, Materia, processRawMateriaInfo, XivApiFoodInfo, XivApiGearInfo} from "./gear";
 import {JobName, MATERIA_LEVEL_MAX_NORMAL, RaceName, SupportedLevel} from "./xivconstants";
 
 export class DataManager {
     items: XivApiGearInfo[];
     materiaTypes: Materia[];
+    foodItems: XivApiFoodInfo[];
 
     minIlvl = 640;
     maxIlvl = 999;
@@ -24,12 +25,14 @@ export class DataManager {
         return this.materiaTypes.find(item => item.id === id);
     }
 
+    foodById(id: number) {
+        return this.foodItems.find(food => food.id === id);
+    }
+
     loadData() {
         console.log("loading items");
         const itemsPromise = fetch(`https://xivapi.com/search?indexes=Item&filters=LevelItem%3E=${this.minIlvl},LevelItem%3C=${this.maxIlvl},ClassJobCategory.${this.classJob}=1&columns=ID,IconHD,Name,LevelItem,Stats,EquipSlotCategory,MateriaSlotCount,IsAdvancedMeldingPermitted,DamageMag,DamagePhys`)
-            .then((response) => {
-                return response.json()
-            }, (reason) => {
+            .then((response) => response.json(), (reason) => {
                 console.error(reason)
             }).then((data) => {
                 console.log(`Got ${data['Results'].length} Items`)
@@ -64,7 +67,15 @@ export class DataManager {
                 });
                 console.log(`Processed ${this.materiaTypes.length} total Materia items`);
             })
-        // const foodPromise = fetch(`https://xivapi.com/search?indexes=Item&filters=ItemKind.ID=5,ItemSearchCategory.ID=45,LevelItem%3E=${this.minIlvl},LevelItem%3C=${this.maxIlvl}&columns=ID,IconHD,Name,LevelItem,Stats,EquipSlotCategory,MateriaSlotCount,IsAdvancedMeldingPermitted,DamageMag,DamagePhys`)
-        return Promise.all([itemsPromise, materiaPromise]);
+        const foodPromise = fetch(`https://xivapi.com/search?indexes=Item&filters=ItemKind.ID=5,ItemSearchCategory.ID=45,LevelItem%3E=${this.minIlvlFood},LevelItem%3C=${this.maxIlvlFood}&columns=ID,IconHD,Name,LevelItem,Bonuses`)
+            .then((response) => response.json(), (reason) => console.error(reason))
+            .then((data) => {
+                console.log(`Got ${data['Results'].length} Food Items`);
+                return data['Results'];
+            })
+            .then((rawFoods) => rawFoods.map(i => new XivApiFoodInfo(i)))
+            .then((processedFoods) => processedFoods.filter(food => Object.keys(food.bonuses).length > 1))
+            .then((foods) => this.foodItems = foods);
+        return Promise.all([itemsPromise, materiaPromise, foodPromise]);
     }
 }

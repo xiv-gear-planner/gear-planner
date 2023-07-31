@@ -8,20 +8,30 @@ import {
     MATERIA_LEVEL_MAX_OVERMELD,
     MATERIA_LEVEL_MIN_RELEVANT,
     MATERIA_SLOTS_MAX,
-    RaceName, SupportedLevel,
+    RaceName,
+    SupportedLevel,
 } from "./xivconstants";
 import {
-    mainStatMulti,
+    autoDhBonusDmg,
     critChance,
     critDmg,
     detDmg,
     dhitChance,
     dhitDmg,
+    mainStatMulti,
     sksToGcd,
     spsToGcd,
-    wdMulti, autoDhBonusDmg
+    wdMulti
 } from "./xivmath";
-import {FAKE_MAIN_STATS, JobData, LevelStats, RawStats, REAL_MAIN_STATS, SPECIAL_SUB_STATS} from "./geartypes";
+import {
+    FAKE_MAIN_STATS,
+    JobData,
+    LevelStats,
+    RawStatKey,
+    RawStats,
+    REAL_MAIN_STATS,
+    SPECIAL_SUB_STATS
+} from "./geartypes";
 import {DataManager} from "./datamanager";
 
 export interface GearSlot {
@@ -79,6 +89,20 @@ export interface GearItem extends XivCombatItem {
     secondarySubstat: keyof RawStats | null;
     substatCap: number;
     materiaSlots: MateriaSlot[];
+}
+
+export interface StatBonus {
+    percentage: number,
+    max: number,
+}
+
+export interface FoodItem extends XivItem {
+    ilvl: number,
+    bonuses: {
+        [K in RawStatKey]?: StatBonus
+    },
+    primarySubStat: RawStatKey | undefined,
+    secondarySubStat: RawStatKey | undefined
 }
 
 export interface Materia extends XivCombatItem {
@@ -183,6 +207,7 @@ export class CharacterGearSet {
     private _jobOverride: JobName;
     private _raceOverride: RaceName;
     private _dataManager: DataManager;
+    private _food: FoodItem;
 
     constructor(dataManager: DataManager) {
         this._dataManager = dataManager;
@@ -199,6 +224,16 @@ export class CharacterGearSet {
         return this._name;
     }
 
+    get food(): FoodItem | undefined {
+        return this._food;
+    }
+
+    set food(food: FoodItem | undefined) {
+        this._dirtyComp = true;
+        this._food = food;
+        console.log(`Set ${this.name}: food => ${food.name}`);
+        this.notifyListeners();
+    }
 
     setEquip(slot: string, item: GearItem) {
         this._dirtyComp = true;
@@ -238,7 +273,6 @@ export class CharacterGearSet {
             .flatMap((slotEquipment: EquippedItem) => [slotEquipment.gearItem, ...slotEquipment.melds.map(meldSlot => meldSlot.equippedMatiera).filter(item => item)]);
     }
 
-    // TODO: cache result?
     get computedStats(): ComputedSetStats {
         if (!this._dirtyComp) {
             return this._computedStats;
@@ -268,6 +302,15 @@ export class CharacterGearSet {
         // Item stats
         for (let item of all) {
             addStats(combinedStats, item.stats);
+        }
+        // Food stats
+        if (this._food) {
+            for (let stat in this._food.bonuses) {
+                const bonus: StatBonus = this._food.bonuses[stat];
+                const startingValue = combinedStats[stat];
+                const extraValue = Math.min(bonus.max, Math.floor(startingValue * (bonus.percentage / 100)));
+                combinedStats[stat] = startingValue + extraValue;
+            }
         }
         const mainStat = combinedStats[jobStats.mainStat];
         this._computedStats = {
@@ -301,6 +344,7 @@ export class CharacterGearSet {
             });
         }
         this._dirtyComp = false;
+        console.log("Recomputed stats");
         return this._computedStats;
     }
 
@@ -356,11 +400,44 @@ export interface MateriaSlot {
     maxGrade: number,
 }
 
+// Ignoring MP and doh/dol stats
+export type XivApiStat =
+    'Vitality'
+    | 'Strength'
+    | 'Dexterity'
+    | 'Intelligence'
+    | 'Mind'
+    | 'HP'
+    | 'Piety'
+    | 'CriticalHit'
+    | 'DirectHitRate'
+    | 'Determination'
+    | 'Tenacity'
+    | 'SpellSpeed'
+    | 'SkillSpeed';
+
+
+export const xivApiStatToRawStatKey: Record<XivApiStat, RawStatKey> = {
+    Vitality: "vitality",
+    Strength: "strength",
+    Dexterity: "dexterity",
+    Intelligence: "intelligence",
+    Mind: "mind",
+    HP: "hp",
+    Piety: "piety",
+    CriticalHit: "crit",
+    DirectHitRate: "dhit",
+    Determination: "determination",
+    Tenacity: "tenacity",
+    SkillSpeed: "skillspeed",
+    SpellSpeed: "spellspeed"
+}
+
 export class XivApiGearInfo implements GearItem {
     id: number;
     name: string;
-    Icon: URL;
     Stats: Object;
+    iconUrl: URL;
     ilvl: number;
     gearSlot: GearSlot;
     stats: RawStats;
@@ -373,7 +450,7 @@ export class XivApiGearInfo implements GearItem {
         this.id = data['ID'];
         this.name = data['Name'];
         this.ilvl = data['LevelItem'];
-        this.Icon = data['IconHD'];
+        this.iconUrl = new URL(`https://xivapi.com/${data['IconHD']}`);
         this.Stats = data['Stats'];
         var eqs = data['EquipSlotCategory'];
         if (eqs['MainHand']) {
@@ -419,7 +496,7 @@ export class XivApiGearInfo implements GearItem {
             mind: this.getStatRaw("Mind"),
             piety: this.getStatRaw("Piety"),
             crit: this.getStatRaw("CriticalHit"),
-            dhit: this.getStatRaw("DirectHit"),
+            dhit: this.getStatRaw("DirectHitRate"),
             determination: this.getStatRaw("Determination"),
             tenacity: this.getStatRaw("Tenacity"),
             spellspeed: this.getStatRaw("SpellSpeed"),
@@ -474,12 +551,7 @@ export class XivApiGearInfo implements GearItem {
         }
     }
 
-
-    get iconUrl() {
-        return new URL(`https://xivapi.com/${this.Icon}`);
-    }
-
-    private getStatRaw(stat: string) {
+    private getStatRaw(stat: XivApiStat) {
         const statValues = this.Stats[stat];
         if (statValues === undefined) {
             return 0;
@@ -491,6 +563,38 @@ export class XivApiGearInfo implements GearItem {
             return statValues['NQ'];
         }
     }
+}
+
+export class XivApiFoodInfo implements FoodItem {
+    bonuses: { [K in keyof RawStats]?: { percentage: number; max: number } } = {};
+    iconUrl: URL;
+    id: number;
+    name: string;
+    ilvl: number;
+    primarySubStat: RawStatKey | undefined;
+    secondarySubStat: RawStatKey | undefined;
+
+    constructor(data: Object) {
+        this.id = data['ID'];
+        this.name = data['Name'];
+        this.iconUrl = new URL("https://xivapi.com/" + data['IconHD']);
+        this.ilvl = data['LevelItem'];
+        for (let key in data['Bonuses']) {
+            const bonusData = data['Bonuses'][key];
+            this.bonuses[xivApiStatToRawStatKey[key as RawStatKey]] = {
+                percentage: bonusData['ValueHQ'] ?? bonusData['Value'],
+                max: bonusData['MaxHQ'] ?? bonusData['Max']
+            }
+        }
+        const sortedStats = Object.entries(this.bonuses).sort(entry => -entry[1].max).map(entry => entry[0] as RawStatKey).filter(stat => stat !== 'vitality');
+        if (sortedStats.length >= 1) {
+            this.primarySubStat = sortedStats[0];
+        }
+        if (sortedStats.length >= 2) {
+            this.secondarySubStat = sortedStats[1];
+        }
+    }
+
 }
 
 export function processRawMateriaInfo(data: Object): Materia[] {
@@ -550,6 +654,7 @@ export interface SetExport {
     items: {
         [K in EquipSlotKeys]?: ItemSlotExport
     };
+    food?: number
 }
 
 export interface ItemSlotExport {

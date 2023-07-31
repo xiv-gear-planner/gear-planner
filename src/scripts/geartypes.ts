@@ -18,7 +18,7 @@ export interface RawStats {
     wdMag: number,
 }
 
-export type GearStatKey = keyof RawStats;
+export type RawStatKey = keyof RawStats;
 
 
 export class RawStats implements RawStats {
@@ -38,7 +38,7 @@ export class RawStats implements RawStats {
     wdPhys: number = 0;
     wdMag: number = 0;
 
-    constructor(values: ({[K in GearStatKey]?: number} | undefined) = undefined) {
+    constructor(values: ({[K in RawStatKey]?: number} | undefined) = undefined) {
         if (values) {
             Object.assign(this, values);
         }
@@ -64,6 +64,7 @@ export type RoleKey = typeof ROLES[number];
 
 export type Mainstat = typeof REAL_MAIN_STATS[number];
 
+// TODO: add a way of specifying which substats are relevant to the class
 export interface JobData {
     jobStatMulipliers: RawStats,
     role: RoleKey,

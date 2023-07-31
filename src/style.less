@@ -1,6 +1,6 @@
 body {
   --bg-color: #181818;
-  --fg-color: #bbbbbb;
+  --fg-color: #b0b0b0;
   --border-color: #666666;
   --table-bg-color: #252525;
   --table-bg-color-selected: #333333;
@@ -61,6 +61,8 @@ div#editor-area {
   flex-grow: 9999;
   min-height: 60%;
   max-height: 100%;
+  border-top: 2px solid var(--border-color);
+  margin-top: 5px;
 
   table {
     text-align: left;
@@ -186,8 +188,9 @@ gear-plan table {
   margin: auto;
 }
 
-table#gear-items-table {
+table#gear-items-table, table#food-items-table {
   margin: auto;
+  margin-bottom: 5px;
 
   tr, td {
     height: 25px;
