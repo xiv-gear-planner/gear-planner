@@ -638,6 +638,10 @@ export function statById(id: number): keyof RawStats {
     }
 }
 
+export interface SimExport {
+    stub: string,
+    settings: Object
+}
 
 export interface SheetExport {
     name: string,
@@ -645,6 +649,7 @@ export interface SheetExport {
     job: JobName,
     level: SupportedLevel,
     sets: SetExport[],
+    sims: SimExport[]
 }
 
 export type EquipSlotKeys = keyof EquipmentSet;

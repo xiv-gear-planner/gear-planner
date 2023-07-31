@@ -14,7 +14,8 @@ import {
     EquipmentSet,
     EquippedItem,
     EquipSlotKeys,
-    EquipSlots, FoodItem,
+    EquipSlots,
+    FoodItem,
     GearItem,
     GearSlot,
     GearSlotItem,
@@ -22,15 +23,16 @@ import {
     Materia,
     MeldableMateriaSlot,
     SetExport,
-    SheetExport, StatBonus
+    SheetExport,
+    SimExport,
+    StatBonus
 } from "./gear";
 import {DataManager} from "./datamanager";
 import {RawStats} from "./geartypes";
-import {dummySim, SimCurrentResult, SimResult, Simulation} from "./simulation";
-import {getJobStats, JOB_DATA, JobName, LEVEL_STATS, SupportedLevel, LEVEL_MAX, SupportedLevels} from "./xivconstants";
-import {whmSheetSim} from "./sims/whm_sheet_sim";
-import * as http from "http";
+import {dummySimSpec, getSimSpecByStub, SimCurrentResult, SimResult, Simulation} from "./simulation";
+import {getJobStats, JOB_DATA, JobName, SupportedLevel, SupportedLevels} from "./xivconstants";
 import {openSheetByKey, setEditorAreaContent, showNewSheetForm} from "./main";
+import {whmSheetSpec} from "./sims/whm_sheet_sim";
 
 type GearSetSel = SingleCellRowOrHeaderSelect<CharacterGearSet>;
 
@@ -85,11 +87,11 @@ function chanceStatDisplay(stats: ChanceStat) {
 export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
 
     private gearSets: CharacterGearSet[] = [];
-    private sims: Simulation<any>[] = [];
+    private sims: Simulation<any, any, any>[] = [];
     private buttonRow: HTMLDivElement;
     private sheet: GearPlanSheet;
 
-    constructor(sheet: GearPlanSheet, setSelection: (item: CharacterGearSet | undefined) => void) {
+    constructor(sheet: GearPlanSheet, setSelection: (item: CharacterGearSet | Simulation<any, any, any> | undefined) => void) {
         super();
         this.sheet = sheet;
         this.classList.add("gear-plan-table");
@@ -100,6 +102,9 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
             onNewSelection(newSelection: GearSetSel) {
                 if (newSelection instanceof CustomRow) {
                     setSelection(newSelection.dataItem);
+                }
+                else if (newSelection instanceof CustomColumnDef && newSelection.dataValue['makeConfigInterface']) {
+                    setSelection(newSelection.dataValue as Simulation<any, any, any>);
                 }
                 else if (newSelection === undefined) {
                     setSelection(undefined);
@@ -143,12 +148,12 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
         }
     }
 
-    addSim(sim: Simulation<any>) {
+    addSim(sim: Simulation<any, any, any>) {
         this.sims.push(sim);
         this.setupColumns();
     }
 
-    delSim(sim: Simulation<any>) {
+    delSim(sim: Simulation<any, any, any>) {
         this.sims = this.sims.filter(s => s !== sim);
         this.setupColumns();
     }
@@ -265,6 +270,7 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
         ]
         for (const sim of this.sims) {
             columns.push({
+                dataValue: sim,
                 shortName: sim.shortName,
                 displayName: sim.displayName,
                 getter: gearSet => this.sheet.getSimResult(sim, gearSet),
@@ -282,7 +288,7 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                     }
                 },
                 allowHeaderSelection: true,
-            } as CustomColumnDef<CharacterGearSet, SimCurrentResult<SimResult>>);
+            } as CustomColumnDef<CharacterGearSet, SimCurrentResult<SimResult>, Simulation<any, any, any>>);
         }
         this.columns = columns;
     }
@@ -665,7 +671,7 @@ export class GearPlanSheet extends HTMLElement {
     private _saveKey: string;
     name: string;
     sets: CharacterGearSet[] = [];
-    sims: Simulation<any>[] = [];
+    sims: Simulation<any, any, any>[] = [];
     dataManager: DataManager;
     job: JobName;
     level: SupportedLevel;
@@ -687,11 +693,19 @@ export class GearPlanSheet extends HTMLElement {
         }
         this.dataManager = dataManager;
         this.gearPlanTable = new GearPlanTable(this, item => {
-            if (item) {
-                this._editorAreaSetup(new GearSetEditor(this, item, dataManager));
-            }
-            else {
-                this._editorAreaSetup();
+            try {
+                if (item instanceof CharacterGearSet) {
+                    this._editorAreaSetup(new GearSetEditor(this, item, dataManager));
+                }
+                else if (item['makeConfigInterface']) {
+                    this._editorAreaSetup(item['makeConfigInterface']());
+                }
+                else {
+                    this._editorAreaSetup();
+                }
+            } catch (e) {
+                console.error("Error in selection change: ", e);
+                this._editorAreaSetup(document.createTextNode("Error!"));
             }
         });
         this.appendChild(this.gearPlanTable);
@@ -737,6 +751,21 @@ export class GearPlanSheet extends HTMLElement {
                 }
                 this.addGearSet(set);
             }
+            if (saved.sims) {
+                for (let sim of saved.sims) {
+                    const simSpec = getSimSpecByStub(sim.stub);
+                    if (simSpec === undefined) {
+                        console.error("Sim no longer present: " + sim.stub);
+                        continue;
+                    }
+                    try {
+                        const rehydratedSim = simSpec.loadSavedSimInstance(sim.settings);
+                        this.addSim(rehydratedSim);
+                    } catch (e) {
+                        console.error("Error loading sim settings", e);
+                    }
+                }
+            }
         }
         else {
             const set = new CharacterGearSet(this.dataManager);
@@ -749,41 +778,12 @@ export class GearPlanSheet extends HTMLElement {
             this.level = 90;
             this.dataManager.classJob = this.job;
             this.dataManager.level = this.level;
+            this.addSim(whmSheetSpec.makeNewSimInstance());
+            this.addSim(dummySimSpec.makeNewSimInstance());
             await this.dataManager.loadData();
         }
-        this.addSim(whmSheetSim);
-        this.addSim(dummySim);
         // needed for empty table
         this.gearPlanTable.dataChanged();
-    }
-
-    addGearSet(gearSet: CharacterGearSet) {
-        this.sets.push(gearSet);
-        this.gearPlanTable.addRow(gearSet);
-        gearSet.addListener(() => this.saveData());
-        this.saveData();
-    }
-
-    delGearSet(gearSet: CharacterGearSet) {
-        this.sets = this.sets.filter(gs => gs !== gearSet);
-        this.gearPlanTable.delRow(gearSet);
-        this.saveData();
-    }
-
-    addSim(sim: Simulation<any>) {
-        this.sims.push(sim);
-        this.gearPlanTable.addSim(sim);
-        this.saveData();
-    }
-
-    delSim(sim: Simulation<any>) {
-        this.sims = this.sims.filter(s => s !== sim);
-        this.gearPlanTable.delSim(sim);
-        this.saveData();
-    }
-
-    getSimResult(simulation: Simulation<any>, set: CharacterGearSet): SimCurrentResult<SimResult> {
-        return {result: simulation.simulate(set), status: 'Done'}
     }
 
     saveData() {
@@ -809,14 +809,51 @@ export class GearPlanSheet extends HTMLElement {
             };
             sets.push(setExport);
         }
+        let simsExport: SimExport[] = [];
+        for (let sim of this.sims) {
+            simsExport.push({
+                stub: sim.spec.stub,
+                settings: sim.exportSettings(),
+            });
+        }
         const fullExport: SheetExport = {
             name: this.name,
             sets: sets,
             level: this.level,
             job: this.job,
             saveKey: this._saveKey,
+            sims: simsExport,
         }
         localStorage.setItem(this._saveKey, JSON.stringify(fullExport));
+    }
+
+    addGearSet(gearSet: CharacterGearSet) {
+        this.sets.push(gearSet);
+        this.gearPlanTable.addRow(gearSet);
+        gearSet.addListener(() => this.saveData());
+        this.saveData();
+    }
+
+    delGearSet(gearSet: CharacterGearSet) {
+        this.sets = this.sets.filter(gs => gs !== gearSet);
+        this.gearPlanTable.delRow(gearSet);
+        this.saveData();
+    }
+
+    addSim(sim: Simulation<any, any, any>) {
+        this.sims.push(sim);
+        this.gearPlanTable.addSim(sim);
+        this.saveData();
+    }
+
+    delSim(sim: Simulation<any, any, any>) {
+        this.sims = this.sims.filter(s => s !== sim);
+        this.gearPlanTable.delSim(sim);
+        this.saveData();
+    }
+
+    getSimResult(simulation: Simulation<any, any, any>, set: CharacterGearSet): SimCurrentResult<SimResult> {
+        return {result: simulation.simulate(set), status: 'Done'}
     }
 
     get saveKey() {
@@ -1096,7 +1133,7 @@ export interface XivApiJobData {
 
 let jobData: XivApiJobData[];
 
-const jobIconMap  = new Map<JobName, string>();
+const jobIconMap = new Map<JobName, string>();
 
 async function ensureJobDataLoaded() {
     if (jobData !== undefined) {

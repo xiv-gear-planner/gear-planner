@@ -92,6 +92,15 @@ tr {
   }
 }
 
+th {
+  &[is-selected="true"] {
+    outline: 3px solid var(--table-selected-outline-color);
+    border-radius: 5px;
+    background-color: var(--table-bg-color-selected);
+  }
+
+}
+
 select {
   color: var(--fg-color);
   background-color: var(--bg-color);

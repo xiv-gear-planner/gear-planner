@@ -9,15 +9,53 @@ function setCellProps(cell: HTMLTableCellElement, colDef: CustomColumnDef<any, a
     }
 }
 
-export class CustomTableHeaderRow<X> extends HTMLTableRowElement {
-    constructor(table: CustomTable<any, any>) {
+export class CustomTableHeaderCell<X, Y, Z> extends HTMLTableCellElement implements SelectionRefresh {
+    private _colDef: CustomColumnDef<X, Y, Z>;
+    private _selected: boolean = false;
+    private table: CustomTable<X, any>;
+    constructor(table: CustomTable<X, any>, columnDef: CustomColumnDef<X, Y, Z>) {
+        super();
+        this.table = table;
+        this._colDef = columnDef;
+        this.textContent = columnDef.displayName;
+        setCellProps(this, columnDef);
+        this.refreshSelection();
+    }
+
+    get colDef() {
+        return this._colDef;
+    }
+
+    refreshSelection() {
+        this.selected = this.table.selectionModel.isColumnHeaderSelected(this._colDef as CustomColumnDef<X>);
+    }
+
+    set selected(selected) {
+        if (this._selected === selected) {
+            return;
+        }
+        this._selected = selected;
+        this.setAttribute("is-selected", String(selected));
+    }
+
+    get selected() {
+        return this._selected;
+    }
+}
+
+export class CustomTableHeaderRow<X> extends HTMLTableRowElement implements SelectionRefresh {
+    _cells: CustomTableHeaderCell<X, any, any>[] = [];
+    constructor(table: CustomTable<X, any>) {
         super();
         for (let column of table.columns) {
-            const headerCell = document.createElement("th");
-            headerCell.textContent = column.displayName;
-            setCellProps(headerCell, column);
+            const headerCell = new CustomTableHeaderCell(table, column);
             this.appendChild(headerCell);
+            this._cells.push(headerCell);
         }
+    }
+
+    refreshSelection() {
+        this._cells.forEach(cell => cell.refreshSelection());
     }
 }
 
@@ -157,9 +195,14 @@ export class SpecialRow<X, Y> {
     }
 }
 
+export interface SelectionRefresh {
+    refreshSelection(): void;
+}
+
 export class CustomTable<X, Y = never> extends HTMLTableElement {
     _data: (X | HeaderRow | TitleRow)[] = [];
     dataRowMap: Map<X, CustomRow<X>> = new Map<X, CustomRow<X>>();
+    selectionRefreshables: SelectionRefresh[] = [];
     _columns: CustomColumnDef<X, any>[];
     // TODO
     // selectionEnabled: boolean;
@@ -225,19 +268,29 @@ export class CustomTable<X, Y = never> extends HTMLTableElement {
             }
         }
         this.tBodies[0].replaceChildren(...newRowElements);
+        this.selectionRefreshables = [];
         for (let value of newRowElements.values()) {
             if (value instanceof CustomRow) {
                 value.refresh();
+                this.selectionRefreshables.push(value);
+            }
+            else if (value instanceof CustomTableHeaderRow) {
+                this.selectionRefreshables.push(value);
             }
         }
         this.refreshSelection();
     }
 
     refreshSelection() {
-        this.curSelection = this.selectionModel.getSelection();
-        for (let value of this.dataRowMap.values()) {
+        // this.curSelection = this.selectionModel.getSelection();
+        for (let value of this.selectionRefreshables) {
             value.refreshSelection();
         }
+        //
+        //
+        // for (let value of this.dataRowMap.values()) {
+        //     value.refreshSelection();
+        // }
     }
 
     handleClick(ev) {
@@ -260,6 +313,12 @@ export class CustomTable<X, Y = never> extends HTMLTableElement {
             target.scrollIntoView({behavior: 'instant', block: 'nearest'})
             this.refreshSelection();
         }
+        else if (target instanceof CustomTableHeaderCell) {
+            if (target.colDef.allowHeaderSelection) {
+                this.selectionModel.clickColumnHeader(target.colDef);
+                this.refreshSelection();
+            }
+        }
         else if (target instanceof HTMLButtonElement) {
             // Assume buttons will handle themselves
         }
@@ -272,7 +331,7 @@ export class CustomTable<X, Y = never> extends HTMLTableElement {
     }
 }
 
-export class CustomColumnDef<X, Y = string> {
+export class CustomColumnDef<X, Y = string, Z = any> {
     shortName: string;
     displayName: string;
     allowHeaderSelection?: boolean = false;
@@ -290,6 +349,7 @@ export class CustomColumnDef<X, Y = string> {
     condition?: () => boolean = () => true;
     initialWidth?: number | undefined = undefined;
     fixedWidth?: number | undefined = undefined;
+    dataValue?: Z;
 }
 
 export class CustomRow<X> extends HTMLTableRowElement {
@@ -332,12 +392,12 @@ export class CustomRow<X> extends HTMLTableRowElement {
         }
     }
 
-    set selected(selected) {
+    set selected(selected: boolean) {
         if (this._selected === selected) {
             return;
         }
         this._selected = selected;
-        this.setAttribute("is-selected", selected);
+        this.setAttribute("is-selected", String(selected));
     }
 }
 
@@ -400,3 +460,4 @@ customElements.define("custom-table", CustomTable, {extends: "table"})
 customElements.define("custom-table-cell", CustomCell, {extends: "td"})
 customElements.define("custom-table-header-row", CustomTableHeaderRow, {extends: "tr"})
 customElements.define("custom-table-title-row", CustomTableTitleRow, {extends: "tr"})
+customElements.define("custom-table-header-cell", CustomTableHeaderCell, {extends: "th"})

@@ -17,9 +17,9 @@ async function initialLoad() {
     processHash();
 }
 
-let expectedHash = undefined;
+let expectedHash: string[] | undefined = undefined;
 
-function arrayEq(left: any[], right: any[]) {
+function arrayEq(left: any[] | undefined, right: any[] | undefined) {
     if (left === undefined && right === undefined) {
         return true;
     }
@@ -86,9 +86,13 @@ export async function openSheetByKey(sheet: string) {
 }
 
 export async function openSheet(planner: GearPlanSheet) {
+    console.log('openSheet: ', planner.saveKey);
     document['planner'] = planner;
     setHash("sheet", planner.saveKey);
-    const loadSheetPromise = planner.loadData().then(() => contentArea.replaceChildren(planner), () => contentArea.replaceChildren(document.createTextNode("Error loading sheet!")));
+    const loadSheetPromise = planner.loadData().then(() => contentArea.replaceChildren(planner), (reason) => {
+        console.error(reason);
+        contentArea.replaceChildren(document.createTextNode("Error loading sheet!"));
+    });
     await loadSheetPromise;
 }
 

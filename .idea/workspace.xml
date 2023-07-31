@@ -5,7 +5,14 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="01e19508-db61-4dcd-b3d6-0e159da8f9e7" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/scripts/components.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/scripts/components.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/scripts/gear.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/scripts/gear.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/scripts/main.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/scripts/main.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/scripts/sims/whm_sheet_sim.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/scripts/sims/whm_sheet_sim.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/scripts/simulation.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/scripts/simulation.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/scripts/tables.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/scripts/tables.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/style.less" beforeDir="false" afterPath="$PROJECT_DIR$/src/style.less" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -57,7 +64,7 @@
     "project.structure.last.edited": "Project",
     "project.structure.proportion": "0.15",
     "project.structure.side.proportion": "0.2",
-    "settings.editor.selected.configurable": "watcher.settings",
+    "settings.editor.selected.configurable": "preferences.sourceCode.TypeScript",
     "ts.external.directory.path": "C:\\Program Files\\JetBrains\\WebStorm 2023.2\\plugins\\javascript-impl\\jsLanguageServicesImpl\\external",
     "vue.rearranger.settings.migration": "true"
   },
@@ -118,7 +125,7 @@
       <workItem from="1690551249658" duration="37207000" />
       <workItem from="1690649800512" duration="24231000" />
       <workItem from="1690734523205" duration="34691000" />
-      <workItem from="1690810215081" duration="16387000" />
+      <workItem from="1690810215081" duration="24115000" />
     </task>
     <servers />
   </component>
@@ -135,6 +142,18 @@
         </entry>
       </map>
     </option>
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="javascript">
+          <url>file://$PROJECT_DIR$/src/scripts/tables.ts</url>
+          <line>158</line>
+          <properties lambdaOrdinal="-1" />
+          <option name="timeStamp" value="2" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />

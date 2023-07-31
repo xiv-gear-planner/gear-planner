@@ -1,4 +1,4 @@
-import {SimResult, Simulation} from "../simulation";
+import {noSimSettings, registerSim, SimResult, SimSettings, SimSpec, Simulation} from "../simulation";
 import {CharacterGearSet, ComputedSetStats} from "../gear";
 import {baseDamage, spsTickMulti} from "../xivmath";
 
@@ -131,8 +131,6 @@ function floorTo(places: number, value: number) {
 }
 
 
-
-
 function CalcPiety(Pie) {
     return 200 + (Math.floor(150 * (Pie - baseMain) / levelMod));
 }
@@ -160,9 +158,46 @@ export interface WhmSheetSimResult extends SimResult {
     pps: number,
 }
 
-export const whmSheetSim: Simulation<WhmSheetSimResult> = {
+export interface WhmSheetSettings extends SimSettings {
+    partySize: number;
+}
+
+export const whmSheetSpec: SimSpec<WhmSheetSim, WhmSheetSettings> = {
     displayName: "WHM Sheet Sim",
-    shortName: "whm-sheet-sim",
+    loadSavedSimInstance(exported: WhmSheetSettings) {
+        return new WhmSheetSim(exported);
+    },
+    makeNewSimInstance(): WhmSheetSim {
+        return new WhmSheetSim();
+    },
+    stub: "whm-sheet-sim"
+}
+
+export class WhmSheetSim implements Simulation<WhmSheetSimResult, WhmSheetSettings, WhmSheetSettings> {
+
+    exportSettings(): WhmSheetSettings {
+        return {...this.settings};
+    };
+
+    settings = {
+        displayNameOverride: undefined,
+        partySize: 0,
+    };
+
+    spec = whmSheetSpec;
+    displayName = "WHM Sheet Sim";
+    shortName = "whm-sheet-sim";
+
+    constructor(settings?: WhmSheetSettings) {
+        if (settings) {
+            Object.assign(this.settings, settings);
+        }
+    }
+
+    makeConfigInterface(): HTMLElement {
+        return noSimSettings();
+    }
+
     simulate(set: CharacterGearSet): WhmSheetSimResult {
         const ppsFinalResult = pps(set.computedStats.spellspeed, set.computedStats.gcdMag, 0, 0, 0);
         // console.log(ppsFinalResult);
@@ -174,3 +209,5 @@ export const whmSheetSim: Simulation<WhmSheetSimResult> = {
         }
     }
 }
+
+registerSim(whmSheetSpec);
