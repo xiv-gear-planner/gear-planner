@@ -1,4 +1,5 @@
 import {CharacterGearSet} from "./gear";
+import {JobName, SupportedLevel} from "./xivconstants";
 
 export interface SimResult {
     mainDpsResult: number;
@@ -9,12 +10,36 @@ export interface SimSettings {
 }
 
 export interface SimSpec<SimType extends Simulation<any, any, any>, SettingsExport> {
+    /**
+     * Unique stub used to reference this specific sim type. Should only use alphanumeric (but not
+     * with a number as the first character) and hyphens.
+     */
     stub: string,
+    /**
+     * Display name for this sim type.
+     */
     displayName: string,
 
+    /**
+     * Make a new instance of the simulator without importing any saved settings.
+     */
     makeNewSimInstance(): SimType;
 
+    /**
+     * Make an instance of the simulator from saved settings.
+     *
+     * @param exported The saved settings.
+     */
     loadSavedSimInstance(exported: SettingsExport);
+
+    /**
+     * Optional: restrict this simulation to certain jobs.
+     */
+    supportedJobs?: JobName[] | undefined;
+    /**
+     * Optional: restrict this simulation to certain levels.
+     */
+    supportedLevels?: SupportedLevel[] | undefined;
 }
 
 let simSpecs: SimSpec<any, any>[] = [];

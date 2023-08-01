@@ -9,22 +9,24 @@ import {
     SpecialRow,
     TitleRow
 } from "./tables";
-import {
-    CharacterGearSet,
-    EquippedItem,
-} from "./gear";
+import {CharacterGearSet, EquippedItem, XivApiFoodInfo,} from "./gear";
 import {DataManager} from "./datamanager";
 import {
     EquipmentSet,
     EquipSlotKeys,
     EquipSlots,
-    FoodItem, GearItem, GearSlot,
+    FoodItem,
+    GearItem,
+    GearSlot,
     GearSlotItem,
-    ItemSlotExport, Materia, MeldableMateriaSlot,
+    ItemSlotExport,
+    Materia,
+    MeldableMateriaSlot,
     RawStats,
     SetExport,
     SheetExport,
-    SimExport, StatBonus
+    SimExport,
+    StatBonus
 } from "./geartypes";
 import {dummySimSpec, getSimSpecByStub, SimCurrentResult, SimResult, Simulation} from "./simulation";
 import {getJobStats, JOB_DATA, JobName, SupportedLevel, SupportedLevels} from "./xivconstants";
@@ -33,7 +35,7 @@ import {whmSheetSpec} from "./sims/whm_sheet_sim";
 
 type GearSetSel = SingleCellRowOrHeaderSelect<CharacterGearSet>;
 
-function makeButton(label: string, action: () => void) {
+function makeActionButton(label: string, action: () => void) {
     const button = document.createElement("button");
     button.textContent = label;
     button.addEventListener('click', ev => {
@@ -85,7 +87,6 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
 
     private gearSets: CharacterGearSet[] = [];
     private sims: Simulation<any, any, any>[] = [];
-    private buttonRow: HTMLDivElement;
     private sheet: GearPlanSheet;
 
     constructor(sheet: GearPlanSheet, setSelection: (item: CharacterGearSet | Simulation<any, any, any> | undefined) => void) {
@@ -108,21 +109,11 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                 }
             }
         })
-        this.buttonRow = document.createElement("div");
-        const addRowButton = document.createElement("button");
-        addRowButton.textContent = "New Gear Set";
-        addRowButton.addEventListener('click', (ev) => {
-            const newSet = new CharacterGearSet(this.sheet.dataManager);
-            newSet.name = "New Set";
-            sheet.addGearSet(newSet);
-        });
-        this.buttonRow.appendChild(addRowButton)
     }
 
     addRow(...toAdd: CharacterGearSet[]) {
-        // TODO: make this only refresh the specific row
         for (let gearSet of toAdd) {
-            gearSet.addListener(() => this.refreshFull());
+            gearSet.addListener(() => this.refreshRowData(gearSet));
             this.gearSets.push(gearSet);
         }
         this.dataChanged();
@@ -137,8 +128,7 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
 
     dataChanged() {
         const curSelection = this.selectionModel.getSelection();
-        super.data = [new HeaderRow(), ...this.gearSets, new SpecialRow((table) => this.buttonRow)];
-        super.refreshFull();
+        super.data = [new HeaderRow(), ...this.gearSets];
         // Special case for deleting the currently selected row
         if (curSelection instanceof CustomRow && !(this.gearSets.includes(curSelection.dataItem))) {
             this.selectionModel.clearSelection();
@@ -166,8 +156,8 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                 getter: gearSet => gearSet,
                 renderer: gearSet => {
                     const div = document.createElement("div");
-                    div.appendChild(makeButton('🗑️', () => this.sheet.delGearSet(gearSet)));
-                    div.appendChild(makeButton('📃', () => this.sheet.addGearSet(gearSet.clone())));
+                    div.appendChild(makeActionButton('🗑️', () => this.sheet.delGearSet(gearSet)));
+                    div.appendChild(makeActionButton('📃', () => this.sheet.addGearSet(gearSet.clone())));
                     return div;
                 }
             },
@@ -227,7 +217,11 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
             {
                 shortName: "crit",
                 displayName: "CRT",
-                getter: gearSet => ({stat: gearSet.computedStats.crit, chance: gearSet.computedStats.critChance, multiplier: gearSet.computedStats.critMulti}) as ChanceStat,
+                getter: gearSet => ({
+                    stat: gearSet.computedStats.crit,
+                    chance: gearSet.computedStats.critChance,
+                    multiplier: gearSet.computedStats.critMulti
+                }) as ChanceStat,
                 renderer: (stats: ChanceStat) => {
                     return chanceStatDisplay(stats);
                 },
@@ -236,7 +230,11 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
             {
                 shortName: "dhit",
                 displayName: "DHT",
-                getter: gearSet => ({stat: gearSet.computedStats.dhit, chance: gearSet.computedStats.dhitChance, multiplier: gearSet.computedStats.dhitMulti}) as ChanceStat,
+                getter: gearSet => ({
+                    stat: gearSet.computedStats.dhit,
+                    chance: gearSet.computedStats.dhitChance,
+                    multiplier: gearSet.computedStats.dhitMulti
+                }) as ChanceStat,
                 renderer: (stats: ChanceStat) => {
                     return chanceStatDisplay(stats);
                 },
@@ -245,7 +243,10 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
             {
                 shortName: "det",
                 displayName: "DET",
-                getter: gearSet => ({stat: gearSet.computedStats.determination, multiplier: gearSet.computedStats.detMulti}) as MultiplierStat,
+                getter: gearSet => ({
+                    stat: gearSet.computedStats.determination,
+                    multiplier: gearSet.computedStats.detMulti
+                }) as MultiplierStat,
                 renderer: (stats: MultiplierStat) => {
                     // TODO: make these fancy
                     return multiplierStatDisplay(stats);
@@ -281,6 +282,7 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
 
 export class SimResultDisplay extends HTMLElement {
     private _result: SimCurrentResult<any>;
+
     constructor(simCurrentResult: SimCurrentResult<any>) {
         super();
         this._result = simCurrentResult;
@@ -440,19 +442,26 @@ class FoodItemsTable extends CustomTable<FoodItem, FoodItem> {
         super.selectionModel = {
             clickCell(cell: CustomCell<FoodItem, FoodItem>) {
 
-            }, clickColumnHeader(col: CustomColumnDef<FoodItem>) {
+            },
+            clickColumnHeader(col: CustomColumnDef<FoodItem>) {
 
-            }, clickRow(row: CustomRow<FoodItem>) {
+            },
+            clickRow(row: CustomRow<FoodItem>) {
                 gearSet.food = row.dataItem;
-            }, getSelection(): FoodItem {
+            },
+            getSelection(): FoodItem {
                 return gearSet.food;
-            }, isCellSelectedDirectly(cell: CustomCell<FoodItem, FoodItem>) {
+            },
+            isCellSelectedDirectly(cell: CustomCell<FoodItem, FoodItem>) {
                 return false;
-            }, isColumnHeaderSelected(col: CustomColumnDef<FoodItem>) {
+            },
+            isColumnHeaderSelected(col: CustomColumnDef<FoodItem>) {
                 return false;
-            }, isRowSelected(row: CustomRow<FoodItem>) {
+            },
+            isRowSelected(row: CustomRow<FoodItem>) {
                 return gearSet.food === row.dataItem;
-            }, clearSelection(): void {
+            },
+            clearSelection(): void {
 
             }
         }
@@ -590,7 +599,11 @@ class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
             data.push(new HeaderRow());
             const itemsInSlot = itemMapping.get(slot.gearSlot);
             for (const gearItem of itemsInSlot) {
-                data.push({slot: slot, item: gearItem, slotName: name});
+                data.push({
+                    slot: slot,
+                    item: gearItem,
+                    slotName: name
+                });
             }
             const matMgr = new AllSlotMateriaManager(dataManager, gearSet, name);
             slotMateriaManagers.push(matMgr);
@@ -599,20 +612,26 @@ class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
         super.selectionModel = {
             clickCell(cell: CustomCell<GearSlotItem, any>) {
 
-            }, clickColumnHeader(col: CustomColumnDef<GearSlotItem>) {
+            },
+            clickColumnHeader(col: CustomColumnDef<GearSlotItem>) {
 
-            }, clickRow(row: CustomRow<GearSlotItem>) {
+            },
+            clickRow(row: CustomRow<GearSlotItem>) {
                 gearSet.setEquip(row.dataItem.slotName, row.dataItem.item);
                 for (let matMgr of slotMateriaManagers) {
                     matMgr.refresh();
                 }
-            }, getSelection(): EquipmentSet {
+            },
+            getSelection(): EquipmentSet {
                 return gearSet.equipment;
-            }, isCellSelectedDirectly(cell: CustomCell<GearSlotItem, any>) {
+            },
+            isCellSelectedDirectly(cell: CustomCell<GearSlotItem, any>) {
                 return false;
-            }, isColumnHeaderSelected(col: CustomColumnDef<GearSlotItem>) {
+            },
+            isColumnHeaderSelected(col: CustomColumnDef<GearSlotItem>) {
                 return false;
-            }, isRowSelected(row: CustomRow<GearSlotItem>) {
+            },
+            isRowSelected(row: CustomRow<GearSlotItem>) {
                 return gearSet.getItemInSlot(row.dataItem.slotName) === row.dataItem.item;
             },
             clearSelection() {
@@ -634,12 +653,7 @@ export class GearSetEditor extends HTMLElement {
         this.appendChild(header)
 
         // Name editor
-        const nameEditor = document.createElement("input");
-        nameEditor.type = 'text';
-        nameEditor.value = gearSet.name;
-        nameEditor.addEventListener('input', (e) => {
-            gearSet.name = nameEditor.value;
-        });
+        const nameEditor = new FieldBoundTextField(gearSet, 'name');
         nameEditor.classList.add("gear-set-name-editor");
         this.appendChild(nameEditor);
 
@@ -670,6 +684,26 @@ export class GearSetEditor extends HTMLElement {
     }
 }
 
+function formatSimulationConfigArea(sim: Simulation<any, any, any>, refreshColumn: (item: Simulation<any, any, any>) => void): HTMLElement {
+    const outerDiv = document.createElement("div");
+    const header = document.createElement("h1");
+    header.textContent = "Configuring " + sim.displayName;
+    outerDiv.appendChild(header);
+    outerDiv.appendChild(new FieldBoundTextField(sim, 'displayName'));
+    outerDiv.appendChild(document.createElement("br"));
+
+    const rerunButton = makeActionButton("Rerun", () => refreshColumn(sim));
+    outerDiv.appendChild(rerunButton);
+    outerDiv.appendChild(document.createElement("br"));
+
+    const customInterface = sim.makeConfigInterface();
+    customInterface.id = 'sim-config-area-inner';
+    customInterface.classList.add('sim-config-area-inner');
+    outerDiv.appendChild(customInterface);
+
+    return outerDiv;
+}
+
 /**
  * The top-level gear manager element
  */
@@ -683,6 +717,7 @@ export class GearPlanSheet extends HTMLElement {
     job: JobName;
     level: SupportedLevel;
     private _editorAreaSetup: (...nodes: Node[]) => void;
+    private buttonRow: HTMLDivElement;
 
     constructor(dataManager: DataManager, sheetKey: string, defaultName?: string, editorAreaSetup?: (...nodes: Node[]) => void) {
         super();
@@ -701,11 +736,14 @@ export class GearPlanSheet extends HTMLElement {
         this.dataManager = dataManager;
         this.gearPlanTable = new GearPlanTable(this, item => {
             try {
-                if (item instanceof CharacterGearSet) {
+                if (!item) {
+                    this._editorAreaSetup();
+                }
+                else if (item instanceof CharacterGearSet) {
                     this._editorAreaSetup(new GearSetEditor(this, item, dataManager));
                 }
                 else if (item['makeConfigInterface']) {
-                    this._editorAreaSetup(item['makeConfigInterface']());
+                    this._editorAreaSetup(formatSimulationConfigArea(item as Simulation<any, any, any>, col => this.gearPlanTable.refreshColumn(col)));
                 }
                 else {
                     this._editorAreaSetup();
@@ -715,7 +753,18 @@ export class GearPlanSheet extends HTMLElement {
                 this._editorAreaSetup(document.createTextNode("Error!"));
             }
         });
+        this.buttonRow = document.createElement("div");
+        const addRowButton = document.createElement("button");
+        addRowButton.textContent = "New Gear Set";
+        addRowButton.addEventListener('click', (ev) => {
+            const newSet = new CharacterGearSet(this.dataManager);
+            newSet.name = "New Set";
+            this.addGearSet(newSet);
+        });
+        this.buttonRow.id = 'gear-sheet-button-row';
+        this.buttonRow.appendChild(addRowButton)
         this.appendChild(this.gearPlanTable);
+        this.appendChild(this.buttonRow);
         this._saveKey = sheetKey;
         this.name = defaultName;
     }
@@ -759,14 +808,17 @@ export class GearPlanSheet extends HTMLElement {
                 this.addGearSet(set);
             }
             if (saved.sims) {
-                for (let sim of saved.sims) {
-                    const simSpec = getSimSpecByStub(sim.stub);
+                for (let simport of saved.sims) {
+                    const simSpec = getSimSpecByStub(simport.stub);
                     if (simSpec === undefined) {
-                        console.error("Sim no longer present: " + sim.stub);
+                        console.error("Sim no longer present: " + simport.stub);
                         continue;
                     }
                     try {
-                        const rehydratedSim = simSpec.loadSavedSimInstance(sim.settings);
+                        const rehydratedSim = simSpec.loadSavedSimInstance(simport.settings);
+                        if (simport.name) {
+                            rehydratedSim.name = simport.name;
+                        }
                         this.addSim(rehydratedSim);
                     } catch (e) {
                         console.error("Error loading sim settings", e);
@@ -821,6 +873,7 @@ export class GearPlanSheet extends HTMLElement {
             simsExport.push({
                 stub: sim.spec.stub,
                 settings: sim.exportSettings(),
+                name: sim.displayName
             });
         }
         const fullExport: SheetExport = {
@@ -1012,8 +1065,8 @@ export class SheetPickerTable extends CustomTable<SheetExport> {
                 getter: sheet => sheet,
                 renderer: (sheet: SheetExport) => {
                     const div = document.createElement("div");
-                    div.appendChild(makeButton('Open', () => openSheetByKey(sheet.saveKey)));
-                    div.appendChild(makeButton('Delete️', () => {
+                    div.appendChild(makeActionButton('Open', () => openSheetByKey(sheet.saveKey)));
+                    div.appendChild(makeActionButton('Delete️', () => {
                         deleteSheetByKey(sheet.saveKey);
                         this.readData();
                     }));
@@ -1043,7 +1096,7 @@ export class SheetPickerTable extends CustomTable<SheetExport> {
         const data: typeof this.data = [];
         data.push(new SpecialRow((table) => {
             const div = document.createElement("div");
-            div.appendChild(makeButton("New Sheet", () => startNewSheet()));
+            div.appendChild(makeActionButton("New Sheet", () => startNewSheet()));
             return div;
         }))
         for (let localStorageKey in localStorage) {
@@ -1061,7 +1114,7 @@ export class SheetPickerTable extends CustomTable<SheetExport> {
     }
 }
 
-function labelFor(label: string, labelFor: HTMLElement) {
+export function labelFor(label: string, labelFor: HTMLElement) {
     const element = document.createElement("label");
     element.textContent = label;
     if (labelFor.id) {
@@ -1184,6 +1237,53 @@ export class JobIcon extends HTMLImageElement {
     }
 }
 
+export interface FbctArgs {
+    event?: keyof HTMLElementEventMap;
+}
+
+export class FieldBoundConvertingTextField<ObjType, DataType> extends HTMLInputElement {
+
+    reloadValue: () => void;
+    listeners: ((value: DataType) => void)[] = [];
+
+    constructor(obj: ObjType, field: { [K in keyof ObjType]: ObjType[K] extends DataType ? K : never }[keyof ObjType], valueToString: (value: DataType) => string, stringToValue: (string: string) => (DataType), extraArgs: FbctArgs = {}) {
+        super();
+        this.type = 'text';
+        // @ts-ignore
+        this.reloadValue = () => this.value = valueToString(obj[field]);
+        this.reloadValue();
+        this.addEventListener(extraArgs.event ?? 'input', () => {
+            const newValue: DataType = stringToValue(this.value);
+            // @ts-ignore
+            obj[field] = newValue;
+            for (let listener of this.listeners) {
+                try {
+                    listener(newValue);
+                }
+                catch (e) {
+                    console.error("Error in listener", e);
+                }
+            }
+        });
+    }
+
+    addListener(listener: (value: DataType) => void) {
+        this.listeners.push(listener);
+    }
+
+
+}
+
+// new FieldBoundConvertingTextField(new CharacterGearSet(null), 'food', food => food.toString(), str => new XivApiFoodInfo({}));
+
+export class FieldBoundTextField<ObjType> extends FieldBoundConvertingTextField<ObjType, string> {
+    constructor(obj: ObjType, field: { [K in keyof ObjType]: ObjType[K] extends string ? K : never }[keyof ObjType], extraArgs: FbctArgs = {}) {
+        super(obj, field, (s) => s, (s) => s, extraArgs);
+    }
+}
+
+// new FieldBoundTextField(new CharacterGearSet(null), 'name');
+
 
 customElements.define("gear-set-editor", GearSetEditor);
 customElements.define("gear-plan-table", GearPlanTable, {extends: "table"});
@@ -1198,3 +1298,5 @@ customElements.define("new-sheet-form", NewSheetForm, {extends: "form"});
 customElements.define("data-select", DataSelect, {extends: "select"});
 customElements.define("ffxiv-job-icon", JobIcon, {extends: "img"});
 customElements.define("sim-result-display", SimResultDisplay);
+customElements.define("field-bound-converting-text-field", FieldBoundConvertingTextField, {extends: "input"});
+customElements.define("field-bound-text-field", FieldBoundTextField, {extends: "input"});

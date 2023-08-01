@@ -2,6 +2,7 @@ import {noSimSettings, registerSim, SimResult, SimSettings, SimSpec, Simulation}
 import {CharacterGearSet} from "../gear";
 import {baseDamage, spsTickMulti} from "../xivmath";
 import {ComputedSetStats} from "../geartypes";
+import {labelFor} from "../components";
 
 
 //potencies for our spells
@@ -171,7 +172,8 @@ export const whmSheetSpec: SimSpec<WhmSheetSim, WhmSheetSettings> = {
     makeNewSimInstance(): WhmSheetSim {
         return new WhmSheetSim();
     },
-    stub: "whm-sheet-sim"
+    stub: "whm-sheet-sim",
+    supportedJobs: ['WHM'],
 }
 
 export class WhmSheetSim implements Simulation<WhmSheetSimResult, WhmSheetSettings, WhmSheetSettings> {
@@ -196,7 +198,22 @@ export class WhmSheetSim implements Simulation<WhmSheetSimResult, WhmSheetSettin
     }
 
     makeConfigInterface(): HTMLElement {
-        return noSimSettings();
+        if (false) {
+            const div = document.createElement("div");
+            const partySize = document.createElement("input");
+            const partySizeLabel = labelFor("Unique Party Roles", partySize);
+            partySize.type = 'number';
+            partySize.min = '0';
+            partySize.max = '5';
+            partySize.value = this.settings.partySize.toString();
+            partySize.addEventListener('change', (ev) => this.settings.partySize = parseInt(partySize.value));
+            div.appendChild(partySizeLabel);
+            div.appendChild(partySize);
+            return div;
+        }
+        else {
+            return noSimSettings();
+        }
     }
 
     async simulate(set: CharacterGearSet): Promise<WhmSheetSimResult> {
@@ -205,9 +222,9 @@ export class WhmSheetSim implements Simulation<WhmSheetSimResult, WhmSheetSettin
         const resultWithoutDhCrit = baseDamage(set, ppsFinalResult, false, false, 0, 0);
         const result = applyDhCrit(resultWithoutDhCrit, set.computedStats);
         // Uncomment to test async logic
-        // await new Promise(resolve => setTimeout(resolve, 1_000));
+        await new Promise(resolve => setTimeout(resolve, 500));
         return {
-            mainDpsResult: result,
+            mainDpsResult: result* 1 + this.settings.partySize,
             pps: ppsFinalResult,
         }
     }

@@ -1,12 +1,9 @@
 // import '@webcomponents/webcomponentsjs/webcomponents-bundle.js'
 // import '@webcomponents/webcomponentsjs/custom-elements-es5-adapter.js'
 
-// import {GearSet, XivApiGearInfo} from "./geartypes";
-
 import {GearPlanSheet, NewSheetForm, SheetPickerTable} from "./components";
 import {DataManager} from "./datamanager";
 
-// customElements.define("gear-plan-row", GearPlanRow)
 
 
 export const contentArea = document.getElementById("content-area");

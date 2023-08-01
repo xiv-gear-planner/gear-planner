@@ -280,7 +280,8 @@ export const xivApiStatToRawStatKey: Record<XivApiStat, RawStatKey> = {
 
 export interface SimExport {
     stub: string,
-    settings: Object
+    settings: Object,
+    name?: string
 }
 
 export interface SheetExport {

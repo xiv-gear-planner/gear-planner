@@ -15,6 +15,10 @@ body {
   --stat-mix-primary-bg: 12%;
   --stat-mix-secondary: 12%;
   --stat-mix-secondary-bg: 6%;
+  --standard-border: 1px solid var(--border-color);
+  --thick-border: 2px solid var(--border-color);
+  --selected-outline: 3px solid var(--table-selected-outline-color);
+
   color: var(--fg-color);
   background-color: var(--bg-color);
   font-family: sans-serif;
@@ -69,37 +73,103 @@ div#editor-area {
   }
 }
 
+
+.table-item-selected {
+  outline: var(--selected-outline);
+  border-radius: 5px;
+}
+
+.table-item-selected-bg {
+  background-color: var(--table-bg-color-selected);
+}
+
 table {
-  border-collapse: collapse;
-}
+  border: none;
+  border-spacing: 0;
 
-td {
-  border: 1px solid var(--border-color);
-  margin: 0;
-  padding: 1px 3px 1px 3px;
-  text-overflow: ellipsis;
-  overflow: hidden;
-}
+  tbody, thead, tfoot {
+    text-align: left;
+  }
 
-tr {
-  /*border: 2px solid #666666;*/
-  border: 3px solid var(--border-color);
-  background-color: var(--table-bg-color);
-  &[is-selected="true"] {
-    outline: 3px solid var(--table-selected-outline-color);
-    border-radius: 5px;
-    background-color: var(--table-bg-color-selected);
+
+  tr {
+    /*border: 2px solid #666666;*/
+    border: 3px solid var(--border-color);
+    background-color: var(--table-bg-color);
+    scroll-margin: 30px;
+    position: relative;
+
+    &[is-selected="true"] {
+      .table-item-selected-bg;
+
+      &::after {
+        content: '';
+        position: absolute;
+        right: 2px;
+        top: 1px;
+        left: 2px;
+        bottom: 1px;
+        //width: min(100%, 100vw);
+        //height: calc(100% - 4px);
+        display: inline-block;
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+
+        //margin-right: -100vh;
+
+        z-index: 90;
+        //background-color: #0099ff;
+        .table-item-selected;
+      }
+    }
+
+    th {
+      border-top: var(--thick-border);
+      border-bottom: var(--thick-border);
+
+      &:first-child {
+        border-left: var(--thick-border);
+      }
+
+      &:last-child {
+        border-right: var(--thick-border);
+      }
+      &[is-selected="true"] {
+        .table-item-selected;
+        .table-item-selected-bg;
+      }
+
+
+    }
+
+    &:first-child {
+      border-top: var(--standard-border);
+    }
+
+    td {
+      border-left: var(--standard-border);
+      border-top: none;
+      border-bottom: var(--thick-border);
+      border-right: none;
+      margin: 0;
+      padding: 1px 3px 1px 3px;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      scroll-margin: 20px;
+      position: relative;
+
+      &[is-selected="true"] {
+        .table-item-selected;
+      }
+      &:last-child {
+        border-right: var(--standard-border);
+      }
+    }
   }
 }
 
-th {
-  &[is-selected="true"] {
-    outline: 3px solid var(--table-selected-outline-color);
-    border-radius: 5px;
-    background-color: var(--table-bg-color-selected);
-  }
-
-}
+// Provides the selected outline for table elements
 
 select {
   color: var(--fg-color);
@@ -167,21 +237,115 @@ input[type="text"] {
   width: 400px;
 }
 
-table.gear-plan-table tr:first-child th {
-  height: 48px;
+table.gear-plan-table {
+  border-collapse: separate;
+  border-spacing: 0;
+  overflow-x: scroll;
+  // Dumb. Gross. Why can't position: sticky have any reasonable way of working with variable-width columns?
+  --action-col-width: 60px;
+
+  td {
+    scroll-margin-top: 60px;
+    scroll-margin-bottom: 40px;
+  }
+
+  td, th {
+    background: inherit;
+
+    &:first-child, &:nth-child(2) {
+      position: sticky;
+    }
+
+    &:first-child {
+      left: 0;
+      width: var(--action-col-width);
+      min-width: var(--action-col-width);
+      max-width: var(--action-col-width);
+    }
+
+    &:nth-child(2) {
+      left: calc(var(--action-col-width) + 7px);
+    }
+  }
+
+  tr {
+    scroll-margin-top: 60px;
+    scroll-margin-bottom: 40px;
+    position: relative;
+
+    td:first-child {
+      left: 0;
+      width: var(--action-col-width);
+      min-width: var(--action-col-width);
+      max-width: var(--action-col-width);
+      outline: inherit;
+      z-index: 70;
+
+    }
+
+    td:nth-child(2) {
+      left: calc(var(--action-col-width) + 7px);
+      z-index: 70;
+      border-right: var(--standard-border);
+    }
+
+    td:nth-child(3) {
+      border-left: none;
+
+    }
+  }
+
+  //
+  //tr:last-child {
+  //  bottom: 0;
+  //}
+
+  tr:first-child th {
+    height: 48px;
+  }
+
+  tr:first-child {
+    position: sticky;
+    top: 0;
+    border: var(--thick-border);
+    z-index: 99;
+
+    th {
+      border-top: var(--thick-border);
+      border-bottom: var(--thick-border);
+
+      &:first-child {
+        border-left: var(--thick-border);
+      }
+
+      //&:last-child {
+      //  border-right: var(--thick-border);
+      //}
+    }
+  }
+}
+
+#gear-sheet-button-row {
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  position: sticky;
+  z-index: 99;
+  background-color: var(--table-bg-color);
+  border-top: var(--thick-border);
+  border-bottom: var(--thick-border);
+  box-sizing: border-box;
+  text-align: left;
+
 }
 
 #content-area {
   text-align: center;
+  table {
+    margin: auto;
+  }
 }
 
-tbody, thead, tfoot {
-  text-align: left;
-}
-
-#content-area table {
-  margin: auto;
-}
 
 #new-sheet-form fieldset {
   text-align: center;
@@ -191,11 +355,11 @@ tbody, thead, tfoot {
 
 gear-plan {
   margin: auto;
+  table {
+    margin: auto;
+  }
 }
 
-gear-plan table {
-  margin: auto;
-}
 
 table#gear-items-table, table#food-items-table {
   margin: auto;
@@ -325,4 +489,5 @@ td.stat-zero {
 td.primary {
   font-weight: bold;
 }
+
 
