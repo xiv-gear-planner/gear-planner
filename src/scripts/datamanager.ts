@@ -1,5 +1,6 @@
-import {GearItem, Materia, processRawMateriaInfo, XivApiFoodInfo, XivApiGearInfo} from "./gear";
+import {processRawMateriaInfo, XivApiFoodInfo, XivApiGearInfo} from "./gear";
 import {JobName, MATERIA_LEVEL_MAX_NORMAL, RaceName, SupportedLevel} from "./xivconstants";
+import {GearItem, Materia} from "./geartypes";
 
 export class DataManager {
     items: XivApiGearInfo[];

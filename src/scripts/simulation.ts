@@ -43,7 +43,7 @@ export interface Simulation<ResultType extends SimResult, SettingsType extends S
     shortName: string;
     displayName: string;
 
-    simulate(set: CharacterGearSet): ResultType;
+    simulate(set: CharacterGearSet): Promise<ResultType>;
 
     settings: SettingsType;
 
@@ -85,7 +85,7 @@ export const dummySim: Simulation<SimResult, SimSettings, {}> = {
     },
     shortName: "dummysim",
     displayName: "Dummy Sim",
-    simulate(set: CharacterGearSet): SimResult {
+    async simulate(set: CharacterGearSet): Promise<SimResult> {
         return {mainDpsResult: 10000 + set.computedStats.critChance * 10000};
     },
     spec: dummySimSpec,
@@ -93,8 +93,10 @@ export const dummySim: Simulation<SimResult, SimSettings, {}> = {
 }
 
 export interface SimCurrentResult<X extends SimResult> {
-    result: X | undefined,
-    status: 'Done' | 'Running' | 'Not Run' | 'Stale';
+    result: X | undefined;
+    status: 'Done' | 'Running' | 'Not Run' | 'Stale' | 'Error';
+    error: any | undefined;
+    resultPromise: Promise<X>;
 }
 
 registerSim(dummySimSpec);

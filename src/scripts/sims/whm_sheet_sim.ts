@@ -1,6 +1,7 @@
 import {noSimSettings, registerSim, SimResult, SimSettings, SimSpec, Simulation} from "../simulation";
-import {CharacterGearSet, ComputedSetStats} from "../gear";
+import {CharacterGearSet} from "../gear";
 import {baseDamage, spsTickMulti} from "../xivmath";
+import {ComputedSetStats} from "../geartypes";
 
 
 //potencies for our spells
@@ -198,11 +199,13 @@ export class WhmSheetSim implements Simulation<WhmSheetSimResult, WhmSheetSettin
         return noSimSettings();
     }
 
-    simulate(set: CharacterGearSet): WhmSheetSimResult {
+    async simulate(set: CharacterGearSet): Promise<WhmSheetSimResult> {
         const ppsFinalResult = pps(set.computedStats.spellspeed, set.computedStats.gcdMag, 0, 0, 0);
         // console.log(ppsFinalResult);
         const resultWithoutDhCrit = baseDamage(set, ppsFinalResult, false, false, 0, 0);
         const result = applyDhCrit(resultWithoutDhCrit, set.computedStats);
+        // Uncomment to test async logic
+        // await new Promise(resolve => setTimeout(resolve, 1_000));
         return {
             mainDpsResult: result,
             pps: ppsFinalResult,

@@ -11,24 +11,21 @@ import {
 } from "./tables";
 import {
     CharacterGearSet,
-    EquipmentSet,
     EquippedItem,
-    EquipSlotKeys,
-    EquipSlots,
-    FoodItem,
-    GearItem,
-    GearSlot,
-    GearSlotItem,
-    ItemSlotExport,
-    Materia,
-    MeldableMateriaSlot,
-    SetExport,
-    SheetExport,
-    SimExport,
-    StatBonus
 } from "./gear";
 import {DataManager} from "./datamanager";
-import {RawStats} from "./geartypes";
+import {
+    EquipmentSet,
+    EquipSlotKeys,
+    EquipSlots,
+    FoodItem, GearItem, GearSlot,
+    GearSlotItem,
+    ItemSlotExport, Materia, MeldableMateriaSlot,
+    RawStats,
+    SetExport,
+    SheetExport,
+    SimExport, StatBonus
+} from "./geartypes";
 import {dummySimSpec, getSimSpecByStub, SimCurrentResult, SimResult, Simulation} from "./simulation";
 import {getJobStats, JOB_DATA, JobName, SupportedLevel, SupportedLevels} from "./xivconstants";
 import {openSheetByKey, setEditorAreaContent, showNewSheetForm} from "./main";
@@ -274,23 +271,33 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                 shortName: sim.shortName,
                 displayName: sim.displayName,
                 getter: gearSet => this.sheet.getSimResult(sim, gearSet),
-                renderer: result => {
-                    if (result.status === 'Done') {
-                        const node = document.createElement("span");
-                        node.textContent = result.result.mainDpsResult.toFixed(2);
-                        const tooltip = Object.entries(result.result).map(entry => `${entry[0]}: ${entry[1]}`)
-                            .join('\n');
-                        node.setAttribute('title', tooltip);
-                        return node;
-                    }
-                    else {
-                        return document.createTextNode(result.status);
-                    }
-                },
+                renderer: result => new SimResultDisplay(result),
                 allowHeaderSelection: true,
             } as CustomColumnDef<CharacterGearSet, SimCurrentResult<SimResult>, Simulation<any, any, any>>);
         }
         this.columns = columns;
+    }
+}
+
+export class SimResultDisplay extends HTMLElement {
+    private _result: SimCurrentResult<any>;
+    constructor(simCurrentResult: SimCurrentResult<any>) {
+        super();
+        this._result = simCurrentResult;
+        this.update();
+        this._result.resultPromise.then(result => this.update(), error => this.update());
+    }
+
+    update() {
+        if (this._result.status === 'Done') {
+            this.textContent = this._result.result.mainDpsResult.toFixed(2);
+            const tooltip = Object.entries(this._result.result).map(entry => `${entry[0]}: ${entry[1]}`)
+                .join('\n');
+            this.setAttribute('title', tooltip);
+        }
+        else {
+            this.textContent = this._result.status;
+        }
     }
 }
 
@@ -852,8 +859,30 @@ export class GearPlanSheet extends HTMLElement {
         this.saveData();
     }
 
+    // TODO: this needs to only update when we have updated that specific gear set, not any random gear set.
+    // If this gear set was not updated, then a cached result should be returned.
     getSimResult(simulation: Simulation<any, any, any>, set: CharacterGearSet): SimCurrentResult<SimResult> {
-        return {result: simulation.simulate(set), status: 'Done'}
+        const simPromise = simulation.simulate(set);
+        const out: SimCurrentResult<any> = {
+            result: undefined,
+            resultPromise: undefined,
+            status: 'Running',
+            error: undefined
+        };
+        out.resultPromise = new Promise((resolve, reject) => {
+            simPromise.then(result => {
+                out.status = 'Done';
+                out.result = result;
+                resolve(out);
+            }, error => {
+                console.log("sim err", error)
+                out.status = 'Error';
+                out.error = error;
+                console.error("Sim Error!", error);
+                reject(error);
+            });
+        });
+        return out;
     }
 
     get saveKey() {
@@ -1168,3 +1197,4 @@ customElements.define("gear-sheet-picker", SheetPickerTable, {extends: "table"})
 customElements.define("new-sheet-form", NewSheetForm, {extends: "form"});
 customElements.define("data-select", DataSelect, {extends: "select"});
 customElements.define("ffxiv-job-icon", JobIcon, {extends: "img"});
+customElements.define("sim-result-display", SimResultDisplay);
