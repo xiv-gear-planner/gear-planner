@@ -32,7 +32,7 @@ body {
 
 div#dev-menu-area {
   flex: 0;
-  margin: 10px;
+  margin: 5px;
   padding: 5px;
   border: 1px solid var(--border-color);
 
@@ -119,6 +119,7 @@ table {
         //margin-right: -100vh;
 
         z-index: 90;
+        pointer-events: none;
         //background-color: #0099ff;
         .table-item-selected;
       }
@@ -199,11 +200,6 @@ button {
   padding-right: 8px;
 }
 
-table all-slot-materia-manager {
-  width: 100%;
-  display: table-caption;
-}
-
 td[col-id="actions"] div {
   display: inline-flex;
 }
@@ -253,6 +249,7 @@ table.gear-plan-table {
     background: inherit;
 
     &:first-child, &:nth-child(2) {
+      box-sizing: border-box;
       position: sticky;
     }
 
@@ -264,7 +261,7 @@ table.gear-plan-table {
     }
 
     &:nth-child(2) {
-      left: calc(var(--action-col-width) + 7px);
+      left: calc(var(--action-col-width));
     }
   }
 
@@ -281,10 +278,16 @@ table.gear-plan-table {
       outline: inherit;
       z-index: 70;
 
+      button {
+        padding: 0 4px 0 4px;
+      }
+
     }
 
     td:nth-child(2) {
-      left: calc(var(--action-col-width) + 7px);
+      // love css - why is there no "just keep this in place"
+      // option for stickies?
+      left: calc(var(--action-col-width));
       z-index: 70;
       border-right: var(--standard-border);
     }
@@ -314,6 +317,8 @@ table.gear-plan-table {
       border-top: var(--thick-border);
       border-bottom: var(--thick-border);
 
+      padding: 0 5px 0 5px;
+
       &:first-child {
         border-left: var(--thick-border);
       }
@@ -328,14 +333,15 @@ table.gear-plan-table {
 #gear-sheet-button-row {
   left: 0;
   bottom: 0;
-  width: 100%;
   position: sticky;
   z-index: 99;
   background-color: var(--table-bg-color);
-  border-top: var(--thick-border);
-  border-bottom: var(--thick-border);
+  border: var(--thick-border);
   box-sizing: border-box;
   text-align: left;
+  // I hate css
+  margin-right: -300px;
+  width: min(100%, 100vw);
 
 }
 
@@ -355,6 +361,8 @@ table.gear-plan-table {
 
 gear-plan {
   margin: auto;
+  width: fit-content;
+  display: block;
   table {
     margin: auto;
   }
@@ -362,8 +370,7 @@ gear-plan {
 
 
 table#gear-items-table, table#food-items-table {
-  margin: auto;
-  margin-bottom: 5px;
+  margin: auto auto 5px;
 
   tr, td {
     height: 25px;
@@ -420,6 +427,79 @@ table.gear-sheets-table {
   }
 }
 
+table all-slot-materia-manager {
+  width: max-content;
+  display: table-caption;
+  height: 23px;
+  &> span {
+    vertical-align: middle;
+    display: inline-block;
+  }
+  &.materia-slot-no-slots > span {
+    color: var(--border-color);
+
+  }
+}
+
+
+slot-materia-manager {
+  display: inline-block;
+  position: relative;
+  margin-right: 5px;
+  height: fit-content;
+  width: 100px;
+  vertical-align: middle;
+
+  --image-size: 18px;
+
+  div.materia-image-holder {
+    overflow: clip;
+    width: var(--image-size);
+    height: var(--image-size);
+    padding: 0;
+    margin: 0;
+    border: 2px #3c623c solid;
+    border-radius: 100%;
+    display: inline-block;
+    vertical-align: middle;
+  }
+
+  img {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  &> span {
+    vertical-align: middle;
+    display: inline-block;
+  }
+}
+
+slot-materia-popup {
+  position: absolute;
+  z-index: 150;
+  left: 0;
+
+  td {
+    width: fit-content !important;
+    height: fit-content !important;
+    padding: 0 !important;
+    z-index: 180;
+    img {
+      width: 40px;
+      height: 40px;
+      display: block;
+    }
+    &[is-selected="true"] {
+      z-index: 181;
+    }
+    &:first-child {
+      text-align: right;
+      padding: 4px !important;
+    }
+  }
+}
 
 // Stat-related stuff
 td.stat-sps.primary {

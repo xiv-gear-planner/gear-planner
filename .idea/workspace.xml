@@ -5,14 +5,13 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="01e19508-db61-4dcd-b3d6-0e159da8f9e7" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/src/scripts/modalcontrol.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/scripts/components.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/scripts/components.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/scripts/gear.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/scripts/gear.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/scripts/geartypes.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/scripts/geartypes.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/scripts/main.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/scripts/main.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/scripts/sims/whm_sheet_sim.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/scripts/sims/whm_sheet_sim.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/scripts/simulation.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/scripts/simulation.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/scripts/tables.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/scripts/tables.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/scripts/xivconstants.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/scripts/xivconstants.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/style.less" beforeDir="false" afterPath="$PROJECT_DIR$/src/style.less" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -77,6 +76,7 @@
 }</component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\Matt\IdeaProjects\gearplan\src\scripts" />
       <recent name="C:\Users\Matt\IdeaProjects\gearplan\src" />
     </key>
   </component>
@@ -127,7 +127,8 @@
       <workItem from="1690649800512" duration="24231000" />
       <workItem from="1690734523205" duration="34691000" />
       <workItem from="1690810215081" duration="31125000" />
-      <workItem from="1690901080867" duration="23364000" />
+      <workItem from="1690901080867" duration="34172000" />
+      <workItem from="1690988888091" duration="7385000" />
     </task>
     <servers />
   </component>
@@ -150,8 +151,7 @@
       <breakpoints>
         <line-breakpoint enabled="true" type="javascript">
           <url>file://$PROJECT_DIR$/src/scripts/components.ts</url>
-          <line>737</line>
-          <properties lambdaOrdinal="-1" />
+          <line>760</line>
           <option name="timeStamp" value="5" />
         </line-breakpoint>
       </breakpoints>

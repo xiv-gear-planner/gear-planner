@@ -72,7 +72,23 @@ export interface FoodItem extends XivItem {
 }
 
 export interface Materia extends XivCombatItem {
-
+    /**
+     * The stat given by the materia
+     */
+    primaryStat: RawStatKey,
+    /**
+     * The value of the stat given by the materia
+     */
+    primaryStatValue: number,
+    /**
+     * The tier of the materia (e.g. materia IX = 9)
+     */
+    materiaGrade: number,
+    /**
+     * If the materia cannot be overmelded into all of the slots,
+     * i.e. true for 6/8/10, false for 5/7/9 etc.
+     */
+    isHighGrade: boolean
 }
 
 export interface ComputedSetStats extends RawStats {
@@ -243,6 +259,7 @@ export class EquipmentSet {
 
 export interface MateriaSlot {
     maxGrade: number,
+    allowsHighGrade: boolean
 }
 
 // Ignoring MP and doh/dol stats

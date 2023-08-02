@@ -364,12 +364,12 @@ export class XivApiGearInfo implements GearItem {
         const overmeld: boolean = data['IsAdvancedMeldingPermitted'] as boolean;
         for (let i = 0; i < baseMatCount; i++) {
             // TODO: figure out grade automatically
-            this.materiaSlots.push({maxGrade: MATERIA_LEVEL_MAX_NORMAL});
+            this.materiaSlots.push({maxGrade: MATERIA_LEVEL_MAX_NORMAL, allowsHighGrade: true});
         }
         if (overmeld) {
-            this.materiaSlots.push({maxGrade: MATERIA_LEVEL_MAX_NORMAL})
+            this.materiaSlots.push({maxGrade: MATERIA_LEVEL_MAX_NORMAL, allowsHighGrade: true})
             for (let i = this.materiaSlots.length; i < MATERIA_SLOTS_MAX; i++) {
-                this.materiaSlots.push({maxGrade: MATERIA_LEVEL_MAX_OVERMELD});
+                this.materiaSlots.push({maxGrade: MATERIA_LEVEL_MAX_OVERMELD, allowsHighGrade: false});
             }
         }
     }
@@ -432,12 +432,17 @@ export function processRawMateriaInfo(data: Object): Materia[] {
             continue;
         }
         stats[stat] = data['Value' + i];
+        const grade = (i + 1);
         out.push({
             name: itemName,
             id: itemData["ID"],
-            iconUrl: itemData["IconHD"],
+            iconUrl: new URL("https://xivapi.com/" + itemData["IconHD"]),
             stats: stats,
-        })
+            primaryStat: stat,
+            primaryStatValue: stats[stat],
+            materiaGrade: grade,
+            isHighGrade: (grade % 2) === 0
+        });
     }
     return out;
 }

@@ -9,7 +9,7 @@ import {
     SpecialRow,
     TitleRow
 } from "./tables";
-import {CharacterGearSet, EquippedItem, XivApiFoodInfo,} from "./gear";
+import {CharacterGearSet, EquippedItem,} from "./gear";
 import {DataManager} from "./datamanager";
 import {
     EquipmentSet,
@@ -22,6 +22,7 @@ import {
     ItemSlotExport,
     Materia,
     MeldableMateriaSlot,
+    RawStatKey,
     RawStats,
     SetExport,
     SheetExport,
@@ -29,9 +30,18 @@ import {
     StatBonus
 } from "./geartypes";
 import {dummySimSpec, getSimSpecByStub, SimCurrentResult, SimResult, Simulation} from "./simulation";
-import {getJobStats, JOB_DATA, JobName, SupportedLevel, SupportedLevels} from "./xivconstants";
+import {
+    getJobStats,
+    JOB_DATA,
+    JobName,
+    STAT_ABBREVIATIONS,
+    STAT_FULL_NAMES,
+    SupportedLevel,
+    SupportedLevels
+} from "./xivconstants";
 import {openSheetByKey, setEditorAreaContent, showNewSheetForm} from "./main";
 import {whmSheetSpec} from "./sims/whm_sheet_sim";
+import {setModal} from "./modalcontrol";
 
 type GearSetSel = SingleCellRowOrHeaderSelect<CharacterGearSet>;
 
@@ -111,6 +121,19 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
         })
     }
 
+    selectGearSet(set: CharacterGearSet | undefined) {
+        if (set === undefined) {
+            this.selectionModel.clearSelection();
+        }
+        else {
+            const row: CustomRow<CharacterGearSet> = this.dataRowMap.get(set);
+            if (row) {
+                this.selectionModel.clickRow(row);
+            }
+        }
+        this.refreshSelection();
+    }
+
     addRow(...toAdd: CharacterGearSet[]) {
         for (let gearSet of toAdd) {
             gearSet.addListener(() => this.refreshRowData(gearSet));
@@ -157,7 +180,7 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                 renderer: gearSet => {
                     const div = document.createElement("div");
                     div.appendChild(makeActionButton('🗑️', () => this.sheet.delGearSet(gearSet)));
-                    div.appendChild(makeActionButton('📃', () => this.sheet.addGearSet(gearSet.clone())));
+                    div.appendChild(makeActionButton('📃', () => this.sheet.addGearSet(gearSet.clone(), true)));
                     return div;
                 }
             },
@@ -759,7 +782,8 @@ export class GearPlanSheet extends HTMLElement {
         addRowButton.addEventListener('click', (ev) => {
             const newSet = new CharacterGearSet(this.dataManager);
             newSet.name = "New Set";
-            this.addGearSet(newSet);
+            this.addGearSet(newSet, true);
+            // this._sele
         });
         this.buttonRow.id = 'gear-sheet-button-row';
         this.buttonRow.appendChild(addRowButton)
@@ -829,7 +853,7 @@ export class GearPlanSheet extends HTMLElement {
         else {
             const set = new CharacterGearSet(this.dataManager);
             set.name = "Default Set";
-            this.addGearSet(set);
+            this.addGearSet(set, true);
             if (!this.name) {
                 this.name = "Default Sheet";
             }
@@ -887,11 +911,14 @@ export class GearPlanSheet extends HTMLElement {
         localStorage.setItem(this._saveKey, JSON.stringify(fullExport));
     }
 
-    addGearSet(gearSet: CharacterGearSet) {
+    addGearSet(gearSet: CharacterGearSet, select: boolean = false) {
         this.sets.push(gearSet);
         this.gearPlanTable.addRow(gearSet);
         gearSet.addListener(() => this.saveData());
         this.saveData();
+        if (select) {
+            this.gearPlanTable.selectGearSet(gearSet);
+        }
     }
 
     delGearSet(gearSet: CharacterGearSet) {
@@ -964,10 +991,28 @@ class AllSlotMateriaManager extends HTMLElement {
     refresh() {
         const equipSlot: EquippedItem | null | undefined = this.gearSet.equipment[this.slotName];
         if (equipSlot) {
-            this.replaceChildren(...equipSlot.melds.map(meld => new SlotMateriaManager(this.dataManager, meld, () => this.gearSet.notifyMateriaChange())));
+            if (equipSlot.melds.length === 0) {
+                this.classList.remove("materia-slot-no-equip");
+                this.classList.add("materia-slot-no-slots");
+                this.classList.remove("materia-manager-equipped")
+                const textSpan = document.createElement("span");
+                textSpan.textContent = "No materia slots on this item";
+                this.replaceChildren(textSpan);
+            }
+            else {
+                this.replaceChildren(...equipSlot.melds.map(meld => new SlotMateriaManager(this.dataManager, meld, () => this.gearSet.notifyMateriaChange())));
+                this.classList.remove("materia-slot-no-equip");
+                this.classList.remove("materia-slot-no-slots");
+                this.classList.add("materia-manager-equipped")
+            }
         }
         else {
-            this.textContent = "Select an item to meld materia";
+            const textSpan = document.createElement("span");
+            textSpan.textContent = "Select an item to meld materia";
+            this.replaceChildren(textSpan);
+            this.classList.add("materia-slot-no-equip");
+            this.classList.remove("materia-slot-no-slots");
+            this.classList.remove("materia-manager-equipped")
         }
     }
 }
@@ -1013,36 +1058,150 @@ export class DataSelect<X> extends HTMLSelectElement {
  * UI for picking a single materia slot
  */
 class SlotMateriaManager extends HTMLElement {
+
+    private materiaSlot: MeldableMateriaSlot;
+    private dataManager: DataManager;
+    private callback: () => void;
+    private popup: SlotMateriaManagerPopup | undefined;
+    private text: HTMLSpanElement;
+    private image: HTMLImageElement;
+
+    constructor(dataManager: DataManager, materiaSlot: MeldableMateriaSlot, callback: () => void) {
+        super();
+        this.dataManager = dataManager;
+        this.classList.add("slot-materia-manager")
+        this.materiaSlot = materiaSlot;
+        this.callback = callback;
+        this.classList.add("slot-materia-manager")
+        this.addEventListener('mousedown', (ev) => {
+            this.showPopup();
+            ev.stopPropagation();
+        });
+        const imageHolder = document.createElement("div");
+        imageHolder.classList.add("materia-image-holder");
+        this.image = document.createElement("img");
+        this.text = document.createElement("span");
+        this.reformat();
+        imageHolder.appendChild(this.image);
+        this.appendChild(imageHolder);
+        this.appendChild(this.text);
+    }
+
+    showPopup() {
+        if (!this.popup) {
+            this.popup = new SlotMateriaManagerPopup(this.dataManager, this.materiaSlot, () => {
+                this.callback();
+                this.reformat();
+            });
+            this.appendChild(this.popup);
+        }
+        this.popup.show();
+    }
+
+
+    reformat() {
+        const currentMat = this.materiaSlot.equippedMatiera;
+        if (currentMat) {
+            this.image.src = currentMat.iconUrl.toString();
+            this.image.style.display = 'block';
+            this.text.textContent = `+${currentMat.primaryStatValue} ${STAT_ABBREVIATIONS[currentMat.primaryStat]}`;
+            this.classList.remove("materia-slot-empty")
+            this.classList.add("materia-slot-full");
+        }
+        else {
+            this.image.style.display = 'none';
+            this.text.textContent = 'Empty';
+            this.classList.remove("materia-slot-full");
+            this.classList.add("materia-slot-empty");
+        }
+    }
+}
+
+class SlotMateriaManagerPopup extends HTMLElement {
+    private dataManager: DataManager;
     private materiaSlot: MeldableMateriaSlot;
     private callback: () => void;
 
     constructor(dataManager: DataManager, materiaSlot: MeldableMateriaSlot, callback: () => void) {
         super();
-        this.classList.add("slot-materia-manager")
+        this.dataManager = dataManager;
         this.materiaSlot = materiaSlot;
         this.callback = callback;
-        const selector = new DataSelect<Materia>([null, ...dataManager.materiaTypes], (materiaType) => {
-                if (materiaType === null) {
-                    return "None";
+        this.hide();
+    }
+
+    show() {
+        const allMateria = this.dataManager.materiaTypes;
+        const typeMap: { [K in RawStatKey]?: Materia[] } = {};
+        const stats: RawStatKey[] = [];
+        const grades: number[] = [];
+        for (let materia of allMateria) {
+            if (materia.materiaGrade > this.materiaSlot.materiaSlot.maxGrade
+                || materia.isHighGrade && !this.materiaSlot.materiaSlot.allowsHighGrade) {
+                continue;
+            }
+            (typeMap[materia.primaryStat] = typeMap[materia.primaryStat] ?? []).push(materia);
+            if (!stats.includes(materia.primaryStat)) {
+                stats.push(materia.primaryStat);
+            }
+            if (!grades.includes(materia.materiaGrade)) {
+                grades.push(materia.materiaGrade);
+            }
+        }
+        grades.sort((grade1, grade2) => grade2 - grade1);
+        const table = document.createElement("table");
+        const body = table.createTBody();
+        const headerRow = body.insertRow();
+        // Blank top-left
+        headerRow.appendChild(document.createElement("th"));
+        for (let stat of stats) {
+            const headerCell = document.createElement("th");
+            headerCell.textContent = STAT_ABBREVIATIONS[stat];
+            headerRow.appendChild(headerCell);
+        }
+        for (let grade of grades) {
+            const row = body.insertRow();
+            row.insertCell().textContent = grade.toString();
+            for (let stat of stats) {
+                const materia = typeMap[stat]?.find(m => m.materiaGrade === grade);
+                if (materia) {
+                    const cell = row.insertCell();
+                    cell.addEventListener('mousedown', (ev) => {
+                        this.submit(materia);
+                        ev.stopPropagation();
+                    });
+                    cell.title = `${materia.name}: +${materia.primaryStatValue} ${STAT_FULL_NAMES[materia.primaryStat]}`;
+                    const image = document.createElement("img");
+                    image.src = materia.iconUrl.toString();
+                    if (this.materiaSlot.equippedMatiera === materia) {
+                        cell.setAttribute("is-selected", "true");
+                    }
+                    cell.appendChild(image);
                 }
                 else {
-                    return materiaType.name + ": " +
-                        Object.entries(materiaType.stats)
-                            .filter(entry => entry[1])
-                            .map(entry => `+${entry[1]} ${entry[0]}`);
+                    row.insertCell();
                 }
-            }, (selected) => {
-                materiaSlot.equippedMatiera = selected;
-                callback();
-            },
-            materiaSlot.equippedMatiera);
-        this.replaceChildren(selector);
-        selector.addEventListener('change', (event) => {
-            const selected = selector.selectedOptions.item(0) as OptionDataElement<Materia>
-            materiaSlot.equippedMatiera = selected.dataValue;
-            callback();
-        })
-        this.classList.add("slot-materia-manager")
+            }
+        }
+        this.replaceChildren(table);
+        const self = this;
+        setModal({
+            element: self,
+            close() {
+                self.hide();
+            }
+        });
+        this.style.display = 'block';
+    }
+
+    submit(materia: Materia) {
+        this.materiaSlot.equippedMatiera = materia;
+        this.hide();
+        this.callback();
+    }
+
+    hide() {
+        this.style.display = 'none';
     }
 }
 
@@ -1270,17 +1429,67 @@ export class FieldBoundConvertingTextField<ObjType, DataType> extends HTMLInputE
     addListener(listener: (value: DataType) => void) {
         this.listeners.push(listener);
     }
+}
+export class FieldBoundConvertingTextField2<ObjType, Field extends keyof ObjType> extends HTMLInputElement {
 
+    reloadValue: () => void;
+    listeners: ((value: ObjType[Field]) => void)[] = [];
 
+    constructor(
+        obj: ObjType,
+        field: Field,
+        valueToString: (value: ObjType[Field]) => string,
+        stringToValue: (string: string) => (ObjType[Field]),
+        extraArgs: FbctArgs = {}
+    ) {
+        super();
+        this.type = 'text';
+        // @ts-ignore
+        this.reloadValue = () => this.value = valueToString(obj[field]);
+        this.reloadValue();
+        this.addEventListener(extraArgs.event ?? 'input', () => {
+            const newValue: ObjType[Field] = stringToValue(this.value);
+            obj[field] = newValue;
+            for (let listener of this.listeners) {
+                try {
+                    listener(newValue);
+                } catch (e) {
+                    console.error("Error in listener", e);
+                }
+            }
+        });
+    }
+
+    addListener(listener: (value: ObjType[Field]) => void) {
+        this.listeners.push(listener);
+    }
 }
 
+
 // new FieldBoundConvertingTextField(new CharacterGearSet(null), 'food', food => food.toString(), str => new XivApiFoodInfo({}));
+export class FieldBoundIntField<ObjType> extends FieldBoundConvertingTextField<ObjType, number> {
+    constructor(obj: ObjType, field: { [K in keyof ObjType]: ObjType[K] extends number ? K : never }[keyof ObjType], extraArgs: FbctArgs = {}) {
+        super(obj, field, (s) => s.toString(), (s) => parseInt(s), extraArgs);
+    }
+}
+
+// export class FieldBoundNumericField<ObjType> extends FieldBoundConvertingTextField2<ObjType, number> {
+//     constructor(obj: ObjType, field: Field, extraArgs: FbctArgs = {}) {
+//         super(obj, field, (s) => s, (s) => s, extraArgs);
+//     }
+// }
 
 export class FieldBoundTextField<ObjType> extends FieldBoundConvertingTextField<ObjType, string> {
     constructor(obj: ObjType, field: { [K in keyof ObjType]: ObjType[K] extends string ? K : never }[keyof ObjType], extraArgs: FbctArgs = {}) {
         super(obj, field, (s) => s, (s) => s, extraArgs);
     }
 }
+
+// export class FieldBoundTextField2<ObjType, Field extends keyof ObjType> extends FieldBoundConvertingTextField2<ObjType, Field> {
+//     constructor(obj: ObjType, field: Field, extraArgs: FbctArgs = {}) {
+//         super(obj, field, (s) => s, (s) => s, extraArgs);
+//     }
+// }
 
 // new FieldBoundTextField(new CharacterGearSet(null), 'name');
 
@@ -1292,6 +1501,7 @@ customElements.define("gear-items-table", GearItemsTable, {extends: "table"});
 customElements.define("food-items-table", FoodItemsTable, {extends: "table"});
 customElements.define("all-slot-materia-manager", AllSlotMateriaManager);
 customElements.define("slot-materia-manager", SlotMateriaManager);
+customElements.define("slot-materia-popup", SlotMateriaManagerPopup);
 customElements.define("option-data-element", OptionDataElement, {extends: "option"});
 customElements.define("gear-sheet-picker", SheetPickerTable, {extends: "table"});
 customElements.define("new-sheet-form", NewSheetForm, {extends: "form"});

@@ -1,4 +1,4 @@
-import {JobData, LevelStats, RawStats} from "./geartypes";
+import {JobData, LevelStats, RawStatKey, RawStats} from "./geartypes";
 
 export const MATERIA_SLOTS_MAX = 5;
 export const MATERIA_LEVEL_MIN_RELEVANT = 7;
@@ -76,6 +76,42 @@ export const LEVEL_STATS: Record<SupportedLevel, LevelStats> = {
         levelDiv: 1900,
         hp: 3000
     }
+}
+
+export const STAT_FULL_NAMES: Record<RawStatKey, string> = {
+    crit: "Critical Hit",
+    determination: "Determination",
+    dexterity: "Dexterity",
+    dhit: "Direct Hit",
+    hp: "Hit Points",
+    intelligence: "Intelligence",
+    mind: "Mind",
+    piety: "Piety",
+    skillspeed: "Skill Speed",
+    spellspeed: "Spell Speed",
+    strength: "Strength",
+    tenacity: "Tenacity",
+    vitality: "Vitality",
+    wdMag: "Weapon Damage (Magical)",
+    wdPhys: "Weapon Damage (Physical)"
+}
+
+export const STAT_ABBREVIATIONS: Record<RawStatKey, string> = {
+    crit: "CRT",
+    determination: "DET",
+    dexterity: "DEX",
+    dhit: "DHT",
+    hp: "HP",
+    intelligence: "INT",
+    mind: "MND",
+    piety: "PIE",
+    skillspeed: "SkS",
+    spellspeed: "SpS",
+    strength: "STR",
+    tenacity: "TNC",
+    vitality: "VIT",
+    wdMag: "WDm",
+    wdPhys: "WDp"
 }
 
 export function getLevelStats(level: SupportedLevel) {
