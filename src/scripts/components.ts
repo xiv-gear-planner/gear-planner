@@ -292,7 +292,7 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
         for (const sim of this.sims) {
             columns.push({
                 dataValue: sim,
-                shortName: sim.shortName,
+                shortName: "sim-col-" + sim.shortName,
                 displayName: sim.displayName,
                 getter: gearSet => this.sheet.getSimResult(sim, gearSet),
                 renderer: result => new SimResultDisplay(result),

@@ -263,6 +263,9 @@ table.gear-plan-table {
     &:nth-child(2) {
       left: calc(var(--action-col-width));
     }
+    &[col-id^="sim-col-"] {
+      min-width: 70px;
+    }
   }
 
   tr {
@@ -290,6 +293,7 @@ table.gear-plan-table {
       left: calc(var(--action-col-width));
       z-index: 70;
       border-right: var(--standard-border);
+      white-space: nowrap;
     }
 
     td:nth-child(3) {
@@ -303,9 +307,6 @@ table.gear-plan-table {
   //  bottom: 0;
   //}
 
-  tr:first-child th {
-    height: 48px;
-  }
 
   tr:first-child {
     position: sticky;
@@ -314,6 +315,7 @@ table.gear-plan-table {
     z-index: 99;
 
     th {
+      height: 54px;
       border-top: var(--thick-border);
       border-bottom: var(--thick-border);
 
