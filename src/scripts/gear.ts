@@ -410,7 +410,6 @@ export class XivApiFoodInfo implements FoodItem {
             }
         }
         const sortedStats = Object.entries(this.bonuses).sort((entryA, entryB) => entryB[1].max - entryA[1].max).map(entry => entry[0] as RawStatKey).filter(stat => stat !== 'vitality');
-        console.log(`Food ${this.name}: sorted: ${sortedStats}`)
         if (sortedStats.length >= 1) {
             this.primarySubStat = sortedStats[0];
         }

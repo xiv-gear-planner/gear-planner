@@ -671,9 +671,9 @@ class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
 export class GearSetEditor extends HTMLElement {
     constructor(gearPlanner: GearPlanSheet, gearSet: CharacterGearSet, dataManager: DataManager) {
         super();
-        const header = document.createElement("h1");
-        header.textContent = "Gear Set Editor";
-        this.appendChild(header)
+        // const header = document.createElement("h1");
+        // header.textContent = "Gear Set Editor";
+        // this.appendChild(header)
 
         // Name editor
         const nameEditor = new FieldBoundTextField(gearSet, 'name');
@@ -1285,12 +1285,14 @@ export function labelFor(label: string, labelFor: HTMLElement) {
     return element;
 }
 
+// TODO: should this also append some randomness to the end?
 function getNextSheetInternalName() {
     const lastRaw = localStorage.getItem("last-sheet-number");
     const lastSheetNum = lastRaw ? parseInt(lastRaw) : 0;
     const next = lastSheetNum + 1;
     localStorage.setItem("last-sheet-number", next.toString());
-    return "sheet-save-" + next;
+    const randomStub = Math.floor(Math.random() * 65536);
+    return "sheet-save-" + next + '-' + randomStub.toString(16).toLowerCase();
 }
 
 export class NewSheetForm extends HTMLFormElement {
