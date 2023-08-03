@@ -2,7 +2,7 @@ import {noSimSettings, registerSim, SimResult, SimSettings, SimSpec, Simulation}
 import {CharacterGearSet} from "../gear";
 import {baseDamage, spsTickMulti} from "../xivmath";
 import {ComputedSetStats} from "../geartypes";
-import {labelFor} from "../components";
+import {FieldBoundCheckBox, labeledCheckbox, labelFor} from "../components";
 
 
 //potencies for our spells
@@ -161,7 +161,9 @@ export interface WhmSheetSimResult extends SimResult {
 }
 
 export interface WhmSheetSettings extends SimSettings {
-    partySize: number;
+    hasBard: boolean,
+    hasScholar: boolean,
+    hasDragoon: boolean;
 }
 
 export const whmSheetSpec: SimSpec<WhmSheetSim, WhmSheetSettings> = {
@@ -183,8 +185,9 @@ export class WhmSheetSim implements Simulation<WhmSheetSimResult, WhmSheetSettin
     };
 
     settings = {
-        displayNameOverride: undefined,
-        partySize: 0,
+        hasBard: true,
+        hasScholar: true,
+        hasDragoon: true
     };
 
     spec = whmSheetSpec;
@@ -193,22 +196,20 @@ export class WhmSheetSim implements Simulation<WhmSheetSimResult, WhmSheetSettin
 
     constructor(settings?: WhmSheetSettings) {
         if (settings) {
+            console.log("Loading sim settings", settings)
             Object.assign(this.settings, settings);
         }
     }
 
     makeConfigInterface(): HTMLElement {
-        if (false) {
+        if (true) {
             const div = document.createElement("div");
-            const partySize = document.createElement("input");
-            const partySizeLabel = labelFor("Unique Party Roles", partySize);
-            partySize.type = 'number';
-            partySize.min = '0';
-            partySize.max = '5';
-            partySize.value = this.settings.partySize.toString();
-            partySize.addEventListener('change', (ev) => this.settings.partySize = parseInt(partySize.value));
-            div.appendChild(partySizeLabel);
-            div.appendChild(partySize);
+            const brdCheck = new FieldBoundCheckBox<WhmSheetSettings>(this.settings, 'hasBard', {id: 'brd-checkbox'});
+            div.appendChild(labeledCheckbox('BRD in Party', brdCheck));
+            const schCheck = new FieldBoundCheckBox<WhmSheetSettings>(this.settings, 'hasScholar', {id: 'sch-checkbox'});
+            div.appendChild(labeledCheckbox('SCH in Party', schCheck));
+            const drgCheck = new FieldBoundCheckBox<WhmSheetSettings>(this.settings, 'hasDragoon', {id: 'drg-checkbox'});
+            div.appendChild(labeledCheckbox('DRG in Party', drgCheck));
             return div;
         }
         else {
@@ -216,15 +217,28 @@ export class WhmSheetSim implements Simulation<WhmSheetSimResult, WhmSheetSettin
         }
     }
 
+    extraDhRate() {
+        return (this.settings.hasBard ? (battleVoiceAvg + brdDhAvg) : 0);
+    }
+
+    extraCritRate() {
+        return (this.settings.hasDragoon ? battleLitanyAvg : 0)
+            + (this.settings.hasScholar ? chainStratAvg : 0)
+            + (this.settings.hasBard ? brdCritAvg : 0);
+    }
+
     async simulate(set: CharacterGearSet): Promise<WhmSheetSimResult> {
-        const ppsFinalResult = pps(set.computedStats.spellspeed, set.computedStats.gcdMag, 0, 0, 0);
+        const buffedStats = {...set.computedStats};
+        buffedStats.dhitChance += this.extraDhRate();
+        buffedStats.critChance += this.extraCritRate();
+        const ppsFinalResult = pps(buffedStats.spellspeed, buffedStats.gcdMag, 0, 0, 0);
         // console.log(ppsFinalResult);
-        const resultWithoutDhCrit = baseDamage(set, ppsFinalResult, false, false, 0, 0);
-        const result = applyDhCrit(resultWithoutDhCrit, set.computedStats);
+        const resultWithoutDhCrit = baseDamage(buffedStats, ppsFinalResult);
+        const result = applyDhCrit(resultWithoutDhCrit, buffedStats);
         // Uncomment to test async logic
         await new Promise(resolve => setTimeout(resolve, 500));
         return {
-            mainDpsResult: result* 1 + this.settings.partySize,
+            mainDpsResult: result,
             pps: ppsFinalResult,
         }
     }

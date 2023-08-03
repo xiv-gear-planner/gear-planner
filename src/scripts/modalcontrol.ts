@@ -17,6 +17,10 @@ export function setModal(modal: Modal | undefined) {
     currentModal = modal;
 }
 
+export function closeModal() {
+    setModal(undefined);
+}
+
 const listener = (ev: MouseEvent) => {
     if (!currentModal) {
         return;

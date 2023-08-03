@@ -1,4 +1,4 @@
-import {JobData, LevelStats} from "./geartypes";
+import {ComputedSetStats, JobData, LevelStats} from "./geartypes";
 import {CharacterGearSet} from "./gear";
 import {EMPTY_STATS, JobName, RaceName, SupportedLevel} from "./xivconstants";
 
@@ -78,29 +78,29 @@ const fl = Math.floor;
  *
  * TODO: where to factor in extra damage from buffs?
  */
-export function baseDamage(gear: CharacterGearSet, potency: number, autoDH: boolean, autoCrit: boolean, extraBuffDhRate: number, extraBuffCritRate: number) {
+export function baseDamage(stats: ComputedSetStats, potency: number, autoDH: boolean = false, autoCrit: boolean = false) {
 
     // Multiplier from main stat
-    const mainStatMulti = gear.computedStats.mainStatMulti;
+    const mainStatMulti = stats.mainStatMulti;
     // Multiplier from weapon damage
-    const wdMulti = gear.computedStats.wdMulti;
+    const wdMulti = stats.wdMulti;
     // Multiplier for a successful crit
-    const critMulti = gear.computedStats.critMulti;
+    const critMulti = stats.critMulti;
     // Crit chance
-    // TODO: extra crits from buffs
-    const critRate = gear.computedStats.critChance + extraBuffCritRate;
+    // const critRate = gear.computedStats.critChance + extraBuffCritRate;
+    const critRate = stats.critChance;
     // Dh chance
-    // TODO: extra dhits from buffs
-    const dhRate = gear.computedStats.dhitChance + extraBuffDhRate;
+    // const dhRate = gear.computedStats.dhitChance + extraBuffDhRate;
+    const dhRate = stats.dhitChance;
     // Multiplier for a successful DH
-    const dhMulti = gear.computedStats.dhitMulti;
+    const dhMulti = stats.dhitMulti;
     // Det multiplier
-    const detMulti = gear.computedStats.detMulti;
+    const detMulti = stats.detMulti;
     // Extra damage from auto DH bonus
-    const autoDhBonus = gear.computedStats.autoDhBonus;
+    const autoDhBonus = stats.autoDhBonus;
     const tncMulti = 1000 / 1000 // if tank you'd do Funcs.fTEN(stats.tenacity, level) / 1000
     const detAutoDhMulti = fl((detMulti + autoDhBonus) * 1000) / 1000;
-    const traitMulti = gear.computedStats.traitMulti;
+    const traitMulti = stats.traitMulti;
 
     // console.log({
     //     mainStatMulti: mainStatMulti, wdMulti: wdMulti, critMulti: critMulti, critRate: critRate, dhRate: dhRate, dhMulti: dhMulti, detMulti: detMulti, tncMulti: tncMulti, traitMulti: traitMulti

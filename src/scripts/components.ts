@@ -1,6 +1,6 @@
 import {
     CustomCell,
-    CustomColumnDef,
+    CustomColumn,
     CustomRow,
     CustomTable,
     HeaderRow,
@@ -29,7 +29,7 @@ import {
     SimExport,
     StatBonus
 } from "./geartypes";
-import {dummySimSpec, getSimSpecByStub, SimCurrentResult, SimResult, Simulation} from "./simulation";
+import {potRatioSimSpec, getSims, getSimSpecByStub, SimCurrentResult, SimResult, SimSpec, Simulation} from "./simulation";
 import {
     getJobStats,
     JOB_DATA,
@@ -41,7 +41,7 @@ import {
 } from "./xivconstants";
 import {openSheetByKey, setEditorAreaContent, showNewSheetForm} from "./main";
 import {whmSheetSpec} from "./sims/whm_sheet_sim";
-import {setModal} from "./modalcontrol";
+import {closeModal, setModal} from "./modalcontrol";
 
 type GearSetSel = SingleCellRowOrHeaderSelect<CharacterGearSet>;
 
@@ -111,7 +111,7 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                 if (newSelection instanceof CustomRow) {
                     setSelection(newSelection.dataItem);
                 }
-                else if (newSelection instanceof CustomColumnDef && newSelection.dataValue['makeConfigInterface']) {
+                else if (newSelection instanceof CustomColumn && newSelection.dataValue['makeConfigInterface']) {
                     setSelection(newSelection.dataValue as Simulation<any, any, any>);
                 }
                 else if (newSelection === undefined) {
@@ -293,11 +293,13 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
             columns.push({
                 dataValue: sim,
                 shortName: "sim-col-" + sim.shortName,
-                displayName: sim.displayName,
+                get displayName() {
+                    return sim.displayName;
+                },
                 getter: gearSet => this.sheet.getSimResult(sim, gearSet),
                 renderer: result => new SimResultDisplay(result),
                 allowHeaderSelection: true,
-            } as CustomColumnDef<CharacterGearSet, SimCurrentResult<SimResult>, Simulation<any, any, any>>);
+            });
         }
         this.columns = columns;
     }
@@ -466,7 +468,7 @@ class FoodItemsTable extends CustomTable<FoodItem, FoodItem> {
             clickCell(cell: CustomCell<FoodItem, FoodItem>) {
 
             },
-            clickColumnHeader(col: CustomColumnDef<FoodItem>) {
+            clickColumnHeader(col: CustomColumn<FoodItem>) {
 
             },
             clickRow(row: CustomRow<FoodItem>) {
@@ -478,7 +480,7 @@ class FoodItemsTable extends CustomTable<FoodItem, FoodItem> {
             isCellSelectedDirectly(cell: CustomCell<FoodItem, FoodItem>) {
                 return false;
             },
-            isColumnHeaderSelected(col: CustomColumnDef<FoodItem>) {
+            isColumnHeaderSelected(col: CustomColumn<FoodItem>) {
                 return false;
             },
             isRowSelected(row: CustomRow<FoodItem>) {
@@ -636,7 +638,7 @@ class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
             clickCell(cell: CustomCell<GearSlotItem, any>) {
 
             },
-            clickColumnHeader(col: CustomColumnDef<GearSlotItem>) {
+            clickColumnHeader(col: CustomColumn<GearSlotItem>) {
 
             },
             clickRow(row: CustomRow<GearSlotItem>) {
@@ -651,7 +653,7 @@ class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
             isCellSelectedDirectly(cell: CustomCell<GearSlotItem, any>) {
                 return false;
             },
-            isColumnHeaderSelected(col: CustomColumnDef<GearSlotItem>) {
+            isColumnHeaderSelected(col: CustomColumn<GearSlotItem>) {
                 return false;
             },
             isRowSelected(row: CustomRow<GearSlotItem>) {
@@ -707,17 +709,29 @@ export class GearSetEditor extends HTMLElement {
     }
 }
 
-function formatSimulationConfigArea(sim: Simulation<any, any, any>, refreshColumn: (item: Simulation<any, any, any>) => void): HTMLElement {
+function formatSimulationConfigArea(
+    sim: Simulation<any, any, any>,
+    refreshColumn: (item: Simulation<any, any, any>) => void,
+    deleteColumn: (item: Simulation<any, any, any>) => void,
+    refreshHeaders: () => void): HTMLElement {
     const outerDiv = document.createElement("div");
-    const header = document.createElement("h1");
-    header.textContent = "Configuring " + sim.displayName;
-    outerDiv.appendChild(header);
-    outerDiv.appendChild(new FieldBoundTextField(sim, 'displayName'));
-    outerDiv.appendChild(document.createElement("br"));
+    outerDiv.id = 'sim-config-area-outer';
+    outerDiv.classList.add('sim-config-area-outer');
+
+    // const header = document.createElement("h1");
+    // header.textContent = "Configuring " + sim.displayName;
+    // outerDiv.appendChild(header);
+    const titleEditor = new FieldBoundTextField(sim, 'displayName');
+    titleEditor.addListener(val => {
+        refreshHeaders();
+    });
+    titleEditor.classList.add('sim-name-editor');
+    outerDiv.appendChild(titleEditor);
 
     const rerunButton = makeActionButton("Rerun", () => refreshColumn(sim));
     outerDiv.appendChild(rerunButton);
-    outerDiv.appendChild(document.createElement("br"));
+    const deleteButton = makeActionButton("Delete", () => deleteColumn(sim));
+    outerDiv.appendChild(deleteButton);
 
     const customInterface = sim.makeConfigInterface();
     customInterface.id = 'sim-config-area-inner';
@@ -766,7 +780,7 @@ export class GearPlanSheet extends HTMLElement {
                     this._editorAreaSetup(new GearSetEditor(this, item, dataManager));
                 }
                 else if (item['makeConfigInterface']) {
-                    this._editorAreaSetup(formatSimulationConfigArea(item as Simulation<any, any, any>, col => this.gearPlanTable.refreshColumn(col)));
+                    this._editorAreaSetup(formatSimulationConfigArea(item as Simulation<any, any, any>, col => this.gearPlanTable.refreshColumn(col), col => this.delSim(col), () => this.gearPlanTable.refreshColHeaders()));
                 }
                 else {
                     this._editorAreaSetup();
@@ -777,16 +791,17 @@ export class GearPlanSheet extends HTMLElement {
             }
         });
         this.buttonRow = document.createElement("div");
-        const addRowButton = document.createElement("button");
-        addRowButton.textContent = "New Gear Set";
-        addRowButton.addEventListener('click', (ev) => {
+        this.buttonRow.id = 'gear-sheet-button-row';
+        const addRowButton = makeActionButton("New Gear Set", () => {
             const newSet = new CharacterGearSet(this.dataManager);
             newSet.name = "New Set";
             this.addGearSet(newSet, true);
-            // this._sele
-        });
-        this.buttonRow.id = 'gear-sheet-button-row';
+        })
         this.buttonRow.appendChild(addRowButton)
+        const newSimButton = makeActionButton("Add Simulation", () => {
+            this.showAddSimDialog();
+        })
+        this.buttonRow.appendChild(newSimButton);
         this.appendChild(this.gearPlanTable);
         this.appendChild(this.buttonRow);
         this._saveKey = sheetKey;
@@ -794,6 +809,7 @@ export class GearPlanSheet extends HTMLElement {
     }
 
     async loadData() {
+        console.log("Loading sheet...");
         const saved = JSON.parse(localStorage.getItem(this._saveKey)) as SheetExport;
         if (saved) {
             console.log("Found Saved Data")
@@ -841,7 +857,7 @@ export class GearPlanSheet extends HTMLElement {
                     try {
                         const rehydratedSim = simSpec.loadSavedSimInstance(simport.settings);
                         if (simport.name) {
-                            rehydratedSim.name = simport.name;
+                            rehydratedSim.displayName = simport.name;
                         }
                         this.addSim(rehydratedSim);
                     } catch (e) {
@@ -862,7 +878,7 @@ export class GearPlanSheet extends HTMLElement {
             this.dataManager.classJob = this.job;
             this.dataManager.level = this.level;
             this.addSim(whmSheetSpec.makeNewSimInstance());
-            this.addSim(dummySimSpec.makeNewSimInstance());
+            this.addSim(potRatioSimSpec.makeNewSimInstance());
             await this.dataManager.loadData();
         }
         // needed for empty table
@@ -870,6 +886,7 @@ export class GearPlanSheet extends HTMLElement {
     }
 
     saveData() {
+        console.log("Saving sheet " + this.name);
         // TODO: make this async
         const sets: SetExport[] = []
         for (let set of this.sets) {
@@ -965,9 +982,82 @@ export class GearPlanSheet extends HTMLElement {
         return out;
     }
 
+    showAddSimDialog() {
+        const addSimDialog = new AddSimDialog(this);
+        this.appendChild(addSimDialog);
+        addSimDialog.showModal();
+    }
+
     get saveKey() {
         return this._saveKey;
     }
+}
+
+class AddSimDialog extends HTMLDialogElement {
+    private _sheet: GearPlanSheet;
+    private table: CustomTable<SimSpec<any, any>, SingleCellRowOrHeaderSelect<SimSpec<any, any>>>;
+
+    constructor(sheet: GearPlanSheet) {
+        super();
+        this.id = 'add-sim-dialog';
+        this._sheet = sheet;
+        const header = document.createElement("h2");
+        header.textContent = "Add Simulation";
+        this.appendChild(header);
+        const form = document.createElement("form");
+        form.method = 'dialog';
+
+        this.table = new CustomTable();
+        const selModel: SingleSelectionModel<SimSpec<any, any>> = new SingleSelectionModel();
+        this.table.selectionModel = selModel;
+        this.table.columns = [
+            {
+                shortName: 'sim-space-name',
+                displayName: 'Name',
+                fixedWidth: 500,
+                getter: item => item.displayName,
+            }
+        ]
+        this.table.data = getSims();
+        form.appendChild(this.table);
+
+        const buttonDiv = document.createElement("div");
+        const submitButton = makeActionButton("Add", () => this.submit());
+        const cancelButton = makeActionButton("Cancel", () => this.close());
+        buttonDiv.appendChild(submitButton);
+        buttonDiv.appendChild(cancelButton);
+
+        selModel.addListener({
+            onNewSelection(newSelection) {
+                submitButton.disabled = !(newSelection instanceof CustomRow);
+            }
+        })
+
+        form.appendChild(buttonDiv);
+
+        this.appendChild(form);
+    }
+
+    show() {
+        this.showModal();
+        // this.style.display = 'block';
+    }
+
+    close() {
+        super.close();
+        // this.style.display = 'none';
+        // TODO: uncomment after testing
+        // this.remove();
+    }
+
+    submit() {
+        const sel = this.table.selectionModel.getSelection();
+        if (sel instanceof CustomRow) {
+            this._sheet.addSim(sel.dataItem.makeNewSimInstance());
+            this.close();
+        }
+    }
+
 }
 
 
@@ -1196,7 +1286,7 @@ class SlotMateriaManagerPopup extends HTMLElement {
 
     submit(materia: Materia) {
         this.materiaSlot.equippedMatiera = materia;
-        this.hide();
+        closeModal();
         this.callback();
     }
 
@@ -1402,6 +1492,39 @@ export interface FbctArgs {
     event?: keyof HTMLElementEventMap;
 }
 
+export class FieldBoundCheckBox<ObjType> extends HTMLInputElement {
+
+    reloadValue: () => void;
+    listeners: ((value: boolean) => void)[] = [];
+
+    constructor(obj: ObjType, field: { [K in keyof ObjType]: ObjType[K] extends boolean ? K : never }[keyof ObjType], extraArgs: {
+        id?: string
+    } = {}) {
+        super();
+        this.type = 'checkbox';
+        if (extraArgs.id) {
+            this.id = extraArgs.id;
+        }
+        this.reloadValue = () => {
+            // @ts-ignore
+            this.checked = obj[field];
+        };
+        this.reloadValue();
+        this.addEventListener('change', () => {
+            const newValue: boolean = this.checked;
+            // @ts-ignore
+            obj[field] = newValue;
+            for (let listener of this.listeners) {
+                try {
+                    listener(newValue);
+                } catch (e) {
+                    console.error("Error in listener", e);
+                }
+            }
+        })
+    }
+}
+
 export class FieldBoundConvertingTextField<ObjType, DataType> extends HTMLInputElement {
 
     reloadValue: () => void;
@@ -1420,8 +1543,7 @@ export class FieldBoundConvertingTextField<ObjType, DataType> extends HTMLInputE
             for (let listener of this.listeners) {
                 try {
                     listener(newValue);
-                }
-                catch (e) {
+                } catch (e) {
                     console.error("Error in listener", e);
                 }
             }
@@ -1432,6 +1554,7 @@ export class FieldBoundConvertingTextField<ObjType, DataType> extends HTMLInputE
         this.listeners.push(listener);
     }
 }
+
 export class FieldBoundConvertingTextField2<ObjType, Field extends keyof ObjType> extends HTMLInputElement {
 
     reloadValue: () => void;
@@ -1495,6 +1618,15 @@ export class FieldBoundTextField<ObjType> extends FieldBoundConvertingTextField<
 
 // new FieldBoundTextField(new CharacterGearSet(null), 'name');
 
+export function labeledCheckbox(label: string, check: HTMLInputElement): HTMLDivElement {
+    const labelElement = labelFor(label, check);
+    const div = document.createElement("div");
+    div.appendChild(check);
+    div.appendChild(labelElement);
+    div.classList.add("labeled-checkbox");
+    return div;
+}
+
 
 customElements.define("gear-set-editor", GearSetEditor);
 customElements.define("gear-plan-table", GearPlanTable, {extends: "table"});
@@ -1512,3 +1644,5 @@ customElements.define("ffxiv-job-icon", JobIcon, {extends: "img"});
 customElements.define("sim-result-display", SimResultDisplay);
 customElements.define("field-bound-converting-text-field", FieldBoundConvertingTextField, {extends: "input"});
 customElements.define("field-bound-text-field", FieldBoundTextField, {extends: "input"});
+customElements.define("field-bound-checkbox", FieldBoundCheckBox, {extends: "input"});
+customElements.define("add-sim-dialog", AddSimDialog, {extends: "dialog"});

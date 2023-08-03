@@ -1,12 +1,13 @@
 import {CharacterGearSet} from "./gear";
 import {JobName, SupportedLevel} from "./xivconstants";
+import {baseDamage} from "./xivmath";
 
 export interface SimResult {
     mainDpsResult: number;
 }
 
 export interface SimSettings {
-    displayNameOverride: string | undefined,
+
 }
 
 export interface SimSpec<SimType extends Simulation<any, any, any>, SettingsExport> {
@@ -88,33 +89,33 @@ export function noSimSettings() {
 }
 
 
-export const dummySimSpec: SimSpec<typeof dummySim, SimSettings> = {
-    displayName: "Dummy Sim",
+export const potRatioSimSpec: SimSpec<PotencyRatioSim, SimSettings> = {
+    displayName: "Potency Ratio",
     loadSavedSimInstance(exported: SimSettings) {
-        return dummySim;
+        return new PotencyRatioSim();
     },
-    makeNewSimInstance(): typeof dummySim {
-        return dummySim;
+    makeNewSimInstance(): PotencyRatioSim {
+        return new PotencyRatioSim();
     },
-    stub: "dummy-sim",
+    stub: "pr-sim",
 }
 
-export const dummySim: Simulation<SimResult, SimSettings, {}> = {
+export class PotencyRatioSim implements Simulation<SimResult, SimSettings, {}> {
     exportSettings() {
         return {
             ...this.settings
         };
-    },
-    settings: {
-        displayNameOverride: undefined,
-    },
-    shortName: "dummysim",
-    displayName: "Dummy Sim",
+    };
+    settings = {
+
+    };
+    shortName = "pr-sim";
+    displayName = "Dmg/100p";
     async simulate(set: CharacterGearSet): Promise<SimResult> {
-        return {mainDpsResult: 10000 + set.computedStats.critChance * 10000};
-    },
-    spec: dummySimSpec,
-    makeConfigInterface: noSimSettings,
+        return {mainDpsResult: baseDamage(set.computedStats, 100, false, false)};
+    };
+    spec = potRatioSimSpec;
+    makeConfigInterface = noSimSettings;
 }
 
 export interface SimCurrentResult<X extends SimResult> {
@@ -124,4 +125,4 @@ export interface SimCurrentResult<X extends SimResult> {
     resultPromise: Promise<X>;
 }
 
-registerSim(dummySimSpec);
+registerSim(potRatioSimSpec);

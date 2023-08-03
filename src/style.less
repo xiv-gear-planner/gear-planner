@@ -67,6 +67,8 @@ div#editor-area {
   max-height: 100%;
   border-top: 2px solid var(--border-color);
   margin-top: 5px;
+  padding-top: 8px;
+  padding-bottom: 8px;
 
   table {
     text-align: left;
@@ -136,16 +138,20 @@ table {
       &:last-child {
         border-right: var(--thick-border);
       }
+
       &[is-selected="true"] {
         .table-item-selected;
         .table-item-selected-bg;
       }
-
-
     }
 
     &:first-child {
+      // TODO: is this doing anything?
       border-top: var(--standard-border);
+
+      td {
+        border-top: var(--thick-border);
+      }
     }
 
     td {
@@ -163,6 +169,7 @@ table {
       &[is-selected="true"] {
         .table-item-selected;
       }
+
       &:last-child {
         border-right: var(--standard-border);
       }
@@ -228,11 +235,19 @@ input[type="text"] {
   border-color: var(--border-color);
 }
 
-.gear-set-name-editor {
+.title-editor {
   margin-bottom: 10px;
   width: 400px;
   font-size: 30px;
   text-align: center;
+}
+
+.gear-set-name-editor {
+  .title-editor;
+}
+
+.sim-name-editor {
+  .title-editor;
 }
 
 table.gear-plan-table {
@@ -265,6 +280,7 @@ table.gear-plan-table {
     &:nth-child(2) {
       left: calc(var(--action-col-width));
     }
+
     &[col-id^="sim-col-"] {
       min-width: 70px;
     }
@@ -339,18 +355,20 @@ table.gear-plan-table {
   bottom: 0;
   position: sticky;
   z-index: 99;
-  background-color: var(--table-bg-color);
-  border: var(--thick-border);
+  //background-color: var(--table-bg-color);
+  //border: var(--thick-border);
   box-sizing: border-box;
   text-align: left;
   // I hate css
   margin-right: -300px;
   width: min(100%, 100vw);
+  margin-top: 8px;
 
 }
 
 #content-area {
   text-align: center;
+
   table {
     margin: auto;
   }
@@ -367,6 +385,7 @@ gear-plan {
   margin: auto;
   width: fit-content;
   display: block;
+
   table {
     margin: auto;
   }
@@ -435,10 +454,12 @@ table all-slot-materia-manager {
   width: max-content;
   display: table-caption;
   height: 23px;
-  &> span {
+
+  & > span {
     vertical-align: middle;
     display: inline-block;
   }
+
   &.materia-slot-no-slots > span {
     color: var(--border-color);
 
@@ -474,7 +495,7 @@ slot-materia-manager {
     display: block;
   }
 
-  &> span {
+  & > span {
     vertical-align: middle;
     display: inline-block;
   }
@@ -490,18 +511,51 @@ slot-materia-popup {
     height: fit-content !important;
     padding: 0 !important;
     z-index: 180;
+
     img {
       width: 40px;
       height: 40px;
       display: block;
     }
+
     &[is-selected="true"] {
       z-index: 181;
     }
+
     &:first-child {
       text-align: right;
       padding: 4px !important;
     }
+  }
+}
+
+sim-result-display {
+  display: inline-block;
+  width: 100%;
+}
+
+dialog#add-sim-dialog {
+  position: absolute;
+  z-index: 200;
+  background-color: var(--table-bg-color);
+  color: var(--fg-color);
+
+  &::backdrop {
+    background-color: #00bbbb55;
+  }
+}
+
+#sim-config-area-outer {
+  margin: auto;
+  width: fit-content;
+
+  .sim-name-editor {
+    display: block;
+    margin: auto auto 10px;
+  }
+
+  .sim-config-area-inner {
+    padding: 10px;
   }
 }
 
