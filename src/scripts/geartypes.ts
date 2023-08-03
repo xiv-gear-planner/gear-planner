@@ -222,6 +222,7 @@ export const ROLES = ['Healer', 'Melee', 'Ranged', 'Caster', 'Tank'] as const;
 export type RoleKey = typeof ROLES[number];
 
 export type Mainstat = typeof REAL_MAIN_STATS[number];
+export type Substat = (typeof FAKE_MAIN_STATS[number] | typeof SPECIAL_SUB_STATS[number]);
 
 // TODO: add a way of specifying which substats are relevant to the class
 export interface JobData {
@@ -230,13 +231,14 @@ export interface JobData {
     mainStat: Mainstat;
     traitMulti?: (level: number) => number;
     traits?: JobTrait[];
+    irrelevantSubstats?: Substat[];
 }
 
 export interface JobTrait {
     minLevel?: number,
     maxLevel?: number,
     apply: (stats: ComputedSetStats) => void;
-};
+}
 
 export class GearSlotItem {
     slot: EquipSlot;

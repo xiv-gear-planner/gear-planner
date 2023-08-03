@@ -59,8 +59,18 @@ function processHash() {
 
 export function showNewSheetForm() {
     setHash('newsheet');
+    setTitle('New Sheet');
     contentArea.replaceChildren(new NewSheetForm(openSheet));
     setEditorAreaContent();
+}
+
+function setTitle(titlePart: string | undefined) {
+    if (titlePart === undefined) {
+        document.title = 'FFXIV Gear Planner';
+    }
+    else {
+        document.title = titlePart + ' - FFXIV Gear Planner';
+    }
 }
 
 function setHash(...hashParts: string[]) {
@@ -76,13 +86,16 @@ function setHash(...hashParts: string[]) {
 }
 
 export async function openSheetByKey(sheet: string) {
+    // TODO: handle nonexistent sheet
+    setTitle('Loading Sheet');
     console.log('openSheetByKey: ', sheet);
-    const dataManager = new DataManager();
-    const planner = new GearPlanSheet(dataManager, sheet, undefined, setEditorAreaContent);
+    const planner = new GearPlanSheet(sheet, undefined, setEditorAreaContent);
     await openSheet(planner);
+    setTitle(planner.name);
 }
 
 export async function openSheet(planner: GearPlanSheet) {
+    setTitle('Loading Sheet');
     console.log('openSheet: ', planner.saveKey);
     document['planner'] = planner;
     setHash("sheet", planner.saveKey);
@@ -91,6 +104,7 @@ export async function openSheet(planner: GearPlanSheet) {
         contentArea.replaceChildren(document.createTextNode("Error loading sheet!"));
     });
     await loadSheetPromise;
+    setTitle(planner.name);
 }
 
 function showSheetPickerMenu() {

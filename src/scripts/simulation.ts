@@ -49,7 +49,7 @@ export function registerSim(simSpec: SimSpec<any, any>) {
     simSpecs.push(simSpec);
 }
 
-export function getSims() {
+export function getRegisteredSimSpecs() {
     return [...simSpecs];
 }
 

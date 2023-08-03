@@ -8,7 +8,7 @@ import {
     MATERIA_LEVEL_MAX_OVERMELD,
     MATERIA_LEVEL_MIN_RELEVANT,
     MATERIA_SLOTS_MAX,
-    RaceName,
+    RaceName, statById,
 } from "./xivconstants";
 import {
     autoDhBonusDmg,
@@ -444,25 +444,5 @@ export function processRawMateriaInfo(data: Object): Materia[] {
         });
     }
     return out;
-}
-
-// TODO: move to constants
-export function statById(id: number): keyof RawStats {
-    switch (id) {
-        case 6:
-            return "piety";
-        case 19:
-            return "tenacity";
-        case 22:
-            return "dhit";
-        case 27:
-            return "crit";
-        case 45:
-            return "skillspeed";
-        case 46:
-            return "spellspeed";
-        default:
-            return undefined;
-    }
 }
 

@@ -32,6 +32,7 @@ export const JOB_DATA: Record<JobName, JobData> = {
         // traits: [
         //     (stats) => stats.traitMulti
         // ]
+        irrelevantSubstats: ['skillspeed', 'tenacity'],
     },
     'SGE': {
         mainStat: 'mind',
@@ -45,6 +46,7 @@ export const JOB_DATA: Record<JobName, JobData> = {
             mind: 115
         }),
         traitMulti: level => 1.3,
+        irrelevantSubstats: ['skillspeed', 'tenacity'],
     },
 }
 
@@ -113,6 +115,40 @@ export const STAT_ABBREVIATIONS: Record<RawStatKey, string> = {
     wdMag: "WDm",
     wdPhys: "WDp"
 }
+
+export function statById(id: number): keyof RawStats {
+    switch (id) {
+        case 1:
+            return "strength";
+        case 2:
+            return "dexterity";
+        case 3:
+            return "vitality";
+        case 4:
+            return "intelligence";
+        case 5:
+            return "mind";
+        case 6:
+            return "piety";
+        case 7:
+            return "hp";
+        case 19:
+            return "tenacity";
+        case 22:
+            return "dhit";
+        case 27:
+            return "crit";
+        case 44:
+            return "determination";
+        case 45:
+            return "skillspeed";
+        case 46:
+            return "spellspeed";
+        default:
+            return undefined;
+    }
+}
+
 
 export function getLevelStats(level: SupportedLevel) {
     if (level) {

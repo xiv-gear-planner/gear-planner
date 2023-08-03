@@ -236,7 +236,7 @@ export class WhmSheetSim implements Simulation<WhmSheetSimResult, WhmSheetSettin
         const resultWithoutDhCrit = baseDamage(buffedStats, ppsFinalResult);
         const result = applyDhCrit(resultWithoutDhCrit, buffedStats);
         // Uncomment to test async logic
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise(resolve => setTimeout(resolve, 200));
         return {
             mainDpsResult: result,
             pps: ppsFinalResult,
