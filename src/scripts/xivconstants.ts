@@ -160,7 +160,7 @@ export function getLevelStats(level: SupportedLevel) {
     }
 }
 
-export function getJobStats(job: JobName) {
+export function getClassJobStats(job: JobName) {
     return JOB_DATA[job];
 }
 

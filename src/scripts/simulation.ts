@@ -1,6 +1,7 @@
 import {CharacterGearSet} from "./gear";
 import {JobName, SupportedLevel} from "./xivconstants";
 import {baseDamage} from "./xivmath";
+import {WhmSheetSim, whmSheetSpec} from "./sims/whm_sheet_sim";
 
 export interface SimResult {
     mainDpsResult: number;
@@ -55,6 +56,14 @@ export function getRegisteredSimSpecs() {
 
 export function getSimSpecByStub(stub: string): SimSpec<any, any> | undefined {
     return simSpecs.find(simSpec => simSpec.stub === stub);
+}
+
+export function getDefaultSims(job: JobName, level: SupportedLevel): SimSpec<any, any>[] {
+    const out: SimSpec<any, any>[] = [potRatioSimSpec];
+    if (job === 'WHM' && level === 80) {
+        out.push(whmSheetSpec);
+    }
+    return out;
 }
 
 /**
@@ -126,3 +135,4 @@ export interface SimCurrentResult<X extends SimResult> {
 }
 
 registerSim(potRatioSimSpec);
+registerSim(whmSheetSpec);

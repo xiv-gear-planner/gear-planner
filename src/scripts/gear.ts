@@ -1,6 +1,6 @@
 import {
     EMPTY_STATS,
-    getJobStats,
+    getClassJobStats,
     getLevelStats,
     getRaceStats,
     JobName,
@@ -43,6 +43,7 @@ import {
     XivCombatItem
 } from "./geartypes";
 import {DataManager} from "./datamanager";
+import {GearPlanSheet} from "./components";
 
 
 export class EquippedItem {
@@ -75,11 +76,11 @@ export class CharacterGearSet {
     private _computedStats: ComputedSetStats;
     private _jobOverride: JobName;
     private _raceOverride: RaceName;
-    private _dataManager: DataManager;
     private _food: FoodItem;
+    private _sheet: GearPlanSheet;
 
-    constructor(dataManager: DataManager) {
-        this._dataManager = dataManager;
+    constructor(sheet: GearPlanSheet) {
+        this._sheet = sheet;
         this.name = ""
         this.equipment = new EquipmentSet();
     }
@@ -127,7 +128,7 @@ export class CharacterGearSet {
     }
 
 
-    notifyMateriaChange() {
+    forceRecalc() {
         this.invalidate();
         this.notifyListeners();
     }
@@ -157,15 +158,15 @@ export class CharacterGearSet {
         }
         const all = this.allStatPieces;
         const combinedStats = new RawStats(EMPTY_STATS);
-        const classJob = this._jobOverride ?? this._dataManager.classJob;
-        const jobStats = getJobStats(classJob);
-        const raceStats = getRaceStats(this._raceOverride ?? this._dataManager.race)
-        const level = this._dataManager.level;
+        const classJob = this._jobOverride ?? this._sheet.classJobName;
+        const classJobStats = this._jobOverride ? getClassJobStats(this._jobOverride) : this._sheet.classJobStats;
+        const raceStats = this._raceOverride ? getRaceStats(this._raceOverride) : this._sheet.raceStats;
+        const level = this._sheet.level;
         const levelStats = getLevelStats(level);
 
         // Base stats based on job and level
         for (let statKey of REAL_MAIN_STATS) {
-            combinedStats[statKey] = Math.floor(levelStats.baseMainStat * jobStats.jobStatMulipliers[statKey] / 100);
+            combinedStats[statKey] = Math.floor(levelStats.baseMainStat * classJobStats.jobStatMulipliers[statKey] / 100);
         }
         for (let statKey of FAKE_MAIN_STATS) {
             combinedStats[statKey] = Math.floor(levelStats.baseMainStat);
@@ -190,13 +191,13 @@ export class CharacterGearSet {
                 combinedStats[stat] = startingValue + extraValue;
             }
         }
-        const mainStat = combinedStats[jobStats.mainStat];
+        const mainStat = Math.floor(combinedStats[classJobStats.mainStat] * (1 + 0.01 * this._sheet.partyBonus));
         this._computedStats = {
             ...combinedStats,
             level: level,
             levelStats: levelStats,
             job: classJob,
-            jobStats: jobStats,
+            jobStats: classJobStats,
             gcdPhys: sksToGcd(combinedStats.skillspeed),
             gcdMag: spsToGcd(2.5, levelStats, combinedStats.spellspeed),
             critChance: critChance(levelStats, combinedStats.crit),
@@ -205,13 +206,13 @@ export class CharacterGearSet {
             dhitMulti: dhitDmg(levelStats, combinedStats.dhit),
             detMulti: detDmg(levelStats, combinedStats.determination),
             // TODO: does this need to be phys/magic split?
-            wdMulti: wdMulti(levelStats, jobStats, Math.max(combinedStats.wdMag, combinedStats.wdPhys)),
-            mainStatMulti: mainStatMulti(levelStats, jobStats, mainStat),
-            traitMulti: jobStats.traitMulti ? jobStats.traitMulti(level) : 1,
+            wdMulti: wdMulti(levelStats, classJobStats, Math.max(combinedStats.wdMag, combinedStats.wdPhys)),
+            mainStatMulti: mainStatMulti(levelStats, classJobStats, mainStat),
+            traitMulti: classJobStats.traitMulti ? classJobStats.traitMulti(level) : 1,
             autoDhBonus: autoDhBonusDmg(levelStats, combinedStats.dhit),
         }
-        if (jobStats.traits) {
-            jobStats.traits.forEach(trait => {
+        if (classJobStats.traits) {
+            classJobStats.traits.forEach(trait => {
                 if (trait.minLevel && trait.minLevel > level) {
                     return;
                 }
@@ -227,7 +228,7 @@ export class CharacterGearSet {
     }
 
     clone(): CharacterGearSet {
-        const out = new CharacterGearSet(this._dataManager);
+        const out = new CharacterGearSet(this._sheet);
         for (let slot in this.equipment) {
             const equip: EquippedItem = this.equipment[slot];
             if (!equip) {

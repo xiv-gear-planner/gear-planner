@@ -89,7 +89,7 @@ export async function openSheetByKey(sheet: string) {
     // TODO: handle nonexistent sheet
     setTitle('Loading Sheet');
     console.log('openSheetByKey: ', sheet);
-    const planner = new GearPlanSheet(sheet, undefined, setEditorAreaContent);
+    const planner = GearPlanSheet.fromSaved(sheet, setEditorAreaContent);
     await openSheet(planner);
     setTitle(planner.name);
 }
@@ -99,6 +99,7 @@ export async function openSheet(planner: GearPlanSheet) {
     console.log('openSheet: ', planner.saveKey);
     document['planner'] = planner;
     setHash("sheet", planner.saveKey);
+    contentArea.replaceChildren(planner);
     const loadSheetPromise = planner.loadData().then(() => contentArea.replaceChildren(planner), (reason) => {
         console.error(reason);
         contentArea.replaceChildren(document.createTextNode("Error loading sheet!"));

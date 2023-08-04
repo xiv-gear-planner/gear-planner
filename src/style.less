@@ -21,6 +21,7 @@ body {
   --thick-border: 2px solid var(--border-color);
   --selected-outline: 3px solid var(--table-selected-outline-color);
   --stat-color: var(--fg-color);
+  --modal-backdrop-color: #88888833;
 
   color: var(--fg-color);
   background-color: var(--bg-color);
@@ -48,7 +49,7 @@ div#content-area {
   /*flex-grow: 0;*/
   /*flex-shrink: 9999;*/
   flex-basis: content;
-  overflow-y: scroll;
+  overflow-y: auto;
   min-height: 0;
   flex-shrink: 1;
   flex-grow: 1;
@@ -186,6 +187,7 @@ select {
   color: var(--fg-color);
   background-color: var(--bg-color);
   border: 1px solid var(--border-color);
+  border-radius: 5px;
 }
 
 button {
@@ -367,6 +369,10 @@ table.gear-plan-table {
   width: min(100%, 100vw);
   margin-top: 8px;
 
+  >* {
+    margin-right: 10px;
+  }
+
 }
 
 #content-area {
@@ -388,6 +394,9 @@ gear-plan {
   margin: auto;
   width: fit-content;
   display: block;
+  position: relative;
+  // Make the loading spinner happy
+  min-width: 120px;
 
   table {
     margin: auto;
@@ -502,7 +511,7 @@ slot-materia-manager {
     display: inline-block;
   }
 
-  &.materia-overcap {
+  &.materia-overcap > span {
     color: var(--materia-overcap);
 
     //div.materia-image-holder {
@@ -510,7 +519,7 @@ slot-materia-manager {
     //}
   }
 
-  &.materia-overcap-major {
+  &.materia-overcap-major > span {
     color: var(--materia-overcap-major);
 
     //div.materia-image-holder {
@@ -557,9 +566,11 @@ dialog#add-sim-dialog {
   z-index: 200;
   background-color: var(--table-bg-color);
   color: var(--fg-color);
+  border: var(--thick-border);
 
   &::backdrop {
-    background-color: #00bbbb55;
+    background-color: var(--modal-backdrop-color);
+
   }
 }
 
@@ -590,6 +601,7 @@ dialog#add-sim-dialog {
     background-color: color-mix(in srgb, var(--stat-color) var(--stat-mix-secondary-bg), var(--table-bg-color));
   }
 }
+
 td.stat-crit {
   --stat-color: var(--color-crit);
   .color-stat-column;
@@ -621,7 +633,7 @@ td.stat-piety {
 }
 
 td.stat-melded, td.stat-melded-overcapped, td.stat-melded-overcapped-major {
-  box-shadow: 0 0 2px 2px var(--stat-color, #cccccc) inset;
+  box-shadow: 0 0 2px 2px color-mix(in srgb, var(--stat-color) 40%, #cccccc) inset;
 }
 
 //td.stat-melded {
@@ -642,4 +654,51 @@ td.primary {
   font-weight: bold;
 }
 
+loading-blocker {
+  display: block;
+  background-color: var(--modal-backdrop-color);
 
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  top: 0;
+
+  z-index: 190;
+
+  // Loading spinner stuff
+  div.loading-spinner {
+
+    margin: auto;
+    width: 100px;
+    height: 100px;
+    padding-left: 10px;
+    box-sizing: border-box;
+
+    div {
+      transform-origin: 40px 40px;
+      animation: spin-anim-control linear infinite;
+
+      &:after {
+        content: "";
+        display: block;
+        position: absolute;
+        top: 3px;
+        left: 37px;
+        width: 6px;
+        height: 18px;
+        border-radius: 20%;
+        background: #fff;
+      }
+    }
+  }
+}
+
+@keyframes spin-anim-control {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}

@@ -1,5 +1,5 @@
 import {EquippedItem} from "./gear";
-import {JobName, SupportedLevel} from "./xivconstants";
+import {JobName, RaceName, SupportedLevel} from "./xivconstants";
 export interface GearSlot {
 
 }
@@ -309,6 +309,8 @@ export interface SimExport {
 export interface SheetExport {
     name: string,
     saveKey: string,
+    race: RaceName,
+    partyBonus: PartyBonusAmount,
     job: JobName,
     level: SupportedLevel,
     sets: SetExport[],
@@ -330,3 +332,4 @@ export interface ItemSlotExport {
     materia: ({ id: number } | undefined)[]
 }
 
+export type PartyBonusAmount = 0 | 1 | 2 | 3 | 4 | 5;

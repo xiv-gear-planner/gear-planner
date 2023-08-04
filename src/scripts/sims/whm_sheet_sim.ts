@@ -243,5 +243,3 @@ export class WhmSheetSim implements Simulation<WhmSheetSimResult, WhmSheetSettin
         }
     }
 }
-
-registerSim(whmSheetSpec);

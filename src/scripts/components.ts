@@ -23,6 +23,7 @@ import {
     ItemSlotExport,
     Materia,
     MeldableMateriaSlot,
+    PartyBonusAmount,
     RawStatKey,
     RawStats,
     REAL_MAIN_STATS,
@@ -32,25 +33,27 @@ import {
     StatBonus
 } from "./geartypes";
 import {
+    getDefaultSims,
     getRegisteredSimSpecs,
     getSimSpecByStub,
-    potRatioSimSpec,
     SimCurrentResult,
     SimResult,
     SimSpec,
     Simulation
 } from "./simulation";
 import {
-    getJobStats,
+    getClassJobStats,
+    getRaceStats,
     JOB_DATA,
     JobName,
+    RACE_STATS,
+    RaceName,
     STAT_ABBREVIATIONS,
     STAT_FULL_NAMES,
     SupportedLevel,
     SupportedLevels
 } from "./xivconstants";
 import {openSheetByKey, setEditorAreaContent, showNewSheetForm} from "./main";
-import {whmSheetSpec} from "./sims/whm_sheet_sim";
 import {closeModal, setModal} from "./modalcontrol";
 
 type GearSetSel = SingleCellRowOrHeaderSelect<CharacterGearSet>;
@@ -105,8 +108,6 @@ function chanceStatDisplay(stats: ChanceStat) {
  */
 export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
 
-    private gearSets: CharacterGearSet[] = [];
-    private sims: Simulation<any, any, any>[] = [];
     private sheet: GearPlanSheet;
 
     constructor(sheet: GearPlanSheet, setSelection: (item: CharacterGearSet | Simulation<any, any, any> | undefined) => void) {
@@ -131,6 +132,14 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
         })
     }
 
+    get sims(): Simulation<any, any, any>[] {
+        return this.sheet.sims;
+    }
+
+    get gearSets(): CharacterGearSet[] {
+        return this.sheet.sets;
+    }
+
     selectGearSet(set: CharacterGearSet | undefined) {
         if (set === undefined) {
             this.selectionModel.clearSelection();
@@ -144,20 +153,21 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
         this.refreshSelection();
     }
 
-    addRow(...toAdd: CharacterGearSet[]) {
-        for (let gearSet of toAdd) {
-            gearSet.addListener(() => this.refreshRowData(gearSet));
-            this.gearSets.push(gearSet);
-        }
-        this.dataChanged();
-    }
-
-    delRow(...toDelete: CharacterGearSet[]) {
-        this.gearSets = this.gearSets.filter(gs => {
-            return !toDelete.includes(gs);
-        });
-        this.dataChanged();
-    }
+    // addRow(...toAdd: CharacterGearSet[]) {
+    //     for (let gearSet of toAdd) {
+    //         // TODO: move these to the sheet
+    //         gearSet.addListener(() => this.refreshRowData(gearSet));
+    //         this._gearSets.push(gearSet);
+    //     }
+    //     this.dataChanged();
+    // }
+    //
+    // delRow(...toDelete: CharacterGearSet[]) {
+    //     this._gearSets = this._gearSets.filter(gs => {
+    //         return !toDelete.includes(gs);
+    //     });
+    //     this.dataChanged();
+    // }
 
     dataChanged() {
         const curSelection = this.selectionModel.getSelection();
@@ -168,15 +178,20 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
         }
     }
 
-    addSim(sim: Simulation<any, any, any>) {
-        this.sims.push(sim);
+    simsChanged() {
         this.setupColumns();
     }
 
-    delSim(sim: Simulation<any, any, any>) {
-        this.sims = this.sims.filter(s => s !== sim);
-        this.setupColumns();
-    }
+    //
+    // addSim(sim: Simulation<any, any, any>) {
+    //     this._sims.push(sim);
+    //     this.setupColumns();
+    // }
+    //
+    // delSim(sim: Simulation<any, any, any>) {
+    //     this._sims = this._sims.filter(s => s !== sim);
+    //     this.setupColumns();
+    // }
 
     private setupColumns() {
         const statColWidth = 40;
@@ -621,7 +636,7 @@ class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
             itemTableStatColumn(sheet, gearSet, 'tenacity', true),
         ]
         const data: (TitleRow | HeaderRow | GearSlotItem)[] = [];
-        const slotMateriaManagers = [];
+        const slotMateriaManagers = new Map<keyof EquipmentSet, AllSlotMateriaManager>();
         // Track the selected item in every category so that it can be more quickly refreshed
         const selectionTracker = new Map<keyof EquipmentSet, CustomRow<GearSlotItem> | GearSlotItem>();
         const refreshSingleItem = (item: CustomRow<GearSlotItem> | GearSlotItem) => this.refreshRowData(item);
@@ -649,7 +664,7 @@ class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
                 }
 
             });
-            slotMateriaManagers.push(matMgr);
+            slotMateriaManagers.set(slotId, matMgr);
             data.push(new SpecialRow(tbl => matMgr));
         }
         super.selectionModel = {
@@ -662,7 +677,8 @@ class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
             clickRow(newSelection: CustomRow<GearSlotItem>) {
                 // refreshSingleItem old and new items
                 gearSet.setEquip(newSelection.dataItem.slotId, newSelection.dataItem.item);
-                for (let matMgr of slotMateriaManagers) {
+                const matMgr = slotMateriaManagers.get(newSelection.dataItem.slotId);
+                if (matMgr) {
                     matMgr.refresh();
                 }
                 const oldSelection = selectionTracker.get(newSelection.dataItem.slotId);
@@ -774,8 +790,10 @@ function formatSimulationConfigArea(
 export class GearPlanSheet extends HTMLElement {
 
     name: string;
-    job: JobName;
-    level: SupportedLevel;
+    readonly classJobName: JobName;
+    readonly level: SupportedLevel;
+    private _race: RaceName | undefined;
+    private _partyBonus: PartyBonusAmount;
 
     private _gearPlanTable: GearPlanTable;
     private _saveKey: string;
@@ -786,28 +804,77 @@ export class GearPlanSheet extends HTMLElement {
     private buttonRow: HTMLDivElement;
     private _relevantMateria: Materia[];
     private _relevantFood: FoodItem[];
+    private _importedData: SheetExport;
+    private _loadingScreen: LoadingBlocker;
 
-    constructor(sheetKey: string, defaultName?: string, editorAreaSetup?: (...nodes: Node[]) => void) {
+    static fromSaved(sheetKey: string, editorAreaSetup: (...nodes: Node[]) => void): GearPlanSheet {
+        const exported = GearPlanSheet.loadSaved(sheetKey);
+        return new GearPlanSheet(sheetKey, editorAreaSetup, exported);
+    }
+
+    static fromScratch(sheetKey: string, editorAreaSetup: (...nodes: Node[]) => void, sheetName: string, classJob: JobName, level: SupportedLevel): GearPlanSheet {
+        const fakeExport: SheetExport = {
+            job: classJob,
+            level: level,
+            name: sheetName,
+            partyBonus: 0,
+            race: undefined,
+            saveKey: sheetKey,
+            sets: [],
+            sims: []
+        }
+        const gearPlanSheet = new GearPlanSheet(sheetKey, editorAreaSetup, fakeExport);
+        const sims = getDefaultSims(classJob, level);
+        for (let simSpec of sims) {
+            try {
+                gearPlanSheet.addSim(simSpec.makeNewSimInstance());
+            } catch (e) {
+                console.error(`Error adding default sim ${simSpec.displayName} (${simSpec.stub})`, e);
+            }
+        }
+        return gearPlanSheet;
+    }
+
+    private static loadSaved(sheetKey: string): SheetExport {
+        return JSON.parse(localStorage.getItem(sheetKey)) as SheetExport;
+    }
+
+    // Can't make ctor private for custom element, but DO NOT call this directly - use fromSaved or fromScratch
+    constructor(sheetKey: string, editorAreaSetup: (...nodes: Node[]) => void, importedData: SheetExport) {
         super();
-        if (!sheetKey) {
-            console.error("No sheet key!")
-        }
-        if (editorAreaSetup) {
-            this._editorAreaSetup = editorAreaSetup;
-        }
-        else {
-            const editorArea = document.createElement("div");
-            editorArea.id = "editor-area";
-            this.appendChild(editorArea);
-            this._editorAreaSetup = editorArea.replaceChildren;
-        }
+        this._importedData = importedData;
+        this._saveKey = sheetKey;
+        this._editorAreaSetup = editorAreaSetup;
+        this.name = importedData.name;
+        this.level = importedData.level ?? 90;
+        this._race = importedData.race;
+        this._partyBonus = importedData.partyBonus ?? 0;
+        this.classJobName = importedData.job ?? 'WHM';
         this.dataManager = new DataManager();
+
+        // Early gui setup
+        this._loadingScreen = new LoadingBlocker();
+        this.appendChild(this._loadingScreen);
+    }
+
+
+    setupRealGui() {
+        // if (editorAreaSetup) {
+        //     this._editorAreaSetup = editorAreaSetup;
+        // }
+        // else {
+        //     const editorArea = document.createElement("div");
+        //     editorArea.id = "editor-area";
+        //     this.appendChild(editorArea);
+        //     this._editorAreaSetup = editorArea.replaceChildren;
+        // }
         this._gearPlanTable = new GearPlanTable(this, item => {
             try {
                 if (!item) {
                     this._editorAreaSetup();
                 }
                 else if (item instanceof CharacterGearSet) {
+                    // TODO: should dataManager flow through to this?
                     this._editorAreaSetup(new GearSetEditor(this, item, this.dataManager));
                 }
                 else if (item['makeConfigInterface']) {
@@ -821,101 +888,107 @@ export class GearPlanSheet extends HTMLElement {
                 this._editorAreaSetup(document.createTextNode("Error!"));
             }
         });
+        // Buttons and controls at the bottom of the table
         this.buttonRow = document.createElement("div");
         this.buttonRow.id = 'gear-sheet-button-row';
         const addRowButton = makeActionButton("New Gear Set", () => {
-            const newSet = new CharacterGearSet(this.dataManager);
+            const newSet = new CharacterGearSet(this);
             newSet.name = "New Set";
             this.addGearSet(newSet, true);
         })
         this.buttonRow.appendChild(addRowButton)
+
         const newSimButton = makeActionButton("Add Simulation", () => {
             this.showAddSimDialog();
-        })
+        });
         this.buttonRow.appendChild(newSimButton);
+
+        const raceDropdown = new FieldBoundDataSelect<GearPlanSheet, RaceName>(
+            this,
+            'race',
+            r => {
+                return r ?? "Select a Race/Clan";
+            },
+            [undefined, ...Object.keys(RACE_STATS) as RaceName[]]);
+        this.buttonRow.appendChild(raceDropdown);
+
+        const partySizeDropdown = new FieldBoundDataSelect<GearPlanSheet, PartyBonusAmount>(
+            this,
+            'partyBonus',
+            value => {
+                if (value === 0) {
+                    return 'No Party Bonus';
+                }
+                else {
+                    return `${value} Unique Roles`;
+                }
+            },
+            [0, 1, 2, 3, 4, 5]
+        )
+        this.buttonRow.appendChild(partySizeDropdown);
+
         this.appendChild(this._gearPlanTable);
         this.appendChild(this.buttonRow);
-        this._saveKey = sheetKey;
-        this.name = defaultName;
+        this._gearPlanTable.dataChanged();
+        this._loadingScreen.remove();
     }
 
     async loadData() {
         console.log("Loading sheet...");
-        const saved = JSON.parse(localStorage.getItem(this._saveKey)) as SheetExport;
-        if (saved) {
-            console.log("Found Saved Data")
-            this.name = saved.name;
-            this.level = saved.level ?? 90;
-            this.job = saved.job ?? 'WHM';
-            this.dataManager.classJob = this.job;
-            this.dataManager.level = this.level;
-            await this.dataManager.loadData();
-            for (let importedSet of saved.sets) {
-                const set = new CharacterGearSet(this.dataManager);
-                set.name = importedSet.name;
-                for (let equipmentSlot in importedSet.items) {
-                    const importedItem: ItemSlotExport = importedSet.items[equipmentSlot];
-                    if (!importedItem) {
+        console.log("Reading data")
+        const saved = this._importedData;
+        this.dataManager.classJob = this.classJobName;
+        this.dataManager.level = this.level;
+        await this.dataManager.loadData();
+        for (let importedSet of saved.sets) {
+            const set = new CharacterGearSet(this);
+            set.name = importedSet.name;
+            for (let equipmentSlot in importedSet.items) {
+                const importedItem: ItemSlotExport = importedSet.items[equipmentSlot];
+                if (!importedItem) {
+                    continue;
+                }
+                const baseItem = this.dataManager.itemById(importedItem.id);
+                if (!baseItem) {
+                    continue;
+                }
+                const equipped = new EquippedItem(baseItem);
+                for (let i = 0; i < Math.min(equipped.melds.length, importedItem.materia.length); i++) {
+                    const id = importedItem.materia[i].id;
+                    const mat = this.dataManager.materiaById(id);
+                    if (!mat) {
                         continue;
                     }
-                    const baseItem = this.dataManager.itemById(importedItem.id);
-                    if (!baseItem) {
-                        continue;
-                    }
-                    const equipped = new EquippedItem(baseItem);
-                    for (let i = 0; i < Math.min(equipped.melds.length, importedItem.materia.length); i++) {
-                        const id = importedItem.materia[i].id;
-                        const mat = this.dataManager.materiaById(id);
-                        if (!mat) {
-                            continue;
-                        }
-                        equipped.melds[i].equippedMatiera = mat;
-                    }
-                    set.equipment[equipmentSlot] = equipped;
+                    equipped.melds[i].equippedMatiera = mat;
                 }
-                if (importedSet.food) {
-                    set.food = this.dataManager.foodById(importedSet.food);
-                }
-                this.addGearSet(set);
+                set.equipment[equipmentSlot] = equipped;
             }
-            if (saved.sims) {
-                for (let simport of saved.sims) {
-                    const simSpec = getSimSpecByStub(simport.stub);
-                    if (simSpec === undefined) {
-                        console.error("Sim no longer present: " + simport.stub);
-                        continue;
-                    }
-                    try {
-                        const rehydratedSim = simSpec.loadSavedSimInstance(simport.settings);
-                        if (simport.name) {
-                            rehydratedSim.displayName = simport.name;
-                        }
-                        this.addSim(rehydratedSim);
-                    } catch (e) {
-                        console.error("Error loading sim settings", e);
-                    }
-                }
+            if (importedSet.food) {
+                set.food = this.dataManager.foodById(importedSet.food);
             }
+            this.addGearSet(set);
         }
-        else {
-            if (!this.name) {
-                this.name = "Default Sheet";
+        if (saved.sims) {
+            for (let simport of saved.sims) {
+                const simSpec = getSimSpecByStub(simport.stub);
+                if (simSpec === undefined) {
+                    console.error("Sim no longer present: " + simport.stub);
+                    continue;
+                }
+                try {
+                    const rehydratedSim = simSpec.loadSavedSimInstance(simport.settings);
+                    if (simport.name) {
+                        rehydratedSim.displayName = simport.name;
+                    }
+                    this.addSim(rehydratedSim);
+                } catch (e) {
+                    console.error("Error loading sim settings", e);
+                }
             }
-            this.job = this.job ?? 'WHM';
-            this.level = this.level ?? 90;
-            this.dataManager.classJob = this.job;
-            this.dataManager.level = this.level;
-            await this.dataManager.loadData();
-            const set = new CharacterGearSet(this.dataManager);
-            set.name = "Default Set";
-            this.addGearSet(set, true);
-            this.addSim(whmSheetSpec.makeNewSimInstance());
-            this.addSim(potRatioSimSpec.makeNewSimInstance());
         }
         this._relevantMateria = this.dataManager.materiaTypes.filter(mat => this.isStatRelevant(mat.primaryStat));
         this._relevantFood = this.dataManager.foodItems.filter(food => this.isStatRelevant(food.primarySubStat) || this.isStatRelevant(food.secondarySubStat));
-        // needed for empty table
-        this._gearPlanTable.dataChanged();
+        this.setupRealGui();
     }
 
     saveData() {
@@ -954,8 +1027,10 @@ export class GearPlanSheet extends HTMLElement {
             name: this.name,
             sets: sets,
             level: this.level,
-            job: this.job,
+            job: this.classJobName,
+            partyBonus: this._partyBonus,
             saveKey: this._saveKey,
+            race: this._race,
             sims: simsExport,
         }
         localStorage.setItem(this._saveKey, JSON.stringify(fullExport));
@@ -963,29 +1038,42 @@ export class GearPlanSheet extends HTMLElement {
 
     addGearSet(gearSet: CharacterGearSet, select: boolean = false) {
         this._sets.push(gearSet);
-        this._gearPlanTable.addRow(gearSet);
-        gearSet.addListener(() => this.saveData());
+        if (this._gearPlanTable) {
+            this._gearPlanTable.dataChanged();
+        }
+        gearSet.addListener(() => {
+            if (this._gearPlanTable) {
+                this._gearPlanTable.refreshRowData(gearSet);
+            }
+            this.saveData();
+        });
         this.saveData();
-        if (select) {
+        if (select && this._gearPlanTable) {
             this._gearPlanTable.selectGearSet(gearSet);
         }
     }
 
     delGearSet(gearSet: CharacterGearSet) {
         this._sets = this._sets.filter(gs => gs !== gearSet);
-        this._gearPlanTable.delRow(gearSet);
+        if (this._gearPlanTable) {
+            this._gearPlanTable.dataChanged();
+        }
         this.saveData();
     }
 
     addSim(sim: Simulation<any, any, any>) {
         this._sims.push(sim);
-        this._gearPlanTable.addSim(sim);
+        if (this._gearPlanTable) {
+            this.gearPlanTable.simsChanged();
+        }
         this.saveData();
     }
 
     delSim(sim: Simulation<any, any, any>) {
         this._sims = this._sims.filter(s => s !== sim);
-        this._gearPlanTable.delSim(sim);
+        if (this._gearPlanTable) {
+            this.gearPlanTable.simsChanged();
+        }
         this.saveData();
     }
 
@@ -1021,24 +1109,30 @@ export class GearPlanSheet extends HTMLElement {
         addSimDialog.showModal();
     }
 
+    recalcAll() {
+        for (let set of this._sets) {
+            set.forceRecalc();
+        }
+    }
+
     get saveKey() {
         return this._saveKey;
     }
 
-    get classJob() {
-        return getJobStats(this.job);
+    get classJobStats() {
+        return getClassJobStats(this.classJobName);
     }
 
     isStatRelevant(stat: RawStatKey) {
-        if (!this.classJob) {
+        if (!this.classJobStats) {
             // Not sure what the best way to handle this is
             return true;
         }
         if (REAL_MAIN_STATS.includes(stat)) {
-            return (stat === this.classJob.mainStat);
+            return (stat === this.classJobStats.mainStat);
         }
-        if (this.classJob.irrelevantSubstats) {
-            return !this.classJob.irrelevantSubstats.includes(stat);
+        if (this.classJobStats.irrelevantSubstats) {
+            return !this.classJobStats.irrelevantSubstats.includes(stat);
         }
         else {
             return true;
@@ -1047,6 +1141,19 @@ export class GearPlanSheet extends HTMLElement {
 
     get relevantSims() {
         return getRegisteredSimSpecs().filter(simSpec => simSpec.supportedJobs === undefined ? true : simSpec.supportedJobs.includes(this.dataManager.classJob));
+    }
+
+    get raceStats() {
+        return getRaceStats(this._race);
+    }
+
+    get race() {
+        return this._race;
+    }
+
+    set race(race) {
+        this._race = race;
+        this.recalcAll();
     }
 
     get gearPlanTable(): GearPlanTable {
@@ -1067,6 +1174,15 @@ export class GearPlanSheet extends HTMLElement {
 
     get relevantMateria(): Materia[] {
         return this._relevantMateria;
+    }
+
+    get partyBonus(): PartyBonusAmount {
+        return this._partyBonus;
+    }
+
+    set partyBonus(partyBonus: PartyBonusAmount) {
+        this._partyBonus = partyBonus;
+        this.recalcAll();
     }
 }
 
@@ -1124,7 +1240,7 @@ class AddSimDialog extends HTMLDialogElement {
         super.close();
         // this.style.display = 'none';
         // TODO: uncomment after testing
-        // this.remove();
+        this.remove();
     }
 
     submit() {
@@ -1161,7 +1277,7 @@ class AllSlotMateriaManager extends HTMLElement {
     }
 
     notifyChange() {
-        this.gearSet.notifyMateriaChange();
+        this.gearSet.forceRecalc();
         this._extraCallback();
         this.updateColors();
     }
@@ -1241,7 +1357,7 @@ class OptionDataElement<X> extends HTMLOptionElement {
 }
 
 export class DataSelect<X> extends HTMLSelectElement {
-    constructor(items: X[], textGetter: (item: X) => string, callback: ((newValue: X) => void) | undefined, initialSelectedItem: X | undefined = undefined) {
+    constructor(items: X[], textGetter: (item: X) => string, callback: ((newValue: X) => void) | undefined, initialSelectedItem: typeof items[number]) {
         super();
         for (let item of items) {
             const opt = new OptionDataElement(item);
@@ -1316,7 +1432,8 @@ class SlotMateriaManager extends HTMLElement {
         if (currentMat) {
             this.image.src = currentMat.iconUrl.toString();
             this.image.style.display = 'block';
-            this.text.textContent = `+${currentMat.primaryStatValue - this._overcap} ${STAT_ABBREVIATIONS[currentMat.primaryStat]}`;
+            const displayedNumber = Math.max(0, currentMat.primaryStatValue - this._overcap);
+            this.text.textContent = `+${displayedNumber} ${STAT_ABBREVIATIONS[currentMat.primaryStat]}`;
             this.classList.remove("materia-slot-empty")
             this.classList.add("materia-slot-full");
         }
@@ -1602,10 +1719,7 @@ export class NewSheetForm extends HTMLFormElement {
 
     private doSubmit() {
         const nextSheetSaveStub = getNextSheetInternalName();
-        const gearPlanSheet = new GearPlanSheet(nextSheetSaveStub, undefined, setEditorAreaContent);
-        gearPlanSheet.name = this.nameInput.value;
-        gearPlanSheet.job = this.jobDropdown.selectedItem;
-        gearPlanSheet.level = this.levelDropdown.selectedItem;
+        const gearPlanSheet = GearPlanSheet.fromScratch(nextSheetSaveStub, setEditorAreaContent, this.nameInput.value, this.jobDropdown.selectedItem, this.levelDropdown.selectedItem);
         this.sheetOpenCallback(gearPlanSheet);
     }
 }
@@ -1768,6 +1882,27 @@ export class FieldBoundTextField<ObjType> extends FieldBoundConvertingTextField<
 //         super(obj, field, (s) => s, (s) => s, extraArgs);
 //     }
 // }
+export class FieldBoundDataSelect<ObjType, DataType> extends DataSelect<DataType> {
+
+    reloadValue: () => void;
+    listeners: ((value: DataType) => void)[] = [];
+
+    constructor(obj: ObjType, field: { [K in keyof ObjType]: ObjType[K] extends DataType ? K : never }[keyof ObjType], valueDisplayName: (value: DataType) => string, options: DataType[]) {
+        const initialValue: DataType = obj[field] as DataType;
+        // Give it something to display
+        if (!options.includes(initialValue)) {
+            options = [initialValue, ...options];
+        }
+        super(options, valueDisplayName, value => {
+            //@ts-ignore
+            obj[field] = value;
+        }, obj[field] as DataType);
+    }
+
+    addListener(listener: (value: DataType) => void) {
+        this.listeners.push(listener);
+    }
+}
 
 // new FieldBoundTextField(new CharacterGearSet(null), 'name');
 
@@ -1780,6 +1915,27 @@ export function labeledCheckbox(label: string, check: HTMLInputElement): HTMLDiv
     return div;
 }
 
+export class LoadingBlocker extends HTMLElement {
+    constructor() {
+        super();
+        this.classList.add("loading-blocker");
+        const loadingSpinner = document.createElement("div");
+        loadingSpinner.classList.add("loading-spinner");
+        const count = 12;
+        const animBasis = 1.0;
+        for (let i = 0; i < count; i++) {
+            const spinnerPart = document.createElement("div");
+            const rotation = (i / count * 360);
+            const animDelay = (i / count * animBasis) - animBasis;
+            spinnerPart.style.transform = `rotate(${rotation}deg)`;
+            spinnerPart.style.animationDelay = `${animDelay}s`;
+            spinnerPart.style.animationDuration = `${animBasis}s`;
+            // spinnerPart.textContent = "foo";
+            loadingSpinner.appendChild(spinnerPart);
+        }
+        this.appendChild(loadingSpinner);
+    }
+}
 
 customElements.define("gear-set-editor", GearSetEditor);
 customElements.define("gear-plan-table", GearPlanTable, {extends: "table"});
@@ -1799,3 +1955,5 @@ customElements.define("field-bound-converting-text-field", FieldBoundConvertingT
 customElements.define("field-bound-text-field", FieldBoundTextField, {extends: "input"});
 customElements.define("field-bound-checkbox", FieldBoundCheckBox, {extends: "input"});
 customElements.define("add-sim-dialog", AddSimDialog, {extends: "dialog"});
+customElements.define("field-bound-data-select", FieldBoundDataSelect, {extends: "select"});
+customElements.define("loading-blocker", LoadingBlocker);
