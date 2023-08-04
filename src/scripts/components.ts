@@ -806,6 +806,7 @@ export class GearPlanSheet extends HTMLElement {
     private _relevantFood: FoodItem[];
     private _importedData: SheetExport;
     private _loadingScreen: LoadingBlocker;
+    private _selectFirstRowByDefault: boolean = false;
 
     static fromSaved(sheetKey: string, editorAreaSetup: (...nodes: Node[]) => void): GearPlanSheet {
         const exported = GearPlanSheet.loadSaved(sheetKey);
@@ -835,6 +836,7 @@ export class GearPlanSheet extends HTMLElement {
                 console.error(`Error adding default sim ${simSpec.displayName} (${simSpec.stub})`, e);
             }
         }
+        gearPlanSheet._selectFirstRowByDefault = true;
         return gearPlanSheet;
     }
 
@@ -862,15 +864,6 @@ export class GearPlanSheet extends HTMLElement {
 
 
     setupRealGui() {
-        // if (editorAreaSetup) {
-        //     this._editorAreaSetup = editorAreaSetup;
-        // }
-        // else {
-        //     const editorArea = document.createElement("div");
-        //     editorArea.id = "editor-area";
-        //     this.appendChild(editorArea);
-        //     this._editorAreaSetup = editorArea.replaceChildren;
-        // }
         this._gearPlanTable = new GearPlanTable(this, item => {
             try {
                 if (!item) {
@@ -934,6 +927,11 @@ export class GearPlanSheet extends HTMLElement {
         this.appendChild(this.buttonRow);
         this._gearPlanTable.dataChanged();
         this._loadingScreen.remove();
+        // console.log(`${this._selectFirstRowByDefault} ${this.sets.length}`);
+        if (this._selectFirstRowByDefault && this.sets.length >= 1) {
+            this._gearPlanTable.selectGearSet(this.sets[0])
+
+        }
     }
 
     async loadData() {
