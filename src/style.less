@@ -560,64 +560,76 @@ dialog#add-sim-dialog {
 }
 
 // Stat-related stuff
-td.stat-sps.primary {
-  color: color-mix(in srgb, var(--color-sps-sks) var(--stat-mix-primary), var(--fg-color));
-  background-color: color-mix(in srgb, var(--color-sps-sks) var(--stat-mix-primary-bg), var(--table-bg-color));
+td.stat-crit {
+  &.primary {
+    color: color-mix(in srgb, var(--color-crit) var(--stat-mix-primary), var(--fg-color));
+    background-color: color-mix(in srgb, var(--color-crit) var(--stat-mix-primary-bg), var(--table-bg-color));
+  }
+
+  &.secondary {
+    color: color-mix(in srgb, var(--color-crit) var(--stat-mix-secondary), var(--fg-color));
+    background-color: color-mix(in srgb, var(--color-crit) var(--stat-mix-secondary-bg), var(--table-bg-color));
+  }
 }
 
-td.stat-sps.secondary {
-  color: color-mix(in srgb, var(--color-sps-sks) var(--stat-mix-secondary), var(--fg-color));
-  background-color: color-mix(in srgb, var(--color-sps-sks) var(--stat-mix-secondary-bg), var(--table-bg-color));
+td.stat-dhit {
+  &.primary {
+    color: color-mix(in srgb, var(--color-dhit) var(--stat-mix-primary), var(--fg-color));
+    background-color: color-mix(in srgb, var(--color-dhit) var(--stat-mix-primary-bg), var(--table-bg-color));
+  }
+
+  &.secondary {
+    color: color-mix(in srgb, var(--color-dhit) var(--stat-mix-secondary), var(--fg-color));
+    background-color: color-mix(in srgb, var(--color-dhit) var(--stat-mix-secondary-bg), var(--table-bg-color));
+  }
 }
 
-td.stat-dhit.primary {
-  color: color-mix(in srgb, var(--color-dhit) var(--stat-mix-primary), var(--fg-color));
-  background-color: color-mix(in srgb, var(--color-dhit) var(--stat-mix-primary-bg), var(--table-bg-color));
+td.stat-determination {
+  &.primary {
+    color: color-mix(in srgb, var(--color-det) var(--stat-mix-primary), var(--fg-color));
+    background-color: color-mix(in srgb, var(--color-det) var(--stat-mix-primary-bg), var(--table-bg-color));
+  }
+
+  &.secondary {
+    color: color-mix(in srgb, var(--color-det) var(--stat-mix-secondary), var(--fg-color));
+    background-color: color-mix(in srgb, var(--color-det) var(--stat-mix-secondary-bg), var(--table-bg-color));
+  }
 }
 
-td.stat-dhit.secondary {
-  color: color-mix(in srgb, var(--color-dhit) var(--stat-mix-secondary), var(--fg-color));
-  background-color: color-mix(in srgb, var(--color-dhit) var(--stat-mix-secondary-bg), var(--table-bg-color));
+td.stat-tenacity {
+  &.primary {
+    color: color-mix(in srgb, var(--color-tnc) var(--stat-mix-primary), var(--fg-color));
+    background-color: color-mix(in srgb, var(--color-tnc) var(--stat-mix-primary-bg), var(--table-bg-color));
+  }
+
+  &.secondary {
+    color: color-mix(in srgb, var(--color-tnc) var(--stat-mix-secondary), var(--fg-color));
+    background-color: color-mix(in srgb, var(--color-tnc) var(--stat-mix-secondary-bg), var(--table-bg-color));
+  }
 }
 
-td.stat-det.primary {
-  color: color-mix(in srgb, var(--color-det) var(--stat-mix-primary), var(--fg-color));
-  background-color: color-mix(in srgb, var(--color-det) var(--stat-mix-primary-bg), var(--table-bg-color));
+td.stat-spellspeed, td.stat-skillspeed {
+  &.primary {
+    color: color-mix(in srgb, var(--color-sps-sks) var(--stat-mix-primary), var(--fg-color));
+    background-color: color-mix(in srgb, var(--color-sps-sks) var(--stat-mix-primary-bg), var(--table-bg-color));
+  }
+
+  &.secondary {
+    color: color-mix(in srgb, var(--color-sps-sks) var(--stat-mix-secondary), var(--fg-color));
+    background-color: color-mix(in srgb, var(--color-sps-sks) var(--stat-mix-secondary-bg), var(--table-bg-color));
+  }
 }
 
-td.stat-det.secondary {
-  color: color-mix(in srgb, var(--color-det) var(--stat-mix-secondary), var(--fg-color));
-  background-color: color-mix(in srgb, var(--color-det) var(--stat-mix-secondary-bg), var(--table-bg-color));
-}
+td.stat-piety {
+  &.primary {
+    color: color-mix(in srgb, var(--color-piety) var(--stat-mix-primary), var(--fg-color));
+    background-color: color-mix(in srgb, var(--color-piety) var(--stat-mix-primary-bg), var(--table-bg-color));
+  }
 
-td.stat-tnc.primary {
-  color: color-mix(in srgb, var(--color-tnc) var(--stat-mix-primary), var(--fg-color));
-  background-color: color-mix(in srgb, var(--color-tnc) var(--stat-mix-primary-bg), var(--table-bg-color));
-}
-
-td.stat-tnc.secondary {
-  color: color-mix(in srgb, var(--color-tnc) var(--stat-mix-secondary), var(--fg-color));
-  background-color: color-mix(in srgb, var(--color-tnc) var(--stat-mix-secondary-bg), var(--table-bg-color));
-}
-
-td.stat-piety.primary {
-  color: color-mix(in srgb, var(--color-piety) var(--stat-mix-primary), var(--fg-color));
-  background-color: color-mix(in srgb, var(--color-piety) var(--stat-mix-primary-bg), var(--table-bg-color));
-}
-
-td.stat-piety.secondary {
-  color: color-mix(in srgb, var(--color-piety) var(--stat-mix-secondary), var(--fg-color));
-  background-color: color-mix(in srgb, var(--color-piety) var(--stat-mix-secondary-bg), var(--table-bg-color));
-}
-
-td.stat-crit.primary {
-  color: color-mix(in srgb, var(--color-crit) var(--stat-mix-primary), var(--fg-color));
-  background-color: color-mix(in srgb, var(--color-crit) var(--stat-mix-primary-bg), var(--table-bg-color));
-}
-
-td.stat-crit.secondary {
-  color: color-mix(in srgb, var(--color-crit) var(--stat-mix-secondary), var(--fg-color));
-  background-color: color-mix(in srgb, var(--color-crit) var(--stat-mix-secondary-bg), var(--table-bg-color));
+  &.secondary {
+    color: color-mix(in srgb, var(--color-piety) var(--stat-mix-secondary), var(--fg-color));
+    background-color: color-mix(in srgb, var(--color-piety) var(--stat-mix-secondary-bg), var(--table-bg-color));
+  }
 }
 
 td.stat-zero {

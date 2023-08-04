@@ -5,14 +5,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="01e19508-db61-4dcd-b3d6-0e159da8f9e7" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/src/CONTRIBUTING.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/scripts/components.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/scripts/components.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/scripts/gear.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/scripts/gear.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/scripts/geartypes.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/scripts/geartypes.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/scripts/main.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/scripts/main.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/scripts/sims/whm_sheet_sim.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/scripts/sims/whm_sheet_sim.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/scripts/simulation.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/scripts/simulation.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/scripts/xivconstants.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/scripts/xivconstants.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/style.less" beforeDir="false" afterPath="$PROJECT_DIR$/src/style.less" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -80,6 +77,11 @@
       <recent name="C:\Users\Matt\IdeaProjects\gearplan\src" />
     </key>
   </component>
+  <component name="RunAnythingCache">
+    <option name="myCommands">
+      <command value="i" />
+    </option>
+  </component>
   <component name="RunManager" selected="npm.build">
     <configuration name="index.html (1)" type="JavascriptDebugType" temporary="true" nameIsGenerated="true" uri="http://localhost:63342/gearplan/dist/index.html" useBuiltInWebServerPort="true">
       <method v="2" />
@@ -129,7 +131,7 @@
       <workItem from="1690810215081" duration="31125000" />
       <workItem from="1690901080867" duration="34172000" />
       <workItem from="1690988888091" duration="11867000" />
-      <workItem from="1691073690670" duration="21547000" />
+      <workItem from="1691073690670" duration="25900000" />
     </task>
     <servers />
   </component>
@@ -152,7 +154,7 @@
       <breakpoints>
         <line-breakpoint enabled="true" type="javascript">
           <url>file://$PROJECT_DIR$/src/scripts/components.ts</url>
-          <line>802</line>
+          <line>743</line>
           <option name="timeStamp" value="5" />
         </line-breakpoint>
       </breakpoints>

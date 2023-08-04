@@ -1,6 +1,6 @@
 import {
     CustomCell,
-    CustomColumn,
+    CustomColumn, CustomColumnSpec,
     CustomRow,
     CustomTable,
     HeaderRow,
@@ -9,7 +9,7 @@ import {
     SpecialRow,
     TitleRow
 } from "./tables";
-import {CharacterGearSet, EquippedItem,} from "./gear";
+import {CharacterGearSet, EquippedItem, XivApiFoodInfo,} from "./gear";
 import {DataManager} from "./datamanager";
 import {
     EquipmentSet,
@@ -357,15 +357,14 @@ export class SimResultDisplay extends HTMLElement {
 }
 
 /**
- * Helper to add classes to cells for stats
+ * Helper to add classes to cells for stats on a gear item.
  *
- * @param cell
- * @param stat
- * @param statCssStub
+ * @param cell The cell
+ * @param stat The stat
  */
-function statCellStyler(cell: CustomCell<GearSlotItem, any>, stat: keyof RawStats, statCssStub: string) {
+function statCellStyler(cell: CustomCell<GearSlotItem, any>, stat: keyof RawStats) {
 
-    cell.classList.add("stat-" + statCssStub);
+    cell.classList.add("stat-" + stat);
     if (cell.dataItem.item.primarySubstat === stat) {
         cell.classList.add("primary");
     }
@@ -377,9 +376,15 @@ function statCellStyler(cell: CustomCell<GearSlotItem, any>, stat: keyof RawStat
     }
 }
 
-function foodStatCellStyler(cell: CustomCell<FoodItem, any>, stat: keyof RawStats, statCssStub: string) {
+/**
+ * Like statCellStyle, but for food items.
+ *
+ * @param cell The cell
+ * @param stat The stat
+ */
+function foodStatCellStyler(cell: CustomCell<FoodItem, any>, stat: keyof RawStats) {
 
-    cell.classList.add("stat-" + statCssStub);
+    cell.classList.add("stat-" + stat);
     if (cell.dataItem.primarySubStat === stat) {
         cell.classList.add("primary");
     }
@@ -391,6 +396,11 @@ function foodStatCellStyler(cell: CustomCell<FoodItem, any>, stat: keyof RawStat
     }
 }
 
+/**
+ * Formats a cell to display the % and max like on a food or tincture.
+ *
+ * @param value The stat bonus value.
+ */
 function statBonusDisplay(value: StatBonus) {
     if (value) {
         return document.createTextNode(`+${value.percentage}% (max ${value.max})`);
@@ -400,11 +410,25 @@ function statBonusDisplay(value: StatBonus) {
     }
 }
 
+function foodTableStatColumn(sheet: GearPlanSheet, stat:RawStatKey, highlightPrimarySecondary: boolean = false): CustomColumnSpec<FoodItem, any, any> {
+    return {
+        shortName: stat,
+        displayName: STAT_ABBREVIATIONS[stat],
+        getter: item => {
+            return item.bonuses[stat];
+        },
+        renderer: statBonusDisplay,
+        initialWidth: 120,
+        condition: () => sheet.isStatRelevant(stat),
+        colStyler: (value, cell, node) => highlightPrimarySecondary ? foodStatCellStyler(cell, stat) : undefined,
+    }
+
+}
+
 class FoodItemsTable extends CustomTable<FoodItem, FoodItem> {
-    constructor(dataManager: DataManager, gearSet: CharacterGearSet) {
+    constructor(sheet: GearPlanSheet, gearSet: CharacterGearSet) {
         super();
         this.classList.add("food-items-table");
-        const foodStatColWidth = 120;
         super.columns = [
             {
                 shortName: "ilvl",
@@ -431,66 +455,14 @@ class FoodItemsTable extends CustomTable<FoodItem, FoodItem> {
                 },
                 initialWidth: 200,
             },
-            {
-                shortName: "vit",
-                displayName: "VIT",
-                getter: item => {
-                    return item.bonuses.vitality;
-                },
-                renderer: value => statBonusDisplay(value),
-                initialWidth: foodStatColWidth,
-                colStyler: (value, cell) => foodStatCellStyler(cell, 'vitality', 'vit'),
-            },
-            {
-                shortName: "crit",
-                displayName: "CRT",
-                getter: item => {
-                    return item.bonuses.crit;
-                },
-                renderer: value => statBonusDisplay(value),
-                initialWidth: foodStatColWidth,
-                colStyler: (value, cell, node) => foodStatCellStyler(cell, 'crit', 'crit')
-            },
-            {
-                shortName: "dhit",
-                displayName: "DHT",
-                getter: item => {
-                    return item.bonuses.dhit;
-                },
-                renderer: value => statBonusDisplay(value),
-                initialWidth: foodStatColWidth,
-                colStyler: (value, cell, node) => foodStatCellStyler(cell, 'dhit', 'dhit')
-            },
-            {
-                shortName: "det",
-                displayName: "DET",
-                getter: item => {
-                    return item.bonuses.determination;
-                },
-                renderer: value => statBonusDisplay(value),
-                initialWidth: foodStatColWidth,
-                colStyler: (value, cell, node) => foodStatCellStyler(cell, 'determination', 'det'),
-            },
-            {
-                shortName: "sps",
-                displayName: "SPS",
-                getter: item => {
-                    return item.bonuses.spellspeed;
-                },
-                renderer: value => statBonusDisplay(value),
-                initialWidth: foodStatColWidth,
-                colStyler: (value, cell, node) => foodStatCellStyler(cell, 'spellspeed', 'sps')
-            },
-            {
-                shortName: "piety",
-                displayName: "PIE",
-                getter: item => {
-                    return item.bonuses.piety;
-                },
-                renderer: value => statBonusDisplay(value),
-                initialWidth: foodStatColWidth,
-                colStyler: (value, cell, node) => foodStatCellStyler(cell, 'piety', 'piety')
-            },
+            foodTableStatColumn(sheet, 'vitality'),
+            foodTableStatColumn(sheet, 'crit', true),
+            foodTableStatColumn(sheet, 'dhit', true),
+            foodTableStatColumn(sheet, 'determination', true),
+            foodTableStatColumn(sheet, 'spellspeed', true),
+            foodTableStatColumn(sheet, 'skillspeed', true),
+            foodTableStatColumn(sheet, 'piety', true),
+            foodTableStatColumn(sheet, 'tenacity', true),
         ]
         super.selectionModel = {
             clickCell(cell: CustomCell<FoodItem, FoodItem>) {
@@ -518,9 +490,23 @@ class FoodItemsTable extends CustomTable<FoodItem, FoodItem> {
 
             }
         }
-        super.data = [new HeaderRow(), ...dataManager.foodItems];
+        super.data = [new HeaderRow(), ...sheet.relevantFood];
     }
 }
+
+function itemTableStatColumn(sheet: GearPlanSheet, stat: RawStatKey, highlightPrimarySecondary: boolean = false): CustomColumnSpec<GearSlotItem, any, any> {
+    return {
+        shortName: stat,
+        displayName: STAT_ABBREVIATIONS[stat],
+        getter: item => {
+            return item.item.stats[stat];
+        },
+        initialWidth: 30,
+        condition: () => sheet.isStatRelevant(stat),
+        colStyler: (value, cell, node) => highlightPrimarySecondary ? statCellStyler(cell, stat) : undefined,
+    }
+}
+
 
 /**
  * Table for displaying gear options for all slots
@@ -583,67 +569,18 @@ class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
                 },
                 initialWidth: 30,
             },
-            {
-                shortName: "vit",
-                displayName: "VIT",
-                getter: item => {
-                    return item.item.stats.vitality;
-                },
-                initialWidth: 30,
-            },
-            {
-                shortName: "mind",
-                displayName: "MND",
-                getter: item => {
-                    return item.item.stats.mind;
-                },
-                initialWidth: 30,
-            },
-            {
-                shortName: "crit",
-                displayName: "CRT",
-                getter: item => {
-                    return item.item.stats.crit;
-                },
-                initialWidth: 30,
-                colStyler: (value, cell, node) => statCellStyler(cell, 'crit', 'crit')
-            },
-            {
-                shortName: "dhit",
-                displayName: "DHT",
-                getter: item => {
-                    return item.item.stats.dhit;
-                },
-                initialWidth: 30,
-                colStyler: (value, cell, node) => statCellStyler(cell, 'dhit', 'dhit')
-            },
-            {
-                shortName: "det",
-                displayName: "DET",
-                getter: item => {
-                    return item.item.stats.determination;
-                },
-                initialWidth: 30,
-                colStyler: (value, cell, node) => statCellStyler(cell, 'determination', 'det'),
-            },
-            {
-                shortName: "sps",
-                displayName: "SPS",
-                getter: item => {
-                    return item.item.stats.spellspeed;
-                },
-                initialWidth: 30,
-                colStyler: (value, cell, node) => statCellStyler(cell, 'spellspeed', 'sps')
-            },
-            {
-                shortName: "piety",
-                displayName: "PIE",
-                getter: item => {
-                    return item.item.stats.piety;
-                },
-                initialWidth: 30,
-                colStyler: (value, cell, node) => statCellStyler(cell, 'piety', 'piety')
-            },
+            itemTableStatColumn(sheet, 'vitality'),
+            itemTableStatColumn(sheet, 'strength'),
+            itemTableStatColumn(sheet, 'dexterity'),
+            itemTableStatColumn(sheet, 'intelligence'),
+            itemTableStatColumn(sheet, 'mind'),
+            itemTableStatColumn(sheet, 'crit', true),
+            itemTableStatColumn(sheet, 'dhit', true),
+            itemTableStatColumn(sheet, 'determination', true),
+            itemTableStatColumn(sheet, 'spellspeed', true),
+            itemTableStatColumn(sheet, 'skillspeed', true),
+            itemTableStatColumn(sheet, 'piety', true),
+            itemTableStatColumn(sheet, 'tenacity', true),
         ]
         const data: (TitleRow | HeaderRow | GearSlotItem)[] = [];
         const slotMateriaManagers = [];
@@ -731,7 +668,7 @@ export class GearSetEditor extends HTMLElement {
         this.appendChild(gearTable);
 
         // Food table
-        const foodTable = new FoodItemsTable(dataManager, gearSet);
+        const foodTable = new FoodItemsTable(sheet, gearSet);
         foodTable.id = "food-items-table";
         this.appendChild(foodTable);
     }
@@ -773,16 +710,20 @@ function formatSimulationConfigArea(
  * The top-level gear manager element
  */
 export class GearPlanSheet extends HTMLElement {
-    gearPlanTable: GearPlanTable;
-    private _saveKey: string;
+
     name: string;
-    sets: CharacterGearSet[] = [];
-    sims: Simulation<any, any, any>[] = [];
-    private dataManager: DataManager;
     job: JobName;
     level: SupportedLevel;
+
+    private _gearPlanTable: GearPlanTable;
+    private _saveKey: string;
+    private _sets: CharacterGearSet[] = [];
+    private _sims: Simulation<any, any, any>[] = [];
+    private dataManager: DataManager;
     private _editorAreaSetup: (...nodes: Node[]) => void;
     private buttonRow: HTMLDivElement;
+    private _relevantMateria: Materia[];
+    private _relevantFood: FoodItem[];
 
     constructor(sheetKey: string, defaultName?: string, editorAreaSetup?: (...nodes: Node[]) => void) {
         super();
@@ -799,7 +740,7 @@ export class GearPlanSheet extends HTMLElement {
             this._editorAreaSetup = editorArea.replaceChildren;
         }
         this.dataManager = new DataManager();
-        this.gearPlanTable = new GearPlanTable(this, item => {
+        this._gearPlanTable = new GearPlanTable(this, item => {
             try {
                 if (!item) {
                     this._editorAreaSetup();
@@ -808,7 +749,7 @@ export class GearPlanSheet extends HTMLElement {
                     this._editorAreaSetup(new GearSetEditor(this, item, this.dataManager));
                 }
                 else if (item['makeConfigInterface']) {
-                    this._editorAreaSetup(formatSimulationConfigArea(item as Simulation<any, any, any>, col => this.gearPlanTable.refreshColumn(col), col => this.delSim(col), () => this.gearPlanTable.refreshColHeaders()));
+                    this._editorAreaSetup(formatSimulationConfigArea(item as Simulation<any, any, any>, col => this._gearPlanTable.refreshColumn(col), col => this.delSim(col), () => this._gearPlanTable.refreshColHeaders()));
                 }
                 else {
                     this._editorAreaSetup();
@@ -830,7 +771,7 @@ export class GearPlanSheet extends HTMLElement {
             this.showAddSimDialog();
         })
         this.buttonRow.appendChild(newSimButton);
-        this.appendChild(this.gearPlanTable);
+        this.appendChild(this._gearPlanTable);
         this.appendChild(this.buttonRow);
         this._saveKey = sheetKey;
         this.name = defaultName;
@@ -909,15 +850,17 @@ export class GearPlanSheet extends HTMLElement {
             this.addSim(whmSheetSpec.makeNewSimInstance());
             this.addSim(potRatioSimSpec.makeNewSimInstance());
         }
+        this._relevantMateria = this.dataManager.materiaTypes.filter(mat => this.isStatRelevant(mat.primaryStat));
+        this._relevantFood = this.dataManager.foodItems.filter(food => this.isStatRelevant(food.primarySubStat) || this.isStatRelevant(food.secondarySubStat));
         // needed for empty table
-        this.gearPlanTable.dataChanged();
+        this._gearPlanTable.dataChanged();
     }
 
     saveData() {
         console.log("Saving sheet " + this.name);
         // TODO: make this async
         const sets: SetExport[] = []
-        for (let set of this.sets) {
+        for (let set of this._sets) {
             const items: { [K in EquipSlotKeys]?: ItemSlotExport } = {};
             for (let equipmentKey in set.equipment) {
                 const inSlot: EquippedItem = set.equipment[equipmentKey];
@@ -938,7 +881,7 @@ export class GearPlanSheet extends HTMLElement {
             sets.push(setExport);
         }
         let simsExport: SimExport[] = [];
-        for (let sim of this.sims) {
+        for (let sim of this._sims) {
             simsExport.push({
                 stub: sim.spec.stub,
                 settings: sim.exportSettings(),
@@ -957,30 +900,30 @@ export class GearPlanSheet extends HTMLElement {
     }
 
     addGearSet(gearSet: CharacterGearSet, select: boolean = false) {
-        this.sets.push(gearSet);
-        this.gearPlanTable.addRow(gearSet);
+        this._sets.push(gearSet);
+        this._gearPlanTable.addRow(gearSet);
         gearSet.addListener(() => this.saveData());
         this.saveData();
         if (select) {
-            this.gearPlanTable.selectGearSet(gearSet);
+            this._gearPlanTable.selectGearSet(gearSet);
         }
     }
 
     delGearSet(gearSet: CharacterGearSet) {
-        this.sets = this.sets.filter(gs => gs !== gearSet);
-        this.gearPlanTable.delRow(gearSet);
+        this._sets = this._sets.filter(gs => gs !== gearSet);
+        this._gearPlanTable.delRow(gearSet);
         this.saveData();
     }
 
     addSim(sim: Simulation<any, any, any>) {
-        this.sims.push(sim);
-        this.gearPlanTable.addSim(sim);
+        this._sims.push(sim);
+        this._gearPlanTable.addSim(sim);
         this.saveData();
     }
 
     delSim(sim: Simulation<any, any, any>) {
-        this.sims = this.sims.filter(s => s !== sim);
-        this.gearPlanTable.delSim(sim);
+        this._sims = this._sims.filter(s => s !== sim);
+        this._gearPlanTable.delSim(sim);
         this.saveData();
     }
 
@@ -1040,12 +983,25 @@ export class GearPlanSheet extends HTMLElement {
         }
     }
 
-    getApplicableSims() {
+    get relevantSims() {
         return getRegisteredSimSpecs().filter(simSpec => simSpec.supportedJobs === undefined ? true : simSpec.supportedJobs.includes(this.dataManager.classJob));
     }
+    get gearPlanTable(): GearPlanTable {
+        return this._gearPlanTable;
+    }
+    get sets(): CharacterGearSet[] {
+        return this._sets;
+    }
+    get sims(): Simulation<any, any, any>[] {
+        return this._sims;
+    }
 
-    getRelevantMateria(): Materia[] {
-        return this.dataManager.materiaTypes.filter(mat => this.isStatRelevant(mat.primaryStat));
+    get relevantFood(): FoodItem[] {
+        return this._relevantFood;
+    }
+
+    get relevantMateria(): Materia[] {
+        return this._relevantMateria;
     }
 }
 
@@ -1074,7 +1030,7 @@ class AddSimDialog extends HTMLDialogElement {
                 getter: item => item.displayName,
             }
         ]
-        this.table.data = this._sheet.getApplicableSims();
+        this.table.data = this._sheet.relevantSims;
         form.appendChild(this.table);
 
         const buttonDiv = document.createElement("div");
@@ -1277,7 +1233,7 @@ class SlotMateriaManagerPopup extends HTMLElement {
     }
 
     show() {
-        const allMateria = this._sheet.getRelevantMateria();
+        const allMateria = this._sheet.relevantMateria;
         const typeMap: { [K in RawStatKey]?: Materia[] } = {};
         const stats: RawStatKey[] = [];
         const grades: number[] = [];
