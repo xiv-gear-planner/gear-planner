@@ -1,6 +1,7 @@
 import {
     CustomCell,
-    CustomColumn, CustomColumnSpec,
+    CustomColumn,
+    CustomColumnSpec,
     CustomRow,
     CustomTable,
     HeaderRow,
@@ -9,7 +10,7 @@ import {
     SpecialRow,
     TitleRow
 } from "./tables";
-import {CharacterGearSet, EquippedItem, XivApiFoodInfo,} from "./gear";
+import {CharacterGearSet, EquippedItem, ItemSingleStatDetail,} from "./gear";
 import {DataManager} from "./datamanager";
 import {
     EquipmentSet,
@@ -360,9 +361,11 @@ export class SimResultDisplay extends HTMLElement {
  * Helper to add classes to cells for stats on a gear item.
  *
  * @param cell The cell
+ * @param value Either a raw number (fast path for unmelded stats) or ItemSingleStatDetail which
+ * describes meld values and whether it has overcapped or not.
  * @param stat The stat
  */
-function statCellStyler(cell: CustomCell<GearSlotItem, any>, stat: keyof RawStats) {
+function statCellStyler(cell: CustomCell<GearSlotItem, any>, value: number | ItemSingleStatDetail, stat: keyof RawStats) {
 
     cell.classList.add("stat-" + stat);
     if (cell.dataItem.item.primarySubstat === stat) {
@@ -373,6 +376,27 @@ function statCellStyler(cell: CustomCell<GearSlotItem, any>, stat: keyof RawStat
     }
     if (cell._value === 0) {
         cell.classList.add("stat-zero");
+    }
+    else {
+        cell.classList.remove("stat-zero");
+    }
+    cell.classList.remove("stat-melded-overcapped");
+    cell.classList.remove("stat-melded-overcapped-major");
+    cell.classList.remove("stat-melded");
+    if (value instanceof Object) {
+        cell.title = `${value.fullAmount} / ${value.cap}`;
+        if (value.mode === 'melded') {
+            cell.classList.add("stat-melded");
+        }
+        else if (value.mode === 'melded-overcapped') {
+            cell.classList.add("stat-melded-overcapped");
+        }
+        else if (value.mode === 'melded-overcapped-major') {
+            cell.classList.add("stat-melded-overcapped-major")
+        }
+    }
+    else {
+        delete cell.title;
     }
 }
 
@@ -410,7 +434,7 @@ function statBonusDisplay(value: StatBonus) {
     }
 }
 
-function foodTableStatColumn(sheet: GearPlanSheet, stat:RawStatKey, highlightPrimarySecondary: boolean = false): CustomColumnSpec<FoodItem, any, any> {
+function foodTableStatColumn(sheet: GearPlanSheet, stat: RawStatKey, highlightPrimarySecondary: boolean = false): CustomColumnSpec<FoodItem, any, any> {
     return {
         shortName: stat,
         displayName: STAT_ABBREVIATIONS[stat],
@@ -494,16 +518,30 @@ class FoodItemsTable extends CustomTable<FoodItem, FoodItem> {
     }
 }
 
-function itemTableStatColumn(sheet: GearPlanSheet, stat: RawStatKey, highlightPrimarySecondary: boolean = false): CustomColumnSpec<GearSlotItem, any, any> {
+function itemTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, stat: RawStatKey, highlightPrimarySecondary: boolean = false): CustomColumnSpec<GearSlotItem, number | ItemSingleStatDetail, any> {
     return {
         shortName: stat,
         displayName: STAT_ABBREVIATIONS[stat],
-        getter: item => {
-            return item.item.stats[stat];
+        getter: slotItem => {
+            const selected = set.getItemInSlot(slotItem.slotId) === slotItem.item;
+            if (selected) {
+                return set.getStatDetail(slotItem.slotId, stat);
+            }
+            else {
+                return slotItem.item.stats[stat];
+            }
+        },
+        renderer: (item: number | ItemSingleStatDetail) => {
+            if (item instanceof Object) {
+                return document.createTextNode(item.effectiveAmount.toString());
+            }
+            else {
+                return document.createTextNode(item.toString());
+            }
         },
         initialWidth: 30,
         condition: () => sheet.isStatRelevant(stat),
-        colStyler: (value, cell, node) => highlightPrimarySecondary ? statCellStyler(cell, stat) : undefined,
+        colStyler: (value, cell, node) => highlightPrimarySecondary ? statCellStyler(cell, value, stat) : undefined,
     }
 }
 
@@ -569,33 +607,48 @@ class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
                 },
                 initialWidth: 30,
             },
-            itemTableStatColumn(sheet, 'vitality'),
-            itemTableStatColumn(sheet, 'strength'),
-            itemTableStatColumn(sheet, 'dexterity'),
-            itemTableStatColumn(sheet, 'intelligence'),
-            itemTableStatColumn(sheet, 'mind'),
-            itemTableStatColumn(sheet, 'crit', true),
-            itemTableStatColumn(sheet, 'dhit', true),
-            itemTableStatColumn(sheet, 'determination', true),
-            itemTableStatColumn(sheet, 'spellspeed', true),
-            itemTableStatColumn(sheet, 'skillspeed', true),
-            itemTableStatColumn(sheet, 'piety', true),
-            itemTableStatColumn(sheet, 'tenacity', true),
+            itemTableStatColumn(sheet, gearSet, 'vitality'),
+            itemTableStatColumn(sheet, gearSet, 'strength'),
+            itemTableStatColumn(sheet, gearSet, 'dexterity'),
+            itemTableStatColumn(sheet, gearSet, 'intelligence'),
+            itemTableStatColumn(sheet, gearSet, 'mind'),
+            itemTableStatColumn(sheet, gearSet, 'crit', true),
+            itemTableStatColumn(sheet, gearSet, 'dhit', true),
+            itemTableStatColumn(sheet, gearSet, 'determination', true),
+            itemTableStatColumn(sheet, gearSet, 'spellspeed', true),
+            itemTableStatColumn(sheet, gearSet, 'skillspeed', true),
+            itemTableStatColumn(sheet, gearSet, 'piety', true),
+            itemTableStatColumn(sheet, gearSet, 'tenacity', true),
         ]
         const data: (TitleRow | HeaderRow | GearSlotItem)[] = [];
         const slotMateriaManagers = [];
+        // Track the selected item in every category so that it can be more quickly refreshed
+        const selectionTracker = new Map<keyof EquipmentSet, CustomRow<GearSlotItem> | GearSlotItem>();
+        const refreshSingleItem = (item: CustomRow<GearSlotItem> | GearSlotItem) => this.refreshRowData(item);
         for (const [name, slot] of Object.entries(EquipSlots)) {
+            const slotId = name as keyof EquipmentSet;
             data.push(new TitleRow(slot.name));
             data.push(new HeaderRow());
             const itemsInSlot = itemMapping.get(slot.gearSlot);
             for (const gearItem of itemsInSlot) {
-                data.push({
+                const item = {
                     slot: slot,
                     item: gearItem,
-                    slotName: name
-                });
+                    slotId: slotId
+                };
+                data.push(item);
+                if (gearSet.getItemInSlot(slotId) === gearItem) {
+                    selectionTracker.set(slotId, item);
+                }
             }
-            const matMgr = new AllSlotMateriaManager(sheet, gearSet, name);
+            const matMgr = new AllSlotMateriaManager(sheet, gearSet, slotId, () => {
+                // Update whatever was selected
+                const prevSelection = selectionTracker.get(slotId);
+                if (prevSelection) {
+                    refreshSingleItem(prevSelection);
+                }
+
+            });
             slotMateriaManagers.push(matMgr);
             data.push(new SpecialRow(tbl => matMgr));
         }
@@ -606,11 +659,20 @@ class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
             clickColumnHeader(col: CustomColumn<GearSlotItem>) {
 
             },
-            clickRow(row: CustomRow<GearSlotItem>) {
-                gearSet.setEquip(row.dataItem.slotName, row.dataItem.item);
+            clickRow(newSelection: CustomRow<GearSlotItem>) {
+                // refreshSingleItem old and new items
+                gearSet.setEquip(newSelection.dataItem.slotId, newSelection.dataItem.item);
                 for (let matMgr of slotMateriaManagers) {
                     matMgr.refresh();
                 }
+                const oldSelection = selectionTracker.get(newSelection.dataItem.slotId);
+                if (oldSelection) {
+                    refreshSingleItem(oldSelection);
+                }
+                if (newSelection) {
+                    refreshSingleItem(newSelection);
+                }
+                selectionTracker.set(newSelection.dataItem.slotId, newSelection);
             },
             getSelection(): EquipmentSet {
                 return gearSet.equipment;
@@ -622,7 +684,7 @@ class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
                 return false;
             },
             isRowSelected(row: CustomRow<GearSlotItem>) {
-                return gearSet.getItemInSlot(row.dataItem.slotName) === row.dataItem.item;
+                return gearSet.getItemInSlot(row.dataItem.slotId) === row.dataItem.item;
             },
             clearSelection() {
                 // no-op
@@ -986,12 +1048,15 @@ export class GearPlanSheet extends HTMLElement {
     get relevantSims() {
         return getRegisteredSimSpecs().filter(simSpec => simSpec.supportedJobs === undefined ? true : simSpec.supportedJobs.includes(this.dataManager.classJob));
     }
+
     get gearPlanTable(): GearPlanTable {
         return this._gearPlanTable;
     }
+
     get sets(): CharacterGearSet[] {
         return this._sets;
     }
+
     get sims(): Simulation<any, any, any>[] {
         return this._sims;
     }
@@ -1078,16 +1143,57 @@ class AddSimDialog extends HTMLDialogElement {
  */
 class AllSlotMateriaManager extends HTMLElement {
     private gearSet: CharacterGearSet;
-    private slotName: string;
+    private slotName: keyof EquipmentSet;
     private _sheet: GearPlanSheet;
+    private _extraCallback: () => void;
+    private _children: SlotMateriaManager[] = [];
 
-    constructor(sheet: GearPlanSheet, gearSet: CharacterGearSet, slotName: string) {
+    constructor(sheet: GearPlanSheet, gearSet: CharacterGearSet, slotName: keyof EquipmentSet, extraCallback: () => void = () => {
+    }) {
         super();
         this._sheet = sheet;
         this.gearSet = gearSet;
         this.slotName = slotName;
+        this._extraCallback = extraCallback;
         this.refresh();
         this.classList.add("all-slots-materia-manager")
+        this.updateColors();
+    }
+
+    notifyChange() {
+        this.gearSet.notifyMateriaChange();
+        this._extraCallback();
+        this.updateColors();
+    }
+
+    updateColors() {
+        const children = [...this._children];
+        if (children.length === 0) {
+            return;
+        }
+        const materiaPartial: Materia[] = [];
+        for (let i = 0; i < children.length; i++) {
+            const slot = children[i];
+            const materia = slot.materiaSlot.equippedMatiera;
+            if (materia) {
+                materiaPartial.push(materia);
+                const statDetail = this.gearSet.getStatDetail(this.slotName, materia.primaryStat, materiaPartial);
+                if (statDetail instanceof Object) {
+                    slot.overcap = statDetail.overcapAmount;
+                    // TODO remove
+                    // const amount = materia.primaryStatValue;
+                    // if (statDetail.overcapAmount >= amount) {
+                    //     slot.setColor('overcap-major');
+                    // }
+                    // else if (statDetail.overcapAmount) {
+                    //     slot.setColor('overcap');
+                    // }
+                    // else {
+                    //     slot.setColor('normal');
+                    // }
+                }
+            }
+        }
     }
 
     refresh() {
@@ -1100,9 +1206,11 @@ class AllSlotMateriaManager extends HTMLElement {
                 const textSpan = document.createElement("span");
                 textSpan.textContent = "No materia slots on this item";
                 this.replaceChildren(textSpan);
+                this._children = [];
             }
             else {
-                this.replaceChildren(...equipSlot.melds.map(meld => new SlotMateriaManager(this._sheet, meld, () => this.gearSet.notifyMateriaChange())));
+                this._children = equipSlot.melds.map(meld => new SlotMateriaManager(this._sheet, meld, () => this.notifyChange()));
+                this.replaceChildren(...this._children);
                 this.classList.remove("materia-slot-no-equip");
                 this.classList.remove("materia-slot-no-slots");
                 this.classList.add("materia-manager-equipped")
@@ -1115,6 +1223,7 @@ class AllSlotMateriaManager extends HTMLElement {
             this.classList.add("materia-slot-no-equip");
             this.classList.remove("materia-slot-no-slots");
             this.classList.remove("materia-manager-equipped")
+            this._children = [];
         }
     }
 }
@@ -1161,12 +1270,13 @@ export class DataSelect<X> extends HTMLSelectElement {
  */
 class SlotMateriaManager extends HTMLElement {
 
-    private materiaSlot: MeldableMateriaSlot;
+    materiaSlot: MeldableMateriaSlot;
     private _sheet: GearPlanSheet;
     private callback: () => void;
     private popup: SlotMateriaManagerPopup | undefined;
     private text: HTMLSpanElement;
     private image: HTMLImageElement;
+    private _overcap: number;
 
     constructor(sheet: GearPlanSheet, materiaSlot: MeldableMateriaSlot, callback: () => void) {
         super();
@@ -1183,7 +1293,7 @@ class SlotMateriaManager extends HTMLElement {
         imageHolder.classList.add("materia-image-holder");
         this.image = document.createElement("img");
         this.text = document.createElement("span");
-        this.reformat();
+        this.overcap = 0;
         imageHolder.appendChild(this.image);
         this.appendChild(imageHolder);
         this.appendChild(this.text);
@@ -1206,7 +1316,7 @@ class SlotMateriaManager extends HTMLElement {
         if (currentMat) {
             this.image.src = currentMat.iconUrl.toString();
             this.image.style.display = 'block';
-            this.text.textContent = `+${currentMat.primaryStatValue} ${STAT_ABBREVIATIONS[currentMat.primaryStat]}`;
+            this.text.textContent = `+${currentMat.primaryStatValue - this._overcap} ${STAT_ABBREVIATIONS[currentMat.primaryStat]}`;
             this.classList.remove("materia-slot-empty")
             this.classList.add("materia-slot-full");
         }
@@ -1216,6 +1326,37 @@ class SlotMateriaManager extends HTMLElement {
             this.classList.remove("materia-slot-full");
             this.classList.add("materia-slot-empty");
         }
+    }
+
+    // TODO: remove
+    // setColor(overcap: 'normal' | 'overcap' | 'overcap-major') {
+    //     switch (overcap) {
+    //         case "normal":
+    //             break;
+    //         case "overcap":
+    //             break;
+    //         case "overcap-major":
+    //             break;
+    //
+    //     }
+    // }
+
+    set overcap(overcap: number) {
+        if (overcap === this._overcap) {
+            return;
+        }
+        this.classList.remove('materia-normal', 'materia-overcap', 'materia-overcap-major')
+        this._overcap = overcap;
+        if ((this.materiaSlot.equippedMatiera === undefined) || overcap <= 0) {
+            this.classList.add('materia-normal');
+        }
+        else if (overcap < this.materiaSlot.equippedMatiera.primaryStatValue) {
+            this.classList.add('materia-overcap');
+        }
+        else {
+            this.classList.add('materia-overcap-major');
+        }
+        this.reformat();
     }
 }
 

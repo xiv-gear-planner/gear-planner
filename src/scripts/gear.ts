@@ -136,7 +136,7 @@ export class CharacterGearSet {
         this.listeners.push(listener);
     }
 
-    getItemInSlot(slot: string): GearItem | null {
+    getItemInSlot(slot: keyof EquipmentSet): GearItem | null {
         const inSlot = this.equipment[slot];
         if (inSlot === null || inSlot === undefined) {
             return null;
@@ -238,6 +238,66 @@ export class CharacterGearSet {
         out.name = this.name + ' copy';
         return out;
     }
+
+    getStatDetail(slotId: keyof EquipmentSet, stat: RawStatKey, materiaOverride?: Materia[]): ItemSingleStatDetail | number {
+        // TODO: work this into the normal stat computation method
+        const equip = this.equipment[slotId];
+        if (!equip.gearItem) {
+            return 0;
+        }
+        const cap = equip.gearItem.substatCap;
+        const baseItemStatValue = equip.gearItem.stats[stat];
+        let meldedStatValue = baseItemStatValue;
+        let smallestMateria = 999999;
+        const materiaList = materiaOverride === undefined ? equip.melds.map(meld => meld.equippedMatiera).filter(item => item) : materiaOverride.filter(item => item);
+        for (let materia of materiaList) {
+            const materiaStatValue = materia.stats[stat];
+            if (materiaStatValue > 0) {
+                meldedStatValue += materiaStatValue;
+                smallestMateria = Math.min(smallestMateria, materiaStatValue);
+            }
+        }
+        // Not melded or melds are not relevant to this stat
+        if (meldedStatValue === baseItemStatValue) {
+            return meldedStatValue;
+        }
+        // Overcapped
+        const overcapAmount = meldedStatValue - cap;
+        if (overcapAmount <= 0) {
+            return {
+                effectiveAmount: meldedStatValue,
+                fullAmount: meldedStatValue,
+                overcapAmount: 0,
+                cap: cap,
+                mode: "melded",
+            }
+        }
+        else if (overcapAmount < smallestMateria) {
+            return {
+                effectiveAmount: cap,
+                fullAmount: meldedStatValue,
+                overcapAmount: overcapAmount,
+                cap: cap,
+                mode: "melded-overcapped",
+            }
+        } else {
+            return {
+                effectiveAmount: cap,
+                fullAmount: meldedStatValue,
+                overcapAmount: overcapAmount,
+                cap: cap,
+                mode: "melded-overcapped-major",
+            }
+        }
+    }
+}
+
+export interface ItemSingleStatDetail {
+    effectiveAmount: number,
+    fullAmount: number,
+    overcapAmount: number,
+    cap: number,
+    mode: 'unmelded' | 'melded' | 'melded-overcapped' | 'melded-overcapped-major';
 }
 
 /**

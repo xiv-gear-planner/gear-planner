@@ -20,21 +20,23 @@ export const GearSlots: Record<string, GearSlot> = {
 export interface EquipSlot {
     get gearSlot(): GearSlot;
 
+    slot: keyof EquipmentSet;
+
     name: string;
 }
 
-export const EquipSlots: Record<string, EquipSlot> = {
-    Weapon: {name: 'Weapon', gearSlot: GearSlots.Weapon},
-    Head: {name: 'Head', gearSlot: GearSlots.Head},
-    Body: {name: 'Body', gearSlot: GearSlots.Body},
-    Hand: {name: 'Hand', gearSlot: GearSlots.Hand},
-    Legs: {name: 'Legs', gearSlot: GearSlots.Legs},
-    Feet: {name: 'Feet', gearSlot: GearSlots.Feet},
-    Ears: {name: 'Ears', gearSlot: GearSlots.Ears},
-    Neck: {name: 'Neck', gearSlot: GearSlots.Neck},
-    Wrist: {name: 'Wrist', gearSlot: GearSlots.Wrist},
-    RingLeft: {name: 'Left Ring', gearSlot: GearSlots.Ring},
-    RingRight: {name: 'Right Ring', gearSlot: GearSlots.Ring}
+export const EquipSlots: Record<keyof EquipmentSet, EquipSlot> = {
+    Weapon: {slot: 'Weapon', name: 'Weapon', gearSlot: GearSlots.Weapon},
+    Head: {slot: 'Head', name: 'Head', gearSlot: GearSlots.Head},
+    Body: {slot: 'Body', name: 'Body', gearSlot: GearSlots.Body},
+    Hand: {slot: 'Hand', name: 'Hand', gearSlot: GearSlots.Hand},
+    Legs: {slot: 'Legs', name: 'Legs', gearSlot: GearSlots.Legs},
+    Feet: {slot: 'Feet', name: 'Feet', gearSlot: GearSlots.Feet},
+    Ears: {slot: 'Ears', name: 'Ears', gearSlot: GearSlots.Ears},
+    Neck: {slot: 'Neck', name: 'Neck', gearSlot: GearSlots.Neck},
+    Wrist: {slot: 'Wrist', name: 'Wrist', gearSlot: GearSlots.Wrist},
+    RingLeft: {slot: 'RingLeft', name: 'Left Ring', gearSlot: GearSlots.Ring},
+    RingRight: {slot: 'RingRight', name: 'Right Ring', gearSlot: GearSlots.Ring}
 }
 
 
@@ -243,7 +245,7 @@ export interface JobTrait {
 export class GearSlotItem {
     slot: EquipSlot;
     item: GearItem;
-    slotName: string;
+    slotId: keyof EquipmentSet;
 }
 
 export class EquipmentSet {
@@ -253,6 +255,7 @@ export class EquipmentSet {
     Hand: EquippedItem | null;
     Legs: EquippedItem | null;
     Feet: EquippedItem | null;
+    Ears: EquippedItem | null;
     Neck: EquippedItem | null;
     Wrist: EquippedItem | null;
     RingLeft: EquippedItem | null;
