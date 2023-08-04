@@ -820,7 +820,10 @@ export class GearPlanSheet extends HTMLElement {
             partyBonus: 0,
             race: undefined,
             saveKey: sheetKey,
-            sets: [],
+            sets: [{
+                name: "Default Set",
+                items: {}
+            }],
             sims: []
         }
         const gearPlanSheet = new GearPlanSheet(sheetKey, editorAreaSetup, fakeExport);

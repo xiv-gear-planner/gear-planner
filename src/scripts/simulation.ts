@@ -60,7 +60,7 @@ export function getSimSpecByStub(stub: string): SimSpec<any, any> | undefined {
 
 export function getDefaultSims(job: JobName, level: SupportedLevel): SimSpec<any, any>[] {
     const out: SimSpec<any, any>[] = [potRatioSimSpec];
-    if (job === 'WHM' && level === 80) {
+    if (job === 'WHM' && level === 90) {
         out.push(whmSheetSpec);
     }
     return out;
