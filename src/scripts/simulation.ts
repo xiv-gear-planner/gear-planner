@@ -86,7 +86,7 @@ export interface Simulation<ResultType extends SimResult, SettingsType extends S
 
     spec: SimSpec<typeof this, SettingsExport>
 
-    makeConfigInterface(): HTMLElement;
+    makeConfigInterface(settings: SettingsType, updateCallback: () => void): HTMLElement;
 }
 
 export function noSimSettings() {

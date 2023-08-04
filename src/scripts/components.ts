@@ -37,7 +37,7 @@ import {
     getRegisteredSimSpecs,
     getSimSpecByStub,
     SimCurrentResult,
-    SimResult,
+    SimResult, SimSettings,
     SimSpec,
     Simulation
 } from "./simulation";
@@ -752,10 +752,10 @@ export class GearSetEditor extends HTMLElement {
     }
 }
 
-function formatSimulationConfigArea(
-    sim: Simulation<any, any, any>,
-    refreshColumn: (item: Simulation<any, any, any>) => void,
-    deleteColumn: (item: Simulation<any, any, any>) => void,
+function formatSimulationConfigArea<SettingsType extends SimSettings>(
+    sim: Simulation<any, SettingsType, any>,
+    refreshColumn: (item: Simulation<any, SettingsType, any>) => void,
+    deleteColumn: (item: Simulation<any, SettingsType, any>) => void,
     refreshHeaders: () => void): HTMLElement {
     const outerDiv = document.createElement("div");
     outerDiv.id = 'sim-config-area-outer';
@@ -776,7 +776,17 @@ function formatSimulationConfigArea(
     const deleteButton = makeActionButton("Delete", () => deleteColumn(sim));
     outerDiv.appendChild(deleteButton);
 
-    const customInterface = sim.makeConfigInterface();
+    // TODO: actually wire up the auto-saving
+    const originalSettings: SettingsType = sim.settings;
+    const updateCallback = () => undefined;
+    const settingsProxyHandler: ProxyHandler<SettingsType> = {
+        set(target, prop, value, receiver) {
+            target[prop] = value;
+            return true;
+        }
+    }
+    const settingsProxy = new Proxy(originalSettings, settingsProxyHandler);
+    const customInterface = sim.makeConfigInterface(settingsProxy, updateCallback);
     customInterface.id = 'sim-config-area-inner';
     customInterface.classList.add('sim-config-area-inner');
     outerDiv.appendChild(customInterface);
@@ -1756,9 +1766,6 @@ export class JobIcon extends HTMLImageElement {
     }
 }
 
-export interface FbctArgs {
-    event?: keyof HTMLElementEventMap;
-}
 
 export class FieldBoundCheckBox<ObjType> extends HTMLInputElement {
 
@@ -1793,33 +1800,170 @@ export class FieldBoundCheckBox<ObjType> extends HTMLInputElement {
     }
 }
 
-export class FieldBoundConvertingTextField<ObjType, DataType> extends HTMLInputElement {
+// TODO: have validators expose a single object with methods like 'getRawValue' and 'failValidation(msg)'
+
+export interface ValidationContext<ObjType> {
+    ignoreChange();
+
+    failValidation(message: string);
+
+    get obj(): ObjType;
+}
+
+export interface PreValidationContext<ObjType> extends ValidationContext<ObjType> {
+    newRawValue: string;
+}
+
+export interface PostValidationContext<ObjType, FieldType> extends ValidationContext<ObjType> {
+    newRawValue: string;
+    newValue: FieldType;
+}
+
+export interface FbctArgs<ObjType, FieldType> {
+    /**
+     * Which event to hook. e.g. 'input' for when any input is entered (the default), or 'change'.
+     */
+    event?: keyof HTMLElementEventMap;
+    /**
+     * Validations to be run against the raw input string, before any conversion.
+     *
+     * Return undefined to indicate no validation error, or return a string containing a validation message.
+     */
+    preValidators?: ((context: PreValidationContext<ObjType>) => void)[];
+    /**
+     * Validation to be run against the converted input string, before setting the field.
+     *
+     * Return undefined to indicate no validation error, or return a string containing a validation message.
+     */
+    postValidators?: ((context: PostValidationContext<ObjType, FieldType>) => void)[];
+
+    /**
+     * HTML ID to assign to this element.
+     */
+    id?: string;
+    /**
+     * The HTML input type. You may wish to change this to 'number' if dealing with numerical fields.
+     */
+    type?: string;
+    /**
+     * The HTML input inputmode.
+     */
+    inputMode?: string;
+}
+
+export class FieldBoundConvertingTextField<ObjType, FieldType> extends HTMLInputElement {
 
     reloadValue: () => void;
-    listeners: ((value: DataType) => void)[] = [];
+    listeners: ((value: FieldType) => void)[] = [];
+    private __validationMessage: string | undefined;
 
-    constructor(obj: ObjType, field: { [K in keyof ObjType]: ObjType[K] extends DataType ? K : never }[keyof ObjType], valueToString: (value: DataType) => string, stringToValue: (string: string) => (DataType), extraArgs: FbctArgs = {}) {
+    constructor(obj: ObjType, field: { [K in keyof ObjType]: ObjType[K] extends FieldType ? K : never }[keyof ObjType], valueToString: (value: FieldType) => string, stringToValue: (string: string) => (FieldType), extraArgs: FbctArgs<ObjType, FieldType> = {}) {
         super();
-        this.type = 'text';
+        if (extraArgs.id) {
+            this.id = extraArgs.id;
+        }
+        this.type = extraArgs.type ?? 'text';
+        if (extraArgs.inputMode) {
+            this.inputMode = extraArgs.inputMode;
+        }
         // @ts-ignore
         this.reloadValue = () => this.value = valueToString(obj[field]);
         this.reloadValue();
         this.addEventListener(extraArgs.event ?? 'input', () => {
-            const newValue: DataType = stringToValue(this.value);
-            // @ts-ignore
-            obj[field] = newValue;
-            for (let listener of this.listeners) {
-                try {
-                    listener(newValue);
-                } catch (e) {
-                    console.error("Error in listener", e);
+            try {
+                const newRawValue = this.value;
+                let _stop = false;
+                const fail = (msg) => {
+                    _stop = true;
+                    this._validationMessage = msg;
                 }
+                const stop = () => {
+                    _stop = true;
+                }
+                if (extraArgs.preValidators) {
+                    const context: PreValidationContext<ObjType> = {
+                        get obj(): ObjType {
+                            return obj;
+                        },
+                        newRawValue: newRawValue,
+                        failValidation(message: string) {
+                            fail(message);
+                        },
+                        ignoreChange() {
+                            stop();
+                        }
+                    }
+                    for (let preValidator of extraArgs.preValidators) {
+                        preValidator(context);
+                        if (_stop) {
+                            return;
+                        }
+                    }
+                }
+                let newValue: FieldType;
+                newValue = stringToValue(newRawValue);
+                if (extraArgs.postValidators) {
+                    const context: PostValidationContext<ObjType, FieldType> = {
+                        newValue: newValue,
+                        get obj(): ObjType {
+                            return obj;
+                        },
+                        newRawValue: newRawValue,
+                        failValidation(message: string) {
+                            fail(message);
+                        },
+                        ignoreChange() {
+                            stop();
+                        }
+                    }
+                    for (let postValidator of extraArgs.postValidators) {
+                        postValidator(context);
+                        if (_stop) {
+                            return;
+                        }
+                    }
+                }
+                // @ts-ignore
+                obj[field] = newValue;
+                this._validationMessage = undefined;
+                for (let listener of this.listeners) {
+                    try {
+                        listener(newValue);
+                    } catch (e) {
+                        console.error("Error in listener", e);
+                    }
+                }
+            } catch (e) {
+                this._validationMessage = e.toString();
+                return;
             }
         });
     }
 
-    addListener(listener: (value: DataType) => void) {
+    addListener(listener: (value: FieldType) => void) {
         this.listeners.push(listener);
+    }
+
+    // get validationMessage() {
+    //     if (this.__validationMessage === undefined) {
+    //         return '';
+    //     }
+    //     else {
+    //         return this.__validationMessage;
+    //     }
+    // }
+
+    set _validationMessage(msg: string | undefined) {
+        if (this.__validationMessage !== msg) {
+            this.__validationMessage = msg;
+            // TODO: can we instantly change validity message by setting it to empty then to the real message?
+            // Doesn't seem to work
+            this.setCustomValidity('');
+            if (msg !== undefined) {
+                this.setCustomValidity(msg);
+            }
+        }
+        this.reportValidity();
     }
 }
 
@@ -1833,7 +1977,7 @@ export class FieldBoundConvertingTextField2<ObjType, Field extends keyof ObjType
         field: Field,
         valueToString: (value: ObjType[Field]) => string,
         stringToValue: (string: string) => (ObjType[Field]),
-        extraArgs: FbctArgs = {}
+        extraArgs: FbctArgs<ObjType, ObjType[Field]> = {}
     ) {
         super();
         this.type = 'text';
@@ -1858,11 +2002,55 @@ export class FieldBoundConvertingTextField2<ObjType, Field extends keyof ObjType
     }
 }
 
+const skipMinus = (ctx: PreValidationContext<any>) => {
+    if (ctx.newRawValue === '-') {
+        ctx.ignoreChange();
+    }
+}
 
 // new FieldBoundConvertingTextField(new CharacterGearSet(null), 'food', food => food.toString(), str => new XivApiFoodInfo({}));
 export class FieldBoundIntField<ObjType> extends FieldBoundConvertingTextField<ObjType, number> {
-    constructor(obj: ObjType, field: { [K in keyof ObjType]: ObjType[K] extends number ? K : never }[keyof ObjType], extraArgs: FbctArgs = {}) {
-        super(obj, field, (s) => s.toString(), (s) => parseInt(s), extraArgs);
+    constructor(obj: ObjType, field: { [K in keyof ObjType]: ObjType[K] extends number ? K : never }[keyof ObjType], extraArgs: FbctArgs<ObjType, number> = {}) {
+        const intValidator = (ctx) => {
+            if (ctx.newValue % 1 !== 0) {
+                ctx.failValidation('Value must be an integer');
+            }
+        }
+        extraArgs.preValidators = [skipMinus, ...(extraArgs.preValidators ?? [])];
+        extraArgs.postValidators = [intValidator, ...(extraArgs.postValidators ?? [])];
+        // Spinner arrows aren't styleable. Love CSS!
+        // extraArgs.type = extraArgs.type ?? 'number';
+        // extraArgs.inputMode = extraArgs.inputMode ?? 'numeric';
+        super(obj, field, (s) => s.toString(), (s) => Number(s), extraArgs);
+        if (this.type === 'numeric') {
+            if (!this.step) {
+                this.step = '1';
+            }
+        }
+    }
+}
+
+export class FieldBoundFloatField<ObjType> extends FieldBoundConvertingTextField<ObjType, number> {
+    constructor(obj: ObjType, field: { [K in keyof ObjType]: ObjType[K] extends number ? K : never }[keyof ObjType], extraArgs: FbctArgs<ObjType, number> = {}) {
+        const numberValidator = (ctx) => {
+            // filter out NaNs and other garbage values
+            // noinspection PointlessArithmeticExpressionJS
+            if (ctx.newValue * 0 !== 0) {
+                ctx.failValidation('Value must be a number');
+            }
+        }
+        extraArgs.preValidators = [skipMinus, ...(extraArgs.preValidators ?? [])];
+        extraArgs.postValidators = [numberValidator, ...(extraArgs.postValidators ?? [])];
+        // Spinner arrows aren't styleable. Love CSS!
+        // extraArgs.type = extraArgs.type ?? 'number';
+        // extraArgs.inputMode = extraArgs.inputMode ?? 'numeric';
+        super(obj, field, (s) => s.toString(), (s) => Number(s), extraArgs);
+    }
+}
+
+export const positiveValuesOnly = (ctx: PostValidationContext<any, number>) => {
+    if (ctx.newValue < 0) {
+        ctx.failValidation("Value must be positive");
     }
 }
 
@@ -1873,7 +2061,7 @@ export class FieldBoundIntField<ObjType> extends FieldBoundConvertingTextField<O
 // }
 
 export class FieldBoundTextField<ObjType> extends FieldBoundConvertingTextField<ObjType, string> {
-    constructor(obj: ObjType, field: { [K in keyof ObjType]: ObjType[K] extends string ? K : never }[keyof ObjType], extraArgs: FbctArgs = {}) {
+    constructor(obj: ObjType, field: { [K in keyof ObjType]: ObjType[K] extends string ? K : never }[keyof ObjType], extraArgs: FbctArgs<ObjType, string> = {}) {
         super(obj, field, (s) => s, (s) => s, extraArgs);
     }
 }
@@ -1938,6 +2126,13 @@ export class LoadingBlocker extends HTMLElement {
     }
 }
 
+export function quickElement(tag: keyof HTMLElementTagNameMap, classes: string[], nodes: Node[]) {
+    const element = document.createElement(tag);
+    element.replaceChildren(...nodes);
+    element.classList.add(...classes);
+    return element
+}
+
 customElements.define("gear-set-editor", GearSetEditor);
 customElements.define("gear-plan-table", GearPlanTable, {extends: "table"});
 customElements.define("gear-plan", GearPlanSheet);
@@ -1954,6 +2149,8 @@ customElements.define("ffxiv-job-icon", JobIcon, {extends: "img"});
 customElements.define("sim-result-display", SimResultDisplay);
 customElements.define("field-bound-converting-text-field", FieldBoundConvertingTextField, {extends: "input"});
 customElements.define("field-bound-text-field", FieldBoundTextField, {extends: "input"});
+customElements.define("field-bound-float-field", FieldBoundFloatField, {extends: "input"});
+customElements.define("field-bound-int-field", FieldBoundIntField, {extends: "input"});
 customElements.define("field-bound-checkbox", FieldBoundCheckBox, {extends: "input"});
 customElements.define("add-sim-dialog", AddSimDialog, {extends: "dialog"});
 customElements.define("field-bound-data-select", FieldBoundDataSelect, {extends: "select"});

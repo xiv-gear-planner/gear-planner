@@ -1,8 +1,15 @@
-import {noSimSettings, registerSim, SimResult, SimSettings, SimSpec, Simulation} from "../simulation";
+import {SimResult, SimSettings, SimSpec, Simulation} from "../simulation";
 import {CharacterGearSet} from "../gear";
 import {baseDamage, spsTickMulti} from "../xivmath";
 import {ComputedSetStats} from "../geartypes";
-import {FieldBoundCheckBox, labeledCheckbox, labelFor} from "../components";
+import {
+    FieldBoundCheckBox,
+    FieldBoundFloatField,
+    FieldBoundIntField,
+    labeledCheckbox,
+    labelFor, positiveValuesOnly,
+    quickElement
+} from "../components";
 
 
 //potencies for our spells
@@ -77,18 +84,19 @@ function getCycle(shortGcd, sps) {
     return result
 }
 
-function pps(sps, shortGcd, c3s, m2s, rezz) {
+// TODO: move all the 'x perminute' things into a single object we can pass around
+function pps(sps: number, shortGcd: number, cure3perMinute: number, medica2perMinute: number, rezPerMinute: number) {
     var cycle = getCycle(shortGcd, sps)
     var afflatusT = afflatusTime(shortGcd, cycle)
     cycle += afflatusT
-    return getP(sps, shortGcd, c3s + m2s + rezz, cycle) / cycle;
+    return getP(sps, shortGcd, cure3perMinute + medica2perMinute + rezPerMinute, cycle) / cycle;
 }
 
-function mpps(shortGcd, sps, LDs, c3s, m2s, rezz) {
+function mpps(shortGcd: number, sps: number, lucidPerMinute: number, cure3perMinute: number, medica2perMinute: number, rezPerMinute: number) {
     var cycle = getCycle(shortGcd, sps)
     var afflatusT = afflatusTime(shortGcd, cycle)
     cycle += afflatusT
-    return getMP(shortGcd, sps, LDs, m2s, c3s, rezz, cycle) / cycle
+    return getMP(shortGcd, sps, lucidPerMinute, medica2perMinute, cure3perMinute, rezPerMinute, cycle) / cycle
 }
 
 function MPTime(pie, shortGcd, sps, LDs, c3s, m2s, rezz) {
@@ -126,13 +134,6 @@ const levelMod = 1900;
 const baseMain = 390
 const baseSub = 400
 
-const fl = Math.floor;
-
-function floorTo(places: number, value: number) {
-    return Math.floor(value * (10 ^ places)) * (10 ^ -places);
-}
-
-
 function CalcPiety(Pie) {
     return 200 + (Math.floor(150 * (Pie - baseMain) / levelMod));
 }
@@ -163,7 +164,11 @@ export interface WhmSheetSimResult extends SimResult {
 export interface WhmSheetSettings extends SimSettings {
     hasBard: boolean,
     hasScholar: boolean,
-    hasDragoon: boolean;
+    hasDragoon: boolean,
+    ldPerMin: number,
+    c3PerMin: number,
+    m2PerMin: number,
+    rezPerMin: number,
 }
 
 export const whmSheetSpec: SimSpec<WhmSheetSim, WhmSheetSettings> = {
@@ -178,6 +183,8 @@ export const whmSheetSpec: SimSpec<WhmSheetSim, WhmSheetSettings> = {
     supportedJobs: ['WHM'],
 }
 
+// TODO: X spell uses per minute
+// TODO: report MP time
 export class WhmSheetSim implements Simulation<WhmSheetSimResult, WhmSheetSettings, WhmSheetSettings> {
 
     exportSettings(): WhmSheetSettings {
@@ -187,7 +194,11 @@ export class WhmSheetSim implements Simulation<WhmSheetSimResult, WhmSheetSettin
     settings = {
         hasBard: true,
         hasScholar: true,
-        hasDragoon: true
+        hasDragoon: true,
+        ldPerMin: 0,
+        c3PerMin: 0,
+        m2PerMin: 0,
+        rezPerMin: 0
     };
 
     spec = whmSheetSpec;
@@ -201,20 +212,37 @@ export class WhmSheetSim implements Simulation<WhmSheetSimResult, WhmSheetSettin
         }
     }
 
-    makeConfigInterface(): HTMLElement {
-        if (true) {
-            const div = document.createElement("div");
-            const brdCheck = new FieldBoundCheckBox<WhmSheetSettings>(this.settings, 'hasBard', {id: 'brd-checkbox'});
-            div.appendChild(labeledCheckbox('BRD in Party', brdCheck));
-            const schCheck = new FieldBoundCheckBox<WhmSheetSettings>(this.settings, 'hasScholar', {id: 'sch-checkbox'});
-            div.appendChild(labeledCheckbox('SCH in Party', schCheck));
-            const drgCheck = new FieldBoundCheckBox<WhmSheetSettings>(this.settings, 'hasDragoon', {id: 'drg-checkbox'});
-            div.appendChild(labeledCheckbox('DRG in Party', drgCheck));
-            return div;
-        }
-        else {
-            return noSimSettings();
-        }
+    makeConfigInterface(settings: WhmSheetSettings): HTMLElement {
+
+        const outerDiv = document.createElement("div");
+        const checkboxesDiv = document.createElement("div");
+
+        const brdCheck = new FieldBoundCheckBox<WhmSheetSettings>(settings, 'hasBard', {id: 'brd-checkbox'});
+        checkboxesDiv.appendChild(labeledCheckbox('BRD in Party', brdCheck));
+        const schCheck = new FieldBoundCheckBox<WhmSheetSettings>(settings, 'hasScholar', {id: 'sch-checkbox'});
+        checkboxesDiv.appendChild(labeledCheckbox('SCH in Party', schCheck));
+        const drgCheck = new FieldBoundCheckBox<WhmSheetSettings>(settings, 'hasDragoon', {id: 'drg-checkbox'});
+        checkboxesDiv.appendChild(labeledCheckbox('DRG in Party', drgCheck));
+
+        outerDiv.appendChild(checkboxesDiv);
+
+        const ldPerMin = new FieldBoundFloatField<WhmSheetSettings>(settings, 'ldPerMin', {id: 'ldPerMin-input', postValidators: [positiveValuesOnly]});
+        const ldPerMinLabel = labelFor('Lucid Dreaming/Minute', ldPerMin);
+        outerDiv.appendChild(quickElement("div", ['labeled-item'], [ldPerMinLabel, ldPerMin]));
+
+        const rezPerMin = new FieldBoundFloatField<WhmSheetSettings>(settings, 'rezPerMin', {id: 'rezPerMin-input', postValidators: [positiveValuesOnly]});
+        const rezPerMinLabel = labelFor('Raise/Minute', rezPerMin);
+        outerDiv.appendChild(quickElement("div", ['labeled-item'], [rezPerMinLabel, rezPerMin]));
+
+        const m2perMin = new FieldBoundFloatField<WhmSheetSettings>(settings, 'm2PerMin', {id: 'm2PerMin-input', postValidators: [positiveValuesOnly]});
+        const m2perMinLabel = labelFor('Medica II/Minute', m2perMin);
+        outerDiv.appendChild(quickElement("div", ['labeled-item'], [m2perMinLabel, m2perMin]));
+
+        const c3perMin = new FieldBoundFloatField<WhmSheetSettings>(settings, 'c3PerMin', {id: 'c3PerMin-input', postValidators: [positiveValuesOnly]});
+        const c3perMinLabel = labelFor('Cure III/Minute', c3perMin);
+        outerDiv.appendChild(quickElement("div", ['labeled-item'], [c3perMinLabel, c3perMin]));
+
+        return outerDiv;
     }
 
     extraDhRate() {
@@ -231,7 +259,7 @@ export class WhmSheetSim implements Simulation<WhmSheetSimResult, WhmSheetSettin
         const buffedStats = {...set.computedStats};
         buffedStats.dhitChance += this.extraDhRate();
         buffedStats.critChance += this.extraCritRate();
-        const ppsFinalResult = pps(buffedStats.spellspeed, buffedStats.gcdMag, 0, 0, 0);
+        const ppsFinalResult = pps(buffedStats.spellspeed, buffedStats.gcdMag, this.settings.c3PerMin, this.settings.m2PerMin, this.settings.rezPerMin);
         // console.log(ppsFinalResult);
         const resultWithoutDhCrit = baseDamage(buffedStats, ppsFinalResult);
         const result = applyDhCrit(resultWithoutDhCrit, buffedStats);

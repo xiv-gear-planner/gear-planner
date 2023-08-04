@@ -42,7 +42,7 @@ To add a simulation, you must do the following:
 create your `Simulation` instance.
 3. Optional: Write an extension of `SimSettings` if your sim
 has settings.
-4. Call `registerSim(simSpec)`
+4. Add a line in simulation.ts to call `registerSim(simSpec)`
 
 The main method for simulation logic is `async simulate(set: CharacterGearSet): Promise<SimResult> {}`.
 Note that it is async - this is because it is expected that:

@@ -110,6 +110,7 @@ export async function openSheet(planner: GearPlanSheet) {
 
 function showSheetPickerMenu() {
     contentArea.replaceChildren(new SheetPickerTable());
+    setTitle(undefined);
     setEditorAreaContent();
 }
 
