@@ -1,6 +1,6 @@
 import {SimResult, SimSettings, SimSpec, Simulation} from "../simulation";
 import {CharacterGearSet} from "../gear";
-import {baseDamage, spsTickMulti} from "../xivmath";
+import {applyDhCrit, baseDamage, spsTickMulti} from "../xivmath";
 import {ComputedSetStats} from "../geartypes";
 import {
     FieldBoundCheckBox,
@@ -151,10 +151,6 @@ function Healing(Potency, WD, JobMod, MainStat, Det, Crit, SS, TEN, classNum) {
     var NormalRate=1-CritRate*/
 
     return Damage //* NormalRate + CritDamage * (CritRate);
-}
-
-function applyDhCrit(baseDamage: number, stats: ComputedSetStats) {
-    return baseDamage * (1 + stats.dhitChance * (stats.dhitMulti - 1)) * (1 + stats.critChance * (stats.critMulti - 1));
 }
 
 export interface WhmSheetSimResult extends SimResult {

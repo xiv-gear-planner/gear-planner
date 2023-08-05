@@ -7,7 +7,7 @@ export function sksToGcd(sks: number): number {
 }
 
 export function spsToGcd(baseGcd: number, levelStats: LevelStats, sps: number): number {
-    return Math.round((100) * ((baseGcd * 1000 * (1000 - Math.round(130 * (sps - levelStats.baseSubStat) / levelStats.levelDiv)) / 1000) / 1000)) / 100;
+    return Math.floor((100) * ((baseGcd * 1000 * (1000 - Math.floor(130 * (sps - levelStats.baseSubStat) / levelStats.levelDiv)) / 1000) / 1000)) / 100;
 }
 
 export function critChance(levelStats: LevelStats, crit: number) {
@@ -125,5 +125,9 @@ export function baseDamage(stats: ComputedSetStats, potency: number, autoDH: boo
     // console.log([d1, d2, d3, d4, d5, d6, d7, d8]);
 
     return d8;
+}
+
+export function applyDhCrit(baseDamage: number, stats: ComputedSetStats) {
+    return baseDamage * (1 + stats.dhitChance * (stats.dhitMulti - 1)) * (1 + stats.critChance * (stats.critMulti - 1));
 }
 

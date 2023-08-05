@@ -4,7 +4,7 @@ export const MATERIA_SLOTS_MAX = 5;
 export const MATERIA_LEVEL_MIN_RELEVANT = 7;
 export const MATERIA_LEVEL_MAX_NORMAL = 10;
 export const MATERIA_LEVEL_MAX_OVERMELD = 9;
-export const LEVEL_MAX : SupportedLevel = 90;
+export const LEVEL_MAX: SupportedLevel = 90;
 
 export type JobName = 'WHM' | 'SGE';
 
@@ -79,6 +79,28 @@ export const LEVEL_STATS: Record<SupportedLevel, LevelStats> = {
         hp: 3000
     }
 }
+
+/**
+ * Main stats in current version of the game.
+ */
+export const REAL_MAIN_STATS: (RawStatKey)[] = ['strength', 'dexterity', 'intelligence', 'mind'];
+// TODO: is Tenacity treated like this?
+/**
+ * Substats that are treated as main stats for stat calc purposes.
+ */
+export const FAKE_MAIN_STATS: (RawStatKey)[] = ['determination', 'piety', 'vitality'];
+/**
+ * Substats that get the substat-specific math treatment.
+ */
+export const SPECIAL_SUB_STATS: (RawStatKey)[] = ['crit', 'dhit', 'spellspeed', 'skillspeed', 'tenacity'];
+export const ALL_SUB_STATS: (RawStatKey)[] = [...FAKE_MAIN_STATS, ...SPECIAL_SUB_STATS];
+
+/**
+ * Which substats can be granted by materia.
+ *
+ * If SE ever gives us main stat or vitality materia again, this will need to be updated.
+ */
+export const MateriaSubstats: (keyof RawStats)[] = [...ALL_SUB_STATS];
 
 export const STAT_FULL_NAMES: Record<RawStatKey, string> = {
     crit: "Critical Hit",

@@ -1,7 +1,8 @@
 import {CharacterGearSet} from "./gear";
 import {JobName, SupportedLevel} from "./xivconstants";
-import {baseDamage} from "./xivmath";
+import {applyDhCrit, baseDamage} from "./xivmath";
 import {WhmSheetSim, whmSheetSpec} from "./sims/whm_sheet_sim";
+import {sgeSheetSpec} from "./sims/sge_sheet_sim";
 
 export interface SimResult {
     mainDpsResult: number;
@@ -109,7 +110,11 @@ export const potRatioSimSpec: SimSpec<PotencyRatioSim, SimSettings> = {
     stub: "pr-sim",
 }
 
-export class PotencyRatioSim implements Simulation<SimResult, SimSettings, {}> {
+export interface PotencyRatioSimResults extends SimResult {
+    withoutCritDh: number
+}
+
+export class PotencyRatioSim implements Simulation<PotencyRatioSimResults, SimSettings, {}> {
     exportSettings() {
         return {
             ...this.settings
@@ -120,8 +125,10 @@ export class PotencyRatioSim implements Simulation<SimResult, SimSettings, {}> {
     };
     shortName = "pr-sim";
     displayName = "Dmg/100p";
-    async simulate(set: CharacterGearSet): Promise<SimResult> {
-        return {mainDpsResult: baseDamage(set.computedStats, 100, false, false)};
+    async simulate(set: CharacterGearSet): Promise<PotencyRatioSimResults> {
+        const base = baseDamage(set.computedStats, 100, false, false);
+        const final = applyDhCrit(base, set.computedStats);
+        return {mainDpsResult: final, withoutCritDh: base};
     };
     spec = potRatioSimSpec;
     makeConfigInterface = noSimSettings;
@@ -136,3 +143,4 @@ export interface SimCurrentResult<X extends SimResult> {
 
 registerSim(potRatioSimSpec);
 registerSim(whmSheetSpec);
+registerSim(sgeSheetSpec);

@@ -1,5 +1,5 @@
 import {EquippedItem} from "./gear";
-import {JobName, RaceName, SupportedLevel} from "./xivconstants";
+import {FAKE_MAIN_STATS, JobName, RaceName, REAL_MAIN_STATS, SPECIAL_SUB_STATS, SupportedLevel} from "./xivconstants";
 export interface GearSlot {
 
 }
@@ -214,10 +214,6 @@ export interface LevelStats {
     hp: number
 }
 
-export const REAL_MAIN_STATS = ['strength', 'dexterity', 'intelligence', 'mind'] as (keyof RawStats)[];
-// TODO: Tenacity?
-export const FAKE_MAIN_STATS: (keyof RawStats)[] = ['determination', 'piety', 'vitality']
-export const SPECIAL_SUB_STATS: (keyof RawStats)[] = ['dexterity', 'crit', 'dhit', 'spellspeed', 'skillspeed', 'tenacity']
 
 export const ROLES = ['Healer', 'Melee', 'Ranged', 'Caster', 'Tank'] as const;
 

@@ -1,5 +1,6 @@
 import {
-    EMPTY_STATS,
+    ALL_SUB_STATS,
+    EMPTY_STATS, FAKE_MAIN_STATS,
     getClassJobStats,
     getLevelStats,
     getRaceStats,
@@ -8,7 +9,7 @@ import {
     MATERIA_LEVEL_MAX_OVERMELD,
     MATERIA_LEVEL_MIN_RELEVANT,
     MATERIA_SLOTS_MAX,
-    RaceName, statById,
+    RaceName, REAL_MAIN_STATS, SPECIAL_SUB_STATS, statById,
 } from "./xivconstants";
 import {
     autoDhBonusDmg,
@@ -24,8 +25,7 @@ import {
 } from "./xivmath";
 import {
     ComputedSetStats,
-    EquipmentSet,
-    FAKE_MAIN_STATS,
+    EquipmentSet, EquipSlots,
     FoodItem,
     GearItem,
     GearSlot,
@@ -35,8 +35,6 @@ import {
     MeldableMateriaSlot,
     RawStatKey,
     RawStats,
-    REAL_MAIN_STATS,
-    SPECIAL_SUB_STATS,
     StatBonus,
     XivApiStat,
     xivApiStatToRawStatKey,
@@ -146,17 +144,16 @@ export class CharacterGearSet {
         return inSlot.gearItem;
     }
 
-    get allStatPieces(): XivCombatItem[] {
+    get allEquippedItems(): XivCombatItem[] {
         return Object.values(this.equipment)
             .filter(slotEquipment => slotEquipment && slotEquipment.gearItem)
-            .flatMap((slotEquipment: EquippedItem) => [slotEquipment.gearItem, ...slotEquipment.melds.map(meldSlot => meldSlot.equippedMatiera).filter(item => item)]);
+            .map((slotEquipment: EquippedItem) => slotEquipment.gearItem);
     }
 
     get computedStats(): ComputedSetStats {
         if (!this._dirtyComp) {
             return this._computedStats;
         }
-        const all = this.allStatPieces;
         const combinedStats = new RawStats(EMPTY_STATS);
         const classJob = this._jobOverride ?? this._sheet.classJobName;
         const classJobStats = this._jobOverride ? getClassJobStats(this._jobOverride) : this._sheet.classJobStats;
@@ -179,8 +176,8 @@ export class CharacterGearSet {
         addStats(combinedStats, raceStats);
 
         // Item stats
-        for (let item of all) {
-            addStats(combinedStats, item.stats);
+        for (let key of Object.keys(this.equipment)) {
+            addStats(combinedStats, this.getSlotEffectiveStats(key as keyof EquipmentSet));
         }
         // Food stats
         if (this._food) {
@@ -239,6 +236,24 @@ export class CharacterGearSet {
     //     out.name = this.name + ' copy';
     //     return out;
     // }
+
+    getSlotEffectiveStats(slotId: keyof EquipmentSet): RawStats {
+        const equip = this.equipment[slotId];
+        if (!equip.gearItem) {
+            return EMPTY_STATS;
+        }
+        const itemStats = new RawStats(equip.gearItem.stats);
+        for (let stat of ALL_SUB_STATS) {
+            const statDetail = this.getStatDetail(slotId, stat);
+            if (statDetail instanceof Object) {
+                itemStats[stat] = statDetail.effectiveAmount;
+            }
+            else {
+                itemStats[stat] = statDetail;
+            }
+        }
+        return itemStats;
+    }
 
     getStatDetail(slotId: keyof EquipmentSet, stat: RawStatKey, materiaOverride?: Materia[]): ItemSingleStatDetail | number {
         // TODO: work this into the normal stat computation method
