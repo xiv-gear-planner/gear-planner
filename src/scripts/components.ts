@@ -1408,10 +1408,13 @@ class SlotMateriaManager extends HTMLElement {
     constructor(sheet: GearPlanSheet, materiaSlot: MeldableMateriaSlot, callback: () => void) {
         super();
         this._sheet = sheet;
-        this.classList.add("slot-materia-manager")
+        this.classList.add("slot-materia-manager");
+        if (!materiaSlot.materiaSlot.allowsHighGrade) {
+            this.classList.add("materia-slot-overmeld");
+        }
         this.materiaSlot = materiaSlot;
         this.callback = callback;
-        this.classList.add("slot-materia-manager")
+        this.classList.add("slot-materia-manager");
         this.addEventListener('mousedown', (ev) => {
             this.showPopup();
             ev.stopPropagation();
@@ -1430,11 +1433,22 @@ class SlotMateriaManager extends HTMLElement {
         if (!this.popup) {
             this.popup = new SlotMateriaManagerPopup(this._sheet, this.materiaSlot, () => {
                 this.callback();
+                this.popupOpen = false;
                 this.reformat();
             });
             this.appendChild(this.popup);
         }
         this.popup.show();
+        this.popupOpen = true;
+    }
+
+    set popupOpen(open: boolean) {
+        if (open) {
+            this.classList.add('materia-manager-active');
+        }
+        else {
+            this.classList.remove('materia-manager-active');
+        }
     }
 
 
@@ -1573,6 +1587,7 @@ class SlotMateriaManagerPopup extends HTMLElement {
 
     hide() {
         this.style.display = 'none';
+        this.callback();
     }
 }
 

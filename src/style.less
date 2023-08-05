@@ -493,6 +493,7 @@ slot-materia-manager {
   height: fit-content;
   width: 100px;
   vertical-align: middle;
+  box-sizing: border-box;
 
   --image-size: 18px;
 
@@ -508,10 +509,21 @@ slot-materia-manager {
     vertical-align: middle;
   }
 
+  &.materia-slot-overmeld {
+    div.materia-image-holder {
+      border: 2px #397e86 solid;
+    }
+  }
+
   img {
     width: 100%;
     height: 100%;
     display: block;
+  }
+
+  &.materia-manager-active {
+    box-shadow: 0 0 2px 2px var(--table-selected-outline-color) inset;
+    border-radius: 5px;
   }
 
   & > span {
