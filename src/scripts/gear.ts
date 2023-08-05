@@ -227,18 +227,18 @@ export class CharacterGearSet {
         return this._computedStats;
     }
 
-    clone(): CharacterGearSet {
-        const out = new CharacterGearSet(this._sheet);
-        for (let slot in this.equipment) {
-            const equip: EquippedItem = this.equipment[slot];
-            if (!equip) {
-                continue;
-            }
-            out.equipment[slot] = new EquippedItem(equip.gearItem, equip.melds);
-        }
-        out.name = this.name + ' copy';
-        return out;
-    }
+    // clone(): CharacterGearSet {
+    //     const out = new CharacterGearSet(this._sheet);
+    //     for (let slot in this.equipment) {
+    //         const equip: EquippedItem = this.equipment[slot];
+    //         if (!equip) {
+    //             continue;
+    //         }
+    //         out.equipment[slot] = new EquippedItem(equip.gearItem, equip.melds);
+    //     }
+    //     out.name = this.name + ' copy';
+    //     return out;
+    // }
 
     getStatDetail(slotId: keyof EquipmentSet, stat: RawStatKey, materiaOverride?: Materia[]): ItemSingleStatDetail | number {
         // TODO: work this into the normal stat computation method

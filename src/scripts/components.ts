@@ -205,7 +205,7 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                 renderer: gearSet => {
                     const div = document.createElement("div");
                     div.appendChild(makeActionButton('🗑️', () => this.sheet.delGearSet(gearSet)));
-                    div.appendChild(makeActionButton('📃', () => this.sheet.addGearSet(gearSet.clone(), true)));
+                    div.appendChild(makeActionButton('📃', () => this.sheet.cloneAndAddGearSet(gearSet, true)));
                     return div;
                 }
             },
@@ -952,32 +952,7 @@ export class GearPlanSheet extends HTMLElement {
         this.dataManager.level = this.level;
         await this.dataManager.loadData();
         for (let importedSet of saved.sets) {
-            const set = new CharacterGearSet(this);
-            set.name = importedSet.name;
-            for (let equipmentSlot in importedSet.items) {
-                const importedItem: ItemSlotExport = importedSet.items[equipmentSlot];
-                if (!importedItem) {
-                    continue;
-                }
-                const baseItem = this.dataManager.itemById(importedItem.id);
-                if (!baseItem) {
-                    continue;
-                }
-                const equipped = new EquippedItem(baseItem);
-                for (let i = 0; i < Math.min(equipped.melds.length, importedItem.materia.length); i++) {
-                    const id = importedItem.materia[i].id;
-                    const mat = this.dataManager.materiaById(id);
-                    if (!mat) {
-                        continue;
-                    }
-                    equipped.melds[i].equippedMatiera = mat;
-                }
-                set.equipment[equipmentSlot] = equipped;
-            }
-            if (importedSet.food) {
-                set.food = this.dataManager.foodById(importedSet.food);
-            }
-            this.addGearSet(set);
+            this.addGearSet(this.importGearSet(importedSet));
         }
         if (saved.sims) {
             for (let simport of saved.sims) {
@@ -1007,24 +982,7 @@ export class GearPlanSheet extends HTMLElement {
         // TODO: make this async
         const sets: SetExport[] = []
         for (let set of this._sets) {
-            const items: { [K in EquipSlotKeys]?: ItemSlotExport } = {};
-            for (let equipmentKey in set.equipment) {
-                const inSlot: EquippedItem = set.equipment[equipmentKey];
-                if (inSlot) {
-                    items[equipmentKey] = {
-                        id: inSlot.gearItem.id,
-                        materia: inSlot.melds.map(meld => {
-                            return {id: meld.equippedMatiera?.id ?? -1}
-                        }),
-                    };
-                }
-            }
-            const setExport: SetExport = {
-                name: set.name,
-                items: items,
-                food: set.food ? set.food.id : undefined
-            };
-            sets.push(setExport);
+            sets.push(this.exportGearSet(set));
         }
         let simsExport: SimExport[] = [];
         for (let sim of this._sims) {
@@ -1086,6 +1044,61 @@ export class GearPlanSheet extends HTMLElement {
             this.gearPlanTable.simsChanged();
         }
         this.saveData();
+    }
+
+    cloneAndAddGearSet(gearSet: CharacterGearSet, select: boolean) {
+        const cloned = this.importGearSet(this.exportGearSet(gearSet));
+        cloned.name = cloned.name + ' copy';
+        this.addGearSet(cloned, select);
+    }
+
+    exportGearSet(set: CharacterGearSet): SetExport {
+        const items: { [K in EquipSlotKeys]?: ItemSlotExport } = {};
+        for (let equipmentKey in set.equipment) {
+            const inSlot: EquippedItem = set.equipment[equipmentKey];
+            if (inSlot) {
+                items[equipmentKey] = {
+                    id: inSlot.gearItem.id,
+                    materia: inSlot.melds.map(meld => {
+                        return {id: meld.equippedMatiera?.id ?? -1}
+                    }),
+                };
+            }
+        }
+        return {
+            name: set.name,
+            items: items,
+            food: set.food ? set.food.id : undefined
+        };
+    }
+
+    importGearSet(importedSet: SetExport): CharacterGearSet {
+        const set = new CharacterGearSet(this);
+        set.name = importedSet.name;
+        for (let equipmentSlot in importedSet.items) {
+            const importedItem: ItemSlotExport = importedSet.items[equipmentSlot];
+            if (!importedItem) {
+                continue;
+            }
+            const baseItem = this.dataManager.itemById(importedItem.id);
+            if (!baseItem) {
+                continue;
+            }
+            const equipped = new EquippedItem(baseItem);
+            for (let i = 0; i < Math.min(equipped.melds.length, importedItem.materia.length); i++) {
+                const id = importedItem.materia[i].id;
+                const mat = this.dataManager.materiaById(id);
+                if (!mat) {
+                    continue;
+                }
+                equipped.melds[i].equippedMatiera = mat;
+            }
+            set.equipment[equipmentSlot] = equipped;
+        }
+        if (importedSet.food) {
+            set.food = this.dataManager.foodById(importedSet.food);
+        }
+        return set;
     }
 
     // TODO: this needs to only update when we have updated that specific gear set, not any random gear set.

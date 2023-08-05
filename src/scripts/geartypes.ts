@@ -314,7 +314,7 @@ export interface SheetExport {
     job: JobName,
     level: SupportedLevel,
     sets: SetExport[],
-    sims: SimExport[]
+    sims: SimExport[],
 }
 
 export type EquipSlotKeys = keyof EquipmentSet;
