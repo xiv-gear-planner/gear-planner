@@ -333,9 +333,12 @@ export interface SetExport {
         [K in EquipSlotKeys]?: ItemSlotExport
     };
     food?: number,
-    // We don't care about job for internal usage. It's strictly to
-    // prevent/warn on importing the wrong job.
+    // We don't care about job/level for internal usage, since
+    // those are properties of the sheet. It's strictly to
+    // prevent/warn on importing the wrong job, as well as for
+    // importing individual sets.
     job?: JobName,
+    level?: SupportedLevel
 }
 
 export interface ItemSlotExport {

@@ -1,9 +1,15 @@
 // import '@webcomponents/webcomponentsjs/webcomponents-bundle.js'
 // import '@webcomponents/webcomponentsjs/custom-elements-es5-adapter.js'
 
-import {GearPlanSheet, ImportSheetArea, NewSheetForm, SheetPickerTable} from "./components";
-import {DataManager} from "./datamanager";
-
+import {
+    GearPlanSheet,
+    GearPlanTable,
+    ImportSheetArea,
+    NewSheetForm,
+    SHARED_SET_NAME,
+    SheetPickerTable
+} from "./components";
+import {SetExport, SheetExport} from "./geartypes";
 
 
 export const contentArea = document.getElementById("content-area");
@@ -37,14 +43,14 @@ function arrayEq(left: any[] | undefined, right: any[] | undefined) {
 function processHash() {
     // Remove the literal #
     const hash = (location.hash.startsWith("#") ? location.hash.substring(1) : location.hash).split('/').filter(item => item);
-    console.log("processHash", hash);
+    console.info("processHash", hash);
     if (arrayEq(hash, expectedHash)) {
-        console.log("Ignoring internal hash change")
+        console.info("Ignoring internal hash change")
         return;
     }
     expectedHash = hash;
     if (hash.length === 0) {
-        console.log("No sheet open");
+        console.info("No sheet open");
         showSheetPickerMenu();
     }
     else if (hash.length === 2 && hash[0] === "sheet") {
@@ -56,7 +62,37 @@ function processHash() {
         showNewSheetForm();
     }
     else if (hash[0] === "importsheet") {
-        showImportSheetForm();
+        if (hash.length === 1) {
+            showImportSheetForm();
+        }
+        else {
+            // TODO this is kind of bad
+            const json = hash.slice(1).join('/');
+            const parsed = JSON.parse(decodeURI(json)) as SheetExport;
+            const sheet = new GearPlanSheet(undefined, setEditorAreaContent, parsed);
+            // sheet.name = SHARED_SET_NAME;
+            openSheet(sheet, false);
+        }
+    }
+    else if (hash[0] === "importset") {
+        if (hash.length >= 2) {
+            const json = hash.slice(1).join('/');
+            const parsed = JSON.parse(decodeURI(json)) as SetExport;
+            const fakeSheet: SheetExport = {
+                race: undefined,
+                sets: [parsed],
+                // TODO: default sims
+                sims: [],
+                name: SHARED_SET_NAME,
+                saveKey: undefined,
+                job: parsed.job,
+                level: parsed.level,
+                partyBonus: 0
+            }
+            const sheet = new GearPlanSheet(undefined, setEditorAreaContent, fakeSheet);
+            // sheet.name = SHARED_SET_NAME;
+            openSheet(sheet, false);
+        }
     }
 }
 
@@ -104,11 +140,13 @@ export async function openSheetByKey(sheet: string) {
     setTitle(planner.name);
 }
 
-export async function openSheet(planner: GearPlanSheet) {
+export async function openSheet(planner: GearPlanSheet, changeHash: boolean = true) {
     setTitle('Loading Sheet');
     console.log('openSheet: ', planner.saveKey);
     document['planner'] = planner;
-    setHash("sheet", planner.saveKey);
+    if (changeHash) {
+        setHash("sheet", planner.saveKey);
+    }
     contentArea.replaceChildren(planner);
     const loadSheetPromise = planner.loadData().then(() => contentArea.replaceChildren(planner), (reason) => {
         console.error(reason);

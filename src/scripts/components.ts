@@ -58,6 +58,9 @@ import {openSheetByKey, setEditorAreaContent, showNewSheetForm} from "./main";
 import {closeModal, setModal} from "./modalcontrol";
 import {getSetFromEtro} from "./external/etro_import";
 
+// TODO: is this needed?
+export const SHARED_SET_NAME = 'Imported Set';
+
 type GearSetSel = SingleCellRowOrHeaderSelect<CharacterGearSet>;
 
 function makeActionButton(label: string, action: () => void) {
@@ -733,8 +736,13 @@ export class GearSetEditor extends HTMLElement {
         nameEditor.classList.add("gear-set-name-editor");
         this.appendChild(nameEditor);
 
-        const buttonArea = quickElement('div', ['gear-set-editor-button-area'], [
-            makeActionButton('Export Set', () => {
+        const buttonArea = quickElement('div', ['gear-set-editor-button-area', 'button-row'], [
+            makeActionButton('Copy Set as URL', () => {
+                const json = JSON.stringify(sheet.exportGearSet(gearSet, true));
+                const resolvedUrl = new URL("#/importset/" + json, document.location.toString());
+                navigator.clipboard.writeText(resolvedUrl.toString());
+            }),
+            makeActionButton('Copy Set as JSON', () => {
                 navigator.clipboard.writeText(JSON.stringify(sheet.exportGearSet(gearSet, true)));
             })
         ]);
@@ -822,7 +830,7 @@ export class GearPlanSheet extends HTMLElement {
     private _partyBonus: PartyBonusAmount;
 
     private _gearPlanTable: GearPlanTable;
-    private _saveKey: string;
+    private _saveKey: string | undefined;
     private _sets: CharacterGearSet[] = [];
     private _sims: Simulation<any, any, any>[] = [];
     private dataManager: DataManager;
@@ -873,6 +881,7 @@ export class GearPlanSheet extends HTMLElement {
     // Can't make ctor private for custom element, but DO NOT call this directly - use fromSaved or fromScratch
     constructor(sheetKey: string, editorAreaSetup: (...nodes: Node[]) => void, importedData: SheetExport) {
         super();
+        console.log(importedData);
         this._importedData = importedData;
         this._saveKey = sheetKey;
         this._editorAreaSetup = editorAreaSetup;
@@ -919,6 +928,19 @@ export class GearPlanSheet extends HTMLElement {
             this.addGearSet(newSet, true);
         })
         this.buttonRow.appendChild(addRowButton)
+
+        const saveAsButton = makeActionButton("Save As", () => {
+            const defaultName = this.name === SHARED_SET_NAME ? 'Imported Set' : this.name + ' copy';
+            const newName = prompt("Enter a name for the new sheet: ", defaultName);
+            if (newName === null) {
+                return;
+            }
+            console.log('New name', newName);
+            const newSaveKey = this.saveAs(newName);
+            // TODO: should this be provided as a ctor arg instead?
+            openSheetByKey(newSaveKey);
+        });
+        this.buttonRow.appendChild(saveAsButton)
 
         const newSimButton = makeActionButton("Add Simulation", () => {
             this.showAddSimDialog();
@@ -1004,9 +1026,28 @@ export class GearPlanSheet extends HTMLElement {
     }
 
     saveData() {
-        console.info("Saving sheet " + this.name);
-        const fullExport = this.exportSheet();
-        localStorage.setItem(this._saveKey, JSON.stringify(fullExport));
+        if (this._saveKey) {
+            console.info("Saving sheet " + this.name);
+            const fullExport = this.exportSheet();
+            localStorage.setItem(this._saveKey, JSON.stringify(fullExport));
+        }
+        else {
+            console.info("Ignoring request to save sheet because it has no save key");
+        }
+    }
+
+    /**
+     * Copy this sheet to a new save slot.
+     *
+     * @param name
+     * @returns The saveKey of the new sheet.
+     */
+    saveAs(name: string): string {
+        const exported = this.exportSheet();
+        exported.name = name;
+        const newKey = getNextSheetInternalName();
+        localStorage.setItem(newKey, JSON.stringify(exported));
+        return newKey;
     }
 
     exportSheet(): SheetExport {
@@ -1113,6 +1154,7 @@ export class GearPlanSheet extends HTMLElement {
         };
         if (external) {
             out.job = this.classJobName;
+            out.level = this.level;
         }
         return out;
     }
@@ -1276,12 +1318,13 @@ export class GearPlanSheet extends HTMLElement {
         const exportSheetToClipboard = makeActionButton('Export Sheet JSON to Clipboard', () => {
             navigator.clipboard.writeText(JSON.stringify(this.exportSheet()));
         });
-        outerDiv.appendChild(exportSheetToClipboard);
 
         const exportSheetLinkToClipboard = makeActionButton('Export Sheet as Shareable URL', () => {
-            alert('Not implemented');
+            const json = JSON.stringify(this.exportSheet());
+            const resolvedUrl = new URL("#/importsheet/" + json, document.location.toString());
+            navigator.clipboard.writeText(resolvedUrl.toString());
         });
-        outerDiv.appendChild(exportSheetLinkToClipboard);
+        outerDiv.appendChild(quickElement('div', ['button-row'], [exportSheetLinkToClipboard, exportSheetToClipboard]))
 
         return outerDiv;
     }
@@ -1298,6 +1341,7 @@ class ImportSetArea extends HTMLElement {
     private importButton: HTMLButtonElement;
     private textArea: HTMLTextAreaElement;
     private sheet: GearPlanSheet;
+
     constructor(sheet: GearPlanSheet) {
         super();
         this.sheet = sheet;
@@ -1411,11 +1455,13 @@ class ImportSetArea extends HTMLElement {
         }
     }
 }
+
 export class ImportSheetArea extends HTMLElement {
     private loader: LoadingBlocker;
     private importButton: HTMLButtonElement;
     private textArea: HTMLTextAreaElement;
     private sheet: GearPlanSheet;
+
     // TODO
     constructor() {
         super();
@@ -1481,6 +1527,7 @@ export class ImportSheetArea extends HTMLElement {
         // First check for Etro link
         const etroRegex = RegExp("https:\/\/etro\.gg\/gearset\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})")
         const etroExec = etroRegex.exec(text);
+        // TODO: check level as well
         if (etroExec !== null) {
             this.ready = false;
             getSetFromEtro(etroExec[1]).then(set => {
