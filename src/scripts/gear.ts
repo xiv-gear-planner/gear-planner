@@ -18,8 +18,8 @@ import {
     detDmg,
     dhitChance,
     dhitDmg,
-    mainStatMulti,
-    sksToGcd,
+    mainStatMulti, mpTick, sksTickMulti,
+    sksToGcd, spsTickMulti,
     spsToGcd,
     wdMulti
 } from "./xivmath";
@@ -195,18 +195,21 @@ export class CharacterGearSet {
             levelStats: levelStats,
             job: classJob,
             jobStats: classJobStats,
-            gcdPhys: sksToGcd(combinedStats.skillspeed),
-            gcdMag: spsToGcd(2.5, levelStats, combinedStats.spellspeed),
+            gcdPhys: base => sksToGcd(base, levelStats, combinedStats.skillspeed),
+            gcdMag: base => spsToGcd(base, levelStats, combinedStats.spellspeed),
             critChance: critChance(levelStats, combinedStats.crit),
             critMulti: critDmg(levelStats, combinedStats.crit),
             dhitChance: dhitChance(levelStats, combinedStats.dhit),
             dhitMulti: dhitDmg(levelStats, combinedStats.dhit),
             detMulti: detDmg(levelStats, combinedStats.determination),
+            spsDotMulti: spsTickMulti(combinedStats.spellspeed),
+            sksDotMulti: sksTickMulti(combinedStats.skillspeed),
             // TODO: does this need to be phys/magic split?
             wdMulti: wdMulti(levelStats, classJobStats, Math.max(combinedStats.wdMag, combinedStats.wdPhys)),
             mainStatMulti: mainStatMulti(levelStats, classJobStats, mainStat),
             traitMulti: classJobStats.traitMulti ? classJobStats.traitMulti(level) : 1,
             autoDhBonus: autoDhBonusDmg(levelStats, combinedStats.dhit),
+            mpPerTick: mpTick(levelStats, combinedStats.piety),
         }
         if (classJobStats.traits) {
             classJobStats.traits.forEach(trait => {
@@ -220,7 +223,7 @@ export class CharacterGearSet {
             });
         }
         this._dirtyComp = false;
-        console.log("Recomputed stats");
+        console.info("Recomputed stats");
         return this._computedStats;
     }
 

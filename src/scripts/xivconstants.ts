@@ -99,6 +99,7 @@ export const ALL_SUB_STATS: (RawStatKey)[] = [...FAKE_MAIN_STATS, ...SPECIAL_SUB
  * Which substats can be granted by materia.
  *
  * If SE ever gives us main stat or vitality materia again, this will need to be updated.
+ * // TODO: but this includes vitality?
  */
 export const MateriaSubstats: (keyof RawStats)[] = [...ALL_SUB_STATS];
 

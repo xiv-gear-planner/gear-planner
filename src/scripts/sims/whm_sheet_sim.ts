@@ -1,13 +1,13 @@
 import {SimResult, SimSettings, SimSpec, Simulation} from "../simulation";
 import {CharacterGearSet} from "../gear";
-import {applyDhCrit, baseDamage, spsTickMulti} from "../xivmath";
+import {applyCrit, applyDhCrit, baseDamage, baseHealing} from "../xivmath";
 import {ComputedSetStats} from "../geartypes";
 import {
     FieldBoundCheckBox,
     FieldBoundFloatField,
-    FieldBoundIntField,
     labeledCheckbox,
-    labelFor, positiveValuesOnly,
+    labelFor,
+    positiveValuesOnly,
     quickElement
 } from "../components";
 
@@ -19,142 +19,24 @@ const dia = 65
 const diaDot = 65
 const assize = 400
 const misery = 1240
-
-function afflatusTime(shortGcd, cycle) {
-    return 6 * shortGcd * (cycle / 360 - 1);
-}
-
-// Average potency of a 360s rotation
-function getP(sps, shortGcd, filler, cycle) {
-    let result = 0
-    result += 9 * assize * cycle / 360
-    result += 6 * misery * cycle / 360
-    if (glare - dia > diaDot / 3 * spsTickMulti(sps) * Math.floor(30 / shortGcd) * (shortGcd - 30 % shortGcd)) {
-        result += 12 * (Math.ceil(30 / shortGcd) - 1) * glare + 12 * dia - 24 * glare
-        // Logger.log("# Glares: " + 12*(Math.ceil(30/shortGcd)-1)-24*glare)
-        result += 12 * 10 * spsTickMulti(sps) * diaDot
-        // Logger.log("Dia ticks: " + 12*10)
-    }
-    else {
-        result += 12 * (Math.floor(30 / shortGcd) - 1) * glare + 12 * dia - 24 * glare
-        // Logger.log("# Glares: " + 12*(Math.ceil(30/shortGcd)-1)-24*glare)
-        result += 12 * 9 * spsTickMulti(sps) * diaDot
-        result += 12 * ((3 - (30 % shortGcd)) / 3) * spsTickMulti(sps) * diaDot
-        // Logger.log("Dia ticks: " + (12*9+12*((3-(30 % shortGcd))/3)))
-    }
-    result -= filler * glare * cycle / 60
-    // Logger.log("Potency: " + result)
-    return result
-}
-
-function getMP(shortGcd, sps, LDs, m2s, c3s, rezz, cycle) {
-    var result = 0
-    if (glare - dia > diaDot / 3 * spsTickMulti(sps) * Math.floor(30 / shortGcd) * (shortGcd - 30 % shortGcd)) {
-        result += 12 * (Math.ceil(30 / shortGcd)) * 400
-    }
-    else {
-        result += 12 * (Math.floor(30 / shortGcd)) * 400
-    }
-    //misery + lillies
-    result -= 400 * cycle / 15
-    //assize
-    result -= (500) * cycle / 40
-    result -= (3850) * LDs * cycle / 60
-    result += rezz * 2000 * cycle / 60
-    result += 600 * m2s * cycle / 60
-    result += 1100 * c3s * cycle / 60
-    //thin air
-    result -= 400 * cycle / 60
-    return result
-}
-
-// Actual time taken by a 360s rotation
-function getCycle(shortGcd, sps) {
-    var result = 0
-    //1 dia + x glares/lily/misery
-    if (glare - dia > diaDot / 3 * spsTickMulti(sps) * Math.floor(30 / shortGcd) * (shortGcd - 30 % shortGcd)) {
-        result += 12 * (Math.ceil(30 / shortGcd) * shortGcd)
-    }
-    else {
-        result += 12 * (Math.floor(30 / shortGcd) * shortGcd)
-    }
-    // POM as multiplier normalized over 360s
-    result *= 360 / ((45 / 0.80) + 315)
-    // Logger.log("GCD: "+shortGcd+" Cycle: " +result)
-    return result
-}
-
-// TODO: move all the 'x perminute' things into a single object we can pass around
-function pps(sps: number, shortGcd: number, cure3perMinute: number, medica2perMinute: number, rezPerMinute: number) {
-    var cycle = getCycle(shortGcd, sps)
-    var afflatusT = afflatusTime(shortGcd, cycle)
-    cycle += afflatusT
-    return getP(sps, shortGcd, cure3perMinute + medica2perMinute + rezPerMinute, cycle) / cycle;
-}
-
-function mpps(shortGcd: number, sps: number, lucidPerMinute: number, cure3perMinute: number, medica2perMinute: number, rezPerMinute: number) {
-    var cycle = getCycle(shortGcd, sps)
-    var afflatusT = afflatusTime(shortGcd, cycle)
-    cycle += afflatusT
-    return getMP(shortGcd, sps, lucidPerMinute, medica2perMinute, cure3perMinute, rezPerMinute, cycle) / cycle
-}
-
-function MPTime(pie, shortGcd, sps, LDs, c3s, m2s, rezz) {
-    var result = 0
-    result += CalcPiety(pie) / 3
-    result -= mpps(shortGcd, sps, LDs, c3s, m2s, rezz)
-    return Math.floor(-10000 / result)
-}
-
-function summing(accumulator, currentValue) {
-    return accumulator + currentValue
-}
-
-function reduce(arr, callback, initialVal) {
-    var accumulator = (initialVal === undefined) ? undefined : initialVal;
-    for (var i = 0; i < arr.length; i++) {
-        if (accumulator !== undefined) accumulator = callback.call(undefined, accumulator, arr[i], i, this); else accumulator = arr[i];
-    }
-    return accumulator;
-}
-
-//Party buff things
 const battleVoiceAvg = (15 / 120) * 0.2;
 const battleLitanyAvg = (15 / 120) * 0.1;
 const chainStratAvg = (15 / 120) * 0.1;
 const devilmentAvg = (20 / 120) * 0.2;
 const brdCritAvg = (45 / 120) * 0.02;
 const brdDhAvg = (45 / 120) * 0.03;
+const fl = Math.floor;
 
-// Traits
-const magicAndMend = 1.3;
-
-// jobmod etc
-const levelMod = 1900;
-const baseMain = 390
-const baseSub = 400
-
-function CalcPiety(Pie) {
-    return 200 + (Math.floor(150 * (Pie - baseMain) / levelMod));
-}
-
-function Healing(Potency, WD, JobMod, MainStat, Det, Crit, SS, TEN, classNum) {
-
-    MainStat = Math.floor(MainStat * (1 + 0.01 * classNum));
-    var Damage = Math.floor(Potency * (WD + Math.floor(baseMain * JobMod / 1000)) * (100 + Math.floor((MainStat - baseMain) * 569 / 1522)) / 100);
-    Damage = Math.floor(Damage * (1000 + Math.floor(140 * (Det - baseMain) / levelMod)) / 1000);
-    Damage = Math.floor(Damage * (1000 + Math.floor(100 * (TEN - baseSub) / levelMod)) / 1000);
-    Damage = Math.floor(Damage * (1000 + Math.floor(130 * (SS - baseSub) / levelMod)) / 1000 / 100);
-    Damage = Math.floor(Damage * magicAndMend)
-    /*var CritDamage=Math.fl(Damage*(1000 * CalcCritDamage(Crit))/1000);
-    var CritRate=CalcCritRate(Crit);
-    var NormalRate=1-CritRate*/
-
-    return Damage //* NormalRate + CritDamage * (CritRate);
-}
 
 export interface WhmSheetSimResult extends SimResult {
     pps: number,
+    mpUsedPerMin: number,
+    mpGainedPerMin: number,
+    netMpPerMin: number,
+    // Undefined if 0
+    mpTime: number | undefined,
+    healBasePotRatio: number,
+    effectiveHealPotRatio: number,
 }
 
 export interface WhmSheetSettings extends SimSettings {
@@ -179,7 +61,6 @@ export const whmSheetSpec: SimSpec<WhmSheetSim, WhmSheetSettings> = {
     supportedJobs: ['WHM'],
 }
 
-// TODO: X spell uses per minute
 // TODO: report MP time
 export class WhmSheetSim implements Simulation<WhmSheetSimResult, WhmSheetSettings, WhmSheetSettings> {
 
@@ -187,7 +68,7 @@ export class WhmSheetSim implements Simulation<WhmSheetSimResult, WhmSheetSettin
         return {...this.settings};
     };
 
-    settings = {
+    settings: WhmSheetSettings = {
         hasBard: true,
         hasScholar: true,
         hasDragoon: true,
@@ -222,19 +103,31 @@ export class WhmSheetSim implements Simulation<WhmSheetSimResult, WhmSheetSettin
 
         outerDiv.appendChild(checkboxesDiv);
 
-        const ldPerMin = new FieldBoundFloatField<WhmSheetSettings>(settings, 'ldPerMin', {id: 'ldPerMin-input', postValidators: [positiveValuesOnly]});
+        const ldPerMin = new FieldBoundFloatField<WhmSheetSettings>(settings, 'ldPerMin', {
+            id: 'ldPerMin-input',
+            postValidators: [positiveValuesOnly]
+        });
         const ldPerMinLabel = labelFor('Lucid Dreaming/Minute', ldPerMin);
         outerDiv.appendChild(quickElement("div", ['labeled-item'], [ldPerMinLabel, ldPerMin]));
 
-        const rezPerMin = new FieldBoundFloatField<WhmSheetSettings>(settings, 'rezPerMin', {id: 'rezPerMin-input', postValidators: [positiveValuesOnly]});
+        const rezPerMin = new FieldBoundFloatField<WhmSheetSettings>(settings, 'rezPerMin', {
+            id: 'rezPerMin-input',
+            postValidators: [positiveValuesOnly]
+        });
         const rezPerMinLabel = labelFor('Raise/Minute', rezPerMin);
         outerDiv.appendChild(quickElement("div", ['labeled-item'], [rezPerMinLabel, rezPerMin]));
 
-        const m2perMin = new FieldBoundFloatField<WhmSheetSettings>(settings, 'm2PerMin', {id: 'm2PerMin-input', postValidators: [positiveValuesOnly]});
+        const m2perMin = new FieldBoundFloatField<WhmSheetSettings>(settings, 'm2PerMin', {
+            id: 'm2PerMin-input',
+            postValidators: [positiveValuesOnly]
+        });
         const m2perMinLabel = labelFor('Medica II/Minute', m2perMin);
         outerDiv.appendChild(quickElement("div", ['labeled-item'], [m2perMinLabel, m2perMin]));
 
-        const c3perMin = new FieldBoundFloatField<WhmSheetSettings>(settings, 'c3PerMin', {id: 'c3PerMin-input', postValidators: [positiveValuesOnly]});
+        const c3perMin = new FieldBoundFloatField<WhmSheetSettings>(settings, 'c3PerMin', {
+            id: 'c3PerMin-input',
+            postValidators: [positiveValuesOnly]
+        });
         const c3perMinLabel = labelFor('Cure III/Minute', c3perMin);
         outerDiv.appendChild(quickElement("div", ['labeled-item'], [c3perMinLabel, c3perMin]));
 
@@ -255,15 +148,168 @@ export class WhmSheetSim implements Simulation<WhmSheetSimResult, WhmSheetSettin
         const buffedStats = {...set.computedStats};
         buffedStats.dhitChance += this.extraDhRate();
         buffedStats.critChance += this.extraCritRate();
-        const ppsFinalResult = pps(buffedStats.spellspeed, buffedStats.gcdMag, this.settings.c3PerMin, this.settings.m2PerMin, this.settings.rezPerMin);
+        const ppsFinalResult = this.pps(buffedStats);
+        // const ppsFinalResult = pps(buffedStats.spellspeed, buffedStats.gcdMag, this.settings.c3PerMin, this.settings.m2PerMin, this.settings.rezPerMin);
         // console.log(ppsFinalResult);
         const resultWithoutDhCrit = baseDamage(buffedStats, ppsFinalResult);
         const result = applyDhCrit(resultWithoutDhCrit, buffedStats);
         // Uncomment to test async logic
         await new Promise(resolve => setTimeout(resolve, 200));
+        const mpUsedPerMin = this.mpUsedPerSec(set.computedStats) * 60;
+        const mpGainedPerMin = this.mpGainedPerSec(set.computedStats) * 60;
+        const netMpPerMin = mpGainedPerMin - mpUsedPerMin;
+        const mpTime = netMpPerMin >= 0 ? undefined : (-10000 / netMpPerMin);
+        const healBasePotRatio = baseHealing(buffedStats, 100);
+        const effectiveHealPotRatio = applyCrit(healBasePotRatio, buffedStats);
         return {
             mainDpsResult: result,
             pps: ppsFinalResult,
+            mpUsedPerMin: mpUsedPerMin,
+            mpGainedPerMin: mpGainedPerMin,
+            netMpPerMin: netMpPerMin,
+            mpTime: mpTime,
+            healBasePotRatio: healBasePotRatio,
+            effectiveHealPotRatio: effectiveHealPotRatio,
         }
     }
+
+    afflatusTime(stats: ComputedSetStats, cycle: number) {
+        return 6 * stats.gcdMag(2.5) * (cycle / 360 - 1);
+    }
+
+    fillerGcdPerMinute() {
+        return this.settings.c3PerMin + this.settings.m2PerMin + this.settings.rezPerMin;
+    }
+
+// Average potency of a 360s rotation
+    getP(stats: ComputedSetStats, cycle: number) {
+        const filler = this.fillerGcdPerMinute();
+        let result = 0
+        result += 9 * assize * cycle / 360
+        result += 6 * misery * cycle / 360
+        const tickMulti = stats.spsDotMulti;
+        const shortGcd = stats.gcdMag(2.5);
+        if (glare - dia > diaDot / 3 * tickMulti * fl(30 / shortGcd) * (shortGcd - 30 % shortGcd)) {
+            result += 12 * (Math.ceil(30 / shortGcd) - 1) * glare + 12 * dia - 24 * glare
+            // Logger.log("# Glares: " + 12*(Math.ceil(30/shortGcd)-1)-24*glare)
+            result += 12 * 10 * tickMulti * diaDot
+            // Logger.log("Dia ticks: " + 12*10)
+        }
+        else {
+            result += 12 * (fl(30 / shortGcd) - 1) * glare + 12 * dia - 24 * glare
+            // Logger.log("# Glares: " + 12*(Math.ceil(30/shortGcd)-1)-24*glare)
+            result += 12 * 9 * tickMulti * diaDot
+            result += 12 * ((3 - (30 % shortGcd)) / 3) * tickMulti * diaDot
+            // Logger.log("Dia ticks: " + (12*9+12*((3-(30 % shortGcd))/3)))
+        }
+        result -= filler * glare * cycle / 60
+        // Logger.log("Potency: " + result)
+        return result
+    }
+
+    /**
+     * MP usage of a full cycle
+     */
+    getMP(stats: ComputedSetStats, cycle) {
+        let result = 0;
+        // TODO: why is the dot multiplier factored in here?
+        const shortGcd = stats.gcdMag(2.5);
+        if (glare - dia > diaDot / 3 * stats.spsDotMulti * fl(30 / shortGcd) * (shortGcd - 30 % shortGcd)) {
+            result += 12 * (Math.ceil(30 / shortGcd)) * 400;
+        }
+        else {
+            result += 12 * (fl(30 / shortGcd)) * 400;
+        }
+        //misery + lillies
+        result -= 400 * cycle / 15;
+        //assize
+        result -= (500) * cycle / 40;
+        result -= (3850) * this.settings.ldPerMin * cycle / 60;
+        result += this.settings.rezPerMin * 2000 * cycle / 60;
+        result += 600 * this.settings.m2PerMin * cycle / 60;
+        result += 1100 * this.settings.c3PerMin * cycle / 60;
+        //thin air
+        result -= 400 * cycle / 60;
+        return result
+    }
+
+    // Actual time taken by a 360s rotation
+    getCycle(stats: ComputedSetStats) {
+        var result = 0
+        //1 dia + x glares/lily/misery
+        const shortGcd = stats.gcdMag(2.5);
+        if (glare - dia > diaDot / 3 * stats.spsDotMulti * fl(30 / shortGcd) * (shortGcd - 30 % shortGcd)) {
+            result += 12 * (Math.ceil(30 / shortGcd) * shortGcd)
+        }
+        else {
+            result += 12 * (fl(30 / shortGcd) * shortGcd)
+        }
+        // POM as multiplier normalized over 360s
+        result *= 360 / ((45 / 0.80) + 315)
+        // Logger.log("GCD: "+shortGcd+" Cycle: " +result)
+        return result
+    }
+
+    // TODO: move all the 'x perminute' things into a single object we can pass around
+    /**
+     * Overall potency per second
+     */
+    pps(stats: ComputedSetStats) {
+        var cycle = this.getCycle(stats);
+        var afflatusT = this.afflatusTime(stats, cycle)
+        cycle += afflatusT;
+        return this.getP(stats, cycle) / cycle;
+    }
+
+    /**
+     * MP used per second
+     */
+    mpUsedPerSec(stats: ComputedSetStats) {
+        let cycle = this.getCycle(stats);
+        const afflatusT = this.afflatusTime(stats, cycle);
+        cycle += afflatusT;
+        return this.getMP(stats, cycle) / cycle
+    }
+
+    mpGainedPerSec(stats: ComputedSetStats) {
+        return stats.mpPerTick / 3;
+    }
+
+    netMpPerSec(stats: ComputedSetStats) {
+        return this.mpGainedPerSec(stats) - this.mpUsedPerSec(stats);
+    }
+
+    MPTime(stats: ComputedSetStats) {
+        let result = 0;
+        result += stats.mpPerTick / 3
+        result -= this.mpUsedPerSec(stats);
+        return fl(-10000 / result)
+    }
+
+    // function summing(accumulator, currentValue) {
+    //     return accumulator + currentValue
+    // }
+    //
+    // function reduce(arr, callback, initialVal) {
+    //     var accumulator = (initialVal === undefined) ? undefined : initialVal;
+    //     for (var i = 0; i < arr.length; i++) {
+    //         if (accumulator !== undefined) accumulator = callback.call(undefined, accumulator, arr[i], i, this); else accumulator = arr[i];
+    //     }
+    //     return accumulator;
+    // }
+
+    //Party buff things
+
+    // Traits
+    // const magicAndMend = 1.3;
+    //
+    // // jobmod etc
+    // const levelMod = 1900;
+    // const baseMain = 390
+    // const baseSub = 400
+    //
+    // function CalcPiety(Pie) {
+    //     return 200 + (Math.floor(150 * (Pie - baseMain) / levelMod));
+    // }
+    //
 }

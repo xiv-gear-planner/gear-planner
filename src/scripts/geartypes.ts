@@ -113,11 +113,11 @@ export interface ComputedSetStats extends RawStats {
     /**
      * Physical GCD time
      */
-    gcdPhys: number,
+    gcdPhys(baseGcd: number): number,
     /**
      * Magical GCD time
      */
-    gcdMag: number,
+    gcdMag(baseGcd: number): number,
     /**
      * Crit chance. Ranges from 0 to 1.
      */
@@ -139,6 +139,14 @@ export interface ComputedSetStats extends RawStats {
      */
     detMulti: number,
     /**
+     * Spell Speed DoT multiplier.
+     */
+    spsDotMulti: number,
+    /**
+     * TODO not implemented yet
+     */
+    sksDotMulti: number,
+    /**
      * Multiplier from weapon damage.
      */
     wdMulti: number,
@@ -154,6 +162,10 @@ export interface ComputedSetStats extends RawStats {
      * Bonus added to det multiplier for automatic direct hits
      */
     autoDhBonus: number;
+    /**
+     * MP Per Tick
+     */
+    mpPerTick: number;
 }
 
 export interface MeldableMateriaSlot {
@@ -320,7 +332,10 @@ export interface SetExport {
     items: {
         [K in EquipSlotKeys]?: ItemSlotExport
     };
-    food?: number
+    food?: number,
+    // We don't care about job for internal usage. It's strictly to
+    // prevent/warn on importing the wrong job.
+    job?: JobName,
 }
 
 export interface ItemSlotExport {

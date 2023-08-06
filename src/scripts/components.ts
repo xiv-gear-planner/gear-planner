@@ -36,7 +36,8 @@ import {
     getRegisteredSimSpecs,
     getSimSpecByStub,
     SimCurrentResult,
-    SimResult, SimSettings,
+    SimResult,
+    SimSettings,
     SimSpec,
     Simulation
 } from "./simulation";
@@ -46,7 +47,8 @@ import {
     JOB_DATA,
     JobName,
     RACE_STATS,
-    RaceName, REAL_MAIN_STATS,
+    RaceName,
+    REAL_MAIN_STATS,
     STAT_ABBREVIATIONS,
     STAT_FULL_NAMES,
     SupportedLevel,
@@ -140,6 +142,7 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
     }
 
     selectGearSet(set: CharacterGearSet | undefined) {
+        console.log('selectGearSet');
         if (set === undefined) {
             this.selectionModel.clearSelection();
         }
@@ -147,6 +150,13 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
             const row: CustomRow<CharacterGearSet> = this.dataRowMap.get(set);
             if (row) {
                 this.selectionModel.clickRow(row);
+                row.scrollIntoView({
+                    behavior: 'instant',
+                    block: 'nearest'
+                });
+            }
+            else {
+                console.log(`Tried to select set ${set.name}, but couldn't find it in our row mapping.`);
             }
         }
         this.refreshSelection();
@@ -217,7 +227,7 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
             {
                 shortName: "gcd",
                 displayName: "GCD",
-                getter: gearSet => Math.min(gearSet.computedStats.gcdMag, gearSet.computedStats.gcdPhys),
+                getter: gearSet => Math.min(gearSet.computedStats.gcdMag(2.5), gearSet.computedStats.gcdPhys(2.5)),
                 initialWidth: statColWidth + 10,
             },
             {
@@ -237,7 +247,6 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                 displayName: "DEX",
                 getter: gearSet => gearSet.computedStats.dexterity,
                 initialWidth: statColWidth,
-                // TODO: make dataManager retrieve this object once
                 condition: () => this.sheet.isStatRelevant('dexterity'),
             },
             {
@@ -297,7 +306,6 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                     multiplier: gearSet.computedStats.detMulti
                 }) as MultiplierStat,
                 renderer: (stats: MultiplierStat) => {
-                    // TODO: make these fancy
                     return multiplierStatDisplay(stats);
                 },
                 initialWidth: multiStatColWidth,
@@ -724,6 +732,14 @@ export class GearSetEditor extends HTMLElement {
         nameEditor.classList.add("gear-set-name-editor");
         this.appendChild(nameEditor);
 
+        const buttonArea = quickElement('div', ['gear-set-editor-button-area'], [
+            makeActionButton('Export Set', () => {
+                navigator.clipboard.writeText(JSON.stringify(sheet.exportGearSet(gearSet, true)));
+            })
+        ]);
+
+        this.appendChild(buttonArea);
+
         // Put items in categories by slot
         // Not enough to just use the items, because rings can be in either ring slot, so we
         // need options to reflect that.
@@ -908,6 +924,16 @@ export class GearPlanSheet extends HTMLElement {
         });
         this.buttonRow.appendChild(newSimButton);
 
+        const exportSheetButton = makeActionButton("Export", () => {
+            setEditorAreaContent(this.makeSheetExportArea());
+        });
+        this.buttonRow.appendChild(exportSheetButton);
+
+        const importGearSetButton = makeActionButton("Import Sets", () => {
+            setEditorAreaContent(this.makeImportSetArea());
+        });
+        this.buttonRow.appendChild(importGearSetButton);
+
         const raceDropdown = new FieldBoundDataSelect<GearPlanSheet, RaceName>(
             this,
             'race',
@@ -977,7 +1003,12 @@ export class GearPlanSheet extends HTMLElement {
     }
 
     saveData() {
-        console.log("Saving sheet " + this.name);
+        console.info("Saving sheet " + this.name);
+        const fullExport = this.exportSheet();
+        localStorage.setItem(this._saveKey, JSON.stringify(fullExport));
+    }
+
+    exportSheet(): SheetExport {
         // TODO: make this async
         const sets: SetExport[] = []
         for (let set of this._sets) {
@@ -991,7 +1022,7 @@ export class GearPlanSheet extends HTMLElement {
                 name: sim.displayName
             });
         }
-        const fullExport: SheetExport = {
+        return {
             name: this.name,
             sets: sets,
             level: this.level,
@@ -1001,7 +1032,7 @@ export class GearPlanSheet extends HTMLElement {
             race: this._race,
             sims: simsExport,
         }
-        localStorage.setItem(this._saveKey, JSON.stringify(fullExport));
+
     }
 
     addGearSet(gearSet: CharacterGearSet, select: boolean = false) {
@@ -1051,12 +1082,22 @@ export class GearPlanSheet extends HTMLElement {
         this.addGearSet(cloned, select);
     }
 
-    exportGearSet(set: CharacterGearSet): SetExport {
+    /**
+     * Export a CharacterGearSet to a SetExport so that it can safely be serialized for saving or sharing.
+     *
+     * @param set The set to export.
+     * @param external true to include fields which are useful for exporting but not saving (e.g. including job name
+     * for single set exports).
+     */
+    exportGearSet(set: CharacterGearSet, external: boolean = false): SetExport {
         const items: { [K in EquipSlotKeys]?: ItemSlotExport } = {};
         for (let equipmentKey in set.equipment) {
             const inSlot: EquippedItem = set.equipment[equipmentKey];
             if (inSlot) {
                 items[equipmentKey] = {
+                    // TODO: determine if it makes more sense to just serialize empty materia slots as {}
+                    // The advantage is that {} is a lot smaller than {"id":-1}, and exports are already long
+                    // On the other hand, *most* real exports would have slots filled (BiS etc)
                     id: inSlot.gearItem.id,
                     materia: inSlot.melds.map(meld => {
                         return {id: meld.equippedMatiera?.id ?? -1}
@@ -1064,13 +1105,24 @@ export class GearPlanSheet extends HTMLElement {
                 };
             }
         }
-        return {
+        const out: SetExport = {
             name: set.name,
             items: items,
             food: set.food ? set.food.id : undefined
         };
+        if (external) {
+            out.job = this.classJobName;
+        }
+        return out;
     }
 
+    /**
+     * Convert a SetExport back to a CharacterGearSet.
+     *
+     * This does not add the set to the sheet or do anything other than conversion.
+     *
+     * @param importedSet
+     */
     importGearSet(importedSet: SetExport): CharacterGearSet {
         const set = new CharacterGearSet(this);
         set.name = importedSet.name;
@@ -1206,6 +1258,96 @@ export class GearPlanSheet extends HTMLElement {
     set partyBonus(partyBonus: PartyBonusAmount) {
         this._partyBonus = partyBonus;
         this.recalcAll();
+    }
+
+    private makeSheetExportArea(): HTMLElement {
+        const outerDiv = document.createElement("div");
+        outerDiv.id = 'sheet-export-area';
+
+        const heading = document.createElement('h1');
+        heading.textContent = 'Export Full Sheet';
+        outerDiv.appendChild(heading);
+
+        const explanation = document.createElement('p');
+        explanation.textContent = 'This is for exporting an entire sheet. To export an individual gear set, select the gear set and use the export button in the gear set editor area.'
+        outerDiv.appendChild(explanation);
+
+        const exportSheetToClipboard = makeActionButton('Export Sheet JSON to Clipboard', () => {
+            navigator.clipboard.writeText(JSON.stringify(this.exportSheet()));
+        });
+        outerDiv.appendChild(exportSheetToClipboard);
+
+        const exportSheetLinkToClipboard = makeActionButton('Export Sheet as Shareable URL', () => {
+            alert('Not implemented');
+        });
+        outerDiv.appendChild(exportSheetLinkToClipboard);
+
+        return outerDiv;
+    }
+
+    private makeImportSetArea() {
+        const outerDiv = document.createElement("div");
+
+        outerDiv.id = 'set-import-area';
+
+        const heading = document.createElement('h1');
+        heading.textContent = 'Import Gear Set(s)';
+        outerDiv.appendChild(heading);
+
+        const explanation = document.createElement('p');
+        explanation.textContent = 'This is for importing gear set(s) into this sheet. If you would like to import a full sheet export (including sim settings) to a new sheet, use the "Import Sheet" at the top of the page.';
+        outerDiv.appendChild(explanation);
+
+
+        const textArea = document.createElement("textarea");
+        textArea.id = 'set-import-textarea';
+        outerDiv.appendChild(textArea);
+        outerDiv.appendChild(document.createElement("br"));
+
+        const importButton = makeActionButton("Import", () => {
+            const text = textArea.value;
+            try {
+                const rawImport = JSON.parse(text);
+                if ('sets' in rawImport && rawImport.sets.length) {
+                    if (rawImport.job !== this.classJobName) {
+                        // TODO: *try* to import some sims, or at least load up the defaults.
+                        const confirmed = confirm(`You are trying to import ${rawImport.job} set(s) into a ${this.classJobName} sheet. Class-specific items, such as weapons, will need to be re-selected.`);
+                        if (!confirmed) {
+                            return;
+                        }
+                    }
+                    // import everything
+                    if (confirm(`This will import ${rawImport.sets.length} gear sets into this sheet.`)) {
+                        const sets: SetExport[] = rawImport.sets;
+                        const imports = sets.map(set => this.importGearSet(set));
+                        for (let i = 0; i < imports.length; i++) {
+                            // Select the first imported set
+                            const set = imports[i];
+                            this.addGearSet(set, i === 0);
+                        }
+                    }
+                }
+                else if ('name' in rawImport && 'items' in rawImport) {
+                    if (rawImport.job !== this.classJobName) {
+                        const confirmed = confirm(`You are trying to import a ${rawImport.job} set into a ${this.classJobName} sheet. Class-specific items, such as weapons, will need to be re-selected.`);
+                        if (!confirmed) {
+                            return;
+                        }
+                    }
+                    this.addGearSet(this.importGearSet(rawImport), true);
+                }
+                else {
+                    alert("That doesn't look like a valid sheet or set");
+                }
+
+            } catch (e) {
+                console.error('Import error', e);
+                alert('Error importing');
+            }
+        });
+        outerDiv.appendChild(importButton);
+
+        return outerDiv;
     }
 }
 

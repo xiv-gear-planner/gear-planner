@@ -64,6 +64,9 @@ export function getDefaultSims(job: JobName, level: SupportedLevel): SimSpec<any
     if (job === 'WHM' && level === 90) {
         out.push(whmSheetSpec);
     }
+    else if (job === 'SGE' && level === 90) {
+        out.push(sgeSheetSpec);
+    }
     return out;
 }
 

@@ -2,8 +2,8 @@ import {ComputedSetStats, JobData, LevelStats} from "./geartypes";
 import {CharacterGearSet} from "./gear";
 import {EMPTY_STATS, JobName, RaceName, SupportedLevel} from "./xivconstants";
 
-export function sksToGcd(sks: number): number {
-    return 2.6
+export function sksToGcd(baseGcd: number, levelStats: LevelStats, sks: number): number {
+    return Math.floor((100) * ((baseGcd * 1000 * (1000 - Math.floor(130 * (sks - levelStats.baseSubStat) / levelStats.levelDiv)) / 1000) / 1000)) / 100;
 }
 
 export function spsToGcd(baseGcd: number, levelStats: LevelStats, sps: number): number {
@@ -49,6 +49,10 @@ export function spsTickMulti(sps: number) {
     return (1000 + Math.floor(130 * (sps - 400) / 1900)) / 1000;
 }
 
+export function sksTickMulti(sks: number) {
+    return (1000 + Math.floor(130 * (sks - 400) / 1900)) / 1000;
+}
+
 // TODO: only works for 90 and non-tank?
 export function mainStatMulti(levelStats: LevelStats, jobStats: JobData, mainstat: number) {
     if (jobStats.role === 'Tank') {
@@ -70,6 +74,10 @@ export function tenacityDmg(levelStats: LevelStats, tenacity: number) {
 
 export function autoDhBonusDmg(levelStats: LevelStats, dhit: number) {
     return Math.floor(140 * ((dhit - levelStats.baseMainStat) / levelStats.levelDiv) + 1000);
+}
+
+export function mpTick(levelStats: LevelStats, piety: number) {
+    return 200 + Math.floor(150 * (piety - levelStats.baseMainStat) / levelStats.levelDiv);
 }
 
 const fl = Math.floor;
@@ -107,27 +115,68 @@ export function baseDamage(stats: ComputedSetStats, potency: number, autoDH: boo
     // });
 
     // Base action potency and main stat multi
-    const d1 = fl(potency * mainStatMulti * 100) / 100;
+    const basePotency = fl(potency * mainStatMulti * 100) / 100;
     // Factor in determination and auto DH multiplier
-    const d2 = fl(d1 * (autoDH ? detAutoDhMulti : detMulti) * 100) / 100;
+    const afterDet = fl(basePotency * (autoDH ? detAutoDhMulti : detMulti) * 100) / 100;
     // Factor in Tenacity multiplier
-    const d3 = fl(d2 * tncMulti * 100) / 100;
+    const afterTnc = fl(afterDet * tncMulti * 100) / 100;
     // Factor in weapon damage multiplier
-    const d4 = fl(d3 * wdMulti);
-    // const d5 = fl(fl(d4 * critMulti) * DH_MULT)
-    const d5 = d4;
+    const afterWeaponDamage = fl(afterTnc * wdMulti);
+    // const d5 = fl(fl(afterWeaponDamage * critMulti) * DH_MULT)
     // Factor in auto crit multiplier
-    const d6 = autoCrit ? fl(d5 * (1 + (critRate * (critMulti - 1)))) : d5;
+    const afterAutoCrit = autoCrit ? fl(afterWeaponDamage * (1 + (critRate * (critMulti - 1)))) : afterTnc;
     // Factor in auto DH multiplier
-    const d7 = autoDH ? fl(d6 * (1 + (dhRate * (dhMulti - 1)))) : d6;
+    const afterAutoDh = autoDH ? fl(afterAutoCrit * (1 + (dhRate * (dhMulti - 1)))) : afterAutoCrit;
     // Factor in trait multiplier
-    const d8 = fl(fl(d7 * traitMulti) / 100);
-    // console.log([d1, d2, d3, d4, d5, d6, d7, d8]);
+    const afterTrait = fl(fl(afterAutoDh * traitMulti) / 100);
+    // console.log([basePotency, afterDet, afterTnc, afterWeaponDamage, d5, afterAutoCrit, afterAutoDh, afterTrait]);
 
-    return d8;
+    return afterTrait;
+}
+
+export function baseHealing(stats: ComputedSetStats, potency: number, autoDH: boolean = false, autoCrit: boolean = false) {
+
+    // Multiplier from main stat
+    const mainStatMulti = stats.mainStatMulti;
+    // Multiplier from weapon damage
+    const wdMulti = stats.wdMulti;
+    // Multiplier for a successful crit
+    const critMulti = stats.critMulti;
+    // Crit chance
+    // const critRate = gear.computedStats.critChance + extraBuffCritRate;
+    const critRate = stats.critChance;
+    // Dh chance
+    // Det multiplier
+    const detMulti = stats.detMulti;
+    // Extra damage from auto DH bonus
+    const tncMulti = 1000 / 1000 // if tank you'd do Funcs.fTEN(stats.tenacity, level) / 1000
+    const traitMulti = stats.traitMulti;
+
+    // Base action potency and main stat multi
+    const basePotency = fl(potency * mainStatMulti * 100) / 100;
+    // Factor in determination and auto DH multiplier
+    const afterDet = fl(basePotency * detMulti * 100) / 100;
+    // Factor in Tenacity multiplier
+    const afterTnc = fl(afterDet * tncMulti * 100) / 100;
+    // Factor in weapon damage multiplier
+    const afterWeaponDamage = fl(afterTnc * wdMulti);
+    // const d5 = fl(fl(afterWeaponDamage * critMulti) * DH_MULT)
+    // Factor in auto crit multiplier
+    const afterAutoCrit = autoCrit ? fl(afterWeaponDamage * (1 + (critRate * (critMulti - 1)))) : afterWeaponDamage;
+    // Factor in auto DH multiplier
+    // Factor in trait multiplier
+    const afterTrait = fl(fl(afterAutoCrit * traitMulti) / 100);
+    // console.log([basePotency, afterDet, afterTnc, afterWeaponDamage, d5, afterAutoCrit, d7, afterTrait]);
+
+    return afterTrait;
 }
 
 export function applyDhCrit(baseDamage: number, stats: ComputedSetStats) {
     return baseDamage * (1 + stats.dhitChance * (stats.dhitMulti - 1)) * (1 + stats.critChance * (stats.critMulti - 1));
+}
+
+export function applyCrit(baseDamage: number, stats: ComputedSetStats) {
+    return baseDamage * (1 + stats.critChance * (stats.critMulti - 1));
+
 }
 
