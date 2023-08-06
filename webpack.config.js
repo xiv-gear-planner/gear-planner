@@ -5,6 +5,10 @@ module.exports = {
         path: __dirname + "/dist",
         clean: false
     },
+    optimization: {
+        minimize: false,
+
+    },
     devtool: 'inline-source-map',
     module: {
         rules: [

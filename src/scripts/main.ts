@@ -1,7 +1,7 @@
 // import '@webcomponents/webcomponentsjs/webcomponents-bundle.js'
 // import '@webcomponents/webcomponentsjs/custom-elements-es5-adapter.js'
 
-import {GearPlanSheet, NewSheetForm, SheetPickerTable} from "./components";
+import {GearPlanSheet, ImportSheetArea, NewSheetForm, SheetPickerTable} from "./components";
 import {DataManager} from "./datamanager";
 
 
@@ -55,12 +55,22 @@ function processHash() {
     else if (hash[0] === "newsheet") {
         showNewSheetForm();
     }
+    else if (hash[0] === "importsheet") {
+        showImportSheetForm();
+    }
 }
 
 export function showNewSheetForm() {
     setHash('newsheet');
     setTitle('New Sheet');
     contentArea.replaceChildren(new NewSheetForm(openSheet));
+    setEditorAreaContent();
+}
+
+export function showImportSheetForm() {
+    setHash('importsheet')
+    setTitle('Import Sheet');
+    contentArea.replaceChildren(new ImportSheetArea());
     setEditorAreaContent();
 }
 

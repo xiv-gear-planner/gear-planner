@@ -634,17 +634,24 @@ gear-set-editor {
   }
 }
 
-#set-import-area {
+import-set-area {
 
   textarea {
-
+    color: var(--fg-color);
     background: var(--table-bg-color);
-
     border: var(--thick-border);
-
+    border-radius: 5px;
     width: min(600px, 90vw);
-
     height: 300px;
+  }
+
+  #set-import-textarea-holder {
+    border-radius: 5px;
+    width: fit-content;
+    height: fit-content;
+    position: relative;
+    margin: auto;
+
   }
 }
 
