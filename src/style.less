@@ -23,6 +23,7 @@ body {
   --stat-color: var(--fg-color);
   --modal-backdrop-color: #88888833;
   --error-border-color: #9c0000;
+  --standard-border-radius: 5px;
 
   color: var(--fg-color);
   background-color: var(--bg-color);
@@ -31,37 +32,70 @@ body {
   flex-direction: column;
   min-height: 0;
   height: 100vh;
+  width: 100vw;
   overflow-y: hidden;
   margin: 0;
-}
 
-div#dev-menu-area {
-  flex: 0;
-  margin: 5px;
-  padding: 5px;
-  border: 1px solid var(--border-color);
+  // Main page flex layout stuff
+  div#dev-menu-area {
+    //flex: 0;
+    margin: 5px;
+    padding: 5px;
+    border: 1px solid var(--border-color);
 
-  button {
-    margin: 10px;
+    button {
+      margin: 10px;
+    }
+  }
+
+  div#main-menu-area {
+    border-bottom: 2px solid var(--border-color);
+    text-align: center;
+    margin-bottom: 10px;
+
+    a:link,
+    a:active,
+    a:visited,
+    a:hover {
+      color: var(--bg-color);
+      background-color: var(--fg-color);
+      border-radius: 3px;
+      padding: 5px;
+      text-decoration: none;
+      display: inline-block;
+      margin: 5px;
+    }
+
+    a:hover {
+      background-color: #ccccdd;
+    }
+  }
+
+  div#content-area {
+    position: relative;
+    flex-grow: 1;
+
+    > *:only-child {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      bottom: 0;
+    }
   }
 }
 
-div#content-area {
-  /*flex-grow: 0;*/
-  /*flex-shrink: 9999;*/
-  flex-basis: content;
-  overflow-y: auto;
-  min-height: 0;
-  flex-shrink: 1;
-  flex-grow: 1;
-  max-height: 100%;
+.standard-border-radius {
+  border-radius: var(--standard-border-radius);
 }
+
 
 /* Doesn't work on Firefox yet */
 /*div#content-area:has(gear-plan) {*/
 /*    max-height: 50vh;*/
 /*}*/
 
+// TODO
 div#editor-area {
   text-align: center;
   overflow-y: scroll;
@@ -78,6 +112,11 @@ div#editor-area {
   table {
     text-align: left;
   }
+}
+
+// TODO
+div#main-page-padding {
+  flex-grow: 9999999;
 }
 
 
@@ -178,6 +217,27 @@ table {
       &:last-child {
         border-right: var(--standard-border);
       }
+
+      &[col-id="actions"] div {
+        display: inline-flex;
+      }
+
+      &[col-id="icon"] {
+        padding: 0;
+        margin: 0;
+        border-right: none;
+      }
+
+      &[col-id="itemname"] {
+        border-left: none;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        white-space: nowrap;
+      }
+
+      &[col-id="icon"] img {
+        display: block;
+      }
     }
   }
 }
@@ -188,13 +248,13 @@ select {
   color: var(--fg-color);
   background-color: var(--bg-color);
   border: 1px solid var(--border-color);
-  border-radius: 5px;
+  .standard-border-radius;
 }
 
 button {
   color: var(--fg-color);
   background-color: var(--bg-color);
-  border-radius: 5px;
+  .standard-border-radius;
   border: 1px solid var(--border-color);
 
   &:hover {
@@ -213,33 +273,13 @@ button {
   padding-right: 8px;
 }
 
-td[col-id="actions"] div {
-  display: inline-flex;
-}
-
-td[col-id="icon"] {
-  padding: 0;
-  margin: 0;
-  border-right: none;
-}
-
-td[col-id="itemname"] {
-  border-left: none;
-  text-overflow: ellipsis;
-  overflow: hidden;
-  white-space: nowrap;
-}
-
-td[col-id="icon"] img {
-  display: block;
-}
 
 input {
   &[type="text"],
   &[type="number"] {
     color: var(--fg-color);
     background-color: var(--bg-color);
-    border-radius: 5px;
+    .standard-border-radius;
     border-color: var(--border-color);
 
     &:invalid {
@@ -344,6 +384,7 @@ table.gear-plan-table {
     top: 0;
     border: var(--thick-border);
     z-index: 99;
+    background-color: color-mix(in srgb, var(--table-bg-color) 60%, transparent);
 
     th {
       height: 54px;
@@ -363,27 +404,6 @@ table.gear-plan-table {
   }
 }
 
-#gear-sheet-button-row {
-  left: 0;
-  bottom: 0;
-  position: sticky;
-  z-index: 99;
-  //background-color: var(--table-bg-color);
-  //border: var(--thick-border);
-  box-sizing: border-box;
-  text-align: left;
-  // I hate css
-  margin-right: -300px;
-  width: min(100%, 100vw);
-  margin-top: 8px;
-  pointer-events: none;
-
-  > * {
-    margin-right: 10px;
-    pointer-events: auto;
-  }
-
-}
 
 .button-row {
   > * {
@@ -408,52 +428,111 @@ table.gear-plan-table {
 
 gear-plan {
   margin: auto;
-  width: fit-content;
+  //width: fit-content;
   display: block;
   position: relative;
   // Make the loading spinner happy
   min-width: 120px;
+  display: flex;
+  flex-direction: column;
 
-  table {
-    margin: auto;
+  div#editor-area {
+  }
+
+  &.loading .hide-when-loading {
+    display: none;
+  }
+
+  .gear-sheet-table-area {
+    .gear-sheet-table-area-inner {
+      margin: auto;
+      width: fit-content;
+    }
+
+    table {
+      margin: auto;
+    }
+
+    /*flex-grow: 0;*/
+    /*flex-shrink: 9999;*/
+    flex-basis: content;
+    overflow: auto;
+    min-height: 0;
+    flex-shrink: 1;
+    flex-grow: 1;
+    max-height: 100%;
+  }
+
+
+  .gear-sheet-buttons-area {
+    left: 0;
+    bottom: 0;
+    position: sticky;
+    z-index: 99;
+    //background-color: var(--table-bg-color);
+    //border: var(--thick-border);
+    box-sizing: border-box;
+    text-align: left;
+    // I hate css
+    margin-right: -60px;
+    width: min(100%, 100vw);
+    pointer-events: none;
+    background-color: color-mix(in srgb, var(--bg-color) 80%, transparent);
+
+    border-top: var(--standard-border);
+
+    margin-top: 0;
+
+    padding: 2px;
+
+    > * {
+      margin-right: 10px;
+      pointer-events: auto;
+      box-sizing: border-box;
+      height: 20px;
+    }
+
+  }
+
+  .gear-sheet-editor-area {
+    text-align: center;
+    overflow: auto;
+    flex-basis: 60%;
+    //flex-shrink: 99;
+    flex-grow: 9999;
+    min-height: 60%;
+    max-height: 100%;
+    border-top: 2px solid var(--border-color);
+    margin-top: 5px;
+    padding-top: 8px;
+    padding-bottom: 8px;
+
+    table {
+      text-align: left;
+      padding: 5px;
+    }
+
+    table.gear-items-table, table.food-items-table {
+      margin: auto auto 5px;
+
+      tr, td {
+        height: 25px;
+      }
+
+      img {
+        height: 100%;
+      }
+    }
+
+    table.left-side-gear-table, table.right-side-gear-table {
+      display: inline-block;
+      vertical-align: top;
+    }
   }
 }
 
-
-table#gear-items-table, table#food-items-table {
-  margin: auto auto 5px;
-
-  tr, td {
-    height: 25px;
-  }
-
-  img {
-    height: 100%;
-  }
-}
-
-
-div#main-menu-area {
-  border-bottom: 2px solid var(--border-color);
-  text-align: center;
-  margin-bottom: 10px;
-
-  a:link,
-  a:active,
-  a:visited,
-  a:hover {
-    color: var(--bg-color);
-    background-color: var(--fg-color);
-    border-radius: 3px;
-    padding: 5px;
-    text-decoration: none;
-    display: inline-block;
-    margin: 5px;
-  }
-
-  a:hover {
-    background-color: #ccccdd;
-  }
+.flex-padding-item {
+  flex-grow: 0.00001;
 }
 
 
@@ -531,7 +610,7 @@ slot-materia-manager {
 
   &.materia-manager-active {
     box-shadow: 0 0 2px 2px var(--table-selected-outline-color) inset;
-    border-radius: 5px;
+    .standard-border-radius;
   }
 
   & > span {
@@ -646,18 +725,37 @@ import-set-area {
     color: var(--fg-color);
     background: var(--table-bg-color);
     border: var(--thick-border);
-    border-radius: 5px;
+    .standard-border-radius;
     width: min(600px, 90vw);
     height: 300px;
   }
 
   #set-import-textarea-holder {
-    border-radius: 5px;
+    .standard-border-radius;
     width: fit-content;
     height: fit-content;
     position: relative;
     margin: auto;
 
+  }
+}
+
+ilvl-range-picker {
+  border: var(--standard-border);
+  .standard-border-radius;
+  display: inline-block;
+
+  span {
+    font-size: 13.333px;
+    padding: 5px;
+  }
+
+  input {
+    border: none;
+    padding: 0 0px 0 0px;
+    background: none;
+    width: 30px;
+    text-align: center;
   }
 }
 

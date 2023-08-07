@@ -1,5 +1,6 @@
 import {EquippedItem} from "./gear";
 import {FAKE_MAIN_STATS, JobName, RaceName, REAL_MAIN_STATS, SPECIAL_SUB_STATS, SupportedLevel} from "./xivconstants";
+import {ItemDisplaySettings} from "./components";
 export interface GearSlot {
 
 }
@@ -323,6 +324,7 @@ export interface SheetExport {
     level: SupportedLevel,
     sets: SetExport[],
     sims: SimExport[],
+    itemDisplaySettings: ItemDisplaySettings
 }
 
 export type EquipSlotKeys = keyof EquipmentSet;

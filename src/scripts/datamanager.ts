@@ -1,34 +1,33 @@
 import {processRawMateriaInfo, XivApiFoodInfo, XivApiGearInfo} from "./gear";
-import {JobName, MATERIA_LEVEL_MAX_NORMAL, RaceName, SupportedLevel} from "./xivconstants";
+import {JobName, MATERIA_LEVEL_MAX_NORMAL, SupportedLevel} from "./xivconstants";
 import {GearItem, Materia} from "./geartypes";
 import {xivApiGet} from "./external/xivapi";
 
 export class DataManager {
-    items: XivApiGearInfo[];
-    materiaTypes: Materia[];
-    foodItems: XivApiFoodInfo[];
+    allItems: XivApiGearInfo[];
+    allMateria: Materia[];
+    allFoodItems: XivApiFoodInfo[];
 
-    minIlvl = 640;
+    minIlvl = 570;
     maxIlvl = 999;
-    minIlvlFood = 610;
+    minIlvlFood = 540;
     maxIlvlFood = 999;
     classJob: JobName = 'WHM'
-    race: RaceName | null = null;
     level: SupportedLevel = 90;
 
     itemById(id: number): (GearItem | undefined) {
-        return this.items.find(item => item.id === id);
+        return this.allItems.find(item => item.id === id);
     }
 
     materiaById(id: number): (Materia | undefined) {
         if (id < 0) {
             return undefined;
         }
-        return this.materiaTypes.find(item => item.id === id);
+        return this.allMateria.find(item => item.id === id);
     }
 
     foodById(id: number) {
-        return this.foodItems.find(food => food.id === id);
+        return this.allFoodItems.find(food => food.id === id);
     }
 
     loadData() {
@@ -50,7 +49,7 @@ export class DataManager {
                     console.error(`Got No Items!`);
                 }
             }).then((rawItems) => {
-                this.items = rawItems.map(i => new XivApiGearInfo(i));
+                this.allItems = rawItems.map(i => new XivApiGearInfo(i));
                 // TODO: put up error
             }, (e) => console.error(e));
 
@@ -72,12 +71,12 @@ export class DataManager {
             .then((data) => {
                 if (data) {
                     console.log(`Got ${data.Results.length} Materia Types`)
-                    this.materiaTypes = data.Results
+                    this.allMateria = data.Results
                         .filter(i => i['Value' + (MATERIA_LEVEL_MAX_NORMAL - 1)])
                         .flatMap(item => {
                             return processRawMateriaInfo(item);
                         });
-                    console.log(`Processed ${this.materiaTypes.length} total Materia items`);
+                    console.log(`Processed ${this.allMateria.length} total Materia items`);
                 }
                 else {
                     console.error('Got No Materia!');
@@ -98,7 +97,7 @@ export class DataManager {
             })
             .then((rawFoods) => rawFoods.map(i => new XivApiFoodInfo(i)))
             .then((processedFoods) => processedFoods.filter(food => Object.keys(food.bonuses).length > 1))
-            .then((foods) => this.foodItems = foods,
+            .then((foods) => this.allFoodItems = foods,
                 e => console.error(e));
         return Promise.all([itemsPromise, materiaPromise, foodPromise]);
     }

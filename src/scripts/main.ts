@@ -2,6 +2,7 @@
 // import '@webcomponents/webcomponentsjs/custom-elements-es5-adapter.js'
 
 import {
+    defaultItemDisplaySettings,
     GearPlanSheet,
     GearPlanTable,
     ImportSheetArea,
@@ -13,6 +14,7 @@ import {SetExport, SheetExport} from "./geartypes";
 
 
 export const contentArea = document.getElementById("content-area");
+// export const midBarArea = document.getElementById("mid-controls-area");
 export const topMenuArea = document.getElementById("dev-menu-area");
 const editorArea = document.getElementById("editor-area");
 
@@ -38,6 +40,12 @@ function arrayEq(left: any[] | undefined, right: any[] | undefined) {
         }
     }
     return true;
+}
+
+function setMainContent(title: string,  ...nodes) {
+    contentArea.replaceChildren(...nodes);
+    this.setMidBarContent();
+    this.setEditorAreaContent();
 }
 
 function processHash() {
@@ -69,7 +77,7 @@ function processHash() {
             // TODO this is kind of bad
             const json = hash.slice(1).join('/');
             const parsed = JSON.parse(decodeURI(json)) as SheetExport;
-            const sheet = new GearPlanSheet(undefined, setEditorAreaContent, parsed);
+            const sheet = new GearPlanSheet(undefined, parsed);
             // sheet.name = SHARED_SET_NAME;
             openSheet(sheet, false);
         }
@@ -87,9 +95,10 @@ function processHash() {
                 saveKey: undefined,
                 job: parsed.job,
                 level: parsed.level,
-                partyBonus: 0
+                partyBonus: 0,
+                itemDisplaySettings: defaultItemDisplaySettings,
             }
-            const sheet = new GearPlanSheet(undefined, setEditorAreaContent, fakeSheet);
+            const sheet = new GearPlanSheet(undefined, fakeSheet);
             // sheet.name = SHARED_SET_NAME;
             openSheet(sheet, false);
         }
@@ -98,16 +107,12 @@ function processHash() {
 
 export function showNewSheetForm() {
     setHash('newsheet');
-    setTitle('New Sheet');
-    contentArea.replaceChildren(new NewSheetForm(openSheet));
-    setEditorAreaContent();
+    setMainContent('New Sheet', new NewSheetForm(openSheet));
 }
 
 export function showImportSheetForm() {
     setHash('importsheet')
-    setTitle('Import Sheet');
-    contentArea.replaceChildren(new ImportSheetArea());
-    setEditorAreaContent();
+    setMainContent('Import Sheet', new ImportSheetArea());
 }
 
 function setTitle(titlePart: string | undefined) {
@@ -135,7 +140,7 @@ export async function openSheetByKey(sheet: string) {
     // TODO: handle nonexistent sheet
     setTitle('Loading Sheet');
     console.log('openSheetByKey: ', sheet);
-    const planner = GearPlanSheet.fromSaved(sheet, setEditorAreaContent);
+    const planner = GearPlanSheet.fromSaved(sheet);
     await openSheet(planner);
     setTitle(planner.name);
 }
@@ -157,20 +162,9 @@ export async function openSheet(planner: GearPlanSheet, changeHash: boolean = tr
 }
 
 function showSheetPickerMenu() {
-    contentArea.replaceChildren(new SheetPickerTable());
-    setTitle(undefined);
-    setEditorAreaContent();
-}
-
-export function setEditorAreaContent(...nodes: Node[]) {
-    if (nodes.length === 0) {
-        editorArea.replaceChildren();
-        editorArea.style.display = 'none';
-    }
-    else {
-        editorArea.replaceChildren(...nodes);
-        editorArea.style.display = 'block';
-    }
+    setMainContent(undefined, new SheetPickerTable());
+    // contentArea.replaceChildren(new SheetPickerTable());
+    // setTitle(undefined);
 }
 
 function earlyUiSetup() {
