@@ -1,6 +1,7 @@
 import {
     ALL_SUB_STATS,
-    EMPTY_STATS, FAKE_MAIN_STATS,
+    EMPTY_STATS,
+    FAKE_MAIN_STATS,
     getClassJobStats,
     getLevelStats,
     getRaceStats,
@@ -9,7 +10,10 @@ import {
     MATERIA_LEVEL_MAX_OVERMELD,
     MATERIA_LEVEL_MIN_RELEVANT,
     MATERIA_SLOTS_MAX,
-    RaceName, REAL_MAIN_STATS, SPECIAL_SUB_STATS, statById,
+    RaceName,
+    REAL_MAIN_STATS,
+    SPECIAL_SUB_STATS,
+    statById,
 } from "./xivconstants";
 import {
     autoDhBonusDmg,
@@ -18,14 +22,17 @@ import {
     detDmg,
     dhitChance,
     dhitDmg,
-    mainStatMulti, mpTick, sksTickMulti,
-    sksToGcd, spsTickMulti,
+    mainStatMulti,
+    mpTick,
+    sksTickMulti,
+    sksToGcd,
+    spsTickMulti,
     spsToGcd,
     wdMulti
 } from "./xivmath";
 import {
     ComputedSetStats,
-    EquipmentSet, EquipSlots,
+    EquipmentSet,
     FoodItem,
     GearItem,
     GearSlot,
@@ -40,8 +47,8 @@ import {
     xivApiStatToRawStatKey,
     XivCombatItem
 } from "./geartypes";
-import {DataManager} from "./datamanager";
 import {GearPlanSheet} from "./components";
+import {xivApiIcon} from "./external/xivapi";
 
 
 export class EquippedItem {
@@ -299,7 +306,8 @@ export class CharacterGearSet {
                 cap: cap,
                 mode: "melded-overcapped",
             }
-        } else {
+        }
+        else {
             return {
                 effectiveAmount: cap,
                 fullAmount: meldedStatValue,
@@ -352,7 +360,7 @@ export class XivApiGearInfo implements GearItem {
         this.id = data['ID'];
         this.name = data['Name'];
         this.ilvl = data['LevelItem'];
-        this.iconUrl = new URL(`https://xivapi.com/${data['IconHD']}`);
+        this.iconUrl = xivApiIcon(data['IconHD']);
         this.Stats = data['Stats'];
         var eqs = data['EquipSlotCategory'];
         if (eqs['MainHand']) {
@@ -443,12 +451,21 @@ export class XivApiGearInfo implements GearItem {
         const overmeld: boolean = data['IsAdvancedMeldingPermitted'] as boolean;
         for (let i = 0; i < baseMatCount; i++) {
             // TODO: figure out grade automatically
-            this.materiaSlots.push({maxGrade: MATERIA_LEVEL_MAX_NORMAL, allowsHighGrade: true});
+            this.materiaSlots.push({
+                maxGrade: MATERIA_LEVEL_MAX_NORMAL,
+                allowsHighGrade: true
+            });
         }
         if (overmeld) {
-            this.materiaSlots.push({maxGrade: MATERIA_LEVEL_MAX_NORMAL, allowsHighGrade: true})
+            this.materiaSlots.push({
+                maxGrade: MATERIA_LEVEL_MAX_NORMAL,
+                allowsHighGrade: true
+            })
             for (let i = this.materiaSlots.length; i < MATERIA_SLOTS_MAX; i++) {
-                this.materiaSlots.push({maxGrade: MATERIA_LEVEL_MAX_OVERMELD, allowsHighGrade: false});
+                this.materiaSlots.push({
+                    maxGrade: MATERIA_LEVEL_MAX_OVERMELD,
+                    allowsHighGrade: false
+                });
             }
         }
     }
