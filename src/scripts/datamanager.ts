@@ -1,7 +1,7 @@
 import {processRawMateriaInfo, XivApiFoodInfo, XivApiGearInfo} from "./gear";
 import {JobName, MATERIA_LEVEL_MAX_NORMAL, RaceName, SupportedLevel} from "./xivconstants";
 import {GearItem, Materia} from "./geartypes";
-import {getAll, searchAll} from "./external/xivapi";
+import {xivApiGet} from "./external/xivapi";
 
 export class DataManager {
     items: XivApiGearInfo[];
@@ -33,7 +33,13 @@ export class DataManager {
 
     loadData() {
         console.log("loading items");
-        const itemsPromise = searchAll('Item', [`LevelItem>=${this.minIlvl}`, `LevelItem<=${this.maxIlvl}`, `ClassJobCategory.${this.classJob}=1`], ['ID', 'IconHD', 'Name', 'LevelItem', 'Stats', 'EquipSlotCategory', 'MateriaSlotCount', 'IsAdvancedMeldingPermitted', 'DamageMag', 'DamagePhys'])
+        // Gear Items
+        const itemsPromise = xivApiGet({
+            requestType: 'search',
+            sheet: 'Item',
+            columns: ['ID', 'IconHD', 'Name', 'LevelItem', 'Stats', 'EquipSlotCategory', 'MateriaSlotCount', 'IsAdvancedMeldingPermitted', 'DamageMag', 'DamagePhys'],
+            filters: [`LevelItem>=${this.minIlvl}`, `LevelItem<=${this.maxIlvl}`, `ClassJobCategory.${this.classJob}=1`],
+        })
             // const itemsPromise = fetch(`https://xivapi.com/search?indexes=Item&filters=LevelItem%3E=${this.minIlvl},LevelItem%3C=${this.maxIlvl},ClassJobCategory.${this.classJob}=1&columns=ID,IconHD,Name,LevelItem,Stats,EquipSlotCategory,MateriaSlotCount,IsAdvancedMeldingPermitted,DamageMag,DamagePhys`)
             .then((data) => {
                 if (data) {
@@ -47,6 +53,8 @@ export class DataManager {
                 this.items = rawItems.map(i => new XivApiGearInfo(i));
                 // TODO: put up error
             }, (e) => console.error(e));
+
+        // Materia
         const matCols = ['ID', 'Value*', 'BaseParam.ID'];
         for (let i = 0; i < MATERIA_LEVEL_MAX_NORMAL; i++) {
             matCols.push(`Item${i}.Name`);
@@ -54,7 +62,12 @@ export class DataManager {
             matCols.push(`Item${i}.IconHD`);
             matCols.push(`Item${i}.ID`);
         }
-        const materiaPromise = getAll('Materia', [], matCols)
+        const materiaPromise = xivApiGet({
+            requestType: 'list',
+            sheet: 'Materia',
+            columns: matCols,
+            pageLimit: 1
+        })
             // const materiaPromise = fetch(`https://xivapi.com/Materia?columns=${matCols.join(',')}`)
             .then((data) => {
                 if (data) {
@@ -72,9 +85,12 @@ export class DataManager {
             }, e => {
                 console.error(e);
             });
-        const foodPromise = searchAll('Item',
-            ['ItemKind.ID=5', 'ItemSearchCategory.ID=45', `LevelItem%3E=${this.minIlvlFood}`, `LevelItem%3C=${this.maxIlvlFood}`],
-            ['ID', 'IconHD', 'Name', 'LevelItem', 'Bonuses'])
+        const foodPromise = xivApiGet({
+            requestType: 'search',
+            sheet: 'Item',
+            filters: ['ItemKind.ID=5', 'ItemSearchCategory.ID=45', `LevelItem%3E=${this.minIlvlFood}`, `LevelItem%3C=${this.maxIlvlFood}`],
+            columns: ['ID', 'IconHD', 'Name', 'LevelItem', 'Bonuses']
+        })
             // const foodPromise = fetch(`https://xivapi.com/search?indexes=Item&filters=ItemKind.ID=5,ItemSearchCategory.ID=45,LevelItem%3E=${this.minIlvlFood},LevelItem%3C=${this.maxIlvlFood}&columns=ID,IconHD,Name,LevelItem,Bonuses`)
             .then((data) => {
                 console.log(`Got ${data.Results.length} Food Items`);
