@@ -34,6 +34,13 @@ Stats should be laid out in the following visual order:
 8. Spell/Skill Speed
 9. Piety/Tenacity
 
+## Adding Support for a New Job
+
+To add a job, you must do the following:
+1. Add the job to the `JobName` type in `xivconstants.ts`.
+2. Add the job's level stats to `JOB_DATA` in `xivconstants.ts`.
+3. If needed, add additional fields to `ComputedSetStats` and add the math to `get computedSetStats()` in `gear.ts`.
+
 ## Contributing Simulations
 
 To add a simulation, you must do the following:
@@ -56,3 +63,6 @@ would require hard number crunching, then it should either expose an API that th
 Gear Calc can connect to so that an external server can do the heavy lifting.
 Or, if it is already written in TS/JS, it could be implemented via WebWorkers so that 
 it will not block the UI.
+
+You can return additional fields in your `SimResults`. These extra fields will be exposed in a tooltip when
+hovering over a cell.
