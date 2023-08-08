@@ -9,6 +9,13 @@ export const LEVEL_MAX: SupportedLevel = 90;
 export type JobName = 'WHM' | 'SGE';
 
 export type RaceName = 'Duskwight' | 'Wildwood'
+    | 'Raen' | 'Xaela'
+    | 'Veena' | 'Rava'
+    | 'Helion' | 'The Lost'
+    | 'Hellsguard' | 'Sea Wolf'
+    | 'Seekers of the Sun' | 'Keepers of the Moon'
+    | 'Midlander' | 'Highlander'
+    | 'Dunesfolk' | 'Plainsfolk'
 
 export const SupportedLevels = [80, 90] as const;
 export type SupportedLevel = typeof SupportedLevels[number];
@@ -51,6 +58,7 @@ export const JOB_DATA: Record<JobName, JobData> = {
 }
 
 export const RACE_STATS: Record<RaceName, RawStats> = {
+    // Elezen
     'Duskwight': new RawStats({
         vitality: -1,
         intelligence: 3,
@@ -61,7 +69,111 @@ export const RACE_STATS: Record<RaceName, RawStats> = {
         vitality: -1,
         intelligence: 2,
         mind: -1
-    })
+    }),
+    // Miqo
+    "Seekers of the Sun": new RawStats({
+        strength: 2,
+        dexterity: 3,
+        intelligence: -1,
+        mind: -1,
+    }),
+    "Keepers of the Moon": new RawStats({
+        strength: -1,
+        dexterity: 2,
+        vitality: -2,
+        intelligence: 1,
+        mind: 3,
+    }),
+    // Roe
+    "Sea Wolf": new RawStats({
+        strength: 2,
+        dexterity:-1,
+        vitality: 3,
+        intelligence: -2,
+        mind: 1,
+    }),
+    Hellsguard: new RawStats({
+        strength: 0,
+        dexterity: -2,
+        vitality: 3,
+        intelligence: 0,
+        mind: 2,
+    }),
+    // Hroth
+    "The Lost": new RawStats({
+        strength: 3,
+        dexterity: -3,
+        vitality: 3,
+        intelligence: -3,
+        mind: 3,
+    }),
+    Helion: new RawStats({
+        strength: 3,
+        dexterity: -3,
+        vitality: 3,
+        intelligence: -3,
+        mind: 3,
+    }),
+    // Hyur
+    Highlander: new RawStats({
+        strength: 3,
+        dexterity: 0,
+        vitality: 2,
+        intelligence: -2,
+        mind: 0,
+    }),
+    Midlander: new RawStats({
+        strength: 2,
+        dexterity: -1,
+        vitality: 0,
+        intelligence: 3,
+        mind: -1,
+    }),
+    // Lala
+    Plainsfolk: new RawStats({
+        strength: -1,
+        dexterity: 3,
+        vitality: -1,
+        intelligence: 2,
+        mind: 0,
+    }),
+    Dunesfolk: new RawStats({
+        strength: -1,
+        dexterity: 1,
+        vitality: -2,
+        intelligence: 2,
+        mind: 3,
+    }),
+    // Viera
+    Rava: new RawStats({
+        strength: 0,
+        dexterity: 3,
+        vitality: -2,
+        intelligence: 1,
+        mind: 1,
+    }),
+    Veena: new RawStats({
+        strength: -1,
+        dexterity: 0,
+        vitality: -1,
+        intelligence: 3,
+        mind: 2,
+    }),
+    // Au Ra
+    Xaela: new RawStats({
+        strength: 3,
+        dexterity: 0,
+        vitality: 2,
+        intelligence: 0,
+        mind: -2,
+    }),
+    Raen: new RawStats({
+        strength: -1,
+        dexterity: 2,
+        vitality: -1,
+        intelligence: 0,
+        mind: 3,
+    }),
 }
 
 export const LEVEL_STATS: Record<SupportedLevel, LevelStats> = {

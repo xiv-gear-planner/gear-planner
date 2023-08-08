@@ -15,7 +15,7 @@ export class Inactivitytimer {
     }
 
     ping() {
-        console.log('ping');
+        console.debug('ping');
         this.counter++;
         const expectedCount = this.counter;
         setTimeout(() => {
@@ -24,7 +24,7 @@ export class Inactivitytimer {
     }
 
     private pingAfter(exectedCount: number) {
-        console.log('pingafter', exectedCount, this.counter);
+        console.debug('pingafter', exectedCount, this.counter);
         if (this.counter === exectedCount) {
             this.onInactivity();
         }
