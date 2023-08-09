@@ -14,7 +14,11 @@ export interface GearSlot {
 
 }
 
-export const GearSlots: Record<string, GearSlot> = {
+export const GearSlots = ['Weapon', 'Head', 'Body', 'Hand', 'Legs', 'Feet', 'Ears', 'Neck', 'Wrist', 'Ring'] as const;
+export type GearSlotKey = typeof GearSlots[number];
+
+// For future use, in the event that these actually require properties
+export const GearSlotInfo: Record<GearSlotKey, GearSlot> = {
     Weapon: {},
     Head: {},
     Body: {},
@@ -40,17 +44,17 @@ export const EquipSlots = ['Weapon', 'Head', 'Body', 'Hand', 'Legs', 'Feet', 'Ea
 export type EquipSlotKey = typeof EquipSlots[number];
 
 export const EquipSlotInfo: Record<EquipSlotKey, EquipSlot> = {
-    Weapon: {slot: 'Weapon', name: 'Weapon', gearSlot: GearSlots.Weapon},
-    Head: {slot: 'Head', name: 'Head', gearSlot: GearSlots.Head},
-    Body: {slot: 'Body', name: 'Body', gearSlot: GearSlots.Body},
-    Hand: {slot: 'Hand', name: 'Hand', gearSlot: GearSlots.Hand},
-    Legs: {slot: 'Legs', name: 'Legs', gearSlot: GearSlots.Legs},
-    Feet: {slot: 'Feet', name: 'Feet', gearSlot: GearSlots.Feet},
-    Ears: {slot: 'Ears', name: 'Ears', gearSlot: GearSlots.Ears},
-    Neck: {slot: 'Neck', name: 'Neck', gearSlot: GearSlots.Neck},
-    Wrist: {slot: 'Wrist', name: 'Wrist', gearSlot: GearSlots.Wrist},
-    RingLeft: {slot: 'RingLeft', name: 'Left Ring', gearSlot: GearSlots.Ring},
-    RingRight: {slot: 'RingRight', name: 'Right Ring', gearSlot: GearSlots.Ring}
+    Weapon: {slot: 'Weapon', name: 'Weapon', gearSlot: GearSlotInfo.Weapon},
+    Head: {slot: 'Head', name: 'Head', gearSlot: GearSlotInfo.Head},
+    Body: {slot: 'Body', name: 'Body', gearSlot: GearSlotInfo.Body},
+    Hand: {slot: 'Hand', name: 'Hand', gearSlot: GearSlotInfo.Hand},
+    Legs: {slot: 'Legs', name: 'Legs', gearSlot: GearSlotInfo.Legs},
+    Feet: {slot: 'Feet', name: 'Feet', gearSlot: GearSlotInfo.Feet},
+    Ears: {slot: 'Ears', name: 'Ears', gearSlot: GearSlotInfo.Ears},
+    Neck: {slot: 'Neck', name: 'Neck', gearSlot: GearSlotInfo.Neck},
+    Wrist: {slot: 'Wrist', name: 'Wrist', gearSlot: GearSlotInfo.Wrist},
+    RingLeft: {slot: 'RingLeft', name: 'Left Ring', gearSlot: GearSlotInfo.Ring},
+    RingRight: {slot: 'RingRight', name: 'Right Ring', gearSlot: GearSlotInfo.Ring}
 } as const;
 
 type KeyOfType<T, V> = keyof {

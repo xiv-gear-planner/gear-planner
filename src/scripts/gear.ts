@@ -36,7 +36,7 @@ import {
     FoodItem,
     GearItem,
     GearSlot,
-    GearSlots,
+    GearSlotInfo,
     Materia,
     MateriaSlot,
     MeldableMateriaSlot,
@@ -335,6 +335,10 @@ export class CharacterGearSet {
                 const cap = gearItem.substatCap;
                 materiaLoop:
                 for (let meldSlot of equipSlot.melds) {
+                    // If overwriting, we already cleared the slots, so this check is fine in any scenario.
+                    if (meldSlot.equippedMateria) {
+                        continue;
+                    }
                     const slotStats = this.getSlotEffectiveStats(slotKey);
                     // TODO: we also have gearItem.substatCap we can use to make it more direct
                     for (let stat of statPrio) {
@@ -342,9 +346,9 @@ export class CharacterGearSet {
                         if (!newMateria) {
                             continue;
                         }
-                        // Allow for losing 1 or 2 stat points
                         // TODO make this a setting?
-                        console.log(`Materia Fill: ${stat} ${newMateria.primaryStatValue} ${slotStats[stat]} ${cap}`);
+                        // console.log(`Materia Fill: ${stat} ${newMateria.primaryStatValue} ${slotStats[stat]} ${cap}`);
+                        // Allow for losing 1 or 2 stat points
                         if (newMateria.primaryStatValue + slotStats[stat] - 2 < cap) {
                             meldSlot.equippedMateria = newMateria;
                             continue materiaLoop;
@@ -402,34 +406,34 @@ export class XivApiGearInfo implements GearItem {
         this.Stats = data['Stats'];
         var eqs = data['EquipSlotCategory'];
         if (eqs['MainHand']) {
-            this.gearSlot = GearSlots.Weapon;
+            this.gearSlot = GearSlotInfo.Weapon;
         }
         else if (eqs['Head']) {
-            this.gearSlot = GearSlots.Head;
+            this.gearSlot = GearSlotInfo.Head;
         }
         else if (eqs['Body']) {
-            this.gearSlot = GearSlots.Body;
+            this.gearSlot = GearSlotInfo.Body;
         }
         else if (eqs['Gloves']) {
-            this.gearSlot = GearSlots.Hand;
+            this.gearSlot = GearSlotInfo.Hand;
         }
         else if (eqs['Legs']) {
-            this.gearSlot = GearSlots.Legs;
+            this.gearSlot = GearSlotInfo.Legs;
         }
         else if (eqs['Feet']) {
-            this.gearSlot = GearSlots.Feet;
+            this.gearSlot = GearSlotInfo.Feet;
         }
         else if (eqs['Ears']) {
-            this.gearSlot = GearSlots.Ears;
+            this.gearSlot = GearSlotInfo.Ears;
         }
         else if (eqs['Neck']) {
-            this.gearSlot = GearSlots.Neck;
+            this.gearSlot = GearSlotInfo.Neck;
         }
         else if (eqs['Wrists']) {
-            this.gearSlot = GearSlots.Wrist;
+            this.gearSlot = GearSlotInfo.Wrist;
         }
         else if (eqs['FingerL'] || eqs['FingerR']) {
-            this.gearSlot = GearSlots.Ring;
+            this.gearSlot = GearSlotInfo.Ring;
         }
         else {
             console.error("Unknown slot data!")
