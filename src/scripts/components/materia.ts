@@ -314,7 +314,17 @@ class MateriaDragger extends HTMLElement {
     }
 
     set xOffset(xOffset: number) {
-        this.inner.style.left = xOffset + 'px';
+        let newOffset;
+        if (xOffset > this.clientWidth) {
+            newOffset = this.clientWidth;
+        }
+        else if (-xOffset > this.clientWidth) {
+            newOffset = -this.clientWidth;
+        }
+        else {
+            newOffset = xOffset;
+        }
+        this.inner.style.left = newOffset + 'px';
 
     }
 
@@ -343,6 +353,7 @@ export class MateriaDragList extends HTMLElement {
             dragger.addEventListener('dragend', (ev) => {
                 ev.preventDefault();
                 dragger.xOffset = 0;
+                this.finishMovement();
                 // this.classList.remove('drag-active');
             });
         }
@@ -384,7 +395,7 @@ export class MateriaDragList extends HTMLElement {
             else {
                 return;
             }
-            this.processDrop();
+            this.processMovement();
         });
         this.fixChildren();
     }
@@ -396,16 +407,19 @@ export class MateriaDragList extends HTMLElement {
         this.replaceChildren(...this.subOptions);
     }
 
-    private processDrop() {
+    private processMovement() {
         const from = this.currentlyDragging ? this.subOptions.indexOf(this.currentlyDragging) : -1;
         const to = this.currentDropIndex;
         if (from < 0 || to < 0) {
             return;
         }
         this.subOptions.splice(to, 0, this.subOptions.splice(from, 1)[0]);
+        this.fixChildren();
+    }
+
+    private finishMovement() {
         this.prioController.statPrio = this.subOptions.map(option => option.stat);
         this.prioController.callback();
-        this.fixChildren();
     }
 }
 

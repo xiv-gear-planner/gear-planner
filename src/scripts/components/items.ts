@@ -9,7 +9,7 @@ import {
     GearSlotItem,
     RawStatKey,
     RawStats,
-    StatBonus, EquipSlotKey
+    StatBonus, EquipSlotKey, GearSlots
 } from "../geartypes";
 import {
     CustomCell,
@@ -219,6 +219,7 @@ function itemTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, stat: 
  */
 export class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
     private readonly materiaManagers: AllSlotMateriaManager[];
+    private selectionTracker: Map<keyof EquipmentSet, CustomRow<GearSlotItem> | GearSlotItem>;
 
     constructor(sheet: GearPlanSheet, gearSet: CharacterGearSet, itemMapping: Map<GearSlot, GearItem[]>, handledSlots?: EquipSlotKey[]) {
         super();
@@ -295,6 +296,7 @@ export class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
         this.materiaManagers = [];
         // Track the selected item in every category so that it can be more quickly refreshed
         const selectionTracker = new Map<keyof EquipmentSet, CustomRow<GearSlotItem> | GearSlotItem>();
+        this.selectionTracker = selectionTracker;
         const refreshSingleItem = (item: CustomRow<GearSlotItem> | GearSlotItem) => this.refreshRowData(item);
         for (const [name, slot] of Object.entries(EquipSlotInfo)) {
             if (handledSlots && !handledSlots.includes(name as EquipSlotKey)) {
@@ -371,6 +373,13 @@ export class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
 
     refreshMateria() {
         this.materiaManagers.forEach(mgr => mgr.refresh());
+        for (let equipSlot of EquipSlots) {
+            const selection = this.selectionTracker.get(equipSlot);
+            if (selection) {
+                this.refreshRowData(selection);
+            }
+        }
+
     }
 }
 
