@@ -44,8 +44,7 @@ function arrayEq(left: any[] | undefined, right: any[] | undefined) {
 
 function setMainContent(title: string,  ...nodes) {
     contentArea.replaceChildren(...nodes);
-    this.setMidBarContent();
-    this.setEditorAreaContent();
+    setTitle(title);
 }
 
 function processHash() {
@@ -174,9 +173,11 @@ function earlyUiSetup() {
     devMenu.appendChild(header);
     const nukeButton = document.createElement("button");
     nukeButton.addEventListener('click', (ev) => {
-        localStorage.clear();
-        setHash();
-        location.reload();
+        if (confirm('This will DELETE ALL sheets, sets, and settings.')) {
+            localStorage.clear();
+            setHash();
+            location.reload();
+        }
     })
     nukeButton.textContent = "Nuke Local Storage";
     devMenu.appendChild(nukeButton);

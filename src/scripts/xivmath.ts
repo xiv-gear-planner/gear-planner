@@ -230,7 +230,7 @@ export function baseDamage(stats: ComputedSetStats, potency: number, autoDH: boo
     const afterWeaponDamage = fl(afterTnc * wdMulti);
     // const d5 = fl(fl(afterWeaponDamage * critMulti) * DH_MULT)
     // Factor in auto crit multiplier
-    const afterAutoCrit = autoCrit ? fl(afterWeaponDamage * (1 + (critRate * (critMulti - 1)))) : afterTnc;
+    const afterAutoCrit = autoCrit ? fl(afterWeaponDamage * (1 + (critRate * (critMulti - 1)))) : afterWeaponDamage;
     // Factor in auto DH multiplier
     const afterAutoDh = autoDH ? fl(afterAutoCrit * (1 + (dhRate * (dhMulti - 1)))) : afterAutoCrit;
     // Factor in trait multiplier

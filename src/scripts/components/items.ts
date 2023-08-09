@@ -1,15 +1,15 @@
 import {CharacterGearSet, ItemSingleStatDetail} from "../gear";
 import {
     EquipmentSet,
-    EquipSlotKeys,
     EquipSlots,
+    EquipSlotInfo,
     FoodItem,
     GearItem,
     GearSlot,
     GearSlotItem,
     RawStatKey,
     RawStats,
-    StatBonus
+    StatBonus, EquipSlotKey
 } from "../geartypes";
 import {
     CustomCell,
@@ -218,8 +218,9 @@ function itemTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, stat: 
  * Table for displaying gear options for all slots
  */
 export class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
+    private readonly materiaManagers: AllSlotMateriaManager[];
 
-    constructor(sheet: GearPlanSheet, gearSet: CharacterGearSet, itemMapping: Map<GearSlot, GearItem[]>, handledSlots?: EquipSlotKeys[]) {
+    constructor(sheet: GearPlanSheet, gearSet: CharacterGearSet, itemMapping: Map<GearSlot, GearItem[]>, handledSlots?: EquipSlotKey[]) {
         super();
         this.classList.add("gear-items-table");
         super.columns = [
@@ -291,11 +292,12 @@ export class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
         ]
         const data: (TitleRow | HeaderRow | GearSlotItem)[] = [];
         const slotMateriaManagers = new Map<keyof EquipmentSet, AllSlotMateriaManager>();
+        this.materiaManagers = [];
         // Track the selected item in every category so that it can be more quickly refreshed
         const selectionTracker = new Map<keyof EquipmentSet, CustomRow<GearSlotItem> | GearSlotItem>();
         const refreshSingleItem = (item: CustomRow<GearSlotItem> | GearSlotItem) => this.refreshRowData(item);
-        for (const [name, slot] of Object.entries(EquipSlots)) {
-            if (handledSlots && !handledSlots.includes(name as EquipSlotKeys)) {
+        for (const [name, slot] of Object.entries(EquipSlotInfo)) {
+            if (handledSlots && !handledSlots.includes(name as EquipSlotKey)) {
                 continue;
             }
             const slotId = name as keyof EquipmentSet;
@@ -321,6 +323,7 @@ export class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
                 }
 
             });
+            this.materiaManagers.push(matMgr);
             slotMateriaManagers.set(slotId, matMgr);
             data.push(new SpecialRow(tbl => matMgr));
         }
@@ -333,7 +336,7 @@ export class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
             },
             clickRow(newSelection: CustomRow<GearSlotItem>) {
                 // refreshSingleItem old and new items
-                gearSet.setEquip(newSelection.dataItem.slotId, newSelection.dataItem.item);
+                gearSet.setEquip(newSelection.dataItem.slotId, newSelection.dataItem.item, sheet.materiaAutoFillController);
                 const matMgr = slotMateriaManagers.get(newSelection.dataItem.slotId);
                 if (matMgr) {
                     matMgr.refresh();
@@ -364,6 +367,10 @@ export class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
             }
         };
         this.data = data;
+    }
+
+    refreshMateria() {
+        this.materiaManagers.forEach(mgr => mgr.refresh());
     }
 }
 

@@ -89,6 +89,16 @@ body {
   border-radius: var(--standard-border-radius);
 }
 
+.standard-border {
+  border: var(--standard-border);
+}
+
+.standard-round-border {
+  .standard-border-radius;
+  .standard-border;
+
+}
+
 
 /* Doesn't work on Firefox yet */
 /*div#content-area:has(gear-plan) {*/
@@ -251,12 +261,17 @@ select {
   .standard-border-radius;
 }
 
+.button-font-style {
+  font-size: 13.333px;
+
+}
+
 .like-a-button {
   color: var(--fg-color);
   background-color: var(--bg-color);
   .standard-border-radius;
   border: var(--standard-border);
-  font-size: 13.333px;
+  .button-font-style;
   height: 20px;
   box-sizing: border-box;
 }
@@ -503,8 +518,7 @@ gear-plan {
 
   .gear-sheet-midbar-area {
     border-top: var(--thick-border);
-    margin-top: 5px;
-    padding: 5px 5px 5px 5px;
+    //margin-top: 5px;
   }
 
   .gear-sheet-editor-area {
@@ -763,66 +777,86 @@ import-set-area {
   }
 }
 
-ilvl-range-picker {
-  .like-a-button;
-  display: inline-block;
+div.gear-set-editor-toolbar {
 
-  span {
-    font-size: 13.333px;
-    padding: 5px;
+  >* {
+    box-sizing: border-box;
+    height: 50px;
+    .standard-round-border;
+    display: inline-block;
+    vertical-align: top;
+    margin: 5px;
+  }
+  .button-font-style;
+
+
+
+  div.ilvl-picker-area {
+    ilvl-range-picker {
+      //.like-a-button;
+      display: block;
+      text-align: right;
+      margin: 4px 0 4px 0;
+
+      span {
+        font-size: 13.333px;
+        padding: 5px;
+      }
+
+      input {
+        border: none;
+        padding: 0 0px 0 0px;
+        background: none;
+        width: 30px;
+        text-align: center;
+      }
+    }
   }
 
-  input {
-    border: none;
-    padding: 0 0px 0 0px;
-    background: none;
-    width: 30px;
-    text-align: center;
+  materia-priority-picker {
+    width: fit-content;
+    .standard-round-border;
+
+    > span {
+      display: inline-block;
+    }
+
+    > * {
+      margin: 2px;
+    }
+
+    .labeled-checkbox {
+      display: inline-block;
+    }
+
+    materia-drag-order {
+      display: inline-block;
+
+      materia-dragger {
+        display: inline-block;
+        cursor: grab;
+
+        .materia-dragger-inner {
+          .standard-round-border;
+          .button-font-style;
+          position: relative;
+          // These need to not be the real drag target
+          pointer-events: none;
+          padding: 1px;
+          width: 25px;
+        }
+      }
+
+      // When a drag is active, THIS needs to be the target of pointer events so that
+      // the math works right.
+    }
   }
 }
 
-materia-priority-picker {
-  // Not implemented yet
-  display: none;
-  //display: block;
-  width: fit-content;
-  margin: auto;
-  border: var(--standard-border);
-  border-radius: 10px;
-  margin-top: 5px;
-
-  >span {
-    display: block;
+div.labeled-checkbox {
+  label {
+    user-select: none;
   }
-
-  >* {
-    margin: 2px;
-  }
-
-  .labeled-checkbox {
-    display: inline-block;
-  }
-
-  materia-drag-order {
-    display: block;
-
-    materia-dragger {
-      display: inline-block;
-      cursor: grab;
-
-      .materia-dragger-inner {
-        .like-a-button;
-        position: relative;
-        // These need to not be the real drag target
-        pointer-events: none;
-        padding: 1px;
-      }
-    }
-
-    // When a drag is active, THIS needs to be the target of pointer events so that
-    // the math works right.
-  }
-
 }
 
 // Stat-related stuff

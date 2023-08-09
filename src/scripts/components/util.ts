@@ -44,15 +44,15 @@ export class DataSelect<X> extends HTMLSelectElement {
 
 }
 
+let idCounter = 1;
+
 export function labelFor(label: string, labelFor: HTMLElement) {
     const element = document.createElement("label");
     element.textContent = label;
-    if (labelFor.id) {
-        element.htmlFor = labelFor.id;
+    if (!labelFor.id) {
+        labelFor.id = 'lbl-id-' + idCounter++;
     }
-    else {
-        console.warn("labelFor requires an element with an ID (for label '" + label + "')");
-    }
+    element.htmlFor = labelFor.id;
     return element;
 }
 

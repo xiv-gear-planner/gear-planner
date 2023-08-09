@@ -1,11 +1,11 @@
-import {EquipSlotKeys, ItemSlotExport, SetExport} from "../geartypes";
+import {EquipSlotKey, EquipSlots, ItemSlotExport, SetExport} from "../geartypes";
 import {JobName, MATERIA_SLOTS_MAX} from "../xivconstants";
 
 const ETRO_SLOTS = ['weapon', 'head', 'body', 'hands', 'legs', 'feet', 'ears', 'neck', 'wrists', 'fingerL', 'fingerR'] as const;
 // Works
 type ETRO_SLOT_KEY = typeof ETRO_SLOTS[number];
 
-export const ETRO_GEAR_SLOT_MAP: Record<ETRO_SLOT_KEY, EquipSlotKeys> = {
+export const ETRO_GEAR_SLOT_MAP: Record<ETRO_SLOT_KEY, EquipSlotKey> = {
     weapon: "Weapon",
     head: "Head",
     body: "Body",
@@ -41,7 +41,7 @@ export async function getSetFromEtro(etroSetId: string) {
     const response: EtroSet = await fetch(`https://etro.gg/api/gearsets/${etroSetId}/`).then(response => response.json()) as EtroSet;
 
     const items: {
-        [K in EquipSlotKeys]?: ItemSlotExport
+        [K in EquipSlotKey]?: ItemSlotExport
     } = {};
     for (let slot of ETRO_SLOTS) {
         const itemId = response[slot];
@@ -59,7 +59,7 @@ export async function getSetFromEtro(etroSetId: string) {
         else {
             materiaKey = itemId;
         }
-        const materiaData = response.materia[materiaKey];
+        const materiaData = response.materia ? response.materia[materiaKey] : false;
         const materiaOut: ({ id: number } | undefined)[] = [];
         if (materiaData) {
             for (let i = 1; i <= MATERIA_SLOTS_MAX; i++) {

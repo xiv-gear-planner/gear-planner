@@ -35,7 +35,11 @@ export interface EquipSlot {
     name: string;
 }
 
-export const EquipSlots: Record<keyof EquipmentSet, EquipSlot> = {
+export const EquipSlots = ['Weapon', 'Head', 'Body', 'Hand', 'Legs', 'Feet', 'Ears', 'Neck', 'Wrist', 'RingLeft', 'RingRight'] as const;
+
+export type EquipSlotKey = typeof EquipSlots[number];
+
+export const EquipSlotInfo: Record<EquipSlotKey, EquipSlot> = {
     Weapon: {slot: 'Weapon', name: 'Weapon', gearSlot: GearSlots.Weapon},
     Head: {slot: 'Head', name: 'Head', gearSlot: GearSlots.Head},
     Body: {slot: 'Body', name: 'Body', gearSlot: GearSlots.Body},
@@ -47,7 +51,11 @@ export const EquipSlots: Record<keyof EquipmentSet, EquipSlot> = {
     Wrist: {slot: 'Wrist', name: 'Wrist', gearSlot: GearSlots.Wrist},
     RingLeft: {slot: 'RingLeft', name: 'Left Ring', gearSlot: GearSlots.Ring},
     RingRight: {slot: 'RingRight', name: 'Right Ring', gearSlot: GearSlots.Ring}
-}
+} as const;
+
+type KeyOfType<T, V> = keyof {
+    [K in keyof T as T[K] extends V ? K : never]: any
+};
 
 
 export interface XivItem {
@@ -180,7 +188,7 @@ export interface ComputedSetStats extends RawStats {
 
 export interface MeldableMateriaSlot {
     materiaSlot: MateriaSlot;
-    equippedMatiera: Materia | null;
+    equippedMateria: Materia | null;
 }
 
 export interface RawStats {
@@ -333,15 +341,18 @@ export interface SheetExport {
     level: SupportedLevel,
     sets: SetExport[],
     sims: SimExport[],
-    itemDisplaySettings: ItemDisplaySettings
+    itemDisplaySettings: ItemDisplaySettings,
+    // Keeping these abbreviated so exports don't become unnecessarily large
+    // Materia fill new items
+    mfni?: boolean,
+    // Materia fill priority
+    mfp?: MateriaSubstat[]
 }
-
-export type EquipSlotKeys = keyof EquipmentSet;
 
 export interface SetExport {
     name: string,
     items: {
-        [K in EquipSlotKeys]?: ItemSlotExport
+        [K in EquipSlotKey]?: ItemSlotExport
     };
     food?: number,
     // We don't care about job/level for internal usage, since
@@ -360,9 +371,9 @@ export interface ItemSlotExport {
 export type PartyBonusAmount = 0 | 1 | 2 | 3 | 4 | 5;
 
 
-export interface AutoMateriaPriority {
+export interface MateriaAutoFillController {
     statPrio: (MateriaSubstat)[];
-    enabled: boolean;
+    autoFillNewItem: boolean;
     callback(): void;
     fillEmpty(): void;
     fillAll(): void;

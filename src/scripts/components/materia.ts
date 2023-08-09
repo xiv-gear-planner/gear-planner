@@ -1,5 +1,5 @@
 import {CharacterGearSet, EquippedItem} from "../gear";
-import {AutoMateriaPriority, EquipmentSet, Materia, MeldableMateriaSlot, RawStatKey, Substat} from "../geartypes";
+import {MateriaAutoFillController, EquipmentSet, Materia, MeldableMateriaSlot, RawStatKey, Substat} from "../geartypes";
 import {MateriaSubstat, STAT_ABBREVIATIONS, STAT_FULL_NAMES} from "../xivconstants";
 import {closeModal, setModal} from "../modalcontrol";
 import {GearPlanSheet} from "../components";
@@ -36,7 +36,7 @@ export class AllSlotMateriaManager extends HTMLElement {
         const materiaPartial: Materia[] = [];
         for (let i = 0; i < children.length; i++) {
             const slot = children[i];
-            const materia = slot.materiaSlot.equippedMatiera;
+            const materia = slot.materiaSlot.equippedMateria;
             if (materia) {
                 materiaPartial.push(materia);
                 const statDetail = this.gearSet.getStatDetail(this.slotName, materia.primaryStat, materiaPartial);
@@ -140,7 +140,7 @@ export class SlotMateriaManager extends HTMLElement {
 
 
     reformat() {
-        const currentMat = this.materiaSlot.equippedMatiera;
+        const currentMat = this.materiaSlot.equippedMateria;
         if (currentMat) {
             this.image.src = currentMat.iconUrl.toString();
             this.image.style.display = 'block';
@@ -177,10 +177,10 @@ export class SlotMateriaManager extends HTMLElement {
         }
         this.classList.remove('materia-normal', 'materia-overcap', 'materia-overcap-major')
         this._overcap = overcap;
-        if ((this.materiaSlot.equippedMatiera === undefined) || overcap <= 0) {
+        if ((this.materiaSlot.equippedMateria === undefined) || overcap <= 0) {
             this.classList.add('materia-normal');
         }
-        else if (overcap < this.materiaSlot.equippedMatiera.primaryStatValue) {
+        else if (overcap < this.materiaSlot.equippedMateria.primaryStatValue) {
             this.classList.add('materia-overcap');
         }
         else {
@@ -247,7 +247,7 @@ export class SlotMateriaManagerPopup extends HTMLElement {
                     cell.title = `${materia.name}: +${materia.primaryStatValue} ${STAT_FULL_NAMES[materia.primaryStat]}`;
                     const image = document.createElement("img");
                     image.src = materia.iconUrl.toString();
-                    if (this.materiaSlot.equippedMatiera === materia) {
+                    if (this.materiaSlot.equippedMateria === materia) {
                         cell.setAttribute("is-selected", "true");
                     }
                     cell.appendChild(image);
@@ -269,7 +269,7 @@ export class SlotMateriaManagerPopup extends HTMLElement {
     }
 
     submit(materia: Materia | undefined) {
-        this.materiaSlot.equippedMatiera = materia;
+        this.materiaSlot.equippedMateria = materia;
         closeModal();
         this.callback();
     }
@@ -281,16 +281,16 @@ export class SlotMateriaManagerPopup extends HTMLElement {
 }
 
 export class MateriaPriorityPicker extends HTMLElement {
-    constructor(prioController: AutoMateriaPriority) {
+    constructor(prioController: MateriaAutoFillController) {
         super();
         // this.appendChild(document.createTextNode('Materia Prio Thing Here'));
         const header = document.createElement('span');
-        header.textContent = 'Materia Auto-fill (Drag to Rearrange Priority)';
-        const cb = labeledCheckbox('Fill Newly Selected Items', new FieldBoundCheckBox(prioController, 'enabled'));
+        header.textContent = 'Materia Auto-fill Priority (Drag): ';
+        const cb = labeledCheckbox('Fill Newly Selected Items', new FieldBoundCheckBox(prioController, 'autoFillNewItem'));
         const fillEmptyNow = makeActionButton('Fill Empty', () => prioController.fillEmpty());
         const fillAllNow = makeActionButton('Overwrite All', () => prioController.fillAll());
         const drag = new MateriaDragList(prioController);
-        this.replaceChildren(header, drag, fillEmptyNow, fillAllNow, cb);
+        this.replaceChildren(header, drag, document.createElement('br'), fillEmptyNow, fillAllNow, cb);
     }
 }
 
@@ -326,7 +326,7 @@ export class MateriaDragList extends HTMLElement {
     private currentlyDragging: MateriaDragger | undefined;
     private currentDropIndex: number;
 
-    constructor(private prioController: AutoMateriaPriority) {
+    constructor(private prioController: MateriaAutoFillController) {
         super();
         this.style.position = 'relative';
         const statPrio = prioController.statPrio;
@@ -404,6 +404,7 @@ export class MateriaDragList extends HTMLElement {
         }
         this.subOptions.splice(to, 0, this.subOptions.splice(from, 1)[0]);
         this.prioController.statPrio = this.subOptions.map(option => option.stat);
+        this.prioController.callback();
         this.fixChildren();
     }
 }

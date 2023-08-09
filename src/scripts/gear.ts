@@ -9,7 +9,7 @@ import {
     MATERIA_LEVEL_MAX_NORMAL,
     MATERIA_LEVEL_MAX_OVERMELD,
     MATERIA_LEVEL_MIN_RELEVANT,
-    MATERIA_SLOTS_MAX,
+    MATERIA_SLOTS_MAX, MateriaSubstat,
     RaceName,
     REAL_MAIN_STATS,
     SPECIAL_SUB_STATS,
@@ -32,7 +32,7 @@ import {
 } from "./xivmath";
 import {
     ComputedSetStats,
-    EquipmentSet,
+    EquipmentSet, EquipSlot, EquipSlotKey, EquipSlots, EquipSlotInfo,
     FoodItem,
     GearItem,
     GearSlot,
@@ -45,7 +45,7 @@ import {
     StatBonus,
     XivApiStat,
     xivApiStatToRawStatKey,
-    XivCombatItem
+    XivCombatItem, MateriaAutoFillController
 } from "./geartypes";
 import {GearPlanSheet} from "./components";
 import {xivApiIcon} from "./external/xivapi";
@@ -59,7 +59,7 @@ export class EquippedItem {
             for (let materiaSlot of gearItem.materiaSlots) {
                 this.melds.push({
                     materiaSlot: materiaSlot,
-                    equippedMatiera: null
+                    equippedMateria: null
                 })
             }
         }
@@ -119,10 +119,13 @@ export class CharacterGearSet {
         this.notifyListeners();
     }
 
-    setEquip(slot: string, item: GearItem) {
+    setEquip(slot: EquipSlotKey, item: GearItem, materiaAutoFill?: MateriaAutoFillController) {
         this.invalidate();
         this.equipment[slot] = new EquippedItem(item);
         console.log(`Set ${this.name}: slot ${slot} => ${item.name}`);
+        if (materiaAutoFill && materiaAutoFill.autoFillNewItem) {
+            this.fillMateria(materiaAutoFill.statPrio, false, [slot]);
+        }
         this.notifyListeners()
     }
 
@@ -183,8 +186,10 @@ export class CharacterGearSet {
         addStats(combinedStats, raceStats);
 
         // Item stats
-        for (let key of Object.keys(this.equipment)) {
-            addStats(combinedStats, this.getSlotEffectiveStats(key as keyof EquipmentSet));
+        for (let key of EquipSlots) {
+            if (this.equipment[key]) {
+                addStats(combinedStats, this.getSlotEffectiveStats(key));
+            }
         }
         // Food stats
         if (this._food) {
@@ -247,7 +252,7 @@ export class CharacterGearSet {
     //     return out;
     // }
 
-    getSlotEffectiveStats(slotId: keyof EquipmentSet): RawStats {
+    getSlotEffectiveStats(slotId: EquipSlotKey): RawStats {
         const equip = this.equipment[slotId];
         if (!equip.gearItem) {
             return EMPTY_STATS;
@@ -275,7 +280,7 @@ export class CharacterGearSet {
         const baseItemStatValue = equip.gearItem.stats[stat];
         let meldedStatValue = baseItemStatValue;
         let smallestMateria = 999999;
-        const materiaList = materiaOverride === undefined ? equip.melds.map(meld => meld.equippedMatiera).filter(item => item) : materiaOverride.filter(item => item);
+        const materiaList = materiaOverride === undefined ? equip.melds.map(meld => meld.equippedMateria).filter(item => item) : materiaOverride.filter(item => item);
         for (let materia of materiaList) {
             const materiaStatValue = materia.stats[stat];
             if (materiaStatValue > 0) {
@@ -316,6 +321,39 @@ export class CharacterGearSet {
                 mode: "melded-overcapped-major",
             }
         }
+    }
+
+    fillMateria(statPrio: MateriaSubstat[], overwrite: boolean, slots?: EquipSlotKey[]) {
+        for (let slotKey of (slots === undefined ? EquipSlots : slots)) {
+            const equipSlot = this.equipment[slotKey] as EquippedItem | null;
+            const gearItem = equipSlot?.gearItem;
+            if (gearItem) {
+                // If overwriting, delete everything
+                if (overwrite) {
+                    equipSlot.melds.forEach(meldSlot => meldSlot.equippedMateria = null);
+                }
+                const cap = gearItem.substatCap;
+                materiaLoop:
+                for (let meldSlot of equipSlot.melds) {
+                    const slotStats = this.getSlotEffectiveStats(slotKey);
+                    // TODO: we also have gearItem.substatCap we can use to make it more direct
+                    for (let stat of statPrio) {
+                        const newMateria: Materia = this._sheet.getBestMateria(stat, meldSlot);
+                        if (!newMateria) {
+                            continue;
+                        }
+                        // Allow for losing 1 or 2 stat points
+                        // TODO make this a setting?
+                        console.log(`Materia Fill: ${stat} ${newMateria.primaryStatValue} ${slotStats[stat]} ${cap}`);
+                        if (newMateria.primaryStatValue + slotStats[stat] - 2 < cap) {
+                            meldSlot.equippedMateria = newMateria;
+                            continue materiaLoop;
+                        }
+                    }
+                }
+            }
+        }
+        this.forceRecalc();
     }
 }
 

@@ -11,18 +11,20 @@ import {
 import {CharacterGearSet, EquippedItem,} from "./gear";
 import {DataManager} from "./datamanager";
 import {
-    AutoMateriaPriority,
-    EquipSlotKeys,
+    MateriaAutoFillController,
+    EquipSlotKey,
     FoodItem,
     GearItem,
     GearSlot,
     ItemSlotExport,
     Materia,
+    MeldableMateriaSlot,
     PartyBonusAmount,
-    RawStatKey, RawStats,
+    RawStatKey,
     SetExport,
     SheetExport,
-    SimExport, Substat
+    SimExport,
+    Substat
 } from "./geartypes";
 import {
     getDefaultSims,
@@ -35,11 +37,12 @@ import {
     Simulation
 } from "./simulation";
 import {
-    ALL_SUB_STATS,
     getClassJobStats,
     getRaceStats,
     JOB_DATA,
-    JobName, MateriaSubstats,
+    JobName,
+    MateriaSubstat,
+    MateriaSubstats,
     RACE_STATS,
     RaceName,
     REAL_MAIN_STATS,
@@ -366,6 +369,7 @@ export class SimResultDisplay extends HTMLElement {
 export class GearSetEditor extends HTMLElement {
     private readonly sheet: GearPlanSheet;
     private readonly gearSet: CharacterGearSet;
+    private gearTables: GearItemsTable[] = [];
 
     constructor(sheet: GearPlanSheet, gearSet: CharacterGearSet) {
         super();
@@ -424,6 +428,8 @@ export class GearSetEditor extends HTMLElement {
         this.appendChild(leftSideTable);
         this.appendChild(rightSideTable);
 
+        this.gearTables = [weaponTable, leftSideTable, rightSideTable];
+
         // // Gear table
         // const gearTable = new GearItemsTable(sheet, gearSet, itemMapping);
         // // gearTable.id = "gear-items-table";
@@ -436,9 +442,8 @@ export class GearSetEditor extends HTMLElement {
         this.appendChild(foodTable);
     }
 
-    get toolbar() {
-        const out = document.createTextNode("this is the toolbar!");
-        return out;
+    refreshMateria() {
+        this.gearTables.forEach(tbl => tbl.refreshMateria());
     }
 }
 
@@ -521,8 +526,12 @@ export class GearPlanSheet extends HTMLElement {
     private readonly buttonsArea: HTMLDivElement;
     private readonly editorArea: HTMLDivElement;
     private readonly midBarArea: HTMLDivElement;
-    private readonly materiaPrio: AutoMateriaPriority;
     private _editorItem: CharacterGearSet | Simulation<any, any, any> | undefined;
+    private materiaAutoFillPrio: MateriaSubstat[];
+    private materiaAutoFillSelectedItems: boolean;
+    private _materiaAutoFillController: MateriaAutoFillController;
+    private readonly saveTimer: Inactivitytimer;
+    private setupDone: boolean = false;
 
 
     static fromSaved(sheetKey: string): GearPlanSheet {
@@ -543,7 +552,8 @@ export class GearPlanSheet extends HTMLElement {
                 items: {}
             }],
             sims: [],
-            itemDisplaySettings: {...defaultItemDisplaySettings}
+            itemDisplaySettings: {...defaultItemDisplaySettings},
+            // ctor will auto-fill the rest
         }
         const gearPlanSheet = new GearPlanSheet(sheetKey, fakeExport);
         const sims = getDefaultSims(classJob, level);
@@ -594,23 +604,12 @@ export class GearPlanSheet extends HTMLElement {
         if (importedData.itemDisplaySettings) {
             Object.assign(this._itemDisplaySettings, importedData.itemDisplaySettings);
         }
-        this.materiaPrio = {
-            enabled: false,
-            statPrio: [...MateriaSubstats.filter(stat => this.isStatRelevant(stat))],
-            callback(): void {
-                console.log('callback not implemented');
-            },
-            fillAll(): void {
-                console.log('fillAll not implemented');
-            },
-            fillEmpty(): void {
-                console.log('fillEmpty not implemented');
-            }
-
-        }
+        this.materiaAutoFillPrio = importedData.mfp ?? [...MateriaSubstats.filter(stat => this.isStatRelevant(stat))];
+        this.materiaAutoFillSelectedItems = importedData.mfni ?? false;
 
         // Early gui setup
         this._loadingScreen = new LoadingBlocker();
+        this.saveTimer = new Inactivitytimer(1_000, () => this.saveData());
         this.appendChild(this._loadingScreen);
         this.setupEditorArea();
     }
@@ -726,19 +725,66 @@ export class GearPlanSheet extends HTMLElement {
         }
 
         const toolbar = document.createElement('div');
+        toolbar.classList.add('gear-set-editor-toolbar');
 
+        const ilvlDiv = document.createElement('div');
+        ilvlDiv.classList.add('ilvl-picker-area');
         const itemIlvlRange = new ILvlRangePicker(this._itemDisplaySettings, 'minILvl', 'maxILvl', 'Item iLvl:');
         itemIlvlRange.addListener(() => gearUpdateTimer.ping());
-        toolbar.appendChild(itemIlvlRange);
+        ilvlDiv.appendChild(itemIlvlRange);
 
         const foodIlvlRange = new ILvlRangePicker(this._itemDisplaySettings, 'minILvlFood', 'maxILvlFood', 'Food iLvl:');
         foodIlvlRange.addListener(() => gearUpdateTimer.ping());
-        toolbar.appendChild(foodIlvlRange);
+        ilvlDiv.appendChild(foodIlvlRange);
 
-        const materiaPriority = new MateriaPriorityPicker(this.materiaPrio);
+        toolbar.appendChild(ilvlDiv);
+
+        const outer = this;
+        const matFillCtrl: MateriaAutoFillController = {
+
+            get autoFillNewItem() {
+                return outer.materiaAutoFillSelectedItems;
+            },
+            set autoFillNewItem(enabled: boolean) {
+                outer.materiaAutoFillSelectedItems = enabled;
+                outer.requestSave();
+            },
+            get statPrio() {
+                return outer.materiaAutoFillPrio;
+            },
+            set statPrio(prio) {
+                outer.materiaAutoFillPrio = prio;
+                outer.requestSave();
+            },
+            callback(): void {
+                outer.requestSave();
+            },
+            fillAll(): void {
+                let set;
+                if ((set = outer._editorItem) instanceof CharacterGearSet) {
+                    set.fillMateria(this.statPrio, true);
+                    if (outer._editorAreaNode instanceof GearSetEditor) {
+                        outer._editorAreaNode.refreshMateria();
+                    }
+                }
+            },
+            fillEmpty(): void {
+                let set;
+                if ((set = outer._editorItem) instanceof CharacterGearSet) {
+                    set.fillMateria(this.statPrio, false);
+                    if (outer._editorAreaNode instanceof GearSetEditor) {
+                        outer._editorAreaNode.refreshMateria();
+                    }
+                }
+            }
+
+        };
+        const materiaPriority = new MateriaPriorityPicker(matFillCtrl);
+        this._materiaAutoFillController = matFillCtrl;
         toolbar.appendChild(materiaPriority);
 
         this._gearEditToolBar = toolbar;
+        this.setupDone = true;
     }
 
     async loadData() {
@@ -775,6 +821,10 @@ export class GearPlanSheet extends HTMLElement {
     }
 
     saveData() {
+        if (!this.setupDone) {
+            // Don't clobber a save with empty data because the sheet hasn't loaded!
+            return;
+        }
         if (this._saveKey) {
             console.info("Saving sheet " + this.name);
             const fullExport = this.exportSheet();
@@ -783,6 +833,14 @@ export class GearPlanSheet extends HTMLElement {
         else {
             console.info("Ignoring request to save sheet because it has no save key");
         }
+    }
+
+    requestSave() {
+        this.saveTimer.ping();
+    }
+
+    get materiaAutoFillController() {
+        return this._materiaAutoFillController;
     }
 
     private _editorAreaNode: Node | undefined;
@@ -851,7 +909,9 @@ export class GearPlanSheet extends HTMLElement {
             saveKey: this._saveKey,
             race: this._race,
             sims: simsExport,
-            itemDisplaySettings: this._itemDisplaySettings
+            itemDisplaySettings: this._itemDisplaySettings,
+            mfni: this.materiaAutoFillSelectedItems,
+            mfp: this.materiaAutoFillPrio
         }
 
     }
@@ -911,7 +971,7 @@ export class GearPlanSheet extends HTMLElement {
      * for single set exports).
      */
     exportGearSet(set: CharacterGearSet, external: boolean = false): SetExport {
-        const items: { [K in EquipSlotKeys]?: ItemSlotExport } = {};
+        const items: { [K in EquipSlotKey]?: ItemSlotExport } = {};
         for (let equipmentKey in set.equipment) {
             const inSlot: EquippedItem = set.equipment[equipmentKey];
             if (inSlot) {
@@ -921,7 +981,7 @@ export class GearPlanSheet extends HTMLElement {
                     // On the other hand, *most* real exports would have slots filled (BiS etc)
                     id: inSlot.gearItem.id,
                     materia: inSlot.melds.map(meld => {
-                        return {id: meld.equippedMatiera?.id ?? -1}
+                        return {id: meld.equippedMateria?.id ?? -1}
                     }),
                 };
             }
@@ -964,7 +1024,7 @@ export class GearPlanSheet extends HTMLElement {
                 if (!mat) {
                     continue;
                 }
-                equipped.melds[i].equippedMatiera = mat;
+                equipped.melds[i].equippedMateria = mat;
             }
             set.equipment[equipmentSlot] = equipped;
         }
@@ -1120,6 +1180,19 @@ export class GearPlanSheet extends HTMLElement {
         const area = new ImportSetArea(this);
         area.id = 'set-import-area';
         return area;
+    }
+
+    getBestMateria(stat: MateriaSubstat, meldSlot: MeldableMateriaSlot) {
+        const highGradeAllowed = meldSlot.materiaSlot.allowsHighGrade;
+        const maxGradeAllowed = meldSlot.materiaSlot.maxGrade;
+        const materiaFilter = (materia: Materia) => {
+            if (materia.isHighGrade && !highGradeAllowed) {
+                return false;
+            }
+            return materia.materiaGrade <= maxGradeAllowed && materia.primaryStat == stat;
+        };
+        const sortedOptions = this.relevantMateria.filter(materiaFilter).sort((first, second) => second.primaryStatValue - first.primaryStatValue);
+        return sortedOptions.length >= 1 ? sortedOptions[0] : undefined;
     }
 }
 
