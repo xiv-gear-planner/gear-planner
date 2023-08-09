@@ -251,11 +251,18 @@ select {
   .standard-border-radius;
 }
 
-button {
+.like-a-button {
   color: var(--fg-color);
   background-color: var(--bg-color);
   .standard-border-radius;
-  border: 1px solid var(--border-color);
+  border: var(--standard-border);
+  font-size: 13.333px;
+  height: 20px;
+  box-sizing: border-box;
+}
+
+button {
+  .like-a-button;
 
   &:hover {
     background-color: #333333;
@@ -494,6 +501,12 @@ gear-plan {
 
   }
 
+  .gear-sheet-midbar-area {
+    border-top: var(--thick-border);
+    margin-top: 5px;
+    padding: 5px 5px 5px 5px;
+  }
+
   .gear-sheet-editor-area {
     text-align: center;
     overflow: auto;
@@ -503,7 +516,7 @@ gear-plan {
     min-height: 60%;
     max-height: 100%;
     border-top: 2px solid var(--border-color);
-    margin-top: 5px;
+    //margin-top: 5px;
     padding-top: 8px;
     padding-bottom: 8px;
 
@@ -661,6 +674,16 @@ slot-materia-popup {
       padding: 4px !important;
     }
   }
+
+  .materia-picker-remove {
+    text-align: center;
+    color: #831818;
+    font-weight: bold;
+
+    &:hover {
+      color: red;
+    }
+  }
 }
 
 sim-result-display {
@@ -741,8 +764,7 @@ import-set-area {
 }
 
 ilvl-range-picker {
-  border: var(--standard-border);
-  .standard-border-radius;
+  .like-a-button;
   display: inline-block;
 
   span {
@@ -759,6 +781,50 @@ ilvl-range-picker {
   }
 }
 
+materia-priority-picker {
+  // Not implemented yet
+  display: none;
+  //display: block;
+  width: fit-content;
+  margin: auto;
+  border: var(--standard-border);
+  border-radius: 10px;
+  margin-top: 5px;
+
+  >span {
+    display: block;
+  }
+
+  >* {
+    margin: 2px;
+  }
+
+  .labeled-checkbox {
+    display: inline-block;
+  }
+
+  materia-drag-order {
+    display: block;
+
+    materia-dragger {
+      display: inline-block;
+      cursor: grab;
+
+      .materia-dragger-inner {
+        .like-a-button;
+        position: relative;
+        // These need to not be the real drag target
+        pointer-events: none;
+        padding: 1px;
+      }
+    }
+
+    // When a drag is active, THIS needs to be the target of pointer events so that
+    // the math works right.
+  }
+
+}
+
 // Stat-related stuff
 
 .color-stat-column {
@@ -773,32 +839,32 @@ ilvl-range-picker {
   }
 }
 
-td.stat-crit {
+.stat-crit {
   --stat-color: var(--color-crit);
   .color-stat-column;
 }
 
-td.stat-dhit {
+.stat-dhit {
   --stat-color: var(--color-dhit);
   .color-stat-column;
 }
 
-td.stat-determination {
+.stat-determination {
   --stat-color: var(--color-det);
   .color-stat-column;
 }
 
-td.stat-tenacity {
+.stat-tenacity {
   --stat-color: var(--color-tnc);
   .color-stat-column;
 }
 
-td.stat-spellspeed, td.stat-skillspeed {
+.stat-spellspeed, td.stat-skillspeed {
   --stat-color: var(--color-sps-sks);
   .color-stat-column;
 }
 
-td.stat-piety {
+.stat-piety {
   --stat-color: var(--color-piety);
   .color-stat-column;
 }

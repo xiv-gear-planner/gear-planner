@@ -1,6 +1,15 @@
 import {EquippedItem} from "./gear";
-import {FAKE_MAIN_STATS, JobName, RaceName, REAL_MAIN_STATS, SPECIAL_SUB_STATS, SupportedLevel} from "./xivconstants";
-import {ItemDisplaySettings} from "./components";
+import {
+    FAKE_MAIN_STATS,
+    JobName, MateriaSubstat,
+    MateriaSubstats,
+    RaceName,
+    REAL_MAIN_STATS,
+    SPECIAL_SUB_STATS,
+    SupportedLevel
+} from "./xivconstants";
+
+import {ItemDisplaySettings} from "./components/items";
 export interface GearSlot {
 
 }
@@ -349,3 +358,12 @@ export interface ItemSlotExport {
 }
 
 export type PartyBonusAmount = 0 | 1 | 2 | 3 | 4 | 5;
+
+
+export interface AutoMateriaPriority {
+    statPrio: (MateriaSubstat)[];
+    enabled: boolean;
+    callback(): void;
+    fillEmpty(): void;
+    fillAll(): void;
+}

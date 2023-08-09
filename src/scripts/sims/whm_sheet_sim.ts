@@ -5,11 +5,9 @@ import {ComputedSetStats} from "../geartypes";
 import {
     FieldBoundCheckBox,
     FieldBoundFloatField,
-    labeledCheckbox,
-    labelFor,
-    positiveValuesOnly,
-    quickElement
-} from "../components";
+    labeledCheckbox, labelFor,
+    positiveValuesOnly, quickElement
+} from "../components/util";
 
 
 //potencies for our spells

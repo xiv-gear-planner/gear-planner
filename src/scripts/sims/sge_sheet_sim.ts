@@ -2,7 +2,8 @@ import {SimResult, SimSettings, SimSpec, Simulation} from "../simulation";
 import {CharacterGearSet} from "../gear";
 import {applyDhCrit, baseDamage} from "../xivmath";
 import {ComputedSetStats} from "../geartypes";
-import {FieldBoundCheckBox, labeledCheckbox} from "../components";
+
+import {FieldBoundCheckBox, labeledCheckbox} from "../components/util";
 
 
 //potencies for our spells
@@ -130,6 +131,7 @@ export class SgeSheetSim implements Simulation<SgeSheetSimResult, SgeSheetSettin
             + this.settings.diagPerMin + this.settings.eDiagPerMin
             + this.settings.progPerMin + this.settings.eProgPerMin;
     }
+
 // Average potency of a 180s rotation
     getP(stats: ComputedSetStats, cycle: number) {
         let result = 0
@@ -151,6 +153,7 @@ export class SgeSheetSim implements Simulation<SgeSheetSimResult, SgeSheetSettin
         console.info("GCD: " + shortGcd + " Potency: " + result)
         return result
     }
+
     //
     // getMP(shortGcd, sps, D, P, ED, EP, T, rezz, cycle) {
     //     var result = 0

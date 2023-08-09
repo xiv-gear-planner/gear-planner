@@ -195,17 +195,18 @@ export const LEVEL_STATS: Record<SupportedLevel, LevelStats> = {
 /**
  * Main stats in current version of the game.
  */
-export const REAL_MAIN_STATS: (RawStatKey)[] = ['strength', 'dexterity', 'intelligence', 'mind'];
+export const REAL_MAIN_STATS = ['strength', 'dexterity', 'intelligence', 'mind'] as const;
 // TODO: is Tenacity treated like this?
 /**
  * Substats that are treated as main stats for stat calc purposes.
  */
-export const FAKE_MAIN_STATS: (RawStatKey)[] = ['determination', 'piety', 'vitality'];
+export const FAKE_MAIN_STATS = ['vitality', 'determination', 'piety'] as const;
 /**
  * Substats that get the substat-specific math treatment.
  */
-export const SPECIAL_SUB_STATS: (RawStatKey)[] = ['crit', 'dhit', 'spellspeed', 'skillspeed', 'tenacity'];
-export const ALL_SUB_STATS: (RawStatKey)[] = [...FAKE_MAIN_STATS, ...SPECIAL_SUB_STATS];
+export const SPECIAL_SUB_STATS = ['crit', 'dhit', 'spellspeed', 'skillspeed', 'tenacity'] as const;
+export const ALL_SUB_STATS = [...FAKE_MAIN_STATS, ...SPECIAL_SUB_STATS] as const;
+// export const ALL_SUB_STATS: ((typeof FAKE_MAIN_STATS[number]) | (typeof SPECIAL_SUB_STATS[number]))[] = [...FAKE_MAIN_STATS, ...SPECIAL_SUB_STATS] as const;
 
 /**
  * Which substats can be granted by materia.
@@ -213,7 +214,8 @@ export const ALL_SUB_STATS: (RawStatKey)[] = [...FAKE_MAIN_STATS, ...SPECIAL_SUB
  * If SE ever gives us main stat or vitality materia again, this will need to be updated.
  * // TODO: but this includes vitality?
  */
-export const MateriaSubstats: (keyof RawStats)[] = [...ALL_SUB_STATS];
+export const MateriaSubstats: (Exclude<typeof ALL_SUB_STATS[number], 'vitality'>)[] = ['crit', 'dhit', 'determination', 'spellspeed', 'skillspeed', 'piety', 'tenacity'];
+export type MateriaSubstat = typeof MateriaSubstats[number];
 
 export const STAT_FULL_NAMES: Record<RawStatKey, string> = {
     crit: "Critical Hit",
