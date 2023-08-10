@@ -712,10 +712,10 @@ export class GearPlanSheet extends HTMLElement {
         )
         this.buttonsArea.appendChild(partySizeDropdown);
 
-        const tableAreaInner = quickElement('div', ['gear-sheet-table-area-inner'], [this._gearPlanTable, this.buttonsArea]);
-        // this.tableArea.appendChild(this._gearPlanTable);
-        // this.tableArea.appendChild(this.buttonsArea);
-        this.tableArea.appendChild(tableAreaInner);
+        // const tableAreaInner = quickElement('div', ['gear-sheet-table-area-inner'], [this._gearPlanTable, this.buttonsArea]);
+        this.tableArea.appendChild(this._gearPlanTable);
+        this.tableArea.appendChild(this.buttonsArea);
+        // this.tableArea.appendChild(tableAreaInner);
         this._gearPlanTable.dataChanged();
         this._loadingScreen.remove();
         this.classList.remove('loading');

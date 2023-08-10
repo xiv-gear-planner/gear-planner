@@ -109,8 +109,8 @@ body {
   --zi-sets-table-normal-columns: 70;
   --zi-sets-table-pinned-columns: 80;
   --zi-sets-table-selected-highlights: 90;
-  --zi-sets-table-header-row: 81;
-  --zi-sets-table-header-row-pinned: 85;
+  --zi-sets-table-header-row: 91;
+  --zi-sets-table-header-row-pinned: 95;
   --zi-sets-table-buttons-area: 99;
   --zi-slot-materia-popup: 150;
   --zi-slot-materia-popup-cell: 180;
@@ -513,10 +513,10 @@ gear-plan {
   }
 
   .gear-sheet-table-area {
-    .gear-sheet-table-area-inner {
-      margin: auto;
-      width: fit-content;
-    }
+    //.gear-sheet-table-area-inner {
+    //  margin: auto;
+    //  width: fit-content;
+    //}
 
     table {
       //margin: auto;
@@ -530,6 +530,10 @@ gear-plan {
     flex-shrink: 1;
     flex-grow: 1;
     max-height: 100%;
+    width: fit-content;
+    max-width: 100%;
+    margin: 0 auto 0 auto;
+
   }
 
 
@@ -837,7 +841,7 @@ div.gear-set-editor-toolbar {
 
       input {
         border: none;
-        padding: 0 0px 0 0px;
+        padding: 0 0 0 0;
         background: none;
         width: 30px;
         text-align: center;
