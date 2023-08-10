@@ -178,6 +178,7 @@ export const RACE_STATS: Record<RaceName, RawStats> = {
 
 export const LEVEL_STATS: Record<SupportedLevel, LevelStats> = {
     80: {
+        level: 80,
         baseMainStat: 340,
         baseSubStat: 380,
         levelDiv: 1300,
@@ -185,6 +186,7 @@ export const LEVEL_STATS: Record<SupportedLevel, LevelStats> = {
         hp: 2500
     },
     90: {
+        level: 90,
         baseMainStat: 390,
         baseSubStat: 400,
         levelDiv: 1900,

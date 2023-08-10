@@ -53,11 +53,6 @@ export function critDmg(levelStats: LevelStats, crit: number) {
     return (1400 + Math.floor(200 * (crit - levelStats.baseSubStat) / levelStats.levelDiv)) / 1000.0;
 }
 
-// TODO
-export function autoCritDmg(levelStats: LevelStats, crit: number) {
-    return (1400)
-}
-
 /**
  * Convert direct hit stat to direct hit chance.
  *
@@ -139,15 +134,25 @@ export function sksTickMulti(sks: number) {
  * @param mainstat
  */
 export function mainStatMulti(levelStats: LevelStats, jobStats: JobData, mainstat: number) {
-    if (jobStats.role === 'Tank') {
-        // TODO: what is the number here?
-        return (Math.floor(195 * (mainstat - levelStats.baseMainStat) / levelStats.baseMainStat) + 100) / 100;
+    if (levelStats.level === 90) {
+        if (jobStats.role === 'Tank') {
+            return (Math.floor(156 * (mainstat - levelStats.baseMainStat) / levelStats.baseMainStat) + 100) / 100;
+        }
+        else {
+            return (Math.floor(195 * (mainstat - levelStats.baseMainStat) / levelStats.baseMainStat) + 100) / 100;
+        }
     }
-    else {
-        return (Math.floor(195 * (mainstat - levelStats.baseMainStat) / levelStats.baseMainStat) + 100) / 100;
+    else if (levelStats.level === 80) {
+        if (jobStats.role === 'Tank') {
+            return (Math.floor(115 * (mainstat - levelStats.baseMainStat) / levelStats.baseMainStat) + 100) / 100;
+        }
+        else {
+            return (Math.floor(165 * (mainstat - levelStats.baseMainStat) / levelStats.baseMainStat) + 100) / 100;
+        }
     }
 }
 
+// TODO
 export function pietyHealingMulti(levelStats: LevelStats, piety: number) {
     return 200 + (Math.floor(150 * (piety - levelStats.baseMainStat) / levelStats.levelDiv));
 }
@@ -277,10 +282,22 @@ export function baseHealing(stats: ComputedSetStats, potency: number, autoDH: bo
     return afterTrait;
 }
 
+/**
+ * Factors in the expected multiplier value resulting from random direct hits.
+ *
+ * @param baseDamage The base damage amount.
+ * @param stats The stats.
+ */
 export function applyDhCrit(baseDamage: number, stats: ComputedSetStats) {
     return baseDamage * (1 + stats.dhitChance * (stats.dhitMulti - 1)) * (1 + stats.critChance * (stats.critMulti - 1));
 }
 
+/**
+ * Factors in the expected multiplier value resulting from random critical hits.
+ *
+ * @param baseDamage The base damage amount.
+ * @param stats The stats.
+ */
 export function applyCrit(baseDamage: number, stats: ComputedSetStats) {
     return baseDamage * (1 + stats.critChance * (stats.critMulti - 1));
 

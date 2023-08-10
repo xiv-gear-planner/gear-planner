@@ -242,6 +242,7 @@ export class RawStats implements RawStats {
 }
 
 export interface LevelStats {
+    level: number,
     baseMainStat: number,
     baseSubStat: number,
     levelDiv: number,
