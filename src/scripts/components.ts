@@ -448,6 +448,7 @@ export class GearSetEditor extends HTMLElement {
 }
 
 function formatSimulationConfigArea<SettingsType extends SimSettings>(
+    sheet: GearPlanSheet,
     sim: Simulation<any, SettingsType, any>,
     refreshColumn: (item: Simulation<any, SettingsType, any>) => void,
     deleteColumn: (item: Simulation<any, SettingsType, any>) => void,
@@ -473,8 +474,7 @@ function formatSimulationConfigArea<SettingsType extends SimSettings>(
 
     // TODO: actually wire up the auto-saving
     const originalSettings: SettingsType = sim.settings;
-    const saveTimer = new Inactivitytimer(1_000, () => console.log("Would have saved sim settings if it were wired up"));
-    const updateCallback = () => saveTimer.ping();
+    const updateCallback = () => sheet.requestSave();
     const settingsProxyHandler: ProxyHandler<SettingsType> = {
         set(target, prop, value, receiver) {
             target[prop] = value;
@@ -630,7 +630,7 @@ export class GearPlanSheet extends HTMLElement {
                 this.setupEditorArea(new GearSetEditor(this, item));
             }
             else if (item['makeConfigInterface']) {
-                this.setupEditorArea(formatSimulationConfigArea(item as Simulation<any, any, any>, col => this._gearPlanTable.refreshColumn(col), col => this.delSim(col), () => this._gearPlanTable.refreshColHeaders()));
+                this.setupEditorArea(formatSimulationConfigArea(this, item as Simulation<any, any, any>, col => this._gearPlanTable.refreshColumn(col), col => this.delSim(col), () => this._gearPlanTable.refreshColHeaders()));
             }
             else {
                 this.setupEditorArea();
