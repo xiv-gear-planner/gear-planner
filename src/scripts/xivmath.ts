@@ -6,6 +6,9 @@ import {ComputedSetStats, JobData, LevelStats} from "./geartypes";
     These mostly come from AkhMorning, however, there is one important difference - where possible, these are normalized
     to 1. That is, if something has no impact on the final result, it should be 1, rather than 100 or 1000. If it
     grants +50% damage, then it should be 1.5, rather than 150 or 1500, and so on.
+
+    Most of these do not need to be used directly, because the values are already calculated on the ComputedSetStats
+    object.
  */
 
 /**
