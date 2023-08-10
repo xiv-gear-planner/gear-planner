@@ -1558,17 +1558,19 @@ export class SheetPickerTable extends CustomTable<SheetExport> {
                         this.readData();
                     }));
                     return div;
-                }
+                },
             },
             {
                 shortName: "sheetjob",
                 displayName: "Job",
                 getter: sheet => sheet.job,
+                fixedWidth: 60,
             },
             {
                 shortName: "sheetlevel",
                 displayName: "Lvl",
                 getter: sheet => sheet.level,
+                fixedWidth: 50,
             },
             {
                 shortName: "sheetname",
@@ -1586,16 +1588,23 @@ export class SheetPickerTable extends CustomTable<SheetExport> {
             div.appendChild(makeActionButton("New Sheet", () => startNewSheet()));
             return div;
         }))
+        const items: SheetExport[] = [];
         for (let localStorageKey in localStorage) {
             if (localStorageKey.startsWith("sheet-save-")) {
                 const imported = JSON.parse(localStorage.getItem(localStorageKey)) as SheetExport;
                 if (imported.saveKey) {
-                    data.push(imported);
+                    items.push(imported);
                 }
             }
         }
-        if (data.length === 1) {
+        if (items.length === 0) {
             data.push(new TitleRow("You don't have any sheets. Click 'New Sheet' to get started."));
+        }
+        else {
+            items.sort((left, right) => {
+                return parseInt(right.saveKey.split('-')[2]) - parseInt(left.saveKey.split('-')[2]);
+            })
+            data.push(...items);
         }
         this.data = data;
     }

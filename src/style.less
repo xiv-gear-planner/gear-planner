@@ -99,11 +99,25 @@ body {
 
 }
 
+// Z-indices
+body {
+  /* Sets table z order needs to be:
+  Pinned header cols >
 
-/* Doesn't work on Firefox yet */
-/*div#content-area:has(gear-plan) {*/
-/*    max-height: 50vh;*/
-/*}*/
+   */
+
+  --zi-sets-table-normal-columns: 70;
+  --zi-sets-table-pinned-columns: 80;
+  --zi-sets-table-selected-highlights: 90;
+  --zi-sets-table-header-row: 81;
+  --zi-sets-table-header-row-pinned: 85;
+  --zi-sets-table-buttons-area: 99;
+  --zi-slot-materia-popup: 150;
+  --zi-slot-materia-popup-cell: 180;
+  --zi-add-sim-dialog: 200;
+  --zi-loading-blocker: 190;
+}
+
 
 // TODO
 div#editor-area {
@@ -174,7 +188,7 @@ table {
 
         //margin-right: -100vh;
 
-        z-index: 90;
+        z-index: var(--zi-sets-table-selected-highlights);
         pointer-events: none;
         //background-color: #0099ff;
         .table-item-selected;
@@ -331,46 +345,47 @@ table.gear-plan-table {
   overflow-x: scroll;
   // Dumb. Gross. Why can't position: sticky have any reasonable way of working with variable-width columns?
   --action-col-width: 60px;
+  background-color: var(--table-bg-color);
 
   td {
     scroll-margin-top: 68px;
     scroll-margin-bottom: 30px;
+    z-index: var(--zi-sets-table-normal-columns);
   }
 
-  th {
-    &:first-child, &:nth-child(2) {
-      background-color: var(--table-bg-color);
-    }
-  }
-
-  td, th {
-    background: inherit;
-
-    &:first-child, &:nth-child(2) {
-      box-sizing: border-box;
-      position: sticky;
-    }
-
-    &:first-child {
-      left: 0;
-      width: var(--action-col-width);
-      min-width: var(--action-col-width);
-      max-width: var(--action-col-width);
-    }
-
-    &:nth-child(2) {
-      left: calc(var(--action-col-width));
-    }
-
-    &[col-id^="sim-col-"] {
-      min-width: 70px;
-    }
-  }
 
   tr {
     scroll-margin-top: 60px;
     scroll-margin-bottom: 40px;
     position: relative;
+
+    &:first-child {
+      position: sticky;
+      top: 0;
+      border: var(--thick-border);
+      z-index: var(--zi-sets-table-header-row);
+      background-color: color-mix(in srgb, var(--table-bg-color) 60%, transparent);
+
+      th {
+        height: 54px;
+        border-top: var(--thick-border);
+        border-bottom: var(--thick-border);
+
+        padding: 0 5px 0 5px;
+
+        &:first-child {
+          border-left: var(--thick-border);
+          z-index: var(--zi-sets-table-header-row-pinned) !important;
+        }
+        &:nth-child(2) {
+          z-index: var(--zi-sets-table-header-row-pinned) !important;
+        }
+
+        //&:last-child {
+        //  border-right: var(--thick-border);
+        //}
+      }
+    }
 
     td:first-child {
       left: 0;
@@ -378,7 +393,6 @@ table.gear-plan-table {
       min-width: var(--action-col-width);
       max-width: var(--action-col-width);
       outline: inherit;
-      z-index: 70;
 
       button {
         padding: 0 4px 0 4px;
@@ -390,7 +404,6 @@ table.gear-plan-table {
       // love css - why is there no "just keep this in place"
       // option for stickies?
       left: calc(var(--action-col-width));
-      z-index: 70;
       border-right: var(--standard-border);
       white-space: nowrap;
     }
@@ -398,6 +411,31 @@ table.gear-plan-table {
     td:nth-child(3) {
       border-left: none;
 
+    }
+
+    td, th {
+      background: inherit;
+
+      &:first-child, &:nth-child(2) {
+        box-sizing: border-box;
+        position: sticky;
+        z-index: var(--zi-sets-table-pinned-columns) !important;
+      }
+
+      &:first-child {
+        left: 0;
+        width: var(--action-col-width);
+        min-width: var(--action-col-width);
+        max-width: var(--action-col-width);
+      }
+
+      &:nth-child(2) {
+        left: calc(var(--action-col-width));
+      }
+
+      &[col-id^="sim-col-"] {
+        min-width: 70px;
+      }
     }
   }
 
@@ -407,29 +445,6 @@ table.gear-plan-table {
   //}
 
 
-  tr:first-child {
-    position: sticky;
-    top: 0;
-    border: var(--thick-border);
-    z-index: 99;
-    background-color: color-mix(in srgb, var(--table-bg-color) 60%, transparent);
-
-    th {
-      height: 54px;
-      border-top: var(--thick-border);
-      border-bottom: var(--thick-border);
-
-      padding: 0 5px 0 5px;
-
-      &:first-child {
-        border-left: var(--thick-border);
-      }
-
-      //&:last-child {
-      //  border-right: var(--thick-border);
-      //}
-    }
-  }
 }
 
 
@@ -454,10 +469,36 @@ table.gear-plan-table {
   border: none;
 }
 
+div.sheet-picker-holder {
+  margin-top: 0;
+  overflow: scroll;
+  display: flex;
+  flex-direction: column;
+
+  table.gear-sheets-table {
+    overflow: auto;
+    margin: 50px auto auto auto !important;
+
+    min-width: 600px;
+
+    td[col-id="sheetactions"] {
+      width: 150px;
+
+      div {
+        display: flex;
+
+        button {
+          flex: 1;
+        }
+      }
+    }
+  }
+
+}
+
 gear-plan {
   margin: auto;
   //width: fit-content;
-  display: block;
   position: relative;
   // Make the loading spinner happy
   min-width: 120px;
@@ -496,7 +537,7 @@ gear-plan {
     left: 0;
     bottom: 0;
     position: sticky;
-    z-index: 99;
+    z-index: var(--zi-sets-table-buttons-area);
     //background-color: var(--table-bg-color);
     //border: var(--thick-border);
     box-sizing: border-box;
@@ -573,22 +614,6 @@ gear-plan {
 h1.js-warning {
   color: #ff0000;
   text-decoration: underline 2px double #ff0000;
-}
-
-table.gear-sheets-table {
-  min-width: 800px;
-
-  td[col-id="sheetactions"] {
-    width: 150px;
-
-    div {
-      display: flex;
-
-      button {
-        flex: 1;
-      }
-    }
-  }
 }
 
 table all-slot-materia-manager {
@@ -671,14 +696,14 @@ slot-materia-manager {
 
 slot-materia-popup {
   position: absolute;
-  z-index: 150;
+  z-index: var(--zi-slot-materia-popup);
   left: 0;
 
   td {
     width: fit-content !important;
     height: fit-content !important;
     padding: 0 !important;
-    z-index: 180;
+    z-index: var(--zi-slot-materia-popup-cell);
 
     img {
       width: 40px;
@@ -714,7 +739,7 @@ sim-result-display {
 
 dialog#add-sim-dialog {
   position: absolute;
-  z-index: 200;
+  z-index: var(--zi-add-sim-dialog);
   background-color: var(--table-bg-color);
   color: var(--fg-color);
   border: var(--thick-border);
@@ -786,7 +811,7 @@ import-set-area {
 
 div.gear-set-editor-toolbar {
 
-  >* {
+  > * {
     box-sizing: border-box;
     height: 50px;
     .standard-round-border;
@@ -794,8 +819,8 @@ div.gear-set-editor-toolbar {
     vertical-align: top;
     margin: 5px;
   }
-  .button-font-style;
 
+  .button-font-style;
 
 
   div.ilvl-picker-area {
@@ -942,7 +967,7 @@ loading-blocker {
   bottom: 0;
   top: 0;
 
-  z-index: 190;
+  z-index: var(--zi-loading-blocker);
 
   // Loading spinner stuff
   div.loading-spinner {

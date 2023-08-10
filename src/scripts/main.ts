@@ -8,6 +8,7 @@ import {
     SheetPickerTable
 } from "./components";
 import {SetExport, SheetExport} from "./geartypes";
+import {quickElement} from "./components/util";
 
 
 export const contentArea = document.getElementById("content-area");
@@ -158,7 +159,8 @@ export async function openSheet(planner: GearPlanSheet, changeHash: boolean = tr
 }
 
 function showSheetPickerMenu() {
-    setMainContent(undefined, new SheetPickerTable());
+    const holderDiv = quickElement('div', ['sheet-picker-holder'], [new SheetPickerTable()]);
+    setMainContent(undefined, holderDiv);
     // contentArea.replaceChildren(new SheetPickerTable());
     // setTitle(undefined);
 }
