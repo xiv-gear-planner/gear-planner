@@ -1,15 +1,16 @@
 import {CharacterGearSet, ItemSingleStatDetail} from "../gear";
 import {
     EquipmentSet,
-    EquipSlots,
     EquipSlotInfo,
+    EquipSlotKey,
+    EquipSlots,
     FoodItem,
     GearItem,
     GearSlot,
     GearSlotItem,
     RawStatKey,
     RawStats,
-    StatBonus, EquipSlotKey, GearSlots
+    StatBonus
 } from "../geartypes";
 import {
     CustomCell,
@@ -183,7 +184,14 @@ export class FoodItemsTable extends CustomTable<FoodItem, FoodItem> {
 
             }
         }
-        super.data = [new HeaderRow(), ...sheet.foodItemsForDisplay];
+        const displayItems = [...sheet.foodItemsForDisplay];
+        displayItems.sort((left, right) => left.ilvl - right.ilvl);
+        if (displayItems.length > 0) {
+            super.data = [new HeaderRow(), ...displayItems];
+        }
+        else {
+            super.data = [new HeaderRow(), new TitleRow('No items available - please check your filters')];
+        }
     }
 }
 
@@ -304,18 +312,25 @@ export class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
             }
             const slotId = name as keyof EquipmentSet;
             data.push(new TitleRow(slot.name));
-            data.push(new HeaderRow());
             const itemsInSlot = itemMapping.get(slot.gearSlot);
-            for (const gearItem of itemsInSlot) {
-                const item = {
-                    slot: slot,
-                    item: gearItem,
-                    slotId: slotId
-                };
-                data.push(item);
-                if (gearSet.getItemInSlot(slotId) === gearItem) {
-                    selectionTracker.set(slotId, item);
+            if (itemsInSlot && itemsInSlot.length > 0) {
+                const sortedItems = [...itemsInSlot];
+                sortedItems.sort((left, right) => left.ilvl - right.ilvl);
+                data.push(new HeaderRow());
+                for (const gearItem of sortedItems) {
+                    const item = {
+                        slot: slot,
+                        item: gearItem,
+                        slotId: slotId
+                    };
+                    data.push(item);
+                    if (gearSet.getItemInSlot(slotId) === gearItem) {
+                        selectionTracker.set(slotId, item);
+                    }
                 }
+            }
+            else {
+                data.push(new TitleRow('No items available - please check your filters'));
             }
             const matMgr = new AllSlotMateriaManager(sheet, gearSet, slotId, () => {
                 // Update whatever was selected

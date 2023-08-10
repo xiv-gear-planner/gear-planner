@@ -1,6 +1,3 @@
-// import '@webcomponents/webcomponentsjs/webcomponents-bundle.js'
-// import '@webcomponents/webcomponentsjs/custom-elements-es5-adapter.js'
-
 import {
     defaultItemDisplaySettings,
     GearPlanSheet,
@@ -168,6 +165,15 @@ function showSheetPickerMenu() {
 
 function earlyUiSetup() {
     const devMenu = topMenuArea;
+    document.getElementById('dev-menu-button').addEventListener('click', (ev) => {
+        ev.preventDefault();
+        if (devMenu.style.display === 'none') {
+            devMenu.style.display = '';
+        }
+        else {
+            devMenu.style.display = 'none';
+        }
+    });
     const header = document.createElement("span")
     header.textContent = "Dev Menu";
     devMenu.appendChild(header);

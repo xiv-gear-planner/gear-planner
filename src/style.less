@@ -337,6 +337,12 @@ table.gear-plan-table {
     scroll-margin-bottom: 30px;
   }
 
+  th {
+    &:first-child, &:nth-child(2) {
+      background-color: var(--table-bg-color);
+    }
+  }
+
   td, th {
     background: inherit;
 
@@ -517,6 +523,7 @@ gear-plan {
   }
 
   .gear-sheet-midbar-area {
+    cursor: grab;
     border-top: var(--thick-border);
     //margin-top: 5px;
   }
