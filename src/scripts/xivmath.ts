@@ -8,7 +8,7 @@ import {ComputedSetStats, JobData, LevelStats} from "./geartypes";
     grants +50% damage, then it should be 1.5, rather than 150 or 1500, and so on.
 
     Most of these do not need to be used directly, because the values are already calculated on the ComputedSetStats
-    object.
+    object. It is preferable to use already-computed values since those are also exposed on the UI.
  */
 
 /**
