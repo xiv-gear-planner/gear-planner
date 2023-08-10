@@ -152,11 +152,6 @@ export function mainStatMulti(levelStats: LevelStats, jobStats: JobData, mainsta
     }
 }
 
-// TODO
-export function pietyHealingMulti(levelStats: LevelStats, piety: number) {
-    return 200 + (Math.floor(150 * (piety - levelStats.baseMainStat) / levelStats.levelDiv));
-}
-
 /**
  * Convert a tenacity stat value to its respective damage multiplier.
  *
