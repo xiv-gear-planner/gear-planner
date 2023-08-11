@@ -112,7 +112,7 @@ export function showImportSheetForm() {
     setMainContent('Import Sheet', new ImportSheetArea());
 }
 
-function setTitle(titlePart: string | undefined) {
+export function setTitle(titlePart: string | undefined) {
     if (titlePart === undefined) {
         document.title = 'FFXIV Gear Planner';
     }

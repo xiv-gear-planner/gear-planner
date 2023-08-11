@@ -50,7 +50,7 @@ export async function xivApiGet<RequestType extends (XivApiListRequest | XivApiS
     const results = [...initialResults['Results']];
     // Doing it like this to keep results ordered.
     const additional: Promise<any>[] = [];
-    for (let i = 1; i <= pageLimit; i++) {
+    for (let i = 2; i <= pageLimit; i++) {
         // xivapi is 20req/sec/ip, but multiple of these may be running in parallel
         await new Promise(resolve => setTimeout(resolve, 150));
         additional.push(fetch(query + '&page=' + i).then(response => response.json()));

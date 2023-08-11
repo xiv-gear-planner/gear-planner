@@ -404,8 +404,11 @@ export class XivApiGearInfo implements GearItem {
         this.ilvl = data['LevelItem'];
         this.iconUrl = xivApiIcon(data['IconHD']);
         this.Stats = data['Stats'];
-        var eqs = data['EquipSlotCategory'];
-        if (eqs['MainHand']) {
+        const eqs = data['EquipSlotCategory'];
+        if (!eqs) {
+            console.error('EquipSlotCategory was null!', data);
+        }
+        else if (eqs['MainHand']) {
             this.gearSlot = GearSlotInfo.Weapon;
         }
         else if (eqs['Head']) {

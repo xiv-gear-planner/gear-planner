@@ -1,4 +1,5 @@
-import {JobData, LevelStats, RawStatKey, RawStats} from "./geartypes";
+import {ItemDisplaySettings, JobData, LevelItemInfo, LevelStats, RawStatKey, RawStats} from "./geartypes";
+import {} from "./components/items";
 
 export const MATERIA_SLOTS_MAX = 5;
 export const MATERIA_LEVEL_MIN_RELEVANT = 7;
@@ -183,14 +184,44 @@ export const LEVEL_STATS: Record<SupportedLevel, LevelStats> = {
         baseSubStat: 380,
         levelDiv: 1300,
         // TODO: this value is a guess
-        hp: 2500
+        hp: 2500,
+
     },
     90: {
         level: 90,
         baseMainStat: 390,
         baseSubStat: 400,
         levelDiv: 1900,
-        hp: 3000
+        hp: 3000,
+    }
+}
+
+export const LEVEL_ITEMS: Record<SupportedLevel, LevelItemInfo> = {
+    80: {
+        minILvl: 380,
+        maxILvl: 475,
+        // TODO check food levels
+        minILvlFood: 380,
+        maxILvlFood: 475,
+        defaultDisplaySettings: {
+            minILvl: 450,
+            maxILvl: 475,
+            minILvlFood: 440,
+            maxILvlFood: 475,
+        }
+    },
+    90: {
+        minILvl: 570,
+        maxILvl: 999,
+        // TODO check food levels
+        minILvlFood: 570,
+        maxILvlFood: 999,
+        defaultDisplaySettings: {
+            minILvl: 640,
+            maxILvl: 999,
+            minILvlFood: 640,
+            maxILvlFood: 999
+        }
     }
 }
 
@@ -214,7 +245,6 @@ export const ALL_SUB_STATS = [...FAKE_MAIN_STATS, ...SPECIAL_SUB_STATS] as const
  * Which substats can be granted by materia.
  *
  * If SE ever gives us main stat or vitality materia again, this will need to be updated.
- * // TODO: but this includes vitality?
  */
 export const MateriaSubstats: (Exclude<typeof ALL_SUB_STATS[number], 'vitality'>)[] = ['crit', 'dhit', 'determination', 'spellspeed', 'skillspeed', 'piety', 'tenacity'];
 export type MateriaSubstat = typeof MateriaSubstats[number];

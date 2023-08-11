@@ -9,7 +9,6 @@ import {
     SupportedLevel
 } from "./xivconstants";
 
-import {ItemDisplaySettings} from "./components/items";
 export interface GearSlot {
 
 }
@@ -249,6 +248,14 @@ export interface LevelStats {
     hp: number
 }
 
+export interface LevelItemInfo {
+    minILvl: number,
+    maxILvl: number,
+    minILvlFood: number,
+    maxILvlFood: number,
+    defaultDisplaySettings: ItemDisplaySettings
+}
+
 
 export const ROLES = ['Healer', 'Melee', 'Ranged', 'Caster', 'Tank'] as const;
 
@@ -346,7 +353,7 @@ export interface SheetExport {
     level: SupportedLevel,
     sets: SetExport[],
     sims: SimExport[],
-    itemDisplaySettings: ItemDisplaySettings,
+    itemDisplaySettings?: ItemDisplaySettings,
     // Keeping these abbreviated so exports don't become unnecessarily large
     // Materia fill new items
     mfni?: boolean,
@@ -382,4 +389,11 @@ export interface MateriaAutoFillController {
     callback(): void;
     fillEmpty(): void;
     fillAll(): void;
+}
+
+export interface ItemDisplaySettings {
+    minILvl: number,
+    maxILvl: number,
+    minILvlFood: number,
+    maxILvlFood: number,
 }

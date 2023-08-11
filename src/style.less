@@ -377,6 +377,7 @@ table.gear-plan-table {
           border-left: var(--thick-border);
           z-index: var(--zi-sets-table-header-row-pinned) !important;
         }
+
         &:nth-child(2) {
           z-index: var(--zi-sets-table-header-row-pinned) !important;
         }
@@ -568,8 +569,15 @@ gear-plan {
   }
 
   .gear-sheet-midbar-area {
-    cursor: grab;
     border-top: var(--thick-border);
+
+    .gear-set-editor-toolbar {
+      cursor: grab;
+      > * {
+        cursor: auto;
+      }
+    }
+
     //margin-top: 5px;
   }
 

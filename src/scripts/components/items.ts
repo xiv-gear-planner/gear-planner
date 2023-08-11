@@ -398,13 +398,6 @@ export class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
     }
 }
 
-export interface ItemDisplaySettings {
-    minILvl: number,
-    maxILvl: number,
-    minILvlFood: number,
-    maxILvlFood: number,
-}
-
 export class ILvlRangePicker<ObjType> extends HTMLElement {
     private _listeners: ((min: number, max: number) => void)[] = [];
     private obj: ObjType;
