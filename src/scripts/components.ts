@@ -734,9 +734,6 @@ export class GearPlanSheet extends HTMLElement {
         this._loadingScreen.remove();
         this.classList.remove('loading');
         // console.log(`${this._selectFirstRowByDefault} ${this.sets.length}`);
-        if (this._selectFirstRowByDefault && this.sets.length >= 1) {
-            this._gearPlanTable.selectGearSet(this.sets[0])
-        }
 
         const toolbar = document.createElement('div');
         toolbar.classList.add('gear-set-editor-toolbar');
@@ -826,8 +823,12 @@ export class GearPlanSheet extends HTMLElement {
         //     console.log(ev.pageY);
         //     this.editorArea.style
         // });
-
         this._gearEditToolBar = toolbar;
+
+        if (this._selectFirstRowByDefault && this.sets.length >= 1) {
+            this._gearPlanTable.selectGearSet(this.sets[0])
+        }
+
         this.setupDone = true;
     }
 
