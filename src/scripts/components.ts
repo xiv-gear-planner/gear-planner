@@ -865,7 +865,11 @@ export class GearPlanSheet extends HTMLElement {
                 }
             }
         }
-        this._relevantMateria = this.dataManager.allMateria.filter(mat => this.isStatRelevant(mat.primaryStat));
+        this._relevantMateria = this.dataManager.allMateria.filter(mat => {
+            return mat.materiaGrade <= lvlItemInfo.maxMateria
+                && mat.materiaGrade >= lvlItemInfo.minMateria
+                && this.isStatRelevant(mat.primaryStat);
+        });
         this._relevantFood = this.dataManager.allFoodItems.filter(food => this.isStatRelevant(food.primarySubStat) || this.isStatRelevant(food.secondarySubStat));
         this.setupRealGui();
     }

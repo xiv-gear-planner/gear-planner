@@ -261,6 +261,8 @@ export interface LevelItemInfo {
     maxILvl: number,
     minILvlFood: number,
     maxILvlFood: number,
+    minMateria: number,
+    maxMateria: number,
     defaultDisplaySettings: ItemDisplaySettings
 }
 

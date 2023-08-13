@@ -277,6 +277,8 @@ export const LEVEL_ITEMS: Record<SupportedLevel, LevelItemInfo> = {
         // TODO check food levels
         minILvlFood: 380,
         maxILvlFood: 475,
+        minMateria: 7,
+        maxMateria: 8,
         defaultDisplaySettings: {
             minILvl: 450,
             maxILvl: 475,
@@ -290,6 +292,8 @@ export const LEVEL_ITEMS: Record<SupportedLevel, LevelItemInfo> = {
         // TODO check food levels
         minILvlFood: 570,
         maxILvlFood: 999,
+        minMateria: 7,
+        maxMateria: 10,
         defaultDisplaySettings: {
             minILvl: 640,
             maxILvl: 999,
