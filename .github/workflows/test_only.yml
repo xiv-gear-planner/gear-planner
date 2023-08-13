@@ -1,4 +1,4 @@
-name: NodeJS with Webpack
+name: Test Build for PR
 
 on:
 #  push:
