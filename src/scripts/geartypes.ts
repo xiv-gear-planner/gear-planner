@@ -1,8 +1,8 @@
 import {EquippedItem} from "./gear";
 import {
     FAKE_MAIN_STATS,
-    JobName, MateriaSubstat,
-    MateriaSubstats,
+    JobName,
+    MateriaSubstat,
     RaceName,
     REAL_MAIN_STATS,
     SPECIAL_SUB_STATS,
@@ -131,14 +131,17 @@ export interface ComputedSetStats extends RawStats {
      * Job modifier data
      */
     jobStats: JobData,
+
     /**
      * Physical GCD time
      */
     gcdPhys(baseGcd: number): number,
+
     /**
      * Magical GCD time
      */
     gcdMag(baseGcd: number): number,
+
     /**
      * Crit chance. Ranges from 0 to 1.
      */
@@ -178,7 +181,7 @@ export interface ComputedSetStats extends RawStats {
     /**
      * Trait multiplier
      */
-    traitMulti: number;
+    traitMulti(attackType: AttackType): number;
     /**
      * Bonus added to det multiplier for automatic direct hits
      */
@@ -232,7 +235,7 @@ export class RawStats implements RawStats {
     wdPhys: number = 0;
     wdMag: number = 0;
 
-    constructor(values: ({[K in RawStatKey]?: number} | undefined) = undefined) {
+    constructor(values: ({ [K in RawStatKey]?: number } | undefined) = undefined) {
         if (values) {
             Object.assign(this, values);
         }
@@ -245,23 +248,13 @@ export interface LevelStats {
     baseMainStat: number,
     baseSubStat: number,
     levelDiv: number,
-    hp: number
+    hp: number,
+    // You can specify either 'default' and a non-exhaustive list, or an exhaustive list (i.e. every role).
+    mainStatPowerMod:
+        ({ 'other': number } & { [K in RoleKey]?: number })
+        | { [K in RoleKey]: number }
 }
 
-/* TODO how do you do this properly?
-export const MainstatModifier {
-    tank: {
-        70: number = 105,
-        80: number = 115,
-        90: number = 156
-    }
-    non-tank: {
-        70: number = 125,
-        80: number = 165,
-        90: number = 195
-    }
-}
-*/
 
 export interface LevelItemInfo {
     minILvl: number,
@@ -284,7 +277,7 @@ export interface JobData {
     jobStatMulipliers: RawStats,
     role: RoleKey,
     mainStat: Mainstat;
-    traitMulti?: (level: number) => number;
+    traitMulti?: (level: number, attackType: AttackType) => number;
     traits?: JobTrait[];
     irrelevantSubstats?: Substat[];
 }
@@ -401,8 +394,11 @@ export type PartyBonusAmount = 0 | 1 | 2 | 3 | 4 | 5;
 export interface MateriaAutoFillController {
     statPrio: (MateriaSubstat)[];
     autoFillNewItem: boolean;
+
     callback(): void;
+
     fillEmpty(): void;
+
     fillAll(): void;
 }
 
@@ -412,3 +408,6 @@ export interface ItemDisplaySettings {
     minILvlFood: number,
     maxILvlFood: number,
 }
+
+export const AttackTypes = ['Unknown', 'Auto-attack', 'Spell', 'Weaponskill', 'Ability', 'Item'] as const;
+export type AttackType = typeof AttackTypes[number];

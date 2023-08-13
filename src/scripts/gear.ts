@@ -226,7 +226,7 @@ export class CharacterGearSet {
             // TODO: does this need to be phys/magic split?
             wdMulti: wdMulti(levelStats, classJobStats, Math.max(combinedStats.wdMag, combinedStats.wdPhys)),
             mainStatMulti: mainStatMulti(levelStats, classJobStats, mainStat),
-            traitMulti: classJobStats.traitMulti ? classJobStats.traitMulti(level) : 1,
+            traitMulti: classJobStats.traitMulti ? (type) => classJobStats.traitMulti(level, type) : () => 1,
             autoDhBonus: autoDhBonusDmg(levelStats, combinedStats.dhit),
             mpPerTick: mpTick(levelStats, combinedStats.piety),
         }

@@ -1,8 +1,6 @@
 name: Test Build for PR
 
 on:
-#  push:
-#    branches: [ "master" ]
   pull_request:
 #    branches: [ "master" ]
   workflow_dispatch:
@@ -10,12 +8,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-#    environment:
-#      name: github-pages
-#      url: ${{ steps.deployment.outputs.page_url }}
-#    permissions:
-#      pages: write
-#      id-token: write
 
     strategy:
       matrix:
@@ -36,19 +28,3 @@ jobs:
           npx webpack
           npm install -g less
           lessc --source-map ./src/style.less dist/style.css
-  #      - name: Deploy to Github Pages
-#        uses: peaceiris/actions-gh-pages@v3
-#        with:
-#          publish_dir: ./dist # Replace 'dist' with the directory where your build output resides
-#          publish_branch: gh-pages
-#          enable_jekyll: false
-
-#      - name: Setup Pages
-#        uses: actions/configure-pages@v3
-#      - name: Upload artifact
-#        uses: actions/upload-pages-artifact@v2
-#        with:
-#          path: './dist'
-#      - name: Deploy to GitHub Pages
-#        id: deployment
-#        uses: actions/deploy-pages@v2

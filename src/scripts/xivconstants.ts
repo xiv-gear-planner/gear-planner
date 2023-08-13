@@ -1,5 +1,4 @@
-import {ItemDisplaySettings, JobData, LevelItemInfo, LevelStats, RawStatKey, RawStats} from "./geartypes";
-import {} from "./components/items";
+import {JobData, LevelItemInfo, LevelStats, RawStatKey, RawStats} from "./geartypes";
 
 /**
  * Maximum number of materia slots on any item.
@@ -122,7 +121,7 @@ export const RACE_STATS: Record<RaceName, RawStats> = {
     // Roe
     "Sea Wolf": new RawStats({
         strength: 2,
-        dexterity:-1,
+        dexterity: -1,
         vitality: 3,
         intelligence: -2,
         mind: 1,
@@ -222,7 +221,10 @@ export const LEVEL_STATS: Record<SupportedLevel, LevelStats> = {
         levelDiv: 1300,
         // TODO: this value is a guess
         hp: 2500,
-
+        mainStatPowerMod: {
+            Tank: 115,
+            other: 165,
+        }
     },
     90: {
         level: 90,
@@ -230,6 +232,10 @@ export const LEVEL_STATS: Record<SupportedLevel, LevelStats> = {
         baseSubStat: 400,
         levelDiv: 1900,
         hp: 3000,
+        mainStatPowerMod: {
+            Tank: 156,
+            other: 195,
+        }
     }
 }
 
@@ -264,6 +270,20 @@ export const LEVEL_ITEMS: Record<SupportedLevel, LevelItemInfo> = {
         }
     }
 }
+
+// Level 70 data
+// export const MainstatModifier {
+//     tank: {
+//         70: number = 105,
+//         80: number = 115,
+//         90: number = 156
+//     }
+//     non-tank: {
+//         70: number = 125,
+//         80: number = 165,
+//         90: number = 195
+//     }
+// }
 
 /**
  * Main stats in current version of the game.

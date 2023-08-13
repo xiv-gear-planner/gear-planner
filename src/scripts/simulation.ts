@@ -129,7 +129,7 @@ export class PotencyRatioSim implements Simulation<PotencyRatioSimResults, SimSe
     shortName = "pr-sim";
     displayName = "Dmg/100p";
     async simulate(set: CharacterGearSet): Promise<PotencyRatioSimResults> {
-        const base = baseDamage(set.computedStats, 100, false, false);
+        const base = baseDamage(set.computedStats, 100, 'Spell');
         const final = applyDhCrit(base, set.computedStats);
         return {mainDpsResult: final, withoutCritDh: base};
     };

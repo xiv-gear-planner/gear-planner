@@ -1,4 +1,4 @@
-import {ComputedSetStats, JobData, LevelStats} from "./geartypes";
+import {AttackType, ComputedSetStats, JobData, LevelStats} from "./geartypes";
 
 /*
     Common math for FFXIV.
@@ -140,22 +140,10 @@ export function sksTickMulti(levelStats: LevelStats, sks: number) {
  * @param mainstat
  */
 export function mainStatMulti(levelStats: LevelStats, jobStats: JobData, mainstat: number) {
-    if (levelStats.level === 90) {
-        if (jobStats.role === 'Tank') {
-            return (Math.floor(156 * (mainstat - levelStats.baseMainStat) / levelStats.baseMainStat) + 100) / 100;
-        }
-        else {
-            return (Math.floor(195 * (mainstat - levelStats.baseMainStat) / levelStats.baseMainStat) + 100) / 100;
-        }
-    }
-    else if (levelStats.level === 80) {
-        if (jobStats.role === 'Tank') {
-            return (Math.floor(115 * (mainstat - levelStats.baseMainStat) / levelStats.baseMainStat) + 100) / 100;
-        }
-        else {
-            return (Math.floor(165 * (mainstat - levelStats.baseMainStat) / levelStats.baseMainStat) + 100) / 100;
-        }
-    }
+    // TODO make this work without ts-ignore
+    // @ts-ignore
+    const apMod = levelStats.mainStatPowerMod[jobStats.role] ?? levelStats.mainStatPowerMod.other;
+    return (Math.floor(apMod * (mainstat - levelStats.baseMainStat) / levelStats.baseMainStat) + 100) / 100;
 }
 
 /**
@@ -198,7 +186,7 @@ const fl = Math.floor;
  *
  * TODO: where to factor in extra damage from buffs?
  */
-export function baseDamage(stats: ComputedSetStats, potency: number, autoDH: boolean = false, autoCrit: boolean = false) {
+export function baseDamage(stats: ComputedSetStats, potency: number, attackType: AttackType = 'Unknown', autoDH: boolean = false, autoCrit: boolean = false) {
 
     // Multiplier from main stat
     const mainStatMulti = stats.mainStatMulti;
@@ -220,7 +208,7 @@ export function baseDamage(stats: ComputedSetStats, potency: number, autoDH: boo
     const autoDhBonus = stats.autoDhBonus;
     const tncMulti = 1000 / 1000 // if tank you'd do Funcs.fTEN(stats.tenacity, level) / 1000
     const detAutoDhMulti = fl((detMulti + autoDhBonus) * 1000) / 1000;
-    const traitMulti = stats.traitMulti;
+    const traitMulti = stats.traitMulti(attackType);
 
     // console.log({
     //     mainStatMulti: mainStatMulti, wdMulti: wdMulti, critMulti: critMulti, critRate: critRate, dhRate: dhRate, dhMulti: dhMulti, detMulti: detMulti, tncMulti: tncMulti, traitMulti: traitMulti
@@ -246,7 +234,7 @@ export function baseDamage(stats: ComputedSetStats, potency: number, autoDH: boo
     return afterTrait;
 }
 
-export function baseHealing(stats: ComputedSetStats, potency: number, autoDH: boolean = false, autoCrit: boolean = false) {
+export function baseHealing(stats: ComputedSetStats, potency: number, attackType: AttackType = 'Unknown', autoCrit: boolean = false) {
 
     // Multiplier from main stat
     const mainStatMulti = stats.mainStatMulti;
@@ -262,7 +250,7 @@ export function baseHealing(stats: ComputedSetStats, potency: number, autoDH: bo
     const detMulti = stats.detMulti;
     // Extra damage from auto DH bonus
     const tncMulti = 1000 / 1000 // if tank you'd do Funcs.fTEN(stats.tenacity, level) / 1000
-    const traitMulti = stats.traitMulti;
+    const traitMulti = stats.traitMulti(attackType);
 
     // Base action potency and main stat multi
     const basePotency = fl(potency * mainStatMulti * 100) / 100;
