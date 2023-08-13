@@ -20,7 +20,7 @@ export const MATERIA_LEVEL_MAX_OVERMELD = 9;
 /**
  * Supported Jobs.
  */
-export type JobName = 'WHM' | 'SGE';
+export type JobName = 'WHM' | 'SGE' | 'SCH' | 'AST';
 
 /**
  * All clans/races.
@@ -79,6 +79,34 @@ export const JOB_DATA: Record<JobName, JobData> = {
             strength: 60,
             dexterity: 100,
             intelligence: 115,
+            mind: 115
+        }),
+        traitMulti: level => 1.3,
+        irrelevantSubstats: ['skillspeed', 'tenacity'],
+    },
+    'SCH': {
+        mainStat: 'mind',
+        role: 'Healer',
+        jobStatMulipliers: new RawStats({
+            hp: 105,
+            vitality: 100,
+            strength: 90,
+            dexterity: 100,
+            intelligence: 105,
+            mind: 115
+        }),
+        traitMulti: level => 1.3,
+        irrelevantSubstats: ['skillspeed', 'tenacity'],
+    },
+    'AST': {
+        mainStat: 'mind',
+        role: 'Healer',
+        jobStatMulipliers: new RawStats({
+            hp: 105,
+            vitality: 100,
+            strength: 50,
+            dexterity: 100,
+            intelligence: 105,
             mind: 115
         }),
         traitMulti: level => 1.3,
