@@ -9,7 +9,8 @@ import {
     MATERIA_LEVEL_MAX_NORMAL,
     MATERIA_LEVEL_MAX_OVERMELD,
     MATERIA_LEVEL_MIN_RELEVANT,
-    MATERIA_SLOTS_MAX, MateriaSubstat,
+    MATERIA_SLOTS_MAX,
+    MateriaSubstat,
     RaceName,
     REAL_MAIN_STATS,
     SPECIAL_SUB_STATS,
@@ -32,12 +33,15 @@ import {
 } from "./xivmath";
 import {
     ComputedSetStats,
-    EquipmentSet, EquipSlot, EquipSlotKey, EquipSlots, EquipSlotInfo,
+    EquipmentSet,
+    EquipSlotKey,
+    EquipSlots,
     FoodItem,
     GearItem,
     GearSlot,
     GearSlotInfo,
     Materia,
+    MateriaAutoFillController,
     MateriaSlot,
     MeldableMateriaSlot,
     RawStatKey,
@@ -45,7 +49,7 @@ import {
     StatBonus,
     XivApiStat,
     xivApiStatToRawStatKey,
-    XivCombatItem, MateriaAutoFillController
+    XivCombatItem
 } from "./geartypes";
 import {GearPlanSheet} from "./components";
 import {xivApiIcon} from "./external/xivapi";
@@ -72,6 +76,9 @@ export class EquippedItem {
     melds: MeldableMateriaSlot[];
 }
 
+/**
+ * Class representing equipped gear, food, and other overrides.
+ */
 export class CharacterGearSet {
     _name: string;
     equipment: EquipmentSet;
@@ -214,8 +221,8 @@ export class CharacterGearSet {
             dhitChance: dhitChance(levelStats, combinedStats.dhit),
             dhitMulti: dhitDmg(levelStats, combinedStats.dhit),
             detMulti: detDmg(levelStats, combinedStats.determination),
-            spsDotMulti: spsTickMulti(combinedStats.spellspeed),
-            sksDotMulti: sksTickMulti(combinedStats.skillspeed),
+            spsDotMulti: spsTickMulti(levelStats, combinedStats.spellspeed),
+            sksDotMulti: sksTickMulti(levelStats, combinedStats.skillspeed),
             // TODO: does this need to be phys/magic split?
             wdMulti: wdMulti(levelStats, classJobStats, Math.max(combinedStats.wdMag, combinedStats.wdPhys)),
             mainStatMulti: mainStatMulti(levelStats, classJobStats, mainStat),
@@ -323,6 +330,13 @@ export class CharacterGearSet {
         }
     }
 
+    /**
+     * Perform a materia auto-fill.
+     *
+     * @param statPrio The priority of stats.
+     * @param overwrite true to fill all slots, even if already occupied. false to only fill empty slots.
+     * @param slots Omit to fill all slots. Specify one or more slots to specifically fill those slots.
+     */
     fillMateria(statPrio: MateriaSubstat[], overwrite: boolean, slots?: EquipSlotKey[]) {
         for (let slotKey of (slots === undefined ? EquipSlots : slots)) {
             const equipSlot = this.equipment[slotKey] as EquippedItem | null;
@@ -333,8 +347,7 @@ export class CharacterGearSet {
                     equipSlot.melds.forEach(meldSlot => meldSlot.equippedMateria = null);
                 }
                 const cap = gearItem.substatCap;
-                materiaLoop:
-                for (let meldSlot of equipSlot.melds) {
+                materiaLoop: for (let meldSlot of equipSlot.melds) {
                     // If overwriting, we already cleared the slots, so this check is fine in any scenario.
                     if (meldSlot.equippedMateria) {
                         continue;

@@ -1,14 +1,31 @@
 import {ItemDisplaySettings, JobData, LevelItemInfo, LevelStats, RawStatKey, RawStats} from "./geartypes";
 import {} from "./components/items";
 
+/**
+ * Maximum number of materia slots on any item.
+ */
 export const MATERIA_SLOTS_MAX = 5;
+/**
+ * Minimum level of materia that we would ever consider relevant.
+ */
 export const MATERIA_LEVEL_MIN_RELEVANT = 7;
+/**
+ * Max supported materia level.
+ */
 export const MATERIA_LEVEL_MAX_NORMAL = 10;
+/**
+ * Max supported materia level for overmeld slots.
+ */
 export const MATERIA_LEVEL_MAX_OVERMELD = 9;
-export const LEVEL_MAX: SupportedLevel = 90;
 
+/**
+ * Supported Jobs.
+ */
 export type JobName = 'WHM' | 'SGE';
 
+/**
+ * All clans/races.
+ */
 export type RaceName = 'Duskwight' | 'Wildwood'
     | 'Raen' | 'Xaela'
     | 'Veena' | 'Rava'
@@ -18,12 +35,24 @@ export type RaceName = 'Duskwight' | 'Wildwood'
     | 'Midlander' | 'Highlander'
     | 'Dunesfolk' | 'Plainsfolk'
 
+/**
+ * Supported levels.
+ */
 export const SupportedLevels = [80, 90] as const;
 export type SupportedLevel = typeof SupportedLevels[number];
 
+// TODO: block modifications to this
+/**
+ * Empty stats object.
+ */
 export const EMPTY_STATS = new RawStats();
 
 
+/**
+ * Job-specific data items.
+ *
+ * TODO: Most of this can be xivapi
+ */
 export const JOB_DATA: Record<JobName, JobData> = {
     'WHM': {
         mainStat: 'mind',
@@ -58,6 +87,11 @@ export const JOB_DATA: Record<JobName, JobData> = {
     },
 }
 
+/**
+ * Clan/race-specific stats
+ *
+ * TODO: All of this can be xivapi
+ */
 export const RACE_STATS: Record<RaceName, RawStats> = {
     // Elezen
     'Duskwight': new RawStats({
@@ -177,6 +211,9 @@ export const RACE_STATS: Record<RaceName, RawStats> = {
     }),
 }
 
+/**
+ * Level-specific stat modifiers
+ */
 export const LEVEL_STATS: Record<SupportedLevel, LevelStats> = {
     80: {
         level: 80,
@@ -196,6 +233,9 @@ export const LEVEL_STATS: Record<SupportedLevel, LevelStats> = {
     }
 }
 
+/**
+ * Numbers governing the minimum/maximum item levels to request from xivapi, as well as default display settings.
+ */
 export const LEVEL_ITEMS: Record<SupportedLevel, LevelItemInfo> = {
     80: {
         minILvl: 380,
@@ -238,6 +278,9 @@ export const FAKE_MAIN_STATS = ['vitality', 'determination', 'piety'] as const;
  * Substats that get the substat-specific math treatment.
  */
 export const SPECIAL_SUB_STATS = ['crit', 'dhit', 'spellspeed', 'skillspeed', 'tenacity'] as const;
+/**
+ * All sub-stats
+ */
 export const ALL_SUB_STATS = [...FAKE_MAIN_STATS, ...SPECIAL_SUB_STATS] as const;
 // export const ALL_SUB_STATS: ((typeof FAKE_MAIN_STATS[number]) | (typeof SPECIAL_SUB_STATS[number]))[] = [...FAKE_MAIN_STATS, ...SPECIAL_SUB_STATS] as const;
 
@@ -249,6 +292,9 @@ export const ALL_SUB_STATS = [...FAKE_MAIN_STATS, ...SPECIAL_SUB_STATS] as const
 export const MateriaSubstats: (Exclude<typeof ALL_SUB_STATS[number], 'vitality'>)[] = ['crit', 'dhit', 'determination', 'spellspeed', 'skillspeed', 'piety', 'tenacity'];
 export type MateriaSubstat = typeof MateriaSubstats[number];
 
+/**
+ * Full display names for every stat
+ */
 export const STAT_FULL_NAMES: Record<RawStatKey, string> = {
     crit: "Critical Hit",
     determination: "Determination",
@@ -267,6 +313,9 @@ export const STAT_FULL_NAMES: Record<RawStatKey, string> = {
     wdPhys: "Weapon Damage (Physical)"
 }
 
+/**
+ * Abbreviations for every stat
+ */
 export const STAT_ABBREVIATIONS: Record<RawStatKey, string> = {
     crit: "CRT",
     determination: "DET",
@@ -285,6 +334,12 @@ export const STAT_ABBREVIATIONS: Record<RawStatKey, string> = {
     wdPhys: "WDp"
 }
 
+/**
+ * Convert from a BaseParam ID to the actual stat.
+ *
+ * @param id The ID
+ * @returns The stat key
+ */
 export function statById(id: number): keyof RawStats {
     switch (id) {
         case 1:
