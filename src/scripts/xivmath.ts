@@ -17,9 +17,10 @@ import {ComputedSetStats, JobData, LevelStats} from "./geartypes";
  * @param baseGcd The base time of the ability in question (e.g. 2.5 for most abilities).
  * @param levelStats Level stats for the level at which the computation is to be performed.
  * @param sks The skill speed stat value.
+ * @param haste The haste value. Eg 15 for 15% haste, etc.
  */
-export function sksToGcd(baseGcd: number, levelStats: LevelStats, sks: number): number {
-    return Math.floor((100) * ((baseGcd * 1000 * (1000 - Math.floor(130 * (sks - levelStats.baseSubStat) / levelStats.levelDiv)) / 1000) / 1000)) / 100;
+export function sksToGcd(baseGcd: number, levelStats: LevelStats, sks: number, haste = 0): number {
+    return Math.floor((100-haste) * ((baseGcd * 1000 * (1000 - Math.floor(130 * (sks - levelStats.baseSubStat) / levelStats.levelDiv)) / 1000) / 1000)) / 100;
 }
 
 /**
@@ -29,8 +30,8 @@ export function sksToGcd(baseGcd: number, levelStats: LevelStats, sks: number): 
  * @param levelStats Level stats for the level at which the computation is to be performed.
  * @param sps The spell speed stat value.
  */
-export function spsToGcd(baseGcd: number, levelStats: LevelStats, sps: number): number {
-    return Math.floor((100) * ((baseGcd * 1000 * (1000 - Math.floor(130 * (sps - levelStats.baseSubStat) / levelStats.levelDiv)) / 1000) / 1000)) / 100;
+export function spsToGcd(baseGcd: number, levelStats: LevelStats, sps: number, haste = 0): number {
+    return Math.floor((100-haste) * ((baseGcd * 1000 * (1000 - Math.floor(130 * (sps - levelStats.baseSubStat) / levelStats.levelDiv)) / 1000) / 1000)) / 100;
 }
 
 /**
@@ -109,10 +110,11 @@ export function wdMulti(levelStats: LevelStats, jobStats: JobData, wd: number) {
  *
  * AkhMorning equivalent: F(SPD)
  *
+ * @param levelStats Level stats for the level at which the computation is to be performed.
  * @param sps The spell speed.
  */
-export function spsTickMulti(sps: number) {
-    return (1000 + Math.floor(130 * (sps - 400) / 1900)) / 1000;
+export function spsTickMulti(levelStats: LevelStats, sps: number) {
+    return (1000 + Math.floor(130 * (sps - levelStats.baseSubStat) / levelStats.levelDiv)) / 1000;
 }
 
 /**
@@ -120,10 +122,11 @@ export function spsTickMulti(sps: number) {
  *
  * AkhMorning equivalent: F(SPD)
  *
+ * @param levelStats Level stats for the level at which the computation is to be performed.
  * @param sks The skill speed.
  */
-export function sksTickMulti(sks: number) {
-    return (1000 + Math.floor(130 * (sks - 400) / 1900)) / 1000;
+export function sksTickMulti(levelStats: LevelStats, sks: number) {
+    return (1000 + Math.floor(130 * (sks - levelStats.baseSubStat) / levelStats.levelDiv)) / 1000;
 }
 
 // TODO: only works for 90 and non-tank?
