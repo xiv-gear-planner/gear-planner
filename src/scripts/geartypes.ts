@@ -248,6 +248,21 @@ export interface LevelStats {
     hp: number
 }
 
+/* TODO how do you do this properly?
+export const MainstatModifier {
+    tank: {
+        70: number = 105,
+        80: number = 115,
+        90: number = 156
+    }
+    non-tank: {
+        70: number = 125,
+        80: number = 165,
+        90: number = 195
+    }
+}
+*/
+
 export interface LevelItemInfo {
     minILvl: number,
     maxILvl: number,
