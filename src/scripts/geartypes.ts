@@ -4,7 +4,7 @@ import {
     JobName,
     MateriaSubstat,
     RaceName,
-    REAL_MAIN_STATS,
+    MAIN_STATS,
     SPECIAL_SUB_STATS,
     SupportedLevel
 } from "./xivconstants";
@@ -271,7 +271,7 @@ export const ROLES = ['Healer', 'Melee', 'Ranged', 'Caster', 'Tank'] as const;
 
 export type RoleKey = typeof ROLES[number];
 
-export type Mainstat = typeof REAL_MAIN_STATS[number];
+export type Mainstat = typeof MAIN_STATS[number];
 export type Substat = (typeof FAKE_MAIN_STATS[number] | typeof SPECIAL_SUB_STATS[number]);
 
 // TODO: add a way of specifying which substats are relevant to the class

@@ -47,7 +47,7 @@ import {
     MateriaSubstats,
     RACE_STATS,
     RaceName,
-    REAL_MAIN_STATS,
+    MAIN_STATS,
     SupportedLevel,
     SupportedLevels
 } from "./xivconstants";
@@ -1145,7 +1145,7 @@ export class GearPlanSheet extends HTMLElement {
             // Not sure what the best way to handle this is
             return true;
         }
-        if (REAL_MAIN_STATS.includes(stat as typeof REAL_MAIN_STATS[number])) {
+        if (MAIN_STATS.includes(stat as typeof MAIN_STATS[number])) {
             return (stat === this.classJobStats.mainStat);
         }
         if (this.classJobStats.irrelevantSubstats) {

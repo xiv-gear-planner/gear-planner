@@ -899,22 +899,24 @@ div.gear-set-editor-toolbar {
   div.single-stat-tier-display {
     .standard-round-border;
     padding: 2px;
-    margin: 2px;
+    margin: 5px 2px 5px 2px;
     display: inline-block;
     width: fit-content;
     min-width: 50px;
     div.single-stat-tier-display-upper {
       display: block;
     }
-    border-color: color-mix(in srgb, var(--stat-color) 30%, var(--border-color));
-    &.stat-tiering-perfect {
 
+    border-color: color-mix(in srgb, var(--stat-color) 30%, var(--border-color));
+
+    &.stat-tiering-perfect {
       div.single-stat-tier-display-upper {
         color: color-mix(in srgb, var(--stat-color) 60%, #fff);
       }
       border-color: color-mix(in srgb, var(--stat-color) 60%, var(--border-color));
       //border-width: 2px;
     }
+
     --inner-padding: 3px;
     div.single-stat-tier-display-lower-left{
       display: inline-block;

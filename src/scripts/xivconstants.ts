@@ -320,7 +320,7 @@ export const LEVEL_ITEMS: Record<SupportedLevel, LevelItemInfo> = {
 /**
  * Main stats in current version of the game.
  */
-export const REAL_MAIN_STATS = ['strength', 'dexterity', 'intelligence', 'mind'] as const;
+export const MAIN_STATS = ['strength', 'dexterity', 'intelligence', 'mind'] as const;
 // TODO: is Tenacity treated like this?
 /**
  * Substats that are treated as main stats for stat calc purposes.
@@ -338,7 +338,17 @@ export const ALL_SUB_STATS = [...FAKE_MAIN_STATS, ...SPECIAL_SUB_STATS] as const
 /**
  * All stats
  */
-export const ALL_STATS = [...REAL_MAIN_STATS, ...ALL_SUB_STATS] as const;
+export const ALL_STATS = [...MAIN_STATS, ...ALL_SUB_STATS] as const;
+
+// TODO: make everything use this
+let statDisplayTmp: RawStatKey[] = ['vitality', ...MAIN_STATS, 'crit', 'dhit', 'determination', 'spellspeed', 'skillspeed', 'piety', 'tenacity'];
+ALL_STATS.forEach(stat => {
+    if (!statDisplayTmp.includes(stat)) {
+        statDisplayTmp.push(stat);
+    }
+});
+
+export const STAT_DISPLAY_ORDER: RawStatKey[] = [...statDisplayTmp];
 
 /**
  * Which substats can be granted by materia.

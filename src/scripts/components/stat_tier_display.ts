@@ -1,6 +1,6 @@
 import {CharacterGearSet} from "../gear";
 import {GearPlanSheet} from "../components";
-import {ALL_STATS, STAT_ABBREVIATIONS} from "../xivconstants";
+import {ALL_STATS, MAIN_STATS, STAT_ABBREVIATIONS, STAT_DISPLAY_ORDER} from "../xivconstants";
 import {RawStatKey} from "../geartypes";
 import {
     critChance,
@@ -62,7 +62,7 @@ export class StatTierDisplay extends HTMLDivElement {
 
     refresh(gearSet: CharacterGearSet) {
         this.replaceChildren();
-        const relevantStats = ALL_STATS.filter(stat => this.sheet.isStatRelevant(stat));
+        const relevantStats = STAT_DISPLAY_ORDER.filter(stat => this.sheet.isStatRelevant(stat));
         for (let stat of relevantStats) {
             try {
                 const statTiering = this.getStatTiering(stat, gearSet);

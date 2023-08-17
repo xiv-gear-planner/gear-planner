@@ -12,7 +12,7 @@ import {
     MATERIA_SLOTS_MAX,
     MateriaSubstat,
     RaceName,
-    REAL_MAIN_STATS,
+    MAIN_STATS,
     SPECIAL_SUB_STATS,
     statById,
 } from "./xivconstants";
@@ -191,7 +191,7 @@ export class CharacterGearSet {
         const levelStats = getLevelStats(level);
 
         // Base stats based on job and level
-        for (let statKey of REAL_MAIN_STATS) {
+        for (let statKey of MAIN_STATS) {
             combinedStats[statKey] = Math.floor(levelStats.baseMainStat * classJobStats.jobStatMulipliers[statKey] / 100);
         }
         for (let statKey of FAKE_MAIN_STATS) {
