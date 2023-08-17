@@ -387,7 +387,10 @@ export interface SetExport {
 
 export interface ItemSlotExport {
     id: number,
-    materia: ({ id: number } | undefined)[]
+    materia: ({ id: number } | undefined)[],
+    relicStats?: {
+        [K in Substat]?: number
+    }
 }
 
 export type PartyBonusAmount = 0 | 1 | 2 | 3 | 4 | 5;

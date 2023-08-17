@@ -1029,7 +1029,7 @@ export class GearPlanSheet extends HTMLElement {
         for (let equipmentKey in set.equipment) {
             const inSlot: EquippedItem = set.equipment[equipmentKey];
             if (inSlot) {
-                items[equipmentKey] = {
+                const exportedItem: ItemSlotExport = {
                     // TODO: determine if it makes more sense to just serialize empty materia slots as {}
                     // The advantage is that {} is a lot smaller than {"id":-1}, and exports are already long
                     // On the other hand, *most* real exports would have slots filled (BiS etc)
@@ -1038,6 +1038,10 @@ export class GearPlanSheet extends HTMLElement {
                         return {id: meld.equippedMateria?.id ?? -1}
                     }),
                 };
+                if (inSlot.relicStats && Object.entries(inSlot.relicStats)) {
+                    exportedItem.relicStats = {...inSlot.relicStats};
+                }
+                items[equipmentKey] = exportedItem;
             }
         }
         const out: SetExport = {
@@ -1079,6 +1083,9 @@ export class GearPlanSheet extends HTMLElement {
                     continue;
                 }
                 equipped.melds[i].equippedMateria = mat;
+            }
+            if (importedItem.relicStats) {
+                Object.assign(equipped.relicStats, importedItem.relicStats);
             }
             set.equipment[equipmentSlot] = equipped;
         }

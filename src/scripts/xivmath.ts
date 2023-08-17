@@ -129,7 +129,6 @@ export function sksTickMulti(levelStats: LevelStats, sks: number) {
     return (1000 + Math.floor(130 * (sks - levelStats.baseSubStat) / levelStats.levelDiv)) / 1000;
 }
 
-// TODO: only works for 90 and non-tank?
 /**
  * Convert a main stat value to a damage multiplier.
  *

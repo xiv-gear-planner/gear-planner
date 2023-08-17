@@ -46,7 +46,7 @@ import {
     MeldableMateriaSlot,
     RawStatKey,
     RawStats,
-    StatBonus,
+    StatBonus, Substat,
     XivApiStat,
     xivApiStatToRawStatKey,
     XivCombatItem
@@ -56,6 +56,14 @@ import {xivApiIcon} from "./external/xivapi";
 
 
 export class EquippedItem {
+
+    gearItem: GearItem;
+    melds: MeldableMateriaSlot[];
+    relicStats?: {
+        [K in Substat]?: number
+    };
+    isCustomRelic: boolean;
+
     constructor(gearItem: GearItem, melds: MeldableMateriaSlot[] | undefined = undefined) {
         this.gearItem = gearItem;
         if (melds === undefined) {
@@ -70,10 +78,14 @@ export class EquippedItem {
         else {
             this.melds = [...melds];
         }
+        if (this.melds.length === 0) {
+            this.relicStats = {};
+            this.isCustomRelic = true;
+        }
+        else {
+            this.isCustomRelic = false;
+        }
     }
-
-    gearItem: GearItem;
-    melds: MeldableMateriaSlot[];
 }
 
 /**
