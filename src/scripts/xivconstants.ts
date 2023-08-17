@@ -335,6 +335,10 @@ export const SPECIAL_SUB_STATS = ['crit', 'dhit', 'spellspeed', 'skillspeed', 't
  */
 export const ALL_SUB_STATS = [...FAKE_MAIN_STATS, ...SPECIAL_SUB_STATS] as const;
 // export const ALL_SUB_STATS: ((typeof FAKE_MAIN_STATS[number]) | (typeof SPECIAL_SUB_STATS[number]))[] = [...FAKE_MAIN_STATS, ...SPECIAL_SUB_STATS] as const;
+/**
+ * All stats
+ */
+export const ALL_STATS = [...REAL_MAIN_STATS, ...ALL_SUB_STATS] as const;
 
 /**
  * Which substats can be granted by materia.

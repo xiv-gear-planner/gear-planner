@@ -77,10 +77,17 @@ export async function getSetFromEtro(etroSetId: string) {
             materia: materiaOut
         }
     }
+    let food: number | undefined;
+    if (response.food) {
+        food = await fetch(`https://etro.gg/api/food/${response.food}/`).then(response => response.json()).then(json => json['item']);
+    }
+    else {
+        food = undefined;
+    }
     const setImport: SetExport = {
         name: response.name,
         job: response.jobAbbrev,
-        food: response.food,
+        food: food,
         items: items
     }
     return setImport;

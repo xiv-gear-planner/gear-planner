@@ -65,6 +65,7 @@ import {
 import {LoadingBlocker} from "./components/loader";
 import {FoodItemsTable, GearItemsTable, ILvlRangePicker} from "./components/items";
 import {MateriaPriorityPicker} from "./components/materia";
+import {GearEditToolbar} from "./components/gear_edit_toolbar";
 
 export const SHARED_SET_NAME = 'Imported Set';
 
@@ -522,7 +523,7 @@ export class GearPlanSheet extends HTMLElement {
     private _relevantFood: FoodItem[];
     private readonly _importedData: SheetExport;
     private readonly _loadingScreen: LoadingBlocker;
-    private _gearEditToolBar: Node;
+    private _gearEditToolBar: GearEditToolbar;
     private _selectFirstRowByDefault: boolean = false;
     private readonly tableArea: HTMLDivElement;
     private readonly buttonsArea: HTMLDivElement;
@@ -632,6 +633,7 @@ export class GearPlanSheet extends HTMLElement {
             else if (item instanceof CharacterGearSet) {
                 // TODO: should dataManager flow through to this?
                 this.setupEditorArea(new GearSetEditor(this, item));
+                this.refreshToolbar();
             }
             else if (item['makeConfigInterface']) {
                 this.setupEditorArea(formatSimulationConfigArea(this, item as Simulation<any, any, any>, col => this._gearPlanTable.refreshColumn(col), col => this.delSim(col), () => this._gearPlanTable.refreshColHeaders()));
@@ -735,20 +737,6 @@ export class GearPlanSheet extends HTMLElement {
         this.classList.remove('loading');
         // console.log(`${this._selectFirstRowByDefault} ${this.sets.length}`);
 
-        const toolbar = document.createElement('div');
-        toolbar.classList.add('gear-set-editor-toolbar');
-
-        const ilvlDiv = document.createElement('div');
-        ilvlDiv.classList.add('ilvl-picker-area');
-        const itemIlvlRange = new ILvlRangePicker(this._itemDisplaySettings, 'minILvl', 'maxILvl', 'Item iLvl:');
-        itemIlvlRange.addListener(() => gearUpdateTimer.ping());
-        ilvlDiv.appendChild(itemIlvlRange);
-
-        const foodIlvlRange = new ILvlRangePicker(this._itemDisplaySettings, 'minILvlFood', 'maxILvlFood', 'Food iLvl:');
-        foodIlvlRange.addListener(() => gearUpdateTimer.ping());
-        ilvlDiv.appendChild(foodIlvlRange);
-
-        toolbar.appendChild(ilvlDiv);
 
         const outer = this;
         const matFillCtrl: MateriaAutoFillController = {
@@ -790,9 +778,13 @@ export class GearPlanSheet extends HTMLElement {
             }
 
         };
-        const materiaPriority = new MateriaPriorityPicker(matFillCtrl);
         this._materiaAutoFillController = matFillCtrl;
-        toolbar.appendChild(materiaPriority);
+        const toolbar = new GearEditToolbar(
+            this,
+            this._itemDisplaySettings,
+            () => gearUpdateTimer.ping(),
+            matFillCtrl
+        );
         toolbar.addEventListener('mousedown', (ev) => {
             if (ev.target !== toolbar) {
                 return;
@@ -978,12 +970,19 @@ export class GearPlanSheet extends HTMLElement {
         gearSet.addListener(() => {
             if (this._gearPlanTable) {
                 this._gearPlanTable.refreshRowData(gearSet);
+                this.refreshToolbar();
             }
             this.saveData();
         });
         this.saveData();
         if (select && this._gearPlanTable) {
             this._gearPlanTable.selectGearSet(gearSet);
+        }
+    }
+
+    refreshToolbar() {
+        if (this._editorItem instanceof CharacterGearSet) {
+            this._gearEditToolBar?.refresh(this._editorItem);
         }
     }
 
