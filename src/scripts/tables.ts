@@ -542,12 +542,19 @@ export class CustomCell<RowDataType, CellDataType> extends HTMLTableCellElement 
         try {
             this._value = this.colDef.getter(this.dataItem);
             node = this.colDef.renderer(this._value);
-            this.colDef.colStyler(this._value, this, node);
+            if (node !== undefined) {
+                this.colDef.colStyler(this._value, this, node);
+            }
         } catch (e) {
             console.error(e);
             node = document.createTextNode("Error");
         }
-        this.replaceChildren(node);
+        if (node === undefined) {
+            this.replaceChildren();
+        }
+        else {
+            this.replaceChildren(node);
+        }
         this.refreshSelection();
     }
 

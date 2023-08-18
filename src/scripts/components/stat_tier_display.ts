@@ -41,8 +41,8 @@ export class SingleStatTierDisplay extends HTMLDivElement {
             lowerLeftDiv.textContent = '-' + tiering.tiering.lower;
         }
         else {
-            lowerLeftDiv.textContent = '0';
-            this.classList.add('stat-tiering-perfect')
+            lowerLeftDiv.textContent = '✔';
+            this.classList.add('stat-tiering-perfect');
         }
         lowerLeftDiv.classList.add('single-stat-tier-display-lower-left');
         this.appendChild(lowerLeftDiv);
