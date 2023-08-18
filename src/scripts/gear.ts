@@ -570,6 +570,9 @@ export class XivApiGearInfo implements GearItem {
                 return;
             }
         }
+        // TODO: formula
+        // Fallback value
+        this.substatCap = 1000;
     }
 
     private getStatRaw(stat: XivApiStat) {
