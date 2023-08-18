@@ -6,13 +6,13 @@ import {
     getLevelStats,
     getRaceStats,
     JobName,
+    MAIN_STATS,
     MATERIA_LEVEL_MAX_NORMAL,
     MATERIA_LEVEL_MAX_OVERMELD,
     MATERIA_LEVEL_MIN_RELEVANT,
     MATERIA_SLOTS_MAX,
     MateriaSubstat,
     RaceName,
-    MAIN_STATS,
     SPECIAL_SUB_STATS,
     statById,
 } from "./xivconstants";
@@ -46,7 +46,8 @@ import {
     MeldableMateriaSlot,
     RawStatKey,
     RawStats,
-    StatBonus, Substat,
+    StatBonus,
+    Substat,
     XivApiStat,
     xivApiStatToRawStatKey,
     XivCombatItem
@@ -62,7 +63,6 @@ export class EquippedItem {
     relicStats?: {
         [K in Substat]?: number
     };
-    isCustomRelic: boolean;
 
     constructor(gearItem: GearItem, melds: MeldableMateriaSlot[] | undefined = undefined) {
         this.gearItem = gearItem;
@@ -78,12 +78,8 @@ export class EquippedItem {
         else {
             this.melds = [...melds];
         }
-        if (this.melds.length === 0) {
+        if (gearItem.isCustomRelic) {
             this.relicStats = {};
-            this.isCustomRelic = true;
-        }
-        else {
-            this.isCustomRelic = false;
         }
     }
 }
@@ -139,6 +135,10 @@ export class CharacterGearSet {
     }
 
     setEquip(slot: EquipSlotKey, item: GearItem, materiaAutoFill?: MateriaAutoFillController) {
+        // TODO: this is also a good place to implement temporary persistent materia/relic stats
+        if (this.equipment[slot]?.gearItem === item) {
+            return;
+        }
         this.invalidate();
         this.equipment[slot] = new EquippedItem(item);
         console.log(`Set ${this.name}: slot ${slot} => ${item.name}`);
@@ -277,13 +277,20 @@ export class CharacterGearSet {
             return EMPTY_STATS;
         }
         const itemStats = new RawStats(equip.gearItem.stats);
-        for (let stat of ALL_SUB_STATS) {
-            const statDetail = this.getStatDetail(slotId, stat);
-            if (statDetail instanceof Object) {
-                itemStats[stat] = statDetail.effectiveAmount;
-            }
-            else {
-                itemStats[stat] = statDetail;
+        if (equip.relicStats) {
+            const relicStats = new RawStats(equip.relicStats);
+            addStats(itemStats, relicStats);
+        }
+        // Note for future: if we ever get an item that has both custom stats AND materia, this logic will need to be extended.
+        else {
+            for (let stat of ALL_SUB_STATS) {
+                const statDetail = this.getStatDetail(slotId, stat);
+                if (statDetail instanceof Object) {
+                    itemStats[stat] = statDetail.effectiveAmount;
+                }
+                else {
+                    itemStats[stat] = statDetail;
+                }
             }
         }
         return itemStats;
@@ -422,6 +429,7 @@ export class XivApiGearInfo implements GearItem {
     secondarySubstat: keyof RawStats | null;
     substatCap: number;
     materiaSlots: MateriaSlot[];
+    isCustomRelic: boolean;
 
     constructor(data: Object) {
         this.id = data['ID'];
@@ -508,8 +516,6 @@ export class XivApiGearInfo implements GearItem {
         if (sortedStats.length < 2) {
             this.primarySubstat = null;
             this.secondarySubstat = null;
-            // TODO idk
-            this.substatCap = 1000;
         }
         else {
             this.primarySubstat = sortedStats[0][0] as keyof RawStats;
@@ -518,24 +524,50 @@ export class XivApiGearInfo implements GearItem {
         }
         this.materiaSlots = [];
         const baseMatCount: number = data['MateriaSlotCount'];
-        const overmeld: boolean = data['IsAdvancedMeldingPermitted'] as boolean;
-        for (let i = 0; i < baseMatCount; i++) {
-            // TODO: figure out grade automatically
-            this.materiaSlots.push({
-                maxGrade: MATERIA_LEVEL_MAX_NORMAL,
-                allowsHighGrade: true
-            });
+        if (baseMatCount === 0) {
+            this.isCustomRelic = true;
         }
-        if (overmeld) {
-            this.materiaSlots.push({
-                maxGrade: MATERIA_LEVEL_MAX_NORMAL,
-                allowsHighGrade: true
-            })
-            for (let i = this.materiaSlots.length; i < MATERIA_SLOTS_MAX; i++) {
+        else {
+            this.isCustomRelic = false;
+            const overmeld: boolean = data['IsAdvancedMeldingPermitted'] as boolean;
+            for (let i = 0; i < baseMatCount; i++) {
+                // TODO: figure out grade automatically
                 this.materiaSlots.push({
-                    maxGrade: MATERIA_LEVEL_MAX_OVERMELD,
-                    allowsHighGrade: false
+                    maxGrade: MATERIA_LEVEL_MAX_NORMAL,
+                    allowsHighGrade: true
                 });
+            }
+            if (overmeld) {
+                this.materiaSlots.push({
+                    maxGrade: MATERIA_LEVEL_MAX_NORMAL,
+                    allowsHighGrade: true
+                })
+                for (let i = this.materiaSlots.length; i < MATERIA_SLOTS_MAX; i++) {
+                    this.materiaSlots.push({
+                        maxGrade: MATERIA_LEVEL_MAX_OVERMELD,
+                        allowsHighGrade: false
+                    });
+                }
+            }
+        }
+    }
+
+    /**
+     * In order to calculate for substat cap when it is not known based on the item's stats directly (e.g. relics),
+     * look at other items in the same slot with the same ilvl.
+     *
+     * @param otherItems The list of other items
+     */
+    fixSubstatCap(otherItems: XivApiGearInfo[]) {
+        if (this.substatCap !== undefined) {
+            return;
+        }
+        for (let otherItem of otherItems) {
+            if (otherItem.ilvl === this.ilvl
+                && otherItem.gearSlot === this.gearSlot
+                && otherItem.substatCap !== undefined) {
+                this.substatCap = otherItem.substatCap;
+                return;
             }
         }
     }

@@ -1,4 +1,4 @@
-import {CharacterGearSet, ItemSingleStatDetail} from "../gear";
+import {CharacterGearSet, EquippedItem, ItemSingleStatDetail} from "../gear";
 import {
     EquipmentSet,
     EquipSlotInfo,
@@ -10,7 +10,8 @@ import {
     GearSlotItem,
     RawStatKey,
     RawStats,
-    StatBonus
+    StatBonus,
+    Substat
 } from "../geartypes";
 import {
     CustomCell,
@@ -22,7 +23,7 @@ import {
     SpecialRow,
     TitleRow
 } from "../tables";
-import {STAT_ABBREVIATIONS} from "../xivconstants";
+import {MateriaSubstat, MateriaSubstats, STAT_ABBREVIATIONS} from "../xivconstants";
 import {FieldBoundIntField} from "./util";
 import {AllSlotMateriaManager} from "./materia";
 import {GearPlanSheet} from "../components";
@@ -195,30 +196,63 @@ export class FoodItemsTable extends CustomTable<FoodItem, FoodItem> {
     }
 }
 
-function itemTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, stat: RawStatKey, highlightPrimarySecondary: boolean = false): CustomColumnSpec<GearSlotItem, number | ItemSingleStatDetail, any> {
+class RelicCellInfo {
+    constructor(public set: CharacterGearSet, public item: GearItem, public slotId: EquipSlotKey, public stat: Substat) {
+    }
+}
+
+function itemTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, stat: RawStatKey, highlightPrimarySecondary: boolean = false): CustomColumnSpec<GearSlotItem, number | ItemSingleStatDetail | RelicCellInfo, any> {
     return {
         shortName: stat,
         displayName: STAT_ABBREVIATIONS[stat],
         getter: slotItem => {
-            const selected = set.getItemInSlot(slotItem.slotId) === slotItem.item;
-            if (selected) {
-                return set.getStatDetail(slotItem.slotId, stat);
+            if (slotItem.item.isCustomRelic
+                && slotItem.item.stats[stat] === 0
+                && MateriaSubstats.includes(stat as MateriaSubstat)) {
+                return new RelicCellInfo(set, slotItem.item, slotItem.slotId, stat as Substat);
             }
             else {
-                return slotItem.item.stats[stat];
+                const selected = set.getItemInSlot(slotItem.slotId) === slotItem.item;
+                if (selected) {
+                    return set.getStatDetail(slotItem.slotId, stat);
+                }
+                else {
+                    return slotItem.item.stats[stat];
+                }
             }
         },
-        renderer: (item: number | ItemSingleStatDetail) => {
-            if (item instanceof Object) {
-                return document.createTextNode(item.effectiveAmount.toString());
+        renderer: (value: number | ItemSingleStatDetail | RelicCellInfo) => {
+            if (value instanceof RelicCellInfo) {
+                const equipment: EquippedItem = value.set.equipment[value.slotId];
+                if (equipment.gearItem === value.item) {
+                    if (equipment.relicStats[value.stat] === undefined) {
+                        equipment.relicStats[value.stat] = 0;
+                    }
+                    const input = new FieldBoundIntField(equipment.relicStats, value.stat, {
+                        postValidators: [ctx => {
+                            if (ctx.newValue < 0) {
+                                ctx.failValidation('Must be greater than zero');
+                            }
+                            else if (ctx.newValue > equipment.gearItem.substatCap) {
+                                ctx.failValidation(`Must be less than ${equipment.gearItem.substatCap}`);
+                            }
+                        }]
+                    })
+                    input.classList.add('gear-items-table-relic-stat-input');
+                    input.addListener(() => value.set.forceRecalc());
+                    return input;
+                }
+            }
+            else if (value instanceof Object) {
+                return document.createTextNode(value.effectiveAmount.toString());
             }
             else {
-                return document.createTextNode(item.toString());
+                return document.createTextNode(value.toString());
             }
         },
         initialWidth: 30,
         condition: () => sheet.isStatRelevant(stat),
-        colStyler: (value, cell, node) => highlightPrimarySecondary ? statCellStyler(cell, value, stat) : undefined,
+        colStyler: (value, cell, node) => highlightPrimarySecondary && !(value instanceof RelicCellInfo) ? statCellStyler(cell, value, stat) : undefined,
     }
 }
 

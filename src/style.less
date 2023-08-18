@@ -18,6 +18,7 @@ body {
   --materia-overcap-major: #ff0000;
   --materia-overcap: #dd7700;
   --standard-border: 1px solid var(--border-color);
+  --soft-border: 1px solid var(--border-color);
   --thick-border: 2px solid var(--border-color);
   --selected-outline: 3px solid var(--table-selected-outline-color);
   --stat-color: var(--fg-color);
@@ -90,6 +91,10 @@ body {
 }
 
 .standard-border {
+  border: var(--standard-border);
+}
+
+.soft-border {
   border: var(--standard-border);
 }
 
@@ -939,6 +944,17 @@ div.labeled-checkbox {
   }
 }
 
+input.gear-items-table-relic-stat-input {
+  //border: var(--soft-border);
+  border: none;
+  border-radius: 2px;
+  padding: 0 0 0 0;
+  background: var(--bg-color);
+  box-sizing: border-box;
+  //margin: 1px;
+  width: 100%;
+  text-align: center;
+}
 // Stat-related stuff
 
 .color-stat-column {

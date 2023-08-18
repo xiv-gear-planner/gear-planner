@@ -51,6 +51,7 @@ export class DataManager {
                 }
             }).then((rawItems) => {
                 this.allItems = rawItems.map(i => new XivApiGearInfo(i));
+                this.allItems.forEach(item => item.fixSubstatCap(this.allItems));
                 // TODO: put up error
             }, (e) => console.error(e));
 

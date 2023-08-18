@@ -78,6 +78,7 @@ export interface GearItem extends XivCombatItem {
     secondarySubstat: keyof RawStats | null;
     substatCap: number;
     materiaSlots: MateriaSlot[];
+    isCustomRelic: boolean;
 }
 
 export interface StatBonus {

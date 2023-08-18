@@ -153,7 +153,7 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
             if (row) {
                 this.selectionModel.clickRow(row);
                 row.scrollIntoView({
-                    behavior: 'instant',
+                    behavior: 'smooth',
                     block: 'nearest'
                 });
             }

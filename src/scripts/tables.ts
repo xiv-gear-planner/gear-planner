@@ -381,7 +381,7 @@ export class CustomTable<RowDataType, SelectionType = never> extends HTMLTableEl
             this.selectionModel.clickRow(target);
             this.refreshSelection();
             target.scrollIntoView({
-                behavior: 'instant',
+                behavior: 'smooth',
                 block: 'nearest'
             })
         }
@@ -393,7 +393,7 @@ export class CustomTable<RowDataType, SelectionType = never> extends HTMLTableEl
                 this.selectionModel.clickRow(target.row);
             }
             target.scrollIntoView({
-                behavior: 'instant',
+                behavior: 'smooth',
                 block: 'nearest'
             })
             this.refreshSelection();
@@ -404,8 +404,8 @@ export class CustomTable<RowDataType, SelectionType = never> extends HTMLTableEl
                 this.refreshSelection();
             }
         }
-        else if (target instanceof HTMLButtonElement) {
-            // Assume buttons will handle themselves
+        else if (target instanceof HTMLButtonElement || target instanceof HTMLInputElement) {
+            // Assume buttons/inputs will handle themselves
         }
         else if (target === undefined || target === null) {
             return;
