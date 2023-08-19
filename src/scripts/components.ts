@@ -1,4 +1,5 @@
 import {
+    CustomCell,
     CustomColumn,
     CustomRow,
     CustomTable,
@@ -333,18 +334,96 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                     return sim.displayName;
                 },
                 getter: gearSet => this.sheet.getSimResult(sim, gearSet),
-                renderer: result => new SimResultDisplay(result),
+                renderer: result => new SimResultDisplay(this, sim, result),
                 allowHeaderSelection: true,
             });
         }
         this.columns = columns;
+    }
+
+    // TODO: this is kinda bad, cross-talk between columns despite there being no reason to do so,
+    // plus you want changes to immediately invalidate. I guess setting the inactivity time to 0 works?
+    private dirtySimColColors: Simulation<any, any, any>[] = [];
+    private readonly simColColorsTimer = new Inactivitytimer(0, () => this.reprocessSimColsColor());
+
+    requestProcessSimColColor(sim: Simulation<any, any, any>) {
+        if (!this.dirtySimColColors.includes(sim)) {
+            this.dirtySimColColors.push(sim);
+            this.simColColorsTimer.ping();
+        }
+    }
+
+    reprocessSimColsColor() {
+        for (let sim of this.dirtySimColColors) {
+            this.reprocessSimColColor(sim);
+        }
+        this.dirtySimColColors = [];
+    }
+
+    reprocessAllSimColColors() {
+        this.dirtySimColColors = [...this.sims];
+        this.simColColorsTimer.ping();
+    }
+
+    reprocessSimColColor(sim: Simulation<any, any, any>) {
+        const col = this.columns.find(col => col.dataValue === sim);
+        if (!col) {
+            return;
+        }
+        const cells: CustomCell<any, any>[] = this._rows.flatMap(row => {
+            if (row instanceof CustomRow) {
+                const cell = row.dataColMap.get(col);
+                if (cell) {
+                    return [cell];
+                }
+            }
+            return [];
+        });
+        let invalid = false;
+        const processed: [CustomCell<any, any>, number][] = [];
+        for (let cell of cells) {
+            const value: SimCurrentResult<SimResult> = cell.value;
+            if (value.status !== 'Done') {
+                invalid = true;
+                break;
+            }
+            processed.push([cell, value.result.mainDpsResult]);
+        }
+        cells.forEach(cell => cell.classList.remove('sim-column-worst'));
+        cells.forEach(cell => cell.classList.remove('sim-column-best'));
+        cells.forEach(cell => cell.classList.remove('sim-column-valid'));
+        if (cells.length < 2) {
+            return;
+        }
+        else if (invalid) {
+            cells.forEach(cell => cell.classList.add('sim-column-pending'));
+        }
+        else {
+            cells.forEach(cell => cell.classList.remove('sim-column-pending'));
+            processed.sort((cellA, cellB) => (cellA[1] - cellB[1]));
+            const worst = processed[0];
+            const best = processed[processed.length - 1];
+            const worstValue = worst[1];
+            const bestValue = best[1];
+            const delta = bestValue - worstValue;
+            if (delta === 0) {
+                return;
+            }
+            worst[0].classList.add('sim-column-worst');
+            best[0].classList.add('sim-column-best');
+            for (let [cell, value] of processed) {
+                cell.classList.add('sim-column-valid');
+                const relative = (value - worstValue) / delta * 100;
+                cell.style.setProperty('--sim-result-relative', relative.toFixed(1) + '%');
+            }
+        }
     }
 }
 
 export class SimResultDisplay extends HTMLElement {
     private _result: SimCurrentResult<any>;
 
-    constructor(simCurrentResult: SimCurrentResult<any>) {
+    constructor(private gearPlanTable: GearPlanTable, private sim: Simulation<any, any, any>, simCurrentResult: SimCurrentResult<any>) {
         super();
         this._result = simCurrentResult;
         this.update();
@@ -361,6 +440,7 @@ export class SimResultDisplay extends HTMLElement {
         else {
             this.textContent = this._result.status;
         }
+        this.gearPlanTable.requestProcessSimColColor(this.sim);
     }
 }
 
@@ -1026,6 +1106,7 @@ export class GearPlanSheet extends HTMLElement {
         this._sets = this._sets.filter(gs => gs !== gearSet);
         if (this._gearPlanTable) {
             this._gearPlanTable.dataChanged();
+            this._gearPlanTable.reprocessAllSimColColors();
         }
         this.saveData();
     }

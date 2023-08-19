@@ -754,6 +754,14 @@ sim-result-display {
   width: 100%;
 }
 
+
+td.sim-column-valid {
+  color: color-mix(in srgb, currentColor 70%, color-mix(in hsl, #00ff00 var(--sim-result-relative, 50%), #ff0000));
+  &.sim-column-best {
+    font-weight: bold;
+  }
+}
+
 dialog#add-sim-dialog {
   position: absolute;
   z-index: var(--zi-add-sim-dialog);

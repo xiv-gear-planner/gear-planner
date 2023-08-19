@@ -224,7 +224,7 @@ function itemTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, stat: 
         renderer: (value: number | ItemSingleStatDetail | RelicCellInfo) => {
             if (value instanceof RelicCellInfo) {
                 const equipment: EquippedItem = value.set.equipment[value.slotId];
-                if (equipment.gearItem === value.item) {
+                if (equipment && equipment.gearItem === value.item) {
                     if (equipment.relicStats[value.stat] === undefined) {
                         equipment.relicStats[value.stat] = 0;
                     }

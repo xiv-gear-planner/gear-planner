@@ -275,6 +275,10 @@ export class CustomTable<RowDataType, SelectionType = never> extends HTMLTableEl
         this._onDataChanged();
     }
 
+    get data() {
+        return [...this._data];
+    }
+
     /**
      * To be called when rows or columns are added, removed, or rearranged, but not
      * when only the data within cells is changed.
@@ -308,6 +312,7 @@ export class CustomTable<RowDataType, SelectionType = never> extends HTMLTableEl
         }
         this.tBodies[0].replaceChildren(...newRowElements);
         this.selectionRefreshables = [];
+        this._rows = [];
         for (let value of newRowElements.values()) {
             if (value instanceof CustomRow) {
                 this.selectionRefreshables.push(value);
