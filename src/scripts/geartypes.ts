@@ -357,7 +357,7 @@ export interface SimExport {
 
 export interface SheetExport {
     name: string,
-    saveKey: string,
+    saveKey?: string,
     race: RaceName,
     partyBonus: PartyBonusAmount,
     job: JobName,

@@ -43,11 +43,11 @@ import {
     JOB_DATA,
     JobName,
     LEVEL_ITEMS,
+    MAIN_STATS,
     MateriaSubstat,
     MateriaSubstats,
     RACE_STATS,
     RaceName,
-    MAIN_STATS,
     SupportedLevel,
     SupportedLevels
 } from "./xivconstants";
@@ -63,8 +63,7 @@ import {
     quickElement
 } from "./components/util";
 import {LoadingBlocker} from "./components/loader";
-import {FoodItemsTable, GearItemsTable, ILvlRangePicker} from "./components/items";
-import {MateriaPriorityPicker} from "./components/materia";
+import {FoodItemsTable, GearItemsTable} from "./components/items";
 import {GearEditToolbar} from "./components/gear_edit_toolbar";
 
 export const SHARED_SET_NAME = 'Imported Set';
@@ -562,12 +561,32 @@ export class GearPlanSheet extends HTMLElement {
         for (let simSpec of sims) {
             try {
                 gearPlanSheet.addSim(simSpec.makeNewSimInstance());
-            } catch (e) {
+            }
+            catch (e) {
                 console.error(`Error adding default sim ${simSpec.displayName} (${simSpec.stub})`, e);
             }
         }
         gearPlanSheet._selectFirstRowByDefault = true;
         return gearPlanSheet;
+    }
+
+    static fromExport(importedData: SheetExport): GearPlanSheet {
+        return new GearPlanSheet(undefined, importedData);
+    }
+
+    static fromSetExport(importedData: SetExport): GearPlanSheet {
+        return this.fromExport({
+            race: undefined,
+            sets: [importedData],
+            // TODO: default sims
+            sims: [],
+            name: SHARED_SET_NAME,
+            saveKey: undefined,
+            job: importedData.job,
+            level: importedData.level,
+            partyBonus: 0,
+            itemDisplaySettings: defaultItemDisplaySettings,
+        });
     }
 
     private static loadSaved(sheetKey: string): SheetExport {
@@ -641,7 +660,8 @@ export class GearPlanSheet extends HTMLElement {
             else {
                 this.setupEditorArea();
             }
-        } catch (e) {
+        }
+        catch (e) {
             console.error("Error in selection change: ", e);
             this.setupEditorArea(document.createTextNode("Error!"));
         }
@@ -852,7 +872,8 @@ export class GearPlanSheet extends HTMLElement {
                         rehydratedSim.displayName = simport.name;
                     }
                     this.addSim(rehydratedSim);
-                } catch (e) {
+                }
+                catch (e) {
                     console.error("Error loading sim settings", e);
                 }
             }
@@ -873,7 +894,7 @@ export class GearPlanSheet extends HTMLElement {
         }
         if (this._saveKey) {
             console.info("Saving sheet " + this.name);
-            const fullExport = this.exportSheet();
+            const fullExport = this.exportSheet(false);
             localStorage.setItem(this._saveKey, JSON.stringify(fullExport));
         }
         else {
@@ -925,14 +946,14 @@ export class GearPlanSheet extends HTMLElement {
      * @returns The saveKey of the new sheet.
      */
     saveAs(name: string): string {
-        const exported = this.exportSheet();
+        const exported = this.exportSheet(true);
         exported.name = name;
         const newKey = getNextSheetInternalName();
         localStorage.setItem(newKey, JSON.stringify(exported));
         return newKey;
     }
 
-    exportSheet(): SheetExport {
+    exportSheet(external: boolean = false): SheetExport {
         // TODO: make this async
         const sets: SetExport[] = []
         for (let set of this._sets) {
@@ -946,19 +967,22 @@ export class GearPlanSheet extends HTMLElement {
                 name: sim.displayName
             });
         }
-        return {
+        const out: SheetExport = {
             name: this.name,
             sets: sets,
             level: this.level,
             job: this.classJobName,
             partyBonus: this._partyBonus,
-            saveKey: this._saveKey,
             race: this._race,
             sims: simsExport,
             itemDisplaySettings: this._itemDisplaySettings,
             mfni: this.materiaAutoFillSelectedItems,
             mfp: this.materiaAutoFillPrio
+        };
+        if (!external) {
+            out.saveKey = this._saveKey;
         }
+        return out;
 
     }
 
@@ -1223,11 +1247,11 @@ export class GearPlanSheet extends HTMLElement {
         outerDiv.appendChild(explanation);
 
         const exportSheetToClipboard = makeActionButton('Export Sheet JSON to Clipboard', () => {
-            navigator.clipboard.writeText(JSON.stringify(this.exportSheet()));
+            navigator.clipboard.writeText(JSON.stringify(this.exportSheet(true)));
         });
 
         const exportSheetLinkToClipboard = makeActionButton('Export Sheet as Shareable URL', () => {
-            const json = JSON.stringify(this.exportSheet());
+            const json = JSON.stringify(this.exportSheet(true));
             const resolvedUrl = new URL("#/importsheet/" + json, document.location.toString());
             navigator.clipboard.writeText(resolvedUrl.toString());
         });
@@ -1355,7 +1379,8 @@ class ImportSetArea extends HTMLElement {
         }
         try {
             this.doJsonImport(text);
-        } catch (e) {
+        }
+        catch (e) {
             console.error('Import error', e);
             alert('Error importing');
         }
@@ -1395,122 +1420,99 @@ export class ImportSheetArea extends HTMLElement {
     private readonly loader: LoadingBlocker;
     private readonly importButton: HTMLButtonElement;
     private readonly textArea: HTMLTextAreaElement;
-    private sheet: GearPlanSheet;
 
     // TODO
-    constructor() {
+    constructor(private sheetOpenCallback: (GearPlanSheet) => Promise<any>) {
         super();
 
         const heading = document.createElement('h1');
-        heading.textContent = 'Not Yet Implemented';
+        heading.textContent = 'Import Sheet';
         this.appendChild(heading);
 
         const explanation = document.createElement('p');
-        explanation.textContent = 'Importing an entire sheet is not yet implemented. However, you can import into an existing sheet by using the "Import Sets" button under the table of sets.';
+        explanation.textContent = 'This will import into a new sheet. You can paste a gear planner link, gear planner JSON, or an Etro link.';
         this.appendChild(explanation);
 
-        // const textAreaDiv = document.createElement("div");
-        // textAreaDiv.id = 'set-import-textarea-holder';
-        //
-        // this.textArea = document.createElement("textarea");
-        // this.textArea.id = 'set-import-textarea';
-        // textAreaDiv.appendChild(this.textArea);
-        // this.loader = new LoadingBlocker();
-        //
-        //
-        // textAreaDiv.appendChild(this.loader);
-        // this.appendChild(textAreaDiv);
-        // textAreaDiv.appendChild(document.createElement("br"));
+        const textAreaDiv = document.createElement("div");
+        textAreaDiv.id = 'set-import-textarea-holder';
 
-        // this.importButton = makeActionButton("Import", () => this.doImport());
-        // this.appendChild(this.importButton);
-        // this.ready = true;
-        // this.replaceChildren(heading, explanation);
+        this.textArea = document.createElement("textarea");
+        this.textArea.id = 'set-import-textarea';
+        textAreaDiv.appendChild(this.textArea);
+        this.loader = new LoadingBlocker();
+
+
+        textAreaDiv.appendChild(this.loader);
+        this.appendChild(textAreaDiv);
+        textAreaDiv.appendChild(document.createElement("br"));
+
+        this.importButton = makeActionButton("Import", () => this.doImport());
+        this.appendChild(this.importButton);
+        this.ready = true;
     }
 
-    // set ready(ready: boolean) {
-    //     if (ready) {
-    //         this.loader.hide();
-    //         this.importButton.disabled = false;
-    //     }
-    //     else {
-    //         this.loader.show();
-    //         this.importButton.disabled = true;
-    //     }
-    // }
+    set ready(ready: boolean) {
+        if (ready) {
+            this.loader.hide();
+            this.importButton.disabled = false;
+        }
+        else {
+            this.loader.show();
+            this.importButton.disabled = true;
+        }
+    }
 
-    // checkJob(importedJob: JobName, plural: boolean): boolean {
-    //     if (importedJob !== this.sheet.classJobName) {
-    //         // TODO: *try* to import some sims, or at least load up the defaults.
-    //         let msg;
-    //         if (plural) {
-    //             msg = `You are trying to import ${importedJob} set(s) into a ${this.sheet.classJobName} sheet. Class-specific items, such as weapons, will need to be re-selected.`;
-    //         }
-    //         else {
-    //             msg = `You are trying to import a ${importedJob} set into a ${this.sheet.classJobName} sheet. Class-specific items, such as weapons, will need to be re-selected.`;
-    //         }
-    //         return confirm(msg);
-    //     }
-    //     else {
-    //         return true;
-    //     }
-    //
-    // }
-    //
-    // doImport() {
-    //     const text = this.textArea.value;
-    //     // First check for Etro link
-    //     const etroRegex = RegExp("https:\/\/etro\.gg\/gearset\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})")
-    //     const etroExec = etroRegex.exec(text);
-    //     // TODO: check level as well
-    //     if (etroExec !== null) {
-    //         this.ready = false;
-    //         getSetFromEtro(etroExec[1]).then(set => {
-    //             if (!this.checkJob(set.job, false)) {
-    //                 this.ready = true;
-    //                 return;
-    //             }
-    //             this.sheet.addGearSet(this.sheet.importGearSet(set), true);
-    //             console.log("Loaded set from Etro");
-    //         }, err => {
-    //             this.ready = true;
-    //             console.error("Error loading set from Etro", err);
-    //             alert('Error loading Etro set');
-    //         });
-    //         return;
-    //     }
-    //     try {
-    //         const rawImport = JSON.parse(text);
-    //         if ('sets' in rawImport && rawImport.sets.length) {
-    //             if (!this.checkJob(rawImport.job, true)) {
-    //                 return;
-    //             }
-    //             // import everything
-    //             if (confirm(`This will import ${rawImport.sets.length} gear sets into this sheet.`)) {
-    //                 const sets: SetExport[] = rawImport.sets;
-    //                 const imports = sets.map(set => this.sheet.importGearSet(set));
-    //                 for (let i = 0; i < imports.length; i++) {
-    //                     // Select the first imported set
-    //                     const set = imports[i];
-    //                     this.sheet.addGearSet(set, i === 0);
-    //                 }
-    //             }
-    //         }
-    //         else if ('name' in rawImport && 'items' in rawImport) {
-    //             if (!this.checkJob(rawImport.job, false)) {
-    //                 return;
-    //             }
-    //             this.sheet.addGearSet(this.sheet.importGearSet(rawImport), true);
-    //         }
-    //         else {
-    //             alert("That doesn't look like a valid sheet or set");
-    //         }
-    //
-    //     } catch (e) {
-    //         console.error('Import error', e);
-    //         alert('Error importing');
-    //     }
-    // }
+    doImport() {
+        const text = this.textArea.value;
+        // First check for Etro link
+        const importSheetUrlRegex = RegExp(".*/importsheet/(.*)$");
+        const importSetUrlRegex = RegExp(".*/importset/(.*)$");
+        const sheetExec = importSheetUrlRegex.exec(text);
+        if (sheetExec !== null) {
+            this.doJsonImport(decodeURIComponent(sheetExec[1]));
+            return;
+        }
+        const setExec = importSetUrlRegex.exec(text);
+        if (setExec !== null) {
+            this.doJsonImport(decodeURIComponent(setExec[1]));
+            return;
+        }
+        const etroRegex = RegExp("https:\/\/etro\.gg\/gearset\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})")
+        const etroExec = etroRegex.exec(text);
+        // TODO: check level as well
+        if (etroExec !== null) {
+            this.ready = false;
+            getSetFromEtro(etroExec[1]).then(set => {
+                this.sheetOpenCallback(GearPlanSheet.fromSetExport(set));
+                console.log("Loaded set from Etro");
+            }, err => {
+                this.ready = true;
+                console.error("Error loading set from Etro", err);
+                alert('Error loading Etro set');
+            });
+            return;
+        }
+        try {
+            this.doJsonImport(text);
+        }
+        catch (e) {
+            console.error('Import error', e);
+            alert('Error importing');
+        }
+    }
+
+    doJsonImport(text: string) {
+        const rawImport = JSON.parse(text);
+        if ('sets' in rawImport && rawImport.sets.length) {
+            this.sheetOpenCallback(GearPlanSheet.fromExport(rawImport));
+        }
+        else if ('name' in rawImport && 'items' in rawImport) {
+            this.sheetOpenCallback(GearPlanSheet.fromSetExport(rawImport));
+        }
+        else {
+            alert("That doesn't look like a valid sheet or set");
+        }
+    }
 }
 
 class AddSimDialog extends HTMLDialogElement {

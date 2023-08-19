@@ -570,8 +570,20 @@ export class XivApiGearInfo implements GearItem {
                 return;
             }
         }
-        // TODO: formula
-        // Fallback value
+        // TODO: formula is as follows:
+        /*
+            It's technically wrong to treat all substats as having the same cap, since some (e.g. CP/GP) have a
+            different cap. Same goes for vit, primary stat, def/mdef, etc, but we can ignore those for now.
+
+            For an i650 helmet:
+            https://xivapi.com/Itemlevel/650
+            https://xivapi.com/BaseParam/27 (this is crit but the stats we care about should all be the same for combat jobs)
+            let x = Itemlevel[650]["Hands%"] = 85
+            let y = BaseParam[27]["CriticalHit"] = 2118
+            then bigStatCap = round(x * 85 / 1000)
+            and smallStatCap = round(bigStatCap * 0.7)
+         */
+        // For the time being, just do this since it's not an issue yet
         this.substatCap = 1000;
     }
 

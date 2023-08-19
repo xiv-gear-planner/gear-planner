@@ -74,7 +74,7 @@ function processHash() {
             // TODO this is kind of bad
             const json = hash.slice(1).join('/');
             const parsed = JSON.parse(decodeURI(json)) as SheetExport;
-            const sheet = new GearPlanSheet(undefined, parsed);
+            const sheet = GearPlanSheet.fromExport(parsed);
             // sheet.name = SHARED_SET_NAME;
             openSheet(sheet, false);
         }
@@ -83,19 +83,7 @@ function processHash() {
         if (hash.length >= 2) {
             const json = hash.slice(1).join('/');
             const parsed = JSON.parse(decodeURI(json)) as SetExport;
-            const fakeSheet: SheetExport = {
-                race: undefined,
-                sets: [parsed],
-                // TODO: default sims
-                sims: [],
-                name: SHARED_SET_NAME,
-                saveKey: undefined,
-                job: parsed.job,
-                level: parsed.level,
-                partyBonus: 0,
-                itemDisplaySettings: defaultItemDisplaySettings,
-            }
-            const sheet = new GearPlanSheet(undefined, fakeSheet);
+            const sheet = GearPlanSheet.fromSetExport(parsed);
             // sheet.name = SHARED_SET_NAME;
             openSheet(sheet, false);
         }
@@ -109,7 +97,10 @@ export function showNewSheetForm() {
 
 export function showImportSheetForm() {
     setHash('importsheet')
-    setMainContent('Import Sheet', new ImportSheetArea());
+    setMainContent('Import Sheet', new ImportSheetArea(async sheet => {
+        openSheet(sheet, false);
+        setHash('imported');
+    }));
 }
 
 export function setTitle(titlePart: string | undefined) {
