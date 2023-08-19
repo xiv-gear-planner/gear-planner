@@ -15,6 +15,5 @@ If you'd like to add jobs or simulations, see [contributing](CONTRIBUTING.md).
 You can try it out [here](https://xpdota.github.io/gear-planner/).
 
 Not yet supported:
-- Most jobs
+- Non-healer jobs
 - BiS solving
-- Relic stats

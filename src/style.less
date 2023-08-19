@@ -912,7 +912,7 @@ div.gear-set-editor-toolbar {
       display: block;
     }
 
-    border-color: color-mix(in srgb, var(--stat-color) 30%, var(--border-color));
+    border-color: color-mix(in srgb, var(--stat-color) 20%, var(--border-color));
 
     &.stat-tiering-perfect {
       div.single-stat-tier-display-upper {
@@ -920,6 +920,7 @@ div.gear-set-editor-toolbar {
       }
       div.single-stat-tier-display-lower-left{
         color: color-mix(in srgb, var(--stat-color) 60%, #fff);
+        line-height: 0;
         //float: left;
       }
       border-color: color-mix(in srgb, var(--stat-color) 60%, var(--border-color));

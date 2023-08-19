@@ -557,15 +557,7 @@ export class GearPlanSheet extends HTMLElement {
             // ctor will auto-fill the rest
         }
         const gearPlanSheet = new GearPlanSheet(sheetKey, fakeExport);
-        const sims = getDefaultSims(classJob, level);
-        for (let simSpec of sims) {
-            try {
-                gearPlanSheet.addSim(simSpec.makeNewSimInstance());
-            }
-            catch (e) {
-                console.error(`Error adding default sim ${simSpec.displayName} (${simSpec.stub})`, e);
-            }
-        }
+        gearPlanSheet.addDefaultSims();
         gearPlanSheet._selectFirstRowByDefault = true;
         return gearPlanSheet;
     }
@@ -575,7 +567,7 @@ export class GearPlanSheet extends HTMLElement {
     }
 
     static fromSetExport(importedData: SetExport): GearPlanSheet {
-        return this.fromExport({
+        const gearPlanSheet = this.fromExport({
             race: undefined,
             sets: [importedData],
             // TODO: default sims
@@ -587,6 +579,9 @@ export class GearPlanSheet extends HTMLElement {
             partyBonus: 0,
             itemDisplaySettings: defaultItemDisplaySettings,
         });
+        gearPlanSheet.addDefaultSims();
+        gearPlanSheet._selectFirstRowByDefault = true;
+        return gearPlanSheet;
     }
 
     private static loadSaved(sheetKey: string): SheetExport {
@@ -748,6 +743,11 @@ export class GearPlanSheet extends HTMLElement {
         )
         this.buttonsArea.appendChild(partySizeDropdown);
 
+        if (!this._saveKey) {
+            const unsavedWarning = document.createElement('h4');
+            unsavedWarning.textContent = 'This imported sheet will not be saved unless you use the "Save As" button below.'
+            this.tableArea.appendChild(unsavedWarning);
+        }
         // const tableAreaInner = quickElement('div', ['gear-sheet-table-area-inner'], [this._gearPlanTable, this.buttonsArea]);
         this.tableArea.appendChild(this._gearPlanTable);
         this.tableArea.appendChild(this.buttonsArea);
@@ -1278,6 +1278,19 @@ export class GearPlanSheet extends HTMLElement {
         const sortedOptions = this.relevantMateria.filter(materiaFilter).sort((first, second) => second.primaryStatValue - first.primaryStatValue);
         return sortedOptions.length >= 1 ? sortedOptions[0] : undefined;
     }
+
+    addDefaultSims() {
+        const sims = getDefaultSims(this.classJobName, this.level);
+        for (let simSpec of sims) {
+            try {
+                this.addSim(simSpec.makeNewSimInstance());
+            }
+            catch (e) {
+                console.error(`Error adding default sim ${simSpec.displayName} (${simSpec.stub})`, e);
+            }
+        }
+    }
+
 }
 
 class ImportSetArea extends HTMLElement {
