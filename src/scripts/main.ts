@@ -9,6 +9,7 @@ import {
 } from "./components";
 import {SetExport, SheetExport} from "./geartypes";
 import {quickElement} from "./components/util";
+import {getShortLink} from "./external/shortlink_server";
 
 
 export const contentArea = document.getElementById("content-area");
@@ -45,9 +46,9 @@ function setMainContent(title: string,  ...nodes) {
     setTitle(title);
 }
 
-function processHash() {
+async function processHash() {
     // Remove the literal #
-    const hash = (location.hash.startsWith("#") ? location.hash.substring(1) : location.hash).split('/').filter(item => item);
+    const hash = (location.hash.startsWith("#") ? location.hash.substring(1) : location.hash).split('/').filter(item => item).map(item => decodeURIComponent(item));
     console.info("processHash", hash);
     if (arrayEq(hash, expectedHash)) {
         console.info("Ignoring internal hash change")
@@ -88,6 +89,21 @@ function processHash() {
             openSheet(sheet, false);
         }
     }
+    else if (hash[0] === "sl") {
+        if (hash.length >= 2) {
+            const shortLink = hash[1];
+            const resolved: string | null = await getShortLink(shortLink);
+            if (resolved) {
+                const json = JSON.parse(resolved);
+                if (json['sets']) {
+                    goHash('importsheet', resolved);
+                }
+                else {
+                    goHash('importset', resolved);
+                }
+            }
+        }
+    }
 }
 
 export function showNewSheetForm() {
@@ -120,7 +136,18 @@ function setHash(...hashParts: string[]) {
     }
     expectedHash = [...hashParts];
     console.log("New hash parts", hashParts);
-    location.hash = '#' + hashParts.map(part => '/' + part).join('');
+    location.hash = '#' + hashParts.map(part => '/' + encodeURIComponent(part)).join('');
+    console.log(location.hash);
+}
+
+function goHash(...hashParts: string[]) {
+    for (let hashPart of hashParts) {
+        if (hashPart === undefined) {
+            console.error(new Error("Undefined url hash part!"), hashParts);
+        }
+    }
+    console.log("New hash parts", hashParts);
+    location.hash = '#' + hashParts.map(part => '/' + encodeURIComponent(part)).join('');
     console.log(location.hash);
 }
 
@@ -129,8 +156,14 @@ export async function openSheetByKey(sheet: string) {
     setTitle('Loading Sheet');
     console.log('openSheetByKey: ', sheet);
     const planner = GearPlanSheet.fromSaved(sheet);
-    await openSheet(planner);
-    setTitle(planner.name);
+    if (planner) {
+        await openSheet(planner);
+        setTitle(planner.name);
+    }
+    else {
+        contentArea.replaceChildren(document.createTextNode("That sheet does not exist."));
+        setTitle('Error');
+    }
 }
 
 export async function openSheet(planner: GearPlanSheet, changeHash: boolean = true) {

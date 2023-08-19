@@ -536,9 +536,15 @@ export class GearPlanSheet extends HTMLElement {
     private setupDone: boolean = false;
 
 
-    static fromSaved(sheetKey: string): GearPlanSheet {
+    /**
+     * Try to load a sheet by its save key
+     *
+     * @param sheetKey The key to load
+     * @returns The sheet if found, otherwise null
+     */
+    static fromSaved(sheetKey: string): GearPlanSheet | null {
         const exported = GearPlanSheet.loadSaved(sheetKey);
-        return new GearPlanSheet(sheetKey, exported);
+        return exported ? new GearPlanSheet(sheetKey, exported) : null;
     }
 
     static fromScratch(sheetKey: string, sheetName: string, classJob: JobName, level: SupportedLevel): GearPlanSheet {
@@ -584,8 +590,14 @@ export class GearPlanSheet extends HTMLElement {
         return gearPlanSheet;
     }
 
-    private static loadSaved(sheetKey: string): SheetExport {
-        return JSON.parse(localStorage.getItem(sheetKey)) as SheetExport;
+    private static loadSaved(sheetKey: string): SheetExport | null {
+        const item = localStorage.getItem(sheetKey);
+        if (item) {
+            return JSON.parse(item) as SheetExport;
+        }
+        else {
+            return null;
+        }
     }
 
     // Can't make ctor private for custom element, but DO NOT call this directly - use fromSaved or fromScratch
