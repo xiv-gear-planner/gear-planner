@@ -66,6 +66,7 @@ import {
 import {LoadingBlocker} from "./components/loader";
 import {FoodItemsTable, GearItemsTable} from "./components/items";
 import {GearEditToolbar} from "./components/gear_edit_toolbar";
+import {startShortLink} from "./components/shortlink_components";
 
 export const SHARED_SET_NAME = 'Imported Set';
 
@@ -472,10 +473,8 @@ export class GearSetEditor extends HTMLElement {
         this.appendChild(nameEditor);
 
         const buttonArea = quickElement('div', ['gear-set-editor-button-area', 'button-row'], [
-            makeActionButton('Copy Set as URL', () => {
-                const json = JSON.stringify(this.sheet.exportGearSet(this.gearSet, true));
-                const resolvedUrl = new URL("#/importset/" + json, document.location.toString());
-                navigator.clipboard.writeText(resolvedUrl.toString());
+            makeActionButton('Copy Link to Set', () => {
+                startShortLink(JSON.stringify(this.sheet.exportGearSet(this.gearSet, true)));
             }),
             makeActionButton('Copy Set as JSON', () => {
                 navigator.clipboard.writeText(JSON.stringify(this.sheet.exportGearSet(this.gearSet, true)));
@@ -1343,10 +1342,8 @@ export class GearPlanSheet extends HTMLElement {
             navigator.clipboard.writeText(JSON.stringify(this.exportSheet(true)));
         });
 
-        const exportSheetLinkToClipboard = makeActionButton('Export Sheet as Shareable URL', () => {
-            const json = JSON.stringify(this.exportSheet(true));
-            const resolvedUrl = new URL("#/importsheet/" + json, document.location.toString());
-            navigator.clipboard.writeText(resolvedUrl.toString());
+        const exportSheetLinkToClipboard = makeActionButton('Copy Link to Sheet', () => {
+            startShortLink(JSON.stringify(this.exportSheet(true)));
         });
         outerDiv.appendChild(quickElement('div', ['button-row'], [exportSheetLinkToClipboard, exportSheetToClipboard]))
 

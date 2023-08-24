@@ -10,7 +10,7 @@
     <inspection_tool class="HtmlUnknownTag" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="myValues">
         <value>
-          <list size="15">
+          <list size="20">
             <item index="0" class="java.lang.String" itemvalue="nobr" />
             <item index="1" class="java.lang.String" itemvalue="noembed" />
             <item index="2" class="java.lang.String" itemvalue="comment" />
@@ -26,6 +26,11 @@
             <item index="12" class="java.lang.String" itemvalue="gear-set-editor" />
             <item index="13" class="java.lang.String" itemvalue="import-set-area" />
             <item index="14" class="java.lang.String" itemvalue="import-sheet-area" />
+            <item index="15" class="java.lang.String" itemvalue="ilvl-range-picker" />
+            <item index="16" class="java.lang.String" itemvalue="materia-priority-picker" />
+            <item index="17" class="java.lang.String" itemvalue="materia-drag-order" />
+            <item index="18" class="java.lang.String" itemvalue="materia-dragger" />
+            <item index="19" class="java.lang.String" itemvalue="shortlink-modal" />
           </list>
         </value>
       </option>

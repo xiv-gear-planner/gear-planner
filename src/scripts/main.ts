@@ -11,6 +11,7 @@ import {SetExport, SheetExport} from "./geartypes";
 import {quickElement} from "./components/util";
 import {getShortLink} from "./external/shortlink_server";
 
+export const SHORTLINK_HASH = 'sl';
 
 export const contentArea = document.getElementById("content-area");
 // export const midBarArea = document.getElementById("mid-controls-area");
@@ -89,22 +90,27 @@ async function processHash() {
             openSheet(sheet, false);
         }
     }
-    else if (hash[0] === "sl") {
+    else if (hash[0] === SHORTLINK_HASH) {
         if (hash.length >= 2) {
             const shortLink = hash[1];
-            const resolved: string | null = await getShortLink(shortLink);
-            if (resolved) {
-                const json = JSON.parse(resolved);
-                if (json['sets']) {
-                    goHash('importsheet', resolved);
+            try {
+                const resolved: string | null = await getShortLink(shortLink);
+                if (resolved) {
+                    const json = JSON.parse(resolved);
+                    if (json['sets']) {
+                        goHash('importsheet', resolved);
+                    }
+                    else {
+                        goHash('importset', resolved);
+                    }
                 }
-                else {
-                    goHash('importset', resolved);
-                }
+            } catch (e) {
+                console.error("Error loading shortlink", e);
             }
         }
     }
 }
+
 
 export function showNewSheetForm() {
     setHash('newsheet');

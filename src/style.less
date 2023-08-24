@@ -121,6 +121,7 @@ body {
   --zi-slot-materia-popup-cell: 180;
   --zi-add-sim-dialog: 200;
   --zi-loading-blocker: 190;
+  --zi-true-modal: 300;
 }
 
 
@@ -578,6 +579,7 @@ gear-plan {
 
     .gear-set-editor-toolbar {
       cursor: grab;
+
       > * {
         cursor: auto;
       }
@@ -757,6 +759,7 @@ sim-result-display {
 
 td.sim-column-valid {
   color: color-mix(in srgb, currentColor 70%, color-mix(in hsl, #00ff00 var(--sim-result-relative, 50%), #ff0000));
+
   &.sim-column-best {
     font-weight: bold;
   }
@@ -916,6 +919,7 @@ div.gear-set-editor-toolbar {
     display: inline-block;
     width: fit-content;
     min-width: 50px;
+
     div.single-stat-tier-display-upper {
       display: block;
     }
@@ -926,22 +930,26 @@ div.gear-set-editor-toolbar {
       div.single-stat-tier-display-upper {
         color: color-mix(in srgb, var(--stat-color) 60%, #fff);
       }
-      div.single-stat-tier-display-lower-left{
+
+      div.single-stat-tier-display-lower-left {
         color: color-mix(in srgb, var(--stat-color) 60%, #fff);
         line-height: 0;
         //float: left;
       }
+
       border-color: color-mix(in srgb, var(--stat-color) 60%, var(--border-color));
       //border-width: 2px;
     }
 
     --inner-padding: 3px;
-    div.single-stat-tier-display-lower-left{
+
+    div.single-stat-tier-display-lower-left {
       display: inline-block;
       padding-left: var(--inner-padding);
       padding-right: var(--inner-padding);
       //float: left;
     }
+
     div.single-stat-tier-display-lower-right {
       display: inline-block;
       padding-left: var(--inner-padding);
@@ -968,6 +976,42 @@ input.gear-items-table-relic-stat-input {
   width: 100%;
   text-align: center;
 }
+
+shortlink-modal {
+  background-color: var(--modal-backdrop-color);
+  position : absolute;
+  margin : 0;
+  bottom : 0;
+  top : 0;
+  left : 0;
+  right : 0;
+  z-index: var(--zi-true-modal);
+
+  > div {
+    margin: auto;
+    position: relative;
+    background-color: var(--table-bg-color);
+    .standard-round-border;
+    text-align: center;
+    padding: 10px;
+
+    > button {
+     display: block;
+      margin: 5px auto auto auto;
+    }
+    loading-blocker {
+      position: unset;
+      background-color: unset;
+    }
+    input {
+      width: 300px;
+    }
+
+
+  }
+}
+
+
 // Stat-related stuff
 
 .color-stat-column {

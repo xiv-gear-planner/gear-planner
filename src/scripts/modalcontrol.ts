@@ -34,6 +34,7 @@ const listener = (ev: MouseEvent) => {
         while (eventTarget) {
             if (modalElement === eventTarget) {
                 // Click was on the modal. Ignore.
+                return;
             }
             else {
                 eventTarget = eventTarget.parentElement;
