@@ -1,12 +1,4 @@
-import {
-    defaultItemDisplaySettings,
-    GearPlanSheet,
-    GearPlanTable,
-    ImportSheetArea,
-    NewSheetForm,
-    SHARED_SET_NAME,
-    SheetPickerTable
-} from "./components";
+import {GearPlanSheet, ImportSheetArea, NewSheetForm, SheetPickerTable} from "./components";
 import {SetExport, SheetExport} from "./geartypes";
 import {quickElement} from "./components/util";
 import {getShortLink} from "./external/shortlink_server";
@@ -42,7 +34,7 @@ function arrayEq(left: any[] | undefined, right: any[] | undefined) {
     return true;
 }
 
-function setMainContent(title: string,  ...nodes) {
+function setMainContent(title: string, ...nodes) {
     contentArea.replaceChildren(...nodes);
     setTitle(title);
 }
@@ -99,16 +91,26 @@ async function processHash() {
                     const json = JSON.parse(resolved);
                     if (json['sets']) {
                         goHash('importsheet', resolved);
+                        return;
                     }
                     else {
                         goHash('importset', resolved);
+                        return;
                     }
                 }
-            } catch (e) {
+                else {
+                    console.error('Non-existent shortlink, or other error', shortLink);
+                }
+            }
+            catch (e) {
                 console.error("Error loading shortlink", e);
             }
+            const errMsg = document.createElement('h1');
+            errMsg.textContent = 'Error Loading Sheet/Set';
+            setMainContent('Error', errMsg);
         }
     }
+    // TODO: handle remaining invalid cases
 }
 
 
