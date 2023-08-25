@@ -229,6 +229,8 @@ function iosPolyfill() {
         scriptElement.src = "//cdn.jsdelivr.net/npm/@ungap/custom-elements";
         scriptElement.async = false;
         document.body.appendChild(scriptElement);
+        // @ts-ignore
+        eruda.init();
     }
 }
 
