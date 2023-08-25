@@ -223,7 +223,18 @@ function earlyUiSetup() {
     devMenu.appendChild(nukeButton);
 }
 
+function iosPolyfill() {
+    if (window['safari'] !== undefined) {
+        const scriptElement = document.createElement('script');
+        scriptElement.src = "//cdn.jsdelivr.net/npm/@ungap/custom-elements";
+        scriptElement.async = false;
+        document.body.appendChild(scriptElement);
+    }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
+
+    iosPolyfill();
     earlyUiSetup();
     addEventListener("hashchange", processHash);
     initialLoad();
