@@ -1,6 +1,6 @@
 import {SHORTLINK_HASH} from "../main";
 
-const SHORTLINK_SERVER: URL = new URL("http://api.xivgear.app/shortlink/");
+const SHORTLINK_SERVER: URL = new URL("https://api.xivgear.app/shortlink/");
 
 export async function getShortLink(stub: string): Promise<string> {
     const FULL_URL = new URL(encodeURIComponent(stub), SHORTLINK_SERVER);
