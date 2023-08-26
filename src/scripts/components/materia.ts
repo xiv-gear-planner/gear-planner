@@ -349,18 +349,12 @@ export class MateriaDragList extends HTMLElement {
             const dragger = new MateriaDragger(stat, i);
             this.subOptions.push(dragger);
             dragger.addEventListener('pointerdown', (ev) => {
-                // ev.dataTransfer.setDragImage(document.createElement('span'), 0, 0);
                 this.currentlyDragging = dragger;
                 this.enableEvents();
                 ev.preventDefault();
+                // TODO: check if still needed
                 document.body.style.cursor = 'grabbing';
-                // this.classList.add('drag-active');
             });
-            // Prevent cursor from flickering between pointer and grabber
-            // dragger.addEventListener('dragstart', (ev) => {
-            //     ev.dataTransfer.setDragImage(document.createElement('span'), 0, 0);
-            // });
-
             // Prevents touchscreen scrolling
             dragger.addEventListener('touchstart', ev => ev.preventDefault());
         }
@@ -404,38 +398,21 @@ export class MateriaDragList extends HTMLElement {
         }
         ev.preventDefault();
         const offsetFromThis = ev.clientX - this.getBoundingClientRect().left;
-        // fast-path: if the cursor is directly on top of one of our dragees, we know what our drag index is
-        // TODO: if there were ever multiple of these on the screen at once, this would falsely trigger
-        if (ev.target instanceof MateriaDragger) {
-            ev.preventDefault();
-            this.currentDropIndex = this.subOptions.indexOf(ev.target);
-        }
-        // else if (ev.target === this) {
-        else  {
-            ev.preventDefault();
-            let set = false;
-            // console.log('Drag over', baseX, ev);
-            // Iterate over each item, and the leftmost one we have dragged right-ish of
-            for (let i = 0; i < this.subOptions.length; i++) {
-                let subOption = this.subOptions[i];
-                const xCenter = subOption.offsetLeft + (subOption.offsetWidth / 2);
-                // const xCenter = baseX + subOption.offsetLeft;
-                if (offsetFromThis > xCenter) {
-                    // subOption.style.border = '3px solid red';
-                }
-                else {
-                    // subOption.style.border = 'none';
-                    if (!set) {
-                        this.currentDropIndex = i;
-                        set = true;
-                    }
-                }
+        for (let i = 0; i < this.subOptions.length; i++) {
+            let subOption = this.subOptions[i];
+            // Even though we care about the center, we don't divide the width by two because we also need to factor
+            // in the width of the thing we're dragging (since it is positioned such that it is centered around the
+            // drag cursor).
+            const xCenter = subOption.offsetLeft + (subOption.offsetWidth);
+            // We want to find the leftmost item that we are to the right of
+            if (offsetFromThis <= xCenter) {
+                this.currentDropIndex = i;
+                break;
             }
         }
         this.processMovement();
         const draggeeOffset = ev.clientX - this.currentlyDragging.getBoundingClientRect().left - (this.currentlyDragging.offsetWidth / 2);
         this.currentlyDragging.xOffset = draggeeOffset;
-        console.log(ev.target, offsetFromThis, draggeeOffset);
     }
 
     private fixChildren() {
@@ -455,6 +432,7 @@ export class MateriaDragList extends HTMLElement {
             return;
         }
         this.subOptions.splice(to, 0, this.subOptions.splice(from, 1)[0]);
+        this.currentDropIndex = -1;
         this.fixChildren();
     }
 
