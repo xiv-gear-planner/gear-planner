@@ -7,5 +7,6 @@
       <excludeFolder url="file://$MODULE_DIR$/build" />
     </content>
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="DragDropTouch" level="application" />
   </component>
 </module>

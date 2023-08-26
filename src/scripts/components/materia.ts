@@ -1,5 +1,5 @@
 import {CharacterGearSet, EquippedItem} from "../gear";
-import {MateriaAutoFillController, EquipmentSet, Materia, MeldableMateriaSlot, RawStatKey, Substat} from "../geartypes";
+import {EquipmentSet, Materia, MateriaAutoFillController, MeldableMateriaSlot, RawStatKey} from "../geartypes";
 import {MateriaSubstat, STAT_ABBREVIATIONS, STAT_FULL_NAMES} from "../xivconstants";
 import {closeModal, setModal} from "../modalcontrol";
 import {GearPlanSheet} from "../components";
@@ -301,6 +301,8 @@ class MateriaDragger extends HTMLElement {
 
     constructor(public stat: MateriaSubstat, index: number) {
         super();
+        this.classList.add('materia-prio-dragger');
+        this.classList.add('materia-dragger-stat-' + stat);
         this.index = index;
         this.inner = document.createElement('div');
         this.inner.textContent = STAT_ABBREVIATIONS[stat];
@@ -310,7 +312,7 @@ class MateriaDragger extends HTMLElement {
         this.inner.classList.add('secondary');
         this.inner.classList.add('color-stat-column');
         this.appendChild(this.inner);
-        this.draggable = true;
+        // this.draggable = true;
     }
 
     set xOffset(xOffset: number) {
@@ -335,6 +337,8 @@ export class MateriaDragList extends HTMLElement {
     private subOptions: MateriaDragger[] = [];
     private currentlyDragging: MateriaDragger | undefined;
     private currentDropIndex: number;
+    private moveListener: (ev) => void;
+    private upListener: (ev) => any;
 
     constructor(private prioController: MateriaAutoFillController) {
         super();
@@ -343,61 +347,95 @@ export class MateriaDragList extends HTMLElement {
         for (let i = 0; i < statPrio.length; i++) {
             let stat = statPrio[i];
             const dragger = new MateriaDragger(stat, i);
-            dragger.classList.add('materia-prio-dragger');
             this.subOptions.push(dragger);
-            dragger.addEventListener('dragstart', (ev) => {
-                ev.dataTransfer.setDragImage(document.createElement('span'), 0, 0);
+            dragger.addEventListener('pointerdown', (ev) => {
+                // ev.dataTransfer.setDragImage(document.createElement('span'), 0, 0);
                 this.currentlyDragging = dragger;
+                this.enableEvents();
+                ev.preventDefault();
+                document.body.style.cursor = 'grabbing';
                 // this.classList.add('drag-active');
             });
-            dragger.addEventListener('dragend', (ev) => {
-                ev.preventDefault();
-                dragger.xOffset = 0;
-                this.finishMovement();
-                // this.classList.remove('drag-active');
-            });
+            // Prevent cursor from flickering between pointer and grabber
+            // dragger.addEventListener('dragstart', (ev) => {
+            //     ev.dataTransfer.setDragImage(document.createElement('span'), 0, 0);
+            // });
+
+            // Prevents touchscreen scrolling
+            dragger.addEventListener('touchstart', ev => ev.preventDefault());
         }
-        this.addEventListener('dragover', (ev) => {
-            if (this.currentlyDragging === undefined) {
-                return;
-            }
-            const offsetX = ev.offsetX - this.currentlyDragging.clientLeft - (this.currentlyDragging.offsetWidth / 2);
-            this.currentlyDragging.xOffset = offsetX;
-            if (this.currentlyDragging === ev.target) {
-                ev.preventDefault();
-                return;
-            }
-            if (ev.target instanceof MateriaDragger) {
-                ev.preventDefault();
-                this.currentDropIndex = this.subOptions.indexOf(ev.target);
-            }
-            // Stop processing if no movement
-            else if (ev.target === this) {
-                ev.preventDefault();
-                let set = false;
-                // console.log('Drag over', baseX, ev);
-                for (let i = 0; i < this.subOptions.length; i++) {
-                    let subOption = this.subOptions[i];
-                    const xCenter = subOption.offsetLeft + (subOption.offsetWidth / 2);
-                    // const xCenter = baseX + subOption.offsetLeft;
-                    if (ev.offsetX > xCenter) {
-                        // subOption.style.border = '3px solid red';
-                    }
-                    else {
-                        // subOption.style.border = 'none';
-                        if (!set) {
-                            this.currentDropIndex = i;
-                            set = true;
-                        }
+        this.moveListener = (ev) => this.handleMouseMove(ev);
+        this.upListener = (ev) => this.handleMouseUp(ev);
+        // this.addEventListener('pointermove', this.moveListener);
+        this.fixChildren();
+    }
+
+    private enableEvents() {
+        window.addEventListener('pointermove', this.moveListener);
+        window.addEventListener('pointerup', this.upListener);
+    }
+
+    private disableEvents() {
+        window.removeEventListener('pointermove', this.moveListener);
+        window.removeEventListener('pointerup', this.upListener);
+    }
+
+    // noinspection JSUnusedGlobalSymbols
+    disconnectedCallback() {
+        this.disableEvents();
+    }
+
+
+    private handleMouseUp(ev: PointerEvent) {
+        ev.preventDefault();
+        if (this.currentlyDragging) {
+            this.currentlyDragging.xOffset = 0;
+        }
+        this.disableEvents();
+        this.finishMovement();
+        this.currentlyDragging = undefined;
+        document.body.style.cursor = '';
+        // this.classList.remove('drag-active');
+    }
+
+    private handleMouseMove(ev: PointerEvent) {
+        if (this.currentlyDragging === undefined) {
+            return;
+        }
+        ev.preventDefault();
+        const offsetFromThis = ev.clientX - this.getBoundingClientRect().left;
+        // fast-path: if the cursor is directly on top of one of our dragees, we know what our drag index is
+        // TODO: if there were ever multiple of these on the screen at once, this would falsely trigger
+        if (ev.target instanceof MateriaDragger) {
+            ev.preventDefault();
+            this.currentDropIndex = this.subOptions.indexOf(ev.target);
+        }
+        // else if (ev.target === this) {
+        else  {
+            ev.preventDefault();
+            let set = false;
+            // console.log('Drag over', baseX, ev);
+            // Iterate over each item, and the leftmost one we have dragged right-ish of
+            for (let i = 0; i < this.subOptions.length; i++) {
+                let subOption = this.subOptions[i];
+                const xCenter = subOption.offsetLeft + (subOption.offsetWidth / 2);
+                // const xCenter = baseX + subOption.offsetLeft;
+                if (offsetFromThis > xCenter) {
+                    // subOption.style.border = '3px solid red';
+                }
+                else {
+                    // subOption.style.border = 'none';
+                    if (!set) {
+                        this.currentDropIndex = i;
+                        set = true;
                     }
                 }
             }
-            else {
-                return;
-            }
-            this.processMovement();
-        });
-        this.fixChildren();
+        }
+        this.processMovement();
+        const draggeeOffset = ev.clientX - this.currentlyDragging.getBoundingClientRect().left - (this.currentlyDragging.offsetWidth / 2);
+        this.currentlyDragging.xOffset = draggeeOffset;
+        console.log(ev.target, offsetFromThis, draggeeOffset);
     }
 
     private fixChildren() {
@@ -410,6 +448,9 @@ export class MateriaDragList extends HTMLElement {
     private processMovement() {
         const from = this.currentlyDragging ? this.subOptions.indexOf(this.currentlyDragging) : -1;
         const to = this.currentDropIndex;
+        if (from === to) {
+            return;
+        }
         if (from < 0 || to < 0) {
             return;
         }
@@ -421,6 +462,7 @@ export class MateriaDragList extends HTMLElement {
         this.prioController.statPrio = this.subOptions.map(option => option.stat);
         this.prioController.callback();
     }
+
 }
 
 customElements.define("all-slot-materia-manager", AllSlotMateriaManager);

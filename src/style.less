@@ -35,8 +35,9 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 0;
-  height: 100vh;
-  width: 100vw;
+  height: 100%;
+  width: 100%;
+  position: fixed;
   overflow-y: hidden;
   margin: 0;
 
@@ -176,6 +177,7 @@ div#main-page-padding {
 }
 
 table {
+  position: relative;
   border: none;
   border-spacing: 0;
 
@@ -272,6 +274,11 @@ table {
         padding: 0;
         margin: 0;
         border-right: none;
+
+        img {
+          display: block;
+          aspect-ratio: 1;
+        }
       }
 
       &[col-id="itemname"] {
@@ -279,10 +286,6 @@ table {
         text-overflow: ellipsis;
         overflow: hidden;
         white-space: nowrap;
-      }
-
-      &[col-id="icon"] img {
-        display: block;
       }
     }
   }
@@ -599,7 +602,7 @@ gear-plan {
       cursor: grab;
 
       > * {
-        cursor: auto;
+        cursor: unset;
       }
     }
 
@@ -636,7 +639,7 @@ gear-plan {
       }
     }
 
-    table.gear-items-table {
+    table.gear-items-table, table.food-items-table {
       max-width: 100%;
 
       [col-id='itemname'] {
@@ -669,8 +672,10 @@ h1.js-warning {
 }
 
 table all-slot-materia-manager {
-  width: max-content;
-  display: table-caption;
+  //width: max-content;
+  //display: table-caption;
+  max-width: 100%;
+  display: inline-block;
   height: 23px;
 
   & > span {
@@ -928,6 +933,7 @@ div.gear-set-editor-toolbar {
       materia-dragger {
         display: inline-block;
         cursor: grab;
+        user-select: none;
 
         .materia-dragger-inner {
           .standard-round-border;
@@ -1049,7 +1055,7 @@ shortlink-modal {
 food-stat-bonus {
   display: inline;
   span {
-    //padding-right: 5px;
+    padding-right: var(--food-stat-padding, 5px);
   }
   span:last-child {
     float: right;
@@ -1058,8 +1064,26 @@ food-stat-bonus {
 }
 
 table.food-items-table {
+  max-width: 100%;
   .food-stat-col {
-    width: 123px;
+    --food-stat-col-width: max-content;
+    min-width: var(--food-stat-col-width);
+    max-width: var(--food-stat-col-width);
+    width: var(--food-stat-col-width);
+  }
+  [col-id='itemname'] {
+    //max-width: fit-content;
+    width: 300px;
+    min-width: 100px;
+    max-width: var(--item-name-col-width);
+    div {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      width: 100%;
+    }
+  }
+  .food-stat-narrow {
+    display: none;
   }
   @media screen and (max-width: 900px) {
     food-stat-bonus {
@@ -1068,11 +1092,10 @@ table.food-items-table {
       }
     }
     .food-stat-col {
+      --food-stat-col-width: fit-content !important;
+      --food-stat-padding: 0;
       //width: 50px;
     }
-  }
-  .food-stat-narrow {
-    display: none;
   }
   @media screen and (max-width: 1045px) {
     .food-stat-narrow {
@@ -1080,6 +1103,9 @@ table.food-items-table {
     }
     .food-stat-wide {
       display: none;
+    }
+    .food-stat-col {
+      //--food-stat-col-width: 100px;
     }
 
   }

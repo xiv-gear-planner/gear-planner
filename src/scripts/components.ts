@@ -912,7 +912,31 @@ export class GearPlanSheet extends HTMLElement {
             () => gearUpdateTimer.ping(),
             matFillCtrl
         );
-        toolbar.addEventListener('mousedown', (ev) => {
+        // toolbar.addEventListener('touchstart', (ev) => {
+        //     if (ev.target !== toolbar) {
+        //         return;
+        //     }
+        //     ev.preventDefault();
+        //     const initialY = ev.clientY;
+        //     const initialHeight = this.editorArea.clientHeight;
+        //     const eventListener = (ev: MouseEvent) => {
+        //         const delta = ev.clientY - initialY;
+        //         const newHeightPx = initialHeight - delta;
+        //         const newHeightPct = newHeightPx / visualViewport.height * 100;
+        //         // const newHeight = newHeightPx + 'px';
+        //         const newHeight = newHeightPct + 'vh';
+        //         this.editorArea.style.minHeight = newHeight;
+        //         this.editorArea.style.maxHeight = newHeight;
+        //         this.editorArea.style.flexBasis = newHeight;
+        //     }
+        //     const after = (ev: MouseEvent) => {
+        //         document.removeEventListener('touchmove', eventListener);
+        //         document.removeEventListener('touchend', after);
+        //     }
+        //     document.addEventListener('touchmove', eventListener);
+        //     document.addEventListener('touchend', after);
+        // });
+        toolbar.addEventListener('pointerdown', (ev) => {
             if (ev.target !== toolbar) {
                 return;
             }
@@ -930,12 +954,36 @@ export class GearPlanSheet extends HTMLElement {
                 this.editorArea.style.flexBasis = newHeight;
             }
             const after = (ev: MouseEvent) => {
-                document.removeEventListener('mousemove', eventListener);
-                document.removeEventListener('mouseup', after);
+                document.removeEventListener('pointermove', eventListener);
+                document.removeEventListener('pointerup', after);
             }
-            document.addEventListener('mousemove', eventListener);
-            document.addEventListener('mouseup', after);
+            document.addEventListener('pointermove', eventListener);
+            document.addEventListener('pointerup', after);
         });
+        // toolbar.addEventListener('mousedown', (ev) => {
+        //     if (ev.target !== toolbar) {
+        //         return;
+        //     }
+        //     ev.preventDefault();
+        //     const initialY = ev.clientY;
+        //     const initialHeight = this.editorArea.clientHeight;
+        //     const eventListener = (ev: MouseEvent) => {
+        //         const delta = ev.clientY - initialY;
+        //         const newHeightPx = initialHeight - delta;
+        //         const newHeightPct = newHeightPx / visualViewport.height * 100;
+        //         // const newHeight = newHeightPx + 'px';
+        //         const newHeight = newHeightPct + 'vh';
+        //         this.editorArea.style.minHeight = newHeight;
+        //         this.editorArea.style.maxHeight = newHeight;
+        //         this.editorArea.style.flexBasis = newHeight;
+        //     }
+        //     const after = (ev: MouseEvent) => {
+        //         document.removeEventListener('mousemove', eventListener);
+        //         document.removeEventListener('mouseup', after);
+        //     }
+        //     document.addEventListener('mousemove', eventListener);
+        //     document.addEventListener('mouseup', after);
+        // });
         // toolbar.addEventListener('dragover', (ev) => {
         //     ev.preventDefault();
         //     // toolbar.location;

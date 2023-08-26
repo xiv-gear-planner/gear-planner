@@ -157,6 +157,7 @@ export class FoodItemsTable extends CustomTable<FoodItem, FoodItem> {
                 },
                 renderer: img => {
                     const image = document.createElement('img');
+                    image.setAttribute('intrinsicsize', '64x64');
                     image.src = img.toString();
                     return image;
                 },
@@ -167,7 +168,10 @@ export class FoodItemsTable extends CustomTable<FoodItem, FoodItem> {
                 getter: item => {
                     return item.name;
                 },
-                initialWidth: 200,
+                // renderer: name => {
+                //     return quickElement('div', [], [document.createTextNode(name)]);
+                // }
+                // initialWidth: 200,
             },
             foodTableStatColumn(sheet, 'vitality'),
             foodTableStatColumn(sheet, 'crit', true),
@@ -301,6 +305,7 @@ export class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
                 },
                 renderer: img => {
                     const image = document.createElement('img');
+                    image.setAttribute('intrinsicsize', '64x64');
                     image.src = img.toString();
                     return image;
                 },
