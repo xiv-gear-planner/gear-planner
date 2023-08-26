@@ -17,11 +17,11 @@ export class GearEditToolbar extends HTMLDivElement {
         this.classList.add('gear-set-editor-toolbar');
         const ilvlDiv = document.createElement('div');
         ilvlDiv.classList.add('ilvl-picker-area');
-        const itemIlvlRange = new ILvlRangePicker(itemDisplaySettings, 'minILvl', 'maxILvl', 'Item iLvl:');
+        const itemIlvlRange = new ILvlRangePicker(itemDisplaySettings, 'minILvl', 'maxILvl', 'Items:');
         itemIlvlRange.addListener(displayUpdateCallback);
         ilvlDiv.appendChild(itemIlvlRange);
 
-        const foodIlvlRange = new ILvlRangePicker(itemDisplaySettings, 'minILvlFood', 'maxILvlFood', 'Food iLvl:');
+        const foodIlvlRange = new ILvlRangePicker(itemDisplaySettings, 'minILvlFood', 'maxILvlFood', 'Food:');
         foodIlvlRange.addListener(displayUpdateCallback);
         ilvlDiv.appendChild(foodIlvlRange);
 

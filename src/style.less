@@ -25,6 +25,9 @@ body {
   --modal-backdrop-color: #88888833;
   --error-border-color: #9c0000;
   --standard-border-radius: 5px;
+  --action-col-width: 60px;
+  --set-name-col-width: 300px;
+  --item-name-col-width: 300px;
 
   color: var(--fg-color);
   background-color: var(--bg-color);
@@ -36,6 +39,19 @@ body {
   width: 100vw;
   overflow-y: hidden;
   margin: 0;
+
+  @media screen and (max-width: 600px) {
+    //color: red;
+    //width: 80vw;
+    //height: 80vh;
+    //transform: scale(1.25);
+    transform-origin: 0 0;
+    --set-name-col-width: 150px;
+    //--item-name-col-width: 150px;
+    [col-id='mats'] {
+      display: none;
+    }
+  }
 
   // Main page flex layout stuff
   div#dev-menu-area {
@@ -350,7 +366,6 @@ table.gear-plan-table {
   border-spacing: 0;
   //overflow-x: scroll;
   // Dumb. Gross. Why can't position: sticky have any reasonable way of working with variable-width columns?
-  --action-col-width: 60px;
   background-color: var(--table-bg-color);
 
   td {
@@ -413,6 +428,9 @@ table.gear-plan-table {
       left: calc(var(--action-col-width));
       border-right: var(--standard-border);
       white-space: nowrap;
+      width: var(--set-name-col-width);
+      max-width: var(--set-name-col-width);
+      min-width: var(--set-name-col-width);
     }
 
     td:nth-child(3) {
@@ -618,7 +636,22 @@ gear-plan {
       }
     }
 
-    table.left-side-gear-table, table.right-side-gear-table {
+    table.gear-items-table {
+      max-width: 100%;
+
+      [col-id='itemname'] {
+        width: var(--item-name-col-width);
+        max-width: var(--item-name-col-width);
+        min-width: 100px;
+
+      }
+      td[col-id='itemname'] {
+        max-width: 1px;
+      }
+
+    }
+
+    .left-side-gear-table, .right-side-gear-table {
       display: inline-block;
       vertical-align: top;
     }
@@ -841,7 +874,7 @@ div.gear-set-editor-toolbar {
 
   > * {
     box-sizing: border-box;
-    height: 50px;
+    min-height: 50px;
     .standard-round-border;
     display: inline-block;
     vertical-align: top;
@@ -979,12 +1012,12 @@ input.gear-items-table-relic-stat-input {
 
 shortlink-modal {
   background-color: var(--modal-backdrop-color);
-  position : absolute;
-  margin : 0;
-  bottom : 0;
-  top : 0;
-  left : 0;
-  right : 0;
+  position: absolute;
+  margin: 0;
+  bottom: 0;
+  top: 0;
+  left: 0;
+  right: 0;
   z-index: var(--zi-true-modal);
 
   > div {
@@ -996,13 +1029,15 @@ shortlink-modal {
     padding: 10px;
 
     > button {
-     display: block;
+      display: block;
       margin: 5px auto auto auto;
     }
+
     loading-blocker {
       position: unset;
       background-color: unset;
     }
+
     input {
       width: 300px;
     }
@@ -1011,6 +1046,45 @@ shortlink-modal {
   }
 }
 
+food-stat-bonus {
+  display: inline;
+  span {
+    //padding-right: 5px;
+  }
+  span:last-child {
+    float: right;
+    padding-right: 0;
+  }
+}
+
+table.food-items-table {
+  .food-stat-col {
+    width: 123px;
+  }
+  @media screen and (max-width: 900px) {
+    food-stat-bonus {
+      span {
+        display: block;
+      }
+    }
+    .food-stat-col {
+      //width: 50px;
+    }
+  }
+  .food-stat-narrow {
+    display: none;
+  }
+  @media screen and (max-width: 1045px) {
+    .food-stat-narrow {
+      display: unset;
+    }
+    .food-stat-wide {
+      display: none;
+    }
+
+  }
+
+}
 
 // Stat-related stuff
 

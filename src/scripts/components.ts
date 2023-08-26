@@ -209,7 +209,7 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                 shortName: "setname",
                 displayName: "Set Name",
                 getter: gearSet => gearSet.name,
-                initialWidth: 300,
+                // initialWidth: 300,
             },
             {
                 shortName: "gcd",
@@ -497,19 +497,35 @@ export class GearSetEditor extends HTMLElement {
             }
         })
 
+        const leftSideSlots = ['Head', 'Body', 'Hand', 'Legs', 'Feet'] as const;
+        const rightSideSlots = ['Ears', 'Neck', 'Wrist', 'RingLeft', 'RingRight'] as const;
+
         const weaponTable = new GearItemsTable(this.sheet, this.gearSet, itemMapping, ['Weapon']);
-        const leftSideTable = new GearItemsTable(this.sheet, this.gearSet, itemMapping, ['Head', 'Body', 'Hand', 'Legs', 'Feet']);
-        const rightSideTable = new GearItemsTable(this.sheet, this.gearSet, itemMapping, ['Ears', 'Neck', 'Wrist', 'RingLeft', 'RingRight']);
+        const leftSideDiv = document.createElement('div');
+        const rightSideDiv = document.createElement('div');
+
+        this.gearTables = [weaponTable];
+
+        for (let slot of leftSideSlots) {
+            const table = new GearItemsTable(this.sheet, this.gearSet, itemMapping, [slot]);
+            leftSideDiv.appendChild(table);
+            this.gearTables.push(table);
+        }
+        for (let slot of rightSideSlots) {
+            const table = new GearItemsTable(this.sheet, this.gearSet, itemMapping, [slot]);
+            rightSideDiv.appendChild(table);
+            this.gearTables.push(table);
+        }
+        // const leftSideTable = new GearItemsTable(this.sheet, this.gearSet, itemMapping, ['Head', 'Body', 'Hand', 'Legs', 'Feet']);
+        // const rightSideTable = new GearItemsTable(this.sheet, this.gearSet, itemMapping, ['Ears', 'Neck', 'Wrist', 'RingLeft', 'RingRight']);
 
         weaponTable.classList.add('weapon-table');
-        leftSideTable.classList.add('left-side-gear-table');
-        rightSideTable.classList.add('right-side-gear-table');
+        leftSideDiv.classList.add('left-side-gear-table');
+        rightSideDiv.classList.add('right-side-gear-table');
 
         this.appendChild(weaponTable);
-        this.appendChild(leftSideTable);
-        this.appendChild(rightSideTable);
-
-        this.gearTables = [weaponTable, leftSideTable, rightSideTable];
+        this.appendChild(leftSideDiv);
+        this.appendChild(rightSideDiv);
 
         // // Gear table
         // const gearTable = new GearItemsTable(sheet, gearSet, itemMapping);

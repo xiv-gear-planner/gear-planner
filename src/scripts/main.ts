@@ -223,20 +223,21 @@ function earlyUiSetup() {
     devMenu.appendChild(nukeButton);
 }
 
-function iosPolyfill() {
-    if (window['safari'] !== undefined) {
-        const scriptElement = document.createElement('script');
-        scriptElement.src = "//cdn.jsdelivr.net/npm/@ungap/custom-elements";
-        scriptElement.async = false;
-        document.body.appendChild(scriptElement);
-        // @ts-ignore
-        eruda.init();
-    }
-}
+// function iosPolyfill() {
+//     const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+//     if (window['safari'] !== undefined) {
+//         console.log('Doing iOS polyfill');
+//         const scriptElement = document.createElement('script');
+//         scriptElement.src = "//cdn.jsdelivr.net/npm/@ungap/custom-elements";
+//         scriptElement.async = false;
+//         customElements.
+//         document.body.appendChild(scriptElement);
+//     }
+// }
 
 document.addEventListener("DOMContentLoaded", () => {
 
-    iosPolyfill();
+    // iosPolyfill();
     earlyUiSetup();
     addEventListener("hashchange", processHash);
     initialLoad();

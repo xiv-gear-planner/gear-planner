@@ -24,7 +24,7 @@ import {
     TitleRow
 } from "../tables";
 import {MateriaSubstat, MateriaSubstats, STAT_ABBREVIATIONS} from "../xivconstants";
-import {FieldBoundIntField} from "./util";
+import {FieldBoundIntField, quickElement} from "./util";
 import {AllSlotMateriaManager} from "./materia";
 import {GearPlanSheet} from "../components";
 
@@ -91,6 +91,23 @@ function foodStatCellStyler(cell: CustomCell<FoodItem, any>, stat: keyof RawStat
     }
 }
 
+function makeSpan(text: string, classes: string[] = []) {
+    const span = document.createElement('span');
+    span.textContent = text;
+    span.classList.add(...classes);
+    return span;
+}
+
+class FoodStatBonus extends HTMLElement {
+    constructor(value: StatBonus) {
+        super();
+        this.appendChild(makeSpan(`+${value.percentage}%`))
+        this.appendChild(document.createTextNode(' '));
+        this.appendChild(makeSpan(`<${value.max}`, ['food-stat-narrow']));
+        this.appendChild(makeSpan(`(max ${value.max})`, ['food-stat-wide']));
+    }
+}
+
 /**
  * Formats a cell to display the % and max like on a food or tincture.
  *
@@ -98,7 +115,7 @@ function foodStatCellStyler(cell: CustomCell<FoodItem, any>, stat: keyof RawStat
  */
 function statBonusDisplay(value: StatBonus) {
     if (value) {
-        return document.createTextNode(`+${value.percentage}% (max ${value.max})`);
+        return new FoodStatBonus(value);
     }
     else {
         return document.createTextNode("");
@@ -113,9 +130,11 @@ function foodTableStatColumn(sheet: GearPlanSheet, stat: RawStatKey, highlightPr
             return item.bonuses[stat];
         },
         renderer: statBonusDisplay,
-        initialWidth: 120,
         condition: () => sheet.isStatRelevant(stat),
-        colStyler: (value, cell, node) => highlightPrimarySecondary ? foodStatCellStyler(cell, stat) : undefined,
+        colStyler: (value, cell, node) => {
+            cell.classList.add('food-stat-col');
+            highlightPrimarySecondary ? foodStatCellStyler(cell, stat) : undefined;
+        },
     }
 
 }
@@ -292,7 +311,7 @@ export class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
                 getter: item => {
                     return item.item.name;
                 },
-                initialWidth: 300,
+                // initialWidth: 300,
             },
             {
                 shortName: "mats",
@@ -488,3 +507,4 @@ export class ILvlRangePicker<ObjType> extends HTMLElement {
 customElements.define("gear-items-table", GearItemsTable, {extends: "table"});
 customElements.define("food-items-table", FoodItemsTable, {extends: "table"});
 customElements.define("ilvl-range-picker", ILvlRangePicker);
+customElements.define("food-stat-bonus", FoodStatBonus);
