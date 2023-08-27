@@ -602,7 +602,7 @@ gear-plan {
       cursor: grab;
 
       > * {
-        cursor: unset;
+        cursor: auto;
       }
     }
 
@@ -949,6 +949,23 @@ div.gear-set-editor-toolbar {
       // When a drag is active, THIS needs to be the target of pointer events so that
       // the math works right.
     }
+  }
+
+  div.stat-tier-display {
+    @media screen and (max-width: 530px) {
+      border: none;
+      height: unset;
+      min-height: unset;
+      //scale: 1;
+      padding: 0;
+      margin: 0;
+
+      .single-stat-tier-display {
+        min-width: unset;
+        --inner-padding: 2px;
+      }
+    }
+
   }
 
   div.single-stat-tier-display {

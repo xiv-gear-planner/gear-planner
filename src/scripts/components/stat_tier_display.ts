@@ -58,6 +58,7 @@ export class SingleStatTierDisplay extends HTMLDivElement {
 export class StatTierDisplay extends HTMLDivElement {
     constructor(private sheet: GearPlanSheet) {
         super();
+        this.classList.add('stat-tier-display');
     }
 
     refresh(gearSet: CharacterGearSet) {
