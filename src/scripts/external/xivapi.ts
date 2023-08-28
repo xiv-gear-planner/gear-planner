@@ -21,7 +21,7 @@ export type XivApiSearchRequest = XivApiRequest & {
 export type XivApiResponse<RequestType extends XivApiRequest> = {
     Results: {
         [K in RequestType['columns'][number]]: any;
-    }
+    }[]
 }
 
 // export type ValidRequest<RequestType extends XivApiRequest> = RequestType['requestType'] extends 'search' ? XivApiSearchRequest : XivApiListRequest;
@@ -61,13 +61,4 @@ export async function xivApiGet<RequestType extends (XivApiListRequest | XivApiS
     // @ts-ignore
     return {Results: results};
 
-}
-
-async function test() {
-    const result = await xivApiGet({
-        requestType: "list",
-        sheet: 'bar',
-        columns: ['foo', 'bar'] as const
-    });
-    result.Results.bar;
 }

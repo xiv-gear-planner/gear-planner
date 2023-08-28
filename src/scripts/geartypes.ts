@@ -13,12 +13,13 @@ export interface GearSlot {
 
 }
 
-export const GearSlots = ['Weapon', 'Head', 'Body', 'Hand', 'Legs', 'Feet', 'Ears', 'Neck', 'Wrist', 'Ring'] as const;
+export const GearSlots = ['Weapon', 'OffHand', 'Head', 'Body', 'Hand', 'Legs', 'Feet', 'Ears', 'Neck', 'Wrist', 'Ring'] as const;
 export type GearSlotKey = typeof GearSlots[number];
 
 // For future use, in the event that these actually require properties
 export const GearSlotInfo: Record<GearSlotKey, GearSlot> = {
     Weapon: {},
+    OffHand: {},
     Head: {},
     Body: {},
     Hand: {},
@@ -38,12 +39,13 @@ export interface EquipSlot {
     name: string;
 }
 
-export const EquipSlots = ['Weapon', 'Head', 'Body', 'Hand', 'Legs', 'Feet', 'Ears', 'Neck', 'Wrist', 'RingLeft', 'RingRight'] as const;
+export const EquipSlots = ['Weapon', 'OffHand', 'Head', 'Body', 'Hand', 'Legs', 'Feet', 'Ears', 'Neck', 'Wrist', 'RingLeft', 'RingRight'] as const;
 
 export type EquipSlotKey = typeof EquipSlots[number];
 
 export const EquipSlotInfo: Record<EquipSlotKey, EquipSlot> = {
     Weapon: {slot: 'Weapon', name: 'Weapon', gearSlot: GearSlotInfo.Weapon},
+    OffHand: {slot: 'OffHand', name: 'Off-Hand', gearSlot: GearSlotInfo.OffHand},
     Head: {slot: 'Head', name: 'Head', gearSlot: GearSlotInfo.Head},
     Body: {slot: 'Body', name: 'Body', gearSlot: GearSlotInfo.Body},
     Hand: {slot: 'Hand', name: 'Hand', gearSlot: GearSlotInfo.Hand},
@@ -168,9 +170,13 @@ export interface ComputedSetStats extends RawStats {
      */
     spsDotMulti: number,
     /**
-     * TODO not implemented yet
+     * Skill Speed DoT multiplier.
      */
     sksDotMulti: number,
+    /**
+     * Tenacity Multiplier
+     */
+    tncMulti: number,
     /**
      * Multiplier from weapon damage.
      */
@@ -275,14 +281,21 @@ export type RoleKey = typeof ROLES[number];
 export type Mainstat = typeof MAIN_STATS[number];
 export type Substat = (typeof FAKE_MAIN_STATS[number] | typeof SPECIAL_SUB_STATS[number]);
 
-// TODO: add a way of specifying which substats are relevant to the class
-export interface JobData {
-    jobStatMulipliers: RawStats,
-    role: RoleKey,
-    mainStat: Mainstat;
-    traitMulti?: (level: number, attackType: AttackType) => number;
-    traits?: JobTrait[];
-    irrelevantSubstats?: Substat[];
+export interface JobDataConst {
+    readonly role: RoleKey,
+    readonly mainStat: Mainstat;
+    readonly traitMulti?: (level: number, attackType: AttackType) => number;
+    readonly traits?: readonly JobTrait[];
+    readonly irrelevantSubstats?: readonly Substat[];
+    readonly offhand?: boolean;
+}
+
+export type JobMultipliers = {
+    [K in typeof MAIN_STATS[number]]: number
+}
+
+export interface JobData extends JobDataConst {
+    jobStatMultipliers: JobMultipliers,
 }
 
 export interface JobTrait {
@@ -299,6 +312,7 @@ export class GearSlotItem {
 
 export class EquipmentSet {
     Weapon: EquippedItem | null;
+    OffHand: EquippedItem | null;
     Head: EquippedItem | null;
     Body: EquippedItem | null;
     Hand: EquippedItem | null;

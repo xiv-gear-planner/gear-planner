@@ -101,7 +101,7 @@ export function detDmg(levelStats: LevelStats, det: number) {
  * @param wd The weapon damage value.
  */
 export function wdMulti(levelStats: LevelStats, jobStats: JobData, wd: number) {
-    const mainStatJobMod = jobStats.jobStatMulipliers[jobStats.mainStat];
+    const mainStatJobMod = jobStats.jobStatMultipliers[jobStats.mainStat];
     return Math.floor((levelStats.baseMainStat * mainStatJobMod / 1000) + wd);
 }
 
@@ -154,7 +154,7 @@ export function mainStatMulti(levelStats: LevelStats, jobStats: JobData, mainsta
  * @param tenacity
  */
 export function tenacityDmg(levelStats: LevelStats, tenacity: number) {
-    return 1000 + Math.floor(100 * (tenacity - levelStats.baseSubStat) / levelStats.levelDiv) / 1000;
+    return (1000 + Math.floor(100 * (tenacity - levelStats.baseSubStat) / levelStats.levelDiv)) / 1000;
 }
 
 /**

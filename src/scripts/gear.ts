@@ -2,7 +2,6 @@ import {
     ALL_SUB_STATS,
     EMPTY_STATS,
     FAKE_MAIN_STATS,
-    getClassJobStats,
     getLevelStats,
     getRaceStats,
     JobName,
@@ -28,7 +27,7 @@ import {
     sksTickMulti,
     sksToGcd,
     spsTickMulti,
-    spsToGcd,
+    spsToGcd, tenacityDmg,
     wdMulti
 } from "./xivmath";
 import {
@@ -185,14 +184,14 @@ export class CharacterGearSet {
         }
         const combinedStats = new RawStats(EMPTY_STATS);
         const classJob = this._jobOverride ?? this._sheet.classJobName;
-        const classJobStats = this._jobOverride ? getClassJobStats(this._jobOverride) : this._sheet.classJobStats;
+        const classJobStats = this._jobOverride ? this._sheet.statsForJob(this._jobOverride) : this._sheet.classJobStats;
         const raceStats = this._raceOverride ? getRaceStats(this._raceOverride) : this._sheet.raceStats;
         const level = this._sheet.level;
         const levelStats = getLevelStats(level);
 
         // Base stats based on job and level
         for (let statKey of MAIN_STATS) {
-            combinedStats[statKey] = Math.floor(levelStats.baseMainStat * classJobStats.jobStatMulipliers[statKey] / 100);
+            combinedStats[statKey] = Math.floor(levelStats.baseMainStat * classJobStats.jobStatMultipliers[statKey] / 100);
         }
         for (let statKey of FAKE_MAIN_STATS) {
             combinedStats[statKey] = Math.floor(levelStats.baseMainStat);
@@ -235,6 +234,7 @@ export class CharacterGearSet {
             detMulti: detDmg(levelStats, combinedStats.determination),
             spsDotMulti: spsTickMulti(levelStats, combinedStats.spellspeed),
             sksDotMulti: sksTickMulti(levelStats, combinedStats.skillspeed),
+            tncMulti: tenacityDmg(levelStats, combinedStats.tenacity),
             // TODO: does this need to be phys/magic split?
             wdMulti: wdMulti(levelStats, classJobStats, Math.max(combinedStats.wdMag, combinedStats.wdPhys)),
             mainStatMulti: mainStatMulti(levelStats, classJobStats, mainStat),
@@ -257,19 +257,6 @@ export class CharacterGearSet {
         console.info("Recomputed stats");
         return this._computedStats;
     }
-
-    // clone(): CharacterGearSet {
-    //     const out = new CharacterGearSet(this._sheet);
-    //     for (let slot in this.equipment) {
-    //         const equip: EquippedItem = this.equipment[slot];
-    //         if (!equip) {
-    //             continue;
-    //         }
-    //         out.equipment[slot] = new EquippedItem(equip.gearItem, equip.melds);
-    //     }
-    //     out.name = this.name + ' copy';
-    //     return out;
-    // }
 
     getSlotEffectiveStats(slotId: EquipSlotKey): RawStats {
         const equip = this.equipment[slotId];
@@ -444,6 +431,9 @@ export class XivApiGearInfo implements GearItem {
         else if (eqs['MainHand']) {
             this.gearSlot = GearSlotInfo.Weapon;
         }
+        else if (eqs['OffHand']) {
+            this.gearSlot = GearSlotInfo.OffHand;
+        }
         else if (eqs['Head']) {
             this.gearSlot = GearSlotInfo.Head;
         }
@@ -472,8 +462,7 @@ export class XivApiGearInfo implements GearItem {
             this.gearSlot = GearSlotInfo.Ring;
         }
         else {
-            console.error("Unknown slot data!")
-            console.error(eqs);
+            console.error("Unknown slot data!", eqs);
         }
 
         this.stats = {
@@ -524,7 +513,7 @@ export class XivApiGearInfo implements GearItem {
         }
         this.materiaSlots = [];
         const baseMatCount: number = data['MateriaSlotCount'];
-        if (baseMatCount === 0) {
+        if (baseMatCount === 0 && this.gearSlot !== GearSlotInfo.OffHand) {
             this.isCustomRelic = true;
         }
         else {

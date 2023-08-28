@@ -18,6 +18,7 @@ import {
     GearSlot,
     ItemDisplaySettings,
     ItemSlotExport,
+    JobData,
     Materia,
     MateriaAutoFillController,
     MeldableMateriaSlot,
@@ -265,9 +266,7 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                     chance: gearSet.computedStats.critChance,
                     multiplier: gearSet.computedStats.critMulti
                 }) as ChanceStat,
-                renderer: (stats: ChanceStat) => {
-                    return chanceStatDisplay(stats);
-                },
+                renderer: chanceStatDisplay,
                 initialWidth: chanceStatColWidth,
                 condition: () => this.sheet.isStatRelevant('crit'),
             },
@@ -279,9 +278,7 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                     chance: gearSet.computedStats.dhitChance,
                     multiplier: gearSet.computedStats.dhitMulti
                 }) as ChanceStat,
-                renderer: (stats: ChanceStat) => {
-                    return chanceStatDisplay(stats);
-                },
+                renderer: chanceStatDisplay,
                 initialWidth: chanceStatColWidth,
                 condition: () => this.sheet.isStatRelevant('dhit'),
             },
@@ -292,9 +289,7 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                     stat: gearSet.computedStats.determination,
                     multiplier: gearSet.computedStats.detMulti
                 }) as MultiplierStat,
-                renderer: (stats: MultiplierStat) => {
-                    return multiplierStatDisplay(stats);
-                },
+                renderer: multiplierStatDisplay,
                 initialWidth: multiStatColWidth,
                 condition: () => this.sheet.isStatRelevant('determination'),
             },
@@ -322,8 +317,12 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
             {
                 shortName: "tenacity",
                 displayName: "TNC",
-                getter: gearSet => gearSet.computedStats.tenacity,
-                initialWidth: statColWidth,
+                getter: gearSet => ({
+                    stat: gearSet.computedStats.tenacity,
+                    multiplier: gearSet.computedStats.tncMulti
+                }) as MultiplierStat,
+                renderer: multiplierStatDisplay,
+                initialWidth: multiStatColWidth,
                 condition: () => this.sheet.isStatRelevant('tenacity'),
             },
         ]
@@ -500,7 +499,7 @@ export class GearSetEditor extends HTMLElement {
         const leftSideSlots = ['Head', 'Body', 'Hand', 'Legs', 'Feet'] as const;
         const rightSideSlots = ['Ears', 'Neck', 'Wrist', 'RingLeft', 'RingRight'] as const;
 
-        const weaponTable = new GearItemsTable(this.sheet, this.gearSet, itemMapping, ['Weapon']);
+        const weaponTable = new GearItemsTable(this.sheet, this.gearSet, itemMapping, this.sheet.classJobStats.offhand ? ['Weapon', 'OffHand'] : ['Weapon']);
         const leftSideDiv = document.createElement('div');
         const rightSideDiv = document.createElement('div');
 
@@ -1268,19 +1267,30 @@ export class GearPlanSheet extends HTMLElement {
     }
 
     get classJobStats() {
+        return this.statsForJob(this.classJobName);
+    }
+
+    private get classJobEarlyStats() {
         return getClassJobStats(this.classJobName);
     }
 
+    statsForJob(job: JobName): JobData {
+        return {
+            ...getClassJobStats(job),
+            jobStatMultipliers: this.dataManager.multipliersForJob(job)
+        };
+    }
+
     isStatRelevant(stat: RawStatKey) {
-        if (!this.classJobStats) {
+        if (!this.classJobEarlyStats) {
             // Not sure what the best way to handle this is
             return true;
         }
         if (MAIN_STATS.includes(stat as typeof MAIN_STATS[number])) {
-            return (stat === this.classJobStats.mainStat);
+            return (stat === this.classJobEarlyStats.mainStat);
         }
-        if (this.classJobStats.irrelevantSubstats) {
-            return !this.classJobStats.irrelevantSubstats.includes(stat as Substat);
+        if (this.classJobEarlyStats.irrelevantSubstats) {
+            return !this.classJobEarlyStats.irrelevantSubstats.includes(stat as Substat);
         }
         else {
             return true;

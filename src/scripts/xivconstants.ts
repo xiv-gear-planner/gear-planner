@@ -1,4 +1,4 @@
-import {JobData, LevelItemInfo, LevelStats, RawStatKey, RawStats} from "./geartypes";
+import {JobDataConst, JobTrait, LevelItemInfo, LevelStats, RawStatKey, RawStats} from "./geartypes";
 
 /**
  * Maximum number of materia slots on any item.
@@ -20,10 +20,17 @@ export const MATERIA_LEVEL_MAX_OVERMELD = 9;
 /**
  * Supported Jobs.
  */
-export type JobName = 'WHM' | 'SGE' | 'SCH' | 'AST';
+export type JobName
+    = 'WHM' | 'SGE' | 'SCH' | 'AST'
+    | 'PLD' | 'WAR' | 'DRK' | 'GNB'
+    | 'DRG' | 'MNK' | 'NIN' | 'SAM' | 'RPR'
+    | 'BRD' | 'MCH' | 'DNC'
+    | 'BLM' | 'SMN' | 'RDM' | 'BLU';
 
 /**
  * All clans/races.
+ *
+ * TODO: migrate these to be the same names on XIVAPI so that race states can be auto pulled
  */
 export type RaceName = 'Duskwight' | 'Wildwood'
     | 'Raen' | 'Xaela'
@@ -46,73 +53,86 @@ export type SupportedLevel = typeof SupportedLevels[number];
  */
 export const EMPTY_STATS = new RawStats();
 
+const STANDARD_HEALER = {
+    mainStat: 'mind',
+    role: 'Healer',
+    irrelevantSubstats: ['skillspeed', 'tenacity'],
+    traitMulti: level => 1.3,
+} as const;
+
+const STANDARD_TANK = {
+    mainStat: 'strength',
+    role: 'Tank',
+    irrelevantSubstats: ['spellspeed', 'piety'],
+    traits: [{
+        apply(stats) {
+            return stats.vitality += 29;
+        }
+    }] as JobTrait[],
+} as const;
+
+const STANDARD_MELEE = {
+    mainStat: 'strength',
+    role: 'Melee',
+    irrelevantSubstats: ['spellspeed', 'tenacity', 'piety'],
+} as const;
+
+const STANDARD_RANGED = {
+    role: 'Ranged',
+    mainStat: 'dexterity',
+    irrelevantSubstats: ['spellspeed', 'tenacity', 'piety']
+} as const;
+
+const STANDARD_CASTER = {
+    role: "Caster",
+    mainStat: "intelligence",
+    irrelevantSubstats: ['skillspeed', 'tenacity', 'piety'],
+} as const;
+
 
 /**
  * Job-specific data items.
  *
- * TODO: Most of this can be xivapi
+ * TODO: PLD/RDM weirdness
  */
-export const JOB_DATA: Record<JobName, JobData> = {
-    'WHM': {
-        mainStat: 'mind',
-        role: 'Healer',
-        jobStatMulipliers: new RawStats({
-            hp: 105,
-            vitality: 100,
-            strength: 55,
-            dexterity: 105,
-            intelligence: 105,
-            mind: 115
-        }),
-        traitMulti: level => 1.3,
-        // traits: [
-        //     (stats) => stats.traitMulti
-        // ]
-        irrelevantSubstats: ['skillspeed', 'tenacity'],
+export const JOB_DATA: Record<JobName, JobDataConst> = {
+    // Healers
+    WHM: STANDARD_HEALER,
+    SGE: STANDARD_HEALER,
+    SCH: STANDARD_HEALER,
+    AST: STANDARD_HEALER,
+    // Tanks
+    PLD: {
+        ...STANDARD_TANK,
+        // irrelevantSubstats: ['piety'],
+        offhand: true
     },
-    'SGE': {
-        mainStat: 'mind',
-        role: 'Healer',
-        jobStatMulipliers: new RawStats({
-            hp: 105,
-            vitality: 100,
-            strength: 60,
-            dexterity: 100,
-            intelligence: 115,
-            mind: 115
-        }),
-        traitMulti: level => 1.3,
-        irrelevantSubstats: ['skillspeed', 'tenacity'],
+    WAR: STANDARD_TANK,
+    DRK: STANDARD_TANK,
+    GNB: STANDARD_TANK,
+    // Melee
+    DRG: STANDARD_MELEE,
+    MNK: STANDARD_MELEE,
+    NIN: {
+        ...STANDARD_MELEE,
+        mainStat: "dexterity"
     },
-    'SCH': {
-        mainStat: 'mind',
-        role: 'Healer',
-        jobStatMulipliers: new RawStats({
-            hp: 105,
-            vitality: 100,
-            strength: 90,
-            dexterity: 100,
-            intelligence: 105,
-            mind: 115
-        }),
-        traitMulti: level => 1.3,
-        irrelevantSubstats: ['skillspeed', 'tenacity'],
+    SAM: STANDARD_MELEE,
+    RPR: STANDARD_MELEE,
+    // Ranged
+    BRD: STANDARD_RANGED,
+    MCH: STANDARD_RANGED,
+    DNC: STANDARD_RANGED,
+    // Caster
+    BLM: STANDARD_CASTER,
+    SMN: STANDARD_CASTER,
+    RDM: {
+        ...STANDARD_CASTER,
+        // irrelevantSubstats: ['skillspeed', 'tenacity', 'piety'],
     },
-    'AST': {
-        mainStat: 'mind',
-        role: 'Healer',
-        jobStatMulipliers: new RawStats({
-            hp: 105,
-            vitality: 100,
-            strength: 50,
-            dexterity: 100,
-            intelligence: 105,
-            mind: 115
-        }),
-        traitMulti: level => 1.3,
-        irrelevantSubstats: ['skillspeed', 'tenacity'],
-    },
+    BLU: STANDARD_CASTER,
 }
+
 
 /**
  * Clan/race-specific stats

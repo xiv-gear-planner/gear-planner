@@ -1,6 +1,6 @@
 import {processRawMateriaInfo, XivApiFoodInfo, XivApiGearInfo} from "./gear";
 import {JobName, MATERIA_LEVEL_MAX_NORMAL, SupportedLevel} from "./xivconstants";
-import {GearItem, Materia} from "./geartypes";
+import {GearItem, JobMultipliers, Materia} from "./geartypes";
 import {xivApiGet} from "./external/xivapi";
 
 export class DataManager {
@@ -14,6 +14,8 @@ export class DataManager {
     maxIlvlFood = 999;
     classJob: JobName = 'WHM'
     level: SupportedLevel = 90;
+
+    jobMultipliers: Map<JobName, JobMultipliers>;
 
     itemById(id: number): (GearItem | undefined) {
         return this.allItems.find(item => item.id === id);
@@ -36,7 +38,7 @@ export class DataManager {
         const itemsPromise = xivApiGet({
             requestType: 'search',
             sheet: 'Item',
-            columns: ['ID', 'IconHD', 'Name', 'LevelItem', 'Stats', 'EquipSlotCategory', 'MateriaSlotCount', 'IsAdvancedMeldingPermitted', 'DamageMag', 'DamagePhys'],
+            columns: ['ID', 'IconHD', 'Name', 'LevelItem', 'Stats', 'EquipSlotCategory', 'MateriaSlotCount', 'IsAdvancedMeldingPermitted', 'DamageMag', 'DamagePhys'] as const,
             // EquipSlotCategory! => EquipSlotCategory is not null => filters out now-useless belts
             filters: [`LevelItem>=${this.minIlvl}`, `LevelItem<=${this.maxIlvl}`, `ClassJobCategory.${this.classJob}=1`, 'EquipSlotCategory!'],
         })
@@ -90,7 +92,7 @@ export class DataManager {
             requestType: 'search',
             sheet: 'Item',
             filters: ['ItemKind.ID=5', 'ItemSearchCategory.ID=45', `LevelItem%3E=${this.minIlvlFood}`, `LevelItem%3C=${this.maxIlvlFood}`],
-            columns: ['ID', 'IconHD', 'Name', 'LevelItem', 'Bonuses']
+            columns: ['ID', 'IconHD', 'Name', 'LevelItem', 'Bonuses'] as const
         })
             // const foodPromise = fetch(`https://xivapi.com/search?indexes=Item&filters=ItemKind.ID=5,ItemSearchCategory.ID=45,LevelItem%3E=${this.minIlvlFood},LevelItem%3C=${this.maxIlvlFood}&columns=ID,IconHD,Name,LevelItem,Bonuses`)
             .then((data) => {
@@ -101,6 +103,37 @@ export class DataManager {
             .then((processedFoods) => processedFoods.filter(food => Object.keys(food.bonuses).length > 1))
             .then((foods) => this.allFoodItems = foods,
                 e => console.error(e));
-        return Promise.all([itemsPromise, materiaPromise, foodPromise]);
+        const jobsPromise = xivApiGet({
+            requestType: "list",
+            sheet: "ClassJob",
+            columns: ['Abbreviation', 'ModifierDexterity', 'ModifierIntelligence', 'ModifierMind', 'ModifierStrength', 'ModifierVitaliry'] as const
+        })
+            .then(data => {
+                console.log(`Got ${data.Results.length} Jobs`);
+                return data.Results;
+            })
+            .then(rawJobs => {
+                this.jobMultipliers = new Map<JobName, JobMultipliers>();
+                for (let rawJob of rawJobs) {
+                    this.jobMultipliers.set(rawJob['Abbreviation'], {
+                        dexterity: rawJob.ModifierDexterity,
+                        intelligence: rawJob.ModifierIntelligence,
+                        mind: rawJob.ModifierMind,
+                        strength: rawJob.ModifierStrength
+                    })
+                }
+            });
+        return Promise.all([itemsPromise, materiaPromise, foodPromise, jobsPromise]);
+    }
+
+    multipliersForJob(job: JobName) {
+        if (!this.jobMultipliers) {
+            throw Error("You must wait for loadData() before calling this method");
+        }
+        const multi = this.jobMultipliers.get(job);
+        if (!multi) {
+            throw Error(`No data for job ${job}`)
+        }
+        return multi;
     }
 }
