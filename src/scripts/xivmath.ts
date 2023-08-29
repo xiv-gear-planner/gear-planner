@@ -8,7 +8,8 @@ import {AttackType, ComputedSetStats, JobData, LevelStats} from "./geartypes";
     grants +50% damage, then it should be 1.5, rather than 150 or 1500, and so on.
 
     Most of these do not need to be used directly, because the values are already calculated on the ComputedSetStats
-    object. It is preferable to use already-computed values since those are also exposed on the UI.
+    object. It is preferable to use already-computed values since those are also exposed on the UI. This ensures
+    consistency with the displayed values.
  */
 
 /**
@@ -17,10 +18,10 @@ import {AttackType, ComputedSetStats, JobData, LevelStats} from "./geartypes";
  * @param baseGcd The base time of the ability in question (e.g. 2.5 for most abilities).
  * @param levelStats Level stats for the level at which the computation is to be performed.
  * @param sks The skill speed stat value.
- * @param haste The haste value. Eg 15 for 15% haste, etc.
+ * @param haste The haste value, e.g. 15 for 15% haste, etc.
  */
 export function sksToGcd(baseGcd: number, levelStats: LevelStats, sks: number, haste = 0): number {
-    return Math.floor((100-haste) * ((baseGcd * 1000 * (1000 - Math.floor(130 * (sks - levelStats.baseSubStat) / levelStats.levelDiv)) / 1000) / 1000)) / 100;
+    return Math.floor((100 - haste) * ((baseGcd * 1000 * (1000 - Math.floor(130 * (sks - levelStats.baseSubStat) / levelStats.levelDiv)) / 1000) / 1000)) / 100;
 }
 
 /**
@@ -29,9 +30,10 @@ export function sksToGcd(baseGcd: number, levelStats: LevelStats, sks: number, h
  * @param baseGcd The base time of the ability in question (e.g. 2.5 for most abilities).
  * @param levelStats Level stats for the level at which the computation is to be performed.
  * @param sps The spell speed stat value.
+ * @param haste The haste value, e.g. 15 for 15% haste, etc.
  */
 export function spsToGcd(baseGcd: number, levelStats: LevelStats, sps: number, haste = 0): number {
-    return Math.floor((100-haste) * ((baseGcd * 1000 * (1000 - Math.floor(130 * (sps - levelStats.baseSubStat) / levelStats.levelDiv)) / 1000) / 1000)) / 100;
+    return Math.floor((100 - haste) * ((baseGcd * 1000 * (1000 - Math.floor(130 * (sps - levelStats.baseSubStat) / levelStats.levelDiv)) / 1000) / 1000)) / 100;
 }
 
 /**
@@ -288,6 +290,5 @@ export function applyDhCrit(baseDamage: number, stats: ComputedSetStats) {
  */
 export function applyCrit(baseDamage: number, stats: ComputedSetStats) {
     return baseDamage * (1 + stats.critChance * (stats.critMulti - 1));
-
 }
 
