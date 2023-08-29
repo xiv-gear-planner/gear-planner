@@ -4,6 +4,7 @@ import {MateriaPriorityPicker} from "./materia";
 import {StatTierDisplay} from "./stat_tier_display";
 import {CharacterGearSet} from "../gear";
 import {GearPlanSheet} from "../components";
+import {quickElement} from "./util";
 
 export class GearEditToolbar extends HTMLDivElement {
     private readonly statTierDisplay: StatTierDisplay;
@@ -15,6 +16,12 @@ export class GearEditToolbar extends HTMLDivElement {
     ) {
         super();
         this.classList.add('gear-set-editor-toolbar');
+
+        // const leftDrag = quickElement('div', ['toolbar-float-left'], [document.createTextNode('≡')])
+        // const rightDrag = quickElement('div', ['toolbar-float-right'], [document.createTextNode('≡')])
+        // this.appendChild(leftDrag);
+        // this.appendChild(rightDrag);
+
         const ilvlDiv = document.createElement('div');
         ilvlDiv.classList.add('ilvl-picker-area');
         const itemIlvlRange = new ILvlRangePicker(itemDisplaySettings, 'minILvl', 'maxILvl', 'Items:');

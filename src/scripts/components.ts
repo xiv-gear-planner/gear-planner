@@ -705,7 +705,7 @@ export class GearPlanSheet extends HTMLElement {
         this.tableArea = document.createElement("div");
         this.tableArea.classList.add('gear-sheet-table-area', 'hide-when-loading');
         this.buttonsArea = document.createElement("div");
-        this.buttonsArea.classList.add('gear-sheet-buttons-area', 'hide-when-loading');
+        this.buttonsArea.classList.add('gear-sheet-buttons-area', 'hide-when-loading', 'show-hide-parent');
         this.editorArea = document.createElement("div");
         this.editorArea.classList.add('gear-sheet-editor-area', 'hide-when-loading');
         this.midBarArea = document.createElement("div");
@@ -770,6 +770,14 @@ export class GearPlanSheet extends HTMLElement {
 
 
     setupRealGui() {
+        const buttonsArea = this.buttonsArea;
+        const showHideButton = makeActionButton('≡', () => {
+            const cls = 'showing';
+            buttonsArea.classList.contains(cls) ? buttonsArea.classList.remove(cls) : buttonsArea.classList.add(cls);
+        });
+        showHideButton.classList.add('show-hide-button');
+        buttonsArea.appendChild(showHideButton);
+
         this._gearPlanTable = new GearPlanTable(this, item => this.editorItem = item);
         // Buttons and controls at the bottom of the table
         // this.buttonRow.id = 'gear-sheet-button-row';
@@ -778,7 +786,7 @@ export class GearPlanSheet extends HTMLElement {
             newSet.name = "New Set";
             this.addGearSet(newSet, true);
         })
-        this.buttonsArea.appendChild(addRowButton)
+        buttonsArea.appendChild(addRowButton)
 
         const renameButton = makeActionButton("Rename Sheet", () => {
             const newName = prompt("Enter a new name for the sheet: ", this.name);
@@ -788,7 +796,7 @@ export class GearPlanSheet extends HTMLElement {
                 setTitle(this.name);
             }
         });
-        this.buttonsArea.appendChild(renameButton);
+        buttonsArea.appendChild(renameButton);
 
         const saveAsButton = makeActionButton("Save As", () => {
             const defaultName = this.name === SHARED_SET_NAME ? 'Imported Set' : this.name + ' copy';
@@ -801,22 +809,22 @@ export class GearPlanSheet extends HTMLElement {
             // TODO: should this be provided as a ctor arg instead?
             openSheetByKey(newSaveKey);
         });
-        this.buttonsArea.appendChild(saveAsButton)
+        buttonsArea.appendChild(saveAsButton)
 
         const newSimButton = makeActionButton("Add Simulation", () => {
             this.showAddSimDialog();
         });
-        this.buttonsArea.appendChild(newSimButton);
+        buttonsArea.appendChild(newSimButton);
 
         const exportSheetButton = makeActionButton("Export", () => {
             this.setupEditorArea(this.makeSheetExportArea());
         });
-        this.buttonsArea.appendChild(exportSheetButton);
+        buttonsArea.appendChild(exportSheetButton);
 
         const importGearSetButton = makeActionButton("Import Sets", () => {
             this.setupEditorArea(this.makeImportSetArea());
         });
-        this.buttonsArea.appendChild(importGearSetButton);
+        buttonsArea.appendChild(importGearSetButton);
 
         const gearUpdateTimer = new Inactivitytimer(1_000, () => {
             if (this._editorAreaNode instanceof GearSetEditor) {
@@ -832,7 +840,7 @@ export class GearPlanSheet extends HTMLElement {
                 return r ?? "Select a Race/Clan";
             },
             [undefined, ...Object.keys(RACE_STATS) as RaceName[]]);
-        this.buttonsArea.appendChild(raceDropdown);
+        buttonsArea.appendChild(raceDropdown);
 
         const partySizeDropdown = new FieldBoundDataSelect<GearPlanSheet, PartyBonusAmount>(
             this,
@@ -847,7 +855,7 @@ export class GearPlanSheet extends HTMLElement {
             },
             [0, 1, 2, 3, 4, 5]
         )
-        this.buttonsArea.appendChild(partySizeDropdown);
+        buttonsArea.appendChild(partySizeDropdown);
 
         if (!this._saveKey) {
             const unsavedWarning = document.createElement('h4');
@@ -856,7 +864,7 @@ export class GearPlanSheet extends HTMLElement {
         }
         // const tableAreaInner = quickElement('div', ['gear-sheet-table-area-inner'], [this._gearPlanTable, this.buttonsArea]);
         this.tableArea.appendChild(this._gearPlanTable);
-        this.tableArea.appendChild(this.buttonsArea);
+        this.tableArea.appendChild(buttonsArea);
         // this.tableArea.appendChild(tableAreaInner);
         this._gearPlanTable.dataChanged();
         this._loadingScreen.remove();

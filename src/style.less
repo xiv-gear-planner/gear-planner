@@ -584,9 +584,10 @@ gear-plan {
 
     margin-top: 0;
 
-    padding: 2px;
+    padding: 2px 2px 0 2px;
 
     > * {
+      margin-bottom: 2px;
       margin-right: 10px;
       pointer-events: auto;
       box-sizing: border-box;
@@ -648,6 +649,7 @@ gear-plan {
         min-width: 100px;
 
       }
+
       td[col-id='itemname'] {
         max-width: 1px;
       }
@@ -877,6 +879,41 @@ import-set-area, import-sheet-area {
 
 div.gear-set-editor-toolbar {
 
+  position: relative;
+  padding-left: 8px;
+  padding-right: 8px;
+
+  .drag-indicator {
+    content: '≡';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    height: fit-content;
+    margin: auto 1px auto 1px;
+  }
+  &::before {
+    .drag-indicator;
+    left: 0;
+  }
+  &::after {
+    .drag-indicator;
+    right: 0;
+  }
+
+  .toolbar-float-left {
+    border: none;
+    width: 10px;
+    float: left;
+    height: 100%;
+  }
+
+  .toolbar-float-right {
+    border: none;
+    width: 10px;
+    float: right;
+    height: 100%;
+  }
+
   > * {
     box-sizing: border-box;
     min-height: 50px;
@@ -1021,6 +1058,28 @@ div.labeled-checkbox {
   }
 }
 
+.show-hide-parent {
+  .show-hide-button {
+    display: none;
+  }
+
+  @media screen and (max-width: 800px) {
+    &.showing {
+      > * {
+        display: revert;
+      }
+    }
+
+    > * {
+      display: none;
+    }
+
+    .show-hide-button {
+      display: revert !important;
+    }
+  }
+}
+
 input.gear-items-table-relic-stat-input {
   //border: var(--soft-border);
   border: none;
@@ -1071,9 +1130,11 @@ shortlink-modal {
 
 food-stat-bonus {
   display: inline;
+
   span {
     padding-right: var(--food-stat-padding, 5px);
   }
+
   span:last-child {
     float: right;
     padding-right: 0;
@@ -1082,32 +1143,38 @@ food-stat-bonus {
 
 table.food-items-table {
   max-width: 100%;
+
   .food-stat-col {
     --food-stat-col-width: max-content;
     min-width: var(--food-stat-col-width);
     max-width: var(--food-stat-col-width);
     width: var(--food-stat-col-width);
   }
+
   [col-id='itemname'] {
     //max-width: fit-content;
     width: 300px;
     min-width: 100px;
     max-width: var(--item-name-col-width);
+
     div {
       overflow: hidden;
       text-overflow: ellipsis;
       width: 100%;
     }
   }
+
   .food-stat-narrow {
     display: none;
   }
+
   @media screen and (max-width: 900px) {
     food-stat-bonus {
       span {
         display: block;
       }
     }
+
     .food-stat-col {
       --food-stat-col-width: fit-content !important;
       --food-stat-padding: 0;
@@ -1118,9 +1185,11 @@ table.food-items-table {
     .food-stat-narrow {
       display: unset;
     }
+
     .food-stat-wide {
       display: none;
     }
+
     .food-stat-col {
       //--food-stat-col-width: 100px;
     }

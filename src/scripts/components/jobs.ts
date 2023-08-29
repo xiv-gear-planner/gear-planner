@@ -4,6 +4,7 @@ import {XivApiJobData} from "../components";
 let jobData: XivApiJobData[];
 const jobIconMap = new Map<JobName, string>();
 
+// TODO: can this be consolidated with other job loading stuff in DataManager?
 async function ensureJobDataLoaded() {
     if (jobData !== undefined) {
         return;
