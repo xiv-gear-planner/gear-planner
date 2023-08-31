@@ -197,6 +197,33 @@ function showSheetPickerMenu() {
     // setTitle(undefined);
 }
 
+let isLightMode: boolean;
+
+function setLightMode(lightMode: boolean | 'load') {
+    const settingKey = 'light-mode';
+    if (lightMode === 'load') {
+        if (localStorage.getItem(settingKey) === 'true') {
+            lightMode = true;
+        }
+        else {
+            lightMode = false;
+        }
+    }
+    else {
+        localStorage.setItem(settingKey, String(lightMode));
+    }
+    const body = document.querySelector('body');
+    const lightModeClass = 'light-mode';
+    isLightMode = lightMode;
+    if (lightMode) {
+        body.classList.add(lightModeClass)
+    }
+    else {
+        body.classList.remove(lightModeClass)
+    }
+
+}
+
 function earlyUiSetup() {
     const devMenu = topMenuArea;
     document.getElementById('dev-menu-button').addEventListener('click', (ev) => {
@@ -207,6 +234,11 @@ function earlyUiSetup() {
         else {
             devMenu.style.display = 'none';
         }
+    });
+    setLightMode('load');
+    document.getElementById('light-mode-button').addEventListener('click', (ev) => {
+        ev.preventDefault();
+        setLightMode(!isLightMode);
     });
     const header = document.createElement("span")
     header.textContent = "Dev Menu";
