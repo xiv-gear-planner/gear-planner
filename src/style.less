@@ -1345,7 +1345,9 @@ td.primary {
 
 loading-blocker {
   display: block;
-  background-color: var(--modal-backdrop-color);
+  &.with-bg {
+    background-color: var(--modal-backdrop-color);
+  }
 
   position: absolute;
   left: 0;

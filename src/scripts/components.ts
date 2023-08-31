@@ -1499,6 +1499,7 @@ class ImportSetArea extends HTMLElement {
         this.textArea.id = 'set-import-textarea';
         textAreaDiv.appendChild(this.textArea);
         this.loader = new LoadingBlocker();
+        this.loader.classList.add('with-bg');
 
 
         textAreaDiv.appendChild(this.loader);
@@ -1635,6 +1636,7 @@ export class ImportSheetArea extends HTMLElement {
         this.textArea.id = 'set-import-textarea';
         textAreaDiv.appendChild(this.textArea);
         this.loader = new LoadingBlocker();
+        this.loader.classList.add('with-bg');
 
 
         textAreaDiv.appendChild(this.loader);
