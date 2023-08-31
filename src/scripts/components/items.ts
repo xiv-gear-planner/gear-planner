@@ -261,6 +261,9 @@ function itemTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, stat: 
                             }
                         }]
                     })
+                    input.type = 'number';
+                    input.pattern = '[0-9]*';
+                    input.inputMode = 'number';
                     input.classList.add('gear-items-table-relic-stat-input');
                     input.addListener(() => value.set.forceRecalc());
                     return input;

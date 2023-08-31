@@ -13,11 +13,14 @@ export class CustomTableHeaderCell<RowDataType, CellDataType, ColumnDataType> ex
     private _colDef: CustomColumn<RowDataType, CellDataType, ColumnDataType>;
     private _selected: boolean = false;
     private table: CustomTable<RowDataType, any>;
+    private span: HTMLSpanElement;
 
     constructor(table: CustomTable<RowDataType, any>, columnDef: CustomColumn<RowDataType, CellDataType, ColumnDataType>) {
         super();
         this.table = table;
         this._colDef = columnDef;
+        this.span = document.createElement('div');
+        this.appendChild(this.span);
         this.setName();
         setCellProps(this, columnDef);
         this.refreshSelection();
@@ -28,7 +31,7 @@ export class CustomTableHeaderCell<RowDataType, CellDataType, ColumnDataType> ex
     }
 
     setName() {
-        this.textContent = this.colDef.displayName;
+        this.span.textContent = this.colDef.displayName;
     }
 
     refreshFull() {
@@ -554,11 +557,21 @@ export class CustomCell<RowDataType, CellDataType> extends HTMLTableCellElement 
             console.error(e);
             node = document.createTextNode("Error");
         }
+        const span = document.createElement('span');
         if (node === undefined) {
-            this.replaceChildren();
+            this.replaceChildren(span);
         }
         else {
-            this.replaceChildren(node);
+            // Due to some of the styling, the child must be a real HTML element and not a raw text node
+            // Also, some elements don't support ::before, so insert a dummy span
+            if (node.nodeType === this.TEXT_NODE) {
+                const text = node.textContent;
+                span.textContent = text;
+                this.replaceChildren(span);
+            }
+            else {
+                this.replaceChildren(span, node);
+            }
         }
         this.refreshSelection();
     }

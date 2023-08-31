@@ -129,6 +129,7 @@ body {
    */
 
   --zi-sets-table-normal-columns: 70;
+  --zi-sets-table-selected-cell: 71;
   --zi-sets-table-pinned-columns: 80;
   --zi-sets-table-selected-highlights: 90;
   --zi-sets-table-header-row: 91;
@@ -166,12 +167,6 @@ div#main-page-padding {
   flex-grow: 9999999;
 }
 
-
-.table-item-selected {
-  outline: var(--selected-outline);
-  border-radius: 5px;
-}
-
 .table-item-selected-bg {
   background-color: var(--table-bg-color-selected);
 }
@@ -193,31 +188,6 @@ table {
     scroll-margin: 30px;
     position: relative;
 
-    &[is-selected="true"] {
-      .table-item-selected-bg;
-
-      &::after {
-        content: '';
-        position: absolute;
-        right: 2px;
-        top: 1px;
-        left: 2px;
-        bottom: 1px;
-        //width: min(100%, 100vw);
-        //height: calc(100% - 4px);
-        display: inline-block;
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-
-        //margin-right: -100vh;
-
-        z-index: var(--zi-sets-table-selected-highlights);
-        pointer-events: none;
-        //background-color: #0099ff;
-        .table-item-selected;
-      }
-    }
 
     th {
       border-top: var(--thick-border);
@@ -230,11 +200,6 @@ table {
       &:last-child {
         border-right: var(--thick-border);
       }
-
-      &[is-selected="true"] {
-        .table-item-selected;
-        .table-item-selected-bg;
-      }
     }
 
     &:first-child {
@@ -244,6 +209,62 @@ table {
       td {
         border-top: var(--thick-border);
       }
+    }
+
+    .selection-highlight {
+      content: '';
+      border-radius: 5px;
+      opacity: 80%;
+      position: absolute;
+      --border-style: 2px solid var(--table-selected-outline-color);
+      border: var(--border-style);
+      left: 0;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      pointer-events: none;
+    }
+
+    // Note: doesn't work on raw text nodes, so tables MUST use a span instead.
+    // This is already handled in custom tables.
+    td, th {
+      position: relative;
+      &[is-selected="true"] {
+        .table-item-selected-bg !important;
+
+        > *:first-child::before {
+          .selection-highlight;
+        }
+      }
+    }
+
+    &[is-selected="true"] {
+      td, th {
+        overflow: visible;
+        .table-item-selected-bg !important;
+        > *:first-child::before {
+          .selection-highlight;
+          z-index: var(--zi-sets-table-selected-highlights);
+          left: -1px;
+          border-left: unset;
+          border-right: unset;
+          border-radius: 0;
+        }
+        &:first-child{
+          > *:first-child::before {
+            left: 0;
+            border-left: var(--border-style);
+            border-radius: 5px 0 0 5px;
+          }
+        }
+        &:last-child{
+          > *:first-child::before {
+            border-right: var(--border-style);
+            border-radius: 0 5px 5px 0;
+          }
+        }
+      }
+
     }
 
     td {
@@ -256,11 +277,7 @@ table {
       text-overflow: ellipsis;
       overflow: hidden;
       scroll-margin: 20px;
-      position: relative;
 
-      &[is-selected="true"] {
-        .table-item-selected;
-      }
 
       &:last-child {
         border-right: var(--standard-border);
@@ -375,6 +392,10 @@ table.gear-plan-table {
     scroll-margin-top: 68px;
     scroll-margin-bottom: 30px;
     z-index: var(--zi-sets-table-normal-columns);
+
+    &[is-selected="true"] {
+      z-index: var(--zi-sets-table-selected-cell);
+    }
   }
 
 
@@ -654,6 +675,16 @@ gear-plan {
         max-width: 1px;
       }
 
+      input[type=number] {
+        -moz-appearance: textfield;
+
+        &::-webkit-inner-spin-button, &::-webkit-outer-spin-button {
+          -webkit-appearance: none;
+          -moz-appearance: none;
+          appearance: none;
+        }
+      }
+
     }
 
     .left-side-gear-table, .right-side-gear-table {
@@ -671,6 +702,12 @@ gear-plan {
 h1.js-warning {
   color: #ff0000;
   text-decoration: underline 2px double #ff0000;
+}
+
+sim-result-detail-display {
+  margin: auto;
+  display: block;
+  width: fit-content;
 }
 
 table all-slot-materia-manager {
@@ -891,10 +928,12 @@ div.gear-set-editor-toolbar {
     height: fit-content;
     margin: auto 1px auto 1px;
   }
+
   &::before {
     .drag-indicator;
     left: 0;
   }
+
   &::after {
     .drag-indicator;
     right: 0;

@@ -1,8 +1,10 @@
 import {CharacterGearSet} from "./gear";
 import {JobName, SupportedLevel} from "./xivconstants";
-import {applyDhCrit, baseDamage} from "./xivmath";
-import {WhmSheetSim, whmSheetSpec} from "./sims/whm_sheet_sim";
+import {whmSheetSpec} from "./sims/whm_sheet_sim";
 import {sgeSheetSpec} from "./sims/sge_sheet_sim";
+import {potRatioSimSpec} from "./sims/potency_ratio";
+import {CustomTable} from "./tables";
+import {camel2title} from "./util/strutils";
 
 export interface SimResult {
     mainDpsResult: number;
@@ -91,6 +93,68 @@ export interface Simulation<ResultType extends SimResult, SettingsType extends S
     spec: SimSpec<typeof this, SettingsExport>
 
     makeConfigInterface(settings: SettingsType, updateCallback: () => void): HTMLElement;
+
+    makeToolTip?(result: ResultType): string;
+
+    makeResultDisplay?(result: ResultType): HTMLElement;
+}
+
+type SimpleResultEntry = { name: string; value: any; }
+
+export function bestEffortFormat(value: any): Node {
+    if (typeof value === 'number') {
+        return document.createTextNode(value.toFixed(3));
+    }
+    else {
+        return document.createTextNode(value.toString());
+    }
+}
+export function simpleAutoResultTable<X extends SimResult>(result: X): HTMLElement {
+    const data: SimpleResultEntry[] = [];
+    for (let fieldKey in result) {
+        data.push({name: camel2title(fieldKey), value: result[fieldKey] });
+    }
+    const table = new CustomTable<SimpleResultEntry>();
+    table.columns = [
+        {
+            shortName: 'key',
+            displayName: 'Key',
+            getter: item => item.name,
+        },
+        {
+            shortName: 'value',
+            displayName: 'Value',
+            getter: item => item.value,
+            renderer: bestEffortFormat,
+        }
+    ]
+    table.data = data;
+    return table;
+
+}
+export function simpleMappedResultTable<X extends SimResult>(fieldNames: {[K in keyof X]: string}): ((result: X) => HTMLElement) {
+    return (result: X): HTMLElement => {
+        const data: SimpleResultEntry[] = [];
+        for (let fieldKey in fieldNames) {
+            data.push({name: fieldNames[fieldKey], value: result[fieldKey] });
+        }
+        const table = new CustomTable<SimpleResultEntry>();
+        table.columns = [
+            {
+                shortName: 'key',
+                displayName: 'Key',
+                getter: item => item.name,
+            },
+            {
+                shortName: 'value',
+                displayName: 'Value',
+                getter: item => item.value,
+                renderer: bestEffortFormat,
+            }
+        ]
+        table.data = data;
+        return table;
+    }
 }
 
 export function noSimSettings() {
@@ -101,41 +165,6 @@ export function noSimSettings() {
     return outerDiv;
 }
 
-
-export const potRatioSimSpec: SimSpec<PotencyRatioSim, SimSettings> = {
-    displayName: "Potency Ratio",
-    loadSavedSimInstance(exported: SimSettings) {
-        return new PotencyRatioSim();
-    },
-    makeNewSimInstance(): PotencyRatioSim {
-        return new PotencyRatioSim();
-    },
-    stub: "pr-sim",
-}
-
-export interface PotencyRatioSimResults extends SimResult {
-    withoutCritDh: number
-}
-
-export class PotencyRatioSim implements Simulation<PotencyRatioSimResults, SimSettings, {}> {
-    exportSettings() {
-        return {
-            ...this.settings
-        };
-    };
-    settings = {
-
-    };
-    shortName = "pr-sim";
-    displayName = "Dmg/100p";
-    async simulate(set: CharacterGearSet): Promise<PotencyRatioSimResults> {
-        const base = baseDamage(set.computedStats, 100, 'Spell');
-        const final = applyDhCrit(base, set.computedStats);
-        return {mainDpsResult: final, withoutCritDh: base};
-    };
-    spec = potRatioSimSpec;
-    makeConfigInterface = noSimSettings;
-}
 
 export interface SimCurrentResult<X extends SimResult> {
     result: X | undefined;

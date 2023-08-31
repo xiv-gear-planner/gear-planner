@@ -33,7 +33,7 @@ import {
     getDefaultSims,
     getRegisteredSimSpecs,
     getSimSpecByStub,
-    SimCurrentResult,
+    SimCurrentResult, simpleAutoResultTable, simpleMappedResultTable,
     SimResult,
     SimSettings,
     SimSpec,
@@ -68,6 +68,7 @@ import {LoadingBlocker} from "./components/loader";
 import {FoodItemsTable, GearItemsTable} from "./components/items";
 import {GearEditToolbar} from "./components/gear_edit_toolbar";
 import {startShortLink} from "./components/shortlink_components";
+import {camel2title} from "./util/strutils";
 
 export const SHARED_SET_NAME = 'Imported Set';
 
@@ -108,6 +109,23 @@ function chanceStatDisplay(stats: ChanceStat) {
     return outerDiv;
 }
 
+class SimResultData<ResultType extends SimResult> {
+    constructor(
+        public readonly simInst: Simulation<ResultType, any, any>,
+        public readonly result: SimCurrentResult<ResultType>
+    ) {
+    }
+    //
+    // makeResultDisplay() {
+    //     if (this.simInst.makeResultDisplay) {
+    //         return this.simInst.makeResultDisplay(this.result);
+    //     }
+    //     else {
+    //         return simpleAutoResultTable(this.result);
+    //     }
+    // }
+}
+
 /**
  * A table of gear sets
  */
@@ -115,7 +133,7 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
 
     private sheet: GearPlanSheet;
 
-    constructor(sheet: GearPlanSheet, setSelection: (item: CharacterGearSet | Simulation<any, any, any> | undefined) => void) {
+    constructor(sheet: GearPlanSheet, setSelection: (item: CharacterGearSet | Simulation<any, any, any> | SimResultData<any> | undefined) => void) {
         super();
         this.sheet = sheet;
         this.classList.add("gear-plan-table");
@@ -129,6 +147,9 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                 }
                 else if (newSelection instanceof CustomColumn && newSelection.dataValue['makeConfigInterface']) {
                     setSelection(newSelection.dataValue as Simulation<any, any, any>);
+                }
+                else if (newSelection instanceof CustomCell && newSelection.colDef.dataValue?.spec) {
+                    setSelection(new SimResultData(newSelection.colDef.dataValue, newSelection.value));
                 }
                 else if (newSelection === undefined) {
                     setSelection(undefined);
@@ -334,8 +355,9 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                     return sim.displayName;
                 },
                 getter: gearSet => this.sheet.getSimResult(sim, gearSet),
-                renderer: result => new SimResultDisplay(this, sim, result),
+                renderer: result => new SimResultMiniDisplay(this, sim, result),
                 allowHeaderSelection: true,
+                allowCellSelection: true
             });
         }
         this.columns = columns;
@@ -419,8 +441,35 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
         }
     }
 }
+class SimResultDetailDisplay<X extends SimResult> extends HTMLElement {
+    private _result: SimCurrentResult<X>;
+    private sim: Simulation<X, any, any>;
+    constructor(simDetailResultDisplay: SimResultData<any>) {
+        super();
+        this._result = simDetailResultDisplay.result;
+        this.sim = simDetailResultDisplay.simInst;
+        this.update();
+        this._result.resultPromise.then(result => this.update(), error => this.update());
+    }
 
-export class SimResultDisplay extends HTMLElement {
+    update() {
+        if (this._result.status === 'Done') {
+            if (this.sim.makeResultDisplay) {
+                this.replaceChildren(this.sim.makeResultDisplay(this._result.result))
+            }
+            else {
+                this.replaceChildren(simpleAutoResultTable(this._result.result));
+            }
+        }
+        else {
+            this.textContent = this._result.status;
+        }
+        // this.gearPlanTable.requestProcessSimColColor(this.sim);
+    }
+}
+
+
+export class SimResultMiniDisplay extends HTMLElement {
     private _result: SimCurrentResult<any>;
 
     constructor(private gearPlanTable: GearPlanTable, private sim: Simulation<any, any, any>, simCurrentResult: SimCurrentResult<any>) {
@@ -433,8 +482,14 @@ export class SimResultDisplay extends HTMLElement {
     update() {
         if (this._result.status === 'Done') {
             this.textContent = this._result.result.mainDpsResult.toFixed(2);
-            const tooltip = Object.entries(this._result.result).map(entry => `${entry[0]}: ${entry[1]}`)
-                .join('\n');
+            let tooltip: string;
+            if (this.sim.makeToolTip) {
+                tooltip = this.sim.makeToolTip(this._result);
+            }
+            else {
+                tooltip = Object.entries(this._result.result).map(entry => `${camel2title(entry[0])}: ${entry[1]}`)
+                    .join('\n');
+            }
             this.setAttribute('title', tooltip);
         }
         else {
@@ -622,7 +677,8 @@ export class GearPlanSheet extends HTMLElement {
     private readonly buttonsArea: HTMLDivElement;
     private readonly editorArea: HTMLDivElement;
     private readonly midBarArea: HTMLDivElement;
-    private _editorItem: CharacterGearSet | Simulation<any, any, any> | undefined;
+    // TODO: SimResult alone might not be enough since we'd want it to refresh automatically if settings are changed
+    private _editorItem: CharacterGearSet | Simulation<any, any, any> | SimResultData<SimResult> | undefined;
     private materiaAutoFillPrio: MateriaSubstat[];
     private materiaAutoFillSelectedItems: boolean;
     private _materiaAutoFillController: MateriaAutoFillController;
@@ -757,6 +813,9 @@ export class GearPlanSheet extends HTMLElement {
             }
             else if (item['makeConfigInterface']) {
                 this.setupEditorArea(formatSimulationConfigArea(this, item as Simulation<any, any, any>, col => this._gearPlanTable.refreshColumn(col), col => this.delSim(col), () => this._gearPlanTable.refreshColHeaders()));
+            }
+            else if (item instanceof SimResultData) {
+                this.setupEditorArea(new SimResultDetailDisplay(item));
             }
             else {
                 this.setupEditorArea();
@@ -1884,7 +1943,8 @@ customElements.define("gear-plan-table", GearPlanTable, {extends: "table"});
 customElements.define("gear-plan", GearPlanSheet);
 customElements.define("gear-sheet-picker", SheetPickerTable, {extends: "table"});
 customElements.define("new-sheet-form", NewSheetForm, {extends: "form"});
-customElements.define("sim-result-display", SimResultDisplay);
+customElements.define("sim-result-display", SimResultMiniDisplay);
+customElements.define("sim-result-detail-display", SimResultDetailDisplay);
 customElements.define("add-sim-dialog", AddSimDialog, {extends: "dialog"});
 customElements.define("import-set-area", ImportSetArea);
 customElements.define("import-sheet-area", ImportSheetArea);
