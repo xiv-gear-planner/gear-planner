@@ -218,8 +218,8 @@ table {
       position: absolute;
       --border-style: 2px solid var(--table-selected-outline-color);
       border: var(--border-style);
-      left: 0;
-      right: 0;
+      left: var(--table-selection-left-pad, 0);
+      right: var(--table-selection-right-pad, 0);
       top: 0;
       bottom: 0;
       pointer-events: none;
@@ -245,7 +245,7 @@ table {
         > *:first-child::before {
           .selection-highlight;
           z-index: var(--zi-sets-table-selected-highlights);
-          left: -1px;
+          --table-selection-left-pad: -1px;
           border-left: unset;
           border-right: unset;
           border-radius: 0;
@@ -469,6 +469,7 @@ table.gear-plan-table {
         box-sizing: border-box;
         position: sticky;
         z-index: var(--zi-sets-table-pinned-columns) !important;
+        --table-selection-right-pad: -1px;
       }
 
       &:first-child {
