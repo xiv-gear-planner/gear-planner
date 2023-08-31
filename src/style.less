@@ -101,6 +101,16 @@ body {
       bottom: 0;
     }
   }
+
+  scrollbar-color: #666666 #444444;
+
+  ::-webkit-scrollbar {
+    background-color: #444444;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background-color: #666666;
+  }
 }
 
 .standard-border-radius {
@@ -229,6 +239,7 @@ table {
     // This is already handled in custom tables.
     td, th {
       position: relative;
+
       &[is-selected="true"] {
         .table-item-selected-bg !important;
 
@@ -242,6 +253,7 @@ table {
       td, th {
         overflow: visible;
         .table-item-selected-bg !important;
+
         > *:first-child::before {
           .selection-highlight;
           z-index: var(--zi-sets-table-selected-highlights);
@@ -250,14 +262,16 @@ table {
           border-right: unset;
           border-radius: 0;
         }
-        &:first-child{
+
+        &:first-child {
           > *:first-child::before {
             left: 0;
             border-left: var(--border-style);
             border-radius: 5px 0 0 5px;
           }
         }
-        &:last-child{
+
+        &:last-child {
           > *:first-child::before {
             border-right: var(--border-style);
             border-radius: 0 5px 5px 0;
@@ -488,13 +502,6 @@ table.gear-plan-table {
       }
     }
   }
-
-  //
-  //tr:last-child {
-  //  bottom: 0;
-  //}
-
-
 }
 
 
