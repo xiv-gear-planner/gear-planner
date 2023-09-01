@@ -1,4 +1,6 @@
-# Gear Planning Simplified (Soon)
+# Gear Planning Simplified
+
+[xivgear.app](https://xivgear.app)
 
 The goal of this project is to provide a better UX for assembling and testing gear sets.
 
@@ -12,7 +14,7 @@ This is still in the very early stages, so only a couple jobs are supported.
 
 If you'd like to add jobs or simulations, see [contributing](CONTRIBUTING.md).
 
-You can try it out [here](https://xpdota.github.io/gear-planner/).
+You can try it out [here](https://xivgear.app).
 
 Not yet supported:
 - Non-healer jobs

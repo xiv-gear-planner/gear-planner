@@ -297,7 +297,7 @@ export class MateriaPriorityPicker extends HTMLElement {
 class MateriaDragger extends HTMLElement {
 
     index: number;
-    readonly inner: HTMLDivElement;
+    readonly inner: HTMLElement;
 
     constructor(public stat: MateriaSubstat, index: number) {
         super();
@@ -305,7 +305,9 @@ class MateriaDragger extends HTMLElement {
         this.classList.add('materia-dragger-stat-' + stat);
         this.index = index;
         this.inner = document.createElement('div');
-        this.inner.textContent = STAT_ABBREVIATIONS[stat];
+        const span = document.createElement('span');
+        span.textContent = STAT_ABBREVIATIONS[stat];
+        this.inner.appendChild(span);
         this.inner.classList.add('materia-dragger-inner');
         this.inner.classList.add('stat-' + stat);
         // TODO: make something specifically for this
