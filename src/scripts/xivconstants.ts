@@ -18,6 +18,22 @@ export const MATERIA_LEVEL_MAX_NORMAL = 10;
 export const MATERIA_LEVEL_MAX_OVERMELD = 9;
 
 /**
+ * The unmodified GCD time of a typical GCD skill
+ */
+export const NORMAL_GCD = 2.5;
+/**
+ * Highest standard GCD
+ */
+export const MAX_GCD = NORMAL_GCD;
+
+/**
+ * How many stat points by which a materia is allowed to overcap before it is
+ * considered an overcap. e.g. if we have a +36 materia, and we only have 34 points
+ * until the cap, consider that okay.
+ */
+export const MATERIA_ACCEPTABLE_OVERCAP_LOSS = 2;
+
+/**
  * Supported Jobs.
  */
 export type JobName
@@ -376,6 +392,12 @@ export const STAT_DISPLAY_ORDER: RawStatKey[] = [...statDisplayTmp];
  * If SE ever gives us main stat or vitality materia again, this will need to be updated.
  */
 export const MateriaSubstats: (Exclude<typeof ALL_SUB_STATS[number], 'vitality'>)[] = ['crit', 'dhit', 'determination', 'spellspeed', 'skillspeed', 'piety', 'tenacity'];
+/**
+ * Like MateriaSubstats, but in the order that makes the most sense for auto-fill.
+ *
+ * SkS/SpS are first because they realistically need to be in order for GCD-targeted auto-fill to work.
+ */
+export const DefaultMateriaFillPrio: (Exclude<typeof ALL_SUB_STATS[number], 'vitality'>)[] = ['spellspeed', 'skillspeed', 'crit', 'dhit', 'determination', 'piety', 'tenacity'];
 export type MateriaSubstat = typeof MateriaSubstats[number];
 
 /**

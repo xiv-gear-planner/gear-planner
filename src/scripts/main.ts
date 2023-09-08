@@ -116,7 +116,9 @@ async function processHash() {
 
 export function showNewSheetForm() {
     setHash('newsheet');
-    setMainContent('New Sheet', new NewSheetForm(openSheet));
+    const form = new NewSheetForm(openSheet);
+    setMainContent('New Sheet', form);
+    form.takeFocus();
 }
 
 export function showImportSheetForm() {

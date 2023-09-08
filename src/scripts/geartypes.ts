@@ -384,6 +384,7 @@ export interface SheetExport {
     mfni?: boolean,
     // Materia fill priority
     mfp?: MateriaSubstat[]
+    mfMinGcd?: number;
 }
 
 export interface SetExport {
@@ -412,7 +413,7 @@ export type PartyBonusAmount = 0 | 1 | 2 | 3 | 4 | 5;
 
 
 export interface MateriaAutoFillController {
-    statPrio: (MateriaSubstat)[];
+    readonly prio: MateriaAutoFillPrio;
     autoFillNewItem: boolean;
 
     callback(): void;
@@ -420,6 +421,11 @@ export interface MateriaAutoFillController {
     fillEmpty(): void;
 
     fillAll(): void;
+}
+
+export interface MateriaAutoFillPrio {
+    statPrio: (MateriaSubstat)[];
+    minGcd: number;
 }
 
 export interface ItemDisplaySettings {

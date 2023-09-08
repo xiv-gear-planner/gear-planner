@@ -20,11 +20,12 @@ import {
     CustomRow,
     CustomTable,
     HeaderRow,
+    noopSelectionModel,
     SpecialRow,
     TitleRow
 } from "../tables";
 import {MateriaSubstat, MateriaSubstats, STAT_ABBREVIATIONS} from "../xivconstants";
-import {FieldBoundIntField, quickElement} from "./util";
+import {FieldBoundIntField} from "./util";
 import {AllSlotMateriaManager} from "./materia";
 import {GearPlanSheet} from "../components";
 
@@ -122,6 +123,14 @@ function statBonusDisplay(value: StatBonus) {
     }
 }
 
+function foodTableStatViewColumn(sheet: GearPlanSheet, item: FoodItem, stat: RawStatKey, highlightPrimarySecondary: boolean = false): CustomColumnSpec<FoodItem, any, any> {
+    const wrapped = foodTableStatColumn(sheet, stat, highlightPrimarySecondary);
+    return {
+        ...wrapped,
+        condition: () => (item.primarySubStat === stat || item.secondarySubStat === stat),
+    }
+}
+
 function foodTableStatColumn(sheet: GearPlanSheet, stat: RawStatKey, highlightPrimarySecondary: boolean = false): CustomColumnSpec<FoodItem, any, any> {
     return {
         shortName: stat,
@@ -138,6 +147,7 @@ function foodTableStatColumn(sheet: GearPlanSheet, stat: RawStatKey, highlightPr
     }
 
 }
+
 
 export class FoodItemsTable extends CustomTable<FoodItem, FoodItem> {
     constructor(sheet: GearPlanSheet, gearSet: CharacterGearSet) {
@@ -216,6 +226,54 @@ export class FoodItemsTable extends CustomTable<FoodItem, FoodItem> {
         else {
             super.data = [new HeaderRow(), new TitleRow('No items available - please check your filters')];
         }
+    }
+}
+
+export class FoodItemViewTable extends CustomTable<FoodItem, FoodItem> {
+    constructor(sheet: GearPlanSheet, item: FoodItem) {
+        super();
+        this.classList.add("food-items-table");
+        super.columns = [
+            {
+                shortName: "ilvl",
+                displayName: "iLvl",
+                getter: item => item.ilvl,
+            },
+            {
+                shortName: "icon",
+                displayName: "",
+                getter: item => {
+                    return item.iconUrl;
+                },
+                renderer: img => {
+                    const image = document.createElement('img');
+                    image.setAttribute('intrinsicsize', '64x64');
+                    image.src = img.toString();
+                    return image;
+                },
+            },
+            {
+                shortName: "itemname",
+                displayName: "Name",
+                getter: item => {
+                    return item.name;
+                },
+                // renderer: name => {
+                //     return quickElement('div', [], [document.createTextNode(name)]);
+                // }
+                // initialWidth: 200,
+            },
+            foodTableStatViewColumn(sheet, item, 'vitality'),
+            foodTableStatViewColumn(sheet, item, 'crit', true),
+            foodTableStatViewColumn(sheet, item, 'dhit', true),
+            foodTableStatViewColumn(sheet, item, 'determination', true),
+            foodTableStatViewColumn(sheet, item, 'spellspeed', true),
+            foodTableStatViewColumn(sheet, item, 'skillspeed', true),
+            foodTableStatViewColumn(sheet, item, 'piety', true),
+            foodTableStatViewColumn(sheet, item, 'tenacity', true),
+        ]
+        super.selectionModel = noopSelectionModel;
+        super.data = [new HeaderRow(), item];
     }
 }
 
@@ -459,6 +517,111 @@ export class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
     }
 }
 
+/**
+ * Table for displaying only equipped items, read-only
+ */
+export class GearItemsViewTable extends CustomTable<GearSlotItem, EquipmentSet> {
+
+    constructor(sheet: GearPlanSheet, gearSet: CharacterGearSet, itemMapping: Map<GearSlot, GearItem>, handledSlots?: EquipSlotKey[]) {
+        super();
+        this.classList.add("gear-items-table");
+        super.columns = [
+            {
+                shortName: "ilvl",
+                displayName: "iLvl",
+                getter: item => {
+                    return item.item.ilvl.toString();
+                },
+            },
+            {
+                shortName: "icon",
+                displayName: "",
+                getter: item => {
+                    return item.item.iconUrl;
+                },
+                renderer: img => {
+                    const image = document.createElement('img');
+                    image.setAttribute('intrinsicsize', '64x64');
+                    image.src = img.toString();
+                    return image;
+                },
+            },
+            {
+                shortName: "itemname",
+                displayName: "Name",
+                getter: item => {
+                    return item.item.name;
+                },
+                // initialWidth: 300,
+            },
+            // {
+            //     shortName: "mats",
+            //     displayName: "Mat",
+            //     getter: item => {
+            //         return item.item.materiaSlots.length;
+            //     },
+            //     initialWidth: 30,
+            // },
+            // {
+            //     shortName: "wd",
+            //     displayName: "WD",
+            //     getter: item => {
+            //         // return Math.max(item.item.stats.wdMag, item.item.stats.wdPhys);
+            //         return Math.max(item.item.stats.wdMag, item.item.stats.wdPhys);
+            //     },
+            //     renderer: value => {
+            //         if (value) {
+            //             return document.createTextNode(value);
+            //         }
+            //         else {
+            //             return document.createTextNode("");
+            //         }
+            //     },
+            //     initialWidth: 30,
+            //     condition: () => handledSlots === undefined || handledSlots.includes('Weapon'),
+            // },
+            itemTableStatColumn(sheet, gearSet, 'vitality'),
+            itemTableStatColumn(sheet, gearSet, 'strength'),
+            itemTableStatColumn(sheet, gearSet, 'dexterity'),
+            itemTableStatColumn(sheet, gearSet, 'intelligence'),
+            itemTableStatColumn(sheet, gearSet, 'mind'),
+            itemTableStatColumn(sheet, gearSet, 'crit', true),
+            itemTableStatColumn(sheet, gearSet, 'dhit', true),
+            itemTableStatColumn(sheet, gearSet, 'determination', true),
+            itemTableStatColumn(sheet, gearSet, 'spellspeed', true),
+            itemTableStatColumn(sheet, gearSet, 'skillspeed', true),
+            itemTableStatColumn(sheet, gearSet, 'piety', true),
+            itemTableStatColumn(sheet, gearSet, 'tenacity', true),
+        ]
+        const data: (TitleRow | HeaderRow | GearSlotItem)[] = [];
+        // Track the selected item in every category so that it can be more quickly refreshed
+        data.push(new HeaderRow());
+        for (const [name, slot] of Object.entries(EquipSlotInfo)) {
+            if (handledSlots && !handledSlots.includes(name as EquipSlotKey)) {
+                continue;
+            }
+            const slotId = name as keyof EquipmentSet;
+            const equippedItem = itemMapping.get(slot.gearSlot);
+            console.log('itemMapping',)
+            console.log(`Items in ${slot}`, equippedItem);
+            const item = {
+                slot: slot,
+                item: equippedItem,
+                slotId: slotId
+            };
+            data.push(item);
+            if (!equippedItem.isCustomRelic) {
+                // TODO: make this readonly properly
+                const matMgr = new AllSlotMateriaManager(sheet, gearSet, slotId);
+                data.push(new SpecialRow(tbl => matMgr));
+            }
+        }
+        super.selectionModel = noopSelectionModel;
+        this.data = data;
+    }
+
+}
+
 export class ILvlRangePicker<ObjType> extends HTMLElement {
     private _listeners: ((min: number, max: number) => void)[] = [];
     private obj: ObjType;
@@ -513,6 +676,8 @@ export class ILvlRangePicker<ObjType> extends HTMLElement {
 }
 
 customElements.define("gear-items-table", GearItemsTable, {extends: "table"});
+customElements.define("gear-items-view-table", GearItemsViewTable, {extends: "table"});
 customElements.define("food-items-table", FoodItemsTable, {extends: "table"});
+customElements.define("food-items-view-table", FoodItemViewTable, {extends: "table"});
 customElements.define("ilvl-range-picker", ILvlRangePicker);
 customElements.define("food-stat-bonus", FoodStatBonus);

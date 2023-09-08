@@ -12,7 +12,8 @@ import {
 import {CharacterGearSet, EquippedItem,} from "./gear";
 import {DataManager} from "./datamanager";
 import {
-    EquipSlotKey,
+    EquipmentSet,
+    EquipSlotKey, EquipSlots,
     FoodItem,
     GearItem,
     GearSlot,
@@ -20,7 +21,7 @@ import {
     ItemSlotExport,
     JobData,
     Materia,
-    MateriaAutoFillController,
+    MateriaAutoFillController, MateriaAutoFillPrio,
     MeldableMateriaSlot,
     PartyBonusAmount,
     RawStatKey,
@@ -40,6 +41,7 @@ import {
     Simulation
 } from "./simulation";
 import {
+    DefaultMateriaFillPrio,
     getClassJobStats,
     getRaceStats,
     JOB_DATA,
@@ -47,7 +49,7 @@ import {
     LEVEL_ITEMS,
     MAIN_STATS,
     MateriaSubstat,
-    MateriaSubstats,
+    MateriaSubstats, NORMAL_GCD,
     RACE_STATS,
     RaceName,
     SupportedLevel,
@@ -65,10 +67,11 @@ import {
     quickElement
 } from "./components/util";
 import {LoadingBlocker} from "./components/loader";
-import {FoodItemsTable, GearItemsTable} from "./components/items";
+import {FoodItemsTable, FoodItemViewTable, GearItemsTable, GearItemsViewTable} from "./components/items";
 import {GearEditToolbar} from "./components/gear_edit_toolbar";
 import {startShortLink} from "./components/shortlink_components";
 import {camel2title} from "./util/strutils";
+import {writeProxy} from "./util/proxies";
 
 export const SHARED_SET_NAME = 'Imported Set';
 
@@ -598,6 +601,76 @@ export class GearSetEditor extends HTMLElement {
     }
 }
 
+/**
+ * A simplified, read-only view for a set
+ */
+export class GearSetViewer extends HTMLElement {
+    private readonly sheet: GearPlanSheet;
+    private readonly gearSet: CharacterGearSet;
+
+    constructor(sheet: GearPlanSheet, gearSet: CharacterGearSet) {
+        super();
+        this.sheet = sheet;
+        this.gearSet = gearSet;
+        this.setup();
+    }
+
+    setup() {
+        // const header = document.createElement("h1");
+        // header.textContent = "Gear Set Editor";
+        // this.appendChild(header)
+        this.replaceChildren();
+
+        // Name editor
+        const heading = document.createElement('h1');
+        heading.textContent = this.gearSet.name;
+        this.appendChild(heading);
+
+        const buttonArea = quickElement('div', ['gear-set-editor-button-area', 'button-row'], [
+            makeActionButton('Switch to Edit Mode', () => {
+                alert('Not Implemented Yet');
+            }),
+            // TODO
+            makeActionButton('Copy Link to Set', () => {
+                alert('Not Implemented Yet');
+                // startShortLink(JSON.stringify(this.sheet.exportGearSet(this.gearSet, true)));
+            }),
+            makeActionButton('Copy Set as JSON', () => {
+                alert('Not Implemented Yet');
+                // navigator.clipboard.writeText(JSON.stringify(this.sheet.exportGearSet(this.gearSet, true)));
+            })
+        ]);
+
+        this.appendChild(buttonArea);
+
+        // We only care about equipped items
+        const itemMapping: Map<GearSlot, GearItem> = new Map();
+        const equippedSlots = [];
+        for (let slot of EquipSlots) {
+            const equipped: GearItem = this.gearSet.getItemInSlot(slot);
+            console.log("Equipped", equipped);
+            if (equipped) {
+                itemMapping.set(equipped.gearSlot, equipped);
+                equippedSlots.push(slot);
+            }
+        }
+        console.log("itemMapping", itemMapping)
+        console.log("equippedSlots", equippedSlots)
+        const mainTable = new GearItemsViewTable(this.sheet, this.gearSet, itemMapping, equippedSlots);
+        mainTable.classList.add('equip-view-table');
+        this.appendChild(mainTable);
+
+        // Food table TODO make readonly
+        const food = this.gearSet.food;
+        if (food) {
+            const foodTable = new FoodItemViewTable(this.sheet, food);
+            foodTable.classList.add('food-view-table');
+            // foodTable.id = "food-items-table";
+            this.appendChild(foodTable);
+        }
+    }
+}
+
 function formatSimulationConfigArea<SettingsType extends SimSettings>(
     sheet: GearPlanSheet,
     sim: Simulation<any, SettingsType, any>,
@@ -623,7 +696,6 @@ function formatSimulationConfigArea<SettingsType extends SimSettings>(
     const deleteButton = makeActionButton("Delete", () => deleteColumn(sim));
     outerDiv.appendChild(deleteButton);
 
-    // TODO: actually wire up the auto-saving
     const originalSettings: SettingsType = sim.settings;
     const updateCallback = () => sheet.requestSave();
     const settingsProxyHandler: ProxyHandler<SettingsType> = {
@@ -679,11 +751,12 @@ export class GearPlanSheet extends HTMLElement {
     private readonly midBarArea: HTMLDivElement;
     // TODO: SimResult alone might not be enough since we'd want it to refresh automatically if settings are changed
     private _editorItem: CharacterGearSet | Simulation<any, any, any> | SimResultData<SimResult> | undefined;
-    private materiaAutoFillPrio: MateriaSubstat[];
+    private materiaAutoFillPrio: MateriaAutoFillPrio;
     private materiaAutoFillSelectedItems: boolean;
     private _materiaAutoFillController: MateriaAutoFillController;
     private readonly saveTimer: Inactivitytimer;
     private setupDone: boolean = false;
+    private isReadOnly: boolean = false;
 
 
     /**
@@ -785,7 +858,11 @@ export class GearPlanSheet extends HTMLElement {
         else {
             Object.assign(this._itemDisplaySettings, LEVEL_ITEMS[this.level].defaultDisplaySettings);
         }
-        this.materiaAutoFillPrio = importedData.mfp ?? [...MateriaSubstats.filter(stat => this.isStatRelevant(stat))];
+        this.materiaAutoFillPrio = {
+            statPrio: importedData.mfp ?? [...DefaultMateriaFillPrio.filter(stat => this.isStatRelevant(stat))],
+            // Just picking a bogus value so the user understands what it is
+            minGcd: importedData.mfMinGcd ?? 2.05
+        };
         this.materiaAutoFillSelectedItems = importedData.mfni ?? false;
 
         // Early gui setup
@@ -807,8 +884,12 @@ export class GearPlanSheet extends HTMLElement {
                 this.setupEditorArea();
             }
             else if (item instanceof CharacterGearSet) {
-                // TODO: should dataManager flow through to this?
-                this.setupEditorArea(new GearSetEditor(this, item));
+                if (this.isReadOnly) {
+                    this.setupEditorArea(new GearSetViewer(this, item));
+                }
+                else {
+                    this.setupEditorArea(new GearSetEditor(this, item));
+                }
                 this.refreshToolbar();
             }
             else if (item['makeConfigInterface']) {
@@ -941,12 +1022,8 @@ export class GearPlanSheet extends HTMLElement {
                 outer.materiaAutoFillSelectedItems = enabled;
                 outer.requestSave();
             },
-            get statPrio() {
-                return outer.materiaAutoFillPrio;
-            },
-            set statPrio(prio) {
-                outer.materiaAutoFillPrio = prio;
-                outer.requestSave();
+            get prio() {
+                return writeProxy<MateriaAutoFillPrio>(outer.materiaAutoFillPrio, () => outer.requestSave());
             },
             callback(): void {
                 outer.requestSave();
@@ -954,7 +1031,7 @@ export class GearPlanSheet extends HTMLElement {
             fillAll(): void {
                 let set;
                 if ((set = outer._editorItem) instanceof CharacterGearSet) {
-                    set.fillMateria(this.statPrio, true);
+                    set.fillMateria(outer.materiaAutoFillPrio, true);
                     if (outer._editorAreaNode instanceof GearSetEditor) {
                         outer._editorAreaNode.refreshMateria();
                     }
@@ -963,7 +1040,7 @@ export class GearPlanSheet extends HTMLElement {
             fillEmpty(): void {
                 let set;
                 if ((set = outer._editorItem) instanceof CharacterGearSet) {
-                    set.fillMateria(this.statPrio, false);
+                    set.fillMateria(outer.materiaAutoFillPrio, false);
                     if (outer._editorAreaNode instanceof GearSetEditor) {
                         outer._editorAreaNode.refreshMateria();
                     }
@@ -1149,7 +1226,8 @@ export class GearPlanSheet extends HTMLElement {
             sims: simsExport,
             itemDisplaySettings: this._itemDisplaySettings,
             mfni: this.materiaAutoFillSelectedItems,
-            mfp: this.materiaAutoFillPrio
+            mfp: this.materiaAutoFillPrio.statPrio,
+            mfMinGcd: this.materiaAutoFillPrio.minGcd
         };
         if (!external) {
             out.saveKey = this._saveKey;
@@ -1922,6 +2000,10 @@ export class NewSheetForm extends HTMLFormElement {
         }
     }
 
+    takeFocus() {
+        this.nameInput.focus();
+    }
+
     recheck() {
         // TODO
     }
@@ -1941,6 +2023,7 @@ export interface XivApiJobData {
 }
 
 customElements.define("gear-set-editor", GearSetEditor);
+customElements.define("gear-set-viewer", GearSetViewer);
 customElements.define("gear-plan-table", GearPlanTable, {extends: "table"});
 customElements.define("gear-plan", GearPlanSheet);
 customElements.define("gear-sheet-picker", SheetPickerTable, {extends: "table"});

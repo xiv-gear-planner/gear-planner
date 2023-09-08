@@ -34,6 +34,7 @@ body {
   --scrollbar-fg: #666666;
   --scrollbar-bg: #444444;
   --stat-tiering-box-mix-color: #fff;
+  --faint-border: 1px solid #60606080;
 
   &.light-mode {
     --bg-color: #eee;
@@ -46,6 +47,7 @@ body {
     --scrollbar-fg: #888;
     --scrollbar-bg: #ccc;
     --stat-tiering-box-mix-color: #000;
+
     .melded-cell-extra-style {
       background-color: var(--stat-color);
     }
@@ -507,6 +509,7 @@ table.gear-plan-table {
 
     td, th {
       background-color: var(--table-bg-color);
+
       &[is-selected="true"] {
         background-color: var(--table-bg-color-selected);
       }
@@ -1018,11 +1021,12 @@ div.gear-set-editor-toolbar {
       }
 
       input {
-        border: none;
+        border: var(--faint-border);
         padding: 0 0 0 0;
         background: none;
         width: 30px;
         text-align: center;
+        margin-right: 2px;
       }
     }
   }
@@ -1041,6 +1045,11 @@ div.gear-set-editor-toolbar {
 
     .labeled-checkbox {
       display: inline-block;
+    }
+
+    .min-gcd-input {
+      max-width: 30px;
+      border: var(--faint-border);
     }
 
     materia-drag-order {
@@ -1350,6 +1359,7 @@ td.primary {
 
 loading-blocker {
   display: block;
+
   &.with-bg {
     background-color: var(--modal-backdrop-color);
   }

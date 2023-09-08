@@ -6,11 +6,13 @@ import {
     getRaceStats,
     JobName,
     MAIN_STATS,
+    MATERIA_ACCEPTABLE_OVERCAP_LOSS,
     MATERIA_LEVEL_MAX_NORMAL,
     MATERIA_LEVEL_MAX_OVERMELD,
     MATERIA_LEVEL_MIN_RELEVANT,
     MATERIA_SLOTS_MAX,
     MateriaSubstat,
+    NORMAL_GCD,
     RaceName,
     SPECIAL_SUB_STATS,
     statById,
@@ -27,7 +29,8 @@ import {
     sksTickMulti,
     sksToGcd,
     spsTickMulti,
-    spsToGcd, tenacityDmg,
+    spsToGcd,
+    tenacityDmg,
     wdMulti
 } from "./xivmath";
 import {
@@ -41,6 +44,7 @@ import {
     GearSlotInfo,
     Materia,
     MateriaAutoFillController,
+    MateriaAutoFillPrio,
     MateriaSlot,
     MeldableMateriaSlot,
     RawStatKey,
@@ -142,7 +146,7 @@ export class CharacterGearSet {
         this.equipment[slot] = new EquippedItem(item);
         console.log(`Set ${this.name}: slot ${slot} => ${item.name}`);
         if (materiaAutoFill && materiaAutoFill.autoFillNewItem) {
-            this.fillMateria(materiaAutoFill.statPrio, false, [slot]);
+            this.fillMateria(materiaAutoFill.prio, false, [slot]);
         }
         this.notifyListeners()
     }
@@ -339,19 +343,29 @@ export class CharacterGearSet {
     /**
      * Perform a materia auto-fill.
      *
-     * @param statPrio The priority of stats.
+     * @param prio The priority of stats.
      * @param overwrite true to fill all slots, even if already occupied. false to only fill empty slots.
      * @param slots Omit to fill all slots. Specify one or more slots to specifically fill those slots.
      */
-    fillMateria(statPrio: MateriaSubstat[], overwrite: boolean, slots?: EquipSlotKey[]) {
+    fillMateria(prio: MateriaAutoFillPrio, overwrite: boolean, slots?: EquipSlotKey[]) {
+        const statPrio: MateriaSubstat[] = prio.statPrio;
+        // If overwriting, first delete everything. We have to pre-delete everything so that the GCD-specific
+        // logic won't remove SpS/SkS melds in materia on the first few items because it thinks we're good on speed
+        // (since the materia are already there).
+        if (overwrite) {
+            for (let slotKey of (slots === undefined ? EquipSlots : slots)) {
+                const equipSlot = this.equipment[slotKey] as EquippedItem | null;
+                const gearItem = equipSlot?.gearItem;
+                if (gearItem) {
+                    equipSlot.melds.forEach(meldSlot => meldSlot.equippedMateria = null);
+                }
+            }
+            this.forceRecalc();
+        }
         for (let slotKey of (slots === undefined ? EquipSlots : slots)) {
             const equipSlot = this.equipment[slotKey] as EquippedItem | null;
             const gearItem = equipSlot?.gearItem;
             if (gearItem) {
-                // If overwriting, delete everything
-                if (overwrite) {
-                    equipSlot.melds.forEach(meldSlot => meldSlot.equippedMateria = null);
-                }
                 const cap = gearItem.substatCap;
                 materiaLoop: for (let meldSlot of equipSlot.melds) {
                     // If overwriting, we already cleared the slots, so this check is fine in any scenario.
@@ -361,6 +375,25 @@ export class CharacterGearSet {
                     const slotStats = this.getSlotEffectiveStats(slotKey);
                     // TODO: we also have gearItem.substatCap we can use to make it more direct
                     for (let stat of statPrio) {
+                        if (stat === 'skillspeed') {
+                            if (this.computedStats.gcdPhys(NORMAL_GCD) <= prio.minGcd) {
+                                continue;
+                            }
+                            this.forceRecalc();
+                            if (this.computedStats.gcdPhys(NORMAL_GCD) <= prio.minGcd) {
+                                continue;
+                            }
+                        }
+                        if (stat === 'spellspeed') {
+                            // Check if we're already there before forcing a recomp
+                            if (this.computedStats.gcdMag(NORMAL_GCD) <= prio.minGcd) {
+                                continue;
+                            }
+                            this.forceRecalc();
+                            if (this.computedStats.gcdMag(NORMAL_GCD) <= prio.minGcd) {
+                                continue;
+                            }
+                        }
                         const newMateria: Materia = this._sheet.getBestMateria(stat, meldSlot);
                         if (!newMateria) {
                             continue;
@@ -368,7 +401,7 @@ export class CharacterGearSet {
                         // TODO make this a setting?
                         // console.log(`Materia Fill: ${stat} ${newMateria.primaryStatValue} ${slotStats[stat]} ${cap}`);
                         // Allow for losing 1 or 2 stat points
-                        if (newMateria.primaryStatValue + slotStats[stat] - 2 < cap) {
+                        if (newMateria.primaryStatValue + slotStats[stat] - MATERIA_ACCEPTABLE_OVERCAP_LOSS < cap) {
                             meldSlot.equippedMateria = newMateria;
                             continue materiaLoop;
                         }

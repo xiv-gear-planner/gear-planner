@@ -1,9 +1,9 @@
 import {CharacterGearSet, EquippedItem} from "../gear";
 import {EquipmentSet, Materia, MateriaAutoFillController, MeldableMateriaSlot, RawStatKey} from "../geartypes";
-import {MateriaSubstat, STAT_ABBREVIATIONS, STAT_FULL_NAMES} from "../xivconstants";
+import {MateriaSubstat, MAX_GCD, STAT_ABBREVIATIONS, STAT_FULL_NAMES} from "../xivconstants";
 import {closeModal, setModal} from "../modalcontrol";
 import {GearPlanSheet} from "../components";
-import {FieldBoundCheckBox, labeledCheckbox, makeActionButton, quickElement} from "./util";
+import {FieldBoundCheckBox, FieldBoundFloatField, labeledCheckbox, makeActionButton, quickElement} from "./util";
 
 /**
  * Component for managing all materia slots on an item
@@ -285,12 +285,34 @@ export class MateriaPriorityPicker extends HTMLElement {
         super();
         // this.appendChild(document.createTextNode('Materia Prio Thing Here'));
         const header = document.createElement('span');
-        header.textContent = 'Materia Auto-fill Priority (Drag): ';
+        header.textContent = 'Materia Priority: ';
         const cb = labeledCheckbox('Fill Newly Selected Items', new FieldBoundCheckBox(prioController, 'autoFillNewItem'));
         const fillEmptyNow = makeActionButton('Fill Empty', () => prioController.fillEmpty());
         const fillAllNow = makeActionButton('Overwrite All', () => prioController.fillAll());
         const drag = new MateriaDragList(prioController);
-        this.replaceChildren(header, drag, document.createElement('br'), fillEmptyNow, fillAllNow, cb);
+
+        const minGcdText = document.createElement('span');
+        minGcdText.textContent = 'Min GCD: ';
+
+        const minGcdInput = new FieldBoundFloatField(prioController.prio, 'minGcd', {
+            postValidators: [ctx => {
+                const val = ctx.newValue;
+                // Check if user typed more than 2 digits, weird math because floating point fun
+                if (Math.round(val * 1000) % 10) {
+                    ctx.failValidation("Enter at most two decimal points");
+                }
+                else if (val < 0) {
+                    ctx.failValidation("Enter a positive number");
+                }
+                else if (val > MAX_GCD) {
+                    ctx.failValidation("Cannot be greater than " + MAX_GCD);
+                }
+            }]
+        });
+        minGcdInput.pattern = '\\d\\.\\d\\d?';
+        minGcdInput.title = 'x.yz';
+        minGcdInput.classList.add('min-gcd-input');
+        this.replaceChildren(header, drag, minGcdText, minGcdInput, document.createElement('br'), fillEmptyNow, fillAllNow, cb);
     }
 }
 
@@ -345,7 +367,7 @@ export class MateriaDragList extends HTMLElement {
     constructor(private prioController: MateriaAutoFillController) {
         super();
         this.style.position = 'relative';
-        const statPrio = prioController.statPrio;
+        const statPrio = prioController.prio.statPrio;
         for (let i = 0; i < statPrio.length; i++) {
             let stat = statPrio[i];
             const dragger = new MateriaDragger(stat, i);
@@ -439,7 +461,7 @@ export class MateriaDragList extends HTMLElement {
     }
 
     private finishMovement() {
-        this.prioController.statPrio = this.subOptions.map(option => option.stat);
+        this.prioController.prio.statPrio = this.subOptions.map(option => option.stat);
         this.prioController.callback();
     }
 
