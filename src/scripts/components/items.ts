@@ -334,7 +334,7 @@ function itemTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, stat: 
                 return document.createTextNode(value.toString());
             }
         },
-        initialWidth: 30,
+        initialWidth: 33,
         condition: () => sheet.isStatRelevant(stat),
         colStyler: (value, cell, node) => highlightPrimarySecondary && !(value instanceof RelicCellInfo) ? statCellStyler(cell, value, stat) : undefined,
     }
@@ -522,13 +522,13 @@ export class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
  */
 export class GearItemsViewTable extends CustomTable<GearSlotItem, EquipmentSet> {
 
-    constructor(sheet: GearPlanSheet, gearSet: CharacterGearSet, itemMapping: Map<GearSlot, GearItem>, handledSlots?: EquipSlotKey[]) {
+    constructor(sheet: GearPlanSheet, gearSet: CharacterGearSet, itemMapping: Map<EquipSlotKey, GearItem>, handledSlots?: EquipSlotKey[]) {
         super();
         this.classList.add("gear-items-table");
         super.columns = [
             {
                 shortName: "ilvl",
-                displayName: "iLvl",
+                displayName: "",
                 getter: item => {
                     return item.item.ilvl.toString();
                 },
@@ -548,7 +548,7 @@ export class GearItemsViewTable extends CustomTable<GearSlotItem, EquipmentSet> 
             },
             {
                 shortName: "itemname",
-                displayName: "Name",
+                displayName: handledSlots && handledSlots.length > 0 ? EquipSlotInfo[handledSlots[0]].name : "Name",
                 getter: item => {
                     return item.item.name;
                 },
@@ -580,11 +580,11 @@ export class GearItemsViewTable extends CustomTable<GearSlotItem, EquipmentSet> 
             //     initialWidth: 30,
             //     condition: () => handledSlots === undefined || handledSlots.includes('Weapon'),
             // },
-            itemTableStatColumn(sheet, gearSet, 'vitality'),
-            itemTableStatColumn(sheet, gearSet, 'strength'),
-            itemTableStatColumn(sheet, gearSet, 'dexterity'),
-            itemTableStatColumn(sheet, gearSet, 'intelligence'),
-            itemTableStatColumn(sheet, gearSet, 'mind'),
+            // itemTableStatColumn(sheet, gearSet, 'vitality'),
+            // itemTableStatColumn(sheet, gearSet, 'strength'),
+            // itemTableStatColumn(sheet, gearSet, 'dexterity'),
+            // itemTableStatColumn(sheet, gearSet, 'intelligence'),
+            // itemTableStatColumn(sheet, gearSet, 'mind'),
             itemTableStatColumn(sheet, gearSet, 'crit', true),
             itemTableStatColumn(sheet, gearSet, 'dhit', true),
             itemTableStatColumn(sheet, gearSet, 'determination', true),
@@ -601,19 +601,21 @@ export class GearItemsViewTable extends CustomTable<GearSlotItem, EquipmentSet> 
                 continue;
             }
             const slotId = name as keyof EquipmentSet;
-            const equippedItem = itemMapping.get(slot.gearSlot);
-            console.log('itemMapping',)
-            console.log(`Items in ${slot}`, equippedItem);
-            const item = {
-                slot: slot,
-                item: equippedItem,
-                slotId: slotId
-            };
-            data.push(item);
-            if (!equippedItem.isCustomRelic) {
-                // TODO: make this readonly properly
-                const matMgr = new AllSlotMateriaManager(sheet, gearSet, slotId);
-                data.push(new SpecialRow(tbl => matMgr));
+            const equippedItem = itemMapping.get(slot.slot);
+            if (equippedItem) {
+                console.log('itemMapping',)
+                console.log(`Items in ${slot}`, equippedItem);
+                const item = {
+                    slot: slot,
+                    item: equippedItem,
+                    slotId: slotId
+                };
+                data.push(item);
+                if (!equippedItem.isCustomRelic) {
+                    // TODO: make this readonly properly
+                    const matMgr = new AllSlotMateriaManager(sheet, gearSet, slotId);
+                    data.push(new SpecialRow(tbl => matMgr));
+                }
             }
         }
         super.selectionModel = noopSelectionModel;

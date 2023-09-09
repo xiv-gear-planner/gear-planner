@@ -2,6 +2,7 @@ import {GearPlanSheet, ImportSheetArea, NewSheetForm, SheetPickerTable} from "./
 import {SetExport, SheetExport} from "./geartypes";
 import {quickElement} from "./components/util";
 import {getShortLink} from "./external/shortlink_server";
+import {SheetOpenOptions} from "./general_types";
 
 export const SHORTLINK_HASH = 'sl';
 
@@ -52,63 +53,72 @@ async function processHash() {
         console.info("No sheet open");
         showSheetPickerMenu();
     }
-    else if (hash.length === 2 && hash[0] === "sheet") {
-        const sheetKey = hash[1];
-        console.log("Loading: " + sheetKey);
-        openSheetByKey(sheetKey);
-    }
-    else if (hash[0] === "newsheet") {
-        showNewSheetForm();
-    }
-    else if (hash[0] === "importsheet") {
-        if (hash.length === 1) {
-            showImportSheetForm();
-        }
-        else {
-            // TODO this is kind of bad
-            const json = hash.slice(1).join('/');
-            const parsed = JSON.parse(decodeURI(json)) as SheetExport;
-            const sheet = GearPlanSheet.fromExport(parsed);
-            // sheet.name = SHARED_SET_NAME;
-            openSheet(sheet, false);
-        }
-    }
-    else if (hash[0] === "importset") {
-        if (hash.length >= 2) {
-            const json = hash.slice(1).join('/');
-            const parsed = JSON.parse(decodeURI(json)) as SetExport;
-            const sheet = GearPlanSheet.fromSetExport(parsed);
-            // sheet.name = SHARED_SET_NAME;
-            openSheet(sheet, false);
-        }
-    }
-    else if (hash[0] === SHORTLINK_HASH) {
-        if (hash.length >= 2) {
-            const shortLink = hash[1];
-            try {
-                const resolved: string | null = await getShortLink(shortLink);
-                if (resolved) {
-                    const json = JSON.parse(resolved);
-                    if (json['sets']) {
-                        goHash('importsheet', resolved);
-                        return;
-                    }
-                    else {
-                        goHash('importset', resolved);
-                        return;
-                    }
+    else {
+        const mainNav = hash[0];
+        if (hash.length === 2 && mainNav === "sheet") {
+                const sheetKey = hash[1];
+                console.log("Loading: " + sheetKey);
+                openSheetByKey(sheetKey);
+            }
+            else if (mainNav === "newsheet") {
+                showNewSheetForm();
+            }
+            else if (mainNav === "importsheet" || mainNav === "viewsheet") {
+                if (hash.length === 1) {
+                    showImportSheetForm();
                 }
                 else {
-                    console.error('Non-existent shortlink, or other error', shortLink);
+                    // TODO this is kind of bad
+                    const json = hash.slice(1).join('/');
+                    const parsed = JSON.parse(decodeURI(json)) as SheetExport;
+                    const sheet = GearPlanSheet.fromExport(parsed);
+                    if (mainNav === "viewsheet") {
+                        sheet.setViewOnly();
+                    }
+                    // sheet.name = SHARED_SET_NAME;
+                    openSheet(sheet, false);
                 }
             }
-            catch (e) {
-                console.error("Error loading shortlink", e);
+            else if (mainNav === "importset" || mainNav === "viewset") {
+                if (hash.length >= 2) {
+                    const json = hash.slice(1).join('/');
+                    const parsed = JSON.parse(decodeURI(json)) as SetExport;
+                    const sheet = GearPlanSheet.fromSetExport(parsed);
+                    if (mainNav === "viewset") {
+                        sheet.setViewOnly();
+                    }
+                    // sheet.name = SHARED_SET_NAME;
+                    openSheet(sheet, false);
+                }
             }
-            const errMsg = document.createElement('h1');
-            errMsg.textContent = 'Error Loading Sheet/Set';
-            setMainContent('Error', errMsg);
-        }
+            else if (mainNav === SHORTLINK_HASH) {
+                if (hash.length >= 2) {
+                    const shortLink = hash[1];
+                    try {
+                        const resolved: string | null = await getShortLink(shortLink);
+                        if (resolved) {
+                            const json = JSON.parse(resolved);
+                            if (json['sets']) {
+                                goHash('viewsheet', resolved);
+                                return;
+                            }
+                            else {
+                                goHash('viewset', resolved);
+                                return;
+                            }
+                        }
+                        else {
+                            console.error('Non-existent shortlink, or other error', shortLink);
+                        }
+                    }
+                    catch (e) {
+                        console.error("Error loading shortlink", e);
+                    }
+                    const errMsg = document.createElement('h1');
+                    errMsg.textContent = 'Error Loading Sheet/Set';
+                    setMainContent('Error', errMsg);
+                }
+            }
     }
     // TODO: handle remaining invalid cases
 }
@@ -168,7 +178,7 @@ export async function openSheetByKey(sheet: string) {
     const planner = GearPlanSheet.fromSaved(sheet);
     if (planner) {
         await openSheet(planner);
-        setTitle(planner.name);
+        setTitle(planner.sheetName);
     }
     else {
         contentArea.replaceChildren(document.createTextNode("That sheet does not exist."));
@@ -189,7 +199,7 @@ export async function openSheet(planner: GearPlanSheet, changeHash: boolean = tr
         contentArea.replaceChildren(document.createTextNode("Error loading sheet!"));
     });
     await loadSheetPromise;
-    setTitle(planner.name);
+    setTitle(planner.sheetName);
 }
 
 function showSheetPickerMenu() {

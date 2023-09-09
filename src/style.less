@@ -19,7 +19,8 @@ body {
   --materia-overcap: #dd7700;
   --standard-border: 1px solid var(--border-color);
   --soft-border: 1px solid var(--border-color);
-  --thick-border: 2px solid var(--border-color);
+  --thick-border: 1px solid var(--border-color);
+  //--thick-border: 2px solid var(--border-color);
   --selected-outline: 3px solid var(--table-selected-outline-color);
   --stat-color: var(--fg-color);
   --modal-backdrop-color: #88888833;
@@ -689,7 +690,7 @@ gear-plan {
 
     table {
       text-align: left;
-      padding: 5px;
+      //padding: 5px;
     }
 
     table.gear-items-table, table.food-items-table {
@@ -718,6 +719,12 @@ gear-plan {
         max-width: 1px;
       }
 
+      tr:last-child {
+        td, th {
+          border-top: none;
+        }
+      }
+
       input[type=number] {
         -moz-appearance: textfield;
 
@@ -733,6 +740,8 @@ gear-plan {
     .left-side-gear-table, .right-side-gear-table {
       display: inline-block;
       vertical-align: top;
+      margin-left: 5px;
+      margin-right: 5px;
     }
   }
 }
@@ -1289,6 +1298,33 @@ table.food-items-table {
 
   }
 
+}
+
+gear-set-viewer {
+  //.left-side-gear-table, .right-side-gear-table {
+  //  table {
+  //    margin-left: 5px !important;
+  //    margin-right: 5px !important;
+  //  }
+  //}
+  all-slot-materia-manager {
+    pointer-events: none;
+  }
+  table {
+    //.standard-round-border;
+    //.standard-border;
+    //padding: 0 !important;
+    //margin: 5px !important;
+    tr:last-child {
+      //border: none !important;
+      //.standard-border !important;
+      td, th {
+        border-top: none;
+        //border: none !important;
+        //.standard-border;
+      }
+    }
+  }
 }
 
 // Stat-related stuff

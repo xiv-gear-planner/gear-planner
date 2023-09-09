@@ -12,8 +12,8 @@ import {
 import {CharacterGearSet, EquippedItem,} from "./gear";
 import {DataManager} from "./datamanager";
 import {
-    EquipmentSet,
-    EquipSlotKey, EquipSlots,
+    EquipSlotKey,
+    EquipSlots,
     FoodItem,
     GearItem,
     GearSlot,
@@ -21,7 +21,8 @@ import {
     ItemSlotExport,
     JobData,
     Materia,
-    MateriaAutoFillController, MateriaAutoFillPrio,
+    MateriaAutoFillController,
+    MateriaAutoFillPrio,
     MeldableMateriaSlot,
     PartyBonusAmount,
     RawStatKey,
@@ -34,7 +35,8 @@ import {
     getDefaultSims,
     getRegisteredSimSpecs,
     getSimSpecByStub,
-    SimCurrentResult, simpleAutoResultTable, simpleMappedResultTable,
+    SimCurrentResult,
+    simpleAutoResultTable,
     SimResult,
     SimSettings,
     SimSpec,
@@ -49,7 +51,6 @@ import {
     LEVEL_ITEMS,
     MAIN_STATS,
     MateriaSubstat,
-    MateriaSubstats, NORMAL_GCD,
     RACE_STATS,
     RaceName,
     SupportedLevel,
@@ -118,6 +119,7 @@ class SimResultData<ResultType extends SimResult> {
         public readonly result: SimCurrentResult<ResultType>
     ) {
     }
+
     //
     // makeResultDisplay() {
     //     if (this.simInst.makeResultDisplay) {
@@ -444,9 +446,11 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
         }
     }
 }
+
 class SimResultDetailDisplay<X extends SimResult> extends HTMLElement {
     private _result: SimCurrentResult<X>;
     private sim: Simulation<X, any, any>;
+
     constructor(simDetailResultDisplay: SimResultData<any>) {
         super();
         this._result = simDetailResultDisplay.result;
@@ -626,39 +630,76 @@ export class GearSetViewer extends HTMLElement {
         heading.textContent = this.gearSet.name;
         this.appendChild(heading);
 
-        const buttonArea = quickElement('div', ['gear-set-editor-button-area', 'button-row'], [
-            makeActionButton('Switch to Edit Mode', () => {
-                alert('Not Implemented Yet');
-            }),
-            // TODO
-            makeActionButton('Copy Link to Set', () => {
-                alert('Not Implemented Yet');
-                // startShortLink(JSON.stringify(this.sheet.exportGearSet(this.gearSet, true)));
-            }),
-            makeActionButton('Copy Set as JSON', () => {
-                alert('Not Implemented Yet');
-                // navigator.clipboard.writeText(JSON.stringify(this.sheet.exportGearSet(this.gearSet, true)));
-            })
-        ]);
-
-        this.appendChild(buttonArea);
+        // const buttonArea = quickElement('div', ['gear-set-editor-button-area', 'button-row'], [
+        //     makeActionButton('Switch to Edit Mode', () => {
+        //         alert('Not Implemented Yet');
+        //     }),
+        //     // TODO
+        //     makeActionButton('Copy Link to Set', () => {
+        //         alert('Not Implemented Yet');
+        //         // startShortLink(JSON.stringify(this.sheet.exportGearSet(this.gearSet, true)));
+        //     }),
+        //     makeActionButton('Copy Set as JSON', () => {
+        //         alert('Not Implemented Yet');
+        //         // navigator.clipboard.writeText(JSON.stringify(this.sheet.exportGearSet(this.gearSet, true)));
+        //     })
+        // ]);
+        //
+        // this.appendChild(buttonArea);
 
         // We only care about equipped items
-        const itemMapping: Map<GearSlot, GearItem> = new Map();
+        const itemMapping: Map<EquipSlotKey, GearItem> = new Map();
         const equippedSlots = [];
         for (let slot of EquipSlots) {
             const equipped: GearItem = this.gearSet.getItemInSlot(slot);
             console.log("Equipped", equipped);
             if (equipped) {
-                itemMapping.set(equipped.gearSlot, equipped);
+                itemMapping.set(slot, equipped);
                 equippedSlots.push(slot);
             }
         }
         console.log("itemMapping", itemMapping)
         console.log("equippedSlots", equippedSlots)
-        const mainTable = new GearItemsViewTable(this.sheet, this.gearSet, itemMapping, equippedSlots);
-        mainTable.classList.add('equip-view-table');
-        this.appendChild(mainTable);
+
+        const leftSideSlots = ['Head', 'Body', 'Hand', 'Legs', 'Feet'] as const;
+        const rightSideSlots = ['Ears', 'Neck', 'Wrist', 'RingLeft', 'RingRight'] as const;
+
+        if (itemMapping.get('Weapon') || itemMapping.get('OffHand')) {
+            const weaponTable = new GearItemsViewTable(this.sheet, this.gearSet, itemMapping, this.sheet.classJobStats.offhand ? ['Weapon', 'OffHand'] : ['Weapon']);
+            weaponTable.classList.add('weapon-table');
+            this.appendChild(weaponTable);
+        }
+        const leftSideDiv = document.createElement('div');
+        const rightSideDiv = document.createElement('div');
+
+        let leftEnabled = false;
+        let rightEnabled = false;
+        for (let slot of leftSideSlots) {
+            if (itemMapping.get(slot)) {
+                const table = new GearItemsViewTable(this.sheet, this.gearSet, itemMapping, [slot]);
+                leftSideDiv.appendChild(table);
+                leftEnabled = true;
+            }
+        }
+        for (let slot of rightSideSlots) {
+            if (itemMapping.get(slot)) {
+                const table = new GearItemsViewTable(this.sheet, this.gearSet, itemMapping, [slot]);
+                rightSideDiv.appendChild(table);
+                rightEnabled = true;
+            }
+        }
+        // const leftSideTable = new GearItemsTable(this.sheet, this.gearSet, itemMapping, ['Head', 'Body', 'Hand', 'Legs', 'Feet']);
+        // const rightSideTable = new GearItemsTable(this.sheet, this.gearSet, itemMapping, ['Ears', 'Neck', 'Wrist', 'RingLeft', 'RingRight']);
+
+        leftSideDiv.classList.add('left-side-gear-table');
+        rightSideDiv.classList.add('right-side-gear-table');
+
+        if (leftEnabled) {
+            this.appendChild(leftSideDiv);
+        }
+        if (rightEnabled) {
+            this.appendChild(rightSideDiv);
+        }
 
         // Food table TODO make readonly
         const food = this.gearSet.food;
@@ -726,7 +767,7 @@ export const defaultItemDisplaySettings: ItemDisplaySettings = {
  */
 export class GearPlanSheet extends HTMLElement {
 
-    name: string;
+    sheetName: string;
     readonly classJobName: JobName;
     readonly level: SupportedLevel;
     private _race: RaceName | undefined;
@@ -745,6 +786,7 @@ export class GearPlanSheet extends HTMLElement {
     private readonly _loadingScreen: LoadingBlocker;
     private _gearEditToolBar: GearEditToolbar;
     private _selectFirstRowByDefault: boolean = false;
+    private readonly headerArea: HTMLDivElement;
     private readonly tableArea: HTMLDivElement;
     private readonly buttonsArea: HTMLDivElement;
     private readonly editorArea: HTMLDivElement;
@@ -756,7 +798,7 @@ export class GearPlanSheet extends HTMLElement {
     private _materiaAutoFillController: MateriaAutoFillController;
     private readonly saveTimer: Inactivitytimer;
     private setupDone: boolean = false;
-    private isReadOnly: boolean = false;
+    private isViewOnly: boolean = false;
 
 
     /**
@@ -831,6 +873,7 @@ export class GearPlanSheet extends HTMLElement {
         this.classList.add('loading');
         this._importedData = importedData;
         this._saveKey = sheetKey;
+        this.headerArea = document.createElement('div');
         this.tableArea = document.createElement("div");
         this.tableArea.classList.add('gear-sheet-table-area', 'hide-when-loading');
         this.buttonsArea = document.createElement("div");
@@ -839,6 +882,7 @@ export class GearPlanSheet extends HTMLElement {
         this.editorArea.classList.add('gear-sheet-editor-area', 'hide-when-loading');
         this.midBarArea = document.createElement("div");
         this.midBarArea.classList.add('gear-sheet-midbar-area', 'hide-when-loading');
+        this.appendChild(this.headerArea);
         this.appendChild(this.tableArea);
         this.appendChild(this.midBarArea);
         this.appendChild(this.editorArea);
@@ -846,7 +890,7 @@ export class GearPlanSheet extends HTMLElement {
         const flexPadding = quickElement('div', ['flex-padding-item'], []);
         this.appendChild(flexPadding);
 
-        this.name = importedData.name;
+        this.sheetName = importedData.name;
         this.level = importedData.level ?? 90;
         this._race = importedData.race;
         this._partyBonus = importedData.partyBonus ?? 0;
@@ -872,6 +916,10 @@ export class GearPlanSheet extends HTMLElement {
         this.setupEditorArea();
     }
 
+    setViewOnly() {
+        this.isViewOnly = true;
+    }
+
     private set editorItem(item: typeof this._editorItem) {
         this._editorItem = item;
         this.resetEditorArea();
@@ -884,7 +932,7 @@ export class GearPlanSheet extends HTMLElement {
                 this.setupEditorArea();
             }
             else if (item instanceof CharacterGearSet) {
-                if (this.isReadOnly) {
+                if (this.isViewOnly) {
                     this.setupEditorArea(new GearSetViewer(this, item));
                 }
                 else {
@@ -921,25 +969,27 @@ export class GearPlanSheet extends HTMLElement {
         this._gearPlanTable = new GearPlanTable(this, item => this.editorItem = item);
         // Buttons and controls at the bottom of the table
         // this.buttonRow.id = 'gear-sheet-button-row';
-        const addRowButton = makeActionButton("New Gear Set", () => {
-            const newSet = new CharacterGearSet(this);
-            newSet.name = "New Set";
-            this.addGearSet(newSet, true);
-        })
-        buttonsArea.appendChild(addRowButton)
 
-        const renameButton = makeActionButton("Rename Sheet", () => {
-            const newName = prompt("Enter a new name for the sheet: ", this.name);
-            if (newName !== null && newName !== this.name) {
-                this.name = newName;
-                this.requestSave();
-                setTitle(this.name);
-            }
-        });
-        buttonsArea.appendChild(renameButton);
+        if (!this.isViewOnly) {
+            const addRowButton = makeActionButton("New Gear Set", () => {
+                const newSet = new CharacterGearSet(this);
+                newSet.name = "New Set";
+                this.addGearSet(newSet, true);
+            })
+            buttonsArea.appendChild(addRowButton)
+            const renameButton = makeActionButton("Rename Sheet", () => {
+                const newName = prompt("Enter a new name for the sheet: ", this.sheetName);
+                if (newName !== null && newName !== this.sheetName) {
+                    this.sheetName = newName;
+                    this.requestSave();
+                    setTitle(this.sheetName);
+                }
+            });
+            buttonsArea.appendChild(renameButton);
+        }
 
         const saveAsButton = makeActionButton("Save As", () => {
-            const defaultName = this.name === SHARED_SET_NAME ? 'Imported Set' : this.name + ' copy';
+            const defaultName = this.sheetName === SHARED_SET_NAME ? 'Imported Set' : this.sheetName + ' copy';
             const newName = prompt("Enter a name for the new sheet: ", defaultName);
             if (newName === null) {
                 return;
@@ -951,20 +1001,23 @@ export class GearPlanSheet extends HTMLElement {
         });
         buttonsArea.appendChild(saveAsButton)
 
-        const newSimButton = makeActionButton("Add Simulation", () => {
-            this.showAddSimDialog();
-        });
-        buttonsArea.appendChild(newSimButton);
+        if (!this.isViewOnly) {
 
-        const exportSheetButton = makeActionButton("Export", () => {
-            this.setupEditorArea(this.makeSheetExportArea());
-        });
-        buttonsArea.appendChild(exportSheetButton);
+            const newSimButton = makeActionButton("Add Simulation", () => {
+                this.showAddSimDialog();
+            });
+            buttonsArea.appendChild(newSimButton);
 
-        const importGearSetButton = makeActionButton("Import Sets", () => {
-            this.setupEditorArea(this.makeImportSetArea());
-        });
-        buttonsArea.appendChild(importGearSetButton);
+            const exportSheetButton = makeActionButton("Export", () => {
+                this.setupEditorArea(this.makeSheetExportArea());
+            });
+            buttonsArea.appendChild(exportSheetButton);
+
+            const importGearSetButton = makeActionButton("Import Sets", () => {
+                this.setupEditorArea(this.makeImportSetArea());
+            });
+            buttonsArea.appendChild(importGearSetButton);
+        }
 
         const gearUpdateTimer = new Inactivitytimer(1_000, () => {
             if (this._editorAreaNode instanceof GearSetEditor) {
@@ -997,10 +1050,24 @@ export class GearPlanSheet extends HTMLElement {
         )
         buttonsArea.appendChild(partySizeDropdown);
 
-        if (!this._saveKey) {
-            const unsavedWarning = document.createElement('h4');
-            unsavedWarning.textContent = 'This imported sheet will not be saved unless you use the "Save As" button below.'
-            this.tableArea.appendChild(unsavedWarning);
+        if (this._saveKey) {
+            this.headerArea.style.display = 'none';
+        }
+        else {
+            if (this.isViewOnly) {
+                const heading = document.createElement('h1');
+                heading.textContent = this.sheetName;
+                const helpText = document.createElement('h4');
+                helpText.textContent = 'To edit this sheet, click the "Save As" button below the table.';
+                this.headerArea.appendChild(heading);
+                this.headerArea.appendChild(helpText);
+            }
+            else {
+                const unsavedWarning = document.createElement('h4');
+                unsavedWarning.textContent = 'This imported sheet will not be saved unless you use the "Save As" button below.'
+                this.headerArea.appendChild(unsavedWarning);
+            }
+            this.headerArea.style.display = '';
         }
         // const tableAreaInner = quickElement('div', ['gear-sheet-table-area-inner'], [this._gearPlanTable, this.buttonsArea]);
         this.tableArea.appendChild(this._gearPlanTable);
@@ -1142,7 +1209,7 @@ export class GearPlanSheet extends HTMLElement {
             return;
         }
         if (this._saveKey) {
-            console.info("Saving sheet " + this.name);
+            console.info("Saving sheet " + this.sheetName);
             const fullExport = this.exportSheet(false);
             localStorage.setItem(this._saveKey, JSON.stringify(fullExport));
         }
@@ -1217,7 +1284,7 @@ export class GearPlanSheet extends HTMLElement {
             });
         }
         const out: SheetExport = {
-            name: this.name,
+            name: this.sheetName,
             sets: sets,
             level: this.level,
             job: this.classJobName,
