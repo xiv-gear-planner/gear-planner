@@ -652,14 +652,11 @@ export class GearSetViewer extends HTMLElement {
         const equippedSlots = [];
         for (let slot of EquipSlots) {
             const equipped: GearItem = this.gearSet.getItemInSlot(slot);
-            console.log("Equipped", equipped);
             if (equipped) {
                 itemMapping.set(slot, equipped);
                 equippedSlots.push(slot);
             }
         }
-        console.log("itemMapping", itemMapping)
-        console.log("equippedSlots", equippedSlots)
 
         const leftSideSlots = ['Head', 'Body', 'Hand', 'Legs', 'Feet'] as const;
         const rightSideSlots = ['Ears', 'Neck', 'Wrist', 'RingLeft', 'RingRight'] as const;

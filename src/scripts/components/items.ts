@@ -603,8 +603,6 @@ export class GearItemsViewTable extends CustomTable<GearSlotItem, EquipmentSet> 
             const slotId = name as keyof EquipmentSet;
             const equippedItem = itemMapping.get(slot.slot);
             if (equippedItem) {
-                console.log('itemMapping',)
-                console.log(`Items in ${slot}`, equippedItem);
                 const item = {
                     slot: slot,
                     item: equippedItem,
