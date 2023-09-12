@@ -437,3 +437,25 @@ export interface ItemDisplaySettings {
 
 export const AttackTypes = ['Unknown', 'Auto-attack', 'Spell', 'Weaponskill', 'Ability', 'Item'] as const;
 export type AttackType = typeof AttackTypes[number];
+
+
+export interface GeneralStat {
+    stat: number,
+}
+export interface MultiplierStat extends GeneralStat {
+    multiplier: number
+}
+
+export interface ChanceStat extends GeneralStat {
+    chance: number,
+    multiplier: number
+}
+
+export interface GcdStat extends GeneralStat {
+    gcd: number,
+    multiplier: number
+}
+
+export interface TickStat extends GeneralStat {
+    perTick: number
+}

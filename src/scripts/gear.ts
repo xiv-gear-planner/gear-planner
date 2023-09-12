@@ -411,6 +411,10 @@ export class CharacterGearSet {
         }
         this.forceRecalc();
     }
+
+    isStatRelevant(stat: RawStatKey) {
+        return this._sheet.isStatRelevant(stat);
+    }
 }
 
 export interface ItemSingleStatDetail {

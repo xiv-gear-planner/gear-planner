@@ -664,10 +664,10 @@ gear-plan {
   .gear-sheet-midbar-area {
     border-top: var(--thick-border);
 
-    .gear-set-editor-toolbar {
+    .gear-sheet-toolbar-holder {
       cursor: grab;
 
-      > * {
+      > * > * {
         cursor: auto;
       }
     }
@@ -780,7 +780,7 @@ table all-slot-materia-manager {
   }
 }
 
-slot-materia-manager {
+slot-materia-manager, single-materia-view-only {
   display: inline-block;
   position: relative;
   margin-right: 5px;
@@ -966,8 +966,8 @@ import-set-area, import-sheet-area {
   }
 }
 
-div.gear-set-editor-toolbar {
-
+div.gear-sheet-toolbar-holder {
+  min-height: 15px;
   position: relative;
   padding-left: 8px;
   padding-right: 8px;
@@ -991,19 +991,12 @@ div.gear-set-editor-toolbar {
     right: 0;
   }
 
-  .toolbar-float-left {
-    border: none;
-    width: 10px;
-    float: left;
-    height: 100%;
-  }
+}
 
-  .toolbar-float-right {
-    border: none;
-    width: 10px;
-    float: right;
-    height: 100%;
-  }
+div.gear-set-editor-toolbar, set-view-toolbar {
+
+  width: fit-content;
+  margin: auto;
 
   > * {
     box-sizing: border-box;
@@ -1153,6 +1146,65 @@ div.gear-set-editor-toolbar {
     }
   }
 }
+
+set-view-toolbar {
+  set-totals-display {
+    border: none;
+    pointer-events: none;
+  }
+}
+
+set-totals-display {
+  //div.stat-tier-display {
+  //@media screen and (max-width: 530px) {
+  //  border: none;
+  //  height: unset;
+  //  min-height: unset;
+  //  //scale: 1;
+  //  padding: 0;
+  //  margin: 0;
+  //
+  //  .single-stat-tier-display {
+  //    min-width: unset;
+  //    --inner-padding: 2px;
+  //  }
+  //}
+
+
+  //}
+
+  div.stat-total {
+    .standard-round-border;
+    padding: 2px;
+    margin: 5px 2px 5px 2px;
+    display: inline-block;
+    width: fit-content;
+    min-width: 50px;
+
+    div.single-stat-tier-display-upper {
+      display: block;
+    }
+
+    border-color: color-mix(in srgb, var(--stat-color) 20%, var(--border-color));
+
+    --inner-padding: 3px;
+
+    div.stat-total-lower-left {
+      display: inline-block;
+      padding-left: var(--inner-padding);
+      padding-right: var(--inner-padding);
+      //float: left;
+    }
+
+    div.stat-total-lower-right {
+      display: inline-block;
+      padding-left: var(--inner-padding);
+      padding-right: var(--inner-padding);
+      //float: right;
+    }
+  }
+}
+
 
 div.labeled-checkbox {
   label {
@@ -1310,6 +1362,42 @@ gear-set-viewer {
   all-slot-materia-manager {
     pointer-events: none;
   }
+
+  materia-totals-display {
+    .standard-round-border;
+    background-color: var(--table-bg-color);
+    padding: 5px;
+    display: grid;
+    grid-template-columns: repeat(var(--materia-total-cols, 4), auto);
+    text-align: left;
+    margin: auto auto 12px auto;
+    max-width: 550px;
+    @media screen and (max-width: 550px) {
+      --materia-total-cols: 3;
+    }
+    @media screen and (max-width: 400px) {
+      --materia-total-cols: 2;
+    }
+
+    materia-count-display {
+      display: inline-block;
+
+      .materia-count-quantity {
+        text-align: right;
+        width: 30px;
+        display: inline-block;
+        margin-right: 3px;
+      }
+
+      single-materia-view-only {
+        width: fit-content;
+        //padding-left: 5px;
+        //padding-right: 5px;
+      }
+    }
+  }
+
+
   table {
     //.standard-round-border;
     //.standard-border;
@@ -1322,6 +1410,27 @@ gear-set-viewer {
         border-top: none;
         //border: none !important;
         //.standard-border;
+      }
+    }
+  }
+
+  .gear-items-view-table, .food-view-table {
+    tbody {
+      tr:first-child {
+        td:first-child, th:first-child {
+          border-top-left-radius: var(--standard-border-radius);
+        }
+        td:last-child, th:last-child {
+          border-top-right-radius: var(--standard-border-radius);
+        }
+      }
+      tr:last-child {
+        td:first-child, th:first-child {
+          border-bottom-left-radius: var(--standard-border-radius);
+        }
+        td:last-child, th:last-child {
+          border-bottom-right-radius: var(--standard-border-radius);
+        }
       }
     }
   }

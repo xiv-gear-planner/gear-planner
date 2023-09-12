@@ -1,5 +1,12 @@
 import {CharacterGearSet, EquippedItem} from "../gear";
-import {EquipmentSet, Materia, MateriaAutoFillController, MeldableMateriaSlot, RawStatKey} from "../geartypes";
+import {
+    EquipmentSet,
+    EquipSlots,
+    Materia,
+    MateriaAutoFillController,
+    MeldableMateriaSlot,
+    RawStatKey
+} from "../geartypes";
 import {MateriaSubstat, MAX_GCD, STAT_ABBREVIATIONS, STAT_FULL_NAMES} from "../xivconstants";
 import {closeModal, setModal} from "../modalcontrol";
 import {GearPlanSheet} from "../components";
@@ -187,6 +194,40 @@ export class SlotMateriaManager extends HTMLElement {
             this.classList.add('materia-overcap-major');
         }
         this.reformat();
+    }
+}
+
+export class SingleMateriaViewOnly extends HTMLElement {
+
+    private text: HTMLSpanElement;
+    private image: HTMLImageElement;
+
+    constructor(materia: Materia) {
+        super();
+        this.classList.add("single-materia-view-only");
+        const imageHolder = document.createElement("div");
+        imageHolder.classList.add("materia-image-holder");
+        this.image = document.createElement("img");
+        this.text = document.createElement("span");
+        imageHolder.appendChild(this.image);
+        this.appendChild(imageHolder);
+        this.appendChild(this.text);
+        const currentMat = materia;
+        this.image.src = currentMat.iconUrl.toString();
+        this.image.style.display = 'block';
+        const displayedNumber = currentMat.primaryStatValue;
+        this.text.textContent = `+${displayedNumber} ${STAT_ABBREVIATIONS[currentMat.primaryStat]}`;
+        this.classList.remove("materia-slot-empty")
+        this.classList.add("materia-slot-full");
+    }
+}
+
+export class MateriaCountDisplay extends HTMLElement {
+    constructor(public readonly materia: Materia, public readonly count: number) {
+        super();
+        this.replaceChildren(
+            quickElement('div', ['materia-count-quantity'], [document.createTextNode(count + 'x')]),
+            new SingleMateriaViewOnly(materia));
     }
 }
 
@@ -467,8 +508,53 @@ export class MateriaDragList extends HTMLElement {
 
 }
 
+export class MateriaTotalsDisplay extends HTMLElement {
+    public readonly empty: boolean;
+
+    constructor(gearSet: CharacterGearSet) {
+        super();
+        const materiaCounts = new Map<number, Materia[]>();
+        for (let equipSlot of EquipSlots) {
+            const equip = gearSet.equipment[equipSlot];
+            if (equip) {
+                for (let meld of equip.melds) {
+                    const materia = meld.equippedMateria;
+                    if (materia) {
+                        const id = materia.id;
+                        const materias = materiaCounts.get(id);
+                        if (materias) {
+                            materias.push(materia);
+                        }
+                        else {
+                            materiaCounts.set(id, [materia]);
+                        }
+                    }
+                }
+            }
+        }
+        const elements: MateriaCountDisplay[] = [];
+        materiaCounts.forEach((value, key) => {
+            elements.push(new MateriaCountDisplay(value[0], value.length))
+        });
+        elements.sort((left, right) => {
+            const primary = right.count - left.count;
+            if (primary === 0) {
+                return (right.materia.id - left.materia.id);
+            }
+            return primary;
+        });
+        this.appendChild(document.createTextNode('Totals: '));
+        elements.forEach(element => this.appendChild(element));
+        this.empty = elements.length === 0;
+    }
+
+}
+
 customElements.define("all-slot-materia-manager", AllSlotMateriaManager);
 customElements.define("slot-materia-manager", SlotMateriaManager);
+customElements.define("single-materia-view-only", SingleMateriaViewOnly);
+customElements.define("materia-count-display", MateriaCountDisplay);
+customElements.define("materia-totals-display", MateriaTotalsDisplay);
 customElements.define("slot-materia-popup", SlotMateriaManagerPopup);
 customElements.define("materia-priority-picker", MateriaPriorityPicker);
 customElements.define("materia-drag-order", MateriaDragList);

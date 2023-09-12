@@ -350,6 +350,7 @@ export class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
     constructor(sheet: GearPlanSheet, gearSet: CharacterGearSet, itemMapping: Map<GearSlot, GearItem[]>, handledSlots?: EquipSlotKey[]) {
         super();
         this.classList.add("gear-items-table");
+        this.classList.add("gear-items-edit-table");
         super.columns = [
             {
                 shortName: "ilvl",
@@ -525,6 +526,7 @@ export class GearItemsViewTable extends CustomTable<GearSlotItem, EquipmentSet> 
     constructor(sheet: GearPlanSheet, gearSet: CharacterGearSet, itemMapping: Map<EquipSlotKey, GearItem>, handledSlots?: EquipSlotKey[]) {
         super();
         this.classList.add("gear-items-table");
+        this.classList.add("gear-items-view-table");
         super.columns = [
             {
                 shortName: "ilvl",

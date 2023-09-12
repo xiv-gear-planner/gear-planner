@@ -12,6 +12,7 @@ import {
 import {CharacterGearSet, EquippedItem,} from "./gear";
 import {DataManager} from "./datamanager";
 import {
+    ChanceStat,
     EquipSlotKey,
     EquipSlots,
     FoodItem,
@@ -23,7 +24,7 @@ import {
     Materia,
     MateriaAutoFillController,
     MateriaAutoFillPrio,
-    MeldableMateriaSlot,
+    MeldableMateriaSlot, MultiplierStat,
     PartyBonusAmount,
     RawStatKey,
     SetExport,
@@ -73,21 +74,13 @@ import {GearEditToolbar} from "./components/gear_edit_toolbar";
 import {startShortLink} from "./components/shortlink_components";
 import {camel2title} from "./util/strutils";
 import {writeProxy} from "./util/proxies";
+import {SetTotalsDisplay, SetViewToolbar} from "./components/totals_display";
+import {MateriaTotalsDisplay} from "./components/materia";
 
 export const SHARED_SET_NAME = 'Imported Set';
 
 export type GearSetSel = SingleCellRowOrHeaderSelect<CharacterGearSet>;
 
-interface MultiplierStat {
-    stat: number,
-    multiplier: number
-}
-
-interface ChanceStat {
-    stat: number,
-    chance: number,
-    multiplier: number
-}
 
 function multiplierStatDisplay(stats: MultiplierStat) {
     const outerDiv = document.createElement("div");
@@ -630,6 +623,11 @@ export class GearSetViewer extends HTMLElement {
         heading.textContent = this.gearSet.name;
         this.appendChild(heading);
 
+        const matTotals = new MateriaTotalsDisplay(this.gearSet);
+        if (!matTotals.empty) {
+            this.appendChild(matTotals);
+        }
+
         // const buttonArea = quickElement('div', ['gear-set-editor-button-area', 'button-row'], [
         //     makeActionButton('Switch to Edit Mode', () => {
         //         alert('Not Implemented Yet');
@@ -706,6 +704,10 @@ export class GearSetViewer extends HTMLElement {
             // foodTable.id = "food-items-table";
             this.appendChild(foodTable);
         }
+    }
+
+    get toolbar(): Node {
+        return new SetViewToolbar(this.gearSet);
     }
 }
 
@@ -788,6 +790,7 @@ export class GearPlanSheet extends HTMLElement {
     private readonly buttonsArea: HTMLDivElement;
     private readonly editorArea: HTMLDivElement;
     private readonly midBarArea: HTMLDivElement;
+    private readonly toolbarHolder: HTMLDivElement;
     // TODO: SimResult alone might not be enough since we'd want it to refresh automatically if settings are changed
     private _editorItem: CharacterGearSet | Simulation<any, any, any> | SimResultData<SimResult> | undefined;
     private materiaAutoFillPrio: MateriaAutoFillPrio;
@@ -879,10 +882,13 @@ export class GearPlanSheet extends HTMLElement {
         this.editorArea.classList.add('gear-sheet-editor-area', 'hide-when-loading');
         this.midBarArea = document.createElement("div");
         this.midBarArea.classList.add('gear-sheet-midbar-area', 'hide-when-loading');
+        this.toolbarHolder = document.createElement('div');
+        this.toolbarHolder.classList.add('gear-sheet-toolbar-holder', 'hide-when-loading');
         this.appendChild(this.headerArea);
         this.appendChild(this.tableArea);
         this.appendChild(this.midBarArea);
         this.appendChild(this.editorArea);
+        this.midBarArea.append(this.toolbarHolder);
 
         const flexPadding = quickElement('div', ['flex-padding-item'], []);
         this.appendChild(flexPadding);
@@ -1113,30 +1119,36 @@ export class GearPlanSheet extends HTMLElement {
 
         };
         this._materiaAutoFillController = matFillCtrl;
-        const toolbar = new GearEditToolbar(
+        this._gearEditToolBar = new GearEditToolbar(
             this,
             this._itemDisplaySettings,
             () => gearUpdateTimer.ping(),
             matFillCtrl
         );
-        toolbar.addEventListener('touchstart', (ev) => {
-            if (ev.target === toolbar && ev.touches.length === 1) {
+        const dragTarget = this.toolbarHolder;
+        dragTarget.addEventListener('touchstart', (ev) => {
+            if (ev.target === dragTarget && ev.touches.length === 1) {
                 ev.preventDefault();
             }
         });
-        toolbar.addEventListener('pointerdown', (ev) => {
-            if (ev.target !== toolbar) {
+        dragTarget.addEventListener('pointerdown', (ev) => {
+            if (ev.target !== dragTarget) {
                 return;
             }
             ev.preventDefault();
             const initialY = ev.pageY;
-            const initialHeight = this.tableArea.clientHeight;
+            const initialHeight = this.tableArea.offsetHeight;
             const eventListener = (ev: MouseEvent) => {
                 const delta = ev.pageY - initialY;
-                const newHeightPx = initialHeight + delta;
+                const newHeightPx = Math.round(initialHeight + delta);
                 const newHeightPct = newHeightPx / document.body.clientHeight * 100;
-                // const newHeight = newHeightPx + 'px';
+                // This has minor visual issues (due to fractional pixels resulting in inconsistent inner spacing),
+                // but seems to be the best we have.
                 const newHeight = newHeightPct + 'vh';
+                // Doesn't work
+                // const newHeight = `round(up, ${newHeightPct}vh, 1px)`;
+                // Doesn't resize when the viewport is resized
+                // const newHeight = newHeightPx + 'px'
                 this.tableArea.style.minHeight = newHeight;
                 this.tableArea.style.maxHeight = newHeight;
                 this.tableArea.style.flexBasis = newHeight;
@@ -1148,7 +1160,6 @@ export class GearPlanSheet extends HTMLElement {
             document.addEventListener('pointermove', eventListener);
             document.addEventListener('pointerup', after);
         });
-        this._gearEditToolBar = toolbar;
 
         if (this._selectFirstRowByDefault && this.sets.length >= 1) {
             this._gearPlanTable.selectGearSet(this.sets[0])
@@ -1230,8 +1241,8 @@ export class GearPlanSheet extends HTMLElement {
         if (node === undefined) {
             this.editorArea.replaceChildren();
             this.editorArea.style.display = 'none';
-            this.midBarArea.replaceChildren();
             this.midBarArea.style.display = 'none';
+            this.toolbarHolder.replaceChildren();
         }
         else {
             this.editorArea.replaceChildren(node);
@@ -1241,13 +1252,13 @@ export class GearPlanSheet extends HTMLElement {
             this.midBarArea.style.display = '';
             // if ('makeToolBar' in node) {
             if (node instanceof GearSetEditor) {
-                this.midBarArea.replaceChildren(this._gearEditToolBar);
+                this.toolbarHolder.replaceChildren(this._gearEditToolBar);
             }
             else if ('toolbar' in node) {
-                this.midBarArea.replaceChildren(node.toolbar);
+                this.toolbarHolder.replaceChildren(node.toolbar);
             }
             else {
-                this.midBarArea.replaceChildren();
+                this.toolbarHolder.replaceChildren();
             }
         }
     }
