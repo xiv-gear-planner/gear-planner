@@ -564,7 +564,7 @@ table.gear-plan-table {
 
 div.sheet-picker-holder {
   margin-top: 0;
-  overflow: scroll;
+  overflow: auto;
   display: flex;
   flex-direction: column;
 
@@ -1551,5 +1551,26 @@ loading-blocker {
   }
   100% {
     opacity: 0;
+  }
+}
+
+div#welcome-message {
+  margin: auto;
+  padding-left: 50px;
+  padding-right: 50px;
+
+  button {
+    display: block;
+    margin: 5px auto 20px auto;
+    font-size: 30px;
+    height: fit-content;
+  }
+  h1 {
+    text-align: center;
+    margin: auto;
+  }
+  li {
+    margin-top: 4px;
+    margin-bottom: 4px;
   }
 }

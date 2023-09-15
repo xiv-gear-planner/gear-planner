@@ -2,7 +2,6 @@ import {GearPlanSheet, ImportSheetArea, NewSheetForm, SheetPickerTable} from "./
 import {SetExport, SheetExport} from "./geartypes";
 import {quickElement} from "./components/util";
 import {getShortLink} from "./external/shortlink_server";
-import {SheetOpenOptions} from "./general_types";
 
 export const SHORTLINK_HASH = 'sl';
 
@@ -11,8 +10,34 @@ export const contentArea = document.getElementById("content-area");
 export const topMenuArea = document.getElementById("dev-menu-area");
 const editorArea = document.getElementById("editor-area");
 
+export const welcomeArea = document.getElementById("welcome-message");
+export const welcomeCloseButton = document.getElementById("welcome-close-button");
+
 async function initialLoad() {
     processHash();
+    handleWelcomeArea();
+}
+
+function handleWelcomeArea() {
+    if (expectedHash?.length > 0) {
+        // hideWelcomeArea();
+    }
+    else {
+        const hideWelcomeAreaSettingKey = 'hide-welcome-area';
+        if (localStorage.getItem(hideWelcomeAreaSettingKey) == 'true') {
+            hideWelcomeArea();
+        }
+        else {
+            welcomeCloseButton.addEventListener('click', () => {
+                localStorage.setItem(hideWelcomeAreaSettingKey, 'true');
+                hideWelcomeArea();
+            })
+        }
+    }
+}
+
+function hideWelcomeArea() {
+    welcomeArea.style.display = 'none';
 }
 
 let expectedHash: string[] | undefined = undefined;
@@ -44,6 +69,9 @@ async function processHash() {
     // Remove the literal #
     const hash = (location.hash.startsWith("#") ? location.hash.substring(1) : location.hash).split('/').filter(item => item).map(item => decodeURIComponent(item));
     console.info("processHash", hash);
+    if (hash.length > 0) {
+        hideWelcomeArea();
+    }
     if (arrayEq(hash, expectedHash)) {
         console.info("Ignoring internal hash change")
         return;
@@ -56,69 +84,69 @@ async function processHash() {
     else {
         const mainNav = hash[0];
         if (hash.length === 2 && mainNav === "sheet") {
-                const sheetKey = hash[1];
-                console.log("Loading: " + sheetKey);
-                openSheetByKey(sheetKey);
+            const sheetKey = hash[1];
+            console.log("Loading: " + sheetKey);
+            openSheetByKey(sheetKey);
+        }
+        else if (mainNav === "newsheet") {
+            showNewSheetForm();
+        }
+        else if (mainNav === "importsheet" || mainNav === "viewsheet") {
+            if (hash.length === 1) {
+                showImportSheetForm();
             }
-            else if (mainNav === "newsheet") {
-                showNewSheetForm();
-            }
-            else if (mainNav === "importsheet" || mainNav === "viewsheet") {
-                if (hash.length === 1) {
-                    showImportSheetForm();
+            else {
+                // TODO this is kind of bad
+                const json = hash.slice(1).join('/');
+                const parsed = JSON.parse(decodeURI(json)) as SheetExport;
+                const sheet = GearPlanSheet.fromExport(parsed);
+                if (mainNav === "viewsheet") {
+                    sheet.setViewOnly();
                 }
-                else {
-                    // TODO this is kind of bad
-                    const json = hash.slice(1).join('/');
-                    const parsed = JSON.parse(decodeURI(json)) as SheetExport;
-                    const sheet = GearPlanSheet.fromExport(parsed);
-                    if (mainNav === "viewsheet") {
-                        sheet.setViewOnly();
-                    }
-                    // sheet.name = SHARED_SET_NAME;
-                    openSheet(sheet, false);
-                }
+                // sheet.name = SHARED_SET_NAME;
+                openSheet(sheet, false);
             }
-            else if (mainNav === "importset" || mainNav === "viewset") {
-                if (hash.length >= 2) {
-                    const json = hash.slice(1).join('/');
-                    const parsed = JSON.parse(decodeURI(json)) as SetExport;
-                    const sheet = GearPlanSheet.fromSetExport(parsed);
-                    if (mainNav === "viewset") {
-                        sheet.setViewOnly();
-                    }
-                    // sheet.name = SHARED_SET_NAME;
-                    openSheet(sheet, false);
+        }
+        else if (mainNav === "importset" || mainNav === "viewset") {
+            if (hash.length >= 2) {
+                const json = hash.slice(1).join('/');
+                const parsed = JSON.parse(decodeURI(json)) as SetExport;
+                const sheet = GearPlanSheet.fromSetExport(parsed);
+                if (mainNav === "viewset") {
+                    sheet.setViewOnly();
                 }
+                // sheet.name = SHARED_SET_NAME;
+                openSheet(sheet, false);
             }
-            else if (mainNav === SHORTLINK_HASH) {
-                if (hash.length >= 2) {
-                    const shortLink = hash[1];
-                    try {
-                        const resolved: string | null = await getShortLink(shortLink);
-                        if (resolved) {
-                            const json = JSON.parse(resolved);
-                            if (json['sets']) {
-                                goHash('viewsheet', resolved);
-                                return;
-                            }
-                            else {
-                                goHash('viewset', resolved);
-                                return;
-                            }
+        }
+        else if (mainNav === SHORTLINK_HASH) {
+            if (hash.length >= 2) {
+                const shortLink = hash[1];
+                try {
+                    const resolved: string | null = await getShortLink(shortLink);
+                    if (resolved) {
+                        const json = JSON.parse(resolved);
+                        if (json['sets']) {
+                            goHash('viewsheet', resolved);
+                            return;
                         }
                         else {
-                            console.error('Non-existent shortlink, or other error', shortLink);
+                            goHash('viewset', resolved);
+                            return;
                         }
                     }
-                    catch (e) {
-                        console.error("Error loading shortlink", e);
+                    else {
+                        console.error('Non-existent shortlink, or other error', shortLink);
                     }
-                    const errMsg = document.createElement('h1');
-                    errMsg.textContent = 'Error Loading Sheet/Set';
-                    setMainContent('Error', errMsg);
                 }
+                catch (e) {
+                    console.error("Error loading shortlink", e);
+                }
+                const errMsg = document.createElement('h1');
+                errMsg.textContent = 'Error Loading Sheet/Set';
+                setMainContent('Error', errMsg);
             }
+        }
     }
     // TODO: handle remaining invalid cases
 }
