@@ -36,6 +36,8 @@ body {
   --scrollbar-bg: #444444;
   --stat-tiering-box-mix-color: #fff;
   --faint-border: 1px solid #60606080;
+  --plain-link-color: #4f84ff;
+  --plain-link-hover-color: #76cfff;
 
   &.light-mode {
     --bg-color: #eee;
@@ -48,6 +50,8 @@ body {
     --scrollbar-fg: #888;
     --scrollbar-bg: #ccc;
     --stat-tiering-box-mix-color: #000;
+    --plain-link-color: #1a3072;
+    --plain-link-hover-color: #2778a9;
 
     .melded-cell-extra-style {
       background-color: var(--stat-color);
@@ -1572,5 +1576,12 @@ div#welcome-message {
   li {
     margin-top: 4px;
     margin-bottom: 4px;
+  }
+
+  a:link, a:visited, a:active {
+    color: var(--plain-link-color);
+  }
+  a:hover  {
+    color: var(--plain-link-hover-color);
   }
 }
