@@ -141,7 +141,7 @@ export interface FbctArgs<ObjType, FieldType> {
 export class FieldBoundConvertingTextField<ObjType, FieldType> extends HTMLInputElement {
 
     reloadValue: () => void;
-    listeners: ((value: FieldType) => void)[] = [];
+    private listeners: ((value: FieldType) => void)[] = [];
     private __validationMessage: string | undefined;
 
     constructor(obj: ObjType, field: { [K in keyof ObjType]: ObjType[K] extends FieldType ? K : never }[keyof ObjType], valueToString: (value: FieldType) => string, stringToValue: (string: string) => (FieldType), extraArgs: FbctArgs<ObjType, FieldType> = {}) {

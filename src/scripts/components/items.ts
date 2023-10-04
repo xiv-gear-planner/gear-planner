@@ -1,12 +1,12 @@
 import {CharacterGearSet, EquippedItem, ItemSingleStatDetail} from "../gear";
 import {
+    DisplayGearSlot,
     EquipmentSet,
     EquipSlotInfo,
     EquipSlotKey,
     EquipSlots,
     FoodItem,
     GearItem,
-    DisplayGearSlot,
     GearSlotItem,
     RawStatKey,
     RawStats,
@@ -56,16 +56,27 @@ function statCellStyler(cell: CustomCell<GearSlotItem, any>, value: number | Ite
     cell.classList.remove("stat-melded-overcapped-major");
     cell.classList.remove("stat-melded");
     if (value instanceof Object) {
-        cell.title = `${value.fullAmount} / ${value.cap}`;
+        let modeLabel;
         if (value.mode === 'melded') {
+            modeLabel = 'Melded: \n';
             cell.classList.add("stat-melded");
         }
         else if (value.mode === 'melded-overcapped') {
+            modeLabel = 'Overcapped: \n';
             cell.classList.add("stat-melded-overcapped");
         }
         else if (value.mode === 'melded-overcapped-major') {
+            modeLabel = 'Overcapped: \n';
             cell.classList.add("stat-melded-overcapped-major")
         }
+        else if (value.mode === 'synced-down') {
+            modeLabel = 'Synced Down: \n';
+            cell.classList.add("stat-synced-down")
+        }
+        else {
+            modeLabel = '';
+        }
+        cell.title = `${modeLabel}${value.fullAmount} / ${value.cap}`;
     }
     else {
         delete cell.title;
@@ -298,7 +309,25 @@ function itemTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, stat: 
                     return set.getStatDetail(slotItem.slotId, stat);
                 }
                 else {
-                    return slotItem.item.stats[stat];
+                    if (slotItem.item.isSyncedDown) {
+                        const unsynced = slotItem.item.unsyncedVersion.stats[stat];
+                        const synced = slotItem.item.stats[stat];
+                        if (synced < unsynced) {
+                            return {
+                                effectiveAmount: synced,
+                                fullAmount: unsynced,
+                                overcapAmount: unsynced - synced,
+                                cap: synced,
+                                mode: "synced-down"
+                            }
+                        }
+                        else {
+                            return synced;
+                        }
+                    }
+                    else {
+                        return slotItem.item.stats[stat];
+                    }
                 }
             }
         },
@@ -309,16 +338,29 @@ function itemTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, stat: 
                     if (equipment.relicStats[value.stat] === undefined) {
                         equipment.relicStats[value.stat] = 0;
                     }
+                    const inputSubstatCap = equipment.gearItem.unsyncedVersion.statCaps[value.stat] ?? 1000;
                     const input = new FieldBoundIntField(equipment.relicStats, value.stat, {
                         postValidators: [ctx => {
                             if (ctx.newValue < 0) {
                                 ctx.failValidation('Must be greater than zero');
                             }
-                            else if (ctx.newValue > equipment.gearItem.substatCap) {
-                                ctx.failValidation(`Must be less than ${equipment.gearItem.substatCap}`);
+                            else if (ctx.newValue > inputSubstatCap) {
+                                ctx.failValidation(`Must be less than ${inputSubstatCap}`);
                             }
                         }]
-                    })
+                    });
+                    const cap = equipment.gearItem.statCaps[stat] ?? 9999;
+                    const titleListener = () => {
+                        const newValue = equipment.relicStats[stat];
+                        if (newValue > cap) {
+                            input.title = `Synced down:\n${newValue}/${cap}`;
+                        }
+                        else {
+                            delete input.title;
+                        }
+                    }
+                    input.addListener(titleListener);
+                    titleListener();
                     input.type = 'number';
                     input.pattern = '[0-9]*';
                     input.inputMode = 'number';
@@ -384,9 +426,23 @@ export class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
                 shortName: "mats",
                 displayName: "Mat",
                 getter: item => {
-                    return item.item.materiaSlots.length;
+                    return item.item;
                 },
                 initialWidth: 30,
+                renderer: (value: GearItem) => {
+                    const span = document.createElement('span');
+                    if (value.isSyncedDown) {
+                        span.textContent = value.unsyncedVersion.materiaSlots.length.toString();
+                        span.style.textDecoration = "line-through";
+                        span.style.opacity = "50%";
+                        span.title = "Melds unavailable due to ilvl sync";
+                    }
+                    else {
+                        span.textContent = value.materiaSlots.length.toString();
+                    }
+
+                    return span;
+                }
             },
             {
                 shortName: "wd",

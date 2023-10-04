@@ -72,25 +72,68 @@ type KeyOfType<T, V> = keyof {
 
 
 export interface XivItem {
+    /**
+     * Item name
+     */
     name: string;
+    /**
+     * Item ID
+     */
     id: number;
+    /**
+     * Item icon URL
+     */
     iconUrl: URL;
 }
 
 export interface XivCombatItem extends XivItem {
+    /**
+     * The effective stats
+     */
     stats: RawStats;
 }
 
 export interface GearItem extends XivCombatItem {
+    /**
+     * Which gear slot to populate in the UI
+     */
     displayGearSlot: DisplayGearSlot;
+    /**
+     * Which gear slot to populate in the UI
+     */
     displayGearSlotName: DisplayGearSlotKey;
+    /**
+     * Which gear slot the item occupies - different from the above, as 2H and 1H weapons are treated differently here
+     */
     occGearSlotName: OccGearSlotKey;
+    /**
+     * ilvl
+     */
     ilvl: number;
+    /**
+     * The primary substat
+     */
     primarySubstat: keyof RawStats | null;
+    /**
+     * The secondary substat
+     */
     secondarySubstat: keyof RawStats | null;
-    substatCap: number;
+    statCaps: {
+        [K in RawStatKey]?: number
+    };
+    /**
+     * Materia slots on the item. When downsynced, this is replaced with an empty list.
+     */
     materiaSlots: MateriaSlot[];
+    /**
+     * Whether this is a custom relic with editable stats
+     */
     isCustomRelic: boolean;
+    /**
+     * If this item is synced down, keep the unsynced version here.
+     */
+    unsyncedVersion: GearItem;
+    isSyncedDown: boolean;
 }
 
 export interface StatBonus {

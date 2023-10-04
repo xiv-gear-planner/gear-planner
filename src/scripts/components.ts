@@ -999,6 +999,10 @@ export class GearPlanSheet extends HTMLElement {
             buttonsArea.appendChild(renameButton);
         }
 
+        if (this.ilvlSync != undefined) {
+            buttonsArea.appendChild(quickElement('div', ['like-a-button'], [document.createTextNode(`ilvl Sync: ${this.ilvlSync}`)]));
+        }
+
         const saveAsButton = makeActionButton("Save As", () => {
             const defaultName = this.sheetName === SHARED_SET_NAME ? 'Imported Set' : this.sheetName + ' copy';
             const newName = prompt("Enter a name for the new sheet: ", defaultName);

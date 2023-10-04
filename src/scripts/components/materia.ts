@@ -68,7 +68,12 @@ export class AllSlotMateriaManager extends HTMLElement {
                 this.classList.add("materia-slot-no-slots");
                 this.classList.remove("materia-manager-equipped")
                 const textSpan = document.createElement("span");
-                textSpan.textContent = "No materia slots on this item";
+                if (equipSlot.gearItem.isSyncedDown) {
+                    textSpan.textContent = "Melds unavailable due to ilvl sync";
+                }
+                else {
+                    textSpan.textContent = "No materia slots on this item";
+                }
                 this.replaceChildren(textSpan);
                 this._children = [];
             }

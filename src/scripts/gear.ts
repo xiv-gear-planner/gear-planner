@@ -35,27 +35,29 @@ import {
 } from "./xivmath";
 import {
     ComputedSetStats,
+    DisplayGearSlot,
+    DisplayGearSlotInfo,
+    DisplayGearSlotKey,
     EquipmentSet,
     EquipSlotKey,
     EquipSlots,
     FoodItem,
     GearItem,
-    DisplayGearSlot,
-    DisplayGearSlotInfo, DisplayGearSlotKey,
     Materia,
     MateriaAutoFillController,
     MateriaAutoFillPrio,
     MateriaSlot,
     MeldableMateriaSlot,
+    OccGearSlotKey,
     RawStatKey,
     RawStats,
     StatBonus,
     Substat,
-    XivCombatItem, OccGearSlotKey
+    XivCombatItem
 } from "./geartypes";
 import {GearPlanSheet} from "./components";
 import {xivApiIcon} from "./external/xivapi";
-import {DataManager} from "./datamanager";
+import {IlvlSyncInfo} from "./datamanager";
 import {XivApiStat, xivApiStatMapping} from "./external/xivapitypes";
 
 
@@ -269,7 +271,10 @@ export class CharacterGearSet {
         }
         const itemStats = new RawStats(equip.gearItem.stats);
         if (equip.relicStats) {
-            const relicStats = new RawStats(equip.relicStats);
+            let relicStats = new RawStats(equip.relicStats);
+            if (equip.gearItem.isSyncedDown) {
+                relicStats = applyStatCaps(relicStats, equip.gearItem.statCaps);
+            }
             addStats(itemStats, relicStats);
         }
         // Note for future: if we ever get an item that has both custom stats AND materia, this logic will need to be extended.
@@ -290,11 +295,28 @@ export class CharacterGearSet {
     getStatDetail(slotId: keyof EquipmentSet, stat: RawStatKey, materiaOverride?: Materia[]): ItemSingleStatDetail | number {
         // TODO: work this into the normal stat computation method
         const equip = this.equipment[slotId];
-        if (!equip.gearItem) {
+        const gearItem = equip.gearItem;
+        if (!gearItem) {
             return 0;
         }
-        const cap = equip.gearItem.substatCap;
-        const baseItemStatValue = equip.gearItem.stats[stat];
+        if (gearItem.isSyncedDown) {
+            const unsynced = gearItem.unsyncedVersion.stats[stat];
+            const synced = gearItem.stats[stat];
+            if (synced < unsynced) {
+                return {
+                    effectiveAmount: synced,
+                    fullAmount: unsynced,
+                    overcapAmount: unsynced - synced,
+                    cap: synced,
+                    mode: "synced-down"
+                }
+            }
+            else {
+                return synced;
+            }
+        }
+        const cap = gearItem.statCaps[stat] ?? 9999;
+        const baseItemStatValue = gearItem.stats[stat];
         let meldedStatValue = baseItemStatValue;
         let smallestMateria = 999999;
         const materiaList = materiaOverride === undefined ? equip.melds.map(meld => meld.equippedMateria).filter(item => item) : materiaOverride.filter(item => item);
@@ -366,7 +388,6 @@ export class CharacterGearSet {
             const equipSlot = this.equipment[slotKey] as EquippedItem | null;
             const gearItem = equipSlot?.gearItem;
             if (gearItem) {
-                const cap = gearItem.substatCap;
                 materiaLoop: for (let meldSlot of equipSlot.melds) {
                     // If overwriting, we already cleared the slots, so this check is fine in any scenario.
                     if (meldSlot.equippedMateria) {
@@ -401,6 +422,10 @@ export class CharacterGearSet {
                         // TODO make this a setting?
                         // console.log(`Materia Fill: ${stat} ${newMateria.primaryStatValue} ${slotStats[stat]} ${cap}`);
                         // Allow for losing 1 or 2 stat points
+                        const cap = gearItem.statCaps[stat] ?? (() => {
+                            console.error(`Failed to calculate substat cap for ${stat} on ${gearItem.id} (${gearItem.id})`);
+                            return 1000;
+                        })();
                         if (newMateria.primaryStatValue + slotStats[stat] - MATERIA_ACCEPTABLE_OVERCAP_LOSS < cap) {
                             meldSlot.equippedMateria = newMateria;
                             continue materiaLoop;
@@ -417,12 +442,22 @@ export class CharacterGearSet {
     }
 }
 
+export function applyStatCaps(stats: RawStats, statCaps: {[K in RawStatKey]?: number}) {
+    const out = {
+        ...stats
+    }
+    Object.entries(stats).forEach(([stat, value]) => {
+        out[stat] = Math.min(value, statCaps[stat] ?? 999999);
+    })
+    return out;
+}
+
 export interface ItemSingleStatDetail {
     effectiveAmount: number,
     fullAmount: number,
     overcapAmount: number,
     cap: number,
-    mode: 'unmelded' | 'melded' | 'melded-overcapped' | 'melded-overcapped-major';
+    mode: 'unmelded' | 'melded' | 'melded-overcapped' | 'melded-overcapped-major' | 'synced-down';
 }
 
 /**
@@ -440,10 +475,12 @@ function addStats(baseStats: RawStats, addedStats: RawStats): void {
     }
 }
 
-
 export class XivApiGearInfo implements GearItem {
     id: number;
     name: string;
+    /**
+     * Raw 'Stats' object from Xivapi
+     */
     Stats: Object;
     iconUrl: URL;
     ilvl: number;
@@ -453,9 +490,13 @@ export class XivApiGearInfo implements GearItem {
     stats: RawStats;
     primarySubstat: keyof RawStats | null;
     secondarySubstat: keyof RawStats | null;
-    substatCap: number;
     materiaSlots: MateriaSlot[];
     isCustomRelic: boolean;
+    unsyncedVersion: XivApiGearInfo;
+    statCaps: {
+        [K in RawStatKey]?: number
+    };
+    isSyncedDown: boolean;
 
     constructor(data: Object) {
         this.id = data['ID'];
@@ -548,35 +589,7 @@ export class XivApiGearInfo implements GearItem {
                 }
             }
         }
-        const sortedStats = Object.entries({
-            crit: this.stats.crit,
-            dhit: this.stats.dhit,
-            determination: this.stats.determination,
-            spellspeed: this.stats.spellspeed,
-            skillspeed: this.stats.skillspeed,
-            piety: this.stats.piety,
-            tenacity: this.stats.tenacity,
-        })
-            .sort((left, right) => {
-                if (left[1] > right[1]) {
-                    return 1;
-                }
-                else if (left[1] < right[1]) {
-                    return -1;
-                }
-                return 0;
-            })
-            .filter(item => item[1])
-            .reverse();
-        if (sortedStats.length < 2) {
-            this.primarySubstat = null;
-            this.secondarySubstat = null;
-        }
-        else {
-            this.primarySubstat = sortedStats[0][0] as keyof RawStats;
-            this.secondarySubstat = sortedStats[1][0] as keyof RawStats;
-            this.substatCap = sortedStats[0][1];
-        }
+        this.computeSubstats();
         this.materiaSlots = [];
         const baseMatCount: number = data['MateriaSlotCount'];
         if (baseMatCount === 0 && this.displayGearSlot !== DisplayGearSlotInfo.OffHand) {
@@ -607,58 +620,63 @@ export class XivApiGearInfo implements GearItem {
         }
     }
 
-    /**
-     * This method does a couple things:
-     *
-     * 1. In order to calculate for substat cap when it is not known based on the item's stats directly (e.g. relics),
-     * look at other items in the same slot with the same ilvl.
-     *
-     * 2. Apply modifications to an item based on current ilvl sync
-     *
-     * @param dataManager The data manager
-     */
-    finishItemData(dataManager: DataManager) {
-        this.fixSubstatCap(dataManager);
-        this.applyIlvlSync(dataManager);
-        // For the time being, just do this since it's not an issue yet
-    }
-
-    private fixSubstatCap(dataManager) {
-        // If the substat cap is known, stop
-        // Otherwise, look for another item with the exact same ilvl and slot, and use its substat cap
-        // As a last resort, just assume 1000 and let the user deal with it
-        if (this.substatCap === undefined) {
-            for (let otherItem of dataManager.allItems) {
-                if (otherItem.ilvl === this.ilvl
-                    && otherItem.displayGearSlot === this.displayGearSlot
-                    && otherItem.substatCap !== undefined) {
-                    this.substatCap = otherItem.substatCap;
-                    return;
+    private computeSubstats() {
+        const sortedStats = Object.entries({
+            crit: this.stats.crit,
+            dhit: this.stats.dhit,
+            determination: this.stats.determination,
+            spellspeed: this.stats.spellspeed,
+            skillspeed: this.stats.skillspeed,
+            piety: this.stats.piety,
+            tenacity: this.stats.tenacity,
+        })
+            .sort((left, right) => {
+                if (left[1] > right[1]) {
+                    return 1;
                 }
-            }
-            this.substatCap = 1000;
+                else if (left[1] < right[1]) {
+                    return -1;
+                }
+                return 0;
+            })
+            .filter(item => item[1])
+            .reverse();
+        if (sortedStats.length < 2) {
+            this.primarySubstat = null;
+            this.secondarySubstat = null;
+        }
+        else {
+            this.primarySubstat = sortedStats[0][0] as keyof RawStats;
+            this.secondarySubstat = sortedStats[1][0] as keyof RawStats;
         }
     }
 
-    private applyIlvlSync(dataManager) {
-        /*
-            It's technically wrong to treat all substats as having the same cap, since some (e.g. CP/GP) have a
-            different cap. Same goes for vit, primary stat, def/mdef, etc, but we can ignore those for now.
-
-            For an i650 helmet:
-            https://xivapi.com/Itemlevel/650
-            https://xivapi.com/BaseParam/27 (this is crit but the stats we care about should all be the same for combat jobs)
-            let x = Itemlevel[650]["Hands%"] = 85
-            let y = BaseParam[27]["CriticalHit"] = 2118
-            then bigStatCap = round(x * 85 / 1000)
-            and smallStatCap = round(bigStatCap * 0.7)
-         */
-        // For syncing down, use the synced stats, and disable materia
-        const syncedStats = dataManager.syncForItem(this);
-        if (syncedStats) {
-            console.log("Synced down!");
-            this.stats = syncedStats;
+    /**
+     * TODO fix docs for this
+     */
+    applyIlvlData(nativeIlvlInfo: IlvlSyncInfo, syncIlvlInfo?: IlvlSyncInfo) {
+        const statCapsNative = {}
+        Object.entries(this.stats).forEach(([stat, v]) => {
+            statCapsNative[stat] = nativeIlvlInfo.substatCap(this.occGearSlotName, stat as RawStatKey);
+        });
+        this.statCaps = statCapsNative;
+        if (syncIlvlInfo && syncIlvlInfo.ilvl < this.ilvl) {
+            this.unsyncedVersion = {
+                ...this
+            };
             this.materiaSlots = [];
+            const statCapsSync = {}
+            Object.entries(this.stats).forEach(([stat, v]) => {
+                statCapsSync[stat] = syncIlvlInfo.substatCap(this.occGearSlotName, stat as RawStatKey);
+            });
+            this.stats = applyStatCaps(this.stats, statCapsSync);
+            this.statCaps = statCapsSync;
+            this.computeSubstats();
+            this.isSyncedDown = true;
+        }
+        else {
+            this.unsyncedVersion = this;
+            this.isSyncedDown = false;
         }
     }
 
