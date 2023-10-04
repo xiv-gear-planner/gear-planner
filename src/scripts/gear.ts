@@ -40,8 +40,8 @@ import {
     EquipSlots,
     FoodItem,
     GearItem,
-    GearSlot,
-    GearSlotInfo,
+    DisplayGearSlot,
+    DisplayGearSlotInfo, DisplayGearSlotKey,
     Materia,
     MateriaAutoFillController,
     MateriaAutoFillPrio,
@@ -51,12 +51,12 @@ import {
     RawStats,
     StatBonus,
     Substat,
-    XivApiStat,
-    xivApiStatToRawStatKey,
-    XivCombatItem
+    XivCombatItem, OccGearSlotKey
 } from "./geartypes";
 import {GearPlanSheet} from "./components";
 import {xivApiIcon} from "./external/xivapi";
+import {DataManager} from "./datamanager";
+import {XivApiStat, xivApiStatMapping} from "./external/xivapitypes";
 
 
 export class EquippedItem {
@@ -447,7 +447,9 @@ export class XivApiGearInfo implements GearItem {
     Stats: Object;
     iconUrl: URL;
     ilvl: number;
-    gearSlot: GearSlot;
+    displayGearSlot: DisplayGearSlot;
+    displayGearSlotName: DisplayGearSlotKey;
+    occGearSlotName: OccGearSlotKey;
     stats: RawStats;
     primarySubstat: keyof RawStats | null;
     secondarySubstat: keyof RawStats | null;
@@ -466,41 +468,58 @@ export class XivApiGearInfo implements GearItem {
             console.error('EquipSlotCategory was null!', data);
         }
         else if (eqs['MainHand']) {
-            this.gearSlot = GearSlotInfo.Weapon;
+            this.displayGearSlotName = 'Weapon';
+            if (eqs['OffHand']) {
+                this.occGearSlotName = 'Weapon2H'
+            }
+            else {
+                this.occGearSlotName = 'Weapon1H';
+            }
         }
         else if (eqs['OffHand']) {
-            this.gearSlot = GearSlotInfo.OffHand;
+            this.displayGearSlotName = 'OffHand';
+            this.occGearSlotName = 'OffHand';
         }
         else if (eqs['Head']) {
-            this.gearSlot = GearSlotInfo.Head;
+            this.displayGearSlotName = 'Head';
+            this.occGearSlotName = 'Head';
         }
         else if (eqs['Body']) {
-            this.gearSlot = GearSlotInfo.Body;
+            this.displayGearSlotName = 'Body';
+            this.occGearSlotName = 'Body';
         }
         else if (eqs['Gloves']) {
-            this.gearSlot = GearSlotInfo.Hand;
+            this.displayGearSlotName = 'Hand';
+            this.occGearSlotName = 'Hand';
         }
         else if (eqs['Legs']) {
-            this.gearSlot = GearSlotInfo.Legs;
+            this.displayGearSlotName = 'Legs';
+            this.occGearSlotName = 'Legs';
         }
         else if (eqs['Feet']) {
-            this.gearSlot = GearSlotInfo.Feet;
+            this.displayGearSlotName = 'Feet';
+            this.occGearSlotName = 'Feet';
         }
         else if (eqs['Ears']) {
-            this.gearSlot = GearSlotInfo.Ears;
+            this.displayGearSlotName = 'Ears';
+            this.occGearSlotName = 'Ears';
         }
         else if (eqs['Neck']) {
-            this.gearSlot = GearSlotInfo.Neck;
+            this.displayGearSlotName = 'Neck';
+            this.occGearSlotName = 'Neck';
         }
         else if (eqs['Wrists']) {
-            this.gearSlot = GearSlotInfo.Wrist;
+            this.displayGearSlotName = 'Wrist';
+            this.occGearSlotName = 'Wrist';
         }
         else if (eqs['FingerL'] || eqs['FingerR']) {
-            this.gearSlot = GearSlotInfo.Ring;
+            this.displayGearSlotName = 'Ring';
+            this.occGearSlotName = 'Ring';
         }
         else {
             console.error("Unknown slot data!", eqs);
         }
+        this.displayGearSlot = this.displayGearSlotName ? DisplayGearSlotInfo[this.displayGearSlotName] : undefined;
 
         this.stats = {
             vitality: this.getStatRaw("Vitality"),
@@ -518,6 +537,16 @@ export class XivApiGearInfo implements GearItem {
             wdPhys: data['DamagePhys'],
             wdMag: data['DamageMag'],
             hp: 0
+        }
+        if (data['CanBeHq']) {
+            for (let i = 0; i <= 5; i++) {
+                if (data[`BaseParamSpecial${i}TargetID`] === 12) {
+                    this.stats.wdPhys += data[`BaseParamValueSpecial${i}`];
+                }
+                else if (data[`BaseParamSpecial${i}TargetID`] === 13) {
+                    this.stats.wdMag += data[`BaseParamValueSpecial${i}`];
+                }
+            }
         }
         const sortedStats = Object.entries({
             crit: this.stats.crit,
@@ -550,7 +579,7 @@ export class XivApiGearInfo implements GearItem {
         }
         this.materiaSlots = [];
         const baseMatCount: number = data['MateriaSlotCount'];
-        if (baseMatCount === 0 && this.gearSlot !== GearSlotInfo.OffHand) {
+        if (baseMatCount === 0 && this.displayGearSlot !== DisplayGearSlotInfo.OffHand) {
             this.isCustomRelic = true;
         }
         else {
@@ -579,24 +608,39 @@ export class XivApiGearInfo implements GearItem {
     }
 
     /**
-     * In order to calculate for substat cap when it is not known based on the item's stats directly (e.g. relics),
+     * This method does a couple things:
+     *
+     * 1. In order to calculate for substat cap when it is not known based on the item's stats directly (e.g. relics),
      * look at other items in the same slot with the same ilvl.
      *
-     * @param otherItems The list of other items
+     * 2. Apply modifications to an item based on current ilvl sync
+     *
+     * @param dataManager The data manager
      */
-    fixSubstatCap(otherItems: XivApiGearInfo[]) {
-        if (this.substatCap !== undefined) {
-            return;
-        }
-        for (let otherItem of otherItems) {
-            if (otherItem.ilvl === this.ilvl
-                && otherItem.gearSlot === this.gearSlot
-                && otherItem.substatCap !== undefined) {
-                this.substatCap = otherItem.substatCap;
-                return;
+    finishItemData(dataManager: DataManager) {
+        this.fixSubstatCap(dataManager);
+        this.applyIlvlSync(dataManager);
+        // For the time being, just do this since it's not an issue yet
+    }
+
+    private fixSubstatCap(dataManager) {
+        // If the substat cap is known, stop
+        // Otherwise, look for another item with the exact same ilvl and slot, and use its substat cap
+        // As a last resort, just assume 1000 and let the user deal with it
+        if (this.substatCap === undefined) {
+            for (let otherItem of dataManager.allItems) {
+                if (otherItem.ilvl === this.ilvl
+                    && otherItem.displayGearSlot === this.displayGearSlot
+                    && otherItem.substatCap !== undefined) {
+                    this.substatCap = otherItem.substatCap;
+                    return;
+                }
             }
+            this.substatCap = 1000;
         }
-        // TODO: formula is as follows:
+    }
+
+    private applyIlvlSync(dataManager) {
         /*
             It's technically wrong to treat all substats as having the same cap, since some (e.g. CP/GP) have a
             different cap. Same goes for vit, primary stat, def/mdef, etc, but we can ignore those for now.
@@ -609,8 +653,13 @@ export class XivApiGearInfo implements GearItem {
             then bigStatCap = round(x * 85 / 1000)
             and smallStatCap = round(bigStatCap * 0.7)
          */
-        // For the time being, just do this since it's not an issue yet
-        this.substatCap = 1000;
+        // For syncing down, use the synced stats, and disable materia
+        const syncedStats = dataManager.syncForItem(this);
+        if (syncedStats) {
+            console.log("Synced down!");
+            this.stats = syncedStats;
+            this.materiaSlots = [];
+        }
     }
 
     private getStatRaw(stat: XivApiStat) {
@@ -643,7 +692,7 @@ export class XivApiFoodInfo implements FoodItem {
         this.ilvl = data['LevelItem'];
         for (let key in data['Bonuses']) {
             const bonusData = data['Bonuses'][key];
-            this.bonuses[xivApiStatToRawStatKey[key as RawStatKey]] = {
+            this.bonuses[xivApiStatMapping[key as RawStatKey]] = {
                 percentage: bonusData['ValueHQ'] ?? bonusData['Value'],
                 max: bonusData['MaxHQ'] ?? bonusData['Max']
             }

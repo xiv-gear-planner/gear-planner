@@ -27,6 +27,10 @@ export type XivApiResponse<RequestType extends XivApiRequest> = {
 // export type ValidRequest<RequestType extends XivApiRequest> = RequestType['requestType'] extends 'search' ? XivApiSearchRequest : XivApiListRequest;
 
 // export async function xivApiGet<RequestType extends (XivApiListRequest | XivApiSearchRequest)>(request: RequestType | ValidRequest<RequestType>):
+export function xivApiSingle(sheet: string, id: number) {
+    const query = `https://xivapi.com/${sheet}/${id}`;
+    return fetch(query).then(response => response.json());
+}
 export async function xivApiGet<RequestType extends (XivApiListRequest | XivApiSearchRequest)>(request: RequestType):
     Promise<XivApiResponse<RequestType>> {
     let query: string;

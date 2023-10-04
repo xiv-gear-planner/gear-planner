@@ -27,6 +27,11 @@ export const NORMAL_GCD = 2.5;
 export const MAX_GCD = NORMAL_GCD;
 
 /**
+ * Highest ilvl for the foreseeable future
+ */
+export const MAX_ILVL = 999;
+
+/**
  * How many stat points by which a materia is allowed to overcap before it is
  * considered an overcap. e.g. if we have a +36 materia, and we only have 34 points
  * until the cap, consider that okay.

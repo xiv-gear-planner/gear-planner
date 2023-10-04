@@ -6,7 +6,7 @@ import {
     EquipSlots,
     FoodItem,
     GearItem,
-    GearSlot,
+    DisplayGearSlot,
     GearSlotItem,
     RawStatKey,
     RawStats,
@@ -347,7 +347,7 @@ export class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
     private readonly materiaManagers: AllSlotMateriaManager[];
     private selectionTracker: Map<keyof EquipmentSet, CustomRow<GearSlotItem> | GearSlotItem>;
 
-    constructor(sheet: GearPlanSheet, gearSet: CharacterGearSet, itemMapping: Map<GearSlot, GearItem[]>, handledSlots?: EquipSlotKey[]) {
+    constructor(sheet: GearPlanSheet, gearSet: CharacterGearSet, itemMapping: Map<DisplayGearSlot, GearItem[]>, handledSlots?: EquipSlotKey[]) {
         super();
         this.classList.add("gear-items-table");
         this.classList.add("gear-items-edit-table");

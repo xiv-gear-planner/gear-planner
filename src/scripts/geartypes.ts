@@ -9,15 +9,23 @@ import {
     SupportedLevel
 } from "./xivconstants";
 
-export interface GearSlot {
+export interface DisplayGearSlot {
 
 }
 
-export const GearSlots = ['Weapon', 'OffHand', 'Head', 'Body', 'Hand', 'Legs', 'Feet', 'Ears', 'Neck', 'Wrist', 'Ring'] as const;
-export type GearSlotKey = typeof GearSlots[number];
+// Slots that we display. 2H and 1H weapons are both just considered 'weapons'.
+// In addition, a body piece that takes up the head slot as well (or all the left-hand slots) will still just be
+// a body.
+export const DisplayGearSlots = ['Weapon', 'OffHand', 'Head', 'Body', 'Hand', 'Legs', 'Feet', 'Ears', 'Neck', 'Wrist', 'Ring'] as const;
+export type DisplayGearSlotKey = typeof DisplayGearSlots[number];
+// Slots that an item actually occupies. 2H and 1H weapons are distinct here.
+// TODO: this stuff *could* be XIVAPI-ified later, which would especially be useful if SE adds more gear that blocks out
+// other slots. It seems to return a '1' for the primary slot, and a '-1' for blocked slots.
+export const OccGearSlots = ['Weapon2H', 'Weapon1H', 'OffHand', 'Head', 'Body', 'Hand', 'Legs', 'Feet', 'Ears', 'Neck', 'Wrist', 'Ring'] as const;
+export type OccGearSlotKey = typeof OccGearSlots[number];
 
 // For future use, in the event that these actually require properties
-export const GearSlotInfo: Record<GearSlotKey, GearSlot> = {
+export const DisplayGearSlotInfo: Record<DisplayGearSlotKey, DisplayGearSlot> = {
     Weapon: {},
     OffHand: {},
     Head: {},
@@ -32,7 +40,7 @@ export const GearSlotInfo: Record<GearSlotKey, GearSlot> = {
 } as const;
 
 export interface EquipSlot {
-    get gearSlot(): GearSlot;
+    get gearSlot(): DisplayGearSlot;
 
     slot: keyof EquipmentSet;
 
@@ -44,18 +52,18 @@ export const EquipSlots = ['Weapon', 'OffHand', 'Head', 'Body', 'Hand', 'Legs', 
 export type EquipSlotKey = typeof EquipSlots[number];
 
 export const EquipSlotInfo: Record<EquipSlotKey, EquipSlot> = {
-    Weapon: {slot: 'Weapon', name: 'Weapon', gearSlot: GearSlotInfo.Weapon},
-    OffHand: {slot: 'OffHand', name: 'Off-Hand', gearSlot: GearSlotInfo.OffHand},
-    Head: {slot: 'Head', name: 'Head', gearSlot: GearSlotInfo.Head},
-    Body: {slot: 'Body', name: 'Body', gearSlot: GearSlotInfo.Body},
-    Hand: {slot: 'Hand', name: 'Hand', gearSlot: GearSlotInfo.Hand},
-    Legs: {slot: 'Legs', name: 'Legs', gearSlot: GearSlotInfo.Legs},
-    Feet: {slot: 'Feet', name: 'Feet', gearSlot: GearSlotInfo.Feet},
-    Ears: {slot: 'Ears', name: 'Ears', gearSlot: GearSlotInfo.Ears},
-    Neck: {slot: 'Neck', name: 'Neck', gearSlot: GearSlotInfo.Neck},
-    Wrist: {slot: 'Wrist', name: 'Wrist', gearSlot: GearSlotInfo.Wrist},
-    RingLeft: {slot: 'RingLeft', name: 'Left Ring', gearSlot: GearSlotInfo.Ring},
-    RingRight: {slot: 'RingRight', name: 'Right Ring', gearSlot: GearSlotInfo.Ring}
+    Weapon: {slot: 'Weapon', name: 'Weapon', gearSlot: DisplayGearSlotInfo.Weapon},
+    OffHand: {slot: 'OffHand', name: 'Off-Hand', gearSlot: DisplayGearSlotInfo.OffHand},
+    Head: {slot: 'Head', name: 'Head', gearSlot: DisplayGearSlotInfo.Head},
+    Body: {slot: 'Body', name: 'Body', gearSlot: DisplayGearSlotInfo.Body},
+    Hand: {slot: 'Hand', name: 'Hand', gearSlot: DisplayGearSlotInfo.Hand},
+    Legs: {slot: 'Legs', name: 'Legs', gearSlot: DisplayGearSlotInfo.Legs},
+    Feet: {slot: 'Feet', name: 'Feet', gearSlot: DisplayGearSlotInfo.Feet},
+    Ears: {slot: 'Ears', name: 'Ears', gearSlot: DisplayGearSlotInfo.Ears},
+    Neck: {slot: 'Neck', name: 'Neck', gearSlot: DisplayGearSlotInfo.Neck},
+    Wrist: {slot: 'Wrist', name: 'Wrist', gearSlot: DisplayGearSlotInfo.Wrist},
+    RingLeft: {slot: 'RingLeft', name: 'Left Ring', gearSlot: DisplayGearSlotInfo.Ring},
+    RingRight: {slot: 'RingRight', name: 'Right Ring', gearSlot: DisplayGearSlotInfo.Ring}
 } as const;
 
 type KeyOfType<T, V> = keyof {
@@ -74,7 +82,9 @@ export interface XivCombatItem extends XivItem {
 }
 
 export interface GearItem extends XivCombatItem {
-    gearSlot: GearSlot;
+    displayGearSlot: DisplayGearSlot;
+    displayGearSlotName: DisplayGearSlotKey;
+    occGearSlotName: OccGearSlotKey;
     ilvl: number;
     primarySubstat: keyof RawStats | null;
     secondarySubstat: keyof RawStats | null;
@@ -330,38 +340,6 @@ export interface MateriaSlot {
     allowsHighGrade: boolean
 }
 
-// Ignoring MP and doh/dol stats
-export type XivApiStat =
-    'Vitality'
-    | 'Strength'
-    | 'Dexterity'
-    | 'Intelligence'
-    | 'Mind'
-    | 'HP'
-    | 'Piety'
-    | 'CriticalHit'
-    | 'DirectHitRate'
-    | 'Determination'
-    | 'Tenacity'
-    | 'SpellSpeed'
-    | 'SkillSpeed';
-
-
-export const xivApiStatToRawStatKey: Record<XivApiStat, RawStatKey> = {
-    Vitality: "vitality",
-    Strength: "strength",
-    Dexterity: "dexterity",
-    Intelligence: "intelligence",
-    Mind: "mind",
-    HP: "hp",
-    Piety: "piety",
-    CriticalHit: "crit",
-    DirectHitRate: "dhit",
-    Determination: "determination",
-    Tenacity: "tenacity",
-    SkillSpeed: "skillspeed",
-    SpellSpeed: "spellspeed"
-}
 
 export interface SimExport {
     stub: string,
@@ -383,8 +361,9 @@ export interface SheetExport {
     // Materia fill new items
     mfni?: boolean,
     // Materia fill priority
-    mfp?: MateriaSubstat[]
-    mfMinGcd?: number;
+    mfp?: MateriaSubstat[],
+    mfMinGcd?: number,
+    ilvlSync?: number;
 }
 
 export interface SetExport {
@@ -398,7 +377,8 @@ export interface SetExport {
     // prevent/warn on importing the wrong job, as well as for
     // importing individual sets.
     job?: JobName,
-    level?: SupportedLevel
+    level?: SupportedLevel,
+    ilvlSync?: number;
 }
 
 export interface ItemSlotExport {

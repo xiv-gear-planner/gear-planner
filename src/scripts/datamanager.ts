@@ -1,7 +1,12 @@
 import {processRawMateriaInfo, XivApiFoodInfo, XivApiGearInfo} from "./gear";
 import {JobName, MATERIA_LEVEL_MAX_NORMAL, SupportedLevel} from "./xivconstants";
-import {GearItem, JobMultipliers, Materia} from "./geartypes";
-import {xivApiGet} from "./external/xivapi";
+import {GearItem, JobMultipliers, Materia, OccGearSlotKey, RawStatKey, RawStats,} from "./geartypes";
+import {xivApiGet, xivApiSingle} from "./external/xivapi";
+import {BaseParamToStatKey, xivApiStatMapping} from "./external/xivapitypes";
+
+type IlvlSyncInfo = {
+    syncStats(item: GearItem): RawStats | null;
+}
 
 export class DataManager {
     allItems: XivApiGearInfo[];
@@ -14,6 +19,8 @@ export class DataManager {
     maxIlvlFood = 999;
     classJob: JobName = 'WHM'
     level: SupportedLevel = 90;
+    ilvlSync: number | undefined;
+    ilvlSyncInfo: IlvlSyncInfo | undefined;
 
     jobMultipliers: Map<JobName, JobMultipliers>;
 
@@ -33,12 +40,99 @@ export class DataManager {
     }
 
     loadData() {
-        console.log("loading items");
+        let isyncPromise;
+        const ilvlSync = this.ilvlSync;
+        if (ilvlSync !== undefined) {
+            console.log("Loading item sync info");
+            // ilvl sync formula: ModifiedStat = round(/ItemLevel/n[stat] * /BaseParam/stat[slot%] / 1000)
+            // Each BaseParam item represents one stat (e.g. crit, dex), and the fields tell us the % modifier for each weapon slot
+            const baseParamPromise = xivApiGet({
+                requestType: "list",
+                sheet: 'BaseParam',
+                columns: ['Name', '1HWpn%', '2HWpn%', 'Bracelet%', 'Chest%', 'Earring%', 'Feet%', 'Hands%', 'Head%', 'Legs%', 'Necklace%', 'OH%', 'Ring%'] as const
+            });
+            // Each ItemLevel object represents one ilvl sync level, and the fields tell us the modifier for each stat
+            const ilvlPromise = xivApiSingle("ItemLevel", ilvlSync);
+            isyncPromise = Promise.all([baseParamPromise, ilvlPromise]).then(resp => {
+                console.log(`Got ${resp[0].Results.length} BaseParams`)
+                const ilvlStatModifiers = new Map<RawStatKey, number>();
+                // Unroll the ItemLevel object into a direct mapping from RawStatKey => modifier
+                for (let respElementKey in resp[1]) {
+                    if (respElementKey in xivApiStatMapping) {
+                        ilvlStatModifiers.set(xivApiStatMapping[respElementKey], resp[1][respElementKey]);
+                    }
+                }
+                // BaseParam data is trickier. First, we need to convert from a list to a map, where the keys are the stat.
+                const baseParamData = resp[0];
+                const baseParams: { [rawStat in RawStatKey]?: Record<OccGearSlotKey, number> } = baseParamData.Results.reduce<{
+                    [rawStat in RawStatKey]?: Record<OccGearSlotKey, number>
+                }>((baseParams, value) => {
+                    // Each individual item also gets converted
+                    baseParams[BaseParamToStatKey[value.Name]] = {
+                        Body: value['Chest%'],
+                        Ears: value['Earring%'],
+                        Feet: value['Feet%'],
+                        Hand: value['Hands%'],
+                        Head: value['Head%'],
+                        Legs: value['Legs%'],
+                        Neck: value['Necklace%'],
+                        OffHand: value['OffHand'],
+                        Ring: value['Ring%'],
+                        Weapon2H: value['2HWpn%'],
+                        Weapon1H: value['1HWpn%'],
+                        Wrist: value['Bracelet%']
+                    };
+                    return baseParams;
+                }, {});
+                this.ilvlSyncInfo = {
+                    syncStats(item: GearItem): RawStats | null {
+                        if (item.ilvl <= ilvlSync) {
+                            return undefined;
+                        }
+                        const newStats: RawStats = {
+                            ...item.stats
+                        }
+                        for (let statsKey in item.stats) {
+                            const unmodified: number = item.stats[statsKey];
+                            if (!unmodified) {
+                                continue;
+                            }
+                            const ilvlModifier: number = ilvlStatModifiers.get(statsKey as RawStatKey);
+                            const baseParamModifier = baseParams[statsKey as RawStatKey][item.occGearSlotName];
+                            const modified = Math.min(unmodified, Math.round(ilvlModifier * baseParamModifier / 1000));
+                            newStats[statsKey] = modified;
+                        }
+                        return newStats;
+                    }
+                }
+            })
+        }
+        else {
+            isyncPromise = Promise.resolve();
+        }
+        console.log("Loading items");
         // Gear Items
         const itemsPromise = xivApiGet({
             requestType: 'search',
             sheet: 'Item',
-            columns: ['ID', 'IconHD', 'Name', 'LevelItem', 'Stats', 'EquipSlotCategory', 'MateriaSlotCount', 'IsAdvancedMeldingPermitted', 'DamageMag', 'DamagePhys'] as const,
+            columns: [
+                // Normal item stuff
+                'ID', 'IconHD', 'Name', 'LevelItem', 'Stats', 'EquipSlotCategory', 'MateriaSlotCount', 'IsAdvancedMeldingPermitted', 'DamageMag', 'DamagePhys',
+                // Stuff for determining correct WD for HQ crafted items
+                'CanBeHq',
+                'BaseParamSpecial0TargetID',
+                'BaseParamSpecial1TargetID',
+                'BaseParamSpecial2TargetID',
+                'BaseParamSpecial3TargetID',
+                'BaseParamSpecial4TargetID',
+                'BaseParamSpecial5TargetID',
+                'BaseParamValueSpecial0',
+                'BaseParamValueSpecial1',
+                'BaseParamValueSpecial2',
+                'BaseParamValueSpecial3',
+                'BaseParamValueSpecial4',
+                'BaseParamValueSpecial5',
+            ] as const,
             // EquipSlotCategory! => EquipSlotCategory is not null => filters out now-useless belts
             filters: [`LevelItem>=${this.minIlvl}`, `LevelItem<=${this.maxIlvl}`, `ClassJobCategory.${this.classJob}=1`, 'EquipSlotCategory!'],
         })
@@ -53,9 +147,13 @@ export class DataManager {
                 }
             }).then((rawItems) => {
                 this.allItems = rawItems.map(i => new XivApiGearInfo(i));
-                this.allItems.forEach(item => item.fixSubstatCap(this.allItems));
-                // TODO: put up error
+                // TODO: put up better error
             }, (e) => console.error(e));
+        Promise.all([itemsPromise, isyncPromise]).then(() => {
+            console.log(`Finishing item calculations for ${this.allItems.length} items`);
+            this.allItems.forEach(item => item.finishItemData(this));
+            console.log("Finished item calculations");
+        });
 
         // Materia
         const matCols = ['ID', 'Value*', 'BaseParam.ID'];
@@ -65,6 +163,7 @@ export class DataManager {
             matCols.push(`Item${i}.IconHD`);
             matCols.push(`Item${i}.ID`);
         }
+        console.log("Loading materia");
         const materiaPromise = xivApiGet({
             requestType: 'list',
             sheet: 'Materia',
@@ -88,6 +187,7 @@ export class DataManager {
             }, e => {
                 console.error(e);
             });
+        console.log("Loading food");
         const foodPromise = xivApiGet({
             requestType: 'search',
             sheet: 'Item',
@@ -103,6 +203,7 @@ export class DataManager {
             .then((processedFoods) => processedFoods.filter(food => Object.keys(food.bonuses).length > 1))
             .then((foods) => this.allFoodItems = foods,
                 e => console.error(e));
+        console.log("Loading jobs");
         const jobsPromise = xivApiGet({
             requestType: "list",
             sheet: "ClassJob",
@@ -123,7 +224,7 @@ export class DataManager {
                     })
                 }
             });
-        return Promise.all([itemsPromise, materiaPromise, foodPromise, jobsPromise]);
+        return Promise.all([isyncPromise, itemsPromise, materiaPromise, foodPromise, jobsPromise]);
     }
 
     multipliersForJob(job: JobName) {
@@ -135,5 +236,11 @@ export class DataManager {
             throw Error(`No data for job ${job}`)
         }
         return multi;
+    }
+
+    syncForItem(item: GearItem): RawStats | undefined {
+        if (this.ilvlSyncInfo) {
+            return this.ilvlSyncInfo.syncStats(item);
+        }
     }
 }

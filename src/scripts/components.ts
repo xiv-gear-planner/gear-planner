@@ -13,18 +13,19 @@ import {CharacterGearSet, EquippedItem,} from "./gear";
 import {DataManager} from "./datamanager";
 import {
     ChanceStat,
+    DisplayGearSlot,
     EquipSlotKey,
     EquipSlots,
     FoodItem,
     GearItem,
-    GearSlot,
     ItemDisplaySettings,
     ItemSlotExport,
     JobData,
     Materia,
     MateriaAutoFillController,
     MateriaAutoFillPrio,
-    MeldableMateriaSlot, MultiplierStat,
+    MeldableMateriaSlot,
+    MultiplierStat,
     PartyBonusAmount,
     RawStatKey,
     SetExport,
@@ -51,7 +52,7 @@ import {
     JobName,
     LEVEL_ITEMS,
     MAIN_STATS,
-    MateriaSubstat,
+    MateriaSubstat, MAX_ILVL,
     RACE_STATS,
     RaceName,
     SupportedLevel,
@@ -62,10 +63,13 @@ import {getSetFromEtro} from "./external/etro_import";
 import {Inactivitytimer} from "./util/inactivitytimer";
 import {
     DataSelect,
+    FieldBoundCheckBox,
     FieldBoundDataSelect,
+    FieldBoundIntField,
     FieldBoundTextField,
     labelFor,
     makeActionButton,
+    positiveValuesOnly,
     quickElement
 } from "./components/util";
 import {LoadingBlocker} from "./components/loader";
@@ -74,7 +78,7 @@ import {GearEditToolbar} from "./components/gear_edit_toolbar";
 import {startShortLink} from "./components/shortlink_components";
 import {camel2title} from "./util/strutils";
 import {writeProxy} from "./util/proxies";
-import {SetTotalsDisplay, SetViewToolbar} from "./components/totals_display";
+import {SetViewToolbar} from "./components/totals_display";
 import {MateriaTotalsDisplay} from "./components/materia";
 
 export const SHARED_SET_NAME = 'Imported Set';
@@ -540,9 +544,9 @@ export class GearSetEditor extends HTMLElement {
         // Put items in categories by slot
         // Not enough to just use the items, because rings can be in either ring slot, so we
         // need options to reflect that.
-        const itemMapping: Map<GearSlot, GearItem[]> = new Map();
+        const itemMapping: Map<DisplayGearSlot, GearItem[]> = new Map();
         this.sheet.itemsForDisplay.forEach((item) => {
-            let slot = item.gearSlot;
+            let slot = item.displayGearSlot;
             if (itemMapping.has(slot)) {
                 itemMapping.get(slot).push(item);
             }
@@ -769,6 +773,7 @@ export class GearPlanSheet extends HTMLElement {
     sheetName: string;
     readonly classJobName: JobName;
     readonly level: SupportedLevel;
+    readonly ilvlSync: number | undefined;
     private _race: RaceName | undefined;
     private _partyBonus: PartyBonusAmount;
     private readonly _itemDisplaySettings: ItemDisplaySettings = {...defaultItemDisplaySettings};
@@ -812,7 +817,7 @@ export class GearPlanSheet extends HTMLElement {
         return exported ? new GearPlanSheet(sheetKey, exported) : null;
     }
 
-    static fromScratch(sheetKey: string, sheetName: string, classJob: JobName, level: SupportedLevel): GearPlanSheet {
+    static fromScratch(sheetKey: string, sheetName: string, classJob: JobName, level: SupportedLevel, ilvlSync: number | undefined): GearPlanSheet {
         const fakeExport: SheetExport = {
             job: classJob,
             level: level,
@@ -825,6 +830,7 @@ export class GearPlanSheet extends HTMLElement {
                 items: {}
             }],
             sims: [],
+            ilvlSync: ilvlSync
             // ctor will auto-fill the rest
         }
         const gearPlanSheet = new GearPlanSheet(sheetKey, fakeExport);
@@ -847,6 +853,7 @@ export class GearPlanSheet extends HTMLElement {
             saveKey: undefined,
             job: importedData.job,
             level: importedData.level,
+            ilvlSync: importedData.ilvlSync,
             partyBonus: 0,
             itemDisplaySettings: defaultItemDisplaySettings,
         });
@@ -898,6 +905,7 @@ export class GearPlanSheet extends HTMLElement {
         this._race = importedData.race;
         this._partyBonus = importedData.partyBonus ?? 0;
         this.classJobName = importedData.job ?? 'WHM';
+        this.ilvlSync = importedData.ilvlSync;
         this.dataManager = new DataManager();
         if (importedData.itemDisplaySettings) {
             Object.assign(this._itemDisplaySettings, importedData.itemDisplaySettings);
@@ -1179,6 +1187,7 @@ export class GearPlanSheet extends HTMLElement {
         this.dataManager.maxIlvl = lvlItemInfo.maxILvl;
         this.dataManager.minIlvlFood = lvlItemInfo.minILvlFood;
         this.dataManager.maxIlvlFood = lvlItemInfo.maxILvlFood;
+        this.dataManager.ilvlSync = this.ilvlSync;
         await this.dataManager.loadData();
         for (let importedSet of saved.sets) {
             this.addGearSet(this.importGearSet(importedSet));
@@ -1302,7 +1311,8 @@ export class GearPlanSheet extends HTMLElement {
             itemDisplaySettings: this._itemDisplaySettings,
             mfni: this.materiaAutoFillSelectedItems,
             mfp: this.materiaAutoFillPrio.statPrio,
-            mfMinGcd: this.materiaAutoFillPrio.minGcd
+            mfMinGcd: this.materiaAutoFillPrio.minGcd,
+            ilvlSync: this.ilvlSync
         };
         if (!external) {
             out.saveKey = this._saveKey;
@@ -2017,12 +2027,21 @@ function getNextSheetInternalName() {
     return "sheet-save-" + next + '-' + randomStub.toString(16).toLowerCase();
 }
 
+function spacer() {
+    return quickElement('div', ['vertical-spacer'], []);
+}
+
 export class NewSheetForm extends HTMLFormElement {
     private readonly nameInput: HTMLInputElement;
     private readonly jobDropdown: DataSelect<JobName>;
     private readonly levelDropdown: DataSelect<SupportedLevel>;
+    private readonly ilvlSyncCheckbox: FieldBoundCheckBox<any>;
     private readonly fieldSet: HTMLFieldSetElement;
     private readonly sheetOpenCallback: (GearPlanSheet) => Promise<any>;
+    private readonly tempSettings = {
+        ilvlSyncEnabled: false,
+        ilvlSync: 650
+    }
 
     constructor(sheetOpenCallback: (GearPlanSheet) => Promise<any>) {
         super();
@@ -2043,7 +2062,7 @@ export class NewSheetForm extends HTMLFormElement {
         this.nameInput.width = 400;
         this.fieldSet.appendChild(labelFor("Sheet Name: ", this.nameInput));
         this.fieldSet.appendChild(this.nameInput);
-        this.fieldSet.appendChild(document.createElement("br"));
+        this.fieldSet.appendChild(spacer());
 
         // Job selection
         // @ts-ignore
@@ -2052,7 +2071,7 @@ export class NewSheetForm extends HTMLFormElement {
         this.jobDropdown.required = true;
         this.fieldSet.appendChild(labelFor('Job: ', this.jobDropdown));
         this.fieldSet.appendChild(this.jobDropdown);
-        this.fieldSet.appendChild(document.createElement("br"));
+        this.fieldSet.appendChild(spacer());
 
         // Level selection
         this.levelDropdown = new DataSelect<SupportedLevel>([...SupportedLevels], item => item.toString(), () => this.recheck(), Math.max(...SupportedLevels) as SupportedLevel);
@@ -2060,10 +2079,30 @@ export class NewSheetForm extends HTMLFormElement {
         this.levelDropdown.required = true;
         this.fieldSet.appendChild(labelFor('Level: ', this.levelDropdown));
         this.fieldSet.appendChild(this.levelDropdown);
-        this.fieldSet.appendChild(document.createElement("br"));
+        this.fieldSet.appendChild(spacer());
+
+        this.ilvlSyncCheckbox = new FieldBoundCheckBox(this.tempSettings, 'ilvlSyncEnabled');
+        this.ilvlSyncCheckbox.id = 'new-sheet-ilvl-sync-enable';
+        this.fieldSet.append(quickElement('div', [], [this.ilvlSyncCheckbox, labelFor("Sync Item Level", this.ilvlSyncCheckbox)]));
+        const ilvlSyncValue = new FieldBoundIntField(this.tempSettings, 'ilvlSync', {
+            postValidators: [
+                positiveValuesOnly,
+                (ctx) => {
+                    if (ctx.newValue > MAX_ILVL) {
+                        ctx.failValidation("Enter a valid item level (too high)")
+                    }
+                }
+            ]
+        });
+        ilvlSyncValue.style.display = 'none';
+        this.ilvlSyncCheckbox.listeners.push(val => {
+            ilvlSyncValue.style.display = val ? '' : 'none';
+        });
+        this.fieldSet.appendChild(ilvlSyncValue);
+        this.fieldSet.appendChild(spacer());
 
         this.appendChild(this.fieldSet);
-        this.appendChild(document.createElement("br"));
+        this.appendChild(spacer());
 
         this.submitButton = document.createElement("button");
         this.submitButton.type = 'submit';
@@ -2085,7 +2124,7 @@ export class NewSheetForm extends HTMLFormElement {
 
     private doSubmit() {
         const nextSheetSaveStub = getNextSheetInternalName();
-        const gearPlanSheet = GearPlanSheet.fromScratch(nextSheetSaveStub, this.nameInput.value, this.jobDropdown.selectedItem, this.levelDropdown.selectedItem);
+        const gearPlanSheet = GearPlanSheet.fromScratch(nextSheetSaveStub, this.nameInput.value, this.jobDropdown.selectedItem, this.levelDropdown.selectedItem, this.tempSettings.ilvlSyncEnabled ? this.tempSettings.ilvlSync : undefined);
         this.sheetOpenCallback(gearPlanSheet).then(() => gearPlanSheet.requestSave());
     }
 }
