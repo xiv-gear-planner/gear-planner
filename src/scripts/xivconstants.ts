@@ -74,14 +74,17 @@ export type SupportedLevel = typeof SupportedLevels[number];
  */
 export const EMPTY_STATS = new RawStats();
 
-const STANDARD_HEALER = {
+const STANDARD_HEALER: JobDataConst = {
     mainStat: 'mind',
     role: 'Healer',
     irrelevantSubstats: ['skillspeed', 'tenacity'],
     traitMulti: level => 1.3,
+    itemStatCapMultipliers: {
+        'vitality': 0.90
+    }
 } as const;
 
-const STANDARD_TANK = {
+const STANDARD_TANK: JobDataConst = {
     mainStat: 'strength',
     role: 'Tank',
     irrelevantSubstats: ['spellspeed', 'piety'],
@@ -92,22 +95,25 @@ const STANDARD_TANK = {
     }] as JobTrait[],
 } as const;
 
-const STANDARD_MELEE = {
+const STANDARD_MELEE: JobDataConst = {
     mainStat: 'strength',
     role: 'Melee',
     irrelevantSubstats: ['spellspeed', 'tenacity', 'piety'],
 } as const;
 
-const STANDARD_RANGED = {
+const STANDARD_RANGED: JobDataConst = {
     role: 'Ranged',
     mainStat: 'dexterity',
     irrelevantSubstats: ['spellspeed', 'tenacity', 'piety']
 } as const;
 
-const STANDARD_CASTER = {
+const STANDARD_CASTER: JobDataConst = {
     role: "Caster",
     mainStat: "intelligence",
     irrelevantSubstats: ['skillspeed', 'tenacity', 'piety'],
+    itemStatCapMultipliers: {
+        'vitality': 0.90
+    }
 } as const;
 
 

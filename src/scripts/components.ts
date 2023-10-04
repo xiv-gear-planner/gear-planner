@@ -1000,7 +1000,7 @@ export class GearPlanSheet extends HTMLElement {
         }
 
         if (this.ilvlSync != undefined) {
-            buttonsArea.appendChild(quickElement('div', ['like-a-button'], [document.createTextNode(`ilvl Sync: ${this.ilvlSync}`)]));
+            buttonsArea.appendChild(quickElement('span', ['like-a-button'], [document.createTextNode(`ilvl Sync: ${this.ilvlSync}`)]));
         }
 
         const saveAsButton = makeActionButton("Save As", () => {

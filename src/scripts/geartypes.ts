@@ -341,6 +341,9 @@ export interface JobDataConst {
     readonly traits?: readonly JobTrait[];
     readonly irrelevantSubstats?: readonly Substat[];
     readonly offhand?: boolean;
+    readonly itemStatCapMultipliers?: {
+        [K in RawStatKey]?: number
+    };
 }
 
 export type JobMultipliers = {

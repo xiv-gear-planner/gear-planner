@@ -1,6 +1,6 @@
 import {processRawMateriaInfo, XivApiFoodInfo, XivApiGearInfo} from "./gear";
-import {JobName, MATERIA_LEVEL_MAX_NORMAL, SupportedLevel} from "./xivconstants";
-import {GearItem, JobMultipliers, Materia, OccGearSlotKey, RawStatKey, RawStats,} from "./geartypes";
+import {getClassJobStats, JobName, MATERIA_LEVEL_MAX_NORMAL, SupportedLevel} from "./xivconstants";
+import {GearItem, JobMultipliers, Materia, OccGearSlotKey, RawStatKey,} from "./geartypes";
 import {xivApiGet, xivApiSingle} from "./external/xivapi";
 import {BaseParamToStatKey, xivApiStatMapping} from "./external/xivapitypes";
 
@@ -31,6 +31,7 @@ export class DataManager {
             return this.ilvlSyncDatum.get(ilvl)
         }
         else {
+            const jobStats = getClassJobStats(this.classJob);
             const ilvlPromise = Promise.all([baseParamPromise, xivApiSingle("ItemLevel", ilvl)]).then(resp => {
                 const ilvlStatModifiers = new Map<RawStatKey, number>();
                 // Unroll the ItemLevel object into a direct mapping from RawStatKey => modifier
@@ -66,7 +67,13 @@ export class DataManager {
                     substatCap(slot: OccGearSlotKey, statsKey: RawStatKey): number {
                         const ilvlModifier: number = ilvlStatModifiers.get(statsKey as RawStatKey);
                         const baseParamModifier = baseParams[statsKey as RawStatKey][slot];
-                        return Math.round(ilvlModifier * baseParamModifier / 1000);
+                        const multi = jobStats.itemStatCapMultipliers?.[statsKey];
+                        if (multi) {
+                            return Math.round(multi * Math.round(ilvlModifier * baseParamModifier / 1000));
+                        }
+                        else {
+                            return Math.round(ilvlModifier * baseParamModifier / 1000);
+                        }
                     },
                 } as const;
             });
@@ -155,9 +162,9 @@ export class DataManager {
                     }));
                 }
                 else {
-                   extraPromises.push(itemIlvlPromise.then(native => {
-                       item.applyIlvlData(native);
-                   }));
+                    extraPromises.push(itemIlvlPromise.then(native => {
+                        item.applyIlvlData(native);
+                    }));
                 }
             });
         });
