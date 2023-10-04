@@ -214,6 +214,10 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
     // }
 
     private setupColumns() {
+        if (this.sheet.isViewOnly) {
+            // TODO: this leaves 1px extra to the left of the name columns
+            this.style.setProperty('--action-col-width', '1px');
+        }
         const statColWidth = 40;
         const chanceStatColWidth = 160;
         const multiStatColWidth = 120;
@@ -803,7 +807,7 @@ export class GearPlanSheet extends HTMLElement {
     private _materiaAutoFillController: MateriaAutoFillController;
     private readonly saveTimer: Inactivitytimer;
     private setupDone: boolean = false;
-    private isViewOnly: boolean = false;
+    isViewOnly: boolean = false;
 
 
     /**

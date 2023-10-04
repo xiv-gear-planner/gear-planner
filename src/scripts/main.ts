@@ -2,8 +2,11 @@ import {GearPlanSheet, ImportSheetArea, NewSheetForm, SheetPickerTable} from "./
 import {SetExport, SheetExport} from "./geartypes";
 import {quickElement} from "./components/util";
 import {getShortLink} from "./external/shortlink_server";
+import {getBisSheet} from "./external/static_bis";
+import {JobName} from "./xivconstants";
 
 export const SHORTLINK_HASH = 'sl';
+export const BIS_HASH = 'bis';
 
 export const contentArea = document.getElementById("content-area");
 // export const midBarArea = document.getElementById("mid-controls-area");
@@ -141,6 +144,36 @@ async function processHash() {
                 }
                 catch (e) {
                     console.error("Error loading shortlink", e);
+                }
+                const errMsg = document.createElement('h1');
+                errMsg.textContent = 'Error Loading Sheet/Set';
+                setMainContent('Error', errMsg);
+            }
+        }
+        else if (mainNav === BIS_HASH) {
+            if (hash.length >= 4) {
+                const job = hash[1];
+                const expac = hash[2];
+                const sheetName = hash[3];
+                try {
+                    const resolved: string | null = await getBisSheet(job as JobName, expac, sheetName);
+                    if (resolved) {
+                        const json = JSON.parse(resolved);
+                        if (json['sets']) {
+                            goHash('viewsheet', resolved);
+                            return;
+                        }
+                        else {
+                            goHash('viewset', resolved);
+                            return;
+                        }
+                    }
+                    else {
+                        console.error('Non-existent bis, or other error', [job, expac, sheetName]);
+                    }
+                }
+                catch (e) {
+                    console.error("Error loading bis", e);
                 }
                 const errMsg = document.createElement('h1');
                 errMsg.textContent = 'Error Loading Sheet/Set';
