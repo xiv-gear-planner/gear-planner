@@ -78,7 +78,7 @@ const STANDARD_HEALER: JobDataConst = {
     mainStat: 'mind',
     role: 'Healer',
     irrelevantSubstats: ['skillspeed', 'tenacity'],
-    traitMulti: level => 1.3,
+    traitMulti: (level, attackType) => 1.3,
     itemStatCapMultipliers: {
         'vitality': 0.90
     }

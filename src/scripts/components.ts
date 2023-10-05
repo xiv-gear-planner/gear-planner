@@ -231,7 +231,22 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
         const statColWidth = 40;
         const chanceStatColWidth = viewOnly ? 110 : 160;
         const multiStatColWidth = viewOnly ? 70 : 120;
-        const columns: typeof this._columns = [
+
+        const simColumns: typeof this.columns = this.sims.map(sim => {
+            return {
+                dataValue: sim,
+                shortName: "sim-col-" + sim.shortName,
+                get displayName() {
+                    return sim.displayName;
+                },
+                getter: gearSet => this.sheet.getSimResult(sim, gearSet),
+                renderer: result => new SimResultMiniDisplay(this, sim, result),
+                allowHeaderSelection: true,
+                allowCellSelection: true
+            }
+        });
+
+        this.columns = [
             {
                 shortName: "actions",
                 displayName: "",
@@ -271,6 +286,7 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                 }
                 // initialWidth: 300,
             },
+            ...(viewOnly ? simColumns : []),
             {
                 shortName: "gcd",
                 displayName: "GCD",
@@ -384,21 +400,8 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                 initialWidth: multiStatColWidth,
                 condition: () => this.sheet.isStatRelevant('tenacity'),
             },
-        ]
-        for (const sim of this.sims) {
-            columns.push({
-                dataValue: sim,
-                shortName: "sim-col-" + sim.shortName,
-                get displayName() {
-                    return sim.displayName;
-                },
-                getter: gearSet => this.sheet.getSimResult(sim, gearSet),
-                renderer: result => new SimResultMiniDisplay(this, sim, result),
-                allowHeaderSelection: true,
-                allowCellSelection: true
-            });
-        }
-        this.columns = columns;
+            ...(viewOnly ? [] : simColumns),
+        ];
     }
 
     // TODO: this is kinda bad, cross-talk between columns despite there being no reason to do so,
