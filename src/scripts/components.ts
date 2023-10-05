@@ -52,13 +52,14 @@ import {
     JobName,
     LEVEL_ITEMS,
     MAIN_STATS,
-    MateriaSubstat, MAX_ILVL,
+    MateriaSubstat,
+    MAX_ILVL,
     RACE_STATS,
     RaceName,
     SupportedLevel,
     SupportedLevels
 } from "./xivconstants";
-import {openSheetByKey, setTitle, showNewSheetForm} from "./main";
+import {openSheetByKey, setTitle, showNewSheetForm, VIEW_SHEET_HASH} from "./main";
 import {getSetFromEtro} from "./external/etro_import";
 import {Inactivitytimer} from "./util/inactivitytimer";
 import {
@@ -89,6 +90,7 @@ export type GearSetSel = SingleCellRowOrHeaderSelect<CharacterGearSet>;
 
 function multiplierStatDisplay(stats: MultiplierStat) {
     const outerDiv = document.createElement("div");
+    outerDiv.classList.add('multiplier-stat-display');
     const leftSpan = document.createElement("span");
     leftSpan.textContent = stats.stat.toString();
     outerDiv.appendChild(leftSpan);
@@ -101,6 +103,7 @@ function multiplierStatDisplay(stats: MultiplierStat) {
 
 function chanceStatDisplay(stats: ChanceStat) {
     const outerDiv = document.createElement("div");
+    outerDiv.classList.add('chance-stat-display');
     const leftSpan = document.createElement("span");
     leftSpan.textContent = stats.stat.toString();
     outerDiv.appendChild(leftSpan);
@@ -215,13 +218,19 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
     // }
 
     private setupColumns() {
-        if (this.sheet.isViewOnly) {
+        const viewOnly = this.sheet.isViewOnly;
+        if (viewOnly) {
             // TODO: this leaves 1px extra to the left of the name columns
+            // Also messes with the selection outline
             this.style.setProperty('--action-col-width', '1px');
+            this.classList.add('view-only');
+        }
+        else {
+            this.classList.add('editable');
         }
         const statColWidth = 40;
-        const chanceStatColWidth = 160;
-        const multiStatColWidth = 120;
+        const chanceStatColWidth = viewOnly ? 110 : 160;
+        const multiStatColWidth = viewOnly ? 70 : 120;
         const columns: typeof this._columns = [
             {
                 shortName: "actions",
@@ -237,7 +246,29 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
             {
                 shortName: "setname",
                 displayName: "Set Name",
-                getter: gearSet => gearSet.name,
+                getter: (gearSet => viewOnly ? ({name: gearSet.name, desc: gearSet.description}) : gearSet.name),
+                renderer: value => {
+                    const nameSpan = document.createElement('span');
+                    if (value instanceof Object) {
+                        nameSpan.textContent = value.name;
+                        const div = document.createElement('div');
+                        div.classList.add('set-name-desc-holder');
+
+                        div.appendChild(nameSpan);
+
+                        const trimmedDesc = value.desc?.trim();
+                        const descSpan = document.createElement('span');
+                        if (trimmedDesc) {
+                            descSpan.textContent = trimmedDesc;
+                        }
+                        div.appendChild(descSpan);
+                        return div;
+                    }
+                    else {
+                        nameSpan.textContent = value;
+                        return nameSpan;
+                    }
+                }
                 // initialWidth: 300,
             },
             {
@@ -508,6 +539,13 @@ export class SimResultMiniDisplay extends HTMLElement {
     }
 }
 
+function stringToParagraphs(text: string): HTMLParagraphElement[] {
+    return text.trim().split('\n').map(line => {
+        const p = document.createElement('p');
+        p.textContent = line;
+        return p;
+    })
+}
 
 /**
  * The set editor portion. Includes the tab as well as controls for the set name and such.
@@ -528,13 +566,14 @@ export class GearSetEditor extends HTMLElement {
 
     formatTitleDesc() {
         this.header.textContent = this.gearSet.name;
-        this.desc.replaceChildren(...(this.gearSet.description ? (
-            this.gearSet.description.split('\n').map(line => {
-                const p = document.createElement('p');
-                p.textContent = line;
-                return p;
-            })
-        ) : []));
+        const trimmedDesc = this.gearSet.description?.trim();
+        if (trimmedDesc) {
+            this.desc.style.display = '';
+            this.desc.replaceChildren(...stringToParagraphs(trimmedDesc));
+        }
+        else {
+            this.desc.style.display = 'none';
+        }
     }
 
     setup() {
@@ -653,6 +692,11 @@ export class GearSetViewer extends HTMLElement {
         const heading = document.createElement('h1');
         heading.textContent = this.gearSet.name;
         this.appendChild(heading);
+
+        if (this.gearSet.description) {
+            const descContainer = quickElement('div', [], stringToParagraphs(this.gearSet.description));
+            this.appendChild(descContainer);
+        }
 
         const matTotals = new MateriaTotalsDisplay(this.gearSet);
         if (!matTotals.empty) {
@@ -1095,9 +1139,16 @@ export class GearPlanSheet extends HTMLElement {
             if (this.isViewOnly) {
                 const heading = document.createElement('h1');
                 heading.textContent = this.sheetName;
+                this.headerArea.appendChild(heading);
+
+                const trimmedDesc = this._description?.trim();
+                if (trimmedDesc) {
+                    const descArea = quickElement('div', [], stringToParagraphs(trimmedDesc));
+                    this.headerArea.append(descArea);
+                }
+
                 const helpText = document.createElement('h4');
                 helpText.textContent = 'To edit this sheet, click the "Save As" button below the table.';
-                this.headerArea.appendChild(heading);
                 this.headerArea.appendChild(helpText);
             }
             else {
@@ -1474,6 +1525,7 @@ export class GearPlanSheet extends HTMLElement {
     importGearSet(importedSet: SetExport): CharacterGearSet {
         const set = new CharacterGearSet(this);
         set.name = importedSet.name;
+        set.description = importedSet.description;
         for (let equipmentSlot in importedSet.items) {
             const importedItem: ItemSlotExport = importedSet.items[equipmentSlot];
             if (!importedItem) {
@@ -1642,14 +1694,21 @@ export class GearPlanSheet extends HTMLElement {
         explanation.textContent = 'This is for exporting an entire sheet. To export an individual gear set, select the gear set and use the export button in the gear set editor area.'
         outerDiv.appendChild(explanation);
 
+        const exportSheetLinkToClipboard = makeActionButton('Copy Link to Sheet', () => {
+            startShortLink(JSON.stringify(this.exportSheet(true)));
+        });
+
         const exportSheetToClipboard = makeActionButton('Export Sheet JSON to Clipboard', () => {
             navigator.clipboard.writeText(JSON.stringify(this.exportSheet(true)));
         });
 
-        const exportSheetLinkToClipboard = makeActionButton('Copy Link to Sheet', () => {
-            startShortLink(JSON.stringify(this.exportSheet(true)));
+        const preview = makeActionButton('Preview Set', () => {
+            const exported = this.exportSheet(true);
+            const url = new URL(`#/${VIEW_SHEET_HASH}/${encodeURIComponent(JSON.stringify(exported))}`, document.location.toString());
+            window.open(url, '_blank');
         });
-        outerDiv.appendChild(quickElement('div', ['button-row'], [exportSheetLinkToClipboard, exportSheetToClipboard]))
+
+        outerDiv.appendChild(quickElement('div', ['button-row'], [exportSheetLinkToClipboard, exportSheetToClipboard, preview]));
 
         return outerDiv;
     }

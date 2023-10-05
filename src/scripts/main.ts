@@ -8,6 +8,8 @@ import {JobName} from "./xivconstants";
 export const SHORTLINK_HASH = 'sl';
 export const BIS_HASH = 'bis';
 
+export const VIEW_SHEET_HASH = 'viewsheet';
+
 export const contentArea = document.getElementById("content-area");
 // export const midBarArea = document.getElementById("mid-controls-area");
 export const topMenuArea = document.getElementById("dev-menu-area");
@@ -130,7 +132,7 @@ async function processHash() {
                     if (resolved) {
                         const json = JSON.parse(resolved);
                         if (json['sets']) {
-                            goHash('viewsheet', resolved);
+                            goHash(VIEW_SHEET_HASH, resolved);
                             return;
                         }
                         else {

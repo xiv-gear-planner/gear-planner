@@ -281,7 +281,7 @@ table {
 
     &[is-selected="true"] {
       td, th {
-        overflow: visible;
+        //overflow: visible;
         .table-item-selected-bg;
 
         > *:first-child::before {
@@ -551,8 +551,42 @@ table.gear-plan-table {
       }
     }
   }
+
+  &.view-only {
+
+    div.set-name-desc-holder {
+      span {
+        display: block;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        &:last-child {
+          .text-deemphasise;
+        }
+      }
+    }
+
+    div.chance-stat-display, div.multiplier-stat-display {
+      span {
+        display: block;
+        &:first-child {
+          text-align: center;
+        }
+      }
+    }
+
+  }
 }
 
+.text-deemphasise {
+  opacity: 75%;
+
+}
+
+div.chance-stat-display, div.multiplier-stat-display {
+  span:last-child {
+    .text-deemphasise;
+  }
+}
 
 .button-row {
   > * {
