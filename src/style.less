@@ -410,6 +410,15 @@ input {
   }
 }
 
+textarea {
+  color: var(--fg-color);
+  background: var(--table-bg-color);
+  border: var(--thick-border);
+  .standard-border-radius;
+  width: min(600px, 90vw);
+  height: 300px;
+}
+
 .title-editor {
   margin-bottom: 10px;
   width: 400px;
@@ -951,15 +960,6 @@ gear-set-editor {
 
 import-set-area, import-sheet-area {
 
-  textarea {
-    color: var(--fg-color);
-    background: var(--table-bg-color);
-    border: var(--thick-border);
-    .standard-border-radius;
-    width: min(600px, 90vw);
-    height: 300px;
-  }
-
   #set-import-textarea-holder {
     .standard-border-radius;
     width: fit-content;
@@ -1250,7 +1250,7 @@ input.gear-items-table-relic-stat-input {
   text-align: center;
 }
 
-shortlink-modal {
+.modal-dialog {
   background-color: var(--modal-backdrop-color);
   position: absolute;
   margin: 0;
@@ -1259,6 +1259,7 @@ shortlink-modal {
   left: 0;
   right: 0;
   z-index: var(--zi-true-modal);
+  display: flex;
 
   > div {
     margin: auto;
@@ -1281,9 +1282,24 @@ shortlink-modal {
     input {
       width: 300px;
     }
-
-
   }
+}
+
+rename-dialog {
+  .modal-dialog;
+  textarea {
+    margin: 10px;
+    resize: none;
+  }
+  .modal-inner > * {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+shortlink-modal {
+  .modal-dialog;
 }
 
 food-stat-bonus {

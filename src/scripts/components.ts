@@ -80,6 +80,7 @@ import {camel2title} from "./util/strutils";
 import {writeProxy} from "./util/proxies";
 import {SetViewToolbar} from "./components/totals_display";
 import {MateriaTotalsDisplay} from "./components/materia";
+import {startRenameSet, startRenameSheet} from "./components/rename_dialog";
 
 export const SHARED_SET_NAME = 'Imported Set';
 
@@ -515,12 +516,25 @@ export class GearSetEditor extends HTMLElement {
     private readonly sheet: GearPlanSheet;
     private readonly gearSet: CharacterGearSet;
     private gearTables: GearItemsTable[] = [];
+    private header: HTMLHeadingElement;
+    private desc: HTMLDivElement;
 
     constructor(sheet: GearPlanSheet, gearSet: CharacterGearSet) {
         super();
         this.sheet = sheet;
         this.gearSet = gearSet;
         this.setup();
+    }
+
+    formatTitleDesc() {
+        this.header.textContent = this.gearSet.name;
+        this.desc.replaceChildren(...(this.gearSet.description ? (
+            this.gearSet.description.split('\n').map(line => {
+                const p = document.createElement('p');
+                p.textContent = line;
+                return p;
+            })
+        ) : []));
     }
 
     setup() {
@@ -530,9 +544,15 @@ export class GearSetEditor extends HTMLElement {
         this.replaceChildren();
 
         // Name editor
-        const nameEditor = new FieldBoundTextField(this.gearSet, 'name');
-        nameEditor.classList.add("gear-set-name-editor");
-        this.appendChild(nameEditor);
+        // const nameEditor = new FieldBoundTextField(this.gearSet, 'name');
+        // nameEditor.classList.add("gear-set-name-editor");
+        // this.appendChild(nameEditor);
+
+        this.header = document.createElement('h2');
+        this.desc = document.createElement('div');
+        this.appendChild(this.header);
+        this.appendChild(this.desc);
+        this.formatTitleDesc();
 
         const buttonArea = quickElement('div', ['gear-set-editor-button-area', 'button-row'], [
             makeActionButton('Copy Link to Set', () => {
@@ -540,6 +560,9 @@ export class GearSetEditor extends HTMLElement {
             }),
             makeActionButton('Copy Set as JSON', () => {
                 navigator.clipboard.writeText(JSON.stringify(this.sheet.exportGearSet(this.gearSet, true)));
+            }),
+            makeActionButton('Change Name/Description', () => {
+                startRenameSet(writeProxy(this.gearSet, () => this.formatTitleDesc()));
             })
         ]);
 
@@ -773,8 +796,8 @@ export const defaultItemDisplaySettings: ItemDisplaySettings = {
  * The top-level gear manager element
  */
 export class GearPlanSheet extends HTMLElement {
-
-    sheetName: string;
+    _sheetName: string;
+    _description: string;
     readonly classJobName: JobName;
     readonly level: SupportedLevel;
     readonly ilvlSync: number | undefined;
@@ -904,12 +927,13 @@ export class GearPlanSheet extends HTMLElement {
         const flexPadding = quickElement('div', ['flex-padding-item'], []);
         this.appendChild(flexPadding);
 
-        this.sheetName = importedData.name;
+        this._sheetName = importedData.name;
         this.level = importedData.level ?? 90;
         this._race = importedData.race;
         this._partyBonus = importedData.partyBonus ?? 0;
         this.classJobName = importedData.job ?? 'WHM';
         this.ilvlSync = importedData.ilvlSync;
+        this._description = importedData.description;
         this.dataManager = new DataManager();
         if (importedData.itemDisplaySettings) {
             Object.assign(this._itemDisplaySettings, importedData.itemDisplaySettings);
@@ -992,13 +1016,8 @@ export class GearPlanSheet extends HTMLElement {
                 this.addGearSet(newSet, true);
             })
             buttonsArea.appendChild(addRowButton)
-            const renameButton = makeActionButton("Rename Sheet", () => {
-                const newName = prompt("Enter a new name for the sheet: ", this.sheetName);
-                if (newName !== null && newName !== this.sheetName) {
-                    this.sheetName = newName;
-                    this.requestSave();
-                    setTitle(this.sheetName);
-                }
+            const renameButton = makeActionButton("Sheet Name/Description", () => {
+                startRenameSheet(this);
             });
             buttonsArea.appendChild(renameButton);
         }
@@ -1247,6 +1266,25 @@ export class GearPlanSheet extends HTMLElement {
         this.saveTimer.ping();
     }
 
+    get sheetName() {
+        return this._sheetName;
+    }
+
+    set sheetName(name) {
+        this._sheetName = name;
+        setTitle(this._sheetName);
+        this.requestSave();
+    }
+
+    get description() {
+        return this._description;
+    }
+
+    set description(desc) {
+        this._description = desc;
+        this.requestSave();
+    }
+
     get materiaAutoFillController() {
         return this._materiaAutoFillController;
     }
@@ -1320,7 +1358,8 @@ export class GearPlanSheet extends HTMLElement {
             mfni: this.materiaAutoFillSelectedItems,
             mfp: this.materiaAutoFillPrio.statPrio,
             mfMinGcd: this.materiaAutoFillPrio.minGcd,
-            ilvlSync: this.ilvlSync
+            ilvlSync: this.ilvlSync,
+            description: this.description
         };
         if (!external) {
             out.saveKey = this._saveKey;
@@ -1414,11 +1453,13 @@ export class GearPlanSheet extends HTMLElement {
         const out: SetExport = {
             name: set.name,
             items: items,
-            food: set.food ? set.food.id : undefined
+            food: set.food ? set.food.id : undefined,
+            description: set.description
         };
         if (external) {
             out.job = this.classJobName;
             out.level = this.level;
+            out.ilvlSync = this.ilvlSync;
         }
         return out;
     }

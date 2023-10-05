@@ -409,7 +409,8 @@ export interface SheetExport {
     // Materia fill priority
     mfp?: MateriaSubstat[],
     mfMinGcd?: number,
-    ilvlSync?: number;
+    ilvlSync?: number,
+    description?: string,
 }
 
 export interface SetExport {
@@ -424,7 +425,8 @@ export interface SetExport {
     // importing individual sets.
     job?: JobName,
     level?: SupportedLevel,
-    ilvlSync?: number;
+    ilvlSync?: number,
+    description?: string,
 }
 
 export interface ItemSlotExport {

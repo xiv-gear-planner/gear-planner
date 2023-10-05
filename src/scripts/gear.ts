@@ -93,7 +93,8 @@ export class EquippedItem {
  * Class representing equipped gear, food, and other overrides.
  */
 export class CharacterGearSet {
-    _name: string;
+    private _name: string;
+    private _description: string;
     equipment: EquipmentSet;
     listeners: (() => void)[] = [];
     private _dirtyComp: boolean = true;
@@ -114,14 +115,26 @@ export class CharacterGearSet {
         return this._updateKey;
     }
 
+
+    get name() {
+        return this._name;
+    }
+
     set name(name) {
         this._name = name;
         this.notifyListeners();
     }
 
-    get name() {
-        return this._name;
+    get description() {
+        return this._description;
     }
+
+    set description(desc) {
+        this._description = desc;
+        this.notifyListeners();
+    }
+
+
 
     get food(): FoodItem | undefined {
         return this._food;
