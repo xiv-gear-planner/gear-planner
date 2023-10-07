@@ -1,6 +1,6 @@
 import {
     CustomCell,
-    CustomColumn,
+    CustomColumn, CustomColumnSpec,
     CustomRow,
     CustomTable,
     HeaderRow,
@@ -12,7 +12,7 @@ import {
 import {CharacterGearSet, EquippedItem,} from "./gear";
 import {DataManager} from "./datamanager";
 import {
-    ChanceStat,
+    ChanceStat, ComputedSetStats,
     DisplayGearSlot,
     EquipSlotKey,
     EquipSlots,
@@ -55,7 +55,7 @@ import {
     MateriaSubstat,
     MAX_ILVL,
     RACE_STATS,
-    RaceName,
+    RaceName, STAT_ABBREVIATIONS,
     SupportedLevel,
     SupportedLevels
 } from "./xivconstants";
@@ -87,7 +87,35 @@ export const SHARED_SET_NAME = 'Imported Set';
 
 export type GearSetSel = SingleCellRowOrHeaderSelect<CharacterGearSet>;
 
+function mainStatCol(sheet: GearPlanSheet, stat: RawStatKey): CustomColumnSpec<CharacterGearSet, MultiplierStat> {
+    return {
+        shortName: stat,
+        displayName: STAT_ABBREVIATIONS[stat],
+        getter: gearSet => ({
+            stat: gearSet.computedStats[stat],
+            multiplier: gearSet.computedStats.mainStatMulti
+        }),
+        condition: () => sheet.isStatRelevant(stat),
+        renderer: multiplierStatTooltip
+    }
+}
 
+function tooltipMultiStatCol(sheet: GearPlanSheet, stat: RawStatKey, multiKey: { [K in keyof ComputedSetStats]: ComputedSetStats[K] extends number ? K : never }[keyof ComputedSetStats]): CustomColumnSpec<CharacterGearSet, MultiplierStat> {
+    return {
+        shortName: stat,
+        displayName: STAT_ABBREVIATIONS[stat],
+        getter: gearSet => ({
+            stat: gearSet.computedStats[stat],
+            multiplier: gearSet.computedStats[multiKey]
+        }),
+        condition: () => sheet.isStatRelevant(stat),
+        renderer: multiplierStatTooltip
+    }
+}
+
+function multiplierStatTooltip(stats: MultiplierStat) {
+    return textWithToolTip(stats.stat.toString(), 'Multiplier: x' + stats.multiplier.toFixed(3));
+}
 function multiplierStatDisplay(stats: MultiplierStat) {
     const outerDiv = document.createElement("div");
     outerDiv.classList.add('multiplier-stat-display');
@@ -296,9 +324,13 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
             {
                 shortName: "wd",
                 displayName: "WD",
-                getter: gearSet => Math.max(gearSet.computedStats.wdMag, gearSet.computedStats.wdPhys),
+                getter: gearSet => ({
+                    stat: Math.max(gearSet.computedStats.wdMag, gearSet.computedStats.wdPhys),
+                    multiplier: gearSet.computedStats.wdMulti
+                }),
                 initialWidth: statColWidth,
-            },
+                renderer: multiplierStatTooltip
+            } as CustomColumnSpec<CharacterGearSet, MultiplierStat>,
             {
                 shortName: "vit",
                 displayName: "VIT",
@@ -306,32 +338,22 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                 initialWidth: statColWidth,
             },
             {
-                shortName: "dex",
-                displayName: "DEX",
-                getter: gearSet => gearSet.computedStats.dexterity,
+                ...mainStatCol(this.sheet, 'dexterity'),
+                shortName: 'dex',
                 initialWidth: statColWidth,
-                condition: () => this.sheet.isStatRelevant('dexterity'),
             },
             {
-                shortName: "strength",
-                displayName: "STR",
-                getter: gearSet => gearSet.computedStats.strength,
+                ...mainStatCol(this.sheet, 'strength'),
                 initialWidth: statColWidth,
-                condition: () => this.sheet.isStatRelevant('strength'),
             },
             {
-                shortName: "mind",
-                displayName: "MND",
-                getter: gearSet => gearSet.computedStats.mind,
+                ...mainStatCol(this.sheet, 'mind'),
                 initialWidth: statColWidth,
-                condition: () => this.sheet.isStatRelevant('mind'),
             },
             {
-                shortName: "int",
-                displayName: "INT",
-                getter: gearSet => gearSet.computedStats.intelligence,
+                ...mainStatCol(this.sheet, 'intelligence'),
+                shortName: 'int',
                 initialWidth: statColWidth,
-                condition: () => this.sheet.isStatRelevant('intelligence'),
             },
             {
                 shortName: "crit",
@@ -369,18 +391,16 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                 condition: () => this.sheet.isStatRelevant('determination'),
             },
             {
+                ...tooltipMultiStatCol(this.sheet, 'skillspeed', 'sksDotMulti'),
                 shortName: "sks",
                 displayName: "SKS",
-                getter: gearSet => gearSet.computedStats.skillspeed,
                 initialWidth: statColWidth,
-                condition: () => this.sheet.isStatRelevant('skillspeed'),
             },
             {
+                ...tooltipMultiStatCol(this.sheet, 'spellspeed', 'spsDotMulti'),
                 shortName: "sps",
                 displayName: "SPS",
-                getter: gearSet => gearSet.computedStats.spellspeed,
                 initialWidth: statColWidth,
-                condition: () => this.sheet.isStatRelevant('spellspeed'),
             },
             {
                 shortName: "piety",
@@ -511,6 +531,12 @@ class SimResultDetailDisplay<X extends SimResult> extends HTMLElement {
     }
 }
 
+export function textWithToolTip(text: string, tooltip: string): HTMLElement {
+    const span = document.createElement('span');
+    span.textContent = text;
+    span.title = tooltip;
+    return span;
+}
 
 export class SimResultMiniDisplay extends HTMLElement {
     private _result: SimCurrentResult<any>;
