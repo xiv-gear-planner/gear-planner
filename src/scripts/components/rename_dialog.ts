@@ -75,9 +75,9 @@ class RenameModal extends HTMLElement {
     }
 
     show() {
-        const outer: RenameModal = this;
+        const outer = this;
         setModal({
-            element: outer,
+            element: outer.inner,
             close() {
                 outer.remove();
             }

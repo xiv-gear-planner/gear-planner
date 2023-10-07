@@ -986,7 +986,16 @@ export class GearPlanSheet extends HTMLElement {
             Object.assign(this._itemDisplaySettings, importedData.itemDisplaySettings);
         }
         else {
-            Object.assign(this._itemDisplaySettings, LEVEL_ITEMS[this.level].defaultDisplaySettings);
+            const defaults = LEVEL_ITEMS[this.level].defaultDisplaySettings;
+            Object.assign(this._itemDisplaySettings, defaults);
+            // TODO: investigate if this logic is worth doing
+            // if (this.ilvlSync) {
+            //     const modifiedDefaults = {...defaults};
+            //     modifiedDefaults.minILvl = Math.max(modifiedDefaults.minILvl, this.ilvlSync - 10);
+            //     modifiedDefaults.maxILvl = Math.max(modifiedDefaults.maxILvl, this.ilvlSync + 40);
+            // }
+            // else {
+            // }
         }
         this.materiaAutoFillPrio = {
             statPrio: importedData.mfp ?? [...DefaultMateriaFillPrio.filter(stat => this.isStatRelevant(stat))],

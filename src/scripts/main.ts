@@ -301,7 +301,7 @@ function setLightMode(lightMode: boolean | 'load') {
 
 function earlyUiSetup() {
     const devMenu = topMenuArea;
-    document.getElementById('dev-menu-button').addEventListener('click', (ev) => {
+    document.getElementById('dev-menu-button')?.addEventListener('click', (ev) => {
         ev.preventDefault();
         if (devMenu.style.display === 'none') {
             devMenu.style.display = '';
