@@ -1,5 +1,8 @@
 import {EquipSlotKey, EquipSlots, ItemSlotExport, SetExport} from "../geartypes";
 import {JobName, MATERIA_SLOTS_MAX} from "../xivconstants";
+import {xivApiSingle} from "./xivapi";
+import {queryBaseParams} from "../datamanager";
+import {BaseParamToStatKey} from "./xivapitypes";
 
 const ETRO_SLOTS = ['weapon', 'head', 'body', 'hands', 'legs', 'feet', 'ears', 'neck', 'wrists', 'fingerL', 'fingerR'] as const;
 // Works
@@ -31,22 +34,69 @@ type EtroOtherData = {
     materia: { [slot: (number | string)]: EtroMateria },
 }
 
-type EtroSet = EtroGearData & EtroOtherData;
+type EtroRelicsData = {
+    relics?: {
+        [K in keyof (typeof ETRO_GEAR_SLOT_MAP)]: string | null;
+    }
+}
 
-export interface EtroMateria {
+type EtroSet = EtroGearData & EtroOtherData & EtroRelicsData;
+
+type EtroRelic = {
+    baseItem: {
+        id: number
+    }
+    param0Value: number;
+    param1Value: number;
+    param2Value: number;
+    param3Value: number;
+    param4Value: number;
+    param5Value: number;
+    param0: number | null;
+    param1: number | null;
+    param2: number | null;
+    param3: number | null;
+    param4: number | null;
+    param5: number | null;
+}
+
+interface EtroMateria {
     [slot: number]: number
 }
 
 export async function getSetFromEtro(etroSetId: string) {
+    console.log('Fetching etro set', etroSetId);
     const response: EtroSet = await fetch(`https://etro.gg/api/gearsets/${etroSetId}/`).then(response => response.json()) as EtroSet;
 
     const items: {
         [K in EquipSlotKey]?: ItemSlotExport
     } = {};
     for (let slot of ETRO_SLOTS) {
-        const itemId = response[slot];
+        let itemId = response[slot];
+        let relicStats: ItemSlotExport['relicStats'];
         if (!itemId) {
-            continue;
+            // If a slot is null, it either isn't equipped, or is a relic
+            const relicId = response.relics?.[slot];
+            if (relicId) {
+                relicStats = {};
+                const relicData = await getEtroRelic(relicId);
+                itemId = relicData.baseItem.id;
+                // TODO: this probably does some redundant hits on xivapi
+                const baseParams = (await queryBaseParams()).Results;
+                for (let i = 0; i <= 5; i++) {
+                    const paramId = relicData[`param${i}`];
+                    if (!paramId) {
+                        break;
+                    }
+                    const paramData = baseParams.find(item => item.ID === paramId);
+                    const stat = BaseParamToStatKey[paramData.Name]
+                    relicStats[stat] = relicData[`param${i}Value`];
+                }
+            }
+            else {
+                continue;
+            }
+
         }
         const slotKey = ETRO_GEAR_SLOT_MAP[slot];
         let materiaKey;
@@ -72,13 +122,23 @@ export async function getSetFromEtro(etroSetId: string) {
                 }
             }
         }
-        items[slotKey] = {
-            id: itemId,
-            materia: materiaOut
+        if (relicStats) {
+            items[slotKey] = {
+                id: itemId,
+                materia: materiaOut,
+                relicStats: relicStats
+            }
+        }
+        else {
+            items[slotKey] = {
+                id: itemId,
+                materia: materiaOut
+            }
         }
     }
     let food: number | undefined;
     if (response.food) {
+        console.log('Fetching etro food', response.food);
         food = await fetch(`https://etro.gg/api/food/${response.food}/`).then(response => response.json()).then(json => json['item']);
     }
     else {
@@ -91,5 +151,9 @@ export async function getSetFromEtro(etroSetId: string) {
         items: items
     }
     return setImport;
+}
 
+async function getEtroRelic(relicUuid: string): Promise<EtroRelic> {
+    console.log('Fetching etro relic', relicUuid);
+    return await fetch(`https://etro.gg/api/relic/${relicUuid}/`).then(response => response.json()) as EtroRelic;
 }

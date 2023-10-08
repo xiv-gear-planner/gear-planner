@@ -9,6 +9,17 @@ export type IlvlSyncInfo = {
     substatCap(slot: OccGearSlotKey, statsKey: RawStatKey): number;
 }
 
+export function queryBaseParams() {
+    return xivApiGet({
+        requestType: "list",
+        sheet: 'BaseParam',
+        columns: ['ID', 'Name', '1HWpn%', '2HWpn%', 'Bracelet%', 'Chest%', 'Earring%', 'Feet%', 'Hands%', 'Head%', 'Legs%', 'Necklace%', 'OH%', 'Ring%'] as const
+    }).then(data => {
+        console.log(`Got ${data.Results.length} BaseParams`);
+        return data;
+    });
+}
+
 export class DataManager {
     allItems: XivApiGearInfo[];
     allMateria: Materia[];
@@ -26,7 +37,7 @@ export class DataManager {
 
     ilvlSyncDatum = new Map<number, Promise<IlvlSyncInfo>>();
 
-    getIlvlSyncData(baseParamPromise: ReturnType<typeof this.queryBaseParams>, ilvl: number) {
+    getIlvlSyncData(baseParamPromise: ReturnType<typeof queryBaseParams>, ilvl: number) {
         if (this.ilvlSyncDatum.has(ilvl)) {
             return this.ilvlSyncDatum.get(ilvl)
         }
@@ -97,19 +108,9 @@ export class DataManager {
         return this.allFoodItems.find(food => food.id === id);
     }
 
-    private queryBaseParams() {
-        return xivApiGet({
-            requestType: "list",
-            sheet: 'BaseParam',
-            columns: ['Name', '1HWpn%', '2HWpn%', 'Bracelet%', 'Chest%', 'Earring%', 'Feet%', 'Hands%', 'Head%', 'Legs%', 'Necklace%', 'OH%', 'Ring%'] as const
-        }).then(data => {
-            console.log(`Got ${data.Results.length} BaseParams`);
-            return data;
-        });
-    }
 
     async loadData() {
-        const baseParamPromise = this.queryBaseParams();
+        const baseParamPromise = queryBaseParams();
         const extraPromises = [];
         console.log("Loading items");
         // Gear Items
