@@ -1,9 +1,9 @@
-export function makeActionButton(label: string, action: () => void) {
+export function makeActionButton(label: string, action: (ev: MouseEvent) => void) {
     const button = document.createElement("button");
     button.textContent = label;
     button.addEventListener('click', ev => {
         ev.stopPropagation();
-        action();
+        action(ev);
     });
     return button;
 }

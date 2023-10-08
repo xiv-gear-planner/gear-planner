@@ -82,6 +82,7 @@ import {writeProxy} from "./util/proxies";
 import {SetViewToolbar} from "./components/totals_display";
 import {MateriaTotalsDisplay} from "./components/materia";
 import {startRenameSet, startRenameSheet} from "./components/rename_dialog";
+import {installDragHelper} from "./components/draghelpers";
 
 export const SHARED_SET_NAME = 'Imported Set';
 
@@ -274,6 +275,8 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
             }
         });
 
+        const outer = this;
+
         this.columns = [
             {
                 shortName: "actions",
@@ -283,6 +286,33 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                     const div = document.createElement("div");
                     div.appendChild(makeActionButton('🗑️', () => this.sheet.delGearSet(gearSet)));
                     div.appendChild(makeActionButton('📃', () => this.sheet.cloneAndAddGearSet(gearSet, true)));
+                    const dragger = document.createElement('button');
+                    dragger.textContent = '≡';
+                    dragger.classList.add('drag-handle');
+                    installDragHelper({
+                        dragHandle: dragger,
+                        dragOuter: outer,
+                        moveHandler: (ev) => {
+                            let target = ev.target;
+                            while (target) {
+                                if (target instanceof CustomRow) {
+                                    console.log(target.dataItem);
+                                    const toIndex = this.sheet.sets.indexOf(target.dataItem);
+                                    console.log(target, toIndex);
+                                    this.sheet.reorderSet(gearSet, toIndex);
+                                    return;
+                                }
+                                else {
+                                    // @ts-ignore
+                                    target = target.parentElement;
+                                }
+                            }
+                        },
+                        upHandler: () => {
+                            this.sheet.requestSave();
+                        }
+                    })
+                    div.appendChild(dragger);
                     return div;
                 }
             },
@@ -1488,6 +1518,25 @@ export class GearPlanSheet extends HTMLElement {
             this._gearPlanTable.reprocessAllSimColColors();
         }
         this.saveData();
+    }
+
+    reorderSet(gearSet: CharacterGearSet, to: number) {
+        const sets = [...this._sets];
+        const from = sets.indexOf(gearSet);
+        if (from === to) {
+            return;
+        }
+        if (from < 0 || to < 0) {
+            return;
+        }
+        console.log(from, to);
+        const removed = sets.splice(from, 1)[0];
+        console.log(removed, sets);
+        sets.splice(to, 0, removed);
+        this._sets = sets;
+        console.log(this._sets);
+
+        this._gearPlanTable.dataChanged();
     }
 
     addSim(sim: Simulation<any, any, any>) {
