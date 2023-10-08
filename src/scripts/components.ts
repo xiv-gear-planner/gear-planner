@@ -296,9 +296,7 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                             let target = ev.target;
                             while (target) {
                                 if (target instanceof CustomRow) {
-                                    console.log(target.dataItem);
                                     const toIndex = this.sheet.sets.indexOf(target.dataItem);
-                                    console.log(target, toIndex);
                                     this.sheet.reorderSet(gearSet, toIndex);
                                     return;
                                 }
@@ -1529,12 +1527,9 @@ export class GearPlanSheet extends HTMLElement {
         if (from < 0 || to < 0) {
             return;
         }
-        console.log(from, to);
         const removed = sets.splice(from, 1)[0];
-        console.log(removed, sets);
         sets.splice(to, 0, removed);
         this._sets = sets;
-        console.log(this._sets);
 
         this._gearPlanTable.dataChanged();
     }
