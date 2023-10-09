@@ -23,4 +23,4 @@ jobs:
           npx webpack
           npm install -g less mocha
           lessc --source-map ./src/style.less dist/style.css
-          mocha build/test
+          ts-mocha src/scripts/test/*test.ts
