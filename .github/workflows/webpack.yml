@@ -29,9 +29,8 @@ jobs:
         run: |
           npm install
           npx webpack
-          npm install -g less ts-mocha
-          lessc --source-map ./src/style.less dist/style.css
-          ts-mocha src/scripts/test/*test.ts
+          npx lessc --source-map ./src/style.less dist/style.css
+          npx ts-mocha src/scripts/test/*test.ts
 
       - name: Setup Pages
         uses: actions/configure-pages@v3
