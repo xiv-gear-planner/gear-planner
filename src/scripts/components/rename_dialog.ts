@@ -57,19 +57,23 @@ class RenameModal extends HTMLElement {
         this.applyButton = document.createElement('button');
         this.applyButton.textContent = 'Apply';
         this.applyButton.type = 'submit';
-        this.applyButton.addEventListener('click', () => this.apply());
+        // this.applyButton.addEventListener('click', () => this.apply());
 
         this.cancelButton = document.createElement('button');
         this.cancelButton.textContent = 'Cancel';
         this.cancelButton.addEventListener('click', () => closeModal());
 
-        this.inner = quickElement('div', ['sheet-name-modal', 'modal-inner'],
-            [
-                this.header,
-                this.nameInput,
-                this.descriptionInput,
-                quickElement('div', ['button-area'], [this.applyButton, this.cancelButton])
+        const form = quickElement('form', ['modal-inner'], [
+            this.header,
+            this.nameInput,
+            this.descriptionInput,
+            quickElement('div', ['button-area'], [this.applyButton, this.cancelButton])
+        ]);
+        form.addEventListener('submit', () => this.apply());
 
+        this.inner = quickElement('div', ['sheet-name-modal'],
+            [
+                form
             ]);
         this.replaceChildren(this.inner);
     }

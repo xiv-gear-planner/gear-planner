@@ -383,7 +383,7 @@ export function labeledCheckbox(label: string, check: HTMLInputElement): HTMLDiv
     return div;
 }
 
-export function quickElement(tag: keyof HTMLElementTagNameMap, classes: string[], nodes: Node[]) {
+export function quickElement<X extends keyof HTMLElementTagNameMap>(tag: X, classes: string[], nodes: Node[]): HTMLElementTagNameMap[X] {
     const element = document.createElement(tag);
     element.replaceChildren(...nodes);
     element.classList.add(...classes);
