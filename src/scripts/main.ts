@@ -88,7 +88,7 @@ async function processHash() {
     }
     else {
         const mainNav = hash[0];
-        if (hash.length === 2 && mainNav === "sheet") {
+        if (hash.length >= 2 && mainNav === "sheet") {
             const sheetKey = hash[1];
             console.log("Loading: " + sheetKey);
             openSheetByKey(sheetKey);
@@ -101,27 +101,16 @@ async function processHash() {
                 showImportSheetForm();
             }
             else {
-                // TODO this is kind of bad
                 const json = hash.slice(1).join('/');
                 const parsed = JSON.parse(decodeURI(json)) as SheetExport;
-                const sheet = GearPlanSheet.fromExport(parsed);
-                if (mainNav === "viewsheet") {
-                    sheet.setViewOnly();
-                }
-                // sheet.name = SHARED_SET_NAME;
-                openSheet(sheet, false);
+                openExport(parsed, false, mainNav === "viewsheet");
             }
         }
         else if (mainNav === "importset" || mainNav === "viewset") {
             if (hash.length >= 2) {
                 const json = hash.slice(1).join('/');
                 const parsed = JSON.parse(decodeURI(json)) as SetExport;
-                const sheet = GearPlanSheet.fromSetExport(parsed);
-                if (mainNav === "viewset") {
-                    sheet.setViewOnly();
-                }
-                // sheet.name = SHARED_SET_NAME;
-                openSheet(sheet, false);
+                openExport(parsed, false, mainNav === "viewset");
             }
         }
         else if (mainNav === SHORTLINK_HASH) {
@@ -131,14 +120,8 @@ async function processHash() {
                     const resolved: string | null = await getShortLink(shortLink);
                     if (resolved) {
                         const json = JSON.parse(resolved);
-                        if (json['sets']) {
-                            goHash(VIEW_SHEET_HASH, resolved);
-                            return;
-                        }
-                        else {
-                            goHash('viewset', resolved);
-                            return;
-                        }
+                        openExport(json, false, true);
+                        return;
                     }
                     else {
                         console.error('Non-existent shortlink, or other error', shortLink);
@@ -161,14 +144,8 @@ async function processHash() {
                     const resolved: string | null = await getBisSheet(job as JobName, expac, sheetName);
                     if (resolved) {
                         const json = JSON.parse(resolved);
-                        if (json['sets']) {
-                            goHash('viewsheet', resolved);
-                            return;
-                        }
-                        else {
-                            goHash('viewset', resolved);
-                            return;
-                        }
+                        openExport(json, false, true);
+                        return;
                     }
                     else {
                         console.error('Non-existent bis, or other error', [job, expac, sheetName]);
@@ -249,12 +226,21 @@ export async function openSheetByKey(sheet: string) {
     }
 }
 
+export async function openExport(exported: (SheetExport | SetExport), changeHash: boolean, viewOnly: boolean) {
+    const sheet = 'sets' in exported ? GearPlanSheet.fromExport(exported) : GearPlanSheet.fromSetExport(exported);
+    if (viewOnly) {
+        sheet.setViewOnly();
+    }
+    // sheet.name = SHARED_SET_NAME;
+    openSheet(sheet, false);
+}
+
 export async function openSheet(planner: GearPlanSheet, changeHash: boolean = true) {
     setTitle('Loading Sheet');
     console.log('openSheet: ', planner.saveKey);
     document['planner'] = planner;
     if (changeHash) {
-        setHash("sheet", planner.saveKey);
+        setHash("sheet", planner.saveKey, "dont-copy-this-link", "use-the-export-button");
     }
     contentArea.replaceChildren(planner);
     const loadSheetPromise = planner.loadData().then(() => contentArea.replaceChildren(planner), (reason) => {

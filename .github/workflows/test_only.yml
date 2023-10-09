@@ -28,3 +28,4 @@ jobs:
           npx webpack
           npm install -g less
           lessc --source-map ./src/style.less dist/style.css
+          mocha build/test
