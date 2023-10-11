@@ -19,7 +19,8 @@
     "webpack-cli": "^5.1.4"
   },
   "scripts": {
-    "build": "webpack"
+    "build": "webpack --mode=development",
+    "buildprod": "webpack --mode=production"
   },
   "browser": {
     "[module-name]": false
