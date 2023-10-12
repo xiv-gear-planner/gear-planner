@@ -139,12 +139,11 @@ export class MchSim implements Simulation<MchSimResult, MchSettings, MchSettings
             - airAnchors
             - drills
 
-        const bsHeat = BARREL_STABILIZER_HEAT * (gcd / BASE_GCD)
         const fillersLostPerHC = (HEAT_BLASTS_PER_HC * HC_GCD) / gcd
 
         // Solve the expected amount of heat generated & used
         const heatExpression = nerdamer(`solve(
-            x = ${bsHeat} + ${HEATED_COMBO_HEAT} * (
+            x = ${BARREL_STABILIZER_HEAT} + ${HEATED_COMBO_HEAT} * (
                 ${maxFillers} - (${fillersLostPerHC} * (x / ${HYPERCHARGE_HEAT_COST}))
             )
         , x)`)
