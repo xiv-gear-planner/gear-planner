@@ -3,7 +3,6 @@ import { ComputedSetStats } from '../geartypes'
 import {SimResult, SimSettings, SimSpec, Simulation } from '../simulation'
 import { applyDhCrit, baseDamage } from '../xivmath'
 import { MCH_ACTIONS as ACTIONS, ALL_ACTIONS } from './actions'
-import nerdamer from 'nerdamer'
 
 // https://www.thebalanceffxiv.com/jobs/ranged/machinist/advanced-guide
 const BASE_GCD = 2.5
@@ -141,13 +140,9 @@ export class MchSim implements Simulation<MchSimResult, MchSettings, MchSettings
 
         const fillersLostPerHC = (HEAT_BLASTS_PER_HC * HC_GCD) / gcd
 
-        // Solve the expected amount of heat generated & used
-        const heatExpression = nerdamer(`solve(
-            x = ${BARREL_STABILIZER_HEAT} + ${HEATED_COMBO_HEAT} * (
-                ${maxFillers} - (${fillersLostPerHC} * (x / ${HYPERCHARGE_HEAT_COST}))
-            )
-        , x)`)
-        const heatGenerated = Number(heatExpression.toDecimal())
+        // Heat = 50 + 5(maxFillers - fillersLostPerHC(h / 50))
+        const heatGenerated = (BARREL_STABILIZER_HEAT + HEATED_COMBO_HEAT * maxFillers)
+            / (1 + (HEATED_COMBO_HEAT * fillersLostPerHC) / HYPERCHARGE_HEAT_COST)
 
         const heatBlasts = HEAT_BLASTS_PER_HC * (heatGenerated / HYPERCHARGE_HEAT_COST)
         const fillers = maxFillers - ((heatBlasts / 5) * fillersLostPerHC)
