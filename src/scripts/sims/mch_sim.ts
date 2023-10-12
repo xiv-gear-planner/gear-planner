@@ -1,7 +1,7 @@
 import { CharacterGearSet } from '../gear'
 import { ComputedSetStats } from '../geartypes'
 import {SimResult, SimSettings, SimSpec, Simulation } from '../simulation'
-import { baseDamage } from '../xivmath'
+import { applyDhCrit, baseDamage } from '../xivmath'
 import { MCH_ACTIONS as ACTIONS, ALL_ACTIONS } from './actions'
 import nerdamer from 'nerdamer'
 
@@ -89,7 +89,9 @@ export class MchSim implements Simulation<MchSimResult, MchSettings, MchSettings
         // TODO: Auto damage formula NYI (?)
         const autoDamage = baseDamage(stats, this.autoPotencyPerCycle(), 'Auto-attack')
 
-        return gcdDamage + wfDamage + reassembleDamage + ogcdDamage + autoDamage
+        return applyDhCrit(gcdDamage + ogcdDamage + autoDamage, stats)
+            + wfDamage
+            + reassembleDamage
     }
 
     // Total potency dealt in an average two minute cycle (infinite duration)
