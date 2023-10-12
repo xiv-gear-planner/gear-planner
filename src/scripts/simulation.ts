@@ -2,10 +2,10 @@ import {CharacterGearSet} from "./gear";
 import {JobName, SupportedLevel} from "./xivconstants";
 import {whmSheetSpec} from "./sims/whm_sheet_sim";
 import {sgeSheetSpec} from "./sims/sge_sheet_sim";
+import {mchSpec} from './sims/mch_sim'
 import {potRatioSimSpec} from "./sims/potency_ratio";
 import {CustomTable} from "./tables";
 import {camel2title} from "./util/strutils";
-import { mchSpec } from './sims/mch_sim'
 
 export interface SimResult {
     mainDpsResult: number;
