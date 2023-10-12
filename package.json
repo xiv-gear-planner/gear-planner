@@ -2,7 +2,9 @@
   "name": "gearplan",
   "version": "1.0.0",
   "dependencies": {
-    "@webcomponents/webcomponentsjs": "^2.8.0"
+    "@webcomponents/webcomponentsjs": "^2.8.0",
+    "nerdamer": "^1.1.13",
+    "typescript": "^5.2.2"
   },
   "devDependencies": {
     "@types/expect": "^24.3.0",
