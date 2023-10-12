@@ -178,7 +178,7 @@ export class MchSim implements Simulation<MchSimResult, MchSettings, MchSettings
     private reassembleDamagePerCycle(stats: ComputedSetStats): number {
         const uses = 120 / ACTIONS.REASSEMBLE.cooldown
         const reassembledToolDamage = baseDamage(stats, ACTIONS.DRILL.potency, "Weaponskill", true, true)
-        const normalToolDamage = baseDamage(stats, ACTIONS.DRILL.potency, "Weaponskill")
+        const normalToolDamage = applyDhCrit(baseDamage(stats, ACTIONS.DRILL.potency, "Weaponskill"), stats)
 
         return uses * (reassembledToolDamage - normalToolDamage)
     }
