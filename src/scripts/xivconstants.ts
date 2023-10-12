@@ -104,7 +104,10 @@ const STANDARD_MELEE: JobDataConst = {
 const STANDARD_RANGED: JobDataConst = {
     role: 'Ranged',
     mainStat: 'dexterity',
-    irrelevantSubstats: ['spellspeed', 'tenacity', 'piety']
+    irrelevantSubstats: ['spellspeed', 'tenacity', 'piety'],
+    traitMulti: (level, attackType) => ['Weaponskill', 'Ability'].includes(attackType)
+        ? 1.2
+        : 1
 } as const;
 
 const STANDARD_CASTER: JobDataConst = {
