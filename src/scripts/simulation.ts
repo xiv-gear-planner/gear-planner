@@ -5,6 +5,7 @@ import {sgeSheetSpec} from "./sims/sge_sheet_sim";
 import {potRatioSimSpec} from "./sims/potency_ratio";
 import {CustomTable} from "./tables";
 import {camel2title} from "./util/strutils";
+import {sgeNewSheetSpec} from "./sims/sge_sheet_sim_mk2";
 
 export interface SimResult {
     mainDpsResult: number;
@@ -176,3 +177,4 @@ export interface SimCurrentResult<X extends SimResult> {
 registerSim(potRatioSimSpec);
 registerSim(whmSheetSpec);
 registerSim(sgeSheetSpec);
+registerSim(sgeNewSheetSpec);

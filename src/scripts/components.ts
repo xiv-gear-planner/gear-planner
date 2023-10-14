@@ -578,13 +578,19 @@ export class SimResultMiniDisplay extends HTMLElement {
 
     update() {
         if (this._result.status === 'Done') {
-            this.textContent = this._result.result.mainDpsResult.toFixed(2);
+            const result = this._result.result;
+            if (result === undefined) {
+                console.error("Result was undefined");
+                this.textContent = "Error!";
+                return;
+            }
+            this.textContent = result.mainDpsResult.toFixed(2);
             let tooltip: string;
             if (this.sim.makeToolTip) {
                 tooltip = this.sim.makeToolTip(this._result);
             }
             else {
-                tooltip = Object.entries(this._result.result).map(entry => `${camel2title(entry[0])}: ${entry[1]}`)
+                tooltip = Object.entries(result).map(entry => `${camel2title(entry[0])}: ${entry[1]}`)
                     .join('\n');
             }
             this.setAttribute('title', tooltip);
