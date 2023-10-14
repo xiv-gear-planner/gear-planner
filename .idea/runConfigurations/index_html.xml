@@ -1,7 +1,5 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="index.html" type="JavascriptDebugType" nameIsGenerated="true" uri="http://localhost:63342/gearplan/src/index.html" useBuiltInWebServerPort="true">
-    <method v="2">
-      <option name="RunConfigurationTask" enabled="true" run_configuration_name="build" run_configuration_type="js.build_tools.npm" />
-    </method>
+    <method v="2" />
   </configuration>
 </component>
