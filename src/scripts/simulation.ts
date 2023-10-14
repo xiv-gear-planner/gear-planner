@@ -2,6 +2,7 @@ import {CharacterGearSet} from "./gear";
 import {JobName, SupportedLevel} from "./xivconstants";
 import {whmSheetSpec} from "./sims/whm_sheet_sim";
 import {sgeSheetSpec} from "./sims/sge_sheet_sim";
+import {mchSpec} from './sims/mch_sim'
 import {potRatioSimSpec} from "./sims/potency_ratio";
 import {CustomTable} from "./tables";
 import {camel2title} from "./util/strutils";
@@ -176,3 +177,4 @@ export interface SimCurrentResult<X extends SimResult> {
 registerSim(potRatioSimSpec);
 registerSim(whmSheetSpec);
 registerSim(sgeSheetSpec);
+registerSim(mchSpec);
