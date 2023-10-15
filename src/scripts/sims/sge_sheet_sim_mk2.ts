@@ -3,11 +3,11 @@ import {CharacterGearSet} from "../gear";
 import {ComputedSetStats} from "../geartypes";
 
 import {quickElement} from "../components/util";
-import {Chain, Devilment, Litany, Mug} from "./buffs";
 import {CustomTable, HeaderRow} from "../tables";
 import {Ability, Buff, UsedAbility} from "./sim_types";
 import {CycleProcessor} from "./sim_processors";
 import {sum} from "../util/array_utils";
+import {BuffSettingsArea, BuffSettingsExport, BuffSettingsManager} from "./party_comp_settings";
 
 
 /**
@@ -72,21 +72,23 @@ export interface SgeSheetSimResult extends SimResult {
     unbuffedPps: number
 }
 
-export interface SgeSheetSettings extends SimSettings {
-    hasBard: boolean,
-    hasScholar: boolean,
-    hasDragoon: boolean,
+interface SgeNewSheetSettings extends SimSettings {
     rezPerMin: number,
     diagPerMin: number,
     progPerMin: number,
     eDiagPerMin: number,
     eProgPerMin: number,
     toxPerMin: number
+
 }
 
-export const sgeNewSheetSpec: SimSpec<SgeSheetSim, SgeSheetSettings> = {
+export interface SgeNewSheetSettingsExternal extends SgeNewSheetSettings {
+    buffConfig: BuffSettingsExport;
+}
+
+export const sgeNewSheetSpec: SimSpec<SgeSheetSim, SgeNewSheetSettingsExternal> = {
     displayName: "SGE Sim Mk.II",
-    loadSavedSimInstance(exported: SgeSheetSettings) {
+    loadSavedSimInstance(exported: SgeNewSheetSettingsExternal) {
         return new SgeSheetSim(exported);
     },
     makeNewSimInstance(): SgeSheetSim {
@@ -96,16 +98,16 @@ export const sgeNewSheetSpec: SimSpec<SgeSheetSim, SgeSheetSettings> = {
     supportedJobs: ['SGE'],
 }
 
-export class SgeSheetSim implements Simulation<SgeSheetSimResult, SgeSheetSettings, SgeSheetSettings> {
+export class SgeSheetSim implements Simulation<SgeSheetSimResult, SgeNewSheetSettings, SgeNewSheetSettingsExternal> {
 
-    exportSettings(): SgeSheetSettings {
-        return {...this.settings};
+    exportSettings(): SgeNewSheetSettingsExternal {
+        return {
+            buffConfig: this.buffManager.exportSetting(),
+            ...this.settings
+        };
     };
 
-    settings: SgeSheetSettings = {
-        hasBard: true,
-        hasScholar: true,
-        hasDragoon: true,
+    settings: SgeNewSheetSettings = {
         rezPerMin: 0,
         diagPerMin: 0,
         progPerMin: 0,
@@ -113,22 +115,26 @@ export class SgeSheetSim implements Simulation<SgeSheetSimResult, SgeSheetSettin
         eProgPerMin: 0, // TODO: pick reasonable defaults
         toxPerMin: 0
     };
+    readonly buffManager: BuffSettingsManager;
 
     spec = sgeNewSheetSpec;
     displayName = "SGE Sim Mk.II";
     shortName = "sge-new-sheet-sim";
 
-    constructor(settings?: SgeSheetSettings) {
+    constructor(settings?: SgeNewSheetSettingsExternal) {
         if (settings) {
-            console.log("Loading sim settings", settings)
             Object.assign(this.settings, settings);
+            this.buffManager = new BuffSettingsManager(settings.buffConfig);
+        }
+        else {
+            this.buffManager = new BuffSettingsManager();
         }
     }
 
     // TODO
-    makeConfigInterface(settings: SgeSheetSettings): HTMLElement {
+    makeConfigInterface(settings: SgeNewSheetSettingsExternal, updateCallback: () => void): HTMLElement {
         const div = document.createElement("div");
-        div.textContent = 'Under construction';
+        div.appendChild(new BuffSettingsArea(this.buffManager, updateCallback));
         // const brdCheck = new FieldBoundCheckBox<SgeSheetSettings>(settings, 'hasBard', {id: 'brd-checkbox'});
         // div.appendChild(labeledCheckbox('BRD in Party', brdCheck));
         // const schCheck = new FieldBoundCheckBox<SgeSheetSettings>(settings, 'hasScholar', {id: 'sch-checkbox'});
@@ -143,7 +149,9 @@ export class SgeSheetSim implements Simulation<SgeSheetSimResult, SgeSheetSettin
             mainDpsResult: result.mainDpsResult,
             unbuffedPps: result.unbuffedPps
         });
+        mainResultsTable.classList.add('main-results-table');
         const abilitiesUsedTable = new CustomTable<UsedAbility>();
+        abilitiesUsedTable.classList.add('abilities-used-table');
         abilitiesUsedTable.columns = [
             {
                 shortName: 'time',
@@ -199,7 +207,8 @@ export class SgeSheetSim implements Simulation<SgeSheetSimResult, SgeSheetSettin
     }
 
     async simulate(set: CharacterGearSet): Promise<SgeSheetSimResult> {
-        const ctx = new SgeSimContext(set.computedStats, [Mug, Litany, Chain, Devilment]);
+        const allBuffs = this.buffManager.enabledBuffs;
+        const ctx = new SgeSimContext(set.computedStats, allBuffs);
         return ctx.getResult();
     }
 

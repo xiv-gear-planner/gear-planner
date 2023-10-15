@@ -559,9 +559,11 @@ table.gear-plan-table {
         min-width: 70px;
       }
     }
+
     &.dragging {
       z-index: var(--zi-sets-table-dragging-row);
       pointer-events: none;
+
       td {
         border-top: var(--standard-border) inset;
       }
@@ -575,6 +577,7 @@ table.gear-plan-table {
         display: block;
         text-overflow: ellipsis;
         overflow: hidden;
+
         &:last-child {
           .text-deemphasise;
         }
@@ -584,6 +587,7 @@ table.gear-plan-table {
     div.chance-stat-display, div.multiplier-stat-display {
       span {
         display: block;
+
         &:first-child {
           text-align: center;
         }
@@ -1339,10 +1343,12 @@ input.gear-items-table-relic-stat-input {
 
 rename-dialog {
   .modal-dialog;
+
   textarea {
     margin: 10px;
     resize: none;
   }
+
   .modal-inner > * {
     display: block;
     margin-left: auto;
@@ -1423,6 +1429,30 @@ table.food-items-table {
   }
 
 }
+.round-table {
+
+  tbody {
+    th:first-child, tr:first-child {
+      td:first-child, th:first-child {
+        border-top-left-radius: var(--standard-border-radius);
+      }
+
+      td:last-child, th:last-child {
+        border-top-right-radius: var(--standard-border-radius);
+      }
+    }
+
+    th:last-child, tr:last-child {
+      td:first-child, th:first-child {
+        border-bottom-left-radius: var(--standard-border-radius);
+      }
+
+      td:last-child, th:last-child {
+        border-bottom-right-radius: var(--standard-border-radius);
+      }
+    }
+  }
+}
 
 gear-set-viewer {
   //.left-side-gear-table, .right-side-gear-table {
@@ -1487,24 +1517,7 @@ gear-set-viewer {
   }
 
   .gear-items-view-table, .food-view-table {
-    tbody {
-      tr:first-child {
-        td:first-child, th:first-child {
-          border-top-left-radius: var(--standard-border-radius);
-        }
-        td:last-child, th:last-child {
-          border-top-right-radius: var(--standard-border-radius);
-        }
-      }
-      tr:last-child {
-        td:first-child, th:first-child {
-          border-bottom-left-radius: var(--standard-border-radius);
-        }
-        td:last-child, th:last-child {
-          border-bottom-right-radius: var(--standard-border-radius);
-        }
-      }
-    }
+    .round-table;
   }
 }
 
@@ -1638,10 +1651,12 @@ div#welcome-message {
     font-size: 30px;
     height: fit-content;
   }
+
   h1 {
     text-align: center;
     margin: auto;
   }
+
   li {
     margin-top: 4px;
     margin-bottom: 4px;
@@ -1650,7 +1665,8 @@ div#welcome-message {
   a:link, a:visited, a:active {
     color: var(--plain-link-color);
   }
-  a:hover  {
+
+  a:hover {
     color: var(--plain-link-hover-color);
   }
 }
@@ -1666,4 +1682,83 @@ span.like-a-button {
 
 .drag-handle {
   cursor: grab;
+}
+
+buff-settings-area {
+  .standard-round-border;
+
+  table {
+    border: none;
+
+    tr {
+      background-color: transparent;
+      //border-bottom: var(--standard-border);
+
+      td {
+        border: none;
+        border-top: var(--standard-border);
+
+        &:last-child {
+          border-right: none;
+        }
+      }
+    }
+
+    tr:last-child {
+      border-bottom: none;
+    }
+  }
+}
+
+.cycle-sim-results-table {
+  width: 100%;
+
+  > table {
+    margin: auto;
+
+    .round-table;
+
+  }
+
+  .main-results-table {
+    margin-bottom: 20px;
+  }
+
+  .abilities-used-table {
+
+    th {
+      text-align: center;
+    }
+
+    td {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      &[col-id='time'] {
+        text-align: right;
+      }
+    }
+    td, th {
+      &[col-id='time'] {
+        width: 75px;
+        max-width: 75px;
+      }
+      &[col-id='ability'] {
+        width: 150px;
+        max-width: 150px;
+      }
+      &[col-id='unbuffed-pot'] {
+        width: 30px;
+        max-width: 30px;
+      }
+      &[col-id='expected-damage'] {
+        width: 100px;
+        max-width: 100px;
+      }
+      &[col-id='buffs'] {
+        width: 400px;
+        max-width: 400px;
+      }
+    }
+  }
 }

@@ -53,7 +53,7 @@ export type BuffEffects = {
     dhitChanceIncrease?: number,
 }
 
-export type Buff = {
+export type Buff = Readonly<{
     // Name of buff
     name: string,
     // Job of buff
@@ -69,4 +69,4 @@ export type Buff = {
     duration: number,
     // The effect(s) of the buff
     effects: BuffEffects;
-}
+}>;

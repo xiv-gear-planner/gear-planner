@@ -83,7 +83,6 @@ import {SetViewToolbar} from "./components/totals_display";
 import {MateriaTotalsDisplay} from "./components/materia";
 import {startRenameSet, startRenameSheet} from "./components/rename_dialog";
 import {installDragHelper} from "./components/draghelpers";
-import doc = Mocha.reporters.doc;
 
 export const SHARED_SET_NAME = 'Imported Set';
 
@@ -233,6 +232,15 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
     }
 
     simsChanged() {
+        // If we are deleting a sim, need to deselect it
+        const curSelection = this.selectionModel.getSelection();
+        if (curSelection instanceof CustomColumn) {
+            const selectedItem = curSelection.dataValue;
+            if ('simulate' in selectedItem && !this.sims.includes(selectedItem)) {
+                this.selectionModel.clearSelection();
+            }
+        }
+        // TODO: also select a new sim when adding it
         this.setupColumns();
     }
 

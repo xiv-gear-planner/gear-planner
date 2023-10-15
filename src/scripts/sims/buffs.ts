@@ -1,7 +1,7 @@
 import {Buff} from "./sim_types";
 
 
-export const Mug: Buff = {
+export const Mug = {
     name: "Mug",
     job: "NIN",
     duration: 20,
@@ -9,19 +9,19 @@ export const Mug: Buff = {
     effects: {
         dmgIncrease: 0.05
     },
-}
+} as const satisfies Buff;
 
-export const Litany: Buff = {
+export const Litany = {
     name: "Battle Litany",
-    job:"DRG",
+    job: "DRG",
     duration: 15,
     cooldown: 120,
     effects: {
         critChanceIncrease: 0.10
     }
-}
+} as const satisfies Buff;
 
-export const DragonSight: Buff = {
+export const DragonSight = {
     name: "Dragon Sight (Other)",
     job: "DRG",
     duration: 20,
@@ -29,9 +29,9 @@ export const DragonSight: Buff = {
     effects: {
         dmgIncrease: 0.05
     }
-}
+} as const satisfies Buff;
 
-export const Chain: Buff = {
+export const Chain = {
     name: "Chain",
     job: "SCH",
     duration: 15,
@@ -39,9 +39,9 @@ export const Chain: Buff = {
     effects: {
         critChanceIncrease: 0.10
     }
-}
+} as const satisfies Buff;
 
-export const Devilment: Buff = {
+export const Devilment = {
     name: "Devilment",
     job: "DNC",
     duration: 20,
@@ -50,9 +50,9 @@ export const Devilment: Buff = {
     effects: {
         dhitChanceIncrease: 0.20,
     }
-}
+} as const satisfies Buff;
 
-export const StandardFinish: Buff = {
+export const StandardFinish = {
     name: "Standard Finish",
     job: "DNC",
     duration: 20,
@@ -61,9 +61,9 @@ export const StandardFinish: Buff = {
     effects: {
         dmgIncrease: 0.05,
     }
-}
+} as const satisfies Buff;
 
-export const TechnicalFinish: Buff = {
+export const TechnicalFinish = {
     name: "Technical Finish",
     job: "DNC",
     duration: 20,
@@ -71,5 +71,10 @@ export const TechnicalFinish: Buff = {
     effects: {
         dmgIncrease: 0.05,
     }
-}
+} as const satisfies Buff;
 
+export const ALL_BUFFS = [
+    Mug, Litany, DragonSight, Chain, Devilment, StandardFinish, TechnicalFinish
+] as const;
+
+export type BuffName = typeof ALL_BUFFS[number]['name'];

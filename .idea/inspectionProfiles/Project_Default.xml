@@ -10,7 +10,7 @@
     <inspection_tool class="HtmlUnknownTag" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="myValues">
         <value>
-          <list size="29">
+          <list size="30">
             <item index="0" class="java.lang.String" itemvalue="nobr" />
             <item index="1" class="java.lang.String" itemvalue="noembed" />
             <item index="2" class="java.lang.String" itemvalue="comment" />
@@ -40,6 +40,7 @@
             <item index="26" class="java.lang.String" itemvalue="materia-count-display" />
             <item index="27" class="java.lang.String" itemvalue="materia-totals-display" />
             <item index="28" class="java.lang.String" itemvalue="rename-dialog" />
+            <item index="29" class="java.lang.String" itemvalue="buff-settings-area" />
           </list>
         </value>
       </option>
@@ -49,6 +50,7 @@
     <inspection_tool class="JSEqualityComparisonWithCoercion.TS" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="mySeverity" value="OnlySuspicious" />
     </inspection_tool>
+    <inspection_tool class="JSUnusedLocalSymbols" enabled="true" level="WEAK WARNING" enabled_by_default="true" editorAttributes="INFO_ATTRIBUTES" />
     <inspection_tool class="NonBlockStatementBodyJS" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="PlatformDetectionJS" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="PointlessBitwiseExpressionJS" enabled="true" level="WARNING" enabled_by_default="true">

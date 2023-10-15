@@ -1,8 +1,6 @@
 
 import * as assert from "assert";
 import * as fs from "fs";
-import {GearPlanSheet, GearPlanTable} from "../components";
-import doc = Mocha.reporters.doc;
 
 const jsdom = require("jsdom");
 const {JSDOM} = jsdom;

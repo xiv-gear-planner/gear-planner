@@ -84,16 +84,22 @@ export class CycleProcessor {
         }
     }
 }
-export function abilityToDamage(stats: ComputedSetStats, ability: Ability, buffs: Buff[], portion: number = 1): ComputedDamage {
-    const basePot = ability.potency;
-    const combinedEffects: BuffEffects = {
-        dmgIncrease: 1,
+
+export type CombinedBuffEffect = {
+    dmgMod: number,
+    critChanceIncrease: number,
+    dhitChanceIncrease: number
+}
+
+export function combineBuffEffects(buffs: Buff[]): CombinedBuffEffect {
+    const combinedEffects: CombinedBuffEffect = {
+        dmgMod: 1,
         critChanceIncrease: 0,
         dhitChanceIncrease: 0
     }
     for (let buff of buffs) {
         if (buff.effects.dmgIncrease) {
-            combinedEffects.dmgIncrease *= buff.effects.dmgIncrease;
+            combinedEffects.dmgMod *= (1 + buff.effects.dmgIncrease);
         }
         if (buff.effects.critChanceIncrease) {
             combinedEffects.critChanceIncrease += buff.effects.critChanceIncrease;
@@ -102,12 +108,18 @@ export function abilityToDamage(stats: ComputedSetStats, ability: Ability, buffs
             combinedEffects.dhitChanceIncrease += buff.effects.dhitChanceIncrease;
         }
     }
+    return combinedEffects;
+}
+
+export function abilityToDamage(stats: ComputedSetStats, ability: Ability, buffs: Buff[], portion: number = 1): ComputedDamage {
+    const basePot = ability.potency;
+    const combinedEffects: CombinedBuffEffect = combineBuffEffects(buffs);
     const modifiedStats = {...stats};
     modifiedStats.critChance += combinedEffects.critChanceIncrease;
     modifiedStats.dhitChance += combinedEffects.dhitChanceIncrease;
     const nonCritDmg = baseDamage(modifiedStats, basePot, ability.attackType, ability.autoDh ?? false, ability.autoCrit ?? false);
     const afterCritDh = applyDhCrit(nonCritDmg, modifiedStats);
-    const afterDmgBuff = afterCritDh * combinedEffects.dmgIncrease;
+    const afterDmgBuff = afterCritDh * combinedEffects.dmgMod;
     const afterPortion = afterDmgBuff * portion;
     return {
         expected: afterPortion

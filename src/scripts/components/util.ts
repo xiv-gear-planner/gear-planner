@@ -56,10 +56,12 @@ export function labelFor(label: string, labelFor: HTMLElement) {
     return element;
 }
 
+type BooleanListener = (value: boolean) => void;
+
 export class FieldBoundCheckBox<ObjType> extends HTMLInputElement {
 
     reloadValue: () => void;
-    listeners: ((value: boolean) => void)[] = [];
+    listeners: (BooleanListener)[] = [];
 
     constructor(obj: ObjType, field: { [K in keyof ObjType]: ObjType[K] extends boolean ? K : never }[keyof ObjType], extraArgs: {
         id?: string
@@ -86,6 +88,15 @@ export class FieldBoundCheckBox<ObjType> extends HTMLInputElement {
                 }
             }
         })
+    }
+
+    addListener(listener: BooleanListener) {
+        this.listeners.push(listener);
+    }
+
+    addAndRunListener(listener: BooleanListener) {
+        this.listeners.push(listener);
+        listener(this.checked);
     }
 }
 
