@@ -83,6 +83,7 @@ import {SetViewToolbar} from "./components/totals_display";
 import {MateriaTotalsDisplay} from "./components/materia";
 import {startRenameSet, startRenameSheet} from "./components/rename_dialog";
 import {installDragHelper} from "./components/draghelpers";
+import doc = Mocha.reporters.doc;
 
 export const SHARED_SET_NAME = 'Imported Set';
 
@@ -271,7 +272,14 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                 getter: gearSet => this.sheet.getSimResult(sim, gearSet),
                 renderer: result => new SimResultMiniDisplay(this, sim, result),
                 allowHeaderSelection: true,
-                allowCellSelection: true
+                allowCellSelection: true,
+                // TODO: this is ugly
+                // headerStyler: (value, colHeader) => {
+                //     const span = document.createElement('span');
+                //     span.textContent = 'Click for Settings';
+                //     span.classList.add('header-cell-detail');
+                //     colHeader.append(span);
+                // }
             }
         });
 

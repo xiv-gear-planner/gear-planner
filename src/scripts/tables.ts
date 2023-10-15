@@ -23,6 +23,9 @@ export class CustomTableHeaderCell<RowDataType, CellDataType, ColumnDataType> ex
         this.appendChild(this.span);
         this.setName();
         setCellProps(this, columnDef);
+        if (columnDef.headerStyler) {
+            columnDef.headerStyler(columnDef.dataValue, this);
+        }
         this.refreshSelection();
     }
 
@@ -436,6 +439,7 @@ export interface CustomColumnSpec<RowDataType, CellDataType = string, ColumnData
     initialWidth?: number | undefined;
     fixedWidth?: number | undefined;
     dataValue?: ColumnDataType;
+    headerStyler?: (value: ColumnDataType, colHeader: CustomTableHeaderCell<RowDataType, CellDataType, ColumnDataType>) => void;
 }
 
 export class CustomColumn<RowDataType, CellDataType = string, ColumnDataType = any> {
@@ -472,6 +476,7 @@ export class CustomColumn<RowDataType, CellDataType = string, ColumnDataType = a
     initialWidth?: number | undefined = undefined;
     fixedWidth?: number | undefined = undefined;
     dataValue?: ColumnDataType;
+    headerStyler?: (value: ColumnDataType, colHeader: CustomTableHeaderCell<RowDataType, CellDataType, ColumnDataType>) => void;
 }
 
 export class CustomRow<RowDataType> extends HTMLTableRowElement implements RefreshableRow<RowDataType> {

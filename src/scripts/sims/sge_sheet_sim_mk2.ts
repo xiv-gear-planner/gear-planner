@@ -85,7 +85,7 @@ export interface SgeSheetSettings extends SimSettings {
 }
 
 export const sgeNewSheetSpec: SimSpec<SgeSheetSim, SgeSheetSettings> = {
-    displayName: "SGE Sheet Sim Mk.II",
+    displayName: "SGE Sim Mk.II",
     loadSavedSimInstance(exported: SgeSheetSettings) {
         return new SgeSheetSim(exported);
     },
@@ -115,7 +115,7 @@ export class SgeSheetSim implements Simulation<SgeSheetSimResult, SgeSheetSettin
     };
 
     spec = sgeNewSheetSpec;
-    displayName = "SGE Sheet Sim Mk.II";
+    displayName = "SGE Sim Mk.II";
     shortName = "sge-new-sheet-sim";
 
     constructor(settings?: SgeSheetSettings) {
@@ -128,6 +128,7 @@ export class SgeSheetSim implements Simulation<SgeSheetSimResult, SgeSheetSettin
     // TODO
     makeConfigInterface(settings: SgeSheetSettings): HTMLElement {
         const div = document.createElement("div");
+        div.textContent = 'Under construction';
         // const brdCheck = new FieldBoundCheckBox<SgeSheetSettings>(settings, 'hasBard', {id: 'brd-checkbox'});
         // div.appendChild(labeledCheckbox('BRD in Party', brdCheck));
         // const schCheck = new FieldBoundCheckBox<SgeSheetSettings>(settings, 'hasScholar', {id: 'sch-checkbox'});
