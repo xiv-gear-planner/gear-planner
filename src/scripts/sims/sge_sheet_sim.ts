@@ -74,7 +74,6 @@ export class SgeSheetSim implements Simulation<SgeSheetSimResult, SgeSheetSettin
 
     constructor(settings?: SgeSheetSettings) {
         if (settings) {
-            console.log("Loading sim settings", settings)
             Object.assign(this.settings, settings);
         }
     }
@@ -105,7 +104,6 @@ export class SgeSheetSim implements Simulation<SgeSheetSimResult, SgeSheetSettin
         buffedStats.dhitChance += this.extraDhRate();
         buffedStats.critChance += this.extraCritRate();
         const ppsFinalResult = this.pps(buffedStats);
-        // console.log(ppsFinalResult);
         const resultWithoutDhCrit = baseDamage(buffedStats, ppsFinalResult);
         const result = applyDhCrit(resultWithoutDhCrit, buffedStats);
         // Uncomment to test async logic
@@ -150,7 +148,6 @@ export class SgeSheetSim implements Simulation<SgeSheetSimResult, SgeSheetSettin
             result += 6 * ((3 - (30 % shortGcd)) / 3) * spsScalar * edosis3tickPot
         }
         result -= filler * dosis3pot * cycle / 60
-        console.info("GCD: " + shortGcd + " Potency: " + result)
         return result
     }
 
@@ -190,7 +187,6 @@ export class SgeSheetSim implements Simulation<SgeSheetSimResult, SgeSheetSettin
         else {
             result += 6 * (Math.floor((27.5) / (shortGcd)) * (shortGcd) + 2.5)
         }
-        console.info("GCD: " + shortGcd + " Cycle: " + result)
         return result;
     }
 
