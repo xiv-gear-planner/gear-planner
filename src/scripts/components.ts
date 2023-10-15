@@ -289,15 +289,18 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                     const dragger = document.createElement('button');
                     dragger.textContent = '≡';
                     dragger.classList.add('drag-handle');
+                    let rowBeingDragged: null | CustomRow<CharacterGearSet> = null;
+                    let lastDelta: number = 0;
                     installDragHelper({
                         dragHandle: dragger,
                         dragOuter: outer,
-                        moveHandler: (ev) => {
+                        downHandler: (ev) => {
                             let target = ev.target;
                             while (target) {
                                 if (target instanceof CustomRow) {
-                                    const toIndex = this.sheet.sets.indexOf(target.dataItem);
-                                    this.sheet.reorderSet(gearSet, toIndex);
+                                    console.log('Drag start: ' + target);
+                                    rowBeingDragged = target;
+                                    rowBeingDragged.classList.add('dragging');
                                     return;
                                 }
                                 else {
@@ -305,9 +308,35 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                                     target = target.parentElement;
                                 }
                             }
+                            rowBeingDragged = null;
+                        },
+                        moveHandler: (ev) => {
+                            let target = ev.target;
+                            while (target) {
+                                if (target instanceof CustomRow) {
+                                    const toIndex = this.sheet.sets.indexOf(target.dataItem);
+                                    this.sheet.reorderSet(gearSet, toIndex);
+                                    break;
+                                }
+                                else {
+                                    // @ts-ignore
+                                    target = target.parentElement;
+                                }
+                            }
+                            if (rowBeingDragged) {
+                                const rect = rowBeingDragged.getBoundingClientRect();
+                                const delta = ev.pageY - (rect.y - lastDelta) - (rect.height / 2);
+                                lastDelta = delta;
+                                console.log(delta);
+                                rowBeingDragged.style.top = `${delta}px`;
+                            }
                         },
                         upHandler: () => {
                             this.sheet.requestSave();
+                            lastDelta = 0;
+                            rowBeingDragged.style.top = '';
+                            rowBeingDragged.classList.remove('dragging');
+                            rowBeingDragged = null;
                         }
                     })
                     div.appendChild(dragger);

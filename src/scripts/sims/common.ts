@@ -1,5 +1,5 @@
 import {JobName} from "../xivconstants";
-import {Buff} from "./buffs";
+import {Buff} from "./sim_types";
 
 export type BuffSettings = {
     jobs: JobName[],

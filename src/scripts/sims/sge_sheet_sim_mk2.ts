@@ -1,32 +1,14 @@
 import {simpleAutoResultTable, SimResult, SimSettings, SimSpec, Simulation} from "../simulation";
 import {CharacterGearSet} from "../gear";
-import {applyDhCrit, baseDamage} from "../xivmath";
-import {AttackType, ComputedSetStats} from "../geartypes";
+import {ComputedSetStats} from "../geartypes";
 
 import {quickElement} from "../components/util";
-import {Buff, BuffEffects, Chain, Devilment, Litany, Mug} from "./buffs";
+import {Chain, Devilment, Litany, Mug} from "./buffs";
 import {CustomTable, HeaderRow} from "../tables";
-import doc = Mocha.reporters.doc;
+import {Ability, Buff, UsedAbility} from "./sim_types";
+import {CycleProcessor} from "./sim_processors";
+import {sum} from "../util/array_utils";
 
-/**
- * Represents an ability you can use
- */
-type Ability = {
-    name: string,
-    potency: number,
-    attackType: AttackType,
-    /**
-     * If the ability's GCD can be lowered by sps/sks, put it here.
-     */
-    gcd?: number,
-    /**
-     * If the ability takes a fixed amount of time, rather than being reduced by sps/sks,
-     * put it here.
-     */
-    fixedGcd?: number,
-    autoCrit?: boolean,
-    autoDh?: boolean
-}
 
 /**
  * Used for all 330p filler abilities
@@ -48,145 +30,6 @@ const phlegma: Ability = {
     name: "Phlegma",
     potency: 600,
     attackType: "Spell"
-}
-
-type ComputedDamage = {
-    expected: number
-}
-
-/**
- * Represents an ability actually being used
- */
-type UsedAbility = {
-    ability: Ability,
-    buffs: Buff[],
-    usedAt: number,
-    damage: ComputedDamage
-}
-
-/**
- * Represents a pseudo-ability used to round out a cycle to exactly 120s.
- *
- * e.g. If our last GCD of the 120s cycle would start at 118.9s, then we do not have enough time
- * remaining for an entire GCD. Thus, we would have a PartialAbility with portion = (1.1s / 2.5s)
- *
- */
-type PartiallyUsedAbility = UsedAbility & {
-    portion: number
-}
-
-function abilityToDamage(stats: ComputedSetStats, ability: Ability, buffs: Buff[], portion: number = 1): ComputedDamage {
-    const basePot = ability.potency;
-    const combinedEffects: BuffEffects = {
-        dmgIncrease: 1,
-        critChanceIncrease: 0,
-        dhitChanceIncrease: 0
-    }
-    for (let buff of buffs) {
-        if (buff.effects.dmgIncrease) {
-            combinedEffects.dmgIncrease *= buff.effects.dmgIncrease;
-        }
-        if (buff.effects.critChanceIncrease) {
-            combinedEffects.critChanceIncrease += buff.effects.critChanceIncrease;
-        }
-        if (buff.effects.dhitChanceIncrease) {
-            combinedEffects.dhitChanceIncrease += buff.effects.dhitChanceIncrease;
-        }
-    }
-    const modifiedStats = {...stats};
-    modifiedStats.critChance += combinedEffects.critChanceIncrease;
-    modifiedStats.dhitChance += combinedEffects.dhitChanceIncrease;
-    const nonCritDmg = baseDamage(modifiedStats, basePot, ability.attackType, ability.autoDh ?? false, ability.autoCrit ?? false);
-    const afterCritDh = applyDhCrit(nonCritDmg, modifiedStats);
-    const afterDmgBuff = afterCritDh * combinedEffects.dmgIncrease;
-    const afterPortion = afterDmgBuff * portion;
-    return {
-        expected: afterPortion
-    }
-
-}
-
-class CycleProcessor {
-
-    currentTime: number = 0;
-    startOfBuffs: number | null = null;
-    gcdBase: number;
-    usedAbilities: (UsedAbility | PartiallyUsedAbility)[] = [];
-
-    constructor(private cycleTime: number, private allBuffs: Buff[], private stats: ComputedSetStats) {
-        this.gcdBase = this.stats.gcdMag(2.5);
-    }
-
-    /**
-     * Get the buffs that would be active right now.
-     */
-    getActiveBuffs(): Buff[] {
-        if (this.startOfBuffs === null) {
-            return [];
-        }
-        return this.getBuffs(this.currentTime - this.startOfBuffs);
-    }
-
-    /**
-     * Get the buffs that would be active `buffRemainingTime` since the start of the buff window.
-     *
-     * i.e. getBuffs(0) should return everything, getBuffs(15) would return 20 sec buffs but not 15, etc
-     */
-    getBuffs(buffRemainingTime: number): Buff[] {
-        return this.allBuffs.filter(buff => buff.duration > buffRemainingTime);
-    }
-
-    /**
-     * Start the raid buffs
-     */
-    activateBuffs() {
-        this.startOfBuffs = this.currentTime;
-    }
-
-    /**
-     * How many GCDs have been used
-     */
-    gcdCount() {
-        return this.usedAbilities.length;
-    }
-
-    use(ability: Ability) {
-        if (this.currentTime > this.cycleTime) {
-            // Already over time. Ignore.
-            return;
-        }
-        const abilityGcd = ability.fixedGcd ?? (ability.gcd ? this.stats.gcdMag(ability.gcd) : this.gcdBase);
-        const gcdFinishedAt = this.currentTime + abilityGcd;
-        const buffs = this.getActiveBuffs();
-        if (gcdFinishedAt <= this.cycleTime) {
-            // Enough time for entire GCD
-            this.usedAbilities.push({
-                ability: ability,
-                buffs: buffs,
-                usedAt: this.currentTime,
-                damage: abilityToDamage(this.stats, ability, buffs),
-            });
-            this.currentTime = gcdFinishedAt;
-        }
-        else {
-            const remainingTime = this.cycleTime - this.currentTime;
-            const portion = remainingTime / abilityGcd;
-            this.usedAbilities.push({
-                ability: ability,
-                buffs: buffs,
-                usedAt: this.currentTime,
-                portion: portion,
-                damage: abilityToDamage(this.stats, ability, buffs, portion),
-            });
-            this.currentTime = this.cycleTime;
-        }
-    }
-
-    useUntil(ability: Ability, useUntil: number) {
-        while (this.currentTime < useUntil) {
-            this.use(ability);
-        }
-    }
 }
 
 class SgeSimContext {
@@ -222,10 +65,6 @@ class SgeSimContext {
             unbuffedPps: unbuffedPps
         }
     }
-}
-
-function sum(numbers: number[]) {
-    return numbers.reduce((sum, val) => sum + val, 0);
 }
 
 export interface SgeSheetSimResult extends SimResult {
@@ -286,6 +125,7 @@ export class SgeSheetSim implements Simulation<SgeSheetSimResult, SgeSheetSettin
         }
     }
 
+    // TODO
     makeConfigInterface(settings: SgeSheetSettings): HTMLElement {
         const div = document.createElement("div");
         // const brdCheck = new FieldBoundCheckBox<SgeSheetSettings>(settings, 'hasBard', {id: 'brd-checkbox'});
@@ -351,6 +191,7 @@ export class SgeSheetSim implements Simulation<SgeSheetSimResult, SgeSheetSettin
         abilitiesUsedTable.data = [new HeaderRow(), ...result.abilitiesUsed];
         return quickElement('div', ['cycle-sim-results-table'], [mainResultsTable, abilitiesUsedTable]);
     }
+
     //
     makeToolTip(result: SgeSheetSimResult): string {
         return `DPS: ${result.mainDpsResult}\nUnbuffed PPS: ${result.unbuffedPps}\n`;

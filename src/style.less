@@ -172,7 +172,8 @@ body {
   --zi-sets-table-selected-cell: 71;
   --zi-sets-table-pinned-columns: 80;
   --zi-sets-table-selected-highlights: 90;
-  --zi-sets-table-header-row: 91;
+  --zi-sets-table-dragging-row: 91;
+  --zi-sets-table-header-row: 92;
   --zi-sets-table-header-row-pinned: 95;
   --zi-sets-table-buttons-area: 99;
   --zi-slot-materia-popup: 150;
@@ -548,6 +549,13 @@ table.gear-plan-table {
 
       &[col-id^="sim-col-"] {
         min-width: 70px;
+      }
+    }
+    &.dragging {
+      z-index: var(--zi-sets-table-dragging-row);
+      pointer-events: none;
+      td {
+        border-top: var(--standard-border) inset;
       }
     }
   }

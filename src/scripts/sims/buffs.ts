@@ -1,28 +1,5 @@
-import {JobName} from "../xivconstants";
+import {Buff} from "./sim_types";
 
-export type BuffEffects = {
-    dmgIncrease?: number,
-    critChanceIncrease?: number,
-    dhitChanceIncrease?: number,
-}
-
-export type Buff = {
-    // Name of buff
-    name: string,
-    // Job of buff
-    job: JobName,
-    // "Optional" would be things like DNC partner buffs, where merely having the job
-    // in your comp does not mean you would necessarily get the buff.
-    optional?: boolean,
-    // Can only apply to self - not a party/targeted buff
-    selfOnly?: boolean,
-    // Cooldown
-    cooldown: number,
-    // Duration
-    duration: number,
-    // The effect(s) of the buff
-    effects: BuffEffects;
-}
 
 export const Mug: Buff = {
     name: "Mug",
