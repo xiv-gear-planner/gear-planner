@@ -1429,6 +1429,7 @@ table.food-items-table {
   }
 
 }
+
 .round-table {
 
   tbody {
@@ -1734,31 +1735,53 @@ buff-settings-area {
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+
       &[col-id='time'] {
         text-align: right;
       }
     }
+
     td, th {
       &[col-id='time'] {
         width: 75px;
         max-width: 75px;
       }
+
       &[col-id='ability'] {
         width: 150px;
         max-width: 150px;
       }
+
       &[col-id='unbuffed-pot'] {
         width: 30px;
         max-width: 30px;
       }
+
       &[col-id='expected-damage'] {
         width: 100px;
         max-width: 100px;
       }
+
       &[col-id='buffs'] {
         width: 400px;
         max-width: 400px;
       }
     }
   }
+}
+
+
+div.weapon-ilvl-bypass-setting {
+
+  div {
+    float: right;
+    //display: block;
+    margin-right: 5px;
+    //margin-left: auto;
+
+    label {
+      font-weight: normal;
+    }
+  }
+
 }

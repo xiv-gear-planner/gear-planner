@@ -4,7 +4,7 @@ import {MateriaPriorityPicker} from "./materia";
 import {StatTierDisplay} from "./stat_tier_display";
 import {CharacterGearSet} from "../gear";
 import {GearPlanSheet} from "../components";
-import {quickElement} from "./util";
+import {FieldBoundCheckBox, quickElement} from "./util";
 
 export class GearEditToolbar extends HTMLDivElement {
     private readonly statTierDisplay: StatTierDisplay;

@@ -25,9 +25,10 @@ import {
     TitleRow
 } from "../tables";
 import {MateriaSubstat, MateriaSubstats, STAT_ABBREVIATIONS} from "../xivconstants";
-import {FieldBoundIntField} from "./util";
+import {FieldBoundCheckBox, FieldBoundIntField, labeledCheckbox} from "./util";
 import {AllSlotMateriaManager} from "./materia";
 import {GearPlanSheet} from "../components";
+import Spec = Mocha.reporters.Spec;
 
 /**
  * Helper to add classes to cells for stats on a gear item.
@@ -338,35 +339,46 @@ function itemTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, stat: 
                     if (equipment.relicStats[value.stat] === undefined) {
                         equipment.relicStats[value.stat] = 0;
                     }
-                    const inputSubstatCap = equipment.gearItem.unsyncedVersion.statCaps[value.stat] ?? 1000;
-                    const input = new FieldBoundIntField(equipment.relicStats, value.stat, {
-                        postValidators: [ctx => {
-                            if (ctx.newValue < 0) {
-                                ctx.failValidation('Must be greater than zero');
-                            }
-                            else if (ctx.newValue > inputSubstatCap) {
-                                ctx.failValidation(`Must be less than ${inputSubstatCap}`);
-                            }
-                        }]
-                    });
-                    const cap = equipment.gearItem.statCaps[stat] ?? 9999;
-                    const titleListener = () => {
-                        const newValue = equipment.relicStats[stat];
-                        if (newValue > cap) {
-                            input.title = `Synced down:\n${newValue}/${cap}`;
+                    if (sheet.isViewOnly) {
+                        const cap = equipment.gearItem.statCaps[stat];
+                        if (cap) {
+                            return document.createTextNode(Math.min(equipment.relicStats[stat], cap).toString());
                         }
                         else {
-                            delete input.title;
+                            return document.createTextNode(equipment.relicStats[stat].toString());
                         }
                     }
-                    input.addListener(titleListener);
-                    titleListener();
-                    input.type = 'number';
-                    input.pattern = '[0-9]*';
-                    input.inputMode = 'number';
-                    input.classList.add('gear-items-table-relic-stat-input');
-                    input.addListener(() => value.set.forceRecalc());
-                    return input;
+                    else {
+                        const inputSubstatCap = equipment.gearItem.unsyncedVersion.statCaps[value.stat] ?? 1000;
+                        const input = new FieldBoundIntField(equipment.relicStats, value.stat, {
+                            postValidators: [ctx => {
+                                if (ctx.newValue < 0) {
+                                    ctx.failValidation('Must be greater than zero');
+                                }
+                                else if (ctx.newValue > inputSubstatCap) {
+                                    ctx.failValidation(`Must be less than ${inputSubstatCap}`);
+                                }
+                            }]
+                        });
+                        const cap = equipment.gearItem.statCaps[stat] ?? 9999;
+                        const titleListener = () => {
+                            const newValue = equipment.relicStats[stat];
+                            if (newValue > cap) {
+                                input.title = `Synced down:\n${newValue}/${cap}`;
+                            }
+                            else {
+                                delete input.title;
+                            }
+                        }
+                        input.addListener(titleListener);
+                        titleListener();
+                        input.type = 'number';
+                        input.pattern = '[0-9]*';
+                        input.inputMode = 'number';
+                        input.classList.add('gear-items-table-relic-stat-input');
+                        input.addListener(() => value.set.forceRecalc());
+                        return input;
+                    }
                 }
             }
             else if (value instanceof Object) {
@@ -377,8 +389,10 @@ function itemTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, stat: 
             }
         },
         initialWidth: 33,
-        condition: () => sheet.isStatRelevant(stat),
-        colStyler: (value, cell, node) => highlightPrimarySecondary && !(value instanceof RelicCellInfo) ? statCellStyler(cell, value, stat) : undefined,
+        condition:
+            () => sheet.isStatRelevant(stat),
+        colStyler:
+            (value, cell, node) => highlightPrimarySecondary && !(value instanceof RelicCellInfo) ? statCellStyler(cell, value, stat) : undefined,
     }
 }
 
@@ -487,7 +501,22 @@ export class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
                 continue;
             }
             const slotId = name as keyof EquipmentSet;
-            data.push(new TitleRow(slot.name));
+            if (slotId === 'Weapon') {
+                data.push(new SpecialRow(table => {
+                    const div = document.createElement('div');
+                    div.classList.add('weapon-ilvl-bypass-setting');
+                    const text = document.createElement('span');
+                    text.textContent = slot.name;
+                    div.appendChild(text);
+
+                    const cb = new FieldBoundCheckBox(sheet.itemDisplaySettings, 'higherRelics');
+                    div.appendChild(labeledCheckbox('Display relics above max ilvl setting', cb));
+                    return div;
+                }));
+            }
+            else {
+                data.push(new TitleRow(slot.name));
+            }
             const itemsInSlot = itemMapping.get(slot.gearSlot);
             if (itemsInSlot && itemsInSlot.length > 0) {
                 const sortedItems = [...itemsInSlot];

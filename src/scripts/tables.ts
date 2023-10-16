@@ -220,7 +220,7 @@ export class SpecialRow<RowDataType, SelectionType> {
 
     creator: (table: CustomTable<RowDataType, SelectionType>) => Node
 
-    constructor(creator) {
+    constructor(creator: (table: CustomTable<RowDataType, SelectionType>) => Node) {
         this.creator = creator;
     }
 }

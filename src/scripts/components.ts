@@ -941,7 +941,8 @@ export const defaultItemDisplaySettings: ItemDisplaySettings = {
     minILvl: 640,
     maxILvl: 999,
     minILvlFood: 610,
-    maxILvlFood: 999
+    maxILvlFood: 999,
+    higherRelics: true
 } as const;
 
 /**
@@ -983,6 +984,7 @@ export class GearPlanSheet extends HTMLElement {
     private readonly saveTimer: Inactivitytimer;
     private setupDone: boolean = false;
     isViewOnly: boolean = false;
+    private gearUpdateTimer: Inactivitytimer;
 
 
     /**
@@ -1218,7 +1220,7 @@ export class GearPlanSheet extends HTMLElement {
             buttonsArea.appendChild(importGearSetButton);
         }
 
-        const gearUpdateTimer = new Inactivitytimer(1_000, () => {
+        this.gearUpdateTimer = new Inactivitytimer(1_000, () => {
             if (this._editorAreaNode instanceof GearSetEditor) {
                 this._editorAreaNode.setup();
             }
@@ -1324,8 +1326,9 @@ export class GearPlanSheet extends HTMLElement {
         this._materiaAutoFillController = matFillCtrl;
         this._gearEditToolBar = new GearEditToolbar(
             this,
-            this._itemDisplaySettings,
-            () => gearUpdateTimer.ping(),
+            this.itemDisplaySettings,
+            // () => this.gearUpdateTimer.ping(),
+            () => {},
             matFillCtrl
         );
         const dragTarget = this.toolbarHolder;
@@ -1808,7 +1811,15 @@ export class GearPlanSheet extends HTMLElement {
     }
 
     get itemsForDisplay(): GearItem[] {
-        return this.dataManager.allItems.filter(item => item.ilvl >= this._itemDisplaySettings.minILvl && item.ilvl <= this._itemDisplaySettings.maxILvl);
+        return this.dataManager.allItems.filter(item => {
+            return item.ilvl >= this._itemDisplaySettings.minILvl
+                && (item.ilvl <= this._itemDisplaySettings.maxILvl
+                || item.isCustomRelic && this._itemDisplaySettings.higherRelics);
+        });
+    }
+
+    get itemDisplaySettings(): ItemDisplaySettings {
+        return writeProxy(this._itemDisplaySettings, () => this.gearUpdateTimer.ping());
     }
 
     get foodItemsForDisplay(): FoodItem[] {

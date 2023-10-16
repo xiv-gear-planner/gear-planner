@@ -461,6 +461,7 @@ export interface ItemDisplaySettings {
     maxILvl: number,
     minILvlFood: number,
     maxILvlFood: number,
+    higherRelics: boolean
 }
 
 export const AttackTypes = ['Unknown', 'Auto-attack', 'Spell', 'Weaponskill', 'Ability', 'Item'] as const;
