@@ -7,7 +7,7 @@ export const Mug = {
     duration: 20,
     cooldown: 120,
     effects: {
-        dmgIncrease: 0.05
+        dmgIncrease: 0.05,
     },
 } as const satisfies Buff;
 

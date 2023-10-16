@@ -191,12 +191,12 @@ export interface ComputedSetStats extends RawStats {
     /**
      * Physical GCD time
      */
-    gcdPhys(baseGcd: number): number,
+    gcdPhys(baseGcd: number, haste?: number): number,
 
     /**
      * Magical GCD time
      */
-    gcdMag(baseGcd: number): number,
+    gcdMag(baseGcd: number, haste?: number): number,
 
     /**
      * Crit chance. Ranges from 0 to 1.

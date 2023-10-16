@@ -1,16 +1,16 @@
 import {ComputedSetStats} from "../geartypes";
 import {applyDhCrit, baseDamage} from "../xivmath";
 import {Ability, Buff, BuffEffects, ComputedDamage, PartiallyUsedAbility, UsedAbility} from "./sim_types";
+import {NORMAL_GCD} from "../xivconstants";
 
 export class CycleProcessor {
 
     currentTime: number = 0;
     startOfBuffs: number | null = null;
-    gcdBase: number;
+    gcdBase: number = NORMAL_GCD;
     usedAbilities: (UsedAbility | PartiallyUsedAbility)[] = [];
 
     constructor(private cycleTime: number, private allBuffs: Buff[], private stats: ComputedSetStats) {
-        this.gcdBase = this.stats.gcdMag(2.5);
     }
 
     /**
@@ -51,16 +51,17 @@ export class CycleProcessor {
             // Already over time. Ignore.
             return;
         }
-        const abilityGcd = ability.fixedGcd ?? (ability.gcd ? this.stats.gcdMag(ability.gcd) : this.gcdBase);
-        const gcdFinishedAt = this.currentTime + abilityGcd;
         const buffs = this.getActiveBuffs();
+        const combinedEffects: CombinedBuffEffect = combineBuffEffects(buffs);
+        const abilityGcd = ability.fixedGcd ?? (this.stats.gcdMag(ability.gcd ?? this.gcdBase, combinedEffects.haste));
+        const gcdFinishedAt = this.currentTime + abilityGcd;
         if (gcdFinishedAt <= this.cycleTime) {
             // Enough time for entire GCD
             this.usedAbilities.push({
                 ability: ability,
                 buffs: buffs,
                 usedAt: this.currentTime,
-                damage: abilityToDamage(this.stats, ability, buffs),
+                damage: abilityToDamage(this.stats, ability, combinedEffects),
             });
             this.currentTime = gcdFinishedAt;
         }
@@ -72,7 +73,7 @@ export class CycleProcessor {
                 buffs: buffs,
                 usedAt: this.currentTime,
                 portion: portion,
-                damage: abilityToDamage(this.stats, ability, buffs, portion),
+                damage: abilityToDamage(this.stats, ability, combinedEffects, portion),
             });
             this.currentTime = this.cycleTime;
         }
@@ -88,14 +89,16 @@ export class CycleProcessor {
 export type CombinedBuffEffect = {
     dmgMod: number,
     critChanceIncrease: number,
-    dhitChanceIncrease: number
+    dhitChanceIncrease: number,
+    haste: number
 }
 
 export function combineBuffEffects(buffs: Buff[]): CombinedBuffEffect {
     const combinedEffects: CombinedBuffEffect = {
         dmgMod: 1,
         critChanceIncrease: 0,
-        dhitChanceIncrease: 0
+        dhitChanceIncrease: 0,
+        haste: 0
     }
     for (let buff of buffs) {
         if (buff.effects.dmgIncrease) {
@@ -107,22 +110,24 @@ export function combineBuffEffects(buffs: Buff[]): CombinedBuffEffect {
         if (buff.effects.dhitChanceIncrease) {
             combinedEffects.dhitChanceIncrease += buff.effects.dhitChanceIncrease;
         }
+        if (buff.effects.haste) {
+            combinedEffects.haste += buff.effects.haste;
+        }
     }
     return combinedEffects;
 }
 
-export function abilityToDamage(stats: ComputedSetStats, ability: Ability, buffs: Buff[], portion: number = 1): ComputedDamage {
+export function abilityToDamage(stats: ComputedSetStats, ability: Ability, combinedBuffEffects: CombinedBuffEffect, portion: number = 1): ComputedDamage {
     const basePot = ability.potency;
-    const combinedEffects: CombinedBuffEffect = combineBuffEffects(buffs);
     const modifiedStats = {...stats};
-    modifiedStats.critChance += combinedEffects.critChanceIncrease;
-    modifiedStats.dhitChance += combinedEffects.dhitChanceIncrease;
+    modifiedStats.critChance += combinedBuffEffects.critChanceIncrease;
+    modifiedStats.dhitChance += combinedBuffEffects.dhitChanceIncrease;
     const nonCritDmg = baseDamage(modifiedStats, basePot, ability.attackType, ability.autoDh ?? false, ability.autoCrit ?? false);
     const afterCritDh = applyDhCrit(nonCritDmg, modifiedStats);
-    const afterDmgBuff = afterCritDh * combinedEffects.dmgMod;
+    const afterDmgBuff = afterCritDh * combinedBuffEffects.dmgMod;
     const afterPortion = afterDmgBuff * portion;
     return {
-        expected: afterPortion
+        expected: afterPortion,
     }
 
 }

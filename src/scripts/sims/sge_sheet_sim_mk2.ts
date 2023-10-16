@@ -102,8 +102,8 @@ export class SgeSheetSim implements Simulation<SgeSheetSimResult, SgeNewSheetSet
 
     exportSettings(): SgeNewSheetSettingsExternal {
         return {
+            ...this.settings,
             buffConfig: this.buffManager.exportSetting(),
-            ...this.settings
         };
     };
 

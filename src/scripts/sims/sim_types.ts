@@ -1,5 +1,6 @@
 import {JobName} from "../xivconstants";
 import {AttackType} from "../geartypes";
+import {CombinedBuffEffect} from "./sim_processors";
 
 /**
  * Represents an ability you can use
@@ -23,7 +24,7 @@ export type Ability = {
 
 
 export type ComputedDamage = {
-    expected: number
+    expected: number,
 }
 
 /**
@@ -51,6 +52,7 @@ export type BuffEffects = {
     dmgIncrease?: number,
     critChanceIncrease?: number,
     dhitChanceIncrease?: number,
+    haste?: number,
 }
 
 export type Buff = Readonly<{
