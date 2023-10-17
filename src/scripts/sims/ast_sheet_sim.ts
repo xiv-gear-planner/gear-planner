@@ -4,32 +4,40 @@ import {ComputedSetStats} from "../geartypes";
 
 import {quickElement} from "../components/util";
 import {CustomTable, HeaderRow} from "../tables";
-import {Ability, Buff, UsedAbility} from "./sim_types";
+import {GcdAbility, Buff, UsedAbility, OgcdAbility} from "./sim_types";
 import {CycleProcessor} from "./sim_processors";
 import {sum} from "../util/array_utils";
 import {BuffSettingsArea, BuffSettingsExport, BuffSettingsManager} from "./party_comp_settings";
+import {AbilitiesUsedTable} from "./components/ability_used_table";
 
 
-const filler: Ability = {
+const filler: GcdAbility = {
+    type: 'gcd',
     name: "Filler",
     potency: 250,
-    attackType: "Spell"
+    attackType: "Spell",
+    gcd: 2.5,
+    cast: 1.5
 }
 
-const combust: Ability = {
+const combust: GcdAbility = {
+    type: 'gcd',
     name: "Combust",
     potency: 30 / 3 * 55,
-    attackType: "Spell"
+    attackType: "Spell",
+    gcd: 2.5,
 }
 
-const star: Ability = {
+const star: OgcdAbility = {
+    type: 'ogcd',
     name: "Earthly Star",
     potency: 310,
     //fixedGcd: 0,
     attackType: "Ability"
 }
 
-const lord: Ability = {
+const lord: OgcdAbility = {
+    type: 'ogcd',
     name: "Lord of Crowns",
     potency: 250,
     //fixedGcd: 0,
@@ -74,7 +82,7 @@ class AstSimContext {
 
         const used = cp.usedAbilities;
         const cycleDamage = sum(used.map(used => used.damage.expected));
-        const dps = cycleDamage / cp.currentTime;
+        const dps = cycleDamage / cp.nextGcdTime;
         const unbuffedPps = sum(used.map(used => used.ability.potency));
 
         return {
@@ -147,12 +155,6 @@ export class AstSheetSim implements Simulation<AstSheetSimResult, AstNewSheetSet
     makeConfigInterface(settings: AstNewSheetSettingsExternal, updateCallback: () => void): HTMLElement {
         const div = document.createElement("div");
         div.appendChild(new BuffSettingsArea(this.buffManager, updateCallback));
-        // const brdCheck = new FieldBoundCheckBox<AstSheetSettings>(settings, 'hasBard', {id: 'brd-checkbox'});
-        // div.appendChild(labeledCheckbox('BRD in Party', brdCheck));
-        // const schCheck = new FieldBoundCheckBox<AstSheetSettings>(settings, 'hasScholar', {id: 'sch-checkbox'});
-        // div.appendChild(labeledCheckbox('SCH in Party', schCheck));
-        // const drgCheck = new FieldBoundCheckBox<AstSheetSettings>(settings, 'hasDragoon', {id: 'drg-checkbox'});
-        // div.appendChild(labeledCheckbox('DRG in Party', drgCheck));
         return div;
     }
 
@@ -162,54 +164,7 @@ export class AstSheetSim implements Simulation<AstSheetSimResult, AstNewSheetSet
             unbuffedPps: result.unbuffedPps
         });
         mainResultsTable.classList.add('main-results-table');
-        const abilitiesUsedTable = new CustomTable<UsedAbility>();
-        abilitiesUsedTable.classList.add('abilities-used-table');
-        abilitiesUsedTable.columns = [
-            {
-                shortName: 'time',
-                displayName: 'Time',
-                getter: used => used.usedAt,
-                renderer: time => {
-                    const minute = Math.floor(time / 60);
-                    const second = time % 60;
-                    return document.createTextNode(`${minute}:${second.toFixed(2).padStart(5, '0')}`);
-                }
-            },
-            {
-                shortName: 'ability',
-                displayName: 'Ability',
-                getter: used => used.ability.name
-            },
-            {
-                shortName: 'unbuffed-pot',
-                displayName: 'Pot',
-                getter: used => used.ability.potency
-            },
-            {
-                shortName: 'expected-damage',
-                displayName: 'Damage',
-                getter: used => used,
-                renderer: used => {
-                    let text = used.damage.expected.toFixed(2);
-                    if ('portion' in used) {
-                        text += '*';
-                    }
-                    return document.createTextNode(text);
-                },
-                colStyler: (value, colElement, internalElement) => {
-                    if ('portion' in value) {
-                        colElement.title = `This ability would not have fit completely within the allotted time.\nIt has been pro-rated to ${Math.floor(value.portion * 100)}% of the original damage.`
-                    }
-                },
-            },
-            {
-                shortName: 'buffs',
-                displayName: 'Buffs Active',
-                getter: used => used.buffs,
-                renderer: buffs => document.createTextNode(buffs.map(buff => buff.name).join(', ')),
-            }
-        ];
-        abilitiesUsedTable.data = [new HeaderRow(), ...result.abilitiesUsed];
+        const abilitiesUsedTable = new AbilitiesUsedTable(result.abilitiesUsed);
         return quickElement('div', ['cycle-sim-results-table'], [mainResultsTable, abilitiesUsedTable]);
     }
 

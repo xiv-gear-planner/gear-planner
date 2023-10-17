@@ -2,26 +2,39 @@ import {JobName} from "../xivconstants";
 import {AttackType} from "../geartypes";
 import {CombinedBuffEffect} from "./sim_processors";
 
-/**
- * Represents an ability you can use
- */
-export type Ability = {
+export type Ability  = {
     name: string,
     potency: number,
     attackType: AttackType,
-    /**
-     * If the ability's GCD can be lowered by sps/sks, put it here.
-     */
-    gcd?: number,
-    /**
-     * If the ability takes a fixed amount of time, rather than being reduced by sps/sks,
-     * put it here.
-     */
-    fixedGcd?: number,
     autoCrit?: boolean,
     autoDh?: boolean
 }
 
+/**
+ * Represents an ability you can use
+ */
+export type GcdAbility = Ability & {
+    type: 'gcd';
+    /**
+     * If the ability's GCD can be lowered by sps/sks, put it here.
+     */
+    gcd: number,
+    /**
+     * The time that it takes to cast. Do not include caster tax. Defaults to 0.5 (thus 0.6 after adding caster tax)
+     * if not specified, i.e. normal animation lock.
+     */
+    cast?: number,
+    /**
+     * If the ability has a fixed cast and recast, rather than being reduced by sks/sps,
+     * set to true.
+     */
+    fixedGcd?: boolean,
+}
+
+export type OgcdAbility = Ability & {
+    type: 'ogcd',
+    animationLock?: number,
+}
 
 export type ComputedDamage = {
     expected: number,
@@ -33,6 +46,7 @@ export type ComputedDamage = {
 export type UsedAbility = {
     ability: Ability,
     buffs: Buff[],
+    combinedEffects: CombinedBuffEffect,
     usedAt: number,
     damage: ComputedDamage
 }

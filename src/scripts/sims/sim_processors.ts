@@ -1,10 +1,11 @@
 import {ComputedSetStats} from "../geartypes";
 import {applyDhCrit, baseDamage} from "../xivmath";
-import {Ability, Buff, BuffEffects, ComputedDamage, PartiallyUsedAbility, UsedAbility} from "./sim_types";
-import {NORMAL_GCD} from "../xivconstants";
+import {Ability, Buff, ComputedDamage, GcdAbility, OgcdAbility, PartiallyUsedAbility, UsedAbility} from "./sim_types";
+import {CASTER_TAX, NORMAL_GCD, STANDARD_ANIMATION_LOCK} from "../xivconstants";
 
 export class CycleProcessor {
 
+    nextGcdTime: number = 0;
     currentTime: number = 0;
     startOfBuffs: number | null = null;
     gcdBase: number = NORMAL_GCD;
@@ -20,7 +21,7 @@ export class CycleProcessor {
         if (this.startOfBuffs === null) {
             return [];
         }
-        return this.getBuffs(this.currentTime - this.startOfBuffs);
+        return this.getBuffs(this.nextGcdTime - this.startOfBuffs);
     }
 
     /**
@@ -46,41 +47,94 @@ export class CycleProcessor {
         return this.usedAbilities.length;
     }
 
-    use(ability: Ability) {
-        if (this.currentTime > this.cycleTime) {
-            // Already over time. Ignore.
-            return;
-        }
+    use(ability: GcdAbility | OgcdAbility) {
         const buffs = this.getActiveBuffs();
         const combinedEffects: CombinedBuffEffect = combineBuffEffects(buffs);
-        const abilityGcd = ability.fixedGcd ?? (this.stats.gcdMag(ability.gcd ?? this.gcdBase, combinedEffects.haste));
-        const gcdFinishedAt = this.currentTime + abilityGcd;
-        if (gcdFinishedAt <= this.cycleTime) {
+        // Logic for GCDs
+        if (ability.type == "gcd") {
+            if (this.nextGcdTime > this.cycleTime) {
+                // Already over time limit. Ignore completely.
+                return;
+            }
+            const abilityGcd = ability.fixedGcd ? ability.gcd : (this.stats.gcdMag(ability.gcd ?? this.gcdBase, combinedEffects.haste));
+            // When this GCD will end (strictly in terms of GCD. e.g. a BLM spell where cast > recast will still take the cast time. This will be
+            // accounted for later).
+            const gcdFinishedAt = this.nextGcdTime + abilityGcd;
             // Enough time for entire GCD
-            this.usedAbilities.push({
-                ability: ability,
-                buffs: buffs,
-                usedAt: this.currentTime,
-                damage: abilityToDamage(this.stats, ability, combinedEffects),
-            });
-            this.currentTime = gcdFinishedAt;
+            if (gcdFinishedAt <= this.cycleTime) {
+                this.usedAbilities.push({
+                    ability: ability,
+                    combinedEffects: combinedEffects,
+                    buffs: buffs,
+                    usedAt: this.nextGcdTime,
+                    damage: abilityToDamage(this.stats, ability, combinedEffects),
+                });
+                // Anim lock OR cast time, both effectively block use of skills.
+                // If cast time > GCD recast, then we use that instead. Also factor in caster tax.
+                const animLock = ability.cast ? Math.max(ability.cast + CASTER_TAX, STANDARD_ANIMATION_LOCK) : STANDARD_ANIMATION_LOCK;
+                const animLockFinishedAt = this.nextGcdTime + animLock;
+                this.currentTime = animLockFinishedAt;
+                // If we're casting a long-cast, then the GCD is blocked for more than a GCD.
+                this.nextGcdTime = Math.max(gcdFinishedAt, animLockFinishedAt);
+            }
+            // GCD will only partially fit into remaining time. Pro-rate the damage.
+            else {
+                const remainingTime = this.cycleTime - this.nextGcdTime;
+                const portion = remainingTime / abilityGcd;
+                this.usedAbilities.push({
+                    ability: ability,
+                    buffs: buffs,
+                    combinedEffects: combinedEffects,
+                    usedAt: this.currentTime,
+                    portion: portion,
+                    damage: abilityToDamage(this.stats, ability, combinedEffects, portion),
+                });
+                this.nextGcdTime = this.cycleTime;
+                this.currentTime = this.cycleTime;
+            }
         }
-        else {
-            const remainingTime = this.cycleTime - this.currentTime;
-            const portion = remainingTime / abilityGcd;
-            this.usedAbilities.push({
-                ability: ability,
-                buffs: buffs,
-                usedAt: this.currentTime,
-                portion: portion,
-                damage: abilityToDamage(this.stats, ability, combinedEffects, portion),
-            });
-            this.currentTime = this.cycleTime;
+        // oGCD logic branch
+        else if (ability.type == 'ogcd') {
+            if (this.currentTime > this.cycleTime) {
+                // Already over time limit. Ignore completely.
+                return;
+            }
+            // Similar logic to GCDs, but with animation lock alone
+            const animLock = ability.animationLock ?? STANDARD_ANIMATION_LOCK;
+            const animLockFinishedAt = animLock + this.currentTime;
+            // Fits completely
+            if (animLockFinishedAt <= this.cycleTime) {
+                this.usedAbilities.push({
+                    ability: ability,
+                    buffs: buffs,
+                    combinedEffects: combinedEffects,
+                    usedAt: this.currentTime,
+                    damage: abilityToDamage(this.stats, ability, combinedEffects),
+                });
+                this.currentTime = animLockFinishedAt;
+                // Account for potential GCD clipping
+                this.nextGcdTime = Math.max(this.nextGcdTime, animLockFinishedAt);
+            }
+            // fits partially
+            else {
+                const remainingTime = this.cycleTime - this.currentTime;
+                const portion = remainingTime / animLock;
+                this.usedAbilities.push({
+                    ability: ability,
+                    buffs: buffs,
+                    combinedEffects: combinedEffects,
+                    usedAt: this.currentTime,
+                    portion: portion,
+                    damage: abilityToDamage(this.stats, ability, combinedEffects, portion),
+                });
+                this.nextGcdTime = this.cycleTime;
+                this.currentTime = this.cycleTime;
+            }
         }
     }
 
-    useUntil(ability: Ability, useUntil: number) {
-        while (this.currentTime < useUntil) {
+    useUntil(ability: GcdAbility, useUntil: number) {
+        while (this.nextGcdTime < useUntil) {
             this.use(ability);
         }
     }

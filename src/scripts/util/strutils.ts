@@ -5,3 +5,7 @@ export function camel2title(camelCase: string): string {
         .replace(/^./, (match) => match.toUpperCase())
         .trim();
 }
+
+export function toRelPct(input: number, decimalPlaces: number) {
+    return `${input > 0 ? '+' : ''}${(input * 100).toFixed(decimalPlaces)}`;
+}

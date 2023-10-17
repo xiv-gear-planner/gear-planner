@@ -2,7 +2,7 @@ name: Build and Deploy
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "prod" ]
 #  pull_request:
 #    branches: [ "master" ]
   workflow_dispatch:
