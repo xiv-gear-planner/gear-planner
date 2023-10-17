@@ -85,7 +85,7 @@ export class CycleProcessor {
                     ability: ability,
                     buffs: buffs,
                     combinedEffects: combinedEffects,
-                    usedAt: this.currentTime,
+                    usedAt: this.nextGcdTime,
                     portion: portion,
                     damage: abilityToDamage(this.stats, ability, combinedEffects, portion),
                 });
