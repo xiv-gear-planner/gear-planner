@@ -200,6 +200,10 @@ function setHash(...hashParts: string[]) {
     console.log(location.hash);
 }
 
+function getHash(): string[] | undefined {
+    return expectedHash;
+}
+
 function goHash(...hashParts: string[]) {
     for (let hashPart of hashParts) {
         if (hashPart === undefined) {
@@ -243,12 +247,18 @@ export async function openSheet(planner: GearPlanSheet, changeHash: boolean = tr
         setHash("sheet", planner.saveKey, "dont-copy-this-link", "use-the-export-button");
     }
     contentArea.replaceChildren(planner);
-    const loadSheetPromise = planner.loadData().then(() => contentArea.replaceChildren(planner), (reason) => {
+    const oldHash = getHash();
+    const loadSheetPromise = planner.loadData().then(() => {
+        // If the user has navigated away while the sheet was loading, do not display the sheet.
+        if (arrayEq(getHash(), oldHash)) {
+            contentArea.replaceChildren(planner);
+            setTitle(planner.sheetName);
+        }
+    }, (reason) => {
         console.error(reason);
         contentArea.replaceChildren(document.createTextNode("Error loading sheet!"));
     });
     await loadSheetPromise;
-    setTitle(planner.sheetName);
 }
 
 function showSheetPickerMenu() {
