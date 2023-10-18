@@ -4,6 +4,7 @@ import {quickElement} from "./components/util";
 import {getShortLink} from "./external/shortlink_server";
 import {getBisSheet} from "./external/static_bis";
 import {JobName} from "./xivconstants";
+import {LoadingBlocker} from "./components/loader";
 
 export const SHORTLINK_HASH = 'sl';
 export const BIS_HASH = 'bis';
@@ -114,6 +115,7 @@ async function processHash() {
             }
         }
         else if (mainNav === SHORTLINK_HASH) {
+            showLoadingScreen();
             if (hash.length >= 2) {
                 const shortLink = hash[1];
                 try {
@@ -136,6 +138,7 @@ async function processHash() {
             }
         }
         else if (mainNav === BIS_HASH) {
+            showLoadingScreen();
             if (hash.length >= 4) {
                 const job = hash[1];
                 const expac = hash[2];
@@ -163,6 +166,9 @@ async function processHash() {
     // TODO: handle remaining invalid cases
 }
 
+export function showLoadingScreen() {
+    setMainContent('Loading...', new LoadingBlocker());
+}
 
 export function showNewSheetForm() {
     setHash('newsheet');
