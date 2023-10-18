@@ -413,6 +413,7 @@ export interface SheetExport {
     description?: string,
 }
 
+// TODO: split into internal and external version?
 export interface SetExport {
     name: string,
     items: {
@@ -427,6 +428,7 @@ export interface SetExport {
     level?: SupportedLevel,
     ilvlSync?: number,
     description?: string,
+    sims?: SimExport[],
 }
 
 export interface ItemSlotExport {

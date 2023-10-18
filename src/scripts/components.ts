@@ -1,6 +1,7 @@
 import {
     CustomCell,
-    CustomColumn, CustomColumnSpec,
+    CustomColumn,
+    CustomColumnSpec,
     CustomRow,
     CustomTable,
     HeaderRow,
@@ -12,7 +13,8 @@ import {
 import {CharacterGearSet, EquippedItem,} from "./gear";
 import {DataManager} from "./datamanager";
 import {
-    ChanceStat, ComputedSetStats,
+    ChanceStat,
+    ComputedSetStats,
     DisplayGearSlot,
     EquipSlotKey,
     EquipSlots,
@@ -55,7 +57,8 @@ import {
     MateriaSubstat,
     MAX_ILVL,
     RACE_STATS,
-    RaceName, STAT_ABBREVIATIONS,
+    RaceName,
+    STAT_ABBREVIATIONS,
     SupportedLevel,
     SupportedLevels
 } from "./xivconstants";
@@ -117,6 +120,7 @@ function tooltipMultiStatCol(sheet: GearPlanSheet, stat: RawStatKey, multiKey: {
 function multiplierStatTooltip(stats: MultiplierStat) {
     return textWithToolTip(stats.stat.toString(), 'Multiplier: x' + stats.multiplier.toFixed(3));
 }
+
 function multiplierStatDisplay(stats: MultiplierStat) {
     const outerDiv = document.createElement("div");
     outerDiv.classList.add('multiplier-stat-display');
@@ -362,7 +366,10 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
             {
                 shortName: "setname",
                 displayName: "Set Name",
-                getter: (gearSet => viewOnly ? ({name: gearSet.name, desc: gearSet.description}) : gearSet.name),
+                getter: (gearSet => viewOnly ? ({
+                    name: gearSet.name,
+                    desc: gearSet.description
+                }) : gearSet.name),
                 renderer: value => {
                     const nameSpan = document.createElement('span');
                     if (value instanceof Object) {
@@ -1028,8 +1035,7 @@ export class GearPlanSheet extends HTMLElement {
         const gearPlanSheet = this.fromExport({
             race: undefined,
             sets: [importedData],
-            // TODO: default sims
-            sims: [],
+            sims: importedData.sims ?? [],
             name: SHARED_SET_NAME,
             saveKey: undefined,
             job: importedData.job,
@@ -1038,7 +1044,9 @@ export class GearPlanSheet extends HTMLElement {
             partyBonus: 0,
             itemDisplaySettings: defaultItemDisplaySettings,
         });
-        gearPlanSheet.addDefaultSims();
+        if (importedData.sims === undefined) {
+            gearPlanSheet.addDefaultSims();
+        }
         gearPlanSheet._selectFirstRowByDefault = true;
         return gearPlanSheet;
     }
@@ -1328,7 +1336,8 @@ export class GearPlanSheet extends HTMLElement {
             this,
             this.itemDisplaySettings,
             // () => this.gearUpdateTimer.ping(),
-            () => {},
+            () => {
+            },
             matFillCtrl
         );
         const dragTarget = this.toolbarHolder;
@@ -1462,7 +1471,9 @@ export class GearPlanSheet extends HTMLElement {
 
     private _editorAreaNode: Node | undefined;
 
-    private setupEditorArea(node: (Node & { toolbar?: Node }) | undefined = undefined) {
+    private setupEditorArea(node: (Node & {
+        toolbar?: Node
+    }) | undefined = undefined) {
         this._editorAreaNode = node;
         if (node === undefined) {
             this.editorArea.replaceChildren();
@@ -1503,20 +1514,19 @@ export class GearPlanSheet extends HTMLElement {
         return newKey;
     }
 
-    exportSheet(external: boolean = false): SheetExport {
-        // TODO: make this async
-        const sets: SetExport[] = []
-        for (let set of this._sets) {
-            sets.push(this.exportGearSet(set));
-        }
-        let simsExport: SimExport[] = [];
-        for (let sim of this._sims) {
-            simsExport.push({
+    exportSims(): SimExport[] {
+        return this._sims.map(sim =>
+            ({
                 stub: sim.spec.stub,
                 settings: sim.exportSettings(),
                 name: sim.displayName
-            });
-        }
+            }));
+    }
+
+    exportSheet(external: boolean = false): SheetExport {
+        // TODO: make this async
+        const sets: SetExport[] = this._sets.map(set => this.exportGearSet(set, false));
+        let simsExport: SimExport[] = this.exportSims();
         const out: SheetExport = {
             name: this.sheetName,
             sets: sets,
@@ -1647,6 +1657,7 @@ export class GearPlanSheet extends HTMLElement {
             out.job = this.classJobName;
             out.level = this.level;
             out.ilvlSync = this.ilvlSync;
+            out.sims = this.exportSims();
         }
         return out;
     }
@@ -1814,7 +1825,7 @@ export class GearPlanSheet extends HTMLElement {
         return this.dataManager.allItems.filter(item => {
             return item.ilvl >= this._itemDisplaySettings.minILvl
                 && (item.ilvl <= this._itemDisplaySettings.maxILvl
-                || item.isCustomRelic && this._itemDisplaySettings.higherRelics);
+                    || item.isCustomRelic && this._itemDisplaySettings.higherRelics);
         });
     }
 
