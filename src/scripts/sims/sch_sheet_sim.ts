@@ -134,7 +134,7 @@ export class SchSheetSim implements Simulation<SchSheetSimResult, SchNewSheetSet
     };
     readonly buffManager: BuffSettingsManager;
 
-    spec = schSheetSpec;
+    spec = schNewSheetSpec;
     displayName = "SCH Sim";
     shortName = "sch-sheet-sim";
 
