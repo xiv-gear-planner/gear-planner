@@ -285,13 +285,13 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                 renderer: result => new SimResultMiniDisplay(this, sim, result),
                 allowHeaderSelection: true,
                 allowCellSelection: true,
-                // TODO: this is ugly
-                // headerStyler: (value, colHeader) => {
-                //     const span = document.createElement('span');
-                //     span.textContent = 'Click for Settings';
-                //     span.classList.add('header-cell-detail');
-                //     colHeader.append(span);
-                // }
+                // TODO: make this not display if the sim has no settings
+                headerStyler: (value, colHeader) => {
+                    const span = document.createElement('span');
+                    span.textContent = '⛭';
+                    span.classList.add('header-cell-detail', 'header-cell-gear');
+                    colHeader.append(span);
+                }
             }
         });
 
