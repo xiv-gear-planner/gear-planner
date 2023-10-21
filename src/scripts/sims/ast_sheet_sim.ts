@@ -13,7 +13,7 @@ import {AbilitiesUsedTable} from "./components/ability_used_table";
 
 const filler: GcdAbility = {
     type: 'gcd',
-    name: "Filler",
+    name: "Malefic",
     potency: 250,
     attackType: "Spell",
     gcd: 2.5,
@@ -32,7 +32,6 @@ const star: OgcdAbility = {
     type: 'ogcd',
     name: "Earthly Star",
     potency: 310,
-    //fixedGcd: 0,
     attackType: "Ability"
 }
 
@@ -40,7 +39,6 @@ const lord: OgcdAbility = {
     type: 'ogcd',
     name: "Lord of Crowns",
     potency: 250,
-    //fixedGcd: 0,
     attackType: "Ability"
 }
 
