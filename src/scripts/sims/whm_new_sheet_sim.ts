@@ -13,69 +13,86 @@ import {AbilitiesUsedTable} from "./components/ability_used_table";
 
 const filler: GcdAbility = {
     type: 'gcd',
-    name: "Malefic",
-    potency: 250,
+    name: "Glare",
+    potency: 310,
     attackType: "Spell",
     gcd: 2.5,
     cast: 1.5
 }
 
-const combust: GcdAbility = {
+const dia: GcdAbility = {
     type: 'gcd',
-    name: "Combust",
-    potency: 30 / 3 * 55,
+    name: "Dia",
+    potency: (30 / 3 * 65) + 65,
     attackType: "Spell",
     gcd: 2.5,
 }
 
-const star: OgcdAbility = {
+const assize: OgcdAbility = {
     type: 'ogcd',
-    name: "Earthly Star",
-    potency: 310,
+    name: "Assize",
+    potency: 400,
     attackType: "Ability"
 }
 
-const lord: OgcdAbility = {
-    type: 'ogcd',
-    name: "Lord of Crowns",
-    potency: 250,
-    attackType: "Ability"
-}
-
-const astrodyne: Buff = {
-    name: "Astrodyne",
-    job: "AST",
+const pom: Buff = {
+    name: "Presence of Mind",
+    job: "WHM",
     selfOnly: true,
     duration: 15,
     cooldown: 0,
-    effects: { //currently assumes 2 seal dynes, can change dmgIncrease based on frequency of 3 seals
-        dmgIncrease: .00,
-        haste: 10,
+    effects: { 
+        haste: 20,
     }
 }
 
-class AstSimContext {
+const misery: GcdAbility = {
+    type: 'gcd',
+    name: "Afflatus Misery",
+    potency: 1240,
+    attackType: "Spell",
+    gcd: 2.5,
+}
+
+const lily: GcdAbility = {
+    type: 'gcd',
+    name: "Afflatus Rapture",
+    potency: 0,
+    attackType: "Spell",
+    gcd: 2.5,
+}
+
+class WhmSimContext {
     constructor(private stats: ComputedSetStats, private allBuffs: Buff[]) {
 
     }
 
-    getResult(): AstSheetSimResult {
-        const cp = new CycleProcessor(120, [astrodyne, ...this.allBuffs], this.stats);
-        cp.use(combust);
+    getResult(): WhmSheetSimResult {
+        const cp = new CycleProcessor(120, [pom, ...this.allBuffs], this.stats);
+        cp.use(dia);
         cp.use(filler);
         cp.use(filler);
         cp.activateBuffs();
-        cp.use(star);
         cp.use(filler);
-        cp.use(lord); //with 50% lord, chance, assumes 1 lord per burst window
+        cp.use(assize);
+        cp.use(misery);
         cp.useUntil(filler, 30);
-        cp.use(combust);
+        cp.use(dia);
+        cp.use(lily); //3 lilys out of buffs to make up for misery in buffs, actual placement isn't specific
+        cp.use(lily);
+        cp.use(lily);
+        cp.useUntil(filler, 50);
+        cp.use(assize);
         cp.useUntil(filler, 60);
-        cp.use(combust);
-        cp.useUntil(filler, 67);
-        cp.use(star);
+        cp.use(dia);
+        cp.useUntil(filler, 70);
+        cp.use(misery);
         cp.useUntil(filler, 90);
-        cp.use(combust);
+        cp.use(dia);
+        cp.use(assize)
+        cp.use(lily);
+        cp.use(lily);
+        cp.use(lily);
         cp.useUntil(filler, 120);
 
         const used = cp.usedAbilities;
@@ -91,55 +108,55 @@ class AstSimContext {
     }
 }
 
-export interface AstSheetSimResult extends SimResult {
+export interface WhmSheetSimResult extends SimResult {
     abilitiesUsed: UsedAbility[],
     unbuffedPps: number
 }
 
-interface AstNewSheetSettings extends SimSettings {
+interface WhmNewSheetSettings extends SimSettings {
     rezPerMin: number,
-    aspHelPerMin: number,
-    aspBenPerMin: number,
+    med2PerMin: number,
+    cure3PerMin: number,
 
 }
 
-export interface AstNewSheetSettingsExternal extends AstNewSheetSettings {
+export interface WhmNewSheetSettingsExternal extends WhmNewSheetSettings {
     buffConfig: BuffSettingsExport;
 }
 
-export const astNewSheetSpec: SimSpec<AstSheetSim, AstNewSheetSettingsExternal> = {
-    displayName: "AST Sim",
-    loadSavedSimInstance(exported: AstNewSheetSettingsExternal) {
-        return new AstSheetSim(exported);
+export const whmNewSheetSpec: SimSpec<WhmSheetSim, WhmNewSheetSettingsExternal> = {
+    displayName: "WHM New Sim",
+    loadSavedSimInstance(exported: WhmNewSheetSettingsExternal) {
+        return new WhmSheetSim(exported);
     },
-    makeNewSimInstance(): AstSheetSim {
-        return new AstSheetSim();
+    makeNewSimInstance(): WhmSheetSim {
+        return new WhmSheetSim();
     },
-    stub: "ast-sheet-sim",
-    supportedJobs: ['AST'],
+    stub: "whm-new-sheet-sim",
+    supportedJobs: ['WHM'],
 }
 
-export class AstSheetSim implements Simulation<AstSheetSimResult, AstNewSheetSettings, AstNewSheetSettingsExternal> {
+export class WhmSheetSim implements Simulation<WhmSheetSimResult, WhmNewSheetSettings, WhmNewSheetSettingsExternal> {
 
-    exportSettings(): AstNewSheetSettingsExternal {
+    exportSettings(): WhmNewSheetSettingsExternal {
         return {
             buffConfig: this.buffManager.exportSetting(),
             ...this.settings
         };
     };
 
-    settings: AstNewSheetSettings = {
+    settings: WhmNewSheetSettings = {
         rezPerMin: 0,
-        aspHelPerMin: 0,
-        aspBenPerMin: 0,
+        med2PerMin: 0,
+        cure3PerMin: 0,
     };
     readonly buffManager: BuffSettingsManager;
 
-    spec = astNewSheetSpec;
-    displayName = "AST Sim";
-    shortName = "ast-sheet-sim";
+    spec = whmNewSheetSpec;
+    displayName = "WHM New Sim";
+    shortName = "whm-new-sheet-sim";
 
-    constructor(settings?: AstNewSheetSettingsExternal) {
+    constructor(settings?: WhmNewSheetSettingsExternal) {
         if (settings) {
             Object.assign(this.settings, settings);
             this.buffManager = new BuffSettingsManager(settings.buffConfig);
@@ -150,13 +167,13 @@ export class AstSheetSim implements Simulation<AstSheetSimResult, AstNewSheetSet
     }
 
     // TODO
-    makeConfigInterface(settings: AstNewSheetSettingsExternal, updateCallback: () => void): HTMLElement {
+    makeConfigInterface(settings: WhmNewSheetSettingsExternal, updateCallback: () => void): HTMLElement {
         const div = document.createElement("div");
         div.appendChild(new BuffSettingsArea(this.buffManager, updateCallback));
         return div;
     }
 
-    makeResultDisplay(result: AstSheetSimResult): HTMLElement {
+    makeResultDisplay(result: WhmSheetSimResult): HTMLElement {
         const mainResultsTable = simpleAutoResultTable({
             mainDpsResult: result.mainDpsResult,
             unbuffedPps: result.unbuffedPps
@@ -167,13 +184,13 @@ export class AstSheetSim implements Simulation<AstSheetSimResult, AstNewSheetSet
     }
 
     //
-    makeToolTip(result: AstSheetSimResult): string {
+    makeToolTip(result: WhmSheetSimResult): string {
         return `DPS: ${result.mainDpsResult}\nUnbuffed PPS: ${result.unbuffedPps}\n`;
     }
 
-    async simulate(set: CharacterGearSet): Promise<AstSheetSimResult> {
+    async simulate(set: CharacterGearSet): Promise<WhmSheetSimResult> {
         const allBuffs = this.buffManager.enabledBuffs;
-        const ctx = new AstSimContext(set.computedStats, allBuffs);
+        const ctx = new WhmSimContext(set.computedStats, allBuffs);
         return ctx.getResult();
     }
 

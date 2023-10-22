@@ -13,69 +13,67 @@ import {AbilitiesUsedTable} from "./components/ability_used_table";
 
 const filler: GcdAbility = {
     type: 'gcd',
-    name: "Malefic",
-    potency: 250,
+    name: "Broil",
+    potency: 295,
     attackType: "Spell",
     gcd: 2.5,
     cast: 1.5
 }
 
-const combust: GcdAbility = {
+const r2: GcdAbility = {
     type: 'gcd',
-    name: "Combust",
-    potency: 30 / 3 * 55,
+    name: "Ruin II",
+    potency: 220,
     attackType: "Spell",
     gcd: 2.5,
 }
 
-const star: OgcdAbility = {
+const bio: GcdAbility = {
+    type: 'gcd',
+    name: "Biolysis",
+    potency: 30 / 3 * 70,
+    attackType: "Spell",
+    gcd: 2.5,
+}
+
+const ed: OgcdAbility = {
     type: 'ogcd',
-    name: "Earthly Star",
-    potency: 310,
+    name: "Energy Drain",
+    potency: 100,
     attackType: "Ability"
 }
 
-const lord: OgcdAbility = {
-    type: 'ogcd',
-    name: "Lord of Crowns",
-    potency: 250,
-    attackType: "Ability"
-}
 
-const astrodyne: Buff = {
-    name: "Astrodyne",
-    job: "AST",
-    selfOnly: true,
-    duration: 15,
-    cooldown: 0,
-    effects: { //currently assumes 2 seal dynes, can change dmgIncrease based on frequency of 3 seals
-        dmgIncrease: .00,
-        haste: 10,
-    }
-}
-
-class AstSimContext {
+class SchSimContext {
     constructor(private stats: ComputedSetStats, private allBuffs: Buff[]) {
 
     }
 
-    getResult(): AstSheetSimResult {
-        const cp = new CycleProcessor(120, [astrodyne, ...this.allBuffs], this.stats);
-        cp.use(combust);
+    getResult(): SchSheetSimResult {
+        const cp = new CycleProcessor(120, this.allBuffs, this.stats);
+        cp.use(bio);
         cp.use(filler);
         cp.use(filler);
         cp.activateBuffs();
-        cp.use(star);
         cp.use(filler);
-        cp.use(lord); //with 50% lord, chance, assumes 1 lord per burst window
+        cp.use(ed);
+        cp.use(filler);
+        cp.use(ed);
+        cp.use(filler);
+        cp.use(ed);
+        cp.use(filler); //Aetherflow for MP and refreshing EDs
+        cp.use(filler);
+        cp.use(ed);
+        cp.use(filler);
+        cp.use(ed);
+        cp.use(filler);
+        cp.use(ed);
         cp.useUntil(filler, 30);
-        cp.use(combust);
+        cp.use(bio);
         cp.useUntil(filler, 60);
-        cp.use(combust);
-        cp.useUntil(filler, 67);
-        cp.use(star);
+        cp.use(bio);
         cp.useUntil(filler, 90);
-        cp.use(combust);
+        cp.use(bio);
         cp.useUntil(filler, 120);
 
         const used = cp.usedAbilities;
@@ -91,55 +89,56 @@ class AstSimContext {
     }
 }
 
-export interface AstSheetSimResult extends SimResult {
+export interface SchSheetSimResult extends SimResult {
     abilitiesUsed: UsedAbility[],
     unbuffedPps: number
 }
 
-interface AstNewSheetSettings extends SimSettings {
+interface SchNewSheetSettings extends SimSettings {
     rezPerMin: number,
-    aspHelPerMin: number,
-    aspBenPerMin: number,
-
+    gcdHealsPerMin: number,
+    edPerMin: number,
+    r2PerMin: number,
 }
 
-export interface AstNewSheetSettingsExternal extends AstNewSheetSettings {
+export interface SchNewSheetSettingsExternal extends SchNewSheetSettings {
     buffConfig: BuffSettingsExport;
 }
 
-export const astNewSheetSpec: SimSpec<AstSheetSim, AstNewSheetSettingsExternal> = {
-    displayName: "AST Sim",
-    loadSavedSimInstance(exported: AstNewSheetSettingsExternal) {
-        return new AstSheetSim(exported);
+export const schNewSheetSpec: SimSpec<SchSheetSim, SchNewSheetSettingsExternal> = {
+    displayName: "SCH Sim",
+    loadSavedSimInstance(exported: SchNewSheetSettingsExternal) {
+        return new SchSheetSim(exported);
     },
-    makeNewSimInstance(): AstSheetSim {
-        return new AstSheetSim();
+    makeNewSimInstance(): SchSheetSim {
+        return new SchSheetSim();
     },
-    stub: "ast-sheet-sim",
-    supportedJobs: ['AST'],
+    stub: "sch-sheet-sim",
+    supportedJobs: ['SCH'],
 }
 
-export class AstSheetSim implements Simulation<AstSheetSimResult, AstNewSheetSettings, AstNewSheetSettingsExternal> {
+export class SchSheetSim implements Simulation<SchSheetSimResult, SchNewSheetSettings, SchNewSheetSettingsExternal> {
 
-    exportSettings(): AstNewSheetSettingsExternal {
+    exportSettings(): SchNewSheetSettingsExternal {
         return {
             buffConfig: this.buffManager.exportSetting(),
             ...this.settings
         };
     };
 
-    settings: AstNewSheetSettings = {
+    settings: SchNewSheetSettings = {
         rezPerMin: 0,
-        aspHelPerMin: 0,
-        aspBenPerMin: 0,
+        gcdHealsPerMin: 0,
+        edPerMin: 2,
+        r2PerMin: 0,
     };
     readonly buffManager: BuffSettingsManager;
 
-    spec = astNewSheetSpec;
-    displayName = "AST Sim";
-    shortName = "ast-sheet-sim";
+    spec = schNewSheetSpec;
+    displayName = "SCH Sim";
+    shortName = "sch-sheet-sim";
 
-    constructor(settings?: AstNewSheetSettingsExternal) {
+    constructor(settings?: SchNewSheetSettingsExternal) {
         if (settings) {
             Object.assign(this.settings, settings);
             this.buffManager = new BuffSettingsManager(settings.buffConfig);
@@ -150,13 +149,13 @@ export class AstSheetSim implements Simulation<AstSheetSimResult, AstNewSheetSet
     }
 
     // TODO
-    makeConfigInterface(settings: AstNewSheetSettingsExternal, updateCallback: () => void): HTMLElement {
+    makeConfigInterface(settings: SchNewSheetSettingsExternal, updateCallback: () => void): HTMLElement {
         const div = document.createElement("div");
         div.appendChild(new BuffSettingsArea(this.buffManager, updateCallback));
         return div;
     }
 
-    makeResultDisplay(result: AstSheetSimResult): HTMLElement {
+    makeResultDisplay(result: SchSheetSimResult): HTMLElement {
         const mainResultsTable = simpleAutoResultTable({
             mainDpsResult: result.mainDpsResult,
             unbuffedPps: result.unbuffedPps
@@ -167,13 +166,13 @@ export class AstSheetSim implements Simulation<AstSheetSimResult, AstNewSheetSet
     }
 
     //
-    makeToolTip(result: AstSheetSimResult): string {
+    makeToolTip(result: SchSheetSimResult): string {
         return `DPS: ${result.mainDpsResult}\nUnbuffed PPS: ${result.unbuffedPps}\n`;
     }
 
-    async simulate(set: CharacterGearSet): Promise<AstSheetSimResult> {
+    async simulate(set: CharacterGearSet): Promise<SchSheetSimResult> {
         const allBuffs = this.buffManager.enabledBuffs;
-        const ctx = new AstSimContext(set.computedStats, allBuffs);
+        const ctx = new SchSimContext(set.computedStats, allBuffs);
         return ctx.getResult();
     }
 
