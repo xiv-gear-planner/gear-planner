@@ -85,4 +85,6 @@ export type Buff = Readonly<{
     duration: number,
     // The effect(s) of the buff
     effects: BuffEffects;
+    // Time of first usage
+    startTime: number,
 }>;
