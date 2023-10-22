@@ -86,5 +86,5 @@ export type Buff = {
     // The effect(s) of the buff
     effects: BuffEffects;
     // Time of usage
-    startTime: number,
+    startTime: number | null,
 };
