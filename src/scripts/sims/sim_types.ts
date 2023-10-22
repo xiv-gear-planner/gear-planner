@@ -69,7 +69,7 @@ export type BuffEffects = {
     haste?: number,
 }
 
-export type Buff = Readonly<{
+export type Buff = {
     // Name of buff
     name: string,
     // Job of buff
@@ -85,6 +85,6 @@ export type Buff = Readonly<{
     duration: number,
     // The effect(s) of the buff
     effects: BuffEffects;
-    // Time of first usage
+    // Time of usage
     startTime: number,
-}>;
+};
