@@ -48,7 +48,7 @@ export interface WhmSheetSettings extends SimSettings {
 }
 
 export const whmSheetSpec: SimSpec<WhmSheetSim, WhmSheetSettings> = {
-    displayName: "WHM Sheet Sim",
+    displayName: "WHM Sheet Sim (Old)",
     loadSavedSimInstance(exported: WhmSheetSettings) {
         return new WhmSheetSim(exported);
     },
@@ -77,7 +77,7 @@ export class WhmSheetSim implements Simulation<WhmSheetSimResult, WhmSheetSettin
     };
 
     spec = whmSheetSpec;
-    displayName = "WHM Sheet Sim";
+    displayName = whmSheetSpec.displayName;
     shortName = "whm-sheet-sim";
 
     constructor(settings?: WhmSheetSettings) {

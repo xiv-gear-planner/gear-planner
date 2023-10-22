@@ -136,16 +136,16 @@ export class AstSheetSim implements Simulation<AstSheetSimResult, AstNewSheetSet
     readonly buffManager: BuffSettingsManager;
 
     spec = astNewSheetSpec;
-    displayName = "AST Sim";
+    displayName = astNewSheetSpec.displayName;
     shortName = "ast-sheet-sim";
 
     constructor(settings?: AstNewSheetSettingsExternal) {
         if (settings) {
             Object.assign(this.settings, settings);
-            this.buffManager = new BuffSettingsManager(settings.buffConfig);
+            this.buffManager = BuffSettingsManager.fromSaved(settings.buffConfig);
         }
         else {
-            this.buffManager = new BuffSettingsManager();
+            this.buffManager = BuffSettingsManager.defaultForJob('AST');
         }
     }
 

@@ -153,16 +153,16 @@ export class WhmSheetSim implements Simulation<WhmSheetSimResult, WhmNewSheetSet
     readonly buffManager: BuffSettingsManager;
 
     spec = whmNewSheetSpec;
-    displayName = "WHM New Sim";
+    displayName = whmNewSheetSpec.displayName;
     shortName = "whm-new-sheet-sim";
 
     constructor(settings?: WhmNewSheetSettingsExternal) {
         if (settings) {
             Object.assign(this.settings, settings);
-            this.buffManager = new BuffSettingsManager(settings.buffConfig);
+            this.buffManager = BuffSettingsManager.fromSaved(settings.buffConfig);
         }
         else {
-            this.buffManager = new BuffSettingsManager();
+            this.buffManager = BuffSettingsManager.defaultForJob('WHM');
         }
     }
 

@@ -127,16 +127,16 @@ export class SgeSheetSim implements Simulation<SgeSheetSimResult, SgeNewSheetSet
     readonly buffManager: BuffSettingsManager;
 
     spec = sgeNewSheetSpec;
-    displayName = "SGE Sim Mk.II";
+    displayName = sgeNewSheetSpec.displayName;
     shortName = "sge-new-sheet-sim";
 
     constructor(settings?: SgeNewSheetSettingsExternal) {
         if (settings) {
             Object.assign(this.settings, settings);
-            this.buffManager = new BuffSettingsManager(settings.buffConfig);
+            this.buffManager = BuffSettingsManager.fromSaved(settings.buffConfig);
         }
         else {
-            this.buffManager = new BuffSettingsManager();
+            this.buffManager = BuffSettingsManager.defaultForJob('SGE');
         }
     }
 

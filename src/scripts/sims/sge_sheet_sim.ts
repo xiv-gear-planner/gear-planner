@@ -38,7 +38,7 @@ export interface SgeSheetSettings extends SimSettings {
 }
 
 export const sgeSheetSpec: SimSpec<SgeSheetSim, SgeSheetSettings> = {
-    displayName: "SGE Sheet Sim",
+    displayName: "SGE Sheet Sim (Old)",
     loadSavedSimInstance(exported: SgeSheetSettings) {
         return new SgeSheetSim(exported);
     },
@@ -69,7 +69,7 @@ export class SgeSheetSim implements Simulation<SgeSheetSimResult, SgeSheetSettin
     };
 
     spec = sgeSheetSpec;
-    displayName = "SGE Sheet Sim";
+    displayName = sgeSheetSpec.displayName;
     shortName = "sge-sheet-sim";
 
     constructor(settings?: SgeSheetSettings) {
