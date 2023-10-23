@@ -43,7 +43,8 @@ const pom: Buff = {
     cooldown: 0,
     effects: { 
         haste: 20,
-    }
+    },
+    startTime: null
 }
 
 const misery: GcdAbility = {
@@ -72,7 +73,7 @@ class WhmSimContext {
         cp.use(dia);
         cp.use(filler);
         cp.use(filler);
-        cp.activateBuffs();
+        cp.activateBuff(pom);
         cp.use(filler);
         cp.use(assize);
         cp.use(misery);
