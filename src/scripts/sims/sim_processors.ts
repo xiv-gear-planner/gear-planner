@@ -9,9 +9,9 @@ export class CycleProcessor {
     currentTime: number = 0;
     gcdBase: number = NORMAL_GCD;
     usedAbilities: (UsedAbility | PartiallyUsedAbility)[] = [];
+    buffTimes: Map<Buff, number|null> = [];
 
     constructor(private cycleTime: number, private allBuffs: Buff[], private stats: ComputedSetStats) {
-        var buffTimes = new Map<Buff, number|null>();
         this.allBuffs.forEach(function(buff){
             this.buffTimes.set(buff, buff.startTime);
         });
@@ -23,13 +23,13 @@ export class CycleProcessor {
     getActiveBuffs(): Buff[] {
         var activeBuffs = new Buff[];
         this.buffTimes.forEach((buff, time) =>{
-            if (time == null) continue;
+            if (time === null) continue;
             if (time > this.nextGcdTime) continue;
             if ((this.nextGcdTime - time) < buff.duration) {
-                this.activeBuffs.push(buff);
+                activeBuffs.push(buff);
             }
         });
-        return this.activeBuffs;
+        return activeBuffs;
     }
 
     activateBuff(buff: Buff) {
