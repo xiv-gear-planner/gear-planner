@@ -38,8 +38,16 @@ class BuffSetting {
 export class BuffSettingsManager {
     private readonly jobs: readonly JobSettings[];
 
-    constructor(exported?: BuffSettingsExport) {
-        const jobBuffMapping: { [k in JobName]?: Buff[] } = ALL_BUFFS.reduce(((map, val) => {
+    static fromSaved(saved: BuffSettingsExport) {
+        return new BuffSettingsManager(saved.jobs, saved.buffs);
+    }
+
+    static defaultForJob(job: JobName) {
+        return new BuffSettingsManager([job]);
+    }
+
+    private static makeJobBuffMapping(): { [k in JobName]?: Buff[] } {
+        return ALL_BUFFS.reduce(((map, val) => {
             const job = val.job;
             if (job in map) {
                 map[job].push(val);
@@ -49,12 +57,16 @@ export class BuffSettingsManager {
             }
             return map;
         }), {});
+    }
+
+    private constructor(enabledJobs: JobName[], enabledBuffs?: BuffName[]) {
+        const jobBuffMapping = BuffSettingsManager.makeJobBuffMapping();
         this.jobs = Object.entries(jobBuffMapping).map(([job, buffs]) => {
             const buffSettings: BuffSetting[] = buffs.map(buff => {
-                const enabled = exported ? exported.buffs.includes(buff.name as BuffName) : !(buff.optional);
+                const enabled = enabledBuffs !== undefined ? enabledBuffs.includes(buff.name as BuffName) : !(buff.optional);
                 return new BuffSetting(buff, enabled);
-            })
-            return new JobSettings(job as JobName, buffSettings, exported?.jobs?.includes(job as JobName));
+            });
+            return new JobSettings(job as JobName, buffSettings, enabledJobs.includes(job as JobName));
         });
     }
 

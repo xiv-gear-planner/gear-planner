@@ -143,16 +143,16 @@ export class SchSheetSim implements Simulation<SchSheetSimResult, SchNewSheetSet
     readonly buffManager: BuffSettingsManager;
 
     spec = schNewSheetSpec;
-    displayName = "SCH Sim";
+    displayName = schNewSheetSpec.displayName;
     shortName = "sch-sheet-sim";
 
     constructor(settings?: SchNewSheetSettingsExternal) {
         if (settings) {
             Object.assign(this.settings, settings);
-            this.buffManager = new BuffSettingsManager(settings.buffConfig);
+            this.buffManager = BuffSettingsManager.fromSaved(settings.buffConfig);
         }
         else {
-            this.buffManager = new BuffSettingsManager();
+            this.buffManager = BuffSettingsManager.defaultForJob('SCH');
         }
     }
 
