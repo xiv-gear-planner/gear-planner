@@ -54,7 +54,6 @@ class SchSimContext {
         cp.use(bio);
         cp.use(filler);
         cp.use(filler);
-        cp.activateBuffs();
         cp.use(filler);
         cp.use(ed);
         cp.use(filler);
