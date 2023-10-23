@@ -23,11 +23,12 @@ export class CycleProcessor {
     getActiveBuffs(): Buff[] {
         var activeBuffs = new Buff[];
         this.buffTimes.forEach((buff, time) =>{
-            if (time === null) continue;
-            if (time > this.nextGcdTime) continue;
-            if ((this.nextGcdTime - time) < buff.duration) {
+            if (time === null) return;
+            if (time > this.nextGcdTime) return;
+            if ((this.currentTime - time) < buff.duration) {
                 activeBuffs.push(buff);
             }
+            return;
         });
         return activeBuffs;
     }
