@@ -51,14 +51,13 @@ class SgeSimContext {
         cp.use(eDosis);
         cp.use(filler);
         cp.use(filler);
-        cp.activateBuffs();
         cp.use(phlegma);
         cp.use(phlegma);
         cp.useUntil(filler, 30);
         cp.use(eDosis);
         cp.useUntil(filler, 60);
-        cp.use(phlegma);
         cp.use(eDosis);
+        cp.use(phlegma);
         cp.useUntil(filler, 90);
         cp.use(eDosis);
         cp.useUntil(filler, 120);
