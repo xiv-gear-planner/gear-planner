@@ -51,7 +51,7 @@ const astrodyne: Buff = {
     effects: { //currently assumes 2 seal dynes, can change dmgIncrease based on frequency of 3 seals
         dmgIncrease: .00,
         haste: 10,
-    }
+    },
     startTime: null,
 }
 
