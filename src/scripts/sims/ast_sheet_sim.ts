@@ -52,6 +52,7 @@ const astrodyne: Buff = {
         dmgIncrease: .00,
         haste: 10,
     }
+    startTime: null,
 }
 
 class AstSimContext {
@@ -62,9 +63,12 @@ class AstSimContext {
     getResult(): AstSheetSimResult {
         const cp = new CycleProcessor(120, [astrodyne, ...this.allBuffs], this.stats);
         cp.use(combust);
+        cp.use(filler); //play, draw
+        cp.use(filler); //play, draw
+        cp.use(filler); //div, play
+        cp.use(filler); //MA, dyne
+        cp.activateBuff(astrodyne);
         cp.use(filler);
-        cp.use(filler);
-        cp.activateBuffs();
         cp.use(star);
         cp.use(filler);
         cp.use(lord); //with 50% lord, chance, assumes 1 lord per burst window
@@ -72,7 +76,7 @@ class AstSimContext {
         cp.use(combust);
         cp.useUntil(filler, 60);
         cp.use(combust);
-        cp.useUntil(filler, 67);
+        cp.useUntil(filler, 75);
         cp.use(star);
         cp.useUntil(filler, 90);
         cp.use(combust);
