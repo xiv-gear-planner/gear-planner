@@ -9,6 +9,7 @@ import {CycleProcessor} from "./sim_processors";
 import {sum} from "../util/array_utils";
 import {BuffSettingsArea, BuffSettingsExport, BuffSettingsManager} from "./party_comp_settings";
 import {AbilitiesUsedTable} from "./components/ability_used_table";
+import {Chain} from "./buffs";
 
 
 const filler: GcdAbility = {
@@ -18,6 +19,13 @@ const filler: GcdAbility = {
     attackType: "Spell",
     gcd: 2.5,
     cast: 1.5
+}
+
+const chain: OgcdAbility = {
+    type: 'ogcd',
+    name: "Chain",
+    activatesBuffs: [Chain],
+    potency: null
 }
 
 const r2: GcdAbility = {
@@ -50,29 +58,30 @@ class SchSimContext {
     }
 
     getResult(): SchSheetSimResult {
-        const cp = new CycleProcessor(120, this.allBuffs, this.stats);
-        cp.use(bio);
-        cp.use(filler);
-        cp.use(filler);
-        cp.use(filler);
-        cp.use(ed);
-        cp.use(filler);
-        cp.use(ed);
-        cp.use(filler);
-        cp.use(ed);
-        cp.use(filler); //Aetherflow for MP and refreshing EDs
-        cp.use(filler);
-        cp.use(ed);
-        cp.use(filler);
-        cp.use(ed);
-        cp.use(filler);
-        cp.use(ed);
+        const cp = new CycleProcessor(120, this.allBuffs, this.stats, [Chain]);
+        cp.useGcd(bio);
+        cp.useGcd(filler);
+        cp.useGcd(filler);
+        cp.useOgcd(chain);
+        cp.useGcd(filler);
+        cp.useOgcd(ed);
+        cp.useGcd(filler);
+        cp.useOgcd(ed);
+        cp.useGcd(filler);
+        cp.useOgcd(ed);
+        cp.useGcd(filler); //Aetherflow for MP and refreshing EDs
+        cp.useGcd(filler);
+        cp.useOgcd(ed);
+        cp.useGcd(filler);
+        cp.useOgcd(ed);
+        cp.useGcd(filler);
+        cp.useOgcd(ed);
         cp.useUntil(filler, 30);
-        cp.use(bio);
+        cp.useGcd(bio);
         cp.useUntil(filler, 60);
-        cp.use(bio);
+        cp.useGcd(bio);
         cp.useUntil(filler, 90);
-        cp.use(bio);
+        cp.useGcd(bio);
         cp.useUntil(filler, 120);
 
         const used = cp.usedAbilities;

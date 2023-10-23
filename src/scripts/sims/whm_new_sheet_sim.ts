@@ -3,8 +3,7 @@ import {CharacterGearSet} from "../gear";
 import {ComputedSetStats} from "../geartypes";
 
 import {quickElement} from "../components/util";
-import {CustomTable, HeaderRow} from "../tables";
-import {GcdAbility, Buff, UsedAbility, OgcdAbility} from "./sim_types";
+import {Buff, GcdAbility, OgcdAbility, UsedAbility} from "./sim_types";
 import {CycleProcessor} from "./sim_processors";
 import {sum} from "../util/array_utils";
 import {BuffSettingsArea, BuffSettingsExport, BuffSettingsManager} from "./party_comp_settings";
@@ -35,16 +34,22 @@ const assize: OgcdAbility = {
     attackType: "Ability"
 }
 
-const pom: Buff = {
-    name: "Presence of Mind",
-    job: "WHM",
-    selfOnly: true,
-    duration: 15,
-    cooldown: 0,
-    effects: { 
-        haste: 20,
-    },
-    startTime: null
+const pom: OgcdAbility = {
+    type: 'ogcd',
+    name: 'Presence of Mind',
+    potency: null,
+    activatesBuffs: [
+        {
+            name: "Presence of Mind",
+            job: "WHM",
+            selfOnly: true,
+            duration: 15,
+            cooldown: 120,
+            effects: {
+                haste: 20,
+            },
+        }
+    ]
 }
 
 const misery: GcdAbility = {
@@ -69,11 +74,11 @@ class WhmSimContext {
     }
 
     getResult(): WhmSheetSimResult {
-        const cp = new CycleProcessor(120, [pom, ...this.allBuffs], this.stats);
+        const cp = new CycleProcessor(120, this.allBuffs, this.stats);
         cp.use(dia);
         cp.use(filler);
         cp.use(filler);
-        cp.activateBuff(pom);
+        cp.useOgcd(pom);
         cp.use(filler);
         cp.use(assize);
         cp.use(misery);

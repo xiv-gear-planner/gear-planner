@@ -7,6 +7,7 @@ import {CustomTable} from "./tables";
 import {camel2title} from "./util/strutils";
 import {sgeNewSheetSpec} from "./sims/sge_sheet_sim_mk2";
 import {astNewSheetSpec} from "./sims/ast_sheet_sim";
+import {schNewSheetSpec} from "./sims/sch_sheet_sim";
 
 export interface SimResult {
     mainDpsResult: number;
@@ -183,3 +184,4 @@ registerSim(whmSheetSpec);
 registerSim(sgeSheetSpec);
 registerSim(sgeNewSheetSpec);
 registerSim(astNewSheetSpec);
+registerSim(schNewSheetSpec);

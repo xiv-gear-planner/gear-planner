@@ -42,17 +42,24 @@ const lord: OgcdAbility = {
     attackType: "Ability"
 }
 
-const astrodyne: Buff = {
+const astrodyne: OgcdAbility = {
     name: "Astrodyne",
-    job: "AST",
-    selfOnly: true,
-    duration: 15,
-    cooldown: 0,
-    effects: { //currently assumes 2 seal dynes, can change dmgIncrease based on frequency of 3 seals
-        dmgIncrease: .00,
-        haste: 10,
-    },
-    startTime: null,
+    type: "ogcd",
+    potency: null,
+    activatesBuffs: [
+        {
+            name: "Astrodyne",
+            job: "AST",
+            selfOnly: true,
+            duration: 15,
+            cooldown: 0,
+            effects: { //currently assumes 2 seal dynes, can change dmgIncrease based on frequency of 3 seals
+                // dmgIncrease: 0.00,
+                haste: 10,
+            },
+            startTime: null,
+        }
+    ]
 }
 
 class AstSimContext {
@@ -61,12 +68,12 @@ class AstSimContext {
     }
 
     getResult(): AstSheetSimResult {
-        const cp = new CycleProcessor(120, [astrodyne, ...this.allBuffs], this.stats);
+        const cp = new CycleProcessor(120, this.allBuffs, this.stats);
         cp.use(combust); //play, draw
         cp.use(filler); //play, draw
         cp.use(filler); //div, play
         cp.use(filler); //MA, dyne
-        cp.activateBuff(astrodyne);
+        cp.useOgcd(astrodyne);
         cp.use(filler);
         cp.use(star);
         cp.use(filler);
