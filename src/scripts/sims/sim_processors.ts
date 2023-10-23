@@ -9,7 +9,7 @@ import {
     PartiallyUsedAbility,
     UsedAbility
 } from "./sim_types";
-import {CASTER_TAX, NORMAL_GCD, STANDARD_ANIMATION_LOCK} from "../xivconstants";
+import {CAST_SNAPSHOT_PRE, CASTER_TAX, NORMAL_GCD, STANDARD_ANIMATION_LOCK} from "../xivconstants";
 
 export class CycleProcessor {
 
@@ -84,28 +84,40 @@ export class CycleProcessor {
         if (this.nextGcdTime > this.currentTime) {
             this.currentTime = this.nextGcdTime;
         }
+        // We need to calculate our buff set twice. The first is because buffs may affect the cast and/or recast time.
+        const preBuffs = this.getActiveBuffs();
+        const preCombinedEffects: CombinedBuffEffect = combineBuffEffects(preBuffs);
+        const abilityGcd = ability.fixedGcd ? ability.gcd : (this.stats.gcdMag(ability.gcd ?? this.gcdBase, preCombinedEffects.haste));
+        const snapshotsAt = ability.cast ? Math.max(this.currentTime, this.currentTime + ability.cast - CAST_SNAPSHOT_PRE) : this.currentTime;
+        // When this GCD will end (strictly in terms of GCD. e.g. a BLM spell where cast > recast will still take the cast time. This will be
+        // accounted for later).
+        const gcdFinishedAt = this.currentTime + abilityGcd;
+        const animLock = ability.cast ? Math.max(ability.cast + CASTER_TAX, STANDARD_ANIMATION_LOCK) : STANDARD_ANIMATION_LOCK;
+        const animLockFinishedAt = this.currentTime + animLock;
+        this.currentTime = snapshotsAt;
         if (ability.activatesBuffs) {
             ability.activatesBuffs.forEach(buff => this.activateBuff(buff));
         }
         const buffs = this.getActiveBuffs();
         const combinedEffects: CombinedBuffEffect = combineBuffEffects(buffs);
-        const abilityGcd = ability.fixedGcd ? ability.gcd : (this.stats.gcdMag(ability.gcd ?? this.gcdBase, combinedEffects.haste));
-        // When this GCD will end (strictly in terms of GCD. e.g. a BLM spell where cast > recast will still take the cast time. This will be
-        // accounted for later).
-        const gcdFinishedAt = this.currentTime + abilityGcd;
         // Enough time for entire GCD
         if (gcdFinishedAt <= this.cycleTime) {
             this.usedAbilities.push({
                 ability: ability,
-                combinedEffects: combinedEffects,
-                buffs: buffs,
+                // We want to take the 'haste' value from the pre-snapshot values, but everything else should
+                // come from when the ability snapshotted.
+                // i.e. a haste buff that applies mid-cast will not help us, but a damage buff will.
+                // Opposite applies for buffs falling off mid-cast.
+                combinedEffects: {
+                    ...combinedEffects,
+                    haste: preCombinedEffects.haste,
+                },
+                buffs: Array.from(new Set<Buff>([...preBuffs, ...buffs])),
                 usedAt: this.currentTime,
-                damage: abilityToDamage(this.stats, ability, combinedEffects),
+                damage: abilityToDamage(this.stats, ability, preCombinedEffects),
             });
             // Anim lock OR cast time, both effectively block use of skills.
             // If cast time > GCD recast, then we use that instead. Also factor in caster tax.
-            const animLock = ability.cast ? Math.max(ability.cast + CASTER_TAX, STANDARD_ANIMATION_LOCK) : STANDARD_ANIMATION_LOCK;
-            const animLockFinishedAt = this.currentTime + animLock;
             this.currentTime = animLockFinishedAt;
             // If we're casting a long-cast, then the GCD is blocked for more than a GCD.
             this.nextGcdTime = Math.max(gcdFinishedAt, animLockFinishedAt);
@@ -116,11 +128,11 @@ export class CycleProcessor {
             const portion = remainingTime / abilityGcd;
             this.usedAbilities.push({
                 ability: ability,
-                buffs: buffs,
-                combinedEffects: combinedEffects,
+                buffs: preBuffs,
+                combinedEffects: preCombinedEffects,
                 usedAt: this.nextGcdTime,
                 portion: portion,
-                damage: abilityToDamage(this.stats, ability, combinedEffects, portion),
+                damage: abilityToDamage(this.stats, ability, preCombinedEffects, portion),
             });
             this.nextGcdTime = this.cycleTime;
             this.currentTime = this.cycleTime;
@@ -132,6 +144,9 @@ export class CycleProcessor {
         if (this.currentTime > this.cycleTime) {
             // Already over time limit. Ignore completely.
             return;
+        }
+        if (ability.activatesBuffs) {
+            ability.activatesBuffs.forEach(buff => this.activateBuff(buff));
         }
         const buffs = this.getActiveBuffs();
         const combinedEffects: CombinedBuffEffect = combineBuffEffects(buffs);

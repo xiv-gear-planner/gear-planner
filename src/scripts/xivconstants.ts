@@ -39,6 +39,8 @@ export const MAX_ILVL = 999;
 export const MATERIA_ACCEPTABLE_OVERCAP_LOSS = 2;
 
 export const STANDARD_ANIMATION_LOCK = 0.6;
+
+export const CAST_SNAPSHOT_PRE = 0.5;
 export const CASTER_TAX = 0.1;
 
 /**

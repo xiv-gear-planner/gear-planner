@@ -3,7 +3,6 @@ import {CharacterGearSet} from "../gear";
 import {ComputedSetStats} from "../geartypes";
 
 import {quickElement} from "../components/util";
-import {CustomTable, HeaderRow} from "../tables";
 import {GcdAbility, Buff, UsedAbility, OgcdAbility} from "./sim_types";
 import {CycleProcessor} from "./sim_processors";
 import {sum} from "../util/array_utils";
