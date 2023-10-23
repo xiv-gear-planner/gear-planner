@@ -7,7 +7,6 @@ export class CycleProcessor {
 
     nextGcdTime: number = 0;
     currentTime: number = 0;
-    startOfBuffs: number | null = null;
     gcdBase: number = NORMAL_GCD;
     usedAbilities: (UsedAbility | PartiallyUsedAbility)[] = [];
 
@@ -18,26 +17,11 @@ export class CycleProcessor {
      * Get the buffs that would be active right now.
      */
     getActiveBuffs(): Buff[] {
-        if (this.startOfBuffs === null) {
-            return [];
-        }
-        return this.getBuffs(this.nextGcdTime - this.startOfBuffs);
+        return this.allBuffs.filter(buff => (buff.startTime != null) && (this.nextGcdTime > buff.startTime) && (this. nextGcdTime - buff.startTime) < buff.duration);
     }
 
-    /**
-     * Get the buffs that would be active `buffRemainingTime` since the start of the buff window.
-     *
-     * i.e. getBuffs(0) should return everything, getBuffs(15) would return 20 sec buffs but not 15, etc
-     */
-    getBuffs(buffRemainingTime: number): Buff[] {
-        return this.allBuffs.filter(buff => buff.duration > buffRemainingTime);
-    }
-
-    /**
-     * Start the raid buffs
-     */
-    activateBuffs() {
-        this.startOfBuffs = this.currentTime;
+    activateBuff(buff: Buff) {
+        buff.startTime = this.currentTime;
     }
 
     /**
