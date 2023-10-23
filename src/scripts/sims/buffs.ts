@@ -9,6 +9,7 @@ export const Mug = {
     effects: {
         dmgIncrease: 0.05,
     },
+    startTime: 3.5,
 } as const satisfies Buff;
 
 export const Litany = {
@@ -18,7 +19,8 @@ export const Litany = {
     cooldown: 120,
     effects: {
         critChanceIncrease: 0.10
-    }
+    },
+    startTime: 7.5,
 } as const satisfies Buff;
 
 export const DragonSight = {
@@ -29,7 +31,8 @@ export const DragonSight = {
     optional: true,
     effects: {
         dmgIncrease: 0.05
-    }
+    },
+    startTime: 5,
 } as const satisfies Buff;
 
 export const Brotherhood = {
@@ -39,7 +42,8 @@ export const Brotherhood = {
     cooldown: 120,
     effects: {
         dmgIncrease: 0.05
-    }
+    },
+    startTime: 7.5,
 } as const satisfies Buff;
 
 export const ArcaneCircle = {
@@ -49,7 +53,8 @@ export const ArcaneCircle = {
     cooldown: 120,
     effects: {
         dmgIncrease: 0.03
-    }
+    },
+    startTime: 5,
 } as const satisfies Buff;
 
 export const SearingLight = {
@@ -59,7 +64,8 @@ export const SearingLight = {
     cooldown: 120,
     effects: {
         dmgIncrease: 0.03
-    }
+    },
+    startTime: 1.5,
 } as const satisfies Buff;
 
 export const Embolden = {
@@ -69,7 +75,8 @@ export const Embolden = {
     cooldown: 120,
     effects: {
         dmgIncrease: 0.05
-    }
+    },
+    startTime: 7,
 } as const satisfies Buff;
 
 export const Devilment = {
@@ -81,7 +88,8 @@ export const Devilment = {
     effects: {
         dhitChanceIncrease: 0.20,
         critChanceIncrease: 0.20
-    }
+    },
+    startTime: 7,
 } as const satisfies Buff;
 
 /* With how the cycle processer script currently handles buffs, this wouldn't properly work
@@ -94,6 +102,7 @@ export const StandardFinish = {
     effects: {
         dmgIncrease: 0.05,
     }
+    startTime: 0,
 } as const satisfies Buff;
 */
 export const TechnicalFinish = {
@@ -103,7 +112,8 @@ export const TechnicalFinish = {
     cooldown: 120,
     effects: {
         dmgIncrease: 0.05,
-    }
+    },
+    startTime: 7,
 } as const satisfies Buff;
 
 export const BattleVoice = {
@@ -113,7 +123,8 @@ export const BattleVoice = {
     cooldown: 120,
     effects: {
         dhitChanceIncrease: 0.20,
-    }
+    },
+    startTime: 6,
 } as const satisfies Buff;
 
 export const RadiantFinale = {
@@ -123,7 +134,8 @@ export const RadiantFinale = {
     cooldown: 120,
     effects: {
         dmgIncrease: 0.06
-    }
+    },
+    startTime: 6.7,
 } as const satisfies Buff;
 
 export const Chain = {
@@ -133,7 +145,8 @@ export const Chain = {
     cooldown: 120,
     effects: {
         critChanceIncrease: 0.10
-    }
+    },
+    startTime: 7,
 } as const satisfies Buff;
 
 export const Divination = {
@@ -143,7 +156,8 @@ export const Divination = {
     cooldown: 120,
     effects: {
         dmgIncrease: 0.06
-    }
+    },
+    startTime: 7,
 } as const satisfies Buff;
 
 export const AstCard = {
@@ -154,7 +168,8 @@ export const AstCard = {
     optional: true,
     effects: {
         dmgIncrease: 0.06
-    }
+    },
+    startTime: 4,
 } as const satisfies Buff;
 
 

@@ -35,13 +35,16 @@ export class AbilitiesUsedTable extends CustomTable<UsedAbility> {
             {
                 shortName: 'unbuffed-pot',
                 displayName: 'Pot',
-                getter: used => used.ability.potency
+                getter: used => used.ability.potency ?? '--',
             },
             {
                 shortName: 'expected-damage',
                 displayName: 'Damage',
                 getter: used => used,
-                renderer: used => {
+                renderer: (used: UsedAbility) => {
+                    if (!used.ability.potency) {
+                        return document.createTextNode('--');
+                    }
                     let text = used.damage.expected.toFixed(2);
                     if ('portion' in used) {
                         text += '*';

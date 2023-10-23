@@ -2,18 +2,25 @@ import {JobName} from "../xivconstants";
 import {AttackType} from "../geartypes";
 import {CombinedBuffEffect} from "./sim_processors";
 
-export type Ability  = {
-    name: string,
+export type NonDamagingAbility = {
+    potency: null,
+}
+export type DamagingAbility = {
     potency: number,
     attackType: AttackType,
     autoCrit?: boolean,
-    autoDh?: boolean
+    autoDh?: boolean,
 }
+
+export type BaseAbility = Readonly<{
+    name: string,
+    activatesBuffs?: readonly Buff[],
+} & (NonDamagingAbility | DamagingAbility)>;
 
 /**
  * Represents an ability you can use
  */
-export type GcdAbility = Ability & {
+export type GcdAbility = BaseAbility & {
     type: 'gcd';
     /**
      * If the ability's GCD can be lowered by sps/sks, put it here.
@@ -31,10 +38,12 @@ export type GcdAbility = Ability & {
     fixedGcd?: boolean,
 }
 
-export type OgcdAbility = Ability & {
+export type OgcdAbility = BaseAbility & Readonly<{
     type: 'ogcd',
     animationLock?: number,
-}
+}>
+
+export type Ability = GcdAbility | OgcdAbility;
 
 export type ComputedDamage = {
     expected: number,
@@ -70,19 +79,23 @@ export type BuffEffects = {
 }
 
 export type Buff = Readonly<{
-    // Name of buff
+    /** Name of buff */
     name: string,
-    // Job of buff
+    /** Job of buff */
     job: JobName,
-    // "Optional" would be things like DNC partner buffs, where merely having the job
-    // in your comp does not mean you would necessarily get the buff.
+    /** "Optional" would be things like DNC partner buffs, where merely having the job
+    // in your comp does not mean you would necessarily get the buff. */
     optional?: boolean,
-    // Can only apply to self - not a party/targeted buff
+    /** Can only apply to self - not a party/targeted buff */
     selfOnly?: boolean,
-    // Cooldown
+    /** Cooldown */
     cooldown: number,
-    // Duration
+    /** Duration */
     duration: number,
-    // The effect(s) of the buff
+    /** The effect(s) of the buff */
     effects: BuffEffects;
+    /**
+     * Time of usage - can be omitted for buffs that would only be used by self and never auto-activated
+     */
+    startTime?: number,
 }>;

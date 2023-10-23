@@ -42,16 +42,24 @@ const lord: OgcdAbility = {
     attackType: "Ability"
 }
 
-const astrodyne: Buff = {
+const astrodyne: OgcdAbility = {
     name: "Astrodyne",
-    job: "AST",
-    selfOnly: true,
-    duration: 15,
-    cooldown: 0,
-    effects: { //currently assumes 2 seal dynes, can change dmgIncrease based on frequency of 3 seals
-        dmgIncrease: .00,
-        haste: 10,
-    }
+    type: "ogcd",
+    potency: null,
+    activatesBuffs: [
+        {
+            name: "Astrodyne",
+            job: "AST",
+            selfOnly: true,
+            duration: 15,
+            cooldown: 0,
+            effects: { //currently assumes 2 seal dynes, can change dmgIncrease based on frequency of 3 seals
+                // dmgIncrease: 0.00,
+                haste: 10,
+            },
+            startTime: null,
+        }
+    ]
 }
 
 class AstSimContext {
@@ -60,11 +68,13 @@ class AstSimContext {
     }
 
     getResult(): AstSheetSimResult {
-        const cp = new CycleProcessor(120, [astrodyne, ...this.allBuffs], this.stats);
-        cp.use(combust);
+        const cp = new CycleProcessor(120, this.allBuffs, this.stats);
+        cp.use(combust); //play, draw
+        cp.use(filler); //play, draw
+        cp.use(filler); //div, play
+        cp.use(filler); //MA, dyne
+        cp.useOgcd(astrodyne);
         cp.use(filler);
-        cp.use(filler);
-        cp.activateBuffs();
         cp.use(star);
         cp.use(filler);
         cp.use(lord); //with 50% lord, chance, assumes 1 lord per burst window
@@ -72,7 +82,7 @@ class AstSimContext {
         cp.use(combust);
         cp.useUntil(filler, 60);
         cp.use(combust);
-        cp.useUntil(filler, 67);
+        cp.useUntil(filler, 75);
         cp.use(star);
         cp.useUntil(filler, 90);
         cp.use(combust);
