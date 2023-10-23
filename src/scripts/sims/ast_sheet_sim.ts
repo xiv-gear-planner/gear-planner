@@ -62,8 +62,7 @@ class AstSimContext {
 
     getResult(): AstSheetSimResult {
         const cp = new CycleProcessor(120, [astrodyne, ...this.allBuffs], this.stats);
-        cp.use(combust);
-        cp.use(filler); //play, draw
+        cp.use(combust); //play, draw
         cp.use(filler); //play, draw
         cp.use(filler); //div, play
         cp.use(filler); //MA, dyne
