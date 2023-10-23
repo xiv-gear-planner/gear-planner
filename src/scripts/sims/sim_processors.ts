@@ -11,17 +11,29 @@ export class CycleProcessor {
     usedAbilities: (UsedAbility | PartiallyUsedAbility)[] = [];
 
     constructor(private cycleTime: number, private allBuffs: Buff[], private stats: ComputedSetStats) {
+        var buffTimes = new Map<Buff, number|null>();
+        this.allBuffs.forEach(function(buff){
+            this.buffTimes.set(buff, buff.startTime);
+        });
     }
 
     /**
      * Get the buffs that would be active right now.
      */
     getActiveBuffs(): Buff[] {
-        return this.allBuffs.filter(buff => (buff.startTime != null) && (this.nextGcdTime > buff.startTime) && (this. nextGcdTime - buff.startTime) < buff.duration);
+        var activeBuffs = new Buff[];
+        this.buffTimes.forEach((buff, time) =>{
+            if (time == null) continue;
+            if (time > this.nextGcdTime) continue;
+            if ((this.nextGcdTime - time) < buff.duration) {
+                this.activeBuffs.push(buff);
+            }
+        });
+        return this.activeBuffs;
     }
 
     activateBuff(buff: Buff) {
-        buff.startTime = this.currentTime;
+        this.buffTimes.set(buff, this.currentTime);
     }
 
     /**
