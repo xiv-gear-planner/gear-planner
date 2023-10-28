@@ -91,7 +91,7 @@ class AstSimContext {
         const used = cp.usedAbilities;
         const cycleDamage = sum(used.map(used => used.damage.expected));
         const dps = cycleDamage / cp.nextGcdTime;
-        const unbuffedPps = sum(used.map(used => used.ability.potency));
+        const unbuffedPps = sum(used.map(used => used.ability.potency)) / cp.nextGcdTime;
 
         return {
             mainDpsResult: dps,
