@@ -15,6 +15,7 @@ export type DamagingAbility = {
 export type BaseAbility = Readonly<{
     name: string,
     activatesBuffs?: readonly Buff[],
+    id?: number
 } & (NonDamagingAbility | DamagingAbility)>;
 
 /**
@@ -29,6 +30,8 @@ export type GcdAbility = BaseAbility & {
     /**
      * The time that it takes to cast. Do not include caster tax. Defaults to 0.5 (thus 0.6 after adding caster tax)
      * if not specified, i.e. normal animation lock.
+     *
+     * TODO: this is actually a false assumption - BLU oGCDs may have a cast time
      */
     cast?: number,
     /**
@@ -57,7 +60,8 @@ export type UsedAbility = {
     buffs: Buff[],
     combinedEffects: CombinedBuffEffect,
     usedAt: number,
-    damage: ComputedDamage
+    damage: ComputedDamage,
+    appDelayFromStart: number
 }
 
 /**

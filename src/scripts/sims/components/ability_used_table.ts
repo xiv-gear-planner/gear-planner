@@ -2,6 +2,18 @@ import {CustomTable, HeaderRow} from "../../tables";
 import {GcdAbility, OgcdAbility, UsedAbility} from "../sim_types";
 import {CombinedBuffEffect} from "../sim_processors";
 import {toRelPct} from "../../util/strutils";
+import {AbilityIcon} from "../../components/abilities";
+
+function formatTime(time: number) {
+    const negative = time < 0;
+    // noinspection AssignmentToFunctionParameterJS
+    time = Math.abs(time);
+    const minute = Math.floor(time / 60);
+    const second = time % 60;
+    return (`${negative ? '-' : ''}${minute}:${second.toFixed(2).padStart(5, '0')}`)
+}
+
+
 
 export class AbilitiesUsedTable extends CustomTable<UsedAbility> {
 
@@ -14,9 +26,7 @@ export class AbilitiesUsedTable extends CustomTable<UsedAbility> {
                 displayName: 'Time',
                 getter: used => used.usedAt,
                 renderer: time => {
-                    const minute = Math.floor(time / 60);
-                    const second = time % 60;
-                    return document.createTextNode(`${minute}:${second.toFixed(2).padStart(5, '0')}`);
+                    return document.createTextNode(formatTime(time));
                 }
             },
             {
@@ -24,12 +34,19 @@ export class AbilitiesUsedTable extends CustomTable<UsedAbility> {
                 displayName: 'Ability',
                 getter: used => used.ability,
                 renderer: (ability: GcdAbility | OgcdAbility) => {
-                    if (ability.type === "gcd") {
-                        return document.createTextNode(ability.name);
+                    const out = document.createElement('div');
+                    out.classList.add('ability-cell');
+                    if (ability.type !== "gcd") {
+                        out.appendChild(document.createTextNode(' ⤷ '));
                     }
-                    else {
-                        return document.createTextNode(' ⤷ ' + ability.name);
+                    if (ability.id) {
+                        out.appendChild(new AbilityIcon(ability.id));
                     }
+                    const abilityNameSpan = document.createElement('span');
+                    abilityNameSpan.textContent = ability.name;
+                    abilityNameSpan.classList.add('ability-name');
+                    out.appendChild(abilityNameSpan);
+                    return out;
                 }
             },
             {

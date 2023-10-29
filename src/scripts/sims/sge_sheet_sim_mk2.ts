@@ -3,12 +3,14 @@ import {CharacterGearSet} from "../gear";
 import {ComputedSetStats} from "../geartypes";
 
 import {quickElement} from "../components/util";
-import {CustomTable, HeaderRow} from "../tables";
-import {GcdAbility, Buff, UsedAbility, Ability, OgcdAbility} from "./sim_types";
-import {CycleProcessor} from "./sim_processors";
+import {Buff, GcdAbility, UsedAbility} from "./sim_types";
+import {MultiCycleProcessor} from "./sim_processors";
 import {sum} from "../util/array_utils";
 import {BuffSettingsArea, BuffSettingsExport, BuffSettingsManager} from "./party_comp_settings";
 import {AbilitiesUsedTable} from "./components/ability_used_table";
+import {CycleSettings, defaultCycleSettings} from "./cycle_settings";
+import {cycleSettingsGui} from "../components/cycle_settings_components";
+import {writeProxy} from "../util/proxies";
 
 /**
  * Used for all 330p filler abilities
@@ -20,6 +22,7 @@ const filler: GcdAbility = {
     attackType: "Spell",
     gcd: 2.5,
     cast: 1.5,
+    id: 24312
 }
 
 const eDosis: GcdAbility = {
@@ -30,6 +33,7 @@ const eDosis: GcdAbility = {
     fixedGcd: true,
     gcd: 2.5,
     cast: 1.5,
+    id: 24314,
 }
 
 const phlegma: GcdAbility = {
@@ -39,28 +43,45 @@ const phlegma: GcdAbility = {
     attackType: "Spell",
     gcd: 2.5,
     cast: 1.5,
+    id: 24313
 }
 
 class SgeSimContext {
-    constructor(private stats: ComputedSetStats, private allBuffs: Buff[]) {
+    constructor(private stats: ComputedSetStats, private allBuffs: Buff[], private cycleSettings: CycleSettings) {
 
     }
 
     getResult(): SgeSheetSimResult {
-        const cp = new CycleProcessor(120, this.allBuffs, this.stats);
-        cp.use(eDosis);
-        cp.use(filler);
-        cp.use(filler);
-        cp.use(phlegma);
-        cp.use(phlegma);
-        cp.useUntil(filler, 30);
-        cp.use(eDosis);
-        cp.useUntil(filler, 60);
-        cp.use(eDosis);
-        cp.use(phlegma);
-        cp.useUntil(filler, 90);
-        cp.use(eDosis);
-        cp.useUntil(filler, 120);
+        const cp = new MultiCycleProcessor({
+            stats: this.stats,
+            totalTime: this.cycleSettings.totalTime,
+            cycleTime: 120,
+            allBuffs: this.allBuffs,
+            manuallyActivatedBuffs: []
+        });
+        // cp.prePull(cycle => {
+        //     cycle.useGcd(filler);
+        // });
+        cp.remainingCycles(cycle => {
+            // Do a pre-pull filler GCD if we're on the first cycle
+            if (cycle.cycleNumber === 0) {
+                cycle.useGcd(filler);
+            }
+            cycle.use(eDosis);
+            cycle.use(filler);
+            cycle.use(filler);
+            cycle.use(phlegma);
+            cycle.use(phlegma);
+            cycle.useUntil(filler, 30);
+            cycle.use(eDosis);
+            cycle.useUntil(filler, 60);
+            cycle.use(eDosis);
+            cycle.use(phlegma);
+            cycle.useUntil(filler, 90);
+            cycle.use(eDosis);
+            cycle.useUntil(filler, 120);
+        });
+
 
         const used = cp.usedAbilities;
         const cycleDamage = sum(used.map(used => used.damage.expected));
@@ -92,6 +113,7 @@ interface SgeNewSheetSettings extends SimSettings {
 
 export interface SgeNewSheetSettingsExternal extends SgeNewSheetSettings {
     buffConfig: BuffSettingsExport;
+    cycleSettings: CycleSettings;
 }
 
 export const sgeNewSheetSpec: SimSpec<SgeSheetSim, SgeNewSheetSettingsExternal> = {
@@ -112,6 +134,7 @@ export class SgeSheetSim implements Simulation<SgeSheetSimResult, SgeNewSheetSet
         return {
             ...this.settings,
             buffConfig: this.buffManager.exportSetting(),
+            cycleSettings: this.cycleSettings
         };
     };
 
@@ -124,6 +147,7 @@ export class SgeSheetSim implements Simulation<SgeSheetSimResult, SgeNewSheetSet
         toxPerMin: 0
     };
     readonly buffManager: BuffSettingsManager;
+    readonly cycleSettings: CycleSettings;
 
     spec = sgeNewSheetSpec;
     displayName = sgeNewSheetSpec.displayName;
@@ -133,15 +157,18 @@ export class SgeSheetSim implements Simulation<SgeSheetSimResult, SgeNewSheetSet
         if (settings) {
             Object.assign(this.settings, settings);
             this.buffManager = BuffSettingsManager.fromSaved(settings.buffConfig);
+            this.cycleSettings = settings.cycleSettings ?? defaultCycleSettings();
         }
         else {
             this.buffManager = BuffSettingsManager.defaultForJob('SGE');
+            this.cycleSettings = defaultCycleSettings();
         }
     }
 
     // TODO
     makeConfigInterface(settings: SgeNewSheetSettingsExternal, updateCallback: () => void): HTMLElement {
         const div = document.createElement("div");
+        div.appendChild(cycleSettingsGui(writeProxy(this.cycleSettings, updateCallback)));
         div.appendChild(new BuffSettingsArea(this.buffManager, updateCallback));
         return div;
     }
@@ -163,7 +190,7 @@ export class SgeSheetSim implements Simulation<SgeSheetSimResult, SgeNewSheetSet
 
     async simulate(set: CharacterGearSet): Promise<SgeSheetSimResult> {
         const allBuffs = this.buffManager.enabledBuffs;
-        const ctx = new SgeSimContext(set.computedStats, allBuffs);
+        const ctx = new SgeSimContext(set.computedStats, allBuffs, this.cycleSettings);
         return ctx.getResult();
     }
 

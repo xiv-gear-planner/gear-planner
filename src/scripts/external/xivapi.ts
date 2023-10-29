@@ -31,6 +31,13 @@ export function xivApiSingle(sheet: string, id: number) {
     const query = `https://xivapi.com/${sheet}/${id}`;
     return fetch(query).then(response => response.json());
 }
+
+export function xivApiSingleCols<Columns extends readonly string[]>(sheet: string, id: number, cols: Columns): Promise<{
+    [K in Columns[number]]: any;
+}> {
+    const query = `https://xivapi.com/${sheet}/${id}?Columns=${cols.join(',')}`;
+    return fetch(query).then(response => response.json());
+}
 export async function xivApiGet<RequestType extends (XivApiListRequest | XivApiSearchRequest)>(request: RequestType):
     Promise<XivApiResponse<RequestType>> {
     let query: string;

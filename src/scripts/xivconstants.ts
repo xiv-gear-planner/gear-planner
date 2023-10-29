@@ -43,6 +43,8 @@ export const STANDARD_ANIMATION_LOCK = 0.6;
 export const CAST_SNAPSHOT_PRE = 0.5;
 export const CASTER_TAX = 0.1;
 
+export const STANDARD_APPLICATION_DELAY = 0.6;
+
 /**
  * Supported Jobs.
  */
