@@ -1433,7 +1433,7 @@ export class GearPlanSheet extends HTMLElement {
             return;
         }
         if (this._saveKey) {
-            console.info("Saving sheet " + this.sheetName);
+            console.log("Saving sheet " + this.sheetName);
             const fullExport = this.exportSheet(false);
             localStorage.setItem(this._saveKey, JSON.stringify(fullExport));
         }

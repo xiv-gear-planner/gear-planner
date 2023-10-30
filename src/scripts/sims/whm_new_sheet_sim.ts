@@ -1,15 +1,6 @@
 import {SimSettings, SimSpec} from "../simulation";
-import {ComputedSetStats} from "../geartypes";
-import {Buff, GcdAbility, OgcdAbility} from "./sim_types";
-import {
-    BaseMultiCycleSim,
-    CycleProcessor,
-    CycleSimResult,
-    ExternalCycleSettings,
-    MultiCycleProcessor,
-    Rotation
-} from "./sim_processors";
-import {sum} from "../util/array_utils";
+import {GcdAbility, OgcdAbility} from "./sim_types";
+import {BaseMultiCycleSim, CycleProcessor, CycleSimResult, ExternalCycleSettings, Rotation} from "./sim_processors";
 import {BuffSettingsExport} from "./party_comp_settings";
 
 
@@ -25,7 +16,12 @@ const filler: GcdAbility = {
 const dia: GcdAbility = {
     type: 'gcd',
     name: "Dia",
-    potency: (30 / 3 * 65) + 65,
+    potency: 65,
+    dot: {
+        id: 1871,
+        tickPotency: 65,
+        duration: 30
+    },
     attackType: "Spell",
     gcd: 2.5,
 }
@@ -112,13 +108,13 @@ export class WhmSheetSim extends BaseMultiCycleSim<WhmSheetSimResult, WhmNewShee
     shortName = "whm-new-sheet-sim";
 
     constructor(settings?: WhmNewSheetSettingsExternal) {
-        super(settings);
+        super('WHM', settings);
     }
 
     getRotationsToSimulate(): Rotation[] {
         return [{
             cycleTime: 120,
-            apply(cp: MultiCycleProcessor) {
+            apply(cp: CycleProcessor) {
                 cp.use(filler);
                 cp.remainingCycles(cycle => {
 

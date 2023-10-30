@@ -4,7 +4,7 @@ import {
     BaseMultiCycleSim,
     CycleSimResult,
     ExternalCycleSettings,
-    MultiCycleProcessor,
+    CycleProcessor,
     Rotation
 } from "./sim_processors";
 import {BuffSettingsExport} from "./party_comp_settings";
@@ -22,7 +22,12 @@ const filler: GcdAbility = {
 const combust: GcdAbility = {
     type: 'gcd',
     name: "Combust",
-    potency: 30 / 3 * 55,
+    potency: 0,
+    dot: {
+        id: 2041,
+        tickPotency: 55,
+        duration: 30
+    },
     attackType: "Spell",
     gcd: 2.5,
 }
@@ -100,15 +105,16 @@ export class AstSheetSim extends BaseMultiCycleSim<AstSheetSimResult, AstNewShee
     spec = astNewSheetSpec;
     displayName = astNewSheetSpec.displayName;
     shortName = "ast-sheet-sim";
+    job: 'SGE';
 
     constructor(settings?: AstNewSheetSettingsExternal) {
-        super(settings);
+        super('AST', settings);
     }
 
     getRotationsToSimulate(): Rotation[] {
         return [{
             cycleTime: 120,
-            apply(cp: MultiCycleProcessor) {
+            apply(cp: CycleProcessor) {
                 cp.use(filler);
                 cp.remainingCycles(cycle => {
                     cycle.use(combust); //play, draw

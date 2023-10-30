@@ -14,7 +14,7 @@ import {
 } from "./sim_types";
 import {
     CAST_SNAPSHOT_PRE,
-    CASTER_TAX,
+    CASTER_TAX, JobName,
     NORMAL_GCD,
     STANDARD_ANIMATION_LOCK,
     STANDARD_APPLICATION_DELAY
@@ -37,186 +37,6 @@ function appDelay(ability: Ability) {
     return delay;
 }
 
-export class CycleProcessor {
-
-    nextGcdTime: number = 0;
-    currentTime: number = 0;
-    gcdBase: number = NORMAL_GCD;
-    readonly usedAbilities: AbilityUseRecordUnf[] = [];
-    readonly buffTimes = new Map<Buff, number>();
-
-    constructor(private cycleTime: number, private allBuffs: Buff[], private stats: ComputedSetStats, private manuallyActivatedBuffs?: Buff[]) {
-        this.allBuffs.forEach(buff => {
-            if (manuallyActivatedBuffs && manuallyActivatedBuffs.includes(buff)) {
-                return;
-            }
-            if (buff.startTime !== undefined) {
-                this.buffTimes.set(buff, buff.startTime);
-            }
-        });
-    }
-
-    /**
-     * Get the buffs that would be active right now.
-     */
-    getActiveBuffs(): Buff[] {
-        const queryTime = this.currentTime;
-        const activeBuffs: Buff[] = [];
-        this.buffTimes.forEach((time, buff) => {
-            if (time === undefined || time > queryTime) {
-                return;
-            }
-            if ((queryTime - time) < buff.duration) {
-                activeBuffs.push(buff);
-            }
-            return;
-        });
-        return activeBuffs;
-    }
-
-    activateBuff(buff: Buff) {
-        this.buffTimes.set(buff, this.currentTime);
-    }
-
-    /**
-     * How many GCDs have been used
-     */
-    gcdCount() {
-        return this.usedAbilities.filter(used => used.ability['type'] == 'gcd').length;
-    }
-
-    use(ability: Ability) {
-        // Logic for GCDs
-        if (ability.type == "gcd") {
-            this.useGcd(ability);
-        }
-        // oGCD logic branch
-        else if (ability.type == 'ogcd') {
-            this.useOgcd(ability);
-        }
-    }
-
-    useUntil(ability: GcdAbility, useUntil: number) {
-        while (this.nextGcdTime < useUntil && this.nextGcdTime < this.cycleTime) {
-            this.use(ability);
-        }
-    }
-
-    useGcd(ability: GcdAbility) {
-        return undefined;
-        // if (this.nextGcdTime > this.cycleTime) {
-        //     // Already over time limit. Ignore completely.
-        //     return;
-        // }
-        // if (this.nextGcdTime > this.currentTime) {
-        //     this.currentTime = this.nextGcdTime;
-        // }
-        // // We need to calculate our buff set twice. The first is because buffs may affect the cast and/or recast time.
-        // const preBuffs = this.getActiveBuffs();
-        // const preCombinedEffects: CombinedBuffEffect = combineBuffEffects(preBuffs);
-        // const abilityGcd = ability.fixedGcd ? ability.gcd : (this.stats.gcdMag(ability.gcd ?? this.gcdBase, preCombinedEffects.haste));
-        // const snapshotsAt = ability.cast ? Math.max(this.currentTime, this.currentTime + ability.cast - CAST_SNAPSHOT_PRE) : this.currentTime;
-        // // When this GCD will end (strictly in terms of GCD. e.g. a BLM spell where cast > recast will still take the cast time. This will be
-        // // accounted for later).
-        // const gcdFinishedAt = this.currentTime + abilityGcd;
-        // const animLock = ability.cast ? Math.max(ability.cast + CASTER_TAX, STANDARD_ANIMATION_LOCK) : STANDARD_ANIMATION_LOCK;
-        // const animLockFinishedAt = this.currentTime + animLock;
-        // this.currentTime = snapshotsAt;
-        // if (ability.activatesBuffs) {
-        //     ability.activatesBuffs.forEach(buff => this.activateBuff(buff));
-        // }
-        // const buffs = this.getActiveBuffs();
-        // const combinedEffects: CombinedBuffEffect = combineBuffEffects(buffs);
-        // // Enough time for entire GCD
-        // if (gcdFinishedAt <= this.cycleTime) {
-        //     this.usedAbilities.push({
-        //         totalTime: Math.max(abilityGcd, animLock),
-        //         ability: ability,
-        //         // We want to take the 'haste' value from the pre-snapshot values, but everything else should
-        //         // come from when the ability snapshotted.
-        //         // i.e. a haste buff that applies mid-cast will not help us, but a damage buff will.
-        //         // Opposite applies for buffs falling off mid-cast.
-        //         combinedEffects: {
-        //             ...combinedEffects,
-        //             haste: preCombinedEffects.haste,
-        //         },
-        //         buffs: Array.from(new Set<Buff>([...preBuffs, ...buffs])),
-        //         usedAt: this.currentTime,
-        //         damage: abilityToDamageNew(this.stats, ability, preCombinedEffects, ),
-        //         appDelayFromStart: appDelay(ability)
-        //     });
-        //     // Anim lock OR cast time, both effectively block use of skills.
-        //     // If cast time > GCD recast, then we use that instead. Also factor in caster tax.
-        //     this.currentTime = animLockFinishedAt;
-        //     // If we're casting a long-cast, then the GCD is blocked for more than a GCD.
-        //     this.nextGcdTime = Math.max(gcdFinishedAt, animLockFinishedAt);
-        // }
-        // // GCD will only partially fit into remaining time. Pro-rate the damage.
-        // else {
-        //     const remainingTime = this.cycleTime - this.nextGcdTime;
-        //     const portion = remainingTime / abilityGcd;
-        //     this.usedAbilities.push({
-        //         ability: ability,
-        //         buffs: preBuffs,
-        //         combinedEffects: preCombinedEffects,
-        //         usedAt: this.nextGcdTime,
-        //         portion: portion,
-        //         damage: abilityToDamage(this.stats, ability, preCombinedEffects, portion),
-        //         appDelayFromStart: appDelay(ability)
-        //     });
-        //     this.nextGcdTime = this.cycleTime;
-        //     this.currentTime = this.cycleTime;
-        // }
-
-    }
-
-    useOgcd(ability: OgcdAbility) {
-        return undefined;
-        // if (this.currentTime > this.cycleTime) {
-        //     // Already over time limit. Ignore completely.
-        //     return;
-        // }
-        // if (ability.activatesBuffs) {
-        //     ability.activatesBuffs.forEach(buff => this.activateBuff(buff));
-        // }
-        // const buffs = this.getActiveBuffs();
-        // const combinedEffects: CombinedBuffEffect = combineBuffEffects(buffs);
-        // // Similar logic to GCDs, but with animation lock alone
-        // const animLock = ability.animationLock ?? STANDARD_ANIMATION_LOCK;
-        // const animLockFinishedAt = animLock + this.currentTime;
-        // // Fits completely
-        // if (animLockFinishedAt <= this.cycleTime) {
-        //     this.usedAbilities.push({
-        //         ability: ability,
-        //         buffs: buffs,
-        //         combinedEffects: combinedEffects,
-        //         usedAt: this.currentTime,
-        //         damage: abilityToDamage(this.stats, ability, combinedEffects),
-        //         appDelayFromStart: appDelay(ability)
-        //     });
-        //     this.currentTime = animLockFinishedAt;
-        //     // Account for potential GCD clipping
-        //     this.nextGcdTime = Math.max(this.nextGcdTime, animLockFinishedAt);
-        // }
-        // // fits partially
-        // else {
-        //     const remainingTime = this.cycleTime - this.currentTime;
-        //     const portion = remainingTime / animLock;
-        //     this.usedAbilities.push({
-        //         ability: ability,
-        //         buffs: buffs,
-        //         combinedEffects: combinedEffects,
-        //         usedAt: this.currentTime,
-        //         portion: portion,
-        //         damage: abilityToDamage(this.stats, ability, combinedEffects, portion),
-        //         appDelayFromStart: appDelay(ability)
-        //     });
-        //     this.nextGcdTime = this.cycleTime;
-        //     this.currentTime = this.cycleTime;
-        // }
-
-    }
-}
 
 export type CombinedBuffEffect = {
     dmgMod: number,
@@ -311,9 +131,9 @@ export class CycleContext {
     readonly cycleTime: number;
     readonly fightTimeRemainingAtCycleStart: number;
     readonly cycleNumber: number;
-    readonly mcp: MultiCycleProcessor;
+    readonly mcp: CycleProcessor;
 
-    constructor(mcp: MultiCycleProcessor, cycleTime: number) {
+    constructor(mcp: CycleProcessor, cycleTime: number) {
         this.cycleTime = cycleTime;
         this.cycleStartedAt = mcp.currentTime;
         this.fightTimeRemainingAtCycleStart = mcp.totalTime - mcp.currentTime;
@@ -397,7 +217,7 @@ export type CycleFunction = (cycle: CycleContext) => void
 export const isAbilityUse = (record: DisplayRecordUnf): record is AbilityUseRecordUnf => 'ability' in record;
 export const isFinalizedAbilityUse = (record: DisplayRecordFinalized): record is FinalizedAbility => 'original' in record;
 
-export class MultiCycleProcessor {
+export class CycleProcessor {
 
     /**
      * The current cycle number. -1 is pre-pull, 0 is the first cycle, etc
@@ -498,13 +318,6 @@ export class MultiCycleProcessor {
                 return record;
             }
         }));
-    }
-
-    /**
-     * How many GCDs have been used
-     */
-    gcdCount() {
-        return this.usedAbilities.filter(used => used.ability['type'] == 'gcd').length;
     }
 
     use(ability: Ability): AbilityUseResult {
@@ -701,14 +514,15 @@ export interface CycleSimResult extends SimResult {
     unbuffedPps: number,
 }
 
-export type ExternalCycleSettings<InternalSettingsType extends SimSettings> = InternalSettingsType & {
+export type ExternalCycleSettings<InternalSettingsType extends SimSettings> = {
+    customSettings: InternalSettingsType
     buffConfig: BuffSettingsExport;
     cycleSettings: CycleSettings;
 }
 
 export type Rotation = {
     readonly cycleTime: number;
-    apply(cp: MultiCycleProcessor);
+    apply(cp: CycleProcessor);
 }
 
 export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, InternalSettingsType extends SimSettings>
@@ -721,23 +535,24 @@ export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, Inter
     readonly buffManager: BuffSettingsManager;
     readonly cycleSettings: CycleSettings;
 
-    protected constructor(settings?: ExternalCycleSettings<InternalSettingsType>) {
+    protected constructor(job: JobName, settings?: ExternalCycleSettings<InternalSettingsType>) {
+        this.settings = this.makeDefaultSettings();
         if (settings !== undefined) {
-            this.settings = this.makeDefaultSettings();
+            Object.assign(this.settings, settings.customSettings ?? settings);
             this.buffManager = BuffSettingsManager.fromSaved(settings.buffConfig);
             this.cycleSettings = settings.cycleSettings ?? defaultCycleSettings();
         }
         else {
             this.cycleSettings = defaultCycleSettings();
+            this.buffManager = BuffSettingsManager.defaultForJob(job);
         }
     }
 
     abstract makeDefaultSettings(): InternalSettingsType;
 
-
     exportSettings(): ExternalCycleSettings<InternalSettingsType> {
         return {
-            ...this.settings,
+            customSettings: this.settings,
             buffConfig: this.buffManager.exportSetting(),
             cycleSettings: this.cycleSettings
         };
@@ -771,7 +586,7 @@ export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, Inter
         const allBuffs = this.buffManager.enabledBuffs;
         const rotations = this.getRotationsToSimulate();
         const allResults = rotations.map(rot => {
-            const cp = new MultiCycleProcessor({
+            const cp = new CycleProcessor({
                 stats: set.computedStats,
                 totalTime: this.cycleSettings.totalTime,
                 cycleTime: rot.cycleTime,

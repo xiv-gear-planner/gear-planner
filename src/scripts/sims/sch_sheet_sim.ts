@@ -4,7 +4,7 @@ import {
     BaseMultiCycleSim,
     CycleSimResult,
     ExternalCycleSettings,
-    MultiCycleProcessor,
+    CycleProcessor,
     Rotation
 } from "./sim_processors";
 import {Chain} from "./buffs";
@@ -92,7 +92,7 @@ export class SchSheetSim extends BaseMultiCycleSim<SchSheetSimResult, SchNewShee
     shortName = "sch-sheet-sim";
 
     constructor(settings?: SchNewSheetSettingsExternal) {
-        super(settings);
+        super('SCH', settings);
     }
 
     makeDefaultSettings(): SchNewSheetSettings {
@@ -107,7 +107,7 @@ export class SchSheetSim extends BaseMultiCycleSim<SchSheetSimResult, SchNewShee
     getRotationsToSimulate(): Rotation[] {
         return [{
             cycleTime: 120,
-            apply(cp: MultiCycleProcessor) {
+            apply(cp: CycleProcessor) {
                 // pre-pull
                 cp.useGcd(filler);
                 cp.remainingCycles(cycle => {

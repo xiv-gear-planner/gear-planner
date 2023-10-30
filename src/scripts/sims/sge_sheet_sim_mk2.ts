@@ -4,7 +4,7 @@ import {
     BaseMultiCycleSim,
     CycleSimResult,
     ExternalCycleSettings,
-    MultiCycleProcessor,
+    CycleProcessor,
     Rotation
 } from "./sim_processors";
 
@@ -82,7 +82,7 @@ export class SgeSheetSim extends BaseMultiCycleSim<SgeSheetSimResult, SgeNewShee
     shortName = "sge-new-sheet-sim";
 
     constructor(settings?: SgeNewSheetSettingsExternal) {
-        super(settings);
+        super('SGE', settings);
     }
 
     makeDefaultSettings(): SgeNewSheetSettings {
@@ -99,7 +99,7 @@ export class SgeSheetSim extends BaseMultiCycleSim<SgeSheetSimResult, SgeNewShee
     getRotationsToSimulate(): Rotation[] {
         return [{
             cycleTime: 120,
-            apply(cp: MultiCycleProcessor) {
+            apply(cp: CycleProcessor) {
                 cp.useGcd(filler);
                 cp.remainingCycles(cycle => {
                     cycle.use(eDosis);
