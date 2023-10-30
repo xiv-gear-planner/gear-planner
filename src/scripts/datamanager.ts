@@ -146,6 +146,7 @@ export class DataManager {
                 }
                 else {
                     console.error(`Got No Items!`);
+                    return null;
                 }
             }).then((rawItems) => {
                 this.allItems = rawItems.map(i => new XivApiGearInfo(i));

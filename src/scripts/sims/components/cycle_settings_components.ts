@@ -1,5 +1,5 @@
-import {CycleSettings} from "../sims/cycle_settings";
-import {FieldBoundFloatField, labeledCheckbox, labelFor, positiveValuesOnly} from "./util";
+import {CycleSettings} from "../cycle_settings";
+import {FieldBoundFloatField, labeledCheckbox, labelFor, positiveValuesOnly} from "../../components/util";
 
 export function cycleSettingsGui(cycleSettings: CycleSettings) {
     const out = document.createElement('div')

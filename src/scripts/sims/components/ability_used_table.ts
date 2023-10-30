@@ -1,6 +1,6 @@
 import {CustomTable, HeaderRow} from "../../tables";
-import {GcdAbility, OgcdAbility, UsedAbility} from "../sim_types";
-import {CombinedBuffEffect} from "../sim_processors";
+import {GcdAbility, OgcdAbility} from "../sim_types";
+import {CombinedBuffEffect, DisplayRecordFinalized, isFinalizedAbilityUse} from "../sim_processors";
 import {toRelPct} from "../../util/strutils";
 import {AbilityIcon} from "../../components/abilities";
 
@@ -14,11 +14,11 @@ function formatTime(time: number) {
 }
 
 
+export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
 
-export class AbilitiesUsedTable extends CustomTable<UsedAbility> {
-
-    constructor(abilitiesUsed: UsedAbility[]) {
+    constructor(abilitiesUsed: readonly DisplayRecordFinalized[]) {
         super();
+        this.style.tableLayout = 'fixed';
         this.classList.add('abilities-used-table');
         this.columns = [
             {
@@ -32,53 +32,76 @@ export class AbilitiesUsedTable extends CustomTable<UsedAbility> {
             {
                 shortName: 'ability',
                 displayName: 'Ability',
-                getter: used => used.ability,
-                renderer: (ability: GcdAbility | OgcdAbility) => {
-                    const out = document.createElement('div');
-                    out.classList.add('ability-cell');
-                    if (ability.type !== "gcd") {
-                        out.appendChild(document.createTextNode(' ⤷ '));
+                getter: used => isFinalizedAbilityUse(used) ? used.ability : used.label,
+                renderer: (ability: GcdAbility | OgcdAbility | string) => {
+                    if (ability instanceof Object) {
+                        const out = document.createElement('div');
+                        out.classList.add('ability-cell');
+                        if (ability.type !== "gcd") {
+                            out.appendChild(document.createTextNode(' ⤷ '));
+                        }
+                        if (ability.id) {
+                            out.appendChild(new AbilityIcon(ability.id));
+                        }
+                        const abilityNameSpan = document.createElement('span');
+                        abilityNameSpan.textContent = ability.name;
+                        abilityNameSpan.classList.add('ability-name');
+                        out.appendChild(abilityNameSpan);
+                        return out;
                     }
-                    if (ability.id) {
-                        out.appendChild(new AbilityIcon(ability.id));
+                    else {
+                        return document.createTextNode(ability);
                     }
-                    const abilityNameSpan = document.createElement('span');
-                    abilityNameSpan.textContent = ability.name;
-                    abilityNameSpan.classList.add('ability-name');
-                    out.appendChild(abilityNameSpan);
-                    return out;
                 }
             },
             {
                 shortName: 'unbuffed-pot',
                 displayName: 'Pot',
-                getter: used => used.ability.potency ?? '--',
+                getter: used => isFinalizedAbilityUse(used) ? used.totalPotency : '--',
             },
             {
                 shortName: 'expected-damage',
                 displayName: 'Damage',
                 getter: used => used,
-                renderer: (used: UsedAbility) => {
-                    if (!used.ability.potency) {
-                        return document.createTextNode('--');
+                renderer: (used: DisplayRecordFinalized) => {
+                    if (isFinalizedAbilityUse(used)) {
+
+                        if (!used.totalDamage) {
+                            return document.createTextNode('--');
+                        }
+                        let text = used.totalDamage.toFixed(2);
+                        if (used.partialRate !== null || (used.dotInfo && used.dotInfo.actualTickCount < used.dotInfo.fullDurationTicks)) {
+                            text += '*';
+                        }
+                        return document.createTextNode(text);
                     }
-                    let text = used.damage.expected.toFixed(2);
-                    if ('portion' in used) {
-                        text += '*';
+                    else {
+                        return null;
                     }
-                    return document.createTextNode(text);
                 },
-                colStyler: (value, colElement, internalElement) => {
-                    if ('portion' in value) {
-                        colElement.title = `This ability would not have fit completely within the allotted time.\nIt has been pro-rated to ${Math.floor(value.portion * 100)}% of the original damage.`
+                colStyler: (value: DisplayRecordFinalized, colElement, internalElement) => {
+                    if (isFinalizedAbilityUse(value)) {
+                        let title: string[] = [];
+                        if (value.partialRate !== null) {
+                            title.push(`This ability would not have fit completely within the allotted time.\nIt has been pro-rated to ${Math.floor(value.partialRate * 100)}% of the original damage.\n`);
+                        }
+                        if (value.dotInfo) {
+                            title.push(`This ability is a DoT. It dealt ${value.dotInfo.actualTickCount}/${value.dotInfo.fullDurationTicks} ticks of ${value.dotInfo.damagePerTick.expected} each.\n`);
+                        }
+                        if (title.length > 0) {
+                            colElement.title = title.join('\n');
+                        }
                     }
                 },
             },
             {
                 shortName: 'Total Buffs',
                 displayName: 'Total Buffs',
-                getter: used => used.combinedEffects,
+                getter: used => isFinalizedAbilityUse(used) ? used.combinedEffects : undefined,
                 renderer: (effects: CombinedBuffEffect) => {
+                    if (effects === undefined) {
+                        return null;
+                    }
                     let out: string[] = [];
                     if (effects.dmgMod !== 1) {
                         const dmgModRelative = effects.dmgMod - 1;
@@ -99,11 +122,12 @@ export class AbilitiesUsedTable extends CustomTable<UsedAbility> {
             {
                 shortName: 'buffs',
                 displayName: 'Buffs Active',
-                getter: used => used.buffs,
+                getter: used => used['buffs'] ?? [],
                 renderer: buffs => document.createTextNode(buffs.map(buff => buff.name).join(', ')),
             }
         ];
         this.data = [new HeaderRow(), ...abilitiesUsed];
+        // this.style.tableLayout = 'auto';
     }
 }
 

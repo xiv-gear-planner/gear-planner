@@ -2,6 +2,12 @@ import {JobName} from "../xivconstants";
 import {AttackType} from "../geartypes";
 import {CombinedBuffEffect} from "./sim_processors";
 
+export type DotInfo = {
+    duration: number,
+    tickPotency: number,
+    id: number
+}
+
 export type NonDamagingAbility = {
     potency: null,
 }
@@ -10,6 +16,7 @@ export type DamagingAbility = {
     attackType: AttackType,
     autoCrit?: boolean,
     autoDh?: boolean,
+    dot?: DotInfo
 }
 
 export type BaseAbility = Readonly<{
@@ -48,6 +55,12 @@ export type OgcdAbility = BaseAbility & Readonly<{
 
 export type Ability = GcdAbility | OgcdAbility;
 
+export type DotDamageUnf = {
+    fullDurationTicks: number,
+    damagePerTick: ComputedDamage,
+    actualTickCount?: number
+}
+
 export type ComputedDamage = {
     expected: number,
 }
@@ -60,8 +73,10 @@ export type UsedAbility = {
     buffs: Buff[],
     combinedEffects: CombinedBuffEffect,
     usedAt: number,
-    damage: ComputedDamage,
-    appDelayFromStart: number
+    directDamage: ComputedDamage,
+    dot?: DotDamageUnf,
+    appDelayFromStart: number,
+    totalTimeTaken: number
 }
 
 /**
@@ -73,6 +88,19 @@ export type UsedAbility = {
  */
 export type PartiallyUsedAbility = UsedAbility & {
     portion: number
+}
+
+export type FinalizedAbility = {
+    usedAt: number,
+    original: UsedAbility,
+    totalDamage: number,
+    totalPotency: number,
+    partialRate: number | null,
+    directDamage: number,
+    dotInfo: DotDamageUnf,
+    combinedEffects: CombinedBuffEffect,
+    ability: Ability,
+    buffs: Buff[]
 }
 
 export type BuffEffects = {

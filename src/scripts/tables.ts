@@ -433,7 +433,7 @@ export interface CustomColumnSpec<RowDataType, CellDataType = string, ColumnData
     allowHeaderSelection?: boolean;
     allowCellSelection?: boolean;
     getter: (item: RowDataType) => CellDataType;
-    renderer?: (value: CellDataType) => Node;
+    renderer?: (value: CellDataType) => Node | null;
     colStyler?: (value: CellDataType, colElement: CustomCell<RowDataType, CellDataType>, internalElement: Node) => void;
     condition?: () => boolean;
     initialWidth?: number | undefined;
@@ -555,7 +555,7 @@ export class CustomCell<RowDataType, CellDataType> extends HTMLTableCellElement 
         try {
             this._value = this.colDef.getter(this.dataItem);
             node = this.colDef.renderer(this._value);
-            if (node !== undefined) {
+            if (node) {
                 this.colDef.colStyler(this._value, this, node);
             }
         } catch (e) {
@@ -563,7 +563,7 @@ export class CustomCell<RowDataType, CellDataType> extends HTMLTableCellElement 
             node = document.createTextNode("Error");
         }
         const span = document.createElement('span');
-        if (node === undefined) {
+        if (node === null || node === undefined) {
             this.replaceChildren(span);
         }
         else {

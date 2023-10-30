@@ -639,7 +639,7 @@ export class SimResultMiniDisplay extends HTMLElement {
             this.textContent = result.mainDpsResult.toFixed(2);
             let tooltip: string;
             if (this.sim.makeToolTip) {
-                tooltip = this.sim.makeToolTip(this._result);
+                tooltip = this.sim.makeToolTip(this._result.result);
             }
             else {
                 tooltip = Object.entries(result).map(entry => `${camel2title(entry[0])}: ${entry[1]}`)

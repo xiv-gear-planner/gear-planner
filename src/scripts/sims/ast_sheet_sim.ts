@@ -1,14 +1,13 @@
-import {simpleAutoResultTable, SimResult, SimSettings, SimSpec, Simulation} from "../simulation";
-import {CharacterGearSet} from "../gear";
-import {ComputedSetStats} from "../geartypes";
-
-import {quickElement} from "../components/util";
-import {CustomTable, HeaderRow} from "../tables";
-import {GcdAbility, Buff, UsedAbility, OgcdAbility} from "./sim_types";
-import {CycleProcessor} from "./sim_processors";
-import {sum} from "../util/array_utils";
-import {BuffSettingsArea, BuffSettingsExport, BuffSettingsManager} from "./party_comp_settings";
-import {AbilitiesUsedTable} from "./components/ability_used_table";
+import {SimSettings, SimSpec} from "../simulation";
+import {GcdAbility, OgcdAbility} from "./sim_types";
+import {
+    BaseMultiCycleSim,
+    CycleSimResult,
+    ExternalCycleSettings,
+    MultiCycleProcessor,
+    Rotation
+} from "./sim_processors";
+import {BuffSettingsExport} from "./party_comp_settings";
 
 
 const filler: GcdAbility = {
@@ -62,48 +61,7 @@ const astrodyne: OgcdAbility = {
     ]
 }
 
-class AstSimContext {
-    constructor(private stats: ComputedSetStats, private allBuffs: Buff[]) {
-
-    }
-
-    getResult(): AstSheetSimResult {
-        const cp = new CycleProcessor(120, this.allBuffs, this.stats);
-        cp.use(combust); //play, draw
-        cp.use(filler); //play, draw
-        cp.use(filler); //div, play
-        cp.use(filler); //MA, dyne
-        cp.useOgcd(astrodyne);
-        cp.use(filler);
-        cp.use(star);
-        cp.use(filler);
-        cp.use(lord); //with 50% lord, chance, assumes 1 lord per burst window
-        cp.useUntil(filler, 30);
-        cp.use(combust);
-        cp.useUntil(filler, 60);
-        cp.use(combust);
-        cp.useUntil(filler, 75);
-        cp.use(star);
-        cp.useUntil(filler, 90);
-        cp.use(combust);
-        cp.useUntil(filler, 120);
-
-        const used = cp.usedAbilities;
-        const cycleDamage = sum(used.map(used => used.damage.expected));
-        const dps = cycleDamage / cp.nextGcdTime;
-        const unbuffedPps = sum(used.map(used => used.ability.potency)) / cp.nextGcdTime;
-
-        return {
-            mainDpsResult: dps,
-            abilitiesUsed: [...used],
-            unbuffedPps: unbuffedPps
-        }
-    }
-}
-
-export interface AstSheetSimResult extends SimResult {
-    abilitiesUsed: UsedAbility[],
-    unbuffedPps: number
+export interface AstSheetSimResult extends CycleSimResult {
 }
 
 interface AstNewSheetSettings extends SimSettings {
@@ -113,7 +71,7 @@ interface AstNewSheetSettings extends SimSettings {
 
 }
 
-export interface AstNewSheetSettingsExternal extends AstNewSheetSettings {
+export interface AstNewSheetSettingsExternal extends ExternalCycleSettings<AstNewSheetSettings> {
     buffConfig: BuffSettingsExport;
 }
 
@@ -129,62 +87,52 @@ export const astNewSheetSpec: SimSpec<AstSheetSim, AstNewSheetSettingsExternal> 
     supportedJobs: ['AST'],
 }
 
-export class AstSheetSim implements Simulation<AstSheetSimResult, AstNewSheetSettings, AstNewSheetSettingsExternal> {
+export class AstSheetSim extends BaseMultiCycleSim<AstSheetSimResult, AstNewSheetSettings> {
 
-    exportSettings(): AstNewSheetSettingsExternal {
+    makeDefaultSettings(): AstNewSheetSettings {
         return {
-            buffConfig: this.buffManager.exportSetting(),
-            ...this.settings
-        };
+            rezPerMin: 0,
+            aspHelPerMin: 0,
+            aspBenPerMin: 0,
+        }
     };
-
-    settings: AstNewSheetSettings = {
-        rezPerMin: 0,
-        aspHelPerMin: 0,
-        aspBenPerMin: 0,
-    };
-    readonly buffManager: BuffSettingsManager;
 
     spec = astNewSheetSpec;
     displayName = astNewSheetSpec.displayName;
     shortName = "ast-sheet-sim";
 
     constructor(settings?: AstNewSheetSettingsExternal) {
-        if (settings) {
-            Object.assign(this.settings, settings);
-            this.buffManager = BuffSettingsManager.fromSaved(settings.buffConfig);
-        }
-        else {
-            this.buffManager = BuffSettingsManager.defaultForJob('AST');
-        }
+        super(settings);
     }
 
-    // TODO
-    makeConfigInterface(settings: AstNewSheetSettingsExternal, updateCallback: () => void): HTMLElement {
-        const div = document.createElement("div");
-        div.appendChild(new BuffSettingsArea(this.buffManager, updateCallback));
-        return div;
+    getRotationsToSimulate(): Rotation[] {
+        return [{
+            cycleTime: 120,
+            apply(cp: MultiCycleProcessor) {
+                cp.use(filler);
+                cp.remainingCycles(cycle => {
+                    cycle.use(combust); //play, draw
+                    cycle.use(filler); //play, draw
+                    cycle.use(filler); //div, play
+                    cycle.use(filler); //MA, dyne
+                    cycle.useOgcd(astrodyne);
+                    cycle.use(filler);
+                    cycle.use(star);
+                    cycle.use(filler);
+                    cycle.use(lord); //with 50% lord, chance, assumes 1 lord per burst window
+                    cycle.useUntil(filler, 30);
+                    cycle.use(combust);
+                    cycle.useUntil(filler, 60);
+                    cycle.use(combust);
+                    cycle.useUntil(filler, 75);
+                    cycle.use(star);
+                    cycle.useUntil(filler, 90);
+                    cycle.use(combust);
+                    cycle.useUntil(filler, 120);
+                })
+            }
+        }];
     }
 
-    makeResultDisplay(result: AstSheetSimResult): HTMLElement {
-        const mainResultsTable = simpleAutoResultTable({
-            mainDpsResult: result.mainDpsResult,
-            unbuffedPps: result.unbuffedPps
-        });
-        mainResultsTable.classList.add('main-results-table');
-        const abilitiesUsedTable = new AbilitiesUsedTable(result.abilitiesUsed);
-        return quickElement('div', ['cycle-sim-results-table'], [mainResultsTable, abilitiesUsedTable]);
-    }
-
-    //
-    makeToolTip(result: AstSheetSimResult): string {
-        return `DPS: ${result.mainDpsResult}\nUnbuffed PPS: ${result.unbuffedPps}\n`;
-    }
-
-    async simulate(set: CharacterGearSet): Promise<AstSheetSimResult> {
-        const allBuffs = this.buffManager.enabledBuffs;
-        const ctx = new AstSimContext(set.computedStats, allBuffs);
-        return ctx.getResult();
-    }
 
 }
