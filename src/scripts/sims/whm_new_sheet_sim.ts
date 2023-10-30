@@ -117,36 +117,35 @@ export class WhmSheetSim extends BaseMultiCycleSim<WhmSheetSimResult, WhmNewShee
             apply(cp: CycleProcessor) {
                 cp.use(filler);
                 cp.remainingCycles(cycle => {
-
-                    cp.use(dia);
-                    cp.use(filler);
-                    cp.use(filler);
-                    cp.useOgcd(pom);
-                    cp.use(filler);
-                    cp.use(assize);
+                    cycle.use(dia);
+                    cycle.use(filler);
+                    cycle.use(filler);
+                    cycle.useOgcd(pom);
+                    cycle.use(filler);
+                    cycle.use(assize);
                     if (cycle.cycleNumber > 1) {
-                        cp.use(misery);
+                        cycle.use(misery);
                     }
-                    cp.useUntil(filler, 30);
-                    cp.use(dia);
-                    cp.use(lily); //3 lilys out of buffs to make up for misery in buffs, actual placement isn't specific
-                    cp.use(lily);
-                    cp.use(lily);
-                    cp.useUntil(filler, 50);
-                    cp.use(assize);
-                    cp.useUntil(filler, 60);
-                    cp.use(dia);
-                    cp.useUntil(filler, 70);
-                    cp.use(misery);
-                    cp.useUntil(filler, 90);
-                    cp.use(dia);
-                    cp.use(assize);
+                    cycle.useUntil(filler, 30);
+                    cycle.use(dia);
+                    cycle.use(lily); //3 lilys out of buffs to make up for misery in buffs, actual placement isn't specific
+                    cycle.use(lily);
+                    cycle.use(lily);
+                    cycle.useUntil(filler, 50);
+                    cycle.use(assize);
+                    cycle.useUntil(filler, 60);
+                    cycle.use(dia);
+                    cycle.useUntil(filler, 70);
+                    cycle.use(misery);
+                    cycle.useUntil(filler, 90);
+                    cycle.use(dia);
+                    cycle.use(assize);
                     if (cycle.cycleNumber > 1) {
-                        cp.use(lily);
-                        cp.use(lily);
-                        cp.use(lily);
+                        cycle.use(lily);
+                        cycle.use(lily);
+                        cycle.use(lily);
                     }
-                    cp.useUntil(filler, 120);
+                    cycle.useUntil(filler, 120);
                 });
             }
 
