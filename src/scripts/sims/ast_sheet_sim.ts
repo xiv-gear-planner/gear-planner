@@ -105,7 +105,7 @@ export class AstSheetSim extends BaseMultiCycleSim<AstSheetSimResult, AstNewShee
     spec = astNewSheetSpec;
     displayName = astNewSheetSpec.displayName;
     shortName = "ast-sheet-sim";
-    job: 'SGE';
+    // manuallyActivatedBuffs = [Chain];
 
     constructor(settings?: AstNewSheetSettingsExternal) {
         super('AST', settings);

@@ -90,6 +90,7 @@ export class SchSheetSim extends BaseMultiCycleSim<SchSheetSimResult, SchNewShee
     spec = schNewSheetSpec;
     displayName = schNewSheetSpec.displayName;
     shortName = "sch-sheet-sim";
+    manuallyActivatedBuffs = [Chain];
 
     constructor(settings?: SchNewSheetSettingsExternal) {
         super('SCH', settings);

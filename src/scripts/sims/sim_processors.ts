@@ -531,6 +531,7 @@ export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, Inter
     abstract displayName: string;
     abstract shortName: string;
     abstract spec: SimSpec<Simulation<ResultType, InternalSettingsType, ExternalCycleSettings<InternalSettingsType>>, ExternalCycleSettings<InternalSettingsType>>;
+    readonly manuallyActivatedBuffs?: Buff[];
     settings: InternalSettingsType;
     readonly buffManager: BuffSettingsManager;
     readonly cycleSettings: CycleSettings;
@@ -591,7 +592,7 @@ export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, Inter
                 totalTime: this.cycleSettings.totalTime,
                 cycleTime: rot.cycleTime,
                 allBuffs: allBuffs,
-                manuallyActivatedBuffs: []
+                manuallyActivatedBuffs: this.manuallyActivatedBuffs ?? []
             });
             rot.apply(cp);
 
