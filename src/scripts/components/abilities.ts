@@ -23,6 +23,7 @@ export class AbilityIcon extends HTMLImageElement {
     constructor(abilityId: number) {
         super();
         this.classList.add('ffxiv-ability-icon');
+        this.setAttribute('intrinsicsize', '64x64');
         getDataFor(abilityId).then(data => this.src = "https://xivapi.com/" + data.Icon);
     }
 }

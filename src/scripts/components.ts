@@ -154,6 +154,10 @@ class SimResultData<ResultType extends SimResult> {
     ) {
     }
 
+    isFinalState(): boolean {
+        return this.result.status === 'Done' || this.result.status === 'Not Run' || this.result.status === 'Error';
+    }
+
     //
     // makeResultDisplay() {
     //     if (this.simInst.makeResultDisplay) {
@@ -591,7 +595,11 @@ class SimResultDetailDisplay<X extends SimResult> extends HTMLElement {
         super();
         this._result = simDetailResultDisplay.result;
         this.sim = simDetailResultDisplay.simInst;
-        this.update();
+        // If this is an unfinished state (i.e. sim still running), update now, then update again when the promise
+        // returns.
+        if (!simDetailResultDisplay.isFinalState()) {
+            this.update();
+        }
         this._result.resultPromise.then(result => this.update(), error => this.update());
     }
 
@@ -1559,7 +1567,7 @@ export class GearPlanSheet extends HTMLElement {
                 this._gearPlanTable.refreshRowData(gearSet);
                 this.refreshToolbar();
             }
-            this.saveData();
+            this.requestSave();
         });
         this.saveData();
         if (select && this._gearPlanTable) {

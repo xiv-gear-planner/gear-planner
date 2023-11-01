@@ -21,7 +21,7 @@ export class CustomTableHeaderCell<RowDataType, CellDataType, ColumnDataType> ex
         this._colDef = columnDef;
         this.span = document.createElement('div');
         this.appendChild(this.span);
-        this.setName();
+        this.refreshFull();
         setCellProps(this, columnDef);
         if (columnDef.headerStyler) {
             columnDef.headerStyler(columnDef.dataValue, this);
@@ -311,7 +311,7 @@ export class CustomTable<RowDataType, SelectionType = never> extends HTMLTableEl
                 else {
                     const newRow = new CustomRow<RowDataType>(item, this);
                     this.dataRowMap.set(item, newRow);
-                    newRow.refreshFull();
+                    // newRow.refreshFull();
                     newRowElements.push(newRow);
                 }
             }
@@ -511,7 +511,7 @@ export class CustomRow<RowDataType> extends HTMLTableRowElement implements Refre
         // @ts-ignore
         this.replaceChildren(...newColElements);
         for (let value of this.dataColMap.values()) {
-            value.refreshFull();
+            // value.refreshFull();
         }
         this.refreshSelection();
     }
