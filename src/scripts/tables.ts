@@ -309,9 +309,9 @@ export class CustomTable<RowDataType, SelectionType = never> extends HTMLTableEl
                     newRowElements.push(this.dataRowMap.get(item));
                 }
                 else {
-                    const newRow = new CustomRow<RowDataType>(item, this);
+                    const newRow = new CustomRow<RowDataType>(item, this, {noInitialRefresh: true});
                     this.dataRowMap.set(item, newRow);
-                    // newRow.refreshFull();
+                    newRow.refreshFull();
                     newRowElements.push(newRow);
                 }
             }
@@ -479,17 +479,23 @@ export class CustomColumn<RowDataType, CellDataType = string, ColumnDataType = a
     headerStyler?: (value: ColumnDataType, colHeader: CustomTableHeaderCell<RowDataType, CellDataType, ColumnDataType>) => void;
 }
 
+export type RefreshableOpts = {
+    noInitialRefresh?: boolean;
+}
+
 export class CustomRow<RowDataType> extends HTMLTableRowElement implements RefreshableRow<RowDataType> {
     dataItem: RowDataType;
     table: CustomTable<RowDataType, any>;
     dataColMap: Map<CustomColumn<RowDataType>, CustomCell<RowDataType, any>> = new Map<CustomColumn<RowDataType>, CustomCell<RowDataType, any>>();
     private _selected: boolean = false;
 
-    constructor(dataItem: RowDataType, table: CustomTable<RowDataType, any>) {
+    constructor(dataItem: RowDataType, table: CustomTable<RowDataType, any>, opts?: RefreshableOpts) {
         super();
         this.dataItem = dataItem;
         this.table = table;
-        this.refreshFull();
+        if (!(opts?.noInitialRefresh)) {
+            this.refreshFull();
+        }
     }
 
     refreshColumn(colDef: CustomColumn<RowDataType, string, any>) {
@@ -503,7 +509,7 @@ export class CustomRow<RowDataType> extends HTMLTableRowElement implements Refre
                 newColElements.push(this.dataColMap.get(col));
             }
             else {
-                const newCell = new CustomCell<RowDataType, any>(this.dataItem, col, this);
+                const newCell = new CustomCell<RowDataType, any>(this.dataItem, col, this, {noInitialRefresh: true});
                 this.dataColMap.set(col, newCell);
                 newColElements.push(newCell);
             }
@@ -511,7 +517,7 @@ export class CustomRow<RowDataType> extends HTMLTableRowElement implements Refre
         // @ts-ignore
         this.replaceChildren(...newColElements);
         for (let value of this.dataColMap.values()) {
-            // value.refreshFull();
+            value.refreshFull();
         }
         this.refreshSelection();
     }
@@ -532,6 +538,8 @@ export class CustomRow<RowDataType> extends HTMLTableRowElement implements Refre
     }
 }
 
+
+
 export class CustomCell<RowDataType, CellDataType> extends HTMLTableCellElement {
 
     dataItem: RowDataType;
@@ -540,13 +548,15 @@ export class CustomCell<RowDataType, CellDataType> extends HTMLTableCellElement 
     _value: CellDataType;
     private _selected: boolean = false;
 
-    constructor(dataItem: RowDataType, colDef: CustomColumn<RowDataType, CellDataType>, row: CustomRow<RowDataType>) {
+    constructor(dataItem: RowDataType, colDef: CustomColumn<RowDataType, CellDataType>, row: CustomRow<RowDataType>, opts?: RefreshableOpts) {
         super();
         this.dataItem = dataItem;
         this.colDef = colDef;
         this.row = row;
         this.setAttribute("col-id", colDef.shortName);
-        this.refreshFull();
+        if (!(opts?.noInitialRefresh)) {
+            this.refreshFull();
+        }
         setCellProps(this, colDef);
     }
 
