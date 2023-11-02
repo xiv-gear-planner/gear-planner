@@ -156,7 +156,7 @@ export function mainStatMulti(levelStats: LevelStats, jobStats: JobData, mainsta
  * @param tenacity
  */
 export function tenacityDmg(levelStats: LevelStats, tenacity: number) {
-    return (1000 + Math.floor(100 * (tenacity - levelStats.baseSubStat) / levelStats.levelDiv)) / 1000;
+    return (1000 + Math.floor(100 * (tenacity - levelStats.baseMainStat) / levelStats.levelDiv)) / 1000;
 }
 
 /**
@@ -250,7 +250,7 @@ export function baseHealing(stats: ComputedSetStats, potency: number, attackType
     // Det multiplier
     const detMulti = stats.detMulti;
     // Extra damage from auto DH bonus
-    const tncMulti = 1000 / 1000 // if tank you'd do Funcs.fTEN(stats.tenacity, level) / 1000
+    const tncMulti = stats.tncMulti;
     const traitMulti = stats.traitMulti(attackType);
 
     // Base action potency and main stat multi
