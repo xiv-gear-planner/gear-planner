@@ -2,6 +2,12 @@ import {JobName} from "../xivconstants";
 import {AttackType} from "../geartypes";
 import {CombinedBuffEffect} from "./sim_processors";
 
+export type DotInfo = {
+    duration: number,
+    tickPotency: number,
+    id: number
+}
+
 export type NonDamagingAbility = {
     potency: null,
 }
@@ -10,11 +16,13 @@ export type DamagingAbility = {
     attackType: AttackType,
     autoCrit?: boolean,
     autoDh?: boolean,
+    dot?: DotInfo
 }
 
 export type BaseAbility = Readonly<{
     name: string,
     activatesBuffs?: readonly Buff[],
+    id?: number
 } & (NonDamagingAbility | DamagingAbility)>;
 
 /**
@@ -29,6 +37,8 @@ export type GcdAbility = BaseAbility & {
     /**
      * The time that it takes to cast. Do not include caster tax. Defaults to 0.5 (thus 0.6 after adding caster tax)
      * if not specified, i.e. normal animation lock.
+     *
+     * TODO: this is actually a false assumption - BLU oGCDs may have a cast time
      */
     cast?: number,
     /**
@@ -45,6 +55,12 @@ export type OgcdAbility = BaseAbility & Readonly<{
 
 export type Ability = GcdAbility | OgcdAbility;
 
+export type DotDamageUnf = {
+    fullDurationTicks: number,
+    damagePerTick: ComputedDamage,
+    actualTickCount?: number
+}
+
 export type ComputedDamage = {
     expected: number,
 }
@@ -57,7 +73,10 @@ export type UsedAbility = {
     buffs: Buff[],
     combinedEffects: CombinedBuffEffect,
     usedAt: number,
-    damage: ComputedDamage
+    directDamage: ComputedDamage,
+    dot?: DotDamageUnf,
+    appDelayFromStart: number,
+    totalTimeTaken: number
 }
 
 /**
@@ -69,6 +88,19 @@ export type UsedAbility = {
  */
 export type PartiallyUsedAbility = UsedAbility & {
     portion: number
+}
+
+export type FinalizedAbility = {
+    usedAt: number,
+    original: UsedAbility,
+    totalDamage: number,
+    totalPotency: number,
+    partialRate: number | null,
+    directDamage: number,
+    dotInfo: DotDamageUnf,
+    combinedEffects: CombinedBuffEffect,
+    ability: Ability,
+    buffs: Buff[]
 }
 
 export type BuffEffects = {

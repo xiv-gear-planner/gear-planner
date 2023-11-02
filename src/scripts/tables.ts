@@ -21,7 +21,7 @@ export class CustomTableHeaderCell<RowDataType, CellDataType, ColumnDataType> ex
         this._colDef = columnDef;
         this.span = document.createElement('div');
         this.appendChild(this.span);
-        this.setName();
+        this.refreshFull();
         setCellProps(this, columnDef);
         if (columnDef.headerStyler) {
             columnDef.headerStyler(columnDef.dataValue, this);
@@ -309,7 +309,7 @@ export class CustomTable<RowDataType, SelectionType = never> extends HTMLTableEl
                     newRowElements.push(this.dataRowMap.get(item));
                 }
                 else {
-                    const newRow = new CustomRow<RowDataType>(item, this);
+                    const newRow = new CustomRow<RowDataType>(item, this, {noInitialRefresh: true});
                     this.dataRowMap.set(item, newRow);
                     newRow.refreshFull();
                     newRowElements.push(newRow);
@@ -433,7 +433,7 @@ export interface CustomColumnSpec<RowDataType, CellDataType = string, ColumnData
     allowHeaderSelection?: boolean;
     allowCellSelection?: boolean;
     getter: (item: RowDataType) => CellDataType;
-    renderer?: (value: CellDataType) => Node;
+    renderer?: (value: CellDataType) => Node | null;
     colStyler?: (value: CellDataType, colElement: CustomCell<RowDataType, CellDataType>, internalElement: Node) => void;
     condition?: () => boolean;
     initialWidth?: number | undefined;
@@ -479,17 +479,23 @@ export class CustomColumn<RowDataType, CellDataType = string, ColumnDataType = a
     headerStyler?: (value: ColumnDataType, colHeader: CustomTableHeaderCell<RowDataType, CellDataType, ColumnDataType>) => void;
 }
 
+export type RefreshableOpts = {
+    noInitialRefresh?: boolean;
+}
+
 export class CustomRow<RowDataType> extends HTMLTableRowElement implements RefreshableRow<RowDataType> {
     dataItem: RowDataType;
     table: CustomTable<RowDataType, any>;
     dataColMap: Map<CustomColumn<RowDataType>, CustomCell<RowDataType, any>> = new Map<CustomColumn<RowDataType>, CustomCell<RowDataType, any>>();
     private _selected: boolean = false;
 
-    constructor(dataItem: RowDataType, table: CustomTable<RowDataType, any>) {
+    constructor(dataItem: RowDataType, table: CustomTable<RowDataType, any>, opts?: RefreshableOpts) {
         super();
         this.dataItem = dataItem;
         this.table = table;
-        this.refreshFull();
+        if (!(opts?.noInitialRefresh)) {
+            this.refreshFull();
+        }
     }
 
     refreshColumn(colDef: CustomColumn<RowDataType, string, any>) {
@@ -503,7 +509,7 @@ export class CustomRow<RowDataType> extends HTMLTableRowElement implements Refre
                 newColElements.push(this.dataColMap.get(col));
             }
             else {
-                const newCell = new CustomCell<RowDataType, any>(this.dataItem, col, this);
+                const newCell = new CustomCell<RowDataType, any>(this.dataItem, col, this, {noInitialRefresh: true});
                 this.dataColMap.set(col, newCell);
                 newColElements.push(newCell);
             }
@@ -532,6 +538,8 @@ export class CustomRow<RowDataType> extends HTMLTableRowElement implements Refre
     }
 }
 
+
+
 export class CustomCell<RowDataType, CellDataType> extends HTMLTableCellElement {
 
     dataItem: RowDataType;
@@ -540,13 +548,15 @@ export class CustomCell<RowDataType, CellDataType> extends HTMLTableCellElement 
     _value: CellDataType;
     private _selected: boolean = false;
 
-    constructor(dataItem: RowDataType, colDef: CustomColumn<RowDataType, CellDataType>, row: CustomRow<RowDataType>) {
+    constructor(dataItem: RowDataType, colDef: CustomColumn<RowDataType, CellDataType>, row: CustomRow<RowDataType>, opts?: RefreshableOpts) {
         super();
         this.dataItem = dataItem;
         this.colDef = colDef;
         this.row = row;
         this.setAttribute("col-id", colDef.shortName);
-        this.refreshFull();
+        if (!(opts?.noInitialRefresh)) {
+            this.refreshFull();
+        }
         setCellProps(this, colDef);
     }
 
@@ -555,7 +565,7 @@ export class CustomCell<RowDataType, CellDataType> extends HTMLTableCellElement 
         try {
             this._value = this.colDef.getter(this.dataItem);
             node = this.colDef.renderer(this._value);
-            if (node !== undefined) {
+            if (node) {
                 this.colDef.colStyler(this._value, this, node);
             }
         } catch (e) {
@@ -563,7 +573,7 @@ export class CustomCell<RowDataType, CellDataType> extends HTMLTableCellElement 
             node = document.createTextNode("Error");
         }
         const span = document.createElement('span');
-        if (node === undefined) {
+        if (node === null || node === undefined) {
             this.replaceChildren(span);
         }
         else {

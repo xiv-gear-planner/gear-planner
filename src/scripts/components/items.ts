@@ -380,6 +380,9 @@ function itemTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, stat: 
                         return input;
                     }
                 }
+                else {
+                    return null;
+                }
             }
             else if (value instanceof Object) {
                 return document.createTextNode(value.effectiveAmount.toString());

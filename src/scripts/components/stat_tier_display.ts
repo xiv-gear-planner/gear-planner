@@ -151,6 +151,15 @@ export class StatTierDisplay extends HTMLDivElement {
                     //     tiering: this.getCombinedTiering(curVal, value => tenacityDef(levelStats, value))
                     // }
                 ];
+            default:
+                return [{
+                    label: abbrev,
+                    tiering: {
+                        lower: 0,
+                        upper: 0
+                    }
+                }]
+
         }
     }
 

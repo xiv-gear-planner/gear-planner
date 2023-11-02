@@ -59,6 +59,7 @@ import {GearPlanSheet} from "./components";
 import {xivApiIcon} from "./external/xivapi";
 import {IlvlSyncInfo} from "./datamanager";
 import {XivApiStat, xivApiStatMapping} from "./external/xivapitypes";
+import {Inactivitytimer} from "./util/inactivitytimer";
 
 
 export class EquippedItem {
@@ -104,6 +105,9 @@ export class CharacterGearSet {
     private _raceOverride: RaceName;
     private _food: FoodItem;
     private _sheet: GearPlanSheet;
+    private readonly refresher = new Inactivitytimer(0, () => {
+        this._notifyListeners();
+    });
 
     constructor(sheet: GearPlanSheet) {
         this._sheet = sheet;
@@ -133,7 +137,6 @@ export class CharacterGearSet {
         this._description = desc;
         this.notifyListeners();
     }
-
 
 
     get food(): FoodItem | undefined {
@@ -167,11 +170,19 @@ export class CharacterGearSet {
     }
 
     private notifyListeners() {
+        // TODO: a little janky. This is to work around an issue where by updating properties after importing, we
+        // get an extra refresh request. Simple hack is to just refuse to issue any requests until we have at least
+        // one listener.
+        if (this.listeners.length > 0) {
+            this.refresher.ping();
+        }
+    }
+
+    private _notifyListeners() {
         for (let listener of this.listeners) {
             listener();
         }
     }
-
 
     forceRecalc() {
         this.invalidate();
@@ -455,7 +466,7 @@ export class CharacterGearSet {
     }
 }
 
-export function applyStatCaps(stats: RawStats, statCaps: {[K in RawStatKey]?: number}) {
+export function applyStatCaps(stats: RawStats, statCaps: { [K in RawStatKey]?: number }) {
     const out = {
         ...stats
     }
@@ -708,7 +719,12 @@ export class XivApiGearInfo implements GearItem {
 }
 
 export class XivApiFoodInfo implements FoodItem {
-    bonuses: { [K in keyof RawStats]?: { percentage: number; max: number } } = {};
+    bonuses: {
+        [K in keyof RawStats]?: {
+            percentage: number;
+            max: number
+        }
+    } = {};
     iconUrl: URL;
     id: number;
     name: string;

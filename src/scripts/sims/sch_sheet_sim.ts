@@ -1,19 +1,19 @@
-import {simpleAutoResultTable, SimResult, SimSettings, SimSpec, Simulation} from "../simulation";
-import {CharacterGearSet} from "../gear";
-import {ComputedSetStats} from "../geartypes";
-
-import {quickElement} from "../components/util";
-import {GcdAbility, Buff, UsedAbility, OgcdAbility} from "./sim_types";
-import {CycleProcessor} from "./sim_processors";
-import {sum} from "../util/array_utils";
-import {BuffSettingsArea, BuffSettingsExport, BuffSettingsManager} from "./party_comp_settings";
-import {AbilitiesUsedTable} from "./components/ability_used_table";
+import {SimSettings, SimSpec} from "../simulation";
+import {GcdAbility, OgcdAbility} from "./sim_types";
+import {
+    BaseMultiCycleSim,
+    CycleSimResult,
+    ExternalCycleSettings,
+    CycleProcessor,
+    Rotation
+} from "./sim_processors";
 import {Chain} from "./buffs";
 
 
 const filler: GcdAbility = {
     type: 'gcd',
     name: "Broil",
+    id: 16541,
     potency: 295,
     attackType: "Spell",
     gcd: 2.5,
@@ -23,6 +23,7 @@ const filler: GcdAbility = {
 const chain: OgcdAbility = {
     type: 'ogcd',
     name: "Chain",
+    id: 7436,
     activatesBuffs: [Chain],
     potency: null
 }
@@ -30,6 +31,7 @@ const chain: OgcdAbility = {
 const r2: GcdAbility = {
     type: 'gcd',
     name: "Ruin II",
+    id: 17870,
     potency: 220,
     attackType: "Spell",
     gcd: 2.5,
@@ -38,7 +40,14 @@ const r2: GcdAbility = {
 const bio: GcdAbility = {
     type: 'gcd',
     name: "Biolysis",
-    potency: 30 / 3 * 70,
+    id: 16540,
+    potency: 0,
+    dot: {
+        duration: 30,
+        tickPotency: 70,
+        // TODO verify
+        id: 3089
+    },
     attackType: "Spell",
     gcd: 2.5,
 }
@@ -46,59 +55,12 @@ const bio: GcdAbility = {
 const ed: OgcdAbility = {
     type: 'ogcd',
     name: "Energy Drain",
+    id: 167,
     potency: 100,
     attackType: "Ability"
 }
 
-
-class SchSimContext {
-    constructor(private stats: ComputedSetStats, private allBuffs: Buff[]) {
-
-    }
-
-    getResult(): SchSheetSimResult {
-        const cp = new CycleProcessor(120, this.allBuffs, this.stats, [Chain]);
-        cp.useGcd(bio);
-        cp.useGcd(filler);
-        cp.useGcd(filler);
-        cp.useOgcd(chain);
-        cp.useGcd(filler);
-        cp.useOgcd(ed);
-        cp.useGcd(filler);
-        cp.useOgcd(ed);
-        cp.useGcd(filler);
-        cp.useOgcd(ed);
-        cp.useGcd(filler); //Aetherflow for MP and refreshing EDs
-        cp.useGcd(filler);
-        cp.useOgcd(ed);
-        cp.useGcd(filler);
-        cp.useOgcd(ed);
-        cp.useGcd(filler);
-        cp.useOgcd(ed);
-        cp.useUntil(filler, 30);
-        cp.useGcd(bio);
-        cp.useUntil(filler, 60);
-        cp.useGcd(bio);
-        cp.useUntil(filler, 90);
-        cp.useGcd(bio);
-        cp.useUntil(filler, 120);
-
-        const used = cp.usedAbilities;
-        const cycleDamage = sum(used.map(used => used.damage.expected));
-        const dps = cycleDamage / cp.nextGcdTime;
-        const unbuffedPps = sum(used.map(used => used.ability.potency)) / cp.nextGcdTime;
-
-        return {
-            mainDpsResult: dps,
-            abilitiesUsed: [...used],
-            unbuffedPps: unbuffedPps
-        }
-    }
-}
-
-export interface SchSheetSimResult extends SimResult {
-    abilitiesUsed: UsedAbility[],
-    unbuffedPps: number
+export interface SchSheetSimResult extends CycleSimResult {
 }
 
 interface SchNewSheetSettings extends SimSettings {
@@ -108,8 +70,7 @@ interface SchNewSheetSettings extends SimSettings {
     r2PerMin: number,
 }
 
-export interface SchNewSheetSettingsExternal extends SchNewSheetSettings {
-    buffConfig: BuffSettingsExport;
+export interface SchNewSheetSettingsExternal extends ExternalCycleSettings<SchNewSheetSettings> {
 }
 
 export const schNewSheetSpec: SimSpec<SchSheetSim, SchNewSheetSettingsExternal> = {
@@ -124,63 +85,78 @@ export const schNewSheetSpec: SimSpec<SchSheetSim, SchNewSheetSettingsExternal> 
     supportedJobs: ['SCH'],
 }
 
-export class SchSheetSim implements Simulation<SchSheetSimResult, SchNewSheetSettings, SchNewSheetSettingsExternal> {
-
-    exportSettings(): SchNewSheetSettingsExternal {
-        return {
-            buffConfig: this.buffManager.exportSetting(),
-            ...this.settings
-        };
-    };
-
-    settings: SchNewSheetSettings = {
-        rezPerMin: 0,
-        gcdHealsPerMin: 0,
-        edPerMin: 2,
-        r2PerMin: 0,
-    };
-    readonly buffManager: BuffSettingsManager;
+export class SchSheetSim extends BaseMultiCycleSim<SchSheetSimResult, SchNewSheetSettings> {
 
     spec = schNewSheetSpec;
     displayName = schNewSheetSpec.displayName;
     shortName = "sch-sheet-sim";
+    manuallyActivatedBuffs = [Chain];
 
     constructor(settings?: SchNewSheetSettingsExternal) {
-        if (settings) {
-            Object.assign(this.settings, settings);
-            this.buffManager = BuffSettingsManager.fromSaved(settings.buffConfig);
-        }
-        else {
-            this.buffManager = BuffSettingsManager.defaultForJob('SCH');
-        }
+        super('SCH', settings);
     }
 
-    // TODO
-    makeConfigInterface(settings: SchNewSheetSettingsExternal, updateCallback: () => void): HTMLElement {
-        const div = document.createElement("div");
-        div.appendChild(new BuffSettingsArea(this.buffManager, updateCallback));
-        return div;
+    makeDefaultSettings(): SchNewSheetSettings {
+        return {
+            rezPerMin: 0,
+            gcdHealsPerMin: 0,
+            edPerMin: 2,
+            r2PerMin: 0,
+        };
     }
 
-    makeResultDisplay(result: SchSheetSimResult): HTMLElement {
-        const mainResultsTable = simpleAutoResultTable({
-            mainDpsResult: result.mainDpsResult,
-            unbuffedPps: result.unbuffedPps
-        });
-        mainResultsTable.classList.add('main-results-table');
-        const abilitiesUsedTable = new AbilitiesUsedTable(result.abilitiesUsed);
-        return quickElement('div', ['cycle-sim-results-table'], [mainResultsTable, abilitiesUsedTable]);
-    }
+    getRotationsToSimulate(): Rotation[] {
+        return [{
+            cycleTime: 120,
+            apply(cp: CycleProcessor) {
+                // pre-pull
+                cp.useGcd(filler);
+                cp.remainingCycles(cycle => {
+                    cycle.useGcd(bio);
+                    cycle.useGcd(filler);
+                    cycle.useGcd(filler);
+                    cycle.useOgcd(chain);
+                    cycle.useGcd(filler);
+                    cycle.useOgcd(ed);
+                    cycle.useGcd(filler);
+                    cycle.useOgcd(ed);
+                    cycle.useGcd(filler);
+                    cycle.useOgcd(ed);
+                    cycle.useGcd(filler); //Aetherflow for MP and refreshing EDs
+                    // We have the extra 3 from dissipation on 0 min, 4 min, 6 min, 10 min, etc
+                    if (cycle.cycleNumber % 3 !== 1) {
+                        cycle.useGcd(filler);
+                        cycle.useOgcd(ed);
+                        cycle.useGcd(filler);
+                        cycle.useOgcd(ed);
+                        cycle.useGcd(filler);
+                        cycle.useOgcd(ed);
+                    }
+                    cycle.useUntil(filler, 30);
+                    cycle.useGcd(bio);
+                    cycle.useUntil(filler, 60);
+                    cycle.useGcd(bio);
 
-    //
-    makeToolTip(result: SchSheetSimResult): string {
-        return `DPS: ${result.mainDpsResult}\nUnbuffed PPS: ${result.unbuffedPps}\n`;
-    }
+                    // If we're on the 3/9/15 diss, and there isn't enough time for another burst window, blow them immediately
+                    if (cycle.cycleNumber % 3 === 1 && cp.remainingTime < 70) {
+                        cycle.useGcd(filler);
+                        cycle.useOgcd(ed);
+                        cycle.useGcd(filler);
+                        cycle.useOgcd(ed);
+                        cycle.useGcd(filler);
+                        cycle.useOgcd(ed);
+                    }
 
-    async simulate(set: CharacterGearSet): Promise<SchSheetSimResult> {
-        const allBuffs = this.buffManager.enabledBuffs;
-        const ctx = new SchSimContext(set.computedStats, allBuffs);
-        return ctx.getResult();
+                    cycle.useUntil(filler, 90);
+                    cycle.useGcd(bio);
+                    cycle.useUntil(filler, 120);
+                });
+
+
+            }
+        }]
+
+
     }
 
 }

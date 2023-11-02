@@ -4,7 +4,11 @@
     "module": "commonjs",
     "target": "es6",
     "sourceMap": true,
-    "outDir": "build"
+    "outDir": "build",
+    "noImplicitReturns": true,
+    "strictBindCallApply": true,
+//    "strictFunctionTypes": true,
+//    "strictPropertyInitialization": true
   },
   "exclude": [
     "node_modules"

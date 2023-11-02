@@ -385,6 +385,15 @@ export class FieldBoundDataSelect<ObjType, DataType> extends DataSelect<DataType
     }
 }
 
+export function labeledComponent(label: string, check: HTMLElement): HTMLDivElement {
+    const labelElement = labelFor(label, check);
+    const div = document.createElement("div");
+    div.appendChild(check);
+    div.appendChild(labelElement);
+    div.classList.add("labeled-component");
+    return div;
+}
+
 export function labeledCheckbox(label: string, check: HTMLInputElement): HTMLDivElement {
     const labelElement = labelFor(label, check);
     const div = document.createElement("div");

@@ -154,6 +154,10 @@ class SimResultData<ResultType extends SimResult> {
     ) {
     }
 
+    isFinalState(): boolean {
+        return this.result.status === 'Done' || this.result.status === 'Not Run' || this.result.status === 'Error';
+    }
+
     //
     // makeResultDisplay() {
     //     if (this.simInst.makeResultDisplay) {
@@ -591,7 +595,11 @@ class SimResultDetailDisplay<X extends SimResult> extends HTMLElement {
         super();
         this._result = simDetailResultDisplay.result;
         this.sim = simDetailResultDisplay.simInst;
-        this.update();
+        // If this is an unfinished state (i.e. sim still running), update now, then update again when the promise
+        // returns.
+        if (!simDetailResultDisplay.isFinalState()) {
+            this.update();
+        }
         this._result.resultPromise.then(result => this.update(), error => this.update());
     }
 
@@ -639,7 +647,7 @@ export class SimResultMiniDisplay extends HTMLElement {
             this.textContent = result.mainDpsResult.toFixed(2);
             let tooltip: string;
             if (this.sim.makeToolTip) {
-                tooltip = this.sim.makeToolTip(this._result);
+                tooltip = this.sim.makeToolTip(this._result.result);
             }
             else {
                 tooltip = Object.entries(result).map(entry => `${camel2title(entry[0])}: ${entry[1]}`)
@@ -1433,7 +1441,7 @@ export class GearPlanSheet extends HTMLElement {
             return;
         }
         if (this._saveKey) {
-            console.info("Saving sheet " + this.sheetName);
+            console.log("Saving sheet " + this.sheetName);
             const fullExport = this.exportSheet(false);
             localStorage.setItem(this._saveKey, JSON.stringify(fullExport));
         }
@@ -1559,7 +1567,7 @@ export class GearPlanSheet extends HTMLElement {
                 this._gearPlanTable.refreshRowData(gearSet);
                 this.refreshToolbar();
             }
-            this.saveData();
+            this.requestSave();
         });
         this.saveData();
         if (select && this._gearPlanTable) {

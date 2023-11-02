@@ -11,12 +11,10 @@ function getServer() {
             return new URL(override);
         }
         catch (e) {
-            console.error('Invalid override URL', override);
+            console.error('Invalid override URL, using default', override);
         }
     }
-    else {
-        return STATIC_SERVER;
-    }
+    return STATIC_SERVER;
 }
 
 export function setServerOverride(server: string) {
