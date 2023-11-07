@@ -751,8 +751,6 @@ gear-plan {
   }
 
   .gear-sheet-editor-area {
-    text-align: center;
-    overflow: auto;
     flex-basis: 60%;
     //flex-shrink: 99;
     flex-grow: 9999;
@@ -760,66 +758,93 @@ gear-plan {
     height: 60%;
     max-height: 100%;
     border-top: 2px solid var(--border-color);
-    //margin-top: 5px;
-    padding-top: 8px;
-    padding-bottom: 8px;
+  }
+}
 
-    table {
-      text-align: left;
-      //padding: 5px;
-    }
+#embed-top-level {
+  overflow: auto;
+  text-align: center;
+}
 
-    table.gear-items-table, table.food-items-table {
-      margin: auto auto 5px;
+.gear-sheet-editor-area {
+  text-align: center;
+  overflow: auto;
+  //margin-top: 5px;
+  padding-top: 8px;
+  padding-bottom: 8px;
 
-      tr, td {
-        height: 25px;
-      }
+  table {
+    text-align: left;
+    //padding: 5px;
+  }
+}
 
-      img {
-        height: 100%;
-      }
-    }
+table.gear-items-table, table.food-items-table {
+  margin-left: auto;
+  margin-right: auto;
 
-    table.gear-items-table, table.food-items-table {
-      max-width: 100%;
+  tr, td {
+    height: 25px;
+  }
 
-      [col-id='itemname'] {
-        width: var(--item-name-col-width);
-        max-width: var(--item-name-col-width);
-        min-width: 100px;
+  img {
+    height: 100%;
+  }
+}
 
-      }
+table.gear-items-table, table.food-items-table {
+  max-width: 100%;
 
-      td[col-id='itemname'] {
-        max-width: 1px;
-      }
+  [col-id='itemname'] {
+    width: var(--item-name-col-width);
+    max-width: var(--item-name-col-width);
+    min-width: 100px;
 
-      tr:last-child {
-        td, th {
-          border-top: none;
-        }
-      }
+  }
 
-      input[type=number] {
-        -moz-appearance: textfield;
+  td[col-id='itemname'] {
+    max-width: 1px;
+  }
 
-        &::-webkit-inner-spin-button, &::-webkit-outer-spin-button {
-          -webkit-appearance: none;
-          -moz-appearance: none;
-          appearance: none;
-        }
-      }
-
-    }
-
-    .left-side-gear-table, .right-side-gear-table {
-      display: inline-block;
-      vertical-align: top;
-      margin-left: 5px;
-      margin-right: 5px;
+  tr:last-child {
+    td, th {
+      border-top: none;
     }
   }
+
+  input[type=number] {
+    -moz-appearance: textfield;
+
+    &::-webkit-inner-spin-button, &::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+    }
+  }
+
+}
+
+.left-side-gear-table, .right-side-gear-table {
+  display: inline-block;
+  vertical-align: top;
+  //margin-left: 5px;
+  //margin-right: 5px;
+  & > table.gear-items-table {
+    margin-bottom: 10px;
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+}
+
+.gear-table-sides-holder {
+  display: flex;
+  margin-left: auto;
+  margin-right: auto;
+  width: fit-content;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
 }
 
 .flex-padding-item {
@@ -1464,12 +1489,21 @@ table.food-items-table {
 }
 
 gear-set-viewer {
+  padding-left: 5px;
+  padding-right: 5px;
+  //margin-left: 5px;
+  //margin-right: 5px;
   //.left-side-gear-table, .right-side-gear-table {
   //  table {
   //    margin-left: 5px !important;
   //    margin-right: 5px !important;
   //  }
   //}
+  display: block;
+  &>* {
+    margin-bottom: 10px;
+  }
+
   all-slot-materia-manager {
     pointer-events: none;
   }
@@ -1481,13 +1515,18 @@ gear-set-viewer {
     display: grid;
     grid-template-columns: repeat(var(--materia-total-cols, 4), auto);
     text-align: left;
-    margin: auto auto 12px auto;
+    margin-left: auto;
+    margin-right: auto;
     max-width: 550px;
     @media screen and (max-width: 550px) {
       --materia-total-cols: 3;
     }
     @media screen and (max-width: 400px) {
       --materia-total-cols: 2;
+    }
+
+    span.materia-totals-label {
+      padding-left: 40px;
     }
 
     materia-count-display {
@@ -1528,6 +1567,18 @@ gear-set-viewer {
   .gear-items-view-table, .food-view-table {
     .round-table;
   }
+
+  //.weapon-table,  .food-items-table {
+  //  max-width: calc(100% - 10px);
+  //  //padding-left: 5px;
+  //  //padding-right: 5px;
+  //}
+  //
+  //materia-totals-display {
+  //  width: calc(100% - 10px);
+  //  margin-left: 5px;
+  //  margin-right: 5px;
+  //};
 }
 
 // Stat-related stuff

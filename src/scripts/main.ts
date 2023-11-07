@@ -5,6 +5,7 @@ import {getShortLink} from "./external/shortlink_server";
 import {getBisSheet} from "./external/static_bis";
 import {JobName} from "./xivconstants";
 import {LoadingBlocker} from "./components/loader";
+import {earlyEmbedInit, openEmbed} from "./embed";
 
 export const SHORTLINK_HASH = 'sl';
 export const BIS_HASH = 'bis';
@@ -71,9 +72,11 @@ function setMainContent(title: string, ...nodes) {
     setTitle(title);
 }
 
+let embed = false;
+
 async function processHash() {
     // Remove the literal #
-    const hash = (location.hash.startsWith("#") ? location.hash.substring(1) : location.hash).split('/').filter(item => item).map(item => decodeURIComponent(item));
+    let hash = (location.hash.startsWith("#") ? location.hash.substring(1) : location.hash).split('/').filter(item => item).map(item => decodeURIComponent(item));
     console.info("processHash", hash);
     if (hash.length > 0) {
         hideWelcomeArea();
@@ -88,6 +91,14 @@ async function processHash() {
         showSheetPickerMenu();
     }
     else {
+        if (hash[0] === "embed") {
+            earlyEmbedInit();
+            embed = true;
+            hash = hash.slice(1);
+        }
+        else {
+            embed = false;
+        }
         const mainNav = hash[0];
         if (hash.length >= 2 && mainNav === "sheet") {
             const sheetKey = hash[1];
@@ -237,12 +248,19 @@ export async function openSheetByKey(sheet: string) {
 }
 
 export async function openExport(exported: (SheetExport | SetExport), changeHash: boolean, viewOnly: boolean) {
-    const sheet = 'sets' in exported ? GearPlanSheet.fromExport(exported) : GearPlanSheet.fromSetExport(exported);
-    if (viewOnly) {
+    const isFullSheet = 'sets' in exported;
+    const sheet = isFullSheet ? GearPlanSheet.fromExport(exported) : GearPlanSheet.fromSetExport(exported);
+    if (embed && !isFullSheet) {
         sheet.setViewOnly();
+        openEmbed(sheet);
     }
-    // sheet.name = SHARED_SET_NAME;
-    openSheet(sheet, false);
+    else {
+        if (viewOnly) {
+            sheet.setViewOnly();
+        }
+        // sheet.name = SHARED_SET_NAME;
+        openSheet(sheet, false);
+    }
 }
 
 export async function openSheet(planner: GearPlanSheet, changeHash: boolean = true) {

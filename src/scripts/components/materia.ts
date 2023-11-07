@@ -548,7 +548,10 @@ export class MateriaTotalsDisplay extends HTMLElement {
             }
             return primary;
         });
-        this.appendChild(document.createTextNode('Totals: '));
+        const totalsText = document.createElement('span');
+        totalsText.classList.add('materia-totals-label');
+        totalsText.textContent = 'Totals: ';
+        this.appendChild(totalsText);
         elements.forEach(element => this.appendChild(element));
         this.empty = elements.length === 0;
     }

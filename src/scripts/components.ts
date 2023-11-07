@@ -86,6 +86,7 @@ import {SetViewToolbar} from "./components/totals_display";
 import {MateriaTotalsDisplay} from "./components/materia";
 import {startRenameSet, startRenameSheet} from "./components/rename_dialog";
 import {installDragHelper} from "./components/draghelpers";
+import doc = Mocha.reporters.doc;
 
 export const SHARED_SET_NAME = 'Imported Set';
 
@@ -766,13 +767,17 @@ export class GearSetEditor extends HTMLElement {
         // const leftSideTable = new GearItemsTable(this.sheet, this.gearSet, itemMapping, ['Head', 'Body', 'Hand', 'Legs', 'Feet']);
         // const rightSideTable = new GearItemsTable(this.sheet, this.gearSet, itemMapping, ['Ears', 'Neck', 'Wrist', 'RingLeft', 'RingRight']);
 
+        const gearTableSet = document.createElement('div');
         weaponTable.classList.add('weapon-table');
+        gearTableSet.classList.add('gear-table-sides-holder');
         leftSideDiv.classList.add('left-side-gear-table');
         rightSideDiv.classList.add('right-side-gear-table');
 
+        gearTableSet.appendChild(leftSideDiv);
+        gearTableSet.appendChild(rightSideDiv);
         this.appendChild(weaponTable);
-        this.appendChild(leftSideDiv);
-        this.appendChild(rightSideDiv);
+        this.appendChild(gearTableSet);
+        // this.appendChild(rightSideDiv);
 
         // // Gear table
         // const gearTable = new GearItemsTable(sheet, gearSet, itemMapping);
@@ -884,15 +889,18 @@ export class GearSetViewer extends HTMLElement {
         // const leftSideTable = new GearItemsTable(this.sheet, this.gearSet, itemMapping, ['Head', 'Body', 'Hand', 'Legs', 'Feet']);
         // const rightSideTable = new GearItemsTable(this.sheet, this.gearSet, itemMapping, ['Ears', 'Neck', 'Wrist', 'RingLeft', 'RingRight']);
 
+        const gearTableSet = document.createElement('div');
+        gearTableSet.classList.add('gear-table-sides-holder');
         leftSideDiv.classList.add('left-side-gear-table');
         rightSideDiv.classList.add('right-side-gear-table');
 
         if (leftEnabled) {
-            this.appendChild(leftSideDiv);
+            gearTableSet.appendChild(leftSideDiv);
         }
         if (rightEnabled) {
-            this.appendChild(rightSideDiv);
+            gearTableSet.appendChild(rightSideDiv);
         }
+        this.appendChild(gearTableSet);
 
         // Food table TODO make readonly
         const food = this.gearSet.food;
@@ -985,12 +993,12 @@ export class GearPlanSheet extends HTMLElement {
     private readonly _loadingScreen: LoadingBlocker;
     private _gearEditToolBar: GearEditToolbar;
     private _selectFirstRowByDefault: boolean = false;
-    private readonly headerArea: HTMLDivElement;
-    private readonly tableArea: HTMLDivElement;
-    private readonly buttonsArea: HTMLDivElement;
-    private readonly editorArea: HTMLDivElement;
-    private readonly midBarArea: HTMLDivElement;
-    private readonly toolbarHolder: HTMLDivElement;
+    readonly headerArea: HTMLDivElement;
+    readonly tableArea: HTMLDivElement;
+    readonly buttonsArea: HTMLDivElement;
+    readonly editorArea: HTMLDivElement;
+    readonly midBarArea: HTMLDivElement;
+    readonly toolbarHolder: HTMLDivElement;
     // TODO: SimResult alone might not be enough since we'd want it to refresh automatically if settings are changed
     private _editorItem: CharacterGearSet | Simulation<any, any, any> | SimResultData<SimResult> | undefined;
     private materiaAutoFillPrio: MateriaAutoFillPrio;
