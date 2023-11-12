@@ -769,8 +769,14 @@ gear-plan {
     display: block;
     div.stat-total {
       background-color: var(--table-bg-color);
-      margin-top: 0;
+      margin-top: 5px;
       margin-bottom: 0;
+      // Save space by not showing DHT multi since it is fixed
+      &.stat-dhit {
+        div.stat-total-lower-right {
+          display: none;
+        }
+      }
     }
   }
 }
