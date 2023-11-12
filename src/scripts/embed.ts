@@ -25,7 +25,12 @@ export async function openEmbed(sheet: GearPlanSheet) {
     console.log("openEmbed mid");
     const editorArea = sheet.editorArea;
     // TODO: this is bad
-    embedDiv.replaceChildren(sheet.editorArea.firstChild['toolbar'].firstChild, editorArea);
+    const statTotals = sheet.editorArea.firstChild['toolbar'].firstChild;
+
+    const placeHolder = editorArea.querySelector("a#embed-stats-placeholder");
+    placeHolder.parentElement.insertBefore(statTotals, placeHolder);
+
+    embedDiv.replaceChildren(editorArea);
     console.log("openEmbed end");
     setTitle('Embed');
 }

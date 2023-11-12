@@ -826,6 +826,10 @@ export class GearSetViewer extends HTMLElement {
             this.appendChild(descContainer);
         }
 
+        const anchorForEmbed = document.createElement('a');
+        anchorForEmbed.id = 'embed-stats-placeholder';
+        this.appendChild(anchorForEmbed);
+
         const matTotals = new MateriaTotalsDisplay(this.gearSet);
         if (!matTotals.empty) {
             this.appendChild(matTotals);
