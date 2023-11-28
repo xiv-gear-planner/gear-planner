@@ -204,7 +204,7 @@ export class FoodItemsTable extends CustomTable<FoodItem, FoodItem> {
             foodTableStatColumn(sheet, 'piety', true),
             foodTableStatColumn(sheet, 'tenacity', true),
         ]
-        super.selectionModel = {
+        this.selectionModel = {
             clickCell(cell: CustomCell<FoodItem, FoodItem>) {
 
             },
@@ -284,7 +284,7 @@ export class FoodItemViewTable extends CustomTable<FoodItem, FoodItem> {
             foodTableStatViewColumn(sheet, item, 'piety', true),
             foodTableStatViewColumn(sheet, item, 'tenacity', true),
         ]
-        super.selectionModel = noopSelectionModel;
+        this.selectionModel = noopSelectionModel;
         super.data = [new HeaderRow(), item];
     }
 }
@@ -706,7 +706,7 @@ export class GearItemsViewTable extends CustomTable<GearSlotItem, EquipmentSet> 
                 }
             }
         }
-        super.selectionModel = noopSelectionModel;
+        this.selectionModel = noopSelectionModel;
         this.data = data;
     }
 

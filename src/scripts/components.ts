@@ -183,7 +183,7 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
         this.classList.add("gear-plan-table");
         this.setupColumns();
         const selModel = new SingleSelectionModel<CharacterGearSet, GearSetSel>();
-        super.selectionModel = selModel;
+        this.selectionModel = selModel;
         selModel.addListener({
             onNewSelection(newSelection: GearSetSel) {
                 if (newSelection instanceof CustomRow) {
