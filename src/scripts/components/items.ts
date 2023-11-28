@@ -552,7 +552,7 @@ export class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
             slotMateriaManagers.set(slotId, matMgr);
             data.push(new SpecialRow(tbl => matMgr));
         }
-        super.selectionModel = {
+        this.selectionModel = {
             clickCell(cell: CustomCell<GearSlotItem, any>) {
 
             },
