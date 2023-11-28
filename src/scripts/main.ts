@@ -173,7 +173,9 @@ async function processHash() {
                 setMainContent('Error', errMsg);
             }
         }
-        console.error("I don't know what to do with this path", hash);
+        else {
+            console.error("I don't know what to do with this path", hash);
+        }
     }
     // TODO: handle remaining invalid cases
 }

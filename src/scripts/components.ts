@@ -1711,7 +1711,7 @@ export class GearPlanSheet extends HTMLElement {
                 }
                 equipped.melds[i].equippedMateria = mat;
             }
-            if (importedItem.relicStats) {
+            if (importedItem.relicStats && equipped.gearItem.isCustomRelic) {
                 Object.assign(equipped.relicStats, importedItem.relicStats);
             }
             set.equipment[equipmentSlot] = equipped;

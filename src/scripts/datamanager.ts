@@ -65,7 +65,7 @@ export class DataManager {
                         Head: value['Head%'],
                         Legs: value['Legs%'],
                         Neck: value['Necklace%'],
-                        OffHand: value['OffHand'],
+                        OffHand: value['OH%'],
                         Ring: value['Ring%'],
                         Weapon2H: value['2HWpn%'],
                         Weapon1H: value['1HWpn%'],

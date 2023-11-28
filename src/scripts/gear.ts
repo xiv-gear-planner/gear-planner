@@ -616,8 +616,17 @@ export class XivApiGearInfo implements GearItem {
         this.computeSubstats();
         this.materiaSlots = [];
         const baseMatCount: number = data['MateriaSlotCount'];
-        if (baseMatCount === 0 && this.displayGearSlot !== DisplayGearSlotInfo.OffHand) {
-            this.isCustomRelic = true;
+        if (baseMatCount === 0) {
+            // TODO: is this branch still needed?
+            if (this.displayGearSlot !== DisplayGearSlotInfo.OffHand) {
+                this.isCustomRelic = true;
+            }
+            else if (!this.primarySubstat) {
+                this.isCustomRelic = true;
+            }
+            else {
+                this.isCustomRelic = false;
+            }
         }
         else {
             this.isCustomRelic = false;
@@ -680,7 +689,7 @@ export class XivApiGearInfo implements GearItem {
      */
     applyIlvlData(nativeIlvlInfo: IlvlSyncInfo, syncIlvlInfo?: IlvlSyncInfo) {
         const statCapsNative = {}
-        Object.entries(this.stats).forEach(([stat, v]) => {
+        Object.entries(this.stats).forEach(([stat, _]) => {
             statCapsNative[stat] = nativeIlvlInfo.substatCap(this.occGearSlotName, stat as RawStatKey);
         });
         this.statCaps = statCapsNative;
