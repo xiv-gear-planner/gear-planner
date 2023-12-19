@@ -342,7 +342,7 @@ export const LEVEL_ITEMS: Record<SupportedLevel, LevelItemInfo> = {
         }
     },
     90: {
-        minILvl: 570,
+        minILvl: 560,
         maxILvl: 999,
         // TODO check food levels
         minILvlFood: 570,
