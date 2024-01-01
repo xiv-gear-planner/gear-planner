@@ -38,3 +38,7 @@ The file to open is `dist/index.html`.
 For any other development environment, either use a plugin specific to that editor/IDE, or use a generic
 static HTTP server such as Python's `http.server` module, the `jwebserver` included in Java 18+, IIS express,
 or any number of others.
+
+On systems that support Docker or similar container systems, you can use the command 
+`docker run -v /path/to/gear-plan/dist/:/usr/share/nginx/html:ro -p 8080:80 -d nginx`, and then
+navigate to [http://localhost:8080/](http://localhost:8080/).
