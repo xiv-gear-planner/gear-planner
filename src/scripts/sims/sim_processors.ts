@@ -14,7 +14,8 @@ import {
 } from "./sim_types";
 import {
     CAST_SNAPSHOT_PRE,
-    CASTER_TAX, JobName,
+    CASTER_TAX,
+    JobName,
     NORMAL_GCD,
     STANDARD_ANIMATION_LOCK,
     STANDARD_APPLICATION_DELAY
@@ -217,6 +218,12 @@ export type CycleFunction = (cycle: CycleContext) => void
 export const isAbilityUse = (record: DisplayRecordUnf): record is AbilityUseRecordUnf => 'ability' in record;
 export const isFinalizedAbilityUse = (record: DisplayRecordFinalized): record is FinalizedAbility => 'original' in record;
 
+interface BuffUsage {
+    buff: Buff,
+    start: number,
+    end: number
+}
+
 export class CycleProcessor {
 
     /**
@@ -229,6 +236,7 @@ export class CycleProcessor {
     readonly cycleTime: number;
     readonly allRecords: DisplayRecordUnf[] = [];
     readonly buffTimes = new Map<Buff, number>();
+    readonly buffHistory: BuffUsage[] = [];
     readonly totalTime: number;
     readonly stats: ComputedSetStats;
     readonly dotMap = new Map<number, UsedAbility>();
@@ -243,9 +251,18 @@ export class CycleProcessor {
         settings.allBuffs.forEach(buff => {
             if (this.isBuffAutomatic(buff)) {
                 if (buff.startTime !== undefined) {
-                    this.buffTimes.set(buff, buff.startTime);
+                    this.setBuffStartTime(buff, buff.startTime);
                 }
             }
+        });
+    }
+
+    setBuffStartTime(buff: Buff, startTime: number) {
+        this.buffTimes.set(buff, startTime);
+        this.buffHistory.push({
+            buff: buff,
+            start: startTime,
+            end: startTime + buff.duration
         });
     }
 
@@ -262,7 +279,7 @@ export class CycleProcessor {
     }
 
     activateBuff(buff: Buff) {
-        this.buffTimes.set(buff, this.currentTime);
+        this.setBuffStartTime(buff, this.currentTime);
     }
 
     /**
@@ -279,7 +296,7 @@ export class CycleProcessor {
                 activeBuffs.push(buff);
             }
             else if (this.isBuffAutomatic(buff)) {
-                this.buffTimes.set(buff, time + buff.cooldown);
+                this.setBuffStartTime(buff, time + buff.cooldown);
             }
         });
         return activeBuffs;
@@ -512,6 +529,7 @@ export interface CycleSimResult extends SimResult {
     // TODO
     displayRecords: readonly DisplayRecordFinalized[],
     unbuffedPps: number,
+    buffTimings: readonly BuffUsage[]
 }
 
 export type ExternalCycleSettings<InternalSettingsType extends SimSettings> = {
@@ -601,12 +619,14 @@ export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, Inter
             const cycleDamage = sum(used.map(used => isFinalizedAbilityUse(used) ? used.totalDamage : 0));
             const dps = cycleDamage / cp.nextGcdTime;
             const unbuffedPps = sum(used.map(used => isFinalizedAbilityUse(used) ? used.totalPotency : 0)) / cp.nextGcdTime;
+            const buffTimings = [...cp.buffHistory];
 
             return {
                 mainDpsResult: dps,
                 abilitiesUsed: used,
                 displayRecords: cp.finalizedRecords,
-                unbuffedPps: unbuffedPps
+                unbuffedPps: unbuffedPps,
+                buffTimings: buffTimings
                 // TODO
             } as unknown as ResultType;
         });
