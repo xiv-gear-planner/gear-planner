@@ -1,5 +1,5 @@
 import {CustomTable, HeaderRow} from "../../tables";
-import {GcdAbility, OgcdAbility} from "../sim_types";
+import {AutoAttack, GcdAbility, OgcdAbility} from "../sim_types";
 import {CombinedBuffEffect, DisplayRecordFinalized, isFinalizedAbilityUse} from "../sim_processors";
 import {toRelPct} from "../../util/strutils";
 import {AbilityIcon} from "../../components/abilities";
@@ -33,11 +33,14 @@ export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
                 shortName: 'ability',
                 displayName: 'Ability',
                 getter: used => isFinalizedAbilityUse(used) ? used.ability : used.label,
-                renderer: (ability: GcdAbility | OgcdAbility | string) => {
+                renderer: (ability: GcdAbility | OgcdAbility | AutoAttack | string) => {
                     if (ability instanceof Object) {
                         const out = document.createElement('div');
                         out.classList.add('ability-cell');
-                        if (ability.type !== "gcd") {
+                        if (ability.type === 'autoattack') {
+                            out.appendChild(document.createTextNode('* '));
+                        }
+                        else if (ability.type !== "gcd") {
                             out.appendChild(document.createTextNode(' ⤷ '));
                         }
                         if (ability.id) {

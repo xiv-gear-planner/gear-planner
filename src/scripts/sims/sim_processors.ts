@@ -1,7 +1,7 @@
 import {ComputedSetStats} from "../geartypes";
 import {applyDhCrit, baseDamage} from "../xivmath";
 import {
-    Ability,
+    Ability, AutoAttack,
     Buff,
     ComputedDamage,
     DamagingAbility,
@@ -70,6 +70,18 @@ export function combineBuffEffects(buffs: Buff[]): CombinedBuffEffect {
     return combinedEffects;
 }
 
+function dotPotencyToDamage(stats: ComputedSetStats, potency: number, dmgAbility: DamagingAbility, combinedBuffEffects: CombinedBuffEffect): ComputedDamage {
+    const modifiedStats = {...stats};
+    modifiedStats.critChance += combinedBuffEffects.critChanceIncrease;
+    modifiedStats.dhitChance += combinedBuffEffects.dhitChanceIncrease;
+    const nonCritDmg = baseDamage(modifiedStats, potency, dmgAbility.attackType, dmgAbility.autoDh ?? false, dmgAbility.autoCrit ?? false, true);
+    const afterCritDh = applyDhCrit(nonCritDmg, modifiedStats);
+    const afterDmgBuff = afterCritDh * combinedBuffEffects.dmgMod;
+    return {
+        expected: afterDmgBuff,
+    }
+}
+
 function potencyToDamage(stats: ComputedSetStats, potency: number, dmgAbility: DamagingAbility, combinedBuffEffects: CombinedBuffEffect): ComputedDamage {
     const modifiedStats = {...stats};
     modifiedStats.critChance += combinedBuffEffects.critChanceIncrease;
@@ -80,7 +92,6 @@ function potencyToDamage(stats: ComputedSetStats, potency: number, dmgAbility: D
     return {
         expected: afterDmgBuff,
     }
-
 }
 
 export function abilityToDamage(stats: ComputedSetStats, ability: Ability, combinedBuffEffects: CombinedBuffEffect, portion: number = 1): ComputedDamage {
@@ -120,7 +131,7 @@ export function abilityToDamageNew(stats: ComputedSetStats, ability: Ability, co
         directDamage: ability.potency ? potencyToDamage(stats, ability.potency, ability as DamagingAbility, combinedBuffEffects) : null,
         dot: 'dot' in ability ? {
             fullDurationTicks: ability.dot.duration / 3,
-            damagePerTick: potencyToDamage(stats, ability.dot.tickPotency, ability, combinedBuffEffects),
+            damagePerTick: dotPotencyToDamage(stats, ability.dot.tickPotency, ability, combinedBuffEffects),
         } : null,
     }
 
@@ -211,6 +222,7 @@ export type MultiCycleSettings = {
     readonly allBuffs: Buff[],
     readonly manuallyActivatedBuffs?: Buff[],
     readonly stats: ComputedSetStats,
+    readonly useAutos: boolean
 }
 
 export type CycleFunction = (cycle: CycleContext) => void
@@ -232,6 +244,7 @@ export class CycleProcessor {
     currentCycle: number = -1;
     currentTime: number = 0;
     nextGcdTime: number = 0;
+    nextAutoAttackTime: number = 0;
     gcdBase: number = NORMAL_GCD;
     readonly cycleTime: number;
     readonly allRecords: DisplayRecordUnf[] = [];
@@ -358,13 +371,39 @@ export class CycleProcessor {
         }
     }
 
+    get aaDelay(): number {
+        return this.stats.weaponDelay;
+    }
+
+    advanceTo(advanceTo: number, pauseAutos: boolean = false) {
+        const delta = advanceTo - this.currentTime;
+        if (delta === 0) {
+            // no-op
+            return;
+        }
+        else if (delta < 0) {
+            throw new Error("Cannot rewind time!");
+        }
+        if (pauseAutos) {
+            this.nextAutoAttackTime += delta;
+        }
+        else {
+            if (advanceTo >= this.nextAutoAttackTime) {
+                this.currentTime = this.nextAutoAttackTime;
+                this.recordAutoAttack();
+                this.nextAutoAttackTime += this.aaDelay;
+            }
+        }
+        this.currentTime = advanceTo;
+    }
+
     useGcd(ability: GcdAbility): AbilityUseResult {
         if (this.remainingGcdTime <= 0) {
             // Already over time limit. Ignore completely.
             return 'none';
         }
         if (this.nextGcdTime > this.currentTime) {
-            this.currentTime = this.nextGcdTime;
+            this.advanceTo(this.nextGcdTime);
         }
         // We need to calculate our buff set twice. The first is because buffs may affect the cast and/or recast time.
         const gcdStartsAt = this.currentTime;
@@ -377,7 +416,7 @@ export class CycleProcessor {
         const gcdFinishedAt = this.currentTime + abilityGcd;
         const animLock = ability.cast ? Math.max(ability.cast + CASTER_TAX, STANDARD_ANIMATION_LOCK) : STANDARD_ANIMATION_LOCK;
         const animLockFinishedAt = this.currentTime + animLock;
-        this.currentTime = snapshotsAt;
+        this.advanceTo(snapshotsAt, true);
         if (ability.activatesBuffs) {
             ability.activatesBuffs.forEach(buff => this.activateBuff(buff));
         }
@@ -405,11 +444,32 @@ export class CycleProcessor {
         });
         // Anim lock OR cast time, both effectively block use of skills.
         // If cast time > GCD recast, then we use that instead. Also factor in caster tax.
-        this.currentTime = animLockFinishedAt;
+        this.advanceTo(animLockFinishedAt);
         // If we're casting a long-cast, then the GCD is blocked for more than a GCD.
         this.nextGcdTime = Math.max(gcdFinishedAt, animLockFinishedAt);
         this.addAbilityUse(usedAbility);
         return 'full';
+    }
+
+    private recordAutoAttack() {
+        const aaAbility: AutoAttack = {
+            attackType: 'Auto-attack',
+            type: 'autoattack',
+            name: 'Auto Attack',
+            // TODO
+            potency: 90
+        };
+        const buffs = this.getActiveBuffs();
+        const dmgInfo = abilityToDamageNew(this.stats, aaAbility, combineBuffEffects(buffs));
+        this.addAbilityUse({
+            usedAt: this.currentTime,
+            ability: aaAbility,
+            directDamage: dmgInfo.directDamage,
+            buffs: buffs,
+            combinedEffects: combineBuffEffects(buffs),
+            totalTimeTaken: 0,
+            appDelayFromStart: 0,
+        });
     }
 
     useOgcd(ability: OgcdAbility): AbilityUseResult {
@@ -438,7 +498,7 @@ export class CycleProcessor {
             totalTimeTaken: animLock,
             appDelayFromStart: appDelay(ability)
         });
-        this.currentTime = animLockFinishedAt;
+        this.advanceTo(animLockFinishedAt);
         // Account for potential GCD clipping
         this.nextGcdTime = Math.max(this.nextGcdTime, animLockFinishedAt);
         this.addAbilityUse(usedAbility);
@@ -611,7 +671,8 @@ export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, Inter
                 totalTime: this.cycleSettings.totalTime,
                 cycleTime: rot.cycleTime,
                 allBuffs: allBuffs,
-                manuallyActivatedBuffs: this.manuallyActivatedBuffs ?? []
+                manuallyActivatedBuffs: this.manuallyActivatedBuffs ?? [],
+                useAutos: this.cycleSettings.useAutos ?? true
             });
             rot.apply(cp);
 

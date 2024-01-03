@@ -53,7 +53,12 @@ export type OgcdAbility = BaseAbility & Readonly<{
     animationLock?: number,
 }>
 
-export type Ability = GcdAbility | OgcdAbility;
+export type AutoAttack = BaseAbility & DamagingAbility & Readonly<{
+    type: 'autoattack',
+    // TODO
+}>
+
+export type Ability = GcdAbility | OgcdAbility | AutoAttack;
 
 export type DotDamageUnf = {
     fullDurationTicks: number,

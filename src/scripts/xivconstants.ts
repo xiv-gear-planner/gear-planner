@@ -438,7 +438,8 @@ export const STAT_FULL_NAMES: Record<RawStatKey, string> = {
     tenacity: "Tenacity",
     vitality: "Vitality",
     wdMag: "Weapon Damage (Magical)",
-    wdPhys: "Weapon Damage (Physical)"
+    wdPhys: "Weapon Damage (Physical)",
+    weaponDelay: "Auto-Attack Delay"
 }
 
 /**
@@ -459,7 +460,8 @@ export const STAT_ABBREVIATIONS: Record<RawStatKey, string> = {
     tenacity: "TNC",
     vitality: "VIT",
     wdMag: "WDm",
-    wdPhys: "WDp"
+    wdPhys: "WDp",
+    weaponDelay: "Dly"
 }
 
 /**
