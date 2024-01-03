@@ -81,6 +81,15 @@ export type SupportedLevel = typeof SupportedLevels[number];
  */
 export const EMPTY_STATS = new RawStats();
 
+/**
+ * Melee (including healer/caster, and DNC for some reason) auto-attack potency
+ */
+export const MELEE_AUTO_POTENCY = 90
+/**
+ * BRD/MCH auto-attack potency
+ */
+export const RANGE_AUTO_POTENCY = 90
+
 const STANDARD_HEALER: JobDataConst = {
     mainStat: 'mind',
     role: 'Healer',
@@ -88,7 +97,8 @@ const STANDARD_HEALER: JobDataConst = {
     traitMulti: (level, attackType) => 1.3,
     itemStatCapMultipliers: {
         'vitality': 0.90
-    }
+    },
+    aaPotency: MELEE_AUTO_POTENCY
 } as const;
 
 const STANDARD_TANK: JobDataConst = {
@@ -100,18 +110,21 @@ const STANDARD_TANK: JobDataConst = {
             return stats.vitality += 29;
         }
     }] as JobTrait[],
+    aaPotency: MELEE_AUTO_POTENCY
 } as const;
 
 const STANDARD_MELEE: JobDataConst = {
     mainStat: 'strength',
     role: 'Melee',
     irrelevantSubstats: ['spellspeed', 'tenacity', 'piety'],
+    aaPotency: MELEE_AUTO_POTENCY
 } as const;
 
 const STANDARD_RANGED: JobDataConst = {
     role: 'Ranged',
     mainStat: 'dexterity',
-    irrelevantSubstats: ['spellspeed', 'tenacity', 'piety']
+    irrelevantSubstats: ['spellspeed', 'tenacity', 'piety'],
+    aaPotency: RANGE_AUTO_POTENCY
 } as const;
 
 const STANDARD_CASTER: JobDataConst = {
@@ -120,7 +133,8 @@ const STANDARD_CASTER: JobDataConst = {
     irrelevantSubstats: ['skillspeed', 'tenacity', 'piety'],
     itemStatCapMultipliers: {
         'vitality': 0.90
-    }
+    },
+    aaPotency: MELEE_AUTO_POTENCY
 } as const;
 
 
@@ -156,7 +170,10 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
     // Ranged
     BRD: STANDARD_RANGED,
     MCH: STANDARD_RANGED,
-    DNC: STANDARD_RANGED,
+    DNC: {
+        ...STANDARD_RANGED,
+        aaPotency: MELEE_AUTO_POTENCY
+    },
     // Caster
     BLM: STANDARD_CASTER,
     SMN: STANDARD_CASTER,

@@ -350,6 +350,7 @@ export interface JobDataConst {
     readonly itemStatCapMultipliers?: {
         [K in RawStatKey]?: number
     };
+    readonly aaPotency: number
 }
 
 export type JobMultipliers = {

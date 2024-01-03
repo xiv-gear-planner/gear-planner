@@ -456,8 +456,7 @@ export class CycleProcessor {
             attackType: 'Auto-attack',
             type: 'autoattack',
             name: 'Auto Attack',
-            // TODO
-            potency: 90
+            potency: this.stats.jobStats.aaPotency
         };
         const buffs = this.getActiveBuffs();
         const dmgInfo = abilityToDamageNew(this.stats, aaAbility, combineBuffEffects(buffs));
