@@ -91,8 +91,9 @@ export const MELEE_AUTO_POTENCY = 90
 export const RANGE_AUTO_POTENCY = 90
 
 const STANDARD_HEALER: JobDataConst = {
-    mainStat: 'mind',
     role: 'Healer',
+    mainStat: 'mind',
+    autoAttackStat: 'strength',
     irrelevantSubstats: ['skillspeed', 'tenacity'],
     traitMulti: (level, attackType) => 1.3,
     itemStatCapMultipliers: {
@@ -102,8 +103,9 @@ const STANDARD_HEALER: JobDataConst = {
 } as const;
 
 const STANDARD_TANK: JobDataConst = {
-    mainStat: 'strength',
     role: 'Tank',
+    mainStat: 'strength',
+    autoAttackStat: 'strength',
     irrelevantSubstats: ['spellspeed', 'piety'],
     traits: [{
         apply(stats) {
@@ -114,8 +116,9 @@ const STANDARD_TANK: JobDataConst = {
 } as const;
 
 const STANDARD_MELEE: JobDataConst = {
-    mainStat: 'strength',
     role: 'Melee',
+    mainStat: 'strength',
+    autoAttackStat: 'strength',
     irrelevantSubstats: ['spellspeed', 'tenacity', 'piety'],
     aaPotency: MELEE_AUTO_POTENCY
 } as const;
@@ -123,13 +126,15 @@ const STANDARD_MELEE: JobDataConst = {
 const STANDARD_RANGED: JobDataConst = {
     role: 'Ranged',
     mainStat: 'dexterity',
+    autoAttackStat: 'dexterity',
     irrelevantSubstats: ['spellspeed', 'tenacity', 'piety'],
     aaPotency: RANGE_AUTO_POTENCY
 } as const;
 
 const STANDARD_CASTER: JobDataConst = {
-    role: "Caster",
-    mainStat: "intelligence",
+    role: 'Caster',
+    mainStat: 'intelligence',
+    autoAttackStat: 'strength',
     irrelevantSubstats: ['skillspeed', 'tenacity', 'piety'],
     itemStatCapMultipliers: {
         'vitality': 0.90

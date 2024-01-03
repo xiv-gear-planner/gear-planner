@@ -215,7 +215,7 @@ export function baseDamage(stats: ComputedSetStats, potency: number, attackType:
         spdMulti = 1.0;
     }
     // Multiplier from main stat
-    const mainStatMulti = stats.mainStatMulti;
+    const mainStatMulti = isAA ? stats.aaStatMulti : stats.mainStatMulti;
     // Multiplier from weapon damage. If this is an auto-attack, use the AA multi instead of the pure WD multi.
     const wdMulti = isAA ? stats.aaMulti : stats.wdMulti;
     // Multiplier for a successful crit

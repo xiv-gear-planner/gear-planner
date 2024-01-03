@@ -239,6 +239,11 @@ export interface ComputedSetStats extends RawStats {
      */
     mainStatMulti: number
     /**
+     * Like mainStatMulti, but for auto-attacks (since healers and casters use STR for autos but MND/INT for everything
+     * else).
+     */
+    aaStatMulti: number
+    /**
      * Trait multiplier
      */
     traitMulti(attackType: AttackType): number;
@@ -343,6 +348,7 @@ export type Substat = (typeof FAKE_MAIN_STATS[number] | typeof SPECIAL_SUB_STATS
 export interface JobDataConst {
     readonly role: RoleKey,
     readonly mainStat: Mainstat;
+    readonly autoAttackStat: Mainstat;
     readonly traitMulti?: (level: number, attackType: AttackType) => number;
     readonly traits?: readonly JobTrait[];
     readonly irrelevantSubstats?: readonly Substat[];

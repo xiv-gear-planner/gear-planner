@@ -250,6 +250,7 @@ export class CharacterGearSet {
             }
         }
         const mainStat = Math.floor(combinedStats[classJobStats.mainStat] * (1 + 0.01 * this._sheet.partyBonus));
+        const aaStat = Math.floor(combinedStats[classJobStats.autoAttackStat] * (1 + 0.01 * this._sheet.partyBonus));
         const wdEffective = Math.max(combinedStats.wdMag, combinedStats.wdPhys);
         this._computedStats = {
             ...combinedStats,
@@ -270,6 +271,7 @@ export class CharacterGearSet {
             // TODO: does this need to be phys/magic split?
             wdMulti: wdMulti(levelStats, classJobStats, wdEffective),
             mainStatMulti: mainStatMulti(levelStats, classJobStats, mainStat),
+            aaStatMulti: mainStatMulti(levelStats, classJobStats, aaStat),
             traitMulti: classJobStats.traitMulti ? (type) => classJobStats.traitMulti(level, type) : () => 1,
             autoDhBonus: autoDhBonusDmg(levelStats, combinedStats.dhit),
             mpPerTick: mpTick(levelStats, combinedStats.piety),
