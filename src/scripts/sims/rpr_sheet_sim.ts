@@ -51,6 +51,15 @@ const harpe: GcdAbility = {
     gcd: 2.5,
     cast: 1.3
 }
+const unbuffedGallows: GcdAbility = {
+    type: 'gcd',
+    name: "Gallows",
+    id: 24383,
+    potency: 460,
+    attackType: "Weaponskill",
+    gcd: 2.5,
+    cast: 0
+}
 const gibbet: GcdAbility = {
     type: 'gcd',
     name: "Gibbet",
@@ -105,6 +114,15 @@ const communio: GcdAbility = {
     attackType: "Spell",
     gcd: 2.5,
     cast: 1.3,
+}
+const unbuffedVoidReaping: GcdAbility = {
+    type: 'gcd',
+    name: "Void Reaping",
+    id: 24395,
+    potency: 460,
+    attackType: "Weaponskill",
+    gcd: 1.5,
+    cast: 0
 }
 const voidReaping: GcdAbility = {
     type: 'gcd',
@@ -311,7 +329,7 @@ export class RprSheetSim extends BaseMultiCycleSim<RprSheetSimResult, RprNewShee
             return;
         }
         this.rotationState.shroudGauge -= 50;
-        cp.useGcd(voidReaping);
+        cp.useGcd(unbuffedVoidReaping);
         cp.useGcd(crossReaping);
         cp.useOgcd(lemuresSlice);
         cp.useGcd(voidReaping);
@@ -328,7 +346,7 @@ export class RprSheetSim extends BaseMultiCycleSim<RprSheetSimResult, RprNewShee
         }
         this.rotationState.shroudGauge -= 50;
 
-        cp.useGcd(voidReaping);
+        cp.useGcd(unbuffedVoidReaping);
         this.useSoD(cp);
         cp.useGcd(crossReaping);
         this.useSoD(cp);
@@ -342,6 +360,7 @@ export class RprSheetSim extends BaseMultiCycleSim<RprSheetSimResult, RprNewShee
 
         this.useEnshroud(cp);
         this.rotationState.sodNumber = 0;
+        this.rotationState.oddShroudUsed = false;
     }
 
     useArcaneCircle(cp: CycleProcessor) {
@@ -467,11 +486,20 @@ export class RprSheetSim extends BaseMultiCycleSim<RprSheetSimResult, RprNewShee
                 sim.rotationState.soulGauge += 50;
                 sim.usePlentifulHarvest(cp);
                 sim.useEnshroud(cp);
-                sim.useGluttony(cp);
+                
+                // Do gluttony manually to insert the unbuffed gallows
+                cp.use(gluttony);
+                cp.use(unbuffedGallows);
+                cp.use(gibbet);
+                sim.rotationState.soulGauge -= 50;
+                sim.rotationState.shroudGauge += 20;
+                
                 sim.useGibGal(cp);
 
                 // 3 + 2*gcd + animlock is (2 reapings) + (gcd before enshroud and first Sod) + (animlock form 2nd SoD)
-                while (sim.rotationState.cdTracker.remainingCd(cp, arcaneCircle) > 9.6) {
+                while (cp.remainingGcdTime > 0 &&
+                    sim.rotationState.cdTracker.remainingCd(cp, arcaneCircle) > 9.6) {
+
                     sim.useFiller(cp);
                 }
 
@@ -479,7 +507,6 @@ export class RprSheetSim extends BaseMultiCycleSim<RprSheetSimResult, RprNewShee
                 sim.useCombo(cp);
                 
                 while (cp.remainingGcdTime > 0) {
-                    console.log("Double shroud, AC CD: " + sim.rotationState.cdTracker.remainingCd(cp, arcaneCircle));
                     sim.useDoubleEnshroudBurst(cp);
                     if (sim.rotationState.combo != 0) {
                         sim.useCombo(cp);
@@ -488,19 +515,8 @@ export class RprSheetSim extends BaseMultiCycleSim<RprSheetSimResult, RprNewShee
                         sim.rotationState.cdTracker.remainingCd(cp, arcaneCircle) > 9.6) {
 
                         sim.useFiller(cp);
-                        console.log("AC CD: " + sim.rotationState.cdTracker.remainingCd(cp, arcaneCircle));
                     }
                 }
-                /*
-                cp.remainingCycles(cycle => {
-                    sim.useDoubleEnshroudBurst(cp);
-
-                    // 3 + 2*gcd + animlock is (2 reapings) + (gcd before enshroud and first Sod) + (animlock form 2nd SoD)
-                    while (sim.rotationState.cdTracker.remainingCd(cp, arcaneCircle) > 3 + 2 * cp.gcdBase + STANDARD_ANIMATION_LOCK) {
-                        sim.useFiller(cp);
-                    }
-                })
-                */
             }
 
         }]
