@@ -63,7 +63,8 @@ const astrodyne: OgcdAbility = {
             },
             startTime: null,
         }
-    ]
+    ],
+    attackType: "Ability",
 }
 
 export interface AstSheetSimResult extends CycleSimResult {

@@ -353,7 +353,10 @@ export class CycleProcessor {
         const gcdStartsAt = this.currentTime;
         const preBuffs = this.getActiveBuffs();
         const preCombinedEffects: CombinedBuffEffect = combineBuffEffects(preBuffs);
-        const abilityGcd = ability.fixedGcd ? ability.gcd : (this.stats.gcdMag(ability.gcd ?? this.gcdBase, preCombinedEffects.haste));
+        const abilityGcd = ability.fixedGcd ? ability.gcd :
+            (ability.attackType == "Spell") ? 
+                (this.stats.gcdMag(ability.gcd ?? this.gcdBase, preCombinedEffects.haste)) :
+                (this.stats.gcdPhys(ability.gcd ?? this.gcdBase, preCombinedEffects.haste));
         const snapshotsAt = ability.cast ? Math.max(this.currentTime, this.currentTime + ability.cast - CAST_SNAPSHOT_PRE) : this.currentTime;
         // When this GCD will end (strictly in terms of GCD. e.g. a BLM spell where cast > recast will still take the cast time. This will be
         // accounted for later).

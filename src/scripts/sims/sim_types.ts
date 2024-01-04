@@ -23,6 +23,7 @@ export type BaseAbility = Readonly<{
     name: string,
     activatesBuffs?: readonly Buff[],
     id?: number
+    attackType: AttackType,
 } & (NonDamagingAbility | DamagingAbility)>;
 
 /**

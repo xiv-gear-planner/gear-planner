@@ -48,7 +48,8 @@ const pom: OgcdAbility = {
                 haste: 20,
             },
         }
-    ]
+    ],
+    attackType: "Ability"
 }
 
 const misery: GcdAbility = {
