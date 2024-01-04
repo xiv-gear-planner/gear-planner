@@ -359,8 +359,9 @@ export class RprSheetSim extends BaseMultiCycleSim<RprSheetSimResult, RprNewShee
         this.usePlentifulHarvest(cp);
 
         this.useEnshroud(cp);
-        this.rotationState.sodNumber = 0;
+        this.rotationState.sodNumber = 2;
         this.rotationState.oddShroudUsed = false;
+    
     }
 
     useArcaneCircle(cp: CycleProcessor) {
@@ -370,6 +371,9 @@ export class RprSheetSim extends BaseMultiCycleSim<RprSheetSimResult, RprNewShee
     }
     useSoD(cp: CycleProcessor) {
         cp.use(SoD);
+        if (this.rotationState.cdTracker.sodCoverage === 0) {
+            this.rotationState.cdTracker.sodCoverage = cp.currentTime;
+        }
         this.rotationState.cdTracker.sodCoverage += 30;
         this.rotationState.sodNumber++;
     }
@@ -418,6 +422,17 @@ export class RprSheetSim extends BaseMultiCycleSim<RprSheetSimResult, RprNewShee
             return;
         }
 
+        // use odd enshroud at some point when available
+        if (this.rotationState.shroudGauge >= 50
+            && !this.rotationState.oddShroudUsed
+            && this.rotationState.cdTracker.remainingCd(cp, gluttony) > 8.5 + cp.stats.gcdPhys(cp.gcdBase)
+            && this.rotationState.cdTracker.sodCoverage - cp.currentTime > 11) {
+            
+            this.useEnshroud(cp);
+            this.rotationState.oddShroudUsed = true;
+            return;
+        }
+
         // If SS is available the gcd after next one, use unveiled > gibgal to not overcap
         if (cp.currentTime + this.rotationState.cdTracker.remainingCd(cp, soulSlice) < cp.nextGcdTime + cp.stats.gcdPhys(cp.gcdBase) &&
             this.rotationState.soulGauge >= 50) {
@@ -426,7 +441,8 @@ export class RprSheetSim extends BaseMultiCycleSim<RprSheetSimResult, RprNewShee
         }
 
         // use SS if its off cd
-        if (this.rotationState.cdTracker.isOffCD(cp, soulSlice)) {
+        if (this.rotationState.cdTracker.isOffCD(cp, soulSlice)
+            && this.rotationState.soulGauge <= 50) {
             this.useSoulSlice(cp);
             return;
         }
@@ -439,15 +455,6 @@ export class RprSheetSim extends BaseMultiCycleSim<RprSheetSimResult, RprNewShee
             return;
         }
 
-        // use odd enshroud at some point when available
-        if (this.rotationState.shroudGauge >= 50
-            && !this.rotationState.oddShroudUsed
-            && this.rotationState.cdTracker.remainingCd(cp, gluttony) > 8.5 + cp.stats.gcdPhys(cp.gcdBase)) {
-            
-            this.useEnshroud(cp);
-            this.rotationState.oddShroudUsed = true;
-            return;
-        }
 
         // Spend soul. We spend at 100 before odd gluttony to make sure we have enough gauge,
         // and then spend at 50 after odd gluttony to make sure we have shroud to do burst
@@ -472,7 +479,6 @@ export class RprSheetSim extends BaseMultiCycleSim<RprSheetSimResult, RprNewShee
             */
             apply(cp: CycleProcessor) {
 
-                console.log("total: " + cp.totalTime);
                 cp.useGcd(harpe);
 
                 //Early shroud opener. Make customizable? (probably not worth unless we wanna sim downtime or very short KTs)
@@ -489,6 +495,7 @@ export class RprSheetSim extends BaseMultiCycleSim<RprSheetSimResult, RprNewShee
                 
                 // Do gluttony manually to insert the unbuffed gallows
                 cp.use(gluttony);
+                sim.rotationState.cdTracker.use(cp, gluttony);
                 cp.use(unbuffedGallows);
                 cp.use(gibbet);
                 sim.rotationState.soulGauge -= 50;
@@ -512,7 +519,8 @@ export class RprSheetSim extends BaseMultiCycleSim<RprSheetSimResult, RprNewShee
                         sim.useCombo(cp);
                     }
                     while (cp.remainingGcdTime > 0 &&
-                        sim.rotationState.cdTracker.remainingCd(cp, arcaneCircle) > 9.6) {
+                        (sim.rotationState.cdTracker.remainingCd(cp, arcaneCircle) > 9.6
+                        || sim.rotationState.shroudGauge < 50)) {
 
                         sim.useFiller(cp);
                     }
