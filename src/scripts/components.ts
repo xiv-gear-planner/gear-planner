@@ -577,12 +577,16 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
             if (delta === 0) {
                 return;
             }
-            worst[0].classList.add('sim-column-worst');
-            best[0].classList.add('sim-column-best');
             for (let [cell, value] of processed) {
                 cell.classList.add('sim-column-valid');
                 const relative = (value - worstValue) / delta * 100;
                 cell.style.setProperty('--sim-result-relative', relative.toFixed(1) + '%');
+                if (value === bestValue) {
+                    cell.classList.add('sim-column-best');
+                }
+                else if (value === worstValue) {
+                    cell.classList.add('sim-column-worst');
+                }
             }
         }
     }
