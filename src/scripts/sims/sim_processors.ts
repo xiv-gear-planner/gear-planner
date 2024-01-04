@@ -270,6 +270,12 @@ export class CycleProcessor {
         });
     }
 
+    /**
+     * Set the time at which a buff will start
+     *
+     * @param buff      The buff
+     * @param startTime The start time
+     */
     setBuffStartTime(buff: Buff, startTime: number) {
         this.buffTimes.set(buff, startTime);
         this.buffHistory.push({
@@ -291,6 +297,11 @@ export class CycleProcessor {
         return Math.max(0, this.totalTime - this.nextGcdTime);
     }
 
+    /**
+     * Manually mark a buff as being active now
+     *
+     * @param buff
+     */
     activateBuff(buff: Buff) {
         this.setBuffStartTime(buff, this.currentTime);
     }
@@ -388,7 +399,7 @@ export class CycleProcessor {
             this.nextAutoAttackTime += delta;
         }
         else {
-            if (advanceTo >= this.nextAutoAttackTime) {
+            if (advanceTo >= this.nextAutoAttackTime && this.combatStarted) {
                 this.currentTime = this.nextAutoAttackTime;
                 this.recordAutoAttack();
                 this.nextAutoAttackTime += this.aaDelay;
@@ -451,6 +462,8 @@ export class CycleProcessor {
         // If we're casting a long-cast, then the GCD is blocked for more than a GCD.
         this.nextGcdTime = Math.max(gcdFinishedAt, animLockFinishedAt);
         this.addAbilityUse(usedAbility);
+        // Workaround for auto-attacks after first ability
+        this.advanceTo(this.currentTime);
         return 'full';
     }
 
@@ -522,6 +535,7 @@ export class CycleProcessor {
             this.combatStarted = true;
             this.currentTime += prepullOffset;
             this.nextGcdTime += prepullOffset;
+            this.nextAutoAttackTime += prepullOffset;
         }
         if (usedAbility.dot) {
             const dotId = usedAbility.ability['dot']?.id;
