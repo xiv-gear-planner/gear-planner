@@ -388,11 +388,7 @@ export class CycleProcessor {
 
     advanceTo(advanceTo: number, pauseAutos: boolean = false) {
         const delta = advanceTo - this.currentTime;
-        if (delta === 0) {
-            // no-op
-            return;
-        }
-        else if (delta < 0) {
+        if (delta < 0) {
             throw new Error("Cannot rewind time!");
         }
         if (pauseAutos) {
@@ -402,10 +398,30 @@ export class CycleProcessor {
             if (advanceTo >= this.nextAutoAttackTime && this.combatStarted) {
                 this.currentTime = this.nextAutoAttackTime;
                 this.recordAutoAttack();
-                this.nextAutoAttackTime += this.aaDelay;
             }
         }
         this.currentTime = advanceTo;
+    }
+
+    private recordAutoAttack() {
+        const aaAbility: AutoAttack = {
+            attackType: 'Auto-attack',
+            type: 'autoattack',
+            name: 'Auto Attack',
+            potency: this.stats.jobStats.aaPotency
+        };
+        const buffs = this.getActiveBuffs();
+        const dmgInfo = abilityToDamageNew(this.stats, aaAbility, combineBuffEffects(buffs));
+        this.addAbilityUse({
+            usedAt: this.currentTime,
+            ability: aaAbility,
+            directDamage: dmgInfo.directDamage,
+            buffs: buffs,
+            combinedEffects: combineBuffEffects(buffs),
+            totalTimeTaken: 0,
+            appDelayFromStart: 0,
+        });
+        this.nextAutoAttackTime = this.currentTime + this.aaDelay;
     }
 
     useGcd(ability: GcdAbility): AbilityUseResult {
@@ -462,26 +478,6 @@ export class CycleProcessor {
         // Workaround for auto-attacks after first ability
         this.advanceTo(this.currentTime);
         return 'full';
-    }
-
-    private recordAutoAttack() {
-        const aaAbility: AutoAttack = {
-            attackType: 'Auto-attack',
-            type: 'autoattack',
-            name: 'Auto Attack',
-            potency: this.stats.jobStats.aaPotency
-        };
-        const buffs = this.getActiveBuffs();
-        const dmgInfo = abilityToDamageNew(this.stats, aaAbility, combineBuffEffects(buffs));
-        this.addAbilityUse({
-            usedAt: this.currentTime,
-            ability: aaAbility,
-            directDamage: dmgInfo.directDamage,
-            buffs: buffs,
-            combinedEffects: combineBuffEffects(buffs),
-            totalTimeTaken: 0,
-            appDelayFromStart: 0,
-        });
     }
 
     useOgcd(ability: OgcdAbility): AbilityUseResult {
