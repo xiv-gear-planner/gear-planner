@@ -11,6 +11,7 @@ import {AttackType, ComputedSetStats, JobData, LevelStats} from "./geartypes";
     object. It is preferable to use already-computed values since those are also exposed on the UI. This ensures
     consistency with the displayed values.
  */
+const fl = Math.floor;
 
 /**
  * Convert skill speed to GCD speed.
@@ -180,19 +181,43 @@ export function mpTick(levelStats: LevelStats, piety: number) {
     return 200 + Math.floor(150 * (piety - levelStats.baseMainStat) / levelStats.levelDiv);
 }
 
-const fl = Math.floor;
+/**
+ * Like wdMulti, but for auto-attacks.
+ *
+ * AkhMorning equivalent: f(AUTO)
+ *
+ * @param levelStats level stats
+ * @param jobStats job stats
+ * @param weaponDelay weapon delay in seconds
+ * @param weaponDamage weapon damage
+ */
+export function autoAttackModifier(levelStats: LevelStats, jobStats: JobData, weaponDelay: number, weaponDamage: number) {
+    return fl(fl((levelStats.baseMainStat * jobStats.jobStatMultipliers[jobStats.mainStat] / 1000) + weaponDamage) * (weaponDelay * 1000 / 3)) / 1000;
+}
 
 /**
  * Computes base damage. Does not factor in crit/dh RNG nor damage variance.
  *
  * TODO: where to factor in extra damage from buffs?
  */
-export function baseDamage(stats: ComputedSetStats, potency: number, attackType: AttackType = 'Unknown', autoDH: boolean = false, autoCrit: boolean = false) {
+export function baseDamage(stats: ComputedSetStats, potency: number, attackType: AttackType = 'Unknown', autoDH: boolean = false, autoCrit: boolean = false, isDot: boolean = false) {
 
+    let spdMulti: number;
+    const isAA = attackType === 'Auto-attack';
+    if (isAA) {
+        spdMulti = stats.sksDotMulti;
+    }
+    else if (isDot) {
+        // TODO: which one is it supposed to be?
+        spdMulti = Math.max(stats.sksDotMulti, stats.spsDotMulti);
+    }
+    else {
+        spdMulti = 1.0;
+    }
     // Multiplier from main stat
-    const mainStatMulti = stats.mainStatMulti;
-    // Multiplier from weapon damage
-    const wdMulti = stats.wdMulti;
+    const mainStatMulti = isAA ? stats.aaStatMulti : stats.mainStatMulti;
+    // Multiplier from weapon damage. If this is an auto-attack, use the AA multi instead of the pure WD multi.
+    const wdMulti = isAA ? stats.aaMulti : stats.wdMulti;
     // Multiplier for a successful crit
     const critMulti = stats.critMulti;
     // Crit chance
@@ -221,8 +246,9 @@ export function baseDamage(stats: ComputedSetStats, potency: number, attackType:
     const afterDet = fl(basePotency * (autoDH ? detAutoDhMulti : detMulti) * 100) / 100;
     // Factor in Tenacity multiplier
     const afterTnc = fl(afterDet * tncMulti * 100) / 100;
+    const afterSpd = fl(afterTnc * spdMulti * 1000) / 1000;
     // Factor in weapon damage multiplier
-    const afterWeaponDamage = fl(afterTnc * wdMulti);
+    const afterWeaponDamage = fl(afterSpd * wdMulti);
     // const d5 = fl(fl(afterWeaponDamage * critMulti) * DH_MULT)
     // Factor in auto crit multiplier
     const afterAutoCrit = autoCrit ? fl(afterWeaponDamage * (1 + (critRate * (critMulti - 1)))) : afterWeaponDamage;

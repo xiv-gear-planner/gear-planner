@@ -18,6 +18,7 @@ import {
     statById,
 } from "./xivconstants";
 import {
+    autoAttackModifier,
     autoDhBonusDmg,
     critChance,
     critDmg,
@@ -249,6 +250,8 @@ export class CharacterGearSet {
             }
         }
         const mainStat = Math.floor(combinedStats[classJobStats.mainStat] * (1 + 0.01 * this._sheet.partyBonus));
+        const aaStat = Math.floor(combinedStats[classJobStats.autoAttackStat] * (1 + 0.01 * this._sheet.partyBonus));
+        const wdEffective = Math.max(combinedStats.wdMag, combinedStats.wdPhys);
         this._computedStats = {
             ...combinedStats,
             level: level,
@@ -266,11 +269,13 @@ export class CharacterGearSet {
             sksDotMulti: sksTickMulti(levelStats, combinedStats.skillspeed),
             tncMulti: tenacityDmg(levelStats, combinedStats.tenacity),
             // TODO: does this need to be phys/magic split?
-            wdMulti: wdMulti(levelStats, classJobStats, Math.max(combinedStats.wdMag, combinedStats.wdPhys)),
+            wdMulti: wdMulti(levelStats, classJobStats, wdEffective),
             mainStatMulti: mainStatMulti(levelStats, classJobStats, mainStat),
+            aaStatMulti: mainStatMulti(levelStats, classJobStats, aaStat),
             traitMulti: classJobStats.traitMulti ? (type) => classJobStats.traitMulti(level, type) : () => 1,
             autoDhBonus: autoDhBonusDmg(levelStats, combinedStats.dhit),
             mpPerTick: mpTick(levelStats, combinedStats.piety),
+            aaMulti: autoAttackModifier(levelStats, classJobStats, combinedStats.weaponDelay, combinedStats.wdPhys)
         }
         if (classJobStats.traits) {
             classJobStats.traits.forEach(trait => {
@@ -284,7 +289,10 @@ export class CharacterGearSet {
             });
         }
         this._dirtyComp = false;
-        console.info("Recomputed stats");
+        if (this._computedStats.weaponDelay <= 0) {
+            this._computedStats.weaponDelay = 100_000;
+        }
+        console.info("Recomputed stats", this._computedStats);
         return this._computedStats;
     }
 
@@ -585,7 +593,7 @@ export class XivApiGearInfo implements GearItem {
             console.error("Unknown slot data!", eqs);
         }
         this.displayGearSlot = this.displayGearSlotName ? DisplayGearSlotInfo[this.displayGearSlotName] : undefined;
-
+        const weaponDelayRaw = data['DelayMs'];
         this.stats = {
             vitality: this.getStatRaw("Vitality"),
             strength: this.getStatRaw("Strength"),
@@ -601,6 +609,7 @@ export class XivApiGearInfo implements GearItem {
             skillspeed: this.getStatRaw("SkillSpeed"),
             wdPhys: data['DamagePhys'],
             wdMag: data['DamageMag'],
+            weaponDelay: weaponDelayRaw ? (weaponDelayRaw / 1000.0) : 0,
             hp: 0
         }
         if (data['CanBeHq']) {

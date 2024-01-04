@@ -81,46 +81,65 @@ export type SupportedLevel = typeof SupportedLevels[number];
  */
 export const EMPTY_STATS = new RawStats();
 
+/**
+ * Melee (including healer/caster, and DNC for some reason) auto-attack potency
+ */
+export const MELEE_AUTO_POTENCY = 90
+/**
+ * BRD/MCH auto-attack potency
+ */
+export const RANGE_AUTO_POTENCY = 90
+
 const STANDARD_HEALER: JobDataConst = {
-    mainStat: 'mind',
     role: 'Healer',
+    mainStat: 'mind',
+    autoAttackStat: 'strength',
     irrelevantSubstats: ['skillspeed', 'tenacity'],
     traitMulti: (level, attackType) => 1.3,
     itemStatCapMultipliers: {
         'vitality': 0.90
-    }
+    },
+    aaPotency: MELEE_AUTO_POTENCY
 } as const;
 
 const STANDARD_TANK: JobDataConst = {
-    mainStat: 'strength',
     role: 'Tank',
+    mainStat: 'strength',
+    autoAttackStat: 'strength',
     irrelevantSubstats: ['spellspeed', 'piety'],
     traits: [{
         apply(stats) {
             return stats.vitality += 29;
         }
     }] as JobTrait[],
+    aaPotency: MELEE_AUTO_POTENCY
 } as const;
 
 const STANDARD_MELEE: JobDataConst = {
-    mainStat: 'strength',
     role: 'Melee',
+    mainStat: 'strength',
+    autoAttackStat: 'strength',
     irrelevantSubstats: ['spellspeed', 'tenacity', 'piety'],
+    aaPotency: MELEE_AUTO_POTENCY
 } as const;
 
 const STANDARD_RANGED: JobDataConst = {
     role: 'Ranged',
     mainStat: 'dexterity',
-    irrelevantSubstats: ['spellspeed', 'tenacity', 'piety']
+    autoAttackStat: 'dexterity',
+    irrelevantSubstats: ['spellspeed', 'tenacity', 'piety'],
+    aaPotency: RANGE_AUTO_POTENCY
 } as const;
 
 const STANDARD_CASTER: JobDataConst = {
-    role: "Caster",
-    mainStat: "intelligence",
+    role: 'Caster',
+    mainStat: 'intelligence',
+    autoAttackStat: 'strength',
     irrelevantSubstats: ['skillspeed', 'tenacity', 'piety'],
     itemStatCapMultipliers: {
         'vitality': 0.90
-    }
+    },
+    aaPotency: MELEE_AUTO_POTENCY
 } as const;
 
 
@@ -156,7 +175,10 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
     // Ranged
     BRD: STANDARD_RANGED,
     MCH: STANDARD_RANGED,
-    DNC: STANDARD_RANGED,
+    DNC: {
+        ...STANDARD_RANGED,
+        aaPotency: MELEE_AUTO_POTENCY
+    },
     // Caster
     BLM: STANDARD_CASTER,
     SMN: STANDARD_CASTER,
@@ -438,7 +460,8 @@ export const STAT_FULL_NAMES: Record<RawStatKey, string> = {
     tenacity: "Tenacity",
     vitality: "Vitality",
     wdMag: "Weapon Damage (Magical)",
-    wdPhys: "Weapon Damage (Physical)"
+    wdPhys: "Weapon Damage (Physical)",
+    weaponDelay: "Auto-Attack Delay"
 }
 
 /**
@@ -459,7 +482,8 @@ export const STAT_ABBREVIATIONS: Record<RawStatKey, string> = {
     tenacity: "TNC",
     vitality: "VIT",
     wdMag: "WDm",
-    wdPhys: "WDp"
+    wdPhys: "WDp",
+    weaponDelay: "Dly"
 }
 
 /**

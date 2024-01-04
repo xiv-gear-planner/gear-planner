@@ -1,7 +1,7 @@
 import {RawStatKey} from "../geartypes";
 
 export const RelevantBaseParams = [
-    'Strength', 'Dexterity', 'Vitality', 'Intelligence', 'Mind', 'Piety', 'HP', 'Tenacity', 'Direct Hit Rate', 'Critical Hit', 'Skill Speed', 'Spell Speed', 'Determination', 'Physical Damage', 'Magic Damage'
+    'Strength', 'Dexterity', 'Vitality', 'Intelligence', 'Mind', 'Piety', 'HP', 'Tenacity', 'Direct Hit Rate', 'Critical Hit', 'Skill Speed', 'Spell Speed', 'Determination', 'Physical Damage', 'Magic Damage', 'Delay'
 ] as const;
 export type RelevantBaseParam = typeof RelevantBaseParams[number];
 
@@ -20,7 +20,8 @@ export const BaseParamToStatKey: Record<RelevantBaseParam, RawStatKey> = {
     Piety: "piety",
     Strength: "strength",
     Tenacity: "tenacity",
-    Vitality: "vitality"
+    Vitality: "vitality",
+    Delay: "weaponDelay"
 }
 
 // Ignoring MP and doh/dol stats

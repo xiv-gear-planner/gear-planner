@@ -239,6 +239,11 @@ export interface ComputedSetStats extends RawStats {
      */
     mainStatMulti: number
     /**
+     * Like mainStatMulti, but for auto-attacks (since healers and casters use STR for autos but MND/INT for everything
+     * else).
+     */
+    aaStatMulti: number
+    /**
      * Trait multiplier
      */
     traitMulti(attackType: AttackType): number;
@@ -250,6 +255,10 @@ export interface ComputedSetStats extends RawStats {
      * MP Per Tick
      */
     mpPerTick: number;
+    /**
+     * Like wdMulti, but for auto-attacks
+     */
+    aaMulti: number;
 }
 
 export interface MeldableMateriaSlot {
@@ -273,6 +282,7 @@ export interface RawStats {
     skillspeed: number,
     wdPhys: number,
     wdMag: number,
+    weaponDelay: number
 }
 
 export type RawStatKey = keyof RawStats;
@@ -294,6 +304,7 @@ export class RawStats implements RawStats {
     spellspeed: number = 0;
     wdPhys: number = 0;
     wdMag: number = 0;
+    weaponDelay: number = 0;
 
     constructor(values: ({ [K in RawStatKey]?: number } | undefined) = undefined) {
         if (values) {
@@ -337,6 +348,7 @@ export type Substat = (typeof FAKE_MAIN_STATS[number] | typeof SPECIAL_SUB_STATS
 export interface JobDataConst {
     readonly role: RoleKey,
     readonly mainStat: Mainstat;
+    readonly autoAttackStat: Mainstat;
     readonly traitMulti?: (level: number, attackType: AttackType) => number;
     readonly traits?: readonly JobTrait[];
     readonly irrelevantSubstats?: readonly Substat[];
@@ -344,6 +356,7 @@ export interface JobDataConst {
     readonly itemStatCapMultipliers?: {
         [K in RawStatKey]?: number
     };
+    readonly aaPotency: number
 }
 
 export type JobMultipliers = {

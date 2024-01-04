@@ -119,7 +119,7 @@ export class DataManager {
             sheet: 'Item',
             columns: [
                 // Normal item stuff
-                'ID', 'IconHD', 'Name', 'LevelItem', 'Stats', 'EquipSlotCategory', 'MateriaSlotCount', 'IsAdvancedMeldingPermitted', 'DamageMag', 'DamagePhys',
+                'ID', 'IconHD', 'Name', 'LevelItem', 'Stats', 'EquipSlotCategory', 'MateriaSlotCount', 'IsAdvancedMeldingPermitted', 'DamageMag', 'DamagePhys', 'DelayMs',
                 // Stuff for determining correct WD for HQ crafted items
                 'CanBeHq',
                 'BaseParamSpecial0TargetID',
