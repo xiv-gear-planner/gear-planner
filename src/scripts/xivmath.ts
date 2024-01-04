@@ -208,8 +208,11 @@ export function baseDamage(stats: ComputedSetStats, potency: number, attackType:
         spdMulti = stats.sksDotMulti;
     }
     else if (isDot) {
-        // TODO: which one is it supposed to be?
-        spdMulti = Math.max(stats.sksDotMulti, stats.spsDotMulti);
+        // SkS: "Affects both the casting and recast timers, as well as the damage over time potency for
+        // weaponskills and auto-attacks. The higher the value, the shorter the timers/higher the potency."
+        // SpS: "Affects both the casting and recast timers for spells. The higher the value, the shorter
+        // the timers. Also affects a spell's damage over time or healing over time potency."
+        spdMulti = (attackType === 'Weaponskill') ? stats.sksDotMulti : stats.spsDotMulti;
     }
     else {
         spdMulti = 1.0;
