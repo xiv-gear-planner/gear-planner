@@ -73,6 +73,7 @@ export const sgeNewSheetSpec: SimSpec<SgeSheetSim, SgeNewSheetSettingsExternal> 
     },
     stub: "sge-sheet-sim-mk2",
     supportedJobs: ['SGE'],
+    isDefaultSim: true
 }
 
 export class SgeSheetSim extends BaseMultiCycleSim<SgeSheetSimResult, SgeNewSheetSettings> {

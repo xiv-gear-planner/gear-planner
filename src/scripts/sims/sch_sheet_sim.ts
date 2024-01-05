@@ -84,6 +84,7 @@ export const schNewSheetSpec: SimSpec<SchSheetSim, SchNewSheetSettingsExternal> 
     },
     stub: "sch-sheet-sim",
     supportedJobs: ['SCH'],
+    isDefaultSim: true
 }
 
 export class SchSheetSim extends BaseMultiCycleSim<SchSheetSimResult, SchNewSheetSettings> {

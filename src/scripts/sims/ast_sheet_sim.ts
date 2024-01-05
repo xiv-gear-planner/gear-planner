@@ -91,6 +91,7 @@ export const astNewSheetSpec: SimSpec<AstSheetSim, AstNewSheetSettingsExternal> 
     },
     stub: "ast-sheet-sim",
     supportedJobs: ['AST'],
+    isDefaultSim: true
 }
 
 export class AstSheetSim extends BaseMultiCycleSim<AstSheetSimResult, AstNewSheetSettings> {

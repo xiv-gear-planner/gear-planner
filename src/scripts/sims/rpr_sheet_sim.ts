@@ -1,9 +1,9 @@
-import { updateSourceFile } from "typescript";
-import { Simulation, SimSpec, SimResult, SimSettings } from "../simulation";
-import { JobName, STANDARD_ANIMATION_LOCK } from "../xivconstants";
-import { ArcaneCircle, DeathsDesign } from "./buffs";
-import { BaseMultiCycleSim, CycleSimResult, ExternalCycleSettings, Rotation, CycleProcessor } from "./sim_processors";
-import { BuffEffects, Ability, GcdAbility, OgcdAbility } from "./sim_types";
+import {updateSourceFile} from "typescript";
+import {Simulation, SimSpec, SimResult, SimSettings} from "../simulation";
+import {JobName, STANDARD_ANIMATION_LOCK} from "../xivconstants";
+import {ArcaneCircle, DeathsDesign} from "./buffs";
+import {BaseMultiCycleSim, CycleSimResult, ExternalCycleSettings, Rotation, CycleProcessor} from "./sim_processors";
+import {BuffEffects, Ability, GcdAbility, OgcdAbility} from "./sim_types";
 
 const slice: GcdAbility = {
     type: 'gcd',
@@ -179,16 +179,18 @@ const arcaneCircle: OgcdAbility = {
     attackType: "Ability",
 }
 
-export interface RprSheetSimResult extends CycleSimResult {}
+export interface RprSheetSimResult extends CycleSimResult {
+}
 
 interface RprNewSheetSettings extends SimSettings {
 
 }
 
-export interface RprNewSheetSettingsExternal extends ExternalCycleSettings<RprNewSheetSettings> {}
+export interface RprNewSheetSettingsExternal extends ExternalCycleSettings<RprNewSheetSettings> {
+}
 
 
-export const rprNewSheetSpec: SimSpec<RprSheetSim, RprNewSheetSettings> = {
+export const rprSheetSpec: SimSpec<RprSheetSim, RprNewSheetSettings> = {
     stub: "rpr-sheet-sim",
     displayName: "RPR Sim",
     makeNewSimInstance: function (): RprSheetSim {
@@ -197,25 +199,38 @@ export const rprNewSheetSpec: SimSpec<RprSheetSim, RprNewSheetSettings> = {
     loadSavedSimInstance: function (exported: RprNewSheetSettingsExternal) {
         return new RprSheetSim(exported);
     },
-    supportedJobs: ['RPR']
-
+    supportedJobs: ['RPR'],
+    isDefaultSim: true
 }
 
 class RotationState {
     private _combo: number = 0;
-    get combo() {return this._combo};
+    get combo() {
+        return this._combo
+    };
+
     set combo(newCombo) {
         this._combo = newCombo;
         if (this._combo >= 3) this._combo = 0;
     }
 
     private _soulGauge: number = 0;
-    get soulGauge() {return this._soulGauge}
-    set soulGauge(newGauge: number) { this._soulGauge = Math.max(Math.min(newGauge, 100), 0); }
+    get soulGauge() {
+        return this._soulGauge
+    }
+
+    set soulGauge(newGauge: number) {
+        this._soulGauge = Math.max(Math.min(newGauge, 100), 0);
+    }
 
     private _shroudGauge: number = 0;
-    get shroudGauge() {return this._shroudGauge}
-    set shroudGauge(newGauge: number) { this._shroudGauge = Math.max(Math.min(newGauge, 100), 0); }
+    get shroudGauge() {
+        return this._shroudGauge
+    }
+
+    set shroudGauge(newGauge: number) {
+        this._shroudGauge = Math.max(Math.min(newGauge, 100), 0);
+    }
 
     oddShroudUsed: boolean = false;
 
@@ -247,7 +262,9 @@ class RotationState {
 class CooldownTracker {
 
     // Entries have the value [cooldown, timeLastUsed]
-    lastUsedTimes: { [ability: string]: [number, number] } = {
+    lastUsedTimes: {
+        [ability: string]: [number, number]
+    } = {
         "Arcane Circle": [120, 0],
         "Gluttony": [60, 0],
         "Soul Slice": [30, 0],
@@ -259,17 +276,17 @@ class CooldownTracker {
         this.lastUsedTimes[ability.name][1] = cp.currentTime;
     }
 
-    isOffCD(cp: CycleProcessor, ability: Ability) : boolean {
+    isOffCD(cp: CycleProcessor, ability: Ability): boolean {
         let abilityTime = this.lastUsedTimes[ability.name];
         return (cp.currentTime - abilityTime[1]) >= abilityTime[0];
     }
 
-    remainingCd(cp: CycleProcessor, ability: Ability) : number {
+    remainingCd(cp: CycleProcessor, ability: Ability): number {
         let abilityTimes = this.lastUsedTimes[ability.name];
         return abilityTimes[1] + abilityTimes[0] - cp.currentTime;
     }
 
-    willBeUsableBeforeNextGcd(cp: CycleProcessor, ability: OgcdAbility) : boolean {
+    willBeUsableBeforeNextGcd(cp: CycleProcessor, ability: OgcdAbility): boolean {
         let abilityTimes = this.lastUsedTimes[ability.name];
         return (abilityTimes[1] + abilityTimes[0] + (ability.animationLock ?? STANDARD_ANIMATION_LOCK) < cp.nextGcdTime)
     }
@@ -277,15 +294,15 @@ class CooldownTracker {
 
 
 export class RprSheetSim extends BaseMultiCycleSim<RprSheetSimResult, RprNewSheetSettings> {
-    
-    spec = rprNewSheetSpec;
+
+    spec = rprSheetSpec;
     shortName: "rpr-sheet-sim";
-    displayName = rprNewSheetSpec.displayName;
+    displayName = rprSheetSpec.displayName;
     manuallyActivatedBuffs = [ArcaneCircle];
 
     rotationState: RotationState = new RotationState();
     readonly comboActions: GcdAbility[] = [slice, waxingSlice, infernalSlice];
-    
+
     constructor(settings?: RprNewSheetSettingsExternal) {
         super('RPR', settings);
     }
@@ -307,7 +324,7 @@ export class RprSheetSim extends BaseMultiCycleSim<RprSheetSimResult, RprNewShee
 
     // Needs a weave slot in the gcd
     useGibGal(cp: CycleProcessor) {
-        
+
         if (this.rotationState.soulGauge < 50) {
             console.error("Tried to use Gibbet/Gallows with <50 soul at " + cp.currentTime);
             return;
@@ -337,7 +354,7 @@ export class RprSheetSim extends BaseMultiCycleSim<RprSheetSimResult, RprNewShee
         cp.useOgcd(lemuresSlice);
         cp.useGcd(communio);
     }
-    
+
     useDoubleEnshroudBurst(cp: CycleProcessor) {
 
         if (this.rotationState.shroudGauge < 50) {
@@ -361,14 +378,15 @@ export class RprSheetSim extends BaseMultiCycleSim<RprSheetSimResult, RprNewShee
         this.useEnshroud(cp);
         this.rotationState.sodNumber = 2;
         this.rotationState.oddShroudUsed = false;
-    
+
     }
 
     useArcaneCircle(cp: CycleProcessor) {
-        
+
         cp.useOgcd(arcaneCircle);
         this.rotationState.cdTracker.use(cp, arcaneCircle);
     }
+
     useSoD(cp: CycleProcessor) {
         cp.use(SoD);
         if (this.rotationState.cdTracker.sodCoverage === 0) {
@@ -396,6 +414,7 @@ export class RprSheetSim extends BaseMultiCycleSim<RprSheetSimResult, RprNewShee
 
         this.rotationState.shroudGauge += 20;
     }
+
     useSoulSlice(cp: CycleProcessor) {
         cp.useGcd(soulSlice);
         this.rotationState.cdTracker.lastUsedTimes[soulSlice.name][1] += 30;
@@ -410,12 +429,12 @@ export class RprSheetSim extends BaseMultiCycleSim<RprSheetSimResult, RprNewShee
     // This function expects to be called immediately after a gcd is used.
     // Might not work right if used right after an ogcd
     useFiller(cp: CycleProcessor) {
-        
+
         //This assumes that if we can weave gluttony, it will be the only weave.
         // If that's not the case then this needs to be revisited
         if (this.rotationState.cdTracker.willBeUsableBeforeNextGcd(cp, gluttony) &&
             this.rotationState.soulGauge >= 50) {
-            
+
             cp.currentTime += this.rotationState.cdTracker.remainingCd(cp, gluttony);
             this.useGluttony(cp);
             this.rotationState.spendSoulThreshold = 150 - this.rotationState.spendSoulThreshold;
@@ -427,7 +446,7 @@ export class RprSheetSim extends BaseMultiCycleSim<RprSheetSimResult, RprNewShee
             && !this.rotationState.oddShroudUsed
             && this.rotationState.cdTracker.remainingCd(cp, gluttony) > 8.5 + cp.stats.gcdPhys(cp.gcdBase)
             && this.rotationState.cdTracker.sodCoverage - cp.currentTime > 11) {
-            
+
             this.useEnshroud(cp);
             this.rotationState.oddShroudUsed = true;
             return;
@@ -436,7 +455,7 @@ export class RprSheetSim extends BaseMultiCycleSim<RprSheetSimResult, RprNewShee
         // If SS is available the gcd after next one, use unveiled > gibgal to not overcap
         if (cp.currentTime + this.rotationState.cdTracker.remainingCd(cp, soulSlice) < cp.nextGcdTime + cp.stats.gcdPhys(cp.gcdBase) &&
             this.rotationState.soulGauge >= 50) {
-            this.useGibGal(cp); 
+            this.useGibGal(cp);
             return;
         }
 
@@ -450,7 +469,7 @@ export class RprSheetSim extends BaseMultiCycleSim<RprSheetSimResult, RprNewShee
         // use SoD if off CD
         if (this.rotationState.cdTracker.sodCoverage - cp.currentTime < 30
             && this.rotationState.sodNumber <= 3) { // don't refresh SoD before double shroud
-            
+
             this.useSoD(cp);
             return;
         }
@@ -462,7 +481,7 @@ export class RprSheetSim extends BaseMultiCycleSim<RprSheetSimResult, RprNewShee
             this.useGibGal(cp);
             return;
         }
-        
+
         this.useCombo(cp);
     }
 
@@ -492,7 +511,7 @@ export class RprSheetSim extends BaseMultiCycleSim<RprSheetSimResult, RprNewShee
                 sim.rotationState.soulGauge += 50;
                 sim.usePlentifulHarvest(cp);
                 sim.useEnshroud(cp);
-                
+
                 // Do gluttony manually to insert the unbuffed gallows
                 cp.use(gluttony);
                 sim.rotationState.cdTracker.use(cp, gluttony);
@@ -500,26 +519,26 @@ export class RprSheetSim extends BaseMultiCycleSim<RprSheetSimResult, RprNewShee
                 cp.use(gibbet);
                 sim.rotationState.soulGauge -= 50;
                 sim.rotationState.shroudGauge += 20;
-                
+
                 sim.useGibGal(cp);
 
                 // 3 + 2*gcd + animlock is (2 reapings) + (gcd before enshroud and first Sod) + (animlock form 2nd SoD)
                 while (cp.remainingGcdTime > 0 &&
-                    sim.rotationState.cdTracker.remainingCd(cp, arcaneCircle) > 9.6) {
+                sim.rotationState.cdTracker.remainingCd(cp, arcaneCircle) > 9.6) {
 
                     sim.useFiller(cp);
                 }
 
                 sim.useCombo(cp);
                 sim.useCombo(cp);
-                
+
                 while (cp.remainingGcdTime > 0) {
                     sim.useDoubleEnshroudBurst(cp);
                     if (sim.rotationState.combo != 0) {
                         sim.useCombo(cp);
                     }
                     while (cp.remainingGcdTime > 0 &&
-                        (sim.rotationState.cdTracker.remainingCd(cp, arcaneCircle) > 9.6
+                    (sim.rotationState.cdTracker.remainingCd(cp, arcaneCircle) > 9.6
                         || sim.rotationState.shroudGauge < 50)) {
 
                         sim.useFiller(cp);

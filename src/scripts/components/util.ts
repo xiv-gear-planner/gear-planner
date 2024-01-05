@@ -1,10 +1,13 @@
-export function makeActionButton(label: string, action: (ev: MouseEvent) => void) {
+export function makeActionButton(label: string, action: (ev: MouseEvent) => void, tooltip?: string) {
     const button = document.createElement("button");
     button.textContent = label;
     button.addEventListener('click', ev => {
         ev.stopPropagation();
         action(ev);
     });
+    if (tooltip !== undefined) {
+        button.title = tooltip;
+    }
     return button;
 }
 

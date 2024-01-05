@@ -9,7 +9,7 @@ import {sgeNewSheetSpec} from "./sims/sge_sheet_sim_mk2";
 import {astNewSheetSpec} from "./sims/ast_sheet_sim";
 import {schNewSheetSpec} from "./sims/sch_sheet_sim";
 import {whmNewSheetSpec} from "./sims/whm_new_sheet_sim";
-import { rprNewSheetSpec } from "./sims/rpr_sheet_sim";
+import { rprSheetSpec } from "./sims/rpr_sheet_sim";
 
 export interface SimResult {
     mainDpsResult: number;
@@ -29,7 +29,10 @@ export interface SimSpec<SimType extends Simulation<any, any, any>, SettingsExpo
      * Display name for this sim type.
      */
     displayName: string,
-
+    /**
+     * Whether the sim should be added to applicable sheets by default
+     */
+    isDefaultSim?: boolean,
     /**
      * Make a new instance of the simulator without importing any saved settings.
      */
@@ -67,20 +70,15 @@ export function getSimSpecByStub(stub: string): SimSpec<any, any> | undefined {
 }
 
 export function getDefaultSims(job: JobName, level: SupportedLevel): SimSpec<any, any>[] {
-    const out: SimSpec<any, any>[] = [potRatioSimSpec];
-    if (job === 'WHM' && level === 90) {
-        out.push(whmNewSheetSpec);
-    }
-    else if (job === 'SGE' && level === 90) {
-        out.push(sgeNewSheetSpec);
-    }
-    else if (job === 'AST' && level === 90) {
-        out.push(astNewSheetSpec);
-    }
-    else if (job === 'SCH' && level === 90) {
-        out.push(schNewSheetSpec);
-    }
-    return out;
+    return [potRatioSimSpec, ...simSpecs.filter(spec => {
+        if (spec.supportedJobs !== undefined && !spec.supportedJobs.includes(job)) {
+            return false;
+        }
+        if (spec.supportedLevels !== undefined && !spec.supportedLevels.includes(level)) {
+            return false;
+        }
+        return spec.isDefaultSim ?? false;
+    })];
 }
 
 /**
@@ -191,4 +189,4 @@ registerSim(sgeNewSheetSpec);
 registerSim(astNewSheetSpec);
 registerSim(schNewSheetSpec);
 registerSim(whmNewSheetSpec);
-registerSim(rprNewSheetSpec);
+registerSim(rprSheetSpec);

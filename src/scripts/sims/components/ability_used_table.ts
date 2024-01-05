@@ -24,10 +24,17 @@ export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
             {
                 shortName: 'time',
                 displayName: 'Time',
-                getter: used => used.usedAt,
-                renderer: time => {
-                    return document.createTextNode(formatTime(time));
-                }
+                getter: used => used,
+                renderer: (used: DisplayRecordFinalized) => {
+                    return document.createTextNode(formatTime(used.usedAt));
+                },
+                // TODO: later, add some kind of 'timing info' field to FinalizedAbility
+                // colStyler: (value: DisplayRecordFinalized, colElement, internalElement) => {
+                //     if ('original' in value) {
+                //         const original = value.original;
+                //         colElement.title = `Used at: ${value.usedAt}s\nCast/Lock Time: ${original.totalTimeTaken}s\nTotal Delay: ${original.appDelayFromStart}s from start`
+                //     }
+                // }
             },
             {
                 shortName: 'ability',

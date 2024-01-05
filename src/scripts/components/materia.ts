@@ -333,8 +333,9 @@ export class MateriaPriorityPicker extends HTMLElement {
         const header = document.createElement('span');
         header.textContent = 'Materia Priority: ';
         const cb = labeledCheckbox('Fill Newly Selected Items', new FieldBoundCheckBox(prioController, 'autoFillNewItem'));
-        const fillEmptyNow = makeActionButton('Fill Empty', () => prioController.fillEmpty());
-        const fillAllNow = makeActionButton('Overwrite All', () => prioController.fillAll());
+        cb.title = 'When an item is selected, fill its materia slots according to the chosen priority.'
+        const fillEmptyNow = makeActionButton('Fill Empty', () => prioController.fillEmpty(), 'Fill all empty materia slots according to the chosen priority.');
+        const fillAllNow = makeActionButton('Overwrite All', () => prioController.fillAll(), 'Empty out and re-fill all materia slots according to the chosen priority.');
         const drag = new MateriaDragList(prioController);
 
         const minGcdText = document.createElement('span');
@@ -356,7 +357,7 @@ export class MateriaPriorityPicker extends HTMLElement {
             }]
         });
         minGcdInput.pattern = '\\d\\.\\d\\d?';
-        minGcdInput.title = 'x.yz';
+        minGcdInput.title = 'Enter the minimum desired GCD in the form x.yz.\nSkS/SpS materia will be de-prioritized once this target GCD is met.';
         minGcdInput.classList.add('min-gcd-input');
         this.replaceChildren(header, drag, minGcdText, minGcdInput, document.createElement('br'), fillEmptyNow, fillAllNow, cb);
     }
@@ -374,7 +375,9 @@ class MateriaDragger extends HTMLElement {
         this.index = index;
         this.inner = document.createElement('div');
         const span = document.createElement('span');
-        span.textContent = STAT_ABBREVIATIONS[stat];
+        const abbrev = STAT_ABBREVIATIONS[stat];
+        this.title = `Drag to change the priority of ${abbrev} materia relative to other types.`
+        span.textContent = abbrev;
         this.inner.appendChild(span);
         this.inner.classList.add('materia-dragger-inner');
         this.inner.classList.add('stat-' + stat);

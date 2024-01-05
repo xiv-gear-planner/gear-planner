@@ -245,6 +245,7 @@ export class CycleProcessor {
     currentTime: number = 0;
     nextGcdTime: number = 0;
     nextAutoAttackTime: number = 0;
+    pendingPrePullOffset: number = 0;
     gcdBase: number = NORMAL_GCD;
     readonly cycleTime: number;
     readonly allRecords: DisplayRecordUnf[] = [];
@@ -472,14 +473,15 @@ export class CycleProcessor {
             appDelayFromStart: appDelay(ability),
             totalTimeTaken: Math.max(animLock, abilityGcd),
         });
+        this.addAbilityUse(usedAbility);
         // Anim lock OR cast time, both effectively block use of skills.
         // If cast time > GCD recast, then we use that instead. Also factor in caster tax.
         this.advanceTo(animLockFinishedAt);
         // If we're casting a long-cast, then the GCD is blocked for more than a GCD.
         this.nextGcdTime = Math.max(gcdFinishedAt, animLockFinishedAt);
-        this.addAbilityUse(usedAbility);
         // Workaround for auto-attacks after first ability
         this.advanceTo(this.currentTime);
+        this.adjustPrepull();
         return 'full';
     }
 
@@ -509,29 +511,37 @@ export class CycleProcessor {
             totalTimeTaken: animLock,
             appDelayFromStart: appDelay(ability)
         });
+        this.addAbilityUse(usedAbility);
         this.advanceTo(animLockFinishedAt);
         // Account for potential GCD clipping
         this.nextGcdTime = Math.max(this.nextGcdTime, animLockFinishedAt);
-        this.addAbilityUse(usedAbility);
+        this.adjustPrepull();
         return 'full';
+    }
+
+    private adjustPrepull() {
+        if (this.pendingPrePullOffset === 0) {
+            return;
+        }
+        this.usedAbilities.forEach(used => {
+            used.usedAt += this.pendingPrePullOffset;
+        });
+        this.currentTime += this.pendingPrePullOffset;
+        this.nextGcdTime += this.pendingPrePullOffset;
+        this.nextAutoAttackTime += this.pendingPrePullOffset;
+        this.pendingPrePullOffset = 0;
+
     }
 
     private addAbilityUse(usedAbility: AbilityUseRecordUnf) {
         this.allRecords.push(usedAbility);
         // If this is a pre-pull ability, we can offset by the hardcast time and/or application delay
         if (!this.combatStarted && usedAbility.ability.potency !== null) {
-            let prepullOffset = 0;
             const firstDamagingAbility = this.usedAbilities.find(ability => ability.ability.potency !== null);
             if (firstDamagingAbility !== undefined) {
-                prepullOffset = -firstDamagingAbility.appDelayFromStart;
+                this.pendingPrePullOffset = -firstDamagingAbility.appDelayFromStart;
             }
-            this.usedAbilities.forEach(used => {
-                used.usedAt += prepullOffset;
-            });
             this.combatStarted = true;
-            this.currentTime += prepullOffset;
-            this.nextGcdTime += prepullOffset;
-            this.nextAutoAttackTime += prepullOffset;
         }
         if (usedAbility.dot) {
             const dotId = usedAbility.ability['dot']?.id;

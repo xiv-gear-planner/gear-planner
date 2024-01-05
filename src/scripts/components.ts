@@ -309,9 +309,10 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                 getter: gearSet => gearSet,
                 renderer: gearSet => {
                     const div = document.createElement("div");
-                    div.appendChild(makeActionButton('🗑️', () => this.sheet.delGearSet(gearSet)));
-                    div.appendChild(makeActionButton('📃', () => this.sheet.cloneAndAddGearSet(gearSet, true)));
+                    div.appendChild(makeActionButton('🗑️', () => this.sheet.delGearSet(gearSet), 'Delete this set'));
+                    div.appendChild(makeActionButton('📃', () => this.sheet.cloneAndAddGearSet(gearSet, true), 'Clone this set'));
                     const dragger = document.createElement('button');
+                    dragger.title = 'Drag to re-order this set'
                     dragger.textContent = '≡';
                     dragger.classList.add('drag-handle');
                     let rowBeingDragged: null | CustomRow<CharacterGearSet> = null;
@@ -943,6 +944,7 @@ function formatSimulationConfigArea<SettingsType extends SimSettings>(
         refreshHeaders();
     });
     titleEditor.classList.add('sim-name-editor');
+    titleEditor.title = 'Rename this simulation';
     outerDiv.appendChild(titleEditor);
 
     const rerunButton = makeActionButton("Rerun", () => refreshColumn(sim));

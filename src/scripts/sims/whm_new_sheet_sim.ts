@@ -92,6 +92,7 @@ export const whmNewSheetSpec: SimSpec<WhmSheetSim, WhmNewSheetSettingsExternal> 
     },
     stub: "whm-new-sheet-sim",
     supportedJobs: ['WHM'],
+    isDefaultSim: true
 }
 
 export class WhmSheetSim extends BaseMultiCycleSim<WhmSheetSimResult, WhmNewSheetSettings> {
