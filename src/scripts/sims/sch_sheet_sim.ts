@@ -25,7 +25,8 @@ const chain: OgcdAbility = {
     name: "Chain",
     id: 7436,
     activatesBuffs: [Chain],
-    potency: null
+    potency: null,
+    attackType: "Ability",
 }
 
 const r2: GcdAbility = {

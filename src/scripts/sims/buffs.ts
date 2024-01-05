@@ -57,6 +57,18 @@ export const ArcaneCircle = {
     startTime: 5,
 } as const satisfies Buff;
 
+export const DeathsDesign = {
+    name: "Death's Design",
+    job: "RPR",
+    duration: 60, // this is a hack to make up for the fact that the duration is stackable.
+                  // Needs to be changed if simulating dropping DD is desired.
+    cooldown: 0,
+    effects: {
+        dmgIncrease: 0.1
+    },
+    startTime: 0,
+} as const satisfies Buff;
+
 export const SearingLight = {
     name: "Searing Light",
     job: "SMN",
