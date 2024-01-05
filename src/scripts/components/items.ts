@@ -437,7 +437,9 @@ export class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
                 getter: item => {
                     return item.item.name;
                 },
-                // initialWidth: 300,
+                colStyler: (value, colElement, internalElement, rowValue) => {
+                    colElement.title = `${value} (${rowValue.item.id})`;
+                }
             },
             {
                 shortName: "mats",
@@ -457,7 +459,6 @@ export class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
                     else {
                         span.textContent = value.materiaSlots.length.toString();
                     }
-
                     return span;
                 }
             },

@@ -427,14 +427,17 @@ export class CustomTable<RowDataType, SelectionType = never> extends HTMLTableEl
     }
 }
 
+export type CellRenderer<RowDataType, CellDataType> = (value: CellDataType, rowValue: RowDataType) => Node | null;
+export type ColStyler<RowDataType, CellDataType> = (value: CellDataType, colElement: CustomCell<RowDataType, CellDataType>, internalElement: Node, rowValue: RowDataType) => void;
+
 export interface CustomColumnSpec<RowDataType, CellDataType = string, ColumnDataType = any> {
     shortName: string;
     displayName: string;
     allowHeaderSelection?: boolean;
     allowCellSelection?: boolean;
     getter: (item: RowDataType) => CellDataType;
-    renderer?: (value: CellDataType) => Node | null;
-    colStyler?: (value: CellDataType, colElement: CustomCell<RowDataType, CellDataType>, internalElement: Node) => void;
+    renderer?: CellRenderer<RowDataType, CellDataType>;
+    colStyler?: ColStyler<RowDataType, CellDataType>;
     condition?: () => boolean;
     initialWidth?: number | undefined;
     fixedWidth?: number | undefined;
@@ -463,8 +466,8 @@ export class CustomColumn<RowDataType, CellDataType = string, ColumnDataType = a
     allowHeaderSelection?: boolean = false;
     allowCellSelection?: boolean = false;
     getter: (item: RowDataType) => CellDataType;
-    renderer?: (value: CellDataType) => Node = (value) => document.createTextNode(value.toString());
-    colStyler?: (value: CellDataType, colElement: CustomCell<RowDataType, CellDataType>, internalElement: Node) => void = (value, colElement, internalElement) => {
+    renderer?: CellRenderer<RowDataType, CellDataType> = (value) => document.createTextNode(value.toString());
+    colStyler?: ColStyler<RowDataType, CellDataType> = (value, colElement, internalElement) => {
         if (value) {
             colElement.classList.add("value-truthy")
         }
@@ -564,9 +567,9 @@ export class CustomCell<RowDataType, CellDataType> extends HTMLTableCellElement 
         let node: Node;
         try {
             this._value = this.colDef.getter(this.dataItem);
-            node = this.colDef.renderer(this._value);
+            node = this.colDef.renderer(this._value, this.row.dataItem);
             if (node) {
-                this.colDef.colStyler(this._value, this, node);
+                this.colDef.colStyler(this._value, this, node, this.row.dataItem);
             }
         } catch (e) {
             console.error(e);

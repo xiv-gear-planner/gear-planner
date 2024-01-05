@@ -91,6 +91,16 @@ export class EquippedItem {
     }
 }
 
+export type GearSetIssue = {
+    readonly severity: 'warning' | 'error',
+    readonly description: string
+}
+
+export type GearSetResult = {
+    readonly computedStats: ComputedSetStats,
+    readonly issues: readonly GearSetIssue[]
+}
+
 /**
  * Class representing equipped gear, food, and other overrides.
  */
@@ -101,7 +111,7 @@ export class CharacterGearSet {
     listeners: (() => void)[] = [];
     private _dirtyComp: boolean = true;
     private _updateKey: number = 0;
-    private _computedStats: ComputedSetStats;
+    private _lastResult: GearSetResult;
     private _jobOverride: JobName;
     private _raceOverride: RaceName;
     private _food: FoodItem;
@@ -209,9 +219,17 @@ export class CharacterGearSet {
             .map((slotEquipment: EquippedItem) => slotEquipment.gearItem);
     }
 
+    get issues(): readonly GearSetIssue[] {
+        return this.results.issues;
+    }
+
     get computedStats(): ComputedSetStats {
+        return this.results.computedStats;
+    }
+
+    get results(): GearSetResult {
         if (!this._dirtyComp) {
-            return this._computedStats;
+            return this._lastResult;
         }
         const combinedStats = new RawStats(EMPTY_STATS);
         const classJob = this._jobOverride ?? this._sheet.classJobName;
@@ -252,7 +270,7 @@ export class CharacterGearSet {
         const mainStat = Math.floor(combinedStats[classJobStats.mainStat] * (1 + 0.01 * this._sheet.partyBonus));
         const aaStat = Math.floor(combinedStats[classJobStats.autoAttackStat] * (1 + 0.01 * this._sheet.partyBonus));
         const wdEffective = Math.max(combinedStats.wdMag, combinedStats.wdPhys);
-        this._computedStats = {
+        const computedStats = {
             ...combinedStats,
             level: level,
             levelStats: levelStats,
@@ -285,15 +303,37 @@ export class CharacterGearSet {
                 if (trait.maxLevel && trait.maxLevel < level) {
                     return;
                 }
-                trait.apply(this._computedStats);
+                trait.apply(computedStats);
             });
         }
         this._dirtyComp = false;
-        if (this._computedStats.weaponDelay <= 0) {
-            this._computedStats.weaponDelay = 100_000;
+        if (computedStats.weaponDelay <= 0) {
+            computedStats.weaponDelay = 100_000;
         }
-        console.info("Recomputed stats", this._computedStats);
-        return this._computedStats;
+        const leftRing = this.getItemInSlot('RingLeft');
+        const rightRing = this.getItemInSlot('RingRight');
+        const issues: GearSetIssue[] = [];
+        if (leftRing && leftRing.isUnique && rightRing && rightRing.isUnique) {
+            if (leftRing.id === rightRing.id) {
+                issues.push({
+                    severity: 'error',
+                    description: `You cannot equip ${leftRing.name} in both ring slots because it is a unique item.`
+                });
+            }
+        }
+        const weapon = this.getItemInSlot('Weapon');
+        if (!weapon) {
+            issues.push({
+                severity: 'error',
+                description: 'You must equip a weapon'
+            });
+        }
+        this._lastResult = {
+            computedStats: computedStats,
+            issues: issues
+        }
+        console.info("Recomputed stats", this._lastResult);
+        return this._lastResult;
     }
 
     getSlotEffectiveStats(slotId: EquipSlotKey): RawStats {
@@ -524,6 +564,7 @@ export class XivApiGearInfo implements GearItem {
     secondarySubstat: keyof RawStats | null;
     materiaSlots: MateriaSlot[];
     isCustomRelic: boolean;
+    isUnique: boolean;
     unsyncedVersion: XivApiGearInfo;
     statCaps: {
         [K in RawStatKey]?: number
@@ -622,6 +663,7 @@ export class XivApiGearInfo implements GearItem {
                 }
             }
         }
+        this.isUnique = Boolean(data['IsUnique']);
         this.computeSubstats();
         this.materiaSlots = [];
         const baseMatCount: number = data['MateriaSlotCount'];

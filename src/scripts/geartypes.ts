@@ -134,6 +134,7 @@ export interface GearItem extends XivCombatItem {
      */
     unsyncedVersion: GearItem;
     isSyncedDown: boolean;
+    isUnique: boolean;
 }
 
 export interface StatBonus {

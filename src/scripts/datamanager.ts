@@ -118,8 +118,14 @@ export class DataManager {
             requestType: 'search',
             sheet: 'Item',
             columns: [
-                // Normal item stuff
-                'ID', 'IconHD', 'Name', 'LevelItem', 'Stats', 'EquipSlotCategory', 'MateriaSlotCount', 'IsAdvancedMeldingPermitted', 'DamageMag', 'DamagePhys', 'DelayMs',
+                // Basic item properties
+                'ID', 'IconHD', 'Name', 'LevelItem',
+                // Equip slot restrictions
+                'EquipSlotCategory', 'IsUnique',
+                // Stats
+                'Stats', 'DamageMag', 'DamagePhys', 'DelayMs',
+                // Materia
+                'MateriaSlotCount', 'IsAdvancedMeldingPermitted',
                 // Stuff for determining correct WD for HQ crafted items
                 'CanBeHq',
                 'BaseParamSpecial0TargetID',
