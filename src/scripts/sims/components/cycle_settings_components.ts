@@ -1,5 +1,11 @@
 import {CycleSettings} from "../cycle_settings";
-import {FieldBoundFloatField, labeledCheckbox, labelFor, positiveValuesOnly} from "../../components/util";
+import {
+    FieldBoundCheckBox,
+    FieldBoundFloatField,
+    labeledCheckbox,
+    labelFor,
+    positiveValuesOnly
+} from "../../components/util";
 
 export function cycleSettingsGui(cycleSettings: CycleSettings) {
     const out = document.createElement('div')
@@ -11,5 +17,8 @@ export function cycleSettingsGui(cycleSettings: CycleSettings) {
     const label = labelFor('Total Time:', timeField);
     out.appendChild(label);
     out.appendChild(timeField);
+    out.appendChild(document.createElement('br'));
+    const autosCb = new FieldBoundCheckBox(cycleSettings, 'useAutos');
+    out.appendChild(labeledCheckbox('Use Auto-Attacks', autosCb));
     return out;
 }

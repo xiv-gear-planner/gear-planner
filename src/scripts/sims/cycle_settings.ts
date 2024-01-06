@@ -3,7 +3,7 @@ export type CycleSettings = {
     // not implemented yet
     cycles: number,
     which: 'totalTime' | 'cycles',
-    useAutos?: boolean
+    useAutos: boolean
 }
 
 export function defaultCycleSettings(): CycleSettings {
@@ -13,4 +13,10 @@ export function defaultCycleSettings(): CycleSettings {
         which: 'totalTime',
         useAutos: true
     }
+}
+
+export function rehydrate(imported: Partial<CycleSettings>): CycleSettings {
+    const out = defaultCycleSettings();
+    Object.assign(out, imported);
+    return out;
 }

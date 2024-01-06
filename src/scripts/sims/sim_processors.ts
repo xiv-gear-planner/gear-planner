@@ -1,7 +1,8 @@
 import {ComputedSetStats} from "../geartypes";
 import {applyDhCrit, baseDamage} from "../xivmath";
 import {
-    Ability, AutoAttack,
+    Ability,
+    AutoAttack,
     Buff,
     ComputedDamage,
     DamagingAbility,
@@ -22,7 +23,7 @@ import {
 } from "../xivconstants";
 import {simpleAutoResultTable, SimResult, SimSettings, SimSpec, Simulation} from "../simulation";
 import {BuffSettingsArea, BuffSettingsExport, BuffSettingsManager} from "./party_comp_settings";
-import {CycleSettings, defaultCycleSettings} from "./cycle_settings";
+import {CycleSettings, defaultCycleSettings, rehydrate} from "./cycle_settings";
 import {CharacterGearSet} from "../gear";
 import {cycleSettingsGui} from "./components/cycle_settings_components";
 import {writeProxy} from "../util/proxies";
@@ -256,12 +257,14 @@ export class CycleProcessor {
     readonly dotMap = new Map<number, UsedAbility>();
     private readonly manuallyActivatedBuffs: readonly Buff[];
     combatStarted: boolean = false;
+    readonly useAutos: boolean;
 
     constructor(settings: MultiCycleSettings) {
         this.cycleTime = settings.cycleTime;
         this.totalTime = settings.totalTime;
         this.stats = settings.stats;
         this.manuallyActivatedBuffs = settings.manuallyActivatedBuffs ?? [];
+        this.useAutos = settings.useAutos;
         settings.allBuffs.forEach(buff => {
             if (this.isBuffAutomatic(buff)) {
                 if (buff.startTime !== undefined) {
@@ -398,7 +401,9 @@ export class CycleProcessor {
         else {
             if (advanceTo >= this.nextAutoAttackTime && this.combatStarted) {
                 this.currentTime = this.nextAutoAttackTime;
-                this.recordAutoAttack();
+                if (this.useAutos) {
+                    this.recordAutoAttack();
+                }
             }
         }
         this.currentTime = advanceTo;
@@ -438,7 +443,7 @@ export class CycleProcessor {
         const preBuffs = this.getActiveBuffs();
         const preCombinedEffects: CombinedBuffEffect = combineBuffEffects(preBuffs);
         const abilityGcd = ability.fixedGcd ? ability.gcd :
-            (ability.attackType == "Spell") ? 
+            (ability.attackType == "Spell") ?
                 (this.stats.gcdMag(ability.gcd ?? this.gcdBase, preCombinedEffects.haste)) :
                 (this.stats.gcdPhys(ability.gcd ?? this.gcdBase, preCombinedEffects.haste));
         const snapshotsAt = ability.cast ? Math.max(this.currentTime, this.currentTime + ability.cast - CAST_SNAPSHOT_PRE) : this.currentTime;
@@ -641,7 +646,7 @@ export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, Inter
         if (settings !== undefined) {
             Object.assign(this.settings, settings.customSettings ?? settings);
             this.buffManager = BuffSettingsManager.fromSaved(settings.buffConfig);
-            this.cycleSettings = settings.cycleSettings ?? defaultCycleSettings();
+            this.cycleSettings = rehydrate(settings.cycleSettings);
         }
         else {
             this.cycleSettings = defaultCycleSettings();
@@ -694,7 +699,7 @@ export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, Inter
                 cycleTime: rot.cycleTime,
                 allBuffs: allBuffs,
                 manuallyActivatedBuffs: this.manuallyActivatedBuffs ?? [],
-                useAutos: this.cycleSettings.useAutos ?? true
+                useAutos: (this.cycleSettings.useAutos ?? true) && set.getItemInSlot('Weapon') !== null
             });
             rot.apply(cp);
 
