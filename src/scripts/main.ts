@@ -199,12 +199,14 @@ export function showImportSheetForm() {
     }));
 }
 
+const pageTitle = 'XivGear - FFXIV Gear Planner';
+
 export function setTitle(titlePart: string | undefined) {
     if (titlePart === undefined) {
-        document.title = 'FFXIV Gear Planner';
+        document.title = pageTitle;
     }
     else {
-        document.title = titlePart + ' - FFXIV Gear Planner';
+        document.title = titlePart + ' - ' + pageTitle;
     }
 }
 
