@@ -410,6 +410,7 @@ export class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
         super();
         this.classList.add("gear-items-table");
         this.classList.add("gear-items-edit-table");
+        this.classList.add("hoverable");
         super.columns = [
             {
                 shortName: "ilvl",

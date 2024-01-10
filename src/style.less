@@ -4,6 +4,7 @@ body {
   --border-color: #666666;
   --table-bg-color: #252525;
   --table-bg-color-selected: #333333;
+  --table-bg-color-hover: #444444;
   --table-selected-outline-color: #00bbbb;
   --color-sps-sks: #22ff22;
   --color-crit: #ff2222;
@@ -45,6 +46,7 @@ body {
     --border-color: #666666;
     --table-bg-color: #ddd;
     --table-bg-color-selected: #ccc;
+    --table-bg-color-hover: #aaa;
     --button-hover-color: #ccc;
     --materia-melded-slot-blend-color: #666666;
     --scrollbar-fg: #888;
@@ -221,6 +223,13 @@ table {
     text-align: left;
   }
 
+  &.hoverable {
+    tr:hover {
+      td {
+        background-color: var(--table-bg-color-hover);
+      }
+    }
+  }
 
   tr {
     /*border: 2px solid #666666;*/
@@ -310,6 +319,7 @@ table {
           border-radius: 0;
         }
 
+        //&:first-child, &[col-id='setname'] {
         &:first-child {
           > *:first-child::before {
             left: 0;
@@ -327,6 +337,12 @@ table {
       }
 
     }
+
+
+    //td:hover {
+    //
+    //  background-color: red;
+    //}
 
     td {
       border-left: var(--standard-border);
@@ -346,6 +362,10 @@ table {
 
       &[col-id="actions"] div {
         display: inline-flex;
+      }
+
+      &[col-id="setname"] {
+        border-left: none;
       }
 
       &[col-id="icon"] {
@@ -456,7 +476,7 @@ table.gear-plan-table {
   border-spacing: 0;
   //overflow-x: scroll;
   // Dumb. Gross. Why can't position: sticky have any reasonable way of working with variable-width columns?
-  background-color: var(--table-bg-color);
+  //background-color: var(--table-bg-color);
 
   td {
     scroll-margin-top: 68px;
@@ -534,16 +554,16 @@ table.gear-plan-table {
 
     &[is-selected="true"] {
       td, th {
-        background-color: var(--table-bg-color-selected) !important;
+        //background-color: var(--table-bg-color-selected) !important;
       }
     }
 
     td, th {
-      background-color: var(--table-bg-color);
+      //background-color: var(--table-bg-color);
 
-      &[is-selected="true"] {
-        background-color: var(--table-bg-color-selected);
-      }
+      //&[is-selected="true"] {
+      //  background-color: var(--table-bg-color-selected);
+      //}
 
       &:first-child, &:nth-child(2) {
         box-sizing: border-box;
@@ -579,6 +599,10 @@ table.gear-plan-table {
   }
 
   &.view-only {
+
+    td[col-id="actions"] > div {
+      display: none;
+    }
 
     div.set-name-desc-holder {
       span {
@@ -767,6 +791,7 @@ gear-plan {
 
   set-totals-display {
     display: block;
+
     div.stat-total {
       background-color: var(--table-bg-color);
       margin-top: 5px;
@@ -846,6 +871,7 @@ table.gear-items-table, table.food-items-table {
   //margin-right: 5px;
   & > table.gear-items-table {
     margin-bottom: 10px;
+
     &:last-child {
       margin-bottom: 0;
     }
@@ -1515,7 +1541,8 @@ gear-set-viewer {
   //  }
   //}
   display: block;
-  &>* {
+
+  & > * {
     margin-bottom: 10px;
   }
 

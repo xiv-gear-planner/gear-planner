@@ -181,6 +181,7 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
         super();
         this.sheet = sheet;
         this.classList.add("gear-plan-table");
+        this.classList.add("hoverable")
         this.setupColumns();
         const selModel = new SingleSelectionModel<CharacterGearSet, GearSetSel>();
         this.selectionModel = selModel;
@@ -269,7 +270,8 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
         if (viewOnly) {
             // TODO: this leaves 1px extra to the left of the name columns
             // Also messes with the selection outline
-            this.style.setProperty('--action-col-width', '1px');
+            // this.style.setProperty('--action-col-width', '1px');
+            this.style.setProperty('--action-col-width', '4px');
             this.classList.add('view-only');
         }
         else {
