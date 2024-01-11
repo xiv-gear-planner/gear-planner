@@ -1,4 +1,4 @@
-import {SHORTLINK_HASH} from "../main";
+import {SHARE_LINK, SHORTLINK_HASH} from "../main";
 
 const SHORTLINK_SERVER: URL = new URL("https://api.xivgear.app/shortlink/");
 
@@ -33,5 +33,13 @@ export async function putShortLink(content: string): Promise<URL> {
     return await fetch(getServer(), {
         method: "POST",
         body: content
-    }).then(response => response.text()).then(uuid => new URL(`#/${SHORTLINK_HASH}/${uuid}`, document.location.toString()));
+    }).then(response => response.text()).then(uuid => {
+        // If on prod, use the fancy share link.
+        if (document.location.hostname.toLowerCase() === 'xivgear.app') {
+            return new URL(`${SHARE_LINK}${uuid}`);
+        }
+        else {
+            return new URL(`#/${SHORTLINK_HASH}/${uuid}`, document.location.toString());
+        }
+    });
 }

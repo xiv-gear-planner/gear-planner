@@ -8,6 +8,7 @@ import {LoadingBlocker} from "./components/loader";
 import {earlyEmbedInit, openEmbed} from "./embed";
 
 export const SHORTLINK_HASH = 'sl';
+export const SHARE_LINK = 'https://share.xivgear.app/share/';
 export const BIS_HASH = 'bis';
 
 export const VIEW_SHEET_HASH = 'viewsheet';
