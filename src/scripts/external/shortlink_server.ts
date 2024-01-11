@@ -39,6 +39,7 @@ export async function putShortLink(content: string): Promise<URL> {
             return new URL(`${SHARE_LINK}${uuid}`);
         }
         else {
+            console.log("Non-prod, using raw sl link");
             return new URL(`#/${SHORTLINK_HASH}/${uuid}`, document.location.toString());
         }
     });
