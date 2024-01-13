@@ -165,6 +165,7 @@ export class FoodItemsTable extends CustomTable<FoodItem, FoodItem> {
     constructor(sheet: GearPlanSheet, gearSet: CharacterGearSet) {
         super();
         this.classList.add("food-items-table");
+        this.classList.add("hoverable")
         super.columns = [
             {
                 shortName: "ilvl",

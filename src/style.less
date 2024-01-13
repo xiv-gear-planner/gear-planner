@@ -2,9 +2,10 @@ body {
   --bg-color: #181818;
   --fg-color: #b0b0b0;
   --border-color: #666666;
+  --border-color-highlight: #888888;
   --table-bg-color: #252525;
   --table-bg-color-selected: #333333;
-  --table-bg-color-hover: #444444;
+  --table-bg-color-hover: #404040;
   --table-selected-outline-color: #00bbbb;
   --color-sps-sks: #22ff22;
   --color-crit: #ff2222;
@@ -44,6 +45,7 @@ body {
     --bg-color: #eee;
     --fg-color: #000000;
     --border-color: #666666;
+    --border-color-highlight: #444444;
     --table-bg-color: #ddd;
     --table-bg-color-selected: #ccc;
     --table-bg-color-hover: #aaa;
@@ -396,6 +398,10 @@ select {
   background-color: var(--bg-color);
   border: 1px solid var(--border-color);
   .standard-border-radius;
+
+  &:hover {
+    background-color: var(--button-hover-color);
+  }
 }
 
 .button-font-style {
@@ -922,7 +928,12 @@ table all-slot-materia-manager {
   }
 }
 
+slot-materia-manager:hover {
+  background-color: var(--button-hover-color);
+}
+
 slot-materia-manager, single-materia-view-only {
+  .standard-border-radius;
   display: inline-block;
   position: relative;
   margin-right: 5px;
@@ -959,7 +970,6 @@ slot-materia-manager, single-materia-view-only {
 
   &.materia-manager-active {
     box-shadow: 0 0 2px 2px var(--table-selected-outline-color) inset;
-    .standard-border-radius;
   }
 
   & > span {
@@ -1195,6 +1205,12 @@ div.gear-set-editor-toolbar, set-view-toolbar {
         display: inline-block;
         cursor: grab;
         user-select: none;
+
+        &:hover {
+          .materia-dragger-inner {
+            border-color: var(--border-color-highlight);
+          }
+        }
 
         .materia-dragger-inner {
           .standard-round-border;
