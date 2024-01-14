@@ -27,6 +27,25 @@ export type XivApiResponse<RequestType extends XivApiRequest> = {
 // export type ValidRequest<RequestType extends XivApiRequest> = RequestType['requestType'] extends 'search' ? XivApiSearchRequest : XivApiListRequest;
 
 // export async function xivApiGet<RequestType extends (XivApiListRequest | XivApiSearchRequest)>(request: RequestType | ValidRequest<RequestType>):
+
+export function xivApiFetch(...params: Parameters<typeof fetch>): Promise<any> {
+    return xFetchInternal(...params);
+}
+
+async function xFetchInternal(...params: Parameters<typeof fetch>): Promise<any> {
+    let tries = 5;
+    while (true) {
+        tries --;
+        const result = await fetch(...params);
+        // TODO: add other errors here?
+        if (tries > 0 && result.status === 429) {
+            await new Promise(r => setTimeout(r, 500 + (Math.random() * 1000)));
+            continue;
+        }
+        return result;
+    }
+}
+
 export function xivApiSingle(sheet: string, id: number) {
     const query = `https://xivapi.com/${sheet}/${id}`;
     return fetch(query).then(response => response.json());
@@ -38,6 +57,7 @@ export function xivApiSingleCols<Columns extends readonly string[]>(sheet: strin
     const query = `https://xivapi.com/${sheet}/${id}?Columns=${cols.join(',')}`;
     return fetch(query).then(response => response.json());
 }
+
 export async function xivApiGet<RequestType extends (XivApiListRequest | XivApiSearchRequest)>(request: RequestType):
     Promise<XivApiResponse<RequestType>> {
     let query: string;

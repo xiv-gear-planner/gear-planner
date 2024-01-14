@@ -7,7 +7,7 @@ export const MATERIA_SLOTS_MAX = 5;
 /**
  * Minimum level of materia that we would ever consider relevant.
  */
-export const MATERIA_LEVEL_MIN_RELEVANT = 7;
+export const MATERIA_LEVEL_MIN_RELEVANT = 5;
 /**
  * Max supported materia level.
  */
