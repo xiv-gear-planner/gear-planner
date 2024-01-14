@@ -72,7 +72,7 @@ export type RaceName = 'Duskwight' | 'Wildwood'
 /**
  * Supported levels.
  */
-export const SupportedLevels = [80, 90] as const;
+export const SupportedLevels = [70, 80, 90] as const;
 export type SupportedLevel = typeof SupportedLevels[number];
 
 // TODO: block modifications to this
@@ -318,6 +318,17 @@ export const RACE_STATS: Record<RaceName, RawStats> = {
  * Level-specific stat modifiers
  */
 export const LEVEL_STATS: Record<SupportedLevel, LevelStats> = {
+    70: {
+        level: 70,
+        baseMainStat: 292,
+        baseSubStat: 364,
+        levelDiv: 900,
+        // TODO: this value is a guess
+        hp: 2000,
+        mainStatPowerMod: {
+            other: 125,
+        }
+    },
     80: {
         level: 80,
         baseMainStat: 340,
@@ -347,26 +358,41 @@ export const LEVEL_STATS: Record<SupportedLevel, LevelStats> = {
  * Numbers governing the minimum/maximum item levels to request from xivapi, as well as default display settings.
  */
 export const LEVEL_ITEMS: Record<SupportedLevel, LevelItemInfo> = {
+    70: {
+        minILvl: 260,
+        maxILvl: 405,
+        minILvlFood: 250,
+        // No reason to cap food - it isn't level-bound.
+        // You can use 90 food at 70.
+        maxILvlFood: 999,
+        minMateria: 5,
+        maxMateria: 6,
+        defaultDisplaySettings: {
+            minILvl: 380,
+            maxILvl: 405,
+            minILvlFood:  640,
+            maxILvlFood:  999,
+            higherRelics: true
+        }
+    },
     80: {
         minILvl: 380,
         maxILvl: 475,
-        // TODO check food levels
         minILvlFood: 380,
-        maxILvlFood: 475,
+        maxILvlFood: 999,
         minMateria: 7,
         maxMateria: 8,
         defaultDisplaySettings: {
             minILvl: 450,
             maxILvl: 475,
-            minILvlFood: 440,
-            maxILvlFood: 475,
+            minILvlFood: 640,
+            maxILvlFood: 999,
             higherRelics: true
         }
     },
     90: {
         minILvl: 560,
         maxILvl: 999,
-        // TODO check food levels
         minILvlFood: 570,
         maxILvlFood: 999,
         minMateria: 7,
