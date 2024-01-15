@@ -39,6 +39,7 @@ async function xFetchInternal(...params: Parameters<typeof fetch>): Promise<any>
         const result = await fetch(...params);
         // TODO: add other errors here?
         if (tries > 0 && result.status === 429) {
+            console.log("xivapi throttle, retrying", params[0]);
             await new Promise(r => setTimeout(r, 500 + (Math.random() * 1000)));
             continue;
         }

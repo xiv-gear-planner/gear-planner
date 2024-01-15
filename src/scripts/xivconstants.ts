@@ -327,7 +327,7 @@ export const LEVEL_STATS: Record<SupportedLevel, LevelStats> = {
         hp: 2000,
         mainStatPowerMod: {
             other: 125,
-        }
+        },
     },
     80: {
         level: 80,
@@ -339,7 +339,7 @@ export const LEVEL_STATS: Record<SupportedLevel, LevelStats> = {
         mainStatPowerMod: {
             Tank: 115,
             other: 165,
-        }
+        },
     },
     90: {
         level: 90,
@@ -360,7 +360,8 @@ export const LEVEL_STATS: Record<SupportedLevel, LevelStats> = {
 export const LEVEL_ITEMS: Record<SupportedLevel, LevelItemInfo> = {
     70: {
         minILvl: 260,
-        maxILvl: 405,
+        maxILvl: 999,
+        defaultIlvlSync: 405,
         minILvlFood: 250,
         // No reason to cap food - it isn't level-bound.
         // You can use 90 food at 70.
@@ -377,7 +378,8 @@ export const LEVEL_ITEMS: Record<SupportedLevel, LevelItemInfo> = {
     },
     80: {
         minILvl: 380,
-        maxILvl: 475,
+        maxILvl: 999,
+        defaultIlvlSync: 535,
         minILvlFood: 380,
         maxILvlFood: 999,
         minMateria: 7,

@@ -324,13 +324,14 @@ export interface LevelStats {
     // You can specify either 'default' and a non-exhaustive list, or an exhaustive list (i.e. every role).
     mainStatPowerMod:
         ({ 'other': number } & { [K in RoleKey]?: number })
-        | { [K in RoleKey]: number }
+        | { [K in RoleKey]: number },
 }
 
 
 export interface LevelItemInfo {
     minILvl: number,
     maxILvl: number,
+    defaultIlvlSync?: number,
     minILvlFood: number,
     maxILvlFood: number,
     minMateria: number,
