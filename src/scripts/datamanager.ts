@@ -155,7 +155,9 @@ export class DataManager {
                     return null;
                 }
             }).then((rawItems) => {
-                this.allItems = rawItems.map(i => new XivApiGearInfo(i));
+                this.allItems = rawItems
+                    .filter(i => i['Stats'] !== null)
+                    .map(i => new XivApiGearInfo(i));
                 // TODO: put up better error
             }, (e) => console.error(e));
         const statsPromise = Promise.all([itemsPromise, baseParamPromise]).then(() => {

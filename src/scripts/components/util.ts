@@ -66,7 +66,7 @@ export class FieldBoundCheckBox<ObjType> extends HTMLInputElement {
     reloadValue: () => void;
     listeners: (BooleanListener)[] = [];
 
-    constructor(obj: ObjType, field: { [K in keyof ObjType]: ObjType[K] extends boolean ? K : never }[keyof ObjType], extraArgs: {
+    constructor(private obj: ObjType, private field: { [K in keyof ObjType]: ObjType[K] extends boolean ? K : never }[keyof ObjType], extraArgs: {
         id?: string
     } = {}) {
         super();
@@ -79,18 +79,21 @@ export class FieldBoundCheckBox<ObjType> extends HTMLInputElement {
             this.checked = obj[field];
         };
         this.reloadValue();
-        this.addEventListener('change', () => {
-            const newValue: boolean = this.checked;
-            // @ts-ignore
-            obj[field] = newValue;
-            for (let listener of this.listeners) {
-                try {
-                    listener(newValue);
-                } catch (e) {
-                    console.error("Error in listener", e);
-                }
+        this.addEventListener('change', () => this.notifyListeners())
+    }
+
+    private notifyListeners() {
+        const newValue: boolean = this.checked;
+        // @ts-ignore
+        this.obj[this.field] = newValue;
+        for (let listener of this.listeners) {
+            try {
+                listener(newValue);
             }
-        })
+            catch (e) {
+                console.error("Error in listener", e);
+            }
+        }
     }
 
     addListener(listener: BooleanListener) {
@@ -100,6 +103,15 @@ export class FieldBoundCheckBox<ObjType> extends HTMLInputElement {
     addAndRunListener(listener: BooleanListener) {
         this.listeners.push(listener);
         listener(this.checked);
+    }
+
+    get currentValue(): boolean {
+        return this.checked;
+    }
+
+    set currentValue(value: boolean) {
+        this.checked = value;
+        this.notifyListeners();
     }
 }
 
