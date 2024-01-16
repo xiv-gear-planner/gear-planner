@@ -49,6 +49,7 @@ import {
 import {
     DefaultMateriaFillPrio,
     getClassJobStats,
+    getLevelStats,
     getRaceStats,
     JOB_DATA,
     JobName,
@@ -86,7 +87,6 @@ import {SetViewToolbar} from "./components/totals_display";
 import {MateriaTotalsDisplay} from "./components/materia";
 import {startRenameSet, startRenameSheet} from "./components/rename_dialog";
 import {installDragHelper} from "./components/draghelpers";
-import doc = Mocha.reporters.doc;
 
 export const SHARED_SET_NAME = 'Imported Set';
 
@@ -2327,6 +2327,7 @@ export class NewSheetForm extends HTMLFormElement {
     private readonly jobDropdown: DataSelect<JobName>;
     private readonly levelDropdown: DataSelect<SupportedLevel>;
     private readonly ilvlSyncCheckbox: FieldBoundCheckBox<any>;
+    private readonly ilvlSyncValue: FieldBoundIntField<any>;
     private readonly fieldSet: HTMLFieldSetElement;
     private readonly sheetOpenCallback: (GearPlanSheet) => Promise<any>;
     private readonly tempSettings = {
@@ -2365,7 +2366,16 @@ export class NewSheetForm extends HTMLFormElement {
         this.fieldSet.appendChild(spacer());
 
         // Level selection
-        this.levelDropdown = new DataSelect<SupportedLevel>([...SupportedLevels], item => item.toString(), () => this.recheck(), Math.max(...SupportedLevels) as SupportedLevel);
+        this.levelDropdown = new DataSelect<SupportedLevel>([...SupportedLevels], item => item.toString(), newValue => {
+            const isync = LEVEL_ITEMS[newValue]?.defaultIlvlSync;
+            if (isync !== undefined) {
+                this.tempSettings.ilvlSyncEnabled = true;
+                this.tempSettings.ilvlSync = isync;
+                this.ilvlSyncValue.reloadValue();
+                this.ilvlSyncCheckbox.reloadValue();
+            }
+            this.recheck();
+        }, Math.max(...SupportedLevels) as SupportedLevel);
         this.levelDropdown.id = "new-sheet-level-dropdown";
         this.levelDropdown.required = true;
         this.fieldSet.appendChild(labelFor('Level: ', this.levelDropdown));
@@ -2375,7 +2385,7 @@ export class NewSheetForm extends HTMLFormElement {
         this.ilvlSyncCheckbox = new FieldBoundCheckBox(this.tempSettings, 'ilvlSyncEnabled');
         this.ilvlSyncCheckbox.id = 'new-sheet-ilvl-sync-enable';
         this.fieldSet.append(quickElement('div', [], [this.ilvlSyncCheckbox, labelFor("Sync Item Level", this.ilvlSyncCheckbox)]));
-        const ilvlSyncValue = new FieldBoundIntField(this.tempSettings, 'ilvlSync', {
+        this.ilvlSyncValue = new FieldBoundIntField(this.tempSettings, 'ilvlSync', {
             postValidators: [
                 positiveValuesOnly,
                 (ctx) => {
@@ -2385,11 +2395,9 @@ export class NewSheetForm extends HTMLFormElement {
                 }
             ]
         });
-        ilvlSyncValue.style.display = 'none';
-        this.ilvlSyncCheckbox.listeners.push(val => {
-            ilvlSyncValue.style.display = val ? '' : 'none';
-        });
-        this.fieldSet.appendChild(ilvlSyncValue);
+        this.ilvlSyncValue.style.display = 'none';
+        this.ilvlSyncCheckbox.addListener(() => this.recheck());
+        this.fieldSet.appendChild(this.ilvlSyncValue);
         this.fieldSet.appendChild(spacer());
 
         this.appendChild(this.fieldSet);
@@ -2410,7 +2418,7 @@ export class NewSheetForm extends HTMLFormElement {
     }
 
     recheck() {
-        // TODO
+        this.ilvlSyncValue.style.display = this.ilvlSyncCheckbox.currentValue ? '' : 'none';
     }
 
     private doSubmit() {

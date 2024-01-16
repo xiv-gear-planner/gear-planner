@@ -27,9 +27,29 @@ export type XivApiResponse<RequestType extends XivApiRequest> = {
 // export type ValidRequest<RequestType extends XivApiRequest> = RequestType['requestType'] extends 'search' ? XivApiSearchRequest : XivApiListRequest;
 
 // export async function xivApiGet<RequestType extends (XivApiListRequest | XivApiSearchRequest)>(request: RequestType | ValidRequest<RequestType>):
+
+export function xivApiFetch(...params: Parameters<typeof fetch>): Promise<any> {
+    return xFetchInternal(...params);
+}
+
+async function xFetchInternal(...params: Parameters<typeof fetch>): Promise<any> {
+    let tries = 5;
+    while (true) {
+        tries --;
+        const result = await fetch(...params);
+        // TODO: add other errors here?
+        if (tries > 0 && result.status === 429) {
+            console.log("xivapi throttle, retrying", params[0]);
+            await new Promise(r => setTimeout(r, 500 + (Math.random() * 1000)));
+            continue;
+        }
+        return result;
+    }
+}
+
 export function xivApiSingle(sheet: string, id: number) {
     const query = `https://xivapi.com/${sheet}/${id}`;
-    return fetch(query).then(response => response.json());
+    return xivApiFetch(query).then(response => response.json());
 }
 
 export function xivApiSingleCols<Columns extends readonly string[]>(sheet: string, id: number, cols: Columns): Promise<{
@@ -38,6 +58,7 @@ export function xivApiSingleCols<Columns extends readonly string[]>(sheet: strin
     const query = `https://xivapi.com/${sheet}/${id}?Columns=${cols.join(',')}`;
     return fetch(query).then(response => response.json());
 }
+
 export async function xivApiGet<RequestType extends (XivApiListRequest | XivApiSearchRequest)>(request: RequestType):
     Promise<XivApiResponse<RequestType>> {
     let query: string;
@@ -55,7 +76,7 @@ export async function xivApiGet<RequestType extends (XivApiListRequest | XivApiS
     }
     let i = 1;
     // Do initial results first to determine how many pages to request
-    const initialResults = await fetch(query + '&page=' + i).then(response => response.json());
+    const initialResults = await xivApiFetch(query + '&page=' + i).then(response => response.json());
     const pageCount = initialResults['Pagination']['PageTotal'];
     const pageLimit = request.pageLimit ? Math.min(pageCount, request.pageLimit - 1) : pageCount;
     const results = [...initialResults['Results']];
@@ -64,7 +85,7 @@ export async function xivApiGet<RequestType extends (XivApiListRequest | XivApiS
     for (let i = 2; i <= pageLimit; i++) {
         // xivapi is 20req/sec/ip, but multiple of these may be running in parallel
         await new Promise(resolve => setTimeout(resolve, 150));
-        additional.push(fetch(query + '&page=' + i).then(response => response.json()));
+        additional.push(xivApiFetch(query + '&page=' + i).then(response => response.json()));
     }
     for (let additionalData of additional) {
         results.push(...(await additionalData)['Results']);

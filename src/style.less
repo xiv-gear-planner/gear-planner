@@ -225,9 +225,9 @@ table {
     text-align: left;
   }
 
-  &.hoverable {
-    tr:hover {
-      td {
+  &.hoverable, &.hoverable > * {
+    > tr:hover {
+      > td {
         background-color: var(--table-bg-color-hover);
       }
     }
@@ -929,7 +929,9 @@ table all-slot-materia-manager {
 }
 
 slot-materia-manager:hover {
-  background-color: var(--button-hover-color);
+  &:not(:has(slot-materia-popup:hover)) {
+    background-color: var(--button-hover-color);
+  }
 }
 
 slot-materia-manager, single-materia-view-only {
@@ -999,6 +1001,10 @@ slot-materia-popup {
   z-index: var(--zi-slot-materia-popup);
   left: 0;
 
+  th {
+    border-top: var(--standard-border) !important;
+  }
+
   td {
     width: fit-content !important;
     height: fit-content !important;
@@ -1018,6 +1024,11 @@ slot-materia-popup {
     &:first-child {
       text-align: right;
       padding: 4px !important;
+    }
+
+    &:hover img {
+      filter: brightness(1.4);
+      //border: 2px solid var(--table-bg-color-hover);
     }
   }
 

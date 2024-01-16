@@ -28,7 +28,6 @@ import {MateriaSubstat, MateriaSubstats, STAT_ABBREVIATIONS} from "../xivconstan
 import {FieldBoundCheckBox, FieldBoundIntField, labeledCheckbox} from "./util";
 import {AllSlotMateriaManager} from "./materia";
 import {GearPlanSheet} from "../components";
-import Spec = Mocha.reporters.Spec;
 
 /**
  * Helper to add classes to cells for stats on a gear item.
@@ -509,6 +508,7 @@ export class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
             const slotId = name as keyof EquipmentSet;
             if (slotId === 'Weapon') {
                 data.push(new SpecialRow(table => {
+                    // Weapons have the option to display relics that violate the ilvl range
                     const div = document.createElement('div');
                     div.classList.add('weapon-ilvl-bypass-setting');
                     const text = document.createElement('span');
@@ -524,6 +524,13 @@ export class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
                 data.push(new TitleRow(slot.name));
             }
             const itemsInSlot = itemMapping.get(slot.gearSlot);
+            // Also display selected item
+            const selection = gearSet.getItemInSlot(slotId);
+            if (selection) {
+                if (!itemsInSlot.includes(selection)) {
+                    itemsInSlot.push(selection);
+                }
+            }
             if (itemsInSlot && itemsInSlot.length > 0) {
                 const sortedItems = [...itemsInSlot];
                 sortedItems.sort((left, right) => left.ilvl - right.ilvl);
