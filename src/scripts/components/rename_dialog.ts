@@ -69,7 +69,7 @@ class RenameModal extends HTMLElement {
             this.descriptionInput,
             quickElement('div', ['button-area'], [this.applyButton, this.cancelButton])
         ]);
-        form.addEventListener('submit', () => this.apply());
+        form.addEventListener('submit', ev => this.apply(ev));
 
         this.inner = quickElement('div', ['sheet-name-modal'],
             [
@@ -89,10 +89,14 @@ class RenameModal extends HTMLElement {
         // this.style.dis
     }
 
-    apply() {
+    apply(ev?: SubmitEvent) {
         this.itemBeingRenamed.name = this.nameInput.value;
         this.itemBeingRenamed.description = this.descriptionInput.value;
         closeModal();
+        if (ev) {
+            ev.preventDefault();
+            ev.stopPropagation();
+        }
     }
 }
 
