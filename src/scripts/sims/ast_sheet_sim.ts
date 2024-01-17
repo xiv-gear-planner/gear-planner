@@ -136,7 +136,7 @@ export class AstSheetSim extends BaseMultiCycleSim<AstSheetSimResult, AstNewShee
                     cycle.use(star);
                     cycle.useUntil(filler, 90);
                     cycle.use(combust);
-                    cycle.useUntil(filler, 120);
+                    cycle.useUntil(filler, 'end');
                 })
             }
         }];

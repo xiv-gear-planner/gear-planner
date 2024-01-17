@@ -49,7 +49,6 @@ import {
 import {
     DefaultMateriaFillPrio,
     getClassJobStats,
-    getLevelStats,
     getRaceStats,
     JOB_DATA,
     JobName,
@@ -87,6 +86,7 @@ import {SetViewToolbar} from "./components/totals_display";
 import {MateriaTotalsDisplay} from "./components/materia";
 import {startRenameSet, startRenameSheet} from "./components/rename_dialog";
 import {installDragHelper} from "./components/draghelpers";
+import doc = Mocha.reporters.doc;
 
 export const SHARED_SET_NAME = 'Imported Set';
 
@@ -1245,7 +1245,7 @@ export class GearPlanSheet extends HTMLElement {
             });
             buttonsArea.appendChild(newSimButton);
 
-            const exportSheetButton = makeActionButton("Export", () => {
+            const exportSheetButton = makeActionButton("Export Sheet", () => {
                 this.setupEditorArea(this.makeSheetExportArea());
             });
             buttonsArea.appendChild(exportSheetButton);
@@ -1874,8 +1874,15 @@ export class GearPlanSheet extends HTMLElement {
         outerDiv.appendChild(heading);
 
         const explanation = document.createElement('p');
-        explanation.textContent = 'This is for exporting an entire sheet. To export an individual gear set, select the gear set and use the export button in the gear set editor area.'
+        const btnLabel = document.createElement('b');
+        btnLabel.textContent = '"Copy Link to Set"';
+        explanation.replaceChildren('This is for exporting an entire sheet. To export an individual gear set, select the gear set and use the ', btnLabel, ' button in the gear set editor area.');
         outerDiv.appendChild(explanation);
+        if (this.sets.length === 1) {
+            const furtherExplanation = document.createElement('p');
+            furtherExplanation.textContent = 'Since you only have one set on this sheet, you may wish to do that.';
+            outerDiv.appendChild(furtherExplanation);
+        }
 
         const exportSheetLinkToClipboard = makeActionButton('Copy Link to Sheet', () => {
             startShortLink(JSON.stringify(this.exportSheet(true)));

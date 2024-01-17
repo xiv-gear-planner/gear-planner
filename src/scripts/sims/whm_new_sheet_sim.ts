@@ -147,7 +147,7 @@ export class WhmSheetSim extends BaseMultiCycleSim<WhmSheetSimResult, WhmNewShee
                         cycle.use(lily);
                         cycle.use(lily);
                     }
-                    cycle.useUntil(filler, 120);
+                    cycle.useUntil(filler, 'end');
                 });
             }
 

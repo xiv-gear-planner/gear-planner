@@ -201,8 +201,12 @@ export class CycleContext {
         return this.mcp.use(ability);
     }
 
-    useUntil(ability: GcdAbility, useUntil: number) {
-        const correctedTime = Math.min(this.cycleStartedAt + useUntil, this.cycleStartedAt + this.cycleTime, this.mcp.totalTime);
+    useUntil(ability: GcdAbility, useUntil: number | 'end') {
+        let correctedTime: number;
+        if (useUntil == 'end') {
+            useUntil = this.cycleTime;
+        }
+        correctedTime = Math.min(this.cycleStartedAt + useUntil, this.cycleStartedAt + this.cycleTime, this.mcp.totalTime);
         this.mcp.useUntil(ability, correctedTime);
     }
 

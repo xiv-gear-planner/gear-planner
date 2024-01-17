@@ -115,7 +115,7 @@ export class SgeSheetSim extends BaseMultiCycleSim<SgeSheetSimResult, SgeNewShee
                     cycle.use(phlegma);
                     cycle.useUntil(filler, 90);
                     cycle.use(eDosis);
-                    cycle.useUntil(filler, 120);
+                    cycle.useUntil(filler, 'end');
                 });
 
             }

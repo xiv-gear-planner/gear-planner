@@ -151,7 +151,7 @@ export class SchSheetSim extends BaseMultiCycleSim<SchSheetSimResult, SchNewShee
 
                     cycle.useUntil(filler, 90);
                     cycle.useGcd(bio);
-                    cycle.useUntil(filler, 120);
+                    cycle.useUntil(filler, 'end');
                 });
 
 
