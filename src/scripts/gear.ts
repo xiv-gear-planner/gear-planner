@@ -48,7 +48,7 @@ import {
     MateriaAutoFillController,
     MateriaAutoFillPrio,
     MateriaSlot,
-    MeldableMateriaSlot,
+    MeldableMateriaSlot, NO_SYNC_STATS,
     OccGearSlotKey,
     RawStatKey,
     RawStats,
@@ -63,13 +63,51 @@ import {XivApiStat, xivApiStatMapping} from "./external/xivapitypes";
 import {Inactivitytimer} from "./util/inactivitytimer";
 
 
+export type RelicStats = {
+    [K in Substat]?: number
+}
+
+export function nonEmptyRelicStats(stats: RelicStats | undefined): boolean {
+    return (stats && !Object.values(stats).every(val => !val));
+}
+
+export class RelicStatMemory {
+    private readonly memory: Map<number, RelicStats> = new Map();
+
+    get(item: GearItem): RelicStats | undefined {
+        const stats = this.memory.get(item.id);
+        if (nonEmptyRelicStats(stats)) {
+            return stats;
+        }
+        else {
+            return undefined;
+        }
+    }
+
+    set(item: GearItem, stats: RelicStats) {
+        if (nonEmptyRelicStats(stats)) {
+            this.memory.set(item.id, stats);
+        }
+    }
+
+    export(): RelicStatMemoryExport {
+        return Object.fromEntries(this.memory);
+    }
+
+    import(relicStatMemory: RelicStatMemoryExport) {
+        Object.entries(relicStatMemory).every(([rawKey, stats]) => this.memory.set(parseInt(rawKey), stats));
+    }
+}
+
+export type RelicStatMemoryExport = {
+    [p: number]: RelicStats;
+};
+
 export class EquippedItem {
 
     gearItem: GearItem;
     melds: MeldableMateriaSlot[];
-    relicStats?: {
-        [K in Substat]?: number
-    };
+    relicStats?: RelicStats;
 
     constructor(gearItem: GearItem, melds: MeldableMateriaSlot[] | undefined = undefined) {
         this.gearItem = gearItem;
@@ -119,6 +157,7 @@ export class CharacterGearSet {
     private readonly refresher = new Inactivitytimer(0, () => {
         this._notifyListeners();
     });
+    readonly relicStatMemory: RelicStatMemory = new RelicStatMemory();
 
     constructor(sheet: GearPlanSheet) {
         this._sheet = sheet;
@@ -171,13 +210,28 @@ export class CharacterGearSet {
         if (this.equipment[slot]?.gearItem === item) {
             return;
         }
+        const old = this.equipment[slot];
+        if (old && old.relicStats) {
+            this.relicStatMemory.set(old.gearItem, old.relicStats);
+        }
         this.invalidate();
-        this.equipment[slot] = new EquippedItem(item);
+        this.equipment[slot] = this.toEquippedItem(item);
         console.log(`Set ${this.name}: slot ${slot} => ${item.name}`);
         if (materiaAutoFill && materiaAutoFill.autoFillNewItem) {
             this.fillMateria(materiaAutoFill.prio, false, [slot]);
         }
         this.notifyListeners()
+    }
+
+    toEquippedItem(item: GearItem) {
+        const equipped = new EquippedItem(item);
+        if (item.isCustomRelic) {
+            const oldStats = this.relicStatMemory.get(item);
+            if (oldStats) {
+                equipped.relicStats = oldStats;
+            }
+        }
+        return equipped;
     }
 
     private notifyListeners() {
@@ -342,23 +396,14 @@ export class CharacterGearSet {
             return EMPTY_STATS;
         }
         const itemStats = new RawStats(equip.gearItem.stats);
-        if (equip.relicStats) {
-            let relicStats = new RawStats(equip.relicStats);
-            if (equip.gearItem.isSyncedDown) {
-                relicStats = applyStatCaps(relicStats, equip.gearItem.statCaps);
-            }
-            addStats(itemStats, relicStats);
-        }
         // Note for future: if we ever get an item that has both custom stats AND materia, this logic will need to be extended.
-        else {
-            for (let stat of ALL_SUB_STATS) {
-                const statDetail = this.getStatDetail(slotId, stat);
-                if (statDetail instanceof Object) {
-                    itemStats[stat] = statDetail.effectiveAmount;
-                }
-                else {
-                    itemStats[stat] = statDetail;
-                }
+        for (let stat of ALL_SUB_STATS) {
+            const statDetail = this.getStatDetail(slotId, stat);
+            if (statDetail instanceof Object) {
+                itemStats[stat] = statDetail.effectiveAmount;
+            }
+            else {
+                itemStats[stat] = statDetail;
             }
         }
         return itemStats;
@@ -367,28 +412,55 @@ export class CharacterGearSet {
     getStatDetail(slotId: keyof EquipmentSet, stat: RawStatKey, materiaOverride?: Materia[]): ItemSingleStatDetail | number {
         // TODO: work this into the normal stat computation method
         const equip = this.equipment[slotId];
+        return this.getEquipStatDetail(equip, stat, materiaOverride);
+    }
+
+    getEquipStatDetail(equip: EquippedItem, stat: RawStatKey, materiaOverride?: Materia[]): ItemSingleStatDetail | number {
         const gearItem = equip.gearItem;
         if (!gearItem) {
             return 0;
         }
+        const stats = new RawStats(gearItem.stats);
+        if (equip.relicStats) {
+            let relicStats = new RawStats(equip.relicStats);
+            addStats(stats, relicStats);
+        }
         if (gearItem.isSyncedDown) {
-            const unsynced = gearItem.unsyncedVersion.stats[stat];
-            const synced = gearItem.stats[stat];
-            if (synced < unsynced) {
-                return {
-                    effectiveAmount: synced,
-                    fullAmount: unsynced,
-                    overcapAmount: unsynced - synced,
-                    cap: synced,
-                    mode: "synced-down"
+            if (gearItem.isCustomRelic) {
+                const cap = gearItem.statCaps[stat];
+                const current = stats[stat];
+                if (cap && current > cap) {
+                    return {
+                        effectiveAmount: cap,
+                        fullAmount: current,
+                        overcapAmount: current - cap,
+                        cap: cap,
+                        mode: "synced-down"
+                    }
+                }
+                else {
+                    return current;
                 }
             }
             else {
-                return synced;
+                const unsynced = gearItem.unsyncedVersion.stats[stat];
+                const synced = stats[stat];
+                if (synced < unsynced) {
+                    return {
+                        effectiveAmount: synced,
+                        fullAmount: unsynced,
+                        overcapAmount: unsynced - synced,
+                        cap: synced,
+                        mode: "synced-down"
+                    }
+                }
+                else {
+                    return synced;
+                }
             }
         }
         const cap = gearItem.statCaps[stat] ?? 9999;
-        const baseItemStatValue = gearItem.stats[stat];
+        const baseItemStatValue = stats[stat];
         let meldedStatValue = baseItemStatValue;
         let smallestMateria = 999999;
         const materiaList = materiaOverride === undefined ? equip.melds.map(meld => meld.equippedMateria).filter(item => item) : materiaOverride.filter(item => item);
@@ -519,6 +591,9 @@ export function applyStatCaps(stats: RawStats, statCaps: { [K in RawStatKey]?: n
         ...stats
     }
     Object.entries(stats).forEach(([stat, value]) => {
+        if (NO_SYNC_STATS.includes(stat as RawStatKey)) {
+            return;
+        }
         out[stat] = Math.min(value, statCaps[stat] ?? 999999);
     })
     return out;

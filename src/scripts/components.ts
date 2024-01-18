@@ -194,7 +194,7 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                     setSelection(newSelection.dataValue as Simulation<any, any, any>);
                 }
                 else if (newSelection instanceof CustomCell && newSelection.colDef.dataValue?.spec) {
-                    setSelection(new SimResultData(newSelection.colDef.dataValue, newSelection.value));
+                    setSelection(new SimResultData(newSelection.colDef.dataValue, newSelection.cellValue));
                 }
                 else if (newSelection === undefined) {
                     setSelection(undefined);
@@ -553,7 +553,7 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
         let invalid = false;
         const processed: [CustomCell<any, any>, number][] = [];
         for (let cell of cells) {
-            const value: SimCurrentResult<SimResult> = cell.value;
+            const value: SimCurrentResult<SimResult> = cell.cellValue;
             if (value.status !== 'Done') {
                 invalid = true;
                 break;
@@ -1687,6 +1687,11 @@ export class GearPlanSheet extends HTMLElement {
             out.ilvlSync = this.ilvlSync;
             out.sims = this.exportSims();
         }
+        else {
+            if (set.relicStatMemory) {
+                out.relicStatMemory = set.relicStatMemory.export();
+            }
+        }
         return out;
     }
 
@@ -1726,6 +1731,9 @@ export class GearPlanSheet extends HTMLElement {
         }
         if (importedSet.food) {
             set.food = this.dataManager.foodById(importedSet.food);
+        }
+        if (importedSet.relicStatMemory) {
+            set.relicStatMemory.import(importedSet.relicStatMemory);
         }
         return set;
     }

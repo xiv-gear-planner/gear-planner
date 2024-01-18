@@ -548,7 +548,7 @@ export class CustomCell<RowDataType, CellDataType> extends HTMLTableCellElement 
     dataItem: RowDataType;
     colDef: CustomColumn<RowDataType, CellDataType>;
     row: CustomRow<RowDataType>;
-    _value: CellDataType;
+    _cellValue: CellDataType;
     private _selected: boolean = false;
 
     constructor(dataItem: RowDataType, colDef: CustomColumn<RowDataType, CellDataType>, row: CustomRow<RowDataType>, opts?: RefreshableOpts) {
@@ -566,10 +566,10 @@ export class CustomCell<RowDataType, CellDataType> extends HTMLTableCellElement 
     refreshFull() {
         let node: Node;
         try {
-            this._value = this.colDef.getter(this.dataItem);
-            node = this.colDef.renderer(this._value, this.row.dataItem);
+            this._cellValue = this.colDef.getter(this.dataItem);
+            node = this.colDef.renderer(this._cellValue, this.row.dataItem);
             if (node) {
-                this.colDef.colStyler(this._value, this, node, this.row.dataItem);
+                this.colDef.colStyler(this._cellValue, this, node, this.row.dataItem);
             }
         } catch (e) {
             console.error(e);
@@ -598,8 +598,8 @@ export class CustomCell<RowDataType, CellDataType> extends HTMLTableCellElement 
         this.selected = (this.row.table.selectionModel.isCellSelectedDirectly(this));
     }
 
-    get value() {
-        return this._value;
+    get cellValue() {
+        return this._cellValue;
     }
 
     set selected(selected) {

@@ -1,4 +1,4 @@
-import {EquippedItem} from "./gear";
+import {EquippedItem, RelicStats} from "./gear";
 import {
     FAKE_MAIN_STATS,
     JobName,
@@ -288,6 +288,10 @@ export interface RawStats {
 
 export type RawStatKey = keyof RawStats;
 
+/**
+ * Stats that should not have ilvl caps applied
+ */
+export const NO_SYNC_STATS: RawStatKey[] = ['weaponDelay'];
 
 export class RawStats implements RawStats {
     hp: number = 0;
@@ -444,6 +448,9 @@ export interface SetExport {
     ilvlSync?: number,
     description?: string,
     sims?: SimExport[],
+    relicStatMemory?: {
+        [p: number]: RelicStats
+    };
 }
 
 export interface ItemSlotExport {
