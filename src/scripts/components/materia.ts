@@ -277,6 +277,8 @@ export class SlotMateriaManagerPopup extends HTMLElement {
         for (let stat of stats) {
             const headerCell = document.createElement("th");
             headerCell.textContent = STAT_ABBREVIATIONS[stat];
+            headerCell.classList.add('stat-' + stat);
+            headerCell.classList.add('primary');
             headerRow.appendChild(headerCell);
         }
         for (let grade of grades) {

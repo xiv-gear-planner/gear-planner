@@ -369,10 +369,10 @@ function earlyUiSetup() {
 // }
 
 document.addEventListener("DOMContentLoaded", () => {
-
     // iosPolyfill();
     earlyUiSetup();
     addEventListener("hashchange", processHash);
     initialLoad();
-})
+});
+
 

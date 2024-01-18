@@ -1098,6 +1098,7 @@ export class GearPlanSheet extends HTMLElement {
         this._importedData = importedData;
         this._saveKey = sheetKey;
         this.headerArea = document.createElement('div');
+        this.headerArea.classList.add('header-area');
         this.tableArea = document.createElement("div");
         this.tableArea.classList.add('gear-sheet-table-area', 'hide-when-loading');
         this.buttonsArea = document.createElement("div");
@@ -1160,6 +1161,9 @@ export class GearPlanSheet extends HTMLElement {
 
     private set editorItem(item: typeof this._editorItem) {
         this._editorItem = item;
+        if (this.isViewOnly) {
+            this.headerArea.style.display = 'none';
+        }
         this.resetEditorArea();
     }
 
@@ -1312,6 +1316,10 @@ export class GearPlanSheet extends HTMLElement {
                 this.headerArea.appendChild(unsavedWarning);
             }
             this.headerArea.style.display = '';
+            const headerButton = makeActionButton('Show/Hide Header', () => {
+                this.headerArea.style.display = (this.headerArea.style.display === 'none') ? '' : 'none';
+            })
+            buttonsArea.appendChild(headerButton);
         }
         // const tableAreaInner = quickElement('div', ['gear-sheet-table-area-inner'], [this._gearPlanTable, this.buttonsArea]);
         this.tableArea.appendChild(this._gearPlanTable);
@@ -1900,7 +1908,7 @@ export class GearPlanSheet extends HTMLElement {
             navigator.clipboard.writeText(JSON.stringify(this.exportSheet(true)));
         });
 
-        const preview = makeActionButton('Preview Set', () => {
+        const preview = makeActionButton('Preview Sheet', () => {
             const exported = this.exportSheet(true);
             const url = new URL(`#/${VIEW_SHEET_HASH}/${encodeURIComponent(JSON.stringify(exported))}`, document.location.toString());
             window.open(url, '_blank');
