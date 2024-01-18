@@ -107,11 +107,6 @@ const STANDARD_TANK: JobDataConst = {
     mainStat: 'strength',
     autoAttackStat: 'strength',
     irrelevantSubstats: ['spellspeed', 'piety'],
-    traits: [{
-        apply(stats) {
-            return stats.vitality += 29;
-        }
-    }] as JobTrait[],
     aaPotency: MELEE_AUTO_POTENCY
 } as const;
 
@@ -326,6 +321,7 @@ export const LEVEL_STATS: Record<SupportedLevel, LevelStats> = {
         // TODO: this value is a guess
         hp: 2000,
         mainStatPowerMod: {
+            Tank: 105,
             other: 125,
         },
     },
@@ -426,12 +422,12 @@ export const LEVEL_ITEMS: Record<SupportedLevel, LevelItemInfo> = {
 /**
  * Main stats in current version of the game.
  */
-export const MAIN_STATS = ['strength', 'dexterity', 'intelligence', 'mind'] as const;
-// TODO: is Tenacity treated like this?
+export const MAIN_STATS = ['strength', 'dexterity', 'intelligence', 'mind', 'vitality'] as const;
+// TODO: is Tenacity treated like this? No.
 /**
  * Substats that are treated as main stats for stat calc purposes.
  */
-export const FAKE_MAIN_STATS = ['vitality', 'determination', 'piety'] as const;
+export const FAKE_MAIN_STATS = ['determination', 'piety'] as const;
 /**
  * Substats that get the substat-specific math treatment.
  */
