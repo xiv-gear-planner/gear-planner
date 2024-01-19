@@ -87,7 +87,8 @@ import {MateriaTotalsDisplay} from "./components/materia";
 import {startRenameSet, startRenameSheet} from "./components/rename_dialog";
 import {installDragHelper} from "./components/draghelpers";
 import {getShortLink} from "./external/shortlink_server";
-import { parseImport } from "./imports/imports";
+import {parseImport} from "./imports/imports";
+import doc = Mocha.reporters.doc;
 
 export const SHARED_SET_NAME = 'Imported Set';
 
@@ -935,6 +936,7 @@ function formatSimulationConfigArea<SettingsType extends SimSettings>(
     refreshColumn: (item: Simulation<any, SettingsType, any>) => void,
     deleteColumn: (item: Simulation<any, SettingsType, any>) => void,
     refreshHeaders: () => void): HTMLElement {
+
     const outerDiv = document.createElement("div");
     outerDiv.id = 'sim-config-area-outer';
     outerDiv.classList.add('sim-config-area-outer');
@@ -942,16 +944,22 @@ function formatSimulationConfigArea<SettingsType extends SimSettings>(
     // const header = document.createElement("h1");
     // header.textContent = "Configuring " + sim.displayName;
     // outerDiv.appendChild(header);
-    const titleEditor = new FieldBoundTextField(sim, 'displayName');
-    titleEditor.addListener(val => {
-        refreshHeaders();
-    });
-    titleEditor.classList.add('sim-name-editor');
-    titleEditor.title = 'Rename this simulation';
-    outerDiv.appendChild(titleEditor);
+    if (sheet.isViewOnly) {
+        const title = document.createElement('h1');
+        title.textContent = sim.displayName;
+    }
+    else {
+        const titleEditor = new FieldBoundTextField(sim, 'displayName');
+        titleEditor.addListener(val => {
+            refreshHeaders();
+        });
+        titleEditor.classList.add('sim-name-editor');
+        titleEditor.title = 'Rename this simulation';
+        outerDiv.appendChild(titleEditor);
+        const rerunButton = makeActionButton("Rerun", () => refreshColumn(sim));
+        outerDiv.appendChild(rerunButton);
+    }
 
-    const rerunButton = makeActionButton("Rerun", () => refreshColumn(sim));
-    outerDiv.appendChild(rerunButton);
     const deleteButton = makeActionButton("Delete", () => deleteColumn(sim));
     outerDiv.appendChild(deleteButton);
 

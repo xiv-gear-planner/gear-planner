@@ -1376,6 +1376,14 @@ set-totals-display {
       padding-right: var(--inner-padding);
       //float: right;
     }
+
+    &.stat-total-wide {
+      min-width: 90px;
+    }
+
+    &.stat-total-narrow {
+      min-width: 52px;
+    }
   }
 }
 
@@ -1667,6 +1675,7 @@ gear-set-viewer {
 
 .stat-cell {
   text-align: center;
+
   span {
     padding: 0 1px 0 0;
   }
@@ -1718,6 +1727,7 @@ td.stat-melded, td.stat-melded-overcapped, td.stat-melded-overcapped-major, td.s
   //box-shadow: 0 0 4px 2px rgb(from color-mix(in srgb, var(--stat-color) 40%, var(--materia-melded-slot-blend-color)) r g b / 80%) inset;
   box-shadow: 0 0 2px 2px color-mix(in srgb, color-mix(in srgb, var(--stat-color) 40%, var(--materia-melded-slot-blend-color)), transparent 35%) inset;
 }
+
 td.stat-zero {
   color: color-mix(in srgb, var(--table-bg-color) 50%, var(--fg-color));
 }

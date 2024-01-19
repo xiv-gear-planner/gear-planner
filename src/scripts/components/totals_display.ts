@@ -93,17 +93,21 @@ export class SingleStatTotalDisplay extends HTMLDivElement {
             if ('chance' in value) {
                 this.appendChild(quickTextDiv('stat-total-lower-left', `${(value.chance * 100.0).toFixed(1)}%`));
                 this.appendChild(quickTextDiv('stat-total-lower-right', `x${value.multiplier.toFixed(3)}`));
+                this.classList.add('stat-total-wide');
             }
             else if ('gcd' in value) {
                 this.appendChild(quickTextDiv('stat-total-lower-left', value.gcd.toString()));
                 this.appendChild(quickTextDiv('stat-total-lower-right', `x${value.multiplier.toFixed(3)}`));
+                this.classList.add('stat-total-wide');
             }
             else {
                 this.appendChild(quickTextDiv('stat-total-lower-center', `x${value.multiplier.toFixed(3)}`));
+                this.classList.add('stat-total-narrow');
             }
         }
         else {
             this.appendChild(quickTextDiv('stat-total-lower-center', `+${value.perTick.toFixed(0)}/tick`));
+            this.classList.add('stat-total-narrow');
         }
     }
 }

@@ -579,7 +579,10 @@ export class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
             else {
                 data.push(new TitleRow(slot.name));
             }
-            const itemsInSlot = itemMapping.get(slot.gearSlot);
+            let itemsInSlot = itemMapping.get(slot.gearSlot);
+            if (itemsInSlot === undefined) {
+                itemsInSlot = [];
+            }
             // Also display selected item
             const selection = gearSet.getItemInSlot(slotId);
             if (selection) {
