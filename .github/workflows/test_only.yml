@@ -1,6 +1,7 @@
 name: Test Build for PR
 
 on:
+  push:
   pull_request:
 #    branches: [ "master" ]
   workflow_dispatch:
@@ -22,4 +23,4 @@ jobs:
           npm install
           npx webpack --mode=production
           npx lessc --source-map ./src/style.less dist/style.css
-          npx ts-mocha src/scripts/test/*test.ts
+          npx ts-mocha src/scripts/test/*test.ts src/scripts/test/*tests.ts
