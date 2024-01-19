@@ -13,9 +13,9 @@ body {
   --color-det: #0099ff;
   --color-tnc: #ffff00;
   --color-piety: #ff00ff;
-  --stat-mix-primary: 70%;
+  --stat-mix-primary: 65%;
   --stat-mix-primary-bg: 12%;
-  --stat-mix-secondary: 12%;
+  --stat-mix-secondary: 15%;
   --stat-mix-secondary-bg: 6%;
   --materia-overcap-major: #ff0000;
   --materia-overcap: #dd7700;
@@ -33,7 +33,6 @@ body {
   --item-name-col-width: 300px;
   --button-hover-color: #333333;
   --materia-melded-slot-blend-color: #cccccc;
-  --melded-box-shadow: 0 0 4px 2px color-mix(in srgb, var(--stat-color) 40%, var(--materia-melded-slot-blend-color)) inset;
   --scrollbar-fg: #666666;
   --scrollbar-bg: #444444;
   --stat-tiering-box-mix-color: #fff;
@@ -153,6 +152,20 @@ body {
 
 .standard-border {
   border: var(--standard-border);
+}
+
+.standard-paragraph {
+  max-width: 900px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+.header-area, .gear-sheet-editor-area {
+  p {
+    .standard-paragraph;
+  }
 }
 
 .soft-border {
@@ -1652,6 +1665,13 @@ gear-set-viewer {
 
 // Stat-related stuff
 
+.stat-cell {
+  text-align: center;
+  span {
+    padding: 0 1px 0 0;
+  }
+}
+
 .color-stat-column {
   &.primary {
     color: color-mix(in srgb, var(--stat-color) var(--stat-mix-primary), var(--fg-color));
@@ -1695,19 +1715,9 @@ gear-set-viewer {
 }
 
 td.stat-melded, td.stat-melded-overcapped, td.stat-melded-overcapped-major, td.stat-synced-down {
-  box-shadow: 0 0 4px 2px color-mix(in srgb, var(--stat-color) 40%, var(--materia-melded-slot-blend-color)) inset;
+  //box-shadow: 0 0 4px 2px rgb(from color-mix(in srgb, var(--stat-color) 40%, var(--materia-melded-slot-blend-color)) r g b / 80%) inset;
+  box-shadow: 0 0 2px 2px color-mix(in srgb, color-mix(in srgb, var(--stat-color) 40%, var(--materia-melded-slot-blend-color)), transparent 35%) inset;
 }
-
-//td.stat-melded {
-//  box-shadow: 0 0 2px 2px #cccccc inset;
-//}
-//td.stat-melded-overcapped {
-//  box-shadow: 0 0 2px 2px var(--materia-overcap) inset;
-//}
-//td.stat-melded-overcapped-major {
-//  box-shadow: 0 0 3px 3px var(--materia-overcap-major) inset;
-//}
-
 td.stat-zero {
   color: color-mix(in srgb, var(--table-bg-color) 50%, var(--fg-color));
 }

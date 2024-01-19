@@ -50,7 +50,7 @@ function statCellStyler(cell: CustomCell<GearSlotItem, any>, value: number | Ite
 
     let isPrimary: boolean = false;
     let isSecondary: boolean = false;
-    cell.classList.add("stat-" + stat);
+    cell.classList.add("stat-cell", "stat-" + stat);
     if (cell.dataItem.item.isCustomRelic) {
         const current = (value instanceof Object) ? value.fullAmount : value;
         const cap = cell.dataItem.item.statCaps[stat];
@@ -129,6 +129,7 @@ function statCellStyler(cell: CustomCell<GearSlotItem, any>, value: number | Ite
  */
 function foodStatCellStyler(cell: CustomCell<FoodItem, any>, stat: keyof RawStats) {
 
+    cell.classList.add("food-stat-cell");
     cell.classList.add("stat-" + stat);
     if (cell.dataItem.primarySubStat === stat) {
         cell.classList.add("primary");

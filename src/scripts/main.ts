@@ -195,8 +195,8 @@ export function showNewSheetForm() {
 export function showImportSheetForm() {
     setHash('importsheet')
     setMainContent('Import Sheet', new ImportSheetArea(async sheet => {
-        openSheet(sheet, false);
         setHash('imported');
+        openSheet(sheet, false);
     }));
 }
 
@@ -245,7 +245,6 @@ export async function openSheetByKey(sheet: string) {
     const planner = GearPlanSheet.fromSaved(sheet);
     if (planner) {
         await openSheet(planner);
-        setTitle(planner.sheetName);
     }
     else {
         contentArea.replaceChildren(document.createTextNode("That sheet does not exist."));
@@ -280,9 +279,13 @@ export async function openSheet(planner: GearPlanSheet, changeHash: boolean = tr
     const oldHash = getHash();
     const loadSheetPromise = planner.loadData().then(() => {
         // If the user has navigated away while the sheet was loading, do not display the sheet.
-        if (arrayEq(getHash(), oldHash)) {
+        const newHash = getHash();
+        if (arrayEq(newHash, oldHash)) {
             contentArea.replaceChildren(planner);
             setTitle(planner.sheetName);
+        }
+        else {
+            console.log("Canceled showing sheet due to hash change", oldHash, newHash);
         }
     }, (reason) => {
         console.error(reason);

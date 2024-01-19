@@ -86,7 +86,8 @@ import {SetViewToolbar} from "./components/totals_display";
 import {MateriaTotalsDisplay} from "./components/materia";
 import {startRenameSet, startRenameSheet} from "./components/rename_dialog";
 import {installDragHelper} from "./components/draghelpers";
-import doc = Mocha.reporters.doc;
+import {getShortLink} from "./external/shortlink_server";
+import { parseImport } from "./imports/imports";
 
 export const SHARED_SET_NAME = 'Imported Set';
 
@@ -1226,7 +1227,10 @@ export class GearPlanSheet extends HTMLElement {
         }
 
         if (this.ilvlSync != undefined) {
-            buttonsArea.appendChild(quickElement('span', ['like-a-button'], [document.createTextNode(`ilvl Sync: ${this.ilvlSync}`)]));
+            const ilvlSyncLabel = quickElement('span', ['like-a-button'], [document.createTextNode(`ilvl Sync: ${this.ilvlSync}`)]);
+            // TODO: think about how to allow creating a new sheet with different ilvl
+            // ilvlSyncLabel.title = 'To change the item level sync, click the "Save As" button and create a '
+            buttonsArea.appendChild(ilvlSyncLabel);
         }
 
         const saveAsButton = makeActionButton("Save As", () => {
@@ -2019,44 +2023,47 @@ class ImportSetArea extends HTMLElement {
 
     doImport() {
         const text = this.textArea.value.trim();
-        // First check for Etro link
-        const importSheetUrlRegex = RegExp(".*/importsheet/(.*)$");
-        const importSetUrlRegex = RegExp(".*/importset/(.*)$");
-        const etroRegex = RegExp("https:\/\/etro\.gg\/gearset\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})")
-        const sheetExec = importSheetUrlRegex.exec(text);
-        if (sheetExec !== null) {
-            this.doJsonImport(decodeURIComponent(sheetExec[1]));
-            return;
-        }
-        const setExec = importSetUrlRegex.exec(text);
-        if (setExec !== null) {
-            this.doJsonImport(decodeURIComponent(setExec[1]));
-            return;
-        }
-        const etroExec = etroRegex.exec(text);
-        if (etroExec !== null) {
-            this.ready = false;
-            getSetFromEtro(etroExec[1]).then(set => {
-                if (!this.checkJob(set.job, false)) {
-                    this.ready = true;
+        const parsed = parseImport(text);
+        if (parsed) {
+            switch (parsed.importType) {
+                case "json":
+                    try {
+                        this.doJsonImport(parsed.rawData);
+                    }
+                    catch (e) {
+                        console.error('Import error', e);
+                        alert('Error importing');
+                    }
                     return;
-                }
-                this.sheet.addGearSet(this.sheet.importGearSet(set), true);
-                console.log("Loaded set from Etro");
-            }, err => {
-                this.ready = true;
-                console.error("Error loading set from Etro", err);
-                alert('Error loading Etro set');
-            });
-            return;
+                case "shortlink":
+                    this.ready = false;
+                    getShortLink(decodeURIComponent(parsed.rawUuid)).then(data => {
+                        this.doJsonImport(data);
+                    }, err => {
+                        this.ready = true;
+                        console.error("Error importing set/sheet", err);
+                        alert('Error loading set/sheet');
+                    });
+                    return;
+                case "etro":
+                    this.ready = false;
+                    getSetFromEtro(parsed.rawUuid).then(set => {
+                        if (!this.checkJob(set.job, false)) {
+                            this.ready = true;
+                            return;
+                        }
+                        this.sheet.addGearSet(this.sheet.importGearSet(set), true);
+                        console.log("Loaded set from Etro");
+                    }, err => {
+                        this.ready = true;
+                        console.error("Error loading set from Etro", err);
+                        alert('Error loading Etro set');
+                    });
+                    return;
+            }
         }
-        try {
-            this.doJsonImport(text);
-        }
-        catch (e) {
-            console.error('Import error', e);
-            alert('Error importing');
-        }
+        console.error("Error loading imported data", text);
+        alert('That doesn\'t look like a valid import.');
     }
 
     doJsonImport(text: string) {
@@ -2088,6 +2095,7 @@ class ImportSetArea extends HTMLElement {
 
     }
 }
+
 
 export class ImportSheetArea extends HTMLElement {
     private readonly loader: LoadingBlocker;
@@ -2138,41 +2146,43 @@ export class ImportSheetArea extends HTMLElement {
 
     doImport() {
         const text = this.textArea.value;
-        // First check for Etro link
-        const importSheetUrlRegex = RegExp(".*/importsheet/(.*)$");
-        const importSetUrlRegex = RegExp(".*/importset/(.*)$");
-        const sheetExec = importSheetUrlRegex.exec(text);
-        if (sheetExec !== null) {
-            this.doJsonImport(decodeURIComponent(sheetExec[1]));
-            return;
+        const parsed = parseImport(text);
+        if (parsed) {
+            switch (parsed.importType) {
+                case "json":
+                    try {
+                        this.doJsonImport(parsed.rawData);
+                    }
+                    catch (e) {
+                        console.error('Import error', e);
+                        alert('Error importing');
+                    }
+                    return;
+                case "shortlink":
+                    this.ready = false;
+                    getShortLink(decodeURIComponent(parsed.rawUuid)).then(data => {
+                        this.doJsonImport(data);
+                    }, err => {
+                        this.ready = true;
+                        console.error("Error importing set/sheet", err);
+                        alert('Error loading set/sheet');
+                    });
+                    return;
+                case "etro":
+                    this.ready = false;
+                    getSetFromEtro(parsed.rawUuid).then(set => {
+                        this.sheetOpenCallback(GearPlanSheet.fromSetExport(set));
+                        console.log("Loaded set from Etro");
+                    }, err => {
+                        this.ready = true;
+                        console.error("Error loading set from Etro", err);
+                        alert('Error loading Etro set');
+                    });
+                    return;
+            }
         }
-        const setExec = importSetUrlRegex.exec(text);
-        if (setExec !== null) {
-            this.doJsonImport(decodeURIComponent(setExec[1]));
-            return;
-        }
-        const etroRegex = RegExp("https:\/\/etro\.gg\/gearset\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})")
-        const etroExec = etroRegex.exec(text);
-        // TODO: check level as well
-        if (etroExec !== null) {
-            this.ready = false;
-            getSetFromEtro(etroExec[1]).then(set => {
-                this.sheetOpenCallback(GearPlanSheet.fromSetExport(set));
-                console.log("Loaded set from Etro");
-            }, err => {
-                this.ready = true;
-                console.error("Error loading set from Etro", err);
-                alert('Error loading Etro set');
-            });
-            return;
-        }
-        try {
-            this.doJsonImport(text);
-        }
-        catch (e) {
-            console.error('Import error', e);
-            alert('Error importing');
-        }
+        console.error("Error loading imported data", text);
+        alert('That doesn\'t look like a valid import.');
     }
 
     doJsonImport(text: string) {
