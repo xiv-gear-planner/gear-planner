@@ -154,7 +154,7 @@ class FoodStatBonus extends HTMLElement {
         super();
         this.appendChild(makeSpan(`+${value.percentage}%`))
         this.appendChild(document.createTextNode(' '));
-        this.appendChild(makeSpan(`<${value.max}`, ['food-stat-narrow']));
+        this.appendChild(makeSpan(`≤${value.max}`, ['food-stat-narrow']));
         this.appendChild(makeSpan(`(max ${value.max})`, ['food-stat-wide']));
     }
 }
