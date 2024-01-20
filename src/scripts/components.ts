@@ -368,6 +368,7 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                             lastDelta = 0;
                             rowBeingDragged.style.top = '';
                             rowBeingDragged.classList.remove('dragging');
+                            console.log('Drag end');
                             rowBeingDragged = null;
                         }
                     })
