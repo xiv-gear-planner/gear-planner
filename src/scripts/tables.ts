@@ -1,5 +1,10 @@
 function setCellProps(cell: HTMLTableCellElement, colDef: CustomColumn<any, any>) {
     cell.setAttribute("col-id", colDef.shortName);
+    const extraClasses = colDef.extraClasses;
+    if (extraClasses) {
+        cell.classList.add(...extraClasses);
+    }
+    cell.classList.add()
     if (colDef.initialWidth !== undefined) {
         cell.style.width = cell.style.minWidth = cell.style.maxWidth = colDef.initialWidth + "px";
     }
@@ -443,6 +448,7 @@ export interface CustomColumnSpec<RowDataType, CellDataType = string, ColumnData
     fixedWidth?: number | undefined;
     dataValue?: ColumnDataType;
     headerStyler?: (value: ColumnDataType, colHeader: CustomTableHeaderCell<RowDataType, CellDataType, ColumnDataType>) => void;
+    extraClasses?: string[]
 }
 
 export class CustomColumn<RowDataType, CellDataType = string, ColumnDataType = any> {
@@ -477,6 +483,7 @@ export class CustomColumn<RowDataType, CellDataType = string, ColumnDataType = a
     };
     condition?: () => boolean = () => true;
     initialWidth?: number | undefined = undefined;
+    extraClasses?: string[] = undefined;
     fixedWidth?: number | undefined = undefined;
     dataValue?: ColumnDataType;
     headerStyler?: (value: ColumnDataType, colHeader: CustomTableHeaderCell<RowDataType, CellDataType, ColumnDataType>) => void;

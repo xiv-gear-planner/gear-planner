@@ -103,7 +103,8 @@ function mainStatCol(sheet: GearPlanSheet, stat: RawStatKey): CustomColumnSpec<C
             multiplier: gearSet.computedStats.mainStatMulti
         }),
         condition: () => sheet.isStatRelevant(stat),
-        renderer: multiplierStatTooltip
+        renderer: multiplierStatTooltip,
+        extraClasses: ['stat-col', 'main-stat-col'],
     }
 }
 
@@ -116,7 +117,8 @@ function tooltipMultiStatCol(sheet: GearPlanSheet, stat: RawStatKey, multiKey: {
             multiplier: gearSet.computedStats[multiKey]
         }),
         condition: () => sheet.isStatRelevant(stat),
-        renderer: multiplierStatTooltip
+        renderer: multiplierStatTooltip,
+        extraClasses: ['stat-col', 'compact-multiplier-stat-col'],
     }
 }
 
@@ -313,8 +315,8 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                 getter: gearSet => gearSet,
                 renderer: gearSet => {
                     const div = document.createElement("div");
-                    div.appendChild(makeActionButton('🗑️', () => this.sheet.delGearSet(gearSet), 'Delete this set'));
-                    div.appendChild(makeActionButton('📃', () => this.sheet.cloneAndAddGearSet(gearSet, true), 'Clone this set'));
+                    div.appendChild(makeActionButton([quickElement('i', ['fa-regular', 'fa-trash-can'], [])], () => this.sheet.delGearSet(gearSet), 'Delete this set'));
+                    div.appendChild(makeActionButton([quickElement('i', ['fa-regular', 'fa-copy'], [])], () => this.sheet.cloneAndAddGearSet(gearSet, true), 'Clone this set'));
                     const dragger = document.createElement('button');
                     dragger.title = 'Drag to re-order this set'
                     dragger.textContent = '≡';
@@ -409,6 +411,7 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                 shortName: "gcd",
                 displayName: "GCD",
                 getter: gearSet => Math.min(gearSet.computedStats.gcdMag(2.5), gearSet.computedStats.gcdPhys(2.5)),
+                renderer: gcd => document.createTextNode(gcd.toFixed(2)),
                 initialWidth: statColWidth + 10,
             },
             {
@@ -419,31 +422,28 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                     multiplier: gearSet.computedStats.wdMulti
                 }),
                 initialWidth: statColWidth,
-                renderer: multiplierStatTooltip
+                renderer: multiplierStatTooltip,
+                extraClasses: ['stat-col'],
             } as CustomColumnSpec<CharacterGearSet, MultiplierStat>,
             {
                 shortName: "vit",
                 displayName: "VIT",
                 getter: gearSet => gearSet.computedStats.vitality,
-                initialWidth: statColWidth,
+                extraClasses: ['stat-col'],
             },
             {
                 ...mainStatCol(this.sheet, 'dexterity'),
                 shortName: 'dex',
-                initialWidth: statColWidth,
             },
             {
                 ...mainStatCol(this.sheet, 'strength'),
-                initialWidth: statColWidth,
             },
             {
                 ...mainStatCol(this.sheet, 'mind'),
-                initialWidth: statColWidth,
             },
             {
                 ...mainStatCol(this.sheet, 'intelligence'),
                 shortName: 'int',
-                initialWidth: statColWidth,
             },
             {
                 shortName: "crit",
@@ -454,8 +454,8 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                     multiplier: gearSet.computedStats.critMulti
                 }) as ChanceStat,
                 renderer: chanceStatDisplay,
-                initialWidth: chanceStatColWidth,
                 condition: () => this.sheet.isStatRelevant('crit'),
+                extraClasses: ['stat-col', 'chance-stat-col'],
             },
             {
                 shortName: "dhit",
@@ -466,8 +466,8 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                     multiplier: gearSet.computedStats.dhitMulti
                 }) as ChanceStat,
                 renderer: chanceStatDisplay,
-                initialWidth: chanceStatColWidth,
                 condition: () => this.sheet.isStatRelevant('dhit'),
+                extraClasses: ['stat-col', 'chance-stat-col'],
             },
             {
                 shortName: "det",
@@ -477,20 +477,18 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                     multiplier: gearSet.computedStats.detMulti
                 }) as MultiplierStat,
                 renderer: multiplierStatDisplay,
-                initialWidth: multiStatColWidth,
                 condition: () => this.sheet.isStatRelevant('determination'),
+                extraClasses: ['stat-col', 'multiplier-stat-col'],
             },
             {
                 ...tooltipMultiStatCol(this.sheet, 'skillspeed', 'sksDotMulti'),
                 shortName: "sks",
                 displayName: "SKS",
-                initialWidth: statColWidth,
             },
             {
                 ...tooltipMultiStatCol(this.sheet, 'spellspeed', 'spsDotMulti'),
                 shortName: "sps",
                 displayName: "SPS",
-                initialWidth: statColWidth,
             },
             {
                 shortName: "piety",
@@ -507,8 +505,8 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                     multiplier: gearSet.computedStats.tncMulti
                 }) as MultiplierStat,
                 renderer: multiplierStatDisplay,
-                initialWidth: multiStatColWidth,
                 condition: () => this.sheet.isStatRelevant('tenacity'),
+                extraClasses: ['stat-col', 'multiplier-stat-col'],
             },
             ...(viewOnly ? [] : simColumns),
         ];

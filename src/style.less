@@ -28,7 +28,7 @@ body {
   --modal-backdrop-color: #88888833;
   --error-border-color: #9c0000;
   --standard-border-radius: 5px;
-  --action-col-width: 80px;
+  --action-col-width: 70px;
   --set-name-col-width: 300px;
   --item-name-col-width: 300px;
   --button-hover-color: #333333;
@@ -39,6 +39,10 @@ body {
   --faint-border: 1px solid #60606080;
   --plain-link-color: #4f84ff;
   --plain-link-hover-color: #76cfff;
+  --edge-padding: 4px;
+  --stat-col-width: 40px;
+  --chance-stat-col-width: 160px;
+  --multi-stat-col-width: 120px;
 
   &.light-mode {
     --bg-color: #eee;
@@ -580,6 +584,20 @@ table.gear-plan-table {
     td, th {
       background-color: var(--table-bg-color);
 
+      &.stat-col {
+        //
+        --cell-width: var(--stat-col-width);
+        width: var(--cell-width);
+        min-width: var(--cell-width);
+        max-width: var(--cell-width);
+        &.chance-stat-col {
+          --cell-width: var(--chance-stat-col-width);
+        }
+        &.multiplier-stat-col {
+          --cell-width: var(--multi-stat-col-width);
+        }
+      }
+
       //&[is-selected="true"] {
       //  background-color: var(--table-bg-color-selected);
       //}
@@ -618,6 +636,20 @@ table.gear-plan-table {
   }
 
   &.view-only {
+    .stat-col {
+      text-align: center;
+    }
+    //--stat-col-width: 40px;
+    --chance-stat-col-width: 110px;
+    --multi-stat-col-width: 70px;
+    @media screen and (max-width: 1000px) {
+      --chance-stat-col-width: 40px;
+      --multi-stat-col-width: 40px;
+      .extra-stat-info {
+        display: none !important;
+      }
+    }
+
 
     td[col-id="actions"] > div {
       display: none;
@@ -801,6 +833,8 @@ gear-plan {
     height: 60%;
     max-height: 100%;
     border-top: 2px solid var(--border-color);
+    padding-left: var(--edge-padding);
+    padding-right: var(--edge-padding);
   }
 }
 
@@ -1204,6 +1238,12 @@ div.gear-set-editor-toolbar, set-view-toolbar {
   materia-priority-picker {
     width: fit-content;
     .standard-round-border;
+
+    text-align: left;
+
+    div.labeled-checkbox {
+      float: right;
+    }
 
     > span {
       display: inline-block;
@@ -1951,3 +1991,8 @@ div.weapon-ilvl-bypass-setting {
   }
 
 }
+
+// TODO: how to do FA fallback to emoji if font blocked?
+//i.fa-copy::before {
+//  content: '📃';
+//}

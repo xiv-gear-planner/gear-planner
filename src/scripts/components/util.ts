@@ -1,6 +1,11 @@
-export function makeActionButton(label: string, action: (ev: MouseEvent) => void, tooltip?: string) {
+export function makeActionButton(label: string | Node[], action: (ev: MouseEvent) => void, tooltip?: string) {
     const button = document.createElement("button");
-    button.textContent = label;
+    if (label instanceof Object) {
+        button.replaceChildren(...label);
+    }
+    else {
+        button.textContent = label;
+    }
     button.addEventListener('click', ev => {
         ev.stopPropagation();
         action(ev);
@@ -418,7 +423,7 @@ export function labeledCheckbox(label: string, check: HTMLInputElement): HTMLDiv
     return div;
 }
 
-export function quickElement<X extends keyof HTMLElementTagNameMap>(tag: X, classes: string[], nodes: Node[]): HTMLElementTagNameMap[X] {
+export function quickElement<X extends keyof HTMLElementTagNameMap>(tag: X, classes: string[], nodes: Parameters<ParentNode['replaceChildren']>): HTMLElementTagNameMap[X] {
     const element = document.createElement(tag);
     element.replaceChildren(...nodes);
     element.classList.add(...classes);
