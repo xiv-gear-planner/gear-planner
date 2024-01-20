@@ -343,7 +343,16 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                             rowBeingDragged = null;
                         },
                         moveHandler: (ev) => {
-                            let target = ev.target;
+                            // let target = ev.target;
+                            const dragY = ev.clientY;
+                            let target = this._rows.find(row => {
+                                const el = row.element;
+                                if (!el || el === rowBeingDragged) {
+                                    return false;
+                                }
+                                const br = el.getBoundingClientRect();
+                                return br.y <= dragY && dragY <= (br.y + br.height);
+                            });
                             while (target) {
                                 if (target instanceof CustomRow) {
                                     const toIndex = this.sheet.sets.indexOf(target.dataItem);
@@ -359,7 +368,7 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                                 const rect = rowBeingDragged.getBoundingClientRect();
                                 const delta = ev.pageY - (rect.y - lastDelta) - (rect.height / 2);
                                 lastDelta = delta;
-                                // console.log(delta);
+                                console.log(delta, target);
                                 rowBeingDragged.style.top = `${delta}px`;
                             }
                         },

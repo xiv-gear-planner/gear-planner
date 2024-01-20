@@ -238,6 +238,8 @@ export interface RefreshableRow<X> {
     refreshFull(),
 
     refreshColumn(colDef: CustomColumn<X>),
+
+    get element(): HTMLElement
 }
 
 export class CustomTable<RowDataType, SelectionType = never> extends HTMLTableElement {
@@ -545,6 +547,10 @@ export class CustomRow<RowDataType> extends HTMLTableRowElement implements Refre
         }
         this._selected = selected;
         this.setAttribute("is-selected", String(selected));
+    }
+
+    get element(): HTMLElement {
+        return this;
     }
 }
 
