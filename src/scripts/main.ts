@@ -75,6 +75,10 @@ function setMainContent(title: string, ...nodes) {
 
 let embed = false;
 
+export function getCurrentHash() {
+    return [...expectedHash];
+}
+
 async function processHash() {
     // Remove the literal #
     let hash = (location.hash.startsWith("#") ? location.hash.substring(1) : location.hash).split('/').filter(item => item).map(item => decodeURIComponent(item));

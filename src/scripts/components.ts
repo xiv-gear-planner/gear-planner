@@ -62,11 +62,11 @@ import {
     SupportedLevel,
     SupportedLevels
 } from "./xivconstants";
-import {openSheetByKey, setTitle, showNewSheetForm, VIEW_SHEET_HASH} from "./main";
+import {getCurrentHash, openSheetByKey, setTitle, SHORTLINK_HASH, showNewSheetForm, VIEW_SHEET_HASH} from "./main";
 import {getSetFromEtro} from "./external/etro_import";
 import {Inactivitytimer} from "./util/inactivitytimer";
 import {
-    DataSelect,
+    DataSelect, faIcon,
     FieldBoundCheckBox,
     FieldBoundDataSelect,
     FieldBoundIntField,
@@ -315,8 +315,8 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                 getter: gearSet => gearSet,
                 renderer: gearSet => {
                     const div = document.createElement("div");
-                    div.appendChild(makeActionButton([quickElement('i', ['fa-regular', 'fa-trash-can'], [])], () => this.sheet.delGearSet(gearSet), 'Delete this set'));
-                    div.appendChild(makeActionButton([quickElement('i', ['fa-regular', 'fa-copy'], [])], () => this.sheet.cloneAndAddGearSet(gearSet, true), 'Clone this set'));
+                    div.appendChild(makeActionButton([faIcon('fa-trash-can')], () => this.sheet.delGearSet(gearSet), 'Delete this set'));
+                    div.appendChild(makeActionButton([faIcon('fa-copy')], () => this.sheet.cloneAndAddGearSet(gearSet, true), 'Clone this set'));
                     const dragger = document.createElement('button');
                     dragger.title = 'Drag to re-order this set'
                     dragger.textContent = '≡';
@@ -359,7 +359,7 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                                 const rect = rowBeingDragged.getBoundingClientRect();
                                 const delta = ev.pageY - (rect.y - lastDelta) - (rect.height / 2);
                                 lastDelta = delta;
-                                console.log(delta);
+                                // console.log(delta);
                                 rowBeingDragged.style.top = `${delta}px`;
                             }
                         },
@@ -825,7 +825,18 @@ export class GearSetViewer extends HTMLElement {
 
         // Name editor
         const heading = document.createElement('h1');
-        heading.textContent = this.gearSet.name;
+        if (this.sheet.isEmbed) {
+            const headingLink = document.createElement('a');
+            const hash = getCurrentHash();
+            const linkUrl = new URL(`#/${hash.slice(1).join('/')}`, document.location.toString());
+            headingLink.href = linkUrl.toString();
+            headingLink.target = '_blank';
+            headingLink.replaceChildren(this.gearSet.name, faIcon('fa-arrow-up-right-from-square', 'fa'));
+            heading.replaceChildren(headingLink);
+        }
+        else {
+            heading.textContent = this.gearSet.name;
+        }
         this.appendChild(heading);
 
         if (this.gearSet.description) {
@@ -1027,6 +1038,7 @@ export class GearPlanSheet extends HTMLElement {
     private setupDone: boolean = false;
     isViewOnly: boolean = false;
     private gearUpdateTimer: Inactivitytimer;
+    isEmbed: boolean;
 
 
     /**

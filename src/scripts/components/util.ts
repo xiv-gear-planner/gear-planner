@@ -427,7 +427,13 @@ export function quickElement<X extends keyof HTMLElementTagNameMap>(tag: X, clas
     const element = document.createElement(tag);
     element.replaceChildren(...nodes);
     element.classList.add(...classes);
-    return element
+    return element;
+}
+
+export function faIcon(faIconName: string, faType: string = 'fa-regular') {
+    const element = document.createElement('i');
+    element.classList.add(faType, faIconName);
+    return element;
 }
 
 customElements.define("option-data-element", OptionDataElement, {extends: "option"});

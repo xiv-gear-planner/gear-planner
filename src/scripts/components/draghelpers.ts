@@ -10,6 +10,7 @@ export function installDragHelper(args: {dragHandle: HTMLElement, dragOuter: HTM
         args.dragHandle.style.cursor = 'grabbing';
         body.style.cursor = 'grabbing';
         const move = ev => {
+            ev.preventDefault();
             args.moveHandler?.(ev);
         }
         const up = (ev) => {
