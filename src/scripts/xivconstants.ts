@@ -1,4 +1,12 @@
-import {JobDataConst, JobTrait, LevelItemInfo, LevelStats, RawStatKey, RawStats} from "./geartypes";
+import {
+    GearAcquisitionSource,
+    JobDataConst,
+    JobTrait,
+    LevelItemInfo,
+    LevelStats,
+    RawStatKey,
+    RawStats
+} from "./geartypes";
 
 /**
  * Maximum number of materia slots on any item.
@@ -355,7 +363,7 @@ export const LEVEL_STATS: Record<SupportedLevel, LevelStats> = {
  */
 export const LEVEL_ITEMS: Record<SupportedLevel, LevelItemInfo> = {
     70: {
-        minILvl: 260,
+        minILvl: 290,
         maxILvl: 999,
         defaultIlvlSync: 405,
         minILvlFood: 250,
@@ -373,7 +381,7 @@ export const LEVEL_ITEMS: Record<SupportedLevel, LevelItemInfo> = {
         }
     },
     80: {
-        minILvl: 380,
+        minILvl: 430,
         maxILvl: 999,
         defaultIlvlSync: 535,
         minILvlFood: 380,
@@ -389,6 +397,7 @@ export const LEVEL_ITEMS: Record<SupportedLevel, LevelItemInfo> = {
         }
     },
     90: {
+        // Would expect 570, but it has those 560 scaling artifacts
         minILvl: 560,
         maxILvl: 999,
         minILvlFood: 570,
@@ -571,4 +580,38 @@ export function getRaceStats(race: RaceName | undefined) {
     else {
         return EMPTY_STATS;
     }
+}
+
+export const ARTIFACT_ITEM_LEVELS = [
+    290,
+    430,
+    560,
+]
+
+export const BASIC_TOME_GEAR_ILVLS = [
+    310,
+    440,
+    570
+]
+
+export const RAID_TIER_ILVLS = [
+    340, 370, 400,
+    470, 500, 530,
+    600, 630, 660
+] as const as readonly number[];
+
+export function formatAcquisitionSource(source: GearAcquisitionSource): string | null {
+    switch (source) {
+        case "augtome":
+            return "Aug. Tome";
+        case "augcrafted":
+            return "Aug. Crafted";
+        case "normraid":
+            return "Normal Raid";
+        case "extrial":
+            return "Extreme Trial";
+        case "other":
+            return null;
+    }
+    return source[0].toUpperCase() + source.substring(1);
 }

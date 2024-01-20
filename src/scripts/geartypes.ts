@@ -2,9 +2,9 @@ import {EquippedItem, RelicStats} from "./gear";
 import {
     FAKE_MAIN_STATS,
     JobName,
+    MAIN_STATS,
     MateriaSubstat,
     RaceName,
-    MAIN_STATS,
     SPECIAL_SUB_STATS,
     SupportedLevel
 } from "./xivconstants";
@@ -52,18 +52,66 @@ export const EquipSlots = ['Weapon', 'OffHand', 'Head', 'Body', 'Hand', 'Legs', 
 export type EquipSlotKey = typeof EquipSlots[number];
 
 export const EquipSlotInfo: Record<EquipSlotKey, EquipSlot> = {
-    Weapon: {slot: 'Weapon', name: 'Weapon', gearSlot: DisplayGearSlotInfo.Weapon},
-    OffHand: {slot: 'OffHand', name: 'Off-Hand', gearSlot: DisplayGearSlotInfo.OffHand},
-    Head: {slot: 'Head', name: 'Head', gearSlot: DisplayGearSlotInfo.Head},
-    Body: {slot: 'Body', name: 'Body', gearSlot: DisplayGearSlotInfo.Body},
-    Hand: {slot: 'Hand', name: 'Hand', gearSlot: DisplayGearSlotInfo.Hand},
-    Legs: {slot: 'Legs', name: 'Legs', gearSlot: DisplayGearSlotInfo.Legs},
-    Feet: {slot: 'Feet', name: 'Feet', gearSlot: DisplayGearSlotInfo.Feet},
-    Ears: {slot: 'Ears', name: 'Ears', gearSlot: DisplayGearSlotInfo.Ears},
-    Neck: {slot: 'Neck', name: 'Neck', gearSlot: DisplayGearSlotInfo.Neck},
-    Wrist: {slot: 'Wrist', name: 'Wrist', gearSlot: DisplayGearSlotInfo.Wrist},
-    RingLeft: {slot: 'RingLeft', name: 'Left Ring', gearSlot: DisplayGearSlotInfo.Ring},
-    RingRight: {slot: 'RingRight', name: 'Right Ring', gearSlot: DisplayGearSlotInfo.Ring}
+    Weapon: {
+        slot: 'Weapon',
+        name: 'Weapon',
+        gearSlot: DisplayGearSlotInfo.Weapon
+    },
+    OffHand: {
+        slot: 'OffHand',
+        name: 'Off-Hand',
+        gearSlot: DisplayGearSlotInfo.OffHand
+    },
+    Head: {
+        slot: 'Head',
+        name: 'Head',
+        gearSlot: DisplayGearSlotInfo.Head
+    },
+    Body: {
+        slot: 'Body',
+        name: 'Body',
+        gearSlot: DisplayGearSlotInfo.Body
+    },
+    Hand: {
+        slot: 'Hand',
+        name: 'Hand',
+        gearSlot: DisplayGearSlotInfo.Hand
+    },
+    Legs: {
+        slot: 'Legs',
+        name: 'Legs',
+        gearSlot: DisplayGearSlotInfo.Legs
+    },
+    Feet: {
+        slot: 'Feet',
+        name: 'Feet',
+        gearSlot: DisplayGearSlotInfo.Feet
+    },
+    Ears: {
+        slot: 'Ears',
+        name: 'Ears',
+        gearSlot: DisplayGearSlotInfo.Ears
+    },
+    Neck: {
+        slot: 'Neck',
+        name: 'Neck',
+        gearSlot: DisplayGearSlotInfo.Neck
+    },
+    Wrist: {
+        slot: 'Wrist',
+        name: 'Wrist',
+        gearSlot: DisplayGearSlotInfo.Wrist
+    },
+    RingLeft: {
+        slot: 'RingLeft',
+        name: 'Left Ring',
+        gearSlot: DisplayGearSlotInfo.Ring
+    },
+    RingRight: {
+        slot: 'RingRight',
+        name: 'Right Ring',
+        gearSlot: DisplayGearSlotInfo.Ring
+    }
 } as const;
 
 type KeyOfType<T, V> = keyof {
@@ -135,6 +183,7 @@ export interface GearItem extends XivCombatItem {
     unsyncedVersion: GearItem;
     isSyncedDown: boolean;
     isUnique: boolean;
+    acquisitionType: GearAcquisitionSource;
 }
 
 export interface StatBonus {
@@ -244,10 +293,12 @@ export interface ComputedSetStats extends RawStats {
      * else).
      */
     aaStatMulti: number
+
     /**
      * Trait multiplier
      */
     traitMulti(attackType: AttackType): number;
+
     /**
      * Bonus added to det multiplier for automatic direct hits
      */
@@ -327,7 +378,9 @@ export interface LevelStats {
     hp: number,
     // You can specify either 'default' and a non-exhaustive list, or an exhaustive list (i.e. every role).
     mainStatPowerMod:
-        ({ 'other': number } & { [K in RoleKey]?: number })
+        ({
+            'other': number
+        } & { [K in RoleKey]?: number })
         | { [K in RoleKey]: number },
 }
 
@@ -455,7 +508,9 @@ export interface SetExport {
 
 export interface ItemSlotExport {
     id: number,
-    materia: ({ id: number } | undefined)[],
+    materia: ({
+        id: number
+    } | undefined)[],
     relicStats?: {
         [K in Substat]?: number
     }
@@ -495,6 +550,7 @@ export type AttackType = typeof AttackTypes[number];
 export interface GeneralStat {
     stat: number,
 }
+
 export interface MultiplierStat extends GeneralStat {
     multiplier: number
 }
@@ -512,3 +568,15 @@ export interface GcdStat extends GeneralStat {
 export interface TickStat extends GeneralStat {
     perTick: number
 }
+
+export type GearAcquisitionSource =
+    'raid'
+    | 'tome' | 'augtome'
+    | 'crafted' | 'augcrafted'
+    | 'relic'
+    | 'dungeon'
+    | 'normraid'
+    | 'extrial'
+    | 'ultimate'
+    | 'artifact'
+    | 'other';

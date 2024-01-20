@@ -24,10 +24,11 @@ import {
     SpecialRow,
     TitleRow
 } from "../tables";
-import {MateriaSubstat, MateriaSubstats, STAT_ABBREVIATIONS} from "../xivconstants";
+import {formatAcquisitionSource, MateriaSubstat, MateriaSubstats, STAT_ABBREVIATIONS} from "../xivconstants";
 import {FieldBoundCheckBox, FieldBoundIntField, labeledCheckbox} from "./util";
 import {AllSlotMateriaManager} from "./materia";
 import {GearPlanSheet} from "../components";
+import {shortenItemName} from "../util/strutils";
 
 function statCellStylerRemover(cell: CustomCell<GearSlotItem, any>) {
     cell.classList.remove("secondary");
@@ -494,8 +495,15 @@ export class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
                 getter: item => {
                     return item.item.name;
                 },
+                renderer: (name: string) => {
+                    return document.createTextNode(shortenItemName(name));
+                },
                 colStyler: (value, colElement, internalElement, rowValue) => {
                     colElement.title = `${value} (${rowValue.item.id})`;
+                    const formattedAcqSrc = formatAcquisitionSource(rowValue.item.acquisitionType);
+                    if (formattedAcqSrc) {
+                        colElement.title += `\nAcquired from: ${formattedAcqSrc}`;
+                    }
                 }
             },
             {
@@ -684,6 +692,38 @@ export class GearItemsViewTable extends CustomTable<GearSlotItem, EquipmentSet> 
         super();
         this.classList.add("gear-items-table");
         this.classList.add("gear-items-view-table");
+        let headingText = handledSlots && handledSlots.length > 0 ? EquipSlotInfo[handledSlots[0]].name : "Name";
+        const data: (TitleRow | HeaderRow | GearSlotItem)[] = [];
+        // Track the selected item in every category so that it can be more quickly refreshed
+        data.push(new HeaderRow());
+        let slotItem: GearItem = null;
+        for (const [name, slot] of Object.entries(EquipSlotInfo)) {
+            if (handledSlots && !handledSlots.includes(name as EquipSlotKey)) {
+                continue;
+            }
+            const slotId = name as keyof EquipmentSet;
+            const equippedItem = itemMapping.get(slot.slot);
+            if (equippedItem) {
+                const item = {
+                    slot: slot,
+                    item: equippedItem,
+                    slotId: slotId
+                };
+                slotItem = equippedItem;
+                data.push(item);
+                if (!equippedItem.isCustomRelic) {
+                    // TODO: make this readonly properly
+                    const matMgr = new AllSlotMateriaManager(sheet, gearSet, slotId);
+                    data.push(new SpecialRow(tbl => matMgr));
+                }
+            }
+        }
+        if (slotItem) {
+            const acqSource = formatAcquisitionSource(slotItem.acquisitionType);
+            if (acqSource) {
+                headingText = `${headingText}: ${acqSource}`;
+            }
+        }
         super.columns = [
             {
                 shortName: "ilvl",
@@ -707,9 +747,12 @@ export class GearItemsViewTable extends CustomTable<GearSlotItem, EquipmentSet> 
             },
             {
                 shortName: "itemname",
-                displayName: handledSlots && handledSlots.length > 0 ? EquipSlotInfo[handledSlots[0]].name : "Name",
+                displayName: headingText,
                 getter: item => {
                     return item.item.name;
+                },
+                renderer: (name: string) => {
+                    return document.createTextNode(shortenItemName(name));
                 },
                 // initialWidth: 300,
             },
@@ -752,29 +795,6 @@ export class GearItemsViewTable extends CustomTable<GearSlotItem, EquipmentSet> 
             itemTableStatColumn(sheet, gearSet, 'piety', true),
             itemTableStatColumn(sheet, gearSet, 'tenacity', true),
         ]
-        const data: (TitleRow | HeaderRow | GearSlotItem)[] = [];
-        // Track the selected item in every category so that it can be more quickly refreshed
-        data.push(new HeaderRow());
-        for (const [name, slot] of Object.entries(EquipSlotInfo)) {
-            if (handledSlots && !handledSlots.includes(name as EquipSlotKey)) {
-                continue;
-            }
-            const slotId = name as keyof EquipmentSet;
-            const equippedItem = itemMapping.get(slot.slot);
-            if (equippedItem) {
-                const item = {
-                    slot: slot,
-                    item: equippedItem,
-                    slotId: slotId
-                };
-                data.push(item);
-                if (!equippedItem.isCustomRelic) {
-                    // TODO: make this readonly properly
-                    const matMgr = new AllSlotMateriaManager(sheet, gearSet, slotId);
-                    data.push(new SpecialRow(tbl => matMgr));
-                }
-            }
-        }
         this.selectionModel = noopSelectionModel;
         this.data = data;
     }

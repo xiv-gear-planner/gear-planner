@@ -140,6 +140,9 @@ export class DataManager {
                 'BaseParamValueSpecial3',
                 'BaseParamValueSpecial4',
                 'BaseParamValueSpecial5',
+                // Helps determine acquisition type
+                'Rarity',
+                'GameContentLinks'
             ] as const,
             // EquipSlotCategory! => EquipSlotCategory is not null => filters out now-useless belts
             filters: [`LevelItem>=${this.minIlvl}`, `LevelItem<=${this.maxIlvl}`, `ClassJobCategory.${this.classJob}=1`, 'EquipSlotCategory!'],

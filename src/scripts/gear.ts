@@ -1,5 +1,5 @@
 import {
-    ALL_SUB_STATS,
+    ALL_SUB_STATS, ARTIFACT_ITEM_LEVELS, BASIC_TOME_GEAR_ILVLS,
     EMPTY_STATS,
     FAKE_MAIN_STATS,
     getLevelStats,
@@ -14,6 +14,7 @@ import {
     MateriaSubstat,
     NORMAL_GCD,
     RaceName,
+    RAID_TIER_ILVLS,
     SPECIAL_SUB_STATS,
     statById,
 } from "./xivconstants";
@@ -43,12 +44,14 @@ import {
     EquipSlotKey,
     EquipSlots,
     FoodItem,
+    GearAcquisitionSource,
     GearItem,
     Materia,
     MateriaAutoFillController,
     MateriaAutoFillPrio,
     MateriaSlot,
-    MeldableMateriaSlot, NO_SYNC_STATS,
+    MeldableMateriaSlot,
+    NO_SYNC_STATS,
     OccGearSlotKey,
     RawStatKey,
     RawStats,
@@ -641,6 +644,7 @@ export class XivApiGearInfo implements GearItem {
     isCustomRelic: boolean;
     isUnique: boolean;
     unsyncedVersion: XivApiGearInfo;
+    acquisitionType: GearAcquisitionSource;
     statCaps: {
         [K in RawStatKey]?: number
     };
@@ -776,6 +780,93 @@ export class XivApiGearInfo implements GearItem {
                     });
                 }
             }
+        }
+        try {
+            const rarity: number = data['Rarity'];
+            switch (rarity) {
+                // Green
+                case 2:
+                    if (this.name.includes('Augmented')) {
+                        this.acquisitionType = 'augcrafted';
+                    }
+                    else if (data['GameContentLinks']?.['Recipe']) {
+                        this.acquisitionType = 'crafted';
+                    }
+                    else {
+                        this.acquisitionType = 'dungeon';
+                    }
+                    break;
+                // Blue
+                case 3:
+                    // TODO: how to differentiate raid vs tome vs aug tome?
+                    // Aug tome: it has "augmented" in the name, easy
+                    const isWeaponOrOH = this.occGearSlotName === 'Weapon2H' || this.occGearSlotName === 'Weapon1H' || this.occGearSlotName === 'OffHand';
+                    if (ARTIFACT_ITEM_LEVELS.includes(this.ilvl)) {
+                        // Ambiguous due to start-of-expac ex trials
+                        if (isWeaponOrOH) {
+                            this.acquisitionType = 'other';
+                        }
+                        else {
+                            this.acquisitionType = 'artifact';
+                        }
+                    }
+                    // Start-of-expac uncapped tome gear
+                    else if (BASIC_TOME_GEAR_ILVLS.includes(this.ilvl)) {
+                        this.acquisitionType = 'tome';
+                    }
+                    const chkRelIlvl = (relativeToRaidTier: number) => {
+                        return RAID_TIER_ILVLS.includes(this.ilvl - relativeToRaidTier);
+                    };
+                    if (chkRelIlvl(0)) {
+                        if (this.name.includes('Augmented')) {
+                            this.acquisitionType = 'augtome';
+                        }
+                        else {
+                            this.acquisitionType = 'raid';
+                        }
+                    }
+                    else if (chkRelIlvl(-10)) {
+                        this.acquisitionType = 'tome';
+                    }
+                    else if (chkRelIlvl(-20)) {
+
+                        if (isWeaponOrOH) {
+                            this.acquisitionType = 'extrial';
+                        }
+                        else {
+                            // Ambiguous - first-of-the-expac extreme trial accessories and normal raid
+                            // accessories share the same ilvl
+                            this.acquisitionType = 'other';
+                        }
+                    }
+                    else if ((chkRelIlvl(-5) || chkRelIlvl(-15)) && isWeaponOrOH) {
+                        this.acquisitionType = 'extrial';
+                    }
+                    else if (this.ilvl % 10 === 5) {
+                        if (isWeaponOrOH) {
+                            if (chkRelIlvl(5)) {
+                                if (this.name.includes('Ultimate')) {
+                                    this.acquisitionType = 'ultimate';
+                                }
+                                else {
+                                    this.acquisitionType = 'raid';
+                                }
+                            }
+                        }
+                    }
+                    break;
+                // Purple
+                case 4:
+                    this.acquisitionType = 'relic';
+                    break;
+            }
+        }
+        catch (e) {
+            console.error("Error determining item rarity", data);
+        }
+        if (!this.acquisitionType) {
+            console.warn(`Unable to determine acquisition source for item ${this.name} (${this.id})`, data);
+            this.acquisitionType = 'other';
         }
     }
 
