@@ -86,6 +86,10 @@ export class CustomTableHeaderRow<RowDataType> extends HTMLTableRowElement imple
     refreshSelection() {
         this._cells.forEach(cell => cell.refreshSelection());
     }
+
+    get element(): HTMLElement {
+        return this;
+    }
 }
 
 export class CustomTableTitleRow extends HTMLTableRowElement {

@@ -353,22 +353,14 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                                 const br = el.getBoundingClientRect();
                                 return br.y <= dragY && dragY <= (br.y + br.height);
                             });
-                            while (target) {
-                                if (target instanceof CustomRow) {
-                                    const toIndex = this.sheet.sets.indexOf(target.dataItem);
-                                    this.sheet.reorderSet(gearSet, toIndex);
-                                    break;
-                                }
-                                else {
-                                    // @ts-ignore
-                                    target = target.parentElement;
-                                }
+                            if (target instanceof CustomRow) {
+                                const toIndex = this.sheet.sets.indexOf(target.dataItem);
+                                this.sheet.reorderSet(gearSet, toIndex);
                             }
                             if (rowBeingDragged) {
                                 const rect = rowBeingDragged.getBoundingClientRect();
                                 const delta = ev.pageY - (rect.y - lastDelta) - (rect.height / 2);
                                 lastDelta = delta;
-                                console.log(delta, target);
                                 rowBeingDragged.style.top = `${delta}px`;
                             }
                         },

@@ -4,7 +4,7 @@ export function installDragHelper(args: {dragHandle: HTMLElement, dragOuter: HTM
 
     args.dragHandle.addEventListener('pointerdown', (ev) => {
         ev.preventDefault();
-        ev.target['releasePointerCapture'](ev.pointerId);
+        // ev.target['releasePointerCapture'](ev.pointerId);
         const elementCursorBefore = args.dragHandle.style.cursor;
         const body = document.body;
         const bodyCursorBefore = body.style.cursor;
@@ -18,7 +18,7 @@ export function installDragHelper(args: {dragHandle: HTMLElement, dragOuter: HTM
         const up = (ev) => {
             body.removeEventListener('pointermove', move);
             body.removeEventListener('pointerup', up);
-            body.releasePointerCapture(ev.pointerId);
+            // body.releasePointerCapture(ev.pointerId);
             args.dragHandle.style.cursor = elementCursorBefore;
             args.dragOuter.style.cursor = bodyCursorBefore;
             args.upHandler?.(ev);
