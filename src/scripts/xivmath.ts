@@ -11,7 +11,26 @@ import {AttackType, ComputedSetStats, JobData, LevelStats} from "./geartypes";
     object. It is preferable to use already-computed values since those are also exposed on the UI. This ensures
     consistency with the displayed values.
  */
-const fl = Math.floor;
+/**
+ * Enhanced flooring function which takes into account a small margin of error to account for
+ * floating point errors.
+ *
+ * e.g. 2.3 * 100 => 229.99999999999997
+ *
+ * @param input
+ */
+export function fl(input: number) {
+    const floored = Math.floor(input);
+    const loss = input - floored;
+    // e.g. if input is 2.999..., then floored == 2 and loss == 0.999...
+    // so we can just return floor + 1;
+    if (loss >= 0.99999995) {
+        return floored + 1;
+    }
+    else {
+        return floored;
+    }
+}
 
 /**
  * Convert skill speed to GCD speed.
@@ -22,7 +41,7 @@ const fl = Math.floor;
  * @param haste The haste value, e.g. 15 for 15% haste, etc.
  */
 export function sksToGcd(baseGcd: number, levelStats: LevelStats, sks: number, haste = 0): number {
-    return Math.floor((100 - haste) * ((baseGcd * 1000 * (1000 - Math.floor(130 * (sks - levelStats.baseSubStat) / levelStats.levelDiv)) / 1000) / 1000)) / 100;
+    return fl((100 - haste) * ((baseGcd * 1000 * (1000 - fl(130 * (sks - levelStats.baseSubStat) / levelStats.levelDiv)) / 1000) / 1000)) / 100;
 }
 
 /**
@@ -34,7 +53,7 @@ export function sksToGcd(baseGcd: number, levelStats: LevelStats, sks: number, h
  * @param haste The haste value, e.g. 15 for 15% haste, etc.
  */
 export function spsToGcd(baseGcd: number, levelStats: LevelStats, sps: number, haste = 0): number {
-    return Math.floor((100 - haste) * ((baseGcd * 1000 * (1000 - Math.floor(130 * (sps - levelStats.baseSubStat) / levelStats.levelDiv)) / 1000) / 1000)) / 100;
+    return fl((100 - haste) * ((baseGcd * 1000 * (1000 - fl(130 * (sps - levelStats.baseSubStat) / levelStats.levelDiv)) / 1000) / 1000)) / 100;
 }
 
 /**
@@ -44,7 +63,7 @@ export function spsToGcd(baseGcd: number, levelStats: LevelStats, sps: number, h
  * @param crit The critical hit stat value.
  */
 export function critChance(levelStats: LevelStats, crit: number) {
-    return Math.floor(200 * (crit - levelStats.baseSubStat) / levelStats.levelDiv + 50) / 1000.0;
+    return fl(200 * (crit - levelStats.baseSubStat) / levelStats.levelDiv + 50) / 1000.0;
 }
 
 /**
@@ -57,7 +76,7 @@ export function critChance(levelStats: LevelStats, crit: number) {
  */
 export function critDmg(levelStats: LevelStats, crit: number) {
     // return 1 + Math.floor(200 * (crit - levelStats.baseSubStat) / levelStats.levelDiv + 400) / 1000;
-    return (1400 + Math.floor(200 * (crit - levelStats.baseSubStat) / levelStats.levelDiv)) / 1000.0;
+    return (1400 + fl(200 * (crit - levelStats.baseSubStat) / levelStats.levelDiv)) / 1000.0;
 }
 
 /**
@@ -68,7 +87,7 @@ export function critDmg(levelStats: LevelStats, crit: number) {
  */
 export function dhitChance(levelStats: LevelStats, dhit: number) {
     // return 1 + Math.floor((550 * dhit - levelStats.baseSubStat) / levelStats.levelDiv) / 1000;
-    return Math.floor(550 * (dhit - levelStats.baseSubStat) / levelStats.levelDiv) / 1000.0;
+    return fl(550 * (dhit - levelStats.baseSubStat) / levelStats.levelDiv) / 1000.0;
 }
 
 /**
@@ -91,7 +110,7 @@ export function dhitDmg(levelStats: LevelStats, dhit: number) {
  * @param det The determination stat value.
  */
 export function detDmg(levelStats: LevelStats, det: number) {
-    return (1000 + Math.floor(140 * (det - levelStats.baseMainStat) / levelStats.levelDiv)) / 1000.0;
+    return (1000 + fl(140 * (det - levelStats.baseMainStat) / levelStats.levelDiv)) / 1000.0;
 }
 
 /**
@@ -105,7 +124,7 @@ export function detDmg(levelStats: LevelStats, det: number) {
  */
 export function wdMulti(levelStats: LevelStats, jobStats: JobData, wd: number) {
     const mainStatJobMod = jobStats.jobStatMultipliers[jobStats.mainStat];
-    return Math.floor((levelStats.baseMainStat * mainStatJobMod / 1000) + wd);
+    return fl((levelStats.baseMainStat * mainStatJobMod / 1000) + wd);
 }
 
 /**
@@ -117,7 +136,7 @@ export function wdMulti(levelStats: LevelStats, jobStats: JobData, wd: number) {
  * @param sps The spell speed.
  */
 export function spsTickMulti(levelStats: LevelStats, sps: number) {
-    return (1000 + Math.floor(130 * (sps - levelStats.baseSubStat) / levelStats.levelDiv)) / 1000;
+    return (1000 + fl(130 * (sps - levelStats.baseSubStat) / levelStats.levelDiv)) / 1000;
 }
 
 /**
@@ -129,7 +148,7 @@ export function spsTickMulti(levelStats: LevelStats, sps: number) {
  * @param sks The skill speed.
  */
 export function sksTickMulti(levelStats: LevelStats, sks: number) {
-    return (1000 + Math.floor(130 * (sks - levelStats.baseSubStat) / levelStats.levelDiv)) / 1000;
+    return (1000 + fl(130 * (sks - levelStats.baseSubStat) / levelStats.levelDiv)) / 1000;
 }
 
 /**
@@ -145,7 +164,7 @@ export function mainStatMulti(levelStats: LevelStats, jobStats: JobData, mainsta
     // TODO make this work without ts-ignore
     // @ts-ignore
     const apMod = levelStats.mainStatPowerMod[jobStats.role] ?? levelStats.mainStatPowerMod.other;
-    return (Math.floor(apMod * (mainstat - levelStats.baseMainStat) / levelStats.baseMainStat) + 100) / 100;
+    return (fl(apMod * (mainstat - levelStats.baseMainStat) / levelStats.baseMainStat) + 100) / 100;
 }
 
 /**
@@ -157,7 +176,7 @@ export function mainStatMulti(levelStats: LevelStats, jobStats: JobData, mainsta
  * @param tenacity
  */
 export function tenacityDmg(levelStats: LevelStats, tenacity: number) {
-    return (1000 + Math.floor(100 * (tenacity - levelStats.baseMainStat) / levelStats.levelDiv)) / 1000;
+    return (1000 + fl(100 * (tenacity - levelStats.baseMainStat) / levelStats.levelDiv)) / 1000;
 }
 
 /**
@@ -168,7 +187,7 @@ export function tenacityDmg(levelStats: LevelStats, tenacity: number) {
  * @param dhit The direct hit stat value.
  */
 export function autoDhBonusDmg(levelStats: LevelStats, dhit: number) {
-    return Math.floor(140 * ((dhit - levelStats.baseSubStat) / levelStats.levelDiv) + 1000);
+    return fl(140 * ((dhit - levelStats.baseSubStat) / levelStats.levelDiv) + 1000);
 }
 
 /**
@@ -178,7 +197,7 @@ export function autoDhBonusDmg(levelStats: LevelStats, dhit: number) {
  * @param piety The piety stat.
  */
 export function mpTick(levelStats: LevelStats, piety: number) {
-    return 200 + Math.floor(150 * (piety - levelStats.baseMainStat) / levelStats.levelDiv);
+    return 200 + fl(150 * (piety - levelStats.baseMainStat) / levelStats.levelDiv);
 }
 
 /**

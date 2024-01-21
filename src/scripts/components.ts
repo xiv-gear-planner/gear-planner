@@ -1178,6 +1178,7 @@ export class GearPlanSheet extends HTMLElement {
 
     setViewOnly() {
         this.isViewOnly = true;
+        this.classList.add("view-only");
     }
 
     private set editorItem(item: typeof this._editorItem) {

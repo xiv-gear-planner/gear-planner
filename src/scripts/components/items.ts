@@ -36,7 +36,8 @@ function statCellStylerRemover(cell: CustomCell<GearSlotItem, any>) {
     cell.classList.remove("stat-melded-overcapped");
     cell.classList.remove("stat-melded-overcapped-major");
     cell.classList.remove("stat-melded");
-    cell.classList.remove("stat-synced-down")
+    cell.classList.remove("stat-synced-down");
+    cell.classList.remove("stat-cell");
 }
 
 /**

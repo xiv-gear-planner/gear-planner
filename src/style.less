@@ -43,6 +43,7 @@ body {
   --stat-col-width: 40px;
   --chance-stat-col-width: 160px;
   --multi-stat-col-width: 120px;
+  --bottom-flex-basis: 60%;
 
   &.light-mode {
     --bg-color: #eee;
@@ -825,9 +826,13 @@ gear-plan {
     //margin-top: 5px;
   }
 
+  &.view-only {
+    --bottom-flex-basis: 70%;
+  }
+
   .gear-sheet-editor-area {
-    flex-basis: 60%;
-    //flex-shrink: 99;
+    flex-basis: var(--bottom-flex-basis);
+    flex-shrink: 0;
     flex-grow: 9999;
     min-height: fit-content;
     height: 60%;
@@ -1629,6 +1634,9 @@ gear-set-viewer {
   //  }
   //}
   display: block;
+  >h1 {
+    margin-top: 0;
+  }
 
   & > * {
     margin-bottom: 10px;

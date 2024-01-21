@@ -709,7 +709,7 @@ export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, Inter
 
             const used = cp.finalizedRecords;
             const cycleDamage = sum(used.map(used => isFinalizedAbilityUse(used) ? used.totalDamage : 0));
-            const dps = cycleDamage / cp.nextGcdTime;
+            const dps = cycleDamage / cp.currentTime;
             const unbuffedPps = sum(used.map(used => isFinalizedAbilityUse(used) ? used.totalPotency : 0)) / cp.nextGcdTime;
             const buffTimings = [...cp.buffHistory];
 
