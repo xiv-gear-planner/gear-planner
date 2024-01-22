@@ -967,12 +967,11 @@ function formatSimulationConfigArea<SettingsType extends SimSettings>(
         titleEditor.classList.add('sim-name-editor');
         titleEditor.title = 'Rename this simulation';
         outerDiv.appendChild(titleEditor);
-        const rerunButton = makeActionButton("Rerun", () => refreshColumn(sim));
-        outerDiv.appendChild(rerunButton);
+        const deleteButton = makeActionButton("Delete", () => deleteColumn(sim));
+        outerDiv.appendChild(deleteButton);
     }
-
-    const deleteButton = makeActionButton("Delete", () => deleteColumn(sim));
-    outerDiv.appendChild(deleteButton);
+    const rerunButton = makeActionButton("Rerun", () => refreshColumn(sim));
+    outerDiv.appendChild(rerunButton);
 
     const originalSettings: SettingsType = sim.settings;
     const updateCallback = () => sheet.requestSave();
