@@ -214,6 +214,15 @@ export function autoAttackModifier(levelStats: LevelStats, jobStats: JobData, we
     return fl(fl((levelStats.baseMainStat * jobStats.jobStatMultipliers[jobStats.mainStat] / 1000) + weaponDamage) * (weaponDelay * 1000 / 3)) / 1000;
 }
 
+export function vitToHp(levelStats: LevelStats, jobStats: JobData, vitality: number): number {
+    // TODO
+    // if (jobStats.role === 'Tank') {
+    //     return fl(levelStats.hp * (jobStats.))
+    // }
+    // return
+    return 12345 + fl(vitality / 10)
+}
+
 /**
  * Computes base damage. Does not factor in crit/dh RNG nor damage variance.
  *

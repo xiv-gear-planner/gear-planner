@@ -32,7 +32,7 @@ import {
     sksToGcd,
     spsTickMulti,
     spsToGcd,
-    tenacityDmg,
+    tenacityDmg, vitToHp,
     wdMulti
 } from "./xivmath";
 import {
@@ -327,6 +327,7 @@ export class CharacterGearSet {
         const mainStat = Math.floor(combinedStats[classJobStats.mainStat] * (1 + 0.01 * this._sheet.partyBonus));
         const aaStat = Math.floor(combinedStats[classJobStats.autoAttackStat] * (1 + 0.01 * this._sheet.partyBonus));
         const wdEffective = Math.max(combinedStats.wdMag, combinedStats.wdPhys);
+        const hp = combinedStats.hp + vitToHp(levelStats, classJobStats, combinedStats.vitality);
         const computedStats = {
             ...combinedStats,
             level: level,
@@ -335,6 +336,7 @@ export class CharacterGearSet {
             jobStats: classJobStats,
             gcdPhys: (base, haste = 0) => sksToGcd(base, levelStats, combinedStats.skillspeed, haste),
             gcdMag: (base, haste = 0) => spsToGcd(base, levelStats, combinedStats.spellspeed, haste),
+            hp: hp,
             critChance: critChance(levelStats, combinedStats.crit),
             critMulti: critDmg(levelStats, combinedStats.crit),
             dhitChance: dhitChance(levelStats, combinedStats.dhit),

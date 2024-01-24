@@ -428,10 +428,10 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                 extraClasses: ['stat-col'],
             } as CustomColumnSpec<CharacterGearSet, MultiplierStat>,
             {
-                shortName: "vit",
-                displayName: "VIT",
-                getter: gearSet => gearSet.computedStats.vitality,
-                extraClasses: ['stat-col'],
+                shortName: "hp",
+                displayName: "HP",
+                getter: gearSet => gearSet.computedStats.hp,
+                extraClasses: ['stat-col', 'stat-col-hp'],
             },
             {
                 ...mainStatCol(this.sheet, 'dexterity'),

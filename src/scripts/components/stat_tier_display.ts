@@ -11,7 +11,7 @@ import {
     mpTick,
     spsTickMulti,
     spsToGcd,
-    tenacityDmg
+    tenacityDmg, vitToHp
 } from "../xivmath";
 
 interface Tiering {
@@ -63,8 +63,12 @@ export class StatTierDisplay extends HTMLDivElement {
 
     refresh(gearSet: CharacterGearSet) {
         this.replaceChildren();
-        const relevantStats = STAT_DISPLAY_ORDER.filter(stat => this.sheet.isStatRelevant(stat));
+        let relevantStats = STAT_DISPLAY_ORDER.filter(stat => this.sheet.isStatRelevant(stat));
+        if (this.sheet.ilvlSync && !relevantStats.includes('vitality')) {
+            relevantStats = ['vitality', ...relevantStats];
+        }
         for (let stat of relevantStats) {
+            console.log("stat tiering: " + stat)
             try {
                 const statTiering = this.getStatTiering(stat, gearSet);
                 for (let tieringDisplay of statTiering) {
@@ -95,12 +99,10 @@ export class StatTierDisplay extends HTMLDivElement {
                     tiering: this.getCombinedTiering(curVal, value => mainStatMulti(levelStats, jobStats, value))
                 }];
             case "vitality":
-                // Don't have vitality calc yet
-                return [];
-            // return [{
-            //     label: STAT_ABBREVIATIONS[stat],
-            //     tiering: this.getCombinedTiering(computed[stat], value => mainStatMulti(levelStats, jobStats, value))
-            // }];
+                return [{
+                    label: abbrev,
+                    tiering: this.getCombinedTiering(curVal, value => vitToHp(levelStats, jobStats, value)),
+                }];
             case "determination":
                 return [{
                     label: abbrev,
