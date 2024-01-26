@@ -423,6 +423,15 @@ export function labeledCheckbox(label: string, check: HTMLInputElement): HTMLDiv
     return div;
 }
 
+export function labeledRadioButton(label: string, radioButton: HTMLInputElement): HTMLDivElement {
+    const labelElement = labelFor(label, radioButton);
+    const div = document.createElement("div");
+    div.appendChild(radioButton);
+    div.appendChild(labelElement);
+    div.classList.add("labeled-radio-button");
+    return div;
+}
+
 export function quickElement<X extends keyof HTMLElementTagNameMap>(tag: X, classes: string[], nodes: Parameters<ParentNode['replaceChildren']>): HTMLElementTagNameMap[X] {
     const element = document.createElement(tag);
     element.replaceChildren(...nodes);

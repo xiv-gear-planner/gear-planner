@@ -196,6 +196,10 @@ export class CharacterGearSet {
         return this._food;
     }
 
+    get sheet(): GearPlanSheet {
+        return this._sheet;
+    }
+
     private invalidate() {
         this._dirtyComp = true;
         this._updateKey++;

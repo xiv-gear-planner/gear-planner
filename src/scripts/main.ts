@@ -12,6 +12,8 @@ export const SHARE_LINK = 'https://share.xivgear.app/share/';
 export const BIS_HASH = 'bis';
 
 export const VIEW_SHEET_HASH = 'viewsheet';
+export const VIEW_SET_HASH = 'viewset';
+export const EMBED_HASH = 'embed';
 
 export const contentArea = document.getElementById("content-area");
 // export const midBarArea = document.getElementById("mid-controls-area");
@@ -96,7 +98,7 @@ async function processHash() {
         showSheetPickerMenu();
     }
     else {
-        if (hash[0] === "embed") {
+        if (hash[0] === EMBED_HASH) {
             earlyEmbedInit();
             embed = true;
             hash = hash.slice(1);
@@ -113,21 +115,21 @@ async function processHash() {
         else if (mainNav === "newsheet") {
             showNewSheetForm();
         }
-        else if (mainNav === "importsheet" || mainNav === "viewsheet") {
+        else if (mainNav === "importsheet" || mainNav === VIEW_SHEET_HASH) {
             if (hash.length === 1) {
                 showImportSheetForm();
             }
             else {
                 const json = hash.slice(1).join('/');
                 const parsed = JSON.parse(decodeURI(json)) as SheetExport;
-                openExport(parsed, false, mainNav === "viewsheet");
+                openExport(parsed, false, mainNav === VIEW_SHEET_HASH);
             }
         }
-        else if (mainNav === "importset" || mainNav === "viewset") {
+        else if (mainNav === "importset" || mainNav === VIEW_SET_HASH) {
             if (hash.length >= 2) {
                 const json = hash.slice(1).join('/');
                 const parsed = JSON.parse(decodeURI(json)) as SetExport;
-                openExport(parsed, false, mainNav === "viewset");
+                openExport(parsed, false, mainNav === VIEW_SET_HASH);
             }
         }
         else if (mainNav === SHORTLINK_HASH) {

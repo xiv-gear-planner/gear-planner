@@ -67,7 +67,7 @@ class RenameModal extends HTMLElement {
             this.header,
             this.nameInput,
             this.descriptionInput,
-            quickElement('div', ['button-area'], [this.applyButton, this.cancelButton])
+            quickElement('div', ['lower-button-area'], [this.applyButton, this.cancelButton])
         ]);
         form.addEventListener('submit', ev => this.apply(ev));
 
