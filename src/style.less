@@ -255,10 +255,12 @@ table {
   tr {
     /*border: 2px solid #666666;*/
     border: 3px solid var(--border-color);
-    background-color: var(--table-bg-color);
     scroll-margin: 30px;
     position: relative;
 
+    >th, >td {
+      background-color: var(--table-bg-color);
+    }
 
     th {
       border-top: var(--thick-border);
@@ -1609,7 +1611,9 @@ table.food-items-table {
 .round-table {
 
   tbody {
-    th:first-child, tr:first-child {
+    tr:first-child {
+      border-top-left-radius: var(--standard-border-radius);
+      border-top-right-radius: var(--standard-border-radius);
       td:first-child, th:first-child {
         border-top-left-radius: var(--standard-border-radius);
       }
@@ -1619,7 +1623,9 @@ table.food-items-table {
       }
     }
 
-    th:last-child, tr:last-child {
+    tr:last-child {
+      border-bottom-left-radius: var(--standard-border-radius);
+      border-bottom-right-radius: var(--standard-border-radius);
       td:first-child, th:first-child {
         border-bottom-left-radius: var(--standard-border-radius);
       }
@@ -1713,6 +1719,15 @@ gear-set-viewer {
 
   .gear-items-view-table, .food-view-table {
     .round-table;
+    --standard-border: none;
+    --thick-border: none;
+    tr:nth-child(2) {
+      background-color: var(--table-bg-color);
+    }
+    .stat-cell {
+      margin-right: 5px;
+      border-radius: 5px;
+    }
   }
 
   //.weapon-table,  .food-items-table {
