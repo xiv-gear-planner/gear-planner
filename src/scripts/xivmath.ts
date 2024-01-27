@@ -206,7 +206,7 @@ export function mpTick(levelStats: LevelStats, piety: number) {
  * AkhMorning equivalent: f(AUTO)
  *
  * @param levelStats level stats
- * @param jobStats C
+ * @param jobStats job stats
  * @param weaponDelay weapon delay in seconds
  * @param weaponDamage weapon damage
  */
