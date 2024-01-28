@@ -35,12 +35,12 @@ function handleWelcomeArea() {
     }
     else {
         const hideWelcomeAreaSettingKey = 'hide-welcome-area';
-        if (localStorage.getItem(hideWelcomeAreaSettingKey) == 'true') {
+        if (SETTINGS.hideWelcomeMessage) {
             hideWelcomeArea();
         }
         else {
             welcomeCloseButton.addEventListener('click', () => {
-                localStorage.setItem(hideWelcomeAreaSettingKey, 'true');
+                SETTINGS.hideWelcomeMessage = true;
                 hideWelcomeArea();
             })
         }
