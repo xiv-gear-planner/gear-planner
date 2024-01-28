@@ -425,6 +425,8 @@ export interface JobDataConst {
 
 export type JobMultipliers = {
     [K in typeof MAIN_STATS[number]]: number
+} & {
+    hp: number
 }
 
 export interface JobData extends JobDataConst {

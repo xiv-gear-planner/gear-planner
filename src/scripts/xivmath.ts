@@ -214,15 +214,6 @@ export function autoAttackModifier(levelStats: LevelStats, jobStats: JobData, we
     return fl(fl((levelStats.baseMainStat * jobStats.jobStatMultipliers[jobStats.mainStat] / 1000) + weaponDamage) * (weaponDelay * 1000 / 3)) / 1000;
 }
 
-export function vitToHp(levelStats: LevelStats, jobStats: JobData, vitality: number): number {
-    // TODO
-    // if (jobStats.role === 'Tank') {
-    //     return fl(levelStats.hp * (jobStats.))
-    // }
-    // return
-    return 12345 + fl(vitality / 10)
-}
-
 /**
  * Computes base damage. Does not factor in crit/dh RNG nor damage variance.
  *
@@ -354,12 +345,11 @@ export function applyCrit(baseDamage: number, stats: ComputedSetStats) {
  *
  * @param levelStats Level stats for the level at which the computation is to be performed.
  * @param jobStats Job stats.
- * @param jobMultipliers JobMod for hp is needed.
  * @param vitality The vitality stat.
  */
-export function hpCalc(levelStats: LevelStats, jobStats: JobData, jobMultipliers: JobMultipliers, vitality: number) {
+export function vitToHp(levelStats: LevelStats, jobStats: JobData, vitality: number) {
     // TODO make this work without ts-ignore
     // @ts-ignore
     const hpMod = levelStats.hpScalar[jobStats.role] ?? levelStats.hpScalar.other
-    return fl(levelStats.hp * jobMultipliers.hp / 100) + fl( (vitality - levelStats.baseMainStat) * hpMod);
+    return fl(levelStats.hp * jobStats.jobStatMultipliers.hp / 100) + fl( (vitality - levelStats.baseMainStat) * hpMod);
 }

@@ -441,7 +441,7 @@ export const LEVEL_ITEMS: Record<SupportedLevel, LevelItemInfo> = {
 /**
  * Main stats in current version of the game.
  */
-export const MAIN_STATS = ['strength', 'dexterity', 'intelligence', 'mind', 'vitality', 'hp'] as const;
+export const MAIN_STATS = ['strength', 'dexterity', 'intelligence', 'mind', 'vitality'] as const;
 // TODO: It's hacky to declare hp like this, but oh well.
 /**
  * Substats that are treated as main stats for stat calc purposes.
