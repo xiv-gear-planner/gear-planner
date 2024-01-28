@@ -1,4 +1,4 @@
-import {AttackType, ComputedSetStats, JobData, LevelStats} from "./geartypes";
+import {AttackType, ComputedSetStats, JobData, JobMultipliers, LevelStats} from "./geartypes";
 
 /*
     Common math for FFXIV.
@@ -349,3 +349,17 @@ export function applyCrit(baseDamage: number, stats: ComputedSetStats) {
     return baseDamage * (1 + stats.critChance * (stats.critMulti - 1));
 }
 
+/**
+ * Convert vitality to hp.
+ *
+ * @param levelStats Level stats for the level at which the computation is to be performed.
+ * @param jobStats Job stats.
+ * @param jobMultipliers JobMod for hp is needed.
+ * @param vitality The vitality stat.
+ */
+export function hpCalc(levelStats: LevelStats, jobStats: JobData, jobMultipliers: JobMultipliers, vitality: number) {
+    // TODO make this work without ts-ignore
+    // @ts-ignore
+    const hpMod = levelStats.hpScalar[jobStats.role] ?? levelStats.hpScalar.other
+    return fl(levelStats.hp * jobMultipliers.hp / 100) + fl( (vitality - levelStats.baseMainStat) * hpMod);
+}

@@ -89,6 +89,7 @@ import {installDragHelper} from "./components/draghelpers";
 import {getShortLink} from "./external/shortlink_server";
 import {parseImport} from "./imports/imports";
 import doc = Mocha.reporters.doc;
+import {startExport} from "./components/export_controller";
 
 export const SHARED_SET_NAME = 'Imported Set';
 
@@ -727,11 +728,8 @@ export class GearSetEditor extends HTMLElement {
         this.formatTitleDesc();
 
         const buttonArea = quickElement('div', ['gear-set-editor-button-area', 'button-row'], [
-            makeActionButton('Copy Link to Set', () => {
-                startShortLink(JSON.stringify(this.sheet.exportGearSet(this.gearSet, true)));
-            }),
-            makeActionButton('Copy Set as JSON', () => {
-                navigator.clipboard.writeText(JSON.stringify(this.sheet.exportGearSet(this.gearSet, true)));
+            makeActionButton('Export This Set', () => {
+                startExport(this.gearSet);
             }),
             makeActionButton('Change Name/Description', () => {
                 startRenameSet(writeProxy(this.gearSet, () => this.formatTitleDesc()));
@@ -1273,8 +1271,8 @@ export class GearPlanSheet extends HTMLElement {
             });
             buttonsArea.appendChild(newSimButton);
 
-            const exportSheetButton = makeActionButton("Export Sheet", () => {
-                this.setupEditorArea(this.makeSheetExportArea());
+            const exportSheetButton = makeActionButton("Export Whole Sheet", () => {
+                startExport(this);
             });
             buttonsArea.appendChild(exportSheetButton);
 
@@ -1903,44 +1901,6 @@ export class GearPlanSheet extends HTMLElement {
 
     get foodItemsForDisplay(): FoodItem[] {
         return this._relevantFood.filter(item => item.ilvl >= this._itemDisplaySettings.minILvlFood && item.ilvl <= this._itemDisplaySettings.maxILvlFood);
-    }
-
-    private makeSheetExportArea(): HTMLElement {
-        const outerDiv = document.createElement("div");
-        outerDiv.id = 'sheet-export-area';
-
-        const heading = document.createElement('h1');
-        heading.textContent = 'Export Full Sheet';
-        outerDiv.appendChild(heading);
-
-        const explanation = document.createElement('p');
-        const btnLabel = document.createElement('b');
-        btnLabel.textContent = '"Copy Link to Set"';
-        explanation.replaceChildren('This is for exporting an entire sheet. To export an individual gear set, select the gear set and use the ', btnLabel, ' button in the gear set editor area.');
-        outerDiv.appendChild(explanation);
-        if (this.sets.length === 1) {
-            const furtherExplanation = document.createElement('p');
-            furtherExplanation.textContent = 'Since you only have one set on this sheet, you may wish to do that.';
-            outerDiv.appendChild(furtherExplanation);
-        }
-
-        const exportSheetLinkToClipboard = makeActionButton('Copy Link to Sheet', () => {
-            startShortLink(JSON.stringify(this.exportSheet(true)));
-        });
-
-        const exportSheetToClipboard = makeActionButton('Export Sheet JSON to Clipboard', () => {
-            navigator.clipboard.writeText(JSON.stringify(this.exportSheet(true)));
-        });
-
-        const preview = makeActionButton('Preview Sheet', () => {
-            const exported = this.exportSheet(true);
-            const url = new URL(`#/${VIEW_SHEET_HASH}/${encodeURIComponent(JSON.stringify(exported))}`, document.location.toString());
-            window.open(url, '_blank');
-        });
-
-        outerDiv.appendChild(quickElement('div', ['button-row'], [exportSheetLinkToClipboard, exportSheetToClipboard, preview]));
-
-        return outerDiv;
     }
 
     private makeImportSetArea() {

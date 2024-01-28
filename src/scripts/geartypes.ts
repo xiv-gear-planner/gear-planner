@@ -376,6 +376,11 @@ export interface LevelStats {
     baseSubStat: number,
     levelDiv: number,
     hp: number,
+    hpScalar:
+        ({
+            'other': number
+        } & { [K in RoleKey]?: number })
+        | { [K in RoleKey]: number },
     // You can specify either 'default' and a non-exhaustive list, or an exhaustive list (i.e. every role).
     mainStatPowerMod:
         ({

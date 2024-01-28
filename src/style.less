@@ -45,6 +45,7 @@ body {
   --multi-stat-col-width: 120px;
   --hp-stat-col-width: 60px;
   --bottom-flex-basis: 60%;
+  --modal-bottom-button-width: 70px;
 
   &.light-mode {
     --bg-color: #eee;
@@ -1506,8 +1507,16 @@ input.gear-items-table-relic-stat-input {
       background-color: unset;
     }
 
-    input {
+    input[type='text'] {
       width: 300px;
+    }
+  }
+
+  div.lower-button-area {
+    > button {
+      display: inline-block;
+      margin: 5px 5px 5px 5px;
+      min-width: var(--modal-bottom-button-width);
     }
   }
 }
@@ -2011,6 +2020,24 @@ div.weapon-ilvl-bypass-setting {
     }
   }
 
+}
+
+fieldset {
+  border: none;
+}
+
+.export-modal-dialog {
+  fieldset {
+    text-align: left;
+  }
+  .labeled-radio-button {
+    display: inline-block;
+    padding-right: 10px;
+    padding-bottom: 8px;
+  }
+  >div {
+    width: min-content;
+  }
 }
 
 // TODO: how to do FA fallback to emoji if font blocked?

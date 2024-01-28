@@ -234,7 +234,7 @@ export class DataManager {
         const jobsPromise = xivApiGet({
             requestType: "list",
             sheet: "ClassJob",
-            columns: ['Abbreviation', 'ModifierDexterity', 'ModifierIntelligence', 'ModifierMind', 'ModifierStrength', 'ModifierVitality'] as const
+            columns: ['Abbreviation', 'ModifierDexterity', 'ModifierIntelligence', 'ModifierMind', 'ModifierStrength', 'ModifierVitality', 'ModifierHitPoints'] as const
         })
             .then(data => {
                 console.log(`Got ${data.Results.length} Jobs`);
@@ -249,6 +249,7 @@ export class DataManager {
                         mind: rawJob.ModifierMind,
                         strength: rawJob.ModifierStrength,
                         vitality: rawJob.ModifierVitality,
+                        hp: rawJob.ModifierHitPoints,
                     })
                 }
             });
