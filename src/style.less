@@ -1485,6 +1485,16 @@ input.gear-items-table-relic-stat-input {
   z-index: var(--zi-true-modal);
   display: flex;
 
+  .modal-inner {
+    max-height: 95vh;
+    max-width: 95vw;
+    display: flex;
+    flex-direction: column;
+    .modal-content-area {
+      overflow: auto;
+    }
+  }
+
   > div {
     margin: auto;
     position: relative;
@@ -1515,6 +1525,7 @@ input.gear-items-table-relic-stat-input {
       min-width: var(--modal-bottom-button-width);
     }
   }
+
 }
 
 rename-dialog {
@@ -2040,3 +2051,21 @@ fieldset {
 //i.fa-copy::before {
 //  content: '📃';
 //}
+
+
+
+sheet-export-modal {
+  textarea {
+    height: 200px;
+  }
+  .sim-export-chooser-inner {
+    max-height: 300px;
+    overflow-y: auto;
+  }
+}
+
+rename-dialog {
+  form {
+    width: min-content;
+  }
+}

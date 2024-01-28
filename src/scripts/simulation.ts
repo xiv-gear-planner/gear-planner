@@ -16,7 +16,7 @@ export interface SimResult {
 }
 
 export interface SimSettings {
-
+    includeInExport?: boolean
 }
 
 export interface SimSpec<SimType extends Simulation<any, any, any>, SettingsExport> {
