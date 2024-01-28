@@ -43,6 +43,7 @@ body {
   --stat-col-width: 40px;
   --chance-stat-col-width: 160px;
   --multi-stat-col-width: 120px;
+  --hp-stat-col-width: 60px;
   --bottom-flex-basis: 60%;
   --modal-bottom-button-width: 70px;
 
@@ -597,6 +598,9 @@ table.gear-plan-table {
         }
         &.multiplier-stat-col {
           --cell-width: var(--multi-stat-col-width);
+        }
+        &.stat-col-hp {
+          --cell-width: var(--hp-stat-col-width);
         }
       }
 

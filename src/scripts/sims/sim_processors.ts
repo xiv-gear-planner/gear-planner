@@ -693,7 +693,7 @@ export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, Inter
     abstract getRotationsToSimulate(): Rotation[];
 
     async simulate(set: CharacterGearSet): Promise<ResultType> {
-        console.log("Sim start");
+        console.debug("Sim start");
         const allBuffs = this.buffManager.enabledBuffs;
         const rotations = this.getRotationsToSimulate();
         const allResults = rotations.map(rot => {
@@ -723,7 +723,7 @@ export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, Inter
             } as unknown as ResultType;
         });
         allResults.sort((a, b) => b.mainDpsResult - a.mainDpsResult);
-        console.log("Sim end");
+        console.debug("Sim end");
         return allResults[0];
     };
 

@@ -326,8 +326,11 @@ export const LEVEL_STATS: Record<SupportedLevel, LevelStats> = {
         baseMainStat: 292,
         baseSubStat: 364,
         levelDiv: 900,
-        // TODO: this value is a guess
-        hp: 2000,
+        hp: 1700,
+        hpScalar: {
+            Tank: 18.8,
+            other: 14,
+        },
         mainStatPowerMod: {
             Tank: 105,
             other: 125,
@@ -338,8 +341,11 @@ export const LEVEL_STATS: Record<SupportedLevel, LevelStats> = {
         baseMainStat: 340,
         baseSubStat: 380,
         levelDiv: 1300,
-        // TODO: this value is a guess
-        hp: 2500,
+        hp: 2000,
+        hpScalar: {
+            Tank: 26.6,
+            other: 18.8,
+        },
         mainStatPowerMod: {
             Tank: 115,
             other: 165,
@@ -351,6 +357,10 @@ export const LEVEL_STATS: Record<SupportedLevel, LevelStats> = {
         baseSubStat: 400,
         levelDiv: 1900,
         hp: 3000,
+        hpScalar: {
+            Tank: 34.6,
+            other: 24.3,
+        },
         mainStatPowerMod: {
             Tank: 156,
             other: 195,
@@ -432,7 +442,7 @@ export const LEVEL_ITEMS: Record<SupportedLevel, LevelItemInfo> = {
  * Main stats in current version of the game.
  */
 export const MAIN_STATS = ['strength', 'dexterity', 'intelligence', 'mind', 'vitality'] as const;
-// TODO: is Tenacity treated like this? No.
+// TODO: It's hacky to declare hp like this, but oh well.
 /**
  * Substats that are treated as main stats for stat calc purposes.
  */
