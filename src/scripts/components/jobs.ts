@@ -11,7 +11,7 @@ async function ensureJobDataLoaded() {
     }
     await fetch("https://xivapi.com/ClassJob?columns=Name,Abbreviation,ID,Icon")
         .then(response => response.json())
-        .then(response => response['results'] as XivApiJobData[])
+        .then(response => response['Results'] as XivApiJobData[])
         .then(data => jobData = data);
     for (let jobDatum of jobData) {
         jobIconMap.set(jobDatum.Abbreviation as JobName, jobDatum.Icon);
@@ -21,6 +21,7 @@ async function ensureJobDataLoaded() {
 export class JobIcon extends HTMLImageElement {
     constructor(job: JobName) {
         super();
+        this.classList.add('ffxiv-job-icon');
         ensureJobDataLoaded().then(() => this.src = "https://xivapi.com/" + jobIconMap.get(job));
     }
 }

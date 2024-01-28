@@ -1,4 +1,4 @@
-export function makeActionButton(label: string | Node[], action: (ev: MouseEvent) => void, tooltip?: string) {
+export function makeActionButton(label: string | (Node|string)[], action: (ev: MouseEvent) => void, tooltip?: string) {
     const button = document.createElement("button");
     if (label instanceof Object) {
         button.replaceChildren(...label);

@@ -205,6 +205,18 @@ body {
 
 }
 
+.borderless-button {
+  padding: 0 4px 0 4px;
+  margin-left: 2px;
+  background: none;
+  border: none;
+
+  &:hover {
+    color: var(--action-button-hover-color);
+  }
+}
+
+
 // Z-indices/gea
 body {
   /* Sets table z order needs to be:
@@ -269,6 +281,21 @@ table {
     > tr:hover {
       > td {
         background-color: var(--table-bg-color-hover);
+      }
+
+      > th.hoverable:hover {
+        background-color: var(--table-bg-color-hover);
+      }
+
+      &.special-row-hoverable {
+
+        &:hover {
+          background-color: var(--table-bg-color-hover);
+        }
+
+        > *:hover {
+          background-color: var(--table-bg-color-hover);
+        }
       }
     }
   }
@@ -577,6 +604,7 @@ table.gear-plan-table {
       outline: inherit;
 
       button {
+        .borderless-button;
         padding: 0 4px 0 4px;
         margin-left: 2px;
         background: none;
@@ -628,6 +656,7 @@ table.gear-plan-table {
         &.multiplier-stat-col {
           --cell-width: var(--multi-stat-col-width);
         }
+
         &.stat-col-hp {
           --cell-width: var(--hp-stat-col-width);
         }
@@ -765,16 +794,56 @@ div.sheet-picker-holder {
 
     min-width: 600px;
 
-    td[col-id="sheetactions"] {
-      width: 150px;
+    border: var(--standard-border);
 
-      div {
-        display: flex;
+    tr {
+      height: 23px;
+      max-height: 23px;
+    }
 
-        button {
-          flex: 1;
-        }
+    td {
+      border: none;
+      border-top: var(--standard-border);
+    }
+
+    th {
+      --thick-border: none;
+    }
+
+    .new-sheet-row th {
+      font-weight: normal;
+      i {
+        padding-left: 8px;
+        padding-right: 8px;
       }
+    }
+
+    td[col-id="sheetactions"] {
+      width: 50px;
+      max-height: 23px;
+      height: 23px;
+
+      i {
+        font-size: 14px;
+      }
+
+      > div {
+        display: inline-block;
+        height: 20px;
+      }
+
+      button {
+        .borderless-button;
+      }
+
+      //
+      //div {
+      //  display: flex;
+      //
+      //  button {
+      //    flex: 1;
+      //  }
+      //}
     }
   }
 
@@ -1535,6 +1604,7 @@ input.gear-items-table-relic-stat-input {
     max-width: 95vw;
     display: flex;
     flex-direction: column;
+
     .modal-content-area {
       overflow: auto;
       margin-bottom: 10px;
@@ -2152,20 +2222,21 @@ fieldset {
 //}
 
 
-
 sheet-export-modal {
   textarea {
     height: 200px;
   }
+
   sim-export-chooser {
-   width: fit-content;
+    width: fit-content;
     display: block;
     margin: auto;
-  .sim-export-chooser-inner {
-    max-height: 300px;
-    overflow-y: auto;
-    text-align: left;
-  }
+
+    .sim-export-chooser-inner {
+      max-height: 300px;
+      overflow-y: auto;
+      text-align: left;
+    }
   }
 }
 
@@ -2173,4 +2244,10 @@ rename-dialog {
   form {
     width: min-content;
   }
+}
+
+.ffxiv-job-icon {
+  max-height: 100%;
+  display: block;
+  aspect-ratio: 1;
 }

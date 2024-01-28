@@ -226,11 +226,8 @@ export class TitleRow {
 }
 
 export class SpecialRow<RowDataType, SelectionType> {
-
-    creator: (table: CustomTable<RowDataType, SelectionType>) => Node
-
-    constructor(creator: (table: CustomTable<RowDataType, SelectionType>) => Node) {
-        this.creator = creator;
+    constructor(public readonly creator: (table: CustomTable<RowDataType, SelectionType>) => Node,
+                public readonly finisher: (row: CustomTableTitleRow, table: CustomTable<RowDataType, SelectionType>) => void = () => null) {
     }
 }
 
@@ -313,7 +310,9 @@ export class CustomTable<RowDataType, SelectionType = never> extends HTMLTableEl
                 newRowElements.push(new CustomTableTitleRow(this, item.title));
             }
             else if (item instanceof SpecialRow) {
-                newRowElements.push(new CustomTableTitleRow(this, item.creator(this)));
+                const out = new CustomTableTitleRow(this, item.creator(this));
+                item.finisher(out, this);
+                newRowElements.push(out);
             }
             else {
                 if (this.dataRowMap.has(item)) {
@@ -395,7 +394,9 @@ export class CustomTable<RowDataType, SelectionType = never> extends HTMLTableEl
     }
 
     handleClick(ev: MouseEvent) {
-        this._handleClick(ev.target);
+        if (ev.button === 0) {
+            this._handleClick(ev.target);
+        }
     }
 
     _handleClick(target) {

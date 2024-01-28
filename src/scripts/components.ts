@@ -62,11 +62,12 @@ import {
     SupportedLevel,
     SupportedLevels
 } from "./xivconstants";
-import {getCurrentHash, openSheetByKey, setTitle, SHORTLINK_HASH, showNewSheetForm, VIEW_SHEET_HASH} from "./main";
+import {getCurrentHash, getHashForSaveKey, openSheetByKey, setTitle, showNewSheetForm} from "./main";
 import {getSetFromEtro} from "./external/etro_import";
 import {Inactivitytimer} from "./util/inactivitytimer";
 import {
-    DataSelect, faIcon,
+    DataSelect,
+    faIcon,
     FieldBoundCheckBox,
     FieldBoundDataSelect,
     FieldBoundIntField,
@@ -79,7 +80,6 @@ import {
 import {LoadingBlocker} from "./components/loader";
 import {FoodItemsTable, FoodItemViewTable, GearItemsTable, GearItemsViewTable} from "./components/items";
 import {GearEditToolbar} from "./components/gear_edit_toolbar";
-import {startShortLink} from "./components/shortlink_components";
 import {camel2title} from "./util/strutils";
 import {writeProxy} from "./util/proxies";
 import {SetViewToolbar} from "./components/totals_display";
@@ -88,9 +88,9 @@ import {startRenameSet, startRenameSheet} from "./components/rename_dialog";
 import {installDragHelper} from "./components/draghelpers";
 import {getShortLink} from "./external/shortlink_server";
 import {parseImport} from "./imports/imports";
-import doc = Mocha.reporters.doc;
 import {startExport} from "./components/export_controller";
 import {SETTINGS} from "./persistent_settings";
+import {JobIcon} from "./components/jobs";
 
 export const SHARED_SET_NAME = 'Imported Set';
 
@@ -2279,10 +2279,11 @@ function startNewSheet() {
     showNewSheetForm();
 }
 
-export class SheetPickerTable extends CustomTable<SheetExport> {
+export class SheetPickerTable extends CustomTable<SheetExport, SheetExport> {
     constructor() {
         super();
         this.classList.add("gear-sheets-table");
+        this.classList.add("hoverable");
         this.columns = [
             {
                 shortName: "sheetactions",
@@ -2290,25 +2291,39 @@ export class SheetPickerTable extends CustomTable<SheetExport> {
                 getter: sheet => sheet,
                 renderer: (sheet: SheetExport) => {
                     const div = document.createElement("div");
-                    div.appendChild(makeActionButton('Open', () => openSheetByKey(sheet.saveKey)));
-                    div.appendChild(makeActionButton('Delete️', () => {
-                        deleteSheetByKey(sheet.saveKey);
-                        this.readData();
+                    div.appendChild(makeActionButton([faIcon('fa-trash-can')], () => {
+                        this.confirmDelete(sheet);
                     }));
+                    const hash = getHashForSaveKey(sheet.saveKey);
+                    const linkUrl = new URL(`#/${hash.join('/')}`, document.location.toString());
+                    const newTabLink = document.createElement('a');
+                    newTabLink.href = linkUrl.toString();
+                    newTabLink.target = '_blank';
+                    newTabLink.appendChild(faIcon('fa-arrow-up-right-from-square', 'fa'));
+                    newTabLink.addEventListener('mousedown', ev => {
+                        ev.stopPropagation();
+                    }, true);
+                    newTabLink.classList.add('borderless-button');
+                    div.appendChild(newTabLink);
                     return div;
                 },
-            },
-            {
-                shortName: "sheetjob",
-                displayName: "Job",
-                getter: sheet => sheet.job,
-                fixedWidth: 60,
             },
             {
                 shortName: "sheetlevel",
                 displayName: "Lvl",
                 getter: sheet => sheet.level,
-                fixedWidth: 50,
+                fixedWidth: 40,
+            },
+            {
+                shortName: "sheetjob",
+                displayName: "Job",
+                getter: sheet => sheet.job,
+                // renderer: job => {
+                //     const out = document.createElement('div');
+                //     out.replaceChildren(new JobIcon(job), job);
+                //     return out;
+                // },
+                fixedWidth: 60,
             },
             {
                 shortName: "sheetname",
@@ -2317,15 +2332,44 @@ export class SheetPickerTable extends CustomTable<SheetExport> {
             }
         ]
         this.readData();
+        this.selectionModel = {
+            clickCell(cell: CustomCell<SheetExport, SheetExport>) {
+
+            },
+            clickColumnHeader(col: CustomColumn<SheetExport>) {
+
+            },
+            clickRow(row: CustomRow<SheetExport>) {
+                openSheetByKey(row.dataItem.saveKey);
+            },
+            getSelection(): SheetExport {
+                return null;
+            },
+            isCellSelectedDirectly(cell: CustomCell<SheetExport, SheetExport>) {
+                return false;
+            },
+            isColumnHeaderSelected(col: CustomColumn<SheetExport>) {
+                return false;
+            },
+            isRowSelected(row: CustomRow<SheetExport>) {
+                return false;
+            },
+            clearSelection(): void {
+
+            }
+        };
     }
 
     readData() {
         const data: typeof this.data = [];
         data.push(new SpecialRow((table) => {
             const div = document.createElement("div");
-            div.appendChild(makeActionButton("New Sheet", () => startNewSheet()));
+            div.replaceChildren(faIcon('fa-plus', 'fa-solid'), 'New Sheet');
             return div;
-        }))
+        }, (row) => {
+            row.classList.add('special-row-hoverable', 'new-sheet-row');
+            row.addEventListener('click', () => startNewSheet());
+        }));
         const items: SheetExport[] = [];
         for (let localStorageKey in localStorage) {
             if (localStorageKey.startsWith("sheet-save-")) {
@@ -2345,6 +2389,14 @@ export class SheetPickerTable extends CustomTable<SheetExport> {
             data.push(...items);
         }
         this.data = data;
+    }
+
+    private confirmDelete(sheet: SheetExport) {
+        const confirmed = confirm(`Delete sheet '${sheet.name}'?`);
+        if (confirmed) {
+            deleteSheetByKey(sheet.saveKey);
+            this.readData();
+        }
     }
 }
 
