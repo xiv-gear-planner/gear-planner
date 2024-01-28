@@ -90,6 +90,7 @@ import {getShortLink} from "./external/shortlink_server";
 import {parseImport} from "./imports/imports";
 import doc = Mocha.reporters.doc;
 import {startExport} from "./components/export_controller";
+import {SETTINGS} from "./persistent_settings";
 
 export const SHARED_SET_NAME = 'Imported Set';
 
@@ -1037,6 +1038,7 @@ export class GearPlanSheet extends HTMLElement {
     private setupDone: boolean = false;
     isViewOnly: boolean = false;
     private gearUpdateTimer: Inactivitytimer;
+    private _showAdvancedStats: boolean;
     isEmbed: boolean;
 
 
@@ -1173,6 +1175,21 @@ export class GearPlanSheet extends HTMLElement {
         this.setupEditorArea();
     }
 
+    get showAdvancedStats() {
+        return this._showAdvancedStats;
+    }
+
+    set showAdvancedStats(show: boolean) {
+        this._showAdvancedStats = show;
+        SETTINGS.viewDetailedStats = show;
+        if (show) {
+            this._gearPlanTable.classList.add('show-advanced-stats');
+        }
+        else {
+            this._gearPlanTable.classList.remove('show-advanced-stats');
+        }
+    }
+
     setViewOnly() {
         this.isViewOnly = true;
         this.classList.add("view-only");
@@ -1228,6 +1245,7 @@ export class GearPlanSheet extends HTMLElement {
         buttonsArea.appendChild(showHideButton);
 
         this._gearPlanTable = new GearPlanTable(this, item => this.editorItem = item);
+        this.showAdvancedStats = SETTINGS.viewDetailedStats ?? false;
         // Buttons and controls at the bottom of the table
         // this.buttonRow.id = 'gear-sheet-button-row';
 
@@ -1338,10 +1356,15 @@ export class GearPlanSheet extends HTMLElement {
                 this.headerArea.appendChild(unsavedWarning);
             }
             this.headerArea.style.display = '';
-            const headerButton = makeActionButton('Show/Hide Header', () => {
+            const headerButton = makeActionButton('Toggle Header', () => {
+                // TODO: if you have manually shown the header, don't hide it again when re-selecting a set
                 this.headerArea.style.display = (this.headerArea.style.display === 'none') ? '' : 'none';
             })
             buttonsArea.appendChild(headerButton);
+            const advancedStats = makeActionButton('Toggle Details', () => {
+                this.showAdvancedStats = !this.showAdvancedStats;
+            })
+            buttonsArea.appendChild(advancedStats);
         }
         // const tableAreaInner = quickElement('div', ['gear-sheet-table-area-inner'], [this._gearPlanTable, this.buttonsArea]);
         this.tableArea.appendChild(this._gearPlanTable);

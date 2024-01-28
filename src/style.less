@@ -51,6 +51,8 @@ body {
   --input-background-color: var(--bg-color);
   --relic-stat-input-background-color: var(--bg-color);
   --loading-spinner-color: #fff;
+  --button-active-background-color: #555555;
+  --button-active-border-color: #ffffff;
 
   &.light-mode {
     --bg-color: #e7dcd9;
@@ -73,10 +75,13 @@ body {
     --table-selected-outline-color: #d28996;
     --relic-stat-input-background-color: #efab8a;
     --loading-spinner-color: #210;
+    --button-active-background-color: #d27d32;
+    --button-active-border-color: #734100;
 
     .melded-cell-extra-style {
       background-color: var(--stat-color);
     }
+
     .gear-sheets-table {
       --button-color: var(--bg-color);
     }
@@ -273,7 +278,7 @@ table {
     scroll-margin: 30px;
     position: relative;
 
-    >th, >td {
+    > th, > td {
       background-color: var(--table-bg-color);
     }
 
@@ -432,6 +437,7 @@ table {
 
 select {
   .like-a-button;
+
   &:hover {
     background-color: var(--button-hover-color);
   }
@@ -461,8 +467,8 @@ button {
 
   &:active {
     //color: #999999;
-    background-color: #555555;
-    border-color: #ffffff;
+    background-color: var(--button-active-background-color);
+    border-color: var(--button-active-border-color);
   }
 }
 
@@ -574,6 +580,7 @@ table.gear-plan-table {
         margin-left: 2px;
         background: none;
         border: none;
+
         &:hover {
           color: var(--action-button-hover-color);
         }
@@ -612,9 +619,11 @@ table.gear-plan-table {
         width: var(--cell-width);
         min-width: var(--cell-width);
         max-width: var(--cell-width);
+
         &.chance-stat-col {
           --cell-width: var(--chance-stat-col-width);
         }
+
         &.multiplier-stat-col {
           --cell-width: var(--multi-stat-col-width);
         }
@@ -661,14 +670,20 @@ table.gear-plan-table {
     .stat-col {
       text-align: center;
     }
-    //--stat-col-width: 40px;
-    --chance-stat-col-width: 110px;
-    --multi-stat-col-width: 70px;
-    @media screen and (max-width: 1000px) {
-      --chance-stat-col-width: 40px;
-      --multi-stat-col-width: 40px;
+
+    .extra-stat-info {
+      display: none !important;
+    }
+
+    --chance-stat-col-width: 40px;
+    --multi-stat-col-width: 40px;
+
+    &.show-advanced-stats {
+      --chance-stat-col-width: 110px;
+      --multi-stat-col-width: 70px;
+
       .extra-stat-info {
-        display: none !important;
+        display: unset !important;
       }
     }
 
@@ -1393,6 +1408,7 @@ set-view-toolbar {
     border: none;
     pointer-events: none;
     background: none;
+
     div.stat-total {
       background-color: var(--table-bg-color);
     }
@@ -1637,6 +1653,7 @@ table.food-items-table {
     tr:first-child {
       border-top-left-radius: var(--standard-border-radius);
       border-top-right-radius: var(--standard-border-radius);
+
       td:first-child, th:first-child {
         border-top-left-radius: var(--standard-border-radius);
       }
@@ -1649,6 +1666,7 @@ table.food-items-table {
     tr:last-child {
       border-bottom-left-radius: var(--standard-border-radius);
       border-bottom-right-radius: var(--standard-border-radius);
+
       td:first-child, th:first-child {
         border-bottom-left-radius: var(--standard-border-radius);
       }
@@ -1673,7 +1691,8 @@ gear-set-viewer {
   //}
   display: block;
   --standard-border-radius: 10px;
-  >h1 {
+
+  > h1 {
     margin-top: 0;
   }
 
@@ -1750,6 +1769,7 @@ gear-set-viewer {
     border-spacing: 5px;
     border-radius: var(--standard-border-radius);
     --item-name-col-width: 265px;
+
     > * {
       --standard-border: none;
       --thick-border: none;
@@ -1763,14 +1783,17 @@ gear-set-viewer {
 
     .stat-cell {
       border-radius: 5px;
+
       &.primary {
         //box-shadow: 0 0 3px 3px var(--stat-color) inset;
       }
+
       &.secondary {
         //box-shadow: 0 0 3px 3px var(--stat-color) inset;
       }
     }
   }
+
   .food-view-table {
     td.food-stat-col {
       --standard-border: 1px solid color-mix(in srgb, var(--stat-color) 10%, var(--border-color));
@@ -2095,12 +2118,14 @@ fieldset {
   fieldset {
     text-align: left;
   }
+
   .labeled-radio-button {
     display: inline-block;
     padding-right: 10px;
     padding-bottom: 8px;
   }
-  >div {
+
+  > div {
     width: min-content;
   }
 }
