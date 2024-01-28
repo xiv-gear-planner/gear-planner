@@ -6,6 +6,7 @@ import {getBisSheet} from "./external/static_bis";
 import {JobName} from "./xivconstants";
 import {LoadingBlocker} from "./components/loader";
 import {earlyEmbedInit, openEmbed} from "./embed";
+import {SETTINGS} from "./persistent_settings";
 
 export const SHORTLINK_HASH = 'sl';
 export const SHARE_LINK = 'https://share.xivgear.app/share/';
@@ -312,15 +313,10 @@ let isLightMode: boolean;
 function setLightMode(lightMode: boolean | 'load') {
     const settingKey = 'light-mode';
     if (lightMode === 'load') {
-        if (localStorage.getItem(settingKey) === 'true') {
-            lightMode = true;
-        }
-        else {
-            lightMode = false;
-        }
+        lightMode = SETTINGS.lightMode ?? false;
     }
     else {
-        localStorage.setItem(settingKey, String(lightMode));
+        SETTINGS.lightMode = lightMode;
     }
     const body = document.querySelector('body');
     const lightModeClass = 'light-mode';

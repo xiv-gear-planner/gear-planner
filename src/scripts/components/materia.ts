@@ -68,7 +68,10 @@ export class AllSlotMateriaManager extends HTMLElement {
                 this.classList.add("materia-slot-no-slots");
                 this.classList.remove("materia-manager-equipped")
                 const textSpan = document.createElement("span");
-                if (equipSlot.gearItem.isSyncedDown) {
+                if (equipSlot.gearItem.isCustomRelic) {
+                    textSpan.textContent = "Click into cells to edit relic stats"
+                }
+                else if (equipSlot.gearItem.isSyncedDown) {
                     textSpan.textContent = "Melds unavailable due to ilvl sync";
                 }
                 else {

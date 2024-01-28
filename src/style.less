@@ -1,12 +1,13 @@
 body {
-  --bg-color: #181818;
+  --bg-color: #111113;
   --fg-color: #b0b0b0;
-  --border-color: #666666;
-  --border-color-highlight: #888888;
-  --table-bg-color: #252525;
-  --table-bg-color-selected: #333333;
-  --table-bg-color-hover: #404040;
+  --border-color: #66666f;
+  --border-color-highlight: #888890;
+  --table-bg-color: #202027;
+  --table-bg-color-selected: #33333f;
+  --table-bg-color-hover: #40404f;
   --table-selected-outline-color: #00bbbb;
+  --action-button-hover-color: #ddddc9;
   --color-sps-sks: #22ff22;
   --color-crit: #ff2222;
   --color-dhit: #ff8800;
@@ -25,18 +26,19 @@ body {
   //--thick-border: 2px solid var(--border-color);
   --selected-outline: 3px solid var(--table-selected-outline-color);
   --stat-color: var(--fg-color);
-  --modal-backdrop-color: #88888833;
+  --modal-backdrop-color: #88889133;
   --error-border-color: #9c0000;
   --standard-border-radius: 5px;
   --action-col-width: 70px;
   --set-name-col-width: 300px;
   --item-name-col-width: 300px;
-  --button-hover-color: #333333;
+  --button-color: var(--bg-color);
+  --button-hover-color: #33333f;
   --materia-melded-slot-blend-color: #cccccc;
-  --scrollbar-fg: #666666;
-  --scrollbar-bg: #444444;
+  --scrollbar-fg: #666675;
+  --scrollbar-bg: #444454;
   --stat-tiering-box-mix-color: #fff;
-  --faint-border: 1px solid #60606080;
+  --faint-border: 1px solid #60606680;
   --plain-link-color: #4f84ff;
   --plain-link-hover-color: #76cfff;
   --edge-padding: 4px;
@@ -46,25 +48,43 @@ body {
   --hp-stat-col-width: 60px;
   --bottom-flex-basis: 60%;
   --modal-bottom-button-width: 70px;
+  --materia-box-shadow-spread: 2px;
+  --input-background-color: var(--bg-color);
+  --relic-stat-input-background-color: var(--bg-color);
+  --loading-spinner-color: #fff;
+  --button-active-background-color: #555555;
+  --button-active-border-color: #ffffff;
 
   &.light-mode {
-    --bg-color: #eee;
+    --bg-color: #e7dcd9;
     --fg-color: #000000;
-    --border-color: #666666;
-    --border-color-highlight: #444444;
-    --table-bg-color: #ddd;
-    --table-bg-color-selected: #ccc;
-    --table-bg-color-hover: #aaa;
-    --button-hover-color: #ccc;
+    --border-color: #a59083;
+    --border-color-highlight: #150f0f;
+    --table-bg-color: #fff8f1;
+    --table-bg-color-selected: #fdebd3;
+    --table-bg-color-hover: #f1d8b8;
+    --button-color: var(--table-bg-color);
+    --button-hover-color: var(--table-bg-color-hover);
+    --input-background-color: #fffafa;
     --materia-melded-slot-blend-color: #666666;
-    --scrollbar-fg: #888;
-    --scrollbar-bg: #ccc;
+    --scrollbar-fg: #887461;
+    --scrollbar-bg: #b7a691;
     --stat-tiering-box-mix-color: #000;
     --plain-link-color: #1a3072;
     --plain-link-hover-color: #2778a9;
+    --action-button-hover-color: #833e1d;
+    --table-selected-outline-color: #d28996;
+    --relic-stat-input-background-color: #efab8a;
+    --loading-spinner-color: #210;
+    --button-active-background-color: #d27d32;
+    --button-active-border-color: #734100;
 
     .melded-cell-extra-style {
       background-color: var(--stat-color);
+    }
+
+    .gear-sheets-table {
+      --button-color: var(--bg-color);
     }
   }
 
@@ -256,10 +276,12 @@ table {
   tr {
     /*border: 2px solid #666666;*/
     border: 3px solid var(--border-color);
-    background-color: var(--table-bg-color);
     scroll-margin: 30px;
     position: relative;
 
+    > th, > td {
+      background-color: var(--table-bg-color);
+    }
 
     th {
       border-top: var(--thick-border);
@@ -331,6 +353,7 @@ table {
       td, th {
         //overflow: visible;
         .table-item-selected-bg;
+        --materia-box-shadow-spread: 3px;
 
         > *:first-child::before {
           .selection-highlight;
@@ -414,10 +437,7 @@ table {
 // Provides the selected outline for table elements
 
 select {
-  color: var(--fg-color);
-  background-color: var(--bg-color);
-  border: 1px solid var(--border-color);
-  .standard-border-radius;
+  .like-a-button;
 
   &:hover {
     background-color: var(--button-hover-color);
@@ -431,7 +451,7 @@ select {
 
 .like-a-button {
   color: var(--fg-color);
-  background-color: var(--bg-color);
+  background-color: var(--button-color);
   .standard-border-radius;
   border: var(--standard-border);
   .button-font-style;
@@ -448,8 +468,8 @@ button {
 
   &:active {
     //color: #999999;
-    background-color: #555555;
-    border-color: #ffffff;
+    background-color: var(--button-active-background-color);
+    border-color: var(--button-active-border-color);
   }
 }
 
@@ -463,7 +483,7 @@ input {
   &[type="text"],
   &[type="number"] {
     color: var(--fg-color);
-    background-color: var(--bg-color);
+    background-color: var(--input-background-color);
     .standard-border-radius;
     border-color: var(--border-color);
 
@@ -558,6 +578,13 @@ table.gear-plan-table {
 
       button {
         padding: 0 4px 0 4px;
+        margin-left: 2px;
+        background: none;
+        border: none;
+
+        &:hover {
+          color: var(--action-button-hover-color);
+        }
       }
 
     }
@@ -585,7 +612,7 @@ table.gear-plan-table {
     }
 
     td, th {
-      background-color: var(--table-bg-color);
+      //background-color: var(--table-bg-color);
 
       &.stat-col {
         //
@@ -593,9 +620,11 @@ table.gear-plan-table {
         width: var(--cell-width);
         min-width: var(--cell-width);
         max-width: var(--cell-width);
+
         &.chance-stat-col {
           --cell-width: var(--chance-stat-col-width);
         }
+
         &.multiplier-stat-col {
           --cell-width: var(--multi-stat-col-width);
         }
@@ -645,14 +674,20 @@ table.gear-plan-table {
     .stat-col {
       text-align: center;
     }
-    //--stat-col-width: 40px;
-    --chance-stat-col-width: 110px;
-    --multi-stat-col-width: 70px;
-    @media screen and (max-width: 1000px) {
-      --chance-stat-col-width: 40px;
-      --multi-stat-col-width: 40px;
+
+    .extra-stat-info {
+      display: none !important;
+    }
+
+    --chance-stat-col-width: 40px;
+    --multi-stat-col-width: 40px;
+
+    &.show-advanced-stats {
+      --chance-stat-col-width: 110px;
+      --multi-stat-col-width: 70px;
+
       .extra-stat-info {
-        display: none !important;
+        display: unset !important;
       }
     }
 
@@ -837,7 +872,7 @@ gear-plan {
 
   .gear-sheet-editor-area {
     flex-basis: var(--bottom-flex-basis);
-    flex-shrink: 0;
+    flex-shrink: 1;
     flex-grow: 9999;
     min-height: fit-content;
     height: 60%;
@@ -1217,6 +1252,7 @@ div.gear-set-editor-toolbar, set-view-toolbar {
     display: inline-block;
     vertical-align: top;
     margin: 5px;
+    background-color: var(--button-color);
   }
 
   .button-font-style;
@@ -1375,6 +1411,11 @@ set-view-toolbar {
   set-totals-display {
     border: none;
     pointer-events: none;
+    background: none;
+
+    div.stat-total {
+      background-color: var(--table-bg-color);
+    }
   }
 }
 
@@ -1471,7 +1512,7 @@ input.gear-items-table-relic-stat-input {
   border: none;
   border-radius: 2px;
   padding: 0 0 0 0;
-  background: var(--bg-color);
+  background: var(--relic-stat-input-background-color);
   box-sizing: border-box;
   //margin: 1px;
   width: 100%;
@@ -1613,7 +1654,10 @@ table.food-items-table {
 .round-table {
 
   tbody {
-    th:first-child, tr:first-child {
+    tr:first-child {
+      border-top-left-radius: var(--standard-border-radius);
+      border-top-right-radius: var(--standard-border-radius);
+
       td:first-child, th:first-child {
         border-top-left-radius: var(--standard-border-radius);
       }
@@ -1623,7 +1667,10 @@ table.food-items-table {
       }
     }
 
-    th:last-child, tr:last-child {
+    tr:last-child {
+      border-bottom-left-radius: var(--standard-border-radius);
+      border-bottom-right-radius: var(--standard-border-radius);
+
       td:first-child, th:first-child {
         border-bottom-left-radius: var(--standard-border-radius);
       }
@@ -1647,7 +1694,9 @@ gear-set-viewer {
   //  }
   //}
   display: block;
-  >h1 {
+  --standard-border-radius: 10px;
+
+  > h1 {
     margin-top: 0;
   }
 
@@ -1668,7 +1717,7 @@ gear-set-viewer {
     text-align: left;
     margin-left: auto;
     margin-right: auto;
-    max-width: 550px;
+    max-width: 556px;
     @media screen and (max-width: 550px) {
       --materia-total-cols: 3;
     }
@@ -1716,7 +1765,50 @@ gear-set-viewer {
   }
 
   .gear-items-view-table, .food-view-table {
-    .round-table;
+    //.round-table;
+    //--standard-border: none;
+    //--thick-border: none;
+    background-color: var(--table-bg-color);
+    border: var(--standard-border);
+    border-spacing: 5px;
+    border-radius: var(--standard-border-radius);
+    --item-name-col-width: 265px;
+
+    > * {
+      --standard-border: none;
+      --thick-border: none;
+      background: none;
+    }
+
+    td, th {
+      border-style: none;
+      background: none;
+    }
+
+    .stat-cell {
+      border-radius: 5px;
+
+      &.primary {
+        //box-shadow: 0 0 3px 3px var(--stat-color) inset;
+      }
+
+      &.secondary {
+        //box-shadow: 0 0 3px 3px var(--stat-color) inset;
+      }
+    }
+  }
+
+  .food-view-table {
+    td.food-stat-col {
+      --standard-border: 1px solid color-mix(in srgb, var(--stat-color) 10%, var(--border-color));
+      border: var(--standard-border);
+      border-top: var(--standard-border) !important;
+      border-radius: 5px;
+
+      &.primary {
+        --standard-border: 1px solid color-mix(in srgb, var(--stat-color) 50%, var(--border-color));
+      }
+    }
   }
 
   //.weapon-table,  .food-items-table {
@@ -1786,7 +1878,7 @@ gear-set-viewer {
 
 td.stat-melded, td.stat-melded-overcapped, td.stat-melded-overcapped-major, td.stat-synced-down {
   //box-shadow: 0 0 4px 2px rgb(from color-mix(in srgb, var(--stat-color) 40%, var(--materia-melded-slot-blend-color)) r g b / 80%) inset;
-  box-shadow: 0 0 2px 2px color-mix(in srgb, color-mix(in srgb, var(--stat-color) 40%, var(--materia-melded-slot-blend-color)), transparent 35%) inset;
+  box-shadow: 0 0 2px var(--materia-box-shadow-spread) color-mix(in srgb, color-mix(in srgb, var(--stat-color) 40%, var(--materia-melded-slot-blend-color)), transparent 35%) inset;
 }
 
 td.stat-zero {
@@ -1834,7 +1926,7 @@ loading-blocker {
         width: 6px;
         height: 18px;
         border-radius: 20%;
-        background: #fff;
+        background: var(--loading-spinner-color);
       }
     }
   }
@@ -2030,12 +2122,14 @@ fieldset {
   fieldset {
     text-align: left;
   }
+
   .labeled-radio-button {
     display: inline-block;
     padding-right: 10px;
     padding-bottom: 8px;
   }
-  >div {
+
+  > div {
     width: min-content;
   }
 }

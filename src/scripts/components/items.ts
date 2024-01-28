@@ -289,7 +289,7 @@ export class FoodItemViewTable extends CustomTable<FoodItem, FoodItem> {
         super.columns = [
             {
                 shortName: "ilvl",
-                displayName: "iLvl",
+                displayName: "",
                 getter: item => item.ilvl,
             },
             {
@@ -307,7 +307,7 @@ export class FoodItemViewTable extends CustomTable<FoodItem, FoodItem> {
             },
             {
                 shortName: "itemname",
-                displayName: "Name",
+                displayName: "Food",
                 getter: item => {
                     return item.name;
                 },
