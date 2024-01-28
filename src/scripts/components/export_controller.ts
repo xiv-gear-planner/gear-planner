@@ -1,9 +1,10 @@
-import {labeledRadioButton, makeActionButton} from "./util";
+import {FieldBoundCheckBox, labeledCheckbox, labeledRadioButton, makeActionButton} from "./util";
 import {GearPlanSheet} from "../components";
 import {closeModal, setModal} from "../modalcontrol";
-import {VIEW_SET_HASH, VIEW_SHEET_HASH} from "../main";
+import {contentArea, VIEW_SET_HASH, VIEW_SHEET_HASH} from "../main";
 import {putShortLink} from "../external/shortlink_server";
 import {CharacterGearSet} from "../gear";
+import {BaseModal} from "./modal";
 
 const SHEET_EXPORT_OPTIONS = ['Link to Whole Sheet', 'One Link for Each Set', 'Embed URL for Each Set', 'JSON for Whole Sheet'] as const;
 type SheetExportType = typeof SHEET_EXPORT_OPTIONS[number];
@@ -26,24 +27,34 @@ export function startExport(sheet: GearPlanSheet | CharacterGearSet) {
 
 const DEFAULT_EXPORT_TEXT = 'Choose an export type from above, then click "Generate" below.\n\nYou can also click "Preview" to get an idea of what your sheet/set will look like after exporting.';
 
-abstract class ExportModal<X extends string> extends HTMLElement {
-    private header: HTMLHeadingElement;
-    private inner: HTMLDivElement;
+class SimExportChooser extends HTMLElement {
+    constructor(sheet: GearPlanSheet) {
+        super();
+        const header = document.createElement('h3');
+        header.textContent = 'Choose Sims to Export';
+        this.appendChild(header);
+        const inner = document.createElement('div');
+        sheet.sims.forEach(sim => {
+            const cb = new FieldBoundCheckBox(sim.settings, 'includeInExport');
+            const cbFull = labeledCheckbox(sim.displayName, cb);
+            inner.appendChild(cbFull);
+        });
+        inner.classList.add('sim-export-chooser-inner');
+        this.appendChild(inner);
+    }
+}
+
+abstract class ExportModal<X extends string> extends BaseModal {
     private textBox: HTMLTextAreaElement;
     private variableButton: HTMLButtonElement;
     private varButtonAction = (ev: MouseEvent) => {
         console.error("This should not happen!")
     }
 
-    protected constructor(title: string, exportOptions: readonly X[]) {
+    protected constructor(title: string, exportOptions: readonly X[], sheet: GearPlanSheet) {
         super();
-        this.classList.add('modal-dialog', 'export-modal-dialog');
-
-        this.inner = document.createElement('div');
-        const inner = this.inner;
-        this.header = document.createElement('h2');
-        this.header.textContent = title;
-        inner.appendChild(this.header);
+        this.classList.add('export-modal-dialog');
+        this.headerText = title;
 
         const fieldset = document.createElement('fieldset');
 
@@ -62,7 +73,7 @@ abstract class ExportModal<X extends string> extends HTMLElement {
             })
         });
 
-        inner.appendChild(fieldset);
+        this.contentArea.appendChild(fieldset);
 
         const closeButton = makeActionButton('Close', () => closeModal());
         const previewButton = makeActionButton('Preview', () => this.doPreview());
@@ -70,19 +81,17 @@ abstract class ExportModal<X extends string> extends HTMLElement {
         this.textBox = document.createElement('textarea');
         this.textBox.readOnly = true;
         this.variableButton = makeActionButton('PLACEHOLDER', (ev) => this.varButtonAction(ev));
-        inner.appendChild(this.textBox);
+        this.contentArea.appendChild(this.textBox);
 
-        const buttonArea = document.createElement('div');
+        const chooser = new SimExportChooser(sheet);
+        this.contentArea.appendChild(chooser);
 
-        buttonArea.classList.add('lower-button-area');
-        buttonArea.appendChild(this.variableButton);
-        buttonArea.appendChild(previewButton);
-        buttonArea.appendChild(closeButton);
-        inner.appendChild(buttonArea);
+        this.addButton(this.variableButton);
+        this.addButton(previewButton);
+        this.addButton(closeButton);
 
         this.onSelect(exportOptions[0]);
 
-        this.appendChild(this.inner);
     }
 
     abstract doExport(selectedType: X): Promise<string>;
@@ -92,15 +101,6 @@ abstract class ExportModal<X extends string> extends HTMLElement {
     abstract get previewUrl(): string;
 
 
-    show() {
-        const outer = this;
-        setModal({
-            element: outer.inner,
-            close() {
-                outer.remove()
-            }
-        })
-    }
 
     private doPreview() {
         window.open(this.previewUrl, '_blank');
@@ -145,7 +145,7 @@ abstract class ExportModal<X extends string> extends HTMLElement {
 
 class SheetExportModal extends ExportModal<SheetExportType> {
     constructor(private sheet: GearPlanSheet) {
-        super('Export Full Sheet', SHEET_EXPORT_OPTIONS);
+        super('Export Full Sheet', SHEET_EXPORT_OPTIONS, sheet);
     }
 
     async doExport(selectedType: SheetExportType): Promise<string> {
@@ -200,7 +200,7 @@ class SheetExportModal extends ExportModal<SheetExportType> {
 class SetExportModal extends ExportModal<SetExportType> {
     private sheet: GearPlanSheet;
     constructor(private set: CharacterGearSet) {
-        super('Export Individual Set', SET_EXPORT_OPTIONS);
+        super('Export Individual Set', SET_EXPORT_OPTIONS, set.sheet);
         this.sheet = set.sheet;
     }
 
@@ -231,3 +231,4 @@ class SetExportModal extends ExportModal<SetExportType> {
 
 customElements.define('sheet-export-modal', SheetExportModal);
 customElements.define('set-export-modal', SetExportModal);
+customElements.define('sim-export-chooser', SimExportChooser);

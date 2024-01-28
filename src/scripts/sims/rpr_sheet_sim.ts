@@ -1,9 +1,8 @@
-import {updateSourceFile} from "typescript";
-import {Simulation, SimSpec, SimResult, SimSettings} from "../simulation";
-import {JobName, STANDARD_ANIMATION_LOCK} from "../xivconstants";
+import {SimSettings, SimSpec} from "../simulation";
+import {STANDARD_ANIMATION_LOCK} from "../xivconstants";
 import {ArcaneCircle, DeathsDesign} from "./buffs";
-import {BaseMultiCycleSim, CycleSimResult, ExternalCycleSettings, Rotation, CycleProcessor} from "./sim_processors";
-import {BuffEffects, Ability, GcdAbility, OgcdAbility} from "./sim_types";
+import {BaseMultiCycleSim, CycleProcessor, CycleSimResult, ExternalCycleSettings, Rotation} from "./sim_processors";
+import {Ability, GcdAbility, OgcdAbility} from "./sim_types";
 
 const slice: GcdAbility = {
     type: 'gcd',
@@ -190,7 +189,7 @@ export interface RprNewSheetSettingsExternal extends ExternalCycleSettings<RprNe
 }
 
 
-export const rprSheetSpec: SimSpec<RprSheetSim, RprNewSheetSettings> = {
+export const rprSheetSpec: SimSpec<RprSheetSim, RprNewSheetSettingsExternal> = {
     stub: "rpr-sheet-sim",
     displayName: "RPR Sim",
     makeNewSimInstance: function (): RprSheetSim {

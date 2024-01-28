@@ -1488,9 +1488,12 @@ export class GearPlanSheet extends HTMLElement {
                     continue;
                 }
                 try {
-                    const rehydratedSim = simSpec.loadSavedSimInstance(simport.settings);
+                    const rehydratedSim: Simulation<any, any, any> = simSpec.loadSavedSimInstance(simport.settings);
                     if (simport.name) {
                         rehydratedSim.displayName = simport.name;
+                    }
+                    if (rehydratedSim.settings.includeInExport === undefined) {
+                        rehydratedSim.settings.includeInExport = true;
                     }
                     this.addSim(rehydratedSim);
                 }
@@ -1595,8 +1598,8 @@ export class GearPlanSheet extends HTMLElement {
         return newKey;
     }
 
-    exportSims(): SimExport[] {
-        return this._sims.map(sim =>
+    exportSims(external: boolean): SimExport[] {
+        return this._sims.filter(sim => !external || sim.settings.includeInExport).map(sim =>
             ({
                 stub: sim.spec.stub,
                 settings: sim.exportSettings(),
@@ -1607,7 +1610,7 @@ export class GearPlanSheet extends HTMLElement {
     exportSheet(external: boolean = false): SheetExport {
         // TODO: make this async
         const sets: SetExport[] = this._sets.map(set => this.exportGearSet(set, false));
-        let simsExport: SimExport[] = this.exportSims();
+        let simsExport: SimExport[] = this.exportSims(external);
         const out: SheetExport = {
             name: this.sheetName,
             sets: sets,
@@ -1738,7 +1741,7 @@ export class GearPlanSheet extends HTMLElement {
             out.job = this.classJobName;
             out.level = this.level;
             out.ilvlSync = this.ilvlSync;
-            out.sims = this.exportSims();
+            out.sims = this.exportSims(true);
         }
         else {
             if (set.relicStatMemory) {
