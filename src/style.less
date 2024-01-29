@@ -213,6 +213,9 @@ body {
 
   &:hover {
     color: var(--action-button-hover-color);
+    svg {
+      fill: var(--action-button-hover-color);
+    }
   }
 }
 
@@ -609,6 +612,7 @@ table.gear-plan-table {
         margin-left: 2px;
         background: none;
         border: none;
+        font-size: 13.2px;
 
         &:hover {
           color: var(--action-button-hover-color);
@@ -809,10 +813,15 @@ div.sheet-picker-holder {
     th {
       --thick-border: none;
     }
+    .new-sheet-row:hover {
+      .svg-glyph {
+        fill: var(--action-button-hover-color);
+      }
+    }
 
     .new-sheet-row th {
       font-weight: normal;
-      i {
+      i, svg {
         padding-left: 8px;
         padding-right: 8px;
       }
@@ -822,6 +831,10 @@ div.sheet-picker-holder {
       width: 50px;
       max-height: 23px;
       height: 23px;
+
+      .svg-glyph {
+        font-size: 13.2px;
+      }
 
       i {
         font-size: 14px;
@@ -834,6 +847,8 @@ div.sheet-picker-holder {
 
       button {
         .borderless-button;
+        padding: 0;
+        margin-left: 0;
       }
 
       //
@@ -2250,4 +2265,12 @@ rename-dialog {
   max-height: 100%;
   display: block;
   aspect-ratio: 1;
+}
+
+.svg-glyph {
+  height: 1em;
+  width: 1em;
+  display: inline;
+  vertical-align: -.125em;
+  fill: var(--fg-color);
 }
