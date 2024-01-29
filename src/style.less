@@ -4,10 +4,6 @@ body {
   --border-color: #66666f;
   --border-color-highlight: #888890;
   --table-bg-color: #202027;
-  --table-bg-color-selected: #33333f;
-  --table-bg-color-hover: #40404f;
-  --table-selected-outline-color: #00bbbb;
-  --action-button-hover-color: #ddddc9;
   --color-sps-sks: #22ff22;
   --color-crit: #ff2222;
   --color-dhit: #ff8800;
@@ -33,7 +29,6 @@ body {
   --set-name-col-width: 300px;
   --item-name-col-width: 300px;
   --button-color: var(--bg-color);
-  --button-hover-color: #33333f;
   --materia-melded-slot-blend-color: #cccccc;
   --scrollbar-fg: #666675;
   --scrollbar-bg: #444454;
@@ -52,8 +47,15 @@ body {
   --input-background-color: var(--bg-color);
   --relic-stat-input-background-color: var(--bg-color);
   --loading-spinner-color: #fff;
-  --button-active-background-color: #555555;
+  --button-active-background-color: #121446;
   --button-active-border-color: #ffffff;
+  --table-bg-color-selected: #303345;
+  --table-bg-color-hover: #3a4055;
+  --table-selected-outline-color: #0ba3df;
+  --action-button-hover-color: #ddf;
+  --button-hover-color: #303649;
+  --selection-border-opacity: 80%;
+
 
   &.light-mode {
     --bg-color: #e7dcd9;
@@ -354,7 +356,7 @@ table {
     .selection-highlight {
       content: '';
       border-radius: 5px;
-      opacity: 80%;
+      opacity: var(--selection-border-opacity);
       position: absolute;
       --border-style: 2px solid var(--table-selected-outline-color);
       border: var(--border-style);
@@ -1976,6 +1978,7 @@ gear-set-viewer {
 td.stat-melded, td.stat-melded-overcapped, td.stat-melded-overcapped-major, td.stat-synced-down {
   //box-shadow: 0 0 4px 2px rgb(from color-mix(in srgb, var(--stat-color) 40%, var(--materia-melded-slot-blend-color)) r g b / 80%) inset;
   box-shadow: 0 0 2px var(--materia-box-shadow-spread) color-mix(in srgb, color-mix(in srgb, var(--stat-color) 40%, var(--materia-melded-slot-blend-color)), transparent 35%) inset;
+  --selection-border-opacity: 30%;
 }
 
 td.stat-zero {
