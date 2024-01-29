@@ -2293,7 +2293,7 @@ export class SheetPickerTable extends CustomTable<SheetExport, SheetExport> {
                     const div = document.createElement("div");
                     div.appendChild(makeActionButton([faIcon('fa-trash-can')], () => {
                         this.confirmDelete(sheet);
-                    }));
+                    }, `Delete sheet '${sheet.name}'`));
                     const hash = getHashForSaveKey(sheet.saveKey);
                     const linkUrl = new URL(`#/${hash.join('/')}`, document.location.toString());
                     const newTabLink = document.createElement('a');
@@ -2304,6 +2304,7 @@ export class SheetPickerTable extends CustomTable<SheetExport, SheetExport> {
                         ev.stopPropagation();
                     }, true);
                     newTabLink.classList.add('borderless-button');
+                    newTabLink.title = `Open sheet '${sheet.name}' in a new tab/window`;
                     div.appendChild(newTabLink);
                     return div;
                 },
