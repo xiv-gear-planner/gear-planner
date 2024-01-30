@@ -471,7 +471,7 @@ table {
 select {
   .like-a-button;
 
-  &:hover {
+  &:hover, &:focus {
     background-color: var(--button-hover-color);
   }
 }
@@ -2150,6 +2150,7 @@ buff-settings-area {
 
     .ability-cell {
       height: 100%;
+      max-height: 20px;
       display: flex;
       align-items: center;
 
@@ -2287,4 +2288,9 @@ rename-dialog {
   display: inline;
   vertical-align: -.125em;
   fill: var(--fg-color);
+}
+
+*:focus-visible {
+  outline: initial;
+  box-shadow: 0 0 2px 2px var(--table-selected-outline-color);
 }
