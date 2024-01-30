@@ -1235,17 +1235,14 @@ td.sim-column-valid {
   }
 }
 
-dialog#add-sim-dialog {
-  position: absolute;
-  z-index: var(--zi-add-sim-dialog);
-  background-color: var(--table-bg-color);
-  color: var(--fg-color);
-  border: var(--thick-border);
-
-  &::backdrop {
-    background-color: var(--modal-backdrop-color);
-
+add-sim-dialog {
+  table {
+    margin-left: 0;
+    margin-right: 0;
+    max-width: 100%;
+    width: 100%;
   }
+
 }
 
 #sim-config-area-outer {
@@ -1622,9 +1619,23 @@ input.gear-items-table-relic-stat-input {
     display: flex;
     flex-direction: column;
 
+    .modal-header {
+      margin-top: 10px;
+      margin-left: 40px;
+      margin-right: 40px;
+    }
+
     .modal-content-area {
       overflow: auto;
       margin-bottom: 10px;
+    }
+
+    .modal-close-button {
+      position: absolute;
+      right: 10px;
+      top: 10px;
+      font-size: 30px;
+      .borderless-button;
     }
   }
 
@@ -1636,10 +1647,10 @@ input.gear-items-table-relic-stat-input {
     text-align: center;
     padding: 10px;
 
-    > button {
-      display: block;
-      margin: 5px auto auto auto;
-    }
+    //> button {
+    //  display: block;
+    //  margin: 5px auto auto auto;
+    //}
 
     loading-blocker {
       position: unset;

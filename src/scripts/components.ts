@@ -71,7 +71,7 @@ import {
     FieldBoundCheckBox,
     FieldBoundDataSelect,
     FieldBoundIntField,
-    FieldBoundTextField,
+    FieldBoundTextField, labeledCheckbox,
     labelFor,
     makeActionButton,
     positiveValuesOnly,
@@ -91,6 +91,8 @@ import {parseImport} from "./imports/imports";
 import {startExport} from "./components/export_controller";
 import {SETTINGS} from "./persistent_settings";
 import {JobIcon} from "./components/jobs";
+import {BaseModal} from "./components/modal";
+import {closeModal} from "./modalcontrol";
 
 export const SHARED_SET_NAME = 'Imported Set';
 
@@ -1822,8 +1824,8 @@ export class GearPlanSheet extends HTMLElement {
 
     showAddSimDialog() {
         const addSimDialog = new AddSimDialog(this);
-        this.appendChild(addSimDialog);
-        addSimDialog.showModal();
+        document.querySelector('body').appendChild(addSimDialog);
+        addSimDialog.show();
     }
 
     recalcAll() {
@@ -2205,67 +2207,61 @@ export class ImportSheetArea extends HTMLElement {
     }
 }
 
-class AddSimDialog extends HTMLDialogElement {
+class AddSimDialog extends BaseModal {
     private readonly table: CustomTable<SimSpec<any, any>, SingleCellRowOrHeaderSelect<SimSpec<any, any>>>;
+    private _showAllSims: boolean = false;
 
     constructor(private sheet: GearPlanSheet) {
         super();
         this.id = 'add-sim-dialog';
-        const header = document.createElement("h2");
-        header.textContent = "Add Simulation";
-        this.appendChild(header);
+        this.headerText = 'Add Simulation';
         const form = document.createElement("form");
         form.method = 'dialog';
-
         this.table = new CustomTable();
         const selModel: SingleSelectionModel<SimSpec<any, any>> = new SingleSelectionModel();
         this.table.selectionModel = selModel;
+        this.table.classList.add('hoverable');
         this.table.columns = [
             {
                 shortName: 'sim-space-name',
                 displayName: 'Name',
-                fixedWidth: 500,
+                // fixedWidth: 500,
                 getter: item => item.displayName,
             }
         ]
         this.table.data = this.sheet.relevantSims;
+        const showAllCb = labeledCheckbox('Show sims for other jobs', new FieldBoundCheckBox<AddSimDialog>(this, 'showAllSims'));
+        form.appendChild(showAllCb);
         form.appendChild(this.table);
 
-        const buttonDiv = document.createElement("div");
         const submitButton = makeActionButton("Add", () => this.submit());
-        const cancelButton = makeActionButton("Cancel", () => this.close());
-        buttonDiv.appendChild(submitButton);
-        buttonDiv.appendChild(cancelButton);
+        const cancelButton = makeActionButton("Cancel", () => closeModal());
+        this.addButton(submitButton);
+        this.addButton(cancelButton);
 
         selModel.addListener({
             onNewSelection(newSelection) {
                 submitButton.disabled = !(newSelection instanceof CustomRow);
             }
-        })
-
-        form.appendChild(buttonDiv);
-
-        this.appendChild(form);
-    }
-
-    show() {
-        this.showModal();
-        // this.style.display = 'block';
-    }
-
-    close() {
-        super.close();
-        // this.style.display = 'none';
-        // TODO: uncomment after testing
-        this.remove();
+        });
+        this.contentArea.append(form);
     }
 
     submit() {
         const sel = this.table.selectionModel.getSelection();
         if (sel instanceof CustomRow) {
             this.sheet.addSim(sel.dataItem.makeNewSimInstance());
-            this.close();
+            closeModal();
         }
+    }
+
+    get showAllSims(): boolean {
+        return this._showAllSims;
+    }
+
+    set showAllSims(showAll: boolean) {
+        this._showAllSims = showAll;
+        this.table.data = showAll ? getRegisteredSimSpecs() : this.sheet.relevantSims;
     }
 
 }
@@ -2535,6 +2531,6 @@ customElements.define("gear-sheet-picker", SheetPickerTable, {extends: "table"})
 customElements.define("new-sheet-form", NewSheetForm, {extends: "form"});
 customElements.define("sim-result-display", SimResultMiniDisplay);
 customElements.define("sim-result-detail-display", SimResultDetailDisplay);
-customElements.define("add-sim-dialog", AddSimDialog, {extends: "dialog"});
+customElements.define("add-sim-dialog", AddSimDialog);
 customElements.define("import-set-area", ImportSetArea);
 customElements.define("import-sheet-area", ImportSheetArea);

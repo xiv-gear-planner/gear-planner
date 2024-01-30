@@ -10,7 +10,7 @@
     <inspection_tool class="HtmlUnknownTag" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="myValues">
         <value>
-          <list size="33">
+          <list size="34">
             <item index="0" class="java.lang.String" itemvalue="nobr" />
             <item index="1" class="java.lang.String" itemvalue="noembed" />
             <item index="2" class="java.lang.String" itemvalue="comment" />
@@ -44,6 +44,7 @@
             <item index="30" class="java.lang.String" itemvalue="food-items-table" />
             <item index="31" class="java.lang.String" itemvalue="sheet-export-modal" />
             <item index="32" class="java.lang.String" itemvalue="sim-export-chooser" />
+            <item index="33" class="java.lang.String" itemvalue="add-sim-dialog" />
           </list>
         </value>
       </option>
