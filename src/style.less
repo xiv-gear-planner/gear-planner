@@ -25,7 +25,7 @@ body {
   --modal-backdrop-color: #88889133;
   --error-border-color: #9c0000;
   --standard-border-radius: 5px;
-  --action-col-width: 70px;
+  --action-col-width: 73px;
   --set-name-col-width: 300px;
   --item-name-col-width: 300px;
   --button-color: var(--bg-color);
@@ -55,6 +55,7 @@ body {
   --action-button-hover-color: #ddf;
   --button-hover-color: #303649;
   --selection-border-opacity: 80%;
+  --sim-color-mix-percent: 70%;
 
 
   &.light-mode {
@@ -80,6 +81,7 @@ body {
     --loading-spinner-color: #210;
     --button-active-background-color: #d27d32;
     --button-active-border-color: #734100;
+    --sim-color-mix-percent: 50%;
 
     .melded-cell-extra-style {
       background-color: var(--stat-color);
@@ -1228,7 +1230,7 @@ sim-result-display {
 
 
 td.sim-column-valid {
-  color: color-mix(in srgb, currentColor 70%, color-mix(in hsl, #00ff00 var(--sim-result-relative, 50%), #ff0000));
+  color: color-mix(in srgb, currentColor var(--sim-color-mix-percent), color-mix(in hsl, #00ff00 var(--sim-result-relative, 50%), #ff0000));
 
   &.sim-column-best {
     font-weight: bold;

@@ -1371,6 +1371,18 @@ export class GearPlanSheet extends HTMLElement {
         // const tableAreaInner = quickElement('div', ['gear-sheet-table-area-inner'], [this._gearPlanTable, this.buttonsArea]);
         this.tableArea.appendChild(this._gearPlanTable);
         this.tableArea.appendChild(buttonsArea);
+        const ro = new ResizeObserver(() => {
+            this.fixScroll();
+        });
+        ro.observe(this);
+        ro.observe(this.tableArea);
+        ro.observe(this._gearPlanTable);
+        // this.addEventListener('resize', () => {
+        //     this.fixScroll();
+        // })
+        // this.tableArea.addEventListener('resize', () => {
+        //     this.fixScroll();
+        // })
         // this.tableArea.appendChild(tableAreaInner);
         this._gearPlanTable.dataChanged();
         this._loadingScreen.remove();
@@ -1962,6 +1974,15 @@ export class GearPlanSheet extends HTMLElement {
         }
     }
 
+    private fixScroll() {
+        const tbl = this.tableArea;
+        const rightExcess = tbl.scrollWidth - this._gearPlanTable.clientWidth;
+        if (rightExcess >= 0) {
+            const newScrollLeft = tbl.scrollLeft - rightExcess;
+            console.log(`scroll: ${tbl.scrollLeft} =>> ${newScrollLeft}`)
+            tbl.scrollLeft = newScrollLeft;
+        }
+    }
 }
 
 class ImportSetArea extends HTMLElement {

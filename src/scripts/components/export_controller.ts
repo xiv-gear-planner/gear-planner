@@ -1,6 +1,6 @@
 import {FieldBoundCheckBox, labeledCheckbox, labeledRadioButton, makeActionButton} from "./util";
 import {GearPlanSheet} from "../components";
-import {closeModal, setModal} from "../modalcontrol";
+import {closeModal} from "../modalcontrol";
 import {contentArea, VIEW_SET_HASH, VIEW_SHEET_HASH} from "../main";
 import {putShortLink} from "../external/shortlink_server";
 import {CharacterGearSet} from "../gear";

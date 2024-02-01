@@ -1,5 +1,5 @@
 import {GearPlanSheet} from "../components";
-import {closeModal, setModal} from "../modalcontrol";
+import {closeModal} from "../modalcontrol";
 import {quickElement} from "./util";
 import {CharacterGearSet} from "../gear";
 import {BaseModal} from "./modal";
