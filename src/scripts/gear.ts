@@ -330,10 +330,12 @@ export class CharacterGearSet {
         }
         const mainStat = Math.floor(combinedStats[classJobStats.mainStat] * (1 + 0.01 * this._sheet.partyBonus));
         const aaStat = Math.floor(combinedStats[classJobStats.autoAttackStat] * (1 + 0.01 * this._sheet.partyBonus));
+        const vitEffective = Math.floor(combinedStats.vitality * (1 + 0.01 * this._sheet.partyBonus));
         const wdEffective = Math.max(combinedStats.wdMag, combinedStats.wdPhys);
-        const hp = combinedStats.hp + vitToHp(levelStats, classJobStats, combinedStats.vitality);
+        const hp = combinedStats.hp + vitToHp(levelStats, classJobStats, vitEffective);
         const computedStats = {
             ...combinedStats,
+            vitality: vitEffective,
             level: level,
             levelStats: levelStats,
             job: classJob,
