@@ -513,6 +513,8 @@ export interface SetExport {
     };
 }
 
+export type TopLevelExport = SheetExport | SetExport;
+
 export interface ItemSlotExport {
     id: number,
     materia: ({

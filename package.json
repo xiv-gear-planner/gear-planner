@@ -15,12 +15,14 @@
     "ts-loader": "^9.4.4",
     "ts-mocha": "^10.0.0",
     "ts-node": "^10.9.1",
+    "typedoc": "^0.25.7",
     "webpack": "^5.88.2",
     "webpack-cli": "^5.1.4"
   },
   "scripts": {
     "build": "webpack --mode=development",
-    "buildprod": "webpack --mode=production"
+    "buildprod": "webpack --mode=production",
+    "docs": "typedoc --out dist/docs --entryPointStrategy expand src/scripts/"
   },
   "browser": {
     "[module-name]": false
