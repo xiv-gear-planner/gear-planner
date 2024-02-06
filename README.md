@@ -23,3 +23,7 @@ We are still looking for people to write simulations for the following jobs:
 - All tank classes except PLD
 - All casters
 - All physical ranged
+
+## API Docs
+
+See [API Doc](/API_DOC.md)
