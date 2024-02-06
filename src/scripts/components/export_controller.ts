@@ -160,7 +160,7 @@ class SheetExportModal extends ExportModal<SheetExportType> {
                 }
                 let out = '';
                 for (const set of sets) {
-                    const exportedSet = JSON.stringify(this.sheet.exportGearSet(set));
+                    const exportedSet = JSON.stringify(this.sheet.exportGearSet(set, true));
                     const linkToSet = await putShortLink(exportedSet).then(link => link.toString());
                     out += linkToSet;
                     out += '\n';
