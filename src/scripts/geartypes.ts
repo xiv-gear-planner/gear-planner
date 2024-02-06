@@ -472,54 +472,159 @@ export interface SimExport {
     name?: string
 }
 
+/**
+ * Represents an exported set. Many of the fields fill the same role as the fields
+ * on {@link GearPlanSheet}.
+ *
+ * Some of the fields are only relevant for local saves, while others are only relevant
+ * for external (API) saves.
+ */
 export interface SheetExport {
+    /**
+     * Name of the sheet.
+     */
     name: string,
+    /**
+     * Description of the gear set. May be multi-line.
+     */
+    description?: string,
+    /**
+     * Local only: the key used to save the sheet in localStorage
+     */
     saveKey?: string,
+    /**
+     * The character clan (e.g. Wildwood or Duskwight) of the sheet.
+     */
     race: RaceName,
+    /**
+     * Party bonus percentage (0-5)
+     */
     partyBonus: PartyBonusAmount,
+    /**
+     * The job abbreviation for the sheet.
+     */
     job: JobName,
+    /**
+     * The level of the sheet (90, 80, etc)
+     */
     level: SupportedLevel,
+    /**
+     * The gear sets on the sheet.
+     */
     sets: SetExport[],
+    /**
+     * The simulations on this sheet.
+     */
     sims: SimExport[],
+    /**
+     * Settings regarding which items to display
+     */
     itemDisplaySettings?: ItemDisplaySettings,
     // Keeping these abbreviated so exports don't become unnecessarily large
-    // Materia fill new items
+    /**
+     * Whether to auto-fill materia into newly selected items (Materia Fill New Items).
+     */
     mfni?: boolean,
-    // Materia fill priority
+    /**
+     * The materia auto-fill priority
+     */
     mfp?: MateriaSubstat[],
+    /**
+     * The target GCD for materia auto-fill
+     */
     mfMinGcd?: number,
+    /**
+     * If ilvl sync is enabled, this represents what level the sheet should be synced to
+     */
     ilvlSync?: number,
-    description?: string,
 }
 
 // TODO: split into internal and external version?
+/**
+ * Represents an exported set. Note that in addition to some fields only being applicable to internal vs external
+ * usage, some fields may be present based on whether this set was exported as a standalone individual set, or as
+ * part of a full sheet.
+ *
+ * If it is an individual sheet export, then several of the properties that would normally live at the sheet level
+ * will instead be here (such as job and level).
+ */
 export interface SetExport {
+    /**
+     * Name of the gear set.
+     */
     name: string,
+    /**
+     * Description of the gear set. May be multi-line.
+     */
+    description?: string,
+    /**
+     * Equipped items (and their materia and/or relic stats)
+     */
     items: {
         [K in EquipSlotKey]?: ItemSlotExport
     };
+    /**
+     * Equipped food (by item ID)
+     */
     food?: number,
     // We don't care about job/level for internal usage, since
     // those are properties of the sheet. It's strictly to
     // prevent/warn on importing the wrong job, as well as for
     // importing individual sets.
+    /**
+     * Only for standalone use - the job of this set. Same as {@link SheetExport#job}.
+     */
     job?: JobName,
+    /**
+     * Only for standalone use - the character level of the set. Same as {@link SheetExport#level}.
+     */
     level?: SupportedLevel,
+    /**
+     * Only for standalone use - the ilvl sync of the set (if enabled). Same as {@link SheetExport#level}.
+     */
     ilvlSync?: number,
-    description?: string,
+    /**
+     * Only for standalone use - the simulations to include with the set. Same as {@link SheetExport#sims}.
+     */
     sims?: SimExport[],
+    /**
+     * When a relic is de-selected, its former stats are remembered here so that they can be recalled if the
+     * relic is selected again. They keys are item IDs, and the values are {@link RelicStats}.
+     */
     relicStatMemory?: {
         [p: number]: RelicStats
     };
 }
 
+// noinspection JSUnusedGlobalSymbols
+/**
+ * Represents an item that can be saved/retrieved from the API.
+ *
+ * This can be a full sheet containing multiple sheets, or an individual set.
+ * See the docs for each item for more details.
+ */
 export type TopLevelExport = SheetExport | SetExport;
 
+/**
+ * Represents an item.
+ */
 export interface ItemSlotExport {
+    /**
+     * Item ID
+     */
     id: number,
+    /**
+     * Materia equipped in the slot
+     */
     materia: ({
+        /**
+         * The item ID of this materia. -1 indicates no materia equipped in this slot.
+         */
         id: number
     } | undefined)[],
+    /**
+     * If this is a relic, represents the current stats of the relic.
+     */
     relicStats?: {
         [K in Substat]?: number
     }
