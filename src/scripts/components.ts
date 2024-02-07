@@ -71,7 +71,8 @@ import {
     FieldBoundCheckBox,
     FieldBoundDataSelect,
     FieldBoundIntField,
-    FieldBoundTextField, labeledCheckbox,
+    FieldBoundTextField,
+    labeledCheckbox,
     labelFor,
     makeActionButton,
     positiveValuesOnly,
@@ -90,7 +91,6 @@ import {getShortLink} from "./external/shortlink_server";
 import {parseImport} from "./imports/imports";
 import {startExport} from "./components/export_controller";
 import {SETTINGS} from "./persistent_settings";
-import {JobIcon} from "./components/jobs";
 import {BaseModal} from "./components/modal";
 import {closeModal} from "./modalcontrol";
 
@@ -653,7 +653,12 @@ export class SimResultMiniDisplay extends HTMLElement {
     update() {
         if (this._result.status === 'Done') {
             const result = this._result.result;
-            if (result === undefined) {
+            if (result === undefined || result.mainDpsResult === undefined) {
+                console.error("Result was undefined");
+                this.textContent = "Error!";
+                return;
+            }
+            if (Number.isNaN(result.mainDpsResult)) {
                 console.error("Result was undefined");
                 this.textContent = "Error!";
                 return;
@@ -971,11 +976,21 @@ function formatSimulationConfigArea<SettingsType extends SimSettings>(
         const deleteButton = makeActionButton("Delete", () => deleteColumn(sim));
         outerDiv.appendChild(deleteButton);
     }
-    const rerunButton = makeActionButton("Rerun", () => refreshColumn(sim));
-    outerDiv.appendChild(rerunButton);
+    const auto = !sim.manualRun;
+    const rerunAction = () => refreshColumn(sim);
+    if (!auto) {
+        const rerunButton = makeActionButton("Rerun", rerunAction);
+        outerDiv.appendChild(rerunButton);
+    }
+    const rerunTimer = new Inactivitytimer(300, rerunAction);
 
     const originalSettings: SettingsType = sim.settings;
-    const updateCallback = () => sheet.requestSave();
+    const updateCallback = () => {
+        sheet.requestSave();
+        if (auto) {
+            rerunTimer.ping();
+        }
+    };
     const settingsProxyHandler: ProxyHandler<SettingsType> = {
         set(target, prop, value, receiver) {
             target[prop] = value;

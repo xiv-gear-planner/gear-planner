@@ -644,6 +644,7 @@ export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, Inter
     settings: InternalSettingsType;
     readonly buffManager: BuffSettingsManager;
     readonly cycleSettings: CycleSettings;
+    readonly manualRun = false;
 
     protected constructor(job: JobName, settings?: ExternalCycleSettings<InternalSettingsType>) {
         this.settings = this.makeDefaultSettings();

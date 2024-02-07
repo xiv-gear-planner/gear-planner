@@ -106,6 +106,11 @@ export interface Simulation<ResultType extends SimResult, SettingsType extends S
     makeToolTip?(result: ResultType): string;
 
     makeResultDisplay?(result: ResultType): HTMLElement;
+
+    // TODO: fully implement this
+    // If true, then the sim should not automatically run when changing gear nor changing settings
+    // It is currently only implemented for settings changes.
+    readonly manualRun?: boolean;
 }
 
 type SimpleResultEntry = { name: string; value: any; }
