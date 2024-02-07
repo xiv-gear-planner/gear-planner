@@ -96,14 +96,14 @@ export const MELEE_AUTO_POTENCY = 90
 /**
  * BRD/MCH auto-attack potency
  */
-export const RANGE_AUTO_POTENCY = 90
+export const RANGE_AUTO_POTENCY = 80
 
 const STANDARD_HEALER: JobDataConst = {
     role: 'Healer',
     mainStat: 'mind',
     autoAttackStat: 'strength',
     irrelevantSubstats: ['skillspeed', 'tenacity'],
-    traitMulti: (level, attackType) => 1.3,
+    traitMulti: (level, attackType) => attackType === 'Auto-attack' ? 1.0 :  1.3,
     itemStatCapMultipliers: {
         'vitality': 0.90
     },
