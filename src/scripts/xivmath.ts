@@ -15,7 +15,7 @@ import {AttackType, ComputedSetStats, JobData, JobMultipliers, LevelStats} from 
  * Enhanced flooring function which takes into account a small margin of error to account for
  * floating point errors.
  *
- * e.g. 2.3 * 100 => 229.99999999999997
+ * e.g. 2.3 * 100 => 229.99999999999997, but fl(2.3 * 100) => 230
  *
  * @param input
  */

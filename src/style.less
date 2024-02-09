@@ -133,19 +133,21 @@ body {
     //border-bottom: 2px solid var(--border-color);
     text-align: center;
     //margin-bottom: 10px;
+    background-color: var(--table-bg-color);
 
     a:link,
     a:active,
     a:visited,
     a:hover {
-      .like-a-button;
-      box-sizing: content-box;
-      height: unset;
+      color: var(--fg-color);
+      .button-font-style;
+      //height: 20px;
+      box-sizing: border-box;
       //background-color: var(--fg-color);
-      padding: 3px;
+      padding: 8px;
+      margin: 0;
       text-decoration: none;
       display: inline-block;
-      margin: 5px;
     }
 
     a:hover {
@@ -2254,7 +2256,7 @@ fieldset {
 //}
 
 
-sheet-export-modal {
+sheet-export-modal, set-export-modal {
   textarea {
     height: 200px;
   }

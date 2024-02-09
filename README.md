@@ -24,6 +24,17 @@ We are still looking for people to write simulations for the following jobs:
 - All casters
 - All physical ranged
 
-## API Docs
+## User Guides
 
-See [API Doc](/API_DOC.md)
+[User's Guide](/USER_MANUAL.md)
+
+## Developer Guides
+
+[API Documentation](/API_DOC.md)
+
+You can pull saved gear sets for use on your own application.
+
+[Contributing](/CONTRIBUTING.md)
+
+Contribution guide, including how to write simulations.
+
