@@ -1,3 +1,5 @@
+import {scrollIntoView} from "./util/scrollutil";
+
 function setCellProps(cell: HTMLTableCellElement, colDef: CustomColumn<any, any>) {
     cell.setAttribute("col-id", colDef.shortName);
     const extraClasses = colDef.extraClasses;
@@ -403,10 +405,6 @@ export class CustomTable<RowDataType, SelectionType = never> extends HTMLTableEl
         if (target instanceof CustomRow) {
             this.selectionModel.clickRow(target);
             this.refreshSelection();
-            target.scrollIntoView({
-                behavior: 'smooth',
-                block: 'nearest'
-            })
         }
         else if (target instanceof CustomCell) {
             if (target.colDef.allowCellSelection) {
@@ -415,10 +413,6 @@ export class CustomTable<RowDataType, SelectionType = never> extends HTMLTableEl
             else {
                 this.selectionModel.clickRow(target.row);
             }
-            target.scrollIntoView({
-                behavior: 'smooth',
-                block: 'nearest'
-            })
             this.refreshSelection();
         }
         else if (target instanceof CustomTableHeaderCell) {

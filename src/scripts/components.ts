@@ -93,6 +93,7 @@ import {startExport} from "./components/export_controller";
 import {SETTINGS} from "./persistent_settings";
 import {BaseModal} from "./components/modal";
 import {closeModal} from "./modalcontrol";
+import {scrollIntoView} from "./util/scrollutil";
 
 export const SHARED_SET_NAME = 'Imported Set';
 
@@ -228,10 +229,7 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
             const row: CustomRow<CharacterGearSet> = this.dataRowMap.get(set);
             if (row) {
                 this.selectionModel.clickRow(row);
-                row.scrollIntoView({
-                    behavior: 'smooth',
-                    block: 'nearest'
-                });
+                scrollIntoView(row);
             }
             else {
                 console.log(`Tried to select set ${set.name}, but couldn't find it in our row mapping.`);
@@ -1994,8 +1992,9 @@ export class GearPlanSheet extends HTMLElement {
         const rightExcess = tbl.scrollWidth - this._gearPlanTable.clientWidth;
         if (rightExcess >= 0) {
             const newScrollLeft = tbl.scrollLeft - rightExcess;
-            console.log(`scroll: ${tbl.scrollLeft} =>> ${newScrollLeft}`)
-            tbl.scrollLeft = newScrollLeft;
+            if (tbl.scrollLeft !== newScrollLeft) {
+                tbl.scrollLeft = newScrollLeft;
+            }
         }
     }
 }

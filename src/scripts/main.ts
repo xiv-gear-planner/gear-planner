@@ -18,7 +18,8 @@ export const EMBED_HASH = 'embed';
 
 export const contentArea = document.getElementById("content-area");
 // export const midBarArea = document.getElementById("mid-controls-area");
-export const topMenuArea = document.getElementById("dev-menu-area");
+export const devMenuArea = document.getElementById("dev-menu-area");
+export const topMenuArea = document.getElementById("main-menu-area");
 const editorArea = document.getElementById("editor-area");
 
 export const welcomeArea = document.getElementById("welcome-message");
@@ -82,9 +83,33 @@ export function getCurrentHash() {
     return [...expectedHash];
 }
 
+function splitHash(input: string) {
+    return (input.startsWith("#") ? input.substring(1) : input).split('/').filter(item => item).map(item => decodeURIComponent(item))
+}
+
+function formatTopMenu(hash: string[]) {
+    console.log('formatTopMenu')
+    topMenuArea.querySelectorAll('a').forEach(link => {
+        console.log(link.textContent)
+        const href = link.getAttribute('href');
+        console.log(href)
+        if (href?.startsWith('#/')) {
+            const expected = splitHash(href);
+            console.log(`Expected: ${expected}, actual: ${hash}`);
+            if (arrayEq(expected, hash)) {
+                link.classList.add('current-page');
+            }
+            else {
+                link.classList.remove('current-page');
+            }
+        }
+    });
+}
+
 async function processHash() {
     // Remove the literal #
-    let hash = (location.hash.startsWith("#") ? location.hash.substring(1) : location.hash).split('/').filter(item => item).map(item => decodeURIComponent(item));
+    let hash = splitHash(location.hash);
+    formatTopMenu(hash);
     console.info("processHash", hash);
     if (hash.length > 0) {
         hideWelcomeArea();
@@ -94,6 +119,7 @@ async function processHash() {
         return;
     }
     expectedHash = hash;
+
     if (hash.length === 0) {
         console.info("No sheet open");
         showSheetPickerMenu();
@@ -335,7 +361,7 @@ function setLightMode(lightMode: boolean | 'load') {
 }
 
 function earlyUiSetup() {
-    const devMenu = topMenuArea;
+    const devMenu = devMenuArea;
     document.getElementById('dev-menu-button')?.addEventListener('click', (ev) => {
         ev.preventDefault();
         if (devMenu.style.display === 'none') {

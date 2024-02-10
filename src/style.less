@@ -133,10 +133,10 @@ body {
     //border-bottom: 2px solid var(--border-color);
     text-align: center;
     //margin-bottom: 10px;
-    background-color: var(--table-bg-color);
+    //background-color: var(--table-bg-color);
+    background-image: linear-gradient(var(--table-bg-color) 80%, var(--bg-color));
 
     a:link,
-    a:active,
     a:visited,
     a:hover {
       color: var(--fg-color);
@@ -144,14 +144,20 @@ body {
       //height: 20px;
       box-sizing: border-box;
       //background-color: var(--fg-color);
-      padding: 8px;
+      padding: 8px 10px 12px 10px;
       margin: 0;
       text-decoration: none;
       display: inline-block;
     }
 
     a:hover {
-      background-color: var(--button-hover-color);
+      background-image: linear-gradient(var(--table-bg-color-selected) 80%, var(--bg-color));
+    }
+    a.current-page {
+      background-image: linear-gradient(var(--button-hover-color) 80%, var(--bg-color));
+    }
+    a:active {
+      background-image: linear-gradient(var(--button-active-background-color) 80%, var(--bg-color));
     }
   }
 
