@@ -56,6 +56,7 @@ body {
   --button-hover-color: #303649;
   --selection-border-opacity: 80%;
   --sim-color-mix-percent: 70%;
+  --shadow-color: black;
 
 
   &.light-mode {
@@ -82,6 +83,7 @@ body {
     --button-active-background-color: #d27d32;
     --button-active-border-color: #734100;
     --sim-color-mix-percent: 50%;
+    --shadow-color: #888;
 
     .melded-cell-extra-style {
       background-color: var(--stat-color);
@@ -133,8 +135,12 @@ body {
     //border-bottom: 2px solid var(--border-color);
     text-align: center;
     //margin-bottom: 10px;
-    //background-color: var(--table-bg-color);
-    background-image: linear-gradient(var(--table-bg-color) 80%, var(--bg-color));
+    background-color: var(--table-bg-color);
+    //background-image: linear-gradient(var(--table-bg-color) 80%, var(--bg-color));
+    //border-image: linear-gradient(pink 50%, green);
+    //border-bottom-width: 10px;
+    .shadow-big;
+    margin-bottom: 5px;
 
     a:link,
     a:visited,
@@ -151,13 +157,16 @@ body {
     }
 
     a:hover {
-      background-image: linear-gradient(var(--table-bg-color-selected) 80%, var(--bg-color));
+      //background-image: linear-gradient(var(--table-bg-color-selected) 80%, var(--bg-color));
+      background-color: var(--table-bg-color-selected);
     }
     a.current-page {
-      background-image: linear-gradient(var(--button-hover-color) 80%, var(--bg-color));
+      //background-image: linear-gradient(var(--button-hover-color) 80%, var(--bg-color));
+      background-color: var(--button-hover-color);
     }
     a:active {
-      background-image: linear-gradient(var(--button-active-background-color) 80%, var(--bg-color));
+      //background-image: linear-gradient(var(--button-active-background-color) 80%, var(--bg-color));
+      background-color: var(--button-active-background-color);
     }
   }
 
@@ -184,6 +193,17 @@ body {
     background-color: var(--scrollbar-fg);
   }
 }
+
+.shadow {
+  box-shadow: var(--shadow-color) 0 0 5px 0;
+}
+.shadow-big {
+  box-shadow: var(--shadow-color) 0 0 10px 0;
+}
+.shadow-big-inset {
+  box-shadow: var(--shadow-color) 0 0 10px 0 inset;
+}
+
 
 .standard-border-radius {
   border-radius: var(--standard-border-radius);
@@ -913,6 +933,9 @@ gear-plan {
     width: fit-content;
     max-width: 100%;
     margin: 0 auto 0 auto;
+    // TODO: this also causes an ugly empty area to the right.
+    // maybe just always display the scrollbar?
+    //scrollbar-gutter: stable;
 
   }
 
@@ -982,6 +1005,11 @@ gear-plan {
 #embed-top-level {
   overflow: auto;
   text-align: center;
+  min-height: 100%;
+  > * {
+    min-height: 100%;
+    box-sizing: border-box;
+  }
 
   set-totals-display {
     display: block;
@@ -990,8 +1018,10 @@ gear-plan {
       background-color: var(--table-bg-color);
       margin-top: 5px;
       margin-bottom: 0;
+      .shadow;
       // Save space by not showing DHT multi since it is fixed
       &.stat-dhit {
+        min-width: 52px;
         div.stat-total-lower-right {
           display: none;
         }
@@ -1006,6 +1036,7 @@ gear-plan {
   //margin-top: 5px;
   padding-top: 8px;
   padding-bottom: 8px;
+  .shadow-big-inset;
 
   table {
     text-align: left;
@@ -1016,6 +1047,7 @@ gear-plan {
 table.gear-items-table, table.food-items-table {
   margin-left: auto;
   margin-right: auto;
+  .shadow;
 
   tr, td {
     height: 25px;
@@ -1286,10 +1318,13 @@ gear-set-editor {
   div.gear-set-editor-button-area {
     width: 100%;
     text-align: center;
+    > * {
+      .shadow;
+    }
   }
 
   > * {
-    padding-bottom: 10px;
+    margin-bottom: 10px;
   }
 }
 
@@ -1330,6 +1365,12 @@ div.gear-sheet-toolbar-holder {
     right: 0;
   }
 
+}
+
+.gear-set-editor-toolbar {
+  > * {
+    .shadow;
+  }
 }
 
 div.gear-set-editor-toolbar, set-view-toolbar {
@@ -1507,6 +1548,7 @@ set-view-toolbar {
     background: none;
 
     div.stat-total {
+      .shadow;
       background-color: var(--table-bg-color);
     }
   }
@@ -1824,6 +1866,10 @@ gear-set-viewer {
     margin-bottom: 10px;
   }
 
+  materia-totals-display, .gear-items-view-table, .food-view-table {
+    .shadow;
+  }
+
   all-slot-materia-manager {
     pointer-events: none;
   }
@@ -1893,6 +1939,8 @@ gear-set-viewer {
     border-spacing: 5px;
     border-radius: var(--standard-border-radius);
     --item-name-col-width: 265px;
+    // Weird, requires this to make the colspan=9999 not cause horizontal scrollbar
+    overflow: hidden;
 
     > * {
       --standard-border: none;
