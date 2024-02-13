@@ -107,11 +107,11 @@ function statCellStyler(cell: CustomCell<GearSlotItem, any>, value: number | Ite
         }
         else if (value.mode === 'melded-overcapped-major') {
             modeLabel = 'Overcapped: \n';
-            cell.classList.add("stat-melded-overcapped-major")
+            cell.classList.add("stat-melded-overcapped-major");
         }
         else if (value.mode === 'synced-down') {
             modeLabel = 'Synced Down: \n';
-            cell.classList.add("stat-synced-down")
+            cell.classList.add("stat-synced-down");
         }
         else {
             modeLabel = '';
@@ -154,7 +154,7 @@ function makeSpan(text: string, classes: string[] = []) {
 class FoodStatBonus extends HTMLElement {
     constructor(value: StatBonus) {
         super();
-        this.appendChild(makeSpan(`+${value.percentage}%`))
+        this.appendChild(makeSpan(`+${value.percentage}%`));
         this.appendChild(document.createTextNode(' '));
         this.appendChild(makeSpan(`≤${value.max}`, ['food-stat-narrow']));
         this.appendChild(makeSpan(`(max ${value.max})`, ['food-stat-wide']));
@@ -205,7 +205,7 @@ export class FoodItemsTable extends CustomTable<FoodItem, FoodItem> {
     constructor(sheet: GearPlanSheet, gearSet: CharacterGearSet) {
         super();
         this.classList.add("food-items-table");
-        this.classList.add("hoverable")
+        this.classList.add("hoverable");
         super.columns = [
             {
                 shortName: "ilvl",

@@ -200,7 +200,7 @@ export class DataManager {
             // const materiaPromise = fetch(`https://xivapi.com/Materia?columns=${matCols.join(',')}`)
             .then((data) => {
                 if (data) {
-                    console.log(`Got ${data.Results.length} Materia Types`)
+                    console.log(`Got ${data.Results.length} Materia Types`);
                     this.allMateria = data.Results
                         .filter(i => i['Value' + (MATERIA_LEVEL_MAX_NORMAL - 1)])
                         .flatMap(item => {

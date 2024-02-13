@@ -88,11 +88,8 @@ function splitHash(input: string) {
 }
 
 function formatTopMenu(hash: string[]) {
-    console.log('formatTopMenu')
     topMenuArea.querySelectorAll('a').forEach(link => {
-        console.log(link.textContent)
         const href = link.getAttribute('href');
-        console.log(href)
         if (href?.startsWith('#/')) {
             const expected = splitHash(href);
             console.log(`Expected: ${expected}, actual: ${hash}`);
@@ -115,7 +112,7 @@ async function processHash() {
         hideWelcomeArea();
     }
     if (arrayEq(hash, expectedHash)) {
-        console.info("Ignoring internal hash change")
+        console.info("Ignoring internal hash change");
         return;
     }
     expectedHash = hash;
@@ -341,7 +338,6 @@ function showSheetPickerMenu() {
 let isLightMode: boolean;
 
 function setLightMode(lightMode: boolean | 'load') {
-    const settingKey = 'light-mode';
     if (lightMode === 'load') {
         lightMode = SETTINGS.lightMode ?? false;
     }
@@ -349,6 +345,8 @@ function setLightMode(lightMode: boolean | 'load') {
         SETTINGS.lightMode = lightMode;
     }
     const body = document.querySelector('body');
+    body.style.setProperty('--transition-time', '0');
+    body.style.setProperty('--input-transition-time', '0');
     const lightModeClass = 'light-mode';
     isLightMode = lightMode;
     if (lightMode) {
@@ -357,6 +355,10 @@ function setLightMode(lightMode: boolean | 'load') {
     else {
         body.classList.remove(lightModeClass)
     }
+    setTimeout(() => {
+        body.style.removeProperty('--transition-time');
+        body.style.removeProperty('--input-transition-time');
+    }, 10);
 
 }
 

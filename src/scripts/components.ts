@@ -138,7 +138,7 @@ function multiplierStatDisplay(stats: MultiplierStat) {
     leftSpan.textContent = stats.stat.toString();
     outerDiv.appendChild(leftSpan);
     const rightSpan = document.createElement("span");
-    rightSpan.textContent = (`(x${stats.multiplier.toFixed(3)})`)
+    rightSpan.textContent = (`(x${stats.multiplier.toFixed(3)})`);
     rightSpan.classList.add("extra-stat-info");
     outerDiv.appendChild(rightSpan);
     return outerDiv;
@@ -1493,7 +1493,7 @@ export class GearPlanSheet extends HTMLElement {
 
     async loadData() {
         console.log("Loading sheet...");
-        console.log("Reading data")
+        console.log("Reading data");
         const saved = this._importedData;
         this.dataManager.classJob = this.classJobName;
         this.dataManager.level = this.level;
@@ -1837,7 +1837,6 @@ export class GearPlanSheet extends HTMLElement {
                 out.result = result;
                 resolve(out);
             }, error => {
-                console.log("sim err", error)
                 out.status = 'Error';
                 out.error = error;
                 console.error("Sim Error!", error);

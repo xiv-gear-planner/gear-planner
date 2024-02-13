@@ -57,6 +57,9 @@ body {
   --selection-border-opacity: 80%;
   --sim-color-mix-percent: 70%;
   --shadow-color: black;
+  --transition-time: 0.3s;
+  --input-transition-time: 0.1s;
+  --tiering-color-mix: 2%;
 
 
   &.light-mode {
@@ -84,6 +87,7 @@ body {
     --button-active-border-color: #734100;
     --sim-color-mix-percent: 50%;
     --shadow-color: #888;
+    --tiering-color-mix: 5%;
 
     .melded-cell-extra-style {
       background-color: var(--stat-color);
@@ -154,16 +158,19 @@ body {
       margin: 0;
       text-decoration: none;
       display: inline-block;
+      .button-auto-transition;
     }
 
     a:hover {
       //background-image: linear-gradient(var(--table-bg-color-selected) 80%, var(--bg-color));
       background-color: var(--table-bg-color-selected);
     }
+
     a.current-page {
       //background-image: linear-gradient(var(--button-hover-color) 80%, var(--bg-color));
       background-color: var(--button-hover-color);
     }
+
     a:active {
       //background-image: linear-gradient(var(--button-active-background-color) 80%, var(--bg-color));
       background-color: var(--button-active-background-color);
@@ -197,9 +204,11 @@ body {
 .shadow {
   box-shadow: var(--shadow-color) 0 0 5px 0;
 }
+
 .shadow-big {
   box-shadow: var(--shadow-color) 0 0 10px 0;
 }
+
 .shadow-big-inset {
   box-shadow: var(--shadow-color) 0 0 10px 0 inset;
 }
@@ -245,6 +254,7 @@ body {
 
   &:hover {
     color: var(--action-button-hover-color);
+
     svg {
       fill: var(--action-button-hover-color);
     }
@@ -274,12 +284,32 @@ body {
   --zi-true-modal: 300;
 }
 
+.flex-transition {
+  //transition: all 2s;
+}
+
+.button-transition {
+  transition: all var(--input-transition-time);
+}
+
+.no-transition {
+  transition: none;
+}
+
+// This causes the start of a hover to react immediately, but un-hovering is smooth
+.button-auto-transition {
+  .button-transition;
+  &:hover {
+    .no-transition;
+  }
+}
 
 // TODO
 div#editor-area {
   text-align: center;
   overflow-y: scroll;
   flex-basis: 60%;
+  .flex-transition;
   //flex-shrink: 99;
   flex-grow: 9999;
   min-height: 60%;
@@ -313,23 +343,37 @@ table {
   }
 
   &.hoverable, &.hoverable > * {
+    > tr {
+      .button-transition;
+      > td, th.hoverable {
+        .button-transition;
+      }
+      &.special-row-hoverable > th {
+        .button-transition;
+      }
+    }
     > tr:hover {
+      .no-transition;
       > td {
         background-color: var(--table-bg-color-hover);
+        .no-transition;
       }
 
       > th.hoverable:hover {
         background-color: var(--table-bg-color-hover);
+        .no-transition;
       }
 
       &.special-row-hoverable {
 
         &:hover {
           background-color: var(--table-bg-color-hover);
+          .no-transition;
         }
 
         > *:hover {
           background-color: var(--table-bg-color-hover);
+          .no-transition;
         }
       }
     }
@@ -499,6 +543,7 @@ table {
 // Provides the selected outline for table elements
 
 select {
+  .button-auto-transition;
   .like-a-button;
 
   &:hover, &:focus {
@@ -523,8 +568,10 @@ select {
 
 button {
   .like-a-button;
+  .button-transition;
 
   &:hover {
+    .no-transition;
     background-color: var(--button-hover-color);
   }
 
@@ -845,6 +892,7 @@ div.sheet-picker-holder {
     th {
       --thick-border: none;
     }
+
     .new-sheet-row:hover {
       .svg-glyph {
         fill: var(--action-button-hover-color);
@@ -853,6 +901,7 @@ div.sheet-picker-holder {
 
     .new-sheet-row th {
       font-weight: normal;
+
       i, svg {
         padding-left: 8px;
         padding-right: 8px;
@@ -917,6 +966,7 @@ gear-plan {
     //  margin: auto;
     //  width: fit-content;
     //}
+    .flex-transition;
 
     table {
       //margin: auto;
@@ -1006,6 +1056,7 @@ gear-plan {
   overflow: auto;
   text-align: center;
   min-height: 100%;
+
   > * {
     min-height: 100%;
     box-sizing: border-box;
@@ -1022,6 +1073,7 @@ gear-plan {
       // Save space by not showing DHT multi since it is fixed
       &.stat-dhit {
         min-width: 52px;
+
         div.stat-total-lower-right {
           display: none;
         }
@@ -1160,7 +1212,8 @@ slot-materia-manager, single-materia-view-only {
   position: relative;
   margin-right: 5px;
   height: fit-content;
-  width: 100px;
+  width: 95px;
+  font-weight: normal;
   vertical-align: middle;
   box-sizing: border-box;
 
@@ -1220,6 +1273,7 @@ slot-materia-popup {
   position: absolute;
   z-index: var(--zi-slot-materia-popup);
   left: 0;
+  box-shadow: var(--shadow-color) 0 5px 10px 0;
 
   th {
     border-top: var(--standard-border) !important;
@@ -1254,11 +1308,16 @@ slot-materia-popup {
 
   .materia-picker-remove {
     text-align: center;
-    color: #831818;
     font-weight: bold;
 
+    svg {
+      fill: #831818;
+    }
+
     &:hover {
-      color: red;
+      svg {
+        fill: red;
+      }
     }
   }
 }
@@ -1318,6 +1377,7 @@ gear-set-editor {
   div.gear-set-editor-button-area {
     width: 100%;
     text-align: center;
+
     > * {
       .shadow;
     }
@@ -1501,25 +1561,29 @@ div.gear-set-editor-toolbar, set-view-toolbar {
     display: inline-block;
     width: fit-content;
     min-width: 50px;
+    transition: box-shadow var(--transition-time) linear;
 
     div.single-stat-tier-display-upper {
       display: block;
+      transition: all var(--transition-time) linear;
     }
 
     border-color: color-mix(in srgb, var(--stat-color) 20%, var(--border-color));
+    background-color: color-mix(in srgb, var(--stat-color) var(--tiering-color-mix), var(--table-bg-color));
 
     &.stat-tiering-perfect {
       div.single-stat-tier-display-upper {
-        color: color-mix(in srgb, var(--stat-color) 60%, var(--stat-tiering-box-mix-color));
+        color: color-mix(in srgb, var(--stat-color) 30%, var(--stat-tiering-box-mix-color));
       }
 
       div.single-stat-tier-display-lower-left {
-        color: color-mix(in srgb, var(--stat-color) 60%, var(--stat-tiering-box-mix-color));
+        color: color-mix(in srgb, var(--stat-color) 30%, var(--stat-tiering-box-mix-color));
         line-height: 0;
         //float: left;
       }
 
-      border-color: color-mix(in srgb, var(--stat-color) 60%, var(--border-color));
+      //border-color: color-mix(in srgb, var(--stat-color) 60%, var(--border-color));
+      box-shadow: 0 0 5px -1px inset color-mix(in srgb, var(--stat-color) 50%, var(--border-color));
       //border-width: 2px;
     }
 

@@ -48,7 +48,7 @@ abstract class ExportModal<X extends string> extends BaseModal {
     private textBox: HTMLTextAreaElement;
     private variableButton: HTMLButtonElement;
     private varButtonAction = (ev: MouseEvent) => {
-        console.error("This should not happen!")
+        console.error("This should not happen!");
     }
 
     protected constructor(title: string, exportOptions: readonly X[], sheet: GearPlanSheet) {

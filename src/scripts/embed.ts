@@ -5,7 +5,7 @@ import {setTitle} from "./main";
 let embedDiv: HTMLDivElement;
 
 export function earlyEmbedInit() {
-    console.log("Embed early init")
+    console.log("Embed early init");
     const body = document.body;
     body.childNodes
         .forEach((element) => {

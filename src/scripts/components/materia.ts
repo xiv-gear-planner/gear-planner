@@ -10,7 +10,14 @@ import {
 import {MateriaSubstat, MAX_GCD, STAT_ABBREVIATIONS, STAT_FULL_NAMES} from "../xivconstants";
 import {closeModal, setModal} from "../modalcontrol";
 import {GearPlanSheet} from "../components";
-import {FieldBoundCheckBox, FieldBoundFloatField, labeledCheckbox, makeActionButton, quickElement} from "./util";
+import {
+    faIcon,
+    FieldBoundCheckBox,
+    FieldBoundFloatField,
+    labeledCheckbox,
+    makeActionButton,
+    quickElement
+} from "./util";
 
 /**
  * Component for managing all materia slots on an item
@@ -25,7 +32,7 @@ export class AllSlotMateriaManager extends HTMLElement {
                 }) {
         super();
         this.refresh();
-        this.classList.add("all-slots-materia-manager")
+        this.classList.add("all-slots-materia-manager");
         this.updateColors();
     }
 
@@ -270,7 +277,8 @@ export class SlotMateriaManagerPopup extends HTMLElement {
         const headerRow = body.insertRow();
         // Blank top-left
         const topLeftCell = document.createElement("th");
-        const topLeft = quickElement('div', ['materia-picker-remove'], [document.createTextNode('X')]);
+        // TODO: replace with fa-trash
+        const topLeft = quickElement('div', ['materia-picker-remove'], [faIcon('fa-trash-can')]);
         topLeft.addEventListener('mousedown', (ev) => {
             this.submit(undefined);
             ev.stopPropagation();
@@ -301,6 +309,8 @@ export class SlotMateriaManagerPopup extends HTMLElement {
                     if (this.materiaSlot.equippedMateria === materia) {
                         cell.setAttribute("is-selected", "true");
                     }
+                    // Neeed in order to make selection outline work
+                    cell.appendChild(document.createElement('span'));
                     cell.appendChild(image);
                 }
                 else {

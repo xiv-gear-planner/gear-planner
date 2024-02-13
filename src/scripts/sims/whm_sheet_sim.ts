@@ -82,7 +82,6 @@ export class WhmSheetSim implements Simulation<WhmSheetSimResult, WhmSheetSettin
 
     constructor(settings?: WhmSheetSettings) {
         if (settings) {
-            console.log("Loading sim settings", settings)
             Object.assign(this.settings, settings);
         }
     }
