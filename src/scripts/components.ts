@@ -62,7 +62,7 @@ import {
     SupportedLevel,
     SupportedLevels
 } from "./xivconstants";
-import {getCurrentHash, getHashForSaveKey, openSheetByKey, setTitle, showNewSheetForm} from "./main";
+import {getCurrentHash, getHashForSaveKey, openExport, openSheetByKey, setTitle, showNewSheetForm} from "./main";
 import {getSetFromEtro} from "./external/etro_import";
 import {Inactivitytimer} from "./util/inactivitytimer";
 import {
@@ -94,6 +94,7 @@ import {SETTINGS} from "./persistent_settings";
 import {BaseModal} from "./components/modal";
 import {closeModal} from "./modalcontrol";
 import {scrollIntoView} from "./util/scrollutil";
+import {getBisSheet} from "./external/static_bis";
 
 export const SHARED_SET_NAME = 'Imported Set';
 
@@ -2078,14 +2079,7 @@ class ImportSetArea extends HTMLElement {
                     }
                     return;
                 case "shortlink":
-                    this.ready = false;
-                    getShortLink(decodeURIComponent(parsed.rawUuid)).then(data => {
-                        this.doJsonImport(data);
-                    }, err => {
-                        this.ready = true;
-                        console.error("Error importing set/sheet", err);
-                        alert('Error loading set/sheet');
-                    });
+                    this.doAsyncImport(() => getShortLink(decodeURIComponent(parsed.rawUuid)));
                     return;
                 case "etro":
                     this.ready = false;
@@ -2102,10 +2096,24 @@ class ImportSetArea extends HTMLElement {
                         alert('Error loading Etro set');
                     });
                     return;
+                case "bis":
+                    this.doAsyncImport(() => getBisSheet(...parsed.path));
+                    return;
             }
         }
         console.error("Error loading imported data", text);
         alert('That doesn\'t look like a valid import.');
+    }
+
+    doAsyncImport(provider: () => Promise<string>) {
+        this.ready = false;
+        provider().then(raw => {
+            this.doJsonImport(raw);
+        }, err => {
+            this.ready = true;
+            console.error("Error importing set/sheet", err);
+            alert('Error loading set/sheet');
+        })
     }
 
     doJsonImport(text: string) {
@@ -2201,14 +2209,7 @@ export class ImportSheetArea extends HTMLElement {
                     }
                     return;
                 case "shortlink":
-                    this.ready = false;
-                    getShortLink(decodeURIComponent(parsed.rawUuid)).then(data => {
-                        this.doJsonImport(data);
-                    }, err => {
-                        this.ready = true;
-                        console.error("Error importing set/sheet", err);
-                        alert('Error loading set/sheet');
-                    });
+                    this.doAsyncImport(() => getShortLink(decodeURIComponent(parsed.rawUuid)));
                     return;
                 case "etro":
                     this.ready = false;
@@ -2221,10 +2222,24 @@ export class ImportSheetArea extends HTMLElement {
                         alert('Error loading Etro set');
                     });
                     return;
+                case "bis":
+                    this.doAsyncImport(() => getBisSheet(...parsed.path));
+                    return;
             }
         }
         console.error("Error loading imported data", text);
         alert('That doesn\'t look like a valid import.');
+    }
+
+    doAsyncImport(provider: () => Promise<string>) {
+        this.ready = false;
+        provider().then(raw => {
+            this.doJsonImport(raw);
+        }, err => {
+            this.ready = true;
+            console.error("Error importing set/sheet", err);
+            alert('Error loading set/sheet');
+        })
     }
 
     doJsonImport(text: string) {

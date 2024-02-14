@@ -1,3 +1,7 @@
+import {ParameterType} from "typedoc";
+import {getBisSheet} from "../external/static_bis";
+import {JobName} from "../xivconstants";
+
 export type JsonImportSpec = {
     importType: 'json',
     rawData: string
@@ -11,12 +15,17 @@ export type EtroImportSpec = {
     importType: 'etro',
     rawUuid: string
 }
+export type BisImportSpec = {
+    importType: 'bis',
+    path: Parameters<typeof getBisSheet>
+}
 
-export type ImportSpec = JsonImportSpec | ShortlinkImportSpec | EtroImportSpec;
+export type ImportSpec = JsonImportSpec | ShortlinkImportSpec | EtroImportSpec | BisImportSpec;
 
 const importSheetUrlRegex = RegExp(".*/(?:viewsheet|importsheet)/(.*)$");
 const importSetUrlRegex = RegExp(".*/(?:viewset|importset)/(.*)$");
 const importShortlinkRegex = RegExp(".*/(?:sl|share)/(.*)$");
+const bisRegex = RegExp(".*/bis/(.*?)/(.*?)/(.*?)$");
 const etroRegex = RegExp("https:\/\/etro\.gg\/gearset\/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})");
 
 export function parseImport(text: string): ImportSpec {
@@ -48,6 +57,13 @@ export function parseImport(text: string): ImportSpec {
         return {
             importType: 'etro',
             rawUuid: etroExec[1],
+        }
+    }
+    const bisExec = bisRegex.exec(text);
+    if (bisExec !== null) {
+        return {
+            importType: 'bis',
+            path: [bisExec[1] as JobName, bisExec[2], bisExec[3]]
         }
     }
     return null;
