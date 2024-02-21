@@ -38,3 +38,6 @@ You can pull saved gear sets for use on your own application.
 
 Contribution guide, including how to write simulations.
 
+[Debugging Tips](/DEBUGGING.md)
+
+Some quick tips for easier debugging.
