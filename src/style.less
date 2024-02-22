@@ -22,7 +22,7 @@ body {
   //--thick-border: 2px solid var(--border-color);
   --selected-outline: 3px solid var(--table-selected-outline-color);
   --stat-color: var(--fg-color);
-  --modal-backdrop-color: #88889133;
+  --modal-backdrop-color: #7c7cbb33;
   --error-border-color: #9c0000;
   --standard-border-radius: 5px;
   --action-col-width: 73px;
@@ -289,7 +289,8 @@ body {
 }
 
 .button-transition {
-  transition: all var(--input-transition-time);
+  transition-duration: var(--input-transition-time);
+  transition-property: color, background-color, border-color, outline-color;
 }
 
 .no-transition {
