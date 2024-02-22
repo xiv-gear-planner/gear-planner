@@ -1311,7 +1311,7 @@ export class GearPlanSheet extends HTMLElement {
             buttonsArea.appendChild(exportSheetButton);
 
             const importGearSetButton = makeActionButton("Import Sets", () => {
-                this.setupEditorArea(this.makeImportSetArea());
+                this.showImportSetsDialog();
             });
             buttonsArea.appendChild(importGearSetButton);
         }
@@ -1956,12 +1956,6 @@ export class GearPlanSheet extends HTMLElement {
         return this._relevantFood.filter(item => item.ilvl >= this._itemDisplaySettings.minILvlFood && item.ilvl <= this._itemDisplaySettings.maxILvlFood);
     }
 
-    private makeImportSetArea() {
-        const area = new ImportSetArea(this);
-        area.id = 'set-import-area';
-        return area;
-    }
-
     getBestMateria(stat: MateriaSubstat, meldSlot: MeldableMateriaSlot) {
         const highGradeAllowed = meldSlot.materiaSlot.allowsHighGrade;
         const maxGradeAllowed = meldSlot.materiaSlot.maxGrade;
@@ -1997,24 +1991,27 @@ export class GearPlanSheet extends HTMLElement {
             }
         }
     }
+
+
+    private showImportSetsDialog() {
+        const dialog = new ImportSetsModal(this);
+        dialog.attachAndShow();
+    }
 }
 
-class ImportSetArea extends HTMLElement {
+class ImportSetsModal extends BaseModal {
     private readonly loader: LoadingBlocker;
     private readonly importButton: HTMLButtonElement;
     private readonly textArea: HTMLTextAreaElement;
 
     constructor(private sheet: GearPlanSheet) {
         super();
-
-        const heading = document.createElement('h1');
-        heading.textContent = 'Import Gear Set(s)';
-        this.appendChild(heading);
+        this.headerText = 'Import Gear Set(s)';
 
         const explanation = document.createElement('p');
         explanation.textContent = 'This is for importing gear set(s) into this sheet. If you would like to import a full sheet export (including sim settings) to a new sheet, use the "Import Sheet" at the top of the page. '
             + 'You can import a gear planner URL or JSON, or an Etro URL.';
-        this.appendChild(explanation);
+        this.contentArea.appendChild(explanation);
 
         const textAreaDiv = document.createElement("div");
         textAreaDiv.id = 'set-import-textarea-holder';
@@ -2027,11 +2024,12 @@ class ImportSetArea extends HTMLElement {
 
 
         textAreaDiv.appendChild(this.loader);
-        this.appendChild(textAreaDiv);
+        this.contentArea.appendChild(textAreaDiv);
         // textAreaDiv.appendChild(document.createElement("br"));
 
         this.importButton = makeActionButton("Import", () => this.doImport());
-        this.appendChild(this.importButton);
+        this.addButton(this.importButton);
+        this.addCloseButton();
         this.ready = true;
     }
 
@@ -2090,6 +2088,7 @@ class ImportSetArea extends HTMLElement {
                         }
                         this.sheet.addGearSet(this.sheet.importGearSet(set), true);
                         console.log("Loaded set from Etro");
+                        this.close();
                     }, err => {
                         this.ready = true;
                         console.error("Error loading set from Etro", err);
@@ -2109,6 +2108,7 @@ class ImportSetArea extends HTMLElement {
         this.ready = false;
         provider().then(raw => {
             this.doJsonImport(raw);
+            this.ready = true;
         }, err => {
             this.ready = true;
             console.error("Error importing set/sheet", err);
@@ -2132,12 +2132,14 @@ class ImportSetArea extends HTMLElement {
                     this.sheet.addGearSet(set, i === 0);
                 }
             }
+            closeModal();
         }
         else if ('name' in rawImport && 'items' in rawImport) {
             if (!this.checkJob(rawImport.job, false)) {
                 return;
             }
             this.sheet.addGearSet(this.sheet.importGearSet(rawImport), true);
+            closeModal();
         }
         else {
             alert("That doesn't look like a valid sheet or set");
@@ -2581,5 +2583,5 @@ customElements.define("new-sheet-form", NewSheetForm, {extends: "form"});
 customElements.define("sim-result-display", SimResultMiniDisplay);
 customElements.define("sim-result-detail-display", SimResultDetailDisplay);
 customElements.define("add-sim-dialog", AddSimDialog);
-customElements.define("import-set-area", ImportSetArea);
+customElements.define("import-set-dialog", ImportSetsModal);
 customElements.define("import-sheet-area", ImportSheetArea);

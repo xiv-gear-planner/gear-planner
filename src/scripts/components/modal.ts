@@ -19,7 +19,7 @@ export abstract class BaseModal extends HTMLElement {
         this.buttonArea = document.createElement('div');
         this.buttonArea.classList.add('lower-button-area', 'modal-lower-button-area');
         const closeButton = makeActionButton([makeCloseButton()], () => {
-            closeModal();
+            this.close();
         }, 'Close');
         closeButton.classList.add('modal-close-button');
         this.inner.appendChild(closeButton);
@@ -33,8 +33,21 @@ export abstract class BaseModal extends HTMLElement {
         this.buttonArea.appendChild(button);
     }
 
+    protected addActionButton(label: string, action: (ev: MouseEvent) => void) {
+        this.addButton(makeActionButton(label, action));
+    }
+
+    protected addCloseButton() {
+        this.addActionButton('Close', () => this.close());
+    }
+
     set headerText(text: string) {
         this.header.textContent = text;
+    }
+
+    attachAndShow() {
+        document.querySelector('body').appendChild(this);
+        this.show();
     }
 
     show() {
@@ -49,4 +62,7 @@ export abstract class BaseModal extends HTMLElement {
         })
     }
 
+    close() {
+        closeModal();
+    }
 }

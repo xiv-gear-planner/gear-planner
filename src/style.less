@@ -88,7 +88,7 @@ body {
     --sim-color-mix-percent: 50%;
     --shadow-color: #888;
     --tiering-color-mix: 5%;
-
+    --modal-backdrop-color: #372a2733;
     .melded-cell-extra-style {
       background-color: var(--stat-color);
     }
@@ -1400,6 +1400,26 @@ import-set-area, import-sheet-area {
   }
 }
 
+import-set-dialog {
+  .modal-content-area {
+    width: min-content;
+  }
+  #set-import-textarea-holder {
+    position: relative;
+  }
+  loading-blocker {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    .loading-spinner {
+      position: relative;
+      top: calc(50% - 50px);
+    }
+  }
+}
+
 div.gear-sheet-toolbar-holder {
   min-height: 15px;
   position: relative;
@@ -1720,6 +1740,7 @@ input.gear-items-table-relic-stat-input {
 
 .modal-dialog {
   background-color: var(--modal-backdrop-color);
+  backdrop-filter: saturate(30%);
   position: absolute;
   margin: 0;
   bottom: 0;
@@ -1768,10 +1789,10 @@ input.gear-items-table-relic-stat-input {
     //  margin: 5px auto auto auto;
     //}
 
-    loading-blocker {
-      position: unset;
-      background-color: unset;
-    }
+    //loading-blocker {
+    //  position: unset;
+    //  background-color: unset;
+    //}
 
     input[type='text'] {
       width: 300px;
