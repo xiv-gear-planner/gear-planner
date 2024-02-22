@@ -51,8 +51,6 @@ export abstract class BaseModal extends HTMLElement {
     }
 
     show() {
-        // TODO: there should also be a method (or this method alterated) to attach to an
-        // appropriate place in the DOM
         const outer = this;
         setModal({
             element: outer.inner,
