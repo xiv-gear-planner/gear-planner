@@ -1739,8 +1739,6 @@ input.gear-items-table-relic-stat-input {
 }
 
 .modal-dialog {
-  background-color: var(--modal-backdrop-color);
-  backdrop-filter: saturate(30%);
   position: absolute;
   margin: 0;
   bottom: 0;
@@ -1749,6 +1747,13 @@ input.gear-items-table-relic-stat-input {
   right: 0;
   z-index: var(--zi-true-modal);
   display: flex;
+  background-color: var(--modal-backdrop-color);
+  backdrop-filter: saturate(20%) blur(2px);
+  -webkit-backdrop-filter: saturate(20%) blur(2px);
+  //transition: background-color 2s linear;
+
+  //&.backdrop-active {
+  //}
 
   .modal-inner {
     max-height: 95vh;

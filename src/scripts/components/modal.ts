@@ -60,6 +60,7 @@ export abstract class BaseModal extends HTMLElement {
                 outer.remove()
             }
         })
+        setTimeout(() => this.classList.add('backdrop-active'), 5);
     }
 
     close() {
