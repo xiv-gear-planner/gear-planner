@@ -97,7 +97,7 @@ export class AllSlotMateriaManager extends HTMLElement {
         }
         else {
             const textSpan = document.createElement("span");
-            textSpan.textContent = "Select an item to meld materia";
+            textSpan.textContent = "No item selected";
             this.replaceChildren(textSpan);
             this.classList.add("materia-slot-no-equip");
             this.classList.remove("materia-slot-no-slots");

@@ -25,7 +25,7 @@ import {
     TitleRow
 } from "../tables";
 import {formatAcquisitionSource, MateriaSubstat, MateriaSubstats, STAT_ABBREVIATIONS} from "../xivconstants";
-import {FieldBoundCheckBox, FieldBoundIntField, labeledCheckbox} from "./util";
+import {FieldBoundCheckBox, FieldBoundIntField, labeledCheckbox, makeChevronDown} from "./util";
 import {AllSlotMateriaManager} from "./materia";
 import {GearPlanSheet} from "../components";
 import {shortenItemName} from "../util/strutils";
@@ -457,6 +457,66 @@ function itemTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, stat: 
     }
 }
 
+// TODO: this is generic, so move it out
+class ShowHideButton extends HTMLElement {
+    private _hidden: boolean;
+    constructor(initiallyHidden: boolean = false, private setter: (newValue: boolean) => void) {
+        super();
+        this._hidden = initiallyHidden;
+        this.appendChild(makeChevronDown());
+        this.setStyles();
+    }
+
+    get isHidden(): boolean {
+        return this._hidden;
+    }
+
+    set isHidden(hide: boolean) {
+        this._hidden = hide;
+        this.setStyles();
+        this.setter(hide);
+    }
+
+    toggle(): void {
+        this.isHidden = !this.isHidden;
+    }
+
+    private setStyles() {
+        if (this.isHidden) {
+            this.classList.add('hidden');
+        }
+        else {
+            this.classList.remove('hidden');
+        }
+    }
+}
+
+function makeShowHideRow(label: string, initiallyHidden: boolean = false, setter: (newValue: boolean) => void, extraElements: HTMLElement[] = []): SpecialRow<GearSlotItem, EquipmentSet> {
+
+    const showHide = new ShowHideButton(initiallyHidden, setter);
+
+    return new SpecialRow<GearSlotItem, EquipmentSet>(
+        tbl => {
+            const div = document.createElement('div');
+            div.classList.add('special-row-holder');
+            const text = document.createElement('span');
+            text.textContent = label;
+            div.appendChild(text);
+            // div.classList.add('weapon-ilvl-bypass-setting');
+            div.appendChild(showHide);
+            extraElements.forEach(el => {
+                div.appendChild(el);
+            });
+            return div;
+        }, row => {
+            row.addEventListener('click', () => showHide.toggle());
+            if (row.cells.length) {
+                row.cells.item(0).classList.add('hoverable');
+            }
+        }
+    )
+}
+
 /**
  * Table for displaying gear options for all slots
  aa*/
@@ -464,7 +524,7 @@ export class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
     private readonly materiaManagers: AllSlotMateriaManager[];
     private selectionTracker: Map<keyof EquipmentSet, CustomRow<GearSlotItem> | GearSlotItem>;
 
-    constructor(sheet: GearPlanSheet, gearSet: CharacterGearSet, itemMapping: Map<DisplayGearSlot, GearItem[]>, handledSlots?: EquipSlotKey[]) {
+    constructor(sheet: GearPlanSheet, private readonly gearSet: CharacterGearSet, itemMapping: Map<DisplayGearSlot, GearItem[]>, handledSlots?: EquipSlotKey[]) {
         super();
         this.classList.add("gear-items-table");
         this.classList.add("gear-items-edit-table");
@@ -571,23 +631,18 @@ export class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
                 continue;
             }
             const slotId = name as keyof EquipmentSet;
+            const extras = [];
             if (slotId === 'Weapon') {
-                data.push(new SpecialRow(table => {
-                    // Weapons have the option to display relics that violate the ilvl range
-                    const div = document.createElement('div');
-                    div.classList.add('weapon-ilvl-bypass-setting');
-                    const text = document.createElement('span');
-                    text.textContent = slot.name;
-                    div.appendChild(text);
-
-                    const cb = new FieldBoundCheckBox(sheet.itemDisplaySettings, 'higherRelics');
-                    div.appendChild(labeledCheckbox('Display relics above max ilvl setting', cb));
-                    return div;
-                }));
+                const cb = new FieldBoundCheckBox(sheet.itemDisplaySettings, 'higherRelics');
+                const lcb = labeledCheckbox('Display relics above max ilvl setting', cb);
+                extras.push(lcb);
             }
-            else {
-                data.push(new TitleRow(slot.name));
-            }
+            // TODO: initial value needs to apply to this
+            // TODO: just make the getters/setters on this class instead
+            data.push(makeShowHideRow(slot.name, gearSet.isSlotCollapsed(slotId), (val) => {
+                gearSet.setSlotCollapsed(slotId, val);
+                this.updateShowHide();
+            }, extras));
             let itemsInSlot = itemMapping.get(slot.gearSlot);
             if (itemsInSlot === undefined) {
                 itemsInSlot = [];
@@ -681,6 +736,17 @@ export class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
             }
         }
 
+    }
+
+    private updateShowHide() {
+        this.dataRowMap.forEach((row, value) => {
+            if (this.gearSet.isSlotCollapsed(value.slotId) && !this.selectionModel.isRowSelected(row)) {
+                row.style.display = 'none';
+            }
+            else {
+                row.style.display = '';
+            }
+        })
     }
 }
 
@@ -861,3 +927,4 @@ customElements.define("food-items-table", FoodItemsTable, {extends: "table"});
 customElements.define("food-items-view-table", FoodItemViewTable, {extends: "table"});
 customElements.define("ilvl-range-picker", ILvlRangePicker);
 customElements.define("food-stat-bonus", FoodStatBonus);
+customElements.define("show-hide-button", ShowHideButton);

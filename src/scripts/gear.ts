@@ -142,6 +142,39 @@ export type GearSetResult = {
     readonly issues: readonly GearSetIssue[]
 }
 
+export type SetDisplaySettingsExport = {
+    hiddenSlots: EquipSlotKey[]
+}
+
+export class SetDisplaySettings {
+    private readonly hiddenSlots: Map<EquipSlotKey, boolean> = new Map();
+
+    isSlotHidden(slot: EquipSlotKey): boolean {
+        const hidden = this.hiddenSlots.get(slot);
+        return hidden === true;
+    }
+
+    setSlotHidden(slot: EquipSlotKey, hidden: boolean) {
+        this.hiddenSlots.set(slot, hidden);
+    }
+
+    export(): SetDisplaySettingsExport {
+        const hiddenSlots: EquipSlotKey[] = [];
+        this.hiddenSlots.forEach((value, key) => {
+            if (value) {
+                hiddenSlots.push(key);
+            }
+        })
+        return {
+            hiddenSlots: hiddenSlots,
+        }
+    }
+
+    import(imported: SetDisplaySettingsExport) {
+        imported.hiddenSlots.forEach(slot => this.hiddenSlots.set(slot, true));
+    }
+}
+
 /**
  * Class representing equipped gear, food, and other overrides.
  */
@@ -161,6 +194,7 @@ export class CharacterGearSet {
         this._notifyListeners();
     });
     readonly relicStatMemory: RelicStatMemory = new RelicStatMemory();
+    readonly displaySettings: SetDisplaySettings = new SetDisplaySettings();
 
     constructor(sheet: GearPlanSheet) {
         this._sheet = sheet;
@@ -594,6 +628,16 @@ export class CharacterGearSet {
 
     isStatRelevant(stat: RawStatKey) {
         return this._sheet.isStatRelevant(stat);
+    }
+
+    private collapsed: boolean;
+
+    isSlotCollapsed(slotId: EquipSlotKey) {
+        return this.displaySettings.isSlotHidden(slotId);
+    }
+
+    setSlotCollapsed(slotId: EquipSlotKey, val: boolean) {
+        this.displaySettings.setSlotHidden(slotId, val);
     }
 }
 

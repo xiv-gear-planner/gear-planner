@@ -213,7 +213,6 @@ body {
   box-shadow: var(--shadow-color) 0 0 10px 0 inset;
 }
 
-
 .standard-border-radius {
   border-radius: var(--standard-border-radius);
 }
@@ -334,6 +333,11 @@ div#main-page-padding {
   background-color: var(--table-bg-color-selected);
 }
 
+.table-element-hover-active {
+  background-color: var(--table-bg-color-hover);
+  .no-transition;
+}
+
 table {
   position: relative;
   border: none;
@@ -343,6 +347,8 @@ table {
     text-align: left;
   }
 
+  // In order for ANY hover logic to work, the table itself must have the hoverable class
+  // Applies to both direct table elements as well as tbody/thead/etc
   &.hoverable, &.hoverable > * {
     > tr {
       .button-transition;
@@ -352,29 +358,32 @@ table {
       &.special-row-hoverable > th {
         .button-transition;
       }
+      > .hoverable:hover {
+        .table-element-hover-active;
+      }
     }
-    > tr:hover {
+    > tr:not(:has(td.hoverable:hover)):hover {
       .no-transition;
       > td {
-        background-color: var(--table-bg-color-hover);
-        .no-transition;
+        .table-element-hover-active;
       }
 
       > th.hoverable:hover {
-        background-color: var(--table-bg-color-hover);
-        .no-transition;
+        .table-element-hover-active;
+        span.header-cell-gear {
+          color: var(--action-button-hover-color);
+          opacity: unset;
+        }
       }
 
       &.special-row-hoverable {
 
         &:hover {
-          background-color: var(--table-bg-color-hover);
-          .no-transition;
+          .table-element-hover-active;
         }
 
         > *:hover {
-          background-color: var(--table-bg-color-hover);
-          .no-transition;
+          .table-element-hover-active;
         }
       }
     }
@@ -495,6 +504,9 @@ table {
     //
     //  background-color: red;
     //}
+    th, td {
+      padding: 1px 3px 1px 3px;
+    }
 
     td {
       border-left: var(--standard-border);
@@ -502,7 +514,6 @@ table {
       border-bottom: var(--thick-border);
       border-right: none;
       margin: 0;
-      padding: 1px 3px 1px 3px;
       text-overflow: ellipsis;
       overflow: hidden;
       scroll-margin: 20px;
@@ -1104,21 +1115,24 @@ table.gear-items-table, table.food-items-table {
 
   tr, td {
     height: 25px;
+    box-sizing: border-box;
   }
 
   img {
     height: 100%;
   }
-}
-
-table.gear-items-table, table.food-items-table {
   max-width: 100%;
 
   [col-id='itemname'] {
     width: var(--item-name-col-width);
     max-width: var(--item-name-col-width);
     min-width: 100px;
+  }
 
+  [col-id='icon'] {
+    width: 23px;
+    max-width: 23px;
+    min-width: 23px;
   }
 
   td[col-id='itemname'] {
@@ -1739,6 +1753,27 @@ input.gear-items-table-relic-stat-input {
   text-align: center;
 }
 
+body:has(> .backdrop-active) > *:not(.backdrop-active) {
+  filter: saturate(20%) blur(2px);
+}
+
+.special-row-holder {
+  > * {
+    float: right;
+    &:first-child {
+      float: unset;
+    }
+  }
+}
+
+show-hide-button {
+  transition: transform 0.2s;
+  transform: rotate(0);
+  &.hidden {
+    transform: rotate(90deg);
+  }
+}
+
 .modal-dialog {
   position: absolute;
   margin: 0;
@@ -1749,8 +1784,6 @@ input.gear-items-table-relic-stat-input {
   z-index: var(--zi-true-modal);
   display: flex;
   background-color: var(--modal-backdrop-color);
-  backdrop-filter: saturate(20%) blur(2px);
-  -webkit-backdrop-filter: saturate(20%) blur(2px);
   //transition: background-color 2s linear;
 
   //&.backdrop-active {

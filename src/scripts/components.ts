@@ -297,6 +297,10 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                 },
                 getter: gearSet => this.sheet.getSimResult(sim, gearSet),
                 renderer: result => new SimResultMiniDisplay(this, sim, result),
+                // TODO: improve this
+                colStyler: (value, colElement) => {
+                    colElement.classList.add('hoverable');
+                },
                 allowHeaderSelection: true,
                 allowCellSelection: true,
                 // TODO: make this not display if the sim has no settings
@@ -305,6 +309,8 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                     span.textContent = '⛭';
                     span.classList.add('header-cell-detail', 'header-cell-gear');
                     colHeader.append(span);
+                    colHeader.classList.add('hoverable');
+                    colHeader.title = 'Click to configure simulation settings';
                 }
             }
         });
@@ -671,7 +677,7 @@ export class SimResultMiniDisplay extends HTMLElement {
                 tooltip = Object.entries(result).map(entry => `${camel2title(entry[0])}: ${entry[1]}`)
                     .join('\n');
             }
-            this.setAttribute('title', tooltip);
+            this.setAttribute('title', tooltip + '\nClick to view detailed results');
         }
         else {
             this.textContent = this._result.status;
