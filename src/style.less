@@ -1888,6 +1888,7 @@ table.food-items-table {
     min-width: var(--food-stat-col-width);
     max-width: var(--food-stat-col-width);
     width: var(--food-stat-col-width);
+    box-sizing: content-box;
   }
 
   [col-id='itemname'] {
@@ -1984,6 +1985,9 @@ gear-set-viewer {
 
   > h1 {
     margin-top: 0;
+    svg {
+      padding-left: 10px;
+    }
   }
 
   & > * {
