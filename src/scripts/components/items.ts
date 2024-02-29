@@ -725,6 +725,7 @@ export class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
             }
         };
         this.data = data;
+        this.updateShowHide();
     }
 
     refreshMateria() {
