@@ -55,6 +55,7 @@ class RenameModal extends BaseModal {
         this.applyButton = document.createElement('button');
         this.applyButton.textContent = 'Apply';
         this.applyButton.type = 'submit';
+        this.applyButton.addEventListener('click', () => this.apply());
         // this.applyButton.addEventListener('click', () => this.apply());
 
         this.cancelButton = document.createElement('button');
