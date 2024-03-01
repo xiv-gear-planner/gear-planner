@@ -89,6 +89,7 @@ body {
     --shadow-color: #888;
     --tiering-color-mix: 5%;
     --modal-backdrop-color: #372a2733;
+
     .melded-cell-extra-style {
       background-color: var(--stat-color);
     }
@@ -299,6 +300,7 @@ body {
 // This causes the start of a hover to react immediately, but un-hovering is smooth
 .button-auto-transition {
   .button-transition;
+
   &:hover {
     .no-transition;
   }
@@ -352,24 +354,30 @@ table {
   &.hoverable, &.hoverable > * {
     > tr {
       .button-transition;
+
       > td, th.hoverable {
         .button-transition;
       }
+
       &.special-row-hoverable > th {
         .button-transition;
       }
+
       > .hoverable:hover {
         .table-element-hover-active;
       }
     }
+
     > tr:not(:has(td.hoverable:hover)):hover {
       .no-transition;
+
       > td {
         .table-element-hover-active;
       }
 
       > th.hoverable:hover {
         .table-element-hover-active;
+
         span.header-cell-gear {
           color: var(--action-button-hover-color);
           opacity: unset;
@@ -1121,6 +1129,7 @@ table.gear-items-table, table.food-items-table {
   img {
     height: 100%;
   }
+
   max-width: 100%;
 
   [col-id='itemname'] {
@@ -1419,15 +1428,18 @@ import-set-dialog {
   .modal-content-area {
     width: min-content;
   }
+
   #set-import-textarea-holder {
     position: relative;
   }
+
   loading-blocker {
     position: absolute;
     left: 0;
     right: 0;
     top: 0;
     bottom: 0;
+
     .loading-spinner {
       position: relative;
       top: calc(50% - 50px);
@@ -1760,6 +1772,7 @@ body:has(> .backdrop-active) > *:not(.backdrop-active) {
 .special-row-holder {
   > * {
     float: right;
+
     &:first-child {
       float: unset;
     }
@@ -1769,8 +1782,33 @@ body:has(> .backdrop-active) > *:not(.backdrop-active) {
 show-hide-button {
   transition: transform 0.2s;
   transform: rotate(0);
+
   &.hidden {
     transform: rotate(90deg);
+  }
+}
+
+tr, th {
+  //transition: height 0.5s, max-height 0.5s, min-height 0.5s;
+  //> * {
+  //  transition: height 0.5s;
+  //}
+  &.hidden-row {
+    display: none;
+    //height: 0 !important;
+    //max-height: 0 !important;
+    //min-height: 0 !important;
+    //> * {
+    //  height: 0 !important;
+    //  max-height: 0 !important;
+    //  min-height: 0 !important;
+    //  > * {
+    //    max-height: 0;
+    //    height: 0;
+    //    min-height: 0;
+    //    display: none;
+    //  }
+    //}
   }
 }
 
@@ -1985,6 +2023,7 @@ gear-set-viewer {
 
   > h1 {
     margin-top: 0;
+
     svg {
       padding-left: 10px;
     }

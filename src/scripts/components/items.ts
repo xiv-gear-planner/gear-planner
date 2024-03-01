@@ -742,10 +742,10 @@ export class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
     private updateShowHide() {
         this.dataRowMap.forEach((row, value) => {
             if (this.gearSet.isSlotCollapsed(value.slotId) && !this.selectionModel.isRowSelected(row)) {
-                row.style.display = 'none';
+                row.classList.add('hidden-row');
             }
             else {
-                row.style.display = '';
+                row.classList.remove('hidden-row');
             }
         })
     }
