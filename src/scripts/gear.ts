@@ -1,5 +1,7 @@
 import {
-    ALL_SUB_STATS, ARTIFACT_ITEM_LEVELS, BASIC_TOME_GEAR_ILVLS,
+    ALL_SUB_STATS,
+    ARTIFACT_ITEM_LEVELS,
+    BASIC_TOME_GEAR_ILVLS,
     EMPTY_STATS,
     FAKE_MAIN_STATS,
     getLevelStats,
@@ -32,7 +34,8 @@ import {
     sksToGcd,
     spsTickMulti,
     spsToGcd,
-    tenacityDmg, vitToHp,
+    tenacityDmg,
+    vitToHp,
     wdMulti
 } from "./xivmath";
 import {
@@ -835,17 +838,21 @@ export class XivApiGearInfo implements GearItem {
         }
         try {
             const rarity: number = data['Rarity'];
+            const isCraftable = data['GameContentLinks']?.['Recipe'];
+            const hasShop = data['GameContentLinks']?.['SpecialShop'];
             switch (rarity) {
                 // Green
                 case 2:
                     if (this.name.includes('Augmented')) {
                         this.acquisitionType = 'augcrafted';
                     }
-                    else if (data['GameContentLinks']?.['Recipe']) {
-                        this.acquisitionType = 'crafted';
-                    }
                     else {
-                        this.acquisitionType = 'dungeon';
+                        if (isCraftable) {
+                            this.acquisitionType = 'crafted';
+                        }
+                        else {
+                            this.acquisitionType = 'dungeon';
+                        }
                     }
                     break;
                 // Blue
@@ -878,7 +885,12 @@ export class XivApiGearInfo implements GearItem {
                         }
                     }
                     else if (chkRelIlvl(-10)) {
-                        this.acquisitionType = 'tome';
+                        if (hasShop) {
+                            this.acquisitionType = 'tome';
+                        }
+                        else {
+                            this.acquisitionType = 'alliance';
+                        }
                     }
                     else if (chkRelIlvl(-20)) {
 

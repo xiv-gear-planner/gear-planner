@@ -620,6 +620,8 @@ export function formatAcquisitionSource(source: GearAcquisitionSource): string |
             return "Normal Raid";
         case "extrial":
             return "Extreme Trial";
+        case "alliance":
+            return "Alliance Raid";
         case "other":
             return null;
     }
