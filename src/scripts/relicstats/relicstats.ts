@@ -10,6 +10,8 @@ type BaseRelicStatModel = {
      * Returns a list of validation errors. An empty list implies success.
      *
      * @param item The item
+     * @param statToReport Specify this to report issues specific to one stat. Messages may be tailored to one stat,
+     * and validation issues will only be reported if that particular stat is actually contributing to the problem.
      */
     validate(item: EquippedItem, statToReport?: Substat): string[]
 }
@@ -101,8 +103,30 @@ function customRelic(total: number): CustomRelicStatModel {
                     runningTotal += current;
                 }
             }
+            // Warn for overcap
             if (runningTotal > this.totalCap) {
-                out.unshift(`Sum of stats must be ${this.totalCap} or lower (currently ${runningTotal}).`);
+                const overcap = runningTotal - this.totalCap;
+                // If reporting specific stat, make sure that stat is non-zero, and tailor the message based on whether
+                // you would be able to fix the issue by reducing only that stat.
+                if (statToReport) {
+                    const reportingStatAmount = item.relicStats[statToReport];
+                    // Skip if the stat being reported is zero to begin with
+                    if (reportingStatAmount > 0) {
+                        // If the issue can be fixed by reducing only the current stat, report that to the user
+                        if (overcap <= reportingStatAmount) {
+                            const reduceTo = reportingStatAmount - overcap;
+                            out.unshift(`Sum of stats must be ${this.totalCap} or lower (currently ${runningTotal}). You could fix this by reducing ${STAT_ABBREVIATIONS[statToReport]} to ${reduceTo}.`);
+                        }
+                        else {
+                            // Report the generic message if not
+                            out.unshift(`Sum of stats must be ${this.totalCap} or lower (currently ${runningTotal}).`);
+                        }
+                    }
+                }
+                // Otherwise, just report the generic message
+                else {
+                    out.unshift(`Sum of stats must be ${this.totalCap} or lower (currently ${runningTotal}).`);
+                }
             }
             return out;
         }
