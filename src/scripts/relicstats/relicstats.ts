@@ -1,7 +1,7 @@
 import {GearItem, Substat} from "../geartypes";
 import {BaseParamMap} from "../datamanager";
 import {CharacterGearSet, EquippedItem} from "../gear";
-import {FieldBoundIntField} from "../components/util";
+import {FieldBoundDataSelect, FieldBoundIntField} from "../components/util";
 import {ALL_SUB_STATS, STAT_ABBREVIATIONS} from "../xivconstants";
 
 type BaseRelicStatModel = {
@@ -148,7 +148,7 @@ export function getRelicStatModelFor(gearItem: GearItem, baseParams: BaseParamMa
 
 export function makeRelicStatEditor(equipment: EquippedItem, stat: Substat, set: CharacterGearSet): HTMLElement {
     const gearItem = equipment.gearItem;
-    if (gearItem.relicStatModel.type === 'unknown' || gearItem.relicStatModel.type === 'customrelic' || gearItem.relicStatModel.type === 'ewrelic') {
+    if (gearItem.relicStatModel.type === 'unknown' || gearItem.relicStatModel.type === 'customrelic') {
         const inputSubstatCap = gearItem.unsyncedVersion.statCaps[stat] ?? 1000;
         const input = new FieldBoundIntField(equipment.relicStats, stat, {
             postValidators: [ctx => {
@@ -206,6 +206,56 @@ export function makeRelicStatEditor(equipment: EquippedItem, stat: Substat, set:
 
         });
         return input;
+    }
+    else if (gearItem.relicStatModel.type === 'ewrelic') {
+        const inputSubstatCap = gearItem.unsyncedVersion.statCaps[stat] ?? 1000;
+        const input = new FieldBoundDataSelect(equipment.relicStats, stat, val => val.toString(), [0, gearItem.relicStatModel.smallValue, gearItem.relicStatModel.largeValue]);
+        input.addEventListener('mousedown', e => e.stopPropagation());
+        const cap = gearItem.statCaps[stat] ?? 9999;
+        const titleListener = () => {
+        }
+        input.addListener(titleListener);
+        titleListener();
+        input.classList.add('gear-items-table-relic-stat-input');
+        input.classList.add('relic-stat-dropdown');
+        const reval = () => {
+            // TODO: move this to EquippedItem or somewhere else where the set-level validations can happen
+            const validationFailures = equipment.gearItem.relicStatModel.validate(equipment, stat);
+            if (validationFailures.length === 0) {
+                input.classList.remove('relic-validation-failed');
+                const newValue = equipment.relicStats[stat];
+                if (newValue > cap) {
+                    input.title = `Synced down:\n${newValue}/${cap}`;
+                }
+                else {
+                    input.removeAttribute('title');
+                    delete input.title;
+                }
+            }
+            else {
+                input.classList.add('relic-validation-failed');
+                input.title = validationFailures.join('\n');
+            }
+        }
+        reval();
+        input['revalidate'] = reval;
+        // Disgusting
+        input.addListener(() => {
+            setTimeout(() => {
+                set.forceRecalc();
+                const row = input.closest('tr');
+                const inputs = row.querySelectorAll('input');
+                inputs.forEach(inp => {
+                    const reval = inp['revalidate'];
+                    if (reval) {
+                        reval();
+                    }
+                })
+            }, 10);
+
+        });
+        return input;
+
     }
     return document.createElement('span');
 }

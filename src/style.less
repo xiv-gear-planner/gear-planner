@@ -1741,7 +1741,7 @@ div.labeled-checkbox {
   }
 }
 
-input.gear-items-table-relic-stat-input {
+input.gear-items-table-relic-stat-input, select.gear-items-table-relic-stat-input {
   //border: var(--soft-border);
   border: 2px solid transparent;
   padding: 0 0 0 0;
@@ -1753,6 +1753,11 @@ input.gear-items-table-relic-stat-input {
   &.relic-validation-failed {
     border: 2px solid red;
   }
+}
+select.gear-items-table-relic-stat-input {
+  appearance: none;
+  -moz-appearance: none;
+  -webkit-appearance: none;
 }
 
 body:has(> .backdrop-active) > *:not(.backdrop-active) {
