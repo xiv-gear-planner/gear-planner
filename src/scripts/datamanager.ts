@@ -3,6 +3,7 @@ import {getClassJobStats, JobName, MATERIA_LEVEL_MAX_NORMAL, SupportedLevel} fro
 import {GearItem, JobMultipliers, Materia, OccGearSlotKey, RawStatKey,} from "./geartypes";
 import {xivApiGet, xivApiSingle} from "./external/xivapi";
 import {BaseParamToStatKey, xivApiStatMapping} from "./external/xivapitypes";
+import {getRelicStatModelFor} from "./relicstats/relicstats";
 
 export type IlvlSyncInfo = {
     readonly ilvl: number;
@@ -20,6 +21,9 @@ export function queryBaseParams() {
     });
 }
 
+export type BaseParamInfo = Record<OccGearSlotKey, number>
+export type BaseParamMap = { [rawStat in RawStatKey]?: BaseParamInfo }
+
 export class DataManager {
     allItems: XivApiGearInfo[];
     allMateria: Materia[];
@@ -35,6 +39,7 @@ export class DataManager {
 
     jobMultipliers: Map<JobName, JobMultipliers>;
 
+    baseParams: BaseParamMap;
     ilvlSyncDatum = new Map<number, Promise<IlvlSyncInfo>>();
 
     getIlvlSyncData(baseParamPromise: ReturnType<typeof queryBaseParams>, ilvl: number) {
@@ -43,36 +48,16 @@ export class DataManager {
         }
         else {
             const jobStats = getClassJobStats(this.classJob);
-            const ilvlPromise = Promise.all([baseParamPromise, xivApiSingle("ItemLevel", ilvl)]).then(resp => {
+            const ilvlPromise = Promise.all([baseParamPromise, xivApiSingle("ItemLevel", ilvl)]).then(responses => {
                 const ilvlStatModifiers = new Map<RawStatKey, number>();
                 // Unroll the ItemLevel object into a direct mapping from RawStatKey => modifier
-                for (let respElementKey in resp[1]) {
+                for (let respElementKey in responses[1]) {
                     if (respElementKey in xivApiStatMapping) {
-                        ilvlStatModifiers.set(xivApiStatMapping[respElementKey], resp[1][respElementKey]);
+                        ilvlStatModifiers.set(xivApiStatMapping[respElementKey], responses[1][respElementKey]);
                     }
                 }
                 // BaseParam data is trickier. First, we need to convert from a list to a map, where the keys are the stat.
-                const baseParamData = resp[0];
-                const baseParams: { [rawStat in RawStatKey]?: Record<OccGearSlotKey, number> } = baseParamData.Results.reduce<{
-                    [rawStat in RawStatKey]?: Record<OccGearSlotKey, number>
-                }>((baseParams, value) => {
-                    // Each individual item also gets converted
-                    baseParams[BaseParamToStatKey[value.Name]] = {
-                        Body: value['Chest%'],
-                        Ears: value['Earring%'],
-                        Feet: value['Feet%'],
-                        Hand: value['Hands%'],
-                        Head: value['Head%'],
-                        Legs: value['Legs%'],
-                        Neck: value['Necklace%'],
-                        OffHand: value['OH%'],
-                        Ring: value['Ring%'],
-                        Weapon2H: value['2HWpn%'],
-                        Weapon1H: value['1HWpn%'],
-                        Wrist: value['Bracelet%']
-                    };
-                    return baseParams;
-                }, {});
+                const baseParams = this.baseParams;
                 return {
                     ilvl: ilvl,
                     substatCap(slot: OccGearSlotKey, statsKey: RawStatKey): number {
@@ -110,7 +95,29 @@ export class DataManager {
 
 
     async loadData() {
-        const baseParamPromise = queryBaseParams();
+        const baseParamPromise = queryBaseParams().then(data => {
+            this.baseParams = data.Results.reduce<{
+                [rawStat in RawStatKey]?: Record<OccGearSlotKey, number>
+            }>((baseParams, value) => {
+                // Each individual item also gets converted
+                baseParams[BaseParamToStatKey[value.Name]] = {
+                    Body: value['Chest%'],
+                    Ears: value['Earring%'],
+                    Feet: value['Feet%'],
+                    Hand: value['Hands%'],
+                    Head: value['Head%'],
+                    Legs: value['Legs%'],
+                    Neck: value['Necklace%'],
+                    OffHand: value['OH%'],
+                    Ring: value['Ring%'],
+                    Weapon2H: value['2HWpn%'],
+                    Weapon1H: value['1HWpn%'],
+                    Wrist: value['Bracelet%']
+                };
+                return baseParams;
+            }, {});
+            return data;
+        });
         const extraPromises = [];
         console.log("Loading items");
         // Gear Items
@@ -166,17 +173,26 @@ export class DataManager {
         const statsPromise = Promise.all([itemsPromise, baseParamPromise]).then(() => {
             console.log(`Finishing item calculations for ${this.allItems.length} items`);
             this.allItems.forEach(item => {
-                // TODO: untangle BaseParamPromise from here, it's already guaranteed to be resolved
                 const itemIlvlPromise = this.getIlvlSyncData(baseParamPromise, item.ilvl);
                 if (this.ilvlSync) {
                     const ilvlSyncPromise = this.getIlvlSyncData(baseParamPromise, this.ilvlSync);
                     extraPromises.push(Promise.all([itemIlvlPromise, ilvlSyncPromise]).then(([native, sync]) => {
                         item.applyIlvlData(native, sync);
+                        if (item.isCustomRelic) {
+                            console.log('Applying relic model')
+                            item.relicStatModel = getRelicStatModelFor(item, this.baseParams);
+                            console.log('Applied', item.relicStatModel)
+                        }
                     }));
                 }
                 else {
                     extraPromises.push(itemIlvlPromise.then(native => {
                         item.applyIlvlData(native);
+                        if (item.isCustomRelic) {
+                            console.log('Applying relic model')
+                            item.relicStatModel = getRelicStatModelFor(item, this.baseParams);
+                            console.log('Applied', item.relicStatModel)
+                        }
                     }));
                 }
             });

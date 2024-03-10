@@ -8,6 +8,7 @@ import {
     SPECIAL_SUB_STATS,
     SupportedLevel
 } from "./xivconstants";
+import {RelicStatModel} from "./relicstats/relicstats";
 
 export interface DisplayGearSlot {
 
@@ -184,6 +185,7 @@ export interface GearItem extends XivCombatItem {
     isSyncedDown: boolean;
     isUnique: boolean;
     acquisitionType: GearAcquisitionSource;
+    relicStatModel: RelicStatModel | undefined;
 }
 
 export interface StatBonus {

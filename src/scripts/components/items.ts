@@ -29,6 +29,7 @@ import {FieldBoundCheckBox, FieldBoundIntField, labeledCheckbox, makeChevronDown
 import {AllSlotMateriaManager} from "./materia";
 import {GearPlanSheet} from "../components";
 import {shortenItemName} from "../util/strutils";
+import {makeRelicStatEditor} from "../relicstats/relicstats";
 
 function statCellStylerRemover(cell: CustomCell<GearSlotItem, any>) {
     cell.classList.remove("secondary");
@@ -341,19 +342,24 @@ function itemTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, stat: 
         displayName: STAT_ABBREVIATIONS[stat],
         getter: slotItem => {
             const item = slotItem.item;
+            // If custom relic, and the value is editable, then
             if (item.isCustomRelic
                 && item.stats[stat] === 0
                 && MateriaSubstats.includes(stat as MateriaSubstat)) {
                 const currentEquipment: EquippedItem = set.equipment[slotItem.slotId];
+                // If not equipped, and there is a saved set of stats for that relic, display them
+                // after syncing down and such
                 if (currentEquipment && currentEquipment.gearItem !== item) {
                     const preview = set.toEquippedItem(item);
                     if (nonEmptyRelicStats(preview.relicStats)) {
                         return set.getEquipStatDetail(preview, stat);
                     }
                 }
+                // If it is equipped, then display the relic cell editor
                 return new RelicCellInfo(set, item, slotItem.slotId, stat as Substat);
             }
             else {
+                // Not a relic, or not an editable stat. Display normally
                 const selected = set.getItemInSlot(slotItem.slotId) === item;
                 if (selected) {
                     return set.getStatDetail(slotItem.slotId, stat);
@@ -382,12 +388,15 @@ function itemTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, stat: 
             }
         },
         renderer: (value: number | ItemSingleStatDetail | RelicCellInfo) => {
+            // First, check if the cell is an editable relic stat
             if (value instanceof RelicCellInfo) {
                 const equipment: EquippedItem = value.set.equipment[value.slotId];
+                // Then, check if equipped.
                 if (equipment && equipment.gearItem === value.item) {
                     if (equipment.relicStats[value.stat] === undefined) {
                         equipment.relicStats[value.stat] = 0;
                     }
+                    // If read-only, display stat normally
                     if (sheet.isViewOnly) {
                         const cap = equipment.gearItem.statCaps[stat];
                         if (cap) {
@@ -397,36 +406,9 @@ function itemTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, stat: 
                             return document.createTextNode(equipment.relicStats[stat].toString());
                         }
                     }
+                    // If not, display the editor
                     else {
-                        const inputSubstatCap = equipment.gearItem.unsyncedVersion.statCaps[value.stat] ?? 1000;
-                        const input = new FieldBoundIntField(equipment.relicStats, value.stat, {
-                            postValidators: [ctx => {
-                                if (ctx.newValue < 0) {
-                                    ctx.failValidation('Must be greater than zero');
-                                }
-                                else if (ctx.newValue > inputSubstatCap) {
-                                    ctx.failValidation(`Must be less than ${inputSubstatCap}`);
-                                }
-                            }]
-                        });
-                        const cap = equipment.gearItem.statCaps[stat] ?? 9999;
-                        const titleListener = () => {
-                            const newValue = equipment.relicStats[stat];
-                            if (newValue > cap) {
-                                input.title = `Synced down:\n${newValue}/${cap}`;
-                            }
-                            else {
-                                delete input.title;
-                            }
-                        }
-                        input.addListener(titleListener);
-                        titleListener();
-                        input.type = 'number';
-                        input.pattern = '[0-9]*';
-                        input.inputMode = 'number';
-                        input.classList.add('gear-items-table-relic-stat-input');
-                        input.addListener(() => value.set.forceRecalc());
-                        return input;
+                        return makeRelicStatEditor(equipment, value.stat, set);
                     }
                 }
                 else {

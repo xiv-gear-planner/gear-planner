@@ -1743,14 +1743,16 @@ div.labeled-checkbox {
 
 input.gear-items-table-relic-stat-input {
   //border: var(--soft-border);
-  border: none;
-  border-radius: 2px;
+  border: 2px solid transparent;
   padding: 0 0 0 0;
   background: var(--relic-stat-input-background-color);
   box-sizing: border-box;
   //margin: 1px;
   width: 100%;
   text-align: center;
+  &.relic-validation-failed {
+    border: 2px solid red;
+  }
 }
 
 body:has(> .backdrop-active) > *:not(.backdrop-active) {
@@ -1901,6 +1903,13 @@ table.food-items-table {
       overflow: hidden;
       text-overflow: ellipsis;
       width: 100%;
+    }
+  }
+
+  [col-id='icon'] {
+    height: unset;
+    img {
+      height: 27px;
     }
   }
 

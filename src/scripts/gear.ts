@@ -67,6 +67,7 @@ import {xivApiIcon} from "./external/xivapi";
 import {IlvlSyncInfo} from "./datamanager";
 import {XivApiStat, xivApiStatMapping} from "./external/xivapitypes";
 import {Inactivitytimer} from "./util/inactivitytimer";
+import {RelicStatModel} from "./relicstats/relicstats";
 
 
 export type RelicStats = {
@@ -267,6 +268,11 @@ export class CharacterGearSet {
         this.notifyListeners()
     }
 
+    /**
+     * Preview an item as if it were equipped
+     *
+     * @param item The item with relic stat memory and such applied
+     */
     toEquippedItem(item: GearItem) {
         const equipped = new EquippedItem(item);
         if (item.isCustomRelic) {
@@ -704,6 +710,7 @@ export class XivApiGearInfo implements GearItem {
         [K in RawStatKey]?: number
     };
     isSyncedDown: boolean;
+    relicStatModel: RelicStatModel;
 
     constructor(data: Object) {
         this.id = data['ID'];

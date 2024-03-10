@@ -187,7 +187,13 @@ export class FieldBoundConvertingTextField<ObjType, FieldType> extends HTMLInput
         // @ts-ignore
         this.reloadValue = () => this.value = valueToString(obj[field]);
         this.reloadValue();
-        this.addEventListener(extraArgs.event ?? 'input', () => {
+        this.addEventListener('focusout', () => {
+            if (this.__validationMessage) {
+                // This will re-trigger the input event, BUT that's probably okay for now.
+                this.reloadValue()
+            }
+        });
+        const listener = () => {
             try {
                 const newRawValue = this.value;
                 let _stop = false;
@@ -255,7 +261,8 @@ export class FieldBoundConvertingTextField<ObjType, FieldType> extends HTMLInput
                 this._validationMessage = e.toString();
                 return;
             }
-        });
+        }
+        this.addEventListener(extraArgs.event ?? 'input', listener);
     }
 
     addListener(listener: (value: FieldType) => void) {
