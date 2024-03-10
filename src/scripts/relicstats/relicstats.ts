@@ -121,13 +121,13 @@ export function getRelicStatModelFor(gearItem: GearItem, baseParams: BaseParamMa
     switch (gearItem.ilvl) {
         // EW relics are 2 capped stats, and one 72
         case 665:
-            return ewRelic(statCap, 72 * slotModifier);
+            return ewRelic(statCap, Math.round(72 * slotModifier));
         case 645:
-            return ewRelic(statCap, 72 * slotModifier);
+            return ewRelic(statCap, Math.round(72 * slotModifier));
         case 535:
-            return customRelic(468 * slotModifier);
+            return customRelic(Math.round(468 * slotModifier));
         case 515:
-            return customRelic(462 * slotModifier);
+            return customRelic(Math.round(462 * slotModifier));
     }
     return {
         type: "unknown",
