@@ -161,10 +161,6 @@ export function makeRelicStatEditor(equipment: EquippedItem, stat: Substat, set:
             }]
         });
         const cap = gearItem.statCaps[stat] ?? 9999;
-        const titleListener = () => {
-        }
-        input.addListener(titleListener);
-        titleListener();
         input.type = 'number';
         input.pattern = '[0-9]*';
         input.inputMode = 'number';
@@ -195,7 +191,7 @@ export function makeRelicStatEditor(equipment: EquippedItem, stat: Substat, set:
             setTimeout(() => {
                 set.forceRecalc();
                 const row = input.closest('tr');
-                const inputs = row.querySelectorAll('input');
+                const inputs = row.querySelectorAll('select, input');
                 inputs.forEach(inp => {
                     const reval = inp['revalidate'];
                     if (reval) {
@@ -212,10 +208,6 @@ export function makeRelicStatEditor(equipment: EquippedItem, stat: Substat, set:
         const input = new FieldBoundDataSelect(equipment.relicStats, stat, val => val.toString(), [0, gearItem.relicStatModel.smallValue, gearItem.relicStatModel.largeValue]);
         input.addEventListener('mousedown', e => e.stopPropagation());
         const cap = gearItem.statCaps[stat] ?? 9999;
-        const titleListener = () => {
-        }
-        input.addListener(titleListener);
-        titleListener();
         input.classList.add('gear-items-table-relic-stat-input');
         input.classList.add('relic-stat-dropdown');
         const reval = () => {
@@ -244,8 +236,10 @@ export function makeRelicStatEditor(equipment: EquippedItem, stat: Substat, set:
             setTimeout(() => {
                 set.forceRecalc();
                 const row = input.closest('tr');
-                const inputs = row.querySelectorAll('input');
+                const inputs = row.querySelectorAll('select, input');
+                console.log('inputs', [])
                 inputs.forEach(inp => {
+                    console.log('foo')
                     const reval = inp['revalidate'];
                     if (reval) {
                         reval();

@@ -404,6 +404,7 @@ export class FieldBoundDataSelect<ObjType, DataType> extends DataSelect<DataType
         super(options, valueDisplayName, value => {
             //@ts-ignore
             obj[field] = value;
+            this.listeners.forEach(listener => listener(value));
         }, obj[field] as DataType);
     }
 
