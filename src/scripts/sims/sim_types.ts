@@ -81,6 +81,8 @@ export type UsedAbility = {
     usedAt: number,
     directDamage: ComputedDamage,
     dot?: DotDamageUnf,
+    castTimeFromStart: number,
+    snapshotTimeFromStart: number,
     appDelayFromStart: number,
     totalTimeTaken: number
 }

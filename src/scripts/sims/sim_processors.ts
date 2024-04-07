@@ -430,6 +430,8 @@ export class CycleProcessor {
             combinedEffects: combineBuffEffects(buffs),
             totalTimeTaken: 0,
             appDelayFromStart: 0,
+            castTimeFromStart: 0,
+            snapshotTimeFromStart: 0,
         });
         this.nextAutoAttackTime = this.currentTime + this.aaDelay;
     }
@@ -446,15 +448,14 @@ export class CycleProcessor {
         const gcdStartsAt = this.currentTime;
         const preBuffs = this.getActiveBuffs();
         const preCombinedEffects: CombinedBuffEffect = combineBuffEffects(preBuffs);
-        const abilityGcd = ability.fixedGcd ? ability.gcd :
-            (ability.attackType == "Spell") ?
-                (this.stats.gcdMag(ability.gcd ?? this.gcdBase, preCombinedEffects.haste)) :
-                (this.stats.gcdPhys(ability.gcd ?? this.gcdBase, preCombinedEffects.haste));
-        const snapshotsAt = ability.cast ? Math.max(this.currentTime, this.currentTime + ability.cast - CAST_SNAPSHOT_PRE) : this.currentTime;
+        const abilityGcd = this.gcdTime(ability, 'recast', preCombinedEffects.haste);
+        const effectiveCastTime: number | null = ability.cast ? this.gcdTime(ability, 'cast', preCombinedEffects.haste) : null;
+        const snapshotDelayFromStart = effectiveCastTime ? Math.max(0, effectiveCastTime - CAST_SNAPSHOT_PRE) : 0
+        const snapshotsAt = this.currentTime + snapshotDelayFromStart;
         // When this GCD will end (strictly in terms of GCD. e.g. a BLM spell where cast > recast will still take the cast time. This will be
         // accounted for later).
         const gcdFinishedAt = this.currentTime + abilityGcd;
-        const animLock = ability.cast ? Math.max(ability.cast + CASTER_TAX, STANDARD_ANIMATION_LOCK) : STANDARD_ANIMATION_LOCK;
+        const animLock = effectiveCastTime ? Math.max(effectiveCastTime + CASTER_TAX, STANDARD_ANIMATION_LOCK) : STANDARD_ANIMATION_LOCK;
         const animLockFinishedAt = this.currentTime + animLock;
         this.advanceTo(snapshotsAt, true);
         if (ability.activatesBuffs) {
@@ -481,6 +482,8 @@ export class CycleProcessor {
             dot: dmgInfo.dot,
             appDelayFromStart: appDelay(ability),
             totalTimeTaken: Math.max(animLock, abilityGcd),
+            castTimeFromStart: effectiveCastTime,
+            snapshotTimeFromStart: snapshotDelayFromStart,
         });
         this.addAbilityUse(usedAbility);
         // Anim lock OR cast time, both effectively block use of skills.
@@ -518,7 +521,9 @@ export class CycleProcessor {
             directDamage: dmgInfo.directDamage ?? {expected: 0},
             dot: dmgInfo.dot,
             totalTimeTaken: animLock,
-            appDelayFromStart: appDelay(ability)
+            appDelayFromStart: appDelay(ability),
+            castTimeFromStart: 0,
+            snapshotTimeFromStart: 0
         });
         this.addAbilityUse(usedAbility);
         this.advanceTo(animLockFinishedAt);
@@ -573,6 +578,14 @@ export class CycleProcessor {
             const oldTick = Math.floor((existing.usedAt + existing.appDelayFromStart) / 3);
             existing.dot.actualTickCount = Math.min(currentTick - oldTick, existing.dot.fullDurationTicks);
         });
+    }
+
+    gcdTime(ability: GcdAbility, which: 'cast' | 'recast', haste: number): number {
+        const base = which === 'cast' ? ability.cast : ability.cast;
+        return ability.fixedGcd ? base :
+            (ability.attackType == "Spell") ?
+                (this.stats.gcdMag(base ?? this.gcdBase, haste)) :
+                (this.stats.gcdPhys(base ?? this.gcdBase, haste));
     }
 
     oneCycle(cycleFunction: CycleFunction) {
