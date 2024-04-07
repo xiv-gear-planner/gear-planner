@@ -103,7 +103,7 @@ const STANDARD_HEALER: JobDataConst = {
     mainStat: 'mind',
     autoAttackStat: 'strength',
     irrelevantSubstats: ['skillspeed', 'tenacity'],
-    traitMulti: (level, attackType) => attackType === 'Auto-attack' ? 1.0 :  1.3,
+    traitMulti: (level, attackType) => attackType === 'Auto-attack' ? 1.0 :  1.3, // Maim and Mend II
     itemStatCapMultipliers: {
         'vitality': 0.90
     },
@@ -115,6 +115,7 @@ const STANDARD_TANK: JobDataConst = {
     mainStat: 'strength',
     autoAttackStat: 'strength',
     irrelevantSubstats: ['spellspeed', 'piety'],
+    // traitMulti: TODO: Tank Mastery?
     aaPotency: MELEE_AUTO_POTENCY
 } as const;
 
@@ -131,6 +132,7 @@ const STANDARD_RANGED: JobDataConst = {
     mainStat: 'dexterity',
     autoAttackStat: 'dexterity',
     irrelevantSubstats: ['spellspeed', 'tenacity', 'piety'],
+    traitMulti: (level, attackType) => attackType === 'Auto-attack' ? 1.0 :  1.2, // Increased Action Damage II
     aaPotency: RANGE_AUTO_POTENCY
 } as const;
 
@@ -139,6 +141,7 @@ const STANDARD_CASTER: JobDataConst = {
     mainStat: 'intelligence',
     autoAttackStat: 'strength',
     irrelevantSubstats: ['skillspeed', 'tenacity', 'piety'],
+    traitMulti: (level, attackType) => attackType === 'Auto-attack' ? 1.0 :  1.3, // Maim and Mend II
     itemStatCapMultipliers: {
         'vitality': 0.90
     },
@@ -189,7 +192,10 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
         ...STANDARD_CASTER,
         // irrelevantSubstats: ['skillspeed', 'tenacity', 'piety'],
     },
-    BLU: STANDARD_CASTER,
+    BLU: {
+        ...STANDARD_CASTER,
+        traitMulti: (level, attackType) => attackType === 'Auto-attack' ? 1.0 :  1.5, // Maim and Mend V
+    }
 }
 
 
