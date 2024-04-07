@@ -517,9 +517,6 @@ export class CycleProcessor {
             // Already over time limit. Ignore completely.
             return 'none';
         }
-        if (ability.activatesBuffs) {
-            ability.activatesBuffs.forEach(buff => this.activateBuff(buff));
-        }
         const buffs = this.getActiveBuffs();
         const combinedEffects: CombinedBuffEffect = combineBuffEffects(buffs);
         // Similar logic to GCDs, but with animation lock alone
@@ -528,6 +525,7 @@ export class CycleProcessor {
         // Fits completely
         // if (animLockFinishedAt <= this.totalTime) {
         const dmgInfo = abilityToDamageNew(this.stats, ability, combinedEffects);
+        const delay = appDelay(ability);
         const usedAbility: UsedAbility = ({
             ability: ability,
             buffs: buffs,
@@ -536,11 +534,18 @@ export class CycleProcessor {
             directDamage: dmgInfo.directDamage ?? {expected: 0},
             dot: dmgInfo.dot,
             totalTimeTaken: animLock,
-            appDelayFromStart: appDelay(ability),
+            appDelayFromStart: delay,
             castTimeFromStart: 0,
             snapshotTimeFromStart: 0
         });
         this.addAbilityUse(usedAbility);
+        // Since we don't have proper modeling for situations where you need to delay something to catch a buff,
+        // e.g. SCH chain into ED, just force everything to apply no later than the animation lock.
+        const buffDelay = Math.min(delay, animLock);
+        // Activate buffs afterwards
+        if (ability.activatesBuffs) {
+            ability.activatesBuffs.forEach(buff => this.activateBuffWithDelay(buff, buffDelay));
+        }
         this.advanceTo(animLockFinishedAt);
         // Account for potential GCD clipping
         this.nextGcdTime = Math.max(this.nextGcdTime, animLockFinishedAt);
