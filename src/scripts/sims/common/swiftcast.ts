@@ -1,8 +1,8 @@
 import {Ability, Buff, BuffController, OgcdAbility} from "../sim_types";
 
 export const SwiftcastBuff: Buff = {
-    cooldown: 0,
-    duration: 0,
+    cooldown: 60,
+    duration: 10,
     effects: {},
     // TODO
     job: 'WHM',
