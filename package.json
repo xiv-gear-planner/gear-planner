@@ -22,7 +22,7 @@
   "scripts": {
     "build": "webpack --mode=development",
     "buildprod": "webpack --mode=production",
-    "docs": "typedoc --out dist/docs --entryPointStrategy expand src/scripts/"
+    "docs": "typedoc --readme API_DOC.md --out dist/docs --entryPointStrategy expand src/scripts/"
   },
   "browser": {
     "[module-name]": false
