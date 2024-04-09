@@ -14,6 +14,7 @@ import {
     UsedAbility
 } from "./sim_types";
 import {
+    AUTOATTACK_APPLICATION_DELAY,
     CAST_SNAPSHOT_PRE,
     CASTER_TAX,
     JobName,
@@ -33,9 +34,7 @@ import {sum} from "../util/array_utils";
 
 function appDelay(ability: Ability) {
     let delay = STANDARD_APPLICATION_DELAY;
-    if (ability.type === 'gcd') {
-        delay += Math.max(0, (ability.cast ?? 0) - CAST_SNAPSHOT_PRE);
-    }
+    // TODO: add application delay field to Ability
     return delay;
 }
 
@@ -432,6 +431,7 @@ export class CycleProcessor {
         };
         const buffs = this.getActiveBuffs();
         const dmgInfo = abilityToDamageNew(this.stats, aaAbility, combineBuffEffects(buffs));
+        const delay = AUTOATTACK_APPLICATION_DELAY;
         this.addAbilityUse({
             usedAt: this.currentTime,
             ability: aaAbility,
@@ -439,7 +439,8 @@ export class CycleProcessor {
             buffs: buffs,
             combinedEffects: combineBuffEffects(buffs),
             totalTimeTaken: 0,
-            appDelayFromStart: 0,
+            appDelay: delay,
+            appDelayFromStart: delay,
             castTimeFromStart: 0,
             snapshotTimeFromStart: 0,
         });
@@ -473,7 +474,8 @@ export class CycleProcessor {
         // Enough time for entire GCD
         // if (gcdFinishedAt <= this.totalTime) {
         const dmgInfo = abilityToDamageNew(this.stats, ability, preCombinedEffects);
-        const delay = appDelay(ability);
+        const appDelayFromSnapshot = appDelay(ability);
+        const appDelayFromStart = appDelayFromSnapshot + snapshotDelayFromStart;
         const usedAbility: UsedAbility = ({
             ability: ability,
             // We want to take the 'haste' value from the pre-snapshot values, but everything else should
@@ -488,7 +490,8 @@ export class CycleProcessor {
             usedAt: gcdStartsAt,
             directDamage: dmgInfo.directDamage ?? {expected: 0},
             dot: dmgInfo.dot,
-            appDelayFromStart: delay,
+            appDelay: appDelayFromSnapshot,
+            appDelayFromStart: appDelayFromStart,
             totalTimeTaken: Math.max(animLock, abilityGcd),
             castTimeFromStart: effectiveCastTime,
             snapshotTimeFromStart: snapshotDelayFromStart,
@@ -496,7 +499,7 @@ export class CycleProcessor {
         this.addAbilityUse(usedAbility);
         // Since we don't have proper modeling for situations where you need to delay something to catch a buff,
         // e.g. SCH chain into ED, just force everything to apply no later than the animation lock.
-        const buffDelay = Math.min(delay, animLock);
+        const buffDelay = Math.min(appDelayFromStart, animLock);
         // Activate buffs afterwards
         if (ability.activatesBuffs) {
             ability.activatesBuffs.forEach(buff => this.activateBuffWithDelay(buff, buffDelay));
@@ -534,6 +537,7 @@ export class CycleProcessor {
             directDamage: dmgInfo.directDamage ?? {expected: 0},
             dot: dmgInfo.dot,
             totalTimeTaken: animLock,
+            appDelay: delay,
             appDelayFromStart: delay,
             castTimeFromStart: 0,
             snapshotTimeFromStart: 0
