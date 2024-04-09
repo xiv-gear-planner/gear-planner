@@ -81,6 +81,9 @@ export type UsedAbility = {
     usedAt: number,
     directDamage: ComputedDamage,
     dot?: DotDamageUnf,
+    castTimeFromStart: number,
+    snapshotTimeFromStart: number,
+    appDelay: number,
     appDelayFromStart: number,
     totalTimeTaken: number
 }
@@ -116,6 +119,10 @@ export type BuffEffects = {
     haste?: number,
 }
 
+export type BuffController = {
+    removeStatus(buff: Buff): void;
+}
+
 export type Buff = Readonly<{
     /** Name of buff */
     name: string,
@@ -131,9 +138,15 @@ export type Buff = Readonly<{
     /** Duration */
     duration: number,
     /** The effect(s) of the buff */
-    effects: BuffEffects;
+    effects: BuffEffects,
     /**
      * Time of usage - can be omitted for buffs that would only be used by self and never auto-activated
      */
     startTime?: number,
+    /**
+     * Optional function to run before an ability is used. This can be used for buffs that have special
+     * effects which trigger when using an ability, e.g. Swiftcast/Dualcast.
+     */
+    beforeAbility?: (controller: BuffController, ability: Ability) => void
+
 }>;

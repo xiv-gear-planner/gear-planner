@@ -14,6 +14,10 @@ function formatTime(time: number) {
 }
 
 
+function roundTime(time: number): string {
+    return time.toFixed(3);
+}
+
 export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
 
     constructor(abilitiesUsed: readonly DisplayRecordFinalized[]) {
@@ -28,13 +32,25 @@ export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
                 renderer: (used: DisplayRecordFinalized) => {
                     return document.createTextNode(formatTime(used.usedAt));
                 },
-                // TODO: later, add some kind of 'timing info' field to FinalizedAbility
-                // colStyler: (value: DisplayRecordFinalized, colElement, internalElement) => {
-                //     if ('original' in value) {
-                //         const original = value.original;
-                //         colElement.title = `Used at: ${value.usedAt}s\nCast/Lock Time: ${original.totalTimeTaken}s\nTotal Delay: ${original.appDelayFromStart}s from start`
-                //     }
-                // }
+                colStyler: (value: DisplayRecordFinalized, colElement, internalElement) => {
+                    if ('original' in value) {
+                        const original = value.original;
+                        let title = `Used at: ${roundTime(value.usedAt)}s\n`;
+                        // cast
+                        if (value.original.castTimeFromStart) {
+                            title += `Cast: ${roundTime(original.castTimeFromStart)}\n`
+                            title += `Snapshot At: ${roundTime(original.snapshotTimeFromStart)}\n`
+                            title += `Application Delay: ${roundTime(original.appDelay)}\n`
+                            title += `Cast Start to Application: ${roundTime(original.appDelayFromStart)}\n`
+                            title += `Effective Recast: ${roundTime(original.totalTimeTaken)}`;
+                        }
+                        // instant
+                        else {
+                            title += `Application Delay: ${original.appDelayFromStart}\nAnimation Lock: ${original.totalTimeTaken}`;
+                        }
+                        colElement.title = title;
+                    }
+                }
             },
             {
                 shortName: 'ability',

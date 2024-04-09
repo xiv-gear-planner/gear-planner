@@ -33,6 +33,7 @@ const eDosis: GcdAbility = {
     attackType: "Spell",
     fixedGcd: true,
     gcd: 2.5,
+    // TODO: can this be modeled in a more accurate way? it doesn't break anything but isn't nice to work with
     cast: 1.5,
     id: 24314,
 }
