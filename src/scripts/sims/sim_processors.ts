@@ -328,21 +328,31 @@ export class CycleProcessor {
         this.setBuffStartTime(buff, this.currentTime + delay);
     }
 
+    private recheckAutoBuffs() {
+        const queryTime = this.currentTime;
+        this.buffTimes.forEach((time, buff) => {
+            if (time === undefined || time > queryTime) {
+                return;
+            }
+            if ((queryTime - time) < buff.duration) {
+                return;
+            }
+            else if (this.isBuffAutomatic(buff)) {
+                this.setBuffStartTime(buff, time + buff.cooldown);
+            }
+        });
+    }
+
     /**
      * Get the buffs that would be active right now.
      */
     getActiveBuffs(): Buff[] {
         const queryTime = this.currentTime;
         const activeBuffs: Buff[] = [];
-        this.buffTimes.forEach((time, buff) => {
-            if (time === undefined || time > queryTime) {
-                return;
-            }
-            if ((queryTime - time) < buff.duration) {
-                activeBuffs.push(buff);
-            }
-            else if (this.isBuffAutomatic(buff)) {
-                this.setBuffStartTime(buff, time + buff.cooldown);
+        this.recheckAutoBuffs();
+        this.buffHistory.forEach(h => {
+            if (h.start <= queryTime && h.end > queryTime && !activeBuffs.includes(h.buff)) {
+                activeBuffs.push(h.buff);
             }
         });
         return activeBuffs;
