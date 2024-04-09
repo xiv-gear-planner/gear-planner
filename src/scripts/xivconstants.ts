@@ -52,6 +52,8 @@ export const CAST_SNAPSHOT_PRE = 0.5;
 export const CASTER_TAX = 0.1;
 
 export const STANDARD_APPLICATION_DELAY = 0.6;
+// TODO: find actual value
+export const AUTOATTACK_APPLICATION_DELAY = 0.6;
 
 /**
  * Supported Jobs.

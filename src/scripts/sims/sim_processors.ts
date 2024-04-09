@@ -14,6 +14,7 @@ import {
     UsedAbility
 } from "./sim_types";
 import {
+    AUTOATTACK_APPLICATION_DELAY,
     CAST_SNAPSHOT_PRE,
     CASTER_TAX,
     JobName,
@@ -31,11 +32,14 @@ import {AbilitiesUsedTable} from "./components/ability_used_table";
 import {quickElement} from "../components/util";
 import {sum} from "../util/array_utils";
 
+/**
+ * Returns the application delay of an ability (from time of snapshot to time of damage/effects applying).
+ *
+ * @param ability The ability in question
+ */
 function appDelay(ability: Ability) {
     let delay = STANDARD_APPLICATION_DELAY;
-    if (ability.type === 'gcd') {
-        delay += Math.max(0, (ability.cast ?? 0) - CAST_SNAPSHOT_PRE);
-    }
+    // TODO: add application delay field to Ability
     return delay;
 }
 
@@ -308,10 +312,35 @@ export class CycleProcessor {
     /**
      * Manually mark a buff as being active now
      *
-     * @param buff
+     * @param buff The buff
      */
     activateBuff(buff: Buff) {
-        this.setBuffStartTime(buff, this.currentTime);
+        this.activateBuffWithDelay(buff, 0);
+    }
+
+    /**
+     * Manually mark a buff as being active after a given delay
+     *
+     * @param buff The buff
+     * @param delay The delay after which to apply the buff
+     */
+    activateBuffWithDelay(buff: Buff, delay: number) {
+        this.setBuffStartTime(buff, this.currentTime + delay);
+    }
+
+    private recheckAutoBuffs() {
+        const queryTime = this.currentTime;
+        this.buffTimes.forEach((time, buff) => {
+            if (time === undefined || time > queryTime) {
+                return;
+            }
+            if ((queryTime - time) < buff.duration) {
+                return;
+            }
+            else if (this.isBuffAutomatic(buff)) {
+                this.setBuffStartTime(buff, time + buff.cooldown);
+            }
+        });
     }
 
     /**
@@ -320,15 +349,10 @@ export class CycleProcessor {
     getActiveBuffs(): Buff[] {
         const queryTime = this.currentTime;
         const activeBuffs: Buff[] = [];
-        this.buffTimes.forEach((time, buff) => {
-            if (time === undefined || time > queryTime) {
-                return;
-            }
-            if ((queryTime - time) < buff.duration) {
-                activeBuffs.push(buff);
-            }
-            else if (this.isBuffAutomatic(buff)) {
-                this.setBuffStartTime(buff, time + buff.cooldown);
+        this.recheckAutoBuffs();
+        this.buffHistory.forEach(h => {
+            if (h.start <= queryTime && h.end > queryTime && !activeBuffs.includes(h.buff)) {
+                activeBuffs.push(h.buff);
             }
         });
         return activeBuffs;
@@ -422,6 +446,7 @@ export class CycleProcessor {
         };
         const buffs = this.getActiveBuffs();
         const dmgInfo = abilityToDamageNew(this.stats, aaAbility, combineBuffEffects(buffs));
+        const delay = AUTOATTACK_APPLICATION_DELAY;
         this.addAbilityUse({
             usedAt: this.currentTime,
             ability: aaAbility,
@@ -429,7 +454,10 @@ export class CycleProcessor {
             buffs: buffs,
             combinedEffects: combineBuffEffects(buffs),
             totalTimeTaken: 0,
-            appDelayFromStart: 0,
+            appDelay: delay,
+            appDelayFromStart: delay,
+            castTimeFromStart: 0,
+            snapshotTimeFromStart: 0,
         });
         this.nextAutoAttackTime = this.currentTime + this.aaDelay;
     }
@@ -446,25 +474,23 @@ export class CycleProcessor {
         const gcdStartsAt = this.currentTime;
         const preBuffs = this.getActiveBuffs();
         const preCombinedEffects: CombinedBuffEffect = combineBuffEffects(preBuffs);
-        const abilityGcd = ability.fixedGcd ? ability.gcd :
-            (ability.attackType == "Spell") ?
-                (this.stats.gcdMag(ability.gcd ?? this.gcdBase, preCombinedEffects.haste)) :
-                (this.stats.gcdPhys(ability.gcd ?? this.gcdBase, preCombinedEffects.haste));
-        const snapshotsAt = ability.cast ? Math.max(this.currentTime, this.currentTime + ability.cast - CAST_SNAPSHOT_PRE) : this.currentTime;
+        const abilityGcd = this.gcdTime(ability, 'recast', preCombinedEffects.haste);
+        const effectiveCastTime: number | null = ability.cast ? this.gcdTime(ability, 'cast', preCombinedEffects.haste) : null;
+        const snapshotDelayFromStart = effectiveCastTime ? Math.max(0, effectiveCastTime - CAST_SNAPSHOT_PRE) : 0
+        const snapshotsAt = this.currentTime + snapshotDelayFromStart;
         // When this GCD will end (strictly in terms of GCD. e.g. a BLM spell where cast > recast will still take the cast time. This will be
         // accounted for later).
         const gcdFinishedAt = this.currentTime + abilityGcd;
-        const animLock = ability.cast ? Math.max(ability.cast + CASTER_TAX, STANDARD_ANIMATION_LOCK) : STANDARD_ANIMATION_LOCK;
+        const animLock = effectiveCastTime ? Math.max(effectiveCastTime + CASTER_TAX, STANDARD_ANIMATION_LOCK) : STANDARD_ANIMATION_LOCK;
         const animLockFinishedAt = this.currentTime + animLock;
         this.advanceTo(snapshotsAt, true);
-        if (ability.activatesBuffs) {
-            ability.activatesBuffs.forEach(buff => this.activateBuff(buff));
-        }
         const buffs = this.getActiveBuffs();
         const combinedEffects: CombinedBuffEffect = combineBuffEffects(buffs);
         // Enough time for entire GCD
         // if (gcdFinishedAt <= this.totalTime) {
         const dmgInfo = abilityToDamageNew(this.stats, ability, preCombinedEffects);
+        const appDelayFromSnapshot = appDelay(ability);
+        const appDelayFromStart = appDelayFromSnapshot + snapshotDelayFromStart;
         const usedAbility: UsedAbility = ({
             ability: ability,
             // We want to take the 'haste' value from the pre-snapshot values, but everything else should
@@ -479,10 +505,23 @@ export class CycleProcessor {
             usedAt: gcdStartsAt,
             directDamage: dmgInfo.directDamage ?? {expected: 0},
             dot: dmgInfo.dot,
-            appDelayFromStart: appDelay(ability),
+            appDelay: appDelayFromSnapshot,
+            appDelayFromStart: appDelayFromStart,
             totalTimeTaken: Math.max(animLock, abilityGcd),
+            castTimeFromStart: effectiveCastTime,
+            snapshotTimeFromStart: snapshotDelayFromStart,
         });
         this.addAbilityUse(usedAbility);
+        // Since we don't have proper modeling for situations where you need to delay something to catch a buff,
+        // e.g. SCH chain into ED, just force everything to apply no later than the animation lock.
+        // At this specific point in time, we are exactly at the snapshot. Thus, the remaining application delay
+        // is the snapshot-to-application delta only, and the animation lock also needs to have the time so far
+        // subtracted.
+        const buffDelay = Math.max(0, Math.min(appDelayFromSnapshot, animLock - snapshotDelayFromStart));
+        // Activate buffs afterwards
+        if (ability.activatesBuffs) {
+            ability.activatesBuffs.forEach(buff => this.activateBuffWithDelay(buff, buffDelay));
+        }
         // Anim lock OR cast time, both effectively block use of skills.
         // If cast time > GCD recast, then we use that instead. Also factor in caster tax.
         this.advanceTo(animLockFinishedAt);
@@ -499,9 +538,6 @@ export class CycleProcessor {
             // Already over time limit. Ignore completely.
             return 'none';
         }
-        if (ability.activatesBuffs) {
-            ability.activatesBuffs.forEach(buff => this.activateBuff(buff));
-        }
         const buffs = this.getActiveBuffs();
         const combinedEffects: CombinedBuffEffect = combineBuffEffects(buffs);
         // Similar logic to GCDs, but with animation lock alone
@@ -510,6 +546,7 @@ export class CycleProcessor {
         // Fits completely
         // if (animLockFinishedAt <= this.totalTime) {
         const dmgInfo = abilityToDamageNew(this.stats, ability, combinedEffects);
+        const delay = appDelay(ability);
         const usedAbility: UsedAbility = ({
             ability: ability,
             buffs: buffs,
@@ -518,9 +555,19 @@ export class CycleProcessor {
             directDamage: dmgInfo.directDamage ?? {expected: 0},
             dot: dmgInfo.dot,
             totalTimeTaken: animLock,
-            appDelayFromStart: appDelay(ability)
+            appDelay: delay,
+            appDelayFromStart: delay,
+            castTimeFromStart: 0,
+            snapshotTimeFromStart: 0
         });
         this.addAbilityUse(usedAbility);
+        // Since we don't have proper modeling for situations where you need to delay something to catch a buff,
+        // e.g. SCH chain into ED, just force everything to apply no later than the animation lock.
+        const buffDelay = Math.min(delay, animLock);
+        // Activate buffs afterwards
+        if (ability.activatesBuffs) {
+            ability.activatesBuffs.forEach(buff => this.activateBuffWithDelay(buff, buffDelay));
+        }
         this.advanceTo(animLockFinishedAt);
         // Account for potential GCD clipping
         this.nextGcdTime = Math.max(this.nextGcdTime, animLockFinishedAt);
@@ -573,6 +620,14 @@ export class CycleProcessor {
             const oldTick = Math.floor((existing.usedAt + existing.appDelayFromStart) / 3);
             existing.dot.actualTickCount = Math.min(currentTick - oldTick, existing.dot.fullDurationTicks);
         });
+    }
+
+    gcdTime(ability: GcdAbility, which: 'cast' | 'recast', haste: number): number {
+        const base = which === 'cast' ? ability.cast : ability.gcd;
+        return ability.fixedGcd ? base :
+            (ability.attackType == "Spell") ?
+                (this.stats.gcdMag(base ?? this.gcdBase, haste)) :
+                (this.stats.gcdPhys(base ?? this.gcdBase, haste));
     }
 
     oneCycle(cycleFunction: CycleFunction) {

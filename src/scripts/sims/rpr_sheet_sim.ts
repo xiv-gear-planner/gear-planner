@@ -282,7 +282,7 @@ class CooldownTracker {
 
     remainingCd(cp: CycleProcessor, ability: Ability): number {
         let abilityTimes = this.lastUsedTimes[ability.name];
-        return abilityTimes[1] + abilityTimes[0] - cp.currentTime;
+        return Math.max(0, abilityTimes[1] + abilityTimes[0] - cp.currentTime);
     }
 
     willBeUsableBeforeNextGcd(cp: CycleProcessor, ability: OgcdAbility): boolean {
