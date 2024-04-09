@@ -32,6 +32,11 @@ import {AbilitiesUsedTable} from "./components/ability_used_table";
 import {quickElement} from "../components/util";
 import {sum} from "../util/array_utils";
 
+/**
+ * Returns the application delay of an ability (from time of snapshot to time of damage/effects applying).
+ *
+ * @param ability The ability in question
+ */
 function appDelay(ability: Ability) {
     let delay = STANDARD_APPLICATION_DELAY;
     // TODO: add application delay field to Ability

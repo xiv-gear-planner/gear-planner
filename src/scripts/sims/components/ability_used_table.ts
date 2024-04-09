@@ -39,9 +39,9 @@ export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
                         // cast
                         if (value.original.castTimeFromStart) {
                             title += `Cast: ${roundTime(original.castTimeFromStart)}\n`
-                            title += `Application Delay: ${roundTime(original.appDelay)}\n`
-                            title += `Cast+Application Delay: ${roundTime(original.appDelayFromStart)}\n`
                             title += `Snapshot At: ${roundTime(original.snapshotTimeFromStart)}\n`
+                            title += `Application Delay: ${roundTime(original.appDelay)}\n`
+                            title += `Cast Start to Application: ${roundTime(original.appDelayFromStart)}\n`
                             title += `Effective Recast: ${roundTime(original.totalTimeTaken)}`;
                         }
                         // instant
