@@ -166,7 +166,8 @@ export class DataManager {
                 }
             }).then((rawItems) => {
                 this.allItems = rawItems
-                    .filter(i => i['Stats'] !== null)
+                    // TODO: filtering out items with no stats excludes all BLU weapons
+                    // .filter(i => i['Stats'] !== null)
                     .map(i => new XivApiGearInfo(i));
                 // TODO: put up better error
             }, (e) => console.error(e));
