@@ -169,15 +169,6 @@ class SimResultData<ResultType extends SimResult> {
         return this.result.status === 'Done' || this.result.status === 'Not Run' || this.result.status === 'Error';
     }
 
-    //
-    // makeResultDisplay() {
-    //     if (this.simInst.makeResultDisplay) {
-    //         return this.simInst.makeResultDisplay(this.result);
-    //     }
-    //     else {
-    //         return simpleAutoResultTable(this.result);
-    //     }
-    // }
 }
 
 /**

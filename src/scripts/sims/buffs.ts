@@ -10,6 +10,7 @@ export const Mug = {
         dmgIncrease: 0.05,
     },
     startTime: 3.5,
+    statusId: 3183
 } as const satisfies Buff;
 
 export const Litany = {
@@ -21,6 +22,7 @@ export const Litany = {
         critChanceIncrease: 0.10
     },
     startTime: 7.5,
+    statusId: 786
 } as const satisfies Buff;
 
 export const DragonSight = {
@@ -33,6 +35,8 @@ export const DragonSight = {
         dmgIncrease: 0.05
     },
     startTime: 5,
+    // TODO: there are two of these, 1184 and 1454, one is probably pvp
+    statusId: 1184
 } as const satisfies Buff;
 
 export const Brotherhood = {
@@ -44,6 +48,8 @@ export const Brotherhood = {
         dmgIncrease: 0.05
     },
     startTime: 7.5,
+    // TODO: there are two of these, 1185 and 2174, one is probably pvp
+    statusId: 1185
 } as const satisfies Buff;
 
 export const ArcaneCircle = {
@@ -55,6 +61,7 @@ export const ArcaneCircle = {
         dmgIncrease: 0.03
     },
     startTime: 5,
+    statusId: 2599
 } as const satisfies Buff;
 
 export const DeathsDesign = {
@@ -67,6 +74,7 @@ export const DeathsDesign = {
         dmgIncrease: 0.1
     },
     startTime: 0,
+    statusId: 2586
 } as const satisfies Buff;
 
 export const SearingLight = {
@@ -78,6 +86,7 @@ export const SearingLight = {
         dmgIncrease: 0.03
     },
     startTime: 1.5,
+    statusId: 2703
 } as const satisfies Buff;
 
 export const Embolden = {
@@ -89,6 +98,8 @@ export const Embolden = {
         dmgIncrease: 0.05
     },
     startTime: 7,
+    // This is the party member version of this, not the self version
+    statusId: 1297
 } as const satisfies Buff;
 
 export const Devilment = {
@@ -102,6 +113,7 @@ export const Devilment = {
         critChanceIncrease: 0.20
     },
     startTime: 7,
+    statusId: 1825
 } as const satisfies Buff;
 
 /* With how the cycle processer script currently handles buffs, this wouldn't properly work
@@ -126,6 +138,7 @@ export const TechnicalFinish = {
         dmgIncrease: 0.05,
     },
     startTime: 7,
+    statusId: 1822
 } as const satisfies Buff;
 
 export const BattleVoice = {
@@ -137,6 +150,7 @@ export const BattleVoice = {
         dhitChanceIncrease: 0.20,
     },
     startTime: 6,
+    statusId: 141
 } as const satisfies Buff;
 
 export const RadiantFinale = {
@@ -148,6 +162,7 @@ export const RadiantFinale = {
         dmgIncrease: 0.06
     },
     startTime: 6.7,
+    statusId: 2964
 } as const satisfies Buff;
 
 export const Chain = {
@@ -159,6 +174,7 @@ export const Chain = {
         critChanceIncrease: 0.10
     },
     startTime: 7,
+    statusId: 1221
 } as const satisfies Buff;
 
 export const Divination = {
@@ -170,6 +186,7 @@ export const Divination = {
         dmgIncrease: 0.06
     },
     startTime: 7,
+    statusId: 1878
 } as const satisfies Buff;
 
 export const AstCard = {
@@ -182,6 +199,8 @@ export const AstCard = {
         dmgIncrease: 0.06
     },
     startTime: 4,
+    // three IDs for this
+    statusId: 829
 } as const satisfies Buff;
 
 

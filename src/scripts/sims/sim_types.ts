@@ -147,6 +147,10 @@ export type Buff = Readonly<{
      * Optional function to run before an ability is used. This can be used for buffs that have special
      * effects which trigger when using an ability, e.g. Swiftcast/Dualcast.
      */
-    beforeAbility?: (controller: BuffController, ability: Ability) => void
+    beforeAbility?: (controller: BuffController, ability: Ability) => void,
+    /**
+     * Optional status effect ID. Used to provide an icon.
+     */
+    statusId?: number
 
 }>;
