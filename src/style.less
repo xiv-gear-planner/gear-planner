@@ -60,6 +60,7 @@ body {
   --transition-time: 0.3s;
   --input-transition-time: 0.1s;
   --tiering-color-mix: 2%;
+  --abilities-row-height: 20px;
 
 
   &.light-mode {
@@ -89,6 +90,7 @@ body {
     --shadow-color: #888;
     --tiering-color-mix: 5%;
     --modal-backdrop-color: #372a2733;
+
     .melded-cell-extra-style {
       background-color: var(--stat-color);
     }
@@ -299,6 +301,7 @@ body {
 // This causes the start of a hover to react immediately, but un-hovering is smooth
 .button-auto-transition {
   .button-transition;
+
   &:hover {
     .no-transition;
   }
@@ -352,24 +355,30 @@ table {
   &.hoverable, &.hoverable > * {
     > tr {
       .button-transition;
+
       > td, th.hoverable {
         .button-transition;
       }
+
       &.special-row-hoverable > th {
         .button-transition;
       }
+
       > .hoverable:hover {
         .table-element-hover-active;
       }
     }
+
     > tr:not(:has(td.hoverable:hover)):hover {
       .no-transition;
+
       > td {
         .table-element-hover-active;
       }
 
       > th.hoverable:hover {
         .table-element-hover-active;
+
         span.header-cell-gear {
           color: var(--action-button-hover-color);
           opacity: unset;
@@ -1121,6 +1130,7 @@ table.gear-items-table, table.food-items-table {
   img {
     height: 100%;
   }
+
   max-width: 100%;
 
   [col-id='itemname'] {
@@ -1419,15 +1429,18 @@ import-set-dialog {
   .modal-content-area {
     width: min-content;
   }
+
   #set-import-textarea-holder {
     position: relative;
   }
+
   loading-blocker {
     position: absolute;
     left: 0;
     right: 0;
     top: 0;
     bottom: 0;
+
     .loading-spinner {
       position: relative;
       top: calc(50% - 50px);
@@ -1750,10 +1763,12 @@ input.gear-items-table-relic-stat-input, select.gear-items-table-relic-stat-inpu
   //margin: 1px;
   width: 100%;
   text-align: center;
+
   &.relic-validation-failed {
     border: 2px solid red;
   }
 }
+
 select.gear-items-table-relic-stat-input {
   appearance: none;
   -moz-appearance: none;
@@ -1767,6 +1782,7 @@ body:has(> .backdrop-active) > *:not(.backdrop-active) {
 .special-row-holder {
   > * {
     float: right;
+
     &:first-child {
       float: unset;
     }
@@ -1776,6 +1792,7 @@ body:has(> .backdrop-active) > *:not(.backdrop-active) {
 show-hide-button {
   transition: transform 0.2s;
   transform: rotate(0);
+
   &.hidden {
     transform: rotate(90deg);
   }
@@ -1913,6 +1930,7 @@ table.food-items-table {
 
   [col-id='icon'] {
     height: unset;
+
     img {
       height: 27px;
     }
@@ -1999,6 +2017,7 @@ gear-set-viewer {
 
   > h1 {
     margin-top: 0;
+
     svg {
       padding-left: 10px;
     }
@@ -2350,7 +2369,7 @@ buff-settings-area {
 
     .ability-cell {
       height: 100%;
-      max-height: 20px;
+      max-height: var(--abilities-row-height);
       display: flex;
       align-items: center;
 
@@ -2373,11 +2392,36 @@ buff-settings-area {
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
-      line-height: 0;
-      height: 20px;
+      line-height: 1px;
+      height: var(--abilities-row-height);
 
       &[col-id='time'] {
         text-align: right;
+      }
+
+      &[col-id='buffs'] {
+        padding-top: 0;
+        .active-buffs-list {
+          height: 100%;
+          width: 100%;
+          display: inline-flex;
+          align-items: center;
+          max-height: var(--abilities-row-height);
+
+          img {
+            height: 100%;
+            flex-shrink: 0;
+            padding-right: 2px;
+          }
+          span {
+            flex-shrink: 1;
+            display: block;
+            min-width: 1px;
+            overflow-x: hidden;
+            text-overflow: ellipsis;
+            line-height: var(--abilities-row-height);
+          }
+        }
       }
     }
 
