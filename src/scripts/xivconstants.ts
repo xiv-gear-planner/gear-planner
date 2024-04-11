@@ -657,7 +657,7 @@ export const BLU_INT_WD = [
     [1340, 106], [1360, 107], [1390, 111], [1510, 113], [1590, 115], [1680, 117],
     [1780, 119], [1880, 121], [1980, 123], [2090, 125], [2200, 127], [2320, 129],
     [2410, 131]
-] as const as readonly number[][];
+] as const as readonly (readonly number[])[];
 
 /**
  * Lookup a BLU weapon damage modifier value for a given intelligence stat value.
