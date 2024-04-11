@@ -105,7 +105,7 @@ const STANDARD_HEALER: JobDataConst = {
     mainStat: 'mind',
     autoAttackStat: 'strength',
     irrelevantSubstats: ['skillspeed', 'tenacity'],
-    traitMulti: (level, attackType) => attackType === 'Auto-attack' ? 1.0 :  1.3,
+    traitMulti: (level, attackType) => attackType === 'Auto-attack' ? 1.0 :  1.3, // Maim and Mend II
     itemStatCapMultipliers: {
         'vitality': 0.90
     },
@@ -117,6 +117,7 @@ const STANDARD_TANK: JobDataConst = {
     mainStat: 'strength',
     autoAttackStat: 'strength',
     irrelevantSubstats: ['spellspeed', 'piety'],
+    // traitMulti: TODO: Tank Mastery?
     aaPotency: MELEE_AUTO_POTENCY
 } as const;
 
@@ -133,6 +134,7 @@ const STANDARD_RANGED: JobDataConst = {
     mainStat: 'dexterity',
     autoAttackStat: 'dexterity',
     irrelevantSubstats: ['spellspeed', 'tenacity', 'piety'],
+    traitMulti: (level, attackType) => attackType === 'Auto-attack' ? 1.0 :  1.2, // Increased Action Damage II
     aaPotency: RANGE_AUTO_POTENCY
 } as const;
 
@@ -141,6 +143,7 @@ const STANDARD_CASTER: JobDataConst = {
     mainStat: 'intelligence',
     autoAttackStat: 'strength',
     irrelevantSubstats: ['skillspeed', 'tenacity', 'piety'],
+    traitMulti: (level, attackType) => attackType === 'Auto-attack' ? 1.0 :  1.3, // Maim and Mend II
     itemStatCapMultipliers: {
         'vitality': 0.90
     },
@@ -191,7 +194,10 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
         ...STANDARD_CASTER,
         // irrelevantSubstats: ['skillspeed', 'tenacity', 'piety'],
     },
-    BLU: STANDARD_CASTER,
+    BLU: {
+        ...STANDARD_CASTER,
+        traitMulti: (level, attackType) => attackType === 'Auto-attack' ? 1.0 :  1.5, // Maim and Mend V
+    }
 }
 
 
@@ -628,4 +634,42 @@ export function formatAcquisitionSource(source: GearAcquisitionSource): string |
             return null;
     }
     return source[0].toUpperCase() + source.substring(1);
+}
+
+/**
+ * BLU intelligence stat to weapon damage modifier lookup table in [INT, WD] format
+ */
+const BLU_INT_WD = [
+    [0, 12], [9, 13], [10, 14], [11, 15], [12, 16], [13, 18], [14, 20], [16, 21],
+    [17, 22], [18, 23], [19, 24], [20, 26], [21, 27], [23, 28], [24, 29], [26, 30],
+    [29, 31], [30, 32], [32, 33], [34, 34], [36, 35], [38, 36], [40, 37], [44, 38],
+    [46, 39], [49, 40], [52, 41], [54, 42], [58, 43], [61, 44], [62, 46], [65, 47],
+    [66, 48], [67, 49], [70, 50], [72, 51], [73, 52], [74, 53], [77, 54], [78, 55],
+    [79, 56], [81, 57], [94, 58], [140, 59], [160, 60], [180, 61], [230, 62],
+    [250, 63], [280, 64], [320, 65], [350, 66], [360, 67], [380, 68], [400, 69],
+    [420, 70], [440, 71], [460, 72], [480, 73], [500, 74], [510, 75], [530, 76],
+    [550, 77], [570, 78], [590, 79], [620, 80], [650, 81], [680, 82], [710, 83],
+    [740, 84], [750, 85], [770, 86], [790, 87], [810, 88], [830, 89], [860, 90],
+    [880, 91], [900, 92], [930, 93], [960, 94], [990, 95], [1030, 96], [1060, 97],
+    [1080, 98], [1110, 99], [1140, 100], [1170, 101], [1200, 102], [1230, 103],
+    [1260, 104], [1290, 105],
+    // TODO: the following are predicted values for lvl90 BLU, will need to be verified
+    [1340, 106], [1360, 107], [1390, 111], [1510, 113], [1590, 115], [1680, 117],
+    [1780, 119], [1880, 121], [1980, 123], [2090, 125], [2200, 127], [2320, 129],
+    [2410, 131]
+] as const as readonly (readonly number[])[];
+
+/**
+ * Lookup a BLU weapon damage modifier value for a given intelligence stat value.
+ *
+ * @param gearIntStat Intelligence stat from gear only (excludes all modifiers).
+ * @returns BLU weapon damage modifier.
+ */
+export function bluWdfromInt(gearIntStat: number) : number {
+    for (let i=0; i<BLU_INT_WD.length; i++) {
+        if (gearIntStat < BLU_INT_WD[i][0]) {
+            return BLU_INT_WD[Math.max(0, i-1)][1];
+        }
+    }
+    return BLU_INT_WD[BLU_INT_WD.length-1][1];
 }
