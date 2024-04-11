@@ -128,7 +128,7 @@ export class DataManager {
                 // Basic item properties
                 'ID', 'IconHD', 'Name', 'LevelItem',
                 // Equip slot restrictions
-                'EquipSlotCategory', 'IsUnique',
+                'ClassJobCategory', 'EquipSlotCategory', 'IsUnique',
                 // Stats
                 'Stats', 'DamageMag', 'DamagePhys', 'DelayMs',
                 // Materia
@@ -166,8 +166,10 @@ export class DataManager {
                 }
             }).then((rawItems) => {
                 this.allItems = rawItems
-                    // TODO: filtering out items with no stats excludes all BLU weapons
-                    // .filter(i => i['Stats'] !== null)
+                    .filter(i => {
+                        return i['Stats'] !== null
+                            || (i['ClassJobCategory']?.['BLU'] === 1 && i['EquipSlotCategory']?.['MainHand'] === 1); // Don't filter out BLU weapons
+                    })
                     .map(i => new XivApiGearInfo(i));
                 // TODO: put up better error
             }, (e) => console.error(e));
