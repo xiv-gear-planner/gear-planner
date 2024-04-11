@@ -24,7 +24,7 @@
     "build": "webpack --mode=development",
     "buildprod": "webpack --mode=production",
     "docs": "typedoc --readme API_DOC.md --out dist/docs --entryPointStrategy expand src/scripts/",
-    "test": "mocha --require ts-node/register ./src/scripts/test/*.ts"
+    "test": "ts-mocha src/scripts/test/*test.ts src/scripts/test/*tests.ts"
   },
   "browser": {
     "[module-name]": false
