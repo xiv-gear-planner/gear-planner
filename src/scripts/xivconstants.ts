@@ -639,7 +639,7 @@ export function formatAcquisitionSource(source: GearAcquisitionSource): string |
 /**
  * BLU intelligence stat to weapon damage modifier lookup table in [INT, WD] format
  */
-export const BLU_INT_WD = [
+const BLU_INT_WD = [
     [0, 12], [9, 13], [10, 14], [11, 15], [12, 16], [13, 18], [14, 20], [16, 21],
     [17, 22], [18, 23], [19, 24], [20, 26], [21, 27], [23, 28], [24, 29], [26, 30],
     [29, 31], [30, 32], [32, 33], [34, 34], [36, 35], [38, 36], [40, 37], [44, 38],
