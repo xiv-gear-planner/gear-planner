@@ -19,6 +19,7 @@ import {
     RAID_TIER_ILVLS,
     SPECIAL_SUB_STATS,
     statById,
+    bluWdfromInt
 } from "./xivconstants";
 import {
     autoAttackModifier,
@@ -344,26 +345,30 @@ export class CharacterGearSet {
         const level = this._sheet.level;
         const levelStats = getLevelStats(level);
 
-        // Base stats based on job and level
-        for (let statKey of MAIN_STATS) {
-            combinedStats[statKey] = Math.floor(levelStats.baseMainStat * classJobStats.jobStatMultipliers[statKey] / 100);
-        }
-        for (let statKey of FAKE_MAIN_STATS) {
-            combinedStats[statKey] = Math.floor(levelStats.baseMainStat);
-        }
-        for (let statKey of SPECIAL_SUB_STATS) {
-            combinedStats[statKey] = Math.floor(levelStats.baseSubStat);
-        }
-
-        // Add race stats
-        addStats(combinedStats, raceStats);
-
         // Item stats
         for (let key of EquipSlots) {
             if (this.equipment[key]) {
                 addStats(combinedStats, this.getSlotEffectiveStats(key));
             }
         }
+
+        // Intelligence stat from gear only (no modifiers) for BLU
+        const gearIntStat = combinedStats.intelligence;
+
+        // Base stats based on job and level
+        for (let statKey of MAIN_STATS) {
+            combinedStats[statKey] += Math.floor(levelStats.baseMainStat * classJobStats.jobStatMultipliers[statKey] / 100);
+        }
+        for (let statKey of FAKE_MAIN_STATS) {
+            combinedStats[statKey] += Math.floor(levelStats.baseMainStat);
+        }
+        for (let statKey of SPECIAL_SUB_STATS) {
+            combinedStats[statKey] += Math.floor(levelStats.baseSubStat);
+        }
+
+        // Add race stats
+        addStats(combinedStats, raceStats);
+
         // Food stats
         if (this._food) {
             for (let stat in this._food.bonuses) {
@@ -374,6 +379,8 @@ export class CharacterGearSet {
             }
         }
         this._dirtyComp = false;
+        // Add BLU weapon damage modifier
+        combinedStats.wdMag += classJob === "BLU" ? bluWdfromInt(gearIntStat) : 0;
         const computedStats = finalizeStats(combinedStats, level, levelStats, classJob, classJobStats, this._sheet.partyBonus);
         const leftRing = this.getItemInSlot('RingLeft');
         const rightRing = this.getItemInSlot('RingRight');
@@ -659,7 +666,7 @@ export class XivApiGearInfo implements GearItem {
         this.name = data['Name'];
         this.ilvl = data['LevelItem'];
         this.iconUrl = xivApiIcon(data['IconHD']);
-        this.Stats = data['Stats'];
+        this.Stats = data['Stats'] ? data['Stats'] : [];
         const eqs = data['EquipSlotCategory'];
         if (!eqs) {
             console.error('EquipSlotCategory was null!', data);
