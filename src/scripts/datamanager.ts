@@ -276,7 +276,7 @@ export class DataManager {
         await Promise.all(extraPromises);
     }
 
-    multipliersForJob(job: JobName) {
+    multipliersForJob(job: JobName): JobMultipliers {
         if (!this.jobMultipliers) {
             throw Error("You must wait for loadData() before calling this method");
         }
