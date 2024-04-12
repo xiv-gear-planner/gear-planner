@@ -9,6 +9,12 @@ export function assertClose(actual: number, expected: number, error: number) {
     }
 }
 
+export function isClose(actual: number, expected: number, error: number): boolean {
+    const delta = actual - expected;
+    return Math.abs(delta) <= error;
+
+}
+
 export function makeFakeSet(stats: ComputedSetStats): CharacterGearSet {
     return {
         get computedStats(): ComputedSetStats {

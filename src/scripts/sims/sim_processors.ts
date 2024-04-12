@@ -488,7 +488,7 @@ export class CycleProcessor {
         const combinedEffects: CombinedBuffEffect = combineBuffEffects(buffs);
         // Enough time for entire GCD
         // if (gcdFinishedAt <= this.totalTime) {
-        const dmgInfo = abilityToDamageNew(this.stats, ability, preCombinedEffects);
+        const dmgInfo = abilityToDamageNew(this.stats, ability, combinedEffects);
         const appDelayFromSnapshot = appDelay(ability);
         const appDelayFromStart = appDelayFromSnapshot + snapshotDelayFromStart;
         const usedAbility: UsedAbility = ({
