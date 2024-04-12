@@ -6,7 +6,7 @@ import {Buff, FinalizedAbility, GcdAbility, OgcdAbility} from "../sims/sim_types
 import {CharacterGearSet} from "../gear";
 import {JobMultipliers} from "../geartypes";
 import {finalizeStats} from "../xivstats";
-import {getClassJobStats, getLevelStats, JobName} from "../xivconstants";
+import {getClassJobStats, getLevelStats} from "../xivconstants";
 
 import {
     BaseMultiCycleSim,
@@ -17,7 +17,13 @@ import {
 } from "../sims/sim_processors";
 import {assertClose, isClose, makeFakeSet} from "./test_utils";
 import * as assert from "assert";
-import {BattleVoice, Divination, Litany, Mug} from "../sims/buffs";
+import {Divination, Litany, Mug} from "../sims/buffs";
+import {sgeNewSheetSpec} from "../sims/sge_sheet_sim_mk2";
+import {assertSimAbilityResults, setPartyBuffEnabled, UseResult} from "./sim_test_utils";
+
+// Example of end-to-end simulation
+// This one is testing the simulation engine itself, so it copies the full simulation code rather than
+// referencing it. If you wish to test an actual simulation, you would want to reference it directly.
 
 // Set up a simulation
 interface TestSimSettings extends SimSettings {
@@ -161,6 +167,7 @@ class TestMultiCycleSim extends BaseMultiCycleSim<TestSimResult, TestSimSettings
     }
 }
 
+// Replace data that would normally be loaded from xivapi with fixed data
 const jobStatMultipliers: JobMultipliers = {
     dexterity: 105,
     hp: 105,
@@ -169,6 +176,7 @@ const jobStatMultipliers: JobMultipliers = {
     strength: 55,
     vitality: 100
 };
+// Stats from a set. These should be the stats WITH items and race bonus, but WITHOUT party bonus
 const rawStats = {
     // From https://share.xivgear.app/share/74fb005d-086f-45d3-bee8-9a211559f7df
     crit: 2287,
@@ -188,18 +196,17 @@ const rawStats = {
     wdPhys: 132,
     weaponDelay: 3.44
 };
+// Finalize the stats (add class modifiers, party bonus, etc)
 const stats = finalizeStats(rawStats, 90, getLevelStats(90), 'WHM', {
     ...getClassJobStats('WHM'),
     jobStatMultipliers: jobStatMultipliers
 }, 5);
+
+// Turn the stats into a fake gear set. This object does not implement all of the methods that a CharacterGearSet
+// should, only the ones that would commonly be used in a simulation.
 const set: CharacterGearSet = makeFakeSet(stats);
 
-type UseResult = {
-    time: number,
-    name: string,
-    damage: number
-}
-
+// Expected sim outcome
 const expectedAbilities: UseResult[] = [
     {
         time: -1.48,
@@ -329,60 +336,22 @@ const expectedAbilities: UseResult[] = [
 
 ]
 
-function setPartyBuffEnabled(sim: BaseMultiCycleSim<any, any>, buff: Buff, enabled: boolean) {
-    const jobSettings = sim.buffManager.allJobs.find(j => j.job === buff.job);
-    jobSettings.enabled = true;
-    const buffSettings = jobSettings.enabledBuffs.find(b => b.buff.name === buff.name);
-    buffSettings.enabled = true;
-}
 
+// The test
 describe('cycle sim processor tests', () => {
     // Test the simulation
     it('produces the correct results', async () => {
+        // Initialize
         const inst: TestMultiCycleSim = testSimSpec.makeNewSimInstance();
         inst.cycleSettings.totalTime = 30;
+        // Enable buffs
         setPartyBuffEnabled(inst, Mug, true);
         setPartyBuffEnabled(inst, Litany, true);
         setPartyBuffEnabled(inst, Divination, true);
+        // Run simulation
         let result = await inst.simulate(set);
+        // Assert correct results
         assertClose(result.mainDpsResult, 9899.78, 0.01);
-        const actualAbilities: FinalizedAbility[] = result.displayRecords.filter<FinalizedAbility>((record): record is FinalizedAbility => {
-            return 'ability' in record;
-        });
-        const failures: string[] = []
-        const length = Math.max(actualAbilities.length, expectedAbilities.length);
-        for (let i = 0; i < length; i++) {
-            if (i >= actualAbilities.length) {
-                failures.push(`Item ${i} failed: Expected ${JSON.stringify(expectedAbilities[i])}, but there were no more actual abilities`);
-                continue;
-            }
-            const actualUse = actualAbilities[i];
-            const actual: UseResult = {
-                damage: actualUse.totalDamage,
-                name: actualUse.ability.name,
-                time: actualUse.usedAt
-            };
-            if (i >= expectedAbilities.length) {
-                failures.push(`Item ${i} failed: Expected to be done, but there was another ability (${JSON.stringify(actual)}`);
-            }
-            else {
-                const expected = expectedAbilities[i];
-                if (expected.name !== actual.name) {
-                    failures.push(`Item ${i} failed: Expected ability '${expected.name}, but it was ${actual.name}`);
-                }
-                if (!isClose(actual.damage, expected.damage, 0.01)) {
-                    // Print 3 digits so that roundoff doesn't become an issue.
-                    // e.g. 0.507 and 0.519 have a delta > 0.01, but it would round to a delta of exactly 0.01
-                    failures.push(`Item ${i} failed: Wrong damage, expected '${expected.damage.toFixed(3)}, but it was ${actual.damage.toFixed(3)}`);
-                }
-                if (!isClose(actual.time, expected.time, 0.0001)) {
-                    failures.push(`Item ${i} failed: Expected time '${expected.time.toFixed(5)}, but it was ${actual.time.toFixed(5)}`);
-                }
-            }
-        }
-        if (failures.length > 0) {
-            const asStr = failures.join('\n');
-            assert.fail(asStr);
-        }
+        assertSimAbilityResults(result, expectedAbilities);
     });
 });
