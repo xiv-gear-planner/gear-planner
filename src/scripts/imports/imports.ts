@@ -66,5 +66,15 @@ export function parseImport(text: string): ImportSpec {
             path: [bisExec[1] as JobName, bisExec[2], bisExec[3]]
         }
     }
+    try {
+        JSON.parse(text);
+        return {
+            importType: 'json',
+            rawData: text
+        }
+    }
+    catch (e) {
+
+    }
     return null;
 }

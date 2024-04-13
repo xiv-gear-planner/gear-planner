@@ -7,6 +7,7 @@ import {JobName} from "./xivconstants";
 import {LoadingBlocker} from "./components/loader";
 import {earlyEmbedInit, openEmbed} from "./embed";
 import {SETTINGS} from "./persistent_settings";
+import {registerDefaultSims} from "./sims/default_sims";
 
 export const SHORTLINK_HASH = 'sl';
 export const SHARE_LINK = 'https://share.xivgear.app/share/';
@@ -407,6 +408,7 @@ function earlyUiSetup() {
 
 document.addEventListener("DOMContentLoaded", () => {
     // iosPolyfill();
+    registerDefaultSims();
     earlyUiSetup();
     addEventListener("hashchange", processHash);
     initialLoad();

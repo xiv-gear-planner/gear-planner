@@ -30,7 +30,7 @@ jobs:
           npm install
           npm run buildprod
           npx lessc --source-map ./src/style.less dist/style.css
-          npx ts-mocha src/scripts/test/*test.ts src/scripts/test/*tests.ts
+          npm run test
           npm run docs
 
       - name: Setup Pages
