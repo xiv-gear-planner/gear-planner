@@ -2,7 +2,15 @@ import {SimSettings, SimSpec} from "../simulation";
 import {GcdAbility, OgcdAbility} from "./sim_types";
 import {BaseMultiCycleSim, CycleProcessor, CycleSimResult, ExternalCycleSettings, Rotation} from "./sim_processors";
 import {BuffSettingsExport} from "./party_comp_settings";
-
+// TODO remove
+const nop: GcdAbility = {
+    type: 'gcd',
+    name: "NOP",
+    potency: null,
+    attackType: "Spell",
+    gcd: 2.5,
+    cast: 2.0
+}
 
 const filler: GcdAbility = {
     type: 'gcd',
@@ -117,6 +125,9 @@ export class WhmSheetSim extends BaseMultiCycleSim<WhmSheetSimResult, WhmNewShee
         return [{
             cycleTime: 120,
             apply(cp: CycleProcessor) {
+                // cp.use(nop);
+                // cp.use(nop);
+                // cp.use(nop);
                 cp.use(filler);
                 cp.remainingCycles(cycle => {
                     cycle.use(dia);

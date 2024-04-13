@@ -41,6 +41,15 @@ const filler: GcdAbility = {
     cast: 1.5
 }
 
+const nop: GcdAbility = {
+    type: 'gcd',
+    name: "NOP",
+    potency: null,
+    attackType: "Spell",
+    gcd: 2.5,
+    cast: 2.0
+}
+
 const dia: GcdAbility = {
     type: 'gcd',
     name: "Dia",
@@ -129,6 +138,10 @@ class TestMultiCycleSim extends BaseMultiCycleSim<TestSimResult, TestSimSettings
         return [{
             cycleTime: 120,
             apply(cp: CycleProcessor) {
+                // These should NOT start combat because their damage === null
+                cp.use(nop);
+                cp.use(nop);
+                cp.use(nop);
                 cp.use(filler);
                 cp.remainingCycles(cycle => {
                     cycle.use(dia);
@@ -209,12 +222,27 @@ const set: CharacterGearSet = makeFakeSet(stats);
 // Expected sim outcome
 const expectedAbilities: UseResult[] = [
     {
+        time: -8.41,
+        name: 'NOP',
+        damage: 0
+    },
+    {
+        time: -6.10,
+        name: 'NOP',
+        damage: 0
+    },
+    {
+        time: -3.79,
+        name: 'NOP',
+        damage: 0
+    },
+    {
         time: -1.48,
         name: 'Glare',
         damage: 15078.38
     },
     {
-        time: -0.60,
+        time: 0,
         name: 'Auto Attack',
         damage: 39.04
     },
@@ -224,14 +252,14 @@ const expectedAbilities: UseResult[] = [
         damage: 37174.05
     },
     {
-        time: 2.84,
-        name: 'Auto Attack',
-        damage: 39.04
-    },
-    {
         time: 3.14,
         name: 'Glare',
         damage: 15832.30
+    },
+    {
+        time: 4.32,
+        name: 'Auto Attack',
+        damage: 40.99
     },
     {
         time: 5.45,
@@ -249,14 +277,14 @@ const expectedAbilities: UseResult[] = [
         damage: 17656.20
     },
     {
-        time: 8.64,
-        name: "Auto Attack",
-        damage: 45.72
-    },
-    {
         time: 8.96,
         name: "Assize",
         damage: 22783.24
+    },
+    {
+        time: 9.24,
+        name: "Auto Attack",
+        damage: 45.72
     },
     {
         time: 9.60,
@@ -270,13 +298,13 @@ const expectedAbilities: UseResult[] = [
     },
     {
         time: 13.28,
-        name: "Auto Attack",
-        damage: 45.72
-    },
-    {
-        time: 13.28,
         name: "Glare",
         damage: 17656.2
+    },
+    {
+        time: 14.48,
+        name: "Auto Attack",
+        damage: 45.72
     },
     {
         time: 15.12,
@@ -289,14 +317,14 @@ const expectedAbilities: UseResult[] = [
         damage: 17656.2
     },
     {
-        time: 18.52,
-        name: "Auto Attack",
-        damage: 45.72
-    },
-    {
         time: 18.80,
         name: "Glare",
         damage: 17656.2
+    },
+    {
+        time: 19.72,
+        name: "Auto Attack",
+        damage: 45.72
     },
     {
         time: 20.64,
@@ -309,14 +337,14 @@ const expectedAbilities: UseResult[] = [
         damage: 15832.3
     },
     {
-        time: 23.76,
-        name: "Auto Attack",
-        damage: 39.04
-    },
-    {
         time: 24.32,
         name: "Glare",
         damage: 15078.38
+    },
+    {
+        time: 25.24,
+        name: "Auto Attack",
+        damage: 39.04
     },
     {
         time: 26.63,
@@ -328,12 +356,6 @@ const expectedAbilities: UseResult[] = [
         name: "Glare",
         damage: 6919.08
     },
-    {
-        time: 29.84,
-        name: "Auto Attack",
-        damage: 39.04
-    },
-
 ]
 
 
@@ -351,7 +373,7 @@ describe('cycle sim processor tests', () => {
         // Run simulation
         let result = await inst.simulate(set);
         // Assert correct results
-        assertClose(result.mainDpsResult, 9899.78, 0.01);
+        assertClose(result.mainDpsResult, 9898.56, 0.01);
         assertSimAbilityResults(result, expectedAbilities);
     });
 });
