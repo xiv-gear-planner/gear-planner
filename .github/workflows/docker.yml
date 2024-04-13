@@ -6,7 +6,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: xivgear-static
+  IMAGE_NAME: ${{ github.repository_owner }}/xivgear-static
 
 jobs:
   build:
@@ -35,8 +35,8 @@ jobs:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
-#      - name: Set up Docker Buildx
-#        uses: docker/setup-buildx-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 #        with:
 #          buildkitd-flags: --debug
 
