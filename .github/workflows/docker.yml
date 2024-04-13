@@ -1,8 +1,7 @@
-name: Build and Deploy
+name: Build and Publish Container Image
 
 on:
   push:
-    branches: [ "prod" ]
   workflow_dispatch:
 
 env:
