@@ -48,8 +48,10 @@ export class CooldownTracker {
 
 
     private readonly currentState: Map<Ability, InternalState> = new Map();
+    public mode: CooldownMode = 'warn';
 
-    public constructor(private timeSource: () => number, private readonly mode: CooldownMode = 'warn') {
+    public constructor(private timeSource: () => number, mode: CooldownMode = 'warn') {
+        this.mode = mode;
     }
 
     private get currentTime(): number {
@@ -73,8 +75,7 @@ export class CooldownTracker {
                     console.warn(`Ability ${ability.name} used at ${currentTime}, but it is not ready for another ${status.readyAt.relative.toFixed(3)}s`);
                     break;
                 case "delay":
-                    // TODO
-                    throw Error('Delay mode is not implemented yet');
+                    throw Error('Delay should be happening at the simulation level. This is a bug.');
                 case "reject":
                     throw Error(`Ability ${ability.name} used at ${currentTime}, but it is not ready for another ${status.readyAt.relative.toFixed(3)}s`);
             }
@@ -86,13 +87,26 @@ export class CooldownTracker {
         this.currentState.set(ability, state);
     }
 
-    // public isReady(ability: Ability): boolean{
-    //
-    // }
-    //
-    // public willBeReady(ability: Ability, desiredTime: number): boolean {
-    //
-    // }
+    public canUse(ability: Ability, when?: number): boolean {
+        if (when === undefined) {
+            when = this.currentTime;
+        }
+        return this.statusOfAt(ability, when).readyToUse;
+    }
+
+    /**
+     * Shift the timing of every cooldown, in order to allow CD usage to be adjusted
+     * for pre-pull uses.
+     *
+     * @param delta The time shift. Negative means shift all recorded times backwards (i.e.
+     * abilities will be *closer* to coming off CD). Positive means the opposite. e.g. to adjust
+     * for pre-pull timings, it should be negative.
+     */
+    public timeShift(delta: number) {
+        for (let key of this.currentState.keys()) {
+            this.currentState.set(key, new InternalState(this.currentState.get(key).cappedAt + delta));
+        }
+    }
 
     public statusOf(ability: Ability): CooldownStatus {
         return this.statusOfAt(ability, this.currentTime);

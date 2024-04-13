@@ -45,7 +45,11 @@ const phlegma: GcdAbility = {
     attackType: "Spell",
     gcd: 2.5,
     cast: 1.5,
-    id: 24313
+    id: 24313,
+    cooldown: {
+        time: 40.0,
+        charges: 2
+    }
 }
 
 export interface SgeSheetSimResult extends CycleSimResult {
