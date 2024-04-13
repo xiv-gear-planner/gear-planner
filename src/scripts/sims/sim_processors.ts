@@ -429,9 +429,6 @@ export class CycleProcessor {
         if (delta < 0) {
             throw new Error("Cannot rewind time!");
         }
-        // TODO: this technically makes the first auto-attack too late, since it will wait for the animation lock of
-        // the skill that starts combat to finish, rather than allowing the auto to fire immediately after the anim
-        // lock finishes.
         if (this.combatStarted && !this.combatStarting) {
             if (pauseAutos) {
                 this.nextAutoAttackTime += delta;
@@ -440,10 +437,8 @@ export class CycleProcessor {
                 if (advanceTo >= this.nextAutoAttackTime && this.combatStarted) {
                     this.currentTime = this.nextAutoAttackTime;
                     if (this.useAutos) {
-                        // TODO: for pre-pull GCD that initiates combat, this is adding an auto-attack right when it
-                        // gets out of animation lock, BUT it doesn't advance the time correctly, so even though it
-                        // *executes* at the end of the lock, it *records* as being at the beginning.
-                        // This seems to be because the
+                        // TODO: the initial auto-attack timing still needs to be validated using a class that starts
+                        // with an instant skill.
                         this.recordAutoAttack();
                     }
                 }
