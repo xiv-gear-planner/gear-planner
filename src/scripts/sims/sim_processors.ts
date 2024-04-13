@@ -267,7 +267,7 @@ export class CycleProcessor {
     private readonly manuallyActivatedBuffs: readonly Buff[];
     combatStarted: boolean = false;
     readonly useAutos: boolean;
-    private readonly cdTracker: CooldownTracker;
+    readonly cdTracker: CooldownTracker;
     private _cdEnforcementMode: CooldownMode;
 
     constructor(settings: MultiCycleSettings) {
