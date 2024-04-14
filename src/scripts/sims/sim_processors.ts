@@ -267,19 +267,12 @@ export class CycleProcessor {
     combatStarted: boolean = false;
     readonly useAutos: boolean;
 
-    constructor(settings: MultiCycleSettings) {
+    constructor(private settings: MultiCycleSettings) {
         this.cycleTime = settings.cycleTime;
         this.totalTime = settings.totalTime;
         this.stats = settings.stats;
         this.manuallyActivatedBuffs = settings.manuallyActivatedBuffs ?? [];
         this.useAutos = settings.useAutos;
-        settings.allBuffs.forEach(buff => {
-            if (this.isBuffAutomatic(buff)) {
-                if (buff.startTime !== undefined) {
-                    this.setBuffStartTime(buff, buff.startTime);
-                }
-            }
-        });
     }
 
     /**
@@ -302,10 +295,20 @@ export class CycleProcessor {
     }
 
     get remainingTime() {
+        // If you set the duration to 10 seconds, but you do 20 seconds of pre-pull stuff, then you would end up
+        // never starting combat.
+        if (!this.combatStarted) {
+            return this.totalTime;
+        }
         return Math.max(0, this.totalTime - this.currentTime);
     }
 
     get remainingGcdTime() {
+        // If you set the duration to 10 seconds, but you do 20 seconds of pre-pull stuff, then you would end up
+        // never starting combat.
+        if (!this.combatStarted) {
+            return this.totalTime;
+        }
         return Math.max(0, this.totalTime - this.nextGcdTime);
     }
 
@@ -329,6 +332,9 @@ export class CycleProcessor {
     }
 
     private recheckAutoBuffs() {
+        if (!this.combatStarted) {
+            return;
+        }
         const queryTime = this.currentTime;
         this.buffTimes.forEach((time, buff) => {
             if (time === undefined || time > queryTime) {
@@ -423,16 +429,23 @@ export class CycleProcessor {
         if (delta < 0) {
             throw new Error("Cannot rewind time!");
         }
-        if (pauseAutos) {
-            this.nextAutoAttackTime += delta;
-        }
-        else {
-            if (advanceTo >= this.nextAutoAttackTime && this.combatStarted) {
-                this.currentTime = this.nextAutoAttackTime;
-                if (this.useAutos) {
-                    this.recordAutoAttack();
+        if (this.combatStarted && !this.combatStarting) {
+            if (pauseAutos) {
+                this.nextAutoAttackTime += delta;
+            }
+            else {
+                if (advanceTo >= this.nextAutoAttackTime && this.combatStarted) {
+                    this.currentTime = this.nextAutoAttackTime;
+                    if (this.useAutos) {
+                        // TODO: the initial auto-attack timing still needs to be validated using a class that starts
+                        // with an instant skill.
+                        this.recordAutoAttack();
+                    }
                 }
             }
+        }
+        else {
+            this.nextAutoAttackTime = this.currentTime;
         }
         this.currentTime = advanceTo;
     }
@@ -586,18 +599,34 @@ export class CycleProcessor {
         this.nextGcdTime += this.pendingPrePullOffset;
         this.nextAutoAttackTime += this.pendingPrePullOffset;
         this.pendingPrePullOffset = 0;
-
+        // TODO: this will need to be updated to account for pre-pull self-buffs
+        if (this.combatStarting) {
+            this.settings.allBuffs.forEach(buff => {
+                if (this.isBuffAutomatic(buff)) {
+                    if (buff.startTime !== undefined) {
+                        this.setBuffStartTime(buff, buff.startTime);
+                    }
+                }
+            });
+            this.combatStarting = false;
+        }
     }
+
+    private combatStarting: boolean = false;
 
     private addAbilityUse(usedAbility: AbilityUseRecordUnf) {
         this.allRecords.push(usedAbility);
         // If this is a pre-pull ability, we can offset by the hardcast time and/or application delay
         if (!this.combatStarted && usedAbility.ability.potency !== null) {
+            // We want the first damaging ability
             const firstDamagingAbility = this.usedAbilities.find(ability => ability.ability.potency !== null);
             if (firstDamagingAbility !== undefined) {
-                this.pendingPrePullOffset = -firstDamagingAbility.appDelayFromStart;
+                // e.g. if the ability has an application delay of 0.6 seconds, and it was used at 10 seconds, then we
+                // want to adjust by 10.6 seconds
+                this.pendingPrePullOffset = -(firstDamagingAbility.usedAt + firstDamagingAbility.appDelayFromStart);
             }
             this.combatStarted = true;
+            this.combatStarting = true;
         }
         if (usedAbility.dot) {
             const dotId = usedAbility.ability['dot']?.id;

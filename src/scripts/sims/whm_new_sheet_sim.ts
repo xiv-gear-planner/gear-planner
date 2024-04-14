@@ -3,7 +3,6 @@ import {GcdAbility, OgcdAbility} from "./sim_types";
 import {BaseMultiCycleSim, CycleProcessor, CycleSimResult, ExternalCycleSettings, Rotation} from "./sim_processors";
 import {BuffSettingsExport} from "./party_comp_settings";
 
-
 const filler: GcdAbility = {
     type: 'gcd',
     name: "Glare",
