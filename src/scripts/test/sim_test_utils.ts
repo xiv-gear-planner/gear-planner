@@ -65,6 +65,6 @@ export function assertSimAbilityResults(result: CycleSimResult, expectedAbilitie
     }
     if (failures.length > 0) {
         const asStr = failures.join('\n');
-        assert.fail(asStr);
+        throw Error(asStr);
     }
 }
