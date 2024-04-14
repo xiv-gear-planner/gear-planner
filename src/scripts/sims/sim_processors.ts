@@ -167,11 +167,11 @@ export class CycleContext {
     }
 
     get cycleRemainingTime() {
-        return Math.max(0, this.maxTime - this.mcp.currentTime);
+        return Math.max(0, this.cycleStartedAt + this.maxTime - this.mcp.currentTime);
     }
 
     get cycleRemainingGcdTime() {
-        return Math.max(0, this.maxTime - this.mcp.nextGcdTime);
+        return Math.max(0, this.cycleStartedAt + this.maxTime - this.mcp.nextGcdTime);
     }
 
     get fightRemainingTime() {
