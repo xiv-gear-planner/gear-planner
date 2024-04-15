@@ -64,6 +64,9 @@ export class CooldownTracker {
         if (!cd) {
             return;
         }
+        if (cd.reducedBy !== undefined && cd.reducedBy !== 'none') {
+            console.warn('Cooldowns which are reduced by sks/sps are not supported! Using default cd.');
+        }
         const status = this.statusOf(ability);
         const currentTime = this.currentTime;
         if (!status.readyToUse) {
