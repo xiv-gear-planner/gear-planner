@@ -710,6 +710,13 @@ export class CycleProcessor {
                 (this.stats.gcdPhys(base ?? this.gcdBase, haste));
     }
 
+    /**
+     * Inform the cooldown tracker that a CD has been used.
+     *
+     * @param ability The ability
+     * @param haste Current haste value
+     * @private
+     */
     private markCd(ability: Ability, haste: number) {
         const cd = ability.cooldown;
         if (cd === undefined) {
