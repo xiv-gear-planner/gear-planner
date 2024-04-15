@@ -31,6 +31,7 @@ import {writeProxy} from "../util/proxies";
 import {AbilitiesUsedTable} from "./components/ability_used_table";
 import {quickElement} from "../components/util";
 import {sum} from "../util/array_utils";
+import {CooldownMode, CooldownTracker} from "./common/cooldown_manager";
 
 /**
  * Returns the application delay of an ability (from time of snapshot to time of damage/effects applying).
@@ -266,13 +267,27 @@ export class CycleProcessor {
     private readonly manuallyActivatedBuffs: readonly Buff[];
     combatStarted: boolean = false;
     readonly useAutos: boolean;
+    readonly cdTracker: CooldownTracker;
+    private _cdEnforcementMode: CooldownMode;
 
     constructor(private settings: MultiCycleSettings) {
+        // TODO: set enforcement mode
+        this.cdTracker = new CooldownTracker(() => this.currentTime);
+        this._cdEnforcementMode = 'warn';
         this.cycleTime = settings.cycleTime;
         this.totalTime = settings.totalTime;
         this.stats = settings.stats;
         this.manuallyActivatedBuffs = settings.manuallyActivatedBuffs ?? [];
         this.useAutos = settings.useAutos;
+    }
+
+    get cdEnforcementMode(): CooldownMode {
+        return this._cdEnforcementMode;
+    }
+
+    set cdEnforcementMode(value: CooldownMode) {
+        this._cdEnforcementMode = value;
+        this.cdTracker.mode = value;
     }
 
     /**
@@ -480,6 +495,23 @@ export class CycleProcessor {
             // Already over time limit. Ignore completely.
             return 'none';
         }
+        // Since we might not be at the start of the next GCD yet (e.g. back-to-back instant GCDs), we need to do the
+        // CD checking at the time when we expect to actually use this GCD.
+        const cdCheckTime = Math.max(this.nextGcdTime, this.currentTime);
+        if (!this.cdTracker.canUse(ability, cdCheckTime)) {
+            switch (this.cdEnforcementMode) {
+                case "none":
+                case "warn":
+                    // CD tracker will enforce this
+                    break;
+                case "delay":
+                    this.advanceTo(this.cdTracker.statusOf(ability).readyAt.absolute);
+                    break;
+                // TODO: don't enforce at the CD tracker level, only warn, since we already enforce here
+                case "reject":
+                    throw Error(`Cooldown not ready: ${ability.name}, time ${this.currentTime}, in combat: ${this.combatStarted}`);
+            }
+        }
         if (this.nextGcdTime > this.currentTime) {
             this.advanceTo(this.nextGcdTime);
         }
@@ -488,6 +520,7 @@ export class CycleProcessor {
         const preBuffs = this.getActiveBuffs();
         const preCombinedEffects: CombinedBuffEffect = combineBuffEffects(preBuffs);
         const abilityGcd = this.gcdTime(ability, 'recast', preCombinedEffects.haste);
+        this.cdTracker.useAbility(ability);
         const effectiveCastTime: number | null = ability.cast ? this.gcdTime(ability, 'cast', preCombinedEffects.haste) : null;
         const snapshotDelayFromStart = effectiveCastTime ? Math.max(0, effectiveCastTime - CAST_SNAPSHOT_PRE) : 0
         const snapshotsAt = this.currentTime + snapshotDelayFromStart;
@@ -551,8 +584,24 @@ export class CycleProcessor {
             // Already over time limit. Ignore completely.
             return 'none';
         }
+        // We don't have to worry about GCD stuff here
+        const cdCheckTime = this.currentTime;
+        if (!this.cdTracker.canUse(ability, cdCheckTime)) {
+            switch (this.cdEnforcementMode) {
+                case "none":
+                case "warn":
+                    // CD tracker will enforce this
+                    break;
+                case "delay":
+                    this.advanceTo(this.cdTracker.statusOf(ability).readyAt.absolute);
+                    break;
+                case "reject":
+                    throw Error(`Cooldown not ready: ${ability.name}, time ${this.currentTime}, in combat: ${this.combatStarted}`);
+            }
+        }
         const buffs = this.getActiveBuffs();
         const combinedEffects: CombinedBuffEffect = combineBuffEffects(buffs);
+        this.cdTracker.useAbility(ability);
         // Similar logic to GCDs, but with animation lock alone
         const animLock = ability.animationLock ?? STANDARD_ANIMATION_LOCK;
         const animLockFinishedAt = animLock + this.currentTime;
@@ -598,6 +647,7 @@ export class CycleProcessor {
         this.currentTime += this.pendingPrePullOffset;
         this.nextGcdTime += this.pendingPrePullOffset;
         this.nextAutoAttackTime += this.pendingPrePullOffset;
+        this.cdTracker.timeShift(this.pendingPrePullOffset);
         this.pendingPrePullOffset = 0;
         // TODO: this will need to be updated to account for pre-pull self-buffs
         if (this.combatStarting) {

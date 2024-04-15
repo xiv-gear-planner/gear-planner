@@ -27,6 +27,9 @@ const chain: OgcdAbility = {
     activatesBuffs: [Chain],
     potency: null,
     attackType: "Ability",
+    cooldown: {
+        time: 120
+    }
 }
 
 const r2: GcdAbility = {

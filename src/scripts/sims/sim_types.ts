@@ -22,9 +22,30 @@ export type DamagingAbility = {
 export type BaseAbility = Readonly<{
     name: string,
     activatesBuffs?: readonly Buff[],
-    id?: number
+    id?: number,
     attackType: AttackType,
+    cooldown?: Cooldown
 } & (NonDamagingAbility | DamagingAbility)>;
+
+/**
+ * Represents the cooldown of an ability
+ */
+export type Cooldown = Readonly<{
+    /**
+     * The cooldown duration, or the time to regain a single charge
+     */
+    time: number,
+    /**
+     * If the cooldown is reduced by sps or sks, indicate that here
+     *
+     * TODO: not implemented yet
+     */
+    reducedBy?: 'none' | 'spellspeed' | 'skillspeed';
+    /**
+     * The number of charges of the ability
+     */
+    charges?: number
+}>
 
 /**
  * Represents an ability you can use
