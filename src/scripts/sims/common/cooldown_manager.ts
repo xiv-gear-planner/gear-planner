@@ -58,15 +58,17 @@ export class CooldownTracker {
         return this.timeSource();
     }
 
-    public useAbility(ability: Ability): void {
+    public useAbility(ability: Ability, cdTimeOverride?: number): void {
         const cd = ability.cooldown;
         // No CD info, don't do anything
         if (!cd) {
             return;
         }
-        if (cd.reducedBy !== undefined && cd.reducedBy !== 'none') {
-            console.warn('Cooldowns which are reduced by sks/sps are not supported! Using default cd.');
+        if (cd.reducedBy !== undefined && cd.reducedBy !== 'none' && cdTimeOverride === undefined) {
+            // TODO: not super happy about the logic being split up here, find a better way
+            console.warn(`CD ${ability.name} is supposed to be reduced by ${cd.reducedBy}, but an override time was not passed in`);
         }
+        const cdTime = cdTimeOverride ?? cd.time;
         const status = this.statusOf(ability);
         const currentTime = this.currentTime;
         if (!status.readyToUse) {
@@ -85,7 +87,7 @@ export class CooldownTracker {
         }
         // If the ability would have been capped at 75 seconds, and it has a 30 second CD, it will not be capped at 105
         // seconds. The trivial case is the ability is capped 'now' and you use it (works for charge based and normal).
-        const newCappedAt = status.cappedAt.absolute + cd.time;
+        const newCappedAt = status.cappedAt.absolute + cdTime;
         const state = new InternalState(newCappedAt);
         this.currentState.set(ability, state);
     }

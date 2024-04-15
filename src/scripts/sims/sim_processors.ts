@@ -5,6 +5,7 @@ import {
     AutoAttack,
     Buff,
     ComputedDamage,
+    Cooldown,
     DamagingAbility,
     DotDamageUnf,
     FinalizedAbility,
@@ -520,7 +521,7 @@ export class CycleProcessor {
         const preBuffs = this.getActiveBuffs();
         const preCombinedEffects: CombinedBuffEffect = combineBuffEffects(preBuffs);
         const abilityGcd = this.gcdTime(ability, 'recast', preCombinedEffects.haste);
-        this.cdTracker.useAbility(ability);
+        this.markCd(ability, preCombinedEffects.haste);
         const effectiveCastTime: number | null = ability.cast ? this.gcdTime(ability, 'cast', preCombinedEffects.haste) : null;
         const snapshotDelayFromStart = effectiveCastTime ? Math.max(0, effectiveCastTime - CAST_SNAPSHOT_PRE) : 0
         const snapshotsAt = this.currentTime + snapshotDelayFromStart;
@@ -601,7 +602,7 @@ export class CycleProcessor {
         }
         const buffs = this.getActiveBuffs();
         const combinedEffects: CombinedBuffEffect = combineBuffEffects(buffs);
-        this.cdTracker.useAbility(ability);
+        this.markCd(ability, combinedEffects.haste);
         // Similar logic to GCDs, but with animation lock alone
         const animLock = ability.animationLock ?? STANDARD_ANIMATION_LOCK;
         const animLockFinishedAt = animLock + this.currentTime;
@@ -707,6 +708,27 @@ export class CycleProcessor {
             (ability.attackType == "Spell") ?
                 (this.stats.gcdMag(base ?? this.gcdBase, haste)) :
                 (this.stats.gcdPhys(base ?? this.gcdBase, haste));
+    }
+
+    private markCd(ability: Ability, haste: number) {
+        const cd = ability.cooldown;
+        if (cd === undefined) {
+            return;
+        }
+        const cdTime = this.cooldownTime(cd, haste);
+        this.cdTracker.useAbility(ability, cdTime);
+    }
+
+    cooldownTime(cooldown: Cooldown, haste: number): number {
+        switch (cooldown.reducedBy) {
+            case undefined:
+            case "none":
+                return cooldown.time;
+            case "spellspeed":
+                return this.stats.gcdMag(cooldown.time, haste);
+            case "skillspeed":
+                return this.stats.gcdPhys(cooldown.time, haste);
+        }
     }
 
     oneCycle(cycleFunction: CycleFunction) {

@@ -36,9 +36,7 @@ export type Cooldown = Readonly<{
      */
     time: number,
     /**
-     * If the cooldown is reduced by sps or sks, indicate that here
-     *
-     * TODO: not implemented yet
+     * If the cooldown is reduced by sps or sks, indicate that here. Default is 'none'.
      */
     reducedBy?: 'none' | 'spellspeed' | 'skillspeed';
     /**

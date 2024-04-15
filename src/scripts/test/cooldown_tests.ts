@@ -30,6 +30,20 @@ const phlegma: GcdAbility = {
     }
 }
 
+const reduced: OgcdAbility = {
+    type: 'ogcd',
+    name: "Special Chain",
+    id: 7436,
+    activatesBuffs: [Chain],
+    potency: null,
+    attackType: "Ability",
+    cooldown: {
+        // Set original time to 240, let it be reduced
+        time: 240,
+        reducedBy: "spellspeed"
+    }
+}
+
 class FakeTimeSource {
     time: number = 0
 }
@@ -184,6 +198,175 @@ describe('cooldown manager', () => {
             capped: true,
             cappedAt: {
                 absolute: 250,
+                relative: 0
+            },
+            currentCharges: 1,
+        });
+        ts.time = 260
+        // Still ready
+        assert.deepEqual(tracker.statusOf(ability), {
+            readyAt: {
+                absolute: 260,
+                relative: 0
+            },
+            readyToUse: true,
+            capped: true,
+            cappedAt: {
+                absolute: 260,
+                relative: 0
+            },
+            currentCharges: 1,
+        });
+    });
+    it('can handle a reduced cooldown', () => {
+        const ts = new FakeTimeSource();
+        const tracker = new CooldownTracker(() => ts.time, 'reject');
+        const ability = reduced;
+        // Check initial state
+        assert.deepEqual(tracker.statusOf(ability), {
+            readyAt: {
+                absolute: 0,
+                relative: 0
+            },
+            readyToUse: true,
+            capped: true,
+            cappedAt: {
+                absolute: 0,
+                relative: 0
+            },
+            currentCharges: 1,
+        });
+        // Wait 5 seconds, should still be identical
+        ts.time = 5.0;
+        assert.deepEqual(tracker.statusOf(ability), {
+            readyAt: {
+                absolute: 5,
+                relative: 0
+            },
+            readyToUse: true,
+            capped: true,
+            cappedAt: {
+                absolute: 5,
+                relative: 0
+            },
+            currentCharges: 1,
+        });
+        // Use the CD
+        tracker.useAbility(ability, 120);
+        // It is now on CD for 120 seconds
+        assert.deepEqual(tracker.statusOf(ability), {
+            readyAt: {
+                absolute: 125,
+                relative: 120
+            },
+            readyToUse: false,
+            capped: false,
+            cappedAt: {
+                absolute: 125,
+                relative: 120
+            },
+            currentCharges: 0,
+        });
+        ts.time = 10
+        // 5 seconds later, still on CD, but now 115 seconds remaining
+        assert.deepEqual(tracker.statusOf(ability), {
+            readyAt: {
+                absolute: 125,
+                relative: 115
+            },
+            readyToUse: false,
+            capped: false,
+            cappedAt: {
+                absolute: 125,
+                relative: 115
+            },
+            currentCharges: 0,
+        });
+        // Almost done
+        ts.time = 120
+        assert.deepEqual(tracker.statusOf(ability), {
+            readyAt: {
+                absolute: 125,
+                relative: 5
+            },
+            readyToUse: false,
+            capped: false,
+            cappedAt: {
+                absolute: 125,
+                relative: 5
+            },
+            currentCharges: 0,
+        });
+        ts.time = 125
+        // Now it's ready again
+        assert.deepEqual(tracker.statusOf(ability), {
+            readyAt: {
+                absolute: 125,
+                relative: 0
+            },
+            readyToUse: true,
+            capped: true,
+            cappedAt: {
+                absolute: 125,
+                relative: 0
+            },
+            currentCharges: 1,
+        });
+        ts.time = 130
+        // Still ready
+        assert.deepEqual(tracker.statusOf(ability), {
+            readyAt: {
+                absolute: 130,
+                relative: 0
+            },
+            readyToUse: true,
+            capped: true,
+            cappedAt: {
+                absolute: 130,
+                relative: 0
+            },
+            currentCharges: 1,
+        });
+        // Use it again, this time with 100s
+        tracker.useAbility(ability, 100);
+        assert.deepEqual(tracker.statusOf(ability), {
+            readyAt: {
+                absolute: 230,
+                relative: 100
+            },
+            readyToUse: false,
+            capped: false,
+            cappedAt: {
+                absolute: 230,
+                relative: 100
+            },
+            currentCharges: 0,
+        });
+        ts.time = 140
+        assert.deepEqual(tracker.statusOf(ability), {
+            readyAt: {
+                absolute: 230,
+                relative: 90
+            },
+            readyToUse: false,
+            capped: false,
+            cappedAt: {
+                absolute: 230,
+                relative: 90
+            },
+            currentCharges: 0,
+        });
+        ts.time = 230
+        // Ready again
+        assert.deepEqual(tracker.statusOf(ability), {
+            readyAt: {
+                absolute: 230,
+                relative: 0
+            },
+            readyToUse: true,
+            capped: true,
+            cappedAt: {
+                absolute: 230,
                 relative: 0
             },
             currentCharges: 1,
