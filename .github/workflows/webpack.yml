@@ -33,6 +33,11 @@ jobs:
           npm run test
           npm run docs
 
+      - name: Inject commit info
+        run: |
+          git rev-parse HEAD > dist/version_info
+          git log -1 --pretty=%B >> dist/version_info
+
       - name: Setup Pages
         uses: actions/configure-pages@v3
 
