@@ -20,6 +20,7 @@ import * as assert from "assert";
 import {Divination, Litany, Mug} from "../sims/buffs";
 import {sgeNewSheetSpec} from "../sims/sge_sheet_sim_mk2";
 import {assertSimAbilityResults, setPartyBuffEnabled, UseResult} from "./sim_test_utils";
+import {Swiftcast} from "../sims/common/swiftcast";
 
 // Example of end-to-end simulation
 // This one is testing the simulation engine itself, so it copies the full simulation code rather than
@@ -360,7 +361,7 @@ const expectedAbilities: UseResult[] = [
 
 
 // The test
-describe('cycle sim processor tests', () => {
+describe('Cycle sim processor', () => {
     // Test the simulation
     it('produces the correct results', async () => {
         // Initialize
@@ -375,5 +376,200 @@ describe('cycle sim processor tests', () => {
         // Assert correct results
         assertClose(result.mainDpsResult, 9898.56, 0.01);
         assertSimAbilityResults(result, expectedAbilities);
+    });
+});
+
+const instant: GcdAbility = {
+    type: 'gcd',
+    name: "Dia",
+    potency: 65,
+    dot: {
+        id: 1871,
+        tickPotency: 65,
+        duration: 30
+    },
+    attackType: "Spell",
+    gcd: 2.5,
+}
+
+const long: GcdAbility = {
+    type: 'gcd',
+    name: "Raise",
+    potency: 310,
+    attackType: "Spell",
+    gcd: 2.5,
+    cast: 8
+}
+
+describe('Swiftcast', () => {
+    it('should handle swiftcast correctly', () => {
+        const cp = new CycleProcessor({
+            allBuffs: [],
+            cycleTime: 30,
+            stats: set.computedStats,
+            totalTime: 120,
+            useAutos: false
+        });
+        cp.use(filler);
+        cp.use(Swiftcast);
+        cp.use(filler);
+        cp.use(filler);
+        const displayRecords = cp.finalizedRecords;
+        const actualAbilities: FinalizedAbility[] = displayRecords.filter<FinalizedAbility>((record): record is FinalizedAbility => {
+            return 'ability' in record;
+        });
+        // Not swifted
+        assert.equal(actualAbilities[0].ability.name, "Glare");
+        assertClose(actualAbilities[0].usedAt, -1.48);
+        assertClose(actualAbilities[0].original.appDelayFromStart, 1.48);
+        assertClose(actualAbilities[0].original.totalTimeTaken, 2.31);
+        assertClose(actualAbilities[0].original.lockTime, 1.48);
+        assertClose(actualAbilities[0].original.castTimeFromStart, 1.38);
+        // Swiftcast
+        assert.equal(actualAbilities[1].ability.name, "Swiftcast");
+        assertClose(actualAbilities[1].usedAt, 0.0);
+        assertClose(actualAbilities[1].original.appDelayFromStart, 0.6);
+        assertClose(actualAbilities[1].original.totalTimeTaken, 0.6);
+        assertClose(actualAbilities[1].original.lockTime, 0.6);
+        assertClose(actualAbilities[1].original.castTimeFromStart, 0);
+        // Swifted
+        assert.equal(actualAbilities[2].ability.name, "Glare");
+        assertClose(actualAbilities[2].usedAt, 0.83); // 0.83 === -1.48 + 2.31
+        assertClose(actualAbilities[2].original.appDelayFromStart, 0.6);
+        assertClose(actualAbilities[2].original.totalTimeTaken, 2.31);
+        assertClose(actualAbilities[2].original.lockTime, 0.6);
+        assertClose(actualAbilities[2].original.castTimeFromStart, 0);
+        // Not swifted
+        assert.equal(actualAbilities[3].ability.name, "Glare");
+        assertClose(actualAbilities[3].usedAt, 3.14);
+        assertClose(actualAbilities[3].original.appDelayFromStart, 1.48);
+        assertClose(actualAbilities[3].original.totalTimeTaken, 2.31);
+        assertClose(actualAbilities[3].original.lockTime, 1.48);
+        assertClose(actualAbilities[3].original.castTimeFromStart, 1.38);
+
+    });
+    it('should not start combat', () => {
+        const cp = new CycleProcessor({
+            allBuffs: [],
+            cycleTime: 30,
+            stats: set.computedStats,
+            totalTime: 120,
+            useAutos: false
+        });
+        cp.use(Swiftcast);
+        cp.use(filler);
+        cp.use(filler);
+        const displayRecords = cp.finalizedRecords;
+        const actualAbilities: FinalizedAbility[] = displayRecords.filter<FinalizedAbility>((record): record is FinalizedAbility => {
+            return 'ability' in record;
+        });
+        // Swiftcast - should NOT start combat
+        assert.equal(actualAbilities[0].ability.name, "Swiftcast");
+        assertClose(actualAbilities[0].usedAt, -1.2);
+        assertClose(actualAbilities[0].original.appDelayFromStart, 0.6);
+        assertClose(actualAbilities[0].original.totalTimeTaken, 0.6);
+        assertClose(actualAbilities[0].original.castTimeFromStart, 0);
+        // Swifted - verifies that the 0.6 anim lock and 0.6 app delay don't cause an issue where swift 'misses' the
+        // immediate next ability.
+        assert.equal(actualAbilities[1].ability.name, "Glare");
+        assertClose(actualAbilities[1].usedAt, -0.6);
+        assertClose(actualAbilities[1].original.appDelayFromStart, 0.6);
+        assertClose(actualAbilities[1].original.totalTimeTaken, 2.31);
+        assertClose(actualAbilities[1].original.castTimeFromStart, 0);
+        // Not swifted
+        assert.equal(actualAbilities[2].ability.name, "Glare");
+        assertClose(actualAbilities[2].usedAt, 1.71);
+        assertClose(actualAbilities[2].original.appDelayFromStart, 1.48);
+        assertClose(actualAbilities[2].original.totalTimeTaken, 2.31);
+        assertClose(actualAbilities[2].original.castTimeFromStart, 1.38);
+
+    });
+    it('should not be consumed by an instant skill', () => {
+        const cp = new CycleProcessor({
+            allBuffs: [],
+            cycleTime: 30,
+            stats: set.computedStats,
+            totalTime: 120,
+            useAutos: false
+        });
+        cp.use(filler);
+        cp.use(Swiftcast);
+        cp.use(instant);
+        cp.use(filler);
+        const displayRecords = cp.finalizedRecords;
+        const actualAbilities: FinalizedAbility[] = displayRecords.filter<FinalizedAbility>((record): record is FinalizedAbility => {
+            return 'ability' in record;
+        });
+        // Not swifted
+        assert.equal(actualAbilities[0].ability.name, "Glare");
+        assertClose(actualAbilities[0].usedAt, -1.48);
+        assertClose(actualAbilities[0].original.appDelayFromStart, 1.48);
+        assertClose(actualAbilities[0].original.totalTimeTaken, 2.31);
+        assertClose(actualAbilities[0].original.castTimeFromStart, 1.38);
+        // Swiftcast
+        assert.equal(actualAbilities[1].ability.name, "Swiftcast");
+        assertClose(actualAbilities[1].usedAt, 0.0);
+        assertClose(actualAbilities[1].original.appDelayFromStart, 0.6);
+        assertClose(actualAbilities[1].original.totalTimeTaken, 0.6);
+        assertClose(actualAbilities[1].original.castTimeFromStart, 0);
+        // Swifted
+        assert.equal(actualAbilities[2].ability.name, "Dia");
+        assertClose(actualAbilities[2].usedAt, 0.83); // 0.83 === -1.48 + 2.31
+        assertClose(actualAbilities[2].original.appDelayFromStart, 0.6);
+        assertClose(actualAbilities[2].original.totalTimeTaken, 2.31);
+        assertClose(actualAbilities[2].original.castTimeFromStart, 0);
+        // Not swifted
+        assert.equal(actualAbilities[3].ability.name, "Glare");
+        assertClose(actualAbilities[3].usedAt, 3.14);
+        assertClose(actualAbilities[3].original.appDelayFromStart, 0.6);
+        assertClose(actualAbilities[3].original.totalTimeTaken, 2.31);
+        assertClose(actualAbilities[3].original.castTimeFromStart, 0);
+
+    });
+    it('should work correctly with a long cast', () => {
+        const cp = new CycleProcessor({
+            allBuffs: [],
+            cycleTime: 30,
+            stats: set.computedStats,
+            totalTime: 120,
+            useAutos: false
+        });
+        cp.use(filler);
+        cp.use(Swiftcast);
+        cp.use(long);
+        cp.use(filler);
+        const displayRecords = cp.finalizedRecords;
+        const actualAbilities: FinalizedAbility[] = displayRecords.filter<FinalizedAbility>((record): record is FinalizedAbility => {
+            return 'ability' in record;
+        });
+        // Not swifted
+        assert.equal(actualAbilities[0].ability.name, "Glare");
+        assertClose(actualAbilities[0].usedAt, -1.48);
+        assertClose(actualAbilities[0].original.appDelayFromStart, 1.48);
+        assertClose(actualAbilities[0].original.totalTimeTaken, 2.31);
+        assertClose(actualAbilities[0].original.lockTime, 1.48);
+        assertClose(actualAbilities[0].original.castTimeFromStart, 1.38);
+        // Swiftcast
+        assert.equal(actualAbilities[1].ability.name, "Swiftcast");
+        assertClose(actualAbilities[1].usedAt, 0.0);
+        assertClose(actualAbilities[1].original.appDelayFromStart, 0.6);
+        assertClose(actualAbilities[1].original.totalTimeTaken, 0.6);
+        assertClose(actualAbilities[1].original.lockTime, 0.6);
+        assertClose(actualAbilities[1].original.castTimeFromStart, 0);
+        // Swifted
+        assert.equal(actualAbilities[2].ability.name, "Raise");
+        assertClose(actualAbilities[2].usedAt, 0.83); // 0.83 === -1.48 + 2.31
+        assertClose(actualAbilities[2].original.appDelayFromStart, 0.6);
+        assertClose(actualAbilities[2].original.totalTimeTaken, 2.31);
+        assertClose(actualAbilities[2].original.lockTime, 0.6);
+        assertClose(actualAbilities[2].original.castTimeFromStart, 0);
+        // Not swifted
+        assert.equal(actualAbilities[3].ability.name, "Glare");
+        assertClose(actualAbilities[3].usedAt, 3.14);
+        assertClose(actualAbilities[3].original.appDelayFromStart, 1.48);
+        assertClose(actualAbilities[3].original.totalTimeTaken, 2.31);
+        assertClose(actualAbilities[3].original.lockTime, 1.48);
+        assertClose(actualAbilities[3].original.castTimeFromStart, 1.38);
+
     });
 });

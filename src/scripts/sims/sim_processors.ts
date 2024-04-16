@@ -242,9 +242,10 @@ export const isAbilityUse = (record: DisplayRecordUnf): record is AbilityUseReco
 export const isFinalizedAbilityUse = (record: DisplayRecordFinalized): record is FinalizedAbility => 'original' in record;
 
 interface BuffUsage {
-    buff: Buff,
-    start: number,
-    end: number
+    readonly buff: Buff,
+    readonly start: number,
+    end: number,
+    forceEnd: boolean
 }
 
 export class CycleProcessor {
@@ -302,7 +303,18 @@ export class CycleProcessor {
         this.buffHistory.push({
             buff: buff,
             start: startTime,
-            end: startTime + buff.duration
+            end: startTime + buff.duration,
+            forceEnd: false
+        });
+    }
+
+    removeBuff(buff: Buff) {
+        const activeUsages = this.getActiveBuffsData().filter(buffHist => {
+            return buffHist.buff === buff;
+        });
+        activeUsages.forEach(au => {
+            au.end = this.currentTime;
+            au.forceEnd = true;
         });
     }
 
@@ -369,17 +381,20 @@ export class CycleProcessor {
      * Get the buffs that would be active right now.
      */
     getActiveBuffs(): Buff[] {
-        const queryTime = this.currentTime;
         const activeBuffs: Buff[] = [];
-        this.recheckAutoBuffs();
-        this.buffHistory.forEach(h => {
-            if (h.start <= queryTime && h.end > queryTime && !activeBuffs.includes(h.buff)) {
+        this.getActiveBuffsData().forEach(h => {
+            if (!activeBuffs.includes(h.buff)) {
                 activeBuffs.push(h.buff);
             }
         });
         return activeBuffs;
     }
 
+    private getActiveBuffsData(): BuffUsage[] {
+        const queryTime = this.currentTime;
+        this.recheckAutoBuffs();
+        return this.buffHistory.filter(h => h.start <= queryTime && h.end > queryTime && !h.forceEnd);
+    }
 
     get usedAbilities(): readonly AbilityUseRecordUnf[] {
         return this.allRecords.filter(isAbilityUse);
@@ -487,6 +502,7 @@ export class CycleProcessor {
             appDelayFromStart: delay,
             castTimeFromStart: 0,
             snapshotTimeFromStart: 0,
+            lockTime: 0
         });
         this.nextAutoAttackTime = this.currentTime + this.aaDelay;
     }
@@ -520,6 +536,8 @@ export class CycleProcessor {
         const gcdStartsAt = this.currentTime;
         const preBuffs = this.getActiveBuffs();
         const preCombinedEffects: CombinedBuffEffect = combineBuffEffects(preBuffs);
+        // noinspection AssignmentToFunctionParameterJS
+        ability = this.beforeAbility(ability, preBuffs);
         const abilityGcd = this.gcdTime(ability, 'recast', preCombinedEffects.haste);
         this.markCd(ability, preCombinedEffects.haste);
         const effectiveCastTime: number | null = ability.cast ? this.gcdTime(ability, 'cast', preCombinedEffects.haste) : null;
@@ -557,6 +575,7 @@ export class CycleProcessor {
             totalTimeTaken: Math.max(animLock, abilityGcd),
             castTimeFromStart: effectiveCastTime,
             snapshotTimeFromStart: snapshotDelayFromStart,
+            lockTime: animLock
         });
         this.addAbilityUse(usedAbility);
         // Since we don't have proper modeling for situations where you need to delay something to catch a buff,
@@ -602,6 +621,8 @@ export class CycleProcessor {
         }
         const buffs = this.getActiveBuffs();
         const combinedEffects: CombinedBuffEffect = combineBuffEffects(buffs);
+        // noinspection AssignmentToFunctionParameterJS
+        ability = this.beforeAbility(ability, buffs);
         this.markCd(ability, combinedEffects.haste);
         // Similar logic to GCDs, but with animation lock alone
         const animLock = ability.animationLock ?? STANDARD_ANIMATION_LOCK;
@@ -621,7 +642,8 @@ export class CycleProcessor {
             appDelay: delay,
             appDelayFromStart: delay,
             castTimeFromStart: 0,
-            snapshotTimeFromStart: 0
+            snapshotTimeFromStart: 0,
+            lockTime: animLock
         });
         this.addAbilityUse(usedAbility);
         // Since we don't have proper modeling for situations where you need to delay something to catch a buff,
@@ -764,6 +786,24 @@ export class CycleProcessor {
         while (this.remainingGcdTime > 0) {
             this.oneCycle(cycleFunction);
         }
+    }
+
+    private beforeAbility<X extends Ability>(originalAbility: X, buffs: Buff[]): X {
+        const outer = this;
+        let ability: X = originalAbility;
+        for (let buff of buffs) {
+            if ('beforeAbility' in buff) {
+                const modified: X = buff.beforeAbility({
+                    removeStatus(buff: Buff): void {
+                        outer.removeBuff(buff);
+                    }
+                }, ability);
+                if (modified) {
+                    ability = modified;
+                }
+            }
+        }
+        return ability;
     }
 }
 
