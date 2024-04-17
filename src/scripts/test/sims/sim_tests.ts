@@ -267,7 +267,7 @@ describe('Cycle sim processor', () => {
 });
 
 class CustomCycleProcessor extends CycleProcessor {
-    fillerCount: number = 0;
+    private fillerCount: number = 0;
 
     use(ability: Ability): AbilityUseResult {
         const out = super.use(ability);
@@ -308,7 +308,7 @@ class TestCustomMultiCycleSim extends BaseMultiCycleSim<TestSimResult, TestSimSe
                 cp.use(filler);
                 cp.use(dia);
                 cp.use(nop);
-                outer.fillerCount = cp.fillerCount;
+                outer.fillerCount = cp.count;
             }
         }];
     }
