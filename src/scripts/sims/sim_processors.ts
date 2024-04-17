@@ -50,7 +50,9 @@ export type CombinedBuffEffect = {
     dmgMod: number,
     critChanceIncrease: number,
     dhitChanceIncrease: number,
-    haste: number
+    forceCrit: boolean,
+    forceDhit: boolean
+    haste: number,
 }
 
 export function combineBuffEffects(buffs: Buff[]): CombinedBuffEffect {
@@ -58,7 +60,9 @@ export function combineBuffEffects(buffs: Buff[]): CombinedBuffEffect {
         dmgMod: 1,
         critChanceIncrease: 0,
         dhitChanceIncrease: 0,
-        haste: 0
+        forceCrit: false,
+        forceDhit: false,
+        haste: 0,
     }
     for (let buff of buffs) {
         if (buff.effects.dmgIncrease) {
@@ -73,6 +77,12 @@ export function combineBuffEffects(buffs: Buff[]): CombinedBuffEffect {
         if (buff.effects.haste) {
             combinedEffects.haste += buff.effects.haste;
         }
+        if (buff.effects.forceCrit) {
+            combinedEffects.forceCrit = true;
+        }
+        if (buff.effects.forceDhit) {
+            combinedEffects.forceDhit = true;
+        }
     }
     return combinedEffects;
 }
@@ -81,7 +91,10 @@ function dotPotencyToDamage(stats: ComputedSetStats, potency: number, dmgAbility
     const modifiedStats = {...stats};
     modifiedStats.critChance += combinedBuffEffects.critChanceIncrease;
     modifiedStats.dhitChance += combinedBuffEffects.dhitChanceIncrease;
-    const nonCritDmg = baseDamage(modifiedStats, potency, dmgAbility.attackType, dmgAbility.autoDh ?? false, dmgAbility.autoCrit ?? false, true);
+    // TODO: are there any dots with auto-crit or auto-dh?
+    const forceDh = false;
+    const forceCrit = false;
+    const nonCritDmg = baseDamage(modifiedStats, potency, dmgAbility.attackType, forceDh, forceCrit, true);
     const afterCritDh = applyDhCrit(nonCritDmg, modifiedStats);
     const afterDmgBuff = afterCritDh * combinedBuffEffects.dmgMod;
     return {
@@ -93,8 +106,14 @@ function potencyToDamage(stats: ComputedSetStats, potency: number, dmgAbility: D
     const modifiedStats = {...stats};
     modifiedStats.critChance += combinedBuffEffects.critChanceIncrease;
     modifiedStats.dhitChance += combinedBuffEffects.dhitChanceIncrease;
-    const nonCritDmg = baseDamage(modifiedStats, potency, dmgAbility.attackType, dmgAbility.autoDh ?? false, dmgAbility.autoCrit ?? false);
-    const afterCritDh = applyDhCrit(nonCritDmg, modifiedStats);
+    const forceDhit = dmgAbility.autoDh || combinedBuffEffects.forceDhit;
+    const forceCrit = dmgAbility.autoCrit || combinedBuffEffects.forceCrit;
+    const nonCritDmg = baseDamage(modifiedStats, potency, dmgAbility.attackType, forceDhit, forceCrit);
+    const afterCritDh = applyDhCrit(nonCritDmg, {
+        ...modifiedStats,
+        critChance: forceCrit ? 1 : modifiedStats.critChance,
+        dhitChance: forceDhit ? 1 : modifiedStats.dhitChance,
+    });
     const afterDmgBuff = afterCritDh * combinedBuffEffects.dmgMod;
     return {
         expected: afterDmgBuff,
@@ -392,6 +411,16 @@ export class CycleProcessor {
         return activeBuffs;
     }
 
+    // TODO: somehow convey on the UI when a buff is active but not applicable
+    getActiveBuffsFor(ability: Ability): Buff[] {
+        return this.getActiveBuffs().filter(buff => {
+            if ('appliesTo' in buff) {
+                return buff.appliesTo(ability);
+            }
+            return true;
+        });
+    }
+
     private getActiveBuffsData(): BuffUsage[] {
         const queryTime = this.currentTime;
         this.recheckAutoBuffs();
@@ -490,7 +519,7 @@ export class CycleProcessor {
             name: 'Auto Attack',
             potency: this.stats.jobStats.aaPotency
         };
-        const buffs = this.getActiveBuffs();
+        const buffs = this.getActiveBuffsFor(aaAbility);
         const dmgInfo = abilityToDamageNew(this.stats, aaAbility, combineBuffEffects(buffs));
         const delay = AUTOATTACK_APPLICATION_DELAY;
         this.addAbilityUse({
@@ -536,7 +565,7 @@ export class CycleProcessor {
         }
         // We need to calculate our buff set twice. The first is because buffs may affect the cast and/or recast time.
         const gcdStartsAt = this.currentTime;
-        const preBuffs = this.getActiveBuffs();
+        const preBuffs = this.getActiveBuffsFor(ability);
         const preCombinedEffects: CombinedBuffEffect = combineBuffEffects(preBuffs);
         // noinspection AssignmentToFunctionParameterJS
         ability = this.beforeAbility(ability, preBuffs);
@@ -551,7 +580,7 @@ export class CycleProcessor {
         const animLock = effectiveCastTime ? Math.max(effectiveCastTime + CASTER_TAX, STANDARD_ANIMATION_LOCK) : STANDARD_ANIMATION_LOCK;
         const animLockFinishedAt = this.currentTime + animLock;
         this.advanceTo(snapshotsAt, true);
-        const buffs = this.getActiveBuffs();
+        const buffs = this.getActiveBuffsFor(ability);
         const combinedEffects: CombinedBuffEffect = combineBuffEffects(buffs);
         ability = this.beforeSnapshot(ability, buffs);
         // Enough time for entire GCD
@@ -622,7 +651,7 @@ export class CycleProcessor {
                     throw Error(`Cooldown not ready: ${ability.name}, time ${this.currentTime}, in combat: ${this.combatStarted}`);
             }
         }
-        const buffs = this.getActiveBuffs();
+        const buffs = this.getActiveBuffsFor(ability);
         const combinedEffects: CombinedBuffEffect = combineBuffEffects(buffs);
         // noinspection AssignmentToFunctionParameterJS
         ability = this.beforeAbility(ability, buffs);
@@ -808,7 +837,7 @@ export class CycleProcessor {
         let ability: X = originalAbility;
         for (let buff of buffs) {
             if ('beforeAbility' in buff) {
-                const modified: X = buff.beforeAbility(this.makeBuffController(buff), ability);
+                const modified: X | void = buff.beforeAbility(this.makeBuffController(buff), ability);
                 if (modified) {
                     ability = modified;
                 }
@@ -821,7 +850,7 @@ export class CycleProcessor {
         let ability: X = originalAbility;
         for (let buff of buffs) {
             if ('beforeSnapshot' in buff) {
-                const modified: X = buff.beforeSnapshot(this.makeBuffController(buff), ability);
+                const modified: X | void = buff.beforeSnapshot(this.makeBuffController(buff), ability);
                 if (modified) {
                     ability = modified;
                 }
@@ -834,7 +863,7 @@ export class CycleProcessor {
         let damage: DamageResult = originalDamage;
         for (let buff of buffs) {
             if ('modifyDamage' in buff) {
-                const modified: DamageResult = buff.modifyDamage(this.makeBuffController(buff), damage, ability);
+                const modified: DamageResult | void = buff.modifyDamage(this.makeBuffController(buff), damage, ability);
                 if (modified) {
                     damage = modified;
                 }
