@@ -667,7 +667,7 @@ const bristleBuff: Buff = {
     job: 'BLU',
     name: "Bristle",
     beforeSnapshot: removeSelf,
-    appliesTo: ability => ability.attackType === "Spell",
+    appliesTo: ability => ability.attackType === "Spell" && ability.potency !== null,
 }
 
 const bristle: GcdAbility = {
@@ -689,7 +689,7 @@ const bristleBuff2: Buff = {
     job: 'BLU',
     name: "Bristle",
     modifyDamage(buffController: BuffController, damageResult: DamageResult, ability: Ability): DamageResult | void {
-        if (ability.attackType === 'Spell') {
+        if (ability.attackType === 'Spell' && ability.potency !== null) {
             buffController.removeSelf();
             return multiplyDamage(damageResult, 1.5, true, true);
         }
