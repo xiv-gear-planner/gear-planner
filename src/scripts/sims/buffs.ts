@@ -127,6 +127,7 @@ export const StandardFinish = {
         dmgIncrease: 0.05,
     }
     startTime: 0,
+    statusId: 1821
 } as const satisfies Buff;
 */
 export const TechnicalFinish = {
@@ -203,9 +204,28 @@ export const AstCard = {
     statusId: 829
 } as const satisfies Buff;
 
+export const OffGuardBuff = {
+    name: "Off-guard",
+    job: "BLU",
+    duration: 15,
+    cooldown: 60, // TODO: cooldown is affected by spell speed
+    optional: true,
+    effects: {
+        dmgIncrease: 0.05,
+    },
+    startTime: 5,
+    statusId: 1717
+} as const satisfies Buff;
+
+/**
+ * TODO: BLU Peculiar Light, Physical Attenuation, Astral Attenuation, and Umbral Attenuation
+ * would require damage type and damage aspect support to implement.
+ */
 
 export const ALL_BUFFS = [
-    Mug, Litany, DragonSight, Brotherhood, ArcaneCircle, SearingLight, Embolden, Devilment, TechnicalFinish, BattleVoice, RadiantFinale, Chain, Divination, AstCard
+    Mug, Litany, DragonSight, Brotherhood, ArcaneCircle, SearingLight, Embolden,
+    Devilment, TechnicalFinish, BattleVoice, RadiantFinale, Chain, Divination,
+    AstCard, OffGuardBuff
 ] as const;
 
 export type BuffName = typeof ALL_BUFFS[number]['name'];

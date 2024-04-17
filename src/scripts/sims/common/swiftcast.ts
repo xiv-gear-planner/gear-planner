@@ -19,7 +19,8 @@ export const SwiftcastBuff: Buff = {
             }
         }
         return null;
-    }
+    },
+    statusId: 167
 }
 
 export const Swiftcast: OgcdAbility = {
@@ -33,5 +34,4 @@ export const Swiftcast: OgcdAbility = {
     cooldown: {
         time: 60
     }
-
 }

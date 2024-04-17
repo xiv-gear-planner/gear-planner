@@ -572,7 +572,7 @@ export class CycleProcessor {
         const abilityGcd = this.gcdTime(ability, 'recast', preCombinedEffects.haste);
         this.markCd(ability, preCombinedEffects.haste);
         const effectiveCastTime: number | null = ability.cast ? this.gcdTime(ability, 'cast', preCombinedEffects.haste) : null;
-        const snapshotDelayFromStart = effectiveCastTime ? Math.max(0, effectiveCastTime - CAST_SNAPSHOT_PRE) : 0
+        const snapshotDelayFromStart = effectiveCastTime ? Math.max(0, effectiveCastTime - CAST_SNAPSHOT_PRE) : 0;
         const snapshotsAt = this.currentTime + snapshotDelayFromStart;
         // When this GCD will end (strictly in terms of GCD. e.g. a BLM spell where cast > recast will still take the cast time. This will be
         // accounted for later).
