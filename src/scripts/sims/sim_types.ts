@@ -1,6 +1,6 @@
 import {JobName} from "../xivconstants";
 import {AttackType} from "../geartypes";
-import {CombinedBuffEffect} from "./sim_processors";
+import {CombinedBuffEffect, DamageResult} from "./sim_processors";
 
 export type DotInfo = Readonly<{
     duration: number,
@@ -171,17 +171,42 @@ export type FinalizedAbility = {
     buffs: Buff[]
 }
 
+/**
+ * Describes the effects of a buff
+ */
 export type BuffEffects = {
+    /**
+     * Damage increase. e.g. 0.2 = 20% increase
+     */
     dmgIncrease?: number,
+    /**
+     * Crit chance increase, e.g. 0.2 = 20% increase
+     */
     critChanceIncrease?: number,
+    /**
+     * Dhit chance increase, e.g. 0.2 = 20% increase
+     */
     dhitChanceIncrease?: number,
+    /**
+     * Force a crit
+     */
+    forceCrit?: boolean,
+    /**
+     * Force a DH
+     */
+    forceDhit?: boolean,
+    /**
+     * Haste. Expressed as the percentage value, e.g. 20 = 20% faster GCD
+     */
     haste?: number,
 }
 
 export type BuffController = {
     removeStatus(buff: Buff): void;
+    removeSelf(): void;
 }
 
+// TODO: refactor this into Buff and PartyBuff so that the fields used for the party buffs (job, CD) can be untangled
 export type Buff = Readonly<{
     /** Name of buff */
     name: string,
@@ -203,12 +228,42 @@ export type Buff = Readonly<{
      */
     startTime?: number,
     /**
+     * Filter what abilities this buff applies to
+     *
+     * @param ability The ability that is being used
+     * @returns whether this buff should apply to this ability
+     */
+    appliesTo?(ability: Ability): boolean,
+    /**
      * Optional function to run before an ability is used. This can be used for buffs that have special
      * effects which trigger when using an ability, e.g. Swiftcast/Dualcast.
      *
+     * @param controller A controller which lets you perform actions such as removing buffs.
+     * @param ability The original ability, unless it has already been modified by other hooks, in which case it may
+     * have already been modified.
      * @returns The ability, if the buff needs to modify some properties of the ability. Null if no modification.
      */
-    beforeAbility?<X extends Ability>(controller: BuffController, ability: X): X | null,
+    beforeAbility?<X extends Ability>(controller: BuffController, ability: X): X | void,
+    /**
+     * Modify an ability before it snapshots. If the ability is instant, this is not much different from
+     * beforeAbility.
+     *
+     * @param controller A controller which lets you perform actions such as removing buffs.
+     * @param ability The original ability, unless it has already been modified by other hooks, in which case it may
+     * have already been modified.
+     * @returns The ability, if the buff needs to modify some properties of the ability. Null if no modification.
+     */
+    beforeSnapshot?<X extends Ability>(controller: BuffController, ability: X): X | void,
+    /**
+     * Modify the final damage dealt by an ability.
+     *
+     * @param controller A controller which lets you perform actions such as removing buffs.
+     * @param damageResult The damage result. May have other status effect modifiers already applied. This is the
+     * post-calculation damage, after gear, plain damage buffs has been considered.
+     * @param ability The ability
+     * @returns The modified damage, or null if it does not need to be modified
+     */
+    modifyDamage?(controller: BuffController, damageResult: DamageResult, ability: Ability): DamageResult | void,
     /**
      * Optional status effect ID. Used to provide an icon.
      */
