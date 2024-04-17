@@ -461,7 +461,7 @@ export const PhantomFlurry: OgcdAbility = {
     name: "Phantom Flurry",
     type: "ogcd",
     attackType: "Ability",
-    potency: null,
+    potency: 0,
     dot: {
         tickPotency: 200,
         duration: 18, // TODO: ticks once on use, and 1 tick per second afterwards for 6 total ticks over 5s
@@ -495,7 +495,7 @@ export const BreathofMagic: GcdAbility = {
     name: "Breath of Magic",
     type: "gcd",
     attackType: "Spell",
-    potency: null,
+    potency: 0,
     dot: {
         tickPotency: 120,
         duration: 60,
@@ -524,7 +524,7 @@ export const MortalFlame: GcdAbility = {
     name: "Mortal Flame",
     type: "gcd",
     attackType: "Spell",
-    potency: null,
+    potency: 0,
     dot: {
         tickPotency: 40,
         duration: Number.MAX_VALUE, // infinite duration
@@ -551,7 +551,7 @@ const Apokalypsis: OgcdAbility = {
     name: "Apokalypsis",
     type: "ogcd",
     attackType: "Ability",
-    potency: null,
+    potency: 0,
     dot: {
         tickPotency: 140,
         duration: 33, // TODO: ticks once on use, and 1 tick per second afterwards for 11 total ticks over 10s
