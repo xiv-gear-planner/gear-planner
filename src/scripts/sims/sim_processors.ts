@@ -3,7 +3,7 @@ import {applyDhCrit, baseDamage} from "../xivmath";
 import {
     Ability,
     AutoAttack,
-    Buff,
+    Buff, BuffController,
     ComputedDamage,
     Cooldown,
     DamagingAbility,
@@ -124,10 +124,12 @@ export function abilityToDamage(stats: ComputedSetStats, ability: Ability, combi
     }
 }
 
-export function abilityToDamageNew(stats: ComputedSetStats, ability: Ability, combinedBuffEffects: CombinedBuffEffect): {
-    'directDamage': ComputedDamage | null,
-    'dot': DotDamageUnf | null
-} {
+export type DamageResult = {
+    readonly directDamage: ComputedDamage | null,
+    readonly dot: DotDamageUnf | null
+}
+
+export function abilityToDamageNew(stats: ComputedSetStats, ability: Ability, combinedBuffEffects: CombinedBuffEffect): DamageResult {
     if (!('potency' in ability)) {
         return {
             directDamage: null,
@@ -551,9 +553,10 @@ export class CycleProcessor {
         this.advanceTo(snapshotsAt, true);
         const buffs = this.getActiveBuffs();
         const combinedEffects: CombinedBuffEffect = combineBuffEffects(buffs);
+        ability = this.beforeSnapshot(ability, buffs);
         // Enough time for entire GCD
         // if (gcdFinishedAt <= this.totalTime) {
-        const dmgInfo = abilityToDamageNew(this.stats, ability, combinedEffects);
+        const dmgInfo = this.modifyDamage(abilityToDamageNew(this.stats, ability, combinedEffects), ability, buffs);
         const appDelayFromSnapshot = appDelay(ability);
         const appDelayFromStart = appDelayFromSnapshot + snapshotDelayFromStart;
         const usedAbility: UsedAbility = ({
@@ -629,7 +632,8 @@ export class CycleProcessor {
         const animLockFinishedAt = animLock + this.currentTime;
         // Fits completely
         // if (animLockFinishedAt <= this.totalTime) {
-        const dmgInfo = abilityToDamageNew(this.stats, ability, combinedEffects);
+        ability = this.beforeSnapshot(ability, buffs);
+        const dmgInfo = this.modifyDamage(abilityToDamageNew(this.stats, ability, combinedEffects), ability, buffs);
         const delay = appDelay(ability);
         const usedAbility: UsedAbility = ({
             ability: ability,
@@ -788,22 +792,55 @@ export class CycleProcessor {
         }
     }
 
-    private beforeAbility<X extends Ability>(originalAbility: X, buffs: Buff[]): X {
+    private makeBuffController(buff: Buff): BuffController {
         const outer = this;
+        return {
+            removeStatus(buff: Buff): void {
+                outer.removeBuff(buff);
+            },
+            removeSelf(): void {
+                this.removeStatus(buff);
+            }
+        }
+    }
+
+    private beforeAbility<X extends Ability>(originalAbility: X, buffs: Buff[]): X {
         let ability: X = originalAbility;
         for (let buff of buffs) {
             if ('beforeAbility' in buff) {
-                const modified: X = buff.beforeAbility({
-                    removeStatus(buff: Buff): void {
-                        outer.removeBuff(buff);
-                    }
-                }, ability);
+                const modified: X = buff.beforeAbility(this.makeBuffController(buff), ability);
                 if (modified) {
                     ability = modified;
                 }
             }
         }
         return ability;
+    }
+
+    private beforeSnapshot<X extends Ability>(originalAbility: X, buffs: Buff[]): X {
+        let ability: X = originalAbility;
+        for (let buff of buffs) {
+            if ('beforeSnapshot' in buff) {
+                const modified: X = buff.beforeSnapshot(this.makeBuffController(buff), ability);
+                if (modified) {
+                    ability = modified;
+                }
+            }
+        }
+        return ability;
+    }
+
+    private modifyDamage(originalDamage: DamageResult, ability: Ability, buffs: Buff[]): DamageResult {
+        let damage: DamageResult = originalDamage;
+        for (let buff of buffs) {
+            if ('modifyDamage' in buff) {
+                const modified: DamageResult = buff.modifyDamage(this.makeBuffController(buff), damage, ability);
+                if (modified) {
+                    damage = modified;
+                }
+            }
+        }
+        return damage;
     }
 }
 

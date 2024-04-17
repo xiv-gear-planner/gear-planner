@@ -2,7 +2,7 @@
 import 'global-jsdom/register'
 import {it} from "mocha";
 import {SimSettings, SimSpec} from "../simulation";
-import {Buff, FinalizedAbility, GcdAbility, OgcdAbility} from "../sims/sim_types";
+import {Ability, Buff, BuffController, FinalizedAbility, GcdAbility, OgcdAbility} from "../sims/sim_types";
 import {CharacterGearSet} from "../gear";
 import {JobMultipliers} from "../geartypes";
 import {finalizeStats} from "../xivstats";
@@ -12,13 +12,13 @@ import {
     BaseMultiCycleSim,
     CycleProcessor,
     CycleSimResult,
+    DamageResult,
     ExternalCycleSettings,
     Rotation
 } from "../sims/sim_processors";
-import {assertClose, isClose, makeFakeSet} from "./test_utils";
+import {assertClose, makeFakeSet} from "./test_utils";
 import * as assert from "assert";
 import {Divination, Litany, Mug} from "../sims/buffs";
-import {sgeNewSheetSpec} from "../sims/sge_sheet_sim_mk2";
 import {assertSimAbilityResults, setPartyBuffEnabled, UseResult} from "./sim_test_utils";
 import {Swiftcast} from "../sims/common/swiftcast";
 
@@ -570,6 +570,138 @@ describe('Swiftcast', () => {
         assertClose(actualAbilities[3].original.totalTimeTaken, 2.31);
         assertClose(actualAbilities[3].original.lockTime, 1.48);
         assertClose(actualAbilities[3].original.castTimeFromStart, 1.38);
+
+    });
+});
+
+const potBuff: Buff = {
+    cooldown: 60,
+    duration: 10,
+    effects: {},
+    job: 'BLU',
+    name: "Pot Buff Status",
+    beforeSnapshot<X extends Ability>(controller: BuffController, ability: X): X {
+        controller.removeStatus(potBuff);
+        return {
+            ...ability,
+            potency: ability.potency + 100
+        }
+    }
+}
+
+const potBuffAbility: GcdAbility = {
+    type: 'gcd',
+    name: "Pot Buff Ability",
+    potency: null,
+    attackType: "Spell",
+    gcd: 2.5,
+    cast: 1.0,
+    activatesBuffs: [potBuff]
+}
+
+describe('Potency Buff Ability', () => {
+    it('should increase the damage once', () => {
+        const cp = new CycleProcessor({
+            allBuffs: [],
+            cycleTime: 30,
+            stats: set.computedStats,
+            totalTime: 120,
+            useAutos: false
+        });
+        cp.use(filler);
+        cp.use(potBuffAbility);
+        cp.use(filler);
+        cp.use(filler);
+        const displayRecords = cp.finalizedRecords;
+        const actualAbilities: FinalizedAbility[] = displayRecords.filter<FinalizedAbility>((record): record is FinalizedAbility => {
+            return 'ability' in record;
+        });
+        // Not swifted
+        assert.equal(actualAbilities[0].ability.name, "Glare");
+        assertClose(actualAbilities[0].directDamage, 15078, 1);
+        // Swiftcast
+        assert.equal(actualAbilities[1].ability.name, "Pot Buff Ability");
+        assertClose(actualAbilities[1].directDamage, 0, 1);
+        // Swifted
+        assert.equal(actualAbilities[2].ability.name, "Glare");
+        assertClose(actualAbilities[2].directDamage, 15078 * (310 + 100) / 310, 1);
+        // Not swifted
+        assert.equal(actualAbilities[3].ability.name, "Glare");
+        assertClose(actualAbilities[3].directDamage, 15078, 1);
+
+    });
+});
+
+function multiplyDamage(damageResult: DamageResult, multiplier: number, multiplyDirectDamage: boolean = true, multiplyDot: boolean = true) {
+    return {
+        directDamage: (damageResult.directDamage === null || !multiplyDirectDamage) ? damageResult.directDamage : {
+            expected: damageResult.directDamage.expected * multiplier
+        },
+        dot: (damageResult.dot === null || !multiplyDot) ? damageResult.dot : {
+            ...damageResult.dot,
+            damagePerTick: {
+                expected: damageResult.directDamage.expected * multiplier
+            }
+        },
+    }
+}
+
+const bristleBuff: Buff = {
+    // TODO
+    cooldown: 60,
+    duration: 10,
+    effects: {},
+    job: 'BLU',
+    name: "Bristle",
+    modifyDamage(buffController: BuffController, damageResult: DamageResult, ability: Ability): DamageResult {
+        if (ability.attackType === 'Spell') {
+            buffController.removeSelf();
+            return multiplyDamage(damageResult, 1.5, true, true);
+        }
+        return null;
+    }
+}
+
+const bristle: GcdAbility = {
+    type: 'gcd',
+    name: "Bristle",
+    potency: null,
+    attackType: "Spell",
+    gcd: 2.5,
+    cast: 1.0,
+    activatesBuffs: [bristleBuff]
+}
+
+describe('Damage Buff Ability', () => {
+    // TODO: test a DoT
+    it('should increase the damage once', () => {
+        const cp = new CycleProcessor({
+            allBuffs: [],
+            cycleTime: 30,
+            stats: set.computedStats,
+            totalTime: 120,
+            useAutos: false
+        });
+        cp.use(filler);
+        cp.use(bristle);
+        cp.use(filler);
+        cp.use(filler);
+        const displayRecords = cp.finalizedRecords;
+        const actualAbilities: FinalizedAbility[] = displayRecords.filter<FinalizedAbility>((record): record is FinalizedAbility => {
+            return 'ability' in record;
+        });
+        // Not swifted
+        assert.equal(actualAbilities[0].ability.name, "Glare");
+        assertClose(actualAbilities[0].directDamage, 15078, 1);
+        // Swiftcast
+        assert.equal(actualAbilities[1].ability.name, "Bristle");
+        assertClose(actualAbilities[1].directDamage, 0, 1);
+        // Swifted
+        assert.equal(actualAbilities[2].ability.name, "Glare");
+        assertClose(actualAbilities[2].directDamage, 15078 * 1.5, 1);
+        // Not swifted
+        assert.equal(actualAbilities[3].ability.name, "Glare");
+        assertClose(actualAbilities[3].directDamage, 15078, 1);
 
     });
 });
