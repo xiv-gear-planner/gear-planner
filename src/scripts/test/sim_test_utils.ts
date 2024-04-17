@@ -1,4 +1,4 @@
-import {BaseMultiCycleSim, CycleSimResult} from "../sims/sim_processors";
+import {BaseMultiCycleSim, CycleSimResult, DisplayRecordFinalized} from "../sims/sim_processors";
 import {Buff, FinalizedAbility} from "../sims/sim_types";
 import {isClose} from "./test_utils";
 import assert from "assert";
@@ -27,9 +27,10 @@ export function setPartyBuffEnabled(sim: BaseMultiCycleSim<any, any>, buff: Buff
     buffSettings.enabled = true;
 }
 
-export function assertSimAbilityResults(result: CycleSimResult, expectedAbilities: UseResult[]) {
+export function assertSimAbilityResults(result: CycleSimResult | readonly DisplayRecordFinalized[], expectedAbilities: UseResult[]) {
 
-    const actualAbilities: FinalizedAbility[] = result.displayRecords.filter<FinalizedAbility>((record): record is FinalizedAbility => {
+    const displayRecords: readonly DisplayRecordFinalized[] =  'displayRecords' in result ? result.displayRecords : result;
+    const actualAbilities: FinalizedAbility[] = displayRecords.filter<FinalizedAbility>((record): record is FinalizedAbility => {
         return 'ability' in record;
     });
     const failures: string[] = []

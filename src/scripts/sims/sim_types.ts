@@ -2,22 +2,22 @@ import {JobName} from "../xivconstants";
 import {AttackType} from "../geartypes";
 import {CombinedBuffEffect} from "./sim_processors";
 
-export type DotInfo = {
+export type DotInfo = Readonly<{
     duration: number,
     tickPotency: number,
     id: number
-}
+}>
 
-export type NonDamagingAbility = {
+export type NonDamagingAbility = Readonly<{
     potency: null,
-}
-export type DamagingAbility = {
+}>
+export type DamagingAbility = Readonly<{
     potency: number,
     attackType: AttackType,
     autoCrit?: boolean,
     autoDh?: boolean,
     dot?: DotInfo
-}
+}>
 
 export type BaseAbility = Readonly<{
     name: string,
@@ -48,7 +48,7 @@ export type Cooldown = Readonly<{
 /**
  * Represents an ability you can use
  */
-export type GcdAbility = BaseAbility & {
+export type GcdAbility = BaseAbility & Readonly<{
     type: 'gcd';
     /**
      * If the ability's GCD can be lowered by sps/sks, put it here.
@@ -66,7 +66,7 @@ export type GcdAbility = BaseAbility & {
      * set to true.
      */
     fixedGcd?: boolean,
-}
+}>
 
 export type OgcdAbility = BaseAbility & Readonly<{
     type: 'ogcd',
@@ -94,17 +94,57 @@ export type ComputedDamage = {
  * Represents an ability actually being used
  */
 export type UsedAbility = {
+    /**
+     * The ability that was used
+     */
     ability: Ability,
+    /**
+     * The buffs that were active either when the ability started casting, or when it snapshotted (the union of both).
+     */
     buffs: Buff[],
+    /**
+     * The combined effects that were active when the ability snapshotted, with the exception that the 'haste' field
+     * comes from the start of the cast, since that is when haste matters.
+     */
     combinedEffects: CombinedBuffEffect,
+    /**
+     * When the ability was initiated.
+     */
     usedAt: number,
+    /**
+     * The direct damage of the ability
+     */
     directDamage: ComputedDamage,
+    /**
+     * If a DoT, the DoT damage
+     */
     dot?: DotDamageUnf,
+    /**
+     * The total cast time from usedAt
+     */
     castTimeFromStart: number,
+    /**
+     * The total time between usedAt and snapshot
+     */
     snapshotTimeFromStart: number,
+    /**
+     * The raw application delay from snapshot to application
+     */
     appDelay: number,
+    /**
+     * The application delay from usedAt
+     */
     appDelayFromStart: number,
+    /**
+     * The total time used by the ability. This doesn't mean *exclusive* use - e.g. for an instant GCD, this is
+     * the total GCD time, not the total time you are unable to use other actions.
+     */
     totalTimeTaken: number
+    /**
+     * The total time where you are unable to take other actions. For an instant, this is the animation lock. For
+     * a cast, this is the cast time + caster tax.
+     */
+    lockTime: number
 }
 
 /**
@@ -148,7 +188,7 @@ export type Buff = Readonly<{
     /** Job of buff */
     job: JobName,
     /** "Optional" would be things like DNC partner buffs, where merely having the job
-    // in your comp does not mean you would necessarily get the buff. */
+     // in your comp does not mean you would necessarily get the buff. */
     optional?: boolean,
     /** Can only apply to self - not a party/targeted buff */
     selfOnly?: boolean,
@@ -165,8 +205,10 @@ export type Buff = Readonly<{
     /**
      * Optional function to run before an ability is used. This can be used for buffs that have special
      * effects which trigger when using an ability, e.g. Swiftcast/Dualcast.
+     *
+     * @returns The ability, if the buff needs to modify some properties of the ability. Null if no modification.
      */
-    beforeAbility?: (controller: BuffController, ability: Ability) => void,
+    beforeAbility?<X extends Ability>(controller: BuffController, ability: X): X | null,
     /**
      * Optional status effect ID. Used to provide an icon.
      */

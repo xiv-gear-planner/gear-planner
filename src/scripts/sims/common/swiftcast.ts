@@ -9,21 +9,28 @@ export const SwiftcastBuff: Buff = {
     name: "Swiftcast",
     selfOnly: true,
     startTime: 0,
-    beforeAbility: (controller: BuffController, ability: Ability) => {
+    beforeAbility<X extends Ability>(controller: BuffController, ability: X): X | null {
         if (ability.type === 'gcd' && ability.cast >= 0) {
-            ability.cast = 0;
             controller.removeStatus(SwiftcastBuff);
+            return {
+                ...ability,
+                cast: 0
+            }
         }
+        return null;
     }
 }
 
-export const SwiftcastAbility: OgcdAbility = {
+export const Swiftcast: OgcdAbility = {
     activatesBuffs: [SwiftcastBuff],
     id: 7561,
     name: "Swiftcast",
     potency: null,
     type: "ogcd",
     attackType: 'Ability',
-    animationLock: 0.6
+    animationLock: 0.6,
+    cooldown: {
+        time: 60
+    }
 
 }
