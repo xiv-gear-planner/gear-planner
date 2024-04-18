@@ -576,13 +576,13 @@ export const BeingMortal: OgcdAbility = {
     id: 34582
 }
 
-const WaningInfo: OgcdAbility = { // dummy ability to insert info into timeline
-    name: "-- Waning --",
-    type: "ogcd",
-    attackType: "Ability",
-    potency: null,
-    animationLock: 0
-}
+// const WaningInfo: OgcdAbility = { // dummy ability to insert info into timeline
+//     name: "-- Waning --",
+//     type: "ogcd",
+//     attackType: "Ability",
+//     potency: null,
+//     animationLock: 0
+// }
 
 /**
  * BLU sim settings
@@ -702,16 +702,17 @@ export abstract class BluSim<_BluCycleSimResult, _BluSimSettings, BluExternalCyc
     }
 
     doWaning(cp: CycleProcessor) {
-        const waxingEnd = this.rotationState.fluteStart + WaxingNocturne.duration;
+        // const waxingEnd = this.rotationState.fluteStart + WaxingNocturne.duration;
         const waningEnd = this.rotationState.fluteStart + WaxingNocturne.duration + WaningNocturne.duration;
+        cp.addSpecialRow("-- Waning End --", waningEnd);
 
-        // advance to end of Waxing window
-        cp.advanceTo(Math.max(cp.currentTime, Math.min(waxingEnd, cp.totalTime)), true);
+        // // advance to end of Waxing window
+        // cp.advanceTo(Math.max(cp.currentTime, Math.min(waxingEnd, cp.totalTime)), true);
 
-        // insert informational entry into timeline
-        if (waningEnd > cp.currentTime) {
-            cp.use(WaningInfo);
-        }
+        // // insert informational entry into timeline
+        // if (waningEnd > cp.currentTime) {
+        //     cp.use(WaningInfo);
+        // }
 
         // advance to end of Waning window
         cp.advanceTo(Math.max(cp.currentTime, Math.min(waningEnd, cp.totalTime)), true);
@@ -742,12 +743,14 @@ export abstract class BluSim<_BluCycleSimResult, _BluSimSettings, BluExternalCyc
             case "Phantom Flurry": { // 5s channel time
                 cp.use(ability);
                 const endFlurry = cp.currentTime + 5;
+                cp.addSpecialRow("-- Flurry End --", endFlurry);
                 cp.advanceTo(Math.max(cp.currentTime, Math.min(endFlurry, cp.totalTime)), true);
                 break;
             }
             case "Apokalypsis": { // 10s channel time
                 cp.use(ability);
                 const endApok = cp.currentTime + 10;
+                cp.addSpecialRow("-- Apokalypsis End --", endApok);
                 cp.advanceTo(Math.max(cp.currentTime, Math.min(endApok, cp.totalTime)), true);
                 break;
             }
@@ -816,5 +819,6 @@ export abstract class BluSim<_BluCycleSimResult, _BluSimSettings, BluExternalCyc
             console.warn(`Ability ${FinalSting.name} cannot be used while ${BrushWithDeath.name} is active.`);
         }
         cp.use(FinalSting);
+        cp.addSpecialRow("-- Death --");
     }
 }
