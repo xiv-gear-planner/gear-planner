@@ -1,8 +1,16 @@
-name: Deploy to Beta Environments
+#name: Deploy to Beta Environments
 
 on:
   pull_request:
     types: [opened, synchronize, reopened, labeled]
+
+    inputs:
+      environment:
+        description: 'Select the environment to deploy to'
+        required: true
+        type: choice
+        # Use the output from the get-environments job as options
+        options: ${{ needs.get-environments.outputs.environments }}
 
 env:
   REGISTRY: ghcr.io
@@ -26,13 +34,6 @@ jobs:
 
   deploy:
     runs-on: ubuntu-latest
-    inputs:
-      environment:
-        description: 'Select the environment to deploy to'
-        required: true
-        type: choice
-        # Use the output from the get-environments job as options
-        options: ${{ needs.get-environments.outputs.environments }}
     environment: ${{ inputs.environment }}
     permissions:
       contents: read
