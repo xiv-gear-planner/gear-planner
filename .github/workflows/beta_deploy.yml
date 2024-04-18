@@ -4,6 +4,10 @@ on:
   pull_request:
     types: [opened, synchronize, reopened, labeled]
 
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository_owner }}/xivgear-static
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
