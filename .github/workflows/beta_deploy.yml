@@ -9,9 +9,31 @@ env:
   IMAGE_NAME: ${{ github.repository_owner }}/xivgear-static
 
 jobs:
+
+  get-environments:
+    runs-on: ubuntu-latest
+    outputs:
+      environments: ${{ steps.get_environments.outputs.environments }}
+    steps:
+      - name: Fetch environments
+        id: get_environments
+        run: |
+          # Fetch the list of environments using the GitHub API
+          environments=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+                        https://api.github.com/repos/${{ github.repository }}/environments | \
+                        jq -r '.[].name')
+          echo "environments=${environments}" >> $GITHUB_OUTPUT 
+
   deploy:
     runs-on: ubuntu-latest
-    environment: ${{ github.event.inputs.environment }}
+    inputs:
+      environment:
+        description: 'Select the environment to deploy to'
+        required: true
+        type: choice
+        # Use the output from the get-environments job as options
+        options: ${{ needs.get-environments.outputs.environments }}
+    environment: ${{ inputs.environment }}
     permissions:
       contents: read
       deployments: write
@@ -63,6 +85,6 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ github.events.input.environment }}
+          tags: ${{ inputs.environment }}
           labels: ${{ steps.meta.outputs.labels }}
           platforms: linux/amd64,linux/arm64
