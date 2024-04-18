@@ -465,7 +465,7 @@ describe('Special record', () => {
         const cp = new CycleProcessor({
             allBuffs: [],
             cycleTime: 30,
-            stats: set.computedStats,
+            stats: exampleGearSet.computedStats,
             totalTime: 120,
             useAutos: false
         });
