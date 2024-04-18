@@ -428,6 +428,13 @@ export class CycleProcessor {
         return this.buffHistory.filter(h => h.start <= queryTime && h.end > queryTime && !h.forceEnd);
     }
 
+    addSpecialRow(message: string, time?: number) {
+        this.allRecords.push({
+            usedAt: time ?? this.currentTime,
+            label: message,
+        } satisfies SpecialRecord);
+    }
+
     get usedAbilities(): readonly AbilityUseRecordUnf[] {
         return this.allRecords.filter(isAbilityUse);
     }

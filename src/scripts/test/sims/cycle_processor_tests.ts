@@ -459,3 +459,58 @@ describe('Damage Buff Ability', () => {
         assertClose(actualAbilities[4].directDamage, 15078, 1);
     });
 });
+
+describe('Special record', () => {
+    it('should be able to add and retrieve special records', () => {
+        const cp = new CycleProcessor({
+            allBuffs: [],
+            cycleTime: 30,
+            stats: set.computedStats,
+            totalTime: 120,
+            useAutos: false
+        });
+        cp.use(filler);
+        cp.use(Swiftcast);
+        cp.use(filler);
+        cp.addSpecialRow('Foo!')
+        cp.use(filler);
+        cp.addSpecialRow('Bar!', 60);
+        // Hacky lazy workaround
+        const displayRecords: readonly any[] = cp.finalizedRecords;
+        // Not swifted
+        assert.equal(displayRecords[0].ability.name, "Glare");
+        assertClose(displayRecords[0].usedAt, -1.48);
+        assertClose(displayRecords[0].original.appDelayFromStart, 1.48);
+        assertClose(displayRecords[0].original.totalTimeTaken, 2.31);
+        assertClose(displayRecords[0].original.lockTime, 1.48);
+        assertClose(displayRecords[0].original.castTimeFromStart, 1.38);
+        // Swiftcast
+        assert.equal(displayRecords[1].ability.name, "Swiftcast");
+        assertClose(displayRecords[1].usedAt, 0.0);
+        assertClose(displayRecords[1].original.appDelayFromStart, 0.6);
+        assertClose(displayRecords[1].original.totalTimeTaken, 0.6);
+        assertClose(displayRecords[1].original.lockTime, 0.6);
+        assertClose(displayRecords[1].original.castTimeFromStart, 0);
+        // Swifted
+        assert.equal(displayRecords[2].ability.name, "Glare");
+        assertClose(displayRecords[2].usedAt, 0.83); // 0.83 === -1.48 + 2.31
+        assertClose(displayRecords[2].original.appDelayFromStart, 0.6);
+        assertClose(displayRecords[2].original.totalTimeTaken, 2.31);
+        assertClose(displayRecords[2].original.lockTime, 0.6);
+        assertClose(displayRecords[2].original.castTimeFromStart, 0);
+        // SpecialRecord
+        assert.equal(displayRecords[3].label, "Foo!");
+        assertClose(displayRecords[3].usedAt, 1.43); // 1.43 === 0.83 + 0.6
+        // Not swifted
+        assert.equal(displayRecords[4].ability.name, "Glare");
+        assertClose(displayRecords[4].usedAt, 3.14);
+        assertClose(displayRecords[4].original.appDelayFromStart, 1.48);
+        assertClose(displayRecords[4].original.totalTimeTaken, 2.31);
+        assertClose(displayRecords[4].original.lockTime, 1.48);
+        assertClose(displayRecords[4].original.castTimeFromStart, 1.38);
+        // SpecialRecord
+        assert.equal(displayRecords[5].label, "Bar!");
+        assertClose(displayRecords[5].usedAt, 60);
+
+    });
+});
