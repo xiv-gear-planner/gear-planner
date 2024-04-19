@@ -1,6 +1,6 @@
-import {BaseMultiCycleSim, CycleSimResult, DisplayRecordFinalized} from "../sims/sim_processors";
-import {Buff, FinalizedAbility} from "../sims/sim_types";
-import {isClose} from "./test_utils";
+import {BaseMultiCycleSim, CycleSimResult, DisplayRecordFinalized} from "../../sims/sim_processors";
+import {Buff, FinalizedAbility} from "../../sims/sim_types";
+import {isClose} from "../test_utils";
 import assert from "assert";
 
 /**
