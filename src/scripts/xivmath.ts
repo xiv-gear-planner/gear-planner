@@ -211,7 +211,7 @@ export function mpTick(levelStats: LevelStats, piety: number) {
  * @param weaponDamage weapon damage
  */
 export function autoAttackModifier(levelStats: LevelStats, jobStats: JobData, weaponDelay: number, weaponDamage: number) {
-    return fl(fl((levelStats.baseMainStat * jobStats.jobStatMultipliers[jobStats.mainStat] / 1000) + weaponDamage) * (weaponDelay * 1000 / 3)) / 1000;
+    return fl(fl((levelStats.baseMainStat * jobStats.jobStatMultipliers[jobStats.autoAttackStat] / 1000) + weaponDamage) * (weaponDelay * 1000 / 3)) / 1000;
 }
 
 /**
