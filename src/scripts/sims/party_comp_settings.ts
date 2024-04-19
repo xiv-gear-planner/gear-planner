@@ -1,5 +1,5 @@
 import {JobName} from "../xivconstants";
-import {Buff} from "./sim_types";
+import {PartyBuff} from "./sim_types";
 import {ALL_BUFFS, BuffName} from "./buffs";
 import {FieldBoundCheckBox, labeledCheckbox} from "../components/util";
 
@@ -29,7 +29,7 @@ class JobSettings {
 }
 
 class BuffSetting {
-    constructor(public readonly buff: Buff, public enabled: boolean) {
+    constructor(public readonly buff: PartyBuff, public enabled: boolean) {
 
     }
 
@@ -46,7 +46,7 @@ export class BuffSettingsManager {
         return new BuffSettingsManager([job]);
     }
 
-    private static makeJobBuffMapping(): { [k in JobName]?: Buff[] } {
+    private static makeJobBuffMapping(): { [k in JobName]?: PartyBuff[] } {
         return ALL_BUFFS.reduce(((map, val) => {
             const job = val.job;
             if (job in map) {

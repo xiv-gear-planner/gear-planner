@@ -53,15 +53,12 @@ const astrodyne: OgcdAbility = {
     activatesBuffs: [
         {
             name: "Astrodyne",
-            job: "AST",
             selfOnly: true,
             duration: 15,
-            cooldown: 0,
             effects: { //currently assumes 2 seal dynes, can change dmgIncrease based on frequency of 3 seals
                 // dmgIncrease: 0.00,
                 haste: 10,
             },
-            startTime: null,
         }
     ],
     attackType: "Ability",

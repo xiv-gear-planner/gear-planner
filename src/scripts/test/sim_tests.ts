@@ -88,10 +88,8 @@ const pom: OgcdAbility = {
     activatesBuffs: [
         {
             name: "Presence of Mind",
-            job: "WHM",
             selfOnly: true,
             duration: 15,
-            cooldown: 120,
             effects: {
                 haste: 20,
             },

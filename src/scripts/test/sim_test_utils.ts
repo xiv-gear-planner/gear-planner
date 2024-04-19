@@ -1,7 +1,6 @@
 import {BaseMultiCycleSim, CycleSimResult, DisplayRecordFinalized} from "../sims/sim_processors";
-import {Buff, FinalizedAbility} from "../sims/sim_types";
+import {FinalizedAbility, PartyBuff} from "../sims/sim_types";
 import {isClose} from "./test_utils";
-import assert from "assert";
 
 /**
  * Type that represents the time, name, and damage of an ability
@@ -20,7 +19,7 @@ export type UseResult = {
  * @param buff The buff to enable
  * @param enabled Whether to enable or disable the buff
  */
-export function setPartyBuffEnabled(sim: BaseMultiCycleSim<any, any>, buff: Buff, enabled: boolean) {
+export function setPartyBuffEnabled(sim: BaseMultiCycleSim<any, any>, buff: PartyBuff, enabled: boolean) {
     const jobSettings = sim.buffManager.allJobs.find(j => j.job === buff.job);
     jobSettings.enabled = true;
     const buffSettings = jobSettings.enabledBuffs.find(b => b.buff.name === buff.name);
@@ -29,7 +28,7 @@ export function setPartyBuffEnabled(sim: BaseMultiCycleSim<any, any>, buff: Buff
 
 export function assertSimAbilityResults(result: CycleSimResult | readonly DisplayRecordFinalized[], expectedAbilities: UseResult[]) {
 
-    const displayRecords: readonly DisplayRecordFinalized[] =  'displayRecords' in result ? result.displayRecords : result;
+    const displayRecords: readonly DisplayRecordFinalized[] = 'displayRecords' in result ? result.displayRecords : result;
     const actualAbilities: FinalizedAbility[] = displayRecords.filter<FinalizedAbility>((record): record is FinalizedAbility => {
         return 'ability' in record;
     });

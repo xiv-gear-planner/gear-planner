@@ -3,7 +3,8 @@ import {applyDhCrit, baseDamage} from "../xivmath";
 import {
     Ability,
     AutoAttack,
-    Buff, BuffController,
+    Buff,
+    BuffController,
     ComputedDamage,
     Cooldown,
     DamagingAbility,
@@ -12,6 +13,7 @@ import {
     GcdAbility,
     OgcdAbility,
     PartiallyUsedAbility,
+    PartyBuff,
     UsedAbility
 } from "./sim_types";
 import {
@@ -251,8 +253,8 @@ export type AbilityUseResult = 'full' | 'partial' | 'none';
 export type MultiCycleSettings = {
     readonly totalTime: number,
     readonly cycleTime: number,
-    readonly allBuffs: Buff[],
-    readonly manuallyActivatedBuffs?: Buff[],
+    readonly allBuffs: PartyBuff[],
+    readonly manuallyActivatedBuffs?: PartyBuff[],
     readonly stats: ComputedSetStats,
     readonly useAutos: boolean
 }
@@ -282,12 +284,12 @@ export class CycleProcessor {
     gcdBase: number = NORMAL_GCD;
     readonly cycleTime: number;
     readonly allRecords: DisplayRecordUnf[] = [];
-    readonly buffTimes = new Map<Buff, number>();
+    readonly buffTimes = new Map<PartyBuff, number>();
     readonly buffHistory: BuffUsage[] = [];
     readonly totalTime: number;
     readonly stats: ComputedSetStats;
     readonly dotMap = new Map<number, UsedAbility>();
-    private readonly manuallyActivatedBuffs: readonly Buff[];
+    private readonly manuallyActivatedBuffs: readonly PartyBuff[];
     combatStarted: boolean = false;
     readonly useAutos: boolean;
     readonly cdTracker: CooldownTracker;
@@ -320,7 +322,9 @@ export class CycleProcessor {
      * @param startTime The start time
      */
     setBuffStartTime(buff: Buff, startTime: number) {
-        this.buffTimes.set(buff, startTime);
+        if (this.isBuffAutomatic(buff)) {
+            this.buffTimes.set(buff, startTime);
+        }
         this.buffHistory.push({
             buff: buff,
             start: startTime,
@@ -339,8 +343,11 @@ export class CycleProcessor {
         });
     }
 
-    isBuffAutomatic(buff: Buff): boolean {
-        return !this.manuallyActivatedBuffs.includes(buff);
+    isBuffAutomatic(buff: Buff): buff is PartyBuff {
+        if ('cooldown' in buff) {
+            return !this.manuallyActivatedBuffs.includes(buff);
+        }
+        return false;
     }
 
     get remainingTime() {
@@ -916,7 +923,7 @@ export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, Inter
     abstract displayName: string;
     abstract shortName: string;
     abstract spec: SimSpec<Simulation<ResultType, InternalSettingsType, ExternalCycleSettings<InternalSettingsType>>, ExternalCycleSettings<InternalSettingsType>>;
-    readonly manuallyActivatedBuffs?: Buff[];
+    readonly manuallyActivatedBuffs?: PartyBuff[];
     settings: InternalSettingsType;
     readonly buffManager: BuffSettingsManager;
     readonly cycleSettings: CycleSettings;
