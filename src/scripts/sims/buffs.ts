@@ -1,4 +1,4 @@
-import {Buff, PartyBuff} from "./sim_types";
+import {PartyBuff} from "./sim_types";
 
 
 export const Mug = {
