@@ -1,13 +1,21 @@
 import { SimSettings } from "../simulation";
-import { BaseMultiCycleSim, CycleProcessor, CycleSimResult, DamageResult, ExternalCycleSettings } from "./sim_processors";
+import {
+    AbilityUseResult,
+    BaseMultiCycleSim,
+    CycleProcessor,
+    CycleSimResult,
+    ExternalCycleSettings,
+    MultiCycleSettings,
+    Rotation
+} from "./sim_processors";
 import { Ability, Buff, BuffController, GcdAbility, OgcdAbility } from "./sim_types"
 import { BuffSettingsArea } from "./party_comp_settings";
 import { cycleSettingsGui } from "./components/cycle_settings_components";
 import { writeProxy } from "../util/proxies";
 import { FieldBoundCheckBox, labeledCheckbox } from "../components/util";
 import { OffGuardBuff } from "./buffs";
-import { SwiftcastBuff } from "./common/swiftcast";
 import { removeSelf } from "./common/utils";
+import { CASTER_TAX } from "../xivconstants";
 
 /**
  * BLU spells that apply Bleeding
@@ -57,9 +65,7 @@ const BLU_CHANNELED_ABILITIES = [
 
 const Boost: Buff = {
     name: "Boost",
-    job: "BLU",
     duration: 30,
-    cooldown: 0,
     selfOnly: true,
     effects: {
         dmgIncrease: 0.5 // only applies to damage spells
@@ -76,9 +82,7 @@ const Boost: Buff = {
 
 const WaxingNocturne: Buff = {
     name: "Waxing Nocturne",
-    job: "BLU",
     duration: 15,
-    cooldown: 0,
     selfOnly: true,
     effects: {
         dmgIncrease: 0.50
@@ -88,9 +92,7 @@ const WaxingNocturne: Buff = {
 
 const MightyGuard: Buff = {
     name: "Mighty Guard",
-    job: "BLU",
     duration: Number.MAX_VALUE, // toggled stance, infinte duration
-    cooldown: 0,
     selfOnly: true,
     effects: { // also changes the effects of certain BLU spells
         dmgIncrease: -0.4
@@ -100,9 +102,7 @@ const MightyGuard: Buff = {
 
 const WaningNocturne: Buff = {
     name: "Waning Nocturne",
-    job: "BLU",
     duration: 15,
-    cooldown: 0,
     selfOnly: true,
     effects: {
         dmgIncrease: -1 // can't use any actions during Waning
@@ -112,9 +112,7 @@ const WaningNocturne: Buff = {
 
 const Harmonized: Buff = {
     name: "Harmonized",
-    job: "BLU",
     duration: 30,
-    cooldown: 0,
     selfOnly: true,
     effects: {
         dmgIncrease: 0.8 // only applies to physical damage spells
@@ -131,9 +129,7 @@ const Harmonized: Buff = {
 
 const TankMimicry: Buff = {
     name: "Aetheric Mimicry: Tank",
-    job: "BLU",
     duration: Number.MAX_VALUE, // toggled stance, infinte duration
-    cooldown: 0,
     selfOnly: true,
     effects: {}, // changes the effects of certain BLU spells
     statusId: 2124
@@ -141,9 +137,7 @@ const TankMimicry: Buff = {
 
 const DpsMimicry: Buff = {
     name: "Aetheric Mimicry: DPS",
-    job: "BLU",
     duration: Number.MAX_VALUE, // toggled stance, infinte duration
-    cooldown: 0,
     selfOnly: true,
     effects: { // also changes the effects of certain BLU spells
         dhitChanceIncrease: 0.20,
@@ -154,9 +148,7 @@ const DpsMimicry: Buff = {
 
 const HealerMimicry: Buff = {
     name: "Aetheric Mimicry: Healer",
-    job: "BLU",
     duration: Number.MAX_VALUE, // toggled stance, infinte duration
-    cooldown: 0,
     selfOnly: true,
     effects: {}, // changes the effects of certain BLU spells
     statusId: 2126
@@ -164,9 +156,7 @@ const HealerMimicry: Buff = {
 
 const BrushWithDeath: Buff = {
     name: "Brush with Death",
-    job: "BLU",
     duration: 600,
-    cooldown: 0,
     selfOnly: true,
     effects: {}, // prevents certain BLU spells from being used
     statusId: 2127
@@ -174,9 +164,7 @@ const BrushWithDeath: Buff = {
 
 const SurpanakhaBuff: Buff = {
     name: "Surpanakha's Fury",
-    job: "BLU",
     duration: 3,
-    cooldown: 0,
     selfOnly: true,
     effects: {
         // only applies to Surpanakha
@@ -191,9 +179,7 @@ const SurpanakhaBuff: Buff = {
 
 const Tingling: Buff = {
     name: "Tingling",
-    job: "BLU",
     duration: 15,
-    cooldown: 0,
     selfOnly: true,
     effects: {
        // increases base potency of physical damage spells by 100 per hit
@@ -218,9 +204,7 @@ const Tingling: Buff = {
 
 const BasicInstinct: Buff = {
     name: "Basic Instinct",
-    job: "BLU",
     duration: Number.MAX_VALUE, // toggled stance, infinte duration
-    cooldown: 0,
     selfOnly: true,
     effects: {
         dmgIncrease: 1.0
@@ -283,7 +267,7 @@ export const OffGuard: OgcdAbility = {
     id: 11411
 }
 
-const MoonFlute: GcdAbility = {
+export const MoonFlute: GcdAbility = {
     name: "Moon Flute",
     type: "gcd",
     attackType: "Spell",
@@ -356,7 +340,7 @@ export const Whistle: GcdAbility = {
     id: 18309
 }
 
-const Surpanakha: OgcdAbility = {
+export const Surpanakha: OgcdAbility = {
     name: "Surpanakha",
     type: "ogcd",
     attackType: "Ability",
@@ -443,7 +427,7 @@ export const RoseOfDestruction: GcdAbility = {
     id: 23275
 }
 
-const MatraMagic: GcdAbility = {
+export const MatraMagic: GcdAbility = {
     name: "Matra Magic",
     type: "gcd",
     attackType: "Spell",
@@ -506,15 +490,15 @@ export const BreathofMagic: GcdAbility = {
     id: 34567
 }
 
-const WingedReprobation: GcdAbility = {
+export const WingedReprobation: GcdAbility = {
     name: "Winged Reprobation",
     type: "gcd",
     attackType: "Spell",
-    potency: 300, // 400 with 3 stacks
+    potency: 300, // 400 with 3 "stacks"
     gcd: 2.5,
     cast: 1.0,
     cooldown: {
-        time: 90, // 90s cooldown after 3rd stack is consumed
+        time: 90, // 90s cooldown after 3rd "stack" is consumed
         reducedBy: "spellspeed"
     },
     id: 34576
@@ -547,7 +531,7 @@ export const SeaShanty: OgcdAbility = {
     id: 34580
 }
 
-const Apokalypsis: OgcdAbility = {
+export const Apokalypsis: OgcdAbility = {
     name: "Apokalypsis",
     type: "ogcd",
     attackType: "Ability",
@@ -576,14 +560,6 @@ export const BeingMortal: OgcdAbility = {
     id: 34582
 }
 
-// const WaningInfo: OgcdAbility = { // dummy ability to insert info into timeline
-//     name: "-- Waning --",
-//     type: "ogcd",
-//     attackType: "Ability",
-//     potency: null,
-//     animationLock: 0
-// }
-
 /**
  * BLU sim settings
  */
@@ -594,24 +570,31 @@ export interface BluSimSettings extends SimSettings {
 }
 
 /**
- * BLU rotation state
+ * BLU Cycle Processor
  */
-class BluRotationState {
-    // current base gcd recast
-    gcdBase: number = 0;
-
-    // current long (2.0s base) gcd cast
-    longGcdCast: number = 0;
-
-    // current short (1.0s base) gcd cast
-    shortGcdCast: number = 0;
-
+export class BLUCycleProcessor extends CycleProcessor {
+    // current gcd (2.5s base) recast time
+    private _gcdRecast: number = 0;
+    get gcdRecast() {
+        return this._gcdRecast;
+    }
+    // current short (1.0s base) gcd cast, including caster tax
+    private _shortGcdCast: number = 0;
+    get shortGcdCast() {
+        return this._shortGcdCast;
+    }
+    // current long (2.0s base) gcd cast, including caster tax
+    private _longGcdCast: number = 0;
+    get longGcdCast() {
+        return this._longGcdCast;
+    }
     // start of Moon Flute window
-    fluteStart: number = 0;
-
+    private _fluteStart: number = 0;
     // end of current Bleed effect
-    bleedEnd: number = 0;
-
+    private _bleedEnd: number = 0;
+    get bleedEnd() {
+        return this._bleedEnd;
+    }
     // Surpanakha stacks
     private _surpanakhaCounter: number = 0;
     get surpanakhaCounter() {
@@ -620,7 +603,6 @@ class BluRotationState {
     set surpanakhaCounter(newSurpanakha) {
         this._surpanakhaCounter = newSurpanakha % 4;
     }
-
     // Winged Reprobation stacks
     private _wingedCounter: number = 0;
     get wingedCounter() {
@@ -629,18 +611,137 @@ class BluRotationState {
     set wingedCounter(newWinged) {
         this._wingedCounter = newWinged % 4;
     }
+
+    constructor(settings?: MultiCycleSettings) {
+        super(settings);
+        this.cycleLengthMode = "full-duration";
+        this._gcdRecast = this.stats.gcdMag(this.gcdBase);
+        this._shortGcdCast = this.stats.gcdMag(1.0) + CASTER_TAX;
+        this._longGcdCast = this.stats.gcdMag(2.0) + CASTER_TAX;
+    }
+
+    use(ability: Ability): AbilityUseResult {
+
+        // Moonflute
+        if (ability === MoonFlute) {
+            const out = super.use(MoonFlute);
+            this._fluteStart = this.currentTime;
+            const waningStart = this._fluteStart + WaxingNocturne.duration;
+            this.setBuffStartTime(WaningNocturne, waningStart);
+            return out;
+        }
+
+        // abilities that apply Bleeding
+        if ("dot" in ability && BLU_BLEED_SPELLS.includes(ability.name)) {
+            const out = super.use(ability);
+            this._bleedEnd = this.currentTime + ability.dot.duration;
+            return out;
+        }
+
+        // channeled abilities
+        // TODO: implement proper channeled ability support in sim processor
+        if (BLU_CHANNELED_ABILITIES.includes(ability.name)) {
+            let end: number = 0;
+            const out = super.use(ability);
+            switch (ability.name) {
+                case "Phantom Flurry": {
+                    end = this.currentTime + 5; // 5s channel time
+                    this.addSpecialRow("-- Flurry End --", end);
+                    break;
+                }
+                case "Apokalypsis": {
+                    end = this.currentTime + 10;  // 10s channel time
+                    this.addSpecialRow("-- Apokalypsis End --", end);
+                    break;
+                }
+                default: {
+                    console.error(`Ability ${ability.name} does not have channel time information. This is a bug.`);
+                    break;
+                }
+            }
+            // advance to the end of the channel time
+            this.advanceTo(Math.max(this.currentTime, Math.min(end, this.totalTime)), true);
+            // set next gcd time to end of the channel time
+            if (this.currentTime > this.nextGcdTime) {
+                this.nextGcdTime = this.currentTime;
+            }
+            return out;
+        }
+
+        // Matra Magic
+        if (ability === MatraMagic) {
+            this.advanceTo(this.nextGcdTime);
+            const buffs = this.getActiveBuffs();
+            const modified: Ability = {
+                ...MatraMagic,
+                potency: buffs.includes(DpsMimicry) ? 800 : 400,
+            }
+            const out = super.use(modified);
+            return out;
+        }
+
+        // Winged Reprobation
+        if (ability === WingedReprobation) {
+            const modified: Ability = {
+                ...WingedReprobation,
+                potency: this.wingedCounter < 3 ? 300 : 400,
+                cooldown: {
+                    ...WingedReprobation.cooldown,
+                    time: this.wingedCounter < 3 ? 0 : 90,
+                }
+            }
+            const out = super.use(modified);
+            this.wingedCounter++;
+            return out;
+        }
+
+        // Surpanakha
+        if (ability === Surpanakha) {
+            const multiplier = (this.surpanakhaCounter + 1) * 0.5;
+            const buff: Buff = {
+                ...SurpanakhaBuff,
+                effects: {
+                    dmgIncrease: multiplier,
+                },
+            }
+            const modified: Ability = {
+                ...Surpanakha,
+                activatesBuffs: [buff],
+                // animation lock becomes internal cooldown for back-to-back uses
+                animationLock: this.surpanakhaCounter < 3 ? 1.0 : 0.6,
+            }
+            const out = super.use(modified);
+            this.surpanakhaCounter++;
+            return out;
+        }
+
+        // default, reset Surpanakha stacks if any
+        this.surpanakhaCounter = 0;
+        const out = super.use(ability);
+        return out;
+    }
+
+    doWaning() {
+        const waningEnd = this._fluteStart + WaxingNocturne.duration + WaningNocturne.duration;
+        this.addSpecialRow("-- Waning End --", waningEnd);
+
+        // advance to end of Waning window
+        this.advanceTo(Math.max(this.currentTime, Math.min(waningEnd, this.totalTime)), true);
+
+        // set next gcd time to end of Waning window
+        if (this.currentTime > this.nextGcdTime) {
+            this.nextGcdTime = this.currentTime;
+        }
+    }
 }
 
 /**
  * BLU sim functions
  */
-export abstract class BluSim<_BluCycleSimResult, _BluSimSettings, BluExternalCycleSettings extends ExternalCycleSettings<BluSimSettings>> 
-    extends BaseMultiCycleSim<CycleSimResult, BluSimSettings> {
-    
-    manuallyActivatedBuffs = [SwiftcastBuff];
-    rotationState: BluRotationState = new BluRotationState();
+export abstract class BluSim<_BluCycleSimResult, _BluSimSettings> 
+    extends BaseMultiCycleSim<CycleSimResult, BluSimSettings, BLUCycleProcessor> {
 
-    constructor(settings?: BluExternalCycleSettings) {
+    constructor(settings?: ExternalCycleSettings<BluSimSettings>) {
         super("BLU", settings);
     }
 
@@ -670,9 +771,15 @@ export abstract class BluSim<_BluCycleSimResult, _BluSimSettings, BluExternalCyc
         return configDiv;
     }
 
-    abstract useOgcdFiller(cp: CycleProcessor): void;
+    protected createCycleProcessor(settings: MultiCycleSettings): BLUCycleProcessor {
+        return new BLUCycleProcessor(settings);
+    }
 
-    applyStances(cp: CycleProcessor) {
+    abstract getRotationsToSimulate(): Rotation<BLUCycleProcessor>[];
+
+    protected abstract useOgcdFiller(cp: CycleProcessor): void;
+
+    protected applyStances(cp: CycleProcessor) {
         if (this.settings.dpsMimicryEnabled) {
             cp.activateBuff(DpsMimicry);
         }
@@ -694,124 +801,11 @@ export abstract class BluSim<_BluCycleSimResult, _BluSimSettings, BluExternalCyc
         }
     }
 
-    useFlute(cp: CycleProcessor) {
-        cp.use(MoonFlute);
-        this.rotationState.fluteStart = cp.currentTime;
-        const waningStart = this.rotationState.fluteStart + WaxingNocturne.duration;
-        cp.setBuffStartTime(WaningNocturne, waningStart);
-    }
-
-    doWaning(cp: CycleProcessor) {
-        // const waxingEnd = this.rotationState.fluteStart + WaxingNocturne.duration;
-        const waningEnd = this.rotationState.fluteStart + WaxingNocturne.duration + WaningNocturne.duration;
-        cp.addSpecialRow("-- Waning End --", waningEnd);
-
-        // // advance to end of Waxing window
-        // cp.advanceTo(Math.max(cp.currentTime, Math.min(waxingEnd, cp.totalTime)), true);
-
-        // // insert informational entry into timeline
-        // if (waningEnd > cp.currentTime) {
-        //     cp.use(WaningInfo);
-        // }
-
-        // advance to end of Waning window
-        cp.advanceTo(Math.max(cp.currentTime, Math.min(waningEnd, cp.totalTime)), true);
-
-        // set next gcd time to end of Waning window
-        if (cp.currentTime > cp.nextGcdTime) {
-            cp.nextGcdTime = cp.currentTime;
-        }
-    }
-
-    useBleed(cp: CycleProcessor, ability: Ability) {
-        if (!("dot" in ability) || !BLU_BLEED_SPELLS.includes(ability.name)) {
-            throw Error(`Ability ${ability.name} does not apply Bleeding.`);
-        }
-        
-        cp.use(ability);
-        this.rotationState.bleedEnd = cp.currentTime + ability.dot.duration;
-    }
-
-    // TODO: implement proper channeled ability support in sim processor
-    useChanneled(cp: CycleProcessor, ability: Ability) {
-        if (!BLU_CHANNELED_ABILITIES.includes(ability.name)) {
-            throw Error(`Ability ${ability.name} is not a channeled attack.`);
-        }
-
-        // use the ability, then advance to the end of the channel time
-        switch (ability.name) {
-            case "Phantom Flurry": { // 5s channel time
-                cp.use(ability);
-                const endFlurry = cp.currentTime + 5;
-                cp.addSpecialRow("-- Flurry End --", endFlurry);
-                cp.advanceTo(Math.max(cp.currentTime, Math.min(endFlurry, cp.totalTime)), true);
-                break;
-            }
-            case "Apokalypsis": { // 10s channel time
-                cp.use(ability);
-                const endApok = cp.currentTime + 10;
-                cp.addSpecialRow("-- Apokalypsis End --", endApok);
-                cp.advanceTo(Math.max(cp.currentTime, Math.min(endApok, cp.totalTime)), true);
-                break;
-            }
-            default: {
-                throw Error(`Ability ${ability.name} does not have channel time information. This is a bug.`);
-            }
-        }
-
-        // set next gcd time to end of the channel time
-        if (cp.currentTime > cp.nextGcdTime) {
-            cp.nextGcdTime = cp.currentTime;
-        }
-    }
-
-    useMatra(cp: CycleProcessor) {
-        cp.advanceTo(cp.nextGcdTime);
-        const buffs = cp.getActiveBuffs();
-        const ability: Ability = {
-            ...MatraMagic,
-            potency: buffs.includes(DpsMimicry) ? 800 : 400,
-        }
-        cp.use(ability);
-    }
-
-    useWinged(cp: CycleProcessor) {
-        const ability: Ability = {
-            ...WingedReprobation,
-            potency: this.rotationState.wingedCounter < 3 ? 300 : 400,
-            cooldown: {
-                ...WingedReprobation.cooldown,
-                time: this.rotationState.wingedCounter < 3 ? 0 : 90,
-            }
-        }
-        cp.use(ability);
-        this.rotationState.wingedCounter++;
-    }
-
-    useSurpanakha(cp: CycleProcessor) {
-        // TODO: reset Surpanakha counter if any ability other than Surpanakha is used
-        const multiplier = (this.rotationState.surpanakhaCounter + 1) * 0.5;
-        const buff: Buff = {
-            ...SurpanakhaBuff,
-            effects: {
-                dmgIncrease: multiplier,
-            },
-        }
-        const ability: Ability = {
-            ...Surpanakha,
-            activatesBuffs: [buff],
-            // animation lock becomes internal cooldown for back-to-back uses
-            animationLock: this.rotationState.surpanakhaCounter < 3 ? 1.0 : 0.6,
-        }
-        cp.use(ability);
-        this.rotationState.surpanakhaCounter++;
-    }
-
     useStingCombo(cp: CycleProcessor) {
         cp.use(Whistle);
         this.useOgcdFiller(cp);
         cp.use(Tingle);
-        this.useFlute(cp);
+        cp.use(MoonFlute);
         cp.advanceTo(cp.nextGcdTime);
         const buffs = cp.getActiveBuffs();
         // if Brush with Death is active, cannot use Final Sting

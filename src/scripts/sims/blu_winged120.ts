@@ -2,10 +2,10 @@ import { SimSpec } from "../simulation";
 import {
     CycleSimResult,
     ExternalCycleSettings,
-    CycleProcessor,
-    Rotation} from "./sim_processors";
+    Rotation
+} from "./sim_processors";
 import { Swiftcast } from "./common/swiftcast";
-import { CASTER_TAX, STANDARD_ANIMATION_LOCK } from "../xivconstants";
+import { STANDARD_ANIMATION_LOCK } from "../xivconstants";
 import * as blu from "./blu_common";
 
 export interface BluWinged120SimResult extends CycleSimResult {
@@ -32,7 +32,7 @@ export const BluWinged120Spec: SimSpec<BluWinged120Sim, BluWinged120SettingsExte
     }
 }
 
-export class BluWinged120Sim extends blu.BluSim<BluWinged120SimResult, BluWinged120Settings, BluWinged120SettingsExternal> {
+export class BluWinged120Sim extends blu.BluSim<BluWinged120SimResult, BluWinged120Settings> {
     spec = BluWinged120Spec;
     displayName = BluWinged120Spec.displayName;
     shortName = "blu-winged120";
@@ -41,89 +41,57 @@ export class BluWinged120Sim extends blu.BluSim<BluWinged120SimResult, BluWinged
         super(settings);
     }
 
-    doOpener(cp: CycleProcessor) {
-        // delay Flute if J Kick won't be ready on time to clip
-        if (!cp.cdTracker.canUse(blu.JKick, cp.nextGcdTime + this.rotationState.gcdBase)) {
-            cp.use(blu.FeculentFlood);
-        }
-        this.useFlute(cp);
-        const jkickWeaveTime = cp.nextGcdTime - blu.JKick.animationLock;
-        if (cp.cdTracker.canUse(blu.JKick, jkickWeaveTime)) {
-            cp.use(blu.JKick);
-        }
-        cp.use(blu.TripleTrident);
-        this.useBleed(cp, blu.Nightbloom);
-        this.useWinged(cp);
-        const featherWeaveTime = cp.nextGcdTime - blu.FeatherRain.animationLock;
-        if (cp.cdTracker.canUse(blu.FeatherRain, featherWeaveTime)) {
-            cp.use(blu.FeatherRain);
-        }
-        cp.use(blu.SeaShanty);
-        this.useWinged(cp);
-        const shockWeaveTime = cp.nextGcdTime - blu.ShockStrike.animationLock;
-        if (cp.cdTracker.canUse(blu.ShockStrike, shockWeaveTime)) {
-            cp.use(blu.ShockStrike);
-        }
-        cp.use(blu.BeingMortal);
-        cp.use(blu.Bristle);
-        cp.use(Swiftcast);
-        this.useSurpanakha(cp);
-        this.useSurpanakha(cp);
-        this.useSurpanakha(cp);
-        this.useSurpanakha(cp);
-        this.useMatra(cp);
-        this.useChanneled(cp, blu.PhantomFlurry);
-        this.doWaning(cp);
-    }
-
-    useOgcdFiller(cp: CycleProcessor): void {
+    useOgcdFiller(cp: blu.BLUCycleProcessor): void {
         const stdWeaveTime = cp.nextGcdTime - STANDARD_ANIMATION_LOCK;
         const jkickWeaveTime = cp.nextGcdTime - blu.JKick.animationLock;
+        const shockStrikeReady = cp.cdTracker.canUse(blu.ShockStrike, stdWeaveTime);
+        const FeatherRainReady = cp.cdTracker.canUse(blu.FeatherRain, stdWeaveTime);
+        const jKickReady = cp.cdTracker.canUse(blu.JKick, jkickWeaveTime);
 
-        // single weave J Kick
-        if (cp.cdTracker.canUse(blu.JKick, jkickWeaveTime)) {
-            cp.use(blu.JKick);
+        // double weave Shock Strike and Feather Rain, if ready
+        if (shockStrikeReady || FeatherRainReady) {
+            if (shockStrikeReady) {
+                cp.use(blu.ShockStrike);
+            }
+            if (FeatherRainReady) {
+                cp.use(blu.FeatherRain);
+            }
             return;
         }
 
-        if (cp.cdTracker.canUse(blu.FeatherRain, stdWeaveTime)) {
-            cp.use(blu.FeatherRain);
-        }
-        
-        if (cp.cdTracker.canUse(blu.ShockStrike, stdWeaveTime)) {
-            cp.use(blu.ShockStrike);
+        // single weave J Kick if ready
+        if (jKickReady) {
+            cp.use(blu.JKick);
+            return;
         }
     }
 
-    useFiller(cp: CycleProcessor) {
-        const gcdBase = this.rotationState.gcdBase;
-        const nextGcdTime = cp.nextGcdTime;
-        const stdWeaveTime = nextGcdTime + gcdBase - STANDARD_ANIMATION_LOCK;
-        const jkickWeaveTime = nextGcdTime + gcdBase - blu.JKick.animationLock;
+    useFiller(cp: blu.BLUCycleProcessor) {
+        const stdWeaveTime = cp.nextGcdTime + cp.gcdRecast - STANDARD_ANIMATION_LOCK;
+        const jkickWeaveTime = cp.nextGcdTime + cp.gcdRecast - blu.JKick.animationLock;
         const jKickReady = cp.cdTracker.canUse(blu.JKick, jkickWeaveTime);
         const featherRainReady = cp.cdTracker.canUse(blu.FeatherRain, stdWeaveTime);
         const shockStrikeReady = cp.cdTracker.canUse(blu.ShockStrike, stdWeaveTime);
 
         // reapply Bleeding if about to expire and will get at least 5 buffed ticks (>440 potency) from use
-        const longGcdCast = this.rotationState.longGcdCast;
-        const bleedComboTime = gcdBase + longGcdCast;
-        const nextBleedStart = nextGcdTime + bleedComboTime;
+        const bleedComboTime = cp.gcdRecast + cp.longGcdCast;
+        const nextBleedStart = cp.nextGcdTime + bleedComboTime;
         const bloomCd = cp.cdTracker.statusOf(blu.Nightbloom);
 
         // don't block possible ogcd weaves
-        const nextWeaveTime = nextGcdTime + gcdBase * 2;
+        const nextWeaveTime = cp.nextGcdTime + cp.gcdRecast * 2;
         const jKickSoon = !(cp.cdTracker.canUse(blu.JKick, nextWeaveTime) === jKickReady);
         const featherRainSoon = !(cp.cdTracker.canUse(blu.FeatherRain, nextWeaveTime) === featherRainReady);
         const shockStrikeSoon = !(cp.cdTracker.canUse(blu.ShockStrike, nextWeaveTime) === shockStrikeReady);
         const weaveSoon = jKickSoon || featherRainSoon || shockStrikeSoon;
 
-        if (!weaveSoon && this.rotationState.bleedEnd < nextBleedStart &&
+        if (!weaveSoon && cp.bleedEnd < nextBleedStart &&
             Math.min(bloomCd.readyAt.absolute - bleedComboTime,
             cp.remainingTime - bleedComboTime) > 15)
         {
             cp.use(blu.Bristle);
             this.useOgcdFiller(cp);
-            this.useBleed(cp, blu.SongOfTorment);
+            cp.use(blu.SongOfTorment);
             return;
         }
 
@@ -136,7 +104,7 @@ export class BluWinged120Sim extends blu.BluSim<BluWinged120SimResult, BluWinged
         }
 
         // use Rose of Destruction if off cooldown
-        if (cp.cdTracker.canUse(blu.RoseOfDestruction, nextGcdTime)) {
+        if (cp.cdTracker.canUse(blu.RoseOfDestruction, cp.nextGcdTime)) {
 
             cp.use(blu.RoseOfDestruction);
             return;
@@ -146,56 +114,76 @@ export class BluWinged120Sim extends blu.BluSim<BluWinged120SimResult, BluWinged
         cp.use(blu.FeculentFlood);
     }
 
-    getRotationsToSimulate(): Rotation[] {
+    getRotationsToSimulate(): Rotation<blu.BLUCycleProcessor>[] {
         let sim = this;
         return [{
-            // Nightbloom cd + J Kick clip @ 2.5 gcd
-            cycleTime: 120 + 0.5,
-            apply(cp: CycleProcessor) {
-                const gcdBase = sim.rotationState.gcdBase = cp.stats.gcdMag(cp.gcdBase);
-                sim.rotationState.longGcdCast = cp.stats.gcdMag(blu.RoseOfDestruction.cast) + CASTER_TAX;
-                sim.rotationState.shortGcdCast = cp.stats.gcdMag(blu.SonicBoom.cast) + CASTER_TAX;
-                const jKickClip = blu.JKick.animationLock + sim.rotationState.longGcdCast - gcdBase;
-
-                // Whistle + Tingle + Rose + Flute + J Kick clip + Trident cast
-                const preBloomTime = gcdBase * 4 + jKickClip + sim.rotationState.longGcdCast;
-
-                console.log({
-                    gcdBase: gcdBase,
-                    longGcdCast: sim.rotationState.longGcdCast,
-                    shortGcdCast: sim.rotationState.shortGcdCast,
-                    preBloomTime: preBloomTime,
-                });
-
+            cycleTime: 120,
+            apply(cp: blu.BLUCycleProcessor) {
+                // activate any stances set
                 sim.applyStances(cp);
 
                 // pre-pull
                 cp.use(blu.Whistle);
                 cp.use(blu.Tingle);
 
-                while (cp.remainingGcdTime > 0) {
-                    if (cp.cdTracker.canUse(blu.RoseOfDestruction, cp.nextGcdTime)) {
-                        cp.use(blu.RoseOfDestruction);
+                // start of first cycle opener
+                cp.use(blu.RoseOfDestruction);
+                cp.use(blu.MoonFlute);
+                cp.use(blu.JKick);
+                cp.use(blu.TripleTrident);
+                
+                // cycle based off of Nightbloom (fixed cooldown: 120s)                
+                cp.remainingCycles(cycle => {
+                    cycle.use(blu.Nightbloom);
+                    cycle.use(blu.WingedReprobation);
+                    if (cycle.cycleNumber === 0) {
+                        cycle.use(blu.FeatherRain);
                     } else {
-                        cp.use(blu.FeculentFlood);
+                        sim.useOgcdFiller(cp);
                     }
-                    sim.doOpener(cp);
+                    cycle.use(blu.SeaShanty);
+                    cycle.use(blu.WingedReprobation);
+                    if (cycle.cycleNumber === 0) {
+                        cycle.use(blu.ShockStrike);
+                    } else {
+                        sim.useOgcdFiller(cp);
+                    }
+                    cycle.use(blu.BeingMortal);
+                    cycle.use(blu.Bristle);
+                    sim.useOgcdFiller(cp);
+                    cycle.use(Swiftcast);
+                    cycle.use(blu.Surpanakha);
+                    cycle.use(blu.Surpanakha);
+                    cycle.use(blu.Surpanakha);
+                    cycle.use(blu.Surpanakha);
+                    cycle.use(blu.MatraMagic);
+                    sim.useOgcdFiller(cp);
+                    cycle.use(blu.PhantomFlurry);
+                    cp.doWaning();
 
-                    // loop until 4 gcds from next Flute window
-                    while (Math.min(cp.remainingGcdTime, cp.cdTracker.statusOf(blu.Nightbloom).readyAt.relative) > preBloomTime) {
+                    // loop until 5 gcds before Nightbloom comes off cooldown
+                    while (Math.min(cp.remainingGcdTime, cp.cdTracker.statusOf(blu.Nightbloom).readyAt.relative) > cp.gcdRecast * 5) {
                         sim.useFiller(cp);
                     }
 
-                    // set up the next Flute window, if one exists
-                    if (cp.remainingGcdTime > preBloomTime) {
-                        cp.use(blu.Whistle);
-                        cp.use(blu.Tingle);
+                    // start the next Flute window, if one exists
+                    if (cp.remainingGcdTime > cp.gcdRecast * 5) {
+                        cycle.use(blu.Whistle);
+                        cycle.use(blu.Tingle);
+                        if (cp.cdTracker.canUse(blu.RoseOfDestruction, cp.nextGcdTime)) {
+                            cycle.use(blu.RoseOfDestruction);
+                        } else {
+                            cycle.use(blu.FeculentFlood);
+                        }
+                        cycle.use(blu.MoonFlute);
+                        sim.useOgcdFiller(cp);
+                        cycle.use(blu.TripleTrident);
                     } else {
                         // otherwise, finish off the fight with a Final Sting combo
-                        cp.use(blu.FeculentFlood);
+                        cycle.use(blu.FeculentFlood);
                         sim.useStingCombo(cp);
                     }
-                }
+                });
             }
         }];
     }

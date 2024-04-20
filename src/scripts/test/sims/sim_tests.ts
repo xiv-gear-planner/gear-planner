@@ -317,7 +317,7 @@ class TestCustomMultiCycleSim extends BaseMultiCycleSim<TestSimResult, TestSimSe
 export const testCustomSimSpec: SimSpec<TestCustomMultiCycleSim, TestSimSettingsExternal> = {
     displayName: "Test Custom Sim",
     loadSavedSimInstance(exported: TestSimSettingsExternal) {
-        return new TestMultiCycleSim(exported);
+        return new TestCustomMultiCycleSim(exported);
     },
     makeNewSimInstance(): TestCustomMultiCycleSim {
         return new TestCustomMultiCycleSim();
