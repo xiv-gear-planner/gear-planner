@@ -271,6 +271,24 @@ interface BuffUsage {
     forceEnd: boolean
 }
 
+/**
+ * Sets how to set the actual cycle length of a CycleProcessor
+ *
+ * align-absolute: the default behavior. Cycle length is trimmed to align to the "expected" cycle times. e.g., if the current
+ * time is 135 seconds, and you start the second cycle, it will be (240 - 135) = 105 seconds
+ *
+ * align-to-first: Cycle length is trimmed to the expected time, but offset by the start time of the first cycle.
+ * e.g. if you started the first cycle at 5 seconds, and you're about to start the second cycle at 130 seconds, it will
+ * be trimmed to (240 + 5 - 130) = 115 seconds.
+ *
+ * full-duration: Use the full duration for every cycle, regardless of start time. Prone to drift, but avoids needing
+ * to check cooldowns if the CD time is less than or equal to the cycle time and is used at the same point in every
+ * cycle.
+ */
+type CycleLengthMode = 'align-absolute'
+    | 'align-to-first'
+    | 'full-duration';
+
 export class CycleProcessor {
 
     /**
@@ -294,6 +312,8 @@ export class CycleProcessor {
     readonly useAutos: boolean;
     readonly cdTracker: CooldownTracker;
     private _cdEnforcementMode: CooldownMode;
+    cycleLengthMode: CycleLengthMode = 'align-absolute';
+    private firstCycleStartTime: number = 0;
 
     constructor(private settings: MultiCycleSettings) {
         // TODO: set enforcement mode
@@ -810,11 +830,28 @@ export class CycleProcessor {
     oneCycle(cycleFunction: CycleFunction) {
         if (this.currentCycle < 0) {
             this.currentCycle = 0;
+            // TODO prepull offset
+            this.firstCycleStartTime = 0
         }
         const expectedStartTime = this.cycleTime * this.currentCycle;
         const actualStartTime = this.currentTime;
-        const delta = actualStartTime - expectedStartTime;
-        const ctx = new CycleContext(this, this.cycleTime - delta);
+        let cycleTime: number;
+        switch (this.cycleLengthMode) {
+            case "align-absolute": {
+                const delta = actualStartTime - expectedStartTime;
+                cycleTime = this.cycleTime - delta;
+                break;
+            }
+            case "align-to-first": {
+                const delta = actualStartTime - expectedStartTime + this.firstCycleStartTime;
+                cycleTime = this.cycleTime - delta;
+                break;
+            }
+            case "full-duration":
+                cycleTime = this.cycleTime;
+                break;
+        }
+        const ctx = new CycleContext(this, cycleTime);
         // console.debug('Delta', delta);
         // TODO: make some kind of 'marker' for this
         this.allRecords.push({
