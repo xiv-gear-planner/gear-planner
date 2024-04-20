@@ -3,7 +3,8 @@ import {applyDhCrit, baseDamage} from "../xivmath";
 import {
     Ability,
     AutoAttack,
-    Buff, BuffController,
+    Buff,
+    BuffController,
     ComputedDamage,
     Cooldown,
     DamagingAbility,
@@ -942,12 +943,12 @@ export type ExternalCycleSettings<InternalSettingsType extends SimSettings> = {
     cycleSettings: CycleSettings;
 }
 
-export type Rotation = {
+export type Rotation<CycleProcessorType = CycleProcessor> = {
     readonly cycleTime: number;
-    apply(cp: CycleProcessor);
+    apply(cp: CycleProcessorType): void;
 }
 
-export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, InternalSettingsType extends SimSettings>
+export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, InternalSettingsType extends SimSettings, CycleProcessorType extends CycleProcessor = CycleProcessor>
     implements Simulation<ResultType, InternalSettingsType, ExternalCycleSettings<InternalSettingsType>> {
 
     abstract displayName: string;
@@ -1004,14 +1005,19 @@ export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, Inter
         return `DPS: ${result.mainDpsResult}\nUnbuffed PPS: ${result.unbuffedPps}\n`;
     }
 
-    abstract getRotationsToSimulate(): Rotation[];
+    abstract getRotationsToSimulate(): Rotation<CycleProcessorType>[];
+
+    protected createCycleProcessor(settings: MultiCycleSettings): CycleProcessorType {
+        return new CycleProcessor(settings) as CycleProcessorType;
+    };
+
 
     async simulate(set: CharacterGearSet): Promise<ResultType> {
         console.debug("Sim start");
         const allBuffs = this.buffManager.enabledBuffs;
         const rotations = this.getRotationsToSimulate();
         const allResults = rotations.map(rot => {
-            const cp = new CycleProcessor({
+            const cp = this.createCycleProcessor({
                 stats: set.computedStats,
                 totalTime: this.cycleSettings.totalTime,
                 cycleTime: rot.cycleTime,
