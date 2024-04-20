@@ -893,3 +893,202 @@ describe('Special record', () => {
 
     });
 });
+
+// TODO: another set of tests, but with a GCD that doesn't evenly divide the cycle time, so that re-alignment
+// can be checked.
+const fixed: GcdAbility = {
+    type: 'gcd',
+    name: "Fixed",
+    potency: 310,
+    attackType: "Spell",
+    gcd: 15,
+    cast: 10,
+    fixedGcd: true
+}
+const fixedLonger: GcdAbility = {
+    type: 'gcd',
+    name: "Fixed Longer",
+    potency: 310,
+    attackType: "Spell",
+    gcd: 20,
+    cast: 16,
+    fixedGcd: true
+}
+
+describe('Cycle processor alignment options', () => {
+    it('full alignment with non-cycle pre-pull', () => {
+        // In this test, the CycleProcessor should start the first cycle post-combat-start, thus the first cycle should
+        // be shorter so that it can end on the 30-second mark, but the rest of the cycles should be perfectly aligned
+        // on 30-second increments.
+        const cp = new CycleProcessor({
+            allBuffs: [],
+            cycleTime: 30,
+            stats: exampleGearSet.computedStats,
+            totalTime: 120,
+            useAutos: false
+        });
+        cp.use(fixed);
+        cp.use(fixed);
+        cp.remainingCycles(cp => {
+            cp.useUntil(fixed, 'end');
+        })
+        // Hacky lazy workaround
+        const displayRecords: readonly any[] = cp.finalizedRecords;
+        assert.equal(displayRecords[0].ability.name, "Fixed");
+        assertClose(displayRecords[0].usedAt, -10.1);
+        assert.equal(displayRecords[1].ability.name, "Fixed");
+        assertClose(displayRecords[1].usedAt, 4.9);
+
+        assert.equal(displayRecords[2].label, "-- Start of Cycle --");
+        assertClose(displayRecords[2].usedAt, 15);
+        assert.equal(displayRecords[3].ability.name, "Fixed");
+        assertClose(displayRecords[3].usedAt, 19.9);
+        assert.equal(displayRecords[4].label, "-- End of Cycle --");
+        assertClose(displayRecords[4].usedAt, 30);
+
+        for (let i = 0; i < 3; i++) {
+            const base = 5 + i * 4;
+            assert.equal(displayRecords[base].label, "-- Start of Cycle --");
+            assertClose(displayRecords[base].usedAt, 30 + 30 * i);
+            assert.equal(displayRecords[base + 1].ability.name, "Fixed");
+            assertClose(displayRecords[base + 1].usedAt, 34.9 + 30 * i);
+            assert.equal(displayRecords[base + 2].ability.name, "Fixed");
+            assertClose(displayRecords[base + 2].usedAt, 49.9 + 30 * i);
+            assert.equal(displayRecords[base + 3].label, "-- End of Cycle --");
+            assertClose(displayRecords[base + 3].usedAt, 60 + 30 * i);
+        }
+    });
+    // In this test, the CycleProcessor should start the first cycle pre-combat-start, thus the first cycle should
+    // be longer so that the first cycle can end on the 30-second mark, but the rest of the cycles should be perfectly
+    // aligned on 30-second increments.
+    it('full alignment with in-cycle pre-pull', () => {
+        const cp = new CycleProcessor({
+            allBuffs: [],
+            cycleTime: 30,
+            stats: exampleGearSet.computedStats,
+            totalTime: 120,
+            useAutos: false
+        });
+        cp.remainingCycles(cp => {
+            cp.useUntil(fixed, 'end');
+        })
+        // Hacky lazy workaround
+        const displayRecords: readonly any[] = cp.finalizedRecords;
+        assert.equal(displayRecords[0].label, "-- Start of Cycle --");
+        assertClose(displayRecords[0].usedAt, -10.1);
+        assert.equal(displayRecords[1].ability.name, "Fixed");
+        assertClose(displayRecords[1].usedAt, -10.1);
+        assert.equal(displayRecords[2].ability.name, "Fixed");
+        assertClose(displayRecords[2].usedAt, 4.9);
+
+        assert.equal(displayRecords[3].ability.name, "Fixed");
+        assertClose(displayRecords[3].usedAt, 19.9);
+        assert.equal(displayRecords[4].label, "-- End of Cycle --");
+        assertClose(displayRecords[4].usedAt, 30);
+
+        for (let i = 0; i < 3; i++) {
+            const base = 5 + i * 4;
+            assert.equal(displayRecords[base].label, "-- Start of Cycle --");
+            assertClose(displayRecords[base].usedAt, 30 + 30 * i);
+            assert.equal(displayRecords[base + 1].ability.name, "Fixed");
+            assertClose(displayRecords[base + 1].usedAt, 34.9 + 30 * i);
+            assert.equal(displayRecords[base + 2].ability.name, "Fixed");
+            assertClose(displayRecords[base + 2].usedAt, 49.9 + 30 * i);
+            assert.equal(displayRecords[base + 3].label, "-- End of Cycle --");
+            assertClose(displayRecords[base + 3].usedAt, 60 + 30 * i);
+        }
+    });
+    it('first-cycle alignment with out-of-cycle pre-pull', () => {
+        // In this test, the CycleProcessor should start the first cycle post-combat-start, thus the first cycle should
+        // be shorter so that it can end on the 30-second mark, but the rest of the cycles should be perfectly aligned
+        // on 30-second increments.
+        const cp = new CycleProcessor({
+            allBuffs: [],
+            cycleTime: 30,
+            stats: exampleGearSet.computedStats,
+            totalTime: 120,
+            useAutos: false
+        });
+        cp.cycleLengthMode = 'align-to-first';
+        cp.use(fixed);
+        cp.use(fixed);
+        cp.remainingCycles(cp => {
+            cp.useUntil(fixed, 'end');
+        })
+        // Hacky lazy workaround
+        const displayRecords: readonly any[] = cp.finalizedRecords;
+        assert.equal(displayRecords[0].ability.name, "Fixed");
+        assertClose(displayRecords[0].usedAt, -10.1);
+        assert.equal(displayRecords[1].ability.name, "Fixed");
+        assertClose(displayRecords[1].usedAt, 4.9);
+
+        for (let i = 0; i < 3; i++) {
+            const base = 2 + i * 4;
+            assert.equal(displayRecords[base].label, "-- Start of Cycle --");
+            assertClose(displayRecords[base].usedAt, 15 + 30 * i);
+            assert.equal(displayRecords[base + 1].ability.name, "Fixed");
+            assertClose(displayRecords[base + 1].usedAt, 19.9 + 30 * i);
+            assert.equal(displayRecords[base + 2].ability.name, "Fixed");
+            assertClose(displayRecords[base + 2].usedAt, 34.9 + 30 * i);
+            assert.equal(displayRecords[base + 3].label, "-- End of Cycle --");
+            assertClose(displayRecords[base + 3].usedAt, 45 + 30 * i);
+        }
+
+        assert.equal(displayRecords[14].label, "-- Start of Cycle --");
+        assertClose(displayRecords[14].usedAt, 105);
+        assert.equal(displayRecords[15].ability.name, "Fixed");
+        assertClose(displayRecords[15].usedAt, 109.9);
+        assert.equal(displayRecords[16].label, "-- End of Cycle --");
+        assertClose(displayRecords[16].usedAt, 120);
+    });
+    it('first-cycle alignment with in-cycle pre-pull', () => {
+        // In this test, the CycleProcessor should start the first cycle post-combat-start, thus the first cycle should
+        // be shorter so that it can end on the 30-second mark, but the rest of the cycles should be perfectly aligned
+        // on 30-second increments.
+        const cp = new CycleProcessor({
+            allBuffs: [],
+            cycleTime: 30,
+            stats: exampleGearSet.computedStats,
+            totalTime: 120,
+            useAutos: false
+        });
+        cp.cycleLengthMode = 'align-to-first';
+        cp.oneCycle(cp => {
+            // Longer GCD to make sure this actually takes up the full cycle time
+            cp.use(fixedLonger);
+            cp.useUntil(fixed, 'end');
+        })
+        cp.remainingCycles(cp => {
+            cp.useUntil(fixed, 'end');
+        })
+        // Hacky lazy workaround
+        const displayRecords: readonly any[] = cp.finalizedRecords;
+        assert.equal(displayRecords[0].label, "-- Start of Cycle --");
+        assertClose(displayRecords[0].usedAt, -16.1);
+        assert.equal(displayRecords[1].ability.name, "Fixed Longer");
+        assertClose(displayRecords[1].usedAt, -16.1);
+        assert.equal(displayRecords[2].ability.name, "Fixed");
+        assertClose(displayRecords[2].usedAt, 3.90);
+        assert.equal(displayRecords[3].label, "-- End of Cycle --");
+        assertClose(displayRecords[3].usedAt, 14.00);
+
+        for (let i = 0; i < 3; i++) {
+            const base = 4 + i * 4;
+            assert.equal(displayRecords[base].label, "-- Start of Cycle --");
+            assertClose(displayRecords[base].usedAt, 14 + 30 * i);
+            assert.equal(displayRecords[base + 1].ability.name, "Fixed");
+            assertClose(displayRecords[base + 1].usedAt, 18.9 + 30 * i);
+            assert.equal(displayRecords[base + 2].ability.name, "Fixed");
+            assertClose(displayRecords[base + 2].usedAt, 33.9 + 30 * i);
+            assert.equal(displayRecords[base + 3].label, "-- End of Cycle --");
+            assertClose(displayRecords[base + 3].usedAt, 44 + 30 * i);
+        }
+
+        assert.equal(displayRecords[16].label, "-- Start of Cycle --");
+        assertClose(displayRecords[16].usedAt, 104);
+        assert.equal(displayRecords[17].ability.name, "Fixed");
+        assertClose(displayRecords[17].usedAt, 108.9);
+        assert.equal(displayRecords[18].label, "-- End of Cycle --");
+        assertClose(displayRecords[18].usedAt, 119);
+    });
+});

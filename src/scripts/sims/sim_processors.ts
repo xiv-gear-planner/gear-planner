@@ -168,11 +168,12 @@ export function abilityToDamageNew(stats: ComputedSetStats, ability: Ability, co
 
 export class CycleContext {
 
-    readonly cycleStartedAt: number;
+    cycleStartedAt: number;
     readonly cycleTime: number;
     readonly fightTimeRemainingAtCycleStart: number;
     readonly cycleNumber: number;
     readonly mcp: CycleProcessor;
+    private lastSeenPrepullOffset: number = 0;
 
     constructor(mcp: CycleProcessor, cycleTime: number) {
         this.cycleTime = cycleTime;
@@ -180,6 +181,14 @@ export class CycleContext {
         this.fightTimeRemainingAtCycleStart = mcp.totalTime - mcp.currentTime;
         this.cycleNumber = mcp.currentCycle;
         this.mcp = mcp;
+        this.lastSeenPrepullOffset = this.mcp.totalPrePullOffset;
+    }
+
+    private recheckPrepull() {
+        const newPrePullOffset = this.mcp.totalPrePullOffset;
+        const delta = newPrePullOffset - this.lastSeenPrepullOffset;
+        this.cycleStartedAt += delta;
+        this.lastSeenPrepullOffset = newPrePullOffset;
     }
 
     get overallFightTime() {
@@ -226,24 +235,35 @@ export class CycleContext {
     // }
 
     use(ability: Ability): AbilityUseResult {
-        return this.mcp.use(ability);
+        const use = this.mcp.use(ability);
+        this.recheckPrepull();
+        return use;
     }
 
     useUntil(ability: GcdAbility, useUntil: number | 'end') {
-        let correctedTime: number;
         if (useUntil == 'end') {
             useUntil = this.cycleTime;
         }
-        correctedTime = Math.min(this.cycleStartedAt + useUntil, this.cycleStartedAt + this.cycleTime, this.mcp.totalTime);
-        this.mcp.useUntil(ability, correctedTime);
+        const useUntilFinal = useUntil;
+        // TODO: when using align-first or align-full mode, and doing your pre-pull within a cycle, this needs to
+        //  be able to account for the time shift that occurs when the pre-pull offset is applied.
+        this.mcp.useWhile(ability, () => {
+            this.recheckPrepull();
+            const correctedEndTime = Math.min(this.cycleStartedAt + useUntilFinal, this.cycleStartedAt + this.cycleTime, this.mcp.totalTime);
+            return this.mcp.currentTime < correctedEndTime;
+        });
     }
 
     useGcd(ability: GcdAbility): AbilityUseResult {
-        return this.mcp.useGcd(ability);
+        const useGcd = this.mcp.useGcd(ability);
+        this.recheckPrepull();
+        return useGcd;
     }
 
     useOgcd(ability: OgcdAbility): AbilityUseResult {
-        return this.mcp.useOgcd(ability);
+        const useOgcd = this.mcp.useOgcd(ability);
+        this.recheckPrepull();
+        return useOgcd;
     }
 }
 
@@ -298,6 +318,7 @@ export class CycleProcessor {
     nextGcdTime: number = 0;
     nextAutoAttackTime: number = 0;
     pendingPrePullOffset: number = 0;
+    totalPrePullOffset: number = 0;
     gcdBase: number = NORMAL_GCD;
     readonly cycleTime: number;
     readonly allRecords: DisplayRecordUnf[] = [];
@@ -505,7 +526,13 @@ export class CycleProcessor {
     }
 
     useUntil(ability: GcdAbility, useUntil: number) {
-        while (this.nextGcdTime < useUntil && this.remainingGcdTime > 0) {
+        this.useWhile(ability, () => this.nextGcdTime < useUntil);
+    }
+
+    useWhile(ability: GcdAbility, useWhile: () => boolean) {
+        while (useWhile() && this.remainingGcdTime > 0) {
+            // TODO: when using align-first or align-full mode, and doing your pre-pull within a cycle, this needs to
+            //  be able to account for the time shift that occurs when the pre-pull offset is applied.
             this.use(ability);
         }
     }
@@ -725,13 +752,17 @@ export class CycleProcessor {
         if (this.pendingPrePullOffset === 0) {
             return;
         }
-        this.usedAbilities.forEach(used => {
+        this.allRecords.forEach(used => {
             used.usedAt += this.pendingPrePullOffset;
         });
         this.currentTime += this.pendingPrePullOffset;
         this.nextGcdTime += this.pendingPrePullOffset;
         this.nextAutoAttackTime += this.pendingPrePullOffset;
         this.cdTracker.timeShift(this.pendingPrePullOffset);
+        if (this.currentCycle >= 0) {
+            this.firstCycleStartTime += this.pendingPrePullOffset;
+        }
+        this.totalPrePullOffset += this.pendingPrePullOffset;
         this.pendingPrePullOffset = 0;
         // TODO: this will need to be updated to account for pre-pull self-buffs
         if (this.combatStarting) {
@@ -824,8 +855,7 @@ export class CycleProcessor {
     oneCycle(cycleFunction: CycleFunction) {
         if (this.currentCycle < 0) {
             this.currentCycle = 0;
-            // TODO prepull offset
-            this.firstCycleStartTime = 0
+            this.firstCycleStartTime = this.currentTime;
         }
         const expectedStartTime = this.cycleTime * this.currentCycle;
         const actualStartTime = this.currentTime;
@@ -837,8 +867,14 @@ export class CycleProcessor {
                 break;
             }
             case "align-to-first": {
-                const delta = actualStartTime - expectedStartTime + this.firstCycleStartTime;
-                cycleTime = this.cycleTime - delta;
+                if (this.currentCycle === 0) {
+                    cycleTime = this.cycleTime;
+                }
+                else {
+                    const adjustedExpectedStartTime = expectedStartTime + this.firstCycleStartTime
+                    const delta = actualStartTime - adjustedExpectedStartTime;
+                    cycleTime = this.cycleTime - delta;
+                }
                 break;
             }
             case "full-duration":
