@@ -207,26 +207,15 @@ export type BuffController = {
 }
 
 // TODO: refactor this into Buff and PartyBuff so that the fields used for the party buffs (job, CD) can be untangled
-export type Buff = Readonly<{
+export type BaseBuff = Readonly<{
     /** Name of buff */
     name: string,
-    /** Job of buff */
-    job: JobName,
-    /** "Optional" would be things like DNC partner buffs, where merely having the job
-     // in your comp does not mean you would necessarily get the buff. */
-    optional?: boolean,
     /** Can only apply to self - not a party/targeted buff */
     selfOnly?: boolean,
-    /** Cooldown */
-    cooldown: number,
     /** Duration */
     duration: number,
     /** The effect(s) of the buff */
     effects: BuffEffects,
-    /**
-     * Time of usage - can be omitted for buffs that would only be used by self and never auto-activated
-     */
-    startTime?: number,
     /**
      * Filter what abilities this buff applies to
      *
@@ -270,3 +259,22 @@ export type Buff = Readonly<{
     statusId?: number
 
 }>;
+
+export type PartyBuff = BaseBuff & Readonly<{
+    /** Job of buff */
+    job: JobName,
+    /** Cooldown */
+    cooldown: number,
+    /** "Optional" would be things like DNC partner buffs, where merely having the job
+     // in your comp does not mean you would necessarily get the buff. */
+    optional?: boolean,
+
+    selfOnly: false
+    /**
+     * Time of usage - can be omitted for buffs that would only be used by self and never auto-activated
+     */
+    startTime?: number,
+
+}>
+
+export type Buff = BaseBuff | PartyBuff;
