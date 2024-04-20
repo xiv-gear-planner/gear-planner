@@ -183,7 +183,7 @@ export class DataManager {
                         item.applyIlvlData(native, sync);
                         if (item.isCustomRelic) {
                             console.log('Applying relic model')
-                            item.relicStatModel = getRelicStatModelFor(item, this.baseParams);
+                            item.relicStatModel = getRelicStatModelFor(item, this.baseParams, this.classJob);
                             console.log('Applied', item.relicStatModel)
                         }
                     }));
@@ -193,7 +193,7 @@ export class DataManager {
                         item.applyIlvlData(native);
                         if (item.isCustomRelic) {
                             console.log('Applying relic model')
-                            item.relicStatModel = getRelicStatModelFor(item, this.baseParams);
+                            item.relicStatModel = getRelicStatModelFor(item, this.baseParams, this.classJob);
                             console.log('Applied', item.relicStatModel)
                         }
                     }));
