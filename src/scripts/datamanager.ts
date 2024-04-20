@@ -21,7 +21,15 @@ export function queryBaseParams() {
     });
 }
 
+/**
+ * Mapping from gear slot to the stat 'weighting' of that gear slot for a particular base param.
+ *
+ * These values are usually between 67 and 140 (excluding shields).
+ */
 export type BaseParamInfo = Record<OccGearSlotKey, number>
+/**
+ * Mapping for BaseParam to BaseParamInfo.
+ */
 export type BaseParamMap = { [rawStat in RawStatKey]?: BaseParamInfo }
 
 export class DataManager {

@@ -16,25 +16,55 @@ type BaseRelicStatModel = {
     validate(item: EquippedItem, statToReport?: Substat): string[]
 }
 
+/**
+ * Relic stat model for Endwalker-style relics, where you have X 'large' stats, and Y 'small' stats.
+ */
 type EwRelicStatModel = BaseRelicStatModel & {
     type: 'ewrelic'
-    smallValue: number
+    /**
+     * The stat value of the 'large' stats (typically the stat cap).
+     */
     largeValue: number
+    /**
+     * The stat value of the 'small' stats.
+     */
+    smallValue: number
+    /**
+     * The maximum number of large stats.
+     */
     numLarge: number
+    /**
+     * The maximum number of small stats.
+     */
     numSmall: number
 }
 
+/**
+ * Relic stat model for pre-EW relics, where you get to allocate stats as you wish as
+ * long as the total remains below a cap, and no individual stat goes over the normal
+ * stat cap.
+ */
 type CustomRelicStatModel = BaseRelicStatModel & {
     type: 'customrelic'
+    /**
+     * The cap for total stats.
+     */
     totalCap: number
 }
 
+/**
+ * Generic model for all unknown relics. The only validation performed is that no individual stat
+ * is over the stat cap.
+ */
 type UnknownRelicStatModel = BaseRelicStatModel & {
     type: 'unknown'
 }
 
 type PartialRelicStatModel = EwRelicStatModel | CustomRelicStatModel | UnknownRelicStatModel
 
+/**
+ * Final type for relic stat models.
+ */
 export type RelicStatModel = PartialRelicStatModel & {
     excludedStats: readonly Substat[]
 }
@@ -137,6 +167,13 @@ function customRelic(total: number): CustomRelicStatModel {
     }
 }
 
+/**
+ * Get a relic stat model for an item
+ *
+ * @param gearItem The item
+ * @param baseParams Data for BaseParams
+ * @param job The job
+ */
 export function getRelicStatModelFor(gearItem: GearItem, baseParams: BaseParamMap, job: JobName): RelicStatModel | null {
     const partial = getRelicStatModelForPartial(gearItem, baseParams);
     if (partial === null) {
