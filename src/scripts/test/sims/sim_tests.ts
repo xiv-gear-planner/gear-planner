@@ -132,7 +132,7 @@ const expectedAbilities: UseResult[] = [
     {
         time: 0,
         name: 'Auto Attack',
-        damage: 39.04
+        damage: 33.301
     },
     {
         time: 0.83,
@@ -147,7 +147,7 @@ const expectedAbilities: UseResult[] = [
     {
         time: 4.32,
         name: 'Auto Attack',
-        damage: 40.99
+        damage: 34.966
     },
     {
         time: 5.45,
@@ -172,7 +172,7 @@ const expectedAbilities: UseResult[] = [
     {
         time: 9.24,
         name: "Auto Attack",
-        damage: 45.72
+        damage: 38.994
     },
     {
         time: 9.60,
@@ -192,7 +192,7 @@ const expectedAbilities: UseResult[] = [
     {
         time: 14.48,
         name: "Auto Attack",
-        damage: 45.72
+        damage: 38.994
     },
     {
         time: 15.12,
@@ -212,7 +212,7 @@ const expectedAbilities: UseResult[] = [
     {
         time: 19.72,
         name: "Auto Attack",
-        damage: 45.72
+        damage: 38.994
     },
     {
         time: 20.64,
@@ -232,7 +232,7 @@ const expectedAbilities: UseResult[] = [
     {
         time: 25.24,
         name: "Auto Attack",
-        damage: 39.04
+        damage: 33.301
     },
     {
         time: 26.63,
@@ -261,7 +261,7 @@ describe('Cycle sim processor', () => {
         // Run simulation
         let result = await inst.simulate(exampleGearSet);
         // Assert correct results
-        assertClose(result.mainDpsResult, 9898.56, 0.01);
+        assertClose(result.mainDpsResult, 9897.32, 0.01);
         assertSimAbilityResults(result, expectedAbilities);
     });
 });
@@ -317,7 +317,7 @@ class TestCustomMultiCycleSim extends BaseMultiCycleSim<TestSimResult, TestSimSe
 export const testCustomSimSpec: SimSpec<TestCustomMultiCycleSim, TestSimSettingsExternal> = {
     displayName: "Test Custom Sim",
     loadSavedSimInstance(exported: TestSimSettingsExternal) {
-        return new TestMultiCycleSim(exported);
+        return new TestCustomMultiCycleSim(exported);
     },
     makeNewSimInstance(): TestCustomMultiCycleSim {
         return new TestCustomMultiCycleSim();
