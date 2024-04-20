@@ -687,7 +687,7 @@ export class BLUCycleProcessor extends CycleProcessor {
                 potency: this.wingedCounter < 3 ? 300 : 400,
                 cooldown: {
                     ...WingedReprobation.cooldown,
-                    time: this.wingedCounter < 3 ? 0 : 90,
+                    time: this.wingedCounter < 3 ? 0 : 90, // TODO: this doesn't work as expected
                 }
             }
             const out = super.use(modified);

@@ -105,7 +105,6 @@ export class BluWinged120Sim extends blu.BluSim<BluWinged120SimResult, BluWinged
 
         // use Rose of Destruction if off cooldown
         if (cp.cdTracker.canUse(blu.RoseOfDestruction, cp.nextGcdTime)) {
-
             cp.use(blu.RoseOfDestruction);
             return;
         }
