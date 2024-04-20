@@ -295,7 +295,7 @@ class CooldownTracker {
 export class RprSheetSim extends BaseMultiCycleSim<RprSheetSimResult, RprNewSheetSettings> {
 
     spec = rprSheetSpec;
-    shortName: "rpr-sheet-sim";
+    shortName = "rpr-sheet-sim";
     displayName = rprSheetSpec.displayName;
     manuallyActivatedBuffs = [ArcaneCircle];
 

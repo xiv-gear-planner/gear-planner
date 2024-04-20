@@ -109,7 +109,8 @@ const STANDARD_HEALER: JobDataConst = {
     itemStatCapMultipliers: {
         'vitality': 0.90
     },
-    aaPotency: MELEE_AUTO_POTENCY
+    aaPotency: MELEE_AUTO_POTENCY,
+    excludedRelicSubstats: ['dhit'],
 } as const;
 
 const STANDARD_TANK: JobDataConst = {
@@ -118,7 +119,8 @@ const STANDARD_TANK: JobDataConst = {
     autoAttackStat: 'strength',
     irrelevantSubstats: ['spellspeed', 'piety'],
     // traitMulti: TODO: Tank Mastery?
-    aaPotency: MELEE_AUTO_POTENCY
+    aaPotency: MELEE_AUTO_POTENCY,
+    excludedRelicSubstats: ['dhit'],
 } as const;
 
 const STANDARD_MELEE: JobDataConst = {
@@ -126,7 +128,8 @@ const STANDARD_MELEE: JobDataConst = {
     mainStat: 'strength',
     autoAttackStat: 'strength',
     irrelevantSubstats: ['spellspeed', 'tenacity', 'piety'],
-    aaPotency: MELEE_AUTO_POTENCY
+    aaPotency: MELEE_AUTO_POTENCY,
+    excludedRelicSubstats: [],
 } as const;
 
 const STANDARD_RANGED: JobDataConst = {
@@ -135,7 +138,8 @@ const STANDARD_RANGED: JobDataConst = {
     autoAttackStat: 'dexterity',
     irrelevantSubstats: ['spellspeed', 'tenacity', 'piety'],
     traitMulti: (level, attackType) => attackType === 'Auto-attack' ? 1.0 :  1.2, // Increased Action Damage II
-    aaPotency: RANGE_AUTO_POTENCY
+    aaPotency: RANGE_AUTO_POTENCY,
+    excludedRelicSubstats: [],
 } as const;
 
 const STANDARD_CASTER: JobDataConst = {
@@ -147,7 +151,8 @@ const STANDARD_CASTER: JobDataConst = {
     itemStatCapMultipliers: {
         'vitality': 0.90
     },
-    aaPotency: MELEE_AUTO_POTENCY
+    aaPotency: MELEE_AUTO_POTENCY,
+    excludedRelicSubstats: [],
 } as const;
 
 
