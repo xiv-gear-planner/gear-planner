@@ -269,6 +269,10 @@ export class CycleContext {
         this.recheckPrepull();
         return useOgcd;
     }
+
+    get elapsedTime(): number {
+        return this.mcp.currentTime - this.cycleStartedAt;
+    }
 }
 
 export type AbilityUseResult = 'full' | 'partial' | 'none';

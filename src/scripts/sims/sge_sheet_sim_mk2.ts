@@ -108,16 +108,39 @@ export class SgeSheetSim extends BaseMultiCycleSim<SgeSheetSimResult, SgeNewShee
             apply(cp: CycleProcessor) {
                 cp.useGcd(filler);
                 cp.remainingCycles(cycle => {
+                    // TODO: improve this logic
+                    /*
+                    DoT only worth it over an extra dosis if you have at least 13.2 seconds left on fight (on average).
+                    Make sure last Phlegma is dumped before fight ends.
+                    Make custom CycleProcessor with methods such as:
+                    - Use DoT when worth it
+                    - Use one Phlegma if available
+                    - Use both Phlegmas if available
+                     */
+                    // Worth dotting if
                     cycle.use(eDosis);
                     cycle.use(filler);
                     cycle.use(filler);
-                    cycle.use(phlegma);
-                    cycle.use(phlegma);
+                    while (cycle.elapsedTime < 25) {
+                        if (cp.cdTracker.canUse(phlegma)) {
+                            cycle.use(phlegma);
+                        }
+                        else {
+                            cycle.use(filler);
+                        }
+                    }
                     cycle.useUntil(filler, 30);
                     cycle.use(eDosis);
                     cycle.useUntil(filler, 60);
                     cycle.use(eDosis);
-                    cycle.use(phlegma);
+                    while (cycle.elapsedTime < 85) {
+                        if (cp.cdTracker.canUse(phlegma)) {
+                            cycle.use(phlegma);
+                        }
+                        else {
+                            cycle.use(filler);
+                        }
+                    }
                     cycle.useUntil(filler, 90);
                     cycle.use(eDosis);
                     cycle.useUntil(filler, 'end');
