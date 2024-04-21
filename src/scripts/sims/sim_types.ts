@@ -269,7 +269,7 @@ export type PartyBuff = BaseBuff & Readonly<{
      // in your comp does not mean you would necessarily get the buff. */
     optional?: boolean,
 
-    selfOnly: false
+    selfOnly: false,
     /**
      * Time of usage - can be omitted for buffs that would only be used by self and never auto-activated
      */
