@@ -2,7 +2,7 @@ import {GearItem, Substat} from "../geartypes";
 import {BaseParamMap} from "../datamanager";
 import {CharacterGearSet, EquippedItem} from "../gear";
 import {FieldBoundDataSelect, FieldBoundIntField} from "../components/util";
-import {ALL_SUB_STATS, STAT_ABBREVIATIONS} from "../xivconstants";
+import {ALL_SUB_STATS, getClassJobStats, JobName, STAT_ABBREVIATIONS, STAT_FULL_NAMES} from "../xivconstants";
 
 type BaseRelicStatModel = {
     /**
@@ -16,24 +16,58 @@ type BaseRelicStatModel = {
     validate(item: EquippedItem, statToReport?: Substat): string[]
 }
 
+/**
+ * Relic stat model for Endwalker-style relics, where you have X 'large' stats, and Y 'small' stats.
+ */
 type EwRelicStatModel = BaseRelicStatModel & {
     type: 'ewrelic'
-    smallValue: number
+    /**
+     * The stat value of the 'large' stats (typically the stat cap).
+     */
     largeValue: number
+    /**
+     * The stat value of the 'small' stats.
+     */
+    smallValue: number
+    /**
+     * The maximum number of large stats.
+     */
     numLarge: number
+    /**
+     * The maximum number of small stats.
+     */
     numSmall: number
 }
 
+/**
+ * Relic stat model for pre-EW relics, where you get to allocate stats as you wish as
+ * long as the total remains below a cap, and no individual stat goes over the normal
+ * stat cap.
+ */
 type CustomRelicStatModel = BaseRelicStatModel & {
     type: 'customrelic'
+    /**
+     * The cap for total stats.
+     */
     totalCap: number
 }
 
+/**
+ * Generic model for all unknown relics. The only validation performed is that no individual stat
+ * is over the stat cap.
+ */
 type UnknownRelicStatModel = BaseRelicStatModel & {
     type: 'unknown'
 }
 
-export type RelicStatModel = EwRelicStatModel | CustomRelicStatModel | UnknownRelicStatModel
+type PartialRelicStatModel = EwRelicStatModel | CustomRelicStatModel | UnknownRelicStatModel
+
+/**
+ * Final type for relic stat models.
+ */
+export type RelicStatModel = PartialRelicStatModel & {
+    excludedStats: readonly Substat[]
+}
 
 
 function ewRelic(large: number, small: number): EwRelicStatModel {
@@ -133,8 +167,45 @@ function customRelic(total: number): CustomRelicStatModel {
     }
 }
 
-// TODO: you need to not be able to edit certain stats, like DH for healers
-export function getRelicStatModelFor(gearItem: GearItem, baseParams: BaseParamMap): RelicStatModel | null {
+/**
+ * Get a relic stat model for an item
+ *
+ * @param gearItem The item
+ * @param baseParams Data for BaseParams
+ * @param job The job
+ */
+export function getRelicStatModelFor(gearItem: GearItem, baseParams: BaseParamMap, job: JobName): RelicStatModel | null {
+    const partial = getRelicStatModelForPartial(gearItem, baseParams);
+    if (partial === null) {
+        return null;
+    }
+    else {
+        const jobData = getClassJobStats(job);
+        return {
+            excludedStats: jobData.excludedRelicSubstats,
+            ...partial,
+            validate(item: EquippedItem, statToReport?: Substat): string[] {
+                const failures = [...partial.validate(item, statToReport)];
+                const relicStats = item.relicStats;
+                if (statToReport) {
+                    if (relicStats[statToReport] && jobData.excludedRelicSubstats.includes(statToReport)) {
+                        failures.push(`${STAT_FULL_NAMES[statToReport]} is not available on ${jobData.role.toLowerCase()} relics.`);
+                    }
+                }
+                else {
+                    for (let entry of Object.entries(relicStats)) {
+                        const stat = entry[0] as Substat;
+                        if (entry[1] && jobData.excludedRelicSubstats.includes(stat)) {
+                            failures.push(`Stat ${STAT_FULL_NAMES[stat]} is not available on ${jobData.role.toLowerCase()} relics.`);
+                        }
+                    }
+                }
+                return failures;
+            }
+        }
+    }
+}
+function getRelicStatModelForPartial(gearItem: GearItem, baseParams: BaseParamMap): PartialRelicStatModel | null {
     if (!gearItem.isCustomRelic) {
         return null;
     }
@@ -172,7 +243,15 @@ export function getRelicStatModelFor(gearItem: GearItem, baseParams: BaseParamMa
 
 export function makeRelicStatEditor(equipment: EquippedItem, stat: Substat, set: CharacterGearSet): HTMLElement {
     const gearItem = equipment.gearItem;
-    if (gearItem.relicStatModel.type === 'unknown' || gearItem.relicStatModel.type === 'customrelic') {
+    // If the stat is excluded, disable editing ONLY if the user had not already entered a value. Otherwise, they'd be
+    // stuck with a value that they can't clear.
+    if (gearItem.relicStatModel.type && gearItem.relicStatModel.excludedStats.includes(stat) && !equipment.relicStats[stat]) {
+        const div = document.createElement('div');
+        div.classList.add('relic-stat-excluded');
+        div.title = 'You cannot use this relic stat on this class';
+        return div;
+    }
+    else if (gearItem.relicStatModel.type === 'unknown' || gearItem.relicStatModel.type === 'customrelic') {
         const inputSubstatCap = gearItem.unsyncedVersion.statCaps[stat] ?? 1000;
         const input = new FieldBoundIntField(equipment.relicStats, stat, {
             postValidators: [ctx => {
@@ -263,7 +342,6 @@ export function makeRelicStatEditor(equipment: EquippedItem, stat: Substat, set:
                 const inputs = row.querySelectorAll('select, input');
                 console.log('inputs', [])
                 inputs.forEach(inp => {
-                    console.log('foo')
                     const reval = inp['revalidate'];
                     if (reval) {
                         reval();

@@ -1,6 +1,10 @@
 import {BaseMultiCycleSim, CycleSimResult, DisplayRecordFinalized} from "../sims/sim_processors";
 import {FinalizedAbility, PartyBuff} from "../sims/sim_types";
 import {isClose} from "./test_utils";
+import {BaseMultiCycleSim, CycleSimResult, DisplayRecordFinalized} from "../../sims/sim_processors";
+import {Buff, FinalizedAbility} from "../../sims/sim_types";
+import {isClose} from "../test_utils";
+import assert from "assert";
 
 /**
  * Type that represents the time, name, and damage of an ability

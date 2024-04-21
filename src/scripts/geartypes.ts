@@ -412,17 +412,50 @@ export type Mainstat = typeof MAIN_STATS[number];
 export type Substat = (typeof FAKE_MAIN_STATS[number] | typeof SPECIAL_SUB_STATS[number]);
 
 export interface JobDataConst {
+    /**
+     * The role of the job
+     */
     readonly role: RoleKey,
+    /**
+     * The primary stat
+     */
     readonly mainStat: Mainstat;
+    /**
+     * The primary stat as used for auto-attack calculations specifically
+     */
     readonly autoAttackStat: Mainstat;
+    /**
+     * Optional function to apply a damage multiplication trait.
+     */
     readonly traitMulti?: (level: number, attackType: AttackType) => number;
+    /**
+     * Optional list of stat-modifying traits
+     */
     readonly traits?: readonly JobTrait[];
+    /**
+     * Substats which are completely irrelevant to this class, e.g. TNC on non-tanks
+     */
     readonly irrelevantSubstats?: readonly Substat[];
+    /**
+     * True if this class uses 1H+Offhand rather than 2H weapons
+     */
     readonly offhand?: boolean;
+    /**
+     * Stat cap multipliers. e.g. Healers have a 10% VIT penalty, so it would be {'Vitality': 0.90}
+     */
     readonly itemStatCapMultipliers?: {
         [K in RawStatKey]?: number
     };
-    readonly aaPotency: number
+    /**
+     * Auto-attack potency amount
+     */
+    readonly aaPotency: number;
+    /**
+     * Substats which are NOT already in {@link irrelevantSubstats}, but which cannot be put onto custom relics.
+     *
+     * e.g. Healers and Tanks cannot put DHit on their custom relics.
+     */
+    readonly excludedRelicSubstats: readonly Substat[]
 }
 
 export type JobMultipliers = {

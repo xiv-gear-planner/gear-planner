@@ -1,27 +1,25 @@
-// REQUIRED - sets up fake HTML classes
 import 'global-jsdom/register'
+import {Ability, Buff, BuffController, FinalizedAbility, GcdAbility, OgcdAbility} from "../../sims/sim_types";
 import {it} from "mocha";
-import {SimSettings, SimSpec} from "../simulation";
-import {Ability, Buff, BuffController, FinalizedAbility, GcdAbility, OgcdAbility} from "../sims/sim_types";
-import {CharacterGearSet} from "../gear";
-import {JobMultipliers} from "../geartypes";
-import {finalizeStats} from "../xivstats";
-import {getClassJobStats, getLevelStats} from "../xivconstants";
-
 import {
     BaseMultiCycleSim,
     CycleProcessor,
     CycleSimResult,
     DamageResult,
-    ExternalCycleSettings,
-    Rotation
-} from "../sims/sim_processors";
-import {assertClose, makeFakeSet} from "./test_utils";
+    ExternalCycleSettings, Rotation
+} from "../../sims/sim_processors";
 import * as assert from "assert";
-import {Divination, Litany, Mug} from "../sims/buffs";
+import {assertClose, makeFakeSet} from "../test_utils";
 import {assertSimAbilityResults, setPartyBuffEnabled, UseResult} from "./sim_test_utils";
-import {Swiftcast} from "../sims/common/swiftcast";
-import {removeSelf} from "../sims/common/utils";
+import {SimSettings, SimSpec} from "../../simulation";
+import {JobMultipliers} from "../../geartypes";
+import {finalizeStats} from "../../xivstats";
+import {getClassJobStats, getLevelStats} from "../../xivconstants";
+import {CharacterGearSet} from "../../gear";
+import {Divination, Litany, Mug} from "../../sims/buffs";
+import {exampleGearSet} from "./common_values";
+import {Swiftcast} from "../../sims/common/swiftcast";
+import {removeSelf} from "../../sims/common/utils";
 
 // Example of end-to-end simulation
 // This one is testing the simulation engine itself, so it copies the full simulation code rather than
@@ -414,7 +412,7 @@ describe('Swiftcast', () => {
         const cp = new CycleProcessor({
             allBuffs: [],
             cycleTime: 30,
-            stats: set.computedStats,
+            stats: exampleGearSet.computedStats,
             totalTime: 120,
             useAutos: false
         });
@@ -460,7 +458,7 @@ describe('Swiftcast', () => {
         const cp = new CycleProcessor({
             allBuffs: [],
             cycleTime: 30,
-            stats: set.computedStats,
+            stats: exampleGearSet.computedStats,
             totalTime: 120,
             useAutos: false
         });
@@ -496,7 +494,7 @@ describe('Swiftcast', () => {
         const cp = new CycleProcessor({
             allBuffs: [],
             cycleTime: 30,
-            stats: set.computedStats,
+            stats: exampleGearSet.computedStats,
             totalTime: 120,
             useAutos: false
         });
@@ -538,7 +536,7 @@ describe('Swiftcast', () => {
         const cp = new CycleProcessor({
             allBuffs: [],
             cycleTime: 30,
-            stats: set.computedStats,
+            stats: exampleGearSet.computedStats,
             totalTime: 120,
             useAutos: false
         });
@@ -612,7 +610,7 @@ describe('Potency Buff Ability', () => {
         const cp = new CycleProcessor({
             allBuffs: [],
             cycleTime: 30,
-            stats: set.computedStats,
+            stats: exampleGearSet.computedStats,
             totalTime: 120,
             useAutos: false
         });
@@ -710,7 +708,7 @@ describe('Damage Buff Ability', () => {
         const cp = new CycleProcessor({
             allBuffs: [],
             cycleTime: 30,
-            stats: set.computedStats,
+            stats: exampleGearSet.computedStats,
             totalTime: 120,
             useAutos: false
         });
@@ -740,7 +738,7 @@ describe('Damage Buff Ability', () => {
         const cp = new CycleProcessor({
             allBuffs: [],
             cycleTime: 30,
-            stats: set.computedStats,
+            stats: exampleGearSet.computedStats,
             totalTime: 120,
             useAutos: false
         });
@@ -769,7 +767,7 @@ describe('Damage Buff Ability', () => {
         const cp = new CycleProcessor({
             allBuffs: [],
             cycleTime: 30,
-            stats: set.computedStats,
+            stats: exampleGearSet.computedStats,
             totalTime: 120,
             useAutos: false
         });
@@ -807,7 +805,7 @@ describe('Damage Buff Ability', () => {
         const cp = new CycleProcessor({
             allBuffs: [],
             cycleTime: 30,
-            stats: set.computedStats,
+            stats: exampleGearSet.computedStats,
             totalTime: 120,
             useAutos: false
         });
@@ -844,7 +842,7 @@ describe('Special record', () => {
         const cp = new CycleProcessor({
             allBuffs: [],
             cycleTime: 30,
-            stats: set.computedStats,
+            stats: exampleGearSet.computedStats,
             totalTime: 120,
             useAutos: false
         });
