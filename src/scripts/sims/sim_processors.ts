@@ -184,11 +184,13 @@ export class CycleContext {
         this.lastSeenPrepullOffset = this.mcp.totalPrePullOffset;
     }
 
-    private recheckPrepull() {
+    recheckPrepull() {
         const newPrePullOffset = this.mcp.totalPrePullOffset;
         const delta = newPrePullOffset - this.lastSeenPrepullOffset;
-        this.cycleStartedAt += delta;
-        this.lastSeenPrepullOffset = newPrePullOffset;
+        if (delta !== 0) {
+            this.cycleStartedAt += delta;
+            this.lastSeenPrepullOffset = newPrePullOffset;
+        }
     }
 
     get overallFightTime() {
@@ -252,6 +254,7 @@ export class CycleContext {
             const correctedEndTime = Math.min(this.cycleStartedAt + useUntilFinal, this.cycleStartedAt + this.cycleTime, this.mcp.totalTime);
             return this.mcp.currentTime < correctedEndTime;
         });
+        this.recheckPrepull();
     }
 
     useGcd(ability: GcdAbility): AbilityUseResult {
@@ -308,6 +311,12 @@ type CycleLengthMode = 'align-absolute'
     | 'align-to-first'
     | 'full-duration';
 
+export type CycleInfo = {
+    readonly cycleNum: number,
+    start: number,
+    end: number | null,
+}
+
 export class CycleProcessor {
 
     /**
@@ -334,6 +343,7 @@ export class CycleProcessor {
     private _cdEnforcementMode: CooldownMode;
     cycleLengthMode: CycleLengthMode = 'align-absolute';
     private firstCycleStartTime: number = 0;
+    private cycles: CycleInfo[] = [];
 
     constructor(private settings: MultiCycleSettings) {
         // TODO: set enforcement mode
@@ -763,6 +773,12 @@ export class CycleProcessor {
             this.firstCycleStartTime += this.pendingPrePullOffset;
         }
         this.totalPrePullOffset += this.pendingPrePullOffset;
+        this.cycles.forEach(cycle => {
+            cycle.start += this.pendingPrePullOffset;
+            if (cycle.end !== null) {
+                cycle.end += this.pendingPrePullOffset;
+            }
+        })
         this.pendingPrePullOffset = 0;
         // TODO: this will need to be updated to account for pre-pull self-buffs
         if (this.combatStarting) {
@@ -806,6 +822,10 @@ export class CycleProcessor {
                 this.dotMap.set(dotId, usedAbility);
             }
         }
+    }
+
+    get cycleRecords() {
+        return [...this.cycles];
     }
 
     private finalize() {
@@ -888,13 +908,22 @@ export class CycleProcessor {
             label: "-- Start of Cycle --",
             usedAt: this.currentTime,
         });
+        const cycleInfo: CycleInfo = {
+            cycleNum: this.currentCycle,
+            start: this.currentTime,
+            end: null
+        }
+        this.cycles.push(cycleInfo);
         cycleFunction(ctx);
+        ctx.recheckPrepull();
         this.allRecords.push({
             label: "-- End of Cycle --",
             usedAt: this.currentTime,
         });
+        cycleInfo.end = this.currentTime;
         this.currentCycle++;
     }
+
 
     remainingCycles(cycleFunction: CycleFunction) {
         while (this.remainingGcdTime > 0) {
