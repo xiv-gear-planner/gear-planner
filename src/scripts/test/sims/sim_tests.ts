@@ -132,7 +132,7 @@ const expectedAbilities: UseResult[] = [
     {
         time: 0,
         name: 'Auto Attack',
-        damage: 33.30
+        damage: 33.301
     },
     {
         time: 0.83,
@@ -147,7 +147,7 @@ const expectedAbilities: UseResult[] = [
     {
         time: 4.32,
         name: 'Auto Attack',
-        damage: 34.97
+        damage: 34.966
     },
     {
         time: 5.45,
@@ -172,7 +172,7 @@ const expectedAbilities: UseResult[] = [
     {
         time: 9.24,
         name: "Auto Attack",
-        damage: 38.99
+        damage: 38.994
     },
     {
         time: 9.60,
@@ -192,7 +192,7 @@ const expectedAbilities: UseResult[] = [
     {
         time: 14.48,
         name: "Auto Attack",
-        damage: 38.99
+        damage: 38.994
     },
     {
         time: 15.12,
@@ -212,7 +212,7 @@ const expectedAbilities: UseResult[] = [
     {
         time: 19.72,
         name: "Auto Attack",
-        damage: 38.99
+        damage: 38.994
     },
     {
         time: 20.64,
@@ -232,7 +232,7 @@ const expectedAbilities: UseResult[] = [
     {
         time: 25.24,
         name: "Auto Attack",
-        damage: 33.30
+        damage: 33.301
     },
     {
         time: 26.63,

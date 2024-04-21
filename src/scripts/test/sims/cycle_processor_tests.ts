@@ -1,12 +1,389 @@
 import 'global-jsdom/register'
-import {Ability, Buff, BuffController, FinalizedAbility, GcdAbility} from "../../sims/sim_types";
+import {Ability, Buff, BuffController, FinalizedAbility, GcdAbility, OgcdAbility} from "../../sims/sim_types";
 import {it} from "mocha";
-import {CycleProcessor, DamageResult} from "../../sims/sim_processors";
-import {Swiftcast} from "../../sims/common/swiftcast";
+import {
+    BaseMultiCycleSim,
+    CycleProcessor,
+    CycleSimResult,
+    DamageResult,
+    ExternalCycleSettings, Rotation
+} from "../../sims/sim_processors";
 import * as assert from "assert";
-import {assertClose} from "../test_utils";
+import {assertClose, makeFakeSet} from "../test_utils";
+import {assertSimAbilityResults, setPartyBuffEnabled, UseResult} from "./sim_test_utils";
+import {SimSettings, SimSpec} from "../../simulation";
+import {JobMultipliers} from "../../geartypes";
+import {finalizeStats} from "../../xivstats";
+import {getClassJobStats, getLevelStats} from "../../xivconstants";
+import {CharacterGearSet} from "../../gear";
+import {Divination, Litany, Mug} from "../../sims/buffs";
+import {exampleGearSet} from "./common_values";
+import {Swiftcast} from "../../sims/common/swiftcast";
 import {removeSelf} from "../../sims/common/utils";
-import {dia, exampleGearSet, filler, weaponSkill} from "./common_values";
+
+// Example of end-to-end simulation
+// This one is testing the simulation engine itself, so it copies the full simulation code rather than
+// referencing it. If you wish to test an actual simulation, you would want to reference it directly.
+
+// Set up a simulation
+interface TestSimSettings extends SimSettings {
+}
+
+export interface TestSimSettingsExternal extends ExternalCycleSettings<TestSimSettings> {
+}
+
+const filler: GcdAbility = {
+    type: 'gcd',
+    name: "Glare",
+    potency: 310,
+    attackType: "Spell",
+    gcd: 2.5,
+    cast: 1.5
+}
+
+const weaponSkill: GcdAbility = {
+    type: 'gcd',
+    name: "WepSkill",
+    potency: 310,
+    attackType: "Weaponskill",
+    gcd: 2.5,
+    cast: 1.5
+}
+
+const nop: GcdAbility = {
+    type: 'gcd',
+    name: "NOP",
+    potency: null,
+    attackType: "Spell",
+    gcd: 2.5,
+    cast: 2.0
+}
+
+const dia: GcdAbility = {
+    type: 'gcd',
+    name: "Dia",
+    potency: 65,
+    dot: {
+        id: 1871,
+        tickPotency: 65,
+        duration: 30
+    },
+    attackType: "Spell",
+    gcd: 2.5,
+}
+
+const assize: OgcdAbility = {
+    type: 'ogcd',
+    name: "Assize",
+    potency: 400,
+    attackType: "Ability"
+}
+
+const pom: OgcdAbility = {
+    type: 'ogcd',
+    name: 'Presence of Mind',
+    potency: null,
+    activatesBuffs: [
+        {
+            name: "Presence of Mind",
+            selfOnly: true,
+            duration: 15,
+            effects: {
+                haste: 20,
+            },
+        }
+    ],
+    attackType: "Ability"
+}
+
+const misery: GcdAbility = {
+    type: 'gcd',
+    name: "Afflatus Misery",
+    potency: 1240,
+    attackType: "Spell",
+    gcd: 2.5,
+}
+
+const lily: GcdAbility = {
+    type: 'gcd',
+    name: "Afflatus Rapture",
+    potency: 0,
+    attackType: "Spell",
+    gcd: 2.5,
+}
+
+export const testSimSpec: SimSpec<TestMultiCycleSim, TestSimSettingsExternal> = {
+    displayName: "Test WHM Sim",
+    loadSavedSimInstance(exported: TestSimSettingsExternal) {
+        return new TestMultiCycleSim(exported);
+    },
+    makeNewSimInstance(): TestMultiCycleSim {
+        return new TestMultiCycleSim();
+    },
+    stub: "test-whm-sim",
+    supportedJobs: ['WHM'],
+    isDefaultSim: false
+}
+
+export interface TestSimResult extends CycleSimResult {
+}
+
+class TestMultiCycleSim extends BaseMultiCycleSim<TestSimResult, TestSimSettings> {
+    spec = testSimSpec;
+    displayName = testSimSpec.displayName;
+    shortName = "WHM-new-sheet-sim";
+
+    constructor(settings?: TestSimSettingsExternal) {
+        super('WHM', settings);
+    }
+
+    makeDefaultSettings(): TestSimSettings {
+        return {};
+    }
+
+    getRotationsToSimulate(): Rotation[] {
+        return [{
+            cycleTime: 120,
+            apply(cp: CycleProcessor) {
+                // These should NOT start combat because their damage === null
+                cp.use(nop);
+                cp.use(nop);
+                cp.use(nop);
+                cp.use(filler);
+                cp.remainingCycles(cycle => {
+                    cycle.use(dia);
+                    cycle.use(filler);
+                    cycle.use(filler);
+                    cycle.useOgcd(pom);
+                    cycle.use(filler);
+                    cycle.use(assize);
+                    if (cycle.cycleNumber > 0) {
+                        cycle.use(misery);
+                    }
+                    cycle.useUntil(filler, 30);
+                    cycle.use(dia);
+                    cycle.use(lily); //3 lilys out of buffs to make up for misery in buffs, actual placement isn't specific
+                    cycle.use(lily);
+                    cycle.use(lily);
+                    cycle.useUntil(filler, 50);
+                    cycle.use(assize);
+                    cycle.useUntil(filler, 60);
+                    cycle.use(dia);
+                    cycle.useUntil(filler, 70);
+                    cycle.use(misery);
+                    cycle.useUntil(filler, 90);
+                    cycle.use(dia);
+                    cycle.use(assize);
+                    if (cycle.cycleNumber > 1) {
+                        cycle.use(lily);
+                        cycle.use(lily);
+                        cycle.use(lily);
+                    }
+                    cycle.useUntil(filler, 'end');
+                });
+            }
+
+        }];
+    }
+}
+
+// Replace data that would normally be loaded from xivapi with fixed data
+const jobStatMultipliers: JobMultipliers = {
+    dexterity: 105,
+    hp: 105,
+    intelligence: 105,
+    mind: 115,
+    strength: 55,
+    vitality: 100
+};
+// Stats from a set. These should be the stats WITH items and race bonus, but WITHOUT party bonus
+const rawStats = {
+    // From https://share.xivgear.app/share/74fb005d-086f-45d3-bee8-9a211559f7df
+    crit: 2287,
+    determination: 1806,
+    dexterity: 409,
+    dhit: 400,
+    hp: 0,
+    intelligence: 409,
+    mind: 3376,
+    piety: 535,
+    skillspeed: 400,
+    spellspeed: 1522,
+    strength: 214,
+    tenacity: 400,
+    vitality: 3321,
+    wdMag: 132,
+    wdPhys: 132,
+    weaponDelay: 3.44
+};
+// Finalize the stats (add class modifiers, party bonus, etc)
+const stats = finalizeStats(rawStats, 90, getLevelStats(90), 'WHM', {
+    ...getClassJobStats('WHM'),
+    jobStatMultipliers: jobStatMultipliers
+}, 5);
+
+// Turn the stats into a fake gear set. This object does not implement all of the methods that a CharacterGearSet
+// should, only the ones that would commonly be used in a simulation.
+const set: CharacterGearSet = makeFakeSet(stats);
+
+// Expected sim outcome
+const expectedAbilities: UseResult[] = [
+    {
+        time: -8.41,
+        name: 'NOP',
+        damage: 0
+    },
+    {
+        time: -6.10,
+        name: 'NOP',
+        damage: 0
+    },
+    {
+        time: -3.79,
+        name: 'NOP',
+        damage: 0
+    },
+    {
+        time: -1.48,
+        name: 'Glare',
+        damage: 15078.38
+    },
+    {
+        time: 0,
+        name: 'Auto Attack',
+        damage: 33.30
+    },
+    {
+        time: 0.83,
+        name: 'Dia',
+        damage: 37174.05
+    },
+    {
+        time: 3.14,
+        name: 'Glare',
+        damage: 15832.30
+    },
+    {
+        time: 4.32,
+        name: 'Auto Attack',
+        damage: 34.97
+    },
+    {
+        time: 5.45,
+        name: 'Glare',
+        damage: 15832.30
+    },
+    {
+        time: 6.93,
+        name: 'Presence of Mind',
+        damage: 0
+    },
+    {
+        time: 7.76,
+        name: 'Glare',
+        damage: 17656.20
+    },
+    {
+        time: 8.96,
+        name: "Assize",
+        damage: 22783.24
+    },
+    {
+        time: 9.24,
+        name: "Auto Attack",
+        damage: 38.99
+    },
+    {
+        time: 9.60,
+        name: "Glare",
+        damage: 17656.2
+    },
+    {
+        time: 11.44,
+        name: "Glare",
+        damage: 17656.2
+    },
+    {
+        time: 13.28,
+        name: "Glare",
+        damage: 17656.2
+    },
+    {
+        time: 14.48,
+        name: "Auto Attack",
+        damage: 38.99
+    },
+    {
+        time: 15.12,
+        name: "Glare",
+        damage: 17656.2
+    },
+    {
+        time: 16.96,
+        name: "Glare",
+        damage: 17656.2
+    },
+    {
+        time: 18.80,
+        name: "Glare",
+        damage: 17656.2
+    },
+    {
+        time: 19.72,
+        name: "Auto Attack",
+        damage: 38.99
+    },
+    {
+        time: 20.64,
+        name: "Glare",
+        damage: 17656.2
+    },
+    {
+        time: 22.48,
+        name: "Glare",
+        damage: 15832.3
+    },
+    {
+        time: 24.32,
+        name: "Glare",
+        damage: 15078.38
+    },
+    {
+        time: 25.24,
+        name: "Auto Attack",
+        damage: 33.30
+    },
+    {
+        time: 26.63,
+        name: "Glare",
+        damage: 15078.38
+    },
+    {
+        time: 28.94,
+        name: "Glare",
+        damage: 6919.08
+    },
+]
+
+
+// The test
+describe('Cycle sim processor', () => {
+    // Test the simulation
+    it('produces the correct results', async () => {
+        // Initialize
+        const inst: TestMultiCycleSim = testSimSpec.makeNewSimInstance();
+        inst.cycleSettings.totalTime = 30;
+        // Enable buffs
+        setPartyBuffEnabled(inst, Mug, true);
+        setPartyBuffEnabled(inst, Litany, true);
+        setPartyBuffEnabled(inst, Divination, true);
+        // Run simulation
+        let result = await inst.simulate(set);
+        // Assert correct results
+        assertClose(result.mainDpsResult, 9897.32, 0.01);
+        assertSimAbilityResults(result, expectedAbilities);
+    });
+});
 
 const instant: GcdAbility = {
     type: 'gcd',
@@ -514,3 +891,494 @@ describe('Special record', () => {
 
     });
 });
+
+// TODO: another set of tests, but with a GCD that doesn't evenly divide the cycle time, so that re-alignment
+// can be checked.
+const fixed: GcdAbility = {
+    type: 'gcd',
+    name: "Fixed",
+    potency: 310,
+    attackType: "Spell",
+    gcd: 15,
+    cast: 10,
+    fixedGcd: true
+}
+const fixedLonger: GcdAbility = {
+    type: 'gcd',
+    name: "Fixed Longer",
+    potency: 310,
+    attackType: "Spell",
+    gcd: 20,
+    cast: 16,
+    fixedGcd: true
+}
+describe('Cycle processor alignment options', () => {
+    it('full alignment with non-cycle pre-pull', () => {
+        // In this test, the CycleProcessor should start the first cycle post-combat-start, thus the first cycle should
+        // be shorter so that it can end on the 30-second mark, but the rest of the cycles should be perfectly aligned
+        // on 30-second increments.
+        const cp = new CycleProcessor({
+            allBuffs: [],
+            cycleTime: 30,
+            stats: exampleGearSet.computedStats,
+            totalTime: 120,
+            useAutos: false
+        });
+        cp.use(fixed);
+        cp.use(fixed);
+        cp.remainingCycles(cp => {
+            cp.useUntil(fixed, 'end');
+        })
+        // Hacky lazy workaround
+        const displayRecords: readonly any[] = cp.finalizedRecords;
+        assert.equal(displayRecords[0].ability.name, "Fixed");
+        assertClose(displayRecords[0].usedAt, -10.1);
+        assert.equal(displayRecords[1].ability.name, "Fixed");
+        assertClose(displayRecords[1].usedAt, 4.9);
+
+        assert.equal(displayRecords[2].label, "-- Start of Cycle --");
+        assertClose(displayRecords[2].usedAt, 15);
+        assert.equal(displayRecords[3].ability.name, "Fixed");
+        assertClose(displayRecords[3].usedAt, 19.9);
+        assert.equal(displayRecords[4].label, "-- End of Cycle --");
+        assertClose(displayRecords[4].usedAt, 30);
+
+        for (let i = 0; i < 3; i++) {
+            const base = 5 + i * 4;
+            assert.equal(displayRecords[base].label, "-- Start of Cycle --");
+            assertClose(displayRecords[base].usedAt, 30 + 30 * i);
+            assert.equal(displayRecords[base + 1].ability.name, "Fixed");
+            assertClose(displayRecords[base + 1].usedAt, 34.9 + 30 * i);
+            assert.equal(displayRecords[base + 2].ability.name, "Fixed");
+            assertClose(displayRecords[base + 2].usedAt, 49.9 + 30 * i);
+            assert.equal(displayRecords[base + 3].label, "-- End of Cycle --");
+            assertClose(displayRecords[base + 3].usedAt, 60 + 30 * i);
+        }
+    });
+    // In this test, the CycleProcessor should start the first cycle pre-combat-start, thus the first cycle should
+    // be longer so that the first cycle can end on the 30-second mark, but the rest of the cycles should be perfectly
+    // aligned on 30-second increments.
+    it('full alignment with in-cycle pre-pull', () => {
+        const cp = new CycleProcessor({
+            allBuffs: [],
+            cycleTime: 30,
+            stats: exampleGearSet.computedStats,
+            totalTime: 120,
+            useAutos: false
+        });
+        cp.remainingCycles(cp => {
+            cp.useUntil(fixed, 'end');
+        })
+        // Hacky lazy workaround
+        const displayRecords: readonly any[] = cp.finalizedRecords;
+        assert.equal(displayRecords[0].label, "-- Start of Cycle --");
+        assertClose(displayRecords[0].usedAt, -10.1);
+        assert.equal(displayRecords[1].ability.name, "Fixed");
+        assertClose(displayRecords[1].usedAt, -10.1);
+        assert.equal(displayRecords[2].ability.name, "Fixed");
+        assertClose(displayRecords[2].usedAt, 4.9);
+
+        assert.equal(displayRecords[3].ability.name, "Fixed");
+        assertClose(displayRecords[3].usedAt, 19.9);
+        assert.equal(displayRecords[4].label, "-- End of Cycle --");
+        assertClose(displayRecords[4].usedAt, 30);
+
+        for (let i = 0; i < 3; i++) {
+            const base = 5 + i * 4;
+            assert.equal(displayRecords[base].label, "-- Start of Cycle --");
+            assertClose(displayRecords[base].usedAt, 30 + 30 * i);
+            assert.equal(displayRecords[base + 1].ability.name, "Fixed");
+            assertClose(displayRecords[base + 1].usedAt, 34.9 + 30 * i);
+            assert.equal(displayRecords[base + 2].ability.name, "Fixed");
+            assertClose(displayRecords[base + 2].usedAt, 49.9 + 30 * i);
+            assert.equal(displayRecords[base + 3].label, "-- End of Cycle --");
+            assertClose(displayRecords[base + 3].usedAt, 60 + 30 * i);
+        }
+    });
+    it('first-cycle alignment with out-of-cycle pre-pull', () => {
+        // In this test, the CycleProcessor should start the first cycle post-combat-start, thus the first cycle should
+        // be shorter so that it can end on the 30-second mark, but the rest of the cycles should be perfectly aligned
+        // on 30-second increments.
+        const cp = new CycleProcessor({
+            allBuffs: [],
+            cycleTime: 30,
+            stats: exampleGearSet.computedStats,
+            totalTime: 120,
+            useAutos: false
+        });
+        cp.cycleLengthMode = 'align-to-first';
+        cp.use(fixed);
+        cp.use(fixed);
+        cp.remainingCycles(cp => {
+            cp.useUntil(fixed, 'end');
+        })
+        // Hacky lazy workaround
+        const displayRecords: readonly any[] = cp.finalizedRecords;
+        assert.equal(displayRecords[0].ability.name, "Fixed");
+        assertClose(displayRecords[0].usedAt, -10.1);
+        assert.equal(displayRecords[1].ability.name, "Fixed");
+        assertClose(displayRecords[1].usedAt, 4.9);
+
+        for (let i = 0; i < 3; i++) {
+            const base = 2 + i * 4;
+            assert.equal(displayRecords[base].label, "-- Start of Cycle --");
+            assertClose(displayRecords[base].usedAt, 15 + 30 * i);
+            assert.equal(displayRecords[base + 1].ability.name, "Fixed");
+            assertClose(displayRecords[base + 1].usedAt, 19.9 + 30 * i);
+            assert.equal(displayRecords[base + 2].ability.name, "Fixed");
+            assertClose(displayRecords[base + 2].usedAt, 34.9 + 30 * i);
+            assert.equal(displayRecords[base + 3].label, "-- End of Cycle --");
+            assertClose(displayRecords[base + 3].usedAt, 45 + 30 * i);
+        }
+
+        assert.equal(displayRecords[14].label, "-- Start of Cycle --");
+        assertClose(displayRecords[14].usedAt, 105);
+        assert.equal(displayRecords[15].ability.name, "Fixed");
+        assertClose(displayRecords[15].usedAt, 109.9);
+        assert.equal(displayRecords[16].label, "-- End of Cycle --");
+        assertClose(displayRecords[16].usedAt, 120);
+    });
+    it('first-cycle alignment with in-cycle pre-pull', () => {
+        // In this test, the CycleProcessor should start the first cycle post-combat-start, thus the first cycle should
+        // be shorter so that it can end on the 30-second mark, but the rest of the cycles should be perfectly aligned
+        // on 30-second increments.
+        const cp = new CycleProcessor({
+            allBuffs: [],
+            cycleTime: 30,
+            stats: exampleGearSet.computedStats,
+            totalTime: 120,
+            useAutos: false
+        });
+        cp.cycleLengthMode = 'align-to-first';
+        cp.oneCycle(cp => {
+            // Longer GCD to make sure this actually takes up the full cycle time
+            cp.use(fixedLonger);
+            cp.useUntil(fixed, 'end');
+        })
+        cp.remainingCycles(cp => {
+            cp.useUntil(fixed, 'end');
+        })
+        // Hacky lazy workaround
+        const displayRecords: readonly any[] = cp.finalizedRecords;
+        assert.equal(displayRecords[0].label, "-- Start of Cycle --");
+        assertClose(displayRecords[0].usedAt, -16.1);
+        assert.equal(displayRecords[1].ability.name, "Fixed Longer");
+        assertClose(displayRecords[1].usedAt, -16.1);
+        assert.equal(displayRecords[2].ability.name, "Fixed");
+        assertClose(displayRecords[2].usedAt, 3.90);
+        assert.equal(displayRecords[3].label, "-- End of Cycle --");
+        assertClose(displayRecords[3].usedAt, 14.00);
+
+        for (let i = 0; i < 3; i++) {
+            const base = 4 + i * 4;
+            assert.equal(displayRecords[base].label, "-- Start of Cycle --");
+            assertClose(displayRecords[base].usedAt, 14 + 30 * i);
+            assert.equal(displayRecords[base + 1].ability.name, "Fixed");
+            assertClose(displayRecords[base + 1].usedAt, 18.9 + 30 * i);
+            assert.equal(displayRecords[base + 2].ability.name, "Fixed");
+            assertClose(displayRecords[base + 2].usedAt, 33.9 + 30 * i);
+            assert.equal(displayRecords[base + 3].label, "-- End of Cycle --");
+            assertClose(displayRecords[base + 3].usedAt, 44 + 30 * i);
+        }
+
+        assert.equal(displayRecords[16].label, "-- Start of Cycle --");
+        assertClose(displayRecords[16].usedAt, 104);
+        assert.equal(displayRecords[17].ability.name, "Fixed");
+        assertClose(displayRecords[17].usedAt, 108.9);
+        assert.equal(displayRecords[18].label, "-- End of Cycle --");
+        assertClose(displayRecords[18].usedAt, 119);
+    });
+    it('full duration with non-cycle pre-pull', () => {
+        const cp = new CycleProcessor({
+            allBuffs: [],
+            cycleTime: 30,
+            stats: exampleGearSet.computedStats,
+            totalTime: 120,
+            useAutos: false
+        });
+        cp.cycleLengthMode = 'full-duration';
+        cp.use(fixed);
+        cp.use(fixed);
+        cp.remainingCycles(cp => {
+            cp.useUntil(fixed, 'end');
+        })
+        // Hacky lazy workaround
+        const displayRecords: readonly any[] = cp.finalizedRecords;
+        assert.equal(displayRecords[0].ability.name, "Fixed");
+        assertClose(displayRecords[0].usedAt, -10.1);
+        assert.equal(displayRecords[1].ability.name, "Fixed");
+        assertClose(displayRecords[1].usedAt, 4.9);
+
+        for (let i = 0; i < 3; i++) {
+            const base = 2 + i * 4;
+            assert.equal(displayRecords[base].label, "-- Start of Cycle --");
+            assertClose(displayRecords[base].usedAt, 15 + 30 * i);
+            assert.equal(displayRecords[base + 1].ability.name, "Fixed");
+            assertClose(displayRecords[base + 1].usedAt, 19.9 + 30 * i);
+            assert.equal(displayRecords[base + 2].ability.name, "Fixed");
+            assertClose(displayRecords[base + 2].usedAt, 34.9 + 30 * i);
+            assert.equal(displayRecords[base + 3].label, "-- End of Cycle --");
+            assertClose(displayRecords[base + 3].usedAt, 45 + 30 * i);
+        }
+        assert.equal(displayRecords[14].label, "-- Start of Cycle --");
+        assertClose(displayRecords[14].usedAt, 105);
+        assert.equal(displayRecords[15].ability.name, "Fixed");
+        assertClose(displayRecords[15].usedAt, 109.9);
+        assert.equal(displayRecords[16].label, "-- End of Cycle --");
+        assertClose(displayRecords[16].usedAt, 120);
+
+    });
+    it('full duration with in-cycle pre-pull', () => {
+        const cp = new CycleProcessor({
+            allBuffs: [],
+            cycleTime: 30,
+            stats: exampleGearSet.computedStats,
+            totalTime: 120,
+            useAutos: false
+        });
+        cp.cycleLengthMode = 'full-duration';
+        cp.remainingCycles(cp => {
+            cp.useUntil(fixed, 'end');
+        })
+        // Hacky lazy workaround
+        const displayRecords: readonly any[] = cp.finalizedRecords;
+        // This seems wrong (intuitively, the 'fixed' cycle should be exactly 30s), but in reality, it is correct,
+        // since it has to end on an even GCD amount
+        assert.equal(displayRecords[0].label, "-- Start of Cycle --");
+        assertClose(displayRecords[0].usedAt, -10.1);
+        assert.equal(displayRecords[1].ability.name, "Fixed");
+        assertClose(displayRecords[1].usedAt, -10.1);
+        assert.equal(displayRecords[2].ability.name, "Fixed");
+        assertClose(displayRecords[2].usedAt, 4.9);
+
+        assert.equal(displayRecords[3].ability.name, "Fixed");
+        assertClose(displayRecords[3].usedAt, 19.9);
+        assert.equal(displayRecords[4].label, "-- End of Cycle --");
+        assertClose(displayRecords[4].usedAt, 30);
+
+        for (let i = 0; i < 3; i++) {
+            const base = 5 + i * 4;
+            assert.equal(displayRecords[base].label, "-- Start of Cycle --");
+            assertClose(displayRecords[base].usedAt, 30 + 30 * i);
+            assert.equal(displayRecords[base + 1].ability.name, "Fixed");
+            assertClose(displayRecords[base + 1].usedAt, 34.9 + 30 * i);
+            assert.equal(displayRecords[base + 2].ability.name, "Fixed");
+            assertClose(displayRecords[base + 2].usedAt, 49.9 + 30 * i);
+            assert.equal(displayRecords[base + 3].label, "-- End of Cycle --");
+            assertClose(displayRecords[base + 3].usedAt, 60 + 30 * i);
+        }
+    });
+});
+
+// GCD that doesn't evenly divide into a 30 second cycle time so that we can test drift behavior
+const fixedOdd: GcdAbility = {
+    type: 'gcd',
+    name: "Fixed Odd",
+    potency: 310,
+    attackType: "Spell",
+    gcd: 7,
+    cast: 4,
+    fixedGcd: true
+}
+
+describe('Cycle processor re-alignment', () => {
+    it('full alignment with non-cycle pre-pull', () => {
+        const cp = new CycleProcessor({
+            allBuffs: [],
+            cycleTime: 30,
+            stats: exampleGearSet.computedStats,
+            totalTime: 139,
+            useAutos: false
+        });
+        cp.use(fixedOdd);
+        cp.use(fixedOdd);
+        cp.remainingCycles(cp => {
+            cp.useUntil(fixedOdd, 'end');
+        })
+        const cycleRecords = cp.cycleRecords;
+        // First cycle starts late due to pre-cycle GCDs
+        assert.equal(cycleRecords[0].start, 7);
+        assert.equal(cycleRecords[0].end, 35);
+
+        // Drifts back since we started so late (28 second cycle)
+        assert.equal(cycleRecords[1].start, 35);
+        assert.equal(cycleRecords[1].end, 63);
+
+        // Drift back again - 28 second cycle
+        assert.equal(cycleRecords[2].start, 63);
+        assert.equal(cycleRecords[2].end, 91);
+
+        // Drift forward - 35 second cycle
+        assert.equal(cycleRecords[3].start, 91);
+        assert.equal(cycleRecords[3].end, 126);
+
+        // Final cycle is cut off by total time
+        assert.equal(cycleRecords[4].start, 126);
+        assert.equal(cycleRecords[4].end, 140);
+
+    });
+    it('full alignment with in-cycle pre-pull', () => {
+        const cp = new CycleProcessor({
+            allBuffs: [],
+            cycleTime: 30,
+            stats: exampleGearSet.computedStats,
+            totalTime: 170,
+            useAutos: false
+        });
+        cp.remainingCycles(cp => {
+            cp.useUntil(fixedOdd, 'end');
+        })
+        const cycleRecords = cp.cycleRecords;
+        // First cycle starts early due to pre-pull GCDs being in the cycle
+        assert.equal(cycleRecords[0].start, -4.1);
+        assert.equal(cycleRecords[0].end, 28);
+
+        // Drifts forward (35 seconds)
+        assert.equal(cycleRecords[1].start, 28);
+        assert.equal(cycleRecords[1].end, 63);
+
+        // Drift back - 28 second cycle
+        assert.equal(cycleRecords[2].start, 63);
+        assert.equal(cycleRecords[2].end, 91);
+
+        // Drift forward - 35 second cycle
+        assert.equal(cycleRecords[3].start, 91);
+        assert.equal(cycleRecords[3].end, 126);
+
+        // Drift back - 28 second cycle
+        assert.equal(cycleRecords[4].start, 126);
+        assert.equal(cycleRecords[4].end, 154);
+
+        // Final cycle - cut off at 168 (170 end time) because it can't start another GCD in those two seconds
+        assert.equal(cycleRecords[5].start, 154);
+        assert.equal(cycleRecords[5].end, 168);
+    });
+    it('first-cycle alignment with out-of-cycle pre-pull', () => {
+        const cp = new CycleProcessor({
+            allBuffs: [],
+            cycleTime: 30,
+            stats: exampleGearSet.computedStats,
+            totalTime: 145,
+            useAutos: false
+        });
+        cp.cycleLengthMode = 'align-to-first';
+        cp.use(fixedOdd);
+        cp.use(fixedOdd);
+        cp.remainingCycles(cp => {
+            cp.useUntil(fixedOdd, 'end');
+        })
+        const cycleRecords = cp.cycleRecords;
+        // First cycle starts late due to pre-cycle GCDs
+        // Unlike the first test, this one doesn't drift back - it uses 7 as the basis for itself and all future cycles,
+        // rather than 0.
+        assert.equal(cycleRecords[0].start, 7);
+        // Notice how every value past this point is 7 higher than the values in the first test
+        assert.equal(cycleRecords[0].end, 42);
+
+        // Drifts back since we started so late (28 second cycle)
+        assert.equal(cycleRecords[1].start, 42);
+        assert.equal(cycleRecords[1].end, 70);
+
+        // Drift back again - 28 second cycle
+        assert.equal(cycleRecords[2].start, 70);
+        assert.equal(cycleRecords[2].end, 98);
+
+        // Drift forward - 35 second cycle
+        assert.equal(cycleRecords[3].start, 98);
+        assert.equal(cycleRecords[3].end, 133);
+
+        // Final cycle is cut off by total time
+        assert.equal(cycleRecords[4].start, 133);
+        assert.equal(cycleRecords[4].end, 147);
+    });
+    it('first-cycle alignment with in-cycle pre-pull', () => {
+        // In this test, the CycleProcessor should start the first cycle post-combat-start, thus the first cycle should
+        // be shorter so that it can end on the 30-second mark, but the rest of the cycles should be perfectly aligned
+        // on 30-second increments.
+        const cp = new CycleProcessor({
+            allBuffs: [],
+            cycleTime: 30,
+            stats: exampleGearSet.computedStats,
+            totalTime: 160,
+            useAutos: false
+        });
+        cp.cycleLengthMode = 'align-to-first';
+        cp.remainingCycles(cp => {
+            cp.useUntil(fixedOdd, 'end');
+        })
+        const cycleRecords = cp.cycleRecords;
+        // First cycle includes pre-pull
+        // -4.1 is used as the basis for all future cycles
+        assert.equal(cycleRecords[0].start, -4.1);
+        assert.equal(cycleRecords[0].end, 28);
+
+        // Drifts back since we started so late (28 second cycle)
+        assert.equal(cycleRecords[1].start, 28);
+        assert.equal(cycleRecords[1].end, 56);
+
+        // Drift back again - 28 second cycle
+        assert.equal(cycleRecords[2].start, 56);
+        assert.equal(cycleRecords[2].end, 91);
+
+        // Drift forward - 35 second cycle
+        assert.equal(cycleRecords[3].start, 91);
+        assert.equal(cycleRecords[3].end, 119);
+
+        // Final cycle is cut off by total time
+        assert.equal(cycleRecords[4].start, 119);
+        assert.equal(cycleRecords[4].end, 147);
+
+        // Cut off early
+        assert.equal(cycleRecords[5].start, 147);
+        assert.equal(cycleRecords[5].end, 161);
+    });
+    it('full duration with non-cycle pre-pull', () => {
+        const cp = new CycleProcessor({
+            allBuffs: [],
+            cycleTime: 30,
+            stats: exampleGearSet.computedStats,
+            totalTime: 300,
+            useAutos: false
+        });
+        cp.cycleLengthMode = 'full-duration';
+        cp.use(fixedOdd);
+        cp.use(fixedOdd);
+        cp.remainingCycles(cp => {
+            cp.useUntil(fixedOdd, 'end');
+        })
+        const cycleRecords = cp.cycleRecords;
+        // This one is simple. Every cycle is exactly 35 seconds, regardless of overall drift, except for the very
+        // last cycle, which cuts early.
+        for (let i = 0; i < 8; i++) {
+            assert.equal(cycleRecords[i].start, 7 + 35 * i);
+            assert.equal(cycleRecords[i].end, 7 + 35 * (i + 1));
+        }
+        assert.equal(cycleRecords[8].start, 287);
+        assert.equal(cycleRecords[8].end, 301);
+    });
+    it('full duration with in-cycle pre-pull', () => {
+        const cp = new CycleProcessor({
+            allBuffs: [],
+            cycleTime: 30,
+            stats: exampleGearSet.computedStats,
+            totalTime: 295,
+            useAutos: false
+        });
+        cp.cycleLengthMode = 'full-duration';
+        cp.remainingCycles(cp => {
+            cp.useUntil(fixedOdd, 'end');
+        });
+        const cycleRecords = cp.cycleRecords;
+        // This one is simple. Every cycle is exactly 35 seconds, regardless of overall drift, except for the very
+        // first cycle, and the last cycle, which cuts early.
+        assert.equal(cycleRecords[0].start, -4.1);
+        assert.equal(cycleRecords[0].end, 28);
+        for (let i = 1; i < 8; i++) {
+            assert.equal(cycleRecords[i].start, -7 + 35 * i);
+            assert.equal(cycleRecords[i].end, -7 + 35 * (i + 1));
+        }
+        assert.equal(cycleRecords[8].start, 273);
+        assert.equal(cycleRecords[8].end, 294);
+    });
+});
+

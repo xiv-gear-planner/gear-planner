@@ -342,7 +342,6 @@ export function makeRelicStatEditor(equipment: EquippedItem, stat: Substat, set:
                 const inputs = row.querySelectorAll('select, input');
                 console.log('inputs', [])
                 inputs.forEach(inp => {
-                    console.log('foo')
                     const reval = inp['revalidate'];
                     if (reval) {
                         reval();
