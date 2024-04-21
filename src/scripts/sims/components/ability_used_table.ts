@@ -32,7 +32,7 @@ function formatBuffTooltip(buff: Buff) {
         parts.push(`${toRelPct(effects.dhitChanceIncrease, 1)}% DH chance`);
     }
     if (effects.haste) {
-        parts.push(`${toRelPct(effects.haste, 1)}% haste`);
+        parts.push(`${effects.haste}% haste`);
     }
     if (parts) {
         return `${buff.name}: ${parts.join(', ')}`;
