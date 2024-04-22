@@ -9,6 +9,8 @@ import {
     dhitChance,
     mainStatMulti,
     mpTick,
+    sksTickMulti,
+    sksToGcd,
     spsTickMulti,
     spsToGcd,
     tenacityDmg,
@@ -134,7 +136,7 @@ export class StatTierDisplay extends HTMLDivElement {
                 return [{
                     label: abbrev,
                     fullName: stat + ' multiplier',
-                    description: 'Damage multiplier from determination',
+                    description: 'Damage multiplier from Determination',
                     tiering: this.getCombinedTiering(curVal, value => detDmg(levelStats, value))
                 }];
             case "piety":
@@ -171,7 +173,7 @@ export class StatTierDisplay extends HTMLDivElement {
                     tiering: this.getCombinedTiering(curVal, value => spsToGcd(2.5, levelStats, value))
                 }, {
                     label: abbrev + ' DoT',
-                    fullName: 'DoT scalar for weaponskills',
+                    fullName: 'DoT scalar for spells',
                     description: 'DoT damage multiplier for spells',
                     tiering: this.getCombinedTiering(curVal, value => spsTickMulti(levelStats, value))
                 }];
@@ -180,12 +182,12 @@ export class StatTierDisplay extends HTMLDivElement {
                     label: abbrev + ' GCD',
                     fullName: 'GCD for weaponskills',
                     description: 'Global cooldown (recast) time for weaponskills',
-                    tiering: this.getCombinedTiering(curVal, value => spsToGcd(2.5, levelStats, value))
+                    tiering: this.getCombinedTiering(curVal, value => sksToGcd(2.5, levelStats, value))
                 }, {
                     label: abbrev + ' DoT',
                     fullName: 'DoT scalar for weaponskills',
                     description: 'DoT damage multiplier for weaponskills',
-                    tiering: this.getCombinedTiering(curVal, value => spsTickMulti(levelStats, value))
+                    tiering: this.getCombinedTiering(curVal, value => sksTickMulti(levelStats, value))
                 }];
             case "tenacity":
                 return [{
