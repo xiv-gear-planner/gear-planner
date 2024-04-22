@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+//    "module": "commonjs",
+    "target": "es6",
+    "sourceMap": true,
+    "outDir": "build",
+    "noImplicitReturns": true,
+    "strictBindCallApply": true,
+    "allowSyntheticDefaultImports": true,
+    "moduleResolution": "nodenext",
+    "baseUrl": "./src",
+    "paths": {
+      "@xivgear/base": ["../../src/scripts"]
+    }
+  }
+}

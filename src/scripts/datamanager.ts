@@ -1,5 +1,5 @@
 import {processRawMateriaInfo, XivApiFoodInfo, XivApiGearInfo} from "./gear";
-import {getClassJobStats, JobName, MATERIA_LEVEL_MAX_NORMAL, SupportedLevel} from "./xivconstants";
+import {getClassJobStats, JobName, LEVEL_ITEMS, MATERIA_LEVEL_MAX_NORMAL, SupportedLevel} from "./xivconstants";
 import {GearItem, JobMultipliers, Materia, OccGearSlotKey, RawStatKey,} from "./geartypes";
 import {xivApiGet, xivApiSingle} from "./external/xivapi";
 import {BaseParamToStatKey, xivApiStatMapping} from "./external/xivapitypes";
@@ -32,30 +32,69 @@ export type BaseParamInfo = Record<OccGearSlotKey, number>
  */
 export type BaseParamMap = { [rawStat in RawStatKey]?: BaseParamInfo }
 
-export class DataManager {
-    allItems: XivApiGearInfo[];
-    allMateria: Materia[];
-    allFoodItems: XivApiFoodInfo[];
+interface DataManagerIntf {
+    readonly classJob: JobName;
+    readonly allItems: XivApiGearInfo[];
+    readonly allFoodItems: XivApiFoodInfo[];
+    readonly allMateria: Materia[];
+    readonly baseParams: BaseParamMap;
+    readonly minIlvl: number;
+    readonly maxIlvl: number;
+    readonly minIlvlFood: number;
+    readonly maxIlvlFood: number;
+    readonly ilvlSync: number;
+    readonly level: number;
 
-    minIlvl = 570;
-    maxIlvl = 999;
-    minIlvlFood = 540;
-    maxIlvlFood = 999;
-    classJob: JobName = 'WHM'
-    level: SupportedLevel = 90;
-    ilvlSync: number | undefined;
+    getIlvlSyncData(baseParamPromise: ReturnType<typeof queryBaseParams>, ilvl: number): Promise<IlvlSyncInfo> | Promise<{
+        ilvl: number;
+        substatCap(slot: OccGearSlotKey, statsKey: RawStatKey): number
+    }>;
 
-    jobMultipliers: Map<JobName, JobMultipliers>;
+    itemById(id: number): (GearItem | undefined);
 
-    baseParams: BaseParamMap;
-    ilvlSyncDatum = new Map<number, Promise<IlvlSyncInfo>>();
+    materiaById(id: number): (Materia | undefined);
+
+    foodById(id: number): XivApiFoodInfo;
+
+    loadData(): Promise<void>;
+
+    multipliersForJob(job: JobName): JobMultipliers;
+}
+
+export class DataManager implements DataManagerIntf {
+
+    private readonly _minIlvl: number;
+    private readonly _maxIlvl: number;
+    private readonly _minIlvlFood: number;
+    private readonly _maxIlvlFood: number;
+    private readonly _classJob: JobName;
+    private readonly _level: SupportedLevel;
+    private readonly _ilvlSync: number | undefined;
+
+    public constructor(classJob: JobName, level: SupportedLevel, ilvlSync?: number | undefined) {
+        this._classJob = classJob;
+        this._level = level;
+        const lvlData = LEVEL_ITEMS[this._level];
+        this._minIlvl = lvlData.minILvl;
+        this._maxIlvl = lvlData.maxILvl;
+        this._minIlvlFood = lvlData.minILvlFood;
+        this._maxIlvlFood = lvlData.maxILvlFood;
+        this._ilvlSync = ilvlSync;
+    }
+
+    private _allItems: XivApiGearInfo[];
+    private _allMateria: Materia[];
+    private _allFoodItems: XivApiFoodInfo[];
+    private _jobMultipliers: Map<JobName, JobMultipliers>;
+    private _baseParams: BaseParamMap;
+    private _ilvlSyncDatum = new Map<number, Promise<IlvlSyncInfo>>();
 
     getIlvlSyncData(baseParamPromise: ReturnType<typeof queryBaseParams>, ilvl: number) {
-        if (this.ilvlSyncDatum.has(ilvl)) {
-            return this.ilvlSyncDatum.get(ilvl)
+        if (this._ilvlSyncDatum.has(ilvl)) {
+            return this._ilvlSyncDatum.get(ilvl)
         }
         else {
-            const jobStats = getClassJobStats(this.classJob);
+            const jobStats = getClassJobStats(this._classJob);
             const ilvlPromise = Promise.all([baseParamPromise, xivApiSingle("ItemLevel", ilvl)]).then(responses => {
                 const ilvlStatModifiers = new Map<RawStatKey, number>();
                 // Unroll the ItemLevel object into a direct mapping from RawStatKey => modifier
@@ -65,7 +104,7 @@ export class DataManager {
                     }
                 }
                 // BaseParam data is trickier. First, we need to convert from a list to a map, where the keys are the stat.
-                const baseParams = this.baseParams;
+                const baseParams = this._baseParams;
                 return {
                     ilvl: ilvl,
                     substatCap(slot: OccGearSlotKey, statsKey: RawStatKey): number {
@@ -81,30 +120,30 @@ export class DataManager {
                     },
                 } as const;
             });
-            this.ilvlSyncDatum.set(ilvl, ilvlPromise);
+            this._ilvlSyncDatum.set(ilvl, ilvlPromise);
             return ilvlPromise;
         }
     }
 
     itemById(id: number): (GearItem | undefined) {
-        return this.allItems.find(item => item.id === id);
+        return this._allItems.find(item => item.id === id);
     }
 
     materiaById(id: number): (Materia | undefined) {
         if (id < 0) {
             return undefined;
         }
-        return this.allMateria.find(item => item.id === id);
+        return this._allMateria.find(item => item.id === id);
     }
 
     foodById(id: number) {
-        return this.allFoodItems.find(food => food.id === id);
+        return this._allFoodItems.find(food => food.id === id);
     }
 
 
     async loadData() {
         const baseParamPromise = queryBaseParams().then(data => {
-            this.baseParams = data.Results.reduce<{
+            this._baseParams = data.Results.reduce<{
                 [rawStat in RawStatKey]?: Record<OccGearSlotKey, number>
             }>((baseParams, value) => {
                 // Each individual item also gets converted
@@ -160,7 +199,7 @@ export class DataManager {
                 'GameContentLinks'
             ] as const,
             // EquipSlotCategory! => EquipSlotCategory is not null => filters out now-useless belts
-            filters: [`LevelItem>=${this.minIlvl}`, `LevelItem<=${this.maxIlvl}`, `ClassJobCategory.${this.classJob}=1`, 'EquipSlotCategory!'],
+            filters: [`LevelItem>=${this._minIlvl}`, `LevelItem<=${this._maxIlvl}`, `ClassJobCategory.${this._classJob}=1`, 'EquipSlotCategory!'],
         })
             // const itemsPromise = fetch(`https://xivapi.com/search?indexes=Item&filters=LevelItem%3E=${this.minIlvl},LevelItem%3C=${this.maxIlvl},ClassJobCategory.${this.classJob}=1&columns=ID,IconHD,Name,LevelItem,Stats,EquipSlotCategory,MateriaSlotCount,IsAdvancedMeldingPermitted,DamageMag,DamagePhys`)
             .then((data) => {
@@ -173,7 +212,7 @@ export class DataManager {
                     return null;
                 }
             }).then((rawItems) => {
-                this.allItems = rawItems
+                this._allItems = rawItems
                     .filter(i => {
                         return i['Stats'] !== null
                             || (i['ClassJobCategory']?.['BLU'] === 1 && i['EquipSlotCategory']?.['MainHand'] === 1); // Don't filter out BLU weapons
@@ -182,16 +221,16 @@ export class DataManager {
                 // TODO: put up better error
             }, (e) => console.error(e));
         const statsPromise = Promise.all([itemsPromise, baseParamPromise]).then(() => {
-            console.log(`Finishing item calculations for ${this.allItems.length} items`);
-            this.allItems.forEach(item => {
+            console.log(`Finishing item calculations for ${this._allItems.length} items`);
+            this._allItems.forEach(item => {
                 const itemIlvlPromise = this.getIlvlSyncData(baseParamPromise, item.ilvl);
-                if (this.ilvlSync) {
-                    const ilvlSyncPromise = this.getIlvlSyncData(baseParamPromise, this.ilvlSync);
+                if (this._ilvlSync) {
+                    const ilvlSyncPromise = this.getIlvlSyncData(baseParamPromise, this._ilvlSync);
                     extraPromises.push(Promise.all([itemIlvlPromise, ilvlSyncPromise]).then(([native, sync]) => {
                         item.applyIlvlData(native, sync);
                         if (item.isCustomRelic) {
                             console.log('Applying relic model')
-                            item.relicStatModel = getRelicStatModelFor(item, this.baseParams, this.classJob);
+                            item.relicStatModel = getRelicStatModelFor(item, this._baseParams, this._classJob);
                             console.log('Applied', item.relicStatModel)
                         }
                     }));
@@ -201,7 +240,7 @@ export class DataManager {
                         item.applyIlvlData(native);
                         if (item.isCustomRelic) {
                             console.log('Applying relic model')
-                            item.relicStatModel = getRelicStatModelFor(item, this.baseParams, this.classJob);
+                            item.relicStatModel = getRelicStatModelFor(item, this._baseParams, this._classJob);
                             console.log('Applied', item.relicStatModel)
                         }
                     }));
@@ -228,12 +267,12 @@ export class DataManager {
             .then((data) => {
                 if (data) {
                     console.log(`Got ${data.Results.length} Materia Types`);
-                    this.allMateria = data.Results
+                    this._allMateria = data.Results
                         .filter(i => i['Value' + (MATERIA_LEVEL_MAX_NORMAL - 1)])
                         .flatMap(item => {
                             return processRawMateriaInfo(item);
                         });
-                    console.log(`Processed ${this.allMateria.length} total Materia items`);
+                    console.log(`Processed ${this._allMateria.length} total Materia items`);
                 }
                 else {
                     console.error('Got No Materia!');
@@ -245,7 +284,7 @@ export class DataManager {
         const foodPromise = xivApiGet({
             requestType: 'search',
             sheet: 'Item',
-            filters: ['ItemKind.ID=5', 'ItemSearchCategory.ID=45', `LevelItem%3E=${this.minIlvlFood}`, `LevelItem%3C=${this.maxIlvlFood}`],
+            filters: ['ItemKind.ID=5', 'ItemSearchCategory.ID=45', `LevelItem%3E=${this._minIlvlFood}`, `LevelItem%3C=${this._maxIlvlFood}`],
             columns: ['ID', 'IconHD', 'Name', 'LevelItem', 'Bonuses'] as const
         })
             // const foodPromise = fetch(`https://xivapi.com/search?indexes=Item&filters=ItemKind.ID=5,ItemSearchCategory.ID=45,LevelItem%3E=${this.minIlvlFood},LevelItem%3C=${this.maxIlvlFood}&columns=ID,IconHD,Name,LevelItem,Bonuses`)
@@ -255,7 +294,7 @@ export class DataManager {
             })
             .then((rawFoods) => rawFoods.map(i => new XivApiFoodInfo(i)))
             .then((processedFoods) => processedFoods.filter(food => Object.keys(food.bonuses).length > 1))
-            .then((foods) => this.allFoodItems = foods,
+            .then((foods) => this._allFoodItems = foods,
                 e => console.error(e));
         console.log("Loading jobs");
         const jobsPromise = xivApiGet({
@@ -268,9 +307,9 @@ export class DataManager {
                 return data.Results;
             })
             .then(rawJobs => {
-                this.jobMultipliers = new Map<JobName, JobMultipliers>();
+                this._jobMultipliers = new Map<JobName, JobMultipliers>();
                 for (let rawJob of rawJobs) {
-                    this.jobMultipliers.set(rawJob['Abbreviation'], {
+                    this._jobMultipliers.set(rawJob['Abbreviation'], {
                         dexterity: rawJob.ModifierDexterity,
                         intelligence: rawJob.ModifierIntelligence,
                         mind: rawJob.ModifierMind,
@@ -285,13 +324,57 @@ export class DataManager {
     }
 
     multipliersForJob(job: JobName): JobMultipliers {
-        if (!this.jobMultipliers) {
+        if (!this._jobMultipliers) {
             throw Error("You must wait for loadData() before calling this method");
         }
-        const multi = this.jobMultipliers.get(job);
+        const multi = this._jobMultipliers.get(job);
         if (!multi) {
             throw Error(`No data for job ${job}`)
         }
         return multi;
+    }
+
+    get allItems(): XivApiGearInfo[] {
+        return this._allItems;
+    }
+
+    get allFoodItems(): XivApiFoodInfo[] {
+        return this._allFoodItems;
+    }
+
+    get allMateria(): Materia[] {
+        return this._allMateria;
+    }
+
+    get baseParams(): BaseParamMap {
+        return this._baseParams;
+    }
+
+    get minIlvl(): number {
+        return this._minIlvl;
+    }
+
+    get maxIlvl(): number {
+        return this._maxIlvl;
+    }
+
+    get minIlvlFood(): number {
+        return this._minIlvlFood;
+    }
+
+    get maxIlvlFood(): number {
+        return this._maxIlvlFood;
+    }
+
+    get ilvlSync(): number | undefined {
+        return this._ilvlSync;
+    }
+
+    get level(): SupportedLevel {
+        return this._level;
+    }
+
+    get classJob(): JobName {
+        return this._classJob;
     }
 }

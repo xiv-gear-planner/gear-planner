@@ -22,7 +22,7 @@ export function earlyEmbedInit() {
 export async function openEmbed(sheet: GearPlanSheet) {
     console.log("openEmbed start");
     sheet.isEmbed = true;
-    await sheet.loadData();
+    await sheet.loadFully();
     console.log("openEmbed mid");
     const editorArea = sheet.editorArea;
     // TODO: this is bad

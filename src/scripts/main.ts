@@ -8,14 +8,7 @@ import {LoadingBlocker} from "./components/loader";
 import {earlyEmbedInit, openEmbed} from "./embed";
 import {SETTINGS} from "./persistent_settings";
 import {registerDefaultSims} from "./sims/default_sims";
-
-export const SHORTLINK_HASH = 'sl';
-export const SHARE_LINK = 'https://share.xivgear.app/share/';
-export const BIS_HASH = 'bis';
-
-export const VIEW_SHEET_HASH = 'viewsheet';
-export const VIEW_SET_HASH = 'viewset';
-export const EMBED_HASH = 'embed';
+import {BIS_HASH, EMBED_HASH, SHORTLINK_HASH, VIEW_SET_HASH, VIEW_SHEET_HASH} from "./common_nav";
 
 export const contentArea = document.getElementById("content-area");
 // export const midBarArea = document.getElementById("mid-controls-area");
@@ -312,7 +305,7 @@ export async function openSheet(planner: GearPlanSheet, changeHash: boolean = tr
     }
     contentArea.replaceChildren(planner);
     const oldHash = getHash();
-    const loadSheetPromise = planner.loadData().then(() => {
+    const loadSheetPromise = planner.loadFully().then(() => {
         // If the user has navigated away while the sheet was loading, do not display the sheet.
         const newHash = getHash();
         if (arrayEq(newHash, oldHash)) {

@@ -1158,7 +1158,6 @@ export class GearPlanSheet extends HTMLElement {
         this.classJobName = importedData.job ?? 'WHM';
         this.ilvlSync = importedData.ilvlSync;
         this._description = importedData.description;
-        this.dataManager = new DataManager();
         if (importedData.itemDisplaySettings) {
             Object.assign(this._itemDisplaySettings, importedData.itemDisplaySettings);
         }
@@ -1382,12 +1381,17 @@ export class GearPlanSheet extends HTMLElement {
         // const tableAreaInner = quickElement('div', ['gear-sheet-table-area-inner'], [this._gearPlanTable, this.buttonsArea]);
         this.tableArea.appendChild(this._gearPlanTable);
         this.tableArea.appendChild(buttonsArea);
-        const ro = new ResizeObserver(() => {
-            this.fixScroll();
-        });
-        ro.observe(this);
-        ro.observe(this.tableArea);
-        ro.observe(this._gearPlanTable);
+        try {
+            const ro = new ResizeObserver(() => {
+                this.fixScroll();
+            });
+            ro.observe(this);
+            ro.observe(this.tableArea);
+            ro.observe(this._gearPlanTable);
+        }
+        catch (e) {
+            console.error('Browser does not support ResizeObserver!', e);
+        }
         // this.addEventListener('resize', () => {
         //     this.fixScroll();
         // })
@@ -1489,18 +1493,12 @@ export class GearPlanSheet extends HTMLElement {
         this.setupDone = true;
     }
 
-    async loadData() {
+    async loadDataOnly() {
         console.log("Loading sheet...");
         console.log("Reading data");
         const saved = this._importedData;
-        this.dataManager.classJob = this.classJobName;
-        this.dataManager.level = this.level;
         const lvlItemInfo = LEVEL_ITEMS[this.level];
-        this.dataManager.minIlvl = lvlItemInfo.minILvl;
-        this.dataManager.maxIlvl = lvlItemInfo.maxILvl;
-        this.dataManager.minIlvlFood = lvlItemInfo.minILvlFood;
-        this.dataManager.maxIlvlFood = lvlItemInfo.maxILvlFood;
-        this.dataManager.ilvlSync = this.ilvlSync;
+        this.dataManager = new DataManager(this.classJobName, this.level, this.ilvlSync);
         await this.dataManager.loadData();
         for (let importedSet of saved.sets) {
             this.addGearSet(this.importGearSet(importedSet));
@@ -1533,6 +1531,11 @@ export class GearPlanSheet extends HTMLElement {
                 && this.isStatRelevant(mat.primaryStat);
         });
         this._relevantFood = this.dataManager.allFoodItems.filter(food => this.isStatRelevant(food.primarySubStat) || this.isStatRelevant(food.secondarySubStat));
+
+    }
+
+    async loadFully() {
+        await this.loadDataOnly();
         this.setupRealGui();
     }
 
