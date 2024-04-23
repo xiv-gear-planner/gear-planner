@@ -9,11 +9,12 @@
     "global-jsdom": "^24.0.0",
     "isomorphic-fetch": "^3.0.0",
     "jsdom": "^24.0.0",
-    "gearplan": "../../src/scripts"
+    "gearplan-frontend": "../frontend/src/scripts"
   },
   "devDependencies": {
     "@types/isomorphic-fetch": "^0.0.39",
     "@types/jsdom": "^21.1.6",
     "ts-node": "^10.9.2"
-  }
+  },
+  "bundledDependencies": true
 }

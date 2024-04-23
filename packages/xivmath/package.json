@@ -1,0 +1,9 @@
+{
+  "name": "xivmath",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {},
+  "devDependencies": {
+    "ts-node": "^10.9.2"
+  }
+}

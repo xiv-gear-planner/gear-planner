@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "target": "es6",
+    "sourceMap": true,
+    "module": "nodenext",
+    "outDir": "./build",
+    "noImplicitReturns": true,
+    "strictBindCallApply": true,
+    "allowSyntheticDefaultImports": true,
+    "moduleResolution": "nodenext",
+    "baseUrl": "./src"
+  },
+//  "include": [
+//    "src"
+//  ]
+}

@@ -1,7 +1,6 @@
 import {
     GearAcquisitionSource,
     JobDataConst,
-    JobTrait,
     LevelItemInfo,
     LevelStats,
     RawStatKey,

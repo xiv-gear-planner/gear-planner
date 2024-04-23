@@ -6,7 +6,8 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository_owner }}/xivgear-static
+  # TODO
+  IMAGE_NAME: ${{ github.repository_owner }}/xivgear-stats-server-test
 
 jobs:
   build:
@@ -26,10 +27,7 @@ jobs:
       - name: Build
         run: |
           npm install
-          npm run buildprod
-          npx lessc --source-map ./src/style.less dist/style.css
-          npm run test
-          npm run docs
+          npm install --workspaces
 
       - name: Inject commit info
         run: |

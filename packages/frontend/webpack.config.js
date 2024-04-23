@@ -1,10 +1,11 @@
 const HtmlWebpackPlugin = require("html-webpack-plugin");
+const path = require("path");
 module.exports = (env, argv) => {
     const prod = argv.mode === 'production';
     return {
-        entry: ["./src/scripts/main.ts"],
+        entry: [path.resolve(__dirname, "./src/scripts/main.ts")],
         output: {
-            path: __dirname + "/dist",
+            path: path.resolve(__dirname + "/dist"),
             clean: false
         },
         optimization: {
@@ -18,27 +19,17 @@ module.exports = (env, argv) => {
                     use: 'ts-loader',
                     exclude: /node_modules/,
                 },
-                // {
-                //     test: /\.less$/,
-                //     use: [
-                //         'style-loader',
-                //         'css-loader',
-                //         'less-loader'
-                //     ]
-                // }
             ],
         },
         plugins: [
             new HtmlWebpackPlugin({
-                template: "src/index.html",
+                template: path.resolve(__dirname, "src/index.html"),
                 filename: "index.html",
                 inject: false
             })
         ],
         resolve: {
             extensions: ['.ts', '.js'],
-            // modules: ['build', 'node_modules']
-            // modules: ['build', 'node_modules']
         }
     }
 }
