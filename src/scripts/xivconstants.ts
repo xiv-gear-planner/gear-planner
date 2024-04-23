@@ -451,7 +451,7 @@ export function getDefaultDisplaySettings(level: SupportedLevel, job: JobName): 
     if (job === 'BLU' && level === 80) {
         return BLU_80_ITEM_DISPLAY;
     }
-    return LEVEL_ITEMS[this.level].defaultDisplaySettings;
+    return LEVEL_ITEMS[level].defaultDisplaySettings;
 }
 
 // Level 70 data
