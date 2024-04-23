@@ -1,4 +1,4 @@
-import {JobName} from "../xivconstants";
+import {JobName} from "xivmath/xivconstants";
 import {AttackType} from "../geartypes";
 import {CombinedBuffEffect, DamageResult} from "./sim_processors";
 

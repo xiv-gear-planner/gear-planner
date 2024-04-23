@@ -1,6 +1,6 @@
 import {ParameterType} from "typedoc";
 import {getBisSheet} from "../external/static_bis";
-import {JobName} from "../xivconstants";
+import {JobName} from "xivmath/xivconstants";
 
 export type JsonImportSpec = {
     importType: 'json',

@@ -8,7 +8,9 @@
       <excludeFolder url="file://$MODULE_DIR$/build" />
       <excludeFolder url="file://$MODULE_DIR$/dist" />
       <excludeFolder url="file://$MODULE_DIR$/packages/backend-resolver/build" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/frontend/build" />
       <excludeFolder url="file://$MODULE_DIR$/packages/frontend/dist" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/xivmath/build" />
     </content>
     <orderEntry type="sourceFolder" forTests="false" />
   </component>

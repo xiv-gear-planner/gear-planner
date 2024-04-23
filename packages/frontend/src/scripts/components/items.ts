@@ -24,7 +24,7 @@ import {
     SpecialRow,
     TitleRow
 } from "../tables";
-import {formatAcquisitionSource, MateriaSubstat, MateriaSubstats, STAT_ABBREVIATIONS} from "../xivconstants";
+import {formatAcquisitionSource, MateriaSubstat, MateriaSubstats, STAT_ABBREVIATIONS} from "xivmath/xivconstants";
 import {FieldBoundCheckBox, FieldBoundIntField, labeledCheckbox, makeChevronDown} from "./util";
 import {AllSlotMateriaManager} from "./materia";
 import {GearPlanSheet} from "../components";

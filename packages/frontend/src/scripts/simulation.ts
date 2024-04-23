@@ -1,5 +1,5 @@
 import {CharacterGearSet} from "./gear";
-import {JobName, SupportedLevel} from "./xivconstants";
+import {JobName, SupportedLevel} from "xivmath/xivconstants";
 import {potRatioSimSpec} from "./sims/potency_ratio";
 import {CustomTable} from "./tables";
 import {camel2title} from "./util/strutils";

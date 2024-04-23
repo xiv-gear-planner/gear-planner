@@ -20,7 +20,7 @@ import {
     SPECIAL_SUB_STATS,
     statById,
     bluWdfromInt
-} from "./xivconstants";
+} from "xivmath/xivconstants";
 import {
     autoAttackModifier,
     autoDhBonusDmg,
@@ -38,7 +38,7 @@ import {
     tenacityDmg,
     vitToHp,
     wdMulti
-} from "./xivmath";
+} from "xivmath/xivmath";
 import {
     ComputedSetStats,
     DisplayGearSlot,
@@ -69,7 +69,7 @@ import {IlvlSyncInfo} from "./datamanager";
 import {XivApiStat, xivApiStatMapping} from "./external/xivapitypes";
 import {Inactivitytimer} from "./util/inactivitytimer";
 import {RelicStatModel} from "./relicstats/relicstats";
-import {addStats, finalizeStats} from "./xivstats";
+import {addStats, finalizeStats} from "xivmath/xivstats";
 import {parseImport} from "./imports/imports";
 
 

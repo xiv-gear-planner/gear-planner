@@ -2,7 +2,7 @@ import {GearItem, Substat} from "../geartypes";
 import {BaseParamMap} from "../datamanager";
 import {CharacterGearSet, EquippedItem} from "../gear";
 import {FieldBoundDataSelect, FieldBoundIntField} from "../components/util";
-import {ALL_SUB_STATS, getClassJobStats, JobName, STAT_ABBREVIATIONS, STAT_FULL_NAMES} from "../xivconstants";
+import {ALL_SUB_STATS, getClassJobStats, JobName, STAT_ABBREVIATIONS, STAT_FULL_NAMES} from "xivmath/xivconstants";
 
 type BaseRelicStatModel = {
     /**

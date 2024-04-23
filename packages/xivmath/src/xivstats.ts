@@ -1,4 +1,4 @@
-import {ComputedSetStats, JobData, LevelStats, PartyBonusAmount, RawStatKey, RawStats} from "./geartypes";
+import {ComputedSetStats, JobData, LevelStats, PartyBonusAmount, RawStatKey, RawStats} from "../../frontend/src/scripts/geartypes";
 import {
     autoAttackModifier,
     autoDhBonusDmg,

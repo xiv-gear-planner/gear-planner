@@ -7,7 +7,7 @@ import {
     RaceName,
     SPECIAL_SUB_STATS,
     SupportedLevel
-} from "./xivconstants";
+} from "xivmath/xivconstants";
 import {RelicStatModel} from "./relicstats/relicstats";
 
 export interface DisplayGearSlot {

@@ -1,5 +1,5 @@
 import {processRawMateriaInfo, XivApiFoodInfo, XivApiGearInfo} from "./gear";
-import {getClassJobStats, JobName, LEVEL_ITEMS, MATERIA_LEVEL_MAX_NORMAL, SupportedLevel} from "./xivconstants";
+import {getClassJobStats, JobName, LEVEL_ITEMS, MATERIA_LEVEL_MAX_NORMAL, SupportedLevel} from "xivmath/xivconstants";
 import {GearItem, JobMultipliers, Materia, OccGearSlotKey, RawStatKey,} from "./geartypes";
 import {xivApiGet, xivApiSingle} from "./external/xivapi";
 import {BaseParamToStatKey, xivApiStatMapping} from "./external/xivapitypes";

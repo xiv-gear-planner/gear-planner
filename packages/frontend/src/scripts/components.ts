@@ -61,7 +61,7 @@ import {
     STAT_ABBREVIATIONS,
     SupportedLevel,
     SupportedLevels
-} from "./xivconstants";
+} from "xivmath/xivconstants";
 import {getCurrentHash, getHashForSaveKey, openExport, openSheetByKey, setTitle, showNewSheetForm} from "./main";
 import {getSetFromEtro} from "./external/etro_import";
 import {Inactivitytimer} from "./util/inactivitytimer";

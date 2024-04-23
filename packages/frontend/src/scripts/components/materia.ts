@@ -7,7 +7,7 @@ import {
     MeldableMateriaSlot,
     RawStatKey
 } from "../geartypes";
-import {MateriaSubstat, MAX_GCD, STAT_ABBREVIATIONS, STAT_FULL_NAMES} from "../xivconstants";
+import {MateriaSubstat, MAX_GCD, STAT_ABBREVIATIONS, STAT_FULL_NAMES} from "xivmath/xivconstants";
 import {closeModal, setModal} from "../modalcontrol";
 import {GearPlanSheet} from "../components";
 import {

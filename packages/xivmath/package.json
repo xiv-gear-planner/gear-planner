@@ -5,5 +5,11 @@
   "scripts": {},
   "devDependencies": {
     "ts-node": "^10.9.2"
-  }
+  },
+  "main": "src",
+  "files": [
+    "package.json",
+    "tsconfig.json",
+    "src/*.ts"
+  ]
 }

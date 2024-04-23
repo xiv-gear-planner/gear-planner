@@ -2,8 +2,8 @@ import {GcdAbility, OgcdAbility} from "../../sims/sim_types";
 import {CharacterGearSet} from "../../gear";
 import {makeFakeSet} from "../test_utils";
 import {JobMultipliers} from "../../geartypes";
-import {finalizeStats} from "../../xivstats";
-import {getClassJobStats, getLevelStats} from "../../xivconstants";
+import {finalizeStats} from "xivmath/xivstats";
+import {getClassJobStats, getLevelStats} from "xivmath/xivconstants";
 
 export const filler: GcdAbility = {
     type: 'gcd',

@@ -1,4 +1,4 @@
-import {JobName} from "../xivconstants";
+import {JobName} from "xivmath/xivconstants";
 import {XivApiJobData} from "../components";
 
 let jobData: XivApiJobData[];
