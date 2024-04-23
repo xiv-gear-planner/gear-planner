@@ -48,7 +48,7 @@ import {
 } from "./simulation";
 import {
     DefaultMateriaFillPrio,
-    getClassJobStats,
+    getClassJobStats, getDefaultDisplaySettings,
     getRaceStats,
     JOB_DATA,
     JobName,
@@ -1163,7 +1163,7 @@ export class GearPlanSheet extends HTMLElement {
             Object.assign(this._itemDisplaySettings, importedData.itemDisplaySettings);
         }
         else {
-            const defaults = LEVEL_ITEMS[this.level].defaultDisplaySettings;
+            const defaults = getDefaultDisplaySettings(this.level, this.classJobName);
             Object.assign(this._itemDisplaySettings, defaults);
             // TODO: investigate if this logic is worth doing
             // if (this.ilvlSync) {

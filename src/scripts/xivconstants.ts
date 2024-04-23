@@ -1,7 +1,7 @@
 import {
     GearAcquisitionSource,
+    ItemDisplaySettings,
     JobDataConst,
-    JobTrait,
     LevelItemInfo,
     LevelStats,
     RawStatKey,
@@ -105,7 +105,7 @@ const STANDARD_HEALER: JobDataConst = {
     mainStat: 'mind',
     autoAttackStat: 'strength',
     irrelevantSubstats: ['skillspeed', 'tenacity'],
-    traitMulti: (level, attackType) => attackType === 'Auto-attack' ? 1.0 :  1.3, // Maim and Mend II
+    traitMulti: (level, attackType) => attackType === 'Auto-attack' ? 1.0 : 1.3, // Maim and Mend II
     itemStatCapMultipliers: {
         'vitality': 0.90
     },
@@ -137,7 +137,7 @@ const STANDARD_RANGED: JobDataConst = {
     mainStat: 'dexterity',
     autoAttackStat: 'dexterity',
     irrelevantSubstats: ['spellspeed', 'tenacity', 'piety'],
-    traitMulti: (level, attackType) => attackType === 'Auto-attack' ? 1.0 :  1.2, // Increased Action Damage II
+    traitMulti: (level, attackType) => attackType === 'Auto-attack' ? 1.0 : 1.2, // Increased Action Damage II
     aaPotency: RANGE_AUTO_POTENCY,
     excludedRelicSubstats: [],
 } as const;
@@ -147,7 +147,7 @@ const STANDARD_CASTER: JobDataConst = {
     mainStat: 'intelligence',
     autoAttackStat: 'strength',
     irrelevantSubstats: ['skillspeed', 'tenacity', 'piety'],
-    traitMulti: (level, attackType) => attackType === 'Auto-attack' ? 1.0 :  1.3, // Maim and Mend II
+    traitMulti: (level, attackType) => attackType === 'Auto-attack' ? 1.0 : 1.3, // Maim and Mend II
     itemStatCapMultipliers: {
         'vitality': 0.90
     },
@@ -201,7 +201,7 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
     },
     BLU: {
         ...STANDARD_CASTER,
-        traitMulti: (level, attackType) => attackType === 'Auto-attack' ? 1.0 :  1.5, // Maim and Mend V
+        traitMulti: (level, attackType) => attackType === 'Auto-attack' ? 1.0 : 1.5, // Maim and Mend V
     }
 }
 
@@ -398,8 +398,8 @@ export const LEVEL_ITEMS: Record<SupportedLevel, LevelItemInfo> = {
         defaultDisplaySettings: {
             minILvl: 380,
             maxILvl: 405,
-            minILvlFood:  640,
-            maxILvlFood:  999,
+            minILvlFood: 640,
+            maxILvlFood: 999,
             higherRelics: true
         }
     },
@@ -412,6 +412,10 @@ export const LEVEL_ITEMS: Record<SupportedLevel, LevelItemInfo> = {
         minMateria: 7,
         maxMateria: 8,
         defaultDisplaySettings: {
+            // Defaults appropriate for TEA since it is the most common reason to be making
+            // a level 80 gear set.
+            // There is a BLU-specific override since BLU's only level 80 weapons are 530,
+            // see below.
             minILvl: 450,
             maxILvl: 475,
             minILvlFood: 640,
@@ -435,6 +439,19 @@ export const LEVEL_ITEMS: Record<SupportedLevel, LevelItemInfo> = {
             higherRelics: true
         }
     }
+}
+
+const BLU_80_ITEM_DISPLAY = {
+    ...LEVEL_ITEMS[80].defaultDisplaySettings,
+    minILvl: 520,
+    maxILvl: 535
+} satisfies ItemDisplaySettings
+
+export function getDefaultDisplaySettings(level: SupportedLevel, job: JobName): ItemDisplaySettings {
+    if (job === 'BLU' && level === 80) {
+        return BLU_80_ITEM_DISPLAY;
+    }
+    return LEVEL_ITEMS[this.level].defaultDisplaySettings;
 }
 
 // Level 70 data
@@ -670,11 +687,11 @@ const BLU_INT_WD = [
  * @param gearIntStat Intelligence stat from gear only (excludes all modifiers).
  * @returns BLU weapon damage modifier.
  */
-export function bluWdfromInt(gearIntStat: number) : number {
-    for (let i=0; i<BLU_INT_WD.length; i++) {
+export function bluWdfromInt(gearIntStat: number): number {
+    for (let i = 0; i < BLU_INT_WD.length; i++) {
         if (gearIntStat < BLU_INT_WD[i][0]) {
-            return BLU_INT_WD[Math.max(0, i-1)][1];
+            return BLU_INT_WD[Math.max(0, i - 1)][1];
         }
     }
-    return BLU_INT_WD[BLU_INT_WD.length-1][1];
+    return BLU_INT_WD[BLU_INT_WD.length - 1][1];
 }
