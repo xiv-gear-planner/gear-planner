@@ -170,6 +170,7 @@ export class SlotMateriaManager extends HTMLElement {
             this.text.textContent = `+${displayedNumber} ${STAT_ABBREVIATIONS[currentMat.primaryStat]}`;
             this.classList.remove("materia-slot-empty")
             this.classList.add("materia-slot-full");
+            this.title = formatMateriaTitle(currentMat);
         }
         else {
             this.image.style.display = 'none';
@@ -177,6 +178,7 @@ export class SlotMateriaManager extends HTMLElement {
             this.classList.remove('materia-normal', 'materia-overcap', 'materia-overcap-major')
             // this.classList.remove('materia-slot-full', 'materia-normal', 'materia-overcap', 'materia-overcap-major')
             this.classList.add("materia-slot-empty");
+            delete this.title;
         }
     }
 
@@ -243,7 +245,12 @@ export class MateriaCountDisplay extends HTMLElement {
         this.replaceChildren(
             quickElement('div', ['materia-count-quantity'], [document.createTextNode(count + 'x')]),
             new SingleMateriaViewOnly(materia));
+        this.title = formatMateriaTitle(materia);
     }
+}
+
+export function formatMateriaTitle(materia: Materia): string {
+    return `${materia.name}: +${materia.primaryStatValue} ${STAT_FULL_NAMES[materia.primaryStat]}`;
 }
 
 export class SlotMateriaManagerPopup extends HTMLElement {
@@ -303,7 +310,7 @@ export class SlotMateriaManagerPopup extends HTMLElement {
                         this.submit(materia);
                         ev.stopPropagation();
                     });
-                    cell.title = `${materia.name}: +${materia.primaryStatValue} ${STAT_FULL_NAMES[materia.primaryStat]}`;
+                    cell.title = formatMateriaTitle(materia);
                     const image = document.createElement("img");
                     image.src = materia.iconUrl.toString();
                     if (this.materiaSlot.equippedMateria === materia) {
