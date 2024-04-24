@@ -70,6 +70,8 @@ export function finalizeStats(
         mpPerTick: mpTick(levelStats, combinedStats.piety),
         aaMulti: autoAttackModifier(levelStats, classJobStats, combinedStats.weaponDelay, combinedStats.wdPhys)
     }
+    computedStats[classJobStats.mainStat] = mainStat;
+    computedStats[classJobStats.autoAttackStat] = aaStat;
     if (classJobStats.traits) {
         classJobStats.traits.forEach(trait => {
             if (trait.minLevel && trait.minLevel > level) {
