@@ -4,6 +4,7 @@ import Fastify from 'fastify';
 import * as process from "process";
 import {getShortLink} from "@xivgear/gearplan-frontend/external/shortlink_server";
 import {GearPlanSheet} from "@xivgear/gearplan-frontend/components";
+import {PartyBonusAmount} from "@xivgear/xivmath/geartypes";
 
 
 // Hack for JSDom not having ResizeObserver
@@ -40,6 +41,10 @@ fastify.get('/fulldata/:uuid', async (request, reply) => {
     const isFullSheet = 'sets' in exported;
     const sheet = isFullSheet ? GearPlanSheet.fromExport(exported) : GearPlanSheet.fromSetExport(exported);
     sheet.setViewOnly();
+    const pb = request.query['partyBonus'];
+    if (pb) {
+        sheet.partyBonus = parseInt(pb) as PartyBonusAmount;
+    }
     await sheet.loadFully();
     return sheet.sets.map(set => ({
         name: set.name,
