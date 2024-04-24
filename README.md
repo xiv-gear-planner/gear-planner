@@ -38,6 +38,10 @@ You can pull saved gear sets for use on your own application.
 
 Contribution guide, including how to write simulations.
 
+[Local Builds](/LOCAL_BUILD.md)
+
+How to build and test locally.
+
 [Debugging Tips](/DEBUGGING.md)
 
 Some quick tips for easier debugging.
