@@ -33,7 +33,7 @@ jobs:
 
       - name: Inject commit info
         run: |
-          git rev-parse HEAD > dist/version_info.txt
+          git rev-parse HEAD > packages/frontend/dist/version_info.txt
           git log -1 --pretty=%B >> dist/version_info.txt
 
       # Docker stuff begins here

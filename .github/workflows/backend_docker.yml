@@ -29,11 +29,6 @@ jobs:
           npm install
           npm run build
 
-      - name: Inject commit info
-        run: |
-          git rev-parse HEAD > dist/version_info.txt
-          git log -1 --pretty=%B >> dist/version_info.txt
-
       # Docker stuff begins here
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
