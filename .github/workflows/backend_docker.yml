@@ -1,4 +1,4 @@
-name: Build and Publish Container Image
+name: Stats - Build and Publish Container Image
 
 on:
   push:

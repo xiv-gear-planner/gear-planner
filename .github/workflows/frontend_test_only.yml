@@ -1,4 +1,4 @@
-name: Test Build for PR
+name: Frontend - Test Build for PR
 
 on:
   push:
