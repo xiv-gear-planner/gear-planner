@@ -29,7 +29,7 @@ jobs:
         run: |
           npm install
           npm build
-          npm run --workspace=@xivgear/gearplan-frontend test
+          npm --workspace=@xivgear/gearplan-frontend test
           npm run --workspace=@xivgear/gearplan-frontend docs
 
       - name: Inject commit info
