@@ -3,3 +3,4 @@
 **/dist/
 .idea/*.xml
 .vs/
+**/tsconfig.tsbuildinfo
