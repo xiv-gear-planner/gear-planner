@@ -47,7 +47,7 @@ class InternalState {
 export class CooldownTracker {
 
 
-    private readonly currentState: Map<Ability, InternalState> = new Map();
+    private readonly currentState: Map<string, InternalState> = new Map();
     public mode: CooldownMode = 'warn';
 
     public constructor(private timeSource: () => number, mode: CooldownMode = 'warn') {
@@ -89,7 +89,7 @@ export class CooldownTracker {
         // seconds. The trivial case is the ability is capped 'now' and you use it (works for charge based and normal).
         const newCappedAt = status.cappedAt.absolute + cdTime;
         const state = new InternalState(newCappedAt);
-        this.currentState.set(ability, state);
+        this.currentState.set(ability.name, state);
     }
 
     public canUse(ability: Ability, when?: number): boolean {
@@ -121,7 +121,7 @@ export class CooldownTracker {
         if (!ability.cooldown) {
             return defaultStatus(ability, desiredTime);
         }
-        const existing = this.currentState.get(ability);
+        const existing = this.currentState.get(ability.name);
         // Have existing state
         if (existing) {
             const cappedAt = existing.cappedAt;
