@@ -70,6 +70,7 @@ export function finalizeStats(
         mpPerTick: mpTick(levelStats, combinedStats.piety),
         aaMulti: autoAttackModifier(levelStats, classJobStats, combinedStats.weaponDelay, combinedStats.wdPhys)
     }
+    // TODO: should this just apply to all main stats, even ones that are irrelevant to the class?
     computedStats[classJobStats.mainStat] = mainStat;
     computedStats[classJobStats.autoAttackStat] = aaStat;
     if (classJobStats.traits) {
