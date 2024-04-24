@@ -1,7 +1,7 @@
-import {CharacterGearSet, EquippedItem, ItemSingleStatDetail, nonEmptyRelicStats} from "../gear";
+import {CharacterGearSet, ItemSingleStatDetail, nonEmptyRelicStats} from "../gear";
 import {
     DisplayGearSlot,
-    EquipmentSet,
+    EquipmentSet, EquippedItem,
     EquipSlotInfo,
     EquipSlotKey,
     EquipSlots,
@@ -12,7 +12,7 @@ import {
     RawStats,
     StatBonus,
     Substat
-} from "../../../../xivmath/src/geartypes";
+} from "xivmath/geartypes";
 import {
     CustomCell,
     CustomColumn,

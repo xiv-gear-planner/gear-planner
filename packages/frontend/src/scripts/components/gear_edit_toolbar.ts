@@ -1,5 +1,5 @@
 import {ILvlRangePicker} from "./items";
-import {ItemDisplaySettings, MateriaAutoFillController} from "../../../../xivmath/src/geartypes";
+import {ItemDisplaySettings, MateriaAutoFillController} from "xivmath/geartypes";
 import {MateriaPriorityPicker} from "./materia";
 import {StatTierDisplay} from "./stat_tier_display";
 import {CharacterGearSet} from "../gear";

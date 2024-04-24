@@ -1,12 +1,12 @@
 import {
-    CustomRelicStatModel,
+    CustomRelicStatModel, EquippedItem,
     EwRelicStatModel,
     GearItem, PartialRelicStatModel,
     RelicStatModel,
     Substat
-} from "xivmath/src/geartypes";
+} from "xivmath/geartypes";
 import {BaseParamMap} from "../datamanager";
-import {CharacterGearSet, EquippedItem} from "../gear";
+import {CharacterGearSet} from "../gear";
 import {FieldBoundDataSelect, FieldBoundIntField} from "../components/util";
 import {ALL_SUB_STATS, getClassJobStats, JobName, STAT_ABBREVIATIONS, STAT_FULL_NAMES} from "xivmath/xivconstants";
 

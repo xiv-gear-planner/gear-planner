@@ -10,12 +10,12 @@ import {
     SpecialRow,
     TitleRow
 } from "./tables";
-import {CharacterGearSet, EquippedItem,} from "./gear";
+import {CharacterGearSet} from "./gear";
 import {DataManager} from "./datamanager";
 import {
     ChanceStat,
     ComputedSetStats,
-    DisplayGearSlot,
+    DisplayGearSlot, EquippedItem,
     EquipSlotKey,
     EquipSlots,
     FoodItem,
@@ -34,7 +34,7 @@ import {
     SheetExport,
     SimExport,
     Substat
-} from "../../../xivmath/src/geartypes";
+} from "xivmath/geartypes";
 import {
     getDefaultSims,
     getRegisteredSimSpecs,
@@ -62,7 +62,7 @@ import {
     SupportedLevel,
     SupportedLevels
 } from "xivmath/xivconstants";
-import {getCurrentHash, getHashForSaveKey, openExport, openSheetByKey, setTitle, showNewSheetForm} from "./main";
+import {getCurrentHash, getHashForSaveKey, openSheetByKey, setTitle, showNewSheetForm} from "./main";
 import {getSetFromEtro} from "./external/etro_import";
 import {Inactivitytimer} from "./util/inactivitytimer";
 import {

@@ -1,7 +1,7 @@
 import {CharacterGearSet} from "../gear";
 import {GearPlanSheet} from "../components";
 import {STAT_ABBREVIATIONS, STAT_DISPLAY_ORDER} from "xivmath/xivconstants";
-import {RawStatKey} from "../../../../xivmath/src/geartypes";
+import {RawStatKey} from "xivmath/geartypes";
 import {
     critChance,
     critDmg,

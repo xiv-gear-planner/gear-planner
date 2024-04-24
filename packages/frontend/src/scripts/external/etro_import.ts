@@ -1,6 +1,5 @@
-import {EquipSlotKey, EquipSlots, ItemSlotExport, SetExport} from "../../../../xivmath/src/geartypes";
+import {EquipSlotKey, ItemSlotExport, SetExport} from "xivmath/geartypes";
 import {JobName, MATERIA_SLOTS_MAX} from "xivmath/xivconstants";
-import {xivApiSingle} from "./xivapi";
 import {queryBaseParams} from "../datamanager";
 import {BaseParamToStatKey} from "./xivapitypes";
 

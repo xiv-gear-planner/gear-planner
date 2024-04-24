@@ -9,7 +9,7 @@
     "global-jsdom": "^24.0.0",
     "isomorphic-fetch": "^3.0.0",
     "jsdom": "^24.0.0",
-    "gearplan-frontend": "../frontend"
+    "gearplan-frontend": "1.0.0"
   },
   "devDependencies": {
     "@types/isomorphic-fetch": "^0.0.39",

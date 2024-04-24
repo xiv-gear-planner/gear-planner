@@ -44,7 +44,7 @@ import {
     StatBonus,
     Substat,
     XivCombatItem
-} from "xivmath/src/geartypes";
+} from "xivmath/geartypes";
 import {GearPlanSheet} from "./components";
 import {xivApiIcon} from "./external/xivapi";
 import {IlvlSyncInfo} from "./datamanager";
