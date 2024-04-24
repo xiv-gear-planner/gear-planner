@@ -9,8 +9,7 @@
     "ts-node": "^10.9.2"
   },
   "exports": {
-    "./*": "./src/*.ts",
-    "./math/*": "./build/*"
+    "./*": "./src/*.ts"
   },
   "files": [
     "package.json",

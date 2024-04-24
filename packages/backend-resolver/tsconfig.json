@@ -9,8 +9,13 @@
     "strictBindCallApply": true,
     "allowSyntheticDefaultImports": true,
     "composite": true
-  }
-  //  "include": [
-//    "src"
-//  ]
+  },
+  "references": [
+    {
+      "path": "../frontend"
+    },
+    {
+      "path": "../xivmath"
+    }
+  ]
 }

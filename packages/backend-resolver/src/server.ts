@@ -49,7 +49,8 @@ fastify.get('/fulldata/:uuid', async (request, reply) => {
 });
 
 fastify.listen({
-    port: 30000
+    port: 30000,
+    host: '0.0.0.0'
 }, (err, addr) => {
     if (err) {
         fastify.log.error(err);
