@@ -1,4 +1,3 @@
-import {EquippedItem, RelicStats} from "./gear";
 import {
     FAKE_MAIN_STATS,
     JobName,
@@ -7,8 +6,7 @@ import {
     RaceName,
     SPECIAL_SUB_STATS,
     SupportedLevel
-} from "xivmath/xivconstants";
-import {RelicStatModel} from "./relicstats/relicstats";
+} from "./xivconstants";
 
 export interface DisplayGearSlot {
 
@@ -509,7 +507,7 @@ export interface SimExport {
 
 /**
  * Represents an exported set. Many of the fields fill the same role as the fields
- * on {@link GearPlanSheet}.
+ * on GearPlanSheet.
  *
  * Some of the fields are only relevant for local saves, while others are only relevant
  * for external (API) saves.
@@ -730,3 +728,113 @@ export type GearAcquisitionSource =
     | 'artifact'
     | 'alliance'
     | 'other';
+
+export type GearSetIssue = {
+    readonly severity: 'warning' | 'error',
+    readonly description: string
+}
+
+export type GearSetResult = {
+    readonly computedStats: ComputedSetStats,
+    readonly issues: readonly GearSetIssue[]
+}
+
+export type SetDisplaySettingsExport = {
+    hiddenSlots: EquipSlotKey[]
+}
+
+export type BaseRelicStatModel = {
+    /**
+     * Validate an item according to this relic model.
+     * Returns a list of validation errors. An empty list implies success.
+     *
+     * @param item The item
+     * @param statToReport Specify this to report issues specific to one stat. Messages may be tailored to one stat,
+     * and validation issues will only be reported if that particular stat is actually contributing to the problem.
+     */
+    validate(item: EquippedItem, statToReport?: Substat): string[]
+}
+
+/**
+ * Relic stat model for Endwalker-style relics, where you have X 'large' stats, and Y 'small' stats.
+ */
+export type EwRelicStatModel = BaseRelicStatModel & {
+    type: 'ewrelic'
+    /**
+     * The stat value of the 'large' stats (typically the stat cap).
+     */
+    largeValue: number
+    /**
+     * The stat value of the 'small' stats.
+     */
+    smallValue: number
+    /**
+     * The maximum number of large stats.
+     */
+    numLarge: number
+    /**
+     * The maximum number of small stats.
+     */
+    numSmall: number
+}
+
+/**
+ * Relic stat model for pre-EW relics, where you get to allocate stats as you wish as
+ * long as the total remains below a cap, and no individual stat goes over the normal
+ * stat cap.
+ */
+export type CustomRelicStatModel = BaseRelicStatModel & {
+    type: 'customrelic'
+    /**
+     * The cap for total stats.
+     */
+    totalCap: number
+}
+
+/**
+ * Generic model for all unknown relics. The only validation performed is that no individual stat
+ * is over the stat cap.
+ */
+export type UnknownRelicStatModel = BaseRelicStatModel & {
+    type: 'unknown'
+}
+
+export type PartialRelicStatModel = EwRelicStatModel | CustomRelicStatModel | UnknownRelicStatModel
+
+/**
+ * Final type for relic stat models.
+ */
+export type RelicStatModel = PartialRelicStatModel & {
+    excludedStats: readonly Substat[]
+}
+
+export type RelicStats = {
+    [K in Substat]?: number
+}
+
+export class EquippedItem {
+
+    gearItem: GearItem;
+    melds: MeldableMateriaSlot[];
+    relicStats?: RelicStats;
+
+    constructor(gearItem: GearItem, melds: MeldableMateriaSlot[] | undefined = undefined) {
+        this.gearItem = gearItem;
+        if (melds === undefined) {
+            this.melds = [];
+            for (let materiaSlot of gearItem.materiaSlots) {
+                this.melds.push({
+                    materiaSlot: materiaSlot,
+                    equippedMateria: null
+                })
+            }
+        }
+        else {
+            this.melds = [...melds];
+        }
+        if (gearItem.isCustomRelic) {
+            this.relicStats = {};
+        }
+    }
+}
+

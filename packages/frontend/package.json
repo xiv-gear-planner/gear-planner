@@ -3,7 +3,12 @@
   "version": "1.0.0",
   "dependencies": {
     "@webcomponents/webcomponentsjs": "^2.8.0",
-    "xivmath": "../xivmath/src/"
+    "xivmath": "../xivmath"
+  },
+  "exports": {
+    "exports": {
+      "./*.ts": "./src/scripts/*.ts"
+    }
   },
   "devDependencies": {
     "@types/expect": "^24.3.0",

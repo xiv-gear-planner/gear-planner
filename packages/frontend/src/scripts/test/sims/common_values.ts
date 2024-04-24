@@ -1,7 +1,7 @@
 import {GcdAbility, OgcdAbility} from "../../sims/sim_types";
 import {CharacterGearSet} from "../../gear";
 import {makeFakeSet} from "../test_utils";
-import {JobMultipliers} from "../../geartypes";
+import {JobMultipliers} from "../../../../../xivmath/src/geartypes";
 import {finalizeStats} from "xivmath/xivstats";
 import {getClassJobStats, getLevelStats} from "xivmath/xivconstants";
 

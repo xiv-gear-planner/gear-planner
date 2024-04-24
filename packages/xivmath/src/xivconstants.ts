@@ -6,7 +6,7 @@ import {
     LevelStats,
     RawStatKey,
     RawStats
-} from "../../frontend/src/scripts/geartypes";
+} from "./geartypes";
 
 /**
  * Maximum number of materia slots on any item.

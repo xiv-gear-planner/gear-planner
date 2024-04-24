@@ -22,34 +22,16 @@ import {
     bluWdfromInt
 } from "xivmath/xivconstants";
 import {
-    autoAttackModifier,
-    autoDhBonusDmg,
-    critChance,
-    critDmg,
-    detDmg,
-    dhitChance,
-    dhitDmg,
-    mainStatMulti,
-    mpTick,
-    sksTickMulti,
-    sksToGcd,
-    spsTickMulti,
-    spsToGcd,
-    tenacityDmg,
-    vitToHp,
-    wdMulti
-} from "xivmath/xivmath";
-import {
     ComputedSetStats,
     DisplayGearSlot,
     DisplayGearSlotInfo,
     DisplayGearSlotKey,
-    EquipmentSet,
+    EquipmentSet, EquippedItem,
     EquipSlotKey,
     EquipSlots,
     FoodItem,
     GearAcquisitionSource,
-    GearItem,
+    GearItem, GearSetIssue, GearSetResult,
     Materia,
     MateriaAutoFillController,
     MateriaAutoFillPrio,
@@ -58,24 +40,18 @@ import {
     NO_SYNC_STATS,
     OccGearSlotKey,
     RawStatKey,
-    RawStats,
+    RawStats, RelicStatModel, RelicStats, SetDisplaySettingsExport,
     StatBonus,
     Substat,
     XivCombatItem
-} from "./geartypes";
+} from "xivmath/src/geartypes";
 import {GearPlanSheet} from "./components";
 import {xivApiIcon} from "./external/xivapi";
 import {IlvlSyncInfo} from "./datamanager";
 import {XivApiStat, xivApiStatMapping} from "./external/xivapitypes";
 import {Inactivitytimer} from "./util/inactivitytimer";
-import {RelicStatModel} from "./relicstats/relicstats";
 import {addStats, finalizeStats} from "xivmath/xivstats";
-import {parseImport} from "./imports/imports";
 
-
-export type RelicStats = {
-    [K in Substat]?: number
-}
 
 export function nonEmptyRelicStats(stats: RelicStats | undefined): boolean {
     return (stats && !Object.values(stats).every(val => !val));
@@ -113,45 +89,6 @@ export type RelicStatMemoryExport = {
     [p: number]: RelicStats;
 };
 
-export class EquippedItem {
-
-    gearItem: GearItem;
-    melds: MeldableMateriaSlot[];
-    relicStats?: RelicStats;
-
-    constructor(gearItem: GearItem, melds: MeldableMateriaSlot[] | undefined = undefined) {
-        this.gearItem = gearItem;
-        if (melds === undefined) {
-            this.melds = [];
-            for (let materiaSlot of gearItem.materiaSlots) {
-                this.melds.push({
-                    materiaSlot: materiaSlot,
-                    equippedMateria: null
-                })
-            }
-        }
-        else {
-            this.melds = [...melds];
-        }
-        if (gearItem.isCustomRelic) {
-            this.relicStats = {};
-        }
-    }
-}
-
-export type GearSetIssue = {
-    readonly severity: 'warning' | 'error',
-    readonly description: string
-}
-
-export type GearSetResult = {
-    readonly computedStats: ComputedSetStats,
-    readonly issues: readonly GearSetIssue[]
-}
-
-export type SetDisplaySettingsExport = {
-    hiddenSlots: EquipSlotKey[]
-}
 
 export class SetDisplaySettings {
     private readonly hiddenSlots: Map<EquipSlotKey, boolean> = new Map();

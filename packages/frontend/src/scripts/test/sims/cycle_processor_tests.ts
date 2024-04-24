@@ -12,7 +12,7 @@ import * as assert from "assert";
 import {assertClose, makeFakeSet} from "../test_utils";
 import {assertSimAbilityResults, setPartyBuffEnabled, UseResult} from "./sim_test_utils";
 import {SimSettings, SimSpec} from "../../simulation";
-import {JobMultipliers} from "../../geartypes";
+import {JobMultipliers} from "../../../../../xivmath/src/geartypes";
 import {finalizeStats} from "xivmath/xivstats";
 import {getClassJobStats, getLevelStats} from "xivmath/xivconstants";
 import {CharacterGearSet} from "../../gear";

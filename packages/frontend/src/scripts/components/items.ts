@@ -12,7 +12,7 @@ import {
     RawStats,
     StatBonus,
     Substat
-} from "../geartypes";
+} from "../../../../xivmath/src/geartypes";
 import {
     CustomCell,
     CustomColumn,

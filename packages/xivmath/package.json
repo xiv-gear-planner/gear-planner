@@ -6,7 +6,9 @@
   "devDependencies": {
     "ts-node": "^10.9.2"
   },
-  "main": "src",
+  "exports": {
+    "./*.ts": "./src/*.ts"
+  },
   "files": [
     "package.json",
     "tsconfig.json",

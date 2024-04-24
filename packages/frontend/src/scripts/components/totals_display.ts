@@ -1,5 +1,5 @@
 import {CharacterGearSet} from "../gear";
-import {ChanceStat, GcdStat, MultiplierStat, RawStatKey, TickStat} from "../geartypes";
+import {ChanceStat, GcdStat, MultiplierStat, RawStatKey, TickStat} from "../../../../xivmath/src/geartypes";
 import {NORMAL_GCD, STAT_ABBREVIATIONS, STAT_DISPLAY_ORDER} from "xivmath/xivconstants";
 
 export class SetViewToolbar extends HTMLElement {

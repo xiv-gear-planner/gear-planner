@@ -34,7 +34,7 @@ import {
     SheetExport,
     SimExport,
     Substat
-} from "./geartypes";
+} from "../../../xivmath/src/geartypes";
 import {
     getDefaultSims,
     getRegisteredSimSpecs,

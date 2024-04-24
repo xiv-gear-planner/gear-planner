@@ -1,4 +1,4 @@
-import {AttackType, ComputedSetStats, JobData, JobMultipliers, LevelStats} from "../../frontend/src/scripts/geartypes";
+import {AttackType, ComputedSetStats, JobData, JobMultipliers, LevelStats} from "./geartypes";
 
 /*
     Common math for FFXIV.

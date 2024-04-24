@@ -1,5 +1,5 @@
 import {GearPlanSheet, ImportSheetArea, NewSheetForm, SheetPickerTable} from "./components";
-import {SetExport, SheetExport} from "./geartypes";
+import {SetExport, SheetExport} from "../../../xivmath/src/geartypes";
 import {quickElement} from "./components/util";
 import {getShortLink} from "./external/shortlink_server";
 import {getBisSheet} from "./external/static_bis";

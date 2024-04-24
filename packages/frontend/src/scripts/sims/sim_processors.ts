@@ -1,4 +1,4 @@
-import {ComputedSetStats} from "../geartypes";
+import {ComputedSetStats} from "../../../../xivmath/src/geartypes";
 import {applyDhCrit, baseDamage} from "xivmath/xivmath";
 import {
     Ability,

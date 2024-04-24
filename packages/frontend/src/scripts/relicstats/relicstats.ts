@@ -1,73 +1,15 @@
-import {GearItem, Substat} from "../geartypes";
+import {
+    CustomRelicStatModel,
+    EwRelicStatModel,
+    GearItem, PartialRelicStatModel,
+    RelicStatModel,
+    Substat
+} from "xivmath/src/geartypes";
 import {BaseParamMap} from "../datamanager";
 import {CharacterGearSet, EquippedItem} from "../gear";
 import {FieldBoundDataSelect, FieldBoundIntField} from "../components/util";
 import {ALL_SUB_STATS, getClassJobStats, JobName, STAT_ABBREVIATIONS, STAT_FULL_NAMES} from "xivmath/xivconstants";
 
-type BaseRelicStatModel = {
-    /**
-     * Validate an item according to this relic model.
-     * Returns a list of validation errors. An empty list implies success.
-     *
-     * @param item The item
-     * @param statToReport Specify this to report issues specific to one stat. Messages may be tailored to one stat,
-     * and validation issues will only be reported if that particular stat is actually contributing to the problem.
-     */
-    validate(item: EquippedItem, statToReport?: Substat): string[]
-}
-
-/**
- * Relic stat model for Endwalker-style relics, where you have X 'large' stats, and Y 'small' stats.
- */
-type EwRelicStatModel = BaseRelicStatModel & {
-    type: 'ewrelic'
-    /**
-     * The stat value of the 'large' stats (typically the stat cap).
-     */
-    largeValue: number
-    /**
-     * The stat value of the 'small' stats.
-     */
-    smallValue: number
-    /**
-     * The maximum number of large stats.
-     */
-    numLarge: number
-    /**
-     * The maximum number of small stats.
-     */
-    numSmall: number
-}
-
-/**
- * Relic stat model for pre-EW relics, where you get to allocate stats as you wish as
- * long as the total remains below a cap, and no individual stat goes over the normal
- * stat cap.
- */
-type CustomRelicStatModel = BaseRelicStatModel & {
-    type: 'customrelic'
-    /**
-     * The cap for total stats.
-     */
-    totalCap: number
-}
-
-/**
- * Generic model for all unknown relics. The only validation performed is that no individual stat
- * is over the stat cap.
- */
-type UnknownRelicStatModel = BaseRelicStatModel & {
-    type: 'unknown'
-}
-
-type PartialRelicStatModel = EwRelicStatModel | CustomRelicStatModel | UnknownRelicStatModel
-
-/**
- * Final type for relic stat models.
- */
-export type RelicStatModel = PartialRelicStatModel & {
-    excludedStats: readonly Substat[]
-}
 
 
 function ewRelic(large: number, small: number): EwRelicStatModel {
