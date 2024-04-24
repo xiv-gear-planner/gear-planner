@@ -29,7 +29,7 @@ jobs:
         run: |
           npm install
           npm install --workspaces || npm install --workspaces
-          npm run --workspace=@xivgear/gearplan-frontend build
+          npm run --workspace=@xivgear/gearplan-frontend web
           npm run --workspace=@xivgear/gearplan-frontend less
           npm run --workspace=@xivgear/gearplan-frontend test
           npm run --workspace=@xivgear/gearplan-frontend docs

@@ -9,8 +9,9 @@
     "noImplicitReturns": true,
     "strictBindCallApply": true,
     "allowSyntheticDefaultImports": true,
-  },
-//  "include": [
+    "composite": true
+  }
+  //  "include": [
 //    "src"
 //  ]
 }

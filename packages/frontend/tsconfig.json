@@ -9,7 +9,8 @@
     "strictBindCallApply": true,
 //    "strictFunctionTypes": true,
 //    "strictPropertyInitialization": true
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "composite": true
   },
   "exclude": [
     "node_modules"

@@ -2,12 +2,13 @@
   "compilerOptions": {
     "target": "es2022",
     "sourceMap": true,
-    "module": "commonjs",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "composite": true,
     "outDir": "./build",
     "noImplicitReturns": true,
     "strictBindCallApply": true,
     "allowSyntheticDefaultImports": true,
-    "moduleResolution": "nodenext",
     "baseUrl": "./src"
   },
 //  "include": [
