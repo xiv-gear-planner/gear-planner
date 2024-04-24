@@ -1,5 +1,5 @@
-import {JobName} from "xivmath/xivconstants";
-import {AttackType} from "../../../../xivmath/src/geartypes";
+import {JobName} from "@xivgear/xivmath/xivconstants";
+import {AttackType} from "@xivgear/xivmath/geartypes";
 import {CombinedBuffEffect, DamageResult} from "./sim_processors";
 
 export type DotInfo = Readonly<{

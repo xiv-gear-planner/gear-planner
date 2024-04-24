@@ -1,4 +1,4 @@
-import {JobName} from "xivmath/xivconstants";
+import {JobName} from "@xivgear/xivmath/xivconstants";
 
 const STATIC_SERVER: URL = new URL("https://staticbis.xivgear.app/");
 

@@ -15,7 +15,7 @@ import { writeProxy } from "../util/proxies";
 import { FieldBoundCheckBox, labeledCheckbox } from "../components/util";
 import { OffGuardBuff } from "./buffs";
 import { removeSelf } from "./common/utils";
-import { CASTER_TAX } from "xivmath/xivconstants";
+import { CASTER_TAX } from "@xivgear/xivmath/xivconstants";
 
 /**
  * BLU spells that apply Bleeding

@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "module": "commonjs",
-    "target": "es6",
+    "target": "es2022",
     "sourceMap": true,
     "outDir": "build",
     "noImplicitReturns": true,
@@ -12,5 +12,16 @@
   },
   "exclude": [
     "node_modules"
+  ],
+  "references": [
+    {
+      "path": "./packages/xivmath"
+    },
+    {
+      "path": "./packages/frontend"
+    },
+    {
+      "path": "./packages/backend-resolver"
+    }
   ]
 }

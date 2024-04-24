@@ -5,7 +5,7 @@ import {
     Rotation
 } from "./sim_processors";
 import { Swiftcast } from "./common/swiftcast";
-import { STANDARD_ANIMATION_LOCK } from "xivmath/xivconstants";
+import { STANDARD_ANIMATION_LOCK } from "@xivgear/xivmath/xivconstants";
 import * as blu from "./blu_common";
 
 export interface BluWinged120SimResult extends CycleSimResult {

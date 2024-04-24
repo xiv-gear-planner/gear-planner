@@ -1,13 +1,13 @@
 {
-  "name": "gearplan-frontend",
+  "name": "@xivgear/gearplan-frontend",
   "version": "1.0.0",
   "dependencies": {
     "@webcomponents/webcomponentsjs": "^2.8.0",
-    "xivmath": "1.0.0"
+    "@xivgear/xivmath": "^1.0.0"
   },
   "exports": {
     "exports": {
-      "./*.ts": "./src/scripts/*.ts"
+      "./*": "./src/scripts/*.ts"
     }
   },
   "devDependencies": {

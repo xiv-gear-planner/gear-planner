@@ -12,7 +12,7 @@ import {
     RawStats,
     StatBonus,
     Substat
-} from "xivmath/geartypes";
+} from "@xivgear/xivmath/geartypes";
 import {
     CustomCell,
     CustomColumn,
@@ -24,7 +24,7 @@ import {
     SpecialRow,
     TitleRow
 } from "../tables";
-import {formatAcquisitionSource, MateriaSubstat, MateriaSubstats, STAT_ABBREVIATIONS} from "xivmath/xivconstants";
+import {formatAcquisitionSource, MateriaSubstat, MateriaSubstats, STAT_ABBREVIATIONS} from "@xivgear/xivmath/xivconstants";
 import {FieldBoundCheckBox, FieldBoundIntField, labeledCheckbox, makeChevronDown} from "./util";
 import {AllSlotMateriaManager} from "./materia";
 import {GearPlanSheet} from "../components";

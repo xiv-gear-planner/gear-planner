@@ -1,13 +1,16 @@
 {
-  "name": "xivmath",
+  "name": "@xivgear/xivmath",
   "version": "1.0.0",
   "description": "",
-  "scripts": {},
+  "scripts": {
+    "build": "tsc --build"
+  },
   "devDependencies": {
     "ts-node": "^10.9.2"
   },
   "exports": {
-    "./*.ts": "./src/*.ts"
+    "./*": "./src/*.ts",
+    "./math/*": "./build/*"
   },
   "files": [
     "package.json",

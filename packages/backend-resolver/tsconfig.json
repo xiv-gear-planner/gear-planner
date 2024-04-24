@@ -1,14 +1,14 @@
 {
   "compilerOptions": {
-    "target": "es6",
-    "sourceMap": true,
+    "target": "es2022",
     "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "sourceMap": true,
     "outDir": "./build",
+    "rootDir": "./src",
     "noImplicitReturns": true,
     "strictBindCallApply": true,
     "allowSyntheticDefaultImports": true,
-    "moduleResolution": "nodenext",
-    "baseUrl": "./src"
   },
 //  "include": [
 //    "src"

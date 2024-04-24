@@ -1,5 +1,5 @@
-import {ComputedSetStats} from "../../../../xivmath/src/geartypes";
-import {applyDhCrit, baseDamage} from "xivmath/xivmath";
+import {ComputedSetStats} from "@xivgear/xivmath/geartypes";
+import {applyDhCrit, baseDamage} from "@xivgear/xivmath/xivmath";
 import {
     Ability,
     AutoAttack,
@@ -24,7 +24,7 @@ import {
     NORMAL_GCD,
     STANDARD_ANIMATION_LOCK,
     STANDARD_APPLICATION_DELAY
-} from "xivmath/xivconstants";
+} from "@xivgear/xivmath/xivconstants";
 import {simpleAutoResultTable, SimResult, SimSettings, SimSpec, Simulation} from "../simulation";
 import {BuffSettingsArea, BuffSettingsExport, BuffSettingsManager} from "./party_comp_settings";
 import {CycleSettings, defaultCycleSettings, rehydrate} from "./cycle_settings";

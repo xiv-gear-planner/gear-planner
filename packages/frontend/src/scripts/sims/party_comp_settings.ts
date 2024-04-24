@@ -1,4 +1,4 @@
-import {JobName} from "xivmath/xivconstants";
+import {JobName} from "@xivgear/xivmath/xivconstants";
 import {PartyBuff} from "./sim_types";
 import {ALL_BUFFS, BuffName} from "./buffs";
 import {FieldBoundCheckBox, labeledCheckbox} from "../components/util";

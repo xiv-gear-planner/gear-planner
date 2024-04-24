@@ -1,9 +1,9 @@
 import {GearPlanSheet, ImportSheetArea, NewSheetForm, SheetPickerTable} from "./components";
-import {SetExport, SheetExport} from "xivmath/geartypes";
+import {SetExport, SheetExport} from "@xivgear/xivmath/geartypes";
 import {quickElement} from "./components/util";
 import {getShortLink} from "./external/shortlink_server";
 import {getBisSheet} from "./external/static_bis";
-import {JobName} from "xivmath/xivconstants";
+import {JobName} from "@xivgear/xivmath/xivconstants";
 import {LoadingBlocker} from "./components/loader";
 import {earlyEmbedInit, openEmbed} from "./embed";
 import {SETTINGS} from "./persistent_settings";

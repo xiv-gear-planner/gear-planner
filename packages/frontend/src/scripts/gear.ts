@@ -20,7 +20,7 @@ import {
     SPECIAL_SUB_STATS,
     statById,
     bluWdfromInt
-} from "xivmath/xivconstants";
+} from "@xivgear/xivmath/xivconstants";
 import {
     ComputedSetStats,
     DisplayGearSlot,
@@ -44,13 +44,13 @@ import {
     StatBonus,
     Substat,
     XivCombatItem
-} from "xivmath/geartypes";
+} from "@xivgear/xivmath/geartypes";
 import {GearPlanSheet} from "./components";
 import {xivApiIcon} from "./external/xivapi";
 import {IlvlSyncInfo} from "./datamanager";
 import {XivApiStat, xivApiStatMapping} from "./external/xivapitypes";
 import {Inactivitytimer} from "./util/inactivitytimer";
-import {addStats, finalizeStats} from "xivmath/xivstats";
+import {addStats, finalizeStats} from "@xivgear/xivmath/xivstats";
 
 
 export function nonEmptyRelicStats(stats: RelicStats | undefined): boolean {

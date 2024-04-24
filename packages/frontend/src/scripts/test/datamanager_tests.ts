@@ -2,7 +2,7 @@ import 'global-jsdom/register'
 import 'isomorphic-fetch'
 import {DataManager} from "../datamanager";
 import * as assert from "assert";
-import {RawStats} from "../../../../xivmath/src/geartypes";
+import {RawStats} from "@xivgear/xivmath/geartypes";
 
 function eq<T>(actual: T, expected: T) {
     assert.equal(actual, expected);

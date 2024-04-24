@@ -1,7 +1,7 @@
 import {CharacterGearSet} from "../gear";
 import {GearPlanSheet} from "../components";
-import {STAT_ABBREVIATIONS, STAT_DISPLAY_ORDER} from "xivmath/xivconstants";
-import {RawStatKey} from "xivmath/geartypes";
+import {STAT_ABBREVIATIONS, STAT_DISPLAY_ORDER} from "@xivgear/xivmath/xivconstants";
+import {RawStatKey} from "@xivgear/xivmath/geartypes";
 import {
     critChance,
     critDmg,
@@ -15,7 +15,7 @@ import {
     spsToGcd,
     tenacityDmg,
     vitToHp
-} from "xivmath/xivmath";
+} from "@xivgear/xivmath/xivmath";
 
 interface Tiering {
     lower: number,

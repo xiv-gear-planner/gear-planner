@@ -1,7 +1,7 @@
 import {SimResult, SimSettings, SimSpec, Simulation} from "../simulation";
 import {CharacterGearSet} from "../gear";
-import {applyDhCrit, baseDamage} from "xivmath/xivmath";
-import {ComputedSetStats} from "../../../../xivmath/src/geartypes";
+import {applyDhCrit, baseDamage} from "@xivgear/xivmath/xivmath";
+import {ComputedSetStats} from "@xivgear/xivmath/geartypes";
 
 import {FieldBoundCheckBox, labeledCheckbox} from "../components/util";
 

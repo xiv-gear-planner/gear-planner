@@ -34,7 +34,7 @@ import {
     SheetExport,
     SimExport,
     Substat
-} from "xivmath/geartypes";
+} from "@xivgear/xivmath/geartypes";
 import {
     getDefaultSims,
     getRegisteredSimSpecs,
@@ -61,7 +61,7 @@ import {
     STAT_ABBREVIATIONS,
     SupportedLevel,
     SupportedLevels
-} from "xivmath/xivconstants";
+} from "@xivgear/xivmath/xivconstants";
 import {getCurrentHash, getHashForSaveKey, openSheetByKey, setTitle, showNewSheetForm} from "./main";
 import {getSetFromEtro} from "./external/etro_import";
 import {Inactivitytimer} from "./util/inactivitytimer";

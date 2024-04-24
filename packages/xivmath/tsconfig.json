@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
-    "target": "es6",
+    "target": "es2022",
     "sourceMap": true,
-    "module": "nodenext",
+    "module": "commonjs",
     "outDir": "./build",
     "noImplicitReturns": true,
     "strictBindCallApply": true,

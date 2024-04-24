@@ -1,5 +1,5 @@
 {
-  "name": "backend-resolver",
+  "name": "@xivgear/backend-resolver",
   "version": "1.0.0",
   "description": "",
   "main": "server.js",
@@ -9,7 +9,7 @@
     "global-jsdom": "^24.0.0",
     "isomorphic-fetch": "^3.0.0",
     "jsdom": "^24.0.0",
-    "gearplan-frontend": "1.0.0"
+    "@xivgear/gearplan-frontend": "1.0.0"
   },
   "devDependencies": {
     "@types/isomorphic-fetch": "^0.0.39",

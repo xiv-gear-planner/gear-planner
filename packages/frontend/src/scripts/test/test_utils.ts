@@ -1,5 +1,5 @@
 // import assert from "node:assert";
-import {ComputedSetStats, EquipmentSet, GearItem} from "../../../../xivmath/src/geartypes";
+import {ComputedSetStats, EquipmentSet, GearItem} from "@xivgear/xivmath/geartypes";
 import {CharacterGearSet} from "../gear";
 
 /**

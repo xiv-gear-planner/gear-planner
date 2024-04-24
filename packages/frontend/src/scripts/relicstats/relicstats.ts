@@ -4,11 +4,11 @@ import {
     GearItem, PartialRelicStatModel,
     RelicStatModel,
     Substat
-} from "xivmath/geartypes";
+} from "@xivgear/xivmath/geartypes";
 import {BaseParamMap} from "../datamanager";
 import {CharacterGearSet} from "../gear";
 import {FieldBoundDataSelect, FieldBoundIntField} from "../components/util";
-import {ALL_SUB_STATS, getClassJobStats, JobName, STAT_ABBREVIATIONS, STAT_FULL_NAMES} from "xivmath/xivconstants";
+import {ALL_SUB_STATS, getClassJobStats, JobName, STAT_ABBREVIATIONS, STAT_FULL_NAMES} from "@xivgear/xivmath/xivconstants";
 
 
 
