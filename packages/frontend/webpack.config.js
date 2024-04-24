@@ -16,7 +16,12 @@ module.exports = (env, argv) => {
             rules: [
                 {
                     test: /\.tsx?$/,
-                    use: 'ts-loader',
+                    use: {
+                        loader: 'ts-loader',
+                        options: {
+                            "projectReferences": true
+                        },
+                    },
                     exclude: /node_modules/,
                 },
             ],

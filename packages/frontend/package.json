@@ -26,7 +26,8 @@
     "webpack-cli": "^5.1.4"
   },
   "scripts": {
-    "build": "tsc --build",
+    "build": "tsc --build && webpack --mode=development",
+    "buildprod": "tsc --build && webpack --mode=development",
     "web": "webpack --mode=development",
     "webprod": "webpack --mode=production",
     "less": "lessc --source-map ./src/style.less dist/style.css",

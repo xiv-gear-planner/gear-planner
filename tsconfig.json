@@ -8,7 +8,8 @@
     "strictBindCallApply": true,
 //    "strictFunctionTypes": true,
 //    "strictPropertyInitialization": true
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "rootDir": "."
   },
   "exclude": [
     "node_modules"

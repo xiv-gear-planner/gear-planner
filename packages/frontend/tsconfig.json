@@ -17,5 +17,10 @@
   ],
   "include": [
     "src/scripts"
+  ],
+  "references": [
+    {
+      "path": "../xivmath"
+    }
   ]
 }
