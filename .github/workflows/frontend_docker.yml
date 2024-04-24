@@ -19,19 +19,19 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Use Node.js 16.x
+      - name: Use Node.js 20.x
         uses: actions/setup-node@v3
         with:
-          node-version: 16.15.0
+          node-version: 20.x
 
       - name: Build
         run: |
           npm install
           npm install --workspaces || npm install --workspaces
-          npm run --workspace=gearplan-frontend build
-          npm run --workspace=gearplan-frontend less
-          npm run --workspace=gearplan-frontend test
-          npm run --workspace=gearplan-frontend docs
+          npm run --workspace=@xivgear/gearplan-frontend build
+          npm run --workspace=@xivgear/gearplan-frontend less
+          npm run --workspace=@xivgear/gearplan-frontend test
+          npm run --workspace=@xivgear/gearplan-frontend docs
 
       - name: Inject commit info
         run: |

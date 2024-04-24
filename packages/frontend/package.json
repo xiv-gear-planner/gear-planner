@@ -6,9 +6,7 @@
     "@xivgear/xivmath": "^1.0.0"
   },
   "exports": {
-    "exports": {
-      "./*": "./src/scripts/*.ts"
-    }
+    "./*": "./src/scripts/*.ts"
   },
   "devDependencies": {
     "@types/expect": "^24.3.0",
@@ -28,8 +26,9 @@
     "webpack-cli": "^5.1.4"
   },
   "scripts": {
-    "build": "webpack --mode=development",
-    "buildprod": "webpack --mode=production",
+    "build": "tsc --build",
+    "wbuild": "webpack --mode=development",
+    "wbuildprod": "webpack --mode=production",
     "less": "lessc --source-map ./src/style.less dist/style.css",
     "docs": "typedoc --readme API_DOC.md --out dist/docs --entryPointStrategy expand src/scripts/",
     "test": "ts-mocha src/scripts/test/**/*test.ts src/scripts/test/**/*tests.ts"

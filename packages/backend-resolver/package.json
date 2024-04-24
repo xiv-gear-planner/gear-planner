@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "description": "",
   "main": "server.js",
-  "scripts": {},
+  "scripts": {
+    "build": "tsc --build"
+  },
   "dependencies": {
     "fastify": "^4.26.2",
     "global-jsdom": "^24.0.0",

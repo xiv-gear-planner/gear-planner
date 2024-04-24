@@ -2,8 +2,9 @@ import 'global-jsdom/register'
 import 'isomorphic-fetch'
 import Fastify from 'fastify';
 import * as process from "process";
-import {getShortLink} from "gearplan-frontend/external/shortlink_server";
+import {getShortLink} from "@xivgear/gearplan-frontend/external/shortlink_server";
 import {GearPlanSheet} from "@xivgear/gearplan-frontend/components";
+
 
 // Hack for JSDom not having ResizeObserver
 global.ResizeObserver = class ResizeObserver {
