@@ -1,11 +1,11 @@
-import { SimSpec } from "../simulation";
+import { SimSpec } from "../../simulation";
 import {
     CycleSimResult,
     ExternalCycleSettings,
     Rotation
-} from "./sim_processors";
-import { Swiftcast } from "./common/swiftcast";
-import { STANDARD_ANIMATION_LOCK } from "../xivconstants";
+} from "../sim_processors";
+import { Swiftcast } from "../common/swiftcast";
+import { STANDARD_ANIMATION_LOCK } from "@xivgear/xivmath/xivconstants";
 import * as blu from "./blu_common";
 
 export interface BluFlame120SimResult extends CycleSimResult {

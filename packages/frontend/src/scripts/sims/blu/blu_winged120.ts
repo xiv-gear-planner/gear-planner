@@ -1,43 +1,43 @@
-import { SimSpec } from "../simulation";
+import { SimSpec } from "../../simulation";
 import {
     CycleSimResult,
     ExternalCycleSettings,
     Rotation
-} from "./sim_processors";
-import { Swiftcast } from "./common/swiftcast";
-import { STANDARD_ANIMATION_LOCK } from "../xivconstants";
+} from "../sim_processors";
+import { Swiftcast } from "../common/swiftcast";
+import { STANDARD_ANIMATION_LOCK } from "@xivgear/xivmath/xivconstants";
 import * as blu from "./blu_common";
 
-export interface BluF2PSimResult extends CycleSimResult {
+export interface BluWinged120SimResult extends CycleSimResult {
 }
 
-interface BluF2PSettings extends blu.BluSimSettings {
+interface BluWinged120Settings extends blu.BluSimSettings {
 }
 
-export interface BluF2PSettingsExternal extends ExternalCycleSettings<BluF2PSettings> {
+export interface BluWinged120SettingsExternal extends ExternalCycleSettings<BluWinged120Settings> {
 }
 
-export const BluF2PSpec: SimSpec<BluF2PSim, BluF2PSettingsExternal> = {
-    displayName: "BLU Free Trial",
-    stub: "blu-f2p",
+export const BluWinged120Spec: SimSpec<BluWinged120Sim, BluWinged120SettingsExternal> = {
+    displayName: "BLU Winged 120s",
+    stub: "blu-winged120",
     supportedJobs: ["BLU"],
-    isDefaultSim: false,
+    isDefaultSim: true,
 
-    makeNewSimInstance(): BluF2PSim {
-        return new BluF2PSim();
+    makeNewSimInstance(): BluWinged120Sim {
+        return new BluWinged120Sim();
     },
 
-    loadSavedSimInstance(exported: BluF2PSettingsExternal) {
-        return new BluF2PSim(exported);
+    loadSavedSimInstance(exported: BluWinged120SettingsExternal) {
+        return new BluWinged120Sim(exported);
     }
 }
 
-export class BluF2PSim extends blu.BluSim<BluF2PSimResult, BluF2PSettings> {
-    spec = BluF2PSpec;
-    displayName = BluF2PSpec.displayName;
-    shortName = "blu-f2p";
+export class BluWinged120Sim extends blu.BluSim<BluWinged120SimResult, BluWinged120Settings> {
+    spec = BluWinged120Spec;
+    displayName = BluWinged120Spec.displayName;
+    shortName = "blu-winged120";
 
-    constructor(settings?: BluF2PSettingsExternal) {
+    constructor(settings?: BluWinged120SettingsExternal) {
         super(settings);
     }
 
@@ -103,12 +103,18 @@ export class BluF2PSim extends blu.BluSim<BluF2PSimResult, BluF2PSettings> {
             return;
         }
 
-        // use Rose of Destruction if off cooldown and it won't interfere with the next Flute window
-        if (cp.cdTracker.canUse(blu.RoseOfDestruction, cp.nextGcdTime) &&
-            cp.cdTracker.statusOfAt(blu.Nightbloom, cp.nextGcdTime).readyAt.relative >
-            cp.stats.gcdMag(blu.RoseOfDestruction.cooldown.time)) 
-        {
+        // use Rose of Destruction if off cooldown
+        if (cp.cdTracker.canUse(blu.RoseOfDestruction, cp.nextGcdTime)) {
             cp.use(blu.RoseOfDestruction);
+            return;
+        }
+
+        // if fight is about to end, use remaining Winged Reprobation "stacks"
+        if (cp.remainingTime < blu.WingedReprobation.cooldown.time &&
+            cp.cdTracker.canUse(blu.WingedReprobation, cp.nextGcdTime))
+        {
+            cp.use(blu.WingedReprobation);
+            this.useOgcdFiller(cp);
             return;
         }
 
@@ -129,6 +135,7 @@ export class BluF2PSim extends blu.BluSim<BluF2PSimResult, BluF2PSettings> {
                 cp.use(blu.Tingle);
 
                 // start of first cycle opener
+                cp.use(blu.RoseOfDestruction);
                 cp.use(blu.MoonFlute);
                 cp.use(blu.JKick);
                 cp.use(blu.TripleTrident);
@@ -136,33 +143,35 @@ export class BluF2PSim extends blu.BluSim<BluF2PSimResult, BluF2PSettings> {
                 // cycle based off of Nightbloom (fixed cooldown: 120s)                
                 cp.remainingCycles(cycle => {
                     cycle.use(blu.Nightbloom);
-                    cycle.use(blu.RoseOfDestruction);
-                    if (cycle.cycleNumber === 0) {
-                        cycle.use(blu.ShockStrike);
-                    } else {
-                        sim.useOgcdFiller(cp);
-                    }
-                    if (cycle.cycleNumber > 0 && cp.gcdRecast <= 2.20) {
-                        sim.useOgcdFiller(cp);
-                    }
-                    cycle.use(blu.Bristle);
-                    cycle.use(Swiftcast);
-                    cycle.use(blu.GlassDance);
-                    cycle.use(blu.Surpanakha);
-                    cycle.use(blu.Surpanakha);
-                    cycle.use(blu.Surpanakha);
-                    cycle.use(blu.Surpanakha);
-                    cycle.use(blu.MatraMagic);
+                    cycle.use(blu.WingedReprobation);
                     if (cycle.cycleNumber === 0) {
                         cycle.use(blu.FeatherRain);
                     } else {
                         sim.useOgcdFiller(cp);
                     }
+                    cycle.use(blu.SeaShanty);
+                    cycle.use(blu.WingedReprobation);
+                    if (cycle.cycleNumber === 0) {
+                        cycle.use(blu.ShockStrike);
+                    } else {
+                        sim.useOgcdFiller(cp);
+                    }
+                    cycle.use(blu.BeingMortal);
+                    cycle.use(blu.Bristle);
+                    cycle.use(Swiftcast);
+                    cycle.use(blu.Surpanakha);
+                    cycle.use(blu.Surpanakha);
+                    cycle.use(blu.Surpanakha);
+                    cycle.use(blu.Surpanakha);
+                    cycle.use(blu.MatraMagic);
+                    if (cp.gcdRecast <= 2.20) {
+                        sim.useOgcdFiller(cp);
+                    }
                     cycle.use(blu.PhantomFlurry);
                     cp.doWaning();
 
-                    // loop until 4 gcds before Nightbloom comes off cooldown
-                    const preBloom = cp.gcdRecast * 4;
+                    // loop until 5 gcds before Nightbloom comes off cooldown
+                    const preBloom = cp.gcdRecast * 5;
                     while (Math.min(cp.remainingGcdTime, cp.cdTracker.statusOf(blu.Nightbloom).readyAt.relative) > preBloom) {
                         sim.useFiller(cp);
                     }
@@ -171,11 +180,26 @@ export class BluF2PSim extends blu.BluSim<BluF2PSimResult, BluF2PSettings> {
                     if (cp.remainingGcdTime > preBloom) {
                         cycle.use(blu.Whistle);
                         cycle.use(blu.Tingle);
+                        if (cp.cdTracker.canUse(blu.RoseOfDestruction, cp.nextGcdTime)) {
+                            cycle.use(blu.RoseOfDestruction);
+                        } else {
+                            cycle.use(blu.FeculentFlood);
+                        }
                         cycle.use(blu.MoonFlute);
                         sim.useOgcdFiller(cp);
                         cycle.use(blu.TripleTrident);
                     } else {
                         // otherwise, finish off the fight with a Final Sting combo
+                        if (cp.cdTracker.canUse(blu.RoseOfDestruction, cp.nextGcdTime)) {
+                            cycle.use(blu.RoseOfDestruction);
+                        } else {
+                            if (cp.cdTracker.canUse(blu.WingedReprobation, cp.nextGcdTime)) {
+                                cycle.use(blu.WingedReprobation);
+                                sim.useOgcdFiller(cp);
+                            } else {
+                                cycle.use(blu.FeculentFlood);
+                            }
+                        }
                         sim.useStingCombo(cp);
                     }
                 });

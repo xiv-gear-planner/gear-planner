@@ -1,8 +1,8 @@
-import {SimSettings, SimSpec} from "../simulation";
+import {SimSettings, SimSpec} from "../../simulation";
 import {STANDARD_ANIMATION_LOCK} from "@xivgear/xivmath/xivconstants";
-import {ArcaneCircle, DeathsDesign} from "./buffs";
-import {BaseMultiCycleSim, CycleProcessor, CycleSimResult, ExternalCycleSettings, Rotation} from "./sim_processors";
-import {Ability, GcdAbility, OgcdAbility} from "./sim_types";
+import {ArcaneCircle, DeathsDesign} from "../buffs";
+import {BaseMultiCycleSim, CycleProcessor, CycleSimResult, ExternalCycleSettings, Rotation} from "../sim_processors";
+import {Ability, GcdAbility, OgcdAbility} from "../sim_types";
 
 const slice: GcdAbility = {
     type: 'gcd',

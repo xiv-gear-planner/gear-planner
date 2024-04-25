@@ -1,43 +1,43 @@
-import { SimSpec } from "../simulation";
+import { SimSpec } from "../../simulation";
 import {
     CycleSimResult,
     ExternalCycleSettings,
     Rotation
-} from "./sim_processors";
-import { Swiftcast } from "./common/swiftcast";
-import { STANDARD_ANIMATION_LOCK } from "../xivconstants";
+} from "../sim_processors";
+import { Swiftcast } from "../common/swiftcast";
+import { STANDARD_ANIMATION_LOCK } from "@xivgear/xivmath/xivconstants";
 import * as blu from "./blu_common";
 
-export interface BluFlame60SimResult extends CycleSimResult {
+export interface BluBreath60SimResult extends CycleSimResult {
 }
 
-interface BluFlame60Settings extends blu.BluSimSettings {
+interface BluBreath60Settings extends blu.BluSimSettings {
 }
 
-export interface BluFlame60SettingsExternal extends ExternalCycleSettings<BluFlame60Settings> {
+export interface BluBreath60SettingsExternal extends ExternalCycleSettings<BluBreath60Settings> {
 }
 
-export const BluFlame60Spec: SimSpec<BluFlame60Sim, BluFlame60SettingsExternal> = {
-    displayName: "BLU Flame 60s",
-    stub: "blu-flame60",
+export const BluBreath60Spec: SimSpec<BluBreath60Sim, BluBreath60SettingsExternal> = {
+    displayName: "BLU Breath 60s",
+    stub: "blu-breath60",
     supportedJobs: ["BLU"],
     isDefaultSim: false,
 
-    makeNewSimInstance(): BluFlame60Sim {
-        return new BluFlame60Sim();
+    makeNewSimInstance(): BluBreath60Sim {
+        return new BluBreath60Sim();
     },
 
-    loadSavedSimInstance(exported: BluFlame60SettingsExternal) {
-        return new BluFlame60Sim(exported);
+    loadSavedSimInstance(exported: BluBreath60SettingsExternal) {
+        return new BluBreath60Sim(exported);
     }
 }
 
-export class BluFlame60Sim extends blu.BluSim<BluFlame60SimResult, BluFlame60Settings> {
-    spec = BluFlame60Spec;
-    displayName = BluFlame60Spec.displayName;
-    shortName = "blu-flame60";
+export class BluBreath60Sim extends blu.BluSim<BluBreath60SimResult, BluBreath60Settings> {
+    spec = BluBreath60Spec;
+    displayName = BluBreath60Spec.displayName;
+    shortName = "blu-breath60";
 
-    constructor(settings?: BluFlame60SettingsExternal) {
+    constructor(settings?: BluBreath60SettingsExternal) {
         super(settings);
     }
 
@@ -97,10 +97,19 @@ export class BluFlame60Sim extends blu.BluSim<BluFlame60SimResult, BluFlame60Set
 
         // use Rose of Destruction if off cooldown and it won't interfere with the next Flute window
         if (cp.cdTracker.canUse(blu.RoseOfDestruction, cp.nextGcdTime) &&
-            cp.cdTracker.statusOfAt(blu.ShockStrike, cp.nextGcdTime).readyAt.relative >
+            cp.cdTracker.statusOfAt(blu.Quasar, cp.nextGcdTime).readyAt.relative + cp.gcdRecast * 2 >
             cp.stats.gcdMag(blu.RoseOfDestruction.cooldown.time)) 
         {
             cp.use(blu.RoseOfDestruction);
+            return;
+        }
+
+        // build "stacks" of Winged Reprobation for the next odd Flute window
+        // or, if fight is about to end, use remaining Winged Reprobation "stacks"
+        if (cp.cdTracker.canUse(blu.WingedReprobation, cp.nextGcdTime) && cp.wingedCounter < 2) {
+            cp.use(blu.WingedReprobation);
+            this.useOgcdFiller(cp);
+            this.useOgcdFiller(cp);
             return;
         }
 
@@ -139,21 +148,14 @@ export class BluFlame60Sim extends blu.BluSim<BluFlame60SimResult, BluFlame60Set
                     cycle.use(blu.Nightbloom);
                     cycle.use(blu.TripleTrident);
                     cycle.use(blu.ShockStrike);
-
-                    // first cycle Mortal Flame opener
+                    cycle.use(blu.Bristle);
+                    cycle.use(blu.Quasar);
                     if (cycle.cycleNumber === 0) {
-                        cycle.use(blu.Bristle);
-                        cycle.use(blu.Quasar);
                         cycle.use(blu.FeatherRain);
-                        cycle.use(blu.MortalFlame);
-                    }
-                    // even Flute window after opener
-                    else {
-                        cycle.use(blu.SonicBoom);
-                        cycle.use(blu.Quasar);
+                    } else {
                         sim.useOgcdFiller(cp);
-                        cycle.use(blu.RoseOfDestruction);
                     }
+                    cycle.use(blu.BreathofMagic);
                     cycle.use(blu.SeaShanty);
                     cycle.use(blu.Bristle);
                     cycle.use(Swiftcast);
@@ -184,12 +186,12 @@ export class BluFlame60Sim extends blu.BluSim<BluFlame60SimResult, BluFlame60Set
                     cycle.use(blu.MoonFlute);
                     cycle.use(blu.SongOfTorment);
                     cycle.use(blu.ShockStrike);
-                    cycle.use(blu.WingedReprobation);
+                    cycle.use(blu.Bristle);
                     cycle.use(blu.Quasar);
                     sim.useOgcdFiller(cp);
-                    cycle.use(blu.RoseOfDestruction);
-                    cycle.use(blu.WingedReprobation);
+                    cycle.use(blu.BreathofMagic);
                     cycle.use(blu.GlassDance);
+                    cycle.use(blu.RoseOfDestruction);
                     sim.useOgcdFiller(cp);
                     cycle.use(blu.WingedReprobation);
                     sim.useOgcdFiller(cp);
@@ -197,6 +199,7 @@ export class BluFlame60Sim extends blu.BluSim<BluFlame60SimResult, BluFlame60Set
                     sim.useOgcdFiller(cp);
                     cycle.use(blu.PhantomFlurry);
                     cp.doWaning();
+
 
                     // loop until 4 gcds before Nightbloom comes off cooldown
                     const preBloom = cp.gcdRecast * 4;
@@ -207,7 +210,11 @@ export class BluFlame60Sim extends blu.BluSim<BluFlame60SimResult, BluFlame60Set
 
                     // start the next even Flute window, if one exists
                     if (cp.remainingGcdTime > preBloom) {
-                        cycle.use(blu.FeculentFlood);
+                        if (cp.cdTracker.canUse(blu.RoseOfDestruction, cp.nextGcdTime)) {
+                            cycle.use(blu.RoseOfDestruction);
+                        } else {
+                            cycle.use(blu.FeculentFlood);
+                        }
                         cycle.use(blu.Whistle);
                         cycle.use(blu.Tingle);
                         cycle.use(blu.MoonFlute);

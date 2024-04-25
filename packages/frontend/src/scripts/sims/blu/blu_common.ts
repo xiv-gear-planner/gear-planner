@@ -1,4 +1,4 @@
-import { SimSettings } from "../simulation";
+import { SimSettings } from "../../simulation";
 import {
     AbilityUseResult,
     BaseMultiCycleSim,
@@ -7,14 +7,14 @@ import {
     ExternalCycleSettings,
     MultiCycleSettings,
     Rotation
-} from "./sim_processors";
-import { Ability, Buff, BuffController, GcdAbility, OgcdAbility } from "./sim_types"
-import { BuffSettingsArea } from "./party_comp_settings";
-import { cycleSettingsGui } from "./components/cycle_settings_components";
-import { writeProxy } from "../util/proxies";
-import { FieldBoundCheckBox, labeledCheckbox } from "../components/util";
-import { OffGuardBuff } from "./buffs";
-import { removeSelf } from "./common/utils";
+} from "../sim_processors";
+import { Ability, Buff, BuffController, GcdAbility, OgcdAbility } from "../sim_types"
+import { BuffSettingsArea } from "../party_comp_settings";
+import { cycleSettingsGui } from "../components/cycle_settings_components";
+import { writeProxy } from "../../util/proxies";
+import { FieldBoundCheckBox, labeledCheckbox } from "../../components/util";
+import { OffGuardBuff } from "../buffs";
+import { removeSelf } from "../common/utils";
 import { CASTER_TAX } from "@xivgear/xivmath/xivconstants";
 
 /**

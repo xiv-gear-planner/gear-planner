@@ -1,5 +1,5 @@
-import {SimResult, SimSettings, SimSpec, Simulation} from "../simulation";
-import {CharacterGearSet} from "../gear";
+import {SimResult, SimSettings, SimSpec, Simulation} from "../../simulation";
+import {CharacterGearSet} from "../../gear";
 import {applyCrit, applyDhCrit, baseDamage, baseHealing} from "@xivgear/xivmath/xivmath";
 import {ComputedSetStats} from "@xivgear/xivmath/geartypes";
 import {
@@ -7,7 +7,7 @@ import {
     FieldBoundFloatField,
     labeledCheckbox, labelFor,
     positiveValuesOnly, quickElement
-} from "../components/util";
+} from "../../components/util";
 
 
 //potencies for our spells

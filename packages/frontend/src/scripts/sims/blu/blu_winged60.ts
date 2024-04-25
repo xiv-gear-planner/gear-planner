@@ -1,43 +1,43 @@
-import { SimSpec } from "../simulation";
+import { SimSpec } from "../../simulation";
 import {
     CycleSimResult,
     ExternalCycleSettings,
     Rotation
-} from "./sim_processors";
-import { Swiftcast } from "./common/swiftcast";
-import { STANDARD_ANIMATION_LOCK } from "../xivconstants";
+} from "../sim_processors";
+import { Swiftcast } from "../common/swiftcast";
+import { STANDARD_ANIMATION_LOCK } from "@xivgear/xivmath/xivconstants";
 import * as blu from "./blu_common";
 
-export interface BluBreath60SimResult extends CycleSimResult {
+export interface BluWinged60SimResult extends CycleSimResult {
 }
 
-interface BluBreath60Settings extends blu.BluSimSettings {
+interface BluWinged60Settings extends blu.BluSimSettings {
 }
 
-export interface BluBreath60SettingsExternal extends ExternalCycleSettings<BluBreath60Settings> {
+export interface BluWinged60SettingsExternal extends ExternalCycleSettings<BluWinged60Settings> {
 }
 
-export const BluBreath60Spec: SimSpec<BluBreath60Sim, BluBreath60SettingsExternal> = {
-    displayName: "BLU Breath 60s",
-    stub: "blu-breath60",
+export const BluWinged60Spec: SimSpec<BluWinged60Sim, BluWinged60SettingsExternal> = {
+    displayName: "BLU Winged 60s",
+    stub: "blu-winged60",
     supportedJobs: ["BLU"],
     isDefaultSim: false,
 
-    makeNewSimInstance(): BluBreath60Sim {
-        return new BluBreath60Sim();
+    makeNewSimInstance(): BluWinged60Sim {
+        return new BluWinged60Sim();
     },
 
-    loadSavedSimInstance(exported: BluBreath60SettingsExternal) {
-        return new BluBreath60Sim(exported);
+    loadSavedSimInstance(exported: BluWinged60SettingsExternal) {
+        return new BluWinged60Sim(exported);
     }
 }
 
-export class BluBreath60Sim extends blu.BluSim<BluBreath60SimResult, BluBreath60Settings> {
-    spec = BluBreath60Spec;
-    displayName = BluBreath60Spec.displayName;
-    shortName = "blu-breath60";
+export class BluWinged60Sim extends blu.BluSim<BluWinged60SimResult, BluWinged60Settings> {
+    spec = BluWinged60Spec;
+    displayName = BluWinged60Spec.displayName;
+    shortName = "blu-winged60";
 
-    constructor(settings?: BluBreath60SettingsExternal) {
+    constructor(settings?: BluWinged60SettingsExternal) {
         super(settings);
     }
 
@@ -51,7 +51,7 @@ export class BluBreath60Sim extends blu.BluSim<BluBreath60SimResult, BluBreath60
             cp.use(blu.FeatherRain);
             return;
         }
-
+        
         if (shockStrikeReady && cp.remainingTime < blu.ShockStrike.cooldown.time) {
             cp.use(blu.ShockStrike);
             return;
@@ -97,19 +97,10 @@ export class BluBreath60Sim extends blu.BluSim<BluBreath60SimResult, BluBreath60
 
         // use Rose of Destruction if off cooldown and it won't interfere with the next Flute window
         if (cp.cdTracker.canUse(blu.RoseOfDestruction, cp.nextGcdTime) &&
-            cp.cdTracker.statusOfAt(blu.Quasar, cp.nextGcdTime).readyAt.relative + cp.gcdRecast * 2 >
+            cp.cdTracker.statusOfAt(blu.ShockStrike, cp.nextGcdTime).readyAt.relative >
             cp.stats.gcdMag(blu.RoseOfDestruction.cooldown.time)) 
         {
             cp.use(blu.RoseOfDestruction);
-            return;
-        }
-
-        // build "stacks" of Winged Reprobation for the next odd Flute window
-        // or, if fight is about to end, use remaining Winged Reprobation "stacks"
-        if (cp.cdTracker.canUse(blu.WingedReprobation, cp.nextGcdTime) && cp.wingedCounter < 2) {
-            cp.use(blu.WingedReprobation);
-            this.useOgcdFiller(cp);
-            this.useOgcdFiller(cp);
             return;
         }
 
@@ -130,9 +121,8 @@ export class BluBreath60Sim extends blu.BluSim<BluBreath60SimResult, BluBreath60
                 cp.use(blu.Tingle);
 
                 // start of first cycle opener
-                cp.use(blu.RoseOfDestruction);
                 cp.use(blu.MoonFlute);
-
+                
                 // cycle based off of Nightbloom (fixed cooldown: 120s)                
                 cp.remainingCycles(cycle => {
                     // TODO: this is a hack to avoid floating point errors at fast gcds
@@ -148,34 +138,27 @@ export class BluBreath60Sim extends blu.BluSim<BluBreath60SimResult, BluBreath60
                     cycle.use(blu.Nightbloom);
                     cycle.use(blu.TripleTrident);
                     cycle.use(blu.ShockStrike);
-                    cycle.use(blu.Bristle);
+                    cycle.use(blu.RoseOfDestruction);
                     cycle.use(blu.Quasar);
+                    cycle.use(blu.Bristle);
+                    cycle.use(Swiftcast);
+                    cycle.use(blu.SeaShanty);
+                    cycle.use(blu.MatraMagic);
                     if (cycle.cycleNumber === 0) {
                         cycle.use(blu.FeatherRain);
                     } else {
                         sim.useOgcdFiller(cp);
                     }
-                    cycle.use(blu.BreathofMagic);
-                    cycle.use(blu.SeaShanty);
-                    cycle.use(blu.Bristle);
-                    cycle.use(Swiftcast);
-                    if (cp.gcdRecast <= 2.20) {
-                        sim.useOgcdFiller(cp);
-                    }
                     cycle.use(blu.Surpanakha);
                     cycle.use(blu.Surpanakha);
                     cycle.use(blu.Surpanakha);
                     cycle.use(blu.Surpanakha);
-                    cycle.use(blu.MatraMagic);
-                    if (cp.gcdRecast <= 2.20) {
-                        sim.useOgcdFiller(cp);
-                    }
+                    sim.useOgcdFiller(cp);
                     cycle.use(blu.Apokalypsis);
                     cp.doWaning();
 
                     // loop until odd Flute window
                     const preBleed = cp.gcdRecast * 4;
-                    let i = 0;
                     while (Math.min(cp.remainingGcdTime, cp.bleedEnd - cp.currentTime) > preBleed) {
                         sim.useFiller(cp);
                     }
@@ -186,35 +169,28 @@ export class BluBreath60Sim extends blu.BluSim<BluBreath60SimResult, BluBreath60
                     cycle.use(blu.MoonFlute);
                     cycle.use(blu.SongOfTorment);
                     cycle.use(blu.ShockStrike);
-                    cycle.use(blu.Bristle);
-                    cycle.use(blu.Quasar);
-                    sim.useOgcdFiller(cp);
-                    cycle.use(blu.BreathofMagic);
-                    cycle.use(blu.GlassDance);
                     cycle.use(blu.RoseOfDestruction);
+                    cycle.use(blu.Quasar);
+                    cycle.use(blu.WingedReprobation);
+                    cycle.use(blu.GlassDance);
                     sim.useOgcdFiller(cp);
                     cycle.use(blu.WingedReprobation);
                     sim.useOgcdFiller(cp);
                     cycle.use(blu.WingedReprobation);
                     sim.useOgcdFiller(cp);
+                    cycle.use(blu.WingedReprobation);
                     cycle.use(blu.PhantomFlurry);
                     cp.doWaning();
 
-
                     // loop until 4 gcds before Nightbloom comes off cooldown
                     const preBloom = cp.gcdRecast * 4;
-                    let j = 0;
                     while (Math.min(cp.remainingGcdTime, cp.cdTracker.statusOf(blu.Nightbloom).readyAt.relative) > preBloom) {
                         sim.useFiller(cp);
                     }
 
                     // start the next even Flute window, if one exists
                     if (cp.remainingGcdTime > preBloom) {
-                        if (cp.cdTracker.canUse(blu.RoseOfDestruction, cp.nextGcdTime)) {
-                            cycle.use(blu.RoseOfDestruction);
-                        } else {
-                            cycle.use(blu.FeculentFlood);
-                        }
+                        cycle.use(blu.FeculentFlood);
                         cycle.use(blu.Whistle);
                         cycle.use(blu.Tingle);
                         cycle.use(blu.MoonFlute);

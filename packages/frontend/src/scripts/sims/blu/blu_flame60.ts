@@ -1,43 +1,43 @@
-import { SimSpec } from "../simulation";
+import { SimSpec } from "../../simulation";
 import {
     CycleSimResult,
     ExternalCycleSettings,
     Rotation
-} from "./sim_processors";
-import { Swiftcast } from "./common/swiftcast";
-import { STANDARD_ANIMATION_LOCK } from "../xivconstants";
+} from "../sim_processors";
+import { Swiftcast } from "../common/swiftcast";
+import { STANDARD_ANIMATION_LOCK } from "@xivgear/xivmath/xivconstants";
 import * as blu from "./blu_common";
 
-export interface BluWinged60SimResult extends CycleSimResult {
+export interface BluFlame60SimResult extends CycleSimResult {
 }
 
-interface BluWinged60Settings extends blu.BluSimSettings {
+interface BluFlame60Settings extends blu.BluSimSettings {
 }
 
-export interface BluWinged60SettingsExternal extends ExternalCycleSettings<BluWinged60Settings> {
+export interface BluFlame60SettingsExternal extends ExternalCycleSettings<BluFlame60Settings> {
 }
 
-export const BluWinged60Spec: SimSpec<BluWinged60Sim, BluWinged60SettingsExternal> = {
-    displayName: "BLU Winged 60s",
-    stub: "blu-winged60",
+export const BluFlame60Spec: SimSpec<BluFlame60Sim, BluFlame60SettingsExternal> = {
+    displayName: "BLU Flame 60s",
+    stub: "blu-flame60",
     supportedJobs: ["BLU"],
     isDefaultSim: false,
 
-    makeNewSimInstance(): BluWinged60Sim {
-        return new BluWinged60Sim();
+    makeNewSimInstance(): BluFlame60Sim {
+        return new BluFlame60Sim();
     },
 
-    loadSavedSimInstance(exported: BluWinged60SettingsExternal) {
-        return new BluWinged60Sim(exported);
+    loadSavedSimInstance(exported: BluFlame60SettingsExternal) {
+        return new BluFlame60Sim(exported);
     }
 }
 
-export class BluWinged60Sim extends blu.BluSim<BluWinged60SimResult, BluWinged60Settings> {
-    spec = BluWinged60Spec;
-    displayName = BluWinged60Spec.displayName;
-    shortName = "blu-winged60";
+export class BluFlame60Sim extends blu.BluSim<BluFlame60SimResult, BluFlame60Settings> {
+    spec = BluFlame60Spec;
+    displayName = BluFlame60Spec.displayName;
+    shortName = "blu-flame60";
 
-    constructor(settings?: BluWinged60SettingsExternal) {
+    constructor(settings?: BluFlame60SettingsExternal) {
         super(settings);
     }
 
@@ -51,7 +51,7 @@ export class BluWinged60Sim extends blu.BluSim<BluWinged60SimResult, BluWinged60
             cp.use(blu.FeatherRain);
             return;
         }
-        
+
         if (shockStrikeReady && cp.remainingTime < blu.ShockStrike.cooldown.time) {
             cp.use(blu.ShockStrike);
             return;
@@ -121,8 +121,9 @@ export class BluWinged60Sim extends blu.BluSim<BluWinged60SimResult, BluWinged60
                 cp.use(blu.Tingle);
 
                 // start of first cycle opener
+                cp.use(blu.RoseOfDestruction);
                 cp.use(blu.MoonFlute);
-                
+
                 // cycle based off of Nightbloom (fixed cooldown: 120s)                
                 cp.remainingCycles(cycle => {
                     // TODO: this is a hack to avoid floating point errors at fast gcds
@@ -138,27 +139,41 @@ export class BluWinged60Sim extends blu.BluSim<BluWinged60SimResult, BluWinged60
                     cycle.use(blu.Nightbloom);
                     cycle.use(blu.TripleTrident);
                     cycle.use(blu.ShockStrike);
-                    cycle.use(blu.RoseOfDestruction);
-                    cycle.use(blu.Quasar);
+
+                    // first cycle Mortal Flame opener
+                    if (cycle.cycleNumber === 0) {
+                        cycle.use(blu.Bristle);
+                        cycle.use(blu.Quasar);
+                        cycle.use(blu.FeatherRain);
+                        cycle.use(blu.MortalFlame);
+                    }
+                    // even Flute window after opener
+                    else {
+                        cycle.use(blu.SonicBoom);
+                        cycle.use(blu.Quasar);
+                        sim.useOgcdFiller(cp);
+                        cycle.use(blu.RoseOfDestruction);
+                    }
+                    cycle.use(blu.SeaShanty);
                     cycle.use(blu.Bristle);
                     cycle.use(Swiftcast);
-                    cycle.use(blu.SeaShanty);
-                    cycle.use(blu.MatraMagic);
-                    if (cycle.cycleNumber === 0) {
-                        cycle.use(blu.FeatherRain);
-                    } else {
+                    if (cp.gcdRecast <= 2.20) {
                         sim.useOgcdFiller(cp);
                     }
                     cycle.use(blu.Surpanakha);
                     cycle.use(blu.Surpanakha);
                     cycle.use(blu.Surpanakha);
                     cycle.use(blu.Surpanakha);
-                    sim.useOgcdFiller(cp);
+                    cycle.use(blu.MatraMagic);
+                    if (cp.gcdRecast <= 2.20) {
+                        sim.useOgcdFiller(cp);
+                    }
                     cycle.use(blu.Apokalypsis);
                     cp.doWaning();
 
                     // loop until odd Flute window
                     const preBleed = cp.gcdRecast * 4;
+                    let i = 0;
                     while (Math.min(cp.remainingGcdTime, cp.bleedEnd - cp.currentTime) > preBleed) {
                         sim.useFiller(cp);
                     }
@@ -169,8 +184,10 @@ export class BluWinged60Sim extends blu.BluSim<BluWinged60SimResult, BluWinged60
                     cycle.use(blu.MoonFlute);
                     cycle.use(blu.SongOfTorment);
                     cycle.use(blu.ShockStrike);
-                    cycle.use(blu.RoseOfDestruction);
+                    cycle.use(blu.WingedReprobation);
                     cycle.use(blu.Quasar);
+                    sim.useOgcdFiller(cp);
+                    cycle.use(blu.RoseOfDestruction);
                     cycle.use(blu.WingedReprobation);
                     cycle.use(blu.GlassDance);
                     sim.useOgcdFiller(cp);
@@ -178,12 +195,12 @@ export class BluWinged60Sim extends blu.BluSim<BluWinged60SimResult, BluWinged60
                     sim.useOgcdFiller(cp);
                     cycle.use(blu.WingedReprobation);
                     sim.useOgcdFiller(cp);
-                    cycle.use(blu.WingedReprobation);
                     cycle.use(blu.PhantomFlurry);
                     cp.doWaning();
 
                     // loop until 4 gcds before Nightbloom comes off cooldown
                     const preBloom = cp.gcdRecast * 4;
+                    let j = 0;
                     while (Math.min(cp.remainingGcdTime, cp.cdTracker.statusOf(blu.Nightbloom).readyAt.relative) > preBloom) {
                         sim.useFiller(cp);
                     }
