@@ -634,6 +634,9 @@ export interface SetExport {
     };
 }
 
+/**
+ * Special version of {@link SetExport} that comes from the /fulldata/ endpoint.
+ */
 export interface SetStatsExport extends SetExport {
     computedStats: ComputedSetStats
 }
