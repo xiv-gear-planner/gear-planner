@@ -178,8 +178,6 @@ export class BluBreath60Sim extends blu.BluSim<BluBreath60SimResult, BluBreath60
                     let i = 0;
                     while (Math.min(cp.remainingGcdTime, cp.bleedEnd - cp.currentTime) > preBleed) {
                         sim.useFiller(cp);
-                        i++;
-                        if (i > 20) { console.error("post-even break"); break; }
                     }
 
                     // odd Flute window
@@ -208,8 +206,6 @@ export class BluBreath60Sim extends blu.BluSim<BluBreath60SimResult, BluBreath60
                     let j = 0;
                     while (Math.min(cp.remainingGcdTime, cp.cdTracker.statusOf(blu.Nightbloom).readyAt.relative) > preBloom) {
                         sim.useFiller(cp);
-                        j++;
-                        if (j > 20) { console.error("post-odd break"); break; }
                     }
 
                     // start the next even Flute window, if one exists
