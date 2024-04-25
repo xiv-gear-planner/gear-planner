@@ -30,8 +30,8 @@ import {
     MultiplierStat,
     PartyBonusAmount,
     RawStatKey,
-    SetExport,
-    SheetExport,
+    SetExport, SetStatsExport,
+    SheetExport, SheetStatsExport,
     SimExport,
     Substat
 } from "@xivgear/xivmath/geartypes";
@@ -1635,9 +1635,24 @@ export class GearPlanSheet extends HTMLElement {
             }));
     }
 
-    exportSheet(external: boolean = false): SheetExport {
+    exportSheet(): SheetExport;
+    exportSheet(external: boolean): SheetExport;
+    exportSheet(external: boolean, fullStats: false): SheetExport;
+    exportSheet(external: boolean, fullStats: true): SheetStatsExport;
+
+    exportSheet(external: boolean = false, fullStats: boolean = false): SheetExport | SheetStatsExport {
         // TODO: make this async
-        const sets: SetExport[] = this._sets.map(set => this.exportGearSet(set, false));
+        const sets = this._sets.map(set => {
+            const rawExport = this.exportGearSet(set, false);
+            if (fullStats) {
+                const augGs: SetStatsExport = {
+                    ...rawExport,
+                    computedStats: set.computedStats
+                }
+                return augGs;
+            }
+            return rawExport;
+        });
         let simsExport: SimExport[] = this.exportSims(external);
         const out: SheetExport = {
             name: this.sheetName,

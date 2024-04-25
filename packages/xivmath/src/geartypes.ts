@@ -505,6 +505,7 @@ export interface SimExport {
     name?: string
 }
 
+// TODO: further split this up. API vs Local should have different types.
 /**
  * Represents an exported set. Many of the fields fill the same role as the fields
  * on GearPlanSheet.
@@ -572,6 +573,10 @@ export interface SheetExport {
     ilvlSync?: number,
 }
 
+export interface SheetStatsExport extends SheetExport {
+    sets: SetStatsExport[],
+}
+
 // TODO: split into internal and external version?
 /**
  * Represents an exported set. Note that in addition to some fields only being applicable to internal vs external
@@ -627,6 +632,10 @@ export interface SetExport {
     relicStatMemory?: {
         [p: number]: RelicStats
     };
+}
+
+export interface SetStatsExport extends SetExport {
+    computedStats: ComputedSetStats
 }
 
 // noinspection JSUnusedGlobalSymbols

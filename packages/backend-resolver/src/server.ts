@@ -46,11 +46,7 @@ fastify.get('/fulldata/:uuid', async (request, reply) => {
         sheet.partyBonus = parseInt(pb) as PartyBonusAmount;
     }
     await sheet.loadFully();
-    return sheet.sets.map(set => ({
-        name: set.name,
-        description: set.description,
-        computedStats: set.computedStats,
-    }));
+    return sheet.exportSheet(true, true);
 });
 
 fastify.listen({
