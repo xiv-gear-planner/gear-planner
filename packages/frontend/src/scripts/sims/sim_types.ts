@@ -24,7 +24,17 @@ export type BaseAbility = Readonly<{
     activatesBuffs?: readonly Buff[],
     id?: number,
     attackType: AttackType,
-    cooldown?: Cooldown
+    cooldown?: Cooldown,
+    /**
+     * The time that it takes to cast. Do not include caster tax. Defaults to 0.5 (thus 0.6 after adding caster tax)
+     * if not specified, i.e. normal animation lock.
+     */
+    cast?: number,
+    /**
+     * If the ability has a fixed cast and recast, rather than being reduced by sks/sps,
+     * set to true.
+     */
+    fixedGcd?: boolean,
 } & (NonDamagingAbility | DamagingAbility)>;
 
 /**
@@ -54,18 +64,6 @@ export type GcdAbility = BaseAbility & Readonly<{
      * If the ability's GCD can be lowered by sps/sks, put it here.
      */
     gcd: number,
-    /**
-     * The time that it takes to cast. Do not include caster tax. Defaults to 0.5 (thus 0.6 after adding caster tax)
-     * if not specified, i.e. normal animation lock.
-     *
-     * TODO: this is actually a false assumption - BLU oGCDs may have a cast time
-     */
-    cast?: number,
-    /**
-     * If the ability has a fixed cast and recast, rather than being reduced by sks/sps,
-     * set to true.
-     */
-    fixedGcd?: boolean,
 }>
 
 export type OgcdAbility = BaseAbility & Readonly<{

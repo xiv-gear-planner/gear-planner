@@ -469,7 +469,8 @@ export class CycleProcessor {
         return activeBuffs;
     }
 
-    // TODO: somehow convey on the UI when a buff is active but not applicable
+    // TODO: somehow convey on the UI when a buff is active but not applicable, e.g. a haste buff does nothing
+    // for an oGCD
     getActiveBuffsFor(ability: Ability): Buff[] {
         return this.getActiveBuffs().filter(buff => {
             if ('appliesTo' in buff) {
@@ -526,19 +527,106 @@ export class CycleProcessor {
         }));
     }
 
+    private isGcd(ability: Ability): ability is GcdAbility {
+        return ability.type === 'gcd';
+    }
+
     use(ability: Ability): AbilityUseResult {
-        // Logic for GCDs
-        if (ability.type == "gcd") {
-            return this.useGcd(ability);
-        }
-        // oGCD logic branch
-        else if (ability.type == 'ogcd') {
-            return this.useOgcd(ability);
-        }
-        else {
-            console.error("Unknown ability type", ability);
+        const isGcd = this.isGcd(ability);
+        if (this.remainingGcdTime <= 0) {
+            // Already over time limit. Ignore completely.
             return 'none';
         }
+        // Since we might not be at the start of the next GCD yet (e.g. back-to-back instant GCDs), we need to do the
+        // CD checking at the time when we expect to actually use this GCD.
+        const cdCheckTime = isGcd ? Math.max(this.nextGcdTime, this.currentTime) : this.currentTime;
+        if (!this.cdTracker.canUse(ability, cdCheckTime)) {
+            switch (this.cdEnforcementMode) {
+                case "none":
+                case "warn":
+                    // CD tracker will enforce this
+                    break;
+                case "delay":
+                    this.advanceTo(this.cdTracker.statusOf(ability).readyAt.absolute);
+                    break;
+                // TODO: don't enforce at the CD tracker level, only warn, since we already enforce here
+                case "reject":
+                    throw Error(`Cooldown not ready: ${ability.name}, time ${this.currentTime}, in combat: ${this.combatStarted}`);
+            }
+        }
+        if (isGcd) {
+            if (this.nextGcdTime > this.currentTime) {
+                this.advanceTo(this.nextGcdTime);
+            }
+        }
+        // We need to calculate our buff set twice. The first is because buffs may affect the cast and/or recast time.
+        const gcdStartsAt = this.currentTime;
+        const preBuffs = this.getActiveBuffsFor(ability);
+        const preCombinedEffects: CombinedBuffEffect = combineBuffEffects(preBuffs);
+        // noinspection AssignmentToFunctionParameterJS
+        ability = this.beforeAbility(ability, preBuffs);
+        const abilityGcd = isGcd ? (this.gcdTime(ability as GcdAbility, preCombinedEffects.haste)) : 0;
+        this.markCd(ability, preCombinedEffects.haste);
+        const effectiveCastTime: number | null = ability.cast ? this.castTime(ability, preCombinedEffects.haste) : null;
+        const snapshotDelayFromStart = effectiveCastTime ? Math.max(0, effectiveCastTime - CAST_SNAPSHOT_PRE) : 0;
+        const snapshotsAt = this.currentTime + snapshotDelayFromStart;
+        // When this GCD will end (strictly in terms of GCD. e.g. a BLM spell where cast > recast will still take the cast time. This will be
+        // accounted for later).
+        const gcdFinishedAt = this.currentTime + abilityGcd;
+        const animLock = effectiveCastTime ? Math.max(effectiveCastTime + CASTER_TAX, STANDARD_ANIMATION_LOCK) : STANDARD_ANIMATION_LOCK;
+        const animLockFinishedAt = this.currentTime + animLock;
+        this.advanceTo(snapshotsAt, true);
+        const buffs = this.getActiveBuffsFor(ability);
+        const combinedEffects: CombinedBuffEffect = combineBuffEffects(buffs);
+        ability = this.beforeSnapshot(ability, buffs);
+        // Enough time for entire GCD
+        // if (gcdFinishedAt <= this.totalTime) {
+        const dmgInfo = this.modifyDamage(abilityToDamageNew(this.stats, ability, combinedEffects), ability, buffs);
+        const appDelayFromSnapshot = appDelay(ability);
+        const appDelayFromStart = appDelayFromSnapshot + snapshotDelayFromStart;
+        const usedAbility: UsedAbility = ({
+            ability: ability,
+            // We want to take the 'haste' value from the pre-snapshot values, but everything else should
+            // come from when the ability snapshotted.
+            // i.e. a haste buff that applies mid-cast will not help us, but a damage buff will.
+            // Opposite applies for buffs falling off mid-cast.
+            combinedEffects: {
+                ...combinedEffects,
+                haste: preCombinedEffects.haste,
+            },
+            buffs: Array.from(new Set<Buff>([...preBuffs, ...buffs])),
+            usedAt: gcdStartsAt,
+            directDamage: dmgInfo.directDamage ?? {expected: 0},
+            dot: dmgInfo.dot,
+            appDelay: appDelayFromSnapshot,
+            appDelayFromStart: appDelayFromStart,
+            totalTimeTaken: Math.max(animLock, abilityGcd),
+            castTimeFromStart: effectiveCastTime,
+            snapshotTimeFromStart: snapshotDelayFromStart,
+            lockTime: animLock
+        });
+        this.addAbilityUse(usedAbility);
+        // Since we don't have proper modeling for situations where you need to delay something to catch a buff,
+        // e.g. SCH chain into ED, just force everything to apply no later than the animation lock.
+        // At this specific point in time, we are exactly at the snapshot. Thus, the remaining application delay
+        // is the snapshot-to-application delta only, and the animation lock also needs to have the time so far
+        // subtracted.
+        const buffDelay = Math.max(0, Math.min(appDelayFromSnapshot, animLock - snapshotDelayFromStart));
+        // Activate buffs afterwards
+        if (ability.activatesBuffs) {
+            ability.activatesBuffs.forEach(buff => this.activateBuffWithDelay(buff, buffDelay));
+        }
+        // Anim lock OR cast time, both effectively block use of skills.
+        // If cast time > GCD recast, then we use that instead. Also factor in caster tax.
+        this.advanceTo(animLockFinishedAt);
+        // If we're casting a long-cast, then the GCD is blocked for more than a GCD.
+        if (isGcd) {
+            this.nextGcdTime = Math.max(gcdFinishedAt, animLockFinishedAt);
+        }
+        // Workaround for auto-attacks after first ability
+        this.advanceTo(this.currentTime);
+        this.adjustPrepull();
+        return 'full';
     }
 
     useUntil(ability: GcdAbility, useUntil: number) {
@@ -610,158 +698,11 @@ export class CycleProcessor {
     }
 
     useGcd(ability: GcdAbility): AbilityUseResult {
-        if (this.remainingGcdTime <= 0) {
-            // Already over time limit. Ignore completely.
-            return 'none';
-        }
-        // Since we might not be at the start of the next GCD yet (e.g. back-to-back instant GCDs), we need to do the
-        // CD checking at the time when we expect to actually use this GCD.
-        const cdCheckTime = Math.max(this.nextGcdTime, this.currentTime);
-        if (!this.cdTracker.canUse(ability, cdCheckTime)) {
-            switch (this.cdEnforcementMode) {
-                case "none":
-                case "warn":
-                    // CD tracker will enforce this
-                    break;
-                case "delay":
-                    this.advanceTo(this.cdTracker.statusOf(ability).readyAt.absolute);
-                    break;
-                // TODO: don't enforce at the CD tracker level, only warn, since we already enforce here
-                case "reject":
-                    throw Error(`Cooldown not ready: ${ability.name}, time ${this.currentTime}, in combat: ${this.combatStarted}`);
-            }
-        }
-        if (this.nextGcdTime > this.currentTime) {
-            this.advanceTo(this.nextGcdTime);
-        }
-        // We need to calculate our buff set twice. The first is because buffs may affect the cast and/or recast time.
-        const gcdStartsAt = this.currentTime;
-        const preBuffs = this.getActiveBuffsFor(ability);
-        const preCombinedEffects: CombinedBuffEffect = combineBuffEffects(preBuffs);
-        // noinspection AssignmentToFunctionParameterJS
-        ability = this.beforeAbility(ability, preBuffs);
-        const abilityGcd = this.gcdTime(ability, 'recast', preCombinedEffects.haste);
-        this.markCd(ability, preCombinedEffects.haste);
-        const effectiveCastTime: number | null = ability.cast ? this.gcdTime(ability, 'cast', preCombinedEffects.haste) : null;
-        const snapshotDelayFromStart = effectiveCastTime ? Math.max(0, effectiveCastTime - CAST_SNAPSHOT_PRE) : 0;
-        const snapshotsAt = this.currentTime + snapshotDelayFromStart;
-        // When this GCD will end (strictly in terms of GCD. e.g. a BLM spell where cast > recast will still take the cast time. This will be
-        // accounted for later).
-        const gcdFinishedAt = this.currentTime + abilityGcd;
-        const animLock = effectiveCastTime ? Math.max(effectiveCastTime + CASTER_TAX, STANDARD_ANIMATION_LOCK) : STANDARD_ANIMATION_LOCK;
-        const animLockFinishedAt = this.currentTime + animLock;
-        this.advanceTo(snapshotsAt, true);
-        const buffs = this.getActiveBuffsFor(ability);
-        const combinedEffects: CombinedBuffEffect = combineBuffEffects(buffs);
-        ability = this.beforeSnapshot(ability, buffs);
-        // Enough time for entire GCD
-        // if (gcdFinishedAt <= this.totalTime) {
-        const dmgInfo = this.modifyDamage(abilityToDamageNew(this.stats, ability, combinedEffects), ability, buffs);
-        const appDelayFromSnapshot = appDelay(ability);
-        const appDelayFromStart = appDelayFromSnapshot + snapshotDelayFromStart;
-        const usedAbility: UsedAbility = ({
-            ability: ability,
-            // We want to take the 'haste' value from the pre-snapshot values, but everything else should
-            // come from when the ability snapshotted.
-            // i.e. a haste buff that applies mid-cast will not help us, but a damage buff will.
-            // Opposite applies for buffs falling off mid-cast.
-            combinedEffects: {
-                ...combinedEffects,
-                haste: preCombinedEffects.haste,
-            },
-            buffs: Array.from(new Set<Buff>([...preBuffs, ...buffs])),
-            usedAt: gcdStartsAt,
-            directDamage: dmgInfo.directDamage ?? {expected: 0},
-            dot: dmgInfo.dot,
-            appDelay: appDelayFromSnapshot,
-            appDelayFromStart: appDelayFromStart,
-            totalTimeTaken: Math.max(animLock, abilityGcd),
-            castTimeFromStart: effectiveCastTime,
-            snapshotTimeFromStart: snapshotDelayFromStart,
-            lockTime: animLock
-        });
-        this.addAbilityUse(usedAbility);
-        // Since we don't have proper modeling for situations where you need to delay something to catch a buff,
-        // e.g. SCH chain into ED, just force everything to apply no later than the animation lock.
-        // At this specific point in time, we are exactly at the snapshot. Thus, the remaining application delay
-        // is the snapshot-to-application delta only, and the animation lock also needs to have the time so far
-        // subtracted.
-        const buffDelay = Math.max(0, Math.min(appDelayFromSnapshot, animLock - snapshotDelayFromStart));
-        // Activate buffs afterwards
-        if (ability.activatesBuffs) {
-            ability.activatesBuffs.forEach(buff => this.activateBuffWithDelay(buff, buffDelay));
-        }
-        // Anim lock OR cast time, both effectively block use of skills.
-        // If cast time > GCD recast, then we use that instead. Also factor in caster tax.
-        this.advanceTo(animLockFinishedAt);
-        // If we're casting a long-cast, then the GCD is blocked for more than a GCD.
-        this.nextGcdTime = Math.max(gcdFinishedAt, animLockFinishedAt);
-        // Workaround for auto-attacks after first ability
-        this.advanceTo(this.currentTime);
-        this.adjustPrepull();
-        return 'full';
+        return this.use(ability);
     }
 
     useOgcd(ability: OgcdAbility): AbilityUseResult {
-        if (this.remainingTime <= 0) {
-            // Already over time limit. Ignore completely.
-            return 'none';
-        }
-        // We don't have to worry about GCD stuff here
-        const cdCheckTime = this.currentTime;
-        if (!this.cdTracker.canUse(ability, cdCheckTime)) {
-            switch (this.cdEnforcementMode) {
-                case "none":
-                case "warn":
-                    // CD tracker will enforce this
-                    break;
-                case "delay":
-                    this.advanceTo(this.cdTracker.statusOf(ability).readyAt.absolute);
-                    break;
-                case "reject":
-                    throw Error(`Cooldown not ready: ${ability.name}, time ${this.currentTime}, in combat: ${this.combatStarted}`);
-            }
-        }
-        const buffs = this.getActiveBuffsFor(ability);
-        const combinedEffects: CombinedBuffEffect = combineBuffEffects(buffs);
-        // noinspection AssignmentToFunctionParameterJS
-        ability = this.beforeAbility(ability, buffs);
-        this.markCd(ability, combinedEffects.haste);
-        // Similar logic to GCDs, but with animation lock alone
-        const animLock = ability.animationLock ?? STANDARD_ANIMATION_LOCK;
-        const animLockFinishedAt = animLock + this.currentTime;
-        // Fits completely
-        // if (animLockFinishedAt <= this.totalTime) {
-        ability = this.beforeSnapshot(ability, buffs);
-        const dmgInfo = this.modifyDamage(abilityToDamageNew(this.stats, ability, combinedEffects), ability, buffs);
-        const delay = appDelay(ability);
-        const usedAbility: UsedAbility = ({
-            ability: ability,
-            buffs: buffs,
-            combinedEffects: combinedEffects,
-            usedAt: this.currentTime,
-            directDamage: dmgInfo.directDamage ?? {expected: 0},
-            dot: dmgInfo.dot,
-            totalTimeTaken: animLock,
-            appDelay: delay,
-            appDelayFromStart: delay,
-            castTimeFromStart: 0,
-            snapshotTimeFromStart: 0,
-            lockTime: animLock
-        });
-        this.addAbilityUse(usedAbility);
-        // Since we don't have proper modeling for situations where you need to delay something to catch a buff,
-        // e.g. SCH chain into ED, just force everything to apply no later than the animation lock.
-        const buffDelay = Math.min(delay, animLock);
-        // Activate buffs afterwards
-        if (ability.activatesBuffs) {
-            ability.activatesBuffs.forEach(buff => this.activateBuffWithDelay(buff, buffDelay));
-        }
-        this.advanceTo(animLockFinishedAt);
-        // Account for potential GCD clipping
-        this.nextGcdTime = Math.max(this.nextGcdTime, animLockFinishedAt);
-        this.adjustPrepull();
-        return 'full';
+        return this.use(ability);
     }
 
     private adjustPrepull() {
@@ -842,8 +783,16 @@ export class CycleProcessor {
         });
     }
 
-    gcdTime(ability: GcdAbility, which: 'cast' | 'recast', haste: number): number {
-        const base = which === 'cast' ? ability.cast : ability.gcd;
+    castTime(ability: Ability, haste: number): number {
+        const base = ability.cast;
+        return ability.fixedGcd ? base :
+            (ability.attackType == "Spell") ?
+                (this.stats.gcdMag(base ?? this.gcdBase, haste)) :
+                (this.stats.gcdPhys(base ?? this.gcdBase, haste));
+    }
+
+    gcdTime(ability: GcdAbility, haste: number): number {
+        const base = ability.gcd;
         return ability.fixedGcd ? base :
             (ability.attackType == "Spell") ?
                 (this.stats.gcdMag(base ?? this.gcdBase, haste)) :
