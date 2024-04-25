@@ -35,6 +35,10 @@ export type BaseAbility = Readonly<{
      * set to true.
      */
     fixedGcd?: boolean,
+    /**
+     * Override the default animation lock
+     */
+    animationLock?: number,
 } & (NonDamagingAbility | DamagingAbility)>;
 
 /**
@@ -68,7 +72,6 @@ export type GcdAbility = BaseAbility & Readonly<{
 
 export type OgcdAbility = BaseAbility & Readonly<{
     type: 'ogcd',
-    animationLock?: number,
 }>
 
 export type AutoAttack = BaseAbility & DamagingAbility & Readonly<{
