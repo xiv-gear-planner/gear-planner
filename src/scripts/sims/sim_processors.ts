@@ -573,8 +573,9 @@ export class CycleProcessor {
         // When this GCD will end (strictly in terms of GCD. e.g. a BLM spell where cast > recast will still take the cast time. This will be
         // accounted for later).
         const gcdFinishedAt = this.currentTime + abilityGcd;
-        const animLock = effectiveCastTime ? Math.max(effectiveCastTime + CASTER_TAX, STANDARD_ANIMATION_LOCK) : STANDARD_ANIMATION_LOCK;
-        const animLockFinishedAt = this.currentTime + animLock;
+        const animLock = ability.animationLock ?? STANDARD_ANIMATION_LOCK;
+        const effectiveAnimLock = effectiveCastTime ? Math.max(effectiveCastTime + CASTER_TAX, animLock) : animLock;
+        const animLockFinishedAt = this.currentTime + effectiveAnimLock;
         this.advanceTo(snapshotsAt, true);
         const buffs = this.getActiveBuffsFor(ability);
         const combinedEffects: CombinedBuffEffect = combineBuffEffects(buffs);
@@ -600,10 +601,10 @@ export class CycleProcessor {
             dot: dmgInfo.dot,
             appDelay: appDelayFromSnapshot,
             appDelayFromStart: appDelayFromStart,
-            totalTimeTaken: Math.max(animLock, abilityGcd),
+            totalTimeTaken: Math.max(effectiveAnimLock, abilityGcd),
             castTimeFromStart: effectiveCastTime,
             snapshotTimeFromStart: snapshotDelayFromStart,
-            lockTime: animLock
+            lockTime: effectiveAnimLock
         });
         this.addAbilityUse(usedAbility);
         // Since we don't have proper modeling for situations where you need to delay something to catch a buff,
@@ -611,7 +612,7 @@ export class CycleProcessor {
         // At this specific point in time, we are exactly at the snapshot. Thus, the remaining application delay
         // is the snapshot-to-application delta only, and the animation lock also needs to have the time so far
         // subtracted.
-        const buffDelay = Math.max(0, Math.min(appDelayFromSnapshot, animLock - snapshotDelayFromStart));
+        const buffDelay = Math.max(0, Math.min(appDelayFromSnapshot, effectiveAnimLock - snapshotDelayFromStart));
         // Activate buffs afterwards
         if (ability.activatesBuffs) {
             ability.activatesBuffs.forEach(buff => this.activateBuffWithDelay(buff, buffDelay));
