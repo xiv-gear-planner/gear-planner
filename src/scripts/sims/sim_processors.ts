@@ -624,6 +624,10 @@ export class CycleProcessor {
         if (isGcd) {
             this.nextGcdTime = Math.max(gcdFinishedAt, animLockFinishedAt);
         }
+        // Account for potential GCD clipping
+        else {
+            this.nextGcdTime = Math.max(this.nextGcdTime, animLockFinishedAt);
+        }
         // Workaround for auto-attacks after first ability
         this.advanceTo(this.currentTime);
         this.adjustPrepull();
