@@ -125,7 +125,7 @@ export class BluWinged60Sim extends blu.BluSim<BluWinged60SimResult, BluWinged60
                 
                 // cycle based off of Nightbloom (fixed cooldown: 120s)                
                 cp.remainingCycles(cycle => {
-                    // TODO: this is a hack to avoid floating point errors at low gcds
+                    // TODO: this is a hack to avoid floating point errors at fast gcds
                     if (cp.gcdRecast < 2.19) {
                         const currentTime = cp.currentTime;
                         const buffHistory = cp.buffHistory.filter(h => h.buff.name === "Waxing Nocturne");
