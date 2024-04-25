@@ -21,7 +21,7 @@ export const BluWinged60Spec: SimSpec<BluWinged60Sim, BluWinged60SettingsExterna
     displayName: "BLU Winged 60s",
     stub: "blu-winged60",
     supportedJobs: ["BLU"],
-    isDefaultSim: true,
+    isDefaultSim: false,
 
     makeNewSimInstance(): BluWinged60Sim {
         return new BluWinged60Sim();
