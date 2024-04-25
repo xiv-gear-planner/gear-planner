@@ -21,7 +21,7 @@ export const BluBreath60Spec: SimSpec<BluBreath60Sim, BluBreath60SettingsExterna
     displayName: "BLU Breath 60s",
     stub: "blu-breath60",
     supportedJobs: ["BLU"],
-    isDefaultSim: true,
+    isDefaultSim: false,
 
     makeNewSimInstance(): BluBreath60Sim {
         return new BluBreath60Sim();
