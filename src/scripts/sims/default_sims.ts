@@ -9,6 +9,7 @@ import {registerSim} from "../simulation";
 import {potRatioSimSpec} from "./potency_ratio";
 import { BluWinged120Spec } from "./blu_winged120";
 import { BluFlame120Spec } from "./blu_flame120";
+import { BluBreath60Spec } from "./blu_breath60";
 
 export function registerDefaultSims() {
     registerSim(potRatioSimSpec);
@@ -21,4 +22,5 @@ export function registerDefaultSims() {
     registerSim(rprSheetSpec);
     registerSim(BluWinged120Spec);
     registerSim(BluFlame120Spec);
+    registerSim(BluBreath60Spec);
 }
