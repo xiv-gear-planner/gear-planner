@@ -143,6 +143,15 @@ const DpsMimicry: Buff = {
         dhitChanceIncrease: 0.20,
         critChanceIncrease: 0.20
     },
+    beforeSnapshot<X extends Ability>(buffController: BuffController, ability: X): X {
+        if (ability.name === "Matra Magic") {
+            return {
+                ...ability,
+                potency: 800,
+            }
+        }
+        return null;
+    },
     statusId: 2125
 }
 
@@ -256,10 +265,10 @@ export const FinalSting: GcdAbility = {
 export const OffGuard: OgcdAbility = {
     name: "Off-guard",
     type: "ogcd",
-    attackType: "Spell", // TODO: cast and cooldown are reduced by spell speed
+    attackType: "Spell",
     potency: null,
     activatesBuffs: [OffGuardBuff],
-    animationLock: 1.0, // TODO: should be cast time
+    cast: 1.0, // casted ogcd
     cooldown: {
         time: 60,
         reducedBy: "spellspeed"
@@ -603,7 +612,7 @@ export class BLUCycleProcessor extends CycleProcessor {
     set surpanakhaCounter(newSurpanakha) {
         this._surpanakhaCounter = newSurpanakha % 4;
     }
-    // Winged Reprobation stacks
+    // Winged Reprobation "stacks"
     private _wingedCounter: number = 0;
     get wingedCounter() {
         return this._wingedCounter;
@@ -611,6 +620,8 @@ export class BLUCycleProcessor extends CycleProcessor {
     set wingedCounter(newWinged) {
         this._wingedCounter = newWinged % 4;
     }
+    // unique BLU Spellbook spells used
+    readonly spellBook: Map<string, number> = new Map();
 
     constructor(settings?: MultiCycleSettings) {
         super(settings);
@@ -621,6 +632,17 @@ export class BLUCycleProcessor extends CycleProcessor {
     }
 
     use(ability: Ability): AbilityUseResult {
+        // record number of unique BLU spells used
+        if (ability.name !== "Swiftcast") {
+            const uses = this.spellBook.get(ability.name);
+            const newUses = uses ? uses + 1 : 1;
+            this.spellBook.set(ability.name, newUses);
+        }
+        
+        // check if exceeded the max unique spells allowed
+        if (this.spellBook.size > 24) {
+            console.warn(`More than 24 unique spells used in the rotation. Current number of spells used is ${this.spellBook.size}.`);
+        }
 
         // Moonflute
         if (ability === MoonFlute) {
@@ -668,18 +690,6 @@ export class BLUCycleProcessor extends CycleProcessor {
             return out;
         }
 
-        // Matra Magic
-        if (ability === MatraMagic) {
-            this.advanceTo(this.nextGcdTime);
-            const buffs = this.getActiveBuffs();
-            const modified: Ability = {
-                ...MatraMagic,
-                potency: buffs.includes(DpsMimicry) ? 800 : 400,
-            }
-            const out = super.use(modified);
-            return out;
-        }
-
         // Winged Reprobation
         if (ability === WingedReprobation) {
             const modified: Ability = {
@@ -687,7 +697,7 @@ export class BLUCycleProcessor extends CycleProcessor {
                 potency: this.wingedCounter < 3 ? 300 : 400,
                 cooldown: {
                     ...WingedReprobation.cooldown,
-                    time: this.wingedCounter < 3 ? 0 : 90, // TODO: this doesn't work as expected
+                    time: this.wingedCounter < 3 ? 0 : 90,
                 }
             }
             const out = super.use(modified);
@@ -777,11 +787,12 @@ export abstract class BluSim<_BluCycleSimResult, _BluSimSettings>
 
     abstract getRotationsToSimulate(): Rotation<BLUCycleProcessor>[];
 
-    protected abstract useOgcdFiller(cp: CycleProcessor): void;
+    protected abstract useOgcdFiller(cp: BLUCycleProcessor): void;
 
-    protected applyStances(cp: CycleProcessor) {
+    protected applyStances(cp: BLUCycleProcessor) {
         if (this.settings.dpsMimicryEnabled) {
             cp.activateBuff(DpsMimicry);
+            cp.spellBook.set("Aetheric Mimicry", 1);
         }
 
         // Basic Instinct overrides the damage penalty of Mighty Guard
@@ -794,14 +805,16 @@ export abstract class BluSim<_BluCycleSimResult, _BluSimSettings>
                 }
             }
             cp.activateBuff(buff);
+            cp.spellBook.set(MightyGuard.name, 1);
         }
 
         if (this.settings.basicInstinctEnabled) {
             cp.activateBuff(BasicInstinct);
+            cp.spellBook.set(BasicInstinct.name, 1);
         }
     }
 
-    useStingCombo(cp: CycleProcessor) {
+    useStingCombo(cp: BLUCycleProcessor) {
         cp.use(Whistle);
         this.useOgcdFiller(cp);
         cp.use(Tingle);
