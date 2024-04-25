@@ -8,36 +8,36 @@ import { Swiftcast } from "./common/swiftcast";
 import { STANDARD_ANIMATION_LOCK } from "../xivconstants";
 import * as blu from "./blu_common";
 
-export interface BluWinged120SimResult extends CycleSimResult {
+export interface BluFlame120SimResult extends CycleSimResult {
 }
 
-interface BluWinged120Settings extends blu.BluSimSettings {
+interface BluFlame120Settings extends blu.BluSimSettings {
 }
 
-export interface BluWinged120SettingsExternal extends ExternalCycleSettings<BluWinged120Settings> {
+export interface BluFlame120SettingsExternal extends ExternalCycleSettings<BluFlame120Settings> {
 }
 
-export const BluWinged120Spec: SimSpec<BluWinged120Sim, BluWinged120SettingsExternal> = {
-    displayName: "BLU Winged 120s",
-    stub: "blu-winged120",
+export const BluFlame120Spec: SimSpec<BluFlame120Sim, BluFlame120SettingsExternal> = {
+    displayName: "BLU Flame 120s",
+    stub: "blu-flame120",
     supportedJobs: ["BLU"],
-    isDefaultSim: true,
+    isDefaultSim: false,
 
-    makeNewSimInstance(): BluWinged120Sim {
-        return new BluWinged120Sim();
+    makeNewSimInstance(): BluFlame120Sim {
+        return new BluFlame120Sim();
     },
 
-    loadSavedSimInstance(exported: BluWinged120SettingsExternal) {
-        return new BluWinged120Sim(exported);
+    loadSavedSimInstance(exported: BluFlame120SettingsExternal) {
+        return new BluFlame120Sim(exported);
     }
 }
 
-export class BluWinged120Sim extends blu.BluSim<BluWinged120SimResult, BluWinged120Settings> {
-    spec = BluWinged120Spec;
-    displayName = BluWinged120Spec.displayName;
-    shortName = "blu-winged120";
+export class BluFlame120Sim extends blu.BluSim<BluFlame120SimResult, BluFlame120Settings> {
+    spec = BluFlame120Spec;
+    displayName = BluFlame120Spec.displayName;
+    shortName = "blu-flame120";
 
-    constructor(settings?: BluWinged120SettingsExternal) {
+    constructor(settings?: BluFlame120SettingsExternal) {
         super(settings);
     }
 
@@ -109,9 +109,11 @@ export class BluWinged120Sim extends blu.BluSim<BluWinged120SimResult, BluWinged
             return;
         }
 
-        // if fight is about to end, use remaining Winged Reprobation "stacks"
-        if (cp.remainingTime < blu.WingedReprobation.cooldown.time &&
-            cp.cdTracker.canUse(blu.WingedReprobation, cp.nextGcdTime))
+        // if this is the first cycle, build "stacks" of Winged Reprobation for the next Flute window
+        // or, if fight is about to end, use remaining Winged Reprobation "stacks"
+        if ((cp.currentTime < 120 && cp.wingedCounter < 2) ||
+            (cp.remainingTime < blu.WingedReprobation.cooldown.time &&
+            cp.cdTracker.canUse(blu.WingedReprobation, cp.nextGcdTime)))
         {
             cp.use(blu.WingedReprobation);
             this.useOgcdFiller(cp);
@@ -134,28 +136,75 @@ export class BluWinged120Sim extends blu.BluSim<BluWinged120SimResult, BluWinged
                 cp.use(blu.Whistle);
                 cp.use(blu.Tingle);
 
-                // start of first cycle opener
+                // first cycle Mortal Flame opener
                 cp.use(blu.RoseOfDestruction);
+                // slow gcds can't fit everything inside Flute window
+                if (cp.gcdRecast > 2.20) {
+                    cp.use(blu.JKick);
+                }
                 cp.use(blu.MoonFlute);
-                cp.use(blu.JKick);
+                if (cp.cdTracker.canUse(blu.JKick)) {
+                    cp.use(blu.JKick);
+                }
                 cp.use(blu.TripleTrident);
+                cp.use(blu.Nightbloom);
+                cp.use(blu.Bristle);
+                cp.use(blu.ShockStrike);
+                cp.use(blu.SeaShanty);
+                cp.use(blu.MortalFlame);
+                cp.use(blu.BeingMortal);
+                cp.use(blu.Bristle);
+                cp.use(Swiftcast);
+                cp.use(blu.Surpanakha);
+                cp.use(blu.Surpanakha);
+                cp.use(blu.Surpanakha);
+                cp.use(blu.Surpanakha);
+                cp.use(blu.MatraMagic);
+                cp.use(blu.FeatherRain);
+                cp.use(blu.PhantomFlurry);
+                cp.doWaning();
+
+                // loop until 5 gcds before Nightbloom comes off cooldown
+                const preBloom = cp.gcdRecast * 5;
+                while (Math.min(cp.remainingGcdTime, cp.cdTracker.statusOf(blu.Nightbloom).readyAt.relative) > preBloom) {
+                    sim.useFiller(cp);
+                }
+
+                // start the next Flute window, if one exists
+                if (cp.remainingGcdTime > preBloom) {
+                    cp.use(blu.Whistle);
+                    cp.use(blu.Tingle);
+                    if (cp.cdTracker.canUse(blu.RoseOfDestruction, cp.nextGcdTime)) {
+                        cp.use(blu.RoseOfDestruction);
+                    } else {
+                        cp.use(blu.FeculentFlood);
+                    }
+                    cp.use(blu.MoonFlute);
+                    sim.useOgcdFiller(cp);
+                    cp.use(blu.TripleTrident);
+                } else {
+                    // otherwise, finish off the fight with a Final Sting combo
+                    if (cp.cdTracker.canUse(blu.RoseOfDestruction, cp.nextGcdTime)) {
+                        cp.use(blu.RoseOfDestruction);
+                    } else {
+                        if (cp.cdTracker.canUse(blu.WingedReprobation, cp.nextGcdTime)) {
+                            cp.use(blu.WingedReprobation);
+                            sim.useOgcdFiller(cp);
+                        } else {
+                            cp.use(blu.FeculentFlood);
+                        }
+                    }
+                    sim.useStingCombo(cp);
+                }
                 
                 // cycle based off of Nightbloom (fixed cooldown: 120s)                
                 cp.remainingCycles(cycle => {
                     cycle.use(blu.Nightbloom);
                     cycle.use(blu.WingedReprobation);
-                    if (cycle.cycleNumber === 0) {
-                        cycle.use(blu.FeatherRain);
-                    } else {
-                        sim.useOgcdFiller(cp);
-                    }
+                    sim.useOgcdFiller(cp);
                     cycle.use(blu.SeaShanty);
                     cycle.use(blu.WingedReprobation);
-                    if (cycle.cycleNumber === 0) {
-                        cycle.use(blu.ShockStrike);
-                    } else {
-                        sim.useOgcdFiller(cp);
-                    }
+                    sim.useOgcdFiller(cp);
                     cycle.use(blu.BeingMortal);
                     cycle.use(blu.Bristle);
                     cycle.use(Swiftcast);
