@@ -695,20 +695,27 @@ export class XivApiGearInfo implements GearItem {
         this.materiaSlots = [];
         const baseMatCount: number = data['MateriaSlotCount'];
         if (baseMatCount === 0) {
+            // If there are no materia slots, then it might be a custom relic
             // TODO: is this branch still needed?
             if (this.displayGearSlot !== DisplayGearSlotInfo.OffHand) {
+                // Offhands never have materia slots
                 this.isCustomRelic = true;
             }
             else if (!this.primarySubstat) {
+                // If there is no primary substat on the item, then consider it a relic
                 this.isCustomRelic = true;
             }
             else {
+                // Otherwise, it's just a random item that just so happens to not have materia slots
                 this.isCustomRelic = false;
             }
         }
         else {
+            // If it has materia slots, it definitely isn't a custom relic
             this.isCustomRelic = false;
+            // Is overmelding allowed?
             const overmeld: boolean = data['IsAdvancedMeldingPermitted'] as boolean;
+            // The materia slot count represents slots that are always meldable
             for (let i = 0; i < baseMatCount; i++) {
                 // TODO: figure out grade automatically
                 this.materiaSlots.push({
@@ -717,6 +724,8 @@ export class XivApiGearInfo implements GearItem {
                 });
             }
             if (overmeld) {
+                // If we can also overmeld, then push a *single* high-grade slot, and then the rest are only for
+                // small materia.
                 this.materiaSlots.push({
                     maxGrade: MATERIA_LEVEL_MAX_NORMAL,
                     allowsHighGrade: true
@@ -729,11 +738,19 @@ export class XivApiGearInfo implements GearItem {
                 }
             }
         }
+        // Try to guess the acquisition source of an item
         try {
             const rarity: number = data['Rarity'];
+            // Check if it is craftable by checking if any recipes result in this item
             const isCraftable = data['GameContentLinks']?.['Recipe'];
+            // Check if it is buyable by checking if any shops sell it
             const hasShop = data['GameContentLinks']?.['SpecialShop'];
             switch (rarity) {
+                case 1:
+                    if (isCraftable) {
+                        this.acquisitionType = 'crafted';
+                    }
+                    break;
                 // Green
                 case 2:
                     if (this.name.includes('Augmented')) {
