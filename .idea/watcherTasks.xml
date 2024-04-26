@@ -2,14 +2,14 @@
 <project version="4">
   <component name="ProjectTasksOptions">
     <TaskOptions isEnabled="true">
-      <option name="arguments" value="src/$FileName$ dist/$FileNameWithoutExtension$.css --source-map" />
+      <option name="arguments" value="packages/frontend/src/$FileName$ packages/frontend/dist/$FileNameWithoutExtension$.css --source-map" />
       <option name="checkSyntaxErrors" value="true" />
       <option name="description" />
       <option name="exitCodeBehavior" value="ERROR" />
       <option name="fileExtension" value="less" />
       <option name="immediateSync" value="true" />
       <option name="name" value="Less" />
-      <option name="output" value="dist/$FileNameWithoutExtension$.css:dist/$FileNameWithoutExtension$.css.map" />
+      <option name="output" value="packages/frontend/dist/$FileNameWithoutExtension$.css:packages/frontend/dist/$FileNameWithoutExtension$.css.map" />
       <option name="outputFilters">
         <array>
           <FilterInfo>

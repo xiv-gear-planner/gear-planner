@@ -6,8 +6,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  # TODO
-  IMAGE_NAME: ${{ github.repository_owner }}/xivgear-stats-server-test
+  IMAGE_NAME: ${{ github.repository_owner }}/xivgear-stats-server
 
 jobs:
   build:
