@@ -56,7 +56,7 @@ export function xivApiSingleCols<Columns extends readonly string[]>(sheet: strin
     [K in Columns[number]]: any;
 }> {
     const query = `https://xivapi.com/${sheet}/${id}?Columns=${cols.join(',')}`;
-    return fetch(query).then(response => response.json());
+    return xivApiFetch(query).then(response => response.json());
 }
 
 export async function xivApiGet<RequestType extends (XivApiListRequest | XivApiSearchRequest)>(request: RequestType):

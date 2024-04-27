@@ -4,6 +4,7 @@ import {CombinedBuffEffect, DisplayRecordFinalized, isFinalizedAbilityUse} from 
 import {toRelPct} from "../../util/strutils";
 import {AbilityIcon} from "../../components/abilities";
 import {StatusIcon} from "../../components/status_effects";
+import {BuffListDisplay} from "./buff_list_display";
 
 function formatTime(time: number) {
     const negative = time < 0;
@@ -19,28 +20,6 @@ function roundTime(time: number): string {
     return time.toFixed(3);
 }
 
-function formatBuffTooltip(buff: Buff) {
-    const parts: string[] = [];
-    const effects = buff.effects;
-    if (effects.dmgIncrease) {
-        parts.push(`${toRelPct(effects.dmgIncrease, 1)}% dmg`);
-    }
-    if (effects.critChanceIncrease) {
-        parts.push(`${toRelPct(effects.critChanceIncrease, 1)}% crit chance`);
-    }
-    if (effects.dhitChanceIncrease) {
-        parts.push(`${toRelPct(effects.dhitChanceIncrease, 1)}% DH chance`);
-    }
-    if (effects.haste) {
-        parts.push(`${effects.haste}% haste`);
-    }
-    if (parts) {
-        return `${buff.name}: ${parts.join(', ')}`;
-    }
-    else {
-        return buff.name;
-    }
-}
 
 export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
 
@@ -120,7 +99,7 @@ export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
                             return document.createTextNode('--');
                         }
                         let text = used.totalDamage.toFixed(2);
-                        if (used.partialRate !== null || (used.dotInfo && used.dotInfo.actualTickCount < used.dotInfo.fullDurationTicks)) {
+                        if (used.partialRate !== null || (used.dotInfo && used.dotInfo.fullDurationTicks !== "indefinite" && used.dotInfo.actualTickCount < used.dotInfo.fullDurationTicks)) {
                             text += '*';
                         }
                         return document.createTextNode(text);
@@ -136,7 +115,12 @@ export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
                             title.push(`This ability would not have fit completely within the allotted time.\nIt has been pro-rated to ${Math.floor(value.partialRate * 100)}% of the original damage.\n`);
                         }
                         if (value.dotInfo) {
-                            title.push(`This ability is a DoT. It dealt ${value.dotInfo.actualTickCount}/${value.dotInfo.fullDurationTicks} ticks of ${value.dotInfo.damagePerTick.expected} each.\n`);
+                            if (value.dotInfo.fullDurationTicks === 'indefinite') {
+                                title.push(`This ability is an indefinite DoT. It dealt ${value.dotInfo.actualTickCount} ticks of ${value.dotInfo.damagePerTick.expected.toFixed(3)} each.\n`);
+                            }
+                            else {
+                                title.push(`This ability is a DoT. It dealt ${value.dotInfo.actualTickCount}/${value.dotInfo.fullDurationTicks} ticks of ${value.dotInfo.damagePerTick.expected.toFixed(3)} each.\n`);
+                            }
                         }
                         if (title.length > 0) {
                             colElement.title = title.join('\n');
@@ -174,33 +158,34 @@ export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
                 displayName: 'Buffs Active',
                 getter: used => used['buffs'] ?? [],
                 renderer: (buffs: Buff[]) => {
-                    const out = document.createElement('div');
-                    out.classList.add('active-buffs-list');
-                    let tooltip = '';
-                    const textOnly: Buff[] = [];
-                    let hasImage = false;
-                    for (let buff of buffs) {
-                        tooltip += formatBuffTooltip(buff) + '\n';
-                        if (buff.statusId !== undefined) {
-                            out.appendChild(new StatusIcon(buff.statusId));
-                            hasImage = true;
-                        }
-                        else {
-                            textOnly.push(buff);
-                        }
-                    }
-                    if (textOnly.length > 0) {
-                        const textPart = document.createElement('span');
-                        let textOut = textOnly.map(buff => buff.name).join(', ')
-                        if (hasImage) {
-                            textOut = ', ' + textOut;
-                        }
-                        textPart.textContent = textOut;
-                        out.appendChild(textPart);
-                    }
-                    out.title = tooltip;
-                    return out;
-                    // return document.createTextNode('foo');
+                    return new BuffListDisplay(buffs);
+                    // const out = document.createElement('div');
+                    // out.classList.add('active-buffs-list');
+                    // let tooltip = '';
+                    // const textOnly: Buff[] = [];
+                    // let hasImage = false;
+                    // for (let buff of buffs) {
+                    //     tooltip += formatBuffTooltip(buff) + '\n';
+                    //     if (buff.statusId !== undefined) {
+                    //         out.appendChild(new StatusIcon(buff.statusId));
+                    //         hasImage = true;
+                    //     }
+                    //     else {
+                    //         textOnly.push(buff);
+                    //     }
+                    // }
+                    // if (textOnly.length > 0) {
+                    //     const textPart = document.createElement('span');
+                    //     let textOut = textOnly.map(buff => buff.name).join(', ')
+                    //     if (hasImage) {
+                    //         textOut = ', ' + textOut;
+                    //     }
+                    //     textPart.textContent = textOut;
+                    //     out.appendChild(textPart);
+                    // }
+                    // out.title = tooltip;
+                    // return out;
+                    // // return document.createTextNode('foo');
                 },
             }
         ];

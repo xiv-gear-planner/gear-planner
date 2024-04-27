@@ -160,7 +160,7 @@ export function abilityToDamageNew(stats: ComputedSetStats, ability: Ability, co
     return {
         directDamage: ability.potency ? potencyToDamage(stats, ability.potency, ability as DamagingAbility, combinedBuffEffects) : null,
         dot: 'dot' in ability ? {
-            fullDurationTicks: ability.dot.duration / 3,
+            fullDurationTicks: ability.dot.duration === 'indefinite' ? 'indefinite' : (ability.dot.duration / 3),
             damagePerTick: dotPotencyToDamage(stats, ability.dot.tickPotency, ability, combinedBuffEffects),
         } : null,
     }
@@ -379,7 +379,7 @@ export class CycleProcessor {
         this.buffHistory.push({
             buff: buff,
             start: startTime,
-            end: startTime + buff.duration,
+            end: startTime + buff.duration ?? Number.MAX_VALUE,
             forceEnd: false
         });
     }
@@ -763,14 +763,26 @@ export class CycleProcessor {
         }
         if (usedAbility.dot) {
             const dotId = usedAbility.ability['dot']?.id;
+            // If the ability places a DoT, then check if we need to cut off an existing DoT
             if (dotId !== undefined) {
                 const existing = this.dotMap.get(dotId);
                 if (existing) {
+                    // Get the current tick number at the time when the DoT would actually apply based on the skill's
+                    // application delay.
                     const currentTick = Math.floor((usedAbility.usedAt + usedAbility.appDelayFromStart) / 3);
+                    // Calculate which tick number the old DoT started on
                     const oldTick = Math.floor((existing.usedAt + existing.appDelayFromStart) / 3);
-                    const tickCount = Math.min(currentTick - oldTick, existing.dot.fullDurationTicks);
+                    // Finally, calculate the actual tick count for the old DoT by taking the least of:
+                    // 1. How many ticks have elapsed since the old DoT was applied
+                    // 2. The maximum number of ticks the old DoT would have been able to apply based on its duration.
+                    // There is a known caveat that this would not work if SE were to introduce a DoT with a duration
+                    // that does not divide by 3.
+                    const tickCount = Math.min(
+                        currentTick - oldTick,
+                        existing.dot.fullDurationTicks === 'indefinite' ? Number.MAX_VALUE : existing.dot.fullDurationTicks);
                     existing.dot.actualTickCount = tickCount;
                 }
+                // Set our new DoT into the DoT map
                 this.dotMap.set(dotId, usedAbility);
             }
         }
@@ -781,10 +793,11 @@ export class CycleProcessor {
     }
 
     private finalize() {
+        // If any DoTs are still ticking, cut them off
         this.dotMap.forEach((existing) => {
             const currentTick = Math.floor(Math.min(this.currentTime, this.totalTime) / 3);
             const oldTick = Math.floor((existing.usedAt + existing.appDelayFromStart) / 3);
-            existing.dot.actualTickCount = Math.min(currentTick - oldTick, existing.dot.fullDurationTicks);
+            existing.dot.actualTickCount = Math.min(currentTick - oldTick, existing.dot.fullDurationTicks === 'indefinite' ? Number.MAX_VALUE : existing.dot.fullDurationTicks);
         });
     }
 

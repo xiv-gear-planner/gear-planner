@@ -15,7 +15,7 @@ import { writeProxy } from "../../util/proxies";
 import { FieldBoundCheckBox, labeledCheckbox } from "../../components/util";
 import { OffGuardBuff } from "../buffs";
 import { removeSelf } from "../common/utils";
-import { CASTER_TAX } from "@xivgear/xivmath/xivconstants";
+import {CASTER_TAX, LEVEL_STATS} from "@xivgear/xivmath/xivconstants";
 
 /**
  * BLU spells that apply Bleeding
@@ -80,7 +80,7 @@ const Boost: Buff = {
     statusId: 1716
 }
 
-const WaxingNocturne: Buff = {
+const WaxingNocturne = {
     name: "Waxing Nocturne",
     duration: 15,
     selfOnly: true,
@@ -88,11 +88,10 @@ const WaxingNocturne: Buff = {
         dmgIncrease: 0.50
     },
     statusId: 1718
-}
+} as const satisfies Buff; // This allows the 'indefinite' check to be skipped
 
 const MightyGuard: Buff = {
     name: "Mighty Guard",
-    duration: Number.MAX_VALUE, // toggled stance, infinte duration
     selfOnly: true,
     effects: { // also changes the effects of certain BLU spells
         dmgIncrease: -0.4
@@ -100,7 +99,8 @@ const MightyGuard: Buff = {
     statusId: 1719
 }
 
-const WaningNocturne: Buff = {
+
+const WaningNocturne = {
     name: "Waning Nocturne",
     duration: 15,
     selfOnly: true,
@@ -108,7 +108,7 @@ const WaningNocturne: Buff = {
         dmgIncrease: -1 // can't use any actions during Waning
     },
     statusId: 1727
-}
+} as const satisfies Buff; // This allows the 'indefinite' check to be skipped
 
 const Harmonized: Buff = {
     name: "Harmonized",
@@ -129,7 +129,6 @@ const Harmonized: Buff = {
 
 const TankMimicry: Buff = {
     name: "Aetheric Mimicry: Tank",
-    duration: Number.MAX_VALUE, // toggled stance, infinte duration
     selfOnly: true,
     effects: {}, // changes the effects of certain BLU spells
     statusId: 2124
@@ -137,8 +136,8 @@ const TankMimicry: Buff = {
 
 const DpsMimicry: Buff = {
     name: "Aetheric Mimicry: DPS",
-    duration: Number.MAX_VALUE, // toggled stance, infinte duration
     selfOnly: true,
+    descriptionExtras: ['Doubles Matra Magic Potency'],
     effects: { // also changes the effects of certain BLU spells
         dhitChanceIncrease: 0.20,
         critChanceIncrease: 0.20
@@ -157,7 +156,6 @@ const DpsMimicry: Buff = {
 
 const HealerMimicry: Buff = {
     name: "Aetheric Mimicry: Healer",
-    duration: Number.MAX_VALUE, // toggled stance, infinte duration
     selfOnly: true,
     effects: {}, // changes the effects of certain BLU spells
     statusId: 2126
@@ -213,7 +211,6 @@ const Tingling: Buff = {
 
 const BasicInstinct: Buff = {
     name: "Basic Instinct",
-    duration: Number.MAX_VALUE, // toggled stance, infinte duration
     selfOnly: true,
     effects: {
         dmgIncrease: 1.0
@@ -520,7 +517,7 @@ export const MortalFlame: GcdAbility = {
     potency: 0,
     dot: {
         tickPotency: 40,
-        duration: Number.MAX_VALUE, // infinite duration
+        duration: 'indefinite', // infinite duration
         id: 3643
     },
     gcd: 2.5,
@@ -654,7 +651,7 @@ export class BLUCycleProcessor extends CycleProcessor {
         }
 
         // abilities that apply Bleeding
-        if ("dot" in ability && BLU_BLEED_SPELLS.includes(ability.name)) {
+        if ("dot" in ability && BLU_BLEED_SPELLS.includes(ability.name) && typeof ability.dot.duration === "number") {
             const out = super.use(ability);
             this._bleedEnd = this.currentTime + ability.dot.duration;
             return out;
