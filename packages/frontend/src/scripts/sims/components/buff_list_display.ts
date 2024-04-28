@@ -4,8 +4,9 @@ import {toRelPct} from "../../util/strutils";
 
 
 export function describeBuff(buff: Buff) {
+    const baseName = buff.stacks ? `${buff.name} (${buff.stacks} stacks)` : buff.name;
     if ('descriptionOverride' in buff) {
-        return `${buff.name}: ${buff.descriptionOverride}`;
+        return `${baseName}: ${buff.descriptionOverride}`;
     }
     const parts: string[] = [];
     const effects = buff.effects;
@@ -25,10 +26,10 @@ export function describeBuff(buff: Buff) {
         parts.push(...buff.descriptionExtras);
     }
     if (parts.length > 0) {
-        return `${buff.name}: ${parts.join(', ')}`;
+        return `${baseName}: ${parts.join(', ')}`;
     }
     else {
-        return buff.name;
+        return baseName;
     }
 }
 
@@ -42,7 +43,7 @@ export class BuffListDisplay extends HTMLDivElement {
         for (let buff of buffs) {
             tooltip += describeBuff(buff) + '\n';
             if (buff.statusId !== undefined) {
-                this.appendChild(new StatusIcon(buff.statusId));
+                this.appendChild(new StatusIcon(buff.statusId, buff.stacks));
                 hasImage = true;
             }
             else {

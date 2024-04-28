@@ -255,6 +255,10 @@ export type BaseBuff = Readonly<{
      * Optional status effect ID. Used to provide an icon.
      */
     statusId?: number
+    /**
+     * Stack count of this buff. This should generally not be baked into the buff - it should be inserted at run time.
+     */
+    stacks?: number
 } & ({} | {
     /**
      * Override the auto-generated description which would normally describe the effects.

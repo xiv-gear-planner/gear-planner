@@ -35,7 +35,7 @@ export function xivApiFetch(...params: Parameters<typeof fetch>): Promise<any> {
 async function xFetchInternal(...params: Parameters<typeof fetch>): Promise<any> {
     let tries = 5;
     while (true) {
-        tries --;
+        tries--;
         const result = await fetch(...params);
         // TODO: add other errors here?
         if (tries > 0 && result.status === 429) {
@@ -93,4 +93,17 @@ export async function xivApiGet<RequestType extends (XivApiListRequest | XivApiS
     // @ts-ignore
     return {Results: results};
 
+}
+
+export function xivApiIconUrl(iconId: number, highRes: boolean = false) {
+    // Pad to 6 digits, e.g. 19581 -> '019581'
+    const asStr = iconId.toString(10).padStart(6, '0');
+    // Get the xivapi directory, e.g. 19581 -> 019000
+    const directory = asStr.substring(0, 3) + '000';
+    if (highRes) {
+        return `https://xivapi.com/i/${directory}/${asStr}_hr1.png`;
+    }
+    else {
+        return `https://xivapi.com/i/${directory}/${asStr}.png`;
+    }
 }

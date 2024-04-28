@@ -704,12 +704,14 @@ export class BLUCycleProcessor extends CycleProcessor {
 
         // Surpanakha
         if (ability === Surpanakha) {
-            const multiplier = (this.surpanakhaCounter + 1) * 0.5;
+            const newStackCount = this.surpanakhaCounter + 1;
+            const multiplier = newStackCount * 0.5;
             const buff: Buff = {
                 ...SurpanakhaBuff,
                 effects: {
                     dmgIncrease: multiplier,
                 },
+                stacks: newStackCount
             }
             const modified: Ability = {
                 ...Surpanakha,
