@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "target": "es2022",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "sourceMap": true,
+    "outDir": "./build",
+    "noImplicitReturns": true,
+    "strictBindCallApply": true,
+    "allowSyntheticDefaultImports": true,
+    "composite": true
+  },
+  "references": [
+    {
+      "path": "../frontend"
+    },
+    {
+      "path": "../xivmath"
+    }
+  ]
+}

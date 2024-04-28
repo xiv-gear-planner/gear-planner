@@ -1,5 +1,6 @@
-/node_modules/
-/build/
-/dist/
+**/node_modules/
+**/build/
+**/dist/
 .idea/*.xml
 .vs/
+**/tsconfig.tsbuildinfo

@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
     "target": "es2022",
     "sourceMap": true,
     "outDir": "build",
@@ -9,20 +10,17 @@
 //    "strictFunctionTypes": true,
 //    "strictPropertyInitialization": true
     "allowSyntheticDefaultImports": true,
-    "rootDir": "."
+    "composite": true
   },
   "exclude": [
     "node_modules"
   ],
+  "include": [
+    "src/scripts"
+  ],
   "references": [
     {
-      "path": "./packages/xivmath"
-    },
-    {
-      "path": "./packages/frontend"
-    },
-    {
-      "path": "./packages/backend-resolver"
+      "path": "../xivmath"
     }
   ]
 }
