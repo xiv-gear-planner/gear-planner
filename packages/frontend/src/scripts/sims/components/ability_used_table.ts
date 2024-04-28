@@ -6,6 +6,11 @@ import {AbilityIcon} from "../../components/abilities";
 import {StatusIcon} from "../../components/status_effects";
 import {BuffListDisplay} from "./buff_list_display";
 
+/**
+ * Format a time into the format x:yy.zz
+ *
+ * @param time The time (in seconds). Supports positive and negative values.
+ */
 function formatTime(time: number) {
     const negative = time < 0;
     // noinspection AssignmentToFunctionParameterJS
@@ -159,33 +164,6 @@ export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
                 getter: used => used['buffs'] ?? [],
                 renderer: (buffs: Buff[]) => {
                     return new BuffListDisplay(buffs);
-                    // const out = document.createElement('div');
-                    // out.classList.add('active-buffs-list');
-                    // let tooltip = '';
-                    // const textOnly: Buff[] = [];
-                    // let hasImage = false;
-                    // for (let buff of buffs) {
-                    //     tooltip += formatBuffTooltip(buff) + '\n';
-                    //     if (buff.statusId !== undefined) {
-                    //         out.appendChild(new StatusIcon(buff.statusId));
-                    //         hasImage = true;
-                    //     }
-                    //     else {
-                    //         textOnly.push(buff);
-                    //     }
-                    // }
-                    // if (textOnly.length > 0) {
-                    //     const textPart = document.createElement('span');
-                    //     let textOut = textOnly.map(buff => buff.name).join(', ')
-                    //     if (hasImage) {
-                    //         textOut = ', ' + textOut;
-                    //     }
-                    //     textPart.textContent = textOut;
-                    //     out.appendChild(textPart);
-                    // }
-                    // out.title = tooltip;
-                    // return out;
-                    // // return document.createTextNode('foo');
                 },
             }
         ];
