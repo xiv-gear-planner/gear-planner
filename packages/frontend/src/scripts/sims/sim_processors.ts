@@ -4,7 +4,8 @@ import {
     Ability,
     AutoAttack,
     Buff,
-    BuffController,
+    BuffController, ComboBehavior,
+    ComboData, ComboKey,
     ComputedDamage,
     Cooldown,
     DamagingAbility,
@@ -167,6 +168,15 @@ export function abilityToDamageNew(stats: ComputedSetStats, ability: Ability, co
 
 }
 
+export function effectiveComboMode(ability: Ability): ComboBehavior {
+    if (ability.comboBehavior !== undefined) {
+        return ability.comboBehavior;
+    }
+    else {
+        return ability.type === 'gcd' ? 'break' : 'nobreak';
+    }
+}
+
 export class CycleContext {
 
     cycleStartedAt: number;
@@ -318,6 +328,10 @@ export type CycleInfo = {
     end: number | null,
 }
 
+class ComboTracker {
+    private _lastComboAbility: Ability | null = null;
+}
+
 export class CycleProcessor {
 
     /**
@@ -344,7 +358,8 @@ export class CycleProcessor {
     private _cdEnforcementMode: CooldownMode;
     cycleLengthMode: CycleLengthMode = 'align-absolute';
     private firstCycleStartTime: number = 0;
-    private cycles: CycleInfo[] = [];
+    private readonly cycles: CycleInfo[] = [];
+    private readonly comboTrackerMap: Map<ComboKey, ComboTracker>;
 
     constructor(private settings: MultiCycleSettings) {
         // TODO: set enforcement mode
@@ -355,6 +370,7 @@ export class CycleProcessor {
         this.stats = settings.stats;
         this.manuallyActivatedBuffs = settings.manuallyActivatedBuffs ?? [];
         this.useAutos = settings.useAutos;
+        this.comboTrackerMap = new Map();
     }
 
     get cdEnforcementMode(): CooldownMode {
@@ -532,6 +548,8 @@ export class CycleProcessor {
     }
 
     use(ability: Ability): AbilityUseResult {
+        // noinspection AssignmentToFunctionParameterJS
+        ability = this.getComboVersion(ability);
         const isGcd = this.isGcd(ability);
         if (this.remainingGcdTime <= 0) {
             // Already over time limit. Ignore completely.
@@ -579,6 +597,7 @@ export class CycleProcessor {
         this.advanceTo(snapshotsAt, true);
         const buffs = this.getActiveBuffsFor(ability);
         const combinedEffects: CombinedBuffEffect = combineBuffEffects(buffs);
+        // noinspection AssignmentToFunctionParameterJS
         ability = this.beforeSnapshot(ability, buffs);
         // Enough time for entire GCD
         // if (gcdFinishedAt <= this.totalTime) {
@@ -631,6 +650,18 @@ export class CycleProcessor {
         // Workaround for auto-attacks after first ability
         this.advanceTo(this.currentTime);
         this.adjustPrepull();
+        // TODO: get rid of this. have getComboVersion put this value in based on the actual previous combo ability.
+        const cm = effectiveComboMode(ability);
+        switch (cm) {
+            case "break":
+                this._lastComboAbility = null;
+                break;
+            case "continue":
+                if (this)
+            case "start":
+                this._lastComboAbility = ability;
+                break;
+        }
         return 'full';
     }
 
@@ -940,6 +971,34 @@ export class CycleProcessor {
             }
         }
         return damage;
+    }
+
+    private getComboTracker(key: ComboKey | Ability): ComboTracker {
+        let actualKey;
+        if (key instanceof Object) {
+            if (key.comboBehavior)
+        }
+    }
+
+
+    private getComboVersion(ability: Ability): Ability {
+        const lc = this._lastComboAbility;
+        if (lc === null) {
+            return ability;
+        }
+        if ('combos' in ability) {
+            const cdata = ability.combos;
+            for (const candidate of cdata) {
+                const isFound = candidate.comboFrom.find(ability => ability.id === lc.id);
+                if (isFound) {
+                    return {
+                        ...ability,
+                        ...candidate
+                    }
+                }
+            }
+        }
+        return ability;
     }
 }
 
