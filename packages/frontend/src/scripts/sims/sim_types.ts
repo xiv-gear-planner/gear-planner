@@ -23,7 +23,7 @@ export type DotInfo = Readonly<{
  * The rest of the object is which fields of {@link DamagingAbility} you would like to override.
  */
 export type ComboData = Readonly<{
-    comboKey?: ComboKey,
+    comboKey?: ComboKeyMatch,
 }> & ({
     comboBehavior: 'start' | 'break' | 'nobreak'
 } | {
@@ -34,6 +34,7 @@ export type ComboData = Readonly<{
 }) & Partial<DamagingAbility>;
 
 export type ComboKey = 'default' | string;
+export type ComboKeyMatch = ComboKey | 'all';
 
 /**
  * Represents a non-damaging action
@@ -51,7 +52,6 @@ export type DamagingAbility = Readonly<{
     autoCrit?: boolean,
     autoDh?: boolean,
     dot?: DotInfo,
-    combos?: readonly ComboData[]
 }>;
 
 /**
@@ -87,7 +87,7 @@ export type BaseAbility = Readonly<{
     /**
      * How this skill contributes to the combo system.
      */
-    combos?: ComboData
+    combos?: readonly ComboData[]
     /**
      * The time that it takes to cast. Do not include caster tax. Defaults to 0.5 (thus 0.6 after adding caster tax)
      * if not specified, i.e. normal animation lock.
