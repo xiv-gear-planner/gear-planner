@@ -88,7 +88,7 @@ const WaxingNocturne: Buff = {
         dmgIncrease: 0.50
     },
     statusId: 1718
-};
+}
 
 const MightyGuard: Buff = {
     name: "Mighty Guard",
@@ -110,7 +110,7 @@ const WaningNocturne: Buff = {
         dmgIncrease: -1 // can't use any actions during Waning
     },
     statusId: 1727
-};
+}
 
 const Harmonized: Buff = {
     name: "Harmonized",
