@@ -22,6 +22,7 @@ export const BluWinged120Spec: SimSpec<BluWinged120Sim, BluWinged120SettingsExte
     stub: "blu-winged120",
     supportedJobs: ["BLU"],
     isDefaultSim: true,
+    description: "Simulates a BLU Winged Reprobation rotation with Moon Flute windows every 120s.",
 
     makeNewSimInstance(): BluWinged120Sim {
         return new BluWinged120Sim();
@@ -104,14 +105,14 @@ export class BluWinged120Sim extends blu.BluSim<BluWinged120SimResult, BluWinged
         }
 
         // use Rose of Destruction if off cooldown
-        if (cp.cdTracker.canUse(blu.RoseOfDestruction, cp.nextGcdTime)) {
+        if (cp.isReady(blu.RoseOfDestruction)) {
             cp.use(blu.RoseOfDestruction);
             return;
         }
 
-        // if fight is about to end, use remaining Winged Reprobation "stacks"
+        // if fight is about to end, use remaining Winged Reprobation stacks
         if (cp.remainingTime < blu.WingedReprobation.cooldown.time &&
-            cp.cdTracker.canUse(blu.WingedReprobation, cp.nextGcdTime))
+            cp.isReady(blu.WingedReprobation))
         {
             cp.use(blu.WingedReprobation);
             this.useOgcdFiller(cp);
@@ -180,7 +181,7 @@ export class BluWinged120Sim extends blu.BluSim<BluWinged120SimResult, BluWinged
                     if (cp.remainingGcdTime > preBloom) {
                         cycle.use(blu.Whistle);
                         cycle.use(blu.Tingle);
-                        if (cp.cdTracker.canUse(blu.RoseOfDestruction, cp.nextGcdTime)) {
+                        if (cp.isReady(blu.RoseOfDestruction)) {
                             cycle.use(blu.RoseOfDestruction);
                         } else {
                             cycle.use(blu.FeculentFlood);
@@ -190,10 +191,10 @@ export class BluWinged120Sim extends blu.BluSim<BluWinged120SimResult, BluWinged
                         cycle.use(blu.TripleTrident);
                     } else {
                         // otherwise, finish off the fight with a Final Sting combo
-                        if (cp.cdTracker.canUse(blu.RoseOfDestruction, cp.nextGcdTime)) {
+                        if (cp.isReady(blu.RoseOfDestruction)) {
                             cycle.use(blu.RoseOfDestruction);
                         } else {
-                            if (cp.cdTracker.canUse(blu.WingedReprobation, cp.nextGcdTime)) {
+                            if (cp.isReady(blu.WingedReprobation)) {
                                 cycle.use(blu.WingedReprobation);
                                 sim.useOgcdFiller(cp);
                             } else {

@@ -22,6 +22,7 @@ export const BluWinged60Spec: SimSpec<BluWinged60Sim, BluWinged60SettingsExterna
     stub: "blu-winged60",
     supportedJobs: ["BLU"],
     isDefaultSim: false,
+    description: "Simulates a BLU Winged Reprobation rotation with Moon Flute windows every 60s.",
 
     makeNewSimInstance(): BluWinged60Sim {
         return new BluWinged60Sim();
@@ -96,7 +97,7 @@ export class BluWinged60Sim extends blu.BluSim<BluWinged60SimResult, BluWinged60
         }
 
         // use Rose of Destruction if off cooldown and it won't interfere with the next Flute window
-        if (cp.cdTracker.canUse(blu.RoseOfDestruction, cp.nextGcdTime) &&
+        if (cp.isReady(blu.RoseOfDestruction) &&
             cp.cdTracker.statusOfAt(blu.ShockStrike, cp.nextGcdTime).readyAt.relative >
             cp.stats.gcdMag(blu.RoseOfDestruction.cooldown.time)) 
         {
