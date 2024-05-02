@@ -93,6 +93,7 @@ const WaxingNocturne: Buff = {
 const MightyGuard: Buff = {
     name: "Mighty Guard",
     selfOnly: true,
+    descriptionExtras: ["Reduces damage taken and increases enmity generation"],
     effects: { // also changes the effects of certain BLU spells
         dmgIncrease: -0.4
     },
@@ -104,6 +105,7 @@ const WaningNocturne: Buff = {
     name: "Waning Nocturne",
     duration: 15,
     selfOnly: true,
+    descriptionExtras: ["Prevents the use of auto-attacks, weaponskills, spells, or abilities"],
     effects: {
         dmgIncrease: -1 // can't use any actions during Waning
     },
@@ -129,6 +131,7 @@ const Harmonized: Buff = {
 
 const TankMimicry: Buff = {
     name: "Aetheric Mimicry: Tank",
+    descriptionExtras: ["Increases defense and augments certain blue magic spells"],
     selfOnly: true,
     effects: {}, // changes the effects of certain BLU spells
     statusId: 2124
@@ -137,7 +140,7 @@ const TankMimicry: Buff = {
 const DpsMimicry: Buff = {
     name: "Aetheric Mimicry: DPS",
     selfOnly: true,
-    descriptionExtras: ['Doubles Matra Magic Potency'],
+    descriptionExtras: ["Doubles Matra Magic potency"],
     effects: { // also changes the effects of certain BLU spells
         dhitChanceIncrease: 0.20,
         critChanceIncrease: 0.20
@@ -157,6 +160,7 @@ const DpsMimicry: Buff = {
 const HealerMimicry: Buff = {
     name: "Aetheric Mimicry: Healer",
     selfOnly: true,
+    descriptionExtras: ["Increases healing and augments certain blue magic spells"],
     effects: {}, // changes the effects of certain BLU spells
     statusId: 2126
 }
@@ -165,6 +169,7 @@ const BrushWithDeath: Buff = {
     name: "Brush with Death",
     duration: 600,
     selfOnly: true,
+    descriptionExtras: ["Prevents using certain blue magic spells"],
     effects: {}, // prevents certain BLU spells from being used
     statusId: 2127
 }
@@ -188,6 +193,7 @@ const Tingling: Buff = {
     name: "Tingling",
     duration: 15,
     selfOnly: true,
+    descriptionExtras: ["Increases the potency of the next physical damage spell cast by 100 per hit"],
     effects: {
         // increases base potency of physical damage spells by 100 per hit
     },
@@ -212,6 +218,7 @@ const Tingling: Buff = {
 const BasicInstinct: Buff = {
     name: "Basic Instinct",
     selfOnly: true,
+    descriptionExtras: ["Ignores the damage penalty inflicted by Mighty Guard"],
     effects: {
         dmgIncrease: 1.0
     },
