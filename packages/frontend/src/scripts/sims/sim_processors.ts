@@ -379,7 +379,7 @@ export class CycleProcessor {
         this.buffHistory.push({
             buff: buff,
             start: startTime,
-            end: startTime + buff.duration ?? Number.MAX_VALUE,
+            end: buff.duration === undefined ? Number.MAX_VALUE : (startTime + buff.duration),
             forceEnd: false
         });
     }
