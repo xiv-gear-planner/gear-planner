@@ -918,6 +918,15 @@ export class CycleProcessor {
         }
     }
 
+    isReady(ability: Ability): boolean {
+        if ('gcd' in ability) {
+            return this.cdTracker.canUse(ability, this.nextGcdTime);
+        }
+        else {
+            return this.cdTracker.canUse(ability);
+        }
+    }
+
     private makeBuffController(buff: Buff): BuffController {
         const outer = this;
         return {
