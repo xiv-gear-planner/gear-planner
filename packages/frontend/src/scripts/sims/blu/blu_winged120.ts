@@ -110,7 +110,7 @@ export class BluWinged120Sim extends blu.BluSim<BluWinged120SimResult, BluWinged
             return;
         }
 
-        // if fight is about to end, use remaining Winged Reprobation "stacks"
+        // if fight is about to end, use remaining Winged Reprobation stacks
         if (cp.remainingTime < blu.WingedReprobation.cooldown.time &&
             cp.isReady(blu.WingedReprobation))
         {

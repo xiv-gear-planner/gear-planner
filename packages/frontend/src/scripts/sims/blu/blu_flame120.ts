@@ -110,8 +110,8 @@ export class BluFlame120Sim extends blu.BluSim<BluFlame120SimResult, BluFlame120
             return;
         }
 
-        // if this is the first cycle, build "stacks" of Winged Reprobation for the next Flute window
-        // or, if fight is about to end, use remaining Winged Reprobation "stacks"
+        // if this is the first cycle, build stacks of Winged Reprobation for the next Flute window
+        // or, if fight is about to end, use remaining Winged Reprobation stacks
         if ((cp.currentTime < 120 && cp.wingedCounter < 2) ||
             (cp.remainingTime < blu.WingedReprobation.cooldown.time &&
             cp.isReady(blu.WingedReprobation)))

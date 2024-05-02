@@ -105,8 +105,8 @@ export class BluBreath60Sim extends blu.BluSim<BluBreath60SimResult, BluBreath60
             return;
         }
 
-        // build "stacks" of Winged Reprobation for the next odd Flute window
-        // or, if fight is about to end, use remaining Winged Reprobation "stacks"
+        // build stacks of Winged Reprobation for the next odd Flute window
+        // or, if fight is about to end, use remaining Winged Reprobation stacks
         if (cp.isReady(blu.WingedReprobation) && cp.wingedCounter < 2) {
             cp.use(blu.WingedReprobation);
             this.useOgcdFiller(cp);

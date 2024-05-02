@@ -225,6 +225,41 @@ const BasicInstinct: Buff = {
     statusId: 2498
 }
 
+const WingedReprobationBuff: Buff = {
+    name: "Winged Reprobation",
+    selfOnly: true,
+    descriptionExtras: ["Resets Winged Reprobation's recast timer"],
+    effects: {
+        // only applies to Winged Reprobation
+        // resets cast time of Winged Reprobation at 0-2 stacks
+        // increases potency of Winged Reprobation at 3 stacks
+    },
+    beforeSnapshot: removeSelf,
+    appliesTo: ability => ability.name === "Winged Reprobation",
+    statusId: 3640
+}
+
+const WingedRedemption: Buff = {
+    name: "Winged Redemption",
+    duration: 10,
+    selfOnly: true,
+    descriptionExtras: ["Increases the potency of Conviction Marcato"],
+    effects: {
+        // only applies to Conviction Marcato
+    },
+    beforeSnapshot<X extends Ability>(buffController: BuffController, ability: X): X {
+        if (ability.name === "Conviction Marcato") {
+            buffController.removeSelf();
+            return {
+                ...ability,
+                potency: 440,
+            }
+        }
+        return null;
+    },
+    statusId: 3641
+}
+
 /**
  * BLU spells and abilities (limited subset)
  */
@@ -503,11 +538,22 @@ export const BreathofMagic: GcdAbility = {
     id: 34567
 }
 
+export const ConvictionMarcato: GcdAbility = {
+    name: "Conviction Marcato",
+    type: "gcd",
+    attackType: "Spell",
+    potency: 220, // 440 under Winged Redemption
+    gcd: 2.5,
+    cast: 2.0,
+    id: 34574
+}
+
 export const WingedReprobation: GcdAbility = {
     name: "Winged Reprobation",
     type: "gcd",
     attackType: "Spell",
-    potency: 300, // 400 with 3 "stacks"
+    potency: 300, // 400 with 3 stacks of Winged Reprobation
+    activatesBuffs: [WingedReprobationBuff],
     gcd: 2.5,
     cast: 1.0,
     cooldown: {
@@ -622,7 +668,7 @@ export class BLUCycleProcessor extends CycleProcessor {
         this._surpanakhaCounter = newSurpanakha % 4;
     }
 
-    // Winged Reprobation "stacks"
+    // Winged Reprobation stacks
     private _wingedCounter: number = 0;
     get wingedCounter() {
         return this._wingedCounter;
@@ -704,15 +750,54 @@ export class BLUCycleProcessor extends CycleProcessor {
 
         // Winged Reprobation
         if (ability === WingedReprobation) {
-            const modified: Ability = {
-                ...WingedReprobation,
-                potency: this.wingedCounter < 3 ? 300 : 400,
-                cooldown: {
-                    ...WingedReprobation.cooldown,
-                    time: this.wingedCounter < 3 ? 0 : 90,
+            const stackCount = this.wingedCounter;
+            const newStackCount = this.wingedCounter + 1;
+            let out: AbilityUseResult;
+            switch (stackCount) {
+                case 0: // fall through
+                case 1: {
+                    const buff: Buff = {
+                        ...WingedReprobationBuff,
+                        stacks: newStackCount
+                    }
+                    const modified: Ability = {
+                        ...WingedReprobation,
+                        activatesBuffs: [buff],
+                        cooldown: {
+                            ...WingedReprobation.cooldown,
+                            time: 0,
+                        }
+                    }
+                    out = super.use(modified);
+                    break;
+                }
+                case 2: {
+                    const buff: Buff = {
+                        ...WingedReprobationBuff,
+                        descriptionExtras: ["Increases the potency of Winged Reprobation"],
+                        stacks: newStackCount
+                    }
+                    const modified: Ability = {
+                        ...WingedReprobation,
+                        activatesBuffs: [buff],
+                        cooldown: {
+                            ...WingedReprobation.cooldown,
+                            time: 0,
+                        }
+                    }
+                    out = super.use(modified);
+                    break;
+                }
+                case 3: {
+                    const modified: Ability = {
+                        ...WingedReprobation,
+                        potency: 400,
+                        activatesBuffs: [WingedRedemption],
+                    }
+                    out = super.use(modified);
+                    break;
                 }
             }
-            const out = super.use(modified);
             this.wingedCounter++;
             return out;
         }
