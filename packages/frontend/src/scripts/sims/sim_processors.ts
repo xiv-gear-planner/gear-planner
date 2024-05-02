@@ -174,9 +174,10 @@ function updateComboTracker(combo: ComboData, ability: Ability, tracker: ComboTr
                 }
                 break;
             }
-        // The the ability does not match, then fall through the the same behavior as 'break'
+        // If the ability does not match, then fall through the same behavior as 'break'
         case "break":
             tracker.lastComboAbility = null;
+            break;
         case "nobreak":
             // Do nothing
             break;
@@ -336,7 +337,19 @@ export type CycleInfo = {
 }
 
 class ComboTracker {
-    lastComboAbility: Ability | null = null;
+    private _lastComboAbility: Ability | null = null;
+
+    constructor(public readonly key: String) {
+    }
+
+    get lastComboAbility(): Ability | null {
+        return this._lastComboAbility;
+    }
+
+    set lastComboAbility(value: Ability | null) {
+        console.log(`Combo state: [${this.key}] '${this._lastComboAbility?.name} => ${value?.name}`);
+        this._lastComboAbility = value;
+    }
 }
 
 
@@ -983,7 +996,7 @@ export class CycleProcessor {
         if (tracker) {
             return tracker;
         }
-        const out = new ComboTracker();
+        const out = new ComboTracker(key);
         this.comboTrackerMap.set(key, out);
         return out;
     }
@@ -1005,13 +1018,13 @@ export class CycleProcessor {
             const key = combo.comboKey;
             seen.push(key);
             const tracker = this.getComboTracker(key);
-            out = updateComboTracker(combo, ability, tracker);
+            out = updateComboTracker(combo, out, tracker);
         }
         for (let entry of this.comboTrackerMap.entries()) {
             const combo = comboData.others;
             if (!seen.includes(entry[0])) {
                 const tracker = entry[1];
-                out = updateComboTracker(combo, ability, tracker);
+                out = updateComboTracker(combo, out, tracker);
             }
         }
         return out;
