@@ -22,6 +22,7 @@ export const BluFlame120Spec: SimSpec<BluFlame120Sim, BluFlame120SettingsExterna
     stub: "blu-flame120",
     supportedJobs: ["BLU"],
     isDefaultSim: false,
+    description: "'Simulates a BLU Mortal Flame rotation with Moon Flute windows every 120s.",
 
     makeNewSimInstance(): BluFlame120Sim {
         return new BluFlame120Sim();

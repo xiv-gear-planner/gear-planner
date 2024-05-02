@@ -22,6 +22,7 @@ export const BluWinged60Spec: SimSpec<BluWinged60Sim, BluWinged60SettingsExterna
     stub: "blu-winged60",
     supportedJobs: ["BLU"],
     isDefaultSim: false,
+    description: "'Simulates a BLU Winged Reprobation rotation with Moon Flute windows every 60s.",
 
     makeNewSimInstance(): BluWinged60Sim {
         return new BluWinged60Sim();

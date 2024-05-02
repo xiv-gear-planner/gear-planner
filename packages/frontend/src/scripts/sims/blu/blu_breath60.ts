@@ -22,6 +22,7 @@ export const BluBreath60Spec: SimSpec<BluBreath60Sim, BluBreath60SettingsExterna
     stub: "blu-breath60",
     supportedJobs: ["BLU"],
     isDefaultSim: false,
+    description: "'Simulates a BLU Breath of Magic rotation with Moon Flute windows every 60s.",
 
     makeNewSimInstance(): BluBreath60Sim {
         return new BluBreath60Sim();

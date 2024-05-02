@@ -22,6 +22,7 @@ export const BluF2PSpec: SimSpec<BluF2PSim, BluF2PSettingsExternal> = {
     stub: "blu-f2p",
     supportedJobs: ["BLU"],
     isDefaultSim: false,
+    description: "'Simulates a BLU Free Trial rotation with Moon Flute windows every 120s.",
 
     makeNewSimInstance(): BluF2PSim {
         return new BluF2PSim();
