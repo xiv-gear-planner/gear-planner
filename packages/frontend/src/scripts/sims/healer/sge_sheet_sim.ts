@@ -47,6 +47,7 @@ export const sgeSheetSpec: SimSpec<SgeSheetSim, SgeSheetSettings> = {
     },
     stub: "sge-sheet-sim",
     supportedJobs: ['SGE'],
+    description: 'Legacy SGE sim. Same math and logic as the old spreadsheets.'
 }
 
 export class SgeSheetSim implements Simulation<SgeSheetSimResult, SgeSheetSettings, SgeSheetSettings> {

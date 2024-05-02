@@ -2300,6 +2300,11 @@ class AddSimDialog extends BaseModal {
         form.appendChild(showAllCb);
         form.appendChild(this.table);
 
+        const descriptionArea = document.createElement('div');
+        descriptionArea.classList.add('add-sim-description');
+        descriptionArea.textContent = 'Select a simulation to see a description';
+        form.append(descriptionArea);
+
         const submitButton = makeActionButton("Add", () => this.submit());
         const cancelButton = makeActionButton("Cancel", () => closeModal());
         this.addButton(submitButton);
@@ -2307,7 +2312,21 @@ class AddSimDialog extends BaseModal {
 
         selModel.addListener({
             onNewSelection(newSelection) {
-                submitButton.disabled = !(newSelection instanceof CustomRow);
+                if (newSelection instanceof CustomRow) {
+                    submitButton.disabled = false;
+                    const desc = newSelection.dataItem.description;
+                    if (desc !== undefined) {
+                        descriptionArea.textContent = desc;
+                        descriptionArea.classList.remove('no-desc');
+                    }
+                    else {
+                        descriptionArea.textContent = '(No Description)';
+                        descriptionArea.classList.add('no-desc');
+                    }
+                }
+                else {
+                    submitButton.disabled = true;
+                }
             }
         });
         this.contentArea.append(form);

@@ -11,6 +11,7 @@ export const potRatioSimSpec: SimSpec<PotencyRatioSim, SimSettings> = {
         return new PotencyRatioSim();
     },
     stub: "pr-sim",
+    description: "Expected damage per 100 potency"
 }
 
 export interface PotencyRatioSimResults extends SimResult {
