@@ -58,6 +58,10 @@ export interface SimSpec<SimType extends Simulation<any, any, any>, SettingsExpo
      * Optional: restrict this simulation to certain levels.
      */
     supportedLevels?: SupportedLevel[] | undefined;
+    /**
+     * Optional: a brief description to display when choosing a sim.
+     */
+    description?: string;
 }
 
 let simSpecs: SimSpec<any, any>[] = [];

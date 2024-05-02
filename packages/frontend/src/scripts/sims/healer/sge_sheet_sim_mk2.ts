@@ -78,7 +78,8 @@ export const sgeNewSheetSpec: SimSpec<SgeSheetSim, SgeNewSheetSettingsExternal> 
     },
     stub: "sge-sheet-sim-mk2",
     supportedJobs: ['SGE'],
-    isDefaultSim: true
+    isDefaultSim: true,
+    description: 'Simulates the standard SGE 2-minute rotation.'
 }
 
 export class SgeSheetSim extends BaseMultiCycleSim<SgeSheetSimResult, SgeNewSheetSettings> {
