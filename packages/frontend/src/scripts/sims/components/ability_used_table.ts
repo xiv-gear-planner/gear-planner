@@ -3,7 +3,6 @@ import {AutoAttack, Buff, GcdAbility, OgcdAbility} from "../sim_types";
 import {CombinedBuffEffect, DisplayRecordFinalized, isFinalizedAbilityUse} from "../sim_processors";
 import {toRelPct} from "../../util/strutils";
 import {AbilityIcon} from "../../components/abilities";
-import {StatusIcon} from "../../components/status_effects";
 import {BuffListDisplay} from "./buff_list_display";
 
 /**
