@@ -1,4 +1,4 @@
-import { SimSettings } from "../../simulation";
+import {SimSettings} from "../../simulation";
 import {
     AbilityUseResult,
     BaseMultiCycleSim,
@@ -8,14 +8,14 @@ import {
     MultiCycleSettings,
     Rotation
 } from "../sim_processors";
-import { Ability, Buff, BuffController, GcdAbility, OgcdAbility } from "../sim_types"
-import { BuffSettingsArea } from "../party_comp_settings";
-import { cycleSettingsGui } from "../components/cycle_settings_components";
-import { writeProxy } from "../../util/proxies";
-import { FieldBoundCheckBox, labeledCheckbox } from "../../components/util";
-import { OffGuardBuff } from "../buffs";
-import { removeSelf } from "../common/utils";
-import { CASTER_TAX } from "@xivgear/xivmath/xivconstants";
+import {Ability, Buff, BuffController, GcdAbility, OgcdAbility} from "../sim_types"
+import {BuffSettingsArea} from "../party_comp_settings";
+import {cycleSettingsGui} from "../components/cycle_settings_components";
+import {writeProxy} from "../../util/proxies";
+import {FieldBoundCheckBox, labeledCheckbox} from "../../components/util";
+import {OffGuardBuff} from "../buffs";
+import {removeSelf} from "../common/utils";
+import {CASTER_TAX} from "@xivgear/xivmath/xivconstants";
 
 /**
  * BLU spells that apply Bleeding
@@ -88,17 +88,17 @@ const WaxingNocturne: Buff = {
         dmgIncrease: 0.50
     },
     statusId: 1718
-}
+};
 
 const MightyGuard: Buff = {
     name: "Mighty Guard",
-    duration: Number.MAX_VALUE, // toggled stance, infinte duration
     selfOnly: true,
     effects: { // also changes the effects of certain BLU spells
         dmgIncrease: -0.4
     },
     statusId: 1719
 }
+
 
 const WaningNocturne: Buff = {
     name: "Waning Nocturne",
@@ -108,7 +108,7 @@ const WaningNocturne: Buff = {
         dmgIncrease: -1 // can't use any actions during Waning
     },
     statusId: 1727
-}
+};
 
 const Harmonized: Buff = {
     name: "Harmonized",
@@ -129,7 +129,6 @@ const Harmonized: Buff = {
 
 const TankMimicry: Buff = {
     name: "Aetheric Mimicry: Tank",
-    duration: Number.MAX_VALUE, // toggled stance, infinte duration
     selfOnly: true,
     effects: {}, // changes the effects of certain BLU spells
     statusId: 2124
@@ -137,8 +136,8 @@ const TankMimicry: Buff = {
 
 const DpsMimicry: Buff = {
     name: "Aetheric Mimicry: DPS",
-    duration: Number.MAX_VALUE, // toggled stance, infinte duration
     selfOnly: true,
+    descriptionExtras: ['Doubles Matra Magic Potency'],
     effects: { // also changes the effects of certain BLU spells
         dhitChanceIncrease: 0.20,
         critChanceIncrease: 0.20
@@ -157,7 +156,6 @@ const DpsMimicry: Buff = {
 
 const HealerMimicry: Buff = {
     name: "Aetheric Mimicry: Healer",
-    duration: Number.MAX_VALUE, // toggled stance, infinte duration
     selfOnly: true,
     effects: {}, // changes the effects of certain BLU spells
     statusId: 2126
@@ -191,7 +189,7 @@ const Tingling: Buff = {
     duration: 15,
     selfOnly: true,
     effects: {
-       // increases base potency of physical damage spells by 100 per hit
+        // increases base potency of physical damage spells by 100 per hit
     },
     beforeSnapshot<X extends Ability>(buffController: BuffController, ability: X): X {
         if (ability.attackType === "Spell" && BLU_PHYSICAL_SPELLS.includes(ability.name)) {
@@ -213,7 +211,6 @@ const Tingling: Buff = {
 
 const BasicInstinct: Buff = {
     name: "Basic Instinct",
-    duration: Number.MAX_VALUE, // toggled stance, infinte duration
     selfOnly: true,
     effects: {
         dmgIncrease: 1.0
@@ -520,7 +517,7 @@ export const MortalFlame: GcdAbility = {
     potency: 0,
     dot: {
         tickPotency: 40,
-        duration: Number.MAX_VALUE, // infinite duration
+        duration: 'indefinite', // infinite duration
         id: 3643
     },
     gcd: 2.5,
@@ -587,16 +584,19 @@ export class BLUCycleProcessor extends CycleProcessor {
     get gcdRecast() {
         return this._gcdRecast;
     }
+
     // current short (1.0s base) gcd cast, including caster tax
     private _shortGcdCast: number = 0;
     get shortGcdCast() {
         return this._shortGcdCast;
     }
+
     // current long (2.0s base) gcd cast, including caster tax
     private _longGcdCast: number = 0;
     get longGcdCast() {
         return this._longGcdCast;
     }
+
     // start of Moon Flute window
     private _fluteStart: number = 0;
     // end of current Bleed effect
@@ -604,22 +604,27 @@ export class BLUCycleProcessor extends CycleProcessor {
     get bleedEnd() {
         return this._bleedEnd;
     }
+
     // Surpanakha stacks
     private _surpanakhaCounter: number = 0;
     get surpanakhaCounter() {
         return this._surpanakhaCounter;
     }
+
     set surpanakhaCounter(newSurpanakha) {
         this._surpanakhaCounter = newSurpanakha % 4;
     }
+
     // Winged Reprobation "stacks"
     private _wingedCounter: number = 0;
     get wingedCounter() {
         return this._wingedCounter;
     }
+
     set wingedCounter(newWinged) {
         this._wingedCounter = newWinged % 4;
     }
+
     // unique BLU Spellbook spells used
     readonly spellBook: Map<string, number> = new Map();
 
@@ -638,7 +643,7 @@ export class BLUCycleProcessor extends CycleProcessor {
             const newUses = uses ? uses + 1 : 1;
             this.spellBook.set(ability.name, newUses);
         }
-        
+
         // check if exceeded the max unique spells allowed
         if (this.spellBook.size > 24) {
             console.warn(`More than 24 unique spells used in the rotation. Current number of spells used is ${this.spellBook.size}.`);
@@ -654,7 +659,7 @@ export class BLUCycleProcessor extends CycleProcessor {
         }
 
         // abilities that apply Bleeding
-        if ("dot" in ability && BLU_BLEED_SPELLS.includes(ability.name)) {
+        if ("dot" in ability && BLU_BLEED_SPELLS.includes(ability.name) && typeof ability.dot.duration === "number") {
             const out = super.use(ability);
             this._bleedEnd = this.currentTime + ability.dot.duration;
             return out;
@@ -707,12 +712,14 @@ export class BLUCycleProcessor extends CycleProcessor {
 
         // Surpanakha
         if (ability === Surpanakha) {
-            const multiplier = (this.surpanakhaCounter + 1) * 0.5;
+            const newStackCount = this.surpanakhaCounter + 1;
+            const multiplier = newStackCount * 0.5;
             const buff: Buff = {
                 ...SurpanakhaBuff,
                 effects: {
                     dmgIncrease: multiplier,
                 },
+                stacks: newStackCount
             }
             const modified: Ability = {
                 ...Surpanakha,
@@ -748,7 +755,7 @@ export class BLUCycleProcessor extends CycleProcessor {
 /**
  * BLU sim functions
  */
-export abstract class BluSim<_BluCycleSimResult, _BluSimSettings> 
+export abstract class BluSim<_BluCycleSimResult, _BluSimSettings>
     extends BaseMultiCycleSim<CycleSimResult, BluSimSettings, BLUCycleProcessor> {
 
     constructor(settings?: ExternalCycleSettings<BluSimSettings>) {
@@ -775,7 +782,7 @@ export abstract class BluSim<_BluCycleSimResult, _BluSimSettings>
         stancesDiv.appendChild(labeledCheckbox("Mighty Guard", mightyGuardCb));
         const basicInstinctCb = new FieldBoundCheckBox(settings, "basicInstinctEnabled");
         stancesDiv.appendChild(labeledCheckbox("Basic Instinct", basicInstinctCb));
-        
+
         configDiv.appendChild(stancesDiv);
         configDiv.appendChild(new BuffSettingsArea(this.buffManager, updateCallback));
         return configDiv;
