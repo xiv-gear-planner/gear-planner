@@ -22,7 +22,7 @@ export const BluBreath60Spec: SimSpec<BluBreath60Sim, BluBreath60SettingsExterna
     stub: "blu-breath60",
     supportedJobs: ["BLU"],
     isDefaultSim: false,
-    description: "'Simulates a BLU Breath of Magic rotation with Moon Flute windows every 60s.",
+    description: "Simulates a BLU Breath of Magic rotation with Moon Flute windows every 60s.",
 
     makeNewSimInstance(): BluBreath60Sim {
         return new BluBreath60Sim();
@@ -97,7 +97,7 @@ export class BluBreath60Sim extends blu.BluSim<BluBreath60SimResult, BluBreath60
         }
 
         // use Rose of Destruction if off cooldown and it won't interfere with the next Flute window
-        if (cp.cdTracker.canUse(blu.RoseOfDestruction, cp.nextGcdTime) &&
+        if (cp.isReady(blu.RoseOfDestruction) &&
             cp.cdTracker.statusOfAt(blu.Quasar, cp.nextGcdTime).readyAt.relative + cp.gcdRecast * 2 >
             cp.stats.gcdMag(blu.RoseOfDestruction.cooldown.time)) 
         {
@@ -107,7 +107,7 @@ export class BluBreath60Sim extends blu.BluSim<BluBreath60SimResult, BluBreath60
 
         // build "stacks" of Winged Reprobation for the next odd Flute window
         // or, if fight is about to end, use remaining Winged Reprobation "stacks"
-        if (cp.cdTracker.canUse(blu.WingedReprobation, cp.nextGcdTime) && cp.wingedCounter < 2) {
+        if (cp.isReady(blu.WingedReprobation) && cp.wingedCounter < 2) {
             cp.use(blu.WingedReprobation);
             this.useOgcdFiller(cp);
             this.useOgcdFiller(cp);
@@ -211,7 +211,7 @@ export class BluBreath60Sim extends blu.BluSim<BluBreath60SimResult, BluBreath60
 
                     // start the next even Flute window, if one exists
                     if (cp.remainingGcdTime > preBloom) {
-                        if (cp.cdTracker.canUse(blu.RoseOfDestruction, cp.nextGcdTime)) {
+                        if (cp.isReady(blu.RoseOfDestruction)) {
                             cycle.use(blu.RoseOfDestruction);
                         } else {
                             cycle.use(blu.FeculentFlood);

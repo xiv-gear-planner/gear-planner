@@ -22,7 +22,7 @@ export const BluFlame60Spec: SimSpec<BluFlame60Sim, BluFlame60SettingsExternal> 
     stub: "blu-flame60",
     supportedJobs: ["BLU"],
     isDefaultSim: false,
-    description: "'Simulates a BLU Mortal Flame rotation with Moon Flute windows every 60s.",
+    description: "Simulates a BLU Mortal Flame rotation with Moon Flute windows every 60s.",
 
     makeNewSimInstance(): BluFlame60Sim {
         return new BluFlame60Sim();
@@ -97,7 +97,7 @@ export class BluFlame60Sim extends blu.BluSim<BluFlame60SimResult, BluFlame60Set
         }
 
         // use Rose of Destruction if off cooldown and it won't interfere with the next Flute window
-        if (cp.cdTracker.canUse(blu.RoseOfDestruction, cp.nextGcdTime) &&
+        if (cp.isReady(blu.RoseOfDestruction) &&
             cp.cdTracker.statusOfAt(blu.ShockStrike, cp.nextGcdTime).readyAt.relative >
             cp.stats.gcdMag(blu.RoseOfDestruction.cooldown.time)) 
         {
