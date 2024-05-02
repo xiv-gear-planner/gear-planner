@@ -4,8 +4,9 @@ import {
     Ability,
     AutoAttack,
     Buff,
-    BuffController, ComboBehavior,
-    ComboData, ComboKey,
+    BuffController,
+    ComboData,
+    ComboKey,
     ComputedDamage,
     Cooldown,
     DamagingAbility,
@@ -23,8 +24,7 @@ import {
     CASTER_TAX,
     JobName,
     NORMAL_GCD,
-    STANDARD_ANIMATION_LOCK,
-    STANDARD_APPLICATION_DELAY
+    STANDARD_ANIMATION_LOCK
 } from "@xivgear/xivmath/xivconstants";
 import {simpleAutoResultTable, SimResult, SimSettings, SimSpec, Simulation} from "../simulation";
 import {BuffSettingsArea, BuffSettingsExport, BuffSettingsManager} from "./party_comp_settings";
@@ -37,7 +37,6 @@ import {quickElement} from "../components/util";
 import {sum} from "../util/array_utils";
 import {CooldownMode, CooldownTracker} from "./common/cooldown_manager";
 import {appDelay, completeComboData, FinalizedComboData} from "../test/sims/ability_helpers";
-
 
 
 export type CombinedBuffEffect = {
@@ -157,6 +156,32 @@ export function abilityToDamageNew(stats: ComputedSetStats, ability: Ability, co
         } : null,
     }
 
+}
+
+function updateComboTracker(combo: ComboData, ability: Ability, tracker: ComboTracker): Ability {
+    let out = ability;
+    switch (combo.comboBehavior) {
+        case "start":
+            tracker.lastComboAbility = ability;
+            break;
+        case "continue":
+            if (tracker.lastComboAbility && tracker.lastComboAbility.id && combo.comboFrom.find(from => from.id === tracker.lastComboAbility.id)) {
+                tracker.lastComboAbility = ability;
+                // Update the 'out' var with the new ability data
+                out = {
+                    ...out,
+                    ...combo
+                }
+                break;
+            }
+        // The the ability does not match, then fall through the the same behavior as 'break'
+        case "break":
+            tracker.lastComboAbility = null;
+        case "nobreak":
+            // Do nothing
+            break;
+    }
+    return out;
 }
 
 export class CycleContext {
@@ -311,7 +336,7 @@ export type CycleInfo = {
 }
 
 class ComboTracker {
-    private _lastComboAbility: Ability | null = null;
+    lastComboAbility: Ability | null = null;
 }
 
 
@@ -633,18 +658,6 @@ export class CycleProcessor {
         // Workaround for auto-attacks after first ability
         this.advanceTo(this.currentTime);
         this.adjustPrepull();
-        // // TODO: get rid of this. have processCombo put this value in based on the actual previous combo ability.
-        // const cm = effectiveComboMode(ability);
-        // switch (cm) {
-        //     case "break":
-        //         this._lastComboAbility = null;
-        //         break;
-        //     case "continue":
-        //         if (this)
-        //     case "start":
-        //         this._lastComboAbility = ability;
-        //         break;
-        // }
         return 'full';
     }
 
@@ -956,17 +969,14 @@ export class CycleProcessor {
         return damage;
     }
 
-    private getComboTrackers(key: ComboKey | 'all'): ComboTracker[] {
-        if (key === 'all') {
-            return [...this.comboTrackerMap.values()];
-        }
+    private getComboTracker(key: ComboKey) {
         const tracker = this.comboTrackerMap.get(key);
-        if (!tracker) {
-            const out = new ComboTracker();
-            this.comboTrackerMap.set(key, out);
-            return [out];
+        if (tracker) {
+            return tracker;
         }
-        return [tracker];
+        const out = new ComboTracker();
+        this.comboTrackerMap.set(key, out);
+        return out;
     }
 
 
@@ -977,31 +987,25 @@ export class CycleProcessor {
             Add any new required combo trackers
             Finally, use the default 'all' data to update anything that was not already matched
          */
+        let out = ability;
         const comboData: FinalizedComboData = completeComboData(ability);
-        // TODO: this doesn't handle "default" cases
-        // This should *start* with existing trackers
-        const comboTrackers: ComboTracker[] = comboData.flatMap(cd => this.getComboTrackers(cd.comboKey));
-        for (let combo of comboData) {
-            if (combo.comboBehavior === 'nobreak') {
-
+        // TODO: current implementation has a weird corner case where you could have two conflicting 'continue' cases,
+        // but is this really a problem?
+        const seen = [];
+        for (let combo of comboData.combos) {
+            const key = combo.comboKey;
+            seen.push(key);
+            const tracker = this.getComboTracker(key);
+            out = updateComboTracker(combo, ability, tracker);
+        }
+        for (let entry of this.comboTrackerMap.entries()) {
+            const combo = comboData.others;
+            if (!seen.includes(entry[0])) {
+                const tracker = entry[1];
+                out = updateComboTracker(combo, ability, tracker);
             }
         }
-        if (lc === null) {
-            return ability;
-        }
-        if ('combos' in ability) {
-            const cdata = ability.combos;
-            for (const candidate of cdata) {
-                const isFound = candidate.comboFrom.find(ability => ability.id === lc.id);
-                if (isFound) {
-                    return {
-                        ...ability,
-                        ...candidate
-                    }
-                }
-            }
-        }
-        return ability;
+        return out;
     }
 }
 

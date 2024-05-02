@@ -45,11 +45,30 @@ export function completeComboData(ability: Ability): FinalizedComboData {
     let others: ComboData = null;
     for (let combo of all) {
         const key = combo.comboKey ?? 'default';
+        // For continuations, validate that they actually continue off of something that
+        // is eligible to start a combo.
+        if (combo.comboBehavior === 'continue') {
+            combo.comboFrom.forEach((from: Ability) => {
+                const found = from.combos?.find(fromCombo => {
+                    const otherKey = fromCombo.comboKey ?? 'default';
+                    if (otherKey === key) {
+                        return fromCombo.comboBehavior === 'start' || fromCombo.comboBehavior === 'continue';
+                    }
+                    return false;
+                });
+                if (!found) {
+                    console.error(`Ability '${ability.name}' wants to continue combo from '${from.name}' for combo key '${key}', but that skill cannot start this combo.`);
+                }
+            });
+        }
         if (key === "all") {
             others = combo;
         }
         else {
-            combos.push(combo);
+            combos.push({
+                ...combo,
+                comboKey: key
+            });
         }
     }
     if (others === null) {
