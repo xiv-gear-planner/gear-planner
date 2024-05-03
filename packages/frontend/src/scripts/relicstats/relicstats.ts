@@ -49,7 +49,7 @@ function ewRelic(large: number, small: number): EwRelicStatModel {
                 }
                 // Also report if we have a non-zero value that is neither large nor small
                 else if (current !== 0 && (!statToReport || statToReport === stat)) {
-                    out.push(`{current} is not a valid ${STAT_ABBREVIATIONS[stat]} amount - it should either be ${this.largeValue} or ${this.smallValue}`);
+                    out.push(`${current} is not a valid ${STAT_ABBREVIATIONS[stat]} amount - it should either be ${this.largeValue} or ${this.smallValue}`);
                 }
             }
             if ((smalls > this.numSmall && reportSmall) || (larges > this.numLarge && reportLarge)) {
