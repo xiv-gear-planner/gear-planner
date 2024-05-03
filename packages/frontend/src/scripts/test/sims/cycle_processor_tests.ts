@@ -1382,3 +1382,73 @@ describe('Cycle processor re-alignment', () => {
     });
 });
 
+
+const indefBuff: Buff = {
+    name: "Indefinite Buff",
+    selfOnly: true,
+    effects: {
+        dmgIncrease: 4
+    },
+    statusId: 2125
+}
+
+const indefAb: Ability = {
+    type: 'gcd',
+    name: "Ability that applies Indefinite Buff",
+    potency: 310,
+    attackType: "Spell",
+    gcd: 2.5,
+    cast: 1.5,
+    activatesBuffs: [indefBuff]
+
+}
+
+describe('indefinite buff handling', () => {
+    it('can handle a manually applied indefinite buff', () => {
+        const cp = new CycleProcessor({
+            allBuffs: [],
+            cycleTime: 30,
+            stats: exampleGearSet.computedStats,
+            totalTime: 295,
+            useAutos: false
+        });
+        cp.activateBuff(indefBuff);
+        cp.remainingCycles(cp => {
+            cp.useUntil(fixedOdd, 'end');
+        });
+        const displayRecords = cp.finalizedRecords;
+        const actualAbilities: FinalizedAbility[] = displayRecords.filter<FinalizedAbility>((record): record is FinalizedAbility => {
+            return 'ability' in record;
+        });
+        for (let i = 0; i < actualAbilities.length; i++) {
+            assert.equal(actualAbilities[i].combinedEffects.dmgMod, 5, `Index ${i}`);
+        }
+    });
+    it('can handle an automatically applied indefinite buff', () => {
+        const cp = new CycleProcessor({
+            allBuffs: [],
+            cycleTime: 30,
+            stats: exampleGearSet.computedStats,
+            totalTime: 295,
+            useAutos: false
+        });
+        cp.oneCycle(cp => {
+            cp.use(filler);
+            cp.use(indefAb);
+            cp.useUntil(fixedOdd, 'end');
+
+        });
+        cp.remainingCycles(cp => {
+            cp.useUntil(fixedOdd, 'end');
+        });
+        const displayRecords = cp.finalizedRecords;
+        const actualAbilities: FinalizedAbility[] = displayRecords.filter<FinalizedAbility>((record): record is FinalizedAbility => {
+            return 'ability' in record;
+        });
+        assert.equal(actualAbilities[0].combinedEffects.dmgMod, 1);
+        assert.equal(actualAbilities[1].combinedEffects.dmgMod, 1);
+        for (let i = 2; i < actualAbilities.length; i++) {
+            assert.equal(actualAbilities[i].combinedEffects.dmgMod, 5, `Index ${i}`);
+        }
+    });
+});

@@ -22,6 +22,7 @@ export const BluF2PSpec: SimSpec<BluF2PSim, BluF2PSettingsExternal> = {
     stub: "blu-f2p",
     supportedJobs: ["BLU"],
     isDefaultSim: false,
+    description: "Simulates a BLU Free Trial rotation with Moon Flute windows every 120s.",
 
     makeNewSimInstance(): BluF2PSim {
         return new BluF2PSim();
@@ -104,7 +105,7 @@ export class BluF2PSim extends blu.BluSim<BluF2PSimResult, BluF2PSettings> {
         }
 
         // use Rose of Destruction if off cooldown and it won't interfere with the next Flute window
-        if (cp.cdTracker.canUse(blu.RoseOfDestruction, cp.nextGcdTime) &&
+        if (cp.isReady(blu.RoseOfDestruction) &&
             cp.cdTracker.statusOfAt(blu.Nightbloom, cp.nextGcdTime).readyAt.relative >
             cp.stats.gcdMag(blu.RoseOfDestruction.cooldown.time)) 
         {

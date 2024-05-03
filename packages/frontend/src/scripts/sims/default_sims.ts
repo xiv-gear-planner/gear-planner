@@ -25,8 +25,8 @@ export function registerDefaultSims() {
     registerSim(rprSheetSpec);
     registerSim(BluWinged120Spec);
     registerSim(BluFlame120Spec);
-    registerSim(BluF2PSpec);
-    registerSim(BluFlame60Spec);
-    registerSim(BluWinged60Spec);
     registerSim(BluBreath60Spec);
+    registerSim(BluWinged60Spec);
+    registerSim(BluFlame60Spec);
+    registerSim(BluF2PSpec);
 }

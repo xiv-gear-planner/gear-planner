@@ -1,4 +1,4 @@
-import { SimSettings } from "../../simulation";
+import {SimSettings} from "../../simulation";
 import {
     AbilityUseResult,
     BaseMultiCycleSim,
@@ -8,14 +8,14 @@ import {
     MultiCycleSettings,
     Rotation
 } from "../sim_processors";
-import { Ability, Buff, BuffController, GcdAbility, OgcdAbility } from "../sim_types"
-import { BuffSettingsArea } from "../party_comp_settings";
-import { cycleSettingsGui } from "../components/cycle_settings_components";
-import { writeProxy } from "../../util/proxies";
-import { FieldBoundCheckBox, labeledCheckbox } from "../../components/util";
-import { OffGuardBuff } from "../buffs";
-import { removeSelf } from "../common/utils";
-import { CASTER_TAX } from "@xivgear/xivmath/xivconstants";
+import {Ability, Buff, BuffController, GcdAbility, OgcdAbility} from "../sim_types"
+import {BuffSettingsArea} from "../party_comp_settings";
+import {cycleSettingsGui} from "../components/cycle_settings_components";
+import {writeProxy} from "../../util/proxies";
+import {FieldBoundCheckBox, labeledCheckbox} from "../../components/util";
+import {OffGuardBuff} from "../buffs";
+import {removeSelf} from "../common/utils";
+import {CASTER_TAX} from "@xivgear/xivmath/xivconstants";
 
 /**
  * BLU spells that apply Bleeding
@@ -92,18 +92,20 @@ const WaxingNocturne: Buff = {
 
 const MightyGuard: Buff = {
     name: "Mighty Guard",
-    duration: Number.MAX_VALUE, // toggled stance, infinte duration
     selfOnly: true,
+    descriptionExtras: ["Reduces damage taken and increases enmity generation"],
     effects: { // also changes the effects of certain BLU spells
         dmgIncrease: -0.4
     },
     statusId: 1719
 }
 
+
 const WaningNocturne: Buff = {
     name: "Waning Nocturne",
     duration: 15,
     selfOnly: true,
+    descriptionExtras: ["Prevents the use of auto-attacks, weaponskills, spells, or abilities"],
     effects: {
         dmgIncrease: -1 // can't use any actions during Waning
     },
@@ -129,7 +131,7 @@ const Harmonized: Buff = {
 
 const TankMimicry: Buff = {
     name: "Aetheric Mimicry: Tank",
-    duration: Number.MAX_VALUE, // toggled stance, infinte duration
+    descriptionExtras: ["Increases defense and augments certain blue magic spells"],
     selfOnly: true,
     effects: {}, // changes the effects of certain BLU spells
     statusId: 2124
@@ -137,8 +139,8 @@ const TankMimicry: Buff = {
 
 const DpsMimicry: Buff = {
     name: "Aetheric Mimicry: DPS",
-    duration: Number.MAX_VALUE, // toggled stance, infinte duration
     selfOnly: true,
+    descriptionExtras: ["Doubles Matra Magic potency"],
     effects: { // also changes the effects of certain BLU spells
         dhitChanceIncrease: 0.20,
         critChanceIncrease: 0.20
@@ -157,8 +159,8 @@ const DpsMimicry: Buff = {
 
 const HealerMimicry: Buff = {
     name: "Aetheric Mimicry: Healer",
-    duration: Number.MAX_VALUE, // toggled stance, infinte duration
     selfOnly: true,
+    descriptionExtras: ["Increases healing and augments certain blue magic spells"],
     effects: {}, // changes the effects of certain BLU spells
     statusId: 2126
 }
@@ -167,6 +169,7 @@ const BrushWithDeath: Buff = {
     name: "Brush with Death",
     duration: 600,
     selfOnly: true,
+    descriptionExtras: ["Prevents using certain blue magic spells"],
     effects: {}, // prevents certain BLU spells from being used
     statusId: 2127
 }
@@ -190,8 +193,9 @@ const Tingling: Buff = {
     name: "Tingling",
     duration: 15,
     selfOnly: true,
+    descriptionExtras: ["Increases the potency of the next physical damage spell cast by 100 per hit"],
     effects: {
-       // increases base potency of physical damage spells by 100 per hit
+        // increases base potency of physical damage spells by 100 per hit
     },
     beforeSnapshot<X extends Ability>(buffController: BuffController, ability: X): X {
         if (ability.attackType === "Spell" && BLU_PHYSICAL_SPELLS.includes(ability.name)) {
@@ -213,12 +217,47 @@ const Tingling: Buff = {
 
 const BasicInstinct: Buff = {
     name: "Basic Instinct",
-    duration: Number.MAX_VALUE, // toggled stance, infinte duration
     selfOnly: true,
+    descriptionExtras: ["Ignores the damage penalty inflicted by Mighty Guard"],
     effects: {
         dmgIncrease: 1.0
     },
     statusId: 2498
+}
+
+const WingedReprobationBuff: Buff = {
+    name: "Winged Reprobation",
+    selfOnly: true,
+    descriptionExtras: ["Resets Winged Reprobation's recast timer"],
+    effects: {
+        // only applies to Winged Reprobation
+        // resets cast time of Winged Reprobation at 0-2 stacks
+        // increases potency of Winged Reprobation at 3 stacks
+    },
+    beforeSnapshot: removeSelf,
+    appliesTo: ability => ability.name === "Winged Reprobation",
+    statusId: 3640
+}
+
+const WingedRedemption: Buff = {
+    name: "Winged Redemption",
+    duration: 10,
+    selfOnly: true,
+    descriptionExtras: ["Increases the potency of Conviction Marcato"],
+    effects: {
+        // only applies to Conviction Marcato
+    },
+    beforeSnapshot<X extends Ability>(buffController: BuffController, ability: X): X {
+        if (ability.name === "Conviction Marcato") {
+            buffController.removeSelf();
+            return {
+                ...ability,
+                potency: 440,
+            }
+        }
+        return null;
+    },
+    statusId: 3641
 }
 
 /**
@@ -499,11 +538,22 @@ export const BreathofMagic: GcdAbility = {
     id: 34567
 }
 
+export const ConvictionMarcato: GcdAbility = {
+    name: "Conviction Marcato",
+    type: "gcd",
+    attackType: "Spell",
+    potency: 220, // 440 under Winged Redemption
+    gcd: 2.5,
+    cast: 2.0,
+    id: 34574
+}
+
 export const WingedReprobation: GcdAbility = {
     name: "Winged Reprobation",
     type: "gcd",
     attackType: "Spell",
-    potency: 300, // 400 with 3 "stacks"
+    potency: 300, // 400 with 3 stacks of Winged Reprobation
+    activatesBuffs: [WingedReprobationBuff],
     gcd: 2.5,
     cast: 1.0,
     cooldown: {
@@ -520,7 +570,7 @@ export const MortalFlame: GcdAbility = {
     potency: 0,
     dot: {
         tickPotency: 40,
-        duration: Number.MAX_VALUE, // infinite duration
+        duration: 'indefinite', // infinite duration
         id: 3643
     },
     gcd: 2.5,
@@ -587,16 +637,19 @@ export class BLUCycleProcessor extends CycleProcessor {
     get gcdRecast() {
         return this._gcdRecast;
     }
+
     // current short (1.0s base) gcd cast, including caster tax
     private _shortGcdCast: number = 0;
     get shortGcdCast() {
         return this._shortGcdCast;
     }
+
     // current long (2.0s base) gcd cast, including caster tax
     private _longGcdCast: number = 0;
     get longGcdCast() {
         return this._longGcdCast;
     }
+
     // start of Moon Flute window
     private _fluteStart: number = 0;
     // end of current Bleed effect
@@ -604,22 +657,27 @@ export class BLUCycleProcessor extends CycleProcessor {
     get bleedEnd() {
         return this._bleedEnd;
     }
+
     // Surpanakha stacks
     private _surpanakhaCounter: number = 0;
     get surpanakhaCounter() {
         return this._surpanakhaCounter;
     }
+
     set surpanakhaCounter(newSurpanakha) {
         this._surpanakhaCounter = newSurpanakha % 4;
     }
-    // Winged Reprobation "stacks"
+
+    // Winged Reprobation stacks
     private _wingedCounter: number = 0;
     get wingedCounter() {
         return this._wingedCounter;
     }
+
     set wingedCounter(newWinged) {
         this._wingedCounter = newWinged % 4;
     }
+
     // unique BLU Spellbook spells used
     readonly spellBook: Map<string, number> = new Map();
 
@@ -638,7 +696,7 @@ export class BLUCycleProcessor extends CycleProcessor {
             const newUses = uses ? uses + 1 : 1;
             this.spellBook.set(ability.name, newUses);
         }
-        
+
         // check if exceeded the max unique spells allowed
         if (this.spellBook.size > 24) {
             console.warn(`More than 24 unique spells used in the rotation. Current number of spells used is ${this.spellBook.size}.`);
@@ -654,7 +712,7 @@ export class BLUCycleProcessor extends CycleProcessor {
         }
 
         // abilities that apply Bleeding
-        if ("dot" in ability && BLU_BLEED_SPELLS.includes(ability.name)) {
+        if ("dot" in ability && BLU_BLEED_SPELLS.includes(ability.name) && typeof ability.dot.duration === "number") {
             const out = super.use(ability);
             this._bleedEnd = this.currentTime + ability.dot.duration;
             return out;
@@ -692,27 +750,68 @@ export class BLUCycleProcessor extends CycleProcessor {
 
         // Winged Reprobation
         if (ability === WingedReprobation) {
-            const modified: Ability = {
-                ...WingedReprobation,
-                potency: this.wingedCounter < 3 ? 300 : 400,
-                cooldown: {
-                    ...WingedReprobation.cooldown,
-                    time: this.wingedCounter < 3 ? 0 : 90,
+            const stackCount = this.wingedCounter;
+            const newStackCount = this.wingedCounter + 1;
+            let out: AbilityUseResult;
+            switch (stackCount) {
+                case 0: // fall through
+                case 1: {
+                    const buff: Buff = {
+                        ...WingedReprobationBuff,
+                        stacks: newStackCount
+                    }
+                    const modified: Ability = {
+                        ...WingedReprobation,
+                        activatesBuffs: [buff],
+                        cooldown: {
+                            ...WingedReprobation.cooldown,
+                            time: 0,
+                        }
+                    }
+                    out = super.use(modified);
+                    break;
+                }
+                case 2: {
+                    const buff: Buff = {
+                        ...WingedReprobationBuff,
+                        descriptionExtras: ["Increases the potency of Winged Reprobation"],
+                        stacks: newStackCount
+                    }
+                    const modified: Ability = {
+                        ...WingedReprobation,
+                        activatesBuffs: [buff],
+                        cooldown: {
+                            ...WingedReprobation.cooldown,
+                            time: 0,
+                        }
+                    }
+                    out = super.use(modified);
+                    break;
+                }
+                case 3: {
+                    const modified: Ability = {
+                        ...WingedReprobation,
+                        potency: 400,
+                        activatesBuffs: [WingedRedemption],
+                    }
+                    out = super.use(modified);
+                    break;
                 }
             }
-            const out = super.use(modified);
             this.wingedCounter++;
             return out;
         }
 
         // Surpanakha
         if (ability === Surpanakha) {
-            const multiplier = (this.surpanakhaCounter + 1) * 0.5;
+            const newStackCount = this.surpanakhaCounter + 1;
+            const multiplier = newStackCount * 0.5;
             const buff: Buff = {
                 ...SurpanakhaBuff,
                 effects: {
                     dmgIncrease: multiplier,
                 },
+                stacks: newStackCount
             }
             const modified: Ability = {
                 ...Surpanakha,
@@ -748,7 +847,7 @@ export class BLUCycleProcessor extends CycleProcessor {
 /**
  * BLU sim functions
  */
-export abstract class BluSim<_BluCycleSimResult, _BluSimSettings> 
+export abstract class BluSim<_BluCycleSimResult, _BluSimSettings>
     extends BaseMultiCycleSim<CycleSimResult, BluSimSettings, BLUCycleProcessor> {
 
     constructor(settings?: ExternalCycleSettings<BluSimSettings>) {
@@ -775,7 +874,7 @@ export abstract class BluSim<_BluCycleSimResult, _BluSimSettings>
         stancesDiv.appendChild(labeledCheckbox("Mighty Guard", mightyGuardCb));
         const basicInstinctCb = new FieldBoundCheckBox(settings, "basicInstinctEnabled");
         stancesDiv.appendChild(labeledCheckbox("Basic Instinct", basicInstinctCb));
-        
+
         configDiv.appendChild(stancesDiv);
         configDiv.appendChild(new BuffSettingsArea(this.buffManager, updateCallback));
         return configDiv;

@@ -6,7 +6,7 @@ import {CombinedBuffEffect, DamageResult} from "./sim_processors";
  * Represents a DoT
  */
 export type DotInfo = Readonly<{
-    duration: number,
+    duration: number | 'indefinite',
     tickPotency: number,
     id: number
 }>;
@@ -148,7 +148,7 @@ export type AutoAttack = BaseAbility & DamagingAbility & Readonly<{
 export type Ability = GcdAbility | OgcdAbility | AutoAttack;
 
 export type DotDamageUnf = {
-    fullDurationTicks: number,
+    fullDurationTicks: number | 'indefinite',
     damagePerTick: ComputedDamage,
     actualTickCount?: number
 };
@@ -273,14 +273,11 @@ export type BuffController = {
     removeSelf(): void;
 };
 
-// TODO: refactor this into Buff and PartyBuff so that the fields used for the party buffs (job, CD) can be untangled
 export type BaseBuff = Readonly<{
     /** Name of buff */
     name: string,
     /** Can only apply to self - not a party/targeted buff */
     selfOnly?: boolean,
-    /** Duration */
-    duration: number,
     /** The effect(s) of the buff */
     effects: BuffEffects,
     /**
@@ -324,8 +321,25 @@ export type BaseBuff = Readonly<{
      * Optional status effect ID. Used to provide an icon.
      */
     statusId?: number
-
-}>;
+    /**
+     * Stack count of this buff. This should generally not be baked into the buff - it should be inserted at run time.
+     */
+    stacks?: number
+} & ({} | {
+    /**
+     * Override the auto-generated description which would normally describe the effects.
+     *
+     * Specify descriptionOverride, or descriptionExtras, or neither.
+     */
+    descriptionOverride: string,
+} | {
+    /**
+     * Additional descriptions of custom effects.
+     *
+     * Specify descriptionOverride, or descriptionExtras, or neither.
+     */
+    descriptionExtras: string[],
+})>;
 
 export type PartyBuff = BaseBuff & Readonly<{
     /** Job of buff */
@@ -342,6 +356,17 @@ export type PartyBuff = BaseBuff & Readonly<{
      */
     startTime?: number,
 
+    /**
+     * Duration. Required for party buffs
+     */
+    duration: number,
 }>;
 
-export type Buff = BaseBuff | PartyBuff;
+export type PersonalBuff = BaseBuff & Readonly<{
+    /**
+     * Duration. Optional for personal buffs - omit to signify an indefinite buff.
+     */
+    duration?: number | undefined;
+}>;
+
+export type Buff = PersonalBuff | PartyBuff;
