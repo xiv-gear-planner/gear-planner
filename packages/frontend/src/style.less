@@ -2585,6 +2585,7 @@ body.modern {
     }
   }
   --border-color-input: #0000000;
+  --tiering-color-mix: 5%;
   &.light-mode {
   }
   &:not(.light-mode) {
@@ -2597,4 +2598,13 @@ body.modern {
   .gear-sheet-midbar-area {
     background-color: var(--button-color);
   }
+  gear-set-editor {
+    table all-slot-materia-manager {
+      padding-top: 5px;
+    }
+  }
+  materia-dragger:hover {
+    --stat-mix-secondary-bg: 20%;
+  }
+
 }
