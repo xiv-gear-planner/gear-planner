@@ -1,7 +1,9 @@
 body {
   --bg-color: #111113;
   --fg-color: #b0b0b0;
-  --border-color: #66666f;
+  --border-color-default: #66666f;
+  --border-color: var(--border-color-default);
+  --border-color-input: var(--border-color-default);
   --border-color-highlight: #888890;
   --table-bg-color: #202027;
   --color-sps-sks: #22ff22;
@@ -16,7 +18,9 @@ body {
   --stat-mix-secondary-bg: 6%;
   --materia-overcap-major: #ff0000;
   --materia-overcap: #dd7700;
-  --standard-border: 1px solid var(--border-color);
+  --standard-border-default: 1px solid var(--border-color);
+  --standard-border: var(--standard-border-default);
+  --standard-border-input: 1px solid var(--border-color-input);
   --soft-border: 1px solid var(--border-color);
   --thick-border: 1px solid var(--border-color);
   //--thick-border: 2px solid var(--border-color);
@@ -223,6 +227,10 @@ body {
   border: var(--standard-border);
 }
 
+.standard-border-input {
+  border: var(--standard-border);
+}
+
 .standard-paragraph {
   max-width: 900px;
   margin-left: auto;
@@ -244,7 +252,11 @@ body {
 .standard-round-border {
   .standard-border-radius;
   .standard-border;
+}
 
+.standard-round-border-input {
+  .standard-border-radius;
+  .standard-border-input;
 }
 
 .borderless-button {
@@ -581,7 +593,7 @@ select {
   color: var(--fg-color);
   background-color: var(--button-color);
   .standard-border-radius;
-  border: var(--standard-border);
+  border: var(--standard-border-input);
   .button-font-style;
   height: 20px;
   box-sizing: border-box;
@@ -2570,5 +2582,15 @@ body.modern {
     th {
       background: none;
     }
+  }
+  --border-color-input: #0000000;
+  &.light-mode {
+  }
+  &:not(.light-mode) {
+    --table-bg-color: #24242c;
+    --button-color: var(--table-bg-color);
+  }
+  .stat-cell {
+    //border-radius: 2px;
   }
 }
