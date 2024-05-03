@@ -347,7 +347,7 @@ class ComboTracker {
     }
 
     set lastComboAbility(value: Ability | null) {
-        console.log(`Combo state: [${this.key}] '${this._lastComboAbility?.name} => ${value?.name}`);
+        // console.log(`Combo state: [${this.key}] '${this._lastComboAbility?.name} => ${value?.name}`);
         this._lastComboAbility = value;
     }
 }

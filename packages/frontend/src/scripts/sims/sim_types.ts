@@ -9,7 +9,7 @@ export type DotInfo = Readonly<{
     duration: number,
     tickPotency: number,
     id: number
-}>
+}>;
 
 /**
  * Represents combo-related data.
@@ -22,11 +22,11 @@ export type DotInfo = Readonly<{
  *
  * The rest of the object is which fields of {@link DamagingAbility} you would like to override.
  */
-export type ComboData = Readonly<{
+export type ComboData = ({
     comboKey?: ComboKeyMatch,
-}> & ({
     comboBehavior: 'start' | 'break' | 'nobreak'
 } | {
+    comboKey?: ComboKey,
     comboBehavior: 'continue',
     comboFrom: readonly(Ability & {
         id: number
@@ -61,7 +61,7 @@ export type DamagingAbility = Readonly<{
  * break: cancel any current combo. Default for GCDs.
  * nobreak: no impact on any current combo. Default for non-GCDs.
  */
-export type ComboBehavior = 'start' | 'continue' | 'break' | 'nobreak';
+export type ComboBehavior = ComboData['comboBehavior'];
 
 export type BaseAbility = Readonly<{
     /**
