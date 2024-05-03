@@ -5,6 +5,8 @@ import {
     AutoAttack,
     Buff,
     BuffController,
+    ComboData,
+    ComboKey,
     ComputedDamage,
     Cooldown,
     DamagingAbility,
@@ -22,8 +24,7 @@ import {
     CASTER_TAX,
     JobName,
     NORMAL_GCD,
-    STANDARD_ANIMATION_LOCK,
-    STANDARD_APPLICATION_DELAY
+    STANDARD_ANIMATION_LOCK
 } from "@xivgear/xivmath/xivconstants";
 import {simpleAutoResultTable, SimResult, SimSettings, SimSpec, Simulation} from "../simulation";
 import {BuffSettingsArea, BuffSettingsExport, BuffSettingsManager} from "./party_comp_settings";
@@ -35,17 +36,7 @@ import {AbilitiesUsedTable} from "./components/ability_used_table";
 import {quickElement} from "../components/util";
 import {sum} from "../util/array_utils";
 import {CooldownMode, CooldownTracker} from "./common/cooldown_manager";
-
-/**
- * Returns the application delay of an ability (from time of snapshot to time of damage/effects applying).
- *
- * @param ability The ability in question
- */
-function appDelay(ability: Ability) {
-    let delay = STANDARD_APPLICATION_DELAY;
-    // TODO: add application delay field to Ability
-    return delay;
-}
+import {appDelay, completeComboData, FinalizedComboData} from "../test/sims/ability_helpers";
 
 
 export type CombinedBuffEffect = {
@@ -165,6 +156,33 @@ export function abilityToDamageNew(stats: ComputedSetStats, ability: Ability, co
         } : null,
     }
 
+}
+
+function updateComboTracker(combo: ComboData, ability: Ability, tracker: ComboTracker): Ability {
+    let out = ability;
+    switch (combo.comboBehavior) {
+        case "start":
+            tracker.lastComboAbility = ability;
+            break;
+        case "continue":
+            if (tracker.lastComboAbility && tracker.lastComboAbility.id && combo.comboFrom.find(from => from.id === tracker.lastComboAbility.id)) {
+                tracker.lastComboAbility = ability;
+                // Update the 'out' var with the new ability data
+                out = {
+                    ...out,
+                    ...combo
+                }
+                break;
+            }
+        // If the ability does not match, then fall through the same behavior as 'break'
+        case "break":
+            tracker.lastComboAbility = null;
+            break;
+        case "nobreak":
+            // Do nothing
+            break;
+    }
+    return out;
 }
 
 export class CycleContext {
@@ -318,6 +336,23 @@ export type CycleInfo = {
     end: number | null,
 }
 
+class ComboTracker {
+    private _lastComboAbility: Ability | null = null;
+
+    constructor(public readonly key: String) {
+    }
+
+    get lastComboAbility(): Ability | null {
+        return this._lastComboAbility;
+    }
+
+    set lastComboAbility(value: Ability | null) {
+        // console.log(`Combo state: [${this.key}] '${this._lastComboAbility?.name} => ${value?.name}`);
+        this._lastComboAbility = value;
+    }
+}
+
+
 export class CycleProcessor {
 
     /**
@@ -344,7 +379,8 @@ export class CycleProcessor {
     private _cdEnforcementMode: CooldownMode;
     cycleLengthMode: CycleLengthMode = 'align-absolute';
     private firstCycleStartTime: number = 0;
-    private cycles: CycleInfo[] = [];
+    private readonly cycles: CycleInfo[] = [];
+    private readonly comboTrackerMap: Map<ComboKey, ComboTracker>;
 
     constructor(private settings: MultiCycleSettings) {
         // TODO: set enforcement mode
@@ -355,6 +391,7 @@ export class CycleProcessor {
         this.stats = settings.stats;
         this.manuallyActivatedBuffs = settings.manuallyActivatedBuffs ?? [];
         this.useAutos = settings.useAutos;
+        this.comboTrackerMap = new Map();
     }
 
     get cdEnforcementMode(): CooldownMode {
@@ -532,6 +569,8 @@ export class CycleProcessor {
     }
 
     use(ability: Ability): AbilityUseResult {
+        // noinspection AssignmentToFunctionParameterJS
+        ability = this.processCombo(ability);
         const isGcd = this.isGcd(ability);
         if (this.remainingGcdTime <= 0) {
             // Already over time limit. Ignore completely.
@@ -579,6 +618,7 @@ export class CycleProcessor {
         this.advanceTo(snapshotsAt, true);
         const buffs = this.getActiveBuffsFor(ability);
         const combinedEffects: CombinedBuffEffect = combineBuffEffects(buffs);
+        // noinspection AssignmentToFunctionParameterJS
         ability = this.beforeSnapshot(ability, buffs);
         // Enough time for entire GCD
         // if (gcdFinishedAt <= this.totalTime) {
@@ -962,6 +1002,45 @@ export class CycleProcessor {
             }
         }
         return damage;
+    }
+
+    private getComboTracker(key: ComboKey) {
+        const tracker = this.comboTrackerMap.get(key);
+        if (tracker) {
+            return tracker;
+        }
+        const out = new ComboTracker(key);
+        this.comboTrackerMap.set(key, out);
+        return out;
+    }
+
+
+    private processCombo(ability: Ability): Ability {
+        /*
+            What this needs to do:
+            Update combo tracker state for all existing combos in the map
+            Add any new required combo trackers
+            Finally, use the default 'all' data to update anything that was not already matched
+         */
+        let out = ability;
+        const comboData: FinalizedComboData = completeComboData(ability);
+        // TODO: current implementation has a weird corner case where you could have two conflicting 'continue' cases,
+        // but is this really a problem?
+        const seen = [];
+        for (let combo of comboData.combos) {
+            const key = combo.comboKey;
+            seen.push(key);
+            const tracker = this.getComboTracker(key);
+            out = updateComboTracker(combo, out, tracker);
+        }
+        for (let entry of this.comboTrackerMap.entries()) {
+            const combo = comboData.others;
+            if (!seen.includes(entry[0])) {
+                const tracker = entry[1];
+                out = updateComboTracker(combo, out, tracker);
+            }
+        }
+        return out;
     }
 }
 

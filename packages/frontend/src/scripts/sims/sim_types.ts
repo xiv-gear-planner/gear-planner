@@ -2,29 +2,92 @@ import {JobName} from "@xivgear/xivmath/xivconstants";
 import {AttackType} from "@xivgear/xivmath/geartypes";
 import {CombinedBuffEffect, DamageResult} from "./sim_processors";
 
+/**
+ * Represents a DoT
+ */
 export type DotInfo = Readonly<{
     duration: number | 'indefinite',
     tickPotency: number,
     id: number
-}>
+}>;
 
+/**
+ * Represents combo-related data.
+ *
+ * comboFrom is a list of abilities that this ability can combo after. e.g. if we have a 1-2-3 combo,
+ * then 1 would not have combo data, while 2 would list 1 as its comboFrom, and 3 would list 2 as its
+ * comboFrom.
+ *
+ * These are keyed on their ID, so they must have an ID.
+ *
+ * The rest of the object is which fields of {@link DamagingAbility} you would like to override.
+ */
+export type ComboData = ({
+    comboKey?: ComboKeyMatch,
+    comboBehavior: 'start' | 'break' | 'nobreak'
+} | {
+    comboKey?: ComboKey,
+    comboBehavior: 'continue',
+    comboFrom: readonly(Ability & {
+        id: number
+    })[],
+}) & Partial<DamagingAbility>;
+
+export type ComboKey = 'default' | string;
+export type ComboKeyMatch = ComboKey | 'all';
+
+/**
+ * Represents a non-damaging action
+ */
 export type NonDamagingAbility = Readonly<{
     potency: null,
-}>
+}>;
+
+/**
+ * Represents a damaging action
+ */
 export type DamagingAbility = Readonly<{
     potency: number,
     attackType: AttackType,
     autoCrit?: boolean,
     autoDh?: boolean,
-    dot?: DotInfo
-}>
+    dot?: DotInfo,
+}>;
+
+/**
+ * Combo mode:
+ * start: starts a combo.
+ * continue: continue (or finish) a combo. If there is no combo, then this is treated as 'break'.
+ * break: cancel any current combo. Default for GCDs.
+ * nobreak: no impact on any current combo. Default for non-GCDs.
+ */
+export type ComboBehavior = ComboData['comboBehavior'];
 
 export type BaseAbility = Readonly<{
+    /**
+     * Name of the ability.
+     */
     name: string,
+    /**
+     * Status effects that are automatically activated by the ability
+     */
     activatesBuffs?: readonly Buff[],
+    /**
+     * The ID of the ability. Used for xivapi lookup for the icon.
+     */
     id?: number,
+    /**
+     * The type of action - Autoattack, Spell, Weaponskill, Ability (oGCD), etc
+     */
     attackType: AttackType,
+    /**
+     * Optional - the cooldown.
+     */
     cooldown?: Cooldown,
+    /**
+     * How this skill contributes to the combo system.
+     */
+    combos?: readonly ComboData[]
     /**
      * The time that it takes to cast. Do not include caster tax. Defaults to 0.5 (thus 0.6 after adding caster tax)
      * if not specified, i.e. normal animation lock.
@@ -60,7 +123,7 @@ export type Cooldown = Readonly<{
 }>
 
 /**
- * Represents an ability you can use
+ * Represents a GCD action
  */
 export type GcdAbility = BaseAbility & Readonly<{
     type: 'gcd';
@@ -70,14 +133,17 @@ export type GcdAbility = BaseAbility & Readonly<{
     gcd: number,
 }>
 
+/**
+ * Represents an oGCD action
+ */
 export type OgcdAbility = BaseAbility & Readonly<{
     type: 'ogcd',
-}>
+}>;
 
 export type AutoAttack = BaseAbility & DamagingAbility & Readonly<{
     type: 'autoattack',
     // TODO
-}>
+}>;
 
 export type Ability = GcdAbility | OgcdAbility | AutoAttack;
 
@@ -85,11 +151,11 @@ export type DotDamageUnf = {
     fullDurationTicks: number | 'indefinite',
     damagePerTick: ComputedDamage,
     actualTickCount?: number
-}
+};
 
 export type ComputedDamage = {
     expected: number,
-}
+};
 
 /**
  * Represents an ability actually being used
@@ -146,7 +212,7 @@ export type UsedAbility = {
      * a cast, this is the cast time + caster tax.
      */
     lockTime: number
-}
+};
 
 /**
  * Represents a pseudo-ability used to round out a cycle to exactly 120s.
@@ -157,7 +223,7 @@ export type UsedAbility = {
  */
 export type PartiallyUsedAbility = UsedAbility & {
     portion: number
-}
+};
 
 export type FinalizedAbility = {
     usedAt: number,
@@ -170,7 +236,7 @@ export type FinalizedAbility = {
     combinedEffects: CombinedBuffEffect,
     ability: Ability,
     buffs: Buff[]
-}
+};
 
 /**
  * Describes the effects of a buff
@@ -200,12 +266,12 @@ export type BuffEffects = {
      * Haste. Expressed as the percentage value, e.g. 20 = 20% faster GCD
      */
     haste?: number,
-}
+};
 
 export type BuffController = {
     removeStatus(buff: Buff): void;
     removeSelf(): void;
-}
+};
 
 export type BaseBuff = Readonly<{
     /** Name of buff */
