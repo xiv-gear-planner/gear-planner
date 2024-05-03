@@ -2556,3 +2556,19 @@ rename-dialog {
   width: 100%;
   height: 100%;
 }
+
+
+body.modern {
+  --border-color: #0000000;
+  table {
+    border-radius: 5px;
+    padding: 5px;
+    background-color: var(--table-bg-color);
+  }
+  tr:has(th) {
+    background: none;
+    th {
+      background: none;
+    }
+  }
+}
