@@ -683,8 +683,10 @@ table.gear-plan-table {
     position: relative;
 
     &:first-child {
+      --sets-table-top-padding: 0;
+      --sets-table-left-padding: 0;
       position: sticky;
-      top: 0;
+      top: var(--sets-table-top-padding);
       border: var(--thick-border);
       z-index: var(--zi-sets-table-header-row);
       background-color: color-mix(in srgb, var(--table-bg-color) 60%, transparent);
@@ -2573,18 +2575,21 @@ rename-dialog {
 
 body.modern {
   --border-color: #0000000;
+  --table-extra-padding: 5px;
+  // TODO: still would like to get rounded borders, but it's very much a PITA with
+  // the sticky header/left columns
   table {
-    border-radius: 5px;
-    padding: 5px;
+
+    border-radius: 10px;
+    padding: var(--table-extra-padding);
     background-color: var(--table-bg-color);
-  }
-  tr:has(th) {
-    background: none;
-    th {
-      background: none;
+
+    &.gear-plan-table {
+      border-radius: 0;
+      --table-extra-padding: 0px;
     }
   }
-  --border-color-input: #0000000;
+  --border-color-input: #0000;
   --tiering-color-mix: 5%;
   &.light-mode {
   }
