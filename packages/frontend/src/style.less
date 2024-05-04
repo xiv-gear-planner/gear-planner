@@ -141,9 +141,27 @@ body {
     }
   }
 
+  // TODO: this one and the one under the gear sets table have weird alignment
+  div#show-hide-menu-button-area {
+    z-index: var(--zi-show-hide-menu-button);
+    position: absolute;
+    left: 5px;
+    top: 5px;
+    width: 29px;
+    height: 29px;
+
+    button#show-hide-menu-button {
+      width: 100%;
+      height: 100%;
+      font-size: 19px;
+    }
+  }
+
   div#main-menu-area {
     //border-bottom: 2px solid var(--border-color);
     text-align: center;
+    padding-left: 40px;
+    padding-right: 40px;
     //margin-bottom: 10px;
     background-color: var(--table-bg-color);
     //background-image: linear-gradient(var(--table-bg-color) 80%, var(--bg-color));
@@ -290,10 +308,11 @@ body {
   --zi-sets-table-header-row: 92;
   --zi-sets-table-header-row-pinned: 95;
   --zi-sets-table-buttons-area: 99;
+  --zi-show-hide-menu-button: 120;
   --zi-slot-materia-popup: 150;
   --zi-slot-materia-popup-cell: 180;
-  --zi-add-sim-dialog: 200;
   --zi-loading-blocker: 190;
+  --zi-add-sim-dialog: 200;
   --zi-true-modal: 300;
 }
 
@@ -2613,6 +2632,23 @@ body.modern {
   }
   .modal-dialog .modal-inner {
     background-color: var(--bg-color);
+  }
+
+  div#main-menu-area {
+    background: none;
+    box-shadow: none;
+    div#main-menu-area-inner {
+      width: fit-content;
+      margin-left: auto;
+      margin-right: auto;
+      background-color: var(--table-bg-color);
+      --mmai-border-radius: 10px;
+      border-bottom-left-radius: var(--mmai-border-radius);
+      border-bottom-right-radius: var(--mmai-border-radius);
+      padding-left: var(--mmai-border-radius);
+      padding-right: var(--mmai-border-radius);
+
+    }
   }
 
 }

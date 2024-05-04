@@ -372,6 +372,10 @@ function earlyUiSetup() {
         ev.preventDefault();
         setLightMode(!isLightMode);
     });
+    document.getElementById('show-hide-menu-button').addEventListener('click', (ev) => {
+        ev.preventDefault();
+        topMenuArea.style.display = topMenuArea.style.display === 'none' ? '' : 'none';
+    });
     const header = document.createElement("span")
     header.textContent = "Dev Menu";
     devMenu.appendChild(header);
