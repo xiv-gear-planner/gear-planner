@@ -90,7 +90,7 @@ import {installDragHelper} from "./components/draghelpers";
 import {getShortLink} from "./external/shortlink_server";
 import {parseImport} from "./imports/imports";
 import {startExport} from "./components/export_controller";
-import {SETTINGS} from "./persistent_settings";
+import {SETTINGS} from "./settings/persistent_settings";
 import {BaseModal} from "./components/modal";
 import {closeModal} from "./modalcontrol";
 import {scrollIntoView} from "./util/scrollutil";

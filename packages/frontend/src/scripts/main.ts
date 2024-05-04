@@ -6,9 +6,11 @@ import {getBisSheet} from "./external/static_bis";
 import {JobName} from "@xivgear/xivmath/xivconstants";
 import {LoadingBlocker} from "./components/loader";
 import {earlyEmbedInit, openEmbed} from "./embed";
-import {SETTINGS} from "./persistent_settings";
+import {SETTINGS} from "./settings/persistent_settings";
 import {registerDefaultSims} from "./sims/default_sims";
 import {BIS_HASH, EMBED_HASH, SHORTLINK_HASH, VIEW_SET_HASH, VIEW_SHEET_HASH} from "./common_nav";
+import {DISPLAY_SETTINGS} from "./settings/display_settings";
+import {showSettingsModal} from "./settings/settings_modal";
 
 export const contentArea = document.getElementById("content-area");
 // export const midBarArea = document.getElementById("mid-controls-area");
@@ -329,32 +331,7 @@ function showSheetPickerMenu() {
     // setTitle(undefined);
 }
 
-let isLightMode: boolean;
 
-function setLightMode(lightMode: boolean | 'load') {
-    if (lightMode === 'load') {
-        lightMode = SETTINGS.lightMode ?? false;
-    }
-    else {
-        SETTINGS.lightMode = lightMode;
-    }
-    const body = document.querySelector('body');
-    body.style.setProperty('--transition-time', '0');
-    body.style.setProperty('--input-transition-time', '0');
-    const lightModeClass = 'light-mode';
-    isLightMode = lightMode;
-    if (lightMode) {
-        body.classList.add(lightModeClass)
-    }
-    else {
-        body.classList.remove(lightModeClass)
-    }
-    setTimeout(() => {
-        body.style.removeProperty('--transition-time');
-        body.style.removeProperty('--input-transition-time');
-    }, 10);
-
-}
 
 function earlyUiSetup() {
     const devMenu = devMenuArea;
@@ -367,10 +344,10 @@ function earlyUiSetup() {
             devMenu.style.display = 'none';
         }
     });
-    setLightMode('load');
-    document.getElementById('light-mode-button').addEventListener('click', (ev) => {
+    DISPLAY_SETTINGS.loadSettings();
+    document.getElementById('settings-button').addEventListener('click', (ev) => {
         ev.preventDefault();
-        setLightMode(!isLightMode);
+        showSettingsModal();
     });
     document.getElementById('show-hide-menu-button').addEventListener('click', (ev) => {
         ev.preventDefault();
@@ -407,6 +384,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // iosPolyfill();
     registerDefaultSims();
     earlyUiSetup();
+    // TODO: this causes the server component to throw an error since addEventListener is not defined
     addEventListener("hashchange", processHash);
     initialLoad();
 });
