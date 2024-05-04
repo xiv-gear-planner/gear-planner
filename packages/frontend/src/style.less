@@ -1310,6 +1310,10 @@ slot-materia-manager, single-materia-view-only {
     display: inline-block;
   }
 
+  & >span:first-of-type {
+    padding-left: 3px;
+  }
+
   &.materia-overcap > span {
     color: var(--materia-overcap);
 
@@ -2617,6 +2621,8 @@ body.modern {
   --tiering-color-mix: 5%;
 
   &.light-mode {
+    --bg-color: #e5dad7;
+    --button-hover-color: #ddb581;
   }
 
   &:not(.light-mode) {
@@ -2668,7 +2674,6 @@ body.modern {
 
 // This is intentionally not style differently based on enabled/disabled status, since it is frequently used
 // for things that are A/B choices without a clear 'true/false' mapping.
-// TODO: this needs better coloring
 bool-toggle {
   display: block;
   user-select: none;
@@ -2687,7 +2692,8 @@ bool-toggle {
     display: none;
   }
 
-  --bool-toggle-bg-color: var(--button-hover-color);
+  --bool-toggle-bg-color: var(--button-color);
+  --bool-toggle-slider-bg-color: var(--bg-color);
 
   .bool-toggle-label {
     display: block;
@@ -2696,6 +2702,7 @@ bool-toggle {
     box-sizing: border-box;
     background-color: var(--bool-toggle-bg-color);
     border-radius: calc(var(--border-radius) + var(--bool-toggle-inset));
+    border: var(--standard-border);
   }
 
   .bool-toggle-inner {
@@ -2715,7 +2722,8 @@ bool-toggle {
     transition: left 0.2s ease;
     border-radius: var(--border-radius);
     box-sizing: border-box;
-    background-color: var(--bg-color);
+    background-color: var(--bool-toggle-slider-bg-color);
+    border: var(--standard-border);
   }
 
   .bool-toggle-left, .bool-toggle-right {
@@ -2743,12 +2751,12 @@ bool-toggle {
       left: calc(50% + var(--bool-toggle-inset));
     }
   }
-  &:has(input:active) {
-    --bool-toggle-bg-color: var(--button-active-background-color);
-  }
-  // I don't know why the 'active' state has to be on the input, but the hover state has to be on the parent.
-  // If you change this to has(input:active), then the active state doesn't work.
+
   &:hover {
-    --bool-toggle-bg-color: var(--table-selected-outline-color);
+    --bool-toggle-bg-color: var(--button-hover-color);
+  }
+
+  &:active {
+    --bool-toggle-bg-color: var(--button-active-background-color);
   }
 }
