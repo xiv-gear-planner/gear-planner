@@ -1310,7 +1310,7 @@ slot-materia-manager, single-materia-view-only {
     display: inline-block;
   }
 
-  & >span:first-of-type {
+  & > span:first-of-type {
     padding-left: 3px;
   }
 
@@ -2614,6 +2614,28 @@ body.modern {
     &.gear-plan-table {
       border-radius: 0;
       --table-extra-padding: 0px;
+
+      tr {
+        td[col-id="actions"] {
+          button {
+            opacity: 10%;
+          }
+        }
+      }
+
+      tr:hover, tr[is-selected="true"], tr.dragging {
+        td[col-id="actions"] {
+          button {
+            opacity: 80%;
+          }
+        }
+      }
+    }
+    &.gear-items-table {
+      tr:first-child th {
+        border-top-left-radius: var(--standard-border-radius);
+        border-top-right-radius: var(--standard-border-radius);
+      }
     }
   }
 
