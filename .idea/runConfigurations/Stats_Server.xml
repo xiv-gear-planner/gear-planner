@@ -1,6 +1,9 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Stats Server" type="TypeScriptProgramRunner" factoryName="TypeScript">
     <module name="gearplan" />
+    <envs>
+      <env name="SHORTLINK_SERVER" value="http://localhost:8081/shortlink/" />
+    </envs>
     <option name="interpreterRef" value="project" />
     <option name="enabledTsNodeEsmLoader" value="false" />
     <option name="interpreterOptions" value="" />
