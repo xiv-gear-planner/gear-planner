@@ -154,6 +154,9 @@ body {
       width: 100%;
       height: 100%;
       font-size: 19px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
   }
 
@@ -2631,6 +2634,7 @@ body.modern {
         }
       }
     }
+
     &.gear-items-table {
       tr:first-child th {
         border-top-left-radius: var(--standard-border-radius);
@@ -2658,6 +2662,10 @@ body.modern {
 
   .gear-sheet-midbar-area {
     background-color: var(--button-color);
+
+    button {
+      --button-color: var(--bg-color);
+    }
   }
 
   gear-set-editor {
