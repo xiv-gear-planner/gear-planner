@@ -9,8 +9,9 @@ class DisplaySettings {
     private _modernTheme: boolean;
 
     loadSettings() {
-        this._lightMode = SETTINGS.lightMode ?? DEFAULT_LIGHT_MODE;
-        this._modernTheme = SETTINGS.modernTheme ?? DEFAULT_MODERN_THEME;
+        const settings = SETTINGS;
+        this._lightMode = settings.lightMode ?? DEFAULT_LIGHT_MODE;
+        this._modernTheme = settings.modernTheme ?? DEFAULT_MODERN_THEME;
         this.applyLightMode();
         this.applyModernTheme();
     }

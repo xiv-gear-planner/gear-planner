@@ -43,7 +43,7 @@ export const SETTINGS: PersistentSettings = {
 
 function getBool(key: string): boolean | undefined {
     const raw = localStorage.getItem(key);
-    if (raw === undefined) {
+    if (raw === undefined || raw === null) {
         return undefined;
     }
     else {
