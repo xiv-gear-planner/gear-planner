@@ -1275,7 +1275,7 @@ export class GearPlanSheet extends HTMLElement {
         }
 
         if (this.ilvlSync != undefined) {
-            const ilvlSyncLabel = quickElement('span', ['like-a-button'], [document.createTextNode(`ilvl Sync: ${this.ilvlSync}`)]);
+            const ilvlSyncLabel = quickElement('div', ['like-a-button'], [document.createTextNode(`ilvl Sync: ${this.ilvlSync}`)]);
             // TODO: think about how to allow creating a new sheet with different ilvl
             // ilvlSyncLabel.title = 'To change the item level sync, click the "Save As" button and create a '
             buttonsArea.appendChild(ilvlSyncLabel);
