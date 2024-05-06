@@ -303,6 +303,7 @@ body {
 
    */
 
+  --zi-midbar: 1;
   --zi-sets-table-normal-columns: 70;
   --zi-sets-table-selected-cell: 71;
   --zi-sets-table-pinned-columns: 80;
@@ -1032,7 +1033,7 @@ gear-plan {
     /*flex-grow: 0;*/
     /*flex-shrink: 9999;*/
     flex-basis: content;
-    overflow: auto;
+    //overflow: auto;
     min-height: 0;
     flex-shrink: 1;
     flex-grow: 1;
@@ -1043,6 +1044,20 @@ gear-plan {
     // TODO: this also causes an ugly empty area to the right.
     // maybe just always display the scrollbar?
     //scrollbar-gutter: stable;
+    padding-bottom: 5px;
+
+    .gear-sheet-table-holder-outer {
+      //margin-top: 10px;
+      background-color: var(--table-bg-color);
+      max-height: calc(100%);
+      box-sizing: border-box;
+      display: flex;
+
+      .gear-sheet-table-holder {
+        box-sizing: border-box;
+        overflow: auto;
+      }
+    }
 
   }
 
@@ -1082,6 +1097,9 @@ gear-plan {
   }
 
   .gear-sheet-midbar-area {
+    .shadow-big;
+    // want the shadow to appear above
+    z-index: var(--zi-midbar);
     border-top: var(--thick-border);
 
     .gear-sheet-toolbar-holder {
@@ -1148,7 +1166,7 @@ gear-plan {
   //margin-top: 5px;
   padding-top: 8px;
   padding-bottom: 8px;
-  .shadow-big-inset;
+  //.shadow-big-inset;
 
   table {
     text-align: left;
@@ -2690,6 +2708,7 @@ body.modern {
     box-shadow: none;
 
     div#main-menu-area-inner {
+      .shadow;
       width: fit-content;
       margin-left: auto;
       margin-right: auto;
@@ -2703,6 +2722,24 @@ body.modern {
     }
   }
 
+  //.gear-sheet-table-area {
+  //  .shadow-big-inset;
+  //}
+  .gear-sheet-table-holder-outer {
+    padding: 10px;
+    border-radius: 10px;
+    margin: 5px;
+    .shadow;
+
+    .gear-sheet-table-holder {
+    }
+  }
+  .gear-sheet-table-area {
+    margin-bottom: 5px;
+  }
+  button#show-hide-menu-button {
+    .shadow;
+  }
 }
 
 // This is intentionally not style differently based on enabled/disabled status, since it is frequently used

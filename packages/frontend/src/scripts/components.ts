@@ -1038,6 +1038,7 @@ export class GearPlanSheet extends HTMLElement {
     private _selectFirstRowByDefault: boolean = false;
     readonly headerArea: HTMLDivElement;
     readonly tableArea: HTMLDivElement;
+    readonly tableHolder: HTMLDivElement;
     readonly buttonsArea: HTMLDivElement;
     readonly editorArea: HTMLDivElement;
     readonly midBarArea: HTMLDivElement;
@@ -1134,6 +1135,12 @@ export class GearPlanSheet extends HTMLElement {
         this.headerArea.classList.add('header-area');
         this.tableArea = document.createElement("div");
         this.tableArea.classList.add('gear-sheet-table-area', 'hide-when-loading');
+        this.tableHolder = document.createElement('div');
+        this.tableHolder.classList.add('gear-sheet-table-holder');
+        const tableHolderOuter = document.createElement('div');
+        tableHolderOuter.classList.add('gear-sheet-table-holder-outer')
+        tableHolderOuter.appendChild(this.tableHolder);
+        this.tableArea.appendChild(tableHolderOuter);
         this.buttonsArea = document.createElement("div");
         this.buttonsArea.classList.add('gear-sheet-buttons-area', 'hide-when-loading', 'show-hide-parent');
         this.editorArea = document.createElement("div");
@@ -1379,14 +1386,15 @@ export class GearPlanSheet extends HTMLElement {
             buttonsArea.appendChild(advancedStats);
         }
         // const tableAreaInner = quickElement('div', ['gear-sheet-table-area-inner'], [this._gearPlanTable, this.buttonsArea]);
-        this.tableArea.appendChild(this._gearPlanTable);
-        this.tableArea.appendChild(buttonsArea);
+        this.tableHolder.appendChild(this._gearPlanTable);
+        this.tableHolder.appendChild(buttonsArea);
         try {
             const ro = new ResizeObserver(() => {
                 this.fixScroll();
             });
             ro.observe(this);
             ro.observe(this.tableArea);
+            ro.observe(this.tableHolder);
             ro.observe(this._gearPlanTable);
         }
         catch (e) {
@@ -1997,7 +2005,12 @@ export class GearPlanSheet extends HTMLElement {
     }
 
     private fixScroll() {
-        const tbl = this.tableArea;
+        // If the user narrows the window, then scrolls to the right, but then widens the window, the
+        // table will now be scrolled right past what it should be able to, and have a large blank area
+        // displayed in it.
+
+        // The scrollable element
+        const tbl = this.tableHolder;
         const rightExcess = tbl.scrollWidth - this._gearPlanTable.clientWidth;
         if (rightExcess >= 0) {
             const newScrollLeft = tbl.scrollLeft - rightExcess;
