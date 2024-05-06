@@ -65,6 +65,7 @@ body {
   --input-transition-time: 0.1s;
   --tiering-color-mix: 2%;
   --abilities-row-height: 20px;
+  --button-height: 20px;
 
 
   &.light-mode {
@@ -618,7 +619,7 @@ select {
   .standard-border-radius;
   border: var(--standard-border-input);
   .button-font-style;
-  height: 20px;
+  height: var(--button-height);
   box-sizing: border-box;
 }
 
@@ -1088,7 +1089,6 @@ gear-plan {
       margin-right: 10px;
       pointer-events: auto;
       box-sizing: border-box;
-      height: 20px;
       display: inline-block;
       padding: 1px 4px 1px 4px;
       vertical-align: top;
@@ -1361,8 +1361,14 @@ slot-materia-popup {
   left: 0;
   box-shadow: var(--shadow-color) 0 5px 10px 0;
 
+  > table {
+    border-radius: 0 !important;
+    padding: 0 !important;
+  }
+
   th {
     border-top: var(--standard-border) !important;
+    text-align: center;
   }
 
   td {
@@ -1382,7 +1388,7 @@ slot-materia-popup {
     }
 
     &:first-child {
-      text-align: right;
+      text-align: center;
       padding: 4px !important;
     }
 
@@ -1813,14 +1819,10 @@ div.labeled-checkbox {
   }
 
   @media screen and (max-width: 800px) {
-    &.showing {
+    &:not(.showing) {
       > * {
-        display: revert;
+        display: none;
       }
-    }
-
-    > * {
-      display: none;
     }
 
     .show-hide-button {
@@ -2392,8 +2394,16 @@ div.vertical-spacer {
 
 span.like-a-button {
   display: inline-block;
-  padding: 1px 4px 1px 4px;
+  padding: var(--button-padding);
   vertical-align: top;
+}
+
+// Vertically center
+div.like-a-button > span {
+  line-height: 0;
+  display: block;
+  position: relative;
+  top: 50%;
 }
 
 .drag-handle {
@@ -2626,7 +2636,8 @@ rename-dialog {
 
 body.modern {
   --border-color: #0000000;
-  --table-extra-padding: 5px;
+  --table-extra-padding: 10px;
+  //--button-height: 25px;
   // TODO: still would like to get rounded borders, but it's very much a PITA with
   // the sticky header/left columns
   table {
@@ -2656,12 +2667,25 @@ body.modern {
       }
     }
 
-    &.gear-items-table {
-      tr:first-child th {
+    &.gear-items-table > tbody {
+      > tr:first-child > th {
         border-top-left-radius: var(--standard-border-radius);
         border-top-right-radius: var(--standard-border-radius);
       }
+
+      > tr > th[col-id] {
+        font-size: small;
+        text-align: center;
+      }
     }
+
+    //Center wide stat columns
+    //th.stat-col {
+    //  &.chance-stat-col, &.multiplier-stat-col {
+    //    text-align: center;
+    //  }
+    //}
+
   }
 
   --border-color-input: #0000;
@@ -2734,11 +2758,28 @@ body.modern {
     .gear-sheet-table-holder {
     }
   }
+
   .gear-sheet-table-area {
     margin-bottom: 5px;
   }
+
   button#show-hide-menu-button {
     .shadow;
+  }
+
+  .gear-sheet-buttons-area > * {
+    height: 25px;
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  slot-materia-popup {
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  div.gear-set-editor-toolbar > * {
+    box-shadow: none;
   }
 }
 
