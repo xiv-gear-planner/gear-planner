@@ -2679,11 +2679,17 @@ body.modern {
       > tr > th[col-id] {
         font-size: small;
         text-align: center;
+        &[col-id='itemname'] {
+          text-align: left;
+        }
       }
 
       > tr > td {
         padding-left: 5px;
         padding-right: 5px;
+        &[col-id='itemname'] {
+          padding-left: 0;
+        }
       }
     }
 
