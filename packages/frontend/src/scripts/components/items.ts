@@ -435,6 +435,9 @@ function itemTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, stat: 
                         statCellStyler(cell, value, stat)
                     }
                 }
+                else {
+                    cell.classList.add('stat-cell');
+                }
             },
     }
 }

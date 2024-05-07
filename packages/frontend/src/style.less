@@ -1206,6 +1206,10 @@ table.gear-items-table, table.food-items-table {
     max-width: 1px;
   }
 
+  td[col-id='mats'], td[col-id='wd'] {
+    text-align: center;
+  }
+
   tr:last-child {
     td, th {
       border-top: none;
@@ -2637,9 +2641,8 @@ rename-dialog {
 body.modern {
   --border-color: #0000000;
   --table-extra-padding: 10px;
+  //--item-name-col-width: 250px;
   //--button-height: 25px;
-  // TODO: still would like to get rounded borders, but it's very much a PITA with
-  // the sticky header/left columns
   table {
 
     border-radius: 10px;
@@ -2676,6 +2679,11 @@ body.modern {
       > tr > th[col-id] {
         font-size: small;
         text-align: center;
+      }
+
+      > tr > td {
+        padding-left: 5px;
+        padding-right: 5px;
       }
     }
 
