@@ -588,7 +588,7 @@ export class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
                         return document.createTextNode("");
                     }
                 },
-                initialWidth: 30,
+                initialWidth: 33,
                 condition: () => handledSlots === undefined || handledSlots.includes('Weapon'),
             },
             itemTableStatColumn(sheet, gearSet, 'vitality'),
