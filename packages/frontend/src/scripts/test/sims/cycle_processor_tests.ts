@@ -641,12 +641,14 @@ describe('Potency Buff Ability', () => {
 function multiplyDamage(damageResult: DamageResult, multiplier: number, multiplyDirectDamage: boolean = true, multiplyDot: boolean = true) {
     return {
         directDamage: (damageResult.directDamage === null || !multiplyDirectDamage) ? damageResult.directDamage : {
-            expected: damageResult.directDamage.expected * multiplier
+            expected: damageResult.directDamage.expected * multiplier,
+            stdDev: 0
         },
         dot: (damageResult.dot === null || !multiplyDot) ? damageResult.dot : {
             ...damageResult.dot,
             damagePerTick: {
-                expected: damageResult.directDamage.expected * multiplier
+                expected: damageResult.directDamage.expected * multiplier,
+                stdDev: 0
             }
         },
     }
@@ -892,7 +894,7 @@ describe('Special record', () => {
     });
 });
 
-// TODO: another set of tests, but with a GCD that doesn't evenly divide the cycle time, so that re-alignment
+// TODO: another set of test, but with a GCD that doesn't evenly divide the cycle time, so that re-alignment
 // can be checked.
 const fixed: GcdAbility = {
     type: 'gcd',

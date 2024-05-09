@@ -1,5 +1,5 @@
 import {ComputedSetStats} from "@xivgear/xivmath/geartypes";
-import {applyDhCrit, baseDamage} from "@xivgear/xivmath/xivmath";
+import {applyDhCrit, applyDhCritFull, baseDamage, baseDamageFull} from "@xivgear/xivmath/xivmath";
 import {
     Ability,
     AutoAttack,
@@ -37,6 +37,7 @@ import {quickElement} from "../components/util";
 import {sum} from "../util/array_utils";
 import {CooldownMode, CooldownTracker} from "./common/cooldown_manager";
 import {appDelay, completeComboData, FinalizedComboData} from "../test/sims/ability_helpers";
+import {multiplyValues} from "@xivgear/xivmath/deviation";
 
 
 export type CombinedBuffEffect = {
@@ -87,12 +88,13 @@ function dotPotencyToDamage(stats: ComputedSetStats, potency: number, dmgAbility
     // TODO: are there any dots with auto-crit or auto-dh?
     const forceDh = false;
     const forceCrit = false;
-    const nonCritDmg = baseDamage(modifiedStats, potency, dmgAbility.attackType, forceDh, forceCrit, true);
-    const afterCritDh = applyDhCrit(nonCritDmg, modifiedStats);
-    const afterDmgBuff = afterCritDh * combinedBuffEffects.dmgMod;
-    return {
-        expected: afterDmgBuff,
-    }
+    // TODO: why is autoDH true
+    const nonCritDmg = baseDamageFull(modifiedStats, potency, dmgAbility.attackType, forceDh, forceCrit, true);
+    const afterCritDh = applyDhCritFull(nonCritDmg, modifiedStats);
+    return multiplyValues(afterCritDh, {
+        expected: combinedBuffEffects.dmgMod,
+        stdDev: 0
+    });
 }
 
 function potencyToDamage(stats: ComputedSetStats, potency: number, dmgAbility: DamagingAbility, combinedBuffEffects: CombinedBuffEffect): ComputedDamage {
@@ -101,39 +103,16 @@ function potencyToDamage(stats: ComputedSetStats, potency: number, dmgAbility: D
     modifiedStats.dhitChance += combinedBuffEffects.dhitChanceIncrease;
     const forceDhit = dmgAbility.autoDh || combinedBuffEffects.forceDhit;
     const forceCrit = dmgAbility.autoCrit || combinedBuffEffects.forceCrit;
-    const nonCritDmg = baseDamage(modifiedStats, potency, dmgAbility.attackType, forceDhit, forceCrit);
-    const afterCritDh = applyDhCrit(nonCritDmg, {
+    const nonCritDmg = baseDamageFull(modifiedStats, potency, dmgAbility.attackType, forceDhit, forceCrit);
+    const afterCritDh = applyDhCritFull(nonCritDmg, {
         ...modifiedStats,
         critChance: forceCrit ? 1 : modifiedStats.critChance,
         dhitChance: forceDhit ? 1 : modifiedStats.dhitChance,
     });
-    const afterDmgBuff = afterCritDh * combinedBuffEffects.dmgMod;
-    return {
-        expected: afterDmgBuff,
-    }
-}
-
-export function abilityToDamage(stats: ComputedSetStats, ability: Ability, combinedBuffEffects: CombinedBuffEffect, portion: number = 1): ComputedDamage {
-    const basePot = ability.potency;
-    if (!ability.potency) {
-        return {
-            expected: 0
-        }
-    }
-    else {
-        // TODO: messy
-        const dmgAbility = ability as DamagingAbility;
-        const modifiedStats = {...stats};
-        modifiedStats.critChance += combinedBuffEffects.critChanceIncrease;
-        modifiedStats.dhitChance += combinedBuffEffects.dhitChanceIncrease;
-        const nonCritDmg = baseDamage(modifiedStats, basePot, dmgAbility.attackType, dmgAbility.autoDh ?? false, dmgAbility.autoCrit ?? false);
-        const afterCritDh = applyDhCrit(nonCritDmg, modifiedStats);
-        const afterDmgBuff = afterCritDh * combinedBuffEffects.dmgMod;
-        const afterPortion = afterDmgBuff * portion;
-        return {
-            expected: afterPortion,
-        }
-    }
+    return multiplyValues(afterCritDh, {
+        expected: combinedBuffEffects.dmgMod,
+        stdDev: 0
+    });
 }
 
 export type DamageResult = {
@@ -637,7 +616,7 @@ export class CycleProcessor {
             },
             buffs: Array.from(new Set<Buff>([...preBuffs, ...buffs])),
             usedAt: gcdStartsAt,
-            directDamage: dmgInfo.directDamage ?? {expected: 0},
+            directDamage: dmgInfo.directDamage ?? {expected: 0, stdDev: 0},
             dot: dmgInfo.dot,
             appDelay: appDelayFromSnapshot,
             appDelayFromStart: appDelayFromStart,

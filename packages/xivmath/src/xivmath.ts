@@ -1,4 +1,5 @@
 import {AttackType, ComputedSetStats, JobData, JobMultipliers, LevelStats} from "./geartypes";
+import {multiplyValues, ValueWithDev} from "./deviation";
 
 /*
     Common math for FFXIV.
@@ -216,10 +217,15 @@ export function autoAttackModifier(levelStats: LevelStats, jobStats: JobData, we
 
 /**
  * Computes base damage. Does not factor in crit/dh RNG nor damage variance.
- *
- * TODO: where to factor in extra damage from buffs?
  */
-export function baseDamage(stats: ComputedSetStats, potency: number, attackType: AttackType = 'Unknown', autoDH: boolean = false, autoCrit: boolean = false, isDot: boolean = false) {
+export function baseDamage(...args: Parameters<typeof baseDamageFull>): number {
+    return baseDamageFull(...args).expected;
+}
+
+/**
+ * Computes base damage. Does not factor in crit/dh RNG nor damage variance.
+ */
+export function baseDamageFull(stats: ComputedSetStats, potency: number, attackType: AttackType = 'Unknown', autoDH: boolean = false, autoCrit: boolean = false, isDot: boolean = false): ValueWithDev {
 
     let spdMulti: number;
     const isAA = attackType === 'Auto-attack';
@@ -277,10 +283,21 @@ export function baseDamage(stats: ComputedSetStats, potency: number, attackType:
     // Factor in auto DH multiplier
     const afterAutoDh = autoDH ? fl(afterAutoCrit * (1 + (dhRate * (dhMulti - 1)))) : afterAutoCrit;
     // Factor in trait multiplier
-    const afterTrait = fl(fl(afterAutoDh * traitMulti) / 100);
+    const finalDamage = fl(fl(afterAutoDh * traitMulti) / 100);
     // console.log([basePotency, afterDet, afterTnc, afterWeaponDamage, d5, afterAutoCrit, afterAutoDh, afterTrait]);
 
-    return afterTrait;
+    // +-5% damage variance, uniform distribution.
+    // Full formula is sqrt((max - min)^2 / 12)
+    // == sqrt((1.05d - 0.95d)^2 / 12)
+    // == sqrt((.1d)^2 / 12)
+    // == sqrt(d^2 * .01 / 12)
+    // == d * sqrt(.01 / 12)
+    const stdDev = Math.sqrt(0.01 / 12) * finalDamage;
+
+    return {
+        expected: finalDamage,
+        stdDev: stdDev
+    }
 }
 
 export function baseHealing(stats: ComputedSetStats, potency: number, attackType: AttackType = 'Unknown', autoCrit: boolean = false) {
@@ -321,7 +338,7 @@ export function baseHealing(stats: ComputedSetStats, potency: number, attackType
 }
 
 /**
- * Factors in the expected multiplier value resulting from random direct hits.
+ * Factors in the expected multiplier value resulting from random direct hits. Used for general damage.
  *
  * @param baseDamage The base damage amount.
  * @param stats The stats.
@@ -330,8 +347,38 @@ export function applyDhCrit(baseDamage: number, stats: ComputedSetStats) {
     return baseDamage * (1 + stats.dhitChance * (stats.dhitMulti - 1)) * (1 + stats.critChance * (stats.critMulti - 1));
 }
 
+export function dhCritPercentStdDev(stats: ComputedSetStats) {
+    // Use 1 as a base so that this acts as a multiplier
+    const baseDamage = 1.0;
+    const critDamage = baseDamage * stats.critMulti;
+    const dhDamage = baseDamage * stats.dhitMulti;
+    // Crit+DH multiplier
+    const cdhDamage = baseDamage * stats.critMulti * stats.dhitMulti;
+    // Crit+DH chance
+    const cdhChance = stats.critChance * stats.critMulti;
+    // Crit, non-DH chance
+    const critOnlyChance = stats.critChance - cdhChance;
+    // Dh, non-crit chance
+    const dhOnlyChance = stats.dhitChance - cdhChance;
+    // Non-crit, non-dh chance
+    const normalChance = 1.0 - cdhChance - critOnlyChance - dhOnlyChance;
+    const variance = (baseDamage ** 2) * normalChance + (critDamage ** 2) * critOnlyChance + (dhDamage ** 2) * dhOnlyChance + (cdhDamage ** 2) * cdhChance;
+    return Math.sqrt(variance);
+}
+
+export function applyDhCritFull(baseDamage: ValueWithDev, stats: ComputedSetStats): ValueWithDev {
+    const multiplier = applyDhCrit(1, stats);
+    const stdDevFromCritDh = dhCritPercentStdDev(stats);
+    const critValues = {
+        expected: multiplier,
+        stdDev: stdDevFromCritDh,
+    };
+    return multiplyValues(baseDamage, critValues);
+}
+
 /**
- * Factors in the expected multiplier value resulting from random critical hits.
+ * Factors in the expected multiplier value resulting from random critical hits. Used for healing, as healing can crit
+ * but not direct hit.
  *
  * @param baseDamage The base damage amount.
  * @param stats The stats.
@@ -339,6 +386,14 @@ export function applyDhCrit(baseDamage: number, stats: ComputedSetStats) {
 export function applyCrit(baseDamage: number, stats: ComputedSetStats) {
     return baseDamage * (1 + stats.critChance * (stats.critMulti - 1));
 }
+
+// export function critDhVarianceRatio(stats: ComputedSetStats): number {
+//
+// }
+
+// export function critDhVariance(damage: number, stats: ComputedSetStats) {
+//     return critDhVarianceRatio(stats) * damage;
+// }
 
 /**
  * Convert vitality to hp.

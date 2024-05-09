@@ -3,10 +3,14 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "build": "tsc --build"
+    "build": "tsc --build",
+    "test": "ts-mocha src/test/**/*tests.ts"
   },
   "devDependencies": {
-    "ts-node": "^10.9.2"
+    "ts-node": "^10.9.1",
+    "ts-loader": "^9.4.4",
+    "ts-mocha": "^10.0.0",
+    "chai": "^4.4.1"
   },
   "exports": {
     "./*": "./src/*.ts"

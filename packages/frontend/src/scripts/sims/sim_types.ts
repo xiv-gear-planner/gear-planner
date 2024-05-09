@@ -1,6 +1,7 @@
 import {JobName} from "@xivgear/xivmath/xivconstants";
 import {AttackType} from "@xivgear/xivmath/geartypes";
 import {CombinedBuffEffect, DamageResult} from "./sim_processors";
+import {ValueWithDev} from "@xivgear/xivmath/deviation";
 
 /**
  * Represents a DoT
@@ -153,9 +154,7 @@ export type DotDamageUnf = {
     actualTickCount?: number
 };
 
-export type ComputedDamage = {
-    expected: number,
-};
+export type ComputedDamage = ValueWithDev;
 
 /**
  * Represents an ability actually being used

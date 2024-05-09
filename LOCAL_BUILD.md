@@ -10,7 +10,7 @@ npm install
 npm run build
 # This is a faster way to rebuild just the CSS if that's all you've changed
 npx lessc --source-map ./src/style.less dist/style.css
-# Run tests
+# Run test
 npm test
 ```
 
