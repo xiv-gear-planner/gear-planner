@@ -355,7 +355,7 @@ export function dhCritPercentStdDev(stats: ComputedSetStats) {
     // Crit+DH multiplier
     const cdhDamage = baseDamage * stats.critMulti * stats.dhitMulti;
     // Crit+DH chance
-    const cdhChance = stats.critChance * stats.critMulti;
+    const cdhChance = stats.critChance * stats.dhitChance;
     // Crit, non-DH chance
     const critOnlyChance = stats.critChance - cdhChance;
     // Dh, non-crit chance
