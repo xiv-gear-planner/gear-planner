@@ -1,5 +1,5 @@
 import {AttackType, ComputedSetStats, JobData, JobMultipliers, LevelStats} from "./geartypes";
-import {multiplyValues, ValueWithDev} from "./deviation";
+import {chanceMultiplierStdDev, multiplyValues, ValueWithDev} from "./deviation";
 
 /*
     Common math for FFXIV.
@@ -348,32 +348,15 @@ export function applyDhCrit(baseDamage: number, stats: ComputedSetStats) {
 }
 
 export function dhCritPercentStdDev(stats: ComputedSetStats) {
-    // Use 1 as a base so that this acts as a multiplier
-    const baseDamage = 1.0;
-    const critDamage = baseDamage * stats.critMulti;
-    const dhDamage = baseDamage * stats.dhitMulti;
-    // Crit+DH multiplier
-    const cdhDamage = baseDamage * stats.critMulti * stats.dhitMulti;
-    // Crit+DH chance
-    const cdhChance = stats.critChance * stats.critMulti;
-    // Crit, non-DH chance
-    const critOnlyChance = stats.critChance - cdhChance;
-    // Dh, non-crit chance
-    const dhOnlyChance = stats.dhitChance - cdhChance;
-    // Non-crit, non-dh chance
-    const normalChance = 1.0 - cdhChance - critOnlyChance - dhOnlyChance;
-    const variance = (baseDamage ** 2) * normalChance + (critDamage ** 2) * critOnlyChance + (dhDamage ** 2) * dhOnlyChance + (cdhDamage ** 2) * cdhChance;
-    return Math.sqrt(variance);
+    return multiplyValues(
+        chanceMultiplierStdDev(stats.critChance, stats.critMulti),
+        chanceMultiplierStdDev(stats.dhitChance, stats.dhitMulti)
+    );
 }
 
 export function applyDhCritFull(baseDamage: ValueWithDev, stats: ComputedSetStats): ValueWithDev {
-    const multiplier = applyDhCrit(1, stats);
     const stdDevFromCritDh = dhCritPercentStdDev(stats);
-    const critValues = {
-        expected: multiplier,
-        stdDev: stdDevFromCritDh,
-    };
-    return multiplyValues(baseDamage, critValues);
+    return multiplyValues(baseDamage, stdDevFromCritDh);
 }
 
 /**

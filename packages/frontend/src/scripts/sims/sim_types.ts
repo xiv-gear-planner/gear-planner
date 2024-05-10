@@ -228,9 +228,11 @@ export type FinalizedAbility = {
     usedAt: number,
     original: UsedAbility,
     totalDamage: number,
+    totalDamageFull: ComputedDamage
     totalPotency: number,
     partialRate: number | null,
     directDamage: number,
+    directDamageFull: ComputedDamage,
     dotInfo: DotDamageUnf,
     combinedEffects: CombinedBuffEffect,
     ability: Ability,

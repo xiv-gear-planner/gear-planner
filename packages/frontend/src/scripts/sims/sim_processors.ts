@@ -37,7 +37,7 @@ import {quickElement} from "../components/util";
 import {sum} from "../util/array_utils";
 import {CooldownMode, CooldownTracker} from "./common/cooldown_manager";
 import {appDelay, completeComboData, FinalizedComboData} from "../test/sims/ability_helpers";
-import {multiplyValues} from "@xivgear/xivmath/deviation";
+import {addValues, fixedValue, multiplyFixed, multiplyValues, ValueWithDev} from "@xivgear/xivmath/deviation";
 
 
 export type CombinedBuffEffect = {
@@ -91,10 +91,7 @@ function dotPotencyToDamage(stats: ComputedSetStats, potency: number, dmgAbility
     // TODO: why is autoDH true
     const nonCritDmg = baseDamageFull(modifiedStats, potency, dmgAbility.attackType, forceDh, forceCrit, true);
     const afterCritDh = applyDhCritFull(nonCritDmg, modifiedStats);
-    return multiplyValues(afterCritDh, {
-        expected: combinedBuffEffects.dmgMod,
-        stdDev: 0
-    });
+    return multiplyFixed(afterCritDh, combinedBuffEffects.dmgMod);
 }
 
 function potencyToDamage(stats: ComputedSetStats, potency: number, dmgAbility: DamagingAbility, combinedBuffEffects: CombinedBuffEffect): ComputedDamage {
@@ -519,18 +516,20 @@ export class CycleProcessor {
             if (isAbilityUse(record)) {
 
                 const partialRate = record.totalTimeTaken > 0 ? Math.max(0, Math.min(1, (this.totalTime - record.usedAt) / record.totalTimeTaken)) : 1;
-                const directDamage = record.directDamage.expected * partialRate;
+                const directDamage = multiplyFixed(record.directDamage, partialRate);
                 const dot = record.dot;
-                const dotDmg = dot ? dot.damagePerTick.expected * dot.actualTickCount : 0;
-                const totalDamage = directDamage + dotDmg;
+                const dotDmg = dot ? multiplyFixed(dot.damagePerTick, dot.actualTickCount) : fixedValue(0);
+                const totalDamage = addValues(directDamage, dotDmg);
                 const totalPotency = record.ability.potency + ('dot' in record.ability ? record.ability.dot.tickPotency * record.dot.actualTickCount : 0);
                 return {
                     usedAt: record.usedAt,
                     original: record,
                     partialRate: partialRate == 1 ? null : partialRate,
-                    directDamage: directDamage,
+                    directDamage: directDamage.expected,
+                    directDamageFull: directDamage,
                     dotInfo: dot,
-                    totalDamage: totalDamage,
+                    totalDamage: totalDamage.expected,
+                    totalDamageFull: totalDamage,
                     totalPotency: totalPotency,
                     buffs: record.buffs,
                     combinedEffects: record.combinedEffects,
@@ -1035,11 +1034,12 @@ export type DisplayRecordUnf = AbilityUseRecordUnf | SpecialRecord;
 export type DisplayRecordFinalized = FinalizedAbility | SpecialRecord;
 
 export interface CycleSimResult extends SimResult {
-    abilitiesUsed: readonly AbilityUseRecordUnf[],
-    // TODO
+    abilitiesUsed: readonly FinalizedAbility[],
     displayRecords: readonly DisplayRecordFinalized[],
     unbuffedPps: number,
-    buffTimings: readonly BuffUsage[]
+    buffTimings: readonly BuffUsage[],
+    totalDamage: ValueWithDev,
+    mainDpsFull: ValueWithDev
 }
 
 export type ExternalCycleSettings<InternalSettingsType extends SimSettings> = {
@@ -1132,20 +1132,21 @@ export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, Inter
             });
             rot.apply(cp);
 
-            const used = cp.finalizedRecords;
-            const cycleDamage = sum(used.map(used => isFinalizedAbilityUse(used) ? used.totalDamage : 0));
-            const dps = cycleDamage / cp.currentTime;
-            const unbuffedPps = sum(used.map(used => isFinalizedAbilityUse(used) ? used.totalPotency : 0)) / cp.nextGcdTime;
+            const used = cp.finalizedRecords.filter(isFinalizedAbilityUse);
+            const totalDamage = addValues(...used.map(used => used.totalDamageFull));
+            const dps = multiplyFixed(totalDamage, 1.0 / cp.currentTime);
+            const unbuffedPps = sum(used.map(used => used.totalPotency)) / cp.nextGcdTime;
             const buffTimings = [...cp.buffHistory];
 
             return {
-                mainDpsResult: dps,
+                mainDpsResult: dps.expected,
+                totalDamage: totalDamage,
+                mainDpsFull: dps,
                 abilitiesUsed: used,
                 displayRecords: cp.finalizedRecords,
                 unbuffedPps: unbuffedPps,
                 buffTimings: buffTimings
-                // TODO
-            } as unknown as ResultType;
+            } satisfies CycleSimResult as unknown as ResultType;
         });
         allResults.sort((a, b) => b.mainDpsResult - a.mainDpsResult);
         console.debug("Sim end");
