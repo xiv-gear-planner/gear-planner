@@ -209,7 +209,7 @@ export function bestEffortFormat(value: any): Node {
  *
  * @param result The result to display
  */
-export function simpleAutoResultTable<X extends SimResult>(result: X): HTMLElement {
+export function simpleAutoResultTable(result: Object): HTMLElement {
     const data: SimpleResultEntry[] = [];
     for (let fieldKey in result) {
         data.push({

@@ -1,9 +1,16 @@
-
+/**
+ * Type representing a value with variance.
+ */
 export type ValueWithDev = {
     'expected': number,
     'stdDev': number
 }
 
+/**
+ * Add multiple values with variance.
+ *
+ * @param values The values to add
+ */
 export function addValues(...values: ValueWithDev[]): ValueWithDev {
     let sum = 0;
     let varianceSum = 0;
@@ -18,6 +25,11 @@ export function addValues(...values: ValueWithDev[]): ValueWithDev {
     }
 }
 
+/**
+ * Multiply values with variance.
+ *
+ * @param values The values to multiply.
+ */
 export function multiplyValues(...values: ValueWithDev[]): ValueWithDev {
     let product = 1;
     // Var(x1...xn) = (prod i=1..n of (dev_i^2 + mean_i^2)) - (prod i=1..n of (dev_i^2)
@@ -36,10 +48,25 @@ export function multiplyValues(...values: ValueWithDev[]): ValueWithDev {
     }
 }
 
+/**
+ * Multiply a value with variance with a simple scalar value with no variance.
+ *
+ * @param value The value with variance.
+ * @param scalar The value with no variance.
+ */
 export function multiplyFixed(value: ValueWithDev, scalar: number) {
     return multiplyValues(value, fixedValue(scalar));
 }
 
+/**
+ * Produce the expected value and std dev for a given chance + multiplier.
+ *
+ * It is assumed that if the roll succeeds, then the value is equal to the multiplier,
+ * while if the roll fails, the value is equal to 1.
+ *
+ * @param chance The chance for the roll to succeed.
+ * @param multiplier The multiplier if the roll fails.
+ */
 export function chanceMultiplierStdDev(chance: number, multiplier: number): ValueWithDev {
     const expected = chance * (multiplier - 1) + 1;
     const stdDev = Math.sqrt(chance * (1 - chance)) * (multiplier - 1);
@@ -49,9 +76,24 @@ export function chanceMultiplierStdDev(chance: number, multiplier: number): Valu
     }
 }
 
+/**
+ * Produce a {@link ValueWithDev} that represents a fixed value with no variance.
+ *
+ * @param value The fixed value.
+ */
 export function fixedValue(value: number): ValueWithDev {
     return {
         expected: value,
         stdDev: 0
     }
+}
+
+/**
+ * Calculate a value +/- a number of standard deviations.
+ *
+ * @param value The value.
+ * @param stdDeviations The number of standard deviations to add.
+ */
+export function applyStdDev(value: ValueWithDev, stdDeviations: number) {
+    return value.expected + stdDeviations * value.stdDev;
 }

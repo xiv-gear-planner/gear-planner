@@ -37,7 +37,15 @@ import {quickElement} from "../components/util";
 import {sum} from "../util/array_utils";
 import {CooldownMode, CooldownTracker} from "./common/cooldown_manager";
 import {appDelay, completeComboData, FinalizedComboData} from "../test/sims/ability_helpers";
-import {addValues, fixedValue, multiplyFixed, multiplyValues, ValueWithDev} from "@xivgear/xivmath/deviation";
+import {
+    addValues,
+    applyStdDev,
+    fixedValue,
+    multiplyFixed,
+    multiplyValues,
+    ValueWithDev
+} from "@xivgear/xivmath/deviation";
+import {ResultSettingsArea} from "./components/result_settings";
 
 
 export type CombinedBuffEffect = {
@@ -1043,14 +1051,25 @@ export interface CycleSimResult extends SimResult {
 }
 
 export type ExternalCycleSettings<InternalSettingsType extends SimSettings> = {
-    customSettings: InternalSettingsType
+    customSettings: InternalSettingsType;
     buffConfig: BuffSettingsExport;
     cycleSettings: CycleSettings;
+    resultSettings: ResultSettings;
 }
 
 export type Rotation<CycleProcessorType = CycleProcessor> = {
     readonly cycleTime: number;
     apply(cp: CycleProcessorType): void;
+}
+
+export type ResultSettings = {
+    stdDevs: number
+}
+
+function defaultResultSettings(): ResultSettings {
+    return {
+        stdDevs: 0
+    }
 }
 
 export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, InternalSettingsType extends SimSettings, CycleProcessorType extends CycleProcessor = CycleProcessor>
@@ -1063,6 +1082,7 @@ export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, Inter
     settings: InternalSettingsType;
     readonly buffManager: BuffSettingsManager;
     readonly cycleSettings: CycleSettings;
+    readonly resultSettings: ResultSettings;
     readonly manualRun = false;
 
     protected constructor(job: JobName, settings?: ExternalCycleSettings<InternalSettingsType>) {
@@ -1071,10 +1091,12 @@ export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, Inter
             Object.assign(this.settings, settings.customSettings ?? settings);
             this.buffManager = BuffSettingsManager.fromSaved(settings.buffConfig);
             this.cycleSettings = rehydrate(settings.cycleSettings);
+            this.resultSettings = settings.resultSettings ?? defaultResultSettings();
         }
         else {
             this.cycleSettings = defaultCycleSettings();
             this.buffManager = BuffSettingsManager.defaultForJob(job);
+            this.resultSettings = defaultResultSettings();
         }
     }
 
@@ -1084,7 +1106,8 @@ export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, Inter
         return {
             customSettings: this.settings,
             buffConfig: this.buffManager.exportSetting(),
-            cycleSettings: this.cycleSettings
+            cycleSettings: this.cycleSettings,
+            resultSettings: this.resultSettings
         };
     }
 
@@ -1093,13 +1116,18 @@ export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, Inter
         const div = document.createElement("div");
         div.appendChild(cycleSettingsGui(writeProxy(this.cycleSettings, updateCallback)));
         div.appendChild(new BuffSettingsArea(this.buffManager, updateCallback));
+        div.appendChild(new ResultSettingsArea(writeProxy(this.resultSettings, updateCallback)));
         return div;
     }
 
     makeResultDisplay(result: ResultType): HTMLElement {
         const mainResultsTable = simpleAutoResultTable({
-            mainDpsResult: result.mainDpsResult,
-            unbuffedPps: result.unbuffedPps
+            "Expected DPS": result.mainDpsFull.expected,
+            "Std Deviation": result.mainDpsFull.stdDev,
+            "Expected +1σ": applyStdDev(result.mainDpsFull, 1),
+            "Expected +2σ": applyStdDev(result.mainDpsFull, 2),
+            "Expected +3σ": applyStdDev(result.mainDpsFull, 3),
+            "Unbuffed PPS": result.unbuffedPps
         });
         mainResultsTable.classList.add('main-results-table');
         const abilitiesUsedTable = new AbilitiesUsedTable(result.displayRecords);
@@ -1139,7 +1167,7 @@ export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, Inter
             const buffTimings = [...cp.buffHistory];
 
             return {
-                mainDpsResult: dps.expected,
+                mainDpsResult: applyStdDev(dps, this.resultSettings.stdDevs ?? 0),
                 totalDamage: totalDamage,
                 mainDpsFull: dps,
                 abilitiesUsed: used,
