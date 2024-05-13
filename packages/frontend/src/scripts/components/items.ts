@@ -435,6 +435,9 @@ function itemTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, stat: 
                         statCellStyler(cell, value, stat)
                     }
                 }
+                else {
+                    cell.classList.add('stat-cell');
+                }
             },
     }
 }
@@ -585,7 +588,7 @@ export class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
                         return document.createTextNode("");
                     }
                 },
-                initialWidth: 30,
+                initialWidth: 33,
                 condition: () => handledSlots === undefined || handledSlots.includes('Weapon'),
             },
             itemTableStatColumn(sheet, gearSet, 'vitality'),
