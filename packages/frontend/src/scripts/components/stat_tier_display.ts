@@ -3,7 +3,6 @@ import {GearPlanSheet} from "../components";
 import {STAT_ABBREVIATIONS, STAT_DISPLAY_ORDER} from "@xivgear/xivmath/xivconstants";
 import {RawStatKey} from "@xivgear/xivmath/geartypes";
 import {
-    critChance,
     critDmg,
     detDmg,
     dhitChance,
@@ -33,6 +32,7 @@ export class SingleStatTierDisplay extends HTMLDivElement {
     private readonly lowerLeftDiv: HTMLDivElement;
     private readonly lowerRightDiv: HTMLDivElement;
     private readonly upperDiv: HTMLDivElement;
+
     constructor(private stat: RawStatKey) {
         super();
         // Upper area - name of stat/derived value
@@ -72,6 +72,7 @@ export class SingleStatTierDisplay extends HTMLDivElement {
 
 export class StatTierDisplay extends HTMLDivElement {
     private readonly eleMap = new Map<string, SingleStatTierDisplay>();
+
     constructor(private sheet: GearPlanSheet) {
         super();
         this.classList.add('stat-tier-display');
@@ -147,17 +148,24 @@ export class StatTierDisplay extends HTMLDivElement {
                     tiering: this.getCombinedTiering(curVal, value => mpTick(levelStats, value))
                 }];
             case "crit":
+                // return [{
+                //     label: '%' + abbrev,
+                //     fullName: 'critical strike chance',
+                //     description: 'Chance to land a critical strike',
+                //     tiering: this.getCombinedTiering(curVal, value => critChance(levelStats, value))
+                // }, {
+                //     label: 'x' + abbrev,
+                //     fullName: 'critical hit multiplier',
+                //     description: 'Damage multiplier when landing a critical hit',
+                //     tiering: this.getCombinedTiering(curVal, value => critDmg(levelStats, value))
+                // }];
+                // Uncomment the above it crit chance and crit multi ever become decoupled in terms of tiering
                 return [{
-                    label: '%' + abbrev,
-                    fullName: 'critical strike chance',
-                    description: 'Chance to land a critical strike',
-                    tiering: this.getCombinedTiering(curVal, value => critChance(levelStats, value))
-                }, {
-                    label: 'x' + abbrev,
-                    fullName: 'critical hit multiplier',
-                    description: 'Damage multiplier when landing a critical hit',
+                    label: abbrev,
+                    fullName: 'critical hit',
+                    description: 'Critical hit (chance and multiplier)',
                     tiering: this.getCombinedTiering(curVal, value => critDmg(levelStats, value))
-                }];
+                }]
             case "dhit":
                 return [{
                     label: abbrev,

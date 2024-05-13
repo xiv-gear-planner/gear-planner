@@ -1,7 +1,9 @@
 body {
   --bg-color: #111113;
   --fg-color: #b0b0b0;
-  --border-color: #66666f;
+  --border-color-default: #66666f;
+  --border-color: var(--border-color-default);
+  --border-color-input: var(--border-color-default);
   --border-color-highlight: #888890;
   --table-bg-color: #202027;
   --color-sps-sks: #22ff22;
@@ -16,7 +18,9 @@ body {
   --stat-mix-secondary-bg: 6%;
   --materia-overcap-major: #ff0000;
   --materia-overcap: #dd7700;
-  --standard-border: 1px solid var(--border-color);
+  --standard-border-default: 1px solid var(--border-color);
+  --standard-border: var(--standard-border-default);
+  --standard-border-input: 1px solid var(--border-color-input);
   --soft-border: 1px solid var(--border-color);
   --thick-border: 1px solid var(--border-color);
   //--thick-border: 2px solid var(--border-color);
@@ -38,7 +42,7 @@ body {
   --plain-link-hover-color: #76cfff;
   --edge-padding: 4px;
   --stat-col-width: 40px;
-  --chance-stat-col-width: 160px;
+  --chance-stat-col-width: 157px;
   --multi-stat-col-width: 120px;
   --hp-stat-col-width: 60px;
   --bottom-flex-basis: 60%;
@@ -61,6 +65,7 @@ body {
   --input-transition-time: 0.1s;
   --tiering-color-mix: 2%;
   --abilities-row-height: 20px;
+  --button-height: 20px;
 
 
   &.light-mode {
@@ -137,9 +142,30 @@ body {
     }
   }
 
+  // TODO: this one and the one under the gear sets table have weird alignment
+  div#show-hide-menu-button-area {
+    z-index: var(--zi-show-hide-menu-button);
+    position: absolute;
+    left: 5px;
+    top: 5px;
+    width: 29px;
+    height: 29px;
+
+    button#show-hide-menu-button {
+      width: 100%;
+      height: 100%;
+      font-size: 19px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+  }
+
   div#main-menu-area {
     //border-bottom: 2px solid var(--border-color);
     text-align: center;
+    padding-left: 40px;
+    padding-right: 40px;
     //margin-bottom: 10px;
     background-color: var(--table-bg-color);
     //background-image: linear-gradient(var(--table-bg-color) 80%, var(--bg-color));
@@ -204,15 +230,11 @@ body {
 }
 
 .shadow {
-  box-shadow: var(--shadow-color) 0 0 5px 0;
+  box-shadow: var(--shadow-color) 0 3px 5px 0;
 }
 
 .shadow-big {
-  box-shadow: var(--shadow-color) 0 0 10px 0;
-}
-
-.shadow-big-inset {
-  box-shadow: var(--shadow-color) 0 0 10px 0 inset;
+  box-shadow: var(--shadow-color) 0 4px 10px 0;
 }
 
 .standard-border-radius {
@@ -220,6 +242,10 @@ body {
 }
 
 .standard-border {
+  border: var(--standard-border);
+}
+
+.standard-border-input {
   border: var(--standard-border);
 }
 
@@ -244,7 +270,11 @@ body {
 .standard-round-border {
   .standard-border-radius;
   .standard-border;
+}
 
+.standard-round-border-input {
+  .standard-border-radius;
+  .standard-border-input;
 }
 
 .borderless-button {
@@ -270,6 +300,7 @@ body {
 
    */
 
+  --zi-midbar: 1;
   --zi-sets-table-normal-columns: 70;
   --zi-sets-table-selected-cell: 71;
   --zi-sets-table-pinned-columns: 80;
@@ -278,10 +309,11 @@ body {
   --zi-sets-table-header-row: 92;
   --zi-sets-table-header-row-pinned: 95;
   --zi-sets-table-buttons-area: 99;
+  --zi-show-hide-menu-button: 120;
   --zi-slot-materia-popup: 150;
   --zi-slot-materia-popup-cell: 180;
-  --zi-add-sim-dialog: 200;
   --zi-loading-blocker: 190;
+  --zi-add-sim-dialog: 200;
   --zi-true-modal: 300;
 }
 
@@ -581,9 +613,9 @@ select {
   color: var(--fg-color);
   background-color: var(--button-color);
   .standard-border-radius;
-  border: var(--standard-border);
+  border: var(--standard-border-input);
   .button-font-style;
-  height: 20px;
+  height: var(--button-height);
   box-sizing: border-box;
 }
 
@@ -671,8 +703,10 @@ table.gear-plan-table {
     position: relative;
 
     &:first-child {
+      --sets-table-top-padding: 0;
+      --sets-table-left-padding: 0;
       position: sticky;
-      top: 0;
+      top: var(--sets-table-top-padding);
       border: var(--thick-border);
       z-index: var(--zi-sets-table-header-row);
       background-color: color-mix(in srgb, var(--table-bg-color) 60%, transparent);
@@ -996,7 +1030,7 @@ gear-plan {
     /*flex-grow: 0;*/
     /*flex-shrink: 9999;*/
     flex-basis: content;
-    overflow: auto;
+    //overflow: auto;
     min-height: 0;
     flex-shrink: 1;
     flex-grow: 1;
@@ -1007,6 +1041,20 @@ gear-plan {
     // TODO: this also causes an ugly empty area to the right.
     // maybe just always display the scrollbar?
     //scrollbar-gutter: stable;
+    padding-bottom: 5px;
+
+    .gear-sheet-table-holder-outer {
+      //margin-top: 10px;
+      background-color: var(--table-bg-color);
+      max-height: calc(100%);
+      box-sizing: border-box;
+      display: flex;
+
+      .gear-sheet-table-holder {
+        box-sizing: border-box;
+        overflow: auto;
+      }
+    }
 
   }
 
@@ -1037,16 +1085,21 @@ gear-plan {
       margin-right: 10px;
       pointer-events: auto;
       box-sizing: border-box;
-      height: 20px;
+      display: inline-block;
+      padding: 1px 4px 1px 4px;
+      vertical-align: top;
     }
 
   }
 
   .gear-sheet-midbar-area {
+    .shadow-big;
+    // want the shadow to appear above
+    z-index: var(--zi-midbar);
     border-top: var(--thick-border);
 
     .gear-sheet-toolbar-holder {
-      cursor: grab;
+      cursor: row-resize;
 
       > * > * {
         cursor: auto;
@@ -1109,7 +1162,6 @@ gear-plan {
   //margin-top: 5px;
   padding-top: 8px;
   padding-bottom: 8px;
-  .shadow-big-inset;
 
   table {
     text-align: left;
@@ -1121,6 +1173,10 @@ table.gear-items-table, table.food-items-table {
   margin-left: auto;
   margin-right: auto;
   .shadow;
+
+  show-hide-button {
+    margin-left: 15px;
+  }
 
   tr, td {
     height: 25px;
@@ -1147,6 +1203,10 @@ table.gear-items-table, table.food-items-table {
 
   td[col-id='itemname'] {
     max-width: 1px;
+  }
+
+  td[col-id='mats'], td[col-id='wd'] {
+    text-align: center;
   }
 
   tr:last-child {
@@ -1277,6 +1337,10 @@ slot-materia-manager, single-materia-view-only {
     display: inline-block;
   }
 
+  & > span:first-of-type {
+    padding-left: 3px;
+  }
+
   &.materia-overcap > span {
     color: var(--materia-overcap);
 
@@ -1300,8 +1364,14 @@ slot-materia-popup {
   left: 0;
   box-shadow: var(--shadow-color) 0 5px 10px 0;
 
+  > table {
+    border-radius: 0 !important;
+    padding: 0 !important;
+  }
+
   th {
     border-top: var(--standard-border) !important;
+    text-align: center;
   }
 
   td {
@@ -1321,7 +1391,7 @@ slot-materia-popup {
     }
 
     &:first-child {
-      text-align: right;
+      text-align: center;
       padding: 4px !important;
     }
 
@@ -1368,6 +1438,7 @@ add-sim-dialog {
     max-width: 100%;
     width: 100%;
   }
+
   .add-sim-description {
     padding-top: 20px;
     min-width: 400px;
@@ -1376,6 +1447,7 @@ add-sim-dialog {
     max-width: min-content;
     white-space: pre-wrap;
     overflow-y: auto;
+
     &.no-desc {
       opacity: 50%;
     }
@@ -1750,14 +1822,10 @@ div.labeled-checkbox {
   }
 
   @media screen and (max-width: 800px) {
-    &.showing {
+    &:not(.showing) {
       > * {
-        display: revert;
+        display: none;
       }
-    }
-
-    > * {
-      display: none;
     }
 
     .show-hide-button {
@@ -2224,7 +2292,7 @@ td.stat-melded, td.stat-melded-overcapped, td.stat-melded-overcapped-major, td.s
 }
 
 td.stat-zero {
-  color: color-mix(in srgb, var(--table-bg-color) 50%, var(--fg-color));
+  color: color-mix(in srgb, var(--table-bg-color) 75%, var(--fg-color));
 }
 
 td.primary {
@@ -2329,7 +2397,16 @@ div.vertical-spacer {
 
 span.like-a-button {
   display: inline-block;
-  padding: 1px 4px 1px 4px;
+  padding: var(--button-padding);
+  vertical-align: top;
+}
+
+// Vertically center
+div.like-a-button > span {
+  line-height: 0;
+  display: block;
+  position: relative;
+  top: 50%;
 }
 
 .drag-handle {
@@ -2413,6 +2490,7 @@ buff-settings-area {
 
       &[col-id='buffs'] {
         padding-top: 0;
+
         .active-buffs-list {
           height: 100%;
           width: 100%;
@@ -2425,6 +2503,7 @@ buff-settings-area {
             flex-shrink: 0;
             padding-right: 2px;
           }
+
           span {
             flex-shrink: 1;
             display: block;
@@ -2555,4 +2634,252 @@ rename-dialog {
 .relic-stat-excluded {
   width: 100%;
   height: 100%;
+}
+
+
+body.modern {
+  --border-color: #0000000;
+  --table-extra-padding: 10px;
+  //--item-name-col-width: 250px;
+  //--button-height: 25px;
+  table {
+
+    border-radius: 10px;
+    padding: var(--table-extra-padding);
+    background-color: var(--table-bg-color);
+
+    &.gear-plan-table {
+      border-radius: 0;
+      --table-extra-padding: 0px;
+
+      tr {
+        td[col-id="actions"] {
+          button {
+            opacity: 10%;
+          }
+        }
+      }
+
+      tr:hover, tr[is-selected="true"], tr.dragging {
+        td[col-id="actions"] {
+          button {
+            opacity: 80%;
+          }
+        }
+      }
+    }
+
+    &.gear-items-table > tbody {
+      > tr:first-child > th {
+        border-top-left-radius: var(--standard-border-radius);
+        border-top-right-radius: var(--standard-border-radius);
+      }
+
+      > tr > th[col-id] {
+        font-size: small;
+        text-align: center;
+        &[col-id='itemname'] {
+          text-align: left;
+        }
+      }
+
+      > tr > td {
+        padding-left: 5px;
+        padding-right: 5px;
+        &[col-id='itemname'] {
+          padding-left: 5px;
+        }
+      }
+    }
+
+    //Center wide stat columns
+    //th.stat-col {
+    //  &.chance-stat-col, &.multiplier-stat-col {
+    //    text-align: center;
+    //  }
+    //}
+
+  }
+
+  --border-color-input: #0000;
+  --tiering-color-mix: 5%;
+
+  &.light-mode {
+    --bg-color: #e5dad7;
+    --button-hover-color: #ddb581;
+  }
+
+  &:not(.light-mode) {
+    --table-bg-color: #24242c;
+    --button-color: var(--table-bg-color);
+  }
+
+  .stat-cell {
+    //border-radius: 2px;
+  }
+
+  .gear-sheet-midbar-area {
+    background-color: var(--button-color);
+
+    button {
+      --button-color: var(--bg-color);
+    }
+  }
+
+  gear-set-editor {
+    table all-slot-materia-manager {
+      padding-top: 5px;
+    }
+  }
+
+  materia-dragger:hover {
+    --stat-mix-secondary-bg: 20%;
+  }
+
+  .modal-dialog .modal-inner {
+    background-color: var(--bg-color);
+  }
+
+  div#main-menu-area {
+    background: none;
+    box-shadow: none;
+
+    div#main-menu-area-inner {
+      .shadow;
+      width: fit-content;
+      margin-left: auto;
+      margin-right: auto;
+      background-color: var(--table-bg-color);
+      --mmai-border-radius: 10px;
+      border-bottom-left-radius: var(--mmai-border-radius);
+      border-bottom-right-radius: var(--mmai-border-radius);
+      padding-left: var(--mmai-border-radius);
+      padding-right: var(--mmai-border-radius);
+
+    }
+  }
+
+  .gear-sheet-table-holder-outer {
+    padding: 10px;
+    border-radius: 10px;
+    margin: 5px;
+    .shadow;
+
+    .gear-sheet-table-holder {
+    }
+  }
+
+  .gear-sheet-table-area {
+    margin-bottom: 5px;
+  }
+
+  button#show-hide-menu-button {
+    .shadow;
+  }
+
+  .gear-sheet-buttons-area > * {
+    height: 25px;
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  slot-materia-popup {
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  div.gear-set-editor-toolbar > * {
+    box-shadow: none;
+    padding-left: 5px;
+    padding-right: 5px;
+  }
+}
+
+// This is intentionally not style differently based on enabled/disabled status, since it is frequently used
+// for things that are A/B choices without a clear 'true/false' mapping.
+bool-toggle {
+  display: block;
+  user-select: none;
+  //border: 1px orange solid;
+  box-sizing: border-box;
+
+  --bool-toggle-inset: 10px;
+  --border-radius: 15px;
+
+  margin: 20px;
+
+  width: 200px;
+  height: 60px;
+
+  input {
+    display: none;
+  }
+
+  --bool-toggle-bg-color: var(--button-color);
+  --bool-toggle-slider-bg-color: var(--bg-color);
+
+  .bool-toggle-label {
+    display: block;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    background-color: var(--bool-toggle-bg-color);
+    border-radius: calc(var(--border-radius) + var(--bool-toggle-inset));
+    border: var(--standard-border);
+  }
+
+  .bool-toggle-inner {
+    position: relative;
+    left: var(--bool-toggle-inset);
+    top: var(--bool-toggle-inset);
+    width: calc(100% - 2 * var(--bool-toggle-inset));
+    height: calc(100% - 2 * var(--bool-toggle-inset));
+    box-sizing: border-box;
+  }
+
+  .bool-toggle-slider {
+    width: calc(50% - var(--bool-toggle-inset));
+    height: 100%;
+    position: absolute;
+    left: 0;
+    transition: left 0.2s ease;
+    border-radius: var(--border-radius);
+    box-sizing: border-box;
+    background-color: var(--bool-toggle-slider-bg-color);
+    border: var(--standard-border);
+  }
+
+  .bool-toggle-left, .bool-toggle-right {
+    position: absolute;
+    text-align: center;
+    width: calc(50% - var(--bool-toggle-inset));
+    height: 100%;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-sizing: border-box;
+  }
+
+  .bool-toggle-left {
+    left: 0;
+  }
+
+  .bool-toggle-right {
+    right: 0;
+  }
+
+  &:has(input:checked) {
+    .bool-toggle-slider {
+      left: calc(50% + var(--bool-toggle-inset));
+    }
+  }
+
+  &:hover {
+    --bool-toggle-bg-color: var(--button-hover-color);
+  }
+
+  &:active {
+    --bool-toggle-bg-color: var(--button-active-background-color);
+  }
 }
