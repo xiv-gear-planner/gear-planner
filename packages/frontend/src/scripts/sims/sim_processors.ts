@@ -1,5 +1,5 @@
 import {ComputedSetStats} from "@xivgear/xivmath/geartypes";
-import {applyDhCrit, applyDhCritFull, baseDamage, baseDamageFull} from "@xivgear/xivmath/xivmath";
+import {applyDhCritFull, baseDamageFull} from "@xivgear/xivmath/xivmath";
 import {
     Ability,
     AutoAttack,
@@ -623,7 +623,10 @@ export class CycleProcessor {
             },
             buffs: Array.from(new Set<Buff>([...preBuffs, ...buffs])),
             usedAt: gcdStartsAt,
-            directDamage: dmgInfo.directDamage ?? {expected: 0, stdDev: 0},
+            directDamage: dmgInfo.directDamage ?? {
+                expected: 0,
+                stdDev: 0
+            },
             dot: dmgInfo.dot,
             appDelay: appDelayFromSnapshot,
             appDelayFromStart: appDelayFromStart,
@@ -1111,16 +1114,32 @@ export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, Inter
         };
     }
 
+    /**
+     * Overridable method for inserting sim-specific custom settings.
+     *
+     * @param settings       This sim's settings object.
+     * @param updateCallback A callback which should be called if any settings change.
+     */
+    makeCustomConfigInterface(settings: InternalSettingsType, updateCallback: () => void): HTMLElement | null {
+        return null;
+    }
+
     makeConfigInterface(settings: InternalSettingsType, updateCallback: () => void): HTMLElement {
         // TODO: need internal settings panel
         const div = document.createElement("div");
         div.appendChild(cycleSettingsGui(writeProxy(this.cycleSettings, updateCallback)));
+        const custom = this.makeCustomConfigInterface(settings, updateCallback);
+        if (custom) {
+            custom.classList.add('custom-sim-settings-area');
+            div.appendChild(custom);
+        }
         div.appendChild(new BuffSettingsArea(this.buffManager, updateCallback));
         div.appendChild(new ResultSettingsArea(writeProxy(this.resultSettings, updateCallback)));
         return div;
     }
 
     makeResultDisplay(result: ResultType): HTMLElement {
+        // noinspection JSNonASCIINames
         const mainResultsTable = simpleAutoResultTable({
             "Expected DPS": result.mainDpsFull.expected,
             "Std Deviation": result.mainDpsFull.stdDev,

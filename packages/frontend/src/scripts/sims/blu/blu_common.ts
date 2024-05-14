@@ -862,10 +862,8 @@ export abstract class BluSim<_BluCycleSimResult, _BluSimSettings>
         };
     }
 
-    makeConfigInterface(settings: BluSimSettings, updateCallback: () => void): HTMLElement {
+    makeCustomConfigInterface(settings: BluSimSettings, updateCallback: () => void): HTMLElement {
         const configDiv = document.createElement("div");
-        configDiv.appendChild(cycleSettingsGui(writeProxy(this.cycleSettings, updateCallback)));
-
         // insert BLU stance toggles
         const stancesDiv = document.createElement("div");
         const dpsMimicryCb = new FieldBoundCheckBox(settings, "dpsMimicryEnabled");
@@ -876,7 +874,6 @@ export abstract class BluSim<_BluCycleSimResult, _BluSimSettings>
         stancesDiv.appendChild(labeledCheckbox("Basic Instinct", basicInstinctCb));
 
         configDiv.appendChild(stancesDiv);
-        configDiv.appendChild(new BuffSettingsArea(this.buffManager, updateCallback));
         return configDiv;
     }
 
