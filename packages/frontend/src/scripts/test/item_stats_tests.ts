@@ -63,3 +63,5 @@ describe('Individual item math', () => {
 
     });
 });
+
+// TODO: add more tests for the gear sheet as a whole after untangling
