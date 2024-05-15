@@ -54,4 +54,11 @@ describe('Import Functionality', () => {
         assert.equal(result.importType, 'json');
         assert.equal(result['rawData'], json);
     });
+    it('Should recognize bis link', () => {
+        const result = parseImport('foo.bar/bis/sge/endwalker/dsr');
+        assert.equal(result.importType, 'bis');
+        assert.equal(result['path'][0], 'sge');
+        assert.equal(result['path'][1], 'endwalker');
+        assert.equal(result['path'][2], 'dsr');
+    })
 })

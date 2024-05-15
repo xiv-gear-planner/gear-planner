@@ -1,7 +1,7 @@
 // REQUIRED - sets up fake HTML classes
 import 'global-jsdom/register'
-import {it} from "mocha";
-import {SimSettings, SimSpec} from "../../simulation";
+import {describe, it} from "mocha";
+import {getRegisteredSimSpecs, SimSettings, SimSpec, Simulation} from "../../simulation";
 
 import {
     AbilityUseResult,
@@ -18,6 +18,8 @@ import {assertSimAbilityResults, setPartyBuffEnabled, UseResult} from "./sim_tes
 import {assize, dia, exampleGearSet, filler, lily, misery, nop, pom} from "./common_values";
 import {Ability} from "../../sims/sim_types";
 import * as assert from "assert";
+import {potRatioSimSpec} from "../../sims/common/potency_ratio";
+import {registerDefaultSims} from "../../sims/default_sims";
 
 // Example of end-to-end simulation
 // This one is testing the simulation engine itself, so it copies the full simulation code rather than
@@ -334,5 +336,29 @@ describe('Sim with custom cycle processor', () => {
         // Run simulation
         let result = await inst.simulate(exampleGearSet);
         assert.equal(inst.fillerCount, 1);
+    });
+});
+
+describe('Default sims', () => {
+    describe('potency ratio sim', () => {
+        it('Can instantiate, export, and load', () => {
+            const simSpec = potRatioSimSpec;
+            const inst: Simulation<any, any, any> = simSpec.makeNewSimInstance() as Simulation<any, any, any>;
+            const exported = inst.exportSettings();
+            simSpec.loadSavedSimInstance(exported);
+        });
+    });
+    describe('all others', () => {
+        registerDefaultSims();
+        const registered = getRegisteredSimSpecs();
+        for (let simSpec of registered) {
+            describe(`sim '${simSpec.displayName}'`, () => {
+                it('Can instantiate, export, and load', () => {
+                    const inst: Simulation<any, any, any> = simSpec.makeNewSimInstance() as Simulation<any, any, any>;
+                    const exported = inst.exportSettings();
+                    simSpec.loadSavedSimInstance(exported);
+                });
+            });
+        }
     });
 });
