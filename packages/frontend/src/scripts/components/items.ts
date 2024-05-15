@@ -1,4 +1,4 @@
-import {CharacterGearSet, ItemSingleStatDetail, nonEmptyRelicStats} from "../gear";
+import {CharacterGearSet, ItemSingleStatDetail, nonEmptyRelicStats, previewItemStatDetail} from "../gear";
 import {
     DisplayGearSlot,
     EquipmentSet,
@@ -366,7 +366,7 @@ function itemTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, stat: 
                     return set.getStatDetail(slotItem.slotId, stat);
                 }
                 else {
-                    return set.previewItemStatDetail(item, stat);
+                    return previewItemStatDetail(item, stat);
                 }
             }
         },
