@@ -380,31 +380,36 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
             {
                 shortName: "setname",
                 displayName: "Set Name",
-                getter: (gearSet => viewOnly ? ({
-                    name: gearSet.name,
-                    desc: gearSet.description
-                }) : gearSet.name),
-                renderer: value => {
+                getter: (gearSet => gearSet),
+                renderer: (value: CharacterGearSet) => {
                     const nameSpan = document.createElement('span');
-                    if (value instanceof Object) {
-                        nameSpan.textContent = value.name;
-                        const div = document.createElement('div');
+                    const div = document.createElement('div');
+                    div.appendChild(nameSpan);
+                    nameSpan.textContent = value.name;
+                    const trimmedDesc = value.description?.trim();
+                    let title = value.name;
+                    // Description is only on view-only mode
+                    if (viewOnly) {
                         div.classList.add('set-name-desc-holder');
-
-                        div.appendChild(nameSpan);
-
-                        const trimmedDesc = value.desc?.trim();
                         const descSpan = document.createElement('span');
+                        div.appendChild(descSpan);
                         if (trimmedDesc) {
                             descSpan.textContent = trimmedDesc;
                         }
-                        div.appendChild(descSpan);
-                        return div;
                     }
-                    else {
-                        nameSpan.textContent = value;
-                        return nameSpan;
+                    if (trimmedDesc) {
+                        title += '\n' + trimmedDesc;
                     }
+                    const issues = value.results.issues;
+                    if (issues.length > 0) {
+                        nameSpan.textContent = '!!! ' + nameSpan.textContent;
+                        title += '\nThis set has problems:';
+                        for (let issue of issues) {
+                            title += `\n - ${issue.severity}: ${issue.description}`;
+                        }
+                    }
+                    div.title = title;
+                    return div;
                 }
                 // initialWidth: 300,
             },

@@ -6,7 +6,9 @@
     "build": "tsc --build"
   },
   "devDependencies": {
-    "ts-node": "^10.9.2"
+    "ts-node": "^10.9.2",
+    "chai": "^4.4.1",
+    "@types/chai": "^4.3.16"
   },
   "exports": {
     "./*": "./src/*.ts"
