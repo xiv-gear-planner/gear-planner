@@ -50,6 +50,7 @@ body {
   --materia-box-shadow-spread: 2px;
   --input-background-color: var(--bg-color);
   --relic-stat-input-background-color: var(--bg-color);
+  --relic-stat-input-background-hover-color: #26263f;
   --loading-spinner-color: #fff;
   --button-active-background-color: #121446;
   --button-active-border-color: #ffffff;
@@ -88,6 +89,7 @@ body {
     --action-button-hover-color: #833e1d;
     --table-selected-outline-color: #d28996;
     --relic-stat-input-background-color: #efab8a;
+    --relic-stat-input-background-hover-color: #ffc2a5;
     --loading-spinner-color: #210;
     --button-active-background-color: #d27d32;
     --button-active-border-color: #734100;
@@ -1847,6 +1849,10 @@ input.gear-items-table-relic-stat-input, select.gear-items-table-relic-stat-inpu
   &.relic-validation-failed {
     border: 2px solid red;
   }
+
+  &:hover, &:active, &:focus {
+    background: var(--relic-stat-input-background-hover-color);
+  }
 }
 
 select.gear-items-table-relic-stat-input {
@@ -1924,6 +1930,8 @@ show-hide-button {
     position: relative;
     background-color: var(--table-bg-color);
     .standard-round-border;
+    border-radius: var(10px);
+    .shadow-big;
     text-align: center;
     padding: 10px;
 
