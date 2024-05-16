@@ -1281,9 +1281,11 @@ table all-slot-materia-manager {
     display: inline-block;
   }
 
-  &.materia-slot-no-slots > span {
-    color: var(--border-color);
-
+  &.materia-slot-no-slots, &.materia-slot-no-equip {
+    & > span {
+      //color: var(--border-color);
+      opacity: 50%;
+    }
   }
 }
 
