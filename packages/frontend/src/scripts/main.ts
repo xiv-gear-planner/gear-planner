@@ -384,8 +384,17 @@ document.addEventListener("DOMContentLoaded", () => {
     // iosPolyfill();
     registerDefaultSims();
     earlyUiSetup();
-    // TODO: this causes the server component to throw an error since addEventListener is not defined
+    // TODO: this causes the server component to throw an error since addEventListener is not defined,
+    // but this may actually be fine to take advantage of in some way, since we don't *want* unnecessary
+    // stuff to happen.
     addEventListener("hashchange", processHash);
+    // Stop double click selection
+    document.addEventListener("dblclick", e => e.preventDefault());
+    document.addEventListener("mousedown", e => {
+        if (e.detail >= 2) {
+            e.preventDefault();
+        }
+    });
     initialLoad();
 });
 
