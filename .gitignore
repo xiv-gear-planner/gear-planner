@@ -4,3 +4,4 @@
 .idea/*.xml
 .vs/
 **/tsconfig.tsbuildinfo
+**/.nyc_output/

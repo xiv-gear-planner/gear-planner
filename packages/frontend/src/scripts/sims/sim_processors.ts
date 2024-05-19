@@ -22,13 +22,14 @@ import {
     AUTOATTACK_APPLICATION_DELAY,
     CAST_SNAPSHOT_PRE,
     CASTER_TAX,
+    JOB_DATA,
     JobName,
     NORMAL_GCD,
     STANDARD_ANIMATION_LOCK
 } from "@xivgear/xivmath/xivconstants";
 import {simpleAutoResultTable, SimResult, SimSettings, SimSpec, Simulation} from "../simulation";
 import {BuffSettingsArea, BuffSettingsExport, BuffSettingsManager} from "./party_comp_settings";
-import {CycleSettings, defaultCycleSettings, rehydrate} from "./cycle_settings";
+import {CycleSettings} from "./cycle_settings";
 import {CharacterGearSet} from "../gear";
 import {cycleSettingsGui} from "./components/cycle_settings_components";
 import {writeProxy} from "../util/proxies";
@@ -623,6 +624,7 @@ export class CycleProcessor {
             },
             buffs: Array.from(new Set<Buff>([...preBuffs, ...buffs])),
             usedAt: gcdStartsAt,
+            // TODO: replace with 'fixed'
             directDamage: dmgInfo.directDamage ?? {
                 expected: 0,
                 stdDev: 0
@@ -1088,16 +1090,16 @@ export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, Inter
     readonly resultSettings: ResultSettings;
     readonly manualRun = false;
 
-    protected constructor(job: JobName, settings?: ExternalCycleSettings<InternalSettingsType>) {
+    protected constructor(public readonly job: JobName, settings?: ExternalCycleSettings<InternalSettingsType>) {
         this.settings = this.makeDefaultSettings();
         if (settings !== undefined) {
             Object.assign(this.settings, settings.customSettings ?? settings);
             this.buffManager = BuffSettingsManager.fromSaved(settings.buffConfig);
-            this.cycleSettings = rehydrate(settings.cycleSettings);
+            this.cycleSettings = this.rehydrateCycleSettings(settings.cycleSettings);
             this.resultSettings = settings.resultSettings ?? defaultResultSettings();
         }
         else {
-            this.cycleSettings = defaultCycleSettings();
+            this.cycleSettings = this.defaultCycleSettings();
             this.buffManager = BuffSettingsManager.defaultForJob(job);
             this.resultSettings = defaultResultSettings();
         }
@@ -1155,6 +1157,30 @@ export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, Inter
 
     makeToolTip(result: ResultType): string {
         return `DPS: ${result.mainDpsResult}\nUnbuffed PPS: ${result.unbuffedPps}\n`;
+    }
+
+    get useAutosByDefault(): boolean {
+        // future TODO: flip this when 7.0 drops.
+        // Not changing now such as to not cause confusion with existing sheets.
+        // Also, this should arguably be added as a property to the job data itself.
+        // const jobData = JOB_DATA[this.job];
+        // return jobData.role !== 'Healer' && jobData.role !== 'Caster';
+        return true;
+    }
+
+    defaultCycleSettings(): CycleSettings {
+        return {
+            cycles: 6,
+            totalTime: 6 * 120,
+            which: 'totalTime',
+            useAutos: this.useAutosByDefault,
+        }
+    }
+
+    rehydrateCycleSettings(imported: Partial<CycleSettings>): CycleSettings {
+        const out = this.defaultCycleSettings();
+        Object.assign(out, imported);
+        return out;
     }
 
     abstract getRotationsToSimulate(): Rotation<CycleProcessorType>[];
