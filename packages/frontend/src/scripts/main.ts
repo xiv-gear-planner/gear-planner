@@ -11,6 +11,7 @@ import {registerDefaultSims} from "./sims/default_sims";
 import {BIS_HASH, EMBED_HASH, SHORTLINK_HASH, VIEW_SET_HASH, VIEW_SHEET_HASH} from "./common_nav";
 import {DISPLAY_SETTINGS} from "./settings/display_settings";
 import {showSettingsModal} from "./settings/settings_modal";
+import {installDoubleClickHandler} from "./util/stop_double_click";
 
 export const contentArea = document.getElementById("content-area");
 // export const midBarArea = document.getElementById("mid-controls-area");
@@ -389,12 +390,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // stuff to happen.
     addEventListener("hashchange", processHash);
     // Stop double click selection
-    document.addEventListener("dblclick", e => e.preventDefault());
-    document.addEventListener("mousedown", e => {
-        if (e.detail >= 2) {
-            e.preventDefault();
-        }
-    });
+    installDoubleClickHandler();
     initialLoad();
 });
 
