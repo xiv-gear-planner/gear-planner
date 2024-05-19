@@ -66,7 +66,7 @@ import {getCurrentHash, getHashForSaveKey, openSheetByKey, setTitle, showNewShee
 import {getSetFromEtro} from "./external/etro_import";
 import {Inactivitytimer} from "./util/inactivitytimer";
 import {
-    DataSelect,
+    DataSelect, errorIcon,
     faIcon,
     FieldBoundCheckBox,
     FieldBoundDataSelect,
@@ -76,7 +76,7 @@ import {
     labelFor,
     makeActionButton,
     positiveValuesOnly,
-    quickElement
+    quickElement, warningIcon
 } from "./components/util";
 import {LoadingBlocker} from "./components/loader";
 import {FoodItemsTable, FoodItemViewTable, GearItemsTable, GearItemsViewTable} from "./components/items";
@@ -384,7 +384,6 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                 renderer: (value: CharacterGearSet) => {
                     const nameSpan = document.createElement('span');
                     const div = document.createElement('div');
-                    div.appendChild(nameSpan);
                     nameSpan.textContent = value.name;
                     const trimmedDesc = value.description?.trim();
                     let title = value.name;
@@ -402,12 +401,18 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                     }
                     const issues = value.results.issues;
                     if (issues.length > 0) {
-                        nameSpan.textContent = '!!! ' + nameSpan.textContent;
+                        if (issues.find(issue => issue.severity === 'error')) {
+                            div.appendChild(errorIcon());
+                        }
+                        else {
+                            div.appendChild(warningIcon());
+                        }
                         title += '\nThis set has problems:';
                         for (let issue of issues) {
                             title += `\n - ${issue.severity}: ${issue.description}`;
                         }
                     }
+                    div.appendChild(nameSpan);
                     div.title = title;
                     return div;
                 }

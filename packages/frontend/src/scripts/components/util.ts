@@ -1,4 +1,4 @@
-export function makeActionButton(label: string | (Node|string)[], action: (ev: MouseEvent) => void, tooltip?: string) {
+export function makeActionButton(label: string | (Node | string)[], action: (ev: MouseEvent) => void, tooltip?: string) {
     const button = document.createElement("button");
     if (label instanceof Object) {
         button.replaceChildren(...label);
@@ -253,11 +253,13 @@ export class FieldBoundConvertingTextField<ObjType, FieldType> extends HTMLInput
                 for (let listener of this.listeners) {
                     try {
                         listener(newValue);
-                    } catch (e) {
+                    }
+                    catch (e) {
                         console.error("Error in listener", e);
                     }
                 }
-            } catch (e) {
+            }
+            catch (e) {
                 this._validationMessage = e.toString();
                 return;
             }
@@ -315,7 +317,8 @@ export class FieldBoundConvertingTextField2<ObjType, Field extends keyof ObjType
             for (let listener of this.listeners) {
                 try {
                     listener(newValue);
-                } catch (e) {
+                }
+                catch (e) {
                     console.error("Error in listener", e);
                 }
             }
@@ -447,11 +450,18 @@ export function quickElement<X extends keyof HTMLElementTagNameMap>(tag: X, clas
     return element;
 }
 
-function makeSvgGlyph(viewbox: string, pathD: string) {
-    const svg = document.createElementNS("http://www.w3.org/2000/svg", 'svg');
+function makePath(pathD: string) {
     const path = document.createElementNS("http://www.w3.org/2000/svg", 'path');
     path.setAttribute('d', pathD);
-    svg.appendChild(path);
+    return path;
+}
+
+function makeSvgGlyph(viewbox: string, ...paths: string[]) {
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", 'svg');
+    for (let pathD of paths) {
+        const path = makePath(pathD);
+        svg.appendChild(path);
+    }
     svg.classList.add('svg-glyph');
     svg.setAttribute("viewBox", viewbox);
     return svg;
@@ -480,6 +490,28 @@ export function makeCloseButton() {
 
 export function makeChevronDown() {
     return makeSvgGlyph("0 0 512 512", "M233.4 406.6c12.5 12.5 32.8 12.5 45.3 0l192-192c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L256 338.7 86.6 169.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l192 192z")
+}
+
+// from https://www.svgrepo.com/
+export function warningIcon() {
+    const svg = makeSvgGlyph(
+        "0 0 48 48",
+        "M24,9,40.6,39H7.5L24,9M2.3,40A2,2,0,0,0,4,43H44a2,2,0,0,0,1.7-3L25.7,4a2,2,0,0,0-3.4,0Z",
+        "M22,19v9a2,2,0,0,0,4,0V19a2,2,0,0,0-4,0Z");
+    const circle = document.createElementNS("http://www.w3.org/2000/svg", 'circle');
+    circle.setAttribute('cx', "24");
+    circle.setAttribute('cy', "34");
+    circle.setAttribute('r', "2");
+    svg.appendChild(circle);
+    return svg;
+}
+
+// from https://www.svgrepo.com/
+export function errorIcon() {
+    return makeSvgGlyph(
+        "0 0 48 48",
+        "M43.4,15.1,32.9,4.6A2,2,0,0,0,31.5,4h-15a2,2,0,0,0-1.4.6L4.6,15.1A2,2,0,0,0,4,16.5v15a2,2,0,0,0,.6,1.4L15.1,43.4a2,2,0,0,0,1.4.6h15a2,2,0,0,0,1.4-.6L43.4,32.9a2,2,0,0,0,.6-1.4v-15A2,2,0,0,0,43.4,15.1ZM40,30.6,30.6,40H17.4L8,30.6V17.4L17.4,8H30.6L40,17.4Z",
+        "M26.8,24l5.6-5.6a2,2,0,0,0-2.8-2.8L24,21.2l-5.6-5.6a2,2,0,0,0-2.8,2.8L21.2,24l-5.6,5.6a1.9,1.9,0,0,0,0,2.8,1.9,1.9,0,0,0,2.8,0L24,26.8l5.6,5.6a1.9,1.9,0,0,0,2.8,0,1.9,1.9,0,0,0,0-2.8Z");
 }
 
 customElements.define("option-data-element", OptionDataElement, {extends: "option"});
