@@ -624,11 +624,7 @@ export class CycleProcessor {
             },
             buffs: Array.from(new Set<Buff>([...preBuffs, ...buffs])),
             usedAt: gcdStartsAt,
-            // TODO: replace with 'fixed'
-            directDamage: dmgInfo.directDamage ?? {
-                expected: 0,
-                stdDev: 0
-            },
+            directDamage: dmgInfo.directDamage ?? fixedValue(0),
             dot: dmgInfo.dot,
             appDelay: appDelayFromSnapshot,
             appDelayFromStart: appDelayFromStart,
