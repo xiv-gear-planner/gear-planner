@@ -1,5 +1,5 @@
 import {ComputedSetStats} from "@xivgear/xivmath/geartypes";
-import {applyDhCrit, baseDamage} from "@xivgear/xivmath/xivmath";
+import {applyDhCritFull, baseDamageFull} from "@xivgear/xivmath/xivmath";
 import {
     Ability,
     AutoAttack,
@@ -38,6 +38,15 @@ import {quickElement} from "../components/util";
 import {sum} from "../util/array_utils";
 import {CooldownMode, CooldownTracker} from "./common/cooldown_manager";
 import {appDelay, completeComboData, FinalizedComboData} from "../test/sims/ability_helpers";
+import {
+    addValues,
+    applyStdDev,
+    fixedValue,
+    multiplyFixed,
+    multiplyValues,
+    ValueWithDev
+} from "@xivgear/xivmath/deviation";
+import {ResultSettingsArea} from "./components/result_settings";
 
 
 export type CombinedBuffEffect = {
@@ -88,12 +97,10 @@ function dotPotencyToDamage(stats: ComputedSetStats, potency: number, dmgAbility
     // TODO: are there any dots with auto-crit or auto-dh?
     const forceDh = false;
     const forceCrit = false;
-    const nonCritDmg = baseDamage(modifiedStats, potency, dmgAbility.attackType, forceDh, forceCrit, true);
-    const afterCritDh = applyDhCrit(nonCritDmg, modifiedStats);
-    const afterDmgBuff = afterCritDh * combinedBuffEffects.dmgMod;
-    return {
-        expected: afterDmgBuff,
-    }
+    // TODO: why is autoDH true
+    const nonCritDmg = baseDamageFull(modifiedStats, potency, dmgAbility.attackType, forceDh, forceCrit, true);
+    const afterCritDh = applyDhCritFull(nonCritDmg, modifiedStats);
+    return multiplyFixed(afterCritDh, combinedBuffEffects.dmgMod);
 }
 
 function potencyToDamage(stats: ComputedSetStats, potency: number, dmgAbility: DamagingAbility, combinedBuffEffects: CombinedBuffEffect): ComputedDamage {
@@ -102,39 +109,16 @@ function potencyToDamage(stats: ComputedSetStats, potency: number, dmgAbility: D
     modifiedStats.dhitChance += combinedBuffEffects.dhitChanceIncrease;
     const forceDhit = dmgAbility.autoDh || combinedBuffEffects.forceDhit;
     const forceCrit = dmgAbility.autoCrit || combinedBuffEffects.forceCrit;
-    const nonCritDmg = baseDamage(modifiedStats, potency, dmgAbility.attackType, forceDhit, forceCrit);
-    const afterCritDh = applyDhCrit(nonCritDmg, {
+    const nonCritDmg = baseDamageFull(modifiedStats, potency, dmgAbility.attackType, forceDhit, forceCrit);
+    const afterCritDh = applyDhCritFull(nonCritDmg, {
         ...modifiedStats,
         critChance: forceCrit ? 1 : modifiedStats.critChance,
         dhitChance: forceDhit ? 1 : modifiedStats.dhitChance,
     });
-    const afterDmgBuff = afterCritDh * combinedBuffEffects.dmgMod;
-    return {
-        expected: afterDmgBuff,
-    }
-}
-
-export function abilityToDamage(stats: ComputedSetStats, ability: Ability, combinedBuffEffects: CombinedBuffEffect, portion: number = 1): ComputedDamage {
-    const basePot = ability.potency;
-    if (!ability.potency) {
-        return {
-            expected: 0
-        }
-    }
-    else {
-        // TODO: messy
-        const dmgAbility = ability as DamagingAbility;
-        const modifiedStats = {...stats};
-        modifiedStats.critChance += combinedBuffEffects.critChanceIncrease;
-        modifiedStats.dhitChance += combinedBuffEffects.dhitChanceIncrease;
-        const nonCritDmg = baseDamage(modifiedStats, basePot, dmgAbility.attackType, dmgAbility.autoDh ?? false, dmgAbility.autoCrit ?? false);
-        const afterCritDh = applyDhCrit(nonCritDmg, modifiedStats);
-        const afterDmgBuff = afterCritDh * combinedBuffEffects.dmgMod;
-        const afterPortion = afterDmgBuff * portion;
-        return {
-            expected: afterPortion,
-        }
-    }
+    return multiplyValues(afterCritDh, {
+        expected: combinedBuffEffects.dmgMod,
+        stdDev: 0
+    });
 }
 
 export type DamageResult = {
@@ -541,18 +525,20 @@ export class CycleProcessor {
             if (isAbilityUse(record)) {
 
                 const partialRate = record.totalTimeTaken > 0 ? Math.max(0, Math.min(1, (this.totalTime - record.usedAt) / record.totalTimeTaken)) : 1;
-                const directDamage = record.directDamage.expected * partialRate;
+                const directDamage = multiplyFixed(record.directDamage, partialRate);
                 const dot = record.dot;
-                const dotDmg = dot ? dot.damagePerTick.expected * dot.actualTickCount : 0;
-                const totalDamage = directDamage + dotDmg;
+                const dotDmg = dot ? multiplyFixed(dot.damagePerTick, dot.actualTickCount) : fixedValue(0);
+                const totalDamage = addValues(directDamage, dotDmg);
                 const totalPotency = record.ability.potency + ('dot' in record.ability ? record.ability.dot.tickPotency * record.dot.actualTickCount : 0);
                 return {
                     usedAt: record.usedAt,
                     original: record,
                     partialRate: partialRate == 1 ? null : partialRate,
-                    directDamage: directDamage,
+                    directDamage: directDamage.expected,
+                    directDamageFull: directDamage,
                     dotInfo: dot,
-                    totalDamage: totalDamage,
+                    totalDamage: totalDamage.expected,
+                    totalDamageFull: totalDamage,
                     totalPotency: totalPotency,
                     buffs: record.buffs,
                     combinedEffects: record.combinedEffects,
@@ -638,7 +624,7 @@ export class CycleProcessor {
             },
             buffs: Array.from(new Set<Buff>([...preBuffs, ...buffs])),
             usedAt: gcdStartsAt,
-            directDamage: dmgInfo.directDamage ?? {expected: 0},
+            directDamage: dmgInfo.directDamage ?? fixedValue(0),
             dot: dmgInfo.dot,
             appDelay: appDelayFromSnapshot,
             appDelayFromStart: appDelayFromStart,
@@ -1057,22 +1043,34 @@ export type DisplayRecordUnf = AbilityUseRecordUnf | SpecialRecord;
 export type DisplayRecordFinalized = FinalizedAbility | SpecialRecord;
 
 export interface CycleSimResult extends SimResult {
-    abilitiesUsed: readonly AbilityUseRecordUnf[],
-    // TODO
+    abilitiesUsed: readonly FinalizedAbility[],
     displayRecords: readonly DisplayRecordFinalized[],
     unbuffedPps: number,
-    buffTimings: readonly BuffUsage[]
+    buffTimings: readonly BuffUsage[],
+    totalDamage: ValueWithDev,
+    mainDpsFull: ValueWithDev
 }
 
 export type ExternalCycleSettings<InternalSettingsType extends SimSettings> = {
-    customSettings: InternalSettingsType
+    customSettings: InternalSettingsType;
     buffConfig: BuffSettingsExport;
     cycleSettings: CycleSettings;
+    resultSettings: ResultSettings;
 }
 
 export type Rotation<CycleProcessorType = CycleProcessor> = {
     readonly cycleTime: number;
     apply(cp: CycleProcessorType): void;
+}
+
+export type ResultSettings = {
+    stdDevs: number
+}
+
+function defaultResultSettings(): ResultSettings {
+    return {
+        stdDevs: 0
+    }
 }
 
 export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, InternalSettingsType extends SimSettings, CycleProcessorType extends CycleProcessor = CycleProcessor>
@@ -1085,6 +1083,7 @@ export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, Inter
     settings: InternalSettingsType;
     readonly buffManager: BuffSettingsManager;
     readonly cycleSettings: CycleSettings;
+    readonly resultSettings: ResultSettings;
     readonly manualRun = false;
 
     protected constructor(public readonly job: JobName, settings?: ExternalCycleSettings<InternalSettingsType>) {
@@ -1093,10 +1092,12 @@ export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, Inter
             Object.assign(this.settings, settings.customSettings ?? settings);
             this.buffManager = BuffSettingsManager.fromSaved(settings.buffConfig);
             this.cycleSettings = this.rehydrateCycleSettings(settings.cycleSettings);
+            this.resultSettings = settings.resultSettings ?? defaultResultSettings();
         }
         else {
             this.cycleSettings = this.defaultCycleSettings();
             this.buffManager = BuffSettingsManager.defaultForJob(job);
+            this.resultSettings = defaultResultSettings();
         }
     }
 
@@ -1106,22 +1107,44 @@ export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, Inter
         return {
             customSettings: this.settings,
             buffConfig: this.buffManager.exportSetting(),
-            cycleSettings: this.cycleSettings
+            cycleSettings: this.cycleSettings,
+            resultSettings: this.resultSettings
         };
+    }
+
+    /**
+     * Overridable method for inserting sim-specific custom settings.
+     *
+     * @param settings       This sim's settings object.
+     * @param updateCallback A callback which should be called if any settings change.
+     */
+    makeCustomConfigInterface(settings: InternalSettingsType, updateCallback: () => void): HTMLElement | null {
+        return null;
     }
 
     makeConfigInterface(settings: InternalSettingsType, updateCallback: () => void): HTMLElement {
         // TODO: need internal settings panel
         const div = document.createElement("div");
         div.appendChild(cycleSettingsGui(writeProxy(this.cycleSettings, updateCallback)));
+        const custom = this.makeCustomConfigInterface(settings, updateCallback);
+        if (custom) {
+            custom.classList.add('custom-sim-settings-area');
+            div.appendChild(custom);
+        }
         div.appendChild(new BuffSettingsArea(this.buffManager, updateCallback));
+        div.appendChild(new ResultSettingsArea(writeProxy(this.resultSettings, updateCallback)));
         return div;
     }
 
     makeResultDisplay(result: ResultType): HTMLElement {
+        // noinspection JSNonASCIINames
         const mainResultsTable = simpleAutoResultTable({
-            mainDpsResult: result.mainDpsResult,
-            unbuffedPps: result.unbuffedPps
+            "Expected DPS": result.mainDpsFull.expected,
+            "Std Deviation": result.mainDpsFull.stdDev,
+            "Expected +1σ": applyStdDev(result.mainDpsFull, 1),
+            "Expected +2σ": applyStdDev(result.mainDpsFull, 2),
+            "Expected +3σ": applyStdDev(result.mainDpsFull, 3),
+            "Unbuffed PPS": result.unbuffedPps
         });
         mainResultsTable.classList.add('main-results-table');
         const abilitiesUsedTable = new AbilitiesUsedTable(result.displayRecords);
@@ -1178,20 +1201,21 @@ export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, Inter
             });
             rot.apply(cp);
 
-            const used = cp.finalizedRecords;
-            const cycleDamage = sum(used.map(used => isFinalizedAbilityUse(used) ? used.totalDamage : 0));
-            const dps = cycleDamage / cp.currentTime;
-            const unbuffedPps = sum(used.map(used => isFinalizedAbilityUse(used) ? used.totalPotency : 0)) / cp.nextGcdTime;
+            const used = cp.finalizedRecords.filter(isFinalizedAbilityUse);
+            const totalDamage = addValues(...used.map(used => used.totalDamageFull));
+            const dps = multiplyFixed(totalDamage, 1.0 / cp.currentTime);
+            const unbuffedPps = sum(used.map(used => used.totalPotency)) / cp.nextGcdTime;
             const buffTimings = [...cp.buffHistory];
 
             return {
-                mainDpsResult: dps,
+                mainDpsResult: applyStdDev(dps, this.resultSettings.stdDevs ?? 0),
+                totalDamage: totalDamage,
+                mainDpsFull: dps,
                 abilitiesUsed: used,
                 displayRecords: cp.finalizedRecords,
                 unbuffedPps: unbuffedPps,
                 buffTimings: buffTimings
-                // TODO
-            } as unknown as ResultType;
+            } satisfies CycleSimResult as unknown as ResultType;
         });
         allResults.sort((a, b) => b.mainDpsResult - a.mainDpsResult);
         console.debug("Sim end");

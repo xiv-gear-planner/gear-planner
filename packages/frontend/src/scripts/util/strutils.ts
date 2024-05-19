@@ -1,5 +1,8 @@
 // https://stackoverflow.com/a/39718708
 export function camel2title(camelCase: string): string {
+    if (camelCase.includes(' ')) {
+        return camelCase;
+    }
     return camelCase
         .replace(/([A-Z])/g, (match) => ` ${match}`)
         .replace(/^./, (match) => match.toUpperCase())
