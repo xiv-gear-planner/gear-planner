@@ -401,12 +401,17 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                     }
                     const issues = value.results.issues;
                     if (issues.length > 0) {
+                        let icon: Element;
                         if (issues.find(issue => issue.severity === 'error')) {
-                            div.appendChild(errorIcon());
+                            icon = errorIcon();
+                            icon.classList.add('gear-set-error-icon')
                         }
                         else {
-                            div.appendChild(warningIcon());
+                            icon = warningIcon();
+                            icon.classList.add('gear-set-warning-icon')
                         }
+                        icon.classList.add('gear-set-issue-icon')
+                        div.appendChild(icon);
                         title += '\nThis set has problems:';
                         for (let issue of issues) {
                             title += `\n - ${issue.severity}: ${issue.description}`;

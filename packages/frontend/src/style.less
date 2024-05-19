@@ -67,6 +67,8 @@ body {
   --tiering-color-mix: 2%;
   --abilities-row-height: 20px;
   --button-height: 20px;
+  --issue-warning-color: #be5116;
+  --issue-error-color: #9c0000;
 
 
   &.light-mode {
@@ -572,6 +574,13 @@ table {
 
       &[col-id="setname"] {
         border-left: none;
+        >div {
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        .gear-set-issue-icon {
+          margin-right: 5px;
+        }
       }
 
       &[col-id="icon"] {
@@ -2900,3 +2909,11 @@ bool-toggle {
     --bool-toggle-bg-color: var(--button-active-background-color);
   }
 }
+
+svg.gear-set-warning-icon {
+  fill: var(--issue-warning-color);
+}
+svg.gear-set-error-icon {
+  fill: var(--issue-error-color);
+}
+
