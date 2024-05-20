@@ -521,6 +521,7 @@ export class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
                 getter: item => {
                     return item.item.ilvl.toString();
                 },
+                fixedWidth: 32
             },
             {
                 shortName: "icon",
