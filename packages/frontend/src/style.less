@@ -1503,6 +1503,10 @@ gear-set-editor {
     > * {
       .shadow;
     }
+
+    > .issues-button {
+      min-width: 84px;
+    }
   }
 
   > * {
@@ -2912,8 +2916,38 @@ bool-toggle {
 
 svg.gear-set-warning-icon {
   fill: var(--issue-warning-color);
+  margin-right: 5px;
 }
 svg.gear-set-error-icon {
   fill: var(--issue-error-color);
+  margin-right: 5px;
 }
 
+gear-set-issues-modal {
+
+  &.has-issues {
+    .modal-content-area {
+      text-align: left;
+    }
+  }
+
+  .modal-inner {
+    width: 400px;
+    .modal-content-area {
+      .gear-set-issue-block {
+        display: flex;
+        margin: 25px;
+        >span {
+          flex-basis: fit-content;
+        }
+        >svg {
+          margin-right: 10px;
+          flex-shrink: 0;
+          width: 18px;
+          height: 18px;
+        }
+      }
+    }
+  }
+
+}

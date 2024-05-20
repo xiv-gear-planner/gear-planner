@@ -95,6 +95,7 @@ import {BaseModal} from "./components/modal";
 import {closeModal} from "./modalcontrol";
 import {scrollIntoView} from "./util/scrollutil";
 import {getBisSheet} from "./external/static_bis";
+import {gearSetErrorIcon, gearSetWarningIcon, iconForIssues, SetIssuesModal} from "./components/gear_set_issues";
 
 export const SHARED_SET_NAME = 'Imported Set';
 
@@ -383,15 +384,14 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                 getter: (gearSet => gearSet),
                 renderer: (value: CharacterGearSet) => {
                     const nameSpan = document.createElement('span');
-                    const div = document.createElement('div');
+                    const elements: Element[] = [nameSpan];
                     nameSpan.textContent = value.name;
                     const trimmedDesc = value.description?.trim();
                     let title = value.name;
                     // Description is only on view-only mode
                     if (viewOnly) {
-                        div.classList.add('set-name-desc-holder');
                         const descSpan = document.createElement('span');
-                        div.appendChild(descSpan);
+                        elements.push(descSpan);
                         if (trimmedDesc) {
                             descSpan.textContent = trimmedDesc;
                         }
@@ -401,23 +401,19 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                     }
                     const issues = value.results.issues;
                     if (issues.length > 0) {
-                        let icon: Element;
-                        if (issues.find(issue => issue.severity === 'error')) {
-                            icon = errorIcon();
-                            icon.classList.add('gear-set-error-icon')
-                        }
-                        else {
-                            icon = warningIcon();
-                            icon.classList.add('gear-set-warning-icon')
-                        }
+                        const icon = iconForIssues(...issues);
                         icon.classList.add('gear-set-issue-icon')
-                        div.appendChild(icon);
+                        nameSpan.prepend(icon);
+                        // elements.unshift(icon);
+                        // div.appendChild(icon);
                         title += '\nThis set has problems:';
                         for (let issue of issues) {
                             title += `\n - ${issue.severity}: ${issue.description}`;
                         }
                     }
-                    div.appendChild(nameSpan);
+                    const div = document.createElement('div');
+                    div.classList.add('set-name-desc-holder');
+                    div.replaceChildren(...elements);
                     div.title = title;
                     return div;
                 }
@@ -709,6 +705,7 @@ export class GearSetEditor extends HTMLElement {
     private gearTables: GearItemsTable[] = [];
     private header: HTMLHeadingElement;
     private desc: HTMLDivElement;
+    private issuesButtonContent: HTMLSpanElement;
 
     constructor(sheet: GearPlanSheet, gearSet: CharacterGearSet) {
         super();
@@ -729,6 +726,16 @@ export class GearSetEditor extends HTMLElement {
         }
     }
 
+    checkIssues() {
+        const issues = this.gearSet.issues;
+        if (issues.length >= 1) {
+            this.issuesButtonContent.replaceChildren(iconForIssues(...issues), `${issues.length} issue${issues.length === 1 ? '' : 's'}`);
+        }
+        else {
+            this.issuesButtonContent.replaceChildren('No issues');
+        }
+    }
+
     setup() {
         // const header = document.createElement("h1");
         // header.textContent = "Gear Set Editor";
@@ -746,13 +753,21 @@ export class GearSetEditor extends HTMLElement {
         this.appendChild(this.desc);
         this.formatTitleDesc();
 
+        this.issuesButtonContent = document.createElement('span');
+
+        const issuesButton = makeActionButton([this.issuesButtonContent], () => {
+            this.showIssuesModal();
+        });
+        issuesButton.classList.add('issues-button');
+
         const buttonArea = quickElement('div', ['gear-set-editor-button-area', 'button-row'], [
             makeActionButton('Export This Set', () => {
                 startExport(this.gearSet);
             }),
             makeActionButton('Change Name/Description', () => {
                 startRenameSet(writeProxy(this.gearSet, () => this.formatTitleDesc()));
-            })
+            }),
+            issuesButton
         ]);
 
         this.appendChild(buttonArea);
@@ -815,10 +830,20 @@ export class GearSetEditor extends HTMLElement {
         foodTable.classList.add('food-table');
         // foodTable.id = "food-items-table";
         this.appendChild(foodTable);
+        this.checkIssues();
     }
 
     refreshMateria() {
         this.gearTables.forEach(tbl => tbl.refreshMateria());
+        this.checkIssues();
+    }
+
+    showIssuesModal(): void {
+        new SetIssuesModal(this.gearSet).attachAndShow();
+    }
+
+    refresh() {
+        this.checkIssues();
     }
 }
 
@@ -1709,6 +1734,9 @@ export class GearPlanSheet extends HTMLElement {
             if (this._gearPlanTable) {
                 this._gearPlanTable.refreshRowData(gearSet);
                 this.refreshToolbar();
+                if (this._editorItem === gearSet) {
+                    this._editorAreaNode?.['refresh']();
+                }
             }
             this.requestSave();
         });
