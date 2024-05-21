@@ -1,4 +1,4 @@
-import {GearPlanSheet, ImportSheetArea, NewSheetForm, SheetPickerTable} from "./components";
+import {GearPlanSheet} from "./components";
 import {SetExport, SheetExport} from "@xivgear/xivmath/geartypes";
 import {quickElement} from "./components/util";
 import {getShortLink} from "./external/shortlink_server";
@@ -12,6 +12,10 @@ import {BIS_HASH, EMBED_HASH, SHORTLINK_HASH, VIEW_SET_HASH, VIEW_SHEET_HASH} fr
 import {DISPLAY_SETTINGS} from "./settings/display_settings";
 import {showSettingsModal} from "./settings/settings_modal";
 import {installDoubleClickHandler} from "./util/stop_double_click";
+import {NamedSection} from "./components/section";
+import {ImportSheetArea} from "./components/import_sheet";
+import {SheetPickerTable} from "./components/saved_sheet_picker";
+import {NewSheetForm} from "./components/new_sheet_form";
 
 export const contentArea = document.getElementById("content-area");
 // export const midBarArea = document.getElementById("mid-controls-area");
@@ -214,8 +218,10 @@ export function showLoadingScreen() {
 
 export function showNewSheetForm() {
     setHash('newsheet');
+    const section = new NamedSection('New Gear Planning Sheet');
     const form = new NewSheetForm(openSheet);
-    setMainContent('New Sheet', form);
+    section.contentArea.replaceChildren(form);
+    setMainContent('New Sheet', section);
     form.takeFocus();
 }
 
@@ -326,8 +332,12 @@ export async function openSheet(planner: GearPlanSheet, changeHash: boolean = tr
 }
 
 function showSheetPickerMenu() {
-    const holderDiv = quickElement('div', ['sheet-picker-holder'], [new SheetPickerTable()]);
-    setMainContent(undefined, holderDiv);
+    const picker = new SheetPickerTable();
+    const section = new NamedSection('My Sheets', false);
+    section.classList.add('my-sheets-section');
+    section.contentArea.replaceChildren(picker);
+    // const holderDiv = quickElement('div', ['sheet-picker-holder'], [new SheetPickerTable()]);
+    setMainContent(undefined, section);
     // contentArea.replaceChildren(new SheetPickerTable());
     // setTitle(undefined);
 }

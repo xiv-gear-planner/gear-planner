@@ -574,10 +574,12 @@ table {
 
       &[col-id="setname"] {
         border-left: none;
-        >div {
+
+        > div {
           overflow: hidden;
           text-overflow: ellipsis;
         }
+
         .gear-set-issue-icon {
           margin-right: 5px;
         }
@@ -931,84 +933,87 @@ div.chance-stat-display, div.multiplier-stat-display {
   border: none;
 }
 
-div.sheet-picker-holder {
-  margin-top: 0;
-  overflow: auto;
-  display: flex;
-  flex-direction: column;
+#content-area > .my-sheets-section {
+  .named-section-content-area {
+    width: 600px;
+    table.gear-sheets-table {
+      overflow: auto;
+      padding: 0;
+      width: 100%;
 
-  table.gear-sheets-table {
-    overflow: auto;
-    margin: 50px auto auto auto !important;
 
-    min-width: 600px;
-
-    border: var(--standard-border);
-
-    tr {
-      height: 23px;
-      max-height: 23px;
-    }
-
-    td {
-      border: none;
-      border-top: var(--standard-border);
-    }
-
-    th {
-      --thick-border: none;
-    }
-
-    .new-sheet-row:hover {
-      .svg-glyph {
-        fill: var(--action-button-hover-color);
-      }
-    }
-
-    .new-sheet-row th {
-      font-weight: normal;
-
-      i, svg {
-        padding-left: 8px;
-        padding-right: 8px;
-      }
-    }
-
-    td[col-id="sheetactions"] {
-      width: 50px;
-      max-height: 23px;
-      height: 23px;
-
-      .svg-glyph {
-        font-size: 13.2px;
+      tr {
+        height: 23px;
+        max-height: 23px;
       }
 
-      i {
-        font-size: 14px;
+      tr:first-child {
+        th {
+          position: sticky;
+          top: 0;
+          z-index: 1;
+        }
       }
 
-      > div {
-        display: inline-block;
-        height: 20px;
+      td {
+        border: none;
+        border-top: var(--standard-border);
       }
 
-      button {
-        .borderless-button;
-        padding: 0;
-        margin-left: 0;
+      th {
+        --thick-border: none;
       }
 
-      //
-      //div {
-      //  display: flex;
-      //
-      //  button {
-      //    flex: 1;
-      //  }
-      //}
+      .new-sheet-row:hover {
+        .svg-glyph {
+          fill: var(--action-button-hover-color);
+        }
+      }
+
+      .new-sheet-row th {
+        font-weight: normal;
+
+        i, svg {
+          padding-left: 8px;
+          padding-right: 8px;
+        }
+      }
+
+      td[col-id="sheetactions"] {
+        width: 50px;
+        max-height: 23px;
+        height: 23px;
+
+        .svg-glyph {
+          font-size: 13.2px;
+        }
+
+        i {
+          font-size: 14px;
+        }
+
+        > div {
+          display: inline-block;
+          height: 20px;
+        }
+
+        button {
+          .borderless-button;
+          padding: 0;
+          margin-left: 0;
+        }
+
+        //
+        //div {
+        //  display: flex;
+        //
+        //  button {
+        //    flex: 1;
+        //  }
+        //}
+      }
     }
   }
-
 }
 
 gear-plan {
@@ -1471,6 +1476,10 @@ add-sim-dialog {
 #sim-config-area-outer {
   margin: auto;
   width: fit-content;
+
+  >input, >button {
+    .shadow;
+  }
 
   .sim-name-editor {
     display: block;
@@ -2442,6 +2451,8 @@ buff-settings-area {
 
   table {
     border: none;
+    border-collapse: separate;
+    border-spacing: 0 8px;
 
     tr {
       background-color: transparent;
@@ -2470,14 +2481,17 @@ buff-settings-area {
     margin: auto;
 
     .round-table;
+    .shadow-big;
 
   }
 
   .main-results-table {
     margin-bottom: 20px;
+
     td {
       padding-left: 15px;
       padding-right: 15px;
+
       &[col-id='value'] {
         text-align: right;
       }
@@ -2708,6 +2722,7 @@ body.modern {
       > tr > th[col-id] {
         font-size: small;
         text-align: center;
+
         &[col-id='itemname'] {
           text-align: left;
         }
@@ -2716,6 +2731,7 @@ body.modern {
       > tr > td {
         padding-left: 5px;
         padding-right: 5px;
+
         &[col-id='itemname'] {
           padding-left: 5px;
         }
@@ -2918,6 +2934,7 @@ svg.gear-set-warning-icon {
   fill: var(--issue-warning-color);
   margin-right: 5px;
 }
+
 svg.gear-set-error-icon {
   fill: var(--issue-error-color);
   margin-right: 5px;
@@ -2933,14 +2950,17 @@ gear-set-issues-modal {
 
   .modal-inner {
     width: 400px;
+
     .modal-content-area {
       .gear-set-issue-block {
         display: flex;
         margin: 25px;
-        >span {
+
+        > span {
           flex-basis: fit-content;
         }
-        >svg {
+
+        > svg {
           margin-right: 10px;
           flex-shrink: 0;
           width: 18px;
@@ -2949,5 +2969,52 @@ gear-set-issues-modal {
       }
     }
   }
+}
 
+.named-section {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  >h3 {
+    margin-top: 0;
+    margin-bottom: 18px;
+  }
+}
+
+.named-section-standard {
+  max-height: calc(100% - 50px);
+  max-width: calc(100% - 50px);
+  background-color: var(--table-bg-color);
+  .shadow-big;
+  margin: 20px auto 20px auto;
+  width: fit-content;
+  height: fit-content;
+  padding: 20px;
+  border-radius: 10px;
+  .named-section-content-area {
+    max-width: 100%;
+    overflow: auto;
+  }
+
+  &.invert-input-colors {
+    --button-color: var(--bg-color);
+
+    input, textarea {
+      background-color: var(--bg-color);
+    }
+  }
+
+}
+
+#content-area > .named-section {
+  .named-section-standard;
+}
+
+#sim-config-area-inner > .named-section {
+  .named-section-standard;
+  width: 100%;
+
+  label[for='cycle-total-time'] {
+    margin-right: 10px;
+  }
 }

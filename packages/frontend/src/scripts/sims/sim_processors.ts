@@ -47,6 +47,7 @@ import {
     ValueWithDev
 } from "@xivgear/xivmath/deviation";
 import {ResultSettingsArea} from "./components/result_settings";
+import {NamedSection} from "../components/section";
 
 
 export type CombinedBuffEffect = {
@@ -1129,7 +1130,9 @@ export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, Inter
         const custom = this.makeCustomConfigInterface(settings, updateCallback);
         if (custom) {
             custom.classList.add('custom-sim-settings-area');
-            div.appendChild(custom);
+            const section = new NamedSection('Sim-Specific Settings');
+            section.contentArea.append(custom);
+            div.appendChild(section);
         }
         div.appendChild(new BuffSettingsArea(this.buffManager, updateCallback));
         div.appendChild(new ResultSettingsArea(writeProxy(this.resultSettings, updateCallback)));

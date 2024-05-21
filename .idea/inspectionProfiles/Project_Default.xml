@@ -11,7 +11,7 @@
     <inspection_tool class="HtmlUnknownTag" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="myValues">
         <value>
-          <list size="39">
+          <list size="40">
             <item index="0" class="java.lang.String" itemvalue="nobr" />
             <item index="1" class="java.lang.String" itemvalue="noembed" />
             <item index="2" class="java.lang.String" itemvalue="comment" />
@@ -51,6 +51,7 @@
             <item index="36" class="java.lang.String" itemvalue="show-hide-button" />
             <item index="37" class="java.lang.String" itemvalue="bool-toggle" />
             <item index="38" class="java.lang.String" itemvalue="gear-set-issues-modal" />
+            <item index="39" class="java.lang.String" itemvalue="named-section" />
           </list>
         </value>
       </option>

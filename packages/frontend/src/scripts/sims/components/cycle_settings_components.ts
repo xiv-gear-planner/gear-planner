@@ -6,19 +6,20 @@ import {
     labelFor,
     positiveValuesOnly
 } from "../../components/util";
+import {NamedSection} from "../../components/section";
 
 export function cycleSettingsGui(cycleSettings: CycleSettings) {
-    const out = document.createElement('div')
+    const out = new NamedSection('Cycle Settings');
     const timeField = new FieldBoundFloatField(cycleSettings, 'totalTime', {
         inputMode: 'number',
         postValidators: [positiveValuesOnly]
     });
     timeField.id = 'cycle-total-time';
     const label = labelFor('Total Time:', timeField);
-    out.appendChild(label);
-    out.appendChild(timeField);
-    out.appendChild(document.createElement('br'));
+    out.contentArea.appendChild(label);
+    out.contentArea.appendChild(timeField);
+    out.contentArea.appendChild(document.createElement('br'));
     const autosCb = new FieldBoundCheckBox(cycleSettings, 'useAutos');
-    out.appendChild(labeledCheckbox('Use Auto-Attacks', autosCb));
+    out.contentArea.appendChild(labeledCheckbox('Use Auto-Attacks', autosCb));
     return out;
 }
