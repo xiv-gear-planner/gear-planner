@@ -1,7 +1,8 @@
-import {CharacterGearSet, ItemSingleStatDetail, nonEmptyRelicStats} from "../gear";
+import {CharacterGearSet, ItemSingleStatDetail, nonEmptyRelicStats, previewItemStatDetail} from "../gear";
 import {
     DisplayGearSlot,
-    EquipmentSet, EquippedItem,
+    EquipmentSet,
+    EquippedItem,
     EquipSlotInfo,
     EquipSlotKey,
     EquipSlots,
@@ -24,7 +25,12 @@ import {
     SpecialRow,
     TitleRow
 } from "../tables";
-import {formatAcquisitionSource, MateriaSubstat, MateriaSubstats, STAT_ABBREVIATIONS} from "@xivgear/xivmath/xivconstants";
+import {
+    formatAcquisitionSource,
+    MateriaSubstat,
+    MateriaSubstats,
+    STAT_ABBREVIATIONS
+} from "@xivgear/xivmath/xivconstants";
 import {FieldBoundCheckBox, FieldBoundIntField, labeledCheckbox, makeChevronDown} from "./util";
 import {AllSlotMateriaManager} from "./materia";
 import {GearPlanSheet} from "../components";
@@ -49,13 +55,13 @@ function statCellStylerRemover(cell: CustomCell<GearSlotItem, any>) {
  * describes meld values and whether it has overcapped or not.
  * @param stat The stat
  */
-function statCellStyler(cell: CustomCell<GearSlotItem, any>, value: number | ItemSingleStatDetail, stat: keyof RawStats) {
+function statCellStyler(cell: CustomCell<GearSlotItem, any>, value: ItemSingleStatDetail, stat: keyof RawStats) {
 
     let isPrimary: boolean = false;
     let isSecondary: boolean = false;
     cell.classList.add("stat-cell", "stat-" + stat);
     if (cell.dataItem.item.isCustomRelic) {
-        const current = (value instanceof Object) ? value.fullAmount : value;
+        const current = value.fullAmount;
         const cap = cell.dataItem.item.statCaps[stat];
         if (cap) {
             if (current >= cap) {
@@ -87,7 +93,7 @@ function statCellStyler(cell: CustomCell<GearSlotItem, any>, value: number | Ite
         cell.classList.remove("primary");
     }
 
-    if (cell._cellValue === 0) {
+    if (value.effectiveAmount === 0) {
         cell.classList.add("stat-zero");
     }
     else {
@@ -96,32 +102,27 @@ function statCellStyler(cell: CustomCell<GearSlotItem, any>, value: number | Ite
     cell.classList.remove("stat-melded-overcapped");
     cell.classList.remove("stat-melded-overcapped-major");
     cell.classList.remove("stat-melded");
-    if (value instanceof Object) {
-        let modeLabel;
-        if (value.mode === 'melded') {
-            modeLabel = 'Melded: \n';
-            cell.classList.add("stat-melded");
-        }
-        else if (value.mode === 'melded-overcapped') {
-            modeLabel = 'Overcapped: \n';
-            cell.classList.add("stat-melded-overcapped");
-        }
-        else if (value.mode === 'melded-overcapped-major') {
-            modeLabel = 'Overcapped: \n';
-            cell.classList.add("stat-melded-overcapped-major");
-        }
-        else if (value.mode === 'synced-down') {
-            modeLabel = 'Synced Down: \n';
-            cell.classList.add("stat-synced-down");
-        }
-        else {
-            modeLabel = '';
-        }
-        cell.title = `${modeLabel}${value.fullAmount} / ${value.cap}`;
+    let modeLabel;
+    if (value.mode === 'melded') {
+        modeLabel = 'Melded: \n';
+        cell.classList.add("stat-melded");
+    }
+    else if (value.mode === 'melded-overcapped') {
+        modeLabel = 'Overcapped: \n';
+        cell.classList.add("stat-melded-overcapped");
+    }
+    else if (value.mode === 'melded-overcapped-major') {
+        modeLabel = 'Overcapped: \n';
+        cell.classList.add("stat-melded-overcapped-major");
+    }
+    else if (value.mode === 'synced-down') {
+        modeLabel = 'Synced Down: \n';
+        cell.classList.add("stat-synced-down");
     }
     else {
-        delete cell.title;
+        modeLabel = '';
     }
+    cell.title = `${modeLabel}${value.fullAmount} / ${value.cap}`;
 }
 
 /**
@@ -336,7 +337,7 @@ class RelicCellInfo {
     }
 }
 
-function itemTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, stat: RawStatKey, highlightPrimarySecondary: boolean = false): CustomColumnSpec<GearSlotItem, number | ItemSingleStatDetail | RelicCellInfo, any> {
+function itemTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, stat: RawStatKey, highlightPrimarySecondary: boolean = false): CustomColumnSpec<GearSlotItem, ItemSingleStatDetail | RelicCellInfo, any> {
     return {
         shortName: stat,
         displayName: STAT_ABBREVIATIONS[stat],
@@ -365,29 +366,11 @@ function itemTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, stat: 
                     return set.getStatDetail(slotItem.slotId, stat);
                 }
                 else {
-                    if (item.isSyncedDown) {
-                        const unsynced = item.unsyncedVersion.stats[stat];
-                        const synced = item.stats[stat];
-                        if (synced < unsynced) {
-                            return {
-                                effectiveAmount: synced,
-                                fullAmount: unsynced,
-                                overcapAmount: unsynced - synced,
-                                cap: synced,
-                                mode: "synced-down"
-                            }
-                        }
-                        else {
-                            return synced;
-                        }
-                    }
-                    else {
-                        return item.stats[stat];
-                    }
+                    return previewItemStatDetail(item, stat);
                 }
             }
         },
-        renderer: (value: number | ItemSingleStatDetail | RelicCellInfo) => {
+        renderer: (value: ItemSingleStatDetail | RelicCellInfo) => {
             // First, check if the cell is an editable relic stat
             if (value instanceof RelicCellInfo) {
                 const equipment: EquippedItem = value.set.equipment[value.slotId];
@@ -415,12 +398,7 @@ function itemTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, stat: 
                     return null;
                 }
             }
-            else if (value instanceof Object) {
-                return document.createTextNode(value.effectiveAmount.toString());
-            }
-            else {
-                return document.createTextNode(value.toString());
-            }
+            return document.createTextNode(value.effectiveAmount.toString());
         },
         initialWidth: 33,
         condition:
@@ -445,6 +423,7 @@ function itemTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, stat: 
 // TODO: this is generic, so move it out
 class ShowHideButton extends HTMLElement {
     private _hidden: boolean;
+
     constructor(initiallyHidden: boolean = false, private setter: (newValue: boolean) => void) {
         super();
         this._hidden = initiallyHidden;

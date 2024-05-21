@@ -67,6 +67,8 @@ body {
   --tiering-color-mix: 2%;
   --abilities-row-height: 20px;
   --button-height: 20px;
+  --issue-warning-color: #be5116;
+  --issue-error-color: #9c0000;
 
 
   &.light-mode {
@@ -572,6 +574,13 @@ table {
 
       &[col-id="setname"] {
         border-left: none;
+        >div {
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        .gear-set-issue-icon {
+          margin-right: 5px;
+        }
       }
 
       &[col-id="icon"] {
@@ -1493,6 +1502,10 @@ gear-set-editor {
 
     > * {
       .shadow;
+    }
+
+    > .issues-button {
+      min-width: 84px;
     }
   }
 
@@ -2899,4 +2912,42 @@ bool-toggle {
   &:active {
     --bool-toggle-bg-color: var(--button-active-background-color);
   }
+}
+
+svg.gear-set-warning-icon {
+  fill: var(--issue-warning-color);
+  margin-right: 5px;
+}
+svg.gear-set-error-icon {
+  fill: var(--issue-error-color);
+  margin-right: 5px;
+}
+
+gear-set-issues-modal {
+
+  &.has-issues {
+    .modal-content-area {
+      text-align: left;
+    }
+  }
+
+  .modal-inner {
+    width: 400px;
+    .modal-content-area {
+      .gear-set-issue-block {
+        display: flex;
+        margin: 25px;
+        >span {
+          flex-basis: fit-content;
+        }
+        >svg {
+          margin-right: 10px;
+          flex-shrink: 0;
+          width: 18px;
+          height: 18px;
+        }
+      }
+    }
+  }
+
 }

@@ -2,6 +2,7 @@ import {
     ALL_SUB_STATS,
     ARTIFACT_ITEM_LEVELS,
     BASIC_TOME_GEAR_ILVLS,
+    bluWdfromInt,
     EMPTY_STATS,
     FAKE_MAIN_STATS,
     getLevelStats,
@@ -18,31 +19,34 @@ import {
     RaceName,
     RAID_TIER_ILVLS,
     SPECIAL_SUB_STATS,
-    statById,
-    bluWdfromInt
+    statById
 } from "@xivgear/xivmath/xivconstants";
 import {
     ComputedSetStats,
     DisplayGearSlot,
     DisplayGearSlotInfo,
     DisplayGearSlotKey,
-    EquipmentSet, EquippedItem,
+    EquipmentSet,
+    EquippedItem, EquipSlotInfo,
     EquipSlotKey,
     EquipSlots,
     FoodItem,
     GearAcquisitionSource,
-    GearItem, GearSetIssue, GearSetResult,
+    GearItem,
+    GearSetIssue,
+    GearSetResult,
     Materia,
     MateriaAutoFillController,
     MateriaAutoFillPrio,
     MateriaSlot,
-    MeldableMateriaSlot,
     NO_SYNC_STATS,
     OccGearSlotKey,
     RawStatKey,
-    RawStats, RelicStatModel, RelicStats, SetDisplaySettingsExport,
+    RawStats,
+    RelicStatModel,
+    RelicStats,
+    SetDisplaySettingsExport,
     StatBonus,
-    Substat,
     XivCombatItem
 } from "@xivgear/xivmath/geartypes";
 import {GearPlanSheet} from "./components";
@@ -116,6 +120,45 @@ export class SetDisplaySettings {
 
     import(imported: SetDisplaySettingsExport) {
         imported.hiddenSlots.forEach(slot => this.hiddenSlots.set(slot, true));
+    }
+}
+
+export function previewItemStatDetail(item: GearItem, stat: RawStatKey): ItemSingleStatDetail {
+    const cap = item.statCaps[stat];
+    if (item.isSyncedDown) {
+        const unsynced = item.unsyncedVersion.stats[stat];
+        const synced = item.stats[stat];
+        // TODO: I don't really like that 'unsynced' and 'cap' are used kind of interchangeably
+        // here, even though they *should* be the same at this point.
+        if (synced < unsynced) {
+            return {
+                effectiveAmount: synced,
+                fullAmount: unsynced,
+                overcapAmount: unsynced - synced,
+                cap: cap,
+                mode: "synced-down"
+            }
+        }
+        else {
+            return {
+                mode: 'unmelded',
+                effectiveAmount: synced,
+                fullAmount: synced,
+                cap: cap,
+                overcapAmount: 0
+            };
+        }
+    }
+    else {
+        // If there is later an ability to make melds sticky, this would be a good place to implement 'previewing' it.
+        const statAmount = item.stats[stat];
+        return {
+            mode: 'unmelded',
+            effectiveAmount: statAmount,
+            fullAmount: statAmount,
+            overcapAmount: 0,
+            cap: cap,
+        }
     }
 }
 
@@ -272,6 +315,7 @@ export class CharacterGearSet {
     }
 
     get results(): GearSetResult {
+        const issues: GearSetIssue[] = [];
         if (!this._dirtyComp) {
             return this._lastResult;
         }
@@ -285,7 +329,9 @@ export class CharacterGearSet {
         // Item stats
         for (let key of EquipSlots) {
             if (this.equipment[key]) {
-                addStats(combinedStats, this.getSlotEffectiveStats(key));
+                const slotEffectiveStatsFull = this.getSlotEffectiveStatsFull(key);
+                addStats(combinedStats, slotEffectiveStatsFull.stats);
+                issues.push(...slotEffectiveStatsFull.issues);
             }
         }
 
@@ -321,7 +367,6 @@ export class CharacterGearSet {
         const computedStats = finalizeStats(combinedStats, level, levelStats, classJob, classJobStats, this._sheet.partyBonus);
         const leftRing = this.getItemInSlot('RingLeft');
         const rightRing = this.getItemInSlot('RingRight');
-        const issues: GearSetIssue[] = [];
         if (leftRing && leftRing.isUnique && rightRing && rightRing.isUnique) {
             if (leftRing.id === rightRing.id) {
                 issues.push({
@@ -345,35 +390,56 @@ export class CharacterGearSet {
         return this._lastResult;
     }
 
-    getSlotEffectiveStats(slotId: EquipSlotKey): RawStats {
+    getSlotEffectiveStatsFull(slotId: EquipSlotKey): {
+        stats: RawStats,
+        issues: GearSetIssue[]
+    } {
+        const issues: GearSetIssue[] = [];
         const equip = this.equipment[slotId];
         if (!equip.gearItem) {
-            return EMPTY_STATS;
+            return {
+                stats: EMPTY_STATS,
+                issues: []
+            };
         }
         const itemStats = new RawStats(equip.gearItem.stats);
         // Note for future: if we ever get an item that has both custom stats AND materia, this logic will need to be extended.
         for (let stat of ALL_SUB_STATS) {
             const statDetail = this.getStatDetail(slotId, stat);
-            if (statDetail instanceof Object) {
-                itemStats[stat] = statDetail.effectiveAmount;
-            }
-            else {
-                itemStats[stat] = statDetail;
+            itemStats[stat] = statDetail.effectiveAmount;
+            if (statDetail.mode === 'melded-overcapped-major') {
+                issues.push({
+                    severity: "warning",
+                    description: `${EquipSlotInfo[slotId].name} is overcapped, losing ${statDetail.overcapAmount} ${stat}.`
+                });
             }
         }
-        return itemStats;
+        return {
+            stats: itemStats,
+            issues: issues
+        };
     }
 
-    getStatDetail(slotId: keyof EquipmentSet, stat: RawStatKey, materiaOverride?: Materia[]): ItemSingleStatDetail | number {
-        // TODO: work this into the normal stat computation method
+
+    getSlotEffectiveStats(slotId: EquipSlotKey): RawStats {
+        return this.getSlotEffectiveStatsFull(slotId).stats;
+    }
+
+    getStatDetail(slotId: keyof EquipmentSet, stat: RawStatKey, materiaOverride?: Materia[]): ReturnType<typeof this.getEquipStatDetail> {
         const equip = this.equipment[slotId];
         return this.getEquipStatDetail(equip, stat, materiaOverride);
     }
 
-    getEquipStatDetail(equip: EquippedItem, stat: RawStatKey, materiaOverride?: Materia[]): ItemSingleStatDetail | number {
+    getEquipStatDetail(equip: EquippedItem, stat: RawStatKey, materiaOverride?: Materia[]): ItemSingleStatDetail {
         const gearItem = equip.gearItem;
         if (!gearItem) {
-            return 0;
+            return {
+                mode: 'unequipped',
+                overcapAmount: 0,
+                effectiveAmount: 0,
+                fullAmount: 0,
+                cap: 0
+            };
         }
         const stats = new RawStats(gearItem.stats);
         if (equip.relicStats) {
@@ -394,7 +460,13 @@ export class CharacterGearSet {
                     }
                 }
                 else {
-                    return current;
+                    return {
+                        effectiveAmount: current,
+                        fullAmount: current,
+                        overcapAmount: 0,
+                        cap: cap,
+                        mode: 'unmelded'
+                    }
                 }
             }
             else {
@@ -410,7 +482,13 @@ export class CharacterGearSet {
                     }
                 }
                 else {
-                    return synced;
+                    return {
+                        effectiveAmount: synced,
+                        fullAmount: synced,
+                        overcapAmount: 0,
+                        cap: synced,
+                        mode: 'unmelded'
+                    }
                 }
             }
         }
@@ -428,7 +506,13 @@ export class CharacterGearSet {
         }
         // Not melded or melds are not relevant to this stat
         if (meldedStatValue === baseItemStatValue) {
-            return meldedStatValue;
+            return {
+                mode: 'unmelded',
+                overcapAmount: 0,
+                effectiveAmount: meldedStatValue,
+                fullAmount: meldedStatValue,
+                cap: meldedStatValue
+            }
         }
         // Overcapped
         const overcapAmount = meldedStatValue - cap;
@@ -564,13 +648,41 @@ export function applyStatCaps(stats: RawStats, statCaps: { [K in RawStatKey]?: n
     return out;
 }
 
-export interface ItemSingleStatDetail {
+/**
+ * Represents a single stat of an item (possibly equipped) or item slot.
+ *
+ * 'mode' is a general description of what is going on with the item/slot.
+ * 'unmelded' and 'synced-down' are self-explanatory.
+ * 'melded' means it is melded and is not overcapped at all.
+ * 'melded-overcapped' means that you're wasting a small amount of stats. See xivconstants' MATERIA_ACCEPTABLE_OVERCAP_LOSS.
+ * 'melded-overcapped-major' means that you're wasting a larger amount of stats via overcapped melds.
+ * 'unequipped' is only applicable when examining a slot rather than specific item. It means there is nothing equipped in that slot.
+ *
+ * 'effectiveAmount' is the amount of the stat actually being provided.
+ * 'fullAmount' is the amount that would be provided if not capped.
+ * 'overcapAmount' is how much is being lost by syncing down or overcapping materia.
+ * 'cap' is the cap.
+ */
+export type ItemSingleStatDetail = {
+    // TODO: see if there's a way to enforce that effectiveAmount == fullAMount == cap for this branch
+    mode: 'unmelded' | 'melded',
+    overcapAmount: 0,
     effectiveAmount: number,
     fullAmount: number,
-    overcapAmount: number,
     cap: number,
-    mode: 'unmelded' | 'melded' | 'melded-overcapped' | 'melded-overcapped-major' | 'synced-down';
-}
+} | {
+    mode: 'melded-overcapped' | 'melded-overcapped-major' | 'synced-down',
+    overcapAmount: number,
+    effectiveAmount: number,
+    fullAmount: number,
+    cap: number,
+} | {
+    mode: 'unequipped',
+    overcapAmount: 0,
+    effectiveAmount: 0,
+    fullAmount: 0,
+    cap: 0,
+};
 
 export class XivApiGearInfo implements GearItem {
     id: number;

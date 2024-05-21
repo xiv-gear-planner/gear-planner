@@ -66,7 +66,7 @@ import {getCurrentHash, getHashForSaveKey, openSheetByKey, setTitle, showNewShee
 import {getSetFromEtro} from "./external/etro_import";
 import {Inactivitytimer} from "./util/inactivitytimer";
 import {
-    DataSelect,
+    DataSelect, errorIcon,
     faIcon,
     FieldBoundCheckBox,
     FieldBoundDataSelect,
@@ -76,7 +76,7 @@ import {
     labelFor,
     makeActionButton,
     positiveValuesOnly,
-    quickElement
+    quickElement, warningIcon
 } from "./components/util";
 import {LoadingBlocker} from "./components/loader";
 import {FoodItemsTable, FoodItemViewTable, GearItemsTable, GearItemsViewTable} from "./components/items";
@@ -95,6 +95,7 @@ import {BaseModal} from "./components/modal";
 import {closeModal} from "./modalcontrol";
 import {scrollIntoView} from "./util/scrollutil";
 import {getBisSheet} from "./external/static_bis";
+import {gearSetErrorIcon, gearSetWarningIcon, iconForIssues, SetIssuesModal} from "./components/gear_set_issues";
 
 export const SHARED_SET_NAME = 'Imported Set';
 
@@ -380,31 +381,41 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
             {
                 shortName: "setname",
                 displayName: "Set Name",
-                getter: (gearSet => viewOnly ? ({
-                    name: gearSet.name,
-                    desc: gearSet.description
-                }) : gearSet.name),
-                renderer: value => {
+                getter: (gearSet => gearSet),
+                renderer: (value: CharacterGearSet) => {
                     const nameSpan = document.createElement('span');
-                    if (value instanceof Object) {
-                        nameSpan.textContent = value.name;
-                        const div = document.createElement('div');
-                        div.classList.add('set-name-desc-holder');
-
-                        div.appendChild(nameSpan);
-
-                        const trimmedDesc = value.desc?.trim();
+                    const elements: Element[] = [nameSpan];
+                    nameSpan.textContent = value.name;
+                    const trimmedDesc = value.description?.trim();
+                    let title = value.name;
+                    // Description is only on view-only mode
+                    if (viewOnly) {
                         const descSpan = document.createElement('span');
+                        elements.push(descSpan);
                         if (trimmedDesc) {
                             descSpan.textContent = trimmedDesc;
                         }
-                        div.appendChild(descSpan);
-                        return div;
                     }
-                    else {
-                        nameSpan.textContent = value;
-                        return nameSpan;
+                    if (trimmedDesc) {
+                        title += '\n' + trimmedDesc;
                     }
+                    const issues = value.results.issues;
+                    if (issues.length > 0) {
+                        const icon = iconForIssues(...issues);
+                        icon.classList.add('gear-set-issue-icon')
+                        nameSpan.prepend(icon);
+                        // elements.unshift(icon);
+                        // div.appendChild(icon);
+                        title += '\nThis set has problems:';
+                        for (let issue of issues) {
+                            title += `\n - ${issue.severity}: ${issue.description}`;
+                        }
+                    }
+                    const div = document.createElement('div');
+                    div.classList.add('set-name-desc-holder');
+                    div.replaceChildren(...elements);
+                    div.title = title;
+                    return div;
                 }
                 // initialWidth: 300,
             },
@@ -694,6 +705,7 @@ export class GearSetEditor extends HTMLElement {
     private gearTables: GearItemsTable[] = [];
     private header: HTMLHeadingElement;
     private desc: HTMLDivElement;
+    private issuesButtonContent: HTMLSpanElement;
 
     constructor(sheet: GearPlanSheet, gearSet: CharacterGearSet) {
         super();
@@ -714,6 +726,16 @@ export class GearSetEditor extends HTMLElement {
         }
     }
 
+    checkIssues() {
+        const issues = this.gearSet.issues;
+        if (issues.length >= 1) {
+            this.issuesButtonContent.replaceChildren(iconForIssues(...issues), `${issues.length} issue${issues.length === 1 ? '' : 's'}`);
+        }
+        else {
+            this.issuesButtonContent.replaceChildren('No issues');
+        }
+    }
+
     setup() {
         // const header = document.createElement("h1");
         // header.textContent = "Gear Set Editor";
@@ -731,13 +753,21 @@ export class GearSetEditor extends HTMLElement {
         this.appendChild(this.desc);
         this.formatTitleDesc();
 
+        this.issuesButtonContent = document.createElement('span');
+
+        const issuesButton = makeActionButton([this.issuesButtonContent], () => {
+            this.showIssuesModal();
+        });
+        issuesButton.classList.add('issues-button');
+
         const buttonArea = quickElement('div', ['gear-set-editor-button-area', 'button-row'], [
             makeActionButton('Export This Set', () => {
                 startExport(this.gearSet);
             }),
             makeActionButton('Change Name/Description', () => {
                 startRenameSet(writeProxy(this.gearSet, () => this.formatTitleDesc()));
-            })
+            }),
+            issuesButton
         ]);
 
         this.appendChild(buttonArea);
@@ -800,10 +830,20 @@ export class GearSetEditor extends HTMLElement {
         foodTable.classList.add('food-table');
         // foodTable.id = "food-items-table";
         this.appendChild(foodTable);
+        this.checkIssues();
     }
 
     refreshMateria() {
         this.gearTables.forEach(tbl => tbl.refreshMateria());
+        this.checkIssues();
+    }
+
+    showIssuesModal(): void {
+        new SetIssuesModal(this.gearSet).attachAndShow();
+    }
+
+    refresh() {
+        this.checkIssues();
     }
 }
 
@@ -1694,6 +1734,9 @@ export class GearPlanSheet extends HTMLElement {
             if (this._gearPlanTable) {
                 this._gearPlanTable.refreshRowData(gearSet);
                 this.refreshToolbar();
+                if (this._editorItem === gearSet) {
+                    this._editorAreaNode?.['refresh']();
+                }
             }
             this.requestSave();
         });
