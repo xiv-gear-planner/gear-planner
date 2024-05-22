@@ -4,7 +4,7 @@ import {parseImport} from "../imports/imports";
 import {getShortLink} from "../external/shortlink_server";
 import {getSetFromEtro} from "../external/etro_import";
 import {getBisSheet} from "../external/static_bis";
-import {GearPlanSheet} from "../components";
+import {GearPlanSheetGui} from "../components";
 import {NamedSection} from "./section";
 
 export class ImportSheetArea extends NamedSection {
@@ -13,7 +13,7 @@ export class ImportSheetArea extends NamedSection {
     private readonly textArea: HTMLTextAreaElement;
 
     // TODO
-    constructor(private sheetOpenCallback: (sheet: GearPlanSheet) => Promise<any>) {
+    constructor(private sheetOpenCallback: (sheet: GearPlanSheetGui) => Promise<any>) {
         super('Import Sheet');
 
         const explanation = document.createElement('p');
@@ -71,7 +71,7 @@ export class ImportSheetArea extends NamedSection {
                 case "etro":
                     this.ready = false;
                     getSetFromEtro(parsed.rawUuid).then(set => {
-                        this.sheetOpenCallback(GearPlanSheet.fromSetExport(set));
+                        this.sheetOpenCallback(GearPlanSheetGui.fromSetExport(set));
                         console.log("Loaded set from Etro");
                     }, err => {
                         this.ready = true;
@@ -102,10 +102,10 @@ export class ImportSheetArea extends NamedSection {
     doJsonImport(text: string) {
         const rawImport = JSON.parse(text);
         if ('sets' in rawImport && rawImport.sets.length) {
-            this.sheetOpenCallback(GearPlanSheet.fromExport(rawImport));
+            this.sheetOpenCallback(GearPlanSheetGui.fromExport(rawImport));
         }
         else if ('name' in rawImport && 'items' in rawImport) {
-            this.sheetOpenCallback(GearPlanSheet.fromSetExport(rawImport));
+            this.sheetOpenCallback(GearPlanSheetGui.fromSetExport(rawImport));
         }
         else {
             alert("That doesn't look like a valid sheet or set");

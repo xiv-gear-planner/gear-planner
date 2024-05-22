@@ -1,4 +1,4 @@
-import {GearPlanSheet} from "./components";
+import {GearPlanSheet, GearPlanSheetGui} from "./components";
 import {LoadingBlocker} from "./components/loader";
 
 import {setTitle} from "./base_ui";
@@ -20,7 +20,7 @@ export function earlyEmbedInit() {
     body.appendChild(embedDiv);
 }
 
-export async function openEmbed(sheet: GearPlanSheet) {
+export async function openEmbed(sheet: GearPlanSheetGui) {
     console.log("openEmbed start");
     sheet.isEmbed = true;
     await sheet.loadFully();

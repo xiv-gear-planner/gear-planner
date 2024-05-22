@@ -380,7 +380,7 @@ function itemTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, stat: 
                         equipment.relicStats[value.stat] = 0;
                     }
                     // If read-only, display stat normally
-                    if (sheet.isViewOnly) {
+                    if (sheet._isViewOnly) {
                         const cap = equipment.gearItem.statCaps[stat];
                         if (cap) {
                             return document.createTextNode(Math.min(equipment.relicStats[stat], cap).toString());

@@ -3,7 +3,7 @@ import {NamedSection} from "./components/section";
 import {NewSheetForm} from "./components/new_sheet_form";
 import {ImportSheetArea} from "./components/import_sheet";
 import {SetExport, SheetExport} from "@xivgear/xivmath/geartypes";
-import {GearPlanSheet} from "./components";
+import {GearPlanSheet, GearPlanSheetGui} from "./components";
 import {openEmbed} from "./embed";
 import {SETTINGS} from "./settings/persistent_settings";
 import {LoadingBlocker} from "./components/loader";
@@ -103,7 +103,7 @@ export async function openSheetByKey(sheet: string) {
     // TODO: handle nonexistent sheet
     setTitle('Loading Sheet');
     console.log('openSheetByKey: ', sheet);
-    const planner = GearPlanSheet.fromSaved(sheet);
+    const planner = GearPlanSheetGui.fromSaved(sheet);
     if (planner) {
         await openSheet(planner);
     }
@@ -115,7 +115,7 @@ export async function openSheetByKey(sheet: string) {
 
 export async function openExport(exported: (SheetExport | SetExport), changeHash: boolean, viewOnly: boolean) {
     const isFullSheet = 'sets' in exported;
-    const sheet = isFullSheet ? GearPlanSheet.fromExport(exported) : GearPlanSheet.fromSetExport(exported);
+    const sheet = isFullSheet ? GearPlanSheetGui.fromExport(exported) : GearPlanSheetGui.fromSetExport(exported);
     if (isEmbed() && !isFullSheet) {
         sheet.setViewOnly();
         openEmbed(sheet);
@@ -133,20 +133,20 @@ export function getHashForSaveKey(saveKey: string) {
     return ["sheet", saveKey, "dont-copy-this-link", "use-the-export-button"];
 }
 
-export async function openSheet(planner: GearPlanSheet, changeHash: boolean = true) {
+export async function openSheet(planner: GearPlanSheetGui, changeHash: boolean = true) {
     setTitle('Loading Sheet');
     console.log('openSheet: ', planner.saveKey);
     document['planner'] = planner;
     if (changeHash) {
         setHash("sheet", planner.saveKey, "dont-copy-this-link", "use-the-export-button");
     }
-    contentArea.replaceChildren(planner);
+    contentArea.replaceChildren(planner.topLevelElement);
     const oldHash = getHash();
     const loadSheetPromise = planner.loadFully().then(() => {
         // If the user has navigated away while the sheet was loading, do not display the sheet.
         const newHash = getHash();
         if (arrayEq(newHash, oldHash)) {
-            contentArea.replaceChildren(planner);
+            contentArea.replaceChildren(planner.topLevelElement);
             setTitle(planner.sheetName);
         }
         else {
