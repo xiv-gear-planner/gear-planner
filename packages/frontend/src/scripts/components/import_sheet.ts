@@ -5,7 +5,7 @@ import {getShortLink} from "../external/shortlink_server";
 import {getSetFromEtro} from "../external/etro_import";
 import {getBisSheet} from "../external/static_bis";
 import {NamedSection} from "./section";
-import {GearPlanSheetGui} from "./sheet";
+import {GearPlanSheetGui, GRAPHICAL_SHEET_PROVIDER} from "./sheet";
 
 export class ImportSheetArea extends NamedSection {
     private readonly loader: LoadingBlocker;
@@ -71,7 +71,7 @@ export class ImportSheetArea extends NamedSection {
                 case "etro":
                     this.ready = false;
                     getSetFromEtro(parsed.rawUuid).then(set => {
-                        this.sheetOpenCallback(GearPlanSheetGui.fromSetExport(set));
+                        this.sheetOpenCallback(GRAPHICAL_SHEET_PROVIDER.fromSetExport(set));
                         console.log("Loaded set from Etro");
                     }, err => {
                         this.ready = true;
@@ -102,13 +102,15 @@ export class ImportSheetArea extends NamedSection {
     doJsonImport(text: string) {
         const rawImport = JSON.parse(text);
         if ('sets' in rawImport && rawImport.sets.length) {
-            this.sheetOpenCallback(GearPlanSheetGui.fromExport(rawImport));
+            this.sheetOpenCallback(GRAPHICAL_SHEET_PROVIDER.fromExport(rawImport));
         }
         else if ('name' in rawImport && 'items' in rawImport) {
-            this.sheetOpenCallback(GearPlanSheetGui.fromSetExport(rawImport));
+            this.sheetOpenCallback(GRAPHICAL_SHEET_PROVIDER.fromSetExport(rawImport));
         }
         else {
             alert("That doesn't look like a valid sheet or set");
         }
     }
 }
+
+customElements.define("import-sheet-area", ImportSheetArea);

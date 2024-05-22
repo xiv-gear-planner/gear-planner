@@ -34,8 +34,8 @@ import {
 import {FieldBoundCheckBox, FieldBoundIntField, labeledCheckbox, makeChevronDown} from "./util";
 import {AllSlotMateriaManager} from "./materia";
 import {shortenItemName} from "../util/strutils";
-import {makeRelicStatEditor} from "../relicstats/relicstats";
 import {GearPlanSheet} from "../sheet";
+import {makeRelicStatEditor} from "./relic_stats";
 
 function statCellStylerRemover(cell: CustomCell<GearSlotItem, any>) {
     cell.classList.remove("secondary");

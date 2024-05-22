@@ -2,6 +2,7 @@ import {DataSelect, FieldBoundCheckBox, FieldBoundIntField, labelFor, positiveVa
 import {JOB_DATA, JobName, LEVEL_ITEMS, MAX_ILVL, SupportedLevel, SupportedLevels} from "@xivgear/xivmath/xivconstants";
 import {getNextSheetInternalName} from "../persistence/saved_sheets";
 import {GearPlanSheet} from "../sheet";
+import {GRAPHICAL_SHEET_PROVIDER} from "./sheet";
 
 export class NewSheetForm extends HTMLFormElement {
     private readonly nameInput: HTMLInputElement;
@@ -101,7 +102,7 @@ export class NewSheetForm extends HTMLFormElement {
 
     private doSubmit() {
         const nextSheetSaveStub = getNextSheetInternalName();
-        const gearPlanSheet = GearPlanSheet.fromScratch(nextSheetSaveStub, this.nameInput.value, this.jobDropdown.selectedItem, this.levelDropdown.selectedItem, this.tempSettings.ilvlSyncEnabled ? this.tempSettings.ilvlSync : undefined);
+        const gearPlanSheet = GRAPHICAL_SHEET_PROVIDER.fromScratch(nextSheetSaveStub, this.nameInput.value, this.jobDropdown.selectedItem, this.levelDropdown.selectedItem, this.tempSettings.ilvlSyncEnabled ? this.tempSettings.ilvlSync : undefined);
         this.sheetOpenCallback(gearPlanSheet).then(() => gearPlanSheet.requestSave());
     }
 }

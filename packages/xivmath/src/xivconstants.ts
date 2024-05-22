@@ -695,3 +695,12 @@ export function bluWdfromInt(gearIntStat: number): number {
     }
     return BLU_INT_WD[BLU_INT_WD.length - 1][1];
 }
+
+export const defaultItemDisplaySettings: ItemDisplaySettings = {
+    minILvl: 640,
+    maxILvl: 999,
+    minILvlFood: 610,
+    maxILvlFood: 999,
+    higherRelics: true
+} as const;
+

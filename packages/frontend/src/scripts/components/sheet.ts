@@ -1,7 +1,6 @@
 import {
     getRegisteredSimSpecs,
     SimCurrentResult,
-    simpleAutoResultTable,
     SimResult,
     SimSettings,
     SimSpec,
@@ -19,7 +18,7 @@ import {
     SingleCellRowOrHeaderSelect,
     SingleSelectionModel
 } from "../tables";
-import {GearPlanSheet} from "../sheet";
+import {GearPlanSheet, SheetProvider} from "../sheet";
 import {
     faIcon,
     FieldBoundCheckBox,
@@ -62,13 +61,14 @@ import {writeProxy} from "../util/proxies";
 import {LoadingBlocker} from "./loader";
 import {GearEditToolbar} from "./gear_edit_toolbar";
 import {SETTINGS} from "../settings/persistent_settings";
-import {openSheetByKey} from "../base_ui";
+import {openSheetByKey, setTitle} from "../base_ui";
 import {parseImport, SHARED_SET_NAME} from "../imports/imports";
 import {getShortLink} from "../external/shortlink_server";
 import {getSetFromEtro} from "../external/etro_import";
 import {getBisSheet} from "../external/static_bis";
 import {SheetPickerTable} from "./saved_sheet_picker";
 import {ImportSheetArea} from "./import_sheet";
+import {simpleAutoResultTable} from "../sims/components/simple_tables";
 
 export type GearSetSel = SingleCellRowOrHeaderSelect<CharacterGearSet>;
 
@@ -1014,14 +1014,6 @@ function formatSimulationConfigArea<SettingsType extends SimSettings>(
     return outerDiv;
 }
 
-export const defaultItemDisplaySettings: ItemDisplaySettings = {
-    minILvl: 640,
-    maxILvl: 999,
-    minILvlFood: 610,
-    maxILvlFood: 999,
-    higherRelics: true
-} as const;
-
 export class GearPlanSheetElement extends HTMLElement {
 
 }
@@ -1050,66 +1042,6 @@ export class GearPlanSheetGui extends GearPlanSheet {
     readonly toolbarHolder: HTMLDivElement;
     // TODO: SimResult alone might not be enough since we'd want it to refresh automatically if settings are changed
     private _editorItem: CharacterGearSet | Simulation<any, any, any> | SimResultData<SimResult> | undefined;
-
-    /**
-     * Try to load a sheet by its save key
-     *
-     * @param sheetKey The key to load
-     * @returns The sheet if found, otherwise null
-     */
-    // TODO: find a way to deduplicate these all
-    static fromSaved(sheetKey: string): GearPlanSheetGui | null {
-        const exported = GearPlanSheet.loadSaved(sheetKey);
-        return exported ? new GearPlanSheetGui(sheetKey, exported) : null;
-    }
-
-    static fromScratch(sheetKey: string, sheetName: string, classJob: JobName, level: SupportedLevel, ilvlSync: number | undefined): GearPlanSheetGui {
-        const fakeExport: SheetExport = {
-            job: classJob,
-            level: level,
-            name: sheetName,
-            partyBonus: 0,
-            race: undefined,
-            saveKey: sheetKey,
-            sets: [{
-                name: "Default Set",
-                items: {}
-            }],
-            sims: [],
-            ilvlSync: ilvlSync
-            // ctor will auto-fill the rest
-        }
-        const gearPlanSheet = new GearPlanSheetGui(sheetKey, fakeExport);
-        gearPlanSheet.addDefaultSims();
-        // TODO
-        gearPlanSheet._selectFirstRowByDefault = true;
-        return gearPlanSheet;
-    }
-
-    static fromExport(importedData: SheetExport): GearPlanSheetGui {
-        return new GearPlanSheetGui(undefined, importedData);
-    }
-
-    static fromSetExport(importedData: SetExport): GearPlanSheetGui {
-        const gearPlanSheet = this.fromExport({
-            race: undefined,
-            sets: [importedData],
-            sims: importedData.sims ?? [],
-            name: SHARED_SET_NAME,
-            saveKey: undefined,
-            job: importedData.job,
-            level: importedData.level,
-            ilvlSync: importedData.ilvlSync,
-            partyBonus: 0,
-            itemDisplaySettings: defaultItemDisplaySettings,
-        });
-        if (importedData.sims === undefined) {
-            gearPlanSheet.addDefaultSims();
-        }
-        // TODO
-        gearPlanSheet._selectFirstRowByDefault = true;
-        return gearPlanSheet;
-    }
 
     // Can't make ctor private for custom element, but DO NOT call this directly - use fromSaved or fromScratch
     constructor(...args: ConstructorParameters<typeof GearPlanSheet>) {
@@ -1166,6 +1098,10 @@ export class GearPlanSheetGui extends GearPlanSheet {
     setViewOnly() {
         super.setViewOnly();
         this.element.classList.add("view-only");
+    }
+
+    setSelectFirstRowByDefault() {
+        this._selectFirstRowByDefault = true;
     }
 
     private set editorItem(item: typeof this._editorItem) {
@@ -1596,6 +1532,12 @@ export class GearPlanSheetGui extends GearPlanSheet {
         const dialog = new ImportSetsModal(this);
         dialog.attachAndShow();
     }
+
+    set sheetName(name: string) {
+        super.sheetName = name;
+        setTitle(this._sheetName);
+    }
+
 }
 
 export class ImportSetsModal extends BaseModal {
@@ -1824,13 +1766,31 @@ export class AddSimDialog extends BaseModal {
     }
 }
 
+export class GraphicalSheetProvider extends SheetProvider<GearPlanSheetGui> {
+    constructor() {
+        super((...args) => new GearPlanSheetGui(...args));
+    }
+
+    fromSetExport(importedData: SetExport): GearPlanSheetGui {
+        const out = super.fromSetExport(importedData);
+        out.setSelectFirstRowByDefault();
+        return out;
+    }
+
+    fromSaved(sheetKey: string): GearPlanSheetGui | null {
+        const out = super.fromSaved(sheetKey);
+        out.setSelectFirstRowByDefault();
+        return out;
+    }
+}
+
+export const GRAPHICAL_SHEET_PROVIDER = new GraphicalSheetProvider();
+
 customElements.define("gear-set-editor", GearSetEditor);
 customElements.define("gear-set-viewer", GearSetViewer);
 customElements.define("gear-plan-table", GearPlanTable, {extends: "table"});
 customElements.define("gear-plan", GearPlanSheetElement);
-customElements.define("gear-sheet-picker", SheetPickerTable, {extends: "table"});
 customElements.define("sim-result-display", SimResultMiniDisplay);
 customElements.define("sim-result-detail-display", SimResultDetailDisplay);
 customElements.define("add-sim-dialog", AddSimDialog);
 customElements.define("import-set-dialog", ImportSetsModal);
-customElements.define("import-sheet-area", ImportSheetArea);

@@ -27,7 +27,7 @@ import {
     NORMAL_GCD,
     STANDARD_ANIMATION_LOCK
 } from "@xivgear/xivmath/xivconstants";
-import {simpleAutoResultTable, SimResult, SimSettings, SimSpec, Simulation} from "../simulation";
+import {SimResult, SimSettings, SimSpec, Simulation} from "../simulation";
 import {BuffSettingsArea, BuffSettingsExport, BuffSettingsManager} from "./party_comp_settings";
 import {CycleSettings} from "./cycle_settings";
 import {CharacterGearSet} from "../gear";
@@ -48,6 +48,7 @@ import {
 } from "@xivgear/xivmath/deviation";
 import {ResultSettingsArea} from "./components/result_settings";
 import {NamedSection} from "../components/section";
+import {simpleAutoResultTable} from "./components/simple_tables";
 
 
 export type CombinedBuffEffect = {

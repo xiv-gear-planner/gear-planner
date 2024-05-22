@@ -19,6 +19,9 @@
       "path": "./packages/xivmath"
     },
     {
+      "path": "./packages/core"
+    },
+    {
       "path": "./packages/frontend"
     },
     {

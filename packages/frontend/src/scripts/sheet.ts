@@ -1,4 +1,5 @@
 import {
+    defaultItemDisplaySettings,
     DefaultMateriaFillPrio,
     getClassJobStats,
     getDefaultDisplaySettings,
@@ -42,14 +43,94 @@ import {
 } from "./simulation";
 import {DataManager} from "./datamanager";
 import {Inactivitytimer} from "./util/inactivitytimer";
-import {quickElement} from "./components/util";
 import {writeProxy} from "./util/proxies";
-import {setTitle} from "./base_ui";
 import {getNextSheetInternalName} from "./persistence/saved_sheets";
-import {defaultItemDisplaySettings} from "./components/sheet";
 import {SHARED_SET_NAME} from "./imports/imports";
 
-export type SheetContstructor<T extends GearPlanSheet> = (...values: ConstructorParameters<typeof GearPlanSheet>) => T;
+type SheetCtorArgs = ConstructorParameters<typeof GearPlanSheet>
+export type SheetContstructor<SheetType extends GearPlanSheet> = (...values: SheetCtorArgs) => SheetType;
+
+export class SheetProvider<SheetType extends GearPlanSheet> {
+
+    constructor(private readonly sheetConstructor: SheetContstructor<SheetType>) {
+    }
+
+    private construct(...args: SheetCtorArgs) : SheetType{
+        return this.sheetConstructor(...args);
+    }
+
+    fromExport(importedData: SheetExport):SheetType  {
+        return this.construct(undefined, importedData);
+    }
+
+    fromSetExport(importedData: SetExport): SheetType {
+        const gearPlanSheet = this.fromExport({
+            race: undefined,
+            sets: [importedData],
+            sims: importedData.sims ?? [],
+            name: SHARED_SET_NAME,
+            saveKey: undefined,
+            job: importedData.job,
+            level: importedData.level,
+            ilvlSync: importedData.ilvlSync,
+            partyBonus: 0,
+            itemDisplaySettings: defaultItemDisplaySettings,
+        });
+        if (importedData.sims === undefined) {
+            gearPlanSheet.addDefaultSims();
+        }
+        // TODO
+        // gearPlanSheet._selectFirstRowByDefault = true;
+        return gearPlanSheet;
+    }
+
+    fromScratch(sheetKey: string, sheetName: string, classJob: JobName, level: SupportedLevel, ilvlSync: number | undefined): SheetType {
+        const fakeExport: SheetExport = {
+            job: classJob,
+            level: level,
+            name: sheetName,
+            partyBonus: 0,
+            race: undefined,
+            saveKey: sheetKey,
+            sets: [{
+                name: "Default Set",
+                items: {}
+            }],
+            sims: [],
+            ilvlSync: ilvlSync
+            // ctor will auto-fill the rest
+        }
+        const gearPlanSheet = this.construct(sheetKey, fakeExport);
+        gearPlanSheet.addDefaultSims();
+        // TODO
+        // gearPlanSheet._selectFirstRowByDefault = true;
+        return gearPlanSheet;
+    }
+
+    /**
+     * Try to load a sheet by its save key
+     *
+     * @param sheetKey The key to load
+     * @returns The sheet if found, otherwise null
+     */
+    fromSaved(sheetKey: string): SheetType | null {
+        const exported = loadSaved(sheetKey);
+        return exported ? this.construct(sheetKey, exported) : null;
+    }
+}
+
+export const HEADLESS_SHEET_PROVIDER = new SheetProvider((...args) => new GearPlanSheet(...args));
+
+
+function loadSaved(sheetKey: string): SheetExport | null {
+    const item = localStorage.getItem(sheetKey);
+    if (item) {
+        return JSON.parse(item) as SheetExport;
+    }
+    else {
+        return null;
+    }
+}
 
 export class GearPlanSheet {
     // General sheet properties
@@ -90,74 +171,6 @@ export class GearPlanSheet {
     // Temporal state
     private readonly saveTimer: Inactivitytimer;
 
-    /**
-     * Try to load a sheet by its save key
-     *
-     * @param sheetKey The key to load
-     * @returns The sheet if found, otherwise null
-     */
-    static fromSaved(sheetKey: string): GearPlanSheet | null {
-        const exported = GearPlanSheet.loadSaved(sheetKey);
-        return exported ? new GearPlanSheet(sheetKey, exported) : null;
-    }
-
-    static fromScratch(sheetKey: string, sheetName: string, classJob: JobName, level: SupportedLevel, ilvlSync: number | undefined): GearPlanSheet {
-        const fakeExport: SheetExport = {
-            job: classJob,
-            level: level,
-            name: sheetName,
-            partyBonus: 0,
-            race: undefined,
-            saveKey: sheetKey,
-            sets: [{
-                name: "Default Set",
-                items: {}
-            }],
-            sims: [],
-            ilvlSync: ilvlSync
-            // ctor will auto-fill the rest
-        }
-        const gearPlanSheet = new GearPlanSheet(sheetKey, fakeExport);
-        gearPlanSheet.addDefaultSims();
-        // TODO
-        // gearPlanSheet._selectFirstRowByDefault = true;
-        return gearPlanSheet;
-    }
-
-    static fromExport(importedData: SheetExport): GearPlanSheet {
-        return new GearPlanSheet(undefined, importedData);
-    }
-
-    static fromSetExport(importedData: SetExport): GearPlanSheet {
-        const gearPlanSheet = this.fromExport({
-            race: undefined,
-            sets: [importedData],
-            sims: importedData.sims ?? [],
-            name: SHARED_SET_NAME,
-            saveKey: undefined,
-            job: importedData.job,
-            level: importedData.level,
-            ilvlSync: importedData.ilvlSync,
-            partyBonus: 0,
-            itemDisplaySettings: defaultItemDisplaySettings,
-        });
-        if (importedData.sims === undefined) {
-            gearPlanSheet.addDefaultSims();
-        }
-        // TODO
-        // gearPlanSheet._selectFirstRowByDefault = true;
-        return gearPlanSheet;
-    }
-
-    static loadSaved(sheetKey: string): SheetExport | null {
-        const item = localStorage.getItem(sheetKey);
-        if (item) {
-            return JSON.parse(item) as SheetExport;
-        }
-        else {
-            return null;
-        }
-    }
 
     // Can't make ctor private for custom element, but DO NOT call this directly - use fromSaved or fromScratch
     constructor(sheetKey: string, importedData: SheetExport) {
@@ -166,8 +179,6 @@ export class GearPlanSheet {
         this._saveKey = sheetKey;
         const tableHolderOuter = document.createElement('div');
         tableHolderOuter.classList.add('gear-sheet-table-holder-outer')
-
-        const flexPadding = quickElement('div', ['flex-padding-item'], []);
 
         this._sheetName = importedData.name;
         this.level = importedData.level ?? 90;
@@ -322,9 +333,8 @@ export class GearPlanSheet {
         return this._sheetName;
     }
 
-    set sheetName(name) {
+    set sheetName(name: string) {
         this._sheetName = name;
-        setTitle(this._sheetName);
         this.requestSave();
     }
 
@@ -332,7 +342,7 @@ export class GearPlanSheet {
         return this._description;
     }
 
-    set description(desc) {
+    set description(desc: string) {
         this._description = desc;
         this.requestSave();
     }

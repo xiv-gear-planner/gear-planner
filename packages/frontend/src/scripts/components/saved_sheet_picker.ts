@@ -130,3 +130,4 @@ function startNewSheet() {
     showNewSheetForm();
 }
 
+customElements.define("gear-sheet-picker", SheetPickerTable, {extends: "table"});
