@@ -5,6 +5,9 @@ import {getShortLink} from "@xivgear/gearplan-frontend/external/shortlink_server
 import {GearPlanSheet} from "@xivgear/gearplan-frontend/components";
 import {PartyBonusAmount, SheetStatsExport} from "@xivgear/xivmath/geartypes";
 import {getBisSheet} from "@xivgear/gearplan-frontend/external/static_bis";
+import {registerDefaultSims} from "@xivgear/gearplan-frontend/sims/default_sims";
+
+registerDefaultSims();
 
 async function importExportSheet(request, rawData: string): Promise<SheetStatsExport> {
     const exported = JSON.parse(rawData);

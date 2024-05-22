@@ -109,3 +109,5 @@ export class NewSheetForm extends HTMLFormElement {
 function spacer() {
     return quickElement('div', ['vertical-spacer'], []);
 }
+
+customElements.define("new-sheet-form", NewSheetForm, {extends: "form"});

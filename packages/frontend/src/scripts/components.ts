@@ -61,7 +61,6 @@ import {
     STAT_ABBREVIATIONS,
     SupportedLevel
 } from "@xivgear/xivmath/xivconstants";
-import {getCurrentHash, openSheetByKey, setTitle} from "./main";
 import {getSetFromEtro} from "./external/etro_import";
 import {Inactivitytimer} from "./util/inactivitytimer";
 import {
@@ -95,6 +94,8 @@ import {ImportSheetArea} from "./components/import_sheet";
 import {SheetPickerTable} from "./components/saved_sheet_picker";
 import {NewSheetForm} from "./components/new_sheet_form";
 import {getNextSheetInternalName} from "./persistence/saved_sheets";
+import {getCurrentHash} from "./nav_hash";
+import {openSheetByKey, setTitle} from "./base_ui";
 
 export const SHARED_SET_NAME = 'Imported Set';
 
@@ -2312,7 +2313,6 @@ customElements.define("gear-set-viewer", GearSetViewer);
 customElements.define("gear-plan-table", GearPlanTable, {extends: "table"});
 customElements.define("gear-plan", GearPlanSheet);
 customElements.define("gear-sheet-picker", SheetPickerTable, {extends: "table"});
-customElements.define("new-sheet-form", NewSheetForm, {extends: "form"});
 customElements.define("sim-result-display", SimResultMiniDisplay);
 customElements.define("sim-result-detail-display", SimResultDetailDisplay);
 customElements.define("add-sim-dialog", AddSimDialog);
