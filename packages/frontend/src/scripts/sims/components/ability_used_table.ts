@@ -1,9 +1,9 @@
 import {CustomTable, HeaderRow} from "../../tables";
-import {AutoAttack, Buff, GcdAbility, OgcdAbility} from "../sim_types";
-import {CombinedBuffEffect, DisplayRecordFinalized, isFinalizedAbilityUse} from "../sim_processors";
-import {toRelPct} from "../../util/strutils";
+import {toRelPct} from "@xivgear/core/util/strutils";
 import {AbilityIcon} from "../../components/abilities";
 import {BuffListDisplay} from "./buff_list_display";
+import {DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/core/sims/cycle_sim";
+import {AutoAttack, Buff, CombinedBuffEffect, GcdAbility, OgcdAbility} from "@xivgear/core/sims/sim_types";
 
 /**
  * Format a time into the format x:yy.zz

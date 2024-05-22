@@ -1,8 +1,8 @@
-import {BIS_HASH, EMBED_HASH, SHORTLINK_HASH, VIEW_SET_HASH, VIEW_SHEET_HASH} from "./common_nav";
+import {BIS_HASH, EMBED_HASH, SHORTLINK_HASH, VIEW_SET_HASH, VIEW_SHEET_HASH} from "@xivgear/core/nav/common_nav";
 import {earlyEmbedInit} from "./embed";
 import {SetExport, SheetExport} from "@xivgear/xivmath/geartypes";
-import {getShortLink} from "./external/shortlink_server";
-import {getBisSheet} from "./external/static_bis";
+import {getShortLink} from "@xivgear/core/external/shortlink_server";
+import {getBisSheet} from "@xivgear/core/external/static_bis";
 import {JobName} from "@xivgear/xivmath/xivconstants";
 
 import {

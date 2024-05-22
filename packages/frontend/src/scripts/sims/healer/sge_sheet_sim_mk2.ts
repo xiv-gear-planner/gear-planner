@@ -1,12 +1,6 @@
-import {SimSettings, SimSpec} from "../../simulation";
-import {GcdAbility} from "../sim_types";
-import {
-    BaseMultiCycleSim,
-    CycleSimResult,
-    ExternalCycleSettings,
-    CycleProcessor,
-    Rotation
-} from "../sim_processors";
+import {GcdAbility, SimSettings, SimSpec} from "@xivgear/core/sims/sim_types";
+import {CycleProcessor, CycleSimResult, ExternalCycleSettings, Rotation} from "@xivgear/core/sims/cycle_sim";
+import {BaseMultiCycleSim} from "../sim_processors";
 
 /**
  * Used for all 330p filler abilities

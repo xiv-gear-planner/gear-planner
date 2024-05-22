@@ -1,4 +1,4 @@
-import {CharacterGearSet} from "../gear";
+import {CharacterGearSet} from "@xivgear/core/gear";
 import {ChanceStat, GcdStat, MultiplierStat, RawStatKey, TickStat} from "@xivgear/xivmath/geartypes";
 import {NORMAL_GCD, STAT_ABBREVIATIONS, STAT_DISPLAY_ORDER} from "@xivgear/xivmath/xivconstants";
 

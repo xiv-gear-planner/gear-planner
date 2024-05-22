@@ -13,4 +13,5 @@ WORKDIR /app
 #COPY --from=build /build/node_modules ./node_modules
 COPY --from=build /build /app
 EXPOSE 30000
-CMD npx ts-node ./packages/backend-resolver/src/server.ts
+# -T == transpile only. Reduces memory usage.
+CMD npx ts-node -T ./packages/backend-resolver/src/server.ts

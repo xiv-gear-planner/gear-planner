@@ -1,4 +1,4 @@
-import {AttackType, ComputedSetStats, JobData, JobMultipliers, LevelStats} from "./geartypes";
+import {AttackType, ComputedSetStats, JobData, LevelStats} from "./geartypes";
 import {chanceMultiplierStdDev, multiplyValues, ValueWithDev} from "./deviation";
 
 /*

@@ -1,7 +1,7 @@
-import {CooldownTracker} from "../../sims/common/cooldown_manager";
-import {GcdAbility, OgcdAbility} from "../../sims/sim_types";
-import {Chain} from "../../sims/buffs";
+import {CooldownTracker} from "@xivgear/core/sims/common/cooldown_manager";
+import {Chain} from "@xivgear/core/sims/buffs";
 import * as assert from "assert";
+import {GcdAbility, OgcdAbility} from "@xivgear/core/sims/sim_types";
 
 const chain: OgcdAbility = {
     type: 'ogcd',

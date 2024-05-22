@@ -1,5 +1,3 @@
-import {CustomRow} from "../tables";
-
 export function installDragHelper(args: {dragHandle: HTMLElement, dragOuter: HTMLElement, moveHandler?: (ev: PointerEvent) => void, upHandler?: (ev: PointerEvent) => void, downHandler?: (ev: PointerEvent) => void}) {
 
     args.dragHandle.addEventListener('pointerdown', (ev) => {

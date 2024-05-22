@@ -1,5 +1,5 @@
-import {Ability, ComboData, ComboKeyMatch} from "../../sims/sim_types";
 import {STANDARD_APPLICATION_DELAY} from "@xivgear/xivmath/xivconstants";
+import {Ability, ComboData} from "@xivgear/core/sims/sim_types";
 
 /**
  * Returns the application delay of an ability (from time of snapshot to time of damage/effects applying).

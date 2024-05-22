@@ -1,4 +1,4 @@
-import {CharacterGearSet, ItemSingleStatDetail, nonEmptyRelicStats, previewItemStatDetail} from "../gear";
+import {CharacterGearSet, ItemSingleStatDetail, nonEmptyRelicStats, previewItemStatDetail} from "@xivgear/core/gear";
 import {
     DisplayGearSlot,
     EquipmentSet,
@@ -33,8 +33,8 @@ import {
 } from "@xivgear/xivmath/xivconstants";
 import {FieldBoundCheckBox, FieldBoundIntField, labeledCheckbox, makeChevronDown} from "./util";
 import {AllSlotMateriaManager} from "./materia";
-import {shortenItemName} from "../util/strutils";
-import {GearPlanSheet} from "../sheet";
+import {shortenItemName} from "@xivgear/core/util/strutils";
+import {GearPlanSheet} from "@xivgear/core/sheet";
 import {makeRelicStatEditor} from "./relic_stats";
 
 function statCellStylerRemover(cell: CustomCell<GearSlotItem, any>) {

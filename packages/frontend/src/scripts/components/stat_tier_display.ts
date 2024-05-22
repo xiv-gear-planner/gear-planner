@@ -1,4 +1,4 @@
-import {CharacterGearSet} from "../gear";
+import {CharacterGearSet} from "@xivgear/core/gear";
 import {STAT_ABBREVIATIONS, STAT_DISPLAY_ORDER} from "@xivgear/xivmath/xivconstants";
 import {RawStatKey} from "@xivgear/xivmath/geartypes";
 import {
@@ -14,7 +14,7 @@ import {
     tenacityDmg,
     vitToHp
 } from "@xivgear/xivmath/xivmath";
-import {GearPlanSheet} from "../sheet";
+import {GearPlanSheet} from "@xivgear/core/sheet";
 
 interface Tiering {
     lower: number,

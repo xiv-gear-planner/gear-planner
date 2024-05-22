@@ -1,9 +1,9 @@
 import {LoadingBlocker} from "./loader";
 import {makeActionButton} from "./util";
-import {parseImport} from "../imports/imports";
-import {getShortLink} from "../external/shortlink_server";
-import {getSetFromEtro} from "../external/etro_import";
-import {getBisSheet} from "../external/static_bis";
+import {parseImport} from "@xivgear/core/imports/imports";
+import {getShortLink} from "@xivgear/core/external/shortlink_server";
+import {getSetFromEtro} from "@xivgear/core/external/etro_import";
+import {getBisSheet} from "@xivgear/core/external/static_bis";
 import {NamedSection} from "./section";
 import {GearPlanSheetGui, GRAPHICAL_SHEET_PROVIDER} from "./sheet";
 

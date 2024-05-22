@@ -1,25 +1,23 @@
 // REQUIRED - sets up fake HTML classes
 import 'global-jsdom/register'
 import {describe, it} from "mocha";
-import {getRegisteredSimSpecs, SimSettings, SimSpec, Simulation} from "../../simulation";
-
-import {
-    AbilityUseResult,
-    BaseMultiCycleSim,
-    CycleProcessor,
-    CycleSimResult,
-    ExternalCycleSettings,
-    MultiCycleSettings,
-    Rotation
-} from "../../sims/sim_processors";
-import {assertClose} from "../test_utils";
-import {Divination, Litany, Mug} from "../../sims/buffs";
+import {getRegisteredSimSpecs} from "../../sims/simulation";
+import {assertClose} from "@xivgear/core/test/test_utils";
+import {Divination, Litany, Mug} from "@xivgear/core/sims/buffs";
 import {assertSimAbilityResults, setPartyBuffEnabled, UseResult} from "./sim_test_utils";
 import {assize, dia, exampleGearSet, filler, lily, misery, nop, pom} from "./common_values";
-import {Ability} from "../../sims/sim_types";
 import * as assert from "assert";
 import {potRatioSimSpec} from "../../sims/common/potency_ratio";
 import {registerDefaultSims} from "../../sims/default_sims";
+import {Ability, SimSettings, SimSpec, Simulation} from "@xivgear/core/sims/sim_types";
+import {
+    AbilityUseResult,
+    CycleProcessor,
+    CycleSimResult,
+    ExternalCycleSettings, MultiCycleSettings,
+    Rotation
+} from "@xivgear/core/sims/cycle_sim";
+import {BaseMultiCycleSim} from "../../sims/sim_processors";
 
 // Example of end-to-end simulation
 // This one is testing the simulation engine itself, so it copies the full simulation code rather than

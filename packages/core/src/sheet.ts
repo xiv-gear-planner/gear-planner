@@ -36,16 +36,14 @@ import {CharacterGearSet} from "./gear";
 import {
     getDefaultSims,
     getRegisteredSimSpecs,
-    getSimSpecByStub,
-    SimCurrentResult,
-    SimResult,
-    Simulation
-} from "./simulation";
+    getSimSpecByStub
+} from "@xivgear/gearplan-frontend/sims/simulation";
 import {DataManager} from "./datamanager";
 import {Inactivitytimer} from "./util/inactivitytimer";
 import {writeProxy} from "./util/proxies";
-import {getNextSheetInternalName} from "./persistence/saved_sheets";
-import {SHARED_SET_NAME} from "./imports/imports";
+import {getNextSheetInternalName} from "@xivgear/gearplan-frontend/persistence/saved_sheets";
+import {SHARED_SET_NAME} from "@xivgear/core/imports/imports";
+import {SimCurrentResult, SimResult, Simulation} from "./sims/sim_types";
 
 type SheetCtorArgs = ConstructorParameters<typeof GearPlanSheet>
 export type SheetContstructor<SheetType extends GearPlanSheet> = (...values: SheetCtorArgs) => SheetType;
@@ -177,9 +175,6 @@ export class GearPlanSheet {
         console.log(importedData);
         this._importedData = importedData;
         this._saveKey = sheetKey;
-        const tableHolderOuter = document.createElement('div');
-        tableHolderOuter.classList.add('gear-sheet-table-holder-outer')
-
         this._sheetName = importedData.name;
         this.level = importedData.level ?? 90;
         this._race = importedData.race;

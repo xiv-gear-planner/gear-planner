@@ -1,8 +1,8 @@
 import 'global-jsdom/register'
-import {Ability, FinalizedAbility} from "../../sims/sim_types";
-import {CycleProcessor} from "../../sims/sim_processors";
 import {exampleGearSet} from "./common_values";
 import assert from "assert";
+import {Ability, FinalizedAbility} from "@xivgear/core/sims/sim_types";
+import {CycleProcessor} from "@xivgear/core/sims/cycle_sim";
 
 const initial1 = {
     name: "Initial Ability 1",

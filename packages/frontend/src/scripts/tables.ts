@@ -1,5 +1,3 @@
-import {scrollIntoView} from "./util/scrollutil";
-
 function setCellProps(cell: HTMLTableCellElement, colDef: CustomColumn<any, any>) {
     cell.setAttribute("col-id", colDef.shortName);
     const extraClasses = colDef.extraClasses;

@@ -1,8 +1,8 @@
 import {JobName} from "@xivgear/xivmath/xivconstants";
-import {PartyBuff} from "./sim_types";
-import {ALL_BUFFS, BuffName} from "./buffs";
+import {ALL_BUFFS, BuffName} from "@xivgear/core/sims/buffs";
 import {FieldBoundCheckBox, labeledCheckbox} from "../components/util";
 import {NamedSection} from "../components/section";
+import {PartyBuff} from "@xivgear/core/sims/sim_types";
 
 export type BuffSettingsExport = {
     /**

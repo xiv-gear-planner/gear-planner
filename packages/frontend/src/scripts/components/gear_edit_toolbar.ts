@@ -2,9 +2,8 @@ import {ILvlRangePicker} from "./items";
 import {ItemDisplaySettings, MateriaAutoFillController} from "@xivgear/xivmath/geartypes";
 import {MateriaPriorityPicker} from "./materia";
 import {StatTierDisplay} from "./stat_tier_display";
-import {CharacterGearSet} from "../gear";
-import {FieldBoundCheckBox, quickElement} from "./util";
-import {GearPlanSheet} from "../sheet";
+import {CharacterGearSet} from "@xivgear/core/gear";
+import {GearPlanSheet} from "@xivgear/core/sheet";
 
 export class GearEditToolbar extends HTMLDivElement {
     private readonly statTierDisplay: StatTierDisplay;

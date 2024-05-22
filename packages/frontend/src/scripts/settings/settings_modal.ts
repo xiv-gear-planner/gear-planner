@@ -1,5 +1,5 @@
 import {BaseModal} from "../components/modal";
-import {FieldBoundCheckBox, labeledCheckbox} from "../components/util";
+import {FieldBoundCheckBox} from "../components/util";
 import {DISPLAY_SETTINGS} from "./display_settings";
 import {BoolToggle} from "../components/bool_toggle";
 

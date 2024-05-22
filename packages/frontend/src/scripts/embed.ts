@@ -1,7 +1,6 @@
 import {LoadingBlocker} from "./components/loader";
 
 import {setTitle} from "./base_ui";
-import {GearPlanSheet} from "./sheet";
 import {GearPlanSheetGui} from "./components/sheet";
 
 let embedDiv: HTMLDivElement;

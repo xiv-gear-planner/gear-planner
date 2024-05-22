@@ -1,5 +1,5 @@
 import {BaseModal} from "./modal";
-import {CharacterGearSet} from "../gear";
+import {CharacterGearSet} from "@xivgear/core/gear";
 import {errorIcon, quickElement, warningIcon} from "./util";
 import {GearSetIssue} from "@xivgear/xivmath/geartypes";
 

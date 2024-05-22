@@ -1,12 +1,7 @@
 import {
-    getRegisteredSimSpecs,
-    SimCurrentResult,
-    SimResult,
-    SimSettings,
-    SimSpec,
-    Simulation
-} from "../simulation";
-import {camel2title} from "../util/strutils";
+    getRegisteredSimSpecs
+} from "../sims/simulation";
+import {camel2title} from "@xivgear/core/util/strutils";
 import {BaseModal} from "./modal";
 import {
     CustomCell,
@@ -18,7 +13,7 @@ import {
     SingleCellRowOrHeaderSelect,
     SingleSelectionModel
 } from "../tables";
-import {GearPlanSheet, SheetProvider} from "../sheet";
+import {GearPlanSheet, SheetProvider} from "@xivgear/core/sheet";
 import {
     faIcon,
     FieldBoundCheckBox,
@@ -36,17 +31,21 @@ import {
     EquipSlotKey,
     EquipSlots,
     GearItem,
-    ItemDisplaySettings,
     MateriaAutoFillController,
     MateriaAutoFillPrio,
     MultiplierStat,
     PartyBonusAmount,
     RawStatKey,
-    SetExport,
-    SheetExport
+    SetExport
 } from "@xivgear/xivmath/geartypes";
-import {CharacterGearSet} from "../gear";
-import {JobName, RACE_STATS, RaceName, STAT_ABBREVIATIONS, SupportedLevel} from "@xivgear/xivmath/xivconstants";
+import {CharacterGearSet} from "@xivgear/core/gear";
+import {
+    JobName,
+    MAX_PARTY_BONUS,
+    RACE_STATS,
+    RaceName,
+    STAT_ABBREVIATIONS
+} from "@xivgear/xivmath/xivconstants";
 import {getCurrentHash} from "../nav_hash";
 import {MateriaTotalsDisplay} from "./materia";
 import {FoodItemsTable, FoodItemViewTable, GearItemsTable, GearItemsViewTable} from "./items";
@@ -54,21 +53,21 @@ import {SetViewToolbar} from "./totals_display";
 import {scrollIntoView} from "../util/scrollutil";
 import {installDragHelper} from "./draghelpers";
 import {iconForIssues, SetIssuesModal} from "./gear_set_issues";
-import {Inactivitytimer} from "../util/inactivitytimer";
+import {Inactivitytimer} from "@xivgear/core/util/inactivitytimer";
 import {startExport} from "./export_controller";
 import {startRenameSet, startRenameSheet} from "./rename_dialog";
-import {writeProxy} from "../util/proxies";
+import {writeProxy} from "@xivgear/core/util/proxies";
 import {LoadingBlocker} from "./loader";
 import {GearEditToolbar} from "./gear_edit_toolbar";
 import {SETTINGS} from "../settings/persistent_settings";
 import {openSheetByKey, setTitle} from "../base_ui";
-import {parseImport, SHARED_SET_NAME} from "../imports/imports";
-import {getShortLink} from "../external/shortlink_server";
-import {getSetFromEtro} from "../external/etro_import";
-import {getBisSheet} from "../external/static_bis";
-import {SheetPickerTable} from "./saved_sheet_picker";
-import {ImportSheetArea} from "./import_sheet";
+import {parseImport, SHARED_SET_NAME} from "@xivgear/core/imports/imports";
+import {getShortLink} from "@xivgear/core/external/shortlink_server";
+import {getSetFromEtro} from "@xivgear/core/external/etro_import";
+import {getBisSheet} from "@xivgear/core/external/static_bis";
 import {simpleAutoResultTable} from "../sims/components/simple_tables";
+import {rangeInc} from "@xivgear/core/util/array_utils";
+import {SimCurrentResult, SimResult, SimSettings, SimSpec, Simulation} from "@xivgear/core/sims/sim_types";
 
 export type GearSetSel = SingleCellRowOrHeaderSelect<CharacterGearSet>;
 
@@ -1245,7 +1244,7 @@ export class GearPlanSheetGui extends GearPlanSheet {
                     return `${value} Unique Roles`;
                 }
             },
-            [0, 1, 2, 3, 4, 5]
+            rangeInc(0, MAX_PARTY_BONUS)
         )
         buttonsArea.appendChild(partySizeDropdown);
 

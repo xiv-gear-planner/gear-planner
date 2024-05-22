@@ -1,25 +1,27 @@
 import 'global-jsdom/register'
-import {Ability, Buff, BuffController, FinalizedAbility, GcdAbility, OgcdAbility} from "../../sims/sim_types";
 import {it} from "mocha";
-import {
-    BaseMultiCycleSim,
-    CycleProcessor,
-    CycleSimResult,
-    DamageResult,
-    ExternalCycleSettings, Rotation
-} from "../../sims/sim_processors";
 import * as assert from "assert";
-import {assertClose, makeFakeSet} from "../test_utils";
+import {assertClose, makeFakeSet} from "@xivgear/core/test/test_utils";
 import {assertSimAbilityResults, setPartyBuffEnabled, UseResult} from "./sim_test_utils";
-import {SimSettings, SimSpec} from "../../simulation";
 import {JobMultipliers} from "@xivgear/xivmath/geartypes";
 import {getClassJobStats, getLevelStats} from "@xivgear/xivmath/xivconstants";
-import {CharacterGearSet} from "../../gear";
-import {Divination, Litany, Mug} from "../../sims/buffs";
+import {CharacterGearSet} from "@xivgear/core/gear";
+import {Divination, Litany, Mug} from "@xivgear/core/sims/buffs";
 import {exampleGearSet} from "./common_values";
-import {Swiftcast} from "../../sims/common/swiftcast";
-import {removeSelf} from "../../sims/common/utils";
+import {Swiftcast} from "@xivgear/core/sims/common/swiftcast";
+import {removeSelf} from "@xivgear/core/sims/common/utils";
 import {finalizeStats} from "@xivgear/xivmath/xivstats";
+import {
+    Ability,
+    Buff, BuffController, DamageResult,
+    FinalizedAbility,
+    GcdAbility,
+    OgcdAbility,
+    SimSettings,
+    SimSpec
+} from "@xivgear/core/sims/sim_types";
+import {CycleProcessor, CycleSimResult, ExternalCycleSettings, Rotation} from "@xivgear/core/sims/cycle_sim";
+import {BaseMultiCycleSim} from "../../sims/sim_processors";
 
 // Example of end-to-end simulation
 // This one is testing the simulation engine itself, so it copies the full simulation code rather than

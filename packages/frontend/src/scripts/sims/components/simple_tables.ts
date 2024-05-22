@@ -1,6 +1,7 @@
 import {CustomTable} from "../../tables";
-import {camel2title} from "../../util/strutils";
-import {SimResult} from "../../simulation";
+import {camel2title} from "@xivgear/core/util/strutils";
+
+import {SimResult} from "@xivgear/core/sims/sim_types";
 
 type SimpleResultEntry = {
     name: string;

@@ -1,4 +1,4 @@
-import {CharacterGearSet} from "../gear";
+import {CharacterGearSet} from "@xivgear/core/gear";
 import {
     EquipmentSet, EquippedItem,
     EquipSlots,
@@ -17,7 +17,7 @@ import {
     makeActionButton,
     quickElement
 } from "./util";
-import {GearPlanSheet} from "../sheet";
+import {GearPlanSheet} from "@xivgear/core/sheet";
 
 /**
  * Component for managing all materia slots on an item

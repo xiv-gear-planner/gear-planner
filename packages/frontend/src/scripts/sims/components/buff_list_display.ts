@@ -1,6 +1,6 @@
-import {Buff} from "../sim_types";
 import {StatusIcon} from "../../components/status_effects";
-import {toRelPct} from "../../util/strutils";
+import {toRelPct} from "@xivgear/core/util/strutils";
+import {Buff} from "@xivgear/core/sims/sim_types";
 
 
 export function describeBuff(buff: Buff) {

@@ -1,4 +1,4 @@
-import {xivApiSingle, xivApiSingleCols} from "../external/xivapi";
+import {xivApiSingleCols} from "@xivgear/core/external/xivapi";
 
 export interface XivApiAbilityData {
     ID: number,

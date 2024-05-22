@@ -1,7 +1,7 @@
-import {SimSettings, SimSpec} from "../../simulation";
-import {GcdAbility, OgcdAbility} from "../sim_types";
-import {BaseMultiCycleSim, CycleProcessor, CycleSimResult, ExternalCycleSettings, Rotation} from "../sim_processors";
 import {BuffSettingsExport} from "../party_comp_settings";
+import {GcdAbility, OgcdAbility, SimSettings, SimSpec} from "@xivgear/core/sims/sim_types";
+import {CycleProcessor, CycleSimResult, ExternalCycleSettings, Rotation} from "@xivgear/core/sims/cycle_sim";
+import {BaseMultiCycleSim} from "../sim_processors";
 
 const filler: GcdAbility = {
     type: 'gcd',

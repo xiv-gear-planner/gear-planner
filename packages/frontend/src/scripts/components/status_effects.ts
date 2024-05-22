@@ -1,4 +1,4 @@
-import {xivApiIconUrl, xivApiSingleCols} from "../external/xivapi";
+import {xivApiIconUrl, xivApiSingleCols} from "@xivgear/core/external/xivapi";
 
 export interface XivApiStatusData {
     ID: number,

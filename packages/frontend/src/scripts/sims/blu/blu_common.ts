@@ -1,21 +1,16 @@
-import {SimSettings} from "../../simulation";
+import {FieldBoundCheckBox, labeledCheckbox} from "../../components/util";
+import {OffGuardBuff} from "@xivgear/core/sims/buffs";
+import {removeSelf} from "@xivgear/core/sims/common/utils";
+import {CASTER_TAX} from "@xivgear/xivmath/xivconstants";
+import {Ability, Buff, BuffController, GcdAbility, OgcdAbility, SimSettings} from "@xivgear/core/sims/sim_types";
 import {
     AbilityUseResult,
-    BaseMultiCycleSim,
     CycleProcessor,
     CycleSimResult,
     ExternalCycleSettings,
-    MultiCycleSettings,
-    Rotation
-} from "../sim_processors";
-import {Ability, Buff, BuffController, GcdAbility, OgcdAbility} from "../sim_types"
-import {BuffSettingsArea} from "../party_comp_settings";
-import {cycleSettingsGui} from "../components/cycle_settings_components";
-import {writeProxy} from "../../util/proxies";
-import {FieldBoundCheckBox, labeledCheckbox} from "../../components/util";
-import {OffGuardBuff} from "../buffs";
-import {removeSelf} from "../common/utils";
-import {CASTER_TAX} from "@xivgear/xivmath/xivconstants";
+    MultiCycleSettings, Rotation
+} from "@xivgear/core/sims/cycle_sim";
+import {BaseMultiCycleSim} from "../sim_processors";
 
 /**
  * BLU spells that apply Bleeding

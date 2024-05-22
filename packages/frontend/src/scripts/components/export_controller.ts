@@ -1,11 +1,10 @@
 import {FieldBoundCheckBox, labeledCheckbox, labeledRadioButton, makeActionButton} from "./util";
 import {closeModal} from "../modalcontrol";
-import {putShortLink} from "../external/shortlink_server";
-import {CharacterGearSet} from "../gear";
+import {putShortLink} from "@xivgear/core/external/shortlink_server";
+import {CharacterGearSet} from "@xivgear/core/gear";
 import {BaseModal} from "./modal";
-import {VIEW_SET_HASH, VIEW_SHEET_HASH} from "../common_nav";
-import {contentArea} from "../base_ui";
-import {GearPlanSheet} from "../sheet";
+import {VIEW_SET_HASH, VIEW_SHEET_HASH} from "@xivgear/core/nav/common_nav";
+import {GearPlanSheet} from "@xivgear/core/sheet";
 
 const SHEET_EXPORT_OPTIONS = ['Link to Whole Sheet', 'One Link for Each Set', 'Embed URL for Each Set', 'JSON for Whole Sheet'] as const;
 type SheetExportType = typeof SHEET_EXPORT_OPTIONS[number];

@@ -4,6 +4,7 @@ import {
     JobDataConst,
     LevelItemInfo,
     LevelStats,
+    PartyBonusAmount,
     RawStatKey,
     RawStats
 } from "./geartypes";
@@ -704,3 +705,4 @@ export const defaultItemDisplaySettings: ItemDisplaySettings = {
     higherRelics: true
 } as const;
 
+export const MAX_PARTY_BONUS: PartyBonusAmount = 5;

@@ -1,9 +1,9 @@
-import {SimResult, SimSettings, SimSpec, Simulation} from "../../simulation";
-import {CharacterGearSet} from "../../gear";
+import {CharacterGearSet} from "@xivgear/core/gear";
 import {applyDhCrit, baseDamage} from "@xivgear/xivmath/xivmath";
 import {ComputedSetStats} from "@xivgear/xivmath/geartypes";
 
 import {FieldBoundCheckBox, labeledCheckbox} from "../../components/util";
+import {SimResult, SimSettings, SimSpec, Simulation} from "@xivgear/core/sims/sim_types";
 
 
 //potencies for our spells

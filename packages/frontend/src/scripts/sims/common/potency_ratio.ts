@@ -1,6 +1,7 @@
-import {noSimSettings, SimResult, SimSettings, SimSpec, Simulation} from "../../simulation";
-import {CharacterGearSet} from "../../gear";
+import {noSimSettings} from "../simulation";
+import {CharacterGearSet} from "@xivgear/core/gear";
 import {applyDhCrit, baseDamage} from "@xivgear/xivmath/xivmath";
+import {SimResult, SimSettings, SimSpec, Simulation} from "@xivgear/core/sims/sim_types";
 
 export const potRatioSimSpec: SimSpec<PotencyRatioSim, SimSettings> = {
     displayName: "Potency Ratio",
