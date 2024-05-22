@@ -936,6 +936,7 @@ div.chance-stat-display, div.multiplier-stat-display {
 #content-area > .my-sheets-section {
   .named-section-content-area {
     width: 600px;
+
     table.gear-sheets-table {
       overflow: auto;
       padding: 0;
@@ -1477,7 +1478,7 @@ add-sim-dialog {
   margin: auto;
   width: fit-content;
 
-  >input, >button {
+  > input, > button {
     .shadow;
   }
 
@@ -1735,7 +1736,7 @@ div.gear-set-editor-toolbar, set-view-toolbar {
       }
 
       div.single-stat-tier-display-lower-left {
-        color: color-mix(in srgb, var(--stat-color) 30%, var(--stat-tiering-box-mix-color));
+        color: color-mix(in srgb, var(--stat-color) 70%, var(--stat-tiering-box-mix-color));
         line-height: 0;
         //float: left;
       }
@@ -2839,6 +2840,28 @@ body.modern {
     padding-left: 5px;
     padding-right: 5px;
   }
+
+  set-view-toolbar {
+    set-totals-display {
+      div.stat-total {
+        background-color: color-mix(in srgb, var(--stat-color) 6%, var(--table-bg-color));
+        padding-left: 6px;
+        padding-right: 6px;
+        margin-left: 4px;
+        margin-right: 4px;
+        box-sizing: content-box;
+      }
+    }
+  }
+
+  .gear-set-editor-toolbar {
+    .single-stat-tier-display {
+      background-color: color-mix(in srgb, var(--stat-color) 5%, var(--table-bg-color));
+      &.stat-tiering-perfect {
+        background-color: color-mix(in srgb, var(--stat-color) 13%, var(--table-bg-color));
+      }
+    }
+  }
 }
 
 // This is intentionally not style differently based on enabled/disabled status, since it is frequently used
@@ -2975,7 +2998,8 @@ gear-set-issues-modal {
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  >h3 {
+
+  > h3 {
     margin-top: 0;
     margin-bottom: 18px;
   }
@@ -2991,6 +3015,7 @@ gear-set-issues-modal {
   height: fit-content;
   padding: 20px;
   border-radius: 10px;
+
   .named-section-content-area {
     max-width: 100%;
     overflow: auto;
