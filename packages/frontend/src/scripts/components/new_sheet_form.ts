@@ -1,7 +1,7 @@
 import {DataSelect, FieldBoundCheckBox, FieldBoundIntField, labelFor, positiveValuesOnly, quickElement} from "./util";
 import {JOB_DATA, JobName, LEVEL_ITEMS, MAX_ILVL, SupportedLevel, SupportedLevels} from "@xivgear/xivmath/xivconstants";
-import {GearPlanSheet} from "../components";
 import {getNextSheetInternalName} from "../persistence/saved_sheets";
+import {GearPlanSheet} from "../sheet";
 
 export class NewSheetForm extends HTMLFormElement {
     private readonly nameInput: HTMLInputElement;

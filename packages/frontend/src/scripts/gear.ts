@@ -49,12 +49,12 @@ import {
     StatBonus,
     XivCombatItem
 } from "@xivgear/xivmath/geartypes";
-import {GearPlanSheet} from "./components";
 import {xivApiIcon} from "./external/xivapi";
 import {IlvlSyncInfo} from "./datamanager";
 import {XivApiStat, xivApiStatMapping} from "./external/xivapitypes";
 import {Inactivitytimer} from "./util/inactivitytimer";
 import {addStats, finalizeStats} from "@xivgear/xivmath/xivstats";
+import {GearPlanSheet} from "./sheet";
 
 
 export function nonEmptyRelicStats(stats: RelicStats | undefined): boolean {

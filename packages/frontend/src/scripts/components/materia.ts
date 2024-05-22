@@ -9,7 +9,6 @@ import {
 } from "@xivgear/xivmath/geartypes";
 import {MateriaSubstat, MAX_GCD, STAT_ABBREVIATIONS, STAT_FULL_NAMES} from "@xivgear/xivmath/xivconstants";
 import {closeModal, setModal} from "../modalcontrol";
-import {GearPlanSheet} from "../components";
 import {
     faIcon,
     FieldBoundCheckBox,
@@ -18,6 +17,7 @@ import {
     makeActionButton,
     quickElement
 } from "./util";
+import {GearPlanSheet} from "../sheet";
 
 /**
  * Component for managing all materia slots on an item

@@ -1,8 +1,8 @@
-import {GearPlanSheet} from "../components";
 import {closeModal} from "../modalcontrol";
 import {quickElement} from "./util";
 import {CharacterGearSet} from "../gear";
 import {BaseModal} from "./modal";
+import {GearPlanSheet} from "../sheet";
 
 export function startRenameSheet(sheet: GearPlanSheet) {
     const modal = new RenameModal({

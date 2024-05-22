@@ -1,11 +1,11 @@
 import {FieldBoundCheckBox, labeledCheckbox, labeledRadioButton, makeActionButton} from "./util";
-import {GearPlanSheet} from "../components";
 import {closeModal} from "../modalcontrol";
 import {putShortLink} from "../external/shortlink_server";
 import {CharacterGearSet} from "../gear";
 import {BaseModal} from "./modal";
 import {VIEW_SET_HASH, VIEW_SHEET_HASH} from "../common_nav";
 import {contentArea} from "../base_ui";
+import {GearPlanSheet} from "../sheet";
 
 const SHEET_EXPORT_OPTIONS = ['Link to Whole Sheet', 'One Link for Each Set', 'Embed URL for Each Set', 'JSON for Whole Sheet'] as const;
 type SheetExportType = typeof SHEET_EXPORT_OPTIONS[number];

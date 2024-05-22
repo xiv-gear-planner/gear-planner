@@ -1,6 +1,7 @@
-import {ParameterType} from "typedoc";
 import {getBisSheet} from "../external/static_bis";
 import {JobName} from "@xivgear/xivmath/xivconstants";
+
+export const SHARED_SET_NAME = 'Imported Set';
 
 export type JsonImportSpec = {
     importType: 'json',

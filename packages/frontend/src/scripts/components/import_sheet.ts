@@ -4,8 +4,8 @@ import {parseImport} from "../imports/imports";
 import {getShortLink} from "../external/shortlink_server";
 import {getSetFromEtro} from "../external/etro_import";
 import {getBisSheet} from "../external/static_bis";
-import {GearPlanSheetGui} from "../components";
 import {NamedSection} from "./section";
+import {GearPlanSheetGui} from "./sheet";
 
 export class ImportSheetArea extends NamedSection {
     private readonly loader: LoadingBlocker;

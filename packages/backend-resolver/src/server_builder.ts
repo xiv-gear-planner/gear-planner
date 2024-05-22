@@ -2,12 +2,22 @@ import 'global-jsdom/register'
 import './polyfills';
 import Fastify from "fastify";
 import {getShortLink} from "@xivgear/gearplan-frontend/external/shortlink_server";
-import {GearPlanSheet} from "@xivgear/gearplan-frontend/components";
 import {PartyBonusAmount, SheetStatsExport} from "@xivgear/xivmath/geartypes";
 import {getBisSheet} from "@xivgear/gearplan-frontend/external/static_bis";
 import {registerDefaultSims} from "@xivgear/gearplan-frontend/sims/default_sims";
+import {GearPlanSheet} from "@xivgear/gearplan-frontend/sheet";
 
-registerDefaultSims();
+let initDone = false;
+function checkInit() {
+    if (!initDone) {
+        doInit();
+        initDone = true;
+    }
+}
+
+function doInit() {
+    registerDefaultSims();
+}
 
 async function importExportSheet(request, rawData: string): Promise<SheetStatsExport> {
     const exported = JSON.parse(rawData);
@@ -23,6 +33,9 @@ async function importExportSheet(request, rawData: string): Promise<SheetStatsEx
 }
 
 export function buildServerInstance() {
+
+    checkInit();
+
     const fastifyInstance = Fastify({
         logger: true,
         ignoreTrailingSlash: true,

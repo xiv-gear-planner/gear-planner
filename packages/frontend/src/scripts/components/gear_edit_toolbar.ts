@@ -3,8 +3,8 @@ import {ItemDisplaySettings, MateriaAutoFillController} from "@xivgear/xivmath/g
 import {MateriaPriorityPicker} from "./materia";
 import {StatTierDisplay} from "./stat_tier_display";
 import {CharacterGearSet} from "../gear";
-import {GearPlanSheet} from "../components";
 import {FieldBoundCheckBox, quickElement} from "./util";
+import {GearPlanSheet} from "../sheet";
 
 export class GearEditToolbar extends HTMLDivElement {
     private readonly statTierDisplay: StatTierDisplay;

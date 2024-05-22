@@ -3,13 +3,14 @@ import {NamedSection} from "./components/section";
 import {NewSheetForm} from "./components/new_sheet_form";
 import {ImportSheetArea} from "./components/import_sheet";
 import {SetExport, SheetExport} from "@xivgear/xivmath/geartypes";
-import {GearPlanSheet, GearPlanSheetGui} from "./components";
 import {openEmbed} from "./embed";
 import {SETTINGS} from "./settings/persistent_settings";
 import {LoadingBlocker} from "./components/loader";
 import {SheetPickerTable} from "./components/saved_sheet_picker";
 import {DISPLAY_SETTINGS} from "./settings/display_settings";
 import {showSettingsModal} from "./settings/settings_modal";
+import {GearPlanSheet} from "./sheet";
+import {GearPlanSheetGui} from "./components/sheet";
 
 const pageTitle = 'XivGear - FFXIV Gear Planner';
 
