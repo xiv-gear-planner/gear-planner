@@ -857,6 +857,7 @@ export class XivApiGearInfo implements GearItem {
             const isCraftable = data['GameContentLinks']?.['Recipe'];
             // Check if it is buyable by checking if any shops sell it
             const hasShop = data['GameContentLinks']?.['SpecialShop'];
+            // TODO: nothing results in 'normraid'
             switch (rarity) {
                 case 1:
                     if (isCraftable) {

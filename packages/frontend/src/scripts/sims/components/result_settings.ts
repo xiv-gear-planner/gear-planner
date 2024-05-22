@@ -1,9 +1,10 @@
 import {ResultSettings} from "../sim_processors";
 import {FieldBoundFloatField, labelFor} from "../../components/util";
+import {NamedSection} from "../../components/section";
 
-export class ResultSettingsArea extends HTMLElement {
+export class ResultSettingsArea extends NamedSection {
     constructor(resultSettings: ResultSettings) {
-        super();
+        super("Result Settings");
         const inputField = new FieldBoundFloatField(resultSettings, 'stdDevs', {
             inputMode: 'number'
         });

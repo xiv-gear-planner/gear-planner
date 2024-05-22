@@ -6,16 +6,15 @@ import {
     CustomTable,
     HeaderRow,
     SingleCellRowOrHeaderSelect,
-    SingleSelectionModel,
-    SpecialRow,
-    TitleRow
+    SingleSelectionModel
 } from "./tables";
 import {CharacterGearSet} from "./gear";
 import {DataManager} from "./datamanager";
 import {
     ChanceStat,
     ComputedSetStats,
-    DisplayGearSlot, EquippedItem,
+    DisplayGearSlot,
+    EquippedItem,
     EquipSlotKey,
     EquipSlots,
     FoodItem,
@@ -30,8 +29,10 @@ import {
     MultiplierStat,
     PartyBonusAmount,
     RawStatKey,
-    SetExport, SetStatsExport,
-    SheetExport, SheetStatsExport,
+    SetExport,
+    SetStatsExport,
+    SheetExport,
+    SheetStatsExport,
     SimExport,
     Substat
 } from "@xivgear/xivmath/geartypes";
@@ -48,35 +49,29 @@ import {
 } from "./simulation";
 import {
     DefaultMateriaFillPrio,
-    getClassJobStats, getDefaultDisplaySettings,
+    getClassJobStats,
+    getDefaultDisplaySettings,
     getRaceStats,
-    JOB_DATA,
     JobName,
     LEVEL_ITEMS,
     MAIN_STATS,
     MateriaSubstat,
-    MAX_ILVL,
     RACE_STATS,
     RaceName,
     STAT_ABBREVIATIONS,
-    SupportedLevel,
-    SupportedLevels
+    SupportedLevel
 } from "@xivgear/xivmath/xivconstants";
-import {getCurrentHash, getHashForSaveKey, openSheetByKey, setTitle, showNewSheetForm} from "./main";
+import {getCurrentHash, openSheetByKey, setTitle} from "./main";
 import {getSetFromEtro} from "./external/etro_import";
 import {Inactivitytimer} from "./util/inactivitytimer";
 import {
-    DataSelect, errorIcon,
     faIcon,
     FieldBoundCheckBox,
     FieldBoundDataSelect,
-    FieldBoundIntField,
     FieldBoundTextField,
     labeledCheckbox,
-    labelFor,
     makeActionButton,
-    positiveValuesOnly,
-    quickElement, warningIcon
+    quickElement
 } from "./components/util";
 import {LoadingBlocker} from "./components/loader";
 import {FoodItemsTable, FoodItemViewTable, GearItemsTable, GearItemsViewTable} from "./components/items";
@@ -95,7 +90,11 @@ import {BaseModal} from "./components/modal";
 import {closeModal} from "./modalcontrol";
 import {scrollIntoView} from "./util/scrollutil";
 import {getBisSheet} from "./external/static_bis";
-import {gearSetErrorIcon, gearSetWarningIcon, iconForIssues, SetIssuesModal} from "./components/gear_set_issues";
+import {iconForIssues, SetIssuesModal} from "./components/gear_set_issues";
+import {ImportSheetArea} from "./components/import_sheet";
+import {SheetPickerTable} from "./components/saved_sheet_picker";
+import {NewSheetForm} from "./components/new_sheet_form";
+import {getNextSheetInternalName} from "./persistence/saved_sheets";
 
 export const SHARED_SET_NAME = 'Imported Set';
 
@@ -2221,115 +2220,6 @@ class ImportSetsModal extends BaseModal {
 }
 
 
-export class ImportSheetArea extends HTMLElement {
-    private readonly loader: LoadingBlocker;
-    private readonly importButton: HTMLButtonElement;
-    private readonly textArea: HTMLTextAreaElement;
-
-    // TODO
-    constructor(private sheetOpenCallback: (GearPlanSheet) => Promise<any>) {
-        super();
-
-        const heading = document.createElement('h1');
-        heading.textContent = 'Import Sheet';
-        this.appendChild(heading);
-
-        const explanation = document.createElement('p');
-        explanation.textContent = 'This will import into a new sheet. You can paste a gear planner link, gear planner JSON, or an Etro link.';
-        this.appendChild(explanation);
-
-        const textAreaDiv = document.createElement("div");
-        textAreaDiv.id = 'set-import-textarea-holder';
-
-        this.textArea = document.createElement("textarea");
-        this.textArea.id = 'set-import-textarea';
-        textAreaDiv.appendChild(this.textArea);
-        this.loader = new LoadingBlocker();
-        this.loader.classList.add('with-bg');
-
-
-        textAreaDiv.appendChild(this.loader);
-        this.appendChild(textAreaDiv);
-        textAreaDiv.appendChild(document.createElement("br"));
-
-        this.importButton = makeActionButton("Import", () => this.doImport());
-        this.appendChild(this.importButton);
-        this.ready = true;
-    }
-
-    set ready(ready: boolean) {
-        if (ready) {
-            this.loader.hide();
-            this.importButton.disabled = false;
-        }
-        else {
-            this.loader.show();
-            this.importButton.disabled = true;
-        }
-    }
-
-    doImport() {
-        const text = this.textArea.value;
-        const parsed = parseImport(text);
-        if (parsed) {
-            switch (parsed.importType) {
-                case "json":
-                    try {
-                        this.doJsonImport(parsed.rawData);
-                    }
-                    catch (e) {
-                        console.error('Import error', e);
-                        alert('Error importing');
-                    }
-                    return;
-                case "shortlink":
-                    this.doAsyncImport(() => getShortLink(decodeURIComponent(parsed.rawUuid)));
-                    return;
-                case "etro":
-                    this.ready = false;
-                    getSetFromEtro(parsed.rawUuid).then(set => {
-                        this.sheetOpenCallback(GearPlanSheet.fromSetExport(set));
-                        console.log("Loaded set from Etro");
-                    }, err => {
-                        this.ready = true;
-                        console.error("Error loading set from Etro", err);
-                        alert('Error loading Etro set');
-                    });
-                    return;
-                case "bis":
-                    this.doAsyncImport(() => getBisSheet(...parsed.path));
-                    return;
-            }
-        }
-        console.error("Error loading imported data", text);
-        alert('That doesn\'t look like a valid import.');
-    }
-
-    doAsyncImport(provider: () => Promise<string>) {
-        this.ready = false;
-        provider().then(raw => {
-            this.doJsonImport(raw);
-        }, err => {
-            this.ready = true;
-            console.error("Error importing set/sheet", err);
-            alert('Error loading set/sheet');
-        })
-    }
-
-    doJsonImport(text: string) {
-        const rawImport = JSON.parse(text);
-        if ('sets' in rawImport && rawImport.sets.length) {
-            this.sheetOpenCallback(GearPlanSheet.fromExport(rawImport));
-        }
-        else if ('name' in rawImport && 'items' in rawImport) {
-            this.sheetOpenCallback(GearPlanSheet.fromSetExport(rawImport));
-        }
-        else {
-            alert("That doesn't look like a valid sheet or set");
-        }
-    }
-}
-
 class AddSimDialog extends BaseModal {
     private readonly table: CustomTable<SimSpec<any, any>, SingleCellRowOrHeaderSelect<SimSpec<any, any>>>;
     private _showAllSims: boolean = false;
@@ -2409,254 +2299,6 @@ class AddSimDialog extends BaseModal {
 }
 
 
-function deleteSheetByKey(saveKey: string) {
-    localStorage.removeItem(saveKey);
-}
-
-function startNewSheet() {
-    showNewSheetForm();
-}
-
-export class SheetPickerTable extends CustomTable<SheetExport, SheetExport> {
-    constructor() {
-        super();
-        this.classList.add("gear-sheets-table");
-        this.classList.add("hoverable");
-        this.columns = [
-            {
-                shortName: "sheetactions",
-                displayName: "",
-                getter: sheet => sheet,
-                renderer: (sheet: SheetExport) => {
-                    const div = document.createElement("div");
-                    div.appendChild(makeActionButton([faIcon('fa-trash-can')], () => {
-                        this.confirmDelete(sheet);
-                    }, `Delete sheet '${sheet.name}'`));
-                    const hash = getHashForSaveKey(sheet.saveKey);
-                    const linkUrl = new URL(`#/${hash.join('/')}`, document.location.toString());
-                    const newTabLink = document.createElement('a');
-                    newTabLink.href = linkUrl.toString();
-                    newTabLink.target = '_blank';
-                    newTabLink.appendChild(faIcon('fa-arrow-up-right-from-square', 'fa'));
-                    newTabLink.addEventListener('mousedown', ev => {
-                        ev.stopPropagation();
-                    }, true);
-                    newTabLink.classList.add('borderless-button');
-                    newTabLink.title = `Open sheet '${sheet.name}' in a new tab/window`;
-                    div.appendChild(newTabLink);
-                    return div;
-                },
-            },
-            {
-                shortName: "sheetlevel",
-                displayName: "Lvl",
-                getter: sheet => sheet.level,
-                fixedWidth: 40,
-            },
-            {
-                shortName: "sheetjob",
-                displayName: "Job",
-                getter: sheet => sheet.job,
-                // renderer: job => {
-                //     const out = document.createElement('div');
-                //     out.replaceChildren(new JobIcon(job), job);
-                //     return out;
-                // },
-                fixedWidth: 60,
-            },
-            {
-                shortName: "sheetname",
-                displayName: "Sheet Name",
-                getter: sheet => sheet.name,
-            }
-        ]
-        this.readData();
-        this.selectionModel = {
-            clickCell(cell: CustomCell<SheetExport, SheetExport>) {
-
-            },
-            clickColumnHeader(col: CustomColumn<SheetExport>) {
-
-            },
-            clickRow(row: CustomRow<SheetExport>) {
-                openSheetByKey(row.dataItem.saveKey);
-            },
-            getSelection(): SheetExport {
-                return null;
-            },
-            isCellSelectedDirectly(cell: CustomCell<SheetExport, SheetExport>) {
-                return false;
-            },
-            isColumnHeaderSelected(col: CustomColumn<SheetExport>) {
-                return false;
-            },
-            isRowSelected(row: CustomRow<SheetExport>) {
-                return false;
-            },
-            clearSelection(): void {
-
-            }
-        };
-    }
-
-    readData() {
-        const data: typeof this.data = [];
-        data.push(new SpecialRow((table) => {
-            const div = document.createElement("div");
-            div.replaceChildren(faIcon('fa-plus', 'fa-solid'), 'New Sheet');
-            return div;
-        }, (row) => {
-            row.classList.add('special-row-hoverable', 'new-sheet-row');
-            row.addEventListener('click', () => startNewSheet());
-        }));
-        const items: SheetExport[] = [];
-        for (let localStorageKey in localStorage) {
-            if (localStorageKey.startsWith("sheet-save-")) {
-                const imported = JSON.parse(localStorage.getItem(localStorageKey)) as SheetExport;
-                if (imported.saveKey) {
-                    items.push(imported);
-                }
-            }
-        }
-        if (items.length === 0) {
-            data.push(new TitleRow("You don't have any sheets. Click 'New Sheet' to get started."));
-        }
-        else {
-            items.sort((left, right) => {
-                return parseInt(right.saveKey.split('-')[2]) - parseInt(left.saveKey.split('-')[2]);
-            })
-            data.push(...items);
-        }
-        this.data = data;
-    }
-
-    private confirmDelete(sheet: SheetExport) {
-        const confirmed = confirm(`Delete sheet '${sheet.name}'?`);
-        if (confirmed) {
-            deleteSheetByKey(sheet.saveKey);
-            this.readData();
-        }
-    }
-}
-
-function getNextSheetInternalName() {
-    const lastRaw = localStorage.getItem("last-sheet-number");
-    const lastSheetNum = lastRaw ? parseInt(lastRaw) : 0;
-    const next = lastSheetNum + 1;
-    localStorage.setItem("last-sheet-number", next.toString());
-    const randomStub = Math.floor(Math.random() * 65536);
-    return "sheet-save-" + next + '-' + randomStub.toString(16).toLowerCase();
-}
-
-function spacer() {
-    return quickElement('div', ['vertical-spacer'], []);
-}
-
-export class NewSheetForm extends HTMLFormElement {
-    private readonly nameInput: HTMLInputElement;
-    private readonly jobDropdown: DataSelect<JobName>;
-    private readonly levelDropdown: DataSelect<SupportedLevel>;
-    private readonly ilvlSyncCheckbox: FieldBoundCheckBox<any>;
-    private readonly ilvlSyncValue: FieldBoundIntField<any>;
-    private readonly fieldSet: HTMLFieldSetElement;
-    private readonly sheetOpenCallback: (GearPlanSheet) => Promise<any>;
-    private readonly tempSettings = {
-        ilvlSyncEnabled: false,
-        ilvlSync: 650
-    }
-
-    constructor(sheetOpenCallback: (GearPlanSheet) => Promise<any>) {
-        super();
-        this.sheetOpenCallback = sheetOpenCallback;
-        // Header
-        const header = document.createElement("h1");
-        header.textContent = "New Gear Planning Sheet";
-        this.id = "new-sheet-form";
-        this.appendChild(header);
-
-        this.fieldSet = document.createElement("fieldset");
-
-        // Sheet Name
-        this.nameInput = document.createElement("input");
-        this.nameInput.id = "new-sheet-name-input";
-        this.nameInput.required = true;
-        this.nameInput.type = 'text';
-        this.nameInput.width = 400;
-        this.fieldSet.appendChild(labelFor("Sheet Name: ", this.nameInput));
-        this.fieldSet.appendChild(this.nameInput);
-        this.fieldSet.appendChild(spacer());
-
-        // Job selection
-        // @ts-ignore
-        this.jobDropdown = new DataSelect<JobName>(Object.keys(JOB_DATA), item => item, () => this.recheck());
-        this.jobDropdown.id = "new-sheet-job-dropdown";
-        this.jobDropdown.required = true;
-        this.fieldSet.appendChild(labelFor('Job: ', this.jobDropdown));
-        this.fieldSet.appendChild(this.jobDropdown);
-        this.fieldSet.appendChild(spacer());
-
-        // Level selection
-        this.levelDropdown = new DataSelect<SupportedLevel>([...SupportedLevels], item => item.toString(), newValue => {
-            const isync = LEVEL_ITEMS[newValue]?.defaultIlvlSync;
-            if (isync !== undefined) {
-                this.tempSettings.ilvlSyncEnabled = true;
-                this.tempSettings.ilvlSync = isync;
-                this.ilvlSyncValue.reloadValue();
-                this.ilvlSyncCheckbox.reloadValue();
-            }
-            this.recheck();
-        }, Math.max(...SupportedLevels) as SupportedLevel);
-        this.levelDropdown.id = "new-sheet-level-dropdown";
-        this.levelDropdown.required = true;
-        this.fieldSet.appendChild(labelFor('Level: ', this.levelDropdown));
-        this.fieldSet.appendChild(this.levelDropdown);
-        this.fieldSet.appendChild(spacer());
-
-        this.ilvlSyncCheckbox = new FieldBoundCheckBox(this.tempSettings, 'ilvlSyncEnabled');
-        this.ilvlSyncCheckbox.id = 'new-sheet-ilvl-sync-enable';
-        this.fieldSet.append(quickElement('div', [], [this.ilvlSyncCheckbox, labelFor("Sync Item Level", this.ilvlSyncCheckbox)]));
-        this.ilvlSyncValue = new FieldBoundIntField(this.tempSettings, 'ilvlSync', {
-            postValidators: [
-                positiveValuesOnly,
-                (ctx) => {
-                    if (ctx.newValue > MAX_ILVL) {
-                        ctx.failValidation("Enter a valid item level (too high)")
-                    }
-                }
-            ]
-        });
-        this.ilvlSyncValue.style.display = 'none';
-        this.ilvlSyncCheckbox.addListener(() => this.recheck());
-        this.fieldSet.appendChild(this.ilvlSyncValue);
-        this.fieldSet.appendChild(spacer());
-
-        this.appendChild(this.fieldSet);
-        this.appendChild(spacer());
-
-        this.submitButton = document.createElement("button");
-        this.submitButton.type = 'submit';
-        this.submitButton.textContent = "New Sheet";
-        this.appendChild(this.submitButton);
-
-        onsubmit = (ev) => {
-            this.doSubmit();
-        }
-    }
-
-    takeFocus() {
-        this.nameInput.focus();
-    }
-
-    recheck() {
-        this.ilvlSyncValue.style.display = this.ilvlSyncCheckbox.currentValue ? '' : 'none';
-    }
-
-    private doSubmit() {
-        const nextSheetSaveStub = getNextSheetInternalName();
-        const gearPlanSheet = GearPlanSheet.fromScratch(nextSheetSaveStub, this.nameInput.value, this.jobDropdown.selectedItem, this.levelDropdown.selectedItem, this.tempSettings.ilvlSyncEnabled ? this.tempSettings.ilvlSync : undefined);
-        this.sheetOpenCallback(gearPlanSheet).then(() => gearPlanSheet.requestSave());
-    }
-}
 
 export interface XivApiJobData {
     Name: string,

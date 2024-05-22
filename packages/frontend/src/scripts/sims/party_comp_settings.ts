@@ -2,6 +2,7 @@ import {JobName} from "@xivgear/xivmath/xivconstants";
 import {PartyBuff} from "./sim_types";
 import {ALL_BUFFS, BuffName} from "./buffs";
 import {FieldBoundCheckBox, labeledCheckbox} from "../components/util";
+import {NamedSection} from "../components/section";
 
 export type BuffSettingsExport = {
     /**
@@ -94,13 +95,10 @@ export class BuffSettingsManager {
     }
 }
 
-export class BuffSettingsArea extends HTMLElement {
+export class BuffSettingsArea extends NamedSection {
     constructor(settings: BuffSettingsManager, updateCallback: () => void) {
-        super();
+        super('Party Comp/Raid Buffs');
         this.classList.add('buff-settings-area')
-        const header = document.createElement('h3');
-        header.textContent = 'Party Comp/Raid Buffs';
-        this.appendChild(header);
 
         const table = document.createElement('table');
         const tbody = document.createElement('tbody');
@@ -124,7 +122,7 @@ export class BuffSettingsArea extends HTMLElement {
             row.append(buffsCell);
             tbody.append(row);
         });
-        this.append(table);
+        this.contentArea.append(table);
     }
 }
 
