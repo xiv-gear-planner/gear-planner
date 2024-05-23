@@ -18,11 +18,10 @@ import {
 } from "@xivgear/xivmath/xivconstants";
 import {CooldownMode, CooldownTracker} from "./common/cooldown_manager";
 import {addValues, fixedValue, multiplyFixed, ValueWithDev} from "@xivgear/xivmath/deviation";
-import {combineBuffEffects} from "@xivgear/gearplan-frontend/sims/sim_processors";
-import {appDelay, completeComboData, FinalizedComboData} from "@xivgear/gearplan-frontend/test/sims/ability_helpers";
-import {BuffSettingsExport} from "@xivgear/gearplan-frontend/sims/party_comp_settings";
-import {CycleSettings} from "@xivgear/gearplan-frontend/sims/cycle_settings";
-import {abilityToDamageNew} from "./sim_utils";
+import {appDelay, completeComboData, FinalizedComboData} from "./ability_helpers";
+import {abilityToDamageNew, combineBuffEffects} from "./sim_utils";
+import {BuffSettingsExport} from "./common/party_comp_settings";
+import {CycleSettings} from "./cycle_settings";
 
 export class CycleContext {
 

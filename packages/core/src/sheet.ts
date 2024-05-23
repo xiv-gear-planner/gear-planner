@@ -33,6 +33,7 @@ import {
     Substat
 } from "@xivgear/xivmath/geartypes";
 import {CharacterGearSet} from "./gear";
+// TODO: this is the last remaining dependency from core to frontend
 import {
     getDefaultSims,
     getRegisteredSimSpecs,

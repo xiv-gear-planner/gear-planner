@@ -1,6 +1,5 @@
 import {JobName} from "@xivgear/xivmath/xivconstants";
-import {BuffSettingsArea, BuffSettingsManager} from "./party_comp_settings";
-import {CycleSettings} from "./cycle_settings";
+import {CycleSettings} from "@xivgear/core/sims/cycle_settings";
 import {CharacterGearSet} from "@xivgear/core/gear";
 import {cycleSettingsGui} from "./components/cycle_settings_components";
 import {writeProxy} from "@xivgear/core/util/proxies";
@@ -11,7 +10,7 @@ import {addValues, applyStdDev, multiplyFixed} from "@xivgear/xivmath/deviation"
 import {ResultSettingsArea} from "./components/result_settings";
 import {NamedSection} from "../components/section";
 import {simpleAutoResultTable} from "./components/simple_tables";
-import {Buff, CombinedBuffEffect, PartyBuff, SimSettings, SimSpec, Simulation} from "@xivgear/core/sims/sim_types";
+import {PartyBuff, SimSettings, SimSpec, Simulation} from "@xivgear/core/sims/sim_types";
 import {
     CycleProcessor,
     CycleSimResult,
@@ -22,39 +21,9 @@ import {
     ResultSettings,
     Rotation
 } from "@xivgear/core/sims/cycle_sim";
+import {BuffSettingsManager} from "@xivgear/core/sims/common/party_comp_settings";
+import {BuffSettingsArea} from "./party_comp_settings";
 
-
-export function combineBuffEffects(buffs: Buff[]): CombinedBuffEffect {
-    const combinedEffects: CombinedBuffEffect = {
-        dmgMod: 1,
-        critChanceIncrease: 0,
-        dhitChanceIncrease: 0,
-        forceCrit: false,
-        forceDhit: false,
-        haste: 0,
-    }
-    for (let buff of buffs) {
-        if (buff.effects.dmgIncrease) {
-            combinedEffects.dmgMod *= (1 + buff.effects.dmgIncrease);
-        }
-        if (buff.effects.critChanceIncrease) {
-            combinedEffects.critChanceIncrease += buff.effects.critChanceIncrease;
-        }
-        if (buff.effects.dhitChanceIncrease) {
-            combinedEffects.dhitChanceIncrease += buff.effects.dhitChanceIncrease;
-        }
-        if (buff.effects.haste) {
-            combinedEffects.haste += buff.effects.haste;
-        }
-        if (buff.effects.forceCrit) {
-            combinedEffects.forceCrit = true;
-        }
-        if (buff.effects.forceDhit) {
-            combinedEffects.forceDhit = true;
-        }
-    }
-    return combinedEffects;
-}
 
 export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, InternalSettingsType extends SimSettings, CycleProcessorType extends CycleProcessor = CycleProcessor>
     implements Simulation<ResultType, InternalSettingsType, ExternalCycleSettings<InternalSettingsType>> {

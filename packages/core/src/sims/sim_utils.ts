@@ -1,5 +1,5 @@
 import {ComputedSetStats} from "@xivgear/xivmath/geartypes";
-import {Ability, CombinedBuffEffect, ComputedDamage, DamageResult, DamagingAbility} from "./sim_types";
+import {Ability, Buff, CombinedBuffEffect, ComputedDamage, DamageResult, DamagingAbility} from "./sim_types";
 import {applyDhCritFull, baseDamageFull} from "@xivgear/xivmath/xivmath";
 import {multiplyFixed, multiplyValues} from "@xivgear/xivmath/deviation";
 
@@ -50,3 +50,36 @@ export function abilityToDamageNew(stats: ComputedSetStats, ability: Ability, co
     }
 
 }
+
+export function combineBuffEffects(buffs: Buff[]): CombinedBuffEffect {
+    const combinedEffects: CombinedBuffEffect = {
+        dmgMod: 1,
+        critChanceIncrease: 0,
+        dhitChanceIncrease: 0,
+        forceCrit: false,
+        forceDhit: false,
+        haste: 0,
+    }
+    for (let buff of buffs) {
+        if (buff.effects.dmgIncrease) {
+            combinedEffects.dmgMod *= (1 + buff.effects.dmgIncrease);
+        }
+        if (buff.effects.critChanceIncrease) {
+            combinedEffects.critChanceIncrease += buff.effects.critChanceIncrease;
+        }
+        if (buff.effects.dhitChanceIncrease) {
+            combinedEffects.dhitChanceIncrease += buff.effects.dhitChanceIncrease;
+        }
+        if (buff.effects.haste) {
+            combinedEffects.haste += buff.effects.haste;
+        }
+        if (buff.effects.forceCrit) {
+            combinedEffects.forceCrit = true;
+        }
+        if (buff.effects.forceDhit) {
+            combinedEffects.forceDhit = true;
+        }
+    }
+    return combinedEffects;
+}
+

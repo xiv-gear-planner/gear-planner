@@ -1,4 +1,4 @@
-import {CycleSettings} from "../cycle_settings";
+import {CycleSettings} from "@xivgear/core/sims/cycle_settings";
 import {
     FieldBoundCheckBox,
     FieldBoundFloatField,
