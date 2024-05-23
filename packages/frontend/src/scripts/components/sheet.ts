@@ -1,6 +1,3 @@
-import {
-    getRegisteredSimSpecs
-} from "../sims/simulation";
 import {camel2title} from "@xivgear/core/util/strutils";
 import {BaseModal} from "./modal";
 import {
@@ -68,6 +65,7 @@ import {getBisSheet} from "@xivgear/core/external/static_bis";
 import {simpleAutoResultTable} from "../sims/components/simple_tables";
 import {rangeInc} from "@xivgear/core/util/array_utils";
 import {SimCurrentResult, SimResult, SimSettings, SimSpec, Simulation} from "@xivgear/core/sims/sim_types";
+import {getRegisteredSimSpecs} from "@xivgear/core/sims/sim_registry";
 
 export type GearSetSel = SingleCellRowOrHeaderSelect<CharacterGearSet>;
 
@@ -600,6 +598,7 @@ export class SimResultDetailDisplay<X extends SimResult> extends HTMLElement {
                 this.replaceChildren(this.sim.makeResultDisplay(this._result.result))
             }
             else {
+                // TODO: style this properly
                 this.replaceChildren(simpleAutoResultTable(this._result.result));
             }
         }

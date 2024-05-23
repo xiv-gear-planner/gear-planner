@@ -1,7 +1,7 @@
 import {CustomCell, CustomColumn, CustomRow, CustomTable, SpecialRow, TitleRow} from "../tables";
 import {SheetExport} from "@xivgear/xivmath/geartypes";
 import {faIcon, makeActionButton} from "./util";
-import {deleteSheetByKey} from "../persistence/saved_sheets";
+import {deleteSheetByKey} from "@xivgear/core/persistence/saved_sheets";
 import {getHashForSaveKey, openSheetByKey, showNewSheetForm} from "../base_ui";
 
 export class SheetPickerTable extends CustomTable<SheetExport, SheetExport> {

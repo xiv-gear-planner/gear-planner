@@ -33,18 +33,13 @@ import {
     Substat
 } from "@xivgear/xivmath/geartypes";
 import {CharacterGearSet} from "./gear";
-// TODO: this is the last remaining dependency from core to frontend
-import {
-    getDefaultSims,
-    getRegisteredSimSpecs,
-    getSimSpecByStub
-} from "@xivgear/gearplan-frontend/sims/simulation";
 import {DataManager} from "./datamanager";
 import {Inactivitytimer} from "./util/inactivitytimer";
 import {writeProxy} from "./util/proxies";
-import {getNextSheetInternalName} from "@xivgear/gearplan-frontend/persistence/saved_sheets";
 import {SHARED_SET_NAME} from "@xivgear/core/imports/imports";
 import {SimCurrentResult, SimResult, Simulation} from "./sims/sim_types";
+import {getDefaultSims, getRegisteredSimSpecs, getSimSpecByStub} from "./sims/sim_registry";
+import {getNextSheetInternalName} from "./persistence/saved_sheets";
 
 type SheetCtorArgs = ConstructorParameters<typeof GearPlanSheet>
 export type SheetContstructor<SheetType extends GearPlanSheet> = (...values: SheetCtorArgs) => SheetType;

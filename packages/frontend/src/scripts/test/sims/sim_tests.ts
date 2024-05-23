@@ -1,7 +1,6 @@
 // REQUIRED - sets up fake HTML classes
 import 'global-jsdom/register'
 import {describe, it} from "mocha";
-import {getRegisteredSimSpecs} from "../../sims/simulation";
 import {assertClose} from "@xivgear/core/test/test_utils";
 import {Divination, Litany, Mug} from "@xivgear/core/sims/buffs";
 import {assertSimAbilityResults, setPartyBuffEnabled, UseResult} from "./sim_test_utils";
@@ -18,6 +17,7 @@ import {
     Rotation
 } from "@xivgear/core/sims/cycle_sim";
 import {BaseMultiCycleSim} from "../../sims/sim_processors";
+import {getRegisteredSimSpecs} from "@xivgear/core/sims/sim_registry";
 
 // Example of end-to-end simulation
 // This one is testing the simulation engine itself, so it copies the full simulation code rather than

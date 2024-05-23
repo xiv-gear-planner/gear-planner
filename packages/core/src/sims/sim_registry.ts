@@ -1,8 +1,7 @@
 import {JobName, SupportedLevel} from "@xivgear/xivmath/xivconstants";
-import {potRatioSimSpec} from "./common/potency_ratio";
 import {SimSpec} from "@xivgear/core/sims/sim_types";
 
-let simSpecs: SimSpec<any, any>[] = [];
+const simSpecs: SimSpec<any, any>[] = [];
 
 /**
  * Register a sim into the library
@@ -36,7 +35,7 @@ export function getSimSpecByStub(stub: string): SimSpec<any, any> | undefined {
  * @param level The character level
  */
 export function getDefaultSims(job: JobName, level: SupportedLevel): SimSpec<any, any>[] {
-    return [potRatioSimSpec, ...simSpecs.filter(spec => {
+    return [...simSpecs.filter(spec => {
         if (spec.supportedJobs !== undefined && !spec.supportedJobs.includes(job)) {
             return false;
         }
@@ -45,18 +44,6 @@ export function getDefaultSims(job: JobName, level: SupportedLevel): SimSpec<any
         }
         return spec.isDefaultSim ?? false;
     })];
-}
-
-/**
- * Basic implementation of {@link Simulation.makeResultDisplay} for sims which do not actually
- * have any settings.
- */
-export function noSimSettings() {
-    const outerDiv = document.createElement("div");
-    const header = document.createElement("h1");
-    header.textContent = "No Settings for This Simulation";
-    outerDiv.replaceChildren(header);
-    return outerDiv;
 }
 
 
