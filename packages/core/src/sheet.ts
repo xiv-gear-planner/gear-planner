@@ -255,7 +255,7 @@ export class GearPlanSheet {
         this._isViewOnly = true;
     }
 
-    async loadDataOnly() {
+    async load() {
         console.log("Loading sheet...");
         console.log("Reading data");
         const saved = this._importedData;
@@ -293,11 +293,6 @@ export class GearPlanSheet {
                 && this.isStatRelevant(mat.primaryStat);
         });
         this._relevantFood = this.dataManager.allFoodItems.filter(food => this.isStatRelevant(food.primarySubStat) || this.isStatRelevant(food.secondarySubStat));
-
-    }
-
-    async loadFully() {
-        await this.loadDataOnly();
         this._setupDone = true;
     }
 
@@ -306,10 +301,10 @@ export class GearPlanSheet {
             // Don't clobber a save with empty data because the sheet hasn't loaded!
             return;
         }
-        if (this._saveKey) {
+        if (this.saveKey) {
             console.log("Saving sheet " + this.sheetName);
             const fullExport = this.exportSheet(false);
-            localStorage.setItem(this._saveKey, JSON.stringify(fullExport));
+            localStorage.setItem(this.saveKey, JSON.stringify(fullExport));
         }
         else {
             console.info("Ignoring request to save sheet because it has no save key");

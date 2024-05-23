@@ -137,12 +137,13 @@ export async function openSheet(planner: GearPlanSheetGui, changeHash: boolean =
     setTitle('Loading Sheet');
     console.log('openSheet: ', planner.saveKey);
     document['planner'] = planner;
+    window['currentSheet'] = planner;
     if (changeHash) {
         setHash("sheet", planner.saveKey, "dont-copy-this-link", "use-the-export-button");
     }
     contentArea.replaceChildren(planner.topLevelElement);
     const oldHash = getHash();
-    const loadSheetPromise = planner.loadFully().then(() => {
+    const loadSheetPromise = planner.load().then(() => {
         // If the user has navigated away while the sheet was loading, do not display the sheet.
         const newHash = getHash();
         if (arrayEq(newHash, oldHash)) {

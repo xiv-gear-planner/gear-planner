@@ -1081,6 +1081,9 @@ export class GearPlanSheetGui extends GearPlanSheet {
         this.setupEditorArea();
     }
 
+    get showAdvancedStats() {
+        return super.showAdvancedStats;
+    }
 
     set showAdvancedStats(show: boolean) {
         super.showAdvancedStats = show;
@@ -1125,6 +1128,8 @@ export class GearPlanSheetGui extends GearPlanSheet {
                 this.setupEditorArea();
             }
             else if (item instanceof CharacterGearSet) {
+                // TODO: centralize these debugging shortcuts
+                window['currentGearSet'] = item;
                 if (this._isViewOnly) {
                     this.setupEditorArea(new GearSetViewer(this, item));
                 }
@@ -1401,8 +1406,8 @@ export class GearPlanSheetGui extends GearPlanSheet {
         return this.element;
     }
 
-    async loadFully() {
-        await this.loadDataOnly();
+    async load() {
+        await super.load();
         this.setupRealGui();
     }
 
@@ -1529,6 +1534,10 @@ export class GearPlanSheetGui extends GearPlanSheet {
     private showImportSetsDialog() {
         const dialog = new ImportSetsModal(this);
         dialog.attachAndShow();
+    }
+
+    get sheetName() {
+        return super.sheetName;
     }
 
     set sheetName(name: string) {
@@ -1777,7 +1786,7 @@ export class GraphicalSheetProvider extends SheetProvider<GearPlanSheetGui> {
 
     fromSaved(sheetKey: string): GearPlanSheetGui | null {
         const out = super.fromSaved(sheetKey);
-        out.setSelectFirstRowByDefault();
+        out?.setSelectFirstRowByDefault();
         return out;
     }
 }

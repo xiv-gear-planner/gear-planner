@@ -36,7 +36,7 @@ async function importExportSheet(request, rawData: string): Promise<SheetStatsEx
             throw Error(`Party bonus '${pb}' is invalid`);
         }
     }
-    await sheet.loadFully();
+    await sheet.load();
     return sheet.exportSheet(true, true);
 }
 
