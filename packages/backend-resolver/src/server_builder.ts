@@ -57,7 +57,7 @@ export function buildServerInstance() {
 
     fastifyInstance.get('/healthcheck', async (request, reply) => {
         return 'up';
-    })
+    });
 
     fastifyInstance.get('/fulldata/:uuid', async (request, reply) => {
         const rawData = await getShortLink(request.params['uuid']);

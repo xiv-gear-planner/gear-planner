@@ -5,7 +5,6 @@ const SHORTLINK_SERVER: URL = new URL("https://api.xivgear.app/shortlink/");
 const STORAGE_KEY = 'shortlink-server-override';
 
 function getServer() {
-    // TODO: this removes the ability to set an override
     const override = localStorage.getItem(STORAGE_KEY);
     if (override) {
         try {
@@ -21,7 +20,6 @@ function getServer() {
 export function setServerOverride(server: string) {
     // Validate URL
     new URL(server);
-    // TODO: this removes the ability to set an override
     localStorage.setItem(STORAGE_KEY, server);
 }
 
