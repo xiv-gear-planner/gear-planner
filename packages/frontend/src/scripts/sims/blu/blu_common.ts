@@ -221,7 +221,7 @@ const BasicInstinct: Buff = {
     statusId: 2498
 };
 
-const WingedReprobationBuff: Buff = {
+const WingedReprobationBuff = {
     name: "Winged Reprobation",
     selfOnly: true,
     descriptionExtras: ["Resets Winged Reprobation's recast timer"],
@@ -233,7 +233,7 @@ const WingedReprobationBuff: Buff = {
     beforeSnapshot: removeSelf,
     appliesTo: ability => ability.name === "Winged Reprobation",
     statusId: 3640
-};
+} as const satisfies Buff;
 
 const WingedRedemption: Buff = {
     name: "Winged Redemption",

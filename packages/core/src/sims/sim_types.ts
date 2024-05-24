@@ -497,13 +497,17 @@ export type BaseBuff = Readonly<{
      * Stack count of this buff. This should generally not be baked into the buff - it should be inserted at run time.
      */
     stacks?: number
-} & (EmptyObject | {
+} & ({
+    descriptionExtras?: never,
+    descriptionOverride?: never,
+} | {
     /**
      * Override the auto-generated description which would normally describe the effects.
      *
      * Specify descriptionOverride, or descriptionExtras, or neither.
      */
     descriptionOverride: string,
+    descriptionExtras?: never,
 } | {
     /**
      * Additional descriptions of custom effects.
@@ -511,6 +515,7 @@ export type BaseBuff = Readonly<{
      * Specify descriptionOverride, or descriptionExtras, or neither.
      */
     descriptionExtras: string[],
+    descriptionOverride?: never,
 })>;
 
 export type PartyBuff = BaseBuff & Readonly<{

@@ -2,7 +2,7 @@ import {processRawMateriaInfo, XivApiFoodInfo, XivApiGearInfo} from "./gear";
 import {getClassJobStats, JobName, LEVEL_ITEMS, MATERIA_LEVEL_MAX_NORMAL, SupportedLevel} from "@xivgear/xivmath/xivconstants";
 import {GearItem, JobMultipliers, Materia, OccGearSlotKey, RawStatKey,} from "@xivgear/xivmath/geartypes";
 import {xivApiGet, xivApiSingle} from "./external/xivapi";
-import {BaseParamToStatKey, xivApiStatMapping} from "./external/xivapitypes";
+import {BaseParamToStatKey, RelevantBaseParam, xivApiStatMapping} from "./external/xivapitypes";
 import {getRelicStatModelFor} from "./relicstats/relicstats";
 
 export type IlvlSyncInfo = {
@@ -147,19 +147,19 @@ export class DataManager implements DataManagerIntf {
                 [rawStat in RawStatKey]?: Record<OccGearSlotKey, number>
             }>((baseParams, value) => {
                 // Each individual item also gets converted
-                baseParams[BaseParamToStatKey[value.Name]] = {
-                    Body: value['Chest%'],
-                    Ears: value['Earring%'],
-                    Feet: value['Feet%'],
-                    Hand: value['Hands%'],
-                    Head: value['Head%'],
-                    Legs: value['Legs%'],
-                    Neck: value['Necklace%'],
-                    OffHand: value['OH%'],
-                    Ring: value['Ring%'],
-                    Weapon2H: value['2HWpn%'],
-                    Weapon1H: value['1HWpn%'],
-                    Wrist: value['Bracelet%']
+                baseParams[BaseParamToStatKey[value.Name as RelevantBaseParam]] = {
+                    Body: value['Chest%'] as number,
+                    Ears: value['Earring%'] as number,
+                    Feet: value['Feet%'] as number,
+                    Hand: value['Hands%'] as number,
+                    Head: value['Head%'] as number,
+                    Legs: value['Legs%'] as number,
+                    Neck: value['Necklace%'] as number,
+                    OffHand: value['OH%'] as number,
+                    Ring: value['Ring%'] as number,
+                    Weapon2H: value['2HWpn%'] as number,
+                    Weapon1H: value['1HWpn%'] as number,
+                    Wrist: value['Bracelet%'] as number
                 };
                 return baseParams;
             }, {});
@@ -309,14 +309,14 @@ export class DataManager implements DataManagerIntf {
             .then(rawJobs => {
                 this._jobMultipliers = new Map<JobName, JobMultipliers>();
                 for (const rawJob of rawJobs) {
-                    this._jobMultipliers.set(rawJob['Abbreviation'], {
-                        dexterity: rawJob.ModifierDexterity,
-                        intelligence: rawJob.ModifierIntelligence,
-                        mind: rawJob.ModifierMind,
-                        strength: rawJob.ModifierStrength,
-                        vitality: rawJob.ModifierVitality,
-                        hp: rawJob.ModifierHitPoints,
-                    })
+                    this._jobMultipliers.set(rawJob['Abbreviation'] as JobName, {
+                        dexterity: rawJob.ModifierDexterity as number,
+                        intelligence: rawJob.ModifierIntelligence as number,
+                        mind: rawJob.ModifierMind as number,
+                        strength: rawJob.ModifierStrength as number,
+                        vitality: rawJob.ModifierVitality as number,
+                        hp: rawJob.ModifierHitPoints as number,
+                    });
                 }
             });
         await Promise.all([baseParamPromise, itemsPromise, statsPromise, materiaPromise, foodPromise, jobsPromise]);

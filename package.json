@@ -6,7 +6,10 @@
     "[module-name]": false
   },
   "workspaces": [
-    "packages/*"
+    "packages/xivmath",
+    "packages/core",
+    "packages/gearplan-frontend",
+    "packages/backend-resolver"
   ],
   "devDependencies": {
     "@types/eslint": "^8.56.10",

@@ -1,7 +1,7 @@
 import {EquipSlotKey, ItemSlotExport, SetExport} from "@xivgear/xivmath/geartypes";
 import {JobName, MATERIA_SLOTS_MAX} from "@xivgear/xivmath/xivconstants";
 import {queryBaseParams} from "../datamanager";
-import {BaseParamToStatKey} from "./xivapitypes";
+import {BaseParamToStatKey, RelevantBaseParam} from "./xivapitypes";
 
 const ETRO_SLOTS = ['weapon', 'head', 'body', 'hands', 'legs', 'feet', 'ears', 'neck', 'wrists', 'fingerL', 'fingerR'] as const;
 // Works
@@ -88,7 +88,7 @@ export async function getSetFromEtro(etroSetId: string) {
                         break;
                     }
                     const paramData = baseParams.find(item => item.ID === paramId);
-                    const stat = BaseParamToStatKey[paramData.Name];
+                    const stat = BaseParamToStatKey[paramData.Name as RelevantBaseParam];
                     relicStats[stat] = relicData[`param${i}Value`];
                 }
             }
