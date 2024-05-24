@@ -1,8 +1,8 @@
 import 'global-jsdom/register'
-import {Ability, FinalizedAbility} from "../../sims/sim_types";
-import {CycleProcessor} from "../../sims/sim_processors";
 import {exampleGearSet} from "./common_values";
 import assert from "assert";
+import {Ability, FinalizedAbility} from "@xivgear/core/sims/sim_types";
+import {CycleProcessor} from "@xivgear/core/sims/cycle_sim";
 
 const initial1 = {
     name: "Initial Ability 1",
@@ -281,12 +281,12 @@ describe('sim processor combo support', () => {
         const actualAbilities = quickTest(cp => {
             // oGCD should not cancel
             cp.use(initial2);
-            cp.use(ogcd)
+            cp.use(ogcd);
             cp.use(cont1);
             cp.use(cont2);
             cp.use(initial2);
             cp.use(cont1);
-            cp.use(ogcd)
+            cp.use(ogcd);
             cp.use(cont2);
         });
 
@@ -305,13 +305,13 @@ describe('sim processor combo support', () => {
         const actualAbilities = quickTest(cp => {
             // oGCD should not cancel
             cp.use(initial2);
-            cp.use(ogcdWithOtherInterrupt)
+            cp.use(ogcdWithOtherInterrupt);
             cp.use(cont1);
             cp.use(cont2);
 
             cp.use(initial2);
             cp.use(cont1);
-            cp.use(ogcdWithOtherInterrupt)
+            cp.use(ogcdWithOtherInterrupt);
             cp.use(cont2);
         });
         assert.equal(actualAbilities[0].totalPotency, initial2.potency);

@@ -1,8 +1,8 @@
-import {SimSettings, SimSpec} from "../../simulation";
 import {STANDARD_ANIMATION_LOCK} from "@xivgear/xivmath/xivconstants";
-import {ArcaneCircle, DeathsDesign} from "../buffs";
-import {BaseMultiCycleSim, CycleProcessor, CycleSimResult, ExternalCycleSettings, Rotation} from "../sim_processors";
-import {Ability, GcdAbility, OgcdAbility} from "../sim_types";
+import {ArcaneCircle, DeathsDesign} from "@xivgear/core/sims/buffs";
+import {Ability, GcdAbility, OgcdAbility, SimSettings, SimSpec} from "@xivgear/core/sims/sim_types";
+import {CycleProcessor, CycleSimResult, ExternalCycleSettings, Rotation} from "@xivgear/core/sims/cycle_sim";
+import {BaseMultiCycleSim} from "../sim_processors";
 
 const slice: GcdAbility = {
     type: 'gcd',
@@ -12,7 +12,7 @@ const slice: GcdAbility = {
     attackType: "Weaponskill",
     gcd: 2.5,
     cast: 0
-}
+};
 const waxingSlice: GcdAbility = {
     type: 'gcd',
     name: "Waxing Slice",
@@ -21,7 +21,7 @@ const waxingSlice: GcdAbility = {
     attackType: "Weaponskill",
     gcd: 2.5,
     cast: 0
-}
+};
 const infernalSlice: GcdAbility = {
     type: 'gcd',
     name: "Infernal Slice",
@@ -30,7 +30,7 @@ const infernalSlice: GcdAbility = {
     attackType: "Weaponskill",
     gcd: 2.5,
     cast: 0
-}
+};
 const SoD: GcdAbility = {
     type: 'gcd',
     name: "Shadow of Death",
@@ -40,7 +40,7 @@ const SoD: GcdAbility = {
     gcd: 2.5,
     cast: 0,
     activatesBuffs: [DeathsDesign]
-}
+};
 const harpe: GcdAbility = {
     type: 'gcd',
     name: "Harpe",
@@ -49,7 +49,7 @@ const harpe: GcdAbility = {
     attackType: "Weaponskill",
     gcd: 2.5,
     cast: 1.3
-}
+};
 const unbuffedGallows: GcdAbility = {
     type: 'gcd',
     name: "Gallows",
@@ -58,7 +58,7 @@ const unbuffedGallows: GcdAbility = {
     attackType: "Weaponskill",
     gcd: 2.5,
     cast: 0
-}
+};
 const gibbet: GcdAbility = {
     type: 'gcd',
     name: "Gibbet",
@@ -67,7 +67,7 @@ const gibbet: GcdAbility = {
     attackType: "Weaponskill",
     gcd: 2.5,
     cast: 0
-}
+};
 const gallows: GcdAbility = {
     type: 'gcd',
     name: "Gallows",
@@ -76,7 +76,7 @@ const gallows: GcdAbility = {
     attackType: "Weaponskill",
     gcd: 2.5,
     cast: 0
-}
+};
 const soulSlice: GcdAbility = {
     type: 'gcd',
     name: "Soul Slice",
@@ -85,7 +85,7 @@ const soulSlice: GcdAbility = {
     attackType: "Weaponskill",
     gcd: 2.5,
     cast: 0
-}
+};
 const pharvest: GcdAbility = {
     type: 'gcd',
     name: "Plentiful Harvest",
@@ -94,7 +94,8 @@ const pharvest: GcdAbility = {
     attackType: "Weaponskill",
     gcd: 2.5,
     cast: 0
-}
+};
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const harvestMoon: GcdAbility = {
     type: 'gcd',
     name: "Harvest Moon",
@@ -103,7 +104,7 @@ const harvestMoon: GcdAbility = {
     attackType: "Weaponskill",
     gcd: 2.5,
     cast: 0,
-}
+};
 
 const communio: GcdAbility = {
     type: 'gcd',
@@ -113,7 +114,7 @@ const communio: GcdAbility = {
     attackType: "Spell",
     gcd: 2.5,
     cast: 1.3,
-}
+};
 const unbuffedVoidReaping: GcdAbility = {
     type: 'gcd',
     name: "Void Reaping",
@@ -122,7 +123,7 @@ const unbuffedVoidReaping: GcdAbility = {
     attackType: "Weaponskill",
     gcd: 1.5,
     cast: 0
-}
+};
 const voidReaping: GcdAbility = {
     type: 'gcd',
     name: "Void Reaping",
@@ -131,7 +132,7 @@ const voidReaping: GcdAbility = {
     attackType: "Weaponskill",
     gcd: 1.5,
     cast: 0
-}
+};
 const crossReaping: GcdAbility = {
     type: 'gcd',
     name: "Cross Reaping",
@@ -140,35 +141,35 @@ const crossReaping: GcdAbility = {
     attackType: "Weaponskill",
     gcd: 1.5,
     cast: 0
-}
+};
 const gluttony: OgcdAbility = {
     type: 'ogcd',
     name: "Gluttony",
     id: 24393,
     potency: 520,
     attackType: "Ability",
-}
+};
 const unveiledGibbet: OgcdAbility = {
     type: 'ogcd',
     name: "Unveiled Gibbet",
     id: 24390,
     potency: 400,
     attackType: "Ability",
-}
+};
 const unveiledGallows: OgcdAbility = {
     type: 'ogcd',
     name: "Unveiled Gallows",
     id: 24391,
     potency: 400,
     attackType: "Ability",
-}
+};
 const lemuresSlice: OgcdAbility = {
     type: 'ogcd',
     name: "Lemure's Slice",
     id: 24399,
     potency: 240,
     attackType: "Ability",
-}
+};
 const arcaneCircle: OgcdAbility = {
     type: 'ogcd',
     name: "Arcane Circle",
@@ -176,12 +177,12 @@ const arcaneCircle: OgcdAbility = {
     activatesBuffs: [ArcaneCircle],
     potency: null,
     attackType: "Ability",
-}
+};
 
 export interface RprSheetSimResult extends CycleSimResult {
 }
 
-interface RprNewSheetSettings extends SimSettings {
+export interface RprNewSheetSettings extends SimSettings {
 
 }
 
@@ -200,7 +201,7 @@ export const rprSheetSpec: SimSpec<RprSheetSim, RprNewSheetSettingsExternal> = {
     },
     supportedJobs: ['RPR'],
     isDefaultSim: true
-}
+};
 
 class RotationState {
     private _combo: number = 0;
@@ -267,7 +268,7 @@ class CooldownTracker {
         "Arcane Circle": [120, 0],
         "Gluttony": [60, 0],
         "Soul Slice": [30, 0],
-    }
+    };
 
     sodCoverage: number = 0;
 
@@ -276,17 +277,17 @@ class CooldownTracker {
     }
 
     isOffCD(cp: CycleProcessor, ability: Ability): boolean {
-        let abilityTime = this.lastUsedTimes[ability.name];
+        const abilityTime = this.lastUsedTimes[ability.name];
         return (cp.currentTime - abilityTime[1]) >= abilityTime[0];
     }
 
     remainingCd(cp: CycleProcessor, ability: Ability): number {
-        let abilityTimes = this.lastUsedTimes[ability.name];
+        const abilityTimes = this.lastUsedTimes[ability.name];
         return Math.max(0, abilityTimes[1] + abilityTimes[0] - cp.currentTime);
     }
 
     willBeUsableBeforeNextGcd(cp: CycleProcessor, ability: OgcdAbility): boolean {
-        let abilityTimes = this.lastUsedTimes[ability.name];
+        const abilityTimes = this.lastUsedTimes[ability.name];
         return (abilityTimes[1] + abilityTimes[0] + (ability.animationLock ?? STANDARD_ANIMATION_LOCK) < cp.nextGcdTime)
     }
 }
@@ -312,12 +313,12 @@ export class RprSheetSim extends BaseMultiCycleSim<RprSheetSimResult, RprNewShee
 
 
     useCombo(cp: CycleProcessor) {
-        cp.useGcd(this.comboActions[this.rotationState.combo++])
+        cp.useGcd(this.comboActions[this.rotationState.combo++]);
         this.rotationState.soulGauge += 10;
     }
 
     getGibGal(): [OgcdAbility, GcdAbility] {
-        if (this.rotationState.nextGibGal == gallows.name) return [unveiledGallows, gallows]
+        if (this.rotationState.nextGibGal == gallows.name) return [unveiledGallows, gallows];
         else return [unveiledGibbet, gibbet];
     }
 
@@ -329,7 +330,7 @@ export class RprSheetSim extends BaseMultiCycleSim<RprSheetSimResult, RprNewShee
             return;
         }
 
-        let toUse = this.getGibGal();
+        const toUse = this.getGibGal();
         cp.use(toUse[0]);
         cp.use(toUse[1]);
 
@@ -486,7 +487,7 @@ export class RprSheetSim extends BaseMultiCycleSim<RprSheetSimResult, RprNewShee
 
 
     getRotationsToSimulate(): Rotation[] {
-        let sim = this;
+        const sim = this;
         this.rotationState = new RotationState();
         return [{
             cycleTime: 120,
@@ -533,7 +534,7 @@ export class RprSheetSim extends BaseMultiCycleSim<RprSheetSimResult, RprNewShee
 
                 while (cp.remainingGcdTime > 0) {
                     sim.useDoubleEnshroudBurst(cp);
-                    if (sim.rotationState.combo != 0) {
+                    if (sim.rotationState.combo !== 0) {
                         sim.useCombo(cp);
                     }
                     while (cp.remainingGcdTime > 0 &&

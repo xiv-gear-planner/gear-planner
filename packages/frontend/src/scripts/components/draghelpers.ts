@@ -1,5 +1,3 @@
-import {CustomRow} from "../tables";
-
 export function installDragHelper(args: {dragHandle: HTMLElement, dragOuter: HTMLElement, moveHandler?: (ev: PointerEvent) => void, upHandler?: (ev: PointerEvent) => void, downHandler?: (ev: PointerEvent) => void}) {
 
     args.dragHandle.addEventListener('pointerdown', (ev) => {
@@ -14,7 +12,7 @@ export function installDragHelper(args: {dragHandle: HTMLElement, dragOuter: HTM
         const move = ev => {
             ev.preventDefault();
             args.moveHandler?.(ev);
-        }
+        };
         const up = (ev) => {
             body.removeEventListener('pointermove', move);
             body.removeEventListener('pointerup', up);
@@ -22,7 +20,7 @@ export function installDragHelper(args: {dragHandle: HTMLElement, dragOuter: HTM
             args.dragHandle.style.cursor = elementCursorBefore;
             args.dragOuter.style.cursor = bodyCursorBefore;
             args.upHandler?.(ev);
-        }
+        };
         body.addEventListener('pointermove', move);
         body.addEventListener('pointerup', up);
         args.downHandler?.(ev);

@@ -113,9 +113,9 @@ export const EquipSlotInfo: Record<EquipSlotKey, EquipSlot> = {
     }
 } as const;
 
-type KeyOfType<T, V> = keyof {
-    [K in keyof T as T[K] extends V ? K : never]: any
-};
+// type KeyOfType<T, V> = keyof {
+//     [K in keyof T as T[K] extends V ? K : never]: any
+// };
 
 
 export interface XivItem {
@@ -318,6 +318,7 @@ export interface MeldableMateriaSlot {
     equippedMateria: Materia | null;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
 export interface RawStats {
     hp: number,
     vitality: number,
@@ -344,6 +345,7 @@ export type RawStatKey = keyof RawStats;
  */
 export const NO_SYNC_STATS: RawStatKey[] = ['weaponDelay'];
 
+// eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
 export class RawStats implements RawStats {
     hp: number = 0;
     vitality: number = 0;
@@ -501,7 +503,7 @@ export interface MateriaSlot {
 
 export interface SimExport {
     stub: string,
-    settings: Object,
+    settings: object,
     name?: string
 }
 
@@ -834,7 +836,7 @@ export class EquippedItem {
         this.gearItem = gearItem;
         if (melds === undefined) {
             this.melds = [];
-            for (let materiaSlot of gearItem.materiaSlots) {
+            for (const materiaSlot of gearItem.materiaSlots) {
                 this.melds.push({
                     materiaSlot: materiaSlot,
                     equippedMateria: null

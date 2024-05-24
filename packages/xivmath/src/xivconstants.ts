@@ -4,6 +4,7 @@ import {
     JobDataConst,
     LevelItemInfo,
     LevelStats,
+    PartyBonusAmount,
     RawStatKey,
     RawStats
 } from "./geartypes";
@@ -94,11 +95,11 @@ export const EMPTY_STATS = new RawStats();
 /**
  * Melee (including healer/caster, and DNC for some reason) auto-attack potency
  */
-export const MELEE_AUTO_POTENCY = 90
+export const MELEE_AUTO_POTENCY = 90;
 /**
  * BRD/MCH auto-attack potency
  */
-export const RANGE_AUTO_POTENCY = 80
+export const RANGE_AUTO_POTENCY = 80;
 
 const STANDARD_HEALER: JobDataConst = {
     role: 'Healer',
@@ -203,7 +204,7 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
         ...STANDARD_CASTER,
         traitMulti: (level, attackType) => attackType === 'Auto-attack' ? 1.0 : 1.5, // Maim and Mend V
     }
-}
+};
 
 
 /**
@@ -328,7 +329,7 @@ export const RACE_STATS: Record<RaceName, RawStats> = {
         intelligence: 0,
         mind: 3,
     }),
-}
+};
 
 /**
  * Level-specific stat modifiers
@@ -379,7 +380,7 @@ export const LEVEL_STATS: Record<SupportedLevel, LevelStats> = {
             other: 195,
         }
     }
-}
+};
 
 /**
  * Numbers governing the minimum/maximum item levels to request from xivapi, as well as default display settings.
@@ -439,13 +440,13 @@ export const LEVEL_ITEMS: Record<SupportedLevel, LevelItemInfo> = {
             higherRelics: true
         }
     }
-}
+};
 
 const BLU_80_ITEM_DISPLAY = {
     ...LEVEL_ITEMS[80].defaultDisplaySettings,
     minILvl: 520,
     maxILvl: 535
-} satisfies ItemDisplaySettings
+} satisfies ItemDisplaySettings;
 
 export function getDefaultDisplaySettings(level: SupportedLevel, job: JobName): ItemDisplaySettings {
     if (job === 'BLU' && level === 80) {
@@ -492,7 +493,7 @@ export const ALL_SUB_STATS = [...FAKE_MAIN_STATS, ...SPECIAL_SUB_STATS] as const
 export const ALL_STATS = [...MAIN_STATS, ...ALL_SUB_STATS] as const;
 
 // TODO: make everything use this
-let statDisplayTmp: RawStatKey[] = ['vitality', ...MAIN_STATS, 'crit', 'dhit', 'determination', 'spellspeed', 'skillspeed', 'piety', 'tenacity'];
+const statDisplayTmp: RawStatKey[] = ['vitality', ...MAIN_STATS, 'crit', 'dhit', 'determination', 'spellspeed', 'skillspeed', 'piety', 'tenacity'];
 ALL_STATS.forEach(stat => {
     if (!statDisplayTmp.includes(stat)) {
         statDisplayTmp.push(stat);
@@ -535,7 +536,7 @@ export const STAT_FULL_NAMES: Record<RawStatKey, string> = {
     wdMag: "Weapon Damage (Magical)",
     wdPhys: "Weapon Damage (Physical)",
     weaponDelay: "Auto-Attack Delay"
-}
+};
 
 /**
  * Abbreviations for every stat
@@ -557,7 +558,7 @@ export const STAT_ABBREVIATIONS: Record<RawStatKey, string> = {
     wdMag: "WDm",
     wdPhys: "WDp",
     weaponDelay: "Dly"
-}
+};
 
 /**
  * Convert from a BaseParam ID to the actual stat.
@@ -626,13 +627,13 @@ export const ARTIFACT_ITEM_LEVELS = [
     290,
     430,
     560,
-]
+];
 
 export const BASIC_TOME_GEAR_ILVLS = [
     310,
     440,
     570
-]
+];
 
 export const RAID_TIER_ILVLS = [
     340, 370, 400,
@@ -695,3 +696,13 @@ export function bluWdfromInt(gearIntStat: number): number {
     }
     return BLU_INT_WD[BLU_INT_WD.length - 1][1];
 }
+
+export const defaultItemDisplaySettings: ItemDisplaySettings = {
+    minILvl: 640,
+    maxILvl: 999,
+    minILvlFood: 610,
+    maxILvlFood: 999,
+    higherRelics: true
+} as const;
+
+export const MAX_PARTY_BONUS: PartyBonusAmount = 5;

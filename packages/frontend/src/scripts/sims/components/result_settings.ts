@@ -1,6 +1,6 @@
-import {ResultSettings} from "../sim_processors";
 import {FieldBoundFloatField, labelFor} from "../../components/util";
 import {NamedSection} from "../../components/section";
+import {ResultSettings} from "@xivgear/core/sims/cycle_sim";
 
 export class ResultSettingsArea extends NamedSection {
     constructor(resultSettings: ResultSettings) {

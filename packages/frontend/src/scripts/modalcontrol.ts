@@ -1,4 +1,4 @@
-interface Modal {
+export interface Modal {
     close(): void;
     element: HTMLElement;
 }
@@ -43,4 +43,4 @@ const listener = (ev: MouseEvent) => {
         setModal(undefined);
         ev.stopPropagation();
     }
-}
+};

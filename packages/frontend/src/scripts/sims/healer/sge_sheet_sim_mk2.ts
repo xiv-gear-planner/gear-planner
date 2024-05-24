@@ -1,12 +1,6 @@
-import {SimSettings, SimSpec} from "../../simulation";
-import {GcdAbility} from "../sim_types";
-import {
-    BaseMultiCycleSim,
-    CycleSimResult,
-    ExternalCycleSettings,
-    CycleProcessor,
-    Rotation
-} from "../sim_processors";
+import {GcdAbility, SimSettings, SimSpec} from "@xivgear/core/sims/sim_types";
+import {CycleProcessor, CycleSimResult, ExternalCycleSettings, Rotation} from "@xivgear/core/sims/cycle_sim";
+import {BaseMultiCycleSim} from "../sim_processors";
 
 /**
  * Used for all 330p filler abilities
@@ -19,7 +13,7 @@ const filler: GcdAbility = {
     gcd: 2.5,
     cast: 1.5,
     id: 24312
-}
+};
 
 const eDosis: GcdAbility = {
     type: 'gcd',
@@ -36,7 +30,7 @@ const eDosis: GcdAbility = {
     // TODO: can this be modeled in a more accurate way? it doesn't break anything but isn't nice to work with
     cast: 1.5,
     id: 24314,
-}
+};
 
 const phlegma: GcdAbility = {
     type: 'gcd',
@@ -50,12 +44,12 @@ const phlegma: GcdAbility = {
         time: 40.0,
         charges: 2
     }
-}
+};
 
 export interface SgeSheetSimResult extends CycleSimResult {
 }
 
-interface SgeNewSheetSettings extends SimSettings {
+export interface SgeNewSheetSettings extends SimSettings {
     rezPerMin: number,
     diagPerMin: number,
     progPerMin: number,
@@ -80,7 +74,7 @@ export const sgeNewSheetSpec: SimSpec<SgeSheetSim, SgeNewSheetSettingsExternal> 
     supportedJobs: ['SGE'],
     isDefaultSim: true,
     description: 'Simulates the standard SGE 2-minute rotation.'
-}
+};
 
 export class SgeSheetSim extends BaseMultiCycleSim<SgeSheetSimResult, SgeNewSheetSettings> {
 

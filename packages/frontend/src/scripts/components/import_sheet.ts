@@ -1,19 +1,18 @@
 import {LoadingBlocker} from "./loader";
 import {makeActionButton} from "./util";
-import {parseImport} from "../imports/imports";
-import {getShortLink} from "../external/shortlink_server";
-import {getSetFromEtro} from "../external/etro_import";
-import {getBisSheet} from "../external/static_bis";
-import {GearPlanSheet} from "../components";
+import {parseImport} from "@xivgear/core/imports/imports";
+import {getShortLink} from "@xivgear/core/external/shortlink_server";
+import {getSetFromEtro} from "@xivgear/core/external/etro_import";
+import {getBisSheet} from "@xivgear/core/external/static_bis";
 import {NamedSection} from "./section";
+import {GearPlanSheetGui, GRAPHICAL_SHEET_PROVIDER} from "./sheet";
 
 export class ImportSheetArea extends NamedSection {
     private readonly loader: LoadingBlocker;
     private readonly importButton: HTMLButtonElement;
     private readonly textArea: HTMLTextAreaElement;
 
-    // TODO
-    constructor(private sheetOpenCallback: (sheet: GearPlanSheet) => Promise<any>) {
+    constructor(private sheetOpenCallback: (sheet: GearPlanSheetGui) => Promise<void>) {
         super('Import Sheet');
 
         const explanation = document.createElement('p');
@@ -40,6 +39,7 @@ export class ImportSheetArea extends NamedSection {
         this.ready = true;
     }
 
+    // eslint-disable-next-line accessor-pairs
     set ready(ready: boolean) {
         if (ready) {
             this.loader.hide();
@@ -71,7 +71,7 @@ export class ImportSheetArea extends NamedSection {
                 case "etro":
                     this.ready = false;
                     getSetFromEtro(parsed.rawUuid).then(set => {
-                        this.sheetOpenCallback(GearPlanSheet.fromSetExport(set));
+                        this.sheetOpenCallback(GRAPHICAL_SHEET_PROVIDER.fromSetExport(set));
                         console.log("Loaded set from Etro");
                     }, err => {
                         this.ready = true;
@@ -102,13 +102,15 @@ export class ImportSheetArea extends NamedSection {
     doJsonImport(text: string) {
         const rawImport = JSON.parse(text);
         if ('sets' in rawImport && rawImport.sets.length) {
-            this.sheetOpenCallback(GearPlanSheet.fromExport(rawImport));
+            this.sheetOpenCallback(GRAPHICAL_SHEET_PROVIDER.fromExport(rawImport));
         }
         else if ('name' in rawImport && 'items' in rawImport) {
-            this.sheetOpenCallback(GearPlanSheet.fromSetExport(rawImport));
+            this.sheetOpenCallback(GRAPHICAL_SHEET_PROVIDER.fromSetExport(rawImport));
         }
         else {
             alert("That doesn't look like a valid sheet or set");
         }
     }
 }
+
+customElements.define("import-sheet-area", ImportSheetArea);

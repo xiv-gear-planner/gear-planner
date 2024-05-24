@@ -2,14 +2,14 @@
   <configuration default="false" name="Stats Server" type="TypeScriptProgramRunner" factoryName="TypeScript">
     <module name="gearplan" />
     <envs>
-      <env name="SHORTLINK_SERVER" value="http://localhost:8081/shortlink/" />
+      <env name="SHORTLINK_SERVER" value="http://localhost:8081/shortlink/ GENERATE_SOURCEMAP=false" />
     </envs>
     <option name="interpreterRef" value="project" />
     <option name="enabledTsNodeEsmLoader" value="false" />
-    <option name="interpreterOptions" value="" />
+    <option name="interpreterOptions" value="--inspect" />
     <option name="workingDirectory" value="E:\IdeaProjects\gearplan\packages\backend-resolver\src" />
     <option name="tsconfigFile" value="" />
-    <option name="extraTypeScriptOptions" value="" />
+    <option name="extraTypeScriptOptions" value="-T" />
     <option name="scriptName" value="$PROJECT_DIR$/packages/backend-resolver/src/server.ts" />
     <option name="programParameters" value="" />
     <option name="tsnodePackage" value="E:\IdeaProjects\gearplan\node_modules\ts-node" />

@@ -1,17 +1,13 @@
-import { SimSpec } from "../../simulation";
-import {
-    CycleSimResult,
-    ExternalCycleSettings,
-    Rotation
-} from "../sim_processors";
-import { Swiftcast } from "../common/swiftcast";
+import { Swiftcast } from "@xivgear/core/sims/common/swiftcast";
 import { STANDARD_ANIMATION_LOCK } from "@xivgear/xivmath/xivconstants";
 import * as blu from "./blu_common";
+import {SimSpec} from "@xivgear/core/sims/sim_types";
+import {CycleSimResult, ExternalCycleSettings, Rotation} from "@xivgear/core/sims/cycle_sim";
 
 export interface BluFlame120SimResult extends CycleSimResult {
 }
 
-interface BluFlame120Settings extends blu.BluSimSettings {
+export interface BluFlame120Settings extends blu.BluSimSettings {
 }
 
 export interface BluFlame120SettingsExternal extends ExternalCycleSettings<BluFlame120Settings> {
@@ -31,7 +27,7 @@ export const BluFlame120Spec: SimSpec<BluFlame120Sim, BluFlame120SettingsExterna
     loadSavedSimInstance(exported: BluFlame120SettingsExternal) {
         return new BluFlame120Sim(exported);
     }
-}
+};
 
 export class BluFlame120Sim extends blu.BluSim<BluFlame120SimResult, BluFlame120Settings> {
     spec = BluFlame120Spec;
@@ -126,7 +122,7 @@ export class BluFlame120Sim extends blu.BluSim<BluFlame120SimResult, BluFlame120
     }
 
     getRotationsToSimulate(): Rotation<blu.BLUCycleProcessor>[] {
-        let sim = this;
+        const sim = this;
         return [{
             cycleTime: 120,
             apply(cp: blu.BLUCycleProcessor) {

@@ -17,17 +17,10 @@
     "npm-bundle": "^3.0.3"
   },
   "devDependencies": {
+    "@types/node": "^20.12.7",
     "@types/isomorphic-fetch": "^0.0.39",
     "@types/jsdom": "^21.1.6",
     "ts-node": "^10.9.2"
   },
-  "bundledDependencies": true,
-  "bundleDependencies": [
-    "@xivgear/gearplan-frontend",
-    "fastify",
-    "global-jsdom",
-    "isomorphic-fetch",
-    "jsdom",
-    "npm-bundle"
-  ]
+  "bundledDependencies": true
 }

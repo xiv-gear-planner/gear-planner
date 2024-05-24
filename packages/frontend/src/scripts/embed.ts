@@ -1,6 +1,7 @@
-import {GearPlanSheet} from "./components";
 import {LoadingBlocker} from "./components/loader";
-import {setTitle} from "./main";
+
+import {setTitle} from "./base_ui";
+import {GearPlanSheetGui} from "./components/sheet";
 
 let embedDiv: HTMLDivElement;
 
@@ -19,10 +20,10 @@ export function earlyEmbedInit() {
     body.appendChild(embedDiv);
 }
 
-export async function openEmbed(sheet: GearPlanSheet) {
+export async function openEmbed(sheet: GearPlanSheetGui) {
     console.log("openEmbed start");
     sheet.isEmbed = true;
-    await sheet.loadFully();
+    await sheet.load();
     console.log("openEmbed mid");
     const editorArea = sheet.editorArea;
     // TODO: this is bad

@@ -1,25 +1,28 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import 'global-jsdom/register'
-import {Ability, Buff, BuffController, FinalizedAbility, GcdAbility, OgcdAbility} from "../../sims/sim_types";
 import {it} from "mocha";
-import {
-    BaseMultiCycleSim,
-    CycleProcessor,
-    CycleSimResult,
-    DamageResult,
-    ExternalCycleSettings, Rotation
-} from "../../sims/sim_processors";
 import * as assert from "assert";
-import {assertClose, makeFakeSet} from "../test_utils";
+import {assertClose, makeFakeSet} from "@xivgear/core/test/test_utils";
 import {assertSimAbilityResults, setPartyBuffEnabled, UseResult} from "./sim_test_utils";
-import {SimSettings, SimSpec} from "../../simulation";
 import {JobMultipliers} from "@xivgear/xivmath/geartypes";
 import {getClassJobStats, getLevelStats} from "@xivgear/xivmath/xivconstants";
-import {CharacterGearSet} from "../../gear";
-import {Divination, Litany, Mug} from "../../sims/buffs";
+import {CharacterGearSet} from "@xivgear/core/gear";
+import {Divination, Litany, Mug} from "@xivgear/core/sims/buffs";
 import {exampleGearSet} from "./common_values";
-import {Swiftcast} from "../../sims/common/swiftcast";
-import {removeSelf} from "../../sims/common/utils";
+import {Swiftcast} from "@xivgear/core/sims/common/swiftcast";
+import {removeSelf} from "@xivgear/core/sims/common/utils";
 import {finalizeStats} from "@xivgear/xivmath/xivstats";
+import {
+    Ability,
+    Buff, BuffController, DamageResult,
+    FinalizedAbility,
+    GcdAbility,
+    OgcdAbility,
+    SimSettings,
+    SimSpec
+} from "@xivgear/core/sims/sim_types";
+import {CycleProcessor, CycleSimResult, ExternalCycleSettings, Rotation} from "@xivgear/core/sims/cycle_sim";
+import {BaseMultiCycleSim} from "../../sims/sim_processors";
 
 // Example of end-to-end simulation
 // This one is testing the simulation engine itself, so it copies the full simulation code rather than
@@ -29,7 +32,7 @@ import {finalizeStats} from "@xivgear/xivmath/xivstats";
 interface TestSimSettings extends SimSettings {
 }
 
-export interface TestSimSettingsExternal extends ExternalCycleSettings<TestSimSettings> {
+interface TestSimSettingsExternal extends ExternalCycleSettings<TestSimSettings> {
 }
 
 const filler: GcdAbility = {
@@ -39,7 +42,7 @@ const filler: GcdAbility = {
     attackType: "Spell",
     gcd: 2.5,
     cast: 1.5
-}
+};
 
 const weaponSkill: GcdAbility = {
     type: 'gcd',
@@ -48,7 +51,7 @@ const weaponSkill: GcdAbility = {
     attackType: "Weaponskill",
     gcd: 2.5,
     cast: 1.5
-}
+};
 
 const nop: GcdAbility = {
     type: 'gcd',
@@ -57,7 +60,7 @@ const nop: GcdAbility = {
     attackType: "Spell",
     gcd: 2.5,
     cast: 2.0
-}
+};
 
 const dia: GcdAbility = {
     type: 'gcd',
@@ -70,14 +73,14 @@ const dia: GcdAbility = {
     },
     attackType: "Spell",
     gcd: 2.5,
-}
+};
 
 const assize: OgcdAbility = {
     type: 'ogcd',
     name: "Assize",
     potency: 400,
     attackType: "Ability"
-}
+};
 
 const pom: OgcdAbility = {
     type: 'ogcd',
@@ -94,7 +97,7 @@ const pom: OgcdAbility = {
         }
     ],
     attackType: "Ability"
-}
+};
 
 const misery: GcdAbility = {
     type: 'gcd',
@@ -102,7 +105,7 @@ const misery: GcdAbility = {
     potency: 1240,
     attackType: "Spell",
     gcd: 2.5,
-}
+};
 
 const lily: GcdAbility = {
     type: 'gcd',
@@ -110,7 +113,7 @@ const lily: GcdAbility = {
     potency: 0,
     attackType: "Spell",
     gcd: 2.5,
-}
+};
 
 export const testSimSpec: SimSpec<TestMultiCycleSim, TestSimSettingsExternal> = {
     displayName: "Test WHM Sim",
@@ -123,7 +126,7 @@ export const testSimSpec: SimSpec<TestMultiCycleSim, TestSimSettingsExternal> = 
     stub: "test-whm-sim",
     supportedJobs: ['WHM'],
     isDefaultSim: false
-}
+};
 
 export interface TestSimResult extends CycleSimResult {
 }
@@ -363,7 +366,7 @@ const expectedAbilities: UseResult[] = [
         name: "Glare",
         damage: 6919.08
     },
-]
+];
 
 
 // The test
@@ -378,7 +381,7 @@ describe('Cycle sim processor', () => {
         setPartyBuffEnabled(inst, Litany, true);
         setPartyBuffEnabled(inst, Divination, true);
         // Run simulation
-        let result = await inst.simulate(set);
+        const result = await inst.simulate(set);
         // Assert correct results
         assertClose(result.mainDpsResult, 9897.32, 0.01);
         assertSimAbilityResults(result, expectedAbilities);
@@ -396,7 +399,7 @@ const instant: GcdAbility = {
     },
     attackType: "Spell",
     gcd: 2.5,
-}
+};
 
 const long: GcdAbility = {
     type: 'gcd',
@@ -405,7 +408,7 @@ const long: GcdAbility = {
     attackType: "Spell",
     gcd: 2.5,
     cast: 8
-}
+};
 
 describe('Swiftcast', () => {
     it('should handle swiftcast correctly', () => {
@@ -593,7 +596,7 @@ const potBuff: Buff = {
             potency: ability.potency + 100
         }
     }
-}
+};
 
 const potBuffAbility: GcdAbility = {
     type: 'gcd',
@@ -603,7 +606,7 @@ const potBuffAbility: GcdAbility = {
     gcd: 2.5,
     cast: 1.0,
     activatesBuffs: [potBuff]
-}
+};
 
 describe('Potency Buff Ability', () => {
     it('should increase the damage once', () => {
@@ -666,7 +669,7 @@ const bristleBuff: Buff = {
     name: "Bristle",
     beforeSnapshot: removeSelf,
     appliesTo: ability => ability.attackType === "Spell" && ability.potency !== null,
-}
+};
 
 const bristle: GcdAbility = {
     type: 'gcd',
@@ -676,7 +679,7 @@ const bristle: GcdAbility = {
     gcd: 2.5,
     cast: 1.0,
     activatesBuffs: [bristleBuff],
-}
+};
 
 // Demonstrates the longer but more flexible way
 const bristleBuff2: Buff = {
@@ -692,7 +695,7 @@ const bristleBuff2: Buff = {
             return multiplyDamage(damageResult, 1.5, true, true);
         }
     }
-}
+};
 
 const bristle2: GcdAbility = {
     type: 'gcd',
@@ -702,7 +705,7 @@ const bristle2: GcdAbility = {
     gcd: 2.5,
     cast: 1.0,
     activatesBuffs: [bristleBuff2]
-}
+};
 
 describe('Damage Buff Ability', () => {
     // TODO: test a DoT
@@ -851,7 +854,7 @@ describe('Special record', () => {
         cp.use(filler);
         cp.use(Swiftcast);
         cp.use(filler);
-        cp.addSpecialRow('Foo!')
+        cp.addSpecialRow('Foo!');
         cp.use(filler);
         cp.addSpecialRow('Bar!', 60);
         // Hacky lazy workaround
@@ -904,7 +907,7 @@ const fixed: GcdAbility = {
     gcd: 15,
     cast: 10,
     fixedGcd: true
-}
+};
 const fixedLonger: GcdAbility = {
     type: 'gcd',
     name: "Fixed Longer",
@@ -913,7 +916,7 @@ const fixedLonger: GcdAbility = {
     gcd: 20,
     cast: 16,
     fixedGcd: true
-}
+};
 describe('Cycle processor alignment options', () => {
     it('full alignment with non-cycle pre-pull', () => {
         // In this test, the CycleProcessor should start the first cycle post-combat-start, thus the first cycle should
@@ -930,7 +933,7 @@ describe('Cycle processor alignment options', () => {
         cp.use(fixed);
         cp.remainingCycles(cp => {
             cp.useUntil(fixed, 'end');
-        })
+        });
         // Hacky lazy workaround
         const displayRecords: readonly any[] = cp.finalizedRecords;
         assert.equal(displayRecords[0].ability.name, "Fixed");
@@ -970,7 +973,7 @@ describe('Cycle processor alignment options', () => {
         });
         cp.remainingCycles(cp => {
             cp.useUntil(fixed, 'end');
-        })
+        });
         // Hacky lazy workaround
         const displayRecords: readonly any[] = cp.finalizedRecords;
         assert.equal(displayRecords[0].label, "-- Start of Cycle --");
@@ -1013,7 +1016,7 @@ describe('Cycle processor alignment options', () => {
         cp.use(fixed);
         cp.remainingCycles(cp => {
             cp.useUntil(fixed, 'end');
-        })
+        });
         // Hacky lazy workaround
         const displayRecords: readonly any[] = cp.finalizedRecords;
         assert.equal(displayRecords[0].ability.name, "Fixed");
@@ -1056,10 +1059,10 @@ describe('Cycle processor alignment options', () => {
             // Longer GCD to make sure this actually takes up the full cycle time
             cp.use(fixedLonger);
             cp.useUntil(fixed, 'end');
-        })
+        });
         cp.remainingCycles(cp => {
             cp.useUntil(fixed, 'end');
-        })
+        });
         // Hacky lazy workaround
         const displayRecords: readonly any[] = cp.finalizedRecords;
         assert.equal(displayRecords[0].label, "-- Start of Cycle --");
@@ -1103,7 +1106,7 @@ describe('Cycle processor alignment options', () => {
         cp.use(fixed);
         cp.remainingCycles(cp => {
             cp.useUntil(fixed, 'end');
-        })
+        });
         // Hacky lazy workaround
         const displayRecords: readonly any[] = cp.finalizedRecords;
         assert.equal(displayRecords[0].ability.name, "Fixed");
@@ -1141,7 +1144,7 @@ describe('Cycle processor alignment options', () => {
         cp.cycleLengthMode = 'full-duration';
         cp.remainingCycles(cp => {
             cp.useUntil(fixed, 'end');
-        })
+        });
         // Hacky lazy workaround
         const displayRecords: readonly any[] = cp.finalizedRecords;
         // This seems wrong (intuitively, the 'fixed' cycle should be exactly 30s), but in reality, it is correct,
@@ -1181,7 +1184,7 @@ const fixedOdd: GcdAbility = {
     gcd: 7,
     cast: 4,
     fixedGcd: true
-}
+};
 
 describe('Cycle processor re-alignment', () => {
     it('full alignment with non-cycle pre-pull', () => {
@@ -1196,7 +1199,7 @@ describe('Cycle processor re-alignment', () => {
         cp.use(fixedOdd);
         cp.remainingCycles(cp => {
             cp.useUntil(fixedOdd, 'end');
-        })
+        });
         const cycleRecords = cp.cycleRecords;
         // First cycle starts late due to pre-cycle GCDs
         assert.equal(cycleRecords[0].start, 7);
@@ -1229,7 +1232,7 @@ describe('Cycle processor re-alignment', () => {
         });
         cp.remainingCycles(cp => {
             cp.useUntil(fixedOdd, 'end');
-        })
+        });
         const cycleRecords = cp.cycleRecords;
         // First cycle starts early due to pre-pull GCDs being in the cycle
         assert.equal(cycleRecords[0].start, -4.1);
@@ -1268,7 +1271,7 @@ describe('Cycle processor re-alignment', () => {
         cp.use(fixedOdd);
         cp.remainingCycles(cp => {
             cp.useUntil(fixedOdd, 'end');
-        })
+        });
         const cycleRecords = cp.cycleRecords;
         // First cycle starts late due to pre-cycle GCDs
         // Unlike the first test, this one doesn't drift back - it uses 7 as the basis for itself and all future cycles,
@@ -1307,7 +1310,7 @@ describe('Cycle processor re-alignment', () => {
         cp.cycleLengthMode = 'align-to-first';
         cp.remainingCycles(cp => {
             cp.useUntil(fixedOdd, 'end');
-        })
+        });
         const cycleRecords = cp.cycleRecords;
         // First cycle includes pre-pull
         // -4.1 is used as the basis for all future cycles
@@ -1347,7 +1350,7 @@ describe('Cycle processor re-alignment', () => {
         cp.use(fixedOdd);
         cp.remainingCycles(cp => {
             cp.useUntil(fixedOdd, 'end');
-        })
+        });
         const cycleRecords = cp.cycleRecords;
         // This one is simple. Every cycle is exactly 35 seconds, regardless of overall drift, except for the very
         // last cycle, which cuts early.
@@ -1392,7 +1395,7 @@ const indefBuff: Buff = {
         dmgIncrease: 4
     },
     statusId: 2125
-}
+};
 
 const indefAb: Ability = {
     type: 'gcd',
@@ -1403,7 +1406,7 @@ const indefAb: Ability = {
     cast: 1.5,
     activatesBuffs: [indefBuff]
 
-}
+};
 
 describe('indefinite buff handling', () => {
     it('can handle a manually applied indefinite buff', () => {

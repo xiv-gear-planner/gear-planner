@@ -1,5 +1,11 @@
 import {JobName} from "@xivgear/xivmath/xivconstants";
-import {XivApiJobData} from "../components";
+
+export interface XivApiJobData {
+    Name: string,
+    Abbreviation: string,
+    ID: number,
+    Icon: string
+}
 
 let jobData: XivApiJobData[];
 const jobIconMap = new Map<JobName, string>();
@@ -13,7 +19,7 @@ async function ensureJobDataLoaded() {
         .then(response => response.json())
         .then(response => response['Results'] as XivApiJobData[])
         .then(data => jobData = data);
-    for (let jobDatum of jobData) {
+    for (const jobDatum of jobData) {
         jobIconMap.set(jobDatum.Abbreviation as JobName, jobDatum.Icon);
     }
 }

@@ -1,13 +1,13 @@
 import {EquipSlotKey, ItemSlotExport, SetExport} from "@xivgear/xivmath/geartypes";
 import {JobName, MATERIA_SLOTS_MAX} from "@xivgear/xivmath/xivconstants";
 import {queryBaseParams} from "../datamanager";
-import {BaseParamToStatKey} from "./xivapitypes";
+import {BaseParamToStatKey, RelevantBaseParam} from "./xivapitypes";
 
 const ETRO_SLOTS = ['weapon', 'head', 'body', 'hands', 'legs', 'feet', 'ears', 'neck', 'wrists', 'fingerL', 'fingerR'] as const;
 // Works
 type ETRO_SLOT_KEY = typeof ETRO_SLOTS[number];
 
-export const ETRO_GEAR_SLOT_MAP: Record<ETRO_SLOT_KEY, EquipSlotKey> = {
+const ETRO_GEAR_SLOT_MAP: Record<ETRO_SLOT_KEY, EquipSlotKey> = {
     weapon: "Weapon",
     head: "Head",
     body: "Body",
@@ -70,7 +70,7 @@ export async function getSetFromEtro(etroSetId: string) {
     const items: {
         [K in EquipSlotKey]?: ItemSlotExport
     } = {};
-    for (let slot of ETRO_SLOTS) {
+    for (const slot of ETRO_SLOTS) {
         let itemId = response[slot];
         let relicStats: ItemSlotExport['relicStats'];
         if (!itemId) {
@@ -88,7 +88,7 @@ export async function getSetFromEtro(etroSetId: string) {
                         break;
                     }
                     const paramData = baseParams.find(item => item.ID === paramId);
-                    const stat = BaseParamToStatKey[paramData.Name]
+                    const stat = BaseParamToStatKey[paramData.Name as RelevantBaseParam];
                     relicStats[stat] = relicData[`param${i}Value`];
                 }
             }
@@ -148,7 +148,7 @@ export async function getSetFromEtro(etroSetId: string) {
         job: response.jobAbbrev,
         food: food,
         items: items
-    }
+    };
     return setImport;
 }
 

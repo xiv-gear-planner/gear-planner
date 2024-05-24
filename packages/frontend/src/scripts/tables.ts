@@ -1,12 +1,11 @@
-import {scrollIntoView} from "./util/scrollutil";
-
+/* eslint-disable @typescript-eslint/no-explicit-any */
 function setCellProps(cell: HTMLTableCellElement, colDef: CustomColumn<any, any>) {
     cell.setAttribute("col-id", colDef.shortName);
     const extraClasses = colDef.extraClasses;
     if (extraClasses) {
         cell.classList.add(...extraClasses);
     }
-    cell.classList.add()
+    cell.classList.add();
     if (colDef.initialWidth !== undefined) {
         cell.style.width = cell.style.minWidth = cell.style.maxWidth = colDef.initialWidth + "px";
     }
@@ -17,10 +16,10 @@ function setCellProps(cell: HTMLTableCellElement, colDef: CustomColumn<any, any>
 }
 
 export class CustomTableHeaderCell<RowDataType, CellDataType, ColumnDataType> extends HTMLTableCellElement implements SelectionRefresh {
-    private _colDef: CustomColumn<RowDataType, CellDataType, ColumnDataType>;
+    private readonly _colDef: CustomColumn<RowDataType, CellDataType, ColumnDataType>;
     private _selected: boolean = false;
     private table: CustomTable<RowDataType, any>;
-    private span: HTMLSpanElement;
+    private readonly span: HTMLSpanElement;
 
     constructor(table: CustomTable<RowDataType, any>, columnDef: CustomColumn<RowDataType, CellDataType, ColumnDataType>) {
         super();
@@ -70,7 +69,7 @@ export class CustomTableHeaderRow<RowDataType> extends HTMLTableRowElement imple
 
     constructor(table: CustomTable<RowDataType, any>) {
         super();
-        for (let column of table.columns) {
+        for (const column of table.columns) {
             const headerCell = new CustomTableHeaderCell(table, column);
             this.appendChild(headerCell);
             this._cells.push(headerCell);
@@ -150,7 +149,7 @@ export const noopSelectionModel: SelectionModel<any, undefined> = {
     },
     clearSelection() {
     }
-}
+};
 
 export interface SelectionListener<SelectionType> {
     onNewSelection(newSelection: SelectionType);
@@ -164,7 +163,7 @@ export class SingleSelectionModel<TableDataType, ExtraType = never> implements S
     private _listeners: SelectionListener<ExtraType | SingleCellRowOrHeaderSelect<TableDataType>>[] = [];
 
     private notifyListeners() {
-        for (let listener of this._listeners) {
+        for (const listener of this._listeners) {
             listener.onNewSelection(this.getSelection());
         }
     }
@@ -279,7 +278,7 @@ export class CustomTable<RowDataType, SelectionType = never> extends HTMLTableEl
             else {
                 return []
             }
-        })
+        });
         // TODO: see if successive refreshFull calls can be coalesced
         this._onDataChanged();
         this.refreshFull();
@@ -303,7 +302,7 @@ export class CustomTable<RowDataType, SelectionType = never> extends HTMLTableEl
      */
     private _onDataChanged() {
         const newRowElements: Node[] = [];
-        for (let item of this._data) {
+        for (const item of this._data) {
             if (item instanceof HeaderRow) {
                 const header = new CustomTableHeaderRow(this);
                 newRowElements.push(header);
@@ -331,7 +330,7 @@ export class CustomTable<RowDataType, SelectionType = never> extends HTMLTableEl
         this.tBodies[0].replaceChildren(...newRowElements);
         this.selectionRefreshables = [];
         this._rows = [];
-        for (let value of newRowElements.values()) {
+        for (const value of newRowElements.values()) {
             if (value instanceof CustomRow) {
                 this.selectionRefreshables.push(value);
                 this._rows.push(value);
@@ -345,13 +344,13 @@ export class CustomTable<RowDataType, SelectionType = never> extends HTMLTableEl
     }
 
     refreshFull() {
-        for (let row of this._rows) {
+        for (const row of this._rows) {
             row.refreshFull();
         }
     }
 
     refreshSelection() {
-        for (let value of this.selectionRefreshables) {
+        for (const value of this.selectionRefreshables) {
             value.refreshSelection();
         }
     }
@@ -373,14 +372,14 @@ export class CustomTable<RowDataType, SelectionType = never> extends HTMLTableEl
 
     refreshColumn(item: CustomColumn<RowDataType> | any) {
         if (item instanceof CustomColumn) {
-            for (let row of this._rows) {
+            for (const row of this._rows) {
                 row.refreshColumn(item);
             }
         }
         else {
             const col = this._columns.find(col => col.dataValue === item);
             if (col) {
-                for (let row of this._rows) {
+                for (const row of this._rows) {
                     row.refreshColumn(col);
                 }
             }
@@ -388,7 +387,7 @@ export class CustomTable<RowDataType, SelectionType = never> extends HTMLTableEl
     }
 
     refreshColHeaders() {
-        for (let row of this._rows) {
+        for (const row of this._rows) {
             if (row instanceof CustomTableHeaderRow) {
                 row.refreshFull();
             }
@@ -467,6 +466,7 @@ export class CustomColumn<RowDataType, CellDataType = string, ColumnDataType = a
         return this._original.displayName;
     };
 
+    // noinspection JSUnusedGlobalSymbols
     set displayName(ignored) {
     };
 
@@ -515,7 +515,7 @@ export class CustomRow<RowDataType> extends HTMLTableRowElement implements Refre
 
     refreshFull() {
         const newColElements: CustomCell<RowDataType, any>[] = [];
-        for (let col of this.table.columns) {
+        for (const col of this.table.columns) {
             if (this.dataColMap.has(col)) {
                 newColElements.push(this.dataColMap.get(col));
             }
@@ -525,9 +525,8 @@ export class CustomRow<RowDataType> extends HTMLTableRowElement implements Refre
                 newColElements.push(newCell);
             }
         }
-        // @ts-ignore
         this.replaceChildren(...newColElements);
-        for (let value of this.dataColMap.values()) {
+        for (const value of this.dataColMap.values()) {
             value.refreshFull();
         }
         this.refreshSelection();
@@ -535,9 +534,13 @@ export class CustomRow<RowDataType> extends HTMLTableRowElement implements Refre
 
     refreshSelection() {
         this.selected = this.table.selectionModel.isRowSelected(this);
-        for (let value of this.dataColMap.values()) {
+        for (const value of this.dataColMap.values()) {
             value.refreshSelection();
         }
+    }
+
+    get selected() {
+        return this._selected;
     }
 
     set selected(selected: boolean) {
@@ -628,9 +631,9 @@ export class CustomCell<RowDataType, CellDataType> extends HTMLTableCellElement 
 
 }
 
-customElements.define("custom-table-row", CustomRow, {extends: "tr"})
-customElements.define("custom-table", CustomTable, {extends: "table"})
-customElements.define("custom-table-cell", CustomCell, {extends: "td"})
-customElements.define("custom-table-header-row", CustomTableHeaderRow, {extends: "tr"})
-customElements.define("custom-table-title-row", CustomTableTitleRow, {extends: "tr"})
-customElements.define("custom-table-header-cell", CustomTableHeaderCell, {extends: "th"})
+customElements.define("custom-table-row", CustomRow, {extends: "tr"});
+customElements.define("custom-table", CustomTable, {extends: "table"});
+customElements.define("custom-table-cell", CustomCell, {extends: "td"});
+customElements.define("custom-table-header-row", CustomTableHeaderRow, {extends: "tr"});
+customElements.define("custom-table-title-row", CustomTableTitleRow, {extends: "tr"});
+customElements.define("custom-table-header-cell", CustomTableHeaderCell, {extends: "th"});

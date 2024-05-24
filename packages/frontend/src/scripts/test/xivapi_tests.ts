@@ -1,4 +1,4 @@
-import {xivApiIconUrl} from "../external/xivapi";
+import {xivApiIconUrl} from "@xivgear/core/external/xivapi";
 import assert from "assert";
 
 describe('xivapi Icon URL formatter', () => {

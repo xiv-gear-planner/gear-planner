@@ -1,5 +1,5 @@
-import {Ability, ComboData, ComboKeyMatch} from "../../sims/sim_types";
 import {STANDARD_APPLICATION_DELAY} from "@xivgear/xivmath/xivconstants";
+import {Ability, ComboData} from "./sim_types";
 
 /**
  * Returns the application delay of an ability (from time of snapshot to time of damage/effects applying).
@@ -7,7 +7,7 @@ import {STANDARD_APPLICATION_DELAY} from "@xivgear/xivmath/xivconstants";
  * @param ability The ability in question
  */
 export function appDelay(ability: Ability) {
-    let delay = STANDARD_APPLICATION_DELAY;
+    const delay = STANDARD_APPLICATION_DELAY;
     // TODO: add application delay field to Ability
     return delay;
 }
@@ -43,7 +43,7 @@ export function completeComboData(ability: Ability): FinalizedComboData {
     const all = ability.combos ?? [];
     const combos = [];
     let others: ComboData = null;
-    for (let combo of all) {
+    for (const combo of all) {
         const key = combo.comboKey ?? 'default';
         // For continuations, validate that they actually continue off of something that
         // is eligible to start a combo.

@@ -1,4 +1,4 @@
-import {AttackType, ComputedSetStats, JobData, JobMultipliers, LevelStats} from "./geartypes";
+import {AttackType, ComputedSetStats, JobData, LevelStats} from "./geartypes";
 import {chanceMultiplierStdDev, multiplyValues, ValueWithDev} from "./deviation";
 
 /*
@@ -163,7 +163,7 @@ export function sksTickMulti(levelStats: LevelStats, sks: number) {
  */
 export function mainStatMulti(levelStats: LevelStats, jobStats: JobData, mainstat: number) {
     // TODO make this work without ts-ignore
-    // @ts-ignore
+    // @ts-expect-error - can't figure out type def
     const apMod = levelStats.mainStatPowerMod[jobStats.role] ?? levelStats.mainStatPowerMod.other;
     return (fl(apMod * (mainstat - levelStats.baseMainStat) / levelStats.baseMainStat) + 100) / 100;
 }
@@ -260,7 +260,7 @@ export function baseDamageFull(stats: ComputedSetStats, potency: number, attackT
     const detMulti = stats.detMulti;
     // Extra damage from auto DH bonus
     const autoDhBonus = stats.autoDhBonus;
-    const tncMulti = 1000 / 1000 // if tank you'd do Funcs.fTEN(stats.tenacity, level) / 1000
+    const tncMulti = 1000 / 1000; // if tank you'd do Funcs.fTEN(stats.tenacity, level) / 1000
     const detAutoDhMulti = fl((detMulti + autoDhBonus) * 1000) / 1000;
     const traitMulti = stats.traitMulti(attackType);
 
@@ -387,7 +387,7 @@ export function applyCrit(baseDamage: number, stats: ComputedSetStats) {
  */
 export function vitToHp(levelStats: LevelStats, jobStats: JobData, vitality: number) {
     // TODO make this work without ts-ignore
-    // @ts-ignore
-    const hpMod = levelStats.hpScalar[jobStats.role] ?? levelStats.hpScalar.other
+    // @ts-expect-error - can't figure out type def
+    const hpMod = levelStats.hpScalar[jobStats.role] ?? levelStats.hpScalar.other;
     return fl(levelStats.hp * jobStats.jobStatMultipliers.hp / 100) + fl( (vitality - levelStats.baseMainStat) * hpMod);
 }

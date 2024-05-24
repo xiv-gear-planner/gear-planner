@@ -1,18 +1,18 @@
 import {BaseModal} from "./modal";
-import {CharacterGearSet} from "../gear";
+import {CharacterGearSet} from "@xivgear/core/gear";
 import {errorIcon, quickElement, warningIcon} from "./util";
 import {GearSetIssue} from "@xivgear/xivmath/geartypes";
 
 
 export function gearSetErrorIcon() {
     const icon = errorIcon();
-    icon.classList.add('gear-set-error-icon')
+    icon.classList.add('gear-set-error-icon');
     return icon;
 }
 
 export function gearSetWarningIcon() {
     const icon = warningIcon();
-    icon.classList.add('gear-set-warning-icon')
+    icon.classList.add('gear-set-warning-icon');
     return icon;
 }
 
@@ -33,7 +33,7 @@ export class SetIssuesModal extends BaseModal {
         const issues = set.issues;
         if (issues.length > 0) {
             this.classList.add('has-issues');
-            for (let issue of issues) {
+            for (const issue of issues) {
                 this.contentArea.appendChild(quickElement('div', ['gear-set-issue-block'], [
                     iconForIssues(issue),
                     quickElement('span', [], [issue.description])

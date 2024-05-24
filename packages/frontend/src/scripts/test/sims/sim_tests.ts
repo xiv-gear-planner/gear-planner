@@ -1,32 +1,31 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // REQUIRED - sets up fake HTML classes
 import 'global-jsdom/register'
 import {describe, it} from "mocha";
-import {getRegisteredSimSpecs, SimSettings, SimSpec, Simulation} from "../../simulation";
-
-import {
-    AbilityUseResult,
-    BaseMultiCycleSim,
-    CycleProcessor,
-    CycleSimResult,
-    ExternalCycleSettings,
-    MultiCycleSettings,
-    Rotation
-} from "../../sims/sim_processors";
-import {assertClose} from "../test_utils";
-import {Divination, Litany, Mug} from "../../sims/buffs";
+import {assertClose} from "@xivgear/core/test/test_utils";
+import {Divination, Litany, Mug} from "@xivgear/core/sims/buffs";
 import {assertSimAbilityResults, setPartyBuffEnabled, UseResult} from "./sim_test_utils";
 import {assize, dia, exampleGearSet, filler, lily, misery, nop, pom} from "./common_values";
-import {Ability} from "../../sims/sim_types";
 import * as assert from "assert";
 import {potRatioSimSpec} from "../../sims/common/potency_ratio";
 import {registerDefaultSims} from "../../sims/default_sims";
+import {Ability, SimSettings, SimSpec, Simulation} from "@xivgear/core/sims/sim_types";
+import {
+    AbilityUseResult,
+    CycleProcessor,
+    CycleSimResult,
+    ExternalCycleSettings, MultiCycleSettings,
+    Rotation
+} from "@xivgear/core/sims/cycle_sim";
+import {BaseMultiCycleSim} from "../../sims/sim_processors";
+import {getRegisteredSimSpecs} from "@xivgear/core/sims/sim_registry";
 
 // Example of end-to-end simulation
 // This one is testing the simulation engine itself, so it copies the full simulation code rather than
 // referencing it. If you wish to test an actual simulation, you would want to reference it directly.
 
 // Set up a simulation
-interface TestSimSettings extends SimSettings {
+export interface TestSimSettings extends SimSettings {
 }
 
 export interface TestSimSettingsExternal extends ExternalCycleSettings<TestSimSettings> {
@@ -44,7 +43,7 @@ export const testSimSpec: SimSpec<TestMultiCycleSim, TestSimSettingsExternal> = 
     stub: "test-whm-sim",
     supportedJobs: ['WHM'],
     isDefaultSim: false
-}
+};
 
 export interface TestSimResult extends CycleSimResult {
 }
@@ -246,7 +245,7 @@ const expectedAbilities: UseResult[] = [
         name: "Glare",
         damage: 6919.08
     },
-]
+];
 
 
 // The test
@@ -261,7 +260,7 @@ describe('Cycle sim processor', () => {
         setPartyBuffEnabled(inst, Litany, true);
         setPartyBuffEnabled(inst, Divination, true);
         // Run simulation
-        let result = await inst.simulate(exampleGearSet);
+        const result = await inst.simulate(exampleGearSet);
         // Assert correct results
         assertClose(result.mainDpsResult, 9897.32, 0.01);
         assertSimAbilityResults(result, expectedAbilities);
@@ -327,14 +326,14 @@ export const testCustomSimSpec: SimSpec<TestCustomMultiCycleSim, TestSimSettings
     stub: "test-custom-sim",
     supportedJobs: ['WHM'],
     isDefaultSim: false
-}
+};
 describe('Sim with custom cycle processor', () => {
     // Test the simulation
     it('can hook, and expose extra methods', async () => {
         // Initialize
         const inst: TestCustomMultiCycleSim = testCustomSimSpec.makeNewSimInstance();
         // Run simulation
-        let result = await inst.simulate(exampleGearSet);
+        await inst.simulate(exampleGearSet);
         assert.equal(inst.fillerCount, 1);
     });
 });
@@ -351,7 +350,7 @@ describe('Default sims', () => {
     describe('all others', () => {
         registerDefaultSims();
         const registered = getRegisteredSimSpecs();
-        for (let simSpec of registered) {
+        for (const simSpec of registered) {
             describe(`sim '${simSpec.displayName}'`, () => {
                 it('Can instantiate, export, and load', () => {
                     const inst: Simulation<any, any, any> = simSpec.makeNewSimInstance() as Simulation<any, any, any>;

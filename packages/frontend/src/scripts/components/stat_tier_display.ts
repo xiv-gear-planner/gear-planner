@@ -1,5 +1,4 @@
-import {CharacterGearSet} from "../gear";
-import {GearPlanSheet} from "../components";
+import {CharacterGearSet} from "@xivgear/core/gear";
 import {STAT_ABBREVIATIONS, STAT_DISPLAY_ORDER} from "@xivgear/xivmath/xivconstants";
 import {RawStatKey} from "@xivgear/xivmath/geartypes";
 import {
@@ -15,6 +14,7 @@ import {
     tenacityDmg,
     vitToHp
 } from "@xivgear/xivmath/xivmath";
+import {GearPlanSheet} from "@xivgear/core/sheet";
 
 interface Tiering {
     lower: number,
@@ -83,10 +83,10 @@ export class StatTierDisplay extends HTMLDivElement {
         if (this.sheet.ilvlSync && !relevantStats.includes('vitality')) {
             relevantStats = ['vitality', ...relevantStats];
         }
-        for (let stat of relevantStats) {
+        for (const stat of relevantStats) {
             try {
                 const statTiering = this.getStatTiering(stat, gearSet);
-                for (let tieringDisplay of statTiering) {
+                for (const tieringDisplay of statTiering) {
                     const key = tieringDisplay.label;
                     let singleStatTierDisplay: SingleStatTierDisplay;
                     if (this.eleMap.has(key)) {
@@ -109,7 +109,7 @@ export class StatTierDisplay extends HTMLDivElement {
     }
 
 
-    getStatTiering(stat: RawStatKey, set: CharacterGearSet): TieringDisplay[] {
+    private getStatTiering(stat: RawStatKey, set: CharacterGearSet): TieringDisplay[] {
         const computed = set.computedStats;
         const levelStats = computed.levelStats;
         const jobStats = computed.jobStats;
@@ -165,7 +165,7 @@ export class StatTierDisplay extends HTMLDivElement {
                     fullName: 'critical hit',
                     description: 'Critical hit (chance and multiplier)',
                     tiering: this.getCombinedTiering(curVal, value => critDmg(levelStats, value))
-                }]
+                }];
             case "dhit":
                 return [{
                     label: abbrev,
@@ -225,7 +225,7 @@ export class StatTierDisplay extends HTMLDivElement {
     }
 
 
-    getCombinedTiering(currentValue: number, computation: ((statValue: number) => number)): Tiering {
+    private getCombinedTiering(currentValue: number, computation: ((statValue: number) => number)): Tiering {
         return {
             lower: this.getSingleTiering(false, currentValue, computation),
             upper: this.getSingleTiering(true, currentValue, computation),

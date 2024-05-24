@@ -1,13 +1,7 @@
-import {SimSettings, SimSpec} from "../../simulation";
-import {GcdAbility, OgcdAbility} from "../sim_types";
-import {
-    BaseMultiCycleSim,
-    CycleSimResult,
-    ExternalCycleSettings,
-    CycleProcessor,
-    Rotation
-} from "../sim_processors";
-import {Chain} from "../buffs";
+import {Chain} from "@xivgear/core/sims/buffs";
+import {GcdAbility, OgcdAbility, SimSettings, SimSpec} from "@xivgear/core/sims/sim_types";
+import {CycleProcessor, CycleSimResult, ExternalCycleSettings, Rotation} from "@xivgear/core/sims/cycle_sim";
+import {BaseMultiCycleSim} from "../sim_processors";
 
 
 const filler: GcdAbility = {
@@ -18,7 +12,7 @@ const filler: GcdAbility = {
     attackType: "Spell",
     gcd: 2.5,
     cast: 1.5
-}
+};
 
 const chain: OgcdAbility = {
     type: 'ogcd',
@@ -30,8 +24,9 @@ const chain: OgcdAbility = {
     cooldown: {
         time: 120
     }
-}
+};
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const r2: GcdAbility = {
     type: 'gcd',
     name: "Ruin II",
@@ -39,7 +34,7 @@ const r2: GcdAbility = {
     potency: 220,
     attackType: "Spell",
     gcd: 2.5,
-}
+};
 
 const bio: GcdAbility = {
     type: 'gcd',
@@ -54,7 +49,7 @@ const bio: GcdAbility = {
     },
     attackType: "Spell",
     gcd: 2.5,
-}
+};
 
 const ed: OgcdAbility = {
     type: 'ogcd',
@@ -62,12 +57,12 @@ const ed: OgcdAbility = {
     id: 167,
     potency: 100,
     attackType: "Ability"
-}
+};
 
 export interface SchSheetSimResult extends CycleSimResult {
 }
 
-interface SchNewSheetSettings extends SimSettings {
+export interface SchNewSheetSettings extends SimSettings {
     rezPerMin: number,
     gcdHealsPerMin: number,
     edPerMin: number,
@@ -88,7 +83,7 @@ export const schNewSheetSpec: SimSpec<SchSheetSim, SchNewSheetSettingsExternal> 
     stub: "sch-sheet-sim",
     supportedJobs: ['SCH'],
     isDefaultSim: true
-}
+};
 
 export class SchSheetSim extends BaseMultiCycleSim<SchSheetSimResult, SchNewSheetSettings> {
 

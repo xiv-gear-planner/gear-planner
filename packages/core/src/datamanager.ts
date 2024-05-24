@@ -2,7 +2,7 @@ import {processRawMateriaInfo, XivApiFoodInfo, XivApiGearInfo} from "./gear";
 import {getClassJobStats, JobName, LEVEL_ITEMS, MATERIA_LEVEL_MAX_NORMAL, SupportedLevel} from "@xivgear/xivmath/xivconstants";
 import {GearItem, JobMultipliers, Materia, OccGearSlotKey, RawStatKey,} from "@xivgear/xivmath/geartypes";
 import {xivApiGet, xivApiSingle} from "./external/xivapi";
-import {BaseParamToStatKey, xivApiStatMapping} from "./external/xivapitypes";
+import {BaseParamToStatKey, RelevantBaseParam, xivApiStatMapping} from "./external/xivapitypes";
 import {getRelicStatModelFor} from "./relicstats/relicstats";
 
 export type IlvlSyncInfo = {
@@ -32,7 +32,7 @@ export type BaseParamInfo = Record<OccGearSlotKey, number>
  */
 export type BaseParamMap = { [rawStat in RawStatKey]?: BaseParamInfo }
 
-interface DataManagerIntf {
+export interface DataManagerIntf {
     readonly classJob: JobName;
     readonly allItems: XivApiGearInfo[];
     readonly allFoodItems: XivApiFoodInfo[];
@@ -98,7 +98,7 @@ export class DataManager implements DataManagerIntf {
             const ilvlPromise = Promise.all([baseParamPromise, xivApiSingle("ItemLevel", ilvl)]).then(responses => {
                 const ilvlStatModifiers = new Map<RawStatKey, number>();
                 // Unroll the ItemLevel object into a direct mapping from RawStatKey => modifier
-                for (let respElementKey in responses[1]) {
+                for (const respElementKey in responses[1]) {
                     if (respElementKey in xivApiStatMapping) {
                         ilvlStatModifiers.set(xivApiStatMapping[respElementKey], responses[1][respElementKey]);
                     }
@@ -147,19 +147,19 @@ export class DataManager implements DataManagerIntf {
                 [rawStat in RawStatKey]?: Record<OccGearSlotKey, number>
             }>((baseParams, value) => {
                 // Each individual item also gets converted
-                baseParams[BaseParamToStatKey[value.Name]] = {
-                    Body: value['Chest%'],
-                    Ears: value['Earring%'],
-                    Feet: value['Feet%'],
-                    Hand: value['Hands%'],
-                    Head: value['Head%'],
-                    Legs: value['Legs%'],
-                    Neck: value['Necklace%'],
-                    OffHand: value['OH%'],
-                    Ring: value['Ring%'],
-                    Weapon2H: value['2HWpn%'],
-                    Weapon1H: value['1HWpn%'],
-                    Wrist: value['Bracelet%']
+                baseParams[BaseParamToStatKey[value.Name as RelevantBaseParam]] = {
+                    Body: value['Chest%'] as number,
+                    Ears: value['Earring%'] as number,
+                    Feet: value['Feet%'] as number,
+                    Hand: value['Hands%'] as number,
+                    Head: value['Head%'] as number,
+                    Legs: value['Legs%'] as number,
+                    Neck: value['Necklace%'] as number,
+                    OffHand: value['OH%'] as number,
+                    Ring: value['Ring%'] as number,
+                    Weapon2H: value['2HWpn%'] as number,
+                    Weapon1H: value['1HWpn%'] as number,
+                    Wrist: value['Bracelet%'] as number
                 };
                 return baseParams;
             }, {});
@@ -229,7 +229,7 @@ export class DataManager implements DataManagerIntf {
                     extraPromises.push(Promise.all([itemIlvlPromise, ilvlSyncPromise]).then(([native, sync]) => {
                         item.applyIlvlData(native, sync);
                         if (item.isCustomRelic) {
-                            console.log('Applying relic model')
+                            console.log('Applying relic model');
                             item.relicStatModel = getRelicStatModelFor(item, this._baseParams, this._classJob);
                             console.log('Applied', item.relicStatModel)
                         }
@@ -239,7 +239,7 @@ export class DataManager implements DataManagerIntf {
                     extraPromises.push(itemIlvlPromise.then(native => {
                         item.applyIlvlData(native);
                         if (item.isCustomRelic) {
-                            console.log('Applying relic model')
+                            console.log('Applying relic model');
                             item.relicStatModel = getRelicStatModelFor(item, this._baseParams, this._classJob);
                             console.log('Applied', item.relicStatModel)
                         }
@@ -308,15 +308,15 @@ export class DataManager implements DataManagerIntf {
             })
             .then(rawJobs => {
                 this._jobMultipliers = new Map<JobName, JobMultipliers>();
-                for (let rawJob of rawJobs) {
-                    this._jobMultipliers.set(rawJob['Abbreviation'], {
-                        dexterity: rawJob.ModifierDexterity,
-                        intelligence: rawJob.ModifierIntelligence,
-                        mind: rawJob.ModifierMind,
-                        strength: rawJob.ModifierStrength,
-                        vitality: rawJob.ModifierVitality,
-                        hp: rawJob.ModifierHitPoints,
-                    })
+                for (const rawJob of rawJobs) {
+                    this._jobMultipliers.set(rawJob['Abbreviation'] as JobName, {
+                        dexterity: rawJob.ModifierDexterity as number,
+                        intelligence: rawJob.ModifierIntelligence as number,
+                        mind: rawJob.ModifierMind as number,
+                        strength: rawJob.ModifierStrength as number,
+                        vitality: rawJob.ModifierVitality as number,
+                        hp: rawJob.ModifierHitPoints as number,
+                    });
                 }
             });
         await Promise.all([baseParamPromise, itemsPromise, statsPromise, materiaPromise, foodPromise, jobsPromise]);

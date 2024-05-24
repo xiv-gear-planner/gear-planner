@@ -1,6 +1,8 @@
-import {BaseMultiCycleSim, CycleSimResult, DisplayRecordFinalized} from "../../sims/sim_processors";
-import {FinalizedAbility, PartyBuff} from "../../sims/sim_types";
-import {isClose} from "../test_utils";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import {isClose} from "@xivgear/core/test/test_utils";
+import {BaseMultiCycleSim} from "../../sims/sim_processors";
+import {FinalizedAbility, PartyBuff} from "@xivgear/core/sims/sim_types";
+import {CycleSimResult, DisplayRecordFinalized} from "@xivgear/core/sims/cycle_sim";
 
 /**
  * Type that represents the time, name, and damage of an ability
@@ -32,7 +34,7 @@ export function assertSimAbilityResults(result: CycleSimResult | readonly Displa
     const actualAbilities: FinalizedAbility[] = displayRecords.filter<FinalizedAbility>((record): record is FinalizedAbility => {
         return 'ability' in record;
     });
-    const failures: string[] = []
+    const failures: string[] = [];
     const length = Math.max(actualAbilities.length, expectedAbilities.length);
     for (let i = 0; i < length; i++) {
         if (i >= actualAbilities.length) {

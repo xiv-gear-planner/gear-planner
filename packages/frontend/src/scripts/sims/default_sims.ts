@@ -5,14 +5,14 @@ import {astNewSheetSpec} from "./healer/ast_sheet_sim";
 import {schNewSheetSpec} from "./healer/sch_sheet_sim";
 import {whmNewSheetSpec} from "./healer/whm_new_sheet_sim";
 import {rprSheetSpec} from "./melee/rpr_sheet_sim";
-import {registerSim} from "../simulation";
 import {potRatioSimSpec} from "./common/potency_ratio";
-import { BluWinged120Spec } from "./blu/blu_winged120";
-import { BluFlame120Spec } from "./blu/blu_flame120";
-import { BluF2PSpec } from "./blu/blu_free_trial";
-import { BluFlame60Spec } from "./blu/blu_flame60";
-import { BluWinged60Spec } from "./blu/blu_winged60";
-import { BluBreath60Spec } from "./blu/blu_breath60";
+import {BluWinged120Spec} from "./blu/blu_winged120";
+import {BluFlame120Spec} from "./blu/blu_flame120";
+import {BluF2PSpec} from "./blu/blu_free_trial";
+import {BluFlame60Spec} from "./blu/blu_flame60";
+import {BluWinged60Spec} from "./blu/blu_winged60";
+import {BluBreath60Spec} from "./blu/blu_breath60";
+import {registerSim} from "@xivgear/core/sims/sim_registry";
 
 export function registerDefaultSims() {
     registerSim(potRatioSimSpec);

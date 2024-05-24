@@ -1,17 +1,13 @@
-import { SimSpec } from "../../simulation";
-import {
-    CycleSimResult,
-    ExternalCycleSettings,
-    Rotation
-} from "../sim_processors";
-import { Swiftcast } from "../common/swiftcast";
+import { Swiftcast } from "@xivgear/core/sims/common/swiftcast";
 import { STANDARD_ANIMATION_LOCK } from "@xivgear/xivmath/xivconstants";
 import * as blu from "./blu_common";
+import {SimSpec} from "@xivgear/core/sims/sim_types";
+import {CycleSimResult, ExternalCycleSettings, Rotation} from "@xivgear/core/sims/cycle_sim";
 
 export interface BluFlame60SimResult extends CycleSimResult {
 }
 
-interface BluFlame60Settings extends blu.BluSimSettings {
+export interface BluFlame60Settings extends blu.BluSimSettings {
 }
 
 export interface BluFlame60SettingsExternal extends ExternalCycleSettings<BluFlame60Settings> {
@@ -31,7 +27,7 @@ export const BluFlame60Spec: SimSpec<BluFlame60Sim, BluFlame60SettingsExternal> 
     loadSavedSimInstance(exported: BluFlame60SettingsExternal) {
         return new BluFlame60Sim(exported);
     }
-}
+};
 
 export class BluFlame60Sim extends blu.BluSim<BluFlame60SimResult, BluFlame60Settings> {
     spec = BluFlame60Spec;
@@ -110,7 +106,7 @@ export class BluFlame60Sim extends blu.BluSim<BluFlame60SimResult, BluFlame60Set
     }
 
     getRotationsToSimulate(): Rotation<blu.BLUCycleProcessor>[] {
-        let sim = this;
+        const sim = this;
         return [{
             cycleTime: 120,
             apply(cp: blu.BLUCycleProcessor) {
@@ -174,7 +170,6 @@ export class BluFlame60Sim extends blu.BluSim<BluFlame60SimResult, BluFlame60Set
 
                     // loop until odd Flute window
                     const preBleed = cp.gcdRecast * 4;
-                    let i = 0;
                     while (Math.min(cp.remainingGcdTime, cp.bleedEnd - cp.currentTime) > preBleed) {
                         sim.useFiller(cp);
                     }
@@ -201,7 +196,6 @@ export class BluFlame60Sim extends blu.BluSim<BluFlame60SimResult, BluFlame60Set
 
                     // loop until 4 gcds before Nightbloom comes off cooldown
                     const preBloom = cp.gcdRecast * 4;
-                    let j = 0;
                     while (Math.min(cp.remainingGcdTime, cp.cdTracker.statusOf(blu.Nightbloom).readyAt.relative) > preBloom) {
                         sim.useFiller(cp);
                     }

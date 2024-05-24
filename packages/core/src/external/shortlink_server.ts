@@ -1,4 +1,4 @@
-import {EMBED_HASH, SHARE_LINK, SHORTLINK_HASH} from "../common_nav";
+import {EMBED_HASH, SHARE_LINK, SHORTLINK_HASH} from "../nav/common_nav";
 
 const SHORTLINK_SERVER: URL = new URL("https://api.xivgear.app/shortlink/");
 

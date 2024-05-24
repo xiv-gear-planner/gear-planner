@@ -1,4 +1,4 @@
-import {xivApiSingle, xivApiSingleCols} from "../external/xivapi";
+import {xivApiSingleCols} from "@xivgear/core/external/xivapi";
 
 export interface XivApiAbilityData {
     ID: number,
@@ -13,7 +13,7 @@ async function getDataFor(abilityId: number): Promise<XivApiAbilityData> {
         return abilityIconMap.get(abilityId);
     }
     else {
-        const out = xivApiSingleCols('Action', abilityId, ['ID', 'Icon'] as const);
+        const out = xivApiSingleCols('Action', abilityId, ['ID', 'Icon'] as const) as Promise<XivApiAbilityData>;
         abilityIconMap.set(abilityId, out);
         return out;
     }

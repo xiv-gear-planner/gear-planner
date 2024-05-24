@@ -1,6 +1,6 @@
 import * as process from "process";
 import {buildServerInstance} from "./server_builder";
-import {setServerOverride} from "@xivgear/gearplan-frontend/external/shortlink_server";
+import {setServerOverride} from "@xivgear/core/external/shortlink_server";
 
 const fastify = buildServerInstance();
 

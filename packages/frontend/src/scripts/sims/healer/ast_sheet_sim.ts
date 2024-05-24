@@ -1,13 +1,7 @@
-import {SimSettings, SimSpec} from "../../simulation";
-import {GcdAbility, OgcdAbility} from "../sim_types";
-import {
-    BaseMultiCycleSim,
-    CycleSimResult,
-    ExternalCycleSettings,
-    CycleProcessor,
-    Rotation
-} from "../sim_processors";
-import {BuffSettingsExport} from "../party_comp_settings";
+import {GcdAbility, OgcdAbility, SimSettings, SimSpec} from "@xivgear/core/sims/sim_types";
+import {CycleProcessor, CycleSimResult, ExternalCycleSettings, Rotation} from "@xivgear/core/sims/cycle_sim";
+import {BaseMultiCycleSim} from "../sim_processors";
+import {BuffSettingsExport} from "@xivgear/core/sims/common/party_comp_settings";
 
 
 const filler: GcdAbility = {
@@ -17,7 +11,7 @@ const filler: GcdAbility = {
     attackType: "Spell",
     gcd: 2.5,
     cast: 1.5
-}
+};
 
 const combust: GcdAbility = {
     type: 'gcd',
@@ -30,21 +24,21 @@ const combust: GcdAbility = {
     },
     attackType: "Spell",
     gcd: 2.5,
-}
+};
 
 const star: OgcdAbility = {
     type: 'ogcd',
     name: "Earthly Star",
     potency: 310,
     attackType: "Ability"
-}
+};
 
 const lord: OgcdAbility = {
     type: 'ogcd',
     name: "Lord of Crowns",
     potency: 250,
     attackType: "Ability"
-}
+};
 
 const astrodyne: OgcdAbility = {
     name: "Astrodyne",
@@ -62,12 +56,12 @@ const astrodyne: OgcdAbility = {
         }
     ],
     attackType: "Ability",
-}
+};
 
 export interface AstSheetSimResult extends CycleSimResult {
 }
 
-interface AstNewSheetSettings extends SimSettings {
+export interface AstNewSheetSettings extends SimSettings {
     rezPerMin: number,
     aspHelPerMin: number,
     aspBenPerMin: number,
@@ -89,7 +83,7 @@ export const astNewSheetSpec: SimSpec<AstSheetSim, AstNewSheetSettingsExternal> 
     stub: "ast-sheet-sim",
     supportedJobs: ['AST'],
     isDefaultSim: true
-}
+};
 
 export class AstSheetSim extends BaseMultiCycleSim<AstSheetSimResult, AstNewSheetSettings> {
 

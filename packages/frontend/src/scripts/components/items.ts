@@ -1,4 +1,4 @@
-import {CharacterGearSet, ItemSingleStatDetail, nonEmptyRelicStats, previewItemStatDetail} from "../gear";
+import {CharacterGearSet, ItemSingleStatDetail, nonEmptyRelicStats, previewItemStatDetail} from "@xivgear/core/gear";
 import {
     DisplayGearSlot,
     EquipmentSet,
@@ -33,11 +33,11 @@ import {
 } from "@xivgear/xivmath/xivconstants";
 import {FieldBoundCheckBox, FieldBoundIntField, labeledCheckbox, makeChevronDown} from "./util";
 import {AllSlotMateriaManager} from "./materia";
-import {GearPlanSheet} from "../components";
-import {shortenItemName} from "../util/strutils";
-import {makeRelicStatEditor} from "../relicstats/relicstats";
+import {shortenItemName} from "@xivgear/core/util/strutils";
+import {GearPlanSheet} from "@xivgear/core/sheet";
+import {makeRelicStatEditor} from "./relic_stats";
 
-function statCellStylerRemover(cell: CustomCell<GearSlotItem, any>) {
+function statCellStylerRemover(cell: CustomCell<GearSlotItem, unknown>) {
     cell.classList.remove("secondary");
     cell.classList.remove("primary");
     cell.classList.remove("stat-melded-overcapped");
@@ -55,7 +55,7 @@ function statCellStylerRemover(cell: CustomCell<GearSlotItem, any>) {
  * describes meld values and whether it has overcapped or not.
  * @param stat The stat
  */
-function statCellStyler(cell: CustomCell<GearSlotItem, any>, value: ItemSingleStatDetail, stat: keyof RawStats) {
+function statCellStyler(cell: CustomCell<GearSlotItem, unknown>, value: ItemSingleStatDetail, stat: keyof RawStats) {
 
     let isPrimary: boolean = false;
     let isSecondary: boolean = false;
@@ -131,7 +131,7 @@ function statCellStyler(cell: CustomCell<GearSlotItem, any>, value: ItemSingleSt
  * @param cell The cell
  * @param stat The stat
  */
-function foodStatCellStyler(cell: CustomCell<FoodItem, any>, stat: keyof RawStats) {
+function foodStatCellStyler(cell: CustomCell<FoodItem, unknown>, stat: keyof RawStats) {
 
     cell.classList.add("food-stat-cell");
     cell.classList.add("stat-" + stat);
@@ -177,7 +177,7 @@ function statBonusDisplay(value: StatBonus) {
     }
 }
 
-function foodTableStatViewColumn(sheet: GearPlanSheet, item: FoodItem, stat: RawStatKey, highlightPrimarySecondary: boolean = false): CustomColumnSpec<FoodItem, any, any> {
+function foodTableStatViewColumn(sheet: GearPlanSheet, item: FoodItem, stat: RawStatKey, highlightPrimarySecondary: boolean = false): CustomColumnSpec<FoodItem, unknown, unknown> {
     const wrapped = foodTableStatColumn(sheet, stat, highlightPrimarySecondary);
     return {
         ...wrapped,
@@ -185,7 +185,7 @@ function foodTableStatViewColumn(sheet: GearPlanSheet, item: FoodItem, stat: Raw
     }
 }
 
-function foodTableStatColumn(sheet: GearPlanSheet, stat: RawStatKey, highlightPrimarySecondary: boolean = false): CustomColumnSpec<FoodItem, any, any> {
+function foodTableStatColumn(sheet: GearPlanSheet, stat: RawStatKey, highlightPrimarySecondary: boolean = false): CustomColumnSpec<FoodItem, unknown, unknown> {
     return {
         shortName: stat,
         displayName: STAT_ABBREVIATIONS[stat],
@@ -246,7 +246,7 @@ export class FoodItemsTable extends CustomTable<FoodItem, FoodItem> {
             foodTableStatColumn(sheet, 'skillspeed', true),
             foodTableStatColumn(sheet, 'piety', true),
             foodTableStatColumn(sheet, 'tenacity', true),
-        ]
+        ];
         this.selectionModel = {
             clickCell(cell: CustomCell<FoodItem, FoodItem>) {
 
@@ -272,7 +272,7 @@ export class FoodItemsTable extends CustomTable<FoodItem, FoodItem> {
             clearSelection(): void {
 
             }
-        }
+        };
         const displayItems = [...sheet.foodItemsForDisplay];
         displayItems.sort((left, right) => left.ilvl - right.ilvl);
         if (displayItems.length > 0) {
@@ -326,7 +326,7 @@ export class FoodItemViewTable extends CustomTable<FoodItem, FoodItem> {
             foodTableStatViewColumn(sheet, item, 'skillspeed', true),
             foodTableStatViewColumn(sheet, item, 'piety', true),
             foodTableStatViewColumn(sheet, item, 'tenacity', true),
-        ]
+        ];
         this.selectionModel = noopSelectionModel;
         super.data = [new HeaderRow(), item];
     }
@@ -337,7 +337,7 @@ class RelicCellInfo {
     }
 }
 
-function itemTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, stat: RawStatKey, highlightPrimarySecondary: boolean = false): CustomColumnSpec<GearSlotItem, ItemSingleStatDetail | RelicCellInfo, any> {
+function itemTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, stat: RawStatKey, highlightPrimarySecondary: boolean = false): CustomColumnSpec<GearSlotItem, ItemSingleStatDetail | RelicCellInfo, unknown> {
     return {
         shortName: stat,
         displayName: STAT_ABBREVIATIONS[stat],
@@ -380,7 +380,7 @@ function itemTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, stat: 
                         equipment.relicStats[value.stat] = 0;
                     }
                     // If read-only, display stat normally
-                    if (sheet.isViewOnly) {
+                    if (sheet._isViewOnly) {
                         const cap = equipment.gearItem.statCaps[stat];
                         if (cap) {
                             return document.createTextNode(Math.min(equipment.relicStats[stat], cap).toString());
@@ -583,7 +583,7 @@ export class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
             itemTableStatColumn(sheet, gearSet, 'skillspeed', true),
             itemTableStatColumn(sheet, gearSet, 'piety', true),
             itemTableStatColumn(sheet, gearSet, 'tenacity', true),
-        ]
+        ];
         const data: (TitleRow | HeaderRow | GearSlotItem)[] = [];
         const slotMateriaManagers = new Map<keyof EquipmentSet, AllSlotMateriaManager>();
         this.materiaManagers = [];
@@ -651,7 +651,7 @@ export class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
             data.push(new SpecialRow(tbl => matMgr));
         }
         this.selectionModel = {
-            clickCell(cell: CustomCell<GearSlotItem, any>) {
+            clickCell(cell: CustomCell<GearSlotItem, unknown>) {
 
             },
             clickColumnHeader(col: CustomColumn<GearSlotItem>) {
@@ -676,7 +676,7 @@ export class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
             getSelection(): EquipmentSet {
                 return gearSet.equipment;
             },
-            isCellSelectedDirectly(cell: CustomCell<GearSlotItem, any>) {
+            isCellSelectedDirectly(cell: CustomCell<GearSlotItem, unknown>) {
                 return false;
             },
             isColumnHeaderSelected(col: CustomColumn<GearSlotItem>) {
@@ -695,7 +695,7 @@ export class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
 
     refreshMateria() {
         this.materiaManagers.forEach(mgr => mgr.refresh());
-        for (let equipSlot of EquipSlots) {
+        for (const equipSlot of EquipSlots) {
             const selection = this.selectionTracker.get(equipSlot);
             if (selection) {
                 this.refreshRowData(selection);
@@ -827,7 +827,7 @@ export class GearItemsViewTable extends CustomTable<GearSlotItem, EquipmentSet> 
             itemTableStatColumn(sheet, gearSet, 'skillspeed', true),
             itemTableStatColumn(sheet, gearSet, 'piety', true),
             itemTableStatColumn(sheet, gearSet, 'tenacity', true),
-        ]
+        ];
         this.selectionModel = noopSelectionModel;
         this.data = data;
     }
@@ -836,9 +836,9 @@ export class GearItemsViewTable extends CustomTable<GearSlotItem, EquipmentSet> 
 
 export class ILvlRangePicker<ObjType> extends HTMLElement {
     private _listeners: ((min: number, max: number) => void)[] = [];
-    private obj: ObjType;
-    private minField: { [K in keyof ObjType]: ObjType[K] extends number ? K : never }[keyof ObjType];
-    private maxField: { [K in keyof ObjType]: ObjType[K] extends number ? K : never }[keyof ObjType];
+    private readonly obj: ObjType;
+    private readonly minField: { [K in keyof ObjType]: ObjType[K] extends number ? K : never }[keyof ObjType];
+    private readonly maxField: { [K in keyof ObjType]: ObjType[K] extends number ? K : never }[keyof ObjType];
 
     constructor(obj: ObjType, minField: { [K in keyof ObjType]: ObjType[K] extends number ? K : never }[keyof ObjType], maxField: { [K in keyof ObjType]: ObjType[K] extends number ? K : never }[keyof ObjType], label: string | undefined) {
         super();
@@ -881,7 +881,7 @@ export class ILvlRangePicker<ObjType> extends HTMLElement {
     }
 
     private runListeners() {
-        for (let listener of this._listeners) {
+        for (const listener of this._listeners) {
             listener(this.obj[this.minField] as number, this.obj[this.maxField] as number);
         }
     }

@@ -1,8 +1,8 @@
-import {GearPlanSheet} from "../components";
 import {closeModal} from "../modalcontrol";
 import {quickElement} from "./util";
-import {CharacterGearSet} from "../gear";
+import {CharacterGearSet} from "@xivgear/core/gear";
 import {BaseModal} from "./modal";
+import {GearPlanSheet} from "@xivgear/core/sheet";
 
 export function startRenameSheet(sheet: GearPlanSheet) {
     const modal = new RenameModal({
@@ -33,10 +33,10 @@ function startRename(modal: RenameModal) {
 }
 
 class RenameModal extends BaseModal {
-    private nameInput: HTMLInputElement;
-    private descriptionInput: HTMLTextAreaElement;
-    private applyButton: HTMLButtonElement;
-    private cancelButton: HTMLButtonElement;
+    private readonly nameInput: HTMLInputElement;
+    private readonly descriptionInput: HTMLTextAreaElement;
+    private readonly applyButton: HTMLButtonElement;
+    private readonly cancelButton: HTMLButtonElement;
 
     constructor(private itemBeingRenamed: { name: string, description: string }) {
         super();

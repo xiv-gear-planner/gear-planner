@@ -1,17 +1,13 @@
-import { SimSpec } from "../../simulation";
-import {
-    CycleSimResult,
-    ExternalCycleSettings,
-    Rotation
-} from "../sim_processors";
-import { Swiftcast } from "../common/swiftcast";
+import { Swiftcast } from "@xivgear/core/sims/common/swiftcast";
 import { STANDARD_ANIMATION_LOCK } from "@xivgear/xivmath/xivconstants";
 import * as blu from "./blu_common";
+import {SimSpec} from "@xivgear/core/sims/sim_types";
+import {CycleSimResult, ExternalCycleSettings, Rotation} from "@xivgear/core/sims/cycle_sim";
 
 export interface BluBreath60SimResult extends CycleSimResult {
 }
 
-interface BluBreath60Settings extends blu.BluSimSettings {
+export interface BluBreath60Settings extends blu.BluSimSettings {
 }
 
 export interface BluBreath60SettingsExternal extends ExternalCycleSettings<BluBreath60Settings> {
@@ -31,7 +27,7 @@ export const BluBreath60Spec: SimSpec<BluBreath60Sim, BluBreath60SettingsExterna
     loadSavedSimInstance(exported: BluBreath60SettingsExternal) {
         return new BluBreath60Sim(exported);
     }
-}
+};
 
 export class BluBreath60Sim extends blu.BluSim<BluBreath60SimResult, BluBreath60Settings> {
     spec = BluBreath60Spec;
@@ -119,7 +115,7 @@ export class BluBreath60Sim extends blu.BluSim<BluBreath60SimResult, BluBreath60
     }
 
     getRotationsToSimulate(): Rotation<blu.BLUCycleProcessor>[] {
-        let sim = this;
+        const sim = this;
         return [{
             cycleTime: 120,
             apply(cp: blu.BLUCycleProcessor) {
@@ -134,7 +130,7 @@ export class BluBreath60Sim extends blu.BluSim<BluBreath60SimResult, BluBreath60
                 cp.use(blu.RoseOfDestruction);
                 cp.use(blu.MoonFlute);
 
-                // cycle based off of Nightbloom (fixed cooldown: 120s)                
+                // cycle based off of Nightbloom (fixed cooldown: 120s)
                 cp.remainingCycles(cycle => {
                     // TODO: this is a hack to avoid floating point errors at fast gcds
                     if (cp.gcdRecast < 2.19) {
@@ -176,7 +172,6 @@ export class BluBreath60Sim extends blu.BluSim<BluBreath60SimResult, BluBreath60
 
                     // loop until odd Flute window
                     const preBleed = cp.gcdRecast * 4;
-                    let i = 0;
                     while (Math.min(cp.remainingGcdTime, cp.bleedEnd - cp.currentTime) > preBleed) {
                         sim.useFiller(cp);
                     }
@@ -204,7 +199,6 @@ export class BluBreath60Sim extends blu.BluSim<BluBreath60SimResult, BluBreath60
 
                     // loop until 4 gcds before Nightbloom comes off cooldown
                     const preBloom = cp.gcdRecast * 4;
-                    let j = 0;
                     while (Math.min(cp.remainingGcdTime, cp.cdTracker.statusOf(blu.Nightbloom).readyAt.relative) > preBloom) {
                         sim.useFiller(cp);
                     }
