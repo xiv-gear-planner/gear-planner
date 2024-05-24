@@ -177,7 +177,7 @@ export type CycleInfo = {
 class ComboTracker {
     private _lastComboAbility: Ability | null = null;
 
-    constructor(public readonly key: String) {
+    constructor(public readonly key: string) {
     }
 
     get lastComboAbility(): Ability | null {
@@ -807,7 +807,7 @@ export class CycleProcessor {
 
     private beforeAbility<X extends Ability>(originalAbility: X, buffs: Buff[]): X {
         let ability: X = originalAbility;
-        for (let buff of buffs) {
+        for (const buff of buffs) {
             if ('beforeAbility' in buff) {
                 const modified: X | void = buff.beforeAbility(this.makeBuffController(buff), ability);
                 if (modified) {

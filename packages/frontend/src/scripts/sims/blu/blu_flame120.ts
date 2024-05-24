@@ -122,7 +122,7 @@ export class BluFlame120Sim extends blu.BluSim<BluFlame120SimResult, BluFlame120
     }
 
     getRotationsToSimulate(): Rotation<blu.BLUCycleProcessor>[] {
-        let sim = this;
+        const sim = this;
         return [{
             cycleTime: 120,
             apply(cp: blu.BLUCycleProcessor) {

@@ -120,7 +120,7 @@ export class BluWinged120Sim extends blu.BluSim<BluWinged120SimResult, BluWinged
     }
 
     getRotationsToSimulate(): Rotation<blu.BLUCycleProcessor>[] {
-        let sim = this;
+        const sim = this;
         return [{
             cycleTime: 120,
             apply(cp: blu.BLUCycleProcessor) {

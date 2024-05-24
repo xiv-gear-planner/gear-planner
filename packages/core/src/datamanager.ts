@@ -98,7 +98,7 @@ export class DataManager implements DataManagerIntf {
             const ilvlPromise = Promise.all([baseParamPromise, xivApiSingle("ItemLevel", ilvl)]).then(responses => {
                 const ilvlStatModifiers = new Map<RawStatKey, number>();
                 // Unroll the ItemLevel object into a direct mapping from RawStatKey => modifier
-                for (let respElementKey in responses[1]) {
+                for (const respElementKey in responses[1]) {
                     if (respElementKey in xivApiStatMapping) {
                         ilvlStatModifiers.set(xivApiStatMapping[respElementKey], responses[1][respElementKey]);
                     }
@@ -308,7 +308,7 @@ export class DataManager implements DataManagerIntf {
             })
             .then(rawJobs => {
                 this._jobMultipliers = new Map<JobName, JobMultipliers>();
-                for (let rawJob of rawJobs) {
+                for (const rawJob of rawJobs) {
                     this._jobMultipliers.set(rawJob['Abbreviation'], {
                         dexterity: rawJob.ModifierDexterity,
                         intelligence: rawJob.ModifierIntelligence,

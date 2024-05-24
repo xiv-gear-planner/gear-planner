@@ -106,7 +106,7 @@ export class BluFlame60Sim extends blu.BluSim<BluFlame60SimResult, BluFlame60Set
     }
 
     getRotationsToSimulate(): Rotation<blu.BLUCycleProcessor>[] {
-        let sim = this;
+        const sim = this;
         return [{
             cycleTime: 120,
             apply(cp: blu.BLUCycleProcessor) {
@@ -170,7 +170,6 @@ export class BluFlame60Sim extends blu.BluSim<BluFlame60SimResult, BluFlame60Set
 
                     // loop until odd Flute window
                     const preBleed = cp.gcdRecast * 4;
-                    let i = 0;
                     while (Math.min(cp.remainingGcdTime, cp.bleedEnd - cp.currentTime) > preBleed) {
                         sim.useFiller(cp);
                     }
@@ -197,7 +196,6 @@ export class BluFlame60Sim extends blu.BluSim<BluFlame60SimResult, BluFlame60Set
 
                     // loop until 4 gcds before Nightbloom comes off cooldown
                     const preBloom = cp.gcdRecast * 4;
-                    let j = 0;
                     while (Math.min(cp.remainingGcdTime, cp.cdTracker.statusOf(blu.Nightbloom).readyAt.relative) > preBloom) {
                         sim.useFiller(cp);
                     }

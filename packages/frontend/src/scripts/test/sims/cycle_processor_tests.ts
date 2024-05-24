@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import 'global-jsdom/register'
 import {it} from "mocha";
 import * as assert from "assert";
@@ -380,7 +381,7 @@ describe('Cycle sim processor', () => {
         setPartyBuffEnabled(inst, Litany, true);
         setPartyBuffEnabled(inst, Divination, true);
         // Run simulation
-        let result = await inst.simulate(set);
+        const result = await inst.simulate(set);
         // Assert correct results
         assertClose(result.mainDpsResult, 9897.32, 0.01);
         assertSimAbilityResults(result, expectedAbilities);

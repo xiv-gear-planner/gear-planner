@@ -22,7 +22,7 @@ export const contentArea = document.getElementById("content-area");
 // export const midBarArea = document.getElementById("mid-controls-area");
 export const devMenuArea = document.getElementById("dev-menu-area");
 export const topMenuArea = document.getElementById("main-menu-area");
-const editorArea = document.getElementById("editor-area");
+// const editorArea = document.getElementById("editor-area");
 export const welcomeArea = document.getElementById("welcome-message");
 export const welcomeCloseButton = document.getElementById("welcome-close-button");
 
@@ -31,7 +31,6 @@ export function handleWelcomeArea() {
         // hideWelcomeArea();
     }
     else {
-        const hideWelcomeAreaSettingKey = 'hide-welcome-area';
         if (SETTINGS.hideWelcomeMessage) {
             hideWelcomeArea();
         }

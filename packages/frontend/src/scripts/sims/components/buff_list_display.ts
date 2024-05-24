@@ -40,7 +40,7 @@ export class BuffListDisplay extends HTMLDivElement {
         let tooltip = '';
         const textOnly: Buff[] = [];
         let hasImage = false;
-        for (let buff of buffs) {
+        for (const buff of buffs) {
             tooltip += describeBuff(buff) + '\n';
             if (buff.statusId !== undefined) {
                 this.appendChild(new StatusIcon(buff.statusId, buff.stacks));

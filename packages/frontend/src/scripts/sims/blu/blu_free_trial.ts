@@ -114,7 +114,7 @@ export class BluF2PSim extends blu.BluSim<BluF2PSimResult, BluF2PSettings> {
     }
 
     getRotationsToSimulate(): Rotation<blu.BLUCycleProcessor>[] {
-        let sim = this;
+        const sim = this;
         return [{
             cycleTime: 120,
             apply(cp: blu.BLUCycleProcessor) {
