@@ -8,7 +8,7 @@ import {GearPlanSheet} from "@xivgear/core/sheet";
 
 const SHEET_EXPORT_OPTIONS = ['Link to Whole Sheet', 'One Link for Each Set', 'Embed URL for Each Set', 'JSON for Whole Sheet'] as const;
 type SheetExportType = typeof SHEET_EXPORT_OPTIONS[number];
-const SET_EXPORT_OPTIONS = ['Link to This Set' , 'Embed URL for This Set' , 'JSON for This Set'] as const;
+const SET_EXPORT_OPTIONS = ['Link to This Set', 'Embed URL for This Set', 'JSON for This Set'] as const;
 type SetExportType = typeof SET_EXPORT_OPTIONS[number];
 
 // TODO: warning for when you export a single set as a sheet
@@ -99,7 +99,6 @@ abstract class ExportModal<X extends string> extends BaseModal {
     abstract exportInstantly(selectedType: X): boolean;
 
     abstract get previewUrl(): string;
-
 
 
     private doPreview() {
@@ -203,6 +202,7 @@ class SheetExportModal extends ExportModal<SheetExportType> {
 
 class SetExportModal extends ExportModal<SetExportType> {
     private sheet: GearPlanSheet;
+
     constructor(private set: CharacterGearSet) {
         super('Export Individual Set', SET_EXPORT_OPTIONS, set.sheet);
         this.sheet = set.sheet;
@@ -210,9 +210,10 @@ class SetExportModal extends ExportModal<SetExportType> {
 
     async doExport(selectedType: SetExportType): Promise<string> {
         switch (selectedType) {
-            case "Link to This Set":
+            case "Link to This Set": {
                 const exportedSheet = JSON.stringify(this.sheet.exportGearSet(this.set, true));
                 return await putShortLink(exportedSheet).then(link => link.toString());
+            }
             case "Embed URL for This Set": {
                 const exportedSheet = JSON.stringify(this.sheet.exportGearSet(this.set, true));
                 return await putShortLink(exportedSheet, true).then(link => link.toString());

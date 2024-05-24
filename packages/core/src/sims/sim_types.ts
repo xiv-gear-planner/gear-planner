@@ -3,7 +3,6 @@ import {CharacterGearSet} from "../gear";
 import {JobName, SupportedLevel} from "@xivgear/xivmath/xivconstants";
 import {AttackType} from "@xivgear/xivmath/geartypes";
 import {ValueWithDev} from "@xivgear/xivmath/deviation";
-import {EmptyObject} from "../util/types";
 
 /**
  * Represents the final result of a simulation run. Sim implementors should extend this type with
