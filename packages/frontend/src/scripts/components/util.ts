@@ -64,7 +64,7 @@ export function labelFor(label: string, labelFor: HTMLElement) {
     return element;
 }
 
-type BooleanListener = (value: boolean) => void;
+export type BooleanListener = (value: boolean) => void;
 
 export class FieldBoundCheckBox<ObjType> extends HTMLInputElement {
 

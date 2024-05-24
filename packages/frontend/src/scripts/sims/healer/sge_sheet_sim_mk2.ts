@@ -49,7 +49,7 @@ const phlegma: GcdAbility = {
 export interface SgeSheetSimResult extends CycleSimResult {
 }
 
-interface SgeNewSheetSettings extends SimSettings {
+export interface SgeNewSheetSettings extends SimSettings {
     rezPerMin: number,
     diagPerMin: number,
     progPerMin: number,

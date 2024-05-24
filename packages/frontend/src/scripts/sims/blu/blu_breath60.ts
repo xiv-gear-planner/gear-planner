@@ -7,7 +7,7 @@ import {CycleSimResult, ExternalCycleSettings, Rotation} from "@xivgear/core/sim
 export interface BluBreath60SimResult extends CycleSimResult {
 }
 
-interface BluBreath60Settings extends blu.BluSimSettings {
+export interface BluBreath60Settings extends blu.BluSimSettings {
 }
 
 export interface BluBreath60SettingsExternal extends ExternalCycleSettings<BluBreath60Settings> {

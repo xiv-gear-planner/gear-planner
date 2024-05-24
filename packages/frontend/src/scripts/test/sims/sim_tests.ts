@@ -25,7 +25,7 @@ import {getRegisteredSimSpecs} from "@xivgear/core/sims/sim_registry";
 // referencing it. If you wish to test an actual simulation, you would want to reference it directly.
 
 // Set up a simulation
-interface TestSimSettings extends SimSettings {
+export interface TestSimSettings extends SimSettings {
 }
 
 export interface TestSimSettingsExternal extends ExternalCycleSettings<TestSimSettings> {

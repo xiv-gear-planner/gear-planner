@@ -1,4 +1,4 @@
-interface Modal {
+export interface Modal {
     close(): void;
     element: HTMLElement;
 }

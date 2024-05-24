@@ -1,5 +1,9 @@
+// used in doc
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import {Simulation} from "@xivgear/core/sims/sim_types";
+
 /**
- * Basic implementation of {@link import('@xivgear/core/sims/sim_types/Simulation').makeResultDisplay} for sims which
+ * Basic implementation of {@link Simulation.makeResultDisplay} for sims which
  * do not actually have any settings.
  */
 export function noSimSettings() {

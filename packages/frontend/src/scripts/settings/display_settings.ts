@@ -4,7 +4,7 @@ import {SETTINGS} from "./persistent_settings";
 const DEFAULT_LIGHT_MODE = false;
 const DEFAULT_MODERN_THEME = true;
 
-class DisplaySettings {
+class DisplaySettingsImpl {
     private _lightMode: boolean;
     private _modernTheme: boolean;
 
@@ -73,4 +73,6 @@ class DisplaySettings {
     }
 }
 
-export const DISPLAY_SETTINGS = new DisplaySettings();
+export interface DisplaySettings extends DisplaySettingsImpl {}
+
+export const DISPLAY_SETTINGS: DisplaySettings = new DisplaySettingsImpl();

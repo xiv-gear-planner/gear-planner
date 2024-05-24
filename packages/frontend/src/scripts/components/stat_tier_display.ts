@@ -109,7 +109,7 @@ export class StatTierDisplay extends HTMLDivElement {
     }
 
 
-    getStatTiering(stat: RawStatKey, set: CharacterGearSet): TieringDisplay[] {
+    private getStatTiering(stat: RawStatKey, set: CharacterGearSet): TieringDisplay[] {
         const computed = set.computedStats;
         const levelStats = computed.levelStats;
         const jobStats = computed.jobStats;
@@ -225,7 +225,7 @@ export class StatTierDisplay extends HTMLDivElement {
     }
 
 
-    getCombinedTiering(currentValue: number, computation: ((statValue: number) => number)): Tiering {
+    private getCombinedTiering(currentValue: number, computation: ((statValue: number) => number)): Tiering {
         return {
             lower: this.getSingleTiering(false, currentValue, computation),
             upper: this.getSingleTiering(true, currentValue, computation),

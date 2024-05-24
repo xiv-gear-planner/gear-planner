@@ -62,7 +62,7 @@ const ed: OgcdAbility = {
 export interface SchSheetSimResult extends CycleSimResult {
 }
 
-interface SchNewSheetSettings extends SimSettings {
+export interface SchNewSheetSettings extends SimSettings {
     rezPerMin: number,
     gcdHealsPerMin: number,
     edPerMin: number,

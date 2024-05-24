@@ -23,7 +23,7 @@
   },
   "scripts": {
     "build": "npm run build --workspaces",
-    "docs": "npx --workspaces typedoc --json build/docs.json --entryPointStrategy expand src/ && npx typedoc --entryPointStrategy merge packages/*/build/docs.json --readme API_DOC.md --out packages/frontend/dist/docs",
+    "docs": "npx --workspaces typedoc --json build/docs.json --exclude '**/scripts/test/**/*.ts' --excludePrivate --entryPointStrategy expand src/ && npx typedoc --entryPointStrategy merge packages/*/build/docs.json --readme API_DOC.md --out packages/frontend/dist/docs",
     "test": "npm run --workspaces --if-present test",
     "serve": "npx http-server packages/frontend/dist -p 8076",
     "lint": "npx -ws eslint ./src/**/*.ts --exit-on-fatal-error --max-warnings 0"

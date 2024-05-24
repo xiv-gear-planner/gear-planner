@@ -68,7 +68,7 @@ const lily: GcdAbility = {
 export interface WhmSheetSimResult extends CycleSimResult {
 }
 
-interface WhmNewSheetSettings extends SimSettings {
+export interface WhmNewSheetSettings extends SimSettings {
     rezPerMin: number,
     med2PerMin: number,
     cure3PerMin: number,

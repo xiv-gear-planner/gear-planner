@@ -7,7 +7,7 @@ import {CycleSimResult, ExternalCycleSettings, Rotation} from "@xivgear/core/sim
 export interface BluFlame60SimResult extends CycleSimResult {
 }
 
-interface BluFlame60Settings extends blu.BluSimSettings {
+export interface BluFlame60Settings extends blu.BluSimSettings {
 }
 
 export interface BluFlame60SettingsExternal extends ExternalCycleSettings<BluFlame60Settings> {

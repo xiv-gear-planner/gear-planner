@@ -128,7 +128,7 @@ function chanceStatDisplay(stats: ChanceStat) {
     return outerDiv;
 }
 
-class SimResultData<ResultType extends SimResult> {
+export class SimResultData<ResultType extends SimResult> {
     constructor(
         public readonly simInst: Simulation<ResultType, any, any>,
         public readonly result: SimCurrentResult<ResultType>
@@ -138,7 +138,6 @@ class SimResultData<ResultType extends SimResult> {
     isFinalState(): boolean {
         return this.result.status === 'Done' || this.result.status === 'Not Run' || this.result.status === 'Error';
     }
-
 }
 
 /**

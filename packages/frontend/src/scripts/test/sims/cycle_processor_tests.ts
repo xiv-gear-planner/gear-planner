@@ -32,7 +32,7 @@ import {BaseMultiCycleSim} from "../../sims/sim_processors";
 interface TestSimSettings extends SimSettings {
 }
 
-export interface TestSimSettingsExternal extends ExternalCycleSettings<TestSimSettings> {
+interface TestSimSettingsExternal extends ExternalCycleSettings<TestSimSettings> {
 }
 
 const filler: GcdAbility = {

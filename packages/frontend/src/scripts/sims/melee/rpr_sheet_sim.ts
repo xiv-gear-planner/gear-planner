@@ -182,7 +182,7 @@ const arcaneCircle: OgcdAbility = {
 export interface RprSheetSimResult extends CycleSimResult {
 }
 
-interface RprNewSheetSettings extends SimSettings {
+export interface RprNewSheetSettings extends SimSettings {
 
 }
 

@@ -143,7 +143,7 @@ export type CycleFunction = (cycle: CycleContext) => void
 export const isAbilityUse = (record: DisplayRecordUnf): record is AbilityUseRecordUnf => 'ability' in record;
 export const isFinalizedAbilityUse = (record: DisplayRecordFinalized): record is FinalizedAbility => 'original' in record;
 
-interface BuffUsage {
+export interface BuffUsage {
     readonly buff: Buff,
     readonly start: number,
     end: number,
@@ -164,7 +164,7 @@ interface BuffUsage {
  * to check cooldowns if the CD time is less than or equal to the cycle time and is used at the same point in every
  * cycle.
  */
-type CycleLengthMode = 'align-absolute'
+export type CycleLengthMode = 'align-absolute'
     | 'align-to-first'
     | 'full-duration';
 
@@ -174,7 +174,7 @@ export type CycleInfo = {
     end: number | null,
 }
 
-class ComboTracker {
+export class ComboTracker {
     private _lastComboAbility: Ability | null = null;
 
     constructor(public readonly key: string) {

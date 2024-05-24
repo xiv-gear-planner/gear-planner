@@ -32,7 +32,7 @@ export type BaseParamInfo = Record<OccGearSlotKey, number>
  */
 export type BaseParamMap = { [rawStat in RawStatKey]?: BaseParamInfo }
 
-interface DataManagerIntf {
+export interface DataManagerIntf {
     readonly classJob: JobName;
     readonly allItems: XivApiGearInfo[];
     readonly allFoodItems: XivApiFoodInfo[];

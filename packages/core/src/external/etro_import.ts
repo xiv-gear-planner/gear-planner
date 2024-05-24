@@ -7,7 +7,7 @@ const ETRO_SLOTS = ['weapon', 'head', 'body', 'hands', 'legs', 'feet', 'ears', '
 // Works
 type ETRO_SLOT_KEY = typeof ETRO_SLOTS[number];
 
-export const ETRO_GEAR_SLOT_MAP: Record<ETRO_SLOT_KEY, EquipSlotKey> = {
+const ETRO_GEAR_SLOT_MAP: Record<ETRO_SLOT_KEY, EquipSlotKey> = {
     weapon: "Weapon",
     head: "Head",
     body: "Body",

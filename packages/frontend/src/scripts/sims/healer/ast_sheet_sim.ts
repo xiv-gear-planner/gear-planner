@@ -61,7 +61,7 @@ const astrodyne: OgcdAbility = {
 export interface AstSheetSimResult extends CycleSimResult {
 }
 
-interface AstNewSheetSettings extends SimSettings {
+export interface AstNewSheetSettings extends SimSettings {
     rezPerMin: number,
     aspHelPerMin: number,
     aspBenPerMin: number,
