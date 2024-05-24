@@ -39,7 +39,7 @@ export const SETTINGS: PersistentSettings = {
     set hideWelcomeMessage(value: boolean) {
         setBool(HIDE_WELCOME_KEY, value);
     }
-}
+};
 
 function getBool(key: string): boolean | undefined {
     const raw = localStorage.getItem(key);

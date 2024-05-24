@@ -41,6 +41,7 @@ export abstract class BaseModal extends HTMLElement {
         this.addActionButton('Close', () => this.close());
     }
 
+    // eslint-disable-next-line accessor-pairs
     set headerText(text: string) {
         this.header.textContent = text;
     }
@@ -57,7 +58,7 @@ export abstract class BaseModal extends HTMLElement {
             close() {
                 outer.remove()
             }
-        })
+        });
         setTimeout(() => this.classList.add('backdrop-active'), 5);
     }
 

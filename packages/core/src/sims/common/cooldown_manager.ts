@@ -108,7 +108,7 @@ export class CooldownTracker {
      * for pre-pull timings, it should be negative.
      */
     public timeShift(delta: number) {
-        for (let key of this.currentState.keys()) {
+        for (const key of this.currentState.keys()) {
             this.currentState.set(key, new InternalState(this.currentState.get(key).cappedAt + delta));
         }
     }

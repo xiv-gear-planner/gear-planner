@@ -18,8 +18,8 @@ describe("backend stat resolver server", () => {
             method: 'GET',
             url: '/fulldata/f9b260a9-650c-445a-b3eb-c56d8d968501'
         });
-        const json = response.json() as SheetStatsExport;
         assert.equal(response.statusCode, 200);
+        const json = response.json() as SheetStatsExport;
         assert.equal(json.name, "WHM 6.4 copy");
         assert.equal(json.level, 90);
         assert.equal(json.job, "WHM");
@@ -39,8 +39,8 @@ describe("backend stat resolver server", () => {
             method: 'GET',
             url: '/fulldata/f9b260a9-650c-445a-b3eb-c56d8d968501?partyBonus=0'
         });
-        const json = response.json() as SheetStatsExport;
         assert.equal(response.statusCode, 200);
+        const json = response.json() as SheetStatsExport;
         assert.equal(json.name, "WHM 6.4 copy");
         assert.equal(json.level, 90);
         assert.equal(json.job, "WHM");
@@ -60,8 +60,8 @@ describe("backend stat resolver server", () => {
             method: 'GET',
             url: '/fulldata/f9b260a9-650c-445a-b3eb-c56d8d968501?partyBonus=5'
         });
-        const json = response.json() as SheetStatsExport;
         assert.equal(response.statusCode, 200);
+        const json = response.json() as SheetStatsExport;
         assert.equal(json.name, "WHM 6.4 copy");
         assert.equal(json.level, 90);
         assert.equal(json.job, "WHM");

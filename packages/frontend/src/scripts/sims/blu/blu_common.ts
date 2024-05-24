@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import {FieldBoundCheckBox, labeledCheckbox} from "../../components/util";
 import {OffGuardBuff} from "@xivgear/core/sims/buffs";
 import {removeSelf} from "@xivgear/core/sims/common/utils";
@@ -73,7 +74,7 @@ const Boost: Buff = {
         return null;
     },
     statusId: 1716
-}
+};
 
 const WaxingNocturne: Buff = {
     name: "Waxing Nocturne",
@@ -83,7 +84,7 @@ const WaxingNocturne: Buff = {
         dmgIncrease: 0.50
     },
     statusId: 1718
-}
+};
 
 const MightyGuard: Buff = {
     name: "Mighty Guard",
@@ -93,7 +94,7 @@ const MightyGuard: Buff = {
         dmgIncrease: -0.4
     },
     statusId: 1719
-}
+};
 
 
 const WaningNocturne: Buff = {
@@ -105,7 +106,7 @@ const WaningNocturne: Buff = {
         dmgIncrease: -1 // can't use any actions during Waning
     },
     statusId: 1727
-}
+};
 
 const Harmonized: Buff = {
     name: "Harmonized",
@@ -122,7 +123,7 @@ const Harmonized: Buff = {
         return null;
     },
     statusId: 2118
-}
+};
 
 const TankMimicry: Buff = {
     name: "Aetheric Mimicry: Tank",
@@ -130,7 +131,7 @@ const TankMimicry: Buff = {
     selfOnly: true,
     effects: {}, // changes the effects of certain BLU spells
     statusId: 2124
-}
+};
 
 const DpsMimicry: Buff = {
     name: "Aetheric Mimicry: DPS",
@@ -150,7 +151,7 @@ const DpsMimicry: Buff = {
         return null;
     },
     statusId: 2125
-}
+};
 
 const HealerMimicry: Buff = {
     name: "Aetheric Mimicry: Healer",
@@ -158,7 +159,7 @@ const HealerMimicry: Buff = {
     descriptionExtras: ["Increases healing and augments certain blue magic spells"],
     effects: {}, // changes the effects of certain BLU spells
     statusId: 2126
-}
+};
 
 const BrushWithDeath: Buff = {
     name: "Brush with Death",
@@ -167,7 +168,7 @@ const BrushWithDeath: Buff = {
     descriptionExtras: ["Prevents using certain blue magic spells"],
     effects: {}, // prevents certain BLU spells from being used
     statusId: 2127
-}
+};
 
 const SurpanakhaBuff: Buff = {
     name: "Surpanakha's Fury",
@@ -182,7 +183,7 @@ const SurpanakhaBuff: Buff = {
     beforeSnapshot: removeSelf,
     appliesTo: ability => ability.name === "Surpanakha",
     statusId: 2130
-}
+};
 
 const Tingling: Buff = {
     name: "Tingling",
@@ -208,7 +209,7 @@ const Tingling: Buff = {
         return null;
     },
     statusId: 2492
-}
+};
 
 const BasicInstinct: Buff = {
     name: "Basic Instinct",
@@ -218,9 +219,9 @@ const BasicInstinct: Buff = {
         dmgIncrease: 1.0
     },
     statusId: 2498
-}
+};
 
-const WingedReprobationBuff: Buff = {
+const WingedReprobationBuff = {
     name: "Winged Reprobation",
     selfOnly: true,
     descriptionExtras: ["Resets Winged Reprobation's recast timer"],
@@ -232,7 +233,7 @@ const WingedReprobationBuff: Buff = {
     beforeSnapshot: removeSelf,
     appliesTo: ability => ability.name === "Winged Reprobation",
     statusId: 3640
-}
+} as const satisfies Buff;
 
 const WingedRedemption: Buff = {
     name: "Winged Redemption",
@@ -253,7 +254,7 @@ const WingedRedemption: Buff = {
         return null;
     },
     statusId: 3641
-}
+};
 
 /**
  * BLU spells and abilities (limited subset)
@@ -272,7 +273,7 @@ export const SongOfTorment: GcdAbility = {
     gcd: 2.5,
     cast: 2.0,
     id: 11386
-}
+};
 
 export const Bristle: GcdAbility = {
     name: "Bristle",
@@ -283,7 +284,7 @@ export const Bristle: GcdAbility = {
     gcd: 2.5,
     cast: 1.0,
     id: 11393
-}
+};
 
 export const FinalSting: GcdAbility = {
     name: "Final Sting",
@@ -294,7 +295,7 @@ export const FinalSting: GcdAbility = {
     gcd: 2.5,
     cast: 2.0,
     id: 11407
-}
+};
 
 export const OffGuard: OgcdAbility = {
     name: "Off-guard",
@@ -308,7 +309,7 @@ export const OffGuard: OgcdAbility = {
         reducedBy: "spellspeed"
     },
     id: 11411
-}
+};
 
 export const MoonFlute: GcdAbility = {
     name: "Moon Flute",
@@ -319,7 +320,7 @@ export const MoonFlute: GcdAbility = {
     gcd: 2.5,
     cast: 2.0,
     id: 11415
-}
+};
 
 export const FeatherRain: OgcdAbility = {
     name: "Feather Rain",
@@ -336,7 +337,7 @@ export const FeatherRain: OgcdAbility = {
         time: 30
     },
     id: 11426
-}
+};
 
 export const ShockStrike: OgcdAbility = {
     name: "Shock Strike",
@@ -348,7 +349,7 @@ export const ShockStrike: OgcdAbility = {
         time: 60
     },
     id: 11429
-}
+};
 
 export const GlassDance: OgcdAbility = {
     name: "Glass Dance",
@@ -360,7 +361,7 @@ export const GlassDance: OgcdAbility = {
         time: 90
     },
     id: 11430
-}
+};
 
 export const SonicBoom: GcdAbility = {
     name: "Sonic Boom",
@@ -370,7 +371,7 @@ export const SonicBoom: GcdAbility = {
     gcd: 2.5,
     cast: 1.0,
     id: 18308
-}
+};
 
 export const Whistle: GcdAbility = {
     name: "Whistle",
@@ -381,7 +382,7 @@ export const Whistle: GcdAbility = {
     gcd: 2.5,
     cast: 1.0,
     id: 18309
-}
+};
 
 export const Surpanakha: OgcdAbility = {
     name: "Surpanakha",
@@ -395,7 +396,7 @@ export const Surpanakha: OgcdAbility = {
         charges: 4
     },
     id: 18323
-}
+};
 
 export const Quasar: OgcdAbility = {
     name: "Quasar",
@@ -407,7 +408,7 @@ export const Quasar: OgcdAbility = {
         time: 60 // shared with J Kick
     },
     id: 18324
-}
+};
 
 export const JKick: OgcdAbility = {
     name: "J Kick",
@@ -419,7 +420,7 @@ export const JKick: OgcdAbility = {
         time: 60 // shared with Quasar
     },
     id: 18325
-}
+};
 
 export const TripleTrident: GcdAbility = {
     name: "Triple Trident",
@@ -433,7 +434,7 @@ export const TripleTrident: GcdAbility = {
         reducedBy: "spellspeed"
     },
     id: 23264
-}
+};
 
 export const Tingle: GcdAbility = {
     name: "Tingle",
@@ -444,7 +445,7 @@ export const Tingle: GcdAbility = {
     gcd: 2.5,
     cast: 2.0,
     id: 23265
-}
+};
 
 export const FeculentFlood: GcdAbility = {
     name: "Feculent Flood",
@@ -454,7 +455,7 @@ export const FeculentFlood: GcdAbility = {
     gcd: 2.5,
     cast: 2.0,
     id: 23271
-}
+};
 
 export const RoseOfDestruction: GcdAbility = {
     name: "The Rose of Destruction",
@@ -468,7 +469,7 @@ export const RoseOfDestruction: GcdAbility = {
         reducedBy: "spellspeed"
     },
     id: 23275
-}
+};
 
 export const MatraMagic: GcdAbility = {
     name: "Matra Magic",
@@ -482,7 +483,7 @@ export const MatraMagic: GcdAbility = {
         reducedBy: "spellspeed"
     },
     id: 23285
-}
+};
 
 export const PhantomFlurry: OgcdAbility = {
     name: "Phantom Flurry",
@@ -499,7 +500,7 @@ export const PhantomFlurry: OgcdAbility = {
         time: 120
     },
     id: 23288
-}
+};
 
 export const Nightbloom: OgcdAbility = {
     name: "Nightbloom",
@@ -516,7 +517,7 @@ export const Nightbloom: OgcdAbility = {
         time: 120
     },
     id: 23290
-}
+};
 
 export const BreathofMagic: GcdAbility = {
     name: "Breath of Magic",
@@ -531,7 +532,7 @@ export const BreathofMagic: GcdAbility = {
     gcd: 2.5,
     cast: 2.0,
     id: 34567
-}
+};
 
 export const ConvictionMarcato: GcdAbility = {
     name: "Conviction Marcato",
@@ -541,7 +542,7 @@ export const ConvictionMarcato: GcdAbility = {
     gcd: 2.5,
     cast: 2.0,
     id: 34574
-}
+};
 
 export const WingedReprobation: GcdAbility = {
     name: "Winged Reprobation",
@@ -556,7 +557,7 @@ export const WingedReprobation: GcdAbility = {
         reducedBy: "spellspeed"
     },
     id: 34576
-}
+};
 
 export const MortalFlame: GcdAbility = {
     name: "Mortal Flame",
@@ -571,7 +572,7 @@ export const MortalFlame: GcdAbility = {
     gcd: 2.5,
     cast: 2.0,
     id: 34579
-}
+};
 
 export const SeaShanty: OgcdAbility = {
     name: "Sea Shanty",
@@ -583,7 +584,7 @@ export const SeaShanty: OgcdAbility = {
         time: 120
     },
     id: 34580
-}
+};
 
 export const Apokalypsis: OgcdAbility = {
     name: "Apokalypsis",
@@ -600,7 +601,7 @@ export const Apokalypsis: OgcdAbility = {
         time: 120 // shared with Being Mortal
     },
     id: 34581
-}
+};
 
 export const BeingMortal: OgcdAbility = {
     name: "Being Mortal",
@@ -612,7 +613,7 @@ export const BeingMortal: OgcdAbility = {
         time: 120 // shared with Apokalypsis
     },
     id: 34582
-}
+};
 
 /**
  * BLU sim settings
@@ -754,7 +755,7 @@ export class BLUCycleProcessor extends CycleProcessor {
                     const buff: Buff = {
                         ...WingedReprobationBuff,
                         stacks: newStackCount
-                    }
+                    };
                     const modified: Ability = {
                         ...WingedReprobation,
                         activatesBuffs: [buff],
@@ -762,7 +763,7 @@ export class BLUCycleProcessor extends CycleProcessor {
                             ...WingedReprobation.cooldown,
                             time: 0,
                         }
-                    }
+                    };
                     out = super.use(modified);
                     break;
                 }
@@ -771,7 +772,7 @@ export class BLUCycleProcessor extends CycleProcessor {
                         ...WingedReprobationBuff,
                         descriptionExtras: ["Increases the potency of Winged Reprobation"],
                         stacks: newStackCount
-                    }
+                    };
                     const modified: Ability = {
                         ...WingedReprobation,
                         activatesBuffs: [buff],
@@ -779,7 +780,7 @@ export class BLUCycleProcessor extends CycleProcessor {
                             ...WingedReprobation.cooldown,
                             time: 0,
                         }
-                    }
+                    };
                     out = super.use(modified);
                     break;
                 }
@@ -788,7 +789,7 @@ export class BLUCycleProcessor extends CycleProcessor {
                         ...WingedReprobation,
                         potency: 400,
                         activatesBuffs: [WingedRedemption],
-                    }
+                    };
                     out = super.use(modified);
                     break;
                 }
@@ -807,13 +808,13 @@ export class BLUCycleProcessor extends CycleProcessor {
                     dmgIncrease: multiplier,
                 },
                 stacks: newStackCount
-            }
+            };
             const modified: Ability = {
                 ...Surpanakha,
                 activatesBuffs: [buff],
                 // animation lock becomes internal cooldown for back-to-back uses
                 animationLock: this.surpanakhaCounter < 3 ? 1.0 : 0.6,
-            }
+            };
             const out = super.use(modified);
             this.surpanakhaCounter++;
             return out;
@@ -845,7 +846,7 @@ export class BLUCycleProcessor extends CycleProcessor {
 export abstract class BluSim<_BluCycleSimResult, _BluSimSettings>
     extends BaseMultiCycleSim<CycleSimResult, BluSimSettings, BLUCycleProcessor> {
 
-    constructor(settings?: ExternalCycleSettings<BluSimSettings>) {
+    protected constructor(settings?: ExternalCycleSettings<BluSimSettings>) {
         super("BLU", settings);
     }
 
@@ -898,7 +899,7 @@ export abstract class BluSim<_BluCycleSimResult, _BluSimSettings>
                     ...MightyGuard.effects,
                     dmgIncrease: this.settings.basicInstinctEnabled ? 0 : -0.4,
                 }
-            }
+            };
             cp.activateBuff(buff);
             cp.spellBook.set(MightyGuard.name, 1);
         }

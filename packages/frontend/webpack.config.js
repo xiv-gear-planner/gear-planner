@@ -37,4 +37,4 @@ module.exports = (env, argv) => {
             extensions: ['.ts', '.js'],
         }
     }
-}
+};

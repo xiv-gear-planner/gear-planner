@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import {JobName, SupportedLevel} from "@xivgear/xivmath/xivconstants";
 import {SimSpec} from "@xivgear/core/sims/sim_types";
 

@@ -7,7 +7,7 @@ import {CycleSimResult, ExternalCycleSettings, Rotation} from "@xivgear/core/sim
 export interface BluWinged120SimResult extends CycleSimResult {
 }
 
-interface BluWinged120Settings extends blu.BluSimSettings {
+export interface BluWinged120Settings extends blu.BluSimSettings {
 }
 
 export interface BluWinged120SettingsExternal extends ExternalCycleSettings<BluWinged120Settings> {
@@ -27,7 +27,7 @@ export const BluWinged120Spec: SimSpec<BluWinged120Sim, BluWinged120SettingsExte
     loadSavedSimInstance(exported: BluWinged120SettingsExternal) {
         return new BluWinged120Sim(exported);
     }
-}
+};
 
 export class BluWinged120Sim extends blu.BluSim<BluWinged120SimResult, BluWinged120Settings> {
     spec = BluWinged120Spec;
@@ -120,7 +120,7 @@ export class BluWinged120Sim extends blu.BluSim<BluWinged120SimResult, BluWinged
     }
 
     getRotationsToSimulate(): Rotation<blu.BLUCycleProcessor>[] {
-        let sim = this;
+        const sim = this;
         return [{
             cycleTime: 120,
             apply(cp: blu.BLUCycleProcessor) {

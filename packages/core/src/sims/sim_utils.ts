@@ -59,8 +59,8 @@ export function combineBuffEffects(buffs: Buff[]): CombinedBuffEffect {
         forceCrit: false,
         forceDhit: false,
         haste: 0,
-    }
-    for (let buff of buffs) {
+    };
+    for (const buff of buffs) {
         if (buff.effects.dmgIncrease) {
             combinedEffects.dmgMod *= (1 + buff.effects.dmgIncrease);
         }

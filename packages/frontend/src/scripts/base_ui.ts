@@ -22,7 +22,7 @@ export const contentArea = document.getElementById("content-area");
 // export const midBarArea = document.getElementById("mid-controls-area");
 export const devMenuArea = document.getElementById("dev-menu-area");
 export const topMenuArea = document.getElementById("main-menu-area");
-const editorArea = document.getElementById("editor-area");
+// const editorArea = document.getElementById("editor-area");
 export const welcomeArea = document.getElementById("welcome-message");
 export const welcomeCloseButton = document.getElementById("welcome-close-button");
 
@@ -31,7 +31,6 @@ export function handleWelcomeArea() {
         // hideWelcomeArea();
     }
     else {
-        const hideWelcomeAreaSettingKey = 'hide-welcome-area';
         if (SETTINGS.hideWelcomeMessage) {
             hideWelcomeArea();
         }
@@ -83,7 +82,7 @@ export function showNewSheetForm() {
 }
 
 export function showImportSheetForm() {
-    setHash('importsheet')
+    setHash('importsheet');
     setMainContent('Import Sheet', new ImportSheetArea(async sheet => {
         setHash('imported');
         openSheet(sheet, false);
@@ -137,12 +136,13 @@ export async function openSheet(planner: GearPlanSheetGui, changeHash: boolean =
     setTitle('Loading Sheet');
     console.log('openSheet: ', planner.saveKey);
     document['planner'] = planner;
+    window['currentSheet'] = planner;
     if (changeHash) {
         setHash("sheet", planner.saveKey, "dont-copy-this-link", "use-the-export-button");
     }
     contentArea.replaceChildren(planner.topLevelElement);
     const oldHash = getHash();
-    const loadSheetPromise = planner.loadFully().then(() => {
+    const loadSheetPromise = planner.load().then(() => {
         // If the user has navigated away while the sheet was loading, do not display the sheet.
         const newHash = getHash();
         if (arrayEq(newHash, oldHash)) {
@@ -191,7 +191,7 @@ export function earlyUiSetup() {
         ev.preventDefault();
         topMenuArea.style.display = topMenuArea.style.display === 'none' ? '' : 'none';
     });
-    const header = document.createElement("span")
+    const header = document.createElement("span");
     header.textContent = "Dev Menu";
     devMenu.appendChild(header);
     const nukeButton = document.createElement("button");
@@ -201,7 +201,7 @@ export function earlyUiSetup() {
             setHash();
             location.reload();
         }
-    })
+    });
     nukeButton.textContent = "Nuke Local Storage";
     devMenu.appendChild(nukeButton);
 }

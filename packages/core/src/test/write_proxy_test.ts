@@ -8,7 +8,7 @@ describe('write proxy', () => {
         };
         const counter = {
             count: 0
-        }
+        };
         const proxy = writeProxy(foo, () => counter.count++);
         proxy.bar++;
         assert.equal(counter.count, 1);
@@ -18,7 +18,7 @@ describe('write proxy', () => {
         };
         const counter = {
             count: 0
-        }
+        };
         const proxy = writeProxy(foo, () => counter.count++);
         proxy['bar'] = 5;
         assert.equal(counter.count, 1);
@@ -29,7 +29,7 @@ describe('write proxy', () => {
         };
         const counter = {
             count: 0
-        }
+        };
         const proxy = writeProxy(foo, () => counter.count++);
         const newVal = proxy.bar + 1;
         assert.equal(newVal, 11);

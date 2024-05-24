@@ -37,7 +37,7 @@ describe('Datamanager', () => {
         eq(codexOfAscension.displayGearSlotName, 'Weapon');
         eq(codexOfAscension.occGearSlotName, 'Weapon2H');
         eq(codexOfAscension.ilvl, 665);
-        eq(codexOfAscension.primarySubstat, 'crit')
+        eq(codexOfAscension.primarySubstat, 'crit');
         eq(codexOfAscension.secondarySubstat, 'determination');
 
         deq(codexOfAscension.statCaps, {

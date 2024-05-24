@@ -24,7 +24,7 @@ import {JobName, SupportedLevel} from "./xivconstants";
  * @param addedStats The stats to add.
  */
 export function addStats(baseStats: RawStats, addedStats: RawStats): void {
-    for (let entry of Object.entries(baseStats)) {
+    for (const entry of Object.entries(baseStats)) {
         const stat = entry[0] as keyof RawStats;
         baseStats[stat] = addedStats[stat] + (baseStats[stat] ?? 0);
     }
@@ -69,7 +69,7 @@ export function finalizeStats(
         autoDhBonus: autoDhBonusDmg(levelStats, combinedStats.dhit),
         mpPerTick: mpTick(levelStats, combinedStats.piety),
         aaMulti: autoAttackModifier(levelStats, classJobStats, combinedStats.weaponDelay, combinedStats.wdPhys)
-    }
+    };
     // TODO: should this just apply to all main stats, even ones that are irrelevant to the class?
     computedStats[classJobStats.mainStat] = mainStat;
     computedStats[classJobStats.autoAttackStat] = aaStat;

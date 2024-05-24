@@ -7,7 +7,7 @@ import {CycleSimResult, ExternalCycleSettings, Rotation} from "@xivgear/core/sim
 export interface BluF2PSimResult extends CycleSimResult {
 }
 
-interface BluF2PSettings extends blu.BluSimSettings {
+export interface BluF2PSettings extends blu.BluSimSettings {
 }
 
 export interface BluF2PSettingsExternal extends ExternalCycleSettings<BluF2PSettings> {
@@ -27,7 +27,7 @@ export const BluF2PSpec: SimSpec<BluF2PSim, BluF2PSettingsExternal> = {
     loadSavedSimInstance(exported: BluF2PSettingsExternal) {
         return new BluF2PSim(exported);
     }
-}
+};
 
 export class BluF2PSim extends blu.BluSim<BluF2PSimResult, BluF2PSettings> {
     spec = BluF2PSpec;
@@ -114,7 +114,7 @@ export class BluF2PSim extends blu.BluSim<BluF2PSimResult, BluF2PSettings> {
     }
 
     getRotationsToSimulate(): Rotation<blu.BLUCycleProcessor>[] {
-        let sim = this;
+        const sim = this;
         return [{
             cycleTime: 120,
             apply(cp: blu.BLUCycleProcessor) {

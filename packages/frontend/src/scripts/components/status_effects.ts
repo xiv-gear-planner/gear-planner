@@ -16,14 +16,14 @@ async function getDataFor(statusId: number): Promise<XivApiStatusData> {
         const dataPromise = xivApiSingleCols('Status', statusId, ['ID', 'IconID', "MaxStacks"] as const);
         const out: Promise<XivApiStatusData> = dataPromise.then(data => {
             return {
-                ID: data.ID,
+                ID: data.ID as number,
                 IconFunc: (stacks: number, highRes: boolean) => {
                     // Clamp between 1 and the max stack counts. This avoids invalid stack counts as well as making
                     // 1-stack and non-stack buffs (both of which use the base icon ID) behave the same.
-                    const effectiveStackCount = Math.max(1, Math.min(data.MaxStacks, stacks));
+                    const effectiveStackCount = Math.max(1, Math.min(data.MaxStacks as number, stacks));
                     // 0/1 stack uses the base value, 2 stacks is base+1, 3 is base+2, etc.
                     const stackOffset = effectiveStackCount - 1;
-                    const iconId = data.IconID + stackOffset;
+                    const iconId = (data.IconID as number) + stackOffset;
                     return xivApiIconUrl(iconId, highRes);
                 }
             } satisfies XivApiStatusData;

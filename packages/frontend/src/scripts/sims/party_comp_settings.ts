@@ -5,7 +5,7 @@ import {FieldBoundCheckBox, labeledCheckbox} from "../components/util";
 export class BuffSettingsArea extends NamedSection {
     constructor(settings: BuffSettingsManager, updateCallback: () => void) {
         super('Party Comp/Raid Buffs');
-        this.classList.add('buff-settings-area')
+        this.classList.add('buff-settings-area');
 
         const table = document.createElement('table');
         const tbody = document.createElement('tbody');
@@ -25,7 +25,7 @@ export class BuffSettingsArea extends NamedSection {
                 buffCb.addListener(updateCallback);
                 buffsCell.append(labeledCheckbox(buff.buff.name, buffCb));
                 jobCb.addAndRunListener(val => buffCb.disabled = !val);
-            })
+            });
             row.append(buffsCell);
             tbody.append(row);
         });

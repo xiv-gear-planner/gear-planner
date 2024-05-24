@@ -8,16 +8,16 @@ export class NewSheetForm extends HTMLFormElement {
     private readonly nameInput: HTMLInputElement;
     private readonly jobDropdown: DataSelect<JobName>;
     private readonly levelDropdown: DataSelect<SupportedLevel>;
-    private readonly ilvlSyncCheckbox: FieldBoundCheckBox<any>;
-    private readonly ilvlSyncValue: FieldBoundIntField<any>;
+    private readonly ilvlSyncCheckbox: FieldBoundCheckBox<typeof this.tempSettings>;
+    private readonly ilvlSyncValue: FieldBoundIntField<typeof this.tempSettings>;
     private readonly fieldSet: HTMLFieldSetElement;
-    private readonly sheetOpenCallback: (sheet: GearPlanSheet) => Promise<any>;
+    private readonly sheetOpenCallback: (sheet: GearPlanSheet) => Promise<unknown>;
     private readonly tempSettings = {
         ilvlSyncEnabled: false,
         ilvlSync: 650
-    }
+    };;
 
-    constructor(sheetOpenCallback: (sheet: GearPlanSheet) => Promise<any>) {
+    constructor(sheetOpenCallback: (sheet: GearPlanSheet) => Promise<unknown>) {
         super();
         this.sheetOpenCallback = sheetOpenCallback;
         // Header
@@ -36,8 +36,7 @@ export class NewSheetForm extends HTMLFormElement {
         this.fieldSet.appendChild(spacer());
 
         // Job selection
-        // @ts-ignore
-        this.jobDropdown = new DataSelect<JobName>(Object.keys(JOB_DATA), item => item, () => this.recheck());
+        this.jobDropdown = new DataSelect<JobName>(Object.keys(JOB_DATA) as JobName[], item => item, () => this.recheck());
         this.jobDropdown.id = "new-sheet-job-dropdown";
         this.jobDropdown.required = true;
         this.fieldSet.appendChild(labelFor('Job: ', this.jobDropdown));

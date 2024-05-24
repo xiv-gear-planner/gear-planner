@@ -12,7 +12,7 @@ export const filler: GcdAbility = {
     attackType: "Spell",
     gcd: 2.5,
     cast: 1.5
-}
+};
 
 export const weaponSkill: GcdAbility = {
     type: 'gcd',
@@ -21,7 +21,7 @@ export const weaponSkill: GcdAbility = {
     attackType: "Weaponskill",
     gcd: 2.5,
     cast: 1.5
-}
+};
 
 export const nop: GcdAbility = {
     type: 'gcd',
@@ -30,7 +30,7 @@ export const nop: GcdAbility = {
     attackType: "Spell",
     gcd: 2.5,
     cast: 2.0
-}
+};
 
 export const dia: GcdAbility = {
     type: 'gcd',
@@ -43,14 +43,14 @@ export const dia: GcdAbility = {
     },
     attackType: "Spell",
     gcd: 2.5,
-}
+};
 
 export const assize: OgcdAbility = {
     type: 'ogcd',
     name: "Assize",
     potency: 400,
     attackType: "Ability"
-}
+};
 
 export const pom: OgcdAbility = {
     type: 'ogcd',
@@ -67,7 +67,7 @@ export const pom: OgcdAbility = {
         }
     ],
     attackType: "Ability"
-}
+};
 
 export const misery: GcdAbility = {
     type: 'gcd',
@@ -75,7 +75,7 @@ export const misery: GcdAbility = {
     potency: 1240,
     attackType: "Spell",
     gcd: 2.5,
-}
+};
 
 export const lily: GcdAbility = {
     type: 'gcd',
@@ -83,7 +83,7 @@ export const lily: GcdAbility = {
     potency: 0,
     attackType: "Spell",
     gcd: 2.5,
-}
+};
 // Replace data that would normally be loaded from xivapi with fixed data
 const jobStatMultipliers: JobMultipliers = {
     dexterity: 105,

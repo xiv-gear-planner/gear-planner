@@ -12,8 +12,7 @@ export class ImportSheetArea extends NamedSection {
     private readonly importButton: HTMLButtonElement;
     private readonly textArea: HTMLTextAreaElement;
 
-    // TODO
-    constructor(private sheetOpenCallback: (sheet: GearPlanSheetGui) => Promise<any>) {
+    constructor(private sheetOpenCallback: (sheet: GearPlanSheetGui) => Promise<void>) {
         super('Import Sheet');
 
         const explanation = document.createElement('p');
@@ -40,6 +39,7 @@ export class ImportSheetArea extends NamedSection {
         this.ready = true;
     }
 
+    // eslint-disable-next-line accessor-pairs
     set ready(ready: boolean) {
         if (ready) {
             this.loader.hide();

@@ -29,9 +29,9 @@ export class OptionDataElement<X> extends HTMLOptionElement {
 }
 
 export class DataSelect<X> extends HTMLSelectElement {
-    constructor(items: X[], textGetter: (item: X) => string, callback: ((newValue: X) => void) | undefined, initialSelectedItem: typeof items[number]) {
+    constructor(items: X[], textGetter: (item: X) => string, callback: ((newValue: X) => void) | undefined, initialSelectedItem: typeof items[number] = undefined) {
         super();
-        for (let item of items) {
+        for (const item of items) {
             const opt = new OptionDataElement(item);
             opt.textContent = textGetter(item);
             this.options.add(opt);
@@ -64,7 +64,7 @@ export function labelFor(label: string, labelFor: HTMLElement) {
     return element;
 }
 
-type BooleanListener = (value: boolean) => void;
+export type BooleanListener = (value: boolean) => void;
 
 export class FieldBoundCheckBox<ObjType> extends HTMLInputElement {
 
@@ -80,7 +80,7 @@ export class FieldBoundCheckBox<ObjType> extends HTMLInputElement {
             this.id = extraArgs.id;
         }
         this.reloadValue = () => {
-            // @ts-ignore
+            // @ts-expect-error - not sure how to properly do this type def to assert that the field both produces *and* accepts booleans.
             this.checked = obj[field];
         };
         this.reloadValue();
@@ -89,9 +89,9 @@ export class FieldBoundCheckBox<ObjType> extends HTMLInputElement {
 
     private notifyListeners() {
         const newValue: boolean = this.checked;
-        // @ts-ignore
+        // @ts-expect-error - not sure how to properly do this type def to assert that the field both produces *and* accepts booleans.
         this.obj[this.field] = newValue;
-        for (let listener of this.listeners) {
+        for (const listener of this.listeners) {
             try {
                 listener(newValue);
             }
@@ -184,7 +184,7 @@ export class FieldBoundConvertingTextField<ObjType, FieldType> extends HTMLInput
         if (extraArgs.inputMode) {
             this.inputMode = extraArgs.inputMode;
         }
-        // @ts-ignore
+        // @ts-expect-error - not sure how to do type def correctly
         this.reloadValue = () => this.value = valueToString(obj[field]);
         this.reloadValue();
         this.addEventListener('focusout', () => {
@@ -200,10 +200,10 @@ export class FieldBoundConvertingTextField<ObjType, FieldType> extends HTMLInput
                 const fail = (msg) => {
                     _stop = true;
                     this._validationMessage = msg;
-                }
+                };
                 const stop = () => {
                     _stop = true;
-                }
+                };
                 if (extraArgs.preValidators) {
                     const context: PreValidationContext<ObjType> = {
                         get obj(): ObjType {
@@ -216,16 +216,15 @@ export class FieldBoundConvertingTextField<ObjType, FieldType> extends HTMLInput
                         ignoreChange() {
                             stop();
                         }
-                    }
-                    for (let preValidator of extraArgs.preValidators) {
+                    };
+                    for (const preValidator of extraArgs.preValidators) {
                         preValidator(context);
                         if (_stop) {
                             return;
                         }
                     }
                 }
-                let newValue: FieldType;
-                newValue = stringToValue(newRawValue);
+                const newValue: FieldType = stringToValue(newRawValue);
                 if (extraArgs.postValidators) {
                     const context: PostValidationContext<ObjType, FieldType> = {
                         newValue: newValue,
@@ -239,18 +238,18 @@ export class FieldBoundConvertingTextField<ObjType, FieldType> extends HTMLInput
                         ignoreChange() {
                             stop();
                         }
-                    }
-                    for (let postValidator of extraArgs.postValidators) {
+                    };
+                    for (const postValidator of extraArgs.postValidators) {
                         postValidator(context);
                         if (_stop) {
                             return;
                         }
                     }
                 }
-                // @ts-ignore
+                // @ts-expect-error - not sure how to do type def correctly
                 obj[field] = newValue;
                 this._validationMessage = undefined;
-                for (let listener of this.listeners) {
+                for (const listener of this.listeners) {
                     try {
                         listener(newValue);
                     }
@@ -263,7 +262,7 @@ export class FieldBoundConvertingTextField<ObjType, FieldType> extends HTMLInput
                 this._validationMessage = e.toString();
                 return;
             }
-        }
+        };
         this.addEventListener(extraArgs.event ?? 'input', listener);
     }
 
@@ -279,6 +278,10 @@ export class FieldBoundConvertingTextField<ObjType, FieldType> extends HTMLInput
     //         return this.__validationMessage;
     //     }
     // }
+
+    get _validationMessage() {
+        return this.__validationMessage;
+    }
 
     set _validationMessage(msg: string | undefined) {
         if (this.__validationMessage !== msg) {
@@ -308,13 +311,12 @@ export class FieldBoundConvertingTextField2<ObjType, Field extends keyof ObjType
     ) {
         super();
         this.type = 'text';
-        // @ts-ignore
         this.reloadValue = () => this.value = valueToString(obj[field]);
         this.reloadValue();
         this.addEventListener(extraArgs.event ?? 'input', () => {
             const newValue: ObjType[Field] = stringToValue(this.value);
             obj[field] = newValue;
-            for (let listener of this.listeners) {
+            for (const listener of this.listeners) {
                 try {
                     listener(newValue);
                 }
@@ -330,11 +332,11 @@ export class FieldBoundConvertingTextField2<ObjType, Field extends keyof ObjType
     }
 }
 
-const skipMinus = (ctx: PreValidationContext<any>) => {
+const skipMinus = (ctx: PreValidationContext<never>) => {
     if (ctx.newRawValue === '-') {
         ctx.ignoreChange();
     }
-}
+};
 
 // new FieldBoundConvertingTextField(new CharacterGearSet(null), 'food', food => food.toString(), str => new XivApiFoodInfo({}));
 export class FieldBoundIntField<ObjType> extends FieldBoundConvertingTextField<ObjType, number> {
@@ -343,7 +345,7 @@ export class FieldBoundIntField<ObjType> extends FieldBoundConvertingTextField<O
             if (ctx.newValue % 1 !== 0) {
                 ctx.failValidation('Value must be an integer');
             }
-        }
+        };
         extraArgs.preValidators = [skipMinus, ...(extraArgs.preValidators ?? [])];
         extraArgs.postValidators = [intValidator, ...(extraArgs.postValidators ?? [])];
         // Spinner arrows aren't styleable. Love CSS!
@@ -366,7 +368,7 @@ export class FieldBoundFloatField<ObjType> extends FieldBoundConvertingTextField
             if (ctx.newValue * 0 !== 0) {
                 ctx.failValidation('Value must be a number');
             }
-        }
+        };
         extraArgs.preValidators = [skipMinus, ...(extraArgs.preValidators ?? [])];
         extraArgs.postValidators = [numberValidator, ...(extraArgs.postValidators ?? [])];
         // Spinner arrows aren't styleable. Love CSS!
@@ -376,11 +378,11 @@ export class FieldBoundFloatField<ObjType> extends FieldBoundConvertingTextField
     }
 }
 
-export const positiveValuesOnly = (ctx: PostValidationContext<any, number>) => {
+export const positiveValuesOnly = (ctx: PostValidationContext<never, number>) => {
     if (ctx.newValue < 0) {
         ctx.failValidation("Value must be positive");
     }
-}
+};
 
 export class FieldBoundTextField<ObjType> extends FieldBoundConvertingTextField<ObjType, string> {
     constructor(obj: ObjType, field: { [K in keyof ObjType]: ObjType[K] extends string ? K : never }[keyof ObjType], extraArgs: FbctArgs<ObjType, string> = {}) {
@@ -405,7 +407,7 @@ export class FieldBoundDataSelect<ObjType, DataType> extends DataSelect<DataType
             options = [initialValue, ...options];
         }
         super(options, valueDisplayName, value => {
-            //@ts-ignore
+            // @ts-expect-error - not sure how to do type def
             obj[field] = value;
             this.listeners.forEach(listener => listener(value));
         }, obj[field] as DataType);
@@ -458,7 +460,7 @@ function makePath(pathD: string) {
 
 function makeSvgGlyph(viewbox: string, ...paths: string[]) {
     const svg = document.createElementNS("http://www.w3.org/2000/svg", 'svg');
-    for (let pathD of paths) {
+    for (const pathD of paths) {
         const path = makePath(pathD);
         svg.appendChild(path);
     }

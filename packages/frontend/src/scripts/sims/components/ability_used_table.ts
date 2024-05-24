@@ -45,10 +45,10 @@ export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
                         let title = `Used at: ${roundTime(value.usedAt)}s\n`;
                         // cast
                         if (value.original.castTimeFromStart) {
-                            title += `Cast: ${roundTime(original.castTimeFromStart)}\n`
-                            title += `Snapshot At: ${roundTime(original.snapshotTimeFromStart)}\n`
-                            title += `Application Delay: ${roundTime(original.appDelay)}\n`
-                            title += `Cast Start to Application: ${roundTime(original.appDelayFromStart)}\n`
+                            title += `Cast: ${roundTime(original.castTimeFromStart)}\n`;
+                            title += `Snapshot At: ${roundTime(original.snapshotTimeFromStart)}\n`;
+                            title += `Application Delay: ${roundTime(original.appDelay)}\n`;
+                            title += `Cast Start to Application: ${roundTime(original.appDelayFromStart)}\n`;
                             title += `Effective Recast: ${roundTime(original.totalTimeTaken)}`;
                         }
                         // instant
@@ -114,7 +114,7 @@ export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
                 },
                 colStyler: (value: DisplayRecordFinalized, colElement, internalElement) => {
                     if (isFinalizedAbilityUse(value)) {
-                        let title: string[] = [];
+                        const title: string[] = [];
                         if (value.partialRate !== null) {
                             title.push(`This ability would not have fit completely within the allotted time.\nIt has been pro-rated to ${Math.floor(value.partialRate * 100)}% of the original damage.\n`);
                         }
@@ -140,7 +140,7 @@ export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
                     if (effects === undefined) {
                         return null;
                     }
-                    let out: string[] = [];
+                    const out: string[] = [];
                     if (effects.dmgMod !== 1) {
                         const dmgModRelative = effects.dmgMod - 1;
                         out.push(`${toRelPct(dmgModRelative, 1)}% dmg`);

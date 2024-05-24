@@ -5,8 +5,8 @@
 export class Inactivitytimer {
 
     private counter: number = 0;
-    private _inactivityTimeMs: number;
-    private onInactivity: () => void;
+    private readonly _inactivityTimeMs: number;
+    private readonly onInactivity: () => void;
 
     constructor(inactivityTimeMs: number, onInactivity: () => void) {
         this._inactivityTimeMs = inactivityTimeMs;

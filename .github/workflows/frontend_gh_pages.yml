@@ -1,3 +1,4 @@
+# TODO: delete this. gh pages no longer used.
 name: Frontend - Build and Deploy
 
 on:
@@ -27,7 +28,7 @@ jobs:
 
       - name: Build
         run: |
-          npm install
+          npm ci
           npm run build
           npm --workspace=@xivgear/gearplan-frontend test
           npm run docs
