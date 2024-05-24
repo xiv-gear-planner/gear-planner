@@ -10,7 +10,7 @@ const filler: GcdAbility = {
     attackType: "Spell",
     gcd: 2.5,
     cast: 1.5
-}
+};
 
 const dia: GcdAbility = {
     type: 'gcd',
@@ -23,14 +23,14 @@ const dia: GcdAbility = {
     },
     attackType: "Spell",
     gcd: 2.5,
-}
+};
 
 const assize: OgcdAbility = {
     type: 'ogcd',
     name: "Assize",
     potency: 400,
     attackType: "Ability"
-}
+};
 
 const pom: OgcdAbility = {
     type: 'ogcd',
@@ -47,7 +47,7 @@ const pom: OgcdAbility = {
         }
     ],
     attackType: "Ability"
-}
+};
 
 const misery: GcdAbility = {
     type: 'gcd',
@@ -55,7 +55,7 @@ const misery: GcdAbility = {
     potency: 1240,
     attackType: "Spell",
     gcd: 2.5,
-}
+};
 
 const lily: GcdAbility = {
     type: 'gcd',
@@ -63,7 +63,7 @@ const lily: GcdAbility = {
     potency: 0,
     attackType: "Spell",
     gcd: 2.5,
-}
+};
 
 export interface WhmSheetSimResult extends CycleSimResult {
 }
@@ -90,7 +90,7 @@ export const whmNewSheetSpec: SimSpec<WhmSheetSim, WhmNewSheetSettingsExternal> 
     stub: "whm-new-sheet-sim",
     supportedJobs: ['WHM'],
     isDefaultSim: true
-}
+};
 
 export class WhmSheetSim extends BaseMultiCycleSim<WhmSheetSimResult, WhmNewSheetSettings> {
 

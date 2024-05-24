@@ -12,7 +12,7 @@ const filler: GcdAbility = {
     attackType: "Spell",
     gcd: 2.5,
     cast: 1.5
-}
+};
 
 const chain: OgcdAbility = {
     type: 'ogcd',
@@ -24,8 +24,9 @@ const chain: OgcdAbility = {
     cooldown: {
         time: 120
     }
-}
+};
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const r2: GcdAbility = {
     type: 'gcd',
     name: "Ruin II",
@@ -33,7 +34,7 @@ const r2: GcdAbility = {
     potency: 220,
     attackType: "Spell",
     gcd: 2.5,
-}
+};
 
 const bio: GcdAbility = {
     type: 'gcd',
@@ -48,7 +49,7 @@ const bio: GcdAbility = {
     },
     attackType: "Spell",
     gcd: 2.5,
-}
+};
 
 const ed: OgcdAbility = {
     type: 'ogcd',
@@ -56,7 +57,7 @@ const ed: OgcdAbility = {
     id: 167,
     potency: 100,
     attackType: "Ability"
-}
+};
 
 export interface SchSheetSimResult extends CycleSimResult {
 }
@@ -82,7 +83,7 @@ export const schNewSheetSpec: SimSpec<SchSheetSim, SchNewSheetSettingsExternal> 
     stub: "sch-sheet-sim",
     supportedJobs: ['SCH'],
     isDefaultSim: true
-}
+};
 
 export class SchSheetSim extends BaseMultiCycleSim<SchSheetSimResult, SchNewSheetSettings> {
 

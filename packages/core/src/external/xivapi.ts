@@ -20,7 +20,7 @@ export type XivApiSearchRequest = XivApiRequest & {
 
 export type XivApiResponse<RequestType extends XivApiRequest> = {
     Results: {
-        [K in RequestType['columns'][number]]: any;
+        [K in RequestType['columns'][number]]: unknown;
     }[]
 }
 
@@ -28,12 +28,13 @@ export type XivApiResponse<RequestType extends XivApiRequest> = {
 
 // export async function xivApiGet<RequestType extends (XivApiListRequest | XivApiSearchRequest)>(request: RequestType | ValidRequest<RequestType>):
 
-export function xivApiFetch(...params: Parameters<typeof fetch>): Promise<any> {
+export function xivApiFetch(...params: Parameters<typeof fetch>): Promise<Response> {
     return xFetchInternal(...params);
 }
 
-async function xFetchInternal(...params: Parameters<typeof fetch>): Promise<any> {
+async function xFetchInternal(...params: Parameters<typeof fetch>): Promise<Response> {
     let tries = 5;
+    // eslint-disable-next-line no-constant-condition
     while (true) {
         tries--;
         const result = await fetch(...params);
@@ -53,7 +54,7 @@ export function xivApiSingle(sheet: string, id: number) {
 }
 
 export function xivApiSingleCols<Columns extends readonly string[]>(sheet: string, id: number, cols: Columns): Promise<{
-    [K in Columns[number]]: any;
+    [K in Columns[number]]: unknown;
 }> {
     const query = `https://xivapi.com/${sheet}/${id}?Columns=${cols.join(',')}`;
     return xivApiFetch(query).then(response => response.json());
@@ -74,23 +75,22 @@ export async function xivApiGet<RequestType extends (XivApiListRequest | XivApiS
     if (request.columns?.length > 0) {
         query += '&columns=' + request.columns.join(',');
     }
-    let i = 1;
+    const i = 1;
     // Do initial results first to determine how many pages to request
     const initialResults = await xivApiFetch(query + '&page=' + i).then(response => response.json());
     const pageCount = initialResults['Pagination']['PageTotal'];
     const pageLimit = request.pageLimit ? Math.min(pageCount, request.pageLimit - 1) : pageCount;
     const results = [...initialResults['Results']];
     // Doing it like this to keep results ordered.
-    const additional: Promise<any>[] = [];
+    const additional: Promise<unknown>[] = [];
     for (let i = 2; i <= pageLimit; i++) {
         // xivapi is 20req/sec/ip, but multiple of these may be running in parallel
         await new Promise(resolve => setTimeout(resolve, 150));
         additional.push(xivApiFetch(query + '&page=' + i).then(response => response.json()));
     }
-    for (let additionalData of additional) {
+    for (const additionalData of additional) {
         results.push(...(await additionalData)['Results']);
     }
-    // @ts-ignore
     return {Results: results};
 
 }

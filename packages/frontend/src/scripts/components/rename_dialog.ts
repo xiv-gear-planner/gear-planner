@@ -33,10 +33,10 @@ function startRename(modal: RenameModal) {
 }
 
 class RenameModal extends BaseModal {
-    private nameInput: HTMLInputElement;
-    private descriptionInput: HTMLTextAreaElement;
-    private applyButton: HTMLButtonElement;
-    private cancelButton: HTMLButtonElement;
+    private readonly nameInput: HTMLInputElement;
+    private readonly descriptionInput: HTMLTextAreaElement;
+    private readonly applyButton: HTMLButtonElement;
+    private readonly cancelButton: HTMLButtonElement;
 
     constructor(private itemBeingRenamed: { name: string, description: string }) {
         super();

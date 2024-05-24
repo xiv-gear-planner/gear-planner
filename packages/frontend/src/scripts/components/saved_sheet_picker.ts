@@ -56,7 +56,7 @@ export class SheetPickerTable extends CustomTable<SheetExport, SheetExport> {
                 displayName: "Sheet Name",
                 getter: sheet => sheet.name,
             }
-        ]
+        ];
         this.readData();
         this.selectionModel = {
             clickCell(cell: CustomCell<SheetExport, SheetExport>) {
@@ -97,7 +97,7 @@ export class SheetPickerTable extends CustomTable<SheetExport, SheetExport> {
             row.addEventListener('click', () => startNewSheet());
         }));
         const items: SheetExport[] = [];
-        for (let localStorageKey in localStorage) {
+        for (const localStorageKey in localStorage) {
             if (localStorageKey.startsWith("sheet-save-")) {
                 const imported = JSON.parse(localStorage.getItem(localStorageKey)) as SheetExport;
                 if (imported.saveKey) {
@@ -111,7 +111,7 @@ export class SheetPickerTable extends CustomTable<SheetExport, SheetExport> {
         else {
             items.sort((left, right) => {
                 return parseInt(right.saveKey.split('-')[2]) - parseInt(left.saveKey.split('-')[2]);
-            })
+            });
             data.push(...items);
         }
         this.data = data;

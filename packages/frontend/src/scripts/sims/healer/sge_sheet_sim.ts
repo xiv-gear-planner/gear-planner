@@ -7,15 +7,16 @@ import {SimResult, SimSettings, SimSpec, Simulation} from "@xivgear/core/sims/si
 
 
 //potencies for our spells
-const dosis3pot = 330
-const edosis3tickPot = 75
-const phlegmaPot = 600
+const dosis3pot = 330;
+const edosis3tickPot = 75;
+const phlegmaPot = 600;
 
 
 //Party buff things
 const battleVoiceAvg = (15 / 120) * 0.2;
 const battleLitanyAvg = (15 / 120) * 0.1;
 const chainStratAvg = (15 / 120) * 0.1;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const devilmentAvg = (20 / 120) * 0.2;
 const brdCritAvg = (45 / 120) * 0.02;
 const brdDhAvg = (45 / 120) * 0.03;
@@ -48,7 +49,7 @@ export const sgeSheetSpec: SimSpec<SgeSheetSim, SgeSheetSettings> = {
     stub: "sge-sheet-sim",
     supportedJobs: ['SGE'],
     description: 'Legacy SGE sim. Same math and logic as the old spreadsheets.'
-}
+};
 
 export class SgeSheetSim implements Simulation<SgeSheetSimResult, SgeSheetSettings, SgeSheetSettings> {
 
@@ -133,22 +134,22 @@ export class SgeSheetSim implements Simulation<SgeSheetSimResult, SgeSheetSettin
 
 // Average potency of a 180s rotation
     getP(stats: ComputedSetStats, cycle: number) {
-        let result = 0
-        result += this.PhlegmaB(cycle)
+        let result = 0;
+        result += this.PhlegmaB(cycle);
         const spsScalar = stats.spsDotMulti;
         const shortGcd = stats.gcdMag(2.5);
         const filler = this.fillerGcdPerMinute();
         // 1 dot + x dosis3pot
         if (2.5 * dosis3pot > edosis3tickPot / 3 * spsScalar * (2.5 + Math.floor(27.5 / shortGcd) * shortGcd) * (shortGcd - 27.5 % shortGcd)) {
-            result += 6 * (Math.ceil((27.5) / (shortGcd))) * dosis3pot
+            result += 6 * (Math.ceil((27.5) / (shortGcd))) * dosis3pot;
             result += 6 * 10 * spsScalar * edosis3tickPot
         }
         else {
-            result += 6 * (Math.floor((27.5) / (shortGcd))) * dosis3pot
-            result += 6 * 9 * spsScalar * edosis3tickPot
+            result += 6 * (Math.floor((27.5) / (shortGcd))) * dosis3pot;
+            result += 6 * 9 * spsScalar * edosis3tickPot;
             result += 6 * ((3 - (30 % shortGcd)) / 3) * spsScalar * edosis3tickPot
         }
-        result -= filler * dosis3pot * cycle / 60
+        result -= filler * dosis3pot * cycle / 60;
         return result
     }
 
@@ -179,7 +180,7 @@ export class SgeSheetSim implements Simulation<SgeSheetSimResult, SgeSheetSettin
 
 // Actual time taken by a 180s rotation
     getCycle(stats: ComputedSetStats) {
-        var result = 0
+        let result = 0;
         //1 dot + x dosis3pot
         const shortGcd = stats.gcdMag(2.5);
         if (2.5 * dosis3pot > edosis3tickPot / 3 * stats.spsDotMulti * (2.5 + Math.floor(27.5 / shortGcd) * shortGcd) * (shortGcd - 27.5 % shortGcd)) {

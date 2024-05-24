@@ -2,6 +2,7 @@ import {CharacterGearSet} from "@xivgear/core/gear";
 import {applyDhCrit, baseDamage} from "@xivgear/xivmath/xivmath";
 import {SimResult, SimSettings, SimSpec, Simulation} from "@xivgear/core/sims/sim_types";
 import {noSimSettings} from "../../components/no_settings";
+import {EmptyObject} from "@xivgear/core/util/types";
 
 export const potRatioSimSpec: SimSpec<PotencyRatioSim, SimSettings> = {
     displayName: "Potency Ratio",
@@ -14,13 +15,13 @@ export const potRatioSimSpec: SimSpec<PotencyRatioSim, SimSettings> = {
     stub: "pr-sim",
     description: "Expected damage per 100 potency",
     isDefaultSim: true
-}
+};
 
 export interface PotencyRatioSimResults extends SimResult {
     withoutCritDh: number
 }
 
-export class PotencyRatioSim implements Simulation<PotencyRatioSimResults, SimSettings, {}> {
+export class PotencyRatioSim implements Simulation<PotencyRatioSimResults, SimSettings, EmptyObject> {
     exportSettings() {
         return {
             ...this.settings

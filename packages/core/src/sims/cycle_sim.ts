@@ -610,7 +610,7 @@ export class CycleProcessor {
             if (cycle.end !== null) {
                 cycle.end += this.pendingPrePullOffset;
             }
-        })
+        });
         this.pendingPrePullOffset = 0;
         // TODO: this will need to be updated to account for pre-pull self-buffs
         if (this.combatStarting) {
@@ -744,7 +744,7 @@ export class CycleProcessor {
                     cycleTime = this.cycleTime;
                 }
                 else {
-                    const adjustedExpectedStartTime = expectedStartTime + this.firstCycleStartTime
+                    const adjustedExpectedStartTime = expectedStartTime + this.firstCycleStartTime;
                     const delta = actualStartTime - adjustedExpectedStartTime;
                     cycleTime = this.cycleTime - delta;
                 }
@@ -765,7 +765,7 @@ export class CycleProcessor {
             cycleNum: this.currentCycle,
             start: this.currentTime,
             end: null
-        }
+        };
         this.cycles.push(cycleInfo);
         cycleFunction(ctx);
         ctx.recheckPrepull();
@@ -820,7 +820,7 @@ export class CycleProcessor {
 
     private beforeSnapshot<X extends Ability>(originalAbility: X, buffs: Buff[]): X {
         let ability: X = originalAbility;
-        for (let buff of buffs) {
+        for (const buff of buffs) {
             if ('beforeSnapshot' in buff) {
                 const modified: X | void = buff.beforeSnapshot(this.makeBuffController(buff), ability);
                 if (modified) {
@@ -833,7 +833,7 @@ export class CycleProcessor {
 
     private modifyDamage(originalDamage: DamageResult, ability: Ability, buffs: Buff[]): DamageResult {
         let damage: DamageResult = originalDamage;
-        for (let buff of buffs) {
+        for (const buff of buffs) {
             if ('modifyDamage' in buff) {
                 const modified: DamageResult | void = buff.modifyDamage(this.makeBuffController(buff), damage, ability);
                 if (modified) {
@@ -867,13 +867,13 @@ export class CycleProcessor {
         // TODO: current implementation has a weird corner case where you could have two conflicting 'continue' cases,
         // but is this really a problem?
         const seen = [];
-        for (let combo of comboData.combos) {
+        for (const combo of comboData.combos) {
             const key = combo.comboKey;
             seen.push(key);
             const tracker = this.getComboTracker(key);
             out = updateComboTracker(combo, out, tracker);
         }
-        for (let entry of this.comboTrackerMap.entries()) {
+        for (const entry of this.comboTrackerMap.entries()) {
             const combo = comboData.others;
             if (!seen.includes(entry[0])) {
                 const tracker = entry[1];
@@ -939,7 +939,7 @@ function updateComboTracker(combo: ComboData, ability: Ability, tracker: ComboTr
                 out = {
                     ...out,
                     ...combo
-                }
+                };
                 break;
             }
         // If the ability does not match, then fall through the same behavior as 'break'

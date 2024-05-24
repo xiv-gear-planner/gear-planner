@@ -27,7 +27,7 @@ export const BluBreath60Spec: SimSpec<BluBreath60Sim, BluBreath60SettingsExterna
     loadSavedSimInstance(exported: BluBreath60SettingsExternal) {
         return new BluBreath60Sim(exported);
     }
-}
+};
 
 export class BluBreath60Sim extends blu.BluSim<BluBreath60SimResult, BluBreath60Settings> {
     spec = BluBreath60Spec;
@@ -172,7 +172,6 @@ export class BluBreath60Sim extends blu.BluSim<BluBreath60SimResult, BluBreath60
 
                     // loop until odd Flute window
                     const preBleed = cp.gcdRecast * 4;
-                    let i = 0;
                     while (Math.min(cp.remainingGcdTime, cp.bleedEnd - cp.currentTime) > preBleed) {
                         sim.useFiller(cp);
                     }

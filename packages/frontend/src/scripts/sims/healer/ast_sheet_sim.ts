@@ -11,7 +11,7 @@ const filler: GcdAbility = {
     attackType: "Spell",
     gcd: 2.5,
     cast: 1.5
-}
+};
 
 const combust: GcdAbility = {
     type: 'gcd',
@@ -24,21 +24,21 @@ const combust: GcdAbility = {
     },
     attackType: "Spell",
     gcd: 2.5,
-}
+};
 
 const star: OgcdAbility = {
     type: 'ogcd',
     name: "Earthly Star",
     potency: 310,
     attackType: "Ability"
-}
+};
 
 const lord: OgcdAbility = {
     type: 'ogcd',
     name: "Lord of Crowns",
     potency: 250,
     attackType: "Ability"
-}
+};
 
 const astrodyne: OgcdAbility = {
     name: "Astrodyne",
@@ -56,7 +56,7 @@ const astrodyne: OgcdAbility = {
         }
     ],
     attackType: "Ability",
-}
+};
 
 export interface AstSheetSimResult extends CycleSimResult {
 }
@@ -83,7 +83,7 @@ export const astNewSheetSpec: SimSpec<AstSheetSim, AstNewSheetSettingsExternal> 
     stub: "ast-sheet-sim",
     supportedJobs: ['AST'],
     isDefaultSim: true
-}
+};
 
 export class AstSheetSim extends BaseMultiCycleSim<AstSheetSimResult, AstNewSheetSettings> {
 

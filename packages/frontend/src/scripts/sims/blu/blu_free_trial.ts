@@ -27,7 +27,7 @@ export const BluF2PSpec: SimSpec<BluF2PSim, BluF2PSettingsExternal> = {
     loadSavedSimInstance(exported: BluF2PSettingsExternal) {
         return new BluF2PSim(exported);
     }
-}
+};
 
 export class BluF2PSim extends blu.BluSim<BluF2PSimResult, BluF2PSettings> {
     spec = BluF2PSpec;

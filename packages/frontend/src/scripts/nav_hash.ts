@@ -18,7 +18,7 @@ let expectedHash: string[] | undefined = undefined;
 
 let embed = false;
 
-export function arrayEq(left: any[] | undefined, right: any[] | undefined) {
+export function arrayEq(left: unknown[] | undefined, right: unknown[] | undefined) {
     if (left === undefined && right === undefined) {
         return true;
     }
@@ -153,7 +153,7 @@ export async function processHash() {
 }
 
 export function setHash(...hashParts: string[]) {
-    for (let hashPart of hashParts) {
+    for (const hashPart of hashParts) {
         if (hashPart === undefined) {
             console.error(new Error("Undefined url hash part!"), hashParts);
         }
@@ -168,16 +168,16 @@ export function getHash(): string[] | undefined {
     return expectedHash;
 }
 
-function goHash(...hashParts: string[]) {
-    for (let hashPart of hashParts) {
-        if (hashPart === undefined) {
-            console.error(new Error("Undefined url hash part!"), hashParts);
-        }
-    }
-    console.log("New hash parts", hashParts);
-    location.hash = '#' + hashParts.map(part => '/' + encodeURIComponent(part)).join('');
-    console.log(location.hash);
-}
+// function goHash(...hashParts: string[]) {
+//     for (const hashPart of hashParts) {
+//         if (hashPart === undefined) {
+//             console.error(new Error("Undefined url hash part!"), hashParts);
+//         }
+//     }
+//     console.log("New hash parts", hashParts);
+//     location.hash = '#' + hashParts.map(part => '/' + encodeURIComponent(part)).join('');
+//     console.log(location.hash);
+// }
 
 export function isEmbed(): boolean {
     return embed;

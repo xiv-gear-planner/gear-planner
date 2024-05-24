@@ -14,7 +14,7 @@ type SetExportType = typeof SET_EXPORT_OPTIONS[number];
 // TODO: warning for when you export a single set as a sheet
 
 export function startExport(sheet: GearPlanSheet | CharacterGearSet) {
-    let modal: ExportModal<any>;
+    let modal: ExportModal<never>;
     if (sheet instanceof GearPlanSheet) {
         modal = new SheetExportModal(sheet);
     }
@@ -49,7 +49,7 @@ abstract class ExportModal<X extends string> extends BaseModal {
     private variableButton: HTMLButtonElement;
     private varButtonAction = (ev: MouseEvent) => {
         console.error("This should not happen!");
-    }
+    };
 
     protected constructor(title: string, exportOptions: readonly X[], sheet: GearPlanSheet) {
         super();
@@ -134,6 +134,9 @@ abstract class ExportModal<X extends string> extends BaseModal {
         this.textBox.value = value;
     }
 
+    get textValue() {
+        return this.textBox.value;
+    }
 
     // TODO: some kind of concurrency check
     setCopyData(data: string): void {
@@ -150,9 +153,10 @@ class SheetExportModal extends ExportModal<SheetExportType> {
 
     async doExport(selectedType: SheetExportType): Promise<string> {
         switch (selectedType) {
-            case "Link to Whole Sheet":
+            case "Link to Whole Sheet": {
                 const exportedSheet = JSON.stringify(this.sheet.exportSheet(true));
                 return await putShortLink(exportedSheet).then(link => link.toString());
+            }
             case "One Link for Each Set": {
                 const sets = this.sheet.sets;
                 if (sets.length === 0) {

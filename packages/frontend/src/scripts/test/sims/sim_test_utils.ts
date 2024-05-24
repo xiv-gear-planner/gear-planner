@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import {isClose} from "@xivgear/core/test/test_utils";
 import {BaseMultiCycleSim} from "../../sims/sim_processors";
 import {FinalizedAbility, PartyBuff} from "@xivgear/core/sims/sim_types";
@@ -33,7 +34,7 @@ export function assertSimAbilityResults(result: CycleSimResult | readonly Displa
     const actualAbilities: FinalizedAbility[] = displayRecords.filter<FinalizedAbility>((record): record is FinalizedAbility => {
         return 'ability' in record;
     });
-    const failures: string[] = []
+    const failures: string[] = [];
     const length = Math.max(actualAbilities.length, expectedAbilities.length);
     for (let i = 0; i < length; i++) {
         if (i >= actualAbilities.length) {

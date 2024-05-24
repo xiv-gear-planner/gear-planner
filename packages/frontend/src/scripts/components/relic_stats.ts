@@ -47,7 +47,7 @@ export function makeRelicStatEditor(equipment: EquippedItem, stat: Substat, set:
                 input.classList.add('relic-validation-failed');
                 input.title = validationFailures.join('\n');
             }
-        }
+        };
         reval();
         input['revalidate'] = reval;
         // Disgusting
@@ -68,7 +68,6 @@ export function makeRelicStatEditor(equipment: EquippedItem, stat: Substat, set:
         return input;
     }
     else if (gearItem.relicStatModel.type === 'ewrelic') {
-        const inputSubstatCap = gearItem.unsyncedVersion.statCaps[stat] ?? 1000;
         const input = new FieldBoundDataSelect(equipment.relicStats, stat, val => val.toString(), [0, gearItem.relicStatModel.smallValue, gearItem.relicStatModel.largeValue]);
         input.addEventListener('mousedown', e => e.stopPropagation());
         const cap = gearItem.statCaps[stat] ?? 9999;
@@ -92,7 +91,7 @@ export function makeRelicStatEditor(equipment: EquippedItem, stat: Substat, set:
                 input.classList.add('relic-validation-failed');
                 input.title = validationFailures.join('\n');
             }
-        }
+        };
         reval();
         input['revalidate'] = reval;
         // Disgusting
@@ -101,7 +100,7 @@ export function makeRelicStatEditor(equipment: EquippedItem, stat: Substat, set:
                 set.forceRecalc();
                 const row = input.closest('tr');
                 const inputs = row.querySelectorAll('select, input');
-                console.log('inputs', [])
+                console.log('inputs', []);
                 inputs.forEach(inp => {
                     const reval = inp['revalidate'];
                     if (reval) {

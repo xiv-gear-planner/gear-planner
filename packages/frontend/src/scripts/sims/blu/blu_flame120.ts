@@ -27,7 +27,7 @@ export const BluFlame120Spec: SimSpec<BluFlame120Sim, BluFlame120SettingsExterna
     loadSavedSimInstance(exported: BluFlame120SettingsExternal) {
         return new BluFlame120Sim(exported);
     }
-}
+};
 
 export class BluFlame120Sim extends blu.BluSim<BluFlame120SimResult, BluFlame120Settings> {
     spec = BluFlame120Spec;

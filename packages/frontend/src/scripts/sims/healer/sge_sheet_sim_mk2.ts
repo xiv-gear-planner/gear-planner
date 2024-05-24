@@ -13,7 +13,7 @@ const filler: GcdAbility = {
     gcd: 2.5,
     cast: 1.5,
     id: 24312
-}
+};
 
 const eDosis: GcdAbility = {
     type: 'gcd',
@@ -30,7 +30,7 @@ const eDosis: GcdAbility = {
     // TODO: can this be modeled in a more accurate way? it doesn't break anything but isn't nice to work with
     cast: 1.5,
     id: 24314,
-}
+};
 
 const phlegma: GcdAbility = {
     type: 'gcd',
@@ -44,7 +44,7 @@ const phlegma: GcdAbility = {
         time: 40.0,
         charges: 2
     }
-}
+};
 
 export interface SgeSheetSimResult extends CycleSimResult {
 }
@@ -74,7 +74,7 @@ export const sgeNewSheetSpec: SimSpec<SgeSheetSim, SgeNewSheetSettingsExternal> 
     supportedJobs: ['SGE'],
     isDefaultSim: true,
     description: 'Simulates the standard SGE 2-minute rotation.'
-}
+};
 
 export class SgeSheetSim extends BaseMultiCycleSim<SgeSheetSimResult, SgeNewSheetSettings> {
 

@@ -19,7 +19,7 @@ async function ensureJobDataLoaded() {
         .then(response => response.json())
         .then(response => response['Results'] as XivApiJobData[])
         .then(data => jobData = data);
-    for (let jobDatum of jobData) {
+    for (const jobDatum of jobData) {
         jobIconMap.set(jobDatum.Abbreviation as JobName, jobDatum.Icon);
     }
 }

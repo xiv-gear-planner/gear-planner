@@ -70,7 +70,7 @@ export async function getSetFromEtro(etroSetId: string) {
     const items: {
         [K in EquipSlotKey]?: ItemSlotExport
     } = {};
-    for (let slot of ETRO_SLOTS) {
+    for (const slot of ETRO_SLOTS) {
         let itemId = response[slot];
         let relicStats: ItemSlotExport['relicStats'];
         if (!itemId) {
@@ -88,7 +88,7 @@ export async function getSetFromEtro(etroSetId: string) {
                         break;
                     }
                     const paramData = baseParams.find(item => item.ID === paramId);
-                    const stat = BaseParamToStatKey[paramData.Name]
+                    const stat = BaseParamToStatKey[paramData.Name];
                     relicStats[stat] = relicData[`param${i}Value`];
                 }
             }
@@ -148,7 +148,7 @@ export async function getSetFromEtro(etroSetId: string) {
         job: response.jobAbbrev,
         food: food,
         items: items
-    }
+    };
     return setImport;
 }
 

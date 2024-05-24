@@ -43,4 +43,4 @@ const listener = (ev: MouseEvent) => {
         setModal(undefined);
         ev.stopPropagation();
     }
-}
+};

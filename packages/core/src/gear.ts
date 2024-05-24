@@ -112,7 +112,7 @@ export class SetDisplaySettings {
             if (value) {
                 hiddenSlots.push(key);
             }
-        })
+        });
         return {
             hiddenSlots: hiddenSlots,
         }
@@ -176,7 +176,7 @@ export class CharacterGearSet {
     private _jobOverride: JobName;
     private _raceOverride: RaceName;
     private _food: FoodItem;
-    private _sheet: GearPlanSheet;
+    private readonly _sheet: GearPlanSheet;
     private readonly refresher = new Inactivitytimer(0, () => {
         this._notifyListeners();
     });
@@ -185,7 +185,7 @@ export class CharacterGearSet {
 
     constructor(sheet: GearPlanSheet) {
         this._sheet = sheet;
-        this.name = ""
+        this.name = "";
         this.equipment = new EquipmentSet();
     }
 
@@ -277,7 +277,7 @@ export class CharacterGearSet {
     }
 
     private _notifyListeners() {
-        for (let listener of this.listeners) {
+        for (const listener of this.listeners) {
             listener();
         }
     }
@@ -327,7 +327,7 @@ export class CharacterGearSet {
         const levelStats = getLevelStats(level);
 
         // Item stats
-        for (let key of EquipSlots) {
+        for (const key of EquipSlots) {
             if (this.equipment[key]) {
                 const slotEffectiveStatsFull = this.getSlotEffectiveStatsFull(key);
                 addStats(combinedStats, slotEffectiveStatsFull.stats);
@@ -339,13 +339,13 @@ export class CharacterGearSet {
         const gearIntStat = combinedStats.intelligence;
 
         // Base stats based on job and level
-        for (let statKey of MAIN_STATS) {
+        for (const statKey of MAIN_STATS) {
             combinedStats[statKey] += Math.floor(levelStats.baseMainStat * classJobStats.jobStatMultipliers[statKey] / 100);
         }
-        for (let statKey of FAKE_MAIN_STATS) {
+        for (const statKey of FAKE_MAIN_STATS) {
             combinedStats[statKey] += Math.floor(levelStats.baseMainStat);
         }
-        for (let statKey of SPECIAL_SUB_STATS) {
+        for (const statKey of SPECIAL_SUB_STATS) {
             combinedStats[statKey] += Math.floor(levelStats.baseSubStat);
         }
 
@@ -354,7 +354,7 @@ export class CharacterGearSet {
 
         // Food stats
         if (this._food) {
-            for (let stat in this._food.bonuses) {
+            for (const stat in this._food.bonuses) {
                 const bonus: StatBonus = this._food.bonuses[stat];
                 const startingValue = combinedStats[stat];
                 const extraValue = Math.min(bonus.max, Math.floor(startingValue * (bonus.percentage / 100)));
@@ -385,7 +385,7 @@ export class CharacterGearSet {
         this._lastResult = {
             computedStats: computedStats,
             issues: issues
-        }
+        };
         console.info("Recomputed stats", this._lastResult);
         return this._lastResult;
     }
@@ -404,7 +404,7 @@ export class CharacterGearSet {
         }
         const itemStats = new RawStats(equip.gearItem.stats);
         // Note for future: if we ever get an item that has both custom stats AND materia, this logic will need to be extended.
-        for (let stat of ALL_SUB_STATS) {
+        for (const stat of ALL_SUB_STATS) {
             const statDetail = this.getStatDetail(slotId, stat);
             itemStats[stat] = statDetail.effectiveAmount;
             if (statDetail.mode === 'melded-overcapped-major') {
@@ -443,7 +443,7 @@ export class CharacterGearSet {
         }
         const stats = new RawStats(gearItem.stats);
         if (equip.relicStats) {
-            let relicStats = new RawStats(equip.relicStats);
+            const relicStats = new RawStats(equip.relicStats);
             addStats(stats, relicStats);
         }
         if (gearItem.isSyncedDown) {
@@ -497,7 +497,7 @@ export class CharacterGearSet {
         let meldedStatValue = baseItemStatValue;
         let smallestMateria = 999999;
         const materiaList = materiaOverride === undefined ? equip.melds.map(meld => meld.equippedMateria).filter(item => item) : materiaOverride.filter(item => item);
-        for (let materia of materiaList) {
+        for (const materia of materiaList) {
             const materiaStatValue = materia.stats[stat];
             if (materiaStatValue > 0) {
                 meldedStatValue += materiaStatValue;
@@ -558,7 +558,7 @@ export class CharacterGearSet {
         // logic won't remove SpS/SkS melds in materia on the first few items because it thinks we're good on speed
         // (since the materia are already there).
         if (overwrite) {
-            for (let slotKey of (slots === undefined ? EquipSlots : slots)) {
+            for (const slotKey of (slots === undefined ? EquipSlots : slots)) {
                 const equipSlot = this.equipment[slotKey] as EquippedItem | null;
                 const gearItem = equipSlot?.gearItem;
                 if (gearItem) {
@@ -567,18 +567,18 @@ export class CharacterGearSet {
             }
             this.forceRecalc();
         }
-        for (let slotKey of (slots === undefined ? EquipSlots : slots)) {
+        for (const slotKey of (slots === undefined ? EquipSlots : slots)) {
             const equipSlot = this.equipment[slotKey] as EquippedItem | null;
             const gearItem = equipSlot?.gearItem;
             if (gearItem) {
-                materiaLoop: for (let meldSlot of equipSlot.melds) {
+                materiaLoop: for (const meldSlot of equipSlot.melds) {
                     // If overwriting, we already cleared the slots, so this check is fine in any scenario.
                     if (meldSlot.equippedMateria) {
                         continue;
                     }
                     const slotStats = this.getSlotEffectiveStats(slotKey);
                     // TODO: we also have gearItem.substatCap we can use to make it more direct
-                    for (let stat of statPrio) {
+                    for (const stat of statPrio) {
                         if (stat === 'skillspeed') {
                             if (this.computedStats.gcdPhys(NORMAL_GCD) <= prio.minGcd) {
                                 continue;
@@ -638,13 +638,13 @@ export class CharacterGearSet {
 export function applyStatCaps(stats: RawStats, statCaps: { [K in RawStatKey]?: number }) {
     const out = {
         ...stats
-    }
+    };
     Object.entries(stats).forEach(([stat, value]) => {
         if (NO_SYNC_STATS.includes(stat as RawStatKey)) {
             return;
         }
         out[stat] = Math.min(value, statCaps[stat] ?? 999999);
-    })
+    });
     return out;
 }
 
@@ -690,7 +690,7 @@ export class XivApiGearInfo implements GearItem {
     /**
      * Raw 'Stats' object from Xivapi
      */
-    Stats: Object;
+    Stats: object;
     iconUrl: URL;
     ilvl: number;
     displayGearSlot: DisplayGearSlot;
@@ -710,7 +710,7 @@ export class XivApiGearInfo implements GearItem {
     isSyncedDown: boolean;
     relicStatModel: RelicStatModel;
 
-    constructor(data: Object) {
+    constructor(data: object) {
         this.id = data['ID'];
         this.name = data['Name'];
         this.ilvl = data['LevelItem'];
@@ -791,7 +791,7 @@ export class XivApiGearInfo implements GearItem {
             wdMag: data['DamageMag'],
             weaponDelay: weaponDelayRaw ? (weaponDelayRaw / 1000.0) : 0,
             hp: 0
-        }
+        };
         if (data['CanBeHq']) {
             for (let i = 0; i <= 5; i++) {
                 if (data[`BaseParamSpecial${i}TargetID`] === 12) {
@@ -841,7 +841,7 @@ export class XivApiGearInfo implements GearItem {
                 this.materiaSlots.push({
                     maxGrade: MATERIA_LEVEL_MAX_NORMAL,
                     allowsHighGrade: true
-                })
+                });
                 for (let i = this.materiaSlots.length; i < MATERIA_SLOTS_MAX; i++) {
                     this.materiaSlots.push({
                         maxGrade: MATERIA_LEVEL_MAX_OVERMELD,
@@ -879,7 +879,7 @@ export class XivApiGearInfo implements GearItem {
                     }
                     break;
                 // Blue
-                case 3:
+                case 3: {
                     // TODO: how to differentiate raid vs tome vs aug tome?
                     // Aug tome: it has "augmented" in the name, easy
                     const isWeaponOrOH = this.occGearSlotName === 'Weapon2H' || this.occGearSlotName === 'Weapon1H' || this.occGearSlotName === 'OffHand';
@@ -942,6 +942,7 @@ export class XivApiGearInfo implements GearItem {
                         }
                     }
                     break;
+                }
                 // Purple
                 case 4:
                     this.acquisitionType = 'relic';
@@ -992,7 +993,7 @@ export class XivApiGearInfo implements GearItem {
      * TODO fix docs for this
      */
     applyIlvlData(nativeIlvlInfo: IlvlSyncInfo, syncIlvlInfo?: IlvlSyncInfo) {
-        const statCapsNative = {}
+        const statCapsNative = {};
         Object.entries(this.stats).forEach(([stat, _]) => {
             statCapsNative[stat] = nativeIlvlInfo.substatCap(this.occGearSlotName, stat as RawStatKey);
         });
@@ -1002,7 +1003,7 @@ export class XivApiGearInfo implements GearItem {
                 ...this
             };
             this.materiaSlots = [];
-            const statCapsSync = {}
+            const statCapsSync = {};
             Object.entries(this.stats).forEach(([stat, v]) => {
                 statCapsSync[stat] = syncIlvlInfo.substatCap(this.occGearSlotName, stat as RawStatKey);
             });
@@ -1045,12 +1046,12 @@ export class XivApiFoodInfo implements FoodItem {
     primarySubStat: RawStatKey | undefined;
     secondarySubStat: RawStatKey | undefined;
 
-    constructor(data: Object) {
+    constructor(data: object) {
         this.id = data['ID'];
         this.name = data['Name'];
         this.iconUrl = new URL("https://xivapi.com/" + data['IconHD']);
         this.ilvl = data['LevelItem'];
-        for (let key in data['Bonuses']) {
+        for (const key in data['Bonuses']) {
             const bonusData = data['Bonuses'][key];
             this.bonuses[xivApiStatMapping[key as RawStatKey]] = {
                 percentage: bonusData['ValueHQ'] ?? bonusData['Value'],
@@ -1068,8 +1069,8 @@ export class XivApiFoodInfo implements FoodItem {
 
 }
 
-export function processRawMateriaInfo(data: Object): Materia[] {
-    const out: Materia[] = []
+export function processRawMateriaInfo(data: object): Materia[] {
+    const out: Materia[] = [];
     for (let i = MATERIA_LEVEL_MIN_RELEVANT - 1; i < MATERIA_LEVEL_MAX_NORMAL; i++) {
         const itemData = data['Item' + i];
         const itemName = itemData["Name"];

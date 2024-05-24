@@ -82,7 +82,7 @@ export function showNewSheetForm() {
 }
 
 export function showImportSheetForm() {
-    setHash('importsheet')
+    setHash('importsheet');
     setMainContent('Import Sheet', new ImportSheetArea(async sheet => {
         setHash('imported');
         openSheet(sheet, false);
@@ -191,7 +191,7 @@ export function earlyUiSetup() {
         ev.preventDefault();
         topMenuArea.style.display = topMenuArea.style.display === 'none' ? '' : 'none';
     });
-    const header = document.createElement("span")
+    const header = document.createElement("span");
     header.textContent = "Dev Menu";
     devMenu.appendChild(header);
     const nukeButton = document.createElement("button");
@@ -201,7 +201,7 @@ export function earlyUiSetup() {
             setHash();
             location.reload();
         }
-    })
+    });
     nukeButton.textContent = "Nuke Local Storage";
     devMenu.appendChild(nukeButton);
 }

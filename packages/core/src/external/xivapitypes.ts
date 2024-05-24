@@ -22,7 +22,7 @@ export const BaseParamToStatKey: Record<RelevantBaseParam, RawStatKey> = {
     Tenacity: "tenacity",
     Vitality: "vitality",
     Delay: "weaponDelay"
-}
+};
 
 // Ignoring MP and doh/dol stats
 export type XivApiStat =
@@ -59,4 +59,4 @@ export const xivApiStatMapping: Record<XivApiStat, RawStatKey> = {
     Tenacity: "tenacity",
     SkillSpeed: "skillspeed",
     SpellSpeed: "spellspeed"
-}
+};

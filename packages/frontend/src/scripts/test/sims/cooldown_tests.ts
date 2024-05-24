@@ -13,7 +13,7 @@ const chain: OgcdAbility = {
     cooldown: {
         time: 120
     }
-}
+};
 
 const phlegma: GcdAbility = {
     type: 'gcd',
@@ -28,7 +28,7 @@ const phlegma: GcdAbility = {
         // Mythical Phlegma VI where we get 3 charges
         charges: 3
     }
-}
+};
 
 const reduced: OgcdAbility = {
     type: 'ogcd',
@@ -42,7 +42,7 @@ const reduced: OgcdAbility = {
         time: 240,
         reducedBy: "spellspeed"
     }
-}
+};
 
 class FakeTimeSource {
     time: number = 0
@@ -98,7 +98,7 @@ describe('cooldown manager', () => {
             },
             currentCharges: 0,
         });
-        ts.time = 10
+        ts.time = 10;
         // 5 seconds later, still on CD, but now 115 seconds remaining
         assert.deepEqual(tracker.statusOf(ability), {
             readyAt: {
@@ -114,7 +114,7 @@ describe('cooldown manager', () => {
             currentCharges: 0,
         });
         // Almost done
-        ts.time = 120
+        ts.time = 120;
         assert.deepEqual(tracker.statusOf(ability), {
             readyAt: {
                 absolute: 125,
@@ -128,7 +128,7 @@ describe('cooldown manager', () => {
             },
             currentCharges: 0,
         });
-        ts.time = 125
+        ts.time = 125;
         // Now it's ready again
         assert.deepEqual(tracker.statusOf(ability), {
             readyAt: {
@@ -143,7 +143,7 @@ describe('cooldown manager', () => {
             },
             currentCharges: 1,
         });
-        ts.time = 130
+        ts.time = 130;
         // Still ready
         assert.deepEqual(tracker.statusOf(ability), {
             readyAt: {
@@ -173,7 +173,7 @@ describe('cooldown manager', () => {
             },
             currentCharges: 0,
         });
-        ts.time = 140
+        ts.time = 140;
         assert.deepEqual(tracker.statusOf(ability), {
             readyAt: {
                 absolute: 250,
@@ -187,7 +187,7 @@ describe('cooldown manager', () => {
             },
             currentCharges: 0,
         });
-        ts.time = 250
+        ts.time = 250;
         // Ready again
         assert.deepEqual(tracker.statusOf(ability), {
             readyAt: {
@@ -202,7 +202,7 @@ describe('cooldown manager', () => {
             },
             currentCharges: 1,
         });
-        ts.time = 260
+        ts.time = 260;
         // Still ready
         assert.deepEqual(tracker.statusOf(ability), {
             readyAt: {
@@ -267,7 +267,7 @@ describe('cooldown manager', () => {
             },
             currentCharges: 0,
         });
-        ts.time = 10
+        ts.time = 10;
         // 5 seconds later, still on CD, but now 115 seconds remaining
         assert.deepEqual(tracker.statusOf(ability), {
             readyAt: {
@@ -283,7 +283,7 @@ describe('cooldown manager', () => {
             currentCharges: 0,
         });
         // Almost done
-        ts.time = 120
+        ts.time = 120;
         assert.deepEqual(tracker.statusOf(ability), {
             readyAt: {
                 absolute: 125,
@@ -297,7 +297,7 @@ describe('cooldown manager', () => {
             },
             currentCharges: 0,
         });
-        ts.time = 125
+        ts.time = 125;
         // Now it's ready again
         assert.deepEqual(tracker.statusOf(ability), {
             readyAt: {
@@ -312,7 +312,7 @@ describe('cooldown manager', () => {
             },
             currentCharges: 1,
         });
-        ts.time = 130
+        ts.time = 130;
         // Still ready
         assert.deepEqual(tracker.statusOf(ability), {
             readyAt: {
@@ -342,7 +342,7 @@ describe('cooldown manager', () => {
             },
             currentCharges: 0,
         });
-        ts.time = 140
+        ts.time = 140;
         assert.deepEqual(tracker.statusOf(ability), {
             readyAt: {
                 absolute: 230,
@@ -356,7 +356,7 @@ describe('cooldown manager', () => {
             },
             currentCharges: 0,
         });
-        ts.time = 230
+        ts.time = 230;
         // Ready again
         assert.deepEqual(tracker.statusOf(ability), {
             readyAt: {
@@ -371,7 +371,7 @@ describe('cooldown manager', () => {
             },
             currentCharges: 1,
         });
-        ts.time = 260
+        ts.time = 260;
         // Still ready
         assert.deepEqual(tracker.statusOf(ability), {
             readyAt: {

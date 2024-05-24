@@ -73,7 +73,7 @@ export class AllSlotMateriaManager extends HTMLElement {
             if (equipSlot.melds.length === 0) {
                 this.classList.remove("materia-slot-no-equip");
                 this.classList.add("materia-slot-no-slots");
-                this.classList.remove("materia-manager-equipped")
+                this.classList.remove("materia-manager-equipped");
                 const textSpan = document.createElement("span");
                 if (equipSlot.gearItem.isCustomRelic) {
                     textSpan.textContent = "Click into cells to edit relic stats"
@@ -101,7 +101,7 @@ export class AllSlotMateriaManager extends HTMLElement {
             this.replaceChildren(textSpan);
             this.classList.add("materia-slot-no-equip");
             this.classList.remove("materia-slot-no-slots");
-            this.classList.remove("materia-manager-equipped")
+            this.classList.remove("materia-manager-equipped");
             this._children = [];
         }
     }
@@ -113,8 +113,8 @@ export class AllSlotMateriaManager extends HTMLElement {
 export class SlotMateriaManager extends HTMLElement {
 
     private popup: SlotMateriaManagerPopup | undefined;
-    private text: HTMLSpanElement;
-    private image: HTMLImageElement;
+    private readonly text: HTMLSpanElement;
+    private readonly image: HTMLImageElement;
     private _overcap: number;
 
     constructor(private sheet: GearPlanSheet, public materiaSlot: MeldableMateriaSlot, private callback: () => void) {
@@ -151,6 +151,7 @@ export class SlotMateriaManager extends HTMLElement {
         this.popupOpen = true;
     }
 
+    // eslint-disable-next-line accessor-pairs
     set popupOpen(open: boolean) {
         if (open) {
             this.classList.add('materia-manager-active');
@@ -168,14 +169,14 @@ export class SlotMateriaManager extends HTMLElement {
             this.image.style.display = 'block';
             const displayedNumber = Math.max(0, currentMat.primaryStatValue - this._overcap);
             this.text.textContent = `+${displayedNumber} ${STAT_ABBREVIATIONS[currentMat.primaryStat]}`;
-            this.classList.remove("materia-slot-empty")
+            this.classList.remove("materia-slot-empty");
             this.classList.add("materia-slot-full");
             this.title = formatMateriaTitle(currentMat);
         }
         else {
             this.image.style.display = 'none';
             this.text.textContent = 'Empty';
-            this.classList.remove('materia-normal', 'materia-overcap', 'materia-overcap-major')
+            this.classList.remove('materia-normal', 'materia-overcap', 'materia-overcap-major');
             // this.classList.remove('materia-slot-full', 'materia-normal', 'materia-overcap', 'materia-overcap-major')
             this.classList.add("materia-slot-empty");
             delete this.title;
@@ -195,11 +196,12 @@ export class SlotMateriaManager extends HTMLElement {
     //     }
     // }
 
+    // eslint-disable-next-line accessor-pairs
     set overcap(overcap: number) {
         if (overcap === this._overcap) {
             return;
         }
-        this.classList.remove('materia-normal', 'materia-overcap', 'materia-overcap-major')
+        this.classList.remove('materia-normal', 'materia-overcap', 'materia-overcap-major');
         this._overcap = overcap;
         if ((this.materiaSlot.equippedMateria === undefined) || overcap <= 0) {
             this.classList.add('materia-normal');
@@ -216,8 +218,8 @@ export class SlotMateriaManager extends HTMLElement {
 
 export class SingleMateriaViewOnly extends HTMLElement {
 
-    private text: HTMLSpanElement;
-    private image: HTMLImageElement;
+    private readonly text: HTMLSpanElement;
+    private readonly image: HTMLImageElement;
 
     constructor(materia: Materia) {
         super();
@@ -234,7 +236,7 @@ export class SingleMateriaViewOnly extends HTMLElement {
         this.image.style.display = 'block';
         const displayedNumber = currentMat.primaryStatValue;
         this.text.textContent = `+${displayedNumber} ${STAT_ABBREVIATIONS[currentMat.primaryStat]}`;
-        this.classList.remove("materia-slot-empty")
+        this.classList.remove("materia-slot-empty");
         this.classList.add("materia-slot-full");
     }
 }
@@ -265,7 +267,7 @@ export class SlotMateriaManagerPopup extends HTMLElement {
         const typeMap: { [K in RawStatKey]?: Materia[] } = {};
         const stats: RawStatKey[] = [];
         const grades: number[] = [];
-        for (let materia of allMateria) {
+        for (const materia of allMateria) {
             if (materia.materiaGrade > this.materiaSlot.materiaSlot.maxGrade
                 || materia.isHighGrade && !this.materiaSlot.materiaSlot.allowsHighGrade) {
                 continue;
@@ -289,20 +291,20 @@ export class SlotMateriaManagerPopup extends HTMLElement {
         topLeft.addEventListener('mousedown', (ev) => {
             this.submit(undefined);
             ev.stopPropagation();
-        })
+        });
         topLeftCell.appendChild(topLeft);
         headerRow.appendChild(topLeftCell);
-        for (let stat of stats) {
+        for (const stat of stats) {
             const headerCell = document.createElement("th");
             headerCell.textContent = STAT_ABBREVIATIONS[stat];
             headerCell.classList.add('stat-' + stat);
             headerCell.classList.add('primary');
             headerRow.appendChild(headerCell);
         }
-        for (let grade of grades) {
+        for (const grade of grades) {
             const row = body.insertRow();
             row.insertCell().textContent = grade.toString();
-            for (let stat of stats) {
+            for (const stat of stats) {
                 const materia = typeMap[stat]?.find(m => m.materiaGrade === grade);
                 if (materia) {
                     const cell = row.insertCell();
@@ -355,7 +357,7 @@ export class MateriaPriorityPicker extends HTMLElement {
         const header = document.createElement('span');
         header.textContent = 'Mat Prio: ';
         const cb = labeledCheckbox('Fill When Selecting Items', new FieldBoundCheckBox(prioController, 'autoFillNewItem'));
-        cb.title = 'When an item is selected, fill its materia slots according to the chosen priority.'
+        cb.title = 'When an item is selected, fill its materia slots according to the chosen priority.';
         const fillEmptyNow = makeActionButton('Fill Empty', () => prioController.fillEmpty(), 'Fill all empty materia slots according to the chosen priority.');
         const fillAllNow = makeActionButton('Fill All', () => prioController.fillAll(), 'Empty out and re-fill all materia slots according to the chosen priority.');
         const drag = new MateriaDragList(prioController);
@@ -398,7 +400,7 @@ class MateriaDragger extends HTMLElement {
         this.inner = document.createElement('div');
         const span = document.createElement('span');
         const abbrev = STAT_ABBREVIATIONS[stat];
-        this.title = `Drag to change the priority of ${abbrev} materia relative to other types.`
+        this.title = `Drag to change the priority of ${abbrev} materia relative to other types.`;
         span.textContent = abbrev;
         this.inner.appendChild(span);
         this.inner.classList.add('materia-dragger-inner');
@@ -410,6 +412,7 @@ class MateriaDragger extends HTMLElement {
         // this.draggable = true;
     }
 
+    // eslint-disable-next-line accessor-pairs
     set xOffset(xOffset: number) {
         let newOffset;
         if (xOffset > this.clientWidth) {
@@ -432,15 +435,15 @@ export class MateriaDragList extends HTMLElement {
     private subOptions: MateriaDragger[] = [];
     private currentlyDragging: MateriaDragger | undefined;
     private currentDropIndex: number;
-    private moveListener: (ev) => void;
-    private upListener: (ev) => any;
+    private readonly moveListener: (ev) => void;
+    private readonly upListener: (ev) => unknown;
 
     constructor(private prioController: MateriaAutoFillController) {
         super();
         this.style.position = 'relative';
         const statPrio = prioController.prio.statPrio;
         for (let i = 0; i < statPrio.length; i++) {
-            let stat = statPrio[i];
+            const stat = statPrio[i];
             const dragger = new MateriaDragger(stat, i);
             this.subOptions.push(dragger);
             dragger.addEventListener('pointerdown', (ev) => {
@@ -494,7 +497,7 @@ export class MateriaDragList extends HTMLElement {
         ev.preventDefault();
         const offsetFromThis = ev.clientX - this.getBoundingClientRect().left;
         for (let i = 0; i < this.subOptions.length; i++) {
-            let subOption = this.subOptions[i];
+            const subOption = this.subOptions[i];
             // Even though we care about the center, we don't divide the width by two because we also need to factor
             // in the width of the thing we're dragging (since it is positioned such that it is centered around the
             // drag cursor).
@@ -544,10 +547,10 @@ export class MateriaTotalsDisplay extends HTMLElement {
     constructor(gearSet: CharacterGearSet) {
         super();
         const materiaCounts = new Map<number, Materia[]>();
-        for (let equipSlot of EquipSlots) {
+        for (const equipSlot of EquipSlots) {
             const equip = gearSet.equipment[equipSlot];
             if (equip) {
-                for (let meld of equip.melds) {
+                for (const meld of equip.melds) {
                     const materia = meld.equippedMateria;
                     if (materia) {
                         const id = materia.id;

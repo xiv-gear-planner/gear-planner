@@ -5,10 +5,10 @@ import {SimResult} from "@xivgear/core/sims/sim_types";
 
 type SimpleResultEntry = {
     name: string;
-    value: any;
+    value: NonNullable<unknown>;
 }
 
-export function bestEffortFormat(value: any): Node {
+export function bestEffortFormat(value: unknown): Node {
     if (typeof value === 'number') {
         return document.createTextNode(value.toFixed(3));
     }
@@ -23,9 +23,9 @@ export function bestEffortFormat(value: any): Node {
  *
  * @param result The result to display
  */
-export function simpleAutoResultTable(result: Object): HTMLElement {
+export function simpleAutoResultTable(result: object): HTMLElement {
     const data: SimpleResultEntry[] = [];
-    for (let fieldKey in result) {
+    for (const fieldKey in result) {
         data.push({
             name: camel2title(fieldKey),
             value: result[fieldKey]
@@ -44,7 +44,7 @@ export function simpleAutoResultTable(result: Object): HTMLElement {
             getter: item => item.value,
             renderer: bestEffortFormat,
         }
-    ]
+    ];
     table.data = data;
     return table;
 
@@ -53,7 +53,7 @@ export function simpleAutoResultTable(result: Object): HTMLElement {
 export function simpleMappedResultTable<X extends SimResult>(fieldNames: { [K in keyof X]: string }): ((result: X) => HTMLElement) {
     return (result: X): HTMLElement => {
         const data: SimpleResultEntry[] = [];
-        for (let fieldKey in fieldNames) {
+        for (const fieldKey in fieldNames) {
             data.push({
                 name: fieldNames[fieldKey],
                 value: result[fieldKey]
@@ -72,7 +72,7 @@ export function simpleMappedResultTable<X extends SimResult>(fieldNames: { [K in
                 getter: item => item.value,
                 renderer: bestEffortFormat,
             }
-        ]
+        ];
         table.data = data;
         return table;
     }

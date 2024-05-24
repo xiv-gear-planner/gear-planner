@@ -20,7 +20,7 @@ export class SetTotalsDisplay extends HTMLElement {
         this.replaceChildren();
         const stats = gearSet.computedStats;
         const relevantStats = STAT_DISPLAY_ORDER.filter(stat => gearSet.isStatRelevant(stat));
-        for (let stat of relevantStats) {
+        for (const stat of relevantStats) {
             try {
                 let value: Omit<StatDisplayType, 'stat'>;
                 switch (stat) {
@@ -28,28 +28,28 @@ export class SetTotalsDisplay extends HTMLElement {
                     case "dexterity":
                     case "intelligence":
                     case "mind":
-                        value = {multiplier: stats.mainStatMulti}
+                        value = {multiplier: stats.mainStatMulti};
                         break;
                     case "determination":
-                        value = {multiplier: stats.detMulti}
+                        value = {multiplier: stats.detMulti};
                         break;
                     case "tenacity":
-                        value = {multiplier: stats.tncMulti}
+                        value = {multiplier: stats.tncMulti};
                         break;
                     case "piety":
-                        value = {perTick: stats.mpPerTick}
+                        value = {perTick: stats.mpPerTick};
                         break;
                     case "crit":
-                        value = {chance: stats.critChance, multiplier: stats.critMulti}
+                        value = {chance: stats.critChance, multiplier: stats.critMulti};
                         break;
                     case "dhit":
-                        value = {chance: stats.dhitChance, multiplier: stats.dhitMulti}
+                        value = {chance: stats.dhitChance, multiplier: stats.dhitMulti};
                         break;
                     case "spellspeed":
-                        value = {gcd: stats.gcdMag(NORMAL_GCD), multiplier: stats.spsDotMulti}
+                        value = {gcd: stats.gcdMag(NORMAL_GCD), multiplier: stats.spsDotMulti};
                         break;
                     case "skillspeed":
-                        value = {gcd: stats.gcdPhys(NORMAL_GCD), multiplier: stats.sksDotMulti}
+                        value = {gcd: stats.gcdPhys(NORMAL_GCD), multiplier: stats.sksDotMulti};
                         break;
                 }
                 if (value) {

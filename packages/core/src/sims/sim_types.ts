@@ -1,7 +1,9 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import {CharacterGearSet} from "../gear";
 import {JobName, SupportedLevel} from "@xivgear/xivmath/xivconstants";
 import {AttackType} from "@xivgear/xivmath/geartypes";
 import {ValueWithDev} from "@xivgear/xivmath/deviation";
+import {EmptyObject} from "../util/types";
 
 /**
  * Represents the final result of a simulation run. Sim implementors should extend this type with
@@ -495,7 +497,7 @@ export type BaseBuff = Readonly<{
      * Stack count of this buff. This should generally not be baked into the buff - it should be inserted at run time.
      */
     stacks?: number
-} & ({} | {
+} & (EmptyObject | {
     /**
      * Override the auto-generated description which would normally describe the effects.
      *

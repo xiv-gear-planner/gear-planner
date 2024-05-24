@@ -12,15 +12,15 @@ import {SimResult, SimSettings, SimSpec, Simulation} from "@xivgear/core/sims/si
 
 //potencies for our spells
 
-const glare = 310
-const dia = 65
-const diaDot = 65
-const assize = 400
-const misery = 1240
+const glare = 310;
+const dia = 65;
+const diaDot = 65;
+const assize = 400;
+const misery = 1240;
 const battleVoiceAvg = (15 / 120) * 0.2;
 const battleLitanyAvg = (15 / 120) * 0.1;
 const chainStratAvg = (15 / 120) * 0.1;
-const devilmentAvg = (20 / 120) * 0.2;
+// const devilmentAvg = (20 / 120) * 0.2;
 const brdCritAvg = (45 / 120) * 0.02;
 const brdDhAvg = (45 / 120) * 0.03;
 const fl = Math.floor;
@@ -57,7 +57,7 @@ export const whmSheetSpec: SimSpec<WhmSheetSim, WhmSheetSettings> = {
     },
     stub: "whm-sheet-sim",
     supportedJobs: ['WHM'],
-}
+};
 
 // TODO: report MP time
 export class WhmSheetSim implements Simulation<WhmSheetSimResult, WhmSheetSettings, WhmSheetSettings> {
@@ -181,25 +181,25 @@ export class WhmSheetSim implements Simulation<WhmSheetSimResult, WhmSheetSettin
 // Average potency of a 360s rotation
     getP(stats: ComputedSetStats, cycle: number) {
         const filler = this.fillerGcdPerMinute();
-        let result = 0
-        result += 9 * assize * cycle / 360
-        result += 6 * misery * cycle / 360
+        let result = 0;
+        result += 9 * assize * cycle / 360;
+        result += 6 * misery * cycle / 360;
         const tickMulti = stats.spsDotMulti;
         const shortGcd = stats.gcdMag(2.5);
         if (glare - dia > diaDot / 3 * tickMulti * fl(30 / shortGcd) * (shortGcd - 30 % shortGcd)) {
-            result += 12 * (Math.ceil(30 / shortGcd) - 1) * glare + 12 * dia - 24 * glare
+            result += 12 * (Math.ceil(30 / shortGcd) - 1) * glare + 12 * dia - 24 * glare;
             // Logger.log("# Glares: " + 12*(Math.ceil(30/shortGcd)-1)-24*glare)
             result += 12 * 10 * tickMulti * diaDot
             // Logger.log("Dia ticks: " + 12*10)
         }
         else {
-            result += 12 * (fl(30 / shortGcd) - 1) * glare + 12 * dia - 24 * glare
+            result += 12 * (fl(30 / shortGcd) - 1) * glare + 12 * dia - 24 * glare;
             // Logger.log("# Glares: " + 12*(Math.ceil(30/shortGcd)-1)-24*glare)
-            result += 12 * 9 * tickMulti * diaDot
+            result += 12 * 9 * tickMulti * diaDot;
             result += 12 * ((3 - (30 % shortGcd)) / 3) * tickMulti * diaDot
             // Logger.log("Dia ticks: " + (12*9+12*((3-(30 % shortGcd))/3)))
         }
-        result -= filler * glare * cycle / 60
+        result -= filler * glare * cycle / 60;
         // Logger.log("Potency: " + result)
         return result
     }
@@ -232,7 +232,7 @@ export class WhmSheetSim implements Simulation<WhmSheetSimResult, WhmSheetSettin
 
     // Actual time taken by a 360s rotation
     getCycle(stats: ComputedSetStats) {
-        var result = 0
+        let result = 0;
         //1 dia + x glares/lily/misery
         const shortGcd = stats.gcdMag(2.5);
         if (glare - dia > diaDot / 3 * stats.spsDotMulti * fl(30 / shortGcd) * (shortGcd - 30 % shortGcd)) {
@@ -242,7 +242,7 @@ export class WhmSheetSim implements Simulation<WhmSheetSimResult, WhmSheetSettin
             result += 12 * (fl(30 / shortGcd) * shortGcd)
         }
         // POM as multiplier normalized over 360s
-        result *= 360 / ((45 / 0.80) + 315)
+        result *= 360 / ((45 / 0.80) + 315);
         // Logger.log("GCD: "+shortGcd+" Cycle: " +result)
         return result
     }
@@ -252,8 +252,8 @@ export class WhmSheetSim implements Simulation<WhmSheetSimResult, WhmSheetSettin
      * Overall potency per second
      */
     pps(stats: ComputedSetStats) {
-        var cycle = this.getCycle(stats);
-        var afflatusT = this.afflatusTime(stats, cycle)
+        let cycle = this.getCycle(stats);
+        const afflatusT = this.afflatusTime(stats, cycle);
         cycle += afflatusT;
         return this.getP(stats, cycle) / cycle;
     }
@@ -278,7 +278,7 @@ export class WhmSheetSim implements Simulation<WhmSheetSimResult, WhmSheetSettin
 
     MPTime(stats: ComputedSetStats) {
         let result = 0;
-        result += stats.mpPerTick / 3
+        result += stats.mpPerTick / 3;
         result -= this.mpUsedPerSec(stats);
         return fl(-10000 / result)
     }

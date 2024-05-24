@@ -140,7 +140,7 @@ export function getRelicStatModelFor(gearItem: GearItem, baseParams: BaseParamMa
                     }
                 }
                 else {
-                    for (let entry of Object.entries(relicStats)) {
+                    for (const entry of Object.entries(relicStats)) {
                         const stat = entry[0] as Substat;
                         if (entry[1] && jobData.excludedRelicSubstats.includes(stat)) {
                             failures.push(`Stat ${STAT_FULL_NAMES[stat]} is not available on ${jobData.role.toLowerCase()} relics.`);
@@ -178,7 +178,7 @@ function getRelicStatModelForPartial(gearItem: GearItem, baseParams: BaseParamMa
             const caps = item.gearItem.unsyncedVersion.statCaps;
             for (const stat in (statToReport ? [statToReport] : ALL_SUB_STATS)) {
                 const current = item.relicStats[stat];
-                const cap = caps
+                const cap = caps;
                 if (current && cap && current > cap) {
                     out.push(`Stat ${STAT_ABBREVIATIONS[stat]} must be ${cap} or lower.`);
                 }

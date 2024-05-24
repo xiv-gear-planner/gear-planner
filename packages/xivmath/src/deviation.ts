@@ -14,7 +14,7 @@ export type ValueWithDev = {
 export function addValues(...values: ValueWithDev[]): ValueWithDev {
     let sum = 0;
     let varianceSum = 0;
-    for (let value of values) {
+    for (const value of values) {
         sum += value.expected;
         varianceSum += value.stdDev ** 2
     }
@@ -36,7 +36,7 @@ export function multiplyValues(...values: ValueWithDev[]): ValueWithDev {
     //                 ^ first term                            ^ second term
     let firstTerm = 1;
     let secondTerm = 1;
-    for (let value of values) {
+    for (const value of values) {
         product *= value.expected;
         firstTerm *= value.expected ** 2 + value.stdDev ** 2;
         secondTerm *= value.expected ** 2;

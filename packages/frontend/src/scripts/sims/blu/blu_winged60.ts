@@ -27,7 +27,7 @@ export const BluWinged60Spec: SimSpec<BluWinged60Sim, BluWinged60SettingsExterna
     loadSavedSimInstance(exported: BluWinged60SettingsExternal) {
         return new BluWinged60Sim(exported);
     }
-}
+};
 
 export class BluWinged60Sim extends blu.BluSim<BluWinged60SimResult, BluWinged60Settings> {
     spec = BluWinged60Spec;

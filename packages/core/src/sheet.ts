@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */ // TODO: get back to fixing this at some point
 import {
     defaultItemDisplaySettings,
     DefaultMateriaFillPrio,
@@ -93,7 +94,7 @@ export class SheetProvider<SheetType extends GearPlanSheet> {
             sims: [],
             ilvlSync: ilvlSync
             // ctor will auto-fill the rest
-        }
+        };
         const gearPlanSheet = this.construct(sheetKey, fakeExport);
         gearPlanSheet.addDefaultSims();
         // TODO
@@ -262,11 +263,11 @@ export class GearPlanSheet {
         const lvlItemInfo = LEVEL_ITEMS[this.level];
         this.dataManager = new DataManager(this.classJobName, this.level, this.ilvlSync);
         await this.dataManager.loadData();
-        for (let importedSet of saved.sets) {
+        for (const importedSet of saved.sets) {
             this.addGearSet(this.importGearSet(importedSet));
         }
         if (saved.sims) {
-            for (let simport of saved.sims) {
+            for (const simport of saved.sims) {
                 const simSpec = getSimSpecByStub(simport.stub);
                 if (simSpec === undefined) {
                     console.error("Sim no longer present: " + simport.stub);
@@ -369,12 +370,12 @@ export class GearPlanSheet {
                 const augGs: SetStatsExport = {
                     ...rawExport,
                     computedStats: set.computedStats
-                }
+                };
                 return augGs;
             }
             return rawExport;
         });
-        let simsExport: SimExport[] = this.exportSims(external);
+        const simsExport: SimExport[] = this.exportSims(external);
         const out: SheetExport = {
             name: this.sheetName,
             sets: sets,
@@ -439,7 +440,7 @@ export class GearPlanSheet {
      */
     exportGearSet(set: CharacterGearSet, external: boolean = false): SetExport {
         const items: { [K in EquipSlotKey]?: ItemSlotExport } = {};
-        for (let equipmentKey in set.equipment) {
+        for (const equipmentKey in set.equipment) {
             const inSlot: EquippedItem = set.equipment[equipmentKey];
             if (inSlot) {
                 const exportedItem: ItemSlotExport = {
@@ -488,7 +489,7 @@ export class GearPlanSheet {
         const set = new CharacterGearSet(this);
         set.name = importedSet.name;
         set.description = importedSet.description;
-        for (let equipmentSlot in importedSet.items) {
+        for (const equipmentSlot in importedSet.items) {
             const importedItem: ItemSlotExport = importedSet.items[equipmentSlot];
             if (!importedItem) {
                 continue;
@@ -546,7 +547,7 @@ export class GearPlanSheet {
     }
 
     recalcAll() {
-        for (let set of this._sets) {
+        for (const set of this._sets) {
             set.forceRecalc();
         }
     }
@@ -669,7 +670,7 @@ export class GearPlanSheet {
 
     addDefaultSims() {
         const sims = getDefaultSims(this.classJobName, this.level);
-        for (let simSpec of sims) {
+        for (const simSpec of sims) {
             try {
                 this.addSim(simSpec.makeNewSimInstance());
             }
