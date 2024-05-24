@@ -8,7 +8,7 @@
   "workspaces": [
     "packages/xivmath",
     "packages/core",
-    "packages/gearplan-frontend",
+    "packages/frontend",
     "packages/backend-resolver"
   ],
   "devDependencies": {
