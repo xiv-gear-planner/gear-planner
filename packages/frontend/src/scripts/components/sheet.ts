@@ -598,7 +598,9 @@ export class SimResultDetailDisplay<X extends SimResult> extends HTMLElement {
             }
             else {
                 // TODO: style this properly
-                this.replaceChildren(simpleAutoResultTable(this._result.result));
+                const tbl = simpleAutoResultTable(this._result.result);
+                tbl.classList.add('sim-basic-result-table');
+                this.replaceChildren(tbl);
             }
         }
         else {
