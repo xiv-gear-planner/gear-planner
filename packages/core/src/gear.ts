@@ -410,8 +410,19 @@ export class CharacterGearSet {
             if (statDetail.mode === 'melded-overcapped-major') {
                 issues.push({
                     severity: "warning",
-                    description: `${EquipSlotInfo[slotId].name} is overcapped, losing ${statDetail.overcapAmount} ${stat}.`
+                    description: `${EquipSlotInfo[slotId].name} is overcapped, losing ${statDetail.overcapAmount} ${stat}.`,
+                    affectedSlots: [slotId]
                 });
+            }
+        }
+        if (equip.gearItem.isCustomRelic) {
+            const failures = equip.gearItem.relicStatModel.validate(equip);
+            for (const failure of failures) {
+                issues.push({
+                    ...failure,
+                    affectedSlots: [slotId]
+                });
+
             }
         }
         return {
@@ -684,6 +695,7 @@ export type ItemSingleStatDetail = {
     cap: 0,
 };
 
+// noinspection RedundantIfStatementJS
 export class XivApiGearInfo implements GearItem {
     id: number;
     name: string;

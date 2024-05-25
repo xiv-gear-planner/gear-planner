@@ -16,3 +16,10 @@ export function toRelPct(input: number, decimalPlaces: number) {
 export function shortenItemName(itemName: string): string {
     return itemName.replace("Augmented", "Aug.");
 }
+
+export function capitalizeFirstLetter(value: string): string {
+    if (typeof value === 'string' && value.length >= 1) {
+        return value.charAt(0).toUpperCase() + value.slice(1);
+    }
+    return value;
+}

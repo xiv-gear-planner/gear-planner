@@ -745,7 +745,8 @@ export type GearAcquisitionSource =
 
 export type GearSetIssue = {
     readonly severity: 'warning' | 'error',
-    readonly description: string
+    readonly description: string,
+    readonly affectedSlots?: EquipSlotKey[]
 }
 
 export type GearSetResult = {
@@ -766,7 +767,7 @@ export type BaseRelicStatModel = {
      * @param statToReport Specify this to report issues specific to one stat. Messages may be tailored to one stat,
      * and validation issues will only be reported if that particular stat is actually contributing to the problem.
      */
-    validate(item: EquippedItem, statToReport?: Substat): string[]
+    validate(item: EquippedItem, statToReport?: Substat): GearSetIssue[]
 }
 
 /**

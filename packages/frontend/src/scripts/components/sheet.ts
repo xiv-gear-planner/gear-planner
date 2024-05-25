@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */ // TODO: get back to fixing this at some point
-import {camel2title} from "@xivgear/core/util/strutils";
+import {camel2title, capitalizeFirstLetter} from "@xivgear/core/util/strutils";
 import {BaseModal} from "./modal";
 import {
     CustomCell,
@@ -375,7 +375,11 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                         // div.appendChild(icon);
                         title += '\nThis set has problems:';
                         for (const issue of issues) {
-                            title += `\n - ${issue.severity}: ${issue.description}`;
+                            let titlePart = `${capitalizeFirstLetter(issue.severity)}: ${issue.description}`;
+                            if (issue.affectedSlots) {
+                                titlePart += ` (${issue.affectedSlots.join(', ')})`
+                            }
+                            title += '\n - ' + titlePart;
                         }
                     }
                     const div = document.createElement('div');
