@@ -20,6 +20,7 @@ function validateUrl(url: string, description: string) {
     }
     catch (e) {
         console.error(`Not a valid ${description} URL: '${url}'`, url, e);
+        throw e;
     }
 }
 
