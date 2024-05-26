@@ -195,7 +195,7 @@ class SheetExportModal extends ExportModal<SheetExportType> {
 
     get previewUrl(): string {
         const exported = this.sheet.exportSheet(true);
-        const url = new URL(`#/${VIEW_SHEET_HASH}/${encodeURIComponent(JSON.stringify(exported))}`, document.location.toString());
+        const url = new URL(`?page=${VIEW_SET_HASH}|${encodeURIComponent(JSON.stringify(exported))}`, document.location.toString());
         return url.toString();
     }
 }

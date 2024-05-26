@@ -1,4 +1,4 @@
-import {arrayEq, getHash, isEmbed, processHash, setHash, splitHash} from "./nav_hash";
+import {arrayEq, getHash, goHash, isEmbed, processNav, setHash, splitHashLegacy, splitPath} from "./nav_hash";
 import {NamedSection} from "./components/section";
 import {NewSheetForm} from "./components/new_sheet_form";
 import {ImportSheetArea} from "./components/import_sheet";
@@ -14,7 +14,7 @@ import {GearPlanSheetGui, GRAPHICAL_SHEET_PROVIDER} from "./components/sheet";
 const pageTitle = 'XivGear - FFXIV Gear Planner';
 
 export async function initialLoad() {
-    processHash();
+    processNav();
     handleWelcomeArea();
 }
 
@@ -52,11 +52,24 @@ export function setMainContent(title: string, ...nodes) {
     setTitle(title);
 }
 
+export function initTopMenu() {
+    topMenuArea.querySelectorAll('a').forEach(link => {
+        const href = link.getAttribute('href');
+        if (href?.startsWith('?page=')) {
+            link.addEventListener('click', e => {
+                e.preventDefault();
+                goHash(...splitPath(href.slice(6)));
+            });
+        }
+    });
+}
+
 export function formatTopMenu(hash: string[]) {
     topMenuArea.querySelectorAll('a').forEach(link => {
         const href = link.getAttribute('href');
-        if (href?.startsWith('#/')) {
-            const expected = splitHash(href);
+        if (href?.startsWith('?page=')) {
+            // TODO: test this
+            const expected = splitPath(href.slice(6));
             console.log(`Expected: ${expected}, actual: ${hash}`);
             if (arrayEq(expected, hash)) {
                 link.classList.add('current-page');
