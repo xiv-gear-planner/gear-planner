@@ -125,7 +125,7 @@ export function buildPreviewServer() {
         const nav = parsePath(pathPaths);
         request.log.info(pathPaths, 'Path');
         const serverUrl = getFrontendServer();
-        const clientUrl = getFrontendPath();
+        // const clientUrl = getFrontendPath();
         const responsePromise = nonCachedFetch(serverUrl + '/index.html', undefined);
         try {
             const exported: object | null = await resolveNav(nav);
