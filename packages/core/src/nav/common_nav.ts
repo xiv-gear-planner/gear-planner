@@ -153,10 +153,16 @@ export function parsePath(originalPath: string[]): NavPath | null {
     return null;
 }
 
+const VERTICAL_BAR_REPLACEMENT = '\u2758';
+
 // TODO: this needs to account for the fact that '|' is a valid character in urls
 // Using '/' previously was fine because it would simply get escaped
 export function makeUrl(...pathParts: string[]): URL {
-    return new URL(`?page=${pathParts.map(pp => encodeURIComponent(pp)).join(PATH_SEPARATOR)}`, document.location.toString());
+    const joinedPath = pathParts
+        .map(pp => encodeURIComponent(pp))
+        .map(pp => pp.replaceAll(PATH_SEPARATOR, VERTICAL_BAR_REPLACEMENT))
+        .join(PATH_SEPARATOR);
+    return new URL(`?page=${joinedPath}`, document.location.toString());
 }
 
 /**
@@ -179,6 +185,7 @@ export function splitPath(input: string) {
         .split(PATH_SEPARATOR)
         .filter(item => item)
         .map(item => decodeURIComponent(item))
+        .map(pp => pp.replaceAll(VERTICAL_BAR_REPLACEMENT, PATH_SEPARATOR));
     // TODO: replace | with a lookalike character?
     // .map(item => item.replaceAll())
 }

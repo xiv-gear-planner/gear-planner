@@ -1,4 +1,4 @@
-import {arrayEq, getHash, goHash, isEmbed, processNav, setHash, splitHashLegacy, splitPath} from "./nav_hash";
+import {arrayEq, getHash, goHash, isEmbed, processNav, setHash} from "./nav_hash";
 import {NamedSection} from "./components/section";
 import {NewSheetForm} from "./components/new_sheet_form";
 import {ImportSheetArea} from "./components/import_sheet";
@@ -10,6 +10,7 @@ import {SheetPickerTable} from "./components/saved_sheet_picker";
 import {DISPLAY_SETTINGS} from "./settings/display_settings";
 import {showSettingsModal} from "./settings/settings_modal";
 import {GearPlanSheetGui, GRAPHICAL_SHEET_PROVIDER} from "./components/sheet";
+import {splitPath} from "@xivgear/core/nav/common_nav";
 
 const pageTitle = 'XivGear - FFXIV Gear Planner';
 
