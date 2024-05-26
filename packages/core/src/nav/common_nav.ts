@@ -129,3 +129,9 @@ export function parsePath(originalPath: string[]): NavPath | null {
     console.log('Unknown nav path', path);
     return null;
 }
+
+// TODO: this needs to account for the fact that '|' is a valid character in urls
+// Using '/' previously was fine because it would simply get escaped
+export function makeUrl(...pathParts: string[]): URL {
+    return new URL(`?page=${pathParts.map(pp => encodeURIComponent(pp)).join(PATH_SEPARATOR)}`, document.location.toString());
+}

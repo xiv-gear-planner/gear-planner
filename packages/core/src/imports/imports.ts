@@ -27,6 +27,10 @@ const importSheetUrlRegex = RegExp(".*/(?:viewsheet|importsheet)/(.*)$");
 const importSetUrlRegex = RegExp(".*/(?:viewset|importset)/(.*)$");
 const importShortlinkRegex = RegExp(".*/(?:sl|share)/(.*)$");
 const bisRegex = RegExp(".*/bis/(.*?)/(.*?)/(.*?)$");
+const importSheetUrlRegexNew = RegExp(".*([&?])page=(?:viewsheet|importsheet)\\|(.*)$");
+const importSetUrlRegexNew = RegExp(".*([&?])page=(?:viewset|importset)\\|(.*)$");
+const importShortlinkRegexNew = RegExp(".*([&?])page=(?:sl|share)\\|(.*)$");
+const bisRegexNew = RegExp(".*([&?])page=bis\\|(.*?)\\|(.*?)\\|(.*?)$");
 const etroRegex = RegExp("https://etro\\.gg/gearset/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})");
 
 export function parseImport(text: string): ImportSpec {

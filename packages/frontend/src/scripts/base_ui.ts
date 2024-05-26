@@ -133,7 +133,7 @@ export async function openExport(exported: (SheetExport | SetExport), changeHash
         openEmbed(sheet);
     }
     else {
-        if (viewOnly) {
+        if (viewOnly || isEmbed()) {
             sheet.setViewOnly();
         }
         // sheet.name = SHARED_SET_NAME;
