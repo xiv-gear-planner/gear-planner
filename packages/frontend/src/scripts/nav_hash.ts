@@ -1,4 +1,4 @@
-import {HASH_QUERY_PARAM, parsePath, PATH_SEPARATOR} from "@xivgear/core/nav/common_nav";
+import {HASH_QUERY_PARAM, parsePath, PATH_SEPARATOR, splitHashLegacy, splitPath} from "@xivgear/core/nav/common_nav";
 import {earlyEmbedInit} from "./embed";
 import {SetExport, SheetExport} from "@xivgear/xivmath/geartypes";
 import {getShortLink} from "@xivgear/core/external/shortlink_server";
@@ -20,6 +20,12 @@ let expectedHash: string[] | undefined = undefined;
 let embed = false;
 
 
+/**
+ * Determine if two arrays have equal members. Not a deep equals - only inspects one level.
+ *
+ * @param left The first array
+ * @param right The second array
+ */
 export function arrayEq(left: unknown[] | undefined, right: unknown[] | undefined) {
     if (left === undefined && right === undefined) {
         return true;
@@ -38,18 +44,16 @@ export function arrayEq(left: unknown[] | undefined, right: unknown[] | undefine
     return true;
 }
 
+/**
+ * Get the current page path
+ */
 export function getCurrentHash() {
     return [...expectedHash];
 }
 
-export function splitHashLegacy(input: string) {
-    return (input.startsWith("#") ? input.substring(1) : input).split('/').filter(item => item).map(item => decodeURIComponent(item))
-}
-
-export function splitPath(input: string) {
-    return (input.startsWith(PATH_SEPARATOR) ? input.substring(1) : input).split(PATH_SEPARATOR).filter(item => item).map(item => decodeURIComponent(item))
-}
-
+/**
+ * Shim to handle old-style URLs
+ */
 export async function processHashLegacy() {
     const newHash = location.hash;
     if (splitHashLegacy(newHash).length > 0) {
@@ -59,6 +63,14 @@ export async function processHashLegacy() {
     }
 }
 
+/**
+ * Process a potential change in hash.
+ *
+ * Note that unlike the old hash-based method, there is no catch-all listener for hash changes. Rather, anything
+ * wishing to change the hash should use {@link goHash} to have the navigation automatically performed (if the
+ * entire desired state can be determined from the path alone), or {@link setHash} if you wish to set the location
+ * but manually replace the page contents.
+ */
 export async function processNav() {
     // Remove the literal #
     // let hash = splitHash(location.hash);
@@ -165,7 +177,17 @@ function manipulateUrlParams(action: (params: URLSearchParams) => void) {
     }
 }
 
-// This is referred to as 'hash' because the app originally used the hash, but later changed to using a query parameter
+/**
+ * Change the path of the current URL. Does not perform the actual navigation (i.e. the page contents will not be
+ * changed). This will, however, update the state of the top menu - that is, if you navigate to the 'new sheet' page,
+ * then the 'New Sheet' button will be active.
+ *
+ * As such, this method should be used when you plan to change the contents of the page yourself, which is necessary
+ * for some paths. For example, when importing a sheet, the 'imported' path does not contain the actual sheet data
+ * nor anything that would lead to it, so it must use this method.
+ *
+ * @param hashParts The path parts, e.g. for 'foo|bar', use ['foo', 'bar'] as the argument.
+ */
 export function setHash(...hashParts: string[]) {
     for (const hashPart of hashParts) {
         if (hashPart === undefined) {
@@ -187,6 +209,16 @@ export function getHash(): string[] | undefined {
     return expectedHash;
 }
 
+/**
+ * Change the path of the current URL. Does not perform the actual navigation (i.e. the page contents will not be
+ * changed). This will, however, update the state of the top menu - that is, if you navigate to the 'new sheet' page,
+ * then the 'New Sheet' button will be active.
+ *
+ * This method is useful for when the entire page state can be determined from the path alone, and you don't need to
+ * override any behavior.
+ *
+ * @param hashParts The path parts, e.g. for 'foo|bar', use ['foo', 'bar'] as the argument.
+ */
 export function goHash(...hashParts: string[]) {
     for (const hashPart of hashParts) {
         if (hashPart === undefined) {

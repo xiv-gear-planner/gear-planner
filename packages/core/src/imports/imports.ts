@@ -27,29 +27,29 @@ const importSheetUrlRegex = RegExp(".*/(?:viewsheet|importsheet)/(.*)$");
 const importSetUrlRegex = RegExp(".*/(?:viewset|importset)/(.*)$");
 const importShortlinkRegex = RegExp(".*/(?:sl|share)/(.*)$");
 const bisRegex = RegExp(".*/bis/(.*?)/(.*?)/(.*?)$");
-const importSheetUrlRegexNew = RegExp(".*([&?])page=(?:viewsheet|importsheet)\\|(.*)$");
-const importSetUrlRegexNew = RegExp(".*([&?])page=(?:viewset|importset)\\|(.*)$");
-const importShortlinkRegexNew = RegExp(".*([&?])page=(?:sl|share)\\|(.*)$");
-const bisRegexNew = RegExp(".*([&?])page=bis\\|(.*?)\\|(.*?)\\|(.*?)$");
+const importSheetUrlRegexNew = RegExp(".*[&?]page=(?:viewsheet|importsheet)\\|(.*)$");
+const importSetUrlRegexNew = RegExp(".*[&?]page=(?:viewset|importset)\\|(.*)$");
+const importShortlinkRegexNew = RegExp(".*[&?]page=(?:sl|share)\\|(.*)$");
+const bisRegexNew = RegExp(".*[&?]page=bis\\|(.*?)\\|(.*?)\\|(.*?)$");
 const etroRegex = RegExp("https://etro\\.gg/gearset/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})");
 
 export function parseImport(text: string): ImportSpec {
 
-    const slExec = importShortlinkRegex.exec(text);
+    const slExec = importShortlinkRegex.exec(text) || importShortlinkRegexNew.exec(text);
     if (slExec !== null) {
         return {
             importType: "shortlink",
             rawUuid: slExec[1],
         }
     }
-    const sheetExec = importSheetUrlRegex.exec(text);
+    const sheetExec = importSheetUrlRegex.exec(text) || importSheetUrlRegexNew.exec(text);
     if (sheetExec !== null) {
         return {
             importType: "json",
             rawData: decodeURIComponent(sheetExec[1])
         }
     }
-    const setExec = importSetUrlRegex.exec(text);
+    const setExec = importSetUrlRegex.exec(text)|| importSetUrlRegexNew.exec(text);
     if (setExec !== null) {
         return {
             importType: "json",
@@ -64,7 +64,7 @@ export function parseImport(text: string): ImportSpec {
             rawUuid: etroExec[1],
         }
     }
-    const bisExec = bisRegex.exec(text);
+    const bisExec = bisRegex.exec(text) || bisRegexNew.exec(text);
     if (bisExec !== null) {
         return {
             importType: 'bis',

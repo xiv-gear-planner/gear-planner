@@ -5,7 +5,7 @@
   "main": "server.js",
   "scripts": {
     "build": "tsc --build",
-    "test": "ts-mocha src/test/**/*.ts"
+    "test": "ts-mocha --parallel=true src/test/**/*.ts"
   },
   "dependencies": {
     "@xivgear/gearplan-frontend": "1.0.0",

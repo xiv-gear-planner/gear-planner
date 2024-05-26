@@ -58,62 +58,85 @@ export function parsePath(originalPath: string[]): NavPath | null {
         path = path.slice(1);
     }
     const mainNav = path[0];
+
+    function embedWarn() {
+        if (embed) {
+            console.warn(`embed does not make sense with ${path}`);
+        }
+    }
+
     if (path.length >= 2 && mainNav === "sheet") {
+        embedWarn();
         return {
             type: 'saved',
             viewOnly: false,
             saveKey: path[1],
-            embed: embed,
+            embed: false,
         }
     }
     else if (mainNav === "newsheet") {
+        embedWarn();
         return {
             type: 'newsheet'
         }
     }
     else if (mainNav === "importsheet" || mainNav === VIEW_SHEET_HASH) {
+        const viewOnly = mainNav === VIEW_SHEET_HASH;
+        // Cannot embed a full sheet
+        embedWarn();
+        // TODO: weird case with ['viewsheet'] only - should handle better
         if (path.length === 1) {
             return {
                 type: 'importform'
             }
         }
         else {
-            const json = path.slice(1).join('/');
+            const json = path.slice(1).join(PATH_SEPARATOR);
             const parsed = JSON.parse(decodeURI(json)) as SheetExport;
             return {
                 type: 'sheetjson',
                 jsonBlob: parsed,
-                embed: embed,
-                viewOnly: mainNav === VIEW_SHEET_HASH
+                embed: false,
+                viewOnly: viewOnly
             }
         }
     }
     else if (mainNav === "importset" || mainNav === VIEW_SET_HASH) {
+        // TODO: weird case with ['viewset'] only
         if (path.length === 1) {
+            embedWarn();
             return {
                 type: 'importform'
             }
         }
         else {
-            const json = path.slice(1).join('/');
+            const json = path.slice(1).join(PATH_SEPARATOR);
             const parsed = JSON.parse(decodeURI(json)) as SetExport;
+            const viewOnly = mainNav === VIEW_SET_HASH;
+            if (!viewOnly) {
+                embedWarn();
+                embed = false;
+            }
             return {
                 type: 'setjson',
                 jsonBlob: parsed,
                 embed: embed,
-                viewOnly: mainNav === VIEW_SET_HASH
+                viewOnly: viewOnly,
             }
         }
     }
     else if (mainNav === SHORTLINK_HASH) {
-        return {
-            type: 'shortlink',
-            uuid: path[1],
-            embed: embed,
-            viewOnly: true
+        if (path.length >= 2) {
+            return {
+                type: 'shortlink',
+                uuid: path[1],
+                embed: embed,
+                viewOnly: true
+            }
         }
     }
     else if (mainNav === BIS_HASH) {
+        embedWarn();
         if (path.length >= 4) {
             return {
                 type: 'bis',
@@ -122,7 +145,7 @@ export function parsePath(originalPath: string[]): NavPath | null {
                 expac: path[2],
                 sheet: path[3],
                 viewOnly: true,
-                embed: embed
+                embed: false
             }
         }
     }
@@ -134,4 +157,28 @@ export function parsePath(originalPath: string[]): NavPath | null {
 // Using '/' previously was fine because it would simply get escaped
 export function makeUrl(...pathParts: string[]): URL {
     return new URL(`?page=${pathParts.map(pp => encodeURIComponent(pp)).join(PATH_SEPARATOR)}`, document.location.toString());
+}
+
+/**
+ * Given a legacy hash, split it into its parts (e.g. #/sl/1234 or /sl/1234 => ['sl', '1234']).
+ *
+ * @param input The legacy hash path
+ */
+export function splitHashLegacy(input: string) {
+    return (input.startsWith("#") ? input.substring(1) : input).split('/').filter(item => item).map(item => decodeURIComponent(item))
+}
+
+/**
+ * Given a page path, split it into constituent parts
+ * (e.g. for ?page=foo|bar, splitPath('foo|bar') => ['foo', 'bar']
+ *
+ * @param input The path, not including ?page=
+ */
+export function splitPath(input: string) {
+    return (input.startsWith(PATH_SEPARATOR) ? input.substring(1) : input)
+        .split(PATH_SEPARATOR)
+        .filter(item => item)
+        .map(item => decodeURIComponent(item))
+    // TODO: replace | with a lookalike character?
+    // .map(item => item.replaceAll())
 }

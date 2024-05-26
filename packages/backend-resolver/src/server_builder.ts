@@ -61,10 +61,10 @@ export function buildServerInstance() {
         // querystringParser: str => querystring.parse(str, '&', '=', {}),
     });
 
-    fastifyInstance.get('/echo', async (request: FastifyRequest, reply) => {
-        return request.query;
-    });
-
+    // fastifyInstance.get('/echo', async (request: FastifyRequest, reply) => {
+    //     return request.query;
+    // });
+    //
     fastifyInstance.get('/healthcheck', async (request, reply) => {
         return 'up';
     });

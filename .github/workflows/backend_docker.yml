@@ -27,7 +27,7 @@ jobs:
         run: |
           npm ci
           npm run build
-          npm --workspaces --if-present test
+          npm run test
 
       # Docker stuff begins here
       - name: Set up QEMU
