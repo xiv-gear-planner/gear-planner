@@ -1,9 +1,16 @@
 import * as process from "process";
-import {buildServerInstance} from "./server_builder";
 import {setServerOverride} from "@xivgear/core/external/shortlink_server";
-import {setFrontendServer} from "./frontend_file_server";
+import {setFrontendClient, setFrontendServer} from "./frontend_file_server";
+import {buildPreviewServer, buildStatsServer} from "./server_builder";
+import {FastifyInstance} from "fastify";
 
-const fastify = buildServerInstance();
+let fastify: FastifyInstance;
+if (process.env.IS_PREVIEW_SERVER === 'true') {
+    fastify = buildPreviewServer();
+}
+else {
+    fastify = buildStatsServer();
+}
 
 const backendOverride = process.env.SHORTLINK_SERVER;
 if (backendOverride) {
@@ -11,10 +18,16 @@ if (backendOverride) {
     setServerOverride(backendOverride);
 }
 
-const frontendOverride = process.env.FRONTEND_SERVER;
-if (frontendOverride) {
-    console.log(`Frontend server override: '${frontendOverride}';`);
-    setFrontendServer(frontendOverride);
+const frontendServerOverride = process.env.FRONTEND_SERVER;
+if (frontendServerOverride) {
+    console.log(`Frontend server override: '${frontendServerOverride}';`);
+    setFrontendServer(frontendServerOverride);
+}
+
+const frontendClientOverride = process.env.FRONTEND_CLIENT;
+if (frontendClientOverride) {
+    console.log(`Frontend client override: '${frontendClientOverride}';`);
+    setFrontendClient(frontendClientOverride);
 }
 
 fastify.listen({

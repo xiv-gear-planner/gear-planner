@@ -17,7 +17,7 @@ import {
 } from "@xivgear/core/nav/common_nav";
 import {nonCachedFetch} from "./polyfills";
 import fastifyWebResponse from "fastify-web-response";
-import {getFrontendServer} from "./frontend_file_server";
+import {getFrontendPath, getFrontendServer} from "./frontend_file_server";
 
 let initDone = false;
 
@@ -50,7 +50,7 @@ async function importExportSheet(request: FastifyRequest, exported: object): Pro
     return sheet.exportSheet(true, true);
 }
 
-export function buildServerInstance() {
+function buildServerBase() {
 
     checkInit();
 
@@ -69,6 +69,13 @@ export function buildServerInstance() {
         return 'up';
     });
 
+    return fastifyInstance;
+}
+
+export function buildStatsServer() {
+
+    const fastifyInstance = buildServerBase();
+
     // TODO: write something like this but using the new generic pathing logic
     fastifyInstance.get('/fulldata/:uuid', async (request: FastifyRequest, reply) => {
         const rawData = await getShortLink(request.params['uuid'] as string);
@@ -79,9 +86,14 @@ export function buildServerInstance() {
         const rawData = await getBisSheet(request.params['job'] as JobName, request.params['expac'] as string, request.params['sheet'] as string);
         return importExportSheet(request, JSON.parse(rawData));
     });
+    return fastifyInstance;
+}
+
+export function buildPreviewServer() {
+
+    const fastifyInstance = buildServerBase();
 
     const parser = new DOMParser();
-
 
     fastifyInstance.register(fastifyWebResponse);
     fastifyInstance.get('/preview', async (request: FastifyRequest, reply) => {
@@ -112,12 +124,12 @@ export function buildServerInstance() {
         const pathPaths = path.split(PATH_SEPARATOR);
         const nav = parsePath(pathPaths);
         request.log.info(pathPaths, 'Path');
-        const baseUrl = getFrontendServer();
-        const responsePromise = nonCachedFetch(baseUrl + '/index.html', undefined);
+        const serverUrl = getFrontendServer();
+        const clientUrl = getFrontendPath();
+        const responsePromise = nonCachedFetch(serverUrl + '/index.html', undefined);
         try {
             const exported: object | null = await resolveNav(nav);
             if (exported !== null) {
-                // TODO: this is way more than we need. It really only needs the name/desc
                 const name = exported['name'] || DEFAULT_NAME;
                 const desc = exported['description'] || DEFAULT_DESC;
                 const url = request.url;

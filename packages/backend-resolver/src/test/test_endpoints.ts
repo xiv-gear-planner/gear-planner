@@ -1,19 +1,19 @@
 import '../polyfills';
 import assert from "assert";
-import {buildServerInstance} from "../server_builder";
+import {buildPreviewServer, buildStatsServer} from "../server_builder";
 import {SheetStatsExport} from "@xivgear/xivmath/geartypes";
 import {BIS_HASH, SHORTLINK_HASH} from "@xivgear/core/nav/common_nav";
 
 describe("backend stat resolver server", () => {
-    const fastify = buildServerInstance();
-    it("responds to health check", async () => {
-        const response = await fastify.inject({
-            method: 'GET',
-            url: '/healthcheck'
-        });
-        assert.equal(response.statusCode, 200);
-    });
     describe("set fulldata endpoint", () => {
+        const fastify = buildStatsServer();
+        it("responds to health check", async () => {
+            const response = await fastify.inject({
+                method: 'GET',
+                url: '/healthcheck'
+            });
+            assert.equal(response.statusCode, 200);
+        });
         it("can serve correct data", async () => {
             const response = await fastify.inject({
                 method: 'GET',
@@ -76,6 +76,7 @@ describe("backend stat resolver server", () => {
         }).timeout(30_000);
     });
     describe("preview endpoint", () => {
+        const fastify = buildPreviewServer();
         const parser = new DOMParser();
         it("resolves shortlink", async () => {
             const response = await fastify.inject({
