@@ -14,21 +14,33 @@ else {
     fastify = buildStatsServer();
 }
 
+function validateUrl(url: string, description: string) {
+    try {
+        new URL(url);
+    }
+    catch (e) {
+        console.error(`Not a valid ${description} URL: '${url}'`, url, e);
+    }
+}
+
 const backendOverride = process.env.SHORTLINK_SERVER;
 if (backendOverride) {
     console.log(`Shortlink server override: '${backendOverride}'`);
+    validateUrl(backendOverride, 'shortlink');
     setServerOverride(backendOverride);
 }
 
 const frontendServerOverride = process.env.FRONTEND_SERVER;
 if (frontendServerOverride) {
     console.log(`Frontend server override: '${frontendServerOverride}';`);
+    validateUrl(frontendServerOverride, 'frontend server');
     setFrontendServer(frontendServerOverride);
 }
 
 const frontendClientOverride = process.env.FRONTEND_CLIENT;
 if (frontendClientOverride) {
     console.log(`Frontend client override: '${frontendClientOverride}';`);
+    validateUrl(frontendClientOverride, 'frontend client');
     setFrontendClient(frontendClientOverride);
 }
 
