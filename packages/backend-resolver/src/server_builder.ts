@@ -17,6 +17,7 @@ import {
 } from "@xivgear/core/nav/common_nav";
 import {nonCachedFetch} from "./polyfills";
 import fastifyWebResponse from "fastify-web-response";
+import {getFrontendServer} from "./frontend_file_server";
 
 let initDone = false;
 
@@ -111,15 +112,14 @@ export function buildServerInstance() {
         const pathPaths = path.split(PATH_SEPARATOR);
         const nav = parsePath(pathPaths);
         request.log.info(pathPaths, 'Path');
-        // TODO: parameterize URL
-        const baseUrl = 'https://xivgear.app/';
+        const baseUrl = getFrontendServer();
         const responsePromise = nonCachedFetch(baseUrl + '/index.html', undefined);
         try {
             const exported: object | null = await resolveNav(nav);
             if (exported !== null) {
-                const parsed = await importExportSheet(request, exported);
-                const name = parsed.name || DEFAULT_NAME;
-                const desc = parsed.description || DEFAULT_DESC;
+                // TODO: this is way more than we need. It really only needs the name/desc
+                const name = exported['name'] || DEFAULT_NAME;
+                const desc = exported['description'] || DEFAULT_DESC;
                 const url = request.url;
                 const text: string = await (await responsePromise).text();
                 const doc = parser.parseFromString(text, 'text/html');

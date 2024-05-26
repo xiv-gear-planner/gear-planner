@@ -2,10 +2,11 @@ import '../polyfills';
 import assert from "assert";
 import {buildServerInstance} from "../server_builder";
 import {SheetStatsExport} from "@xivgear/xivmath/geartypes";
+import {BIS_HASH, SHORTLINK_HASH} from "@xivgear/core/nav/common_nav";
 
 describe("backend stat resolver server", () => {
+    const fastify = buildServerInstance();
     it("responds to health check", async () => {
-        const fastify = buildServerInstance();
         const response = await fastify.inject({
             method: 'GET',
             url: '/healthcheck'
@@ -13,9 +14,7 @@ describe("backend stat resolver server", () => {
         assert.equal(response.statusCode, 200);
     });
     describe("set fulldata endpoint", () => {
-
         it("can serve correct data", async () => {
-            const fastify = buildServerInstance();
             const response = await fastify.inject({
                 method: 'GET',
                 url: '/fulldata/f9b260a9-650c-445a-b3eb-c56d8d968501'
@@ -36,7 +35,6 @@ describe("backend stat resolver server", () => {
             assert.equal(stats.mind, 3374);
         }).timeout(30_000);
         it("can serve correct data with party size 0", async () => {
-            const fastify = buildServerInstance();
             const response = await fastify.inject({
                 method: 'GET',
                 url: '/fulldata/f9b260a9-650c-445a-b3eb-c56d8d968501?partyBonus=0'
@@ -57,7 +55,6 @@ describe("backend stat resolver server", () => {
             assert.equal(stats.mind, 3374);
         }).timeout(30_000);
         it("can serve correct data with party size 5", async () => {
-            const fastify = buildServerInstance();
             const response = await fastify.inject({
                 method: 'GET',
                 url: '/fulldata/f9b260a9-650c-445a-b3eb-c56d8d968501?partyBonus=5'
@@ -76,6 +73,45 @@ describe("backend stat resolver server", () => {
             const stats = firstSet.computedStats;
             assert.equal(stats.mind, 3542);
             assert.equal(stats.hp, 78455);
+        }).timeout(30_000);
+    });
+    describe("preview endpoint", () => {
+        const parser = new DOMParser();
+        it("resolves shortlink", async () => {
+            const response = await fastify.inject({
+                method: 'GET',
+                url: `/preview?page=${SHORTLINK_HASH}|f9b260a9-650c-445a-b3eb-c56d8d968501`
+            });
+            assert.equal(response.statusCode, 200);
+            const parsed = parser.parseFromString(response.body, 'text/html');
+            assert.equal(parsed.querySelector('title').textContent, 'WHM 6.4 copy - XivGear - FFXIV Gear Planner');
+        }).timeout(30_000);
+        it("resolves shortlink with trailing slash", async () => {
+            const response = await fastify.inject({
+                method: 'GET',
+                url: `/preview/?page=${SHORTLINK_HASH}|f9b260a9-650c-445a-b3eb-c56d8d968501`
+            });
+            assert.equal(response.statusCode, 200);
+            const parsed = parser.parseFromString(response.body, 'text/html');
+            assert.equal(parsed.querySelector('title').textContent, 'WHM 6.4 copy - XivGear - FFXIV Gear Planner');
+        }).timeout(30_000);
+        it("resolves bis link", async () => {
+            const response = await fastify.inject({
+                method: 'GET',
+                url: `/preview?page=${BIS_HASH}|sge|endwalker|anabaseios`
+            });
+            assert.equal(response.statusCode, 200);
+            const parsed = parser.parseFromString(response.body, 'text/html');
+            assert.equal(parsed.querySelector('title').textContent, '6.55 Savage SGE BiS - XivGear - FFXIV Gear Planner');
+        }).timeout(30_000);
+        it("resolves bis link with trailing slash", async () => {
+            const response = await fastify.inject({
+                method: 'GET',
+                url: `/preview?page=${BIS_HASH}|sge|endwalker|anabaseios`
+            });
+            assert.equal(response.statusCode, 200);
+            const parsed = parser.parseFromString(response.body, 'text/html');
+            assert.equal(parsed.querySelector('title').textContent, '6.55 Savage SGE BiS - XivGear - FFXIV Gear Planner');
         }).timeout(30_000);
     });
 });
