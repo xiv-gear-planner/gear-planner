@@ -6,9 +6,11 @@ import {FastifyInstance} from "fastify";
 
 let fastify: FastifyInstance;
 if (process.env.IS_PREVIEW_SERVER === 'true') {
+    console.log('Building preview server');
     fastify = buildPreviewServer();
 }
 else {
+    console.log('Building stats server');
     fastify = buildStatsServer();
 }
 
