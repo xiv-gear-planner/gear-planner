@@ -96,7 +96,7 @@ export function buildPreviewServer() {
     const parser = new DOMParser();
 
     fastifyInstance.register(fastifyWebResponse);
-    fastifyInstance.get('/preview', async (request: FastifyRequest, reply) => {
+    fastifyInstance.get('/', async (request: FastifyRequest, reply) => {
 
         async function resolveNav(nav: NavPath): Promise<object | null> {
             try {

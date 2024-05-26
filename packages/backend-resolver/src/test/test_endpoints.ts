@@ -81,7 +81,7 @@ describe("backend stat resolver server", () => {
         it("resolves shortlink", async () => {
             const response = await fastify.inject({
                 method: 'GET',
-                url: `/preview?page=${SHORTLINK_HASH}|f9b260a9-650c-445a-b3eb-c56d8d968501`
+                url: `/?page=${SHORTLINK_HASH}|f9b260a9-650c-445a-b3eb-c56d8d968501`
             });
             assert.equal(response.statusCode, 200);
             const parsed = parser.parseFromString(response.body, 'text/html');
@@ -90,7 +90,7 @@ describe("backend stat resolver server", () => {
         it("resolves shortlink with trailing slash", async () => {
             const response = await fastify.inject({
                 method: 'GET',
-                url: `/preview/?page=${SHORTLINK_HASH}|f9b260a9-650c-445a-b3eb-c56d8d968501`
+                url: `/?page=${SHORTLINK_HASH}|f9b260a9-650c-445a-b3eb-c56d8d968501`
             });
             assert.equal(response.statusCode, 200);
             const parsed = parser.parseFromString(response.body, 'text/html');
@@ -99,7 +99,7 @@ describe("backend stat resolver server", () => {
         it("resolves bis link", async () => {
             const response = await fastify.inject({
                 method: 'GET',
-                url: `/preview?page=${BIS_HASH}|sge|endwalker|anabaseios`
+                url: `/?page=${BIS_HASH}|sge|endwalker|anabaseios`
             });
             assert.equal(response.statusCode, 200);
             const parsed = parser.parseFromString(response.body, 'text/html');
@@ -108,7 +108,7 @@ describe("backend stat resolver server", () => {
         it("resolves bis link with trailing slash", async () => {
             const response = await fastify.inject({
                 method: 'GET',
-                url: `/preview?page=${BIS_HASH}|sge|endwalker|anabaseios`
+                url: `/?page=${BIS_HASH}|sge|endwalker|anabaseios`
             });
             assert.equal(response.statusCode, 200);
             const parsed = parser.parseFromString(response.body, 'text/html');
