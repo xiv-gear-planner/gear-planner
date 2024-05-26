@@ -17,7 +17,7 @@ import {
 } from "@xivgear/core/nav/common_nav";
 import {nonCachedFetch} from "./polyfills";
 import fastifyWebResponse from "fastify-web-response";
-import {getFrontendPath, getFrontendServer} from "./frontend_file_server";
+import {getFrontendServer} from "./frontend_file_server";
 
 let initDone = false;
 
