@@ -17,7 +17,7 @@ import {
 } from "@xivgear/core/nav/common_nav";
 import {nonCachedFetch} from "./polyfills";
 import fastifyWebResponse from "fastify-web-response";
-import {getFrontendServer} from "./frontend_file_server";
+import {getFrontendPath, getFrontendServer} from "./frontend_file_server";
 
 let initDone = false;
 
@@ -125,14 +125,14 @@ export function buildPreviewServer() {
         const nav = parsePath(pathPaths);
         request.log.info(pathPaths, 'Path');
         const serverUrl = getFrontendServer();
-        // const clientUrl = getFrontendPath();
+        const clientUrl = getFrontendPath();
         const responsePromise = nonCachedFetch(serverUrl + '/index.html', undefined);
         try {
             const exported: object | null = await resolveNav(nav);
             if (exported !== null) {
                 const name = exported['name'] || DEFAULT_NAME;
                 const desc = exported['description'] || DEFAULT_DESC;
-                const url = request.url;
+                const url: string = new URL(request.url, clientUrl).toString();
                 const text: string = await (await responsePromise).text();
                 const doc = parser.parseFromString(text, 'text/html');
                 const head = doc.head;
