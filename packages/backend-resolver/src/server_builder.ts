@@ -10,7 +10,7 @@ import {JobName, MAX_PARTY_BONUS} from "@xivgear/xivmath/xivconstants";
 import {
     DEFAULT_DESC,
     DEFAULT_NAME,
-    HASH_QUERY_PARAM,
+    HASH_QUERY_PARAM, PREVIEW_MAX_DESC_LENGTH, PREVIEW_MAX_NAME_LENGTH,
     NavPath,
     parsePath,
     PATH_SEPARATOR
@@ -132,11 +132,11 @@ export function buildPreviewServer() {
             if (exported !== null) {
                 let name: string = exported['name'] || "";
                 let desc: string = exported['description'] || "";
-                if (name.length > 40) {
-                    name = name.substring(0, 40) + "…";
+                if (name.length > PREVIEW_MAX_NAME_LENGTH) {
+                    name = name.substring(0, PREVIEW_MAX_NAME_LENGTH) + "…";
                 }
-                if (desc.length > 200) {
-                    desc = desc.substring(0, 200) + "…";
+                if (desc.length > PREVIEW_MAX_DESC_LENGTH) {
+                    desc = desc.substring(0, PREVIEW_MAX_DESC_LENGTH) + "…";
                 }
                 name = name ? (name + " - " + DEFAULT_NAME) : DEFAULT_NAME;
                 desc = desc ? (desc + '\n\n' + DEFAULT_DESC) : DEFAULT_DESC;

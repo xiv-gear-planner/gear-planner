@@ -11,6 +11,8 @@ export const PATH_SEPARATOR = '|';
 export const HASH_QUERY_PARAM = 'page';
 export const DEFAULT_NAME = 'XivGear - FFXIV Gear Planner';
 export const DEFAULT_DESC = 'XivGear is an advanced and easy-to-use FFXIV gear planner/set builder with built-in simulation support.';
+export const PREVIEW_MAX_NAME_LENGTH = 40;
+export const PREVIEW_MAX_DESC_LENGTH = 200;
 
 export type SheetBasePath = {
     embed: boolean,
