@@ -11,7 +11,12 @@ export const PATH_SEPARATOR = '|';
 export const HASH_QUERY_PARAM = 'page';
 export const DEFAULT_NAME = 'XivGear - FFXIV Gear Planner';
 export const DEFAULT_DESC = 'XivGear is an advanced and easy-to-use FFXIV gear planner/set builder with built-in simulation support.';
-export const PREVIEW_MAX_NAME_LENGTH = 40;
+// 60 is the recommended length for an og:title attribute. The default name is appended to this,
+// e.g. "WHM 90 BiS - XivGear - FFXIV Gear Planner", so we need to leave room for the default name to
+// be appended, as well as the " - " in the middle.
+export const PREVIEW_MAX_NAME_LENGTH = 60 - DEFAULT_NAME.length - 3;
+// 200 is well over the recommendation but discord still manages to hold the whole thing which is the
+// important part here.
 export const PREVIEW_MAX_DESC_LENGTH = 200;
 
 export type SheetBasePath = {
