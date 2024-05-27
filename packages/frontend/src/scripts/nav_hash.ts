@@ -203,6 +203,9 @@ export function setHash(...hashParts: string[]) {
     manipulateUrlParams(params => params.set(HASH_QUERY_PARAM, hash));
     // TODO: there are redundant calls to this
     formatTopMenu(expectedHash);
+    if (hashParts.length > 0) {
+        hideWelcomeArea();
+    }
 }
 
 export function getHash(): string[] | undefined {

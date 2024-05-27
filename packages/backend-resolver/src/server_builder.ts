@@ -130,8 +130,17 @@ export function buildPreviewServer() {
         try {
             const exported: object | null = await resolveNav(nav);
             if (exported !== null) {
-                const name = exported['name'] || DEFAULT_NAME;
-                const desc = exported['description'] || DEFAULT_DESC;
+                let name: string = exported['name'] || "";
+                let desc: string = exported['description'] || "";
+                if (name.length > 40) {
+                    name = name.substring(0, 40) + "…";
+                }
+                if (desc.length > 200) {
+                    desc = desc.substring(0, 200) + "…";
+                }
+                name = name ? (name + " - " + DEFAULT_NAME) : DEFAULT_NAME;
+                desc = desc ? (desc + '\n\n' + DEFAULT_DESC) : DEFAULT_DESC;
+
                 const url: string = new URL(request.url, clientUrl).toString();
                 const text: string = await (await responsePromise).text();
                 const doc = parser.parseFromString(text, 'text/html');
@@ -152,7 +161,7 @@ export function buildPreviewServer() {
                 if (name !== DEFAULT_NAME) {
                     head.querySelector('title')?.remove();
                     const newTitle = document.createElement('title');
-                    newTitle.textContent = name + ' - XivGear - FFXIV Gear Planner';
+                    newTitle.textContent = name;
                     head.append(newTitle);
                 }
                 return new Response(doc.documentElement.outerHTML, {
