@@ -56,9 +56,10 @@ export function getCurrentHash() {
  */
 export async function processHashLegacy() {
     const newHash = location.hash;
-    if (splitHashLegacy(newHash).length > 0) {
+    const split = splitHashLegacy(newHash);
+    if (split.length > 0) {
         console.log('processHashLegacy', newHash);
-        manipulateUrlParams(params => params.set(HASH_QUERY_PARAM, newHash));
+        goHash(...split);
         location.hash = "";
     }
 }
