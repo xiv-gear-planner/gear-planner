@@ -1,4 +1,4 @@
-import {arrayEq, getHash, isEmbed, processHash, setHash, splitHash} from "./nav_hash";
+import {arrayEq, getHash, goHash, isEmbed, processHashLegacy, processNav, setHash} from "./nav_hash";
 import {NamedSection} from "./components/section";
 import {NewSheetForm} from "./components/new_sheet_form";
 import {ImportSheetArea} from "./components/import_sheet";
@@ -10,11 +10,17 @@ import {SheetPickerTable} from "./components/saved_sheet_picker";
 import {DISPLAY_SETTINGS} from "./settings/display_settings";
 import {showSettingsModal} from "./settings/settings_modal";
 import {GearPlanSheetGui, GRAPHICAL_SHEET_PROVIDER} from "./components/sheet";
+import {splitPath} from "@xivgear/core/nav/common_nav";
 
 const pageTitle = 'XivGear - FFXIV Gear Planner';
 
 export async function initialLoad() {
-    processHash();
+    if (location.hash) {
+        await processHashLegacy();
+    }
+    else {
+        await processNav();
+    }
     handleWelcomeArea();
 }
 
@@ -52,11 +58,24 @@ export function setMainContent(title: string, ...nodes) {
     setTitle(title);
 }
 
+export function initTopMenu() {
+    topMenuArea.querySelectorAll('a').forEach(link => {
+        const href = link.getAttribute('href');
+        if (href?.startsWith('?page=')) {
+            link.addEventListener('click', e => {
+                e.preventDefault();
+                goHash(...splitPath(href.slice(6)));
+            });
+        }
+    });
+}
+
 export function formatTopMenu(hash: string[]) {
     topMenuArea.querySelectorAll('a').forEach(link => {
         const href = link.getAttribute('href');
-        if (href?.startsWith('#/')) {
-            const expected = splitHash(href);
+        if (href?.startsWith('?page=')) {
+            // TODO: test this
+            const expected = splitPath(href.slice(6));
             console.log(`Expected: ${expected}, actual: ${hash}`);
             if (arrayEq(expected, hash)) {
                 link.classList.add('current-page');
@@ -120,7 +139,7 @@ export async function openExport(exported: (SheetExport | SetExport), changeHash
         openEmbed(sheet);
     }
     else {
-        if (viewOnly) {
+        if (viewOnly || isEmbed()) {
             sheet.setViewOnly();
         }
         // sheet.name = SHARED_SET_NAME;

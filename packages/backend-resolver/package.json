@@ -5,7 +5,7 @@
   "main": "server.js",
   "scripts": {
     "build": "tsc --build",
-    "test": "ts-mocha src/test/**/*.ts"
+    "test": "ts-mocha --parallel=true src/test/**/*.ts"
   },
   "dependencies": {
     "@xivgear/gearplan-frontend": "1.0.0",
@@ -14,7 +14,8 @@
     "isomorphic-fetch": "^3.0.0",
     "jsdom": "^24.0.0",
     "node-fetch-cache": "^4.1.0",
-    "npm-bundle": "^3.0.3"
+    "npm-bundle": "^3.0.3",
+    "fastify-web-response": "^0.1.2"
   },
   "devDependencies": {
     "@types/node": "^20.12.7",

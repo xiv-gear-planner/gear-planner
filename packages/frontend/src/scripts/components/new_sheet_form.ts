@@ -15,7 +15,7 @@ export class NewSheetForm extends HTMLFormElement {
     private readonly tempSettings = {
         ilvlSyncEnabled: false,
         ilvlSync: 650
-    };;
+    };
 
     constructor(sheetOpenCallback: (sheet: GearPlanSheet) => Promise<unknown>) {
         super();

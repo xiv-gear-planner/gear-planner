@@ -3,7 +3,7 @@ import {closeModal} from "../modalcontrol";
 import {putShortLink} from "@xivgear/core/external/shortlink_server";
 import {CharacterGearSet} from "@xivgear/core/gear";
 import {BaseModal} from "./modal";
-import {VIEW_SET_HASH, VIEW_SHEET_HASH} from "@xivgear/core/nav/common_nav";
+import {makeUrl, VIEW_SET_HASH} from "@xivgear/core/nav/common_nav";
 import {GearPlanSheet} from "@xivgear/core/sheet";
 
 const SHEET_EXPORT_OPTIONS = ['Link to Whole Sheet', 'One Link for Each Set', 'Embed URL for Each Set', 'JSON for Whole Sheet'] as const;
@@ -195,7 +195,7 @@ class SheetExportModal extends ExportModal<SheetExportType> {
 
     get previewUrl(): string {
         const exported = this.sheet.exportSheet(true);
-        const url = new URL(`#/${VIEW_SHEET_HASH}/${encodeURIComponent(JSON.stringify(exported))}`, document.location.toString());
+        const url = makeUrl(VIEW_SET_HASH, JSON.stringify(exported));
         return url.toString();
     }
 }
@@ -229,7 +229,7 @@ class SetExportModal extends ExportModal<SetExportType> {
 
     get previewUrl(): string {
         const exported = this.sheet.exportGearSet(this.set, true);
-        const url = new URL(`#/${VIEW_SET_HASH}/${encodeURIComponent(JSON.stringify(exported))}`, document.location.toString());
+        const url = makeUrl(VIEW_SET_HASH, JSON.stringify(exported));
         return url.toString();
     }
 }
