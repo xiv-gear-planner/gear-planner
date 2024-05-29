@@ -1,15 +1,38 @@
 import {SetExport, SheetExport} from "@xivgear/xivmath/geartypes";
 import {JobName} from "@xivgear/xivmath/xivconstants";
 
+/** For loading saved sheets via UUID */
 export const SHORTLINK_HASH = 'sl';
+/** Obsolete */
 export const SHARE_LINK = 'https://share.xivgear.app/share/';
+/** For loading bis sheets */
 export const BIS_HASH = 'bis';
+/** For viewing a sheet via json blob */
 export const VIEW_SHEET_HASH = 'viewsheet';
+/** For viewing an individual set via json blob */
 export const VIEW_SET_HASH = 'viewset';
+/** Prefix for embeds */
 export const EMBED_HASH = 'embed';
+/** Path separator */
 export const PATH_SEPARATOR = '|';
+/** The query param used to represent the path */
 export const HASH_QUERY_PARAM = 'page';
+/**
+ * Special hash value used to indicate that the page should stay with the old-style hash, rather than redirecting
+ * to the new style query parameter.
+ */
+export const NO_REDIR_HASH = 'nore';
+/** Max length before switching to fallback hash method (see {@link NO_REDIR_HASH} */
+export const QUERY_PATH_MAX_LENGTH = 1000;
+/**
+ * Default name, used for social media previews. Used as the sheet name if the sheet has no name, otherwise
+ * it is appended to the actual name.
+ */
 export const DEFAULT_NAME = 'XivGear - FFXIV Gear Planner';
+/**
+ * Default description, used for social media previews. Used as the sheet name if the sheet has no name, otherwise
+ * it is appended to the actual name.
+ */
 export const DEFAULT_DESC = 'XivGear is an advanced and easy-to-use FFXIV gear planner/set builder with built-in simulation support.';
 // 60 is the recommended length for an og:title attribute. The default name is appended to this,
 // e.g. "WHM 90 BiS - XivGear - FFXIV Gear Planner", so we need to leave room for the default name to
@@ -162,14 +185,23 @@ export function parsePath(originalPath: string[]): NavPath | null {
 
 const VERTICAL_BAR_REPLACEMENT = '\u2758';
 
-// TODO: this needs to account for the fact that '|' is a valid character in urls
-// Using '/' previously was fine because it would simply get escaped
 export function makeUrl(...pathParts: string[]): URL {
     const joinedPath = pathParts
         .map(pp => encodeURIComponent(pp))
         .map(pp => pp.replaceAll(PATH_SEPARATOR, VERTICAL_BAR_REPLACEMENT))
         .join(PATH_SEPARATOR);
-    return new URL(`?page=${joinedPath}`, document.location.toString());
+    const currentLocation = document.location;
+    const params = new URLSearchParams(currentLocation.search);
+    if (joinedPath.length > QUERY_PATH_MAX_LENGTH) {
+        const oldStyleHash = [NO_REDIR_HASH, ...pathParts]
+            .map(pp => encodeURIComponent(pp))
+            .map(pp => '/' + pp)
+            .join('');
+        params.delete(HASH_QUERY_PARAM);
+        return new URL(`?${params.toString()}#${oldStyleHash}`, document.location.toString());
+    }
+    params.set(HASH_QUERY_PARAM, joinedPath);
+    return new URL(`?${params.toString()}`, document.location.toString());
 }
 
 /**
