@@ -1,4 +1,11 @@
-import {HASH_QUERY_PARAM, parsePath, PATH_SEPARATOR, splitHashLegacy, splitPath} from "@xivgear/core/nav/common_nav";
+import {
+    HASH_QUERY_PARAM,
+    NO_REDIR_HASH,
+    parsePath,
+    PATH_SEPARATOR,
+    splitHashLegacy,
+    splitPath
+} from "@xivgear/core/nav/common_nav";
 import {earlyEmbedInit} from "./embed";
 import {SetExport, SheetExport} from "@xivgear/xivmath/geartypes";
 import {getShortLink} from "@xivgear/core/external/shortlink_server";
@@ -59,8 +66,15 @@ export async function processHashLegacy() {
     const split = splitHashLegacy(newHash);
     if (split.length > 0) {
         console.log('processHashLegacy', newHash);
-        goHash(...split);
-        location.hash = "";
+        // This path allows certain things such as /viewset/<json> to continue to use the old-style hash, since the
+        // URL query param method causes the whole thing to be too long of a URL for the server to handle.
+        if (split[0] === NO_REDIR_HASH) {
+            await doNav(split.slice(1));
+        }
+        else {
+            goHash(...split);
+            location.hash = "";
+        }
     }
 }
 
@@ -87,7 +101,10 @@ export async function processNav() {
         return;
     }
     expectedHash = pathParts;
+    await doNav(pathParts);
+}
 
+async function doNav(pathParts: string[]) {
     const nav = parsePath(pathParts);
     if (nav === null) {
         console.error('unknown nav', pathParts);
