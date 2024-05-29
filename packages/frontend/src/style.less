@@ -2385,10 +2385,10 @@ loading-blocker {
 }
 
 div#welcome-message {
-  margin: auto;
-  padding-left: 50px;
-  padding-right: 50px;
-  max-width: 600px;
+  width: 600px;
+  .top-level-widget;
+  padding: 10px 50px 0;
+  height: 100%;
 
   button {
     display: block;
@@ -3021,18 +3021,19 @@ gear-set-issues-modal {
     overflow: auto;
   }
 
-  &.invert-input-colors {
-    --button-color: var(--bg-color);
-
-    input, textarea {
-      background-color: var(--bg-color);
-    }
-  }
-
 }
+
+.invert-input-colors {
+   --button-color: var(--bg-color);
+
+   input, textarea {
+     background-color: var(--bg-color);
+   }
+ }
 
 #content-area > .named-section {
   .named-section-standard;
+  .top-level-widget;
 }
 
 #sim-config-area-inner > .named-section {
@@ -3044,8 +3045,18 @@ gear-set-issues-modal {
   }
 }
 
+.top-level-widget {
+  border-radius: 10px;
+  .shadow-big;
+  background-color: var(--table-bg-color);
+  .invert-input-colors;
+  max-width: calc(100% - 50px);
+  margin: 20px auto 20px auto;
+
+}
 
 .sim-basic-result-table {
   .round-table;
   .shadow-big;
 }
+
