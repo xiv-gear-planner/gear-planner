@@ -249,6 +249,11 @@ export interface ComputedSetStats extends RawStats {
     gcdMag(baseGcd: number, haste?: number): number,
 
     /**
+     * Base haste value for a given attack type
+     */
+    haste(attackType: AttackType): number;
+
+    /**
      * Crit chance. Ranges from 0 to 1.
      */
     critChance: number,
@@ -311,6 +316,10 @@ export interface ComputedSetStats extends RawStats {
      * Like wdMulti, but for auto-attacks
      */
     aaMulti: number;
+    /**
+     * Auto-attack delay
+     */
+    aaDelay: number;
 }
 
 export interface MeldableMateriaSlot {

@@ -179,10 +179,28 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
     GNB: STANDARD_TANK,
     // Melee
     DRG: STANDARD_MELEE,
-    MNK: STANDARD_MELEE,
+    MNK: {
+        ...STANDARD_MELEE,
+        traits: [{
+            apply: stats => {
+                stats.haste = attackType => stats.haste(attackType)
+                    + ((attackType === 'Weaponskill'
+                        || attackType === 'Spell'
+                        || attackType === 'Auto-attack')
+                        ? 20 : 0);
+            }
+        }]
+    },
     NIN: {
         ...STANDARD_MELEE,
-        mainStat: "dexterity"
+        mainStat: "dexterity",
+        traits: [{
+            apply: stats => {
+                stats.haste = attackType => stats.haste(attackType)
+                    + ((attackType === 'Weaponskill' || attackType === 'Auto-attack') ? 15 : 0);
+            }
+        }
+        ]
     },
     SAM: STANDARD_MELEE,
     RPR: STANDARD_MELEE,

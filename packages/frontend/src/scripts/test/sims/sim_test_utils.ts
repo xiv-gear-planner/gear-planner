@@ -53,15 +53,15 @@ export function assertSimAbilityResults(result: CycleSimResult | readonly Displa
         else {
             const expected = expectedAbilities[i];
             if (expected.name !== actual.name) {
-                failures.push(`Item ${i} failed: Expected ability '${expected.name}, but it was ${actual.name}`);
+                failures.push(`Item ${i} failed: Expected ability '${expected.name}', but it was '${actual.name}'`);
             }
             if (!isClose(actual.damage, expected.damage, 0.01)) {
                 // Print 3 digits so that roundoff doesn't become an issue.
                 // e.g. 0.507 and 0.519 have a delta > 0.01, but it would round to a delta of exactly 0.01
-                failures.push(`Item ${i} failed: Wrong damage, expected '${expected.damage.toFixed(3)}, but it was ${actual.damage.toFixed(3)}`);
+                failures.push(`Item ${i} failed: Wrong damage, expected ${expected.damage.toFixed(3)}, but it was ${actual.damage.toFixed(3)}`);
             }
             if (!isClose(actual.time, expected.time, 0.0001)) {
-                failures.push(`Item ${i} failed: Expected time '${expected.time.toFixed(5)}, but it was ${actual.time.toFixed(5)}`);
+                failures.push(`Item ${i} failed: Expected time ${expected.time.toFixed(5)}, but it was ${actual.time.toFixed(5)}`);
             }
         }
     }
