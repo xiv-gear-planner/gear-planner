@@ -2,9 +2,6 @@
 // REQUIRED - sets up fake HTML classes
 import 'global-jsdom/register'
 import {describe, it} from "mocha";
-import {assertClose} from "@xivgear/core/test/test_utils";
-import {Divination, Litany, Mug} from "@xivgear/core/sims/buffs";
-import {assertSimAbilityResults, setPartyBuffEnabled, UseResult} from "./sim_test_utils";
 import {assize, dia, exampleGearSet, filler, lily, misery, nop, pom} from "./common_values";
 import * as assert from "assert";
 import {potRatioSimSpec} from "../../sims/common/potency_ratio";
