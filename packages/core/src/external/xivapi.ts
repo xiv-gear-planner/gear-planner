@@ -28,7 +28,7 @@ export type XivApiResponse<RequestType extends XivApiRequest> = {
 
 // export async function xivApiGet<RequestType extends (XivApiListRequest | XivApiSearchRequest)>(request: RequestType | ValidRequest<RequestType>):
 
-export function xivApiFetch(...params: Parameters<typeof fetch>): Promise<Response> {
+export async function xivApiFetch(...params: Parameters<typeof fetch>): Promise<Response> {
     return xFetchInternal(...params);
 }
 
@@ -48,12 +48,12 @@ async function xFetchInternal(...params: Parameters<typeof fetch>): Promise<Resp
     }
 }
 
-export function xivApiSingle(sheet: string, id: number) {
+export async function xivApiSingle(sheet: string, id: number) {
     const query = `https://xivapi.com/${sheet}/${id}`;
     return xivApiFetch(query).then(response => response.json());
 }
 
-export function xivApiSingleCols<Columns extends readonly string[]>(sheet: string, id: number, cols: Columns): Promise<{
+export async function xivApiSingleCols<Columns extends readonly string[]>(sheet: string, id: number, cols: Columns): Promise<{
     [K in Columns[number]]: unknown;
 }> {
     const query = `https://xivapi.com/${sheet}/${id}?Columns=${cols.join(',')}`;
