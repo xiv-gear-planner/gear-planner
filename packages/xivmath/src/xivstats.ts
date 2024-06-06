@@ -1,4 +1,4 @@
-import {AttackType, ComputedSetStats, JobData, LevelStats, PartyBonusAmount, RawStats} from "./geartypes";
+import {ComputedSetStats, JobData, LevelStats, PartyBonusAmount, RawStats} from "./geartypes";
 import {
     autoAttackModifier,
     autoDhBonusDmg,
