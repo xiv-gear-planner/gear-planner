@@ -1062,12 +1062,14 @@ gear-plan {
 
     .gear-sheet-table-holder-outer {
       //margin-top: 10px;
-      background-color: var(--table-bg-color);
+      //background-color: var(--table-bg-color);
       max-height: calc(100%);
       box-sizing: border-box;
       display: flex;
 
       .gear-sheet-table-holder {
+        scrollbar-gutter: stable both-edges;
+        scrollbar-width: thin;
         box-sizing: border-box;
         overflow: auto;
       }
@@ -2807,9 +2809,10 @@ body.modern {
   }
 
   .gear-sheet-table-holder-outer {
-    padding: 10px;
+    padding: 10px 5px;
     border-radius: 10px;
     margin: 5px;
+    background-color: var(--table-bg-color);
     .shadow;
 
     .gear-sheet-table-holder {
