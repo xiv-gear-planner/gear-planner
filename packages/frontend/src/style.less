@@ -2860,6 +2860,7 @@ body.modern {
   .gear-set-editor-toolbar {
     .single-stat-tier-display {
       background-color: color-mix(in srgb, var(--stat-color) 5%, var(--table-bg-color));
+
       &.stat-tiering-perfect {
         background-color: color-mix(in srgb, var(--stat-color) 13%, var(--table-bg-color));
       }
@@ -3027,12 +3028,12 @@ gear-set-issues-modal {
 }
 
 .invert-input-colors {
-   --button-color: var(--bg-color);
+  --button-color: var(--bg-color);
 
-   input, textarea {
-     background-color: var(--bg-color);
-   }
- }
+  input, textarea {
+    background-color: var(--bg-color);
+  }
+}
 
 #content-area > .named-section {
   .named-section-standard;
@@ -3063,3 +3064,36 @@ gear-set-issues-modal {
   .shadow-big;
 }
 
+.formula-top-level {
+  .named-section-standard;
+  .invert-input-colors;
+}
+
+math-area {
+  .formula-selector-area {
+    button {
+      margin: 3px;
+
+      &.active {
+        background-color: var(--button-hover-color);
+      }
+    }
+  }
+
+  .settings-area {
+    .generic-settings-area, .specific-settings-area {
+      .vertical-labeled-input {
+        padding: 10px;
+        display: inline-block;
+
+        input {
+          width: 100px;
+        }
+
+        > * {
+          display: block;
+        }
+      }
+    }
+  }
+}

@@ -384,6 +384,14 @@ export const positiveValuesOnly = (ctx: PostValidationContext<never, number>) =>
     }
 };
 
+export function clampValues(min: number, max: number): (ctx: PostValidationContext<never, number>) => void {
+    return (ctx: PostValidationContext<never, number>) => {
+        if (ctx.newValue < min || ctx.newValue > max) {
+            ctx.failValidation(`Value must be between ${min} and ${max}`);
+        }
+    }
+}
+
 export class FieldBoundTextField<ObjType> extends FieldBoundConvertingTextField<ObjType, string> {
     constructor(obj: ObjType, field: { [K in keyof ObjType]: ObjType[K] extends string ? K : never }[keyof ObjType], extraArgs: FbctArgs<ObjType, string> = {}) {
         super(obj, field, (s) => s, (s) => s, extraArgs);

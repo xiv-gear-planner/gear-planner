@@ -21,6 +21,7 @@ import {
     showLoadingScreen, showNewSheetForm,
     showSheetPickerMenu
 } from "./base_ui";
+import {openMath} from "./mathpage/math_main";
 
 let expectedHash: string[] | undefined = undefined;
 
@@ -174,6 +175,10 @@ async function doNav(pathParts: string[]) {
             const errMsg = document.createElement('h1');
             errMsg.textContent = 'Error Loading Sheet/Set';
             setMainContent('Error', errMsg);
+            return;
+        }
+        case "math": {
+            openMath(nav.formula);
             return;
         }
     }
