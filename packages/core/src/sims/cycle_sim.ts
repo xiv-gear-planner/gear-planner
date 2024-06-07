@@ -1,12 +1,21 @@
 import {
-    Ability, AutoAttack,
-    Buff, BuffController,
+    Ability,
+    AutoAttack,
+    Buff,
+    BuffController,
     CombinedBuffEffect,
-    ComboData, ComboKey, Cooldown,
-    DamageResult, FinalizedAbility,
-    GcdAbility, OgcdAbility, PartiallyUsedAbility, PartyBuff,
+    ComboData,
+    ComboKey,
+    Cooldown,
+    DamageResult,
+    FinalizedAbility,
+    GcdAbility,
+    OgcdAbility,
+    PartiallyUsedAbility,
+    PartyBuff,
     SimResult,
-    SimSettings, UsedAbility
+    SimSettings,
+    UsedAbility
 } from "./sim_types";
 import {ComputedSetStats} from "@xivgear/xivmath/geartypes";
 import {
@@ -219,6 +228,7 @@ export class CycleProcessor {
     private firstCycleStartTime: number = 0;
     private readonly cycles: CycleInfo[] = [];
     private readonly comboTrackerMap: Map<ComboKey, ComboTracker>;
+    private readonly aaAbility: AutoAttack;
 
     constructor(private settings: MultiCycleSettings) {
         // TODO: set enforcement mode
@@ -230,6 +240,12 @@ export class CycleProcessor {
         this.manuallyActivatedBuffs = settings.manuallyActivatedBuffs ?? [];
         this.useAutos = settings.useAutos;
         this.comboTrackerMap = new Map();
+        this.aaAbility = {
+            attackType: 'Auto-attack',
+            type: 'autoattack',
+            name: 'Auto Attack',
+            potency: this.stats.jobStats.aaPotency
+        };
     }
 
     get cdEnforcementMode(): CooldownMode {
@@ -408,6 +424,18 @@ export class CycleProcessor {
         return ability.type === 'gcd';
     }
 
+    private getCombinedEffectsFor(ability: Ability): {
+        buffs: ReturnType<typeof this.getActiveBuffs>,
+        combinedEffects: ReturnType<typeof combineBuffEffects>,
+    } {
+        const active = this.getActiveBuffsFor(ability);
+        const combined = combineBuffEffects(active);
+        return {
+            'buffs': active,
+            'combinedEffects': combined
+        }
+    }
+
     use(ability: Ability): AbilityUseResult {
         // noinspection AssignmentToFunctionParameterJS
         ability = this.processCombo(ability);
@@ -440,8 +468,9 @@ export class CycleProcessor {
         }
         // We need to calculate our buff set twice. The first is because buffs may affect the cast and/or recast time.
         const gcdStartsAt = this.currentTime;
-        const preBuffs = this.getActiveBuffsFor(ability);
-        const preCombinedEffects: CombinedBuffEffect = combineBuffEffects(preBuffs);
+        const pre = this.getCombinedEffectsFor(ability);
+        const preBuffs = pre.buffs;
+        const preCombinedEffects: CombinedBuffEffect = pre.combinedEffects;
         // noinspection AssignmentToFunctionParameterJS
         ability = this.beforeAbility(ability, preBuffs);
         const abilityGcd = isGcd ? (this.gcdTime(ability as GcdAbility, preCombinedEffects.haste)) : 0;
@@ -456,8 +485,10 @@ export class CycleProcessor {
         const effectiveAnimLock = effectiveCastTime ? Math.max(effectiveCastTime + CASTER_TAX, animLock) : animLock;
         const animLockFinishedAt = this.currentTime + effectiveAnimLock;
         this.advanceTo(snapshotsAt, true);
-        const buffs = this.getActiveBuffsFor(ability);
-        const combinedEffects: CombinedBuffEffect = combineBuffEffects(buffs);
+        const {
+            buffs,
+            combinedEffects
+        } = this.getCombinedEffectsFor(ability);
         // noinspection AssignmentToFunctionParameterJS
         ability = this.beforeSnapshot(ability, buffs);
         // Enough time for entire GCD
@@ -526,10 +557,6 @@ export class CycleProcessor {
         }
     }
 
-    get aaDelay(): number {
-        return this.stats.weaponDelay;
-    }
-
     advanceTo(advanceTo: number, pauseAutos: boolean = false) {
         const delta = advanceTo - this.currentTime;
         if (delta < 0) {
@@ -557,29 +584,27 @@ export class CycleProcessor {
     }
 
     private recordAutoAttack() {
-        const aaAbility: AutoAttack = {
-            attackType: 'Auto-attack',
-            type: 'autoattack',
-            name: 'Auto Attack',
-            potency: this.stats.jobStats.aaPotency
-        };
-        const buffs = this.getActiveBuffsFor(aaAbility);
-        const dmgInfo = abilityToDamageNew(this.stats, aaAbility, combineBuffEffects(buffs));
-        const delay = AUTOATTACK_APPLICATION_DELAY;
+        const {
+            buffs,
+            combinedEffects
+        } = this.getCombinedEffectsFor(this.aaAbility);
+        const dmgInfo = abilityToDamageNew(this.stats, this.aaAbility, combinedEffects);
+        const appDelay = AUTOATTACK_APPLICATION_DELAY;
         this.addAbilityUse({
             usedAt: this.currentTime,
-            ability: aaAbility,
+            ability: this.aaAbility,
             directDamage: dmgInfo.directDamage,
             buffs: buffs,
-            combinedEffects: combineBuffEffects(buffs),
+            combinedEffects: combinedEffects,
             totalTimeTaken: 0,
-            appDelay: delay,
-            appDelayFromStart: delay,
+            appDelay: appDelay,
+            appDelayFromStart: appDelay,
             castTimeFromStart: 0,
             snapshotTimeFromStart: 0,
             lockTime: 0
         });
-        this.nextAutoAttackTime = this.currentTime + this.aaDelay;
+        const aaDelay = this.stats.aaDelay * (100 - this.stats.haste('Auto-attack') - combinedEffects.haste) / 100;
+        this.nextAutoAttackTime = this.currentTime + aaDelay;
     }
 
     useGcd(ability: GcdAbility): AbilityUseResult {
@@ -681,16 +706,18 @@ export class CycleProcessor {
         });
     }
 
-    castTime(ability: Ability, haste: number): number {
+    castTime(ability: Ability, hasteFromBuffs: number): number {
         const base = ability.cast;
+        const haste = hasteFromBuffs + this.stats.haste(ability.attackType);
         return ability.fixedGcd ? base :
             (ability.attackType == "Spell") ?
                 (this.stats.gcdMag(base ?? this.gcdBase, haste)) :
                 (this.stats.gcdPhys(base ?? this.gcdBase, haste));
     }
 
-    gcdTime(ability: GcdAbility, haste: number): number {
+    gcdTime(ability: GcdAbility, hasteFromBuffs: number): number {
         const base = ability.gcd;
+        const haste = hasteFromBuffs + this.stats.haste(ability.attackType);
         return ability.fixedGcd ? base :
             (ability.attackType == "Spell") ?
                 (this.stats.gcdMag(base ?? this.gcdBase, haste)) :
