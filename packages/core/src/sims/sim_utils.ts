@@ -1,7 +1,7 @@
 import {ComputedSetStats} from "@xivgear/xivmath/geartypes";
 import {Ability, Buff, CombinedBuffEffect, ComputedDamage, DamageResult, DamagingAbility} from "./sim_types";
 import {applyDhCritFull, baseDamageFull} from "@xivgear/xivmath/xivmath";
-import {multiplyFixed, multiplyValues} from "@xivgear/xivmath/deviation";
+import {multiplyFixed} from "@xivgear/xivmath/deviation";
 
 function dotPotencyToDamage(stats: ComputedSetStats, potency: number, dmgAbility: DamagingAbility, combinedBuffEffects: CombinedBuffEffect): ComputedDamage {
     const modifiedStats = {...stats};

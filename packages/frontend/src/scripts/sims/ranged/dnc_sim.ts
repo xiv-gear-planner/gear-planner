@@ -162,6 +162,7 @@ const auto: AutoAttack = {
     attackType: 'Auto-attack'
 } as const satisfies AutoAttack;
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const standardStep: GcdAbility = {
     name: 'Standard Step',
     type: 'gcd',
@@ -170,6 +171,7 @@ const standardStep: GcdAbility = {
     gcd: 1.50
 } as const satisfies GcdAbility;
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const techStep: GcdAbility = {
     name: 'Technical Step',
     type: 'gcd',
@@ -178,6 +180,7 @@ const techStep: GcdAbility = {
     gcd: 1.50
 } as const satisfies GcdAbility;
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const stepsAction: GcdAbility = {
     name: 'Steps',
     type: 'gcd',
