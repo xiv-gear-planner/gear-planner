@@ -28,10 +28,7 @@ function potencyToDamage(stats: ComputedSetStats, potency: number, dmgAbility: D
         critChance: forceCrit ? 1 : modifiedStats.critChance,
         dhitChance: forceDhit ? 1 : modifiedStats.dhitChance,
     });
-    return multiplyValues(afterCritDh, {
-        expected: combinedBuffEffects.dmgMod,
-        stdDev: 0
-    });
+    return multiplyFixed(afterCritDh, combinedBuffEffects.dmgMod);
 }
 
 export function abilityToDamageNew(stats: ComputedSetStats, ability: Ability, combinedBuffEffects: CombinedBuffEffect): DamageResult {

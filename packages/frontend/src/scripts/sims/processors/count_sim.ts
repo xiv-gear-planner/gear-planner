@@ -185,7 +185,7 @@ export abstract class BaseUsageCountSim<ResultType extends CountSimResult, Inter
             mainDpsResult: applyStdDev(dps, this.resultSettings.stdDevs ?? 0),
             totalDamage: totalDamage,
             unbuffedPps: pps,
-            buffBuckets: resultBuckets
+            buffBuckets: resultBuckets,
         } satisfies CountSimResult as unknown as ResultType;
     }
 
@@ -211,7 +211,9 @@ export abstract class BaseUsageCountSim<ResultType extends CountSimResult, Inter
             "Expected +1σ": applyStdDev(result.mainDpsFull, 1),
             "Expected +2σ": applyStdDev(result.mainDpsFull, 2),
             "Expected +3σ": applyStdDev(result.mainDpsFull, 3),
-            "Unbuffed PPS": result.unbuffedPps
+            "Unbuffed PPS": result.unbuffedPps,
+            "Total Damage": result.totalDamage.expected,
+            "Cycle Time": result.cycleTime.toFixed(3)
         });
         mainResultsTable.classList.add('main-results-table');
 

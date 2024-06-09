@@ -1,6 +1,7 @@
 import {AutoAttack, GcdAbility, OgcdAbility, SimSpec} from "@xivgear/core/sims/sim_types";
 import {CharacterGearSet} from "@xivgear/core/gear";
 import {BaseUsageCountSim, CountSimResult, ExternalCountSettings, SkillCount} from "../processors/count_sim";
+import {TechnicalFinish} from "@xivgear/core/sims/buffs";
 
 export const dncDtSheetSpec: SimSpec<DncDtSim, DncDtSimSettings> = {
     displayName: "DNC Level 100 Sim",
@@ -70,7 +71,9 @@ const starfall: GcdAbility = {
     type: 'gcd',
     potency: 600,
     attackType: 'Weaponskill',
-    gcd: 2.50
+    gcd: 2.50,
+    autoCrit: true,
+    autoDh: true
 } as const satisfies GcdAbility;
 
 const standardFinish: GcdAbility = {
@@ -86,7 +89,8 @@ const techFinish: GcdAbility = {
     type: 'gcd',
     potency: 1200,
     attackType: 'Weaponskill',
-    gcd: 1.50
+    gcd: 1.50,
+    activatesBuffs: [TechnicalFinish]
 } as const satisfies GcdAbility;
 
 const tillana: GcdAbility = {
@@ -154,7 +158,7 @@ const danceOfTheDawn: GcdAbility = {
 const auto: AutoAttack = {
     name: 'Auto Attack',
     type: 'autoattack',
-    potency: 93.6,
+    potency: 90,
     attackType: 'Auto-attack'
 } as const satisfies AutoAttack;
 
@@ -227,19 +231,155 @@ export class DncDtSim extends BaseUsageCountSim<DncDtSimResults, DncDtSimSetting
      * @param buffDuration
      */
     skillsInBuffDuration(set: CharacterGearSet, buffDuration: number | null): SkillCount[] {
-        const gcd = set.computedStats.gcdPhys(2.5);
+
+        // TODO
+        const Esprit = 420;
+        const Esprit_TF = 115;
+
+        // Copied from google doc
+        const SaberTotal = (Esprit / 50) - 1;
+        const Saber20 = ((65 + Esprit_TF * 18.5 / 20) / 50 - 1);
+        const Saber15 = Saber20 / 2;
+        const Saber30 = 4 / 31 * (SaberTotal - Saber20) + Saber20;
+
+        const CascadeTotal = (35 - SaberTotal) / 3;
+        const Cascade20 = ((4 - Saber20) < 2 ? 0 : 1 / 3 * (2 - Saber20));
+        const Cascade15 = 1 / 2 * Cascade20;
+        const Cascade30 = 4 / 31 * (CascadeTotal - Cascade20) + Cascade20;
+
+        const FountainTotal = (35 - SaberTotal) / 3;
+        const Fountain20 = ((4 - Saber20) < 2 ? 0 : 1 / 3 * (2 - Saber20));
+        const Fountain15 = 1 / 2 * Fountain20;
+        const Fountain30 = 4 / 31 * (FountainTotal - Fountain20) + Fountain20;
+
+        const FountainfallTotal = (FountainTotal / 2) + 2;
+        const Fountainfall20 = 4 - Saber20 > 2 ? 1 + 1 / 6 * (5 - Saber20) : (4 - Saber20) > 1 ? 1 : 1 / 6 * (5 - Saber20);
+        const Fountainfall15 = 1 / 2 * Fountainfall20;
+        const Fountainfall30 = 4 / 31 * (FountainfallTotal - Fountainfall20) + Fountainfall20;
+
+        const ReverseCascadeTotal = (CascadeTotal / 2) + 2;
+        const ReverseCascade20 = ((4 - Saber20) > 2 ? 1 + 1 / 6 * (5 - Saber20) : (4 - Saber20 - Fountainfall20));
+        const ReverseCascade15 = 1 / 2 * ReverseCascade20;
+        const ReverseCascade30 = 4 / 31 * (ReverseCascadeTotal - ReverseCascade20) + ReverseCascade20;
+
+        const StandardFinishTotal = 0;
+        const StandardFinish15 = 0;
+        const StandardFinish20 = 0;
+        const StandardFinish30 = 0;
+
+        const TillanaTotal = 1;
+        const Tillana15 = 0;
+        const Tillana20 = 1;
+        const Tillana30 = 1;
+
+        const FanDanceTotal = (ReverseCascadeTotal + FountainfallTotal) / 2;
+        const FanDance20 = 3 + (ReverseCascade20 + Fountainfall20) / 2;
+        const FanDance15 = 3 / 4 * FanDance20;
+        const FanDance30 = 4 / 31 * (FanDanceTotal - FanDance20) + FanDance20;
+
+        const FanDanceIIITotal = FanDanceTotal / 2 + 2;
+        const FanDanceIII15 = FanDance15 / 2 + 1;
+        const FanDanceIII20 = FanDance20 / 2 + 1;
+        const FanDanceIII30 = 4 / 31 * (FanDanceIIITotal - FanDanceIII20) + FanDanceIII20;
+
+        const FanDanceIVTotal = 2;
+        const FanDanceIV15 = 1;
+        const FanDanceIV20 = 1;
+        const FanDanceIV30 = 1;
+
+        const FinishingMoveTotal = 2;
+        const FinishingMove15 = 1;
+        const FinishingMove20 = 1;
+        const FinishingMove30 = 1;
+
+        const LastDanceTotal = 2;
+        const LastDance15 = 1;
+        const LastDance20 = 1;
+        const LastDance30 = 1;
+
+        const FullCycleTime = this.totalCycleTime(set);
+
+        const common: SkillCount[] = [
+            [danceOfTheDawn, 1],
+            [techFinish, 1],
+            [starfall, 1],
+
+        ];
+        let result: SkillCount[] = [];
         // Totals, regardless of buffs
         if (buffDuration === null) {
-            return [[cascade, 3.6 / gcd], [fountain, 3.6 / gcd]]
+            result = [
+                [saberDance, SaberTotal],
+                [cascade, CascadeTotal],
+                [fountain, FountainTotal],
+                [reverseCascade, ReverseCascadeTotal],
+                [fountainFall, FountainfallTotal],
+                [standardFinish, StandardFinishTotal],
+                [tillana, TillanaTotal],
+                [fanDance, FanDanceTotal],
+                [fd3, FanDanceIIITotal],
+                [fd4, FanDanceIVTotal],
+                [finishingMove, FinishingMoveTotal],
+                [lastDance, LastDanceTotal],
+            ]
+        }
+        // In buffs of at least 30 seconds
+        else if (buffDuration >= 30) {
+            result = [
+                [saberDance, Saber30],
+                [cascade, Cascade30],
+                [fountain, Fountain30],
+                [reverseCascade, ReverseCascade30],
+                [fountainFall, Fountainfall30],
+                [standardFinish, StandardFinish30],
+                [tillana, Tillana30],
+                [fanDance, FanDance30],
+                [fd3, FanDanceIII30],
+                [fd4, FanDanceIV30],
+                [finishingMove, FinishingMove30],
+                [lastDance, LastDance30],
+            ]
         }
         // In buffs of at least 20 seconds
         else if (buffDuration >= 20) {
-            return [[cascade, 0.5 / gcd], [fountain, 0.5 / gcd]]
+            result = [
+                [saberDance, Saber20],
+                [cascade, Cascade20],
+                [fountain, Fountain20],
+                [reverseCascade, ReverseCascade20],
+                [fountainFall, Fountainfall20],
+                [standardFinish, StandardFinish20],
+                [tillana, Tillana20],
+                [fanDance, FanDance20],
+                [fd3, FanDanceIII20],
+                [fd4, FanDanceIV20],
+                [finishingMove, FinishingMove20],
+                [lastDance, LastDance20],
+            ]
         }
-        // etc
+        // In buffs of at least 15 seconds
+        else if (buffDuration >= 15) {
+            result = [
+                [saberDance, Saber15],
+                [cascade, Cascade15],
+                [fountain, Fountain15],
+                [reverseCascade, ReverseCascade15],
+                [fountainFall, Fountainfall15],
+                [standardFinish, StandardFinish15],
+                [tillana, Tillana15],
+                [fanDance, FanDance15],
+                [fd3, FanDanceIII15],
+                [fd4, FanDanceIV15],
+                [finishingMove, FinishingMove15],
+                [lastDance, LastDance15],
+            ]
+        }
         else {
             return []
         }
+        result.push(...common);
+        result.push([auto, (buffDuration ?? FullCycleTime) / 3]);
+        return result;
     }
 
     makeDefaultSettings(): DncDtSimSettings {
