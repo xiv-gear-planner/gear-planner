@@ -51,8 +51,8 @@ export function abilityToDamageNew(stats: ComputedSetStats, ability: Ability, co
 
 }
 
-export function combineBuffEffects(buffs: Buff[]): CombinedBuffEffect {
-    const combinedEffects: CombinedBuffEffect = {
+export function noBuffEffects(): CombinedBuffEffect {
+    return {
         dmgMod: 1,
         critChanceIncrease: 0,
         dhitChanceIncrease: 0,
@@ -60,6 +60,10 @@ export function combineBuffEffects(buffs: Buff[]): CombinedBuffEffect {
         forceDhit: false,
         haste: 0,
     };
+}
+
+export function combineBuffEffects(buffs: Buff[]): CombinedBuffEffect {
+    const combinedEffects: CombinedBuffEffect = noBuffEffects();
     for (const buff of buffs) {
         if (buff.effects.dmgIncrease) {
             combinedEffects.dmgMod *= (1 + buff.effects.dmgIncrease);

@@ -83,8 +83,12 @@ export type RaceName = 'Duskwight' | 'Wildwood'
 /**
  * Supported levels.
  */
-export const SupportedLevels = [70, 80, 90] as const;
+export const SupportedLevels = [70, 80, 90, 100] as const;
+// TODO: plumb this in
+export const CURRENT_MAX_LEVEL = 90;
 export type SupportedLevel = typeof SupportedLevels[number];
+
+
 
 // TODO: block modifications to this
 /**
@@ -397,6 +401,22 @@ export const LEVEL_STATS: Record<SupportedLevel, LevelStats> = {
             Tank: 156,
             other: 195,
         }
+    },
+    // DAWNTRAIL TODO: replace with real values once known
+    100: {
+        level: 90,
+        baseMainStat: 390,
+        baseSubStat: 400,
+        levelDiv: 1900,
+        hp: 3000,
+        hpScalar: {
+            Tank: 34.6,
+            other: 24.3,
+        },
+        mainStatPowerMod: {
+            Tank: 156,
+            other: 195,
+        }
     }
 };
 
@@ -442,6 +462,7 @@ export const LEVEL_ITEMS: Record<SupportedLevel, LevelItemInfo> = {
             higherRelics: true
         }
     },
+    // DAWNTRAIL TODO: cap off level 90 items
     90: {
         // Would expect 570, but it has those 560 scaling artifacts
         minILvl: 560,
@@ -450,6 +471,23 @@ export const LEVEL_ITEMS: Record<SupportedLevel, LevelItemInfo> = {
         maxILvlFood: 999,
         minMateria: 7,
         maxMateria: 10,
+        defaultDisplaySettings: {
+            minILvl: 640,
+            maxILvl: 999,
+            minILvlFood: 640,
+            maxILvlFood: 999,
+            higherRelics: true
+        }
+    },
+    // DAWNTRAIL TODO: replace with real values once known
+    100: {
+        // Would expect 570, but it has those 560 scaling artifacts
+        minILvl: 560,
+        maxILvl: 999,
+        minILvlFood: 570,
+        maxILvlFood: 999,
+        minMateria: 9,
+        maxMateria: 12,
         defaultDisplaySettings: {
             minILvl: 640,
             maxILvl: 999,
