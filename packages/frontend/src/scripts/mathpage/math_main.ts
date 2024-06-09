@@ -1,8 +1,8 @@
 import {setMainContent} from "../base_ui";
 import {sksTickMulti, sksToGcd, spsTickMulti, spsToGcd} from "@xivgear/xivmath/xivmath";
-import {getLevelStats, JobName} from "@xivgear/xivmath/xivconstants";
+import {getLevelStats, JOB_DATA, JobName, SupportedLevel, SupportedLevels} from "@xivgear/xivmath/xivconstants";
 import {
-    clampValues,
+    clampValues, FieldBoundDataSelect,
     FieldBoundFloatField,
     FieldBoundIntField,
     labelFor,
@@ -75,15 +75,17 @@ class MathArea extends HTMLElement {
     private resultsArea: HTMLDivElement;
 
     private readonly generalSettings: GeneralSettings;
+    private _level: SupportedLevel;
     private menu: HTMLDivElement;
+    private updateHook: () => void = () => undefined;
 
     constructor() {
         super();
         this.generalSettings = {
             classJob: 'WHM',
-            levelStats: getLevelStats(90)
-            // TODO
+            levelStats: undefined,
         };
+        this.level = 90;
 
         this.heading = document.createElement('h1');
         this.appendChild(this.heading);
@@ -99,7 +101,10 @@ class MathArea extends HTMLElement {
         });
         this.appendChild(this.menu);
 
-        const genericSettingsArea = quickElement('div', ['generic-settings-area'], []);
+        const jobDropdown = new FieldBoundDataSelect(writeProxy(this.generalSettings, () => this.update()), 'classJob', item => item, Object.keys(JOB_DATA) as JobName[]);
+        const levelDropdown = new FieldBoundDataSelect(writeProxy(this as {'level': SupportedLevel}, () => this.update()), 'level', item => item.toString(), [...SupportedLevels]);
+        const genericSettingsArea = quickElement('div', ['generic-settings-area'], [labeledInput('Job', jobDropdown), labeledInput('Level', levelDropdown)]);
+
         this.specificSettingsArea = quickElement('div', ['specific-settings-area'], []);
         const settingsArea = quickElement('div', ['settings-area'], [genericSettingsArea, this.specificSettingsArea]);
         this.appendChild(settingsArea);
@@ -124,6 +129,7 @@ class MathArea extends HTMLElement {
                     return quickElement('div', [], [`${formula.name}: ${result}`]);
                 }));
             };
+            this.updateHook = update;
             const formulaSettings = formulaSet.makeEditorArea(writeProxy(settings, update), update);
             this.specificSettingsArea.replaceChildren(formulaSettings);
 
@@ -146,6 +152,20 @@ class MathArea extends HTMLElement {
                 btn.classList.remove('active');
             }
         })
+    }
+
+    get level(): SupportedLevel {
+        return this._level;
+    }
+
+    set level(value: SupportedLevel) {
+        this.generalSettings.levelStats = getLevelStats(value);
+        this._level = value;
+        this.update();
+    }
+
+    update() {
+        this.updateHook();
     }
 }
 
