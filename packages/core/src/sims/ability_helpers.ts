@@ -79,3 +79,17 @@ export function completeComboData(ability: Ability): FinalizedComboData {
         others: others,
     };
 }
+
+export function abilityEquals(left: Ability, right: Ability) {
+    if (left === right) {
+        return true;
+    }
+    if (!left || !right) {
+        return false;
+    }
+    if (left.id !== undefined && right.id !== undefined) {
+        return left.id === right.id;
+    }
+    console.warn(`abilityEquals indeterminate (args '${JSON.stringify(left)}' and '${JSON.stringify(right)}`);
+    return false;
+}

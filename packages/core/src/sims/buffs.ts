@@ -1,4 +1,4 @@
-import {PartyBuff} from "./sim_types";
+import {Ability, PartyBuff} from "./sim_types";
 
 
 export const Mug = {
@@ -149,7 +149,12 @@ export const TechnicalFinish = {
         dmgIncrease: 0.05,
     },
     startTime: 7,
-    statusId: 1822
+    statusId: 1822,
+    // This does not apply to itself
+    appliesTo(ability: Ability): boolean {
+        const buffList = ability.activatesBuffs;
+        return buffList === undefined || !buffList.includes(TechnicalFinish);
+    }
 } as const satisfies PartyBuff;
 
 export const BattleVoice = {

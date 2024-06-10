@@ -13,6 +13,7 @@ import {BluFlame60Spec} from "./blu/blu_flame60";
 import {BluWinged60Spec} from "./blu/blu_winged60";
 import {BluBreath60Spec} from "./blu/blu_breath60";
 import {registerSim} from "@xivgear/core/sims/sim_registry";
+import {dncDtSheetSpec} from "./ranged/dnc_sim";
 
 export function registerDefaultSims() {
     registerSim(potRatioSimSpec);
@@ -29,4 +30,5 @@ export function registerDefaultSims() {
     registerSim(BluWinged60Spec);
     registerSim(BluFlame60Spec);
     registerSim(BluF2PSpec);
+    registerSim(dncDtSheetSpec);
 }
