@@ -32,8 +32,8 @@ jobs:
 
       - name: Inject commit info
         run: |
-          git rev-parse HEAD > packages/math_frontend/dist/version_info.txt
-          git log -1 --pretty=%B >> packages/math_frontend/dist/version_info.txt
+          git rev-parse HEAD > packages/math-frontend/dist/version_info.txt
+          git log -1 --pretty=%B >> packages/math-frontend/dist/version_info.txt
 
       # Docker stuff begins here
       - name: Set up QEMU
@@ -60,7 +60,7 @@ jobs:
       - name: Build and export
         uses: docker/build-push-action@v5
         with:
-          context: packages/math_frontend
+          context: packages/math-frontend
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
