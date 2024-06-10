@@ -86,6 +86,7 @@ const standardFinish: GcdAbility = {
     potency: 720,
     attackType: 'Weaponskill',
     gcd: 1.50,
+    fixedGcd: true,
     id: 16003
 } as const satisfies GcdAbility;
 
@@ -95,6 +96,7 @@ const techFinish: GcdAbility = {
     potency: 1200,
     attackType: 'Weaponskill',
     gcd: 1.50,
+    fixedGcd: true,
     activatesBuffs: [TechnicalFinish],
     id: 16004
 } as const satisfies GcdAbility;
@@ -105,6 +107,7 @@ const tillana: GcdAbility = {
     potency: 440,
     attackType: 'Weaponskill',
     gcd: 1.50,
+    fixedGcd: true,
     id: 25790
 } as const satisfies GcdAbility;
 
@@ -186,6 +189,7 @@ const standardStep: GcdAbility = {
     potency: 0,
     attackType: 'Weaponskill',
     gcd: 1.50,
+    fixedGcd: true,
     id: 15997
 } as const satisfies GcdAbility;
 
@@ -196,6 +200,7 @@ const techStep: GcdAbility = {
     potency: null,
     attackType: 'Weaponskill',
     gcd: 1.50,
+    fixedGcd: true,
     id: 15997
 } as const satisfies GcdAbility;
 
@@ -206,6 +211,7 @@ const stepsAction: GcdAbility = {
     potency: null,
     attackType: 'Weaponskill',
     gcd: 1.00,
+    fixedGcd: true,
     id: 15998
 } as const satisfies GcdAbility;
 
