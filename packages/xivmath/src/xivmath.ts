@@ -188,7 +188,7 @@ export function tenacityDmg(levelStats: LevelStats, tenacity: number) {
  * @param dhit The direct hit stat value.
  */
 export function autoDhBonusDmg(levelStats: LevelStats, dhit: number) {
-    return fl(140 * ((dhit - levelStats.baseSubStat) / levelStats.levelDiv) + 1000);
+    return fl(140 * ((dhit - levelStats.baseSubStat) / levelStats.levelDiv) + 1000) / 1000;
 }
 
 /**

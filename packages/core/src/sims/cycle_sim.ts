@@ -27,7 +27,7 @@ import {
 } from "@xivgear/xivmath/xivconstants";
 import {CooldownMode, CooldownTracker} from "./common/cooldown_manager";
 import {addValues, fixedValue, multiplyFixed, ValueWithDev} from "@xivgear/xivmath/deviation";
-import {appDelay, completeComboData, FinalizedComboData} from "./ability_helpers";
+import {abilityEquals, appDelay, completeComboData, FinalizedComboData} from "./ability_helpers";
 import {abilityToDamageNew, combineBuffEffects} from "./sim_utils";
 import {BuffSettingsExport} from "./common/party_comp_settings";
 import {CycleSettings} from "./cycle_settings";
@@ -960,7 +960,7 @@ function updateComboTracker(combo: ComboData, ability: Ability, tracker: ComboTr
             tracker.lastComboAbility = ability;
             break;
         case "continue":
-            if (tracker.lastComboAbility && tracker.lastComboAbility.id && combo.comboFrom.find(from => from.id === tracker.lastComboAbility.id)) {
+            if (tracker.lastComboAbility && tracker.lastComboAbility.id && combo.comboFrom.find(from => abilityEquals(from, tracker.lastComboAbility))) {
                 tracker.lastComboAbility = ability;
                 // Update the 'out' var with the new ability data
                 out = {

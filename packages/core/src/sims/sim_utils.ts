@@ -1,7 +1,7 @@
 import {ComputedSetStats} from "@xivgear/xivmath/geartypes";
 import {Ability, Buff, CombinedBuffEffect, ComputedDamage, DamageResult, DamagingAbility} from "./sim_types";
 import {applyDhCritFull, baseDamageFull} from "@xivgear/xivmath/xivmath";
-import {multiplyFixed, multiplyValues} from "@xivgear/xivmath/deviation";
+import {multiplyFixed} from "@xivgear/xivmath/deviation";
 
 function dotPotencyToDamage(stats: ComputedSetStats, potency: number, dmgAbility: DamagingAbility, combinedBuffEffects: CombinedBuffEffect): ComputedDamage {
     const modifiedStats = {...stats};
@@ -28,10 +28,7 @@ function potencyToDamage(stats: ComputedSetStats, potency: number, dmgAbility: D
         critChance: forceCrit ? 1 : modifiedStats.critChance,
         dhitChance: forceDhit ? 1 : modifiedStats.dhitChance,
     });
-    return multiplyValues(afterCritDh, {
-        expected: combinedBuffEffects.dmgMod,
-        stdDev: 0
-    });
+    return multiplyFixed(afterCritDh, combinedBuffEffects.dmgMod);
 }
 
 export function abilityToDamageNew(stats: ComputedSetStats, ability: Ability, combinedBuffEffects: CombinedBuffEffect): DamageResult {
@@ -51,8 +48,8 @@ export function abilityToDamageNew(stats: ComputedSetStats, ability: Ability, co
 
 }
 
-export function combineBuffEffects(buffs: Buff[]): CombinedBuffEffect {
-    const combinedEffects: CombinedBuffEffect = {
+export function noBuffEffects(): CombinedBuffEffect {
+    return {
         dmgMod: 1,
         critChanceIncrease: 0,
         dhitChanceIncrease: 0,
@@ -60,6 +57,10 @@ export function combineBuffEffects(buffs: Buff[]): CombinedBuffEffect {
         forceDhit: false,
         haste: 0,
     };
+}
+
+export function combineBuffEffects(buffs: Buff[]): CombinedBuffEffect {
+    const combinedEffects: CombinedBuffEffect = noBuffEffects();
     for (const buff of buffs) {
         if (buff.effects.dmgIncrease) {
             combinedEffects.dmgMod *= (1 + buff.effects.dmgIncrease);
