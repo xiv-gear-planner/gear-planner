@@ -213,6 +213,18 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
     MCH: STANDARD_RANGED,
     DNC: {
         ...STANDARD_RANGED,
+        traitMulti: (level, attackType) => {
+            if (attackType === 'Auto-attack') {
+                return 1;
+            }
+            else if (level >= 60) {
+                return 1.2;
+            }
+            else if (level >= 50) {
+                return 1.2;
+            }
+            return 1;
+        },
         aaPotency: MELEE_AUTO_POTENCY
     },
     // Caster
