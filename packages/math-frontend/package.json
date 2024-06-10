@@ -33,8 +33,7 @@
     "buildprod": "tsc --build && webpack --mode=development && lessc --source-map ./src/style.less dist/style.css",
     "web": "webpack --mode=development",
     "webprod": "webpack --mode=production",
-    "less": "lessc --source-map ./src/style.less dist/style.css",
-    "test": "ts-mocha --parallel=true src/scripts/test/**/*test.ts src/scripts/test/**/*tests.ts"
+    "less": "lessc --source-map ./src/style.less dist/style.css"
   },
   "browser": {
     "[module-name]": false
