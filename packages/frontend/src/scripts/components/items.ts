@@ -31,7 +31,7 @@ import {
     MateriaSubstats,
     STAT_ABBREVIATIONS
 } from "@xivgear/xivmath/xivconstants";
-import {FieldBoundCheckBox, FieldBoundIntField, labeledCheckbox, makeChevronDown} from "./util";
+import {FieldBoundCheckBox, FieldBoundIntField, labeledCheckbox, makeChevronDown} from "@xivgear/common-ui/components/util";
 import {AllSlotMateriaManager} from "./materia";
 import {shortenItemName} from "@xivgear/core/util/strutils";
 import {GearPlanSheet} from "@xivgear/core/sheet";

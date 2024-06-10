@@ -9,11 +9,16 @@ import {
     makeActionButton,
     positiveValuesOnly,
     quickElement
-} from "../components/util";
+} from "@xivgear/common-ui/components/util";
 import {LevelStats} from "@xivgear/xivmath/geartypes";
 import {writeProxy} from "@xivgear/core/util/proxies";
 import {setHash} from "../nav_hash";
 import {CALC_HASH} from "@xivgear/core/nav/common_nav";
+
+import hljs from "highlight.js/lib/core";
+import javascript from "highlight.js/lib/languages/javascript";
+
+hljs.registerLanguage('javascript', javascript);
 
 type GeneralSettings = {
     classJob: JobName;
@@ -135,7 +140,23 @@ class MathArea extends HTMLElement {
 
             this.subFormulaeArea.replaceChildren(...formulaSet.functions.map(formula => {
                 const heading = quickElement('h3', [], [formula.name]);
-                const formulaText = quickElement('div', [], [formula.fn.toString()]);
+                const codeArea = quickElement('pre', [], [formula.fn.toString()]);
+                hljs.configure({
+                    languages: ['js']
+                });
+                hljs.highlightElement(codeArea);
+                const formulaText = quickElement('div', ['function-code-area'], [codeArea]);
+                // const formulaText = quickElement('div', ['function-code-area'], [
+                //     hljs.highlightE(formula.fn.toString(), { language: 'js'}).value,
+                //     // quickElement('pre', [], [formula.fn.toString()])
+                // ]);
+
+                // const starryNight = createStarryNight(common).then(sn => {
+                //         // const scope = sn.flagToScope(className.slice(prefix.length));
+                //         const tree = sn.highlight(formulaText.textContent, scope);
+                //         formulaText.replaceChildren(toDom(tree, {fragment: true}))
+                //     }
+                // );
                 return quickElement('div', [], [heading, formulaText]);
             }));
             update();

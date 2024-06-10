@@ -42,7 +42,7 @@ export function fl(input: number) {
  * @param haste The haste value, e.g. 15 for 15% haste, etc.
  */
 export function sksToGcd(baseGcd: number, levelStats: LevelStats, sks: number, haste = 0): number {
-    return fl((100 - haste) * ((baseGcd * 1000 * (1000 - fl(130 * (sks - levelStats.baseSubStat) / levelStats.levelDiv)) / 1000) / 1000)) / 100;
+    return fl((100 - haste) * (baseGcd * 1000 * (1000 - fl(130 * (sks - levelStats.baseSubStat) / levelStats.levelDiv)) / 1000 / 1000)) / 100;
 }
 
 /**
@@ -54,7 +54,7 @@ export function sksToGcd(baseGcd: number, levelStats: LevelStats, sks: number, h
  * @param haste The haste value, e.g. 15 for 15% haste, etc.
  */
 export function spsToGcd(baseGcd: number, levelStats: LevelStats, sps: number, haste = 0): number {
-    return fl((100 - haste) * ((baseGcd * 1000 * (1000 - fl(130 * (sps - levelStats.baseSubStat) / levelStats.levelDiv)) / 1000) / 1000)) / 100;
+    return fl((100 - haste) * (baseGcd * 1000 * (1000 - fl(130 * (sps - levelStats.baseSubStat) / levelStats.levelDiv)) / 1000 / 1000)) / 100;
 }
 
 /**
@@ -125,7 +125,7 @@ export function detDmg(levelStats: LevelStats, det: number) {
  */
 export function wdMulti(levelStats: LevelStats, jobStats: JobData, wd: number) {
     const mainStatJobMod = jobStats.jobStatMultipliers[jobStats.mainStat];
-    return fl((levelStats.baseMainStat * mainStatJobMod / 1000) + wd);
+    return fl(levelStats.baseMainStat * mainStatJobMod / 1000 + wd);
 }
 
 /**
@@ -212,7 +212,7 @@ export function mpTick(levelStats: LevelStats, piety: number) {
  * @param weaponDamage weapon damage
  */
 export function autoAttackModifier(levelStats: LevelStats, jobStats: JobData, weaponDelay: number, weaponDamage: number) {
-    return fl(fl((levelStats.baseMainStat * jobStats.jobStatMultipliers[jobStats.autoAttackStat] / 1000) + weaponDamage) * (weaponDelay * 1000 / 3)) / 1000;
+    return fl(fl(levelStats.baseMainStat * jobStats.jobStatMultipliers[jobStats.autoAttackStat] / 1000 + weaponDamage) * (weaponDelay * 1000 / 3)) / 1000;
 }
 
 /**

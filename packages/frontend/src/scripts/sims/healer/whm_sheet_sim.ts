@@ -6,7 +6,7 @@ import {
     FieldBoundFloatField,
     labeledCheckbox, labelFor,
     positiveValuesOnly, quickElement
-} from "../../components/util";
+} from "@xivgear/common-ui/components/util";
 import {SimResult, SimSettings, SimSpec, Simulation} from "@xivgear/core/sims/sim_types";
 
 

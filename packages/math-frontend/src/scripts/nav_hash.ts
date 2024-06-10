@@ -1,30 +1,9 @@
-import {
-    HASH_QUERY_PARAM,
-    NO_REDIR_HASH,
-    parsePath,
-    PATH_SEPARATOR,
-    splitHashLegacy,
-    splitPath
-} from "@xivgear/core/nav/common_nav";
-import {earlyEmbedInit} from "./embed";
-import {SetExport, SheetExport} from "@xivgear/xivmath/geartypes";
-import {getShortLink} from "@xivgear/core/external/shortlink_server";
-import {getBisSheet} from "@xivgear/core/external/static_bis";
+import {CALC_HASH, HASH_QUERY_PARAM, PATH_SEPARATOR, splitPath} from "@xivgear/core/nav/common_nav";
 
-import {
-    formatTopMenu,
-    hideWelcomeArea,
-    openExport,
-    openSheetByKey,
-    setMainContent,
-    showImportSheetForm,
-    showLoadingScreen, showNewSheetForm,
-    showSheetPickerMenu
-} from "./base_ui";
+import {formatTopMenu, hideWelcomeArea,} from "./base_ui";
+import {openMath} from "./mathpage/math_main";
 
 let expectedHash: string[] | undefined = undefined;
-
-let embed = false;
 
 
 /**
@@ -59,26 +38,6 @@ export function getCurrentHash() {
 }
 
 /**
- * Shim to handle old-style URLs
- */
-export async function processHashLegacy() {
-    const newHash = location.hash;
-    const split = splitHashLegacy(newHash);
-    if (split.length > 0) {
-        console.log('processHashLegacy', newHash);
-        // This path allows certain things such as /viewset/<json> to continue to use the old-style hash, since the
-        // URL query param method causes the whole thing to be too long of a URL for the server to handle.
-        if (split[0] === NO_REDIR_HASH) {
-            await doNav(split.slice(1));
-        }
-        else {
-            goHash(...split);
-            location.hash = "";
-        }
-    }
-}
-
-/**
  * Process a potential change in hash.
  *
  * Note that unlike the old hash-based method, there is no catch-all listener for hash changes. Rather, anything
@@ -104,76 +63,36 @@ export async function processNav() {
     await doNav(pathParts);
 }
 
+export type NavPath = {
+    type: 'math',
+    formula: string | null
+};
+
+export function parsePath(originalPath: string[]): NavPath | null {
+    const path = [...originalPath];
+    if (path.length === 0) {
+        return {
+            type: 'math',
+            formula: null
+        }
+    }
+    const mainNav = path[0];
+
+    if (mainNav === CALC_HASH) {
+        return {
+            type: 'math',
+            formula: path.length >= 2 ? path[1] : null,
+        }
+    }
+    console.log('Unknown nav path', path);
+    return null;
+}
+
 async function doNav(pathParts: string[]) {
     const nav = parsePath(pathParts);
-    if (nav === null) {
-        console.error('unknown nav', pathParts);
-        showSheetPickerMenu();
-        return;
-    }
-    if (nav['embed']) {
-        embed = true;
-        earlyEmbedInit();
-    }
-    if (nav.type !== 'mysheets') {
-        hideWelcomeArea();
-    }
     switch (nav.type) {
-        case "mysheets":
-            console.info("No sheet open");
-            showSheetPickerMenu();
-            return;
-        case "newsheet":
-            showNewSheetForm();
-            return;
-        case "importform":
-            showImportSheetForm();
-            return;
-        case "saved": {
-            const saveKey = nav.saveKey;
-            console.log("Loading: " + saveKey);
-            openSheetByKey(saveKey);
-            return;
-        }
-        case "shortlink": {
-            showLoadingScreen();
-            const uuid = nav.uuid;
-            const resolved: string | null = await getShortLink(uuid);
-            if (resolved) {
-                const json = JSON.parse(resolved);
-                openExport(json, false, true);
-                return;
-            }
-            else {
-                console.error('Non-existent shortlink, or other error', uuid);
-            }
-            break;
-        }
-        case "setjson":
-            openExport(nav.jsonBlob as SetExport, false, nav.viewOnly);
-            return;
-        case "sheetjson":
-            openExport(nav.jsonBlob as SheetExport, false, nav.viewOnly);
-            return;
-        case "bis": {
-            showLoadingScreen();
-            try {
-                const resolved: string | null = await getBisSheet(nav.job, nav.expac, nav.sheet);
-                if (resolved) {
-                    const json = JSON.parse(resolved);
-                    openExport(json, false, true);
-                    return;
-                }
-                else {
-                    console.error('Non-existent bis, or other error', [nav.job, nav.expac, nav.sheet]);
-                }
-            }
-            catch (e) {
-                console.error("Error loading bis", e);
-            }
-            const errMsg = document.createElement('h1');
-            errMsg.textContent = 'Error Loading Sheet/Set';
-            setMainContent('Error', errMsg);
+        case "math": {
+            openMath(nav.formula);
             return;
         }
     }
@@ -250,8 +169,4 @@ export function goHash(...hashParts: string[]) {
     const hash = hashParts.map(part => encodeURIComponent(part)).join(PATH_SEPARATOR);
     manipulateUrlParams(params => params.set(HASH_QUERY_PARAM, hash));
     processNav();
-}
-
-export function isEmbed(): boolean {
-    return embed;
 }

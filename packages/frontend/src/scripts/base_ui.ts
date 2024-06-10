@@ -5,7 +5,7 @@ import {ImportSheetArea} from "./components/import_sheet";
 import {SetExport, SheetExport} from "@xivgear/xivmath/geartypes";
 import {openEmbed} from "./embed";
 import {SETTINGS} from "./settings/persistent_settings";
-import {LoadingBlocker} from "./components/loader";
+import {LoadingBlocker} from "@xivgear/common-ui/components/loader";
 import {SheetPickerTable} from "./components/saved_sheet_picker";
 import {DISPLAY_SETTINGS} from "./settings/display_settings";
 import {showSettingsModal} from "./settings/settings_modal";
@@ -74,9 +74,8 @@ export function formatTopMenu(hash: string[]) {
     topMenuArea.querySelectorAll('a').forEach(link => {
         const href = link.getAttribute('href');
         if (href?.startsWith('?page=')) {
-            // TODO: test this
             const expected = splitPath(href.slice(6));
-            console.log(`Expected: ${expected}, actual: ${hash}`);
+            console.trace(`Expected: ${expected}, actual: ${hash}`);
             if (arrayEq(expected, hash)) {
                 link.classList.add('current-page');
             }

@@ -1,4 +1,4 @@
-import {DataSelect, FieldBoundCheckBox, FieldBoundIntField, labelFor, positiveValuesOnly, quickElement} from "./util";
+import {DataSelect, FieldBoundCheckBox, FieldBoundIntField, labelFor, positiveValuesOnly, quickElement} from "@xivgear/common-ui/components/util";
 import {JOB_DATA, JobName, LEVEL_ITEMS, MAX_ILVL, SupportedLevel, SupportedLevels} from "@xivgear/xivmath/xivconstants";
 import {getNextSheetInternalName} from "@xivgear/core/persistence/saved_sheets";
 import {GearPlanSheet} from "@xivgear/core/sheet";

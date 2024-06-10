@@ -73,9 +73,6 @@ export type NavPath = {
     job: JobName,
     expac: string,
     sheet: string,
-} | {
-    type: 'math',
-    formula: string | null
 }));
 
 export type SheetType = NavPath['type'];
@@ -182,15 +179,6 @@ export function parsePath(originalPath: string[]): NavPath | null {
                 viewOnly: true,
                 embed: false
             }
-        }
-    }
-    else if (mainNav === CALC_HASH) {
-        embedWarn();
-        return {
-            type: 'math',
-            formula: path.length >= 2 ? path[1] : null,
-            embed: false,
-            viewOnly: false
         }
     }
     console.log('Unknown nav path', path);
