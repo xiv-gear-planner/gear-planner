@@ -47,7 +47,8 @@ const reverseCascade: GcdAbility = {
     type: 'gcd',
     potency: 340,
     attackType: 'Weaponskill',
-    gcd: 2.50
+    gcd: 2.50,
+    id: 15991
 } as const satisfies GcdAbility;
 
 const fountainFall: GcdAbility = {
@@ -55,7 +56,8 @@ const fountainFall: GcdAbility = {
     type: 'gcd',
     potency: 400,
     attackType: 'Weaponskill',
-    gcd: 2.50
+    gcd: 2.50,
+    id: 15992
 } as const satisfies GcdAbility;
 
 const saberDance: GcdAbility = {
@@ -63,7 +65,8 @@ const saberDance: GcdAbility = {
     type: 'gcd',
     potency: 540,
     attackType: 'Weaponskill',
-    gcd: 2.50
+    gcd: 2.50,
+    id: 16005
 } as const satisfies GcdAbility;
 
 const starfall: GcdAbility = {
@@ -73,7 +76,8 @@ const starfall: GcdAbility = {
     attackType: 'Weaponskill',
     gcd: 2.50,
     autoCrit: true,
-    autoDh: true
+    autoDh: true,
+    id: 25792
 } as const satisfies GcdAbility;
 
 const standardFinish: GcdAbility = {
@@ -81,7 +85,8 @@ const standardFinish: GcdAbility = {
     type: 'gcd',
     potency: 720,
     attackType: 'Weaponskill',
-    gcd: 1.50
+    gcd: 1.50,
+    id: 16003
 } as const satisfies GcdAbility;
 
 const techFinish: GcdAbility = {
@@ -90,7 +95,8 @@ const techFinish: GcdAbility = {
     potency: 1200,
     attackType: 'Weaponskill',
     gcd: 1.50,
-    activatesBuffs: [TechnicalFinish]
+    activatesBuffs: [TechnicalFinish],
+    id: 16004
 } as const satisfies GcdAbility;
 
 const tillana: GcdAbility = {
@@ -98,7 +104,8 @@ const tillana: GcdAbility = {
     type: 'gcd',
     potency: 440,
     attackType: 'Weaponskill',
-    gcd: 1.50
+    gcd: 1.50,
+    id: 25790
 } as const satisfies GcdAbility;
 
 const fanDance: OgcdAbility = {
@@ -109,6 +116,7 @@ const fanDance: OgcdAbility = {
     cooldown: {
         time: 1
     },
+    id: 16007
 } as const satisfies OgcdAbility;
 
 const fd3: OgcdAbility = {
@@ -119,6 +127,7 @@ const fd3: OgcdAbility = {
     cooldown: {
         time: 1
     },
+    id: 16009
 } as const satisfies OgcdAbility;
 
 const fd4: OgcdAbility = {
@@ -129,6 +138,7 @@ const fd4: OgcdAbility = {
     cooldown: {
         time: 1
     },
+    id: 25791
 } as const satisfies OgcdAbility;
 
 const finishingMove: GcdAbility = {
@@ -136,7 +146,9 @@ const finishingMove: GcdAbility = {
     type: 'gcd',
     potency: 820,
     attackType: 'Weaponskill',
-    gcd: 2.50
+    gcd: 2.50,
+    // TODO: dt skill
+    id: 40001
 } as const satisfies GcdAbility;
 
 const lastDance: GcdAbility = {
@@ -144,7 +156,9 @@ const lastDance: GcdAbility = {
     type: 'gcd',
     potency: 420,
     attackType: 'Weaponskill',
-    gcd: 2.50
+    gcd: 2.50,
+    // TODO: dt skill
+    id: 40002
 } as const satisfies GcdAbility;
 
 const danceOfTheDawn: GcdAbility = {
@@ -152,14 +166,17 @@ const danceOfTheDawn: GcdAbility = {
     type: 'gcd',
     potency: 1000,
     attackType: 'Weaponskill',
-    gcd: 2.50
+    gcd: 2.50,
+    // TODO: dt skill
+    id: 40003
 } as const satisfies GcdAbility;
 
 const auto: AutoAttack = {
     name: 'Auto Attack',
     type: 'autoattack',
     potency: 90,
-    attackType: 'Auto-attack'
+    attackType: 'Auto-attack',
+    id: 7
 } as const satisfies AutoAttack;
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -168,7 +185,8 @@ const standardStep: GcdAbility = {
     type: 'gcd',
     potency: 0,
     attackType: 'Weaponskill',
-    gcd: 1.50
+    gcd: 1.50,
+    id: 15997
 } as const satisfies GcdAbility;
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -177,7 +195,8 @@ const techStep: GcdAbility = {
     type: 'gcd',
     potency: null,
     attackType: 'Weaponskill',
-    gcd: 1.50
+    gcd: 1.50,
+    id: 15997
 } as const satisfies GcdAbility;
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -186,7 +205,8 @@ const stepsAction: GcdAbility = {
     type: 'gcd',
     potency: null,
     attackType: 'Weaponskill',
-    gcd: 1.00
+    gcd: 1.00,
+    id: 15998
 } as const satisfies GcdAbility;
 
 
@@ -207,7 +227,8 @@ export class DncDtSim extends BaseUsageCountSim<DncDtSimResults, DncDtSimSetting
         const startFinishDelay = 0.008;
         const stepDelay = 0.008;
 
-        const gcdCount = 45;
+        const cfRot = this.getCfRotQty(set);
+        const gcdCount = cfRot.rotationCount;
         const gcdTimeWithDelay = gcdTime + gcdDelay;
         const gcdTimeTotal = gcdCount * gcdTimeWithDelay;
         const fixedGcdTimeTotal = 8.5;
@@ -221,6 +242,49 @@ export class DncDtSim extends BaseUsageCountSim<DncDtSimResults, DncDtSimSetting
         const totalTime = gcdTimeTotal + startFinishTime + stepTime + fixedGcdTimeTotal;
         const timeCap = 120;
         return Math.max(totalTime, timeCap);
+    }
+
+    private getCfRotQty(set: CharacterGearSet): {
+        cascaseFountainCount: number,
+        rotationCount: number
+    } {
+        const gcd = set.computedStats.gcdPhys(2.5);
+        if (gcd >= 2.46) {
+            return {
+                cascaseFountainCount: 35,
+                rotationCount: 45
+            }
+        }
+        else if (gcd >= 2.40) {
+            return {
+                cascaseFountainCount: 36,
+                rotationCount: 46
+            }
+        }
+        else if (gcd >= 2.35) {
+            return {
+                cascaseFountainCount: 37,
+                rotationCount: 47
+            }
+        }
+        else if (gcd >= 2.30) {
+            return {
+                cascaseFountainCount: 38,
+                rotationCount: 48
+            }
+        }
+        else if (gcd >= 2.25) {
+            return {
+                cascaseFountainCount: 39,
+                rotationCount: 49
+            }
+        }
+        else {
+            return {
+                cascaseFountainCount: 40,
+                rotationCount: 50
+            }
+        }
     }
 
 
@@ -239,29 +303,31 @@ export class DncDtSim extends BaseUsageCountSim<DncDtSimResults, DncDtSimSetting
         const Esprit = 420;
         const Esprit_TF = 115;
 
+        const cf = this.getCfRotQty(set).cascaseFountainCount;
+
         // Copied from google doc
-        const SaberTotal = (Esprit / 50) - 1;
-        const Saber20 = ((65 + Esprit_TF * 18.5 / 20) / 50 - 1);
+        const SaberTotal = Esprit / 50 - 1;
+        const Saber20 = (65 + Esprit_TF * 18.5 / 20) / 50 - 1;
         const Saber15 = Saber20 / 2;
         const Saber30 = 4 / 31 * (SaberTotal - Saber20) + Saber20;
 
-        const CascadeTotal = (35 - SaberTotal) / 3;
-        const Cascade20 = ((4 - Saber20) < 2 ? 0 : 1 / 3 * (2 - Saber20));
+        const CascadeTotal = (cf - SaberTotal) / 3;
+        const Cascade20 = 4 - Saber20 < 2 ? 0 : 1 / 3 * (2 - Saber20);
         const Cascade15 = 1 / 2 * Cascade20;
         const Cascade30 = 4 / 31 * (CascadeTotal - Cascade20) + Cascade20;
 
-        const FountainTotal = (35 - SaberTotal) / 3;
-        const Fountain20 = ((4 - Saber20) < 2 ? 0 : 1 / 3 * (2 - Saber20));
+        const FountainTotal = (cf - SaberTotal) / 3;
+        const Fountain20 = 4 - Saber20 < 2 ? 0 : 1 / 3 * (2 - Saber20);
         const Fountain15 = 1 / 2 * Fountain20;
         const Fountain30 = 4 / 31 * (FountainTotal - Fountain20) + Fountain20;
 
-        const FountainfallTotal = (FountainTotal / 2) + 2;
-        const Fountainfall20 = 4 - Saber20 > 2 ? 1 + 1 / 6 * (5 - Saber20) : (4 - Saber20) > 1 ? 1 : 1 / 6 * (5 - Saber20);
+        const FountainfallTotal = FountainTotal / 2 + 2;
+        const Fountainfall20 = 4 - Saber20 > 2 ? 1 + 1 / 6 * (5 - Saber20) : 4 - Saber20 > 1 ? 1 : 1 / 6 * (5 - Saber20);
         const Fountainfall15 = 1 / 2 * Fountainfall20;
         const Fountainfall30 = 4 / 31 * (FountainfallTotal - Fountainfall20) + Fountainfall20;
 
-        const ReverseCascadeTotal = (CascadeTotal / 2) + 2;
-        const ReverseCascade20 = ((4 - Saber20) > 2 ? 1 + 1 / 6 * (5 - Saber20) : (4 - Saber20 - Fountainfall20));
+        const ReverseCascadeTotal = CascadeTotal / 2 + 2;
+        const ReverseCascade20 = 4 - Saber20 > 2 ? 1 + 1 / 6 * (5 - Saber20) : 4 - Saber20 - Fountainfall20;
         const ReverseCascade15 = 1 / 2 * ReverseCascade20;
         const ReverseCascade30 = 4 / 31 * (ReverseCascadeTotal - ReverseCascade20) + ReverseCascade20;
 

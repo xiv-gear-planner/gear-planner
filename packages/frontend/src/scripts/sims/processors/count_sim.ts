@@ -160,21 +160,24 @@ export abstract class BaseUsageCountSim<ResultType extends CountSimResult, Inter
         // Sum damage
         // TODO: autoattacks
         let totalPotency = 0;
+        const bucketTotals = resultBuckets.map(bucket => {
+            const buffEffects = bucket.buffEffects;
+            return addValues(...bucket.skills.flatMap(sc => {
+                const skill = sc[0];
+                const count = sc[1];
+                totalPotency += skill.potency * count;
+                // TODO: how will this handle DoTs?
+                const dmg = abilityToDamageNew(set.computedStats, skill, buffEffects);
+                if (dmg.directDamage) {
+                    const valueWithDev = multiplyFixed(dmg.directDamage, count);
+                    console.trace(`Skill ${skill.name}, count ${count}, duration ${bucket.maxDuration}, total ${valueWithDev.expected}`);
+                    return [valueWithDev];
+                }
+                return [];
+            }));
+        });
         const totalDamage: ValueWithDev = addValues(
-            ...resultBuckets.map(bucket => {
-                const buffEffects = bucket.buffEffects;
-                return addValues(...bucket.skills.flatMap(sc => {
-                    const skill = sc[0];
-                    const count = sc[1];
-                    totalPotency += skill.potency * count;
-                    // TODO: how will this handle DoTs?
-                    const dmg = abilityToDamageNew(set.computedStats, skill, buffEffects);
-                    if (dmg.directDamage) {
-                        return [multiplyFixed(dmg.directDamage, count)];
-                    }
-                    return [];
-                }));
-            })
+            ...bucketTotals
         );
         const cycleTime = this.totalCycleTime(set);
         const dps = multiplyFixed(totalDamage, 1.0 / cycleTime);
