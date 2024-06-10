@@ -1,4 +1,4 @@
-name: Frontend - Build and Publish Container Image
+name: Math corner - Build and Publish Container Image
 
 on:
   push:
