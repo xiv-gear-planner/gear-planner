@@ -123,7 +123,7 @@ export function registerFormulae() {
         }],
         variables: [{
             type: "number",
-            label: "Determination Multiplier",
+            label: "Determination Stat",
             property: "det",
             integer: true,
             min: 1
@@ -148,7 +148,7 @@ export function registerFormulae() {
         }],
         variables: [{
             type: "number",
-            label: "Determination Multiplier",
+            label: "Tenacity Stat",
             property: "tnc",
             integer: true,
             min: 1
@@ -164,14 +164,14 @@ export function registerFormulae() {
         name: 'Skill Speed',
         functions: [
             {
-                name: 'SkS to GCD',
+                name: 'GCD',
                 fn: sksToGcd,
                 argExtractor: (args, gen) => {
                     return [args.baseGcd, gen.levelStats, args.sks, args.haste]
                 },
             },
             {
-                name: 'SkS DoT Multi',
+                name: 'DoT Multi',
                 fn: sksTickMulti,
                 argExtractor: (args, gen) => {
                     return [gen.levelStats, args.sks]
@@ -205,14 +205,14 @@ export function registerFormulae() {
         primaryVariable: 'sps',
         functions: [
             {
-                name: 'SpS to GCD',
+                name: 'GCD',
                 fn: spsToGcd,
                 argExtractor: (args, gen) => {
                     return [args.baseGcd, gen.levelStats, args.sps, args.haste]
                 },
             },
             {
-                name: 'SpS DoT Multi',
+                name: 'DoT Multi',
                 fn: spsTickMulti,
                 argExtractor: (args, gen) => {
                     return [gen.levelStats, args.sps]
