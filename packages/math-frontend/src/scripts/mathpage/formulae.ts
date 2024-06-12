@@ -49,6 +49,8 @@ const hasteVar = {
 // TODO: piety
 // TODO: fix weapon damage
 // TODO: get comments out of the formulae
+// TODO: better landing page
+// TODO: social media previews
 export function registerFormulae() {
     registerFormula<{
         'mainstat': number
