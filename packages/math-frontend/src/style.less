@@ -3070,6 +3070,8 @@ gear-set-issues-modal {
   row-gap: 10px;
   width: calc(100% - 50px) !important;
   max-width: 700px !important;
+  overflow-y: auto;
+  scrollbar-width: none;
   show-hide-button {
     position: absolute;
   }
@@ -3101,6 +3103,7 @@ gear-set-issues-modal {
   }
 
   .math-result-table-holder {
+    min-height: 150px;
     overflow-y: auto;
     table {
       position: relative;
@@ -3145,6 +3148,9 @@ body {
   }
   .hljs-number {
     color: #5090a6;
+  }
+  .hljs-comment {
+    opacity: 60%;
   }
   &.light-mode {
     .hljs-keyword {
