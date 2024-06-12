@@ -3064,12 +3064,15 @@ gear-set-issues-modal {
   .shadow-big;
 }
 
-.formula-top-level {
-  .named-section-standard;
-  .invert-input-colors;
-}
-
-math-area {
+#content-area > math-area {
+  display: flex;
+  flex-direction: column;
+  row-gap: 10px;
+  width: calc(100% - 50px) !important;
+  max-width: 700px !important;
+  show-hide-button {
+    position: absolute;
+  }
   .formula-selector-area {
     button {
       margin: 3px;
@@ -3096,14 +3099,38 @@ math-area {
       }
     }
   }
+
+  .math-result-table-holder {
+    overflow-y: auto;
+    table {
+      position: relative;
+      padding: 0;
+      th {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+      }
+    }
+  }
 }
 
-.function-code-area {
-  background-color: var(--bg-color);
-  overflow-x: auto;
-  pre {
-    text-align: left;
+body {
+
+  .function-code-area {
+    border-radius: 10px;
+    background-color: var(--bg-color);
+    overflow-x: auto;
+    //padding: 10px;
+    .code-outer {
+      width: fit-content;
+      padding: 10px;
+      pre {
+        margin: 0;
+        text-align: left;
+      }
+    }
   }
+
   .hljs-keyword {
     color: #ca7733;
   }
@@ -3118,5 +3145,22 @@ math-area {
   }
   .hljs-number {
     color: #5090a6;
+  }
+  &.light-mode {
+    .hljs-keyword {
+      color: #793800;
+    }
+    .hljs-parameter {
+      color: #000272
+    }
+    .hljs-property {
+      color: #64009a
+    }
+    .hljs-title, .hljs-type {
+      color: #8c8a00;
+    }
+    .hljs-number {
+      color: #00618d;
+    }
   }
 }

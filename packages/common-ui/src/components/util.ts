@@ -137,6 +137,9 @@ export interface PostValidationContext<ObjType, FieldType> extends ValidationCon
     newValue: FieldType;
 }
 
+export type FbctPreValidator<ObjType> = (context: PreValidationContext<ObjType>) => void;
+export type FbctPostValidator<ObjType, FieldType> = (context: PostValidationContext<ObjType, FieldType>) => void;
+
 export interface FbctArgs<ObjType, FieldType> {
     /**
      * Which event to hook. e.g. 'input' for when any input is entered (the default), or 'change'.
@@ -147,13 +150,13 @@ export interface FbctArgs<ObjType, FieldType> {
      *
      * Return undefined to indicate no validation error, or return a string containing a validation message.
      */
-    preValidators?: ((context: PreValidationContext<ObjType>) => void)[];
+    preValidators?: FbctPreValidator<ObjType>[];
     /**
      * Validation to be run against the converted input string, before setting the field.
      *
      * Return undefined to indicate no validation error, or return a string containing a validation message.
      */
-    postValidators?: ((context: PostValidationContext<ObjType, FieldType>) => void)[];
+    postValidators?: FbctPostValidator<ObjType, FieldType>[];
 
     /**
      * HTML ID to assign to this element.
@@ -384,10 +387,22 @@ export const positiveValuesOnly = (ctx: PostValidationContext<never, number>) =>
     }
 };
 
-export function clampValues(min: number, max: number): (ctx: PostValidationContext<never, number>) => void {
+export function clampValues(min: number | undefined, max: number | undefined): (ctx: PostValidationContext<never, number>) => void {
     return (ctx: PostValidationContext<never, number>) => {
-        if (ctx.newValue < min || ctx.newValue > max) {
-            ctx.failValidation(`Value must be between ${min} and ${max}`);
+        if (min !== undefined && max !== undefined) {
+            if (ctx.newValue < min || ctx.newValue > max) {
+                ctx.failValidation(`Value must be between ${min} and ${max}`);
+            }
+        }
+        else if (min !== undefined) {
+            if (ctx.newValue < min) {
+                ctx.failValidation(`Value must be great than or equal to ${min}`);
+            }
+        }
+        else if (max !== undefined) {
+            if (ctx.newValue > max) {
+                ctx.failValidation(`Value must be less than or equal to ${max}`);
+            }
         }
     }
 }

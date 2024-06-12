@@ -31,11 +31,12 @@ import {
     MateriaSubstats,
     STAT_ABBREVIATIONS
 } from "@xivgear/xivmath/xivconstants";
-import {FieldBoundCheckBox, FieldBoundIntField, labeledCheckbox, makeChevronDown} from "@xivgear/common-ui/components/util";
+import {FieldBoundCheckBox, FieldBoundIntField, labeledCheckbox} from "@xivgear/common-ui/components/util";
 import {AllSlotMateriaManager} from "./materia";
 import {shortenItemName} from "@xivgear/core/util/strutils";
 import {GearPlanSheet} from "@xivgear/core/sheet";
 import {makeRelicStatEditor} from "./relic_stats";
+import {ShowHideButton} from "@xivgear/common-ui/components/show_hide_chevron";
 
 function statCellStylerRemover(cell: CustomCell<GearSlotItem, unknown>) {
     cell.classList.remove("secondary");
@@ -417,41 +418,6 @@ function itemTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, stat: 
                     cell.classList.add('stat-cell');
                 }
             },
-    }
-}
-
-// TODO: this is generic, so move it out
-class ShowHideButton extends HTMLElement {
-    private _hidden: boolean;
-
-    constructor(initiallyHidden: boolean = false, private setter: (newValue: boolean) => void) {
-        super();
-        this._hidden = initiallyHidden;
-        this.appendChild(makeChevronDown());
-        this.setStyles();
-    }
-
-    get isHidden(): boolean {
-        return this._hidden;
-    }
-
-    set isHidden(hide: boolean) {
-        this._hidden = hide;
-        this.setStyles();
-        this.setter(hide);
-    }
-
-    toggle(): void {
-        this.isHidden = !this.isHidden;
-    }
-
-    private setStyles() {
-        if (this.isHidden) {
-            this.classList.add('hidden');
-        }
-        else {
-            this.classList.remove('hidden');
-        }
     }
 }
 
@@ -893,4 +859,3 @@ customElements.define("food-items-table", FoodItemsTable, {extends: "table"});
 customElements.define("food-items-view-table", FoodItemViewTable, {extends: "table"});
 customElements.define("ilvl-range-picker", ILvlRangePicker);
 customElements.define("food-stat-bonus", FoodStatBonus);
-customElements.define("show-hide-button", ShowHideButton);
