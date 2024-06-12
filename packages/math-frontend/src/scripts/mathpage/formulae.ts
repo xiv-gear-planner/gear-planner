@@ -1,5 +1,4 @@
 import {
-    autoAttackModifier,
     autoDhBonusDmg,
     critChance,
     critDmg,
@@ -12,7 +11,6 @@ import {
     spsTickMulti,
     spsToGcd,
     tenacityDmg,
-    wdMulti
 } from "@xivgear/xivmath/xivmath";
 import {getClassJobStats, getLevelStats} from "@xivgear/xivmath/xivconstants";
 import {GeneralSettings, registerFormula} from "./math_main";

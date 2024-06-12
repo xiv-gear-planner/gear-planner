@@ -1,5 +1,4 @@
-import {sksTickMulti, sksToGcd, spsTickMulti, spsToGcd} from "@xivgear/xivmath/xivmath";
-import {getLevelStats, JobName} from "@xivgear/xivmath/xivconstants";
+import {JobName} from "@xivgear/xivmath/xivconstants";
 import {LevelStats} from "@xivgear/xivmath/geartypes";
 
 export type GeneralSettings = {
