@@ -44,6 +44,11 @@ const hasteVar = {
     max: 99
 } as const;
 
+// TODO: baseDamageFull
+// TODO: baseHealing
+// TODO: piety
+// TODO: fix weapon damage
+// TODO: get comments out of the formulae
 export function registerFormulae() {
     registerFormula<{
         'mainstat': number
@@ -302,8 +307,5 @@ export function registerFormulae() {
             min: 1
         }]
     });
-    // TODO: baseDamageFull
-    // TODO: baseHealing
-    // TODO: piety
 }
 
