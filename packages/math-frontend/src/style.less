@@ -3087,18 +3087,6 @@ gear-set-issues-modal {
 
   .settings-area {
     .generic-settings-area, .specific-settings-area {
-      .vertical-labeled-input {
-        padding: 10px;
-        display: inline-block;
-
-        input {
-          width: 100px;
-        }
-
-        > * {
-          display: block;
-        }
-      }
     }
   }
 
@@ -3108,10 +3096,13 @@ gear-set-issues-modal {
     table {
       position: relative;
       padding: 0;
+      width: 100%;
       th {
         position: sticky;
         top: 0;
-        z-index: 1;
+        z-index: var(--zi-sets-table-header-row);
+        padding-right: 10px;
+        background-color: color-mix(in srgb, var(--bg-color) 80%, transparent);
       }
     }
   }
@@ -3168,5 +3159,20 @@ body {
     .hljs-number {
       color: #00618d;
     }
+  }
+}
+
+.vertical-labeled-input {
+  padding: 10px;
+  display: inline-block;
+
+  input {
+    width: 120px;
+  }
+
+  > * {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
   }
 }

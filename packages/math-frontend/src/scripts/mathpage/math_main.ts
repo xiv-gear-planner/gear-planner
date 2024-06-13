@@ -14,7 +14,7 @@ export type Func = (...args: unknown[]) => unknown
 export type MathFormula<AllArgType, FuncType extends Func> = {
     name: string;
     fn: FuncType;
-    argExtractor: (arg: AllArgType, gen: GeneralSettings) => Parameters<FuncType>;
+    argExtractor(arg: AllArgType, gen: GeneralSettings): Promise<Parameters<FuncType>>;
     // makeResultsDisplay: (result: ReturnType<FuncType>) => Element;
 }
 

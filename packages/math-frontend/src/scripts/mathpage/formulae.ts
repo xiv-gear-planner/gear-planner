@@ -1,19 +1,21 @@
 import {
+    autoAttackModifier,
     autoDhBonusDmg,
     critChance,
     critDmg,
     detDmg,
     dhitChance,
     dhitDmg,
-    mainStatMulti,
+    mainStatMulti, mpTick,
     sksTickMulti,
     sksToGcd,
     spsTickMulti,
     spsToGcd,
-    tenacityDmg,
+    tenacityDmg, wdMulti,
 } from "@xivgear/xivmath/xivmath";
-import {getClassJobStats, getLevelStats} from "@xivgear/xivmath/xivconstants";
+import {getClassJobStats, getLevelStats, JobName} from "@xivgear/xivmath/xivconstants";
 import {GeneralSettings, registerFormula} from "./math_main";
+import {DataManager} from "@xivgear/core/datamanager";
 
 type SksSettings = {
     baseGcd: number,
@@ -44,13 +46,24 @@ const hasteVar = {
     max: 99
 } as const;
 
+let jobDataManager: Promise<DataManager>;
+
+async function getClassJobStatsFull(job: JobName) {
+    if (jobDataManager === undefined) {
+        const dm= new DataManager(job, 90);
+        jobDataManager = dm.loadData().then(() => dm);
+    }
+    const multipliers = (await jobDataManager).multipliersForJob(job);
+    return {
+        ...getClassJobStats(job),
+        jobStatMultipliers: multipliers
+    };
+}
+
 // TODO: baseDamageFull
 // TODO: baseHealing
-// TODO: piety
-// TODO: fix weapon damage
-// TODO: get comments out of the formulae
-// TODO: better landing page
 // TODO: social media previews
+// TODO: custom levelStats/jobMultipliers
 export function registerFormulae() {
     registerFormula<{
         'mainstat': number
@@ -60,7 +73,7 @@ export function registerFormulae() {
         functions: [{
             name: "Main Stat Multiplier",
             fn: mainStatMulti,
-            argExtractor: function (arg, gen: GeneralSettings) {
+            argExtractor: async function (arg, gen: GeneralSettings) {
                 return [gen.levelStats, getClassJobStats(gen.classJob), arg.mainstat];
             }
         }],
@@ -77,44 +90,43 @@ export function registerFormulae() {
         },
     });
 
-    // TODO: WD requires job multipliers data from xivapi
-    // registerFormula<{
-    //     'wd': number,
-    //     'delay': number
-    // }>({
-    //     name: "Weapon Damage",
-    //     stub: "weapon-damage",
-    //     functions: [{
-    //         name: "Weapon Damage Multiplier",
-    //         fn: wdMulti,
-    //         argExtractor: (arg, gen: GeneralSettings) => {
-    //             return [gen.levelStats, getClassJobStats(gen.classJob), arg.wd];
-    //         }
-    //     }, {
-    //         name: "Auto-Attack Multiplier",
-    //         fn: autoAttackModifier,
-    //         argExtractor: (arg, gen: GeneralSettings) => {
-    //             return [gen.levelStats, getClassJobStats(gen.classJob), arg.delay, arg.wd];
-    //         }
-    //     }],
-    //     variables: [{
-    //         type: "number",
-    //         label: "Weapon Damage Value",
-    //         property: "wd",
-    //         integer: true,
-    //         min: 0
-    //     }, {
-    //         type: "number",
-    //         label: "Weapon Speed (Seconds)",
-    //         property: "delay",
-    //         integer: false,
-    //         min: 1
-    //     }],
-    //     primaryVariable: "wd",
-    //     makeDefaultInputs(generalSettings: GeneralSettings) {
-    //         return {wd: 0, delay: 3000};
-    //     },
-    // });
+    registerFormula<{
+        'wd': number,
+        'delay': number
+    }>({
+        name: "Weapon Damage",
+        stub: "weapon-damage",
+        functions: [{
+            name: "Weapon Damage Multiplier",
+            fn: wdMulti,
+            argExtractor: async function (arg, gen: GeneralSettings) {
+                return [gen.levelStats, await getClassJobStatsFull(gen.classJob), arg.wd];
+            }
+        }, {
+            name: "Auto-Attack Multiplier",
+            fn: autoAttackModifier,
+            argExtractor: async function (arg, gen: GeneralSettings) {
+                return [gen.levelStats, await getClassJobStatsFull(gen.classJob), arg.delay, arg.wd];
+            }
+        }],
+        variables: [{
+            type: "number",
+            label: "Weapon Damage Value",
+            property: "wd",
+            integer: true,
+            min: 0
+        }, {
+            type: "number",
+            label: "Weapon Speed (Seconds)",
+            property: "delay",
+            integer: false,
+            min: 1
+        }],
+        primaryVariable: "wd",
+        makeDefaultInputs(generalSettings: GeneralSettings) {
+            return {wd: 0, delay: 3.12};
+        },
+    });
 
     registerFormula<{
         'det': number
@@ -124,7 +136,7 @@ export function registerFormulae() {
         functions: [{
             name: "Determination Multiplier",
             fn: detDmg,
-            argExtractor: (arg, gen: GeneralSettings) => {
+            argExtractor: async function (arg, gen: GeneralSettings) {
                 return [gen.levelStats, arg.det];
             }
         }],
@@ -149,7 +161,7 @@ export function registerFormulae() {
         functions: [{
             name: "Tenacity Damage Multiplier",
             fn: tenacityDmg,
-            argExtractor: (arg, gen: GeneralSettings) => {
+            argExtractor: async function (arg, gen: GeneralSettings) {
                 return [gen.levelStats, arg.tnc];
             }
         }],
@@ -166,6 +178,31 @@ export function registerFormulae() {
         },
     });
 
+    registerFormula<{
+        'piety': number
+    }>({
+        name: "Piety",
+        stub: "piety",
+        functions: [{
+            name: "MP/3s",
+            fn: mpTick,
+            argExtractor: async function (arg, gen: GeneralSettings) {
+                return [gen.levelStats, arg.piety];
+            }
+        }],
+        variables: [{
+            type: "number",
+            label: "Piety Stat",
+            property: "piety",
+            integer: true,
+            min: 0
+        }],
+        primaryVariable: "piety",
+        makeDefaultInputs(generalSettings: GeneralSettings) {
+            return {piety: generalSettings.levelStats.baseSubStat};
+        },
+    });
+
     registerFormula<SksSettings>({
         stub: 'sks',
         name: 'Skill Speed',
@@ -173,14 +210,14 @@ export function registerFormulae() {
             {
                 name: 'GCD',
                 fn: sksToGcd,
-                argExtractor: (args, gen) => {
+                argExtractor: async function (args, gen) {
                     return [args.baseGcd, gen.levelStats, args.sks, args.haste]
                 },
             },
             {
                 name: 'DoT Multi',
                 fn: sksTickMulti,
-                argExtractor: (args, gen) => {
+                argExtractor: async function (args, gen) {
                     return [gen.levelStats, args.sks]
                 },
             },
@@ -214,14 +251,14 @@ export function registerFormulae() {
             {
                 name: 'GCD',
                 fn: spsToGcd,
-                argExtractor: (args, gen) => {
+                argExtractor: async function (args, gen) {
                     return [args.baseGcd, gen.levelStats, args.sps, args.haste]
                 },
             },
             {
                 name: 'DoT Multi',
                 fn: spsTickMulti,
-                argExtractor: (args, gen) => {
+                argExtractor: async function (args, gen) {
                     return [gen.levelStats, args.sps]
                 },
             },
@@ -230,7 +267,7 @@ export function registerFormulae() {
             baseGcdVar,
             {
                 type: "number",
-                label: "Skill Speed",
+                label: "Spell Speed",
                 property: "sps",
                 integer: true,
                 min: 1
@@ -254,15 +291,15 @@ export function registerFormulae() {
         functions: [{
             name: "Crit Chance",
             fn: critChance,
-            argExtractor: (arg: {
-                crit: number;
-            }, gen: GeneralSettings): unknown[] => [gen.levelStats, arg.crit]
+            argExtractor: async function (arg, gen: GeneralSettings) {
+                return [gen.levelStats, arg.crit];
+            }
         }, {
             name: "Crit Damage",
             fn: critDmg,
-            argExtractor: (arg: {
-                crit: number;
-            }, gen: GeneralSettings): unknown[] => [gen.levelStats, arg.crit]
+            argExtractor: async function (arg, gen: GeneralSettings) {
+                return [gen.levelStats, arg.crit];
+            }
         }],
         makeDefaultInputs: (gen) => {
             return {
@@ -287,15 +324,21 @@ export function registerFormulae() {
         functions: [{
             name: "DH Chance",
             fn: dhitChance,
-            argExtractor: (arg, gen: GeneralSettings): unknown[] => [gen.levelStats, arg.dhit]
+            argExtractor: async function (arg, gen: GeneralSettings) {
+                return [gen.levelStats, arg.dhit];
+            }
         }, {
             name: "DH Damage",
             fn: dhitDmg,
-            argExtractor: (arg, gen: GeneralSettings): unknown[] => [gen.levelStats, arg.dhit]
+            argExtractor: async function (arg, gen: GeneralSettings) {
+                return [gen.levelStats, arg.dhit];
+            }
         }, {
             name: "Auto-DH Bonus",
             fn: autoDhBonusDmg,
-            argExtractor: (arg, gen: GeneralSettings): unknown[] => [gen.levelStats, arg.dhit]
+            argExtractor: async function (arg, gen: GeneralSettings) {
+                return [gen.levelStats, arg.dhit];
+            }
         }],
         makeDefaultInputs: (gen: GeneralSettings) => {
             return {dhit: gen.levelStats.baseSubStat};

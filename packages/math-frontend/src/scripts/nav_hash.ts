@@ -1,6 +1,6 @@
 import {CALC_HASH, HASH_QUERY_PARAM, PATH_SEPARATOR, splitPath} from "@xivgear/core/nav/common_nav";
 
-import {formatTopMenu, hideWelcomeArea,} from "./base_ui";
+import {formatTopMenu} from "./base_ui";
 import {openMath} from "./mathpage/math_ui";
 
 let expectedHash: string[] | undefined = undefined;
@@ -52,9 +52,6 @@ export async function processNav() {
     const pathParts = splitPath(path);
     formatTopMenu(pathParts);
     console.info("processQuery", pathParts);
-    if (pathParts.length > 0) {
-        hideWelcomeArea();
-    }
     if (arrayEq(pathParts, expectedHash)) {
         console.info("Ignoring internal query change");
         return;
@@ -135,14 +132,8 @@ export function setHash(...hashParts: string[]) {
     expectedHash = [...hashParts];
     console.log("New hash parts", hashParts);
     const hash = hashParts.map(part => encodeURIComponent(part)).join(PATH_SEPARATOR);
-    // location.hash = '#' + hashParts.map(part => '/' + encodeURIComponent(part)).join('');
-    // console.log(location.hash);
     manipulateUrlParams(params => params.set(HASH_QUERY_PARAM, hash));
-    // TODO: there are redundant calls to this
     formatTopMenu(expectedHash);
-    if (hashParts.length > 0) {
-        hideWelcomeArea();
-    }
 }
 
 export function getHash(): string[] | undefined {

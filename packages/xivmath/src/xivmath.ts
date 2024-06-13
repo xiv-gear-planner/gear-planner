@@ -76,7 +76,6 @@ export function critChance(levelStats: LevelStats, crit: number) {
  * @param crit The critical hit stat value.
  */
 export function critDmg(levelStats: LevelStats, crit: number) {
-    // return 1 + Math.floor(200 * (crit - levelStats.baseSubStat) / levelStats.levelDiv + 400) / 1000;
     return (1400 + fl(200 * (crit - levelStats.baseSubStat) / levelStats.levelDiv)) / 1000.0;
 }
 
@@ -87,7 +86,6 @@ export function critDmg(levelStats: LevelStats, crit: number) {
  * @param dhit The direct hit stat value.
  */
 export function dhitChance(levelStats: LevelStats, dhit: number) {
-    // return 1 + Math.floor((550 * dhit - levelStats.baseSubStat) / levelStats.levelDiv) / 1000;
     return fl(550 * (dhit - levelStats.baseSubStat) / levelStats.levelDiv) / 1000.0;
 }
 

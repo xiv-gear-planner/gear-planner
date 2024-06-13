@@ -8,7 +8,7 @@ import {
     makeActionButton,
     quickElement
 } from "@xivgear/common-ui/components/util";
-import {getLevelStats, JOB_DATA, JobName, SupportedLevel, SupportedLevels} from "@xivgear/xivmath/xivconstants";
+import {getLevelStats, JOB_DATA, JobName, SupportedLevel} from "@xivgear/xivmath/xivconstants";
 import {setHash} from "../nav_hash";
 import {CALC_HASH} from "@xivgear/core/nav/common_nav";
 import {writeProxy} from "@xivgear/core/util/proxies";
@@ -17,8 +17,9 @@ import {CustomRow, CustomTable, HeaderRow} from "../tables";
 import {scrollIntoView} from "@xivgear/common-ui/util/scrollutil";
 import hljs from "highlight.js/lib/core";
 import {FormulaSetInput, GeneralSettings, MathFormulaSet, registered, regMap} from "./math_main";
-import {setMainContent} from "../base_ui";
+import {setMainContent, welcomeArea} from "../base_ui";
 import javascript from "highlight.js/lib/languages/javascript";
+import {fieldBoundLevelSelect} from "@xivgear/common-ui/components/level_picker";
 
 hljs.registerLanguage('javascript', javascript);
 
@@ -28,7 +29,29 @@ function labeledInput(labelText: string, element: HTMLElement): HTMLDivElement {
     return quickElement('div', ['vertical-labeled-input'], [label, element]);
 }
 
-// TODO: add intro area to page
+/**
+ * Gets the source of a function.
+ *
+ * Will also clean up the function's source code by removing TODO, ts-ignore, ts-expect-error, etc comments.
+ *
+ * @param func
+ */
+function functionText(func: object): string {
+    return func.toString()
+        .split("\n")
+        .map(line => {
+            const idx = line.indexOf('//');
+            if (idx >= 0) {
+                const comment = line.substring(idx);
+                if (comment.includes('TODO') || comment.includes('@ts-')) {
+                    return line.substring(0, idx);
+                }
+            }
+            return line;
+        }).filter(line => line.trim().length > 0)
+        .join('\n');
+}
+
 export class MathArea extends HTMLElement {
     private readonly heading: HTMLHeadingElement;
     private readonly specificSettingsArea: HTMLDivElement;
@@ -40,6 +63,8 @@ export class MathArea extends HTMLElement {
     private updateHook: () => void = () => undefined;
     private readonly tableArea: HTMLDivElement;
     private readonly subFormulaeOuter: HTMLDivElement;
+    private landingInner: HTMLElement;
+    private landingOuter: HTMLElement;
 
     constructor() {
         super();
@@ -64,9 +89,9 @@ export class MathArea extends HTMLElement {
         this.appendChild(this.menu);
 
         const jobDropdown = new FieldBoundDataSelect(writeProxy(this.generalSettings, () => this.update()), 'classJob', item => item, Object.keys(JOB_DATA) as JobName[]);
-        const levelDropdown = new FieldBoundDataSelect(writeProxy(this as {
+        const levelDropdown = fieldBoundLevelSelect(writeProxy(this as {
             'level': SupportedLevel
-        }, () => this.update()), 'level', item => item.toString(), [...SupportedLevels]);
+        }, () => this.update()), 'level');
         const genericSettingsArea = quickElement('div', ['generic-settings-area'], [labeledInput('Job', jobDropdown), labeledInput('Level', levelDropdown)]);
 
         this.specificSettingsArea = quickElement('div', ['specific-settings-area'], []);
@@ -98,12 +123,15 @@ export class MathArea extends HTMLElement {
         this.subFormulaeOuter.appendChild(this.subFormulaeArea);
         this.appendChild(this.subFormulaeOuter);
 
+        this.landingOuter = document.createElement('div');
+        this.appendChild(this.landingOuter);
     }
 
     setFormulaSet<AllInputType extends object>(formulaSet: MathFormulaSet<AllInputType> | null) {
         if (formulaSet !== null) {
 
             const table = new CustomTable<FormulaSetInput<AllInputType>, (FormulaSetInput<AllInputType> | undefined)>();
+            this.landingOuter.style.display = 'none';
             this.heading.textContent = formulaSet.name;
             this.subFormulaeOuter.style.display = '';
             const settings: AllInputType = formulaSet.makeDefaultInputs(this.generalSettings);
@@ -156,7 +184,7 @@ export class MathArea extends HTMLElement {
 
             this.subFormulaeArea.replaceChildren(...formulaSet.functions.map(formula => {
                 const heading = quickElement('h3', [], [formula.name]);
-                const codeArea = quickElement('pre', [], [formula.fn.toString()]);
+                const codeArea = quickElement('pre', [], [functionText(formula.fn)]);
                 hljs.configure({
                     languages: ['js']
                 });
@@ -178,9 +206,18 @@ export class MathArea extends HTMLElement {
                 columns.push({
                     displayName: fn.name,
                     shortName: 'function-' + fn.fn.name,
-                    getter: item => {
-                        const extracted = fn.argExtractor(item.inputs, item.generalSettings);
-                        return fn.fn(...extracted);
+                    getter: item => fn.argExtractor(item.inputs, item.generalSettings).then(args => fn.fn(...args)),
+                    renderer: (value: Promise<unknown>) => {
+                        const node = document.createElement('span');
+                        node.textContent = 'Loading...';
+                        value.then(v => {
+                                node.textContent = v.toString();
+                            },
+                            e => {
+                                console.error(e);
+                                return node.textContent = 'Error';
+                            });
+                        return node;
                     }
                 })
             });
@@ -213,6 +250,7 @@ export class MathArea extends HTMLElement {
         else {
             this.heading.textContent = 'Math';
             this.subFormulaeOuter.style.display = 'none';
+            this.landingOuter.style.display = '';
         }
         this.menu.querySelectorAll('button').forEach(btn => {
             const active = btn.value === formulaSet?.stub;
@@ -233,6 +271,15 @@ export class MathArea extends HTMLElement {
         this.generalSettings.levelStats = getLevelStats(value);
         this._level = value;
         this.update();
+    }
+
+    get landingContent() {
+        return this.landingInner;
+    }
+
+    set landingContent(value: HTMLElement) {
+        this.landingOuter.replaceChildren(value);
+        this.landingInner = value;
     }
 
     update() {
@@ -267,6 +314,8 @@ customElements.define('math-area', MathArea);
 
 export function openMath(formulaKey: string | null) {
     const mathArea = new MathArea();
+    welcomeArea.id = '';
+    mathArea.landingContent = welcomeArea;
     const formulaSet = regMap.get(formulaKey);
     mathArea.classList.add('formula-top-level', 'named-section');
     setMainContent('Math', mathArea);

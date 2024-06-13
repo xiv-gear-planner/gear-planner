@@ -1,16 +1,16 @@
-import {DataSelect, FieldBoundCheckBox, FieldBoundIntField, labelFor, positiveValuesOnly, quickElement} from "@xivgear/common-ui/components/util";
 import {
-    CURRENT_MAX_LEVEL,
-    JOB_DATA,
-    JobName,
-    LEVEL_ITEMS,
-    MAX_ILVL,
-    SupportedLevel,
-    SupportedLevels
-} from "@xivgear/xivmath/xivconstants";
+    DataSelect,
+    FieldBoundCheckBox,
+    FieldBoundIntField,
+    labelFor,
+    positiveValuesOnly,
+    quickElement
+} from "@xivgear/common-ui/components/util";
+import {JOB_DATA, JobName, LEVEL_ITEMS, MAX_ILVL, SupportedLevel} from "@xivgear/xivmath/xivconstants";
 import {getNextSheetInternalName} from "@xivgear/core/persistence/saved_sheets";
 import {GearPlanSheet} from "@xivgear/core/sheet";
 import {GRAPHICAL_SHEET_PROVIDER} from "./sheet";
+import {levelSelect} from "@xivgear/common-ui/components/level_picker";
 
 export class NewSheetForm extends HTMLFormElement {
     private readonly nameInput: HTMLInputElement;
@@ -52,14 +52,7 @@ export class NewSheetForm extends HTMLFormElement {
         this.fieldSet.appendChild(spacer());
 
         // Level selection
-        this.levelDropdown = new DataSelect<SupportedLevel>([...SupportedLevels], item => {
-            if (item <= CURRENT_MAX_LEVEL) {
-                return item.toString();
-            }
-            else {
-                return item.toString() + ' (Preview)';
-            }
-        }, newValue => {
+        this.levelDropdown = levelSelect(newValue => {
             const isync = LEVEL_ITEMS[newValue]?.defaultIlvlSync;
             if (isync !== undefined) {
                 this.tempSettings.ilvlSyncEnabled = true;
@@ -68,7 +61,7 @@ export class NewSheetForm extends HTMLFormElement {
                 this.ilvlSyncCheckbox.reloadValue();
             }
             this.recheck();
-        }, CURRENT_MAX_LEVEL);
+        });
         this.levelDropdown.id = "new-sheet-level-dropdown";
         this.levelDropdown.required = true;
         this.fieldSet.appendChild(labelFor('Level: ', this.levelDropdown));
