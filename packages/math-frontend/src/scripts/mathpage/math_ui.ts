@@ -98,6 +98,9 @@ export class MathArea extends HTMLElement {
         const settingsArea = quickElement('div', ['settings-area'], [genericSettingsArea, this.specificSettingsArea]);
         this.appendChild(settingsArea);
 
+        this.landingOuter = document.createElement('div');
+        this.appendChild(this.landingOuter);
+
         this.tableArea = quickElement('div', ['math-result-table-holder'], []);
         this.appendChild(this.tableArea);
 
@@ -123,8 +126,6 @@ export class MathArea extends HTMLElement {
         this.subFormulaeOuter.appendChild(this.subFormulaeArea);
         this.appendChild(this.subFormulaeOuter);
 
-        this.landingOuter = document.createElement('div');
-        this.appendChild(this.landingOuter);
     }
 
     setFormulaSet<AllInputType extends object>(formulaSet: MathFormulaSet<AllInputType> | null) {
