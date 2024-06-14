@@ -442,6 +442,11 @@ export type BuffEffects = {
 export type BuffController = {
     removeStatus(buff: Buff): void;
     removeSelf(): void;
+    /** Modify the number of stacks of a `buff` by `stacks` amount. e.g. -1 = remove 1 stack. */
+    modifyStacks(buff: Buff, stacks: number): void;
+    /** Modify the number of stacks of this buff by `stacks` amount. e.g. -1 = remove 1 stack. */
+    modifyStacksSelf(stacks: number): void;
+
 };
 
 export type BaseBuff = Readonly<{
