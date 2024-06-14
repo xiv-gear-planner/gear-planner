@@ -11,6 +11,7 @@ import {DISPLAY_SETTINGS} from "./settings/display_settings";
 import {showSettingsModal} from "./settings/settings_modal";
 import {GearPlanSheetGui, GRAPHICAL_SHEET_PROVIDER} from "./components/sheet";
 import {splitPath} from "@xivgear/core/nav/common_nav";
+import {applyCommonTopMenuFormatting} from "@xivgear/common-ui/components/top_menu";
 
 const pageTitle = 'XivGear - FFXIV Gear Planner';
 

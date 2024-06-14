@@ -3,6 +3,7 @@ import {DISPLAY_SETTINGS} from "@xivgear/common-ui/settings/display_settings";
 import {showSettingsModal} from "@xivgear/common-ui/settings/settings_modal";
 import {splitPath} from "@xivgear/core/nav/common_nav";
 import {LoadingBlocker} from "@xivgear/common-ui/components/loader";
+import {applyCommonTopMenuFormatting} from "@xivgear/common-ui/components/top_menu";
 
 const pageTitle = 'XivGear - FFXIV Gear Planner';
 
@@ -35,6 +36,7 @@ export function initTopMenu() {
 export function formatTopMenu(hash: string[]) {
     topMenuArea.querySelectorAll('a').forEach(link => {
         const href = link.getAttribute('href');
+        applyCommonTopMenuFormatting(link);
         if (href?.startsWith('?page=')) {
             const expected = splitPath(href.slice(6));
             console.debug(`Expected: ${expected}, actual: ${hash}`);
