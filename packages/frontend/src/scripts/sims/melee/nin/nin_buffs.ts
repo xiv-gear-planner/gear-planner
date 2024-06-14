@@ -15,18 +15,6 @@ export const KunaisBaneBuff: Buff = {
     statusId: 3254
 };
 
-export const RaijuReady: Buff = {
-    name: "Raiju Ready",
-    selfOnly: true,
-    descriptionExtras: ["Able to execute Forked/Fleeting Raiju"],
-    effects: {
-        // Only applies to Raiju
-    },
-    appliesTo: ability => ability.name === "Fleeting Raiju" || ability.name === "Forked Raiju",
-    duration: 30,
-    statusId: 2690
-};
-
 const NINJUTSU_ACTIONS_1STEP: string[] = [
     "Fuma Shuriken",
 ];

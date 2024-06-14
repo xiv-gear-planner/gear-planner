@@ -70,11 +70,15 @@ class RotationState {
     }
 
     private _raijuStacks: number = 0;
-    raijuReady() {
-        return this._raijuStacks > 0;
+    get raijuStacks() {
+        return this._raijuStacks;
     }
-    grantRaijuStack() {
-        this._raijuStacks++;
+    set raijuStacks(newStacks: number) {
+        this._raijuStacks = Math.max(Math.min(newStacks, 3), 0);
+    }
+
+    raijuReady() {
+        return this.raijuStacks > 0;
     }
 }
 
@@ -122,7 +126,7 @@ export class NinSim extends BaseMultiCycleSim<NinSimResult, NinSettings> {
         cp.useGcd(Actions.MudraStart);
         cp.useGcd(Actions.MudraFollowup);
         cp.useGcd(Actions.Raiton);
-        this.rotationState.grantRaijuStack();
+        this.rotationState.raijuStacks++;
     }
 
     useSuiton(cp: CycleProcessor) {
@@ -136,8 +140,15 @@ export class NinSim extends BaseMultiCycleSim<NinSimResult, NinSettings> {
         cp.useOgcd(Actions.TenChiJin);
         cp.useGcd(Actions.Fuma);
         cp.useGcd(Actions.Raiton);
-        this.rotationState.grantRaijuStack();
+        this.rotationState.raijuStacks++;
         cp.useGcd(Actions.Suiton);
+    }
+
+    useRaiju(cp: CycleProcessor) {
+        if (this.rotationState.raijuReady()) {
+            cp.useGcd(Actions.Raiju);
+            this.rotationState.raijuStacks--;
+        }
     }
 
     useOpener(cp: CycleProcessor) {
@@ -153,7 +164,7 @@ export class NinSim extends BaseMultiCycleSim<NinSimResult, NinSettings> {
     }
 
     useFillerOgcd(cp: CycleProcessor) {
-        // TODO: Determine what ogcds should be used, if any?
+        // TODO: Determine what ogcds should be used, if any
     }
 
     getRotationsToSimulate(): Rotation[] {

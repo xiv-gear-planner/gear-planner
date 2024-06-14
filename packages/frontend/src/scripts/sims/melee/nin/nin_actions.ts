@@ -1,6 +1,6 @@
 import {GcdAbility, OgcdAbility} from "@xivgear/core/sims/sim_types";
 import {Dokumori} from "@xivgear/core/sims/buffs";
-import {RaijuReady, TenriJindoReady, KassatsuBuff, BunshinBuff, Higi, MeisuiBuff, KunaisBaneBuff, PhantomReady, TenChiJinReady} from './nin_buffs';
+import {TenriJindoReady, KassatsuBuff, BunshinBuff, Higi, MeisuiBuff, KunaisBaneBuff, PhantomReady, TenChiJinReady} from './nin_buffs';
 
 /**
  * GCD Actions
@@ -110,8 +110,7 @@ export const Raiton: GcdAbility = {
     attackType: "Ability",
     gcd: 1.5,
     fixedGcd: true,
-    cast: 0,
-    activatesBuffs: [RaijuReady],
+    cast: 0
 };
 
 export const Suiton: GcdAbility = {
