@@ -1,8 +1,7 @@
 import {Ability, PartyBuff} from "./sim_types";
 
-
-export const Mug = {
-    name: "Mug",
+export const Dokumori = {
+    name: "Dokumori",
     saveKey: "Mug",
     job: "NIN",
     duration: 20,
@@ -12,7 +11,7 @@ export const Mug = {
         dmgIncrease: 0.05,
     },
     startTime: 3.5,
-    statusId: 3183
+    statusId: 638
 } as const satisfies PartyBuff;
 
 export const Litany = {
