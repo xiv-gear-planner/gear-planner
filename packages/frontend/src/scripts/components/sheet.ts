@@ -67,6 +67,7 @@ import {simpleAutoResultTable} from "../sims/components/simple_tables";
 import {rangeInc} from "@xivgear/core/util/array_utils";
 import {SimCurrentResult, SimResult, SimSettings, SimSpec, Simulation} from "@xivgear/core/sims/sim_types";
 import {getRegisteredSimSpecs} from "@xivgear/core/sims/sim_registry";
+import {makeUrl} from "@xivgear/core/nav/common_nav";
 
 export type GearSetSel = SingleCellRowOrHeaderSelect<CharacterGearSet>;
 
@@ -846,7 +847,7 @@ export class GearSetViewer extends HTMLElement {
         if (this.sheet.isEmbed) {
             const headingLink = document.createElement('a');
             const hash = getCurrentHash();
-            const linkUrl = new URL(`#/${hash.slice(1).join('/')}`, document.location.toString());
+            const linkUrl = makeUrl(...hash.slice(1));
             headingLink.href = linkUrl.toString();
             headingLink.target = '_blank';
             headingLink.replaceChildren(this.gearSet.name, faIcon('fa-arrow-up-right-from-square', 'fa'));
