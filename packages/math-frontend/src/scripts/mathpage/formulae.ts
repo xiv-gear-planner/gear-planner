@@ -67,6 +67,9 @@ const baseSub = (generalSettings: GeneralSettings) => generalSettings.levelStats
 // TODO: baseHealing
 // TODO: social media previews
 // TODO: custom levelStats/jobMultipliers
+/**
+ * Register the built-in formulae
+ */
 export function registerFormulae() {
     registerFormula<{
         'mainstat': number

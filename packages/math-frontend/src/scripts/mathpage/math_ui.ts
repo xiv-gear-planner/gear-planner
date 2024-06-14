@@ -8,7 +8,7 @@ import {
     makeActionButton,
     quickElement
 } from "@xivgear/common-ui/components/util";
-import {getLevelStats, JOB_DATA, JobName, SupportedLevel} from "@xivgear/xivmath/xivconstants";
+import {CURRENT_MAX_LEVEL, getLevelStats, JOB_DATA, JobName, SupportedLevel} from "@xivgear/xivmath/xivconstants";
 import {setHash} from "../nav_hash";
 import {CALC_HASH} from "@xivgear/core/nav/common_nav";
 import {writeProxy} from "@xivgear/core/util/proxies";
@@ -67,6 +67,9 @@ function resultsEquals(left: ResultSet, right: ResultSet): boolean {
     return true;
 }
 
+/**
+ * Top level math component.
+ */
 export class MathArea extends HTMLElement {
     private readonly heading: HTMLHeadingElement;
     private readonly specificSettingsArea: HTMLDivElement;
@@ -92,11 +95,13 @@ export class MathArea extends HTMLElement {
             levelStats: undefined,
             displayType: 'Show By Tier'
         };
-        this.level = 90;
+        this.level = CURRENT_MAX_LEVEL;
 
+        // Top heading
         this.heading = document.createElement('h1');
         this.appendChild(this.heading);
 
+        // Formula picker menu
         this.menu = quickElement('div', ['formula-selector-area'], []);
         registered.forEach(reg => {
             const menuItem = makeActionButton(reg.name, () => {
@@ -108,6 +113,7 @@ export class MathArea extends HTMLElement {
         });
         this.appendChild(this.menu);
 
+        // Settings area which is not specific to any formula
         const displayType = new FieldBoundDataSelect(writeProxy(this.generalSettings, () => this.update()), 'displayType', item => item.toString(), [...tableDisplayOptions]);
         const jobDropdown = new FieldBoundDataSelect(writeProxy(this.generalSettings, () => this.update()), 'classJob', item => item, Object.keys(JOB_DATA) as JobName[]);
         const levelDropdown = fieldBoundLevelSelect(writeProxy(this as {
@@ -115,18 +121,23 @@ export class MathArea extends HTMLElement {
         }, () => this.update()), 'level');
         const genericSettingsArea = quickElement('div', ['generic-settings-area'], [labeledInput('Table Style', displayType), labeledInput('Job', jobDropdown), labeledInput('Level', levelDropdown)]);
 
+        // Settings area for specific formula. To be filled in when a formula is selected.
         this.specificSettingsArea = quickElement('div', ['specific-settings-area'], []);
         const settingsArea = quickElement('div', ['settings-area'], [genericSettingsArea, this.specificSettingsArea]);
         this.appendChild(settingsArea);
 
+        // Landing text area. To be filled externally by the page loading scripts.
         this.landingOuter = document.createElement('div');
         this.appendChild(this.landingOuter);
 
+        // Results table. Table itself is added on demand.
         this.tableArea = quickElement('div', ['math-result-table-holder'], []);
         this.appendChild(this.tableArea);
 
+        // Formula text holder
         this.subFormulaeOuter = document.createElement('div');
 
+        // subFormulaeArea is where the actual formulae go, but this is hidden/shown by the chevron
         this.subFormulaeArea = document.createElement('div');
         this.subFormulaeArea.style.display = 'none';
         const showHide = new ShowHideButton(true, hidden => {
@@ -149,7 +160,12 @@ export class MathArea extends HTMLElement {
 
     }
 
-    getSettingsFor<AllInputType extends object>(formulaSet: MathFormulaSet<AllInputType>): AllInputType {
+    /**
+     * This initializes or retrieves the settings for a particular formula set.
+     *
+     * @param formulaSet The formula set
+     */
+    private getSettingsFor<AllInputType extends object>(formulaSet: MathFormulaSet<AllInputType>): AllInputType {
         const saved = this.formulaSettingsStickyHolder.get(formulaSet as unknown as MathFormulaSet<object>);
         if (saved) {
             return saved as AllInputType;
@@ -161,6 +177,11 @@ export class MathArea extends HTMLElement {
         }
     }
 
+    /**
+     * Set a new formula set
+     *
+     * @param formulaSet The set, or null to clear
+     */
     setFormulaSet<AllInputType extends object>(formulaSet: MathFormulaSet<AllInputType> | null) {
         if (formulaSet !== null) {
 
@@ -171,10 +192,19 @@ export class MathArea extends HTMLElement {
             const settings: AllInputType = this.getSettingsFor(formulaSet);
             const outer = this;
             // TODO: this is way too big, can it be moved somewhere
+            // Callback to update UI state when any settings are changed.
             const update = async () => {
                 const rows: FormulaSetInput<AllInputType>[] = [];
                 const funcs = formulaSet.functions;
 
+                /**
+                 * Make a row given a primary value - the rest of the values are assumed to be according to use
+                 * inputs.
+                 *
+                 * @param primary The value for the primary value.
+                 * @param primaryFlag whether to flag this as being the user-chosen row, i.e. the row that reflects the
+                 * values directly chosen by the user, not additional informational rows.
+                 */
                 async function makeRow(primary?: number, primaryFlag: boolean = false): Promise<FormulaSetInput<AllInputType>> {
                     const newPrimary = {};
                     if (primary !== undefined) {
@@ -211,11 +241,16 @@ export class MathArea extends HTMLElement {
                     const hardMax = primaryVariableSpec.max?.(this.generalSettings) ?? Number.MAX_SAFE_INTEGER;
                     switch (this.generalSettings.displayType) {
                         case "Show By Tier": {
+                            // For tiering display, we start with the user-chosen value, and traverse both ways from
+                            // there until we have filled in enough entries to satisfy the `displayEntries` property.
                             const base = await makeRow(currentPrimaryValue, true);
+                            // Hard limit of number of entries to calculate in each directly. This should never be
+                            // hit in practice.
                             const rangeLimit = 50000;
                             const entriesRange = outer.displayEntries;
-                            const lowerOut = [];
-                            const upperOut = [];
+                            const lowerOut: typeof rows = [];
+                            const upperOut: typeof rows = [];
+                            // Compute lower values
                             {
                                 let last = base;
                                 for (let i = 0; i < rangeLimit; i++) {
@@ -244,6 +279,7 @@ export class MathArea extends HTMLElement {
                                     lowerOut.push(last);
                                 }
                             }
+                            // Compute upper values
                             {
                                 let last = base;
                                 for (let i = 0; i < rangeLimit; i++) {
@@ -272,6 +308,8 @@ export class MathArea extends HTMLElement {
                                     upperOut.push(last);
                                 }
                             }
+                            // Combine values.
+                            // lower values need to be reversed, since they would be in descending order.
                             lowerOut.reverse();
                             rows.push(...lowerOut);
                             rows.push(base);
@@ -280,6 +318,7 @@ export class MathArea extends HTMLElement {
                             break;
                         }
                         case "Show Full": {
+                            // Just calculate every desired row directly.
                             const range = outer.displayEntries;
                             const minValue = Math.max(currentPrimaryValue - range, hardMin);
                             // If the user specifies 250, and the minimum is 200, then we want to expand the range to
@@ -295,7 +334,6 @@ export class MathArea extends HTMLElement {
                 else {
                     await addRow(undefined, true);
                 }
-                // const combinedRows = outer.combineRows(rows);
                 table.data = [new HeaderRow(), ...rows];
                 for (const entry of table.dataRowMap.entries()) {
                     if (entry[0].isOriginalPrimary) {
@@ -321,6 +359,7 @@ export class MathArea extends HTMLElement {
             }));
 
             const columns: typeof table.columns = [];
+            // Input columns
             formulaSet.variables.forEach(variable => {
                 columns.push({
                     displayName: variable.label,
@@ -344,6 +383,7 @@ export class MathArea extends HTMLElement {
                     }
                 });
             });
+            // Output columns
             formulaSet.functions.forEach(fn => {
                 columns.push({
                     displayName: fn.name,
@@ -464,6 +504,11 @@ export class MathArea extends HTMLElement {
 
 customElements.define('math-area', MathArea);
 
+/**
+ * Opens the math section at the top level
+ *
+ * @param formulaKey The formula key to pre-open
+ */
 export function openMath(formulaKey: string | null) {
     const mathArea = new MathArea();
     welcomeArea.id = '';

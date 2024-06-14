@@ -50,8 +50,11 @@ export type MathFormulaSet<AllArgType extends object> = {
 export const registered: MathFormulaSet<object>[] = [];
 export const regMap: Map<string, MathFormulaSet<object>> = new Map();
 
-// I don't know how to fix this. The addition of the `primaryVariable` property causes this to break.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+/**
+ * Register a formulaSet
+ *
+ * @param formula The formulaSet to register. Must have a unique {@link MathFormulaSet.stub}.
+ */
 export function registerFormula<InputType extends object>(formula: MathFormulaSet<InputType>) {
     registered.push(formula as unknown as MathFormulaSet<object>);
     regMap.set(formula.stub, formula as unknown as MathFormulaSet<object>);
@@ -59,7 +62,6 @@ export function registerFormula<InputType extends object>(formula: MathFormulaSe
 
 export type Result = {
     value: number
-
 }
 
 export type ResultSet = {
