@@ -1,9 +1,13 @@
 import {JobName} from "@xivgear/xivmath/xivconstants";
 import {LevelStats} from "@xivgear/xivmath/geartypes";
+import {DisplayType} from "./math_ui";
+import {PropertyOfType} from "@xivgear/core/util/types";
 
 export type GeneralSettings = {
     classJob: JobName;
     levelStats: LevelStats;
+    // TODO: this doesn't belong in here
+    displayType: DisplayType;
 }
 
 export type Func = (...args: unknown[]) => unknown
@@ -17,10 +21,6 @@ export type MathFormula<AllArgType, FuncType extends Func> = {
     argExtractor(arg: AllArgType, gen: GeneralSettings): Promise<Parameters<FuncType>>;
     // makeResultsDisplay: (result: ReturnType<FuncType>) => Element;
 }
-
-export type PropertyOfType<ObjectType, PropType> = {
-    [K in keyof ObjectType]: ObjectType[K] extends PropType ? K : never;
-}[keyof ObjectType] & string
 
 
 /**
@@ -36,9 +36,9 @@ export type MathFormulaSet<AllArgType extends object> = {
         type: 'number',
         label: string,
         property: PropertyOfType<AllArgType, number>,
-        min?: number,
-        max?: number,
-        integer: boolean
+        min?: (generalSettings: GeneralSettings) => number,
+        max?: (generalSettings: GeneralSettings) => number,
+        integer: boolean,
     }[]
     /**
      * The "primary" variable. If the user enters 100 for this, then the table should show values between
@@ -57,9 +57,22 @@ export function registerFormula<InputType extends object>(formula: MathFormulaSe
     regMap.set(formula.stub, formula as unknown as MathFormulaSet<object>);
 }
 
+export type Result = {
+    value: number
+
+}
+
+export type ResultSet = {
+    [fnKey: string]: Result
+}
+
+
 export type FormulaSetInput<AllArgType extends object> = {
     inputs: AllArgType,
+    inputsMax: AllArgType,
     generalSettings: GeneralSettings,
-    isOriginalPrimary: boolean
+    isOriginalPrimary: boolean,
+    results: ResultSet,
+    isRange: boolean
 }
 

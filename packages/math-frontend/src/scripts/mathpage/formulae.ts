@@ -34,7 +34,7 @@ const baseGcdVar = {
     label: "Base GCD",
     property: "baseGcd",
     integer: false,
-    min: 0.1
+    min: () => 0.1
 } as const;
 
 const hasteVar = {
@@ -42,8 +42,8 @@ const hasteVar = {
     label: "Haste",
     property: "haste",
     integer: true,
-    min: 0,
-    max: 99
+    min: () => 0,
+    max: () => 99
 } as const;
 
 let jobDataManager: Promise<DataManager>;
@@ -59,6 +59,9 @@ async function getClassJobStatsFull(job: JobName) {
         jobStatMultipliers: multipliers
     };
 }
+
+const baseMain = (generalSettings: GeneralSettings) => generalSettings.levelStats.baseMainStat;
+const baseSub = (generalSettings: GeneralSettings) => generalSettings.levelStats.baseSubStat;
 
 // TODO: baseDamageFull
 // TODO: baseHealing
@@ -82,7 +85,7 @@ export function registerFormulae() {
             label: "Main Stat Value",
             property: "mainstat",
             integer: true,
-            min: 1
+            min: baseMain
         }],
         primaryVariable: "mainstat",
         makeDefaultInputs(generalSettings: GeneralSettings) {
@@ -114,13 +117,13 @@ export function registerFormulae() {
             label: "Weapon Damage Value",
             property: "wd",
             integer: true,
-            min: 0
+            min: () => 0
         }, {
             type: "number",
             label: "Weapon Speed (Seconds)",
             property: "delay",
             integer: false,
-            min: 1
+            min: () => 0.01
         }],
         primaryVariable: "wd",
         makeDefaultInputs(generalSettings: GeneralSettings) {
@@ -145,7 +148,7 @@ export function registerFormulae() {
             label: "Determination Stat",
             property: "det",
             integer: true,
-            min: 1
+            min: baseMain
         }],
         primaryVariable: "det",
         makeDefaultInputs(generalSettings: GeneralSettings) {
@@ -170,7 +173,7 @@ export function registerFormulae() {
             label: "Tenacity Stat",
             property: "tnc",
             integer: true,
-            min: 1
+            min: baseSub
         }],
         primaryVariable: "tnc",
         makeDefaultInputs(generalSettings: GeneralSettings) {
@@ -195,7 +198,7 @@ export function registerFormulae() {
             label: "Piety Stat",
             property: "piety",
             integer: true,
-            min: 0
+            min: baseMain
         }],
         primaryVariable: "piety",
         makeDefaultInputs(generalSettings: GeneralSettings) {
@@ -229,7 +232,7 @@ export function registerFormulae() {
                 label: "Skill Speed",
                 property: "sks",
                 integer: true,
-                min: 1
+                min: baseSub
             },
             hasteVar
         ],
@@ -270,7 +273,7 @@ export function registerFormulae() {
                 label: "Spell Speed",
                 property: "sps",
                 integer: true,
-                min: 1
+                min: baseSub
             },
             hasteVar
         ],
@@ -312,7 +315,7 @@ export function registerFormulae() {
             label: "Crit Stat",
             property: "crit",
             integer: true,
-            min: 1
+            min: baseSub
         }]
     });
 
@@ -349,7 +352,7 @@ export function registerFormulae() {
             label: "DH Stat",
             property: "dhit",
             integer: true,
-            min: 1
+            min: baseSub
         }]
     });
 }
