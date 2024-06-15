@@ -82,6 +82,7 @@ export class SgeSheetSim extends BaseMultiCycleSim<SgeSheetSimResult, SgeNewShee
     spec = sgeNewSheetSpec;
     displayName = sgeNewSheetSpec.displayName;
     shortName = "sge-new-sheet-sim";
+    usePotion = false;
 
     constructor(settings?: SgeNewSheetSettingsExternal) {
         super('SGE', settings);
@@ -103,7 +104,9 @@ export class SgeSheetSim extends BaseMultiCycleSim<SgeSheetSimResult, SgeNewShee
             cycleTime: 120,
             apply(cp: CycleProcessor) {
                 // TODO: make a setting for this
-                // cp.useOgcd(tincture8mind);
+                if (this.usePotion) {
+                    cp.useOgcd(tincture8mind);
+                }
                 cp.useGcd(filler);
                 cp.remainingCycles(cycle => {
                     cycle.use(eDosis);

@@ -12,8 +12,9 @@ function makeTincture(grade: number, stat: RawStatKey, id: number, itemId: numbe
     const statName = capitalizeFirstLetter(stat);
     return {
         name: `Grade ${grade} Tincture of ${statName}`,
-        // TODO: ID is an item, not an ability - can possibily use attackType === item to check
-        // if the icon needs to be an item ability?
+        // Does it make the most sense to have this be the ability ID + item ID?
+        // From a sim standpoint, there's no reason to care about the potion's action ID, only
+        // the item ID and buff ID.
         // For now, going with the same thing you'd see in an ACT log
         id: id,
         itemId: itemId,
