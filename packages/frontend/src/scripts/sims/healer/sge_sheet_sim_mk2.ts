@@ -102,7 +102,8 @@ export class SgeSheetSim extends BaseMultiCycleSim<SgeSheetSimResult, SgeNewShee
         return [{
             cycleTime: 120,
             apply(cp: CycleProcessor) {
-                cp.useOgcd(tincture8mind);
+                // TODO: make a setting for this
+                // cp.useOgcd(tincture8mind);
                 cp.useGcd(filler);
                 cp.remainingCycles(cycle => {
                     cycle.use(eDosis);

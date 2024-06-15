@@ -641,18 +641,17 @@ export class CycleProcessor {
         const pending = this.pendingPrePullOffset;
         console.log(`Pre-pull adjustment: ${pending}`);
         this.pendingPrePullOffset = 0;
-        // TODO: this will need to be updated to account for pre-pull self-buffs
         if (this.combatStarting) {
+            this.buffHistory.forEach(bh => {
+                bh.start += pending;
+                bh.end += pending;
+            });
             this.settings.allBuffs.forEach(buff => {
                 if (this.isBuffAutomatic(buff)) {
                     if (buff.startTime !== undefined) {
                         this.setBuffStartTime(buff, buff.startTime);
                     }
                 }
-            });
-            this.buffHistory.forEach(bh => {
-                bh.start += pending;
-                bh.end += pending;
             });
             this.combatStarting = false;
         }
