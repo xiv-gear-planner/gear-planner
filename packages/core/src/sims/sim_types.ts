@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {CharacterGearSet} from "../gear";
 import {JobName, SupportedLevel} from "@xivgear/xivmath/xivconstants";
-import {AttackType} from "@xivgear/xivmath/geartypes";
+import {AttackType, ComputedSetStats} from "@xivgear/xivmath/geartypes";
 import {ValueWithDev} from "@xivgear/xivmath/deviation";
 
 /**
@@ -244,9 +244,18 @@ export type BaseAbility = Readonly<{
      */
     activatesBuffs?: readonly Buff[],
     /**
-     * The ID of the ability. Used for xivapi lookup for the icon.
+     * The ID of the ability. Used for equality checks, and for xivapi lookup.
      */
-    id?: number,
+    id: number,
+    /**
+     * If the action comes from an item, list the item ID so that it can be used for the
+     * icon.
+     */
+    itemId?: number,
+    /**
+     * Don't display an icon for this ability
+     */
+    noIcon?: boolean,
     /**
      * The type of action - Autoattack, Spell, Weaponskill, Ability (oGCD), etc
      */
@@ -437,6 +446,10 @@ export type BuffEffects = {
      * Haste. Expressed as the percentage value, e.g. 20 = 20% faster GCD
      */
     haste?: number,
+    /**
+     * Modify stats directly
+     */
+    modifyStats?: (stats: ComputedSetStats) => ComputedSetStats;
 };
 
 export type BuffController = {
@@ -557,6 +570,7 @@ export type CombinedBuffEffect = {
     critChanceIncrease: number,
     dhitChanceIncrease: number,
     forceCrit: boolean,
-    forceDhit: boolean
+    forceDhit: boolean,
     haste: number,
+    modifyStats: (stats: ComputedSetStats) => ComputedSetStats,
 }
