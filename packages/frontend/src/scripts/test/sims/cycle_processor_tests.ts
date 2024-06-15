@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import 'global-jsdom/register'
-import {it} from "mocha";
+import {describe, it} from "mocha";
 import * as assert from "assert";
 import {assertClose, makeFakeSet} from "@xivgear/core/test/test_utils";
 import {assertSimAbilityResults, setPartyBuffEnabled, UseResult} from "./sim_test_utils";
 import {JobMultipliers} from "@xivgear/xivmath/geartypes";
-import {getClassJobStats, getLevelStats} from "@xivgear/xivmath/xivconstants";
+import {getClassJobStats, getLevelStats, STANDARD_APPLICATION_DELAY} from "@xivgear/xivmath/xivconstants";
 import {CharacterGearSet} from "@xivgear/core/gear";
 import {Divination, Litany, Mug} from "@xivgear/core/sims/buffs";
 import {exampleGearSet} from "./common_values";
@@ -1460,5 +1460,66 @@ describe('indefinite buff handling', () => {
         for (let i = 2; i < actualAbilities.length; i++) {
             assert.equal(actualAbilities[i].combinedEffects.dmgMod, 5, `Index ${i}`);
         }
+    });
+});
+
+const longDelay: GcdAbility = {
+    type: 'gcd',
+    name: "Glare",
+    potency: 310,
+    attackType: "Spell",
+    gcd: 2.5,
+    cast: 1.5,
+    appDelay: 1.2
+};
+
+
+describe('application delay', () => {
+    it('should default if not specified', () => {
+        const cp = new CycleProcessor({
+            allBuffs: [],
+            cycleTime: 120,
+            stats: exampleGearSet.computedStats,
+            totalTime: 120,
+            useAutos: false
+        });
+        cp.use(filler);
+        cp.use(filler);
+        const displayRecords = cp.finalizedRecords;
+        const actualAbilities: FinalizedAbility[] = displayRecords.filter<FinalizedAbility>((record): record is FinalizedAbility => {
+            return 'ability' in record;
+        });
+        assert.equal(actualAbilities[0].original.appDelay, STANDARD_APPLICATION_DELAY);
+        assert.equal(actualAbilities[0].original.appDelayFromStart, STANDARD_APPLICATION_DELAY + actualAbilities[0].original.snapshotTimeFromStart);
+        // Test that application delay correctly affects pre-pull timing
+        assert.equal(actualAbilities[0].original.usedAt,  -1 * (STANDARD_APPLICATION_DELAY + actualAbilities[0].original.snapshotTimeFromStart));
+
+        assert.equal(actualAbilities[1].original.appDelay, STANDARD_APPLICATION_DELAY);
+        assert.equal(actualAbilities[1].original.appDelayFromStart, STANDARD_APPLICATION_DELAY + actualAbilities[0].original.snapshotTimeFromStart);
+        assert.equal(actualAbilities[1].original.usedAt, actualAbilities[0].original.usedAt + actualAbilities[0].original.totalTimeTaken);
+    });
+    it('should respect an override', () => {
+        const cp = new CycleProcessor({
+            allBuffs: [],
+            cycleTime: 120,
+            stats: exampleGearSet.computedStats,
+            totalTime: 120,
+            useAutos: false
+        });
+        cp.use(longDelay);
+        cp.use(longDelay);
+        const displayRecords = cp.finalizedRecords;
+        const actualAbilities: FinalizedAbility[] = displayRecords.filter<FinalizedAbility>((record): record is FinalizedAbility => {
+            return 'ability' in record;
+        });
+        const delay = longDelay.appDelay;
+        assert.equal(actualAbilities[0].original.appDelay, delay);
+        assert.equal(actualAbilities[0].original.appDelayFromStart, delay + actualAbilities[0].original.snapshotTimeFromStart);
+        // Test that application delay correctly affects pre-pull timing
+        assert.equal(actualAbilities[0].original.usedAt,  -1 * (delay + actualAbilities[0].original.snapshotTimeFromStart));
+
+        assert.equal(actualAbilities[1].original.appDelay, delay);
+        assert.equal(actualAbilities[1].original.appDelayFromStart, delay + actualAbilities[0].original.snapshotTimeFromStart);
+        assert.equal(actualAbilities[1].original.usedAt, actualAbilities[0].original.usedAt + actualAbilities[0].original.totalTimeTaken);
     });
 });

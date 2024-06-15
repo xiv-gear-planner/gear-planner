@@ -273,6 +273,10 @@ export type BaseAbility = Readonly<{
      * Override the default animation lock
      */
     animationLock?: number,
+    /**
+     * Override the default application delay
+     */
+    appDelay?: number,
 } & (NonDamagingAbility | DamagingAbility)>;
 
 /**
