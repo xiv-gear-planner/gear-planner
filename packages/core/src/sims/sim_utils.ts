@@ -10,7 +10,6 @@ function dotPotencyToDamage(stats: ComputedSetStats, potency: number, dmgAbility
     // TODO: are there any dots with auto-crit or auto-dh?
     const forceDh = false;
     const forceCrit = false;
-    // TODO: why is autoDH true
     const nonCritDmg = baseDamageFull(modifiedStats, potency, dmgAbility.attackType, forceDh, forceCrit, true);
     const afterCritDh = applyDhCritFull(nonCritDmg, modifiedStats);
     return multiplyFixed(afterCritDh, combinedBuffEffects.dmgMod);
@@ -88,11 +87,8 @@ export function combineBuffEffects(buffs: Buff[]): CombinedBuffEffect {
             const oldFunc = combinedEffects.modifyStats;
             combinedEffects.modifyStats = (stats) => {
                 const before = oldFunc(stats);
-                console.log('Old', stats);
                 const copy = {...before};
-                const modified = effects.modifyStats(copy);
-                console.log('New', modified);
-                return modified;
+                return effects.modifyStats(copy);
             }
         }
     }

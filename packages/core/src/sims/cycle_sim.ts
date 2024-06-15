@@ -154,7 +154,7 @@ export const isFinalizedAbilityUse = (record: DisplayRecordFinalized): record is
 
 export interface BuffUsage {
     readonly buff: Buff,
-    readonly start: number,
+    start: number,
     end: number,
     forceEnd: boolean
 }
@@ -638,6 +638,8 @@ export class CycleProcessor {
                 cycle.end += this.pendingPrePullOffset;
             }
         });
+        const pending = this.pendingPrePullOffset;
+        console.log(`Pre-pull adjustment: ${pending}`);
         this.pendingPrePullOffset = 0;
         // TODO: this will need to be updated to account for pre-pull self-buffs
         if (this.combatStarting) {
@@ -647,6 +649,10 @@ export class CycleProcessor {
                         this.setBuffStartTime(buff, buff.startTime);
                     }
                 }
+            });
+            this.buffHistory.forEach(bh => {
+                bh.start += pending;
+                bh.end += pending;
             });
             this.combatStarting = false;
         }
