@@ -4,7 +4,7 @@ import {CharacterGearSet} from "@xivgear/core/gear";
 import {cycleSettingsGui} from "./components/cycle_settings_components";
 import {writeProxy} from "@xivgear/core/util/proxies";
 import {AbilitiesUsedTable} from "./components/ability_used_table";
-import {quickElement} from "../components/util";
+import {quickElement} from "@xivgear/common-ui/components/util";
 import {sum} from "@xivgear/core/util/array_utils";
 import {addValues, applyStdDev, multiplyFixed} from "@xivgear/xivmath/deviation";
 import {ResultSettingsArea} from "./components/result_settings";

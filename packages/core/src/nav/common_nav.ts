@@ -13,6 +13,8 @@ export const VIEW_SHEET_HASH = 'viewsheet';
 export const VIEW_SET_HASH = 'viewset';
 /** Prefix for embeds */
 export const EMBED_HASH = 'embed';
+/** Prefix for formula pages */
+export const CALC_HASH = 'math';
 /** Path separator */
 export const PATH_SEPARATOR = '|';
 /** The query param used to represent the path */

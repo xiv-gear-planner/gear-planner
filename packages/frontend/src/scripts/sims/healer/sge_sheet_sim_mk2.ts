@@ -1,6 +1,7 @@
 import {GcdAbility, SimSettings, SimSpec} from "@xivgear/core/sims/sim_types";
 import {CycleProcessor, CycleSimResult, ExternalCycleSettings, Rotation} from "@xivgear/core/sims/cycle_sim";
 import {BaseMultiCycleSim} from "../sim_processors";
+import {tincture8mind} from "@xivgear/core/sims/common/potion";
 
 /**
  * Used for all 330p filler abilities
@@ -81,6 +82,7 @@ export class SgeSheetSim extends BaseMultiCycleSim<SgeSheetSimResult, SgeNewShee
     spec = sgeNewSheetSpec;
     displayName = sgeNewSheetSpec.displayName;
     shortName = "sge-new-sheet-sim";
+    usePotion = false;
 
     constructor(settings?: SgeNewSheetSettingsExternal) {
         super('SGE', settings);
@@ -101,6 +103,10 @@ export class SgeSheetSim extends BaseMultiCycleSim<SgeSheetSimResult, SgeNewShee
         return [{
             cycleTime: 120,
             apply(cp: CycleProcessor) {
+                // TODO: make a setting for this
+                if (this.usePotion) {
+                    cp.useOgcd(tincture8mind);
+                }
                 cp.useGcd(filler);
                 cp.remainingCycles(cycle => {
                     cycle.use(eDosis);

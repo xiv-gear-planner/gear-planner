@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import {FieldBoundCheckBox, labeledCheckbox} from "../../components/util";
+import {FieldBoundCheckBox, labeledCheckbox} from "@xivgear/common-ui/components/util";
 import {OffGuardBuff} from "@xivgear/core/sims/buffs";
 import {removeSelf} from "@xivgear/core/sims/common/utils";
 import {CASTER_TAX} from "@xivgear/xivmath/xivconstants";

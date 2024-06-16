@@ -5,6 +5,7 @@ import {BuffSettingsExport} from "@xivgear/core/sims/common/party_comp_settings"
 
 
 const filler: GcdAbility = {
+    id: 25871,
     type: 'gcd',
     name: "Malefic",
     potency: 250,
@@ -14,6 +15,7 @@ const filler: GcdAbility = {
 };
 
 const combust: GcdAbility = {
+    id: 16554,
     type: 'gcd',
     name: "Combust",
     potency: 0,
@@ -27,6 +29,7 @@ const combust: GcdAbility = {
 };
 
 const star: OgcdAbility = {
+    id: 7439,
     type: 'ogcd',
     name: "Earthly Star",
     potency: 310,
@@ -34,6 +37,7 @@ const star: OgcdAbility = {
 };
 
 const lord: OgcdAbility = {
+    id: 7444,
     type: 'ogcd',
     name: "Lord of Crowns",
     potency: 250,
@@ -41,6 +45,7 @@ const lord: OgcdAbility = {
 };
 
 const astrodyne: OgcdAbility = {
+    id: 25870,
     name: "Astrodyne",
     type: "ogcd",
     potency: null,

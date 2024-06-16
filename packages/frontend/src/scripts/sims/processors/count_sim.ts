@@ -20,7 +20,7 @@ import {abilityEquals} from "@xivgear/core/sims/ability_helpers";
 import {abilityToDamageNew, combineBuffEffects, noBuffEffects} from "@xivgear/core/sims/sim_utils";
 import {simpleAutoResultTable} from "../components/simple_tables";
 import {CustomTable, HeaderRow} from "../../tables";
-import {quickElement} from "../../components/util";
+import {quickElement} from "@xivgear/common-ui/components/util";
 
 export type ExternalCountSettings<InternalSettingsType extends SimSettings> = {
     customSettings: InternalSettingsType,

@@ -4,6 +4,7 @@ import {BaseMultiCycleSim} from "../sim_processors";
 import {BuffSettingsExport} from "@xivgear/core/sims/common/party_comp_settings";
 
 const filler: GcdAbility = {
+    id: 25859,
     type: 'gcd',
     name: "Glare",
     potency: 310,
@@ -13,6 +14,7 @@ const filler: GcdAbility = {
 };
 
 const dia: GcdAbility = {
+    id: 16532,
     type: 'gcd',
     name: "Dia",
     potency: 65,
@@ -26,6 +28,7 @@ const dia: GcdAbility = {
 };
 
 const assize: OgcdAbility = {
+    id: 3571,
     type: 'ogcd',
     name: "Assize",
     potency: 400,
@@ -33,6 +36,7 @@ const assize: OgcdAbility = {
 };
 
 const pom: OgcdAbility = {
+    id: 136,
     type: 'ogcd',
     name: 'Presence of Mind',
     potency: null,
@@ -50,6 +54,7 @@ const pom: OgcdAbility = {
 };
 
 const misery: GcdAbility = {
+    id: 16535,
     type: 'gcd',
     name: "Afflatus Misery",
     potency: 1240,
@@ -58,6 +63,7 @@ const misery: GcdAbility = {
 };
 
 const lily: GcdAbility = {
+    id: 16534,
     type: 'gcd',
     name: "Afflatus Rapture",
     potency: 0,
