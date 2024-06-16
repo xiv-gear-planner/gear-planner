@@ -7,7 +7,7 @@ import {assertSimAbilityResults, setPartyBuffEnabled, UseResult} from "./sim_tes
 import {JobMultipliers} from "@xivgear/xivmath/geartypes";
 import {getClassJobStats, getLevelStats} from "@xivgear/xivmath/xivconstants";
 import {CharacterGearSet} from "@xivgear/core/gear";
-import {Divination, Litany, Mug} from "@xivgear/core/sims/buffs";
+import {Divination, Litany, Dokumori} from "@xivgear/core/sims/buffs";
 import {exampleGearSet} from "./common_values";
 import {Swiftcast} from "@xivgear/core/sims/common/swiftcast";
 import {removeSelf} from "@xivgear/core/sims/common/utils";
@@ -382,7 +382,7 @@ describe('Cycle sim processor', () => {
         const inst: TestMultiCycleSim = testSimSpec.makeNewSimInstance();
         inst.cycleSettings.totalTime = 30;
         // Enable buffs
-        setPartyBuffEnabled(inst, Mug, true);
+        setPartyBuffEnabled(inst, Dokumori, true);
         setPartyBuffEnabled(inst, Litany, true);
         setPartyBuffEnabled(inst, Divination, true);
         // Run simulation
