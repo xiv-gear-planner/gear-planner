@@ -259,6 +259,7 @@ function cooldownKey(ability: CdAbility): number {
     const seen = [];
     let current = ability;
     let attempts = 10;
+    // This SHOULDN'T happen with the new types, but leaving this check just in case.
     while (--attempts > 0) {
         if (current.cooldown.sharesCooldownWith !== undefined) {
             current = current.cooldown.sharesCooldownWith;
