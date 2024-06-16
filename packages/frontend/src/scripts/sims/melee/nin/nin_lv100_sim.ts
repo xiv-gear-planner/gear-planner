@@ -65,14 +65,6 @@ class RotationState {
         this._kazematoi = Math.max(Math.min(newGauge, 5), 0);
     }
 
-    spendKazematoi(): void {
-        this.kazematoi -= 1;
-    }
-
-    grantKazematoi(): void {
-        this.kazematoi += 2;
-    }
-
     private _raijuStacks: number = 0;
     get raijuStacks() {
         return this._raijuStacks;
@@ -113,13 +105,13 @@ export class NinSim extends BaseMultiCycleSim<NinSimResult, NinSettings> {
                 break;
             }
             case Actions.ArmorCrush: {
+                this.rotationState.kazematoi += 2;
                 this.rotationState.ninkiGauge += 15;
-                this.rotationState.grantKazematoi();
                 break;
             }
             case Actions.AeolianEdge: {
+                this.rotationState.kazematoi--;
                 this.rotationState.ninkiGauge += 15;
-                this.rotationState.spendKazematoi();
                 break;
             }
             case Actions.Phantom: {
@@ -152,10 +144,8 @@ export class NinSim extends BaseMultiCycleSim<NinSimResult, NinSettings> {
             case 2: {
                 if (this.rotationState.kazematoi <= 3 && !forceAeolian) {
                     fillerAction = Actions.ArmorCrush;
-                    this.rotationState.grantKazematoi();
                 } else {
                     fillerAction = Actions.AeolianEdge;
-                    this.rotationState.spendKazematoi();
                 }
                 break;
             }
