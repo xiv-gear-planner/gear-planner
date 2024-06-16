@@ -259,7 +259,7 @@ export const OffGuardBuff = {
  */
 
 export const ALL_BUFFS = [
-    Mug, Litany, DragonSight, Brotherhood, ArcaneCircle, SearingLight, Embolden,
+    Dokumori, Litany, DragonSight, Brotherhood, ArcaneCircle, SearingLight, Embolden,
     Devilment, TechnicalFinish, BattleVoice, RadiantFinale, Chain, Divination,
     AstCard, OffGuardBuff
 ] as const;
