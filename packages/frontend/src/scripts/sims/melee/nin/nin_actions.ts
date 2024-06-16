@@ -3,6 +3,16 @@ import {Dokumori} from "@xivgear/core/sims/buffs";
 import {TenriJindoReady, KassatsuBuff, BunshinBuff, Higi, MeisuiBuff, KunaisBaneBuff, PhantomReady, TenChiJinReady} from './nin_buffs';
 
 /**
+ * Represents a Ninjutsu Ability
+ */
+export type NinjutsuAbility = GcdAbility & Readonly<{
+    /** The number of mudra steps required for this ability. */
+    steps: number,
+    /** Whether or not this Ninjutsu should add a Raiju stack. */
+    addRaiju?: boolean,
+}>
+
+/**
  * GCD Actions
  */
 export const SpinningEdge: GcdAbility = {
@@ -29,7 +39,7 @@ export const AeolianEdge: GcdAbility = {
     type: 'gcd',
     name: "Aeolian Edge",
     id: 2255,
-    potency: 500, // Note: Includes 60 pot bonus from Kazematoi
+    potency: 440 + 60, // Includes Kazematoi
     attackType: "Weaponskill",
     gcd: 2.5,
     cast: 0
@@ -91,7 +101,7 @@ export const MudraFollowup: GcdAbility = {
     cast: 0
 };
 
-export const Fuma: GcdAbility = {
+export const Fuma: NinjutsuAbility = {
     type: 'gcd',
     name: "Fuma Shuriken",
     id: 2265,
@@ -99,10 +109,11 @@ export const Fuma: GcdAbility = {
     attackType: "Ability",
     gcd: 1.5,
     fixedGcd: true,
-    cast: 0
+    cast: 0,
+    steps: 1
 };
 
-export const Raiton: GcdAbility = {
+export const Raiton: NinjutsuAbility = {
     type: 'gcd',
     name: "Raiton",
     id: 2267,
@@ -110,10 +121,12 @@ export const Raiton: GcdAbility = {
     attackType: "Ability",
     gcd: 1.5,
     fixedGcd: true,
-    cast: 0
+    cast: 0,
+    steps: 2,
+    addRaiju: true,
 };
 
-export const Suiton: GcdAbility = {
+export const Suiton: NinjutsuAbility = {
     type: 'gcd',
     name: "Suiton",
     id: 2271,
@@ -121,10 +134,11 @@ export const Suiton: GcdAbility = {
     attackType: "Ability",
     gcd: 1.5,
     fixedGcd: true,
-    cast: 0
+    cast: 0,
+    steps: 3
 };
 
-export const Hyosho: GcdAbility = {
+export const Hyosho: NinjutsuAbility = {
     type: 'gcd',
     name: "Hyosho Ranryu",
     id: 16492,
@@ -132,7 +146,8 @@ export const Hyosho: GcdAbility = {
     attackType: "Ability",
     gcd: 1.5,
     fixedGcd: true,
-    cast: 0
+    cast: 0,
+    steps: 2
 };
 
 /**
@@ -211,6 +226,14 @@ export const DokumoriAbility: OgcdAbility = {
     attackType: "Ability",
     activatesBuffs: [Dokumori, Higi],
 };
+
+export const DreamWithin: OgcdAbility = {
+    type: 'ogcd',
+    name: "Dream Within a Dream",
+    id: 3566,
+    potency: 150 * 3, // Multihit
+    attackType: "Ability",
+}
 
 export const Bhavacakra: OgcdAbility = {
     type: 'ogcd',

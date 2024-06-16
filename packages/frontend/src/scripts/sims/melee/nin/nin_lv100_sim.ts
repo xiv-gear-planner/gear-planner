@@ -1,4 +1,4 @@
-import {Ability, GcdAbility, OgcdAbility, SimSettings, SimSpec} from "@xivgear/core/sims/sim_types";
+import {GcdAbility, SimSettings, SimSpec} from "@xivgear/core/sims/sim_types";
 import {CycleProcessor, CycleSimResult, ExternalCycleSettings, Rotation} from "@xivgear/core/sims/cycle_sim";
 import {BaseMultiCycleSim} from "../../sim_processors";
 import {Dokumori} from "@xivgear/core/sims/buffs";
@@ -49,8 +49,12 @@ class RotationState {
         this._ninkiGauge = Math.max(Math.min(newGauge, 100), 0);
     }
 
-    spendNinki() {
+    spendNinki(): void {
         this.ninkiGauge -= 50;
+    }
+
+    ninkiReady(): boolean {
+        return this.ninkiGauge >= 50;
     }
 
     private _kazematoi: number = 0;
@@ -61,11 +65,11 @@ class RotationState {
         this._kazematoi = Math.max(Math.min(newGauge, 5), 0);
     }
 
-    spendKazematoi() {
+    spendKazematoi(): void {
         this.kazematoi -= 1;
     }
 
-    grantKazematoi() {
+    grantKazematoi(): void {
         this.kazematoi += 2;
     }
 
@@ -77,7 +81,7 @@ class RotationState {
         this._raijuStacks = Math.max(Math.min(newStacks, 3), 0);
     }
 
-    raijuReady() {
+    raijuReady(): boolean {
         return this.raijuStacks > 0;
     }
 }
@@ -122,18 +126,26 @@ export class NinSim extends BaseMultiCycleSim<NinSimResult, NinSettings> {
         cp.useGcd(fillerAction);
     }
 
-    useRaiton(cp: CycleProcessor) {
-        cp.useGcd(Actions.MudraStart);
-        cp.useGcd(Actions.MudraFollowup);
-        cp.useGcd(Actions.Raiton);
-        this.rotationState.raijuStacks++;
-    }
+    useNinjutsu(cp: CycleProcessor, action: Actions.NinjutsuAbility) {
+        // Only consume stacks if we don't have kassatsu
+        if (cp.getActiveBuffs().find(b => b.name === Buffs.KassatsuBuff.name)) {
+            cp.useGcd(Actions.MudraFollowup);
+        } else {
+            cp.useGcd(Actions.MudraStart);
+        }
 
-    useSuiton(cp: CycleProcessor) {
-        cp.useGcd(Actions.MudraStart);
-        cp.useGcd(Actions.MudraFollowup);
-        cp.useGcd(Actions.MudraFollowup);
-        cp.useGcd(Actions.Suiton);
+        // Fill remaining steps
+        for (let i = action.steps - 1; i > 0; i--) {
+            cp.useGcd(Actions.MudraFollowup);
+        }
+
+        // Use the ninjutsu
+        cp.useGcd(action);
+
+        // Apply Raiju stacks
+        if (action.addRaiju) {
+            this.rotationState.raijuStacks++;
+        }
     }
 
     useTCJ(cp: CycleProcessor) {
@@ -148,11 +160,60 @@ export class NinSim extends BaseMultiCycleSim<NinSimResult, NinSettings> {
         if (this.rotationState.raijuReady()) {
             cp.useGcd(Actions.Raiju);
             this.rotationState.raijuStacks--;
+            this.rotationState.ninkiGauge += 5;
+        }
+    }
+
+    usePhantom(cp: CycleProcessor) {
+        if (cp.getActiveBuffs().find(b => b.name === Buffs.PhantomReady.name)) {
+            cp.useGcd(Actions.Phantom);
+            this.rotationState.ninkiGauge += 10;
+        }
+    }
+
+    useNinki(cp: CycleProcessor) {
+        if (this.rotationState.ninkiReady()) {
+            if (cp.getActiveBuffs().find(b => b.name === Buffs.Higi.name)) {
+                cp.useOgcd(Actions.Bhavacakra);
+            } else {
+                cp.useOgcd(Actions.ZeshoMeppo);
+            }
+            this.rotationState.spendNinki();
         }
     }
 
     useOpener(cp: CycleProcessor) {
+        this.useNinjutsu(cp, Actions.Suiton);
+        cp.useGcd(Actions.SpinningEdge);
+        // use pot here
 
+        cp.useGcd(Actions.GustSlash);
+        cp.useOgcd(Actions.DokumoriAbility);
+        cp.useOgcd(Actions.Bunshin);
+
+        cp.useGcd(Actions.Phantom);
+
+        cp.useGcd(Actions.ArmorCrush);
+        cp.useOgcd(Actions.KunaisBane);
+
+        this.useNinjutsu(cp, Actions.Hyosho);
+        cp.useOgcd(Actions.DreamWithin);
+
+        this.useNinjutsu(cp, Actions.Raiton);
+
+        this.useTCJ(cp);
+        cp.useOgcd(Actions.Meisui);
+
+        this.useRaiju(cp);
+        this.useNinki(cp);
+        cp.useOgcd(Actions.TenriJindo);
+
+        this.useRaiju(cp);
+        this.useNinki(cp);
+
+        this.useNinjutsu(cp, Actions.Raiton);
+
+        this.useRaiju(cp);
     }
 
     useOddMinBurst(cp: CycleProcessor) {
@@ -173,7 +234,7 @@ export class NinSim extends BaseMultiCycleSim<NinSimResult, NinSettings> {
         return [{
             cycleTime: 120,
             apply(cp: CycleProcessor) {
-
+                sim.useOpener(cp);
             }
         }]
     }
