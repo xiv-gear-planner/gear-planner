@@ -14,20 +14,21 @@
     "packages/backend-resolver"
   ],
   "devDependencies": {
-    "@types/eslint": "^8.56.10",
     "@eslint/js": "^9.3.0",
+    "@types/eslint": "^8.56.10",
     "eslint": "^8.57.0",
     "http-server": "^14.1.1",
     "nyc": "^15.1.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.4.5",
-    "typescript-eslint": "^7.10.0"
+    "typescript-eslint": "^7.10.0",
+    "webpack-dev-server": "^5.0.4"
   },
   "scripts": {
     "build": "npm run build --workspaces",
     "docs": "npx --workspaces typedoc --json build/docs.json --exclude '**/scripts/test/**/*.ts' --excludePrivate --entryPointStrategy expand src/ && npx typedoc --entryPointStrategy merge packages/*/build/docs.json --readme API_DOC.md --out packages/frontend/dist/docs",
     "test": "npm run --workspaces --if-present test",
-    "serve": "npx http-server packages/frontend/dist -p 8076",
+    "serve": "npx -w @xivgear/gearplan-frontend webpack serve",
     "lint": "npx -ws eslint ./src/**/*.ts --exit-on-fatal-error --max-warnings 0"
   }
 }
