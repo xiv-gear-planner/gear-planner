@@ -1,4 +1,4 @@
-import {GcdAbility, SimSettings, SimSpec} from "@xivgear/core/sims/sim_types";
+import {Ability, GcdAbility, OgcdAbility, SimSettings, SimSpec} from "@xivgear/core/sims/sim_types";
 import {CycleProcessor, CycleSimResult, ExternalCycleSettings, Rotation} from "@xivgear/core/sims/cycle_sim";
 import {BaseMultiCycleSim} from "../../sim_processors";
 import {Dokumori} from "@xivgear/core/sims/buffs";
@@ -49,8 +49,8 @@ class RotationState {
         this._ninkiGauge = Math.max(Math.min(newGauge, 100), 0);
     }
 
-    spendNinki(): void {
-        this.ninkiGauge -= 50;
+    spendNinki(action: Actions.NinkiAbility): void {
+        this.ninkiGauge -= action.ninkiCost;
     }
 
     ninkiReady(): boolean {
@@ -102,9 +102,47 @@ export class NinSim extends BaseMultiCycleSim<NinSimResult, NinSettings> {
         return {};
     }
 
+    updateGauge(cp: CycleProcessor, action: Ability) {
+        switch (action) {
+            case Actions.SpinningEdge: {
+                this.rotationState.ninkiGauge += 5;
+                break;
+            }
+            case Actions.GustSlash: {
+                this.rotationState.ninkiGauge += 5;
+                break;
+            }
+            case Actions.ArmorCrush: {
+                this.rotationState.ninkiGauge += 15;
+                this.rotationState.grantKazematoi();
+                break;
+            }
+            case Actions.AeolianEdge: {
+                this.rotationState.ninkiGauge += 15;
+                this.rotationState.spendKazematoi();
+                break;
+            }
+            case Actions.Phantom: {
+                this.rotationState.ninkiGauge += 10;
+                break;
+            }
+            case Actions.Raiju: {
+                this.rotationState.raijuStacks--;
+                this.rotationState.ninkiGauge += 5;
+                break;
+            }
+            case Actions.Meisui: {
+                this.rotationState.ninkiGauge += 50;
+                break;
+            }
+        }
+
+        if (cp.getActiveBuffs().find(b => b.name === Buffs.BunshinBuff.name) && action.attackType === 'Weaponskill') {
+            this.rotationState.ninkiGauge += 5;
+        }
+    }
+
     useCombo(cp: CycleProcessor, forceAeolian?: boolean) {
-        this.rotationState.combo++;
-        this.rotationState.ninkiGauge += 5;
         let fillerAction: GcdAbility = Actions.SpinningEdge;
         switch (this.rotationState.combo) {
             case 1: {
@@ -112,7 +150,6 @@ export class NinSim extends BaseMultiCycleSim<NinSimResult, NinSettings> {
                 break;
             }
             case 2: {
-                this.rotationState.ninkiGauge += 10;
                 if (this.rotationState.kazematoi <= 3 && !forceAeolian) {
                     fillerAction = Actions.ArmorCrush;
                     this.rotationState.grantKazematoi();
@@ -123,16 +160,14 @@ export class NinSim extends BaseMultiCycleSim<NinSimResult, NinSettings> {
                 break;
             }
         }
+        this.rotationState.combo++;
+        this.updateGauge(cp, fillerAction);
         cp.useGcd(fillerAction);
     }
 
     useMudra(cp: CycleProcessor, step: Actions.MudraStep, useCharge?: boolean) {
         if (useCharge) {
-            const modified: GcdAbility = {
-                ...Actions.MudraStart,
-                name: step.name,
-            }
-            cp.useGcd(modified);
+            cp.useGcd(Actions.MudraStart);
         } else {
             const modified: GcdAbility = {
                 ...Actions.MudraFollowup,
@@ -169,27 +204,33 @@ export class NinSim extends BaseMultiCycleSim<NinSimResult, NinSettings> {
 
     useRaiju(cp: CycleProcessor) {
         if (this.rotationState.raijuReady()) {
+            this.updateGauge(cp, Actions.Raiju);
             cp.useGcd(Actions.Raiju);
-            this.rotationState.raijuStacks--;
-            this.rotationState.ninkiGauge += 5;
         }
     }
 
     usePhantom(cp: CycleProcessor) {
         if (cp.getActiveBuffs().find(b => b.name === Buffs.PhantomReady.name)) {
+            this.updateGauge(cp, Actions.Phantom);
             cp.useGcd(Actions.Phantom);
-            this.rotationState.ninkiGauge += 10;
         }
+    }
+
+    useMeisui(cp: CycleProcessor) {
+        this.updateGauge(cp, Actions.Meisui);
+        cp.useOgcd(Actions.Meisui);
     }
 
     useNinki(cp: CycleProcessor) {
         if (this.rotationState.ninkiReady()) {
+            let action = Actions.Bhavacakra;
             if (cp.getActiveBuffs().find(b => b.name === Buffs.Higi.name)) {
-                cp.useOgcd(Actions.Bhavacakra);
-            } else {
-                cp.useOgcd(Actions.ZeshoMeppo);
+                action = Actions.ZeshoMeppo;
+            } else if (cp.cdTracker.canUse(Actions.Bunshin)) {
+                action = Actions.Bunshin;
             }
-            this.rotationState.spendNinki();
+            cp.useOgcd(action);
+            this.rotationState.spendNinki(action);
         }
     }
 
@@ -197,16 +238,17 @@ export class NinSim extends BaseMultiCycleSim<NinSimResult, NinSettings> {
         this.useNinjutsu(cp, Actions.Suiton);
         cp.useOgcd(Actions.Kassatsu);
 
-        cp.useGcd(Actions.SpinningEdge);
+        this.useCombo(cp);
         // TODO: Use pot here
 
-        cp.useGcd(Actions.GustSlash);
+        this.useCombo(cp);
         cp.useOgcd(Actions.DokumoriAbility);
         cp.useOgcd(Actions.Bunshin);
+        this.rotationState.spendNinki(Actions.Bunshin);
 
-        cp.useGcd(Actions.Phantom);
+        this.usePhantom(cp);
 
-        cp.useGcd(Actions.ArmorCrush);
+        this.useCombo(cp);
         cp.useOgcd(Actions.KunaisBane);
 
         this.useNinjutsu(cp, Actions.Hyosho);
@@ -215,7 +257,7 @@ export class NinSim extends BaseMultiCycleSim<NinSimResult, NinSettings> {
         this.useNinjutsu(cp, Actions.Raiton);
 
         this.useTCJ(cp);
-        cp.useOgcd(Actions.Meisui);
+        this.useMeisui(cp);
 
         this.useRaiju(cp);
         this.useNinki(cp);
@@ -237,8 +279,42 @@ export class NinSim extends BaseMultiCycleSim<NinSimResult, NinSettings> {
 
     }
 
-    useFillerOgcd(cp: CycleProcessor) {
-        // TODO: Determine what ogcds should be used, if any
+    useOgcdIfReady(cp: CycleProcessor, action: OgcdAbility, counter: number): number {
+        if (counter < 2 && cp.cdTracker.canUse(action)) {
+            if (Actions.isNinkiAbility(action)) {
+                this.useNinki(cp);
+            } else {
+                cp.useOgcd(action);
+            }
+            counter++;
+        }
+        return counter;
+    }
+
+    useFillerOgcd(cp: CycleProcessor): number {
+        // TODO: Use some kind of helper method to determine if an ogcd can be used without clipping instead
+        let oGcdCount = 0;
+
+        // Spend Ninki before overcapping
+        if (this.rotationState.ninkiGauge >= 85) {
+            oGcdCount = this.useOgcdIfReady(cp, Actions.Bunshin, oGcdCount);
+            oGcdCount = this.useOgcdIfReady(cp, Actions.Bhavacakra, oGcdCount);
+        }
+
+        // Use Kassatsu, but only in preparation for trick
+        if (cp.getActiveBuffs().find(b => b.name === Buffs.ShadowWalker.name) && cp.cdTracker.canUse(Actions.Kassatsu)) {
+            oGcdCount = this.useOgcdIfReady(cp, Actions.Kassatsu, oGcdCount);
+        }
+
+        return oGcdCount;
+    }
+
+    useFillerGcd(cp: CycleProcessor) {
+        if (cp.getActiveBuffs().find(b => b.name === Buffs.PhantomReady.name)) {
+            this.usePhantom(cp);
+        } else {
+            this.useCombo(cp);
+        }
     }
 
     getRotationsToSimulate(): Rotation[] {
@@ -248,6 +324,20 @@ export class NinSim extends BaseMultiCycleSim<NinSimResult, NinSettings> {
             cycleTime: 120,
             apply(cp: CycleProcessor) {
                 sim.useOpener(cp);
+
+                while (cp.cdTracker.statusOf(Actions.KunaisBane).readyAt.relative > 20 || !cp.cdTracker.canUse(Actions.MudraStart)) {
+                    sim.useFillerGcd(cp);
+                    sim.useFillerOgcd(cp);
+                }
+
+                sim.useNinjutsu(cp, Actions.Suiton);
+
+                while (!cp.cdTracker.canUse(Actions.KunaisBane)) {
+                    sim.useFillerGcd(cp);
+                    sim.useFillerOgcd(cp);
+                }
+
+                sim.useOddMinBurst(cp);
             }
         }]
     }

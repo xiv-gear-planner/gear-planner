@@ -39,7 +39,8 @@ export const KassatsuBuff: Buff = {
     },
     appliesTo: ability => NINJUTSU_ACTIONS.includes(ability.name),
     beforeSnapshot: removeSelf,
-    duration: 15,
+    // The duration of Kassatsu is increased here to ensure it will be active even if the ogcd is mistimed
+    duration: 30,
     statusId: 497
 };
 
@@ -81,7 +82,7 @@ export const TenriJindoReady: Buff = {
     beforeSnapshot: removeSelf,
     duration: 30,
     // TODO: Update once available in Dawntrail
-    statusId: 1
+    statusId: 700_000
 };
 
 export const ShadowWalker: Buff = {
@@ -164,5 +165,5 @@ export const Higi: Buff = {
     beforeSnapshot: removeSelf,
     duration: 30,
     // TODO: Update once available in Dawntrail
-    statusId: 2
+    statusId: 700_001
 };
