@@ -10,7 +10,6 @@ function dotPotencyToDamage(stats: ComputedSetStats, potency: number, dmgAbility
     // TODO: are there any dots with auto-crit or auto-dh?
     const forceDh = false;
     const forceCrit = false;
-    // TODO: why is autoDH true
     const nonCritDmg = baseDamageFull(modifiedStats, potency, dmgAbility.attackType, forceDh, forceCrit, true);
     const afterCritDh = applyDhCritFull(nonCritDmg, modifiedStats);
     return multiplyFixed(afterCritDh, combinedBuffEffects.dmgMod);
@@ -38,6 +37,8 @@ export function abilityToDamageNew(stats: ComputedSetStats, ability: Ability, co
             dot: null
         }
     }
+    // noinspection AssignmentToFunctionParameterJS
+    stats = combinedBuffEffects.modifyStats(stats);
     return {
         directDamage: ability.potency ? potencyToDamage(stats, ability.potency, ability as DamagingAbility, combinedBuffEffects) : null,
         dot: 'dot' in ability ? {
@@ -56,29 +57,39 @@ export function noBuffEffects(): CombinedBuffEffect {
         forceCrit: false,
         forceDhit: false,
         haste: 0,
+        modifyStats: stats => stats
     };
 }
 
 export function combineBuffEffects(buffs: Buff[]): CombinedBuffEffect {
     const combinedEffects: CombinedBuffEffect = noBuffEffects();
     for (const buff of buffs) {
-        if (buff.effects.dmgIncrease) {
-            combinedEffects.dmgMod *= (1 + buff.effects.dmgIncrease);
+        const effects = buff.effects;
+        if (effects.dmgIncrease) {
+            combinedEffects.dmgMod *= (1 + effects.dmgIncrease);
         }
-        if (buff.effects.critChanceIncrease) {
-            combinedEffects.critChanceIncrease += buff.effects.critChanceIncrease;
+        if (effects.critChanceIncrease) {
+            combinedEffects.critChanceIncrease += effects.critChanceIncrease;
         }
-        if (buff.effects.dhitChanceIncrease) {
-            combinedEffects.dhitChanceIncrease += buff.effects.dhitChanceIncrease;
+        if (effects.dhitChanceIncrease) {
+            combinedEffects.dhitChanceIncrease += effects.dhitChanceIncrease;
         }
-        if (buff.effects.haste) {
-            combinedEffects.haste += buff.effects.haste;
+        if (effects.haste) {
+            combinedEffects.haste += effects.haste;
         }
-        if (buff.effects.forceCrit) {
+        if (effects.forceCrit) {
             combinedEffects.forceCrit = true;
         }
-        if (buff.effects.forceDhit) {
+        if (effects.forceDhit) {
             combinedEffects.forceDhit = true;
+        }
+        if (effects.modifyStats) {
+            const oldFunc = combinedEffects.modifyStats;
+            combinedEffects.modifyStats = (stats) => {
+                const before = oldFunc(stats);
+                const copy = {...before};
+                return effects.modifyStats(copy);
+            }
         }
     }
     return combinedEffects;

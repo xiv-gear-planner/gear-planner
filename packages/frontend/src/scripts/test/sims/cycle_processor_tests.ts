@@ -35,7 +35,10 @@ interface TestSimSettings extends SimSettings {
 interface TestSimSettingsExternal extends ExternalCycleSettings<TestSimSettings> {
 }
 
+let fakeId = 0x100_0000;
+
 const filler: GcdAbility = {
+    id: fakeId++,
     type: 'gcd',
     name: "Glare",
     potency: 310,
@@ -45,6 +48,7 @@ const filler: GcdAbility = {
 };
 
 const weaponSkill: GcdAbility = {
+    id: fakeId++,
     type: 'gcd',
     name: "WepSkill",
     potency: 310,
@@ -54,6 +58,7 @@ const weaponSkill: GcdAbility = {
 };
 
 const nop: GcdAbility = {
+    id: fakeId++,
     type: 'gcd',
     name: "NOP",
     potency: null,
@@ -63,6 +68,7 @@ const nop: GcdAbility = {
 };
 
 const dia: GcdAbility = {
+    id: fakeId++,
     type: 'gcd',
     name: "Dia",
     potency: 65,
@@ -76,6 +82,7 @@ const dia: GcdAbility = {
 };
 
 const assize: OgcdAbility = {
+    id: fakeId++,
     type: 'ogcd',
     name: "Assize",
     potency: 400,
@@ -83,6 +90,7 @@ const assize: OgcdAbility = {
 };
 
 const pom: OgcdAbility = {
+    id: fakeId++,
     type: 'ogcd',
     name: 'Presence of Mind',
     potency: null,
@@ -100,6 +108,7 @@ const pom: OgcdAbility = {
 };
 
 const misery: GcdAbility = {
+    id: fakeId++,
     type: 'gcd',
     name: "Afflatus Misery",
     potency: 1240,
@@ -108,6 +117,7 @@ const misery: GcdAbility = {
 };
 
 const lily: GcdAbility = {
+    id: fakeId++,
     type: 'gcd',
     name: "Afflatus Rapture",
     potency: 0,
@@ -394,6 +404,7 @@ describe('Cycle sim processor', () => {
 });
 
 const instant: GcdAbility = {
+    id: fakeId++,
     type: 'gcd',
     name: "Dia",
     potency: 65,
@@ -407,6 +418,7 @@ const instant: GcdAbility = {
 };
 
 const long: GcdAbility = {
+    id: fakeId++,
     type: 'gcd',
     name: "Raise",
     potency: 310,
@@ -604,6 +616,7 @@ const potBuff: Buff = {
 };
 
 const potBuffAbility: GcdAbility = {
+    id: fakeId++,
     type: 'gcd',
     name: "Pot Buff Ability",
     potency: null,
@@ -677,6 +690,7 @@ const bristleBuff: Buff = {
 };
 
 const bristle: GcdAbility = {
+    id: fakeId++,
     type: 'gcd',
     name: "Bristle",
     potency: null,
@@ -703,6 +717,7 @@ const bristleBuff2: Buff = {
 };
 
 const bristle2: GcdAbility = {
+    id: fakeId++,
     type: 'gcd',
     name: "Bristle2",
     potency: null,
@@ -905,6 +920,7 @@ describe('Special record', () => {
 // TODO: another set of test, but with a GCD that doesn't evenly divide the cycle time, so that re-alignment
 // can be checked.
 const fixed: GcdAbility = {
+    id: fakeId++,
     type: 'gcd',
     name: "Fixed",
     potency: 310,
@@ -914,6 +930,7 @@ const fixed: GcdAbility = {
     fixedGcd: true
 };
 const fixedLonger: GcdAbility = {
+    id: fakeId++,
     type: 'gcd',
     name: "Fixed Longer",
     potency: 310,
@@ -1182,6 +1199,7 @@ describe('Cycle processor alignment options', () => {
 
 // GCD that doesn't evenly divide into a 30 second cycle time so that we can test drift behavior
 const fixedOdd: GcdAbility = {
+    id: fakeId++,
     type: 'gcd',
     name: "Fixed Odd",
     potency: 310,
@@ -1403,6 +1421,7 @@ const indefBuff: Buff = {
 };
 
 const indefAb: Ability = {
+    id: fakeId++,
     type: 'gcd',
     name: "Ability that applies Indefinite Buff",
     potency: 310,

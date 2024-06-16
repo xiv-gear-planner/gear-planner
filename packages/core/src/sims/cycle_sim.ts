@@ -154,7 +154,7 @@ export const isFinalizedAbilityUse = (record: DisplayRecordFinalized): record is
 
 export interface BuffUsage {
     readonly buff: Buff,
-    readonly start: number,
+    start: number,
     end: number,
     forceEnd: boolean
 }
@@ -244,6 +244,8 @@ export class CycleProcessor {
             attackType: 'Auto-attack',
             type: 'autoattack',
             name: 'Auto Attack',
+            id: (this.stats.jobStats.aaPotency >= 90 ? 7 : 8),
+            noIcon: true,
             potency: this.stats.jobStats.aaPotency
         };
     }
@@ -473,9 +475,9 @@ export class CycleProcessor {
         const preCombinedEffects: CombinedBuffEffect = pre.combinedEffects;
         // noinspection AssignmentToFunctionParameterJS
         ability = this.beforeAbility(ability, preBuffs);
-        const abilityGcd = isGcd ? (this.gcdTime(ability as GcdAbility, preCombinedEffects.haste)) : 0;
-        this.markCd(ability, preCombinedEffects.haste);
-        const effectiveCastTime: number | null = ability.cast ? this.castTime(ability, preCombinedEffects.haste) : null;
+        const abilityGcd = isGcd ? (this.gcdTime(ability as GcdAbility, preCombinedEffects)) : 0;
+        this.markCd(ability, preCombinedEffects);
+        const effectiveCastTime: number | null = ability.cast ? this.castTime(ability, preCombinedEffects) : null;
         const snapshotDelayFromStart = effectiveCastTime ? Math.max(0, effectiveCastTime - CAST_SNAPSHOT_PRE) : 0;
         const snapshotsAt = this.currentTime + snapshotDelayFromStart;
         // When this GCD will end (strictly in terms of GCD. e.g. a BLM spell where cast > recast will still take the cast time. This will be
@@ -637,9 +639,14 @@ export class CycleProcessor {
                 cycle.end += this.pendingPrePullOffset;
             }
         });
+        const pending = this.pendingPrePullOffset;
+        console.log(`Pre-pull adjustment: ${pending}`);
         this.pendingPrePullOffset = 0;
-        // TODO: this will need to be updated to account for pre-pull self-buffs
         if (this.combatStarting) {
+            this.buffHistory.forEach(bh => {
+                bh.start += pending;
+                bh.end += pending;
+            });
             this.settings.allBuffs.forEach(buff => {
                 if (this.isBuffAutomatic(buff)) {
                     if (buff.startTime !== undefined) {
@@ -707,22 +714,24 @@ export class CycleProcessor {
         });
     }
 
-    castTime(ability: Ability, hasteFromBuffs: number): number {
+    castTime(ability: Ability, effects: CombinedBuffEffect): number {
         const base = ability.cast;
-        const haste = hasteFromBuffs + this.stats.haste(ability.attackType);
+        const stats = effects.modifyStats(this.stats);
+        const haste = effects.haste + stats.haste(ability.attackType);
         return ability.fixedGcd ? base :
             (ability.attackType == "Spell") ?
-                (this.stats.gcdMag(base ?? this.gcdBase, haste)) :
-                (this.stats.gcdPhys(base ?? this.gcdBase, haste));
+                (stats.gcdMag(base ?? this.gcdBase, haste)) :
+                (stats.gcdPhys(base ?? this.gcdBase, haste));
     }
 
-    gcdTime(ability: GcdAbility, hasteFromBuffs: number): number {
+    gcdTime(ability: GcdAbility, effects: CombinedBuffEffect): number {
         const base = ability.gcd;
-        const haste = hasteFromBuffs + this.stats.haste(ability.attackType);
+        const stats = effects.modifyStats(this.stats);
+        const haste = effects.haste + stats.haste(ability.attackType);
         return ability.fixedGcd ? base :
             (ability.attackType == "Spell") ?
-                (this.stats.gcdMag(base ?? this.gcdBase, haste)) :
-                (this.stats.gcdPhys(base ?? this.gcdBase, haste));
+                (stats.gcdMag(base ?? this.gcdBase, haste)) :
+                (stats.gcdPhys(base ?? this.gcdBase, haste));
     }
 
     /**
@@ -732,24 +741,25 @@ export class CycleProcessor {
      * @param haste Current haste value
      * @private
      */
-    private markCd(ability: Ability, haste: number) {
+    private markCd(ability: Ability, effects: CombinedBuffEffect) {
         const cd = ability.cooldown;
         if (cd === undefined) {
             return;
         }
-        const cdTime = this.cooldownTime(cd, haste);
+        const cdTime = this.cooldownTime(cd, effects);
         this.cdTracker.useAbility(ability, cdTime);
     }
 
-    cooldownTime(cooldown: Cooldown, haste: number): number {
+    cooldownTime(cooldown: Cooldown, effects: CombinedBuffEffect): number {
+        const stats = effects.modifyStats(this.stats);
         switch (cooldown.reducedBy) {
             case undefined:
             case "none":
                 return cooldown.time;
             case "spellspeed":
-                return this.stats.gcdMag(cooldown.time, haste);
+                return stats.gcdMag(cooldown.time, effects.haste);
             case "skillspeed":
-                return this.stats.gcdPhys(cooldown.time, haste);
+                return stats.gcdPhys(cooldown.time, effects.haste);
         }
     }
 
