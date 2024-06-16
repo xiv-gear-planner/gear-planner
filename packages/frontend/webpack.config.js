@@ -35,6 +35,13 @@ module.exports = (env, argv) => {
         ],
         resolve: {
             extensions: ['.ts', '.js'],
+        },
+        devServer: {
+            static: "./dist",
+            port: 8076,
+            client: {
+                overlay: false
+            }
         }
     }
 };
