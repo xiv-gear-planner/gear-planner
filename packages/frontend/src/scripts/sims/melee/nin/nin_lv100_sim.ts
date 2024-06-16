@@ -126,20 +126,31 @@ export class NinSim extends BaseMultiCycleSim<NinSimResult, NinSettings> {
         cp.useGcd(fillerAction);
     }
 
-    useNinjutsu(cp: CycleProcessor, action: Actions.NinjutsuAbility) {
-        // Only consume stacks if we don't have kassatsu
-        if (cp.getActiveBuffs().find(b => b.name === Buffs.KassatsuBuff.name)) {
-            cp.useGcd(Actions.MudraFollowup);
+    useMudra(cp: CycleProcessor, step: Actions.MudraStep, useCharge?: boolean) {
+        if (useCharge) {
+            const modified: GcdAbility = {
+                ...Actions.MudraStart,
+                name: step.name,
+            }
+            cp.useGcd(modified);
         } else {
-            cp.useGcd(Actions.MudraStart);
+            const modified: GcdAbility = {
+                ...Actions.MudraFollowup,
+                ...step,
+            }
+            cp.useGcd(modified);
+        }
+    }
+
+    useNinjutsu(cp: CycleProcessor, action: Actions.NinjutsuAbility) {
+        // Use the Mudra combination
+        for (let i = 0; i < action.steps.length; i++) {
+            // Only consume charges on the first step and if we don't have kassatsu
+            const useCharge = i === 0 && !cp.getActiveBuffs().find(b => b.name === Buffs.KassatsuBuff.name)
+            this.useMudra(cp, action.steps[i], useCharge);
         }
 
-        // Fill remaining steps
-        for (let i = action.steps - 1; i > 0; i--) {
-            cp.useGcd(Actions.MudraFollowup);
-        }
-
-        // Use the ninjutsu
+        // Use the Ninjutsu
         cp.useGcd(action);
 
         // Apply Raiju stacks
@@ -184,8 +195,10 @@ export class NinSim extends BaseMultiCycleSim<NinSimResult, NinSettings> {
 
     useOpener(cp: CycleProcessor) {
         this.useNinjutsu(cp, Actions.Suiton);
+        cp.useOgcd(Actions.Kassatsu);
+
         cp.useGcd(Actions.SpinningEdge);
-        // use pot here
+        // TODO: Use pot here
 
         cp.useGcd(Actions.GustSlash);
         cp.useOgcd(Actions.DokumoriAbility);
