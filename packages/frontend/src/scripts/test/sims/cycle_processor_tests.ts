@@ -1489,7 +1489,8 @@ const longDelay: GcdAbility = {
     attackType: "Spell",
     gcd: 2.5,
     cast: 1.5,
-    appDelay: 1.2
+    appDelay: 1.2,
+    id: fakeId++
 };
 
 
