@@ -3,14 +3,42 @@ import {Dokumori} from "@xivgear/core/sims/buffs";
 import {TenriJindoReady, KassatsuBuff, BunshinBuff, Higi, MeisuiBuff, KunaisBaneBuff, PhantomReady, TenChiJinReady} from './nin_buffs';
 
 /**
+ * Represents a Mudra Step
+ */
+export type MudraStep = Readonly<{
+    /** The ability id */
+    id: number,
+    /** The ability name */
+    name: string,
+}>;
+
+/**
  * Represents a Ninjutsu Ability
  */
 export type NinjutsuAbility = GcdAbility & Readonly<{
-    /** The number of mudra steps required for this ability. */
-    steps: number,
+    /** The mudra combination for this Ninjutsu */
+    steps: MudraStep[]
     /** Whether or not this Ninjutsu should add a Raiju stack. */
     addRaiju?: boolean,
 }>
+
+/**
+ * Mudras
+ */
+const Ten: MudraStep = {
+    id: 18805,
+    name: "Ten"
+};
+
+const Chi: MudraStep = {
+    id: 18806,
+    name: "Chi"
+};
+
+const Jin: MudraStep = {
+    id: 18807,
+    name: "Jin"
+};
 
 /**
  * GCD Actions
@@ -77,7 +105,7 @@ export const Raiju: GcdAbility = {
 
 export const MudraStart: GcdAbility = {
     type: 'gcd',
-    name: "First Mudra",
+    name: "Mudra Start",
     id: 2259,
     potency: null,
     cooldown: {
@@ -93,13 +121,14 @@ export const MudraStart: GcdAbility = {
 export const MudraFollowup: GcdAbility = {
     type: 'gcd',
     name: "Follow-up Mudra",
-    id: 2261,
+    id: 18806,
     potency: null,
     attackType: "Ability",
     gcd: 0.5,
     fixedGcd: true,
     cast: 0
 };
+
 
 export const Fuma: NinjutsuAbility = {
     type: 'gcd',
@@ -110,7 +139,7 @@ export const Fuma: NinjutsuAbility = {
     gcd: 1.5,
     fixedGcd: true,
     cast: 0,
-    steps: 1
+    steps: [Ten]
 };
 
 export const Raiton: NinjutsuAbility = {
@@ -122,7 +151,7 @@ export const Raiton: NinjutsuAbility = {
     gcd: 1.5,
     fixedGcd: true,
     cast: 0,
-    steps: 2,
+    steps: [Ten, Chi],
     addRaiju: true,
 };
 
@@ -135,7 +164,7 @@ export const Suiton: NinjutsuAbility = {
     gcd: 1.5,
     fixedGcd: true,
     cast: 0,
-    steps: 3
+    steps: [Ten, Chi, Jin]
 };
 
 export const Hyosho: NinjutsuAbility = {
@@ -147,7 +176,7 @@ export const Hyosho: NinjutsuAbility = {
     gcd: 1.5,
     fixedGcd: true,
     cast: 0,
-    steps: 2
+    steps: [Ten, Jin]
 };
 
 /**

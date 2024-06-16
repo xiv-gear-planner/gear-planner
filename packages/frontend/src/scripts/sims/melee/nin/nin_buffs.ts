@@ -20,6 +20,7 @@ const NINJUTSU_ACTIONS_1STEP: string[] = [
 ];
 const NINJUTSU_ACTIONS_2STEP: string[] = [
     "Katon", "Raiton", "Hyoton",
+    "Hyosho Ranryu", "Goka Mekkyaku"
 ];
 const NINJUTSU_ACTIONS_3STEP: string[] = [
     "Huton", "Doton", "Suiton"
