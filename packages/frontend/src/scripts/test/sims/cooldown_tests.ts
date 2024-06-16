@@ -1,9 +1,9 @@
 import {CooldownTracker} from "@xivgear/core/sims/common/cooldown_manager";
 import {Chain} from "@xivgear/core/sims/buffs";
 import * as assert from "assert";
-import {CdAbility, GcdAbility, OgcdAbility} from "@xivgear/core/sims/sim_types";
+import {GcdAbility, OgcdAbility, OriginCdAbility, SharedCdAbility} from "@xivgear/core/sims/sim_types";
 
-const chain: OgcdAbility & CdAbility = {
+const chain: OgcdAbility & OriginCdAbility = {
     type: 'ogcd',
     name: "Chain",
     id: 7436,
@@ -15,7 +15,7 @@ const chain: OgcdAbility & CdAbility = {
     }
 };
 
-const chainShared: OgcdAbility = {
+const chainShared: OgcdAbility & SharedCdAbility = {
     type: 'ogcd',
     name: 'Chain II',
     id: 100_0001,
