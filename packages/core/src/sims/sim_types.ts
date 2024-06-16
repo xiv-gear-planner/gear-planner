@@ -301,10 +301,18 @@ export type Cooldown = Readonly<{
      */
     reducedBy?: 'none' | 'spellspeed' | 'skillspeed';
     /**
-     * The number of charges of the ability
+     * The number of charges of the ability.
      */
     charges?: number
+    /**
+     * If the ability shares a cooldown with another ability, specify that ability here.
+     */
+    sharesCooldownWith?: CdAbility
 }>
+
+export type CdAbility = Ability & {
+    cooldown: Cooldown
+}
 
 /**
  * Represents a GCD action

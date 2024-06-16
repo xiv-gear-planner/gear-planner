@@ -1,4 +1,4 @@
-import {Ability} from "../sim_types";
+import {Ability, CdAbility} from "../sim_types";
 
 export type CooldownMode = 'none' | 'warn' | 'delay' | 'reject';
 
@@ -47,7 +47,7 @@ class InternalState {
 export class CooldownTracker {
 
 
-    private readonly currentState: Map<string, InternalState> = new Map();
+    private readonly currentState: Map<number, InternalState> = new Map();
     public mode: CooldownMode = 'warn';
 
     public constructor(private timeSource: () => number, mode: CooldownMode = 'warn') {
@@ -59,11 +59,10 @@ export class CooldownTracker {
     }
 
     public useAbility(ability: Ability, cdTimeOverride?: number): void {
-        const cd = ability.cooldown;
-        // No CD info, don't do anything
-        if (!cd) {
+        if (!hasCooldown(ability)) {
             return;
         }
+        const cd = ability.cooldown;
         if (cd.reducedBy !== undefined && cd.reducedBy !== 'none' && cdTimeOverride === undefined) {
             // TODO: not super happy about the logic being split up here, find a better way
             console.warn(`CD ${ability.name} is supposed to be reduced by ${cd.reducedBy}, but an override time was not passed in`);
@@ -89,7 +88,8 @@ export class CooldownTracker {
         // seconds. The trivial case is the ability is capped 'now' and you use it (works for charge based and normal).
         const newCappedAt = status.cappedAt.absolute + cdTime;
         const state = new InternalState(newCappedAt);
-        this.currentState.set(ability.name, state);
+        const key = cooldownKey(ability);
+        this.currentState.set(key, state);
     }
 
     public canUse(ability: Ability, when?: number): boolean {
@@ -118,10 +118,10 @@ export class CooldownTracker {
     }
 
     public statusOfAt(ability: Ability, desiredTime: number): CooldownStatus {
-        if (!ability.cooldown) {
+        if (!hasCooldown(ability)) {
             return defaultStatus(ability, desiredTime);
         }
-        const existing = this.currentState.get(ability.name);
+        const existing = this.currentState.get(cooldownKey(ability));
         // Have existing state
         if (existing) {
             const cappedAt = existing.cappedAt;
@@ -159,37 +159,16 @@ export class CooldownTracker {
                     currentCharges = 1, i = 0, timeUntilCap = 60
                     currentCharges = 0, i = 60, timeUntilCap = 60
                  */
-                let currentCharges = ability.cooldown.charges ?? 1;
-                let remainingTime;
-                let timeUntilNextCharge;
-                for (remainingTime = 0; remainingTime < timeUntilCap; remainingTime += ability.cooldown.time) {
-                    currentCharges--;
-                    timeUntilNextCharge = timeUntilCap - remainingTime;
-                }
-                // Not capped, but have a charge
-                if (currentCharges >= 1) {
+                const maxCharges = ability.cooldown.charges ?? 1;
+                // There is an unsupported case here, where mixed length CDs/charge counts are not supported
+                // with shared CDs.
+                // This branch is meant to handle this case when using one-charge abilities.
+                // TODO: consider whether there is a way to block this case using type defs.
+                if (maxCharges === 1) {
                     return {
                         readyAt: {
-                            absolute: desiredTime,
-                            relative: 0
-                        },
-                        readyToUse: true,
-                        capped: false,
-                        cappedAt: {
                             absolute: cappedAt,
-                            relative: cappedAt - desiredTime,
-                        },
-                        currentCharges: currentCharges,
-                    }
-                }
-                else {
-                    // e.g. if CD is 60 seconds, two charges, and we have 75 seconds until capped,
-                    // then we will have a charge available in (75 mod 60) === 15 seconds
-                    const remaining = timeUntilNextCharge;
-                    return {
-                        readyAt: {
-                            absolute: remaining + desiredTime,
-                            relative: remaining
+                            relative: cappedAt - desiredTime
                         },
                         readyToUse: false,
                         capped: false,
@@ -197,7 +176,54 @@ export class CooldownTracker {
                             absolute: cappedAt,
                             relative: cappedAt - desiredTime,
                         },
-                        currentCharges: currentCharges,
+                        currentCharges: 0,
+                    }
+                }
+                else {
+
+                    let currentCharges = maxCharges;
+                    let remainingTime;
+                    let timeUntilNextCharge;
+                    for (remainingTime = 0; remainingTime < timeUntilCap; remainingTime += ability.cooldown.time) {
+                        currentCharges--;
+                        timeUntilNextCharge = timeUntilCap - remainingTime;
+                    }
+                    if (currentCharges < 0) {
+                        currentCharges = 0;
+                    }
+                    // Not capped, but have a charge
+                    if (currentCharges >= 1) {
+                        return {
+                            readyAt: {
+                                absolute: desiredTime,
+                                relative: 0
+                            },
+                            readyToUse: true,
+                            capped: false,
+                            cappedAt: {
+                                absolute: cappedAt,
+                                relative: cappedAt - desiredTime,
+                            },
+                            currentCharges: currentCharges,
+                        }
+                    }
+                    else {
+                        // e.g. if CD is 60 seconds, two charges, and we have 75 seconds until capped,
+                        // then we will have a charge available in (75 mod 60) === 15 seconds
+                        const remaining = timeUntilNextCharge;
+                        return {
+                            readyAt: {
+                                absolute: remaining + desiredTime,
+                                relative: remaining
+                            },
+                            readyToUse: false,
+                            capped: false,
+                            cappedAt: {
+                                absolute: cappedAt,
+                                relative: cappedAt - desiredTime,
+                            },
+                            currentCharges: currentCharges,
+                        }
                     }
                 }
             }
@@ -222,4 +248,32 @@ function defaultStatus(ability: Ability, absTime: number): CooldownStatus {
         },
         currentCharges: ability.cooldown?.charges ?? 1,
     }
+}
+
+/**
+ * Given that abilities can indicate that they share a cooldown with another ability, this function extracts
+ * the "real" cooldown key.
+ * @param ability
+ */
+function cooldownKey(ability: CdAbility): number {
+    const seen = [];
+    let current = ability;
+    let attempts = 10;
+    while (--attempts > 0) {
+        if (current.cooldown.sharesCooldownWith !== undefined) {
+            current = current.cooldown.sharesCooldownWith;
+            if (seen.includes(current)) {
+                throw Error(`Ability ${ability.name} has circular references of CD sharing.`)
+            }
+            seen.push(current);
+        }
+        else {
+            return current.id;
+        }
+    }
+    throw Error(`Ability ${ability.name} has too many layers of nested CD share.`)
+}
+
+function hasCooldown(ability: Ability): ability is CdAbility {
+    return ability.cooldown !== undefined;
 }
