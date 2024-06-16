@@ -1,6 +1,6 @@
 import {EquippedItem, Substat} from "@xivgear/xivmath/geartypes";
 import {CharacterGearSet} from "@xivgear/core/gear";
-import {FieldBoundDataSelect, FieldBoundIntField} from "./util";
+import {FieldBoundDataSelect, FieldBoundIntField} from "@xivgear/common-ui/components/util";
 
 export function makeRelicStatEditor(equipment: EquippedItem, stat: Substat, set: CharacterGearSet): HTMLElement {
     const gearItem = equipment.gearItem;

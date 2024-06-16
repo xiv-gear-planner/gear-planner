@@ -7,9 +7,7 @@ import {Ability, ComboData} from "./sim_types";
  * @param ability The ability in question
  */
 export function appDelay(ability: Ability) {
-    const delay = STANDARD_APPLICATION_DELAY;
-    // TODO: add application delay field to Ability
-    return delay;
+    return ability.appDelay ?? STANDARD_APPLICATION_DELAY;
 }
 
 function defaultComboData(ability: Ability): ComboData {

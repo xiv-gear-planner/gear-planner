@@ -1,0 +1,23 @@
+{
+  "name": "@xivgear/common-ui",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "build": "tsc --build"
+  },
+  "devDependencies": {
+    "ts-node": "^10.9.2",
+    "ts-loader": "^9.4.4",
+    "ts-mocha": "^10.0.0",
+    "chai": "^4.4.1",
+    "@types/chai": "^4.3.16"
+  },
+  "exports": {
+    "./*": "./src/*.ts"
+  },
+  "files": [
+    "package.json",
+    "tsconfig.json",
+    "src/*.ts"
+  ]
+}

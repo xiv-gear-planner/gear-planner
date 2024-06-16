@@ -1,6 +1,6 @@
 import {CustomCell, CustomColumn, CustomRow, CustomTable, SpecialRow, TitleRow} from "../tables";
 import {SheetExport} from "@xivgear/xivmath/geartypes";
-import {faIcon, makeActionButton} from "./util";
+import {faIcon, makeActionButton} from "@xivgear/common-ui/components/util";
 import {deleteSheetByKey} from "@xivgear/core/persistence/saved_sheets";
 import {getHashForSaveKey, openSheetByKey, showNewSheetForm} from "../base_ui";
 

@@ -1,4 +1,4 @@
-import {FieldBoundFloatField, labelFor} from "../../components/util";
+import {FieldBoundFloatField, labelFor} from "@xivgear/common-ui/components/util";
 import {NamedSection} from "../../components/section";
 import {ResultSettings} from "@xivgear/core/sims/cycle_sim";
 

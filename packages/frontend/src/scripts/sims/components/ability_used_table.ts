@@ -4,6 +4,7 @@ import {AbilityIcon} from "../../components/abilities";
 import {BuffListDisplay} from "./buff_list_display";
 import {DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/core/sims/cycle_sim";
 import {AutoAttack, Buff, CombinedBuffEffect, GcdAbility, OgcdAbility} from "@xivgear/core/sims/sim_types";
+import {ItemIcon} from "../../components/item_icon";
 
 /**
  * Format a time into the format x:yy.zz
@@ -73,8 +74,13 @@ export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
                         else if (ability.type !== "gcd") {
                             out.appendChild(document.createTextNode(' ⤷ '));
                         }
-                        if (ability.id) {
-                            out.appendChild(new AbilityIcon(ability.id));
+                        if (!ability.noIcon) {
+                            if (ability.itemId) {
+                                out.appendChild(new ItemIcon(ability.itemId));
+                            }
+                            else if (ability.id) {
+                                out.appendChild(new AbilityIcon(ability.id));
+                            }
                         }
                         const abilityNameSpan = document.createElement('span');
                         abilityNameSpan.textContent = ability.name;
