@@ -519,10 +519,11 @@ export class CycleProcessor {
         });
         this.addAbilityUse(usedAbility);
         // Since we don't have proper modeling for situations where you need to delay something to catch a buff,
-        // e.g. SCH chain into ED, just force everything to apply no later than the animation lock.
+        // e.g. SCH chain into ED, just force buffs to apply no later than the animation lock.
         // At this specific point in time, we are exactly at the snapshot. Thus, the remaining application delay
         // is the snapshot-to-application delta only, and the animation lock also needs to have the time so far
         // subtracted.
+        // TODO: fix this limitation
         const buffDelay = Math.max(0, Math.min(appDelayFromSnapshot, effectiveAnimLock - snapshotDelayFromStart));
         // Activate buffs afterwards
         if (ability.activatesBuffs) {
