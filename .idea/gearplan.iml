@@ -14,6 +14,8 @@
       <excludeFolder url="file://$MODULE_DIR$/packages/frontend/dist" />
       <excludeFolder url="file://$MODULE_DIR$/packages/xivmath/build" />
       <excludeFolder url="file://$MODULE_DIR$/packages/core/build" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/math-frontend/build" />
+      <excludeFolder url="file://$MODULE_DIR$/packages/math-frontend/dist" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

@@ -8,7 +8,9 @@
   "workspaces": [
     "packages/xivmath",
     "packages/core",
+    "packages/common-ui",
     "packages/frontend",
+    "packages/math-frontend",
     "packages/backend-resolver"
   ],
   "devDependencies": {

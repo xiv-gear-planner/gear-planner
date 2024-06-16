@@ -1,6 +1,6 @@
 import {NamedSection} from "../components/section";
 import {BuffSettingsManager} from "@xivgear/core/sims/common/party_comp_settings";
-import {FieldBoundCheckBox, labeledCheckbox} from "../components/util";
+import {FieldBoundCheckBox, labeledCheckbox} from "@xivgear/common-ui/components/util";
 
 export class BuffSettingsArea extends NamedSection {
     constructor(settings: BuffSettingsManager, updateCallback: () => void) {
