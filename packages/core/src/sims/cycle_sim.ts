@@ -32,11 +32,25 @@ import {abilityToDamageNew, combineBuffEffects} from "./sim_utils";
 import {BuffSettingsExport} from "./common/party_comp_settings";
 import {CycleSettings} from "./cycle_settings";
 
+/**
+ * CycleContext is similar to CycleProcessor, but is scoped to within a cycle. It provides methods
+ * and properties for keeping track of time relative to the cycle itself.
+ */
 export class CycleContext {
 
     cycleStartedAt: number;
+    /**
+     * cycleTime is the length of one cycle. Commonly 120 seconds.
+     */
     readonly cycleTime: number;
+    /**
+     * The amount of overall fight time when this cycle begins. Can be used to modify a rotation
+     * to account for an early end.
+     */
     readonly fightTimeRemainingAtCycleStart: number;
+    /**
+     * The number of this cycle. 0 is the first cycle.
+     */
     readonly cycleNumber: number;
     readonly mcp: CycleProcessor;
     private lastSeenPrepullOffset: number = 0;
@@ -59,26 +73,47 @@ export class CycleContext {
         }
     }
 
+    /**
+     * The overall fight time. Equivalent to {@link CycleProcessor.currentTime}
+     */
     get overallFightTime() {
         return this.mcp.currentTime;
     }
 
+    /**
+     * The maximum possible length of this cycle. It is the lesser of the cycle time and the
+     * duration of overall fight time remaining when this cycle began.
+     */
     get maxTime() {
         return Math.min(this.cycleTime, this.fightTimeRemainingAtCycleStart);
     }
 
+    /**
+     * The time remaining in this cycle, taking into account the possibility that the fight's
+     * overall remaining time would cut off the cycle.
+     */
     get cycleRemainingTime() {
         return Math.max(0, this.cycleStartedAt + this.maxTime - this.mcp.currentTime);
     }
 
+    /**
+     * The time remaining, accounting for GCD time. That is, if our next GCD is not available for another
+     * X seconds, this would return cycleRemainingTime + X.
+     */
     get cycleRemainingGcdTime() {
         return Math.max(0, this.cycleStartedAt + this.maxTime - this.mcp.nextGcdTime);
     }
 
+    /**
+     * The overall fight's time remaining.
+     */
     get fightRemainingTime() {
         return this.mcp.remainingTime;
     }
 
+    /**
+     * The overall fight's time remaining for GCDs.
+     */
     get fightRemainingGcdTime() {
         return this.mcp.remainingGcdTime;
     }
@@ -91,6 +126,11 @@ export class CycleContext {
         return this.mcp.getActiveBuffs();
     }
 
+    /**
+     * Activate a buff manually
+     *
+     * @param buff The buff to activate
+     */
     activateBuff(buff: Buff) {
         this.mcp.activateBuff(buff);
     }
@@ -102,12 +142,23 @@ export class CycleContext {
     //     return this.usedAbilities.filter(used => used.ability['type'] == 'gcd').length;
     // }
 
+    /**
+     * Use an ability
+     *
+     * @param ability The ability to use
+     */
     use(ability: Ability): AbilityUseResult {
         const use = this.mcp.use(ability);
         this.recheckPrepull();
         return use;
     }
 
+    /**
+     * Use an ability until a specific time. The time is treated as being relative to the cycle.
+     *
+     * @param ability  The ability to use.
+     * @param useUntil The time (relative to start of cycle) to use.
+     */
     useUntil(ability: GcdAbility, useUntil: number | 'end') {
         if (useUntil == 'end') {
             useUntil = this.cycleTime;
@@ -123,12 +174,22 @@ export class CycleContext {
         this.recheckPrepull();
     }
 
+    /**
+     * Use a GCD
+     *
+     * @param ability the GCD ability to use
+     */
     useGcd(ability: GcdAbility): AbilityUseResult {
         const useGcd = this.mcp.useGcd(ability);
         this.recheckPrepull();
         return useGcd;
     }
 
+    /**
+     * Use an oGCD
+     *
+     * @param ability The oGCD ability to use
+     */
     useOgcd(ability: OgcdAbility): AbilityUseResult {
         const useOgcd = this.mcp.useOgcd(ability);
         this.recheckPrepull();
@@ -136,14 +197,44 @@ export class CycleContext {
     }
 }
 
+/**
+ * Represents whether an ability got 'cut off' because there wasn't enough time left to use it.
+ *
+ * 'full' indicates that the ability was not cut off.
+ * 'partial' indicates that the ability partially fit in the time remaining, so its damage was proprated
+ * based on the proportion that did fit.
+ * 'none' indicates that none of the ability fit, and the attempt to use it had no effect.
+ */
 export type AbilityUseResult = 'full' | 'partial' | 'none';
 
+/**
+ * Base settings object for a cycle based sim
+ */
 export type MultiCycleSettings = {
+    /**
+     * The total fight time. Typically set by the user.
+     */
     readonly totalTime: number,
+    /**
+     * The time of a single cycle.
+     */
     readonly cycleTime: number,
+    /**
+     * All enabled party buffs.
+     */
     readonly allBuffs: PartyBuff[],
+    /**
+     * Which of the party buffs should not be automatically activated due to them coming from
+     * the class which is actively being simulated.
+     */
     readonly manuallyActivatedBuffs?: PartyBuff[],
+    /**
+     * The player stats.
+     */
     readonly stats: ComputedSetStats,
+    /**
+     * Whether to use auto-attacks.
+     */
     readonly useAutos: boolean
 }
 
@@ -152,10 +243,25 @@ export type CycleFunction = (cycle: CycleContext) => void
 export const isAbilityUse = (record: DisplayRecordUnf): record is AbilityUseRecordUnf => 'ability' in record;
 export const isFinalizedAbilityUse = (record: DisplayRecordFinalized): record is FinalizedAbility => 'original' in record;
 
+/**
+ * Represents a usage of a buff.
+ */
 export interface BuffUsage {
+    /**
+     * The buff which was usedj.
+     */
     readonly buff: Buff,
+    /**
+     * The start time.
+     */
     start: number,
+    /**
+     * The end time.
+     */
     end: number,
+    /**
+     * If true, the buff was forcibly removed before expiry.
+     */
     forceEnd: boolean
 }
 
@@ -200,6 +306,10 @@ export class ComboTracker {
 }
 
 
+/**
+ * CycleProcessor is a rotation-based simulation backend that requires actual ability uses to be specified.
+ * The 'Cycle' part of the name refers to the fact that it supports loops/cycles.
+ */
 export class CycleProcessor {
 
     /**
