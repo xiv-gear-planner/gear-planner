@@ -1,5 +1,7 @@
 import {Ability, GcdAbility, OgcdAbility, SimSettings, SimSpec} from "@xivgear/core/sims/sim_types";
 import {CycleProcessor, CycleSimResult, ExternalCycleSettings, Rotation} from "@xivgear/core/sims/cycle_sim";
+import {CycleSettings} from "@xivgear/core/sims/cycle_settings";
+import {STANDARD_ANIMATION_LOCK} from "@xivgear/xivmath/xivconstants";
 import {BaseMultiCycleSim} from "../../sim_processors";
 import {Dokumori} from "@xivgear/core/sims/buffs";
 import * as Actions from './nin_actions';
@@ -83,6 +85,12 @@ export class NinSim extends BaseMultiCycleSim<NinSimResult, NinSettings> {
     shortName = "nin-sim-lv100";
     displayName = ninSpec.displayName;
     manuallyActivatedBuffs = [Dokumori];
+    cycleSettings: CycleSettings = {
+        useAutos: true,
+        totalTime: 6 * 60,
+        cycles: 0, // ???
+        which: 'totalTime' // ??????
+    }
 
     rotationState: RotationState = new RotationState();
 
@@ -92,6 +100,12 @@ export class NinSim extends BaseMultiCycleSim<NinSimResult, NinSettings> {
 
     makeDefaultSettings(): NinSettings {
         return {};
+    }
+
+    canUseWithoutClipping(cp: CycleProcessor, action: OgcdAbility) {
+        const readyAt = cp.cdTracker.statusOf(action).readyAt.absolute;
+        const maxDelayAt = cp.nextGcdTime - (action.animationLock ?? STANDARD_ANIMATION_LOCK);
+        return readyAt <= maxDelayAt;
     }
 
     updateGauge(cp: CycleProcessor, action: Ability) {
@@ -224,6 +238,46 @@ export class NinSim extends BaseMultiCycleSim<NinSimResult, NinSettings> {
         }
     }
 
+    useOgcdIfReady(cp: CycleProcessor, action: OgcdAbility, counter: number, maxCount: number): number {
+        if (counter < maxCount && cp.cdTracker.canUse(action)) {
+            if (Actions.isNinkiAbility(action)) {
+                this.useNinki(cp);
+            } else {
+                cp.useOgcd(action);
+            }
+            counter++;
+        }
+        return counter;
+    }
+
+    useFillerOgcd(cp: CycleProcessor, maxCount?: number, ninkiGaugeOverride?: number): number {
+        // TODO: Use some kind of helper method to determine if an ogcd can be used without clipping instead
+        let oGcdCount = 0;
+        const maxOgcdCount = maxCount ?? 2;
+        const ninkiGaugeCap = ninkiGaugeOverride ?? 85;
+
+        // Spend Ninki before overcapping
+        if (this.rotationState.ninkiGauge >= ninkiGaugeCap) {
+            oGcdCount = this.useOgcdIfReady(cp, Actions.Bunshin, oGcdCount, maxOgcdCount);
+            oGcdCount = this.useOgcdIfReady(cp, Actions.Bhavacakra, oGcdCount, maxOgcdCount);
+        }
+
+        // Use Kassatsu, but only in preparation for trick
+        if (cp.getActiveBuffs().find(b => b.name === Buffs.ShadowWalker.name)) {
+            oGcdCount = this.useOgcdIfReady(cp, Actions.Kassatsu, oGcdCount, maxOgcdCount);
+        }
+
+        return oGcdCount;
+    }
+
+    useFillerGcd(cp: CycleProcessor) {
+        if (cp.getActiveBuffs().find(b => b.name === Buffs.PhantomReady.name)) {
+            this.usePhantom(cp);
+        } else {
+            this.useCombo(cp);
+        }
+    }
+
     useOpener(cp: CycleProcessor) {
         this.useNinjutsu(cp, Actions.Suiton);
         cp.useOgcd(Actions.Kassatsu);
@@ -262,72 +316,99 @@ export class NinSim extends BaseMultiCycleSim<NinSimResult, NinSettings> {
     }
 
     useOddMinBurst(cp: CycleProcessor) {
+        cp.useOgcd(Actions.KunaisBane);
 
+        this.useCombo(cp, true);
+        cp.useOgcd(Actions.DreamWithin);
+
+        this.useNinjutsu(cp, Actions.Hyosho);
+        this.useFillerOgcd(cp, 1, 50);
+
+        this.useNinjutsu(cp, Actions.Raiton);
+        this.useFillerOgcd(cp, 1, 50);
+
+        this.useNinjutsu(cp, Actions.Raiton);
+        this.useFillerOgcd(cp, 1, 50);
+
+        this.useRaiju(cp);
+        this.useFillerOgcd(cp, 2, 50);
+
+        this.useRaiju(cp);
+        this.useFillerOgcd(cp, 2, 50);
+
+        this.useCombo(cp, true);
     }
 
     useEvenMinBurst(cp: CycleProcessor) {
+        cp.useOgcd(Actions.DokumoriAbility);
 
-    }
+        this.useFillerGcd(cp);
+        cp.useOgcd(Actions.KunaisBane);
 
-    useOgcdIfReady(cp: CycleProcessor, action: OgcdAbility, counter: number): number {
-        if (counter < 2 && cp.cdTracker.canUse(action)) {
-            if (Actions.isNinkiAbility(action)) {
-                this.useNinki(cp);
-            } else {
-                cp.useOgcd(action);
-            }
-            counter++;
-        }
-        return counter;
-    }
+        this.useNinjutsu(cp, Actions.Hyosho);
+        cp.useOgcd(Actions.DreamWithin);
 
-    useFillerOgcd(cp: CycleProcessor): number {
-        // TODO: Use some kind of helper method to determine if an ogcd can be used without clipping instead
-        let oGcdCount = 0;
+        this.useNinjutsu(cp, Actions.Raiton);
+        this.useFillerOgcd(cp, 1, 50);
 
-        // Spend Ninki before overcapping
-        if (this.rotationState.ninkiGauge >= 85) {
-            oGcdCount = this.useOgcdIfReady(cp, Actions.Bunshin, oGcdCount);
-            oGcdCount = this.useOgcdIfReady(cp, Actions.Bhavacakra, oGcdCount);
-        }
+        this.useTCJ(cp);
+        this.useFillerOgcd(cp, 1, 50);
 
-        // Use Kassatsu, but only in preparation for trick
-        if (cp.getActiveBuffs().find(b => b.name === Buffs.ShadowWalker.name) && cp.cdTracker.canUse(Actions.Kassatsu)) {
-            oGcdCount = this.useOgcdIfReady(cp, Actions.Kassatsu, oGcdCount);
-        }
+        this.useRaiju(cp);
+        this.useMeisui(cp);
+        this.useFillerOgcd(cp, 1, 50);
 
-        return oGcdCount;
-    }
+        this.useRaiju(cp);
+        cp.useOgcd(Actions.TenriJindo);
+        this.useFillerOgcd(cp, 1, 50);
 
-    useFillerGcd(cp: CycleProcessor) {
-        if (cp.getActiveBuffs().find(b => b.name === Buffs.PhantomReady.name)) {
-            this.usePhantom(cp);
-        } else {
-            this.useCombo(cp);
-        }
+        this.useNinjutsu(cp, Actions.Raiton);
+        this.useFillerOgcd(cp, 1, 50);
+
+        this.useRaiju(cp);
     }
 
     getRotationsToSimulate(): Rotation[] {
         const sim = this;
         this.rotationState = new RotationState();
         return [{
-            cycleTime: 120,
+            cycleTime: 6 * 60,
             apply(cp: CycleProcessor) {
                 sim.useOpener(cp);
 
-                while (cp.cdTracker.statusOf(Actions.KunaisBane).readyAt.relative > 20 || !cp.cdTracker.canUse(Actions.MudraStart)) {
+                while (cp.remainingGcdTime > 0) {
+                    while ((cp.cdTracker.statusOf(Actions.KunaisBane).readyAt.relative > 20 || !cp.cdTracker.canUse(Actions.MudraStart)) && cp.remainingGcdTime > 0) {
+                        sim.useFillerGcd(cp);
+                        sim.useFillerOgcd(cp);
+                    }
+
+                    sim.useNinjutsu(cp, Actions.Suiton);
+
                     sim.useFillerGcd(cp);
-                    sim.useFillerOgcd(cp);
-                }
+                    while (!sim.canUseWithoutClipping(cp, Actions.KunaisBane) && cp.remainingGcdTime > 0) {
+                        sim.useFillerOgcd(cp);
+                        sim.useFillerGcd(cp);
+                    }
 
-                sim.useNinjutsu(cp, Actions.Suiton);
+                    cp.advanceTo(cp.nextGcdTime - (Actions.KunaisBane.animationLock ?? STANDARD_ANIMATION_LOCK));
+                    sim.useOddMinBurst(cp);
 
-                while (!cp.cdTracker.canUse(Actions.KunaisBane)) {
+                    while ((cp.cdTracker.statusOf(Actions.KunaisBane).readyAt.relative > 20 || !cp.cdTracker.canUse(Actions.MudraStart)) && cp.remainingGcdTime > 0) {
+                        sim.useFillerGcd(cp);
+                        sim.useFillerOgcd(cp);
+                    }
+
+                    sim.useNinjutsu(cp, Actions.Suiton);
+
                     sim.useFillerGcd(cp);
-                    sim.useFillerOgcd(cp);
-                }
+                    while (!sim.canUseWithoutClipping(cp, Actions.DokumoriAbility) && cp.remainingGcdTime > 0) {
+                        sim.useFillerOgcd(cp);
+                        sim.useFillerGcd(cp);
+                    }
 
-                sim.useOddMinBurst(cp);
+                    cp.advanceTo(cp.nextGcdTime - (Actions.DokumoriAbility.animationLock ?? STANDARD_ANIMATION_LOCK));
+                    sim.useEvenMinBurst(cp);
+                }
             }
         }]
     }
