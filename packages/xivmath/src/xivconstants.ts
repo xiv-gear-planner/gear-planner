@@ -186,7 +186,8 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
         ...STANDARD_MELEE,
         traits: [{
             apply: stats => {
-                stats.haste = attackType => stats.haste(attackType)
+                const oldHaste = stats.haste;
+                stats.haste = attackType => oldHaste(attackType)
                     + ((attackType === 'Weaponskill'
                         || attackType === 'Spell'
                         || attackType === 'Auto-attack')
@@ -199,7 +200,8 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
         mainStat: "dexterity",
         traits: [{
             apply: stats => {
-                stats.haste = attackType => stats.haste(attackType)
+                const oldHaste = stats.haste;
+                stats.haste = attackType => oldHaste(attackType)
                     + ((attackType === 'Weaponskill' || attackType === 'Auto-attack') ? 15 : 0);
             }
         }
