@@ -25,17 +25,35 @@ import {BuffSettingsManager} from "@xivgear/core/sims/common/party_comp_settings
 import {BuffSettingsArea} from "./party_comp_settings";
 
 
+/**
+ * Base class for a CycleProcessor based simulation. You should extend this class,
+ * and provide your own generic types.
+ */
 export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, InternalSettingsType extends SimSettings, CycleProcessorType extends CycleProcessor = CycleProcessor>
     implements Simulation<ResultType, InternalSettingsType, ExternalCycleSettings<InternalSettingsType>> {
 
     abstract displayName: string;
     abstract shortName: string;
     abstract spec: SimSpec<Simulation<ResultType, InternalSettingsType, ExternalCycleSettings<InternalSettingsType>>, ExternalCycleSettings<InternalSettingsType>>;
+    /**
+     * Party buffs which would be activated automatically, but should be treated as manual due to being
+     * associated with the class being simulated.
+     */
     readonly manuallyActivatedBuffs?: PartyBuff[];
     settings: InternalSettingsType;
+    /**
+     * Manages party buff settings
+     */
     readonly buffManager: BuffSettingsManager;
+    /**
+     * Manages generic cycle settings
+     */
     readonly cycleSettings: CycleSettings;
+    /**
+     * Represents result settings, such as what std deviation to use as the main result
+     */
     readonly resultSettings: ResultSettings;
+
     readonly manualRun = false;
 
     protected constructor(public readonly job: JobName, settings?: ExternalCycleSettings<InternalSettingsType>) {
@@ -74,6 +92,13 @@ export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, Inter
         return null;
     }
 
+    /**
+     * Make the config interface. Generally, this should not be overridden. Instead, override
+     * {@link makeCustomConfigInterface}
+     *
+     * @param settings
+     * @param updateCallback
+     */
     makeConfigInterface(settings: InternalSettingsType, updateCallback: () => void): HTMLElement {
         // TODO: need internal settings panel
         const div = document.createElement("div");
@@ -109,6 +134,9 @@ export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, Inter
         return `DPS: ${result.mainDpsResult}\nUnbuffed PPS: ${result.unbuffedPps}\n`;
     }
 
+    /**
+     * Whether or not autoattacks should be enabled by default for ths sim.
+     */
     get useAutosByDefault(): boolean {
         // future TODO: flip this when 7.0 drops.
         // Not changing now such as to not cause confusion with existing sheets.
@@ -118,6 +146,10 @@ export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, Inter
         return true;
     }
 
+    /**
+     * Return the default settings for this sim. You can override this to provide your own custom
+     * settings. It should respect {@link useAutosByDefault}
+     */
     defaultCycleSettings(): CycleSettings {
         return {
             cycles: 6,
@@ -133,8 +165,21 @@ export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, Inter
         return out;
     }
 
+    /**
+     * This is the main abstract method of this simulation type. You can specify one or more
+     * rotations to simulate. The sim's result will be whichever rotation sims the highest.
+     */
     abstract getRotationsToSimulate(): Rotation<CycleProcessorType>[];
 
+    /**
+     * If you are using a custom CycleProcessorType, you MUST override this method and have it return
+     * an instance of your custom type. It is only implemented on the base class for the convenience of
+     * simulations that are using the default CycleProcessor implementation.
+     *
+     * @param settings The settings
+     * @return The CycleProcessor instance.
+     * @protected
+     */
     protected createCycleProcessor(settings: MultiCycleSettings): CycleProcessorType {
         return new CycleProcessor(settings) as CycleProcessorType;
     };

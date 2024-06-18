@@ -78,6 +78,12 @@ export function completeComboData(ability: Ability): FinalizedComboData {
     };
 }
 
+/**
+ * Check that two abilities are equal, based on the ability ID.
+ *
+ * @param left The first ability to compare.
+ * @param right The second ability to compare.
+ */
 export function abilityEquals(left: Ability, right: Ability) {
     if (left === right) {
         return true;

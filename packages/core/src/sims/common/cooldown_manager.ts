@@ -42,7 +42,11 @@ class InternalState {
 }
 
 /**
- * Cooldown tracker
+ * Cooldown tracker. This is used by {@link CycleProcessor} internally, but you can also query this directly
+ * for more detailed information about cooldowns.
+ *
+ * However, you should not call methods such as {@link useAbility}. You should let the CycleProcessor do that
+ * for you.
  */
 export class CooldownTracker {
 
@@ -50,6 +54,10 @@ export class CooldownTracker {
     private readonly currentState: Map<string, InternalState> = new Map();
     public mode: CooldownMode = 'warn';
 
+    /**
+     * @param timeSource Function for getting the current time.
+     * @param mode The initial cooldown enforcement mode. Can be changed later.
+     */
     public constructor(private timeSource: () => number, mode: CooldownMode = 'warn') {
         this.mode = mode;
     }
@@ -58,6 +66,13 @@ export class CooldownTracker {
         return this.timeSource();
     }
 
+    /**
+     * Use an ability. DO NOT call directly - just use the ability via the CycleProcessor.
+     *
+     * @param ability The ability
+     * @param cdTimeOverride An override for the cooldown duration. This is required for skills where
+     * sps or sks reduces the CD time.
+     */
     public useAbility(ability: Ability, cdTimeOverride?: number): void {
         const cd = ability.cooldown;
         // No CD info, don't do anything
@@ -92,6 +107,12 @@ export class CooldownTracker {
         this.currentState.set(ability.name, state);
     }
 
+    /**
+     * Whether the ability can be used right now, or at the given time.
+     *
+     * @param ability The ability to check.
+     * @param when When you expect to be able to use the ability. Defaults to now.
+     */
     public canUse(ability: Ability, when?: number): boolean {
         if (when === undefined) {
             when = this.currentTime;
@@ -113,10 +134,25 @@ export class CooldownTracker {
         }
     }
 
+    /**
+     * Get detailed cooldown information for the ability at the current time.
+     *
+     * @param ability The ability.
+     * @return a CooldownStatus object, which contains detailed information such as available charge count,
+     * and when the ability will be off cooldown both in relative times and absolute.
+     */
     public statusOf(ability: Ability): CooldownStatus {
         return this.statusOfAt(ability, this.currentTime);
     }
 
+    /**
+     * Get detailed cooldown information for the ability at a given time.
+     *
+     * @param ability The ability.
+     * @param desiredTime The time that you wish to query at.
+     * @return a CooldownStatus object, which contains detailed information such as available charge count,
+     * and when the ability will be off cooldown both in relative times and absolute.
+     */
     public statusOfAt(ability: Ability, desiredTime: number): CooldownStatus {
         if (!ability.cooldown) {
             return defaultStatus(ability, desiredTime);
