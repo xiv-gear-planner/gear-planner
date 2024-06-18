@@ -21,6 +21,9 @@ export interface PotencyRatioSimResults extends SimResult {
     withoutCritDh: number
 }
 
+/**
+ * "Simulation" that only calcuates dmg/100p.
+ */
 export class PotencyRatioSim implements Simulation<PotencyRatioSimResults, SimSettings, EmptyObject> {
     exportSettings() {
         return {

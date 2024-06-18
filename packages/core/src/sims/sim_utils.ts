@@ -30,6 +30,16 @@ function potencyToDamage(stats: ComputedSetStats, potency: number, dmgAbility: D
     return multiplyFixed(afterCritDh, combinedBuffEffects.dmgMod);
 }
 
+/**
+ * Given stats, an ability, and combined buff effects, calculate the damage dealt.
+ *
+ * @param stats The stats
+ * @param ability The ability
+ * @param combinedBuffEffects The combined buff effects
+ * @return if the ability is not damaging, returns a DamageResult with 'null' for both direct damage and DoT. If the
+ * ability is damaging, returns a value representing the damage and variance. In addition, if the ability also has
+ * DoT damage, returns predicted DoT damage information.
+ */
 export function abilityToDamageNew(stats: ComputedSetStats, ability: Ability, combinedBuffEffects: CombinedBuffEffect): DamageResult {
     if (!('potency' in ability)) {
         return {
@@ -49,6 +59,9 @@ export function abilityToDamageNew(stats: ComputedSetStats, ability: Ability, co
 
 }
 
+/**
+ * Returns the "zero" CombinedBuffEffect object, which represents not having any offensive buffs.
+ */
 export function noBuffEffects(): CombinedBuffEffect {
     return {
         dmgMod: 1,
@@ -61,6 +74,11 @@ export function noBuffEffects(): CombinedBuffEffect {
     };
 }
 
+/**
+ * Given buffs, return a CombinedBuffEffect object that represents the total change of the combined buffs.
+ *
+ * @param buffs
+ */
 export function combineBuffEffects(buffs: Buff[]): CombinedBuffEffect {
     const combinedEffects: CombinedBuffEffect = noBuffEffects();
     for (const buff of buffs) {

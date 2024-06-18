@@ -596,12 +596,36 @@ export type DamageResult = {
     readonly dot: DotDamageUnf | null
 }
 
+/**
+ * Represents the combined effects of multiple buffs
+ */
 export type CombinedBuffEffect = {
+    /**
+     * Overall damage modifier, e.g. 1.5 = 50% more damage
+     */
     dmgMod: number,
+    /**
+     * Crit chance increase, e.g. 0.1 = 10% increased critical chance
+     */
     critChanceIncrease: number,
+    /**
+     * Dhit chance increase, e.g. 0.1 = 10% increased direct hit chance
+     */
     dhitChanceIncrease: number,
+    /**
+     * Auto-crit
+     */
     forceCrit: boolean,
+    /**
+     * Auto-direct-hit
+     */
     forceDhit: boolean,
+    /**
+     * Haste as an integer, e.g. 20 haste = 20% lower cast/gcd time.
+     */
     haste: number,
+    /**
+     * Function for modifying a ComputedSetStats for any changes which cannot be expressed using the other fields.
+     */
     modifyStats: (stats: ComputedSetStats) => ComputedSetStats,
 }
