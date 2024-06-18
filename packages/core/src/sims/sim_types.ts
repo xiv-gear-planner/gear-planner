@@ -291,7 +291,7 @@ export type BaseAbility = Readonly<{
 /**
  * Represents the cooldown of an ability
  */
-export type Cooldown = Readonly<{
+export type BaseCooldown = Readonly<{
     /**
      * The cooldown duration, or the time to regain a single charge
      */
@@ -301,10 +301,37 @@ export type Cooldown = Readonly<{
      */
     reducedBy?: 'none' | 'spellspeed' | 'skillspeed';
     /**
-     * The number of charges of the ability
+     * The number of charges of the ability.
      */
     charges?: number
 }>
+
+export type OriginCooldown = BaseCooldown & {
+    sharesCooldownWith?: never;
+}
+
+export type SharedCooldown = BaseCooldown & {
+    /**
+     * If the ability shares a cooldown with another ability, specify that ability here.
+     *
+     * When using shared cooldowns, the reference should only be made in one direction. That is,
+     * if A, B, and C share cooldowns, then B and C should set their shared cooldown to A, and A should not have a
+     * shared cooldown.
+     */
+    sharesCooldownWith: Ability & {
+        cooldown: OriginCooldown
+    }
+}
+
+export type Cooldown = OriginCooldown | SharedCooldown;
+export type OriginCdAbility = Ability & {
+    cooldown: OriginCooldown;
+}
+export type SharedCdAbility = Ability & {
+    cooldown: SharedCooldown;
+}
+
+export type CdAbility = OriginCdAbility | SharedCdAbility;
 
 /**
  * Represents a GCD action
