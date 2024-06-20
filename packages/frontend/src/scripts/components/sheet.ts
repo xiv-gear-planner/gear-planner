@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */ // TODO: get back to fixing this at some point
+/* eslint-disable @typescript-eslint/no-explicit-any */                                                                                                                                // TODO: get back to fixing this at some point
 import {camel2title, capitalizeFirstLetter} from "@xivgear/core/util/strutils";
 import {BaseModal} from "@xivgear/common-ui/components/modal";
 import {
@@ -38,6 +38,7 @@ import {
 } from "@xivgear/xivmath/geartypes";
 import {CharacterGearSet} from "@xivgear/core/gear";
 import {
+    getClassJobStats,
     JobName,
     MAX_PARTY_BONUS,
     RACE_STATS,
@@ -249,6 +250,47 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
         // const chanceStatColWidth = viewOnly ? 110 : 160;
         // const multiStatColWidth = viewOnly ? 70 : 120;
 
+        const jobData = getClassJobStats(this.sheet.classJobName);
+
+        const gcdColumns: typeof this.columns = [];
+        const override = jobData.gcdDisplayOverride?.(this.sheet.level);
+        if (override) {
+            let counter = 0;
+            for (const gcdOver of override) {
+                gcdColumns.push({
+                    shortName: "gcd-custom-" + counter++,
+                    displayName: gcdOver.label,
+                    getter: gearSet => {
+                        const haste = gearSet.computedStats.haste(gcdOver.attackType) + (gcdOver.haste ?? 0);
+                        switch (gcdOver.basis) {
+                            case "sks":
+                                return gearSet.computedStats.gcdPhys(2.5, haste);
+                            case "sps":
+                                return gearSet.computedStats.gcdMag(2.5, haste);
+                            default:
+                                return null;
+                        }
+                    },
+                    renderer: gcd => document.createTextNode(gcd.toFixed(2)),
+                    initialWidth: statColWidth + 10,
+                })
+            }
+        }
+        else {
+            gcdColumns.push(
+                {
+                    shortName: "gcd",
+                    displayName: "GCD",
+                    getter: gearSet => {
+                        const magHaste = gearSet.computedStats.haste('Spell');
+                        const physHaste = gearSet.computedStats.haste('Weaponskill');
+                        return Math.min(gearSet.computedStats.gcdMag(2.5, magHaste), gearSet.computedStats.gcdPhys(2.5, physHaste));
+                    },
+                    renderer: gcd => document.createTextNode(gcd.toFixed(2)),
+                    initialWidth: statColWidth + 10,
+                });
+        }
+
         const simColumns: typeof this.columns = this.sims.map(sim => {
             return {
                 dataValue: sim,
@@ -392,13 +434,7 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                 // initialWidth: 300,
             },
             ...(viewOnly ? simColumns : []),
-            {
-                shortName: "gcd",
-                displayName: "GCD",
-                getter: gearSet => Math.min(gearSet.computedStats.gcdMag(2.5), gearSet.computedStats.gcdPhys(2.5)),
-                renderer: gcd => document.createTextNode(gcd.toFixed(2)),
-                initialWidth: statColWidth + 10,
-            },
+            ...gcdColumns,
             {
                 shortName: "wd",
                 displayName: "WD",

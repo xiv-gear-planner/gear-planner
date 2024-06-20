@@ -465,6 +465,21 @@ export interface JobDataConst {
      * e.g. Healers and Tanks cannot put DHit on their custom relics.
      */
     readonly excludedRelicSubstats: readonly Substat[]
+
+    /**
+     * Override the GCD columns to display in the main gear table.
+     *
+     * You can specify multiple columns.
+     *
+     * Can return null to keep the defaults.
+     */
+    gcdDisplayOverride?: (level: SupportedLevel) => ({
+        label: string,
+        gcdTime: number,
+        attackType: AttackType,
+        haste?: number,
+        basis: 'sks' | 'sps'
+    }[]) | null
 }
 
 export type JobMultipliers = {

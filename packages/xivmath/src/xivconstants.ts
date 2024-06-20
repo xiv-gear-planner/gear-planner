@@ -88,7 +88,6 @@ export const CURRENT_MAX_LEVEL = 90 satisfies SupportedLevel;
 export type SupportedLevel = typeof SupportedLevels[number];
 
 
-
 // TODO: block modifications to this
 /**
  * Empty stats object.
@@ -167,7 +166,24 @@ const STANDARD_CASTER: JobDataConst = {
  */
 export const JOB_DATA: Record<JobName, JobDataConst> = {
     // Healers
-    WHM: STANDARD_HEALER,
+    WHM: {
+        ...STANDARD_HEALER,
+        gcdDisplayOverride() {
+            return [{
+                label: 'GCD',
+                gcdTime: 2.5,
+                attackType: 'Spell',
+                haste: 0,
+                basis: 'sps'
+            }, {
+                label: 'PoM GCD',
+                gcdTime: 2.5,
+                attackType: 'Spell',
+                haste: 20,
+                basis: 'sps'
+            }]
+        }
+    },
     SGE: STANDARD_HEALER,
     SCH: STANDARD_HEALER,
     AST: STANDARD_HEALER,
@@ -199,7 +215,8 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
         mainStat: "dexterity",
         traits: [{
             apply: stats => {
-                stats.haste = attackType => stats.haste(attackType)
+                const oldHaste = stats.haste;
+                stats.haste = attackType => oldHaste(attackType)
                     + ((attackType === 'Weaponskill' || attackType === 'Auto-attack') ? 15 : 0);
             }
         }
