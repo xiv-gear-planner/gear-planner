@@ -240,10 +240,12 @@ export function baseDamage(...args: Parameters<typeof baseDamageFull>): number {
 /**
  * Determines whether the caster variant of the damage formula should be used instead of the normal variant.
  *
- * @param stats The set stats
+ * @param stats The set stats.
+ * @param attackType The type of attack.
  */
-function usesCasterDamageFormula(stats: ComputedSetStats): boolean {
-    return stats.jobStats.role === 'Caster' || stats.jobStats.role === 'Healer';
+function usesCasterDamageFormula(stats: ComputedSetStats, attackType: AttackType): boolean {
+    return (stats.jobStats.role === 'Caster' || stats.jobStats.role === 'Healer')
+        && attackType !== 'Auto-attack';
 }
 
 /**
@@ -297,7 +299,7 @@ export function baseDamageFull(stats: ComputedSetStats, potency: number, attackT
     // Mahdi:
     // Caster Damage has potency multiplied into weapon damage and then truncated
     // to an integer as opposed to into ap and truncated to 2 decimal.
-    if (usesCasterDamageFormula(stats)) {
+    if (usesCasterDamageFormula(stats, attackType)) {
         // https://github.com/Amarantine-xiv/Amas-FF14-Combat-Sim_source/blob/main/ama_xiv_combat_sim/simulator/calcs/compute_damage_utils.py#L130
         const apDet = flp(2, mainStatMulti * effectiveDetMulti);
         const basePotency = fl(apDet * flp(2, wdMulti * potency));
