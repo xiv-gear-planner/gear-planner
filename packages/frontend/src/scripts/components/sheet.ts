@@ -253,13 +253,13 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
         const jobData = getClassJobStats(this.sheet.classJobName);
 
         const gcdColumns: typeof this.columns = [];
-        const override = jobData.gcdDisplayOverride?.(this.sheet.level);
+        const override = jobData.gcdDisplayOverrides?.(this.sheet.level);
         if (override) {
             let counter = 0;
             for (const gcdOver of override) {
                 gcdColumns.push({
                     shortName: "gcd-custom-" + counter++,
-                    displayName: gcdOver.label,
+                    displayName: gcdOver.shortLabel,
                     getter: gearSet => {
                         const haste = gearSet.computedStats.haste(gcdOver.attackType) + (gcdOver.haste ?? 0);
                         switch (gcdOver.basis) {

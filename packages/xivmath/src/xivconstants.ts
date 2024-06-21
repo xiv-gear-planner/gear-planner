@@ -168,19 +168,23 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
     // Healers
     WHM: {
         ...STANDARD_HEALER,
-        gcdDisplayOverride() {
+        gcdDisplayOverrides() {
             return [{
-                label: 'GCD',
+                shortLabel: 'GCD',
+                longLabel: '2.5s GCD',
+                description: 'Standard 2.5s GCD recast time',
                 gcdTime: 2.5,
                 attackType: 'Spell',
                 haste: 0,
-                basis: 'sps'
+                basis: 'sps',
             }, {
-                label: 'PoM GCD',
+                shortLabel: 'PoM GCD',
+                longLabel: '2.5s GCD with PoM',
+                description: '2.5s GCD recast time under Presence of Mind',
                 gcdTime: 2.5,
                 attackType: 'Spell',
                 haste: 20,
-                basis: 'sps'
+                basis: 'sps',
             }]
         }
     },
@@ -202,7 +206,8 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
         ...STANDARD_MELEE,
         traits: [{
             apply: stats => {
-                stats.haste = attackType => stats.haste(attackType)
+                const oldHaste = stats.haste;
+                stats.haste = attackType => oldHaste(attackType)
                     + ((attackType === 'Weaponskill'
                         || attackType === 'Spell'
                         || attackType === 'Auto-attack')

@@ -473,13 +473,46 @@ export interface JobDataConst {
      *
      * Can return null to keep the defaults.
      */
-    gcdDisplayOverride?: (level: SupportedLevel) => ({
-        label: string,
-        gcdTime: number,
-        attackType: AttackType,
-        haste?: number,
-        basis: 'sks' | 'sps'
-    }[]) | null
+    gcdDisplayOverrides?: (level: SupportedLevel) => (GcdDisplayOverride[]) | null;
+}
+
+export type GcdDisplayOverride = {
+    /**
+     * Very short label (e.g. 'GCD', 'PoM GCD', '3.5 GCD'
+     */
+    shortLabel: string,
+    /**
+     * Slightly longer label (e.g. '2.5s GCD', '2.5s GCD with PoM')
+     */
+    longLabel: string,
+    /**
+     * Longer description (e.g. '2.5 second GCD under Presence of Mind')
+     */
+    description: string,
+    /**
+     * The base GCD time to use for this calculation, typically 2.5
+     */
+    gcdTime: number,
+    /**
+     * The attack type to use for haste calculations (e.g. for NIN).
+     */
+    attackType: AttackType,
+    /**
+     * Additional haste to use for this calculation (e.g. for PoM)
+     */
+    haste?: number,
+    /**
+     * Whether this calc uses SpS or SkS formula
+     */
+    basis: 'sks' | 'sps',
+    /**
+     * Whether this is the "Primary" GCD that should be used for things that
+     * depend on a single GCD number, like materia auto-fill.
+     *
+     * You should not have multiple primaries, with one exception. You can have
+     * a primary where basis === 'sks' and a primary where basis === 'sps'.
+     */
+    isPrimary?: boolean
 }
 
 export type JobMultipliers = {
