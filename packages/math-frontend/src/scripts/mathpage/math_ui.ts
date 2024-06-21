@@ -353,6 +353,17 @@ export class MathArea extends HTMLElement {
                     languages: ['js']
                 });
                 hljs.highlightElement(codeArea);
+                codeArea.querySelectorAll('span.hljs-title')
+                    .forEach(element => {
+                        switch (element.textContent) {
+                            case 'fl':
+                                element.setAttribute('title', 'Floor to integer');
+                                break;
+                            case 'flp':
+                                element.setAttribute('title', 'Floor to specified number of decimal places');
+                                break;
+                        }
+                    });
                 const codeOuter = quickElement('div', ['code-outer'], [codeArea]);
                 const formulaText = quickElement('div', ['function-code-area'], [codeOuter]);
                 return quickElement('div', [], [heading, formulaText]);

@@ -61,7 +61,7 @@ export function finalizeStats(
         detMulti: detDmg(levelStats, combinedStats.determination),
         spsDotMulti: spsTickMulti(levelStats, combinedStats.spellspeed),
         sksDotMulti: sksTickMulti(levelStats, combinedStats.skillspeed),
-        tncMulti: tenacityDmg(levelStats, combinedStats.tenacity),
+        tncMulti: classJobStats.role === 'Tank' ? tenacityDmg(levelStats, combinedStats.tenacity) : 1,
         // TODO: does this need to be phys/magic split?
         wdMulti: wdMulti(levelStats, classJobStats, wdEffective),
         mainStatMulti: mainStatMulti(levelStats, classJobStats, mainStat),
