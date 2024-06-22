@@ -1,15 +1,13 @@
-import {GcdAbility, OgcdAbility} from "@xivgear/core/sims/sim_types";
+import {GcdAbility, OgcdAbility, OriginCdAbility, SharedCdAbility} from "@xivgear/core/sims/sim_types";
 import {Dokumori} from "@xivgear/core/sims/buffs";
 import {TenriJindoReady, KassatsuBuff, BunshinBuff, Higi, MeisuiBuff, KunaisBaneBuff, PhantomReady, TenChiJinReady, ShadowWalker} from './nin_buffs';
 
 /**
  * Represents a Mudra Step
  */
-export type MudraStep = Readonly<{
-    /** The ability id */
-    id: number,
-    /** The ability name */
-    name: string,
+export type MudraStep = GcdAbility & Readonly<{
+    /** The ability id of the Mudra action that doesn't consume charges */
+    noChargeId: number,
 }>;
 
 /**
@@ -33,29 +31,10 @@ export type NinkiAbility = OgcdAbility & Readonly<{
 /**
  * Whether or not this ability is a Ninki spender
  * @param action The ability to check
- * @returns
  */
 export function isNinkiAbility(action: NinkiAbility | OgcdAbility): action is NinkiAbility {
     return (action as NinkiAbility).ninkiCost !== undefined;
 }
-
-/**
- * Mudras
- */
-const Ten: MudraStep = {
-    id: 18805,
-    name: "Ten"
-};
-
-const Chi: MudraStep = {
-    id: 18806,
-    name: "Chi"
-};
-
-const Jin: MudraStep = {
-    id: 18807,
-    name: "Jin"
-};
 
 /**
  * GCD Actions
@@ -120,32 +99,55 @@ export const Raiju: GcdAbility = {
     cast: 0
 };
 
-export const MudraStart: GcdAbility = {
+export const Ten: MudraStep & OriginCdAbility = {
     type: 'gcd',
-    name: "Mudra Start",
+    name: "Ten",
     id: 2259,
+    noChargeId: 18805,
     attackType: "Ability",
     potency: null,
     cooldown: {
         time: 20,
-        charges: 2
+        charges: 2,
     },
     gcd: 0.5,
     fixedGcd: true,
     cast: 0
 };
 
-export const MudraFollowup: GcdAbility = {
+export const Chi: MudraStep & SharedCdAbility = {
     type: 'gcd',
-    name: "Follow-up Mudra",
-    id: 18806,
+    name: "Chi",
+    id: 2261,
+    noChargeId: 18806,
     attackType: "Ability",
     potency: null,
+    cooldown: {
+        time: 20,
+        charges: 2,
+        sharesCooldownWith: Ten
+    },
     gcd: 0.5,
     fixedGcd: true,
     cast: 0
 };
 
+export const Jin: MudraStep & SharedCdAbility = {
+    type: 'gcd',
+    name: "Jin",
+    id: 2263,
+    noChargeId: 18807,
+    attackType: "Ability",
+    potency: null,
+    cooldown: {
+        time: 20,
+        charges: 2,
+        sharesCooldownWith: Ten
+    },
+    gcd: 0.5,
+    fixedGcd: true,
+    cast: 0
+};
 
 export const Fuma: NinjutsuAbility = {
     type: 'gcd',
