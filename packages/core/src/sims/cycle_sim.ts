@@ -32,11 +32,25 @@ import {abilityToDamageNew, combineBuffEffects} from "./sim_utils";
 import {BuffSettingsExport} from "./common/party_comp_settings";
 import {CycleSettings} from "./cycle_settings";
 
+/**
+ * CycleContext is similar to CycleProcessor, but is scoped to within a cycle. It provides methods
+ * and properties for keeping track of time relative to the cycle itself.
+ */
 export class CycleContext {
 
     cycleStartedAt: number;
+    /**
+     * cycleTime is the length of one cycle. Commonly 120 seconds.
+     */
     readonly cycleTime: number;
+    /**
+     * The amount of overall fight time when this cycle begins. Can be used to modify a rotation
+     * to account for an early end.
+     */
     readonly fightTimeRemainingAtCycleStart: number;
+    /**
+     * The number of this cycle. 0 is the first cycle.
+     */
     readonly cycleNumber: number;
     readonly mcp: CycleProcessor;
     private lastSeenPrepullOffset: number = 0;
@@ -59,26 +73,47 @@ export class CycleContext {
         }
     }
 
+    /**
+     * The overall fight time. Equivalent to CycleProcessor's currentTime.
+     */
     get overallFightTime() {
         return this.mcp.currentTime;
     }
 
+    /**
+     * The maximum possible length of this cycle. It is the lesser of the cycle time and the
+     * duration of overall fight time remaining when this cycle began.
+     */
     get maxTime() {
         return Math.min(this.cycleTime, this.fightTimeRemainingAtCycleStart);
     }
 
+    /**
+     * The time remaining in this cycle, taking into account the possibility that the fight's
+     * overall remaining time would cut off the cycle.
+     */
     get cycleRemainingTime() {
         return Math.max(0, this.cycleStartedAt + this.maxTime - this.mcp.currentTime);
     }
 
+    /**
+     * The time remaining, accounting for GCD time. That is, if our next GCD is not available for another
+     * X seconds, this would return cycleRemainingTime + X.
+     */
     get cycleRemainingGcdTime() {
         return Math.max(0, this.cycleStartedAt + this.maxTime - this.mcp.nextGcdTime);
     }
 
+    /**
+     * The overall fight's time remaining.
+     */
     get fightRemainingTime() {
         return this.mcp.remainingTime;
     }
 
+    /**
+     * The overall fight's time remaining for GCDs.
+     */
     get fightRemainingGcdTime() {
         return this.mcp.remainingGcdTime;
     }
@@ -91,6 +126,11 @@ export class CycleContext {
         return this.mcp.getActiveBuffs();
     }
 
+    /**
+     * Activate a buff manually
+     *
+     * @param buff The buff to activate
+     */
     activateBuff(buff: Buff) {
         this.mcp.activateBuff(buff);
     }
@@ -102,12 +142,23 @@ export class CycleContext {
     //     return this.usedAbilities.filter(used => used.ability['type'] == 'gcd').length;
     // }
 
+    /**
+     * Use an ability
+     *
+     * @param ability The ability to use
+     */
     use(ability: Ability): AbilityUseResult {
         const use = this.mcp.use(ability);
         this.recheckPrepull();
         return use;
     }
 
+    /**
+     * Use an ability until a specific time. The time is treated as being relative to the cycle.
+     *
+     * @param ability  The ability to use.
+     * @param useUntil The time (relative to start of cycle) to use.
+     */
     useUntil(ability: GcdAbility, useUntil: number | 'end') {
         if (useUntil == 'end') {
             useUntil = this.cycleTime;
@@ -123,12 +174,22 @@ export class CycleContext {
         this.recheckPrepull();
     }
 
+    /**
+     * Use a GCD
+     *
+     * @param ability the GCD ability to use
+     */
     useGcd(ability: GcdAbility): AbilityUseResult {
         const useGcd = this.mcp.useGcd(ability);
         this.recheckPrepull();
         return useGcd;
     }
 
+    /**
+     * Use an oGCD
+     *
+     * @param ability The oGCD ability to use
+     */
     useOgcd(ability: OgcdAbility): AbilityUseResult {
         const useOgcd = this.mcp.useOgcd(ability);
         this.recheckPrepull();
@@ -136,14 +197,44 @@ export class CycleContext {
     }
 }
 
+/**
+ * Represents whether an ability got 'cut off' because there wasn't enough time left to use it.
+ *
+ * 'full' indicates that the ability was not cut off.
+ * 'partial' indicates that the ability partially fit in the time remaining, so its damage was proprated
+ * based on the proportion that did fit.
+ * 'none' indicates that none of the ability fit, and the attempt to use it had no effect.
+ */
 export type AbilityUseResult = 'full' | 'partial' | 'none';
 
+/**
+ * Base settings object for a cycle based sim
+ */
 export type MultiCycleSettings = {
+    /**
+     * The total fight time. Typically set by the user.
+     */
     readonly totalTime: number,
+    /**
+     * The time of a single cycle.
+     */
     readonly cycleTime: number,
+    /**
+     * All enabled party buffs.
+     */
     readonly allBuffs: PartyBuff[],
+    /**
+     * Which of the party buffs should not be automatically activated due to them coming from
+     * the class which is actively being simulated.
+     */
     readonly manuallyActivatedBuffs?: PartyBuff[],
+    /**
+     * The player stats.
+     */
     readonly stats: ComputedSetStats,
+    /**
+     * Whether to use auto-attacks.
+     */
     readonly useAutos: boolean
 }
 
@@ -152,10 +243,25 @@ export type CycleFunction = (cycle: CycleContext) => void
 export const isAbilityUse = (record: DisplayRecordUnf): record is AbilityUseRecordUnf => 'ability' in record;
 export const isFinalizedAbilityUse = (record: DisplayRecordFinalized): record is FinalizedAbility => 'original' in record;
 
+/**
+ * Represents a usage of a buff.
+ */
 export interface BuffUsage {
+    /**
+     * The buff which was usedj.
+     */
     readonly buff: Buff,
+    /**
+     * The start time.
+     */
     start: number,
+    /**
+     * The end time.
+     */
     end: number,
+    /**
+     * If true, the buff was forcibly removed before expiry.
+     */
     forceEnd: boolean
 }
 
@@ -177,13 +283,16 @@ export type CycleLengthMode = 'align-absolute'
     | 'align-to-first'
     | 'full-duration';
 
+/**
+ * Contains number, start time, and end time for a cycle.
+ */
 export type CycleInfo = {
     readonly cycleNum: number,
     start: number,
     end: number | null,
 }
 
-export class ComboTracker {
+class ComboTracker {
     private _lastComboAbility: Ability | null = null;
 
     constructor(public readonly key: string) {
@@ -200,30 +309,99 @@ export class ComboTracker {
 }
 
 
+/**
+ * CycleProcessor is a rotation-based simulation backend that requires actual ability uses to be specified.
+ * The 'Cycle' part of the name refers to the fact that it supports loops/cycles.
+ *
+ * Note about times:
+ */
 export class CycleProcessor {
 
     /**
      * The current cycle number. -1 is pre-pull, 0 is the first cycle, etc
      */
     currentCycle: number = -1;
+    /**
+     * The current time. This should not normally be written to, as it will be automatically updated internally
+     * as actions are used.
+     *
+     * If combat has not started, this represents time since the first action usage.
+     * Once combat begins, this is rebased such that the start of combat is zero.
+     */
     currentTime: number = 0;
+    /**
+     * Like currentTime, but indicates when the next GCD can start, taking into account the current GCD timer.
+     */
     nextGcdTime: number = 0;
+    /**
+     * When the next auto-attack would occur, assuming no cast locks happen between now and then.
+     */
     nextAutoAttackTime: number = 0;
-    pendingPrePullOffset: number = 0;
+    private pendingPrePullOffset: number = 0;
+    /**
+     * The total adjustment (in seconds) that was performed to rebase the timer such that start-of-combat is zero.
+     *
+     * e.g. if you used 5 seconds worth of pre-pull actions, this would be -5.
+     */
     totalPrePullOffset: number = 0;
-    gcdBase: number = NORMAL_GCD;
+    /**
+     * The "default" GCD time - typically 2.5 seconds.
+     */
+    readonly gcdBase: number = NORMAL_GCD;
+    /**
+     * The length of a cycle. Commonly 120 seconds.
+     */
     readonly cycleTime: number;
+    /**
+     * Contains records of abilities and other events. Should generally not be accessed externally.
+     *
+     * To retrieve records after a simulation finishes, see {@link finalizedRecords}.
+     */
     readonly allRecords: DisplayRecordUnf[] = [];
-    readonly buffTimes = new Map<PartyBuff, number>();
+    /**
+     * Log of when party buffs were last activated.
+     */
+    private readonly buffTimes = new Map<PartyBuff, number>();
+    /**
+     * Log of when all status effects were activated.
+     */
     readonly buffHistory: BuffUsage[] = [];
+    /**
+     * The total maximum fight time
+     */
     readonly totalTime: number;
+    /**
+     * The stats of the set currently being simulated
+     */
     readonly stats: ComputedSetStats;
+    /**
+     * Map from DoT effect ID to an object which tracks, among other things, when it was used.
+     */
     readonly dotMap = new Map<number, UsedAbility>();
+    /**
+     * Contains party buffs which should not be activated automatically by virtue of coming from the class being
+     * simulated.
+     */
     private readonly manuallyActivatedBuffs: readonly PartyBuff[];
+    /**
+     * Whether combat has started
+     */
     combatStarted: boolean = false;
+    /**
+     * Whether auto-attacks are enabled
+     */
     readonly useAutos: boolean;
+    /**
+     * Cooldown tracker.
+     */
     readonly cdTracker: CooldownTracker;
     private _cdEnforcementMode: CooldownMode;
+    /**
+     * Controls the logic used to re-align cycles. Since cycles typically do not last exactly their desired time
+     * (i.e. there is drift), you can control how it should re-align cycles when this happens.
+     *
+     * See the docs on CycleLengthMode for more information on each mode.
+     */
     cycleLengthMode: CycleLengthMode = 'align-absolute';
     private firstCycleStartTime: number = 0;
     private readonly cycles: CycleInfo[] = [];
@@ -254,6 +432,20 @@ export class CycleProcessor {
         return this._cdEnforcementMode;
     }
 
+    /**
+     * The cooldown enforcement mode affects behavior when an ability with a cooldown is used while it is
+     * still on cooldown.
+     *
+     * Options are:
+     *
+     * 'none' - cooldown tracker will happily allow the cooldown to be used at an invalid time.
+     * 'warn' - cooldown tracker will log a warning to console, but will continue
+     * 'delay' - cycle processor will fast-forward the time to when the cooldown would be ready. This is ideal for
+     * classes such as DNC where the optimal rotation may involve waiting a fraction of a second for a long CD to be
+     * ready, rather than trying to use another GCD and thus drifting.
+     * 'reject' - cooldown tracker will throw an error if you attempt to use an invalid CD. It is not recommended to
+     * use this for logic (i.e. don't try/catch). Instead, just query whether the cooldown is ready or not.
+     */
     set cdEnforcementMode(value: CooldownMode) {
         this._cdEnforcementMode = value;
         this.cdTracker.mode = value;
@@ -277,6 +469,11 @@ export class CycleProcessor {
         });
     }
 
+    /**
+     * Manually cancel a buff
+     *
+     * @param buff The buff to cancel
+     */
     removeBuff(buff: Buff) {
         const activeUsages = this.getActiveBuffsData().filter(buffHist => buffHist.buff.name === buff.name);
         activeUsages.forEach(au => {
@@ -305,6 +502,11 @@ export class CycleProcessor {
         });
     }
 
+    /**
+     * Whether a buff is an automatically-activated party buff.
+     *
+     * @param buff
+     */
     isBuffAutomatic(buff: Buff): buff is PartyBuff {
         if ('cooldown' in buff) {
             return !this.manuallyActivatedBuffs.includes(buff);
@@ -312,6 +514,9 @@ export class CycleProcessor {
         return false;
     }
 
+    /**
+     * The remaining time in the fight.
+     */
     get remainingTime() {
         // If you set the duration to 10 seconds, but you do 20 seconds of pre-pull stuff, then you would end up
         // never starting combat.
@@ -321,6 +526,9 @@ export class CycleProcessor {
         return Math.max(0, this.totalTime - this.currentTime);
     }
 
+    /**
+     * The remaining time in the fight, minus the time remaining on the current GCD.
+     */
     get remainingGcdTime() {
         // If you set the duration to 10 seconds, but you do 20 seconds of pre-pull stuff, then you would end up
         // never starting combat.
@@ -380,8 +588,11 @@ export class CycleProcessor {
         return activeBuffs;
     }
 
-    // TODO: somehow convey on the UI when a buff is active but not applicable, e.g. a haste buff does nothing
-    // for an oGCD
+    /**
+     * Get the buffs that would be active right now, which affect a specific ability.
+     *
+     * @param ability The ability in question
+     */
     getActiveBuffsFor(ability: Ability): Buff[] {
         return this.getActiveBuffs().filter(buff => {
             if ('appliesTo' in buff) {
@@ -397,6 +608,12 @@ export class CycleProcessor {
         return this.buffHistory.filter(h => h.start <= queryTime && h.end > queryTime && !h.forceEnd);
     }
 
+    /**
+     * Add a special text row to the output records.
+     *
+     * @param message The text
+     * @param time The time of the record. Current time will be used if not specified.
+     */
     addSpecialRow(message: string, time?: number) {
         this.allRecords.push({
             usedAt: time ?? this.currentTime,
@@ -404,10 +621,16 @@ export class CycleProcessor {
         } satisfies SpecialRecord);
     }
 
+    /**
+     * A record of all abilities used.
+     */
     get usedAbilities(): readonly AbilityUseRecordUnf[] {
         return this.allRecords.filter(isAbilityUse);
     }
 
+    /**
+     * A record of events, including special rows and such.
+     */
     get finalizedRecords(): readonly DisplayRecordFinalized[] {
         this.finalize();
         return (this.allRecords.map(record => {
@@ -456,6 +679,11 @@ export class CycleProcessor {
         }
     }
 
+    /**
+     * Use an ability
+     *
+     * @param ability The ability to use
+     */
     use(ability: Ability): AbilityUseResult {
         // noinspection AssignmentToFunctionParameterJS
         ability = this.processCombo(ability);
@@ -566,10 +794,22 @@ export class CycleProcessor {
         return 'full';
     }
 
+    /**
+     * Use a GCD ability repeatedly until the specified time
+     *
+     * @param ability
+     * @param useUntil
+     */
     useUntil(ability: GcdAbility, useUntil: number) {
         this.useWhile(ability, () => this.nextGcdTime < useUntil);
     }
 
+    /**
+     * Use a GCD ability while the given predicate remains true.
+     *
+     * @param ability The ability to use
+     * @param useWhile The predicate
+     */
     useWhile(ability: GcdAbility, useWhile: () => boolean) {
         while (useWhile() && this.remainingGcdTime > 0) {
             // TODO: when using align-first or align-full mode, and doing your pre-pull within a cycle, this needs to
@@ -578,6 +818,12 @@ export class CycleProcessor {
         }
     }
 
+    /**
+     * Fast-forward (i.e. do nothing until) the given time.
+     *
+     * @param advanceTo The time to fast-forward to.
+     * @param pauseAutos Whether auto-attacks should be paused during this time.
+     */
     advanceTo(advanceTo: number, pauseAutos: boolean = false) {
         const delta = advanceTo - this.currentTime;
         if (delta < 0) {
@@ -628,10 +874,18 @@ export class CycleProcessor {
         this.nextAutoAttackTime = this.currentTime + aaDelay;
     }
 
+    /**
+     * See {@link #use}
+     * @param ability The ability to use
+     */
     useGcd(ability: GcdAbility): AbilityUseResult {
         return this.use(ability);
     }
 
+    /**
+     * See {@link #use}
+     * @param ability The ability to use
+     */
     useOgcd(ability: OgcdAbility): AbilityUseResult {
         return this.use(ability);
     }
@@ -719,7 +973,10 @@ export class CycleProcessor {
         }
     }
 
-    get cycleRecords() {
+    /**
+     * Returns a record of individual cycles, including when each cycle started/ended.
+     */
+    get cycleRecords(): typeof this.cycles {
         return [...this.cycles];
     }
 
@@ -732,6 +989,13 @@ export class CycleProcessor {
         });
     }
 
+    /**
+     * Determine the effective cast time of an ability, assuming it is cast at the current time with the given set of
+     * buffs.
+     *
+     * @param ability
+     * @param effects
+     */
     castTime(ability: Ability, effects: CombinedBuffEffect): number {
         const base = ability.cast;
         const stats = effects.modifyStats(this.stats);
@@ -742,6 +1006,13 @@ export class CycleProcessor {
                 (stats.gcdPhys(base ?? this.gcdBase, haste));
     }
 
+    /**
+     * Determine the effective GCD time of a GCD ability, assuming it is cast at the current time with the given set of
+     * buffs.
+     *
+     * @param ability
+     * @param effects
+     */
     gcdTime(ability: GcdAbility, effects: CombinedBuffEffect): number {
         const base = ability.gcd;
         const stats = effects.modifyStats(this.stats);
@@ -756,7 +1027,7 @@ export class CycleProcessor {
      * Inform the cooldown tracker that a CD has been used.
      *
      * @param ability The ability
-     * @param haste Current haste value
+     * @param effects The combined effects
      * @private
      */
     private markCd(ability: Ability, effects: CombinedBuffEffect) {
@@ -768,6 +1039,13 @@ export class CycleProcessor {
         this.cdTracker.useAbility(ability, cdTime);
     }
 
+    /**
+     * Determine the effective CD time of a cooldown, assuming it is used at the current time with the given set of
+     * buffs.
+     *
+     * @param cooldown The cooldown information to use as a basis
+     * @param effects The effects
+     */
     cooldownTime(cooldown: Cooldown, effects: CombinedBuffEffect): number {
         const stats = effects.modifyStats(this.stats);
         switch (cooldown.reducedBy) {
@@ -781,6 +1059,14 @@ export class CycleProcessor {
         }
     }
 
+    /**
+     * Perform one complete cycle, using the given cycle function.
+     *
+     * This is useful if your rotation changes from one cycle to another. However, it is also possible to simply
+     * query the cycle number to change the rotation logic as appropriate.
+     *
+     * @param cycleFunction
+     */
     oneCycle(cycleFunction: CycleFunction) {
         if (this.currentCycle < 0) {
             this.currentCycle = 0;
@@ -834,12 +1120,22 @@ export class CycleProcessor {
     }
 
 
+    /**
+     * Perform the given cycle function until the fight finishes.
+     *
+     * @param cycleFunction
+     */
     remainingCycles(cycleFunction: CycleFunction) {
         while (this.remainingGcdTime > 0) {
             this.oneCycle(cycleFunction);
         }
     }
 
+    /**
+     * Whether or not the given ability is off cooldown/has charges right now.
+     *
+     * @param ability
+     */
     isReady(ability: Ability): boolean {
         if ('gcd' in ability) {
             return this.cdTracker.canUse(ability, this.nextGcdTime);
@@ -973,8 +1269,19 @@ export type ExternalCycleSettings<InternalSettingsType extends SimSettings> = {
     resultSettings: ResultSettings;
 }
 
+/**
+ * Definition of a rotation.
+ */
 export type Rotation<CycleProcessorType = CycleProcessor> = {
+    /**
+     * The cycle time for this rotation
+     */
     readonly cycleTime: number;
+    /**
+     * The rotation function for this rotation
+     *
+     * @param cp The CycleProcessor instance (or instance of a subclass)
+     */
     apply(cp: CycleProcessorType): void;
 }
 

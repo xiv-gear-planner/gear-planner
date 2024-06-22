@@ -27,7 +27,8 @@ import {
     DisplayGearSlotInfo,
     DisplayGearSlotKey,
     EquipmentSet,
-    EquippedItem, EquipSlotInfo,
+    EquippedItem,
+    EquipSlotInfo,
     EquipSlotKey,
     EquipSlots,
     FoodItem,
@@ -589,23 +590,30 @@ export class CharacterGearSet {
                     }
                     const slotStats = this.getSlotEffectiveStats(slotKey);
                     // TODO: we also have gearItem.substatCap we can use to make it more direct
+                    const override = this.sheet.classJobStats.gcdDisplayOverrides?.(this.sheet.level) ?? [];
                     for (const stat of statPrio) {
                         if (stat === 'skillspeed') {
-                            if (this.computedStats.gcdPhys(NORMAL_GCD) <= prio.minGcd) {
+                            const over = override.find(over => over.basis === 'sks' && over.isPrimary);
+                            const attackType = over ? over.attackType : 'Weaponskill';
+                            const haste = this.computedStats.haste(attackType) + (over ? over.haste : 0);
+                            if (this.computedStats.gcdPhys(NORMAL_GCD, haste) <= prio.minGcd) {
                                 continue;
                             }
                             this.forceRecalc();
-                            if (this.computedStats.gcdPhys(NORMAL_GCD) <= prio.minGcd) {
+                            if (this.computedStats.gcdPhys(NORMAL_GCD, haste) <= prio.minGcd) {
                                 continue;
                             }
                         }
                         if (stat === 'spellspeed') {
+                            const over = override.find(over => over.basis === 'sps' && over.isPrimary);
+                            const attackType = over ? over.attackType : 'Spell';
+                            const haste = this.computedStats.haste(attackType) + (over ? over.haste : 0);
                             // Check if we're already there before forcing a recomp
-                            if (this.computedStats.gcdMag(NORMAL_GCD) <= prio.minGcd) {
+                            if (this.computedStats.gcdMag(NORMAL_GCD, haste) <= prio.minGcd) {
                                 continue;
                             }
                             this.forceRecalc();
-                            if (this.computedStats.gcdMag(NORMAL_GCD) <= prio.minGcd) {
+                            if (this.computedStats.gcdMag(NORMAL_GCD, haste) <= prio.minGcd) {
                                 continue;
                             }
                         }

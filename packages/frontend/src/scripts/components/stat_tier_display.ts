@@ -115,6 +115,7 @@ export class StatTierDisplay extends HTMLDivElement {
         const jobStats = computed.jobStats;
         const curVal = computed[stat];
         const abbrev = STAT_ABBREVIATIONS[stat];
+        const gcdOver = jobStats.gcdDisplayOverrides?.(this.sheet.level);
         switch (stat) {
             case "strength":
             case "dexterity":
@@ -173,30 +174,75 @@ export class StatTierDisplay extends HTMLDivElement {
                     description: 'Change to land a direct hit',
                     tiering: this.getCombinedTiering(curVal, value => dhitChance(levelStats, value))
                 }];
-            case "spellspeed":
-                return [{
-                    label: abbrev + ' GCD',
-                    fullName: 'GCD for spells',
-                    description: 'Global cooldown (recast) time for spells',
-                    tiering: this.getCombinedTiering(curVal, value => spsToGcd(2.5, levelStats, value))
-                }, {
+            case "spellspeed": {
+                const tierDisplays: TieringDisplay[] = [];
+                if (gcdOver) {
+                    gcdOver.filter(over => over.basis === 'sps')
+                        .forEach(over => {
+                            tierDisplays.push({
+                                label: over.shortLabel,
+                                fullName: over.longLabel,
+                                description: over.description,
+                                tiering: this.getCombinedTiering(curVal, value => {
+                                    const haste = computed.haste(over.attackType) + over.haste;
+                                    return spsToGcd(over.gcdTime, levelStats, value, haste);
+                                })
+                            })
+                        })
+                }
+                else {
+                    tierDisplays.push({
+                        label: abbrev + ' GCD',
+                        fullName: 'GCD for spells',
+                        description: 'Global cooldown (recast) time for spells',
+                        tiering: this.getCombinedTiering(curVal, value => {
+                            const haste = computed.haste('Spell');
+                            return spsToGcd(2.5, levelStats, value, haste);
+                        }),
+                    });
+                }
+                return [...tierDisplays, {
                     label: abbrev + ' DoT',
                     fullName: 'DoT scalar for spells',
                     description: 'DoT damage multiplier for spells',
                     tiering: this.getCombinedTiering(curVal, value => spsTickMulti(levelStats, value))
                 }];
-            case "skillspeed":
-                return [{
-                    label: abbrev + ' GCD',
-                    fullName: 'GCD for weaponskills',
-                    description: 'Global cooldown (recast) time for weaponskills',
-                    tiering: this.getCombinedTiering(curVal, value => sksToGcd(2.5, levelStats, value))
-                }, {
+            }
+            case "skillspeed": {
+                const tierDisplays: TieringDisplay[] = [];
+                if (gcdOver) {
+                    gcdOver.filter(over => over.basis === 'sks')
+                        .forEach(over => {
+                            tierDisplays.push({
+                                label: over.shortLabel,
+                                fullName: over.longLabel,
+                                description: over.description,
+                                tiering: this.getCombinedTiering(curVal, value => {
+                                    const haste = computed.haste(over.attackType) + over.haste;
+                                    return sksToGcd(over.gcdTime, levelStats, value, haste);
+                                })
+                            })
+                        })
+                }
+                else {
+                    tierDisplays.push({
+                        label: abbrev + ' GCD',
+                        fullName: 'GCD for weaponskills',
+                        description: 'Global cooldown (recast) time for weaponskills',
+                        tiering: this.getCombinedTiering(curVal, value => {
+                            const haste = computed.haste('Weaponskill');
+                            return sksToGcd(2.5, levelStats, value, haste);
+                        })
+                    })
+                }
+
+                return [...tierDisplays, {
                     label: abbrev + ' DoT',
                     fullName: 'DoT scalar for weaponskills',
                     description: 'DoT damage multiplier for weaponskills',
                     tiering: this.getCombinedTiering(curVal, value => sksTickMulti(levelStats, value))
                 }];
+            }
             case "tenacity":
                 return [{
                     label: abbrev + ' Dmg',

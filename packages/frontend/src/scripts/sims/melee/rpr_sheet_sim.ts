@@ -122,7 +122,8 @@ const unbuffedVoidReaping: GcdAbility = {
     potency: 460,
     attackType: "Weaponskill",
     gcd: 1.5,
-    cast: 0
+    cast: 0,
+    fixedGcd: true
 };
 const voidReaping: GcdAbility = {
     type: 'gcd',

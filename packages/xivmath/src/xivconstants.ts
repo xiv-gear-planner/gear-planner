@@ -88,7 +88,6 @@ export const CURRENT_MAX_LEVEL = 90 satisfies SupportedLevel;
 export type SupportedLevel = typeof SupportedLevels[number];
 
 
-
 // TODO: block modifications to this
 /**
  * Empty stats object.
@@ -167,7 +166,28 @@ const STANDARD_CASTER: JobDataConst = {
  */
 export const JOB_DATA: Record<JobName, JobDataConst> = {
     // Healers
-    WHM: STANDARD_HEALER,
+    WHM: {
+        ...STANDARD_HEALER,
+        gcdDisplayOverrides() {
+            return [{
+                shortLabel: 'GCD',
+                longLabel: '2.5s GCD',
+                description: 'Standard 2.5s GCD recast time',
+                gcdTime: 2.5,
+                attackType: 'Spell',
+                haste: 0,
+                basis: 'sps',
+            }, {
+                shortLabel: 'PoM GCD',
+                longLabel: '2.5s GCD with PoM',
+                description: '2.5s GCD recast time under Presence of Mind',
+                gcdTime: 2.5,
+                attackType: 'Spell',
+                haste: 20,
+                basis: 'sps',
+            }]
+        }
+    },
     SGE: STANDARD_HEALER,
     SCH: STANDARD_HEALER,
     AST: STANDARD_HEALER,

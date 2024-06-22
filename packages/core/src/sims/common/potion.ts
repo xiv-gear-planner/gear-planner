@@ -20,7 +20,7 @@ function makeTincture(grade: number, stat: RawStatKey, id: number, itemId: numbe
         itemId: itemId,
         type: 'ogcd',
         attackType: 'Item',
-        animationLock: 1.5,
+        animationLock: 1.1,
         potency: null,
         activatesBuffs: [
             {
