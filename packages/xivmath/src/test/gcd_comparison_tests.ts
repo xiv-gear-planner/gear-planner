@@ -18,7 +18,6 @@ export function sksToGcd_newRounding(baseGcd: number, levelStats: LevelStats, sk
 
 // Not working
 export function sksToGcd_etroOriginal(baseGcd: number, levelStats: LevelStats, sks: number, haste = 0): number {
-    const commonPart1 = fl(130 * (sks - levelStats.baseSubStat) / levelStats.levelDiv);
     const arrow = 0,
         feyWind = 0,
         selfBuff2 = 0,
