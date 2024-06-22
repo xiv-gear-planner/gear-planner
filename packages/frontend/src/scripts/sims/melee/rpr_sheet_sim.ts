@@ -122,7 +122,8 @@ const unbuffedVoidReaping: GcdAbility = {
     potency: 460,
     attackType: "Weaponskill",
     gcd: 1.5,
-    cast: 0
+    cast: 0,
+    fixedGcd: true
 };
 const voidReaping: GcdAbility = {
     type: 'gcd',
@@ -131,7 +132,8 @@ const voidReaping: GcdAbility = {
     potency: 520,
     attackType: "Weaponskill",
     gcd: 1.5,
-    cast: 0
+    cast: 0,
+    fixedGcd: true
 };
 const crossReaping: GcdAbility = {
     type: 'gcd',
@@ -140,7 +142,8 @@ const crossReaping: GcdAbility = {
     potency: 520,
     attackType: "Weaponskill",
     gcd: 1.5,
-    cast: 0
+    cast: 0,
+    fixedGcd: true
 };
 const gluttony: OgcdAbility = {
     type: 'ogcd',

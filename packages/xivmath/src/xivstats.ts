@@ -43,7 +43,7 @@ export function finalizeStats(
     const vitEffective = Math.floor(combinedStats.vitality * (1 + 0.01 * partyBonus));
     const wdEffective = Math.max(combinedStats.wdMag, combinedStats.wdPhys);
     const hp = combinedStats.hp + vitToHp(levelStats, classJobStats, vitEffective);
-    const computedStats = {
+    const computedStats: ComputedSetStats = {
         ...combinedStats,
         vitality: vitEffective,
         level: level,
@@ -52,6 +52,7 @@ export function finalizeStats(
         jobStats: classJobStats,
         gcdPhys: (base, haste = 0) => sksToGcd(base, levelStats, combinedStats.skillspeed, haste),
         gcdMag: (base, haste = 0) => spsToGcd(base, levelStats, combinedStats.spellspeed, haste),
+        haste: () => 0,
         hp: hp,
         critChance: critChance(levelStats, combinedStats.crit),
         critMulti: critDmg(levelStats, combinedStats.crit),
@@ -60,7 +61,7 @@ export function finalizeStats(
         detMulti: detDmg(levelStats, combinedStats.determination),
         spsDotMulti: spsTickMulti(levelStats, combinedStats.spellspeed),
         sksDotMulti: sksTickMulti(levelStats, combinedStats.skillspeed),
-        tncMulti: tenacityDmg(levelStats, combinedStats.tenacity),
+        tncMulti: classJobStats.role === 'Tank' ? tenacityDmg(levelStats, combinedStats.tenacity) : 1,
         // TODO: does this need to be phys/magic split?
         wdMulti: wdMulti(levelStats, classJobStats, wdEffective),
         mainStatMulti: mainStatMulti(levelStats, classJobStats, mainStat),
@@ -68,7 +69,8 @@ export function finalizeStats(
         traitMulti: classJobStats.traitMulti ? (type) => classJobStats.traitMulti(level, type) : () => 1,
         autoDhBonus: autoDhBonusDmg(levelStats, combinedStats.dhit),
         mpPerTick: mpTick(levelStats, combinedStats.piety),
-        aaMulti: autoAttackModifier(levelStats, classJobStats, combinedStats.weaponDelay, combinedStats.wdPhys)
+        aaMulti: autoAttackModifier(levelStats, classJobStats, combinedStats.weaponDelay, combinedStats.wdPhys),
+        aaDelay: combinedStats.weaponDelay
     };
     // TODO: should this just apply to all main stats, even ones that are irrelevant to the class?
     computedStats[classJobStats.mainStat] = mainStat;

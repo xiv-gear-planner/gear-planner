@@ -1,5 +1,5 @@
 import {registerDefaultSims} from "./sims/default_sims";
-import {installDoubleClickHandler} from "./util/stop_double_click";
+import {installDoubleClickHandler} from "@xivgear/common-ui/util/stop_double_click";
 import {processNav, processHashLegacy} from "./nav_hash";
 import {earlyUiSetup, initialLoad, initTopMenu} from "./base_ui";
 

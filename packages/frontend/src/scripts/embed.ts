@@ -1,4 +1,4 @@
-import {LoadingBlocker} from "./components/loader";
+import {LoadingBlocker} from "@xivgear/common-ui/components/loader";
 
 import {setTitle} from "./base_ui";
 import {GearPlanSheetGui} from "./components/sheet";

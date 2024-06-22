@@ -18,17 +18,6 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Use Node.js 20.x
-        uses: actions/setup-node@v3
-        with:
-          node-version: 20.x
-
-      - name: Build
-        run: |
-          npm ci
-          npm run build
-          npm run test
-
       # Docker stuff begins here
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3

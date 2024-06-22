@@ -1,8 +1,16 @@
-import {DataSelect, FieldBoundCheckBox, FieldBoundIntField, labelFor, positiveValuesOnly, quickElement} from "./util";
-import {JOB_DATA, JobName, LEVEL_ITEMS, MAX_ILVL, SupportedLevel, SupportedLevels} from "@xivgear/xivmath/xivconstants";
+import {
+    DataSelect,
+    FieldBoundCheckBox,
+    FieldBoundIntField,
+    labelFor,
+    positiveValuesOnly,
+    quickElement
+} from "@xivgear/common-ui/components/util";
+import {JOB_DATA, JobName, LEVEL_ITEMS, MAX_ILVL, SupportedLevel} from "@xivgear/xivmath/xivconstants";
 import {getNextSheetInternalName} from "@xivgear/core/persistence/saved_sheets";
 import {GearPlanSheet} from "@xivgear/core/sheet";
 import {GRAPHICAL_SHEET_PROVIDER} from "./sheet";
+import {levelSelect} from "@xivgear/common-ui/components/level_picker";
 
 export class NewSheetForm extends HTMLFormElement {
     private readonly nameInput: HTMLInputElement;
@@ -44,7 +52,7 @@ export class NewSheetForm extends HTMLFormElement {
         this.fieldSet.appendChild(spacer());
 
         // Level selection
-        this.levelDropdown = new DataSelect<SupportedLevel>([...SupportedLevels], item => item.toString(), newValue => {
+        this.levelDropdown = levelSelect(newValue => {
             const isync = LEVEL_ITEMS[newValue]?.defaultIlvlSync;
             if (isync !== undefined) {
                 this.tempSettings.ilvlSyncEnabled = true;
@@ -53,7 +61,7 @@ export class NewSheetForm extends HTMLFormElement {
                 this.ilvlSyncCheckbox.reloadValue();
             }
             this.recheck();
-        }, Math.max(...SupportedLevels) as SupportedLevel);
+        });
         this.levelDropdown.id = "new-sheet-level-dropdown";
         this.levelDropdown.required = true;
         this.fieldSet.appendChild(labelFor('Level: ', this.levelDropdown));

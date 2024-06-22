@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import 'global-jsdom/register'
-import {it} from "mocha";
+import {describe, it} from "mocha";
 import * as assert from "assert";
 import {assertClose, makeFakeSet} from "@xivgear/core/test/test_utils";
 import {assertSimAbilityResults, setPartyBuffEnabled, UseResult} from "./sim_test_utils";
 import {JobMultipliers} from "@xivgear/xivmath/geartypes";
-import {getClassJobStats, getLevelStats} from "@xivgear/xivmath/xivconstants";
+import {getClassJobStats, getLevelStats, STANDARD_APPLICATION_DELAY} from "@xivgear/xivmath/xivconstants";
 import {CharacterGearSet} from "@xivgear/core/gear";
 import {Divination, Litany, Mug} from "@xivgear/core/sims/buffs";
 import {exampleGearSet} from "./common_values";
@@ -14,7 +14,9 @@ import {removeSelf} from "@xivgear/core/sims/common/utils";
 import {finalizeStats} from "@xivgear/xivmath/xivstats";
 import {
     Ability,
-    Buff, BuffController, DamageResult,
+    Buff,
+    BuffController,
+    DamageResult,
     FinalizedAbility,
     GcdAbility,
     OgcdAbility,
@@ -35,7 +37,10 @@ interface TestSimSettings extends SimSettings {
 interface TestSimSettingsExternal extends ExternalCycleSettings<TestSimSettings> {
 }
 
+let fakeId = 0x100_0000;
+
 const filler: GcdAbility = {
+    id: fakeId++,
     type: 'gcd',
     name: "Glare",
     potency: 310,
@@ -45,6 +50,7 @@ const filler: GcdAbility = {
 };
 
 const weaponSkill: GcdAbility = {
+    id: fakeId++,
     type: 'gcd',
     name: "WepSkill",
     potency: 310,
@@ -54,6 +60,7 @@ const weaponSkill: GcdAbility = {
 };
 
 const nop: GcdAbility = {
+    id: fakeId++,
     type: 'gcd',
     name: "NOP",
     potency: null,
@@ -63,6 +70,7 @@ const nop: GcdAbility = {
 };
 
 const dia: GcdAbility = {
+    id: fakeId++,
     type: 'gcd',
     name: "Dia",
     potency: 65,
@@ -76,6 +84,7 @@ const dia: GcdAbility = {
 };
 
 const assize: OgcdAbility = {
+    id: fakeId++,
     type: 'ogcd',
     name: "Assize",
     potency: 400,
@@ -83,6 +92,7 @@ const assize: OgcdAbility = {
 };
 
 const pom: OgcdAbility = {
+    id: fakeId++,
     type: 'ogcd',
     name: 'Presence of Mind',
     potency: null,
@@ -100,6 +110,7 @@ const pom: OgcdAbility = {
 };
 
 const misery: GcdAbility = {
+    id: fakeId++,
     type: 'gcd',
     name: "Afflatus Misery",
     potency: 1240,
@@ -108,6 +119,7 @@ const misery: GcdAbility = {
 };
 
 const lily: GcdAbility = {
+    id: fakeId++,
     type: 'gcd',
     name: "Afflatus Rapture",
     potency: 0,
@@ -249,32 +261,32 @@ const expectedAbilities: UseResult[] = [
     {
         time: -1.48,
         name: 'Glare',
-        damage: 15078.38
+        damage: 15074.935
     },
     {
         time: 0,
         name: 'Auto Attack',
-        damage: 33.30
+        damage: 33.301
     },
     {
         time: 0.83,
         name: 'Dia',
-        damage: 37174.05
+        damage: 37172.897
     },
     {
         time: 3.14,
         name: 'Glare',
-        damage: 15832.30
+        damage: 15828.682
     },
     {
         time: 4.32,
         name: 'Auto Attack',
-        damage: 34.97
+        damage: 34.966
     },
     {
         time: 5.45,
         name: 'Glare',
-        damage: 15832.30
+        damage: 15828.682
     },
     {
         time: 6.93,
@@ -284,87 +296,92 @@ const expectedAbilities: UseResult[] = [
     {
         time: 7.76,
         name: 'Glare',
-        damage: 17656.20
+        damage: 17652.168
     },
     {
         time: 8.96,
         name: "Assize",
-        damage: 22783.24
+        damage: 22777.859
     },
     {
         time: 9.24,
         name: "Auto Attack",
-        damage: 38.99
+        damage: 38.994
     },
     {
         time: 9.60,
         name: "Glare",
-        damage: 17656.2
+        damage: 17652.168
     },
     {
         time: 11.44,
         name: "Glare",
-        damage: 17656.2
+        damage: 17652.168
+    },
+    {
+        time: 13.192,
+        name: "Auto Attack",
+        damage: 38.994
     },
     {
         time: 13.28,
         name: "Glare",
-        damage: 17656.2
-    },
-    {
-        time: 14.48,
-        name: "Auto Attack",
-        damage: 38.99
+        damage: 17652.168
     },
     {
         time: 15.12,
         name: "Glare",
-        damage: 17656.2
+        damage: 17652.168
     },
     {
         time: 16.96,
         name: "Glare",
-        damage: 17656.2
+        damage: 17652.168
+    },
+    {
+        time: 17.744,
+        name: "Auto Attack",
+        damage: 38.994
     },
     {
         time: 18.80,
         name: "Glare",
-        damage: 17656.2
-    },
-    {
-        time: 19.72,
-        name: "Auto Attack",
-        damage: 38.99
+        damage: 17652.168
     },
     {
         time: 20.64,
         name: "Glare",
-        damage: 17656.2
+        damage: 17652.168
+    },
+    {
+        time: 21.696,
+        name: "Auto Attack",
+        damage: 38.994
     },
     {
         time: 22.48,
         name: "Glare",
-        damage: 15832.3
+        damage: 15828.682
     },
     {
         time: 24.32,
         name: "Glare",
-        damage: 15078.38
+        damage: 15074.935
     },
     {
-        time: 25.24,
+        time: 25.928,
         name: "Auto Attack",
-        damage: 33.30
+        damage: 33.301
     },
     {
         time: 26.63,
         name: "Glare",
-        damage: 15078.38
+        damage: 15074.935
     },
     {
         time: 28.94,
         name: "Glare",
-        damage: 6919.08
+        damage: 6917.503
     },
 ];
 
@@ -383,12 +400,13 @@ describe('Cycle sim processor', () => {
         // Run simulation
         const result = await inst.simulate(set);
         // Assert correct results
-        assertClose(result.mainDpsResult, 9897.32, 0.01);
+        assertClose(result.mainDpsResult, 9896.58, 0.01);
         assertSimAbilityResults(result, expectedAbilities);
     });
 });
 
 const instant: GcdAbility = {
+    id: fakeId++,
     type: 'gcd',
     name: "Dia",
     potency: 65,
@@ -402,6 +420,7 @@ const instant: GcdAbility = {
 };
 
 const long: GcdAbility = {
+    id: fakeId++,
     type: 'gcd',
     name: "Raise",
     potency: 310,
@@ -599,6 +618,7 @@ const potBuff: Buff = {
 };
 
 const potBuffAbility: GcdAbility = {
+    id: fakeId++,
     type: 'gcd',
     name: "Pot Buff Ability",
     potency: null,
@@ -627,16 +647,16 @@ describe('Potency Buff Ability', () => {
         });
         // Not swifted
         assert.equal(actualAbilities[0].ability.name, "Glare");
-        assertClose(actualAbilities[0].directDamage, 15078, 1);
+        assertClose(actualAbilities[0].directDamage, 15074, 1);
         // Swiftcast
         assert.equal(actualAbilities[1].ability.name, "Pot Buff Ability");
         assertClose(actualAbilities[1].directDamage, 0, 1);
         // Swifted
         assert.equal(actualAbilities[2].ability.name, "Glare");
-        assertClose(actualAbilities[2].directDamage, 15078 * (310 + 100) / 310, 1);
+        assertClose(actualAbilities[2].directDamage, 15074 * (310 + 100) / 310, 2);
         // Not swifted
         assert.equal(actualAbilities[3].ability.name, "Glare");
-        assertClose(actualAbilities[3].directDamage, 15078, 1);
+        assertClose(actualAbilities[3].directDamage, 15074, 1);
 
     });
 });
@@ -672,6 +692,7 @@ const bristleBuff: Buff = {
 };
 
 const bristle: GcdAbility = {
+    id: fakeId++,
     type: 'gcd',
     name: "Bristle",
     potency: null,
@@ -698,6 +719,7 @@ const bristleBuff2: Buff = {
 };
 
 const bristle2: GcdAbility = {
+    id: fakeId++,
     type: 'gcd',
     name: "Bristle2",
     potency: null,
@@ -727,16 +749,16 @@ describe('Damage Buff Ability', () => {
         });
         // Not buffed
         assert.equal(actualAbilities[0].ability.name, "Glare");
-        assertClose(actualAbilities[0].directDamage, 15078, 1);
+        assertClose(actualAbilities[0].directDamage, 15074, 1);
         // Buff
         assert.equal(actualAbilities[1].ability.name, "Bristle");
         assertClose(actualAbilities[1].directDamage, 0, 1);
         // Buffed
         assert.equal(actualAbilities[2].ability.name, "Glare");
-        assertClose(actualAbilities[2].directDamage, 15078 * 1.5, 1);
+        assertClose(actualAbilities[2].directDamage, 15074 * 1.5, 2);
         // Not buffed
         assert.equal(actualAbilities[3].ability.name, "Glare");
-        assertClose(actualAbilities[3].directDamage, 15078, 1);
+        assertClose(actualAbilities[3].directDamage, 15074, 1);
 
     });
     it('should increase the damage once, other style', () => {
@@ -757,16 +779,16 @@ describe('Damage Buff Ability', () => {
         });
         // Not buffed
         assert.equal(actualAbilities[0].ability.name, "Glare");
-        assertClose(actualAbilities[0].directDamage, 15078, 1);
+        assertClose(actualAbilities[0].directDamage, 15074, 2);
         // Buff
         assert.equal(actualAbilities[1].ability.name, "Bristle2");
         assertClose(actualAbilities[1].directDamage, 0, 1);
         // Buffed
         assert.equal(actualAbilities[2].ability.name, "Glare");
-        assertClose(actualAbilities[2].directDamage, 15078 * 1.5, 1);
+        assertClose(actualAbilities[2].directDamage, 15074 * 1.5, 2);
         // Not Buffed
         assert.equal(actualAbilities[3].ability.name, "Glare");
-        assertClose(actualAbilities[3].directDamage, 15078, 1);
+        assertClose(actualAbilities[3].directDamage, 15074, 1);
     });
     it('should multiply direct damage and dots by default', () => {
         const cp = new CycleProcessor({
@@ -791,20 +813,20 @@ describe('Damage Buff Ability', () => {
         });
         // Not buffed
         assert.equal(actualAbilities[0].ability.name, "Dia");
-        assertClose(actualAbilities[0].directDamage, 3161.5, 1);
-        assertClose(actualAbilities[0].totalDamage, 37174, 1);
+        assertClose(actualAbilities[0].directDamage, 3160.1, 1);
+        assertClose(actualAbilities[0].totalDamage, 37172.9, 1);
         // Buff
         assert.equal(actualAbilities[1].ability.name, "Bristle");
         assertClose(actualAbilities[1].directDamage, 0, 1);
         assertClose(actualAbilities[1].totalDamage, 0, 1);
         // Buffed
         assert.equal(actualAbilities[2].ability.name, "Dia");
-        assertClose(actualAbilities[2].directDamage, 3161.5 * 1.5, 1);
-        assertClose(actualAbilities[2].totalDamage, 37174 * 1.5, 1);
+        assertClose(actualAbilities[2].directDamage, 3160.1 * 1.5, 1);
+        assertClose(actualAbilities[2].totalDamage, 37172.9 * 1.5, 1);
         // Not Buffed
         assert.equal(actualAbilities[3].ability.name, "Dia");
-        assertClose(actualAbilities[3].directDamage, 3161.5, 1);
-        assertClose(actualAbilities[3].totalDamage, 37174, 1);
+        assertClose(actualAbilities[3].directDamage, 3160.1, 1);
+        assertClose(actualAbilities[3].totalDamage, 37172.9, 1);
     });
     it('should filter abilities correctly', () => {
         const cp = new CycleProcessor({
@@ -826,19 +848,19 @@ describe('Damage Buff Ability', () => {
         });
         // Not buffed
         assert.equal(actualAbilities[0].ability.name, "Glare");
-        assertClose(actualAbilities[0].directDamage, 15078, 1);
+        assertClose(actualAbilities[0].directDamage, 15074, 1);
         // Buff
         assert.equal(actualAbilities[1].ability.name, "Bristle");
         assertClose(actualAbilities[1].directDamage, 0, 1);
         // Filtered, not buffed
         assert.equal(actualAbilities[2].ability.name, "WepSkill");
-        assertClose(actualAbilities[2].directDamage, 15078, 1);
+        assertClose(actualAbilities[2].directDamage, 15074, 1);
         // Buffed
         assert.equal(actualAbilities[3].ability.name, "Glare");
-        assertClose(actualAbilities[3].directDamage, 15078 * 1.5, 1);
+        assertClose(actualAbilities[3].directDamage, 15074 * 1.5, 2);
         // Not buffed
         assert.equal(actualAbilities[4].ability.name, "Glare");
-        assertClose(actualAbilities[4].directDamage, 15078, 1);
+        assertClose(actualAbilities[4].directDamage, 15074, 1);
     });
 });
 
@@ -900,6 +922,7 @@ describe('Special record', () => {
 // TODO: another set of test, but with a GCD that doesn't evenly divide the cycle time, so that re-alignment
 // can be checked.
 const fixed: GcdAbility = {
+    id: fakeId++,
     type: 'gcd',
     name: "Fixed",
     potency: 310,
@@ -909,6 +932,7 @@ const fixed: GcdAbility = {
     fixedGcd: true
 };
 const fixedLonger: GcdAbility = {
+    id: fakeId++,
     type: 'gcd',
     name: "Fixed Longer",
     potency: 310,
@@ -1177,6 +1201,7 @@ describe('Cycle processor alignment options', () => {
 
 // GCD that doesn't evenly divide into a 30 second cycle time so that we can test drift behavior
 const fixedOdd: GcdAbility = {
+    id: fakeId++,
     type: 'gcd',
     name: "Fixed Odd",
     potency: 310,
@@ -1398,6 +1423,7 @@ const indefBuff: Buff = {
 };
 
 const indefAb: Ability = {
+    id: fakeId++,
     type: 'gcd',
     name: "Ability that applies Indefinite Buff",
     potency: 310,
@@ -1455,5 +1481,67 @@ describe('indefinite buff handling', () => {
         for (let i = 2; i < actualAbilities.length; i++) {
             assert.equal(actualAbilities[i].combinedEffects.dmgMod, 5, `Index ${i}`);
         }
+    });
+});
+
+const longDelay: GcdAbility = {
+    type: 'gcd',
+    name: "Glare",
+    potency: 310,
+    attackType: "Spell",
+    gcd: 2.5,
+    cast: 1.5,
+    appDelay: 1.2,
+    id: fakeId++
+};
+
+
+describe('application delay', () => {
+    it('should default if not specified', () => {
+        const cp = new CycleProcessor({
+            allBuffs: [],
+            cycleTime: 120,
+            stats: exampleGearSet.computedStats,
+            totalTime: 120,
+            useAutos: false
+        });
+        cp.use(filler);
+        cp.use(filler);
+        const displayRecords = cp.finalizedRecords;
+        const actualAbilities: FinalizedAbility[] = displayRecords.filter<FinalizedAbility>((record): record is FinalizedAbility => {
+            return 'ability' in record;
+        });
+        assert.equal(actualAbilities[0].original.appDelay, STANDARD_APPLICATION_DELAY);
+        assert.equal(actualAbilities[0].original.appDelayFromStart, STANDARD_APPLICATION_DELAY + actualAbilities[0].original.snapshotTimeFromStart);
+        // Test that application delay correctly affects pre-pull timing
+        assert.equal(actualAbilities[0].original.usedAt, -1 * (STANDARD_APPLICATION_DELAY + actualAbilities[0].original.snapshotTimeFromStart));
+
+        assert.equal(actualAbilities[1].original.appDelay, STANDARD_APPLICATION_DELAY);
+        assert.equal(actualAbilities[1].original.appDelayFromStart, STANDARD_APPLICATION_DELAY + actualAbilities[0].original.snapshotTimeFromStart);
+        assert.equal(actualAbilities[1].original.usedAt, actualAbilities[0].original.usedAt + actualAbilities[0].original.totalTimeTaken);
+    });
+    it('should respect an override', () => {
+        const cp = new CycleProcessor({
+            allBuffs: [],
+            cycleTime: 120,
+            stats: exampleGearSet.computedStats,
+            totalTime: 120,
+            useAutos: false
+        });
+        cp.use(longDelay);
+        cp.use(longDelay);
+        const displayRecords = cp.finalizedRecords;
+        const actualAbilities: FinalizedAbility[] = displayRecords.filter<FinalizedAbility>((record): record is FinalizedAbility => {
+            return 'ability' in record;
+        });
+        const delay = longDelay.appDelay;
+        assert.equal(actualAbilities[0].original.appDelay, delay);
+        assert.equal(actualAbilities[0].original.appDelayFromStart, delay + actualAbilities[0].original.snapshotTimeFromStart);
+        // Test that application delay correctly affects pre-pull timing
+        assert.equal(actualAbilities[0].original.usedAt, -1 * (delay + actualAbilities[0].original.snapshotTimeFromStart));
+
+        assert.equal(actualAbilities[1].original.appDelay, delay);
+        assert.equal(actualAbilities[1].original.appDelayFromStart, delay + actualAbilities[0].original.snapshotTimeFromStart);
+        assert.equal(actualAbilities[1].original.usedAt, actualAbilities[0].original.usedAt + actualAbilities[0].original.totalTimeTaken);
     });
 });

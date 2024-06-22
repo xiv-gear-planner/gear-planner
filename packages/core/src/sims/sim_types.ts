@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {CharacterGearSet} from "../gear";
 import {JobName, SupportedLevel} from "@xivgear/xivmath/xivconstants";
-import {AttackType} from "@xivgear/xivmath/geartypes";
+import {AttackType, ComputedSetStats} from "@xivgear/xivmath/geartypes";
 import {ValueWithDev} from "@xivgear/xivmath/deviation";
 
 /**
@@ -244,9 +244,18 @@ export type BaseAbility = Readonly<{
      */
     activatesBuffs?: readonly Buff[],
     /**
-     * The ID of the ability. Used for xivapi lookup for the icon.
+     * The ID of the ability. Used for equality checks, and for xivapi lookup.
      */
-    id?: number,
+    id: number,
+    /**
+     * If the action comes from an item, list the item ID so that it can be used for the
+     * icon.
+     */
+    itemId?: number,
+    /**
+     * Don't display an icon for this ability
+     */
+    noIcon?: boolean,
     /**
      * The type of action - Autoattack, Spell, Weaponskill, Ability (oGCD), etc
      */
@@ -273,12 +282,16 @@ export type BaseAbility = Readonly<{
      * Override the default animation lock
      */
     animationLock?: number,
+    /**
+     * Override the default application delay
+     */
+    appDelay?: number,
 } & (NonDamagingAbility | DamagingAbility)>;
 
 /**
  * Represents the cooldown of an ability
  */
-export type Cooldown = Readonly<{
+export type BaseCooldown = Readonly<{
     /**
      * The cooldown duration, or the time to regain a single charge
      */
@@ -288,10 +301,37 @@ export type Cooldown = Readonly<{
      */
     reducedBy?: 'none' | 'spellspeed' | 'skillspeed';
     /**
-     * The number of charges of the ability
+     * The number of charges of the ability.
      */
     charges?: number
 }>
+
+export type OriginCooldown = BaseCooldown & {
+    sharesCooldownWith?: never;
+}
+
+export type SharedCooldown = BaseCooldown & {
+    /**
+     * If the ability shares a cooldown with another ability, specify that ability here.
+     *
+     * When using shared cooldowns, the reference should only be made in one direction. That is,
+     * if A, B, and C share cooldowns, then B and C should set their shared cooldown to A, and A should not have a
+     * shared cooldown.
+     */
+    sharesCooldownWith: Ability & {
+        cooldown: OriginCooldown
+    }
+}
+
+export type Cooldown = OriginCooldown | SharedCooldown;
+export type OriginCdAbility = Ability & {
+    cooldown: OriginCooldown;
+}
+export type SharedCdAbility = Ability & {
+    cooldown: SharedCooldown;
+}
+
+export type CdAbility = OriginCdAbility | SharedCdAbility;
 
 /**
  * Represents a GCD action
@@ -437,6 +477,10 @@ export type BuffEffects = {
      * Haste. Expressed as the percentage value, e.g. 20 = 20% faster GCD
      */
     haste?: number,
+    /**
+     * Modify stats directly
+     */
+    modifyStats?: (stats: ComputedSetStats) => ComputedSetStats;
 };
 
 export type BuffController = {
@@ -552,11 +596,36 @@ export type DamageResult = {
     readonly dot: DotDamageUnf | null
 }
 
+/**
+ * Represents the combined effects of multiple buffs
+ */
 export type CombinedBuffEffect = {
+    /**
+     * Overall damage modifier, e.g. 1.5 = 50% more damage
+     */
     dmgMod: number,
+    /**
+     * Crit chance increase, e.g. 0.1 = 10% increased critical chance
+     */
     critChanceIncrease: number,
+    /**
+     * Dhit chance increase, e.g. 0.1 = 10% increased direct hit chance
+     */
     dhitChanceIncrease: number,
+    /**
+     * Auto-crit
+     */
     forceCrit: boolean,
-    forceDhit: boolean
+    /**
+     * Auto-direct-hit
+     */
+    forceDhit: boolean,
+    /**
+     * Haste as an integer, e.g. 20 haste = 20% lower cast/gcd time.
+     */
     haste: number,
+    /**
+     * Function for modifying a ComputedSetStats for any changes which cannot be expressed using the other fields.
+     */
+    modifyStats: (stats: ComputedSetStats) => ComputedSetStats,
 }

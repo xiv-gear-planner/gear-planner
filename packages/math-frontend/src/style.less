@@ -1,0 +1,118 @@
+@import "../../common-ui/styles/common.less";
+
+#content-area > math-area {
+  display: flex;
+  flex-direction: column;
+  row-gap: 10px;
+  width: calc(100% - 50px) !important;
+  max-width: 700px !important;
+  overflow-y: auto;
+  scrollbar-width: none;
+  show-hide-button {
+    position: absolute;
+  }
+  .formula-selector-area {
+    button {
+      margin: 3px;
+
+      &.active {
+        background-color: var(--button-hover-color);
+      }
+    }
+  }
+
+  .settings-area {
+    .generic-settings-area, .specific-settings-area {
+    }
+  }
+
+  .math-result-table-holder {
+    min-height: 150px;
+    overflow-y: auto;
+    position: relative;
+    loading-blocker {
+      top: 50px;
+    }
+    table {
+      position: relative;
+      padding: 0;
+      width: 100%;
+      th {
+        position: sticky;
+        top: 0;
+        z-index: var(--zi-sets-table-header-row);
+        padding-right: 10px;
+        background-color: color-mix(in srgb, var(--bg-color) 80%, transparent);
+      }
+    }
+  }
+}
+
+body {
+
+  .function-code-area {
+    border-radius: 10px;
+    background-color: var(--bg-color);
+    overflow-x: auto;
+    //padding: 10px;
+    .code-outer {
+      width: fit-content;
+      padding: 10px;
+      pre {
+        margin: 0;
+        text-align: left;
+      }
+    }
+  }
+
+  .hljs-keyword {
+    color: #ca7733;
+  }
+  .hljs-parameter {
+    color: #7377a6
+  }
+  .hljs-property {
+    color: #9573a6
+  }
+  .hljs-title, .hljs-type {
+    color: #fdc46d;
+  }
+  .hljs-number {
+    color: #5090a6;
+  }
+  .hljs-comment {
+    opacity: 60%;
+  }
+  &.light-mode {
+    .hljs-keyword {
+      color: #793800;
+    }
+    .hljs-parameter {
+      color: #000272
+    }
+    .hljs-property {
+      color: #64009a
+    }
+    .hljs-title, .hljs-type {
+      color: #8c8a00;
+    }
+    .hljs-number {
+      color: #00618d;
+    }
+  }
+}
+
+.vertical-labeled-input {
+  padding: 10px;
+  display: inline-block;
+
+  input {
+    width: 120px;
+  }
+
+  > * {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}

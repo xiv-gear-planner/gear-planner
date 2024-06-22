@@ -5,7 +5,7 @@ import {
     labeledCheckbox,
     labelFor,
     positiveValuesOnly
-} from "../../components/util";
+} from "@xivgear/common-ui/components/util";
 import {NamedSection} from "../../components/section";
 
 export function cycleSettingsGui(cycleSettings: CycleSettings) {

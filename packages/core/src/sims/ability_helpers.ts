@@ -7,9 +7,7 @@ import {Ability, ComboData} from "./sim_types";
  * @param ability The ability in question
  */
 export function appDelay(ability: Ability) {
-    const delay = STANDARD_APPLICATION_DELAY;
-    // TODO: add application delay field to Ability
-    return delay;
+    return ability.appDelay ?? STANDARD_APPLICATION_DELAY;
 }
 
 function defaultComboData(ability: Ability): ComboData {
@@ -78,4 +76,24 @@ export function completeComboData(ability: Ability): FinalizedComboData {
         combos: combos,
         others: others,
     };
+}
+
+/**
+ * Check that two abilities are equal, based on the ability ID.
+ *
+ * @param left The first ability to compare.
+ * @param right The second ability to compare.
+ */
+export function abilityEquals(left: Ability, right: Ability) {
+    if (left === right) {
+        return true;
+    }
+    if (!left || !right) {
+        return false;
+    }
+    if (left.id !== undefined && right.id !== undefined) {
+        return left.id === right.id;
+    }
+    console.warn(`abilityEquals indeterminate (args '${JSON.stringify(left)}' and '${JSON.stringify(right)}`);
+    return false;
 }

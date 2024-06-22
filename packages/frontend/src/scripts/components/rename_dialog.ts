@@ -1,7 +1,7 @@
-import {closeModal} from "../modalcontrol";
-import {quickElement} from "./util";
+import {closeModal} from "@xivgear/common-ui/modalcontrol";
+import {quickElement} from "@xivgear/common-ui/components/util";
 import {CharacterGearSet} from "@xivgear/core/gear";
-import {BaseModal} from "./modal";
+import {BaseModal} from "@xivgear/common-ui/components/modal";
 import {GearPlanSheet} from "@xivgear/core/sheet";
 
 export function startRenameSheet(sheet: GearPlanSheet) {

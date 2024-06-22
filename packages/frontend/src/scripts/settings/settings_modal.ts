@@ -1,7 +1,7 @@
-import {BaseModal} from "../components/modal";
-import {FieldBoundCheckBox} from "../components/util";
+import {BaseModal} from "@xivgear/common-ui/components/modal";
+import {FieldBoundCheckBox} from "@xivgear/common-ui/components/util";
 import {DISPLAY_SETTINGS} from "./display_settings";
-import {BoolToggle} from "../components/bool_toggle";
+import {BoolToggle} from "@xivgear/common-ui/components/bool_toggle";
 
 
 class SettingsModal extends BaseModal {

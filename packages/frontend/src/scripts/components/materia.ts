@@ -8,7 +8,7 @@ import {
     RawStatKey
 } from "@xivgear/xivmath/geartypes";
 import {MateriaSubstat, MAX_GCD, STAT_ABBREVIATIONS, STAT_FULL_NAMES} from "@xivgear/xivmath/xivconstants";
-import {closeModal, setModal} from "../modalcontrol";
+import {closeModal, setModal} from "@xivgear/common-ui/modalcontrol";
 import {
     faIcon,
     FieldBoundCheckBox,
@@ -16,7 +16,7 @@ import {
     labeledCheckbox,
     makeActionButton,
     quickElement
-} from "./util";
+} from "@xivgear/common-ui/components/util";
 import {GearPlanSheet} from "@xivgear/core/sheet";
 
 /**

@@ -34,6 +34,23 @@ export function fl(input: number) {
 }
 
 /**
+ * Floor a number to the given precision.
+ *
+ * e.g. flp(2, 1.239) => 1.23
+ *
+ * @param places The number of decimal places to keep. Must be a non-negative integer. Zero is allowed,
+ * but you should just call 'fl' directly in that case.
+ * @param input The number to round.
+ */
+function flp(places: number, input: number) {
+    if (places % 1 !== 0 || places < 0) {
+        throw Error(`Invalid places input ${places} - must be non-negative integer`);
+    }
+    const multiplier = Math.pow(10, places);
+    return fl(input * multiplier) / multiplier;
+}
+
+/**
  * Convert skill speed to GCD speed.
  *
  * @param baseGcd The base time of the ability in question (e.g. 2.5 for most abilities).
@@ -42,7 +59,7 @@ export function fl(input: number) {
  * @param haste The haste value, e.g. 15 for 15% haste, etc.
  */
 export function sksToGcd(baseGcd: number, levelStats: LevelStats, sks: number, haste = 0): number {
-    return fl((100 - haste) * ((baseGcd * 1000 * (1000 - fl(130 * (sks - levelStats.baseSubStat) / levelStats.levelDiv)) / 1000) / 1000)) / 100;
+    return fl((100 - haste) * (baseGcd * 1000 * (1000 - fl(130 * (sks - levelStats.baseSubStat) / levelStats.levelDiv)) / 1000 / 1000)) / 100;
 }
 
 export function sksToGcd_simplified(baseGcd: number, levelStats: LevelStats, sks: number, haste = 0): number {
@@ -113,7 +130,7 @@ export function sksToGcd_etroSimplified(baseGcd: number, levelStats: LevelStats,
  * @param haste The haste value, e.g. 15 for 15% haste, etc.
  */
 export function spsToGcd(baseGcd: number, levelStats: LevelStats, sps: number, haste = 0): number {
-    return fl((100 - haste) * ((baseGcd * 1000 * (1000 - fl(130 * (sps - levelStats.baseSubStat) / levelStats.levelDiv)) / 1000) / 1000)) / 100;
+    return fl((100 - haste) * (baseGcd * 1000 * (1000 - fl(130 * (sps - levelStats.baseSubStat) / levelStats.levelDiv)) / 1000 / 1000)) / 100;
 }
 
 /**
@@ -135,7 +152,6 @@ export function critChance(levelStats: LevelStats, crit: number) {
  * @param crit The critical hit stat value.
  */
 export function critDmg(levelStats: LevelStats, crit: number) {
-    // return 1 + Math.floor(200 * (crit - levelStats.baseSubStat) / levelStats.levelDiv + 400) / 1000;
     return (1400 + fl(200 * (crit - levelStats.baseSubStat) / levelStats.levelDiv)) / 1000.0;
 }
 
@@ -146,7 +162,6 @@ export function critDmg(levelStats: LevelStats, crit: number) {
  * @param dhit The direct hit stat value.
  */
 export function dhitChance(levelStats: LevelStats, dhit: number) {
-    // return 1 + Math.floor((550 * dhit - levelStats.baseSubStat) / levelStats.levelDiv) / 1000;
     return fl(550 * (dhit - levelStats.baseSubStat) / levelStats.levelDiv) / 1000.0;
 }
 
@@ -184,7 +199,7 @@ export function detDmg(levelStats: LevelStats, det: number) {
  */
 export function wdMulti(levelStats: LevelStats, jobStats: JobData, wd: number) {
     const mainStatJobMod = jobStats.jobStatMultipliers[jobStats.mainStat];
-    return fl((levelStats.baseMainStat * mainStatJobMod / 1000) + wd);
+    return fl(levelStats.baseMainStat * mainStatJobMod / 1000 + wd);
 }
 
 /**
@@ -247,7 +262,7 @@ export function tenacityDmg(levelStats: LevelStats, tenacity: number) {
  * @param dhit The direct hit stat value.
  */
 export function autoDhBonusDmg(levelStats: LevelStats, dhit: number) {
-    return fl(140 * ((dhit - levelStats.baseSubStat) / levelStats.levelDiv) + 1000);
+    return fl(140 * ((dhit - levelStats.baseSubStat) / levelStats.levelDiv) + 1000) / 1000;
 }
 
 /**
@@ -271,7 +286,7 @@ export function mpTick(levelStats: LevelStats, piety: number) {
  * @param weaponDamage weapon damage
  */
 export function autoAttackModifier(levelStats: LevelStats, jobStats: JobData, weaponDelay: number, weaponDamage: number) {
-    return fl(fl((levelStats.baseMainStat * jobStats.jobStatMultipliers[jobStats.autoAttackStat] / 1000) + weaponDamage) * (weaponDelay * 1000 / 3)) / 1000;
+    return fl(fl(levelStats.baseMainStat * jobStats.jobStatMultipliers[jobStats.autoAttackStat] / 1000 + weaponDamage) * (weaponDelay * 1000 / 3)) / 1000;
 }
 
 /**
@@ -279,6 +294,17 @@ export function autoAttackModifier(levelStats: LevelStats, jobStats: JobData, we
  */
 export function baseDamage(...args: Parameters<typeof baseDamageFull>): number {
     return baseDamageFull(...args).expected;
+}
+
+/**
+ * Determines whether the caster variant of the damage formula should be used instead of the normal variant.
+ *
+ * @param stats The set stats.
+ * @param attackType The type of attack.
+ */
+function usesCasterDamageFormula(stats: ComputedSetStats, attackType: AttackType): boolean {
+    return (stats.jobStats.role === 'Caster' || stats.jobStats.role === 'Healer')
+        && attackType !== 'Auto-attack';
 }
 
 /**
@@ -319,26 +345,44 @@ export function baseDamageFull(stats: ComputedSetStats, potency: number, attackT
     const detMulti = stats.detMulti;
     // Extra damage from auto DH bonus
     const autoDhBonus = stats.autoDhBonus;
-    const tncMulti = 1000 / 1000; // if tank you'd do Funcs.fTEN(stats.tenacity, level) / 1000
-    const detAutoDhMulti = fl((detMulti + autoDhBonus) * 1000) / 1000;
+    const tncMulti = stats.tncMulti; // if tank you'd do Funcs.fTEN(stats.tenacity, level) / 1000
+    const detAutoDhMulti = flp(3, detMulti + autoDhBonus);
     const traitMulti = stats.traitMulti(attackType);
+    const effectiveDetMulti = autoDH ? detAutoDhMulti : detMulti;
 
     // console.log({
     //     mainStatMulti: mainStatMulti, wdMulti: wdMulti, critMulti: critMulti, critRate: critRate, dhRate: dhRate, dhMulti: dhMulti, detMulti: detMulti, tncMulti: tncMulti, traitMulti: traitMulti
     // });
-
     // Base action potency and main stat multi
-    const basePotency = fl(potency * mainStatMulti * 100) / 100;
-    // Factor in determination and auto DH multiplier
-    const afterDet = fl(basePotency * (autoDH ? detAutoDhMulti : detMulti) * 100) / 100;
-    // Factor in Tenacity multiplier
-    const afterTnc = fl(afterDet * tncMulti * 100) / 100;
-    const afterSpd = fl(afterTnc * spdMulti * 1000) / 1000;
-    // Factor in weapon damage multiplier
-    const afterWeaponDamage = fl(afterSpd * wdMulti);
+    let stage1potency: number;
+    // Mahdi:
+    // Caster Damage has potency multiplied into weapon damage and then truncated
+    // to an integer as opposed to into ap and truncated to 2 decimal.
+    if (usesCasterDamageFormula(stats, attackType)) {
+        // https://github.com/Amarantine-xiv/Amas-FF14-Combat-Sim_source/blob/main/ama_xiv_combat_sim/simulator/calcs/compute_damage_utils.py#L130
+        const apDet = flp(2, mainStatMulti * effectiveDetMulti);
+        const basePotency = fl(apDet * flp(2, wdMulti * potency));
+        // Factor in Tenacity multiplier
+        const afterTnc = flp(2, basePotency * tncMulti);
+        // noinspection UnnecessaryLocalVariableJS
+        const afterSpd = flp(3, afterTnc * spdMulti);
+        stage1potency = afterSpd;
+    }
+    else {
+        const basePotency = flp(2, potency * mainStatMulti);
+        // Factor in determination and auto DH multiplier
+        const afterDet = flp(2, basePotency * effectiveDetMulti);
+        // Factor in Tenacity multiplier
+        const afterTnc = flp(2, afterDet * tncMulti);
+        const afterSpd = flp(3, afterTnc * spdMulti);
+        // Factor in weapon damage multiplier
+        // noinspection UnnecessaryLocalVariableJS
+        const afterWeaponDamage = fl(afterSpd * wdMulti);
+        stage1potency = afterWeaponDamage;
+    }
     // const d5 = fl(fl(afterWeaponDamage * critMulti) * DH_MULT)
     // Factor in auto crit multiplier
-    const afterAutoCrit = autoCrit ? fl(afterWeaponDamage * (1 + (critRate * (critMulti - 1)))) : afterWeaponDamage;
+    const afterAutoCrit = autoCrit ? fl(stage1potency * (1 + (critRate * (critMulti - 1)))) : stage1potency;
     // Factor in auto DH multiplier
     const afterAutoDh = autoDH ? fl(afterAutoCrit * (1 + (dhRate * (dhMulti - 1)))) : afterAutoCrit;
     // Factor in trait multiplier

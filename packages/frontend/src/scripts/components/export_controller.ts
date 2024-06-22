@@ -1,8 +1,8 @@
-import {FieldBoundCheckBox, labeledCheckbox, labeledRadioButton, makeActionButton} from "./util";
-import {closeModal} from "../modalcontrol";
+import {FieldBoundCheckBox, labeledCheckbox, labeledRadioButton, makeActionButton} from "@xivgear/common-ui/components/util";
+import {closeModal} from "@xivgear/common-ui/modalcontrol";
 import {putShortLink} from "@xivgear/core/external/shortlink_server";
 import {CharacterGearSet} from "@xivgear/core/gear";
-import {BaseModal} from "./modal";
+import {BaseModal} from "@xivgear/common-ui/components/modal";
 import {makeUrl, VIEW_SET_HASH} from "@xivgear/core/nav/common_nav";
 import {GearPlanSheet} from "@xivgear/core/sheet";
 

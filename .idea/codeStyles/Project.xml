@@ -4,9 +4,6 @@
       <option name="OBJECT_LITERAL_WRAP" value="2" />
       <option name="OBJECT_TYPES_WRAP" value="2" />
     </TypeScriptCodeStyleSettings>
-    <editorconfig>
-      <option name="ENABLED" value="false" />
-    </editorconfig>
     <codeStyleSettings language="TypeScript">
       <option name="ELSE_ON_NEW_LINE" value="true" />
       <option name="CATCH_ON_NEW_LINE" value="true" />

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */ // TODO: get back to fixing this at some point
 import {camel2title, capitalizeFirstLetter} from "@xivgear/core/util/strutils";
-import {BaseModal} from "./modal";
+import {BaseModal} from "@xivgear/common-ui/components/modal";
 import {
     CustomCell,
     CustomColumn,
@@ -20,8 +20,8 @@ import {
     labeledCheckbox,
     makeActionButton,
     quickElement
-} from "./util";
-import {closeModal} from "../modalcontrol";
+} from "@xivgear/common-ui/components/util";
+import {closeModal} from "@xivgear/common-ui/modalcontrol";
 import {
     ChanceStat,
     ComputedSetStats,
@@ -48,14 +48,14 @@ import {getCurrentHash} from "../nav_hash";
 import {MateriaTotalsDisplay} from "./materia";
 import {FoodItemsTable, FoodItemViewTable, GearItemsTable, GearItemsViewTable} from "./items";
 import {SetViewToolbar} from "./totals_display";
-import {scrollIntoView} from "../util/scrollutil";
+import {scrollIntoView} from "@xivgear/common-ui/util/scrollutil";
 import {installDragHelper} from "./draghelpers";
 import {iconForIssues, SetIssuesModal} from "./gear_set_issues";
 import {Inactivitytimer} from "@xivgear/core/util/inactivitytimer";
 import {startExport} from "./export_controller";
 import {startRenameSet, startRenameSheet} from "./rename_dialog";
 import {writeProxy} from "@xivgear/core/util/proxies";
-import {LoadingBlocker} from "./loader";
+import {LoadingBlocker} from "@xivgear/common-ui/components/loader";
 import {GearEditToolbar} from "./gear_edit_toolbar";
 import {SETTINGS} from "../settings/persistent_settings";
 import {openSheetByKey, setTitle} from "../base_ui";
@@ -67,6 +67,7 @@ import {simpleAutoResultTable} from "../sims/components/simple_tables";
 import {rangeInc} from "@xivgear/core/util/array_utils";
 import {SimCurrentResult, SimResult, SimSettings, SimSpec, Simulation} from "@xivgear/core/sims/sim_types";
 import {getRegisteredSimSpecs} from "@xivgear/core/sims/sim_registry";
+import {makeUrl} from "@xivgear/core/nav/common_nav";
 
 export type GearSetSel = SingleCellRowOrHeaderSelect<CharacterGearSet>;
 
@@ -846,7 +847,7 @@ export class GearSetViewer extends HTMLElement {
         if (this.sheet.isEmbed) {
             const headingLink = document.createElement('a');
             const hash = getCurrentHash();
-            const linkUrl = new URL(`#/${hash.slice(1).join('/')}`, document.location.toString());
+            const linkUrl = makeUrl(...hash.slice(1));
             headingLink.href = linkUrl.toString();
             headingLink.target = '_blank';
             headingLink.replaceChildren(this.gearSet.name, faIcon('fa-arrow-up-right-from-square', 'fa'));

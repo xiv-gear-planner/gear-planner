@@ -5,7 +5,10 @@ import {getClassJobStats, getLevelStats} from "@xivgear/xivmath/xivconstants";
 import {finalizeStats} from "@xivgear/xivmath/xivstats";
 import {GcdAbility, OgcdAbility} from "@xivgear/core/sims/sim_types";
 
+let fakeId = 0x200_0000;
+
 export const filler: GcdAbility = {
+    id: fakeId++,
     type: 'gcd',
     name: "Glare",
     potency: 310,
@@ -15,6 +18,7 @@ export const filler: GcdAbility = {
 };
 
 export const weaponSkill: GcdAbility = {
+    id: fakeId++,
     type: 'gcd',
     name: "WepSkill",
     potency: 310,
@@ -24,6 +28,7 @@ export const weaponSkill: GcdAbility = {
 };
 
 export const nop: GcdAbility = {
+    id: fakeId++,
     type: 'gcd',
     name: "NOP",
     potency: null,
@@ -33,6 +38,7 @@ export const nop: GcdAbility = {
 };
 
 export const dia: GcdAbility = {
+    id: fakeId++,
     type: 'gcd',
     name: "Dia",
     potency: 65,
@@ -46,6 +52,7 @@ export const dia: GcdAbility = {
 };
 
 export const assize: OgcdAbility = {
+    id: fakeId++,
     type: 'ogcd',
     name: "Assize",
     potency: 400,
@@ -53,6 +60,7 @@ export const assize: OgcdAbility = {
 };
 
 export const pom: OgcdAbility = {
+    id: fakeId++,
     type: 'ogcd',
     name: 'Presence of Mind',
     potency: null,
@@ -70,6 +78,7 @@ export const pom: OgcdAbility = {
 };
 
 export const misery: GcdAbility = {
+    id: fakeId++,
     type: 'gcd',
     name: "Afflatus Misery",
     potency: 1240,
@@ -78,6 +87,7 @@ export const misery: GcdAbility = {
 };
 
 export const lily: GcdAbility = {
+    id: fakeId++,
     type: 'gcd',
     name: "Afflatus Rapture",
     potency: 0,

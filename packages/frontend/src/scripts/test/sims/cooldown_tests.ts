@@ -1,9 +1,9 @@
 import {CooldownTracker} from "@xivgear/core/sims/common/cooldown_manager";
 import {Chain} from "@xivgear/core/sims/buffs";
 import * as assert from "assert";
-import {GcdAbility, OgcdAbility} from "@xivgear/core/sims/sim_types";
+import {GcdAbility, OgcdAbility, OriginCdAbility, SharedCdAbility} from "@xivgear/core/sims/sim_types";
 
-const chain: OgcdAbility = {
+const chain: OgcdAbility & OriginCdAbility = {
     type: 'ogcd',
     name: "Chain",
     id: 7436,
@@ -12,6 +12,19 @@ const chain: OgcdAbility = {
     attackType: "Ability",
     cooldown: {
         time: 120
+    }
+};
+
+const chainShared: OgcdAbility & SharedCdAbility = {
+    type: 'ogcd',
+    name: 'Chain II',
+    id: 100_0001,
+    activatesBuffs: [Chain],
+    potency: null,
+    attackType: "Ability",
+    cooldown: {
+        time: 60,
+        sharesCooldownWith: chain
     }
 };
 
@@ -566,5 +579,354 @@ describe('cooldown manager', () => {
             },
             currentCharges: 3,
         });
+    });
+    it('handles shared CDs', () => {
+        const ts = new FakeTimeSource();
+        const tracker = new CooldownTracker(() => ts.time, 'reject');
+        const ability = chain;
+        const ability2 = chainShared;
+        // Validate initial state
+        const e1 = {
+            readyToUse: true,
+            readyAt: {
+                absolute: 0,
+                relative: 0
+            },
+            capped: true,
+            cappedAt: {
+                absolute: 0,
+                relative: 0
+            },
+            currentCharges: 1,
+        };
+        assert.deepEqual(tracker.statusOf(ability), e1);
+        assert.deepEqual(tracker.statusOf(ability2), e1);
+        // Use first ability
+        tracker.useAbility(ability);
+        const e2 = {
+            readyToUse: false,
+            readyAt: {
+                absolute: 120,
+                relative: 120
+            },
+            capped: false,
+            cappedAt: {
+                absolute: 120,
+                relative: 120
+            },
+            currentCharges: 0,
+        };
+        assert.deepEqual(tracker.statusOf(ability), e2);
+        assert.deepEqual(tracker.statusOf(ability2), e2);
+        ts.time = 30;
+        const e3 = {
+            readyToUse: false,
+            readyAt: {
+                absolute: 120,
+                relative: 90
+            },
+            capped: false,
+            cappedAt: {
+                absolute: 120,
+                relative: 90
+            },
+            currentCharges: 0,
+        };
+        assert.deepEqual(tracker.statusOf(ability), e3);
+        assert.deepEqual(tracker.statusOf(ability2), e3);
+
+        // Move to 90s
+        ts.time = 90;
+        const e4 = {
+            readyToUse: false,
+            readyAt: {
+                absolute: 120,
+                relative: 30
+            },
+            capped: false,
+            cappedAt: {
+                absolute: 120,
+                relative: 30
+            },
+            currentCharges: 0,
+        };
+        assert.deepEqual(tracker.statusOf(ability), e4);
+        assert.deepEqual(tracker.statusOf(ability2), e4);
+
+        ts.time = 120;
+        const e5 = {
+            readyToUse: true,
+            readyAt: {
+                absolute: 120,
+                relative: 0
+            },
+            capped: true,
+            cappedAt: {
+                absolute: 120,
+                relative: 0
+            },
+            currentCharges: 1,
+        };
+        assert.deepEqual(tracker.statusOf(ability), e5);
+        assert.deepEqual(tracker.statusOf(ability2), e5);
+
+        ts.time = 150;
+        const e6 = {
+            readyToUse: true,
+            readyAt: {
+                absolute: 150,
+                relative: 0
+            },
+            capped: true,
+            cappedAt: {
+                absolute: 150,
+                relative: 0
+            },
+            currentCharges: 1,
+        };
+        assert.deepEqual(tracker.statusOf(ability), e6);
+        assert.deepEqual(tracker.statusOf(ability2), e6);
+
+        tracker.useAbility(ability2);
+        const e7 = {
+            readyToUse: false,
+            readyAt: {
+                absolute: 210,
+                relative: 60
+            },
+            capped: false,
+            cappedAt: {
+                absolute: 210,
+                relative: 60
+            },
+            currentCharges: 0,
+        };
+        assert.deepEqual(tracker.statusOf(ability), e7);
+        assert.deepEqual(tracker.statusOf(ability2), e7);
+
+        ts.time = 180;
+        const e8 = {
+            readyToUse: false,
+            readyAt: {
+                absolute: 210,
+                relative: 30
+            },
+            capped: false,
+            cappedAt: {
+                absolute: 210,
+                relative: 30
+            },
+            currentCharges: 0,
+        };
+        assert.deepEqual(tracker.statusOf(ability), e8);
+        assert.deepEqual(tracker.statusOf(ability2), e8);
+
+        ts.time = 210;
+        const e9 = {
+            readyToUse: true,
+            readyAt: {
+                absolute: 210,
+                relative: 0
+            },
+            capped: true,
+            cappedAt: {
+                absolute: 210,
+                relative: 0
+            },
+            currentCharges: 1,
+        };
+        assert.deepEqual(tracker.statusOf(ability), e9);
+        assert.deepEqual(tracker.statusOf(ability2), e9);
+
+        ts.time = 240;
+        const e10 = {
+            readyToUse: true,
+            readyAt: {
+                absolute: 240,
+                relative: 0
+            },
+            capped: true,
+            cappedAt: {
+                absolute: 240,
+                relative: 0
+            },
+            currentCharges: 1,
+        };
+        assert.deepEqual(tracker.statusOf(ability), e10);
+        assert.deepEqual(tracker.statusOf(ability2), e10);
+    });
+    it('handles shared CDs when the shared CD is used first', () => {
+        const ts = new FakeTimeSource();
+        const tracker = new CooldownTracker(() => ts.time, 'reject');
+        const ability = chain;
+        const ability2 = chainShared;
+        // Validate initial state
+        const e1 = {
+            readyToUse: true,
+            readyAt: {
+                absolute: 0,
+                relative: 0
+            },
+            capped: true,
+            cappedAt: {
+                absolute: 0,
+                relative: 0
+            },
+            currentCharges: 1,
+        };
+        assert.deepEqual(tracker.statusOf(ability), e1);
+        assert.deepEqual(tracker.statusOf(ability2), e1);
+        // Use first ability
+        tracker.useAbility(ability2);
+        const e2 = {
+            readyToUse: false,
+            readyAt: {
+                absolute: 60,
+                relative: 60
+            },
+            capped: false,
+            cappedAt: {
+                absolute: 60,
+                relative: 60
+            },
+            currentCharges: 0,
+        };
+        assert.deepEqual(tracker.statusOf(ability), e2);
+        assert.deepEqual(tracker.statusOf(ability2), e2);
+        ts.time = 20;
+        const e3 = {
+            readyToUse: false,
+            readyAt: {
+                absolute: 60,
+                relative: 40
+            },
+            capped: false,
+            cappedAt: {
+                absolute: 60,
+                relative: 40
+            },
+            currentCharges: 0,
+        };
+        assert.deepEqual(tracker.statusOf(ability), e3);
+        assert.deepEqual(tracker.statusOf(ability2), e3);
+
+        ts.time = 60;
+        const e4 = {
+            readyToUse: true,
+            readyAt: {
+                absolute: 60,
+                relative: 0
+            },
+            capped: true,
+            cappedAt: {
+                absolute: 60,
+                relative: 0
+            },
+            currentCharges: 1,
+        };
+        assert.deepEqual(tracker.statusOf(ability), e4);
+        assert.deepEqual(tracker.statusOf(ability2), e4);
+
+        ts.time = 120;
+        const e5 = {
+            readyToUse: true,
+            readyAt: {
+                absolute: 120,
+                relative: 0
+            },
+            capped: true,
+            cappedAt: {
+                absolute: 120,
+                relative: 0
+            },
+            currentCharges: 1,
+        };
+        assert.deepEqual(tracker.statusOf(ability), e5);
+        assert.deepEqual(tracker.statusOf(ability2), e5);
+
+        ts.time = 90;
+        const e6 = {
+            readyToUse: true,
+            readyAt: {
+                absolute: 90,
+                relative: 0
+            },
+            capped: true,
+            cappedAt: {
+                absolute: 90,
+                relative: 0
+            },
+            currentCharges: 1,
+        };
+        assert.deepEqual(tracker.statusOf(ability), e6);
+        assert.deepEqual(tracker.statusOf(ability2), e6);
+
+        tracker.useAbility(ability);
+        const e7 = {
+            readyToUse: false,
+            readyAt: {
+                absolute: 210,
+                relative: 120
+            },
+            capped: false,
+            cappedAt: {
+                absolute: 210,
+                relative: 120
+            },
+            currentCharges: 0,
+        };
+        assert.deepEqual(tracker.statusOf(ability), e7);
+        assert.deepEqual(tracker.statusOf(ability2), e7);
+
+        ts.time = 180;
+        const e8 = {
+            readyToUse: false,
+            readyAt: {
+                absolute: 210,
+                relative: 30
+            },
+            capped: false,
+            cappedAt: {
+                absolute: 210,
+                relative: 30
+            },
+            currentCharges: 0,
+        };
+        assert.deepEqual(tracker.statusOf(ability), e8);
+        assert.deepEqual(tracker.statusOf(ability2), e8);
+
+        ts.time = 210;
+        const e9 = {
+            readyToUse: true,
+            readyAt: {
+                absolute: 210,
+                relative: 0
+            },
+            capped: true,
+            cappedAt: {
+                absolute: 210,
+                relative: 0
+            },
+            currentCharges: 1,
+        };
+        assert.deepEqual(tracker.statusOf(ability), e9);
+        assert.deepEqual(tracker.statusOf(ability2), e9);
+
+        ts.time = 240;
+        const e10 = {
+            readyToUse: true,
+            readyAt: {
+                absolute: 240,
+                relative: 0
+            },
+            capped: true,
+            cappedAt: {
+                absolute: 240,
+                relative: 0
+            },
+            currentCharges: 1,
+        };
+        assert.deepEqual(tracker.statusOf(ability), e10);
+        assert.deepEqual(tracker.statusOf(ability2), e10);
     });
 });

@@ -1,5 +1,5 @@
-import {LoadingBlocker} from "./loader";
-import {makeActionButton} from "./util";
+import {LoadingBlocker} from "@xivgear/common-ui/components/loader";
+import {makeActionButton} from "@xivgear/common-ui/components/util";
 import {parseImport} from "@xivgear/core/imports/imports";
 import {getShortLink} from "@xivgear/core/external/shortlink_server";
 import {getSetFromEtro} from "@xivgear/core/external/etro_import";
