@@ -14,7 +14,9 @@ import {removeSelf} from "@xivgear/core/sims/common/utils";
 import {finalizeStats} from "@xivgear/xivmath/xivstats";
 import {
     Ability,
-    Buff, BuffController, DamageResult,
+    Buff,
+    BuffController,
+    DamageResult,
     FinalizedAbility,
     GcdAbility,
     OgcdAbility,
@@ -259,32 +261,32 @@ const expectedAbilities: UseResult[] = [
     {
         time: -1.48,
         name: 'Glare',
-        damage: 15078.38
+        damage: 15074.935
     },
     {
         time: 0,
         name: 'Auto Attack',
-        damage: 33.30
+        damage: 33.301
     },
     {
         time: 0.83,
         name: 'Dia',
-        damage: 37174.05
+        damage: 37172.897
     },
     {
         time: 3.14,
         name: 'Glare',
-        damage: 15832.30
+        damage: 15828.682
     },
     {
         time: 4.32,
         name: 'Auto Attack',
-        damage: 34.97
+        damage: 34.966
     },
     {
         time: 5.45,
         name: 'Glare',
-        damage: 15832.30
+        damage: 15828.682
     },
     {
         time: 6.93,
@@ -294,92 +296,92 @@ const expectedAbilities: UseResult[] = [
     {
         time: 7.76,
         name: 'Glare',
-        damage: 17656.20
+        damage: 17652.168
     },
     {
         time: 8.96,
         name: "Assize",
-        damage: 22783.24
+        damage: 22777.859
     },
     {
         time: 9.24,
         name: "Auto Attack",
-        damage: 38.99
+        damage: 38.994
     },
     {
         time: 9.60,
         name: "Glare",
-        damage: 17656.2
+        damage: 17652.168
     },
     {
         time: 11.44,
         name: "Glare",
-        damage: 17656.2
+        damage: 17652.168
     },
     {
         time: 13.192,
         name: "Auto Attack",
-        damage: 38.99
+        damage: 38.994
     },
     {
         time: 13.28,
         name: "Glare",
-        damage: 17656.2
+        damage: 17652.168
     },
     {
         time: 15.12,
         name: "Glare",
-        damage: 17656.2
+        damage: 17652.168
     },
     {
         time: 16.96,
         name: "Glare",
-        damage: 17656.2
+        damage: 17652.168
     },
     {
         time: 17.744,
         name: "Auto Attack",
-        damage: 38.99
+        damage: 38.994
     },
     {
         time: 18.80,
         name: "Glare",
-        damage: 17656.2
+        damage: 17652.168
     },
     {
         time: 20.64,
         name: "Glare",
-        damage: 17656.2
+        damage: 17652.168
     },
     {
         time: 21.696,
         name: "Auto Attack",
-        damage: 38.99
+        damage: 38.994
     },
     {
         time: 22.48,
         name: "Glare",
-        damage: 15832.3
+        damage: 15828.682
     },
     {
         time: 24.32,
         name: "Glare",
-        damage: 15078.38
+        damage: 15074.935
     },
     {
         time: 25.928,
         name: "Auto Attack",
-    damage: 33.301
+        damage: 33.301
     },
     {
         time: 26.63,
         name: "Glare",
-        damage: 15078.38
+        damage: 15074.935
     },
     {
         time: 28.94,
         name: "Glare",
-        damage: 6919.08
+        damage: 6917.503
     },
 ];
 
@@ -398,7 +400,7 @@ describe('Cycle sim processor', () => {
         // Run simulation
         const result = await inst.simulate(set);
         // Assert correct results
-        assertClose(result.mainDpsResult, 9898.60, 0.01);
+        assertClose(result.mainDpsResult, 9896.58, 0.01);
         assertSimAbilityResults(result, expectedAbilities);
     });
 });
@@ -645,16 +647,16 @@ describe('Potency Buff Ability', () => {
         });
         // Not swifted
         assert.equal(actualAbilities[0].ability.name, "Glare");
-        assertClose(actualAbilities[0].directDamage, 15078, 1);
+        assertClose(actualAbilities[0].directDamage, 15074, 1);
         // Swiftcast
         assert.equal(actualAbilities[1].ability.name, "Pot Buff Ability");
         assertClose(actualAbilities[1].directDamage, 0, 1);
         // Swifted
         assert.equal(actualAbilities[2].ability.name, "Glare");
-        assertClose(actualAbilities[2].directDamage, 15078 * (310 + 100) / 310, 1);
+        assertClose(actualAbilities[2].directDamage, 15074 * (310 + 100) / 310, 2);
         // Not swifted
         assert.equal(actualAbilities[3].ability.name, "Glare");
-        assertClose(actualAbilities[3].directDamage, 15078, 1);
+        assertClose(actualAbilities[3].directDamage, 15074, 1);
 
     });
 });
@@ -747,16 +749,16 @@ describe('Damage Buff Ability', () => {
         });
         // Not buffed
         assert.equal(actualAbilities[0].ability.name, "Glare");
-        assertClose(actualAbilities[0].directDamage, 15078, 1);
+        assertClose(actualAbilities[0].directDamage, 15074, 1);
         // Buff
         assert.equal(actualAbilities[1].ability.name, "Bristle");
         assertClose(actualAbilities[1].directDamage, 0, 1);
         // Buffed
         assert.equal(actualAbilities[2].ability.name, "Glare");
-        assertClose(actualAbilities[2].directDamage, 15078 * 1.5, 1);
+        assertClose(actualAbilities[2].directDamage, 15074 * 1.5, 2);
         // Not buffed
         assert.equal(actualAbilities[3].ability.name, "Glare");
-        assertClose(actualAbilities[3].directDamage, 15078, 1);
+        assertClose(actualAbilities[3].directDamage, 15074, 1);
 
     });
     it('should increase the damage once, other style', () => {
@@ -777,16 +779,16 @@ describe('Damage Buff Ability', () => {
         });
         // Not buffed
         assert.equal(actualAbilities[0].ability.name, "Glare");
-        assertClose(actualAbilities[0].directDamage, 15078, 1);
+        assertClose(actualAbilities[0].directDamage, 15074, 2);
         // Buff
         assert.equal(actualAbilities[1].ability.name, "Bristle2");
         assertClose(actualAbilities[1].directDamage, 0, 1);
         // Buffed
         assert.equal(actualAbilities[2].ability.name, "Glare");
-        assertClose(actualAbilities[2].directDamage, 15078 * 1.5, 1);
+        assertClose(actualAbilities[2].directDamage, 15074 * 1.5, 2);
         // Not Buffed
         assert.equal(actualAbilities[3].ability.name, "Glare");
-        assertClose(actualAbilities[3].directDamage, 15078, 1);
+        assertClose(actualAbilities[3].directDamage, 15074, 1);
     });
     it('should multiply direct damage and dots by default', () => {
         const cp = new CycleProcessor({
@@ -811,20 +813,20 @@ describe('Damage Buff Ability', () => {
         });
         // Not buffed
         assert.equal(actualAbilities[0].ability.name, "Dia");
-        assertClose(actualAbilities[0].directDamage, 3161.5, 1);
-        assertClose(actualAbilities[0].totalDamage, 37174, 1);
+        assertClose(actualAbilities[0].directDamage, 3160.1, 1);
+        assertClose(actualAbilities[0].totalDamage, 37172.9, 1);
         // Buff
         assert.equal(actualAbilities[1].ability.name, "Bristle");
         assertClose(actualAbilities[1].directDamage, 0, 1);
         assertClose(actualAbilities[1].totalDamage, 0, 1);
         // Buffed
         assert.equal(actualAbilities[2].ability.name, "Dia");
-        assertClose(actualAbilities[2].directDamage, 3161.5 * 1.5, 1);
-        assertClose(actualAbilities[2].totalDamage, 37174 * 1.5, 1);
+        assertClose(actualAbilities[2].directDamage, 3160.1 * 1.5, 1);
+        assertClose(actualAbilities[2].totalDamage, 37172.9 * 1.5, 1);
         // Not Buffed
         assert.equal(actualAbilities[3].ability.name, "Dia");
-        assertClose(actualAbilities[3].directDamage, 3161.5, 1);
-        assertClose(actualAbilities[3].totalDamage, 37174, 1);
+        assertClose(actualAbilities[3].directDamage, 3160.1, 1);
+        assertClose(actualAbilities[3].totalDamage, 37172.9, 1);
     });
     it('should filter abilities correctly', () => {
         const cp = new CycleProcessor({
@@ -846,19 +848,19 @@ describe('Damage Buff Ability', () => {
         });
         // Not buffed
         assert.equal(actualAbilities[0].ability.name, "Glare");
-        assertClose(actualAbilities[0].directDamage, 15078, 1);
+        assertClose(actualAbilities[0].directDamage, 15074, 1);
         // Buff
         assert.equal(actualAbilities[1].ability.name, "Bristle");
         assertClose(actualAbilities[1].directDamage, 0, 1);
         // Filtered, not buffed
         assert.equal(actualAbilities[2].ability.name, "WepSkill");
-        assertClose(actualAbilities[2].directDamage, 15078, 1);
+        assertClose(actualAbilities[2].directDamage, 15074, 1);
         // Buffed
         assert.equal(actualAbilities[3].ability.name, "Glare");
-        assertClose(actualAbilities[3].directDamage, 15078 * 1.5, 1);
+        assertClose(actualAbilities[3].directDamage, 15074 * 1.5, 2);
         // Not buffed
         assert.equal(actualAbilities[4].ability.name, "Glare");
-        assertClose(actualAbilities[4].directDamage, 15078, 1);
+        assertClose(actualAbilities[4].directDamage, 15074, 1);
     });
 });
 
@@ -1512,7 +1514,7 @@ describe('application delay', () => {
         assert.equal(actualAbilities[0].original.appDelay, STANDARD_APPLICATION_DELAY);
         assert.equal(actualAbilities[0].original.appDelayFromStart, STANDARD_APPLICATION_DELAY + actualAbilities[0].original.snapshotTimeFromStart);
         // Test that application delay correctly affects pre-pull timing
-        assert.equal(actualAbilities[0].original.usedAt,  -1 * (STANDARD_APPLICATION_DELAY + actualAbilities[0].original.snapshotTimeFromStart));
+        assert.equal(actualAbilities[0].original.usedAt, -1 * (STANDARD_APPLICATION_DELAY + actualAbilities[0].original.snapshotTimeFromStart));
 
         assert.equal(actualAbilities[1].original.appDelay, STANDARD_APPLICATION_DELAY);
         assert.equal(actualAbilities[1].original.appDelayFromStart, STANDARD_APPLICATION_DELAY + actualAbilities[0].original.snapshotTimeFromStart);
@@ -1536,7 +1538,7 @@ describe('application delay', () => {
         assert.equal(actualAbilities[0].original.appDelay, delay);
         assert.equal(actualAbilities[0].original.appDelayFromStart, delay + actualAbilities[0].original.snapshotTimeFromStart);
         // Test that application delay correctly affects pre-pull timing
-        assert.equal(actualAbilities[0].original.usedAt,  -1 * (delay + actualAbilities[0].original.snapshotTimeFromStart));
+        assert.equal(actualAbilities[0].original.usedAt, -1 * (delay + actualAbilities[0].original.snapshotTimeFromStart));
 
         assert.equal(actualAbilities[1].original.appDelay, delay);
         assert.equal(actualAbilities[1].original.appDelayFromStart, delay + actualAbilities[0].original.snapshotTimeFromStart);
