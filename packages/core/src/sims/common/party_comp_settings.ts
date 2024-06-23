@@ -58,6 +58,10 @@ export class BuffSettingsManager {
         }), {});
     }
 
+    private static getBuffKey(buff: PartyBuff): BuffName {
+        return (buff.saveKey ?? buff.name) as BuffName;
+    }
+
     private constructor(enabledJobs: JobName[], enabledBuffs?: BuffName[]) {
         const jobBuffMapping = BuffSettingsManager.makeJobBuffMapping();
         this.jobs = Object.entries(jobBuffMapping).map(([job, buffs]) => {
@@ -66,7 +70,7 @@ export class BuffSettingsManager {
                     return new BuffSetting(buff, !(buff.optional));
                 }
 
-                const enabled = enabledBuffs.findIndex(b => b === (buff.saveKey ?? buff.name) as BuffName) !== -1;
+                const enabled = enabledBuffs.findIndex(b => b === BuffSettingsManager.getBuffKey(buff)) !== -1;
                 return new BuffSetting(buff, enabled);
             });
             return new JobSettings(job as JobName, buffSettings, enabledJobs.includes(job as JobName));
@@ -77,7 +81,7 @@ export class BuffSettingsManager {
         return {
             jobs: this.jobs.filter(jobSetting => jobSetting.enabled)
                 .map(jobSetting => jobSetting.job),
-            buffs: this.individuallyEnabledBuffs.map(buff => (buff.saveKey ?? buff.name) as BuffName),
+            buffs: this.individuallyEnabledBuffs.map(buff => BuffSettingsManager.getBuffKey(buff)),
         }
     }
 
