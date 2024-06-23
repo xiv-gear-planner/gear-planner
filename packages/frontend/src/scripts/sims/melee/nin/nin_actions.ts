@@ -117,7 +117,7 @@ export const AeolianEdge: NinGcdAbility = {
     name: "Aeolian Edge",
     id: 2255,
     attackType: "Weaponskill",
-    potency: 440, // Includes Kazematoi
+    potency: 440,
     // TODO: Update once available in Dawntrail 
     syncedPotency: [{
         minLevel: 74,
