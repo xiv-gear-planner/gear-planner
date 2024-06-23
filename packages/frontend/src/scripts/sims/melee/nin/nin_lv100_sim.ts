@@ -1,4 +1,4 @@
-import {Ability, GcdAbility, OgcdAbility, SimSettings, SimSpec} from "@xivgear/core/sims/sim_types";
+import {Ability, GcdAbility, OgcdAbility, Buff, SimSettings, SimSpec} from "@xivgear/core/sims/sim_types";
 import {CycleProcessor, CycleSimResult, ExternalCycleSettings, MultiCycleSettings, Rotation} from "@xivgear/core/sims/cycle_sim";
 import {CycleSettings} from "@xivgear/core/sims/cycle_settings";
 import {STANDARD_ANIMATION_LOCK} from "@xivgear/xivmath/xivconstants";
@@ -66,27 +66,19 @@ class RotationState {
     set kazematoi(newGauge: number) {
         this._kazematoi = Math.max(Math.min(newGauge, 5), 0);
     }
-
-    private _raijuStacks: number = 0;
-    get raijuStacks() {
-        return this._raijuStacks;
-    }
-    set raijuStacks(newStacks: number) {
-        this._raijuStacks = Math.max(Math.min(newStacks, 3), 0);
-    }
-
-    raijuReady(): boolean {
-        return this.raijuStacks > 0;
-    }
 }
 
 class NINCycleProcessor extends CycleProcessor {
     rotationState: RotationState = new RotationState();
 
-    canUseWithoutClipping(action: OgcdAbility) {
-        const readyAt = this.cdTracker.statusOf(action).readyAt.absolute;
-        const maxDelayAt = this.nextGcdTime - (action.animationLock ?? STANDARD_ANIMATION_LOCK);
-        return readyAt <= maxDelayAt;
+    getBuffIfActive(buff: Buff) {
+        return this.getActiveBuffs().find(b => b.name === buff.name);
+    }
+
+    override activateBuffWithDelay(buff: Buff, delay: number) {
+        if (!(buff.selfOnly && buff.stacks && this.getBuffIfActive(buff))) {
+            super.activateBuffWithDelay(buff, delay);
+        }
     }
 
     updateGauge(action: Ability) {
@@ -114,7 +106,6 @@ class NINCycleProcessor extends CycleProcessor {
                 break;
             }
             case Actions.Raiju: {
-                this.rotationState.raijuStacks--;
                 this.rotationState.ninkiGauge += 5;
                 break;
             }
@@ -124,14 +115,14 @@ class NINCycleProcessor extends CycleProcessor {
             }
         }
 
-        if (this.getActiveBuffs().find(b => b.name === Buffs.BunshinBuff.name) && action.attackType === 'Weaponskill') {
+        if (this.getBuffIfActive(Buffs.BunshinBuff) && action.attackType === 'Weaponskill') {
             this.rotationState.ninkiGauge += 5;
         }
     }
 
     useCombo(forceAeolian?: boolean) {
         let fillerAction: GcdAbility;
-        if (this.rotationState.raijuReady()) {
+        if (this.getBuffIfActive(Buffs.RaijuReady)) {
             fillerAction = Actions.Raiju;
         } else {
             fillerAction = Actions.SpinningEdge;
@@ -173,29 +164,23 @@ class NINCycleProcessor extends CycleProcessor {
         // Use the Mudra combination
         for (let i = 0; i < action.steps.length; i++) {
             // Only consume charges on the first step and if we don't have kassatsu
-            const useCharge = i === 0 && !this.getActiveBuffs().find(b => b.name === Buffs.KassatsuBuff.name)
+            const useCharge = i === 0 && !this.getBuffIfActive(Buffs.KassatsuBuff)
             this.useMudra(action.steps[i], useCharge);
         }
 
         // Use the Ninjutsu
         this.useGcd(action);
-
-        // Apply Raiju stacks
-        if (action.addRaiju) {
-            this.rotationState.raijuStacks++;
-        }
     }
 
     useTCJ() {
         this.useOgcd(Actions.TenChiJin);
         this.useGcd(Actions.Fuma);
         this.useGcd(Actions.Raiton);
-        this.rotationState.raijuStacks++;
         this.useGcd(Actions.Suiton);
     }
 
     usePhantom() {
-        if (this.getActiveBuffs().find(b => b.name === Buffs.PhantomReady.name)) {
+        if (this.getBuffIfActive(Buffs.PhantomReady)) {
             this.updateGauge(Actions.Phantom);
             this.useGcd(Actions.Phantom);
         }
@@ -209,7 +194,7 @@ class NINCycleProcessor extends CycleProcessor {
     useNinki() {
         if (this.rotationState.ninkiReady()) {
             let action = Actions.Bhavacakra;
-            if (this.getActiveBuffs().find(b => b.name === Buffs.Higi.name)) {
+            if (this.getBuffIfActive(Buffs.Higi)) {
                 action = Actions.ZeshoMeppo;
             } else if (this.cdTracker.canUse(Actions.Bunshin)) {
                 action = Actions.Bunshin;
@@ -244,7 +229,7 @@ class NINCycleProcessor extends CycleProcessor {
         }
 
         // Use Kassatsu, but only in preparation for trick
-        if (this.getActiveBuffs().find(b => b.name === Buffs.ShadowWalker.name)) {
+        if (this.getBuffIfActive(Buffs.ShadowWalker)) {
             oGcdCount = this.useOgcdIfReady(Actions.Kassatsu, oGcdCount, maxOgcdCount);
         }
 
@@ -252,7 +237,7 @@ class NINCycleProcessor extends CycleProcessor {
     }
 
     useFillerGcd() {
-        if (this.getActiveBuffs().find(b => b.name === Buffs.PhantomReady.name)) {
+        if (this.getBuffIfActive(Buffs.PhantomReady)) {
             this.usePhantom();
         } else {
             this.useCombo();
