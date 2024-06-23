@@ -80,7 +80,7 @@ class NINCycleProcessor extends CycleProcessor {
 
         // Update potency value based on level
         let modified = ability;
-        if (false && ninAbility.syncedPotency?.length > 0) {
+        if (ninAbility.syncedPotency?.length > 0) {
             for (const syncPot of ninAbility.syncedPotency) {
                 if (this.stats.level >= syncPot.minLevel) {
                     modified = {
