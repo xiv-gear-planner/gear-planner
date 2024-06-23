@@ -92,6 +92,14 @@ class NINCycleProcessor extends CycleProcessor {
             }
         }
 
+        // Apply Kazematoi
+        if (modified.id === Actions.AeolianEdge.id && this.gauge.kazematoi > 0) {
+            modified = {
+                ...modified,
+                potency: modified.potency + 60,
+            }
+        }
+        
         return super.use(modified);
     }
 
