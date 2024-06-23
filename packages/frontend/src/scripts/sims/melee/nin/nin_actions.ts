@@ -1,60 +1,8 @@
-import {Ability, GcdAbility, OgcdAbility, OriginCdAbility, SharedCdAbility} from "@xivgear/core/sims/sim_types";
+import {OriginCdAbility, SharedCdAbility} from "@xivgear/core/sims/sim_types";
 import {Dokumori} from "@xivgear/core/sims/buffs";
 import {TenriJindoReady, KassatsuBuff, BunshinBuff, Higi, MeisuiBuff, KunaisBaneBuff, RaijuReady, PhantomReady, TenChiJinReady, ShadowWalker} from './nin_buffs';
+import {NinGcdAbility, NinOgcdAbility, MudraStep, NinjutsuAbility, NinkiAbility} from "./nin_types";
 import NINGauge from "./nin_gauge";
-
-/** Information relating to different potencies of an Ability based on level */
-export type SyncedPotency = Readonly<{
-    /** The min level which this potency adjustment applies to */
-    minLevel: number,
-    /** The adjusted potency */
-    potency: number,
-}>;
-
-/** Represents a Ninja-specific Ability */
-export type NinAbility = Ability & Readonly<{
-    /**
-     * Information relating to different potencies of an Ability based on level.
-     * This should be ordered from highest level to lowest level as the sim will select the first valid option found.
-    */
-    syncedPotency?: SyncedPotency[],
-    /** Custom function to run to apply gauge updates relating to this ability */
-    updateGauge?(gauge: NINGauge): void,
-    /** The Ninki cost of this ability */
-    ninkiCost?: number,
-}>;
-
-/** Represents a Ninja-specific GCD Ability */
-export type NinGcdAbility = GcdAbility & NinAbility;
-
-/** Represents a Ninja-specific oGCD Ability */
-export type NinOgcdAbility = OgcdAbility & NinAbility;
-
-/** Represents a Mudra Step */
-export type MudraStep = NinGcdAbility & Readonly<{
-    /** The ability id of the Mudra action that doesn't consume charges */
-    noChargeId: number,
-}>;
-
-/** Represents a Ninjutsu Ability */
-export type NinjutsuAbility = NinGcdAbility & Readonly<{
-    /** The mudra combination for this Ninjutsu */
-    steps: MudraStep[],
-}>
-
-/** Represents an Ability that costs Ninki */
-export type NinkiAbility = NinOgcdAbility & Readonly<{
-    /** The Ninki cost of this ability */
-    ninkiCost: number,
-}>
-
-/**
- * Whether or not this ability is a Ninki spender
- * @param action The ability to check
- */
-export function isNinkiAbility(action: NinkiAbility | NinOgcdAbility): action is NinkiAbility {
-    return (action as NinkiAbility).ninkiCost !== undefined;
-}
 
 /**
  * GCD Actions
@@ -65,16 +13,6 @@ export const SpinningEdge: NinGcdAbility = {
     id: 2240,
     attackType: "Weaponskill",
     potency: 280,
-    syncedPotency: [{
-        minLevel: 94,
-        potency: 280,
-    }, {
-        minLevel: 84,
-        potency: 220,
-    }, {
-        minLevel: 1,
-        potency: 180
-    }],
     gcd: 2.5,
     cast: 0,
     updateGauge: (gauge: NINGauge) => {
@@ -90,19 +28,6 @@ export const GustSlash: NinGcdAbility = {
     id: 2242,
     attackType: "Weaponskill",
     potency: 360,
-    syncedPotency: [{
-        minLevel: 94,
-        potency: 360,
-    }, {
-        minLevel: 84,
-        potency: 320,
-    }, {
-        minLevel: 74,
-        potency: 280,
-    }, {
-        minLevel: 1,
-        potency: 260,
-    }],
     gcd: 2.5,
     cast: 0,
     updateGauge: (gauge: NINGauge) => {
@@ -118,14 +43,6 @@ export const AeolianEdge: NinGcdAbility = {
     id: 2255,
     attackType: "Weaponskill",
     potency: 440,
-    // TODO: Update once available in Dawntrail 
-    syncedPotency: [{
-        minLevel: 74,
-        potency: 440,
-    }, {
-        minLevel: 1,
-        potency: 400,
-    }],
     gcd: 2.5,
     cast: 0,
     updateGauge: (gauge: NINGauge) => {
@@ -146,16 +63,6 @@ export const ArmorCrush: NinGcdAbility = {
     id: 3563,
     attackType: "Weaponskill",
     potency: 460,
-    syncedPotency: [{
-        minLevel: 94,
-        potency: 460,
-    }, {
-        minLevel: 74,
-        potency: 420,
-    }, {
-        minLevel: 1,
-        potency: 380,
-    }],
     gcd: 2.5,
     cast: 0,
     updateGauge: (gauge: NINGauge) => {
@@ -176,13 +83,6 @@ export const Raiju: NinGcdAbility = {
     id: 25778,
     attackType: "Weaponskill",
     potency: 600,
-    syncedPotency: [{
-        minLevel: 94,
-        potency: 600,
-    }, {
-        minLevel: 1,
-        potency: 560,
-    }],
     gcd: 2.5,
     cast: 0,
     updateGauge: gauge => gauge.ninkiGauge += 5,
@@ -255,13 +155,6 @@ export const Fuma: NinjutsuAbility = {
     id: 2265,
     attackType: "Ability",
     potency: 480,
-    syncedPotency: [{
-        minLevel: 94,
-        potency: 480,
-    }, {
-        minLevel: 1,
-        potency: 450,
-    }],
     gcd: 1.5,
     fixedGcd: true,
     cast: 0,
@@ -274,13 +167,6 @@ export const Raiton: NinjutsuAbility = {
     id: 2267,
     attackType: "Ability",
     potency: 700,
-    syncedPotency: [{
-        minLevel: 94,
-        potency: 700,
-    }, {
-        minLevel: 1,
-        potency: 650,
-    }],
     gcd: 1.5,
     fixedGcd: true,
     cast: 0,
@@ -294,13 +180,6 @@ export const Suiton: NinjutsuAbility = {
     id: 2271,
     attackType: "Ability",
     potency: 540,
-    syncedPotency: [{
-        minLevel: 94,
-        potency: 540,
-    }, {
-        minLevel: 1,
-        potency: 500,
-    }],
     gcd: 1.5,
     fixedGcd: true,
     cast: 0,
@@ -326,17 +205,9 @@ export const Hyosho: NinjutsuAbility = {
 export const KunaisBane: NinOgcdAbility = {
     type: 'ogcd',
     name: "Kunai's Bane",
-    // TODO: Update once available in Dawntrail
-    id: 2258,
+    id: 2258, // TODO: Update once available in Dawntrail
     attackType: "Ability",
     potency: 600,
-    syncedPotency: [{
-        minLevel: 92,
-        potency: 600,
-    }, {
-        minLevel: 1,
-        potency: 400,
-    }],
     cooldown: {
         time: 60
     },
@@ -397,8 +268,7 @@ export const Bunshin: NinkiAbility = {
 export const DokumoriAbility: NinOgcdAbility = {
     type: 'ogcd',
     name: "Dokumori",
-    // TODO: Update once available in Dawntrail
-    id: 2248,
+    id: 2248, // TODO: Update once available in Dawntrail
     attackType: "Ability",
     potency: 300,
     cooldown: {
@@ -421,13 +291,6 @@ export const Bhavacakra: NinkiAbility = {
     id: 7402,
     attackType: "Ability",
     potency: 380,
-    syncedPotency: [{
-        minLevel: 94,
-        potency: 380,
-    }, {
-        minLevel: 1,
-        potency: 350,
-    }],
     updateGauge: gauge => gauge.ninkiGauge -= 50,
     ninkiCost: 50,
 };
@@ -435,8 +298,7 @@ export const Bhavacakra: NinkiAbility = {
 export const ZeshoMeppo: NinkiAbility = {
     type: 'ogcd',
     name: "Zesho Meppo",
-    // TODO: Update once available in Dawntrail
-    id: 7402,
+    id: 7402, // TODO: Update once available in Dawntrail
     attackType: "Ability",
     potency: 550,
     updateGauge: gauge => gauge.ninkiGauge -= 50,
@@ -446,8 +308,7 @@ export const ZeshoMeppo: NinkiAbility = {
 export const TenriJindo: NinOgcdAbility = {
     type: 'ogcd',
     name: "Tenri Jindo",
-    // TODO: Update once available in Dawntrail
-    id: 7403,
+    id: 7403, // TODO: Update once available in Dawntrail
     attackType: "Ability",
     potency: 1000,
 };
