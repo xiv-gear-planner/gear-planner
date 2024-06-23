@@ -1545,3 +1545,22 @@ describe('application delay', () => {
         assert.equal(actualAbilities[1].original.usedAt, actualAbilities[0].original.usedAt + actualAbilities[0].original.totalTimeTaken);
     });
 });
+
+describe('gcd clipping check', () => {
+    it('can check if an ogcd ability can be used without clipping', () => {
+        const cp = new CycleProcessor({
+            allBuffs: [],
+            cycleTime: 120,
+            stats: exampleGearSet.computedStats,
+            totalTime: 120,
+            useAutos: false
+        });
+        cp.use(filler);
+        let canUse = cp.canUseWithoutClipping(assize);
+        assert.equal(canUse, true);
+        
+        cp.use(assize);
+        canUse = cp.canUseWithoutClipping(pom);
+        assert.equal(canUse, false);
+    });
+});
