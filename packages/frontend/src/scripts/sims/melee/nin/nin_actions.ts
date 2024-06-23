@@ -1,6 +1,6 @@
 import {GcdAbility, OgcdAbility, OriginCdAbility, SharedCdAbility} from "@xivgear/core/sims/sim_types";
 import {Dokumori} from "@xivgear/core/sims/buffs";
-import {TenriJindoReady, KassatsuBuff, BunshinBuff, Higi, MeisuiBuff, KunaisBaneBuff, PhantomReady, TenChiJinReady, ShadowWalker} from './nin_buffs';
+import {TenriJindoReady, KassatsuBuff, BunshinBuff, Higi, MeisuiBuff, KunaisBaneBuff, RaijuReady, PhantomReady, TenChiJinReady, ShadowWalker} from './nin_buffs';
 
 /**
  * Represents a Mudra Step
@@ -16,8 +16,6 @@ export type MudraStep = GcdAbility & Readonly<{
 export type NinjutsuAbility = GcdAbility & Readonly<{
     /** The mudra combination for this Ninjutsu */
     steps: MudraStep[]
-    /** Whether or not this Ninjutsu should add a Raiju stack. */
-    addRaiju?: boolean,
 }>
 
 /**
@@ -170,8 +168,8 @@ export const Raiton: NinjutsuAbility = {
     gcd: 1.5,
     fixedGcd: true,
     cast: 0,
+    activatesBuffs: [RaijuReady],
     steps: [Ten, Chi],
-    addRaiju: true,
 };
 
 export const Suiton: NinjutsuAbility = {

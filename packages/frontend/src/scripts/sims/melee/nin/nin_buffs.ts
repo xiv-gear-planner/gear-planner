@@ -141,6 +141,26 @@ export const BunshinBuff: Buff = {
     statusId: 1954
 };
 
+export const RaijuReady: Buff = {
+    name: "Raiju Ready",
+    selfOnly: true,
+    descriptionExtras: ["Able to execute Fleeting/Forked Raiju"],
+    effects: {
+        // Only applies to Raiju skills
+    },
+    appliesTo: ability => ability.name.endsWith(' Raiju') || ability.name === 'Raiton',
+    beforeSnapshot<X extends Ability>(buffController: BuffController, ability: X): void {
+        if (ability.name.endsWith(' Raiju')) {
+            buffController.modifyStacksSelf(-1);
+        } else if (ability.name === 'Raiton') {
+            buffController.modifyStacksSelf(1);
+        }
+    },
+    stacks: 1,
+    duration: 30,
+    statusId: 2690
+};
+
 export const PhantomReady: Buff = {
     name: "Phantom Kamaitachi Ready",
     selfOnly: true,
