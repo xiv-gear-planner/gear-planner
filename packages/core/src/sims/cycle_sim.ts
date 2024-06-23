@@ -819,6 +819,18 @@ export class CycleProcessor {
     }
 
     /**
+     * Determines whether or not an Off-GCD ability can be used without clipping the GCD
+     * 
+     * @param action The Off-GCD ability to check for
+     * @returns whether or not this ability can be used without clipping the GCD
+     */
+    canUseWithoutClipping(action: OgcdAbility) {
+        const readyAt = this.cdTracker.statusOf(action).readyAt.absolute;
+        const maxDelayAt = this.nextGcdTime - (action.animationLock ?? STANDARD_ANIMATION_LOCK);
+        return readyAt <= maxDelayAt;
+    }
+
+    /**
      * Fast-forward (i.e. do nothing until) the given time.
      *
      * @param advanceTo The time to fast-forward to.
