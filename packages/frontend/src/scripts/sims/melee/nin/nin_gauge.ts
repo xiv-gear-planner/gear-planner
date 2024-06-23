@@ -1,4 +1,4 @@
-import {NinkiAbility} from './nin_actions';
+import {NinkiAbility} from './nin_types';
 
 class NINGauge {
     constructor(level: number) {

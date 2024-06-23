@@ -5,6 +5,7 @@ import {STANDARD_ANIMATION_LOCK} from "@xivgear/xivmath/xivconstants";
 import {BaseMultiCycleSim} from "../../sim_processors";
 import {Dokumori} from "@xivgear/core/sims/buffs";
 import NINGauge from "./nin_gauge";
+import {NinAbility, NinGcdAbility, MudraStep, NinjutsuAbility, isNinkiAbility} from "./nin_types";
 import * as Actions from './nin_actions';
 import * as Buffs from './nin_buffs';
 
@@ -60,13 +61,16 @@ class NINCycleProcessor extends CycleProcessor {
     }
 
     override activateBuffWithDelay(buff: Buff, delay: number) {
-        if (!(buff.selfOnly && buff.stacks && this.getBuffIfActive(buff))) {
-            super.activateBuffWithDelay(buff, delay);
+        // For buffs with stacks, we want to update the stack counter instead of adding a new buff
+        if (buff.selfOnly && buff.stacks && this.getBuffIfActive(buff)) {
+            return;
         }
+
+        super.activateBuffWithDelay(buff, delay);
     }
 
     override use(ability: Ability): AbilityUseResult {
-        const ninAbility = ability as Actions.NinAbility;
+        const ninAbility = ability as NinAbility;
 
         // Update gauge from the ability itself
         if (ninAbility.updateGauge !== undefined) {
@@ -78,33 +82,20 @@ class NINCycleProcessor extends CycleProcessor {
             this.gauge.ninkiGauge += 5;
         }
 
-        // Update potency value based on level
-        let modified = ability;
-        if (ninAbility.syncedPotency?.length > 0) {
-            for (const syncPot of ninAbility.syncedPotency) {
-                if (this.stats.level >= syncPot.minLevel) {
-                    modified = {
-                        ...ability,
-                        potency: syncPot.potency,
-                    }
-                    break;
-                }
-            }
-        }
-
         // Apply Kazematoi
+        let modified = ability;
         if (modified.id === Actions.AeolianEdge.id && this.gauge.kazematoi > 0) {
             modified = {
                 ...modified,
                 potency: modified.potency + 60,
             }
         }
-        
+
         return super.use(modified);
     }
 
     useCombo(forceAeolian?: boolean) {
-        let fillerAction: Actions.NinGcdAbility;
+        let fillerAction: NinGcdAbility;
         if (this.getBuffIfActive(Buffs.RaijuReady)) {
             fillerAction = Actions.Raiju;
         } else {
@@ -129,11 +120,11 @@ class NINCycleProcessor extends CycleProcessor {
         this.useGcd(fillerAction);
     }
 
-    useMudra(step: Actions.MudraStep, useCharge?: boolean) {
+    useMudra(step: MudraStep, useCharge?: boolean) {
         if (useCharge) {
             this.useGcd(step);
         } else {
-            const modified: Actions.MudraStep = {
+            const modified: MudraStep = {
                 ...step,
                 id: step.noChargeId,
                 cooldown: undefined,
@@ -142,7 +133,7 @@ class NINCycleProcessor extends CycleProcessor {
         }
     }
 
-    useNinjutsu(action: Actions.NinjutsuAbility) {
+    useNinjutsu(action: NinjutsuAbility) {
         // Use the Mudra combination
         for (let i = 0; i < action.steps.length; i++) {
             // Only consume charges on the first step and if we don't have kassatsu
@@ -181,7 +172,7 @@ class NINCycleProcessor extends CycleProcessor {
 
     useOgcdIfReady(action: OgcdAbility, counter: number, maxCount: number): number {
         if (counter < maxCount && this.cdTracker.canUse(action)) {
-            if (Actions.isNinkiAbility(action)) {
+            if (isNinkiAbility(action)) {
                 this.useNinki();
             } else {
                 this.useOgcd(action);
