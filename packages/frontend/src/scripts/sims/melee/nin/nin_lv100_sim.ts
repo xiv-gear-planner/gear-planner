@@ -1,9 +1,10 @@
-import {Ability, GcdAbility, OgcdAbility, Buff, SimSettings, SimSpec} from "@xivgear/core/sims/sim_types";
-import {CycleProcessor, CycleSimResult, ExternalCycleSettings, MultiCycleSettings, Rotation} from "@xivgear/core/sims/cycle_sim";
+import {Ability, OgcdAbility, Buff, SimSettings, SimSpec} from "@xivgear/core/sims/sim_types";
+import {CycleProcessor, CycleSimResult, ExternalCycleSettings, MultiCycleSettings, AbilityUseResult, Rotation} from "@xivgear/core/sims/cycle_sim";
 import {CycleSettings} from "@xivgear/core/sims/cycle_settings";
 import {STANDARD_ANIMATION_LOCK} from "@xivgear/xivmath/xivconstants";
 import {BaseMultiCycleSim} from "../../sim_processors";
 import {Dokumori} from "@xivgear/core/sims/buffs";
+import NINGauge from "./nin_gauge";
 import * as Actions from './nin_actions';
 import * as Buffs from './nin_buffs';
 
@@ -37,39 +38,22 @@ class RotationState {
     private _combo: number = 0;
     get combo() {
         return this._combo
-    };
+    }
     set combo(newCombo: number) {
         this._combo = newCombo;
         if (this._combo >= 3) this._combo = 0;
     }
-
-    private _ninkiGauge: number = 0;
-    get ninkiGauge() {
-        return this._ninkiGauge;
-    }
-    set ninkiGauge(newGauge: number) {
-        this._ninkiGauge = Math.max(Math.min(newGauge, 100), 0);
-    }
-
-    spendNinki(action: Actions.NinkiAbility): void {
-        this.ninkiGauge -= action.ninkiCost;
-    }
-
-    ninkiReady(): boolean {
-        return this.ninkiGauge >= 50;
-    }
-
-    private _kazematoi: number = 0;
-    get kazematoi() {
-        return this._kazematoi;
-    }
-    set kazematoi(newGauge: number) {
-        this._kazematoi = Math.max(Math.min(newGauge, 5), 0);
-    }
 }
 
 class NINCycleProcessor extends CycleProcessor {
-    rotationState: RotationState = new RotationState();
+    rotationState: RotationState;
+    gauge: NINGauge;
+
+    constructor(settings: MultiCycleSettings) {
+        super(settings);
+        this.gauge = new NINGauge(settings.stats.level);
+        this.rotationState = new RotationState();
+    }
 
     getBuffIfActive(buff: Buff) {
         return this.getActiveBuffs().find(b => b.name === buff.name);
@@ -81,47 +65,38 @@ class NINCycleProcessor extends CycleProcessor {
         }
     }
 
-    updateGauge(action: Ability) {
-        switch (action) {
-            case Actions.SpinningEdge: {
-                this.rotationState.ninkiGauge += 5;
-                break;
-            }
-            case Actions.GustSlash: {
-                this.rotationState.ninkiGauge += 5;
-                break;
-            }
-            case Actions.ArmorCrush: {
-                this.rotationState.kazematoi += 2;
-                this.rotationState.ninkiGauge += 15;
-                break;
-            }
-            case Actions.AeolianEdge: {
-                this.rotationState.kazematoi--;
-                this.rotationState.ninkiGauge += 15;
-                break;
-            }
-            case Actions.Phantom: {
-                this.rotationState.ninkiGauge += 10;
-                break;
-            }
-            case Actions.Raiju: {
-                this.rotationState.ninkiGauge += 5;
-                break;
-            }
-            case Actions.Meisui: {
-                this.rotationState.ninkiGauge += 50;
-                break;
+    override use(ability: Ability): AbilityUseResult {
+        const ninAbility = ability as Actions.NinAbility;
+
+        // Update gauge from the ability itself
+        if (ninAbility.updateGauge !== undefined) {
+            ninAbility.updateGauge(this.gauge);
+        }
+
+        // Update gauge from Bunshin
+        if (this.getBuffIfActive(Buffs.BunshinBuff) && ability.attackType === 'Weaponskill') {
+            this.gauge.ninkiGauge += 5;
+        }
+
+        // Update potency value based on level
+        let modified = ability;
+        if (false && ninAbility.syncedPotency?.length > 0) {
+            for (const syncPot of ninAbility.syncedPotency) {
+                if (this.stats.level >= syncPot.minLevel) {
+                    modified = {
+                        ...ability,
+                        potency: syncPot.potency,
+                    }
+                    break;
+                }
             }
         }
 
-        if (this.getBuffIfActive(Buffs.BunshinBuff) && action.attackType === 'Weaponskill') {
-            this.rotationState.ninkiGauge += 5;
-        }
+        return super.use(modified);
     }
 
     useCombo(forceAeolian?: boolean) {
-        let fillerAction: GcdAbility;
+        let fillerAction: Actions.NinGcdAbility;
         if (this.getBuffIfActive(Buffs.RaijuReady)) {
             fillerAction = Actions.Raiju;
         } else {
@@ -132,7 +107,7 @@ class NINCycleProcessor extends CycleProcessor {
                     break;
                 }
                 case 2: {
-                    if (this.rotationState.kazematoi <= 3 && !forceAeolian) {
+                    if (this.gauge.kazematoi <= 3 && !forceAeolian) {
                         fillerAction = Actions.ArmorCrush;
                     } else {
                         fillerAction = Actions.AeolianEdge;
@@ -143,7 +118,6 @@ class NINCycleProcessor extends CycleProcessor {
             this.rotationState.combo++;
         }
 
-        this.updateGauge(fillerAction);
         this.useGcd(fillerAction);
     }
 
@@ -151,7 +125,7 @@ class NINCycleProcessor extends CycleProcessor {
         if (useCharge) {
             this.useGcd(step);
         } else {
-            const modified: GcdAbility = {
+            const modified: Actions.MudraStep = {
                 ...step,
                 id: step.noChargeId,
                 cooldown: undefined,
@@ -181,18 +155,12 @@ class NINCycleProcessor extends CycleProcessor {
 
     usePhantom() {
         if (this.getBuffIfActive(Buffs.PhantomReady)) {
-            this.updateGauge(Actions.Phantom);
             this.useGcd(Actions.Phantom);
         }
     }
 
-    useMeisui() {
-        this.updateGauge(Actions.Meisui);
-        this.useOgcd(Actions.Meisui);
-    }
-
     useNinki() {
-        if (this.rotationState.ninkiReady()) {
+        if (this.gauge.ninkiReady()) {
             let action = Actions.Bhavacakra;
             if (this.getBuffIfActive(Buffs.Higi)) {
                 action = Actions.ZeshoMeppo;
@@ -200,7 +168,6 @@ class NINCycleProcessor extends CycleProcessor {
                 action = Actions.Bunshin;
             }
             this.useOgcd(action);
-            this.rotationState.spendNinki(action);
         }
     }
 
@@ -223,7 +190,7 @@ class NINCycleProcessor extends CycleProcessor {
         const ninkiGaugeCap = ninkiGaugeOverride ?? 85;
 
         // Spend Ninki before overcapping
-        if (this.rotationState.ninkiGauge >= ninkiGaugeCap) {
+        if (this.gauge.ninkiGauge >= ninkiGaugeCap) {
             oGcdCount = this.useOgcdIfReady(Actions.Bunshin, oGcdCount, maxOgcdCount);
             oGcdCount = this.useOgcdIfReady(Actions.Bhavacakra, oGcdCount, maxOgcdCount);
         }
@@ -254,7 +221,6 @@ class NINCycleProcessor extends CycleProcessor {
         this.useCombo();
         this.useOgcd(Actions.DokumoriAbility);
         this.useOgcd(Actions.Bunshin);
-        this.rotationState.spendNinki(Actions.Bunshin);
 
         this.usePhantom();
 
@@ -267,7 +233,7 @@ class NINCycleProcessor extends CycleProcessor {
         this.useNinjutsu(Actions.Raiton);
 
         this.useTCJ();
-        this.useMeisui();
+        this.useOgcd(Actions.Meisui);
 
         this.useCombo();
         this.useNinki();
@@ -321,7 +287,7 @@ class NINCycleProcessor extends CycleProcessor {
         this.useFillerOgcd(1, 50);
 
         this.useCombo(true);
-        this.useMeisui();
+        this.useOgcd(Actions.Meisui);
         this.useFillerOgcd(1, 50);
 
         this.useCombo(true);
