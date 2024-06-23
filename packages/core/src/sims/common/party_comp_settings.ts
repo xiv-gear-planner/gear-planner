@@ -62,7 +62,11 @@ export class BuffSettingsManager {
         const jobBuffMapping = BuffSettingsManager.makeJobBuffMapping();
         this.jobs = Object.entries(jobBuffMapping).map(([job, buffs]) => {
             const buffSettings: BuffSetting[] = buffs.map(buff => {
-                const enabled = enabledBuffs !== undefined ? enabledBuffs.includes(buff.name as BuffName) : !(buff.optional);
+                if (enabledBuffs === undefined) {
+                    return new BuffSetting(buff, !(buff.optional));
+                }
+
+                const enabled = enabledBuffs.findIndex(b => b === (buff.saveKey ?? buff.name) as BuffName) !== -1;
                 return new BuffSetting(buff, enabled);
             });
             return new JobSettings(job as JobName, buffSettings, enabledJobs.includes(job as JobName));
@@ -73,7 +77,7 @@ export class BuffSettingsManager {
         return {
             jobs: this.jobs.filter(jobSetting => jobSetting.enabled)
                 .map(jobSetting => jobSetting.job),
-            buffs: this.individuallyEnabledBuffs.map(buff => buff.name as BuffName),
+            buffs: this.individuallyEnabledBuffs.map(buff => (buff.saveKey ?? buff.name) as BuffName),
         }
     }
 

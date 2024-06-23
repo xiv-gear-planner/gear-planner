@@ -540,6 +540,10 @@ export type BaseBuff = Readonly<{
      * Stack count of this buff. This should generally not be baked into the buff - it should be inserted at run time.
      */
     stacks?: number
+    /**
+     * Add a key for this buff for import/export functionality. If not specified, will use the name as the key.
+     */
+    saveKey?: string
 } & ({
     descriptionExtras?: never,
     descriptionOverride?: never,

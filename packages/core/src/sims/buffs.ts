@@ -3,6 +3,7 @@ import {Ability, PartyBuff} from "./sim_types";
 
 export const Mug = {
     name: "Mug",
+    saveKey: "Mug",
     job: "NIN",
     duration: 20,
     cooldown: 120,
@@ -16,6 +17,7 @@ export const Mug = {
 
 export const Litany = {
     name: "Battle Litany",
+    saveKey: "Battle Litany",
     job: "DRG",
     duration: 15,
     cooldown: 120,
@@ -29,6 +31,7 @@ export const Litany = {
 
 export const DragonSight = {
     name: "Dragon Sight (Other)",
+    saveKey: "Dragon Sight (Other)",
     job: "DRG",
     duration: 20,
     cooldown: 120,
@@ -44,6 +47,7 @@ export const DragonSight = {
 
 export const Brotherhood = {
     name: "Brotherhood",
+    saveKey: "Brotherhood",
     job: "MNK",
     duration: 15,
     cooldown: 120,
@@ -58,6 +62,7 @@ export const Brotherhood = {
 
 export const ArcaneCircle = {
     name: "Arcane Circle",
+    saveKey: "Arcane Circle",
     job: "RPR",
     duration: 20,
     cooldown: 120,
@@ -71,6 +76,7 @@ export const ArcaneCircle = {
 
 export const DeathsDesign = {
     name: "Death's Design",
+    saveKey: "Death's Design",
     job: "RPR",
     duration: 60, // this is a hack to make up for the fact that the duration is stackable.
                   // Needs to be changed if simulating dropping DD is desired.
@@ -85,6 +91,7 @@ export const DeathsDesign = {
 
 export const SearingLight = {
     name: "Searing Light",
+    saveKey: "Searing Light",
     job: "SMN",
     duration: 30,
     cooldown: 120,
@@ -98,6 +105,7 @@ export const SearingLight = {
 
 export const Embolden = {
     name: "Embolden",
+    saveKey: "Embolden",
     job: "RDM",
     duration: 20,
     cooldown: 120,
@@ -112,6 +120,7 @@ export const Embolden = {
 
 export const Devilment = {
     name: "Devilment",
+    saveKey: "Devilment",
     job: "DNC",
     duration: 20,
     cooldown: 120,
@@ -141,6 +150,7 @@ export const StandardFinish = {
 */
 export const TechnicalFinish = {
     name: "Technical Finish",
+    saveKey: "Technical Finish",
     job: "DNC",
     duration: 20,
     cooldown: 120,
@@ -159,6 +169,7 @@ export const TechnicalFinish = {
 
 export const BattleVoice = {
     name: "Battle Voice",
+    saveKey: "Battle Voice",
     job: "BRD",
     duration: 15,
     cooldown: 120,
@@ -172,6 +183,7 @@ export const BattleVoice = {
 
 export const RadiantFinale = {
     name: "Radiant Finale",
+    saveKey: "Radiant Finale",
     job: "BRD",
     duration: 15,
     cooldown: 120,
@@ -185,6 +197,7 @@ export const RadiantFinale = {
 
 export const Chain = {
     name: "Chain",
+    saveKey: "Chain",
     job: "SCH",
     duration: 15,
     cooldown: 120,
@@ -198,6 +211,7 @@ export const Chain = {
 
 export const Divination = {
     name: "Divination",
+    saveKey: "Divination",
     job: "AST",
     duration: 15,
     cooldown: 120,
@@ -211,6 +225,7 @@ export const Divination = {
 
 export const AstCard = {
     name: "Single Target AST Card",
+    saveKey: "Single Target AST Card",
     job: "AST",
     duration: 15,
     cooldown: 30,
@@ -226,6 +241,7 @@ export const AstCard = {
 
 export const OffGuardBuff = {
     name: "Off-guard",
+    saveKey: "Off-guard",
     job: "BLU",
     duration: 15,
     cooldown: 60, // TODO: cooldown is affected by spell speed
@@ -249,4 +265,4 @@ export const ALL_BUFFS = [
     AstCard, OffGuardBuff
 ] as const;
 
-export type BuffName = typeof ALL_BUFFS[number]['name'];
+export type BuffName = typeof ALL_BUFFS[number]['name'] & typeof ALL_BUFFS[number]['saveKey'];
