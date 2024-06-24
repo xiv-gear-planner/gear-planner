@@ -1,8 +1,9 @@
 import {Ability, OgcdAbility, Buff, SimSettings, SimSpec} from "@xivgear/core/sims/sim_types";
-import {CycleProcessor, CycleSimResult, ExternalCycleSettings, MultiCycleSettings, AbilityUseResult, Rotation} from "@xivgear/core/sims/cycle_sim";
+import {CycleProcessor, CycleSimResult, ExternalCycleSettings, MultiCycleSettings, AbilityUseResult, Rotation, AbilityUseRecordUnf} from "@xivgear/core/sims/cycle_sim";
 import {CycleSettings} from "@xivgear/core/sims/cycle_settings";
 import {STANDARD_ANIMATION_LOCK} from "@xivgear/xivmath/xivconstants";
 import {BaseMultiCycleSim} from "../../sim_processors";
+import {AbilitiesUsedTable} from "../../components/ability_used_table";
 import {Dokumori} from "@xivgear/core/sims/buffs";
 import NINGauge from "./nin_gauge";
 import {NinAbility, NinGcdAbility, MudraStep, NinjutsuAbility, isNinkiAbility} from "./nin_types";
@@ -61,12 +62,22 @@ class NINCycleProcessor extends CycleProcessor {
     }
 
     override activateBuffWithDelay(buff: Buff, delay: number) {
-        // For buffs with stacks, we want to update the stack counter instead of adding a new buff
+        // For buffs with stacks, update the stack counter instead of adding a new buff
         if (buff.selfOnly && buff.stacks && this.getBuffIfActive(buff)) {
             return;
         }
 
         super.activateBuffWithDelay(buff, delay);
+    }
+
+    override addAbilityUse(usedAbility: AbilityUseRecordUnf) {
+        let modified: AbilityUseRecordUnf = {
+            ...usedAbility,
+            extraData: {
+                hello: "world",
+            }
+        }
+        super.addAbilityUse(modified);
     }
 
     override use(ability: Ability): AbilityUseResult {
@@ -318,6 +329,11 @@ export class NinSim extends BaseMultiCycleSim<NinSimResult, NinSettings, NINCycl
 
     makeDefaultSettings(): NinSettings {
         return {};
+    }
+
+    override makeAbilityUsedTable(result: NinSimResult): AbilitiesUsedTable {
+        const extraColumns = NINGauge.generateResultColumns(result)
+        return new AbilitiesUsedTable(result.displayRecords, extraColumns);
     }
 
     protected createCycleProcessor(settings: MultiCycleSettings): NINCycleProcessor {

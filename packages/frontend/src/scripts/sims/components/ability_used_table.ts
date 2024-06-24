@@ -1,4 +1,4 @@
-import {CustomTable, HeaderRow} from "../../tables";
+import {CustomTable, HeaderRow, CustomColumnSpec} from "../../tables";
 import {toRelPct} from "@xivgear/core/util/strutils";
 import {AbilityIcon} from "../../components/abilities";
 import {BuffListDisplay} from "./buff_list_display";
@@ -28,7 +28,7 @@ function roundTime(time: number): string {
 
 export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
 
-    constructor(abilitiesUsed: readonly DisplayRecordFinalized[]) {
+    constructor(abilitiesUsed: readonly DisplayRecordFinalized[], extraColumns?: CustomColumnSpec<DisplayRecordFinalized, any, any>[]) {
         super();
         this.style.tableLayout = 'fixed';
         this.classList.add('abilities-used-table');
@@ -172,6 +172,7 @@ export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
                 },
             }
         ];
+        extraColumns?.forEach(col => this.columns.push(col));
         this.data = [new HeaderRow(), ...abilitiesUsed];
         // this.style.tableLayout = 'auto';
     }

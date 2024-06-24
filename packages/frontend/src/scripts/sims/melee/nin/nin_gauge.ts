@@ -1,4 +1,6 @@
+import {CycleSimResult, DisplayRecordFinalized} from '@xivgear/core/sims/cycle_sim';
 import {NinkiAbility} from './nin_types';
+import {CustomColumnSpec} from '../../../tables';
 
 class NINGauge {
     constructor(level: number) {
@@ -32,6 +34,11 @@ class NINGauge {
     }
     set kazematoi(newGauge: number) {
         this._kazematoi = Math.max(Math.min(newGauge, 5), 0);
+    }
+
+    static generateResultColumns(result: CycleSimResult): CustomColumnSpec<DisplayRecordFinalized, any, any>[] {
+        console.log("[Temp] Results", result);
+        return [];
     }
 }
 

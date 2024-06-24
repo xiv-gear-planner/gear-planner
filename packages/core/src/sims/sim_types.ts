@@ -421,6 +421,10 @@ export type UsedAbility = {
      * a cast, this is the cast time + caster tax.
      */
     lockTime: number
+    /**
+     * Extra data relating to the ability used. Useful for
+     */
+    extraData?: object
 };
 
 /**
