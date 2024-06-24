@@ -28,7 +28,7 @@ function roundTime(time: number): string {
 
 export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
 
-    constructor(abilitiesUsed: readonly DisplayRecordFinalized[], extraColumns?: CustomColumnSpec<DisplayRecordFinalized, any, any>[]) {
+    constructor(abilitiesUsed: readonly DisplayRecordFinalized[], extraColumns: CustomColumnSpec<DisplayRecordFinalized, any, any>[] = []) {
         super();
         this.style.tableLayout = 'fixed';
         this.classList.add('abilities-used-table');
@@ -170,9 +170,9 @@ export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
                 renderer: (buffs: Buff[]) => {
                     return new BuffListDisplay(buffs);
                 },
-            }
+            },
+            ...extraColumns,
         ];
-        extraColumns?.forEach(col => this.columns.push(col));
         this.data = [new HeaderRow(), ...abilitiesUsed];
         // this.style.tableLayout = 'auto';
     }
