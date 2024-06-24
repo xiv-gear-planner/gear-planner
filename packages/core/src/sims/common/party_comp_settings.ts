@@ -1,5 +1,5 @@
 import {JobName} from "@xivgear/xivmath/xivconstants";
-import {ALL_BUFFS, BuffName} from "@xivgear/core/sims/buffs";
+import {ALL_BUFFS, BuffSaveKey} from "@xivgear/core/sims/buffs";
 import {PartyBuff} from "@xivgear/core/sims/sim_types";
 
 export type BuffSettingsExport = {
@@ -10,7 +10,7 @@ export type BuffSettingsExport = {
     /**
      * Enabled buffs
      */
-    buffs: BuffName[]
+    buffs: BuffSaveKey[]
 }
 
 class JobSettings {
@@ -58,11 +58,11 @@ export class BuffSettingsManager {
         }), {});
     }
 
-    private static getBuffKey(buff: PartyBuff): BuffName {
-        return (buff.saveKey ?? buff.name) as BuffName;
+    private static getBuffKey(buff: PartyBuff): BuffSaveKey {
+        return (buff.saveKey ?? buff.name) as BuffSaveKey;
     }
 
-    private constructor(enabledJobs: JobName[], enabledBuffs?: BuffName[]) {
+    private constructor(enabledJobs: JobName[], enabledBuffs?: BuffSaveKey[]) {
         const jobBuffMapping = BuffSettingsManager.makeJobBuffMapping();
         this.jobs = Object.entries(jobBuffMapping).map(([job, buffs]) => {
             const buffSettings: BuffSetting[] = buffs.map(buff => {

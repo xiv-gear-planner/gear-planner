@@ -265,4 +265,4 @@ export const ALL_BUFFS = [
     AstCard, OffGuardBuff
 ] as const;
 
-export type BuffName = typeof ALL_BUFFS[number]['name'] & typeof ALL_BUFFS[number]['saveKey'];
+export type BuffSaveKey = typeof ALL_BUFFS[number]['name'] | typeof ALL_BUFFS[number]['saveKey'];
