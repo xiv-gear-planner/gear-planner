@@ -1,4 +1,9 @@
-import {CycleSimResult, DisplayRecordFinalized} from '@xivgear/core/sims/cycle_sim';
+import {
+    CycleSimResult,
+    DisplayRecordFinalized,
+    isAbilityUse,
+    isFinalizedAbilityUse
+} from '@xivgear/core/sims/cycle_sim';
 import {NinkiAbility} from './nin_types';
 import {CustomColumnSpec} from '../../../tables';
 
@@ -38,7 +43,16 @@ class NINGauge {
 
     static generateResultColumns(result: CycleSimResult): CustomColumnSpec<DisplayRecordFinalized, any, any>[] {
         console.log("[Temp] Results", result);
-        return [];
+        return [{
+            displayName: 'Test',
+            shortName: 'test',
+            getter: (item) => {
+                if (isFinalizedAbilityUse(item)) {
+                    return item.original.extraData['hello'];
+                }
+                return '';
+            }
+        }];
     }
 }
 

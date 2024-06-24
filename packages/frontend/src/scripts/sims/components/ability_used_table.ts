@@ -170,9 +170,9 @@ export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
                 renderer: (buffs: Buff[]) => {
                     return new BuffListDisplay(buffs);
                 },
-            }
+            },
+            ...extraColumns
         ];
-        extraColumns?.forEach(col => this.columns.push(col));
         this.data = [new HeaderRow(), ...abilitiesUsed];
         // this.style.tableLayout = 'auto';
     }

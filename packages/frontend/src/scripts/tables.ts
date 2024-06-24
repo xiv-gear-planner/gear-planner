@@ -249,7 +249,7 @@ export class CustomTable<RowDataType, SelectionType = never> extends HTMLTableEl
     dataRowMap: Map<RowDataType, CustomRow<RowDataType>> = new Map<RowDataType, CustomRow<RowDataType>>();
     selectionRefreshables: SelectionRefresh[] = [];
     _rows: RefreshableRow<RowDataType>[] = [];
-    _columns: CustomColumn<RowDataType, any>[];
+    _columns: readonly CustomColumn<RowDataType, any>[];
     // TODO
     // selectionEnabled: boolean;
     selectionModel: SelectionModel<RowDataType, SelectionType> = noopSelectionModel;
@@ -264,7 +264,7 @@ export class CustomTable<RowDataType, SelectionType = never> extends HTMLTableEl
         })
     }
 
-    get columns() {
+    get columns(): readonly CustomColumn<RowDataType, any>[] {
         return this._columns;
     }
 
