@@ -914,7 +914,7 @@ export class CycleProcessor {
 
     private combatStarting: boolean = false;
 
-    private addAbilityUse(usedAbility: AbilityUseRecordUnf) {
+    protected addAbilityUse(usedAbility: AbilityUseRecordUnf) {
         this.allRecords.push(usedAbility);
         // If this is a pre-pull ability, we can offset by the hardcast time and/or application delay
         if (!this.combatStarted && usedAbility.ability.potency !== null) {

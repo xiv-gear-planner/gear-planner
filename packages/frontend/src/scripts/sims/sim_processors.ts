@@ -115,7 +115,7 @@ export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, Inter
         return div;
     }
 
-    makeResultDisplay(result: ResultType): HTMLElement {
+    makeMainResultDisplay(result: ResultType): HTMLElement {
         // noinspection JSNonASCIINames
         const mainResultsTable = simpleAutoResultTable({
             "Expected DPS": result.mainDpsFull.expected,
@@ -126,7 +126,17 @@ export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, Inter
             "Unbuffed PPS": result.unbuffedPps
         });
         mainResultsTable.classList.add('main-results-table');
-        const abilitiesUsedTable = new AbilitiesUsedTable(result.displayRecords);
+        return mainResultsTable;
+    }
+
+    makeAbilityUsedTable(result: ResultType): AbilitiesUsedTable {
+        return new AbilitiesUsedTable(result.displayRecords);
+    }
+
+    makeResultDisplay(result: ResultType): HTMLElement {
+        // noinspection JSNonASCIINames
+        const mainResultsTable = this.makeMainResultDisplay(result);
+        const abilitiesUsedTable = this.makeAbilityUsedTable(result);
         return quickElement('div', ['cycle-sim-results-table'], [mainResultsTable, abilitiesUsedTable]);
     }
 
