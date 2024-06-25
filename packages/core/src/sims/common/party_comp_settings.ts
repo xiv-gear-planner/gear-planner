@@ -1,5 +1,5 @@
 import {JobName} from "@xivgear/xivmath/xivconstants";
-import {ALL_BUFFS, BuffName} from "@xivgear/core/sims/buffs";
+import {ALL_BUFFS, BuffSaveKey} from "@xivgear/core/sims/buffs";
 import {PartyBuff} from "@xivgear/core/sims/sim_types";
 
 export type BuffSettingsExport = {
@@ -10,7 +10,7 @@ export type BuffSettingsExport = {
     /**
      * Enabled buffs
      */
-    buffs: BuffName[]
+    buffs: BuffSaveKey[]
 }
 
 class JobSettings {
@@ -58,11 +58,19 @@ export class BuffSettingsManager {
         }), {});
     }
 
-    private constructor(enabledJobs: JobName[], enabledBuffs?: BuffName[]) {
+    private static getBuffKey(buff: PartyBuff): BuffSaveKey {
+        return (buff.saveKey ?? buff.name) as BuffSaveKey;
+    }
+
+    private constructor(enabledJobs: JobName[], enabledBuffs?: BuffSaveKey[]) {
         const jobBuffMapping = BuffSettingsManager.makeJobBuffMapping();
         this.jobs = Object.entries(jobBuffMapping).map(([job, buffs]) => {
             const buffSettings: BuffSetting[] = buffs.map(buff => {
-                const enabled = enabledBuffs !== undefined ? enabledBuffs.includes(buff.name as BuffName) : !(buff.optional);
+                if (enabledBuffs === undefined) {
+                    return new BuffSetting(buff, !(buff.optional));
+                }
+
+                const enabled = enabledBuffs.findIndex(b => b === BuffSettingsManager.getBuffKey(buff)) !== -1;
                 return new BuffSetting(buff, enabled);
             });
             return new JobSettings(job as JobName, buffSettings, enabledJobs.includes(job as JobName));
@@ -73,7 +81,7 @@ export class BuffSettingsManager {
         return {
             jobs: this.jobs.filter(jobSetting => jobSetting.enabled)
                 .map(jobSetting => jobSetting.job),
-            buffs: this.individuallyEnabledBuffs.map(buff => buff.name as BuffName),
+            buffs: this.individuallyEnabledBuffs.map(buff => BuffSettingsManager.getBuffKey(buff)),
         }
     }
 
