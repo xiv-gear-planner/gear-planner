@@ -34,7 +34,6 @@ export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
         this.classList.add('abilities-used-table');
         this.columns = [
             {
-                order: 100,
                 shortName: 'time',
                 displayName: 'Time',
                 getter: used => used,
@@ -62,7 +61,6 @@ export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
                 }
             },
             {
-                order: 200,
                 shortName: 'ability',
                 displayName: 'Ability',
                 getter: used => isFinalizedAbilityUse(used) ? used.ability : used.label,
@@ -96,13 +94,11 @@ export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
                 }
             },
             {
-                order: 300,
                 shortName: 'unbuffed-pot',
                 displayName: 'Pot',
                 getter: used => isFinalizedAbilityUse(used) ? used.totalPotency : '--',
             },
             {
-                order: 400,
                 shortName: 'expected-damage',
                 displayName: 'Damage',
                 getter: used => used,
@@ -143,7 +139,6 @@ export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
                 },
             },
             {
-                order: 500,
                 shortName: 'Total Buffs',
                 displayName: 'Total Buffs',
                 getter: used => isFinalizedAbilityUse(used) ? used.combinedEffects : undefined,
@@ -169,7 +164,6 @@ export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
                 }
             },
             {
-                order: 600,
                 shortName: 'buffs',
                 displayName: 'Buffs Active',
                 getter: used => used['buffs'] ?? [],
@@ -178,7 +172,7 @@ export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
                 },
             },
             ...extraColumns,
-        ].sort((a,b) => a.order - b.order);
+        ];
         this.data = [new HeaderRow(), ...abilitiesUsed];
         // this.style.tableLayout = 'auto';
     }

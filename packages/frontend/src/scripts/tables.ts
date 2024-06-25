@@ -436,7 +436,6 @@ export type CellRenderer<RowDataType, CellDataType> = (value: CellDataType, rowV
 export type ColStyler<RowDataType, CellDataType> = (value: CellDataType, colElement: CustomCell<RowDataType, CellDataType>, internalElement: Node, rowValue: RowDataType) => void;
 
 export interface CustomColumnSpec<RowDataType, CellDataType = string, ColumnDataType = any> {
-    order?: number;
     shortName: string;
     displayName: string;
     allowHeaderSelection?: boolean;
@@ -471,7 +470,6 @@ export class CustomColumn<RowDataType, CellDataType = string, ColumnDataType = a
     set displayName(ignored) {
     };
 
-    order?: number;
     allowHeaderSelection?: boolean = false;
     allowCellSelection?: boolean = false;
     getter: (item: RowDataType) => CellDataType;

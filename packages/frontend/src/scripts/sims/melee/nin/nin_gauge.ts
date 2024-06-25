@@ -77,7 +77,6 @@ class NINGauge {
 
     static generateResultColumns(result: CycleSimResult): CustomColumnSpec<DisplayRecordFinalized, unknown, unknown>[] {
         return [{
-            order: 450,
             shortName: 'ninkiGauge',
             displayName: 'Ninki',
             getter: used => isFinalizedAbilityUse(used) ? used.original : null,
@@ -90,7 +89,6 @@ class NINGauge {
                 }
             }
         }, {
-            order: 460,
             shortName: 'kazematoi',
             displayName: 'Kazematoi',
             getter: used => isFinalizedAbilityUse(used) ? used.original : null,

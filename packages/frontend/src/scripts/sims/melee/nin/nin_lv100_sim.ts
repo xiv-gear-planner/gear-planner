@@ -335,8 +335,12 @@ export class NinSim extends BaseMultiCycleSim<NinSimResult, NinSettings, NINCycl
     }
 
     override makeAbilityUsedTable(result: NinSimResult): AbilitiesUsedTable {
-        const extraColumns = NINGauge.generateResultColumns(result)
-        return new AbilitiesUsedTable(result.displayRecords, extraColumns);
+        const extraColumns = NINGauge.generateResultColumns(result);
+        const table = super.makeAbilityUsedTable(result);
+        const newColumns = [...table.columns];
+        newColumns.splice(newColumns.findIndex(col => col.shortName === 'expected-damage') + 1, 0, ...extraColumns);
+        table.columns = newColumns;
+        return table;
     }
 
     protected createCycleProcessor(settings: MultiCycleSettings): NINCycleProcessor {
