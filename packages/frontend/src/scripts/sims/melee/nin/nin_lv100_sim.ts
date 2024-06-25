@@ -92,7 +92,7 @@ class NINCycleProcessor extends CycleProcessor {
         }
 
         // Update gauge from Bunshin
-        if (this.getBuffIfActive(Buffs.BunshinBuff) && ability.attackType === 'Weaponskill') {
+        if (this.getBuffIfActive(Buffs.BunshinBuff) && ability.attackType === 'Weaponskill' && ability.id !== Actions.Phantom.id) {
             this.gauge.ninkiGauge += 5;
         }
 

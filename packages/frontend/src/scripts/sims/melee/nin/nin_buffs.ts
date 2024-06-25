@@ -1,5 +1,6 @@
 import {Buff, Ability, BuffController} from "@xivgear/core/sims/sim_types";
 import {removeSelf} from "@xivgear/core/sims/common/utils";
+import {Phantom} from "./nin_actions";
 
 /**
  * Ninja-specific Buffs
@@ -127,7 +128,7 @@ export const BunshinBuff: Buff = {
         // Only applies to Weaponskills
         // 160 pet potency per stack consumption
     },
-    appliesTo: ability => ability.attackType === "Weaponskill",
+    appliesTo: ability => ability.attackType === "Weaponskill" && ability.id !== Phantom.id,
     beforeSnapshot<X extends Ability>(buffController: BuffController, ability: X): X {
         buffController.subtractStacksSelf(1);
         return {

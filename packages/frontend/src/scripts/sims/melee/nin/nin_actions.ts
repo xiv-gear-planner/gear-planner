@@ -46,12 +46,12 @@ export const AeolianEdge: NinGcdAbility = {
     gcd: 2.5,
     cast: 0,
     updateGauge: (gauge: NINGauge) => {
-        if (gauge.level > 62) {
-            gauge.ninkiGauge += 5;
+        if (gauge.level > 84) {
+            gauge.ninkiGauge += 15;
         } else if (gauge.level > 78) {
             gauge.ninkiGauge += 10;
-        } else if (gauge.level > 84) {
-            gauge.ninkiGauge += 15;
+        } else if (gauge.level > 62) {
+            gauge.ninkiGauge += 5;
         }
         gauge.kazematoi--;
     },
@@ -66,12 +66,12 @@ export const ArmorCrush: NinGcdAbility = {
     gcd: 2.5,
     cast: 0,
     updateGauge: (gauge: NINGauge) => {
-        if (gauge.level > 62) {
-            gauge.ninkiGauge += 5;
+        if (gauge.level > 84) {
+            gauge.ninkiGauge += 15;
         } else if (gauge.level > 78) {
             gauge.ninkiGauge += 10;
-        } else if (gauge.level > 84) {
-            gauge.ninkiGauge += 15;
+        } else if (gauge.level > 62) {
+            gauge.ninkiGauge += 5;
         }
         gauge.kazematoi += 2;
     },
@@ -96,7 +96,7 @@ export const Phantom: NinGcdAbility = {
     potency: 600, // TODO: Mark as Pet Damage Potency
     gcd: 2.5,
     cast: 0,
-    updateGauge: gauge => gauge.ninkiGauge += 5,
+    updateGauge: gauge => gauge.ninkiGauge += 10,
 };
 
 export const Ten: MudraStep & OriginCdAbility = {
@@ -275,6 +275,7 @@ export const DokumoriAbility: NinOgcdAbility = {
         time: 120
     },
     activatesBuffs: [Dokumori, Higi],
+    updateGauge: gauge => gauge.ninkiGauge += 40,
 };
 
 export const DreamWithin: NinOgcdAbility = {
