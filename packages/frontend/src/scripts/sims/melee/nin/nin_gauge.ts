@@ -45,60 +45,30 @@ class NINGauge {
         }
     }
 
-    static generateNinkiColumn(ninki: number) {
-        const out = document.createElement('div');
-        out.classList.add('ability-cell');
-
-        const abilityNameSpan = document.createElement('span');
-        abilityNameSpan.classList.add('ability-name');
-
-        abilityNameSpan.textContent = `${ninki}`;
-
-        out.appendChild(abilityNameSpan);
-        return out;
-    }
-
-    static generateKazematoiColumn(kazematoi: number) {
-        const out = document.createElement('div');
-        out.classList.add('ability-cell');
-
-        const abilityNameSpan = document.createElement('span');
-        abilityNameSpan.classList.add('ability-name');
-
-        abilityNameSpan.textContent = ``;
-
-        for (let i = 1; i <= kazematoi; i++) {
-            abilityNameSpan.textContent += '🗡️';
-        }
-
-        out.appendChild(abilityNameSpan);
-        return out;
-    }
-
     static generateResultColumns(result: CycleSimResult): CustomColumnSpec<DisplayRecordFinalized, unknown, unknown>[] {
         return [{
             shortName: 'ninkiGauge',
             displayName: 'Ninki',
             getter: used => isFinalizedAbilityUse(used) ? used.original : null,
             renderer: (usedAbility?: UsedAbility) => {
+                let textContent = "";
                 if (usedAbility?.extraData !== undefined) {
-                    const gauge = (usedAbility.extraData as NINExtraData).gauge as NINGaugeState;
-                    return NINGauge.generateNinkiColumn(gauge.ninki);
-                } else {
-                    return document.createTextNode("");
+                    const gauge = (usedAbility.extraData as NINExtraData).gauge;
+                    textContent = `${gauge.ninki}`
                 }
+                return document.createTextNode(textContent);
             }
         }, {
             shortName: 'kazematoi',
             displayName: 'Kazematoi',
             getter: used => isFinalizedAbilityUse(used) ? used.original : null,
             renderer: (usedAbility?: UsedAbility) => {
+                let textContent = "";
                 if (usedAbility?.extraData !== undefined) {
-                    const gauge = (usedAbility.extraData as NINExtraData).gauge as NINGaugeState;
-                    return NINGauge.generateKazematoiColumn(gauge.kazematoi);
-                } else {
-                    return document.createTextNode("");
+                    const gauge = (usedAbility.extraData as NINExtraData).gauge;
+                    textContent = '🗡️'.repeat(gauge.kazematoi);
                 }
+                return document.createTextNode(textContent);
             }
         }];
     }
