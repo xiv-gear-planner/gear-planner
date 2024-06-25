@@ -161,8 +161,17 @@ class NINCycleProcessor extends CycleProcessor {
 
     useTCJ() {
         this.useOgcd(Actions.TenChiJin);
-        this.useGcd(Actions.Fuma);
-        this.useGcd(Actions.Raiton);
+        this.advanceTo(this.nextGcdTime, true);
+        this.useGcd({
+            ...Actions.Fuma,
+            animationLock: 0,
+        });
+        this.advanceTo(this.nextGcdTime, true);
+        this.useGcd({
+            ...Actions.Raiton,
+            animationLock: 0,
+        });
+        this.advanceTo(this.nextGcdTime, true);
         this.useGcd(Actions.Suiton);
     }
 
