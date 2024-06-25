@@ -40,3 +40,16 @@ export type NinkiAbility = NinOgcdAbility & Readonly<{
 export function isNinkiAbility(action: NinkiAbility | NinOgcdAbility): action is NinkiAbility {
     return (action as NinkiAbility).ninkiCost !== undefined;
 }
+
+/** Represents the Ninja gauge state */
+export type NINGaugeState = {
+    level: number,
+    ninki: number,
+    kazematoi: number,
+}
+
+/** Represents the extra data for UsedAbility */
+export type NINExtraData = {
+    /** The Ninja gauge data */
+    gauge: NINGaugeState,
+};

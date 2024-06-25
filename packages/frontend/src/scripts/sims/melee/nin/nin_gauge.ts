@@ -1,12 +1,7 @@
-import {CycleSimResult, DisplayRecordFinalized} from '@xivgear/core/sims/cycle_sim';
-import {NinkiAbility} from './nin_types';
+import {CycleSimResult, DisplayRecordFinalized, isFinalizedAbilityUse} from '@xivgear/core/sims/cycle_sim';
+import {UsedAbility} from "@xivgear/core/sims/sim_types";
+import {NINExtraData, NINGaugeState, NinkiAbility} from './nin_types';
 import {CustomColumnSpec} from '../../../tables';
-
-export type NINGaugeState = {
-    level: number,
-    ninki: number,
-    kazematoi: number,
-};
 
 class NINGauge {
     constructor(level: number) {
@@ -50,10 +45,64 @@ class NINGauge {
         }
     }
 
+    static generateNinkiColumn(ninki: number) {
+        const out = document.createElement('div');
+        out.classList.add('ability-cell');
+
+        const abilityNameSpan = document.createElement('span');
+        abilityNameSpan.classList.add('ability-name');
+
+        abilityNameSpan.textContent = `${ninki}`;
+
+        out.appendChild(abilityNameSpan);
+        return out;
+    }
+
+    static generateKazematoiColumn(kazematoi: number) {
+        const out = document.createElement('div');
+        out.classList.add('ability-cell');
+
+        const abilityNameSpan = document.createElement('span');
+        abilityNameSpan.classList.add('ability-name');
+
+        abilityNameSpan.textContent = ``;
+
+        for (let i = 1; i <= kazematoi; i++) {
+            abilityNameSpan.textContent += '🗡️';
+        }
+
+        out.appendChild(abilityNameSpan);
+        return out;
+    }
+
     static generateResultColumns(result: CycleSimResult): CustomColumnSpec<DisplayRecordFinalized, unknown, unknown>[] {
-        // TODO: implementation
-        console.log("[Temp] Results", result);
-        return [];
+        return [{
+            //order: 450,
+            shortName: 'ninkiGauge',
+            displayName: 'Ninki',
+            getter: used => isFinalizedAbilityUse(used) ? used.original : null,
+            renderer: (usedAbility?: UsedAbility) => {
+                if (usedAbility?.extraData !== undefined) {
+                    const gauge = (usedAbility.extraData as NINExtraData).gauge as NINGaugeState;
+                    return NINGauge.generateNinkiColumn(gauge.ninki);
+                } else {
+                    return document.createTextNode("");
+                }
+            }
+        }, {
+            //order: 460,
+            shortName: 'kazematoi',
+            displayName: 'Kazematoi',
+            getter: used => isFinalizedAbilityUse(used) ? used.original : null,
+            renderer: (usedAbility?: UsedAbility) => {
+                if (usedAbility?.extraData !== undefined) {
+                    const gauge = (usedAbility.extraData as NINExtraData).gauge as NINGaugeState;
+                    return NINGauge.generateKazematoiColumn(gauge.kazematoi);
+                } else {
+                    return document.createTextNode("");
+                }
+            }
+        }];
     }
 }
 

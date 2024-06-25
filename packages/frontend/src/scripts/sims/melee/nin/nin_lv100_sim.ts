@@ -6,7 +6,7 @@ import {BaseMultiCycleSim} from "../../sim_processors";
 import {AbilitiesUsedTable} from "../../components/ability_used_table";
 import {Dokumori} from "@xivgear/core/sims/buffs";
 import NINGauge from "./nin_gauge";
-import {NinAbility, NinGcdAbility, MudraStep, NinjutsuAbility, isNinkiAbility} from "./nin_types";
+import {NinAbility, NinGcdAbility, MudraStep, NinjutsuAbility, isNinkiAbility, NINExtraData} from "./nin_types";
 import * as Actions from './nin_actions';
 import * as Buffs from './nin_buffs';
 
@@ -71,11 +71,13 @@ class NINCycleProcessor extends CycleProcessor {
     }
 
     override addAbilityUse(usedAbility: AbilityUseRecordUnf) {
+        const extraData: NINExtraData = {
+            gauge: this.gauge.getGaugeState(),
+        };
+
         const modified: AbilityUseRecordUnf = {
             ...usedAbility,
-            extraData: {
-                gauge: this.gauge.getGaugeState()
-            },
+            extraData,
         };
 
         super.addAbilityUse(modified);
