@@ -28,7 +28,7 @@ function roundTime(time: number): string {
 
 export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
 
-    constructor(abilitiesUsed: readonly DisplayRecordFinalized[], extraColumns: CustomColumnSpec<DisplayRecordFinalized, any, any>[] = []) {
+    constructor(abilitiesUsed: readonly DisplayRecordFinalized[], extraColumns: CustomColumnSpec<DisplayRecordFinalized, unknown, unknown>[] = []) {
         super();
         this.style.tableLayout = 'fixed';
         this.classList.add('abilities-used-table');
