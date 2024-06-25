@@ -129,7 +129,7 @@ export const BunshinBuff: Buff = {
     },
     appliesTo: ability => ability.attackType === "Weaponskill",
     beforeSnapshot<X extends Ability>(buffController: BuffController, ability: X): X {
-        buffController.modifyStacksSelf(-1);
+        buffController.subtractStacksSelf(1);
         return {
             ...ability,
             // TODO: the potency addition here should be pet potency
@@ -151,9 +151,9 @@ export const RaijuReady: Buff = {
     appliesTo: ability => ability.name.endsWith(' Raiju') || ability.name === 'Raiton',
     beforeSnapshot<X extends Ability>(buffController: BuffController, ability: X): void {
         if (ability.name.endsWith(' Raiju')) {
-            buffController.modifyStacksSelf(-1);
+            buffController.subtractStacksSelf(1);
         } else if (ability.name === 'Raiton') {
-            buffController.modifyStacksSelf(1);
+            buffController.addStacksSelf(1);
         }
     },
     stacks: 1,

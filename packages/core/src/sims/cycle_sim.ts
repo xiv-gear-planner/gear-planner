@@ -488,15 +488,15 @@ export class CycleProcessor {
      * @param buff The Buff
      * @param stacks The stack modification to add
      */
-    modifyBuffStacks(buff: Buff, stacks: number) {
+    modifyBuffStacks(buff: Buff, stacksDelta: number) {
         const activeUsages = this.getActiveBuffsData().filter(buffHist => buffHist.buff.name === buff.name);
         this.removeBuff(buff);
         activeUsages.forEach(au => {
-            const newStacks = au.buff.stacks + stacks;
+            const newStacks = au.buff.stacks + stacksDelta;
             if (newStacks > 0) {
                 this.activateBuff({
                     ...au.buff,
-                    stacks: au.buff.stacks + stacks,
+                    stacks: au.buff.stacks + stacksDelta,
                 });
             }
         });
@@ -1166,12 +1166,24 @@ export class CycleProcessor {
             removeSelf(): void {
                 this.removeStatus(buff);
             },
-            modifyStacks(buff: Buff, stacks: number): void {
-                outer.modifyBuffStacks(buff, stacks)
+            modifyStacks(buff: Buff, stacksDelta: number): void {
+                outer.modifyBuffStacks(buff, stacksDelta);
             },
-            modifyStacksSelf(stacks: number): void {
+            modifyStacksSelf(stacksDelta: number): void {
+                this.modifyStacks(buff, stacksDelta);
+            },
+            addStacks(buff: Buff, stacks: number): void {
                 this.modifyStacks(buff, stacks);
-            }
+            },
+            addStacksSelf(stacks: number): void {
+                this.modifyStacks(buff, stacks);
+            },
+            subtractStacks(buff: Buff, stacks: number): void {
+                this.modifyStacks(buff, stacks * -1);
+            },
+            subtractStacksSelf(stacks: number): void {
+                this.modifyStacks(buff, stacks * -1);
+            },
         }
     }
 
