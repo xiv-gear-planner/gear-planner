@@ -62,9 +62,9 @@ export const AUTOATTACK_APPLICATION_DELAY = 0.6;
 export type JobName
     = 'WHM' | 'SGE' | 'SCH' | 'AST'
     | 'PLD' | 'WAR' | 'DRK' | 'GNB'
-    | 'DRG' | 'MNK' | 'NIN' | 'SAM' | 'RPR'
+    | 'DRG' | 'MNK' | 'NIN' | 'SAM' | 'RPR' | 'VPR'
     | 'BRD' | 'MCH' | 'DNC'
-    | 'BLM' | 'SMN' | 'RDM' | 'BLU';
+    | 'BLM' | 'SMN' | 'RDM' | 'BLU' | 'PCT';
 
 /**
  * All clans/races.
@@ -229,6 +229,10 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
     },
     SAM: STANDARD_MELEE,
     RPR: STANDARD_MELEE,
+    VPR: {
+        ...STANDARD_MELEE,
+        mainStat: 'dexterity'
+    },
     // Ranged
     BRD: STANDARD_RANGED,
     MCH: STANDARD_RANGED,
@@ -246,7 +250,8 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
     BLU: {
         ...STANDARD_CASTER,
         traitMulti: (level, attackType) => attackType === 'Auto-attack' ? 1.0 : 1.5, // Maim and Mend V
-    }
+    },
+    PCT: STANDARD_CASTER
 };
 
 
