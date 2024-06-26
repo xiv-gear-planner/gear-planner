@@ -235,7 +235,11 @@ export type MultiCycleSettings = {
     /**
      * Whether to use auto-attacks.
      */
-    readonly useAutos: boolean
+    readonly useAutos: boolean,
+    /**
+     * Whether to hide dividers indicating the start and end of a cycle
+     */
+    readonly hideCycleDividers?: boolean
 }
 
 export type CycleFunction = (cycle: CycleContext) => void
@@ -392,6 +396,10 @@ export class CycleProcessor {
      */
     readonly useAutos: boolean;
     /**
+     * Whether to show dividers indicating the start and end of a cycle
+     */
+    readonly hideCycleDividers: boolean
+    /**
      * Cooldown tracker.
      */
     readonly cdTracker: CooldownTracker;
@@ -417,6 +425,7 @@ export class CycleProcessor {
         this.stats = settings.stats;
         this.manuallyActivatedBuffs = settings.manuallyActivatedBuffs ?? [];
         this.useAutos = settings.useAutos;
+        this.hideCycleDividers = settings.hideCycleDividers;
         this.comboTrackerMap = new Map();
         this.aaAbility = {
             attackType: 'Auto-attack',
@@ -827,7 +836,7 @@ export class CycleProcessor {
     canUseWithoutClipping(action: OgcdAbility) {
         const readyAt = this.cdTracker.statusOf(action).readyAt.absolute;
         const maxDelayAt = this.nextGcdTime - (action.animationLock ?? STANDARD_ANIMATION_LOCK);
-        return readyAt <= maxDelayAt;
+        return readyAt <= Math.min(maxDelayAt, this.totalTime);
     }
 
     /**
@@ -1111,10 +1120,12 @@ export class CycleProcessor {
         const ctx = new CycleContext(this, cycleTime);
         // console.debug('Delta', delta);
         // TODO: make some kind of 'marker' for this
-        this.allRecords.push({
-            label: "-- Start of Cycle --",
-            usedAt: this.currentTime,
-        });
+        if (!this.hideCycleDividers) {
+            this.allRecords.push({
+                label: "-- Start of Cycle --",
+                usedAt: this.currentTime,
+            });
+        }
         const cycleInfo: CycleInfo = {
             cycleNum: this.currentCycle,
             start: this.currentTime,
@@ -1123,10 +1134,12 @@ export class CycleProcessor {
         this.cycles.push(cycleInfo);
         cycleFunction(ctx);
         ctx.recheckPrepull();
-        this.allRecords.push({
-            label: "-- End of Cycle --",
-            usedAt: this.currentTime,
-        });
+        if (!this.hideCycleDividers) {
+            this.allRecords.push({
+                label: "-- End of Cycle --",
+                usedAt: this.currentTime,
+            });
+        }
         cycleInfo.end = this.currentTime;
         this.currentCycle++;
     }
