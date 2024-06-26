@@ -427,18 +427,19 @@ export const LEVEL_STATS: Record<SupportedLevel, LevelStats> = {
     100: {
         level: 90,
         // Tentative guess
-        baseMainStat: 450,
+        baseMainStat: 440,
         // Updated
         baseSubStat: 420,
         // Updated
         levelDiv: 2780,
-        hp: 3000,
+        // Tentative guess
+        hp: 4000,
         hpScalar: {
-            Tank: 34.6,
-            other: 24.3,
+            Tank: 43,
+            other: 30.1,
         },
         mainStatPowerMod: {
-            // Tentaive guess
+            // Tentative guess
             Tank: 180,
             // Tentative guess
             other: 225,
