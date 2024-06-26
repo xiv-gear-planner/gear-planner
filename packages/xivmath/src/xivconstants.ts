@@ -84,7 +84,7 @@ export type RaceName = 'Duskwight' | 'Wildwood'
  * Supported levels.
  */
 export const SupportedLevels = [70, 80, 90, 100] as const;
-export const CURRENT_MAX_LEVEL = 90 satisfies SupportedLevel;
+export const CURRENT_MAX_LEVEL: SupportedLevel = 100;
 export type SupportedLevel = typeof SupportedLevels[number];
 
 
@@ -426,17 +426,22 @@ export const LEVEL_STATS: Record<SupportedLevel, LevelStats> = {
     // DAWNTRAIL TODO: replace with real values once known
     100: {
         level: 90,
-        baseMainStat: 390,
-        baseSubStat: 400,
-        levelDiv: 1900,
+        // Tentative guess
+        baseMainStat: 450,
+        // Updated
+        baseSubStat: 420,
+        // Updated
+        levelDiv: 2780,
         hp: 3000,
         hpScalar: {
             Tank: 34.6,
             other: 24.3,
         },
         mainStatPowerMod: {
+            // Not yet known
             Tank: 156,
-            other: 195,
+            // Tentative guess
+            other: 225,
         }
     }
 };
