@@ -52,44 +52,35 @@ class NINGauge {
             getter: used => isFinalizedAbilityUse(used) ? used.original : null,
             renderer: (usedAbility?: UsedAbility) => {
                 if (usedAbility?.extraData !== undefined) {
-                    const gauge = (usedAbility.extraData as NINExtraData).gauge;
-                    const rowHeight = Number(getComputedStyle(document.body).getPropertyValue('--abilities-row-height').replace('px', ''));
-                    const cellWidth = 120;
-                    const padding = 6;
-                    const svgHeight = rowHeight - padding;
+                    const ninki = (usedAbility.extraData as NINExtraData).gauge.ninki;
 
                     const div = document.createElement('div');
+                    div.style.height = '100%';
+                    div.style.display = 'flex';
+                    div.style.alignItems = 'center';
+                    div.style.gap = '6px';
+                    div.style.padding = '2px 0 2px 0';
+                    div.style.boxSizing = 'border-box';
+
                     const span = document.createElement('span');
-                    span.textContent = `${gauge.ninki}`;
+                    span.textContent = `${ninki}`;
 
-                    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-                    svg.setAttribute('width', `${cellWidth}`);
-                    svg.setAttribute('height', `${svgHeight}`);
-                    svg.setAttribute('style', `border-radius: 50px; border: 1px solid black; margin-right: ${padding}px;`);
+                    const barOuter = document.createElement('div');
+                    barOuter.style.borderRadius = '20px';
+                    barOuter.style.background = '#00000033';
+                    barOuter.style.width = '120px';
+                    barOuter.style.height = 'calc(100% - 3px)';
+                    barOuter.style.display = 'inline-block';
+                    barOuter.style.overflow = 'hidden';
+                    barOuter.style.border = '1px solid black';
 
-                    const bar = document.createElementNS("http://www.w3.org/2000/svg", "path");
-                    bar.setAttribute('fill', 'black');
-                    bar.setAttribute('style', 'opacity: 0.2;');
+                    const barInner = document.createElement('div');
+                    barInner.style.backgroundColor = '#995691';
+                    barInner.style.width = `${ninki}%`;
+                    barInner.style.height = '100%';
+                    barOuter.appendChild(barInner);
 
-                    const ninki = document.createElementNS("http://www.w3.org/2000/svg", "path");
-                    ninki.setAttribute('fill', '#995691');
-
-                    bar.setAttribute('d', `M 0,0
-                        l ${cellWidth}, 0
-                        l 0, ${svgHeight}
-                        l -${cellWidth}, 0
-                    z`);
-
-
-                    ninki.setAttribute('d', `M 0,0
-                        l ${Math.round(gauge.ninki / 100 * cellWidth)}, 0
-                        l 0, ${rowHeight}
-                        l -${Math.round(gauge.ninki / 100 * cellWidth)}, 0
-                    z`);
-
-                    svg.appendChild(bar);
-                    svg.appendChild(ninki);
-                    div.appendChild(svg);
+                    div.appendChild(barOuter);
                     div.appendChild(span);
 
                     return div;

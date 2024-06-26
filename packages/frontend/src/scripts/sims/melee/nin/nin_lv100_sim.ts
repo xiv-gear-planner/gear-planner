@@ -372,39 +372,51 @@ export class NinSim extends BaseMultiCycleSim<NinSimResult, NinSettings, NINCycl
             apply(cp: NINCycleProcessor) {
                 cp.useOpener();
 
-                while (cp.remainingGcdTime > 0) {
-                    while ((cp.cdTracker.statusOf(Actions.KunaisBane).readyAt.relative > 20 || !cp.cdTracker.canUse(Actions.Ten)) && cp.remainingGcdTime > 0) {
+                cp.remainingCycles(() => {
+                    while (cp.cdTracker.statusOf(Actions.KunaisBane).readyAt.relative > 20 || !cp.cdTracker.canUse(Actions.Ten)) {
                         cp.useFillerGcd();
                         cp.useFillerOgcd();
+                        if (cp.remainingGcdTime <= 0) {
+                            return;
+                        }
                     }
 
                     cp.useNinjutsu(Actions.Suiton);
 
                     cp.useFillerGcd();
-                    while (!cp.canUseWithoutClipping(Actions.KunaisBane) && cp.remainingGcdTime > 0) {
+                    while (!cp.canUseWithoutClipping(Actions.KunaisBane)) {
                         cp.useFillerOgcd();
                         cp.useFillerGcd();
+                        if (cp.remainingGcdTime <= 0) {
+                            return;
+                        }
                     }
 
                     cp.advanceTo(cp.nextGcdTime - (Actions.KunaisBane.animationLock ?? STANDARD_ANIMATION_LOCK));
                     cp.useOddMinBurst();
 
-                    while ((cp.cdTracker.statusOf(Actions.KunaisBane).readyAt.relative > 20 || !cp.cdTracker.canUse(Actions.Ten)) && cp.remainingGcdTime > 0) {
+                    while (cp.cdTracker.statusOf(Actions.KunaisBane).readyAt.relative > 20 || !cp.cdTracker.canUse(Actions.Ten)) {
                         cp.useFillerGcd();
                         cp.useFillerOgcd();
+                        if (cp.remainingGcdTime <= 0) {
+                            return;
+                        }
                     }
 
                     cp.useNinjutsu(Actions.Suiton);
 
                     cp.useFillerGcd();
-                    while (!(cp.canUseWithoutClipping(Actions.DokumoriAbility) && cp.canUseWithoutClipping(Actions.KunaisBane)) && cp.remainingGcdTime > 0) {
+                    while (!(cp.canUseWithoutClipping(Actions.DokumoriAbility) && cp.canUseWithoutClipping(Actions.KunaisBane))) {
                         cp.useFillerOgcd();
                         cp.useFillerGcd();
+                        if (cp.remainingGcdTime <= 0) {
+                            return;
+                        }
                     }
 
                     cp.advanceTo(cp.nextGcdTime - (Actions.DokumoriAbility.animationLock ?? STANDARD_ANIMATION_LOCK));
                     cp.useEvenMinBurst();
-                }
+                });
             }
         }]
     }
