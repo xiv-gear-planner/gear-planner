@@ -51,12 +51,50 @@ class NINGauge {
             displayName: 'Ninki',
             getter: used => isFinalizedAbilityUse(used) ? used.original : null,
             renderer: (usedAbility?: UsedAbility) => {
-                let textContent = "";
                 if (usedAbility?.extraData !== undefined) {
                     const gauge = (usedAbility.extraData as NINExtraData).gauge;
-                    textContent = `${gauge.ninki}`
+                    const rowHeight = Number(getComputedStyle(document.body).getPropertyValue('--abilities-row-height').replace('px', ''));
+                    const cellWidth = 120;
+                    const padding = 6;
+                    const svgHeight = rowHeight - padding;
+
+                    const div = document.createElement('div');
+                    const span = document.createElement('span');
+                    span.textContent = `${gauge.ninki}`;
+
+                    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+                    svg.setAttribute('width', `${cellWidth}`);
+                    svg.setAttribute('height', `${svgHeight}`);
+                    svg.setAttribute('style', `border-radius: 50px; border: 1px solid black; margin-right: ${padding}px;`);
+
+                    const bar = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                    bar.setAttribute('fill', 'black');
+                    bar.setAttribute('style', 'opacity: 0.2;');
+
+                    const ninki = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                    ninki.setAttribute('fill', '#995691');
+
+                    bar.setAttribute('d', `M 0,0
+                        l ${cellWidth}, 0
+                        l 0, ${svgHeight}
+                        l -${cellWidth}, 0
+                    z`);
+
+
+                    ninki.setAttribute('d', `M 0,0
+                        l ${Math.round(gauge.ninki / 100 * cellWidth)}, 0
+                        l 0, ${rowHeight}
+                        l -${Math.round(gauge.ninki / 100 * cellWidth)}, 0
+                    z`);
+
+                    svg.appendChild(bar);
+                    svg.appendChild(ninki);
+                    div.appendChild(svg);
+                    div.appendChild(span);
+
+                    return div;
                 }
-                return document.createTextNode(textContent);
+                return document.createTextNode("");
             }
         }, {
             shortName: 'kazematoi',

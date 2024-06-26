@@ -88,6 +88,10 @@ class NINCycleProcessor extends CycleProcessor {
 
         // Update gauge from the ability itself
         if (ninAbility.updateGauge !== undefined) {
+            // Prevent gauge updates showing incorrectly on autos before this ability
+            if (ability.type === 'gcd' && this.nextGcdTime > this.currentTime) {
+                this.advanceTo(this.nextGcdTime);
+            }
             ninAbility.updateGauge(this.gauge);
         }
 
@@ -161,17 +165,23 @@ class NINCycleProcessor extends CycleProcessor {
 
     useTCJ() {
         this.useOgcd(Actions.TenChiJin);
-        this.advanceTo(this.nextGcdTime, true);
+        if (this.nextGcdTime <= this.totalTime) {
+            this.advanceTo(this.nextGcdTime, true);
+        }
         this.useGcd({
             ...Actions.Fuma,
             animationLock: 0,
         });
-        this.advanceTo(this.nextGcdTime, true);
+        if (this.nextGcdTime <= this.totalTime) {
+            this.advanceTo(this.nextGcdTime, true);
+        }
         this.useGcd({
             ...Actions.Raiton,
             animationLock: 0,
         });
-        this.advanceTo(this.nextGcdTime, true);
+        if (this.nextGcdTime <= this.totalTime) {
+            this.advanceTo(this.nextGcdTime, true);
+        }
         this.useGcd(Actions.Suiton);
     }
 
