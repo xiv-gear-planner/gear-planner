@@ -363,7 +363,10 @@ export class NinSim extends BaseMultiCycleSim<NinSimResult, NinSettings, NINCycl
     }
 
     protected createCycleProcessor(settings: MultiCycleSettings): NINCycleProcessor {
-        return new NINCycleProcessor(settings);
+        return new NINCycleProcessor({
+            ...settings,
+            hideCycleDividers: true
+        });
     }
 
     getRotationsToSimulate(): Rotation<NINCycleProcessor>[] {
