@@ -438,8 +438,8 @@ export const LEVEL_STATS: Record<SupportedLevel, LevelStats> = {
             other: 24.3,
         },
         mainStatPowerMod: {
-            // Not yet known
-            Tank: 156,
+            // Tentaive guess
+            Tank: 180,
             // Tentative guess
             other: 225,
         }
