@@ -11,7 +11,7 @@ export const Dokumori = {
         dmgIncrease: 0.05,
     },
     startTime: 3.5,
-    statusId: 638
+    statusId: 3849
 } as const satisfies PartyBuff;
 
 export const Litany = {
