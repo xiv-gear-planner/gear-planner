@@ -12,8 +12,7 @@ export const KunaisBaneBuff: Buff = {
         dmgIncrease: 0.1
     },
     duration: 15,
-    // TODO: Update once available in Dawntrail
-    statusId: 3254
+    statusId: 3906
 };
 
 const NINJUTSU_ACTIONS_1STEP: string[] = [
@@ -82,8 +81,7 @@ export const TenriJindoReady: Buff = {
     appliesTo: ability => ability.name === "Tenri Jindo",
     beforeSnapshot: removeSelf,
     duration: 30,
-    // TODO: Update once available in Dawntrail
-    statusId: 700_000
+    statusId: 3851
 };
 
 export const ShadowWalker: Buff = {
@@ -96,8 +94,7 @@ export const ShadowWalker: Buff = {
     appliesTo: ability => ability.name === "Meisui" || ability.name === "Kunai's Bane",
     beforeSnapshot: removeSelf,
     duration: 20,
-    // TODO: Update once available in Dawntrail. Currently using Hide.
-    statusId: 1952
+    statusId: 3848
 };
 
 export const MeisuiBuff: Buff = {
@@ -185,6 +182,5 @@ export const Higi: Buff = {
     appliesTo: ability => ability.name === "Zesho Meppo" || ability.name === "Deathfrog Medium",
     beforeSnapshot: removeSelf,
     duration: 30,
-    // TODO: Update once available in Dawntrail
-    statusId: 700_001
+    statusId: 3850
 };

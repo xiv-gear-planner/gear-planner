@@ -205,7 +205,7 @@ export const Hyosho: NinjutsuAbility = {
 export const KunaisBane: NinOgcdAbility = {
     type: 'ogcd',
     name: "Kunai's Bane",
-    id: 2258, // TODO: Update once available in Dawntrail
+    id: 36958,
     attackType: "Ability",
     potency: 600,
     cooldown: {
@@ -268,7 +268,7 @@ export const Bunshin: NinkiAbility = {
 export const DokumoriAbility: NinOgcdAbility = {
     type: 'ogcd',
     name: "Dokumori",
-    id: 2248, // TODO: Update once available in Dawntrail
+    id: 36957,
     attackType: "Ability",
     potency: 300,
     cooldown: {
@@ -299,7 +299,7 @@ export const Bhavacakra: NinkiAbility = {
 export const ZeshoMeppo: NinkiAbility = {
     type: 'ogcd',
     name: "Zesho Meppo",
-    id: 7402, // TODO: Update once available in Dawntrail
+    id: 36960,
     attackType: "Ability",
     potency: 550,
     updateGauge: gauge => gauge.ninkiGauge -= 50,
@@ -309,7 +309,7 @@ export const ZeshoMeppo: NinkiAbility = {
 export const TenriJindo: NinOgcdAbility = {
     type: 'ogcd',
     name: "Tenri Jindo",
-    id: 7403, // TODO: Update once available in Dawntrail
+    id: 36961,
     attackType: "Ability",
     potency: 1000,
 };
