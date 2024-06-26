@@ -11,7 +11,7 @@ import {
     sksToGcd,
     spsTickMulti,
     spsToGcd,
-    tenacityDmg, wdMulti,
+    tenacityDmg, vitToHp, wdMulti,
 } from "@xivgear/xivmath/xivmath";
 import {getClassJobStats, getLevelStats, JobName} from "@xivgear/xivmath/xivconstants";
 import {GeneralSettings, registerFormula} from "./math_main";
@@ -358,5 +358,29 @@ export function registerFormulae() {
             min: baseSub
         }]
     });
+    registerFormula<{
+        'vit': number,
+    }>({
+        name: 'Vitality',
+        stub: 'vit',
+        functions: [{
+            name: 'Hit Points',
+            fn: vitToHp,
+            async argExtractor(arg, gen: GeneralSettings): Promise<Parameters<typeof vitToHp>> {
+                return [gen.levelStats, await getClassJobStatsFull(gen.classJob), arg.vit]
+            }
+        }],
+        makeDefaultInputs: (gen: GeneralSettings) => {
+            return {vit: gen.levelStats.baseMainStat}
+        },
+        primaryVariable: 'vit',
+        variables: [{
+            type: 'number',
+            label: 'Vitality',
+            property: 'vit',
+            integer: true,
+            min: baseMain
+        }]
+    })
 }
 
