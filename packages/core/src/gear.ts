@@ -50,7 +50,7 @@ import {
     StatBonus,
     XivCombatItem
 } from "@xivgear/xivmath/geartypes";
-import {xivApiIcon, xivApiIconUrl} from "./external/xivapi";
+import {xivApiIconUrl} from "./external/xivapi";
 import {IlvlSyncInfo} from "./datamanager";
 import {XivApiStat, xivApiStatMapping} from "./external/xivapitypes";
 import {Inactivitytimer} from "./util/inactivitytimer";
@@ -1094,7 +1094,7 @@ export function processRawMateriaInfo(data: object): Materia[] {
     for (let i = MATERIA_LEVEL_MIN_RELEVANT - 1; i < MATERIA_LEVEL_MAX_NORMAL; i++) {
         const itemData = data['Item'][i];
         const itemFields = itemData['fields'];
-        const itemId = data['Item']['row_id'];
+        const itemId = itemData['row_id'];
         const itemName = itemFields["Name"];
         const stats = new RawStats();
         const stat = statById(data['BaseParam']['row_id']);
