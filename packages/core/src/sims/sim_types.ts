@@ -292,6 +292,10 @@ export type BaseAbility = Readonly<{
     cooldown?: Cooldown,
     /**
      * How this skill contributes to the combo system.
+     *
+     * By default, skills do not interact with the combo system at all. However, if you specify any combo information,
+     * it will be considered to interrupt any other combos by default. You can change this behavior by supplying
+     * a combo for the special 'all' combo key.
      */
     combos?: readonly ComboData[]
     /**
