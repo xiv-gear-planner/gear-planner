@@ -249,7 +249,7 @@ export class DataManager implements DataManagerIntf {
         });
 
         // Materia
-        const matCols = ['ID', 'Item[].Name', 'Item[].Icon', 'BaseParam', 'Value'];
+        const matCols = ['ID', 'Item[].Name', 'Item[].Icon', 'BaseParam.nonexistent', 'Value'];
         // for (let i = 0; i < MATERIA_LEVEL_MAX_NORMAL; i++) {
         //     matCols.push(`Item${i}.Name`);
         //     // TODO: normal or HD icon?
@@ -261,7 +261,8 @@ export class DataManager implements DataManagerIntf {
             requestType: 'list',
             sheet: 'Materia',
             columns: matCols,
-            pageLimit: 1
+            pageLimit: 1,
+            perPage: 50
         })
             // const materiaPromise = fetch(`https://xivapi.com/Materia?columns=${matCols.join(',')}`)
             .then((data) => {

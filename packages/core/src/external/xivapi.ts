@@ -6,7 +6,8 @@ export type XivApiRequest = {
     requestType: 'list' | 'search',
     sheet: string,
     columns?: readonly string[],
-    pageLimit?: number
+    pageLimit?: number,
+    perPage?: number
 }
 
 export type XivApiListRequest = XivApiRequest & {
@@ -64,7 +65,7 @@ export async function xivApiGet<RequestType extends (XivApiListRequest | XivApiS
     Promise<XivApiResponse<RequestType>> {
     let query: string;
     if (request.requestType === 'list') {
-        return xivApiGetList(request) as Promise<XivApiResponse<RequestType>>;
+        return await xivApiGetList(request) as XivApiResponse<RequestType>;
     }
     else {
         query = `https://xivapi.com/search?indexes=${request.sheet}`;
@@ -96,33 +97,38 @@ export async function xivApiGet<RequestType extends (XivApiListRequest | XivApiS
 
 export async function xivApiGetList<RequestType extends XivApiListRequest>(request: RequestType): Promise<XivApiResponse<RequestType>> {
     // TODO: raise limit after testing
-    let query = `https://beta.xivapi.com/api/1/sheet/${request.sheet}?limit=250&version=6.58x2`;
+    const perPage = request.perPage ?? 250;
+    let query = `https://beta.xivapi.com/api/1/sheet/${request.sheet}?limit=${perPage}&version=6.58x2`;
     if (request.columns?.length > 0) {
         query += '&fields=' + request.columns.join(',');
     }
     let remainingPages = request.pageLimit ?? 4;
     let after = 0;
     const results = [];
-    // eslint-disable-next-line no-constant-condition
     while (remainingPages-- > 0) {
         const responseRaw = await xivApiFetch(query + '&after=' + after)
             .then(response => response.json());
-            const response = responseRaw['rows'];
+        const response = responseRaw['rows'];
         if (response.length > 0) {
             after += response.length;
             results.push(...response);
+            if (response.length < perPage) {
+                break;
+            }
         }
         else {
             break;
         }
     }
-    return {Results: results.map(resultRow => {
+    return {
+        Results: results.map(resultRow => {
             const out = {...resultRow['fields']};
             if (request.columns.includes('ID')) {
                 out['ID'] = resultRow['row_id'];
             }
             return out;
-        })};
+        })
+    };
 
 }
 
