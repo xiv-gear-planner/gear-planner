@@ -513,7 +513,7 @@ export const LEVEL_ITEMS: Record<SupportedLevel, LevelItemInfo> = {
     },
     // DAWNTRAIL TODO: replace with real values once known
     100: {
-        minILvl: 670,
+        minILvl: 640,
         maxILvl: 999,
         minILvlFood: 570,
         maxILvlFood: 999,
