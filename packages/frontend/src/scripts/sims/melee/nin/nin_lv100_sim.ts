@@ -4,6 +4,7 @@ import {CycleSettings} from "@xivgear/core/sims/cycle_settings";
 import {STANDARD_ANIMATION_LOCK} from "@xivgear/xivmath/xivconstants";
 import {BaseMultiCycleSim} from "../../sim_processors";
 import {AbilitiesUsedTable} from "../../components/ability_used_table";
+import {gemdraught1dex} from "@xivgear/core/sims/common/potion";
 import {Dokumori} from "@xivgear/core/sims/buffs";
 import NINGauge from "./nin_gauge";
 import {NinAbility, NinGcdAbility, MudraStep, NinjutsuAbility, isNinkiAbility, NINExtraData} from "./nin_types";
@@ -248,7 +249,7 @@ class NINCycleProcessor extends CycleProcessor {
         this.useOgcd(Actions.Kassatsu);
 
         this.useCombo();
-        // TODO: Use pot here
+        this.useOgcd(gemdraught1dex);
 
         this.useCombo();
         this.useOgcd(Actions.DokumoriAbility);
