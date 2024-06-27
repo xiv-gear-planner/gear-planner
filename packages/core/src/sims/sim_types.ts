@@ -191,20 +191,46 @@ export type DotInfo = Readonly<{
  *
  * These are keyed on their ID, so they must have an ID.
  *
- * The rest of the object is which fields of {@link DamagingAbility} you would like to override.
+ * The rest of the object is which fields of {@link DamagingAbility} you would like to override. Generally, this will
+ * be potency, but you can include other changes if needed.
  */
 export type ComboData = ({
+    /**
+     * Which combo this should start/break/ignore. Supports the special value 'all' to specify that all combos
+     * should be broken or ignored.
+     *
+     * See {@link ComboKeyMatch}
+     */
     comboKey?: ComboKeyMatch,
+    /**
+     * What should happen when this ability is used.
+     *
+     * start: starts the combo. May have inconsistent behavior if comboKey === 'all'.
+     * break: interrupts the combo
+     * nobreak: no interaction with this combo
+     * continue: continues the combo (see the other part of this type)
+     */
     comboBehavior: 'start' | 'break' | 'nobreak'
 } | {
+    /**
+     * Which combo this should continue. Other combos will be broken.
+     */
     comboKey?: ComboKey,
     comboBehavior: 'continue',
-    comboFrom: readonly(Ability & {
-        id: number
-    })[],
+    /**
+     * Which abilities this ability can combo from.
+     */
+    comboFrom: readonly Ability[],
 }) & Partial<DamagingAbility>;
 
+/**
+ * Key used to uniquely identify a combo.
+ */
 export type ComboKey = 'default' | string;
+/**
+ * Key used to match a combo. Supports the special value 'all' to indicate that the behavior should be applied to all
+ * combos.
+ */
 export type ComboKeyMatch = ComboKey | 'all';
 
 /**
@@ -266,6 +292,10 @@ export type BaseAbility = Readonly<{
     cooldown?: Cooldown,
     /**
      * How this skill contributes to the combo system.
+     *
+     * By default, skills do not interact with the combo system at all. However, if you specify any combo information,
+     * it will be considered to interrupt any other combos by default. You can change this behavior by supplying
+     * a combo for the special 'all' combo key.
      */
     combos?: readonly ComboData[]
     /**
