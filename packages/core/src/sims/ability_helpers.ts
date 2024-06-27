@@ -10,8 +10,8 @@ export function appDelay(ability: Ability) {
     return ability.appDelay ?? STANDARD_APPLICATION_DELAY;
 }
 
-function defaultComboData(ability: Ability): ComboData {
-    if (ability.type === 'gcd') {
+function defaultComboData(ability: Ability, hasOtherCombos: boolean): ComboData {
+    if (ability.type === 'gcd' && hasOtherCombos) {
         return {
             comboBehavior: 'break',
             comboKey: "all"
@@ -70,7 +70,12 @@ export function completeComboData(ability: Ability): FinalizedComboData {
         }
     }
     if (others === null) {
-        others = defaultComboData(ability);
+        if (combos.length > 0) {
+            others = defaultComboData(ability, true);
+        }
+        else {
+            others = defaultComboData(ability, false);
+        }
     }
     return {
         combos: combos,

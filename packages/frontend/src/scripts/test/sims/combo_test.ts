@@ -34,7 +34,10 @@ const notCombo = {
     attackType: 'Weaponskill',
     potency: 120,
     type: 'gcd',
-    gcd: 2.5
+    gcd: 2.5,
+    combos: [{
+        comboBehavior: 'break'
+    }]
 } as const satisfies Ability;
 
 const ogcd = {
