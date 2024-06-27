@@ -33,14 +33,6 @@ export type NinkiAbility = NinOgcdAbility & Readonly<{
     ninkiCost: number,
 }>;
 
-/**
- * Whether or not this ability is a Ninki spender
- * @param action The ability to check
- */
-export function isNinkiAbility(action: NinkiAbility | NinOgcdAbility): action is NinkiAbility {
-    return (action as NinkiAbility).ninkiCost !== undefined;
-}
-
 /** Represents the Ninja gauge state */
 export type NINGaugeState = {
     level: number,

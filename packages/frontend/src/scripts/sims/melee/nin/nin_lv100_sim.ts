@@ -7,7 +7,7 @@ import {AbilitiesUsedTable} from "../../components/ability_used_table";
 import {gemdraught1dex} from "@xivgear/core/sims/common/potion";
 import {Dokumori} from "@xivgear/core/sims/buffs";
 import NINGauge from "./nin_gauge";
-import {NinAbility, NinGcdAbility, MudraStep, NinjutsuAbility, isNinkiAbility, NINExtraData} from "./nin_types";
+import {NinAbility, NinGcdAbility, MudraStep, NinjutsuAbility, NINExtraData} from "./nin_types";
 import * as Actions from './nin_actions';
 import * as Buffs from './nin_buffs';
 
@@ -72,6 +72,7 @@ class NINCycleProcessor extends CycleProcessor {
     }
 
     override addAbilityUse(usedAbility: AbilityUseRecordUnf) {
+        // Add gauge data to this record for the UI
         const extraData: NINExtraData = {
             gauge: this.gauge.getGaugeState(),
         };
@@ -82,6 +83,18 @@ class NINCycleProcessor extends CycleProcessor {
         };
 
         super.addAbilityUse(modified);
+    }
+
+    override useOgcd(ability: OgcdAbility): AbilityUseResult {
+        // If an Ogcd isn't ready yet, but it can still be used without clipping, advance time until ready.
+        if (this.canUseWithoutClipping(ability)) {
+            const readyAt = this.cdTracker.statusOf(ability).readyAt.absolute;
+            if (this.totalTime > readyAt) {
+                this.advanceTo(readyAt);
+            }
+        }
+        // Only try to use the Ogcd if it's ready.
+        return this.cdTracker.canUse(ability) ? super.useOgcd(ability) : null;
     }
 
     override use(ability: Ability): AbilityUseResult {
@@ -113,11 +126,13 @@ class NINCycleProcessor extends CycleProcessor {
         return super.use(modified);
     }
 
-    useCombo(forceAeolian?: boolean) {
+    useCombo(): AbilityUseResult {
         let fillerAction: NinGcdAbility;
+        // Use Raiju if it's available
         if (this.getBuffIfActive(Buffs.RaijuReady)) {
             fillerAction = Actions.Raiju;
         } else {
+            // Use the next GCD in our basic combo
             fillerAction = Actions.SpinningEdge;
             switch (this.rotationState.combo) {
                 case 1: {
@@ -125,7 +140,9 @@ class NINCycleProcessor extends CycleProcessor {
                     break;
                 }
                 case 2: {
-                    if (this.gauge.kazematoi <= 3 && !forceAeolian) {
+                    // Force AE during burst windows if it's available. Otherwise, keep our stacks high
+                    const forceAeolian = this.getBuffIfActive(Buffs.KunaisBaneBuff) || this.getBuffIfActive(Dokumori);
+                    if (this.gauge.kazematoi <= 3 && (!forceAeolian || this.gauge.kazematoi === 0)) {
                         fillerAction = Actions.ArmorCrush;
                     } else {
                         fillerAction = Actions.AeolianEdge;
@@ -136,23 +153,24 @@ class NINCycleProcessor extends CycleProcessor {
             this.rotationState.combo++;
         }
 
-        this.useGcd(fillerAction);
+        return this.useGcd(fillerAction);
     }
 
-    useMudra(step: MudraStep, useCharge?: boolean) {
+    useMudra(step: MudraStep, useCharge?: boolean): AbilityUseResult {
         if (useCharge) {
-            this.useGcd(step);
-        } else {
-            const modified: MudraStep = {
-                ...step,
-                id: step.noChargeId,
-                cooldown: undefined,
-            };
-            this.useGcd(modified);
+            return this.useGcd(step);
         }
+
+        // Use the non-charge no-cd version if we aren't consuming charges
+        const modified: MudraStep = {
+            ...step,
+            id: step.noChargeId,
+            cooldown: undefined,
+        };
+        return this.useGcd(modified);
     }
 
-    useNinjutsu(action: NinjutsuAbility) {
+    useNinjutsu(action: NinjutsuAbility): AbilityUseResult {
         // Use the Mudra combination
         for (let i = 0; i < action.steps.length; i++) {
             // Only consume charges on the first step and if we don't have kassatsu
@@ -161,11 +179,16 @@ class NINCycleProcessor extends CycleProcessor {
         }
 
         // Use the Ninjutsu
-        this.useGcd(action);
+        return this.useGcd(action);
     }
 
-    useTCJ() {
-        this.useOgcd(Actions.TenChiJin);
+    useTCJ(): AbilityUseResult {
+        const res = this.useOgcd(Actions.TenChiJin);
+        // If we were unable to execute TCJ, don't continue the chain
+        if (!res) {
+            return null;
+        }
+        // Advance forward between each GCD to prevent autos
         if (this.nextGcdTime <= this.totalTime) {
             this.advanceTo(this.nextGcdTime, true);
         }
@@ -183,60 +206,82 @@ class NINCycleProcessor extends CycleProcessor {
         if (this.nextGcdTime <= this.totalTime) {
             this.advanceTo(this.nextGcdTime, true);
         }
-        this.useGcd(Actions.Suiton);
+        return this.useGcd(Actions.Suiton);
     }
 
-    usePhantom() {
+    usePhantom(): AbilityUseResult {
         if (this.getBuffIfActive(Buffs.PhantomReady)) {
-            this.useGcd(Actions.Phantom);
+            return this.useGcd(Actions.Phantom);
         }
+        return null;
     }
 
-    useNinki() {
+    useNinki(): AbilityUseResult {
         if (this.gauge.ninkiReady()) {
             let action = Actions.Bhavacakra;
+            // Bhava becomes ZM with Higi buff
             if (this.getBuffIfActive(Buffs.Higi)) {
                 action = Actions.ZeshoMeppo;
             } else if (this.cdTracker.canUse(Actions.Bunshin)) {
+                // If we don't have ZM but Bunshin is available, prioritize Bunshin
                 action = Actions.Bunshin;
             }
-            this.useOgcd(action);
+            return this.useOgcd(action);
         }
+        return null;
     }
 
-    useOgcdIfReady(action: OgcdAbility, counter: number, maxCount: number): number {
-        if (counter < maxCount && this.cdTracker.canUse(action)) {
-            if (isNinkiAbility(action)) {
-                this.useNinki();
-            } else {
-                this.useOgcd(action);
-            }
-            counter++;
-        }
-        return counter;
-    }
-
-    useFillerOgcd(maxCount?: number, ninkiGaugeOverride?: number): number {
-        // TODO: Use some kind of helper method to determine if an ogcd can be used without clipping instead
+    useFillerOgcd(maxCount: number = 2): number {
         let oGcdCount = 0;
-        const maxOgcdCount = maxCount ?? 2;
-        const ninkiGaugeCap = ninkiGaugeOverride ?? 85;
+        // Default to pooling Ninki unless we are in a burst window
+        let ninkiGaugeCap = 85;
+        if (this.cdTracker.statusOf(Actions.DokumoriAbility).readyAt.relative < 5 || this.getBuffIfActive(Buffs.KunaisBaneBuff) || this.getBuffIfActive(Dokumori)) {
+            ninkiGaugeCap = 50;
+        }
 
         // Spend Ninki before overcapping
-        if (this.gauge.ninkiGauge >= ninkiGaugeCap) {
-            oGcdCount = this.useOgcdIfReady(Actions.Bunshin, oGcdCount, maxOgcdCount);
-            oGcdCount = this.useOgcdIfReady(Actions.Bhavacakra, oGcdCount, maxOgcdCount);
+        while (this.gauge.ninkiGauge >= ninkiGaugeCap && oGcdCount < maxCount && this.useNinki()) {
+            oGcdCount++;
         }
 
         // Use Kassatsu, but only in preparation for trick
-        if (this.getBuffIfActive(Buffs.ShadowWalker)) {
-            oGcdCount = this.useOgcdIfReady(Actions.Kassatsu, oGcdCount, maxOgcdCount);
+        if (this.getBuffIfActive(Buffs.ShadowWalker) && oGcdCount < maxCount && this.useOgcd(Actions.Kassatsu)) {
+            oGcdCount++;
         }
 
         return oGcdCount;
     }
 
+    useOgcdInOrder(order: OgcdAbility[], idx: number): number {
+        let result = null;
+        if (idx < order.length) {
+            // Special case for TCJ
+            if ((order[idx].id === Actions.TenChiJin.id)) {
+                result = this.useTCJ();
+                // If TCJ was not ready, use a filler gcd and don't increase the counter
+                if (result === null) {
+                    this.useFillerOgcd(1);
+                    this.useFillerGcd();
+                    return idx;
+                }
+            } else {
+                // Use the assigned ogcd based on a predefined order
+                result = this.useOgcd(order[idx]);
+            }
+        }
+
+        // If our assigned ogcd was not used, use a filler ogcd
+        if (result === null) {
+            this.useFillerOgcd(1);
+        } else {
+            // Otherwise, continue with the ogcd order chain
+            idx++;
+        }
+        return idx;
+    }
+
     useFillerGcd() {
+        // Use Phantom instantly if available (not always optimal)
         if (this.getBuffIfActive(Buffs.PhantomReady)) {
             this.usePhantom();
         } else {
@@ -281,56 +326,70 @@ class NINCycleProcessor extends CycleProcessor {
     }
 
     useOddMinBurst() {
-        this.useOgcd(Actions.KunaisBane);
+        /* eslint-disable @typescript-eslint/no-unused-vars */
+        const ogcdOrder = [Actions.KunaisBane, Actions.DreamWithin];
+        let counter = 0;
 
-        this.useCombo(true);
-        this.useOgcd(Actions.DreamWithin);
+        counter = this.useOgcdInOrder(ogcdOrder, counter);
+
+        this.useFillerGcd();
+        counter = this.useOgcdInOrder(ogcdOrder, counter);
 
         this.useNinjutsu(Actions.Hyosho);
-        this.useFillerOgcd(1, 50);
+        counter = this.useOgcdInOrder(ogcdOrder, counter);
 
         this.useNinjutsu(Actions.Raiton);
-        this.useFillerOgcd(1, 50);
+        counter = this.useOgcdInOrder(ogcdOrder, counter);
 
-        this.useCombo(true);
-        this.useFillerOgcd(2, 50);
+        this.useFillerGcd();
+        counter = this.useOgcdInOrder(ogcdOrder, counter);
+        counter = this.useOgcdInOrder(ogcdOrder, counter);
 
         this.useNinjutsu(Actions.Raiton);
-        this.useFillerOgcd(1, 50);
+        counter = this.useOgcdInOrder(ogcdOrder, counter);
 
-        this.useCombo(true);
-        this.useFillerOgcd(2, 50);
+        this.useFillerGcd();
+        counter = this.useOgcdInOrder(ogcdOrder, counter);
+        counter = this.useOgcdInOrder(ogcdOrder, counter);
 
-        this.useCombo(true);
+        this.useFillerGcd();
+        /* eslint-enable @typescript-eslint/no-unused-vars */
     }
 
     useEvenMinBurst() {
-        this.useOgcd(Actions.DokumoriAbility);
+        /* eslint-disable @typescript-eslint/no-unused-vars */
+        const ogcdOrder = [Actions.KunaisBane, Actions.DreamWithin, Actions.TenChiJin, Actions.Meisui, Actions.TenriJindo]
+        let counter = 0;
+
+        counter = this.useOgcdInOrder(ogcdOrder, counter);
 
         this.useFillerGcd();
-        this.useOgcd(Actions.KunaisBane);
+        counter = this.useOgcdInOrder(ogcdOrder, counter);
 
         this.useNinjutsu(Actions.Hyosho);
-        this.useOgcd(Actions.DreamWithin);
+        counter = this.useOgcdInOrder(ogcdOrder, counter);
 
         this.useNinjutsu(Actions.Raiton);
-        this.useFillerOgcd(1, 50);
+        counter = this.useOgcdInOrder(ogcdOrder, counter);
 
-        this.useTCJ();
-        this.useFillerOgcd(1, 50);
+        // This will optimally be TCJ combo
+        counter = this.useOgcdInOrder(ogcdOrder, counter);
 
-        this.useCombo(true);
-        this.useOgcd(Actions.Meisui);
-        this.useFillerOgcd(1, 50);
+        counter = this.useOgcdInOrder(ogcdOrder, counter);
 
-        this.useCombo(true);
-        this.useOgcd(Actions.TenriJindo);
-        this.useFillerOgcd(1, 50);
+        this.useFillerGcd();
+        counter = this.useOgcdInOrder(ogcdOrder, counter);
+        counter = this.useOgcdInOrder(ogcdOrder, counter);
+
+        this.useFillerGcd();
+        counter = this.useOgcdInOrder(ogcdOrder, counter);
+        counter = this.useOgcdInOrder(ogcdOrder, counter);
 
         this.useNinjutsu(Actions.Raiton);
-        this.useFillerOgcd(1, 50);
+        counter = this.useOgcdInOrder(ogcdOrder, counter);
 
-        this.useCombo(true);
+        this.useFillerGcd();
+        /* eslint-enable @typescript-eslint/no-unused-vars */
     }
 }
 
@@ -342,8 +401,8 @@ export class NinSim extends BaseMultiCycleSim<NinSimResult, NinSettings, NINCycl
     cycleSettings: CycleSettings = {
         useAutos: true,
         totalTime: 6 * 60,
-        cycles: 0, // ???
-        which: 'totalTime' // ??????
+        cycles: 0,
+        which: 'totalTime'
     }
 
     constructor(settings?: NinSettingsExternal) {
@@ -410,15 +469,29 @@ export class NinSim extends BaseMultiCycleSim<NinSimResult, NinSettings, NINCycl
                     cp.useNinjutsu(Actions.Suiton);
 
                     cp.useFillerGcd();
-                    while (!(cp.canUseWithoutClipping(Actions.DokumoriAbility) && cp.canUseWithoutClipping(Actions.KunaisBane))) {
+                    while (!cp.canUseWithoutClipping(Actions.DokumoriAbility)) {
                         cp.useFillerOgcd();
                         cp.useFillerGcd();
                         if (cp.remainingGcdTime <= 0) {
                             return;
                         }
                     }
+                    cp.useOgcd(Actions.DokumoriAbility);
 
-                    cp.advanceTo(cp.nextGcdTime - (Actions.DokumoriAbility.animationLock ?? STANDARD_ANIMATION_LOCK));
+                    while (!cp.canUseWithoutClipping(Actions.KunaisBane)) {
+                        cp.useFillerOgcd();
+                        if (cp.canUseWithoutClipping(Actions.KunaisBane)) {
+                            if (cp.remainingGcdTime <= 0) {
+                                return;
+                            }
+                            break;
+                        }
+                        cp.useFillerGcd();
+                        if (cp.remainingGcdTime <= 0) {
+                            return;
+                        }
+                    }
+
                     cp.useEvenMinBurst();
                 });
             }

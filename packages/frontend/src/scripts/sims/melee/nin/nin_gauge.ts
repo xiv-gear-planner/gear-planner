@@ -18,6 +18,11 @@ class NINGauge {
         return this._ninkiGauge;
     }
     set ninkiGauge(newGauge: number) {
+        if (newGauge > 100) {
+            console.warn(`Overcapped Ninki by ${newGauge - 100}.`);
+        } else if (newGauge < 0) {
+            console.error(`Used ${this.ninkiGauge - newGauge} Ninki when you only have ${this.ninkiGauge}.`)
+        }
         this._ninkiGauge = Math.max(Math.min(newGauge, 100), 0);
     }
 
