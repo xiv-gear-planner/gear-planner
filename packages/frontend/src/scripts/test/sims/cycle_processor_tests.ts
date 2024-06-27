@@ -7,7 +7,7 @@ import {assertSimAbilityResults, setPartyBuffEnabled, UseResult} from "./sim_tes
 import {JobMultipliers} from "@xivgear/xivmath/geartypes";
 import {getClassJobStats, getLevelStats, STANDARD_APPLICATION_DELAY} from "@xivgear/xivmath/xivconstants";
 import {CharacterGearSet} from "@xivgear/core/gear";
-import {Divination, Litany, Mug} from "@xivgear/core/sims/buffs";
+import {Divination, Litany, Dokumori} from "@xivgear/core/sims/buffs";
 import {exampleGearSet} from "./common_values";
 import {Swiftcast} from "@xivgear/core/sims/common/swiftcast";
 import {removeSelf} from "@xivgear/core/sims/common/utils";
@@ -394,7 +394,7 @@ describe('Cycle sim processor', () => {
         const inst: TestMultiCycleSim = testSimSpec.makeNewSimInstance();
         inst.cycleSettings.totalTime = 30;
         // Enable buffs
-        setPartyBuffEnabled(inst, Mug, true);
+        setPartyBuffEnabled(inst, Dokumori, true);
         setPartyBuffEnabled(inst, Litany, true);
         setPartyBuffEnabled(inst, Divination, true);
         // Run simulation
@@ -1543,5 +1543,24 @@ describe('application delay', () => {
         assert.equal(actualAbilities[1].original.appDelay, delay);
         assert.equal(actualAbilities[1].original.appDelayFromStart, delay + actualAbilities[0].original.snapshotTimeFromStart);
         assert.equal(actualAbilities[1].original.usedAt, actualAbilities[0].original.usedAt + actualAbilities[0].original.totalTimeTaken);
+    });
+});
+
+describe('gcd clipping check', () => {
+    it('can check if an ogcd ability can be used without clipping', () => {
+        const cp = new CycleProcessor({
+            allBuffs: [],
+            cycleTime: 120,
+            stats: exampleGearSet.computedStats,
+            totalTime: 120,
+            useAutos: false
+        });
+        cp.use(filler);
+        let canUse = cp.canUseWithoutClipping(assize);
+        assert.equal(canUse, true);
+        
+        cp.use(assize);
+        canUse = cp.canUseWithoutClipping(pom);
+        assert.equal(canUse, false);
     });
 });

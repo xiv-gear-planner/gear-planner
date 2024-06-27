@@ -1,8 +1,7 @@
 import {Ability, PartyBuff} from "./sim_types";
 
-
-export const Mug = {
-    name: "Mug",
+export const Dokumori = {
+    name: "Dokumori",
     saveKey: "Mug",
     job: "NIN",
     duration: 20,
@@ -12,7 +11,7 @@ export const Mug = {
         dmgIncrease: 0.05,
     },
     startTime: 3.5,
-    statusId: 3183
+    statusId: 3849
 } as const satisfies PartyBuff;
 
 export const Litany = {
@@ -260,7 +259,7 @@ export const OffGuardBuff = {
  */
 
 export const ALL_BUFFS = [
-    Mug, Litany, DragonSight, Brotherhood, ArcaneCircle, SearingLight, Embolden,
+    Dokumori, Litany, DragonSight, Brotherhood, ArcaneCircle, SearingLight, Embolden,
     Devilment, TechnicalFinish, BattleVoice, RadiantFinale, Chain, Divination,
     AstCard, OffGuardBuff
 ] as const;
