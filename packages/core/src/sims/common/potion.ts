@@ -1,27 +1,24 @@
 import {OgcdAbility} from "../sim_types";
 import {fl, mainStatMulti} from "@xivgear/xivmath/xivmath";
 import {RawStatKey} from "@xivgear/xivmath/geartypes";
-import {capitalizeFirstLetter} from "../../util/strutils";
 
 function applyPotionBuff(initialValue: number, bonus: number, cap: number): number {
     const effectiveBonus = Math.min(fl(initialValue * bonus), cap);
     return initialValue + effectiveBonus;
 }
 
-function makeTincture(grade: number, stat: RawStatKey, id: number, itemId: number, bonus: number, cap: number): Readonly<OgcdAbility> {
-    const statName = capitalizeFirstLetter(stat);
+function makePotion(name: string, stat: RawStatKey, itemId: number, bonus: number, cap: number): Readonly<OgcdAbility> {
     return {
-        name: `Grade ${grade} Tincture of ${statName}`,
-        // Does it make the most sense to have this be the ability ID + item ID?
-        // From a sim standpoint, there's no reason to care about the potion's action ID, only
-        // the item ID and buff ID.
-        // For now, going with the same thing you'd see in an ACT log
-        id: id,
+        name,
+        id: 35106,
         itemId: itemId,
         type: 'ogcd',
         attackType: 'Item',
         animationLock: 1.1,
         potency: null,
+        cooldown: {
+            time: 270,
+        },
         activatesBuffs: [
             {
                 name: 'Medicated',
@@ -44,4 +41,8 @@ function makeTincture(grade: number, stat: RawStatKey, id: number, itemId: numbe
     };
 }
 
-export const tincture8mind = makeTincture(8, 'mind', 0x20FCFAB, 39731, 0.08, 209);
+export const tincture8mind = makePotion('Grade 8 Tincture of Mind', 'mind', 39731, 0.1, 262);
+export const gemdraught1str = makePotion('Grade 1 Gemdraught of Strength', 'strength', 44157, 0.1, 351);
+export const gemdraught1dex = makePotion('Grade 1 Gemdraught of Dexterity', 'dexterity', 44158, 0.1, 351);
+export const gemdraught1int = makePotion('Grade 1 Gemdraught of Intelligence', 'intelligence', 44160, 0.1, 351);
+export const gemdraught1mind = makePotion('Grade 1 Gemdraught of Mind', 'mind', 44161, 0.1, 351);
