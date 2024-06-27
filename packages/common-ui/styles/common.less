@@ -2520,7 +2520,7 @@ buff-settings-area {
         overflow-x: hidden;
         text-overflow: ellipsis;
         line-height: initial;
-        width: 30px;
+        flex-shrink: 1;
         flex-grow: 1;
       }
     }
@@ -2576,7 +2576,7 @@ buff-settings-area {
 
       &[col-id='ability'] {
         min-width: 150px;
-        width: 400px;
+        max-width: 400px;
       }
 
       &[col-id='unbuffed-pot'] {
