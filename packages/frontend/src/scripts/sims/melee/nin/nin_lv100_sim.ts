@@ -26,7 +26,7 @@ export interface NinSettingsExternal extends ExternalCycleSettings<NinSettings> 
 export const ninSpec: SimSpec<NinSim, NinSettingsExternal> = {
     stub: "nin-sim-lv100",
     displayName: "NIN Sim",
-    description: 'Simulates a NIN rotation using level 100 abilities/traits',
+    description: 'Simulates a NIN rotation using level 100 abilities/traits.',
     makeNewSimInstance: function (): NinSim {
         return new NinSim();
     },
