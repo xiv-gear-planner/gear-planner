@@ -80,7 +80,7 @@ class NINGauge {
                     barOuter.style.border = '1px solid black';
 
                     const barInner = document.createElement('div');
-                    barInner.style.backgroundColor = ninki > 50 ? '#DB5858' : '#995691';
+                    barInner.style.backgroundColor = ninki >= 50 ? '#DB5858' : '#995691';
                     barInner.style.width = `${ninki}%`;
                     barInner.style.height = '100%';
                     barOuter.appendChild(barInner);
