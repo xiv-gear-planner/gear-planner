@@ -49,8 +49,8 @@ async function xFetchInternal(...params: Parameters<typeof fetch>): Promise<Resp
 }
 
 export async function xivApiSingle(sheet: string, id: number) {
-    const query = `https://xivapi.com/${sheet}/${id}`;
-    return xivApiFetch(query).then(response => response.json());
+    const query = `https://beta.xivapi.com/api/1/sheet/${sheet}/${id}`;
+    return xivApiFetch(query).then(response => response.json()['fields']);
 }
 
 export async function xivApiSingleCols<Columns extends readonly string[]>(sheet: string, id: number, cols: Columns): Promise<{
