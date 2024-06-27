@@ -173,7 +173,7 @@ export class DataManager implements DataManagerIntf {
             sheet: 'Item',
             columns: [
                 // Basic item properties
-                'ID', 'Icon', 'Name', 'LevelItem',
+                'ID', 'IconID', 'Name', 'LevelItem',
                 // Equip slot restrictions
                 'ClassJobCategory', 'EquipSlotCategory', 'IsUnique',
                 // Stats

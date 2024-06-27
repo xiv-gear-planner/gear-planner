@@ -20,7 +20,7 @@ describe('Datamanager', () => {
         eq(codexOfAscension.id, 40176);
         eq(codexOfAscension.name, 'Codex of Ascension');
         // TODO: fix the extra / ?
-        eq(codexOfAscension.iconUrl.toString(), 'https://xivapi.com//i/033000/033387_hr1.png');
+        eq(codexOfAscension.iconUrl.toString(), 'https://beta.xivapi.com/api/1/asset/ui/icon/033000/033387_hr1.tex?format=png');
 
         // XivCombatItem props
         deq(codexOfAscension.stats, new RawStats({

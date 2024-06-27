@@ -734,7 +734,7 @@ export class XivApiGearInfo implements GearItem {
         this.id = data['ID'];
         this.name = data['Name'];
         this.ilvl = data['LevelItem'];
-        this.iconUrl = xivApiIcon(data['Icon']);
+        this.iconUrl = new URL(xivApiIconUrl(data['IconID'], true));
         this.Stats = data['Stats'] ? data['Stats'] : [];
         const eqs = data['EquipSlotCategory'];
         if (!eqs) {
@@ -1106,7 +1106,7 @@ export function processRawMateriaInfo(data: object): Materia[] {
         out.push({
             name: itemName,
             id: itemId,
-            iconUrl: new URL(xivApiIconUrl(itemFields['Icon']['id'])),
+            iconUrl: new URL(xivApiIconUrl(itemFields['Icon']['id'], true)),
             stats: stats,
             primaryStat: stat,
             primaryStatValue: stats[stat],
