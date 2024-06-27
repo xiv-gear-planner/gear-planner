@@ -13,7 +13,7 @@ async function getDataFor(statusId: number): Promise<XivApiStatusData> {
         return statusIconMap.get(statusId);
     }
     else {
-        const dataPromise = xivApiSingleCols('Status', statusId, ['ID', 'IconID', "MaxStacks"] as const);
+        const dataPromise = xivApiSingleCols('Status', statusId, ['ID', 'Icon', "MaxStacks"] as const);
         const out: Promise<XivApiStatusData> = dataPromise.then(data => {
             return {
                 ID: data.ID as number,
@@ -23,7 +23,7 @@ async function getDataFor(statusId: number): Promise<XivApiStatusData> {
                     const effectiveStackCount = Math.max(1, Math.min(data.MaxStacks as number, stacks));
                     // 0/1 stack uses the base value, 2 stacks is base+1, 3 is base+2, etc.
                     const stackOffset = effectiveStackCount - 1;
-                    const iconId = (data.IconID as number) + stackOffset;
+                    const iconId = (data.Icon['id'] as number) + stackOffset;
                     return xivApiIconUrl(iconId, highRes);
                 }
             } satisfies XivApiStatusData;

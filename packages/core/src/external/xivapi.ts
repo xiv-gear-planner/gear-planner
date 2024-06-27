@@ -50,21 +50,21 @@ async function xFetchInternal(...params: Parameters<typeof fetch>): Promise<Resp
 
 export async function xivApiSingle(sheet: string, id: number) {
     const query = `https://beta.xivapi.com/api/1/sheet/${sheet}/${id}`;
-    return xivApiFetch(query).then(response => response.json()['fields']);
+    return xivApiFetch(query).then(response => response.json()).then(response => response['fields']);
 }
 
 export async function xivApiSingleCols<Columns extends readonly string[]>(sheet: string, id: number, cols: Columns): Promise<{
     [K in Columns[number]]: unknown;
 }> {
-    const query = `https://xivapi.com/${sheet}/${id}?Columns=${cols.join(',')}`;
-    return xivApiFetch(query).then(response => response.json());
+    const query = `https://beta.xivapi.com/api/1/sheet/${sheet}/${id}?fields=${cols.join(',')}`;
+    return xivApiFetch(query).then(response => response.json()).then(response => response['fields']);
 }
 
 export async function xivApiGet<RequestType extends (XivApiListRequest | XivApiSearchRequest)>(request: RequestType):
     Promise<XivApiResponse<RequestType>> {
     let query: string;
     if (request.requestType === 'list') {
-        query = `https://xivapi.com/${request.sheet}?`;
+        return xivApiGetList(request) as Promise<XivApiResponse<RequestType>>;
     }
     else {
         query = `https://xivapi.com/search?indexes=${request.sheet}`;
@@ -92,6 +92,36 @@ export async function xivApiGet<RequestType extends (XivApiListRequest | XivApiS
         results.push(...(await additionalData)['Results']);
     }
     return {Results: results};
+}
+
+export async function xivApiGetList<RequestType extends XivApiListRequest>(request: RequestType): Promise<XivApiResponse<RequestType>> {
+    // TODO: raise limit after testing
+    let query = `https://beta.xivapi.com/api/1/sheet/${request.sheet}?limit=250`;
+    if (request.columns?.length > 0) {
+        query += '&fields=' + request.columns.join(',');
+    }
+    let after = 0;
+    const results = [];
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+        const responseRaw = await xivApiFetch(query + '&after=' + after)
+            .then(response => response.json());
+            const response = responseRaw['rows'];
+        if (response.length > 0) {
+            after += response.length;
+            results.push(...response);
+        }
+        else {
+            break;
+        }
+    }
+    return {Results: results.map(resultRow => {
+            const out = {...resultRow['fields']};
+            if (request.columns.includes('ID')) {
+                out['ID'] = resultRow['row_id'];
+            }
+            return out;
+        })};
 
 }
 
@@ -101,9 +131,9 @@ export function xivApiIconUrl(iconId: number, highRes: boolean = false) {
     // Get the xivapi directory, e.g. 19581 -> 019000
     const directory = asStr.substring(0, 3) + '000';
     if (highRes) {
-        return `https://xivapi.com/i/${directory}/${asStr}_hr1.png`;
+        return `https://beta.xivapi.com/api/1/asset/ui/icon/${directory}/${asStr}_hr1.tex?format=png`;
     }
     else {
-        return `https://xivapi.com/i/${directory}/${asStr}.png`;
+        return `https://beta.xivapi.com/api/1/asset/ui/icon/${directory}/${asStr}.tex?format=png`;
     }
 }

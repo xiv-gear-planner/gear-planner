@@ -20,6 +20,7 @@ export const MATERIA_LEVEL_MIN_RELEVANT = 5;
 /**
  * Max supported materia level.
  */
+// TODO: Dawntrail
 export const MATERIA_LEVEL_MAX_NORMAL = 10;
 /**
  * Max supported materia level for overmeld slots.

@@ -14,7 +14,7 @@ export function queryBaseParams() {
     return xivApiGet({
         requestType: "list",
         sheet: 'BaseParam',
-        columns: ['ID', 'Name', '1HWpn%', '2HWpn%', 'Bracelet%', 'Chest%', 'Earring%', 'Feet%', 'Hands%', 'Head%', 'Legs%', 'Necklace%', 'OH%', 'Ring%'] as const
+        columns: ['ID', 'Name', 'OneHandWeaponPercent', 'TwoHandWeaponPercent', 'BraceletPercent', 'ChestPercent', 'EarringPercent', 'FeetPercent', 'HandsPercent', 'HeadPercent', 'LegsPercent', 'NecklacePercent', 'OHPercent', 'RingPercent'] as const
     }).then(data => {
         console.log(`Got ${data.Results.length} BaseParams`);
         return data;
@@ -148,18 +148,18 @@ export class DataManager implements DataManagerIntf {
             }>((baseParams, value) => {
                 // Each individual item also gets converted
                 baseParams[BaseParamToStatKey[value.Name as RelevantBaseParam]] = {
-                    Body: value['Chest%'] as number,
-                    Ears: value['Earring%'] as number,
-                    Feet: value['Feet%'] as number,
-                    Hand: value['Hands%'] as number,
-                    Head: value['Head%'] as number,
-                    Legs: value['Legs%'] as number,
-                    Neck: value['Necklace%'] as number,
-                    OffHand: value['OH%'] as number,
-                    Ring: value['Ring%'] as number,
-                    Weapon2H: value['2HWpn%'] as number,
-                    Weapon1H: value['1HWpn%'] as number,
-                    Wrist: value['Bracelet%'] as number
+                    Body: value['ChestPercent'] as number,
+                    Ears: value['EarringPercent'] as number,
+                    Feet: value['FeetPercent'] as number,
+                    Hand: value['HandsPercent'] as number,
+                    Head: value['HeadPercent'] as number,
+                    Legs: value['LegsPercent'] as number,
+                    Neck: value['NecklacePercent'] as number,
+                    OffHand: value['OHPercent'] as number,
+                    Ring: value['RingPercent'] as number,
+                    Weapon2H: value['TwoHandWeaponPercent'] as number,
+                    Weapon1H: value['OneHandWeaponPercent'] as number,
+                    Wrist: value['BraceletPercent'] as number
                 };
                 return baseParams;
             }, {});
@@ -173,7 +173,7 @@ export class DataManager implements DataManagerIntf {
             sheet: 'Item',
             columns: [
                 // Basic item properties
-                'ID', 'IconHD', 'Name', 'LevelItem',
+                'ID', 'Icon', 'Name', 'LevelItem',
                 // Equip slot restrictions
                 'ClassJobCategory', 'EquipSlotCategory', 'IsUnique',
                 // Stats
@@ -249,13 +249,13 @@ export class DataManager implements DataManagerIntf {
         });
 
         // Materia
-        const matCols = ['ID', 'Value*', 'BaseParam.ID'];
-        for (let i = 0; i < MATERIA_LEVEL_MAX_NORMAL; i++) {
-            matCols.push(`Item${i}.Name`);
-            // TODO: normal or HD icon?
-            matCols.push(`Item${i}.IconHD`);
-            matCols.push(`Item${i}.ID`);
-        }
+        const matCols = ['ID', 'Item[].Name', 'Item[].Icon', 'BaseParam', 'Value'];
+        // for (let i = 0; i < MATERIA_LEVEL_MAX_NORMAL; i++) {
+        //     matCols.push(`Item${i}.Name`);
+        //     // TODO: normal or HD icon?
+        //     matCols.push(`Item${i}.Icon`);
+        //     matCols.push(`Item${i}.ID`);
+        // }
         console.log("Loading materia");
         const materiaPromise = xivApiGet({
             requestType: 'list',
@@ -268,7 +268,9 @@ export class DataManager implements DataManagerIntf {
                 if (data) {
                     console.log(`Got ${data.Results.length} Materia Types`);
                     this._allMateria = data.Results
-                        .filter(i => i['Value' + (MATERIA_LEVEL_MAX_NORMAL - 1)])
+                        // TODO: if a materia is discontinued but should still be available for old
+                        // sets, this will not work.
+                        .filter(i => i['Value'][MATERIA_LEVEL_MAX_NORMAL - 1])
                         .flatMap(item => {
                             return processRawMateriaInfo(item);
                         });

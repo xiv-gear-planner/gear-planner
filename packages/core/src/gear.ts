@@ -50,7 +50,7 @@ import {
     StatBonus,
     XivCombatItem
 } from "@xivgear/xivmath/geartypes";
-import {xivApiIcon} from "./external/xivapi";
+import {xivApiIcon, xivApiIconUrl} from "./external/xivapi";
 import {IlvlSyncInfo} from "./datamanager";
 import {XivApiStat, xivApiStatMapping} from "./external/xivapitypes";
 import {Inactivitytimer} from "./util/inactivitytimer";
@@ -734,7 +734,7 @@ export class XivApiGearInfo implements GearItem {
         this.id = data['ID'];
         this.name = data['Name'];
         this.ilvl = data['LevelItem'];
-        this.iconUrl = xivApiIcon(data['IconHD']);
+        this.iconUrl = xivApiIcon(data['Icon']);
         this.Stats = data['Stats'] ? data['Stats'] : [];
         const eqs = data['EquipSlotCategory'];
         if (!eqs) {
@@ -1092,19 +1092,21 @@ export class XivApiFoodInfo implements FoodItem {
 export function processRawMateriaInfo(data: object): Materia[] {
     const out: Materia[] = [];
     for (let i = MATERIA_LEVEL_MIN_RELEVANT - 1; i < MATERIA_LEVEL_MAX_NORMAL; i++) {
-        const itemData = data['Item' + i];
-        const itemName = itemData["Name"];
+        const itemData = data['Item'][i];
+        const itemFields = itemData['fields'];
+        const itemId = data['Item']['row_id'];
+        const itemName = itemFields["Name"];
         const stats = new RawStats();
-        const stat = statById(data['BaseParam']['ID']);
+        const stat = statById(data['BaseParam']['row_id']);
         if (!stat || !itemName) {
             continue;
         }
-        stats[stat] = data['Value' + i];
+        stats[stat] = data['Value'][i];
         const grade = (i + 1);
         out.push({
             name: itemName,
-            id: itemData["ID"],
-            iconUrl: new URL("https://xivapi.com/" + itemData["IconHD"]),
+            id: itemId,
+            iconUrl: new URL(xivApiIconUrl(itemFields['Icon']['id'])),
             stats: stats,
             primaryStat: stat,
             primaryStatValue: stats[stat],
