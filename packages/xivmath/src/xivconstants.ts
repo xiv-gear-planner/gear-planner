@@ -84,7 +84,7 @@ export type RaceName = 'Duskwight' | 'Wildwood'
  * Supported levels.
  */
 export const SupportedLevels = [70, 80, 90, 100] as const;
-export const CURRENT_MAX_LEVEL = 90 satisfies SupportedLevel;
+export const CURRENT_MAX_LEVEL: SupportedLevel = 100;
 export type SupportedLevel = typeof SupportedLevels[number];
 
 
@@ -502,15 +502,14 @@ export const LEVEL_ITEMS: Record<SupportedLevel, LevelItemInfo> = {
     },
     // DAWNTRAIL TODO: replace with real values once known
     100: {
-        // Would expect 570, but it has those 560 scaling artifacts
-        minILvl: 560,
+        minILvl: 670,
         maxILvl: 999,
         minILvlFood: 570,
         maxILvlFood: 999,
         minMateria: 9,
         maxMateria: 12,
         defaultDisplaySettings: {
-            minILvl: 640,
+            minILvl: 700,
             maxILvl: 999,
             minILvlFood: 640,
             maxILvlFood: 999,
@@ -709,13 +708,15 @@ export const ARTIFACT_ITEM_LEVELS = [
 export const BASIC_TOME_GEAR_ILVLS = [
     310,
     440,
-    570
+    570,
+    700
 ];
 
 export const RAID_TIER_ILVLS = [
     340, 370, 400,
     470, 500, 530,
-    600, 630, 660
+    600, 630, 660,
+    730, 760, 790
 ] as const as readonly number[];
 
 export function formatAcquisitionSource(source: GearAcquisitionSource): string | null {
