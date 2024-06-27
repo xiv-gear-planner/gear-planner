@@ -520,6 +520,18 @@ export type BuffEffects = {
 export type BuffController = {
     removeStatus(buff: Buff): void;
     removeSelf(): void;
+    /** Modify the number of stacks of a `buff` by `stacksDelta` amount. e.g. -1 = remove 1 stack. */
+    modifyStacks(buff: Buff, stacksDelta: number): void;
+    /** Modify the number of stacks of this buff by `stacksDelta` amount. e.g. -1 = remove 1 stack. */
+    modifyStacksSelf(stacksDelta: number): void;
+    /** Increase the number of stacks of a `buff` by `stacks` amount.*/
+    addStacks(buff: Buff, stacks: number): void;
+    /** Increase the number of stacks of this buff by `stacks` amount.*/
+    addStacksSelf(stacks: number): void;
+    /** Decrease the number of stacks of a `buff` by `stacks` amount.*/
+    subtractStacks(buff: Buff, stacks: number): void;
+    /** Decrease the number of stacks of this buff by `stacks` amount.*/
+    subtractStacksSelf(stacks: number): void;
 };
 
 export type BaseBuff = Readonly<{

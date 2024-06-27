@@ -235,7 +235,11 @@ export type MultiCycleSettings = {
     /**
      * Whether to use auto-attacks.
      */
-    readonly useAutos: boolean
+    readonly useAutos: boolean,
+    /**
+     * Whether to hide dividers indicating the start and end of a cycle
+     */
+    readonly hideCycleDividers?: boolean
 }
 
 export type CycleFunction = (cycle: CycleContext) => void
@@ -392,6 +396,10 @@ export class CycleProcessor {
      */
     readonly useAutos: boolean;
     /**
+     * Whether to show dividers indicating the start and end of a cycle
+     */
+    readonly hideCycleDividers: boolean
+    /**
      * Cooldown tracker.
      */
     readonly cdTracker: CooldownTracker;
@@ -417,6 +425,7 @@ export class CycleProcessor {
         this.stats = settings.stats;
         this.manuallyActivatedBuffs = settings.manuallyActivatedBuffs ?? [];
         this.useAutos = settings.useAutos;
+        this.hideCycleDividers = settings.hideCycleDividers;
         this.comboTrackerMap = new Map();
         this.aaAbility = {
             attackType: 'Auto-attack',
@@ -475,12 +484,30 @@ export class CycleProcessor {
      * @param buff The buff to cancel
      */
     removeBuff(buff: Buff) {
-        const activeUsages = this.getActiveBuffsData().filter(buffHist => {
-            return buffHist.buff === buff;
-        });
+        const activeUsages = this.getActiveBuffsData().filter(buffHist => buffHist.buff.name === buff.name);
         activeUsages.forEach(au => {
             au.end = this.currentTime;
             au.forceEnd = true;
+        });
+    }
+
+    /**
+     * Modifies the stack value for a given buff. The stack value provided should be the modified amount and not the final amount
+     * 
+     * @param buff The Buff
+     * @param stacks The stack modification to add
+     */
+    modifyBuffStacks(buff: Buff, stacksDelta: number) {
+        const activeUsages = this.getActiveBuffsData().filter(buffHist => buffHist.buff.name === buff.name);
+        this.removeBuff(buff);
+        activeUsages.forEach(au => {
+            const newStacks = au.buff.stacks + stacksDelta;
+            if (newStacks > 0) {
+                this.activateBuff({
+                    ...au.buff,
+                    stacks: au.buff.stacks + stacksDelta,
+                });
+            }
         });
     }
 
@@ -588,6 +615,17 @@ export class CycleProcessor {
         const queryTime = this.currentTime;
         this.recheckAutoBuffs();
         return this.buffHistory.filter(h => h.start <= queryTime && h.end > queryTime && !h.forceEnd);
+    }
+
+    /**
+     * Get the buff data for an active buff.
+     * 
+     * @param buff The buff
+     * @returns BuffUsage for the buff, or null if this buff is not active
+     */
+    protected getActiveBuffData(buff: Buff): BuffUsage {
+        const activeBuffData = this.getActiveBuffsData().find(bd => bd.buff === buff);
+        return activeBuffData ? {...activeBuffData} : null;
     }
 
     /**
@@ -798,6 +836,18 @@ export class CycleProcessor {
             //  be able to account for the time shift that occurs when the pre-pull offset is applied.
             this.use(ability);
         }
+    }
+
+    /**
+     * Determines whether or not an Off-GCD ability can be used without clipping the GCD
+     * 
+     * @param action The Off-GCD ability to check for
+     * @returns whether or not this ability can be used without clipping the GCD
+     */
+    canUseWithoutClipping(action: OgcdAbility) {
+        const readyAt = this.cdTracker.statusOf(action).readyAt.absolute;
+        const maxDelayAt = this.nextGcdTime - (action.animationLock ?? STANDARD_ANIMATION_LOCK);
+        return readyAt <= Math.min(maxDelayAt, this.totalTime);
     }
 
     /**
@@ -1081,10 +1131,12 @@ export class CycleProcessor {
         const ctx = new CycleContext(this, cycleTime);
         // console.debug('Delta', delta);
         // TODO: make some kind of 'marker' for this
-        this.allRecords.push({
-            label: "-- Start of Cycle --",
-            usedAt: this.currentTime,
-        });
+        if (!this.hideCycleDividers) {
+            this.allRecords.push({
+                label: "-- Start of Cycle --",
+                usedAt: this.currentTime,
+            });
+        }
         const cycleInfo: CycleInfo = {
             cycleNum: this.currentCycle,
             start: this.currentTime,
@@ -1093,10 +1145,12 @@ export class CycleProcessor {
         this.cycles.push(cycleInfo);
         cycleFunction(ctx);
         ctx.recheckPrepull();
-        this.allRecords.push({
-            label: "-- End of Cycle --",
-            usedAt: this.currentTime,
-        });
+        if (!this.hideCycleDividers) {
+            this.allRecords.push({
+                label: "-- End of Cycle --",
+                usedAt: this.currentTime,
+            });
+        }
         cycleInfo.end = this.currentTime;
         this.currentCycle++;
     }
@@ -1135,7 +1189,25 @@ export class CycleProcessor {
             },
             removeSelf(): void {
                 this.removeStatus(buff);
-            }
+            },
+            modifyStacks(buff: Buff, stacksDelta: number): void {
+                outer.modifyBuffStacks(buff, stacksDelta);
+            },
+            modifyStacksSelf(stacksDelta: number): void {
+                this.modifyStacks(buff, stacksDelta);
+            },
+            addStacks(buff: Buff, stacks: number): void {
+                this.modifyStacks(buff, stacks);
+            },
+            addStacksSelf(stacks: number): void {
+                this.modifyStacks(buff, stacks);
+            },
+            subtractStacks(buff: Buff, stacks: number): void {
+                this.modifyStacks(buff, stacks * -1);
+            },
+            subtractStacksSelf(stacks: number): void {
+                this.modifyStacks(buff, stacks * -1);
+            },
         }
     }
 

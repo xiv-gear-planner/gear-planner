@@ -19,10 +19,10 @@ You can try it out [here](https://xivgear.app).
 ## Help Wanted
 
 We are still looking for people to write simulations for the following jobs:
-- All melee classes except RPR
+- All melee classes except RPR and NIN
 - All tank classes except PLD
 - All casters
-- All physical ranged
+- All physical ranged except DNC
 
 ## User Guides
 
