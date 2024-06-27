@@ -49,14 +49,14 @@ async function xFetchInternal(...params: Parameters<typeof fetch>): Promise<Resp
 }
 
 export async function xivApiSingle(sheet: string, id: number) {
-    const query = `https://beta.xivapi.com/api/1/sheet/${sheet}/${id}`;
+    const query = `https://beta.xivapi.com/api/1/sheet/${sheet}/${id}?version=6.58x2`;
     return xivApiFetch(query).then(response => response.json()).then(response => response['fields']);
 }
 
 export async function xivApiSingleCols<Columns extends readonly string[]>(sheet: string, id: number, cols: Columns): Promise<{
     [K in Columns[number]]: unknown;
 }> {
-    const query = `https://beta.xivapi.com/api/1/sheet/${sheet}/${id}?fields=${cols.join(',')}`;
+    const query = `https://beta.xivapi.com/api/1/sheet/${sheet}/${id}?fields=${cols.join(',')}&version=6.58x2`;
     return xivApiFetch(query).then(response => response.json()).then(response => response['fields']);
 }
 
@@ -96,7 +96,7 @@ export async function xivApiGet<RequestType extends (XivApiListRequest | XivApiS
 
 export async function xivApiGetList<RequestType extends XivApiListRequest>(request: RequestType): Promise<XivApiResponse<RequestType>> {
     // TODO: raise limit after testing
-    let query = `https://beta.xivapi.com/api/1/sheet/${request.sheet}?limit=250`;
+    let query = `https://beta.xivapi.com/api/1/sheet/${request.sheet}?limit=250&version=6.58x2`;
     if (request.columns?.length > 0) {
         query += '&fields=' + request.columns.join(',');
     }
