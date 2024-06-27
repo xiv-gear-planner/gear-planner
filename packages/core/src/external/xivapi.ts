@@ -100,10 +100,11 @@ export async function xivApiGetList<RequestType extends XivApiListRequest>(reque
     if (request.columns?.length > 0) {
         query += '&fields=' + request.columns.join(',');
     }
+    let remainingPages = request.pageLimit ?? 4;
     let after = 0;
     const results = [];
     // eslint-disable-next-line no-constant-condition
-    while (true) {
+    while (remainingPages-- > 0) {
         const responseRaw = await xivApiFetch(query + '&after=' + after)
             .then(response => response.json());
             const response = responseRaw['rows'];
