@@ -58,7 +58,7 @@ class NINCycleProcessor extends CycleProcessor {
         this.rotationState = new RotationState();
     }
 
-    getBuffIfActive(buff: Buff) {
+    getBuffIfActive(buff: Buff): Buff {
         return this.getActiveBuffs().find(b => b.name === buff.name);
     }
 
@@ -119,7 +119,7 @@ class NINCycleProcessor extends CycleProcessor {
         if (modified.id === Actions.AeolianEdge.id && this.gauge.kazematoi > 0) {
             modified = {
                 ...modified,
-                potency: modified.potency + 60,
+                potency: modified.potency + 100,
             }
         }
 
@@ -222,8 +222,9 @@ class NINCycleProcessor extends CycleProcessor {
             // Bhava becomes ZM with Higi buff
             if (this.getBuffIfActive(Buffs.Higi)) {
                 action = Actions.ZeshoMeppo;
-            } else if (this.cdTracker.canUse(Actions.Bunshin)) {
-                // If we don't have ZM but Bunshin is available, prioritize Bunshin
+            }
+            // If we don't have ZM but Bunshin is available, prioritize Bunshin
+            if (this.cdTracker.canUse(Actions.Bunshin)) {
                 action = Actions.Bunshin;
             }
             return this.useOgcd(action);
@@ -281,8 +282,16 @@ class NINCycleProcessor extends CycleProcessor {
     }
 
     useFillerGcd() {
-        // Use Phantom instantly if available (not always optimal)
-        if (this.getBuffIfActive(Buffs.PhantomReady)) {
+        const phantomBuff = this.getActiveBuffData(Buffs.PhantomReady);
+        const comboIsBetter = this.getBuffIfActive(Buffs.BunshinBuff) && (this.getBuffIfActive(Buffs.RaijuReady) || this.rotationState.combo === 2);
+        const nextBuffWindow = this.cdTracker.statusOf(Actions.KunaisBane).readyAt.absolute;
+        /**
+         * Use Phantom if:
+         *  - We would lose it if we tried to hold it for the next buff window OR
+         *  - Using a combo action would be more potency (AE or Raiju w/ Bunshin) OR
+         *  - We are in the middle of a burst window
+         */
+        if (phantomBuff && !comboIsBetter && (nextBuffWindow + 5 > phantomBuff.end || this.getBuffIfActive(Buffs.KunaisBaneBuff))) {
             this.usePhantom();
         } else {
             this.useCombo();

@@ -618,6 +618,17 @@ export class CycleProcessor {
     }
 
     /**
+     * Get the buff data for an active buff.
+     * 
+     * @param buff The buff
+     * @returns BuffUsage for the buff, or null if this buff is not active
+     */
+    protected getActiveBuffData(buff: Buff): BuffUsage {
+        const activeBuffData = this.getActiveBuffsData().find(bd => bd.buff === buff);
+        return activeBuffData ? {...activeBuffData} : null;
+    }
+
+    /**
      * Add a special text row to the output records.
      *
      * @param message The text
