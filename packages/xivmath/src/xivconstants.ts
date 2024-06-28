@@ -444,8 +444,8 @@ export const LEVEL_STATS: Record<SupportedLevel, LevelStats> = {
             other: 30.1,
         },
         mainStatPowerMod: {
-            // Tentative guess
-            Tank: 180,
+            // Verified per Mahdi
+            Tank: 190,
             // Tentative guess
             other: 225,
         }
