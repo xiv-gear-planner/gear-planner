@@ -192,7 +192,7 @@ export function mainStatMulti(levelStats: LevelStats, jobStats: JobData, mainsta
  * @param tenacity
  */
 export function tenacityDmg(levelStats: LevelStats, tenacity: number) {
-    return (1000 + fl(100 * (tenacity - levelStats.baseSubStat) / levelStats.levelDiv)) / 1000;
+    return (1000 + fl(112 * (tenacity - levelStats.baseSubStat) / levelStats.levelDiv)) / 1000;
 }
 
 /**
