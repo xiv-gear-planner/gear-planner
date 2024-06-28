@@ -437,7 +437,7 @@ export const LEVEL_STATS: Record<SupportedLevel, LevelStats> = {
         baseSubStat: 420,
         // Updated
         levelDiv: 2780,
-        // Tentative guess
+        // Verified
         hp: 4000,
         hpScalar: {
             Tank: 43,
