@@ -14,7 +14,7 @@ function makePotion(name: string, stat: RawStatKey, itemId: number, bonus: numbe
         itemId: itemId,
         type: 'ogcd',
         attackType: 'Item',
-        animationLock: 1.1,
+        animationLock: 0.6,
         potency: null,
         cooldown: {
             time: 270,
