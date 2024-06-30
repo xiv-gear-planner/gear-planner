@@ -157,7 +157,7 @@ export class WhmSheetSim extends BaseMultiCycleSim<WhmSheetSimResult, WhmNewShee
                     cycle.useUntil(filler, 90);
                     cycle.use(dia);
                     cycle.use(assize);
-                    if (cp.remainingtime > 60) {
+                    if (cp.remainingTime > 60) {
                         cycle.use(lily);
                         cycle.use(lily);
                         cycle.use(lily);
