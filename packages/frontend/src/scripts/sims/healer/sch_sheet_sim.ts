@@ -60,7 +60,7 @@ const baneful: OgcdAbility = {
         duration: 15,
         tickPotency: 140,
         // TODO verify
-        //id: #
+        id: 3883
     },
     attackType: "Ability"
 };
