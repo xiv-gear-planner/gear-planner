@@ -1,4 +1,4 @@
-import {GcdAbility, SimSettings, SimSpec} from "@xivgear/core/sims/sim_types";
+import {GcdAbility, OgcdAbility, SimSettings, SimSpec} from "@xivgear/core/sims/sim_types";
 import {CycleProcessor, CycleSimResult, ExternalCycleSettings, Rotation} from "@xivgear/core/sims/cycle_sim";
 import {BaseMultiCycleSim} from "../sim_processors";
 import {tincture8mind} from "@xivgear/core/sims/common/potion";
