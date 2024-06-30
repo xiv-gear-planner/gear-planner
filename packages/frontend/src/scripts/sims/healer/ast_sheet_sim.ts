@@ -76,7 +76,7 @@ const div: OgcdAbility = {
     attackType: "Ability",
 };*/
 
-const psyche: OgcdAbility = {
+const oracle: OgcdAbility = {
     type: 'ogcd',
     name: "Oracle",
     id: 37029,
