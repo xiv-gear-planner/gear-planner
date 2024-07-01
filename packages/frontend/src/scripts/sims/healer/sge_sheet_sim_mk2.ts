@@ -150,7 +150,6 @@ export class SgeSheetSim extends BaseMultiCycleSim<SgeSheetSimResult, SgeNewShee
             // Normal DoT
             cycleTime: 120,
             apply(cp: SageCycleProcessor) {
-                // TODO: make a setting for this
                 if (outer.settings.usePotion) {
                     cp.useOgcd(gemdraught1mind);
                 }
@@ -179,7 +178,6 @@ export class SgeSheetSim extends BaseMultiCycleSim<SgeSheetSimResult, SgeNewShee
             // Dot early refresh
             cycleTime: 120,
             apply(cp: SageCycleProcessor) {
-                // TODO: make a setting for this
                 if (outer.settings.usePotion) {
                     cp.useOgcd(gemdraught1mind);
                 }
