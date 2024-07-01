@@ -1,10 +1,16 @@
-import {FieldBoundCheckBox, labeledCheckbox, labeledRadioButton, makeActionButton} from "@xivgear/common-ui/components/util";
+import {
+    FieldBoundCheckBox,
+    labeledCheckbox,
+    labeledRadioButton,
+    makeActionButton
+} from "@xivgear/common-ui/components/util";
 import {closeModal} from "@xivgear/common-ui/modalcontrol";
 import {putShortLink} from "@xivgear/core/external/shortlink_server";
 import {CharacterGearSet} from "@xivgear/core/gear";
 import {BaseModal} from "@xivgear/common-ui/components/modal";
 import {makeUrl, VIEW_SET_HASH} from "@xivgear/core/nav/common_nav";
 import {GearPlanSheet} from "@xivgear/core/sheet";
+import {writeProxy} from "@xivgear/core/util/proxies";
 
 const SHEET_EXPORT_OPTIONS = ['Link to Whole Sheet', 'One Link for Each Set', 'Embed URL for Each Set', 'JSON for Whole Sheet'] as const;
 type SheetExportType = typeof SHEET_EXPORT_OPTIONS[number];
@@ -14,7 +20,7 @@ type SetExportType = typeof SET_EXPORT_OPTIONS[number];
 // TODO: warning for when you export a single set as a sheet
 
 export function startExport(sheet: GearPlanSheet | CharacterGearSet) {
-    let modal: ExportModal<never>;
+    let modal: ExportModal<string>;
     if (sheet instanceof GearPlanSheet) {
         modal = new SheetExportModal(sheet);
     }
@@ -28,14 +34,14 @@ export function startExport(sheet: GearPlanSheet | CharacterGearSet) {
 const DEFAULT_EXPORT_TEXT = 'Choose an export type from above, then click "Generate" below.\n\nYou can also click "Preview" to get an idea of what your sheet/set will look like after exporting.';
 
 class SimExportChooser extends HTMLElement {
-    constructor(sheet: GearPlanSheet) {
+    constructor(sheet: GearPlanSheet, callback: () => void) {
         super();
         const header = document.createElement('h3');
         header.textContent = 'Choose Sims to Export';
         this.appendChild(header);
         const inner = document.createElement('div');
         sheet.sims.forEach(sim => {
-            const cb = new FieldBoundCheckBox(sim.settings, 'includeInExport');
+            const cb = new FieldBoundCheckBox(writeProxy(sim.settings, callback), 'includeInExport');
             const cbFull = labeledCheckbox(sim.displayName, cb);
             inner.appendChild(cbFull);
         });
@@ -50,6 +56,7 @@ abstract class ExportModal<X extends string> extends BaseModal {
     private varButtonAction = (ev: MouseEvent) => {
         console.error("This should not happen!");
     };
+    private _selectedOption: X;
 
     protected constructor(title: string, exportOptions: readonly X[], sheet: GearPlanSheet) {
         super();
@@ -69,7 +76,7 @@ abstract class ExportModal<X extends string> extends BaseModal {
             const labeled = labeledRadioButton(opt, htmlInputElement);
             fieldset.appendChild(labeled);
             htmlInputElement.addEventListener('change', ev => {
-                this.onSelect(ev.target['value']);
+                this.selectedOption = ev.target['value'];
             })
         });
 
@@ -83,15 +90,23 @@ abstract class ExportModal<X extends string> extends BaseModal {
         this.variableButton = makeActionButton('PLACEHOLDER', (ev) => this.varButtonAction(ev));
         this.contentArea.appendChild(this.textBox);
 
-        const chooser = new SimExportChooser(sheet);
+        const chooser = new SimExportChooser(sheet, () => this.refreshSelection());
         this.contentArea.appendChild(chooser);
 
         this.addButton(this.variableButton);
         this.addButton(previewButton);
         this.addButton(closeButton);
 
-        this.onSelect(exportOptions[0]);
+        this.selectedOption = exportOptions[0];
+    }
 
+    private get selectedOption(): X {
+        return this._selectedOption;
+    }
+
+    private set selectedOption(value: X) {
+        this._selectedOption = value;
+        this.refreshSelection();
     }
 
     abstract doExport(selectedType: X): Promise<string>;
@@ -105,7 +120,8 @@ abstract class ExportModal<X extends string> extends BaseModal {
         window.open(this.previewUrl, '_blank');
     }
 
-    async onSelect(selectedType: X) {
+    async refreshSelection() {
+        const selectedType = this.selectedOption;
         this.textValue = '';
         if (this.exportInstantly(selectedType)) {
             const content = await this.doExport(selectedType);
