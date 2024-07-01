@@ -850,10 +850,6 @@ export abstract class BluSim<_BluCycleSimResult, _BluSimSettings>
         super("BLU", settings);
     }
 
-    get useAutosByDefault(): boolean {
-        return false;
-    }
-
     makeDefaultSettings(): BluSimSettings {
         return {
             dpsMimicryEnabled: true,

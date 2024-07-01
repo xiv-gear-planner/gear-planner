@@ -1,4 +1,4 @@
-import {JobName} from "@xivgear/xivmath/xivconstants";
+import {JOB_DATA, JobName} from "@xivgear/xivmath/xivconstants";
 import {CycleSettings} from "@xivgear/core/sims/cycle_settings";
 import {CharacterGearSet} from "@xivgear/core/gear";
 import {cycleSettingsGui} from "./components/cycle_settings_components";
@@ -146,14 +146,12 @@ export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, Inter
 
     /**
      * Whether or not autoattacks should be enabled by default for ths sim.
+     *
+     * The default implementation returns false for healers and casters, true for everyone else.
      */
     get useAutosByDefault(): boolean {
-        // future TODO: flip this when 7.0 drops.
-        // Not changing now such as to not cause confusion with existing sheets.
-        // Also, this should arguably be added as a property to the job data itself.
-        // const jobData = JOB_DATA[this.job];
-        // return jobData.role !== 'Healer' && jobData.role !== 'Caster';
-        return true;
+        const jobData = JOB_DATA[this.job];
+        return jobData.role !== 'Healer' && jobData.role !== 'Caster';
     }
 
     /**
