@@ -48,6 +48,7 @@ const pom: OgcdAbility = {
             effects: {
                 haste: 20,
             },
+            statusId: 157
         }
     ],
     attackType: "Ability"
