@@ -548,6 +548,17 @@ export class CycleProcessor {
     }
 
     /**
+     * The number of remaining GCDs at the given GCD speed, assuming current stats (for things like haste).
+     * Does not perform any rounding, so 0.5 indicates that half of a GCD will fit into the remaining time.
+     *
+     * @param ability The ability to use as a basis for calculating GCD time and applicable buffs.
+     */
+    remainingGcds(ability: GcdAbility) {
+        const adjustedGcdTime = this.gcdTime(ability, this.getCombinedEffectsFor(ability).combinedEffects);
+        return this.remainingGcdTime / adjustedGcdTime;
+    }
+
+    /**
      * Manually mark a buff as being active now
      *
      * @param buff The buff
