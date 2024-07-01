@@ -520,7 +520,8 @@ export const LEVEL_ITEMS: Record<SupportedLevel, LevelItemInfo> = {
         minMateria: 9,
         maxMateria: 12,
         defaultDisplaySettings: {
-            minILvl: 700,
+            // Raise this when more gear is available
+            minILvl: 680,
             maxILvl: 999,
             minILvlFood: 640,
             maxILvlFood: 999,
