@@ -392,6 +392,7 @@ describe('Cycle sim processor', () => {
     it('produces the correct results', async () => {
         // Initialize
         const inst: TestMultiCycleSim = testSimSpec.makeNewSimInstance();
+        inst.cycleSettings.useAutos = true;
         inst.cycleSettings.totalTime = 30;
         // Enable buffs
         setPartyBuffEnabled(inst, Dokumori, true);
