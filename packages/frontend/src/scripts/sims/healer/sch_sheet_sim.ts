@@ -6,9 +6,9 @@ import {BaseMultiCycleSim} from "../sim_processors";
 
 const filler: GcdAbility = {
     type: 'gcd',
-    name: "Broil",
-    id: 16541,
-    potency: 295,
+    name: "Broil IV",
+    id: 25865,
+    potency: 310,
     attackType: "Spell",
     gcd: 2.5,
     cast: 1.5
@@ -16,7 +16,7 @@ const filler: GcdAbility = {
 
 const chain: OgcdAbility = {
     type: 'ogcd',
-    name: "Chain",
+    name: "Chain Strategem",
     id: 7436,
     activatesBuffs: [Chain],
     potency: null,
@@ -43,12 +43,26 @@ const bio: GcdAbility = {
     potency: 0,
     dot: {
         duration: 30,
-        tickPotency: 70,
+        tickPotency: 75,
         // TODO verify
         id: 3089
     },
     attackType: "Spell",
     gcd: 2.5,
+};
+
+const baneful: OgcdAbility = {
+    type: 'ogcd',
+    name: "Baneful Impaction",
+    id: 37012,
+    potency: 0,
+    dot: {
+        duration: 15,
+        tickPotency: 140,
+        // TODO verify
+        id: 3883
+    },
+    attackType: "Ability"
 };
 
 const ed: OgcdAbility = {
@@ -123,22 +137,22 @@ export class SchSheetSim extends BaseMultiCycleSim<SchSheetSimResult, SchNewShee
                     cycle.useGcd(filler);
                     cycle.useOgcd(ed);
                     cycle.useGcd(filler); //Aetherflow for MP and refreshing EDs
-                    // We have the extra 3 from dissipation on 0 min, 4 min, 6 min, 10 min, etc
-                    if (cycle.cycleNumber % 3 !== 1) {
-                        cycle.useGcd(filler);
-                        cycle.useOgcd(ed);
-                        cycle.useGcd(filler);
-                        cycle.useOgcd(ed);
-                        cycle.useGcd(filler);
-                        cycle.useOgcd(ed);
-                    }
+                    cycle.useGcd(filler);
+                    cycle.useOgcd(baneful);
+                    cycle.useGcd(filler);
+                    cycle.useOgcd(ed);
+                    cycle.useGcd(filler);
+                    cycle.useOgcd(ed);
+                    cycle.useGcd(filler);
+                    cycle.useOgcd(ed);
                     cycle.useUntil(filler, 30);
                     cycle.useGcd(bio);
                     cycle.useUntil(filler, 60);
                     cycle.useGcd(bio);
 
-                    // If we're on the 3/9/15 diss, and there isn't enough time for another burst window, blow them immediately
-                    if (cycle.cycleNumber % 3 === 1 && cp.remainingTime < 70) {
+                    // If we're on the 3/9/15 diss, blow them immediately and AF right after
+                    // OR if we're on the 5/11/17 minute aetherflow, blow them and diss right before buffs
+                    if (cycle.cycleNumber % 3 === 1 || cycle.cycleNumber % 3 === 2) {
                         cycle.useGcd(filler);
                         cycle.useOgcd(ed);
                         cycle.useGcd(filler);

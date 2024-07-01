@@ -1,3 +1,4 @@
+import {Divination} from "@xivgear/core/sims/buffs";
 import {GcdAbility, OgcdAbility, SimSettings, SimSpec} from "@xivgear/core/sims/sim_types";
 import {CycleProcessor, CycleSimResult, ExternalCycleSettings, Rotation} from "@xivgear/core/sims/cycle_sim";
 import {BaseMultiCycleSim} from "../sim_processors";
@@ -7,8 +8,8 @@ import {BuffSettingsExport} from "@xivgear/core/sims/common/party_comp_settings"
 const filler: GcdAbility = {
     id: 25871,
     type: 'gcd',
-    name: "Malefic",
-    potency: 250,
+    name: "Fall Malefic",
+    potency: 270,
     attackType: "Spell",
     gcd: 2.5,
     cast: 1.5
@@ -17,11 +18,11 @@ const filler: GcdAbility = {
 const combust: GcdAbility = {
     id: 16554,
     type: 'gcd',
-    name: "Combust",
+    name: "Combust III",
     potency: 0,
     dot: {
         id: 2041,
-        tickPotency: 55,
+        tickPotency: 70,
         duration: 30
     },
     attackType: "Spell",
@@ -40,11 +41,23 @@ const lord: OgcdAbility = {
     id: 7444,
     type: 'ogcd',
     name: "Lord of Crowns",
-    potency: 250,
+    potency: 400,
     attackType: "Ability"
 };
 
-const astrodyne: OgcdAbility = {
+const div: OgcdAbility = {
+    type: 'ogcd',
+    name: "Divination",
+    id: 16552,
+    activatesBuffs: [Divination],
+    potency: null,
+    attackType: "Ability",
+    cooldown: {
+        time: 120
+    }
+};
+
+/*const astrodyne: OgcdAbility = {
     id: 25870,
     name: "Astrodyne",
     type: "ogcd",
@@ -61,6 +74,14 @@ const astrodyne: OgcdAbility = {
         }
     ],
     attackType: "Ability",
+};*/
+
+const oracle: OgcdAbility = {
+    type: 'ogcd',
+    name: "Oracle",
+    id: 37029,
+    potency: 860,
+    attackType: "Ability"
 };
 
 export interface AstSheetSimResult extends CycleSimResult {
@@ -103,7 +124,7 @@ export class AstSheetSim extends BaseMultiCycleSim<AstSheetSimResult, AstNewShee
     spec = astNewSheetSpec;
     displayName = astNewSheetSpec.displayName;
     shortName = "ast-sheet-sim";
-    // manuallyActivatedBuffs = [Chain];
+    manuallyActivatedBuffs = [Divination];
 
     constructor(settings?: AstNewSheetSettingsExternal) {
         super('AST', settings);
@@ -115,15 +136,16 @@ export class AstSheetSim extends BaseMultiCycleSim<AstSheetSimResult, AstNewShee
             apply(cp: CycleProcessor) {
                 cp.use(filler);
                 cp.remainingCycles(cycle => {
-                    cycle.use(combust); //play, draw
-                    cycle.use(filler); //play, draw
-                    cycle.use(filler); //div, play
-                    cycle.use(filler); //MA, dyne
-                    cycle.useOgcd(astrodyne);
+                    cycle.use(combust); 
+                    cycle.use(filler); //lightspeed
+                    cycle.use(filler); //div, balance
+                    cycle.use(div);
+                    cycle.use(filler); //lord, draw
+                    cycle.use(lord);
+                    cycle.use(filler); //spear, oracle
+                    cycle.use(oracle);
                     cycle.use(filler);
                     cycle.use(star);
-                    cycle.use(filler);
-                    cycle.use(lord); //with 50% lord, chance, assumes 1 lord per burst window
                     cycle.useUntil(filler, 30);
                     cycle.use(combust);
                     cycle.useUntil(filler, 60);

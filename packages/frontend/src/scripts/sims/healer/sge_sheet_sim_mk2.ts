@@ -1,15 +1,15 @@
-import {GcdAbility, SimSettings, SimSpec} from "@xivgear/core/sims/sim_types";
+import {GcdAbility, OgcdAbility, SimSettings, SimSpec} from "@xivgear/core/sims/sim_types";
 import {CycleProcessor, CycleSimResult, ExternalCycleSettings, Rotation} from "@xivgear/core/sims/cycle_sim";
 import {BaseMultiCycleSim} from "../sim_processors";
 import {tincture8mind} from "@xivgear/core/sims/common/potion";
 
 /**
- * Used for all 330p filler abilities
+ * Used for all 360p filler abilities
  */
 const filler: GcdAbility = {
     type: 'gcd',
-    name: "Filler",
-    potency: 330,
+    name: "Dosis III",
+    potency: 360,
     attackType: "Spell",
     gcd: 2.5,
     cast: 1.5,
@@ -18,7 +18,7 @@ const filler: GcdAbility = {
 
 const eDosis: GcdAbility = {
     type: 'gcd',
-    name: "E.Dosis",
+    name: "Eukrasian Dosis III",
     potency: 0,
     dot: {
         id: 2864,
@@ -44,6 +44,17 @@ const phlegma: GcdAbility = {
     cooldown: {
         time: 40.0,
         charges: 2
+    }
+};
+
+const psyche: OgcdAbility = {
+    type: 'ogcd',
+    name: "Psyche",
+    id: 37033,
+    potency: 600,
+    attackType: "Ability",
+    cooldown: {
+        time: 60
     }
 };
 
@@ -113,12 +124,14 @@ export class SgeSheetSim extends BaseMultiCycleSim<SgeSheetSimResult, SgeNewShee
                     cycle.use(filler);
                     cycle.use(filler);
                     cycle.use(phlegma);
+                    cycle.use(psyche);
                     cycle.use(phlegma);
                     cycle.useUntil(filler, 30);
                     cycle.use(eDosis);
                     cycle.useUntil(filler, 60);
                     cycle.use(eDosis);
                     cycle.use(phlegma);
+                    cycle.use(psyche);
                     cycle.useUntil(filler, 90);
                     cycle.use(eDosis);
                     cycle.useUntil(filler, 'end');
