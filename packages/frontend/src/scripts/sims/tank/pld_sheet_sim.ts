@@ -1,5 +1,4 @@
-import {SimSettings, SimSpec, AutoAttack, GcdAbility, OgcdAbility} from "@xivgear/core/sims/sim_types";
-import {CharacterGearSet} from "@xivgear/core/gear";
+import {SimSettings, SimSpec, GcdAbility, OgcdAbility} from "@xivgear/core/sims/sim_types";
 import {CycleProcessor, CycleContext, CycleSimResult, ExternalCycleSettings, Rotation} from "@xivgear/core/sims/cycle_sim";
 import {BaseMultiCycleSim} from "../sim_processors";
 
@@ -70,17 +69,6 @@ const hs: GcdAbility = {
     potency: 470,
     attackType: "Spell",
     gcd: 2.5,
-    fixedGcd: true
-}
-
-const hardcast: GcdAbility = {
-    id: 7384,
-    type: 'gcd',
-    name: "Holy Spirit (cast)",
-    potency: 370,
-    attackType: "Spell",
-    gcd: 2.5,
-    cast: 1.5,
     fixedGcd: true
 }
 
@@ -338,13 +326,12 @@ export class PldSheetSim extends BaseMultiCycleSim<PldSheetSimResult, PldSheetSe
         return [{
             cycleTime: 420,
             apply(cp: CycleProcessor) {
-                // cp.useGcd(hardcast);
                 cp.useGcd(fast);
                 cp.useGcd(riot);
                 cp.useGcd(royal);
 
                 cp.remainingCycles((cycle) => {
-                    let state: GcdState = {
+                    const state: GcdState = {
                         hasDivineMight: true,
                         swordOathStacks: 3,
                         comboProgress: 0 // 0, 1, or 2
