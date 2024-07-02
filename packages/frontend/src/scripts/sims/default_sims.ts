@@ -1,3 +1,4 @@
+import {pldSheetSpec} from "./tank/pld_sheet_sim"
 import {whmSheetSpec} from "./healer/whm_sheet_sim";
 import {sgeSheetSpec} from "./healer/sge_sheet_sim";
 import {sgeNewSheetSpec} from "./healer/sge_sheet_sim_mk2";
@@ -18,6 +19,7 @@ import {dncDtSheetSpec} from "./ranged/dnc_sim";
 
 export function registerDefaultSims() {
     registerSim(potRatioSimSpec);
+    registerSim(pldSheetSpec);
     registerSim(whmSheetSpec);
     registerSim(sgeSheetSpec);
     registerSim(sgeNewSheetSpec);
