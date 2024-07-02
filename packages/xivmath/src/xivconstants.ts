@@ -218,6 +218,7 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
     NIN: {
         ...STANDARD_MELEE,
         mainStat: "dexterity",
+        autoAttackStat: "dexterity",
         traits: [{
             apply: stats => {
                 const oldHaste = stats.haste;
@@ -231,7 +232,8 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
     RPR: STANDARD_MELEE,
     VPR: {
         ...STANDARD_MELEE,
-        mainStat: 'dexterity'
+        mainStat: 'dexterity',
+        autoAttackStat: 'dexterity',
     },
     // Ranged
     BRD: STANDARD_RANGED,
