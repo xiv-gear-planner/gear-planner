@@ -189,7 +189,7 @@ export const Expiacion: OgcdAbility = {
     name: "Expiacion",
     id: 25747,
     attackType: "Ability",
-    potency: null,
+    potency: 450,
     cooldown: {
         time: 30
     }

@@ -319,18 +319,14 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
 
 	getRotationsToSimulate(): Rotation[] {
         const sim = this;
-        //console.log ( sim.set )
 
-        // Let's continue the time honoured tradition of making a paladin loop
-
-        //this.rotationState = new RotationState();
+        //nb I stole most of this from the RPR sim
+        
         return [{
-            cycleTime: 120,
+        	// Technically our lowest common cycle time for strategies that we would actually cycle
+        	// are like 14 minutes, lol:
+            cycleTime: 60 * 14,
 
-            /* I just used the cycle processor instead of doing any cycles, as doing so
-             * would require me to duplicate all of the 'useX(cp)' functions for CycleContext
-             * Is there a better way to do this?
-            */
 
             apply(cp: PldSKSCycleProcessor) {
 
