@@ -50,7 +50,7 @@ export const Supplication: GcdAbility = {
     // todo update dawntrail
     id: 36918,
     attackType: "Weaponskill",
-    potency: 440,
+    potency: 460,
     gcd: 2.5,
     cast: 0,
     activatesBuffs: [SepulchreReadyBuff]
@@ -61,7 +61,7 @@ export const Sepulchre: GcdAbility = {
     // todo update dawntrail
     id: 36919,
     attackType: "Weaponskill",
-    potency: 440,
+    potency: 480,
     gcd: 2.5,
     cast: 0
 }

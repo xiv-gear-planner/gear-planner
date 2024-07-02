@@ -321,7 +321,7 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
         const sim = this;
 
         //nb I stole most of this from the RPR sim
-        
+
         return [{
         	// Technically our lowest common cycle time for strategies that we would actually cycle
         	// are like 14 minutes, lol:
@@ -458,7 +458,7 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
 				// and juse use things as early as possible after the '3rd' GCD
 
             	// Standard opener:
-				cp.useGcd(Actions.HolySpiritHardcast);
+				//cp.useGcd(Actions.HolySpiritHardcast);
 				cp.useGcd(Actions.FastBlade);
 				cp.useGcd(Actions.RiotBlade);
 				cp.useGcd(Actions.RoyalAuthority);
@@ -692,7 +692,7 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
 					
 
 					// This is the bit where we just use filler:
-	                cp.useFiller(even_minute);
+	                cp.useFiller((even_minute && strategy_98_alt) || strategy_always9);
 
 	                // Technically someone playing with hubris would clip these, too:
 					if (cp.canUseWithoutClipping(Actions.CircleOfScorn))
@@ -702,7 +702,8 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
 		    			{
 							let beforeGCD = cp.nextGcdTime;
 		    				cp.delayForOgcd(Actions.Expiacion);
-		    				cp.addSpecialRow("!ALERT! Clipped GCD! " + (cp.nextGcdTime - beforeGCD).toFixed(2) + "s");
+		    				if ((cp.nextGcdTime - beforeGCD) > 0)
+		    					cp.addSpecialRow("!ALERT! Clipped GCD! " + (cp.nextGcdTime - beforeGCD).toFixed(2) + "s");
 		    			}
 		    		}
 					if (cp.canUseWithoutClipping(Actions.Expiacion))
