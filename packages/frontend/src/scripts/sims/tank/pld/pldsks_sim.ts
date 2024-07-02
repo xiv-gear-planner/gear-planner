@@ -97,6 +97,7 @@ export interface PldSKSSheetSettings extends SimSettings {
 	acknowledgeSKS: boolean,
 	attempt9GCDAbove247: boolean,
 	alwaysLateWeave: boolean,
+	hardcastopener: boolean,
 }
 
 export interface PldSKSSheetSettingsExternal extends ExternalCycleSettings<PldSKSSheetSettings> {
@@ -278,7 +279,8 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
         return {
         	acknowledgeSKS: true,
         	attempt9GCDAbove247: false,
-        	alwaysLateWeave: false
+        	alwaysLateWeave: false,
+        	hardcastopener: true
         };
     };
 
@@ -303,6 +305,8 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
         checkboxesDiv.appendChild(labeledCheckbox('Force trying for 9/8 at 2.47+', tryCheck));
         const lateCheck = new FieldBoundCheckBox<PldSKSSheetSettings>(settings, 'alwaysLateWeave', {id: 'late-checkbox'});
         checkboxesDiv.appendChild(labeledCheckbox('Force always Late FOF at 2.43+', lateCheck));
+        const hcOpenCheck = new FieldBoundCheckBox<PldSKSSheetSettings>(settings, 'hardcastopener', {id: 'hc-checkbox'});
+        checkboxesDiv.appendChild(labeledCheckbox('Include a hardcast HS in the opener', hcOpenCheck));
 
         outerDiv.appendChild(checkboxesDiv);
 
@@ -458,7 +462,8 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
 				// and juse use things as early as possible after the '3rd' GCD
 
             	// Standard opener:
-				//cp.useGcd(Actions.HolySpiritHardcast);
+            	if (sim.settings.hardcastopener)
+					cp.useGcd(Actions.HolySpiritHardcast);
 				cp.useGcd(Actions.FastBlade);
 				cp.useGcd(Actions.RiotBlade);
 				cp.useGcd(Actions.RoyalAuthority);
