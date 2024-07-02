@@ -661,7 +661,8 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
 						{
 							safety++;
 							// Note the current status:
-							cp.addSpecialRow(`FOF: ${fof_remaining}, melee+1? ${enough_time_if_melee}`); 
+							if (!strategy_250)
+								cp.addSpecialRow(`FOF: ${fof_remaining}, melee+1? ${enough_time_if_melee}`); 
 							// Use a burst GCD
 							cp.useBurstFiller(prioritise_melee);
 							// Use any remaining oGCDs:
@@ -672,7 +673,8 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
 							fof_remaining = cp.getFOFRemaining().toFixed(2);
 						}
 
-						cp.addSpecialRow(`FOF: ${fof_remaining}, melee+1? ${enough_time_if_melee}`);
+						if (!strategy_250)
+							cp.addSpecialRow(`FOF: ${fof_remaining}, melee+1? ${enough_time_if_melee}`);
 						cp.addSpecialRow(`Final burst GCD:`);
 						cp.useBurstFiller(false);
 
