@@ -4,7 +4,7 @@ import {BaseUsageCountSim, CountSimResult, ExternalCountSettings, SkillCount} fr
 import * as Actions from "./pld_actions_no_sks"
 
 export const pldUsageSimSpec: SimSpec<PldUsageSim, PldUsageSimSettings> = {
-    displayName: "PLD Lv100 Usage Sim",
+    displayName: "PLD Lv100 Sim (sks not fully supported)",
     loadSavedSimInstance(exported: ExternalCountSettings<PldUsageSimSettings>) {
         return new PldUsageSim(exported);
     },
