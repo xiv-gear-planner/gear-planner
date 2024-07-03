@@ -106,7 +106,7 @@ export interface PldSKSSheetSettingsExternal extends ExternalCycleSettings<PldSK
 
 export const pldSKSSheetSpec: SimSpec<PldSKSSheetSim, PldSKSSheetSettingsExternal> = {
     stub: "pldsks-sheet-sim",
-    displayName: "PLD SKS Sim",
+    displayName: "PLD Skill Speed Sim",
     loadSavedSimInstance: function (exported: PldSKSSheetSettingsExternal) {
         return new PldSKSSheetSim(exported);
     },
