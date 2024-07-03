@@ -26,7 +26,7 @@ import {
     STANDARD_ANIMATION_LOCK
 } from "@xivgear/xivmath/xivconstants";
 import {CooldownMode, CooldownTracker} from "./common/cooldown_manager";
-import {addValues, fixedValue, multiplyFixed, ValueWithDev} from "@xivgear/xivmath/deviation";
+import {addValues, fixedValue, multiplyFixed, multiplyIndependent, ValueWithDev} from "@xivgear/xivmath/deviation";
 import {abilityEquals, appDelay, completeComboData, FinalizedComboData} from "./ability_helpers";
 import {abilityToDamageNew, combineBuffEffects} from "./sim_utils";
 import {BuffSettingsExport} from "./common/party_comp_settings";
@@ -670,7 +670,7 @@ export class CycleProcessor {
                 const partialRate = record.totalTimeTaken > 0 ? Math.max(0, Math.min(1, (this.totalTime - record.usedAt) / record.totalTimeTaken)) : 1;
                 const directDamage = multiplyFixed(record.directDamage, partialRate);
                 const dot = record.dot;
-                const dotDmg = dot ? multiplyFixed(dot.damagePerTick, dot.actualTickCount) : fixedValue(0);
+                const dotDmg = dot ? multiplyIndependent(dot.damagePerTick, dot.actualTickCount) : fixedValue(0);
                 const totalDamage = addValues(directDamage, dotDmg);
                 const totalPotency = record.ability.potency + ('dot' in record.ability ? record.ability.dot.tickPotency * record.dot.actualTickCount : 0);
                 return {
