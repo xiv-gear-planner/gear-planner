@@ -99,6 +99,7 @@ export interface PldSKSSheetSettings extends SimSettings {
 	alwaysLateWeave: boolean,
 	hardcastopener: boolean,
     burstOneGCDEarlier: boolean,
+    disableBurnDown: boolean,
 }
 
 export interface PldSKSSheetSettingsExternal extends ExternalCycleSettings<PldSKSSheetSettings> {
@@ -289,6 +290,7 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
         	alwaysLateWeave: false,
         	hardcastopener: true,
             burstOneGCDEarlier: false,
+            disableBurnDown: false
         };
     };
 
@@ -317,6 +319,8 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
         checkboxesDiv.appendChild(labeledCheckbox('Include a hardcast HS in the opener', hcOpenCheck));
         const earlyOpenCheck = new FieldBoundCheckBox<PldSKSSheetSettings>(settings, 'burstOneGCDEarlier', {id: 'early-checkbox'});
         checkboxesDiv.appendChild(labeledCheckbox('Use Opener 1 GCD earlier', earlyOpenCheck));
+        const disableBurnCheck = new FieldBoundCheckBox<PldSKSSheetSettings>(settings, 'disableBurnDown', {id: 'burn-checkbox'});
+        checkboxesDiv.appendChild(labeledCheckbox('Disable burn down optimisation', disableBurnCheck));
 
         outerDiv.appendChild(checkboxesDiv);
 
@@ -375,8 +379,14 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
 				}
 				else if (strategy_hubris)
 				{
+                    cp.addSpecialRow(``);
 					cp.addSpecialRow(`SKS Acknowledgement is disabled.`);
 					cp.addSpecialRow(`Sim will DELIBERATELY CLIP GCD`);
+                    cp.addSpecialRow(`due intentionally playing as though 2.5`);
+                    cp.addSpecialRow(``);
+                    cp.addSpecialRow(`Gives a baseline for when no sks opti`);
+                    cp.addSpecialRow(`is performed.`);
+                    cp.addSpecialRow(``);
 					strategy_250 = true;
 				}
 				// We then have a variety of things to consider.
@@ -478,11 +488,17 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
                     cp.addSpecialRow("Check bottom of chart for delay summary!");
                     cp.addSpecialRow("Add appropriate party buffs in settings.");
                     cp.addSpecialRow("");
+                    if (strategy_always9 || strategy_98_alt)
+                    {
+                        cp.addSpecialRow("The Final Burst GCD of FOF may not fit");
+                        cp.addSpecialRow("depending on ping & fps");
+                        cp.addSpecialRow("");
+                    }
                 }
 
                 if (strategy_always9)
                 {
-                    cp.addSpecialRow(`Always 9 GCD FOF: Hold Atonement`);
+                    cp.addSpecialRow(`>> Always 9 GCD FOF: Hold Atonement`);
                 }
 				// We will not set our loop up to attempt a special first burst
 				// and juse use things as early as possible after the '3rd' GCD
@@ -498,7 +514,7 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
                 }
                 else
                 {
-                    cp.addSpecialRow("Override: Bursting 1 GCD earlier")
+                    cp.addSpecialRow(">> Override: Bursting 1 GCD earlier")
                 }
 
 				let safety = 0;
@@ -513,6 +529,8 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
                 let time_of_first_fof = 0;
                 let time_of_last_fof = 0;
                 let end_of_time_burn = false;
+
+                let clip_total_time = 0;
 
 				while ((cp.remainingGcdTime > 0) && (safety < 100000) ) {
 					// While loops with no safety clause!
@@ -546,22 +564,22 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
 								{
 									if (strategy_hubris)
 									{
-										cp.addSpecialRow("FOF comes up in " + (readyAt - cp.currentTime).toFixed(2));
+										cp.addSpecialRow(">> FOF comes up in " + (readyAt - cp.currentTime).toFixed(2) + "s");
 										if (is_after_next_gcd)
 										{
-											cp.addSpecialRow("This is after the next GCD.");
-											cp.addSpecialRow("A Lazy player likely uses the GCD");
-											cp.addSpecialRow("Delaying FOF by " + (next_early - readyAt).toFixed(2));
+											cp.addSpecialRow(">> This is after the next GCD.");
+											cp.addSpecialRow(">> A non-sks inclined player likely uses the GCD");
+											cp.addSpecialRow(">> Delaying FOF by " + (next_early - readyAt).toFixed(2) + "s");
 										}
 										else
 										{
-											cp.addSpecialRow("Delaying until available!");
+											cp.addSpecialRow(">> Delaying until available!");
 											cp.advanceTo(readyAt);
 											force_next_burst = true;
 										}
 									}
 									else
-					    				cp.addSpecialRow("Delaying FOF " + (next_early - readyAt).toFixed(2) +  " across GCD...");
+					    				cp.addSpecialRow(">> Delaying FOF " + (next_early - readyAt).toFixed(2) +  "s across GCD...");
 								}
 					    	}
 				    	}
@@ -573,7 +591,7 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
 						if (strategy_250 || strategy_minimise)
 						{
 							if (strategy_minimise)
-								cp.addSpecialRow(`Using FOF ASAP`);
+								cp.addSpecialRow(`>> Using FOF ASAP`);
 							cp.useOgcd(Actions.FightOrFlight);
 						}
 						else
@@ -585,7 +603,8 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
 							// if we are on an even minute, and we're 98ing
 							if ((strategy_98_alt && even_minute) || strategy_always9)
 							{
-								cp.addSpecialRow(`Late Weaving FOF!`);
+                                let readyAt = cp.cdTracker.statusOf(Actions.FightOrFlight).readyAt.absolute;
+								cp.addSpecialRow(`>> Late Weaving FOF!`);
 								// if force is on, we are here because we are clipping our GCD:
 								if (strategy_98_force)
 								{
@@ -593,7 +612,9 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
 									{
 										let beforeGCD = cp.nextGcdTime;
 										cp.delayForOgcd(Actions.FightOrFlight);
-										cp.addSpecialRow("!ALERT! Clipped GCD! " + (cp.nextGcdTime - beforeGCD).toFixed(2) + "s");
+                                        let clip_amount = cp.nextGcdTime - beforeGCD;
+										cp.addSpecialRow("! ALERT ! Clipped GCD! " + (clip_amount).toFixed(2) + "s");
+                                        clip_total_time += clip_amount;
 									}
 									else
 									{
@@ -606,6 +627,8 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
 									// a normal late weave is fine:
 									cp.useOgcdLateWeave(Actions.FightOrFlight);
 								}
+                                if (fofs_used != 0)
+                                    cp.addSpecialRow(`>> Delay to FOF: ` + (cp.currentTime - readyAt).toFixed(2) + "s");
 							}
 							else
 							{
@@ -647,7 +670,11 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
 								cp.delayForOgcd(Actions.Imperator);
 
 								if (is_gonna_clip)
-									cp.addSpecialRow("!ALERT! Clipped GCD! " + (cp.nextGcdTime - beforeGCD).toFixed(2) + "s");
+                                {
+                                    let clip_amount = cp.nextGcdTime - beforeGCD;
+									cp.addSpecialRow("! ALERT ! Clipped GCD! " + (clip_amount).toFixed(2) + "s");
+                                    clip_total_time += clip_amount;
+                                }
 								
 							}
 							else
@@ -717,7 +744,7 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
 							safety++;
 							// Note the current status:
 							if (!strategy_250)
-								cp.addSpecialRow(`FOF: ${fof_remaining}, melee+1? ${enough_time_if_melee}`); 
+								cp.addSpecialRow(`>> FOF: ${fof_remaining}s, phys prio`); 
 							// Use a burst GCD
 							cp.useBurstFiller(prioritise_melee);
 							// Use any remaining oGCDs:
@@ -725,12 +752,13 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
 
 							// Update our variables:
 							enough_time_if_melee = cp.fofIsActive((cp.nextGcdTime + physGCD));
-							fof_remaining = cp.getFOFRemaining().toFixed(2);
+							fof_remaining = cp.getFOFRemaining().toFixed(3);
 						}
 
 						if (!strategy_250)
-							cp.addSpecialRow(`FOF: ${fof_remaining}, melee+1? ${enough_time_if_melee}`);
-						cp.addSpecialRow(`Final burst GCD:`);
+							cp.addSpecialRow(`>> Final burst GCD margin: ${fof_remaining}s:`);
+                        else
+                            cp.addSpecialRow(`>> Final burst GCD:`);
 						cp.useBurstFiller(false);
 
                         only_cos_once_in_filler = true;
@@ -744,15 +772,15 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
                 		if (strategy_98_alt)
                 		{
 	                		if (even_minute)
-	                			cp.addSpecialRow(`9/8 Even min: Hold Atonement`);
+	                			cp.addSpecialRow(`>> 9/8 Even min: Hold Atonement`);
 	                		else
-	                			cp.addSpecialRow(`9/8 Odd min: Spend Atonement`);
+	                			cp.addSpecialRow(`>> 9/8 Odd min: Spend Atonement`);
 	                	}
 					}
 					
                     // If there are fewer than 20 seconds remaining in the user selected
                     // time window:
-                    if (cp.remainingTime < 20 && !end_of_time_burn)
+                    if (cp.remainingTime < 20 && !end_of_time_burn && !sim.settings.disableBurnDown)
                     {
                         cp.addSpecialRow("Less than 20s remain on sim!");
                         cp.addSpecialRow("Will now burn GCD resources.");
@@ -781,7 +809,11 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
 							let beforeGCD = cp.nextGcdTime;
 		    				cp.delayForOgcd(Actions.Expiacion);
 		    				if ((cp.nextGcdTime - beforeGCD) > 0)
-		    					cp.addSpecialRow("!ALERT! Clipped GCD! " + (cp.nextGcdTime - beforeGCD).toFixed(2) + "s");
+                            {
+                                let clip_amount = cp.nextGcdTime - beforeGCD;
+		    					cp.addSpecialRow("! ALERT ! Clipped GCD! " + (clip_amount).toFixed(2) + "s");
+                                clip_total_time += clip_amount;
+                            }
                             only_exp_once_in_filler = false;
 		    			}
 		    		}
@@ -795,14 +827,21 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
                 let fof_delta = (time_of_last_fof - time_of_first_fof) - ((fofs_used - 1) * 60);
                 let avg_delay_fof = fof_delta / fofs_used;
 
+                cp.addSpecialRow(">> Summaries:");
+
                 cp.addSpecialRow("Number of FOFs: " + fofs_used.toFixed(0));
-                cp.addSpecialRow("Net delay by end: " + fof_delta.toFixed(2));
+                cp.addSpecialRow("Net FOF delay by end: " + fof_delta.toFixed(2));
                 cp.addSpecialRow("Average delay: " + avg_delay_fof.toFixed(2));
                 if (avg_delay_fof > 0.01)
                 {
                     let three_gcd_delay = 7.5 / avg_delay_fof;
-                    cp.addSpecialRow("7.5s delay @ " + three_gcd_delay.toFixed(0) + "m");
+                    cp.addSpecialRow("Burst hits 7.5s delay @ ~" + three_gcd_delay.toFixed(0) + "m");
                     cp.addSpecialRow("Delay interacts with Party Buffs.");
+                }
+                if (clip_total_time > 0.01)
+                {
+                    cp.addSpecialRow("! ALERT !: Total clip time: " + clip_total_time.toFixed(2) + "s");
+                    cp.addSpecialRow("Avg of " + ((clip_total_time / cp.currentTime) * 60).toFixed(2) + "s Clip every min");
                 }
             }
 
