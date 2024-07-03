@@ -213,7 +213,7 @@ class PldSKSCycleProcessor extends CycleProcessor {
 		this.useGcd(chosen_ability);
     }
 
-    useBurstFiller(prioritise_melee: boolean, replace_12_w_hc?: boolean) {
+    useBurstFiller(prioritise_melee: boolean, replace_1_w_hc?: boolean) {
 		let chosen_ability = Actions.FastBlade;
 
 		// We always Sepulchre if we have it:
@@ -234,10 +234,10 @@ class PldSKSCycleProcessor extends CycleProcessor {
 		{
 			if (this.MyState.combo_state == 3)
 				chosen_ability = Actions.RoyalAuthority;
-            else if (replace_12_w_hc)
-                chosen_ability = Actions.HolySpiritHardcast;
 			else if (this.MyState.combo_state == 2)
 				chosen_ability = Actions.RiotBlade;
+            else if (replace_1_w_hc)
+                chosen_ability = Actions.HolySpiritHardcast;
 		}
 
     	this.useGcd(chosen_ability);
@@ -756,14 +756,14 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
                     {
                         cp.addSpecialRow("Less than 20s remain on sim!");
                         cp.addSpecialRow("Will now burn GCD resources.");
-                        cp.addSpecialRow("Replace Fast+Riot w/HS in last 3 GCDs");
+                        cp.addSpecialRow("Replace new combo w/HS in last 3 GCDs");
                         end_of_time_burn = true;
                     }
 
 					// This is the bit where we just use filler:
                     if (end_of_time_burn)
                     {
-                        // we also replace 1/2 with hardcasts under 3 phys GCDs
+                        // we also replace 1s with hardcasts under 3 phys GCDs, preventing a new combo starting
                         cp.useBurstFiller(false, cp.remainingGcdTime < (physGCD * 3));
                     }
                     else
