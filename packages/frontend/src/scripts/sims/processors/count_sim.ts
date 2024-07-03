@@ -9,7 +9,7 @@ import {
 } from "@xivgear/core/sims/sim_types";
 import {BuffSettingsExport, BuffSettingsManager} from "@xivgear/core/sims/common/party_comp_settings";
 import {defaultResultSettings, ResultSettings} from "@xivgear/core/sims/cycle_sim";
-import {addValues, applyStdDev, multiplyFixed, ValueWithDev} from "@xivgear/xivmath/deviation";
+import {addValues, applyStdDev, multiplyFixed, multiplyIndependent, ValueWithDev} from "@xivgear/xivmath/deviation";
 import {JobName} from "@xivgear/xivmath/xivconstants";
 import {NamedSection} from "../../components/section";
 import {BuffSettingsArea} from "../party_comp_settings";
@@ -166,17 +166,16 @@ export abstract class BaseUsageCountSim<ResultType extends CountSimResult, Inter
                 const skill = sc[0];
                 const count = sc[1];
                 totalPotency += skill.potency * count;
-                // TODO: how will this handle DoTs?
                 const dmg = abilityToDamageNew(set.computedStats, skill, buffEffects);
                 const result = [];
                 if (dmg.directDamage) {
-                    const valueWithDev = multiplyFixed(dmg.directDamage, count);
+                    const valueWithDev = multiplyIndependent(dmg.directDamage, count);
                     console.trace(`Skill ${skill.name}, count ${count}, duration ${bucket.maxDuration}, total ${valueWithDev.expected}`);
                     result.push(valueWithDev);
                 }
-                // TODO handle indefinite dots?
+                // TODO handle indefinite dots? only one I can think of is blu so maybe not worth
                 if (dmg.dot && dmg.dot.fullDurationTicks !== 'indefinite') {
-                    const valueWithDev = multiplyFixed(dmg.dot.damagePerTick, dmg.dot.fullDurationTicks * count);
+                    const valueWithDev = multiplyIndependent(dmg.dot.damagePerTick, dmg.dot.fullDurationTicks * count);
                     console.trace(`Skill ${skill.name}, count ${count}, duration ${bucket.maxDuration}, total ${valueWithDev.expected}`);
                     result.push(valueWithDev);
                 }

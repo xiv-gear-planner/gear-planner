@@ -59,6 +59,24 @@ export function multiplyFixed(value: ValueWithDev, scalar: number) {
 }
 
 /**
+ * Multiply a value with variance by a scalar with no variance, rolling the random
+ * variable independently each time.
+ *
+ * i.e. sum i=1..k (X_i) rather than kX
+ *
+ * @param value The value with variance.
+ * @param scalar The value with no variance.
+ */
+export function multiplyIndependent(value: ValueWithDev, scalar: number) {
+    // Calling addValues can give the same result but is probably cleaner to do this way
+    return {
+        expected: value.expected * scalar,
+        // variance = k * dev**2 -> stddev = sqrt(variance)
+        stdDev: Math.sqrt(Math.abs(scalar)) * value.stdDev
+    }
+}
+
+/**
  * Produce the expected value and std dev for a given chance + multiplier.
  *
  * It is assumed that if the roll succeeds, then the value is equal to the multiplier,
