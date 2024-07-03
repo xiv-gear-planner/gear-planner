@@ -1,190 +1,7 @@
-import {SimSettings, SimSpec, GcdAbility, OgcdAbility} from "@xivgear/core/sims/sim_types";
+import {SimSettings, SimSpec} from "@xivgear/core/sims/sim_types";
 import {CycleProcessor, CycleContext, CycleSimResult, ExternalCycleSettings, Rotation} from "@xivgear/core/sims/cycle_sim";
-import {BaseMultiCycleSim} from "../sim_processors";
-
-const fast: GcdAbility = {
-    id: 9,
-    type: 'gcd',
-    name: "Fast Blade",
-    potency: 220,
-    attackType: "Weaponskill",
-    gcd: 2.5,
-    fixedGcd: true
-}
-
-const riot: GcdAbility = {
-    id: 15,
-    type: 'gcd',
-    name: "Riot Blade",
-    potency: 330,
-    attackType: "Weaponskill",
-    gcd: 2.5,
-    fixedGcd: true
-}
-
-const royal: GcdAbility = {
-    id: 3539,
-    type: 'gcd',
-    name: "Royal Authority",
-    potency: 440,
-    attackType: "Weaponskill",
-    gcd: 2.5,
-    fixedGcd: true
-}
-
-const atone: GcdAbility = {
-    id: 16460,
-    type: 'gcd',
-    name: "Atonement",
-    potency: 440,
-    attackType: "Weaponskill",
-    gcd: 2.5,
-    fixedGcd: true
-}
-
-const supp: GcdAbility = {
-    id: 36918,
-    type: 'gcd',
-    name: "Supplication",
-    potency: 460,
-    attackType: "Weaponskill",
-    gcd: 2.5,
-    fixedGcd: true
-}
-
-const sep: GcdAbility = {
-    id: 36919,
-    type: 'gcd',
-    name: "Sepulchre",
-    potency: 480,
-    attackType: "Weaponskill",
-    gcd: 2.5,
-    fixedGcd: true
-}
-
-const hs: GcdAbility = {
-    id: 7384,
-    type: 'gcd',
-    name: "Holy Spirit",
-    potency: 470,
-    attackType: "Spell",
-    gcd: 2.5,
-    fixedGcd: true
-}
-
-const goring: GcdAbility = {
-    id: 3538,
-    type: 'gcd',
-    name: "Goring Blade",
-    potency: 700,
-    attackType: "Weaponskill",
-    gcd: 2.5,
-    fixedGcd: true
-}
-
-const conf: GcdAbility = {
-    id: 16459,
-    type: 'gcd',
-    name: "Confiteor",
-    potency: 940,
-    attackType: "Spell",
-    gcd: 2.5,
-    fixedGcd: true
-}
-
-const faith: GcdAbility = {
-    id: 25748,
-    type: 'gcd',
-    name: "Blade of Faith",
-    potency: 740,
-    attackType: "Spell",
-    gcd: 2.5,
-    fixedGcd: true
-}
-
-const truth: GcdAbility = {
-    id: 25749,
-    type: 'gcd',
-    name: "Blade of Truth",
-    potency: 840,
-    attackType: "Spell",
-    gcd: 2.5,
-    fixedGcd: true
-}
-
-const valor: GcdAbility = {
-    id: 25750,
-    type: 'gcd',
-    name: "Blade of Valor",
-    potency: 940,
-    attackType: "Spell",
-    gcd: 2.5,
-    fixedGcd: true
-}
-
-const cos: OgcdAbility = {
-    id: 23,
-    type: 'ogcd',
-    name: "Circle of Scorn",
-    potency: 140,
-    dot: {
-        id: 248,
-        duration: 15,
-        tickPotency: 30
-    },
-    attackType: "Ability"
-}
-
-const exp: OgcdAbility = {
-    id: 25747,
-    type: 'ogcd',
-    name: "Expiacion",
-    potency: 450,
-    attackType: "Ability"
-}
-
-const int: OgcdAbility = {
-    id: 16461,
-    type: 'ogcd',
-    name: "Intervene",
-    potency: 150,
-    attackType: "Ability"
-}
-
-const imp: OgcdAbility = {
-    id: 36921,
-    type: 'ogcd',
-    name: "Imperator",
-    potency: 580,
-    attackType: "Ability"
-}
-
-const honor: OgcdAbility = {
-    id: 36922,
-    type: 'ogcd',
-    name: "Blade of Honor",
-    potency: 1000,
-    attackType: "Ability"
-}
-
-const fof: OgcdAbility = {
-    id: 20,
-    type: 'ogcd',
-    name: "Fight or Flight",
-    potency: null,
-    attackType: "Ability",
-    activatesBuffs: [
-        {
-            statusId: 76,
-            name: "Fight or Flight",
-            selfOnly: true,
-            duration: 20,
-            effects: {
-                dmgIncrease: 0.25
-            }
-        }
-    ]
-}
+import {BaseMultiCycleSim} from "../../sim_processors";
+import * as Actions from "./pld_actions_no_sks"
 
 interface GcdState {
     hasDivineMight: boolean,
@@ -195,13 +12,13 @@ interface GcdState {
 function useNextAtone(cycle: CycleContext, state: GcdState): void {
     switch (state.swordOathStacks) {
     case 3:
-        cycle.use(atone)
+        cycle.use(Actions.atone)
         break;
     case 2:
-        cycle.use(supp);
+        cycle.use(Actions.supp);
         break;
     case 1:
-        cycle.use(sep);
+        cycle.use(Actions.sep);
         break;
     default:
         console.log("oops, something went wrong with atones")
@@ -212,18 +29,18 @@ function useNextAtone(cycle: CycleContext, state: GcdState): void {
 }
 
 function useBurst(cycle: CycleContext): void {
-    cycle.use(fof);
-    cycle.use(imp);
-    cycle.use(conf);
-    cycle.use(cos);
-    cycle.use(exp);
-    cycle.use(faith);
-    cycle.use(int);
-    cycle.use(int);
-    cycle.use(truth);
-    cycle.use(valor);
-    cycle.use(honor);
-    cycle.use(goring);
+    cycle.use(Actions.fof);
+    cycle.use(Actions.imp);
+    cycle.use(Actions.conf);
+    cycle.use(Actions.cos);
+    cycle.use(Actions.exp);
+    cycle.use(Actions.faith);
+    cycle.use(Actions.int);
+    cycle.use(Actions.int);
+    cycle.use(Actions.truth);
+    cycle.use(Actions.valor);
+    cycle.use(Actions.honor);
+    cycle.use(Actions.goring);
 }
 
 function useBurstFillerGcds(cycle: CycleContext, numFillers: number, state: GcdState): void {
@@ -232,7 +49,7 @@ function useBurstFillerGcds(cycle: CycleContext, numFillers: number, state: GcdS
             // if enough gcds to get to sepulchre, prioritize that
             useNextAtone(cycle, state);
         } else if (state.hasDivineMight) {
-            cycle.use(hs);
+            cycle.use(Actions.hs);
             state.hasDivineMight = false;
         } else if (state.swordOathStacks > 0) {
             // use remaining atones to fill
@@ -240,13 +57,13 @@ function useBurstFillerGcds(cycle: CycleContext, numFillers: number, state: GcdS
         } else {
             switch (state.comboProgress) {
             case 0:
-                cycle.use(fast);
+                cycle.use(Actions.fast);
                 break;
             case 1:
-                cycle.use(riot);
+                cycle.use(Actions.riot);
                 break;
             case 2:
-                cycle.use(royal);
+                cycle.use(Actions.royal);
                 state.hasDivineMight = true;
                 state.swordOathStacks = 3;
                 break;
@@ -267,19 +84,19 @@ function useFillerGcds(cycle: CycleContext, numFillers: number, state: GcdState)
                 // supplication
                 useNextAtone(cycle, state);
             } else if (state.hasDivineMight) {
-                cycle.use(hs);
+                cycle.use(Actions.hs);
                 state.hasDivineMight = false;
             } else if (state.swordOathStacks > 0) {
                 // sepulchre
                 useNextAtone(cycle, state);
             } else {
-                cycle.use(royal);
+                cycle.use(Actions.royal);
                 state.hasDivineMight = true;
                 state.swordOathStacks = 3;
                 state.comboProgress = 0;
             }
         } else {
-            cycle.use(state.comboProgress === 0 ? fast : riot);
+            cycle.use(state.comboProgress === 0 ? Actions.fast : Actions.riot);
             state.comboProgress += 1;
             state.comboProgress %= 3;
         }
@@ -305,7 +122,7 @@ export const pldSheetSpec: SimSpec<PldSheetSim, PldSheetSettingsExternal> = {
         return new PldSheetSim(exported);
     },
     supportedJobs: ['PLD'],
-    isDefaultSim: true
+    isDefaultSim: false
 }
 
 export class PldSheetSim extends BaseMultiCycleSim<PldSheetSimResult, PldSheetSettings> {
@@ -326,9 +143,9 @@ export class PldSheetSim extends BaseMultiCycleSim<PldSheetSimResult, PldSheetSe
         return [{
             cycleTime: 420,
             apply(cp: CycleProcessor) {
-                cp.useGcd(fast);
-                cp.useGcd(riot);
-                cp.useGcd(royal);
+                cp.useGcd(Actions.fast);
+                cp.useGcd(Actions.riot);
+                cp.useGcd(Actions.royal);
 
                 cp.remainingCycles((cycle) => {
                     const state: GcdState = {
@@ -341,8 +158,8 @@ export class PldSheetSim extends BaseMultiCycleSim<PldSheetSimResult, PldSheetSe
                         useBurst(cycle);
                         useBurstFillerGcds(cycle, 3, state);
                         useFillerGcds(cycle, 5, state);
-                        cycle.use(cos);
-                        cycle.use(exp);
+                        cycle.use(Actions.cos);
+                        cycle.use(Actions.exp);
                         useFillerGcds(cycle, 11, state);
                     }
                 });
