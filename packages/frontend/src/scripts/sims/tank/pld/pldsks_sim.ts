@@ -100,6 +100,7 @@ export interface PldSKSSheetSettings extends SimSettings {
 	hardcastopener: boolean,
     burstOneGCDEarlier: boolean,
     disableBurnDown: boolean,
+    perform12312OldPrio: boolean,
 }
 
 export interface PldSKSSheetSettingsExternal extends ExternalCycleSettings<PldSKSSheetSettings> {
@@ -176,7 +177,7 @@ class PldSKSCycleProcessor extends CycleProcessor {
     	return idx;
     }
 
-    useFiller(even_minute: boolean) {
+    useFiller(even_minute: boolean, use_old_priority?: boolean) {
     	// During regular filler, we will always use a specific GCD based on our state
     	let chosen_ability = Actions.FastBlade;
 
@@ -185,7 +186,7 @@ class PldSKSCycleProcessor extends CycleProcessor {
     	// When we have SKS and expect a 9 GCD FOF, we will skip this aspect
     	// The parameter, even_minute, will be true when we are approaching an even minute burst
 
-    	if (this.MyState.sword_oath == this.MyState.A1Ready && even_minute == false)
+    	if (this.MyState.sword_oath == this.MyState.A1Ready && even_minute == false && !use_old_priority)
     	{
     		chosen_ability = Actions.Atonement;
     	}
@@ -203,10 +204,12 @@ class PldSKSCycleProcessor extends CycleProcessor {
     			chosen_ability = Actions.Atonement;
     		else if (this.MyState.sword_oath == this.MyState.A2Ready)
     			chosen_ability = Actions.Supplication;
-    		else if (this.MyState.divine_might == true)
+    		else if (this.MyState.divine_might == true && !use_old_priority)
     			chosen_ability = Actions.HolySpirit;
     		else if (this.MyState.sword_oath == this.MyState.A3Ready)
     			chosen_ability = Actions.Sepulchre;
+            else if (this.MyState.divine_might == true && use_old_priority)
+                chosen_ability = Actions.HolySpirit;
     		else if (this.MyState.sword_oath == 0 && this.MyState.divine_might == false)
     			chosen_ability = Actions.RoyalAuthority;
     	}
@@ -290,7 +293,8 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
         	alwaysLateWeave: false,
         	hardcastopener: true,
             burstOneGCDEarlier: false,
-            disableBurnDown: false
+            disableBurnDown: false,
+            perform12312OldPrio: false,
         };
     };
 
@@ -320,7 +324,9 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
         const earlyOpenCheck = new FieldBoundCheckBox<PldSKSSheetSettings>(settings, 'burstOneGCDEarlier', {id: 'early-checkbox'});
         checkboxesDiv.appendChild(labeledCheckbox('Use Opener 1 GCD earlier', earlyOpenCheck));
         const disableBurnCheck = new FieldBoundCheckBox<PldSKSSheetSettings>(settings, 'disableBurnDown', {id: 'burn-checkbox'});
-        checkboxesDiv.appendChild(labeledCheckbox('Disable burn down optimisation', disableBurnCheck));
+        checkboxesDiv.appendChild(labeledCheckbox('Disable 20s burn down optimisation', disableBurnCheck));
+        const disableNewPrio = new FieldBoundCheckBox<PldSKSSheetSettings>(settings, 'perform12312OldPrio', {id: 'prio-checkbox'});
+        checkboxesDiv.appendChild(labeledCheckbox('What if? Use Endwalker 12312 Prio', disableNewPrio));
 
         outerDiv.appendChild(checkboxesDiv);
 
@@ -461,15 +467,15 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
 				else
 				{
 					cp.addSpecialRow(`Phys GCD very low! Use Overrides to trial behavior:`);
-					if (sim.settings.attempt9GCDAbove247 == true)
+                    if (sim.settings.alwaysLateWeave == true)
+                    {
+                        cp.addSpecialRow(`Always late override, Late FOFs`);
+                        strategy_always9 = true;
+                    }
+					else if (sim.settings.attempt9GCDAbove247 == true)
 					{
 						cp.addSpecialRow(`9/8 Override, will late weave evens`);
 						strategy_98_alt = true;
-					}
-					else if (sim.settings.alwaysLateWeave == true)
-					{
-						cp.addSpecialRow(`Always late override, Late FOFs`);
-						strategy_always9 = true;
 					}
 					else
 					{
@@ -477,6 +483,12 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
 						strategy_minimise = true;
 					}
 				}
+
+                if (sim.settings.perform12312OldPrio)
+                {
+                    cp.addSpecialRow("");
+                    cp.addSpecialRow("The Use Endwalker Prio setting is ON");
+                }
 
 
                 if (!strategy_250)
@@ -746,7 +758,7 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
 							if (!strategy_250)
 								cp.addSpecialRow(`>> FOF: ${fof_remaining}s, phys prio`); 
 							// Use a burst GCD
-							cp.useBurstFiller(prioritise_melee);
+							cp.useBurstFiller(prioritise_melee && (!sim.settings.perform12312OldPrio));
 							// Use any remaining oGCDs:
 							oGCDcounter = cp.useOgcdInOrder(ogcdOrder, oGCDcounter);
 
@@ -795,7 +807,7 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
                         cp.useBurstFiller(false, cp.remainingGcdTime < (physGCD * 3));
                     }
                     else
-                        cp.useFiller((even_minute && strategy_98_alt) || strategy_always9);
+                        cp.useFiller((even_minute && strategy_98_alt) || strategy_always9, sim.settings.perform12312OldPrio);
 
                     // There are some circumstances where eg 2.47 will have these come off of
                     // cd when messing with FOF. Let's only use them once between bursts.
