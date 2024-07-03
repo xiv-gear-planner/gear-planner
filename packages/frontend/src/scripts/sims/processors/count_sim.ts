@@ -168,12 +168,19 @@ export abstract class BaseUsageCountSim<ResultType extends CountSimResult, Inter
                 totalPotency += skill.potency * count;
                 // TODO: how will this handle DoTs?
                 const dmg = abilityToDamageNew(set.computedStats, skill, buffEffects);
+                const result = [];
                 if (dmg.directDamage) {
                     const valueWithDev = multiplyFixed(dmg.directDamage, count);
                     console.trace(`Skill ${skill.name}, count ${count}, duration ${bucket.maxDuration}, total ${valueWithDev.expected}`);
-                    return [valueWithDev];
+                    result.push(valueWithDev);
                 }
-                return [];
+                // TODO handle indefinite dots?
+                if (dmg.dot && dmg.dot.fullDurationTicks !== 'indefinite') {
+                    const valueWithDev = multiplyFixed(dmg.dot.damagePerTick, dmg.dot.fullDurationTicks * count);
+                    console.trace(`Skill ${skill.name}, count ${count}, duration ${bucket.maxDuration}, total ${valueWithDev.expected}`);
+                    result.push(valueWithDev);
+                }
+                return result;
             }));
         });
         const totalDamage: ValueWithDev = addValues(
