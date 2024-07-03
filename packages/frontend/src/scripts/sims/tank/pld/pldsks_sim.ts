@@ -98,6 +98,7 @@ export interface PldSKSSheetSettings extends SimSettings {
 	attempt9GCDAbove247: boolean,
 	alwaysLateWeave: boolean,
 	hardcastopener: boolean,
+    burstOneGCDEarlier: boolean,
 }
 
 export interface PldSKSSheetSettingsExternal extends ExternalCycleSettings<PldSKSSheetSettings> {
@@ -106,7 +107,7 @@ export interface PldSKSSheetSettingsExternal extends ExternalCycleSettings<PldSK
 
 export const pldSKSSheetSpec: SimSpec<PldSKSSheetSim, PldSKSSheetSettingsExternal> = {
     stub: "pldsks-sheet-sim",
-    displayName: "PLD Skill Speed Sim",
+    displayName: "PLD SKS Strats Sim",
     loadSavedSimInstance: function (exported: PldSKSSheetSettingsExternal) {
         return new PldSKSSheetSim(exported);
     },
@@ -115,8 +116,13 @@ export const pldSKSSheetSpec: SimSpec<PldSKSSheetSim, PldSKSSheetSettingsExterna
     },
     supportedJobs: ['PLD'],
     supportedLevels: [100],
-    description: "Paladin Fixed Time Window Simulator w/SKS",
-    isDefaultSim: true
+    description: "Paladin w/SKS Strategy Simulator:\n" + 
+    "While a ~max ilvl 2.50 set will always be best, sometimes: you just end up with Skill Speed.\n\n" +
+    "This sim can demonstrate the efficacy of certain rotation strategies you could adopt " + 
+    "for a given GCD. It includes many notes on the simulation chart.\n\n" +
+    "NB: Don't compare different GCD speeds directly: they will end phases on weaker/stronger GCDs " +
+    "compared to one another, which influences the results.", 
+    isDefaultSim: false
 };
 
 class PldSKSCycleProcessor extends CycleProcessor {
@@ -207,11 +213,10 @@ class PldSKSCycleProcessor extends CycleProcessor {
 		this.useGcd(chosen_ability);
     }
 
-    useBurstFiller(prioritise_melee: boolean) {
+    useBurstFiller(prioritise_melee: boolean, replace_12_w_hc?: boolean) {
 		let chosen_ability = Actions.FastBlade;
 
-		
-		// We always Sepulcre if we have it:
+		// We always Sepulchre if we have it:
 		if (this.MyState.sword_oath == this.MyState.A3Ready)
 			chosen_ability = Actions.Sepulchre;
 
@@ -229,6 +234,8 @@ class PldSKSCycleProcessor extends CycleProcessor {
 		{
 			if (this.MyState.combo_state == 3)
 				chosen_ability = Actions.RoyalAuthority;
+            else if (replace_12_w_hc)
+                chosen_ability = Actions.HolySpiritHardcast;
 			else if (this.MyState.combo_state == 2)
 				chosen_ability = Actions.RiotBlade;
 		}
@@ -280,7 +287,8 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
         	acknowledgeSKS: true,
         	attempt9GCDAbove247: false,
         	alwaysLateWeave: false,
-        	hardcastopener: true
+        	hardcastopener: true,
+            burstOneGCDEarlier: false,
         };
     };
 
@@ -307,6 +315,8 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
         checkboxesDiv.appendChild(labeledCheckbox('Force always Late FOF at 2.43+', lateCheck));
         const hcOpenCheck = new FieldBoundCheckBox<PldSKSSheetSettings>(settings, 'hardcastopener', {id: 'hc-checkbox'});
         checkboxesDiv.appendChild(labeledCheckbox('Include a hardcast HS in the opener', hcOpenCheck));
+        const earlyOpenCheck = new FieldBoundCheckBox<PldSKSSheetSettings>(settings, 'burstOneGCDEarlier', {id: 'early-checkbox'});
+        checkboxesDiv.appendChild(labeledCheckbox('Use Opener 1 GCD earlier', earlyOpenCheck));
 
         outerDiv.appendChild(checkboxesDiv);
 
@@ -375,15 +385,15 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
 				else if (physGCD > 2.46) 
 				{
 					// However we have setting over rides to force our hand:
-					if (sim.settings.attempt9GCDAbove247 == true)
+                    if (sim.settings.alwaysLateWeave == true)
+                    {
+                        cp.addSpecialRow(`Late FOF w/2.43+ GCD (Override)`);
+                        strategy_always9 = true;
+                    }
+					else if (sim.settings.attempt9GCDAbove247 == true)
 					{
-						cp.addSpecialRow(`Late FOF w/2.47+ GCD (Override)`);
+						cp.addSpecialRow(`9/8 FOF w/2.47+ GCD (Override)`);
 						strategy_98_alt = true;
-					}
-					else if (sim.settings.alwaysLateWeave == true)
-					{
-						cp.addSpecialRow(`Late FOF w/2.43+ GCD (Override)`);
-						strategy_always9 = true;
 					}
 					else
 					{
@@ -458,6 +468,22 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
 					}
 				}
 
+
+                if (!strategy_250)
+                {
+                    cp.addSpecialRow("");
+                    cp.addSpecialRow("This strategy will delay FOF in some way");
+                    cp.addSpecialRow("Big delays = misalign from party buffs");
+                    cp.addSpecialRow("Big delays = potential lost usage");
+                    cp.addSpecialRow("Check bottom of chart for delay summary!");
+                    cp.addSpecialRow("Add appropriate party buffs in settings.");
+                    cp.addSpecialRow("");
+                }
+
+                if (strategy_always9)
+                {
+                    cp.addSpecialRow(`Always 9 GCD FOF: Hold Atonement`);
+                }
 				// We will not set our loop up to attempt a special first burst
 				// and juse use things as early as possible after the '3rd' GCD
 
@@ -466,11 +492,28 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
 					cp.useGcd(Actions.HolySpiritHardcast);
 				cp.useGcd(Actions.FastBlade);
 				cp.useGcd(Actions.RiotBlade);
-				cp.useGcd(Actions.RoyalAuthority);
+                if (!sim.settings.burstOneGCDEarlier)
+                {
+				    cp.useGcd(Actions.RoyalAuthority);
+                }
+                else
+                {
+                    cp.addSpecialRow("Override: Bursting 1 GCD earlier")
+                }
 
 				let safety = 0;
 				let even_minute = true;
 				let force_next_burst = false;
+
+                let only_cos_once_in_filler = true;
+                let only_exp_once_in_filler = true;
+
+                // Number cruncing stuff:
+                let fofs_used = 0;
+                let time_of_first_fof = 0;
+                let time_of_last_fof = 0;
+                let end_of_time_burn = false;
+
 				while ((cp.remainingGcdTime > 0) && (safety < 100000) ) {
 					// While loops with no safety clause!
 					safety++;
@@ -526,6 +569,7 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
 
 					if (cp.canUseWithoutClipping(Actions.FightOrFlight) || force_next_burst)
 					{
+
 						if (strategy_250 || strategy_minimise)
 						{
 							if (strategy_minimise)
@@ -569,6 +613,12 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
 								cp.useOgcd(Actions.FightOrFlight);
 							}
 						}
+
+                        if (fofs_used == 0)
+                            time_of_first_fof = cp.currentTime;
+                        fofs_used++;
+                            time_of_last_fof = cp.currentTime;
+
 
 						let oGCDcounter = 0;
 
@@ -683,6 +733,9 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
 						cp.addSpecialRow(`Final burst GCD:`);
 						cp.useBurstFiller(false);
 
+                        only_cos_once_in_filler = true;
+                        only_exp_once_in_filler = true;
+
 						// Our buffs have expired, burst is complete:
                 		// Flip even minute state:
                 		even_minute = !even_minute;
@@ -691,32 +744,65 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
                 		if (strategy_98_alt)
                 		{
 	                		if (even_minute)
-	                			cp.addSpecialRow(`9/8 Now: Hold Atonement`);
+	                			cp.addSpecialRow(`9/8 Even min: Hold Atonement`);
 	                		else
-	                			cp.addSpecialRow(`9/8 Now: Spend Atonement`);
+	                			cp.addSpecialRow(`9/8 Odd min: Spend Atonement`);
 	                	}
 					}
 					
+                    // If there are fewer than 20 seconds remaining in the user selected
+                    // time window:
+                    if (cp.remainingTime < 20 && !end_of_time_burn)
+                    {
+                        cp.addSpecialRow("Less than 20s remain on sim!");
+                        cp.addSpecialRow("Will now burn GCD resources.");
+                        cp.addSpecialRow("Replace Fast+Riot w/HS in last 3 GCDs");
+                        end_of_time_burn = true;
+                    }
 
 					// This is the bit where we just use filler:
-	                cp.useFiller((even_minute && strategy_98_alt) || strategy_always9);
+                    if (end_of_time_burn)
+                    {
+                        // we also replace 1/2 with hardcasts under 3 phys GCDs
+                        cp.useBurstFiller(false, cp.remainingGcdTime < (physGCD * 3));
+                    }
+                    else
+                        cp.useFiller((even_minute && strategy_98_alt) || strategy_always9);
 
-	                // Technically someone playing with hubris would clip these, too:
-					if (cp.canUseWithoutClipping(Actions.CircleOfScorn))
+                    // There are some circumstances where eg 2.47 will have these come off of
+                    // cd when messing with FOF. Let's only use them once between bursts.
+	                // Also: technically someone playing with hubris would clip these, too:
+					if (cp.canUseWithoutClipping(Actions.CircleOfScorn) && only_cos_once_in_filler)
 			    	{
 		    			cp.useOgcd(Actions.CircleOfScorn);
+                        only_cos_once_in_filler = false;
 		    			if (strategy_hubris)
 		    			{
 							let beforeGCD = cp.nextGcdTime;
 		    				cp.delayForOgcd(Actions.Expiacion);
 		    				if ((cp.nextGcdTime - beforeGCD) > 0)
 		    					cp.addSpecialRow("!ALERT! Clipped GCD! " + (cp.nextGcdTime - beforeGCD).toFixed(2) + "s");
+                            only_exp_once_in_filler = false;
 		    			}
 		    		}
-					if (cp.canUseWithoutClipping(Actions.Expiacion))
+					if (cp.canUseWithoutClipping(Actions.Expiacion) && only_exp_once_in_filler)
 			    	{
 		    			cp.useOgcd(Actions.Expiacion);
+                        only_exp_once_in_filler = false;
 		    		}
+                }
+
+                let fof_delta = (time_of_last_fof - time_of_first_fof) - ((fofs_used - 1) * 60);
+                let avg_delay_fof = fof_delta / fofs_used;
+
+                cp.addSpecialRow("Number of FOFs: " + fofs_used.toFixed(0));
+                cp.addSpecialRow("Net delay by end: " + fof_delta.toFixed(2));
+                cp.addSpecialRow("Average delay: " + avg_delay_fof.toFixed(2));
+                if (avg_delay_fof > 0.01)
+                {
+                    let three_gcd_delay = 7.5 / avg_delay_fof;
+                    cp.addSpecialRow("7.5s delay @ " + three_gcd_delay.toFixed(0) + "m");
+                    cp.addSpecialRow("Delay interacts with Party Buffs.");
                 }
             }
 
