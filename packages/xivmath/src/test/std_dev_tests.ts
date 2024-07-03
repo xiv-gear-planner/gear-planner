@@ -1,5 +1,5 @@
 import {expect} from 'chai';
-import {addValues, multiplyValues, ValueWithDev} from "../deviation";
+import {addValues, multiplyIndependent, multiplyValues, ValueWithDev} from "../deviation";
 
 describe('ValueWithDev calculations', () => {
 
@@ -83,6 +83,18 @@ describe('ValueWithDev calculations', () => {
             const expectedVariance = (2 ** 2 + 0.2 ** 2) * (4 ** 2 + 0.3 ** 2) * (5 ** 2 + 0.4 ** 2) - (2 ** 2 * 4 ** 2 * 5 ** 2);
             expect(result.stdDev).to.be.closeTo(Math.sqrt(expectedVariance), 0.000000001);
         });
+    });
+    describe('multiplyIndependent', () => {
+        it('should return expected value and standard deviation for independent values', () => {
+            const value: ValueWithDev = {
+                expected: 10,
+                stdDev: 5
+            };
+            const result1 = multiplyIndependent(value, 4);
+            expect(result1.expected).to.equal(40); // 2 * 4 * 5
+            expect(result1.stdDev).to.equal(10); // 2 * 4 * 5
+        });
+
     });
 
 });
