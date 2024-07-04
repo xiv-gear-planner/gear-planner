@@ -142,7 +142,7 @@ class PldSKSCycleProcessor extends CycleProcessor {
     }
 
     fofIsActive(atTime: number): boolean {
-    	let fofData = this.getActiveBuffData(Buffs.FightOrFlightBuff);
+    	const fofData = this.getActiveBuffData(Buffs.FightOrFlightBuff);
     	if (fofData == null)
     		return false;
 
@@ -153,7 +153,7 @@ class PldSKSCycleProcessor extends CycleProcessor {
     }
 
     getFOFRemaining(): number {
-    	let fofData = this.getActiveBuffData(Buffs.FightOrFlightBuff);
+    	const fofData = this.getActiveBuffData(Buffs.FightOrFlightBuff);
     	if (fofData == null)
     		return 0;
     	return fofData.end - this.nextGcdTime;
@@ -354,15 +354,15 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
 
             apply(cp: PldSKSCycleProcessor) {
 
-            	let physGCD = cp.stats.gcdPhys(2.5);
-            	let magicGCD = cp.stats.gcdMag(2.5);
+            	const physGCD = cp.stats.gcdPhys(2.5);
+            	const magicGCD = cp.stats.gcdMag(2.5);
 
             	let strategy_250 = false;
             	let strategy_98_alt = false;
             	let strategy_98_force = false;
             	let strategy_always9 = false;
             	let strategy_minimise = false;
-            	let strategy_hubris = (sim.settings.acknowledgeSKS == false);
+            	const strategy_hubris = (sim.settings.acknowledgeSKS == false);
 
             	// Let's assume that we are going to do a fixed time window
             	// optimisation, so, let's have an actual opener
@@ -615,16 +615,16 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
 							// if we are on an even minute, and we're 98ing
 							if ((strategy_98_alt && even_minute) || strategy_always9)
 							{
-                                let readyAt = cp.cdTracker.statusOf(Actions.FightOrFlight).readyAt.absolute;
+                                const readyAt = cp.cdTracker.statusOf(Actions.FightOrFlight).readyAt.absolute;
 								cp.addSpecialRow(`>> Late Weaving FOF!`);
 								// if force is on, we are here because we are clipping our GCD:
 								if (strategy_98_force)
 								{
 									if (!cp.canUseWithoutClipping(Actions.FightOrFlight))
 									{
-										let beforeGCD = cp.nextGcdTime;
+										const beforeGCD = cp.nextGcdTime;
 										cp.delayForOgcd(Actions.FightOrFlight);
-                                        let clip_amount = cp.nextGcdTime - beforeGCD;
+                                        const clip_amount = cp.nextGcdTime - beforeGCD;
 										cp.addSpecialRow("! ALERT ! Clipped GCD! " + (clip_amount).toFixed(2) + "s");
                                         clip_total_time += clip_amount;
 									}
@@ -674,7 +674,7 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
 							if (strategy_hubris)
 							{
 								let is_gonna_clip = false;
-								let beforeGCD = cp.nextGcdTime;
+								const beforeGCD = cp.nextGcdTime;
 								// If we're specifically pretending SKS doesn't exist, delay for Req+
 								if (!cp.canUseWithoutClipping(Actions.Imperator))
 									is_gonna_clip = true;
@@ -683,7 +683,7 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
 
 								if (is_gonna_clip)
                                 {
-                                    let clip_amount = cp.nextGcdTime - beforeGCD;
+                                    const clip_amount = cp.nextGcdTime - beforeGCD;
 									cp.addSpecialRow("! ALERT ! Clipped GCD! " + (clip_amount).toFixed(2) + "s");
                                     clip_total_time += clip_amount;
                                 }
@@ -818,11 +818,11 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
                         only_cos_once_in_filler = false;
 		    			if (strategy_hubris)
 		    			{
-							let beforeGCD = cp.nextGcdTime;
+							const beforeGCD = cp.nextGcdTime;
 		    				cp.delayForOgcd(Actions.Expiacion);
 		    				if ((cp.nextGcdTime - beforeGCD) > 0)
                             {
-                                let clip_amount = cp.nextGcdTime - beforeGCD;
+                                const clip_amount = cp.nextGcdTime - beforeGCD;
 		    					cp.addSpecialRow("! ALERT ! Clipped GCD! " + (clip_amount).toFixed(2) + "s");
                                 clip_total_time += clip_amount;
                             }
@@ -836,8 +836,8 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
 		    		}
                 }
 
-                let fof_delta = (time_of_last_fof - time_of_first_fof) - ((fofs_used - 1) * 60);
-                let avg_delay_fof = fof_delta / fofs_used;
+                const fof_delta = (time_of_last_fof - time_of_first_fof) - ((fofs_used - 1) * 60);
+                const avg_delay_fof = fof_delta / fofs_used;
 
                 cp.addSpecialRow(">> Summaries:");
 
@@ -846,7 +846,7 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
                 cp.addSpecialRow("Average delay: " + avg_delay_fof.toFixed(2));
                 if (avg_delay_fof > 0.01)
                 {
-                    let three_gcd_delay = 7.5 / avg_delay_fof;
+                    const three_gcd_delay = 7.5 / avg_delay_fof;
                     cp.addSpecialRow("Burst hits 7.5s delay @ ~" + three_gcd_delay.toFixed(0) + "m");
                     cp.addSpecialRow("Delay interacts with Party Buffs.");
                 }
