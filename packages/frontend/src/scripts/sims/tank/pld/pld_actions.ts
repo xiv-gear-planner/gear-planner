@@ -1,5 +1,5 @@
 import {AtonementReadyBuff, SupplicationReadyBuff, SepulchreReadyBuff, DivineMightBuff, BladeOfHonorReadyBuff, RequiescatBuff, FightOrFlightBuff, GoringBladeReadyBuff} from './pld_buffs';
-import {Ability, GcdAbility, OgcdAbility, OriginCdAbility, SharedCdAbility} from "@xivgear/core/sims/sim_types";
+import {GcdAbility, OgcdAbility} from "@xivgear/core/sims/sim_types";
 
 /**
  * Paladin GCD Actions

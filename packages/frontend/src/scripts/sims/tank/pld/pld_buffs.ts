@@ -1,4 +1,4 @@
-import {Buff, Ability, BuffController} from "@xivgear/core/sims/sim_types";
+import {Buff, BuffController} from "@xivgear/core/sims/sim_types";
 import {removeSelf} from "@xivgear/core/sims/common/utils";
 
 // Add a simple function to remove a single stack of a buff, for use with Req:
