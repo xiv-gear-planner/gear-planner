@@ -493,7 +493,7 @@ export class CycleProcessor {
 
     /**
      * Modifies the stack value for a given buff. The stack value provided should be the modified amount and not the final amount
-     * 
+     *
      * @param buff The Buff
      * @param stacks The stack modification to add
      */
@@ -630,7 +630,7 @@ export class CycleProcessor {
 
     /**
      * Get the buff data for an active buff.
-     * 
+     *
      * @param buff The buff
      * @returns BuffUsage for the buff, or null if this buff is not active
      */
@@ -851,7 +851,7 @@ export class CycleProcessor {
 
     /**
      * Determines whether or not an Off-GCD ability can be used without clipping the GCD
-     * 
+     *
      * @param action The Off-GCD ability to check for
      * @returns whether or not this ability can be used without clipping the GCD
      */
@@ -1318,7 +1318,13 @@ export interface CycleSimResult extends SimResult {
     unbuffedPps: number,
     buffTimings: readonly BuffUsage[],
     totalDamage: ValueWithDev,
-    mainDpsFull: ValueWithDev
+    mainDpsFull: ValueWithDev,
+    label: string
+}
+
+export interface CycleSimResultFull<T extends SimResult> extends SimResult {
+    best: T,
+    all: T[]
 }
 
 export type ExternalCycleSettings<InternalSettingsType extends SimSettings> = {
@@ -1342,6 +1348,10 @@ export type Rotation<CycleProcessorType = CycleProcessor> = {
      * @param cp The CycleProcessor instance (or instance of a subclass)
      */
     apply(cp: CycleProcessorType): void;
+    /**
+     * Optional name
+     */
+    name?: string;
 }
 
 export type ResultSettings = {

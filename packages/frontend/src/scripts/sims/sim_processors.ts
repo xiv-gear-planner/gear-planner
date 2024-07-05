@@ -14,6 +14,7 @@ import {PartyBuff, SimSettings, SimSpec, Simulation} from "@xivgear/core/sims/si
 import {
     CycleProcessor,
     CycleSimResult,
+    CycleSimResultFull,
     defaultResultSettings,
     ExternalCycleSettings,
     isFinalizedAbilityUse,
@@ -29,12 +30,12 @@ import {BuffSettingsArea} from "./party_comp_settings";
  * Base class for a CycleProcessor based simulation. You should extend this class,
  * and provide your own generic types.
  */
-export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, InternalSettingsType extends SimSettings, CycleProcessorType extends CycleProcessor = CycleProcessor>
-    implements Simulation<ResultType, InternalSettingsType, ExternalCycleSettings<InternalSettingsType>> {
+export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, InternalSettingsType extends SimSettings, CycleProcessorType extends CycleProcessor = CycleProcessor, FullResultType extends CycleSimResultFull<ResultType> = CycleSimResultFull<ResultType>>
+    implements Simulation<FullResultType, InternalSettingsType, ExternalCycleSettings<InternalSettingsType>> {
 
     abstract displayName: string;
     abstract shortName: string;
-    abstract spec: SimSpec<Simulation<ResultType, InternalSettingsType, ExternalCycleSettings<InternalSettingsType>>, ExternalCycleSettings<InternalSettingsType>>;
+    abstract spec: SimSpec<Simulation<FullResultType, InternalSettingsType, ExternalCycleSettings<InternalSettingsType>>, ExternalCycleSettings<InternalSettingsType>>;
     /**
      * Party buffs which would be activated automatically, but should be treated as manual due to being
      * associated with the class being simulated.
@@ -115,16 +116,27 @@ export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, Inter
         return div;
     }
 
-    makeMainResultDisplay(result: ResultType): HTMLElement {
+    /**
+     * Make the table at the top of the results are that displays overall statistics
+     *
+     * @param result The result
+     * @param includeRotationName Whether to include the rotation name/label. Rotation name is generally redundant
+     * for sims that only specify a single rotation.
+     */
+    makeMainResultDisplay(result: ResultType, includeRotationName: boolean = false): HTMLElement {
         // noinspection JSNonASCIINames
-        const mainResultsTable = simpleAutoResultTable({
+        const data = {
             "Expected DPS": result.mainDpsFull.expected,
             "Std Deviation": result.mainDpsFull.stdDev,
             "Expected +1σ": applyStdDev(result.mainDpsFull, 1),
             "Expected +2σ": applyStdDev(result.mainDpsFull, 2),
             "Expected +3σ": applyStdDev(result.mainDpsFull, 3),
-            "Unbuffed PPS": result.unbuffedPps
-        });
+            "Unbuffed PPS": result.unbuffedPps,
+        };
+        if (includeRotationName) {
+            data["Rotation"] = result.label
+        }
+        const mainResultsTable = simpleAutoResultTable(data);
         mainResultsTable.classList.add('main-results-table');
         return mainResultsTable;
     }
@@ -133,15 +145,14 @@ export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, Inter
         return new AbilitiesUsedTable(result.displayRecords);
     }
 
-    makeResultDisplay(result: ResultType): HTMLElement {
-        // noinspection JSNonASCIINames
-        const mainResultsTable = this.makeMainResultDisplay(result);
-        const abilitiesUsedTable = this.makeAbilityUsedTable(result);
+    makeResultDisplay(result: FullResultType): HTMLElement {
+        const mainResultsTable = this.makeMainResultDisplay(result.best, result.all.length > 1);
+        const abilitiesUsedTable = this.makeAbilityUsedTable(result.best);
         return quickElement('div', ['cycle-sim-results-table'], [mainResultsTable, abilitiesUsedTable]);
     }
 
-    makeToolTip(result: ResultType): string {
-        return `DPS: ${result.mainDpsResult}\nUnbuffed PPS: ${result.unbuffedPps}\n`;
+    makeToolTip(result: FullResultType): string {
+        return `DPS: ${result.mainDpsResult}\nUnbuffed PPS: ${result.best.unbuffedPps}\n`;
     }
 
     /**
@@ -193,11 +204,11 @@ export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, Inter
     };
 
 
-    async simulate(set: CharacterGearSet): Promise<ResultType> {
+    async simulate(set: CharacterGearSet): Promise<FullResultType> {
         console.debug("Sim start");
         const allBuffs = this.buffManager.enabledBuffs;
         const rotations = this.getRotationsToSimulate();
-        const allResults = rotations.map(rot => {
+        const allResults = rotations.map((rot, index) => {
             const cp = this.createCycleProcessor({
                 stats: set.computedStats,
                 totalTime: this.cycleSettings.totalTime,
@@ -221,12 +232,21 @@ export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, Inter
                 abilitiesUsed: used,
                 displayRecords: cp.finalizedRecords,
                 unbuffedPps: unbuffedPps,
-                buffTimings: buffTimings
+                buffTimings: buffTimings,
+                label: rot.name ?? `Unnamed #${index + 1}`,
             } satisfies CycleSimResult as unknown as ResultType;
         });
-        allResults.sort((a, b) => b.mainDpsResult - a.mainDpsResult);
+        const sorted = [...allResults];
+        sorted.sort((a, b) => b.mainDpsResult - a.mainDpsResult);
         console.debug("Sim end");
-        return allResults[0];
+        const best = sorted[0];
+        // @ts-expect-error Developer will need to override this method if they want to use a custom type for the
+        // full result type.
+        return {
+            mainDpsResult: best.mainDpsResult,
+            all: sorted,
+            best: best
+        };
     };
 
 }
