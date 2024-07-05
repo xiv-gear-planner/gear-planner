@@ -50,7 +50,7 @@ let jobDataManager: Promise<DataManager>;
 
 async function getClassJobStatsFull(job: JobName) {
     if (jobDataManager === undefined) {
-        const dm= new DataManager(job, 90);
+        const dm= new DataManager(job, 100);
         jobDataManager = dm.loadData().then(() => dm);
     }
     const multipliers = (await jobDataManager).multipliersForJob(job);
@@ -280,10 +280,10 @@ export function registerFormulae() {
             },
             hasteVar
         ],
-        makeDefaultInputs: () => {
+        makeDefaultInputs: (gen: GeneralSettings) => {
             return {
                 baseGcd: 2.5,
-                sps: getLevelStats(90).baseSubStat,
+                sps: gen.levelStats.baseSubStat,
                 haste: 0
             }
         },
