@@ -6,14 +6,17 @@ import {
     detDmg,
     dhitChance,
     dhitDmg,
-    mainStatMulti, mpTick,
+    mainStatMulti,
+    mpTick,
     sksTickMulti,
     sksToGcd,
     spsTickMulti,
     spsToGcd,
-    tenacityDmg, vitToHp, wdMulti,
+    tenacityDmg,
+    vitToHp,
+    wdMulti,
 } from "@xivgear/xivmath/xivmath";
-import {getClassJobStats, getLevelStats, JobName} from "@xivgear/xivmath/xivconstants";
+import {getClassJobStats, JobName} from "@xivgear/xivmath/xivconstants";
 import {GeneralSettings, registerFormula} from "./math_main";
 import {DataManager} from "@xivgear/core/datamanager";
 
@@ -50,7 +53,7 @@ let jobDataManager: Promise<DataManager>;
 
 async function getClassJobStatsFull(job: JobName) {
     if (jobDataManager === undefined) {
-        const dm= new DataManager(job, 100);
+        const dm = new DataManager(job, 100);
         jobDataManager = dm.loadData().then(() => dm);
     }
     const multipliers = (await jobDataManager).multipliersForJob(job);
@@ -130,7 +133,10 @@ export function registerFormulae() {
         }],
         primaryVariable: "wd",
         makeDefaultInputs(generalSettings: GeneralSettings) {
-            return {wd: 0, delay: 3.12};
+            return {
+                wd: 0,
+                delay: 3.12
+            };
         },
     });
 
