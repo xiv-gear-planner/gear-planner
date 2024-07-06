@@ -541,6 +541,8 @@ export type BaseBuff = Readonly<{
     selfOnly?: boolean,
     /** The effect(s) of the buff */
     effects: BuffEffects,
+    /** For buffs whose duration can stack*/
+    maxStackingDuration?: number;
     /**
      * Filter what abilities this buff applies to
      *
