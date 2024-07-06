@@ -92,7 +92,7 @@ class RprCycleProcessor extends CycleProcessor {
     }
 
     override use(ability: Ability): AbilityUseResult {
-        let rprAbility = ability as RprAbility;
+        const rprAbility = ability as RprAbility;
 
         if (rprAbility.updateSoulGauge != null || rprAbility.updateShroudGauge != null) {
             
@@ -203,7 +203,7 @@ class RprCycleProcessor extends CycleProcessor {
 
     public useOpener() {
 
-        let canUsePHWithoutClip = this.stats.gcdPhys(2.5) > 2.47;
+        const canUsePHWithoutClip = this.stats.gcdPhys(2.5) > 2.47;
 
         this.useGcd(Actions.Harpe);
 
@@ -286,7 +286,7 @@ class RprCycleProcessor extends CycleProcessor {
         }
 
         // use odd enshroud at some point when available
-        let ddStatus = this.getActiveBuffData(DeathsDesign);
+        const ddStatus = this.getActiveBuffData(DeathsDesign);
         if (this.gauge.shroudGauge >= 50
             && !this.rotationState.oddShroudUsed
             && this.cdTracker.statusOf(Actions.Gluttony).readyAt.relative > 8.5 + this.stats.gcdPhys(this.gcdBase)
@@ -368,7 +368,6 @@ export class RprSheetSim extends BaseMultiCycleSim<RprSheetSimResult, RprNewShee
     }
 
     getRotationsToSimulate(): Rotation<RprCycleProcessor>[] {
-        const sim = this;
         this.rotationState = new RotationState();
         return [{
             cycleTime: 120,

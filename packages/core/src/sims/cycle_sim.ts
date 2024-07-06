@@ -576,7 +576,7 @@ export class CycleProcessor {
     activateBuffWithDelay(buff: Buff, delay: number) {
         /** If the buff can stack duration /and/ it's already up, we can just extend it and return. */
         if (buff.maxStackingDuration) {
-            let activeBuff = this.getActiveBuffsData().find(bd => bd.buff === buff);
+            const activeBuff = this.getActiveBuffsData().find(bd => bd.buff === buff);
 
             // If the buff isn't going to fall off before reapplication, we simply extend it to max
             if (activeBuff && activeBuff.end > this.currentTime + delay) {
