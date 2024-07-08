@@ -372,15 +372,11 @@ export class RprSheetSim extends BaseMultiCycleSim<RprSheetSimResult, RprNewShee
         return [{
             cycleTime: 120,
 
-            /* I just used the cycle processor instead of doing any cycles, as doing so
-             * would require me to duplicate all of the 'useX(cp)' functions for CycleContext
-             * Is there a better way to do this?
-            */
             apply(cp: RprCycleProcessor) {
 
                 cp.useOpener();
 
-                // 3 + 2*gcd + animlock is (2 reapings) + (gcd before enshroud and first Sod) + (animlock form 2nd SoD)
+                /* 7.2 is the sum of all gcd times between the gcd before enshroud and when AC is pressed */
                 while (cp.remainingGcdTime > 0 &&
                     (cp.cdTracker.statusOf(Actions.ArcaneCircle).readyAt.relative > 7.2 )) {
 

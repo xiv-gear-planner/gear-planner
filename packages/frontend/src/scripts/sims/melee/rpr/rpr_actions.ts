@@ -55,7 +55,7 @@ export const Harpe: RprGcdAbility = {
     attackType: "Weaponskill",
     gcd: 2.5,
     cast: 1.3,
-    appDelay: 0.3,
+    appDelay: 0.8,
     updateSoulGauge: gauge => gauge.soulGauge += 10
 };
 
