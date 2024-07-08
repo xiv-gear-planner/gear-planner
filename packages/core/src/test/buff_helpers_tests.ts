@@ -1,4 +1,4 @@
-import {Ability, Buff, BuffController} from "../sims/sim_types";
+import {Buff} from "../sims/sim_types";
 import {expect} from "chai";
 import {buffRelevantAtSnapshot, buffRelevantAtStart} from "../sims/buff_helpers";
 
@@ -88,8 +88,7 @@ describe("Buff Helpers", () => {
             name: "Test buff",
             beforeAbility() {
             },
-            effects: {
-            },
+            effects: {},
         };
 
         it('is relevant at start', () => {
@@ -109,8 +108,7 @@ describe("Buff Helpers", () => {
             name: "Test buff",
             beforeSnapshot() {
             },
-            effects: {
-            },
+            effects: {},
         };
 
         it('is not relevant at start', () => {
@@ -131,8 +129,7 @@ describe("Buff Helpers", () => {
             name: "Test buff",
             modifyDamage() {
             },
-            effects: {
-            },
+            effects: {},
         };
 
         it('is not relevant at start', () => {
