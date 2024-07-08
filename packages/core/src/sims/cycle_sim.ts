@@ -31,6 +31,7 @@ import {abilityEquals, appDelay, completeComboData, FinalizedComboData} from "./
 import {abilityToDamageNew, combineBuffEffects} from "./sim_utils";
 import {BuffSettingsExport} from "./common/party_comp_settings";
 import {CycleSettings} from "./cycle_settings";
+import {buffRelevantAtSnapshot, buffRelevantAtStart} from "./buff_helpers";
 
 /**
  * CycleContext is similar to CycleProcessor, but is scoped to within a cycle. It provides methods
@@ -786,6 +787,13 @@ export class CycleProcessor {
         const dmgInfo = this.modifyDamage(abilityToDamageNew(this.stats, ability, combinedEffects), ability, buffs);
         const appDelayFromSnapshot = appDelay(ability);
         const appDelayFromStart = appDelayFromSnapshot + snapshotDelayFromStart;
+        const finalBuffs: Buff[] = Array.from(new Set<Buff>([
+            ...preBuffs,
+            ...buffs]))
+            .filter(buff => {
+                return buffRelevantAtStart(buff) && preBuffs.includes(buff)
+                    || buffRelevantAtSnapshot(buff) && buffs.includes(buff);
+            });
         const usedAbility: UsedAbility = ({
             ability: ability,
             // We want to take the 'haste' value from the pre-snapshot values, but everything else should
@@ -796,7 +804,7 @@ export class CycleProcessor {
                 ...combinedEffects,
                 haste: preCombinedEffects.haste,
             },
-            buffs: Array.from(new Set<Buff>([...preBuffs, ...buffs])),
+            buffs: finalBuffs,
             usedAt: gcdStartsAt,
             directDamage: dmgInfo.directDamage ?? fixedValue(0),
             dot: dmgInfo.dot,

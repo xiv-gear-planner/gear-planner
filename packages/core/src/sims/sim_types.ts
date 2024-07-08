@@ -405,7 +405,10 @@ export type UsedAbility = {
      */
     ability: Ability,
     /**
-     * The buffs that were active either when the ability started casting, or when it snapshotted (the union of both).
+     * The buffs that were active either when the ability started casting, or when it snapshotted, depending on what
+     * bonuses the buff provides.
+     *
+     * TODO: consider adding buffsAtStart and buffsAtSnapshot to clearly delineate these.
      */
     buffs: Buff[],
     /**
