@@ -59,7 +59,7 @@ export const Brotherhood = {
     statusId: 1185
 } as const satisfies PartyBuff;
 
-export const ArcaneCircle = {
+export const ArcaneCircleBuff = {
     name: "Arcane Circle",
     saveKey: "Arcane Circle",
     job: "RPR",
@@ -71,21 +71,6 @@ export const ArcaneCircle = {
     },
     startTime: 4.59,
     statusId: 2599
-} as const satisfies PartyBuff;
-
-export const DeathsDesign = {
-    name: "Death's Design",
-    saveKey: "Death's Design",
-    job: "RPR",
-    duration: 60, // this is a hack to make up for the fact that the duration is stackable.
-                  // Needs to be changed if simulating dropping DD is desired.
-    cooldown: 0,
-    selfOnly: false,
-    effects: {
-        dmgIncrease: 0.1
-    },
-    startTime: 0,
-    statusId: 2586
 } as const satisfies PartyBuff;
 
 export const SearingLight = {
@@ -259,7 +244,7 @@ export const OffGuardBuff = {
  */
 
 export const ALL_BUFFS = [
-    Dokumori, Litany, DragonSight, Brotherhood, ArcaneCircle, SearingLight, Embolden,
+    Dokumori, Litany, DragonSight, Brotherhood, ArcaneCircleBuff, SearingLight, Embolden,
     Devilment, TechnicalFinish, BattleVoice, RadiantFinale, Chain, Divination,
     AstCard, OffGuardBuff
 ] as const;
