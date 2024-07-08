@@ -2,7 +2,7 @@
 import {isClose} from "@xivgear/core/test/test_utils";
 import {BaseMultiCycleSim} from "../../sims/sim_processors";
 import {FinalizedAbility, PartyBuff} from "@xivgear/core/sims/sim_types";
-import {CycleSimResult, DisplayRecordFinalized} from "@xivgear/core/sims/cycle_sim";
+import {CycleSimResult, CycleSimResultFull, DisplayRecordFinalized} from "@xivgear/core/sims/cycle_sim";
 
 /**
  * Type that represents the time, name, and damage of an ability
@@ -28,9 +28,18 @@ export function setPartyBuffEnabled(sim: BaseMultiCycleSim<any, any>, buff: Part
     buffSettings.enabled = true;
 }
 
-export function assertSimAbilityResults(result: CycleSimResult | readonly DisplayRecordFinalized[], expectedAbilities: UseResult[]) {
+export function assertSimAbilityResults(result: CycleSimResultFull<CycleSimResult> | CycleSimResult | readonly DisplayRecordFinalized[], expectedAbilities: UseResult[]) {
 
-    const displayRecords: readonly DisplayRecordFinalized[] = 'displayRecords' in result ? result.displayRecords : result;
+    let displayRecords: readonly DisplayRecordFinalized[];
+    if ('all' in result) {
+        result = result.best;
+    }
+    if ('displayRecords' in result) {
+        displayRecords = result.displayRecords;
+    }
+    else {
+        displayRecords = result;
+    }
     const actualAbilities: FinalizedAbility[] = displayRecords.filter<FinalizedAbility>((record): record is FinalizedAbility => {
         return 'ability' in record;
     });

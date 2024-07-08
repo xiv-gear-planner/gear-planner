@@ -10,6 +10,7 @@ import {
 import {BaseMultiCycleSim} from "../sim_processors";
 import {gemdraught1mind} from "@xivgear/core/sims/common/potion";
 import {FieldBoundCheckBox, labeledCheckbox} from "@xivgear/common-ui/components/util";
+import {rangeInc} from "@xivgear/core/util/array_utils";
 
 /**
  * Used for all 360p filler abilities
@@ -147,7 +148,7 @@ export class SgeSheetSim extends BaseMultiCycleSim<SgeSheetSimResult, SgeNewShee
     getRotationsToSimulate(): Rotation[] {
         const outer = this;
         return [{
-            // Normal DoT
+            name: 'Normal DoT',
             cycleTime: 120,
             apply(cp: SageCycleProcessor) {
                 if (outer.settings.usePotion) {
@@ -171,17 +172,15 @@ export class SgeSheetSim extends BaseMultiCycleSim<SgeSheetSimResult, SgeNewShee
                     cp.useDotIfWorth();
                     cycle.useUntil(filler, 'end');
                 });
-
             }
-
-        }, {
-            // Dot early refresh
+        }, ...rangeInc(2, 20, 2).map(i => ({
+            name: `DoT clip ${i}s`,
             cycleTime: 120,
             apply(cp: SageCycleProcessor) {
                 if (outer.settings.usePotion) {
                     cp.useOgcd(gemdraught1mind);
                 }
-                const DOT_CLIP_AMOUNT = 10;
+                const DOT_CLIP_AMOUNT = i;
                 cp.useGcd(filler);
                 cp.oneCycle(cycle => {
                     cp.useDotIfWorth();
@@ -225,7 +224,7 @@ export class SgeSheetSim extends BaseMultiCycleSim<SgeSheetSimResult, SgeNewShee
                     cycle.useUntil(filler, 'end');
                 });
             },
-        }
+        }))
             // , {
             //     // Dot late
             //     cycleTime: 120,

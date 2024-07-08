@@ -524,7 +524,11 @@ export class GearPlanSheet {
     // TODO: this needs to only update when we have updated that specific gear set, not any random gear set.
     // If this gear set was not updated, then a cached result should be returned.
     getSimResult(simulation: Simulation<any, any, any>, set: CharacterGearSet): SimCurrentResult<SimResult> {
-        const simPromise = simulation.simulate(set);
+        const simPromise = (async () => {
+            // Intentionally de-prioritize this over other tasks so that it doesn't slow down an initial sheet load.
+            await new Promise(resolve => setTimeout(resolve, 0));
+            return await simulation.simulate(set);
+        })();
         const out: SimCurrentResult<any> = {
             result: undefined,
             resultPromise: undefined,
