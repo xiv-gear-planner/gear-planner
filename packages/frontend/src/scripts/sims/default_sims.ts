@@ -1,4 +1,5 @@
 import {pldUsageSimSpec} from "./tank/pld/pld_usage_sim_no_sks"
+import {pldSKSSheetSpec} from "./tank/pld/pldsks_sim";
 import {whmSheetSpec} from "./healer/whm_sheet_sim";
 import {sgeSheetSpec} from "./healer/sge_sheet_sim";
 import {sgeNewSheetSpec} from "./healer/sge_sheet_sim_mk2";
@@ -20,6 +21,7 @@ import {dncDtSheetSpec} from "./ranged/dnc_sim";
 export function registerDefaultSims() {
     registerSim(potRatioSimSpec);
     registerSim(pldUsageSimSpec);
+    registerSim(pldSKSSheetSpec);
     registerSim(whmSheetSpec);
     registerSim(sgeSheetSpec);
     registerSim(sgeNewSheetSpec);

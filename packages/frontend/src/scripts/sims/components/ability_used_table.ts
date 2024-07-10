@@ -184,7 +184,7 @@ export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
             {
                 shortName: 'buffs',
                 displayName: 'Buffs Active',
-                getter: used => used['buffs'] ?? [],
+                getter: (used: DisplayRecordFinalized) => used['buffs'] ?? [],
                 renderer: (buffs: Buff[]) => {
                     return new BuffListDisplay(buffs);
                 },

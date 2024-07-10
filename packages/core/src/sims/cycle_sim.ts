@@ -31,6 +31,7 @@ import {abilityEquals, appDelay, completeComboData, FinalizedComboData} from "./
 import {abilityToDamageNew, combineBuffEffects} from "./sim_utils";
 import {BuffSettingsExport} from "./common/party_comp_settings";
 import {CycleSettings} from "./cycle_settings";
+import {buffRelevantAtSnapshot, buffRelevantAtStart} from "./buff_helpers";
 
 /**
  * CycleContext is similar to CycleProcessor, but is scoped to within a cycle. It provides methods
@@ -493,7 +494,7 @@ export class CycleProcessor {
 
     /**
      * Modifies the stack value for a given buff. The stack value provided should be the modified amount and not the final amount
-     * 
+     *
      * @param buff The Buff
      * @param stacks The stack modification to add
      */
@@ -641,7 +642,7 @@ export class CycleProcessor {
 
     /**
      * Get the buff data for an active buff.
-     * 
+     *
      * @param buff The buff
      * @returns BuffUsage for the buff, or null if this buff is not active
      */
@@ -786,6 +787,13 @@ export class CycleProcessor {
         const dmgInfo = this.modifyDamage(abilityToDamageNew(this.stats, ability, combinedEffects), ability, buffs);
         const appDelayFromSnapshot = appDelay(ability);
         const appDelayFromStart = appDelayFromSnapshot + snapshotDelayFromStart;
+        const finalBuffs: Buff[] = Array.from(new Set<Buff>([
+            ...preBuffs,
+            ...buffs]))
+            .filter(buff => {
+                return buffRelevantAtStart(buff) && preBuffs.includes(buff)
+                    || buffRelevantAtSnapshot(buff) && buffs.includes(buff);
+            });
         const usedAbility: UsedAbility = ({
             ability: ability,
             // We want to take the 'haste' value from the pre-snapshot values, but everything else should
@@ -796,7 +804,7 @@ export class CycleProcessor {
                 ...combinedEffects,
                 haste: preCombinedEffects.haste,
             },
-            buffs: Array.from(new Set<Buff>([...preBuffs, ...buffs])),
+            buffs: finalBuffs,
             usedAt: gcdStartsAt,
             directDamage: dmgInfo.directDamage ?? fixedValue(0),
             dot: dmgInfo.dot,
@@ -862,7 +870,7 @@ export class CycleProcessor {
 
     /**
      * Determines whether or not an Off-GCD ability can be used without clipping the GCD
-     * 
+     *
      * @param action The Off-GCD ability to check for
      * @returns whether or not this ability can be used without clipping the GCD
      */
@@ -1329,7 +1337,13 @@ export interface CycleSimResult extends SimResult {
     unbuffedPps: number,
     buffTimings: readonly BuffUsage[],
     totalDamage: ValueWithDev,
-    mainDpsFull: ValueWithDev
+    mainDpsFull: ValueWithDev,
+    label: string
+}
+
+export interface CycleSimResultFull<T extends SimResult> extends SimResult {
+    best: T,
+    all: T[]
 }
 
 export type ExternalCycleSettings<InternalSettingsType extends SimSettings> = {
@@ -1353,6 +1367,10 @@ export type Rotation<CycleProcessorType = CycleProcessor> = {
      * @param cp The CycleProcessor instance (or instance of a subclass)
      */
     apply(cp: CycleProcessorType): void;
+    /**
+     * Optional name
+     */
+    name?: string;
 }
 
 export type ResultSettings = {

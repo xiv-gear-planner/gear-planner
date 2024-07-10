@@ -77,7 +77,7 @@ export function formatTopMenu(hash: string[]) {
         applyCommonTopMenuFormatting(link);
         if (href?.startsWith('?page=')) {
             const expected = splitPath(href.slice(6));
-            console.trace(`Expected: ${expected}, actual: ${hash}`);
+            console.debug(`Expected: ${expected}, actual: ${hash}`);
             if (arrayEq(expected, hash)) {
                 link.classList.add('current-page');
             }
