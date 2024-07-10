@@ -66,7 +66,7 @@ class RotationState {
     }
 
     /** Alternates between 50 and 100.
-     * Before odd gluttony, we want to save up 50 gauge at all time (meaning spend only at 100)
+     * Before odd gluttony, we want to save up 50 gauge at all times (meaning spend only at 100)
      * After odd gluttony, we want to get our shroud ASAP so our burst isn't delayed (meaning spend at 50)
      */
     spendSoulThreshold = 100;
@@ -259,15 +259,33 @@ class RprCycleProcessor extends CycleProcessor {
         this.useEnshroud();
 
         /** if combo is gonna break we need to continue it */
-        if (this.rotationState.lastComboTime + 30 < this.nextGcdTime + this.stats.gcdPhys(2.5)) {
+        if (this.rotationState.lastComboTime + 30 < this.nextGcdTime + this.stats.gcdPhys(2.5) && this.rotationState.combo != 0) {
             this.useCombo();
             this.useGcd(Actions.Perfectio);
         }
         else{
             this.useGcd(Actions.Perfectio);
-            this.useCombo();
+
+            if (this.rotationState.combo != 0) {
+                this.useCombo();
+            }
         }
 
+        /** Use combos and soulslice until gluttony is possible */
+        while (this.gauge.soulGauge < 50) {
+            if (this.cdTracker.canUse(Actions.SoulSlice)) {
+
+                this.useGcd(Actions.SoulSlice);
+            }
+            else {
+                this.useCombo();
+            }
+        }
+
+        this.useGluttonyAndExecutioners();
+
+        /** set rotation state to pre-odd-shroud-and-gluttony */
+        this.rotationState.spendSoulThreshold = 100;
         this.rotationState.oddShroudUsed = false;
     }
 
@@ -280,8 +298,9 @@ class RprCycleProcessor extends CycleProcessor {
         if (this.canUseWithoutClipping(Actions.Gluttony)
         && this.gauge.soulGauge >= 50) {
             this.useGluttonyAndExecutioners();
+
             /** Alternate spend soul threshold between 50 and 100 each gluttony usage. */
-            this.rotationState.spendSoulThreshold = 150 - this.rotationState.spendSoulThreshold; 
+            this.rotationState.spendSoulThreshold = 50;
             return;
         }
 
@@ -298,15 +317,54 @@ class RprCycleProcessor extends CycleProcessor {
             return;
         }
 
+        /** If the next two gcds are the two gcd before enshroud */
+        if (this.cdTracker.statusOf(Actions.ArcaneCircle).readyAt.relative <= Actions.VoidReaping.gcd + (4 * this.stats.gcdPhys(this.gcdBase))){
+
+            /** Running combo, prio using it on second gcd, only do otherwise */
+            if (this.rotationState.combo != 0) {
+
+                /** we need to gibgal somewhere in order to burst */
+                if (this.gauge.shroudGauge == 40) {
+                    
+                    /** we cannot end on a combo */
+                    if (this.gauge.soulGauge == 40) {
+                        this.useCombo();
+                        this.useGibGal();
+                        return;
+                    }
+                    /** we can end on a combo */
+                    if (this.gauge.soulGauge >= 40) {
+                        this.useGibGal();
+                        this.useCombo();
+                        return;
+                    }
+                    /**Otherwise, fall through to combo() combo() */
+                }
+
+                /** We can end combo neutral. */
+                if (this.gauge.soulGauge >= 40 && this.rotationState.combo == 2) {
+                    this.useCombo();
+                    this.useGibGal();
+                    return;
+                }
+            }
+
+            /** No combo, we cannot currently fit 2 noncombo gcds in here (SS cooldown is at :03ish and we are before that, not enough gauge for 2 gibgals) */
+            this.useCombo();
+            this.useCombo();
+            return;
+        }
+
         /** If SS is available the gcd after next one, use unveiled > gibgal to not overcap */
-        if (this.cdTracker.statusOf(Actions.SoulSlice).readyAt.absolute <= this.nextGcdTime + this.stats.gcdPhys(this.gcdBase) &&
-            this.gauge.soulGauge >= 50) {
+        if (this.cdTracker.statusOf(Actions.SoulSlice).readyAt.absolute <= this.nextGcdTime + this.stats.gcdPhys(this.gcdBase)
+            && this.gauge.soulGauge >= 50
+            && this.cdTracker.statusOf(Actions.Gluttony).readyAt.absolute > this.nextGcdTime + 2*this.stats.gcdPhys(this.gcdBase)) {
 
             this.useGibGal();
             return;
         }
 
-        /** Use SS if its off cd */
+        /** Use SS if its off cd and won't overcap */
         if (this.cdTracker.canUse(Actions.SoulSlice)
             && this.gauge.soulGauge <= 50) {
             
