@@ -69,6 +69,7 @@ import {rangeInc} from "@xivgear/core/util/array_utils";
 import {SimCurrentResult, SimResult, SimSettings, SimSpec, Simulation} from "@xivgear/core/sims/sim_types";
 import {getRegisteredSimSpecs} from "@xivgear/core/sims/sim_registry";
 import {makeUrl} from "@xivgear/core/nav/common_nav";
+import {simMaintainersInfoElement} from "./sims";
 
 export type GearSetSel = SingleCellRowOrHeaderSelect<CharacterGearSet>;
 
@@ -1771,12 +1772,17 @@ export class AddSimDialog extends BaseModal {
         this.table.data = this.sheet.relevantSims;
         const showAllCb = labeledCheckbox('Show sims for other jobs', new FieldBoundCheckBox<AddSimDialog>(this, 'showAllSims'));
         form.appendChild(showAllCb);
-        form.appendChild(this.table);
+        const tableHolder = quickElement('div', ['table-holder'], [this.table]);
+        form.appendChild(tableHolder);
 
         const descriptionArea = document.createElement('div');
         descriptionArea.classList.add('add-sim-description');
         descriptionArea.textContent = 'Select a simulation to see a description';
-        form.append(descriptionArea);
+
+        const contactArea = quickElement('div', ['add-sim-contact-info-holder'], []);
+        const descriptionContactArea = quickElement('div', ['add-sim-lower-area'], [descriptionArea, contactArea]);
+
+        form.appendChild(descriptionContactArea);
 
         const submitButton = makeActionButton("Add", () => this.submit());
         const cancelButton = makeActionButton("Cancel", () => closeModal());
@@ -1795,6 +1801,15 @@ export class AddSimDialog extends BaseModal {
                     else {
                         descriptionArea.textContent = '(No Description)';
                         descriptionArea.classList.add('no-desc');
+                    }
+                    const maintainersElement = simMaintainersInfoElement(newSelection.dataItem);
+                    if (maintainersElement) {
+                        contactArea.replaceChildren(maintainersElement);
+                        contactArea.style.display = '';
+                    }
+                    else {
+                        contactArea.replaceChildren();
+                        contactArea.style.display = 'none';
                     }
                 }
                 else {

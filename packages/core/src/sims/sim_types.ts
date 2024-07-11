@@ -69,13 +69,14 @@ export interface SimSpec<SimType extends Simulation<any, any, any>, SettingsExpo
 }
 
 export type MaintainerInfo = {
-    name: 'string',
+    name: string,
     contact: ContactInfo[]
 }
 
 export type DiscordContactInfo = {
     type: 'discord',
-    discordTag: string
+    discordTag: string,
+    discordUid: string
 };
 
 export type ContactInfo = DiscordContactInfo;

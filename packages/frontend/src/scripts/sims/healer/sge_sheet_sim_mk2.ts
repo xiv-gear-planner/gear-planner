@@ -88,7 +88,16 @@ export const sgeNewSheetSpec: SimSpec<SgeSheetSim, SgeNewSheetSettingsExternal> 
     stub: "sge-sheet-sim-mk2",
     supportedJobs: ['SGE'],
     isDefaultSim: true,
-    description: 'Simulates the standard SGE 2-minute rotation.'
+    description: 'Simulates the standard SGE 2-minute rotation.',
+    maintainers: [{
+        name: 'Wynn',
+        contact: [{
+            type: 'discord',
+            discordTag: 'xp',
+            discordUid: '126517290098229249'
+        }],
+    }],
+
 };
 
 class SageCycleProcessor extends CycleProcessor {
