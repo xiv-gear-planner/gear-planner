@@ -320,54 +320,6 @@ class RprCycleProcessor extends CycleProcessor {
             return;
         }
 
-        /* If the next two gcds are the two gcd before enshroud */
-        if (this.cdTracker.statusOf(Actions.ArcaneCircle).readyAt.relative <= Actions.VoidReaping.gcd + (4 * this.stats.gcdPhys(this.gcdBase))){
-
-            /** Running combo, prio using it on second gcd, only do otherwise */
-            if (this.rotationState.combo != 0) {
-
-                /** we need to gibgal somewhere in order to burst */
-                if (this.gauge.shroudGauge == 40) {
-                    
-                    /** we cannot end on a combo */
-                    if (this.gauge.soulGauge == 40) {
-                        //this.useCombo();
-                        //this.useGibGal();
-                        //return;
-                    }
-                    if (this.gauge.soulGauge < 40) {
-
-                    }
-                    /** we can end on a combo */
-                    if (this.gauge.soulGauge >= 40) {
-                        //this.useGibGal();
-                        //this.useCombo();
-                        //return;
-                    }
-                    /**Otherwise, fall through to combo() combo() */
-                    //this.useCombo();
-                    //this.useCombo();
-                    //return;
-                }
-
-                /** We can end combo neutral. */
-                if (this.gauge.soulGauge >= 40 && this.rotationState.combo == 2) {
-                    //this.useCombo();
-                    //this.useGibGal();
-                    //return;
-                }
-                
-                /** We are at 1 combo and can end combo neutral */
-                if (this.gauge.shroudGauge == 50) {
-                    //this.useCombo();
-                    //this.useCombo();
-                    //return;
-                }
-            }
-
-            /** If we are combo neutral, the standard prio suffices. */
-        }
-
         /** If SS is available the gcd after next one, use unveiled > gibgal to not overcap */
         if (this.cdTracker.statusOf(Actions.SoulSlice).readyAt.absolute <= this.nextGcdTime + this.stats.gcdPhys(this.gcdBase)
             && this.gauge.soulGauge >= 50
