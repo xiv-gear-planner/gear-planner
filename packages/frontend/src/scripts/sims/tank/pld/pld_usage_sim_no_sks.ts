@@ -147,7 +147,7 @@ export class PldUsageSim extends BaseUsageCountSim<PldUsageSimResults, PldUsageS
             result.push([Actions.auto, 70 / 2.24])
             result.push([Actions.buffed(Actions.auto), 140 / 2.24])
         } else if (buffDuration >= 15) {
-            result.push([Actions.buffed(Actions.auto), 7 * buffDuration / 2.24])
+            result.push([Actions.buffed(Actions.auto), 7 * buffDuration / set.computedStats.aaDelay])
         }
 
         return result;
