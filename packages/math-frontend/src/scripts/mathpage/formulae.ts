@@ -134,7 +134,7 @@ export function registerFormulae() {
         primaryVariable: "wd",
         makeDefaultInputs(generalSettings: GeneralSettings) {
             return {
-                wd: 0,
+                wd: 101,
                 delay: 3.12
             };
         },
