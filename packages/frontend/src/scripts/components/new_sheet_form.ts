@@ -170,7 +170,6 @@ export class SaveAsModal extends BaseModal {
         form.addEventListener('submit', (ev) => {
             ev.preventDefault();
             ev.stopPropagation();
-            // return;
             const newJob = this.fieldSet.jobDropdown.selectedItem;
             if (newJob !== undefined && newJob !== existingSheet.classJobName) {
                 const result = confirm(`You are attempting to change a sheet from ${existingSheet.classJobName} to ${newJob}. Items may need to be re-selected.`)
