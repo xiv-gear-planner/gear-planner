@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */                                                                                                                                // TODO: get back to fixing this at some point
+/* eslint-disable @typescript-eslint/no-explicit-any */                                                                                                                                                                                                                                                                // TODO: get back to fixing this at some point
 import {camel2title, capitalizeFirstLetter} from "@xivgear/core/util/strutils";
 import {BaseModal} from "@xivgear/common-ui/components/modal";
 import {
@@ -60,7 +60,7 @@ import {LoadingBlocker} from "@xivgear/common-ui/components/loader";
 import {GearEditToolbar} from "./gear_edit_toolbar";
 import {SETTINGS} from "../settings/persistent_settings";
 import {openSheetByKey, setTitle} from "../base_ui";
-import {parseImport, SHARED_SET_NAME} from "@xivgear/core/imports/imports";
+import {parseImport} from "@xivgear/core/imports/imports";
 import {getShortLink} from "@xivgear/core/external/shortlink_server";
 import {getSetFromEtro} from "@xivgear/core/external/etro_import";
 import {getBisSheet} from "@xivgear/core/external/static_bis";
@@ -70,6 +70,7 @@ import {SimCurrentResult, SimResult, SimSettings, SimSpec, Simulation} from "@xi
 import {getRegisteredSimSpecs} from "@xivgear/core/sims/sim_registry";
 import {makeUrl} from "@xivgear/core/nav/common_nav";
 import {simMaintainersInfoElement} from "./sims";
+import {SaveAsModal} from "./new_sheet_form";
 
 export type GearSetSel = SingleCellRowOrHeaderSelect<CharacterGearSet>;
 
@@ -1238,15 +1239,8 @@ export class GearPlanSheetGui extends GearPlanSheet {
         }
 
         const saveAsButton = makeActionButton("Save As", () => {
-            const defaultName = this.sheetName === SHARED_SET_NAME ? 'Imported Set' : this.sheetName + ' copy';
-            const newName = prompt("Enter a name for the new sheet: ", defaultName);
-            if (newName === null) {
-                return;
-            }
-            console.log('New name', newName);
-            const newSaveKey = this.saveAs(newName);
-            // TODO: should this be provided as a ctor arg instead?
-            openSheetByKey(newSaveKey);
+            const modal = new SaveAsModal(this, newSheet => openSheetByKey(newSheet.saveKey));
+            modal.attachAndShow();
         });
         buttonsArea.appendChild(saveAsButton);
 

@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */ // TODO: get back to fixing this at some point
+/* eslint-disable @typescript-eslint/no-explicit-any */  // TODO: get back to fixing this at some point
 import {
     defaultItemDisplaySettings,
     DefaultMateriaFillPrio,
@@ -50,11 +50,11 @@ export class SheetProvider<SheetType extends GearPlanSheet> {
     constructor(private readonly sheetConstructor: SheetContstructor<SheetType>) {
     }
 
-    private construct(...args: SheetCtorArgs) : SheetType{
+    private construct(...args: SheetCtorArgs): SheetType {
         return this.sheetConstructor(...args);
     }
 
-    fromExport(importedData: SheetExport):SheetType  {
+    fromExport(importedData: SheetExport): SheetType {
         return this.construct(undefined, importedData);
     }
 
@@ -337,12 +337,26 @@ export class GearPlanSheet {
     /**
      * Copy this sheet to a new save slot.
      *
-     * @param name
+     * @param name New name. Leave unspecified/undefined to keep existing name.
+     * @param job New job. Leave unspecified/undefined to keep existing job.
+     * @param level New level. Leave unspecified/undefined to keep existing level.
+     * @param ilvlSync New ilvl sync. Leave unspecified or use special value 'keep' to keep existing ilvl sync.
      * @returns The saveKey of the new sheet.
      */
-    saveAs(name: string): string {
+    saveAs(name?: string, job?: JobName, level?: SupportedLevel, ilvlSync: number | 'keep' = 'keep'): string {
         const exported = this.exportSheet(true);
-        exported.name = name;
+        if (name !== undefined) {
+            exported.name = name;
+        }
+        if (job !== undefined) {
+            exported.job = job;
+        }
+        if (level !== undefined) {
+            exported.level = level;
+        }
+        if (ilvlSync !== 'keep') {
+            exported.ilvlSync = ilvlSync;
+        }
         const newKey = getNextSheetInternalName();
         localStorage.setItem(newKey, JSON.stringify(exported));
         return newKey;

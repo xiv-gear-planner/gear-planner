@@ -929,10 +929,12 @@ div.chance-stat-display, div.multiplier-stat-display {
 }
 
 
-#new-sheet-form fieldset {
-  text-align: center;
-  display: inline-grid;
-  border: none;
+#new-sheet-form, save-as-modal {
+  fieldset {
+    text-align: center;
+    display: inline-grid;
+    border: none;
+  }
 }
 
 #content-area > .my-sheets-section {
@@ -1463,11 +1465,13 @@ add-sim-dialog {
   form {
     display: contents;
   }
+
   .table-holder {
     background-color: var(--table-bg-color);
     border-radius: var(--optional-border-radius);
     flex-basis: 300px;
     overflow-y: auto;
+
     table {
       margin-left: 0;
       margin-right: 0;
@@ -1487,12 +1491,15 @@ add-sim-dialog {
     max-width: min-content;
     white-space: pre-wrap;
     overflow-y: auto;
+
     .add-sim-description {
       flex-grow: 1;
+
       &.no-desc {
         opacity: 50%;
       }
     }
+
     .sim-contact-info-holder {
       //flex-grow: 0;
       flex-basis: fit-content;
