@@ -501,6 +501,7 @@ export const LEVEL_ITEMS: Record<SupportedLevel, LevelItemInfo> = {
         // Would expect 570, but it has those 560 scaling artifacts
         minILvl: 560,
         maxILvl: 999,
+        defaultIlvlSync: 665,
         minILvlFood: 570,
         maxILvlFood: 999,
         minMateria: 7,
@@ -513,7 +514,6 @@ export const LEVEL_ITEMS: Record<SupportedLevel, LevelItemInfo> = {
             higherRelics: true
         }
     },
-    // DAWNTRAIL TODO: replace with real values once known
     100: {
         minILvl: 640,
         maxILvl: 999,
@@ -717,6 +717,7 @@ export const ARTIFACT_ITEM_LEVELS = [
     290,
     430,
     560,
+    690,
 ];
 
 export const BASIC_TOME_GEAR_ILVLS = [
@@ -790,7 +791,7 @@ export function bluWdfromInt(gearIntStat: number): number {
 }
 
 export const defaultItemDisplaySettings: ItemDisplaySettings = {
-    minILvl: 640,
+    minILvl: 680,
     maxILvl: 999,
     minILvlFood: 610,
     maxILvlFood: 999,
