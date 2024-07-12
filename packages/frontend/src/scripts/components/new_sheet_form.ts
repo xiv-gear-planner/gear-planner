@@ -11,45 +11,45 @@ import {getNextSheetInternalName} from "@xivgear/core/persistence/saved_sheets";
 import {GearPlanSheet} from "@xivgear/core/sheet";
 import {GRAPHICAL_SHEET_PROVIDER} from "./sheet";
 import {levelSelect} from "@xivgear/common-ui/components/level_picker";
+import {BaseModal} from "@xivgear/common-ui/components/modal";
+import {SHARED_SET_NAME} from "@xivgear/core/imports/imports";
 
-export class NewSheetForm extends HTMLFormElement {
-    private readonly nameInput: HTMLInputElement;
-    private readonly jobDropdown: DataSelect<JobName>;
-    private readonly levelDropdown: DataSelect<SupportedLevel>;
-    private readonly ilvlSyncCheckbox: FieldBoundCheckBox<typeof this.tempSettings>;
-    private readonly ilvlSyncValue: FieldBoundIntField<typeof this.tempSettings>;
-    private readonly fieldSet: HTMLFieldSetElement;
-    private readonly sheetOpenCallback: (sheet: GearPlanSheet) => Promise<unknown>;
-    private readonly tempSettings = {
-        ilvlSyncEnabled: false,
-        ilvlSync: 650
-    };
+export class NewSheetFormFieldSet extends HTMLFieldSetElement {
+    readonly nameInput: HTMLInputElement;
+    readonly jobDropdown: DataSelect<JobName>;
+    readonly levelDropdown: DataSelect<SupportedLevel>;
+    readonly ilvlSyncCheckbox: FieldBoundCheckBox<typeof this.tempSettings>;
+    readonly ilvlSyncValue: FieldBoundIntField<typeof this.tempSettings>;
+    readonly tempSettings
 
-    constructor(sheetOpenCallback: (sheet: GearPlanSheet) => Promise<unknown>) {
+    constructor(defaults: {
+        name?: string,
+        job?: JobName,
+        level?: SupportedLevel,
+        ilvlSyncEnabled?: boolean,
+        ilvlSyncLevel?: number
+    }) {
         super();
-        this.sheetOpenCallback = sheetOpenCallback;
-        // Header
-        this.id = "new-sheet-form";
-
-        this.fieldSet = document.createElement("fieldset");
-
         // Sheet Name
         this.nameInput = document.createElement("input");
         this.nameInput.id = "new-sheet-name-input";
         this.nameInput.required = true;
         this.nameInput.type = 'text';
         this.nameInput.width = 400;
-        this.fieldSet.appendChild(labelFor("Sheet Name: ", this.nameInput));
-        this.fieldSet.appendChild(this.nameInput);
-        this.fieldSet.appendChild(spacer());
+        if (defaults?.name) {
+            this.nameInput.value = defaults.name;
+        }
+        this.appendChild(labelFor("Sheet Name: ", this.nameInput));
+        this.appendChild(this.nameInput);
+        this.appendChild(spacer());
 
         // Job selection
-        this.jobDropdown = new DataSelect<JobName>(Object.keys(JOB_DATA) as JobName[], item => item, () => this.recheck());
+        this.jobDropdown = new DataSelect<JobName>(Object.keys(JOB_DATA) as JobName[], item => item, () => this.recheck(), defaults?.job);
         this.jobDropdown.id = "new-sheet-job-dropdown";
         this.jobDropdown.required = true;
-        this.fieldSet.appendChild(labelFor('Job: ', this.jobDropdown));
-        this.fieldSet.appendChild(this.jobDropdown);
-        this.fieldSet.appendChild(spacer());
+        this.appendChild(labelFor('Job: ', this.jobDropdown));
+        this.appendChild(this.jobDropdown);
+        this.appendChild(spacer());
 
         // Level selection
         this.levelDropdown = levelSelect(newValue => {
@@ -61,16 +61,19 @@ export class NewSheetForm extends HTMLFormElement {
                 this.ilvlSyncCheckbox.reloadValue();
             }
             this.recheck();
-        });
+        }, defaults?.level);
         this.levelDropdown.id = "new-sheet-level-dropdown";
         this.levelDropdown.required = true;
-        this.fieldSet.appendChild(labelFor('Level: ', this.levelDropdown));
-        this.fieldSet.appendChild(this.levelDropdown);
-        this.fieldSet.appendChild(spacer());
-
+        this.appendChild(labelFor('Level: ', this.levelDropdown));
+        this.appendChild(this.levelDropdown);
+        this.appendChild(spacer());
+        this.tempSettings = {
+            ilvlSyncEnabled: defaults?.ilvlSyncEnabled ?? false,
+            ilvlSync: defaults?.ilvlSyncLevel ?? 650
+        };
         this.ilvlSyncCheckbox = new FieldBoundCheckBox(this.tempSettings, 'ilvlSyncEnabled');
         this.ilvlSyncCheckbox.id = 'new-sheet-ilvl-sync-enable';
-        this.fieldSet.append(quickElement('div', [], [this.ilvlSyncCheckbox, labelFor("Sync Item Level", this.ilvlSyncCheckbox)]));
+        this.append(quickElement('div', [], [this.ilvlSyncCheckbox, labelFor("Sync Item Level", this.ilvlSyncCheckbox)]));
         this.ilvlSyncValue = new FieldBoundIntField(this.tempSettings, 'ilvlSync', {
             postValidators: [
                 positiveValuesOnly,
@@ -83,8 +86,34 @@ export class NewSheetForm extends HTMLFormElement {
         });
         this.ilvlSyncValue.style.display = 'none';
         this.ilvlSyncCheckbox.addListener(() => this.recheck());
-        this.fieldSet.appendChild(this.ilvlSyncValue);
-        this.fieldSet.appendChild(spacer());
+        this.appendChild(this.ilvlSyncValue);
+        this.appendChild(spacer());
+    }
+
+    takeFocus() {
+        this.nameInput.focus();
+    }
+
+    recheck() {
+        this.ilvlSyncValue.style.display = this.ilvlSyncCheckbox.currentValue ? '' : 'none';
+    }
+
+}
+
+type SheetOpenCallback = (sheet: GearPlanSheet) => Promise<unknown>
+
+export class NewSheetForm extends HTMLFormElement {
+    private readonly fieldSet: NewSheetFormFieldSet;
+    private readonly sheetOpenCallback: SheetOpenCallback;
+
+    constructor(sheetOpenCallback: SheetOpenCallback) {
+        super();
+        this.sheetOpenCallback = sheetOpenCallback;
+        // Header
+        this.id = "new-sheet-form";
+
+        this.fieldSet = new NewSheetFormFieldSet({});
+
 
         this.appendChild(this.fieldSet);
         this.appendChild(spacer());
@@ -100,17 +129,68 @@ export class NewSheetForm extends HTMLFormElement {
     }
 
     takeFocus() {
-        this.nameInput.focus();
+        this.fieldSet.takeFocus();
     }
 
     recheck() {
-        this.ilvlSyncValue.style.display = this.ilvlSyncCheckbox.currentValue ? '' : 'none';
+        this.fieldSet.recheck();
     }
 
     private doSubmit() {
         const nextSheetSaveStub = getNextSheetInternalName();
-        const gearPlanSheet = GRAPHICAL_SHEET_PROVIDER.fromScratch(nextSheetSaveStub, this.nameInput.value, this.jobDropdown.selectedItem, this.levelDropdown.selectedItem, this.tempSettings.ilvlSyncEnabled ? this.tempSettings.ilvlSync : undefined);
+        const gearPlanSheet = GRAPHICAL_SHEET_PROVIDER.fromScratch(nextSheetSaveStub, this.fieldSet.nameInput.value, this.fieldSet.jobDropdown.selectedItem, this.fieldSet.levelDropdown.selectedItem, this.fieldSet.tempSettings.ilvlSyncEnabled ? this.fieldSet.tempSettings.ilvlSync : undefined);
         this.sheetOpenCallback(gearPlanSheet).then(() => gearPlanSheet.requestSave());
+    }
+}
+
+export class SaveAsModal extends BaseModal {
+    private fieldSet: NewSheetFormFieldSet;
+
+    constructor(existingSheet: GearPlanSheet, callback: SheetOpenCallback) {
+        super();
+        this.headerText = 'Save As';
+        const form = document.createElement('form');
+        const defaultName = existingSheet.sheetName === SHARED_SET_NAME ? 'Imported Set' : existingSheet.sheetName + ' copy';
+        this.fieldSet = new NewSheetFormFieldSet({
+            job: existingSheet.classJobName,
+            level: existingSheet.level,
+            name: defaultName,
+            ilvlSyncEnabled: existingSheet.ilvlSync !== undefined,
+            ilvlSyncLevel: existingSheet.ilvlSync
+        });
+        form.appendChild(this.fieldSet);
+        this.contentArea.replaceChildren(form);
+        const submitButton = document.createElement("button");
+        submitButton.type = 'submit';
+        submitButton.textContent = "New Sheet";
+        this.addButton(submitButton);
+        submitButton.addEventListener('click', () => {
+            form.requestSubmit();
+        });
+        form.addEventListener('submit', (ev) => {
+            ev.preventDefault();
+            ev.stopPropagation();
+            // return;
+            const newJob = this.fieldSet.jobDropdown.selectedItem;
+            if (newJob !== undefined && newJob !== existingSheet.classJobName) {
+                const result = confirm(`You are attempting to change a sheet from ${existingSheet.classJobName} to ${newJob}. Items may need to be re-selected.`)
+                if (!result) {
+                    this.close();
+                    return;
+                }
+            }
+            const newSheetSaveKey: string = existingSheet.saveAs(
+                this.fieldSet.nameInput.value,
+                newJob,
+                this.fieldSet.levelDropdown.selectedItem,
+                this.fieldSet.tempSettings.ilvlSyncEnabled ? this.fieldSet.tempSettings.ilvlSync : undefined
+            );
+            const newSheet = GRAPHICAL_SHEET_PROVIDER.fromSaved(newSheetSaveKey);
+            console.log("new sheet key", newSheet.saveKey);
+            callback(newSheet).then(() => newSheet.requestSave());
+            this.close();
+        });
+        this.fieldSet.recheck();
     }
 }
 
@@ -118,4 +198,6 @@ function spacer() {
     return quickElement('div', ['vertical-spacer'], []);
 }
 
+customElements.define("save-as-modal", SaveAsModal);
+customElements.define("new-sheet-form-fieldset", NewSheetFormFieldSet, {extends: "fieldset"});
 customElements.define("new-sheet-form", NewSheetForm, {extends: "form"});
