@@ -453,7 +453,7 @@ export class DncDtSim extends BaseUsageCountSim<DncDtSimResults, DncDtSimSetting
             return []
         }
         result.push(...common);
-        result.push([auto, (buffDuration ?? FullCycleTime) / 3]);
+        result.push([auto, (buffDuration ?? FullCycleTime) / set.computedStats.aaDelay]);
         return result;
     }
 
