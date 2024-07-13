@@ -62,7 +62,24 @@ export interface SimSpec<SimType extends Simulation<any, any, any>, SettingsExpo
      * Optional: a brief description to display when choosing a sim.
      */
     description?: string;
+    /**
+     * Optional: contact info for maintainers
+     */
+    maintainers?: MaintainerInfo[]
 }
+
+export type MaintainerInfo = {
+    name: string,
+    contact: ContactInfo[]
+}
+
+export type DiscordContactInfo = {
+    type: 'discord',
+    discordTag: string,
+    discordUid: string
+};
+
+export type ContactInfo = DiscordContactInfo;
 
 /**
  * Represents a configured simulation. Note that an instance of this object is re-used across multiple runs of the

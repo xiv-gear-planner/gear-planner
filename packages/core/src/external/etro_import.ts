@@ -3,12 +3,13 @@ import {JobName, MATERIA_SLOTS_MAX} from "@xivgear/xivmath/xivconstants";
 import {queryBaseParams} from "../datamanager";
 import {BaseParamToStatKey, RelevantBaseParam} from "./xivapitypes";
 
-const ETRO_SLOTS = ['weapon', 'head', 'body', 'hands', 'legs', 'feet', 'ears', 'neck', 'wrists', 'fingerL', 'fingerR'] as const;
+const ETRO_SLOTS = ['weapon', 'offHand', 'head', 'body', 'hands', 'legs', 'feet', 'ears', 'neck', 'wrists', 'fingerL', 'fingerR'] as const;
 // Works
 type ETRO_SLOT_KEY = typeof ETRO_SLOTS[number];
 
 const ETRO_GEAR_SLOT_MAP: Record<ETRO_SLOT_KEY, EquipSlotKey> = {
     weapon: "Weapon",
+    offHand: "OffHand",
     head: "Head",
     body: "Body",
     hands: "Hand",

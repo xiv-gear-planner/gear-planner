@@ -10,6 +10,9 @@ import { AbilitiesUsedTable } from "../../components/ability_used_table";
 
 
 export interface RprSheetSimResult extends CycleSimResult {
+    arcaneCircleDrifts: number[];
+    gluttonyDrifts: number[];
+    soulSliceDrifts: number[];
 }
 
 export interface RprNewSheetSettings extends SimSettings {
@@ -272,8 +275,8 @@ class RprCycleProcessor extends CycleProcessor {
         }
 
         /** Use combos and soulslice until gluttony is possible */
-        while (this.gauge.soulGauge < 50) {
-            if (this.cdTracker.canUse(Actions.SoulSlice)) {
+        while (this.gauge.soulGauge < 50 || !this.canUseWithoutClipping(Actions.Gluttony)) {
+            if (this.cdTracker.canUse(Actions.SoulSlice, this.nextGcdTime)) {
 
                 this.useGcd(Actions.SoulSlice);
             }
@@ -317,44 +320,6 @@ class RprCycleProcessor extends CycleProcessor {
             return;
         }
 
-        /** If the next two gcds are the two gcd before enshroud */
-        if (this.cdTracker.statusOf(Actions.ArcaneCircle).readyAt.relative <= Actions.VoidReaping.gcd + (4 * this.stats.gcdPhys(this.gcdBase))){
-
-            /** Running combo, prio using it on second gcd, only do otherwise */
-            if (this.rotationState.combo != 0) {
-
-                /** we need to gibgal somewhere in order to burst */
-                if (this.gauge.shroudGauge == 40) {
-                    
-                    /** we cannot end on a combo */
-                    if (this.gauge.soulGauge == 40) {
-                        this.useCombo();
-                        this.useGibGal();
-                        return;
-                    }
-                    /** we can end on a combo */
-                    if (this.gauge.soulGauge >= 40) {
-                        this.useGibGal();
-                        this.useCombo();
-                        return;
-                    }
-                    /**Otherwise, fall through to combo() combo() */
-                }
-
-                /** We can end combo neutral. */
-                if (this.gauge.soulGauge >= 40 && this.rotationState.combo == 2) {
-                    this.useCombo();
-                    this.useGibGal();
-                    return;
-                }
-            }
-
-            /** No combo, we cannot currently fit 2 noncombo gcds in here (SS cooldown is at :03ish and we are before that, not enough gauge for 2 gibgals) */
-            this.useCombo();
-            this.useCombo();
-            return;
-        }
-
         /** If SS is available the gcd after next one, use unveiled > gibgal to not overcap */
         if (this.cdTracker.statusOf(Actions.SoulSlice).readyAt.absolute <= this.nextGcdTime + this.stats.gcdPhys(this.gcdBase)
             && this.gauge.soulGauge >= 50
@@ -365,7 +330,7 @@ class RprCycleProcessor extends CycleProcessor {
         }
 
         /** Use SS if its off cd and won't overcap */
-        if (this.cdTracker.canUse(Actions.SoulSlice)
+        if (this.cdTracker.canUse(Actions.SoulSlice, this.nextGcdTime)
             && this.gauge.soulGauge <= 50) {
             
             this.useGcd(Actions.SoulSlice);
@@ -382,7 +347,9 @@ class RprCycleProcessor extends CycleProcessor {
         }
 
         /** Spend soul if we're at the threshold */
-        if (this.gauge.soulGauge >= this.rotationState.spendSoulThreshold) {
+        if (this.gauge.soulGauge >= this.rotationState.spendSoulThreshold
+            && (this.gauge.shroudGauge < 50 || this.gauge.soulGauge == 100) //Only spend up to 50 shroud, unless we're going to overcap
+        ) {
             this.useGibGal();
             return;
         }
