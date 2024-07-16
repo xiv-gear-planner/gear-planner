@@ -634,7 +634,7 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
                                     cp.useOgcdLateWeave(Actions.FightOrFlight);
                                 }
                                 if (fofs_used != 0)
-                                    cp.addSpecialRow(`>> Delay to FOF: ` + (cp.currentTime - readyAt).toFixed(2) + "s");
+                                    cp.addSpecialRow(`>> Delay to FOF: ` + (cp.currentTime - readyAt - STANDARD_ANIMATION_LOCK).toFixed(2) + "s");
                             }
                             else
                             {
