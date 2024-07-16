@@ -12,7 +12,7 @@ import {
     sksToGcd,
     spsTickMulti,
     spsToGcd,
-    tenacityDmg,
+    tenacityDmg, tenacityIncomingDmg,
     vitToHp,
     wdMulti,
 } from "@xivgear/xivmath/xivmath";
@@ -171,8 +171,14 @@ export function registerFormulae() {
         name: "Tenacity",
         stub: "tnc",
         functions: [{
-            name: "Tenacity Damage Multiplier",
+            name: "Outgoing Multiplier",
             fn: tenacityDmg,
+            argExtractor: async function (arg, gen: GeneralSettings) {
+                return [gen.levelStats, arg.tnc];
+            }
+        }, {
+            name: "Incoming Multiplier",
+            fn: tenacityIncomingDmg,
             argExtractor: async function (arg, gen: GeneralSettings) {
                 return [gen.levelStats, arg.tnc];
             }

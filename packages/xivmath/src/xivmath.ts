@@ -196,6 +196,17 @@ export function tenacityDmg(levelStats: LevelStats, tenacity: number) {
 }
 
 /**
+ * Convert a tenacity stat value to its respective incoming damage reduction. This is represented as a multiplier,
+ * i.e. a return of 0.95 represents a 5% mitigation.
+ *
+ * @param levelStats
+ * @param tenacity
+ */
+export function tenacityIncomingDmg(levelStats: LevelStats, tenacity: number) {
+    return (1000 - fl(200 * (tenacity - levelStats.baseSubStat) / levelStats.levelDiv)) / 1000;
+}
+
+/**
  * Convert direct hit stat to a damage multiplier for auto-DH abilities. Having more direct hit will provide more
  * damage in cases where the ability automatically direct hits.
  *
