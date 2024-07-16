@@ -286,6 +286,10 @@ export interface ComputedSetStats extends RawStats {
      */
     tncMulti: number,
     /**
+     * Tenacity incoming multiplier. e.g. 0.95 => 5% damage reduction.
+     */
+    tncIncomingMulti: number,
+    /**
      * Multiplier from weapon damage.
      */
     wdMulti: number,
