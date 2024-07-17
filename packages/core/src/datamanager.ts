@@ -214,7 +214,9 @@ export class DataManager implements DataManagerIntf {
                     // Dumb hack for new stuff because indices haven't updated
                     if (this._level === 100) {
                         const results = [...data.Results];
-                        const maxId = results[results.length - 1].ID;
+                        // const maxId = results[results.length - 1].ID;
+                        const seenIds = new Set<number>();
+                        results.forEach(result => seenIds.add(result.ID as number));
                         console.log("Loading extra items");
                         results.push(...(await xivApiGet({
                             requestType: 'list',
@@ -223,7 +225,14 @@ export class DataManager implements DataManagerIntf {
                             startPage: 429,
                             pageLimit: 1
                         })).Results.filter(result => {
-                            return result.Name !== "" && result.ID > maxId && result.ClassJobCategory[this._classJob];
+                            const id = result.ID as number;
+                            if (seenIds.has(id)) {
+                                return false;
+                            }
+                            else {
+                                seenIds.add(id);
+                            }
+                            return result.Name !== "" && result.ClassJobCategory[this._classJob];
                         }));
                         return results;
                     }
