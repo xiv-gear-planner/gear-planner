@@ -1,5 +1,11 @@
 import {processRawMateriaInfo, XivApiFoodInfo, XivApiGearInfo} from "./gear";
-import {getClassJobStats, JobName, LEVEL_ITEMS, MATERIA_LEVEL_MAX_NORMAL, SupportedLevel} from "@xivgear/xivmath/xivconstants";
+import {
+    getClassJobStats,
+    JobName,
+    LEVEL_ITEMS,
+    MATERIA_LEVEL_MAX_NORMAL,
+    SupportedLevel
+} from "@xivgear/xivmath/xivconstants";
 import {GearItem, JobMultipliers, Materia, OccGearSlotKey, RawStatKey,} from "@xivgear/xivmath/geartypes";
 import {xivApiGet, xivApiSingle} from "./external/xivapi";
 import {BaseParamToStatKey, RelevantBaseParam, xivApiStatMapping} from "./external/xivapitypes";
@@ -167,45 +173,63 @@ export class DataManager implements DataManagerIntf {
         });
         const extraPromises = [];
         console.log("Loading items");
-        // Gear Items
+        const itemColumns = [
+            // Basic item properties
+            'ID', 'IconHD', 'Name', 'LevelItem',
+            // Equip slot restrictions
+            'ClassJobCategory', 'EquipSlotCategory', 'IsUnique',
+            // Stats
+            'Stats', 'DamageMag', 'DamagePhys', 'DelayMs',
+            // Materia
+            'MateriaSlotCount', 'IsAdvancedMeldingPermitted',
+            // Stuff for determining correct WD for HQ crafted items
+            'CanBeHq',
+            'BaseParamSpecial0TargetID',
+            'BaseParamSpecial1TargetID',
+            'BaseParamSpecial2TargetID',
+            'BaseParamSpecial3TargetID',
+            'BaseParamSpecial4TargetID',
+            'BaseParamSpecial5TargetID',
+            'BaseParamValueSpecial0',
+            'BaseParamValueSpecial1',
+            'BaseParamValueSpecial2',
+            'BaseParamValueSpecial3',
+            'BaseParamValueSpecial4',
+            'BaseParamValueSpecial5',
+            // Helps determine acquisition type
+            'Rarity',
+            'GameContentLinks'
+        ] as const;
         const itemsPromise = xivApiGet({
             requestType: 'search',
             sheet: 'Item',
-            columns: [
-                // Basic item properties
-                'ID', 'IconHD', 'Name', 'LevelItem',
-                // Equip slot restrictions
-                'ClassJobCategory', 'EquipSlotCategory', 'IsUnique',
-                // Stats
-                'Stats', 'DamageMag', 'DamagePhys', 'DelayMs',
-                // Materia
-                'MateriaSlotCount', 'IsAdvancedMeldingPermitted',
-                // Stuff for determining correct WD for HQ crafted items
-                'CanBeHq',
-                'BaseParamSpecial0TargetID',
-                'BaseParamSpecial1TargetID',
-                'BaseParamSpecial2TargetID',
-                'BaseParamSpecial3TargetID',
-                'BaseParamSpecial4TargetID',
-                'BaseParamSpecial5TargetID',
-                'BaseParamValueSpecial0',
-                'BaseParamValueSpecial1',
-                'BaseParamValueSpecial2',
-                'BaseParamValueSpecial3',
-                'BaseParamValueSpecial4',
-                'BaseParamValueSpecial5',
-                // Helps determine acquisition type
-                'Rarity',
-                'GameContentLinks'
-            ] as const,
+            columns: itemColumns,
             // EquipSlotCategory! => EquipSlotCategory is not null => filters out now-useless belts
             filters: [`LevelItem>=${this._minIlvl}`, `LevelItem<=${this._maxIlvl}`, `ClassJobCategory.${this._classJob}=1`, 'EquipSlotCategory!'],
         })
             // const itemsPromise = fetch(`https://xivapi.com/search?indexes=Item&filters=LevelItem%3E=${this.minIlvl},LevelItem%3C=${this.maxIlvl},ClassJobCategory.${this.classJob}=1&columns=ID,IconHD,Name,LevelItem,Stats,EquipSlotCategory,MateriaSlotCount,IsAdvancedMeldingPermitted,DamageMag,DamagePhys`)
-            .then((data) => {
+            .then(async (data) => {
                 if (data) {
                     console.log(`Got ${data.Results.length} Items`);
-                    return data.Results;
+                    // Dumb hack for new stuff because indices haven't updated
+                    if (this._level === 100) {
+                        const results = [...data.Results];
+                        const maxId = results[results.length - 1].ID;
+                        console.log("Loading extra items");
+                        results.push(...(await xivApiGet({
+                            requestType: 'list',
+                            sheet: 'Item',
+                            columns: itemColumns,
+                            startPage: 429,
+                            pageLimit: 1
+                        })).Results.filter(result => {
+                            return result.Name !== "" && result.ID > maxId && result.ClassJobCategory[this._classJob];
+                        }));
+                        return results;
+                    }
+                    else {
+                        return data.Results;
+                    }
                 }
                 else {
                     console.error(`Got No Items!`);
