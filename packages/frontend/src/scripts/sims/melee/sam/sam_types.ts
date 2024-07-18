@@ -9,10 +9,10 @@ export type SamAbility = Ability & Readonly<{
     kenkiCost?: number,
 }>;
 
-/** Represents a Ninja-specific GCD Ability */
+/** Represents a Samurai-specific GCD Ability */
 export type SamGcdAbility = GcdAbility & SamAbility;
 
-/** Represents a Ninja-specific oGCD Ability */
+/** Represents a Samurai-specific oGCD Ability */
 export type SamOgcdAbility = OgcdAbility & SamAbility;
 
 /** Represents an Ability that costs Kenki */
