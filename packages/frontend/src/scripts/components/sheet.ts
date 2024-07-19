@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */                                                                                                                                                                                                                                                                // TODO: get back to fixing this at some point
+/* eslint-disable @typescript-eslint/no-explicit-any */                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                // TODO: get back to fixing this at some point
 import {camel2title, capitalizeFirstLetter} from "@xivgear/core/util/strutils";
 import {BaseModal} from "@xivgear/common-ui/components/modal";
 import {
@@ -71,6 +71,7 @@ import {getRegisteredSimSpecs} from "@xivgear/core/sims/sim_registry";
 import {makeUrl} from "@xivgear/core/nav/common_nav";
 import {simMaintainersInfoElement} from "./sims";
 import {SaveAsModal} from "./new_sheet_form";
+import {DropdownActionMenu} from "./dropdown_actions_menu";
 
 export type GearSetSel = SingleCellRowOrHeaderSelect<CharacterGearSet>;
 
@@ -1217,6 +1218,8 @@ export class GearPlanSheetGui extends GearPlanSheet {
         // Buttons and controls at the bottom of the table
         // this.buttonRow.id = 'gear-sheet-button-row';
 
+        const sheetOptions = new DropdownActionMenu('More Actions...');
+
         if (!this._isViewOnly) {
             const addRowButton = makeActionButton("New Gear Set", () => {
                 const newSet = new CharacterGearSet(this);
@@ -1224,25 +1227,46 @@ export class GearPlanSheetGui extends GearPlanSheet {
                 this.addGearSet(newSet, true);
             });
             buttonsArea.appendChild(addRowButton);
-            const renameButton = makeActionButton("Sheet Name/Description", () => {
-                startRenameSheet(this);
+
+            sheetOptions.addAction({
+                label: 'Name/Description',
+                action: () => startRenameSheet(this)
             });
-            buttonsArea.appendChild(renameButton);
+            sheetOptions.addAction({
+                label: 'Manage Custom Items',
+                action: () => alert('Not Implemented'),
+            });
+            // const renameButton = makeActionButton("Sheet Name/Description", () => {
+            //     startRenameSheet(this);
+            // });
+            // buttonsArea.appendChild(renameButton);
+            buttonsArea.appendChild(sheetOptions);
         }
+
 
         if (this.ilvlSync != undefined) {
             const span = quickElement('span', [], [document.createTextNode(`ilvl Sync: ${this.ilvlSync}`)]);
             const ilvlSyncLabel = quickElement('div', ['like-a-button'], [span]);
-            // TODO: think about how to allow creating a new sheet with different ilvl
             // ilvlSyncLabel.title = 'To change the item level sync, click the "Save As" button and create a '
             buttonsArea.appendChild(ilvlSyncLabel);
         }
 
-        const saveAsButton = makeActionButton("Save As", () => {
-            const modal = new SaveAsModal(this, newSheet => openSheetByKey(newSheet.saveKey));
-            modal.attachAndShow();
-        });
-        buttonsArea.appendChild(saveAsButton);
+        if (this._isViewOnly) {
+            const saveAsButton = makeActionButton("Save As", () => {
+                const modal = new SaveAsModal(this, newSheet => openSheetByKey(newSheet.saveKey));
+                modal.attachAndShow();
+            });
+            buttonsArea.appendChild(saveAsButton);
+        }
+        else {
+            sheetOptions.addAction({
+                label: 'Save As',
+                action: () => {
+                    const modal = new SaveAsModal(this, newSheet => openSheetByKey(newSheet.saveKey));
+                    modal.attachAndShow();
+                },
+            });
+        }
 
         if (!this._isViewOnly) {
 

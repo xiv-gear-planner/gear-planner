@@ -7,6 +7,7 @@ import {
     SPECIAL_SUB_STATS,
     SupportedLevel
 } from "./xivconstants";
+import {CustomItemExport} from "@xivgear/core/gear";
 
 export interface DisplayGearSlot {
 
@@ -634,6 +635,10 @@ export interface SheetExport {
      * If ilvl sync is enabled, this represents what level the sheet should be synced to
      */
     ilvlSync?: number,
+    /**
+     * Custom items
+     */
+    customItems?: CustomItemExport[]
 }
 
 export interface SheetStatsExport extends SheetExport {
