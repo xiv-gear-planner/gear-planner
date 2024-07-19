@@ -239,6 +239,7 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
                 attackType: 'Weaponskill',
                 haste: 13,
                 basis: 'sks',
+                isPrimary: true,
             }]
         }
     },
