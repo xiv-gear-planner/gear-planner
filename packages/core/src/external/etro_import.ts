@@ -1,5 +1,5 @@
 import {EquipSlotKey, ItemSlotExport, SetExport} from "@xivgear/xivmath/geartypes";
-import {JobName, MATERIA_SLOTS_MAX} from "@xivgear/xivmath/xivconstants";
+import {JobName, MATERIA_SLOTS_MAX, SupportedLevel} from "@xivgear/xivmath/xivconstants";
 import {queryBaseParams} from "../datamanager";
 import {BaseParamToStatKey, RelevantBaseParam} from "./xivapitypes";
 
@@ -32,6 +32,7 @@ type EtroOtherData = {
     name: string,
     food: number | null,
     materia: { [slot: (number | string)]: EtroMateria },
+    level: SupportedLevel
 }
 
 type EtroRelicsData = {
@@ -148,7 +149,8 @@ export async function getSetFromEtro(etroSetId: string) {
         name: response.name,
         job: response.jobAbbrev,
         food: food,
-        items: items
+        items: items,
+        level: response.level
     };
     return setImport;
 }

@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */  // TODO: get back to fixing this at some point
 import {
+    CURRENT_MAX_LEVEL,
     defaultItemDisplaySettings,
     DefaultMateriaFillPrio,
     getClassJobStats,
@@ -173,7 +174,7 @@ export class GearPlanSheet {
         this._importedData = importedData;
         this._saveKey = sheetKey;
         this._sheetName = importedData.name;
-        this.level = importedData.level ?? 90;
+        this.level = importedData.level ?? CURRENT_MAX_LEVEL;
         this._race = importedData.race;
         this._partyBonus = importedData.partyBonus ?? 0;
         this.classJobName = importedData.job ?? 'WHM';
