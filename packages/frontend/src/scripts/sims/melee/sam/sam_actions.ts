@@ -172,6 +172,17 @@ export const KaeshiNamikiri: SamGcdAbility = {
     updateGauge: gauge => gauge.meditation++,
 };
 
+export const Enpi: SamGcdAbility = {
+    type: 'gcd',
+    name: "Enpi",
+    id: 7486,
+    attackType: "Weaponskill",
+    potency: 270,
+    gcd: 2.5,
+    cast: 0,
+    updateGauge: gauge => gauge.kenkiGauge += 10,
+};
+
 /**
  * Off GCD Actions
  */
@@ -221,6 +232,19 @@ export const HissatsuGyoten: KenkiAbility = {
     type: 'ogcd',
     name: "Hissatsu: Gyoten",
     id: 7492,
+    attackType: "Ability",
+    potency: 100,
+    cooldown: {
+        time: 10,
+    },
+    updateGauge: gauge => gauge.kenkiGauge -= 10,
+    kenkiCost: 10,
+};
+
+export const HissatsuYaten: KenkiAbility = {
+    type: 'ogcd',
+    name: "Hissatsu: Yaten",
+    id: 7493,
     attackType: "Ability",
     potency: 100,
     cooldown: {

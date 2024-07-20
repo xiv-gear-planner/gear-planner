@@ -3,9 +3,9 @@ import { gemdraught1str } from "@xivgear/core/sims/common/potion";
 import {
     Gekko, Hagakure, Gyofu, Higanbana,
     HissatsuGyoten, HissatsuSenei, HissatsuShinten,
-    Ikishoten, Jinpu, KaeshiNamikiri, Kasha,
-    MeikyoShisui, MidareSetsugekka, OgiNamikiri,
-    Shifu, Shoha, TendoKaeshiSetsugekka,
+    HissatsuYaten, Ikishoten, Jinpu, KaeshiNamikiri,
+    Enpi, Kasha, MeikyoShisui, MidareSetsugekka,
+    OgiNamikiri, Shifu, Shoha, TendoKaeshiSetsugekka,
     TendoSetsugekka, Yukikaze, Zanshin,
 } from '../sam_actions';
 
@@ -78,18 +78,17 @@ export const Opener: SamAbility[] = [
     Gekko,
     Gyofu,
     Shifu,
-];
-
-export const Loop: SamAbility[] = [
     Kasha,
     MidareSetsugekka,
     Gyofu,
-    Yukikaze,
-    HissatsuShinten,
-    Hagakure,
+    HissatsuYaten,
+    Enpi,
     Gyofu,
     HissatsuShinten,
     Shifu,
+];
+
+export const Loop: SamAbility[] = [
     Kasha,
     Gyofu,
     Yukikaze,
@@ -160,5 +159,14 @@ export const Loop: SamAbility[] = [
     Gekko,
     Gyofu,
     HissatsuGyoten,
+    Shifu,
+    Kasha,
+    MidareSetsugekka,
+    Gyofu,
+    Yukikaze,
+    HissatsuShinten,
+    Hagakure,
+    Gyofu,
+    HissatsuShinten,
     Shifu,
 ];
