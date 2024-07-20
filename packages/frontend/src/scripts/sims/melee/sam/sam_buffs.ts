@@ -36,7 +36,7 @@ export const Fugetsu: Buff = {
 };
 
 export const MeikyoShisuiBuff: Buff = {
-    name: "Meikyo Shisui Buff",
+    name: "Meikyo Shisui",
     selfOnly: true,
     effects: {
         // Only applies to some combo actions
