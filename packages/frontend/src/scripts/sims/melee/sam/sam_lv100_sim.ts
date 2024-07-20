@@ -99,6 +99,10 @@ class SAMCycleProcessor extends CycleProcessor {
             if (ability.type === 'gcd' && this.nextGcdTime > this.currentTime) {
                 this.advanceTo(this.nextGcdTime);
             }
+            // Log when we use more gauge than what we currently have
+            if (samAbility.kenkiCost > this.gauge.kenkiGauge) {
+                console.error(`[${formatDuration(this.currentTime)}] Used ${samAbility.kenkiCost} kenki with ${samAbility.name} when you only have ${this.gauge.kenkiGauge}`);
+            }
             samAbility.updateGauge(this.gauge);
         }
 
@@ -151,9 +155,6 @@ export class SamSim extends BaseMultiCycleSim<SamSimResult, SamSettings, SAMCycl
                 cp.remainingCycles(() => {
                     SlowSamRotation.Loop.forEach(action => {
                         if (cp.currentTime < cp.totalTime) {
-                            if (action.kenkiCost > cp.gauge.kenkiGauge) {
-                                console.error(`[${formatDuration(cp.currentTime)}] Used ${action.kenkiCost} kenki with ${action.name} when you only have ${cp.gauge.kenkiGauge}`);
-                            }
                             cp.use(action);
                             if (cp.currentTime > (cp.totalTime - 5) && cp.gauge.kenkiGauge >= 25) {
                                 cp.useOgcd(HissatsuShinten);
@@ -171,9 +172,6 @@ export class SamSim extends BaseMultiCycleSim<SamSimResult, SamSettings, SAMCycl
                 cp.remainingCycles(() => {
                     MidSamRotation.Loop.forEach(action => {
                         if (cp.currentTime < cp.totalTime) {
-                            if (action.kenkiCost > cp.gauge.kenkiGauge) {
-                                console.error(`[${formatDuration(cp.currentTime)}] Used ${action.kenkiCost} kenki with ${action.name} when you only have ${cp.gauge.kenkiGauge}`);
-                            }
                             cp.use(action);
                             if (cp.currentTime > (cp.totalTime - 5) && cp.gauge.kenkiGauge >= 25) {
                                 cp.useOgcd(HissatsuShinten);
