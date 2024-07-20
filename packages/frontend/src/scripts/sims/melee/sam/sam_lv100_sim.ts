@@ -5,9 +5,8 @@ import { BaseMultiCycleSim } from "../../sim_processors";
 import { AbilitiesUsedTable } from "../../components/ability_used_table";
 import SAMGauge from "./sam_gauge";
 import { SAMExtraData, SamAbility } from "./sam_types";
-import { ActionList as SlowSamRotation } from './rotations/sam_lv100_214';
-import { ActionList as MidSamRotation } from './rotations/sam_lv100_207';
-import { ActionList as FastSamRotation } from './rotations/sam_lv100_200';
+import * as SlowSamRotation from './rotations/sam_lv100_214';
+import { HissatsuShinten } from './sam_actions';
 
 export interface SamSimResult extends CycleSimResult {
 
@@ -111,9 +110,9 @@ export class SamSim extends BaseMultiCycleSim<SamSimResult, SamSettings, SAMCycl
     displayName = samSpec.displayName;
     cycleSettings: CycleSettings = {
         useAutos: true,
-        totalTime: 127,
+        totalTime: (6 * 60) + 30,
         cycles: 0,
-        which: 'totalTime'
+        which: 'totalTime',
     }
 
     constructor(settings?: SamSettingsExternal) {
@@ -142,27 +141,20 @@ export class SamSim extends BaseMultiCycleSim<SamSimResult, SamSettings, SAMCycl
 
     getRotationsToSimulate(): Rotation<SAMCycleProcessor>[] {
         return [{
-            name: "2.14 GCD Rotation",
-            cycleTime: 127,
+            name: "Slow Sam Rotation",
+            cycleTime: 120,
             apply(cp: SAMCycleProcessor) {
+                cp.cycleLengthMode = 'full-duration';
+                SlowSamRotation.Opener.forEach(action => cp.use(action));
                 cp.remainingCycles(() => {
-                    SlowSamRotation.forEach(action => cp.use(action));
-                });
-            }
-        }, {
-            name: "2.07 GCD Rotation",
-            cycleTime: 127,
-            apply(cp: SAMCycleProcessor) {
-                cp.remainingCycles(() => {
-                    MidSamRotation.forEach(action => cp.use(action));
-                });
-            }
-        }, {
-            name: "2.00 GCD Rotation",
-            cycleTime: 127,
-            apply(cp: SAMCycleProcessor) {
-                cp.remainingCycles(() => {
-                    FastSamRotation.forEach(action => cp.use(action));
+                    SlowSamRotation.Loop.forEach(action => {
+                        if (cp.currentTime < cp.totalTime) {
+                            cp.use(action);
+                            if (cp.currentTime > (cp.totalTime - 5) && cp.gauge.kenkiGauge >= 25) {
+                                cp.useOgcd(HissatsuShinten);
+                            }
+                        }
+                    });
                 });
             }
         }]
