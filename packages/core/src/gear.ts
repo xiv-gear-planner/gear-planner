@@ -52,7 +52,7 @@ import {
     StatBonus,
     XivCombatItem
 } from "@xivgear/xivmath/geartypes";
-import {xivApiIcon} from "./external/xivapi";
+import {xivApiIcon, xivApiIconUrl} from "./external/xivapi";
 import {IlvlSyncInfo} from "./datamanager";
 import {XivApiStat, xivApiStatMapping} from "./external/xivapitypes";
 import {Inactivitytimer} from "./util/inactivitytimer";
@@ -1133,20 +1133,20 @@ export class CustomItem implements GearItem {
 
     unsyncedVersion: GearItem = this;
     isCustomRelic: boolean = false;
-    // TODO
+    // TODO: syncing and stat caps not supported
     isSyncedDown: boolean = false;
     relicStatModel = undefined;
     // unsyncedVersion: GearItem = null;
-    acquisitionType: GearAcquisitionSource = 'other';
+    acquisitionType: GearAcquisitionSource = 'custom';
 
     // TODO
     primarySubstat: keyof RawStats = null;
     secondarySubstat: keyof RawStats = null;
     // statCaps: { determination?: number; piety?: number; crit?: number; dhit?: number; spellspeed?: number; skillspeed?: number; tenacity?: number; hp?: number; vitality?: number; strength?: number; dexterity?: number; intelligence?: number; mind?: number; wdPhys?: number; wdMag?: number; weaponDelay?: number; };
-    // TODO
+    // TODO: syncing and stat caps not supported
     statCaps = {};
     // TODO
-    iconUrl: URL = new URL('https://xivapi.com//i/002000/002126.png');
+    iconUrl: URL = new URL(xivApiIconUrl(26270));
     private _data: CustomItemExport;
 
     private constructor(exportedData: CustomItemExport) {
@@ -1234,6 +1234,10 @@ export class CustomItem implements GearItem {
 
     export(): CustomItemExport {
         return {...this._data};
+    }
+
+    get customData(): CustomItemExport {
+        return this._data;
     }
 
 }

@@ -513,10 +513,18 @@ export class GearPlanSheet {
         }
     }
 
-    // TODO
-    private _nextCustomItemId = 10_000_000;
+    private get nextCustomItemId() {
+        if (this._customItems.length === 0) {
+            // TODO: make this random + larger
+            return 10_000_000_000_000 + Math.floor(Math.random() * 1_000_000);
+        }
+        else {
+            return Math.max(...this._customItems.map(ci => ci.id)) + 1;
+        }
+    }
+
     newCustomItem(slot: OccGearSlotKey): CustomItem {
-        const item = CustomItem.fromScratch(this._nextCustomItemId++, slot);
+        const item = CustomItem.fromScratch(this.nextCustomItemId, slot);
         this._customItems.push(item);
         this.requestSave();
         return item;
@@ -530,7 +538,7 @@ export class GearPlanSheet {
         // TODO: this should check if you have this item equipped on any sets, or ask
         const idx = this._customItems.indexOf(item);
         if (idx > -1) {
-            delete this._customItems[idx];
+            this._customItems.splice(idx, 1);
         }
         this.recalcAll();
     }

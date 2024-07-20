@@ -381,9 +381,9 @@ export class FieldBoundFloatField<ObjType> extends FieldBoundConvertingTextField
     }
 }
 
-export const positiveValuesOnly = (ctx: PostValidationContext<never, number>) => {
+export const nonNegative = (ctx: PostValidationContext<never, number>) => {
     if (ctx.newValue < 0) {
-        ctx.failValidation("Value must be positive");
+        ctx.failValidation("Value cannot be negative");
     }
 };
 

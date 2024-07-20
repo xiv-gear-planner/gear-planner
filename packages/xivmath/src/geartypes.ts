@@ -807,7 +807,8 @@ export type GearAcquisitionSource =
     | 'ultimate'
     | 'artifact'
     | 'alliance'
-    | 'other';
+    | 'other'
+    | 'custom';
 
 export type GearSetIssue = {
     readonly severity: 'warning' | 'error',

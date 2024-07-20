@@ -5,7 +5,7 @@ import {
     FieldBoundCheckBox,
     FieldBoundFloatField,
     labeledCheckbox, labelFor,
-    positiveValuesOnly, quickElement
+    nonNegative, quickElement
 } from "@xivgear/common-ui/components/util";
 import {SimResult, SimSettings, SimSpec, Simulation} from "@xivgear/core/sims/sim_types";
 
@@ -102,28 +102,28 @@ export class WhmSheetSim implements Simulation<WhmSheetSimResult, WhmSheetSettin
 
         const ldPerMin = new FieldBoundFloatField<WhmSheetSettings>(settings, 'ldPerMin', {
             id: 'ldPerMin-input',
-            postValidators: [positiveValuesOnly]
+            postValidators: [nonNegative]
         });
         const ldPerMinLabel = labelFor('Lucid Dreaming/Minute', ldPerMin);
         outerDiv.appendChild(quickElement("div", ['labeled-item'], [ldPerMinLabel, ldPerMin]));
 
         const rezPerMin = new FieldBoundFloatField<WhmSheetSettings>(settings, 'rezPerMin', {
             id: 'rezPerMin-input',
-            postValidators: [positiveValuesOnly]
+            postValidators: [nonNegative]
         });
         const rezPerMinLabel = labelFor('Raise/Minute', rezPerMin);
         outerDiv.appendChild(quickElement("div", ['labeled-item'], [rezPerMinLabel, rezPerMin]));
 
         const m2perMin = new FieldBoundFloatField<WhmSheetSettings>(settings, 'm2PerMin', {
             id: 'm2PerMin-input',
-            postValidators: [positiveValuesOnly]
+            postValidators: [nonNegative]
         });
         const m2perMinLabel = labelFor('Medica II/Minute', m2perMin);
         outerDiv.appendChild(quickElement("div", ['labeled-item'], [m2perMinLabel, m2perMin]));
 
         const c3perMin = new FieldBoundFloatField<WhmSheetSettings>(settings, 'c3PerMin', {
             id: 'c3PerMin-input',
-            postValidators: [positiveValuesOnly]
+            postValidators: [nonNegative]
         });
         const c3perMinLabel = labelFor('Cure III/Minute', c3perMin);
         outerDiv.appendChild(quickElement("div", ['labeled-item'], [c3perMinLabel, c3perMin]));

@@ -3,7 +3,7 @@ import {
     FieldBoundCheckBox,
     FieldBoundIntField,
     labelFor,
-    positiveValuesOnly,
+    nonNegative,
     quickElement
 } from "@xivgear/common-ui/components/util";
 import {JOB_DATA, JobName, LEVEL_ITEMS, MAX_ILVL, SupportedLevel} from "@xivgear/xivmath/xivconstants";
@@ -76,7 +76,7 @@ export class NewSheetFormFieldSet extends HTMLFieldSetElement {
         this.append(quickElement('div', [], [this.ilvlSyncCheckbox, labelFor("Sync Item Level", this.ilvlSyncCheckbox)]));
         this.ilvlSyncValue = new FieldBoundIntField(this.tempSettings, 'ilvlSync', {
             postValidators: [
-                positiveValuesOnly,
+                nonNegative,
                 (ctx) => {
                     if (ctx.newValue > MAX_ILVL) {
                         ctx.failValidation("Enter a valid item level (too high)")
