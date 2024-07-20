@@ -20,8 +20,6 @@ class SAMGauge {
     set kenkiGauge(newGauge: number) {
         if (newGauge > 100) {
             console.warn(`Overcapped Kenki by ${newGauge - 100}.`);
-        } else if (newGauge < 0) {
-            console.error(`Used ${this.kenkiGauge - newGauge} Kenki when you only have ${this.kenkiGauge}.`)
         }
         this._kenkiGauge = Math.max(Math.min(newGauge, 100), 0);
     }

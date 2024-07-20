@@ -13,6 +13,16 @@ export function toRelPct(input: number, decimalPlaces: number) {
     return `${input > 0 ? '+' : ''}${(input * 100).toFixed(decimalPlaces)}`;
 }
 
+export function formatDuration(duration: number): string {
+    const seconds = duration % 60;
+    const secondsStr = `${seconds < 10 ? "0" : ""}${seconds.toFixed(3)}`;
+
+    const minutes = Math.floor(duration / 60);
+    const minutesStr = `${minutes < 10 ? "0" : ""}${minutes}`;
+
+    return `${minutesStr}:${secondsStr}`;
+}
+
 export function shortenItemName(itemName: string): string {
     return itemName.replace("Augmented", "Aug.");
 }

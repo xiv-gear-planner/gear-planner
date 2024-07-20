@@ -1,11 +1,13 @@
 import { Ability, OgcdAbility, Buff, SimSettings, SimSpec } from "@xivgear/core/sims/sim_types";
 import { CycleProcessor, CycleSimResult, ExternalCycleSettings, MultiCycleSettings, AbilityUseResult, Rotation, AbilityUseRecordUnf } from "@xivgear/core/sims/cycle_sim";
 import { CycleSettings } from "@xivgear/core/sims/cycle_settings";
+import { formatDuration } from "@xivgear/core/util/strutils";
 import { BaseMultiCycleSim } from "../../sim_processors";
 import { AbilitiesUsedTable } from "../../components/ability_used_table";
 import SAMGauge from "./sam_gauge";
 import { SAMExtraData, SamAbility } from "./sam_types";
 import * as SlowSamRotation from './rotations/sam_lv100_214';
+import * as MidSamRotation from './rotations/sam_lv100_207';
 import { HissatsuShinten } from './sam_actions';
 
 export interface SamSimResult extends CycleSimResult {
@@ -149,6 +151,29 @@ export class SamSim extends BaseMultiCycleSim<SamSimResult, SamSettings, SAMCycl
                 cp.remainingCycles(() => {
                     SlowSamRotation.Loop.forEach(action => {
                         if (cp.currentTime < cp.totalTime) {
+                            if (action.kenkiCost > cp.gauge.kenkiGauge) {
+                                console.error(`[${formatDuration(cp.currentTime)}] Used ${action.kenkiCost} kenki with ${action.name} when you only have ${cp.gauge.kenkiGauge}`);
+                            }
+                            cp.use(action);
+                            if (cp.currentTime > (cp.totalTime - 5) && cp.gauge.kenkiGauge >= 25) {
+                                cp.useOgcd(HissatsuShinten);
+                            }
+                        }
+                    });
+                });
+            }
+        }, {
+            name: "Mid Sam Rotation",
+            cycleTime: 120,
+            apply(cp: SAMCycleProcessor) {
+                cp.cycleLengthMode = 'full-duration';
+                MidSamRotation.Opener.forEach(action => cp.use(action));
+                cp.remainingCycles(() => {
+                    MidSamRotation.Loop.forEach(action => {
+                        if (cp.currentTime < cp.totalTime) {
+                            if (action.kenkiCost > cp.gauge.kenkiGauge) {
+                                console.error(`[${formatDuration(cp.currentTime)}] Used ${action.kenkiCost} kenki with ${action.name} when you only have ${cp.gauge.kenkiGauge}`);
+                            }
                             cp.use(action);
                             if (cp.currentTime > (cp.totalTime - 5) && cp.gauge.kenkiGauge >= 25) {
                                 cp.useOgcd(HissatsuShinten);
