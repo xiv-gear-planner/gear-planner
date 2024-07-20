@@ -6,6 +6,7 @@ import {getSetFromEtro} from "@xivgear/core/external/etro_import";
 import {getBisSheet} from "@xivgear/core/external/static_bis";
 import {NamedSection} from "./section";
 import {GearPlanSheetGui, GRAPHICAL_SHEET_PROVIDER} from "./sheet";
+import {JobName} from "@xivgear/xivmath/xivconstants";
 
 export class ImportSheetArea extends NamedSection {
     private readonly loader: LoadingBlocker;
@@ -70,8 +71,18 @@ export class ImportSheetArea extends NamedSection {
                     return;
                 case "etro":
                     this.ready = false;
-                    getSetFromEtro(parsed.rawUuid).then(set => {
-                        this.sheetOpenCallback(GRAPHICAL_SHEET_PROVIDER.fromSetExport(set));
+                    Promise.all(parsed.rawUuids.map(getSetFromEtro)).then(sets => {
+                        const jobs = new Set<JobName>();
+                        sets.forEach(set => jobs.add(set.job));
+                        if (jobs.size > 1) {
+                            const confirmed = confirm(`The sets provided do not have the same job. The sheet will be imported as a ${sets[0].job} sheet based on the first link provided. To change jobs, re-order the URLs, or 'Save As' the sheet after creation.`);
+                            if (!confirmed) {
+                                this.ready = true;
+                                return;
+                            }
+                        }
+                        const sheet = GRAPHICAL_SHEET_PROVIDER.fromSetExport(...sets);
+                        this.sheetOpenCallback(sheet);
                         console.log("Loaded set from Etro");
                     }, err => {
                         this.ready = true;

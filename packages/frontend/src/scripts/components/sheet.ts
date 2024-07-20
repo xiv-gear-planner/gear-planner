@@ -1637,15 +1637,17 @@ export class ImportSetsModal extends BaseModal {
         }
     }
 
-    checkJob(importedJob: JobName, plural: boolean): boolean {
-        if (importedJob !== this.sheet.classJobName) {
+    checkJob(plural: boolean, ...importedJobs: JobName[]): boolean {
+        const nonMatchingJobs = importedJobs.filter(job => job !== this.sheet.classJobName);
+        if (nonMatchingJobs.length > 0) {
+            const flaggedJobs = nonMatchingJobs.join(', ');
             // TODO: *try* to import some sims, or at least load up the defaults.
             let msg;
             if (plural) {
-                msg = `You are trying to import ${importedJob} set(s) into a ${this.sheet.classJobName} sheet. Class-specific items, such as weapons, will need to be re-selected.`;
+                msg = `You are trying to import ${flaggedJobs} set(s) into a ${this.sheet.classJobName} sheet. Class-specific items, such as weapons, will need to be re-selected.`;
             }
             else {
-                msg = `You are trying to import a ${importedJob} set into a ${this.sheet.classJobName} sheet. Class-specific items, such as weapons, will need to be re-selected.`;
+                msg = `You are trying to import a ${flaggedJobs} set into a ${this.sheet.classJobName} sheet. Class-specific items, such as weapons, will need to be re-selected.`;
             }
             return confirm(msg);
         }
@@ -1674,13 +1676,15 @@ export class ImportSetsModal extends BaseModal {
                     return;
                 case "etro":
                     this.ready = false;
-                    getSetFromEtro(parsed.rawUuid).then(set => {
-                        if (!this.checkJob(set.job, false)) {
+                    Promise.all(parsed.rawUuids.map(getSetFromEtro)).then(sets => {
+                        if (!this.checkJob(false, ...sets.map(set => set.job))) {
                             this.ready = true;
                             return;
                         }
-                        this.sheet.addGearSet(this.sheet.importGearSet(set), true);
-                        console.log("Loaded set from Etro");
+                        sets.forEach(set => {
+                            this.sheet.addGearSet(this.sheet.importGearSet(set), true);
+                        });
+                        console.log("Imported set(s) from Etro");
                         this.close();
                     }, err => {
                         this.ready = true;
@@ -1712,7 +1716,7 @@ export class ImportSetsModal extends BaseModal {
     doJsonImport(text: string) {
         const rawImport = JSON.parse(text);
         if ('sets' in rawImport && rawImport.sets.length) {
-            if (!this.checkJob(rawImport.job, true)) {
+            if (!this.checkJob(true, rawImport.job)) {
                 return;
             }
             // import everything
@@ -1728,7 +1732,7 @@ export class ImportSetsModal extends BaseModal {
             closeModal();
         }
         else if ('name' in rawImport && 'items' in rawImport) {
-            if (!this.checkJob(rawImport.job, false)) {
+            if (!this.checkJob(false, rawImport.job)) {
                 return;
             }
             this.sheet.addGearSet(this.sheet.importGearSet(rawImport), true);
@@ -1837,8 +1841,8 @@ export class GraphicalSheetProvider extends SheetProvider<GearPlanSheetGui> {
         super((...args) => new GearPlanSheetGui(...args));
     }
 
-    fromSetExport(importedData: SetExport): GearPlanSheetGui {
-        const out = super.fromSetExport(importedData);
+    fromSetExport(...importedData: SetExport[]): GearPlanSheetGui {
+        const out = super.fromSetExport(...importedData);
         out.setSelectFirstRowByDefault();
         return out;
     }
