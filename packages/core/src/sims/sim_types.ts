@@ -62,7 +62,24 @@ export interface SimSpec<SimType extends Simulation<any, any, any>, SettingsExpo
      * Optional: a brief description to display when choosing a sim.
      */
     description?: string;
+    /**
+     * Optional: contact info for maintainers
+     */
+    maintainers?: MaintainerInfo[]
 }
+
+export type MaintainerInfo = {
+    name: string,
+    contact: ContactInfo[]
+}
+
+export type DiscordContactInfo = {
+    type: 'discord',
+    discordTag: string,
+    discordUid: string
+};
+
+export type ContactInfo = DiscordContactInfo;
 
 /**
  * Represents a configured simulation. Note that an instance of this object is re-used across multiple runs of the
@@ -405,7 +422,10 @@ export type UsedAbility = {
      */
     ability: Ability,
     /**
-     * The buffs that were active either when the ability started casting, or when it snapshotted (the union of both).
+     * The buffs that were active either when the ability started casting, or when it snapshotted, depending on what
+     * bonuses the buff provides.
+     *
+     * TODO: consider adding buffsAtStart and buffsAtSnapshot to clearly delineate these.
      */
     buffs: Buff[],
     /**
@@ -541,6 +561,8 @@ export type BaseBuff = Readonly<{
     selfOnly?: boolean,
     /** The effect(s) of the buff */
     effects: BuffEffects,
+    /** For buffs whose duration can stack*/
+    maxStackingDuration?: number;
     /**
      * Filter what abilities this buff applies to
      *

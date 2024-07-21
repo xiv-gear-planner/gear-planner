@@ -26,11 +26,12 @@ import {
     STANDARD_ANIMATION_LOCK
 } from "@xivgear/xivmath/xivconstants";
 import {CooldownMode, CooldownTracker} from "./common/cooldown_manager";
-import {addValues, fixedValue, multiplyFixed, ValueWithDev} from "@xivgear/xivmath/deviation";
+import {addValues, fixedValue, multiplyFixed, multiplyIndependent, ValueWithDev} from "@xivgear/xivmath/deviation";
 import {abilityEquals, appDelay, completeComboData, FinalizedComboData} from "./ability_helpers";
 import {abilityToDamageNew, combineBuffEffects} from "./sim_utils";
 import {BuffSettingsExport} from "./common/party_comp_settings";
 import {CycleSettings} from "./cycle_settings";
+import {buffRelevantAtSnapshot, buffRelevantAtStart} from "./buff_helpers";
 
 /**
  * CycleContext is similar to CycleProcessor, but is scoped to within a cycle. It provides methods
@@ -493,7 +494,7 @@ export class CycleProcessor {
 
     /**
      * Modifies the stack value for a given buff. The stack value provided should be the modified amount and not the final amount
-     * 
+     *
      * @param buff The Buff
      * @param stacks The stack modification to add
      */
@@ -548,6 +549,17 @@ export class CycleProcessor {
     }
 
     /**
+     * The number of remaining GCDs at the given GCD speed, assuming current stats (for things like haste).
+     * Does not perform any rounding, so 0.5 indicates that half of a GCD will fit into the remaining time.
+     *
+     * @param ability The ability to use as a basis for calculating GCD time and applicable buffs.
+     */
+    remainingGcds(ability: GcdAbility) {
+        const adjustedGcdTime = this.gcdTime(ability, this.getCombinedEffectsFor(ability).combinedEffects);
+        return this.remainingGcdTime / adjustedGcdTime;
+    }
+
+    /**
      * Manually mark a buff as being active now
      *
      * @param buff The buff
@@ -563,6 +575,17 @@ export class CycleProcessor {
      * @param delay The delay after which to apply the buff
      */
     activateBuffWithDelay(buff: Buff, delay: number) {
+        /** If the buff can stack duration /and/ it's already up, we can just extend it and return. */
+        if (buff.maxStackingDuration) {
+            const activeBuff = this.getActiveBuffsData().find(bd => bd.buff === buff);
+
+            // If the buff isn't going to fall off before reapplication, we simply extend it to max
+            if (activeBuff && activeBuff.end > this.currentTime + delay) {
+
+                activeBuff.end = Math.min(activeBuff.end + buff.duration, this.currentTime + buff.maxStackingDuration);
+                return;
+            }
+        }
         this.setBuffStartTime(buff, this.currentTime + delay);
     }
 
@@ -619,7 +642,7 @@ export class CycleProcessor {
 
     /**
      * Get the buff data for an active buff.
-     * 
+     *
      * @param buff The buff
      * @returns BuffUsage for the buff, or null if this buff is not active
      */
@@ -659,7 +682,7 @@ export class CycleProcessor {
                 const partialRate = record.totalTimeTaken > 0 ? Math.max(0, Math.min(1, (this.totalTime - record.usedAt) / record.totalTimeTaken)) : 1;
                 const directDamage = multiplyFixed(record.directDamage, partialRate);
                 const dot = record.dot;
-                const dotDmg = dot ? multiplyFixed(dot.damagePerTick, dot.actualTickCount) : fixedValue(0);
+                const dotDmg = dot ? multiplyIndependent(dot.damagePerTick, dot.actualTickCount) : fixedValue(0);
                 const totalDamage = addValues(directDamage, dotDmg);
                 const totalPotency = record.ability.potency + ('dot' in record.ability ? record.ability.dot.tickPotency * record.dot.actualTickCount : 0);
                 return {
@@ -764,6 +787,13 @@ export class CycleProcessor {
         const dmgInfo = this.modifyDamage(abilityToDamageNew(this.stats, ability, combinedEffects), ability, buffs);
         const appDelayFromSnapshot = appDelay(ability);
         const appDelayFromStart = appDelayFromSnapshot + snapshotDelayFromStart;
+        const finalBuffs: Buff[] = Array.from(new Set<Buff>([
+            ...preBuffs,
+            ...buffs]))
+            .filter(buff => {
+                return buffRelevantAtStart(buff) && preBuffs.includes(buff)
+                    || buffRelevantAtSnapshot(buff) && buffs.includes(buff);
+            });
         const usedAbility: UsedAbility = ({
             ability: ability,
             // We want to take the 'haste' value from the pre-snapshot values, but everything else should
@@ -774,7 +804,7 @@ export class CycleProcessor {
                 ...combinedEffects,
                 haste: preCombinedEffects.haste,
             },
-            buffs: Array.from(new Set<Buff>([...preBuffs, ...buffs])),
+            buffs: finalBuffs,
             usedAt: gcdStartsAt,
             directDamage: dmgInfo.directDamage ?? fixedValue(0),
             dot: dmgInfo.dot,
@@ -840,7 +870,7 @@ export class CycleProcessor {
 
     /**
      * Determines whether or not an Off-GCD ability can be used without clipping the GCD
-     * 
+     *
      * @param action The Off-GCD ability to check for
      * @returns whether or not this ability can be used without clipping the GCD
      */
@@ -1307,7 +1337,13 @@ export interface CycleSimResult extends SimResult {
     unbuffedPps: number,
     buffTimings: readonly BuffUsage[],
     totalDamage: ValueWithDev,
-    mainDpsFull: ValueWithDev
+    mainDpsFull: ValueWithDev,
+    label: string
+}
+
+export interface CycleSimResultFull<T extends SimResult> extends SimResult {
+    best: T,
+    all: T[]
 }
 
 export type ExternalCycleSettings<InternalSettingsType extends SimSettings> = {
@@ -1331,6 +1367,10 @@ export type Rotation<CycleProcessorType = CycleProcessor> = {
      * @param cp The CycleProcessor instance (or instance of a subclass)
      */
     apply(cp: CycleProcessorType): void;
+    /**
+     * Optional name
+     */
+    name?: string;
 }
 
 export type ResultSettings = {

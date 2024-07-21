@@ -10,7 +10,7 @@ export const Dokumori = {
     effects: {
         dmgIncrease: 0.05,
     },
-    startTime: 3.5,
+    startTime: 3.40,
     statusId: 3849
 } as const satisfies PartyBuff;
 
@@ -18,13 +18,13 @@ export const Litany = {
     name: "Battle Litany",
     saveKey: "Battle Litany",
     job: "DRG",
-    duration: 15,
+    duration: 20,
     cooldown: 120,
     selfOnly: false,
     effects: {
         critChanceIncrease: 0.10
     },
-    startTime: 7.5,
+    startTime: 5.60,
     statusId: 786
 } as const satisfies PartyBuff;
 
@@ -48,7 +48,7 @@ export const Brotherhood = {
     name: "Brotherhood",
     saveKey: "Brotherhood",
     job: "MNK",
-    duration: 15,
+    duration: 20,
     cooldown: 120,
     selfOnly: false,
     effects: {
@@ -59,7 +59,7 @@ export const Brotherhood = {
     statusId: 1185
 } as const satisfies PartyBuff;
 
-export const ArcaneCircle = {
+export const ArcaneCircleBuff = {
     name: "Arcane Circle",
     saveKey: "Arcane Circle",
     job: "RPR",
@@ -69,36 +69,21 @@ export const ArcaneCircle = {
     effects: {
         dmgIncrease: 0.03
     },
-    startTime: 5,
+    startTime: 4.59,
     statusId: 2599
-} as const satisfies PartyBuff;
-
-export const DeathsDesign = {
-    name: "Death's Design",
-    saveKey: "Death's Design",
-    job: "RPR",
-    duration: 60, // this is a hack to make up for the fact that the duration is stackable.
-                  // Needs to be changed if simulating dropping DD is desired.
-    cooldown: 0,
-    selfOnly: false,
-    effects: {
-        dmgIncrease: 0.1
-    },
-    startTime: 0,
-    statusId: 2586
 } as const satisfies PartyBuff;
 
 export const SearingLight = {
     name: "Searing Light",
     saveKey: "Searing Light",
     job: "SMN",
-    duration: 30,
+    duration: 20,
     cooldown: 120,
     selfOnly: false,
     effects: {
         dmgIncrease: 0.03
     },
-    startTime: 1.5,
+    startTime: 4.7,
     statusId: 2703
 } as const satisfies PartyBuff;
 
@@ -112,7 +97,7 @@ export const Embolden = {
     effects: {
         dmgIncrease: 0.05
     },
-    startTime: 7,
+    startTime: 6.5,
     // This is the party member version of this, not the self version
     statusId: 1297
 } as const satisfies PartyBuff;
@@ -129,7 +114,7 @@ export const Devilment = {
         dhitChanceIncrease: 0.20,
         critChanceIncrease: 0.20
     },
-    startTime: 7,
+    startTime: 7.2,
     statusId: 1825
 } as const satisfies PartyBuff;
 
@@ -170,13 +155,13 @@ export const BattleVoice = {
     name: "Battle Voice",
     saveKey: "Battle Voice",
     job: "BRD",
-    duration: 15,
+    duration: 20,
     cooldown: 120,
     selfOnly: false,
     effects: {
         dhitChanceIncrease: 0.20,
     },
-    startTime: 6,
+    startTime: 6.4,
     statusId: 141
 } as const satisfies PartyBuff;
 
@@ -184,13 +169,13 @@ export const RadiantFinale = {
     name: "Radiant Finale",
     saveKey: "Radiant Finale",
     job: "BRD",
-    duration: 15,
+    duration: 20,
     cooldown: 120,
     selfOnly: false,
     effects: {
         dmgIncrease: 0.06
     },
-    startTime: 6.7,
+    startTime: 5.7,
     statusId: 2964
 } as const satisfies PartyBuff;
 
@@ -198,7 +183,7 @@ export const Chain = {
     name: "Chain",
     saveKey: "Chain",
     job: "SCH",
-    duration: 15,
+    duration: 20,
     cooldown: 120,
     selfOnly: false,
     effects: {
@@ -212,7 +197,7 @@ export const Divination = {
     name: "Divination",
     saveKey: "Divination",
     job: "AST",
-    duration: 15,
+    duration: 20,
     cooldown: 120,
     selfOnly: false,
     effects: {
@@ -227,7 +212,7 @@ export const AstCard = {
     saveKey: "Single Target AST Card",
     job: "AST",
     duration: 15,
-    cooldown: 30,
+    cooldown: 120,
     selfOnly: false,
     optional: true,
     effects: {
@@ -259,7 +244,7 @@ export const OffGuardBuff = {
  */
 
 export const ALL_BUFFS = [
-    Dokumori, Litany, DragonSight, Brotherhood, ArcaneCircle, SearingLight, Embolden,
+    Dokumori, Litany, DragonSight, Brotherhood, ArcaneCircleBuff, SearingLight, Embolden,
     Devilment, TechnicalFinish, BattleVoice, RadiantFinale, Chain, Divination,
     AstCard, OffGuardBuff
 ] as const;

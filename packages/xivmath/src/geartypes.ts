@@ -7,6 +7,7 @@ import {
     SPECIAL_SUB_STATS,
     SupportedLevel
 } from "./xivconstants";
+import {CustomItemExport} from "@xivgear/core/gear";
 
 export interface DisplayGearSlot {
 
@@ -285,6 +286,10 @@ export interface ComputedSetStats extends RawStats {
      * Tenacity Multiplier
      */
     tncMulti: number,
+    /**
+     * Tenacity incoming multiplier. e.g. 0.95 => 5% damage reduction.
+     */
+    tncIncomingMulti: number,
     /**
      * Multiplier from weapon damage.
      */
@@ -630,6 +635,10 @@ export interface SheetExport {
      * If ilvl sync is enabled, this represents what level the sheet should be synced to
      */
     ilvlSync?: number,
+    /**
+     * Custom items
+     */
+    customItems?: CustomItemExport[]
 }
 
 export interface SheetStatsExport extends SheetExport {
@@ -798,7 +807,8 @@ export type GearAcquisitionSource =
     | 'ultimate'
     | 'artifact'
     | 'alliance'
-    | 'other';
+    | 'other'
+    | 'custom';
 
 export type GearSetIssue = {
     readonly severity: 'warning' | 'error',

@@ -1,5 +1,5 @@
 import {AttackType, ComputedSetStats, JobData, LevelStats} from "./geartypes";
-import {chanceMultiplierStdDev, multiplyValues, ValueWithDev} from "./deviation";
+import {chanceMultiplierStdDev, fixedValue, multiplyValues, ValueWithDev} from "./deviation";
 
 /*
     Common math for FFXIV.
@@ -180,7 +180,7 @@ export function mainStatMulti(levelStats: LevelStats, jobStats: JobData, mainsta
     // TODO make this work without ts-ignore
     // @ts-expect-error - can't figure out type def
     const apMod = levelStats.mainStatPowerMod[jobStats.role] ?? levelStats.mainStatPowerMod.other;
-    return (fl(apMod * (mainstat - levelStats.baseMainStat) / levelStats.baseMainStat) + 100) / 100;
+    return Math.max(0, (fl(apMod * (mainstat - levelStats.baseMainStat) / levelStats.baseMainStat) + 100) / 100);
 }
 
 /**
@@ -192,7 +192,18 @@ export function mainStatMulti(levelStats: LevelStats, jobStats: JobData, mainsta
  * @param tenacity
  */
 export function tenacityDmg(levelStats: LevelStats, tenacity: number) {
-    return (1000 + fl(100 * (tenacity - levelStats.baseSubStat) / levelStats.levelDiv)) / 1000;
+    return (1000 + fl(112 * (tenacity - levelStats.baseSubStat) / levelStats.levelDiv)) / 1000;
+}
+
+/**
+ * Convert a tenacity stat value to its respective incoming damage reduction. This is represented as a multiplier,
+ * i.e. a return of 0.95 represents a 5% mitigation.
+ *
+ * @param levelStats
+ * @param tenacity
+ */
+export function tenacityIncomingDmg(levelStats: LevelStats, tenacity: number) {
+    return (1000 - fl(200 * (tenacity - levelStats.baseSubStat) / levelStats.levelDiv)) / 1000;
 }
 
 /**
@@ -330,17 +341,21 @@ export function baseDamageFull(stats: ComputedSetStats, potency: number, attackT
     const finalDamage = fl(fl(afterAutoDh * traitMulti) / 100);
     // console.log([basePotency, afterDet, afterTnc, afterWeaponDamage, d5, afterAutoCrit, afterAutoDh, afterTrait]);
 
-    // +-5% damage variance, uniform distribution.
-    // Full formula is sqrt((max - min)^2 / 12)
-    // == sqrt((1.05d - 0.95d)^2 / 12)
-    // == sqrt((.1d)^2 / 12)
-    // == sqrt(d^2 * .01 / 12)
-    // == d * sqrt(.01 / 12)
-    const stdDev = Math.sqrt(0.01 / 12) * finalDamage;
-
-    return {
-        expected: finalDamage,
-        stdDev: stdDev
+    if (finalDamage <= 1) {
+        return fixedValue(1);
+    }
+    else {
+        // +-5% damage variance, uniform distribution.
+        // Full formula is sqrt((max - min)^2 / 12)
+        // == sqrt((1.05d - 0.95d)^2 / 12)
+        // == sqrt((.1d)^2 / 12)
+        // == sqrt(d^2 * .01 / 12)
+        // == d * sqrt(.01 / 12)
+        const stdDev = Math.sqrt(0.01 / 12) * finalDamage;
+        return {
+            expected: finalDamage,
+            stdDev: stdDev
+        }
     }
 }
 
@@ -378,7 +393,12 @@ export function baseHealing(stats: ComputedSetStats, potency: number, attackType
     const afterTrait = fl(fl(afterAutoCrit * traitMulti) / 100);
     // console.log([basePotency, afterDet, afterTnc, afterWeaponDamage, d5, afterAutoCrit, d7, afterTrait]);
 
-    return afterTrait;
+    if (afterTrait <= 0) {
+        return 1;
+    }
+    else {
+        return afterTrait;
+    }
 }
 
 /**

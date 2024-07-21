@@ -19,7 +19,7 @@
     <inspection_tool class="HtmlUnknownTag" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="myValues">
         <value>
-          <list size="41">
+          <list size="43">
             <item index="0" class="java.lang.String" itemvalue="nobr" />
             <item index="1" class="java.lang.String" itemvalue="noembed" />
             <item index="2" class="java.lang.String" itemvalue="comment" />
@@ -61,6 +61,8 @@
             <item index="38" class="java.lang.String" itemvalue="gear-set-issues-modal" />
             <item index="39" class="java.lang.String" itemvalue="named-section" />
             <item index="40" class="java.lang.String" itemvalue="math-area" />
+            <item index="41" class="java.lang.String" itemvalue="save-as-modal" />
+            <item index="42" class="java.lang.String" itemvalue="custom-item-popup" />
           </list>
         </value>
       </option>

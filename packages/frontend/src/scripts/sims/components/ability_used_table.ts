@@ -1,10 +1,11 @@
-import {CustomTable, HeaderRow, CustomColumnSpec} from "../../tables";
+import {CustomColumnSpec, CustomTable, HeaderRow} from "../../tables";
 import {toRelPct} from "@xivgear/core/util/strutils";
 import {AbilityIcon} from "../../components/abilities";
 import {BuffListDisplay} from "./buff_list_display";
 import {DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/core/sims/cycle_sim";
 import {AutoAttack, Buff, CombinedBuffEffect, GcdAbility, OgcdAbility} from "@xivgear/core/sims/sim_types";
 import {ItemIcon} from "../../components/item_icon";
+import {quickElement} from "@xivgear/common-ui/components/util";
 
 /**
  * Format a time into the format x:yy.zz
@@ -96,7 +97,24 @@ export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
             {
                 shortName: 'unbuffed-pot',
                 displayName: 'Pot',
-                getter: used => isFinalizedAbilityUse(used) ? used.totalPotency : '--',
+                getter: used => {
+                    return isFinalizedAbilityUse(used) ? used.totalPotency : null;
+                },
+                renderer: (value: number | null, rowValue: DisplayRecordFinalized) => {
+                    if (value !== null && isFinalizedAbilityUse(rowValue)) {
+                        if (rowValue.ability.type === 'autoattack') {
+                            const text = quickElement('span', [], [value + '*']);
+                            text.title = `${value} is the original potency, and does not reflect the weapon delay multiplier. However, the damage amount does reflect it.`;
+                            return text;
+                        }
+                        else {
+                            return document.createTextNode(value.toString());
+                        }
+                    }
+                    else {
+                        return document.createTextNode('--');
+                    }
+                }
             },
             {
                 shortName: 'expected-damage',
@@ -166,7 +184,7 @@ export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
             {
                 shortName: 'buffs',
                 displayName: 'Buffs Active',
-                getter: used => used['buffs'] ?? [],
+                getter: (used: DisplayRecordFinalized) => used['buffs'] ?? [],
                 renderer: (buffs: Buff[]) => {
                     return new BuffListDisplay(buffs);
                 },

@@ -6,8 +6,9 @@ export type XivApiRequest = {
     requestType: 'list' | 'search',
     sheet: string,
     columns?: readonly string[],
-    pageLimit?: number,
     perPage?: number
+    startPage?: number,
+    pageLimit?: number
 }
 
 export type XivApiListRequest = XivApiRequest & {
@@ -76,15 +77,15 @@ export async function xivApiGet<RequestType extends (XivApiListRequest | XivApiS
     if (request.columns?.length > 0) {
         query += '&columns=' + request.columns.join(',');
     }
-    const i = 1;
+    const startPage = request.startPage ?? 1;
     // Do initial results first to determine how many pages to request
-    const initialResults = await xivApiFetch(query + '&page=' + i).then(response => response.json());
+    const initialResults = await xivApiFetch(query + '&page=' + startPage).then(response => response.json());
     const pageCount = initialResults['Pagination']['PageTotal'];
-    const pageLimit = request.pageLimit ? Math.min(pageCount, request.pageLimit - 1) : pageCount;
+    const pageLimit = request.pageLimit ? Math.min(pageCount, (startPage - 1) + request.pageLimit - 1) : pageCount;
     const results = [...initialResults['Results']];
     // Doing it like this to keep results ordered.
     const additional: Promise<unknown>[] = [];
-    for (let i = 2; i <= pageLimit; i++) {
+    for (let i = startPage + 1; i <= pageLimit; i++) {
         // xivapi is 20req/sec/ip, but multiple of these may be running in parallel
         await new Promise(resolve => setTimeout(resolve, 150));
         additional.push(xivApiFetch(query + '&page=' + i).then(response => response.json()));

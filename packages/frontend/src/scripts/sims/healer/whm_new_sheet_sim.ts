@@ -6,8 +6,8 @@ import {BuffSettingsExport} from "@xivgear/core/sims/common/party_comp_settings"
 const filler: GcdAbility = {
     id: 25859,
     type: 'gcd',
-    name: "Glare",
-    potency: 310,
+    name: "Glare III",
+    potency: 330,
     attackType: "Spell",
     gcd: 2.5,
     cast: 1.5
@@ -17,10 +17,10 @@ const dia: GcdAbility = {
     id: 16532,
     type: 'gcd',
     name: "Dia",
-    potency: 65,
+    potency: 70,
     dot: {
         id: 1871,
-        tickPotency: 65,
+        tickPotency: 70,
         duration: 30
     },
     attackType: "Spell",
@@ -48,6 +48,7 @@ const pom: OgcdAbility = {
             effects: {
                 haste: 20,
             },
+            statusId: 157
         }
     ],
     attackType: "Ability"
@@ -57,7 +58,16 @@ const misery: GcdAbility = {
     id: 16535,
     type: 'gcd',
     name: "Afflatus Misery",
-    potency: 1240,
+    potency: 1320,
+    attackType: "Spell",
+    gcd: 2.5,
+};
+
+const glare4: GcdAbility = {
+    id: 37009,
+    type: 'gcd',
+    name: "Glare IV",
+    potency: 640,
     attackType: "Spell",
     gcd: 2.5,
 };
@@ -128,6 +138,9 @@ export class WhmSheetSim extends BaseMultiCycleSim<WhmSheetSimResult, WhmNewShee
                     cycle.useOgcd(pom);
                     cycle.use(filler);
                     cycle.use(assize);
+                    cycle.use(glare4);
+                    cycle.use(glare4);
+                    cycle.use(glare4);
                     if (cycle.cycleNumber > 0) {
                         cycle.use(misery);
                     }
@@ -145,7 +158,7 @@ export class WhmSheetSim extends BaseMultiCycleSim<WhmSheetSimResult, WhmNewShee
                     cycle.useUntil(filler, 90);
                     cycle.use(dia);
                     cycle.use(assize);
-                    if (cycle.cycleNumber > 1) {
+                    if (cp.remainingTime > 60) {
                         cycle.use(lily);
                         cycle.use(lily);
                         cycle.use(lily);

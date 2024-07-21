@@ -6,14 +6,17 @@ import {
     detDmg,
     dhitChance,
     dhitDmg,
-    mainStatMulti, mpTick,
+    mainStatMulti,
+    mpTick,
     sksTickMulti,
     sksToGcd,
     spsTickMulti,
     spsToGcd,
-    tenacityDmg, wdMulti,
+    tenacityDmg, tenacityIncomingDmg,
+    vitToHp,
+    wdMulti,
 } from "@xivgear/xivmath/xivmath";
-import {getClassJobStats, getLevelStats, JobName} from "@xivgear/xivmath/xivconstants";
+import {getClassJobStats, JobName} from "@xivgear/xivmath/xivconstants";
 import {GeneralSettings, registerFormula} from "./math_main";
 import {DataManager} from "@xivgear/core/datamanager";
 
@@ -50,7 +53,7 @@ let jobDataManager: Promise<DataManager>;
 
 async function getClassJobStatsFull(job: JobName) {
     if (jobDataManager === undefined) {
-        const dm= new DataManager(job, 90);
+        const dm = new DataManager(job, 100);
         jobDataManager = dm.loadData().then(() => dm);
     }
     const multipliers = (await jobDataManager).multipliersForJob(job);
@@ -130,7 +133,10 @@ export function registerFormulae() {
         }],
         primaryVariable: "wd",
         makeDefaultInputs(generalSettings: GeneralSettings) {
-            return {wd: 0, delay: 3.12};
+            return {
+                wd: 101,
+                delay: 3.12
+            };
         },
     });
 
@@ -165,8 +171,14 @@ export function registerFormulae() {
         name: "Tenacity",
         stub: "tnc",
         functions: [{
-            name: "Tenacity Damage Multiplier",
+            name: "Outgoing Multiplier",
             fn: tenacityDmg,
+            argExtractor: async function (arg, gen: GeneralSettings) {
+                return [gen.levelStats, arg.tnc];
+            }
+        }, {
+            name: "Incoming Multiplier",
+            fn: tenacityIncomingDmg,
             argExtractor: async function (arg, gen: GeneralSettings) {
                 return [gen.levelStats, arg.tnc];
             }
@@ -280,10 +292,10 @@ export function registerFormulae() {
             },
             hasteVar
         ],
-        makeDefaultInputs: () => {
+        makeDefaultInputs: (gen: GeneralSettings) => {
             return {
                 baseGcd: 2.5,
-                sps: getLevelStats(90).baseSubStat,
+                sps: gen.levelStats.baseSubStat,
                 haste: 0
             }
         },
@@ -358,5 +370,29 @@ export function registerFormulae() {
             min: baseSub
         }]
     });
+    registerFormula<{
+        'vit': number,
+    }>({
+        name: 'Vitality',
+        stub: 'vit',
+        functions: [{
+            name: 'Hit Points',
+            fn: vitToHp,
+            async argExtractor(arg, gen: GeneralSettings): Promise<Parameters<typeof vitToHp>> {
+                return [gen.levelStats, await getClassJobStatsFull(gen.classJob), arg.vit]
+            }
+        }],
+        makeDefaultInputs: (gen: GeneralSettings) => {
+            return {vit: gen.levelStats.baseMainStat}
+        },
+        primaryVariable: 'vit',
+        variables: [{
+            type: 'number',
+            label: 'Vitality',
+            property: 'vit',
+            integer: true,
+            min: baseMain
+        }]
+    })
 }
 

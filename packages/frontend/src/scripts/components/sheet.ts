@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */                                                                                                                                // TODO: get back to fixing this at some point
+/* eslint-disable @typescript-eslint/no-explicit-any */                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                // TODO: get back to fixing this at some point
 import {camel2title, capitalizeFirstLetter} from "@xivgear/core/util/strutils";
 import {BaseModal} from "@xivgear/common-ui/components/modal";
 import {
@@ -60,7 +60,7 @@ import {LoadingBlocker} from "@xivgear/common-ui/components/loader";
 import {GearEditToolbar} from "./gear_edit_toolbar";
 import {SETTINGS} from "../settings/persistent_settings";
 import {openSheetByKey, setTitle} from "../base_ui";
-import {parseImport, SHARED_SET_NAME} from "@xivgear/core/imports/imports";
+import {parseImport} from "@xivgear/core/imports/imports";
 import {getShortLink} from "@xivgear/core/external/shortlink_server";
 import {getSetFromEtro} from "@xivgear/core/external/etro_import";
 import {getBisSheet} from "@xivgear/core/external/static_bis";
@@ -69,6 +69,10 @@ import {rangeInc} from "@xivgear/core/util/array_utils";
 import {SimCurrentResult, SimResult, SimSettings, SimSpec, Simulation} from "@xivgear/core/sims/sim_types";
 import {getRegisteredSimSpecs} from "@xivgear/core/sims/sim_registry";
 import {makeUrl} from "@xivgear/core/nav/common_nav";
+import {simMaintainersInfoElement} from "./sims";
+import {SaveAsModal} from "./new_sheet_form";
+import {DropdownActionMenu} from "./dropdown_actions_menu";
+import {CustomItemPopup} from "./custom_item_manager";
 
 export type GearSetSel = SingleCellRowOrHeaderSelect<CharacterGearSet>;
 
@@ -1215,6 +1219,8 @@ export class GearPlanSheetGui extends GearPlanSheet {
         // Buttons and controls at the bottom of the table
         // this.buttonRow.id = 'gear-sheet-button-row';
 
+        const sheetOptions = new DropdownActionMenu('More Actions...');
+
         if (!this._isViewOnly) {
             const addRowButton = makeActionButton("New Gear Set", () => {
                 const newSet = new CharacterGearSet(this);
@@ -1222,32 +1228,46 @@ export class GearPlanSheetGui extends GearPlanSheet {
                 this.addGearSet(newSet, true);
             });
             buttonsArea.appendChild(addRowButton);
-            const renameButton = makeActionButton("Sheet Name/Description", () => {
-                startRenameSheet(this);
+
+            sheetOptions.addAction({
+                label: 'Name/Description',
+                action: () => startRenameSheet(this)
             });
-            buttonsArea.appendChild(renameButton);
+            sheetOptions.addAction({
+                label: 'Manage Custom Items',
+                action: () => new CustomItemPopup(this).attachAndShow(),
+            });
+            // const renameButton = makeActionButton("Sheet Name/Description", () => {
+            //     startRenameSheet(this);
+            // });
+            // buttonsArea.appendChild(renameButton);
+            buttonsArea.appendChild(sheetOptions);
         }
+
 
         if (this.ilvlSync != undefined) {
             const span = quickElement('span', [], [document.createTextNode(`ilvl Sync: ${this.ilvlSync}`)]);
             const ilvlSyncLabel = quickElement('div', ['like-a-button'], [span]);
-            // TODO: think about how to allow creating a new sheet with different ilvl
             // ilvlSyncLabel.title = 'To change the item level sync, click the "Save As" button and create a '
             buttonsArea.appendChild(ilvlSyncLabel);
         }
 
-        const saveAsButton = makeActionButton("Save As", () => {
-            const defaultName = this.sheetName === SHARED_SET_NAME ? 'Imported Set' : this.sheetName + ' copy';
-            const newName = prompt("Enter a name for the new sheet: ", defaultName);
-            if (newName === null) {
-                return;
-            }
-            console.log('New name', newName);
-            const newSaveKey = this.saveAs(newName);
-            // TODO: should this be provided as a ctor arg instead?
-            openSheetByKey(newSaveKey);
-        });
-        buttonsArea.appendChild(saveAsButton);
+        if (this._isViewOnly) {
+            const saveAsButton = makeActionButton("Save As", () => {
+                const modal = new SaveAsModal(this, newSheet => openSheetByKey(newSheet.saveKey));
+                modal.attachAndShow();
+            });
+            buttonsArea.appendChild(saveAsButton);
+        }
+        else {
+            sheetOptions.addAction({
+                label: 'Save As',
+                action: () => {
+                    const modal = new SaveAsModal(this, newSheet => openSheetByKey(newSheet.saveKey));
+                    modal.attachAndShow();
+                },
+            });
+        }
 
         if (!this._isViewOnly) {
 
@@ -1642,15 +1662,17 @@ export class ImportSetsModal extends BaseModal {
         }
     }
 
-    checkJob(importedJob: JobName, plural: boolean): boolean {
-        if (importedJob !== this.sheet.classJobName) {
+    checkJob(plural: boolean, ...importedJobs: JobName[]): boolean {
+        const nonMatchingJobs = importedJobs.filter(job => job !== this.sheet.classJobName);
+        if (nonMatchingJobs.length > 0) {
+            const flaggedJobs = nonMatchingJobs.join(', ');
             // TODO: *try* to import some sims, or at least load up the defaults.
             let msg;
             if (plural) {
-                msg = `You are trying to import ${importedJob} set(s) into a ${this.sheet.classJobName} sheet. Class-specific items, such as weapons, will need to be re-selected.`;
+                msg = `You are trying to import ${flaggedJobs} set(s) into a ${this.sheet.classJobName} sheet. Class-specific items, such as weapons, will need to be re-selected.`;
             }
             else {
-                msg = `You are trying to import a ${importedJob} set into a ${this.sheet.classJobName} sheet. Class-specific items, such as weapons, will need to be re-selected.`;
+                msg = `You are trying to import a ${flaggedJobs} set into a ${this.sheet.classJobName} sheet. Class-specific items, such as weapons, will need to be re-selected.`;
             }
             return confirm(msg);
         }
@@ -1679,13 +1701,15 @@ export class ImportSetsModal extends BaseModal {
                     return;
                 case "etro":
                     this.ready = false;
-                    getSetFromEtro(parsed.rawUuid).then(set => {
-                        if (!this.checkJob(set.job, false)) {
+                    Promise.all(parsed.rawUuids.map(getSetFromEtro)).then(sets => {
+                        if (!this.checkJob(false, ...sets.map(set => set.job))) {
                             this.ready = true;
                             return;
                         }
-                        this.sheet.addGearSet(this.sheet.importGearSet(set), true);
-                        console.log("Loaded set from Etro");
+                        sets.forEach(set => {
+                            this.sheet.addGearSet(this.sheet.importGearSet(set), true);
+                        });
+                        console.log("Imported set(s) from Etro");
                         this.close();
                     }, err => {
                         this.ready = true;
@@ -1717,7 +1741,7 @@ export class ImportSetsModal extends BaseModal {
     doJsonImport(text: string) {
         const rawImport = JSON.parse(text);
         if ('sets' in rawImport && rawImport.sets.length) {
-            if (!this.checkJob(rawImport.job, true)) {
+            if (!this.checkJob(true, rawImport.job)) {
                 return;
             }
             // import everything
@@ -1733,7 +1757,7 @@ export class ImportSetsModal extends BaseModal {
             closeModal();
         }
         else if ('name' in rawImport && 'items' in rawImport) {
-            if (!this.checkJob(rawImport.job, false)) {
+            if (!this.checkJob(false, rawImport.job)) {
                 return;
             }
             this.sheet.addGearSet(this.sheet.importGearSet(rawImport), true);
@@ -1771,12 +1795,17 @@ export class AddSimDialog extends BaseModal {
         this.table.data = this.sheet.relevantSims;
         const showAllCb = labeledCheckbox('Show sims for other jobs', new FieldBoundCheckBox<AddSimDialog>(this, 'showAllSims'));
         form.appendChild(showAllCb);
-        form.appendChild(this.table);
+        const tableHolder = quickElement('div', ['table-holder'], [this.table]);
+        form.appendChild(tableHolder);
 
         const descriptionArea = document.createElement('div');
         descriptionArea.classList.add('add-sim-description');
         descriptionArea.textContent = 'Select a simulation to see a description';
-        form.append(descriptionArea);
+
+        const contactArea = quickElement('div', ['add-sim-contact-info-holder'], []);
+        const descriptionContactArea = quickElement('div', ['add-sim-lower-area'], [descriptionArea, contactArea]);
+
+        form.appendChild(descriptionContactArea);
 
         const submitButton = makeActionButton("Add", () => this.submit());
         const cancelButton = makeActionButton("Cancel", () => closeModal());
@@ -1795,6 +1824,15 @@ export class AddSimDialog extends BaseModal {
                     else {
                         descriptionArea.textContent = '(No Description)';
                         descriptionArea.classList.add('no-desc');
+                    }
+                    const maintainersElement = simMaintainersInfoElement(newSelection.dataItem);
+                    if (maintainersElement) {
+                        contactArea.replaceChildren(maintainersElement);
+                        contactArea.style.display = '';
+                    }
+                    else {
+                        contactArea.replaceChildren();
+                        contactArea.style.display = 'none';
                     }
                 }
                 else {
@@ -1828,8 +1866,8 @@ export class GraphicalSheetProvider extends SheetProvider<GearPlanSheetGui> {
         super((...args) => new GearPlanSheetGui(...args));
     }
 
-    fromSetExport(importedData: SetExport): GearPlanSheetGui {
-        const out = super.fromSetExport(importedData);
+    fromSetExport(...importedData: SetExport[]): GearPlanSheetGui {
+        const out = super.fromSetExport(...importedData);
         out.setSelectFirstRowByDefault();
         return out;
     }

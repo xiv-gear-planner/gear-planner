@@ -286,7 +286,7 @@ const expectedAbilities: UseResult[] = [
     {
         time: 5.45,
         name: 'Glare',
-        damage: 15828.682
+        damage: 16652.989
     },
     {
         time: 6.93,
@@ -361,17 +361,17 @@ const expectedAbilities: UseResult[] = [
     {
         time: 22.48,
         name: "Glare",
-        damage: 15828.682
+        damage: 17652.168
     },
     {
         time: 24.32,
         name: "Glare",
-        damage: 15074.935
+        damage: 16811.589
     },
     {
         time: 25.928,
         name: "Auto Attack",
-        damage: 33.301
+        damage: 35.299
     },
     {
         time: 26.63,
@@ -392,6 +392,7 @@ describe('Cycle sim processor', () => {
     it('produces the correct results', async () => {
         // Initialize
         const inst: TestMultiCycleSim = testSimSpec.makeNewSimInstance();
+        inst.cycleSettings.useAutos = true;
         inst.cycleSettings.totalTime = 30;
         // Enable buffs
         setPartyBuffEnabled(inst, Dokumori, true);
@@ -400,7 +401,7 @@ describe('Cycle sim processor', () => {
         // Run simulation
         const result = await inst.simulate(set);
         // Assert correct results
-        assertClose(result.mainDpsResult, 9896.58, 0.01);
+        assertClose(result.mainDpsResult, 10040.777, 0.01);
         assertSimAbilityResults(result, expectedAbilities);
     });
 });

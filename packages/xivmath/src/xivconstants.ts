@@ -20,12 +20,11 @@ export const MATERIA_LEVEL_MIN_RELEVANT = 5;
 /**
  * Max supported materia level.
  */
-// TODO: Dawntrail
-export const MATERIA_LEVEL_MAX_NORMAL = 10;
+export const MATERIA_LEVEL_MAX_NORMAL = 12;
 /**
  * Max supported materia level for overmeld slots.
  */
-export const MATERIA_LEVEL_MAX_OVERMELD = 9;
+export const MATERIA_LEVEL_MAX_OVERMELD = 11;
 
 /**
  * The unmodified GCD time of a typical GCD skill
@@ -63,9 +62,9 @@ export const AUTOATTACK_APPLICATION_DELAY = 0.6;
 export type JobName
     = 'WHM' | 'SGE' | 'SCH' | 'AST'
     | 'PLD' | 'WAR' | 'DRK' | 'GNB'
-    | 'DRG' | 'MNK' | 'NIN' | 'SAM' | 'RPR'
+    | 'DRG' | 'MNK' | 'NIN' | 'SAM' | 'RPR' | 'VPR'
     | 'BRD' | 'MCH' | 'DNC'
-    | 'BLM' | 'SMN' | 'RDM' | 'BLU';
+    | 'BLM' | 'SMN' | 'RDM' | 'BLU' | 'PCT';
 
 /**
  * All clans/races.
@@ -219,6 +218,7 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
     NIN: {
         ...STANDARD_MELEE,
         mainStat: "dexterity",
+        autoAttackStat: "dexterity",
         traits: [{
             apply: stats => {
                 const oldHaste = stats.haste;
@@ -230,6 +230,11 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
     },
     SAM: STANDARD_MELEE,
     RPR: STANDARD_MELEE,
+    VPR: {
+        ...STANDARD_MELEE,
+        mainStat: 'dexterity',
+        autoAttackStat: 'dexterity',
+    },
     // Ranged
     BRD: STANDARD_RANGED,
     MCH: STANDARD_RANGED,
@@ -247,7 +252,8 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
     BLU: {
         ...STANDARD_CASTER,
         traitMulti: (level, attackType) => attackType === 'Auto-attack' ? 1.0 : 1.5, // Maim and Mend V
-    }
+    },
+    PCT: STANDARD_CASTER
 };
 
 
@@ -426,18 +432,24 @@ export const LEVEL_STATS: Record<SupportedLevel, LevelStats> = {
     },
     // DAWNTRAIL TODO: replace with real values once known
     100: {
-        level: 90,
-        baseMainStat: 390,
-        baseSubStat: 400,
-        levelDiv: 1900,
-        hp: 3000,
+        level: 100,
+        // Tentative guess
+        baseMainStat: 440,
+        // Updated
+        baseSubStat: 420,
+        // Updated
+        levelDiv: 2780,
+        // Verified
+        hp: 4000,
         hpScalar: {
-            Tank: 34.6,
-            other: 24.3,
+            Tank: 43,
+            other: 30.1,
         },
         mainStatPowerMod: {
-            Tank: 156,
-            other: 195,
+            // Verified per Mahdi
+            Tank: 190,
+            // Verified per Mahdi
+            other: 237,
         }
     }
 };
@@ -489,6 +501,7 @@ export const LEVEL_ITEMS: Record<SupportedLevel, LevelItemInfo> = {
         // Would expect 570, but it has those 560 scaling artifacts
         minILvl: 560,
         maxILvl: 999,
+        defaultIlvlSync: 665,
         minILvlFood: 570,
         maxILvlFood: 999,
         minMateria: 7,
@@ -501,16 +514,16 @@ export const LEVEL_ITEMS: Record<SupportedLevel, LevelItemInfo> = {
             higherRelics: true
         }
     },
-    // DAWNTRAIL TODO: replace with real values once known
     100: {
-        minILvl: 670,
+        minILvl: 640,
         maxILvl: 999,
         minILvlFood: 570,
         maxILvlFood: 999,
         minMateria: 9,
         maxMateria: 12,
         defaultDisplaySettings: {
-            minILvl: 700,
+            // Raise this when more gear is available
+            minILvl: 680,
             maxILvl: 999,
             minILvlFood: 640,
             maxILvlFood: 999,
@@ -704,6 +717,7 @@ export const ARTIFACT_ITEM_LEVELS = [
     290,
     430,
     560,
+    690,
 ];
 
 export const BASIC_TOME_GEAR_ILVLS = [
@@ -777,7 +791,7 @@ export function bluWdfromInt(gearIntStat: number): number {
 }
 
 export const defaultItemDisplaySettings: ItemDisplaySettings = {
-    minILvl: 640,
+    minILvl: 680,
     maxILvl: 999,
     minILvlFood: 610,
     maxILvlFood: 999,
