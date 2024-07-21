@@ -59,20 +59,23 @@ export class SheetProvider<SheetType extends GearPlanSheet> {
         return this.construct(undefined, importedData);
     }
 
-    fromSetExport(importedData: SetExport): SheetType {
+    fromSetExport(...importedData: SetExport[]): SheetType {
+        if (importedData.length === 0) {
+            throw Error("Imported sets cannot be be empty");
+        }
         const gearPlanSheet = this.fromExport({
             race: undefined,
-            sets: [importedData],
-            sims: importedData.sims ?? [],
+            sets: [...importedData],
+            sims: importedData[0].sims ?? [],
             name: SHARED_SET_NAME,
             saveKey: undefined,
-            job: importedData.job,
-            level: importedData.level,
-            ilvlSync: importedData.ilvlSync,
+            job: importedData[0].job,
+            level: importedData[0].level,
+            ilvlSync: importedData[0].ilvlSync,
             partyBonus: 0,
             itemDisplaySettings: defaultItemDisplaySettings,
         });
-        if (importedData.sims === undefined) {
+        if (importedData[0].sims === undefined) {
             gearPlanSheet.addDefaultSims();
         }
         // TODO
