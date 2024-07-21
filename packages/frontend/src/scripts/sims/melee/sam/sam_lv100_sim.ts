@@ -1,4 +1,4 @@
-import { Ability, OgcdAbility, Buff, SimSettings, SimSpec } from "@xivgear/core/sims/sim_types";
+import { Ability, SimSettings, SimSpec } from "@xivgear/core/sims/sim_types";
 import { CycleProcessor, CycleSimResult, ExternalCycleSettings, MultiCycleSettings, AbilityUseResult, Rotation, AbilityUseRecordUnf } from "@xivgear/core/sims/cycle_sim";
 import { CycleSettings } from "@xivgear/core/sims/cycle_settings";
 import { formatDuration } from "@xivgear/core/util/strutils";
@@ -61,8 +61,9 @@ class SAMCycleProcessor extends CycleProcessor {
         this.gauge = new SAMGauge(settings.stats.level);
     }
 
-    getBuffIfActive(buff: Buff): Buff {
-        return this.getActiveBuffs().find(b => b.name === buff.name);
+    shouldUseShinten(): boolean {
+        // If the fight is ending soon, we should use up our remaining gauge.
+        return this.currentTime > (this.totalTime - 5) && this.gauge.kenkiGauge >= 25;
     }
 
     override addAbilityUse(usedAbility: AbilityUseRecordUnf) {
@@ -79,20 +80,20 @@ class SAMCycleProcessor extends CycleProcessor {
         super.addAbilityUse(modified);
     }
 
-    override useOgcd(ability: OgcdAbility): AbilityUseResult {
+    override use(ability: Ability): AbilityUseResult {
+        if (this.currentTime >= this.totalTime) {
+            return null;
+        }
+
+        const samAbility = ability as SamAbility;
+
         // If an Ogcd isn't ready yet, but it can still be used without clipping, advance time until ready.
-        if (this.canUseWithoutClipping(ability)) {
+        if (ability.type === 'ogcd' && this.canUseWithoutClipping(ability)) {
             const readyAt = this.cdTracker.statusOf(ability).readyAt.absolute;
             if (this.totalTime > readyAt) {
                 this.advanceTo(readyAt);
             }
         }
-        // Only try to use the Ogcd if it's ready.
-        return this.cdTracker.canUse(ability) ? super.useOgcd(ability) : null;
-    }
-
-    override use(ability: Ability): AbilityUseResult {
-        const samAbility = ability as SamAbility;
 
         // Update gauge from the ability itself
         if (samAbility.updateGauge !== undefined) {
@@ -107,7 +108,14 @@ class SAMCycleProcessor extends CycleProcessor {
             samAbility.updateGauge(this.gauge);
         }
 
-        return super.use(ability);
+        const usedAbility = super.use(ability);
+
+        // Use up remaining Kenki between GCDs before the rotation ends
+        if (ability.type === 'gcd' && this.shouldUseShinten()) {
+            this.use(HissatsuShinten);
+        }
+
+        return usedAbility;
     }
 }
 
@@ -154,14 +162,7 @@ export class SamSim extends BaseMultiCycleSim<SamSimResult, SamSettings, SAMCycl
                 cp.cycleLengthMode = 'full-duration';
                 SlowSamRotation.Opener.forEach(action => cp.use(action));
                 cp.remainingCycles(() => {
-                    SlowSamRotation.Loop.forEach(action => {
-                        if (cp.currentTime < cp.totalTime) {
-                            cp.use(action);
-                            if (cp.currentTime > (cp.totalTime - 5) && cp.gauge.kenkiGauge >= 25) {
-                                cp.useOgcd(HissatsuShinten);
-                            }
-                        }
-                    });
+                    SlowSamRotation.Loop.forEach(action => cp.use(action));
                 });
             }
         }, {
@@ -171,14 +172,7 @@ export class SamSim extends BaseMultiCycleSim<SamSimResult, SamSettings, SAMCycl
                 cp.cycleLengthMode = 'full-duration';
                 MidSamRotation.Opener.forEach(action => cp.use(action));
                 cp.remainingCycles(() => {
-                    MidSamRotation.Loop.forEach(action => {
-                        if (cp.currentTime < cp.totalTime) {
-                            cp.use(action);
-                            if (cp.currentTime > (cp.totalTime - 5) && cp.gauge.kenkiGauge >= 25) {
-                                cp.useOgcd(HissatsuShinten);
-                            }
-                        }
-                    });
+                    MidSamRotation.Loop.forEach(action => cp.use(action));
                 });
             }
         }, {
@@ -188,14 +182,7 @@ export class SamSim extends BaseMultiCycleSim<SamSimResult, SamSettings, SAMCycl
                 cp.cycleLengthMode = 'full-duration';
                 FastSamRotation.Opener.forEach(action => cp.use(action));
                 cp.remainingCycles(() => {
-                    FastSamRotation.Loop.forEach(action => {
-                        if (cp.currentTime < cp.totalTime) {
-                            cp.use(action);
-                            if (cp.currentTime > (cp.totalTime - 5) && cp.gauge.kenkiGauge >= 25) {
-                                cp.useOgcd(HissatsuShinten);
-                            }
-                        }
-                    });
+                    FastSamRotation.Loop.forEach(action => cp.use(action));
                 });
             }
         }]
