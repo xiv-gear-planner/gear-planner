@@ -205,7 +205,7 @@ export class DataManager implements DataManagerIntf {
             sheet: 'Item',
             columns: itemColumns,
             // EquipSlotCategory! => EquipSlotCategory is not null => filters out now-useless belts
-            filters: [`LevelItem>=${this._minIlvl}`, `LevelItem<=${this._maxIlvl}`, `ClassJobCategory.${this._classJob}=1`, 'EquipSlotCategory!'],
+            filters: [`LevelItem>=${this._minIlvl}`, `LevelItem<=${this._maxIlvl}`, `ClassJobCategory.${this._classJob}=1`, 'EquipSlotCategory>0'],
         })
             // const itemsPromise = fetch(`https://xivapi.com/search?indexes=Item&filters=LevelItem%3E=${this.minIlvl},LevelItem%3C=${this.maxIlvl},ClassJobCategory.${this.classJob}=1&columns=ID,IconHD,Name,LevelItem,Stats,EquipSlotCategory,MateriaSlotCount,IsAdvancedMeldingPermitted,DamageMag,DamagePhys`)
             .then(async (data) => {
@@ -321,7 +321,7 @@ export class DataManager implements DataManagerIntf {
         const foodPromise = xivApiGet({
             requestType: 'search',
             sheet: 'Item',
-            filters: ['ItemKind.ID=5', 'ItemSearchCategory.ID=45', `LevelItem%3E=${this._minIlvlFood}`, `LevelItem%3C=${this._maxIlvlFood}`],
+            filters: ['ItemKind=5', 'ItemSearchCategory=45', `LevelItem>=${this._minIlvlFood}`, `LevelItem<=${this._maxIlvlFood}`],
             columns: ['ID', 'IconHD', 'Name', 'LevelItem', 'Bonuses'] as const
         })
             // const foodPromise = fetch(`https://xivapi.com/search?indexes=Item&filters=ItemKind.ID=5,ItemSearchCategory.ID=45,LevelItem%3E=${this.minIlvlFood},LevelItem%3C=${this.maxIlvlFood}&columns=ID,IconHD,Name,LevelItem,Bonuses`)

@@ -52,7 +52,7 @@ import {
     StatBonus,
     XivCombatItem
 } from "@xivgear/xivmath/geartypes";
-import {xivApiIcon, xivApiIconUrl} from "./external/xivapi";
+import {xivApiIconUrl} from "./external/xivapi";
 import {IlvlSyncInfo} from "./datamanager";
 import {XivApiStat, xivApiStatMapping} from "./external/xivapitypes";
 import {Inactivitytimer} from "./util/inactivitytimer";
@@ -1071,7 +1071,7 @@ export class XivApiFoodInfo implements FoodItem {
     constructor(data: object) {
         this.id = data['ID'];
         this.name = data['Name'];
-        this.iconUrl = new URL("https://xivapi.com/" + data['IconHD']);
+        this.iconUrl = new URL("https://xivapi.com/" + data['Icon']['id']);
         this.ilvl = data['LevelItem'];
         for (const key in data['Bonuses']) {
             const bonusData = data['Bonuses'][key];
