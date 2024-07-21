@@ -7,9 +7,49 @@ import {
     SupportedLevel
 } from "@xivgear/xivmath/xivconstants";
 import {GearItem, JobMultipliers, Materia, OccGearSlotKey, RawStatKey,} from "@xivgear/xivmath/geartypes";
-import {xivApiGet, xivApiSingle} from "./external/xivapi";
+import {xivApiGet, XivApiRequest, XivApiResultSingle, xivApiSingle, xivApiSingleCols} from "./external/xivapi";
 import {BaseParamToStatKey, RelevantBaseParam, xivApiStatMapping} from "./external/xivapitypes";
 import {getRelicStatModelFor} from "./relicstats/relicstats";
+
+const itemColumns = [
+    // Basic item properties
+    'ID', 'Icon', 'Name',
+    'LevelItem.nonexistent',
+    // Equip slot restrictions
+    'ClassJobCategory', 'EquipSlotCategory', 'IsUnique',
+    // Stats
+    'BaseParam', 'BaseParamValue', 'BaseParamSpecial', 'BaseParamValueSpecial',
+    // Weapon stats
+    'DamageMag', 'DamagePhys', 'DelayMs',
+    // Materia
+    'MateriaSlotCount', 'IsAdvancedMeldingPermitted',
+    // Stuff for determining correct WD for HQ crafted items
+    'CanBeHq',
+    // Helps determine acquisition type
+    'Rarity',
+    // TODO need replacement
+    // 'GameContentLinks'
+    'Delayms'
+] as const;
+const itemColsExtra = [
+    'LevelItem'
+] as const;
+export type XivApiItemDataRaw = XivApiResultSingle<typeof itemColumns, typeof itemColsExtra>;
+
+// 'Item' is only there because I need to figure out how to keep the type checking happy
+const matCols = ['Item[].Name', 'Item[].Icon', 'BaseParam.nonexistent', 'Value'] as const;
+// TODO: make a better way of doing this. matColsTrn represents the columns that are transitively included by way of
+// including a sub-column.
+const matColsTrn = ['Item', 'BaseParam'] as const;
+export type XivApiMateriaDataRaw = XivApiResultSingle<typeof matCols, typeof matColsTrn>;
+
+// Food cols on the base Item table
+const foodBaseItemCols = ['Icon', 'Name', 'LevelItem', 'ItemAction'] as const;
+export type XivApiFoodDataRaw = XivApiResultSingle<typeof foodBaseItemCols>;
+
+// Food cols on the FoodItem table
+const foodItemFoodCols = ['BaseParam', 'ValueHQ', 'MaxHQ'] as const;
+export type XivApiFoodItemDataRaw = XivApiResultSingle<typeof foodItemFoodCols>;
 
 export type IlvlSyncInfo = {
     readonly ilvl: number;
@@ -20,7 +60,8 @@ export function queryBaseParams() {
     return xivApiGet({
         requestType: "list",
         sheet: 'BaseParam',
-        columns: ['ID', 'Name', 'OneHandWeaponPercent', 'TwoHandWeaponPercent', 'BraceletPercent', 'ChestPercent', 'EarringPercent', 'FeetPercent', 'HandsPercent', 'HeadPercent', 'LegsPercent', 'NecklacePercent', 'OHPercent', 'RingPercent'] as const
+        columns: ['Name', 'OneHandWeaponPercent', 'TwoHandWeaponPercent', 'BraceletPercent', 'ChestPercent', 'EarringPercent', 'FeetPercent', 'HandsPercent', 'HeadPercent', 'LegsPercent', 'NecklacePercent', 'OHPercent', 'RingPercent'] as const,
+        columnsTrn: []
     }).then(data => {
         console.log(`Got ${data.Results.length} BaseParams`);
         return data;
@@ -173,37 +214,12 @@ export class DataManager implements DataManagerIntf {
         });
         const extraPromises = [];
         console.log("Loading items");
-        const itemColumns = [
-            // Basic item properties
-            'ID', 'IconID', 'Name', 'LevelItem',
-            // Equip slot restrictions
-            'ClassJobCategory', 'EquipSlotCategory', 'IsUnique',
-            // Stats
-            'Stats', 'DamageMag', 'DamagePhys', 'DelayMs',
-            // Materia
-            'MateriaSlotCount', 'IsAdvancedMeldingPermitted',
-            // Stuff for determining correct WD for HQ crafted items
-            'CanBeHq',
-            'BaseParamSpecial0TargetID',
-            'BaseParamSpecial1TargetID',
-            'BaseParamSpecial2TargetID',
-            'BaseParamSpecial3TargetID',
-            'BaseParamSpecial4TargetID',
-            'BaseParamSpecial5TargetID',
-            'BaseParamValueSpecial0',
-            'BaseParamValueSpecial1',
-            'BaseParamValueSpecial2',
-            'BaseParamValueSpecial3',
-            'BaseParamValueSpecial4',
-            'BaseParamValueSpecial5',
-            // Helps determine acquisition type
-            'Rarity',
-            'GameContentLinks'
-        ] as const;
+
         const itemsPromise = xivApiGet({
             requestType: 'search',
             sheet: 'Item',
             columns: itemColumns,
+            columnsTrn: itemColsExtra,
             // EquipSlotCategory! => EquipSlotCategory is not null => filters out now-useless belts
             filters: [`LevelItem>=${this._minIlvl}`, `LevelItem<=${this._maxIlvl}`, `ClassJobCategory.${this._classJob}=1`, 'EquipSlotCategory>0'],
         })
@@ -212,7 +228,7 @@ export class DataManager implements DataManagerIntf {
                 if (data) {
                     console.log(`Got ${data.Results.length} Items`);
                     // Dumb hack for new stuff because indices haven't updated
-                    if (this._level === 100) {
+                    if (false && this._level === 100) {
                         const results = [...data.Results];
                         // const maxId = results[results.length - 1].ID;
                         const seenIds = new Set<number>();
@@ -222,6 +238,7 @@ export class DataManager implements DataManagerIntf {
                             requestType: 'list',
                             sheet: 'Item',
                             columns: itemColumns,
+                            columnsTrn: itemColsExtra,
                             startPage: 429,
                             pageLimit: 1,
                             perPage: 100
@@ -283,7 +300,6 @@ export class DataManager implements DataManagerIntf {
         });
 
         // Materia
-        const matCols = ['ID', 'Item[].Name', 'Item[].Icon', 'BaseParam.nonexistent', 'Value'];
         // for (let i = 0; i < MATERIA_LEVEL_MAX_NORMAL; i++) {
         //     matCols.push(`Item${i}.Name`);
         //     // TODO: normal or HD icon?
@@ -295,6 +311,7 @@ export class DataManager implements DataManagerIntf {
             requestType: 'list',
             sheet: 'Materia',
             columns: matCols,
+            columnsTrn: matColsTrn,
             pageLimit: 1,
             perPage: 50
         })
@@ -321,16 +338,22 @@ export class DataManager implements DataManagerIntf {
         const foodPromise = xivApiGet({
             requestType: 'search',
             sheet: 'Item',
-            filters: ['ItemKind=5', 'ItemSearchCategory=45', `LevelItem>=${this._minIlvlFood}`, `LevelItem<=${this._maxIlvlFood}`],
-            columns: ['ID', 'IconHD', 'Name', 'LevelItem', 'Bonuses'] as const
+            // filters: ['ItemKind=5', 'ItemSearchCategory=45', `LevelItem>=${this._minIlvlFood}`, `LevelItem<=${this._maxIlvlFood}`],
+            filters: ['ItemSearchCategory=45', `LevelItem>=${this._minIlvlFood}`, `LevelItem<=${this._maxIlvlFood}`],
+            columns: foodBaseItemCols
         })
             // const foodPromise = fetch(`https://xivapi.com/search?indexes=Item&filters=ItemKind.ID=5,ItemSearchCategory.ID=45,LevelItem%3E=${this.minIlvlFood},LevelItem%3C=${this.maxIlvlFood}&columns=ID,IconHD,Name,LevelItem,Bonuses`)
             .then((data) => {
                 console.log(`Got ${data.Results.length} Food Items`);
                 return data.Results;
             })
-            .then((rawFoods) => rawFoods.map(i => new XivApiFoodInfo(i)))
-            .then((processedFoods) => processedFoods.filter(food => Object.keys(food.bonuses).length > 1))
+            .then((rawFoods) => rawFoods.map(async i => {
+                // TODO: is there a better way to get this?
+                const itemActionId = i.ItemAction['fields']['Data'][1] as number;
+                const itemFoodData = await xivApiSingleCols('ItemFood', itemActionId, foodItemFoodCols);
+                return new XivApiFoodInfo(i, itemFoodData);
+            }))
+            .then(async (processedFoods) => (await Promise.all(processedFoods)).filter(food => Object.keys(food.bonuses).length > 1))
             .then((foods) => this._allFoodItems = foods,
                 e => console.error(e));
         console.log("Loading jobs");

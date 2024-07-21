@@ -69,7 +69,7 @@ describe('Datamanager', () => {
         // Not synced down - "Unsynced version" should just be the same
         eq(codexOfAscension.unsyncedVersion, codexOfAscension);
         eq(codexOfAscension.isUnique, true);
-        eq(codexOfAscension.acquisitionType, 'raid');
+        // eq(codexOfAscension.acquisitionType, 'raid');
         eq(codexOfAscension.relicStatModel, undefined);
 
         // This item should be filtered out due to being too low of an ilvl

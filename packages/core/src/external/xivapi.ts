@@ -6,6 +6,7 @@ export type XivApiRequest = {
     requestType: 'list' | 'search',
     sheet: string,
     columns?: readonly string[],
+    columnsTrn?: readonly string[]
     perPage?: number
     startPage?: number,
     pageLimit?: number
@@ -22,10 +23,16 @@ export type XivApiSearchRequest = XivApiRequest & {
     filters?: XivApiFilter[],
 }
 
+export type XivApiResultSingle<Cols extends readonly string[], TrnCols extends readonly string[] = []> = {
+    [K in Cols[number]]: unknown;
+} & {
+    [K in TrnCols[number]]: unknown;
+} & {
+    ID: number
+}
+
 export type XivApiResponse<RequestType extends XivApiRequest> = {
-    Results: {
-        [K in RequestType['columns'][number]]: unknown;
-    }[]
+    Results: XivApiResultSingle<RequestType['columns'], RequestType['columnsTrn']>[]
 }
 
 // export type ValidRequest<RequestType extends XivApiRequest> = RequestType['requestType'] extends 'search' ? XivApiSearchRequest : XivApiListRequest;
@@ -48,20 +55,31 @@ async function xFetchInternal(...params: Parameters<typeof fetch>): Promise<Resp
             await new Promise(r => setTimeout(r, 500 + (Math.random() * 1000)));
             continue;
         }
+        if (result.status >= 400) {
+            const content = JSON.stringify(await result.json());
+            console.error(`XivApi error: ${result.status}: ${result.statusText}`, params[0], content);
+            throw Error(`XivApi error: ${result.status}: ${result.statusText} (${params[0]}\n${content}`);
+        }
         return result;
     }
 }
 
 export async function xivApiSingle(sheet: string, id: number) {
-    const query = `https://beta.xivapi.com/api/1/sheet/${sheet}/${id}?version=6.58x2`;
+    const query = `https://beta.xivapi.com/api/1/sheet/${sheet}/${id}`;
     return xivApiFetch(query).then(response => response.json()).then(response => response['fields']);
 }
 
 export async function xivApiSingleCols<Columns extends readonly string[]>(sheet: string, id: number, cols: Columns): Promise<{
     [K in Columns[number]]: unknown;
+} & {
+    ID: number
 }> {
-    const query = `https://beta.xivapi.com/api/1/sheet/${sheet}/${id}?fields=${cols.join(',')}&version=6.58x2`;
-    return xivApiFetch(query).then(response => response.json()).then(response => response['fields']);
+    const query = `https://beta.xivapi.com/api/1/sheet/${sheet}/${id}?fields=${cols.join(',')}`;
+    return xivApiFetch(query).then(response => response.json()).then(response => {
+        const responseOut = response['fields'];
+        responseOut['ID'] = response['row_id'];
+        return responseOut;
+    });
 }
 
 export async function xivApiGet<RequestType extends (XivApiListRequest | XivApiSearchRequest)>(request: RequestType):
@@ -128,20 +146,18 @@ export async function xivApiSearch<RequestType extends XivApiSearchRequest>(requ
         }
         const responseRaw = await xivApiFetch(thisQuery)
             .then(response => response.json());
-        const response = responseRaw['rows'];
-        results.push(...response);
+        const response = responseRaw['results'];
+        results.push(...response.filter(isNonEmpty));
         const thisNext = response['next'];
-        if (thisNext === undefined && lastCursor !== null) {
+        if (thisNext === undefined) {
             break;
         }
-        lastCursor = thisNext;
+        lastCursor = thisNext ?? null;
     }
     return {
         Results: results.map(resultRow => {
             const out = {...resultRow['fields']};
-            if (request.columns.includes('ID')) {
-                out['ID'] = resultRow['row_id'];
-            }
+            out['ID'] = resultRow['row_id'];
             return out;
         })
     };
@@ -165,7 +181,7 @@ export async function xivApiGetList<RequestType extends XivApiListRequest>(reque
         const response = responseRaw['rows'];
         if (response.length > 0) {
             after += response.length;
-            results.push(...response);
+            results.push(...response.filter(isNonEmpty));
             if (response.length < perPage) {
                 break;
             }
@@ -183,7 +199,10 @@ export async function xivApiGetList<RequestType extends XivApiListRequest>(reque
             return out;
         })
     };
+}
 
+function isNonEmpty(row: object) {
+    return row['row_id'] > 0 && Object.keys(row['fields']).length > 0;
 }
 
 export function xivApiIconUrl(iconId: number, highRes: boolean = false) {
