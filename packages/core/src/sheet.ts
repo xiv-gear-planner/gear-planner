@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */  // TODO: get back to fixing this at some point
+/* eslint-disable @typescript-eslint/no-explicit-any */        // TODO: get back to fixing this at some point
 import {
     CURRENT_MAX_LEVEL,
     defaultItemDisplaySettings,
@@ -24,7 +24,7 @@ import {
     Materia,
     MateriaAutoFillController,
     MateriaAutoFillPrio,
-    MeldableMateriaSlot,
+    MeldableMateriaSlot, OccGearSlotKey,
     PartyBonusAmount,
     RawStatKey,
     SetExport,
@@ -34,7 +34,7 @@ import {
     SimExport,
     Substat
 } from "@xivgear/xivmath/geartypes";
-import {CharacterGearSet} from "./gear";
+import {CharacterGearSet, CustomItem} from "./gear";
 import {DataManager} from "./datamanager";
 import {Inactivitytimer} from "./util/inactivitytimer";
 import {writeProxy} from "./util/proxies";
@@ -149,6 +149,9 @@ export class GearPlanSheet {
     private _relevantMateria: Materia[];
     private _relevantFood: FoodItem[];
 
+    // Custom items
+    private _customItems: CustomItem[] = [];
+
     // Materia autofill
     protected materiaAutoFillPrio: MateriaAutoFillPrio;
     protected materiaAutoFillSelectedItems: boolean;
@@ -201,6 +204,12 @@ export class GearPlanSheet {
             minGcd: importedData.mfMinGcd ?? 2.05
         };
         this.materiaAutoFillSelectedItems = importedData.mfni ?? false;
+
+        if (importedData.customItems) {
+            importedData.customItems.forEach(ci => {
+                this._customItems.push(CustomItem.fromExport(ci));
+            });
+        }
 
         // Early gui setup
         this.saveTimer = new Inactivitytimer(1_000, () => this.saveData());
@@ -404,7 +413,8 @@ export class GearPlanSheet {
             mfp: this.materiaAutoFillPrio.statPrio,
             mfMinGcd: this.materiaAutoFillPrio.minGcd,
             ilvlSync: this.ilvlSync,
-            description: this.description
+            description: this.description,
+            customItems: this._customItems.map(ci => ci.export()),
         };
         if (!external) {
             out.saveKey = this._saveKey;
@@ -493,6 +503,46 @@ export class GearPlanSheet {
         return out;
     }
 
+    itemById(id: number): GearItem {
+        const custom = this._customItems.find(ci => ci.id === id);
+        if (custom) {
+            return custom;
+        }
+        else {
+            return this.dataManager.itemById(id);
+        }
+    }
+
+    private get nextCustomItemId() {
+        if (this._customItems.length === 0) {
+            // TODO: make this random + larger
+            return 10_000_000_000_000 + Math.floor(Math.random() * 1_000_000);
+        }
+        else {
+            return Math.max(...this._customItems.map(ci => ci.id)) + 1;
+        }
+    }
+
+    newCustomItem(slot: OccGearSlotKey): CustomItem {
+        const item = CustomItem.fromScratch(this.nextCustomItemId, slot);
+        this._customItems.push(item);
+        this.requestSave();
+        return item;
+    }
+
+    get customItems() {
+        return [...this._customItems];
+    }
+
+    deleteCustomItem(item: CustomItem) {
+        // TODO: this should check if you have this item equipped on any sets, or ask
+        const idx = this._customItems.indexOf(item);
+        if (idx > -1) {
+            this._customItems.splice(idx, 1);
+        }
+        this.recalcAll();
+    }
+
     /**
      * Convert a SetExport back to a CharacterGearSet.
      *
@@ -509,7 +559,7 @@ export class GearPlanSheet {
             if (!importedItem) {
                 continue;
             }
-            const baseItem = this.dataManager.itemById(importedItem.id);
+            const baseItem = this.itemById(importedItem.id);
             if (!baseItem) {
                 continue;
             }
@@ -655,11 +705,13 @@ export class GearPlanSheet {
     }
 
     get itemsForDisplay(): GearItem[] {
-        return this.dataManager.allItems.filter(item => {
-            return item.ilvl >= this._itemDisplaySettings.minILvl
-                && (item.ilvl <= this._itemDisplaySettings.maxILvl
-                    || item.isCustomRelic && this._itemDisplaySettings.higherRelics);
-        });
+        return [
+            ...this.dataManager.allItems.filter(item => {
+                return item.ilvl >= this._itemDisplaySettings.minILvl
+                    && (item.ilvl <= this._itemDisplaySettings.maxILvl
+                        || item.isCustomRelic && this._itemDisplaySettings.higherRelics);
+            }),
+            ...this._customItems];
     }
 
     onGearDisplaySettingsUpdate() {

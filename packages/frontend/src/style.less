@@ -1,1 +1,34 @@
 @import "../../common-ui/styles/common.less";
+
+custom-item-popup {
+  table {
+    td {
+      input[type="text"], input[type="number"] {
+        width: unset !important;
+        box-sizing: border-box;
+        max-width: 100%;
+        //border: var(--soft-border);
+        border: 2px solid transparent;
+        padding: 0 0 0 0;
+        background: var(--relic-stat-input-background-color);
+        //box-sizing: border-box;
+        //margin: 1px;
+        text-align: center;
+
+        &.relic-validation-failed {
+          border: 2px solid red;
+        }
+
+        &:hover, &:active, &:focus {
+          background: var(--relic-stat-input-background-hover-color);
+        }
+      }
+    }
+  }
+
+  .notes-area {
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}

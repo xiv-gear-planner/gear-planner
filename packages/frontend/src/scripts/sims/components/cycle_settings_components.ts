@@ -4,7 +4,7 @@ import {
     FieldBoundFloatField,
     labeledCheckbox,
     labelFor,
-    positiveValuesOnly
+    nonNegative
 } from "@xivgear/common-ui/components/util";
 import {NamedSection} from "../../components/section";
 
@@ -12,7 +12,7 @@ export function cycleSettingsGui(cycleSettings: CycleSettings) {
     const out = new NamedSection('Cycle Settings');
     const timeField = new FieldBoundFloatField(cycleSettings, 'totalTime', {
         inputMode: 'number',
-        postValidators: [positiveValuesOnly]
+        postValidators: [nonNegative]
     });
     timeField.id = 'cycle-total-time';
     const label = labelFor('Total Time:', timeField);
