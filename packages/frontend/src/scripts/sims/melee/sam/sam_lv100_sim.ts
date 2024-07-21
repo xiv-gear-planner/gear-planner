@@ -8,6 +8,7 @@ import SAMGauge from "./sam_gauge";
 import { SAMExtraData, SamAbility } from "./sam_types";
 import * as SlowSamRotation from './rotations/sam_lv100_214';
 import * as MidSamRotation from './rotations/sam_lv100_207';
+import * as FastSamRotation from './rotations/sam_lv100_207';
 import { HissatsuShinten } from './sam_actions';
 
 export interface SamSimResult extends CycleSimResult {
@@ -171,6 +172,23 @@ export class SamSim extends BaseMultiCycleSim<SamSimResult, SamSettings, SAMCycl
                 MidSamRotation.Opener.forEach(action => cp.use(action));
                 cp.remainingCycles(() => {
                     MidSamRotation.Loop.forEach(action => {
+                        if (cp.currentTime < cp.totalTime) {
+                            cp.use(action);
+                            if (cp.currentTime > (cp.totalTime - 5) && cp.gauge.kenkiGauge >= 25) {
+                                cp.useOgcd(HissatsuShinten);
+                            }
+                        }
+                    });
+                });
+            }
+        }, {
+            name: "2.00 GCD Rotation",
+            cycleTime: 120,
+            apply(cp: SAMCycleProcessor) {
+                cp.cycleLengthMode = 'full-duration';
+                FastSamRotation.Opener.forEach(action => cp.use(action));
+                cp.remainingCycles(() => {
+                    FastSamRotation.Loop.forEach(action => {
                         if (cp.currentTime < cp.totalTime) {
                             cp.use(action);
                             if (cp.currentTime > (cp.totalTime - 5) && cp.gauge.kenkiGauge >= 25) {
