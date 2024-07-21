@@ -58,6 +58,7 @@ class SAMCycleProcessor extends CycleProcessor {
 
     constructor(settings: MultiCycleSettings) {
         super(settings);
+        this.cycleLengthMode = 'full-duration';
         this.gauge = new SAMGauge(settings.stats.level);
     }
 
@@ -159,7 +160,6 @@ export class SamSim extends BaseMultiCycleSim<SamSimResult, SamSettings, SAMCycl
             name: "2.14 GCD Rotation",
             cycleTime: 120,
             apply(cp: SAMCycleProcessor) {
-                cp.cycleLengthMode = 'full-duration';
                 SlowSamRotation.Opener.forEach(action => cp.use(action));
                 cp.remainingCycles(() => {
                     SlowSamRotation.Loop.forEach(action => cp.use(action));
@@ -169,7 +169,6 @@ export class SamSim extends BaseMultiCycleSim<SamSimResult, SamSettings, SAMCycl
             name: "2.07 GCD Rotation",
             cycleTime: 120,
             apply(cp: SAMCycleProcessor) {
-                cp.cycleLengthMode = 'full-duration';
                 MidSamRotation.Opener.forEach(action => cp.use(action));
                 cp.remainingCycles(() => {
                     MidSamRotation.Loop.forEach(action => cp.use(action));
@@ -179,7 +178,6 @@ export class SamSim extends BaseMultiCycleSim<SamSimResult, SamSettings, SAMCycl
             name: "2.00 GCD Rotation",
             cycleTime: 120,
             apply(cp: SAMCycleProcessor) {
-                cp.cycleLengthMode = 'full-duration';
                 FastSamRotation.Opener.forEach(action => cp.use(action));
                 cp.remainingCycles(() => {
                     FastSamRotation.Loop.forEach(action => cp.use(action));
