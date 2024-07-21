@@ -147,7 +147,7 @@ export class SamSim extends BaseMultiCycleSim<SamSimResult, SamSettings, SAMCycl
 
     getRotationsToSimulate(): Rotation<SAMCycleProcessor>[] {
         return [{
-            name: "Slow Sam Rotation",
+            name: "2.14 GCD Rotation",
             cycleTime: 120,
             apply(cp: SAMCycleProcessor) {
                 cp.cycleLengthMode = 'full-duration';
@@ -164,7 +164,7 @@ export class SamSim extends BaseMultiCycleSim<SamSimResult, SamSettings, SAMCycl
                 });
             }
         }, {
-            name: "Mid Sam Rotation",
+            name: "2.07 GCD Rotation",
             cycleTime: 120,
             apply(cp: SAMCycleProcessor) {
                 cp.cycleLengthMode = 'full-duration';
