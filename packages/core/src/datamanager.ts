@@ -7,7 +7,7 @@ import {
     SupportedLevel
 } from "@xivgear/xivmath/xivconstants";
 import {GearItem, JobMultipliers, Materia, OccGearSlotKey, RawStatKey,} from "@xivgear/xivmath/geartypes";
-import {xivApiGet, XivApiRequest, XivApiResultSingle, xivApiSingle, xivApiSingleCols} from "./external/xivapi";
+import {xivApiGet, XivApiResultSingle, xivApiSingle, xivApiSingleCols} from "./external/xivapi";
 import {BaseParamToStatKey, RelevantBaseParam, xivApiStatMapping} from "./external/xivapitypes";
 import {getRelicStatModelFor} from "./relicstats/relicstats";
 
@@ -227,36 +227,37 @@ export class DataManager implements DataManagerIntf {
             .then(async (data) => {
                 if (data) {
                     console.log(`Got ${data.Results.length} Items`);
+                    return data.Results;
                     // Dumb hack for new stuff because indices haven't updated
-                    if (false && this._level === 100) {
-                        const results = [...data.Results];
-                        // const maxId = results[results.length - 1].ID;
-                        const seenIds = new Set<number>();
-                        results.forEach(result => seenIds.add(result.ID as number));
-                        console.log("Loading extra items");
-                        results.push(...(await xivApiGet({
-                            requestType: 'list',
-                            sheet: 'Item',
-                            columns: itemColumns,
-                            columnsTrn: itemColsExtra,
-                            startPage: 429,
-                            pageLimit: 1,
-                            perPage: 100
-                        })).Results.filter(result => {
-                            const id = result.ID as number;
-                            if (seenIds.has(id)) {
-                                return false;
-                            }
-                            else {
-                                seenIds.add(id);
-                            }
-                            return result.Name !== "" && result.ClassJobCategory[this._classJob];
-                        }));
-                        return results;
-                    }
-                    else {
-                        return data.Results;
-                    }
+                    // if (false && this._level === 100) {
+                    //     const results = [...data.Results];
+                    //     // const maxId = results[results.length - 1].ID;
+                    //     const seenIds = new Set<number>();
+                    //     results.forEach(result => seenIds.add(result.ID as number));
+                    //     console.log("Loading extra items");
+                    //     results.push(...(await xivApiGet({
+                    //         requestType: 'list',
+                    //         sheet: 'Item',
+                    //         columns: itemColumns,
+                    //         columnsTrn: itemColsExtra,
+                    //         startPage: 429,
+                    //         pageLimit: 1,
+                    //         perPage: 100
+                    //     })).Results.filter(result => {
+                    //         const id = result.ID as number;
+                    //         if (seenIds.has(id)) {
+                    //             return false;
+                    //         }
+                    //         else {
+                    //             seenIds.add(id);
+                    //         }
+                    //         return result.Name !== "" && result.ClassJobCategory[this._classJob];
+                    //     }));
+                    //     return results;
+                    // }
+                    // else {
+                    //     return data.Results;
+                    // }
                 }
                 else {
                     console.error(`Got No Items!`);

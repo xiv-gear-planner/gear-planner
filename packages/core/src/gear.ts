@@ -57,11 +57,11 @@ import {
     XivApiItemDataRaw,
     XivApiMateriaDataRaw
 } from "./datamanager";
-import {BaseParamToStatKey, RelevantBaseParam, xivApiStatMapping} from "./external/xivapitypes";
+import {BaseParamToStatKey, RelevantBaseParam} from "./external/xivapitypes";
 import {Inactivitytimer} from "./util/inactivitytimer";
 import {addStats, finalizeStats} from "@xivgear/xivmath/xivstats";
 import {GearPlanSheet} from "./sheet";
-import {requireArrayTyped, requireBoolish, requireBool, requireNumber, requireString} from "./external/data_validators";
+import {requireArrayTyped, requireBool, requireNumber, requireString} from "./external/data_validators";
 
 
 export function nonEmptyRelicStats(stats: RelicStats | undefined): boolean {
