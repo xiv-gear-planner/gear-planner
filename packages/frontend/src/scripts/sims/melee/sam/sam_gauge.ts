@@ -125,7 +125,7 @@ class SAMGauge {
 
                     for (let i = 1; i <= 3; i++) {
                         const stack = document.createElement('span');
-                        stack.style.clipPath = `polygon(0 50%, 50% 0, 100% 50%, 50% 100%, 0% 50%)`;
+                        stack.style.clipPath = `polygon(0 50%, 50% 0, 100% 50%, 50% 100%)`;
                         stack.style.background = '#00000033';
                         stack.style.height = '100%';
                         stack.style.width = '16px';
