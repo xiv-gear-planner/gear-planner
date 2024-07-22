@@ -81,7 +81,7 @@ export const SearingLight = {
     cooldown: 120,
     selfOnly: false,
     effects: {
-        dmgIncrease: 0.03
+        dmgIncrease: 0.05
     },
     startTime: 4.7,
     statusId: 2703
