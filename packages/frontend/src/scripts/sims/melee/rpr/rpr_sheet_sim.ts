@@ -1,5 +1,5 @@
 import {ArcaneCircleBuff} from "@xivgear/core/sims/buffs";
-import {Ability, Buff, GcdAbility, OgcdAbility, SimSettings, SimSpec} from "@xivgear/core/sims/sim_types";
+import {Ability, Buff, OgcdAbility, SimSettings, SimSpec} from "@xivgear/core/sims/sim_types";
 import {AbilityUseRecordUnf, AbilityUseResult, CycleProcessor, CycleSimResult, ExternalCycleSettings, MultiCycleSettings, Rotation} from "@xivgear/core/sims/cycle_sim";
 import {BaseMultiCycleSim} from "../../sim_processors";
 import * as Actions from "./rpr_actions"
@@ -101,9 +101,9 @@ class RprCycleProcessor extends CycleProcessor {
      * NOTE: I'm adding an extra 20ms to each animation lock to make sure we don't hit anything that's impossible to achieve ingame.
      */
     advanceForLateWeave(weaves: OgcdAbility[]) {
-        let pingAndServerDelayAdjustment = 0.02;
-        let totalAnimLock = sum(weaves.map(ability => (ability.animationLock ?? STANDARD_ANIMATION_LOCK) + pingAndServerDelayAdjustment));
-        let remainingtime = this.nextGcdTime - this.currentTime;
+        const pingAndServerDelayAdjustment = 0.02;
+        const totalAnimLock = sum(weaves.map(ability => (ability.animationLock ?? STANDARD_ANIMATION_LOCK) + pingAndServerDelayAdjustment));
+        const remainingtime = this.nextGcdTime - this.currentTime;
 
         if (totalAnimLock > remainingtime) {
             return;
