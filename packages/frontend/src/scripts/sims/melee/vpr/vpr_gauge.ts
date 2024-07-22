@@ -14,7 +14,7 @@ export class VprGauge {
             console.warn(`Overcapped Serpent Offerings by ${newGauge - 100}.`);
         }
         if (newGauge < 0) {
-            console.warn(`Used ${this._serpentOfferings- newGauge} when you only have ${this._serpentOfferings}.`)
+            console.warn(`Used ${this._serpentOfferings - newGauge} when you only have ${this._serpentOfferings}.`)
         }
         this._serpentOfferings = Math.max(Math.min(newGauge, 100), 0);
     }
@@ -30,9 +30,8 @@ export class VprGauge {
         if (newCoils < 0) {
             console.warn(`Used Rattling coils when empty`)
         }
-        
+
         this._rattlingCoils = Math.max(Math.min(newCoils, 3), 0);
-        
     }
 
 
@@ -99,30 +98,24 @@ export class VprGauge {
                     div.style.height = '100%';
                     div.style.display = 'flex';
                     div.style.alignItems = 'center';
-                    div.style.gap = '6px';
+                    div.style.justifyContent = 'center';
+                    div.style.gap = '4px';
                     div.style.padding = '2px 0 2px 0';
                     div.style.boxSizing = 'border-box';
 
-                    const span = document.createElement('span');
-                    span.textContent = `${rattlingCoils}`;
-
-                    const barOuter = document.createElement('div');
-                    barOuter.style.borderRadius = '20px';
-                    barOuter.style.background = '#00000033';
-                    barOuter.style.width = '120px';
-                    barOuter.style.height = 'calc(100% - 3px)';
-                    barOuter.style.display = 'inline-block';
-                    barOuter.style.overflow = 'hidden';
-                    barOuter.style.border = '1px solid black';
-
-                    const barInner = document.createElement('div');
-                    barInner.style.backgroundColor = "#84100f"
-                    barInner.style.width = `${Math.ceil(rattlingCoils * 33.33333)}%`;
-                    barInner.style.height = '100%';
-                    barOuter.appendChild(barInner);
-
-                    div.appendChild(barOuter);
-                    div.appendChild(span);
+                    for (let i = 1; i <= 3; i++) {
+                        const stack = document.createElement('span');
+                        stack.style.clipPath = `polygon(0 50%, 50% 0, 100% 50%, 50% 100%, 0% 50%)`;
+                        stack.style.background = '#00000033';
+                        stack.style.height = '100%';
+                        stack.style.width = '16px';
+                        stack.style.display = 'inline-block';
+                        stack.style.overflow = 'hidden';
+                        if (i <= rattlingCoils) {
+                            stack.style.background = '#84100F';
+                        }
+                        div.appendChild(stack);
+                    }
 
                     return div;
                 }
