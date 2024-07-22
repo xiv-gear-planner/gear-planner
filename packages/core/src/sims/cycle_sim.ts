@@ -1075,7 +1075,12 @@ export class CycleProcessor {
      * @param ability
      * @param effects
      */
-    gcdTime(ability: GcdAbility, effects: CombinedBuffEffect): number {
+    gcdTime(ability: GcdAbility, effects?: CombinedBuffEffect): number {
+
+        if (!effects) {
+            effects = this.getCombinedEffectsFor(ability).combinedEffects;
+        }
+
         const base = ability.gcd;
         const stats = effects.modifyStats(this.stats);
         const haste = effects.haste + stats.haste(ability.attackType);
