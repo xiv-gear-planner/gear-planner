@@ -413,6 +413,11 @@ export class VprCycleProcessor extends CycleProcessor {
             }
 
             this.useDualWieldCombo();
+            if (this.canUseWithoutClipping(gemdraught1dex)) {
+                this.advanceForLateWeave([gemdraught1dex]);
+                this.useOgcd(gemdraught1dex);
+            }
+
             return;
         }
 
