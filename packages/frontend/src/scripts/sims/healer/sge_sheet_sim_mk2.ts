@@ -11,8 +11,7 @@ import {BaseMultiCycleSim} from "../sim_processors";
 import {gemdraught1mind} from "@xivgear/core/sims/common/potion";
 import {FieldBoundCheckBox, labeledCheckbox} from "@xivgear/common-ui/components/util";
 import {rangeInc} from "@xivgear/core/util/array_utils";
-import {combineBuffEffects} from "@xivgear/core/sims/sim_utils";
-import {abilityEquals, animationLock} from "@xivgear/core/sims/ability_helpers";
+import {animationLock} from "@xivgear/core/sims/ability_helpers";
 
 /**
  * Used for all 360p filler abilities
