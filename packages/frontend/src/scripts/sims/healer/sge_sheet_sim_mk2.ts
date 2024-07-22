@@ -104,6 +104,7 @@ export const sgeNewSheetSpec: SimSpec<SgeSheetSim, SgeNewSheetSettingsExternal> 
 class SageCycleProcessor extends CycleProcessor {
     constructor(settings: MultiCycleSettings) {
         super(settings);
+        this.cdEnforcementMode = 'delay';
     }
 
     useDotIfWorth() {
