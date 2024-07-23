@@ -117,7 +117,7 @@ export class SingleStatTotalDisplay extends HTMLDivElement {
                 this.classList.add('stat-total-wide');
             }
             else if ('incomingMulti' in value) {
-                this.appendChild(quickTextDiv('stat-total-lower-left', value.multiplier.toString()));
+                this.appendChild(quickTextDiv('stat-total-lower-left', value.multiplier.toString() + ','));
                 this.appendChild(quickTextDiv('stat-total-lower-right', `${toRelPct(value.incomingMulti - 1, 1)}%`));
                 this.classList.add('stat-total-wide');
             }
