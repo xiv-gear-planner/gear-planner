@@ -11,7 +11,7 @@ import {
     sksToGcd,
     spsTickMulti,
     spsToGcd,
-    tenacityDmg,
+    tenacityDmg, tenacityIncomingDmg,
     vitToHp
 } from "@xivgear/xivmath/xivmath";
 import {GearPlanSheet} from "@xivgear/core/sheet";
@@ -249,12 +249,12 @@ export class StatTierDisplay extends HTMLDivElement {
                     fullName: stat + ' multiplier',
                     description: 'Damage multiplier from Tenacity',
                     tiering: this.getCombinedTiering(curVal, value => tenacityDmg(levelStats, value))
+                }, {
+                    label: abbrev + ' Def',
+                    fullName: stat + ' mitigation',
+                    description: 'Damage reduction from Tenacity',
+                    tiering: this.getCombinedTiering(curVal, value => tenacityIncomingDmg(levelStats, value))
                 }
-                    // TODO: tenacity dmg reduc
-                    // , {
-                    //     label: abbrev + ' Def',
-                    //     tiering: this.getCombinedTiering(curVal, value => tenacityDef(levelStats, value))
-                    // }
                 ];
             default:
                 return [{

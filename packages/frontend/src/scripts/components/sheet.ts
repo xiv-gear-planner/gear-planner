@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                // TODO: get back to fixing this at some point
-import {camel2title, capitalizeFirstLetter} from "@xivgear/core/util/strutils";
+import {camel2title, capitalizeFirstLetter, toRelPct} from "@xivgear/core/util/strutils";
 import {BaseModal} from "@xivgear/common-ui/components/modal";
 import {
     CustomCell,
@@ -30,7 +30,7 @@ import {
     EquipSlots,
     GearItem,
     MateriaAutoFillController,
-    MateriaAutoFillPrio,
+    MateriaAutoFillPrio, MultiplierMitStat,
     MultiplierStat,
     PartyBonusAmount,
     RawStatKey,
@@ -129,6 +129,19 @@ function chanceStatDisplay(stats: ChanceStat) {
     outerDiv.appendChild(leftSpan);
     const rightSpan = document.createElement("span");
     rightSpan.textContent = (`(${(stats.chance * 100.0).toFixed(1)}%x${stats.multiplier.toFixed(3)})`);
+    rightSpan.classList.add("extra-stat-info");
+    outerDiv.appendChild(rightSpan);
+    return outerDiv;
+}
+
+function multiplierMitStatDisplay(stats: MultiplierMitStat) {
+    const outerDiv = document.createElement("div");
+    outerDiv.classList.add('multiplier-mit-stat-display');
+    const leftSpan = document.createElement("span");
+    leftSpan.textContent = stats.stat.toString();
+    outerDiv.appendChild(leftSpan);
+    const rightSpan = document.createElement("span");
+    rightSpan.textContent = (`(x${stats.multiplier.toFixed(3)}, ${toRelPct(stats.incomingMulti - 1, 1)}%)`);
     rightSpan.classList.add("extra-stat-info");
     outerDiv.appendChild(rightSpan);
     return outerDiv;
@@ -527,11 +540,12 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                 displayName: "TNC",
                 getter: gearSet => ({
                     stat: gearSet.computedStats.tenacity,
-                    multiplier: gearSet.computedStats.tncMulti
-                }) as MultiplierStat,
-                renderer: multiplierStatDisplay,
+                    multiplier: gearSet.computedStats.tncMulti,
+                    incomingMulti: gearSet.computedStats.tncIncomingMulti
+                }) as MultiplierMitStat,
+                renderer: multiplierMitStatDisplay,
                 condition: () => this.sheet.isStatRelevant('tenacity'),
-                extraClasses: ['stat-col', 'multiplier-stat-col'],
+                extraClasses: ['stat-col', 'multiplier-mit-stat-col'],
             },
             ...(viewOnly ? [] : simColumns),
         ];
