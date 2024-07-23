@@ -1,4 +1,6 @@
 import {JobName} from "@xivgear/xivmath/xivconstants";
+import {xivApiGet, xivApiGetList, xivApiIconUrl} from "@xivgear/core/external/xivapi";
+import {requireNumber, requireString} from "@xivgear/core/external/data_validators";
 
 export interface XivApiJobData {
     Name: string,
@@ -7,28 +9,32 @@ export interface XivApiJobData {
     Icon: string
 }
 
-let jobData: XivApiJobData[];
+let loaded = false;
 const jobIconMap = new Map<JobName, string>();
 
 // TODO: can this be consolidated with other job loading stuff in DataManager?
 async function ensureJobDataLoaded() {
-    if (jobData !== undefined) {
+    if (loaded) {
         return;
     }
-    await fetch("https://xivapi.com/ClassJob?columns=Name,Abbreviation,ID,Icon")
-        .then(response => response.json())
-        .then(response => response['Results'] as XivApiJobData[])
-        .then(data => jobData = data);
-    for (const jobDatum of jobData) {
-        jobIconMap.set(jobDatum.Abbreviation as JobName, jobDatum.Icon);
-    }
+    await xivApiGet({
+        requestType: 'list',
+        sheet: 'ClassJob',
+        columns: ['Abbreviation', 'Icon'] as const,
+    }).then(results => {
+        results.Results.forEach(value => {
+            jobIconMap.set(requireString(value.Abbreviation) as JobName, xivApiIconUrl(requireNumber(value.Icon['id'])));
+        });
+        loaded = true;
+    });
 }
 
+// This isn't currently used anywhere...
 export class JobIcon extends HTMLImageElement {
     constructor(job: JobName) {
         super();
         this.classList.add('ffxiv-job-icon');
-        ensureJobDataLoaded().then(() => this.src = "https://xivapi.com/" + jobIconMap.get(job));
+        ensureJobDataLoaded().then(() => this.src = jobIconMap.get(job));
     }
 }
 

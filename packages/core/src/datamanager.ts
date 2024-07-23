@@ -223,41 +223,10 @@ export class DataManager implements DataManagerIntf {
             // EquipSlotCategory! => EquipSlotCategory is not null => filters out now-useless belts
             filters: [`LevelItem>=${this._minIlvl}`, `LevelItem<=${this._maxIlvl}`, `ClassJobCategory.${this._classJob}=1`, 'EquipSlotCategory>0'],
         })
-            // const itemsPromise = fetch(`https://xivapi.com/search?indexes=Item&filters=LevelItem%3E=${this.minIlvl},LevelItem%3C=${this.maxIlvl},ClassJobCategory.${this.classJob}=1&columns=ID,IconHD,Name,LevelItem,Stats,EquipSlotCategory,MateriaSlotCount,IsAdvancedMeldingPermitted,DamageMag,DamagePhys`)
             .then(async (data) => {
                 if (data) {
                     console.log(`Got ${data.Results.length} Items`);
                     return data.Results;
-                    // Dumb hack for new stuff because indices haven't updated
-                    // if (false && this._level === 100) {
-                    //     const results = [...data.Results];
-                    //     // const maxId = results[results.length - 1].ID;
-                    //     const seenIds = new Set<number>();
-                    //     results.forEach(result => seenIds.add(result.ID as number));
-                    //     console.log("Loading extra items");
-                    //     results.push(...(await xivApiGet({
-                    //         requestType: 'list',
-                    //         sheet: 'Item',
-                    //         columns: itemColumns,
-                    //         columnsTrn: itemColsExtra,
-                    //         startPage: 429,
-                    //         pageLimit: 1,
-                    //         perPage: 100
-                    //     })).Results.filter(result => {
-                    //         const id = result.ID as number;
-                    //         if (seenIds.has(id)) {
-                    //             return false;
-                    //         }
-                    //         else {
-                    //             seenIds.add(id);
-                    //         }
-                    //         return result.Name !== "" && result.ClassJobCategory[this._classJob];
-                    //     }));
-                    //     return results;
-                    // }
-                    // else {
-                    //     return data.Results;
-                    // }
                 }
                 else {
                     console.error(`Got No Items!`);
@@ -301,12 +270,6 @@ export class DataManager implements DataManagerIntf {
         });
 
         // Materia
-        // for (let i = 0; i < MATERIA_LEVEL_MAX_NORMAL; i++) {
-        //     matCols.push(`Item${i}.Name`);
-        //     // TODO: normal or HD icon?
-        //     matCols.push(`Item${i}.Icon`);
-        //     matCols.push(`Item${i}.ID`);
-        // }
         console.log("Loading materia");
         const materiaPromise = xivApiGet({
             requestType: 'list',
@@ -316,7 +279,6 @@ export class DataManager implements DataManagerIntf {
             pageLimit: 1,
             perPage: 50
         })
-            // const materiaPromise = fetch(`https://xivapi.com/Materia?columns=${matCols.join(',')}`)
             .then((data) => {
                 if (data) {
                     console.log(`Got ${data.Results.length} Materia Types`);
@@ -343,7 +305,6 @@ export class DataManager implements DataManagerIntf {
             filters: ['ItemSearchCategory=45', `LevelItem>=${this._minIlvlFood}`, `LevelItem<=${this._maxIlvlFood}`],
             columns: foodBaseItemCols
         })
-            // const foodPromise = fetch(`https://xivapi.com/search?indexes=Item&filters=ItemKind.ID=5,ItemSearchCategory.ID=45,LevelItem%3E=${this.minIlvlFood},LevelItem%3C=${this.maxIlvlFood}&columns=ID,IconHD,Name,LevelItem,Bonuses`)
             .then((data) => {
                 console.log(`Got ${data.Results.length} Food Items`);
                 return data.Results;

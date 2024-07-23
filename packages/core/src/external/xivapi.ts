@@ -1,7 +1,3 @@
-export function xivApiIcon(iconStub: string) {
-    return new URL("https://xivapi.com/" + iconStub);
-}
-
 export type XivApiRequest = {
     requestType: 'list' | 'search',
     sheet: string,
@@ -22,6 +18,8 @@ export type XivApiSearchRequest = XivApiRequest & {
     requestType: 'search',
     filters?: XivApiFilter[],
 }
+
+export const XIVAPI_SERVER = "https://beta.xivapi.com";
 
 export type XivApiResultSingle<Cols extends readonly string[], TrnCols extends readonly string[] = []> = {
     [K in Cols[number]]: unknown;
@@ -65,7 +63,7 @@ async function xFetchInternal(...params: Parameters<typeof fetch>): Promise<Resp
 }
 
 export async function xivApiSingle(sheet: string, id: number) {
-    const query = `https://beta.xivapi.com/api/1/sheet/${sheet}/${id}`;
+    const query = `${XIVAPI_SERVER}/api/1/sheet/${sheet}/${id}`;
     return xivApiFetch(query).then(response => response.json()).then(response => response['fields']);
 }
 
@@ -74,7 +72,7 @@ export async function xivApiSingleCols<Columns extends readonly string[]>(sheet:
 } & {
     ID: number
 }> {
-    const query = `https://beta.xivapi.com/api/1/sheet/${sheet}/${id}?fields=${cols.join(',')}`;
+    const query = `${XIVAPI_SERVER}/api/1/sheet/${sheet}/${id}?fields=${cols.join(',')}`;
     return xivApiFetch(query).then(response => response.json()).then(response => {
         const responseOut = response['fields'];
         responseOut['ID'] = response['row_id'];
@@ -95,9 +93,8 @@ export async function xivApiGet<RequestType extends (XivApiListRequest | XivApiS
 const DEFAULT_PER_PAGE = 250;
 
 export async function xivApiSearch<RequestType extends XivApiSearchRequest>(request: RequestType): Promise<XivApiResponse<RequestType>> {
-    // TODO: cursor
     const perPage = request.perPage ?? DEFAULT_PER_PAGE;
-    let query = `https://beta.xivapi.com/api/1/search?sheets=${request.sheet}&limit=${perPage}`;
+    let query = `${XIVAPI_SERVER}/api/1/search?sheets=${request.sheet}&limit=${perPage}`;
     if (request.columns?.length > 0) {
         query += '&fields=' + request.columns.join(',');
     }
@@ -143,7 +140,7 @@ export async function xivApiSearch<RequestType extends XivApiSearchRequest>(requ
 export async function xivApiGetList<RequestType extends XivApiListRequest>(request: RequestType): Promise<XivApiResponse<RequestType>> {
     // TODO: raise limit after testing
     const perPage = request.perPage ?? DEFAULT_PER_PAGE;
-    let query = `https://beta.xivapi.com/api/1/sheet/${request.sheet}?limit=${perPage}`;
+    let query = `${XIVAPI_SERVER}/api/1/sheet/${request.sheet}?limit=${perPage}`;
     if (request.columns?.length > 0) {
         query += '&fields=' + request.columns.join(',');
     }
@@ -186,9 +183,9 @@ export function xivApiIconUrl(iconId: number, highRes: boolean = false) {
     // Get the xivapi directory, e.g. 19581 -> 019000
     const directory = asStr.substring(0, 3) + '000';
     if (highRes) {
-        return `https://beta.xivapi.com/api/1/asset/ui/icon/${directory}/${asStr}_hr1.tex?format=png`;
+        return `${XIVAPI_SERVER}/api/1/asset/ui/icon/${directory}/${asStr}_hr1.tex?format=png`;
     }
     else {
-        return `https://beta.xivapi.com/api/1/asset/ui/icon/${directory}/${asStr}.tex?format=png`;
+        return `${XIVAPI_SERVER}/api/1/asset/ui/icon/${directory}/${asStr}.tex?format=png`;
     }
 }
