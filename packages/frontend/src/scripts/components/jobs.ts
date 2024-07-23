@@ -1,13 +1,6 @@
 import {JobName} from "@xivgear/xivmath/xivconstants";
-import {xivApiGet, xivApiGetList, xivApiIconUrl} from "@xivgear/core/external/xivapi";
+import {xivApiGet, xivApiIconUrl} from "@xivgear/core/external/xivapi";
 import {requireNumber, requireString} from "@xivgear/core/external/data_validators";
-
-export interface XivApiJobData {
-    Name: string,
-    Abbreviation: string,
-    ID: number,
-    Icon: string
-}
 
 let loaded = false;
 const jobIconMap = new Map<JobName, string>();
