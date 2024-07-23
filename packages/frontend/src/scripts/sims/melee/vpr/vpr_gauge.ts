@@ -1,54 +1,56 @@
 import { CycleSimResult, DisplayRecordFinalized, isFinalizedAbilityUse } from "@xivgear/core/sims/cycle_sim";
 import { CustomColumnSpec } from "../../../tables";
 import { UsedAbility } from "@xivgear/core/sims/sim_types";
-import { RprExtraData, RprGaugeState } from "./rpr_types";
+import { VprExtraData, VprGaugeState } from "./vpr_types";
 
-export class RprGauge {
+export class VprGauge {
 
-    private _soulGauge: number = 0;
-    get soulGauge(): number {
-        return this._soulGauge;
+    private _serpentOfferings: number = 0;
+    get serpentOfferings(): number {
+        return this._serpentOfferings;
     }
-    set soulGauge(newGauge: number) {
+    set serpentOfferings(newGauge: number) {
         if (newGauge > 100) {
-            console.warn(`Overcapped Soul by ${newGauge - 100}.`);
+            console.warn(`Overcapped Serpent Offerings by ${newGauge - 100}.`);
         }
         if (newGauge < 0) {
-            console.warn(`Used ${this._soulGauge - newGauge} soul when you only have ${this._soulGauge}.`)
+            console.warn(`Used ${this._serpentOfferings - newGauge} when you only have ${this._serpentOfferings}.`)
         }
-        this._soulGauge = Math.max(Math.min(newGauge, 100), 0);
+        this._serpentOfferings = Math.max(Math.min(newGauge, 100), 0);
     }
 
-    _shroudGauge: number = 0;
-    get shroudGauge(): number {
-        return this._shroudGauge;
+    private _rattlingCoils: number = 0;
+    get rattlingCoils(): number {
+        return this._rattlingCoils;
     }
-    set shroudGauge(newGauge: number) {
-        if (newGauge > 100) {
-            console.warn(`Overcapped shroud by ${newGauge - 100}.`);
+    set rattlingCoils(newCoils: number) {
+        if (newCoils > 3) {
+            console.warn(`Overcapped Rattling Coils by ${newCoils - 3}.`);
         }
-        if (newGauge < 0) {
-            console.warn(`Used ${this._shroudGauge - newGauge} shroud when you only have ${this._shroudGauge}.`)
+        if (newCoils < 0) {
+            console.warn(`Used Rattling coils when empty`)
         }
-        this._shroudGauge = Math.max(Math.min(newGauge, 100), 0);
+
+        this._rattlingCoils = Math.max(Math.min(newCoils, 3), 0);
     }
 
-    getGaugeState(): RprGaugeState {
+
+    getGaugeState(): VprGaugeState {
         return {
             level: 100,
-            soul: this.soulGauge,
-            shroud: this.shroudGauge,
+            serpentOfferings: this.serpentOfferings,
+            rattlingCoils: this.rattlingCoils,
         }
     }
 
     static generateResultColumns(result: CycleSimResult): CustomColumnSpec<DisplayRecordFinalized, unknown, unknown>[] {
         return [{
-            shortName: 'soulGauge',
-            displayName: 'Soul',
+            shortName: 'serpentOfferings',
+            displayName: 'Serpent Offerings',
             getter: used => isFinalizedAbilityUse(used) ? used.original : null,
             renderer: (usedAbility?: UsedAbility) => {
                 if (usedAbility?.extraData !== undefined) {
-                    const soul = (usedAbility.extraData as RprExtraData).gauge.soul;
+                    const serpentOfferings = (usedAbility.extraData as VprExtraData).gauge.serpentOfferings;
 
                     const div = document.createElement('div');
                     div.style.height = '100%';
@@ -59,7 +61,7 @@ export class RprGauge {
                     div.style.boxSizing = 'border-box';
 
                     const span = document.createElement('span');
-                    span.textContent = `${soul}`;
+                    span.textContent = `${serpentOfferings}`;
 
                     const barOuter = document.createElement('div');
                     barOuter.style.borderRadius = '20px';
@@ -71,8 +73,8 @@ export class RprGauge {
                     barOuter.style.border = '1px solid black';
 
                     const barInner = document.createElement('div');
-                    barInner.style.backgroundColor = soul >= 50 ? '#e5004e' : '#660929';
-                    barInner.style.width = `${soul}%`;
+                    barInner.style.backgroundColor = serpentOfferings < 50 ? '#d22017' : '#61d0ec';
+                    barInner.style.width = `${serpentOfferings}%`;
                     barInner.style.height = '100%';
                     barOuter.appendChild(barInner);
 
@@ -85,41 +87,35 @@ export class RprGauge {
             }
         },
         {
-            shortName: 'shroudGauge',
-            displayName: 'Shroud',
+            shortName: 'rattlingCoils',
+            displayName: 'Rattling Coils',
             getter: used => isFinalizedAbilityUse(used) ? used.original : null,
             renderer: (usedAbility?: UsedAbility) => {
                 if (usedAbility?.extraData !== undefined) {
-                    const shroud = (usedAbility.extraData as RprExtraData).gauge.shroud;
+                    const rattlingCoils = (usedAbility.extraData as VprExtraData).gauge.rattlingCoils;
 
                     const div = document.createElement('div');
                     div.style.height = '100%';
                     div.style.display = 'flex';
                     div.style.alignItems = 'center';
-                    div.style.gap = '6px';
+                    div.style.justifyContent = 'center';
+                    div.style.gap = '4px';
                     div.style.padding = '2px 0 2px 0';
                     div.style.boxSizing = 'border-box';
 
-                    const span = document.createElement('span');
-                    span.textContent = `${shroud}`;
-
-                    const barOuter = document.createElement('div');
-                    barOuter.style.borderRadius = '20px';
-                    barOuter.style.background = '#00000033';
-                    barOuter.style.width = '120px';
-                    barOuter.style.height = 'calc(100% - 3px)';
-                    barOuter.style.display = 'inline-block';
-                    barOuter.style.overflow = 'hidden';
-                    barOuter.style.border = '1px solid black';
-
-                    const barInner = document.createElement('div');
-                    barInner.style.backgroundColor = shroud >= 50 ? '#00fcf3' : '#03706c';
-                    barInner.style.width = `${shroud}%`;
-                    barInner.style.height = '100%';
-                    barOuter.appendChild(barInner);
-
-                    div.appendChild(barOuter);
-                    div.appendChild(span);
+                    for (let i = 1; i <= 3; i++) {
+                        const stack = document.createElement('span');
+                        stack.style.clipPath = `polygon(0 50%, 50% 0, 100% 50%, 50% 100%, 0% 50%)`;
+                        stack.style.background = '#00000033';
+                        stack.style.height = '100%';
+                        stack.style.width = '16px';
+                        stack.style.display = 'inline-block';
+                        stack.style.overflow = 'hidden';
+                        if (i <= rattlingCoils) {
+                            stack.style.background = '#84100F';
+                        }
+                        div.appendChild(stack);
+                    }
 
                     return div;
                 }

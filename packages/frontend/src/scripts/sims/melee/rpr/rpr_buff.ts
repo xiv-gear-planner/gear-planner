@@ -1,23 +1,20 @@
-import {Buff} from "@xivgear/core/sims/sim_types";
+import {PersonalBuff} from "@xivgear/core/sims/sim_types";
 import {removeSelf} from "@xivgear/core/sims/common/utils";
 import * as Actions from "./rpr_actions"
 
-export const DeathsDesign: Buff = {
+export const DeathsDesign: PersonalBuff = {
     name: "Death's Design",
     saveKey: "Death's Design",
-    job: "RPR",
     duration: 30,
-    cooldown: 0,
-    selfOnly: false,
+    selfOnly: true,
     effects: {
         dmgIncrease: 0.1
     },
-    startTime: 0,
     statusId: 2586,
     maxStackingDuration: 60,
 };
 
-export const IdealHost: Buff = {
+export const IdealHost: PersonalBuff = {
     name: "Ideal Host",
     selfOnly: true,
     descriptionExtras: ["Able to execute actions normally only available while hidden"],

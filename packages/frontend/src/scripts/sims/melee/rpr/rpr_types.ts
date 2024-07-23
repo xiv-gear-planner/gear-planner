@@ -36,7 +36,7 @@ export type ShroudAbility = RprAbility & Readonly<{
     shroudCost: number;
 }>
 
-/** Represents the Ninja gauge state */
+/** Represents the Reaper gauge state */
 export type RprGaugeState = {
     level: number,
     soul: number,
@@ -45,6 +45,6 @@ export type RprGaugeState = {
 
 /** Represents the extra data for UsedAbility */
 export type RprExtraData = {
-    /** The Ninja gauge data */
+    /** The Reaper gauge data */
     gauge: RprGaugeState,
 };
