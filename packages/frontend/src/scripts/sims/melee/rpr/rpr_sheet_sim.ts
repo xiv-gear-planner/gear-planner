@@ -9,7 +9,7 @@ import { DeathsDesign, IdealHost } from "./rpr_buff";
 import { AbilitiesUsedTable } from "../../components/ability_used_table";
 import { sum } from "@xivgear/core/util/array_utils";
 import { STANDARD_ANIMATION_LOCK } from "@xivgear/xivmath/xivconstants";
-import { gemdraught1str } from "@xivgear/core/sims/common/potion";
+import { animationLock } from "@xivgear/core/sims/ability_helpers";
 
 
 export interface RprSheetSimResult extends CycleSimResult {
@@ -141,6 +141,18 @@ class RprCycleProcessor extends CycleProcessor {
         return super.use(ability)
     }
 
+    override useOgcd(ability: OgcdAbility): AbilityUseResult {
+        // If an Ogcd isn't ready yet, but it can still be used without clipping, advance time until ready.
+        if (this.canUseWithoutClipping(ability)) {
+            const readyAt = this.cdTracker.statusOf(ability).readyAt.absolute;
+            if (this.totalTime > readyAt) {
+                this.advanceTo(readyAt);
+            }
+        }
+        // Only try to use the Ogcd if it's ready.
+        return this.cdTracker.canUse(ability) ? super.useOgcd(ability) : null;
+    }
+
     override addAbilityUse(usedAbility: AbilityUseRecordUnf) {
 
         // Add gauge data to this record for the UI
@@ -206,16 +218,16 @@ class RprCycleProcessor extends CycleProcessor {
         this.useGcd(Actions.Communio);
     }
 
-    public useOpener() {
-
-        const canUsePHWithoutClip = this.stats.gcdPhys(2.5) > 2.47;
+    public useOpener(pot: boolean) {
 
         this.useGcd(Actions.Harpe);
 
         this.useGcd(Actions.ShadowOfDeath);
 
-        this.advanceForLateWeave([gemdraught1str]);
-        this.useOgcd(gemdraught1str);
+        this.advanceForLateWeave([Actions.Potion]);
+        if (pot) {
+            this.useOgcd(Actions.Potion);
+        }
 
         this.useGcd(Actions.SoulSlice);
 
@@ -233,10 +245,6 @@ class RprCycleProcessor extends CycleProcessor {
         this.useEnshroud();
         this.useGcd(Actions.Perfectio);
     
-        if (canUsePHWithoutClip) {
-            this.useGcd(Actions.SoulSlice);
-        }
-
         this.useGibGal();
         this.useGcd(Actions.ShadowOfDeath);
     }
@@ -246,20 +254,47 @@ class RprCycleProcessor extends CycleProcessor {
 
         this.useGcd(Actions.ShadowOfDeath);
         this.useGcd(Actions.VoidReapingUnbuffed);
-        this.useGcd(Actions.ShadowOfDeath);
         
-        let weaves: OgcdAbility[];
-        if (this.cdTracker.statusOf(gemdraught1str).readyToUse) {
-            weaves = [gemdraught1str, Actions.ArcaneCircle];
+        /** If we cannot weave AC here, there's a logic error in when to enshroud */
+        let acTime = Math.max(this.cdTracker.statusOf(Actions.ArcaneCircle).readyAt.absolute, this.currentTime);
+        const nextReaping = this.nextGcdTime + this.gcdTime(Actions.ShadowOfDeath);
+
+        if (this.currentTime < 180) { // Hack to see if we're in first burst
+            acTime = (nextReaping - animationLock(Actions.ArcaneCircle));
+
+        }
+
+        if (this.cdTracker.canUse(Actions.Potion)) {
+
+            /** If we can weave potion between AC and next gcd */
+            if (nextReaping - acTime >= animationLock(Actions.Potion)) {
+                this.useGcd(Actions.ShadowOfDeath);
+                this.useOgcd(Actions.ArcaneCircle);
+                this.useOgcd(Actions.Potion);
+            }
+            else {
+                /** If we can weave potion before AC */
+                if (acTime - (this.nextGcdTime + animationLock(Actions.ShadowOfDeath)) >= animationLock(Actions.Potion)) {
+                    this.useGcd(Actions.ShadowOfDeath);
+                    this.useOgcd(Actions.Potion);
+                    this.useOgcd(Actions.ArcaneCircle);
+                }
+                /** We cannot fit both pot and AC, move pot back */
+                else {
+                    this.useOgcd(Actions.Potion);
+                    this.useGcd(Actions.ShadowOfDeath);
+                    this.useOgcd(Actions.ArcaneCircle);
+                }
+            }
         }
         else {
-            weaves = [Actions.ArcaneCircle];
+            this.useGcd(Actions.ShadowOfDeath);
+
+            if (this.currentTime < 240) { // Hacky way to single out the first burst
+                this.advanceForLateWeave([Actions.ArcaneCircle]);
+            }
+            this.useOgcd(Actions.ArcaneCircle);
         }
-        this.advanceForLateWeave(weaves);
-
-        weaves.forEach( (weave) => this.useOgcd(weave));
-
-        this.useOgcd(Actions.ArcaneCircle);
 
         this.useGcd(Actions.CrossReaping);
         this.useOgcd(Actions.LemuresSlice);
@@ -290,8 +325,8 @@ class RprCycleProcessor extends CycleProcessor {
         }
 
         /** Use combos and soulslice until gluttony is possible */
-        while (this.gauge.soulGauge < 50 || !this.canUseWithoutClipping(Actions.Gluttony)) {
-            if (this.cdTracker.canUse(Actions.SoulSlice, this.nextGcdTime)) {
+        while (this.remainingGcdTime > 0 && (this.gauge.soulGauge < 50 || !this.canUseWithoutClipping(Actions.Gluttony))) {
+            if (this.cdTracker.canUse(Actions.SoulSlice, this.nextGcdTime) && this.gauge.soulGauge <= 50) {
 
                 this.useGcd(Actions.SoulSlice);
             }
@@ -300,11 +335,15 @@ class RprCycleProcessor extends CycleProcessor {
             }
         }
 
+        while (!this.canUseWithoutClipping(Actions.Gluttony) && this.remainingGcdTime > 0) {
+            this.useCombo();
+        }
         this.useGluttonyAndExecutioners();
 
         /** set rotation state to pre-odd-shroud-and-gluttony */
         this.rotationState.spendSoulThreshold = 100;
         this.rotationState.oddShroudUsed = false;
+        
     }
 
     useFiller() {
@@ -330,7 +369,6 @@ class RprCycleProcessor extends CycleProcessor {
             && ddStatus && ddStatus.end - this.currentTime > 11) {
 
             this.useEnshroud();
-            this.getActiveBuffData(DeathsDesign);
             this.rotationState.oddShroudUsed = true;
             return;
         }
@@ -354,8 +392,8 @@ class RprCycleProcessor extends CycleProcessor {
 
         /** Use SoD if it wont overcap and we're not heading into burst */
         if (
-            (ddStatus.end - this.currentTime + DeathsDesign.duration < DeathsDesign.maxStackingDuration
-            && this.rotationState.sodNumber <= 3)
+            (!ddStatus || (ddStatus.end - this.currentTime + DeathsDesign.duration < DeathsDesign.maxStackingDuration
+            && this.rotationState.sodNumber <= 3))
         ) {
             this.useGcd(Actions.ShadowOfDeath);
             return;
@@ -404,7 +442,6 @@ export class RprSheetSim extends BaseMultiCycleSim<RprSheetSimResult, RprNewShee
         });
     }
 
-
     getRotationsToSimulate(): Rotation<RprCycleProcessor>[] {
 
         return [{
@@ -412,24 +449,27 @@ export class RprSheetSim extends BaseMultiCycleSim<RprSheetSimResult, RprNewShee
 
             apply(cp: RprCycleProcessor) {
 
-                cp.useOpener();
+                const numPots = Math.ceil(cp.remainingTime / 360) // Force pots during 2mins
+                const maxAllowableDelay = cp.remainingTime - ((numPots- 1) * 360)
+                const potOpener = maxAllowableDelay <= 120;
 
-                /* 7.2 is the sum of all gcd times between the gcd before enshroud and when AC is pressed */
-                while (cp.remainingGcdTime > 0 &&
-                    (cp.cdTracker.statusOf(Actions.ArcaneCircle).readyAt.relative > 7.2 )) {
+                const enshroudTime = cp.gcdTime(Actions.CrossReaping) + 3 * cp.gcdTime(Actions.ShadowOfDeath) - animationLock(Actions.ArcaneCircle);
+                const gcdAnimLock = animationLock(Actions.Slice);
 
-                    cp.useFiller();
-                }
+                cp.useOpener(potOpener);
 
                 while (cp.remainingGcdTime > 0) {
-                    cp.useStandardDoubleShroud();
 
                     while (cp.remainingGcdTime > 0 &&
-                        (cp.cdTracker.statusOf(Actions.ArcaneCircle).readyAt.relative > 7.2 
+                        (cp.cdTracker.statusOf(Actions.ArcaneCircle).readyAt.relative > enshroudTime - gcdAnimLock
                         || cp.gauge.shroudGauge < 50)){
 
                         cp.useFiller();
                     }
+
+                    if (cp.remainingGcdTime > 0) {
+                        cp.useStandardDoubleShroud();
+                    }   
                 }
             }
 
