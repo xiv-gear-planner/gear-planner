@@ -35,6 +35,8 @@ const etroRegex = RegExp("https://etro\\.gg/gearset/([0-9a-f]{8}-[0-9a-f]{4}-[0-
 
 export function parseImport(text: string): ImportSpec {
 
+    text = text.replaceAll('%7C', '|');
+
     const slExec = importShortlinkRegex.exec(text) || importShortlinkRegexNew.exec(text);
     if (slExec !== null) {
         return {
