@@ -233,20 +233,13 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
         gcdDisplayOverrides() {
             return [{
                 shortLabel: 'GCD',
-                longLabel: '2.5s GCD',
-                description: 'Standard 2.5s GCD recast time out of combat',
-                gcdTime: 2.5,
-                attackType: 'Weaponskill',
-                haste: 0,
-                basis: 'sks',
-            }, {
-                shortLabel: 'GCD w/ Fuka',
-                longLabel: '2.5s GCD with Fuka',
-                description: '2.5s GCD recast time under Fuka',
+                longLabel: '2.5s GCD w/ Fuka',
+                description: 'GCD recast time w/ Fuka',
                 gcdTime: 2.5,
                 attackType: 'Weaponskill',
                 haste: 13,
                 basis: 'sks',
+                isPrimary: true,
             }]
         }
     },
@@ -258,20 +251,13 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
         gcdDisplayOverrides() {
             return [{
                 shortLabel: 'GCD',
-                longLabel: '2.5s GCD',
-                description: 'Standard 2.5s GCD recast time',
-                gcdTime: 2.5,
-                attackType: 'Weaponskill',
-                haste: 0,
-                basis: 'sks',
-            }, {
-                shortLabel: 'Swiftscaled GCD',
-                longLabel: '2.5s GCD with PoM',
+                longLabel: '2.5s GCD w/ Swiftscaled',
                 description: '2.5s GCD with swiftscaled buff',
                 gcdTime: 2.5,
                 attackType: 'Weaponskill',
                 haste: 15,
                 basis: 'sks',
+                isPrimary: true,
             }]
         }
     },
