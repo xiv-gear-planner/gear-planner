@@ -8,7 +8,15 @@ import {
     makeActionButton,
     quickElement
 } from "@xivgear/common-ui/components/util";
-import {CURRENT_MAX_LEVEL, getLevelStats, JOB_DATA, JobName, SupportedLevel} from "@xivgear/xivmath/xivconstants";
+import {
+    CURRENT_MAX_LEVEL,
+    getLevelStats,
+    JOB_DATA,
+    JobName,
+    LEVEL_STATS,
+    SupportedLevel,
+    SupportedLevels
+} from "@xivgear/xivmath/xivconstants";
 import {setHash} from "../nav_hash";
 import {CALC_HASH} from "@xivgear/core/nav/common_nav";
 import {writeProxy} from "@xivgear/core/util/proxies";
@@ -16,7 +24,16 @@ import {ShowHideButton} from "@xivgear/common-ui/components/show_hide_chevron";
 import {CustomRow, CustomTable, HeaderRow} from "../tables";
 import {scrollIntoView} from "@xivgear/common-ui/util/scrollutil";
 import hljs from "highlight.js/lib/core";
-import {FormulaSetInput, GeneralSettings, MathFormulaSet, registered, regMap, Result, ResultSet} from "./math_main";
+import {
+    FormulaSetInput,
+    GeneralSettings,
+    MathFormulaSet,
+    registered,
+    regMap,
+    Result,
+    ResultSet,
+    Variable
+} from "./math_main";
 import {setMainContent, welcomeArea} from "../base_ui";
 import javascript from "highlight.js/lib/languages/javascript";
 import {fieldBoundLevelSelect} from "@xivgear/common-ui/components/level_picker";
@@ -65,6 +82,23 @@ function resultsEquals(left: ResultSet, right: ResultSet): boolean {
         }
     }
     return true;
+}
+
+function getPrimaryVarSpec<X extends object>(formulaSet: MathFormulaSet<X>): Variable<X> {
+    const pvKey = formulaSet.primaryVariable;
+    if (pvKey === 'level') {
+        return {
+            label: "Level",
+            type: "level"
+        }
+    }
+    else if (pvKey === 'job') {
+        // TODO
+        return null;
+    }
+    else {
+        return formulaSet.variables.find(v => v['property'] === formulaSet.primaryVariable);
+    }
 }
 
 /**
@@ -188,7 +222,6 @@ export class MathArea extends HTMLElement {
             const table = new CustomTable<FormulaSetInput<AllInputType>, (FormulaSetInput<AllInputType> | undefined)>();
             this.landingOuter.style.display = 'none';
             this.heading.textContent = formulaSet.name;
-            this.subFormulaeOuter.style.display = '';
             const settings: AllInputType = this.getSettingsFor(formulaSet);
             const outer = this;
             // TODO: this is way too big, can it be moved somewhere
@@ -233,8 +266,55 @@ export class MathArea extends HTMLElement {
                     return row;
                 }
 
-                const primaryVariableSpec = formulaSet.variables.find(v => v.property === formulaSet.primaryVariable);
-                if (primaryVariableSpec && primaryVariableSpec.integer) {
+                const primaryVariableSpec = getPrimaryVarSpec(formulaSet);
+                if (primaryVariableSpec === undefined) {
+                    await addRow(undefined, true);
+                }
+                else if (primaryVariableSpec.type === 'level') {
+                    const levels = SupportedLevels;
+                    const selectedJob = this.generalSettings.levelStats.level;
+                    for (const level of levels) {
+                        const fakeGeneralSettings: GeneralSettings = {
+                            ...this.generalSettings,
+                            levelStats: LEVEL_STATS[level]
+                        };
+                        const results: ResultSet = {};
+                        const inputs = {...settings};
+                        for (const fn of funcs) {
+                            const args = await fn.argExtractor(inputs, fakeGeneralSettings)
+                            results[fn.name] = {
+                                value: fn.fn(...args) as number,
+                            }
+                        }
+                        rows.push({
+                            generalSettings: fakeGeneralSettings,
+                            inputs: inputs,
+                            inputsMax: inputs,
+                            isOriginalPrimary: level === selectedJob,
+                            isRange: false,
+                            results: results
+                        });
+                    }
+                }
+                    // else if (primaryVariableSpec.type === 'job') {
+                    //     const jobs = Object.keys(JOB_DATA);
+                    //     const selected
+                    //     jobs.forEach(job => {
+                    //         const gen = {
+                    //             ...this.generalSettings,
+                    //             job: job
+                    //         };
+                    //         rows.push({
+                    //             generalSettings: this.generalSettings,
+                    //             inputs: null,
+                    //             inputsMax: null,
+                    //             isOriginalPrimary: job === ,
+                    //             isRange: false,
+                    //             results: undefined
+                    //         });
+                    //     });
+                // }
+                else if (primaryVariableSpec.type === 'number' && primaryVariableSpec.integer) {
                     const prop = primaryVariableSpec.property;
                     const currentPrimaryValue = settings[prop] as number;
                     const hardMin = primaryVariableSpec.min?.(this.generalSettings) ?? Number.MIN_SAFE_INTEGER;
@@ -346,53 +426,75 @@ export class MathArea extends HTMLElement {
             const formulaSettings = this.makeEditorArea(formulaSet, settings, update);
             this.specificSettingsArea.replaceChildren(formulaSettings);
 
-            this.subFormulaeArea.replaceChildren(...formulaSet.functions.map(formula => {
-                const heading = quickElement('h3', [], [formula.name]);
-                const codeArea = quickElement('pre', [], [functionText(formula.fn)]);
-                hljs.configure({
-                    languages: ['js']
-                });
-                hljs.highlightElement(codeArea);
-                codeArea.querySelectorAll('span.hljs-title')
-                    .forEach(element => {
-                        switch (element.textContent) {
-                            case 'fl':
-                                element.setAttribute('title', 'Floor to integer');
-                                break;
-                            case 'flp':
-                                element.setAttribute('title', 'Floor to specified number of decimal places');
-                                break;
-                        }
+            const newChildren = formulaSet.functions
+                .filter(formula => !formula.excludeFormula)
+                .map(formula => {
+                    const heading = quickElement('h3', [], [formula.name]);
+                    const codeArea = quickElement('pre', [], [functionText(formula.fn)]);
+                    hljs.configure({
+                        languages: ['js']
                     });
-                const codeOuter = quickElement('div', ['code-outer'], [codeArea]);
-                const formulaText = quickElement('div', ['function-code-area'], [codeOuter]);
-                return quickElement('div', [], [heading, formulaText]);
-            }));
+                    hljs.highlightElement(codeArea);
+                    codeArea.querySelectorAll('span.hljs-title')
+                        .forEach(element => {
+                            switch (element.textContent) {
+                                case 'fl':
+                                    element.setAttribute('title', 'Floor to integer');
+                                    break;
+                                case 'flp':
+                                    element.setAttribute('title', 'Floor to specified number of decimal places');
+                                    break;
+                            }
+                        });
+                    const codeOuter = quickElement('div', ['code-outer'], [codeArea]);
+                    const formulaText = quickElement('div', ['function-code-area'], [codeOuter]);
+                    return quickElement('div', [], [heading, formulaText]);
+                });
+
+            this.setFormulaAreaVisible(newChildren.length > 0);
+
+            this.subFormulaeArea.replaceChildren(...newChildren);
 
             const columns: typeof table.columns = [];
             // Input columns
-            formulaSet.variables.forEach(variable => {
+            if (formulaSet.primaryVariable === 'level') {
                 columns.push({
-                    displayName: variable.label,
-                    shortName: 'var-' + variable.property.toString(),
-                    getter: item => {
-                        const min = item.inputs[variable.property]
-                        const max = item.inputsMax[variable.property];
-                        return {
-                            min: min,
-                            max: max,
-                            isRange: item.isRange && (min !== max)
-                        }
-                    },
-                    renderer: value => {
-                        if (value.isRange) {
-                            return document.createTextNode(`${value.min} - ${value.max}`);
-                        }
-                        else {
-                            return document.createTextNode(`${value.min}`);
-                        }
-                    }
+                    displayName: 'Level',
+                    shortName: 'lvl',
+                    getter: item => item.generalSettings.levelStats.level
                 });
+            }
+            else if (formulaSet.primaryVariable === 'job') {
+                columns.push({
+                    displayName: 'Job',
+                    shortName: 'job',
+                    getter: item => item.generalSettings.classJob
+                });
+            }
+            formulaSet.variables.forEach(variable => {
+                if (variable.type === 'number') {
+                    columns.push({
+                        displayName: variable.label,
+                        shortName: 'var-' + variable.property.toString(),
+                        getter: item => {
+                            const min = item.inputs[variable.property]
+                            const max = item.inputsMax[variable.property];
+                            return {
+                                min: min,
+                                max: max,
+                                isRange: item.isRange && (min !== max)
+                            }
+                        },
+                        renderer: value => {
+                            if (value.isRange) {
+                                return document.createTextNode(`${value.min} - ${value.max}`);
+                            }
+                            else {
+                                return document.createTextNode(`${value.min}`);
+                            }
+                        }
+                    });
+                }
             });
             // Output columns
             formulaSet.functions.forEach(fn => {
@@ -437,7 +539,7 @@ export class MathArea extends HTMLElement {
         }
         else {
             this.heading.textContent = 'Math';
-            this.subFormulaeOuter.style.display = 'none';
+            this.setFormulaAreaVisible(false);
             this.landingOuter.style.display = '';
         }
         this.menu.querySelectorAll('button').forEach(btn => {
@@ -450,6 +552,15 @@ export class MathArea extends HTMLElement {
             }
         });
 
+    }
+
+    setFormulaAreaVisible(visible: boolean): void {
+        if (visible) {
+            this.subFormulaeOuter.style.display = '';
+        }
+        else {
+            this.subFormulaeOuter.style.display = 'none';
+        }
     }
 
     get loading(): boolean {
