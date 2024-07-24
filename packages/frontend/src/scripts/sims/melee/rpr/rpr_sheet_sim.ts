@@ -1,5 +1,5 @@
 import {ArcaneCircleBuff} from "@xivgear/core/sims/buffs";
-import {Ability, Buff, GcdAbility, OgcdAbility, SimSettings, SimSpec} from "@xivgear/core/sims/sim_types";
+import {Ability, Buff, OgcdAbility, SimSettings, SimSpec} from "@xivgear/core/sims/sim_types";
 import {AbilityUseRecordUnf, AbilityUseResult, CycleProcessor, CycleSimResult, ExternalCycleSettings, MultiCycleSettings, Rotation} from "@xivgear/core/sims/cycle_sim";
 import {BaseMultiCycleSim} from "../../sim_processors";
 import * as Actions from "./rpr_actions"
@@ -7,6 +7,9 @@ import { RprAbility, RprExtraData, RprGcdAbility } from "./rpr_types";
 import { RprGauge } from "./rpr_gauge";
 import { DeathsDesign, IdealHost } from "./rpr_buff";
 import { AbilitiesUsedTable } from "../../components/ability_used_table";
+import { sum } from "@xivgear/core/util/array_utils";
+import { STANDARD_ANIMATION_LOCK } from "@xivgear/xivmath/xivconstants";
+import { gemdraught1str } from "@xivgear/core/sims/common/potion";
 
 
 export interface RprSheetSimResult extends CycleSimResult {
@@ -94,6 +97,21 @@ class RprCycleProcessor extends CycleProcessor {
         return this.getActiveBuffs().find(b => b.statusId === buff.statusId);
     }
 
+    /** Advances to as late as possible.
+     * NOTE: I'm adding an extra 20ms to each animation lock to make sure we don't hit anything that's impossible to achieve ingame.
+     */
+    advanceForLateWeave(weaves: OgcdAbility[]) {
+        const pingAndServerDelayAdjustment = 0.02;
+        const totalAnimLock = sum(weaves.map(ability => (ability.animationLock ?? STANDARD_ANIMATION_LOCK) + pingAndServerDelayAdjustment));
+        const remainingtime = this.nextGcdTime - this.currentTime;
+
+        if (totalAnimLock > remainingtime) {
+            return;
+        }
+
+        this.advanceTo(this.currentTime + (remainingtime - totalAnimLock));
+    }
+
     override use(ability: Ability): AbilityUseResult {
         const rprAbility = ability as RprAbility;
 
@@ -121,22 +139,6 @@ class RprCycleProcessor extends CycleProcessor {
         }
     
         return super.use(ability)
-    }
-
-    override useOgcd(ability: OgcdAbility): AbilityUseResult {
-        
-        /** If the ogcd can be used without clipping, do so.
-         * NOTE: You still need to check if you can use without clipping when making rotation decisions.
-         * This just forces the ogcd through if you already know you can use it.
-        */
-        if (this.canUseWithoutClipping(ability)) {
-            const readyAt = this.cdTracker.statusOf(ability).readyAt.absolute;
-            if (this.totalTime > readyAt) {
-                this.advanceTo(readyAt);
-            }
-        }
-
-        return this.cdTracker.canUse(ability) ? super.useOgcd(ability) : null;
     }
 
     override addAbilityUse(usedAbility: AbilityUseRecordUnf) {
@@ -212,17 +214,19 @@ class RprCycleProcessor extends CycleProcessor {
 
         this.useGcd(Actions.ShadowOfDeath);
 
+        this.advanceForLateWeave([gemdraught1str]);
+        this.useOgcd(gemdraught1str);
+
         this.useGcd(Actions.SoulSlice);
+
+        this.advanceForLateWeave([Actions.ArcaneCircle, Actions.Gluttony]);
         this.useOgcd(Actions.ArcaneCircle);
         this.useOgcd(Actions.Gluttony);
 
         this.useGcd(Actions.ExecutionersGallowsUnbuffed);
         this.useGcd(Actions.ExecutionersGibbet);
         
-        /** Adjust opener if PH can't be used without clipping. */
-        if (!canUsePHWithoutClip){
-            this.useGcd(Actions.SoulSlice);
-        }
+        this.useGcd(Actions.SoulSlice);
 
         this.useGcd(Actions.PlentifulHarvest);
 
@@ -244,6 +248,17 @@ class RprCycleProcessor extends CycleProcessor {
         this.useGcd(Actions.VoidReapingUnbuffed);
         this.useGcd(Actions.ShadowOfDeath);
         
+        let weaves: OgcdAbility[];
+        if (this.cdTracker.statusOf(gemdraught1str).readyToUse) {
+            weaves = [gemdraught1str, Actions.ArcaneCircle];
+        }
+        else {
+            weaves = [Actions.ArcaneCircle];
+        }
+        this.advanceForLateWeave(weaves);
+
+        weaves.forEach( (weave) => this.useOgcd(weave));
+
         this.useOgcd(Actions.ArcaneCircle);
 
         this.useGcd(Actions.CrossReaping);
@@ -365,9 +380,6 @@ export class RprSheetSim extends BaseMultiCycleSim<RprSheetSimResult, RprNewShee
     displayName = rprSheetSpec.displayName;
     manuallyActivatedBuffs = [ArcaneCircleBuff];
 
-    rotationState: RotationState = new RotationState();
-    readonly comboActions: GcdAbility[] = [Actions.Slice, Actions.WaxingSlice, Actions.InfernalSlice];
-
     constructor(settings?: RprNewSheetSettingsExternal) {
         super('RPR', settings);
     }
@@ -392,8 +404,9 @@ export class RprSheetSim extends BaseMultiCycleSim<RprSheetSimResult, RprNewShee
         });
     }
 
+
     getRotationsToSimulate(): Rotation<RprCycleProcessor>[] {
-        this.rotationState = new RotationState();
+
         return [{
             cycleTime: 120,
 

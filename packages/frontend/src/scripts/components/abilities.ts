@@ -1,4 +1,4 @@
-import {xivApiSingleCols} from "@xivgear/core/external/xivapi";
+import {xivApiIconUrl, xivApiSingleCols} from "@xivgear/core/external/xivapi";
 
 export interface XivApiAbilityData {
     ID: number,
@@ -24,7 +24,7 @@ export class AbilityIcon extends HTMLImageElement {
         super();
         this.classList.add('ffxiv-ability-icon');
         this.setAttribute('intrinsicsize', '64x64');
-        getDataFor(abilityId).then(data => this.src = "https://xivapi.com/" + data.Icon);
+        getDataFor(abilityId).then(data => this.src = xivApiIconUrl(data.Icon['id'], false));
     }
 }
 

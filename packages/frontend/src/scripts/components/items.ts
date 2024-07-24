@@ -491,10 +491,15 @@ export class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
                     return document.createTextNode(shortenItemName(name));
                 },
                 colStyler: (value, colElement, internalElement, rowValue) => {
-                    colElement.title = `${value} (${rowValue.item.id})`;
-                    const formattedAcqSrc = formatAcquisitionSource(rowValue.item.acquisitionType);
-                    if (formattedAcqSrc) {
-                        colElement.title += `\nAcquired from: ${formattedAcqSrc}`;
+                    if (rowValue.item.acquisitionType === 'custom') {
+                        colElement.title = `${value} (Custom Item)`;
+                    }
+                    else {
+                        colElement.title = `${value} (${rowValue.item.id})`;
+                        const formattedAcqSrc = formatAcquisitionSource(rowValue.item.acquisitionType);
+                        if (formattedAcqSrc) {
+                            colElement.title += `\nAcquired from: ${formattedAcqSrc}`;
+                        }
                     }
                 }
             },

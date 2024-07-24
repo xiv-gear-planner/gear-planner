@@ -7,6 +7,7 @@ import {astNewSheetSpec} from "./healer/ast_sheet_sim";
 import {schNewSheetSpec} from "./healer/sch_sheet_sim";
 import {whmNewSheetSpec} from "./healer/whm_new_sheet_sim";
 import {rprSheetSpec} from "./melee/rpr/rpr_sheet_sim";
+import {vprSheetSpec} from "./melee/vpr/vpr_sheet_sim";
 import {ninSpec} from "./melee/nin/nin_lv100_sim";
 import {samSpec} from "./melee/sam/sam_lv100_sim";
 import {potRatioSimSpec} from "./common/potency_ratio";
@@ -30,6 +31,7 @@ export function registerDefaultSims() {
     registerSim(schNewSheetSpec);
     registerSim(whmNewSheetSpec);
     registerSim(rprSheetSpec);
+    registerSim(vprSheetSpec);
     registerSim(ninSpec);
     registerSim(samSpec);
     registerSim(BluWinged120Spec);

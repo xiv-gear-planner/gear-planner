@@ -28,22 +28,6 @@ export const Litany = {
     statusId: 786
 } as const satisfies PartyBuff;
 
-export const DragonSight = {
-    name: "Dragon Sight (Other)",
-    saveKey: "Dragon Sight (Other)",
-    job: "DRG",
-    duration: 20,
-    cooldown: 120,
-    selfOnly: false,
-    optional: true,
-    effects: {
-        dmgIncrease: 0.05
-    },
-    startTime: 5,
-    // TODO: there are two of these, 1184 and 1454, one is probably pvp
-    statusId: 1184
-} as const satisfies PartyBuff;
-
 export const Brotherhood = {
     name: "Brotherhood",
     saveKey: "Brotherhood",
@@ -81,7 +65,7 @@ export const SearingLight = {
     cooldown: 120,
     selfOnly: false,
     effects: {
-        dmgIncrease: 0.03
+        dmgIncrease: 0.05
     },
     startTime: 4.7,
     statusId: 2703
@@ -244,7 +228,7 @@ export const OffGuardBuff = {
  */
 
 export const ALL_BUFFS = [
-    Dokumori, Litany, DragonSight, Brotherhood, ArcaneCircleBuff, SearingLight, Embolden,
+    Dokumori, Litany, Brotherhood, ArcaneCircleBuff, SearingLight, Embolden,
     Devilment, TechnicalFinish, BattleVoice, RadiantFinale, Chain, Divination,
     AstCard, OffGuardBuff
 ] as const;

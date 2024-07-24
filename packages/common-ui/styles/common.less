@@ -45,6 +45,7 @@ body {
   --stat-col-width: 40px;
   --chance-stat-col-width: 157px;
   --multi-stat-col-width: 120px;
+  --multi-mit-stat-col-width: 170px;
   --hp-stat-col-width: 60px;
   --bottom-flex-basis: 60%;
   --modal-bottom-button-width: 70px;
@@ -810,6 +811,10 @@ table.gear-plan-table {
           --cell-width: var(--multi-stat-col-width);
         }
 
+        &.multiplier-mit-stat-col {
+          --cell-width: var(--multi-mit-stat-col-width);
+        }
+
         &.stat-col-hp {
           --cell-width: var(--hp-stat-col-width);
         }
@@ -863,10 +868,12 @@ table.gear-plan-table {
 
     --chance-stat-col-width: 40px;
     --multi-stat-col-width: 40px;
+    --multi-mit-stat-col-width: 40px;
 
     &.show-advanced-stats {
       --chance-stat-col-width: 110px;
       --multi-stat-col-width: 70px;
+      --multi-mit-stat-col-width: 130px;
 
       .extra-stat-info {
         display: unset !important;
@@ -890,7 +897,7 @@ table.gear-plan-table {
       }
     }
 
-    div.chance-stat-display, div.multiplier-stat-display {
+    div.chance-stat-display, div.multiplier-stat-display, div.multiplier-mit-stat-display {
       span {
         display: block;
 
@@ -908,7 +915,7 @@ table.gear-plan-table {
 
 }
 
-div.chance-stat-display, div.multiplier-stat-display {
+div.chance-stat-display, div.multiplier-stat-display, div.multiplier-mit-stat-display {
   span:last-child {
     .text-deemphasise;
   }
@@ -1753,7 +1760,7 @@ div.gear-set-editor-toolbar, set-view-toolbar {
     margin: 5px 2px 5px 2px;
     display: inline-block;
     width: fit-content;
-    min-width: 50px;
+    min-width: 52px;
     transition: box-shadow var(--transition-time) linear;
 
     div.single-stat-tier-display-upper {
@@ -2305,6 +2312,7 @@ gear-set-viewer {
 
 .stat-cell {
   text-align: center;
+  text-overflow: clip;
 
   span {
     padding: 0 1px 0 0;
