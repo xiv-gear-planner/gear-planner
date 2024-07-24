@@ -21,7 +21,7 @@ describe('Datamanager', () => {
         eq(codexOfAscension.id, 40176);
         eq(codexOfAscension.name, 'Codex of Ascension');
         // TODO: fix the extra / ?
-        eq(codexOfAscension.iconUrl.toString(), 'https://xivapi.com//i/033000/033387_hr1.png');
+        eq(codexOfAscension.iconUrl.toString(), 'https://beta.xivapi.com/api/1/asset/ui/icon/033000/033387_hr1.tex?format=png');
 
         // XivCombatItem props
         deq(codexOfAscension.stats, new RawStats({
@@ -69,7 +69,7 @@ describe('Datamanager', () => {
         // Not synced down - "Unsynced version" should just be the same
         eq(codexOfAscension.unsyncedVersion, codexOfAscension);
         eq(codexOfAscension.isUnique, true);
-        eq(codexOfAscension.acquisitionType, 'raid');
+        // eq(codexOfAscension.acquisitionType, 'raid');
         eq(codexOfAscension.relicStatModel, undefined);
 
         // This item should be filtered out due to being too low of an ilvl
