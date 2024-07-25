@@ -20,8 +20,25 @@ export type MathFormula<AllArgType, FuncType extends Func> = {
     fn: FuncType;
     argExtractor(arg: AllArgType, gen: GeneralSettings): Promise<Parameters<FuncType>>;
     // makeResultsDisplay: (result: ReturnType<FuncType>) => Element;
+    excludeFormula?: boolean;
 }
 
+export type Variable<AllArgType extends object> =
+    {
+        label: string,
+    } & ({
+    type: 'number',
+    integer: boolean,
+    property: PropertyOfType<AllArgType, number>,
+    min?: (generalSettings: GeneralSettings) => number,
+    max?: (generalSettings: GeneralSettings) => number,
+} | {
+    type: 'level'
+} | {
+    type: 'job'
+});
+
+// export type Foo = Variable<object> & {type: 'number'}
 
 /**
  * Represents a set of related formulae, e.g. crit => crit chance, crit damage
@@ -32,19 +49,14 @@ export type MathFormulaSet<AllArgType extends object> = {
     functions: MathFormula<AllArgType, Func>[];
     makeDefaultInputs: (generalSettings: GeneralSettings) => AllArgType;
     // makeEditorArea: (args: AllArgType, updateCallback: () => void) => Element;
-    variables: {
-        type: 'number',
-        label: string,
-        property: PropertyOfType<AllArgType, number>,
-        min?: (generalSettings: GeneralSettings) => number,
-        max?: (generalSettings: GeneralSettings) => number,
-        integer: boolean,
-    }[]
+    variables: (Variable<AllArgType> & {
+        type: 'number'
+    })[];
     /**
      * The "primary" variable. If the user enters 100 for this, then the table should show values between
      * 100-x and 100+x for this.
      */
-    primaryVariable: PropertyOfType<AllArgType, number>
+    primaryVariable: PropertyOfType<AllArgType, number> | 'level' | 'job';
 }
 
 export const registered: MathFormulaSet<object>[] = [];
