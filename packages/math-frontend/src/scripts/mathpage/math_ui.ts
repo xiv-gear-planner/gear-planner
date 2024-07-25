@@ -93,8 +93,10 @@ function getPrimaryVarSpec<X extends object>(formulaSet: MathFormulaSet<X>): Var
         }
     }
     else if (pvKey === 'job') {
-        // TODO
-        return null;
+        return {
+            label: "Job",
+            type: 'job'
+        }
     }
     else {
         return formulaSet.variables.find(v => v['property'] === formulaSet.primaryVariable);
@@ -272,16 +274,16 @@ export class MathArea extends HTMLElement {
                 }
                 else if (primaryVariableSpec.type === 'level') {
                     const levels = SupportedLevels;
-                    const selectedJob = this.generalSettings.levelStats.level;
+                    const selectedLevel = this.generalSettings.levelStats.level;
                     for (const level of levels) {
                         const fakeGeneralSettings: GeneralSettings = {
                             ...this.generalSettings,
                             levelStats: LEVEL_STATS[level]
                         };
-                        const results: ResultSet = {};
                         const inputs = {...settings};
+                        const results: ResultSet = {};
                         for (const fn of funcs) {
-                            const args = await fn.argExtractor(inputs, fakeGeneralSettings)
+                            const args = await fn.argExtractor(inputs, fakeGeneralSettings);
                             results[fn.name] = {
                                 value: fn.fn(...args) as number,
                             }
@@ -290,30 +292,38 @@ export class MathArea extends HTMLElement {
                             generalSettings: fakeGeneralSettings,
                             inputs: inputs,
                             inputsMax: inputs,
-                            isOriginalPrimary: level === selectedJob,
+                            isOriginalPrimary: level === selectedLevel,
                             isRange: false,
                             results: results
                         });
                     }
                 }
-                    // else if (primaryVariableSpec.type === 'job') {
-                    //     const jobs = Object.keys(JOB_DATA);
-                    //     const selected
-                    //     jobs.forEach(job => {
-                    //         const gen = {
-                    //             ...this.generalSettings,
-                    //             job: job
-                    //         };
-                    //         rows.push({
-                    //             generalSettings: this.generalSettings,
-                    //             inputs: null,
-                    //             inputsMax: null,
-                    //             isOriginalPrimary: job === ,
-                    //             isRange: false,
-                    //             results: undefined
-                    //         });
-                    //     });
-                // }
+                    else if (primaryVariableSpec.type === 'job') {
+                        const jobs = Object.keys(JOB_DATA) as JobName[];
+                        const selectedJob = this.generalSettings.classJob;
+                        for (const job of jobs) {
+                            const fakeGeneralSettings: GeneralSettings = {
+                                ...this.generalSettings,
+                                classJob: job
+                            };
+                            const inputs = {...settings};
+                            const results: ResultSet = {};
+                            for (const fn of funcs) {
+                                const args = await fn.argExtractor(inputs, fakeGeneralSettings);
+                                results[fn.name] = {
+                                    value: fn.fn(...args) as number,
+                                }
+                            }
+                            rows.push({
+                                generalSettings: fakeGeneralSettings,
+                                inputs: inputs,
+                                inputsMax: inputs,
+                                isOriginalPrimary: job === selectedJob,
+                                isRange: false,
+                                results: results
+                            });
+                        }
+                }
                 else if (primaryVariableSpec.type === 'number' && primaryVariableSpec.integer) {
                     const prop = primaryVariableSpec.property;
                     const currentPrimaryValue = settings[prop] as number;

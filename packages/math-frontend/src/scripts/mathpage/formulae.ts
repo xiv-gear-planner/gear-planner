@@ -5,18 +5,21 @@ import {
     critDmg,
     detDmg,
     dhitChance,
-    dhitDmg, hpScalar,
-    mainStatMulti, mainStatPowerMod,
+    dhitDmg,
+    hpScalar,
+    mainStatMulti,
+    mainStatPowerMod,
     mpTick,
     sksTickMulti,
     sksToGcd,
     spsTickMulti,
     spsToGcd,
-    tenacityDmg, tenacityIncomingDmg,
+    tenacityDmg,
+    tenacityIncomingDmg,
     vitToHp,
     wdMulti,
 } from "@xivgear/xivmath/xivmath";
-import {getClassJobStats, JOB_DATA, JobName, LEVEL_STATS, SupportedLevel} from "@xivgear/xivmath/xivconstants";
+import {getClassJobStats, JOB_DATA, JobName, MAIN_STATS, STAT_ABBREVIATIONS} from "@xivgear/xivmath/xivconstants";
 import {GeneralSettings, registerFormula} from "./math_main";
 import {DataManager} from "@xivgear/core/datamanager";
 import {JobData, LevelStats} from "@xivgear/xivmath/geartypes";
@@ -448,6 +451,34 @@ export function registerFormulae() {
             return {}
         },
         primaryVariable: 'level',
+        variables: []
+    });
+    registerFormula<Record<string, never>>({
+        name: 'Jobs',
+        stub: 'job',
+        functions: [{
+            name: 'AA Pot',
+            excludeFormula: true,
+            fn: (jobData: JobData) => jobData.aaPotency,
+            async argExtractor(arg, gen: GeneralSettings) {
+                const stats = await getClassJobStatsFull(gen.classJob);
+                return [stats];
+            }
+        }, ...([...MAIN_STATS, 'hp'] as const).map(stat => {
+            return {
+                name: STAT_ABBREVIATIONS[stat],
+                excludeFormula: true,
+                fn: (jobData: JobData) => jobData.jobStatMultipliers[stat],
+                async argExtractor(arg, gen: GeneralSettings) {
+                    const stats = await getClassJobStatsFull(gen.classJob);
+                    return [stats];
+                }
+            }
+        })],
+        makeDefaultInputs: (generalSettings: GeneralSettings) => {
+            return {}
+        },
+        primaryVariable: 'job',
         variables: []
     })
 }
