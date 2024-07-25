@@ -177,9 +177,7 @@ export function sksTickMulti(levelStats: LevelStats, sks: number) {
  * @param mainstat
  */
 export function mainStatMulti(levelStats: LevelStats, jobStats: JobData, mainstat: number) {
-    // TODO make this work without ts-ignore
-    // @ts-expect-error - can't figure out type def
-    const apMod = levelStats.mainStatPowerMod[jobStats.role] ?? levelStats.mainStatPowerMod.other;
+    const apMod = mainStatPowerMod(levelStats, jobStats);
     return Math.max(0, (fl(apMod * (mainstat - levelStats.baseMainStat) / levelStats.baseMainStat) + 100) / 100);
 }
 
@@ -451,7 +449,16 @@ export function applyCrit(baseDamage: number, stats: ComputedSetStats) {
  */
 export function vitToHp(levelStats: LevelStats, jobStats: JobData, vitality: number) {
     // TODO make this work without ts-ignore
-    // @ts-expect-error - can't figure out type def
-    const hpMod = levelStats.hpScalar[jobStats.role] ?? levelStats.hpScalar.other;
+    const hpMod = hpScalar(levelStats, jobStats);
     return fl(levelStats.hp * jobStats.jobStatMultipliers.hp / 100) + fl((vitality - levelStats.baseMainStat) * hpMod);
+}
+
+export function hpScalar(levelStats: LevelStats, jobStats: JobData) {
+    // @ts-expect-error - can't figure out type def
+    return levelStats.hpScalar[jobStats.role] ?? levelStats.hpScalar.other;
+}
+
+export function mainStatPowerMod(levelStats: LevelStats, jobStats: JobData) {
+    // @ts-expect-error - can't figure out type def
+    return levelStats.mainStatPowerMod[jobStats.role] ?? levelStats.mainStatPowerMod.other;
 }
