@@ -1,6 +1,7 @@
 import { Ability, SimSettings, SimSpec } from "@xivgear/core/sims/sim_types";
 import { CycleProcessor, CycleSimResult, ExternalCycleSettings, MultiCycleSettings, AbilityUseResult, Rotation, AbilityUseRecordUnf } from "@xivgear/core/sims/cycle_sim";
 import { CycleSettings } from "@xivgear/core/sims/cycle_settings";
+import { CharacterGearSet } from "@xivgear/core/gear";
 import { formatDuration } from "@xivgear/core/util/strutils";
 import { BaseMultiCycleSim } from "../../sim_processors";
 import { AbilitiesUsedTable } from "../../components/ability_used_table";
@@ -156,26 +157,36 @@ export class SamSim extends BaseMultiCycleSim<SamSimResult, SamSettings, SAMCycl
         });
     }
 
-    getRotationsToSimulate(): Rotation<SAMCycleProcessor>[] {
+    getRotationsToSimulate(set: CharacterGearSet): Rotation<SAMCycleProcessor>[] {
+        const gcd = set.results.computedStats.gcdPhys(2.5, 13);
+
+        if (gcd >= 2.11) {
+            return [{
+                name: "2.14 GCD Rotation",
+                cycleTime: 120,
+                apply(cp: SAMCycleProcessor) {
+                    SlowSamRotation.Opener.forEach(action => cp.use(action));
+                    cp.remainingCycles(() => {
+                        SlowSamRotation.Loop.forEach(action => cp.use(action));
+                    });
+                }
+            }];
+        }
+
+        if (gcd >= 2.04) {
+            return [{
+                name: "2.07 GCD Rotation",
+                cycleTime: 120,
+                apply(cp: SAMCycleProcessor) {
+                    MidSamRotation.Opener.forEach(action => cp.use(action));
+                    cp.remainingCycles(() => {
+                        MidSamRotation.Loop.forEach(action => cp.use(action));
+                    });
+                }
+            }];
+        }
+
         return [{
-            name: "2.14 GCD Rotation",
-            cycleTime: 120,
-            apply(cp: SAMCycleProcessor) {
-                SlowSamRotation.Opener.forEach(action => cp.use(action));
-                cp.remainingCycles(() => {
-                    SlowSamRotation.Loop.forEach(action => cp.use(action));
-                });
-            }
-        }, {
-            name: "2.07 GCD Rotation",
-            cycleTime: 120,
-            apply(cp: SAMCycleProcessor) {
-                MidSamRotation.Opener.forEach(action => cp.use(action));
-                cp.remainingCycles(() => {
-                    MidSamRotation.Loop.forEach(action => cp.use(action));
-                });
-            }
-        }, {
             name: "2.00 GCD Rotation",
             cycleTime: 120,
             apply(cp: SAMCycleProcessor) {
@@ -184,6 +195,6 @@ export class SamSim extends BaseMultiCycleSim<SamSimResult, SamSettings, SAMCycl
                     FastSamRotation.Loop.forEach(action => cp.use(action));
                 });
             }
-        }]
+        }];
     }
 } 
