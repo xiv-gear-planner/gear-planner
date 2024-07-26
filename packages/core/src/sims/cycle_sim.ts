@@ -327,7 +327,7 @@ export class CycleProcessor {
      */
     currentCycle: number = -1;
     /**
-     * The current time. This should not normally be written to, as it will be automatically updated internally
+     * The current time in seconds. This should not normally be written to, as it will be automatically updated internally
      * as actions are used.
      *
      * If combat has not started, this represents time since the first action usage.

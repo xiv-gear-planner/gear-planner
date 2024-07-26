@@ -24,7 +24,6 @@ import {
 } from "@xivgear/core/sims/cycle_sim";
 import {BuffSettingsManager} from "@xivgear/core/sims/common/party_comp_settings";
 import {BuffSettingsArea} from "./party_comp_settings";
-import {ComputedSetStats} from "@xivgear/xivmath/geartypes";
 
 
 /**
