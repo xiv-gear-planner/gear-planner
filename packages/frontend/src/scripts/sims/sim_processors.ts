@@ -188,7 +188,7 @@ export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, Inter
      * This is the main abstract method of this simulation type. You can specify one or more
      * rotations to simulate. The sim's result will be whichever rotation sims the highest.
      */
-    abstract getRotationsToSimulate(): Rotation<CycleProcessorType>[];
+    abstract getRotationsToSimulate(set: CharacterGearSet): Rotation<CycleProcessorType>[];
 
     /**
      * If you are using a custom CycleProcessorType, you MUST override this method and have it return
@@ -207,7 +207,7 @@ export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, Inter
     async simulate(set: CharacterGearSet): Promise<FullResultType> {
         console.debug("Sim start");
         const allBuffs = this.buffManager.enabledBuffs;
-        const rotations = this.getRotationsToSimulate();
+        const rotations = this.getRotationsToSimulate(set);
         const allResults = rotations.map((rot, index) => {
             const cp = this.createCycleProcessor({
                 stats: set.computedStats,
