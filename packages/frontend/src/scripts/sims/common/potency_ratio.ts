@@ -4,7 +4,7 @@ import {SimResult, SimSettings, SimSpec, Simulation} from "@xivgear/core/sims/si
 import {EmptyObject} from "@xivgear/core/util/types";
 import {quickElement} from "@xivgear/common-ui/components/util";
 import {NamedSection} from "../../components/section";
-import {simpleAutoResultTable} from "../components/simple_tables";
+import {simpleAutoResultTable, simpleMappedResultTable} from "../components/simple_tables";
 
 export const potRatioSimSpec: SimSpec<PotencyRatioSim, SimSettings> = {
     displayName: "Potency Ratio",
@@ -58,7 +58,10 @@ export class PotencyRatioSim implements Simulation<PotencyRatioSimResults, SimSe
     makeConfigInterface = makeDescriptionPanel;
 
     makeResultDisplay(result: PotencyRatioSimResults): HTMLElement {
-        const tbl = simpleAutoResultTable(result);
+        const tbl = simpleMappedResultTable<PotencyRatioSimResults>({
+            'mainDpsResult': 'Dmg/100p, with Crit/DH',
+            'withoutCritDh': 'Dmg/100p, no Crit/DH',
+        })(result);
         tbl.classList.add('sim-basic-result-table');
         const description = makeDescriptionPanel();
         description.appendChild(tbl);
