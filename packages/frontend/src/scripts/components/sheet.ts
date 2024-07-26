@@ -73,6 +73,7 @@ import {simMaintainersInfoElement} from "./sims";
 import {SaveAsModal} from "./new_sheet_form";
 import {DropdownActionMenu} from "./dropdown_actions_menu";
 import {CustomItemPopup} from "./custom_item_manager";
+import {confirmDelete} from "@xivgear/common-ui/components/delete_confirm";
 
 export type GearSetSel = SingleCellRowOrHeaderSelect<CharacterGearSet>;
 
@@ -342,9 +343,13 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                 shortName: "actions",
                 displayName: "",
                 getter: gearSet => gearSet,
-                renderer: gearSet => {
+                renderer: (gearSet: CharacterGearSet) => {
                     const div = document.createElement("div");
-                    div.appendChild(makeActionButton([faIcon('fa-trash-can')], () => this.sheet.delGearSet(gearSet), 'Delete this set'));
+                    div.appendChild(makeActionButton([faIcon('fa-trash-can')], (ev) => {
+                        if (confirmDelete(ev, `Delete gear set '${gearSet.name}'?`)) {
+                            this.sheet.delGearSet(gearSet);
+                        }
+                    }, 'Delete this set'));
                     div.appendChild(makeActionButton([faIcon('fa-copy')], () => this.sheet.cloneAndAddGearSet(gearSet, true), 'Clone this set'));
                     const dragger = document.createElement('button');
                     dragger.title = 'Drag to re-order this set';
