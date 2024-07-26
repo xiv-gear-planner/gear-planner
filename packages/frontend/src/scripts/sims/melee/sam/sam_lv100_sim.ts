@@ -8,7 +8,7 @@ import SAMGauge from "./sam_gauge";
 import { SAMExtraData, SamAbility } from "./sam_types";
 import * as SlowSamRotation from './rotations/sam_lv100_214';
 import * as MidSamRotation from './rotations/sam_lv100_207';
-import * as FastSamRotation from './rotations/sam_lv100_207';
+import * as FastSamRotation from './rotations/sam_lv100_200';
 import { HissatsuShinten } from './sam_actions';
 
 export interface SamSimResult extends CycleSimResult {
@@ -87,6 +87,11 @@ class SAMCycleProcessor extends CycleProcessor {
         }
 
         const samAbility = ability as SamAbility;
+        // Log when we try to use more gauge than what we currently have
+        if (samAbility.kenkiCost > this.gauge.kenkiGauge) {
+            console.error(`[${formatDuration(this.currentTime)}] Used ${samAbility.kenkiCost} kenki with ${samAbility.name} when you only have ${this.gauge.kenkiGauge}`);
+            return null;
+        }
 
         // If an Ogcd isn't ready yet, but it can still be used without clipping, advance time until ready.
         if (ability.type === 'ogcd' && this.canUseWithoutClipping(ability)) {
@@ -101,10 +106,6 @@ class SAMCycleProcessor extends CycleProcessor {
             // Prevent gauge updates showing incorrectly on autos before this ability
             if (ability.type === 'gcd' && this.nextGcdTime > this.currentTime) {
                 this.advanceTo(this.nextGcdTime);
-            }
-            // Log when we use more gauge than what we currently have
-            if (samAbility.kenkiCost > this.gauge.kenkiGauge) {
-                console.error(`[${formatDuration(this.currentTime)}] Used ${samAbility.kenkiCost} kenki with ${samAbility.name} when you only have ${this.gauge.kenkiGauge}`);
             }
             samAbility.updateGauge(this.gauge);
         }
