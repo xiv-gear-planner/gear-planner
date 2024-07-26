@@ -34,7 +34,7 @@ import {
     MultiplierStat,
     PartyBonusAmount,
     RawStatKey,
-    SetExport
+    SetExport, SheetExport
 } from "@xivgear/xivmath/geartypes";
 import {CharacterGearSet} from "@xivgear/core/gear";
 import {
@@ -1878,6 +1878,12 @@ export class AddSimDialog extends BaseModal {
 export class GraphicalSheetProvider extends SheetProvider<GearPlanSheetGui> {
     constructor() {
         super((...args) => new GearPlanSheetGui(...args));
+    }
+
+    fromExport(importedData: SheetExport): GearPlanSheetGui {
+        const out = super.fromExport(importedData);
+        out.setSelectFirstRowByDefault();
+        return out;
     }
 
     fromSetExport(...importedData: SetExport[]): GearPlanSheetGui {
