@@ -89,7 +89,7 @@ class SAMCycleProcessor extends CycleProcessor {
         const samAbility = ability as SamAbility;
         // Log when we try to use more gauge than what we currently have
         if (samAbility.kenkiCost > this.gauge.kenkiGauge) {
-            console.error(`[${formatDuration(this.currentTime)}] Used ${samAbility.kenkiCost} kenki with ${samAbility.name} when you only have ${this.gauge.kenkiGauge}`);
+            console.warn(`[${formatDuration(this.currentTime)}] Attempted to use ${samAbility.kenkiCost} kenki with ${samAbility.name} when you only have ${this.gauge.kenkiGauge}`);
             return null;
         }
 
@@ -127,7 +127,7 @@ export class SamSim extends BaseMultiCycleSim<SamSimResult, SamSettings, SAMCycl
     displayName = samSpec.displayName;
     cycleSettings: CycleSettings = {
         useAutos: true,
-        totalTime: (6 * 60) + 30,
+        totalTime: (6 * 60) + 30.5,
         cycles: 0,
         which: 'totalTime',
     }
