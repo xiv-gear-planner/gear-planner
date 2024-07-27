@@ -7,7 +7,7 @@ import {
     SupportedLevel
 } from "@xivgear/xivmath/xivconstants";
 import {GearItem, JobMultipliers, Materia, OccGearSlotKey, RawStatKey,} from "@xivgear/xivmath/geartypes";
-import {xivApiGet, XivApiResultSingle, xivApiSingle, xivApiSingleCols} from "./external/xivapi";
+import {xivApiGet, XivApiResultSingle, xivApiSingleCols} from "./external/xivapi";
 import {BaseParamToStatKey, RelevantBaseParam, xivApiStatMapping} from "./external/xivapitypes";
 import {getRelicStatModelFor} from "./relicstats/relicstats";
 
@@ -134,41 +134,59 @@ export class DataManager implements DataManagerIntf {
     private _allFoodItems: XivApiFoodInfo[];
     private _jobMultipliers: Map<JobName, JobMultipliers>;
     private _baseParams: BaseParamMap;
-    private _ilvlSyncDatum = new Map<number, Promise<IlvlSyncInfo>>();
+    private _isyncPromise: Promise<Map<number, IlvlSyncInfo>>;
 
-    getIlvlSyncData(baseParamPromise: ReturnType<typeof queryBaseParams>, ilvl: number) {
-        if (this._ilvlSyncDatum.has(ilvl)) {
-            return this._ilvlSyncDatum.get(ilvl)
+    async getIlvlSyncData(baseParamPromise: ReturnType<typeof queryBaseParams>, ilvl: number) {
+        if (this._isyncPromise === undefined) {
+            this._isyncPromise = Promise.all([baseParamPromise, xivApiGet({
+                requestType: 'list',
+                columns: ['*'] as const,
+                sheet: 'ItemLevel',
+                perPage: 500,
+                // Optimize these by not pulling a second unnecessary page
+                startPage: this._minIlvl > 500 ? 1 : 0,
+                pageLimit: 2,
+            })]).then(responses => {
+                const outMap = new Map<number, IlvlSyncInfo>();
+                const jobStats = getClassJobStats(this._classJob);
+                for (const row of responses[1].Results) {
+                    const ilvl = row.ID;
+                    const ilvlStatModifiers = new Map<RawStatKey, number>();
+                    // Unroll the ItemLevel object into a direct mapping from RawStatKey => modifier
+                    for (const respElementKey in row) {
+                        if (respElementKey in xivApiStatMapping) {
+                            ilvlStatModifiers.set(xivApiStatMapping[respElementKey], row[respElementKey]);
+                        }
+                    }
+                    console.log(`ilvl ${ilvl}`, row);
+                    // BaseParam data is trickier. First, we need to convert from a list to a map, where the keys are the stat.
+                    const baseParams = this._baseParams;
+                    outMap.set(ilvl, {
+                        ilvl: ilvl,
+                        substatCap(slot: OccGearSlotKey, statsKey: RawStatKey): number {
+                            const ilvlModifier: number = ilvlStatModifiers.get(statsKey as RawStatKey);
+                            const baseParamModifier = baseParams[statsKey as RawStatKey][slot];
+                            const multi = jobStats.itemStatCapMultipliers?.[statsKey];
+                            if (multi) {
+                                return Math.round(multi * Math.round(ilvlModifier * baseParamModifier / 1000));
+                            }
+                            else {
+                                return Math.round(ilvlModifier * baseParamModifier / 1000);
+                            }
+                        },
+                    } as const);
+
+                }
+                return outMap;
+            });
+        }
+        const data = await this._isyncPromise;
+        if (data.has(ilvl)) {
+            return data.get(ilvl);
         }
         else {
-            const jobStats = getClassJobStats(this._classJob);
-            const ilvlPromise = Promise.all([baseParamPromise, xivApiSingle("ItemLevel", ilvl)]).then(responses => {
-                const ilvlStatModifiers = new Map<RawStatKey, number>();
-                // Unroll the ItemLevel object into a direct mapping from RawStatKey => modifier
-                for (const respElementKey in responses[1]) {
-                    if (respElementKey in xivApiStatMapping) {
-                        ilvlStatModifiers.set(xivApiStatMapping[respElementKey], responses[1][respElementKey]);
-                    }
-                }
-                // BaseParam data is trickier. First, we need to convert from a list to a map, where the keys are the stat.
-                const baseParams = this._baseParams;
-                return {
-                    ilvl: ilvl,
-                    substatCap(slot: OccGearSlotKey, statsKey: RawStatKey): number {
-                        const ilvlModifier: number = ilvlStatModifiers.get(statsKey as RawStatKey);
-                        const baseParamModifier = baseParams[statsKey as RawStatKey][slot];
-                        const multi = jobStats.itemStatCapMultipliers?.[statsKey];
-                        if (multi) {
-                            return Math.round(multi * Math.round(ilvlModifier * baseParamModifier / 1000));
-                        }
-                        else {
-                            return Math.round(ilvlModifier * baseParamModifier / 1000);
-                        }
-                    },
-                } as const;
-            });
-            this._ilvlSyncDatum.set(ilvl, ilvlPromise);
-            return ilvlPromise;
+            console.error(`ilvl ${ilvl} not found`);
+            return null;
         }
     }
 
@@ -214,6 +232,7 @@ export class DataManager implements DataManagerIntf {
         });
         const extraPromises = [];
         console.log("Loading items");
+
 
         const itemsPromise = xivApiGet({
             requestType: 'search',
@@ -341,7 +360,8 @@ export class DataManager implements DataManagerIntf {
                     });
                 }
             });
-        await Promise.all([baseParamPromise, itemsPromise, statsPromise, materiaPromise, foodPromise, jobsPromise]);
+        const ilvlPromise = this.getIlvlSyncData(baseParamPromise, 710);
+        await Promise.all([baseParamPromise, itemsPromise, statsPromise, materiaPromise, foodPromise, jobsPromise, ilvlPromise]);
         await Promise.all(extraPromises);
     }
 
