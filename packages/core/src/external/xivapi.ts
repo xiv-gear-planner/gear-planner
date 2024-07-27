@@ -120,7 +120,7 @@ export async function xivApiSearch<RequestType extends XivApiSearchRequest>(requ
             .then(response => response.json());
         const response = responseRaw['results'];
         results.push(...response.filter(isNonEmpty));
-        const thisNext = response['next'];
+        const thisNext = responseRaw['next'];
         if (thisNext === undefined) {
             break;
         }
