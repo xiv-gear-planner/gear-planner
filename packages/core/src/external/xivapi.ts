@@ -126,6 +126,9 @@ export async function xivApiSearch<RequestType extends XivApiSearchRequest>(requ
         }
         lastCursor = thisNext ?? null;
     }
+    if (remainingPages <= 0 && !request.pageLimit) {
+        console.warn(`Exceeded xivapi page limit for query ${queryInitial}`);
+    }
     return {
         Results: results.map(resultRow => {
             const out = {...resultRow['fields']};
@@ -162,12 +165,13 @@ export async function xivApiGetList<RequestType extends XivApiListRequest>(reque
             break;
         }
     }
+    if (remainingPages <= 0 && !request.pageLimit) {
+        console.warn(`Exceeded xivapi page limit for query ${query}`);
+    }
     return {
         Results: results.map(resultRow => {
             const out = {...resultRow['fields']};
-            if (request.columns.includes('ID')) {
-                out['ID'] = resultRow['row_id'];
-            }
+            out['ID'] = resultRow['row_id'];
             return out;
         })
     };
