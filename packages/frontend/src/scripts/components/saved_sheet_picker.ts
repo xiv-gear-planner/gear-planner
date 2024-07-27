@@ -3,6 +3,7 @@ import {SheetExport} from "@xivgear/xivmath/geartypes";
 import {faIcon, makeActionButton} from "@xivgear/common-ui/components/util";
 import {deleteSheetByKey} from "@xivgear/core/persistence/saved_sheets";
 import {getHashForSaveKey, openSheetByKey, showNewSheetForm} from "../base_ui";
+import {confirmDelete} from "@xivgear/common-ui/components/delete_confirm";
 
 export class SheetPickerTable extends CustomTable<SheetExport, SheetExport> {
     constructor() {
@@ -16,8 +17,11 @@ export class SheetPickerTable extends CustomTable<SheetExport, SheetExport> {
                 getter: sheet => sheet,
                 renderer: (sheet: SheetExport) => {
                     const div = document.createElement("div");
-                    div.appendChild(makeActionButton([faIcon('fa-trash-can')], () => {
-                        this.confirmDelete(sheet);
+                    div.appendChild(makeActionButton([faIcon('fa-trash-can')], (ev) => {
+                        if (confirmDelete(ev, `Delete sheet '${sheet.name}'?`)) {
+                            deleteSheetByKey(sheet.saveKey);
+                            this.readData();
+                        }
                     }, `Delete sheet '${sheet.name}'`));
                     const hash = getHashForSaveKey(sheet.saveKey);
                     const linkUrl = new URL(`#/${hash.join('/')}`, document.location.toString());
@@ -115,14 +119,6 @@ export class SheetPickerTable extends CustomTable<SheetExport, SheetExport> {
             data.push(...items);
         }
         this.data = data;
-    }
-
-    private confirmDelete(sheet: SheetExport) {
-        const confirmed = confirm(`Delete sheet '${sheet.name}'?`);
-        if (confirmed) {
-            deleteSheetByKey(sheet.saveKey);
-            this.readData();
-        }
     }
 }
 

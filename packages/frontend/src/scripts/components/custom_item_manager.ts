@@ -14,6 +14,7 @@ import {ALL_STATS, STAT_ABBREVIATIONS} from "@xivgear/xivmath/xivconstants";
 import {BaseModal} from "@xivgear/common-ui/components/modal";
 import {DropdownActionMenu} from "./dropdown_actions_menu";
 import {OccGearSlots} from "@xivgear/xivmath/geartypes";
+import {confirmDelete} from "@xivgear/common-ui/components/delete_confirm";
 
 function ifWeapon(fn: (item: CustomItem) => HTMLElement): (item: CustomItem) => Node {
     return (item: CustomItem) => {
@@ -39,9 +40,11 @@ export class CustomItemTable extends CustomTable<CustomItem> {
                 getter: item => item,
                 renderer: (item: CustomItem) => {
                     const out = document.createElement('div');
-                    out.appendChild(makeActionButton([faIcon('fa-trash-can')], () => {
-                        this.sheet.deleteCustomItem(item);
-                        this.refresh();
+                    out.appendChild(makeActionButton([faIcon('fa-trash-can')], (ev) => {
+                        if (confirmDelete(ev, `Delete custom item '${item.name}'?`)) {
+                            this.sheet.deleteCustomItem(item);
+                            this.refresh();
+                        }
                     }, 'Delete this item'));
                     return out;
                 },
