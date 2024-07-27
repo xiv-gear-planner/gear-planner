@@ -810,12 +810,22 @@ export class XivApiGearInfo implements GearItem {
         if (data.CanBeHq) {
             for (const i in requireArrayTyped(data.BaseParamSpecial, 'object')) {
                 const paramId = requireNumber(data.BaseParamSpecial[i]['value']);
+                if (paramId <= 0) {
+                    continue;
+                }
+                const paramName = requireString(data.BaseParamSpecial[i]['fields']['Name']);
                 const paramValue = requireNumber(data.BaseParamValueSpecial[i]);
                 if (paramId === 12) {
                     this.stats.wdPhys += paramValue;
                 }
                 else if (paramId === 13) {
                     this.stats.wdMag += paramValue;
+                }
+                else {
+                    const paramKey = BaseParamToStatKey[paramName];
+                    if (paramKey !== null) {
+                        this.stats[paramKey] += paramValue;
+                    }
                 }
             }
         }
