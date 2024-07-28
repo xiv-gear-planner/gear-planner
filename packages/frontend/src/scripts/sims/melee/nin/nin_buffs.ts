@@ -11,7 +11,7 @@ export const KunaisBaneBuff: Buff = {
     effects: {
         dmgIncrease: 0.1
     },
-    duration: 15,
+    duration: 16.25,
     statusId: 3906
 };
 

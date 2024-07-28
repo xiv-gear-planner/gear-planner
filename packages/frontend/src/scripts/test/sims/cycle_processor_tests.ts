@@ -276,12 +276,12 @@ const expectedAbilities: UseResult[] = [
     {
         time: 3.14,
         name: 'Glare',
-        damage: 15828.682
+        damage: 15074.935
     },
     {
         time: 4.32,
         name: 'Auto Attack',
-        damage: 34.966
+        damage: 33.301
     },
     {
         time: 5.45,
@@ -366,12 +366,12 @@ const expectedAbilities: UseResult[] = [
     {
         time: 24.32,
         name: "Glare",
-        damage: 16811.589
+        damage: 17652.168
     },
     {
         time: 25.928,
         name: "Auto Attack",
-        damage: 35.299
+        damage: 37.064
     },
     {
         time: 26.63,
@@ -401,7 +401,7 @@ describe('Cycle sim processor', () => {
         // Run simulation
         const result = await inst.simulate(set);
         // Assert correct results
-        assertClose(result.mainDpsResult, 10040.777, 0.01);
+        assertClose(result.mainDpsResult, 10043.635, 0.01);
         assertSimAbilityResults(result, expectedAbilities);
     });
 });

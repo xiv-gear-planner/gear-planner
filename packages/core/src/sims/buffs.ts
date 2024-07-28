@@ -4,13 +4,13 @@ export const Dokumori = {
     name: "Dokumori",
     saveKey: "Mug",
     job: "NIN",
-    duration: 20,
+    duration: 21,
     cooldown: 120,
     selfOnly: false,
     effects: {
         dmgIncrease: 0.05,
     },
-    startTime: 3.40,
+    startTime: 5.46,
     statusId: 3849
 } as const satisfies PartyBuff;
 

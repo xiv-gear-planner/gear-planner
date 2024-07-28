@@ -39,6 +39,11 @@ class NINGauge {
         return this._kazematoi;
     }
     set kazematoi(newGauge: number) {
+        if (newGauge > 5) {
+            console.warn(`Overcapped Kazematoi by ${newGauge - 5}.`);
+        } else if (newGauge < 0) {
+            console.error(`Used ${this.kazematoi - newGauge} Kazematoi when you only have ${this.kazematoi}.`)
+        }
         this._kazematoi = Math.max(Math.min(newGauge, 5), 0);
     }
 
