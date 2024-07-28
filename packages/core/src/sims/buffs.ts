@@ -98,7 +98,7 @@ export const StarryMuse = {
     },
     // TODO: Double check if we want to go with this or with the triple-weave opener.
     startTime: 5.0,
-    statusID: 3685
+    statusId: 3685
 } as const satisfies PartyBuff;
 
 export const Devilment = {
