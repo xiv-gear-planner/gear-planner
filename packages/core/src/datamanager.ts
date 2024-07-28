@@ -158,7 +158,6 @@ export class DataManager implements DataManagerIntf {
                             ilvlStatModifiers.set(xivApiStatMapping[respElementKey], row[respElementKey]);
                         }
                     }
-                    console.log(`ilvl ${ilvl}`, row);
                     // BaseParam data is trickier. First, we need to convert from a list to a map, where the keys are the stat.
                     const baseParams = this._baseParams;
                     outMap.set(ilvl, {
