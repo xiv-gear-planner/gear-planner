@@ -86,6 +86,21 @@ export const Embolden = {
     statusId: 1297
 } as const satisfies PartyBuff;
 
+export const StarryMuse = {
+    name: "Starry Muse",
+    saveKey: "Starry Muse",
+    job: "PCT",
+    duration: 20,
+    cooldown: 120,
+    selfOnly: false,
+    effects: {
+        dmgIncrease: 0.05
+    },
+    // TODO: Double check if we want to go with this or with the triple-weave opener.
+    startTime: 5.0,
+    statusId: 3685
+} as const satisfies PartyBuff;
+
 export const Devilment = {
     name: "Devilment",
     saveKey: "Devilment",
@@ -228,7 +243,7 @@ export const OffGuardBuff = {
  */
 
 export const ALL_BUFFS = [
-    Dokumori, Litany, Brotherhood, ArcaneCircleBuff, SearingLight, Embolden,
+    Dokumori, Litany, Brotherhood, ArcaneCircleBuff, SearingLight, Embolden, StarryMuse,
     Devilment, TechnicalFinish, BattleVoice, RadiantFinale, Chain, Divination,
     AstCard, OffGuardBuff
 ] as const;
