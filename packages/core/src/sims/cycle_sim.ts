@@ -27,7 +27,7 @@ import {
 } from "@xivgear/xivmath/xivconstants";
 import {CooldownMode, CooldownTracker} from "./common/cooldown_manager";
 import {addValues, fixedValue, multiplyFixed, multiplyIndependent, ValueWithDev} from "@xivgear/xivmath/deviation";
-import {abilityEquals, appDelay, completeComboData, FinalizedComboData} from "./ability_helpers";
+import {abilityEquals, animationLock, appDelay, completeComboData, FinalizedComboData} from "./ability_helpers";
 import {abilityToDamageNew, combineBuffEffects} from "./sim_utils";
 import {BuffSettingsExport} from "./common/party_comp_settings";
 import {CycleSettings} from "./cycle_settings";
@@ -327,7 +327,7 @@ export class CycleProcessor {
      */
     currentCycle: number = -1;
     /**
-     * The current time. This should not normally be written to, as it will be automatically updated internally
+     * The current time in seconds. This should not normally be written to, as it will be automatically updated internally
      * as actions are used.
      *
      * If combat has not started, this represents time since the first action usage.
@@ -610,9 +610,9 @@ export class CycleProcessor {
     /**
      * Get the buffs that would be active right now.
      */
-    getActiveBuffs(): Buff[] {
+    getActiveBuffs(time = this.currentTime): Buff[] {
         const activeBuffs: Buff[] = [];
-        this.getActiveBuffsData().forEach(h => {
+        this.getActiveBuffsData(time).forEach(h => {
             if (!activeBuffs.includes(h.buff)) {
                 activeBuffs.push(h.buff);
             }
@@ -624,9 +624,10 @@ export class CycleProcessor {
      * Get the buffs that would be active right now, which affect a specific ability.
      *
      * @param ability The ability in question
+     * @param time The time to query. Defaults to current time.
      */
-    getActiveBuffsFor(ability: Ability): Buff[] {
-        return this.getActiveBuffs().filter(buff => {
+    getActiveBuffsFor(ability: Ability, time = this.currentTime): Buff[] {
+        return this.getActiveBuffs(time).filter(buff => {
             if ('appliesTo' in buff) {
                 return buff.appliesTo(ability);
             }
@@ -634,8 +635,7 @@ export class CycleProcessor {
         });
     }
 
-    private getActiveBuffsData(): BuffUsage[] {
-        const queryTime = this.currentTime;
+    private getActiveBuffsData(queryTime = this.currentTime): BuffUsage[] {
         this.recheckAutoBuffs();
         return this.buffHistory.filter(h => h.start <= queryTime && h.end > queryTime && !h.forceEnd);
     }
@@ -644,10 +644,11 @@ export class CycleProcessor {
      * Get the buff data for an active buff.
      *
      * @param buff The buff
+     * @param time The time to query. Defaults to current time.
      * @returns BuffUsage for the buff, or null if this buff is not active
      */
-    protected getActiveBuffData(buff: Buff): BuffUsage {
-        const activeBuffData = this.getActiveBuffsData().find(bd => bd.buff === buff);
+    protected getActiveBuffData(buff: Buff, time = this.currentTime): BuffUsage {
+        const activeBuffData = this.getActiveBuffsData(time).find(bd => bd.buff === buff);
         return activeBuffData ? {...activeBuffData} : null;
     }
 
@@ -710,11 +711,11 @@ export class CycleProcessor {
         return ability.type === 'gcd';
     }
 
-    private getCombinedEffectsFor(ability: Ability): {
+    private getCombinedEffectsFor(ability: Ability, time = this.currentTime): {
         buffs: ReturnType<typeof this.getActiveBuffs>,
         combinedEffects: ReturnType<typeof combineBuffEffects>,
     } {
-        const active = this.getActiveBuffsFor(ability);
+        const active = this.getActiveBuffsFor(ability, time);
         const combined = combineBuffEffects(active);
         return {
             'buffs': active,
@@ -772,7 +773,7 @@ export class CycleProcessor {
         // When this GCD will end (strictly in terms of GCD. e.g. a BLM spell where cast > recast will still take the cast time. This will be
         // accounted for later).
         const gcdFinishedAt = this.currentTime + abilityGcd;
-        const animLock = ability.animationLock ?? STANDARD_ANIMATION_LOCK;
+        const animLock = animationLock(ability);
         const effectiveAnimLock = effectiveCastTime ? Math.max(effectiveCastTime + CASTER_TAX, animLock) : animLock;
         const animLockFinishedAt = this.currentTime + effectiveAnimLock;
         this.advanceTo(snapshotsAt, true);
@@ -875,9 +876,64 @@ export class CycleProcessor {
      * @returns whether or not this ability can be used without clipping the GCD
      */
     canUseWithoutClipping(action: OgcdAbility) {
+        // TODO: Make a version of this method that takes both a GCD and oGCD as arguments, so that it can account for
+        // cast times.
         const readyAt = this.cdTracker.statusOf(action).readyAt.absolute;
-        const maxDelayAt = this.nextGcdTime - (action.animationLock ?? STANDARD_ANIMATION_LOCK);
+        const maxDelayAt = this.nextGcdTime - animationLock(action);
         return readyAt <= Math.min(maxDelayAt, this.totalTime);
+    }
+
+    // Counter that makes this fail on purpose if buggy sim rotation code gets into an infinite loop
+    _counter: number = 0;
+
+    /**
+     * Determines whether or not a GCD plus zero or more oGCDs can be used without violating cooldowns and
+     * without clipping.
+     *
+     * Known issue: does not properly handle specifying the same oGCD (or something with a linked CD) multiple times
+     * in the oGCDs array.
+     *
+     * @param gcd
+     * @param ogcds
+     */
+    canUseCooldowns(gcd: GcdAbility, ogcds: OgcdAbility[]): 'yes' | 'no' | 'not-enough-time' {
+        if (this._counter++ > 10000) {
+            if (this._counter > 10005) {
+                throw Error("loop")
+            }
+        }
+        const timeBasis = this.nextGcdTime;
+        const effects = this.getCombinedEffectsFor(gcd, timeBasis).combinedEffects;
+        const totalGcdLock = this.castTime(gcd, effects);
+        const gcdTime = this.gcdTime(gcd, effects);
+        if (this.remainingGcdTime < totalGcdLock) {
+            return 'not-enough-time';
+        }
+        // If the GCD itself isnt' ready, the answer is no
+        if (!this.cdTracker.canUse(gcd, timeBasis)) {
+            return 'no';
+        }
+        // The time limit is the next GCD
+        const followingGcdTime = timeBasis + gcdTime;
+        // We have to wait for the animation lock/cast time of the initial GCD
+        let currentTime = timeBasis + totalGcdLock;
+        for (const ogcd of ogcds) {
+            // Time until oGCD is off CD
+            const waitTime = this.cdTracker.statusOfAt(ogcd, currentTime).readyAt.relative;
+            // Wait for it to be off CD
+            currentTime += waitTime;
+            // Lock or cast time
+            const lockTime = this.castTime(ogcd, this.getCombinedEffectsFor(ogcd, currentTime).combinedEffects);
+            currentTime += lockTime;
+            if (currentTime > followingGcdTime) {
+                return 'no';
+            }
+            else if (currentTime > this.totalTime) {
+                return 'not-enough-time';
+            }
+        }
+        return 'yes';
+
     }
 
     /**
@@ -974,7 +1030,7 @@ export class CycleProcessor {
             }
         });
         const pending = this.pendingPrePullOffset;
-        console.log(`Pre-pull adjustment: ${pending}`);
+        console.debug(`Pre-pull adjustment: ${pending}`);
         this.pendingPrePullOffset = 0;
         if (this.combatStarting) {
             this.buffHistory.forEach(bh => {
@@ -1059,7 +1115,7 @@ export class CycleProcessor {
      * @param effects
      */
     castTime(ability: Ability, effects: CombinedBuffEffect): number {
-        const base = ability.cast;
+        const base = ability.cast ?? (STANDARD_ANIMATION_LOCK + CASTER_TAX);
         const stats = effects.modifyStats(this.stats);
         const haste = effects.haste + stats.haste(ability.attackType);
         return ability.fixedGcd ? base :
@@ -1075,7 +1131,12 @@ export class CycleProcessor {
      * @param ability
      * @param effects
      */
-    gcdTime(ability: GcdAbility, effects: CombinedBuffEffect): number {
+    gcdTime(ability: GcdAbility, effects?: CombinedBuffEffect): number {
+
+        if (!effects) {
+            effects = this.getCombinedEffectsFor(ability).combinedEffects;
+        }
+
         const base = ability.gcd;
         const stats = effects.modifyStats(this.stats);
         const haste = effects.haste + stats.haste(ability.attackType);
@@ -1198,7 +1259,8 @@ export class CycleProcessor {
     }
 
     /**
-     * Whether or not the given ability is off cooldown/has charges right now.
+     * Whether or not the given ability is off cooldown/has charges. "Now" is considered to be literal if the argument
+     * is an oGCD. If the argument is a GCD, then "now" is when the next GCD would come up.
      *
      * @param ability
      */
@@ -1209,6 +1271,22 @@ export class CycleProcessor {
         else {
             return this.cdTracker.canUse(ability);
         }
+    }
+
+    /**
+     * Time until the given ability is off cooldown/has charges. "Now" is considered to be literal if the argument
+     * is an oGCD. If the argument is a GCD, then "now" is when the next GCD would come up.
+     *
+     * @param ability
+     */
+    timeUntilReady(ability: Ability): number {
+        if ('gcd' in ability) {
+            return this.cdTracker.statusOfAt(ability, this.nextGcdTime).readyAt.relative;
+        }
+        else {
+            return this.cdTracker.statusOf(ability).readyAt.relative;
+        }
+
     }
 
     private makeBuffController(buff: Buff): BuffController {

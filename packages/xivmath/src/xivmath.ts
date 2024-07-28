@@ -177,9 +177,7 @@ export function sksTickMulti(levelStats: LevelStats, sks: number) {
  * @param mainstat
  */
 export function mainStatMulti(levelStats: LevelStats, jobStats: JobData, mainstat: number) {
-    // TODO make this work without ts-ignore
-    // @ts-expect-error - can't figure out type def
-    const apMod = levelStats.mainStatPowerMod[jobStats.role] ?? levelStats.mainStatPowerMod.other;
+    const apMod = mainStatPowerMod(levelStats, jobStats);
     return Math.max(0, (fl(apMod * (mainstat - levelStats.baseMainStat) / levelStats.baseMainStat) + 100) / 100);
 }
 
@@ -193,6 +191,17 @@ export function mainStatMulti(levelStats: LevelStats, jobStats: JobData, mainsta
  */
 export function tenacityDmg(levelStats: LevelStats, tenacity: number) {
     return (1000 + fl(112 * (tenacity - levelStats.baseSubStat) / levelStats.levelDiv)) / 1000;
+}
+
+/**
+ * Convert a tenacity stat value to its respective incoming damage reduction. This is represented as a multiplier,
+ * i.e. a return of 0.95 represents a 5% mitigation.
+ *
+ * @param levelStats
+ * @param tenacity
+ */
+export function tenacityIncomingDmg(levelStats: LevelStats, tenacity: number) {
+    return (1000 - fl(200 * (tenacity - levelStats.baseSubStat) / levelStats.levelDiv)) / 1000;
 }
 
 /**
@@ -440,7 +449,16 @@ export function applyCrit(baseDamage: number, stats: ComputedSetStats) {
  */
 export function vitToHp(levelStats: LevelStats, jobStats: JobData, vitality: number) {
     // TODO make this work without ts-ignore
-    // @ts-expect-error - can't figure out type def
-    const hpMod = levelStats.hpScalar[jobStats.role] ?? levelStats.hpScalar.other;
+    const hpMod = hpScalar(levelStats, jobStats);
     return fl(levelStats.hp * jobStats.jobStatMultipliers.hp / 100) + fl((vitality - levelStats.baseMainStat) * hpMod);
+}
+
+export function hpScalar(levelStats: LevelStats, jobStats: JobData) {
+    // @ts-expect-error - can't figure out type def
+    return levelStats.hpScalar[jobStats.role] ?? levelStats.hpScalar.other;
+}
+
+export function mainStatPowerMod(levelStats: LevelStats, jobStats: JobData) {
+    // @ts-expect-error - can't figure out type def
+    return levelStats.mainStatPowerMod[jobStats.role] ?? levelStats.mainStatPowerMod.other;
 }

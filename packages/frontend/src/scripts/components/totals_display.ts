@@ -1,6 +1,7 @@
 import {CharacterGearSet} from "@xivgear/core/gear";
-import {ChanceStat, GcdStat, MultiplierStat, RawStatKey, TickStat} from "@xivgear/xivmath/geartypes";
+import {ChanceStat, GcdStat, MultiplierMitStat, MultiplierStat, RawStatKey, TickStat} from "@xivgear/xivmath/geartypes";
 import {NORMAL_GCD, STAT_ABBREVIATIONS, STAT_DISPLAY_ORDER} from "@xivgear/xivmath/xivconstants";
+import {toRelPct} from "@xivgear/core/util/strutils";
 
 export class SetViewToolbar extends HTMLElement {
 
@@ -34,22 +35,37 @@ export class SetTotalsDisplay extends HTMLElement {
                         value = {multiplier: stats.detMulti};
                         break;
                     case "tenacity":
-                        value = {multiplier: stats.tncMulti};
+                        value = {
+                            multiplier: stats.tncMulti,
+                            incomingMulti: stats.tncIncomingMulti
+                        };
                         break;
                     case "piety":
                         value = {perTick: stats.mpPerTick};
                         break;
                     case "crit":
-                        value = {chance: stats.critChance, multiplier: stats.critMulti};
+                        value = {
+                            chance: stats.critChance,
+                            multiplier: stats.critMulti
+                        };
                         break;
                     case "dhit":
-                        value = {chance: stats.dhitChance, multiplier: stats.dhitMulti};
+                        value = {
+                            chance: stats.dhitChance,
+                            multiplier: stats.dhitMulti
+                        };
                         break;
                     case "spellspeed":
-                        value = {gcd: stats.gcdMag(NORMAL_GCD), multiplier: stats.spsDotMulti};
+                        value = {
+                            gcd: stats.gcdMag(NORMAL_GCD),
+                            multiplier: stats.spsDotMulti
+                        };
                         break;
                     case "skillspeed":
-                        value = {gcd: stats.gcdPhys(NORMAL_GCD), multiplier: stats.sksDotMulti};
+                        value = {
+                            gcd: stats.gcdPhys(NORMAL_GCD),
+                            multiplier: stats.sksDotMulti
+                        };
                         break;
                 }
                 if (value) {
@@ -74,7 +90,7 @@ export class SingleStatTotalDisplay extends HTMLDivElement {
      * @param value Either one or two strings. One string will display centered, two will display with the first
      * on the left, and the second on the right.
      */
-    constructor(stat: RawStatKey, value: MultiplierStat | ChanceStat | TickStat | GcdStat) {
+    constructor(stat: RawStatKey, value: MultiplierStat | ChanceStat | TickStat | GcdStat | MultiplierMitStat) {
         super();
         // Upper area - name of stat/derived value
         this.classList.add('stat-total');
@@ -98,6 +114,11 @@ export class SingleStatTotalDisplay extends HTMLDivElement {
             else if ('gcd' in value) {
                 this.appendChild(quickTextDiv('stat-total-lower-left', value.gcd.toString()));
                 this.appendChild(quickTextDiv('stat-total-lower-right', `x${value.multiplier.toFixed(3)}`));
+                this.classList.add('stat-total-wide');
+            }
+            else if ('incomingMulti' in value) {
+                this.appendChild(quickTextDiv('stat-total-lower-left', value.multiplier.toString() + ','));
+                this.appendChild(quickTextDiv('stat-total-lower-right', `${toRelPct(value.incomingMulti - 1, 1)}%`));
                 this.classList.add('stat-total-wide');
             }
             else {

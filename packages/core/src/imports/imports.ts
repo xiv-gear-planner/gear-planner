@@ -14,7 +14,7 @@ export type ShortlinkImportSpec = {
 }
 export type EtroImportSpec = {
     importType: 'etro',
-    rawUuid: string
+    rawUuids: string[]
 }
 export type BisImportSpec = {
     importType: 'bis',
@@ -34,6 +34,8 @@ const bisRegexNew = RegExp(".*[&?]page=bis\\|(.*?)\\|(.*?)\\|(.*?)$");
 const etroRegex = RegExp("https://etro\\.gg/gearset/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})");
 
 export function parseImport(text: string): ImportSpec {
+
+    text = text.replaceAll('%7C', '|');
 
     const slExec = importShortlinkRegex.exec(text) || importShortlinkRegexNew.exec(text);
     if (slExec !== null) {
@@ -59,9 +61,15 @@ export function parseImport(text: string): ImportSpec {
     const etroExec = etroRegex.exec(text);
     // TODO: check level as well
     if (etroExec !== null) {
+        const etroMulti = RegExp(etroRegex, 'g');
+        const uuids: string[] = [];
+        let etroResult: RegExpExecArray;
+        while ((etroResult = etroMulti.exec(text)) !== null) {
+            uuids.push(etroResult[1]);
+        }
         return {
             importType: 'etro',
-            rawUuid: etroExec[1],
+            rawUuids: uuids,
         }
     }
     const bisExec = bisRegex.exec(text) || bisRegexNew.exec(text);

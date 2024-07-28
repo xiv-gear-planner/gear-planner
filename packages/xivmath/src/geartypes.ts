@@ -7,6 +7,7 @@ import {
     SPECIAL_SUB_STATS,
     SupportedLevel
 } from "./xivconstants";
+import {CustomItemExport} from "@xivgear/core/gear";
 
 export interface DisplayGearSlot {
 
@@ -285,6 +286,10 @@ export interface ComputedSetStats extends RawStats {
      * Tenacity Multiplier
      */
     tncMulti: number,
+    /**
+     * Tenacity incoming multiplier. e.g. 0.95 => 5% damage reduction.
+     */
+    tncIncomingMulti: number,
     /**
      * Multiplier from weapon damage.
      */
@@ -630,6 +635,10 @@ export interface SheetExport {
      * If ilvl sync is enabled, this represents what level the sheet should be synced to
      */
     ilvlSync?: number,
+    /**
+     * Custom items
+     */
+    customItems?: CustomItemExport[]
 }
 
 export interface SheetStatsExport extends SheetExport {
@@ -765,24 +774,51 @@ export const AttackTypes = ['Unknown', 'Auto-attack', 'Spell', 'Weaponskill', 'A
 export type AttackType = typeof AttackTypes[number];
 
 
+/**
+ * Base interface for a stat value
+ */
 export interface GeneralStat {
     stat: number,
 }
 
+/**
+ * Stat with an outgoing damage multiplier
+ */
 export interface MultiplierStat extends GeneralStat {
     multiplier: number
 }
 
+/**
+ * Stat that provides a
+ */
+export interface MitigationStat extends GeneralStat {
+    incomingMulti: number
+}
+
+/**
+ * Stat with an RNG-based multiplier (crit/dh)
+ */
 export interface ChanceStat extends GeneralStat {
     chance: number,
     multiplier: number
 }
 
-export interface GcdStat extends GeneralStat {
-    gcd: number,
-    multiplier: number
+/**
+ * Stat that provides a multiplier and also a mitigation
+ */
+export interface MultiplierMitStat extends MultiplierStat, MitigationStat {
 }
 
+/**
+ * Stat that affects GCD times + DoT multiplier (sks/sps)
+ */
+export interface GcdStat extends GeneralStat, MultiplierStat {
+    gcd: number,
+}
+
+/**
+ * Stat that affects the amount of a resource that a tick provides (piety)
+ */
 export interface TickStat extends GeneralStat {
     perTick: number
 }
@@ -798,7 +834,8 @@ export type GearAcquisitionSource =
     | 'ultimate'
     | 'artifact'
     | 'alliance'
-    | 'other';
+    | 'other'
+    | 'custom';
 
 export type GearSetIssue = {
     readonly severity: 'warning' | 'error',

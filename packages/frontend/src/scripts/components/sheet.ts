@@ -1,5 +1,5 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */                                                                                                                                                                                                                                                                // TODO: get back to fixing this at some point
-import {camel2title, capitalizeFirstLetter} from "@xivgear/core/util/strutils";
+/* eslint-disable @typescript-eslint/no-explicit-any */                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                // TODO: get back to fixing this at some point
+import {camel2title, capitalizeFirstLetter, toRelPct} from "@xivgear/core/util/strutils";
 import {BaseModal} from "@xivgear/common-ui/components/modal";
 import {
     CustomCell,
@@ -30,11 +30,11 @@ import {
     EquipSlots,
     GearItem,
     MateriaAutoFillController,
-    MateriaAutoFillPrio,
+    MateriaAutoFillPrio, MultiplierMitStat,
     MultiplierStat,
     PartyBonusAmount,
     RawStatKey,
-    SetExport
+    SetExport, SheetExport
 } from "@xivgear/xivmath/geartypes";
 import {CharacterGearSet} from "@xivgear/core/gear";
 import {
@@ -71,6 +71,9 @@ import {getRegisteredSimSpecs} from "@xivgear/core/sims/sim_registry";
 import {makeUrl} from "@xivgear/core/nav/common_nav";
 import {simMaintainersInfoElement} from "./sims";
 import {SaveAsModal} from "./new_sheet_form";
+import {DropdownActionMenu} from "./dropdown_actions_menu";
+import {CustomItemPopup} from "./custom_item_manager";
+import {confirmDelete} from "@xivgear/common-ui/components/delete_confirm";
 
 export type GearSetSel = SingleCellRowOrHeaderSelect<CharacterGearSet>;
 
@@ -127,6 +130,19 @@ function chanceStatDisplay(stats: ChanceStat) {
     outerDiv.appendChild(leftSpan);
     const rightSpan = document.createElement("span");
     rightSpan.textContent = (`(${(stats.chance * 100.0).toFixed(1)}%x${stats.multiplier.toFixed(3)})`);
+    rightSpan.classList.add("extra-stat-info");
+    outerDiv.appendChild(rightSpan);
+    return outerDiv;
+}
+
+function multiplierMitStatDisplay(stats: MultiplierMitStat) {
+    const outerDiv = document.createElement("div");
+    outerDiv.classList.add('multiplier-mit-stat-display');
+    const leftSpan = document.createElement("span");
+    leftSpan.textContent = stats.stat.toString();
+    outerDiv.appendChild(leftSpan);
+    const rightSpan = document.createElement("span");
+    rightSpan.textContent = (`(x${stats.multiplier.toFixed(3)}, ${toRelPct(stats.incomingMulti - 1, 1)}%)`);
     rightSpan.classList.add("extra-stat-info");
     outerDiv.appendChild(rightSpan);
     return outerDiv;
@@ -327,9 +343,13 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                 shortName: "actions",
                 displayName: "",
                 getter: gearSet => gearSet,
-                renderer: gearSet => {
+                renderer: (gearSet: CharacterGearSet) => {
                     const div = document.createElement("div");
-                    div.appendChild(makeActionButton([faIcon('fa-trash-can')], () => this.sheet.delGearSet(gearSet), 'Delete this set'));
+                    div.appendChild(makeActionButton([faIcon('fa-trash-can')], (ev) => {
+                        if (confirmDelete(ev, `Delete gear set '${gearSet.name}'?`)) {
+                            this.sheet.delGearSet(gearSet);
+                        }
+                    }, 'Delete this set'));
                     div.appendChild(makeActionButton([faIcon('fa-copy')], () => this.sheet.cloneAndAddGearSet(gearSet, true), 'Clone this set'));
                     const dragger = document.createElement('button');
                     dragger.title = 'Drag to re-order this set';
@@ -525,11 +545,12 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                 displayName: "TNC",
                 getter: gearSet => ({
                     stat: gearSet.computedStats.tenacity,
-                    multiplier: gearSet.computedStats.tncMulti
-                }) as MultiplierStat,
-                renderer: multiplierStatDisplay,
+                    multiplier: gearSet.computedStats.tncMulti,
+                    incomingMulti: gearSet.computedStats.tncIncomingMulti
+                }) as MultiplierMitStat,
+                renderer: multiplierMitStatDisplay,
                 condition: () => this.sheet.isStatRelevant('tenacity'),
-                extraClasses: ['stat-col', 'multiplier-stat-col'],
+                extraClasses: ['stat-col', 'multiplier-mit-stat-col'],
             },
             ...(viewOnly ? [] : simColumns),
         ];
@@ -1217,6 +1238,8 @@ export class GearPlanSheetGui extends GearPlanSheet {
         // Buttons and controls at the bottom of the table
         // this.buttonRow.id = 'gear-sheet-button-row';
 
+        const sheetOptions = new DropdownActionMenu('More Actions...');
+
         if (!this._isViewOnly) {
             const addRowButton = makeActionButton("New Gear Set", () => {
                 const newSet = new CharacterGearSet(this);
@@ -1224,25 +1247,46 @@ export class GearPlanSheetGui extends GearPlanSheet {
                 this.addGearSet(newSet, true);
             });
             buttonsArea.appendChild(addRowButton);
-            const renameButton = makeActionButton("Sheet Name/Description", () => {
-                startRenameSheet(this);
+
+            sheetOptions.addAction({
+                label: 'Name/Description',
+                action: () => startRenameSheet(this)
             });
-            buttonsArea.appendChild(renameButton);
+            sheetOptions.addAction({
+                label: 'Manage Custom Items',
+                action: () => new CustomItemPopup(this).attachAndShow(),
+            });
+            // const renameButton = makeActionButton("Sheet Name/Description", () => {
+            //     startRenameSheet(this);
+            // });
+            // buttonsArea.appendChild(renameButton);
+            buttonsArea.appendChild(sheetOptions);
         }
+
 
         if (this.ilvlSync != undefined) {
             const span = quickElement('span', [], [document.createTextNode(`ilvl Sync: ${this.ilvlSync}`)]);
             const ilvlSyncLabel = quickElement('div', ['like-a-button'], [span]);
-            // TODO: think about how to allow creating a new sheet with different ilvl
             // ilvlSyncLabel.title = 'To change the item level sync, click the "Save As" button and create a '
             buttonsArea.appendChild(ilvlSyncLabel);
         }
 
-        const saveAsButton = makeActionButton("Save As", () => {
-            const modal = new SaveAsModal(this, newSheet => openSheetByKey(newSheet.saveKey));
-            modal.attachAndShow();
-        });
-        buttonsArea.appendChild(saveAsButton);
+        if (this._isViewOnly) {
+            const saveAsButton = makeActionButton("Save As", () => {
+                const modal = new SaveAsModal(this, newSheet => openSheetByKey(newSheet.saveKey));
+                modal.attachAndShow();
+            });
+            buttonsArea.appendChild(saveAsButton);
+        }
+        else {
+            sheetOptions.addAction({
+                label: 'Save As',
+                action: () => {
+                    const modal = new SaveAsModal(this, newSheet => openSheetByKey(newSheet.saveKey));
+                    modal.attachAndShow();
+                },
+            });
+        }
 
         if (!this._isViewOnly) {
 
@@ -1637,15 +1681,17 @@ export class ImportSetsModal extends BaseModal {
         }
     }
 
-    checkJob(importedJob: JobName, plural: boolean): boolean {
-        if (importedJob !== this.sheet.classJobName) {
+    checkJob(plural: boolean, ...importedJobs: JobName[]): boolean {
+        const nonMatchingJobs = importedJobs.filter(job => job !== this.sheet.classJobName);
+        if (nonMatchingJobs.length > 0) {
+            const flaggedJobs = nonMatchingJobs.join(', ');
             // TODO: *try* to import some sims, or at least load up the defaults.
             let msg;
             if (plural) {
-                msg = `You are trying to import ${importedJob} set(s) into a ${this.sheet.classJobName} sheet. Class-specific items, such as weapons, will need to be re-selected.`;
+                msg = `You are trying to import ${flaggedJobs} set(s) into a ${this.sheet.classJobName} sheet. Class-specific items, such as weapons, will need to be re-selected.`;
             }
             else {
-                msg = `You are trying to import a ${importedJob} set into a ${this.sheet.classJobName} sheet. Class-specific items, such as weapons, will need to be re-selected.`;
+                msg = `You are trying to import a ${flaggedJobs} set into a ${this.sheet.classJobName} sheet. Class-specific items, such as weapons, will need to be re-selected.`;
             }
             return confirm(msg);
         }
@@ -1674,13 +1720,15 @@ export class ImportSetsModal extends BaseModal {
                     return;
                 case "etro":
                     this.ready = false;
-                    getSetFromEtro(parsed.rawUuid).then(set => {
-                        if (!this.checkJob(set.job, false)) {
+                    Promise.all(parsed.rawUuids.map(getSetFromEtro)).then(sets => {
+                        if (!this.checkJob(false, ...sets.map(set => set.job))) {
                             this.ready = true;
                             return;
                         }
-                        this.sheet.addGearSet(this.sheet.importGearSet(set), true);
-                        console.log("Loaded set from Etro");
+                        sets.forEach(set => {
+                            this.sheet.addGearSet(this.sheet.importGearSet(set), true);
+                        });
+                        console.log("Imported set(s) from Etro");
                         this.close();
                     }, err => {
                         this.ready = true;
@@ -1712,7 +1760,7 @@ export class ImportSetsModal extends BaseModal {
     doJsonImport(text: string) {
         const rawImport = JSON.parse(text);
         if ('sets' in rawImport && rawImport.sets.length) {
-            if (!this.checkJob(rawImport.job, true)) {
+            if (!this.checkJob(true, rawImport.job)) {
                 return;
             }
             // import everything
@@ -1728,7 +1776,7 @@ export class ImportSetsModal extends BaseModal {
             closeModal();
         }
         else if ('name' in rawImport && 'items' in rawImport) {
-            if (!this.checkJob(rawImport.job, false)) {
+            if (!this.checkJob(false, rawImport.job)) {
                 return;
             }
             this.sheet.addGearSet(this.sheet.importGearSet(rawImport), true);
@@ -1837,8 +1885,14 @@ export class GraphicalSheetProvider extends SheetProvider<GearPlanSheetGui> {
         super((...args) => new GearPlanSheetGui(...args));
     }
 
-    fromSetExport(importedData: SetExport): GearPlanSheetGui {
-        const out = super.fromSetExport(importedData);
+    fromExport(importedData: SheetExport): GearPlanSheetGui {
+        const out = super.fromExport(importedData);
+        out.setSelectFirstRowByDefault();
+        return out;
+    }
+
+    fromSetExport(...importedData: SetExport[]): GearPlanSheetGui {
+        const out = super.fromSetExport(...importedData);
         out.setSelectFirstRowByDefault();
         return out;
     }

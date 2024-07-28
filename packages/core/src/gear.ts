@@ -1,13 +1,13 @@
 import {
     ALL_SUB_STATS,
-    ARTIFACT_ITEM_LEVELS,
-    BASIC_TOME_GEAR_ILVLS,
     bluWdfromInt,
+    CURRENT_MAX_LEVEL,
     EMPTY_STATS,
     FAKE_MAIN_STATS,
     getLevelStats,
     getRaceStats,
     JobName,
+    LEVEL_ITEMS,
     MAIN_STATS,
     MATERIA_ACCEPTABLE_OVERCAP_LOSS,
     MATERIA_LEVEL_MAX_NORMAL,
@@ -17,7 +17,6 @@ import {
     MateriaSubstat,
     NORMAL_GCD,
     RaceName,
-    RAID_TIER_ILVLS,
     SPECIAL_SUB_STATS,
     statById
 } from "@xivgear/xivmath/xivconstants";
@@ -50,12 +49,19 @@ import {
     StatBonus,
     XivCombatItem
 } from "@xivgear/xivmath/geartypes";
-import {xivApiIcon} from "./external/xivapi";
-import {IlvlSyncInfo} from "./datamanager";
-import {XivApiStat, xivApiStatMapping} from "./external/xivapitypes";
+import {xivApiIconUrl} from "./external/xivapi";
+import {
+    IlvlSyncInfo,
+    XivApiFoodDataRaw,
+    XivApiFoodItemDataRaw,
+    XivApiItemDataRaw,
+    XivApiMateriaDataRaw
+} from "./datamanager";
+import {BaseParamToStatKey, RelevantBaseParam} from "./external/xivapitypes";
 import {Inactivitytimer} from "./util/inactivitytimer";
 import {addStats, finalizeStats} from "@xivgear/xivmath/xivstats";
 import {GearPlanSheet} from "./sheet";
+import {requireArrayTyped, requireBool, requireNumber, requireString} from "./external/data_validators";
 
 
 export function nonEmptyRelicStats(stats: RelicStats | undefined): boolean {
@@ -707,10 +713,6 @@ export type ItemSingleStatDetail = {
 export class XivApiGearInfo implements GearItem {
     id: number;
     name: string;
-    /**
-     * Raw 'Stats' object from Xivapi
-     */
-    Stats: object;
     iconUrl: URL;
     ilvl: number;
     displayGearSlot: DisplayGearSlot;
@@ -730,13 +732,12 @@ export class XivApiGearInfo implements GearItem {
     isSyncedDown: boolean;
     relicStatModel: RelicStatModel;
 
-    constructor(data: object) {
-        this.id = data['ID'];
-        this.name = data['Name'];
-        this.ilvl = data['LevelItem'];
-        this.iconUrl = xivApiIcon(data['IconHD']);
-        this.Stats = data['Stats'] ? data['Stats'] : [];
-        const eqs = data['EquipSlotCategory'];
+    constructor(data: XivApiItemDataRaw) {
+        this.id = requireNumber(data.ID);
+        this.name = requireString(data.Name);
+        this.ilvl = requireNumber(data.LevelItem['value']);
+        this.iconUrl = new URL(xivApiIconUrl(requireNumber(data.Icon['id']), true));
+        const eqs = data.EquipSlotCategory['fields'];
         if (!eqs) {
             console.error('EquipSlotCategory was null!', data);
         }
@@ -793,39 +794,45 @@ export class XivApiGearInfo implements GearItem {
             console.error("Unknown slot data!", eqs);
         }
         this.displayGearSlot = this.displayGearSlotName ? DisplayGearSlotInfo[this.displayGearSlotName] : undefined;
-        const weaponDelayRaw = data['DelayMs'];
-        this.stats = {
-            vitality: this.getStatRaw("Vitality"),
-            strength: this.getStatRaw("Strength"),
-            dexterity: this.getStatRaw("Dexterity"),
-            intelligence: this.getStatRaw("Intelligence"),
-            mind: this.getStatRaw("Mind"),
-            piety: this.getStatRaw("Piety"),
-            crit: this.getStatRaw("CriticalHit"),
-            dhit: this.getStatRaw("DirectHitRate"),
-            determination: this.getStatRaw("Determination"),
-            tenacity: this.getStatRaw("Tenacity"),
-            spellspeed: this.getStatRaw("SpellSpeed"),
-            skillspeed: this.getStatRaw("SkillSpeed"),
-            wdPhys: data['DamagePhys'],
-            wdMag: data['DamageMag'],
-            weaponDelay: weaponDelayRaw ? (weaponDelayRaw / 1000.0) : 0,
-            hp: 0
-        };
-        if (data['CanBeHq']) {
-            for (let i = 0; i <= 5; i++) {
-                if (data[`BaseParamSpecial${i}TargetID`] === 12) {
-                    this.stats.wdPhys += data[`BaseParamValueSpecial${i}`];
+        const weaponDelayRaw = requireNumber(data.Delayms);
+        this.stats = new RawStats();
+        this.stats.wdPhys = requireNumber(data.DamagePhys);
+        this.stats.wdMag = requireNumber(data.DamageMag);
+        this.stats.weaponDelay = weaponDelayRaw ? (weaponDelayRaw / 1000.0) : 0;
+        for (const i in requireArrayTyped(data.BaseParam, 'object')) {
+            const paramName = requireString(data.BaseParam[i]['fields']['Name']);
+            if (!paramName) {
+                continue;
+            }
+            const paramValue = requireNumber(data.BaseParamValue[i]);
+            this.stats[BaseParamToStatKey[paramName]] = paramValue;
+        }
+        if (data.CanBeHq) {
+            for (const i in requireArrayTyped(data.BaseParamSpecial, 'object')) {
+                const paramId = requireNumber(data.BaseParamSpecial[i]['value']);
+                if (paramId <= 0) {
+                    continue;
                 }
-                else if (data[`BaseParamSpecial${i}TargetID`] === 13) {
-                    this.stats.wdMag += data[`BaseParamValueSpecial${i}`];
+                const paramName = requireString(data.BaseParamSpecial[i]['fields']['Name']);
+                const paramValue = requireNumber(data.BaseParamValueSpecial[i]);
+                if (paramId === 12) {
+                    this.stats.wdPhys += paramValue;
+                }
+                else if (paramId === 13) {
+                    this.stats.wdMag += paramValue;
+                }
+                else {
+                    const paramKey = BaseParamToStatKey[paramName];
+                    if (paramKey !== null) {
+                        this.stats[paramKey] += paramValue;
+                    }
                 }
             }
         }
-        this.isUnique = Boolean(data['IsUnique']);
+        this.isUnique = Boolean(data.IsUnique);
         this.computeSubstats();
         this.materiaSlots = [];
-        const baseMatCount: number = data['MateriaSlotCount'];
+        const baseMatCount: number = requireNumber(data.MateriaSlotCount);
         if (baseMatCount === 0) {
             // If there are no materia slots, then it might be a custom relic
             // TODO: is this branch still needed?
@@ -846,7 +853,7 @@ export class XivApiGearInfo implements GearItem {
             // If it has materia slots, it definitely isn't a custom relic
             this.isCustomRelic = false;
             // Is overmelding allowed?
-            const overmeld: boolean = data['IsAdvancedMeldingPermitted'] as boolean;
+            const overmeld: boolean = requireBool(data.IsAdvancedMeldingPermitted);
             // The materia slot count represents slots that are always meldable
             for (let i = 0; i < baseMatCount; i++) {
                 // TODO: figure out grade automatically
@@ -871,111 +878,113 @@ export class XivApiGearInfo implements GearItem {
             }
         }
         // Try to guess the acquisition source of an item
-        try {
-            const rarity: number = data['Rarity'];
-            // Check if it is craftable by checking if any recipes result in this item
-            const isCraftable = data['GameContentLinks']?.['Recipe'];
-            // Check if it is buyable by checking if any shops sell it
-            const hasShop = data['GameContentLinks']?.['SpecialShop'];
-            // TODO: nothing results in 'normraid'
-            switch (rarity) {
-                case 1:
-                    if (isCraftable) {
-                        this.acquisitionType = 'crafted';
-                    }
-                    break;
-                // Green
-                case 2:
-                    if (this.name.includes('Augmented')) {
-                        this.acquisitionType = 'augcrafted';
-                    }
-                    else {
-                        if (isCraftable) {
-                            this.acquisitionType = 'crafted';
-                        }
-                        else {
-                            this.acquisitionType = 'dungeon';
-                        }
-                    }
-                    break;
-                // Blue
-                case 3: {
-                    // TODO: how to differentiate raid vs tome vs aug tome?
-                    // Aug tome: it has "augmented" in the name, easy
-                    const isWeaponOrOH = this.occGearSlotName === 'Weapon2H' || this.occGearSlotName === 'Weapon1H' || this.occGearSlotName === 'OffHand';
-                    if (ARTIFACT_ITEM_LEVELS.includes(this.ilvl)) {
-                        // Ambiguous due to start-of-expac ex trials
-                        if (isWeaponOrOH) {
-                            this.acquisitionType = 'other';
-                        }
-                        else {
-                            this.acquisitionType = 'artifact';
-                        }
-                    }
-                    // Start-of-expac uncapped tome gear
-                    else if (BASIC_TOME_GEAR_ILVLS.includes(this.ilvl)) {
-                        this.acquisitionType = 'tome';
-                    }
-                    const chkRelIlvl = (relativeToRaidTier: number) => {
-                        return RAID_TIER_ILVLS.includes(this.ilvl - relativeToRaidTier);
-                    };
-                    if (chkRelIlvl(0)) {
-                        if (this.name.includes('Augmented')) {
-                            this.acquisitionType = 'augtome';
-                        }
-                        else {
-                            this.acquisitionType = 'raid';
-                        }
-                    }
-                    else if (chkRelIlvl(-10)) {
-                        if (hasShop) {
-                            this.acquisitionType = 'tome';
-                        }
-                        else {
-                            this.acquisitionType = 'alliance';
-                        }
-                    }
-                    else if (chkRelIlvl(-20)) {
-
-                        if (isWeaponOrOH) {
-                            this.acquisitionType = 'extrial';
-                        }
-                        else {
-                            // Ambiguous - first-of-the-expac extreme trial accessories and normal raid
-                            // accessories share the same ilvl
-                            this.acquisitionType = 'other';
-                        }
-                    }
-                    else if ((chkRelIlvl(-5) || chkRelIlvl(-15)) && isWeaponOrOH) {
-                        this.acquisitionType = 'extrial';
-                    }
-                    else if (this.ilvl % 10 === 5) {
-                        if (isWeaponOrOH) {
-                            if (chkRelIlvl(5)) {
-                                if (this.name.includes('Ultimate')) {
-                                    this.acquisitionType = 'ultimate';
-                                }
-                                else {
-                                    this.acquisitionType = 'raid';
-                                }
-                            }
-                        }
-                    }
-                    break;
-                }
-                // Purple
-                case 4:
-                    this.acquisitionType = 'relic';
-                    break;
-            }
-        }
-        catch (e) {
-            console.error("Error determining item rarity", data);
-        }
-        if (!this.acquisitionType) {
-            console.warn(`Unable to determine acquisition source for item ${this.name} (${this.id})`, data);
-            this.acquisitionType = 'other';
-        }
+        // Disabled since new xivapi does not provide this in an easy form
+        // try {
+        //     const rarity: number = data.Rarity as number;
+        //     // Check if it is craftable by checking if any recipes result in this item
+        //     const isCraftable = data.GameContentLinks?.['Recipe'];
+        //     // Check if it is buyable by checking if any shops sell it
+        //     const hasShop = data.GameContentLinks?.['SpecialShop'];
+        //     // TODO: nothing results in 'normraid'
+        //     switch (rarity) {
+        //         case 1:
+        //             if (isCraftable) {
+        //                 this.acquisitionType = 'crafted';
+        //             }
+        //             break;
+        //         // Green
+        //         case 2:
+        //             if (this.name.includes('Augmented')) {
+        //                 this.acquisitionType = 'augcrafted';
+        //             }
+        //             else {
+        //                 if (isCraftable) {
+        //                     this.acquisitionType = 'crafted';
+        //                 }
+        //                 else {
+        //                     this.acquisitionType = 'dungeon';
+        //                 }
+        //             }
+        //             break;
+        //         // Blue
+        //         case 3: {
+        //             // TODO: how to differentiate raid vs tome vs aug tome?
+        //             // Aug tome: it has "augmented" in the name, easy
+        //             const isWeaponOrOH = this.occGearSlotName === 'Weapon2H' || this.occGearSlotName === 'Weapon1H' || this.occGearSlotName === 'OffHand';
+        //             if (ARTIFACT_ITEM_LEVELS.includes(this.ilvl)) {
+        //                 // Ambiguous due to start-of-expac ex trials
+        //                 if (isWeaponOrOH) {
+        //                     this.acquisitionType = 'other';
+        //                 }
+        //                 else {
+        //                     this.acquisitionType = 'artifact';
+        //                 }
+        //             }
+        //             // Start-of-expac uncapped tome gear
+        //             else if (BASIC_TOME_GEAR_ILVLS.includes(this.ilvl)) {
+        //                 this.acquisitionType = 'tome';
+        //             }
+        //             const chkRelIlvl = (relativeToRaidTier: number) => {
+        //                 return RAID_TIER_ILVLS.includes(this.ilvl - relativeToRaidTier);
+        //             };
+        //             if (chkRelIlvl(0)) {
+        //                 if (this.name.includes('Augmented')) {
+        //                     this.acquisitionType = 'augtome';
+        //                 }
+        //                 else {
+        //                     this.acquisitionType = 'raid';
+        //                 }
+        //             }
+        //             else if (chkRelIlvl(-10)) {
+        //                 if (hasShop) {
+        //                     this.acquisitionType = 'tome';
+        //                 }
+        //                 else {
+        //                     this.acquisitionType = 'alliance';
+        //                 }
+        //             }
+        //             else if (chkRelIlvl(-20)) {
+        //
+        //                 if (isWeaponOrOH) {
+        //                     this.acquisitionType = 'extrial';
+        //                 }
+        //                 else {
+        //                     // Ambiguous - first-of-the-expac extreme trial accessories and normal raid
+        //                     // accessories share the same ilvl
+        //                     this.acquisitionType = 'other';
+        //                 }
+        //             }
+        //             else if ((chkRelIlvl(-5) || chkRelIlvl(-15)) && isWeaponOrOH) {
+        //                 this.acquisitionType = 'extrial';
+        //             }
+        //             else if (this.ilvl % 10 === 5) {
+        //                 if (isWeaponOrOH) {
+        //                     if (chkRelIlvl(5)) {
+        //                         if (this.name.includes('Ultimate')) {
+        //                             this.acquisitionType = 'ultimate';
+        //                         }
+        //                         else {
+        //                             this.acquisitionType = 'raid';
+        //                         }
+        //                     }
+        //                 }
+        //             }
+        //             break;
+        //         }
+        //         // Purple
+        //         case 4:
+        //             this.acquisitionType = 'relic';
+        //             break;
+        //     }
+        // }
+        // catch (e) {
+        //     console.error("Error determining item rarity", data);
+        // }
+        // if (!this.acquisitionType) {
+        //     console.warn(`Unable to determine acquisition source for item ${this.name} (${this.id})`, data);
+        //     this.acquisitionType = 'other';
+        // }
+        this.acquisitionType = 'other';
     }
 
     private computeSubstats() {
@@ -1037,24 +1046,11 @@ export class XivApiGearInfo implements GearItem {
             this.isSyncedDown = false;
         }
     }
-
-    private getStatRaw(stat: XivApiStat) {
-        const statValues = this.Stats[stat];
-        if (statValues === undefined) {
-            return 0;
-        }
-        if (statValues['HQ'] !== undefined) {
-            return statValues['HQ'];
-        }
-        else {
-            return statValues['NQ'];
-        }
-    }
 }
 
 export class XivApiFoodInfo implements FoodItem {
     bonuses: {
-        [K in keyof RawStats]?: {
+        [K in RawStatKey]?: {
             percentage: number;
             max: number
         }
@@ -1066,16 +1062,16 @@ export class XivApiFoodInfo implements FoodItem {
     primarySubStat: RawStatKey | undefined;
     secondarySubStat: RawStatKey | undefined;
 
-    constructor(data: object) {
-        this.id = data['ID'];
-        this.name = data['Name'];
-        this.iconUrl = new URL("https://xivapi.com/" + data['IconHD']);
-        this.ilvl = data['LevelItem'];
-        for (const key in data['Bonuses']) {
-            const bonusData = data['Bonuses'][key];
-            this.bonuses[xivApiStatMapping[key as RawStatKey]] = {
-                percentage: bonusData['ValueHQ'] ?? bonusData['Value'],
-                max: bonusData['MaxHQ'] ?? bonusData['Max']
+    constructor(data: XivApiFoodDataRaw, foodData: XivApiFoodItemDataRaw) {
+        this.id = requireNumber(data.ID);
+        this.name = requireString(data.Name);
+        this.iconUrl = new URL(xivApiIconUrl(requireNumber(data.Icon['id'])));
+        this.ilvl = requireNumber(data.LevelItem['value']);
+        for (const index in requireArrayTyped(foodData.BaseParam, 'object')) {
+            const baseParamName = requireString(foodData['BaseParam'][index].fields.Name) as RelevantBaseParam;
+            this.bonuses[BaseParamToStatKey[baseParamName]] = {
+                percentage: requireNumber(foodData.ValueHQ[index]),
+                max: requireNumber(foodData.MaxHQ[index]),
             }
         }
         const sortedStats = Object.entries(this.bonuses).sort((entryA, entryB) => entryB[1].max - entryA[1].max).map(entry => entry[0] as RawStatKey).filter(stat => stat !== 'vitality');
@@ -1089,22 +1085,25 @@ export class XivApiFoodInfo implements FoodItem {
 
 }
 
-export function processRawMateriaInfo(data: object): Materia[] {
+export function processRawMateriaInfo(data: XivApiMateriaDataRaw): Materia[] {
     const out: Materia[] = [];
     for (let i = MATERIA_LEVEL_MIN_RELEVANT - 1; i < MATERIA_LEVEL_MAX_NORMAL; i++) {
-        const itemData = data['Item' + i];
-        const itemName = itemData["Name"];
+        const itemData = data.Item[i];
+        const itemFields = itemData['fields'];
+        const itemId = requireNumber(itemData['row_id']);
+        const itemName = requireString(itemFields["Name"]);
         const stats = new RawStats();
-        const stat = statById(data['BaseParam']['ID']);
+        // TODO: use statById in more places
+        const stat = statById(requireNumber(data.BaseParam['row_id']));
         if (!stat || !itemName) {
             continue;
         }
-        stats[stat] = data['Value' + i];
+        stats[stat] = requireNumber(data.Value[i]);
         const grade = (i + 1);
         out.push({
             name: itemName,
-            id: itemData["ID"],
-            iconUrl: new URL("https://xivapi.com/" + itemData["IconHD"]),
+            id: itemId,
+            iconUrl: new URL(xivApiIconUrl(requireNumber(itemFields['Icon']['id']), true)),
             stats: stats,
             primaryStat: stat,
             primaryStatValue: stats[stat],
@@ -1115,3 +1114,129 @@ export function processRawMateriaInfo(data: object): Materia[] {
     return out;
 }
 
+export type CustomItemExport = {
+    ilvl: number;
+    largeMateriaSlots: number;
+    smallMateriaSlots: number;
+    materiaGrade: number;
+    name: string;
+    fakeId: number;
+    slot: OccGearSlotKey;
+    isUnique: boolean;
+    stats: RawStats;
+}
+
+export class CustomItem implements GearItem {
+
+    unsyncedVersion: GearItem = this;
+    isCustomRelic: boolean = false;
+    // TODO: syncing and stat caps not supported
+    isSyncedDown: boolean = false;
+    relicStatModel = undefined;
+    // unsyncedVersion: GearItem = null;
+    acquisitionType: GearAcquisitionSource = 'custom';
+
+    // TODO
+    primarySubstat: keyof RawStats = null;
+    secondarySubstat: keyof RawStats = null;
+    // statCaps: { determination?: number; piety?: number; crit?: number; dhit?: number; spellspeed?: number; skillspeed?: number; tenacity?: number; hp?: number; vitality?: number; strength?: number; dexterity?: number; intelligence?: number; mind?: number; wdPhys?: number; wdMag?: number; weaponDelay?: number; };
+    // TODO: syncing and stat caps not supported
+    statCaps = {};
+    // TODO
+    iconUrl: URL = new URL(xivApiIconUrl(26270));
+    private _data: CustomItemExport;
+
+    private constructor(exportedData: CustomItemExport) {
+        this._data = exportedData;
+    }
+
+    private static defaults(): Omit<CustomItemExport, 'fakeId' | 'name' | 'slot'> {
+        return {
+            isUnique: false,
+            ilvl: LEVEL_ITEMS[CURRENT_MAX_LEVEL].minILvl,
+            largeMateriaSlots: 2,
+            smallMateriaSlots: 0,
+            materiaGrade: MATERIA_LEVEL_MAX_NORMAL,
+            stats: new RawStats(),
+        };
+    }
+
+    static fromExport(exportedData: CustomItemExport): CustomItem {
+        // Copy the defaults so that new fields can be added to existing items
+        return new CustomItem({
+            ...this.defaults(),
+            ...exportedData
+        });
+    }
+
+    static fromScratch(fakeId: number, slot: OccGearSlotKey): CustomItem {
+        const data: CustomItemExport = {
+            ...this.defaults(),
+            fakeId: fakeId,
+            name: "My Custom " + slot,
+            slot: slot,
+        };
+        return new CustomItem(data);
+    }
+
+    get ilvl() {
+        return this._data.ilvl;
+    }
+
+    get isUnique() {
+        return this._data.isUnique;
+    }
+
+    get name() {
+        return this._data.name;
+    }
+
+    get occGearSlotName() {
+        return this._data.slot;
+    }
+
+    get displayGearSlot(): DisplayGearSlot {
+        return DisplayGearSlotInfo[this.displayGearSlotName];
+    }
+
+    get stats() {
+        return this._data.stats;
+    }
+
+    get displayGearSlotName(): DisplayGearSlotKey {
+        if (this.occGearSlotName == 'Weapon1H' || this.occGearSlotName == 'Weapon2H') {
+            return 'Weapon';
+        }
+        return this.occGearSlotName;
+    }
+
+    get materiaSlots(): MateriaSlot[] {
+        const out: MateriaSlot[] = [];
+        for (let i = 0; i < this._data.largeMateriaSlots; i++) {
+            out.push({
+                maxGrade: this._data.materiaGrade,
+                allowsHighGrade: true
+            });
+        }
+        for (let i = 0; i < this._data.smallMateriaSlots; i++) {
+            out.push({
+                maxGrade: this._data.materiaGrade - 1,
+                allowsHighGrade: false
+            });
+        }
+        return out;
+    }
+
+    get id() {
+        return this._data.fakeId;
+    }
+
+    export(): CustomItemExport {
+        return {...this._data};
+    }
+
+    get customData(): CustomItemExport {
+        return this._data;
+    }
+
+}

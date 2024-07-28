@@ -11,6 +11,7 @@ import {BaseMultiCycleSim} from "../sim_processors";
 import {gemdraught1mind} from "@xivgear/core/sims/common/potion";
 import {FieldBoundCheckBox, labeledCheckbox} from "@xivgear/common-ui/components/util";
 import {rangeInc} from "@xivgear/core/util/array_utils";
+import {animationLock} from "@xivgear/core/sims/ability_helpers";
 
 /**
  * Used for all 360p filler abilities
@@ -103,6 +104,7 @@ export const sgeNewSheetSpec: SimSpec<SgeSheetSim, SgeNewSheetSettingsExternal> 
 class SageCycleProcessor extends CycleProcessor {
     constructor(settings: MultiCycleSettings) {
         super(settings);
+        this.cdEnforcementMode = 'delay';
     }
 
     useDotIfWorth() {
@@ -123,6 +125,38 @@ class SageCycleProcessor extends CycleProcessor {
         }
         else {
             return super.use(ability);
+        }
+    }
+
+    doEvenMinuteBurst() {
+        this.use(phlegma);
+        const latestPsycheTime = this.nextGcdTime - animationLock(psyche);
+        this.advanceTo(latestPsycheTime);
+        if (this.isReady(psyche)) {
+            this.use(psyche);
+            this.use(phlegma);
+        }
+        else {
+            this.doOffMinuteBurst();
+        }
+
+    }
+
+    doOffMinuteBurst() {
+        // eslint-disable-next-line no-constant-condition
+        while (true) {
+            const canUse = this.canUseCooldowns(phlegma, [psyche]);
+            if (canUse === 'yes') {
+                this.use(phlegma);
+                this.use(psyche);
+                return;
+            }
+            else if (canUse === 'no') {
+                this.use(filler);
+            }
+            else {
+                return;
+            }
         }
     }
 }
@@ -168,15 +202,12 @@ export class SgeSheetSim extends BaseMultiCycleSim<SgeSheetSimResult, SgeNewShee
                     cp.useDotIfWorth();
                     cycle.use(filler);
                     cycle.use(filler);
-                    cycle.use(phlegma);
-                    cycle.use(psyche);
-                    cycle.use(phlegma);
+                    cp.doEvenMinuteBurst();
                     cycle.useUntil(filler, 30);
                     cp.useDotIfWorth();
                     cycle.useUntil(filler, 60);
                     cp.useDotIfWorth();
-                    cycle.use(phlegma);
-                    cycle.use(psyche);
+                    cp.doOffMinuteBurst();
                     cycle.useUntil(filler, 90);
                     cp.useDotIfWorth();
                     cycle.useUntil(filler, 'end');
@@ -195,18 +226,13 @@ export class SgeSheetSim extends BaseMultiCycleSim<SgeSheetSimResult, SgeNewShee
                     cp.useDotIfWorth();
                     cycle.use(filler);
                     cycle.use(filler);
-                    cycle.use(phlegma);
-                    cycle.use(psyche);
-                    cycle.use(phlegma);
+                    cp.doEvenMinuteBurst();
                     cycle.useUntil(filler, 30 - DOT_CLIP_AMOUNT);
                     cp.useDotIfWorth();
                     cycle.useUntil(filler, 60 - DOT_CLIP_AMOUNT);
                     cycle.use(eDosis);
                     cycle.useUntil(filler, 60);
-                    cycle.use(filler);
-                    cycle.use(filler);
-                    cycle.use(phlegma);
-                    cycle.use(psyche);
+                    cp.doOffMinuteBurst();
                     cycle.useUntil(filler, 90 - DOT_CLIP_AMOUNT);
                     cp.useDotIfWorth();
                     cycle.useUntil(filler, 120 - DOT_CLIP_AMOUNT);
@@ -217,15 +243,13 @@ export class SgeSheetSim extends BaseMultiCycleSim<SgeSheetSimResult, SgeNewShee
                     cycle.use(filler);
                     cycle.use(filler);
                     cycle.use(filler);
-                    cycle.use(phlegma);
-                    cycle.use(psyche);
-                    cycle.use(phlegma);
+                    // There is always one phlegma charge available at this point
+                    cp.doEvenMinuteBurst();
                     cycle.useUntil(filler, 30 - DOT_CLIP_AMOUNT);
                     cp.useDotIfWorth();
                     cycle.useUntil(filler, 60 - DOT_CLIP_AMOUNT);
                     cp.useDotIfWorth();
-                    cycle.use(phlegma);
-                    cycle.use(psyche);
+                    cp.doOffMinuteBurst();
                     cycle.useUntil(filler, 90 - DOT_CLIP_AMOUNT);
                     cp.useDotIfWorth();
                     cycle.useUntil(filler, 120 - DOT_CLIP_AMOUNT);
@@ -234,56 +258,6 @@ export class SgeSheetSim extends BaseMultiCycleSim<SgeSheetSimResult, SgeNewShee
                 });
             },
         }))
-            // , {
-            //     // Dot late
-            //     cycleTime: 120,
-            //     apply(cp: SageCycleProcessor) {
-            //         // TODO: make a setting for this
-            //         if (this.usePotion) {
-            //             cp.useOgcd(tincture8mind);
-            //         }
-            //         const DOT_CLIP_AMOUNT = 10;
-            //         cp.useGcd(filler);
-            //         cp.oneCycle(cycle => {
-            //             cycle.use(eDosis);
-            //             cycle.use(filler);
-            //             cycle.use(filler);
-            //             cycle.use(phlegma);
-            //             cycle.use(psyche);
-            //             cycle.use(phlegma);
-            //             cycle.useUntil(filler, 30 - DOT_CLIP_AMOUNT);
-            //             cycle.use(eDosis);
-            //             cycle.useUntil(filler, 60 - DOT_CLIP_AMOUNT);
-            //             cycle.use(eDosis);
-            //             cycle.use(phlegma);
-            //             cycle.use(psyche);
-            //             cycle.useUntil(filler, 90 - DOT_CLIP_AMOUNT);
-            //             cycle.use(eDosis);
-            //             cycle.useUntil(filler, 120 - DOT_CLIP_AMOUNT);
-            //             cycle.use(eDosis);
-            //             cycle.useUntil(filler, 'end');
-            //         });
-            //         cp.remainingCycles(cycle => {
-            //             cycle.use(filler);
-            //             cycle.use(filler);
-            //             cycle.use(filler);
-            //             cycle.use(phlegma);
-            //             cycle.use(psyche);
-            //             cycle.use(phlegma);
-            //             cycle.useUntil(filler, 30 - DOT_CLIP_AMOUNT);
-            //             cycle.use(eDosis);
-            //             cycle.useUntil(filler, 60 - DOT_CLIP_AMOUNT);
-            //             cycle.use(eDosis);
-            //             cycle.use(phlegma);
-            //             cycle.use(psyche);
-            //             cycle.useUntil(filler, 90 - DOT_CLIP_AMOUNT);
-            //             cycle.use(eDosis);
-            //             cycle.useUntil(filler, 120 - DOT_CLIP_AMOUNT);
-            //             cycle.use(eDosis);
-            //             cycle.useUntil(filler, 'end');
-            //         });
-            //     },
-            // }
         ];
     }
 

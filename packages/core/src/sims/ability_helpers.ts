@@ -1,4 +1,4 @@
-import {STANDARD_APPLICATION_DELAY} from "@xivgear/xivmath/xivconstants";
+import {STANDARD_ANIMATION_LOCK, STANDARD_APPLICATION_DELAY} from "@xivgear/xivmath/xivconstants";
 import {Ability, ComboData} from "./sim_types";
 
 /**
@@ -101,4 +101,8 @@ export function abilityEquals(left: Ability, right: Ability) {
     }
     console.warn(`abilityEquals indeterminate (args '${JSON.stringify(left)}' and '${JSON.stringify(right)}`);
     return false;
+}
+
+export function animationLock(ability: Ability) {
+    return ability.animationLock ?? STANDARD_ANIMATION_LOCK;
 }

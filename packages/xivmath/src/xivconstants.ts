@@ -228,12 +228,38 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
         }
         ]
     },
-    SAM: STANDARD_MELEE,
+    SAM: {
+        ...STANDARD_MELEE,
+        gcdDisplayOverrides() {
+            return [{
+                shortLabel: 'GCD',
+                longLabel: '2.5s GCD w/ Fuka',
+                description: 'GCD recast time w/ Fuka',
+                gcdTime: 2.5,
+                attackType: 'Weaponskill',
+                haste: 13,
+                basis: 'sks',
+                isPrimary: true,
+            }]
+        }
+    },
     RPR: STANDARD_MELEE,
     VPR: {
         ...STANDARD_MELEE,
         mainStat: 'dexterity',
         autoAttackStat: 'dexterity',
+        gcdDisplayOverrides() {
+            return [{
+                shortLabel: 'GCD',
+                longLabel: '2.5s GCD w/ Swiftscaled',
+                description: '2.5s GCD with swiftscaled buff',
+                gcdTime: 2.5,
+                attackType: 'Weaponskill',
+                haste: 15,
+                basis: 'sks',
+                isPrimary: true,
+            }]
+        }
     },
     // Ranged
     BRD: STANDARD_RANGED,

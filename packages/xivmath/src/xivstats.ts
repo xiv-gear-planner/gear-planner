@@ -10,7 +10,7 @@ import {
     sksTickMulti,
     sksToGcd,
     spsTickMulti,
-    spsToGcd, tenacityDmg,
+    spsToGcd, tenacityDmg, tenacityIncomingDmg,
     vitToHp, wdMulti
 } from "./xivmath";
 import {JobName, SupportedLevel} from "./xivconstants";
@@ -62,6 +62,7 @@ export function finalizeStats(
         spsDotMulti: spsTickMulti(levelStats, combinedStats.spellspeed),
         sksDotMulti: sksTickMulti(levelStats, combinedStats.skillspeed),
         tncMulti: classJobStats.role === 'Tank' ? tenacityDmg(levelStats, combinedStats.tenacity) : 1,
+        tncIncomingMulti: classJobStats.role === 'Tank' ? tenacityIncomingDmg(levelStats, combinedStats.tenacity) : 1,
         // TODO: does this need to be phys/magic split?
         wdMulti: wdMulti(levelStats, classJobStats, wdEffective),
         mainStatMulti: mainStatMulti(levelStats, classJobStats, mainStat),

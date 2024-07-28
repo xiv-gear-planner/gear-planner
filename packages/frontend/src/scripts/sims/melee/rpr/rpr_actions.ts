@@ -1,6 +1,10 @@
 import { ArcaneCircleBuff } from "@xivgear/core/sims/buffs";
 import { RprGcdAbility, RprOgcdAbility } from "./rpr_types";
 import { DeathsDesign, IdealHost } from "./rpr_buff";
+import { OgcdAbility } from "@xivgear/core/sims/sim_types";
+import { gemdraught1str } from "@xivgear/core/sims/common/potion";
+
+export const Potion: OgcdAbility = gemdraught1str;
 
 export const Slice: RprGcdAbility = {
     type: 'gcd',

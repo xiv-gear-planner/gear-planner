@@ -6,19 +6,23 @@ import {
     detDmg,
     dhitChance,
     dhitDmg,
+    hpScalar,
     mainStatMulti,
+    mainStatPowerMod,
     mpTick,
     sksTickMulti,
     sksToGcd,
     spsTickMulti,
     spsToGcd,
     tenacityDmg,
+    tenacityIncomingDmg,
     vitToHp,
     wdMulti,
 } from "@xivgear/xivmath/xivmath";
-import {getClassJobStats, JobName} from "@xivgear/xivmath/xivconstants";
+import {getClassJobStats, JOB_DATA, JobName, MAIN_STATS, STAT_ABBREVIATIONS} from "@xivgear/xivmath/xivconstants";
 import {GeneralSettings, registerFormula} from "./math_main";
 import {DataManager} from "@xivgear/core/datamanager";
+import {JobData, LevelStats} from "@xivgear/xivmath/geartypes";
 
 type SksSettings = {
     baseGcd: number,
@@ -171,8 +175,14 @@ export function registerFormulae() {
         name: "Tenacity",
         stub: "tnc",
         functions: [{
-            name: "Tenacity Damage Multiplier",
+            name: "Outgoing Multiplier",
             fn: tenacityDmg,
+            argExtractor: async function (arg, gen: GeneralSettings) {
+                return [gen.levelStats, arg.tnc];
+            }
+        }, {
+            name: "Incoming Multiplier",
+            fn: tenacityIncomingDmg,
             argExtractor: async function (arg, gen: GeneralSettings) {
                 return [gen.levelStats, arg.tnc];
             }
@@ -364,6 +374,7 @@ export function registerFormulae() {
             min: baseSub
         }]
     });
+
     registerFormula<{
         'vit': number,
     }>({
@@ -387,6 +398,88 @@ export function registerFormulae() {
             integer: true,
             min: baseMain
         }]
+    });
+
+    registerFormula<Record<string, never>>({
+        name: 'Levels',
+        stub: 'lvlmod',
+        functions: [{
+            name: 'baseMain',
+            excludeFormula: true,
+            fn: (lvl: LevelStats) => lvl.baseMainStat,
+            async argExtractor(arg, gen: GeneralSettings) {
+                return [gen.levelStats]
+            }
+        }, {
+            name: 'baseSub',
+            excludeFormula: true,
+            fn: (lvl: LevelStats) => lvl.baseSubStat,
+            async argExtractor(arg, gen: GeneralSettings) {
+                return [gen.levelStats]
+            }
+        }, {
+            name: 'levelDiv',
+            excludeFormula: true,
+            fn: (lvl: LevelStats) => lvl.levelDiv,
+            async argExtractor(arg, gen: GeneralSettings) {
+                return [gen.levelStats]
+            }
+        }, {
+            name: 'Base HP',
+            excludeFormula: true,
+            fn: (lvl: LevelStats) => lvl.hp,
+            async argExtractor(arg, gen: GeneralSettings) {
+                return [gen.levelStats]
+            },
+        }, {
+            name: 'HP Mod',
+            excludeFormula: true,
+            fn: (lvl: LevelStats, jobStats: JobData) => hpScalar(lvl, jobStats),
+            async argExtractor(arg, gen: GeneralSettings) {
+                return [gen.levelStats, JOB_DATA[gen.classJob]]
+            },
+        }, {
+            name: 'AP Mod',
+            excludeFormula: true,
+            fn: (lvl: LevelStats, jobStats: JobData) => mainStatPowerMod(lvl, jobStats),
+            async argExtractor(arg, gen: GeneralSettings) {
+                return [gen.levelStats, JOB_DATA[gen.classJob]]
+            },
+
+        }],
+        makeDefaultInputs: (generalSettings: GeneralSettings) => {
+            return {}
+        },
+        primaryVariable: 'level',
+        variables: []
+    });
+    registerFormula<Record<string, never>>({
+        name: 'Jobs',
+        stub: 'job',
+        functions: [{
+            name: 'AA Pot',
+            excludeFormula: true,
+            fn: (jobData: JobData) => jobData.aaPotency,
+            async argExtractor(arg, gen: GeneralSettings) {
+                const stats = await getClassJobStatsFull(gen.classJob);
+                return [stats];
+            }
+        }, ...([...MAIN_STATS, 'hp'] as const).map(stat => {
+            return {
+                name: STAT_ABBREVIATIONS[stat],
+                excludeFormula: true,
+                fn: (jobData: JobData) => jobData.jobStatMultipliers[stat],
+                async argExtractor(arg, gen: GeneralSettings) {
+                    const stats = await getClassJobStatsFull(gen.classJob);
+                    return [stats];
+                }
+            }
+        })],
+        makeDefaultInputs: (generalSettings: GeneralSettings) => {
+            return {}
+        },
+        primaryVariable: 'job',
+        variables: []
     })
 }
 

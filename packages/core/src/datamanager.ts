@@ -1,9 +1,55 @@
 import {processRawMateriaInfo, XivApiFoodInfo, XivApiGearInfo} from "./gear";
-import {getClassJobStats, JobName, LEVEL_ITEMS, MATERIA_LEVEL_MAX_NORMAL, SupportedLevel} from "@xivgear/xivmath/xivconstants";
+import {
+    getClassJobStats,
+    JobName,
+    LEVEL_ITEMS,
+    MATERIA_LEVEL_MAX_NORMAL,
+    SupportedLevel
+} from "@xivgear/xivmath/xivconstants";
 import {GearItem, JobMultipliers, Materia, OccGearSlotKey, RawStatKey,} from "@xivgear/xivmath/geartypes";
-import {xivApiGet, xivApiSingle} from "./external/xivapi";
+import {xivApiGet, XivApiResultSingle, xivApiSingleCols} from "./external/xivapi";
 import {BaseParamToStatKey, RelevantBaseParam, xivApiStatMapping} from "./external/xivapitypes";
 import {getRelicStatModelFor} from "./relicstats/relicstats";
+
+const itemColumns = [
+    // Basic item properties
+    'ID', 'Icon', 'Name',
+    'LevelItem.nonexistent',
+    // Equip slot restrictions
+    'ClassJobCategory', 'EquipSlotCategory', 'IsUnique',
+    // Stats
+    'BaseParam', 'BaseParamValue', 'BaseParamSpecial', 'BaseParamValueSpecial',
+    // Weapon stats
+    'DamageMag', 'DamagePhys', 'DelayMs',
+    // Materia
+    'MateriaSlotCount', 'IsAdvancedMeldingPermitted',
+    // Stuff for determining correct WD for HQ crafted items
+    'CanBeHq',
+    // Helps determine acquisition type
+    'Rarity',
+    // TODO need replacement
+    // 'GameContentLinks'
+    'Delayms'
+] as const;
+const itemColsExtra = [
+    'LevelItem'
+] as const;
+export type XivApiItemDataRaw = XivApiResultSingle<typeof itemColumns, typeof itemColsExtra>;
+
+// 'Item' is only there because I need to figure out how to keep the type checking happy
+const matCols = ['Item[].Name', 'Item[].Icon', 'BaseParam.nonexistent', 'Value'] as const;
+// TODO: make a better way of doing this. matColsTrn represents the columns that are transitively included by way of
+// including a sub-column.
+const matColsTrn = ['Item', 'BaseParam'] as const;
+export type XivApiMateriaDataRaw = XivApiResultSingle<typeof matCols, typeof matColsTrn>;
+
+// Food cols on the base Item table
+const foodBaseItemCols = ['Icon', 'Name', 'LevelItem', 'ItemAction'] as const;
+export type XivApiFoodDataRaw = XivApiResultSingle<typeof foodBaseItemCols>;
+
+// Food cols on the FoodItem table
+const foodItemFoodCols = ['BaseParam', 'ValueHQ', 'MaxHQ'] as const;
+export type XivApiFoodItemDataRaw = XivApiResultSingle<typeof foodItemFoodCols>;
 
 export type IlvlSyncInfo = {
     readonly ilvl: number;
@@ -14,7 +60,8 @@ export function queryBaseParams() {
     return xivApiGet({
         requestType: "list",
         sheet: 'BaseParam',
-        columns: ['ID', 'Name', '1HWpn%', '2HWpn%', 'Bracelet%', 'Chest%', 'Earring%', 'Feet%', 'Hands%', 'Head%', 'Legs%', 'Necklace%', 'OH%', 'Ring%'] as const
+        columns: ['Name', 'OneHandWeaponPercent', 'TwoHandWeaponPercent', 'BraceletPercent', 'ChestPercent', 'EarringPercent', 'FeetPercent', 'HandsPercent', 'HeadPercent', 'LegsPercent', 'NecklacePercent', 'OHPercent', 'RingPercent'] as const,
+        columnsTrn: []
     }).then(data => {
         console.log(`Got ${data.Results.length} BaseParams`);
         return data;
@@ -87,41 +134,59 @@ export class DataManager implements DataManagerIntf {
     private _allFoodItems: XivApiFoodInfo[];
     private _jobMultipliers: Map<JobName, JobMultipliers>;
     private _baseParams: BaseParamMap;
-    private _ilvlSyncDatum = new Map<number, Promise<IlvlSyncInfo>>();
+    private _isyncPromise: Promise<Map<number, IlvlSyncInfo>>;
 
-    getIlvlSyncData(baseParamPromise: ReturnType<typeof queryBaseParams>, ilvl: number) {
-        if (this._ilvlSyncDatum.has(ilvl)) {
-            return this._ilvlSyncDatum.get(ilvl)
+    async getIlvlSyncData(baseParamPromise: ReturnType<typeof queryBaseParams>, ilvl: number) {
+        if (this._isyncPromise === undefined) {
+            this._isyncPromise = Promise.all([baseParamPromise, xivApiGet({
+                requestType: 'list',
+                columns: ['*'] as const,
+                sheet: 'ItemLevel',
+                perPage: 500,
+                // Optimize these by not pulling a second unnecessary page
+                startPage: this._minIlvl > 500 ? 1 : 0,
+                pageLimit: 2,
+            })]).then(responses => {
+                const outMap = new Map<number, IlvlSyncInfo>();
+                const jobStats = getClassJobStats(this._classJob);
+                for (const row of responses[1].Results) {
+                    const ilvl = row.ID;
+                    const ilvlStatModifiers = new Map<RawStatKey, number>();
+                    // Unroll the ItemLevel object into a direct mapping from RawStatKey => modifier
+                    for (const respElementKey in row) {
+                        if (respElementKey in xivApiStatMapping) {
+                            ilvlStatModifiers.set(xivApiStatMapping[respElementKey], row[respElementKey]);
+                        }
+                    }
+                    console.log(`ilvl ${ilvl}`, row);
+                    // BaseParam data is trickier. First, we need to convert from a list to a map, where the keys are the stat.
+                    const baseParams = this._baseParams;
+                    outMap.set(ilvl, {
+                        ilvl: ilvl,
+                        substatCap(slot: OccGearSlotKey, statsKey: RawStatKey): number {
+                            const ilvlModifier: number = ilvlStatModifiers.get(statsKey as RawStatKey);
+                            const baseParamModifier = baseParams[statsKey as RawStatKey][slot];
+                            const multi = jobStats.itemStatCapMultipliers?.[statsKey];
+                            if (multi) {
+                                return Math.round(multi * Math.round(ilvlModifier * baseParamModifier / 1000));
+                            }
+                            else {
+                                return Math.round(ilvlModifier * baseParamModifier / 1000);
+                            }
+                        },
+                    } as const);
+
+                }
+                return outMap;
+            });
+        }
+        const data = await this._isyncPromise;
+        if (data.has(ilvl)) {
+            return data.get(ilvl);
         }
         else {
-            const jobStats = getClassJobStats(this._classJob);
-            const ilvlPromise = Promise.all([baseParamPromise, xivApiSingle("ItemLevel", ilvl)]).then(responses => {
-                const ilvlStatModifiers = new Map<RawStatKey, number>();
-                // Unroll the ItemLevel object into a direct mapping from RawStatKey => modifier
-                for (const respElementKey in responses[1]) {
-                    if (respElementKey in xivApiStatMapping) {
-                        ilvlStatModifiers.set(xivApiStatMapping[respElementKey], responses[1][respElementKey]);
-                    }
-                }
-                // BaseParam data is trickier. First, we need to convert from a list to a map, where the keys are the stat.
-                const baseParams = this._baseParams;
-                return {
-                    ilvl: ilvl,
-                    substatCap(slot: OccGearSlotKey, statsKey: RawStatKey): number {
-                        const ilvlModifier: number = ilvlStatModifiers.get(statsKey as RawStatKey);
-                        const baseParamModifier = baseParams[statsKey as RawStatKey][slot];
-                        const multi = jobStats.itemStatCapMultipliers?.[statsKey];
-                        if (multi) {
-                            return Math.round(multi * Math.round(ilvlModifier * baseParamModifier / 1000));
-                        }
-                        else {
-                            return Math.round(ilvlModifier * baseParamModifier / 1000);
-                        }
-                    },
-                } as const;
-            });
-            this._ilvlSyncDatum.set(ilvl, ilvlPromise);
-            return ilvlPromise;
+            console.error(`ilvl ${ilvl} not found`);
+            return null;
         }
     }
 
@@ -148,18 +213,18 @@ export class DataManager implements DataManagerIntf {
             }>((baseParams, value) => {
                 // Each individual item also gets converted
                 baseParams[BaseParamToStatKey[value.Name as RelevantBaseParam]] = {
-                    Body: value['Chest%'] as number,
-                    Ears: value['Earring%'] as number,
-                    Feet: value['Feet%'] as number,
-                    Hand: value['Hands%'] as number,
-                    Head: value['Head%'] as number,
-                    Legs: value['Legs%'] as number,
-                    Neck: value['Necklace%'] as number,
-                    OffHand: value['OH%'] as number,
-                    Ring: value['Ring%'] as number,
-                    Weapon2H: value['2HWpn%'] as number,
-                    Weapon1H: value['1HWpn%'] as number,
-                    Wrist: value['Bracelet%'] as number
+                    Body: value['ChestPercent'] as number,
+                    Ears: value['EarringPercent'] as number,
+                    Feet: value['FeetPercent'] as number,
+                    Hand: value['HandsPercent'] as number,
+                    Head: value['HeadPercent'] as number,
+                    Legs: value['LegsPercent'] as number,
+                    Neck: value['NecklacePercent'] as number,
+                    OffHand: value['OHPercent'] as number,
+                    Ring: value['RingPercent'] as number,
+                    Weapon2H: value['TwoHandWeaponPercent'] as number,
+                    Weapon1H: value['OneHandWeaponPercent'] as number,
+                    Wrist: value['BraceletPercent'] as number
                 };
                 return baseParams;
             }, {});
@@ -167,42 +232,17 @@ export class DataManager implements DataManagerIntf {
         });
         const extraPromises = [];
         console.log("Loading items");
-        // Gear Items
+
+
         const itemsPromise = xivApiGet({
             requestType: 'search',
             sheet: 'Item',
-            columns: [
-                // Basic item properties
-                'ID', 'IconHD', 'Name', 'LevelItem',
-                // Equip slot restrictions
-                'ClassJobCategory', 'EquipSlotCategory', 'IsUnique',
-                // Stats
-                'Stats', 'DamageMag', 'DamagePhys', 'DelayMs',
-                // Materia
-                'MateriaSlotCount', 'IsAdvancedMeldingPermitted',
-                // Stuff for determining correct WD for HQ crafted items
-                'CanBeHq',
-                'BaseParamSpecial0TargetID',
-                'BaseParamSpecial1TargetID',
-                'BaseParamSpecial2TargetID',
-                'BaseParamSpecial3TargetID',
-                'BaseParamSpecial4TargetID',
-                'BaseParamSpecial5TargetID',
-                'BaseParamValueSpecial0',
-                'BaseParamValueSpecial1',
-                'BaseParamValueSpecial2',
-                'BaseParamValueSpecial3',
-                'BaseParamValueSpecial4',
-                'BaseParamValueSpecial5',
-                // Helps determine acquisition type
-                'Rarity',
-                'GameContentLinks'
-            ] as const,
+            columns: itemColumns,
+            columnsTrn: itemColsExtra,
             // EquipSlotCategory! => EquipSlotCategory is not null => filters out now-useless belts
-            filters: [`LevelItem>=${this._minIlvl}`, `LevelItem<=${this._maxIlvl}`, `ClassJobCategory.${this._classJob}=1`, 'EquipSlotCategory!'],
+            filters: [`LevelItem>=${this._minIlvl}`, `LevelItem<=${this._maxIlvl}`, `ClassJobCategory.${this._classJob}=1`, 'EquipSlotCategory>0'],
         })
-            // const itemsPromise = fetch(`https://xivapi.com/search?indexes=Item&filters=LevelItem%3E=${this.minIlvl},LevelItem%3C=${this.maxIlvl},ClassJobCategory.${this.classJob}=1&columns=ID,IconHD,Name,LevelItem,Stats,EquipSlotCategory,MateriaSlotCount,IsAdvancedMeldingPermitted,DamageMag,DamagePhys`)
-            .then((data) => {
+            .then(async (data) => {
                 if (data) {
                     console.log(`Got ${data.Results.length} Items`);
                     return data.Results;
@@ -249,26 +289,22 @@ export class DataManager implements DataManagerIntf {
         });
 
         // Materia
-        const matCols = ['ID', 'Value*', 'BaseParam.ID'];
-        for (let i = 0; i < MATERIA_LEVEL_MAX_NORMAL; i++) {
-            matCols.push(`Item${i}.Name`);
-            // TODO: normal or HD icon?
-            matCols.push(`Item${i}.IconHD`);
-            matCols.push(`Item${i}.ID`);
-        }
         console.log("Loading materia");
         const materiaPromise = xivApiGet({
             requestType: 'list',
             sheet: 'Materia',
             columns: matCols,
-            pageLimit: 1
+            columnsTrn: matColsTrn,
+            pageLimit: 1,
+            perPage: 50
         })
-            // const materiaPromise = fetch(`https://xivapi.com/Materia?columns=${matCols.join(',')}`)
             .then((data) => {
                 if (data) {
                     console.log(`Got ${data.Results.length} Materia Types`);
                     this._allMateria = data.Results
-                        .filter(i => i['Value' + (MATERIA_LEVEL_MAX_NORMAL - 1)])
+                        // TODO: if a materia is discontinued but should still be available for old
+                        // sets, this will not work.
+                        .filter(i => i['Value'][MATERIA_LEVEL_MAX_NORMAL - 1])
                         .flatMap(item => {
                             return processRawMateriaInfo(item);
                         });
@@ -284,16 +320,21 @@ export class DataManager implements DataManagerIntf {
         const foodPromise = xivApiGet({
             requestType: 'search',
             sheet: 'Item',
-            filters: ['ItemKind.ID=5', 'ItemSearchCategory.ID=45', `LevelItem%3E=${this._minIlvlFood}`, `LevelItem%3C=${this._maxIlvlFood}`],
-            columns: ['ID', 'IconHD', 'Name', 'LevelItem', 'Bonuses'] as const
+            // filters: ['ItemKind=5', 'ItemSearchCategory=45', `LevelItem>=${this._minIlvlFood}`, `LevelItem<=${this._maxIlvlFood}`],
+            filters: ['ItemSearchCategory=45', `LevelItem>=${this._minIlvlFood}`, `LevelItem<=${this._maxIlvlFood}`],
+            columns: foodBaseItemCols
         })
-            // const foodPromise = fetch(`https://xivapi.com/search?indexes=Item&filters=ItemKind.ID=5,ItemSearchCategory.ID=45,LevelItem%3E=${this.minIlvlFood},LevelItem%3C=${this.maxIlvlFood}&columns=ID,IconHD,Name,LevelItem,Bonuses`)
             .then((data) => {
                 console.log(`Got ${data.Results.length} Food Items`);
                 return data.Results;
             })
-            .then((rawFoods) => rawFoods.map(i => new XivApiFoodInfo(i)))
-            .then((processedFoods) => processedFoods.filter(food => Object.keys(food.bonuses).length > 1))
+            .then((rawFoods) => rawFoods.map(async i => {
+                // TODO: is there a better way to get this?
+                const itemActionId = i.ItemAction['fields']['Data'][1] as number;
+                const itemFoodData = await xivApiSingleCols('ItemFood', itemActionId, foodItemFoodCols);
+                return new XivApiFoodInfo(i, itemFoodData);
+            }))
+            .then(async (processedFoods) => (await Promise.all(processedFoods)).filter(food => Object.keys(food.bonuses).length > 1))
             .then((foods) => this._allFoodItems = foods,
                 e => console.error(e));
         console.log("Loading jobs");
@@ -319,7 +360,8 @@ export class DataManager implements DataManagerIntf {
                     });
                 }
             });
-        await Promise.all([baseParamPromise, itemsPromise, statsPromise, materiaPromise, foodPromise, jobsPromise]);
+        const ilvlPromise = this.getIlvlSyncData(baseParamPromise, 710);
+        await Promise.all([baseParamPromise, itemsPromise, statsPromise, materiaPromise, foodPromise, jobsPromise, ilvlPromise]);
         await Promise.all(extraPromises);
     }
 
