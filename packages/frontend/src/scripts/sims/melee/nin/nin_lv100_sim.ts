@@ -35,7 +35,15 @@ export const ninSpec: SimSpec<NinSim, NinSettingsExternal> = {
     },
     supportedJobs: ['NIN'],
     supportedLevels: [100],
-    isDefaultSim: true
+    isDefaultSim: true,
+    maintainers: [{
+        name: 'Makar',
+        contact: [{
+            type: 'discord',
+            discordTag: 'makar',
+            discordUid: '85924030661533696'
+        }],
+    }],
 };
 
 class RotationState {
