@@ -63,6 +63,7 @@ class NINCycleProcessor extends CycleProcessor {
 
     constructor(settings: MultiCycleSettings) {
         super(settings);
+        this.cycleLengthMode = 'full-duration';
         this.gauge = new NINGauge(settings.stats.level);
         this.rotationState = new RotationState();
     }
@@ -418,7 +419,7 @@ export class NinSim extends BaseMultiCycleSim<NinSimResult, NinSettings, NINCycl
     manuallyActivatedBuffs = [Dokumori];
     cycleSettings: CycleSettings = {
         useAutos: true,
-        totalTime: 6 * 60,
+        totalTime: (6 * 60) + 32,
         cycles: 0,
         which: 'totalTime'
     }
@@ -449,7 +450,7 @@ export class NinSim extends BaseMultiCycleSim<NinSimResult, NinSettings, NINCycl
 
     getRotationsToSimulate(): Rotation<NINCycleProcessor>[] {
         return [{
-            cycleTime: 6 * 60,
+            cycleTime: 120,
             apply(cp: NINCycleProcessor) {
                 cp.useOpener();
 
