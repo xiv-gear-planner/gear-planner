@@ -1,7 +1,6 @@
 import {FoodBonuses, FoodItem, FoodStatBonus, Substat} from "@xivgear/xivmath/geartypes";
 import {CURRENT_MAX_LEVEL, LEVEL_ITEMS} from "@xivgear/xivmath/xivconstants";
 import {xivApiIconUrl} from "../external/xivapi";
-import {CustomItemExport} from "./custom_item";
 
 export type CustomFoodExport = {
     ilvl: number;
