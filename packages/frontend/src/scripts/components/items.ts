@@ -11,7 +11,7 @@ import {
     GearSlotItem,
     RawStatKey,
     RawStats,
-    StatBonus,
+    FoodStatBonus,
     Substat
 } from "@xivgear/xivmath/geartypes";
 import {
@@ -154,8 +154,8 @@ function makeSpan(text: string, classes: string[] = []) {
     return span;
 }
 
-class FoodStatBonus extends HTMLElement {
-    constructor(value: StatBonus) {
+class FoodStatBonusDisplay extends HTMLElement {
+    constructor(value: FoodStatBonus) {
         super();
         this.appendChild(makeSpan(`+${value.percentage}%`));
         this.appendChild(document.createTextNode(' '));
@@ -169,9 +169,9 @@ class FoodStatBonus extends HTMLElement {
  *
  * @param value The stat bonus value.
  */
-function statBonusDisplay(value: StatBonus) {
+function statBonusDisplay(value: FoodStatBonus) {
     if (value) {
-        return new FoodStatBonus(value);
+        return new FoodStatBonusDisplay(value);
     }
     else {
         return document.createTextNode("");
@@ -863,4 +863,4 @@ customElements.define("gear-items-view-table", GearItemsViewTable, {extends: "ta
 customElements.define("food-items-table", FoodItemsTable, {extends: "table"});
 customElements.define("food-items-view-table", FoodItemViewTable, {extends: "table"});
 customElements.define("ilvl-range-picker", ILvlRangePicker);
-customElements.define("food-stat-bonus", FoodStatBonus);
+customElements.define("food-stat-bonus", FoodStatBonusDisplay);

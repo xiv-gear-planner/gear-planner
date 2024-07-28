@@ -34,7 +34,7 @@ import {
     SimExport,
     Substat
 } from "@xivgear/xivmath/geartypes";
-import {CharacterGearSet, CustomItem} from "./gear";
+import {CharacterGearSet} from "./gear";
 import {DataManager} from "./datamanager";
 import {Inactivitytimer} from "./util/inactivitytimer";
 import {writeProxy} from "./util/proxies";
@@ -42,6 +42,8 @@ import {SHARED_SET_NAME} from "@xivgear/core/imports/imports";
 import {SimCurrentResult, SimResult, Simulation} from "./sims/sim_types";
 import {getDefaultSims, getRegisteredSimSpecs, getSimSpecByStub} from "./sims/sim_registry";
 import {getNextSheetInternalName} from "./persistence/saved_sheets";
+import {CustomItem} from "./customgear/custom_item";
+import {CustomFood} from "./customgear/custom_food";
 
 export type SheetCtorArgs = ConstructorParameters<typeof GearPlanSheet>
 export type SheetContstructor<SheetType extends GearPlanSheet> = (...values: SheetCtorArgs) => SheetType;
@@ -150,10 +152,11 @@ export class GearPlanSheet {
     // Data helpers
     private dataManager: DataManager;
     private _relevantMateria: Materia[];
-    private _relevantFood: FoodItem[];
+    private _dmRelevantFood: FoodItem[];
 
     // Custom items
     private _customItems: CustomItem[] = [];
+    private _customFoods: CustomFood[] = [];
 
     // Materia autofill
     protected materiaAutoFillPrio: MateriaAutoFillPrio;
@@ -211,6 +214,11 @@ export class GearPlanSheet {
         if (importedData.customItems) {
             importedData.customItems.forEach(ci => {
                 this._customItems.push(CustomItem.fromExport(ci));
+            });
+        }
+        if (importedData.customFoods) {
+            importedData.customFoods.forEach(ci => {
+                this._customFoods.push(CustomFood.fromExport(ci));
             });
         }
 
@@ -306,7 +314,7 @@ export class GearPlanSheet {
                 && mat.materiaGrade >= lvlItemInfo.minMateria
                 && this.isStatRelevant(mat.primaryStat);
         });
-        this._relevantFood = this.dataManager.allFoodItems.filter(food => this.isStatRelevant(food.primarySubStat) || this.isStatRelevant(food.secondarySubStat));
+        this._dmRelevantFood = this.dataManager.allFoodItems.filter(food => this.isStatRelevant(food.primarySubStat) || this.isStatRelevant(food.secondarySubStat));
         this._setupDone = true;
     }
 
@@ -418,6 +426,7 @@ export class GearPlanSheet {
             ilvlSync: this.ilvlSync,
             description: this.description,
             customItems: this._customItems.map(ci => ci.export()),
+            customFoods: this._customFoods.map(cf => cf.export()),
         };
         if (!external) {
             out.saveKey = this._saveKey;
@@ -516,6 +525,16 @@ export class GearPlanSheet {
         }
     }
 
+    foodById(id: number): FoodItem {
+        const custom = this._customFoods.find(cf => cf.id === id);
+        if (custom) {
+            return custom;
+        }
+        else {
+            return this.dataManager.foodById(id);
+        }
+    }
+
     private get nextCustomItemId() {
         if (this._customItems.length === 0) {
             // TODO: make this random + larger
@@ -533,8 +552,19 @@ export class GearPlanSheet {
         return item;
     }
 
+    newCustomFood(): CustomFood {
+        const food = CustomFood.fromScratch(this.nextCustomItemId);
+        this._customFoods.push(food);
+        this.requestSave();
+        return food;
+    }
+
     get customItems() {
         return [...this._customItems];
+    }
+
+    get customFood() {
+        return [...this._customFoods];
     }
 
     deleteCustomItem(item: CustomItem) {
@@ -542,6 +572,15 @@ export class GearPlanSheet {
         const idx = this._customItems.indexOf(item);
         if (idx > -1) {
             this._customItems.splice(idx, 1);
+        }
+        this.recalcAll();
+    }
+
+    deleteCustomFood(item: CustomFood) {
+        // TODO: this should check if you have this item equipped on any sets, or ask
+        const idx = this._customFoods.indexOf(item);
+        if (idx > -1) {
+            this._customFoods.splice(idx, 1);
         }
         this.recalcAll();
     }
@@ -581,7 +620,7 @@ export class GearPlanSheet {
             set.equipment[equipmentSlot] = equipped;
         }
         if (importedSet.food) {
-            set.food = this.dataManager.foodById(importedSet.food);
+            set.food = this.foodById(importedSet.food);
         }
         if (importedSet.relicStatMemory) {
             set.relicStatMemory.import(importedSet.relicStatMemory);
@@ -691,7 +730,7 @@ export class GearPlanSheet {
     }
 
     get relevantFood(): FoodItem[] {
-        return this._relevantFood;
+        return [...this._dmRelevantFood, ...this._customFoods];
     }
 
     get relevantMateria(): Materia[] {
@@ -726,7 +765,8 @@ export class GearPlanSheet {
     }
 
     get foodItemsForDisplay(): FoodItem[] {
-        return this._relevantFood.filter(item => item.ilvl >= this._itemDisplaySettings.minILvlFood && item.ilvl <= this._itemDisplaySettings.maxILvlFood);
+        // TODO: sorting?
+        return [...this._dmRelevantFood.filter(item => item.ilvl >= this._itemDisplaySettings.minILvlFood && item.ilvl <= this._itemDisplaySettings.maxILvlFood), ...this._customFoods];
     }
 
     getBestMateria(stat: MateriaSubstat, meldSlot: MeldableMateriaSlot) {
