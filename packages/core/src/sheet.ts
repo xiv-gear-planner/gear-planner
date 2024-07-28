@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */        // TODO: get back to fixing this at some point
+/* eslint-disable @typescript-eslint/no-explicit-any */                // TODO: get back to fixing this at some point
 import {
     CURRENT_MAX_LEVEL,
     defaultItemDisplaySettings,
@@ -24,7 +24,8 @@ import {
     Materia,
     MateriaAutoFillController,
     MateriaAutoFillPrio,
-    MeldableMateriaSlot, OccGearSlotKey,
+    MeldableMateriaSlot,
+    OccGearSlotKey,
     PartyBonusAmount,
     RawStatKey,
     SetExport,
@@ -76,6 +77,9 @@ export class SheetProvider<SheetType extends GearPlanSheet> {
             ilvlSync: importedData[0].ilvlSync,
             partyBonus: 0,
             itemDisplaySettings: defaultItemDisplaySettings,
+            // TODO: make these smarter - make them deduplicate identical items
+            customItems: importedData.flatMap(imp => imp.customItems ?? []),
+            customFoods: importedData.flatMap(imp => imp.customFoods ?? []),
         });
         if (importedData[0].sims === undefined) {
             gearPlanSheet.addDefaultSims();
@@ -506,6 +510,8 @@ export class GearPlanSheet {
             out.level = this.level;
             out.ilvlSync = this.ilvlSync;
             out.sims = this.exportSims(true);
+            out.customItems = this._customItems.map(ci => ci.export());
+            out.customFoods = this._customFoods.map(cf => cf.export());
         }
         else {
             if (set.relicStatMemory) {

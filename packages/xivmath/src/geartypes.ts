@@ -708,6 +708,14 @@ export interface SetExport {
     relicStatMemory?: {
         [p: number]: RelicStats
     };
+    /**
+     * Only for standalone use - Custom items
+     */
+    customItems?: CustomItemExport[],
+    /**
+     * Only for standalone use - Custom foods
+     */
+    customFoods?: CustomFoodExport[],
 }
 
 /**
