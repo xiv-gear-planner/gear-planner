@@ -72,7 +72,7 @@ import {makeUrl} from "@xivgear/core/nav/common_nav";
 import {simMaintainersInfoElement} from "./sims";
 import {SaveAsModal} from "./new_sheet_form";
 import {DropdownActionMenu} from "./dropdown_actions_menu";
-import {CustomItemPopup} from "./custom_item_manager";
+import {CustomFoodPopup, CustomItemPopup} from "./custom_item_manager";
 import {confirmDelete} from "@xivgear/common-ui/components/delete_confirm";
 
 export type GearSetSel = SingleCellRowOrHeaderSelect<CharacterGearSet>;
@@ -1255,6 +1255,10 @@ export class GearPlanSheetGui extends GearPlanSheet {
             sheetOptions.addAction({
                 label: 'Manage Custom Items',
                 action: () => new CustomItemPopup(this).attachAndShow(),
+            });
+            sheetOptions.addAction({
+                label: 'Manage Custom Food',
+                action: () => new CustomFoodPopup(this).attachAndShow(),
             });
             // const renameButton = makeActionButton("Sheet Name/Description", () => {
             //     startRenameSheet(this);

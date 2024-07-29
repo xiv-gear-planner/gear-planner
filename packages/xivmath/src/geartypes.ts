@@ -7,7 +7,9 @@ import {
     SPECIAL_SUB_STATS,
     SupportedLevel
 } from "./xivconstants";
-import {CustomItemExport} from "@xivgear/core/gear";
+
+import {CustomItemExport} from "@xivgear/core/customgear/custom_item";
+import {CustomFoodExport} from "@xivgear/core/customgear/custom_food";
 
 export interface DisplayGearSlot {
 
@@ -187,16 +189,18 @@ export interface GearItem extends XivCombatItem {
     relicStatModel: RelicStatModel | undefined;
 }
 
-export interface StatBonus {
+export interface FoodStatBonus {
     percentage: number,
     max: number,
 }
 
+export type FoodBonuses = {
+    [K in RawStatKey]?: FoodStatBonus
+}
+
 export interface FoodItem extends XivItem {
     ilvl: number,
-    bonuses: {
-        [K in RawStatKey]?: StatBonus
-    },
+    bonuses: FoodBonuses,
     primarySubStat: RawStatKey | undefined,
     secondarySubStat: RawStatKey | undefined
 }
@@ -638,7 +642,11 @@ export interface SheetExport {
     /**
      * Custom items
      */
-    customItems?: CustomItemExport[]
+    customItems?: CustomItemExport[],
+    /**
+     * Custom foods
+     */
+    customFoods?: CustomFoodExport[],
 }
 
 export interface SheetStatsExport extends SheetExport {
@@ -700,6 +708,14 @@ export interface SetExport {
     relicStatMemory?: {
         [p: number]: RelicStats
     };
+    /**
+     * Only for standalone use - Custom items
+     */
+    customItems?: CustomItemExport[],
+    /**
+     * Only for standalone use - Custom foods
+     */
+    customFoods?: CustomFoodExport[],
 }
 
 /**

@@ -19,7 +19,7 @@
     <inspection_tool class="HtmlUnknownTag" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="myValues">
         <value>
-          <list size="43">
+          <list size="44">
             <item index="0" class="java.lang.String" itemvalue="nobr" />
             <item index="1" class="java.lang.String" itemvalue="noembed" />
             <item index="2" class="java.lang.String" itemvalue="comment" />
@@ -63,6 +63,7 @@
             <item index="40" class="java.lang.String" itemvalue="math-area" />
             <item index="41" class="java.lang.String" itemvalue="save-as-modal" />
             <item index="42" class="java.lang.String" itemvalue="custom-item-popup" />
+            <item index="43" class="java.lang.String" itemvalue="custom-food-popup" />
           </list>
         </value>
       </option>

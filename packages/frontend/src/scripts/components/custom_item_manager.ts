@@ -1,20 +1,22 @@
 import {CustomTable, HeaderRow} from "../tables";
-import {CustomItem} from "@xivgear/core/gear";
 import {GearPlanSheet} from "@xivgear/core/sheet";
 import {
     clampValues,
     faIcon,
+    FieldBoundDataSelect,
     FieldBoundFloatField,
     FieldBoundIntField,
     FieldBoundTextField,
     makeActionButton,
     nonNegative
 } from "@xivgear/common-ui/components/util";
-import {ALL_STATS, STAT_ABBREVIATIONS} from "@xivgear/xivmath/xivconstants";
+import {ALL_STATS, ALL_SUB_STATS, STAT_ABBREVIATIONS, STAT_FULL_NAMES} from "@xivgear/xivmath/xivconstants";
 import {BaseModal} from "@xivgear/common-ui/components/modal";
 import {DropdownActionMenu} from "./dropdown_actions_menu";
 import {OccGearSlots} from "@xivgear/xivmath/geartypes";
 import {confirmDelete} from "@xivgear/common-ui/components/delete_confirm";
+import {CustomItem} from "@xivgear/core/customgear/custom_item";
+import {CustomFood} from "@xivgear/core/customgear/custom_food";
 
 function ifWeapon(fn: (item: CustomItem) => HTMLElement): (item: CustomItem) => Node {
     return (item: CustomItem) => {
@@ -74,7 +76,7 @@ export class CustomItemTable extends CustomTable<CustomItem> {
                     })
                 },
                 initialWidth: 60
-            },{
+            }, {
                 shortName: 'mat-large',
                 displayName: 'Lg Mat',
                 getter: item => item,
@@ -148,7 +150,7 @@ export class CustomItemTable extends CustomTable<CustomItem> {
                 }),
                 initialWidth: 80
             }];
-        // TODO: weapon damage, weapon delay, any other relevant things, haste
+        // TODO: haste?
 
         this.refresh();
     }
@@ -207,5 +209,158 @@ export class CustomItemPopup extends BaseModal {
     }
 }
 
+/**
+ * Table for managing custom food items. Creating a new food is handled outside the table.
+ */
+export class CustomFoodTable extends CustomTable<CustomFood> {
+    constructor(private readonly sheet: GearPlanSheet) {
+        super();
+        this.columns = [
+            {
+                shortName: 'actions',
+                displayName: '',
+                getter: item => item,
+                renderer: (item: CustomFood) => {
+                    const out = document.createElement('div');
+                    out.appendChild(makeActionButton([faIcon('fa-trash-can')], (ev) => {
+                        if (confirmDelete(ev, `Delete custom item '${item.name}'?`)) {
+                            this.sheet.deleteCustomFood(item);
+                            this.refresh();
+                        }
+                    }, 'Delete this item'));
+                    return out;
+                },
+                initialWidth: 40
+            },
+            {
+                shortName: 'name',
+                displayName: 'Name',
+                getter: item => item,
+                renderer: (item: CustomFood) => {
+                    return new FieldBoundTextField(item.customData, 'name');
+                },
+                initialWidth: 150
+            }, {
+                shortName: 'ilvl',
+                displayName: 'ilvl',
+                getter: item => item,
+                renderer: (item: CustomFood) => {
+                    return new FieldBoundIntField(item.customData, 'ilvl', {
+                        postValidators: [nonNegative],
+                        inputMode: 'number'
+                    })
+                },
+                initialWidth: 60
+            }, {
+                shortName: 'vitality-percent',
+                displayName: 'Vit %',
+                getter: item => item,
+                renderer: (item: CustomFood) => {
+                    return new FieldBoundIntField(item.customData.vitalityBonus, 'percentage', {postValidators: [nonNegative]});
+                },
+                initialWidth: 60
+            }, {
+                shortName: 'vitality-cap',
+                displayName: 'Vit Max',
+                getter: item => item,
+                renderer: (item: CustomFood) => {
+                    return new FieldBoundIntField(item.customData.vitalityBonus, 'max', {postValidators: [nonNegative]});
+                },
+                initialWidth: 60
+            }, {
+                shortName: 'primary-stat',
+                displayName: '1st Stat',
+                getter: item => item,
+                renderer: (item: CustomFood) => {
+                    return new FieldBoundDataSelect(item.customData, 'primaryStat', value => value ? STAT_FULL_NAMES[value] : 'None', [null, ...ALL_SUB_STATS]);
+                },
+                initialWidth: 120
+            }, {
+                shortName: 'primary-stat-percent',
+                displayName: '%',
+                getter: item => item,
+                renderer: (item: CustomFood) => {
+                    return new FieldBoundIntField(item.customData.primaryStatBonus, 'percentage', {postValidators: [nonNegative]});
+                },
+                initialWidth: 60
+            }, {
+                shortName: 'primary-stat-cap',
+                displayName: 'Max',
+                getter: item => item,
+                renderer: (item: CustomFood) => {
+                    return new FieldBoundIntField(item.customData.primaryStatBonus, 'max', {postValidators: [nonNegative]});
+                },
+                initialWidth: 60
+            }, {
+                shortName: 'secondary-stat',
+                displayName: '2nd Stat',
+                getter: item => item,
+                renderer: (item: CustomFood) => {
+                    return new FieldBoundDataSelect(item.customData, 'secondaryStat', value => value ? STAT_FULL_NAMES[value] : 'None', [null, ...ALL_SUB_STATS]);
+                },
+                initialWidth: 120
+            }, {
+                shortName: 'secondary-stat-percent',
+                displayName: '%',
+                getter: item => item,
+                renderer: (item: CustomFood) => {
+                    return new FieldBoundIntField(item.customData.secondaryStatBonus, 'percentage', {postValidators: [nonNegative]});
+                },
+                initialWidth: 60
+            }, {
+                shortName: 'secondary-stat-cap',
+                displayName: 'Max',
+                getter: item => item,
+                renderer: (item: CustomFood) => {
+                    return new FieldBoundIntField(item.customData.secondaryStatBonus, 'max', {postValidators: [nonNegative]});
+                },
+                initialWidth: 60
+            },
+        ];
+
+        this.refresh();
+    }
+
+    /**
+     * Refresh the table. Should be called after adding or removing an item.
+     */
+    refresh() {
+        this.data = [new HeaderRow(), ...this.sheet.customFood];
+    }
+}
+
+/**
+ * Modal dialog for custom item management.
+ */
+export class CustomFoodPopup extends BaseModal {
+    constructor(private readonly sheet: GearPlanSheet) {
+        super();
+        this.headerText = 'Custom Food';
+        const table = new CustomFoodTable(sheet);
+        this.contentArea.appendChild(table);
+
+        const notesArea = document.createElement('p');
+        notesArea.innerHTML = 'Limitations:<br />Do not delete items that are currently equipped.';
+        notesArea.classList.add('notes-area');
+        this.contentArea.appendChild(notesArea);
+
+        this.addActionButton('New Food', () => {
+            sheet.newCustomFood();
+            table.refresh();
+        });
+
+        this.addCloseButton();
+    }
+
+    close() {
+        super.close();
+        this.sheet.requestSave();
+        this.sheet.onGearDisplaySettingsUpdate();
+        this.sheet.recalcAll();
+    }
+}
+
 customElements.define('custom-item-popup', CustomItemPopup);
 customElements.define('custom-item-table', CustomItemTable, {extends: 'table'});
+customElements.define('custom-food-popup', CustomFoodPopup);
+customElements.define('custom-food-table', CustomFoodTable, {extends: 'table'});

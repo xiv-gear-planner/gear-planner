@@ -290,7 +290,7 @@ export class CustomTable<RowDataType, SelectionType = never> extends HTMLTableEl
         this._onDataChanged();
     }
 
-    get data() {
+    get data(): (RowDataType | HeaderRow | TitleRow)[] {
         return [...this._data];
     }
 

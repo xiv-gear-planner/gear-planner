@@ -1,10 +1,12 @@
 @import "../../common-ui/styles/common.less";
 
-custom-item-popup {
+custom-item-popup, custom-food-popup {
   table {
     td {
-      input[type="text"], input[type="number"] {
-        width: unset !important;
+      input[type="text"], input[type="number"], select {
+        &input {
+          width: unset !important;
+        }
         box-sizing: border-box;
         max-width: 100%;
         //border: var(--soft-border);
@@ -22,6 +24,11 @@ custom-item-popup {
         &:hover, &:active, &:focus {
           background: var(--relic-stat-input-background-hover-color);
         }
+
+      }
+
+      select {
+        width: 100%;
       }
     }
   }
