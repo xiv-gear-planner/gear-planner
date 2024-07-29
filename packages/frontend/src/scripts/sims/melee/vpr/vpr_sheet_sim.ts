@@ -5,7 +5,7 @@ import { VprGauge } from "./vpr_gauge";
 import { VprAbility, VprExtraData, VprGcdAbility } from "./vpr_types";
 import * as Actions from "./vpr_actions";
 import { FlanksbaneVenom, FlankstungVenom, HindsbaneVenom, HindstungVenom, HuntersInstinct, NoxiousGnash, ReadyToReawaken, Swiftscaled } from "./vpr_buffs";
-import { gemdraught1dex } from "@xivgear/core/sims/common/potion";
+import { potionMaxDex } from "@xivgear/core/sims/common/potion";
 import { sum } from "@xivgear/core/util/array_utils";
 import { STANDARD_ANIMATION_LOCK } from "@xivgear/xivmath/xivconstants";
 import { AbilitiesUsedTable } from "../../components/ability_used_table";
@@ -296,8 +296,8 @@ export class VprCycleProcessor extends CycleProcessor {
         this.useDualWieldCombo(); // Will be Swifstkin's Sting because it is first to be used
         this.useGcd(Actions.Dreadwinder);
 
-        this.advanceForLateWeave([gemdraught1dex]);
-        this.useOgcd(gemdraught1dex)
+        this.advanceForLateWeave([potionMaxDex]);
+        this.useOgcd(potionMaxDex)
 
         this.useHuntersCoil();
         this.useSwiftskinsCoil();
@@ -413,9 +413,9 @@ export class VprCycleProcessor extends CycleProcessor {
             }
 
             this.useDualWieldCombo();
-            if (this.canUseWithoutClipping(gemdraught1dex)) {
-                this.advanceForLateWeave([gemdraught1dex]);
-                this.useOgcd(gemdraught1dex);
+            if (this.canUseWithoutClipping(potionMaxDex)) {
+                this.advanceForLateWeave([potionMaxDex]);
+                this.useOgcd(potionMaxDex);
             }
 
             return;
