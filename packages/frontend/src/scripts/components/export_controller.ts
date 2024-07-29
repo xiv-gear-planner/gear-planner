@@ -31,6 +31,8 @@ export function startExport(sheet: GearPlanSheet | CharacterGearSet) {
     modal.show();
 }
 
+window["startExport"] = startExport;
+
 const DEFAULT_EXPORT_TEXT = 'Choose an export type from above, then click "Generate" below.\n\nYou can also click "Preview" to get an idea of what your sheet/set will look like after exporting.';
 
 class SimExportChooser extends HTMLElement {
