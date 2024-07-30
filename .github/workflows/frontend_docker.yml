@@ -27,7 +27,7 @@ jobs:
         run: |
           npm ci
           npm run build
-#          npm run test
+          #npm run test
           npm run docs
 
       - name: Inject commit info
