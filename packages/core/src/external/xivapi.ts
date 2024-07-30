@@ -10,6 +10,7 @@ export type XivApiRequest = {
 
 export type XivApiListRequest = XivApiRequest & {
     requestType: 'list',
+    rows?: number[],
 }
 
 export type XivApiFilter = string;
@@ -146,6 +147,9 @@ export async function xivApiGetList<RequestType extends XivApiListRequest>(reque
     let query = `${XIVAPI_SERVER}/api/1/sheet/${request.sheet}?limit=${perPage}`;
     if (request.columns?.length > 0) {
         query += '&fields=' + request.columns.join(',');
+    }
+    if (request.rows != null) {
+        query += '&rows=' + request.rows.join(',');
     }
     let remainingPages = request.pageLimit ?? 4;
     let after = request.startPage !== undefined ? (request.startPage * perPage) : 0;
