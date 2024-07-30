@@ -17,10 +17,10 @@ const dia: GcdAbility = {
     id: 16532,
     type: 'gcd',
     name: "Dia",
-    potency: 70,
+    potency: 75,
     dot: {
         id: 1871,
-        tickPotency: 70,
+        tickPotency: 75,
         duration: 30
     },
     attackType: "Spell",
