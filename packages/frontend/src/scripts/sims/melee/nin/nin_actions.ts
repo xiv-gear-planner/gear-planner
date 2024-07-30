@@ -27,7 +27,7 @@ export const GustSlash: NinGcdAbility = {
     name: "Gust Slash",
     id: 2242,
     attackType: "Weaponskill",
-    potency: 380,
+    potency: 400,
     gcd: 2.5,
     cast: 0,
     updateGauge: (gauge: NINGauge) => {
@@ -82,7 +82,7 @@ export const Raiju: NinGcdAbility = {
     name: "Fleeting Raiju",
     id: 25778,
     attackType: "Weaponskill",
-    potency: 640,
+    potency: 700,
     gcd: 2.5,
     cast: 0,
     updateGauge: gauge => gauge.ninkiGauge += 5,
@@ -301,7 +301,7 @@ export const ZeshoMeppo: NinkiAbility = {
     name: "Zesho Meppo",
     id: 36960,
     attackType: "Ability",
-    potency: 550,
+    potency: 700,
     updateGauge: gauge => gauge.ninkiGauge -= 50,
     ninkiCost: 50,
 };
@@ -311,5 +311,5 @@ export const TenriJindo: NinOgcdAbility = {
     name: "Tenri Jindo",
     id: 36961,
     attackType: "Ability",
-    potency: 1000,
+    potency: 1100,
 };
