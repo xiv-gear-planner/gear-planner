@@ -7,7 +7,7 @@ import {
     SupportedLevel
 } from "@xivgear/xivmath/xivconstants";
 import {GearItem, JobMultipliers, Materia, OccGearSlotKey, RawStatKey,} from "@xivgear/xivmath/geartypes";
-import {xivApiGet, XivApiResultSingle, xivApiSingleCols} from "./external/xivapi";
+import {xivApiGet, XivApiResultSingle} from "./external/xivapi";
 import {BaseParamToStatKey, RelevantBaseParam, xivApiStatMapping} from "./external/xivapitypes";
 import {getRelicStatModelFor} from "./relicstats/relicstats";
 
@@ -327,13 +327,22 @@ export class DataManager implements DataManagerIntf {
                 console.log(`Got ${data.Results.length} Food Items`);
                 return data.Results;
             })
-            .then((rawFoods) => rawFoods.map(async i => {
-                // TODO: is there a better way to get this?
-                const itemActionId = i.ItemAction['fields']['Data'][1] as number;
-                const itemFoodData = await xivApiSingleCols('ItemFood', itemActionId, foodItemFoodCols);
-                return new XivApiFoodInfo(i, itemFoodData);
-            }))
-            .then(async (processedFoods) => (await Promise.all(processedFoods)).filter(food => Object.keys(food.bonuses).length > 1))
+            .then(async (rawFoods) => {
+                const foodIds = rawFoods.map(item => item.ItemAction['fields']['Data'][1] as number);
+                const food = await xivApiGet({
+                    requestType:'list',
+                    sheet: 'ItemFood',
+                    columns: foodItemFoodCols,
+                    rows: foodIds,
+                });
+                const foodMap = new Map(food.Results.map(result => [result.ID, result]));
+
+                return rawFoods.map(item => {
+                    const itemFoodData = foodMap.get(item.ItemAction['fields']['Data'][1]);
+                    return new XivApiFoodInfo(item, itemFoodData);
+                });
+            })
+            .then((processedFoods) => processedFoods.filter(food => Object.keys(food.bonuses).length > 1))
             .then((foods) => this._allFoodItems = foods,
                 e => console.error(e));
         console.log("Loading jobs");
