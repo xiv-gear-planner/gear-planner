@@ -24,7 +24,7 @@ export const royal: GcdAbility = {
     id: 3539,
     type: 'gcd',
     name: "Royal Authority",
-    potency: 440,
+    potency: 460,
     attackType: "Weaponskill",
     gcd: 2.5,
     fixedGcd: true
@@ -34,7 +34,7 @@ export const atone: GcdAbility = {
     id: 16460,
     type: 'gcd',
     name: "Atonement",
-    potency: 440,
+    potency: 460,
     attackType: "Weaponskill",
     gcd: 2.5,
     fixedGcd: true
@@ -44,7 +44,7 @@ export const supp: GcdAbility = {
     id: 36918,
     type: 'gcd',
     name: "Supplication",
-    potency: 460,
+    potency: 500,
     attackType: "Weaponskill",
     gcd: 2.5,
     fixedGcd: true
@@ -54,7 +54,7 @@ export const sep: GcdAbility = {
     id: 36919,
     type: 'gcd',
     name: "Sepulchre",
-    potency: 480,
+    potency: 540,
     attackType: "Weaponskill",
     gcd: 2.5,
     fixedGcd: true
@@ -64,7 +64,7 @@ export const hs: GcdAbility = {
     id: 7384,
     type: 'gcd',
     name: "Holy Spirit",
-    potency: 470,
+    potency: 500,
     attackType: "Spell",
     gcd: 2.5,
     fixedGcd: true
@@ -84,7 +84,7 @@ export const conf: GcdAbility = {
     id: 16459,
     type: 'gcd',
     name: "Confiteor",
-    potency: 940,
+    potency: 1000,
     attackType: "Spell",
     gcd: 2.5,
     fixedGcd: true
@@ -94,7 +94,7 @@ export const faith: GcdAbility = {
     id: 25748,
     type: 'gcd',
     name: "Blade of Faith",
-    potency: 740,
+    potency: 760,
     attackType: "Spell",
     gcd: 2.5,
     fixedGcd: true
@@ -104,7 +104,7 @@ export const truth: GcdAbility = {
     id: 25749,
     type: 'gcd',
     name: "Blade of Truth",
-    potency: 840,
+    potency: 880,
     attackType: "Spell",
     gcd: 2.5,
     fixedGcd: true
@@ -114,7 +114,7 @@ export const valor: GcdAbility = {
     id: 25750,
     type: 'gcd',
     name: "Blade of Valor",
-    potency: 940,
+    potency: 1000,
     attackType: "Spell",
     gcd: 2.5,
     fixedGcd: true
