@@ -42,7 +42,9 @@ function makePotion(name: string, stat: RawStatKey, itemId: number, bonus: numbe
     };
 }
 
-function makeGemdraught(stat: RawStatKey, grade: number): Readonly<OgcdAbility> {
+export const GemdraughtGrades = [1, 2] as const;
+export type GemdraughtGrade = typeof GemdraughtGrades[number];
+export function makeGemdraught(stat: RawStatKey, grade: GemdraughtGrade): Readonly<OgcdAbility> {
     const statToPotItemId = {
         mind: 44161,
         strength: 44157,
@@ -61,8 +63,10 @@ export const gemdraught1str = makeGemdraught('strength', 1);
 export const gemdraught1dex = makeGemdraught('dexterity', 1);
 export const gemdraught1int = makeGemdraught('intelligence', 1);
 export const gemdraught1mind = makeGemdraught('mind', 1);
-// 7.05
-export const gemdraught2str = makeGemdraught('strength', 2);
-export const gemdraught2dex = makeGemdraught('dexterity', 2);
-export const gemdraught2int = makeGemdraught('intelligence', 2);
-export const gemdraught2mind = makeGemdraught('mind', 2);
+
+// Latest
+const MAX_GEMDRAUGHT_GRADE = GemdraughtGrades.slice(-1)[0];
+export const potionMaxStr = makeGemdraught('strength', MAX_GEMDRAUGHT_GRADE);
+export const potionMaxDex = makeGemdraught('dexterity', MAX_GEMDRAUGHT_GRADE);
+export const potionMaxInt = makeGemdraught('intelligence', MAX_GEMDRAUGHT_GRADE);
+export const potionMaxMind = makeGemdraught('mind', MAX_GEMDRAUGHT_GRADE);

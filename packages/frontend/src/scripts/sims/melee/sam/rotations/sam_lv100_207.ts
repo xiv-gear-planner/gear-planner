@@ -1,12 +1,12 @@
 import { SamAbility } from "../sam_types";
-import { gemdraught2str } from "@xivgear/core/sims/common/potion";
+import { potionMaxStr } from "@xivgear/core/sims/common/potion";
 import * as Actions from '../sam_actions';
 
 export const Opener: SamAbility[] = [
     Actions.MeikyoShisui,
     Actions.Gekko,
     Actions.Ikishoten,
-    gemdraught2str,
+    potionMaxStr,
     Actions.Kasha,
     Actions.Yukikaze,
     Actions.TendoSetsugekka,
