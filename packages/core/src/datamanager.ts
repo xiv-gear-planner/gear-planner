@@ -7,7 +7,7 @@ import {
     SupportedLevel
 } from "@xivgear/xivmath/xivconstants";
 import {GearItem, JobMultipliers, Materia, OccGearSlotKey, RawStatKey,} from "@xivgear/xivmath/geartypes";
-import {xivApiGet, XivApiResultSingle, xivApiSingleCols} from "./external/xivapi";
+import {xivApiGet, XivApiResultSingle} from "./external/xivapi";
 import {BaseParamToStatKey, RelevantBaseParam, xivApiStatMapping} from "./external/xivapitypes";
 import {getRelicStatModelFor} from "./relicstats/relicstats";
 
