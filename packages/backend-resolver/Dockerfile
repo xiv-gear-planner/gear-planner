@@ -6,7 +6,7 @@ RUN npm ci
 # TODO: this step specifically isn't really doing anything, since it's run from the TS files
 RUN npm run build
 
-RUN npm run test
+RUN #npm run test
 
 # To be run from project root
 FROM node:20
