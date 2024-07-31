@@ -442,8 +442,8 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
                 const physGCD = cp.stats.gcdPhys(2.5);
                 const magicGCD = cp.stats.gcdMag(2.5);
 
-                var GCDActionSet = new Map<string, GcdAbility>();
-                var oGCDActionSet = new Map<string, OgcdAbility>();
+                const GCDActionSet = new Map<string, GcdAbility>();
+                const oGCDActionSet = new Map<string, OgcdAbility>();
 
                 GCDActionSet.set("Fast",Actions.FastBlade);
                 GCDActionSet.set("Riot",Actions.RiotBlade);
@@ -933,7 +933,7 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
                         let enough_time_if_melee = cp.fofIsActive((cp.nextGcdTime + physGCD));
                         let fof_remaining = cp.getFOFRemaining().toFixed(2);
 
-                        var burstGCDsUsed = 0;
+                        let burstGCDsUsed = 0;
 
                         while (enough_time_if_melee && safety < 100000)
                         {
