@@ -4,7 +4,7 @@ import { BaseMultiCycleSim } from "../../sim_processors";
 import { VprGauge } from "./vpr_gauge";
 import { VprAbility, VprExtraData, VprGcdAbility } from "./vpr_types";
 import * as Actions from "./vpr_actions";
-import { FlanksbaneVenom, FlankstungVenom, HindsbaneVenom, HindstungVenom, HuntersInstinct, NoxiousGnash, ReadyToReawaken, Swiftscaled } from "./vpr_buffs";
+import { FlanksbaneVenom, FlankstungVenom, HindsbaneVenom, HindstungVenom, HuntersInstinct, ReadyToReawaken, Swiftscaled } from "./vpr_buffs";
 import { potionMaxDex } from "@xivgear/core/sims/common/potion";
 import { sum } from "@xivgear/core/util/array_utils";
 import { STANDARD_ANIMATION_LOCK } from "@xivgear/xivmath/xivconstants";
@@ -42,16 +42,23 @@ class RotationState {
     set comboStep(newCombo: number) {
         this._comboStep = newCombo % 3;
     }
-    private _next2ndGcd: number = 0;
-    get next2ndGcd() {
-        return this._next2ndGcd
+    private _nextSecondStep: number = 0;
+    get nextSecondStep() {
+        return this._nextSecondStep
     }
-    set next2ndGcd(new2ndGcd: number) {
-        this._next2ndGcd = new2ndGcd % 2;
+    set nextSecondStep(new2ndGcd: number) {
+        this._nextSecondStep = new2ndGcd % 2;
+    }
+
+    private _nextFirstStep: number = 0;
+    get nextFirstStep() {
+        return this._nextFirstStep;
+    }
+    set nextFirstStep(newFirstStep: number) {
+        this._nextFirstStep = newFirstStep % 2;
     }
 
     public numDreadwindersUsed: number = 0;
-    public forceDreadFangs: boolean = false;
     public lastComboTime: number = 0;
     public lastDualWieldFinisher: VprGcdAbility = null;
 }
@@ -163,7 +170,7 @@ export class VprCycleProcessor extends CycleProcessor {
     }
 
     useDreadWinder() {
-        this.useGcd(Actions.Dreadwinder);
+        this.useGcd(Actions.Vicewinder);
         this.rotationState.numDreadwindersUsed += 1;
     }
 
@@ -187,28 +194,15 @@ export class VprCycleProcessor extends CycleProcessor {
         }
     }
 
+    firstComboGcds: VprGcdAbility[] = [Actions.ReavingFangs, Actions.SteelFangs];
     secondComboGcds: VprGcdAbility[] = [Actions.SwiftskinsSting, Actions.HuntersSting];
     public useDualWieldCombo() {
-        const buff = this.getActiveBuffData(NoxiousGnash);
         switch (this.rotationState.comboStep) {
             case 0:
-                if (!buff
-                    || this.rotationState.forceDreadFangs
-                    || buff.end - this.currentTime < 20) {
-
-                    this.useGcd(Actions.DreadFangs);
-
-                    if (this.rotationState.forceDreadFangs) { // If we need to force dread fangs even if it will overcap
-                        this.rotationState.forceDreadFangs = false;
-                    }
-                }
-                else {
-                    this.useGcd(Actions.SteelFangs);
-                }
+                this.useGcd(this.firstComboGcds[this.rotationState.nextFirstStep++]);
                 break;
             case 1:
-                this.useGcd(this.secondComboGcds[this.rotationState.next2ndGcd]);
-                this.rotationState.next2ndGcd += 1;
+                this.useGcd(this.secondComboGcds[this.rotationState.nextSecondStep++]);
                 break;
             case 2:
                 /** Use finisher based on buff */
@@ -227,11 +221,11 @@ export class VprCycleProcessor extends CycleProcessor {
                 else { // No buff running; Pick arbitrarily based on previous 2nd combo
 
                     /** If we just used Hunter's sting */
-                    if (this.rotationState.next2ndGcd == 0) {
+                    if (this.rotationState.nextSecondStep == 0) {
                         this.useGcd(Actions.HindsbaneFang); // Chosen arbitrarily from the flank options
                     }
                     /** If we just used Swiftskin's sting */
-                    else if (this.rotationState.next2ndGcd == 1) {
+                    else if (this.rotationState.nextSecondStep == 1) {
                         this.useGcd(Actions.FlanksbaneFang); // Chosen arbitrarily from the hind options
                     }
                 }
@@ -265,23 +259,18 @@ export class VprCycleProcessor extends CycleProcessor {
         /** Requirements for using UF:
          * - need to not break combo
          * - need to use combo finisher before buff wears off
-         * - need to not drop NG (TODO: check if H. instinct or swiftscaled need to be checked)
         */
         const comboBreakTime = this.rotationState.lastComboTime + 30;
         const gcdAfterUF = this.nextGcdTime + this.gcdTime(Actions.UncoiledFury);
         let numCombosNeeded = 2 - this.rotationState.comboStep + 1;
-        const nextFinisher = gcdAfterUF + numCombosNeeded * this.gcdTime(Actions.DreadFangs);
-        const nextNGRefresh = this.rotationState.comboStep == 0 ? gcdAfterUF : gcdAfterUF + nextFinisher + this.gcdTime(Actions.DreadFangs)
 
-        if (gcdAfterUF < comboBreakTime // if the gcd after has time to continue combo
-            && this.getActiveBuffData(NoxiousGnash).end > nextNGRefresh
-            && this.getActiveBuffData(this.rotationState.lastDualWieldFinisher.activatesBuffs[0]).end > nextFinisher) {
+        if (gcdAfterUF < comboBreakTime) { // if the gcd after has time to continue combo
 
             this.useUncoiledFury();
         }
 
         /** Use combo till we're good with finisher
-         * Note: always > 0 */
+         * Note: always iterates at least once*/
         while (numCombosNeeded > 0) { 
             this.useDualWieldCombo();
             numCombosNeeded--;
@@ -294,7 +283,7 @@ export class VprCycleProcessor extends CycleProcessor {
         this.useDualWieldCombo(); // Will be dread fangs because we don't have Noxious Gnash
         this.useOgcd(Actions.SerpentsIre);
         this.useDualWieldCombo(); // Will be Swifstkin's Sting because it is first to be used
-        this.useGcd(Actions.Dreadwinder);
+        this.useGcd(Actions.Vicewinder);
 
         this.advanceForLateWeave([potionMaxDex]);
         this.useOgcd(potionMaxDex)
@@ -322,7 +311,7 @@ export class VprCycleProcessor extends CycleProcessor {
     }
 
     getGcdTimeAfterSerpentsIre(): number {
-        const gcdTime = this.gcdTime(Actions.DreadFangs); // We already have a rule not to use non-dualwield gcds, so we can be assured that this is accurate. 
+        const gcdTime = this.gcdTime(Actions.ReavingFangs); // We already have a rule not to use non-dualwield gcds, so we can be assured that this is accurate. 
 
         const serpentsIreReady = this.cdTracker.statusOf(Actions.SerpentsIre).readyAt.absolute;
         let gcdAfterSerpentsIre = this.nextGcdTime;
@@ -341,7 +330,7 @@ export class VprCycleProcessor extends CycleProcessor {
 
     isImmediatelyBeforeBurst(): boolean {
 
-        const gcdTime = this.gcdTime(Actions.DreadFangs); // We already have a rule not to use non-dualwield gcds, so we can be assured that this is accurate. 
+        const gcdTime = this.gcdTime(Actions.ReavingFangs); // We already have a rule not to use non-dualwield gcds, so we can be assured that this is accurate. 
         const gcdAfterSerpentsIre = this.getGcdTimeAfterSerpentsIre();
         const reawakenStart = gcdAfterSerpentsIre + gcdTime;
 
@@ -351,7 +340,7 @@ export class VprCycleProcessor extends CycleProcessor {
     canUseReawaken(): boolean {
         const numTwinbladeCombosToUse = 3 - this.rotationState.numDreadwindersUsed;
         const numRattlingCoils = this.gauge.rattlingCoils + numTwinbladeCombosToUse + 1; // +1 for Serpent's ire
-        const numUFs = numRattlingCoils;
+        const numUFs = Math.max(numRattlingCoils - 3, 0);
 
         /** We're going to so some pre-simulation to determine gauge at 2mins. */
         let currOfferings = this.gauge.serpentOfferings - 50;
@@ -362,9 +351,9 @@ export class VprCycleProcessor extends CycleProcessor {
          * That means the rest of the gcds before 2min reawaken are *all* dual wield combos. 
         */
         const UFGcd = this.gcdTime(Actions.UncoiledFury);
-        const dualWieldGcd = this.gcdTime(Actions.DreadFangs);
+        const dualWieldGcd = this.gcdTime(Actions.ReavingFangs);
         currTime += numUFs * UFGcd
-                    + 3 * numTwinbladeCombosToUse * this.gcdTime(Actions.Dreadwinder)
+                    + 3 * numTwinbladeCombosToUse * this.gcdTime(Actions.Vicewinder)
                     + this.getReawakenDuration();
 
         currOfferings += 10 * numTwinbladeCombosToUse;
@@ -382,7 +371,7 @@ export class VprCycleProcessor extends CycleProcessor {
             numFinishersBeforeBurst += 1;
         }
 
-        const numGcdsBeforeBurst = Math.floor((nextBurstStart - currTime) / this.gcdTime(Actions.DreadFangs));
+        const numGcdsBeforeBurst = Math.floor((nextBurstStart - currTime) / this.gcdTime(Actions.ReavingFangs));
         numFinishersBeforeBurst += Math.floor(numGcdsBeforeBurst / 3)
 
         currOfferings += 10 * numFinishersBeforeBurst;
@@ -395,36 +384,28 @@ export class VprCycleProcessor extends CycleProcessor {
         if (this.canUseWithoutClipping(Actions.SerpentsIre)) {
             this.useOgcd(Actions.SerpentsIre);
             this.useDualWieldCombo();
+
+            if (this.canUseWithoutClipping(potionMaxDex)) {
+                this.advanceForLateWeave([potionMaxDex]);
+                this.useOgcd(potionMaxDex);
+            }
+
             this.useDoubleReawaken();
             return;
         }
 
         /** Pre-burst logic */
         if (this.cdTracker.statusOf(Actions.SerpentsIre).readyAt.absolute - this.nextGcdTime < 10) {
-            if (this.isImmediatelyBeforeBurst()) {
-                
-                const reawakenTime = this.nextGcdTime + 3*this.gcdTime(Actions.DreadFangs);
-
-                /** Since the full duration of ouroboros is used, this time is the start of the GCD after */
-                if (reawakenTime + 2 * this.getReawakenDuration() > this.getActiveBuffData(NoxiousGnash)!.end) {
-
-                    this.rotationState.forceDreadFangs = true;
-                }
-            }
 
             this.useDualWieldCombo();
-            if (this.canUseWithoutClipping(potionMaxDex)) {
-                this.advanceForLateWeave([potionMaxDex]);
-                this.useOgcd(potionMaxDex);
-            }
 
             return;
         }
 
 
-        if (this.cdTracker.canUse(Actions.Dreadwinder)
-            && this.getActiveBuffData(NoxiousGnash).end - this.nextGcdTime < NoxiousGnash.duration
+        if (this.cdTracker.canUse(Actions.Vicewinder)
             && this.gauge.serpentOfferings + 10 <= 100
+            && this.gauge.rattlingCoils + 1 <= 3
             && this.cdTracker.statusOfAt(Actions.SerpentsIre, this.nextGcdTime).readyAt.relative > 10) {
         
             if (this.gauge.rattlingCoils == 3) {
@@ -439,11 +420,10 @@ export class VprCycleProcessor extends CycleProcessor {
         }
 
         const postReawakenTime = this.nextGcdTime + this.getReawakenDuration();
-        const nextSecondaryBuffRefresh = (this.cdTracker.statusOfAt(Actions.Dreadwinder, postReawakenTime).readyToUse) ?
-                                        postReawakenTime + this.gcdTime(Actions.Dreadwinder)
-                                        : postReawakenTime + ((1 - this.rotationState.comboStep) % 3) * this.gcdTime(Actions.DreadFangs); 
+        const nextSecondaryBuffRefresh = (this.cdTracker.statusOfAt(Actions.Vicewinder, postReawakenTime).readyToUse) ?
+                                        postReawakenTime + this.gcdTime(Actions.Vicewinder)
+                                        : postReawakenTime + ((1 - this.rotationState.comboStep) % 3) * this.gcdTime(Actions.ReavingFangs); 
         if (this.gauge.serpentOfferings >= 50
-            && postReawakenTime < this.getActiveBuffData(NoxiousGnash).end
             && nextSecondaryBuffRefresh < this.getActiveBuffData(HuntersInstinct).end
             && nextSecondaryBuffRefresh < this.getActiveBuffData(Swiftscaled).end
             && this.canUseReawaken()) {
@@ -452,7 +432,9 @@ export class VprCycleProcessor extends CycleProcessor {
             return;
         }
 
-        if (this.gauge.rattlingCoils > 0) {
+        if (this.gauge.rattlingCoils > 2
+           || (this.gauge.rattlingCoils > 0 && this.cdTracker.statusOf(Actions.SerpentsIre).readyAt.relative > this.remainingGcdTime) 
+        ) {
             this.useUncoiledFury();
         }
 

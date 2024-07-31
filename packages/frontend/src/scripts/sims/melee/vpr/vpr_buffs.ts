@@ -1,46 +1,70 @@
 import { Ability, Buff, BuffController, PersonalBuff } from "@xivgear/core/sims/sim_types";
 import * as Actions from "./vpr_actions"
 
-export const NoxiousGnash: PersonalBuff = {
-    name: "Noxious Gnash",
-    saveKey: "Noxious Gnash",
-    duration: 20,
+export const HonedReavers: PersonalBuff = {
+    name: "Honed Reavers",
+    saveKey: "Honed Reavers",
+    duration: 60,
     selfOnly: true,
     effects: {
-        dmgIncrease: 0.1
+        // Increases potency of Reaving Fang by 100
     },
-    statusId: 3667,
-    maxStackingDuration: 40,
-};
+    statusId: 3772,
+    appliesTo: ability => ability.id == Actions.ReavingFangs.id,
+    beforeSnapshot<X extends Ability>(buffController: BuffController, ability: X): X {
+        buffController.removeSelf();
+        return {
+            ...ability,
+            potency: ability.potency + 100,
+        };
+    },
+}
+
+export const HonedSteel: PersonalBuff = {
+    name: "Honed Steel",
+    saveKey: "Honed Steel",
+    duration: 60,
+    selfOnly: true,
+    effects: {
+        // Increases potency of Reaving Fang by 100
+    },
+    statusId: 3772,
+    appliesTo: ability => ability.id == Actions.SteelFangs.id,
+    beforeSnapshot<X extends Ability>(buffController: BuffController, ability: X): X {
+        buffController.removeSelf();
+        return {
+            ...ability,
+            potency: ability.potency + 100,
+        };
+    },
+}
 
 export const HuntersInstinct: PersonalBuff = {
     name: "Hunter's Instinct",
     saveKey: "Hunter's Instinct",
-    duration: 20,
+    duration: 40,
     selfOnly: true,
     effects: {
         dmgIncrease: 0.1
     },
     statusId: 3668,
-    maxStackingDuration: 40,
 };
 
 export const Swiftscaled: PersonalBuff = {
     name: "Swiftscaled",
     saveKey: "SwiftScaled",
-    duration: 20,
+    duration: 40,
     selfOnly: true,
     effects: {
         haste: 15,
     },
     statusId: 3669,
-    maxStackingDuration: 40,
 };
 
 const ComboFinisherBaseBuff: Buff = {
     name: null, 
     saveKey: null,
-    duration: 40,
+    duration: 60,
     selfOnly: true,
     effects: {
         // Only applies to Hindsting strike, buffing potency by 100p
@@ -118,7 +142,7 @@ export const HuntersVenom: PersonalBuff = {
         buffController.removeSelf();
         return {
             ...ability,
-            potency: 150,
+            potency: 170,
         };
     }
 }
@@ -136,7 +160,7 @@ export const SwiftskinsVenom: PersonalBuff = {
         buffController.removeSelf();
         return {
             ...ability,
-            potency: 150,
+            potency: 170,
         };
     }
 }
@@ -154,7 +178,7 @@ export const PoisedForTwinfang: PersonalBuff = {
         buffController.removeSelf();
         return {
             ...ability,
-            potency: 150,
+            potency: 170,
         };
     }
 }
@@ -172,7 +196,7 @@ export const PoisedForTwinblood: PersonalBuff = {
         buffController.removeSelf();
         return {
             ...ability,
-            potency: 150,
+            potency: 170,
         };
     }
 }
