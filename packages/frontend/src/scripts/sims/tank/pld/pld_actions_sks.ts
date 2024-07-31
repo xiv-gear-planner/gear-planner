@@ -1,4 +1,6 @@
-import {AtonementReadyBuff, SupplicationReadyBuff, SepulchreReadyBuff, DivineMightBuff, BladeOfHonorReadyBuff, RequiescatBuff, FightOrFlightBuff, GoringBladeReadyBuff} from './pld_buffs';
+import {AtonementReadyBuff, SupplicationReadyBuff, SepulchreReadyBuff,
+        DivineMightBuff, BladeOfHonorReadyBuff, RequiescatBuff, FightOrFlightBuff,
+        GoringBladeReadyBuff} from './pld_buffs_sks';
 import {GcdAbility, OgcdAbility} from "@xivgear/core/sims/sim_types";
 
 /**
@@ -28,7 +30,7 @@ export const RoyalAuthority: GcdAbility = {
     name: "Royal Authority",
     id: 3539,
     attackType: "Weaponskill",
-    potency: 440,
+    potency: 460,
     gcd: 2.5,
     cast: 0,
     activatesBuffs: [AtonementReadyBuff, DivineMightBuff]
@@ -39,7 +41,7 @@ export const Atonement: GcdAbility = {
     name: "Atonement",
     id: 16460,
     attackType: "Weaponskill",
-    potency: 440,
+    potency: 460,
     gcd: 2.5,
     cast: 0,
     activatesBuffs: [SupplicationReadyBuff]
@@ -50,7 +52,7 @@ export const Supplication: GcdAbility = {
     // todo update dawntrail
     id: 36918,
     attackType: "Weaponskill",
-    potency: 460,
+    potency: 500,
     gcd: 2.5,
     cast: 0,
     activatesBuffs: [SepulchreReadyBuff]
@@ -61,7 +63,7 @@ export const Sepulchre: GcdAbility = {
     // todo update dawntrail
     id: 36919,
     attackType: "Weaponskill",
-    potency: 480,
+    potency: 540,
     gcd: 2.5,
     cast: 0
 }
@@ -71,7 +73,7 @@ export const HolySpirit: GcdAbility = {
     name: "Holy Spirit",
     id: 7384,
     attackType: "Spell",
-    potency: 470,
+    potency: 500,
     gcd: 2.5,
     cast: 0
 }
@@ -80,7 +82,7 @@ export const HolySpiritHardcast: GcdAbility = {
     name: "Holy Spirit (hard cast)",
     id: 7384,
     attackType: "Spell",
-    potency: 370,
+    potency: 400,
     gcd: 2.5,
     cast: 1.5
 }
@@ -100,7 +102,7 @@ export const Confiteor: GcdAbility = {
     name: "Confiteor",
     id: 16459,
     attackType: "Spell",
-    potency: 940,
+    potency: 1000,
     gcd: 2.5,
     cast: 0
 }
@@ -109,7 +111,7 @@ export const BladeOfFaith: GcdAbility = {
     name: "Blade of Faith",
     id: 25748,
     attackType: "Spell",
-    potency: 740,
+    potency: 760,
     gcd: 2.5,
     cast: 0
 }
@@ -118,7 +120,7 @@ export const BladeOfTruth: GcdAbility = {
     name: "Blade of Truth",
     id: 25749,
     attackType: "Spell",
-    potency: 840,
+    potency: 880,
     gcd: 2.5,
     cast: 0
 }
@@ -127,7 +129,7 @@ export const BladeOfValor: GcdAbility = {
     name: "Blade of Valor",
     id: 25750,
     attackType: "Spell",
-    potency: 940,
+    potency: 1000,
     gcd: 2.5,
     cast: 0,
     activatesBuffs: [BladeOfHonorReadyBuff]
@@ -136,7 +138,9 @@ export const BladeOfValor: GcdAbility = {
 
 
 
-
+/**
+ * Paladin oGCD Actions
+ */
 
 
 export const FightOrFlight: OgcdAbility = {
