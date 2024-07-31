@@ -1,5 +1,5 @@
 import { VprGcdAbility, VprOgcdAbility } from "./vpr_types";
-import { FlanksbaneVenom, FlankstungVenom, HindsbaneVenom, HindstungVenom, HuntersInstinct, NoxiousGnash, ReadyToReawaken, Swiftscaled } from "./vpr_buffs";
+import { FlanksbaneVenom, FlankstungVenom, HindsbaneVenom, HindstungVenom, HonedReavers, HonedSteel, HuntersInstinct, ReadyToReawaken, Swiftscaled } from "./vpr_buffs";
 
 
 export const SteelFangs: VprGcdAbility = {
@@ -10,24 +10,25 @@ export const SteelFangs: VprGcdAbility = {
     attackType: "Weaponskill",
     gcd: 2.5,
     cast: 0,
+    activatesBuffs: [HonedReavers],
 };
 
-export const DreadFangs: VprGcdAbility = {
+export const ReavingFangs: VprGcdAbility = {
     type: 'gcd',
-    name: "Dread Fangs",
+    name: "Reaving Fangs",
     id: 34607,
-    potency: 100,
+    potency: 200,
     attackType: "Weaponskill",
     gcd: 2.5,
     cast: 0,
-    activatesBuffs: [NoxiousGnash],
+    activatesBuffs: [HonedSteel],
 };
 
 export const HuntersSting: VprGcdAbility = {
     type: 'gcd',
     name: "Hunter's Sting",
     id: 34608,
-    potency: 260,
+    potency: 300,
     attackType: "Weaponskill",
     gcd: 2.5,
     cast: 0,
@@ -38,7 +39,7 @@ export const SwiftskinsSting: VprGcdAbility = {
     type: 'gcd',
     name: "Swiftskin's Sting",
     id: 34609,
-    potency: 260,
+    potency: 300,
     attackType: "Weaponskill",
     gcd: 2.5,
     cast: 0,
@@ -49,7 +50,7 @@ export const FlankstingStrike: VprGcdAbility = {
     type: 'gcd',
     name: "Flanksting Strike",
     id: 34610,
-    potency: 340,
+    potency: 400,
     attackType: "Weaponskill",
     gcd: 2.5,
     cast: 0,
@@ -61,7 +62,7 @@ export const FlanksbaneFang: VprGcdAbility = {
     type: 'gcd',
     name: "Flanksbane Fang",
     id: 34611,
-    potency: 340,
+    potency: 400,
     attackType: "Weaponskill",
     gcd: 2.5,
     cast: 0,
@@ -73,7 +74,7 @@ export const HindstingStrike: VprGcdAbility = {
     type: 'gcd',
     name: "Hindsting Strike",
     id: 34612,
-    potency: 340,
+    potency: 400,
     attackType: "Weaponskill",
     gcd: 2.5,
     cast: 0,
@@ -85,7 +86,7 @@ export const HindsbaneFang: VprGcdAbility = {
     type: 'gcd',
     name: "Hindsbane Fang",
     id: 34613,
-    potency: 340,
+    potency: 400,
     attackType: "Weaponskill",
     gcd: 2.5,
     cast: 0,
@@ -93,15 +94,14 @@ export const HindsbaneFang: VprGcdAbility = {
     updateGauge: gauge => gauge.serpentOfferings += 10,
 };
 
-export const Dreadwinder: VprGcdAbility = {
+export const Vicewinder: VprGcdAbility = {
     type: 'gcd',
-    name: "Dreadwinder",
+    name: "Vicewinder",
     id: 34620,
-    potency: 450,
+    potency: 500,
     attackType: "Weaponskill",
     gcd: 3.0,
     cast: 0,
-    activatesBuffs: [NoxiousGnash],
     cooldown: {
         time: 40,
         charges: 2
@@ -113,7 +113,7 @@ export const HuntersCoil: VprGcdAbility = {
     type: 'gcd',
     name: "Hunter's Coil",
     id: 34621,
-    potency: 550,
+    potency: 620,
     attackType: "Weaponskill",
     gcd: 3.0,
     cast: 0,
@@ -125,7 +125,7 @@ export const SwiftskinsCoil: VprGcdAbility = {
     type: 'gcd',
     name: "Swiftskin's Coil",
     id: 34622,
-    potency: 550,
+    potency: 620,
     attackType: "Weaponskill",
     gcd: 3.0,
     cast: 0,
@@ -137,7 +137,7 @@ export const UncoiledFury: VprGcdAbility = {
     type: 'gcd',
     name: "Uncoiled Fury",
     id: 34633,
-    potency: 600,
+    potency: 680,
     attackType: "Weaponskill",
     gcd: 3.5,
     cast: 0,
@@ -148,7 +148,7 @@ export const Reawaken: VprGcdAbility = {
     type: 'gcd',
     name: "Reawaken",
     id: 34626,
-    potency: 700,
+    potency: 750,
     attackType: "Weaponskill",
     gcd: 2.2,
     cast: 0,
@@ -159,7 +159,7 @@ const GenerationBase: VprGcdAbility = {
     name: null,
     id: null,
     type: 'gcd',
-    potency: 600,
+    potency: 680,
     attackType: "Weaponskill",
     gcd: 2.0,
     cast: 0,
@@ -193,7 +193,7 @@ export const Ouroboros: VprGcdAbility = {
     name: "Ouroboros",
     id: 34631,
     type: 'gcd',
-    potency: 600,
+    potency: 1150,
     attackType: "Weaponskill",
     gcd: 2.0,
     cast: 0,
@@ -203,7 +203,7 @@ const LegacyBase: VprOgcdAbility = {
     name: null,
     id: null,
     type: 'ogcd',
-    potency: 250,
+    potency: 280,
     attackType: 'Ability'
 }
 
@@ -249,7 +249,7 @@ export const TwinfangBite: VprOgcdAbility = {
     name: "Twinfang Bite",
     id: 34636,
     type: 'ogcd',
-    potency: 100,
+    potency: 120,
     attackType: 'Ability',
 }
 
@@ -257,7 +257,7 @@ export const TwinbloodBite: VprOgcdAbility = {
     name: "Twinblood Bite",
     id: 34637,
     type: 'ogcd',
-    potency: 100,
+    potency: 120,
     attackType: 'Ability',
 }
 
@@ -265,7 +265,7 @@ export const DeathRattle: VprOgcdAbility = {
     name: "Death Rattle",
     id: 34634,
     type: 'ogcd',
-    potency: 250,
+    potency: 280,
     attackType: 'Ability',
 }
 
@@ -273,7 +273,7 @@ export const UncoiledTwinfang: VprOgcdAbility = {
     name: "Uncoiled Twinfang",
     id: 34644,
     type: 'ogcd',
-    potency: 100,
+    potency: 120,
     attackType: 'Ability',
 }
 
@@ -281,6 +281,6 @@ export const UncoiledTwinblood: VprOgcdAbility = {
     name: "Uncoiled Twinblood",
     id: 34645,
     type: 'ogcd',
-    potency: 100,
+    potency: 120,
     attackType: 'Ability',
 }
