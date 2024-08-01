@@ -141,7 +141,7 @@ class ScholarCycleProcessor extends CycleProcessor {
         }
     }
 
-    spendEDs(int numED){
+    spendEDs(numED: number){
         if(this.numED >= 1) {
             this.useDotIfWorth();
             this.use(ed);
@@ -156,14 +156,14 @@ class ScholarCycleProcessor extends CycleProcessor {
         }
     }
 
-    TwoMinBurst(int EDs){
+    TwoMinBurst(numED: number){
         this.use(chain);
-        this.spendEDs(EDs);
+        this.spendEDs(numED);
         this.useDotIfWorth();
         this.use(aetherflow);
         this.useDotIfWorth();
         this.use(baneful);
-        this.spendEDs(EDs);
+        this.spendEDs(numED);
     }
 }
 
