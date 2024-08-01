@@ -1,6 +1,10 @@
 import {Chain} from "@xivgear/core/sims/buffs";
 import {GcdAbility, OgcdAbility, SimSettings, SimSpec} from "@xivgear/core/sims/sim_types";
-import {CycleProcessor, CycleSimResult, ExternalCycleSettings, Rotation} from "@xivgear/core/sims/cycle_sim";
+import {CycleProcessor, 
+        CycleSimResult, 
+        ExternalCycleSettings, 
+        MultiCycleSettings,
+        Rotation} from "@xivgear/core/sims/cycle_sim";
 import {BaseMultiCycleSim} from "../sim_processors";
 //import {gemdraught1mind} from "@xivgear/core/sims/common/potion";
 import {FieldBoundIntField} from "@xivgear/common-ui/components/util";
@@ -109,7 +113,7 @@ export interface SchSettingsExternal extends ExternalCycleSettings<SchSettings> 
 
 export const schNewSheetSpec: SimSpec<SchSheetSim, SchSettingsExternal> = {
     displayName: "SCH Sim",
-    loadSavedSimInstance(exported: SchNewSheetSettingsExternal) {
+    loadSavedSimInstance(exported: SchSettingsExternal) {
         return new SchSheetSim(exported);
     },
     makeNewSimInstance(): SchSheetSim {
@@ -139,31 +143,31 @@ class ScholarCycleProcessor extends CycleProcessor {
 
     spendEDs(){
         if(this.edPerAfDiss>=1) {
-            cycle.useDotIfWorth();
-            cycle.use(ed);
+            this.useDotIfWorth();
+            this.use(ed);
             if(this.edPerAfDiss>=2) {
-                cycle.useDotIfWorth();
-                cycle.use(ed);
+                this.useDotIfWorth();
+                this.use(ed);
                 if(this.edPerAfDiss>=3) {
-                    cycle.useDotIfWorth();
-                    cycle.use(ed);
+                    this.useDotIfWorth();
+                    this.use(ed);
                 }
             }
         }
     }
 
     TwoMinBurst(){
-        cycle.use(chain);
-        cycle.spendEDs();
-        cycle.useDotIfWorth();
-        cycle.use(aetherflow);
-        cycle.useDotIfWorth();
-        cycle.use(baneful);
-        cycle.spendEDs();
+        this.use(chain);
+        this.spendEDs();
+        this.useDotIfWorth();
+        this.use(aetherflow);
+        this.useDotIfWorth();
+        this.use(baneful);
+        this.spendEDs();
     }
 }
 
-export class SchSheetSim extends BaseMultiCycleSim<SchSheetSimResult, SchNewSheetSettings, ScholarCycleProcessor> {
+export class SchSheetSim extends BaseMultiCycleSim<SchSheetSimResult, SchSettings, ScholarCycleProcessor> {
 
     spec = schNewSheetSpec;
     displayName = schNewSheetSpec.displayName;
@@ -176,7 +180,7 @@ export class SchSheetSim extends BaseMultiCycleSim<SchSheetSimResult, SchNewShee
 
     makeDefaultSettings(): SchSettings {
         return {
-            edPerAfDiss = 3
+            edPerAfDiss: 3
         };
     }
 
@@ -199,23 +203,23 @@ export class SchSheetSim extends BaseMultiCycleSim<SchSheetSimResult, SchNewShee
             apply(cp: ScholarCycleProcessor) {
                 // pre-pull
                 cp.use(filler);
-                cycle.use(bio);
+                cp.use(bio);
                 this.nextBioTime = this.currentTime + 29;
                 cp.use(diss);
                 cp.remainingCycles(cycle => {
-                    cycle.use(filler);
-                    cycle.TwoMinBurst();
+                    cp.use(filler);
+                    cp.TwoMinBurst();
                     while(this.cycleRemainingTime > 0) {
                         this.useDotIfWorth();
                         if(cp.isReady(aetherflow)){
                             cp.use(aetherflow);
                             if(cycle.cycleNumber % 3 === 2)
-                                cycle.spendEDs();
+                                cp.spendEDs();
                         }
                         if(cp.isReady(diss)){
                             cp.use(diss);
                             if(cycle.cycleNumber % 3 === 1)
-                                cycle.spendEDs();
+                                cp.spendEDs();
                         }
                     }
                 });
@@ -227,19 +231,19 @@ export class SchSheetSim extends BaseMultiCycleSim<SchSheetSimResult, SchNewShee
                 this.nextBioTime = i;
                 cp.useGcd(filler);
                 cp.remainingCycles(cycle => {
-                    cycle.use(filler);
-                    cycle.TwoMinBurst();
+                    cp.use(filler);
+                    cp.TwoMinBurst();
                     while(this.cycleRemainingTime > 0) {
                         this.useDotIfWorth();
                         if(cp.isReady(aetherflow)){
                             cp.use(aetherflow);
                             if(cycle.cycleNumber % 3 === 2)
-                                cycle.spendEDs();
+                                cp.spendEDs();
                         }
                         if(cp.isReady(diss)){
                             cp.use(diss);
                             if(cycle.cycleNumber % 3 === 1)
-                                cycle.spendEDs();
+                                cp.spendEDs();
                         }
                     }
                 });
