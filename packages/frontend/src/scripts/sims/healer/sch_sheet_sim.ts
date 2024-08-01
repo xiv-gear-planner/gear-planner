@@ -141,14 +141,14 @@ class ScholarCycleProcessor extends CycleProcessor {
         }
     }
 
-    spendEDs(){
-        if(this.edPerAfDiss>=1) {
+    spendEDs(int numED){
+        if(this.numED >= 1) {
             this.useDotIfWorth();
             this.use(ed);
-            if(this.edPerAfDiss>=2) {
+            if(this.numED >= 2) {
                 this.useDotIfWorth();
                 this.use(ed);
-                if(this.edPerAfDiss>=3) {
+                if(this.numED >= 3) {
                     this.useDotIfWorth();
                     this.use(ed);
                 }
@@ -156,14 +156,14 @@ class ScholarCycleProcessor extends CycleProcessor {
         }
     }
 
-    TwoMinBurst(){
+    TwoMinBurst(int EDs){
         this.use(chain);
-        this.spendEDs();
+        this.spendEDs(EDs);
         this.useDotIfWorth();
         this.use(aetherflow);
         this.useDotIfWorth();
         this.use(baneful);
-        this.spendEDs();
+        this.spendEDs(EDs);
     }
 }
 
@@ -186,7 +186,7 @@ export class SchSheetSim extends BaseMultiCycleSim<SchSheetSimResult, SchSetting
 
     makeCustomConfigInterface(settings: SchSettings, updateCallback: () => void): HTMLElement | null {
         const configDiv = document.createElement("div");
-        const edField = new FieldBoundIntField(SchSettings, 'edPerAfDiss', {
+        const edField = new FieldBoundIntField(settings, 'edPerAfDiss', {
             inputMode: 'number',
             postValidators: [nonNegative]
         });
@@ -208,18 +208,18 @@ export class SchSheetSim extends BaseMultiCycleSim<SchSheetSimResult, SchSetting
                 cp.use(diss);
                 cp.remainingCycles(cycle => {
                     cp.use(filler);
-                    cp.TwoMinBurst();
+                    cp.TwoMinBurst(this.edPerAfDiss);
                     while(this.cycleRemainingTime > 0) {
                         this.useDotIfWorth();
                         if(cp.isReady(aetherflow)){
                             cp.use(aetherflow);
                             if(cycle.cycleNumber % 3 === 2)
-                                cp.spendEDs();
+                                cp.spendEDs(this.edPerAfDiss);
                         }
                         if(cp.isReady(diss)){
                             cp.use(diss);
                             if(cycle.cycleNumber % 3 === 1)
-                                cp.spendEDs();
+                                cp.spendEDs(this.edPerAfDiss);
                         }
                     }
                 });
@@ -232,18 +232,18 @@ export class SchSheetSim extends BaseMultiCycleSim<SchSheetSimResult, SchSetting
                 cp.useGcd(filler);
                 cp.remainingCycles(cycle => {
                     cp.use(filler);
-                    cp.TwoMinBurst();
+                    cp.TwoMinBurst(this.edPerAfDiss);
                     while(this.cycleRemainingTime > 0) {
                         this.useDotIfWorth();
                         if(cp.isReady(aetherflow)){
                             cp.use(aetherflow);
                             if(cycle.cycleNumber % 3 === 2)
-                                cp.spendEDs();
+                                cp.spendEDs(this.edPerAfDiss);
                         }
                         if(cp.isReady(diss)){
                             cp.use(diss);
                             if(cycle.cycleNumber % 3 === 1)
-                                cp.spendEDs();
+                                cp.spendEDs(this.edPerAfDiss);
                         }
                     }
                 });
