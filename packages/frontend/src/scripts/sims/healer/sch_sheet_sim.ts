@@ -158,11 +158,18 @@ class ScholarCycleProcessor extends CycleProcessor {
 
     TwoMinBurst(numED: number){
         this.use(chain);
+        let banefulReady = true;
+        if(this.remainingTime < 30){ //rush baneful if there's not enough time for it to tick
+            this.use(filler);
+            this.use(baneful);
+            banefulReady = false;
+        }
         this.spendEDs(numED);
         this.useDotIfWorth();
         this.use(aetherflow);
         this.useDotIfWorth();
-        this.use(baneful);
+        if(banefulReady) //if baneful was not rushed
+            this.use(baneful);
         this.spendEDs(numED);
     }
 }
