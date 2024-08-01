@@ -7,7 +7,7 @@ import {CycleProcessor,
         Rotation} from "@xivgear/core/sims/cycle_sim";
 import {BaseMultiCycleSim} from "../sim_processors";
 //import {gemdraught1mind} from "@xivgear/core/sims/common/potion";
-import {FieldBoundIntField} from "@xivgear/common-ui/components/util";
+import {FieldBoundIntField, labelFor, nonNegative} from "@xivgear/common-ui/components/util";
 import {rangeInc} from "@xivgear/core/util/array_utils";
 
 const filler: GcdAbility = {
@@ -142,13 +142,13 @@ class ScholarCycleProcessor extends CycleProcessor {
     }
 
     spendEDs(numED: number){
-        if(this.numED >= 1) {
+        if(numED >= 1) {
             this.useDotIfWorth();
             this.use(ed);
-            if(this.numED >= 2) {
+            if(numED >= 2) {
                 this.useDotIfWorth();
                 this.use(ed);
-                if(this.numED >= 3) {
+                if(numED >= 3) {
                     this.useDotIfWorth();
                     this.use(ed);
                 }
