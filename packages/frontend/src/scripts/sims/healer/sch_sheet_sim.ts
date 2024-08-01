@@ -3,7 +3,7 @@ import {GcdAbility, OgcdAbility, SimSettings, SimSpec} from "@xivgear/core/sims/
 import {CycleProcessor, CycleSimResult, ExternalCycleSettings, Rotation} from "@xivgear/core/sims/cycle_sim";
 import {BaseMultiCycleSim} from "../sim_processors";
 import {gemdraught1mind} from "@xivgear/core/sims/common/potion";
-import {FieldBoundCheckBox, labeledCheckbox} from "@xivgear/common-ui/components/util";
+import {FieldBoundIntField} from "@xivgear/common-ui/components/util";
 import {rangeInc} from "@xivgear/core/util/array_utils";
 import {animationLock} from "@xivgear/core/sims/ability_helpers";
 
