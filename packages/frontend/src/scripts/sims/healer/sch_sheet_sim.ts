@@ -153,7 +153,7 @@ class ScholarCycleProcessor extends CycleProcessor {
         }
     }
 
-    2MinBurst(){
+    TwoMinBurst(){
         cycle.use(chain);
         cycle.spendEDs();
         cycle.useDotIfWorth();
@@ -203,7 +203,7 @@ export class SchSheetSim extends BaseMultiCycleSim<SchSheetSimResult, SchNewShee
                 cp.use(diss);
                 cp.remainingCycles(cycle => {
                     cycle.use(filler);
-                    cycle.2MinBurst();
+                    cycle.TwoMinBurst();
                     while(this.cycleRemainingTime > 0) {
                         this.useDotIfWorth();
                         if(cp.isReady(aetherflow)){
@@ -227,7 +227,7 @@ export class SchSheetSim extends BaseMultiCycleSim<SchSheetSimResult, SchNewShee
                 cp.useGcd(filler);
                 cp.remainingCycles(cycle => {
                     cycle.use(filler);
-                    cycle.2MinBurst();
+                    cycle.TwoMinBurst();
                     while(this.cycleRemainingTime > 0) {
                         this.useDotIfWorth();
                         if(cp.isReady(aetherflow)){
