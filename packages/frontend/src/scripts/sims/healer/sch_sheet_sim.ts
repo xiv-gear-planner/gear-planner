@@ -205,8 +205,9 @@ export class SchSheetSim extends BaseMultiCycleSim<SchSheetSimResult, SchSetting
                 cp.use(filler);
                 cp.use(bio);
                 this.nextBioTime = this.currentTime + 29;
-                cp.use(diss);
                 cp.remainingCycles(cycle => {
+                    if(cp.isReady(diss)){
+                        cp.use(diss);}
                     cp.use(filler);
                     cp.TwoMinBurst(this.edPerAfDiss);
                     while(this.cycleRemainingTime > 0) {
@@ -228,9 +229,12 @@ export class SchSheetSim extends BaseMultiCycleSim<SchSheetSimResult, SchSetting
             name: `DoT clip at ${i}s`,
             cycleTime: 120,
             apply(cp: ScholarCycleProcessor) {
+                cp.use(filler);
+                cp.use(bio);
                 this.nextBioTime = i;
-                cp.useGcd(filler);
                 cp.remainingCycles(cycle => {
+                    if(cp.isReady(diss)){
+                        cp.use(diss);}
                     cp.use(filler);
                     cp.TwoMinBurst(this.edPerAfDiss);
                     while(this.cycleRemainingTime > 0) {
