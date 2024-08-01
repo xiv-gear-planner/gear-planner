@@ -132,7 +132,7 @@ class ScholarCycleProcessor extends CycleProcessor {
     }
 
     useDotIfWorth() {
-        if (this.remainingTime > 15 && this.currentTime > this.nextBioTime) {
+        if (this.currentTime > this.nextBioTime && this.remainingTime > 15) {
             this.use(bio);
             this.nextBioTime = this.currentTime + 29;
         }
@@ -142,18 +142,15 @@ class ScholarCycleProcessor extends CycleProcessor {
     }
 
     spendEDs(numED: number){
+        this.useDotIfWorth();
         if(numED >= 1) {
-            this.useDotIfWorth();
-            this.use(ed);
-            if(numED >= 2) {
-                this.useDotIfWorth();
-                this.use(ed);
-                if(numED >= 3) {
-                    this.useDotIfWorth();
-                    this.use(ed);
-                }
-            }
-        }
+            this.use(ed);}
+        this.useDotIfWorth();
+        if(numED >= 2) {
+            this.use(ed);}
+        this.useDotIfWorth();
+        if(numED >= 3) {
+            this.use(ed);}
     }
 
     TwoMinBurst(numED: number){
