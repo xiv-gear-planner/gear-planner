@@ -2,10 +2,9 @@ import {Chain} from "@xivgear/core/sims/buffs";
 import {GcdAbility, OgcdAbility, SimSettings, SimSpec} from "@xivgear/core/sims/sim_types";
 import {CycleProcessor, CycleSimResult, ExternalCycleSettings, Rotation} from "@xivgear/core/sims/cycle_sim";
 import {BaseMultiCycleSim} from "../sim_processors";
-import {gemdraught1mind} from "@xivgear/core/sims/common/potion";
+//import {gemdraught1mind} from "@xivgear/core/sims/common/potion";
 import {FieldBoundIntField} from "@xivgear/common-ui/components/util";
 import {rangeInc} from "@xivgear/core/util/array_utils";
-import {animationLock} from "@xivgear/core/sims/ability_helpers";
 
 const filler: GcdAbility = {
     type: 'gcd',
@@ -189,6 +188,8 @@ export class SchSheetSim extends BaseMultiCycleSim<SchSheetSimResult, SchNewShee
         });
         edField.id = 'edField';
         const label = labelFor('Energy Drains per Aetherflow/Dissipation', edField);
+        configDiv.appendChild(label);
+        configDiv.appendChild(edField);
         return configDiv;
     }
 
@@ -219,8 +220,8 @@ export class SchSheetSim extends BaseMultiCycleSim<SchSheetSimResult, SchNewShee
                     }
                 });
             }
-        }, ...rangeInc(2, 20, 2).map(i => ({
-            name: `DoT clip ${i}s`,
+        }, ...rangeInc(10, 28, 2).map(i => ({
+            name: `DoT clip at ${i}s`,
             cycleTime: 120,
             apply(cp: ScholarCycleProcessor) {
                 this.nextBioTime = i;
