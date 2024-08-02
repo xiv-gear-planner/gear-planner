@@ -128,13 +128,13 @@ class ScholarCycleProcessor extends CycleProcessor {
     nextBioTime: number = 0;
     constructor(settings: MultiCycleSettings) {
         super(settings);
-        this.cdEnforcementMode = 'delay';
+        this.cdEnforcementMode = 'warn';
     }
 
     useDotIfWorth() {
         if (this.currentTime > this.nextBioTime && this.remainingTime > 15) {
             this.use(bio);
-            this.nextBioTime = this.currentTime + 29;
+            this.nextBioTime = this.currentTime + 28.8;
         }
         else {
             this.use(filler);
