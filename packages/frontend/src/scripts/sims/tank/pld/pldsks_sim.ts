@@ -723,6 +723,7 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
                 let time_of_first_fof = 0;
                 let time_of_last_fof = 0;
                 let end_of_time_burn = false;
+                let fof_delay_tracker_next = 0;
 
                 let clip_total_time = 0;
 
@@ -730,15 +731,13 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
                     // While loops with no safety clause!
                     safety++;
 
-                    //console.log( [ cp.nextGcdTime - cp.currentTime , cp.cdTracker.statusOf(Actions.FightOrFlight).readyAt.relative , cp.canUseWithoutClipping(Actions.FightOrFlight) ].toString() );
-
                     if (strategy_minimise || strategy_98_alt || strategy_hubris)
                     {
                         // if we are forcing 9/8s, we can't rely on canUseWithoutClipping
                         // this is because: we will clip, lol.
                         // We also want to provide feedback on if we delayed FOF across a GCD
                         
-                        const readyAt = cp.cdTracker.statusOf(Actions.FightOrFlight).readyAt.absolute;
+                        const readyAt = fof_delay_tracker_next;
                         const next_early = cp.nextGcdTime + STANDARD_ANIMATION_LOCK;
                         // note that this is the going to delay up to the earliest weave after the next GCD:
                         if (readyAt > cp.currentTime && readyAt < ( next_early ))
@@ -767,16 +766,18 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
                                         }
                                         else
                                         {
-                                            cp.addSpecialRow(">> Delaying until available!");
+                                            cp.addSpecialRow(">> Clipping once available!");
                                             cp.advanceTo(readyAt);
                                             force_next_burst = true;
                                         }
                                     }
                                     else
-                                        cp.addSpecialRow(">> Delaying FOF " + (next_early - readyAt).toFixed(2) +  "s across GCD...");
+                                        cp.addSpecialRow(">> Delaying FOF " + (next_early - readyAt).toFixed(2) +  "s across GCD...", readyAt);
                                 }
                             }
                         }
+
+
                     }
 
                     if (cp.canUseWithoutClipping(Actions.FightOrFlight) || force_next_burst)
@@ -797,8 +798,8 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
                             // if we are on an even minute, and we're 98ing
                             if ((strategy_98_alt && even_minute) || strategy_always9)
                             {
-                                const readyAt = cp.cdTracker.statusOf(Actions.FightOrFlight).readyAt.absolute;
-                                cp.addSpecialRow(`>> Late Weaving FOF!`);
+                                const readyAt = fof_delay_tracker_next;
+                                cp.addSpecialRow(`>> FOF Ready, Late Weaving FOF!`, readyAt);
                                 // if force is on, we are here because we are clipping our GCD:
                                 if (strategy_98_force)
                                 {
@@ -822,7 +823,12 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
                                     cp.useOgcdLateWeave(Actions.FightOrFlight, sim.settings.useHyperRobotPrecision);
                                 }
                                 if (fofs_used != 0)
-                                    cp.addSpecialRow(`>> Delay to FOF: ` + (cp.currentTime - readyAt - STANDARD_ANIMATION_LOCK).toFixed(2) + "s");
+                                {
+                                    const fofUsedTime = cp.currentTime - STANDARD_ANIMATION_LOCK;
+                                    const delayedBy = fofUsedTime - readyAt;
+
+                                    cp.addSpecialRow(`>> Delay to FOF: ` + (delayedBy).toFixed(2) + `s`, fofUsedTime);
+                                }
                             }
                             else
                             {
@@ -830,6 +836,8 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
                                 cp.useOgcd(Actions.FightOrFlight);
                             }
                         }
+
+                        fof_delay_tracker_next = cp.cdTracker.statusOf(Actions.FightOrFlight).readyAt.absolute;
 
                         if (fofs_used == 0)
                             time_of_first_fof = cp.currentTime;
@@ -1036,7 +1044,7 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
                 }
 
                 const fof_delta = (time_of_last_fof - time_of_first_fof) - ((fofs_used - 1) * 60);
-                const avg_delay_fof = fof_delta / fofs_used;
+                const avg_delay_fof = fof_delta / (fofs_used - 1);
 
                 cp.addSpecialRow(">> Summaries:");
 
