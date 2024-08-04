@@ -402,10 +402,8 @@ export class VprCycleProcessor extends CycleProcessor {
             return;
         }
 
-
         if (this.cdTracker.canUse(Actions.Vicewinder)
             && this.gauge.serpentOfferings + 10 <= 100
-            && this.gauge.rattlingCoils + 1 <= 3
             && this.cdTracker.statusOfAt(Actions.SerpentsIre, this.nextGcdTime).readyAt.relative > 10) {
         
             if (this.gauge.rattlingCoils == 3) {
@@ -423,6 +421,7 @@ export class VprCycleProcessor extends CycleProcessor {
         const nextSecondaryBuffRefresh = (this.cdTracker.statusOfAt(Actions.Vicewinder, postReawakenTime).readyToUse) ?
                                         postReawakenTime + this.gcdTime(Actions.Vicewinder)
                                         : postReawakenTime + ((1 - this.rotationState.comboStep) % 3) * this.gcdTime(Actions.ReavingFangs); 
+
         if (this.gauge.serpentOfferings >= 50
             && nextSecondaryBuffRefresh < this.getActiveBuffData(HuntersInstinct).end
             && nextSecondaryBuffRefresh < this.getActiveBuffData(Swiftscaled).end
@@ -436,8 +435,8 @@ export class VprCycleProcessor extends CycleProcessor {
            || (this.gauge.rattlingCoils > 0 && this.cdTracker.statusOf(Actions.SerpentsIre).readyAt.relative > this.remainingGcdTime) 
         ) {
             this.useUncoiledFury();
+            return;
         }
-
 
         this.useDualWieldCombo();
     }
