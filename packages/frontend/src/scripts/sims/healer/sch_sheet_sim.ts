@@ -1,8 +1,14 @@
 import {Chain} from "@xivgear/core/sims/buffs";
 import {GcdAbility, OgcdAbility, SimSettings, SimSpec} from "@xivgear/core/sims/sim_types";
-import {CycleProcessor, CycleSimResult, ExternalCycleSettings, Rotation} from "@xivgear/core/sims/cycle_sim";
+import {CycleProcessor, 
+        CycleSimResult, 
+        ExternalCycleSettings, 
+        MultiCycleSettings,
+        Rotation} from "@xivgear/core/sims/cycle_sim";
 import {BaseMultiCycleSim} from "../sim_processors";
-
+//import {gemdraught1mind} from "@xivgear/core/sims/common/potion";
+import {FieldBoundIntField, labelFor, nonNegative} from "@xivgear/common-ui/components/util";
+import {rangeInc} from "@xivgear/core/util/array_utils";
 
 const filler: GcdAbility = {
     type: 'gcd',
@@ -73,22 +79,41 @@ const ed: OgcdAbility = {
     attackType: "Ability"
 };
 
+const aetherflow: OgcdAbility = {
+    type: 'ogcd',
+    name: "Aetherflow",
+    id: 166,
+    potency: 0,
+    attackType: "Ability",
+    cooldown: {
+        time: 60
+    }
+}
+
+const diss: OgcdAbility = {
+    type: 'ogcd',
+    name: "Dissipation",
+    id: 3587,
+    potency: 0,
+    attackType: "Ability",
+    cooldown: {
+        time: 180
+    }
+}
+
 export interface SchSheetSimResult extends CycleSimResult {
 }
 
-export interface SchNewSheetSettings extends SimSettings {
-    rezPerMin: number,
-    gcdHealsPerMin: number,
-    edPerMin: number,
-    r2PerMin: number,
+export interface SchSettings extends SimSettings {
+    edPerAfDiss: number,
 }
 
-export interface SchNewSheetSettingsExternal extends ExternalCycleSettings<SchNewSheetSettings> {
+export interface SchSettingsExternal extends ExternalCycleSettings<SchSettings> {
 }
 
-export const schNewSheetSpec: SimSpec<SchSheetSim, SchNewSheetSettingsExternal> = {
+export const schNewSheetSpec: SimSpec<SchSheetSim, SchSettingsExternal> = {
     displayName: "SCH Sim",
-    loadSavedSimInstance(exported: SchNewSheetSettingsExternal) {
+    loadSavedSimInstance(exported: SchSettingsExternal) {
         return new SchSheetSim(exported);
     },
     makeNewSimInstance(): SchSheetSim {
@@ -99,78 +124,139 @@ export const schNewSheetSpec: SimSpec<SchSheetSim, SchNewSheetSettingsExternal> 
     isDefaultSim: true
 };
 
-export class SchSheetSim extends BaseMultiCycleSim<SchSheetSimResult, SchNewSheetSettings> {
+class ScholarCycleProcessor extends CycleProcessor {
+    nextBioTime: number = 0;
+    constructor(settings: MultiCycleSettings) {
+        super(settings);
+        this.cdEnforcementMode = 'warn';
+    }
+
+    useDotIfWorth() {
+        if (this.currentTime > this.nextBioTime && this.remainingTime > 15) {
+            this.use(bio);
+            this.nextBioTime = this.currentTime + 28.8;
+        }
+        else {
+            this.use(filler);
+        }
+    }
+
+    spendEDs(numED: number){
+        this.useDotIfWorth();
+        if(numED >= 1) {
+            this.use(ed);}
+        this.useDotIfWorth();
+        if(numED >= 2) {
+            this.use(ed);}
+        this.useDotIfWorth();
+        if(numED >= 3) {
+            this.use(ed);}
+    }
+
+    TwoMinBurst(numED: number){
+        this.use(chain);
+        let banefulReady = true;
+        if(this.remainingTime < 30){ //rush baneful if there's not enough time for it to tick
+            this.use(filler);
+            this.use(baneful);
+            banefulReady = false;
+        }
+        this.spendEDs(numED);
+        this.useDotIfWorth();
+        this.use(aetherflow);
+        this.useDotIfWorth();
+        if(banefulReady) //if baneful was not rushed
+            this.use(baneful);
+        this.spendEDs(numED);
+    }
+}
+
+export class SchSheetSim extends BaseMultiCycleSim<SchSheetSimResult, SchSettings, ScholarCycleProcessor> {
 
     spec = schNewSheetSpec;
     displayName = schNewSheetSpec.displayName;
     shortName = "sch-sheet-sim";
     manuallyActivatedBuffs = [Chain];
 
-    constructor(settings?: SchNewSheetSettingsExternal) {
+    constructor(settings?: SchSettingsExternal) {
         super('SCH', settings);
     }
 
-    makeDefaultSettings(): SchNewSheetSettings {
+    makeDefaultSettings(): SchSettings {
         return {
-            rezPerMin: 0,
-            gcdHealsPerMin: 0,
-            edPerMin: 2,
-            r2PerMin: 0,
+            edPerAfDiss: 3
         };
+    }
+
+    makeCustomConfigInterface(settings: SchSettings, updateCallback: () => void): HTMLElement | null {
+        const configDiv = document.createElement("div");
+        const edField = new FieldBoundIntField(settings, 'edPerAfDiss', {
+            inputMode: 'number',
+            postValidators: [nonNegative]
+        });
+        edField.id = 'edField';
+        const label = labelFor('Energy Drains per Aetherflow/Dissipation', edField);
+        configDiv.appendChild(label);
+        configDiv.appendChild(edField);
+        return configDiv;
     }
 
     getRotationsToSimulate(): Rotation[] {
         return [{
             cycleTime: 120,
-            apply(cp: CycleProcessor) {
+            apply(cp: ScholarCycleProcessor) {
                 // pre-pull
-                cp.useGcd(filler);
+                cp.use(filler);
+                cp.use(bio);
+                this.nextBioTime = this.currentTime + 29;
                 cp.remainingCycles(cycle => {
-                    cycle.useGcd(bio);
-                    cycle.useGcd(filler);
-                    cycle.useGcd(filler);
-                    cycle.useOgcd(chain);
-                    cycle.useGcd(filler);
-                    cycle.useOgcd(ed);
-                    cycle.useGcd(filler);
-                    cycle.useOgcd(ed);
-                    cycle.useGcd(filler);
-                    cycle.useOgcd(ed);
-                    cycle.useGcd(filler); //Aetherflow for MP and refreshing EDs
-                    cycle.useGcd(filler);
-                    cycle.useOgcd(baneful);
-                    cycle.useGcd(filler);
-                    cycle.useOgcd(ed);
-                    cycle.useGcd(filler);
-                    cycle.useOgcd(ed);
-                    cycle.useGcd(filler);
-                    cycle.useOgcd(ed);
-                    cycle.useUntil(filler, 30);
-                    cycle.useGcd(bio);
-                    cycle.useUntil(filler, 60);
-                    cycle.useGcd(bio);
-
-                    // If we're on the 3/9/15 diss, blow them immediately and AF right after
-                    // OR if we're on the 5/11/17 minute aetherflow, blow them and diss right before buffs
-                    if (cycle.cycleNumber % 3 === 1 || cycle.cycleNumber % 3 === 2) {
-                        cycle.useGcd(filler);
-                        cycle.useOgcd(ed);
-                        cycle.useGcd(filler);
-                        cycle.useOgcd(ed);
-                        cycle.useGcd(filler);
-                        cycle.useOgcd(ed);
+                    if(cp.isReady(diss)){
+                        cp.use(diss);}
+                    cp.use(filler);
+                    cp.TwoMinBurst(this.edPerAfDiss);
+                    while(this.cycleRemainingTime > 0) {
+                        this.useDotIfWorth();
+                        if(cp.isReady(aetherflow)){
+                            cp.use(aetherflow);
+                            if(cycle.cycleNumber % 3 === 2)
+                                cp.spendEDs(this.edPerAfDiss);
+                        }
+                        if(cp.isReady(diss)){
+                            cp.use(diss);
+                            if(cycle.cycleNumber % 3 === 1)
+                                cp.spendEDs(this.edPerAfDiss);
+                        }
                     }
-
-                    cycle.useUntil(filler, 90);
-                    cycle.useGcd(bio);
-                    cycle.useUntil(filler, 'end');
                 });
-
-
             }
-        }]
-
-
+        }, ...rangeInc(10, 28, 2).map(i => ({
+            name: `DoT clip at ${i}s`,
+            cycleTime: 120,
+            apply(cp: ScholarCycleProcessor) {
+                cp.use(filler);
+                cp.use(bio);
+                this.nextBioTime = i;
+                cp.remainingCycles(cycle => {
+                    if(cp.isReady(diss)){
+                        cp.use(diss);}
+                    cp.use(filler);
+                    cp.TwoMinBurst(this.edPerAfDiss);
+                    while(this.cycleRemainingTime > 0) {
+                        this.useDotIfWorth();
+                        if(cp.isReady(aetherflow)){
+                            cp.use(aetherflow);
+                            if(cycle.cycleNumber % 3 === 2)
+                                cp.spendEDs(this.edPerAfDiss);
+                        }
+                        if(cp.isReady(diss)){
+                            cp.use(diss);
+                            if(cycle.cycleNumber % 3 === 1)
+                                cp.spendEDs(this.edPerAfDiss);
+                        }
+                    }
+                });
+            },
+        }))
+        ]
     }
-
 }
