@@ -1,10 +1,12 @@
 import {Chain} from "@xivgear/core/sims/buffs";
 import {GcdAbility, OgcdAbility, SimSettings, SimSpec} from "@xivgear/core/sims/sim_types";
-import {CycleProcessor, 
-        CycleSimResult, 
-        ExternalCycleSettings, 
-        MultiCycleSettings,
-        Rotation} from "@xivgear/core/sims/cycle_sim";
+import {
+    CycleProcessor,
+    CycleSimResult,
+    ExternalCycleSettings,
+    MultiCycleSettings,
+    Rotation
+} from "@xivgear/core/sims/cycle_sim";
 import {BaseMultiCycleSim} from "../sim_processors";
 //import {gemdraught1mind} from "@xivgear/core/sims/common/potion";
 import {FieldBoundIntField, labelFor, nonNegative} from "@xivgear/common-ui/components/util";
@@ -126,6 +128,7 @@ export const schNewSheetSpec: SimSpec<SchSheetSim, SchSettingsExternal> = {
 
 class ScholarCycleProcessor extends CycleProcessor {
     nextBioTime: number = 0;
+
     constructor(settings: MultiCycleSettings) {
         super(settings);
         this.cdEnforcementMode = 'warn';
@@ -141,22 +144,25 @@ class ScholarCycleProcessor extends CycleProcessor {
         }
     }
 
-    spendEDs(numED: number){
+    spendEDs(numED: number) {
         this.useDotIfWorth();
-        if(numED >= 1) {
-            this.use(ed);}
+        if (numED >= 1) {
+            this.use(ed);
+        }
         this.useDotIfWorth();
-        if(numED >= 2) {
-            this.use(ed);}
+        if (numED >= 2) {
+            this.use(ed);
+        }
         this.useDotIfWorth();
-        if(numED >= 3) {
-            this.use(ed);}
+        if (numED >= 3) {
+            this.use(ed);
+        }
     }
 
-    TwoMinBurst(numED: number){
+    TwoMinBurst(numED: number) {
         this.use(chain);
         let banefulReady = true;
-        if(this.remainingTime < 30){ //rush baneful if there's not enough time for it to tick
+        if (this.remainingTime < 30) { //rush baneful if there's not enough time for it to tick
             this.use(filler);
             this.use(baneful);
             banefulReady = false;
@@ -165,8 +171,10 @@ class ScholarCycleProcessor extends CycleProcessor {
         this.useDotIfWorth();
         this.use(aetherflow);
         this.useDotIfWorth();
-        if(banefulReady) //if baneful was not rushed
+        if (banefulReady) //if baneful was not rushed
+        {
             this.use(baneful);
+        }
         this.spendEDs(numED);
     }
 }
@@ -201,35 +209,44 @@ export class SchSheetSim extends BaseMultiCycleSim<SchSheetSimResult, SchSetting
         return configDiv;
     }
 
+    protected createCycleProcessor(settings: MultiCycleSettings): ScholarCycleProcessor {
+        return new ScholarCycleProcessor(settings);
+    }
+
     getRotationsToSimulate(): Rotation[] {
         return [{
             cycleTime: 120,
+            name: "Normal DoT",
             apply(cp: ScholarCycleProcessor) {
                 // pre-pull
                 cp.use(filler);
                 cp.use(bio);
                 this.nextBioTime = this.currentTime + 29;
                 cp.remainingCycles(cycle => {
-                    if(cp.isReady(diss)){
-                        cp.use(diss);}
+                    if (cp.isReady(diss)) {
+                        cp.use(diss);
+                    }
                     cp.use(filler);
                     cp.TwoMinBurst(this.edPerAfDiss);
-                    while(this.cycleRemainingTime > 0) {
-                        this.useDotIfWorth();
-                        if(cp.isReady(aetherflow)){
+                    while (cycle.cycleRemainingTime > 0) {
+                        cp.useDotIfWorth();
+                        if (cp.isReady(aetherflow)) {
                             cp.use(aetherflow);
-                            if(cycle.cycleNumber % 3 === 2)
+                            if (cycle.cycleNumber % 3 === 2) {
                                 cp.spendEDs(this.edPerAfDiss);
+                            }
                         }
-                        if(cp.isReady(diss)){
+                        if (cp.isReady(diss)) {
                             cp.use(diss);
-                            if(cycle.cycleNumber % 3 === 1)
+                            if (cycle.cycleNumber % 3 === 1) {
                                 cp.spendEDs(this.edPerAfDiss);
+                            }
                         }
                     }
                 });
             }
-        }, ...rangeInc(10, 28, 2).map(i => ({
+        },
+            ...rangeInc(10, 28, 2).map(i => ({
             name: `DoT clip at ${i}s`,
             cycleTime: 120,
             apply(cp: ScholarCycleProcessor) {
@@ -237,21 +254,25 @@ export class SchSheetSim extends BaseMultiCycleSim<SchSheetSimResult, SchSetting
                 cp.use(bio);
                 this.nextBioTime = i;
                 cp.remainingCycles(cycle => {
-                    if(cp.isReady(diss)){
-                        cp.use(diss);}
+                    if (cp.isReady(diss)) {
+                        cp.use(diss);
+                    }
                     cp.use(filler);
                     cp.TwoMinBurst(this.edPerAfDiss);
-                    while(this.cycleRemainingTime > 0) {
+                    console.log(cycle.cycleRemainingTime);
+                    while (this.cycleRemainingTime > 0) {
                         this.useDotIfWorth();
-                        if(cp.isReady(aetherflow)){
+                        if (cp.isReady(aetherflow)) {
                             cp.use(aetherflow);
-                            if(cycle.cycleNumber % 3 === 2)
+                            if (cycle.cycleNumber % 3 === 2) {
                                 cp.spendEDs(this.edPerAfDiss);
+                            }
                         }
-                        if(cp.isReady(diss)){
+                        if (cp.isReady(diss)) {
                             cp.use(diss);
-                            if(cycle.cycleNumber % 3 === 1)
+                            if (cycle.cycleNumber % 3 === 1) {
                                 cp.spendEDs(this.edPerAfDiss);
+                            }
                         }
                     }
                 });
