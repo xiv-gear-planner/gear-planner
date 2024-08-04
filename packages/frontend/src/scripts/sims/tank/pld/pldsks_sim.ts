@@ -80,7 +80,7 @@ class PaladinStateSystem {
 
     
     debugState() {
-        console.log( [ this.combo_state , this.sword_oath , this.divine_might ].toString() );
+        console.log( [ this.combo_state, this.sword_oath, this.divine_might ].toString() );
     }
 }
 
@@ -653,7 +653,7 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
 
                         // TODO: Intervene will be available earlier than other other oGCDs after a certain point:
                         const ogcdOrder = [Actions.Imperator, Actions.CircleOfScorn, Actions.Expiacion,
-                        Actions.Intervene,Actions.Intervene];
+                        Actions.Intervene, Actions.Intervene];
 
                         /////////////////
                         // We have now entered burst: perform all burst actions:
