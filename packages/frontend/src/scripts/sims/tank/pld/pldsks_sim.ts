@@ -11,6 +11,38 @@ import {
     labelFor
 } from "@xivgear/common-ui/components/util";
 
+// keys for Action records structures:
+type PldEnum_GCD =   "Fast" | "Riot" | "Royal" | "HS" | "HSHC" | "Atone" | 
+                "Supp" | "Sep" | "Gore" | "Conf" | "Faith" | "Truth" | "Valor" ;
+
+type PldEnum_oGCD =   "Exp" | "Cos" | "Imp" | "Honor" | "Int" | "FOF";
+
+// self reminder: const != immutable, just a constant reference
+const ActionRecord_GCD: Record<PldEnum_GCD, GcdAbility> = {
+    "Fast": Actions.FastBlade,
+    "Riot": Actions.RiotBlade,
+    "Royal": Actions.RoyalAuthority,
+    "HS": Actions.HolySpirit,
+    "HSHC": Actions.HolySpiritHardcast,
+    "Atone": Actions.Atonement,
+    "Supp": Actions.Supplication,
+    "Sep": Actions.Sepulchre,
+    "Gore": Actions.GoringBlade,
+    "Conf": Actions.Confiteor,
+    "Faith": Actions.BladeOfFaith,
+    "Truth": Actions.BladeOfTruth,
+    "Valor": Actions.BladeOfValor
+}
+
+const ActionRecord_oGCD: Record<PldEnum_oGCD, OgcdAbility> = {
+    "Exp": Actions.Expiacion,
+    "Cos": Actions.CircleOfScorn,
+    "Imp": Actions.Imperator,
+    "Honor": Actions.BladeOfHonor,
+    "Int": Actions.Intervene,
+    "FOF": Actions.FightOrFlight
+}
+
 class PaladinStateSystem {
     // This simple class accepts the GCD that we performed
     // and updates the state of our filler
@@ -22,22 +54,20 @@ class PaladinStateSystem {
     sword_oath: number = 0;
     divine_might: boolean = false;
 
-    gcdDict: Map<string, GcdAbility>;
-
     perform_action(GCDused: GcdAbility)
     {
-        if (GCDused == this.gcdDict.get("Fast"))
+        if (GCDused == ActionRecord_GCD["Fast"])
         {
             this.combo_state = 2;
         }
-        else if (GCDused == this.gcdDict.get("Riot"))
+        else if (GCDused == ActionRecord_GCD["Riot"])
         {
             if (this.combo_state == 2)
                 this.combo_state = 3;
             else
                 this.combo_state = 0;
         }
-        else if (GCDused == this.gcdDict.get("Royal"))
+        else if (GCDused == ActionRecord_GCD["Royal"])
         {
             if (this.combo_state == 3)
             {
@@ -48,12 +78,12 @@ class PaladinStateSystem {
             else
                 this.combo_state = 0;
         }
-        else if (GCDused == this.gcdDict.get("HS"))
+        else if (GCDused == ActionRecord_GCD["HS"])
         {
             // Consume Divine Might:
             this.divine_might = false;
         }
-        else if (GCDused == this.gcdDict.get("Atone"))
+        else if (GCDused == ActionRecord_GCD["Atone"])
         {
             if (this.sword_oath & this.A1Ready)
             {
@@ -61,7 +91,7 @@ class PaladinStateSystem {
                 this.sword_oath = (this.sword_oath & ~this.A1Ready) | this.A2Ready;
             }
         }
-        else if (GCDused == this.gcdDict.get("Supp"))
+        else if (GCDused == ActionRecord_GCD["Supp"])
         {
             if (this.sword_oath & this.A2Ready)
             {
@@ -69,7 +99,7 @@ class PaladinStateSystem {
                 this.sword_oath = (this.sword_oath & ~this.A2Ready) | this.A3Ready;
             }
         }
-        else if (GCDused == this.gcdDict.get("Sep"))
+        else if (GCDused == ActionRecord_GCD["Sep"])
         {
             if (this.sword_oath & this.A3Ready)
             {
@@ -143,8 +173,6 @@ class PldSKSCycleProcessor extends CycleProcessor {
 
     hideCommentText: boolean = false;
 
-    gcdDict: Map<string, GcdAbility>;
-
     constructor(settings: MultiCycleSettings) {
         super(settings);
         // More settings interpretation stuff goes here
@@ -203,7 +231,7 @@ class PldSKSCycleProcessor extends CycleProcessor {
 
     useFiller(even_minute: boolean, use_old_priority?: boolean, play_for_nine_safety?: boolean) {
         // During regular filler, we will always use a specific GCD based on our state
-        let chosen_ability = this.gcdDict.get("Fast");
+        let chosen_ability = ActionRecord_GCD["Fast"];
 
         // if we are atonement ready, become supplication ready:
         // This top If statement is what optimises us for 3 GCDs in FOF
@@ -212,14 +240,14 @@ class PldSKSCycleProcessor extends CycleProcessor {
 
         if (this.MyState.sword_oath == this.MyState.A1Ready && even_minute == false && !use_old_priority)
         {
-            chosen_ability = this.gcdDict.get("Atone");
+            chosen_ability = ActionRecord_GCD["Atone"];
         }
         else if (this.MyState.combo_state != 3)
         {
             if (this.MyState.combo_state == 2)
-                chosen_ability = this.gcdDict.get("Riot");
+                chosen_ability = ActionRecord_GCD["Riot"];
             else
-                chosen_ability = this.gcdDict.get("Fast");
+                chosen_ability = ActionRecord_GCD["Fast"];
         }
         else
         {
@@ -231,51 +259,51 @@ class PldSKSCycleProcessor extends CycleProcessor {
             // that it + Supp have the same potency
 
             if (this.MyState.divine_might == true && even_minute && play_for_nine_safety)
-                chosen_ability = this.gcdDict.get("HS");
+                chosen_ability = ActionRecord_GCD["HS"];
 
             else if (this.MyState.sword_oath == this.MyState.A1Ready)
-                chosen_ability = this.gcdDict.get("Atone");
+                chosen_ability = ActionRecord_GCD["Atone"];
             else if (this.MyState.sword_oath == this.MyState.A2Ready)
-                chosen_ability = this.gcdDict.get("Supp");
+                chosen_ability = ActionRecord_GCD["Supp"];
             // Old priority has us HS last, new priority has us HS before Sepp
             else if (this.MyState.divine_might == true && !use_old_priority)
-                chosen_ability = this.gcdDict.get("HS");
+                chosen_ability = ActionRecord_GCD["HS"];
             else if (this.MyState.sword_oath == this.MyState.A3Ready)
-                chosen_ability = this.gcdDict.get("Sep");
+                chosen_ability = ActionRecord_GCD["Sep"];
             else if (this.MyState.divine_might == true && use_old_priority)
-                chosen_ability = this.gcdDict.get("HS");
+                chosen_ability = ActionRecord_GCD["HS"];
             else if (this.MyState.sword_oath == 0 && this.MyState.divine_might == false)
-                chosen_ability = this.gcdDict.get("Royal");
+                chosen_ability = ActionRecord_GCD["Royal"];
         }
 
         this.useGcd(chosen_ability);
     }
 
     useBurstFiller(prioritise_melee: boolean, replace_1_w_hc?: boolean) {
-        let chosen_ability = this.gcdDict.get("Fast");
+        let chosen_ability = ActionRecord_GCD["Fast"];
 
         // We always Sepulchre if we have it:
         if (this.MyState.sword_oath == this.MyState.A3Ready)
-            chosen_ability = this.gcdDict.get("Sep");
+            chosen_ability = ActionRecord_GCD["Sep"];
 
         // prioritise_melee blocks this check:
         else if (this.MyState.divine_might == true && !prioritise_melee)
-            chosen_ability = this.gcdDict.get("HS");
+            chosen_ability = ActionRecord_GCD["HS"];
         else if (this.MyState.sword_oath == this.MyState.A1Ready)
-            chosen_ability = this.gcdDict.get("Atone");
+            chosen_ability = ActionRecord_GCD["Atone"];
         else if (this.MyState.sword_oath == this.MyState.A2Ready)
-            chosen_ability = this.gcdDict.get("Supp");
+            chosen_ability = ActionRecord_GCD["Supp"];
         // When we prioritise_melee, only use HS if it is our last option
         else if (this.MyState.divine_might == true)
-            chosen_ability = this.gcdDict.get("HS");
+            chosen_ability = ActionRecord_GCD["HS"];
         else if (this.MyState.sword_oath == 0 && this.MyState.divine_might == false)
         {
             if (this.MyState.combo_state == 3)
-                chosen_ability = this.gcdDict.get("Royal");
+                chosen_ability = ActionRecord_GCD["Royal"];
             else if (this.MyState.combo_state == 2)
-                chosen_ability = this.gcdDict.get("Riot");
+                chosen_ability = ActionRecord_GCD["Riot"];
             else if (replace_1_w_hc)
-                chosen_ability = this.gcdDict.get("HSHC");
+                chosen_ability = ActionRecord_GCD["HSHC"];
         }
 
         this.useGcd(chosen_ability);
@@ -442,50 +470,27 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
                 const physGCD = cp.stats.gcdPhys(2.5);
                 const magicGCD = cp.stats.gcdMag(2.5);
 
-                const GCDActionSet = new Map<string, GcdAbility>();
-                const oGCDActionSet = new Map<string, OgcdAbility>();
-
-                GCDActionSet.set("Fast",Actions.FastBlade);
-                GCDActionSet.set("Riot",Actions.RiotBlade);
-                GCDActionSet.set("Royal",Actions.RoyalAuthority)
-                GCDActionSet.set("HS",Actions.HolySpirit);
-                GCDActionSet.set("HSHC",Actions.HolySpiritHardcast);
-                GCDActionSet.set("Atone",Actions.Atonement);
-                GCDActionSet.set("Supp",Actions.Supplication);
-                GCDActionSet.set("Sep",Actions.Sepulchre);
-                GCDActionSet.set("Gore",Actions.GoringBlade);
-                GCDActionSet.set("Conf",Actions.Confiteor);
-                GCDActionSet.set("Faith",Actions.BladeOfFaith);
-                GCDActionSet.set("Truth",Actions.BladeOfTruth);
-                GCDActionSet.set("Valor",Actions.BladeOfValor);
-
-                oGCDActionSet.set("Exp",Actions.Expiacion);
-                oGCDActionSet.set("Cos",Actions.CircleOfScorn);
-                oGCDActionSet.set("Imp",Actions.Imperator);
-                oGCDActionSet.set("Honor",Actions.BladeOfHonor);
-                oGCDActionSet.set("Int",Actions.Intervene);
+                // the GCD abilities are const references to ReadOnly types.
+                // As such I'm pretty sure they are immutable, so
+                // I will indeed need to make some kind of data structure to
+                // reference them.
 
                 if (sim.settings.use701potencies)
                 {
                     // Filler potency changes:
-                    GCDActionSet.set("Royal",cp.CopyGCDAction(Actions.RoyalAuthority,440));
-                    GCDActionSet.set("HS",cp.CopyGCDAction(Actions.HolySpirit,470));
-                    // nb: The simulator models the loss of autos so we use the full potency
-                    GCDActionSet.set("HSHC",cp.CopyGCDAction(Actions.HolySpiritHardcast,370));
-                    GCDActionSet.set("Atone",cp.CopyGCDAction(Actions.Atonement,440));
-                    GCDActionSet.set("Supp",cp.CopyGCDAction(Actions.Supplication,460));
-                    GCDActionSet.set("Sep",cp.CopyGCDAction(Actions.Sepulchre,480));
-
+                    ActionRecord_GCD["Royal"] = cp.CopyGCDAction(Actions.RoyalAuthority,440);
+                    ActionRecord_GCD["HS"] = cp.CopyGCDAction(Actions.HolySpirit,470);
+                    ActionRecord_GCD["HSHC"] = cp.CopyGCDAction(Actions.HolySpiritHardcast,370);
+                    ActionRecord_GCD["Atone"] = cp.CopyGCDAction(Actions.Atonement,440);
+                    ActionRecord_GCD["Supp"] = cp.CopyGCDAction(Actions.Supplication,460);
+                    ActionRecord_GCD["Sep"] = cp.CopyGCDAction(Actions.Sepulchre,480);
+                    
                     // Burst potency changes:
-                    GCDActionSet.set("Conf",cp.CopyGCDAction(Actions.Confiteor,940));
-                    GCDActionSet.set("Faith",cp.CopyGCDAction(Actions.BladeOfFaith,740));
-                    GCDActionSet.set("Truth",cp.CopyGCDAction(Actions.BladeOfTruth,840));
-                    GCDActionSet.set("Valor",cp.CopyGCDAction(Actions.BladeOfValor,940));
+                    ActionRecord_GCD["Conf"] = cp.CopyGCDAction(Actions.Confiteor,940);
+                    ActionRecord_GCD["Faith"] = cp.CopyGCDAction(Actions.BladeOfFaith,740);
+                    ActionRecord_GCD["Truth"] = cp.CopyGCDAction(Actions.BladeOfTruth,840);
+                    ActionRecord_GCD["Valor"] = cp.CopyGCDAction(Actions.BladeOfValor,940);
                 }
-
-                // Tell the state system that this is our action dictionary:
-                cp.gcdDict = GCDActionSet;
-                cp.MyState.gcdDict = GCDActionSet;
 
                 let strategy_250 = false;
                 let strategy_98_alt = false;
@@ -699,12 +704,12 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
 
                 // Standard opener:
                 if (sim.settings.hardcastopener)
-                    cp.useGcd(GCDActionSet.get("HSHC"));
-                cp.useGcd(GCDActionSet.get("Fast"));
-                cp.useGcd(GCDActionSet.get("Riot"));
+                    cp.useGcd(ActionRecord_GCD["HSHC"]);
+                cp.useGcd(ActionRecord_GCD["Fast"]);
+                cp.useGcd(ActionRecord_GCD["Riot"]);
                 if (!sim.settings.burstOneGCDEarlier)
                 {
-                    cp.useGcd(GCDActionSet.get("Royal"));
+                    cp.useGcd(ActionRecord_GCD["Royal"]);
                 }
                 else
                 {
@@ -780,20 +785,20 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
 
                     }
 
-                    if (cp.canUseWithoutClipping(Actions.FightOrFlight) || force_next_burst)
+                    if (cp.canUseWithoutClipping(ActionRecord_oGCD["FOF"]) || force_next_burst)
                     {
 
                         if (strategy_250 || strategy_minimise)
                         {
                             if (strategy_minimise)
                                 cp.addSpecialRow(`>> Using FOF ASAP`);
-                            cp.useOgcd(Actions.FightOrFlight);
+                            cp.useOgcd(ActionRecord_oGCD["FOF"]);
                         }
                         else
                         {
                             // Should we try to late weave?
                             // DANGER DANGER: Magic number:
-                            //let fof_is_not_early = cp.cdTracker.statusOf(Actions.FightOrFlight).readyAt.relative > 1.0;
+                            //let fof_is_not_early = cp.cdTracker.statusOf(ActionRecord_oGCD["FOF"]).readyAt.relative > 1.0;
 
                             // if we are on an even minute, and we're 98ing
                             if ((strategy_98_alt && even_minute) || strategy_always9)
@@ -803,24 +808,24 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
                                 // if force is on, we are here because we are clipping our GCD:
                                 if (strategy_98_force)
                                 {
-                                    if (!cp.canUseWithoutClipping(Actions.FightOrFlight))
+                                    if (!cp.canUseWithoutClipping(ActionRecord_oGCD["FOF"]))
                                     {
                                         const beforeGCD = cp.nextGcdTime;
-                                        cp.delayForOgcd(Actions.FightOrFlight);
+                                        cp.delayForOgcd(ActionRecord_oGCD["FOF"]);
                                         const clip_amount = cp.nextGcdTime - beforeGCD;
                                         cp.addSpecialRow("! ALERT ! Clipped GCD! " + (clip_amount).toFixed(2) + "s");
                                         clip_total_time += clip_amount;
                                     }
                                     else
                                     {
-                                        cp.useOgcdLateWeave(Actions.FightOrFlight, sim.settings.useHyperRobotPrecision);
+                                        cp.useOgcdLateWeave(ActionRecord_oGCD["FOF"], sim.settings.useHyperRobotPrecision);
                                     }
 
                                 }
                                 else
                                 {
                                     // a normal late weave is fine:
-                                    cp.useOgcdLateWeave(Actions.FightOrFlight, sim.settings.useHyperRobotPrecision);
+                                    cp.useOgcdLateWeave(ActionRecord_oGCD["FOF"], sim.settings.useHyperRobotPrecision);
                                 }
                                 if (fofs_used != 0)
                                 {
@@ -833,11 +838,11 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
                             else
                             {
                                 cp.addSpecialRow(`Using FOF ASAP`);
-                                cp.useOgcd(Actions.FightOrFlight);
+                                cp.useOgcd(ActionRecord_oGCD["FOF"]);
                             }
                         }
 
-                        fof_delay_tracker_next = cp.cdTracker.statusOf(Actions.FightOrFlight).readyAt.absolute;
+                        fof_delay_tracker_next = cp.cdTracker.statusOf(ActionRecord_oGCD["FOF"]).readyAt.absolute;
 
                         if (fofs_used == 0)
                             time_of_first_fof = cp.currentTime;
@@ -848,14 +853,14 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
                         let oGCDcounter = 0;
 
                         // TODO: Intervene will be available earlier than other other oGCDs after a certain point:
-                        const ogcdOrder = [oGCDActionSet.get("Imp"), oGCDActionSet.get("Cos"), oGCDActionSet.get("Exp"),
-                        oGCDActionSet.get("Int"),oGCDActionSet.get("Int")];
+                        const ogcdOrder = [ActionRecord_oGCD["Imp"], ActionRecord_oGCD["Cos"], ActionRecord_oGCD["Exp"],
+                        ActionRecord_oGCD["Int"],ActionRecord_oGCD["Int"]];
 
                         /////////////////
                         // We have now entered burst: perform all burst actions:
 
                         // Sks Pattern Detection:
-                        if (strategy_250 || strategy_hubris || cp.canUseWithoutClipping(oGCDActionSet.get("Imp")))
+                        if (strategy_250 || strategy_hubris || cp.canUseWithoutClipping(ActionRecord_oGCD["Imp"]))
                         {
                             // In this case, we definitely haven't late weaved
                             // Set counter to 1, as we will have already used our burst first oGCD
@@ -866,10 +871,10 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
                                 let is_gonna_clip = false;
                                 const beforeGCD = cp.nextGcdTime;
                                 // If we're specifically pretending SKS doesn't exist, delay for Req+
-                                if (!cp.canUseWithoutClipping(oGCDActionSet.get("Imp")))
+                                if (!cp.canUseWithoutClipping(ActionRecord_oGCD["Imp"]))
                                     is_gonna_clip = true;
 
-                                cp.delayForOgcd(oGCDActionSet.get("Imp"));
+                                cp.delayForOgcd(ActionRecord_oGCD["Imp"]);
 
                                 if (is_gonna_clip)
                                 {
@@ -881,7 +886,7 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
                             }
                             else
                             {
-                                cp.useOgcd(oGCDActionSet.get("Imp"));
+                                cp.useOgcd(ActionRecord_oGCD["Imp"]);
                             }
                         }
                         else
@@ -899,33 +904,33 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
                         {
                             // This burst is suggested to start blades early, to help avoid
                             // a situation where we lose BladeOfHonor due to phasing/death etc
-                            cp.useGcd(GCDActionSet.get("Conf"));
+                            cp.useGcd(ActionRecord_GCD["Conf"]);
                             oGCDcounter = cp.useOgcdInOrder(ogcdOrder, oGCDcounter);
-                            cp.useGcd(GCDActionSet.get("Faith"));
+                            cp.useGcd(ActionRecord_GCD["Faith"]);
                             oGCDcounter = cp.useOgcdInOrder(ogcdOrder, oGCDcounter);
-                            cp.useGcd(GCDActionSet.get("Truth"));
+                            cp.useGcd(ActionRecord_GCD["Truth"]);
                             oGCDcounter = cp.useOgcdInOrder(ogcdOrder, oGCDcounter);
-                            cp.useGcd(GCDActionSet.get("Valor"));
+                            cp.useGcd(ActionRecord_GCD["Valor"]);
                             oGCDcounter = cp.useOgcdInOrder(ogcdOrder, oGCDcounter);
-                            cp.useOgcd(oGCDActionSet.get("Honor"));
+                            cp.useOgcd(ActionRecord_oGCD["Honor"]);
                             oGCDcounter = cp.useOgcdInOrder(ogcdOrder, oGCDcounter);
-                            cp.useGcd(GCDActionSet.get("Gore"));
+                            cp.useGcd(ActionRecord_GCD["Gore"]);
                         }
                         // In this situation, we have not yet been able to give ourselves
                         // req stacks. We *may* have late weaved FOF:
                         else
                         {
-                            cp.useGcd(GCDActionSet.get("Gore"));
+                            cp.useGcd(ActionRecord_GCD["Gore"]);
                             oGCDcounter = cp.useOgcdInOrder(ogcdOrder, oGCDcounter);
-                            cp.useGcd(GCDActionSet.get("Conf"));
+                            cp.useGcd(ActionRecord_GCD["Conf"]);
                             oGCDcounter = cp.useOgcdInOrder(ogcdOrder, oGCDcounter);
-                            cp.useGcd(GCDActionSet.get("Faith"));
+                            cp.useGcd(ActionRecord_GCD["Faith"]);
                             oGCDcounter = cp.useOgcdInOrder(ogcdOrder, oGCDcounter);
-                            cp.useGcd(GCDActionSet.get("Truth"));
+                            cp.useGcd(ActionRecord_GCD["Truth"]);
                             oGCDcounter = cp.useOgcdInOrder(ogcdOrder, oGCDcounter);
-                            cp.useGcd(GCDActionSet.get("Valor"));
+                            cp.useGcd(ActionRecord_GCD["Valor"]);
                             oGCDcounter = cp.useOgcdInOrder(ogcdOrder, oGCDcounter);
-                            cp.useOgcd(oGCDActionSet.get("Honor"));
+                            cp.useOgcd(ActionRecord_oGCD["Honor"]);
                         }
 
                         // How much longer is actually left on FOF?
@@ -1019,14 +1024,14 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
                     // There are some circumstances where eg 2.47 will have these come off of
                     // cd when messing with FOF. Let's only use them once between bursts.
                     // Also: technically someone playing with hubris would clip these, too:
-                    if (cp.canUseWithoutClipping(oGCDActionSet.get("Cos")) && only_cos_once_in_filler)
+                    if (cp.canUseWithoutClipping(ActionRecord_oGCD["Cos"]) && only_cos_once_in_filler)
                     {
-                        cp.useOgcd(oGCDActionSet.get("Cos"));
+                        cp.useOgcd(ActionRecord_oGCD["Cos"]);
                         only_cos_once_in_filler = false;
                         if (strategy_hubris)
                         {
                             const beforeGCD = cp.nextGcdTime;
-                            cp.delayForOgcd(oGCDActionSet.get("Exp"));
+                            cp.delayForOgcd(ActionRecord_oGCD["Exp"]);
                             if ((cp.nextGcdTime - beforeGCD) > 0)
                             {
                                 const clip_amount = cp.nextGcdTime - beforeGCD;
@@ -1036,9 +1041,9 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
                             only_exp_once_in_filler = false;
                         }
                     }
-                    if (cp.canUseWithoutClipping(oGCDActionSet.get("Exp")) && only_exp_once_in_filler)
+                    if (cp.canUseWithoutClipping(ActionRecord_oGCD["Exp"]) && only_exp_once_in_filler)
                     {
-                        cp.useOgcd(oGCDActionSet.get("Exp"));
+                        cp.useOgcd(ActionRecord_oGCD["Exp"]);
                         only_exp_once_in_filler = false;
                     }
                 }
