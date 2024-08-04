@@ -475,6 +475,22 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
                 // I will indeed need to make some kind of data structure to
                 // reference them.
 
+                // Reset Action Record:
+                ActionRecord_GCD["Fast"] = Actions.FastBlade;
+                ActionRecord_GCD["Riot"] = Actions.RiotBlade;
+                ActionRecord_GCD["Royal"] = Actions.RoyalAuthority;
+                ActionRecord_GCD["HS"] = Actions.HolySpirit;
+                ActionRecord_GCD["HSHC"] = Actions.HolySpiritHardcast;
+                ActionRecord_GCD["Atone"] = Actions.Atonement;
+                ActionRecord_GCD["Supp"] = Actions.Supplication;
+                ActionRecord_GCD["Sep"] = Actions.Sepulchre;
+                ActionRecord_GCD["Gore"] = Actions.GoringBlade;
+                ActionRecord_GCD["Conf"] = Actions.Confiteor;
+                ActionRecord_GCD["Faith"] = Actions.BladeOfFaith;
+                ActionRecord_GCD["Truth"] = Actions.BladeOfTruth;
+                ActionRecord_GCD["Valor"] = Actions.BladeOfValor;
+
+                // Alter based on setting:
                 if (sim.settings.use701potencies)
                 {
                     // Filler potency changes:
