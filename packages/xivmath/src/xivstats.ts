@@ -1,4 +1,12 @@
-import {ComputedSetStats, JobData, LevelStats, PartyBonusAmount, RawStats} from "./geartypes";
+import {
+    ComputedSetStats,
+    FoodBonuses,
+    FoodStatBonus,
+    JobData,
+    LevelStats,
+    PartyBonusAmount,
+    RawStats
+} from "./geartypes";
 import {
     autoAttackModifier,
     autoDhBonusDmg,
@@ -6,12 +14,17 @@ import {
     critDmg,
     detDmg,
     dhitChance,
-    dhitDmg, mainStatMulti, mpTick,
+    dhitDmg, fl,
+    mainStatMulti,
+    mpTick,
     sksTickMulti,
     sksToGcd,
     spsTickMulti,
-    spsToGcd, tenacityDmg, tenacityIncomingDmg,
-    vitToHp, wdMulti
+    spsToGcd,
+    tenacityDmg,
+    tenacityIncomingDmg,
+    vitToHp,
+    wdMulti
 } from "./xivmath";
 import {JobName, SupportedLevel} from "./xivconstants";
 
@@ -31,51 +44,66 @@ export function addStats(baseStats: RawStats, addedStats: RawStats): void {
 }
 
 export function finalizeStats(
-    combinedStats: RawStats,
+    gearStats: RawStats,
+    foodStats: FoodBonuses,
     level: SupportedLevel,
     levelStats: LevelStats,
     classJob: JobName,
     classJobStats: JobData,
     partyBonus: PartyBonusAmount
 ): ComputedSetStats {
-    const mainStat = Math.floor(combinedStats[classJobStats.mainStat] * (1 + 0.01 * partyBonus));
-    const aaStat = Math.floor(combinedStats[classJobStats.autoAttackStat] * (1 + 0.01 * partyBonus));
-    const vitEffective = Math.floor(combinedStats.vitality * (1 + 0.01 * partyBonus));
+    const combinedStats: RawStats = {...gearStats};
+    // const withPartyBonus: RawStats = {...combinedStats};
+    const withPartyBonus = combinedStats;
+    const mainStatKey = classJobStats.mainStat;
+    const aaStatKey = classJobStats.autoAttackStat;
+    withPartyBonus[mainStatKey] = fl(withPartyBonus[mainStatKey] * (1 + 0.01 * partyBonus));
+    withPartyBonus[aaStatKey] = fl(combinedStats[mainStatKey] * (1 + 0.01 * partyBonus));
+    withPartyBonus.vitality = fl(combinedStats.vitality * (1 + 0.01 * partyBonus));
+    // Food stats
+    for (const stat in foodStats) {
+        const bonus: FoodStatBonus = foodStats[stat];
+        const startingValue = combinedStats[stat];
+        const extraValue = Math.min(bonus.max, Math.floor(startingValue * (bonus.percentage / 100)));
+        combinedStats[stat] = startingValue + extraValue;
+    }
     const wdEffective = Math.max(combinedStats.wdMag, combinedStats.wdPhys);
-    const hp = combinedStats.hp + vitToHp(levelStats, classJobStats, vitEffective);
+    const hp = withPartyBonus.hp + vitToHp(levelStats, classJobStats, withPartyBonus.vitality);
+    const mainStat = withPartyBonus[mainStatKey];
+    const aaStat = withPartyBonus[aaStatKey];
     const computedStats: ComputedSetStats = {
         ...combinedStats,
-        vitality: vitEffective,
+        vitality: withPartyBonus.vitality,
         level: level,
         levelStats: levelStats,
         job: classJob,
         jobStats: classJobStats,
-        gcdPhys: (base, haste = 0) => sksToGcd(base, levelStats, combinedStats.skillspeed, haste),
-        gcdMag: (base, haste = 0) => spsToGcd(base, levelStats, combinedStats.spellspeed, haste),
+        gcdPhys: (base, haste = 0) => sksToGcd(base, levelStats, withPartyBonus.skillspeed, haste),
+        gcdMag: (base, haste = 0) => spsToGcd(base, levelStats, withPartyBonus.spellspeed, haste),
         haste: () => 0,
         hp: hp,
-        critChance: critChance(levelStats, combinedStats.crit),
-        critMulti: critDmg(levelStats, combinedStats.crit),
-        dhitChance: dhitChance(levelStats, combinedStats.dhit),
-        dhitMulti: dhitDmg(levelStats, combinedStats.dhit),
-        detMulti: detDmg(levelStats, combinedStats.determination),
-        spsDotMulti: spsTickMulti(levelStats, combinedStats.spellspeed),
-        sksDotMulti: sksTickMulti(levelStats, combinedStats.skillspeed),
-        tncMulti: classJobStats.role === 'Tank' ? tenacityDmg(levelStats, combinedStats.tenacity) : 1,
-        tncIncomingMulti: classJobStats.role === 'Tank' ? tenacityIncomingDmg(levelStats, combinedStats.tenacity) : 1,
+        critChance: critChance(levelStats, withPartyBonus.crit),
+        critMulti: critDmg(levelStats, withPartyBonus.crit),
+        dhitChance: dhitChance(levelStats, withPartyBonus.dhit),
+        dhitMulti: dhitDmg(levelStats, withPartyBonus.dhit),
+        detMulti: detDmg(levelStats, withPartyBonus.determination),
+        spsDotMulti: spsTickMulti(levelStats, withPartyBonus.spellspeed),
+        sksDotMulti: sksTickMulti(levelStats, withPartyBonus.skillspeed),
+        tncMulti: classJobStats.role === 'Tank' ? tenacityDmg(levelStats, withPartyBonus.tenacity) : 1,
+        tncIncomingMulti: classJobStats.role === 'Tank' ? tenacityIncomingDmg(levelStats, withPartyBonus.tenacity) : 1,
         // TODO: does this need to be phys/magic split?
         wdMulti: wdMulti(levelStats, classJobStats, wdEffective),
         mainStatMulti: mainStatMulti(levelStats, classJobStats, mainStat),
         aaStatMulti: mainStatMulti(levelStats, classJobStats, aaStat),
         traitMulti: classJobStats.traitMulti ? (type) => classJobStats.traitMulti(level, type) : () => 1,
-        autoDhBonus: autoDhBonusDmg(levelStats, combinedStats.dhit),
-        mpPerTick: mpTick(levelStats, combinedStats.piety),
-        aaMulti: autoAttackModifier(levelStats, classJobStats, combinedStats.weaponDelay, combinedStats.wdPhys),
+        autoDhBonus: autoDhBonusDmg(levelStats, withPartyBonus.dhit),
+        mpPerTick: mpTick(levelStats, withPartyBonus.piety),
+        aaMulti: autoAttackModifier(levelStats, classJobStats, withPartyBonus.weaponDelay, withPartyBonus.wdPhys),
         aaDelay: combinedStats.weaponDelay
     };
     // TODO: should this just apply to all main stats, even ones that are irrelevant to the class?
-    computedStats[classJobStats.mainStat] = mainStat;
-    computedStats[classJobStats.autoAttackStat] = aaStat;
+    computedStats[mainStatKey] = mainStat;
+    computedStats[aaStatKey] = aaStat;
     if (classJobStats.traits) {
         classJobStats.traits.forEach(trait => {
             if (trait.minLevel && trait.minLevel > level) {
