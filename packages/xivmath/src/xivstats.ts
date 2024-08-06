@@ -45,6 +45,7 @@ export function addStats(baseStats: RawStats, addedStats: RawStats): void {
 }
 
 export function finalizeStats(
+    // TODO: gearStats is currently gear + race/job base stuff. Separate these out.
     gearStats: RawStats,
     foodStats: FoodBonuses,
     level: SupportedLevel,
@@ -63,10 +64,11 @@ export function finalizeStats(
     combinedStats.vitality = fl(combinedStats.vitality * (1 + 0.01 * partyBonus));
     // Food stats
     for (const stat in foodStats) {
+        // These operate on base values, without the party buff
         const bonus: FoodStatBonus = foodStats[stat];
-        const startingValue = combinedStats[stat];
+        const startingValue = gearStats[stat];
         const extraValue = Math.min(bonus.max, Math.floor(startingValue * (bonus.percentage / 100)));
-        combinedStats[stat] = startingValue + extraValue;
+        combinedStats[stat] += extraValue;
     }
     const wdEffective = Math.max(combinedStats.wdMag, combinedStats.wdPhys);
     const hp = combinedStats.hp + vitToHp(levelStats, classJobStats, combinedStats.vitality);
