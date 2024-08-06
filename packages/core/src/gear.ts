@@ -44,7 +44,6 @@ import {
     RelicStatModel,
     RelicStats,
     SetDisplaySettingsExport,
-    FoodStatBonus,
     XivCombatItem
 } from "@xivgear/xivmath/geartypes";
 import {xivApiIconUrl} from "./external/xivapi";
