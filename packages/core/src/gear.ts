@@ -44,7 +44,6 @@ import {
     RelicStatModel,
     RelicStats,
     SetDisplaySettingsExport,
-    FoodStatBonus,
     XivCombatItem
 } from "@xivgear/xivmath/geartypes";
 import {xivApiIconUrl} from "./external/xivapi";
@@ -357,19 +356,10 @@ export class CharacterGearSet {
         // Add race stats
         addStats(combinedStats, raceStats);
 
-        // Food stats
-        if (this._food) {
-            for (const stat in this._food.bonuses) {
-                const bonus: FoodStatBonus = this._food.bonuses[stat];
-                const startingValue = combinedStats[stat];
-                const extraValue = Math.min(bonus.max, Math.floor(startingValue * (bonus.percentage / 100)));
-                combinedStats[stat] = startingValue + extraValue;
-            }
-        }
         this._dirtyComp = false;
         // Add BLU weapon damage modifier
         combinedStats.wdMag += classJob === "BLU" ? bluWdfromInt(gearIntStat) : 0;
-        const computedStats = finalizeStats(combinedStats, level, levelStats, classJob, classJobStats, this._sheet.partyBonus);
+        const computedStats = finalizeStats(combinedStats, this._food?.bonuses ?? {}, level, levelStats, classJob, classJobStats, this._sheet.partyBonus);
         const leftRing = this.getItemInSlot('RingLeft');
         const rightRing = this.getItemInSlot('RingRight');
         if (leftRing && leftRing.isUnique && rightRing && rightRing.isUnique) {

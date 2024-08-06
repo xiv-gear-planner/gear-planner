@@ -543,7 +543,7 @@ export const LEVEL_ITEMS: Record<SupportedLevel, LevelItemInfo> = {
     100: {
         minILvl: 640,
         maxILvl: 999,
-        minILvlFood: 570,
+        minILvlFood: 640,
         maxILvlFood: 999,
         minMateria: 9,
         maxMateria: 12,
@@ -551,7 +551,7 @@ export const LEVEL_ITEMS: Record<SupportedLevel, LevelItemInfo> = {
             // Raise this when more gear is available
             minILvl: 680,
             maxILvl: 999,
-            minILvlFood: 640,
+            minILvlFood: 670,
             maxILvlFood: 999,
             higherRelics: true
         }

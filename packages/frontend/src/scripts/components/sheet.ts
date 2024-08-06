@@ -1015,6 +1015,10 @@ export class GearSetViewer extends HTMLElement {
     get toolbar(): Node {
         return new SetViewToolbar(this.gearSet);
     }
+
+    refresh() {
+        // Avoids an error in the console in view-only mode
+    }
 }
 
 function formatSimulationConfigArea<SettingsType extends SimSettings>(

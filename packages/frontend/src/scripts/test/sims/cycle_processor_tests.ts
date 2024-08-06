@@ -232,7 +232,7 @@ const rawStats = {
     weaponDelay: 3.44
 };
 // Finalize the stats (add class modifiers, party bonus, etc)
-const stats = finalizeStats(rawStats, 90, getLevelStats(90), 'WHM', {
+const stats = finalizeStats(rawStats, {}, 90, getLevelStats(90), 'WHM', {
     ...getClassJobStats('WHM'),
     jobStatMultipliers: jobStatMultipliers
 }, 5);

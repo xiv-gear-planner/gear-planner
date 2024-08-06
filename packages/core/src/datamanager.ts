@@ -268,9 +268,9 @@ export class DataManager implements DataManagerIntf {
                     extraPromises.push(Promise.all([itemIlvlPromise, ilvlSyncPromise]).then(([native, sync]) => {
                         item.applyIlvlData(native, sync);
                         if (item.isCustomRelic) {
-                            console.log('Applying relic model');
+                            console.debug('Applying relic model');
                             item.relicStatModel = getRelicStatModelFor(item, this._baseParams, this._classJob);
-                            console.log('Applied', item.relicStatModel)
+                            console.debug('Applied', item.relicStatModel)
                         }
                     }));
                 }
@@ -278,9 +278,9 @@ export class DataManager implements DataManagerIntf {
                     extraPromises.push(itemIlvlPromise.then(native => {
                         item.applyIlvlData(native);
                         if (item.isCustomRelic) {
-                            console.log('Applying relic model');
+                            console.debug('Applying relic model');
                             item.relicStatModel = getRelicStatModelFor(item, this._baseParams, this._classJob);
-                            console.log('Applied', item.relicStatModel)
+                            console.debug('Applied', item.relicStatModel)
                         }
                     }));
                 }
