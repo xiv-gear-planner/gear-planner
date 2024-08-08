@@ -11,24 +11,186 @@ import {BaseModal} from "@xivgear/common-ui/components/modal";
 import {makeUrl, VIEW_SET_HASH} from "@xivgear/core/nav/common_nav";
 import {GearPlanSheet} from "@xivgear/core/sheet";
 import {writeProxy} from "@xivgear/core/util/proxies";
+import {FoodItem, XivItem} from "@xivgear/xivmath/geartypes";
 
-const SHEET_EXPORT_OPTIONS = ['Link to Whole Sheet', 'One Link for Each Set', 'Embed URL for Each Set', 'JSON for Whole Sheet'] as const;
-type SheetExportType = typeof SHEET_EXPORT_OPTIONS[number];
-const SET_EXPORT_OPTIONS = ['Link to This Set', 'Embed URL for This Set', 'JSON for This Set'] as const;
-type SetExportType = typeof SET_EXPORT_OPTIONS[number];
+type ExportMethod<X> = {
+    /**
+     * The display name of this export option.
+     */
+    readonly name: string;
+    /**
+     * Whether the export is instant (display the value as soon as is it selected) or async (must click the button)
+     */
+    readonly exportInstantly: boolean;
+
+    /**
+     * Perform the export. Should return whatever should display in the text box (typically one or more links)
+     *
+     * @param item The item to export.
+     */
+    doExport(item: X): Promise<string>;
+
+    /**
+     * Whether the export should offer to open the link rather than copy it.
+     */
+    readonly openInsteadOfCopy?: boolean;
+};
+
+type SheetExportMethod = ExportMethod<GearPlanSheet>;
+
+type SetExportMethod = ExportMethod<CharacterGearSet>;
+
+/**
+ * JSON for an entire sheet
+ */
+const sheetJson = {
+    name: "JSON for Whole Sheet",
+    exportInstantly: true,
+    async doExport(sheet: GearPlanSheet): Promise<string> {
+        return JSON.stringify(sheet.exportSheet(true));
+    }
+} as const as SheetExportMethod;
+
+/**
+ * Shortlink for an entire sheet
+ */
+const sheetShortlink = {
+    name: "Link to Whole Sheet",
+    exportInstantly: false,
+    async doExport(sheet: GearPlanSheet): Promise<string> {
+        const exportedSheet = JSON.stringify(sheet.exportSheet(true));
+        return await putShortLink(exportedSheet).then(link => link.toString());
+    }
+} as const as SheetExportMethod;
+
+/**
+ * One independent shortlink for each set contained within a sheet
+ */
+const linkPerSet = {
+    name: "One Link for Each Set",
+    exportInstantly: false,
+    async doExport(sheet: GearPlanSheet): Promise<string> {
+        const sets = sheet.sets;
+        if (sets.length === 0) {
+            return "This sheet does not have any sets!";
+        }
+        let out = '';
+        for (const set of sets) {
+            const exportedSet = JSON.stringify(sheet.exportGearSet(set, true));
+            const linkToSet = await putShortLink(exportedSet).then(link => link.toString());
+            out += linkToSet;
+            out += '\n';
+        }
+        return out;
+    }
+} as const as SheetExportMethod;
+
+/**
+ * One independent embeddable shortlink for each set contained within a sheet
+ */
+const embedLinkPerSet = {
+    name: "Embed URL for Each Set",
+    exportInstantly: false,
+    async doExport(sheet: GearPlanSheet): Promise<string> {
+        const sets = sheet.sets;
+        if (sets.length === 0) {
+            return "This sheet does not have any sets!";
+        }
+        let out = '';
+        for (const set of sets) {
+            const exportedSet = JSON.stringify(sheet.exportGearSet(set, true));
+            const linkToSet = await putShortLink(exportedSet, true).then(link => link.toString());
+            out += linkToSet;
+            out += '\n';
+        }
+        return out;
+    }
+} as const as SheetExportMethod;
+
+/**
+ * JSON for an individual set
+ */
+const setJson = {
+    name: "JSON for This Set",
+    exportInstantly: true,
+    async doExport(set: CharacterGearSet): Promise<string> {
+        return JSON.stringify(set.sheet.exportGearSet(set, true));
+    }
+} as const as SetExportMethod;
+
+/**
+ * Shortlink for an individual set
+ */
+const setShortlink = {
+    name: "Link to This Set",
+    exportInstantly: false,
+    async doExport(set: CharacterGearSet): Promise<string> {
+        const exportedSheet = JSON.stringify(set.sheet.exportGearSet(set, true));
+        return await putShortLink(exportedSheet).then(link => link.toString());
+    }
+} as const as SetExportMethod;
+
+/**
+ * Embeddable shortlink for an individual set
+ */
+const setEmbedShortLink = {
+    name: "Embed URL for This Set",
+    exportInstantly: false,
+    async doExport(set: CharacterGearSet): Promise<string> {
+        const exportedSheet = JSON.stringify(set.sheet.exportGearSet(set, true));
+        return await putShortLink(exportedSheet, true).then(link => link.toString());
+    }
+} as const as SetExportMethod;
+
+type TeamcraftItem = {
+    readonly itemId: number,
+    quantity: number
+}
+
+const exportSetToTeamcraft = {
+    name: 'Export to Teamcraft',
+    exportInstantly: true,
+    openInsteadOfCopy: true,
+    async doExport(set: CharacterGearSet): Promise<string> {
+        const items: TeamcraftItem[] = [];
+        const allItems: (XivItem | FoodItem)[] = [...set.allEquippedItems];
+        // TODO: should food be included in this? What quantity of food?
+        // if (set.food) {
+        //     allItems.push(set.food);
+        // }
+        allItems.forEach(equippedItem => {
+            const existing = items.find(item => item.itemId === equippedItem.id);
+            if (existing) {
+                existing.quantity++;
+            }
+            else {
+                items.push({
+                    itemId: equippedItem.id,
+                    quantity: 1
+                })
+            }
+        });
+        const joinedItems = items
+            .map(item => `${item.itemId},null,${item.quantity}`)
+            .join(';');
+        return `https://ffxivteamcraft.com/import/${btoa(joinedItems)}`;
+    }
+} as const as SetExportMethod;
+
+const SHEET_EXPORT_OPTIONS = [sheetShortlink, linkPerSet, embedLinkPerSet, sheetJson] as const;
+
+const SET_EXPORT_OPTIONS = [setShortlink, setEmbedShortLink, setJson, exportSetToTeamcraft] as const;
 
 // TODO: warning for when you export a single set as a sheet
-
 export function startExport(sheet: GearPlanSheet | CharacterGearSet) {
-    let modal: ExportModal<string>;
+    let modal: ExportModal<unknown>;
     if (sheet instanceof GearPlanSheet) {
         modal = new SheetExportModal(sheet);
     }
     else {
         modal = new SetExportModal(sheet);
     }
-    document.querySelector('body').appendChild(modal);
-    modal.show();
+    modal.attachAndShow();
 }
 
 window["startExport"] = startExport;
@@ -52,15 +214,15 @@ class SimExportChooser extends HTMLElement {
     }
 }
 
-abstract class ExportModal<X extends string> extends BaseModal {
+abstract class ExportModal<X> extends BaseModal {
     private textBox: HTMLTextAreaElement;
     private variableButton: HTMLButtonElement;
     private varButtonAction = (ev: MouseEvent) => {
         console.error("This should not happen!");
     };
-    private _selectedOption: X;
+    private _selectedOption: ExportMethod<X>;
 
-    protected constructor(title: string, exportOptions: readonly X[], sheet: GearPlanSheet) {
+    protected constructor(title: string, exportOptions: readonly ExportMethod<X>[], protected sheet: GearPlanSheet, protected item: X) {
         super();
         this.classList.add('export-modal-dialog');
         this.headerText = title;
@@ -73,12 +235,12 @@ abstract class ExportModal<X extends string> extends BaseModal {
             if (index === 0) {
                 htmlInputElement.checked = true;
             }
-            htmlInputElement.value = opt;
+            htmlInputElement.value = opt.name;
             htmlInputElement.name = 'exporttype';
-            const labeled = labeledRadioButton(opt, htmlInputElement);
+            const labeled = labeledRadioButton(opt.name, htmlInputElement);
             fieldset.appendChild(labeled);
             htmlInputElement.addEventListener('change', ev => {
-                this.selectedOption = ev.target['value'];
+                this.selectedOption = opt;
             })
         });
 
@@ -102,21 +264,20 @@ abstract class ExportModal<X extends string> extends BaseModal {
         this.selectedOption = exportOptions[0];
     }
 
-    private get selectedOption(): X {
+    private get selectedOption(): ExportMethod<X> {
         return this._selectedOption;
     }
 
-    private set selectedOption(value: X) {
+    private set selectedOption(value: ExportMethod<X>) {
         this._selectedOption = value;
         this.refreshSelection();
     }
 
-    abstract doExport(selectedType: X): Promise<string>;
-
-    abstract exportInstantly(selectedType: X): boolean;
+    doExport(selectedType: ExportMethod<X>): Promise<string> {
+        return selectedType.doExport(this.item);
+    };
 
     abstract get previewUrl(): string;
-
 
     private doPreview() {
         window.open(this.previewUrl, '_blank');
@@ -125,9 +286,9 @@ abstract class ExportModal<X extends string> extends BaseModal {
     async refreshSelection() {
         const selectedType = this.selectedOption;
         this.textValue = '';
-        if (this.exportInstantly(selectedType)) {
+        if (selectedType.exportInstantly) {
             const content = await this.doExport(selectedType);
-            this.setCopyData(content);
+            this.setResultData(selectedType, content);
         }
         else {
             this.variableButton.textContent = 'Generate';
@@ -137,10 +298,10 @@ abstract class ExportModal<X extends string> extends BaseModal {
                 this.variableButton.textContent = 'Wait...';
                 this.textValue = 'Wait...';
                 this.doExport(selectedType).then(value => {
-                    this.setCopyData(value);
+                    this.setResultData(selectedType, value);
                 }, err => {
                     console.error(err);
-                    this.setCopyData("Error!");
+                    this.setResultData(selectedType, "Error!");
                 });
             }
         }
@@ -156,59 +317,22 @@ abstract class ExportModal<X extends string> extends BaseModal {
     }
 
     // TODO: some kind of concurrency check
-    setCopyData(data: string): void {
+    setResultData(exportType: ExportMethod<X>, data: string): void {
         this.textValue = data;
-        this.variableButton.textContent = 'Copy';
-        this.varButtonAction = () => navigator.clipboard.writeText(data);
+        if (exportType.openInsteadOfCopy) {
+            this.variableButton.textContent = 'Go';
+            this.varButtonAction = () => window.open(data, '_blank');
+        }
+        else {
+            this.variableButton.textContent = 'Copy';
+            this.varButtonAction = () => navigator.clipboard.writeText(data);
+        }
     }
 }
 
-class SheetExportModal extends ExportModal<SheetExportType> {
-    constructor(private sheet: GearPlanSheet) {
-        super('Export Full Sheet', SHEET_EXPORT_OPTIONS, sheet);
-    }
-
-    async doExport(selectedType: SheetExportType): Promise<string> {
-        switch (selectedType) {
-            case "Link to Whole Sheet": {
-                const exportedSheet = JSON.stringify(this.sheet.exportSheet(true));
-                return await putShortLink(exportedSheet).then(link => link.toString());
-            }
-            case "One Link for Each Set": {
-                const sets = this.sheet.sets;
-                if (sets.length === 0) {
-                    return "This sheet does not have any sets!";
-                }
-                let out = '';
-                for (const set of sets) {
-                    const exportedSet = JSON.stringify(this.sheet.exportGearSet(set, true));
-                    const linkToSet = await putShortLink(exportedSet).then(link => link.toString());
-                    out += linkToSet;
-                    out += '\n';
-                }
-                return out;
-            }
-            case "Embed URL for Each Set": {
-                const sets = this.sheet.sets;
-                if (sets.length === 0) {
-                    return "This sheet does not have any sets!";
-                }
-                let out = '';
-                for (const set of sets) {
-                    const exportedSet = JSON.stringify(this.sheet.exportGearSet(set, true));
-                    const linkToSet = await putShortLink(exportedSet, true).then(link => link.toString());
-                    out += linkToSet;
-                    out += '\n';
-                }
-                return out;
-            }
-            case "JSON for Whole Sheet":
-                return JSON.stringify(this.sheet.exportSheet(true));
-        }
-    }
-
-    exportInstantly(selectedType: SheetExportType): boolean {
-        return selectedType === "JSON for Whole Sheet";
+class SheetExportModal extends ExportModal<GearPlanSheet> {
+    constructor(sheet: GearPlanSheet) {
+        super('Export Full Sheet', SHEET_EXPORT_OPTIONS, sheet, sheet);
     }
 
     get previewUrl(): string {
@@ -218,35 +342,14 @@ class SheetExportModal extends ExportModal<SheetExportType> {
     }
 }
 
-class SetExportModal extends ExportModal<SetExportType> {
-    private sheet: GearPlanSheet;
+class SetExportModal extends ExportModal<CharacterGearSet> {
 
-    constructor(private set: CharacterGearSet) {
-        super('Export Individual Set', SET_EXPORT_OPTIONS, set.sheet);
-        this.sheet = set.sheet;
-    }
-
-    async doExport(selectedType: SetExportType): Promise<string> {
-        switch (selectedType) {
-            case "Link to This Set": {
-                const exportedSheet = JSON.stringify(this.sheet.exportGearSet(this.set, true));
-                return await putShortLink(exportedSheet).then(link => link.toString());
-            }
-            case "Embed URL for This Set": {
-                const exportedSheet = JSON.stringify(this.sheet.exportGearSet(this.set, true));
-                return await putShortLink(exportedSheet, true).then(link => link.toString());
-            }
-            case "JSON for This Set":
-                return JSON.stringify(this.sheet.exportGearSet(this.set, true));
-        }
-    }
-
-    exportInstantly(selectedType: SetExportType): boolean {
-        return selectedType === "JSON for This Set";
+    constructor(set: CharacterGearSet) {
+        super('Export Individual Set', SET_EXPORT_OPTIONS, set.sheet, set);
     }
 
     get previewUrl(): string {
-        const exported = this.sheet.exportGearSet(this.set, true);
+        const exported = this.sheet.exportGearSet(this.item, true);
         const url = makeUrl(VIEW_SET_HASH, JSON.stringify(exported));
         return url.toString();
     }
