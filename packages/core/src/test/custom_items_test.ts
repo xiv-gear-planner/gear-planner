@@ -1,7 +1,7 @@
 import {HEADLESS_SHEET_PROVIDER} from "../sheet";
 import {expect} from "chai";
 import {CharacterGearSet} from "../gear";
-import 'global-jsdom/register'
+import 'global-jsdom/register';
 
 describe('Custom items support', () => {
     it('Supports a custom item', async () => {
