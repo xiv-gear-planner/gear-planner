@@ -131,7 +131,7 @@ class SageCycleProcessor extends CycleProcessor {
     doEvenMinuteBurst() {
         this.use(phlegma);
         const latestPsycheTime = this.nextGcdTime - animationLock(psyche);
-        this.advanceTo(latestPsycheTime);
+        this.advanceTo(Math.max(latestPsycheTime, this.currentTime));
         if (this.isReady(psyche)) {
             this.use(psyche);
             this.use(phlegma);
