@@ -1,4 +1,5 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                // TODO: get back to fixing this at some point
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// TODO: get back to fixing this at some point
 import {camel2title, capitalizeFirstLetter, toRelPct} from "@xivgear/core/util/strutils";
 import {BaseModal} from "@xivgear/common-ui/components/modal";
 import {
@@ -30,11 +31,13 @@ import {
     EquipSlots,
     GearItem,
     MateriaAutoFillController,
-    MateriaAutoFillPrio, MultiplierMitStat,
+    MateriaAutoFillPrio,
+    MultiplierMitStat,
     MultiplierStat,
     PartyBonusAmount,
     RawStatKey,
-    SetExport, SheetExport
+    SetExport,
+    SheetExport
 } from "@xivgear/xivmath/geartypes";
 import {CharacterGearSet} from "@xivgear/core/gear";
 import {
@@ -77,6 +80,8 @@ import {confirmDelete} from "@xivgear/common-ui/components/delete_confirm";
 
 export type GearSetSel = SingleCellRowOrHeaderSelect<CharacterGearSet>;
 
+const noSeparators = (set: CharacterGearSet) => !set.isSeparator;
+
 function mainStatCol(sheet: GearPlanSheet, stat: RawStatKey): CustomColumnSpec<CharacterGearSet, MultiplierStat> {
     return {
         shortName: stat,
@@ -88,6 +93,7 @@ function mainStatCol(sheet: GearPlanSheet, stat: RawStatKey): CustomColumnSpec<C
         condition: () => sheet.isStatRelevant(stat),
         renderer: multiplierStatTooltip,
         extraClasses: ['stat-col', 'main-stat-col'],
+        rowCondition: noSeparators,
     }
 }
 
@@ -102,6 +108,7 @@ function tooltipMultiStatCol(sheet: GearPlanSheet, stat: RawStatKey, multiKey: {
         condition: () => sheet.isStatRelevant(stat),
         renderer: multiplierStatTooltip,
         extraClasses: ['stat-col', 'compact-multiplier-stat-col'],
+        rowCondition: noSeparators,
     }
 }
 
@@ -289,6 +296,7 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                                 return null;
                         }
                     },
+                    rowCondition: noSeparators,
                     renderer: gcd => document.createTextNode(gcd.toFixed(2)),
                     initialWidth: statColWidth + 10,
                 })
@@ -305,6 +313,7 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                         return Math.min(gearSet.computedStats.gcdMag(2.5, magHaste), gearSet.computedStats.gcdPhys(2.5, physHaste));
                     },
                     renderer: gcd => document.createTextNode(gcd.toFixed(2)),
+                    rowCondition: noSeparators,
                     initialWidth: statColWidth + 10,
                 });
         }
@@ -332,7 +341,8 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                     colHeader.append(span);
                     colHeader.classList.add('hoverable');
                     colHeader.title = 'Click to configure simulation settings';
-                }
+                },
+                rowCondition: noSeparators,
             }
         });
 
@@ -451,6 +461,9 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                     div.classList.add('set-name-desc-holder');
                     div.replaceChildren(...elements);
                     div.title = title;
+                    if (value.isSeparator) {
+                        nameSpan.style.fontWeight = 'bold';
+                    }
                     return div;
                 }
                 // initialWidth: 300,
@@ -467,12 +480,14 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                 initialWidth: statColWidth,
                 renderer: multiplierStatTooltip,
                 extraClasses: ['stat-col'],
+                rowCondition: noSeparators,
             } as CustomColumnSpec<CharacterGearSet, MultiplierStat>,
             {
                 shortName: "hp",
                 displayName: "HP",
                 getter: gearSet => gearSet.computedStats.hp,
                 extraClasses: ['stat-col', 'stat-col-hp'],
+                rowCondition: noSeparators,
             },
             {
                 ...mainStatCol(this.sheet, 'dexterity'),
@@ -499,6 +514,7 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                 renderer: chanceStatDisplay,
                 condition: () => this.sheet.isStatRelevant('crit'),
                 extraClasses: ['stat-col', 'chance-stat-col'],
+                rowCondition: noSeparators,
             },
             {
                 shortName: "dhit",
@@ -511,6 +527,7 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                 renderer: chanceStatDisplay,
                 condition: () => this.sheet.isStatRelevant('dhit'),
                 extraClasses: ['stat-col', 'chance-stat-col'],
+                rowCondition: noSeparators,
             },
             {
                 shortName: "det",
@@ -522,6 +539,7 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                 renderer: multiplierStatDisplay,
                 condition: () => this.sheet.isStatRelevant('determination'),
                 extraClasses: ['stat-col', 'multiplier-stat-col'],
+                rowCondition: noSeparators,
             },
             {
                 ...tooltipMultiStatCol(this.sheet, 'skillspeed', 'sksDotMulti'),
@@ -539,6 +557,7 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                 getter: gearSet => gearSet.computedStats.piety,
                 initialWidth: statColWidth,
                 condition: () => this.sheet.isStatRelevant('piety'),
+                rowCondition: noSeparators,
             },
             {
                 shortName: "tenacity",
@@ -551,6 +570,7 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                 renderer: multiplierMitStatDisplay,
                 condition: () => this.sheet.isStatRelevant('tenacity'),
                 extraClasses: ['stat-col', 'multiplier-mit-stat-col'],
+                rowCondition: noSeparators,
             },
             ...(viewOnly ? [] : simColumns),
         ];
@@ -588,7 +608,7 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
         const cells: CustomCell<any, any>[] = this._rows.flatMap(row => {
             if (row instanceof CustomRow) {
                 const cell = row.dataColMap.get(col);
-                if (cell) {
+                if (cell && cell.cellValue !== null) {
                     return [cell];
                 }
             }
@@ -637,6 +657,7 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
             }
         }
     }
+
 }
 
 export class SimResultDetailDisplay<X extends SimResult> extends HTMLElement {
@@ -881,6 +902,56 @@ export class GearSetEditor extends HTMLElement {
     }
 }
 
+export class SeparatorEditor extends HTMLElement {
+    private readonly gearSet: CharacterGearSet;
+    private header: HTMLHeadingElement;
+    private desc: HTMLDivElement;
+
+    constructor(gearSet: CharacterGearSet) {
+        super();
+        this.gearSet = gearSet;
+        this.setup();
+    }
+
+    formatTitleDesc() {
+
+        this.header.textContent = this.gearSet.name;
+        const trimmedDesc = this.gearSet.description?.trim();
+        if (trimmedDesc) {
+            this.desc.style.display = '';
+            this.desc.replaceChildren(...stringToParagraphs(trimmedDesc));
+        }
+        else {
+            this.desc.style.display = 'none';
+        }
+    }
+
+
+    setup() {
+
+        this.replaceChildren();
+
+        this.header = document.createElement('h2');
+        this.desc = document.createElement('div');
+        this.appendChild(this.header);
+        this.appendChild(this.desc);
+        this.formatTitleDesc();
+
+        const buttonArea = quickElement('div', ['gear-set-editor-button-area', 'button-row'], [
+            makeActionButton('Change Name/Description', () => {
+                startRenameSet(writeProxy(this.gearSet, () => this.formatTitleDesc()));
+            }),
+        ]);
+
+        this.appendChild(buttonArea);
+    }
+
+    // TODO: clean up this issue
+    refresh() {
+
+    }
+}
+
 /**
  * A simplified, read-only view for a set
  */
@@ -1014,6 +1085,34 @@ export class GearSetViewer extends HTMLElement {
 
     get toolbar(): Node {
         return new SetViewToolbar(this.gearSet);
+    }
+
+    refresh() {
+        // Avoids an error in the console in view-only mode
+    }
+}
+
+export class SeparatorViewer extends HTMLElement {
+    private readonly gearSet: CharacterGearSet;
+
+    constructor(gearSet: CharacterGearSet) {
+        super();
+        this.gearSet = gearSet;
+        this.setup();
+    }
+
+    setup() {
+        this.replaceChildren();
+
+        // Name editor
+        const heading = document.createElement('h1');
+        heading.textContent = this.gearSet.name;
+        this.appendChild(heading);
+
+        if (this.gearSet.description) {
+            const descContainer = quickElement('div', [], stringToParagraphs(this.gearSet.description));
+            this.appendChild(descContainer);
+        }
     }
 
     refresh() {
@@ -1203,11 +1302,21 @@ export class GearPlanSheetGui extends GearPlanSheet {
             else if (item instanceof CharacterGearSet) {
                 // TODO: centralize these debugging shortcuts
                 window['currentGearSet'] = item;
-                if (this._isViewOnly) {
-                    this.setupEditorArea(new GearSetViewer(this, item));
+                if (item.isSeparator) {
+                    if (this._isViewOnly) {
+                        this.setupEditorArea(new SeparatorViewer(item));
+                    }
+                    else {
+                        this.setupEditorArea(new SeparatorEditor(item));
+                    }
                 }
                 else {
-                    this.setupEditorArea(new GearSetEditor(this, item));
+                    if (this._isViewOnly) {
+                        this.setupEditorArea(new GearSetViewer(this, item));
+                    }
+                    else {
+                        this.setupEditorArea(new GearSetEditor(this, item));
+                    }
                 }
                 this.refreshToolbar();
             }
@@ -1263,6 +1372,15 @@ export class GearPlanSheetGui extends GearPlanSheet {
             sheetOptions.addAction({
                 label: 'Manage Custom Food',
                 action: () => new CustomFoodPopup(this).attachAndShow(),
+            });
+            sheetOptions.addAction({
+                label: 'Add Separator',
+                action: () => {
+                    const set = new CharacterGearSet(this);
+                    set.name = 'Separator';
+                    set.isSeparator = true;
+                    this.addGearSet(set);
+                }
             });
             // const renameButton = makeActionButton("Sheet Name/Description", () => {
             //     startRenameSheet(this);
@@ -1490,7 +1608,10 @@ export class GearPlanSheetGui extends GearPlanSheet {
         });
 
         if (this._selectFirstRowByDefault && this.sets.length >= 1) {
-            this._gearPlanTable.selectGearSet(this.sets[0])
+            // First, try to select a real gear set
+            const firstNonSeparator = this.sets.find(set => !set.isSeparator);
+            // Failing that, just select whatever
+            this._gearPlanTable.selectGearSet(firstNonSeparator ?? this.sets[0])
         }
         this._sheetSetupDone = true;
     }
@@ -1915,7 +2036,9 @@ export class GraphicalSheetProvider extends SheetProvider<GearPlanSheetGui> {
 export const GRAPHICAL_SHEET_PROVIDER = new GraphicalSheetProvider();
 
 customElements.define("gear-set-editor", GearSetEditor);
+customElements.define("separator-editor", SeparatorEditor);
 customElements.define("gear-set-viewer", GearSetViewer);
+customElements.define("separator-viewer", SeparatorViewer);
 customElements.define("gear-plan-table", GearPlanTable, {extends: "table"});
 customElements.define("gear-plan", GearPlanSheetElement);
 customElements.define("sim-result-display", SimResultMiniDisplay);
