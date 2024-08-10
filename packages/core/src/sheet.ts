@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */                // TODO: get back to fixing this at some point
+/* eslint-disable @typescript-eslint/no-explicit-any */                                // TODO: get back to fixing this at some point
 import {
     CURRENT_MAX_LEVEL,
     defaultItemDisplaySettings,
@@ -503,7 +503,8 @@ export class GearPlanSheet {
             name: set.name,
             items: items,
             food: set.food ? set.food.id : undefined,
-            description: set.description
+            description: set.description,
+            isSeparator: set.isSeparator
         };
         if (external) {
             out.job = this.classJobName;
@@ -602,34 +603,40 @@ export class GearPlanSheet {
         const set = new CharacterGearSet(this);
         set.name = importedSet.name;
         set.description = importedSet.description;
-        for (const equipmentSlot in importedSet.items) {
-            const importedItem: ItemSlotExport = importedSet.items[equipmentSlot];
-            if (!importedItem) {
-                continue;
-            }
-            const baseItem = this.itemById(importedItem.id);
-            if (!baseItem) {
-                continue;
-            }
-            const equipped = new EquippedItem(baseItem);
-            for (let i = 0; i < Math.min(equipped.melds.length, importedItem.materia.length); i++) {
-                const id = importedItem.materia[i].id;
-                const mat = this.dataManager.materiaById(id);
-                if (!mat) {
+        if (importedSet.isSeparator) {
+            set.isSeparator = true;
+        }
+        else {
+
+            for (const equipmentSlot in importedSet.items) {
+                const importedItem: ItemSlotExport = importedSet.items[equipmentSlot];
+                if (!importedItem) {
                     continue;
                 }
-                equipped.melds[i].equippedMateria = mat;
+                const baseItem = this.itemById(importedItem.id);
+                if (!baseItem) {
+                    continue;
+                }
+                const equipped = new EquippedItem(baseItem);
+                for (let i = 0; i < Math.min(equipped.melds.length, importedItem.materia.length); i++) {
+                    const id = importedItem.materia[i].id;
+                    const mat = this.dataManager.materiaById(id);
+                    if (!mat) {
+                        continue;
+                    }
+                    equipped.melds[i].equippedMateria = mat;
+                }
+                if (importedItem.relicStats && equipped.gearItem.isCustomRelic) {
+                    Object.assign(equipped.relicStats, importedItem.relicStats);
+                }
+                set.equipment[equipmentSlot] = equipped;
             }
-            if (importedItem.relicStats && equipped.gearItem.isCustomRelic) {
-                Object.assign(equipped.relicStats, importedItem.relicStats);
+            if (importedSet.food) {
+                set.food = this.foodById(importedSet.food);
             }
-            set.equipment[equipmentSlot] = equipped;
-        }
-        if (importedSet.food) {
-            set.food = this.foodById(importedSet.food);
-        }
-        if (importedSet.relicStatMemory) {
-            set.relicStatMemory.import(importedSet.relicStatMemory);
+            if (importedSet.relicStatMemory) {
+                set.relicStatMemory.import(importedSet.relicStatMemory);
+            }
         }
         return set;
     }

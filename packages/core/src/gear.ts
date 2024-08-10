@@ -186,6 +186,7 @@ export class CharacterGearSet {
     });
     readonly relicStatMemory: RelicStatMemory = new RelicStatMemory();
     readonly displaySettings: SetDisplaySettings = new SetDisplaySettings();
+    isSeparator: boolean = false;
 
     constructor(sheet: GearPlanSheet) {
         this._sheet = sheet;
@@ -379,7 +380,7 @@ export class CharacterGearSet {
         }
         this._lastResult = {
             computedStats: computedStats,
-            issues: issues
+            issues: this.isSeparator ? [] : issues
         };
         console.info("Recomputed stats", this._lastResult);
         return this._lastResult;
