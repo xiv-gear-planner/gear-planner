@@ -11,27 +11,37 @@ import {
     sksToGcd,
     spsTickMulti,
     spsToGcd,
-    tenacityDmg, tenacityIncomingDmg,
+    tenacityDmg,
+    tenacityIncomingDmg,
     vitToHp
 } from "@xivgear/xivmath/xivmath";
 import {GearPlanSheet} from "@xivgear/core/sheet";
+import {closeModal, getModal, setModal} from "@xivgear/common-ui/modalcontrol";
 
 interface Tiering {
     lower: number,
     upper: number
 }
 
+interface TieringOffset {
+    offset: number,
+    label: string,
+}
+
 interface TieringDisplay {
     label: string,
     fullName: string,
     description: string,
-    tiering: Tiering
+    tieringFunc: (offset: number) => Tiering,
+    extraOffsets: TieringOffset[]
 }
 
 export class SingleStatTierDisplay extends HTMLDivElement {
     private readonly lowerLeftDiv: HTMLDivElement;
     private readonly lowerRightDiv: HTMLDivElement;
     private readonly upperDiv: HTMLDivElement;
+    private readonly expansionDiv: HTMLDivElement;
+    private _expanded: boolean;
 
     constructor(private stat: RawStatKey) {
         super();
@@ -50,23 +60,74 @@ export class SingleStatTierDisplay extends HTMLDivElement {
         this.lowerRightDiv = document.createElement('div');
         this.lowerRightDiv.classList.add('single-stat-tier-display-lower-right');
         this.appendChild(this.lowerRightDiv);
+
+        this.expansionDiv = document.createElement('div');
+        this.expansionDiv.classList.add('single-stat-tier-display-expansion');
+        this.expansionDiv.textContent = "Foo bar";
+        this.appendChild(this.expansionDiv);
+
+        this.expanded = false;
     }
 
     refresh(tiering: TieringDisplay): void {
         this.upperDiv.textContent = tiering.label;
         this.upperDiv.title = `${tiering.label}: ${tiering.description}`;
-        if (tiering.tiering.lower > 0) {
-            this.lowerLeftDiv.textContent = '-' + tiering.tiering.lower;
-            this.classList.remove('stat-tiering-perfect');
-            this.lowerLeftDiv.title = `Your ${tiering.fullName} is ${tiering.tiering.lower} above the next-lowest tier.\nIn other words, you could lose up to ${tiering.tiering.lower} points without negatively impacting your ${tiering.fullName}.`;
+        {
+            const baseTiering = tiering.tieringFunc(0);
+            if (baseTiering.lower > 0) {
+                this.lowerLeftDiv.textContent = '-' + baseTiering.lower;
+                this.classList.remove('stat-tiering-perfect');
+                this.lowerLeftDiv.title = `Your ${tiering.fullName} is ${baseTiering.lower} above the next-lowest tier.\nIn other words, you could lose up to ${baseTiering.lower} points without negatively impacting your ${tiering.fullName}.`;
+            }
+            else {
+                this.lowerLeftDiv.textContent = '✔';
+                this.lowerLeftDiv.title = `Your ${tiering.fullName} is perfectly tiered.\nIf you lose any ${this.stat}, it will negatively impact your ${tiering.fullName}.`;
+                this.classList.add('stat-tiering-perfect');
+            }
+            this.lowerRightDiv.textContent = '+' + baseTiering.upper;
+            this.lowerRightDiv.title = `You must gain ${baseTiering.upper} points of ${this.stat} in order to increase your ${tiering.fullName}.`;
         }
-        else {
-            this.lowerLeftDiv.textContent = '✔';
-            this.lowerLeftDiv.title = `Your ${tiering.fullName} is perfectly tiered.\nIf you lose any ${this.stat}, it will negatively impact your ${tiering.fullName}.`;
-            this.classList.add('stat-tiering-perfect');
-        }
-        this.lowerRightDiv.textContent = '+' + tiering.tiering.upper;
-        this.lowerRightDiv.title = `You must gain ${tiering.tiering.upper} points of ${this.stat} in order to increase your ${tiering.fullName}.`;
+
+        this.expansionDiv.replaceChildren(...tiering.extraOffsets.map((extraOffset) => {
+            const tieringResult = tiering.tieringFunc(extraOffset.offset);
+
+            const div = document.createElement('div');
+            div.classList.add('single-stat-tier-display-expansion-item');
+            const upperDiv = document.createElement('div');
+            upperDiv.textContent = extraOffset.label;
+            const lowerLeftDiv = document.createElement('div');
+            lowerLeftDiv.textContent
+            const lowerRightDiv = document.createElement('div');
+
+            upperDiv.classList.add('single-stat-tier-display-upper');
+            lowerLeftDiv.classList.add('single-stat-tier-display-lower-left');
+            lowerRightDiv.classList.add('single-stat-tier-display-lower-right');
+
+            if (tieringResult.lower > 0) {
+                lowerLeftDiv.textContent = '-' + tieringResult.lower;
+                div.classList.remove('stat-tiering-perfect');
+                this.lowerLeftDiv.title = `Your ${tiering.fullName} is ${tieringResult.lower} above the next-lowest tier.\nIn other words, you could lose up to ${tieringResult.lower} points without negatively impacting your ${tiering.fullName}.`;
+            }
+            else {
+                lowerLeftDiv.textContent = '✔';
+                lowerLeftDiv.title = `Your ${tiering.fullName} is perfectly tiered.\nIf you lose any ${this.stat}, it will negatively impact your ${tiering.fullName}.`;
+                div.classList.add('stat-tiering-perfect');
+            }
+            lowerRightDiv.textContent = '+' + tieringResult.upper;
+            lowerRightDiv.title = `You must gain ${tieringResult.upper} points of ${this.stat} in order to increase your ${tiering.fullName}.`;
+
+            div.replaceChildren(upperDiv, lowerLeftDiv, lowerRightDiv);
+            return div;
+        }));
+    }
+
+    get expanded(): boolean {
+        return this._expanded;
+    }
+
+    set expanded(value: boolean) {
+        this._expanded = value;
+        this.expansionDiv.style.display = value ? '' : 'none';
     }
 }
 
@@ -76,6 +137,33 @@ export class StatTierDisplay extends HTMLDivElement {
     constructor(private sheet: GearPlanSheet) {
         super();
         this.classList.add('stat-tier-display');
+    }
+
+    private expanded: boolean = false;
+
+
+    toggleState(external: boolean = false) {
+        if (this.expanded) {
+            if (!external) {
+                if (getModal()?.element === this) {
+                    closeModal();
+                }
+            }
+            this.expanded = false;
+        }
+        else {
+            this.expanded = true;
+            const outer = this;
+            setModal({
+                close() {
+                    outer.toggleState(true);
+                },
+                element: this,
+            })
+        }
+        for (const value of this.eleMap.values()) {
+            value.expanded = this.expanded;
+        }
     }
 
     refresh(gearSet: CharacterGearSet) {
@@ -96,6 +184,7 @@ export class StatTierDisplay extends HTMLDivElement {
                         singleStatTierDisplay = new SingleStatTierDisplay(stat);
                         this.eleMap.set(key, singleStatTierDisplay);
                         this.appendChild(singleStatTierDisplay);
+                        singleStatTierDisplay.addEventListener('click', () => this.toggleState());
                     }
                     singleStatTierDisplay.refresh(tieringDisplay);
                     // const tierDisplayNode = document.createElement('div');
@@ -116,6 +205,29 @@ export class StatTierDisplay extends HTMLDivElement {
         const curVal = computed[stat];
         const abbrev = STAT_ABBREVIATIONS[stat];
         const gcdOver = jobStats.gcdDisplayOverrides?.(this.sheet.level);
+        const makeTiering = (rawFormula: ((value: number) => number)) => {
+            return (offset: number) => this.getCombinedTiering(curVal + offset, rawFormula);
+        };
+        const relevantMateria = set.sheet.relevantMateria
+            .filter(materia => materia.primaryStat === stat)
+            .sort((a, b) => (b.primaryStatValue - a.primaryStatValue));
+        let extraOffsets: TieringOffset[];
+
+        if (relevantMateria.length === 0) {
+            extraOffsets = [];
+        }
+        else {
+            const materia = relevantMateria[0];
+            const materiaValue = materia.primaryStatValue;
+            const multipliers = [3, 2, 1, -1, -2, -3];
+            extraOffsets = multipliers.map(multiplier => multiplier * materiaValue)
+                .map(value => ({
+                    offset: value,
+                    // Format as +5, +0, -5, etc
+                    label: value < 0 ? value.toString() : '+' + value.toString(),
+                }));
+        }
+
         switch (stat) {
             case "strength":
             case "dexterity":
@@ -125,54 +237,48 @@ export class StatTierDisplay extends HTMLDivElement {
                     label: abbrev,
                     fullName: stat + ' multiplier',
                     description: 'Damage multiplier from primary stat',
-                    tiering: this.getCombinedTiering(curVal, value => mainStatMulti(levelStats, jobStats, value))
+                    tieringFunc: makeTiering(value => mainStatMulti(levelStats, jobStats, value)),
+                    extraOffsets: extraOffsets
                 }];
             case "vitality":
                 return [{
                     label: abbrev,
                     fullName: 'Hit Points',
                     description: 'Hit Points (affected by Vitality)',
-                    tiering: this.getCombinedTiering(curVal, value => vitToHp(levelStats, jobStats, value)),
+                    tieringFunc: makeTiering(value => vitToHp(levelStats, jobStats, value)),
+                    extraOffsets: extraOffsets
                 }];
             case "determination":
                 return [{
                     label: abbrev,
                     fullName: stat + ' multiplier',
                     description: 'Damage multiplier from Determination',
-                    tiering: this.getCombinedTiering(curVal, value => detDmg(levelStats, value))
+                    tieringFunc: makeTiering(value => detDmg(levelStats, value)),
+                    extraOffsets: extraOffsets,
                 }];
             case "piety":
                 return [{
                     label: abbrev,
                     fullName: 'MP Regen',
                     description: 'MP Regen (affected by Piety)',
-                    tiering: this.getCombinedTiering(curVal, value => mpTick(levelStats, value))
+                    tieringFunc: makeTiering(value => mpTick(levelStats, value)),
+                    extraOffsets: extraOffsets
                 }];
             case "crit":
-                // return [{
-                //     label: '%' + abbrev,
-                //     fullName: 'critical strike chance',
-                //     description: 'Chance to land a critical strike',
-                //     tiering: this.getCombinedTiering(curVal, value => critChance(levelStats, value))
-                // }, {
-                //     label: 'x' + abbrev,
-                //     fullName: 'critical hit multiplier',
-                //     description: 'Damage multiplier when landing a critical hit',
-                //     tiering: this.getCombinedTiering(curVal, value => critDmg(levelStats, value))
-                // }];
-                // Uncomment the above it crit chance and crit multi ever become decoupled in terms of tiering
                 return [{
                     label: abbrev,
                     fullName: 'critical hit',
                     description: 'Critical hit (chance and multiplier)',
-                    tiering: this.getCombinedTiering(curVal, value => critDmg(levelStats, value))
+                    tieringFunc: makeTiering(value => critDmg(levelStats, value)),
+                    extraOffsets: extraOffsets,
                 }];
             case "dhit":
                 return [{
                     label: abbrev,
                     fullName: 'direct hit change',
                     description: 'Change to land a direct hit',
-                    tiering: this.getCombinedTiering(curVal, value => dhitChance(levelStats, value))
+                    tieringFunc: makeTiering(value => dhitChance(levelStats, value)),
+                    extraOffsets: extraOffsets,
                 }];
             case "spellspeed": {
                 const tierDisplays: TieringDisplay[] = [];
@@ -183,10 +289,11 @@ export class StatTierDisplay extends HTMLDivElement {
                                 label: over.shortLabel,
                                 fullName: over.longLabel,
                                 description: over.description,
-                                tiering: this.getCombinedTiering(curVal, value => {
+                                tieringFunc: makeTiering(value => {
                                     const haste = computed.haste(over.attackType) + over.haste;
                                     return spsToGcd(over.gcdTime, levelStats, value, haste);
-                                })
+                                }),
+                                extraOffsets: extraOffsets
                             })
                         })
                 }
@@ -195,17 +302,19 @@ export class StatTierDisplay extends HTMLDivElement {
                         label: abbrev + ' GCD',
                         fullName: 'GCD for spells',
                         description: 'Global cooldown (recast) time for spells',
-                        tiering: this.getCombinedTiering(curVal, value => {
+                        tieringFunc: makeTiering(value => {
                             const haste = computed.haste('Spell');
                             return spsToGcd(2.5, levelStats, value, haste);
                         }),
+                        extraOffsets: extraOffsets
                     });
                 }
                 return [...tierDisplays, {
                     label: abbrev + ' DoT',
                     fullName: 'DoT scalar for spells',
                     description: 'DoT damage multiplier for spells',
-                    tiering: this.getCombinedTiering(curVal, value => spsTickMulti(levelStats, value))
+                    tieringFunc: makeTiering(value => spsTickMulti(levelStats, value)),
+                    extraOffsets: extraOffsets
                 }];
             }
             case "skillspeed": {
@@ -217,10 +326,11 @@ export class StatTierDisplay extends HTMLDivElement {
                                 label: over.shortLabel,
                                 fullName: over.longLabel,
                                 description: over.description,
-                                tiering: this.getCombinedTiering(curVal, value => {
+                                tieringFunc: makeTiering(value => {
                                     const haste = computed.haste(over.attackType) + over.haste;
                                     return sksToGcd(over.gcdTime, levelStats, value, haste);
-                                })
+                                }),
+                                extraOffsets: extraOffsets
                             })
                         })
                 }
@@ -229,10 +339,11 @@ export class StatTierDisplay extends HTMLDivElement {
                         label: abbrev + ' GCD',
                         fullName: 'GCD for weaponskills',
                         description: 'Global cooldown (recast) time for weaponskills',
-                        tiering: this.getCombinedTiering(curVal, value => {
+                        tieringFunc: makeTiering(value => {
                             const haste = computed.haste('Weaponskill');
                             return sksToGcd(2.5, levelStats, value, haste);
-                        })
+                        }),
+                        extraOffsets: extraOffsets
                     })
                 }
 
@@ -240,7 +351,8 @@ export class StatTierDisplay extends HTMLDivElement {
                     label: abbrev + ' DoT',
                     fullName: 'DoT scalar for weaponskills',
                     description: 'DoT damage multiplier for weaponskills',
-                    tiering: this.getCombinedTiering(curVal, value => sksTickMulti(levelStats, value))
+                    tieringFunc: makeTiering(value => sksTickMulti(levelStats, value)),
+                    extraOffsets: extraOffsets
                 }];
             }
             case "tenacity":
@@ -248,12 +360,14 @@ export class StatTierDisplay extends HTMLDivElement {
                     label: abbrev + ' Dmg',
                     fullName: stat + ' multiplier',
                     description: 'Damage multiplier from Tenacity',
-                    tiering: this.getCombinedTiering(curVal, value => tenacityDmg(levelStats, value))
+                    tieringFunc: makeTiering(value => tenacityDmg(levelStats, value)),
+                    extraOffsets: extraOffsets
                 }, {
                     label: abbrev + ' Def',
                     fullName: stat + ' mitigation',
                     description: 'Damage reduction from Tenacity',
-                    tiering: this.getCombinedTiering(curVal, value => tenacityIncomingDmg(levelStats, value))
+                    tieringFunc: makeTiering(value => tenacityIncomingDmg(levelStats, value)),
+                    extraOffsets: extraOffsets
                 }
                 ];
             default:
@@ -261,10 +375,11 @@ export class StatTierDisplay extends HTMLDivElement {
                     label: abbrev,
                     fullName: abbrev,
                     description: abbrev,
-                    tiering: {
+                    tieringFunc: offset => ({
                         lower: 0,
                         upper: 0
-                    }
+                    }),
+                    extraOffsets: []
                 }]
 
         }
