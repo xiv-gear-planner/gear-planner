@@ -88,7 +88,7 @@ const baneful: OgcdAbility = {
         // TODO verify
         id: 3883
     },
-    attackType: "Ability"
+    attackType: "Ability",
 };
 
 const ed: SchOgcdAbility = {
@@ -96,7 +96,7 @@ const ed: SchOgcdAbility = {
     name: "Energy Drain",
     id: 167,
     potency: 100,
-    attackType: "Ability"
+    attackType: "Ability",
     updateGauge: gauge => gauge.aetherflow -= 1,
 };
 
@@ -108,7 +108,7 @@ const aetherflow: SchOgcdAbility = {
     attackType: "Ability",
     cooldown: {
         time: 60
-    }
+    },
     updateGauge: gauge => gauge.aetherflow = 3,
 }
 
@@ -120,7 +120,7 @@ const diss: SchOgcdAbility = {
     attackType: "Ability",
     cooldown: {
         time: 180
-    }
+    },
     updateGauge: gauge => gauge.aetherflow = 3,
 }
 
