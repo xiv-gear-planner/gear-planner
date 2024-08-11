@@ -16,7 +16,6 @@ import {
     vitToHp
 } from "@xivgear/xivmath/xivmath";
 import {GearPlanSheet} from "@xivgear/core/sheet";
-import {closeModal, getModal, setModal} from "@xivgear/common-ui/modalcontrol";
 
 interface Tiering {
     lower: number,
