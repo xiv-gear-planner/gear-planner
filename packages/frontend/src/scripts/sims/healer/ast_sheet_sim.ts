@@ -405,7 +405,7 @@ class AstCycleProcessor extends CycleProcessor {
 
         this.useDotIfWorth();
         this.use(div);
-        let oracleReady = true;
+        //let oracleReady = true;
         this.use(balance);
 
         this.useDotIfWorth();
@@ -415,7 +415,7 @@ class AstCycleProcessor extends CycleProcessor {
         this.useDotIfWorth();
         this.use(spear);
         this.use(oracle);
-        oracleReady = false;
+        //oracleReady = false;
 
         this.useDotIfWorth();
         this.use(star);
@@ -457,9 +457,10 @@ export class AstSim extends BaseMultiCycleSim<AstSimResult, AstSettings, AstCycl
 
     getRotationsToSimulate(): Rotation[] {
         return [{
+            name: 'Normal DoT',
             cycleTime: 120,
             apply(cp: AstCycleProcessor) {
-                cp.use(filler);
+                cp.use(filler); //prepull malefic
                 cp.remainingCycles(cycle => {
                     cp.useDotIfWorth();
                     cp.useDotIfWorth();
