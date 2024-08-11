@@ -23,7 +23,7 @@ type SchAbility = Ability & Readonly<{
     updateGauge?(gauge: SchGauge): void;
 }>
 
-type SchGcdAbility = GcdAbility & SchAbility;
+//type SchGcdAbility = GcdAbility & SchAbility;
 
 type SchOgcdAbility = OgcdAbility & SchAbility;
 
