@@ -88,15 +88,29 @@ export class SingleStatTierDisplay extends HTMLDivElement {
             this.lowerRightDiv.title = `You must gain ${baseTiering.upper} points of ${this.stat} in order to increase your ${tiering.fullName}.`;
         }
 
-        this.expansionDiv.replaceChildren(...tiering.extraOffsets.map((extraOffset) => {
+        let hasSeenNegative: boolean = false;
+        const elements: Node[] = [];
+        tiering.extraOffsets.forEach((extraOffset) => {
             const tieringResult = tiering.tieringFunc(extraOffset.offset);
 
             const div = document.createElement('div');
             div.classList.add('single-stat-tier-display-expansion-item');
+
+            if (extraOffset.offset < 0 && !hasSeenNegative) {
+                hasSeenNegative = true;
+                const separatorHolder = document.createElement('div');
+                const separator = document.createElement('div');
+                separatorHolder.classList.add('single-stat-tier-display-separator-holder');
+                separator.classList.add('single-stat-tier-display-separator-inner');
+                separatorHolder.appendChild(separator);
+                elements.push(separatorHolder);
+
+            }
+
             const upperDiv = document.createElement('div');
             upperDiv.textContent = extraOffset.label;
             const lowerLeftDiv = document.createElement('div');
-            lowerLeftDiv.textContent
+            lowerLeftDiv.textContent;
             const lowerRightDiv = document.createElement('div');
 
             upperDiv.classList.add('single-stat-tier-display-upper');
@@ -117,8 +131,9 @@ export class SingleStatTierDisplay extends HTMLDivElement {
             lowerRightDiv.title = `You must gain ${tieringResult.upper} points of ${this.stat} in order to increase your ${tiering.fullName}.`;
 
             div.replaceChildren(upperDiv, lowerLeftDiv, lowerRightDiv);
-            return div;
-        }));
+            elements.push(div);
+        });
+        this.expansionDiv.replaceChildren(...elements);
     }
 
     get expanded(): boolean {
@@ -139,33 +154,6 @@ export class StatTierDisplay extends HTMLDivElement {
         this.classList.add('stat-tier-display');
     }
 
-    private expanded: boolean = false;
-
-
-    toggleState(external: boolean = false) {
-        if (this.expanded) {
-            if (!external) {
-                if (getModal()?.element === this) {
-                    closeModal();
-                }
-            }
-            this.expanded = false;
-        }
-        else {
-            this.expanded = true;
-            const outer = this;
-            setModal({
-                close() {
-                    outer.toggleState(true);
-                },
-                element: this,
-            })
-        }
-        for (const value of this.eleMap.values()) {
-            value.expanded = this.expanded;
-        }
-    }
-
     refresh(gearSet: CharacterGearSet) {
         let relevantStats = STAT_DISPLAY_ORDER.filter(stat => this.sheet.isStatRelevant(stat));
         if (this.sheet.ilvlSync && !relevantStats.includes('vitality')) {
@@ -184,7 +172,20 @@ export class StatTierDisplay extends HTMLDivElement {
                         singleStatTierDisplay = new SingleStatTierDisplay(stat);
                         this.eleMap.set(key, singleStatTierDisplay);
                         this.appendChild(singleStatTierDisplay);
-                        singleStatTierDisplay.addEventListener('click', () => this.toggleState());
+                        // singleStatTierDisplay.addEventListener('click', () => this.toggleState());
+                        singleStatTierDisplay.addEventListener('click', (ev) => {
+                            if (ev.detail == 1) {
+                                singleStatTierDisplay.expanded = !singleStatTierDisplay.expanded;
+                            }
+                            else if (ev.detail >= 2) {
+                                // If this is a double click, the first click would have already toggled the state
+                                // of the target.
+                                const newState = singleStatTierDisplay.expanded;
+                                for (const display of this.eleMap.values()) {
+                                    display.expanded = newState;
+                                }
+                            }
+                        });
                     }
                     singleStatTierDisplay.refresh(tieringDisplay);
                     // const tierDisplayNode = document.createElement('div');
@@ -220,12 +221,18 @@ export class StatTierDisplay extends HTMLDivElement {
             const materia = relevantMateria[0];
             const materiaValue = materia.primaryStatValue;
             const multipliers = [3, 2, 1, -1, -2, -3];
-            extraOffsets = multipliers.map(multiplier => multiplier * materiaValue)
-                .map(value => ({
+            extraOffsets = multipliers.map(multiplier => {
+                const value = multiplier * materiaValue;
+                const multiplierStr = multiplier < 0 ? multiplier.toString() : '+' + multiplier.toString();
+                // Get the roman numeral part of the materia name
+                const split = materia.name.split(' ');
+                const label = `${multiplierStr} ${split[split.length - 1]}:`;
+                return {
                     offset: value,
                     // Format as +5, +0, -5, etc
-                    label: value < 0 ? value.toString() : '+' + value.toString(),
-                }));
+                    label: label,
+                }
+            });
         }
 
         switch (stat) {

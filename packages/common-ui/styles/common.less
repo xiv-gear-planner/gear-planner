@@ -1811,8 +1811,8 @@ div.gear-set-editor-toolbar, set-view-toolbar {
 
     div.single-stat-tier-display-expansion {
       .single-stat-tier-display-expansion-item {
-        margin-top: 8px;
-        margin-bottom: 8px;
+        margin-top: 10px;
+        margin-bottom: 10px;
         &.stat-tiering-perfect {
           .number-format-perfect;
         }
@@ -1826,6 +1826,27 @@ div.gear-set-editor-toolbar, set-view-toolbar {
       top: 130%;
       border-color: color-mix(in srgb, var(--stat-color) 20%, var(--border-color));
       background-color: color-mix(in srgb, var(--stat-color) var(--tiering-color-mix), var(--table-bg-color));
+      overflow: hidden;
+      .single-stat-tier-display-separator-holder {
+        position: relative;
+        .single-stat-tier-display-separator-inner {
+          //position: absolute;
+          height: 10px;
+          left: 0;
+          right: 0;
+          z-index: -1;
+          top: -5px;
+          background-color: var(--bg-color);
+          //position: absolute;
+          //height: 1000px;
+          //left: 0;
+          //right: 0;
+          //z-index: -1;
+          //top: -5px;
+          //filter: saturate(50%);
+          //background-color: color-mix(in srgb, var(--stat-color) calc(var(--tiering-color-mix) / 3), var(--table-bg-color));
+        }
+      }
     }
   }
 }
