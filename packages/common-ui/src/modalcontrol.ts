@@ -21,6 +21,10 @@ export function closeModal() {
     setModal(undefined);
 }
 
+export function getModal() {
+    return currentModal;
+}
+
 const listener = (ev: MouseEvent) => {
     if (!currentModal) {
         return;
