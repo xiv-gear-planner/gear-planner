@@ -12,6 +12,24 @@ import {BaseMultiCycleSim} from "../sim_processors";
 import {FieldBoundIntField, labelFor, nonNegative} from "@xivgear/common-ui/components/util";
 import {rangeInc} from "@xivgear/core/util/array_utils";
 
+type SchAbility = Ability & Readonly<{
+    /** Run if an ability needs to update the aetherflow gauge */
+    updateGauge?(gauge: SchGauge): void;
+}>
+
+type SchGcdAbility = GcdAbility & SchAbility;
+
+type SchOgcdAbility = OgcdAbility & SchAbility;
+
+type SchGaugeState = {
+    level: number;
+    aetherflow: number;
+}
+
+type SchExtraData = {
+    gauge: SchGaugeState;
+}
+
 const filler: GcdAbility = {
     type: 'gcd',
     name: "Broil IV",
@@ -73,15 +91,16 @@ const baneful: OgcdAbility = {
     attackType: "Ability"
 };
 
-const ed: OgcdAbility = {
+const ed: SchOgcdAbility = {
     type: 'ogcd',
     name: "Energy Drain",
     id: 167,
     potency: 100,
     attackType: "Ability"
+    updateGauge: gauge => gauge.aetherflow -= 1;
 };
 
-const aetherflow: OgcdAbility = {
+const aetherflow: SchOgcdAbility = {
     type: 'ogcd',
     name: "Aetherflow",
     id: 166,
@@ -90,9 +109,10 @@ const aetherflow: OgcdAbility = {
     cooldown: {
         time: 60
     }
+    updateGauge: gauge => gauge.aetherflow = 3;
 }
 
-const diss: OgcdAbility = {
+const diss: SchOgcdAbility = {
     type: 'ogcd',
     name: "Dissipation",
     id: 3587,
@@ -101,9 +121,72 @@ const diss: OgcdAbility = {
     cooldown: {
         time: 180
     }
+    updateGauge: gauge => gauge.aetherflow = 3;
 }
 
-export interface SchSheetSimResult extends CycleSimResult {
+class SchGauge {
+    private _aetherflow: number = 0;
+    get aetherflow(): number {
+        return this._aetherflow;
+    }
+    set aetherflow(newAF: number) {
+        if (newAF < 0) {
+            console.warn(`Used Energy Drain when empty`)
+        }
+
+        this._aetherflow = Math.max(Math.min(newAF, 3), 0);
+    }
+
+
+    getGaugeState(): SchGaugeState {
+        return {
+            level: 100,
+            aetherflow: this.aetherflow,
+        }
+    }
+
+    static generateResultColumns(result: CycleSimResult): CustomColumnSpec<DisplayRecordFinalized, unknown, unknown>[] {
+        return [{
+            shortName: 'aetherflow',
+            displayName: 'Aetherflow',
+            getter: used => isFinalizedAbilityUse(used) ? used.original : null,
+            renderer: (usedAbility?: UsedAbility) => {
+                if (usedAbility?.extraData !== undefined) {
+                    const aetherflow = (usedAbility.extraData as SchExtraData).gauge.aetherflow;
+
+                    const div = document.createElement('div');
+                    div.style.height = '100%';
+                    div.style.display = 'flex';
+                    div.style.alignItems = 'center';
+                    div.style.justifyContent = 'center';
+                    div.style.gap = '4px';
+                    div.style.padding = '2px 0 2px 0';
+                    div.style.boxSizing = 'border-box';
+
+                    for (let i = 1; i <= 3; i++) {
+                        const stack = document.createElement('span');
+                        stack.style.clipPath = `polygon(0 50%, 50% 0, 100% 50%, 50% 100%, 0% 50%)`;
+                        stack.style.background = '#00000033';
+                        stack.style.height = '100%';
+                        stack.style.width = '16px';
+                        stack.style.display = 'inline-block';
+                        stack.style.overflow = 'hidden';
+                        if (i <= aetherflow) {
+                            stack.style.background = '#0FFF33';
+                        }
+                        div.appendChild(stack);
+                    }
+
+                    return div;
+                }
+                return document.createTextNode("");
+            }
+        },
+        ];
+    }
+}
+
+export interface SchSimResult extends CycleSimResult {
 }
 
 export interface SchSettings extends SimSettings {
@@ -128,10 +211,33 @@ export const schNewSheetSpec: SimSpec<SchSheetSim, SchSettingsExternal> = {
 
 class ScholarCycleProcessor extends CycleProcessor {
     MySettings: SchSettings;
+    gauge: SchGauge;
     nextBioTime: number = 0;
 
     constructor(settings: MultiCycleSettings) {
         super(settings);
+        this.gauge = new SchGauge();
+    }
+    
+    override addAbilityUse(usedAbility: AbilityUseRecordUnf) {
+        // Add gauge data to this record for the UI
+        const extraData: SchExtraData = {
+            gauge: this.gauge.getGaugeState(),
+        };
+
+        const modified: AbilityUseRecordUnf = {
+            ...usedAbility,
+            extraData,
+        };
+
+        super.addAbilityUse(modified);
+    }
+    
+    override use(ability: Ability): AbilityUseResult {
+        // Update gauge from the ability itself
+        if (SchAbility.updateGauge !== undefined) {
+            SchAbility.updateGauge(this.gauge);
+        }
     }
 
     useDotIfWorth() {
@@ -178,7 +284,7 @@ class ScholarCycleProcessor extends CycleProcessor {
     }
 }
 
-export class SchSheetSim extends BaseMultiCycleSim<SchSheetSimResult, SchSettings, ScholarCycleProcessor> {
+export class SchSheetSim extends BaseMultiCycleSim<SchSimResult, SchSettings, ScholarCycleProcessor> {
 
     spec = schNewSheetSpec;
     displayName = schNewSheetSpec.displayName;
@@ -206,6 +312,15 @@ export class SchSheetSim extends BaseMultiCycleSim<SchSheetSimResult, SchSetting
         configDiv.appendChild(label);
         configDiv.appendChild(edField);
         return configDiv;
+    }
+
+    override makeAbilityUsedTable(result: SchSimResult): AbilitiesUsedTable {
+        const extraColumns = SchGauge.generateResultColumns(result);
+        const table = super.makeAbilityUsedTable(result);
+        const newColumns = [...table.columns];
+        newColumns.splice(newColumns.findIndex(col => col.shortName === 'expected-damage') + 1, 0, ...extraColumns);
+        table.columns = newColumns;
+        return table;
     }
 
     protected createCycleProcessor(settings: MultiCycleSettings): ScholarCycleProcessor {
