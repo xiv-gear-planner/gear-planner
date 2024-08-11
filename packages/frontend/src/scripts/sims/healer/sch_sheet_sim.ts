@@ -15,8 +15,8 @@ import {BaseMultiCycleSim} from "../sim_processors";
 //import {gemdraught1mind} from "@xivgear/core/sims/common/potion";
 import {FieldBoundIntField, labelFor, nonNegative} from "@xivgear/common-ui/components/util";
 import {rangeInc} from "@xivgear/core/util/array_utils";
-import {CustomColumnSpec} from "../../../tables";
-import { AbilitiesUsedTable } from "../../components/ability_used_table";
+import {CustomColumnSpec} from "../../tables";
+import { AbilitiesUsedTable } from "../components/ability_used_table";
 
 type SchAbility = Ability & Readonly<{
     /** Run if an ability needs to update the aetherflow gauge */
@@ -246,6 +246,7 @@ class ScholarCycleProcessor extends CycleProcessor {
         if (schAbility.updateGauge !== undefined) {
             schAbility.updateGauge(this.gauge);
         }
+        return super.use(ability);
     }
 
     useDotIfWorth() {
