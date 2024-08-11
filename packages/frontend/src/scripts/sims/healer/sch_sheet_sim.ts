@@ -97,7 +97,7 @@ const ed: SchOgcdAbility = {
     id: 167,
     potency: 100,
     attackType: "Ability"
-    updateGauge: gauge => gauge.aetherflow -= 1;
+    updateGauge: gauge => gauge.aetherflow -= 1,
 };
 
 const aetherflow: SchOgcdAbility = {
@@ -109,7 +109,7 @@ const aetherflow: SchOgcdAbility = {
     cooldown: {
         time: 60
     }
-    updateGauge: gauge => gauge.aetherflow = 3;
+    updateGauge: gauge => gauge.aetherflow = 3,
 }
 
 const diss: SchOgcdAbility = {
@@ -121,7 +121,7 @@ const diss: SchOgcdAbility = {
     cooldown: {
         time: 180
     }
-    updateGauge: gauge => gauge.aetherflow = 3;
+    updateGauge: gauge => gauge.aetherflow = 3,
 }
 
 class SchGauge {
