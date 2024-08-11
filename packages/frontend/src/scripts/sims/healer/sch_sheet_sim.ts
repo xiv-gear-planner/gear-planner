@@ -127,11 +127,11 @@ export const schNewSheetSpec: SimSpec<SchSheetSim, SchSettingsExternal> = {
 };
 
 class ScholarCycleProcessor extends CycleProcessor {
+    MySettings: SchSettings;
     nextBioTime: number = 0;
 
     constructor(settings: MultiCycleSettings) {
         super(settings);
-        this.cdEnforcementMode = 'warn';
     }
 
     useDotIfWorth() {
@@ -226,19 +226,19 @@ export class SchSheetSim extends BaseMultiCycleSim<SchSheetSimResult, SchSetting
                         cp.use(diss);
                     }
                     cp.use(filler);
-                    cp.TwoMinBurst(cp.edPerAfDiss);
+                    cp.TwoMinBurst(this.settings.edPerAfDiss);
                     while (cycle.cycleRemainingTime > 0) {
                         cp.useDotIfWorth();
                         if (cp.isReady(aetherflow)) {
                             cp.use(aetherflow);
                             if (cycle.cycleNumber % 3 === 2) {
-                                cp.spendEDs(cp.edPerAfDiss);
+                                cp.spendEDs(this.settings.edPerAfDiss);
                             }
                         }
                         if (cp.isReady(diss)) {
                             cp.use(diss);
                             if (cycle.cycleNumber % 3 === 1) {
-                                cp.spendEDs(cp.edPerAfDiss);
+                                cp.spendEDs(this.settings.edPerAfDiss);
                             }
                         }
                     }
@@ -257,20 +257,20 @@ export class SchSheetSim extends BaseMultiCycleSim<SchSheetSimResult, SchSetting
                         cp.use(diss);
                     }
                     cp.use(filler);
-                    cp.TwoMinBurst(cp.edPerAfDiss);
+                    cp.TwoMinBurst(this.settings.edPerAfDiss);
                     console.log(cycle.cycleRemainingTime);
                     while (cycle.cycleRemainingTime > 0) {
                         cp.useDotIfWorth();
                         if (cp.isReady(aetherflow)) {
                             cp.use(aetherflow);
                             if (cycle.cycleNumber % 3 === 2) {
-                                cp.spendEDs(cp.edPerAfDiss);
+                                cp.spendEDs(this.settings.edPerAfDiss);
                             }
                         }
                         if (cp.isReady(diss)) {
                             cp.use(diss);
                             if (cycle.cycleNumber % 3 === 1) {
-                                cp.spendEDs(cp.edPerAfDiss);
+                                cp.spendEDs(this.settings.edPerAfDiss);
                             }
                         }
                     }
