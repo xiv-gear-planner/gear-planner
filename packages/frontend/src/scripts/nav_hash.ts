@@ -64,6 +64,7 @@ export function getCurrentHash() {
 export async function processHashLegacy() {
     const newHash = location.hash;
     const split = splitHashLegacy(newHash);
+    formatTopMenu(split);
     if (split.length > 0) {
         console.log('processHashLegacy', newHash);
         // This path allows certain things such as /viewset/<json> to continue to use the old-style hash, since the
