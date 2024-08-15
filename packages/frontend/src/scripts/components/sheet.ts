@@ -1431,6 +1431,27 @@ export class GearPlanSheetGui extends GearPlanSheet {
             });
             buttonsArea.appendChild(importGearSetButton);
         }
+        else {
+            const exportPicker = new DropdownActionMenu("Export...");
+            const sheet = this;
+            exportPicker.addAction({
+                label: "Whole Sheet",
+                action: () => startExport(sheet),
+            });
+            exportPicker.addAction({
+                label: "Selected Set",
+                action: () => {
+                    const selection = sheet.editorItem;
+                    if (selection instanceof CharacterGearSet) {
+                        startExport(selection);
+                    }
+                    else {
+                        alert("Select a gear set first");
+                    }
+                },
+            });
+            buttonsArea.appendChild(exportPicker);
+        }
 
         this.gearUpdateTimer = new Inactivitytimer(1_000, () => {
             if (this._editorAreaNode instanceof GearSetEditor) {

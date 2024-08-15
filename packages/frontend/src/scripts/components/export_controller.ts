@@ -11,7 +11,7 @@ import {BaseModal} from "@xivgear/common-ui/components/modal";
 import {makeUrl, VIEW_SET_HASH} from "@xivgear/core/nav/common_nav";
 import {GearPlanSheet} from "@xivgear/core/sheet";
 import {writeProxy} from "@xivgear/core/util/proxies";
-import {FoodItem, XivItem} from "@xivgear/xivmath/geartypes";
+import {EquipSlots, Materia, XivItem} from "@xivgear/xivmath/geartypes";
 
 type ExportMethod<X> = {
     /**
@@ -153,11 +153,26 @@ const exportSetToTeamcraft = {
     openInsteadOfCopy: true,
     async doExport(set: CharacterGearSet): Promise<string> {
         const items: TeamcraftItem[] = [];
-        const allItems: (XivItem | FoodItem)[] = [...set.allEquippedItems];
+        const allItems: XivItem[] = [];
+        const allMateria: Materia[] = [];
+        const equipment = set.equipment;
+        EquipSlots.forEach(slot => {
+            const item = equipment[slot];
+            if (item) {
+                allItems.push(item.gearItem);
+                item.melds.forEach(mat => {
+                    const materia = mat.equippedMateria;
+                    if (materia) {
+                        allMateria.push(materia);
+                    }
+                })
+            }
+        });
         // TODO: should food be included in this? What quantity of food?
         // if (set.food) {
         //     allItems.push(set.food);
         // }
+        allItems.push(...allMateria);
         allItems.forEach(equippedItem => {
             const existing = items.find(item => item.itemId === equippedItem.id);
             if (existing) {
