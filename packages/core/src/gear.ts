@@ -239,7 +239,7 @@ export class CharacterGearSet {
     }
 
     setEquip(slot: EquipSlotKey, item: GearItem, materiaAutoFill?: MateriaAutoFillController) {
-        // TODO: this is also a good place to implement temporary persistent materia/relic stats
+        // TODO: this is also a good place to implement temporary persistent materia entry
         if (this.equipment[slot]?.gearItem === item) {
             return;
         }
@@ -249,7 +249,7 @@ export class CharacterGearSet {
         }
         this.invalidate();
         this.equipment[slot] = this.toEquippedItem(item);
-        console.log(`Set ${this.name}: slot ${slot} => ${item.name}`);
+        console.log(`Set ${this.name}: slot ${slot} => ${item?.name}`);
         if (materiaAutoFill && materiaAutoFill.autoFillNewItem) {
             this.fillMateria(materiaAutoFill.prio, false, [slot]);
         }
@@ -262,6 +262,9 @@ export class CharacterGearSet {
      * @param item The item with relic stat memory and such applied
      */
     toEquippedItem(item: GearItem) {
+        if (item === null) {
+            return null;
+        }
         const equipped = new EquippedItem(item);
         if (item.isCustomRelic) {
             const oldStats = this.relicStatMemory.get(item);

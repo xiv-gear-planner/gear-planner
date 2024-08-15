@@ -7,11 +7,11 @@ import {
     EquipSlotKey,
     EquipSlots,
     FoodItem,
+    FoodStatBonus,
     GearItem,
     GearSlotItem,
     RawStatKey,
     RawStats,
-    FoodStatBonus,
     Substat
 } from "@xivgear/xivmath/geartypes";
 import {
@@ -31,7 +31,13 @@ import {
     MateriaSubstats,
     STAT_ABBREVIATIONS
 } from "@xivgear/xivmath/xivconstants";
-import {FieldBoundCheckBox, FieldBoundIntField, labeledCheckbox} from "@xivgear/common-ui/components/util";
+import {
+    FieldBoundCheckBox,
+    FieldBoundIntField,
+    labeledCheckbox,
+    makeTrashIcon,
+    quickElement
+} from "@xivgear/common-ui/components/util";
 import {AllSlotMateriaManager} from "./materia";
 import {shortenItemName} from "@xivgear/core/util/strutils";
 import {GearPlanSheet} from "@xivgear/core/sheet";
@@ -487,8 +493,15 @@ export class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
                 getter: item => {
                     return item.item.name;
                 },
-                renderer: (name: string) => {
-                    return document.createTextNode(shortenItemName(name));
+                renderer: (name: string, rowValue: GearSlotItem) => {
+                    const trashButton = quickElement('button', ['remove-item-button'], [makeTrashIcon()]);
+                    trashButton.addEventListener('click', (ev) => {
+                        gearSet.setEquip(rowValue.slotId, null);
+                        selectionTracker.set(rowValue.slotId, null);
+                        this.refreshSelection();
+                        this.refreshMateria();
+                    });
+                    return quickElement('div', ['item-name-holder-editable'], [quickElement('span', [], [shortenItemName(name)]), trashButton]);
                 },
                 colStyler: (value, colElement, internalElement, rowValue) => {
                     if (rowValue.item.acquisitionType === 'custom') {
