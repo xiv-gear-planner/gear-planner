@@ -1256,6 +1256,53 @@ table.gear-items-table, table.food-items-table {
     }
   }
 
+  &.gear-items-edit-table {
+    tr {
+      .item-name-holder-editable {
+        display: flex;
+        flex-direction: row;
+
+        span {
+          flex-basis: 1px;
+          flex-grow: 99;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .remove-item-button {
+          display: none;
+        }
+      }
+
+      &:hover {
+        &[is-selected="true"] {
+          .remove-item-button {
+            background: none;
+            display: block;
+            .borderless-button;
+
+            padding: 0;
+            margin: 0;
+
+            height: min-content;
+            width: min-content;
+            svg {
+              fill: var(--fg-color);
+            }
+
+            &:hover {
+              fill: var(--action-button-hover-color);
+
+              svg {
+                fill: var(--action-button-hover-color);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
 }
 
 .left-side-gear-table, .right-side-gear-table {
@@ -1774,11 +1821,11 @@ div.gear-set-editor-toolbar, set-view-toolbar {
     background-color: color-mix(in srgb, var(--stat-color) var(--tiering-color-mix), var(--table-bg-color));
 
     .number-format-perfect {
-      >div.single-stat-tier-display-upper {
+      > div.single-stat-tier-display-upper {
         color: color-mix(in srgb, var(--stat-color) 30%, var(--stat-tiering-box-mix-color));
       }
 
-      >div.single-stat-tier-display-lower-left {
+      > div.single-stat-tier-display-lower-left {
         color: color-mix(in srgb, var(--stat-color) 70%, var(--stat-tiering-box-mix-color));
         line-height: 0;
         //float: left;
@@ -1813,10 +1860,12 @@ div.gear-set-editor-toolbar, set-view-toolbar {
       .single-stat-tier-display-expansion-item {
         margin-top: 10px;
         margin-bottom: 10px;
+
         &.stat-tiering-perfect {
           .number-format-perfect;
         }
       }
+
       .standard-round-border;
       z-index: var(--zi-tiering-expansion);
       box-shadow: var(--shadow-color) 0 4px 10px 0;
@@ -1827,8 +1876,10 @@ div.gear-set-editor-toolbar, set-view-toolbar {
       border-color: color-mix(in srgb, var(--stat-color) 20%, var(--border-color));
       background-color: color-mix(in srgb, var(--stat-color) var(--tiering-color-mix), var(--table-bg-color));
       overflow: hidden;
+
       .single-stat-tier-display-separator-holder {
         position: relative;
+
         .single-stat-tier-display-separator-inner {
           //position: absolute;
           height: 10px;
