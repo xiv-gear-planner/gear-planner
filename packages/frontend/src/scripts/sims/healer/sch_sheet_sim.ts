@@ -1,10 +1,33 @@
 import {Chain} from "@xivgear/core/sims/buffs";
-import {GcdAbility, OgcdAbility, SimSettings, SimSpec} from "@xivgear/core/sims/sim_types";
-import {CycleProcessor, CycleSimResult, ExternalCycleSettings, Rotation} from "@xivgear/core/sims/cycle_sim";
+import {Ability, BuffController, GcdAbility, OgcdAbility, PersonalBuff, SimSettings, SimSpec, UsedAbility} from "@xivgear/core/sims/sim_types";
+import {CycleProcessor, CycleSimResult, ExternalCycleSettings, MultiCycleSettings, Rotation, DisplayRecordFinalized,
+    isFinalizedAbilityUse, AbilityUseRecordUnf, AbilityUseResult} from "@xivgear/core/sims/cycle_sim";
 import {BaseMultiCycleSim} from "../sim_processors";
+import {rangeInc} from "@xivgear/core/util/array_utils";
+//import {potionMaxMind} from "@xivgear/core/sims/common/potion";
+import {FieldBoundIntField, labelFor, nonNegative} from "@xivgear/common-ui/components/util";
+import {CustomColumnSpec} from "../../tables";
+import {AbilitiesUsedTable} from "../components/ability_used_table";
 
+type SchAbility = Ability & Readonly<{
+    /** Run if an ability needs to update the aetherflow gauge */
+    updateGauge?(gauge: SchGauge): void;
+}>
 
-const filler: GcdAbility = {
+type SchGcdAbility = GcdAbility & SchAbility;
+
+type SchOgcdAbility = OgcdAbility & SchAbility;
+
+type SchGaugeState = {
+    level: number;
+    aetherflow: number;
+}
+
+type SchExtraData = {
+    gauge: SchGaugeState;
+}
+
+const filler: SchGcdAbility = {
     type: 'gcd',
     name: "Broil IV",
     id: 25865,
@@ -14,20 +37,8 @@ const filler: GcdAbility = {
     cast: 1.5
 };
 
-const chain: OgcdAbility = {
-    type: 'ogcd',
-    name: "Chain Strategem",
-    id: 7436,
-    activatesBuffs: [Chain],
-    potency: null,
-    attackType: "Ability",
-    cooldown: {
-        time: 120
-    }
-};
-
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-const r2: GcdAbility = {
+const r2: SchGcdAbility = {
     type: 'gcd',
     name: "Ruin II",
     id: 17870,
@@ -36,7 +47,7 @@ const r2: GcdAbility = {
     gcd: 2.5,
 };
 
-const bio: GcdAbility = {
+const bio: SchGcdAbility = {
     type: 'gcd',
     name: "Biolysis",
     id: 16540,
@@ -44,14 +55,43 @@ const bio: GcdAbility = {
     dot: {
         duration: 30,
         tickPotency: 75,
-        // TODO verify
         id: 3089
     },
     attackType: "Spell",
     gcd: 2.5,
 };
 
-const baneful: OgcdAbility = {
+export const ImpactImminent: PersonalBuff = {
+    name: "Impact Imminent",
+    saveKey: "Impact Imminent",
+    duration: 30,
+    selfOnly: true,
+    effects: {
+        // Allows use of Baneful Impaction
+    },
+    statusId: 3882,
+    appliesTo: ability => ability.id == baneful.id,
+    beforeSnapshot<X extends Ability>(buffController: BuffController, ability: X): X {
+        buffController.removeSelf();
+        return {
+            ...ability,
+        };
+    },
+}
+
+const chain: SchOgcdAbility = {
+    type: 'ogcd',
+    name: "Chain Strategem",
+    id: 7436,
+    activatesBuffs: [Chain, ImpactImminent],
+    potency: null,
+    attackType: "Ability",
+    cooldown: {
+        time: 120
+    }
+};
+
+const baneful: SchOgcdAbility = {
     type: 'ogcd',
     name: "Baneful Impaction",
     id: 37012,
@@ -59,118 +99,365 @@ const baneful: OgcdAbility = {
     dot: {
         duration: 15,
         tickPotency: 140,
-        // TODO verify
         id: 3883
     },
     attackType: "Ability"
 };
 
-const ed: OgcdAbility = {
+const ed: SchOgcdAbility = {
     type: 'ogcd',
     name: "Energy Drain",
     id: 167,
     potency: 100,
-    attackType: "Ability"
+    attackType: "Ability",
+    updateGauge: gauge => gauge.aetherflow -= 1,
 };
 
-export interface SchSheetSimResult extends CycleSimResult {
-}
-
-export interface SchNewSheetSettings extends SimSettings {
-    rezPerMin: number,
-    gcdHealsPerMin: number,
-    edPerMin: number,
-    r2PerMin: number,
-}
-
-export interface SchNewSheetSettingsExternal extends ExternalCycleSettings<SchNewSheetSettings> {
-}
-
-export const schNewSheetSpec: SimSpec<SchSheetSim, SchNewSheetSettingsExternal> = {
-    displayName: "SCH Sim",
-    loadSavedSimInstance(exported: SchNewSheetSettingsExternal) {
-        return new SchSheetSim(exported);
+const aetherflow: SchOgcdAbility = {
+    type: 'ogcd',
+    name: "Aetherflow",
+    id: 166,
+    potency: 0,
+    attackType: "Ability",
+    cooldown: {
+        time: 60
     },
-    makeNewSimInstance(): SchSheetSim {
-        return new SchSheetSim();
+    updateGauge: gauge => gauge.aetherflow = 3,
+}
+
+const diss: SchOgcdAbility = {
+    type: 'ogcd',
+    name: "Dissipation",
+    id: 3587,
+    potency: 0,
+    attackType: "Ability",
+    cooldown: {
+        time: 180
+    },
+    updateGauge: gauge => gauge.aetherflow = 3,
+}
+
+class SchGauge {
+    private _aetherflow: number = 0;
+    get aetherflow(): number {
+        return this._aetherflow;
+    }
+    set aetherflow(newAF: number) {
+        if (newAF < 0) {
+            console.warn(`Used Energy Drain when empty`)
+        }
+
+        this._aetherflow = Math.max(Math.min(newAF, 3), 0);
+    }
+
+
+    getGaugeState(): SchGaugeState {
+        return {
+            level: 100,
+            aetherflow: this.aetherflow,
+        }
+    }
+
+    static generateResultColumns(result: CycleSimResult): CustomColumnSpec<DisplayRecordFinalized, unknown, unknown>[] {
+        return [{
+            shortName: 'aetherflow',
+            displayName: 'Aetherflow',
+            getter: used => isFinalizedAbilityUse(used) ? used.original : null,
+            renderer: (usedAbility?: UsedAbility) => {
+                if (usedAbility?.extraData !== undefined) {
+                    const aetherflow = (usedAbility.extraData as SchExtraData).gauge.aetherflow;
+
+                    const div = document.createElement('div');
+                    div.style.height = '100%';
+                    div.style.display = 'flex';
+                    div.style.alignItems = 'center';
+                    div.style.justifyContent = 'center';
+                    div.style.gap = '4px';
+                    div.style.padding = '2px 0 2px 0';
+                    div.style.boxSizing = 'border-box';
+
+                    for (let i = 1; i <= 3; i++) {
+                        const stack = document.createElement('span');
+                        stack.style.clipPath = `polygon(0 50%, 50% 0, 100% 50%, 50% 100%, 0% 50%)`;
+                        stack.style.background = '#00000033';
+                        stack.style.height = '100%';
+                        stack.style.width = '16px';
+                        stack.style.display = 'inline-block';
+                        stack.style.overflow = 'hidden';
+                        if (i <= aetherflow) {
+                            stack.style.background = '#0FFF33';
+                        }
+                        div.appendChild(stack);
+                    }
+
+                    return div;
+                }
+                return document.createTextNode("");
+            }
+        },
+        ];
+    }
+}
+
+export interface SchSimResult extends CycleSimResult {
+}
+
+export interface SchSettings extends SimSettings {
+    edsPerAfDiss: number,
+}
+
+export interface SchSettingsExternal extends ExternalCycleSettings<SchSettings> {
+}
+
+export const schNewSheetSpec: SimSpec<SchSim, SchSettingsExternal> = {
+    displayName: "SCH Sim",
+    loadSavedSimInstance(exported: SchSettingsExternal) {
+        return new SchSim(exported);
+    },
+    makeNewSimInstance(): SchSim {
+        return new SchSim();
     },
     stub: "sch-sheet-sim",
     supportedJobs: ['SCH'],
     isDefaultSim: true
 };
 
-export class SchSheetSim extends BaseMultiCycleSim<SchSheetSimResult, SchNewSheetSettings> {
+class ScholarCycleProcessor extends CycleProcessor {
+    gauge: SchGauge;
+    nextBioTime: number = 0;
+    numED: number = 3;
+
+    constructor(settings: MultiCycleSettings) {
+        super(settings);
+        this.gauge = new SchGauge();
+    }
+
+    override addAbilityUse(usedAbility: AbilityUseRecordUnf) {
+        // Add gauge data to this record for the UI
+        const extraData: SchExtraData = {
+            gauge: this.gauge.getGaugeState(),
+        };
+
+        const modified: AbilityUseRecordUnf = {
+            ...usedAbility,
+            extraData,
+        };
+
+        super.addAbilityUse(modified);
+    }
+    
+    override use(ability: Ability): AbilityUseResult {
+        const schAbility = ability as SchAbility;
+        
+        // Update gauge from the ability itself
+        if (schAbility.updateGauge !== undefined) {
+            schAbility.updateGauge(this.gauge);
+        }
+        return super.use(ability);
+    }
+
+    useDotIfWorth() {
+        if (this.nextGcdTime > this.nextBioTime && this.remainingTime > 15) {
+            this.nextBioTime = this.nextGcdTime + 28.8;
+            this.useGcd(bio);
+        }
+        else {
+            this.useGcd(filler);
+        }
+    }
+
+    spendEDs() {
+        this.useDotIfWorth();
+        if (this.numED >= 1) {
+            this.use(ed);
+        }
+        this.useDotIfWorth();
+        if (this.numED >= 2) {
+            this.use(ed);
+        }
+        this.useDotIfWorth();
+        if (this.numED >= 3) {
+            this.use(ed);
+        }
+    }
+
+    useTwoMinBurst() {
+        this.useDotIfWorth();
+        this.use(chain);
+        let banefulReady = true;
+        if (this.remainingTime < 30) { //rush baneful if there's not enough time for it to tick
+            this.use(filler);
+            this.use(baneful);
+            banefulReady = false;
+        }
+        this.spendEDs();
+        this.useDotIfWorth();
+        this.use(aetherflow);
+        if (banefulReady) { //if baneful was not rushed
+            this.useDotIfWorth();
+            this.use(baneful);
+            banefulReady = false;
+        }
+        this.spendEDs();
+    }
+}
+
+export class SchSim extends BaseMultiCycleSim<SchSimResult, SchSettings, ScholarCycleProcessor> {
 
     spec = schNewSheetSpec;
     displayName = schNewSheetSpec.displayName;
     shortName = "sch-sheet-sim";
     manuallyActivatedBuffs = [Chain];
 
-    constructor(settings?: SchNewSheetSettingsExternal) {
+    constructor(settings?: SchSettingsExternal) {
         super('SCH', settings);
     }
 
-    makeDefaultSettings(): SchNewSheetSettings {
+    protected createCycleProcessor(settings: MultiCycleSettings): ScholarCycleProcessor {
+        return new ScholarCycleProcessor({
+            ...settings,
+            hideCycleDividers: true,
+        });
+    }
+
+    makeDefaultSettings(): SchSettings {
         return {
-            rezPerMin: 0,
-            gcdHealsPerMin: 0,
-            edPerMin: 2,
-            r2PerMin: 0,
+            edsPerAfDiss: 3,
         };
+    }
+    
+    makeCustomConfigInterface(settings: SchSettings, updateCallback: () => void): HTMLElement | null {
+        const configDiv = document.createElement("div");
+        const edField = new FieldBoundIntField<SchSettings>(settings, 'edsPerAfDiss', {
+            inputMode: 'number',
+            postValidators: [nonNegative]
+        });
+        edField.id = 'edField';
+        const label = labelFor('Energy Drains per Aetherflow/Dissipation', edField);
+        configDiv.appendChild(label);
+        configDiv.appendChild(edField);
+        return configDiv;
+    }
+
+    override makeAbilityUsedTable(result: SchSimResult): AbilitiesUsedTable {
+        const extraColumns = SchGauge.generateResultColumns(result);
+        const table = super.makeAbilityUsedTable(result);
+        const newColumns = [...table.columns];
+        newColumns.splice(newColumns.findIndex(col => col.shortName === 'expected-damage') + 1, 0, ...extraColumns);
+        table.columns = newColumns;
+        return table;
     }
 
     getRotationsToSimulate(): Rotation[] {
+        const sim = this;
         return [{
             cycleTime: 120,
-            apply(cp: CycleProcessor) {
+            name: "Normal DoT",
+            apply(cp: ScholarCycleProcessor) {
+                cp.numED = sim.settings.edsPerAfDiss;
                 // pre-pull
-                cp.useGcd(filler);
+                cp.use(filler);
                 cp.remainingCycles(cycle => {
-                    cycle.useGcd(bio);
-                    cycle.useGcd(filler);
-                    cycle.useGcd(filler);
-                    cycle.useOgcd(chain);
-                    cycle.useGcd(filler);
-                    cycle.useOgcd(ed);
-                    cycle.useGcd(filler);
-                    cycle.useOgcd(ed);
-                    cycle.useGcd(filler);
-                    cycle.useOgcd(ed);
-                    cycle.useGcd(filler); //Aetherflow for MP and refreshing EDs
-                    cycle.useGcd(filler);
-                    cycle.useOgcd(baneful);
-                    cycle.useGcd(filler);
-                    cycle.useOgcd(ed);
-                    cycle.useGcd(filler);
-                    cycle.useOgcd(ed);
-                    cycle.useGcd(filler);
-                    cycle.useOgcd(ed);
-                    cycle.useUntil(filler, 30);
-                    cycle.useGcd(bio);
-                    cycle.useUntil(filler, 60);
-                    cycle.useGcd(bio);
-
-                    // If we're on the 3/9/15 diss, blow them immediately and AF right after
-                    // OR if we're on the 5/11/17 minute aetherflow, blow them and diss right before buffs
-                    if (cycle.cycleNumber % 3 === 1 || cycle.cycleNumber % 3 === 2) {
-                        cycle.useGcd(filler);
-                        cycle.useOgcd(ed);
-                        cycle.useGcd(filler);
-                        cycle.useOgcd(ed);
-                        cycle.useGcd(filler);
-                        cycle.useOgcd(ed);
+                    cp.useDotIfWorth();
+                    if (cycle.cycleNumber % 3 === 0) { //0, 6, 12 minute diss, right before buffs
+                        cp.use(diss);
                     }
-
-                    cycle.useUntil(filler, 90);
-                    cycle.useGcd(bio);
-                    cycle.useUntil(filler, 'end');
+                    cp.useTwoMinBurst();
+                    while (cycle.cycleRemainingGcdTime > 0) {
+                        cp.useDotIfWorth();
+                        if (cp.isReady(aetherflow)) {
+                            cp.use(aetherflow);
+                            if (cycle.cycleNumber % 3 === 2 || cp.totalTime < cp.timeUntilReady(chain)) { //5, 11, 17 minute aetherflow, spend and diss before buffs
+                                cp.spendEDs();
+                            }
+                        }
+                        if (cp.isReady(diss)) {
+                            cp.use(diss);
+                            if (cycle.cycleNumber % 3 === 1) { //3, 9, 15 minute diss, spend and refill with aetherflow
+                                cp.spendEDs();
+                            }
+                        }
+                    }
                 });
-
-
             }
-        }]
-
-
+        },
+        ...rangeInc(10, 28, 2).map(i => ({
+            name: `Redot at ${i}s`,
+            cycleTime: 120,
+            apply(cp: ScholarCycleProcessor) {
+                cp.numED = sim.settings.edsPerAfDiss;
+                cp.use(filler);
+                cp.use(bio);
+                cp.nextBioTime = i;
+                cp.oneCycle(cycle =>{
+                    cp.useOgcd(diss);
+                    cp.useTwoMinBurst();
+                    while (cycle.cycleRemainingGcdTime > 0) { 
+                        cp.useDotIfWorth();
+                        if (cp.isReady(aetherflow)) {
+                            cp.use(aetherflow);
+                            if (cycle.cycleNumber % 3 === 2 || cp.totalTime < cp.timeUntilReady(chain)) {
+                                cp.spendEDs();
+                            }
+                        }
+                    }
+                });
+                cp.remainingCycles(cycle => {
+                    cp.useDotIfWorth();
+                    if (cycle.cycleNumber % 3 === 0) { //0, 6, 12 minute diss, right before buffs
+                        cp.use(diss);
+                    }
+                    cp.useTwoMinBurst();
+                    while (cycle.cycleRemainingGcdTime > 0) {
+                        cp.useDotIfWorth();
+                        if (cp.isReady(aetherflow)) {
+                            cp.use(aetherflow);
+                            if (cycle.cycleNumber % 3 === 2 || cp.totalTime < cp.timeUntilReady(chain)) { //5, 11, 17 minute aetherflow, spend and diss before buffs
+                                cp.spendEDs();
+                            }
+                        }
+                        if (cp.isReady(diss)) {
+                            cp.use(diss);
+                            if (cycle.cycleNumber % 3 === 1) { //3, 9, 15 minute diss, spend and refill with aetherflow
+                                cp.spendEDs();
+                            }
+                        }
+                    }
+                });
+            },
+        })),
+        ...rangeInc(2, 16, 2).map(i => ({
+            name: `Delay dot to ${i}s`,
+            cycleTime: 120,
+            apply(cp: ScholarCycleProcessor) {
+                cp.numED = sim.settings.edsPerAfDiss;
+                cp.use(filler);
+                cp.nextBioTime = i;
+                cp.remainingCycles(cycle => {
+                    cp.useDotIfWorth();
+                    if (cycle.cycleNumber % 3 === 0) { //0, 6, 12 minute diss, right before buffs
+                        cp.use(diss);
+                    }
+                    cp.useTwoMinBurst();
+                    while (cycle.cycleRemainingGcdTime > 0) {
+                        cp.useDotIfWorth();
+                        if (cp.isReady(aetherflow)) {
+                            cp.use(aetherflow);
+                            if (cycle.cycleNumber % 3 === 2 || //5, 11, 17 minute aetherflow, spend and diss before buffs
+                                cp.totalTime < cp.timeUntilReady(chain)) { //or the fight will end before chain is ready
+                                cp.spendEDs();
+                            }
+                        }
+                        if (cp.isReady(diss)) {
+                            cp.use(diss);
+                            if (cycle.cycleNumber % 3 === 1) { //3, 9, 15 minute diss, spend and refill with aetherflow
+                                cp.spendEDs();
+                            }
+                        }
+                    }
+                });
+            },
+        }))
+        ]
     }
-
 }

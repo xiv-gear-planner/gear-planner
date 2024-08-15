@@ -1,9 +1,32 @@
-import {GcdAbility, OgcdAbility, SimSettings, SimSpec} from "@xivgear/core/sims/sim_types";
-import {CycleProcessor, CycleSimResult, ExternalCycleSettings, Rotation} from "@xivgear/core/sims/cycle_sim";
+import {Ability, BuffController, GcdAbility, OgcdAbility, PersonalBuff, SimSettings, SimSpec, UsedAbility} from "@xivgear/core/sims/sim_types";
+import {CycleProcessor, CycleSimResult, ExternalCycleSettings, MultiCycleSettings, Rotation, DisplayRecordFinalized,
+    isFinalizedAbilityUse, AbilityUseRecordUnf, AbilityUseResult} from "@xivgear/core/sims/cycle_sim";
 import {BaseMultiCycleSim} from "../sim_processors";
-import {BuffSettingsExport} from "@xivgear/core/sims/common/party_comp_settings";
+import {rangeInc} from "@xivgear/core/util/array_utils";
+//import {potionMaxMind} from "@xivgear/core/sims/common/potion";
+import {CustomColumnSpec} from "../../tables";
+import {AbilitiesUsedTable} from "../components/ability_used_table";
 
-const filler: GcdAbility = {
+type WhmAbility = Ability & Readonly<{
+    /** Run if an ability needs to update the aetherflow gauge */
+    updateGauge?(gauge: WhmGauge): void;
+}>
+
+type WhmGcdAbility = GcdAbility & WhmAbility;
+
+type WhmOgcdAbility = OgcdAbility & WhmAbility;
+
+type WhmGaugeState = {
+    level: number;
+    blueLilies: number;
+    redLilies: number;
+}
+
+type WhmExtraData = {
+    gauge: WhmGaugeState;
+}
+
+const filler: WhmGcdAbility = {
     id: 25859,
     type: 'gcd',
     name: "Glare III",
@@ -13,7 +36,7 @@ const filler: GcdAbility = {
     cast: 1.5
 };
 
-const dia: GcdAbility = {
+const dia: WhmGcdAbility = {
     id: 16532,
     type: 'gcd',
     name: "Dia",
@@ -27,15 +50,37 @@ const dia: GcdAbility = {
     gcd: 2.5,
 };
 
-const assize: OgcdAbility = {
+const assize: WhmOgcdAbility = {
     id: 3571,
     type: 'ogcd',
     name: "Assize",
     potency: 400,
-    attackType: "Ability"
+    attackType: "Ability",
+    cooldown: {
+        time: 40
+    }
 };
 
-const pom: OgcdAbility = {
+export const SacredSight: PersonalBuff = {
+    name: "Sacred Sight",
+    saveKey: "Sacred Sight",
+    duration: 30,
+    stacks: 3,
+    selfOnly: true,
+    effects: {
+        // Allows 1 use of Glare IV per stack
+    },
+    statusId: 3879,
+    appliesTo: ability => ability.id == glare4.id,
+    beforeSnapshot<X extends Ability>(buffController: BuffController, ability: X): X {
+        buffController.subtractStacksSelf(1);
+        return {
+            ...ability,
+        };
+    },
+}
+
+const pom: WhmOgcdAbility = {
     id: 136,
     type: 'ogcd',
     name: 'Presence of Mind',
@@ -49,21 +94,39 @@ const pom: OgcdAbility = {
                 haste: 20,
             },
             statusId: 157
-        }
+        },
+        SacredSight,
     ],
-    attackType: "Ability"
+    attackType: "Ability",
+    cooldown: {
+        time: 120
+    }
 };
 
-const misery: GcdAbility = {
+const lily: WhmGcdAbility = {
+    id: 16534,
+    type: 'gcd',
+    name: "Afflatus Rapture",
+    potency: 0,
+    attackType: "Spell",
+    gcd: 2.5,
+    updateGauge: (gauge: WhmGauge) => {
+        gauge.blueLilies -= 1;
+        gauge.redLilies +=1;
+    },
+};
+
+const misery: WhmGcdAbility = {
     id: 16535,
     type: 'gcd',
     name: "Afflatus Misery",
     potency: 1320,
     attackType: "Spell",
     gcd: 2.5,
+    updateGauge: gauge => gauge.redLilies -= 3,
 };
 
-const glare4: GcdAbility = {
+const glare4: WhmGcdAbility = {
     id: 37009,
     type: 'gcd',
     name: "Glare IV",
@@ -72,49 +135,212 @@ const glare4: GcdAbility = {
     gcd: 2.5,
 };
 
-const lily: GcdAbility = {
-    id: 16534,
-    type: 'gcd',
-    name: "Afflatus Rapture",
-    potency: 0,
-    attackType: "Spell",
-    gcd: 2.5,
-};
+class WhmGauge {
+    private _blueLilies: number = 0;
+    get blueLilies(): number {
+        return this._blueLilies;
+    }
+    set blueLilies(newLily: number) {
+        if (newLily < 0) {
+            console.warn(`Used a lily when unavailable`)
+        }
+        this._blueLilies = Math.max(Math.min(newLily, 3), 0);
+    }
 
-export interface WhmSheetSimResult extends CycleSimResult {
+    private _redLilies: number = 0;
+    get redLilies(): number {
+        return this._redLilies;
+    }
+    set redLilies(newLily: number) {
+        if (newLily < 0) {
+            console.warn(`Used misery with blood lily not charged`)
+        }
+        this._redLilies = Math.max(Math.min(newLily, 3), 0);
+    }
+
+
+    getGaugeState(): WhmGaugeState {
+        return {
+            level: 100,
+            blueLilies: this.blueLilies,
+            redLilies: this.redLilies
+        }
+    }
+
+    static generateResultColumns(result: CycleSimResult): CustomColumnSpec<DisplayRecordFinalized, unknown, unknown>[] {
+        return [{
+            shortName: 'lilies',
+            displayName: 'Lilies',
+            getter: used => isFinalizedAbilityUse(used) ? used.original : null,
+            renderer: (usedAbility?: UsedAbility) => {
+                if (usedAbility?.extraData !== undefined) {
+                    const blueLilies = (usedAbility.extraData as WhmExtraData).gauge.blueLilies;
+                    const redLilies = (usedAbility.extraData as WhmExtraData).gauge.redLilies;
+
+                    const div = document.createElement('div');
+                    div.style.height = '100%';
+                    div.style.display = 'flex';
+                    div.style.alignItems = 'center';
+                    div.style.justifyContent = 'center';
+                    div.style.gap = '4px';
+                    div.style.padding = '2px 0 2px 0';
+                    div.style.boxSizing = 'border-box';
+
+                    for (let i = 1; i <= 3; i++) {
+                        const stack = document.createElement('span');
+                        stack.style.clipPath = `polygon(0 50%, 50% 0, 100% 50%, 50% 100%, 0% 50%)`;
+                        stack.style.background = '#00000033';
+                        stack.style.height = '100%';
+                        stack.style.width = '16px';
+                        stack.style.display = 'inline-block';
+                        stack.style.overflow = 'hidden';
+                        if (i <= blueLilies) {
+                            stack.style.background = '#02d9c3';
+                        }
+                        div.appendChild(stack);
+                    }
+
+                    for (let i = 1; i <= 3; i++) {
+                        const stack = document.createElement('span');
+                        stack.style.clipPath = `polygon(0 50%, 50% 0, 100% 50%, 50% 100%, 0% 50%)`;
+                        stack.style.background = '#00000033';
+                        stack.style.height = '100%';
+                        stack.style.width = '16px';
+                        stack.style.display = 'inline-block';
+                        stack.style.overflow = 'hidden';
+                        if (i <= redLilies) {
+                            stack.style.background = '#ff0033';
+                        }
+                        div.appendChild(stack);
+                    }
+
+                    return div;
+                }
+                return document.createTextNode("");
+            }
+        },
+        ];
+    }
 }
 
-export interface WhmNewSheetSettings extends SimSettings {
-    rezPerMin: number,
-    med2PerMin: number,
-    cure3PerMin: number,
+export interface WhmSimResult extends CycleSimResult {
+}
+
+export interface WhmSettings extends SimSettings {
 
 }
 
-export interface WhmNewSheetSettingsExternal extends ExternalCycleSettings<WhmNewSheetSettings> {
-    buffConfig: BuffSettingsExport;
+export interface WhmSettingsExternal extends ExternalCycleSettings<WhmSettings> {
+
 }
 
-export const whmNewSheetSpec: SimSpec<WhmSheetSim, WhmNewSheetSettingsExternal> = {
+export const whmNewSheetSpec: SimSpec<WhmSim, WhmSettingsExternal> = {
     displayName: "WHM New Sim",
-    loadSavedSimInstance(exported: WhmNewSheetSettingsExternal) {
-        return new WhmSheetSim(exported);
+    loadSavedSimInstance(exported: WhmSettingsExternal) {
+        return new WhmSim(exported);
     },
-    makeNewSimInstance(): WhmSheetSim {
-        return new WhmSheetSim();
+    makeNewSimInstance(): WhmSim {
+        return new WhmSim();
     },
     stub: "whm-new-sheet-sim",
     supportedJobs: ['WHM'],
     isDefaultSim: true
 };
 
-export class WhmSheetSim extends BaseMultiCycleSim<WhmSheetSimResult, WhmNewSheetSettings> {
+class WhmCycleProcessor extends CycleProcessor {
+    gauge: WhmGauge;
+    nextDiaTime: number = 0;
+    nextLilyTime: number = 20;
+    nextMiseryTime: number = 60;
+    sacredSight: number = 0;
 
-    makeDefaultSettings(): WhmNewSheetSettings {
+    constructor(settings: MultiCycleSettings) {
+        super(settings);
+        this.gauge = new WhmGauge();
+    }
+
+    override addAbilityUse(usedAbility: AbilityUseRecordUnf) {
+        // Add gauge data to this record for the UI
+        const extraData: WhmExtraData = {
+            gauge: this.gauge.getGaugeState(),
+        };
+
+        const modified: AbilityUseRecordUnf = {
+            ...usedAbility,
+            extraData,
+        };
+
+        super.addAbilityUse(modified);
+    }
+    
+    override use(ability: Ability): AbilityUseResult {
+        const whmAbility = ability as WhmAbility;
+        
+        // Update gauge from the ability itself
+        if (whmAbility.updateGauge !== undefined) {
+            whmAbility.updateGauge(this.gauge);
+        }
+        if(this.nextGcdTime > this.nextLilyTime) {
+            this.nextLilyTime += 20;
+            this.gauge.blueLilies +=1;
+        }
+        return super.use(ability);
+    }
+
+    buffedGcd() {
+        if (this.nextGcdTime > this.nextDiaTime && this.remainingTime > 15) {
+            this.nextDiaTime = this.nextGcdTime + 28.8;
+            this.useGcd(dia);
+        }
+        else if (this.gauge.redLilies == 3){
+            this.useGcd(misery);
+        }
+        else if (this.sacredSight > 0) {
+            this.useGcd(glare4);
+            this.sacredSight -= 1;
+        }
+        else {
+            this.useGcd(filler);
+        }
+    }
+
+    unbuffedGCD() {
+        if (this.nextGcdTime > this.nextDiaTime && this.remainingTime > 15) {
+            this.nextDiaTime = this.nextGcdTime + 28.8;
+            this.useGcd(dia);
+        }
+        else if ((this.gauge.redLilies == 3 && this.nextMiseryTime % 120 == 0) //use odd minute misery ASAP
+            || (this.gauge.redLilies == 3 && this.remainingTime < 5)) { //or use misery if the fight will end now
+            this.useGcd(misery);
+        }
+        else if (this.gauge.redLilies < 3 && this.gauge.blueLilies > 0 && this.totalTime > this.nextMiseryTime + 7) {
+            this.useGcd(lily);
+            if(this.gauge.redLilies == 3) {
+                this.nextMiseryTime += 60;
+            }
+        }
+        else {
+            this.useGcd(filler);
+        }
+    }
+
+    useTwoMinBurst() {
+        this.use(pom);
+        this.sacredSight = 3;
+        for(let i = 0; i < 12; i++){
+            this.buffedGcd();
+            if (this.isReady(assize)) {
+                this.use(assize);
+            }
+        }
+    }
+}
+
+export class WhmSim extends BaseMultiCycleSim<WhmSimResult, WhmSettings, WhmCycleProcessor> {
+
+    makeDefaultSettings(): WhmSettings {
         return {
-            rezPerMin: 0,
-            med2PerMin: 0,
-            cure3PerMin: 0,
+
         };
     }
 
@@ -122,51 +348,129 @@ export class WhmSheetSim extends BaseMultiCycleSim<WhmSheetSimResult, WhmNewShee
     displayName = whmNewSheetSpec.displayName;
     shortName = "whm-new-sheet-sim";
 
-    constructor(settings?: WhmNewSheetSettingsExternal) {
+    constructor(settings?: WhmSettingsExternal) {
         super('WHM', settings);
+    }
+
+    protected createCycleProcessor(settings: MultiCycleSettings): WhmCycleProcessor {
+        return new WhmCycleProcessor({
+            ...settings,
+            hideCycleDividers: true,
+        });
+    }
+
+    override makeAbilityUsedTable(result: WhmSimResult): AbilitiesUsedTable {
+        const extraColumns = WhmGauge.generateResultColumns(result);
+        const table = super.makeAbilityUsedTable(result);
+        const newColumns = [...table.columns];
+        newColumns.splice(newColumns.findIndex(col => col.shortName === 'expected-damage') + 1, 0, ...extraColumns);
+        table.columns = newColumns;
+        return table;
     }
 
     getRotationsToSimulate(): Rotation[] {
         return [{
             cycleTime: 120,
-            apply(cp: CycleProcessor) {
-                cp.use(filler);
+            apply(cp: WhmCycleProcessor) {
+                cp.use(filler); //prepull glare
+                cp.oneCycle(cycle => {
+                    cp.unbuffedGCD();
+                    cp.unbuffedGCD();
+                    cp.unbuffedGCD();
+                    cp.useTwoMinBurst();
+                    while (cycle.cycleRemainingGcdTime > 0) {
+                        cp.unbuffedGCD();
+                        if (cp.isReady(assize)) {
+                            cp.use(assize);
+                        }
+                    }
+                });
                 cp.remainingCycles(cycle => {
-                    cycle.use(dia);
-                    cycle.use(filler);
-                    cycle.use(filler);
-                    cycle.useOgcd(pom);
-                    cycle.use(filler);
-                    cycle.use(assize);
-                    cycle.use(glare4);
-                    cycle.use(glare4);
-                    cycle.use(glare4);
-                    if (cycle.cycleNumber > 0) {
-                        cycle.use(misery);
+                    while(!cp.isReady(pom)){
+                        cp.unbuffedGCD();
+                        if (cp.isReady(assize)) {
+                            cp.use(assize);
+                        }
                     }
-                    cycle.useUntil(filler, 30);
-                    cycle.use(dia);
-                    cycle.use(lily); //3 lilys out of buffs to make up for misery in buffs, actual placement isn't specific
-                    cycle.use(lily);
-                    cycle.use(lily);
-                    cycle.useUntil(filler, 50);
-                    cycle.use(assize);
-                    cycle.useUntil(filler, 60);
-                    cycle.use(dia);
-                    cycle.useUntil(filler, 70);
-                    cycle.use(misery);
-                    cycle.useUntil(filler, 90);
-                    cycle.use(dia);
-                    cycle.use(assize);
-                    if (cp.remainingTime > 60) {
-                        cycle.use(lily);
-                        cycle.use(lily);
-                        cycle.use(lily);
+                    cp.useTwoMinBurst();
+                    while (cycle.cycleRemainingGcdTime > 0) {
+                        cp.unbuffedGCD();
+                        if (cp.isReady(assize)) {
+                            cp.use(assize);
+                        }
                     }
-                    cycle.useUntil(filler, 'end');
                 });
             }
-
-        }];
+        },
+        ...rangeInc(10, 28, 2).map(i => ({
+            name: `Redot at ${i}s`,
+            cycleTime: 120,
+            apply(cp: WhmCycleProcessor) {
+                cp.useGcd(filler);
+                cp.useGcd(dia);
+                cp.nextDiaTime = i;
+                cp.oneCycle(cycle => {
+                    cp.unbuffedGCD();
+                    cp.unbuffedGCD();
+                    cp.useTwoMinBurst();
+                    while (cycle.cycleRemainingGcdTime > 0) {
+                        cp.unbuffedGCD();
+                        if (cp.isReady(assize)) {
+                            cp.use(assize);
+                        }
+                    }
+                });
+                cp.remainingCycles(cycle => {
+                    while(!cp.isReady(pom)){
+                        cp.unbuffedGCD();
+                        if (cp.isReady(assize)) {
+                            cp.use(assize);
+                        }
+                    }
+                    cp.useTwoMinBurst();
+                    while (cycle.cycleRemainingGcdTime > 0) {
+                        cp.unbuffedGCD();
+                        if (cp.isReady(assize)) {
+                            cp.use(assize);
+                        }
+                    }
+                });
+            },
+        })),
+        ...rangeInc(2, 16, 2).map(i => ({
+            name: `Delay dot to ${i}s`,
+            cycleTime: 120,
+            apply(cp: WhmCycleProcessor) {
+                cp.use(filler);
+                cp.nextDiaTime = i;
+                cp.oneCycle(cycle => {
+                    cp.unbuffedGCD();
+                    cp.unbuffedGCD();
+                    cp.useTwoMinBurst();
+                    while (cycle.cycleRemainingGcdTime > 0) {
+                        cp.unbuffedGCD();
+                        if (cp.isReady(assize)) {
+                            cp.use(assize);
+                        }
+                    }
+                });
+                cp.remainingCycles(cycle => {
+                    while(!cp.isReady(pom)){
+                        cp.unbuffedGCD();
+                        if (cp.isReady(assize)) {
+                            cp.use(assize);
+                        }
+                    }
+                    cp.useTwoMinBurst();
+                    while (cycle.cycleRemainingGcdTime > 0) {
+                        cp.unbuffedGCD();
+                        if (cp.isReady(assize)) {
+                            cp.use(assize);
+                        }
+                    }
+                });
+            },
+        }))
+    ];
     }
 }
