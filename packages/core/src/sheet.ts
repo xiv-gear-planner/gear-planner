@@ -70,7 +70,7 @@ export class SheetProvider<SheetType extends GearPlanSheet> {
             race: undefined,
             sets: [...importedData],
             sims: importedData[0].sims ?? [],
-            name: SHARED_SET_NAME,
+            name: importedData[0].name ?? SHARED_SET_NAME,
             saveKey: undefined,
             job: importedData[0].job,
             level: importedData[0].level,
