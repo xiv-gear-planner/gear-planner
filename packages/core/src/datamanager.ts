@@ -10,6 +10,7 @@ import {GearItem, JobMultipliers, Materia, OccGearSlotKey, RawStatKey,} from "@x
 import {xivApiGet, XivApiResultSingle} from "./external/xivapi";
 import {BaseParamToStatKey, RelevantBaseParam, xivApiStatMapping} from "./external/xivapitypes";
 import {getRelicStatModelFor} from "./relicstats/relicstats";
+import {requireNumber} from "./external/data_validators";
 
 const itemColumns = [
     // Basic item properties
@@ -60,7 +61,7 @@ export function queryBaseParams() {
     return xivApiGet({
         requestType: "list",
         sheet: 'BaseParam',
-        columns: ['Name', 'OneHandWeaponPercent', 'TwoHandWeaponPercent', 'BraceletPercent', 'ChestPercent', 'EarringPercent', 'FeetPercent', 'HandsPercent', 'HeadPercent', 'LegsPercent', 'NecklacePercent', 'OHPercent', 'RingPercent'] as const,
+        columns: ['Name', 'OneHandWeaponPercent', 'TwoHandWeaponPercent', 'BraceletPercent', 'ChestPercent', 'EarringPercent', 'FeetPercent', 'HandsPercent', 'HeadPercent', 'LegsPercent', 'NecklacePercent', 'OffHandPercent', 'RingPercent'] as const,
         columnsTrn: []
     }).then(data => {
         console.log(`Got ${data.Results.length} BaseParams`);
@@ -212,18 +213,18 @@ export class DataManager implements DataManagerIntf {
             }>((baseParams, value) => {
                 // Each individual item also gets converted
                 baseParams[BaseParamToStatKey[value.Name as RelevantBaseParam]] = {
-                    Body: value['ChestPercent'] as number,
-                    Ears: value['EarringPercent'] as number,
-                    Feet: value['FeetPercent'] as number,
-                    Hand: value['HandsPercent'] as number,
-                    Head: value['HeadPercent'] as number,
-                    Legs: value['LegsPercent'] as number,
-                    Neck: value['NecklacePercent'] as number,
-                    OffHand: value['OHPercent'] as number,
-                    Ring: value['RingPercent'] as number,
-                    Weapon2H: value['TwoHandWeaponPercent'] as number,
-                    Weapon1H: value['OneHandWeaponPercent'] as number,
-                    Wrist: value['BraceletPercent'] as number
+                    Body: requireNumber(value.ChestPercent),
+                    Ears: requireNumber(value.EarringPercent),
+                    Feet: requireNumber(value.FeetPercent),
+                    Hand: requireNumber(value.HandsPercent),
+                    Head: requireNumber(value.HeadPercent),
+                    Legs: requireNumber(value.LegsPercent),
+                    Neck: requireNumber(value.NecklacePercent),
+                    OffHand: requireNumber(value.OffHandPercent),
+                    Ring: requireNumber(value.RingPercent),
+                    Weapon2H: requireNumber(value.TwoHandWeaponPercent),
+                    Weapon1H: requireNumber(value.OneHandWeaponPercent),
+                    Wrist: requireNumber(value.BraceletPercent)
                 };
                 return baseParams;
             }, {});
@@ -330,7 +331,7 @@ export class DataManager implements DataManagerIntf {
             .then(async (rawFoods) => {
                 const foodIds = rawFoods.map(item => item.ItemAction['fields']['Data'][1] as number);
                 const food = await xivApiGet({
-                    requestType:'list',
+                    requestType: 'list',
                     sheet: 'ItemFood',
                     columns: foodItemFoodCols,
                     rows: foodIds,
