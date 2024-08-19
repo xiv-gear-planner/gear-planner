@@ -257,7 +257,7 @@ class ScholarCycleProcessor extends CycleProcessor {
     }
 
     useDotIfWorth() {
-        if (this.nextGcdTime > this.nextBioTime && this.remainingTime > 15) {
+        if (this.nextGcdTime >= this.nextBioTime && this.remainingTime > 15) {
             this.nextBioTime = this.nextGcdTime + 28.8;
             this.useGcd(bio);
         }
@@ -367,7 +367,7 @@ export class SchSim extends BaseMultiCycleSim<SchSimResult, SchSettings, Scholar
                         cp.useDotIfWorth();
                         if (cp.isReady(aetherflow)) {
                             cp.use(aetherflow);
-                            if (cycle.cycleNumber % 3 === 2 || cp.totalTime < cp.timeUntilReady(chain)) { //5, 11, 17 minute aetherflow, spend and diss before buffs
+                            if (cycle.cycleNumber % 3 === 2 || cp.remainingTime < cp.timeUntilReady(chain)) { //5, 11, 17 minute aetherflow, spend and diss before buffs
                                 cp.spendEDs();
                             }
                         }
@@ -396,7 +396,7 @@ export class SchSim extends BaseMultiCycleSim<SchSimResult, SchSettings, Scholar
                         cp.useDotIfWorth();
                         if (cp.isReady(aetherflow)) {
                             cp.use(aetherflow);
-                            if (cycle.cycleNumber % 3 === 2 || cp.totalTime < cp.timeUntilReady(chain)) {
+                            if (cycle.cycleNumber % 3 === 2 || cp.remainingTime < cp.timeUntilReady(chain)) {
                                 cp.spendEDs();
                             }
                         }
@@ -412,7 +412,7 @@ export class SchSim extends BaseMultiCycleSim<SchSimResult, SchSettings, Scholar
                         cp.useDotIfWorth();
                         if (cp.isReady(aetherflow)) {
                             cp.use(aetherflow);
-                            if (cycle.cycleNumber % 3 === 2 || cp.totalTime < cp.timeUntilReady(chain)) { //5, 11, 17 minute aetherflow, spend and diss before buffs
+                            if (cycle.cycleNumber % 3 === 2 || cp.remainingTime < cp.timeUntilReady(chain)) { //5, 11, 17 minute aetherflow, spend and diss before buffs
                                 cp.spendEDs();
                             }
                         }
@@ -444,7 +444,7 @@ export class SchSim extends BaseMultiCycleSim<SchSimResult, SchSettings, Scholar
                         if (cp.isReady(aetherflow)) {
                             cp.use(aetherflow);
                             if (cycle.cycleNumber % 3 === 2 || //5, 11, 17 minute aetherflow, spend and diss before buffs
-                                cp.totalTime < cp.timeUntilReady(chain)) { //or the fight will end before chain is ready
+                                cp.remainingTime < cp.timeUntilReady(chain)) { //or the fight will end before chain is ready
                                 cp.spendEDs();
                             }
                         }
