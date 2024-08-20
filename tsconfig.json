@@ -26,6 +26,9 @@
     },
     {
       "path": "./packages/backend-resolver"
+    },
+    {
+      "path": "./packages/data-api-client"
     }
   ]
 }

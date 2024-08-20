@@ -4,7 +4,10 @@
   "description": "",
   "scripts": {
     "build": "tsc --build",
-    "test": "ts-mocha src/test/**/*test.ts src/test/**/*tests.ts"
+    "test": "ts-mocha --exit src/test/**/*test.ts src/test/**/*tests.ts"
+  },
+  "dependencies": {
+    "@xivgear/data-api-client": "^1.0.0"
   },
   "devDependencies": {
     "ts-node": "^10.9.2",
