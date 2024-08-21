@@ -62,7 +62,7 @@ export class NewApiDataManager implements DataManager {
         this._maxIlvlFood = lvlData.maxILvlFood;
         this._ilvlSync = ilvlSync;
         this.apiClient = new DataApiClient<never>({
-            baseUrl: "https://data.xivgear.app/"
+            baseUrl: "https://data.xivgear.app"
         })
     }
 
