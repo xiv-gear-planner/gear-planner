@@ -37,9 +37,9 @@ type ApiClientRawType<X extends keyof DataApiClient<never>, Y extends keyof Data
 type ItemType = Awaited<ReturnType<ApiClientRawType<'items', 'items'>>>['data']['items'][number]
 type MateriaType = Awaited<ReturnType<ApiClientRawType<'materia', 'materia'>>>['data']['items'][number]
 type FoodType = Awaited<ReturnType<ApiClientRawType<'food', 'foodItems'>>>['data']['items'][number]
-type BaseParamType = Awaited<ReturnType<ApiClientRawType<'baseParams', 'baseParams'>>>['data']['items'][number]
-type JobType = Awaited<ReturnType<ApiClientRawType<'jobs', 'jobs'>>>['data']['items'][number]
-type ItemLevelType = Awaited<ReturnType<ApiClientRawType<'itemLevel', 'itemLevels'>>>['data']['items'][number]
+// type BaseParamType = Awaited<ReturnType<ApiClientRawType<'baseParams', 'baseParams'>>>['data']['items'][number]
+// type JobType = Awaited<ReturnType<ApiClientRawType<'jobs', 'jobs'>>>['data']['items'][number]
+// type ItemLevelType = Awaited<ReturnType<ApiClientRawType<'itemLevel', 'itemLevels'>>>['data']['items'][number]
 
 export class NewApiDataManager implements DataManager {
 

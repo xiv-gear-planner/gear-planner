@@ -1,7 +1,8 @@
 import {JobName, SupportedLevel} from "@xivgear/xivmath/xivconstants";
 import {FoodItem, GearItem, JobMultipliers, Materia, OccGearSlotKey, RawStatKey,} from "@xivgear/xivmath/geartypes";
-import {XivApiDataManager} from "./datamanager_xivapi";
+// import {XivApiDataManager} from "./datamanager_xivapi";
 import {NewApiDataManager} from "./datamanager_new";
+
 /**
  * Mapping for BaseParam to BaseParamInfo.
  */

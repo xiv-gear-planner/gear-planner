@@ -8,57 +8,35 @@ import {
     JobName,
     MAIN_STATS,
     MATERIA_ACCEPTABLE_OVERCAP_LOSS,
-    MATERIA_LEVEL_MAX_NORMAL,
-    MATERIA_LEVEL_MAX_OVERMELD,
-    MATERIA_LEVEL_MIN_RELEVANT,
-    MATERIA_SLOTS_MAX,
     MateriaSubstat,
     NORMAL_GCD,
     RaceName,
-    SPECIAL_SUB_STATS,
-    statById
+    SPECIAL_SUB_STATS
 } from "@xivgear/xivmath/xivconstants";
 import {
     ComputedSetStats,
-    DisplayGearSlot,
-    DisplayGearSlotInfo,
-    DisplayGearSlotKey,
     EquipmentSet,
     EquippedItem,
     EquipSlotInfo,
     EquipSlotKey,
     EquipSlots,
     FoodItem,
-    GearAcquisitionSource,
     GearItem,
     GearSetIssue,
     GearSetResult,
     Materia,
     MateriaAutoFillController,
     MateriaAutoFillPrio,
-    MateriaSlot,
     NO_SYNC_STATS,
-    OccGearSlotKey,
     RawStatKey,
     RawStats,
-    RelicStatModel,
     RelicStats,
     SetDisplaySettingsExport,
     XivCombatItem
 } from "@xivgear/xivmath/geartypes";
-import {xivApiIconUrl} from "./external/xivapi";
-import {BaseParamToStatKey, RelevantBaseParam} from "./external/xivapitypes";
 import {Inactivitytimer} from "./util/inactivitytimer";
 import {addStats, finalizeStats} from "@xivgear/xivmath/xivstats";
 import {GearPlanSheet} from "./sheet";
-import {requireArrayTyped, requireBool, requireNumber, requireString} from "./external/data_validators";
-import {
-    IlvlSyncInfo,
-    XivApiFoodDataRaw,
-    XivApiFoodItemDataRaw,
-    XivApiItemDataRaw,
-    XivApiMateriaDataRaw
-} from "./datamanager_xivapi";
 
 
 export function nonEmptyRelicStats(stats: RelicStats | undefined): boolean {
