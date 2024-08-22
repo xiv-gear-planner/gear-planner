@@ -3,7 +3,7 @@ import {NamedSection} from "./components/section";
 import {NewSheetForm} from "./components/new_sheet_form";
 import {ImportSheetArea} from "./components/import_sheet";
 import {SetExport, SheetExport} from "@xivgear/xivmath/geartypes";
-import {openEmbed} from "./embed";
+import {displayEmbedError, openEmbed} from "./embed";
 import {SETTINGS} from "./settings/persistent_settings";
 import {LoadingBlocker} from "@xivgear/common-ui/components/loader";
 import {SheetPickerTable} from "./components/saved_sheet_picker";
@@ -135,12 +135,18 @@ export async function openSheetByKey(sheet: string) {
 export async function openExport(exported: (SheetExport | SetExport), changeHash: boolean, viewOnly: boolean) {
     const isFullSheet = 'sets' in exported;
     const sheet = isFullSheet ? GRAPHICAL_SHEET_PROVIDER.fromExport(exported) : GRAPHICAL_SHEET_PROVIDER.fromSetExport(exported);
-    if (isEmbed() && !isFullSheet) {
-        sheet.setViewOnly();
-        openEmbed(sheet);
+    const embed = isEmbed();
+    if (embed) {
+        if (isFullSheet) {
+            displayEmbedError("Embedding is only supported for a single set, not a full sheet. Consider embedding sets individually and/or linking to the full sheet rather than embedding it.");
+        }
+        else {
+            sheet.setViewOnly();
+            openEmbed(sheet);
+        }
     }
     else {
-        if (viewOnly || isEmbed()) {
+        if (viewOnly) {
             sheet.setViewOnly();
         }
         // sheet.name = SHARED_SET_NAME;

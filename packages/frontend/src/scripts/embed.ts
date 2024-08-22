@@ -23,16 +23,29 @@ export function earlyEmbedInit() {
 export async function openEmbed(sheet: GearPlanSheetGui) {
     console.log("openEmbed start");
     sheet.isEmbed = true;
-    await sheet.load();
-    console.log("openEmbed mid");
-    const editorArea = sheet.editorArea;
-    // TODO: this is bad
-    const statTotals = sheet.editorArea.firstChild['toolbar'].firstChild;
+    try {
+        await sheet.load();
+        console.log("openEmbed mid");
+        const editorArea = sheet.editorArea;
+        // TODO: this is bad
+        const statTotals = sheet.editorArea.firstChild['toolbar'].firstChild;
 
-    const placeHolder = editorArea.querySelector("a#embed-stats-placeholder");
-    placeHolder.parentElement.insertBefore(statTotals, placeHolder);
+        const placeHolder = editorArea.querySelector("a#embed-stats-placeholder");
+        placeHolder.parentElement.insertBefore(statTotals, placeHolder);
 
-    embedDiv.replaceChildren(editorArea);
-    console.log("openEmbed end");
-    setTitle('Embed');
+        embedDiv.replaceChildren(editorArea);
+        console.log("openEmbed end");
+        setTitle('Embed');
+    }
+    catch (e) {
+        console.error("Error loading embed", e);
+        displayEmbedError();
+    }
+}
+
+export function displayEmbedError(reason?: string) {
+    setTitle("Error");
+    const text = document.createElement('p');
+    text.textContent = "Embed failed to load. " + (reason ?? "Make sure the link points to a set (not a full sheet).");
+    embedDiv.replaceChildren(text);
 }
