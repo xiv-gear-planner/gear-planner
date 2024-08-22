@@ -6,7 +6,7 @@ import {
     splitHashLegacy,
     splitPath
 } from "@xivgear/core/nav/common_nav";
-import {earlyEmbedInit} from "./embed";
+import {displayEmbedError, earlyEmbedInit} from "./embed";
 import {SetExport, SheetExport} from "@xivgear/xivmath/geartypes";
 import {getShortLink} from "@xivgear/core/external/shortlink_server";
 import {getBisSheet} from "@xivgear/core/external/static_bis";
@@ -147,6 +147,10 @@ async function doNav(pathParts: string[]) {
             }
             else {
                 console.error('Non-existent shortlink, or other error', uuid);
+                // TODO: better error display for non-embed
+                if (isEmbed) {
+                    displayEmbedError("That set/sheet does not seem to exist.");
+                }
             }
             break;
         }
