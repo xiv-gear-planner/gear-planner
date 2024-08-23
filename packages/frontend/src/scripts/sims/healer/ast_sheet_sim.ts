@@ -380,7 +380,7 @@ class AstCycleProcessor extends CycleProcessor {
     }
 
     useDotIfWorth() {
-        if (this.nextGcdTime > this.nextCombustTime && this.remainingTime > 15) {
+        if (this.nextGcdTime >= this.nextCombustTime && this.remainingTime > 15) {
             this.nextCombustTime = this.nextGcdTime + 28.8;
             this.useGcd(combust);
         }
@@ -471,6 +471,10 @@ export class AstSim extends BaseMultiCycleSim<AstSimResult, AstSettings, AstCycl
                             cp.use(star);
                         } else if (cp.currentTime > cp.nextDrawTime && cp.drawState == 1) {
                             cp.Draw();
+                            if (cp.remainingTime < cp.timeUntilReady(div)) {
+                                cp.useDotIfWorth();
+                                cp.use(lord);
+                            }
                         }
                     }
                 })
@@ -485,7 +489,6 @@ export class AstSim extends BaseMultiCycleSim<AstSimResult, AstSettings, AstCycl
                 cp.nextCombustTime = i;
                 cp.oneCycle(cycle => {
                     cp.useDotIfWorth();
-                    cp.useDotIfWorth();
                     cp.useTwoMinBurst();
                     while (cycle.cycleRemainingGcdTime > 0) {
                         cp.useDotIfWorth();
@@ -493,6 +496,10 @@ export class AstSim extends BaseMultiCycleSim<AstSimResult, AstSettings, AstCycl
                             cp.use(star);
                         } else if (cp.currentTime > cp.nextDrawTime && cp.drawState == 1) {
                             cp.Draw();
+                            if (cp.remainingTime < cp.timeUntilReady(div)) {
+                                cp.useDotIfWorth();
+                                cp.use(lord);
+                            }
                         }
                     }
                 });
@@ -506,6 +513,10 @@ export class AstSim extends BaseMultiCycleSim<AstSimResult, AstSettings, AstCycl
                             cp.use(star);
                         } else if (cp.currentTime > cp.nextDrawTime && cp.drawState == 1) {
                             cp.Draw();
+                            if (cp.remainingTime < cp.timeUntilReady(div)) {
+                                cp.useDotIfWorth();
+                                cp.use(lord);
+                            }
                         }
                     }
                 });
@@ -527,6 +538,10 @@ export class AstSim extends BaseMultiCycleSim<AstSimResult, AstSettings, AstCycl
                             cp.use(star);
                         } else if (cp.currentTime > cp.nextDrawTime && cp.drawState == 1) {
                             cp.Draw();
+                            if (cp.remainingTime < cp.timeUntilReady(div)) {
+                                cp.useDotIfWorth();
+                                cp.use(lord);
+                            }
                         }
                     }
                 })

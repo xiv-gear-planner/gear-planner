@@ -288,7 +288,7 @@ class WhmCycleProcessor extends CycleProcessor {
     }
 
     buffedGcd() {
-        if (this.nextGcdTime > this.nextDiaTime && this.remainingTime > 15) {
+        if (this.nextGcdTime >= this.nextDiaTime && this.remainingTime > 15) {
             this.nextDiaTime = this.nextGcdTime + 28.8;
             this.useGcd(dia);
         }
@@ -305,7 +305,7 @@ class WhmCycleProcessor extends CycleProcessor {
     }
 
     unbuffedGCD() {
-        if (this.nextGcdTime > this.nextDiaTime && this.remainingTime > 15) {
+        if (this.nextGcdTime >= this.nextDiaTime && this.remainingTime > 15) {
             this.nextDiaTime = this.nextGcdTime + 28.8;
             this.useGcd(dia);
         }
