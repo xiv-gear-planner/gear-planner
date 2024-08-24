@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */                                // TODO: get back to fixing this at some point
+/* eslint-disable @typescript-eslint/no-explicit-any */                                                                                                                                // TODO: get back to fixing this at some point
 import {
     CURRENT_MAX_LEVEL,
     defaultItemDisplaySettings,
@@ -45,6 +45,7 @@ import {getDefaultSims, getRegisteredSimSpecs, getSimSpecByStub} from "./sims/si
 import {getNextSheetInternalName} from "./persistence/saved_sheets";
 import {CustomItem} from "./customgear/custom_item";
 import {CustomFood} from "./customgear/custom_food";
+import {IlvlSyncInfo} from "./datamanager_xivapi";
 
 export type SheetCtorArgs = ConstructorParameters<typeof GearPlanSheet>
 export type SheetContstructor<SheetType extends GearPlanSheet> = (...values: SheetCtorArgs) => SheetType;
@@ -217,7 +218,7 @@ export class GearPlanSheet {
 
         if (importedData.customItems) {
             importedData.customItems.forEach(ci => {
-                this._customItems.push(CustomItem.fromExport(ci));
+                this._customItems.push(CustomItem.fromExport(ci, this));
             });
         }
         if (importedData.customFoods) {
@@ -320,6 +321,7 @@ export class GearPlanSheet {
         });
         this._dmRelevantFood = this.dataManager.allFoodItems.filter(food => this.isStatRelevant(food.primarySubStat) || this.isStatRelevant(food.secondarySubStat));
         this._setupDone = true;
+        this.recheckCustomItems();
     }
 
     saveData() {
@@ -542,6 +544,10 @@ export class GearPlanSheet {
         }
     }
 
+    ilvlSyncInfo(ilvl: number): IlvlSyncInfo | undefined {
+        return this.dataManager?.getIlvlSyncInfo(ilvl);
+    }
+
     private get nextCustomItemId() {
         if (this._customItems.length === 0) {
             // TODO: make this random + larger
@@ -553,8 +559,9 @@ export class GearPlanSheet {
     }
 
     newCustomItem(slot: OccGearSlotKey): CustomItem {
-        const item = CustomItem.fromScratch(this.nextCustomItemId, slot);
+        const item = CustomItem.fromScratch(this.nextCustomItemId, slot, this);
         this._customItems.push(item);
+        this.recheckCustomItems();
         this.requestSave();
         return item;
     }
@@ -580,6 +587,7 @@ export class GearPlanSheet {
         if (idx > -1) {
             this._customItems.splice(idx, 1);
         }
+        this.recheckCustomItems();
         this.recalcAll();
     }
 
@@ -805,5 +813,12 @@ export class GearPlanSheet {
                 console.error(`Error adding default sim ${simSpec.displayName} (${simSpec.stub})`, e);
             }
         }
+    }
+
+    recheckCustomItems() {
+        for (const customItem of this._customItems) {
+            customItem.recheckStats();
+        }
+        this._sets.forEach(set => set.forceRecalc());
     }
 }

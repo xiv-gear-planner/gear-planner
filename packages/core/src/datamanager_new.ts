@@ -101,6 +101,7 @@ export class NewApiDataManager implements DataManager {
     private _jobMultipliers: Map<JobName, JobMultipliers>;
     private _baseParams: BaseParamMap;
     private _isyncPromise: Promise<Map<number, IlvlSyncInfo>>;
+    private _isyncData: Map<number, IlvlSyncInfo>;
 
     private queryBaseParams() {
         return this.apiClient.baseParams.baseParams()
@@ -187,6 +188,7 @@ export class NewApiDataManager implements DataManager {
                     } as const);
 
                 }
+                this._isyncData = outMap;
                 return outMap;
             });
         }
@@ -410,6 +412,10 @@ export class NewApiDataManager implements DataManager {
 
     get classJob(): JobName {
         return this._classJob;
+    }
+
+    getIlvlSyncInfo(ilvl: number): IlvlSyncInfo | undefined {
+        return this._isyncData.get(ilvl);
     }
 }
 

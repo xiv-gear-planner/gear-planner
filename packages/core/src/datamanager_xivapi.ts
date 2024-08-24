@@ -100,6 +100,7 @@ export class XivApiDataManager implements DataManager {
     private _jobMultipliers: Map<JobName, JobMultipliers>;
     private _baseParams: BaseParamMap;
     private _isyncPromise: Promise<Map<number, IlvlSyncInfo>>;
+    private _isyncData: Map<number, IlvlSyncInfo>;
 
     async getIlvlSyncData(baseParamPromise: ReturnType<typeof queryBaseParams>, ilvl: number) {
         if (this._isyncPromise === undefined) {
@@ -141,6 +142,7 @@ export class XivApiDataManager implements DataManager {
                     } as const);
 
                 }
+                this._isyncData = outMap;
                 return outMap;
             });
         }
@@ -391,6 +393,10 @@ export class XivApiDataManager implements DataManager {
 
     get classJob(): JobName {
         return this._classJob;
+    }
+
+    getIlvlSyncInfo(ilvl: number): IlvlSyncInfo {
+        return this._isyncData.get(ilvl);
     }
 }
 
