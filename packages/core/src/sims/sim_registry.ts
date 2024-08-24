@@ -36,7 +36,7 @@ export function getSimSpecByStub(stub: string): SimSpec<any, any> | undefined {
  * @param level The character level
  */
 export function getDefaultSims(job: JobName, level: SupportedLevel): SimSpec<any, any>[] {
-    return [...simSpecs.filter(spec => {
+    let defaultSims = [...simSpecs.filter(spec => {
         if (spec.supportedJobs !== undefined && !spec.supportedJobs.includes(job)) {
             return false;
         }
@@ -45,6 +45,12 @@ export function getDefaultSims(job: JobName, level: SupportedLevel): SimSpec<any
         }
         return spec.isDefaultSim ?? false;
     })];
+
+    if (defaultSims.length > 1) {
+        defaultSims = defaultSims.filter(spec => spec.stub !== 'pr-sim');
+    }
+
+    return defaultSims;
 }
 
 
