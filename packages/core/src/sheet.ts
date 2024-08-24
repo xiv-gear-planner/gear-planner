@@ -36,7 +36,7 @@ import {
     Substat
 } from "@xivgear/xivmath/geartypes";
 import {CharacterGearSet} from "./gear";
-import {DataManager} from "./datamanager";
+import {DataManager, makeDataManager} from "./datamanager";
 import {Inactivitytimer} from "./util/inactivitytimer";
 import {writeProxy} from "./util/proxies";
 import {SHARED_SET_NAME} from "@xivgear/core/imports/imports";
@@ -286,7 +286,7 @@ export class GearPlanSheet {
         console.log("Reading data");
         const saved = this._importedData;
         const lvlItemInfo = LEVEL_ITEMS[this.level];
-        this.dataManager = new DataManager(this.classJobName, this.level, this.ilvlSync);
+        this.dataManager = makeDataManager(this.classJobName, this.level, this.ilvlSync);
         await this.dataManager.loadData();
         for (const importedSet of saved.sets) {
             this.addGearSet(this.importGearSet(importedSet));

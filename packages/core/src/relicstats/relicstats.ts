@@ -8,7 +8,6 @@ import {
     RelicStatModel,
     Substat
 } from "@xivgear/xivmath/geartypes";
-import {BaseParamMap} from "../datamanager";
 import {
     ALL_SUB_STATS,
     getClassJobStats,
@@ -16,6 +15,7 @@ import {
     STAT_ABBREVIATIONS,
     STAT_FULL_NAMES
 } from "@xivgear/xivmath/xivconstants";
+import {BaseParamMap} from "../datamanager";
 
 function err(description: string): GearSetIssue {
     return {
