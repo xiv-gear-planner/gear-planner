@@ -41,6 +41,37 @@ type FoodType = Awaited<ReturnType<ApiClientRawType<'food', 'foodItems'>>>['data
 // type JobType = Awaited<ReturnType<ApiClientRawType<'jobs', 'jobs'>>>['data']['items'][number]
 // type ItemLevelType = Awaited<ReturnType<ApiClientRawType<'itemLevel', 'itemLevels'>>>['data']['items'][number]
 
+async function retryFetch(...params: Parameters<typeof fetch>): Promise<Response> {
+    let tries = 5;
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
+        tries--;
+        const result = await fetch(...params);
+        // TODO: add other errors here?
+        if (tries > 0 && result.status === 503 && result.statusText === 'Not Ready') {
+            console.log("data api not ready, retrying", params[0]);
+            await new Promise(r => setTimeout(r, 5_000 + (Math.random() * 1000)));
+            continue;
+        }
+        if (result.status >= 400) {
+            const content = JSON.stringify(await result.json());
+            console.error(`Data API error: ${result.status}: ${result.statusText}`, params[0], content);
+            throw Error(`Data API error: ${result.status}: ${result.statusText} (${params[0]}\n${content}`);
+        }
+        return result;
+    }
+}
+
+const apiClient = new DataApiClient<never>({
+    baseUrl: "https://data.xivgear.app",
+    // baseUrl: "http://localhost:8085",
+    customFetch: retryFetch
+});
+
+export function setDataApi(baseUrl: string) {
+    apiClient.baseUrl = baseUrl;
+}
+
 export class NewApiDataManager implements DataManager {
 
     private readonly _minIlvl: number;
@@ -61,9 +92,7 @@ export class NewApiDataManager implements DataManager {
         this._minIlvlFood = lvlData.minILvlFood;
         this._maxIlvlFood = lvlData.maxILvlFood;
         this._ilvlSync = ilvlSync;
-        this.apiClient = new DataApiClient<never>({
-            baseUrl: "https://data.xivgear.app"
-        })
+        this.apiClient = apiClient;
     }
 
     private _allItems: DataApiGearInfo[];
