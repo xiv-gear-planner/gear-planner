@@ -2,6 +2,7 @@ import {JobName, SupportedLevel} from "@xivgear/xivmath/xivconstants";
 import {FoodItem, GearItem, JobMultipliers, Materia, OccGearSlotKey, RawStatKey,} from "@xivgear/xivmath/geartypes";
 // import {XivApiDataManager} from "./datamanager_xivapi";
 import {NewApiDataManager} from "./datamanager_new";
+import {IlvlSyncInfo} from "./datamanager_xivapi";
 
 /**
  * Mapping for BaseParam to BaseParamInfo.
@@ -37,6 +38,8 @@ export interface DataManager {
     loadData(): Promise<void>;
 
     multipliersForJob(job: JobName): JobMultipliers;
+
+    getIlvlSyncInfo(ilvl: number): IlvlSyncInfo | undefined;
 }
 
 export function makeDataManager(classJob: JobName, level: SupportedLevel, ilvlSync?: number | undefined) {

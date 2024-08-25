@@ -3,12 +3,13 @@ import {GearPlanSheet} from "@xivgear/core/sheet";
 import {
     clampValues,
     faIcon,
+    FieldBoundCheckBox,
     FieldBoundDataSelect,
     FieldBoundFloatField,
     FieldBoundIntField,
     FieldBoundTextField,
     makeActionButton,
-    nonNegative
+    nonNegative, quickElement
 } from "@xivgear/common-ui/components/util";
 import {ALL_STATS, ALL_SUB_STATS, STAT_ABBREVIATIONS, STAT_FULL_NAMES} from "@xivgear/xivmath/xivconstants";
 import {BaseModal} from "@xivgear/common-ui/components/modal";
@@ -67,16 +68,33 @@ export class CustomItemTable extends CustomTable<CustomItem> {
                 initialWidth: 85
             }, {
                 shortName: 'ilvl',
-                displayName: 'ilvl',
+                displayName: 'ilvl (cap?)',
                 getter: item => item,
                 renderer: (item: CustomItem) => {
-                    return new FieldBoundIntField(item.customData, 'ilvl', {
+                    const ilvlInput = new FieldBoundIntField(item, 'ilvl', {
                         postValidators: [nonNegative],
                         inputMode: 'number'
-                    })
+                    });
+                    const capBox = new FieldBoundCheckBox(item, 'respectCaps');
+                    const recheck = (ilvl: number) => {
+                        if (!sheet.ilvlSyncInfo(ilvl)) {
+                            ilvlInput._validationMessage = `Data for item level ${ilvl} does not exist. Caps will not be applied even if enabled.`;
+                        }
+                        else {
+                            ilvlInput._validationMessage = undefined;
+                        }
+                    };
+                    ilvlInput.addListener(recheck);
+                    capBox.addListener(() => recheck(item.ilvl));
+                    recheck(item.ilvl);
+                    const holder = quickElement("div", [], [ilvlInput, capBox]);
+                    holder.style.display = 'flex';
+                    ilvlInput.style.minWidth = '40px';
+                    return holder;
                 },
-                initialWidth: 60
-            }, {
+                initialWidth: 80
+            },
+            {
                 shortName: 'mat-large',
                 displayName: 'Lg Mat',
                 getter: item => item,
@@ -84,7 +102,7 @@ export class CustomItemTable extends CustomTable<CustomItem> {
                     return new FieldBoundIntField(item.customData, 'largeMateriaSlots', {
                         postValidators: [clampValues(0, 5)],
                         inputMode: 'number'
-                    })
+                    });
                 },
                 initialWidth: 60
             }, {
@@ -95,7 +113,7 @@ export class CustomItemTable extends CustomTable<CustomItem> {
                     return new FieldBoundIntField(item.customData, 'smallMateriaSlots', {
                         postValidators: [clampValues(0, 5)],
                         inputMode: 'number'
-                    })
+                    });
                 },
                 initialWidth: 60
             },
@@ -205,6 +223,7 @@ export class CustomItemPopup extends BaseModal {
         super.close();
         this.sheet.requestSave();
         this.sheet.onGearDisplaySettingsUpdate();
+        this.sheet.recheckCustomItems();
         this.sheet.recalcAll();
     }
 }
