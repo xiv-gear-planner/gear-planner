@@ -506,8 +506,8 @@ export class DataApiGearInfo implements GearItem {
         this.displayGearSlot = this.displayGearSlotName ? DisplayGearSlotInfo[this.displayGearSlotName] : undefined;
         const weaponDelayRaw = (data.delayMs);
         this.stats = new RawStats();
-        this.stats.wdPhys = (data.damagePhys);
-        this.stats.wdMag = (data.damageMag);
+        this.stats.wdPhys = (data.damagePhysHQ);
+        this.stats.wdMag = (data.damageMagHQ);
         this.stats.weaponDelay = weaponDelayRaw ? (weaponDelayRaw / 1000.0) : 0;
         for (const key in data.baseParamMapHQ) {
             const intKey = parseInt(key);

@@ -139,6 +139,10 @@ export type Item = ItemBase &
     baseParamMap?: Record<string, number>;
     baseParamMapHQ?: Record<string, number>;
     classJobs?: string[];
+    /** @format int32 */
+    damageMagHQ?: number;
+    /** @format int32 */
+    damagePhysHQ?: number;
   };
 
 export type ItemBase = XivApiObject &
