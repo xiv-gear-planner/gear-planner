@@ -132,6 +132,7 @@ export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, Inter
             "Expected +2σ": applyStdDev(result.mainDpsFull, 2),
             "Expected +3σ": applyStdDev(result.mainDpsFull, 3),
             "Unbuffed PPS": result.unbuffedPps,
+            "Time Taken": result.totalTime
         };
         if (includeRotationName) {
             data["Rotation"] = result.label
@@ -221,7 +222,8 @@ export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, Inter
 
             const used = cp.finalizedRecords.filter(isFinalizedAbilityUse);
             const totalDamage = addValues(...used.map(used => used.totalDamageFull));
-            const dps = multiplyFixed(totalDamage, 1.0 / cp.currentTime);
+            const timeBasis = Math.min(cp.totalTime, cp.currentTime);
+            const dps = multiplyFixed(totalDamage, 1.0 / timeBasis);
             const unbuffedPps = sum(used.map(used => used.totalPotency)) / cp.nextGcdTime;
             const buffTimings = [...cp.buffHistory];
 
@@ -233,6 +235,7 @@ export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, Inter
                 displayRecords: cp.finalizedRecords,
                 unbuffedPps: unbuffedPps,
                 buffTimings: buffTimings,
+                totalTime: timeBasis,
                 label: rot.name ?? `Unnamed #${index + 1}`,
             } satisfies CycleSimResult as unknown as ResultType;
         });
