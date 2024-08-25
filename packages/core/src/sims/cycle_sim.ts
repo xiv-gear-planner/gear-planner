@@ -1423,6 +1423,7 @@ export interface CycleSimResult extends SimResult {
     unbuffedPps: number,
     buffTimings: readonly BuffUsage[],
     totalDamage: ValueWithDev,
+    totalTime: number,
     mainDpsFull: ValueWithDev,
     label: string
 }

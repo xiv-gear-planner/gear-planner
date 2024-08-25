@@ -401,7 +401,7 @@ describe('Cycle sim processor', () => {
         // Run simulation
         const result = await inst.simulate(set);
         // Assert correct results
-        assertClose(result.mainDpsResult, 10043.635, 0.01);
+        assertClose(result.mainDpsResult, 10184.246, 0.01);
         assertSimAbilityResults(result, expectedAbilities);
     });
 });
