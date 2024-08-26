@@ -21,7 +21,7 @@ import {
 } from "@xivgear/xivmath/xivmath";
 import {getClassJobStats, JOB_DATA, JobName, MAIN_STATS, STAT_ABBREVIATIONS} from "@xivgear/xivmath/xivconstants";
 import {GeneralSettings, registerFormula} from "./math_main";
-import {DataManager} from "@xivgear/core/datamanager";
+import {DataManager, makeDataManager} from "@xivgear/core/datamanager";
 import {JobData, LevelStats} from "@xivgear/xivmath/geartypes";
 
 type SksSettings = {
@@ -57,7 +57,7 @@ let jobDataManager: Promise<DataManager>;
 
 async function getClassJobStatsFull(job: JobName) {
     if (jobDataManager === undefined) {
-        const dm = new DataManager(job, 100);
+        const dm = makeDataManager(job, 100);
         jobDataManager = dm.loadData().then(() => dm);
     }
     const multipliers = (await jobDataManager).multipliersForJob(job);

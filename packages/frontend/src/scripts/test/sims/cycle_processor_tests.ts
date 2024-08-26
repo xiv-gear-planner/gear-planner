@@ -232,7 +232,7 @@ const rawStats = {
     weaponDelay: 3.44
 };
 // Finalize the stats (add class modifiers, party bonus, etc)
-const stats = finalizeStats(rawStats, 90, getLevelStats(90), 'WHM', {
+const stats = finalizeStats(rawStats, {}, 90, getLevelStats(90), 'WHM', {
     ...getClassJobStats('WHM'),
     jobStatMultipliers: jobStatMultipliers
 }, 5);
@@ -401,7 +401,7 @@ describe('Cycle sim processor', () => {
         // Run simulation
         const result = await inst.simulate(set);
         // Assert correct results
-        assertClose(result.mainDpsResult, 10043.635, 0.01);
+        assertClose(result.mainDpsResult, 10184.246, 0.01);
         assertSimAbilityResults(result, expectedAbilities);
     });
 });

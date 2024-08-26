@@ -1,21 +1,21 @@
 {
   "compilerOptions": {
-    "target": "es2022",
     "module": "nodenext",
     "moduleResolution": "nodenext",
+    "target": "es2022",
     "sourceMap": true,
-    "outDir": "./build",
+    "outDir": "build",
     "noImplicitReturns": true,
     "strictBindCallApply": true,
+//    "strictFunctionTypes": true,
+//    "strictPropertyInitialization": true
     "allowSyntheticDefaultImports": true,
     "composite": true
   },
-  "references": [
-    {
-      "path": "../xivmath"
-    },
-    {
-      "path": "../data-api-client"
-    }
-  ]
+  "exclude": [
+    "node_modules"
+  ],
+  "include": [
+    "src/"
+  ],
 }

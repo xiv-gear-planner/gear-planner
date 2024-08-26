@@ -337,53 +337,60 @@ export class VprCycleProcessor extends CycleProcessor {
         return Math.abs(reawakenStart - this.nextGcdTime - 3 * gcdTime) < 0.0001;
     }
 
-    canUseReawaken(): boolean {
-        const numTwinbladeCombosToUse = 3 - this.rotationState.numDreadwindersUsed;
-        const numRattlingCoils = this.gauge.rattlingCoils + numTwinbladeCombosToUse + 1; // +1 for Serpent's ire
-        const numUFs = Math.max(numRattlingCoils - 3, 0);
-
-        /** We're going to so some pre-simulation to determine gauge at 2mins. */
-        let currOfferings = this.gauge.serpentOfferings - 50;
-        let currTime = this.nextGcdTime; 
+    getGaugeAtTime(start: number = this.nextGcdTime, targetTime: number, startingGuage: number = this.gauge.serpentOfferings) {
 
         /** We are going to shift the GCDs around to make math easier.
          * Pretend we are starting after all of (hypothetical reawaken, UFs, Twinblade Combos) have been used, immediately.
          * That means the rest of the gcds before 2min reawaken are *all* dual wield combos. 
         */
+        const numTwinbladeCombosToUse = 3 - this.rotationState.numDreadwindersUsed;
+        const numRattlingCoils = this.gauge.rattlingCoils + numTwinbladeCombosToUse + (targetTime < this.cdTracker.statusOf(Actions.SerpentsIre).readyAt.absolute ? 0 : 1); // +1 for Serpent's ire
+        const numUFs = Math.max(numRattlingCoils - 3, 0);
+
         const UFGcd = this.gcdTime(Actions.UncoiledFury);
         const dualWieldGcd = this.gcdTime(Actions.ReavingFangs);
-        currTime += numUFs * UFGcd
-                    + 3 * numTwinbladeCombosToUse * this.gcdTime(Actions.Vicewinder)
-                    + this.getReawakenDuration();
+        const twinbladeGcd = this.gcdTime(Actions.Vicewinder);
 
-        currOfferings += 10 * numTwinbladeCombosToUse;
+        start += numUFs * UFGcd + 3 * numTwinbladeCombosToUse * twinbladeGcd;
+        startingGuage += 10 * numTwinbladeCombosToUse;
 
-        const nextBurstStart = this.getGcdTimeAfterSerpentsIre() + 3 * dualWieldGcd;
-        let numFinishersBeforeBurst = 0;
+        let numFinishersBeforeTarget = 0;
 
         /** Advance to our next combo-neutral spot, to make counting easier. */
         let combo = this.rotationState.comboStep;
         if (combo != 0) {
             while (combo != 0) {
-                currTime += dualWieldGcd;
+                start += dualWieldGcd;
                 combo = (combo + 1) % 3
             }
-            numFinishersBeforeBurst += 1;
+            numFinishersBeforeTarget += 1;
         }
 
-        const numGcdsBeforeBurst = Math.floor((nextBurstStart - currTime) / this.gcdTime(Actions.ReavingFangs));
-        numFinishersBeforeBurst += Math.floor(numGcdsBeforeBurst / 3)
+        const numGcdsBeforeTarget = Math.max(Math.floor((targetTime - start) / dualWieldGcd), 0);
+        numFinishersBeforeTarget += Math.floor(numGcdsBeforeTarget / 3)
 
-        currOfferings += 10 * numFinishersBeforeBurst;
-        
-        return currOfferings >= 50;
+        startingGuage += 10 * numFinishersBeforeTarget;
+
+        return startingGuage;
+    }
+
+    willHaveGaugeForBurst(): boolean {
+
+        const nextBurstStart = this.getGcdTimeAfterSerpentsIre() + 1 * this.gcdTime(Actions.ReavingFangs);
+
+        return this.getGaugeAtTime(this.nextGcdTime + this.getReawakenDuration(), nextBurstStart, this.gauge.serpentOfferings - 50) >= 50;
     }
 
     rotationStep() {
 
         if (this.canUseWithoutClipping(Actions.SerpentsIre)) {
             this.useOgcd(Actions.SerpentsIre);
-            this.useDualWieldCombo();
+            if (this.gauge.serpentOfferings == 100 && this.gauge.rattlingCoils > 0 && this.rotationState.comboStep == 2) {
+                this.useUncoiledFury();
+            }
+            else {
+                this.useDualWieldCombo();
+            }
 
             if (this.canUseWithoutClipping(potionMaxDex)) {
                 this.advanceForLateWeave([potionMaxDex]);
@@ -397,15 +404,18 @@ export class VprCycleProcessor extends CycleProcessor {
         /** Pre-burst logic */
         if (this.cdTracker.statusOf(Actions.SerpentsIre).readyAt.absolute - this.nextGcdTime < 10) {
 
-            this.useDualWieldCombo();
+            if (this.gauge.serpentOfferings == 100 && this.gauge.rattlingCoils > 0 && this.rotationState.comboStep == 2) {
+                this.useUncoiledFury();
+            }
+            else {
+                this.useDualWieldCombo();
+            }
 
             return;
         }
 
-
         if (this.cdTracker.canUse(Actions.Vicewinder)
             && this.gauge.serpentOfferings + 10 <= 100
-            && this.gauge.rattlingCoils + 1 <= 3
             && this.cdTracker.statusOfAt(Actions.SerpentsIre, this.nextGcdTime).readyAt.relative > 10) {
         
             if (this.gauge.rattlingCoils == 3) {
@@ -423,10 +433,11 @@ export class VprCycleProcessor extends CycleProcessor {
         const nextSecondaryBuffRefresh = (this.cdTracker.statusOfAt(Actions.Vicewinder, postReawakenTime).readyToUse) ?
                                         postReawakenTime + this.gcdTime(Actions.Vicewinder)
                                         : postReawakenTime + ((1 - this.rotationState.comboStep) % 3) * this.gcdTime(Actions.ReavingFangs); 
+
         if (this.gauge.serpentOfferings >= 50
             && nextSecondaryBuffRefresh < this.getActiveBuffData(HuntersInstinct).end
             && nextSecondaryBuffRefresh < this.getActiveBuffData(Swiftscaled).end
-            && this.canUseReawaken()) {
+            && this.willHaveGaugeForBurst()) {
             
             this.useReawaken();
             return;
@@ -434,10 +445,11 @@ export class VprCycleProcessor extends CycleProcessor {
 
         if (this.gauge.rattlingCoils > 2
            || (this.gauge.rattlingCoils > 0 && this.cdTracker.statusOf(Actions.SerpentsIre).readyAt.relative > this.remainingGcdTime) 
+           || (this.rotationState.comboStep == 2 && this.gauge.serpentOfferings == 100 && this.gauge.rattlingCoils > 0)
         ) {
             this.useUncoiledFury();
+            return;
         }
-
 
         this.useDualWieldCombo();
     }

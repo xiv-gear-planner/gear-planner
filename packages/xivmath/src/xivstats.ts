@@ -1,4 +1,12 @@
-import {ComputedSetStats, JobData, LevelStats, PartyBonusAmount, RawStats} from "./geartypes";
+import {
+    ComputedSetStats,
+    FoodBonuses,
+    FoodStatBonus,
+    JobData,
+    LevelStats,
+    PartyBonusAmount,
+    RawStats
+} from "./geartypes";
 import {
     autoAttackModifier,
     autoDhBonusDmg,
@@ -6,12 +14,18 @@ import {
     critDmg,
     detDmg,
     dhitChance,
-    dhitDmg, mainStatMulti, mpTick,
+    dhitDmg,
+    fl,
+    mainStatMulti,
+    mpTick,
     sksTickMulti,
     sksToGcd,
     spsTickMulti,
-    spsToGcd, tenacityDmg, tenacityIncomingDmg,
-    vitToHp, wdMulti
+    spsToGcd,
+    tenacityDmg,
+    tenacityIncomingDmg,
+    vitToHp,
+    wdMulti
 } from "./xivmath";
 import {JobName, SupportedLevel} from "./xivconstants";
 
@@ -31,21 +45,38 @@ export function addStats(baseStats: RawStats, addedStats: RawStats): void {
 }
 
 export function finalizeStats(
-    combinedStats: RawStats,
+    // TODO: gearStats is currently gear + race/job base stuff. Separate these out.
+    gearStats: RawStats,
+    foodStats: FoodBonuses,
     level: SupportedLevel,
     levelStats: LevelStats,
     classJob: JobName,
     classJobStats: JobData,
     partyBonus: PartyBonusAmount
 ): ComputedSetStats {
-    const mainStat = Math.floor(combinedStats[classJobStats.mainStat] * (1 + 0.01 * partyBonus));
-    const aaStat = Math.floor(combinedStats[classJobStats.autoAttackStat] * (1 + 0.01 * partyBonus));
-    const vitEffective = Math.floor(combinedStats.vitality * (1 + 0.01 * partyBonus));
+    const combinedStats: RawStats = {...gearStats};
+    const mainStatKey = classJobStats.mainStat;
+    const aaStatKey = classJobStats.autoAttackStat;
+    combinedStats[mainStatKey] = fl(combinedStats[mainStatKey] * (1 + 0.01 * partyBonus));
+    if (mainStatKey !== aaStatKey) {
+        combinedStats[aaStatKey] = fl(combinedStats[aaStatKey] * (1 + 0.01 * partyBonus));
+    }
+    combinedStats.vitality = fl(combinedStats.vitality * (1 + 0.01 * partyBonus));
+    // Food stats
+    for (const stat in foodStats) {
+        // These operate on base values, without the party buff
+        const bonus: FoodStatBonus = foodStats[stat];
+        const startingValue = gearStats[stat];
+        const extraValue = Math.min(bonus.max, Math.floor(startingValue * (bonus.percentage / 100)));
+        combinedStats[stat] += extraValue;
+    }
     const wdEffective = Math.max(combinedStats.wdMag, combinedStats.wdPhys);
-    const hp = combinedStats.hp + vitToHp(levelStats, classJobStats, vitEffective);
+    const hp = combinedStats.hp + vitToHp(levelStats, classJobStats, combinedStats.vitality);
+    const mainStat = combinedStats[mainStatKey];
+    const aaStat = combinedStats[aaStatKey];
     const computedStats: ComputedSetStats = {
         ...combinedStats,
-        vitality: vitEffective,
+        vitality: combinedStats.vitality,
         level: level,
         levelStats: levelStats,
         job: classJob,
@@ -74,8 +105,8 @@ export function finalizeStats(
         aaDelay: combinedStats.weaponDelay
     };
     // TODO: should this just apply to all main stats, even ones that are irrelevant to the class?
-    computedStats[classJobStats.mainStat] = mainStat;
-    computedStats[classJobStats.autoAttackStat] = aaStat;
+    // computedStats[mainStatKey] = mainStat;
+    // computedStats[aaStatKey] = aaStat;
     if (classJobStats.traits) {
         classJobStats.traits.forEach(trait => {
             if (trait.minLevel && trait.minLevel > level) {

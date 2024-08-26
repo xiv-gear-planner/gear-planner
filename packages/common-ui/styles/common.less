@@ -307,7 +307,6 @@ body {
 
    */
 
-  --zi-midbar: 1;
   --zi-sets-table-normal-columns: 70;
   --zi-sets-table-selected-cell: 71;
   --zi-sets-table-pinned-columns: 80;
@@ -316,9 +315,11 @@ body {
   --zi-sets-table-header-row: 92;
   --zi-sets-table-header-row-pinned: 95;
   --zi-sets-table-buttons-area: 99;
+  --zi-midbar: 100;
   --zi-show-hide-menu-button: 120;
   --zi-slot-materia-popup: 150;
   --zi-slot-materia-popup-cell: 180;
+  --zi-tiering-expansion: 185;
   --zi-loading-blocker: 190;
   --zi-add-sim-dialog: 200;
   --zi-true-modal: 300;
@@ -1255,6 +1256,53 @@ table.gear-items-table, table.food-items-table {
     }
   }
 
+  &.gear-items-edit-table {
+    tr {
+      .item-name-holder-editable {
+        display: flex;
+        flex-direction: row;
+
+        span {
+          flex-basis: 1px;
+          flex-grow: 99;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .remove-item-button {
+          display: none;
+        }
+      }
+
+      &:hover {
+        &[is-selected="true"] {
+          .remove-item-button {
+            background: none;
+            display: block;
+            .borderless-button;
+
+            padding: 0;
+            margin: 0;
+
+            height: min-content;
+            width: min-content;
+            svg {
+              fill: var(--fg-color);
+            }
+
+            &:hover {
+              fill: var(--action-button-hover-color);
+
+              svg {
+                fill: var(--action-button-hover-color);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
 }
 
 .left-side-gear-table, .right-side-gear-table {
@@ -1756,6 +1804,7 @@ div.gear-set-editor-toolbar, set-view-toolbar {
 
   div.single-stat-tier-display {
     .standard-round-border;
+    position: relative;
     padding: 2px;
     margin: 5px 2px 5px 2px;
     display: inline-block;
@@ -1771,16 +1820,20 @@ div.gear-set-editor-toolbar, set-view-toolbar {
     border-color: color-mix(in srgb, var(--stat-color) 20%, var(--border-color));
     background-color: color-mix(in srgb, var(--stat-color) var(--tiering-color-mix), var(--table-bg-color));
 
-    &.stat-tiering-perfect {
-      div.single-stat-tier-display-upper {
+    .number-format-perfect {
+      > div.single-stat-tier-display-upper {
         color: color-mix(in srgb, var(--stat-color) 30%, var(--stat-tiering-box-mix-color));
       }
 
-      div.single-stat-tier-display-lower-left {
+      > div.single-stat-tier-display-lower-left {
         color: color-mix(in srgb, var(--stat-color) 70%, var(--stat-tiering-box-mix-color));
         line-height: 0;
         //float: left;
       }
+    }
+
+    &.stat-tiering-perfect {
+      .number-format-perfect;
 
       //border-color: color-mix(in srgb, var(--stat-color) 60%, var(--border-color));
       box-shadow: 0 0 5px -1px inset color-mix(in srgb, var(--stat-color) 50%, var(--border-color));
@@ -1801,6 +1854,50 @@ div.gear-set-editor-toolbar, set-view-toolbar {
       padding-left: var(--inner-padding);
       padding-right: var(--inner-padding);
       //float: right;
+    }
+
+    div.single-stat-tier-display-expansion {
+      .single-stat-tier-display-expansion-item {
+        margin-top: 10px;
+        margin-bottom: 10px;
+
+        &.stat-tiering-perfect {
+          .number-format-perfect;
+        }
+      }
+
+      .standard-round-border;
+      z-index: var(--zi-tiering-expansion);
+      box-shadow: var(--shadow-color) 0 4px 10px 0;
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 130%;
+      border-color: color-mix(in srgb, var(--stat-color) 20%, var(--border-color));
+      background-color: color-mix(in srgb, var(--stat-color) var(--tiering-color-mix), var(--table-bg-color));
+      overflow: hidden;
+
+      .single-stat-tier-display-separator-holder {
+        position: relative;
+
+        .single-stat-tier-display-separator-inner {
+          //position: absolute;
+          height: 10px;
+          left: 0;
+          right: 0;
+          z-index: -1;
+          top: -5px;
+          background-color: var(--bg-color);
+          //position: absolute;
+          //height: 1000px;
+          //left: 0;
+          //right: 0;
+          //z-index: -1;
+          //top: -5px;
+          //filter: saturate(50%);
+          //background-color: color-mix(in srgb, var(--stat-color) calc(var(--tiering-color-mix) / 3), var(--table-bg-color));
+        }
+      }
     }
   }
 }
@@ -2428,7 +2525,9 @@ loading-blocker {
 }
 
 div#welcome-message {
-  width: 600px;
+  width: 840px;
+  max-width: 100%;
+  box-sizing: border-box;
   .top-level-widget;
   padding: 10px 50px 0;
   height: 100%;

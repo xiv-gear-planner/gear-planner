@@ -1,4 +1,13 @@
-import {githubIcon, importIcon, makeCalcIcon, makeDollarIcon, mySheetsIcon, newSheetIcon, settingsIcon} from "./util";
+import {
+    githubIcon,
+    importIcon,
+    makeCalcIcon,
+    makeDollarIcon,
+    makePatreonIcon,
+    mySheetsIcon,
+    newSheetIcon,
+    settingsIcon
+} from "./util";
 
 export function applyCommonTopMenuFormatting(link: HTMLAnchorElement) {
     if (link.getAttribute('formatted') === 'true') {
@@ -32,6 +41,10 @@ export function applyCommonTopMenuFormatting(link: HTMLAnchorElement) {
         case 'Ko-Fi':
             link.replaceChildren(makeDollarIcon());
             link.title = 'Donate on Ko-Fi';
+            break;
+        case 'Patreon':
+            link.replaceChildren(makePatreonIcon());
+            link.title = 'Donate on Patreon';
             break;
     }
     link.setAttribute('formatted', 'true');

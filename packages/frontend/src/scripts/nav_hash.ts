@@ -6,7 +6,7 @@ import {
     splitHashLegacy,
     splitPath
 } from "@xivgear/core/nav/common_nav";
-import {earlyEmbedInit} from "./embed";
+import {displayEmbedError, earlyEmbedInit} from "./embed";
 import {SetExport, SheetExport} from "@xivgear/xivmath/geartypes";
 import {getShortLink} from "@xivgear/core/external/shortlink_server";
 import {getBisSheet} from "@xivgear/core/external/static_bis";
@@ -64,6 +64,7 @@ export function getCurrentHash() {
 export async function processHashLegacy() {
     const newHash = location.hash;
     const split = splitHashLegacy(newHash);
+    formatTopMenu(split);
     if (split.length > 0) {
         console.log('processHashLegacy', newHash);
         // This path allows certain things such as /viewset/<json> to continue to use the old-style hash, since the
@@ -146,6 +147,10 @@ async function doNav(pathParts: string[]) {
             }
             else {
                 console.error('Non-existent shortlink, or other error', uuid);
+                // TODO: better error display for non-embed
+                if (isEmbed) {
+                    displayEmbedError("That set/sheet does not seem to exist.");
+                }
             }
             break;
         }

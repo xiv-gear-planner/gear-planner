@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */                // TODO: get back to fixing this at some point
+/* eslint-disable @typescript-eslint/no-explicit-any */                                                                                                                                // TODO: get back to fixing this at some point
 import {
     CURRENT_MAX_LEVEL,
     defaultItemDisplaySettings,
@@ -36,7 +36,7 @@ import {
     Substat
 } from "@xivgear/xivmath/geartypes";
 import {CharacterGearSet} from "./gear";
-import {DataManager} from "./datamanager";
+import {DataManager, makeDataManager} from "./datamanager";
 import {Inactivitytimer} from "./util/inactivitytimer";
 import {writeProxy} from "./util/proxies";
 import {SHARED_SET_NAME} from "@xivgear/core/imports/imports";
@@ -45,6 +45,7 @@ import {getDefaultSims, getRegisteredSimSpecs, getSimSpecByStub} from "./sims/si
 import {getNextSheetInternalName} from "./persistence/saved_sheets";
 import {CustomItem} from "./customgear/custom_item";
 import {CustomFood} from "./customgear/custom_food";
+import {IlvlSyncInfo} from "./datamanager_xivapi";
 
 export type SheetCtorArgs = ConstructorParameters<typeof GearPlanSheet>
 export type SheetContstructor<SheetType extends GearPlanSheet> = (...values: SheetCtorArgs) => SheetType;
@@ -70,7 +71,7 @@ export class SheetProvider<SheetType extends GearPlanSheet> {
             race: undefined,
             sets: [...importedData],
             sims: importedData[0].sims ?? [],
-            name: SHARED_SET_NAME,
+            name: importedData[0].name ?? SHARED_SET_NAME,
             saveKey: undefined,
             job: importedData[0].job,
             level: importedData[0].level,
@@ -217,7 +218,7 @@ export class GearPlanSheet {
 
         if (importedData.customItems) {
             importedData.customItems.forEach(ci => {
-                this._customItems.push(CustomItem.fromExport(ci));
+                this._customItems.push(CustomItem.fromExport(ci, this));
             });
         }
         if (importedData.customFoods) {
@@ -286,7 +287,7 @@ export class GearPlanSheet {
         console.log("Reading data");
         const saved = this._importedData;
         const lvlItemInfo = LEVEL_ITEMS[this.level];
-        this.dataManager = new DataManager(this.classJobName, this.level, this.ilvlSync);
+        this.dataManager = makeDataManager(this.classJobName, this.level, this.ilvlSync);
         await this.dataManager.loadData();
         for (const importedSet of saved.sets) {
             this.addGearSet(this.importGearSet(importedSet));
@@ -320,6 +321,7 @@ export class GearPlanSheet {
         });
         this._dmRelevantFood = this.dataManager.allFoodItems.filter(food => this.isStatRelevant(food.primarySubStat) || this.isStatRelevant(food.secondarySubStat));
         this._setupDone = true;
+        this.recheckCustomItems();
     }
 
     saveData() {
@@ -503,7 +505,8 @@ export class GearPlanSheet {
             name: set.name,
             items: items,
             food: set.food ? set.food.id : undefined,
-            description: set.description
+            description: set.description,
+            isSeparator: set.isSeparator
         };
         if (external) {
             out.job = this.classJobName;
@@ -541,6 +544,10 @@ export class GearPlanSheet {
         }
     }
 
+    ilvlSyncInfo(ilvl: number): IlvlSyncInfo | undefined {
+        return this.dataManager?.getIlvlSyncInfo(ilvl);
+    }
+
     private get nextCustomItemId() {
         if (this._customItems.length === 0) {
             // TODO: make this random + larger
@@ -552,8 +559,9 @@ export class GearPlanSheet {
     }
 
     newCustomItem(slot: OccGearSlotKey): CustomItem {
-        const item = CustomItem.fromScratch(this.nextCustomItemId, slot);
+        const item = CustomItem.fromScratch(this.nextCustomItemId, slot, this);
         this._customItems.push(item);
+        this.recheckCustomItems();
         this.requestSave();
         return item;
     }
@@ -579,6 +587,7 @@ export class GearPlanSheet {
         if (idx > -1) {
             this._customItems.splice(idx, 1);
         }
+        this.recheckCustomItems();
         this.recalcAll();
     }
 
@@ -602,34 +611,40 @@ export class GearPlanSheet {
         const set = new CharacterGearSet(this);
         set.name = importedSet.name;
         set.description = importedSet.description;
-        for (const equipmentSlot in importedSet.items) {
-            const importedItem: ItemSlotExport = importedSet.items[equipmentSlot];
-            if (!importedItem) {
-                continue;
-            }
-            const baseItem = this.itemById(importedItem.id);
-            if (!baseItem) {
-                continue;
-            }
-            const equipped = new EquippedItem(baseItem);
-            for (let i = 0; i < Math.min(equipped.melds.length, importedItem.materia.length); i++) {
-                const id = importedItem.materia[i].id;
-                const mat = this.dataManager.materiaById(id);
-                if (!mat) {
+        if (importedSet.isSeparator) {
+            set.isSeparator = true;
+        }
+        else {
+
+            for (const equipmentSlot in importedSet.items) {
+                const importedItem: ItemSlotExport = importedSet.items[equipmentSlot];
+                if (!importedItem) {
                     continue;
                 }
-                equipped.melds[i].equippedMateria = mat;
+                const baseItem = this.itemById(importedItem.id);
+                if (!baseItem) {
+                    continue;
+                }
+                const equipped = new EquippedItem(baseItem);
+                for (let i = 0; i < Math.min(equipped.melds.length, importedItem.materia.length); i++) {
+                    const id = importedItem.materia[i].id;
+                    const mat = this.dataManager.materiaById(id);
+                    if (!mat) {
+                        continue;
+                    }
+                    equipped.melds[i].equippedMateria = mat;
+                }
+                if (importedItem.relicStats && equipped.gearItem.isCustomRelic) {
+                    Object.assign(equipped.relicStats, importedItem.relicStats);
+                }
+                set.equipment[equipmentSlot] = equipped;
             }
-            if (importedItem.relicStats && equipped.gearItem.isCustomRelic) {
-                Object.assign(equipped.relicStats, importedItem.relicStats);
+            if (importedSet.food) {
+                set.food = this.foodById(importedSet.food);
             }
-            set.equipment[equipmentSlot] = equipped;
-        }
-        if (importedSet.food) {
-            set.food = this.foodById(importedSet.food);
-        }
-        if (importedSet.relicStatMemory) {
-            set.relicStatMemory.import(importedSet.relicStatMemory);
+            if (importedSet.relicStatMemory) {
+                set.relicStatMemory.import(importedSet.relicStatMemory);
+            }
         }
         return set;
     }
@@ -798,5 +813,12 @@ export class GearPlanSheet {
                 console.error(`Error adding default sim ${simSpec.displayName} (${simSpec.stub})`, e);
             }
         }
+    }
+
+    recheckCustomItems() {
+        for (const customItem of this._customItems) {
+            customItem.recheckStats();
+        }
+        this._sets.forEach(set => set.forceRecalc());
     }
 }

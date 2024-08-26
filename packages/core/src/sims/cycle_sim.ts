@@ -471,6 +471,14 @@ export class CycleProcessor {
         if (this.isBuffAutomatic(buff)) {
             this.buffTimes.set(buff, startTime);
         }
+
+        const activeBuffs = this.getActiveBuffsData(startTime);
+        const matchingActiveBuffIdx = activeBuffs.findIndex(b => b.buff.statusId == buff.statusId); 
+        if (matchingActiveBuffIdx != -1) {
+            activeBuffs[matchingActiveBuffIdx].end = startTime;
+            activeBuffs[matchingActiveBuffIdx].forceEnd = true;
+        }
+
         this.buffHistory.push({
             buff: buff,
             start: startTime,
@@ -1415,6 +1423,7 @@ export interface CycleSimResult extends SimResult {
     unbuffedPps: number,
     buffTimings: readonly BuffUsage[],
     totalDamage: ValueWithDev,
+    totalTime: number,
     mainDpsFull: ValueWithDev,
     label: string
 }

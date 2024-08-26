@@ -1,4 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import {quickElement} from "@xivgear/common-ui/components/util";
+
 function setCellProps(cell: HTMLTableCellElement, colDef: CustomColumn<any, any>) {
     cell.setAttribute("col-id", colDef.shortName);
     const extraClasses = colDef.extraClasses;
@@ -294,6 +296,10 @@ export class CustomTable<RowDataType, SelectionType = never> extends HTMLTableEl
         return [...this._data];
     }
 
+    protected makeDataRow(item: RowDataType): CustomRow<RowDataType> {
+        return new CustomRow<RowDataType>(item, this, {noInitialRefresh: true})
+    }
+
     /**
      * To be called when rows or columns are added, removed, or rearranged, but not
      * when only the data within cells is changed.
@@ -320,7 +326,7 @@ export class CustomTable<RowDataType, SelectionType = never> extends HTMLTableEl
                     newRowElements.push(this.dataRowMap.get(item));
                 }
                 else {
-                    const newRow = new CustomRow<RowDataType>(item, this, {noInitialRefresh: true});
+                    const newRow = this.makeDataRow(item);
                     this.dataRowMap.set(item, newRow);
                     newRow.refreshFull();
                     newRowElements.push(newRow);
@@ -406,7 +412,7 @@ export class CustomTable<RowDataType, SelectionType = never> extends HTMLTableEl
             this.refreshSelection();
         }
         else if (target instanceof CustomCell) {
-            if (target.colDef.allowCellSelection) {
+            if (target.colDef.allowCellSelection && target.rowConditionSatisfied) {
                 this.selectionModel.clickCell(target);
             }
             else {
@@ -444,11 +450,12 @@ export interface CustomColumnSpec<RowDataType, CellDataType = string, ColumnData
     renderer?: CellRenderer<RowDataType, CellDataType>;
     colStyler?: ColStyler<RowDataType, CellDataType>;
     condition?: () => boolean;
+    rowCondition?: (item: RowDataType) => boolean;
     initialWidth?: number | undefined;
     fixedWidth?: number | undefined;
     dataValue?: ColumnDataType;
     headerStyler?: (value: ColumnDataType, colHeader: CustomTableHeaderCell<RowDataType, CellDataType, ColumnDataType>) => void;
-    extraClasses?: string[]
+    extraClasses?: string[];
 }
 
 export class CustomColumn<RowDataType, CellDataType = string, ColumnDataType = any> {
@@ -483,6 +490,7 @@ export class CustomColumn<RowDataType, CellDataType = string, ColumnDataType = a
         }
     };
     condition?: () => boolean = () => true;
+    rowCondition?: (item: RowDataType) => boolean = () => true;
     initialWidth?: number | undefined = undefined;
     extraClasses?: string[] = undefined;
     fixedWidth?: number | undefined = undefined;
@@ -509,6 +517,7 @@ export class CustomRow<RowDataType> extends HTMLTableRowElement implements Refre
         }
     }
 
+
     refreshColumn(colDef: CustomColumn<RowDataType, string, any>) {
         this.dataColMap.get(colDef)?.refreshFull();
     }
@@ -520,9 +529,22 @@ export class CustomRow<RowDataType> extends HTMLTableRowElement implements Refre
                 newColElements.push(this.dataColMap.get(col));
             }
             else {
-                const newCell = new CustomCell<RowDataType, any>(this.dataItem, col, this, {noInitialRefresh: true});
-                this.dataColMap.set(col, newCell);
-                newColElements.push(newCell);
+                if (col.rowCondition(this.dataItem)) {
+                    const newCell = new CustomCell<RowDataType, any>(this.dataItem, col, this, {noInitialRefresh: true});
+                    this.dataColMap.set(col, newCell);
+                    newColElements.push(newCell);
+                }
+                else {
+                    const dummyCol: CustomColumn<RowDataType, null> = new CustomColumn<RowDataType, null>({
+                        ...col,
+                        getter: () => null,
+                        renderer: () => quickElement('span', [], []),
+                        colStyler: () => null,
+                    });
+                    const newCell = new CustomCell<RowDataType, any>(this.dataItem, dummyCol, this, {noInitialRefresh: true});
+                    this.dataColMap.set(col, newCell);
+                    newColElements.push(newCell);
+                }
             }
         }
         this.replaceChildren(...newColElements);
@@ -557,7 +579,6 @@ export class CustomRow<RowDataType> extends HTMLTableRowElement implements Refre
 }
 
 
-
 export class CustomCell<RowDataType, CellDataType> extends HTMLTableCellElement {
 
     dataItem: RowDataType;
@@ -586,7 +607,8 @@ export class CustomCell<RowDataType, CellDataType> extends HTMLTableCellElement 
             if (node) {
                 this.colDef.colStyler(this._cellValue, this, node, this.row.dataItem);
             }
-        } catch (e) {
+        }
+        catch (e) {
             console.error(e);
             node = document.createTextNode("Error");
         }
@@ -627,6 +649,10 @@ export class CustomCell<RowDataType, CellDataType> extends HTMLTableCellElement 
 
     get selected() {
         return this._selected;
+    }
+
+    get rowConditionSatisfied() {
+        return this.colDef.rowCondition(this.row.dataItem);
     }
 
 }

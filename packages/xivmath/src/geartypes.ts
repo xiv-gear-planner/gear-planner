@@ -716,6 +716,10 @@ export interface SetExport {
      * Only for standalone use - Custom foods
      */
     customFoods?: CustomFoodExport[],
+    /**
+     * Indicates that this set is a separator rather than an actual set
+     */
+    isSeparator?: boolean,
 }
 
 /**
