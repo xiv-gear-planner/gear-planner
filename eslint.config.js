@@ -29,6 +29,13 @@ export default [
                     "setWithoutGet": true
                 }
             ],
+            "comma-spacing": [
+                "error",
+                {
+                    "before": false,
+                    "after": true,
+                }
+            ],
             "@typescript-eslint/no-this-alias": [
                 "off"
             ]
