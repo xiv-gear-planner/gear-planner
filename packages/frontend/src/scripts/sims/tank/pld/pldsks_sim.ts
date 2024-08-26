@@ -985,6 +985,10 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
                             {
                                 enough_time_if_melee = false;
                             }
+
+                            // Fix 'time runs out in middle of burst' infinite loop:
+                            if (cp.remainingGcdTime == 0)
+                                enough_time_if_melee = false;
                         }
 
                         if (!strategy_250)
