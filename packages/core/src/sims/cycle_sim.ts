@@ -417,6 +417,13 @@ export class CycleProcessor {
     private readonly comboTrackerMap: Map<ComboKey, ComboTracker>;
     private readonly aaAbility: AutoAttack;
 
+    /**
+     * Tracks the number of actions used so that it can trip a circuit breaker if stuck in an infinite loop.
+     *
+     * @private
+     */
+    private _rowCount = 0;
+
     constructor(private settings: MultiCycleSettings) {
         // TODO: set enforcement mode
         this.cdTracker = new CooldownTracker(() => this.currentTime);
@@ -473,7 +480,7 @@ export class CycleProcessor {
         }
 
         const activeBuffs = this.getActiveBuffsData(startTime);
-        const matchingActiveBuffIdx = activeBuffs.findIndex(b => b.buff.statusId == buff.statusId); 
+        const matchingActiveBuffIdx = activeBuffs.findIndex(b => b.buff.statusId == buff.statusId);
         if (matchingActiveBuffIdx != -1) {
             activeBuffs[matchingActiveBuffIdx].end = startTime;
             activeBuffs[matchingActiveBuffIdx].forceEnd = true;
@@ -667,6 +674,9 @@ export class CycleProcessor {
      * @param time The time of the record. Current time will be used if not specified.
      */
     addSpecialRow(message: string, time?: number) {
+        if (this._rowCount++ > 10_000) {
+            throw Error("Used too many special rows");
+        }
         this.allRecords.push({
             usedAt: time ?? this.currentTime,
             label: message,
@@ -892,7 +902,7 @@ export class CycleProcessor {
     }
 
     // Counter that makes this fail on purpose if buggy sim rotation code gets into an infinite loop
-    _counter: number = 0;
+    _canUseCdCount: number = 0;
 
     /**
      * Determines whether or not a GCD plus zero or more oGCDs can be used without violating cooldowns and
@@ -905,8 +915,8 @@ export class CycleProcessor {
      * @param ogcds
      */
     canUseCooldowns(gcd: GcdAbility, ogcds: OgcdAbility[]): 'yes' | 'no' | 'not-enough-time' {
-        if (this._counter++ > 10000) {
-            if (this._counter > 10005) {
+        if (this._canUseCdCount++ > 10000) {
+            if (this._canUseCdCount > 10005) {
                 throw Error("loop")
             }
         }
@@ -1059,6 +1069,9 @@ export class CycleProcessor {
     private combatStarting: boolean = false;
 
     protected addAbilityUse(usedAbility: AbilityUseRecordUnf) {
+        if (this._rowCount++ > 10_000) {
+            throw Error("Used too many actions");
+        }
         this.allRecords.push(usedAbility);
         // If this is a pre-pull ability, we can offset by the hardcast time and/or application delay
         if (!this.combatStarted && usedAbility.ability.potency !== null) {
