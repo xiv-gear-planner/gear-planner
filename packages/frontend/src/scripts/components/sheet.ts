@@ -82,6 +82,11 @@ export type GearSetSel = SingleCellRowOrHeaderSelect<CharacterGearSet>;
 
 const noSeparators = (set: CharacterGearSet) => !set.isSeparator;
 
+const isSafari: boolean = (() => {
+    const ua = navigator.userAgent.toLowerCase();
+    return ua.includes('safari') && !ua.includes('chrome');
+})() || true;
+
 function mainStatCol(sheet: GearPlanSheet, stat: RawStatKey): CustomColumnSpec<CharacterGearSet, MultiplierStat> {
     return {
         shortName: stat,
@@ -1201,6 +1206,7 @@ export class GearPlanSheetGui extends GearPlanSheet {
     private _selectFirstRowByDefault: boolean = false;
     readonly headerArea: HTMLDivElement;
     readonly tableArea: HTMLDivElement;
+    readonly tableHolderOuter: HTMLDivElement;
     readonly tableHolder: HTMLDivElement;
     readonly buttonsArea: HTMLDivElement;
     readonly editorArea: HTMLDivElement;
@@ -1222,10 +1228,10 @@ export class GearPlanSheetGui extends GearPlanSheet {
         this.tableArea.classList.add('gear-sheet-table-area', 'hide-when-loading');
         this.tableHolder = document.createElement('div');
         this.tableHolder.classList.add('gear-sheet-table-holder');
-        const tableHolderOuter = document.createElement('div');
-        tableHolderOuter.classList.add('gear-sheet-table-holder-outer');
-        tableHolderOuter.appendChild(this.tableHolder);
-        this.tableArea.appendChild(tableHolderOuter);
+        this.tableHolderOuter = document.createElement('div');
+        this.tableHolderOuter.classList.add('gear-sheet-table-holder-outer');
+        this.tableHolderOuter.appendChild(this.tableHolder);
+        this.tableArea.appendChild(this.tableHolderOuter);
         this.buttonsArea = document.createElement("div");
         this.buttonsArea.classList.add('gear-sheet-buttons-area', 'hide-when-loading', 'show-hide-parent');
         this.editorArea = document.createElement("div");
@@ -1592,6 +1598,28 @@ export class GearPlanSheetGui extends GearPlanSheet {
             },
             matFillCtrl
         );
+
+        // safari bad.
+        // Somehow, '100%' is being interpreted like 100vh rather than 100% of parent like on every other browser.
+        // To work around this, we just watch for resizes of tableArea (the entire upper area) and propagate those
+        // resizes to tableHolderOuter (the child of tableArea, which holds tableHolder -> the actual table)
+        if (isSafari) {
+            let isFirst = true;
+            new ResizeObserver(() => {
+                const initialHeight = this.tableArea.offsetHeight;
+                const newHeightPx = Math.round(initialHeight);
+                const newHeight = newHeightPx + 'px';
+                this.tableHolderOuter.style.maxHeight = `calc(${newHeight} - 5px)`;
+                // We need to fix the height of the outermost portion as well, otherwise it will ping-pong resizes.
+                // But we only need to do this once.
+                if (isFirst) {
+                    this.tableArea.style.minHeight = newHeight;
+                    this.tableArea.style.maxHeight = newHeight;
+                    this.tableArea.style.flexBasis = newHeight;
+                    isFirst = false;
+                }
+            }).observe(this.tableArea);
+        }
         const dragTarget = this.toolbarHolder;
         dragTarget.addEventListener('touchstart', (ev) => {
             if (ev.target === dragTarget && ev.touches.length === 1) {
@@ -1619,6 +1647,9 @@ export class GearPlanSheetGui extends GearPlanSheet {
                 this.tableArea.style.minHeight = newHeight;
                 this.tableArea.style.maxHeight = newHeight;
                 this.tableArea.style.flexBasis = newHeight;
+                if (isSafari) {
+                    // this.tableHolderOuter.style.maxHeight = newHeight;
+                }
             };
             const after = (ev: MouseEvent) => {
                 document.removeEventListener('pointermove', eventListener);
