@@ -1580,7 +1580,22 @@ add-sim-dialog {
     padding: 10px;
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: stretch;
+    width: max-content;
+    max-width: calc(100% - 10px);
+    margin-left: auto;
+    margin-right: auto;
+
+    > .named-section {
+      .named-section-standard;
+      width: 100%;
+
+      max-width: unset;
+
+      label[for='cycle-total-time'] {
+        margin-right: 10px;
+      }
+    }
 
     > * {
       margin-top: 10px;
@@ -3205,15 +3220,6 @@ gear-set-issues-modal {
 #content-area > .named-section {
   .named-section-standard;
   .top-level-widget;
-}
-
-#sim-config-area-inner > .named-section {
-  .named-section-standard;
-  width: 100%;
-
-  label[for='cycle-total-time'] {
-    margin-right: 10px;
-  }
 }
 
 .top-level-widget {
