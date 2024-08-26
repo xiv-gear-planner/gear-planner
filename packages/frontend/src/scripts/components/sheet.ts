@@ -82,6 +82,11 @@ export type GearSetSel = SingleCellRowOrHeaderSelect<CharacterGearSet>;
 
 const noSeparators = (set: CharacterGearSet) => !set.isSeparator;
 
+const isSafari: boolean = (() => {
+    const ua = navigator.userAgent.toLowerCase();
+    return ua.includes('safari') && !ua.includes('chrome');
+})();
+
 function mainStatCol(sheet: GearPlanSheet, stat: RawStatKey): CustomColumnSpec<CharacterGearSet, MultiplierStat> {
     return {
         shortName: stat,
@@ -1201,6 +1206,7 @@ export class GearPlanSheetGui extends GearPlanSheet {
     private _selectFirstRowByDefault: boolean = false;
     readonly headerArea: HTMLDivElement;
     readonly tableArea: HTMLDivElement;
+    readonly tableHolderOuter: HTMLDivElement;
     readonly tableHolder: HTMLDivElement;
     readonly buttonsArea: HTMLDivElement;
     readonly editorArea: HTMLDivElement;
@@ -1222,10 +1228,10 @@ export class GearPlanSheetGui extends GearPlanSheet {
         this.tableArea.classList.add('gear-sheet-table-area', 'hide-when-loading');
         this.tableHolder = document.createElement('div');
         this.tableHolder.classList.add('gear-sheet-table-holder');
-        const tableHolderOuter = document.createElement('div');
-        tableHolderOuter.classList.add('gear-sheet-table-holder-outer');
-        tableHolderOuter.appendChild(this.tableHolder);
-        this.tableArea.appendChild(tableHolderOuter);
+        this.tableHolderOuter = document.createElement('div');
+        this.tableHolderOuter.classList.add('gear-sheet-table-holder-outer');
+        this.tableHolderOuter.appendChild(this.tableHolder);
+        this.tableArea.appendChild(this.tableHolderOuter);
         this.buttonsArea = document.createElement("div");
         this.buttonsArea.classList.add('gear-sheet-buttons-area', 'hide-when-loading', 'show-hide-parent');
         this.editorArea = document.createElement("div");
@@ -1619,6 +1625,11 @@ export class GearPlanSheetGui extends GearPlanSheet {
                 this.tableArea.style.minHeight = newHeight;
                 this.tableArea.style.maxHeight = newHeight;
                 this.tableArea.style.flexBasis = newHeight;
+                if (isSafari) {
+                    // this.tableHolder.style.minHeight = newHeight;
+                    this.tableHolderOuter.style.maxHeight = newHeight;
+                    // this.tableHolder.style.flexBasis = newHeight;
+                }
             };
             const after = (ev: MouseEvent) => {
                 document.removeEventListener('pointermove', eventListener);
