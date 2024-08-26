@@ -1,10 +1,10 @@
 import {CycleSettings} from "@xivgear/core/sims/cycle_settings";
 import {
+    clampValues,
     FieldBoundCheckBox,
     FieldBoundFloatField,
     labeledCheckbox,
-    labelFor,
-    nonNegative
+    labelFor
 } from "@xivgear/common-ui/components/util";
 import {NamedSection} from "../../components/section";
 
@@ -12,7 +12,8 @@ export function cycleSettingsGui(cycleSettings: CycleSettings) {
     const out = new NamedSection('Cycle Settings');
     const timeField = new FieldBoundFloatField(cycleSettings, 'totalTime', {
         inputMode: 'number',
-        postValidators: [nonNegative]
+        // 1 hour of sim time should be enough for any application
+        postValidators: [clampValues(0, 60 * 60)],
     });
     timeField.id = 'cycle-total-time';
     const label = labelFor('Total Time:', timeField);
