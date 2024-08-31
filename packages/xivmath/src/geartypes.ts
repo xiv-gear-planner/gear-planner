@@ -10,7 +10,7 @@ import {
 
 import {CustomItemExport} from "@xivgear/core/customgear/custom_item";
 import {CustomFoodExport} from "@xivgear/core/customgear/custom_food";
-import {ComputedSetStatsImpl, RawBonusStats, StatModification} from "./xivstats";
+import {RawBonusStats, StatModification} from "./xivstats";
 
 export interface DisplayGearSlot {
 

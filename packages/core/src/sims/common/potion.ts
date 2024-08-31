@@ -1,5 +1,5 @@
 import {OgcdAbility} from "../sim_types";
-import {fl, mainStatMulti} from "@xivgear/xivmath/xivmath";
+import {fl} from "@xivgear/xivmath/xivmath";
 import {RawStatKey} from "@xivgear/xivmath/geartypes";
 import {camel2title} from "@xivgear/core/util/strutils";
 
