@@ -2,11 +2,13 @@ import {ComputedSetStats} from "@xivgear/xivmath/geartypes";
 import {Ability, Buff, CombinedBuffEffect, ComputedDamage, DamageResult, DamagingAbility} from "./sim_types";
 import {applyDhCritFull, baseDamageFull} from "@xivgear/xivmath/xivmath";
 import {multiplyFixed} from "@xivgear/xivmath/deviation";
+import {StatModification} from "@xivgear/xivmath/xivstats";
 
 function dotPotencyToDamage(stats: ComputedSetStats, potency: number, dmgAbility: DamagingAbility, combinedBuffEffects: CombinedBuffEffect): ComputedDamage {
-    const modifiedStats = {...stats};
-    modifiedStats.critChance += combinedBuffEffects.critChanceIncrease;
-    modifiedStats.dhitChance += combinedBuffEffects.dhitChanceIncrease;
+    const modifiedStats = stats.withModifications((stats, bonuses) => {
+        bonuses.critChance += combinedBuffEffects.critChanceIncrease;
+        bonuses.dhitChance += combinedBuffEffects.dhitChanceIncrease;
+    });
     // TODO: are there any dots with auto-crit or auto-dh?
     const forceDh = false;
     const forceCrit = false;
@@ -16,17 +18,21 @@ function dotPotencyToDamage(stats: ComputedSetStats, potency: number, dmgAbility
 }
 
 function potencyToDamage(stats: ComputedSetStats, potency: number, dmgAbility: DamagingAbility, combinedBuffEffects: CombinedBuffEffect): ComputedDamage {
-    const modifiedStats = {...stats};
-    modifiedStats.critChance += combinedBuffEffects.critChanceIncrease;
-    modifiedStats.dhitChance += combinedBuffEffects.dhitChanceIncrease;
     const forceDhit = dmgAbility.autoDh || combinedBuffEffects.forceDhit;
     const forceCrit = dmgAbility.autoCrit || combinedBuffEffects.forceCrit;
-    const nonCritDmg = baseDamageFull(modifiedStats, potency, dmgAbility.attackType, forceDhit, forceCrit);
-    const afterCritDh = applyDhCritFull(nonCritDmg, {
-        ...modifiedStats,
-        critChance: forceCrit ? 1 : modifiedStats.critChance,
-        dhitChance: forceDhit ? 1 : modifiedStats.dhitChance,
+    const modifiedStats = stats.withModifications((stats, bonuses) => {
+        bonuses.critChance += combinedBuffEffects.critChanceIncrease;
+        bonuses.dhitChance += combinedBuffEffects.dhitChanceIncrease;
+        if (forceCrit) {
+            // These are capped at 100% anyway, so we can force crit/dh by just adding a massive value
+            bonuses.forceCrit = true;
+        }
+        if (forceDhit) {
+            bonuses.forceDh = true;
+        }
     });
+    const nonCritDmg = baseDamageFull(modifiedStats, potency, dmgAbility.attackType, forceDhit, forceCrit);
+    const afterCritDh = applyDhCritFull(nonCritDmg, modifiedStats);
     return multiplyFixed(afterCritDh, combinedBuffEffects.dmgMod);
 }
 
@@ -81,6 +87,7 @@ export function noBuffEffects(): CombinedBuffEffect {
  */
 export function combineBuffEffects(buffs: Buff[]): CombinedBuffEffect {
     const combinedEffects: CombinedBuffEffect = noBuffEffects();
+    const statModifications: StatModification[] = [];
     for (const buff of buffs) {
         const effects = buff.effects;
         if (effects.dmgIncrease) {
@@ -102,14 +109,16 @@ export function combineBuffEffects(buffs: Buff[]): CombinedBuffEffect {
             combinedEffects.forceDhit = true;
         }
         if (effects.modifyStats) {
-            const oldFunc = combinedEffects.modifyStats;
-            combinedEffects.modifyStats = (stats) => {
-                const before = oldFunc(stats);
-                const copy = {...before};
-                return effects.modifyStats(copy);
-            }
+            statModifications.push(effects.modifyStats);
         }
     }
+    combinedEffects.modifyStats = (stats) => {
+        return stats.withModifications((stats, bonuses) => {
+            statModifications.forEach(mod => {
+                mod(stats, bonuses);
+            });
+        });
+    };
     return combinedEffects;
 }
 

@@ -46,6 +46,7 @@ import {getNextSheetInternalName} from "./persistence/saved_sheets";
 import {CustomItem} from "./customgear/custom_item";
 import {CustomFood} from "./customgear/custom_food";
 import {IlvlSyncInfo} from "./datamanager_xivapi";
+import {toSerializableForm} from "@xivgear/xivmath/xivstats";
 
 export type SheetCtorArgs = ConstructorParameters<typeof GearPlanSheet>
 export type SheetContstructor<SheetType extends GearPlanSheet> = (...values: SheetCtorArgs) => SheetType;
@@ -410,7 +411,7 @@ export class GearPlanSheet {
             if (fullStats) {
                 const augGs: SetStatsExport = {
                     ...rawExport,
-                    computedStats: set.computedStats
+                    computedStats: toSerializableForm(set.computedStats)
                 };
                 return augGs;
             }

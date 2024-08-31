@@ -102,9 +102,10 @@ export class SgeSheetSim implements Simulation<SgeSheetSimResult, SgeSheetSettin
     }
 
     async simulate(set: CharacterGearSet): Promise<SgeSheetSimResult> {
-        const buffedStats = {...set.computedStats};
-        buffedStats.dhitChance += this.extraDhRate();
-        buffedStats.critChance += this.extraCritRate();
+        const buffedStats = set.computedStats.withModifications((stats, bonuses) => {
+            bonuses.dhitChance += this.extraDhRate();
+            bonuses.critChance += this.extraCritRate();
+        });
         const ppsFinalResult = this.pps(buffedStats);
         const resultWithoutDhCrit = baseDamage(buffedStats, ppsFinalResult);
         const result = applyDhCrit(resultWithoutDhCrit, buffedStats);

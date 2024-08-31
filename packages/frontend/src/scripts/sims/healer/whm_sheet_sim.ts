@@ -142,9 +142,10 @@ export class WhmSheetSim implements Simulation<WhmSheetSimResult, WhmSheetSettin
     }
 
     async simulate(set: CharacterGearSet): Promise<WhmSheetSimResult> {
-        const buffedStats = {...set.computedStats};
-        buffedStats.dhitChance += this.extraDhRate();
-        buffedStats.critChance += this.extraCritRate();
+        const buffedStats = set.computedStats.withModifications((stats, bonuses) => {
+            bonuses.dhitChance += this.extraDhRate();
+            bonuses.critChance += this.extraCritRate();
+        });
         const ppsFinalResult = this.pps(buffedStats);
         // const ppsFinalResult = pps(buffedStats.spellspeed, buffedStats.gcdMag, this.settings.c3PerMin, this.settings.m2PerMin, this.settings.rezPerMin);
         // console.log(ppsFinalResult);

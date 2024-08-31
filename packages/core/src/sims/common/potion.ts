@@ -3,9 +3,8 @@ import {fl, mainStatMulti} from "@xivgear/xivmath/xivmath";
 import {RawStatKey} from "@xivgear/xivmath/geartypes";
 import {camel2title} from "@xivgear/core/util/strutils";
 
-function applyPotionBuff(initialValue: number, bonus: number, cap: number): number {
-    const effectiveBonus = Math.min(fl(initialValue * bonus), cap);
-    return initialValue + effectiveBonus;
+function potionBonus(initialValue: number, bonus: number, cap: number): number {
+    return Math.min(fl(initialValue * bonus), cap);
 }
 
 function makePotion(name: string, stat: RawStatKey, itemId: number, bonus: number, cap: number): Readonly<OgcdAbility> {
@@ -26,14 +25,8 @@ function makePotion(name: string, stat: RawStatKey, itemId: number, bonus: numbe
                 duration: 30,
                 statusId: 0x31,
                 effects: {
-                    modifyStats: original => {
-                        const stats = {...original};
-                        stats[stat] = applyPotionBuff(stats[stat], bonus, cap);
-                        if (stat === stats.jobStats.mainStat) {
-                            stats.mainStatMulti = mainStatMulti(stats.levelStats, stats.jobStats, stats[stats.jobStats.mainStat]);
-                            stats.aaStatMulti = mainStatMulti(stats.levelStats, stats.jobStats, stats[stats.jobStats.autoAttackStat]);
-                        }
-                        return stats;
+                    modifyStats: (stats, bonuses) => {
+                        bonuses[stat] = potionBonus(stats[stat], bonus, cap);
                     }
                 }
             }

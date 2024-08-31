@@ -235,9 +235,9 @@ export class XivApiDataManager implements DataManager {
                     extraPromises.push(Promise.all([itemIlvlPromise, ilvlSyncPromise]).then(([native, sync]) => {
                         item.applyIlvlData(native, sync);
                         if (item.isCustomRelic) {
-                            console.debug('Applying relic model');
+                            // console.debug('Applying relic model');
                             item.relicStatModel = getRelicStatModelFor(item, this._baseParams, this._classJob);
-                            console.debug('Applied', item.relicStatModel)
+                            // console.debug('Applied', item.relicStatModel)
                         }
                     }));
                 }
@@ -245,9 +245,9 @@ export class XivApiDataManager implements DataManager {
                     extraPromises.push(itemIlvlPromise.then(native => {
                         item.applyIlvlData(native);
                         if (item.isCustomRelic) {
-                            console.debug('Applying relic model');
+                            // console.debug('Applying relic model');
                             item.relicStatModel = getRelicStatModelFor(item, this._baseParams, this._classJob);
-                            console.debug('Applied', item.relicStatModel)
+                            // console.debug('Applied', item.relicStatModel)
                         }
                     }));
                 }
