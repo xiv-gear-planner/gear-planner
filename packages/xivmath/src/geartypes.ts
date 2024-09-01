@@ -854,6 +854,7 @@ export type GearAcquisitionSource =
     | 'ultimate'
     | 'artifact'
     | 'alliance'
+    | 'criterion'
     | 'other'
     | 'custom';
 

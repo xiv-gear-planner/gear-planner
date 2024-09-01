@@ -27,7 +27,7 @@ import {
 import {BaseParamToStatKey, RelevantBaseParam} from "./external/xivapitypes";
 import {getRelicStatModelFor} from "./relicstats/relicstats";
 import {requireNumber, requireString} from "./external/data_validators";
-import {DataApiClient, FoodStatBonus} from "@xivgear/data-api-client/dataapi";
+import {DataApiClient, FoodStatBonus, GearAcquisitionSource as AcqSrc} from "@xivgear/data-api-client/dataapi";
 import {BaseParamMap, DataManager} from "./datamanager";
 import {IlvlSyncInfo} from "./datamanager_xivapi";
 import {applyStatCaps} from "./gear";
@@ -63,8 +63,8 @@ async function retryFetch(...params: Parameters<typeof fetch>): Promise<Response
 }
 
 const apiClient = new DataApiClient<never>({
-    baseUrl: "https://data.xivgear.app",
-    // baseUrl: "http://localhost:8085",
+    // baseUrl: "https://data.xivgear.app",
+    baseUrl: "http://localhost:8085",
     customFetch: retryFetch
 });
 
@@ -566,114 +566,60 @@ export class DataApiGearInfo implements GearItem {
                 }
             }
         }
-        // Try to guess the acquisition source of an item
-        // Disabled since new xivapi does not provide this in an easy form
-        // try {
-        //     const rarity: number = data.Rarity as number;
-        //     // Check if it is craftable by checking if any recipes result in this item
-        //     const isCraftable = data.GameContentLinks?.['Recipe'];
-        //     // Check if it is buyable by checking if any shops sell it
-        //     const hasShop = data.GameContentLinks?.['SpecialShop'];
-        //     // TODO: nothing results in 'normraid'
-        //     switch (rarity) {
-        //         case 1:
-        //             if (isCraftable) {
-        //                 this.acquisitionType = 'crafted';
-        //             }
-        //             break;
-        //         // Green
-        //         case 2:
-        //             if (this.name.includes('Augmented')) {
-        //                 this.acquisitionType = 'augcrafted';
-        //             }
-        //             else {
-        //                 if (isCraftable) {
-        //                     this.acquisitionType = 'crafted';
-        //                 }
-        //                 else {
-        //                     this.acquisitionType = 'dungeon';
-        //                 }
-        //             }
-        //             break;
-        //         // Blue
-        //         case 3: {
-        //             // TODO: how to differentiate raid vs tome vs aug tome?
-        //             // Aug tome: it has "augmented" in the name, easy
-        //             const isWeaponOrOH = this.occGearSlotName === 'Weapon2H' || this.occGearSlotName === 'Weapon1H' || this.occGearSlotName === 'OffHand';
-        //             if (ARTIFACT_ITEM_LEVELS.includes(this.ilvl)) {
-        //                 // Ambiguous due to start-of-expac ex trials
-        //                 if (isWeaponOrOH) {
-        //                     this.acquisitionType = 'other';
-        //                 }
-        //                 else {
-        //                     this.acquisitionType = 'artifact';
-        //                 }
-        //             }
-        //             // Start-of-expac uncapped tome gear
-        //             else if (BASIC_TOME_GEAR_ILVLS.includes(this.ilvl)) {
-        //                 this.acquisitionType = 'tome';
-        //             }
-        //             const chkRelIlvl = (relativeToRaidTier: number) => {
-        //                 return RAID_TIER_ILVLS.includes(this.ilvl - relativeToRaidTier);
-        //             };
-        //             if (chkRelIlvl(0)) {
-        //                 if (this.name.includes('Augmented')) {
-        //                     this.acquisitionType = 'augtome';
-        //                 }
-        //                 else {
-        //                     this.acquisitionType = 'raid';
-        //                 }
-        //             }
-        //             else if (chkRelIlvl(-10)) {
-        //                 if (hasShop) {
-        //                     this.acquisitionType = 'tome';
-        //                 }
-        //                 else {
-        //                     this.acquisitionType = 'alliance';
-        //                 }
-        //             }
-        //             else if (chkRelIlvl(-20)) {
-        //
-        //                 if (isWeaponOrOH) {
-        //                     this.acquisitionType = 'extrial';
-        //                 }
-        //                 else {
-        //                     // Ambiguous - first-of-the-expac extreme trial accessories and normal raid
-        //                     // accessories share the same ilvl
-        //                     this.acquisitionType = 'other';
-        //                 }
-        //             }
-        //             else if ((chkRelIlvl(-5) || chkRelIlvl(-15)) && isWeaponOrOH) {
-        //                 this.acquisitionType = 'extrial';
-        //             }
-        //             else if (this.ilvl % 10 === 5) {
-        //                 if (isWeaponOrOH) {
-        //                     if (chkRelIlvl(5)) {
-        //                         if (this.name.includes('Ultimate')) {
-        //                             this.acquisitionType = 'ultimate';
-        //                         }
-        //                         else {
-        //                             this.acquisitionType = 'raid';
-        //                         }
-        //                     }
-        //                 }
-        //             }
-        //             break;
-        //         }
-        //         // Purple
-        //         case 4:
-        //             this.acquisitionType = 'relic';
-        //             break;
-        //     }
-        // }
-        // catch (e) {
-        //     console.error("Error determining item rarity", data);
-        // }
-        // if (!this.acquisitionType) {
-        //     console.warn(`Unable to determine acquisition source for item ${this.name} (${this.id})`, data);
-        //     this.acquisitionType = 'other';
-        // }
-        this.acquisitionType = 'other';
+        const acqSrcRaw: AcqSrc = data.acquisitionSource;
+        switch (acqSrcRaw) {
+            case AcqSrc.NormalRaid:
+                this.acquisitionType = 'normraid';
+                break;
+            case AcqSrc.SavageRaid:
+                this.acquisitionType = 'raid';
+                break;
+            case AcqSrc.Tome:
+                this.acquisitionType = 'tome';
+                break;
+            case AcqSrc.AugTome:
+                this.acquisitionType = 'augtome';
+                break;
+            case AcqSrc.Crafted:
+                this.acquisitionType = 'crafted';
+                break;
+            case AcqSrc.AugCrafted:
+                this.acquisitionType = 'augcrafted';
+                break;
+            case AcqSrc.Relic:
+                this.acquisitionType = 'relic';
+                break;
+            case AcqSrc.Dungeon:
+                this.acquisitionType = 'dungeon';
+                break;
+            case AcqSrc.ExtremeTrial:
+                this.acquisitionType = 'extrial';
+                break;
+            case AcqSrc.Ultimate:
+                this.acquisitionType = 'ultimate';
+                break;
+            case AcqSrc.Artifact:
+                this.acquisitionType = 'artifact';
+                break;
+            case AcqSrc.AllianceRaid:
+                this.acquisitionType = 'alliance';
+                break;
+            case AcqSrc.Criterion:
+                this.acquisitionType = 'criterion';
+                break;
+            case AcqSrc.Other:
+                this.acquisitionType = 'other';
+                break;
+            case AcqSrc.Custom:
+                this.acquisitionType = 'custom';
+                break;
+            case AcqSrc.Unknown:
+                this.acquisitionType = 'other';
+                break;
+            default:
+                this.acquisitionType = 'other';
+                break;
+        }
     }
 
     private computeSubstats() {
