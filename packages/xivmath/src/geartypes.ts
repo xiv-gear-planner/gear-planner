@@ -10,6 +10,7 @@ import {
 
 import {CustomItemExport} from "@xivgear/core/customgear/custom_item";
 import {CustomFoodExport} from "@xivgear/core/customgear/custom_food";
+import {RawBonusStats, StatModification} from "./xivstats";
 
 export interface DisplayGearSlot {
 
@@ -229,20 +230,19 @@ export interface ComputedSetStats extends RawStats {
     /**
      * Current level
      */
-    level: number,
+    readonly level: number,
     /**
      * Current level stats modifier
      */
-    levelStats: LevelStats,
+    readonly levelStats: LevelStats,
     /**
      * Current class/job
      */
-    job: JobName,
+    readonly job: JobName,
     /**
      * Job modifier data
      */
-    jobStats: JobData,
-
+    readonly jobStats: JobData,
     /**
      * Physical GCD time
      */
@@ -261,74 +261,74 @@ export interface ComputedSetStats extends RawStats {
     /**
      * Crit chance. Ranges from 0 to 1.
      */
-    critChance: number,
+    readonly critChance: number,
     /**
      * Crit multiplier. 1.0 would be the base, e.g. +50% would be 1.5.
      */
-    critMulti: number,
+    readonly critMulti: number,
     /**
      * Direct hit chance. Ranges from 0 to 1.
      */
-    dhitChance: number,
+    readonly dhitChance: number,
     /**
      * Direct hit multiplier. Fixed at 1.25.
      */
-    dhitMulti: number,
+    readonly dhitMulti: number,
     /**
      * Multiplier from determination stat.
      */
-    detMulti: number,
+    readonly detMulti: number,
     /**
      * Spell Speed DoT multiplier.
      */
-    spsDotMulti: number,
+    readonly spsDotMulti: number,
     /**
      * Skill Speed DoT multiplier.
      */
-    sksDotMulti: number,
+    readonly sksDotMulti: number,
     /**
      * Tenacity Multiplier
      */
-    tncMulti: number,
+    readonly tncMulti: number,
     /**
      * Tenacity incoming multiplier. e.g. 0.95 => 5% damage reduction.
      */
-    tncIncomingMulti: number,
+    readonly tncIncomingMulti: number,
     /**
      * Multiplier from weapon damage.
      */
-    wdMulti: number,
+    readonly wdMulti: number,
     /**
      * Multiplier from main stat.
      */
-    mainStatMulti: number
+    readonly mainStatMulti: number
     /**
      * Like mainStatMulti, but for auto-attacks (since healers and casters use STR for autos but MND/INT for everything
      * else).
      */
-    aaStatMulti: number
-
+    readonly aaStatMulti: number
     /**
      * Trait multiplier
      */
     traitMulti(attackType: AttackType): number;
-
     /**
      * Bonus added to det multiplier for automatic direct hits
      */
-    autoDhBonus: number;
+    readonly autoDhBonus: number;
     /**
      * MP Per Tick
      */
-    mpPerTick: number;
+    readonly mpPerTick: number;
     /**
      * Like wdMulti, but for auto-attacks
      */
-    aaMulti: number;
+    readonly aaMulti: number;
     /**
      * Auto-attack delay
      */
-    aaDelay: number;
+    readonly aaDelay: number;
+
+    withModifications(modifications: StatModification): ComputedSetStats;
 }
 
 export interface MeldableMateriaSlot {
@@ -537,7 +537,7 @@ export interface JobData extends JobDataConst {
 export interface JobTrait {
     minLevel?: number,
     maxLevel?: number,
-    apply: (stats: ComputedSetStats) => void;
+    apply: (stats: RawBonusStats) => void;
 }
 
 export class GearSlotItem {

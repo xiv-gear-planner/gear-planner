@@ -3,6 +3,7 @@ import {CharacterGearSet} from "../gear";
 import {JobName, SupportedLevel} from "@xivgear/xivmath/xivconstants";
 import {AttackType, ComputedSetStats} from "@xivgear/xivmath/geartypes";
 import {ValueWithDev} from "@xivgear/xivmath/deviation";
+import {StatModification} from "@xivgear/xivmath/xivstats";
 
 /**
  * Represents the final result of a simulation run. Sim implementors should extend this type with
@@ -534,7 +535,7 @@ export type BuffEffects = {
     /**
      * Modify stats directly
      */
-    modifyStats?: (stats: ComputedSetStats) => ComputedSetStats;
+    modifyStats?: StatModification;
 };
 
 export type BuffController = {
