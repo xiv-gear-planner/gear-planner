@@ -1,9 +1,12 @@
 import {CharacterGearSet} from "@xivgear/core/gear";
 import {
-    EquipmentSet, EquippedItem,
+    EquipmentSet,
+    EquippedItem,
     EquipSlots,
     Materia,
+    MATERIA_FILL_MODES,
     MateriaAutoFillController,
+    MateriaFillMode,
     MeldableMateriaSlot,
     RawStatKey
 } from "@xivgear/xivmath/geartypes";
@@ -11,9 +14,9 @@ import {MateriaSubstat, MAX_GCD, STAT_ABBREVIATIONS, STAT_FULL_NAMES} from "@xiv
 import {closeModal, setModal} from "@xivgear/common-ui/modalcontrol";
 import {
     faIcon,
-    FieldBoundCheckBox,
+    FieldBoundDataSelect,
     FieldBoundFloatField,
-    labeledCheckbox,
+    labelFor,
     makeActionButton,
     quickElement
 } from "@xivgear/common-ui/components/util";
@@ -33,16 +36,16 @@ export class AllSlotMateriaManager extends HTMLElement {
         super();
         this.refresh();
         this.classList.add("all-slots-materia-manager");
-        this.updateColors();
+        this.updateDisplay();
     }
 
     notifyChange() {
         this.gearSet.forceRecalc();
         this.extraCallback();
-        this.updateColors();
+        this.updateDisplay();
     }
 
-    updateColors() {
+    updateDisplay() {
         const children = [...this._children];
         if (children.length === 0) {
             return;
@@ -104,6 +107,11 @@ export class AllSlotMateriaManager extends HTMLElement {
             this.classList.remove("materia-manager-equipped");
             this._children = [];
         }
+    }
+
+    refreshFull(): void {
+        this.refresh();
+        this.updateDisplay();
     }
 }
 
@@ -356,8 +364,34 @@ export class MateriaPriorityPicker extends HTMLElement {
         // this.appendChild(document.createTextNode('Materia Prio Thing Here'));
         const header = document.createElement('span');
         header.textContent = 'Mat Prio: ';
-        const cb = labeledCheckbox('Fill When Selecting Items', new FieldBoundCheckBox(prioController, 'autoFillNewItem'));
-        cb.title = 'When an item is selected, fill its materia slots according to the chosen priority.';
+        const fillModeDropdown = new FieldBoundDataSelect<MateriaAutoFillController, MateriaFillMode>(prioController, 'autoFillMode',
+            (val: MateriaFillMode) => {
+                switch (val) {
+                    case "leave_empty":
+                        return "Leave Empty";
+                    case "autofill":
+                        return "Prio Fill";
+                    case "retain_slot_else_prio":
+                        return "Keep Slot > Prio";
+                    case "retain_item_else_prio":
+                        return "Keep Item > Prio";
+                    case "retain_slot":
+                        return "Keep Slot > None";
+                    case "retain_item":
+                        return "Keep Item > None";
+                    default:
+                        return "?";
+                }
+            }, [...MATERIA_FILL_MODES]);
+        fillModeDropdown.title = 'Control what happens when an item is selected.\n' +
+            'Leave Empty: Do not fill any materia when selecting an item.\n' +
+            'Prio Fill: Fill materia slots according to the priority above.\n' +
+            'Keep Slot, else Prio: Keep the same materia as the previously item in that slot. If none equipped, use priority.\n' +
+            'Keep Item, else Prio: Remember what materia was equipped to each item. If none equipped, use priority.\n' +
+            'Keep Slot, else None: Keep the same materia as the previously item in that slot. If none equipped, leave empty.\n' +
+            'Keep Item, else None: Remember what materia was equipped to each item. If none equipped, leave empty.';
+        const fillModeLabel = labelFor("Fill Mode:", fillModeDropdown);
+
         const fillEmptyNow = makeActionButton('Fill Empty', () => prioController.fillEmpty(), 'Fill all empty materia slots according to the chosen priority.');
         const fillAllNow = makeActionButton('Fill All', () => prioController.fillAll(), 'Empty out and re-fill all materia slots according to the chosen priority.');
         const drag = new MateriaDragList(prioController);
@@ -383,7 +417,7 @@ export class MateriaPriorityPicker extends HTMLElement {
         minGcdInput.pattern = '\\d\\.\\d\\d?';
         minGcdInput.title = 'Enter the minimum desired GCD in the form x.yz.\nSkS/SpS materia will be de-prioritized once this target GCD is met.';
         minGcdInput.classList.add('min-gcd-input');
-        this.replaceChildren(header, drag, minGcdText, minGcdInput, document.createElement('br'), fillEmptyNow, fillAllNow, cb);
+        this.replaceChildren(header, drag, minGcdText, minGcdInput, document.createElement('br'), fillEmptyNow, fillAllNow, fillModeLabel, fillModeDropdown);
     }
 }
 

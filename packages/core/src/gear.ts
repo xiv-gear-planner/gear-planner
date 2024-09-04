@@ -26,17 +26,18 @@ import {
     GearSetResult,
     Materia,
     MateriaAutoFillController,
-    MateriaAutoFillPrio,
+    MateriaAutoFillPrio, MateriaMemoryExport,
     NO_SYNC_STATS,
     RawStatKey,
-    RawStats,
+    RawStats, RelicStatMemoryExport,
     RelicStats,
-    SetDisplaySettingsExport,
+    SetDisplaySettingsExport, SlotMateriaMemoryExport,
     XivCombatItem
 } from "@xivgear/xivmath/geartypes";
 import {Inactivitytimer} from "./util/inactivitytimer";
 import {addStats, finalizeStats} from "@xivgear/xivmath/xivstats";
 import {GearPlanSheet} from "./sheet";
+import {isMateriaAllowed} from "./materia/materia_utils";
 
 
 export function nonEmptyRelicStats(stats: RelicStats | undefined): boolean {
@@ -71,9 +72,70 @@ export class RelicStatMemory {
     }
 }
 
-export type RelicStatMemoryExport = {
-    [p: number]: RelicStats;
-};
+
+// TODO: this is not yet part of exports
+export class MateriaMemory {
+    // Map from equipment slot to item ID to list of materia IDs.
+    // The extra layer is needed here because you might have the same (non-unique) ring equipped in both slots.
+    private readonly memory: Map<EquipSlotKey, Map<number, number[]>> = new Map();
+
+    /**
+     * Get the remembered materia for an item
+     *
+     * If there is no mapping, returns an empty list
+     *
+     * @param equipSlot The equipment slot (needed to differentiate left/right ring)
+     * @param item The item in question
+     */
+    get(equipSlot: EquipSlotKey, item: GearItem): number[] {
+        const bySlot = this.memory.get(equipSlot);
+        if (!bySlot) {
+            return []
+        }
+        const byItem = bySlot.get(item.id);
+        return byItem ?? [];
+    }
+
+    /**
+     * Provide a new list of materia by providing an equipped item
+     *
+     * @param equipSlot The slot
+     * @param item The item which is about to be unequipped from that slot.
+     */
+    set(equipSlot: EquipSlotKey, item: EquippedItem) {
+        let bySlot: Map<number, number[]>;
+        if (this.memory.has(equipSlot)) {
+            bySlot = this.memory.get(equipSlot);
+        }
+        else {
+            bySlot = new Map();
+            this.memory.set(equipSlot, bySlot);
+        }
+        bySlot.set(item.gearItem.id, item.melds.map(meld => meld.equippedMateria?.id ?? -1));
+    }
+
+    export(): MateriaMemoryExport {
+        const out: MateriaMemoryExport = {};
+        this.memory.forEach((slotValue, slotKey) => {
+            const items: SlotMateriaMemoryExport[] = [];
+            slotValue.forEach((materiaIds, itemId) => {
+                items.push([itemId, materiaIds]);
+            });
+            out[slotKey] = items;
+        });
+        return out;
+    }
+
+    import(memory: MateriaMemoryExport) {
+        Object.entries(memory).forEach(([slotKey, itemMemory]) => {
+            const slotMap: Map<number, number[]> = new Map();
+            for (const itemMemoryElement of itemMemory) {
+                slotMap.set(itemMemoryElement[0], itemMemoryElement[1]);
+            }
+            this.memory.set(slotKey as EquipSlotKey, slotMap);
+        });
+    }
+}
 
 
 export class SetDisplaySettings {
@@ -163,6 +225,7 @@ export class CharacterGearSet {
         this._notifyListeners();
     });
     readonly relicStatMemory: RelicStatMemory = new RelicStatMemory();
+    readonly materiaMemory: MateriaMemory = new MateriaMemory();
     readonly displaySettings: SetDisplaySettings = new SetDisplaySettings();
     isSeparator: boolean = false;
 
@@ -216,20 +279,63 @@ export class CharacterGearSet {
         this.notifyListeners();
     }
 
-    setEquip(slot: EquipSlotKey, item: GearItem, materiaAutoFill?: MateriaAutoFillController) {
-        // TODO: this is also a good place to implement temporary persistent materia entry
+    setEquip(slot: EquipSlotKey, item: GearItem, materiaAutoFillController?: MateriaAutoFillController) {
         if (this.equipment[slot]?.gearItem === item) {
             return;
         }
         const old = this.equipment[slot];
-        if (old && old.relicStats) {
-            this.relicStatMemory.set(old.gearItem, old.relicStats);
+        if (old) {
+            if (old.relicStats) {
+                this.relicStatMemory.set(old.gearItem, old.relicStats);
+            }
+            if (old.melds.length > 0) {
+                this.materiaMemory.set(slot, old);
+            }
         }
         this.invalidate();
         this.equipment[slot] = this.toEquippedItem(item);
         console.log(`Set ${this.name}: slot ${slot} => ${item?.name}`);
-        if (materiaAutoFill && materiaAutoFill.autoFillNewItem) {
-            this.fillMateria(materiaAutoFill.prio, false, [slot]);
+        if (materiaAutoFillController) {
+            const mode = materiaAutoFillController.autoFillMode;
+            if (mode === 'leave_empty') {
+                // Do nothing
+            }
+            else {
+                // This var tracks what we would like to re-equip
+                let reEquip: Materia[] = [];
+                if (mode === 'retain_slot' || mode === 'retain_slot_else_prio') {
+                    if (old && old.melds.find(meld => meld.equippedMateria)) {
+                        reEquip = old.melds.map(meld => meld.equippedMateria).filter(value => value);
+                    }
+                }
+                else if (mode === 'retain_item' || mode === 'retain_item_else_prio') {
+                    const materiaIds = this.materiaMemory.get(slot, item);
+                    materiaIds.forEach((materiaId, index) => {
+                        const meld = this.equipment[slot].melds[index];
+                        if (meld) {
+                            reEquip.push(this._sheet.getMateriaById(materiaId));
+                        }
+                    });
+                }
+                if (mode === 'autofill'
+                    || (reEquip.length === 0
+                        && (mode === 'retain_item_else_prio' || mode === 'retain_slot_else_prio'))) {
+                    this.fillMateria(materiaAutoFillController.prio, false, [slot]);
+                }
+                else {
+                    const eq = this.equipment[slot];
+                    for (let i = 0; i < reEquip.length; i++) {
+                        if (i in eq.melds) {
+                            const meld = eq.melds[i];
+                            const materia = reEquip[i];
+                            if (isMateriaAllowed(materia, meld.materiaSlot)) {
+                                meld.equippedMateria = reEquip[i];
+                            }
+                        }
+                    }
+
+                }
+            }
         }
         this.notifyListeners()
     }

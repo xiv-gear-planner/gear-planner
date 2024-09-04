@@ -655,7 +655,7 @@ export class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
                 gearSet.setEquip(newSelection.dataItem.slotId, newSelection.dataItem.item, sheet.materiaAutoFillController);
                 const matMgr = slotMateriaManagers.get(newSelection.dataItem.slotId);
                 if (matMgr) {
-                    matMgr.refresh();
+                    matMgr.refreshFull();
                 }
                 const oldSelection = selectionTracker.get(newSelection.dataItem.slotId);
                 if (oldSelection) {
@@ -687,13 +687,19 @@ export class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
     }
 
     refreshMateria() {
-        this.materiaManagers.forEach(mgr => mgr.refresh());
+        this.materiaManagers.forEach(mgr => {
+            mgr.refresh();
+        });
         for (const equipSlot of EquipSlots) {
             const selection = this.selectionTracker.get(equipSlot);
             if (selection) {
                 this.refreshRowData(selection);
             }
         }
+        // setTimeout(() => mgr.updateColors());
+        this.materiaManagers.forEach(mgr => {
+            mgr.updateDisplay();
+        });
 
     }
 
@@ -855,7 +861,7 @@ export class ILvlRangePicker<ObjType> extends HTMLElement {
         });
         const upperBoundControl = new FieldBoundIntField(obj, maxField, {
             postValidators: [(ctx) => {
-                if (ctx.newValue <= (obj[minField] as number)) {
+                if (ctx.newValue < (obj[minField] as number)) {
                     ctx.failValidation('Maximum level must be greater than the minimum level');
                 }
             }]
