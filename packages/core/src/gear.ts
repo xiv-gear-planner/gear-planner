@@ -26,12 +26,12 @@ import {
     GearSetResult,
     Materia,
     MateriaAutoFillController,
-    MateriaAutoFillPrio,
+    MateriaAutoFillPrio, MateriaMemoryExport,
     NO_SYNC_STATS,
     RawStatKey,
-    RawStats,
+    RawStats, RelicStatMemoryExport,
     RelicStats,
-    SetDisplaySettingsExport,
+    SetDisplaySettingsExport, SlotMateriaMemoryExport,
     XivCombatItem
 } from "@xivgear/xivmath/geartypes";
 import {Inactivitytimer} from "./util/inactivitytimer";
@@ -71,10 +71,6 @@ export class RelicStatMemory {
         Object.entries(relicStatMemory).every(([rawKey, stats]) => this.memory.set(parseInt(rawKey), stats));
     }
 }
-
-export type RelicStatMemoryExport = {
-    [p: number]: RelicStats;
-};
 
 
 // TODO: this is not yet part of exports
@@ -127,11 +123,11 @@ export class MateriaMemory {
             });
             out[slotKey] = items;
         });
-        return Object.fromEntries(this.memory) as unknown as MateriaMemoryExport;
+        return out;
     }
 
     import(memory: MateriaMemoryExport) {
-        Object.entries(memory).every(([slotKey, itemMemory]) => {
+        Object.entries(memory).forEach(([slotKey, itemMemory]) => {
             const slotMap: Map<number, number[]> = new Map();
             for (const itemMemoryElement of itemMemory) {
                 slotMap.set(itemMemoryElement[0], itemMemoryElement[1]);
@@ -140,12 +136,6 @@ export class MateriaMemory {
         });
     }
 }
-
-export type SlotMateriaMemoryExport = [item: number, materiaIds: number[]];
-
-export type MateriaMemoryExport = {
-    [slot in EquipSlotKey]?: SlotMateriaMemoryExport[]
-};
 
 
 export class SetDisplaySettings {

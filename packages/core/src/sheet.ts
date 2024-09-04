@@ -527,6 +527,9 @@ export class GearPlanSheet {
             if (set.relicStatMemory) {
                 out.relicStatMemory = set.relicStatMemory.export();
             }
+            if (set.materiaMemory) {
+                out.materiaMemory = set.materiaMemory.export();
+            }
         }
         return out;
     }
@@ -651,6 +654,9 @@ export class GearPlanSheet {
             }
             if (importedSet.relicStatMemory) {
                 set.relicStatMemory.import(importedSet.relicStatMemory);
+            }
+            if (importedSet.materiaMemory) {
+                set.materiaMemory.import(importedSet.materiaMemory);
             }
         }
         return set;

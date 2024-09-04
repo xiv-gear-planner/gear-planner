@@ -656,6 +656,17 @@ export interface SheetExport {
     customFoods?: CustomFoodExport[],
 }
 
+export type RelicStatMemoryExport = {
+    [p: number]: RelicStats;
+};
+
+
+export type SlotMateriaMemoryExport = [item: number, materiaIds: number[]];
+
+export type MateriaMemoryExport = {
+    [slot in EquipSlotKey]?: SlotMateriaMemoryExport[]
+};
+
 export interface SheetStatsExport extends SheetExport {
     sets: SetStatsExport[],
 }
@@ -712,9 +723,13 @@ export interface SetExport {
      * When a relic is de-selected, its former stats are remembered here so that they can be recalled if the
      * relic is selected again. They keys are item IDs, and the values are {@link RelicStats}.
      */
-    relicStatMemory?: {
-        [p: number]: RelicStats
-    };
+    relicStatMemory?: RelicStatMemoryExport;
+    /**
+     * When an item is de-selected, its former materia are remembered so that they can later be automatically
+     * re-equipped based on settings. They keys are slot names (so that left/right ring can be differentiated),
+     * and the values are lists of tuples of [item ID, [materia 0, materia 1, ... materia n]]
+     */
+    materiaMemory?: MateriaMemoryExport;
     /**
      * Only for standalone use - Custom items
      */
