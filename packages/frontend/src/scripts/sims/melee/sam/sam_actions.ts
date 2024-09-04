@@ -103,6 +103,17 @@ export const MidareSetsugekka: SamGcdAbility = {
     },
 };
 
+export const KaeshiSetsugekka: SamGcdAbility = {
+    type: 'gcd',
+    name: "Kaeshi: Setsugekka",
+    id: 16486,
+    attackType: "Weaponskill",
+    potency: 640,
+    autoCrit: true,
+    gcd: 2.5,
+    cast: 0,
+};
+
 export const TendoSetsugekka: SamGcdAbility = {
     type: 'gcd',
     name: "Tendo Setsugekka",

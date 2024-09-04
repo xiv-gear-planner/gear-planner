@@ -90,7 +90,7 @@ class SAMCycleProcessor extends CycleProcessor {
         const samAbility = ability as SamAbility;
         // Log when we try to use more gauge than what we currently have
         if (samAbility.kenkiCost > this.gauge.kenkiGauge) {
-            console.warn(`[${formatDuration(this.currentTime)}] Attempted to use ${samAbility.kenkiCost} kenki with ${samAbility.name} when you only have ${this.gauge.kenkiGauge}`);
+            console.warn(`[${formatDuration(this.currentTime)}][SAM Sim] Attempted to use ${samAbility.kenkiCost} kenki with ${samAbility.name} when you only have ${this.gauge.kenkiGauge}`);
             return null;
         }
 
@@ -128,7 +128,7 @@ export class SamSim extends BaseMultiCycleSim<SamSimResult, SamSettings, SAMCycl
     displayName = samSpec.displayName;
     cycleSettings: CycleSettings = {
         useAutos: true,
-        totalTime: (6 * 60) + 30.5,
+        totalTime: (8 * 60) + 35,
         cycles: 0,
         which: 'totalTime',
     }
@@ -161,31 +161,28 @@ export class SamSim extends BaseMultiCycleSim<SamSimResult, SamSettings, SAMCycl
         const gcd = set.results.computedStats.gcdPhys(2.5, 13);
 
         if (gcd >= 2.11) {
+            console.log("[SAM Sim] Running 2.14 GCD Rotation...");
             return [{
                 name: "2.14 GCD Rotation",
                 cycleTime: 120,
                 apply(cp: SAMCycleProcessor) {
                     SlowSamRotation.Opener.forEach(action => cp.use(action));
-                    cp.remainingCycles(() => {
-                        SlowSamRotation.Loop.forEach(action => cp.use(action));
-                    });
                 }
             }];
         }
 
         if (gcd >= 2.04) {
+            console.log("[SAM Sim] Running 2.07 GCD Rotation...");
             return [{
                 name: "2.07 GCD Rotation",
                 cycleTime: 120,
                 apply(cp: SAMCycleProcessor) {
                     MidSamRotation.Opener.forEach(action => cp.use(action));
-                    cp.remainingCycles(() => {
-                        MidSamRotation.Loop.forEach(action => cp.use(action));
-                    });
                 }
             }];
         }
 
+        console.log("[SAM Sim] Running 2.00 GCD Rotation...");
         return [{
             name: "2.00 GCD Rotation",
             cycleTime: 120,
