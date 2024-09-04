@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */                                                                                                                                // TODO: get back to fixing this at some point
+/* eslint-disable @typescript-eslint/no-explicit-any */                                                                                                                                                                                                                                                                // TODO: get back to fixing this at some point
 import {
     CURRENT_MAX_LEVEL,
     defaultItemDisplaySettings,
@@ -24,6 +24,7 @@ import {
     Materia,
     MateriaAutoFillController,
     MateriaAutoFillPrio,
+    MateriaFillMode,
     MeldableMateriaSlot,
     OccGearSlotKey,
     PartyBonusAmount,
@@ -166,7 +167,8 @@ export class GearPlanSheet {
 
     // Materia autofill
     protected materiaAutoFillPrio: MateriaAutoFillPrio;
-    protected materiaAutoFillSelectedItems: boolean;
+    // protected materiaAutoFillSelectedItems: boolean;
+    protected materiaFillMode: MateriaFillMode;
 
     // Display settings
     private _showAdvancedStats: boolean;
@@ -215,7 +217,7 @@ export class GearPlanSheet {
             // Just picking a bogus value so the user understands what it is
             minGcd: importedData.mfMinGcd ?? 2.05
         };
-        this.materiaAutoFillSelectedItems = importedData.mfni ?? false;
+        this.materiaFillMode = importedData.mfm ?? 'leave_empty';
 
         if (importedData.customItems) {
             importedData.customItems.forEach(ci => {
@@ -256,11 +258,11 @@ export class GearPlanSheet {
     get materiaAutoFillController(): MateriaAutoFillController {
         const outer = this;
         return {
-            get autoFillNewItem() {
-                return outer.materiaAutoFillSelectedItems;
+            get autoFillMode() {
+                return outer.materiaFillMode;
             },
-            set autoFillNewItem(enabled: boolean) {
-                outer.materiaAutoFillSelectedItems = enabled;
+            set autoFillMode(mode: MateriaFillMode) {
+                outer.materiaFillMode = mode;
                 outer.requestSave();
             },
             get prio() {
@@ -274,6 +276,9 @@ export class GearPlanSheet {
             },
             fillEmpty(): void {
                 console.log('fillEmpty not implemented');
+            },
+            refreshOnly(): void {
+                console.log('nothing to refresh');
             }
 
         }
@@ -427,7 +432,7 @@ export class GearPlanSheet {
             race: this._race,
             sims: simsExport,
             itemDisplaySettings: this._itemDisplaySettings,
-            mfni: this.materiaAutoFillSelectedItems,
+            mfm: this.materiaFillMode,
             mfp: this.materiaAutoFillPrio.statPrio,
             mfMinGcd: this.materiaAutoFillPrio.minGcd,
             ilvlSync: this.ilvlSync,
@@ -791,7 +796,7 @@ export class GearPlanSheet {
         return [...this._dmRelevantFood.filter(item => item.ilvl >= this._itemDisplaySettings.minILvlFood && item.ilvl <= this._itemDisplaySettings.maxILvlFood), ...this._customFoods];
     }
 
-    getBestMateria(stat: MateriaSubstat, meldSlot: MeldableMateriaSlot) {
+    getBestMateria(stat: MateriaSubstat, meldSlot: MeldableMateriaSlot): Materia | undefined {
         const highGradeAllowed = meldSlot.materiaSlot.allowsHighGrade;
         const maxGradeAllowed = meldSlot.materiaSlot.maxGrade;
         const materiaFilter = (materia: Materia) => {
@@ -802,6 +807,10 @@ export class GearPlanSheet {
         };
         const sortedOptions = this.relevantMateria.filter(materiaFilter).sort((first, second) => second.primaryStatValue - first.primaryStatValue);
         return sortedOptions.length >= 1 ? sortedOptions[0] : undefined;
+    }
+
+    getMateriaById(materiaId: number): Materia | undefined {
+        return this.dataManager.materiaById(materiaId);
     }
 
     addDefaultSims() {

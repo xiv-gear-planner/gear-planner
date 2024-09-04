@@ -31,7 +31,7 @@ import {
     EquipSlots,
     GearItem,
     MateriaAutoFillController,
-    MateriaAutoFillPrio,
+    MateriaAutoFillPrio, MateriaFillMode,
     MultiplierMitStat,
     MultiplierStat,
     PartyBonusAmount,
@@ -1556,11 +1556,11 @@ export class GearPlanSheetGui extends GearPlanSheet {
         const outer = this;
         const matFillCtrl: MateriaAutoFillController = {
 
-            get autoFillNewItem() {
-                return outer.materiaAutoFillSelectedItems;
+            get autoFillMode() {
+                return outer.materiaFillMode;
             },
-            set autoFillNewItem(enabled: boolean) {
-                outer.materiaAutoFillSelectedItems = enabled;
+            set autoFillMode(mode: MateriaFillMode) {
+                outer.materiaFillMode = mode;
                 outer.requestSave();
             },
             get prio() {
@@ -1585,6 +1585,12 @@ export class GearPlanSheetGui extends GearPlanSheet {
                     if (outer._editorAreaNode instanceof GearSetEditor) {
                         outer._editorAreaNode.refreshMateria();
                     }
+                }
+            },
+            // TODO: remove?
+            refreshOnly() {
+                if (outer._editorAreaNode instanceof GearSetEditor) {
+                    // outer._editorAreaNode.refreshMateria();
                 }
             }
 

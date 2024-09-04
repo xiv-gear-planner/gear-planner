@@ -243,6 +243,7 @@ export interface ComputedSetStats extends RawStats {
      * Job modifier data
      */
     readonly jobStats: JobData,
+
     /**
      * Physical GCD time
      */
@@ -307,10 +308,12 @@ export interface ComputedSetStats extends RawStats {
      * else).
      */
     readonly aaStatMulti: number
+
     /**
      * Trait multiplier
      */
     traitMulti(attackType: AttackType): number;
+
     /**
      * Bonus added to det multiplier for automatic direct hits
      */
@@ -623,10 +626,14 @@ export interface SheetExport {
      */
     itemDisplaySettings?: ItemDisplaySettings,
     // Keeping these abbreviated so exports don't become unnecessarily large
+    // /**
+    //  * Whether to auto-fill materia into newly selected items (Materia Fill New Items).
+    //  */
+    // mfni?: boolean,
     /**
-     * Whether to auto-fill materia into newly selected items (Materia Fill New Items).
+     * What to do with materia slots on newly-selected items
      */
-    mfni?: boolean,
+    mfm?: MateriaFillMode,
     /**
      * The materia auto-fill priority
      */
@@ -768,19 +775,24 @@ export type PartyBonusAmount = 0 | 1 | 2 | 3 | 4 | 5;
 
 export interface MateriaAutoFillController {
     readonly prio: MateriaAutoFillPrio;
-    autoFillNewItem: boolean;
+    autoFillMode: MateriaFillMode;
 
     callback(): void;
 
     fillEmpty(): void;
 
     fillAll(): void;
+
+    refreshOnly(): void;
 }
 
 export interface MateriaAutoFillPrio {
     statPrio: (MateriaSubstat)[];
     minGcd: number;
 }
+
+export const MATERIA_FILL_MODES = ['leave_empty', 'autofill', 'retain_slot_else_prio', 'retain_item_else_prio', 'retain_slot', 'retain_item'] as const;
+export type MateriaFillMode = typeof MATERIA_FILL_MODES[number];
 
 export interface ItemDisplaySettings {
     minILvl: number,

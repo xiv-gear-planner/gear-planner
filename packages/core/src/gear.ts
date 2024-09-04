@@ -76,6 +76,77 @@ export type RelicStatMemoryExport = {
 };
 
 
+// TODO: this is not yet part of exports
+export class MateriaMemory {
+    // Map from equipment slot to item ID to list of materia IDs.
+    // The extra layer is needed here because you might have the same (non-unique) ring equipped in both slots.
+    private readonly memory: Map<EquipSlotKey, Map<number, number[]>> = new Map();
+
+    /**
+     * Get the remembered materia for an item
+     *
+     * If there is no mapping, returns an empty list
+     *
+     * @param equipSlot The equipment slot (needed to differentiate left/right ring)
+     * @param item The item in question
+     */
+    get(equipSlot: EquipSlotKey, item: GearItem): number[] {
+        const bySlot = this.memory.get(equipSlot);
+        if (!bySlot) {
+            return []
+        }
+        const byItem = bySlot.get(item.id);
+        return byItem ?? [];
+    }
+
+    /**
+     * Provide a new list of materia by providing an equipped item
+     *
+     * @param equipSlot The slot
+     * @param item The item which is about to be unequipped from that slot.
+     */
+    set(equipSlot: EquipSlotKey, item: EquippedItem) {
+        let bySlot: Map<number, number[]>;
+        if (this.memory.has(equipSlot)) {
+            bySlot = this.memory.get(equipSlot);
+        }
+        else {
+            bySlot = new Map();
+            this.memory.set(equipSlot, bySlot);
+        }
+        bySlot.set(item.gearItem.id, item.melds.map(meld => meld.equippedMateria?.id ?? -1));
+    }
+
+    export(): MateriaMemoryExport {
+        const out: MateriaMemoryExport = {};
+        this.memory.forEach((slotValue, slotKey) => {
+            const items: SlotMateriaMemoryExport[] = [];
+            slotValue.forEach((materiaIds, itemId) => {
+                items.push([itemId, materiaIds]);
+            });
+            out[slotKey] = items;
+        });
+        return Object.fromEntries(this.memory) as unknown as MateriaMemoryExport;
+    }
+
+    import(memory: MateriaMemoryExport) {
+        Object.entries(memory).every(([slotKey, itemMemory]) => {
+            const slotMap: Map<number, number[]> = new Map();
+            for (const itemMemoryElement of itemMemory) {
+                slotMap.set(itemMemoryElement[0], itemMemoryElement[1]);
+            }
+            this.memory.set(slotKey as EquipSlotKey, slotMap);
+        });
+    }
+}
+
+export type SlotMateriaMemoryExport = [item: number, materiaIds: number[]];
+
+export type MateriaMemoryExport = {
+    [slot in EquipSlotKey]?: SlotMateriaMemoryExport[]
+};
+
+
 export class SetDisplaySettings {
     private readonly hiddenSlots: Map<EquipSlotKey, boolean> = new Map();
 
@@ -163,6 +234,7 @@ export class CharacterGearSet {
         this._notifyListeners();
     });
     readonly relicStatMemory: RelicStatMemory = new RelicStatMemory();
+    readonly materiaMemory: MateriaMemory = new MateriaMemory();
     readonly displaySettings: SetDisplaySettings = new SetDisplaySettings();
     isSeparator: boolean = false;
 
@@ -216,20 +288,59 @@ export class CharacterGearSet {
         this.notifyListeners();
     }
 
-    setEquip(slot: EquipSlotKey, item: GearItem, materiaAutoFill?: MateriaAutoFillController) {
+    setEquip(slot: EquipSlotKey, item: GearItem, materiaAutoFillController?: MateriaAutoFillController) {
         // TODO: this is also a good place to implement temporary persistent materia entry
         if (this.equipment[slot]?.gearItem === item) {
             return;
         }
         const old = this.equipment[slot];
-        if (old && old.relicStats) {
-            this.relicStatMemory.set(old.gearItem, old.relicStats);
+        if (old) {
+            if (old.relicStats) {
+                this.relicStatMemory.set(old.gearItem, old.relicStats);
+            }
+            if (old.melds.length > 0) {
+                this.materiaMemory.set(slot, old);
+            }
         }
         this.invalidate();
         this.equipment[slot] = this.toEquippedItem(item);
         console.log(`Set ${this.name}: slot ${slot} => ${item?.name}`);
-        if (materiaAutoFill && materiaAutoFill.autoFillNewItem) {
-            this.fillMateria(materiaAutoFill.prio, false, [slot]);
+        if (materiaAutoFillController) {
+            const mode = materiaAutoFillController.autoFillMode;
+            if (mode === 'leave_empty') {
+                // Do nothing
+            }
+            // We want to apply this logic only if the old one actually had melds
+            if ((mode === 'retain_slot' || mode === 'retain_slot_else_prio') && old && old.melds.find(meld => meld.equippedMateria)) {
+                const eq = this.equipment[slot];
+                for (let i = 0; i < old.melds.length; i++) {
+                    if (i in eq.melds) {
+                        eq.melds[i].equippedMateria = old.melds[i].equippedMateria;
+                    }
+                }
+                materiaAutoFillController.refreshOnly();
+            }
+            else if (mode === 'retain_item' || mode === 'retain_item_else_prio') {
+                const materiaIds = this.materiaMemory.get(slot, item);
+                // If there's nothing to remember, then apply prio instead
+                if (mode === 'retain_item_else_prio' && materiaIds.filter(mid => mid > 0).length === 0) {
+                    this.fillMateria(materiaAutoFillController.prio, false, [slot]);
+                }
+                else {
+                    materiaIds.forEach((materiaId, index) => {
+                        const meld = this.equipment[slot].melds[index];
+                        if (meld) {
+                            meld.equippedMateria = this._sheet.getMateriaById(materiaId);
+                        }
+                    });
+                    materiaAutoFillController.refreshOnly();
+                }
+            }
+            // We only hit the retain_slot_else_prio branch here if there was no previous selection or it did
+            // not have any melds previously.
+            else if (mode === 'autofill' || mode === 'retain_slot_else_prio') {
+                this.fillMateria(materiaAutoFillController.prio, false, [slot]);
+            }
         }
         this.notifyListeners()
     }
