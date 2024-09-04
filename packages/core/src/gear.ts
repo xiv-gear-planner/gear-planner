@@ -289,7 +289,6 @@ export class CharacterGearSet {
     }
 
     setEquip(slot: EquipSlotKey, item: GearItem, materiaAutoFillController?: MateriaAutoFillController) {
-        // TODO: this is also a good place to implement temporary persistent materia entry
         if (this.equipment[slot]?.gearItem === item) {
             return;
         }
