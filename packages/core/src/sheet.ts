@@ -218,7 +218,7 @@ export class GearPlanSheet {
             // Just picking a bogus value so the user understands what it is
             minGcd: importedData.mfMinGcd ?? 2.05
         };
-        this.materiaFillMode = importedData.mfm ?? 'leave_empty';
+        this.materiaFillMode = importedData.mfm ?? 'retain_item';
 
         if (importedData.customItems) {
             importedData.customItems.forEach(ci => {

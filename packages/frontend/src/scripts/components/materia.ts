@@ -372,13 +372,13 @@ export class MateriaPriorityPicker extends HTMLElement {
                     case "autofill":
                         return "Prio Fill";
                     case "retain_slot_else_prio":
-                        return "Keep Slot, else Prio";
+                        return "Keep Slot > Prio";
                     case "retain_item_else_prio":
-                        return "Keep Item, else Prio";
+                        return "Keep Item > Prio";
                     case "retain_slot":
-                        return "Keep Slot, else None";
+                        return "Keep Slot > None";
                     case "retain_item":
-                        return "Keep Item, else None";
+                        return "Keep Item > None";
                     default:
                         return "?";
                 }
