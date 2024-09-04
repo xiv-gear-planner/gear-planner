@@ -1260,9 +1260,9 @@ table.gear-items-table, table.food-items-table {
     }
   }
 
-  &.gear-items-edit-table {
+  &.gear-items-edit-table, &.food-items-edit-table {
     tr {
-      .item-name-holder-editable {
+      .item-name-holder-editable, .food-name-holder-editable {
         display: flex;
         flex-direction: row;
 
@@ -1273,14 +1273,14 @@ table.gear-items-table, table.food-items-table {
           text-overflow: ellipsis;
         }
 
-        .remove-item-button {
+        .remove-item-button, .remove-food-button {
           display: none;
         }
       }
 
       &:hover {
         &[is-selected="true"] {
-          .remove-item-button {
+          .remove-item-button, .remove-food-button{
             background: none;
             display: block;
             .borderless-button;
@@ -1290,6 +1290,7 @@ table.gear-items-table, table.food-items-table {
 
             height: min-content;
             width: min-content;
+
             svg {
               fill: var(--fg-color);
             }
