@@ -48,6 +48,7 @@ import {CustomItem} from "./customgear/custom_item";
 import {CustomFood} from "./customgear/custom_food";
 import {IlvlSyncInfo} from "./datamanager_xivapi";
 import {toSerializableForm} from "@xivgear/xivmath/xivstats";
+import {isMateriaAllowed} from "./materia/materia_utils";
 
 export type SheetCtorArgs = ConstructorParameters<typeof GearPlanSheet>
 export type SheetContstructor<SheetType extends GearPlanSheet> = (...values: SheetCtorArgs) => SheetType;
@@ -797,13 +798,8 @@ export class GearPlanSheet {
     }
 
     getBestMateria(stat: MateriaSubstat, meldSlot: MeldableMateriaSlot): Materia | undefined {
-        const highGradeAllowed = meldSlot.materiaSlot.allowsHighGrade;
-        const maxGradeAllowed = meldSlot.materiaSlot.maxGrade;
         const materiaFilter = (materia: Materia) => {
-            if (materia.isHighGrade && !highGradeAllowed) {
-                return false;
-            }
-            return materia.materiaGrade <= maxGradeAllowed && materia.primaryStat == stat;
+            return isMateriaAllowed(materia, meldSlot.materiaSlot) && materia.primaryStat == stat;
         };
         const sortedOptions = this.relevantMateria.filter(materiaFilter).sort((first, second) => second.primaryStatValue - first.primaryStatValue);
         return sortedOptions.length >= 1 ? sortedOptions[0] : undefined;

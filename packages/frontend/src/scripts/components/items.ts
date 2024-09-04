@@ -852,7 +852,7 @@ export class ILvlRangePicker<ObjType> extends HTMLElement {
         });
         const upperBoundControl = new FieldBoundIntField(obj, maxField, {
             postValidators: [(ctx) => {
-                if (ctx.newValue <= (obj[minField] as number)) {
+                if (ctx.newValue < (obj[minField] as number)) {
                     ctx.failValidation('Maximum level must be greater than the minimum level');
                 }
             }]

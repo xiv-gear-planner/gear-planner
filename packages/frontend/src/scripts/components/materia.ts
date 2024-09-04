@@ -383,8 +383,13 @@ export class MateriaPriorityPicker extends HTMLElement {
                         return "?";
                 }
             }, [...MATERIA_FILL_MODES]);
-        // const cb = labeledCheckbox('Fill When Selecting Items', new FieldBoundCheckBox(prioController, 'autoFillNewItem'));
-        // cb.title = 'When an item is selected, fill its materia slots according to the chosen priority.';
+        fillModeDropdown.title = 'Control what happens when an item is selected.\n' +
+            'Leave Empty: Do not fill any materia when selecting an item.\n' +
+            'Prio Fill: Fill materia slots according to the priority above.\n' +
+            'Keep Slot, else Prio: Keep the same materia as the previously item in that slot. If none equipped, use priority.\n' +
+            'Keep Item, else Prio: Remember what materia was equipped to each item. If none equipped, use priority.\n' +
+            'Keep Slot, else None: Keep the same materia as the previously item in that slot. If none equipped, leave empty.\n' +
+            'Keep Item, else None: Remember what materia was equipped to each item. If none equipped, leave empty.';
         const fillModeLabel = labelFor("Fill Mode:", fillModeDropdown);
 
         const fillEmptyNow = makeActionButton('Fill Empty', () => prioController.fillEmpty(), 'Fill all empty materia slots according to the chosen priority.');

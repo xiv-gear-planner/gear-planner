@@ -37,6 +37,7 @@ import {
 import {Inactivitytimer} from "./util/inactivitytimer";
 import {addStats, finalizeStats} from "@xivgear/xivmath/xivstats";
 import {GearPlanSheet} from "./sheet";
+import {isMateriaAllowed} from "./materia/materia_utils";
 
 
 export function nonEmptyRelicStats(stats: RelicStats | undefined): boolean {
@@ -309,36 +310,41 @@ export class CharacterGearSet {
             if (mode === 'leave_empty') {
                 // Do nothing
             }
-            // We want to apply this logic only if the old one actually had melds
-            if ((mode === 'retain_slot' || mode === 'retain_slot_else_prio') && old && old.melds.find(meld => meld.equippedMateria)) {
-                const eq = this.equipment[slot];
-                for (let i = 0; i < old.melds.length; i++) {
-                    if (i in eq.melds) {
-                        eq.melds[i].equippedMateria = old.melds[i].equippedMateria;
+            else {
+                // This var tracks what we would like to re-equip
+                let reEquip: Materia[] = [];
+                if (mode === 'retain_slot' || mode === 'retain_slot_else_prio') {
+                    if (old && old.melds.find(meld => meld.equippedMateria)) {
+                        reEquip = old.melds.map(meld => meld.equippedMateria).filter(value => value);
                     }
                 }
-                materiaAutoFillController.refreshOnly();
-            }
-            else if (mode === 'retain_item' || mode === 'retain_item_else_prio') {
-                const materiaIds = this.materiaMemory.get(slot, item);
-                // If there's nothing to remember, then apply prio instead
-                if (mode === 'retain_item_else_prio' && materiaIds.filter(mid => mid > 0).length === 0) {
-                    this.fillMateria(materiaAutoFillController.prio, false, [slot]);
-                }
-                else {
+                else if (mode === 'retain_item' || mode === 'retain_item_else_prio') {
+                    const materiaIds = this.materiaMemory.get(slot, item);
                     materiaIds.forEach((materiaId, index) => {
                         const meld = this.equipment[slot].melds[index];
                         if (meld) {
-                            meld.equippedMateria = this._sheet.getMateriaById(materiaId);
+                            reEquip.push(this._sheet.getMateriaById(materiaId));
                         }
                     });
-                    materiaAutoFillController.refreshOnly();
                 }
-            }
-            // We only hit the retain_slot_else_prio branch here if there was no previous selection or it did
-            // not have any melds previously.
-            else if (mode === 'autofill' || mode === 'retain_slot_else_prio') {
-                this.fillMateria(materiaAutoFillController.prio, false, [slot]);
+                if (mode === 'autofill'
+                    || (reEquip.length === 0
+                        && (mode === 'retain_item_else_prio' || mode === 'retain_slot_else_prio'))) {
+                    this.fillMateria(materiaAutoFillController.prio, false, [slot]);
+                }
+                else {
+                    const eq = this.equipment[slot];
+                    for (let i = 0; i < reEquip.length; i++) {
+                        if (i in eq.melds) {
+                            const meld = eq.melds[i];
+                            const materia = reEquip[i];
+                            if (isMateriaAllowed(materia, meld.materiaSlot)) {
+                                meld.equippedMateria = reEquip[i];
+                            }
+                        }
+                    }
+
+                }
             }
         }
         this.notifyListeners()
