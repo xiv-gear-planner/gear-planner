@@ -214,6 +214,7 @@ export class FoodItemsTable extends CustomTable<FoodItem, FoodItem> {
     constructor(sheet: GearPlanSheet, gearSet: CharacterGearSet) {
         super();
         this.classList.add("food-items-table");
+        this.classList.add("food-items-edit-table");
         this.classList.add("hoverable");
         super.columns = [
             {
@@ -240,6 +241,14 @@ export class FoodItemsTable extends CustomTable<FoodItem, FoodItem> {
                 getter: item => {
                     return item.name;
                 },
+                renderer: (name: string, rowValue: FoodItem) => {
+                    const trashButton = quickElement('button', ['remove-food-button'], [makeTrashIcon()]);
+                    trashButton.addEventListener('click', (ev) => {
+                        gearSet.food = undefined;
+                        this.refreshSelection();
+                    });
+                    return quickElement('div', ['food-name-holder-editable'], [quickElement('span', [], [name]), trashButton]);
+                }
                 // renderer: name => {
                 //     return quickElement('div', [], [document.createTextNode(name)]);
                 // }
