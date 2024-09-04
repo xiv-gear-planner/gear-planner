@@ -217,7 +217,7 @@ export class ComputedSetStatsImpl implements ComputedSetStats {
     }
 
     traitMulti(attackType: AttackType): number {
-        return this.classJobStats.traitMulti(this.level, attackType);
+        return this.classJobStats.traitMulti?.(this.level, attackType) ?? 1.0;
     }
 
     get hp(): number {
