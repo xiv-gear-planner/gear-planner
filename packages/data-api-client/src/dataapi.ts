@@ -123,6 +123,25 @@ export interface FoodStatBonus {
   max: number;
 }
 
+export enum GearAcquisitionSource {
+  NormalRaid = "NormalRaid",
+  SavageRaid = "SavageRaid",
+  Tome = "Tome",
+  AugTome = "AugTome",
+  Crafted = "Crafted",
+  AugCrafted = "AugCrafted",
+  Relic = "Relic",
+  Dungeon = "Dungeon",
+  ExtremeTrial = "ExtremeTrial",
+  Ultimate = "Ultimate",
+  Artifact = "Artifact",
+  AllianceRaid = "AllianceRaid",
+  Criterion = "Criterion",
+  Other = "Other",
+  Custom = "Custom",
+  Unknown = "Unknown",
+}
+
 export type Icon = XivApiStruct &
   XivApiBase & {
     /** @format int32 */
@@ -143,6 +162,7 @@ export type Item = ItemBase &
     damageMagHQ?: number;
     /** @format int32 */
     damagePhysHQ?: number;
+    acquisitionSource?: GearAcquisitionSource;
   };
 
 export type ItemBase = XivApiObject &
