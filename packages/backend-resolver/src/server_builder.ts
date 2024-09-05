@@ -79,12 +79,16 @@ export function buildStatsServer() {
     // TODO: write something like this but using the new generic pathing logic
     fastifyInstance.get('/fulldata/:uuid', async (request: FastifyRequest, reply) => {
         const rawData = await getShortLink(request.params['uuid'] as string);
-        return importExportSheet(request, JSON.parse(rawData));
+        const out = await importExportSheet(request, JSON.parse(rawData));
+        reply.header("cache-control", "max-age=7200, public");
+        reply.send(out);
     });
 
     fastifyInstance.get('/fulldata/bis/:job/:expac/:sheet', async (request: FastifyRequest, reply) => {
         const rawData = await getBisSheet(request.params['job'] as JobName, request.params['expac'] as string, request.params['sheet'] as string);
-        return importExportSheet(request, JSON.parse(rawData));
+        const out =  await importExportSheet(request, JSON.parse(rawData));
+        reply.header("cache-control", "max-age=7200, public");
+        reply.send(out);
     });
     return fastifyInstance;
 }
@@ -166,7 +170,11 @@ export function buildPreviewServer() {
                 }
                 return new Response(doc.documentElement.outerHTML, {
                     status: 200,
-                    headers: {'content-type': 'text/html'},
+                    headers: {
+                        'content-type': 'text/html',
+                        // use a longer cache duration for success
+                        'cache-control': 'max-age=7200, public'
+                    },
                 });
             }
         }
@@ -177,7 +185,12 @@ export function buildPreviewServer() {
         const response = await responsePromise;
         return new Response((await responsePromise).body, {
             status: 200,
-            headers: {'content-type': response.headers.get('content-type') || 'text/html'},
+            headers: {
+                'content-type': response.headers.get('content-type') || 'text/html',
+                // TODO: should these have caching?
+                // // use a shorter cache duration for these
+                // 'cache-control': response.headers.get('cache-control') || 'max-age=120, public'
+            },
         });
     });
 
