@@ -1757,6 +1757,14 @@ export class GearPlanSheetGui extends GearPlanSheet {
         if (select && this._gearPlanTable) {
             this._gearPlanTable.selectGearSet(gearSet);
         }
+        gearSet.startCheckpoint(() => this.refreshGearEditor(gearSet));
+    }
+
+    refreshGearEditor(set: CharacterGearSet) {
+        if (this._editorItem === set) {
+            this.resetEditorArea();
+            // this.refreshToolbar();
+        }
     }
 
     refreshToolbar() {
@@ -1837,7 +1845,6 @@ export class GearPlanSheetGui extends GearPlanSheet {
         super.sheetName = name;
         setTitle(this._sheetName);
     }
-
 }
 
 export class ImportSetsModal extends BaseModal {
