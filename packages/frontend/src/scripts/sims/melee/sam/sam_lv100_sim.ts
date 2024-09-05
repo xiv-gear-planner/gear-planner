@@ -3,21 +3,24 @@ import { CycleProcessor, CycleSimResult, ExternalCycleSettings, MultiCycleSettin
 import { CycleSettings } from "@xivgear/core/sims/cycle_settings";
 import { CharacterGearSet } from "@xivgear/core/gear";
 import { formatDuration } from "@xivgear/core/util/strutils";
+import { FieldBoundCheckBox, FieldBoundFloatField, labeledCheckbox, labelFor } from "@xivgear/common-ui/components/util";
+import { STANDARD_ANIMATION_LOCK } from "@xivgear/xivmath/xivconstants";
 import { BaseMultiCycleSim } from "../../sim_processors";
 import { AbilitiesUsedTable } from "../../components/ability_used_table";
 import SAMGauge from "./sam_gauge";
-import { SAMExtraData, SamAbility } from "./sam_types";
+import { SAMExtraData, SAMRotationData, SamAbility } from "./sam_types";
 import * as SlowSamRotation from './rotations/sam_lv100_214';
 import * as MidSamRotation from './rotations/sam_lv100_207';
 import * as FastSamRotation from './rotations/sam_lv100_200';
-import { HissatsuShinten } from './sam_actions';
+import { HissatsuShinten, MeikyoShisui } from './sam_actions';
 
 export interface SamSimResult extends CycleSimResult {
 
 }
 
 export interface SamSettings extends SimSettings {
-
+    usePotion: boolean;
+    prePullMeikyo: number;
 }
 
 export interface SamSettingsExternal extends ExternalCycleSettings<SamSettings> {
@@ -137,8 +140,30 @@ export class SamSim extends BaseMultiCycleSim<SamSimResult, SamSettings, SAMCycl
         super('SAM', settings);
     }
 
-    makeDefaultSettings(): SamSettings {
-        return {};
+    protected createCycleProcessor(settings: MultiCycleSettings): SAMCycleProcessor {
+        return new SAMCycleProcessor({
+            ...settings,
+            hideCycleDividers: true
+        });
+    }
+
+    override makeDefaultSettings(): SamSettings {
+        return {
+            usePotion: true,
+            prePullMeikyo: 14,
+        };
+    }
+
+    override makeCustomConfigInterface(settings: SamSettings, _updateCallback: () => void): HTMLElement | null {
+        const configDiv = document.createElement("div");
+
+        const ppField = new FieldBoundFloatField(settings, "prePullMeikyo", { inputMode: 'number' });
+        const potCb = new FieldBoundCheckBox(settings, "usePotion");
+
+        configDiv.appendChild(labelFor("Meikyo Pre-Pull Time:", ppField));
+        configDiv.appendChild(ppField);
+        configDiv.appendChild(labeledCheckbox("Use Potion", potCb));
+        return configDiv;
     }
 
     override makeAbilityUsedTable(result: SamSimResult): AbilitiesUsedTable {
@@ -150,47 +175,72 @@ export class SamSim extends BaseMultiCycleSim<SamSimResult, SamSettings, SAMCycl
         return table;
     }
 
-    protected createCycleProcessor(settings: MultiCycleSettings): SAMCycleProcessor {
-        return new SAMCycleProcessor({
-            ...settings,
-            hideCycleDividers: true
-        });
+    static getRotationForGcd(gcd: number): SAMRotationData {
+        if (gcd >= 2.11) {
+            return {
+                name: "2.14 GCD Rotation",
+                rotation: {
+                    opener: [...SlowSamRotation.Opener],
+                    loop: [...SlowSamRotation.Loop],
+                }
+            }
+        }
+
+        if (gcd >= 2.04) {
+            return {
+                name: "2.07 GCD Rotation",
+                rotation: {
+                    opener: [...MidSamRotation.Opener],
+                    loop: [...MidSamRotation.Loop],
+                }
+            }
+        }
+
+        return {
+            name: "2.00 GCD Rotation",
+            rotation: {
+                opener: [...FastSamRotation.Opener],
+                loop: [...FastSamRotation.Loop],
+            }
+        }
     }
 
     getRotationsToSimulate(set: CharacterGearSet): Rotation<SAMCycleProcessor>[] {
         const gcd = set.results.computedStats.gcdPhys(2.5, 13);
+        const { name, rotation } = SamSim.getRotationForGcd(gcd);
+        const settings = { ...this.settings };
 
-        if (gcd >= 2.11) {
-            console.log("[SAM Sim] Running 2.14 GCD Rotation...");
-            return [{
-                name: "2.14 GCD Rotation",
-                cycleTime: 120,
-                apply(cp: SAMCycleProcessor) {
-                    SlowSamRotation.Opener.forEach(action => cp.use(action));
-                }
-            }];
-        }
-
-        if (gcd >= 2.04) {
-            console.log("[SAM Sim] Running 2.07 GCD Rotation...");
-            return [{
-                name: "2.07 GCD Rotation",
-                cycleTime: 120,
-                apply(cp: SAMCycleProcessor) {
-                    MidSamRotation.Opener.forEach(action => cp.use(action));
-                }
-            }];
-        }
-
-        console.log("[SAM Sim] Running 2.00 GCD Rotation...");
+        console.log(`[SAM Sim] Running ${name}. ..`);
         return [{
-            name: "2.00 GCD Rotation",
+            name: name,
             cycleTime: 120,
             apply(cp: SAMCycleProcessor) {
-                FastSamRotation.Opener.forEach(action => cp.use(action));
-                cp.remainingCycles(() => {
-                    FastSamRotation.Loop.forEach(action => cp.use(action));
+                // Pre-pull Meikyo timing
+                const first = rotation.opener.shift();
+                cp.use(first);
+                if (first.name === MeikyoShisui.name && settings.prePullMeikyo > STANDARD_ANIMATION_LOCK) {
+                    cp.advanceTo(settings.prePullMeikyo - STANDARD_ANIMATION_LOCK);
+                }
+
+                // Opener
+                rotation.opener.forEach(action => {
+                    if (!settings.usePotion && action.name.includes(' of Strength')) {
+                        return;
+                    }
+                    cp.use(action);
                 });
+
+                // Loop
+                if (rotation.loop?.length) {
+                    cp.remainingCycles(() => {
+                        rotation.loop.forEach(action => {
+                            if (!settings.usePotion && action.name.includes(' of Strength')) {
+                                return;
+                            }
+                            cp.use(action);
+                        });
+                    });
+                }
             }
         }];
     }

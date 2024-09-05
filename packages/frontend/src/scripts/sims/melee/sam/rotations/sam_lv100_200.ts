@@ -4,7 +4,6 @@ import * as Actions from '../sam_actions';
 
 export const Opener: SamAbility[] = [
     Actions.MeikyoShisui,
-    Actions.PrePullDelay,
     Actions.Gekko,
     Actions.Ikishoten,
     potionMaxStr,
