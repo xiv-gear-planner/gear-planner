@@ -79,12 +79,16 @@ export function buildStatsServer() {
     // TODO: write something like this but using the new generic pathing logic
     fastifyInstance.get('/fulldata/:uuid', async (request: FastifyRequest, reply) => {
         const rawData = await getShortLink(request.params['uuid'] as string);
-        return importExportSheet(request, JSON.parse(rawData));
+        const out = await importExportSheet(request, JSON.parse(rawData));
+        reply.header("cache-control", "max-age=7200, public");
+        reply.send(out);
     });
 
     fastifyInstance.get('/fulldata/bis/:job/:expac/:sheet', async (request: FastifyRequest, reply) => {
         const rawData = await getBisSheet(request.params['job'] as JobName, request.params['expac'] as string, request.params['sheet'] as string);
-        return importExportSheet(request, JSON.parse(rawData));
+        const out =  await importExportSheet(request, JSON.parse(rawData));
+        reply.header("cache-control", "max-age=7200, public");
+        reply.send(out);
     });
     return fastifyInstance;
 }
