@@ -309,7 +309,7 @@ export const Hagakure: SamOgcdAbility = {
 export const PrePullDelay: SamOgcdAbility = {
     type: 'ogcd',
     name: "Delay",
-    id: 1,
+    id: 215,
     attackType: "Ability",
     potency: null,
     animationLock: 12.8,
