@@ -84,45 +84,6 @@ class SAMCycleProcessor extends CycleProcessor {
 
         super.addAbilityUse(modified);
     }
-
-    override use(ability: Ability): AbilityUseResult {
-        if (this.currentTime >= this.totalTime) {
-            return null;
-        }
-
-        const samAbility = ability as SamAbility;
-        // Log when we try to use more gauge than what we currently have
-        if (samAbility.kenkiCost > this.gauge.kenkiGauge) {
-            console.warn(`[${formatDuration(this.currentTime)}][SAM Sim] Attempted to use ${samAbility.kenkiCost} kenki with ${samAbility.name} when you only have ${this.gauge.kenkiGauge}`);
-            return null;
-        }
-
-        // If an Ogcd isn't ready yet, but it can still be used without clipping, advance time until ready.
-        if (ability.type === 'ogcd' && this.canUseWithoutClipping(ability)) {
-            const readyAt = this.cdTracker.statusOf(ability).readyAt.absolute;
-            if (this.totalTime > readyAt) {
-                this.advanceTo(readyAt);
-            }
-        }
-
-        // Update gauge from the ability itself
-        if (samAbility.updateGauge !== undefined) {
-            // Prevent gauge updates showing incorrectly on autos before this ability
-            if (ability.type === 'gcd' && this.nextGcdTime > this.currentTime) {
-                this.advanceTo(this.nextGcdTime);
-            }
-            samAbility.updateGauge(this.gauge);
-        }
-
-        const usedAbility = super.use(ability);
-
-        // Use up remaining Kenki between GCDs before the rotation ends
-        if (ability.type === 'gcd' && this.shouldUseShinten()) {
-            this.use(HissatsuShinten);
-        }
-
-        return usedAbility;
-    }
 }
 
 export class SamSim extends BaseMultiCycleSim<SamSimResult, SamSettings, SAMCycleProcessor> {
@@ -175,6 +136,50 @@ export class SamSim extends BaseMultiCycleSim<SamSimResult, SamSettings, SAMCycl
         return table;
     }
 
+    use(cp: SAMCycleProcessor, ability: Ability): AbilityUseResult {
+        if (cp.currentTime >= cp.totalTime) {
+            return null;
+        }
+
+        const samAbility = ability as SamAbility;
+        // Log when we try to use more gauge than what we currently have
+        if (samAbility.kenkiCost > cp.gauge.kenkiGauge) {
+            console.warn(`[${formatDuration(cp.currentTime)}][SAM Sim] Attempted to use ${samAbility.kenkiCost} kenki with ${samAbility.name} when you only have ${cp.gauge.kenkiGauge}`);
+            return null;
+        }
+
+        // If an Ogcd isn't ready yet, but it can still be used without clipping, advance time until ready.
+        if (ability.type === 'ogcd' && cp.canUseWithoutClipping(ability)) {
+            const readyAt = cp.cdTracker.statusOf(ability).readyAt.absolute;
+            if (cp.totalTime > readyAt) {
+                cp.advanceTo(readyAt);
+            }
+        }
+
+        // Only use potion if enabled in settings
+        if (!this.settings.usePotion && ability.name.includes(' of Strength')) {
+            return null;
+        }
+
+        // Update gauge from the ability itself
+        if (samAbility.updateGauge !== undefined) {
+            // Prevent gauge updates showing incorrectly on autos before this ability
+            if (ability.type === 'gcd' && cp.nextGcdTime > cp.currentTime) {
+                cp.advanceTo(cp.nextGcdTime);
+            }
+            samAbility.updateGauge(cp.gauge);
+        }
+
+        const abilityUseResult = cp.use(ability);
+
+        // Use up remaining Kenki between GCDs before the rotation ends
+        if (ability.type === 'gcd' && cp.shouldUseShinten()) {
+            cp.use(HissatsuShinten);
+        }
+
+        return abilityUseResult;
+    }
+
     static getRotationForGcd(gcd: number): SAMRotationData {
         if (gcd >= 2.11) {
             return {
@@ -209,6 +214,7 @@ export class SamSim extends BaseMultiCycleSim<SamSimResult, SamSettings, SAMCycl
         const gcd = set.results.computedStats.gcdPhys(2.5, 13);
         const { name, rotation } = SamSim.getRotationForGcd(gcd);
         const settings = { ...this.settings };
+        const outer = this;
 
         console.log(`[SAM Sim] Running ${name}. ..`);
         return [{
@@ -223,22 +229,12 @@ export class SamSim extends BaseMultiCycleSim<SamSimResult, SamSettings, SAMCycl
                 }
 
                 // Opener
-                rotation.opener.forEach(action => {
-                    if (!settings.usePotion && action.name.includes(' of Strength')) {
-                        return;
-                    }
-                    cp.use(action);
-                });
+                rotation.opener.forEach(action => outer.use(cp, action));
 
                 // Loop
                 if (rotation.loop?.length) {
                     cp.remainingCycles(() => {
-                        rotation.loop.forEach(action => {
-                            if (!settings.usePotion && action.name.includes(' of Strength')) {
-                                return;
-                            }
-                            cp.use(action);
-                        });
+                        rotation.loop.forEach(action => outer.use(cp, action));
                     });
                 }
             }
