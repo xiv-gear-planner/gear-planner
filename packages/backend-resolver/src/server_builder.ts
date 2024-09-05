@@ -166,7 +166,11 @@ export function buildPreviewServer() {
                 }
                 return new Response(doc.documentElement.outerHTML, {
                     status: 200,
-                    headers: {'content-type': 'text/html'},
+                    headers: {
+                        'content-type': 'text/html',
+                        // use a longer cache duration for success
+                        'cache-control': 'max-age=7200, public'
+                    },
                 });
             }
         }
@@ -177,7 +181,12 @@ export function buildPreviewServer() {
         const response = await responsePromise;
         return new Response((await responsePromise).body, {
             status: 200,
-            headers: {'content-type': response.headers.get('content-type') || 'text/html'},
+            headers: {
+                'content-type': response.headers.get('content-type') || 'text/html',
+                // TODO: should these have caching?
+                // // use a shorter cache duration for these
+                // 'cache-control': response.headers.get('cache-control') || 'max-age=120, public'
+            },
         });
     });
 
