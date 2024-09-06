@@ -216,7 +216,7 @@ export class SamSim extends BaseMultiCycleSim<SamSimResult, SamSettings, SAMCycl
         const settings = { ...this.settings };
         const outer = this;
 
-        console.log(`[SAM Sim] Running ${name}. ..`);
+        console.log(`[SAM Sim] Running ${name}...`);
         return [{
             name: name,
             cycleTime: 120,
