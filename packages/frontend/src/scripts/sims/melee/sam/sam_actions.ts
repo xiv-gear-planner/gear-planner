@@ -305,12 +305,3 @@ export const Hagakure: SamOgcdAbility = {
         gauge.spendSen();
     },
 };
-
-export const PrePullDelay: SamOgcdAbility = {
-    type: 'ogcd',
-    name: "Delay",
-    id: 215,
-    attackType: "Ability",
-    potency: null,
-    animationLock: 12.8,
-};
