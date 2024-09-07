@@ -37,7 +37,7 @@ describe("ComputedSetStats", () => {
         }), {}, level, getLevelStats(level), job, fakeSheet.classJobStats, 0);
         expect(stats.aaDelay).to.eq(3.12);
         expect(stats.aaMulti).to.eq(187.2);
-        expect(stats.aaStatMulti).to.eq(0.76);
+        expect(stats.aaStatMulti).to.eq(0.77);
         expect(stats.autoDhBonus).to.eq(0.013);
         expect(stats.crit).to.eq(2988);
         expect(stats.critChance).to.eq(0.234);
@@ -108,7 +108,7 @@ describe("ComputedSetStats", () => {
             }, level, getLevelStats(level), job, fakeSheet.classJobStats, 0);
         expect(stats.aaDelay).to.eq(3.12);
         expect(stats.aaMulti).to.eq(187.2);
-        expect(stats.aaStatMulti).to.eq(0.76);
+        expect(stats.aaStatMulti).to.eq(0.77);
         expect(stats.autoDhBonus).to.eq(0.013);
         expect(stats.crit).to.eq(2988 + 132);
         expect(stats.critChance).to.eq(0.244);
@@ -179,7 +179,7 @@ describe("ComputedSetStats", () => {
             }, level, getLevelStats(level), job, fakeSheet.classJobStats, 5);
         expect(stats.aaDelay).to.eq(3.12);
         expect(stats.aaMulti).to.eq(187.2);
-        expect(stats.aaStatMulti).to.eq(0.86);
+        expect(stats.aaStatMulti).to.eq(0.87);
         expect(stats.autoDhBonus).to.eq(0.013);
         expect(stats.crit).to.eq(2988 + 132);
         expect(stats.critChance).to.eq(0.244);

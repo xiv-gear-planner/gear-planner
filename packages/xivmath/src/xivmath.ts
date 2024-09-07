@@ -33,6 +33,18 @@ export function fl(input: number) {
     }
 }
 
+export function trunc(input: number) {
+    if (input > 0) {
+        return fl(input);
+    }
+    else if (input < 0) {
+        return -fl(-input);
+    }
+    else {
+        return 0;
+    }
+}
+
 /**
  * Floor a number to the given precision.
  *
@@ -178,7 +190,7 @@ export function sksTickMulti(levelStats: LevelStats, sks: number) {
  */
 export function mainStatMulti(levelStats: LevelStats, jobStats: JobData, mainstat: number) {
     const apMod = mainStatPowerMod(levelStats, jobStats);
-    return Math.max(0, (fl(apMod * (mainstat - levelStats.baseMainStat) / levelStats.baseMainStat) + 100) / 100);
+    return Math.max(0, (trunc(apMod * (mainstat - levelStats.baseMainStat) / levelStats.baseMainStat) + 100) / 100);
 }
 
 /**
