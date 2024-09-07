@@ -140,7 +140,7 @@ export function detDmg(levelStats: LevelStats, det: number) {
  */
 export function wdMulti(levelStats: LevelStats, jobStats: JobData, wd: number) {
     const mainStatJobMod = jobStats.jobStatMultipliers[jobStats.mainStat];
-    return fl(levelStats.baseMainStat * mainStatJobMod / 1000 + wd);
+    return fl(levelStats.baseMainStat * mainStatJobMod / 1000 + wd) / 100;
 }
 
 /**
@@ -321,13 +321,13 @@ export function baseDamageFull(stats: ComputedSetStats, potency: number, attackT
     else {
         const basePotency = flp(2, potency * mainStatMulti);
         // Factor in determination and auto DH multiplier
-        const afterDet = flp(2, basePotency * effectiveDetMulti);
+        const afterDet = fl(basePotency * effectiveDetMulti);
         // Factor in Tenacity multiplier
         const afterTnc = flp(2, afterDet * tncMulti);
         const afterSpd = flp(3, afterTnc * spdMulti);
         // Factor in weapon damage multiplier
         // noinspection UnnecessaryLocalVariableJS
-        const afterWeaponDamage = fl(afterSpd * wdMulti);
+        const afterWeaponDamage = flp(3, afterSpd * wdMulti);
         stage1potency = afterWeaponDamage;
     }
     // const d5 = fl(fl(afterWeaponDamage * critMulti) * DH_MULT)
@@ -336,7 +336,7 @@ export function baseDamageFull(stats: ComputedSetStats, potency: number, attackT
     // Factor in auto DH multiplier
     const afterAutoDh = autoDH ? fl(afterAutoCrit * (1 + (dhRate * (dhMulti - 1)))) : afterAutoCrit;
     // Factor in trait multiplier
-    const finalDamage = fl(fl(afterAutoDh * traitMulti) / 100);
+    const finalDamage = fl(fl(afterAutoDh * traitMulti));
     // console.log([basePotency, afterDet, afterTnc, afterWeaponDamage, d5, afterAutoCrit, afterAutoDh, afterTrait]);
 
     if (finalDamage <= 1) {
