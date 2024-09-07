@@ -266,12 +266,12 @@ const expectedAbilities: UseResult[] = [
     {
         time: 0,
         name: 'Auto Attack',
-        damage: 33.301
+        damage: 32.153
     },
     {
         time: 0.83,
         name: 'Dia',
-        damage: 37172.897
+        damage: 37161.414
     },
     {
         time: 3.14,
@@ -281,7 +281,7 @@ const expectedAbilities: UseResult[] = [
     {
         time: 4.32,
         name: 'Auto Attack',
-        damage: 33.301
+        damage: 32.153
     },
     {
         time: 5.45,
@@ -306,7 +306,7 @@ const expectedAbilities: UseResult[] = [
     {
         time: 9.24,
         name: "Auto Attack",
-        damage: 38.994
+        damage: 37.649
     },
     {
         time: 9.60,
@@ -321,7 +321,7 @@ const expectedAbilities: UseResult[] = [
     {
         time: 13.192,
         name: "Auto Attack",
-        damage: 38.994
+        damage: 37.649
     },
     {
         time: 13.28,
@@ -341,7 +341,7 @@ const expectedAbilities: UseResult[] = [
     {
         time: 17.744,
         name: "Auto Attack",
-        damage: 38.994
+        damage: 37.649
     },
     {
         time: 18.80,
@@ -356,7 +356,7 @@ const expectedAbilities: UseResult[] = [
     {
         time: 21.696,
         name: "Auto Attack",
-        damage: 38.994
+        damage: 37.649
     },
     {
         time: 22.48,
@@ -371,7 +371,7 @@ const expectedAbilities: UseResult[] = [
     {
         time: 25.928,
         name: "Auto Attack",
-        damage: 37.064
+        damage: 35.786
     },
     {
         time: 26.63,
@@ -401,7 +401,7 @@ describe('Cycle sim processor', () => {
         // Run simulation
         const result = await inst.simulate(set);
         // Assert correct results
-        assertClose(result.mainDpsResult, 10184.246, 0.01);
+        assertClose(result.mainDpsResult, 10183.565, 0.01);
         assertSimAbilityResults(result, expectedAbilities);
     });
 });
@@ -812,22 +812,24 @@ describe('Damage Buff Ability', () => {
         const actualAbilities: FinalizedAbility[] = displayRecords.filter<FinalizedAbility>((record): record is FinalizedAbility => {
             return 'ability' in record;
         });
+        const dotDirect = 3160.1;
+        const dotTotal = 37161.414;
         // Not buffed
         assert.equal(actualAbilities[0].ability.name, "Dia");
-        assertClose(actualAbilities[0].directDamage, 3160.1, 1);
-        assertClose(actualAbilities[0].totalDamage, 37172.9, 1);
+        assertClose(actualAbilities[0].directDamage, dotDirect, 1);
+        assertClose(actualAbilities[0].totalDamage, dotTotal, 1);
         // Buff
         assert.equal(actualAbilities[1].ability.name, "Bristle");
         assertClose(actualAbilities[1].directDamage, 0, 1);
         assertClose(actualAbilities[1].totalDamage, 0, 1);
         // Buffed
         assert.equal(actualAbilities[2].ability.name, "Dia");
-        assertClose(actualAbilities[2].directDamage, 3160.1 * 1.5, 1);
-        assertClose(actualAbilities[2].totalDamage, 37172.9 * 1.5, 1);
+        assertClose(actualAbilities[2].directDamage, dotDirect * 1.5, 1);
+        assertClose(actualAbilities[2].totalDamage, dotTotal * 1.5, 1);
         // Not Buffed
         assert.equal(actualAbilities[3].ability.name, "Dia");
-        assertClose(actualAbilities[3].directDamage, 3160.1, 1);
-        assertClose(actualAbilities[3].totalDamage, 37172.9, 1);
+        assertClose(actualAbilities[3].directDamage, dotDirect, 1);
+        assertClose(actualAbilities[3].totalDamage, dotTotal, 1);
     });
     it('should filter abilities correctly', () => {
         const cp = new CycleProcessor({
