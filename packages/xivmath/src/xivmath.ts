@@ -326,6 +326,7 @@ export function baseDamageFull(stats: ComputedSetStats, potency: number, attackT
         const basePotency = fl(apDet * fl(wdMulti * potency));
         // Factor in Tenacity multiplier
         const afterTnc = fl(basePotency * tncMulti);
+        // Factor in sps/sks for dots
         // noinspection UnnecessaryLocalVariableJS
         const afterSpd = fl(afterTnc * spdMulti);
         stage1potency = afterSpd;
@@ -336,11 +337,12 @@ export function baseDamageFull(stats: ComputedSetStats, potency: number, attackT
         const afterDet = fl(basePotency * effectiveDetMulti);
         // Factor in Tenacity multiplier
         const afterTnc = fl(afterDet * tncMulti);
-        const afterSpd = fl(afterTnc * spdMulti);
         // Factor in weapon damage multiplier
+        const afterWeaponDamage = fl(afterTnc * wdMulti);
+        // Factor in sps/sks for dots
         // noinspection UnnecessaryLocalVariableJS
-        const afterWeaponDamage = fl(afterSpd * wdMulti);
-        stage1potency = afterWeaponDamage;
+        const afterSpd = fl(afterWeaponDamage * spdMulti);
+        stage1potency = afterSpd;
     }
     // const d5 = fl(fl(afterWeaponDamage * critMulti) * DH_MULT)
     // Factor in auto crit multiplier
