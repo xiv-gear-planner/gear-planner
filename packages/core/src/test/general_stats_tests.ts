@@ -223,6 +223,8 @@ describe("Dmg/100p for known values", () => {
     const loadPromiseSCH = fakeSheetSCH.load();
     const fakeSheetWAR = HEADLESS_SHEET_PROVIDER.fromScratch("unused", "unused", 'WAR', level, undefined);
     const loadPromiseWAR = fakeSheetWAR.load();
+    const fakeSheetGNB = HEADLESS_SHEET_PROVIDER.fromScratch("unused", "unused", 'GNB', level, undefined);
+    const loadPromiseGNB = fakeSheetGNB.load();
     it('SMN test 1', async () => {
         await loadPromiseSMN;
         const stats = finalizeStats(new RawStats({
@@ -486,5 +488,243 @@ describe("Dmg/100p for known values", () => {
         expect(stats.wdMag).to.eq(0);
         expect(stats.wdPhys).to.eq(0);
         expect(stats.wdMulti).to.eq(0.50);
+    });
+
+    it('GNB Test 1', async () => {
+        await loadPromiseGNB;
+        const stats = finalizeStats(new RawStats({
+                hp: 0,
+                vitality: 4119,
+                strength: 1371,
+                dexterity: 440,
+                intelligence: 1038,
+                mind: 2060,
+                piety: 564,
+                crit: 2988,
+                dhit: 690,
+                determination: 987,
+                tenacity: 420,
+                skillspeed: 420,
+                spellspeed: 852,
+                wdPhys: 79,
+                wdMag: 79,
+                weaponDelay: 3.12
+            }),
+            // Pineapple Orange Jelly
+            {}, level, getLevelStats(level), 'GNB', fakeSheetGNB.classJobStats, 0);
+        expect(stats.determination).to.eq(987);
+        expect(stats.detMulti).to.eq(1.027);
+        expect(stats.skillspeed).to.eq(420);
+        expect(stats.sksDotMulti).to.eq(1.0);
+        expect(stats.mainStatMulti).to.eq(5.02);
+        expect(stats.wdMag).to.eq(79);
+        expect(stats.wdPhys).to.eq(79);
+        expect(stats.wdMulti).to.eq(1.23);
+        const dmg100p = baseDamageFull(stats, 60, 'Weaponskill', false, false, true);
+        expect(dmg100p.expected).to.eq(381);
+    });
+
+    it('GNB Test 2', async () => {
+        await loadPromiseGNB;
+        const stats = finalizeStats(new RawStats({
+                hp: 0,
+                vitality: 4119,
+                strength: 1371,
+                dexterity: 440,
+                intelligence: 1038,
+                mind: 2060,
+                piety: 564,
+                crit: 2988,
+                dhit: 690,
+                determination: 987,
+                tenacity: 420,
+                skillspeed: 456,
+                spellspeed: 852,
+                wdPhys: 79,
+                wdMag: 79,
+                weaponDelay: 3.12
+            }),
+            // Pineapple Orange Jelly
+            {}, level, getLevelStats(level), 'GNB', fakeSheetGNB.classJobStats, 0);
+        expect(stats.determination).to.eq(987);
+        expect(stats.detMulti).to.eq(1.027);
+        expect(stats.skillspeed).to.eq(456);
+        expect(stats.sksDotMulti).to.eq(1.001);
+        expect(stats.mainStatMulti).to.eq(5.02);
+        expect(stats.wdMag).to.eq(79);
+        expect(stats.wdPhys).to.eq(79);
+        expect(stats.wdMulti).to.eq(1.23);
+        const dmg100p = baseDamageFull(stats, 60, 'Weaponskill', false, false, true);
+        expect(dmg100p.expected).to.eq(381);
+    });
+
+    it('GNB Test 3', async () => {
+        await loadPromiseGNB;
+        const stats = finalizeStats(new RawStats({
+                hp: 0,
+                vitality: 4119,
+                strength: 1371,
+                dexterity: 440,
+                intelligence: 1038,
+                mind: 2060,
+                piety: 564,
+                crit: 2988,
+                dhit: 690,
+                determination: 987,
+                tenacity: 420,
+                skillspeed: 492,
+                spellspeed: 852,
+                wdPhys: 79,
+                wdMag: 79,
+                weaponDelay: 3.12
+            }),
+            // Pineapple Orange Jelly
+            {}, level, getLevelStats(level), 'GNB', fakeSheetGNB.classJobStats, 0);
+        expect(stats.determination).to.eq(987);
+        expect(stats.detMulti).to.eq(1.027);
+        expect(stats.skillspeed).to.eq(492);
+        expect(stats.sksDotMulti).to.eq(1.003);
+        expect(stats.mainStatMulti).to.eq(5.02);
+        expect(stats.wdMag).to.eq(79);
+        expect(stats.wdPhys).to.eq(79);
+        expect(stats.wdMulti).to.eq(1.23);
+        const dmg100p = baseDamageFull(stats, 60, 'Weaponskill', false, false, true);
+        expect(dmg100p.expected).to.eq(382);
+    });
+
+    it('GNB Test 4', async () => {
+        await loadPromiseGNB;
+        const stats = finalizeStats(new RawStats({
+                hp: 0,
+                vitality: 4119,
+                strength: 1371,
+                dexterity: 440,
+                intelligence: 1038,
+                mind: 2060,
+                piety: 564,
+                crit: 2988,
+                dhit: 690,
+                determination: 987,
+                tenacity: 420,
+                skillspeed: 564,
+                spellspeed: 852,
+                wdPhys: 79,
+                wdMag: 79,
+                weaponDelay: 3.12
+            }),
+            // Pineapple Orange Jelly
+            {}, level, getLevelStats(level), 'GNB', fakeSheetGNB.classJobStats, 0);
+        expect(stats.determination).to.eq(987);
+        expect(stats.detMulti).to.eq(1.027);
+        expect(stats.skillspeed).to.eq(564);
+        expect(stats.sksDotMulti).to.eq(1.006);
+        expect(stats.mainStatMulti).to.eq(5.02);
+        expect(stats.wdMag).to.eq(79);
+        expect(stats.wdPhys).to.eq(79);
+        expect(stats.wdMulti).to.eq(1.23);
+        const dmg100p = baseDamageFull(stats, 60, 'Weaponskill', false, false, true);
+        expect(dmg100p.expected).to.eq(383);
+    });
+
+    it('GNB Test 5', async () => {
+        await loadPromiseGNB;
+        const stats = finalizeStats(new RawStats({
+                hp: 0,
+                vitality: 4119,
+                strength: 1606,
+                dexterity: 440,
+                intelligence: 1038,
+                mind: 2060,
+                piety: 564,
+                crit: 2988,
+                dhit: 690,
+                determination: 1113,
+                tenacity: 420,
+                skillspeed: 456,
+                spellspeed: 852,
+                wdPhys: 79,
+                wdMag: 79,
+                weaponDelay: 3.12
+            }),
+            // Pineapple Orange Jelly
+            {}, level, getLevelStats(level), 'GNB', fakeSheetGNB.classJobStats, 0);
+        expect(stats.determination).to.eq(1113);
+        expect(stats.detMulti).to.eq(1.033);
+        expect(stats.skillspeed).to.eq(456);
+        expect(stats.sksDotMulti).to.eq(1.001);
+        expect(stats.mainStatMulti).to.eq(6.03);
+        expect(stats.wdMag).to.eq(79);
+        expect(stats.wdPhys).to.eq(79);
+        expect(stats.wdMulti).to.eq(1.23);
+        const dmg100p = baseDamageFull(stats, 60, 'Weaponskill', false, false, true);
+        expect(dmg100p.expected).to.eq(458);
+    });
+
+    it('GNB Test 6', async () => {
+        await loadPromiseGNB;
+        const stats = finalizeStats(new RawStats({
+                hp: 0,
+                vitality: 4119,
+                strength: 1606,
+                dexterity: 440,
+                intelligence: 1038,
+                mind: 2060,
+                piety: 564,
+                crit: 2988,
+                dhit: 690,
+                determination: 1113,
+                tenacity: 420,
+                skillspeed: 600,
+                spellspeed: 852,
+                wdPhys: 79,
+                wdMag: 79,
+                weaponDelay: 3.12
+            }),
+            // Pineapple Orange Jelly
+            {}, level, getLevelStats(level), 'GNB', fakeSheetGNB.classJobStats, 0);
+        expect(stats.determination).to.eq(1113);
+        expect(stats.detMulti).to.eq(1.033);
+        expect(stats.skillspeed).to.eq(600);
+        expect(stats.sksDotMulti).to.eq(1.008);
+        expect(stats.mainStatMulti).to.eq(6.03);
+        expect(stats.wdMag).to.eq(79);
+        expect(stats.wdPhys).to.eq(79);
+        expect(stats.wdMulti).to.eq(1.23);
+        const dmg100p = baseDamageFull(stats, 60, 'Weaponskill', false, false, true);
+        expect(dmg100p.expected).to.eq(461);
+    });
+
+    it('GNB Test 7', async () => {
+        await loadPromiseGNB;
+        const stats = finalizeStats(new RawStats({
+                hp: 0,
+                vitality: 4119,
+                strength: 2620,
+                dexterity: 440,
+                intelligence: 1038,
+                mind: 2060,
+                piety: 564,
+                crit: 2988,
+                dhit: 690,
+                determination: 1667,
+                tenacity: 420,
+                skillspeed: 492,
+                spellspeed: 852,
+                wdPhys: 132,
+                wdMag: 132,
+                weaponDelay: 3.12
+            }),
+            // Pineapple Orange Jelly
+            {}, level, getLevelStats(level), 'GNB', fakeSheetGNB.classJobStats, 0);
+        expect(stats.determination).to.eq(1667);
+        expect(stats.detMulti).to.eq(1.061);
+        expect(stats.skillspeed).to.eq(492);
+        expect(stats.sksDotMulti).to.eq(1.003);
+        expect(stats.mainStatMulti).to.eq(10.41);
+        expect(stats.wdMag).to.eq(132);
+        expect(stats.wdPhys).to.eq(132);
+        expect(stats.wdMulti).to.eq(1.76);
+        const dmg100p = baseDamageFull(stats, 60, 'Weaponskill', false, false, true);
+        expect(dmg100p.expected).to.eq(1169);
     });
 });
