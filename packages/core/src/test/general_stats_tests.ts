@@ -219,6 +219,8 @@ describe("Dmg/100p for known values", () => {
     // https://docs.google.com/spreadsheets/d/1yy11-m_iWaKs8zccrjunLELEGHCDSE3YNQkhx-E_tkk/edit?gid=1658055958#gid=1658055958
     const fakeSheetSMN = HEADLESS_SHEET_PROVIDER.fromScratch("unused", "unused", 'SMN', level, undefined);
     const loadPromiseSMN = fakeSheetSMN.load();
+    const fakeSheetSCH = HEADLESS_SHEET_PROVIDER.fromScratch("unused", "unused", 'SCH', level, undefined);
+    const loadPromiseSCH = fakeSheetSCH.load();
     const fakeSheetWAR = HEADLESS_SHEET_PROVIDER.fromScratch("unused", "unused", 'WAR', level, undefined);
     const loadPromiseWAR = fakeSheetWAR.load();
     it('SMN test 1', async () => {
@@ -348,5 +350,141 @@ describe("Dmg/100p for known values", () => {
         expect(stats.wdMag).to.eq(141);
         expect(stats.wdPhys).to.eq(141);
         expect(stats.wdMulti).to.eq(1.87);
+    });
+
+    it('SCH test 0', async () => {
+        await loadPromiseSCH;
+        const stats = finalizeStats(new RawStats({
+                hp: 0,
+                vitality: 4119,
+                strength: fl(440 * 0.9),
+                dexterity: 440,
+                intelligence: 1038,
+                mind: 2060,
+                piety: 564,
+                crit: 2988,
+                dhit: 690,
+                determination: 440,
+                tenacity: 420,
+                skillspeed: 420,
+                spellspeed: 420,
+                wdPhys: 0,
+                wdMag: 0,
+                weaponDelay: 3.12
+            }),
+            // Pineapple Orange Jelly
+            {}, level, getLevelStats(level), 'SCH', fakeSheetSCH.classJobStats, 0);
+        const dmg100p = baseDamageFull(stats, 75, 'Spell', false, false, true);
+        expect(dmg100p.expected).to.eq(467);
+        expect(stats.determination).to.eq(440);
+        expect(stats.detMulti).to.eq(1.0);
+        expect(stats.spellspeed).to.eq(420);
+        expect(stats.spsDotMulti).to.eq(1.0);
+        expect(stats.mainStatMulti).to.eq(9.72);
+        expect(stats.wdMag).to.eq(0);
+        expect(stats.wdPhys).to.eq(0);
+        expect(stats.wdMulti).to.eq(0.50);
+    });
+
+    it('SCH test 1', async () => {
+        await loadPromiseSCH;
+        const stats = finalizeStats(new RawStats({
+                hp: 0,
+                vitality: 4119,
+                strength: fl(440 * 0.9),
+                dexterity: 440,
+                intelligence: 1038,
+                mind: 2060,
+                piety: 564,
+                crit: 2988,
+                dhit: 690,
+                determination: 440,
+                tenacity: 420,
+                skillspeed: 420,
+                spellspeed: 780,
+                wdPhys: 0,
+                wdMag: 0,
+                weaponDelay: 3.12
+            }),
+            // Pineapple Orange Jelly
+            {}, level, getLevelStats(level), 'SCH', fakeSheetSCH.classJobStats, 0);
+        const dmg100p = baseDamageFull(stats, 75, 'Spell', false, false, true);
+        expect(dmg100p.expected).to.eq(474);
+        expect(stats.determination).to.eq(440);
+        expect(stats.detMulti).to.eq(1.0);
+        expect(stats.spellspeed).to.eq(780);
+        expect(stats.spsDotMulti).to.eq(1.016);
+        expect(stats.mainStatMulti).to.eq(9.72);
+        expect(stats.wdMag).to.eq(0);
+        expect(stats.wdPhys).to.eq(0);
+        expect(stats.wdMulti).to.eq(0.50);
+    });
+
+    it('SCH test 2', async () => {
+        await loadPromiseSCH;
+        const stats = finalizeStats(new RawStats({
+                hp: 0,
+                vitality: 4119,
+                strength: fl(440 * 0.9),
+                dexterity: 440,
+                intelligence: 1038,
+                mind: 2060,
+                piety: 564,
+                crit: 2988,
+                dhit: 690,
+                determination: 440,
+                tenacity: 420,
+                skillspeed: 420,
+                spellspeed: 816,
+                wdPhys: 0,
+                wdMag: 0,
+                weaponDelay: 3.12
+            }),
+            // Pineapple Orange Jelly
+            {}, level, getLevelStats(level), 'SCH', fakeSheetSCH.classJobStats, 0);
+        const dmg100p = baseDamageFull(stats, 75, 'Spell', false, false, true);
+        expect(dmg100p.expected).to.eq(475);
+        expect(stats.determination).to.eq(440);
+        expect(stats.detMulti).to.eq(1.0);
+        expect(stats.spellspeed).to.eq(816);
+        expect(stats.spsDotMulti).to.eq(1.018);
+        expect(stats.mainStatMulti).to.eq(9.72);
+        expect(stats.wdMag).to.eq(0);
+        expect(stats.wdPhys).to.eq(0);
+        expect(stats.wdMulti).to.eq(0.50);
+    });
+
+    it('SCH test 3', async () => {
+        await loadPromiseSCH;
+        const stats = finalizeStats(new RawStats({
+                hp: 0,
+                vitality: 4119,
+                strength: fl(440 * 0.9),
+                dexterity: 440,
+                intelligence: 1038,
+                mind: 2060,
+                piety: 564,
+                crit: 2988,
+                dhit: 690,
+                determination: 440,
+                tenacity: 420,
+                skillspeed: 420,
+                spellspeed: 852,
+                wdPhys: 0,
+                wdMag: 0,
+                weaponDelay: 3.12
+            }),
+            // Pineapple Orange Jelly
+            {}, level, getLevelStats(level), 'SCH', fakeSheetSCH.classJobStats, 0);
+        const dmg100p = baseDamageFull(stats, 75, 'Spell', false, false, true);
+        expect(dmg100p.expected).to.eq(476);
+        expect(stats.determination).to.eq(440);
+        expect(stats.detMulti).to.eq(1.0);
+        expect(stats.spellspeed).to.eq(852);
+        expect(stats.spsDotMulti).to.eq(1.02);
+        expect(stats.mainStatMulti).to.eq(9.72);
+        expect(stats.wdMag).to.eq(0);
+        expect(stats.wdPhys).to.eq(0);
+        expect(stats.wdMulti).to.eq(0.50);
     });
 });

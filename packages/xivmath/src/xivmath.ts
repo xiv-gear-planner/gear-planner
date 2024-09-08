@@ -323,23 +323,23 @@ export function baseDamageFull(stats: ComputedSetStats, potency: number, attackT
     if (usesCasterDamageFormula(stats, attackType)) {
         // https://github.com/Amarantine-xiv/Amas-FF14-Combat-Sim_source/blob/main/ama_xiv_combat_sim/simulator/calcs/compute_damage_utils.py#L130
         const apDet = flp(2, mainStatMulti * effectiveDetMulti);
-        const basePotency = fl(apDet * flp(2, wdMulti * potency));
+        const basePotency = fl(apDet * fl(wdMulti * potency));
         // Factor in Tenacity multiplier
-        const afterTnc = flp(2, basePotency * tncMulti);
+        const afterTnc = fl(basePotency * tncMulti);
         // noinspection UnnecessaryLocalVariableJS
-        const afterSpd = flp(3, afterTnc * spdMulti);
+        const afterSpd = fl(afterTnc * spdMulti);
         stage1potency = afterSpd;
     }
     else {
-        const basePotency = flp(2, potency * mainStatMulti);
+        const basePotency = fl(potency * mainStatMulti);
         // Factor in determination and auto DH multiplier
         const afterDet = fl(basePotency * effectiveDetMulti);
         // Factor in Tenacity multiplier
-        const afterTnc = flp(2, afterDet * tncMulti);
-        const afterSpd = flp(3, afterTnc * spdMulti);
+        const afterTnc = fl(afterDet * tncMulti);
+        const afterSpd = fl(afterTnc * spdMulti);
         // Factor in weapon damage multiplier
         // noinspection UnnecessaryLocalVariableJS
-        const afterWeaponDamage = flp(3, afterSpd * wdMulti);
+        const afterWeaponDamage = fl(afterSpd * wdMulti);
         stage1potency = afterWeaponDamage;
     }
     // const d5 = fl(fl(afterWeaponDamage * critMulti) * DH_MULT)
@@ -347,8 +347,8 @@ export function baseDamageFull(stats: ComputedSetStats, potency: number, attackT
     const afterAutoCrit = autoCrit ? fl(stage1potency * (1 + (critRate * (critMulti - 1)))) : stage1potency;
     // Factor in auto DH multiplier
     const afterAutoDh = autoDH ? fl(afterAutoCrit * (1 + (dhRate * (dhMulti - 1)))) : afterAutoCrit;
-    // Factor in trait multiplier
-    const finalDamage = fl(fl(afterAutoDh * traitMulti));
+    // Factor in trait multiplier, as well as the 1 extra damage if potency is less than 100
+    const finalDamage = fl(fl(afterAutoDh * traitMulti)) + ((potency < 100) ? 1 : 0);
     // console.log([basePotency, afterDet, afterTnc, afterWeaponDamage, d5, afterAutoCrit, afterAutoDh, afterTrait]);
 
     if (finalDamage <= 1) {

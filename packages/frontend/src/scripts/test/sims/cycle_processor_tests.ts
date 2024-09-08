@@ -261,32 +261,32 @@ const expectedAbilities: UseResult[] = [
     {
         time: -1.48,
         name: 'Glare',
-        damage: 15074.935
+        damage: 15057.71
     },
     {
         time: 0,
         name: 'Auto Attack',
-        damage: 32.153
+        damage: 33.301
     },
     {
         time: 0.83,
         name: 'Dia',
-        damage: 37161.414
+        damage: 37048.88
     },
     {
         time: 3.14,
         name: 'Glare',
-        damage: 15074.935
+        damage: 15057.71
     },
     {
         time: 4.32,
         name: 'Auto Attack',
-        damage: 32.153
+        damage: 33.301
     },
     {
         time: 5.45,
         name: 'Glare',
-        damage: 16652.989
+        damage: 16633.961
     },
     {
         time: 6.93,
@@ -296,7 +296,7 @@ const expectedAbilities: UseResult[] = [
     {
         time: 7.76,
         name: 'Glare',
-        damage: 17652.168
+        damage: 17631.999
     },
     {
         time: 8.96,
@@ -306,82 +306,82 @@ const expectedAbilities: UseResult[] = [
     {
         time: 9.24,
         name: "Auto Attack",
-        damage: 37.649
+        damage: 38.994
     },
     {
         time: 9.60,
         name: "Glare",
-        damage: 17652.168
+        damage: 17631.999
     },
     {
         time: 11.44,
         name: "Glare",
-        damage: 17652.168
+        damage: 17631.999
     },
     {
         time: 13.192,
         name: "Auto Attack",
-        damage: 37.649
+        damage: 38.994
     },
     {
         time: 13.28,
         name: "Glare",
-        damage: 17652.168
+        damage: 17631.999
     },
     {
         time: 15.12,
         name: "Glare",
-        damage: 17652.168
+        damage: 17631.999
     },
     {
         time: 16.96,
         name: "Glare",
-        damage: 17652.168
+        damage: 17631.999
     },
     {
         time: 17.744,
         name: "Auto Attack",
-        damage: 37.649
+        damage: 38.994
     },
     {
         time: 18.80,
         name: "Glare",
-        damage: 17652.168
+        damage: 17631.999
     },
     {
         time: 20.64,
         name: "Glare",
-        damage: 17652.168
+        damage: 17631.999
     },
     {
         time: 21.696,
         name: "Auto Attack",
-        damage: 37.649
+        damage: 38.994
     },
     {
         time: 22.48,
         name: "Glare",
-        damage: 17652.168
+        damage: 17631.999
     },
     {
         time: 24.32,
         name: "Glare",
-        damage: 17652.168
+        damage: 17631.999
     },
     {
         time: 25.928,
         name: "Auto Attack",
-        damage: 35.786
+        damage: 37.064
     },
     {
         time: 26.63,
         name: "Glare",
-        damage: 15074.935
+        damage: 15057.71
     },
     {
         time: 28.94,
         name: "Glare",
-        damage: 6917.503
+        damage: 6909.599
     },
 ];
 
@@ -401,7 +401,7 @@ describe('Cycle sim processor', () => {
         // Run simulation
         const result = await inst.simulate(set);
         // Assert correct results
-        assertClose(result.mainDpsResult, 10183.565, 0.01);
+        assertClose(result.mainDpsResult, 10170.769, 0.01);
         assertSimAbilityResults(result, expectedAbilities);
     });
 });
@@ -648,17 +648,17 @@ describe('Potency Buff Ability', () => {
         });
         // Not swifted
         assert.equal(actualAbilities[0].ability.name, "Glare");
-        assertClose(actualAbilities[0].directDamage, 15074, 1);
+        const glareDmg = 15057.710352;
+        assertClose(actualAbilities[0].directDamage, glareDmg, 1);
         // Swiftcast
         assert.equal(actualAbilities[1].ability.name, "Pot Buff Ability");
         assertClose(actualAbilities[1].directDamage, 0, 1);
         // Swifted
         assert.equal(actualAbilities[2].ability.name, "Glare");
-        assertClose(actualAbilities[2].directDamage, 15074 * (310 + 100) / 310, 2);
+        assertClose(actualAbilities[2].directDamage, glareDmg * (310 + 100) / 310, 6);
         // Not swifted
         assert.equal(actualAbilities[3].ability.name, "Glare");
-        assertClose(actualAbilities[3].directDamage, 15074, 1);
-
+        assertClose(actualAbilities[3].directDamage, glareDmg, 1);
     });
 });
 
@@ -750,16 +750,16 @@ describe('Damage Buff Ability', () => {
         });
         // Not buffed
         assert.equal(actualAbilities[0].ability.name, "Glare");
-        assertClose(actualAbilities[0].directDamage, 15074, 1);
+        assertClose(actualAbilities[0].directDamage, 15057.71, 1);
         // Buff
         assert.equal(actualAbilities[1].ability.name, "Bristle");
         assertClose(actualAbilities[1].directDamage, 0, 1);
         // Buffed
         assert.equal(actualAbilities[2].ability.name, "Glare");
-        assertClose(actualAbilities[2].directDamage, 15074 * 1.5, 2);
+        assertClose(actualAbilities[2].directDamage, 15057.71 * 1.5, 2);
         // Not buffed
         assert.equal(actualAbilities[3].ability.name, "Glare");
-        assertClose(actualAbilities[3].directDamage, 15074, 1);
+        assertClose(actualAbilities[3].directDamage, 15057.71, 1);
 
     });
     it('should increase the damage once, other style', () => {
@@ -780,16 +780,16 @@ describe('Damage Buff Ability', () => {
         });
         // Not buffed
         assert.equal(actualAbilities[0].ability.name, "Glare");
-        assertClose(actualAbilities[0].directDamage, 15074, 2);
+        assertClose(actualAbilities[0].directDamage, 15057.71, 2);
         // Buff
         assert.equal(actualAbilities[1].ability.name, "Bristle2");
         assertClose(actualAbilities[1].directDamage, 0, 1);
         // Buffed
         assert.equal(actualAbilities[2].ability.name, "Glare");
-        assertClose(actualAbilities[2].directDamage, 15074 * 1.5, 2);
+        assertClose(actualAbilities[2].directDamage, 15057.71 * 1.5, 2);
         // Not Buffed
         assert.equal(actualAbilities[3].ability.name, "Glare");
-        assertClose(actualAbilities[3].directDamage, 15074, 1);
+        assertClose(actualAbilities[3].directDamage, 15057.71, 1);
     });
     it('should multiply direct damage and dots by default', () => {
         const cp = new CycleProcessor({
@@ -812,8 +812,8 @@ describe('Damage Buff Ability', () => {
         const actualAbilities: FinalizedAbility[] = displayRecords.filter<FinalizedAbility>((record): record is FinalizedAbility => {
             return 'ability' in record;
         });
-        const dotDirect = 3160.1;
-        const dotTotal = 37161.414;
+        const dotDirect = 3150.95;
+        const dotTotal = 37048.88;
         // Not buffed
         assert.equal(actualAbilities[0].ability.name, "Dia");
         assertClose(actualAbilities[0].directDamage, dotDirect, 1);
@@ -851,19 +851,19 @@ describe('Damage Buff Ability', () => {
         });
         // Not buffed
         assert.equal(actualAbilities[0].ability.name, "Glare");
-        assertClose(actualAbilities[0].directDamage, 15074, 1);
+        assertClose(actualAbilities[0].directDamage, 15057.71, 1);
         // Buff
         assert.equal(actualAbilities[1].ability.name, "Bristle");
         assertClose(actualAbilities[1].directDamage, 0, 1);
         // Filtered, not buffed
         assert.equal(actualAbilities[2].ability.name, "WepSkill");
-        assertClose(actualAbilities[2].directDamage, 15074, 1);
+        assertClose(actualAbilities[2].directDamage, 15057.71, 1);
         // Buffed
         assert.equal(actualAbilities[3].ability.name, "Glare");
-        assertClose(actualAbilities[3].directDamage, 15074 * 1.5, 2);
+        assertClose(actualAbilities[3].directDamage, 15057.71 * 1.5, 2);
         // Not buffed
         assert.equal(actualAbilities[4].ability.name, "Glare");
-        assertClose(actualAbilities[4].directDamage, 15074, 1);
+        assertClose(actualAbilities[4].directDamage, 15057.71, 1);
     });
 });
 
