@@ -85,7 +85,7 @@ const noSeparators = (set: CharacterGearSet) => !set.isSeparator;
 const isSafari: boolean = (() => {
     const ua = navigator.userAgent.toLowerCase();
     return ua.includes('safari') && !ua.includes('chrome');
-})() || true;
+})();
 
 function mainStatCol(sheet: GearPlanSheet, stat: RawStatKey): CustomColumnSpec<CharacterGearSet, MultiplierStat> {
     return {
