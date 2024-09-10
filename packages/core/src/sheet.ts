@@ -771,6 +771,10 @@ export class GearPlanSheet {
         return this._relevantMateria;
     }
 
+    getRelevantMateriaFor(item: GearItem) {
+        return this._relevantMateria.filter(mat => mat.ilvl <= item.ilvl);
+    }
+
     get partyBonus(): PartyBonusAmount {
         return this._partyBonus;
     }

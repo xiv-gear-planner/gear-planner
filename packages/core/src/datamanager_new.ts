@@ -734,12 +734,13 @@ export function processRawMateriaInfo(data: MateriaType): Materia[] {
         out.push({
             name: itemName,
             id: itemId,
-            iconUrl: new URL(data.item[i].icon.pngIconUrl),
+            iconUrl: new URL(itemData.icon.pngIconUrl),
             stats: stats,
             primaryStat: stat,
             primaryStatValue: stats[stat],
             materiaGrade: grade,
-            isHighGrade: (grade % 2) === 0
+            isHighGrade: (grade % 2) === 0,
+            ilvl: itemData.ilvl
         });
     }
     return out;

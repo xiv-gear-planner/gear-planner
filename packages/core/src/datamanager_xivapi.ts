@@ -45,7 +45,7 @@ const itemColsExtra = [
 ] as const;
 export type XivApiItemDataRaw = XivApiResultSingle<typeof itemColumns, typeof itemColsExtra>;
 // 'Item' is only there because I need to figure out how to keep the type checking happy
-const matCols = ['Item[].Name', 'Item[].Icon', 'BaseParam.nonexistent', 'Value'] as const;
+const matCols = ['Item[].Name', 'Item[].Icon', 'Item[].LevelItem@as(raw)', 'BaseParam.nonexistent', 'Value'] as const;
 // TODO: make a better way of doing this. matColsTrn represents the columns that are transitively included by way of
 // including a sub-column.
 const matColsTrn = ['Item', 'BaseParam'] as const;
@@ -805,7 +805,8 @@ export function processRawMateriaInfo(data: XivApiMateriaDataRaw): Materia[] {
             primaryStat: stat,
             primaryStatValue: stats[stat],
             materiaGrade: grade,
-            isHighGrade: (grade % 2) === 0
+            isHighGrade: (grade % 2) === 0,
+            ilvl: itemFields['LevelItem'] ?? 0
         });
     }
     return out;
