@@ -643,11 +643,19 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
             processed.sort((cellA, cellB) => (cellA[1] - cellB[1]));
             const worst = processed[0];
             const best = processed[processed.length - 1];
-            const worstValue = worst[1];
+            let worstValue = worst[1];
             const bestValue = best[1];
-            const delta = bestValue - worstValue;
+            let delta = bestValue - worstValue;
             if (delta === 0) {
                 return;
+            }
+            if (bestValue > 0) {
+                // If less than 0.5% difference
+                const minDeltaRelative = 0.001;
+                if (delta / bestValue < minDeltaRelative) {
+                    delta = bestValue * minDeltaRelative;
+                    worstValue = bestValue - delta;
+                }
             }
             for (const [cell, value] of processed) {
                 cell.classList.add('sim-column-valid');
