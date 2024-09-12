@@ -63,8 +63,8 @@ async function retryFetch(...params: Parameters<typeof fetch>): Promise<Response
 }
 
 const apiClient = new DataApiClient<never>({
-    baseUrl: "https://data.xivgear.app",
-    // baseUrl: "http://localhost:8085",
+    // baseUrl: "https://data.xivgear.app",
+    baseUrl: "http://localhost:8085",
     customFetch: retryFetch
 });
 
@@ -548,7 +548,8 @@ export class DataApiGearInfo implements GearItem {
                 // TODO: figure out grade automatically
                 this.materiaSlots.push({
                     maxGrade: MATERIA_LEVEL_MAX_NORMAL,
-                    allowsHighGrade: true
+                    allowsHighGrade: true,
+                    ilvl: data.ilvl
                 });
             }
             if (overmeld) {
@@ -556,12 +557,14 @@ export class DataApiGearInfo implements GearItem {
                 // small materia.
                 this.materiaSlots.push({
                     maxGrade: MATERIA_LEVEL_MAX_NORMAL,
-                    allowsHighGrade: true
+                    allowsHighGrade: true,
+                    ilvl: data.ilvl
                 });
                 for (let i = this.materiaSlots.length; i < MATERIA_SLOTS_MAX; i++) {
                     this.materiaSlots.push({
                         maxGrade: MATERIA_LEVEL_MAX_OVERMELD,
-                        allowsHighGrade: false
+                        allowsHighGrade: false,
+                        ilvl: data.ilvl
                     });
                 }
             }
@@ -740,7 +743,7 @@ export function processRawMateriaInfo(data: MateriaType): Materia[] {
             primaryStatValue: stats[stat],
             materiaGrade: grade,
             isHighGrade: (grade % 2) === 0,
-            ilvl: itemData.ilvl
+            ilvl: itemData.ilvl ?? 0
         });
     }
     return out;

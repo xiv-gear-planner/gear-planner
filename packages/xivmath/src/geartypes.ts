@@ -570,7 +570,8 @@ export class EquipmentSet {
 
 export interface MateriaSlot {
     maxGrade: number,
-    allowsHighGrade: boolean
+    allowsHighGrade: boolean,
+    ilvl: number
 }
 
 

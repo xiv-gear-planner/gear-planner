@@ -557,7 +557,8 @@ export class XivApiGearInfo implements GearItem {
                 // TODO: figure out grade automatically
                 this.materiaSlots.push({
                     maxGrade: MATERIA_LEVEL_MAX_NORMAL,
-                    allowsHighGrade: true
+                    allowsHighGrade: true,
+                    ilvl: this.ilvl
                 });
             }
             if (overmeld) {
@@ -565,12 +566,14 @@ export class XivApiGearInfo implements GearItem {
                 // small materia.
                 this.materiaSlots.push({
                     maxGrade: MATERIA_LEVEL_MAX_NORMAL,
-                    allowsHighGrade: true
+                    allowsHighGrade: true,
+                    ilvl: this.ilvl
                 });
                 for (let i = this.materiaSlots.length; i < MATERIA_SLOTS_MAX; i++) {
                     this.materiaSlots.push({
                         maxGrade: MATERIA_LEVEL_MAX_OVERMELD,
-                        allowsHighGrade: false
+                        allowsHighGrade: false,
+                        ilvl: this.ilvl
                     });
                 }
             }

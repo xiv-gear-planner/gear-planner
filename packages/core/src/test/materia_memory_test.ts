@@ -10,7 +10,8 @@ describe("Materia Memory", () => {
         } as GearItem;
         const slot: MateriaSlot = {
             allowsHighGrade: true,
-            maxGrade: 12
+            maxGrade: 12,
+            ilvl: 999
         };
         const mat1: Materia = {
             iconUrl: undefined,
@@ -22,7 +23,8 @@ describe("Materia Memory", () => {
             primaryStatValue: 50,
             stats: new RawStats({
                 determination: 50
-            })
+            }),
+            ilvl: 690
         };
         const mat2: Materia = {
             iconUrl: undefined,
@@ -34,7 +36,8 @@ describe("Materia Memory", () => {
             primaryStatValue: 10,
             stats: new RawStats({
                 dhit: 10
-            })
+            }),
+            ilvl: 690
         };
         const slots1: MeldableMateriaSlot[] = [
             {
@@ -78,5 +81,5 @@ describe("Materia Memory", () => {
         expect(imported.get("RingLeft", eq1.gearItem)).to.deep.equal([mat1.id, mat2.id]);
         expect(imported.get("RingRight", eq2.gearItem)).to.deep.equal([-1, mat1.id]);
 
-    })
+    });
 });

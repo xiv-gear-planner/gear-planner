@@ -149,13 +149,15 @@ export class CustomItem implements GearItem {
         for (let i = 0; i < this._data.largeMateriaSlots; i++) {
             out.push({
                 maxGrade: this._data.materiaGrade,
-                allowsHighGrade: true
+                allowsHighGrade: true,
+                ilvl: this.ilvl
             });
         }
         for (let i = 0; i < this._data.smallMateriaSlots; i++) {
             out.push({
                 maxGrade: this._data.materiaGrade - 1,
-                allowsHighGrade: false
+                allowsHighGrade: false,
+                ilvl: this.ilvl
             });
         }
         return out;
