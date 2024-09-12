@@ -223,7 +223,11 @@ export interface Materia extends XivCombatItem {
      * If the materia cannot be overmelded into all of the slots,
      * i.e. true for 6/8/10, false for 5/7/9 etc.
      */
-    isHighGrade: boolean
+    isHighGrade: boolean,
+    /**
+     * Materia can only be equipped to gear where the gear's ilvl >= the materia' ilvl.
+     */
+    ilvl: number
 }
 
 export interface ComputedSetStats extends RawStats {
@@ -566,7 +570,8 @@ export class EquipmentSet {
 
 export interface MateriaSlot {
     maxGrade: number,
-    allowsHighGrade: boolean
+    allowsHighGrade: boolean,
+    ilvl: number
 }
 
 

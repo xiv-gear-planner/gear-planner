@@ -255,6 +255,8 @@ export type MateriaItem = XivApiObject &
   XivApiBase & {
     name?: string;
     icon?: Icon;
+    /** @format int32 */
+    ilvl?: number;
   };
 
 export interface XivApiBase {
