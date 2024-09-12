@@ -182,6 +182,7 @@ describe('New Datamanager', () => {
         eq(food.bonuses.determination.percentage, 10);
     }).timeout(20_000);
     describe('syncs levels correctly', () => {
+
         // Test cases from https://github.com/xiv-gear-planner/gear-planner/issues/317
         describe('syncs correctly in a lvl 90 i665 instance', () => {
             const dm = new NewApiDataManager('SGE', 90, 665);
