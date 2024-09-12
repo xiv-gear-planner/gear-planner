@@ -513,16 +513,21 @@ export class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
                     return quickElement('div', ['item-name-holder-editable'], [quickElement('span', [], [shortenItemName(name)]), trashButton]);
                 },
                 colStyler: (value, colElement, internalElement, rowValue) => {
+                    let title: string;
                     if (rowValue.item.acquisitionType === 'custom') {
-                        colElement.title = `${value} (Custom Item)`;
+                        title = `${value} (Custom Item)`;
                     }
                     else {
-                        colElement.title = `${value} (${rowValue.item.id})`;
+                        title = `${value} (${rowValue.item.id})`;
                         const formattedAcqSrc = formatAcquisitionSource(rowValue.item.acquisitionType);
                         if (formattedAcqSrc) {
-                            colElement.title += `\nAcquired from: ${formattedAcqSrc}`;
+                            title += `\nAcquired from: ${formattedAcqSrc}`;
                         }
                     }
+                    if (rowValue.item.isSyncedDown) {
+                        title += `\nSynced to ${rowValue.item.syncedDownTo}`;
+                    }
+                    colElement.title = title;
                 }
             },
             {

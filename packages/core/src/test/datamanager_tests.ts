@@ -4,6 +4,7 @@ import * as assert from "assert";
 import {RawStats} from "@xivgear/xivmath/geartypes";
 import {NewApiDataManager} from "../datamanager_new";
 import {XivApiDataManager} from "../datamanager_xivapi";
+import {expect} from "chai";
 
 function eq<T>(actual: T, expected: T) {
     assert.equal(actual, expected);
@@ -180,4 +181,137 @@ describe('New Datamanager', () => {
         eq(food.bonuses.determination.max, 73);
         eq(food.bonuses.determination.percentage, 10);
     }).timeout(20_000);
+    describe('syncs levels correctly', () => {
+        // Test cases from https://github.com/xiv-gear-planner/gear-planner/issues/317
+        describe('syncs correctly in a lvl 90 i665 instance', () => {
+            const dm = new NewApiDataManager('SGE', 90, 665);
+            before(async () => {
+                await dm.loadData();
+            });
+            it('should not downsync a lvl90 i665 weapon', () => {
+                // Wings of Ascension
+                const item = dm.itemById(40182);
+                expect(item.isSyncedDown).to.eq(false);
+            });
+            it('should not downsync a lvl90 i660 chest', () => {
+                // Augmented Credendum Surcoat of Healing
+                const item = dm.itemById(40136);
+                expect(item.isSyncedDown).to.eq(false);
+            });
+            it('should downsync a lvl94 i663 weapon to 660', () => {
+                // Cobalt Tungsten Pendulums
+                const item = dm.itemById(42162);
+                expect(item.isSyncedDown).to.eq(true);
+                expect(item.syncedDownTo).to.eq(660);
+            });
+            it('should downsync a lvl94 i663 chest to 660', () => {
+                // Sarcenet Chestwrap of Healing
+                const item = dm.itemById(42192);
+                expect(item.isSyncedDown).to.eq(true);
+                expect(item.syncedDownTo).to.eq(660);
+            });
+            it('should downsync a lvl95 i666 weapon to 665', () => {
+                // Skydeep Milpreves
+                const item = dm.itemById(42239);
+                expect(item.isSyncedDown).to.eq(true);
+                expect(item.syncedDownTo).to.eq(665);
+            });
+            it('should downsync a lvl95 i666 chest to 665', () => {
+                // Skydeep Robe of Healing
+                const item = dm.itemById(42269);
+                expect(item.isSyncedDown).to.eq(true);
+                expect(item.syncedDownTo).to.eq(665);
+            });
+            it('should downsync a lvl96 i669 weapon to 665', () => {
+                // White Gold Syrinxi
+                const item = dm.itemById(42316);
+                expect(item.isSyncedDown).to.eq(true);
+                expect(item.syncedDownTo).to.eq(665);
+            });
+            it('should downsync a lvl96 i669 chest to 665', () => {
+                // White Gold Visor of Healing
+                const item = dm.itemById(42345);
+                expect(item.isSyncedDown).to.eq(true);
+                expect(item.syncedDownTo).to.eq(665);
+            });
+            it('should downsync a lvl100 i735 weapon to 665', () => {
+                // Dark Horse Champion's Milpreves
+                const item = dm.itemById(43119);
+                expect(item.isSyncedDown).to.eq(true);
+                expect(item.syncedDownTo).to.eq(665);
+            });
+            it('should downsync a lvl100 i730 chest to 665', () => {
+                // Dark Horse Champion's Hat of Healing
+                const item = dm.itemById(43148);
+                expect(item.isSyncedDown).to.eq(true);
+                expect(item.syncedDownTo).to.eq(665);
+            });
+
+        });
+        describe('syncs correctly in a lvl 90 no-isync instance', () => {
+            const dm = new NewApiDataManager('SGE', 90);
+            before(async () => {
+                await dm.loadData();
+            });
+            it('should not downsync a lvl90 i665 weapon', () => {
+                // Wings of Ascension
+                const item = dm.itemById(40182);
+                expect(item.isSyncedDown).to.eq(false);
+            });
+            it('should not downsync a lvl90 i660 chest', () => {
+                // Augmented Credendum Surcoat of Healing
+                const item = dm.itemById(40136);
+                expect(item.isSyncedDown).to.eq(false);
+            });
+            it('should downsync a lvl94 i663 weapon to 660', () => {
+                // Cobalt Tungsten Pendulums
+                const item = dm.itemById(42162);
+                expect(item.isSyncedDown).to.eq(true);
+                expect(item.syncedDownTo).to.eq(660);
+            });
+            it('should downsync a lvl94 i663 chest to 660', () => {
+                // Sarcenet Chestwrap of Healing
+                const item = dm.itemById(42192);
+                expect(item.isSyncedDown).to.eq(true);
+                expect(item.syncedDownTo).to.eq(660);
+            });
+            it('should downsync a lvl95 i666 weapon to 660', () => {
+                // Skydeep Milpreves
+                const item = dm.itemById(42239);
+                expect(item.isSyncedDown).to.eq(true);
+                expect(item.syncedDownTo).to.eq(660);
+            });
+            it('should downsync a lvl95 i666 chest to 660', () => {
+                // Skydeep Robe of Healing
+                const item = dm.itemById(42269);
+                expect(item.isSyncedDown).to.eq(true);
+                expect(item.syncedDownTo).to.eq(660);
+            });
+            it('should downsync a lvl96 i669 weapon to 660', () => {
+                // White Gold Syrinxi
+                const item = dm.itemById(42316);
+                expect(item.isSyncedDown).to.eq(true);
+                expect(item.syncedDownTo).to.eq(660);
+            });
+            it('should downsync a lvl96 i669 chest to 660', () => {
+                // White Gold Visor of Healing
+                const item = dm.itemById(42345);
+                expect(item.isSyncedDown).to.eq(true);
+                expect(item.syncedDownTo).to.eq(660);
+            });
+            it('should downsync a lvl100 i735 weapon to 660', () => {
+                // Dark Horse Champion's Milpreves
+                const item = dm.itemById(43119);
+                expect(item.isSyncedDown).to.eq(true);
+                expect(item.syncedDownTo).to.eq(660);
+            });
+            it('should downsync a lvl100 i730 chest to 660', () => {
+                // Dark Horse Champion's Hat of Healing
+                const item = dm.itemById(43148);
+                expect(item.isSyncedDown).to.eq(true);
+                expect(item.syncedDownTo).to.eq(660);
+            });
+
+        });
+    })
 });

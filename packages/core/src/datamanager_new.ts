@@ -103,6 +103,8 @@ export class NewApiDataManager implements DataManager {
     private _baseParams: BaseParamMap;
     private _isyncPromise: Promise<Map<number, IlvlSyncInfo>>;
     private _isyncData: Map<number, IlvlSyncInfo>;
+    private _maxIlvlForEquipLevel: Map<number, number>;
+    private _maxIlvlForEquipLevelWeapon: Map<number, number>;
 
     private queryBaseParams() {
         return this.apiClient.baseParams.baseParams()
@@ -264,39 +266,65 @@ export class NewApiDataManager implements DataManager {
                         try {
                             return Object.keys(i.baseParamMapHQ).length > 0
                                 || (i.classJobs.includes('BLU') && i.equipSlotCategory.mainHand === 1); // Don't filter out BLU weapons
-                        } catch (e) {
+                        }
+                        catch (e) {
                             console.log(e);
                             throw e
                         }
                     })
                     .map(i => new DataApiGearInfo(i));
+                this._maxIlvlForEquipLevel = new Map();
+                this._maxIlvlForEquipLevelWeapon = new Map();
+                this._allItems.forEach(item => {
+                    // Track maximum ilvl seen for a particular equip level
+                    if (item.displayGearSlotName === 'Weapon' || item.displayGearSlotName === 'OffHand') {
+                        this._maxIlvlForEquipLevelWeapon.set(item.equipLvl, Math.max(item.ilvl, this._maxIlvlForEquipLevelWeapon.get(item.equipLvl) ?? 0));
+                    }
+                    else {
+                        this._maxIlvlForEquipLevel.set(item.equipLvl, Math.max(item.ilvl, this._maxIlvlForEquipLevel.get(item.equipLvl) ?? 0));
+                    }
+                })
                 // TODO: put up better error
             }, (e) => console.error(e));
         const statsPromise = Promise.all([itemsPromise, baseParamPromise]).then(() => {
             console.log(`Finishing item calculations for ${this._allItems.length} items`);
             this._allItems.forEach(item => {
                 const itemIlvlPromise = this.getIlvlSyncData(baseParamPromise, item.ilvl);
-                if (this._ilvlSync) {
-                    const ilvlSyncPromise = this.getIlvlSyncData(baseParamPromise, this._ilvlSync);
-                    extraPromises.push(Promise.all([itemIlvlPromise, ilvlSyncPromise]).then(([native, sync]) => {
-                        item.applyIlvlData(native, sync);
-                        if (item.isCustomRelic) {
-                            console.debug('Applying relic model');
-                            item.relicStatModel = getRelicStatModelFor(item, this._baseParams, this._classJob);
-                            console.debug('Applied', item.relicStatModel)
-                        }
-                    }));
+                let isyncLvl: number | null;
+                // Downsync by ilvl
+                if (this._ilvlSync && this._ilvlSync < item.ilvl) {
+                    isyncLvl = this._ilvlSync;
+                }
+                // Downsync by equip ilvl
+                else if (this._level < item.equipLvl) {
+                    const maxWeapLvl = this._maxIlvlForEquipLevelWeapon.get(this._level);
+                    const maxOtherLvl = this._maxIlvlForEquipLevel.get(this._level);
+                    if (this._ilvlSync === undefined || item.ilvl < maxWeapLvl) {
+                        isyncLvl = maxOtherLvl;
+                    }
+                    else {
+                        isyncLvl = maxWeapLvl;
+                    }
+                    // if (item.displayGearSlotName === "Weapon" || item.displayGearSlotName === "OffHand") {
+                    // if (item.displayGearSlotName === "Weapon" || item.displayGearSlotName === "OffHand") {
+                    //     isyncLvl = maxWeapLvl;
+                    // }
+                    // else {
+                    //     isyncLvl = maxOtherLvl;
+                    // }
                 }
                 else {
-                    extraPromises.push(itemIlvlPromise.then(native => {
-                        item.applyIlvlData(native);
-                        if (item.isCustomRelic) {
-                            console.debug('Applying relic model');
-                            item.relicStatModel = getRelicStatModelFor(item, this._baseParams, this._classJob);
-                            console.debug('Applied', item.relicStatModel)
-                        }
-                    }));
+                    isyncLvl = null;
                 }
+                const ilvlSyncPromise: Promise<IlvlSyncInfo> = isyncLvl === null ? Promise.resolve(undefined) : this.getIlvlSyncData(baseParamPromise, isyncLvl);
+                extraPromises.push(Promise.all([itemIlvlPromise, ilvlSyncPromise]).then(([native, sync]) => {
+                    item.applyIlvlData(native, sync);
+                    if (item.isCustomRelic) {
+                        console.debug('Applying relic model');
+                        item.relicStatModel = getRelicStatModelFor(item, this._baseParams, this._classJob);
+                        console.debug('Applied', item.relicStatModel)
+                    }
+                }));
             });
         });
 
@@ -422,30 +450,33 @@ export class NewApiDataManager implements DataManager {
 
 // noinspection RedundantIfStatementJS
 export class DataApiGearInfo implements GearItem {
-    id: number;
-    name: string;
-    iconUrl: URL;
-    ilvl: number;
-    displayGearSlot: DisplayGearSlot;
-    displayGearSlotName: DisplayGearSlotKey;
-    occGearSlotName: OccGearSlotKey;
+    readonly id: number;
+    readonly name: string;
+    readonly iconUrl: URL;
+    readonly equipLvl: number;
+    readonly ilvl: number;
+    readonly displayGearSlot: DisplayGearSlot;
+    readonly displayGearSlotName: DisplayGearSlotKey;
+    readonly occGearSlotName: OccGearSlotKey;
     stats: RawStats;
     primarySubstat: keyof RawStats | null;
     secondarySubstat: keyof RawStats | null;
     materiaSlots: MateriaSlot[];
-    isCustomRelic: boolean;
-    isUnique: boolean;
+    readonly isCustomRelic: boolean;
+    readonly isUnique: boolean;
     unsyncedVersion: DataApiGearInfo;
-    acquisitionType: GearAcquisitionSource;
+    readonly acquisitionType: GearAcquisitionSource;
     statCaps: {
         [K in RawStatKey]?: number
     };
     isSyncedDown: boolean;
     relicStatModel: RelicStatModel;
+    syncedDownTo: number | null;
 
     constructor(data: ItemType) {
         this.id = data.rowId;
         this.name = data.name;
+        this.equipLvl = data.equipLevel;
         this.ilvl = data.ilvl;
         this.iconUrl = new URL(data.icon.pngIconUrl);
         const eqs = data.equipSlotCategory;
@@ -667,6 +698,7 @@ export class DataApiGearInfo implements GearItem {
             this.unsyncedVersion = {
                 ...this
             };
+            this.syncedDownTo = syncIlvlInfo.ilvl;
             this.materiaSlots = [];
             const statCapsSync = {};
             Object.entries(this.stats).forEach(([stat, v]) => {
@@ -679,6 +711,7 @@ export class DataApiGearInfo implements GearItem {
         }
         else {
             this.unsyncedVersion = this;
+            this.syncedDownTo = null;
             this.isSyncedDown = false;
         }
     }

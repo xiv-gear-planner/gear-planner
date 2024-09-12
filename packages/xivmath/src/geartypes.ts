@@ -185,6 +185,7 @@ export interface GearItem extends XivCombatItem {
      */
     unsyncedVersion: GearItem;
     isSyncedDown: boolean;
+    syncedDownTo: number | null;
     isUnique: boolean;
     acquisitionType: GearAcquisitionSource;
     relicStatModel: RelicStatModel | undefined;
