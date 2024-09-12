@@ -421,6 +421,7 @@ export class XivApiGearInfo implements GearItem {
         [K in RawStatKey]?: number
     };
     isSyncedDown: boolean;
+    syncedDownTo: number | null;
     relicStatModel: RelicStatModel;
 
     constructor(data: XivApiItemDataRaw) {
@@ -741,10 +742,12 @@ export class XivApiGearInfo implements GearItem {
             this.statCaps = statCapsSync;
             this.computeSubstats();
             this.isSyncedDown = true;
+            this.syncedDownTo = syncIlvlInfo.ilvl;
         }
         else {
             this.unsyncedVersion = this;
             this.isSyncedDown = false;
+            this.syncedDownTo = null;
         }
     }
 }

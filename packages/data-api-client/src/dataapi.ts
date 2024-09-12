@@ -185,6 +185,8 @@ export type ItemBase = XivApiObject &
     unique?: boolean;
     /** @format int32 */
     rarity?: number;
+    /** @format int32 */
+    equipLevel?: number;
   };
 
 export type ItemLevel = XivApiObject &
