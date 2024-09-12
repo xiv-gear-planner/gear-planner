@@ -85,7 +85,7 @@ const noSeparators = (set: CharacterGearSet) => !set.isSeparator;
 const isSafari: boolean = (() => {
     const ua = navigator.userAgent.toLowerCase();
     return ua.includes('safari') && !ua.includes('chrome');
-})() || true;
+})();
 
 function mainStatCol(sheet: GearPlanSheet, stat: RawStatKey): CustomColumnSpec<CharacterGearSet, MultiplierStat> {
     return {
@@ -1612,6 +1612,11 @@ export class GearPlanSheetGui extends GearPlanSheet {
         if (isSafari) {
             let isFirst = true;
             new ResizeObserver(() => {
+                // Don't touch anything if nothing is selected, otherwise it will adjust the top portion to take up
+                // 100% of the screen and the toolbar/editor area will have nowhere to go.
+                if (this._editorAreaNode === undefined) {
+                    return;
+                }
                 const initialHeight = this.tableArea.offsetHeight;
                 const newHeightPx = Math.round(initialHeight);
                 const newHeight = newHeightPx + 'px';
