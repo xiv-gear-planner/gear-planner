@@ -775,7 +775,7 @@ export class CharacterGearSet {
     In addition, while performing a roll, _reverting is temporarily set to true, so that it doesn't try to checkpoint
     an undo/redo itself.
      */
-    readonly checkpointTimer = new Inactivitytimer(500, () => {
+    readonly checkpointTimer = new Inactivitytimer(100, () => {
         this.recordCheckpointInt();
     });
 
