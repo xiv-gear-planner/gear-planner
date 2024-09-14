@@ -5,9 +5,16 @@ import {toRelPct} from "@xivgear/core/util/strutils";
 
 export class SetViewToolbar extends HTMLElement {
 
+    private readonly totalsDisplay: SetTotalsDisplay;
+
     constructor(gearSet: CharacterGearSet) {
         super();
-        this.appendChild(new SetTotalsDisplay(gearSet));
+        this.totalsDisplay = new SetTotalsDisplay(gearSet)
+        this.appendChild(this.totalsDisplay);
+    }
+
+    refresh(gearSet: CharacterGearSet) {
+        this.totalsDisplay.refresh(gearSet);
     }
 
 }
@@ -18,6 +25,10 @@ export class SetTotalsDisplay extends HTMLElement {
 
     constructor(gearSet: CharacterGearSet) {
         super();
+        this.refresh(gearSet);
+    }
+
+    refresh(gearSet: CharacterGearSet): void {
         this.replaceChildren();
         const stats = gearSet.computedStats;
         const relevantStats = STAT_DISPLAY_ORDER.filter(stat => gearSet.isStatRelevant(stat));
