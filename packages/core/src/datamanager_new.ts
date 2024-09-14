@@ -291,27 +291,13 @@ export class NewApiDataManager implements DataManager {
             this._allItems.forEach(item => {
                 const itemIlvlPromise = this.getIlvlSyncData(baseParamPromise, item.ilvl);
                 let isyncLvl: number | null;
-                // Downsync by ilvl
+                // Downsync by ilvl directly
                 if (this._ilvlSync && this._ilvlSync < item.ilvl) {
                     isyncLvl = this._ilvlSync;
                 }
-                // Downsync by equip ilvl
+                // Downsync by equip lvl, infer correct ilvl
                 else if (this._level < item.equipLvl) {
-                    const maxWeapLvl = this._maxIlvlForEquipLevelWeapon.get(this._level);
-                    const maxOtherLvl = this._maxIlvlForEquipLevel.get(this._level);
-                    if (this._ilvlSync === undefined || item.ilvl < maxWeapLvl) {
-                        isyncLvl = maxOtherLvl;
-                    }
-                    else {
-                        isyncLvl = maxWeapLvl;
-                    }
-                    // if (item.displayGearSlotName === "Weapon" || item.displayGearSlotName === "OffHand") {
-                    // if (item.displayGearSlotName === "Weapon" || item.displayGearSlotName === "OffHand") {
-                    //     isyncLvl = maxWeapLvl;
-                    // }
-                    // else {
-                    //     isyncLvl = maxOtherLvl;
-                    // }
+                    isyncLvl = this._maxIlvlForEquipLevel.get(this._level);
                 }
                 else {
                     isyncLvl = null;

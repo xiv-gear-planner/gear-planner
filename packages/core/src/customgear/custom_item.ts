@@ -17,6 +17,7 @@ import {GearPlanSheet} from "../sheet";
 
 export type CustomItemExport = {
     ilvl: number;
+    equipLvl: number;
     largeMateriaSlots: number;
     smallMateriaSlots: number;
     materiaGrade: number;
@@ -56,6 +57,7 @@ export class CustomItem implements GearItem {
         return {
             isUnique: false,
             ilvl: LEVEL_ITEMS[CURRENT_MAX_LEVEL].minILvl,
+            equipLvl: CURRENT_MAX_LEVEL,
             largeMateriaSlots: 2,
             smallMateriaSlots: 0,
             materiaGrade: MATERIA_LEVEL_MAX_NORMAL,

@@ -144,7 +144,7 @@ export function toSerializableForm(stats: ComputedSetStats): ComputedSetStats {
  * ComputedSetStats implementation.
  *
  * Unlike the old ComputedSetStats, this should not be modified. Rather, if a modified version is required,
- * then the {@link #withModifications} method should be used, which will apply the allowable modifications and
+ * then the {@link #withModifications()} method should be used, which will apply the allowable modifications and
  * return a new object. Derived values do not need to be explicitly recomputed, e.g. if you apply a main stat bonus,
  * the main stat multiplier will take effect automatically.
  */

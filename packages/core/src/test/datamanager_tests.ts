@@ -249,6 +249,7 @@ describe('New Datamanager', () => {
             });
 
         });
+        // See also https://docs.google.com/spreadsheets/d/1C9OgUzFBTlomSpGV7rnv-M20DEGEJ8gtQN6JLNQ336o/edit?gid=791671595#gid=791671595
         describe('syncs correctly in a lvl 90 no-isync instance', () => {
             const dm = new NewApiDataManager('SGE', 90);
             before(async () => {
@@ -312,6 +313,15 @@ describe('New Datamanager', () => {
                 expect(item.isSyncedDown).to.eq(true);
                 expect(item.syncedDownTo).to.eq(660);
             });
+            // TODO
+            // it('should downsync a lvl100 i730 weapon to 660 and have +1 vit', () => {
+            //     // Dark Horse Champion's Milpreves
+            //     const item = dm.itemById(43042);
+            //     expect(item.isSyncedDown).to.eq(true);
+            //     expect(item.syncedDownTo).to.eq(660);
+            //     expect(item.unsyncedVersion.stats.vitality).to.eq(580);
+            //     expect(item.stats.vitality).to.eq(411);
+            // });
 
         });
     })
