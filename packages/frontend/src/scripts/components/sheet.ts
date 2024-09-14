@@ -1220,6 +1220,7 @@ export class GearPlanSheetGui extends GearPlanSheet {
     readonly editorArea: HTMLDivElement;
     readonly midBarArea: HTMLDivElement;
     readonly toolbarHolder: HTMLDivElement;
+    toolbarNode: Node;
     // TODO: SimResult alone might not be enough since we'd want it to refresh automatically if settings are changed
     private _editorItem: CharacterGearSet | Simulation<any, any, any> | SimResultData<SimResult> | undefined;
 
@@ -1706,6 +1707,11 @@ export class GearPlanSheetGui extends GearPlanSheet {
 
     private _editorAreaNode: Node | undefined;
 
+    private setToolbarNode(node: Node | undefined) {
+        this.toolbarNode = node;
+        this.toolbarHolder.replaceChildren(node);
+    }
+
     private setupEditorArea(node: (Node & {
         toolbar?: Node
     }) | undefined = undefined) {
@@ -1714,7 +1720,7 @@ export class GearPlanSheetGui extends GearPlanSheet {
             this.editorArea.replaceChildren();
             this.editorArea.style.display = 'none';
             this.midBarArea.style.display = 'none';
-            this.toolbarHolder.replaceChildren();
+            this.setToolbarNode(undefined);
         }
         else {
             this.editorArea.replaceChildren(node);
@@ -1724,13 +1730,13 @@ export class GearPlanSheetGui extends GearPlanSheet {
             this.midBarArea.style.display = '';
             // if ('makeToolBar' in node) {
             if (node instanceof GearSetEditor) {
-                this.toolbarHolder.replaceChildren(this._gearEditToolBar);
+                this.setToolbarNode(this._gearEditToolBar);
             }
             else if ('toolbar' in node) {
-                this.toolbarHolder.replaceChildren(node.toolbar);
+                this.setToolbarNode(node.toolbar);
             }
             else {
-                this.toolbarHolder.replaceChildren();
+                this.setToolbarNode(undefined);
             }
         }
     }
@@ -1755,7 +1761,9 @@ export class GearPlanSheetGui extends GearPlanSheet {
 
     refreshToolbar() {
         if (this._editorItem instanceof CharacterGearSet) {
-            this._gearEditToolBar?.refresh(this._editorItem);
+            if ('refresh' in this.toolbarNode && typeof this.toolbarNode.refresh === 'function') {
+                this.toolbarNode.refresh(this._editorItem);
+            }
         }
     }
 
