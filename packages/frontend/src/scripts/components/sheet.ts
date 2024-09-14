@@ -85,7 +85,7 @@ const noSeparators = (set: CharacterGearSet) => !set.isSeparator;
 const isSafari: boolean = (() => {
     const ua = navigator.userAgent.toLowerCase();
     return ua.includes('safari') && !ua.includes('chrome');
-})() || true;
+})();
 
 function mainStatCol(sheet: GearPlanSheet, stat: RawStatKey): CustomColumnSpec<CharacterGearSet, MultiplierStat> {
     return {
@@ -643,11 +643,19 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
             processed.sort((cellA, cellB) => (cellA[1] - cellB[1]));
             const worst = processed[0];
             const best = processed[processed.length - 1];
-            const worstValue = worst[1];
+            let worstValue = worst[1];
             const bestValue = best[1];
-            const delta = bestValue - worstValue;
+            let delta = bestValue - worstValue;
             if (delta === 0) {
                 return;
+            }
+            if (bestValue > 0) {
+                // If less than 0.5% difference
+                const minDeltaRelative = 0.001;
+                if (delta / bestValue < minDeltaRelative) {
+                    delta = bestValue * minDeltaRelative;
+                    worstValue = bestValue - delta;
+                }
             }
             for (const [cell, value] of processed) {
                 cell.classList.add('sim-column-valid');
@@ -1612,6 +1620,11 @@ export class GearPlanSheetGui extends GearPlanSheet {
         if (isSafari) {
             let isFirst = true;
             new ResizeObserver(() => {
+                // Don't touch anything if nothing is selected, otherwise it will adjust the top portion to take up
+                // 100% of the screen and the toolbar/editor area will have nowhere to go.
+                if (this._editorAreaNode === undefined) {
+                    return;
+                }
                 const initialHeight = this.tableArea.offsetHeight;
                 const newHeightPx = Math.round(initialHeight);
                 const newHeight = newHeightPx + 'px';

@@ -11,7 +11,8 @@ export default [
         languageOptions: {
             // parser: parser,
             parserOptions: {
-                project: './tsconfig.json',
+                // project: ['./tsconfig.json', './packages/*/tsconfig.json'],
+                projectService: true,
             }
         },
         rules: {

@@ -332,6 +332,9 @@ export class CharacterGearSet {
                 else if (mode === 'retain_item' || mode === 'retain_item_else_prio') {
                     const materiaIds = this.materiaMemory.get(slot, item);
                     materiaIds.forEach((materiaId, index) => {
+                        if (materiaId <= 0) {
+                            return;
+                        }
                         const meld = this.equipment[slot].melds[index];
                         if (meld) {
                             reEquip.push(this._sheet.getMateriaById(materiaId));
@@ -349,7 +352,7 @@ export class CharacterGearSet {
                         if (i in eq.melds) {
                             const meld = eq.melds[i];
                             const materia = reEquip[i];
-                            if (isMateriaAllowed(materia, meld.materiaSlot)) {
+                            if (materia && isMateriaAllowed(materia, meld.materiaSlot)) {
                                 meld.equippedMateria = reEquip[i];
                             }
                         }

@@ -6,6 +6,9 @@ export function isMateriaAllowed(materia: Materia, materiaSlot: MateriaSlot) {
     if (materia.isHighGrade && !highGradeAllowed) {
         return false;
     }
+    if (materia.ilvl > materiaSlot.ilvl) {
+        return false;
+    }
     const maxGradeAllowed = materiaSlot.maxGrade;
     return materia.materiaGrade <= maxGradeAllowed;
 }

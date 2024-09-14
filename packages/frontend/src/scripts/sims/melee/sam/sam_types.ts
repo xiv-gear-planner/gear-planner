@@ -34,3 +34,16 @@ export type SAMExtraData = {
     /** The Samurai gauge data */
     gauge: SAMGaugeState,
 };
+
+/** Represents the Rotation data based on GCD. */
+export type SAMRotationData = {
+    /** The name of the rotation selected */
+    name: string,
+    /** The actual rotations selected */
+    rotation: {
+        /** The opener for the rotation */
+        opener: SamAbility[],
+        /** The optional rotation loop */
+        loop: SamAbility[],
+    }
+};

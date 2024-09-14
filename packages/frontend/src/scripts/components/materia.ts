@@ -271,7 +271,7 @@ export class SlotMateriaManagerPopup extends HTMLElement {
     }
 
     show() {
-        const allMateria = this.sheet.relevantMateria;
+        const allMateria = this.sheet.getRelevantMateriaFor(this.materiaSlot);
         const typeMap: { [K in RawStatKey]?: Materia[] } = {};
         const stats: RawStatKey[] = [];
         const grades: number[] = [];
