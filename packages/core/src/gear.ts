@@ -14,6 +14,7 @@ import {
     SPECIAL_SUB_STATS
 } from "@xivgear/xivmath/xivconstants";
 import {
+    cloneEquipmentSet,
     ComputedSetStats,
     EquipmentSet,
     EquippedItem,
@@ -26,12 +27,15 @@ import {
     GearSetResult,
     Materia,
     MateriaAutoFillController,
-    MateriaAutoFillPrio, MateriaMemoryExport,
+    MateriaAutoFillPrio,
+    MateriaMemoryExport,
     NO_SYNC_STATS,
     RawStatKey,
-    RawStats, RelicStatMemoryExport,
+    RawStats,
+    RelicStatMemoryExport,
     RelicStats,
-    SetDisplaySettingsExport, SlotMateriaMemoryExport,
+    SetDisplaySettingsExport,
+    SlotMateriaMemoryExport,
     XivCombatItem
 } from "@xivgear/xivmath/geartypes";
 import {Inactivitytimer} from "./util/inactivitytimer";
@@ -206,6 +210,19 @@ export function previewItemStatDetail(item: GearItem, stat: RawStatKey): ItemSin
     }
 }
 
+// GearSetCheckpoint is the actual data
+type GearSetCheckpoint = {
+    equipment: EquipmentSet;
+    food: FoodItem | undefined;
+}
+// GearSetCheckpointNode establishes a doubly-linked list of checkpoints.
+// This allows us to easily remove the 'redo' tree if you undo and then make a change.
+type GearSetCheckpointNode = {
+    value: GearSetCheckpoint;
+    prev: GearSetCheckpointNode | null;
+    next: GearSetCheckpointNode | null;
+}
+
 /**
  * Class representing equipped gear, food, and other overrides.
  */
@@ -219,7 +236,7 @@ export class CharacterGearSet {
     private _lastResult: GearSetResult;
     private _jobOverride: JobName;
     private _raceOverride: RaceName;
-    private _food: FoodItem;
+    private _food: FoodItem | undefined;
     private readonly _sheet: GearPlanSheet;
     private readonly refresher = new Inactivitytimer(0, () => {
         this._notifyListeners();
@@ -227,6 +244,10 @@ export class CharacterGearSet {
     readonly relicStatMemory: RelicStatMemory = new RelicStatMemory();
     readonly materiaMemory: MateriaMemory = new MateriaMemory();
     readonly displaySettings: SetDisplaySettings = new SetDisplaySettings();
+    currentCheckpoint: GearSetCheckpointNode;
+    checkpointEnabled: boolean = false;
+    private _reverting: boolean = false;
+    private _undoHook: () => void = () => null;
     isSeparator: boolean = false;
 
     constructor(sheet: GearPlanSheet) {
@@ -368,6 +389,9 @@ export class CharacterGearSet {
         // one listener.
         if (this.listeners.length > 0) {
             this.refresher.ping();
+        }
+        if (this.checkpointEnabled) {
+            this.recordCheckpoint();
         }
     }
 
@@ -736,6 +760,137 @@ export class CharacterGearSet {
 
     setSlotCollapsed(slotId: EquipSlotKey, val: boolean) {
         this.displaySettings.setSlotHidden(slotId, val);
+    }
+
+    /*
+    The way the undo/redo works is this:
+    You must first call startCheckpoint(callback) with a callback function that is notified when a roll back/forward
+    happens. This goes above and beyond the usual listener mechanism, since it should ideally refresh potentially
+    the entire sheet UI.
+    There is a doubly-linked list of undo states, where currentCheckpoint is a pointer to some node in this list.
+    Typically this points to the most recent, but if you have undone anything, it will point to somewhere else in the list.
+    When a checkpoint is requested, use checkpointTimer to debounce requests.
+    recordCheckpointInt() does the actual recording.
+    When you roll back (or forward) to a checkpoint, notify listeners, and the callback.
+    In addition, while performing a roll, _reverting is temporarily set to true, so that it doesn't try to checkpoint
+    an undo/redo itself.
+     */
+    readonly checkpointTimer = new Inactivitytimer(100, () => {
+        this.recordCheckpointInt();
+    });
+
+    private recordCheckpointInt() {
+        if (!this.checkpointEnabled || this._reverting) {
+            return
+        }
+        const checkpoint: GearSetCheckpoint = {
+            equipment: cloneEquipmentSet(this.equipment),
+            food: this._food
+        };
+        const prev = this.currentCheckpoint;
+        // Initial checkpoint
+        if (prev === undefined) {
+            this.currentCheckpoint = {
+                value: checkpoint,
+                prev: null,
+                next: null
+            }
+        }
+        // There was a previous checkpoint
+        else {
+            const newNode: GearSetCheckpointNode = {
+                value: checkpoint,
+                prev: prev,
+                next: null
+            };
+            // Insert into the chain, replacing any previous redo history
+            prev.next = newNode;
+            this.currentCheckpoint = newNode;
+        }
+        console.log("Recorded checkpoint");
+
+    }
+
+    /**
+     * Request a checkpoint be recorded.
+     */
+    recordCheckpoint() {
+        if (!this.checkpointEnabled || this._reverting) {
+            return
+        }
+        this.checkpointTimer.ping();
+    }
+
+    /**
+     * Initialize the undo/checkpoint mechanism.
+     *
+     * @param hook A hook which will be called when a roll back/forward happens.
+     */
+    startCheckpoint(hook: () => void) {
+        this._undoHook = hook;
+        this.checkpointEnabled = true;
+        this.recordCheckpoint();
+    }
+
+    /**
+     * Reset the current state
+     *
+     * @param checkpoint
+     * @private
+     */
+    private revertToCheckpoint(checkpoint: GearSetCheckpoint) {
+        if (!this.checkpointEnabled) {
+            return
+        }
+        console.log("Reverting");
+        // This flag causes things to not record more checkpoints in the middle of reverting to a checkpoint
+        this._reverting = true;
+        const newEquipment = cloneEquipmentSet(checkpoint.equipment);
+        Object.assign(this.equipment, newEquipment);
+        this._food = checkpoint.food;
+        try {
+            this.forceRecalc();
+            this.notifyListeners();
+            this._undoHook();
+        }
+        finally {
+            this._reverting = false;
+        }
+    }
+
+    /**
+     * Perform an undo
+     */
+    undo(): boolean {
+        const prev = this.currentCheckpoint?.prev;
+        if (prev) {
+            this.revertToCheckpoint(prev.value);
+            this.currentCheckpoint = prev;
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    redo(): boolean {
+        const next = this.currentCheckpoint?.next;
+        if (next) {
+            this.revertToCheckpoint(next.value);
+            this.currentCheckpoint = next;
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    canUndo(): boolean {
+        return this.currentCheckpoint?.prev?.value !== undefined;
+    }
+
+    canRedo(): boolean {
+        return this.currentCheckpoint?.next?.value !== undefined;
     }
 }
 

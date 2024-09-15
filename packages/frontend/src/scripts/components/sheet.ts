@@ -31,7 +31,8 @@ import {
     EquipSlots,
     GearItem,
     MateriaAutoFillController,
-    MateriaAutoFillPrio, MateriaFillMode,
+    MateriaAutoFillPrio,
+    MateriaFillMode,
     MultiplierMitStat,
     MultiplierStat,
     PartyBonusAmount,
@@ -913,6 +914,34 @@ export class GearSetEditor extends HTMLElement {
     refresh() {
         this.checkIssues();
     }
+
+    private undoRedoHotkeyHandler = (ev: KeyboardEvent) => {
+        // ignore anything that would naturally handle an undo
+        if (ev.target instanceof Element
+            && (ev.target.tagName === 'input'
+                || ev.target.tagName === 'select'
+            )) {
+            return;
+        }
+        // Ctrl-Z = undo
+        // Ctrl-Shift-Z = redo
+        if (ev.ctrlKey && ev.key.toLowerCase() === 'z') {
+            if (ev.shiftKey) {
+                this.gearSet.redo();
+            }
+            else {
+                this.gearSet.undo();
+            }
+        }
+    };
+
+    connectedCallback() {
+        window.addEventListener('keydown', this.undoRedoHotkeyHandler);
+    }
+
+    disconnectedCallback() {
+        window.removeEventListener('keydown', this.undoRedoHotkeyHandler);
+    }
 }
 
 export class SeparatorEditor extends HTMLElement {
@@ -1757,6 +1786,14 @@ export class GearPlanSheetGui extends GearPlanSheet {
         if (select && this._gearPlanTable) {
             this._gearPlanTable.selectGearSet(gearSet);
         }
+        gearSet.startCheckpoint(() => this.refreshGearEditor(gearSet));
+    }
+
+    refreshGearEditor(set: CharacterGearSet) {
+        if (this._editorItem === set) {
+            this.resetEditorArea();
+            // this.refreshToolbar();
+        }
     }
 
     refreshToolbar() {
@@ -1837,7 +1874,6 @@ export class GearPlanSheetGui extends GearPlanSheet {
         super.sheetName = name;
         setTitle(this._sheetName);
     }
-
 }
 
 export class ImportSetsModal extends BaseModal {
