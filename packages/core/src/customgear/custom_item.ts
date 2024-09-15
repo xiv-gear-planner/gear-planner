@@ -17,6 +17,7 @@ import {GearPlanSheet} from "../sheet";
 
 export type CustomItemExport = {
     ilvl: number;
+    equipLvl: number;
     largeMateriaSlots: number;
     smallMateriaSlots: number;
     materiaGrade: number;
@@ -44,6 +45,7 @@ export class CustomItem implements GearItem {
     // statCaps: { determination?: number; piety?: number; crit?: number; dhit?: number; spellspeed?: number; skillspeed?: number; tenacity?: number; hp?: number; vitality?: number; strength?: number; dexterity?: number; intelligence?: number; mind?: number; wdPhys?: number; wdMag?: number; weaponDelay?: number; };
     statCaps = {};
     iconUrl: URL = new URL(xivApiIconUrl(26270));
+    syncedDownTo: number | null;
     private _data: CustomItemExport;
 
     private constructor(exportedData: CustomItemExport, private readonly sheet: GearPlanSheet) {
@@ -55,6 +57,7 @@ export class CustomItem implements GearItem {
         return {
             isUnique: false,
             ilvl: LEVEL_ITEMS[CURRENT_MAX_LEVEL].minILvl,
+            equipLvl: CURRENT_MAX_LEVEL,
             largeMateriaSlots: 2,
             smallMateriaSlots: 0,
             materiaGrade: MATERIA_LEVEL_MAX_NORMAL,
@@ -189,10 +192,12 @@ export class CustomItem implements GearItem {
                 });
                 this.statCaps = statCapsSync;
                 this.isSyncedDown = true;
+                this.syncedDownTo = syncIlvlInfo.ilvl;
             }
             else {
                 this.unsyncedVersion = this;
                 this.isSyncedDown = false;
+                this.syncedDownTo = null;
             }
         }
         else {
