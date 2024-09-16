@@ -1,6 +1,6 @@
-import {Ability, BuffController, GcdAbility, OgcdAbility, PersonalBuff, SimSettings, SimSpec, UsedAbility} from "@xivgear/core/sims/sim_types";
+import {Ability, BuffController, GcdAbility, OgcdAbility, PersonalBuff, SimSettings, SimSpec, PreDmgUsedAbility} from "@xivgear/core/sims/sim_types";
 import {CycleProcessor, CycleSimResult, ExternalCycleSettings, MultiCycleSettings, Rotation, DisplayRecordFinalized,
-    isFinalizedAbilityUse, AbilityUseRecordUnf, AbilityUseResult} from "@xivgear/core/sims/cycle_sim";
+    isFinalizedAbilityUse, PreDmgAbilityUseRecordUnf, AbilityUseResult} from "@xivgear/core/sims/cycle_sim";
 import {BaseMultiCycleSim} from "../sim_processors";
 import {rangeInc} from "@xivgear/core/util/array_utils";
 //import {potionMaxMind} from "@xivgear/core/sims/common/potion";
@@ -172,7 +172,7 @@ class WhmGauge {
             shortName: 'lilies',
             displayName: 'Lilies',
             getter: used => isFinalizedAbilityUse(used) ? used.original : null,
-            renderer: (usedAbility?: UsedAbility) => {
+            renderer: (usedAbility?: PreDmgUsedAbility) => {
                 if (usedAbility?.extraData !== undefined) {
                     const blueLilies = (usedAbility.extraData as WhmExtraData).gauge.blueLilies;
                     const redLilies = (usedAbility.extraData as WhmExtraData).gauge.redLilies;
@@ -259,13 +259,13 @@ class WhmCycleProcessor extends CycleProcessor {
         this.gauge = new WhmGauge();
     }
 
-    override addAbilityUse(usedAbility: AbilityUseRecordUnf) {
+    override addAbilityUse(usedAbility: PreDmgAbilityUseRecordUnf) {
         // Add gauge data to this record for the UI
         const extraData: WhmExtraData = {
             gauge: this.gauge.getGaugeState(),
         };
 
-        const modified: AbilityUseRecordUnf = {
+        const modified: PreDmgAbilityUseRecordUnf = {
             ...usedAbility,
             extraData,
         };

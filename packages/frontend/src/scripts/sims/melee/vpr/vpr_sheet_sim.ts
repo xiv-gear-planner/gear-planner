@@ -1,4 +1,4 @@
-import { AbilityUseRecordUnf, AbilityUseResult, CycleProcessor, CycleSimResult, ExternalCycleSettings, MultiCycleSettings, Rotation } from "@xivgear/core/sims/cycle_sim";
+import { PreDmgAbilityUseRecordUnf, AbilityUseResult, CycleProcessor, CycleSimResult, ExternalCycleSettings, MultiCycleSettings, Rotation } from "@xivgear/core/sims/cycle_sim";
 import { Ability, Buff, OgcdAbility, SimSettings, SimSpec } from "@xivgear/core/sims/sim_types";
 import { BaseMultiCycleSim } from "../../sim_processors";
 import { VprGauge } from "./vpr_gauge";
@@ -74,14 +74,14 @@ export class VprCycleProcessor extends CycleProcessor {
         this.rotationState = new RotationState();
     }
 
-    override addAbilityUse(usedAbility: AbilityUseRecordUnf) {
+    override addAbilityUse(usedAbility: PreDmgAbilityUseRecordUnf) {
 
         // Add gauge data to this record for the UI
         const extraData: VprExtraData = {
             gauge: this.gauge.getGaugeState(),
         };
 
-        const modified: AbilityUseRecordUnf = {
+        const modified: PreDmgAbilityUseRecordUnf = {
             ...usedAbility,
             extraData,
         };

@@ -1,7 +1,7 @@
 import {Chain} from "@xivgear/core/sims/buffs";
-import {Ability, BuffController, GcdAbility, OgcdAbility, PersonalBuff, SimSettings, SimSpec, UsedAbility} from "@xivgear/core/sims/sim_types";
+import {Ability, BuffController, GcdAbility, OgcdAbility, PersonalBuff, SimSettings, SimSpec, PreDmgUsedAbility} from "@xivgear/core/sims/sim_types";
 import {CycleProcessor, CycleSimResult, ExternalCycleSettings, MultiCycleSettings, Rotation, DisplayRecordFinalized,
-    isFinalizedAbilityUse, AbilityUseRecordUnf, AbilityUseResult} from "@xivgear/core/sims/cycle_sim";
+    isFinalizedAbilityUse, PreDmgAbilityUseRecordUnf, AbilityUseResult} from "@xivgear/core/sims/cycle_sim";
 import {BaseMultiCycleSim} from "../sim_processors";
 import {rangeInc} from "@xivgear/core/util/array_utils";
 //import {potionMaxMind} from "@xivgear/core/sims/common/potion";
@@ -163,7 +163,7 @@ class SchGauge {
             shortName: 'aetherflow',
             displayName: 'Aetherflow',
             getter: used => isFinalizedAbilityUse(used) ? used.original : null,
-            renderer: (usedAbility?: UsedAbility) => {
+            renderer: (usedAbility?: PreDmgUsedAbility) => {
                 if (usedAbility?.extraData !== undefined) {
                     const aetherflow = (usedAbility.extraData as SchExtraData).gauge.aetherflow;
 
@@ -232,13 +232,13 @@ class ScholarCycleProcessor extends CycleProcessor {
         this.gauge = new SchGauge();
     }
 
-    override addAbilityUse(usedAbility: AbilityUseRecordUnf) {
+    override addAbilityUse(usedAbility: PreDmgAbilityUseRecordUnf) {
         // Add gauge data to this record for the UI
         const extraData: SchExtraData = {
             gauge: this.gauge.getGaugeState(),
         };
 
-        const modified: AbilityUseRecordUnf = {
+        const modified: PreDmgAbilityUseRecordUnf = {
             ...usedAbility,
             extraData,
         };

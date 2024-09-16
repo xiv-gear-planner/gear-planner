@@ -1,6 +1,6 @@
 import { CycleSimResult, DisplayRecordFinalized, isFinalizedAbilityUse } from "@xivgear/core/sims/cycle_sim";
 import { CustomColumnSpec } from "../../../tables";
-import { UsedAbility } from "@xivgear/core/sims/sim_types";
+import { PreDmgUsedAbility } from "@xivgear/core/sims/sim_types";
 import { VprExtraData, VprGaugeState } from "./vpr_types";
 
 export class VprGauge {
@@ -48,7 +48,7 @@ export class VprGauge {
             shortName: 'serpentOfferings',
             displayName: 'Serpent Offerings',
             getter: used => isFinalizedAbilityUse(used) ? used.original : null,
-            renderer: (usedAbility?: UsedAbility) => {
+            renderer: (usedAbility?: PreDmgUsedAbility) => {
                 if (usedAbility?.extraData !== undefined) {
                     const serpentOfferings = (usedAbility.extraData as VprExtraData).gauge.serpentOfferings;
 
@@ -90,7 +90,7 @@ export class VprGauge {
             shortName: 'rattlingCoils',
             displayName: 'Rattling Coils',
             getter: used => isFinalizedAbilityUse(used) ? used.original : null,
-            renderer: (usedAbility?: UsedAbility) => {
+            renderer: (usedAbility?: PreDmgUsedAbility) => {
                 if (usedAbility?.extraData !== undefined) {
                     const rattlingCoils = (usedAbility.extraData as VprExtraData).gauge.rattlingCoils;
 

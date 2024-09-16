@@ -1,6 +1,6 @@
 import { CycleSimResult, DisplayRecordFinalized, isFinalizedAbilityUse } from "@xivgear/core/sims/cycle_sim";
 import { CustomColumnSpec } from "../../../tables";
-import { UsedAbility } from "@xivgear/core/sims/sim_types";
+import { PreDmgUsedAbility } from "@xivgear/core/sims/sim_types";
 import { RprExtraData, RprGaugeState } from "./rpr_types";
 
 export class RprGauge {
@@ -46,7 +46,7 @@ export class RprGauge {
             shortName: 'soulGauge',
             displayName: 'Soul',
             getter: used => isFinalizedAbilityUse(used) ? used.original : null,
-            renderer: (usedAbility?: UsedAbility) => {
+            renderer: (usedAbility?: PreDmgUsedAbility) => {
                 if (usedAbility?.extraData !== undefined) {
                     const soul = (usedAbility.extraData as RprExtraData).gauge.soul;
 
@@ -88,7 +88,7 @@ export class RprGauge {
             shortName: 'shroudGauge',
             displayName: 'Shroud',
             getter: used => isFinalizedAbilityUse(used) ? used.original : null,
-            renderer: (usedAbility?: UsedAbility) => {
+            renderer: (usedAbility?: PreDmgUsedAbility) => {
                 if (usedAbility?.extraData !== undefined) {
                     const shroud = (usedAbility.extraData as RprExtraData).gauge.shroud;
 
