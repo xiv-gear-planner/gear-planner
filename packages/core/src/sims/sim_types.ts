@@ -417,7 +417,7 @@ export type ComputedDamage = ValueWithDev;
 /**
  * Represents an ability actually being used
  */
-export type UsedAbility = {
+export type PreDmgUsedAbility = {
     /**
      * The ability that was used
      */
@@ -441,7 +441,7 @@ export type UsedAbility = {
     /**
      * The direct damage of the ability
      */
-    directDamage: ComputedDamage,
+    //directDamage: ComputedDamage,
     /**
      * If a DoT, the DoT damage
      */
@@ -478,6 +478,10 @@ export type UsedAbility = {
     extraData?: object
 };
 
+export type PostDmgUsedAbility = PreDmgUsedAbility & {
+    directDamage: ComputedDamage,
+    dot?: DotDamageUnf
+}
 /**
  * Represents a pseudo-ability used to round out a cycle to exactly 120s.
  *
@@ -485,13 +489,13 @@ export type UsedAbility = {
  * remaining for an entire GCD. Thus, we would have a PartialAbility with portion = (1.1s / 2.5s)
  *
  */
-export type PartiallyUsedAbility = UsedAbility & {
+export type PartiallyUsedAbility = PreDmgUsedAbility & {
     portion: number
 };
 
 export type FinalizedAbility = {
     usedAt: number,
-    original: UsedAbility,
+    original: PreDmgUsedAbility,
     totalDamage: number,
     totalDamageFull: ComputedDamage
     totalPotency: number,

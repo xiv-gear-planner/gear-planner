@@ -1,5 +1,5 @@
 import {CycleSimResult, DisplayRecordFinalized, isFinalizedAbilityUse} from '@xivgear/core/sims/cycle_sim';
-import {UsedAbility} from "@xivgear/core/sims/sim_types";
+import {PreDmgUsedAbility} from "@xivgear/core/sims/sim_types";
 import {NINExtraData, NINGaugeState, NinkiAbility} from './nin_types';
 import {CustomColumnSpec} from '../../../tables';
 
@@ -60,7 +60,7 @@ class NINGauge {
             shortName: 'ninkiGauge',
             displayName: 'Ninki',
             getter: used => isFinalizedAbilityUse(used) ? used.original : null,
-            renderer: (usedAbility?: UsedAbility) => {
+            renderer: (usedAbility?: PreDmgUsedAbility) => {
                 if (usedAbility?.extraData !== undefined) {
                     const ninki = (usedAbility.extraData as NINExtraData).gauge.ninki;
 
@@ -101,7 +101,7 @@ class NINGauge {
             shortName: 'kazematoi',
             displayName: 'Kazematoi',
             getter: used => isFinalizedAbilityUse(used) ? used.original : null,
-            renderer: (usedAbility?: UsedAbility) => {
+            renderer: (usedAbility?: PreDmgUsedAbility) => {
                 let textContent = "";
                 if (usedAbility?.extraData !== undefined) {
                     const gauge = (usedAbility.extraData as NINExtraData).gauge;
