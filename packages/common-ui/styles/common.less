@@ -1699,6 +1699,45 @@ div.gear-sheet-toolbar-holder {
   > * {
     .shadow;
   }
+
+  .undo-controls {
+    display: inline-flex;
+    flex-direction: row;
+    justify-content: space-between;
+    margin-right: -3px;
+    align-items: center;
+    gap: 10px;
+    button {
+      line-height: 0;
+      width: 40px;
+      height: 40px;
+      font-size: 30px;
+      border-radius: 8px;
+      display: flex;
+      justify-content: center;
+      span {
+        display: block;
+        position: relative;
+        top: -3px;
+        margin: auto;
+      }
+    }
+    @media screen and (max-width: 630px) {
+      flex-direction: column;
+      gap: 2px;
+      justify-content: center;
+      align-items: center;
+      border-radius: 4px;
+      button {
+        width: 20px;
+        height: 20px;
+        font-size: 24px;
+        span {
+          top: -2px;
+        }
+      }
+    }
+  }
 }
 
 div.gear-set-editor-toolbar, set-view-toolbar {
@@ -1715,6 +1754,10 @@ div.gear-set-editor-toolbar, set-view-toolbar {
     vertical-align: top;
     margin: 5px;
     background-color: var(--button-color);
+    @media screen and (max-width: 530px) {
+      margin-left: 2px;
+      margin-right: 2px;
+    }
   }
 
   .button-font-style;
@@ -3274,4 +3317,9 @@ math-area {
       }
     }
   }
+}
+
+button[disabled] {
+  pointer-events: none;
+  opacity: 50%;
 }
