@@ -379,7 +379,7 @@ export class CycleProcessor {
     /**
      * The stats of the set currently being simulated
      */
-    readonly stats: ComputedSetStats;
+    stats: ComputedSetStats;
     /**
      * Map from DoT effect ID to an object which tracks, among other things, when it was used.
      */

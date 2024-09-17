@@ -57,6 +57,8 @@ export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, Inter
 
     readonly manualRun = false;
 
+    private cachedCycleProcessors: [string, CycleProcessor][];
+    private cachedGcd: number;
     protected constructor(public readonly job: JobName, settings?: ExternalCycleSettings<InternalSettingsType>) {
         this.settings = this.makeDefaultSettings();
         if (settings !== undefined) {
@@ -205,11 +207,12 @@ export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, Inter
     };
 
 
-    async simulate(set: CharacterGearSet): Promise<FullResultType> {
-        console.debug("Sim start");
+    generateRotations(set: CharacterGearSet): [string, CycleProcessor][] {
+
         const allBuffs = this.buffManager.enabledBuffs;
         const rotations = this.getRotationsToSimulate(set);
-        const allResults = rotations.map((rot, index) => {
+        return rotations.map((rot, index) => {
+        
             const cp = this.createCycleProcessor({
                 stats: set.computedStats,
                 totalTime: this.cycleSettings.totalTime,
@@ -219,7 +222,15 @@ export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, Inter
                 useAutos: (this.cycleSettings.useAutos ?? true) && set.getItemInSlot('Weapon') !== null
             });
             rot.apply(cp);
+            return [rot.name ?? `Unnamed #${index + 1}`, cp];
+        });
+    }
 
+    calcDamage(set: CharacterGearSet): FullResultType {
+        let allResults = this.cachedCycleProcessors.map(item => {
+            let [label, cp] = item;
+
+            cp.stats = set.computedStats;
             const used = cp.finalizedRecords.filter(isFinalizedAbilityUse);
             const totalDamage = addValues(...used.map(used => used.totalDamageFull));
             const timeBasis = Math.min(cp.totalTime, cp.currentTime);
@@ -236,12 +247,13 @@ export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, Inter
                 unbuffedPps: unbuffedPps,
                 buffTimings: buffTimings,
                 totalTime: timeBasis,
-                label: rot.name ?? `Unnamed #${index + 1}`,
+                label: label,
             } satisfies CycleSimResult as unknown as ResultType;
         });
         const sorted = [...allResults];
         sorted.sort((a, b) => b.mainDpsResult - a.mainDpsResult);
         console.debug("Sim end");
+        console.log(`Num: ${sorted.length}`);
         const best = sorted[0];
         // @ts-expect-error Developer will need to override this method if they want to use a custom type for the
         // full result type.
@@ -250,6 +262,16 @@ export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, Inter
             all: sorted,
             best: best
         };
+    }
+
+    async simulate(set: CharacterGearSet): Promise<FullResultType> {
+        console.debug("Sim start");
+        let setGcd = set.isStatRelevant('spellspeed') ? set.computedStats.gcdMag(2.5) : set.computedStats.gcdPhys(2.5);
+        if (setGcd != this.cachedGcd) {
+            this.cachedCycleProcessors = this.generateRotations(set);
+            this.cachedGcd = setGcd;
+        }
+        return this.calcDamage(set);
     };
 
 }
