@@ -702,7 +702,10 @@ export class CycleProcessor {
                 return {
                     ...record,
                     directDamage: dmgInfo.directDamage ?? fixedValue(0),
-                    dot: dmgInfo.dot,
+                    dot: record.dot ? {
+                        ...record.dot,
+                        damagePerTick: dmgInfo.dot.damagePerTick,
+                    } : null,
                 }
             }
         })
@@ -820,7 +823,7 @@ export class CycleProcessor {
         ability = this.beforeSnapshot(ability, buffs);
         // Enough time for entire GCD
         // if (gcdFinishedAt <= this.totalTime) {
-        //const dmgInfo = this.modifyDamage(abilityToDamageNew(this.stats, ability, combinedEffects), ability, buffs);
+        const dmgInfo = this.modifyDamage(abilityToDamageNew(this.stats, ability, combinedEffects), ability, buffs);
         const appDelayFromSnapshot = appDelay(ability);
         const appDelayFromStart = appDelayFromSnapshot + snapshotDelayFromStart;
         const finalBuffs: Buff[] = Array.from(new Set<Buff>([
@@ -842,8 +845,7 @@ export class CycleProcessor {
             },
             buffs: finalBuffs,
             usedAt: gcdStartsAt,
-            //directDamage: dmgInfo.directDamage ?? fixedValue(0),
-            //dot: dmgInfo.dot,
+            dot: dmgInfo.dot,
             appDelay: appDelayFromSnapshot,
             appDelayFromStart: appDelayFromStart,
             totalTimeTaken: Math.max(effectiveAnimLock, abilityGcd),
