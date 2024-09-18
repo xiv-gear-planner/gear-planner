@@ -266,7 +266,7 @@ export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, Inter
 
     async simulate(set: CharacterGearSet): Promise<FullResultType> {
         console.debug("Sim start");
-        let setGcd = set.isStatRelevant('spellspeed') ? set.computedStats.gcdMag(2.5) : set.computedStats.gcdPhys(2.5);
+        let setGcd = set.isStatRelevant('spellspeed') ? set.computedStats.spellspeed : set.computedStats.skillspeed;
         if (setGcd != this.cachedGcd) {
             this.cachedCycleProcessors = this.generateRotations(set);
             this.cachedGcd = setGcd;
