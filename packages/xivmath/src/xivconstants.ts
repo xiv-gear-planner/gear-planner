@@ -204,8 +204,43 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
     DRG: STANDARD_MELEE,
     MNK: {
         ...STANDARD_MELEE,
-        traits: [{
-            apply: stats => {
+        traits: [
+            {
+                minLevel: 1,
+                maxLevel: 19,
+                apply: (stats) => {
+                    stats.bonusHaste.push(attackType =>
+                        attackType === 'Weaponskill'
+                        || attackType === 'Spell'
+                        || attackType === 'Auto-attack'
+                            ? 5 : 0);
+                }
+            },
+            {
+                minLevel: 20,
+                maxLevel: 39,
+                apply: (stats) => {
+                    stats.bonusHaste.push(attackType =>
+                        attackType === 'Weaponskill'
+                        || attackType === 'Spell'
+                        || attackType === 'Auto-attack'
+                            ? 10 : 0);
+                }
+            },
+            {
+                minLevel: 40,
+                maxLevel: 75,
+                apply: (stats) => {
+                    stats.bonusHaste.push(attackType =>
+                        attackType === 'Weaponskill'
+                        || attackType === 'Spell'
+                        || attackType === 'Auto-attack'
+                            ? 15 : 0);
+                }
+            },
+            {
+            minLevel: 76,
+            apply: (stats) => {
                 stats.bonusHaste.push(attackType =>
                     attackType === 'Weaponskill'
                     || attackType === 'Spell'
