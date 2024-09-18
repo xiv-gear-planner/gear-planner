@@ -12,6 +12,7 @@ import {showSettingsModal} from "./settings/settings_modal";
 import {GearPlanSheetGui, GRAPHICAL_SHEET_PROVIDER} from "./components/sheet";
 import {splitPath} from "@xivgear/core/nav/common_nav";
 import {applyCommonTopMenuFormatting} from "@xivgear/common-ui/components/top_menu";
+import {recordSheetEvent} from "@xivgear/core/analytics/analytics";
 
 const pageTitle = 'XivGear - FFXIV Gear Planner';
 
@@ -124,6 +125,7 @@ export async function openSheetByKey(sheet: string) {
     console.log('openSheetByKey: ', sheet);
     const planner = GRAPHICAL_SHEET_PROVIDER.fromSaved(sheet);
     if (planner) {
+        recordSheetEvent("openSheetByKey", planner);
         await openSheet(planner);
     }
     else {
@@ -136,6 +138,12 @@ export async function openExport(exported: (SheetExport | SetExport), changeHash
     const isFullSheet = 'sets' in exported;
     const sheet = isFullSheet ? GRAPHICAL_SHEET_PROVIDER.fromExport(exported) : GRAPHICAL_SHEET_PROVIDER.fromSetExport(exported);
     const embed = isEmbed();
+    const analyticsData = {
+        'isEmbed': embed,
+        'viewOnly': viewOnly,
+        'nav': getHash()
+    };
+    recordSheetEvent('openExport', sheet, analyticsData);
     if (embed) {
         if (isFullSheet) {
             displayEmbedError("Embedding is only supported for a single set, not a full sheet. Consider embedding sets individually and/or linking to the full sheet rather than embedding it.");
