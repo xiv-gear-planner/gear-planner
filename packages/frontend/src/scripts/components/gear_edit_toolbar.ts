@@ -4,7 +4,7 @@ import {MateriaPriorityPicker} from "./materia";
 import {StatTierDisplay} from "./stat_tier_display";
 import {CharacterGearSet} from "@xivgear/core/gear";
 import {GearPlanSheet} from "@xivgear/core/sheet";
-import {makeActionButton, quickElement, redoIcon, undoIcon} from "@xivgear/common-ui/components/util";
+import {makeActionButton, redoIcon, undoIcon} from "@xivgear/common-ui/components/util";
 
 export class UndoArea extends HTMLDivElement {
     private _currentSet: CharacterGearSet;
