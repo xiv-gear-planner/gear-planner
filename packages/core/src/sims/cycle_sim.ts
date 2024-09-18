@@ -11,7 +11,6 @@ import {
     FinalizedAbility,
     GcdAbility,
     OgcdAbility,
-    PartiallyUsedAbility,
     PartyBuff,
     SimResult,
     SimSettings,
@@ -697,8 +696,7 @@ export class CycleProcessor {
                 return record;
             }
             else {
-                let dmgInfo = this.modifyDamage(abilityToDamageNew(this.stats, record.ability, record.combinedEffects), record.ability, record.buffs);
-                //console.log(`${record.ability.name}: ${dmgInfo.directDamage.expected}`);
+                const dmgInfo = this.modifyDamage(abilityToDamageNew(this.stats, record.ability, record.combinedEffects), record.ability, record.buffs);
                 return {
                     ...record,
                     directDamage: dmgInfo.directDamage ?? fixedValue(0),
@@ -1010,7 +1008,6 @@ export class CycleProcessor {
             buffs,
             combinedEffects
         } = this.getCombinedEffectsFor(this.aaAbility);
-        const dmgInfo = abilityToDamageNew(this.stats, this.aaAbility, combinedEffects);
         const appDelay = AUTOATTACK_APPLICATION_DELAY;
         this.addAbilityUse({
             usedAt: this.currentTime,

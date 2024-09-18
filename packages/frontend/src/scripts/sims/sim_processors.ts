@@ -58,7 +58,7 @@ export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, Inter
     readonly manualRun = false;
 
     private cachedCycleProcessors: [string, CycleProcessor][];
-    private cachedGcd: number;
+    private cachedSpeed: number;
     protected constructor(public readonly job: JobName, settings?: ExternalCycleSettings<InternalSettingsType>) {
         this.settings = this.makeDefaultSettings();
         if (settings !== undefined) {
@@ -227,8 +227,8 @@ export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, Inter
     }
 
     calcDamage(set: CharacterGearSet): FullResultType {
-        let allResults = this.cachedCycleProcessors.map(item => {
-            let [label, cp] = item;
+        const allResults = this.cachedCycleProcessors.map(item => {
+            const [label, cp] = item;
 
             cp.stats = set.computedStats;
             const used = cp.finalizedRecords.filter(isFinalizedAbilityUse);
@@ -266,10 +266,10 @@ export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, Inter
 
     async simulate(set: CharacterGearSet): Promise<FullResultType> {
         console.debug("Sim start");
-        let setGcd = set.isStatRelevant('spellspeed') ? set.computedStats.spellspeed : set.computedStats.skillspeed;
-        if (setGcd != this.cachedGcd) {
+        const setSpeed = set.isStatRelevant('spellspeed') ? set.computedStats.spellspeed : set.computedStats.skillspeed;
+        if (setSpeed != this.cachedSpeed) {
             this.cachedCycleProcessors = this.generateRotations(set);
-            this.cachedGcd = setGcd;
+            this.cachedSpeed = setSpeed;
         }
         return this.calcDamage(set);
     };
