@@ -1,8 +1,11 @@
-import { EquipmentSet, EquippedItem, EquipSlotKey, EquipSlots, GearItem, MeldableMateriaSlot, RawStats, Substat } from "@xivgear/xivmath/geartypes";
-import { GearPlanSheet } from "./sheet";
-import { ALL_STATS, ALL_SUB_STATS, MATERIA_ACCEPTABLE_OVERCAP_LOSS, MateriaSubstat } from "@xivgear/xivmath/xivconstants";
-import { CharacterGearSet } from "./gear";
-import { Item } from "@xivgear/data-api-client/dataapi";
+import { CharacterGearSet } from "@xivgear/core/gear";
+import { GearPlanSheet } from "@xivgear/core/sheet";
+import { PostDmgDisplayRecordUnf, CycleProcessor, isFinalizedAbilityUse, Rotation } from "@xivgear/core/sims/cycle_sim";
+import { EquippedItem, RawStats, EquipmentSet, EquipSlots, MeldableMateriaSlot } from "@xivgear/xivmath/geartypes";
+import { MateriaSubstat, ALL_SUB_STATS, MATERIA_ACCEPTABLE_OVERCAP_LOSS } from "@xivgear/xivmath/xivconstants";
+import { BaseMultiCycleSim } from "../sims/sim_processors";
+import { addValues, multiplyFixed } from "@xivgear/xivmath/deviation";
+import { SimResult } from "@xivgear/core/sims/sim_types";
 
 class ItemWithStats {
     item: EquippedItem;
@@ -40,14 +43,44 @@ export class MeldSolver {
         this.relevantStats = ALL_SUB_STATS.filter(stat => this._sheet.isStatRelevant(stat) && stat != 'piety');
     }
 
-    public async buttonPress(): Promise<Map<string, EquipmentSetWithStats>> {
+    public async buttonPress() {
         //this.getAllMeldCombinationsForGearItem(this._gearset.equipment.Weapon);
-        return this.getAllMeldCombinations(this._gearset.equipment, false);
+        //return this.getAllMeldCombinations(this._gearset.equipment, false);
+        if (!(this._sheet.sims.at(0) instanceof BaseMultiCycleSim)) {
+            return;
+        }
+        let sim = this._sheet.sims.at(0) as BaseMultiCycleSim<any, any, any>;
+        return this.simulateSets((await this.getAllMeldCombinations(this._gearset.equipment, false)), sim);
     }
 
-    async getAllMeldCombinations(equipment: EquipmentSet, keepExistingMateria: boolean): Promise<Map<string, EquipmentSetWithStats>> {
+    async simulateSets(assortedSetsByGcd: Map<number, Set<CharacterGearSet>>, sim: BaseMultiCycleSim<any, any, any>) {
+        let bestSimDps: number = 0;
+        let bestSet: CharacterGearSet;
+        for (let [speed, sets] of assortedSetsByGcd) {
+            console.log(`SPEED: ${speed}`);
+            console.log(sets.size);
+            let set : CharacterGearSet;
+            for (let why of sets.values()) {
+                if (why !== null && why !== undefined) {
+                    set = why;
+                }
+            }
+        }
 
+        for (let [speed, setsAtSpeed] of assortedSetsByGcd) {
+            for (let set of setsAtSpeed) {
+                let result = await sim.simulate(set);
+                console.log(`DPS: ${result.mainDpsResult}`);
+                
+            }
+        }
+
+    }
+    async getAllMeldCombinations(equipment: EquipmentSet, keepExistingMateria: boolean): Promise<Map<number, Set<CharacterGearSet>>> {
+
+        let generatedGearsets = new Map<number, Set<CharacterGearSet>>();
         let possibleMeldCombinations = new Map<string, EquipmentSetWithStats>();
+        //let baseEquipSet = new EquipmentSetWithStats(this.cloneEquipmentSetDeep(equipment), this.getEquipmentSetEffectiveStats(equipment));
         let baseEquipSet = new EquipmentSetWithStats(new EquipmentSet, new RawStats);
 
         // Generate these first to avoid re-doing them. Also saves memory by letting our EquipmentSets shallow copy EquippedItems which all reside in here.
@@ -86,7 +119,7 @@ export class MeldSolver {
 
                     if (!newGearsets.has(setPlusNewPieceKey)) {
                         let setPlusNewPiece = this.cloneEquipmentSetWithStats(currSet);
-                        setPlusNewPiece[slotKey] = currPiece;
+                        setPlusNewPiece.set[slotKey] = currPiece.item;
                         setPlusNewPiece.stats = setStatsWithPiece;
 
                         newGearsets.set(setPlusNewPieceKey, setPlusNewPiece);
@@ -98,8 +131,30 @@ export class MeldSolver {
         }
 
         //console.log(possibleMeldCombinations.size);
-        return possibleMeldCombinations;
+
+        for (let combination of possibleMeldCombinations.values()) {
+            let speed = combination.stats[this._gearset.isStatRelevant("skillspeed") ? "skillspeed" : "spellspeed"];
+            let setsAtSpeed: Set<CharacterGearSet>;
+
+            if (!generatedGearsets.has(speed)) {
+                generatedGearsets.set(speed, new Set<CharacterGearSet>());
+                setsAtSpeed = generatedGearsets.get(speed);
+            }
+            else {
+                setsAtSpeed = generatedGearsets.get(speed);
+            }
+
+            let newGearset: CharacterGearSet = new CharacterGearSet(this._sheet);
+            newGearset.equipment = combination.set;
+            //console.info(newGearset);
+            //console.info(combination.set);
+            //newGearset.forceRecalc();
+            setsAtSpeed.add(newGearset)
+        }
+        return generatedGearsets;
     }
+
+
 
     public getAllMeldCombinationsForGearItem(equippedItem: EquippedItem): Map<string, ItemWithStats> | null {
         let meldCombinations: Map<string, ItemWithStats> = new Map<string, ItemWithStats>();
@@ -157,6 +212,16 @@ export class MeldSolver {
         return new EquipmentSetWithStats(Object.assign({}, set.set), Object.assign({}, set.stats));
     }
 
+    cloneEquipmentSetDeep(set: EquipmentSet): EquipmentSet {
+        let result = new EquipmentSet;
+        for (let prop in set) {
+            if (result[prop] === null || result[prop] === undefined) continue;
+            result[prop] = this.cloneEquippedItem(set[prop])
+        }
+
+        return result;
+    }
+
     cloneEquippedItem(item: EquippedItem): EquippedItem {
         return new EquippedItem(item.gearItem, this.cloneMelds(item.melds));
     }
@@ -188,6 +253,16 @@ export class MeldSolver {
         for (let meld of item.melds) {
             if (meld.equippedMateria === null || meld.equippedMateria === undefined) continue;
             stats[meld.equippedMateria.primaryStat] += meld.equippedMateria.primaryStatValue;
+        }
+
+        return stats;
+    }
+
+    getEquipmentSetEffectiveStats(set: EquipmentSet): RawStats {
+        let stats = new RawStats;
+        for (let piece in set) {
+            if (set[piece] === null || set[piece] === undefined) continue;
+            stats = this.addStats(stats, this.getPieceEffectiveStats(set[piece]));
         }
 
         return stats;

@@ -1,6 +1,6 @@
 import { makeActionButton } from "@xivgear/common-ui/components/util";
 import { CharacterGearSet } from "@xivgear/core/gear";
-import { MeldSolver } from "@xivgear/core/meldsolver";
+import { MeldSolver } from "./meldsolver";
 import { GearPlanSheet } from "@xivgear/core/sheet";
 
 export class MeldSolverBar extends HTMLDivElement {
@@ -17,9 +17,10 @@ export class MeldSolverBar extends HTMLDivElement {
         const button = makeActionButton("Button", async () => {
             const prommie = (async () => {
                 await new Promise(resolve => setTimeout(resolve, 0));
-                return await this._solver.buttonPress();
+
+                let result = await this._solver.buttonPress();
+                //this.textDiv.textContent = result.size.toString();
             })();
-            prommie.then(result => this.textDiv.textContent = result.size.toString());
             this.textDiv.textContent = "Waiting...";
             return prommie;
         });
