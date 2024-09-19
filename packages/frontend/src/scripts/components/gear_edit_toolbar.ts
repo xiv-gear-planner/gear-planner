@@ -3,9 +3,9 @@ import {ItemDisplaySettings, MateriaAutoFillController} from "@xivgear/xivmath/g
 import {MateriaPriorityPicker} from "./materia";
 import {StatTierDisplay} from "./stat_tier_display";
 import {CharacterGearSet} from "@xivgear/core/gear";
-import {GearPlanSheet} from "@xivgear/core/sheet";
 import { MeldSolverBar } from "./meld_solver_bar";
 import {makeActionButton, redoIcon, undoIcon} from "@xivgear/common-ui/components/util";
+import { GearPlanSheetGui } from "./sheet";
 
 export class UndoArea extends HTMLDivElement {
     private _currentSet: CharacterGearSet;
@@ -48,7 +48,7 @@ export class GearEditToolbar extends HTMLDivElement {
     private undoArea: UndoArea;
     private readonly meldSolverBar: MeldSolverBar;
 
-    constructor(sheet: GearPlanSheet,
+    constructor(sheet: GearPlanSheetGui,
                 itemDisplaySettings: ItemDisplaySettings,
                 displayUpdateCallback: () => void,
                 matFillCtrl: MateriaAutoFillController,

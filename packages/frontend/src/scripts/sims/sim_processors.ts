@@ -253,7 +253,6 @@ export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, Inter
         const sorted = [...allResults];
         sorted.sort((a, b) => b.mainDpsResult - a.mainDpsResult);
         console.debug("Sim end");
-        console.log(`Num: ${sorted.length}`);
         const best = sorted[0];
         // @ts-expect-error Developer will need to override this method if they want to use a custom type for the
         // full result type.

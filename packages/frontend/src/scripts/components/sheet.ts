@@ -1717,6 +1717,12 @@ export class GearPlanSheetGui extends GearPlanSheet {
         this._sheetSetupDone = true;
     }
 
+    public refreshMateria() {
+        if (this._editorAreaNode instanceof GearSetEditor) {
+            this._editorAreaNode.refreshMateria();
+        }
+    }
+
     get topLevelElement() {
         return this.element;
     }
