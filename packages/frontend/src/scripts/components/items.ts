@@ -744,7 +744,8 @@ export class GearItemsViewTable extends CustomTable<GearSlotItem, EquipmentSet> 
                 const item = {
                     slot: slot,
                     item: equippedItem,
-                    slotId: slotId
+                    slotId: slotId,
+                    alts: sheet.getAltItemsFor(equippedItem)
                 };
                 slotItem = equippedItem;
                 data.push(item);
@@ -786,10 +787,20 @@ export class GearItemsViewTable extends CustomTable<GearSlotItem, EquipmentSet> 
                 shortName: "itemname",
                 displayName: headingText,
                 getter: item => {
-                    return item.item.name;
+                    return item;
                 },
-                renderer: (name: string) => {
-                    return document.createTextNode(shortenItemName(name));
+                renderer: (item) => {
+                    const name = item.item.name;
+                    const itemNameSpan = quickElement('span', ['item-name'], [shortenItemName(name)]);
+                    const out = quickElement('div', ['item-name-holder-view'], [itemNameSpan]);
+                    if (item.alts.length > 0) {
+                        const altSpan = quickElement('span', ['item-alts'], [`(+${item.alts.length} others)`]);
+                        altSpan.addEventListener('click', () => {
+                            console.log("Alts", item.alts);
+                        });
+                        out.appendChild(altSpan);
+                    }
+                    return out;
                 },
                 // initialWidth: 300,
             },

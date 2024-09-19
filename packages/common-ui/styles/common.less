@@ -2437,6 +2437,24 @@ gear-set-viewer {
         //box-shadow: 0 0 3px 3px var(--stat-color) inset;
       }
     }
+
+    .item-name-holder-view {
+      display: flex;
+      flex-direction: row;
+
+      span.item-name {
+        flex-basis: 1px;
+        flex-grow: 99;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      span.item-alts {
+        flex-basis: fit-content;
+        flex-shrink: 0;
+        flex-grow: 0;
+      }
+    }
   }
 
   .food-view-table {

@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */                                                                                                                                                                                                                                                                // TODO: get back to fixing this at some point
+/* eslint-disable @typescript-eslint/no-explicit-any */                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                // TODO: get back to fixing this at some point
 import {
     CURRENT_MAX_LEVEL,
     defaultItemDisplaySettings,
@@ -36,7 +36,7 @@ import {
     SimExport,
     Substat
 } from "@xivgear/xivmath/geartypes";
-import {CharacterGearSet} from "./gear";
+import {CharacterGearSet, isSameOrBetterItem} from "./gear";
 import {DataManager, makeDataManager} from "./datamanager";
 import {Inactivitytimer} from "./util/inactivitytimer";
 import {writeProxy} from "./util/proxies";
@@ -836,5 +836,26 @@ export class GearPlanSheet {
             customItem.recheckStats();
         }
         this._sets.forEach(set => set.forceRecalc());
+    }
+
+    /**
+     * Get items that could replace the given item - either identical or better.
+     *
+     * @param thisItem
+     */
+    getAltItemsFor(thisItem: GearItem): GearItem[] {
+        // Ignore this for relics - consider them to be incompatible until we can
+        // figure out a good way to do this.
+        if (thisItem.isCustomRelic) {
+            return [];
+        }
+        return this.dataManager.allItems.filter(otherItem => {
+            // Cannot be the same item
+            return otherItem.id !== thisItem.id
+                // Must be same slot
+                && otherItem.occGearSlotName === thisItem.occGearSlotName
+                // Must be better or same stats
+                && isSameOrBetterItem(otherItem, thisItem);
+        });
     }
 }
