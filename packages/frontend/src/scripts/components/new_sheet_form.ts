@@ -13,7 +13,7 @@ import {GRAPHICAL_SHEET_PROVIDER} from "./sheet";
 import {levelSelect} from "@xivgear/common-ui/components/level_picker";
 import {BaseModal} from "@xivgear/common-ui/components/modal";
 import {SHARED_SET_NAME} from "@xivgear/core/imports/imports";
-import {recordEvent, recordSheetEvent} from "@xivgear/core/analytics/analytics";
+import {recordSheetEvent} from "@xivgear/core/analytics/analytics";
 
 export class NewSheetFormFieldSet extends HTMLFieldSetElement {
     readonly nameInput: HTMLInputElement;

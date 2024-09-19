@@ -12,7 +12,7 @@ import {makeUrl, VIEW_SET_HASH} from "@xivgear/core/nav/common_nav";
 import {GearPlanSheet} from "@xivgear/core/sheet";
 import {writeProxy} from "@xivgear/core/util/proxies";
 import {EquipSlots, Materia, XivItem} from "@xivgear/xivmath/geartypes";
-import {recordEvent, recordSheetEvent} from "@xivgear/core/analytics/analytics";
+import {recordSheetEvent} from "@xivgear/core/analytics/analytics";
 
 type ExportMethod<X> = {
     /**
