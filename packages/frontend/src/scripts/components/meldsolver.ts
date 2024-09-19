@@ -43,11 +43,13 @@ export class MeldSolver {
     }
 
     public async buttonPress() : Promise<CharacterGearSet> {
-        if (this._sheet.sims.at(0) && !(this._sheet.sims.at(0) instanceof BaseMultiCycleSim)) {
+        if (this._sheet.sims.at(0) === undefined 
+            || this._sheet.sims.at(0) === null
+            || !(this._sheet.sims.at(0) instanceof BaseMultiCycleSim)) {
             return null;
         }
         const sim = this._sheet.sims.at(0) as BaseMultiCycleSim<CycleSimResult, SimSettings, CycleProcessor, CycleSimResultFull<CycleSimResult>>;
-        const bestSet = await this.simulateSets((await this.getAllMeldCombinations(this._gearset, false)), sim);
+        const bestSet = await this.simulateSets((await this.getAllMeldCombinations(this._gearset, true)), sim);
 
         for (const slotKey of EquipSlots) {
             if (this._gearset.equipment[slotKey] === undefined || this._gearset.equipment[slotKey] === null) {
@@ -220,6 +222,7 @@ export class MeldSolver {
     cloneEquipmentset(set: EquipmentSet): EquipmentSet {
         const result = new EquipmentSet;
         for(const equipSlotKey in set) {
+            if (set[equipSlotKey] === null || set[equipSlotKey] === undefined) continue;
             result[equipSlotKey] = this.cloneEquippedItem(set[equipSlotKey]);
         }
 
