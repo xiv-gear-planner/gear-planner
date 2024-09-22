@@ -1,26 +1,27 @@
-import { SetExport, SheetExport } from "@xivgear/xivmath/geartypes"
-import { GearPlanSheet, HEADLESS_SHEET_PROVIDER } from "@xivgear/core/sheet";
-import { MeldSolverSettingsExport } from "./meld_solver_bar";
-import { MeldSolver } from "./meldsolver";
-import { registerDefaultSims } from "../sims/default_sims";
-import 'global-jsdom/register';
+// import './inject_placeholders';
+// import 'global-jsdom/register';
+import {SheetExport} from "@xivgear/xivmath/geartypes"
+import {HEADLESS_SHEET_PROVIDER} from "@xivgear/core/sheet";
+import {MeldSolverSettingsExport} from "../components/meld_solver_bar";
+import {MeldSolver} from "../components/meldsolver";
+import {registerDefaultSims} from "../sims/default_sims";
 
-onmessage = async function(ev) {
+onmessage = async function (ev) {
     console.log("starting work");
-    let [sheetexp, exportedSolverSettings] = ev.data as [SheetExport, MeldSolverSettingsExport];
-    let sheet = HEADLESS_SHEET_PROVIDER.fromExport(sheetexp);
+    const [sheetexp, exportedSolverSettings] = ev.data as [SheetExport, MeldSolverSettingsExport];
+    const sheet = HEADLESS_SHEET_PROVIDER.fromExport(sheetexp);
     await sheet.load();
     registerDefaultSims();
-    
+
     const gearset = sheet.importGearSet(exportedSolverSettings.gearset);
     const sim = sheet.importSim(exportedSolverSettings.sim);
     const solveSettings = {
         ...exportedSolverSettings,
         gearset,
         sim,
-    }
+    };
 
-    let solver = new MeldSolver(sheet, solveSettings);
+    const solver = new MeldSolver(sheet, solveSettings);
     this.postMessage(await solver.solveMelds());
     console.log("done!");
     /*

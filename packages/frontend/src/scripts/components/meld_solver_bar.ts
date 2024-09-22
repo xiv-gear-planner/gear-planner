@@ -1,11 +1,10 @@
 import { FieldBoundCheckBox, FieldBoundDataSelect, FieldBoundFloatField, makeActionButton } from "@xivgear/common-ui/components/util";
 import { CharacterGearSet } from "@xivgear/core/gear";
-import { MeldSolver } from "./meldsolver";
 import { GearPlanSheetGui } from "./sheet";
 import { SimResult, SimSettings, Simulation } from "@xivgear/core/sims/sim_types";
 import { MAX_GCD } from "@xivgear/xivmath/xivconstants";
 import { BaseModal } from "@xivgear/common-ui/components/modal";
-import { SetExport, SheetExport, SimExport } from "@xivgear/xivmath/geartypes";
+import { SetExport, SimExport } from "@xivgear/xivmath/geartypes";
 
 
 export class MeldSolverSettings {
@@ -55,7 +54,7 @@ export class MeldSolverDialog extends BaseModal {
         this.solveWorker.onmessage = function (ev: MessageEvent) {
             console.log(ev.data);//ev.data as CharacterGearSet);
             //outer.close();
-        }
+        };
 
         this.solveMeldsButton = makeActionButton("Solve Melds", async () => {
             console.log("sending...?");
@@ -74,8 +73,7 @@ export class MeldSolverDialog extends BaseModal {
         this.cancelButton = makeActionButton("Cancel", async () => {
             this.solveWorker.terminate();
             this.solveWorker = new Worker(new URL(
-                //@ts-ignore
-                './meld_solver_worker.ts', import.meta.url)
+                './src_scripts_components_meld_solver_worker_ts.js', document.location.toString())
             );
             this.buttonArea.removeChild(this.cancelButton);
             this.solveMeldsButton.disabled = false;
@@ -171,13 +169,13 @@ class MeldSolverSettingsMenu extends HTMLDivElement {
         );
         this.simDropdown.classList.add('meld-solver-sim-dropdown');
 
-        let span1 = document.createElement('li');
+        const span1 = document.createElement('li');
         span1.replaceChildren(this.overwriteMateriaCheckbox, this.overwriteMateriaText)
 
-        let span2 = document.createElement('li');
+        const span2 = document.createElement('li');
         span2.replaceChildren(this.useTargetGcdCheckBox, targetGcdText, this.targetGcdInput);
 
-        let span3 = document.createElement('li');
+        const span3 = document.createElement('li');
         span3.replaceChildren(simText, this.simDropdown);
 
         this.checkboxContainer = document.createElement('div');
