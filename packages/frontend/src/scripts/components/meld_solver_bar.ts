@@ -29,7 +29,6 @@ export class MeldSolverSettingsExport {
 }
 
 export class MeldSolverDialog extends BaseModal {
-    private _solver: MeldSolver;
     private _sheet: GearPlanSheetGui;
 
     private solveMeldsButton: HTMLButtonElement;
@@ -52,7 +51,6 @@ export class MeldSolverDialog extends BaseModal {
         this.classList.add('meld-solver-area');
         //this._solver = new MeldSolver(sheet);
         this.settingsDiv = new MeldSolverSettingsMenu(sheet, set);
-        const outer = this;
         
         this.solveWorker.onmessage = function (ev: MessageEvent) {
             console.log(ev.data);//ev.data as CharacterGearSet);

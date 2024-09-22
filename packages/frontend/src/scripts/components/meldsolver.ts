@@ -45,7 +45,7 @@ export class MeldSolver {
             return null;
         }
 
-        let generatedSets = await this.getAllMeldCombinations(
+        let generatedSets = this.getAllMeldCombinations(
             this._settings.gearset,
             this._settings.overwriteExistingMateria,
             this._settings.useTargetGcd ? this._settings.targetGcd : null);
