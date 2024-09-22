@@ -78,6 +78,7 @@ import {SaveAsModal} from "./new_sheet_form";
 import {DropdownActionMenu} from "./dropdown_actions_menu";
 import {CustomFoodPopup, CustomItemPopup} from "./custom_item_manager";
 import {confirmDelete} from "@xivgear/common-ui/components/delete_confirm";
+import { MeldSolverDialog } from "./meld_solver_bar";
 
 export type GearSetSel = SingleCellRowOrHeaderSelect<CharacterGearSet>;
 
@@ -1844,6 +1845,12 @@ export class GearPlanSheetGui extends GearPlanSheet {
         const addSimDialog = new AddSimDialog(this);
         document.querySelector('body').appendChild(addSimDialog);
         addSimDialog.show();
+    }
+
+    showMeldSolveDialog() {
+        const meldSolveDialog = new MeldSolverDialog(this);
+        document.querySelector('body').appendChild(meldSolveDialog);
+        meldSolveDialog.show();
     }
 
     get gearPlanTable(): GearPlanTable {

@@ -296,7 +296,6 @@ export class CharacterGearSet {
     set food(food: FoodItem | undefined) {
         this.invalidate();
         this._food = food;
-        console.log(`Set ${this.name}: food => ${food?.name}`);
         this.notifyListeners();
     }
 

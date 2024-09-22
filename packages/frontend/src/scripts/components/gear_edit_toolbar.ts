@@ -3,7 +3,7 @@ import {ItemDisplaySettings, MateriaAutoFillController} from "@xivgear/xivmath/g
 import {MateriaPriorityPicker} from "./materia";
 import {StatTierDisplay} from "./stat_tier_display";
 import {CharacterGearSet} from "@xivgear/core/gear";
-import { MeldSolverBar } from "./meld_solver_bar";
+import { MeldSolverDialog } from "./meld_solver_bar";
 import {makeActionButton, redoIcon, undoIcon} from "@xivgear/common-ui/components/util";
 import { GearPlanSheetGui } from "./sheet";
 
@@ -46,7 +46,7 @@ export class UndoArea extends HTMLDivElement {
 export class GearEditToolbar extends HTMLDivElement {
     private readonly statTierDisplay: StatTierDisplay;
     private undoArea: UndoArea;
-    private readonly meldSolverBar: MeldSolverBar;
+    private readonly meldSolverBar: MeldSolverDialog;
 
     constructor(sheet: GearPlanSheetGui,
                 itemDisplaySettings: ItemDisplaySettings,
@@ -82,14 +82,13 @@ export class GearEditToolbar extends HTMLDivElement {
         this.statTierDisplay = new StatTierDisplay(sheet);
         this.appendChild(this.statTierDisplay);
 
-        this.meldSolverBar = new MeldSolverBar(sheet);
-        this.appendChild(this.meldSolverBar);
+        let button = makeActionButton('Solve Melds', () => sheet.showMeldSolveDialog(), "meep");
+        this.appendChild(button);
     }
 
     refresh(gearSet: CharacterGearSet) {
         this.undoArea.currentSet = gearSet;
         this.statTierDisplay.refresh(gearSet);
-        this.meldSolverBar.refresh(gearSet);
     }
 }
 

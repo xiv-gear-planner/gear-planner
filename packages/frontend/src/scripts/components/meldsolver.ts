@@ -1,10 +1,10 @@
 import { CharacterGearSet } from "@xivgear/core/gear";
-import { EquippedItem, RawStats, EquipmentSet, EquipSlots, MeldableMateriaSlot, EquipSlotKey } from "@xivgear/xivmath/geartypes";
-import { MateriaSubstat, ALL_SUB_STATS, MATERIA_ACCEPTABLE_OVERCAP_LOSS } from "@xivgear/xivmath/xivconstants";
-import { BaseMultiCycleSim } from "../sims/sim_processors";
+import { EquippedItem, RawStats, EquipmentSet, EquipSlots, MeldableMateriaSlot } from "@xivgear/xivmath/geartypes";
+import { MateriaSubstat, ALL_SUB_STATS, MATERIA_ACCEPTABLE_OVERCAP_LOSS, NORMAL_GCD } from "@xivgear/xivmath/xivconstants";
 import { GearPlanSheetGui } from "./sheet";
-import { CycleProcessor, CycleSimResult, CycleSimResultFull } from "@xivgear/core/sims/cycle_sim";
-import { SimSettings } from "@xivgear/core/sims/sim_types";
+import { SimResult, SimSettings, Simulation } from "@xivgear/core/sims/sim_types";
+import { MeldSolverSettings } from "./meld_solver_bar";
+import { sksToGcd, spsToGcd } from "@xivgear/xivmath/xivmath";
 
 class ItemWithStats {
     item: EquippedItem;
@@ -42,14 +42,20 @@ export class MeldSolver {
         this.relevantStats = ALL_SUB_STATS.filter(stat => this._sheet.isStatRelevant(stat) && stat != 'piety');
     }
 
-    public async buttonPress() : Promise<CharacterGearSet> {
-        if (this._sheet.sims.at(0) === undefined 
-            || this._sheet.sims.at(0) === null
-            || !(this._sheet.sims.at(0) instanceof BaseMultiCycleSim)) {
+    public async buttonPress(settings: MeldSolverSettings) : Promise<CharacterGearSet> {
+        
+        if (!settings.sim) {
             return null;
         }
-        const sim = this._sheet.sims.at(0) as BaseMultiCycleSim<CycleSimResult, SimSettings, CycleProcessor, CycleSimResultFull<CycleSimResult>>;
-        const bestSet = await this.simulateSets((await this.getAllMeldCombinations(this._gearset, true)), sim);
+
+        let generatedSets = await this.getAllMeldCombinations(this._gearset,settings.overwriteExistingMateria, settings.useTargetGcd ? settings.targetGcd : null);
+        if (generatedSets.size == 0) {
+            return this._gearset;
+        }
+
+        const bestSet = await this.simulateSets(
+            generatedSets,
+            settings.sim);
 
         for (const slotKey of EquipSlots) {
             if (this._gearset.equipment[slotKey] === undefined || this._gearset.equipment[slotKey] === null) {
@@ -65,7 +71,7 @@ export class MeldSolver {
         return bestSet;
     }
 
-    async simulateSets(assortedSetsByGcd: Set<CharacterGearSet>, sim: BaseMultiCycleSim<CycleSimResult, SimSettings, CycleProcessor, CycleSimResultFull<CycleSimResult>>)
+    async simulateSets(assortedSetsByGcd: Set<CharacterGearSet>, sim: Simulation<SimResult, SimSettings, any>)
     : Promise<CharacterGearSet> {
 
         let bestSimDps: number = 0;
@@ -82,11 +88,18 @@ export class MeldSolver {
         return bestSet;
     }
 
-    async getAllMeldCombinations(gearset: CharacterGearSet, keepExistingMateria: boolean): Promise<Set<CharacterGearSet>> {
+    getAllMeldCombinations(gearset: CharacterGearSet, overwriteMateria: boolean, targetGcd?: number): Set<CharacterGearSet> {
+
+        const levelStats = gearset.computedStats.levelStats;
+        const override = this._sheet.classJobStats.gcdDisplayOverrides?.(this._sheet.level) ?? [];
+        const useSks = gearset.isStatRelevant('skillspeed');
+        const over = override.find(over => over.basis === (useSks ? 'sks' : 'sps'));
+        const attackType = over ? over.attackType : useSks ? 'Weaponskill' : 'Spell';
+        const haste = gearset.computedStats.haste(attackType) + (over ? over.haste : 0);
 
         const equipment = this.cloneEquipmentset(gearset.equipment);
         
-        if (!keepExistingMateria) {
+        if (overwriteMateria) {
             for (const slotKey of EquipSlots) {
                 const equipSlot = equipment[slotKey] as EquippedItem | null;
                 const gearItem = equipSlot?.gearItem;
@@ -95,6 +108,7 @@ export class MeldSolver {
                 }
             }
         }
+
         const generatedGearsets = new Set<CharacterGearSet>
         let possibleMeldCombinations = new Map<string, EquipmentSetWithStats>();
         const baseEquipSet = new EquipmentSetWithStats(new EquipmentSet, new RawStats);
@@ -129,13 +143,27 @@ export class MeldSolver {
 
                 for (const currPiece of allIndividualGearPieces.get(slotKey).values()) {
 
-                    await this.addPieceIfNotDuplicate(currPiece, currSet, slotKey, newGearsets);
+                    const setStatsWithPiece = this.addStats(Object.assign({}, currSet.stats), currPiece.stats);
+                    const setPlusNewPieceKey = this.statsToString(setStatsWithPiece, this.relevantStats);
+
+                    const gcd = useSks ? sksToGcd(NORMAL_GCD, levelStats, setStatsWithPiece['skillspeed'], haste)
+                                        : spsToGcd(NORMAL_GCD, levelStats, setStatsWithPiece['spellspeed'], haste);
+
+                    // Exclude anything that is already past our target GCD, because there's no anti-sks that will slow the set down to target
+                    if (!newGearsets.has(setPlusNewPieceKey)
+                        && (!targetGcd || gcd > targetGcd)) { 
+
+                        const setPlusNewPiece = this.cloneEquipmentSetWithStats(currSet);
+                        setPlusNewPiece.set[slotKey] = currPiece.item;
+                        setPlusNewPiece.stats = setStatsWithPiece;
+
+                        newGearsets.set(setPlusNewPieceKey, setPlusNewPiece);
+                    }
                 }
             }
 
             possibleMeldCombinations = newGearsets;
         }
-
 
         for (const combination of possibleMeldCombinations.values()) {
 
@@ -144,24 +172,15 @@ export class MeldSolver {
             newGearset.equipment = combination.set;
             
             newGearset.forceRecalc();
-            generatedGearsets.add(newGearset);
+            let gcd = useSks ? newGearset.computedStats.gcdPhys(NORMAL_GCD, haste)
+                                : newGearset.computedStats.gcdMag(NORMAL_GCD, haste);
+            
+            if (!targetGcd || gcd === targetGcd) {
+                generatedGearsets.add(newGearset);
+            }
         }
 
         return generatedGearsets;
-    }
-
-    async addPieceIfNotDuplicate(piece: ItemWithStats, set: EquipmentSetWithStats, slot: EquipSlotKey, existingSets: Map<string, EquipmentSetWithStats>) {
-
-        const setStatsWithPiece = this.addStats(Object.assign({}, set.stats), piece.stats);
-        const setPlusNewPieceKey = this.statsToString(setStatsWithPiece, this.relevantStats);
-
-        if (!existingSets.has(setPlusNewPieceKey)) {
-            const setPlusNewPiece = this.cloneEquipmentSetWithStats(set);
-            setPlusNewPiece.set[slot] = piece.item;
-            setPlusNewPiece.stats = setStatsWithPiece;
-
-            existingSets.set(setPlusNewPieceKey, setPlusNewPiece);
-        }
     }
 
     public getAllMeldCombinationsForGearItem(equippedItem: EquippedItem): Set<ItemWithStats> | null {
