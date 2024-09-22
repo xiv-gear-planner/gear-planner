@@ -1848,7 +1848,10 @@ export class GearPlanSheetGui extends GearPlanSheet {
     }
 
     showMeldSolveDialog() {
-        const meldSolveDialog = new MeldSolverDialog(this);
+        if (!(this._editorItem instanceof CharacterGearSet)) {
+            return;
+        }
+        const meldSolveDialog = new MeldSolverDialog(this, this.editorItem as CharacterGearSet);
         document.querySelector('body').appendChild(meldSolveDialog);
         meldSolveDialog.show();
     }

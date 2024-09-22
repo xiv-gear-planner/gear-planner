@@ -5,6 +5,7 @@ import { GearPlanSheetGui } from "./sheet";
 import { SimResult, SimSettings, Simulation } from "@xivgear/core/sims/sim_types";
 import { MeldSolverSettings } from "./meld_solver_bar";
 import { sksToGcd, spsToGcd } from "@xivgear/xivmath/xivmath";
+import { GearPlanSheet } from "@xivgear/core/sheet";
 
 class ItemWithStats {
     item: EquippedItem;
@@ -28,35 +29,37 @@ class EquipmentSetWithStats {
 
 export class MeldSolver {
 
-    readonly _sheet: GearPlanSheetGui;
-    private _gearset: CharacterGearSet;
+    readonly _sheet: GearPlanSheet;
+    readonly _settings: MeldSolverSettings;
 
     relevantStats: MateriaSubstat[]; //= ALL_SUB_STATS.filter(stat => this._sheet.isStatRelevant(stat) && stat != 'piety');
 
-    public constructor(sheet: GearPlanSheetGui) {
+    public constructor(sheet: GearPlanSheet, settings: MeldSolverSettings) {
         this._sheet = sheet;
+        this._settings = settings;
     }
 
-    public refresh(set: CharacterGearSet) {
-        this._gearset = set;
-        this.relevantStats = ALL_SUB_STATS.filter(stat => this._sheet.isStatRelevant(stat) && stat != 'piety');
-    }
-
-    public async buttonPress(settings: MeldSolverSettings) : Promise<CharacterGearSet> {
+    public async solveMelds() : Promise<CharacterGearSet> {
         
-        if (!settings.sim) {
+        if (!this._settings.sim) {
             return null;
         }
 
-        let generatedSets = await this.getAllMeldCombinations(this._gearset,settings.overwriteExistingMateria, settings.useTargetGcd ? settings.targetGcd : null);
+        let generatedSets = await this.getAllMeldCombinations(
+            this._settings.gearset,
+            this._settings.overwriteExistingMateria,
+            this._settings.useTargetGcd ? this._settings.targetGcd : null);
+
         if (generatedSets.size == 0) {
-            return this._gearset;
+            return null;
         }
 
         const bestSet = await this.simulateSets(
             generatedSets,
-            settings.sim);
+            this._settings.sim
+        );
 
+        /*
         for (const slotKey of EquipSlots) {
             if (this._gearset.equipment[slotKey] === undefined || this._gearset.equipment[slotKey] === null) {
                 continue;
@@ -64,10 +67,8 @@ export class MeldSolver {
 
             this._gearset.equipment[slotKey].melds = bestSet.equipment[slotKey].melds;
         }
+        */
 
-        this._gearset.forceRecalc();
-        this._sheet.refreshMateria();
-        this._sheet.refreshGearEditor(this._gearset);
         return bestSet;
     }
 

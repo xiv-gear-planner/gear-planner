@@ -5,46 +5,104 @@ import { GearPlanSheetGui } from "./sheet";
 import { SimResult, SimSettings, Simulation } from "@xivgear/core/sims/sim_types";
 import { MAX_GCD } from "@xivgear/xivmath/xivconstants";
 import { BaseModal } from "@xivgear/common-ui/components/modal";
+import { SetExport, SheetExport, SimExport } from "@xivgear/xivmath/geartypes";
+
 
 export class MeldSolverSettings {
     sim: Simulation<SimResult, SimSettings, unknown>;
+    gearset: CharacterGearSet;
     overwriteExistingMateria: boolean;
     useTargetGcd: boolean;
     targetGcd?: number;
 }
+
+/**
+ * Different from MeldsolverSettings because webworkers needs a serializable object
+ * There's probably a better way than
+ */
+export class MeldSolverSettingsExport {
+    sim: SimExport;
+    gearset: SetExport;
+    overwriteExistingMateria: boolean;
+    useTargetGcd: boolean;
+    targetGcd?: number;
+}
+
 export class MeldSolverDialog extends BaseModal {
     private _solver: MeldSolver;
+    private _sheet: GearPlanSheetGui;
 
-    private button: HTMLButtonElement;
+    private solveMeldsButton: HTMLButtonElement;
+    private cancelButton: HTMLButtonElement;
     readonly tempSettings: MeldSolverSettings;
     readonly settingsDiv: MeldSolverSettingsMenu;
+    private solveWorker: Worker;
 
-    constructor(sheet: GearPlanSheetGui) {
+    constructor(sheet: GearPlanSheetGui, set: CharacterGearSet) {
         super();
+        this._sheet = sheet;
         this.id = 'meld-solver-dialog';
         this.headerText = 'Meld Solver';
         const form = document.createElement("form");
         form.method = 'dialog';
+        this.solveWorker = new Worker(new URL(
+            './src_scripts_components_meld_solver_worker_ts.js', document.location.toString())
+        );
 
         this.classList.add('meld-solver-area');
-        this._solver = new MeldSolver(sheet);
-        this.settingsDiv = new MeldSolverSettingsMenu(sheet);
+        //this._solver = new MeldSolver(sheet);
+        this.settingsDiv = new MeldSolverSettingsMenu(sheet, set);
+        const outer = this;
+        
+        this.solveWorker.onmessage = function (ev: MessageEvent) {
+            console.log(ev.data);//ev.data as CharacterGearSet);
+            //outer.close();
+        }
 
-        this.button = makeActionButton("Solve Melds", async () => {
+        this.solveMeldsButton = makeActionButton("Solve Melds", async () => {
+            console.log("sending...?");
+            this.solveWorker.postMessage([sheet.exportSheet(), this.exportSolverSettings()]);
+            this.solveMeldsButton.disabled = true;
+            this.addButton(this.cancelButton);
+            /*
             const prommie = (async () => {
 
-                return await this._solver.buttonPress(this.settingsDiv.settings);
+                //return await this._solver.buttonPress(this.settingsDiv.settings);
             })();
             return prommie;
+            */
         });
+
+        this.cancelButton = makeActionButton("Cancel", async () => {
+            this.solveWorker.terminate();
+            this.solveWorker = new Worker(new URL(
+                //@ts-ignore
+                './meld_solver_worker.ts', import.meta.url)
+            );
+            this.buttonArea.removeChild(this.cancelButton);
+            this.solveMeldsButton.disabled = false;
+        })
         
-        this.addButton(this.button);
+        this.addButton(this.solveMeldsButton);
         form.replaceChildren( this.settingsDiv);
         this.contentArea.append(form);
     }
 
     public refresh(set: CharacterGearSet) {
-        this._solver.refresh(set);
+        this.settingsDiv.settings.gearset = set;
+    }
+
+    // For sending to worker
+    exportSolverSettings(): MeldSolverSettingsExport {
+        return {
+            ...this.settingsDiv.settings,
+            sim: {
+                stub: this.settingsDiv.settings.sim.spec.stub,
+                settings: this.settingsDiv.settings.sim.settings,
+                name: this.settingsDiv.settings.sim.displayName,
+            },
+            gearset: this._sheet.exportGearSet(this.settingsDiv.settings.gearset),
+        };
     }
 }
 
@@ -57,10 +115,11 @@ class MeldSolverSettingsMenu extends HTMLDivElement {
     private checkboxContainer: HTMLDivElement;
     private simDropdown: FieldBoundDataSelect<MeldSolverSettings, Simulation<any, any, any>>
 
-    constructor(sheet: GearPlanSheetGui) {
+    constructor(sheet: GearPlanSheetGui, set: CharacterGearSet) {
         super();
 
         this.settings = {
+            gearset: set,
             overwriteExistingMateria: true, 
             useTargetGcd: false,
             targetGcd: 2.50,
