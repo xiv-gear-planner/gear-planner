@@ -5,6 +5,7 @@ import {StatTierDisplay} from "./stat_tier_display";
 import {CharacterGearSet} from "@xivgear/core/gear";
 import { MeldSolverDialog } from "./meld_solver_bar";
 import {makeActionButton, redoIcon, undoIcon} from "@xivgear/common-ui/components/util";
+import {recordEvent} from "@xivgear/core/analytics/analytics";
 import { GearPlanSheetGui } from "./sheet";
 
 export class UndoArea extends HTMLDivElement {
@@ -16,9 +17,11 @@ export class UndoArea extends HTMLDivElement {
         super();
         this.classList.add('undo-controls');
         this.undoButton = makeActionButton([undoIcon()], () => {
+            recordEvent("undo");
             this.currentSet?.undo();
         }, 'Undo');
         this.redoButton = makeActionButton([redoIcon()], () => {
+            recordEvent("redo");
             this.currentSet?.redo();
         }, 'Redo');
         this.replaceChildren(this.undoButton, this.redoButton);

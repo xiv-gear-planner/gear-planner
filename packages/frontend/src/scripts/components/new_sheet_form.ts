@@ -13,6 +13,7 @@ import {GRAPHICAL_SHEET_PROVIDER} from "./sheet";
 import {levelSelect} from "@xivgear/common-ui/components/level_picker";
 import {BaseModal} from "@xivgear/common-ui/components/modal";
 import {SHARED_SET_NAME} from "@xivgear/core/imports/imports";
+import {recordSheetEvent} from "@xivgear/core/analytics/analytics";
 
 export class NewSheetFormFieldSet extends HTMLFieldSetElement {
     readonly nameInput: HTMLInputElement;
@@ -139,6 +140,7 @@ export class NewSheetForm extends HTMLFormElement {
     private doSubmit() {
         const nextSheetSaveStub = getNextSheetInternalName();
         const gearPlanSheet = GRAPHICAL_SHEET_PROVIDER.fromScratch(nextSheetSaveStub, this.fieldSet.nameInput.value, this.fieldSet.jobDropdown.selectedItem, this.fieldSet.levelDropdown.selectedItem, this.fieldSet.tempSettings.ilvlSyncEnabled ? this.fieldSet.tempSettings.ilvlSync : undefined);
+        recordSheetEvent("newSheet", gearPlanSheet);
         this.sheetOpenCallback(gearPlanSheet).then(() => gearPlanSheet.requestSave());
     }
 }
@@ -172,7 +174,7 @@ export class SaveAsModal extends BaseModal {
             ev.stopPropagation();
             const newJob = this.fieldSet.jobDropdown.selectedItem;
             if (newJob !== undefined && newJob !== existingSheet.classJobName) {
-                const result = confirm(`You are attempting to change a sheet from ${existingSheet.classJobName} to ${newJob}. Items may need to be re-selected.`)
+                const result = confirm(`You are attempting to change a sheet from ${existingSheet.classJobName} to ${newJob}. Items may need to be re-selected.`);
                 if (!result) {
                     this.close();
                     return;
@@ -187,6 +189,7 @@ export class SaveAsModal extends BaseModal {
             const newSheet = GRAPHICAL_SHEET_PROVIDER.fromSaved(newSheetSaveKey);
             console.log("new sheet key", newSheet.saveKey);
             callback(newSheet).then(() => newSheet.requestSave());
+            recordSheetEvent("saveAs", newSheet);
             this.close();
         });
         this.fieldSet.recheck();

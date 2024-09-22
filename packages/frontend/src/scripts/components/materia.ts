@@ -21,6 +21,7 @@ import {
     quickElement
 } from "@xivgear/common-ui/components/util";
 import {GearPlanSheet} from "@xivgear/core/sheet";
+import {recordEvent} from "@xivgear/core/analytics/analytics";
 
 /**
  * Component for managing all materia slots on an item
@@ -391,9 +392,20 @@ export class MateriaPriorityPicker extends HTMLElement {
             'Keep Slot, else None: Keep the same materia as the previously item in that slot. If none equipped, leave empty.\n' +
             'Keep Item, else None: Remember what materia was equipped to each item. If none equipped, leave empty.';
         const fillModeLabel = labelFor("Fill Mode:", fillModeDropdown);
+        fillModeDropdown.addListener((newValue) => {
+           recordEvent("fillMode", {
+               'mode': newValue,
+           })
+        });
 
-        const fillEmptyNow = makeActionButton('Fill Empty', () => prioController.fillEmpty(), 'Fill all empty materia slots according to the chosen priority.');
-        const fillAllNow = makeActionButton('Fill All', () => prioController.fillAll(), 'Empty out and re-fill all materia slots according to the chosen priority.');
+        const fillEmptyNow = makeActionButton('Fill Empty', () => {
+            prioController.fillEmpty();
+            recordEvent("fillEmpty");
+        }, 'Fill all empty materia slots according to the chosen priority.');
+        const fillAllNow = makeActionButton('Fill All', () => {
+            prioController.fillAll();
+            recordEvent("fillAll");
+        }, 'Empty out and re-fill all materia slots according to the chosen priority.');
         const drag = new MateriaDragList(prioController);
 
         const minGcdText = document.createElement('span');
