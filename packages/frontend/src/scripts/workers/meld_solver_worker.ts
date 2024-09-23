@@ -1,5 +1,5 @@
-// import './inject_placeholders';
-// import 'global-jsdom/register';
+import './inject_placeholders';
+import 'global-jsdom/register';
 import {SheetExport} from "@xivgear/xivmath/geartypes"
 import {HEADLESS_SHEET_PROVIDER} from "@xivgear/core/sheet";
 import {MeldSolverSettingsExport} from "../components/meld_solver_bar";
