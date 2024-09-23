@@ -27,6 +27,7 @@ export class MeldSolverSettingsExport {
     targetGcd?: number;
 }
 
+
 export class MeldSolverDialog extends BaseModal {
     private _sheet: GearPlanSheetGui;
 
@@ -43,9 +44,7 @@ export class MeldSolverDialog extends BaseModal {
         this.headerText = 'Meld Solver';
         const form = document.createElement("form");
         form.method = 'dialog';
-        this.solveWorker = new Worker(new URL(
-            './src_scripts_components_meld_solver_worker_ts.js', document.location.toString())
-        );
+        this.solveWorker = this.makeActualWorker();
 
         this.classList.add('meld-solver-area');
         //this._solver = new MeldSolver(sheet);
@@ -72,16 +71,30 @@ export class MeldSolverDialog extends BaseModal {
 
         this.cancelButton = makeActionButton("Cancel", async () => {
             this.solveWorker.terminate();
-            this.solveWorker = new Worker(new URL(
-                './src_scripts_components_meld_solver_worker_ts.js', document.location.toString())
-            );
+            this.solveWorker = this.makeActualWorker();
             this.buttonArea.removeChild(this.cancelButton);
             this.solveMeldsButton.disabled = false;
-        })
+        });
         
         this.addButton(this.solveMeldsButton);
         form.replaceChildren( this.settingsDiv);
         this.contentArea.append(form);
+    }
+
+    // Webpack sees this and it causes it to generate a separate js file for the worker.
+    // import.meta.url doesn't actually work for this - we need to use document.location as shown in the ctor.
+    // TODO: make sure the worker JS is not also ending up in the main JS
+    makeUselessWorker() {
+        this.solveWorker = new Worker(new URL(
+            // @ts-expect-error idk
+            '../workers/meld_solver_worker.ts', import.meta.url)
+        );
+    }
+
+    makeActualWorker(): Worker {
+        return new Worker(new URL(
+            './src_scripts_workers_meld_solver_worker_ts.js', document.location.toString())
+        );
     }
 
     public refresh(set: CharacterGearSet) {
@@ -109,7 +122,7 @@ class MeldSolverSettingsMenu extends HTMLDivElement {
     private useTargetGcdCheckBox: FieldBoundCheckBox<MeldSolverSettings>;
     private targetGcdInput: FieldBoundFloatField<MeldSolverSettings>;
     private checkboxContainer: HTMLDivElement;
-    private simDropdown: FieldBoundDataSelect<MeldSolverSettings, Simulation<any, any, any>>
+    private simDropdown: FieldBoundDataSelect<MeldSolverSettings, Simulation<SimResult, unknown, unknown>>;
 
     constructor(sheet: GearPlanSheetGui, set: CharacterGearSet) {
         super();
@@ -159,7 +172,7 @@ class MeldSolverSettingsMenu extends HTMLDivElement {
         simText.textContent = "Sim: ";
         simText.classList.add('meld-solver-settings');
 
-        this.simDropdown = new FieldBoundDataSelect<typeof this.settings, Simulation<any, any, any>>(
+        this.simDropdown = new FieldBoundDataSelect<typeof this.settings, Simulation<SimResult, unknown, unknown>>(
             this.settings,
             'sim',
             value => {
