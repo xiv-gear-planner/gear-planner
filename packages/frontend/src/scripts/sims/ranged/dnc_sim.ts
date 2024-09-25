@@ -233,7 +233,7 @@ export class DncDtSim extends BaseUsageCountSim<DncDtSimResults, DncDtSimSetting
         const startFinishDelay = 0.008;
         const stepDelay = 0.008;
 
-        const cfRot = this.getCfRotQty(set);
+        const cfRot = this.getCfRotQty(set, 22, 11); // 22s total of non-gcd-scaling stuff, 11 guaranteed GCDs
         const gcdCount = cfRot.rotationCount;
         const gcdTimeWithDelay = gcdTime + gcdDelay;
         const gcdTimeTotal = gcdCount * gcdTimeWithDelay;
@@ -250,47 +250,49 @@ export class DncDtSim extends BaseUsageCountSim<DncDtSimResults, DncDtSimSetting
         return Math.max(totalTime, timeCap);
     }
 
-    private getCfRotQty(set: CharacterGearSet): {
-        cascaseFountainCount: number,
+    private getCfRotQty(set: CharacterGearSet, nonCFStatic: number, nonCFGcd: number): {
+        cascadeFountainCount: number,
         rotationCount: number
     } {
+
         const gcd = set.computedStats.gcdPhys(2.5);
+        const cfCount = Math.floor((120 - nonCFStatic - (gcd * nonCFGcd))/gcd);
+        return {
+            cascadeFountainCount: cfCount,
+            rotationCount: cfCount + nonCFGcd,
+        };
+        /*
         if (gcd >= 2.46) {
             return {
-                cascaseFountainCount: 35,
-                rotationCount: 45
+                cascadeFountainCount: 28,
             }
         }
         else if (gcd >= 2.40) {
             return {
-                cascaseFountainCount: 36,
-                rotationCount: 46
+                cascadeFountainCount: 29,
             }
         }
         else if (gcd >= 2.35) {
             return {
-                cascaseFountainCount: 37,
-                rotationCount: 47
+                cascadeFountainCount: 30,
             }
         }
         else if (gcd >= 2.30) {
             return {
-                cascaseFountainCount: 38,
-                rotationCount: 48
+                cascadeFountainCount: 31,
             }
         }
         else if (gcd >= 2.25) {
             return {
-                cascaseFountainCount: 39,
-                rotationCount: 49
+                cascadeFountainCount: 32,
             }
         }
         else {
             return {
-                cascaseFountainCount: 40,
-                rotationCount: 50
+                cascadeFountainCount: 33,
             }
         }
+            */
     }
 
 
@@ -306,12 +308,55 @@ export class DncDtSim extends BaseUsageCountSim<DncDtSimResults, DncDtSimSetting
     skillsInBuffDuration(set: CharacterGearSet, buffDuration: number | null): SkillCount[] {
 
         // TODO
-        const Esprit = 420;
+        const Esprit = 244;
         const Esprit_TF = 115;
 
-        const cf = this.getCfRotQty(set).cascaseFountainCount;
 
         // Copied from google doc
+        const TillanaTotal = 1;
+        const Tillana15 = 0;
+        const Tillana20 = 1;
+        const Tillana30 = 1;
+
+        const StarfallTotal = 1;
+        const Starfall20 = 1;
+        const Starfall15 = 1;
+        const Starfall30 = 1;
+
+        const TechFinishTotal = 1;
+        const TechFinish20 = 0;
+        const TechFinish15 = 0;
+        const TechFinish30 = 0;
+
+        const DanceOfTheDawnTotal= 1;
+        const DanceOfTheDawn20 = 1;
+        const DanceOfTheDawn15 = 1;
+        const DanceOfTheDawn30 = 1;
+        
+        const StandardFinishTotal = 2;
+        const StandardFinish15 = 0;
+        const StandardFinish20 = 0;
+        const StandardFinish30 = 0;
+
+        const FanDanceIVTotal = 2;
+        const FanDanceIV15 = 1;
+        const FanDanceIV20 = 1;
+        const FanDanceIV30 = 1;
+
+        const FinishingMoveTotal = 2;
+        const FinishingMove15 = 1;
+        const FinishingMove20 = 1;
+        const FinishingMove30 = 1;
+
+        const LastDanceTotal = 4;
+        const LastDance15 = 1;
+        const LastDance20 = 1;
+        const LastDance30 = 1;
+
+        const staticTime = 7 * TechFinishTotal + 5 * StandardFinishTotal + 2.5 * FinishingMoveTotal;
+        const numNonCfGcds = TillanaTotal + LastDanceTotal + StarfallTotal + DanceOfTheDawnTotal + 4; // +4 for flourish procs
+        const cf = this.getCfRotQty(set, staticTime, numNonCfGcds).cascadeFountainCount;
+
         const SaberTotal = Esprit / 50 - 1;
         const Saber20 = (65 + Esprit_TF * 18.5 / 20) / 50 - 1;
         const Saber15 = Saber20 / 2;
@@ -337,16 +382,6 @@ export class DncDtSim extends BaseUsageCountSim<DncDtSimResults, DncDtSimSetting
         const ReverseCascade15 = 1 / 2 * ReverseCascade20;
         const ReverseCascade30 = 4 / 31 * (ReverseCascadeTotal - ReverseCascade20) + ReverseCascade20;
 
-        const StandardFinishTotal = 0;
-        const StandardFinish15 = 0;
-        const StandardFinish20 = 0;
-        const StandardFinish30 = 0;
-
-        const TillanaTotal = 1;
-        const Tillana15 = 0;
-        const Tillana20 = 1;
-        const Tillana30 = 1;
-
         const FanDanceTotal = (ReverseCascadeTotal + FountainfallTotal) / 2;
         const FanDance20 = 3 + (ReverseCascade20 + Fountainfall20) / 2;
         const FanDance15 = 3 / 4 * FanDance20;
@@ -356,21 +391,6 @@ export class DncDtSim extends BaseUsageCountSim<DncDtSimResults, DncDtSimSetting
         const FanDanceIII15 = FanDance15 / 2 + 1;
         const FanDanceIII20 = FanDance20 / 2 + 1;
         const FanDanceIII30 = 4 / 31 * (FanDanceIIITotal - FanDanceIII20) + FanDanceIII20;
-
-        const FanDanceIVTotal = 2;
-        const FanDanceIV15 = 1;
-        const FanDanceIV20 = 1;
-        const FanDanceIV30 = 1;
-
-        const FinishingMoveTotal = 2;
-        const FinishingMove15 = 1;
-        const FinishingMove20 = 1;
-        const FinishingMove30 = 1;
-
-        const LastDanceTotal = 2;
-        const LastDance15 = 1;
-        const LastDance20 = 1;
-        const LastDance30 = 1;
 
         const FullCycleTime = this.totalCycleTime(set);
 
