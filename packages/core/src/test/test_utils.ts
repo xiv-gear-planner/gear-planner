@@ -1,5 +1,5 @@
 // import assert from "node:assert";
-import {ComputedSetStats, EquipmentSet, GearItem} from "@xivgear/xivmath/geartypes";
+import {ComputedSetStats, EquipmentSet, GearItem, RawStatKey} from "@xivgear/xivmath/geartypes";
 import {CharacterGearSet} from "../gear";
 
 /**
@@ -41,6 +41,9 @@ export function makeFakeSet(stats: ComputedSetStats): CharacterGearSet {
             else {
                 return null;
             }
+        },
+        isStatRelevant(stat: RawStatKey): boolean {
+            return ['piety', 'crit', 'dhit', 'spellspeed', 'determination'].includes(stat);
         }
     } as CharacterGearSet;
 }

@@ -1,5 +1,5 @@
 import { CycleSimResult, DisplayRecordFinalized, isFinalizedAbilityUse } from '@xivgear/core/sims/cycle_sim';
-import { UsedAbility } from "@xivgear/core/sims/sim_types";
+import { PreDmgUsedAbility } from "@xivgear/core/sims/sim_types";
 import { SAMExtraData, SAMGaugeState, KenkiAbility } from './sam_types';
 import { CustomColumnSpec } from '../../../tables';
 
@@ -69,7 +69,7 @@ class SAMGauge {
             shortName: 'kenkiGauge',
             displayName: 'Kenki',
             getter: used => isFinalizedAbilityUse(used) ? used.original : null,
-            renderer: (usedAbility?: UsedAbility) => {
+            renderer: (usedAbility?: PreDmgUsedAbility) => {
                 if (usedAbility?.extraData !== undefined) {
                     const kenki = (usedAbility.extraData as SAMExtraData).gauge.kenki;
 
@@ -110,7 +110,7 @@ class SAMGauge {
             shortName: 'meditation',
             displayName: 'Meditation',
             getter: used => isFinalizedAbilityUse(used) ? used.original : null,
-            renderer: (usedAbility?: UsedAbility) => {
+            renderer: (usedAbility?: PreDmgUsedAbility) => {
                 if (usedAbility?.extraData !== undefined) {
                     const meditation = (usedAbility.extraData as SAMExtraData).gauge.meditation;
 
@@ -145,7 +145,7 @@ class SAMGauge {
             shortName: 'sen',
             displayName: 'Sen',
             getter: used => isFinalizedAbilityUse(used) ? used.original : null,
-            renderer: (usedAbility?: UsedAbility) => {
+            renderer: (usedAbility?: PreDmgUsedAbility) => {
                 if (usedAbility?.extraData !== undefined) {
                     const sen = (usedAbility.extraData as SAMExtraData).gauge.sen;
 

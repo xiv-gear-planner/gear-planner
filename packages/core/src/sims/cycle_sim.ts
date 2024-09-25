@@ -11,11 +11,11 @@ import {
     FinalizedAbility,
     GcdAbility,
     OgcdAbility,
-    PartiallyUsedAbility,
     PartyBuff,
     SimResult,
     SimSettings,
-    UsedAbility
+    PreDmgUsedAbility,
+    PostDmgUsedAbility
 } from "./sim_types";
 import {ComputedSetStats} from "@xivgear/xivmath/geartypes";
 import {
@@ -245,7 +245,7 @@ export type MultiCycleSettings = {
 
 export type CycleFunction = (cycle: CycleContext) => void
 
-export const isAbilityUse = (record: DisplayRecordUnf): record is AbilityUseRecordUnf => 'ability' in record;
+export const isAbilityUse = (record: PreDmgDisplayRecordUnf): record is PreDmgAbilityUseRecordUnf => 'ability' in record;
 export const isFinalizedAbilityUse = (record: DisplayRecordFinalized): record is FinalizedAbility => 'original' in record;
 
 /**
@@ -362,7 +362,7 @@ export class CycleProcessor {
      *
      * To retrieve records after a simulation finishes, see {@link finalizedRecords}.
      */
-    readonly allRecords: DisplayRecordUnf[] = [];
+    readonly allRecords: PreDmgDisplayRecordUnf[] = [];
     /**
      * Log of when party buffs were last activated.
      */
@@ -378,11 +378,11 @@ export class CycleProcessor {
     /**
      * The stats of the set currently being simulated
      */
-    readonly stats: ComputedSetStats;
+    stats: ComputedSetStats;
     /**
      * Map from DoT effect ID to an object which tracks, among other things, when it was used.
      */
-    readonly dotMap = new Map<number, UsedAbility>();
+    readonly dotMap = new Map<number, PreDmgUsedAbility>();
     /**
      * Contains party buffs which should not be activated automatically by virtue of coming from the class being
      * simulated.
@@ -686,16 +686,34 @@ export class CycleProcessor {
     /**
      * A record of all abilities used.
      */
-    get usedAbilities(): readonly AbilityUseRecordUnf[] {
+    get usedAbilities(): readonly PreDmgAbilityUseRecordUnf[] {
         return this.allRecords.filter(isAbilityUse);
     }
 
+    get postDamageRecords(): readonly PostDmgDisplayRecordUnf[] {
+        return this.allRecords.map(record => {
+            if (!isAbilityUse(record)) {
+                return record;
+            }
+            else {
+                const dmgInfo = this.modifyDamage(abilityToDamageNew(this.stats, record.ability, record.combinedEffects), record.ability, record.buffs);
+                return {
+                    ...record,
+                    directDamage: dmgInfo.directDamage ?? fixedValue(0),
+                    dot: record.dot ? {
+                        ...record.dot,
+                        damagePerTick: dmgInfo.dot.damagePerTick,
+                    } : null,
+                }
+            }
+        })
+    }
     /**
      * A record of events, including special rows and such.
      */
     get finalizedRecords(): readonly DisplayRecordFinalized[] {
         this.finalize();
-        return (this.allRecords.map(record => {
+        return (this.postDamageRecords.map(record => {
             if (isAbilityUse(record)) {
 
                 const partialRate = record.totalTimeTaken > 0 ? Math.max(0, Math.min(1, (this.totalTime - record.usedAt) / record.totalTimeTaken)) : 1;
@@ -813,7 +831,7 @@ export class CycleProcessor {
                 return buffRelevantAtStart(buff) && preBuffs.includes(buff)
                     || buffRelevantAtSnapshot(buff) && buffs.includes(buff);
             });
-        const usedAbility: UsedAbility = ({
+        const usedAbility: PreDmgUsedAbility = ({
             ability: ability,
             // We want to take the 'haste' value from the pre-snapshot values, but everything else should
             // come from when the ability snapshotted.
@@ -825,7 +843,6 @@ export class CycleProcessor {
             },
             buffs: finalBuffs,
             usedAt: gcdStartsAt,
-            directDamage: dmgInfo.directDamage ?? fixedValue(0),
             dot: dmgInfo.dot,
             appDelay: appDelayFromSnapshot,
             appDelayFromStart: appDelayFromStart,
@@ -991,12 +1008,11 @@ export class CycleProcessor {
             buffs,
             combinedEffects
         } = this.getCombinedEffectsFor(this.aaAbility);
-        const dmgInfo = abilityToDamageNew(this.stats, this.aaAbility, combinedEffects);
         const appDelay = AUTOATTACK_APPLICATION_DELAY;
         this.addAbilityUse({
             usedAt: this.currentTime,
             ability: this.aaAbility,
-            directDamage: dmgInfo.directDamage,
+            //directDamage: dmgInfo.directDamage,
             buffs: buffs,
             combinedEffects: combinedEffects,
             totalTimeTaken: 0,
@@ -1068,7 +1084,7 @@ export class CycleProcessor {
 
     private combatStarting: boolean = false;
 
-    protected addAbilityUse(usedAbility: AbilityUseRecordUnf) {
+    protected addAbilityUse(usedAbility: PreDmgAbilityUseRecordUnf) {
         if (this._rowCount++ > 10_000) {
             throw Error("Used too many actions");
         }
@@ -1424,9 +1440,11 @@ export type SpecialRecord = {
     label: string
 }
 
-export type AbilityUseRecordUnf = UsedAbility | PartiallyUsedAbility;
+export type PreDmgAbilityUseRecordUnf = PreDmgUsedAbility;
 
-export type DisplayRecordUnf = AbilityUseRecordUnf | SpecialRecord;
+export type PreDmgDisplayRecordUnf = PreDmgAbilityUseRecordUnf | SpecialRecord;
+
+export type PostDmgDisplayRecordUnf = PostDmgUsedAbility | SpecialRecord;
 
 export type DisplayRecordFinalized = FinalizedAbility | SpecialRecord;
 

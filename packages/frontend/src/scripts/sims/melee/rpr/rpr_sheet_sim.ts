@@ -1,6 +1,6 @@
 import {ArcaneCircleBuff} from "@xivgear/core/sims/buffs";
 import {Ability, Buff, OgcdAbility, SimSettings, SimSpec} from "@xivgear/core/sims/sim_types";
-import {AbilityUseRecordUnf, AbilityUseResult, CycleProcessor, CycleSimResult, ExternalCycleSettings, MultiCycleSettings, Rotation} from "@xivgear/core/sims/cycle_sim";
+import {PreDmgAbilityUseRecordUnf, AbilityUseResult, CycleProcessor, CycleSimResult, ExternalCycleSettings, MultiCycleSettings, Rotation} from "@xivgear/core/sims/cycle_sim";
 import {BaseMultiCycleSim} from "../../sim_processors";
 import { potionMaxStr } from "@xivgear/core/sims/common/potion";
 import * as Actions from "./rpr_actions"
@@ -154,14 +154,14 @@ class RprCycleProcessor extends CycleProcessor {
         return this.cdTracker.canUse(ability) ? super.useOgcd(ability) : null;
     }
 
-    override addAbilityUse(usedAbility: AbilityUseRecordUnf) {
+    override addAbilityUse(usedAbility: PreDmgAbilityUseRecordUnf) {
 
         // Add gauge data to this record for the UI
         const extraData: RprExtraData = {
             gauge: this.gauge.getGaugeState(),
         };
 
-        const modified: AbilityUseRecordUnf = {
+        const modified: PreDmgAbilityUseRecordUnf = {
             ...usedAbility,
             extraData,
         };

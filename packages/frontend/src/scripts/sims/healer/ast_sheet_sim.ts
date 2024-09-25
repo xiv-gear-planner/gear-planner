@@ -1,7 +1,7 @@
 import {Divination} from "@xivgear/core/sims/buffs";
-import {Ability, BuffController, GcdAbility, OgcdAbility, PersonalBuff, SimSettings, SimSpec, UsedAbility} from "@xivgear/core/sims/sim_types";
+import {Ability, BuffController, GcdAbility, OgcdAbility, PersonalBuff, SimSettings, SimSpec, PreDmgUsedAbility} from "@xivgear/core/sims/sim_types";
 import {CycleProcessor, CycleSimResult, ExternalCycleSettings, MultiCycleSettings, Rotation, DisplayRecordFinalized,
-    isFinalizedAbilityUse, AbilityUseRecordUnf, AbilityUseResult} from "@xivgear/core/sims/cycle_sim";
+    isFinalizedAbilityUse, PreDmgAbilityUseRecordUnf, AbilityUseResult} from "@xivgear/core/sims/cycle_sim";
 import {BaseMultiCycleSim} from "../sim_processors";
 import {rangeInc} from "@xivgear/core/util/array_utils";
 //import {potionMaxMind} from "@xivgear/core/sims/common/potion";
@@ -244,7 +244,7 @@ class AstGauge {
             shortName: 'cards',
             displayName: 'Cards',
             getter: used => isFinalizedAbilityUse(used) ? used.original : null,
-            renderer: (usedAbility?: UsedAbility) => {
+            renderer: (usedAbility?: PreDmgUsedAbility) => {
                 if (usedAbility?.extraData !== undefined) {
                     const cards = (usedAbility.extraData as AstExtraData).gauge.cards;
 
@@ -355,13 +355,13 @@ class AstCycleProcessor extends CycleProcessor {
         this.gauge.addCard("Lord");
     }
 
-    override addAbilityUse(usedAbility: AbilityUseRecordUnf) {
+    override addAbilityUse(usedAbility: PreDmgAbilityUseRecordUnf) {
         // Add gauge data to this record for the UI
         const extraData: AstExtraData = {
             gauge: this.gauge.getGaugeState(),
         };
 
-        const modified: AbilityUseRecordUnf = {
+        const modified: PreDmgAbilityUseRecordUnf = {
             ...usedAbility,
             extraData,
         };

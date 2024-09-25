@@ -62,7 +62,6 @@ export function abilityToDamageNew(stats: ComputedSetStats, ability: Ability, co
             damagePerTick: dotPotencyToDamage(stats, ability.dot.tickPotency, ability, combinedBuffEffects),
         } : null,
     }
-
 }
 
 /**
