@@ -1,7 +1,6 @@
 import { CharacterGearSet } from "@xivgear/core/gear";
 import { EquippedItem, RawStats, EquipmentSet, EquipSlots, MeldableMateriaSlot } from "@xivgear/xivmath/geartypes";
 import { MateriaSubstat, ALL_SUB_STATS, MATERIA_ACCEPTABLE_OVERCAP_LOSS, NORMAL_GCD } from "@xivgear/xivmath/xivconstants";
-import { GearPlanSheetGui } from "./sheet";
 import { SimResult, SimSettings, Simulation } from "@xivgear/core/sims/sim_types";
 import { MeldSolverSettings } from "./meld_solver_bar";
 import { sksToGcd, spsToGcd } from "@xivgear/xivmath/xivmath";
@@ -37,6 +36,7 @@ export class MeldSolver {
     public constructor(sheet: GearPlanSheet, settings: MeldSolverSettings) {
         this._sheet = sheet;
         this._settings = settings;
+        this.relevantStats = ALL_SUB_STATS.filter(stat => this._sheet.isStatRelevant(stat) && stat != 'piety');
     }
 
     public async solveMelds() : Promise<CharacterGearSet> {
@@ -59,30 +59,46 @@ export class MeldSolver {
             this._settings.sim
         );
 
-        /*
-        for (const slotKey of EquipSlots) {
-            if (this._gearset.equipment[slotKey] === undefined || this._gearset.equipment[slotKey] === null) {
-                continue;
-            }
-
-            this._gearset.equipment[slotKey].melds = bestSet.equipment[slotKey].melds;
-        }
-        */
-
         return bestSet;
     }
 
-    async simulateSets(assortedSetsByGcd: Set<CharacterGearSet>, sim: Simulation<SimResult, SimSettings, any>)
+    async simulateSets(setsToSim: Set<CharacterGearSet>, sim: Simulation<SimResult, SimSettings, any>)
     : Promise<CharacterGearSet> {
+
+        if (setsToSim.size == 0) {
+            return null;
+        }
 
         let bestSimDps: number = 0;
         let bestSet: CharacterGearSet;
 
-        for (const set of assortedSetsByGcd) {
+        let numSetsProcessed = 0;
+        let lastUpdate = 0;
+        let progressResolution = 0.05
+        let threshold = setsToSim.size * progressResolution;
+
+        /**
+         * Very important: order sets by sks to avoid generating rotations with every new set
+         */
+        const sortedSetsBySpeed = Array.from(setsToSim).sort((setA, setB) => {
+            let useSks = 'skillspeed' in this.relevantStats;
+            return useSks ?
+                setA.computedStats.skillspeed - setB.computedStats.skillspeed
+                : setA.computedStats.spellspeed - setB.computedStats.spellspeed
+        })
+        
+        postMessage(0);
+        for (const set of sortedSetsBySpeed) {
             const result = await sim.simulate(set);
             if (result.mainDpsResult > bestSimDps) {
                 bestSimDps = result.mainDpsResult;
                 bestSet = set;
+            }
+
+            numSetsProcessed++;
+
+            if (numSetsProcessed - lastUpdate >= threshold) {
+                postMessage(Math.floor(100 * (numSetsProcessed / setsToSim.size)));
             }
         }
 

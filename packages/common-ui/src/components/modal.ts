@@ -4,6 +4,7 @@ import {makeActionButton, makeCloseButton} from "./util";
 export abstract class BaseModal extends HTMLElement {
     protected readonly header: HTMLElement;
     private readonly inner: HTMLDivElement;
+    protected readonly closeButton: HTMLButtonElement;
     protected readonly buttonArea: HTMLDivElement;
     protected readonly contentArea: HTMLDivElement;
 
@@ -18,11 +19,11 @@ export abstract class BaseModal extends HTMLElement {
         this.contentArea.classList.add('modal-content-area');
         this.buttonArea = document.createElement('div');
         this.buttonArea.classList.add('lower-button-area', 'modal-lower-button-area');
-        const closeButton = makeActionButton([makeCloseButton()], () => {
+        this.closeButton = makeActionButton([makeCloseButton()], () => {
             this.close();
         }, 'Close');
-        closeButton.classList.add('modal-close-button');
-        this.inner.appendChild(closeButton);
+        this.closeButton.classList.add('modal-close-button');
+        this.inner.appendChild(this.closeButton);
         this.inner.appendChild(this.header);
         this.inner.appendChild(this.contentArea);
         this.inner.appendChild(this.buttonArea);
