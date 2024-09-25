@@ -27,7 +27,7 @@ const cascade: GcdAbility = {
     name: 'Cascade',
     type: 'gcd',
     attackType: 'Weaponskill',
-    potency: 280,
+    potency: 220,
     gcd: 2.5,
     id: 15989
 } as const satisfies GcdAbility;
@@ -36,7 +36,7 @@ const fountain: GcdAbility = {
     name: 'Fountain',
     type: 'gcd',
     attackType: 'Weaponskill',
-    potency: 340,
+    potency: 280,
     gcd: 2.5,
     id: 15990
 } as const satisfies GcdAbility;
@@ -45,7 +45,7 @@ const fountain: GcdAbility = {
 const reverseCascade: GcdAbility = {
     name: 'Reverse Cascade',
     type: 'gcd',
-    potency: 340,
+    potency: 280,
     attackType: 'Weaponskill',
     gcd: 2.50,
     id: 15991
@@ -54,7 +54,7 @@ const reverseCascade: GcdAbility = {
 const fountainFall: GcdAbility = {
     name: 'Fountainfall',
     type: 'gcd',
-    potency: 400,
+    potency: 340,
     attackType: 'Weaponskill',
     gcd: 2.50,
     id: 15992
@@ -63,7 +63,7 @@ const fountainFall: GcdAbility = {
 const saberDance: GcdAbility = {
     name: 'Saber Dance',
     type: 'gcd',
-    potency: 540,
+    potency: 520,
     attackType: 'Weaponskill',
     gcd: 2.50,
     id: 16005
@@ -83,7 +83,7 @@ const starfall: GcdAbility = {
 const standardFinish: GcdAbility = {
     name: 'Standard Finish',
     type: 'gcd',
-    potency: 720,
+    potency: 850,
     attackType: 'Weaponskill',
     gcd: 1.50,
     fixedGcd: true,
@@ -93,7 +93,7 @@ const standardFinish: GcdAbility = {
 const techFinish: GcdAbility = {
     name: 'Technical Finish',
     type: 'gcd',
-    potency: 1200,
+    potency: 1300,
     attackType: 'Weaponskill',
     gcd: 1.50,
     fixedGcd: true,
@@ -104,9 +104,9 @@ const techFinish: GcdAbility = {
 const tillana: GcdAbility = {
     name: 'Tillana',
     type: 'gcd',
-    potency: 440,
+    potency: 600,
     attackType: 'Weaponskill',
-    gcd: 1.50,
+    gcd: 2.50,
     fixedGcd: true,
     id: 25790
 } as const satisfies GcdAbility;
@@ -114,7 +114,7 @@ const tillana: GcdAbility = {
 const fanDance: OgcdAbility = {
     name: 'Fan Dance',
     type: 'ogcd',
-    potency: 180,
+    potency: 150,
     attackType: 'Ability',
     cooldown: {
         time: 1
@@ -125,7 +125,7 @@ const fanDance: OgcdAbility = {
 const fd3: OgcdAbility = {
     name: 'Fan Dance III',
     type: 'ogcd',
-    potency: 220,
+    potency: 200,
     attackType: 'Ability',
     cooldown: {
         time: 1
@@ -136,7 +136,7 @@ const fd3: OgcdAbility = {
 const fd4: OgcdAbility = {
     name: 'Fan Dance IV',
     type: 'ogcd',
-    potency: 340,
+    potency: 420,
     attackType: 'Ability',
     cooldown: {
         time: 1
@@ -147,7 +147,7 @@ const fd4: OgcdAbility = {
 const finishingMove: GcdAbility = {
     name: 'Finishing Move',
     type: 'gcd',
-    potency: 820,
+    potency: 850,
     attackType: 'Weaponskill',
     gcd: 2.50,
     // TODO: dt skill
@@ -157,7 +157,7 @@ const finishingMove: GcdAbility = {
 const lastDance: GcdAbility = {
     name: 'Last Dance',
     type: 'gcd',
-    potency: 420,
+    potency: 520,
     attackType: 'Weaponskill',
     gcd: 2.50,
     // TODO: dt skill
