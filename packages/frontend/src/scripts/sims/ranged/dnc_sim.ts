@@ -308,8 +308,9 @@ export class DncDtSim extends BaseUsageCountSim<DncDtSimResults, DncDtSimSetting
     skillsInBuffDuration(set: CharacterGearSet, buffDuration: number | null): SkillCount[] {
 
         // TODO
-        const Esprit = 244;
-        const Esprit_TF = 115;
+        // Taken from the calcs done in the gearset picking some random comp
+        const Esprit = 407.8;
+        const Esprit_TF = 115.9514882;
 
 
         // Copied from google doc
@@ -319,19 +320,10 @@ export class DncDtSim extends BaseUsageCountSim<DncDtSimResults, DncDtSimSetting
         const Tillana30 = 1;
 
         const StarfallTotal = 1;
-        const Starfall20 = 1;
-        const Starfall15 = 1;
-        const Starfall30 = 1;
 
         const TechFinishTotal = 1;
-        const TechFinish20 = 0;
-        const TechFinish15 = 0;
-        const TechFinish30 = 0;
 
         const DanceOfTheDawnTotal= 1;
-        const DanceOfTheDawn20 = 1;
-        const DanceOfTheDawn15 = 1;
-        const DanceOfTheDawn30 = 1;
         
         const StandardFinishTotal = 2;
         const StandardFinish15 = 0;
@@ -350,40 +342,42 @@ export class DncDtSim extends BaseUsageCountSim<DncDtSimResults, DncDtSimSetting
 
         const LastDanceTotal = 4;
         const LastDance15 = 1;
-        const LastDance20 = 1;
-        const LastDance30 = 1;
+        const LastDance20 = 2;
+        const LastDance30 = 2;
 
         const staticTime = 7 * TechFinishTotal + 5 * StandardFinishTotal + 2.5 * FinishingMoveTotal;
         const numNonCfGcds = TillanaTotal + LastDanceTotal + StarfallTotal + DanceOfTheDawnTotal + 4; // +4 for flourish procs
         const cf = this.getCfRotQty(set, staticTime, numNonCfGcds).cascadeFountainCount;
 
         const SaberTotal = Esprit / 50 - 1;
-        const Saber20 = (65 + Esprit_TF * 18.5 / 20) / 50 - 1;
+        const Saber20 = Math.min((65 + Esprit_TF * 18.5 / 20) / 50, 2);
         const Saber15 = Saber20 / 2;
         const Saber30 = 4 / 31 * (SaberTotal - Saber20) + Saber20;
 
         const CascadeTotal = (cf - SaberTotal) / 3;
-        const Cascade20 = 4 - Saber20 < 2 ? 0 : 1 / 3 * (2 - Saber20);
+        const Cascade20 = 0;//4 - Saber20 < 2 ? 0 : 1 / 3 * (2 - Saber20);
         const Cascade15 = 1 / 2 * Cascade20;
         const Cascade30 = 4 / 31 * (CascadeTotal - Cascade20) + Cascade20;
 
         const FountainTotal = (cf - SaberTotal) / 3;
-        const Fountain20 = 4 - Saber20 < 2 ? 0 : 1 / 3 * (2 - Saber20);
+        const Fountain20 = 0;//4 - Saber20 < 2 ? 0 : 1 / 3 * (2 - Saber20);
         const Fountain15 = 1 / 2 * Fountain20;
         const Fountain30 = 4 / 31 * (FountainTotal - Fountain20) + Fountain20;
 
         const FountainfallTotal = FountainTotal / 2 + 2;
-        const Fountainfall20 = 4 - Saber20 > 2 ? 1 + 1 / 6 * (5 - Saber20) : 4 - Saber20 > 1 ? 1 : 1 / 6 * (5 - Saber20);
+        //const Fountainfall20 = 4 - Saber20 > 2 ? 1 + 1 / 6 * (5 - Saber20) : 4 - Saber20 > 1 ? 1 : 1 / 6 * (5 - Saber20);
+        const Fountainfall20 = Math.min(2 - Saber20, 1)
         const Fountainfall15 = 1 / 2 * Fountainfall20;
         const Fountainfall30 = 4 / 31 * (FountainfallTotal - Fountainfall20) + Fountainfall20;
 
         const ReverseCascadeTotal = CascadeTotal / 2 + 2;
-        const ReverseCascade20 = 4 - Saber20 > 2 ? 1 + 1 / 6 * (5 - Saber20) : 4 - Saber20 - Fountainfall20;
+        //const ReverseCascade20 = 4 - Saber20 > 2 ? 1 + 1 / 6 * (5 - Saber20) : 4 - Saber20 - Fountainfall20;
+        const ReverseCascade20 = Math.max(Fountainfall20, 0);
         const ReverseCascade15 = 1 / 2 * ReverseCascade20;
         const ReverseCascade30 = 4 / 31 * (ReverseCascadeTotal - ReverseCascade20) + ReverseCascade20;
 
         const FanDanceTotal = (ReverseCascadeTotal + FountainfallTotal) / 2;
-        const FanDance20 = 3 + (ReverseCascade20 + Fountainfall20) / 2;
+        const FanDance20 = 3.5 + (ReverseCascade20 + Fountainfall20) / 2;
         const FanDance15 = 3 / 4 * FanDance20;
         const FanDance30 = 4 / 31 * (FanDanceTotal - FanDance20) + FanDance20;
 
@@ -396,7 +390,6 @@ export class DncDtSim extends BaseUsageCountSim<DncDtSimResults, DncDtSimSetting
 
         const common: SkillCount[] = [
             [danceOfTheDawn, 1],
-            [techFinish, 1],
             [starfall, 1],
 
         ];
@@ -416,6 +409,7 @@ export class DncDtSim extends BaseUsageCountSim<DncDtSimResults, DncDtSimSetting
                 [fd4, FanDanceIVTotal],
                 [finishingMove, FinishingMoveTotal],
                 [lastDance, LastDanceTotal],
+                [techFinish, 1],
             ]
         }
         // In buffs of at least 30 seconds
