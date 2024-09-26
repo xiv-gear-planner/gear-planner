@@ -22,7 +22,7 @@ type AstGaugeState = {
     cards: Set<string>;
 }
 
-type AstExtraData = {
+export type AstExtraData = {
     gauge: AstGaugeState;
 }
 

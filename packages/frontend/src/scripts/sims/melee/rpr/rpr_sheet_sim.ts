@@ -19,21 +19,21 @@ export interface RprSheetSimResult extends CycleSimResult {
     soulSliceDrifts: number[];
 }
 
-export interface RprNewSheetSettings extends SimSettings {
+export interface RprSimSettings extends SimSettings {
 
 }
 
-export interface RprNewSheetSettingsExternal extends ExternalCycleSettings<RprNewSheetSettings> {
+export interface RprSimSettingsExternal extends ExternalCycleSettings<RprSimSettings> {
 }
 
 
-export const rprSheetSpec: SimSpec<RprSheetSim, RprNewSheetSettingsExternal> = {
+export const rprSheetSpec: SimSpec<RprSheetSim, RprSimSettingsExternal> = {
     stub: "rpr-sheet-sim",
     displayName: "RPR Sim",
     makeNewSimInstance: function (): RprSheetSim {
         return new RprSheetSim();
     },
-    loadSavedSimInstance: function (exported: RprNewSheetSettingsExternal) {
+    loadSavedSimInstance: function (exported: RprSimSettingsExternal) {
         return new RprSheetSim(exported);
     },
     supportedJobs: ['RPR'],
@@ -412,18 +412,18 @@ class RprCycleProcessor extends CycleProcessor {
     }
 
 }
-export class RprSheetSim extends BaseMultiCycleSim<RprSheetSimResult, RprNewSheetSettings> {
+export class RprSheetSim extends BaseMultiCycleSim<RprSheetSimResult, RprSimSettings> {
 
     spec = rprSheetSpec;
     shortName = "rpr-sheet-sim";
     displayName = rprSheetSpec.displayName;
     manuallyActivatedBuffs = [ArcaneCircleBuff];
 
-    constructor(settings?: RprNewSheetSettingsExternal) {
+    constructor(settings?: RprSimSettingsExternal) {
         super('RPR', settings);
     }
 
-    makeDefaultSettings(): RprNewSheetSettings {
+    makeDefaultSettings(): RprSimSettings {
         return {};
     }
 

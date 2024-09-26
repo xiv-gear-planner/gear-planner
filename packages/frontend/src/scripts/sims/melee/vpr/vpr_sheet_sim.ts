@@ -13,21 +13,21 @@ import { AbilitiesUsedTable } from "../../components/ability_used_table";
 export interface VprSimResult extends CycleSimResult {
 }
 
-export interface VprNewSheetSettings extends SimSettings {
+export interface VprSimSettings extends SimSettings {
 
 }
 
-export interface VprNewSheetSettingsExternal extends ExternalCycleSettings<VprNewSheetSettings> {
+export interface VprSimSettingsExternal extends ExternalCycleSettings<VprSimSettings> {
 }
 
 
-export const vprSheetSpec: SimSpec<VprSheetSim, VprNewSheetSettingsExternal> = {
+export const vprSheetSpec: SimSpec<VprSheetSim, VprSimSettingsExternal> = {
     stub: "vpr-sheet-sim",
     displayName: "VPR Sim",
     makeNewSimInstance: function (): VprSheetSim {
         return new VprSheetSim();
     },
-    loadSavedSimInstance: function (exported: VprNewSheetSettingsExternal) {
+    loadSavedSimInstance: function (exported: VprSimSettingsExternal) {
         return new VprSheetSim(exported);
     },
     supportedJobs: ['VPR'],
@@ -455,17 +455,17 @@ export class VprCycleProcessor extends CycleProcessor {
     }
 }
 
-export class VprSheetSim extends BaseMultiCycleSim<VprSimResult, VprNewSheetSettings> {
+export class VprSheetSim extends BaseMultiCycleSim<VprSimResult, VprSimSettings> {
 
     spec = vprSheetSpec;
     shortName = "vpr-sheet-sim";
     displayName = vprSheetSpec.displayName;
 
-    constructor(settings?: VprNewSheetSettingsExternal) {
+    constructor(settings?: VprSimSettingsExternal) {
         super('VPR', settings);
     }
 
-    makeDefaultSettings(): VprNewSheetSettings {
+    makeDefaultSettings(): VprSimSettings {
         return {};
     }
 

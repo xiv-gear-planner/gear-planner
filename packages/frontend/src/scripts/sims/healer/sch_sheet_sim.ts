@@ -23,7 +23,7 @@ type SchGaugeState = {
     aetherflow: number;
 }
 
-type SchExtraData = {
+export type SchExtraData = {
     gauge: SchGaugeState;
 }
 

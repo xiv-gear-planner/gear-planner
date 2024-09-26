@@ -22,7 +22,7 @@ type WhmGaugeState = {
     redLilies: number;
 }
 
-type WhmExtraData = {
+export type WhmExtraData = {
     gauge: WhmGaugeState;
 }
 
