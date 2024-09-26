@@ -27,7 +27,7 @@ const cascade: GcdAbility = {
     name: 'Cascade',
     type: 'gcd',
     attackType: 'Weaponskill',
-    potency: 280,
+    potency: 220,
     gcd: 2.5,
     id: 15989
 } as const satisfies GcdAbility;
@@ -36,7 +36,7 @@ const fountain: GcdAbility = {
     name: 'Fountain',
     type: 'gcd',
     attackType: 'Weaponskill',
-    potency: 340,
+    potency: 280,
     gcd: 2.5,
     id: 15990
 } as const satisfies GcdAbility;
@@ -45,7 +45,7 @@ const fountain: GcdAbility = {
 const reverseCascade: GcdAbility = {
     name: 'Reverse Cascade',
     type: 'gcd',
-    potency: 340,
+    potency: 280,
     attackType: 'Weaponskill',
     gcd: 2.50,
     id: 15991
@@ -54,7 +54,7 @@ const reverseCascade: GcdAbility = {
 const fountainFall: GcdAbility = {
     name: 'Fountainfall',
     type: 'gcd',
-    potency: 400,
+    potency: 340,
     attackType: 'Weaponskill',
     gcd: 2.50,
     id: 15992
@@ -63,7 +63,7 @@ const fountainFall: GcdAbility = {
 const saberDance: GcdAbility = {
     name: 'Saber Dance',
     type: 'gcd',
-    potency: 540,
+    potency: 520,
     attackType: 'Weaponskill',
     gcd: 2.50,
     id: 16005
@@ -83,7 +83,7 @@ const starfall: GcdAbility = {
 const standardFinish: GcdAbility = {
     name: 'Standard Finish',
     type: 'gcd',
-    potency: 720,
+    potency: 850,
     attackType: 'Weaponskill',
     gcd: 1.50,
     fixedGcd: true,
@@ -93,7 +93,7 @@ const standardFinish: GcdAbility = {
 const techFinish: GcdAbility = {
     name: 'Technical Finish',
     type: 'gcd',
-    potency: 1200,
+    potency: 1300,
     attackType: 'Weaponskill',
     gcd: 1.50,
     fixedGcd: true,
@@ -104,9 +104,9 @@ const techFinish: GcdAbility = {
 const tillana: GcdAbility = {
     name: 'Tillana',
     type: 'gcd',
-    potency: 440,
+    potency: 600,
     attackType: 'Weaponskill',
-    gcd: 1.50,
+    gcd: 2.50,
     fixedGcd: true,
     id: 25790
 } as const satisfies GcdAbility;
@@ -114,7 +114,7 @@ const tillana: GcdAbility = {
 const fanDance: OgcdAbility = {
     name: 'Fan Dance',
     type: 'ogcd',
-    potency: 180,
+    potency: 150,
     attackType: 'Ability',
     cooldown: {
         time: 1
@@ -125,7 +125,7 @@ const fanDance: OgcdAbility = {
 const fd3: OgcdAbility = {
     name: 'Fan Dance III',
     type: 'ogcd',
-    potency: 220,
+    potency: 200,
     attackType: 'Ability',
     cooldown: {
         time: 1
@@ -136,7 +136,7 @@ const fd3: OgcdAbility = {
 const fd4: OgcdAbility = {
     name: 'Fan Dance IV',
     type: 'ogcd',
-    potency: 340,
+    potency: 420,
     attackType: 'Ability',
     cooldown: {
         time: 1
@@ -147,7 +147,7 @@ const fd4: OgcdAbility = {
 const finishingMove: GcdAbility = {
     name: 'Finishing Move',
     type: 'gcd',
-    potency: 820,
+    potency: 850,
     attackType: 'Weaponskill',
     gcd: 2.50,
     // TODO: dt skill
@@ -157,7 +157,7 @@ const finishingMove: GcdAbility = {
 const lastDance: GcdAbility = {
     name: 'Last Dance',
     type: 'gcd',
-    potency: 420,
+    potency: 520,
     attackType: 'Weaponskill',
     gcd: 2.50,
     // TODO: dt skill
@@ -233,7 +233,7 @@ export class DncDtSim extends BaseUsageCountSim<DncDtSimResults, DncDtSimSetting
         const startFinishDelay = 0.008;
         const stepDelay = 0.008;
 
-        const cfRot = this.getCfRotQty(set);
+        const cfRot = this.getCfRotQty(set, 22, 11); // 22s total of non-gcd-scaling stuff, 11 guaranteed GCDs
         const gcdCount = cfRot.rotationCount;
         const gcdTimeWithDelay = gcdTime + gcdDelay;
         const gcdTimeTotal = gcdCount * gcdTimeWithDelay;
@@ -250,47 +250,49 @@ export class DncDtSim extends BaseUsageCountSim<DncDtSimResults, DncDtSimSetting
         return Math.max(totalTime, timeCap);
     }
 
-    private getCfRotQty(set: CharacterGearSet): {
-        cascaseFountainCount: number,
+    private getCfRotQty(set: CharacterGearSet, nonCFStatic: number, nonCFGcd: number): {
+        cascadeFountainCount: number,
         rotationCount: number
     } {
+
         const gcd = set.computedStats.gcdPhys(2.5);
+        const cfCount = Math.floor((120 - nonCFStatic - (gcd * nonCFGcd))/gcd);
+        return {
+            cascadeFountainCount: cfCount,
+            rotationCount: cfCount + nonCFGcd,
+        };
+        /*
         if (gcd >= 2.46) {
             return {
-                cascaseFountainCount: 35,
-                rotationCount: 45
+                cascadeFountainCount: 28,
             }
         }
         else if (gcd >= 2.40) {
             return {
-                cascaseFountainCount: 36,
-                rotationCount: 46
+                cascadeFountainCount: 29,
             }
         }
         else if (gcd >= 2.35) {
             return {
-                cascaseFountainCount: 37,
-                rotationCount: 47
+                cascadeFountainCount: 30,
             }
         }
         else if (gcd >= 2.30) {
             return {
-                cascaseFountainCount: 38,
-                rotationCount: 48
+                cascadeFountainCount: 31,
             }
         }
         else if (gcd >= 2.25) {
             return {
-                cascaseFountainCount: 39,
-                rotationCount: 49
+                cascadeFountainCount: 32,
             }
         }
         else {
             return {
-                cascaseFountainCount: 40,
-                rotationCount: 50
+                cascadeFountainCount: 33,
             }
         }
+            */
     }
 
 
@@ -306,56 +308,27 @@ export class DncDtSim extends BaseUsageCountSim<DncDtSimResults, DncDtSimSetting
     skillsInBuffDuration(set: CharacterGearSet, buffDuration: number | null): SkillCount[] {
 
         // TODO
-        const Esprit = 420;
-        const Esprit_TF = 115;
+        // Taken from the calcs done in the gearset picking some random comp
+        const Esprit = 407.8;
+        const Esprit_TF = 115.9514882;
 
-        const cf = this.getCfRotQty(set).cascaseFountainCount;
 
         // Copied from google doc
-        const SaberTotal = Esprit / 50 - 1;
-        const Saber20 = (65 + Esprit_TF * 18.5 / 20) / 50 - 1;
-        const Saber15 = Saber20 / 2;
-        const Saber30 = 4 / 31 * (SaberTotal - Saber20) + Saber20;
-
-        const CascadeTotal = (cf - SaberTotal) / 3;
-        const Cascade20 = 4 - Saber20 < 2 ? 0 : 1 / 3 * (2 - Saber20);
-        const Cascade15 = 1 / 2 * Cascade20;
-        const Cascade30 = 4 / 31 * (CascadeTotal - Cascade20) + Cascade20;
-
-        const FountainTotal = (cf - SaberTotal) / 3;
-        const Fountain20 = 4 - Saber20 < 2 ? 0 : 1 / 3 * (2 - Saber20);
-        const Fountain15 = 1 / 2 * Fountain20;
-        const Fountain30 = 4 / 31 * (FountainTotal - Fountain20) + Fountain20;
-
-        const FountainfallTotal = FountainTotal / 2 + 2;
-        const Fountainfall20 = 4 - Saber20 > 2 ? 1 + 1 / 6 * (5 - Saber20) : 4 - Saber20 > 1 ? 1 : 1 / 6 * (5 - Saber20);
-        const Fountainfall15 = 1 / 2 * Fountainfall20;
-        const Fountainfall30 = 4 / 31 * (FountainfallTotal - Fountainfall20) + Fountainfall20;
-
-        const ReverseCascadeTotal = CascadeTotal / 2 + 2;
-        const ReverseCascade20 = 4 - Saber20 > 2 ? 1 + 1 / 6 * (5 - Saber20) : 4 - Saber20 - Fountainfall20;
-        const ReverseCascade15 = 1 / 2 * ReverseCascade20;
-        const ReverseCascade30 = 4 / 31 * (ReverseCascadeTotal - ReverseCascade20) + ReverseCascade20;
-
-        const StandardFinishTotal = 0;
-        const StandardFinish15 = 0;
-        const StandardFinish20 = 0;
-        const StandardFinish30 = 0;
-
         const TillanaTotal = 1;
         const Tillana15 = 0;
         const Tillana20 = 1;
         const Tillana30 = 1;
 
-        const FanDanceTotal = (ReverseCascadeTotal + FountainfallTotal) / 2;
-        const FanDance20 = 3 + (ReverseCascade20 + Fountainfall20) / 2;
-        const FanDance15 = 3 / 4 * FanDance20;
-        const FanDance30 = 4 / 31 * (FanDanceTotal - FanDance20) + FanDance20;
+        const StarfallTotal = 1;
 
-        const FanDanceIIITotal = FanDanceTotal / 2 + 2;
-        const FanDanceIII15 = FanDance15 / 2 + 1;
-        const FanDanceIII20 = FanDance20 / 2 + 1;
-        const FanDanceIII30 = 4 / 31 * (FanDanceIIITotal - FanDanceIII20) + FanDanceIII20;
+        const TechFinishTotal = 1;
+
+        const DanceOfTheDawnTotal= 1;
+        
+        const StandardFinishTotal = 2;
+        const StandardFinish15 = 0;
+        const StandardFinish20 = 0;
+        const StandardFinish30 = 0;
 
         const FanDanceIVTotal = 2;
         const FanDanceIV15 = 1;
@@ -367,16 +340,56 @@ export class DncDtSim extends BaseUsageCountSim<DncDtSimResults, DncDtSimSetting
         const FinishingMove20 = 1;
         const FinishingMove30 = 1;
 
-        const LastDanceTotal = 2;
+        const LastDanceTotal = 4;
         const LastDance15 = 1;
-        const LastDance20 = 1;
-        const LastDance30 = 1;
+        const LastDance20 = 2;
+        const LastDance30 = 2;
+
+        const staticTime = 7 * TechFinishTotal + 5 * StandardFinishTotal + 2.5 * FinishingMoveTotal;
+        const numNonCfGcds = TillanaTotal + LastDanceTotal + StarfallTotal + DanceOfTheDawnTotal + 4; // +4 for flourish procs
+        const cf = this.getCfRotQty(set, staticTime, numNonCfGcds).cascadeFountainCount;
+
+        const SaberTotal = Esprit / 50 - 1;
+        const Saber20 = Math.min((65 + Esprit_TF * 18.5 / 20) / 50, 2);
+        const Saber15 = Saber20 / 2;
+        const Saber30 = 4 / 31 * (SaberTotal - Saber20) + Saber20;
+
+        const CascadeTotal = (cf - SaberTotal) / 3;
+        const Cascade20 = 0;//4 - Saber20 < 2 ? 0 : 1 / 3 * (2 - Saber20);
+        const Cascade15 = 1 / 2 * Cascade20;
+        const Cascade30 = 4 / 31 * (CascadeTotal - Cascade20) + Cascade20;
+
+        const FountainTotal = (cf - SaberTotal) / 3;
+        const Fountain20 = 0;//4 - Saber20 < 2 ? 0 : 1 / 3 * (2 - Saber20);
+        const Fountain15 = 1 / 2 * Fountain20;
+        const Fountain30 = 4 / 31 * (FountainTotal - Fountain20) + Fountain20;
+
+        const FountainfallTotal = FountainTotal / 2 + 2;
+        //const Fountainfall20 = 4 - Saber20 > 2 ? 1 + 1 / 6 * (5 - Saber20) : 4 - Saber20 > 1 ? 1 : 1 / 6 * (5 - Saber20);
+        const Fountainfall20 = Math.min(2 - Saber20, 1)
+        const Fountainfall15 = 1 / 2 * Fountainfall20;
+        const Fountainfall30 = 4 / 31 * (FountainfallTotal - Fountainfall20) + Fountainfall20;
+
+        const ReverseCascadeTotal = CascadeTotal / 2 + 2;
+        //const ReverseCascade20 = 4 - Saber20 > 2 ? 1 + 1 / 6 * (5 - Saber20) : 4 - Saber20 - Fountainfall20;
+        const ReverseCascade20 = Math.max(Fountainfall20, 0);
+        const ReverseCascade15 = 1 / 2 * ReverseCascade20;
+        const ReverseCascade30 = 4 / 31 * (ReverseCascadeTotal - ReverseCascade20) + ReverseCascade20;
+
+        const FanDanceTotal = (ReverseCascadeTotal + FountainfallTotal) / 2;
+        const FanDance20 = 3.5 + (ReverseCascade20 + Fountainfall20) / 2;
+        const FanDance15 = 3 / 4 * FanDance20;
+        const FanDance30 = 4 / 31 * (FanDanceTotal - FanDance20) + FanDance20;
+
+        const FanDanceIIITotal = FanDanceTotal / 2 + 2;
+        const FanDanceIII15 = FanDance15 / 2 + 1;
+        const FanDanceIII20 = FanDance20 / 2 + 1;
+        const FanDanceIII30 = 4 / 31 * (FanDanceIIITotal - FanDanceIII20) + FanDanceIII20;
 
         const FullCycleTime = this.totalCycleTime(set);
 
         const common: SkillCount[] = [
             [danceOfTheDawn, 1],
-            [techFinish, 1],
             [starfall, 1],
 
         ];
@@ -396,6 +409,7 @@ export class DncDtSim extends BaseUsageCountSim<DncDtSimResults, DncDtSimSetting
                 [fd4, FanDanceIVTotal],
                 [finishingMove, FinishingMoveTotal],
                 [lastDance, LastDanceTotal],
+                [techFinish, 1],
             ]
         }
         // In buffs of at least 30 seconds
