@@ -12,7 +12,7 @@ import { simpleAutoResultTable } from "./components/simple_tables";
 import { AbilitiesUsedTable } from "./components/ability_used_table";
 import { quickElement } from "@xivgear/common-ui/components/util";
 
-export abstract class BaseMultiCycleSimGui<ResultType extends CycleSimResult, InternalSettingsType extends SimSettings, CycleProcessorType extends CycleProcessor = CycleProcessor, FullResultType extends CycleSimResultFull<ResultType> = CycleSimResultFull<ResultType>>
+export class BaseMultiCycleSimGui<ResultType extends CycleSimResult, InternalSettingsType extends SimSettings, CycleProcessorType extends CycleProcessor = CycleProcessor, FullResultType extends CycleSimResultFull<ResultType> = CycleSimResultFull<ResultType>>
     extends SimulationGui<FullResultType, InternalSettingsType, ExternalCycleSettings<InternalSettingsType>> {
     
     declare _sim: BaseMultiCycleSim<ResultType, InternalSettingsType, CycleProcessorType, FullResultType>;

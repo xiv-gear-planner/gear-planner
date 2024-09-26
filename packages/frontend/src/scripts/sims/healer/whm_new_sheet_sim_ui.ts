@@ -62,7 +62,7 @@ class WhmGaugeGui {
         ];
     }
 }
-export class WhmSheetGui extends BaseMultiCycleSimGui<WhmSimResult, WhmSettings> {
+export class WhmSimGui extends BaseMultiCycleSimGui<WhmSimResult, WhmSettings> {
     override makeAbilityUsedTable(result: WhmSimResult): AbilitiesUsedTable {
         const extraColumns = WhmGaugeGui.generateResultColumns(result);
         const table = super.makeAbilityUsedTable(result);

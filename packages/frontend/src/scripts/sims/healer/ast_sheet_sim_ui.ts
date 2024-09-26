@@ -83,7 +83,7 @@ class AstGaugeGui {
         ];
     }
 }
-export class AstSheetSimUi extends BaseMultiCycleSimGui<AstSimResult, AstSettings> {
+export class AstSheetSimGui extends BaseMultiCycleSimGui<AstSimResult, AstSettings> {
 
     override makeAbilityUsedTable(result: AstSimResult): AbilitiesUsedTable {
         const extraColumns = AstGaugeGui.generateResultColumns(result);

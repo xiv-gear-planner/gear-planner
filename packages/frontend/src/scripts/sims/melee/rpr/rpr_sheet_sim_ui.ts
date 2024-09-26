@@ -3,7 +3,6 @@ import { PreDmgUsedAbility } from "@xivgear/core/sims/sim_types";
 import { CustomColumnSpec } from "../../../tables";
 import { AbilitiesUsedTable } from "../../components/ability_used_table";
 import { BaseMultiCycleSimGui } from "../../multicyclesim_gui";
-import { RprGauge } from "./rpr_gauge";
 import { RprSimSettings, RprSheetSimResult } from "./rpr_sheet_sim";
 import { RprExtraData } from "./rpr_types";
 

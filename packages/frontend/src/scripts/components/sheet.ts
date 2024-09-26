@@ -78,6 +78,8 @@ import {SaveAsModal} from "./new_sheet_form";
 import {DropdownActionMenu} from "./dropdown_actions_menu";
 import {CustomFoodPopup, CustomItemPopup} from "./custom_item_manager";
 import {confirmDelete} from "@xivgear/common-ui/components/delete_confirm";
+import { SimulationGui } from "../sims/simulation_gui";
+import { makeGui } from "../sims/default_sims";
 
 export type GearSetSel = SingleCellRowOrHeaderSelect<CharacterGearSet>;
 
@@ -1249,6 +1251,8 @@ export class GearPlanSheetGui extends GearPlanSheet {
     readonly editorArea: HTMLDivElement;
     readonly midBarArea: HTMLDivElement;
     readonly toolbarHolder: HTMLDivElement;
+    private _simGuis: SimulationGui<any, any, any>[];
+
     toolbarNode: Node;
     // TODO: SimResult alone might not be enough since we'd want it to refresh automatically if settings are changed
     private _editorItem: CharacterGearSet | Simulation<any, any, any> | SimResultData<SimResult> | undefined;
@@ -1256,6 +1260,7 @@ export class GearPlanSheetGui extends GearPlanSheet {
     // Can't make ctor private for custom element, but DO NOT call this directly - use fromSaved or fromScratch
     constructor(...args: ConstructorParameters<typeof GearPlanSheet>) {
         super(...args);
+        this._simGuis = super.sims.map(sim => makeGui(sim));
         this.element = new GearPlanSheetElement();
         const element = this.element;
         element.classList.add('gear-sheet');
@@ -1319,6 +1324,10 @@ export class GearPlanSheetGui extends GearPlanSheet {
 
     private get editorItem() {
         return this._editorItem;
+    }
+
+    get sims(): SimulationGui<any, any, any>[] {
+        return this._simGuis;
     }
 
     private set editorItem(item: typeof this._editorItem) {
@@ -1826,11 +1835,13 @@ export class GearPlanSheetGui extends GearPlanSheet {
 
     addSim(sim: Simulation<any, any, any>) {
         super.addSim(sim);
+        this._simGuis.push(makeGui(sim));
         this.gearPlanTable?.simsChanged();
     }
 
     delSim(sim: Simulation<any, any, any>) {
         super.delSim(sim);
+        this._simGuis = this._simGuis.filter(s => s !== sim);
         this.gearPlanTable?.simsChanged();
     }
 

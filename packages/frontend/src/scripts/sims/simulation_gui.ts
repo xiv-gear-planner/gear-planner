@@ -1,6 +1,10 @@
 import { CharacterGearSet } from "@xivgear/core/gear";
 import { SimResult, SimSettings, SimSpec, Simulation } from "@xivgear/core/sims/sim_types";
 
+export type ResultTypeOfSim<Sim> = Sim extends Simulation<infer R, unknown, unknown> ? R : never;
+export type SettingsTypeOfSim<Sim> = Sim extends Simulation<SimResult, infer S, unknown> ? S : never;
+export type ExportSettingsTypeOfSim<Sim> = Sim extends Simulation<SimResult, unknown, infer SE> ? SE : never;
+
 export abstract class SimulationGui<ResultType extends SimResult, SettingsType extends SimSettings, SettingsExport>
     implements Simulation<ResultType, SettingsType, SettingsExport> {
 
@@ -9,6 +13,7 @@ export abstract class SimulationGui<ResultType extends SimResult, SettingsType e
     constructor(sim: Simulation<ResultType, SettingsType, SettingsExport>) {
         this._sim = sim;
     }
+
     get shortName(): string {
         return this._sim.shortName;
     }

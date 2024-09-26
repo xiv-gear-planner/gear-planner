@@ -11,7 +11,7 @@ import { applyStdDev } from "@xivgear/xivmath/deviation";
 import { CustomTable, HeaderRow } from "../tables";
 import { simpleAutoResultTable } from "./components/simple_tables";
 
-export abstract class BaseUsageCountSimGui<ResultType extends CountSimResult, InternalSettingsType extends SimSettings>
+export class BaseUsageCountSimGui<ResultType extends CountSimResult, InternalSettingsType extends SimSettings>
     extends SimulationGui<ResultType, InternalSettingsType, ExternalCountSettings<InternalSettingsType>> {
 
     declare _sim: BaseUsageCountSim<ResultType, InternalSettingsType>;
