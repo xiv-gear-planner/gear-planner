@@ -33,7 +33,7 @@ import { BluF2PSpec } from "@xivgear/core/sims/blu/blu_free_trial";
 import { BluWinged120Spec } from "@xivgear/core/sims/blu/blu_winged120";
 import { BluWinged60Spec } from "@xivgear/core/sims/blu/blu_winged60";
 import { potRatioSimSpec } from "@xivgear/core/sims/common/potency_ratio";
-import { BluSimGui } from "./blu/blue_common_ui";
+import { BluSimGui } from "./blu/blu_common_ui";
 
 type SimGuiCtor<X extends Simulation<SimResult, unknown, unknown>> = {
     new (sim: X): SimulationGui<ResultTypeOfSim<X>, SettingsTypeOfSim<X>, ExportSettingsTypeOfSim<X>>;
