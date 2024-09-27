@@ -30,10 +30,10 @@ export abstract class SimulationGui<ResultType extends SimResult, SettingsType e
         this._sim.settings = newSettings;
     }
 
-    get spec(): SimSpec<any, SettingsExport> {
+    get spec(): SimSpec<Simulation<ResultType, SettingsType, SettingsExport>, SettingsExport> {
         return this._sim.spec;
     }
-    set spec(newSpec: SimSpec<any, SettingsExport>) {
+    set spec(newSpec: SimSpec<Simulation<ResultType, SettingsType, SettingsExport>, SettingsExport>) {
         this._sim.spec = newSpec;
     }
 

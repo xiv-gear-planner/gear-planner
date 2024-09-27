@@ -2,8 +2,7 @@ import { CycleSimResult, DisplayRecordFinalized, isFinalizedAbilityUse } from "@
 import { PreDmgUsedAbility } from "@xivgear/core/sims/sim_types";
 import { CustomColumnSpec } from "../../../tables";
 import { AbilitiesUsedTable } from "../../components/ability_used_table";
-import { BaseMultiCycleSimGui } from "../../multicyclesim_gui";
-import { VprGauge } from "./vpr_gauge";
+import { BaseMultiCycleSimGui } from "../../multicyclesim_ui";
 import { VprSimSettings, VprSimResult } from "./vpr_sheet_sim";
 import { VprExtraData } from "./vpr_types";
 

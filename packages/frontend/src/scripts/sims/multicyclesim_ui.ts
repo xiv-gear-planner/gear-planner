@@ -1,6 +1,6 @@
 import { CycleProcessor, CycleSimResult, CycleSimResultFull, ExternalCycleSettings } from "@xivgear/core/sims/cycle_sim";
 import { SimulationGui } from "./simulation_gui";
-import { SimSettings, Simulation } from "@xivgear/core/sims/sim_types";
+import { SimSettings } from "@xivgear/core/sims/sim_types";
 import { BaseMultiCycleSim } from "./sim_processors";
 import { cycleSettingsGui } from "./components/cycle_settings_components";
 import { writeProxy } from "@xivgear/core/util/proxies";

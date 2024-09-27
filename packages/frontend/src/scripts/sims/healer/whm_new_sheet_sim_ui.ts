@@ -2,7 +2,7 @@ import { CycleSimResult, DisplayRecordFinalized, isFinalizedAbilityUse } from "@
 import { PreDmgUsedAbility } from "@xivgear/core/sims/sim_types";
 import { CustomColumnSpec } from "../../tables";
 import { AbilitiesUsedTable } from "../components/ability_used_table";
-import { BaseMultiCycleSimGui } from "../multicyclesim_gui";
+import { BaseMultiCycleSimGui } from "../multicyclesim_ui";
 import { WhmExtraData, WhmSettings, WhmSimResult } from "./whm_new_sheet_sim";
 
 class WhmGaugeGui {
