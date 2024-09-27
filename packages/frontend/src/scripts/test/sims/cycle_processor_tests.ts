@@ -24,7 +24,7 @@ import {
     SimSpec
 } from "@xivgear/core/sims/sim_types";
 import {CycleProcessor, CycleSimResult, ExternalCycleSettings, Rotation} from "@xivgear/core/sims/cycle_sim";
-import {BaseMultiCycleSim} from "../../sims/sim_processors";
+import { BaseMultiCycleSim } from '@xivgear/core/sims/processors/sim_processors';
 
 // Example of end-to-end simulation
 // This one is testing the simulation engine itself, so it copies the full simulation code rather than

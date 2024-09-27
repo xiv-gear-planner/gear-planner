@@ -1,6 +1,6 @@
-import { SamAbility } from "../sam_types";
 import { potionMaxStr } from "@xivgear/core/sims/common/potion";
 import * as Actions from '../sam_actions';
+import { SamAbility } from "../sam_types";
 
 export const Opener: SamAbility[] = [
     Actions.MeikyoShisui,

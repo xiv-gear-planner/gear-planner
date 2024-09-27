@@ -3,9 +3,9 @@ import { PreDmgUsedAbility } from "@xivgear/core/sims/sim_types";
 import { CustomColumnSpec } from "../../../tables";
 import { AbilitiesUsedTable } from "../../components/ability_used_table";
 import { BaseMultiCycleSimGui } from "../../multicyclesim_ui";
-import { SamSettings, SamSimResult } from "./sam_lv100_sim";
-import { SAMExtraData } from "./sam_types";
 import { FieldBoundFloatField, FieldBoundCheckBox, labelFor, labeledCheckbox } from "@xivgear/common-ui/components/util";
+import { SamSimResult, SamSettings } from "@xivgear/core/sims/melee/sam/sam_lv100_sim";
+import { SAMExtraData } from "@xivgear/core/sims/melee/sam/sam_types";
 
 class SAMGaugeGui {
 

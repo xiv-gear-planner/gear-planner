@@ -3,7 +3,7 @@ import { PreDmgUsedAbility } from "@xivgear/core/sims/sim_types";
 import { CustomColumnSpec } from "../../tables";
 import { AbilitiesUsedTable } from "../components/ability_used_table";
 import { BaseMultiCycleSimGui } from "../multicyclesim_ui";
-import { AstExtraData, AstSettings, AstSimResult } from "./ast_sheet_sim";
+import { AstExtraData, AstSimResult, AstSettings } from "@xivgear/core/sims/healer/ast_sheet_sim";
 
 class AstGaugeGui {
 

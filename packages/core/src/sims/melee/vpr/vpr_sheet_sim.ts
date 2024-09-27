@@ -1,6 +1,5 @@
 import { PreDmgAbilityUseRecordUnf, AbilityUseResult, CycleProcessor, CycleSimResult, ExternalCycleSettings, MultiCycleSettings, Rotation } from "@xivgear/core/sims/cycle_sim";
 import { Ability, Buff, OgcdAbility, SimSettings, SimSpec } from "@xivgear/core/sims/sim_types";
-import { BaseMultiCycleSim } from "../../sim_processors";
 import { VprGauge } from "./vpr_gauge";
 import { VprAbility, VprExtraData, VprGcdAbility } from "./vpr_types";
 import * as Actions from "./vpr_actions";
@@ -8,6 +7,7 @@ import { FlanksbaneVenom, FlankstungVenom, HindsbaneVenom, HindstungVenom, Hunte
 import { potionMaxDex } from "@xivgear/core/sims/common/potion";
 import { sum } from "@xivgear/core/util/array_utils";
 import { STANDARD_ANIMATION_LOCK } from "@xivgear/xivmath/xivconstants";
+import { BaseMultiCycleSim } from "@xivgear/core/sims/processors/sim_processors";
 
 export interface VprSimResult extends CycleSimResult {
 }

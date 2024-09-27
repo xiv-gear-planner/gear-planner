@@ -1,7 +1,6 @@
 import { ArcaneCircleBuff } from "@xivgear/core/sims/buffs";
 import { Ability, Buff, OgcdAbility, SimSettings, SimSpec } from "@xivgear/core/sims/sim_types";
 import { PreDmgAbilityUseRecordUnf, AbilityUseResult, CycleProcessor, CycleSimResult, ExternalCycleSettings, MultiCycleSettings, Rotation } from "@xivgear/core/sims/cycle_sim";
-import { BaseMultiCycleSim } from "../../sim_processors";
 import { potionMaxStr } from "@xivgear/core/sims/common/potion";
 import * as Actions from "./rpr_actions";
 import { RprAbility, RprExtraData, RprGcdAbility } from "./rpr_types";
@@ -10,6 +9,7 @@ import { DeathsDesign, IdealHost } from "./rpr_buff";
 import { sum } from "@xivgear/core/util/array_utils";
 import { STANDARD_ANIMATION_LOCK } from "@xivgear/xivmath/xivconstants";
 import { animationLock } from "@xivgear/core/sims/ability_helpers";
+import { BaseMultiCycleSim } from "@xivgear/core/sims/processors/sim_processors";
 
 
 export interface RprSheetSimResult extends CycleSimResult {

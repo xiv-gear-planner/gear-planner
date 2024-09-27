@@ -3,8 +3,8 @@ import { PreDmgUsedAbility } from "@xivgear/core/sims/sim_types";
 import { CustomColumnSpec } from "../../../tables";
 import { AbilitiesUsedTable } from "../../components/ability_used_table";
 import { BaseMultiCycleSimGui } from "../../multicyclesim_ui";
-import { VprSimSettings, VprSimResult } from "./vpr_sheet_sim";
-import { VprExtraData } from "./vpr_types";
+import { VprSimResult, VprSimSettings } from "@xivgear/core/sims/melee/vpr/vpr_sheet_sim";
+import { VprExtraData } from "@xivgear/core/sims/melee/vpr/vpr_types";
 
 class VprGaugeGui {
 

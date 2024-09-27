@@ -1,7 +1,7 @@
 import {AutoAttack, GcdAbility, OgcdAbility, SimSpec} from "@xivgear/core/sims/sim_types";
 import {CharacterGearSet} from "@xivgear/core/gear";
-import {BaseUsageCountSim, CountSimResult, ExternalCountSettings, SkillCount} from "../processors/count_sim";
 import {TechnicalFinish} from "@xivgear/core/sims/buffs";
+import { ExternalCountSettings, CountSimResult, BaseUsageCountSim, SkillCount } from "@xivgear/core/sims/processors/count_sim";
 
 export const dncDtSheetSpec: SimSpec<DncDtSim, DncDtSimSettings> = {
     displayName: "DNC Level 100 Sim",

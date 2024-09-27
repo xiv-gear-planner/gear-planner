@@ -2,13 +2,13 @@ import { Ability, OgcdAbility, Buff, SimSettings, SimSpec } from "@xivgear/core/
 import { CycleProcessor, CycleSimResult, ExternalCycleSettings, MultiCycleSettings, AbilityUseResult, Rotation, PreDmgAbilityUseRecordUnf } from "@xivgear/core/sims/cycle_sim";
 import { CycleSettings } from "@xivgear/core/sims/cycle_settings";
 import { STANDARD_ANIMATION_LOCK } from "@xivgear/xivmath/xivconstants";
-import { BaseMultiCycleSim } from "../../sim_processors";
 import { potionMaxDex } from "@xivgear/core/sims/common/potion";
 import { Dokumori } from "@xivgear/core/sims/buffs";
 import NINGauge from "./nin_gauge";
 import { NinAbility, NinGcdAbility, MudraStep, NinjutsuAbility, NINExtraData } from "./nin_types";
 import * as Actions from './nin_actions';
 import * as Buffs from './nin_buffs';
+import { BaseMultiCycleSim } from "@xivgear/core/sims/processors/sim_processors";
 
 export interface NinSimResult extends CycleSimResult {
 

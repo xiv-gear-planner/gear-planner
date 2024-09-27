@@ -4,13 +4,13 @@ import { CycleSettings } from "@xivgear/core/sims/cycle_settings";
 import { CharacterGearSet } from "@xivgear/core/gear";
 import { formatDuration } from "@xivgear/core/util/strutils";
 import { STANDARD_ANIMATION_LOCK } from "@xivgear/xivmath/xivconstants";
-import { BaseMultiCycleSim } from "../../sim_processors";
 import SAMGauge from "./sam_gauge";
 import { SAMExtraData, SAMRotationData, SamAbility } from "./sam_types";
 import * as SlowSamRotation from './rotations/sam_lv100_214';
 import * as MidSamRotation from './rotations/sam_lv100_207';
 import * as FastSamRotation from './rotations/sam_lv100_200';
 import { HissatsuShinten, MeikyoShisui } from './sam_actions';
+import { BaseMultiCycleSim } from "@xivgear/core/sims/processors/sim_processors";
 
 export interface SamSimResult extends CycleSimResult {
 

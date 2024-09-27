@@ -7,10 +7,10 @@ import {
     MultiCycleSettings,
     Rotation
 } from "@xivgear/core/sims/cycle_sim";
-import {BaseMultiCycleSim} from "../sim_processors";
 import {gemdraught1mind} from "@xivgear/core/sims/common/potion";
 import {rangeInc} from "@xivgear/core/util/array_utils";
 import {animationLock} from "@xivgear/core/sims/ability_helpers";
+import { BaseMultiCycleSim } from "@xivgear/core/sims/processors/sim_processors";
 
 /**
  * Used for all 360p filler abilities

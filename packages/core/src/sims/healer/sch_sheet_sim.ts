@@ -1,10 +1,10 @@
 import { Chain } from "@xivgear/core/sims/buffs";
 import { Ability, BuffController, GcdAbility, OgcdAbility, PersonalBuff, SimSettings, SimSpec } from "@xivgear/core/sims/sim_types";
 import { CycleProcessor, CycleSimResult, ExternalCycleSettings, MultiCycleSettings, Rotation, PreDmgAbilityUseRecordUnf, AbilityUseResult } from "@xivgear/core/sims/cycle_sim";
-import { BaseMultiCycleSim } from "../sim_processors";
 import { rangeInc } from "@xivgear/core/util/array_utils";
 //import {potionMaxMind} from "@xivgear/core/sims/common/potion";
 import { FieldBoundIntField, labelFor, nonNegative } from "@xivgear/common-ui/components/util";
+import { BaseMultiCycleSim } from "@xivgear/core/sims/processors/sim_processors";
 
 type SchAbility = Ability & Readonly<{
     /** Run if an ability needs to update the aetherflow gauge */

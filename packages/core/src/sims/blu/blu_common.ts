@@ -11,7 +11,7 @@ import {
     ExternalCycleSettings,
     MultiCycleSettings, Rotation
 } from "@xivgear/core/sims/cycle_sim";
-import {BaseMultiCycleSim} from "../sim_processors";
+import { BaseMultiCycleSim } from "../processors/sim_processors";
 
 /**
  * BLU spells that apply Bleeding

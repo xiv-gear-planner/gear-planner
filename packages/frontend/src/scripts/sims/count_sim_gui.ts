@@ -1,5 +1,4 @@
 import { Ability, SimSettings } from "@xivgear/core/sims/sim_types";
-import { BaseUsageCountSim, CountSimResult, ExternalCountSettings } from "./processors/count_sim";
 import { SimulationGui } from "./simulation_gui";
 import { writeProxy } from "@xivgear/core/util/proxies";
 import { NamedSection } from "../components/section";
@@ -10,6 +9,7 @@ import { abilityEquals } from "@xivgear/core/sims/ability_helpers";
 import { applyStdDev } from "@xivgear/xivmath/deviation";
 import { CustomTable, HeaderRow } from "../tables";
 import { simpleAutoResultTable } from "./components/simple_tables";
+import { CountSimResult, ExternalCountSettings, BaseUsageCountSim } from "@xivgear/core/sims/processors/count_sim";
 
 export class BaseUsageCountSimGui<ResultType extends CountSimResult, InternalSettingsType extends SimSettings>
     extends SimulationGui<ResultType, InternalSettingsType, ExternalCountSettings<InternalSettingsType>> {

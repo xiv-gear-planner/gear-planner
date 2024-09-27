@@ -1,7 +1,6 @@
 import { CycleProcessor, CycleSimResult, CycleSimResultFull, ExternalCycleSettings } from "@xivgear/core/sims/cycle_sim";
 import { SimulationGui } from "./simulation_gui";
 import { SimSettings } from "@xivgear/core/sims/sim_types";
-import { BaseMultiCycleSim } from "./sim_processors";
 import { cycleSettingsGui } from "./components/cycle_settings_components";
 import { writeProxy } from "@xivgear/core/util/proxies";
 import { NamedSection } from "../components/section";
@@ -11,6 +10,7 @@ import { applyStdDev } from "@xivgear/xivmath/deviation";
 import { simpleAutoResultTable } from "./components/simple_tables";
 import { AbilitiesUsedTable } from "./components/ability_used_table";
 import { quickElement } from "@xivgear/common-ui/components/util";
+import { BaseMultiCycleSim } from "@xivgear/core/sims/processors/sim_processors";
 
 export class BaseMultiCycleSimGui<ResultType extends CycleSimResult, InternalSettingsType extends SimSettings, CycleProcessorType extends CycleProcessor = CycleProcessor, FullResultType extends CycleSimResultFull<ResultType> = CycleSimResultFull<ResultType>>
     extends SimulationGui<FullResultType, InternalSettingsType, ExternalCycleSettings<InternalSettingsType>> {
