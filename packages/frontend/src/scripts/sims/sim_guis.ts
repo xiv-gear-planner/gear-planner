@@ -33,6 +33,7 @@ import { BluF2PSpec } from "@xivgear/core/sims/blu/blu_free_trial";
 import { BluWinged120Spec } from "@xivgear/core/sims/blu/blu_winged120";
 import { BluWinged60Spec } from "@xivgear/core/sims/blu/blu_winged60";
 import { potRatioSimSpec } from "@xivgear/core/sims/common/potency_ratio";
+import { BluSimGui } from "./blu/blue_common_ui";
 
 type SimGuiCtor<X extends Simulation<SimResult, unknown, unknown>> = {
     new (sim: X): SimulationGui<ResultTypeOfSim<X>, SettingsTypeOfSim<X>, ExportSettingsTypeOfSim<X>>;
@@ -67,10 +68,10 @@ registerGui(rprSheetSpec, RprSheetSimGui);
 registerGui(vprSheetSpec, VprSimGui);
 registerGui(ninSpec, NinSheetSimGui);
 registerGui(samSpec, SamSimGui);
-registerGui(BluWinged120Spec, BaseMultiCycleSimGui);
-registerGui(BluFlame120Spec, BaseMultiCycleSimGui);
-registerGui(BluBreath60Spec, BaseMultiCycleSimGui);
-registerGui(BluWinged60Spec, BaseMultiCycleSimGui);
-registerGui(BluFlame60Spec, BaseMultiCycleSimGui);
-registerGui(BluF2PSpec, BaseMultiCycleSimGui);
+registerGui(BluWinged120Spec, BluSimGui);
+registerGui(BluFlame120Spec, BluSimGui);
+registerGui(BluBreath60Spec, BluSimGui);
+registerGui(BluWinged60Spec, BluSimGui);
+registerGui(BluFlame60Spec, BluSimGui);
+registerGui(BluF2PSpec, BluSimGui);
 registerGui(dncDtSheetSpec, BaseUsageCountSimGui);

@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import {FieldBoundCheckBox, labeledCheckbox} from "@xivgear/common-ui/components/util";
 import {OffGuardBuff} from "@xivgear/core/sims/buffs";
 import {removeSelf} from "@xivgear/core/sims/common/utils";
 import {CASTER_TAX} from "@xivgear/xivmath/xivconstants";
@@ -856,21 +855,6 @@ export abstract class BluSim<_BluCycleSimResult, _BluSimSettings>
             mightyGuardEnabled: false,
             basicInstinctEnabled: false,
         };
-    }
-
-    makeCustomConfigInterface(settings: BluSimSettings, updateCallback: () => void): HTMLElement {
-        const configDiv = document.createElement("div");
-        // insert BLU stance toggles
-        const stancesDiv = document.createElement("div");
-        const dpsMimicryCb = new FieldBoundCheckBox(settings, "dpsMimicryEnabled");
-        stancesDiv.appendChild(labeledCheckbox("Aetheric Mimicry: DPS", dpsMimicryCb));
-        const mightyGuardCb = new FieldBoundCheckBox(settings, "mightyGuardEnabled");
-        stancesDiv.appendChild(labeledCheckbox("Mighty Guard", mightyGuardCb));
-        const basicInstinctCb = new FieldBoundCheckBox(settings, "basicInstinctEnabled");
-        stancesDiv.appendChild(labeledCheckbox("Basic Instinct", basicInstinctCb));
-
-        configDiv.appendChild(stancesDiv);
-        return configDiv;
     }
 
     protected createCycleProcessor(settings: MultiCycleSettings): BLUCycleProcessor {
