@@ -3,7 +3,6 @@ import { Ability, BuffController, GcdAbility, OgcdAbility, PersonalBuff, SimSett
 import { CycleProcessor, CycleSimResult, ExternalCycleSettings, MultiCycleSettings, Rotation, PreDmgAbilityUseRecordUnf, AbilityUseResult } from "@xivgear/core/sims/cycle_sim";
 import { rangeInc } from "@xivgear/core/util/array_utils";
 //import {potionMaxMind} from "@xivgear/core/sims/common/potion";
-import { FieldBoundIntField, labelFor, nonNegative } from "@xivgear/common-ui/components/util";
 import { BaseMultiCycleSim } from "@xivgear/core/sims/processors/sim_processors";
 
 type SchAbility = Ability & Readonly<{
@@ -284,19 +283,6 @@ export class SchSim extends BaseMultiCycleSim<SchSimResult, SchSettings, Scholar
         };
     }
     
-    makeCustomConfigInterface(settings: SchSettings, updateCallback: () => void): HTMLElement | null {
-        const configDiv = document.createElement("div");
-        const edField = new FieldBoundIntField<SchSettings>(settings, 'edsPerAfDiss', {
-            inputMode: 'number',
-            postValidators: [nonNegative]
-        });
-        edField.id = 'edField';
-        const label = labelFor('Energy Drains per Aetherflow/Dissipation', edField);
-        configDiv.appendChild(label);
-        configDiv.appendChild(edField);
-        return configDiv;
-    }
-
     getRotationsToSimulate(): Rotation[] {
         const sim = this;
         return [{
