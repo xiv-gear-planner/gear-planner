@@ -9,7 +9,6 @@ import {
 } from "@xivgear/core/sims/cycle_sim";
 import {BaseMultiCycleSim} from "../sim_processors";
 import {gemdraught1mind} from "@xivgear/core/sims/common/potion";
-import {FieldBoundCheckBox, labeledCheckbox} from "@xivgear/common-ui/components/util";
 import {rangeInc} from "@xivgear/core/util/array_utils";
 import {animationLock} from "@xivgear/core/sims/ability_helpers";
 
@@ -179,13 +178,6 @@ export class SgeSheetSim extends BaseMultiCycleSim<SgeSheetSimResult, SgeNewShee
         return {
             usePotion: false
         };
-    }
-
-    makeCustomConfigInterface(settings: SgeNewSheetSettings, updateCallback: () => void): HTMLElement | null {
-        const configDiv = document.createElement("div");
-        const potCb = new FieldBoundCheckBox(settings, "usePotion");
-        configDiv.appendChild(labeledCheckbox("Use Potion", potCb));
-        return configDiv;
     }
 
     getRotationsToSimulate(): Rotation[] {

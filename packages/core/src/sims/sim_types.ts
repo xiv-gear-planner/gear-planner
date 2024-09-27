@@ -130,31 +130,6 @@ export interface Simulation<ResultType extends SimResult, SettingsType extends S
     spec: SimSpec<typeof this, SettingsExport>
 
     /**
-     * Create the configuration interface for the simulation
-     *
-     * @param settings The settings.
-     * @param updateCallback A callback that should be called after anything on the settings
-     * object is changed. Depending on {@link manualRun}, this may trigger a re-run automatically.
-     */
-    makeConfigInterface(settings: SettingsType, updateCallback: () => void): HTMLElement;
-
-    /**
-     * Overrides the default tooltip when hovering over a sim result cell in the set table.
-     *
-     * @param result The result
-     * @returns The tooltip
-     */
-    makeToolTip?(result: ResultType): string;
-
-    /**
-     * Overrides the results display when clicking into a sim result cell in the set table.
-     *
-     * @param result The result
-     * @return the result HTML
-     */
-    makeResultDisplay?(result: ResultType): HTMLElement;
-
-    /**
      * If true, do not automatically re-run the sim. Currently, this is only implemented for
      * the configuration - changing settings will not cause the sim to auto-re-run. Eventually, it
      * may also be implemented for changes to gear sets.

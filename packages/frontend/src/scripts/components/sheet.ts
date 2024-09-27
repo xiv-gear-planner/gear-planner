@@ -165,7 +165,7 @@ function multiplierMitStatDisplay(stats: MultiplierMitStat) {
 
 export class SimResultData<ResultType extends SimResult> {
     constructor(
-        public readonly simInst: Simulation<ResultType, any, any>,
+        public readonly simInst: SimulationGui<ResultType, any, any>,
         public readonly result: SimCurrentResult<ResultType>
     ) {
     }
@@ -208,7 +208,7 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
         })
     }
 
-    get sims(): Simulation<any, any, any>[] {
+    get sims(): SimulationGui<any, any, any>[] {
         return this.sheet.sims;
     }
 
@@ -678,7 +678,7 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
 
 export class SimResultDetailDisplay<X extends SimResult> extends HTMLElement {
     private _result: SimCurrentResult<X>;
-    private sim: Simulation<X, any, any>;
+    private sim: SimulationGui<X, any, any>;
 
     constructor(simDetailResultDisplay: SimResultData<any>) {
         super();
@@ -721,7 +721,7 @@ export function textWithToolTip(text: string, tooltip: string): HTMLElement {
 export class SimResultMiniDisplay extends HTMLElement {
     private _result: SimCurrentResult<any>;
 
-    constructor(private gearPlanTable: GearPlanTable, private sim: Simulation<any, any, any>, simCurrentResult: SimCurrentResult<any>) {
+    constructor(private gearPlanTable: GearPlanTable, private sim: SimulationGui<any, any, any>, simCurrentResult: SimCurrentResult<any>) {
         super();
         this._result = simCurrentResult;
         this.update();
@@ -1166,9 +1166,9 @@ export class SeparatorViewer extends HTMLElement {
 
 function formatSimulationConfigArea<SettingsType extends SimSettings>(
     sheet: GearPlanSheet,
-    sim: Simulation<any, SettingsType, any>,
-    refreshColumn: (item: Simulation<any, SettingsType, any>) => void,
-    deleteColumn: (item: Simulation<any, SettingsType, any>) => void,
+    sim: SimulationGui<any, SettingsType, any>,
+    refreshColumn: (item: SimulationGui<any, SettingsType, any>) => void,
+    deleteColumn: (item: SimulationGui<any, SettingsType, any>) => void,
     refreshHeaders: () => void): HTMLElement {
 
     const outerDiv = document.createElement("div");
@@ -1374,7 +1374,7 @@ export class GearPlanSheetGui extends GearPlanSheet {
                 this.refreshToolbar();
             }
             else if (item['makeConfigInterface']) {
-                this.setupEditorArea(formatSimulationConfigArea(this, item as Simulation<any, any, any>, col => this._gearPlanTable.refreshColumn(col), col => this.delSim(col), () => this._gearPlanTable.refreshColHeaders()));
+                this.setupEditorArea(formatSimulationConfigArea(this, item as SimulationGui<any, any, any>, col => this._gearPlanTable.refreshColumn(col), col => this.delSim(col), () => this._gearPlanTable.refreshColHeaders()));
             }
             else if (item instanceof SimResultData) {
                 this.setupEditorArea(new SimResultDetailDisplay(item));
@@ -1833,15 +1833,15 @@ export class GearPlanSheetGui extends GearPlanSheet {
     }
 
 
-    addSim(sim: Simulation<any, any, any>) {
+    addSim(sim: SimulationGui<any, any, any>) {
         super.addSim(sim);
         this._simGuis.push(makeGui(sim));
         this.gearPlanTable?.simsChanged();
     }
 
-    delSim(sim: Simulation<any, any, any>) {
-        super.delSim(sim);
+    delSim(sim: SimulationGui<any, any, any>) {
         this._simGuis = this._simGuis.filter(s => s !== sim);
+        super.delSim(sim._sim);
         this.gearPlanTable?.simsChanged();
     }
 

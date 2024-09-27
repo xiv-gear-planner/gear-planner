@@ -1,13 +1,10 @@
-import {Chain} from "@xivgear/core/sims/buffs";
-import {Ability, BuffController, GcdAbility, OgcdAbility, PersonalBuff, SimSettings, SimSpec, PreDmgUsedAbility} from "@xivgear/core/sims/sim_types";
-import {CycleProcessor, CycleSimResult, ExternalCycleSettings, MultiCycleSettings, Rotation, DisplayRecordFinalized,
-    isFinalizedAbilityUse, PreDmgAbilityUseRecordUnf, AbilityUseResult} from "@xivgear/core/sims/cycle_sim";
-import {BaseMultiCycleSim} from "../sim_processors";
-import {rangeInc} from "@xivgear/core/util/array_utils";
+import { Chain } from "@xivgear/core/sims/buffs";
+import { Ability, BuffController, GcdAbility, OgcdAbility, PersonalBuff, SimSettings, SimSpec } from "@xivgear/core/sims/sim_types";
+import { CycleProcessor, CycleSimResult, ExternalCycleSettings, MultiCycleSettings, Rotation, PreDmgAbilityUseRecordUnf, AbilityUseResult } from "@xivgear/core/sims/cycle_sim";
+import { BaseMultiCycleSim } from "../sim_processors";
+import { rangeInc } from "@xivgear/core/util/array_utils";
 //import {potionMaxMind} from "@xivgear/core/sims/common/potion";
-import {FieldBoundIntField, labelFor, nonNegative} from "@xivgear/common-ui/components/util";
-import {CustomColumnSpec} from "../../tables";
-import {AbilitiesUsedTable} from "../components/ability_used_table";
+import { FieldBoundIntField, labelFor, nonNegative } from "@xivgear/common-ui/components/util";
 
 type SchAbility = Ability & Readonly<{
     /** Run if an ability needs to update the aetherflow gauge */
@@ -158,45 +155,6 @@ class SchGauge {
         }
     }
 
-    static generateResultColumns(result: CycleSimResult): CustomColumnSpec<DisplayRecordFinalized, unknown, unknown>[] {
-        return [{
-            shortName: 'aetherflow',
-            displayName: 'Aetherflow',
-            getter: used => isFinalizedAbilityUse(used) ? used.original : null,
-            renderer: (usedAbility?: PreDmgUsedAbility) => {
-                if (usedAbility?.extraData !== undefined) {
-                    const aetherflow = (usedAbility.extraData as SchExtraData).gauge.aetherflow;
-
-                    const div = document.createElement('div');
-                    div.style.height = '100%';
-                    div.style.display = 'flex';
-                    div.style.alignItems = 'center';
-                    div.style.justifyContent = 'center';
-                    div.style.gap = '4px';
-                    div.style.padding = '2px 0 2px 0';
-                    div.style.boxSizing = 'border-box';
-
-                    for (let i = 1; i <= 3; i++) {
-                        const stack = document.createElement('span');
-                        stack.style.clipPath = `polygon(0 50%, 50% 0, 100% 50%, 50% 100%, 0% 50%)`;
-                        stack.style.background = '#00000033';
-                        stack.style.height = '100%';
-                        stack.style.width = '16px';
-                        stack.style.display = 'inline-block';
-                        stack.style.overflow = 'hidden';
-                        if (i <= aetherflow) {
-                            stack.style.background = '#0FFF33';
-                        }
-                        div.appendChild(stack);
-                    }
-
-                    return div;
-                }
-                return document.createTextNode("");
-            }
-        },
-        ];
-    }
 }
 
 export interface SchSimResult extends CycleSimResult {
@@ -337,15 +295,6 @@ export class SchSim extends BaseMultiCycleSim<SchSimResult, SchSettings, Scholar
         configDiv.appendChild(label);
         configDiv.appendChild(edField);
         return configDiv;
-    }
-
-    override makeAbilityUsedTable(result: SchSimResult): AbilitiesUsedTable {
-        const extraColumns = SchGauge.generateResultColumns(result);
-        const table = super.makeAbilityUsedTable(result);
-        const newColumns = [...table.columns];
-        newColumns.splice(newColumns.findIndex(col => col.shortName === 'expected-damage') + 1, 0, ...extraColumns);
-        table.columns = newColumns;
-        return table;
     }
 
     getRotationsToSimulate(): Rotation[] {

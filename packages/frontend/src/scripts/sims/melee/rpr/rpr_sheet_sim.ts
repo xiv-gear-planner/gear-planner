@@ -1,13 +1,12 @@
-import {ArcaneCircleBuff} from "@xivgear/core/sims/buffs";
-import {Ability, Buff, OgcdAbility, SimSettings, SimSpec} from "@xivgear/core/sims/sim_types";
-import {PreDmgAbilityUseRecordUnf, AbilityUseResult, CycleProcessor, CycleSimResult, ExternalCycleSettings, MultiCycleSettings, Rotation} from "@xivgear/core/sims/cycle_sim";
-import {BaseMultiCycleSim} from "../../sim_processors";
+import { ArcaneCircleBuff } from "@xivgear/core/sims/buffs";
+import { Ability, Buff, OgcdAbility, SimSettings, SimSpec } from "@xivgear/core/sims/sim_types";
+import { PreDmgAbilityUseRecordUnf, AbilityUseResult, CycleProcessor, CycleSimResult, ExternalCycleSettings, MultiCycleSettings, Rotation } from "@xivgear/core/sims/cycle_sim";
+import { BaseMultiCycleSim } from "../../sim_processors";
 import { potionMaxStr } from "@xivgear/core/sims/common/potion";
-import * as Actions from "./rpr_actions"
+import * as Actions from "./rpr_actions";
 import { RprAbility, RprExtraData, RprGcdAbility } from "./rpr_types";
 import { RprGauge } from "./rpr_gauge";
 import { DeathsDesign, IdealHost } from "./rpr_buff";
-import { AbilitiesUsedTable } from "../../components/ability_used_table";
 import { sum } from "@xivgear/core/util/array_utils";
 import { STANDARD_ANIMATION_LOCK } from "@xivgear/xivmath/xivconstants";
 import { animationLock } from "@xivgear/core/sims/ability_helpers";
@@ -425,15 +424,6 @@ export class RprSheetSim extends BaseMultiCycleSim<RprSheetSimResult, RprSimSett
 
     makeDefaultSettings(): RprSimSettings {
         return {};
-    }
-
-    override makeAbilityUsedTable(result: RprSheetSimResult): AbilitiesUsedTable {
-        const extraColumns = RprGauge.generateResultColumns(result);
-        const table = super.makeAbilityUsedTable(result);
-        const newColumns = [...table.columns];
-        newColumns.splice(newColumns.findIndex(col => col.shortName === 'expected-damage') + 1, 0, ...extraColumns);
-        table.columns = newColumns;
-        return table;
     }
 
     protected createCycleProcessor(settings: MultiCycleSettings): RprCycleProcessor {

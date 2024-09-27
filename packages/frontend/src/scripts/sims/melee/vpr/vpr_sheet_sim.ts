@@ -8,7 +8,6 @@ import { FlanksbaneVenom, FlankstungVenom, HindsbaneVenom, HindstungVenom, Hunte
 import { potionMaxDex } from "@xivgear/core/sims/common/potion";
 import { sum } from "@xivgear/core/util/array_utils";
 import { STANDARD_ANIMATION_LOCK } from "@xivgear/xivmath/xivconstants";
-import { AbilitiesUsedTable } from "../../components/ability_used_table";
 
 export interface VprSimResult extends CycleSimResult {
 }
@@ -467,15 +466,6 @@ export class VprSheetSim extends BaseMultiCycleSim<VprSimResult, VprSimSettings>
 
     makeDefaultSettings(): VprSimSettings {
         return {};
-    }
-
-    override makeAbilityUsedTable(result: VprSimResult): AbilitiesUsedTable {
-        const extraColumns = VprGauge.generateResultColumns(result);
-        const table = super.makeAbilityUsedTable(result);
-        const newColumns = [...table.columns];
-        newColumns.splice(newColumns.findIndex(col => col.shortName === 'expected-damage') + 1, 0, ...extraColumns);
-        table.columns = newColumns;
-        return table;
     }
 
     protected createCycleProcessor(settings: MultiCycleSettings): VprCycleProcessor {

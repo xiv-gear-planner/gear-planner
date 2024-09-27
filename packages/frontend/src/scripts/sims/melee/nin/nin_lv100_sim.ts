@@ -1,13 +1,12 @@
-import {Ability, OgcdAbility, Buff, SimSettings, SimSpec} from "@xivgear/core/sims/sim_types";
-import {CycleProcessor, CycleSimResult, ExternalCycleSettings, MultiCycleSettings, AbilityUseResult, Rotation, PreDmgAbilityUseRecordUnf} from "@xivgear/core/sims/cycle_sim";
-import {CycleSettings} from "@xivgear/core/sims/cycle_settings";
-import {STANDARD_ANIMATION_LOCK} from "@xivgear/xivmath/xivconstants";
-import {BaseMultiCycleSim} from "../../sim_processors";
-import {AbilitiesUsedTable} from "../../components/ability_used_table";
-import {potionMaxDex} from "@xivgear/core/sims/common/potion";
-import {Dokumori} from "@xivgear/core/sims/buffs";
+import { Ability, OgcdAbility, Buff, SimSettings, SimSpec } from "@xivgear/core/sims/sim_types";
+import { CycleProcessor, CycleSimResult, ExternalCycleSettings, MultiCycleSettings, AbilityUseResult, Rotation, PreDmgAbilityUseRecordUnf } from "@xivgear/core/sims/cycle_sim";
+import { CycleSettings } from "@xivgear/core/sims/cycle_settings";
+import { STANDARD_ANIMATION_LOCK } from "@xivgear/xivmath/xivconstants";
+import { BaseMultiCycleSim } from "../../sim_processors";
+import { potionMaxDex } from "@xivgear/core/sims/common/potion";
+import { Dokumori } from "@xivgear/core/sims/buffs";
 import NINGauge from "./nin_gauge";
-import {NinAbility, NinGcdAbility, MudraStep, NinjutsuAbility, NINExtraData} from "./nin_types";
+import { NinAbility, NinGcdAbility, MudraStep, NinjutsuAbility, NINExtraData } from "./nin_types";
 import * as Actions from './nin_actions';
 import * as Buffs from './nin_buffs';
 
@@ -430,15 +429,6 @@ export class NinSim extends BaseMultiCycleSim<NinSimResult, NinSettings, NINCycl
 
     makeDefaultSettings(): NinSettings {
         return {};
-    }
-
-    override makeAbilityUsedTable(result: NinSimResult): AbilitiesUsedTable {
-        const extraColumns = NINGauge.generateResultColumns(result);
-        const table = super.makeAbilityUsedTable(result);
-        const newColumns = [...table.columns];
-        newColumns.splice(newColumns.findIndex(col => col.shortName === 'expected-damage') + 1, 0, ...extraColumns);
-        table.columns = newColumns;
-        return table;
     }
 
     protected createCycleProcessor(settings: MultiCycleSettings): NINCycleProcessor {

@@ -3,10 +3,8 @@ import { CycleProcessor, CycleSimResult, ExternalCycleSettings, MultiCycleSettin
 import { CycleSettings } from "@xivgear/core/sims/cycle_settings";
 import { CharacterGearSet } from "@xivgear/core/gear";
 import { formatDuration } from "@xivgear/core/util/strutils";
-import { FieldBoundCheckBox, FieldBoundFloatField, labeledCheckbox, labelFor } from "@xivgear/common-ui/components/util";
 import { STANDARD_ANIMATION_LOCK } from "@xivgear/xivmath/xivconstants";
 import { BaseMultiCycleSim } from "../../sim_processors";
-import { AbilitiesUsedTable } from "../../components/ability_used_table";
 import SAMGauge from "./sam_gauge";
 import { SAMExtraData, SAMRotationData, SamAbility } from "./sam_types";
 import * as SlowSamRotation from './rotations/sam_lv100_214';
@@ -113,27 +111,6 @@ export class SamSim extends BaseMultiCycleSim<SamSimResult, SamSettings, SAMCycl
             usePotion: true,
             prePullMeikyo: 14,
         };
-    }
-
-    override makeCustomConfigInterface(settings: SamSettings, _updateCallback: () => void): HTMLElement | null {
-        const configDiv = document.createElement("div");
-
-        const ppField = new FieldBoundFloatField(settings, "prePullMeikyo", { inputMode: 'number' });
-        const potCb = new FieldBoundCheckBox(settings, "usePotion");
-
-        configDiv.appendChild(labelFor("Meikyo Pre-Pull Time:", ppField));
-        configDiv.appendChild(ppField);
-        configDiv.appendChild(labeledCheckbox("Use Potion", potCb));
-        return configDiv;
-    }
-
-    override makeAbilityUsedTable(result: SamSimResult): AbilitiesUsedTable {
-        const extraColumns = SAMGauge.generateResultColumns(result);
-        const table = super.makeAbilityUsedTable(result);
-        const newColumns = [...table.columns];
-        newColumns.splice(newColumns.findIndex(col => col.shortName === 'expected-damage') + 1, 0, ...extraColumns);
-        table.columns = newColumns;
-        return table;
     }
 
     use(cp: SAMCycleProcessor, ability: Ability): AbilityUseResult {
