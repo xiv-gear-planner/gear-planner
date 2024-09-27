@@ -1,5 +1,3 @@
-import { potRatioSimSpec } from "./common/potency_ratio";
-import { registerSim } from "@xivgear/core/sims/sim_registry";
 import { ExportSettingsTypeOfSim, ResultTypeOfSim, SettingsTypeOfSim, SimulationGui } from "./simulation_gui";
 import { PotencyRatioSimGui } from "./common/potency_ratio_ui";
 import { BaseUsageCountSimGui } from "./count_sim_gui";
@@ -34,44 +32,27 @@ import { BluFlame60Spec } from "@xivgear/core/sims/blu/blu_flame60";
 import { BluF2PSpec } from "@xivgear/core/sims/blu/blu_free_trial";
 import { BluWinged120Spec } from "@xivgear/core/sims/blu/blu_winged120";
 import { BluWinged60Spec } from "@xivgear/core/sims/blu/blu_winged60";
-
-export function registerDefaultSims() {
-    registerSim(potRatioSimSpec);
-    registerSim(pldUsageSimSpec);
-    registerSim(pldSKSSheetSpec);
-    registerSim(whmSheetSpec);
-    registerSim(sgeSheetSpec);
-    registerSim(sgeNewSheetSpec);
-    registerSim(astNewSheetSpec);
-    registerSim(schNewSheetSpec);
-    registerSim(whmNewSheetSpec);
-    registerSim(rprSheetSpec);
-    registerSim(vprSheetSpec);
-    registerSim(ninSpec);
-    registerSim(samSpec);
-    registerSim(BluWinged120Spec);
-    registerSim(BluFlame120Spec);
-    registerSim(BluBreath60Spec);
-    registerSim(BluWinged60Spec);
-    registerSim(BluFlame60Spec);
-    registerSim(BluF2PSpec);
-    registerSim(dncDtSheetSpec);
-}
+import { potRatioSimSpec } from "@xivgear/core/sims/common/potency_ratio";
 
 type SimGuiCtor<X extends Simulation<SimResult, unknown, unknown>> = {
     new (sim: X): SimulationGui<ResultTypeOfSim<X>, SettingsTypeOfSim<X>, ExportSettingsTypeOfSim<X>>;
 }
+
 function registerGui<X extends Simulation<SimResult, unknown, unknown>>(simSpec: SimSpec<X, unknown>, guiCtor: SimGuiCtor<X>) {
     simGuiMap.set(simSpec as SimSpec<never, never>, guiCtor as SimGuiCtor<never>)
 }
+
 function getGuiCtor<X extends Simulation<never, never, never>>(simSpec: SimSpec<X, never>): SimGuiCtor<X> {
     return simGuiMap.get(simSpec as SimSpec<never, never>);
 }
+
 export function makeGui<X extends Simulation<SimResult, unknown, unknown>>(sim: X): SimulationGui<ResultTypeOfSim<X>, SettingsTypeOfSim<X>, ExportSettingsTypeOfSim<X>> {
     const ctor: SimGuiCtor<X> = getGuiCtor(sim.spec);
     return new ctor(sim);
 }
+
 export const simGuiMap: Map<SimSpec<never, never>, SimGuiCtor<never>> = new Map;
+
 registerGui(potRatioSimSpec, PotencyRatioSimGui)
 registerGui(potRatioSimSpec, PotencyRatioSimGui);
 registerGui(pldUsageSimSpec, BaseUsageCountSimGui);

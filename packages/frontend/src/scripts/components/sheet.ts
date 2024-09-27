@@ -79,7 +79,7 @@ import {DropdownActionMenu} from "./dropdown_actions_menu";
 import {CustomFoodPopup, CustomItemPopup} from "./custom_item_manager";
 import {confirmDelete} from "@xivgear/common-ui/components/delete_confirm";
 import { SimulationGui } from "../sims/simulation_gui";
-import { makeGui } from "../sims/default_sims";
+import { makeGui } from "../sims/sim_guis";
 
 export type GearSetSel = SingleCellRowOrHeaderSelect<CharacterGearSet>;
 
