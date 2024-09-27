@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */                                                                                                                                                                                                                                                                // TODO: get back to fixing this at some point
+/* eslint-disable @typescript-eslint/no-explicit-any */                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                // TODO: get back to fixing this at some point
 import {
     CURRENT_MAX_LEVEL,
     defaultItemDisplaySettings,
@@ -323,7 +323,7 @@ export class GearPlanSheet {
         }
         this._relevantMateria = this.dataManager.allMateria.filter(mat => {
             return mat.materiaGrade <= lvlItemInfo.maxMateria
-                && mat.materiaGrade >= lvlItemInfo.minMateria
+                // && mat.materiaGrade >= lvlItemInfo.minMateria
                 && this.isStatRelevant(mat.primaryStat);
         });
         this._dmRelevantFood = this.dataManager.allFoodItems.filter(food => this.isStatRelevant(food.primarySubStat) || this.isStatRelevant(food.secondarySubStat));
@@ -783,7 +783,26 @@ export class GearPlanSheet {
     }
 
     getRelevantMateriaFor(slot: MeldableMateriaSlot) {
-        return this._relevantMateria.filter(mat => mat.ilvl <= slot.materiaSlot.ilvl);
+        const materia = this._relevantMateria.filter(mat => mat.ilvl <= slot.materiaSlot.ilvl);
+        // Sort materia from highest to lowest
+        materia.sort((left, right) => {
+            if (left.materiaGrade > right.materiaGrade) {
+                return -1;
+            }
+            else if (left.materiaGrade < right.materiaGrade) {
+                return 1;
+            }
+            return 0;
+        });
+        if (materia.length === 0) {
+            return [];
+        }
+        // Find highest grade materia
+        const maxGrade = materia[0].materiaGrade;
+        // Find lowest grade that we want to display - three grades lower. e.g. if the gear can support materia X,
+        // then we want to display X, IX for pentamelds, as well as IIX and VIII for budget sets.
+        const minDisplayGrade = maxGrade - 3;
+        return materia.filter(mat => mat.materiaGrade >= minDisplayGrade);
     }
 
     get partyBonus(): PartyBonusAmount {

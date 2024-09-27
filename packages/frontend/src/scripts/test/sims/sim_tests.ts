@@ -4,8 +4,6 @@ import 'global-jsdom/register'
 import {describe, it} from "mocha";
 import {assize, dia, exampleGearSet, filler, lily, misery, nop, pom} from "./common_values";
 import * as assert from "assert";
-import {potRatioSimSpec} from "../../sims/common/potency_ratio";
-import {registerDefaultSims} from "../../sims/default_sims";
 import {Ability, SimSettings, SimSpec, Simulation} from "@xivgear/core/sims/sim_types";
 import {
     AbilityUseResult,
@@ -14,8 +12,10 @@ import {
     ExternalCycleSettings, MultiCycleSettings,
     Rotation
 } from "@xivgear/core/sims/cycle_sim";
-import {BaseMultiCycleSim} from "../../sims/sim_processors";
 import {getRegisteredSimSpecs} from "@xivgear/core/sims/sim_registry";
+import { BaseMultiCycleSim } from '@xivgear/core/sims/processors/sim_processors';
+import { potRatioSimSpec } from '@xivgear/core/sims/common/potency_ratio';
+import { registerDefaultSims } from '@xivgear/core/sims/default_sims';
 
 // Example of end-to-end simulation
 // This one is testing the simulation engine itself, so it copies the full simulation code rather than

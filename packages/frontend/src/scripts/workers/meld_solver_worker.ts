@@ -1,10 +1,8 @@
-import './inject_placeholders';
-import 'global-jsdom/register';
-import {SheetExport} from "@xivgear/xivmath/geartypes"
-import {HEADLESS_SHEET_PROVIDER} from "@xivgear/core/sheet";
-import {MeldSolverSettingsExport} from "../components/meld_solver_bar";
-import {MeldSolver} from "../components/meldsolver";
-import {registerDefaultSims} from "../sims/default_sims";
+import { SheetExport } from "@xivgear/xivmath/geartypes";
+import { HEADLESS_SHEET_PROVIDER } from "@xivgear/core/sheet";
+import { MeldSolverSettingsExport } from "../components/meld_solver_bar";
+import { MeldSolver } from "../components/meldsolver";
+import { registerDefaultSims } from "@xivgear/core/sims/default_sims";
 
 registerDefaultSims();
 onmessage = async function (ev) {
