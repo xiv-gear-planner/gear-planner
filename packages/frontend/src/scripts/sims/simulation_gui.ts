@@ -5,8 +5,7 @@ export type ResultTypeOfSim<Sim> = Sim extends Simulation<infer R, unknown, unkn
 export type SettingsTypeOfSim<Sim> = Sim extends Simulation<SimResult, infer S, unknown> ? S : never;
 export type ExportSettingsTypeOfSim<Sim> = Sim extends Simulation<SimResult, unknown, infer SE> ? SE : never;
 
-export abstract class SimulationGui<ResultType extends SimResult, SettingsType extends SimSettings, SettingsExport>
-    implements Simulation<ResultType, SettingsType, SettingsExport> {
+export abstract class SimulationGui<ResultType extends SimResult, SettingsType extends SimSettings, SettingsExport> {
 
     _sim: Simulation<ResultType, SettingsType, SettingsExport>;
 
