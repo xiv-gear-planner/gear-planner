@@ -408,7 +408,7 @@ export class MateriaPriorityPicker extends HTMLElement {
             recordEvent("fillAll");
         }, 'Empty out and re-fill all materia slots according to the chosen priority.');
 
-        let solveMelds = makeActionButton('Solve Melds', () => sheet.showMeldSolveDialog(), "Solve for the highest damage melds for your chosen gear");
+        const solveMelds = makeActionButton('Solve', () => sheet.showMeldSolveDialog(), "Solve for the highest damage melds for your chosen gear");
 
         const drag = new MateriaDragList(prioController);
 

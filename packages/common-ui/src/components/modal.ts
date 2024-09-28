@@ -3,7 +3,7 @@ import {makeActionButton, makeCloseButton} from "./util";
 
 export abstract class BaseModal extends HTMLElement {
     protected readonly header: HTMLElement;
-    private readonly inner: HTMLDivElement;
+    protected readonly inner: HTMLDivElement;
     protected readonly closeButton: HTMLButtonElement;
     protected readonly buttonArea: HTMLDivElement;
     protected readonly contentArea: HTMLDivElement;

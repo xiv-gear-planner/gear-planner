@@ -1,10 +1,29 @@
 import { CharacterGearSet } from "@xivgear/core/gear";
-import { EquippedItem, RawStats, EquipmentSet, EquipSlots, MeldableMateriaSlot } from "@xivgear/xivmath/geartypes";
+import { EquippedItem, RawStats, EquipmentSet, EquipSlots, MeldableMateriaSlot, SetExport, SimExport } from "@xivgear/xivmath/geartypes";
 import { MateriaSubstat, ALL_SUB_STATS, MATERIA_ACCEPTABLE_OVERCAP_LOSS, NORMAL_GCD } from "@xivgear/xivmath/xivconstants";
 import { SimResult, SimSettings, Simulation } from "@xivgear/core/sims/sim_types";
 import { sksToGcd, spsToGcd } from "@xivgear/xivmath/xivmath";
 import { GearPlanSheet } from "@xivgear/core/sheet";
-import { MeldSolverSettings } from "./meld_solver_modal";
+
+export class MeldSolverSettings {
+    sim: Simulation<SimResult, SimSettings, unknown>;
+    gearset: CharacterGearSet;
+    overwriteExistingMateria: boolean;
+    useTargetGcd: boolean;
+    targetGcd?: number;
+}
+
+/**
+ * Different from MeldsolverSettings because webworkers needs a serializable object
+ * There's probably a better way than
+ */
+export class MeldSolverSettingsExport {
+    sim: SimExport;
+    gearset: SetExport;
+    overwriteExistingMateria: boolean;
+    useTargetGcd: boolean;
+    targetGcd?: number;
+}
 
 class ItemWithStats {
     item: EquippedItem;
@@ -45,7 +64,7 @@ export class MeldSolver {
             return null;
         }
 
-        let generatedSets = this.getAllMeldCombinations(
+        const generatedSets = this.getAllMeldCombinations(
             this._settings.gearset,
             this._settings.overwriteExistingMateria,
             this._settings.useTargetGcd ? this._settings.targetGcd : null);
@@ -62,7 +81,7 @@ export class MeldSolver {
         return bestSet;
     }
 
-    async simulateSets(setsToSim: Set<CharacterGearSet>, sim: Simulation<SimResult, SimSettings, any>)
+    async simulateSets(setsToSim: Set<CharacterGearSet>, sim: Simulation<SimResult, SimSettings, unknown>)
     : Promise<CharacterGearSet> {
 
         if (setsToSim.size == 0) {
@@ -74,14 +93,14 @@ export class MeldSolver {
 
         let numSetsProcessed = 0;
         let lastUpdate = 0;
-        let progressResolution = 0.05
-        let threshold = setsToSim.size * progressResolution;
+        const progressResolution = 0.01
+        const threshold = setsToSim.size * progressResolution;
 
         /**
          * Very important: order sets by sks to avoid generating rotations with every new set
          */
         const sortedSetsBySpeed = Array.from(setsToSim).sort((setA, setB) => {
-            let useSks = 'skillspeed' in this.relevantStats;
+            const useSks = 'skillspeed' in this.relevantStats;
             return useSks ?
                 setA.computedStats.skillspeed - setB.computedStats.skillspeed
                 : setA.computedStats.spellspeed - setB.computedStats.spellspeed
@@ -99,6 +118,7 @@ export class MeldSolver {
 
             if (numSetsProcessed - lastUpdate >= threshold) {
                 postMessage(Math.floor(100 * (numSetsProcessed / setsToSim.size)));
+                lastUpdate = numSetsProcessed;
             }
         }
 
@@ -189,7 +209,7 @@ export class MeldSolver {
             newGearset.equipment = combination.set;
             
             newGearset.forceRecalc();
-            let gcd = useSks ? newGearset.computedStats.gcdPhys(NORMAL_GCD, haste)
+            const gcd = useSks ? newGearset.computedStats.gcdPhys(NORMAL_GCD, haste)
                                 : newGearset.computedStats.gcdMag(NORMAL_GCD, haste);
             
             if (!targetGcd || gcd === targetGcd) {

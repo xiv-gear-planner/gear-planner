@@ -1,36 +1,18 @@
-import { FieldBoundCheckBox, FieldBoundDataSelect, FieldBoundFloatField, makeActionButton, quickElement } from "@xivgear/common-ui/components/util";
+import { FieldBoundCheckBox, FieldBoundDataSelect, FieldBoundFloatField, makeActionButton } from "@xivgear/common-ui/components/util";
 import { CharacterGearSet } from "@xivgear/core/gear";
 import { GearPlanSheetGui } from "./sheet";
 import { SimResult, SimSettings, Simulation } from "@xivgear/core/sims/sim_types";
 import { MAX_GCD } from "@xivgear/xivmath/xivconstants";
 import { BaseModal } from "@xivgear/common-ui/components/modal";
-import { EquipSlots, SetExport, SimExport } from "@xivgear/xivmath/geartypes";
-
-export class MeldSolverSettings {
-    sim: Simulation<SimResult, SimSettings, unknown>;
-    gearset: CharacterGearSet;
-    overwriteExistingMateria: boolean;
-    useTargetGcd: boolean;
-    targetGcd?: number;
-}
-
-/**
- * Different from MeldsolverSettings because webworkers needs a serializable object
- * There's probably a better way than
- */
-export class MeldSolverSettingsExport {
-    sim: SimExport;
-    gearset: SetExport;
-    overwriteExistingMateria: boolean;
-    useTargetGcd: boolean;
-    targetGcd?: number;
-}
+import { EquipSlots, SetExport } from "@xivgear/xivmath/geartypes";
+import { MeldSolverSettings, MeldSolverSettingsExport } from "@xivgear/core/materia/meldsolver";
+import { recordEvent } from "@xivgear/core/analytics/analytics";
 
 export class MeldSolverDialog extends BaseModal {
     private _sheet: GearPlanSheetGui;
 
-    private descriptionText: HTMLSpanElement;
-    private setNameText: HTMLSpanElement;
+    private descriptionText: HTMLDivElement;
+    private setNameText: HTMLDivElement;
     readonly tempSettings: MeldSolverSettings;
     private solveMeldsButton: HTMLButtonElement;
     private cancelButton: HTMLButtonElement;
@@ -46,26 +28,32 @@ export class MeldSolverDialog extends BaseModal {
         this.headerText = 'Meld Solver';
         const form = document.createElement("form");
         form.method = 'dialog';
+        this.inner.style.maxWidth = "25%"; // idk why this doesn't work in common-css but it don't.
 
         this.solveWorker = this.makeActualWorker();
 
         this.classList.add('meld-solver-area');
-        this.descriptionText = document.createElement('span');
-        this.descriptionText.textContent = "Solve for the highest-dps set of melds for this gearset.\nSpeed up computations by targeting a specific GCD and/or pre-filling some materia slots";
+        this.descriptionText = document.createElement('div');
+        this.descriptionText.textContent = "Solve for the highest-dps set of melds for this gearset.\r\n"
+                                        + "Speed up computations by targeting a specific GCD and/or pre-filling some materia slots";
         
-        this.setNameText = document.createElement('span');
-        this.setNameText.textContent = set.name;
+        this.setNameText = document.createElement('div');
+        this.setNameText.textContent = `"${set.name}"`;
         this.setNameText.classList.add('meld-solver-set');
 
         this.settingsDiv = new MeldSolverSettingsMenu(sheet, set);
 
-        let outer = this; 
+        const outer = this; 
+        let meld_solve_start: number;
         this.solveWorker.onmessage = function (ev: MessageEvent) {
             outer.messageReceived(ev);
+            recordEvent("SolveMelds", {
+                "Total Time Taken: ": Date.now() - (meld_solve_start ?? Date.now()),
+            });
         };
 
         this.solveMeldsButton = makeActionButton("Solve Melds", async () => {
-            console.log("sending...?");
+            meld_solve_start = Date.now();
             this.solveWorker.postMessage([sheet.exportSheet(), this.exportSolverSettings()]);
 
             this.closeButton.disabled = true;
@@ -75,7 +63,6 @@ export class MeldSolverDialog extends BaseModal {
             this.addButton(this.cancelButton);
             this.progressDisplay = new MeldSolverProgressDisplay;
             form.replaceChildren(this.progressDisplay);
-
         });
 
         this.cancelButton = makeActionButton("Cancel", async () => {
@@ -91,7 +78,10 @@ export class MeldSolverDialog extends BaseModal {
         
         this.addButton(this.solveMeldsButton);
 
-        form.replaceChildren(this.descriptionText, this.setNameText, this.settingsDiv);
+        form.replaceChildren(
+            this.descriptionText, document.createElement('br'),
+            this.setNameText, document.createElement('br'),
+            this.settingsDiv);
         this.contentArea.append(form);
     }
 
@@ -138,7 +128,7 @@ export class MeldSolverDialog extends BaseModal {
             }  
         }
         else {
-            let set = this._sheet.importGearSet(ev.data as SetExport);
+            const set = this._sheet.importGearSet(ev.data as SetExport);
             if (set) {
                 this.applyResult(set);
                 this.settingsDiv.settings.gearset.forceRecalc();

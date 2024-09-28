@@ -1,8 +1,7 @@
-import {SheetExport} from "@xivgear/xivmath/geartypes"
-import {HEADLESS_SHEET_PROVIDER} from "@xivgear/core/sheet";
-import {MeldSolver} from "../components/meldsolver";
-import { registerDefaultSims } from '@xivgear/core/sims/default_sims';
-import { MeldSolverSettingsExport } from "../components/meld_solver_modal";
+import { SheetExport } from "@xivgear/xivmath/geartypes";
+import { HEADLESS_SHEET_PROVIDER } from "@xivgear/core/sheet";
+import { registerDefaultSims } from "@xivgear/core/sims/default_sims";
+import { MeldSolverSettingsExport, MeldSolver } from "@xivgear/core/materia/meldsolver";
 
 registerDefaultSims();
 onmessage = async function (ev) {
