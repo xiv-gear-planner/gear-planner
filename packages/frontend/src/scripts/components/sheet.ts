@@ -1249,7 +1249,7 @@ export class GearPlanSheetGui extends GearPlanSheet {
     readonly editorArea: HTMLDivElement;
     readonly midBarArea: HTMLDivElement;
     readonly toolbarHolder: HTMLDivElement;
-    toolbarNode: Node;
+    toolbarNode: Node | undefined;
     // TODO: SimResult alone might not be enough since we'd want it to refresh automatically if settings are changed
     private _editorItem: CharacterGearSet | Simulation<any, any, any> | SimResultData<SimResult> | undefined;
 
@@ -1738,7 +1738,12 @@ export class GearPlanSheetGui extends GearPlanSheet {
 
     private setToolbarNode(node: Node | undefined) {
         this.toolbarNode = node;
-        this.toolbarHolder.replaceChildren(node);
+        if (node !== undefined) {
+            this.toolbarHolder.replaceChildren(node);
+        }
+        else {
+            this.toolbarHolder.replaceChildren();
+        }
     }
 
     private setupEditorArea(node: (Node & {
@@ -1798,7 +1803,7 @@ export class GearPlanSheetGui extends GearPlanSheet {
 
     refreshToolbar() {
         if (this._editorItem instanceof CharacterGearSet) {
-            if ('refresh' in this.toolbarNode && typeof this.toolbarNode.refresh === 'function') {
+            if (this.toolbarHolder !== undefined && 'refresh' in this.toolbarNode && typeof this.toolbarNode.refresh === 'function') {
                 this.toolbarNode.refresh(this._editorItem);
             }
         }
