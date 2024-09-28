@@ -80,7 +80,7 @@ import {CustomFoodPopup, CustomItemPopup} from "./custom_item_manager";
 import {confirmDelete} from "@xivgear/common-ui/components/delete_confirm";
 import { SimulationGui } from "../sims/simulation_gui";
 import { makeGui } from "../sims/sim_guis";
-import { MeldSolverDialog } from "./meld_solver_bar";
+import { MeldSolverDialog } from "./meld_solver_modal";
 
 export type GearSetSel = SingleCellRowOrHeaderSelect<CharacterGearSet>;
 
@@ -134,7 +134,7 @@ function multiplierStatDisplay(stats: MultiplierStat) {
     const rightSpan = document.createElement("span");
     rightSpan.textContent = (`(x${stats.multiplier.toFixed(3)})`);
     rightSpan.classList.add("extra-stat-info");
-    outerDiv.appendChild(rightSpan);
+    //outerDiv.appendChild(rightSpan);
     return outerDiv;
 }
 
@@ -147,7 +147,7 @@ function chanceStatDisplay(stats: ChanceStat) {
     const rightSpan = document.createElement("span");
     rightSpan.textContent = (`(${(stats.chance * 100.0).toFixed(1)}%x${stats.multiplier.toFixed(3)})`);
     rightSpan.classList.add("extra-stat-info");
-    outerDiv.appendChild(rightSpan);
+    //outerDiv.appendChild(rightSpan);
     return outerDiv;
 }
 
@@ -160,7 +160,7 @@ function multiplierMitStatDisplay(stats: MultiplierMitStat) {
     const rightSpan = document.createElement("span");
     rightSpan.textContent = (`(x${stats.multiplier.toFixed(3)}, ${toRelPct(stats.incomingMulti - 1, 1)}%)`);
     rightSpan.classList.add("extra-stat-info");
-    outerDiv.appendChild(rightSpan);
+    //outerDiv.appendChild(rightSpan);
     return outerDiv;
 }
 

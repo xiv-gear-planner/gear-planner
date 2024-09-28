@@ -3,7 +3,6 @@ import {ItemDisplaySettings, MateriaAutoFillController} from "@xivgear/xivmath/g
 import {MateriaPriorityPicker} from "./materia";
 import {StatTierDisplay} from "./stat_tier_display";
 import {CharacterGearSet} from "@xivgear/core/gear";
-import { MeldSolverDialog } from "./meld_solver_bar";
 import {makeActionButton, redoIcon, undoIcon} from "@xivgear/common-ui/components/util";
 import {recordEvent} from "@xivgear/core/analytics/analytics";
 import { GearPlanSheetGui } from "./sheet";
@@ -49,7 +48,6 @@ export class UndoArea extends HTMLDivElement {
 export class GearEditToolbar extends HTMLDivElement {
     private readonly statTierDisplay: StatTierDisplay;
     private undoArea: UndoArea;
-    private readonly meldSolverBar: MeldSolverDialog;
 
     constructor(sheet: GearPlanSheetGui,
                 itemDisplaySettings: ItemDisplaySettings,
@@ -79,14 +77,11 @@ export class GearEditToolbar extends HTMLDivElement {
 
         this.appendChild(ilvlDiv);
 
-        const materiaPriority = new MateriaPriorityPicker(matFillCtrl);
+        const materiaPriority = new MateriaPriorityPicker(matFillCtrl, sheet);
         this.appendChild(materiaPriority);
 
         this.statTierDisplay = new StatTierDisplay(sheet);
         this.appendChild(this.statTierDisplay);
-
-        let button = makeActionButton('Solve Melds', () => sheet.showMeldSolveDialog(), "meep");
-        this.appendChild(button);
     }
 
     refresh(gearSet: CharacterGearSet) {

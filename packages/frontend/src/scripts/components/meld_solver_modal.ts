@@ -29,11 +29,12 @@ export class MeldSolverSettingsExport {
 export class MeldSolverDialog extends BaseModal {
     private _sheet: GearPlanSheetGui;
 
+    private descriptionText: HTMLSpanElement;
+    private setNameText: HTMLSpanElement;
+    readonly tempSettings: MeldSolverSettings;
     private solveMeldsButton: HTMLButtonElement;
     private cancelButton: HTMLButtonElement;
-    readonly tempSettings: MeldSolverSettings;
     readonly settingsDiv: MeldSolverSettingsMenu;
-    private setNameText: HTMLSpanElement;
     private progressDisplay: MeldSolverProgressDisplay;
     
     private solveWorker: Worker;
@@ -45,14 +46,18 @@ export class MeldSolverDialog extends BaseModal {
         this.headerText = 'Meld Solver';
         const form = document.createElement("form");
         form.method = 'dialog';
+
         this.solveWorker = this.makeActualWorker();
 
         this.classList.add('meld-solver-area');
-        this.settingsDiv = new MeldSolverSettingsMenu(sheet, set);
+        this.descriptionText = document.createElement('span');
+        this.descriptionText.textContent = "Solve for the highest-dps set of melds for this gearset.\nSpeed up computations by targeting a specific GCD and/or pre-filling some materia slots";
         
         this.setNameText = document.createElement('span');
         this.setNameText.textContent = set.name;
         this.setNameText.classList.add('meld-solver-set');
+
+        this.settingsDiv = new MeldSolverSettingsMenu(sheet, set);
 
         let outer = this; 
         this.solveWorker.onmessage = function (ev: MessageEvent) {
@@ -86,7 +91,7 @@ export class MeldSolverDialog extends BaseModal {
         
         this.addButton(this.solveMeldsButton);
 
-        form.replaceChildren(this.setNameText, this.settingsDiv);
+        form.replaceChildren(this.descriptionText, this.setNameText, this.settingsDiv);
         this.contentArea.append(form);
     }
 

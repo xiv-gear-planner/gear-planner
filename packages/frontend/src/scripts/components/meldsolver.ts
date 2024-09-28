@@ -2,9 +2,9 @@ import { CharacterGearSet } from "@xivgear/core/gear";
 import { EquippedItem, RawStats, EquipmentSet, EquipSlots, MeldableMateriaSlot } from "@xivgear/xivmath/geartypes";
 import { MateriaSubstat, ALL_SUB_STATS, MATERIA_ACCEPTABLE_OVERCAP_LOSS, NORMAL_GCD } from "@xivgear/xivmath/xivconstants";
 import { SimResult, SimSettings, Simulation } from "@xivgear/core/sims/sim_types";
-import { MeldSolverSettings } from "./meld_solver_bar";
 import { sksToGcd, spsToGcd } from "@xivgear/xivmath/xivmath";
 import { GearPlanSheet } from "@xivgear/core/sheet";
+import { MeldSolverSettings } from "./meld_solver_modal";
 
 class ItemWithStats {
     item: EquippedItem;

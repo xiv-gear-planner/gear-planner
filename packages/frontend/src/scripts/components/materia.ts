@@ -22,6 +22,7 @@ import {
 } from "@xivgear/common-ui/components/util";
 import {GearPlanSheet} from "@xivgear/core/sheet";
 import {recordEvent} from "@xivgear/core/analytics/analytics";
+import { GearPlanSheetGui } from "./sheet";
 
 /**
  * Component for managing all materia slots on an item
@@ -360,7 +361,7 @@ export class SlotMateriaManagerPopup extends HTMLElement {
 }
 
 export class MateriaPriorityPicker extends HTMLElement {
-    constructor(prioController: MateriaAutoFillController) {
+    constructor(prioController: MateriaAutoFillController, sheet: GearPlanSheetGui) {
         super();
         // this.appendChild(document.createTextNode('Materia Prio Thing Here'));
         const header = document.createElement('span');
@@ -406,6 +407,9 @@ export class MateriaPriorityPicker extends HTMLElement {
             prioController.fillAll();
             recordEvent("fillAll");
         }, 'Empty out and re-fill all materia slots according to the chosen priority.');
+
+        let solveMelds = makeActionButton('Solve Melds', () => sheet.showMeldSolveDialog(), "Solve for the highest damage melds for your chosen gear");
+
         const drag = new MateriaDragList(prioController);
 
         const minGcdText = document.createElement('span');
@@ -429,7 +433,8 @@ export class MateriaPriorityPicker extends HTMLElement {
         minGcdInput.pattern = '\\d\\.\\d\\d?';
         minGcdInput.title = 'Enter the minimum desired GCD in the form x.yz.\nSkS/SpS materia will be de-prioritized once this target GCD is met.';
         minGcdInput.classList.add('min-gcd-input');
-        this.replaceChildren(header, drag, minGcdText, minGcdInput, document.createElement('br'), fillEmptyNow, fillAllNow, fillModeLabel, fillModeDropdown);
+        this.replaceChildren(header, drag, minGcdText, minGcdInput, document.createElement('br'),
+                            solveMelds, fillEmptyNow, fillAllNow, fillModeLabel, fillModeDropdown);
     }
 }
 
