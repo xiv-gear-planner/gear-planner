@@ -43,6 +43,7 @@ import {shortenItemName} from "@xivgear/core/util/strutils";
 import {GearPlanSheet} from "@xivgear/core/sheet";
 import {makeRelicStatEditor} from "./relic_stats";
 import {ShowHideButton} from "@xivgear/common-ui/components/show_hide_chevron";
+import {recordSheetEvent} from "@xivgear/core/analytics/analytics";
 
 function statCellStylerRemover(cell: CustomCell<GearSlotItem, unknown>) {
     cell.classList.remove("secondary");
@@ -604,6 +605,9 @@ export class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
             // TODO: just make the getters/setters on this class instead
             data.push(makeShowHideRow(slot.name, gearSet.isSlotCollapsed(slotId), (val) => {
                 gearSet.setSlotCollapsed(slotId, val);
+                recordSheetEvent('hideSlot', sheet, {
+                    hidden: val
+                });
                 this.updateShowHide();
             }, extras));
             let itemsInSlot = itemMapping.get(slot.gearSlot);

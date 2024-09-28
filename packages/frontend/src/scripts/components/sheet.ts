@@ -78,6 +78,7 @@ import {SaveAsModal} from "./new_sheet_form";
 import {DropdownActionMenu} from "./dropdown_actions_menu";
 import {CustomFoodPopup, CustomItemPopup} from "./custom_item_manager";
 import {confirmDelete} from "@xivgear/common-ui/components/delete_confirm";
+import {recordSheetEvent} from "@xivgear/core/analytics/analytics";
 
 export type GearSetSel = SingleCellRowOrHeaderSelect<CharacterGearSet>;
 
@@ -1512,6 +1513,11 @@ export class GearPlanSheetGui extends GearPlanSheet {
             },
             [undefined, ...Object.keys(RACE_STATS) as RaceName[]]);
         buttonsArea.appendChild(raceDropdown);
+        raceDropdown.addListener((val) => {
+            recordSheetEvent('changeRace', this, {
+                race: val
+            });
+        });
 
         const partySizeDropdown = new FieldBoundDataSelect<GearPlanSheet, PartyBonusAmount>(
             this,
@@ -1526,6 +1532,11 @@ export class GearPlanSheetGui extends GearPlanSheet {
             },
             rangeInc(0, MAX_PARTY_BONUS)
         );
+        partySizeDropdown.addListener((val) => {
+            recordSheetEvent('changePartyBonus', this, {
+                partyBonus: val
+            });
+        });
         buttonsArea.appendChild(partySizeDropdown);
 
         if (this.saveKey) {
