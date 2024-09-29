@@ -78,6 +78,8 @@ import {SaveAsModal} from "./new_sheet_form";
 import {DropdownActionMenu} from "./dropdown_actions_menu";
 import {CustomFoodPopup, CustomItemPopup} from "./custom_item_manager";
 import {confirmDelete} from "@xivgear/common-ui/components/delete_confirm";
+import { SimulationGui } from "../sims/simulation_gui";
+import { makeGui } from "../sims/sim_guis";
 import {recordSheetEvent} from "@xivgear/core/analytics/analytics";
 
 export type GearSetSel = SingleCellRowOrHeaderSelect<CharacterGearSet>;
@@ -164,7 +166,7 @@ function multiplierMitStatDisplay(stats: MultiplierMitStat) {
 
 export class SimResultData<ResultType extends SimResult> {
     constructor(
-        public readonly simInst: Simulation<ResultType, any, any>,
+        public readonly simInst: SimulationGui<ResultType, any, any>,
         public readonly result: SimCurrentResult<ResultType>
     ) {
     }
@@ -181,7 +183,7 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
 
     private readonly sheet: GearPlanSheetGui;
 
-    constructor(sheet: GearPlanSheetGui, setSelection: (item: CharacterGearSet | Simulation<any, any, any> | SimResultData<any> | undefined) => void) {
+    constructor(sheet: GearPlanSheetGui, setSelection: (item: CharacterGearSet | SimulationGui<any, any, any> | SimResultData<any> | undefined) => void) {
         super();
         this.sheet = sheet;
         this.classList.add("gear-plan-table");
@@ -195,9 +197,9 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                     setSelection(newSelection.dataItem);
                 }
                 else if (newSelection instanceof CustomColumn && newSelection.dataValue['makeConfigInterface']) {
-                    setSelection(newSelection.dataValue as Simulation<any, any, any>);
+                    setSelection(newSelection.dataValue as SimulationGui<any, any, any>);
                 }
-                else if (newSelection instanceof CustomCell && newSelection.colDef.dataValue?.spec) {
+                else if (newSelection instanceof CustomCell && newSelection.colDef.dataValue?.sim.spec) {
                     setSelection(new SimResultData(newSelection.colDef.dataValue, newSelection.cellValue));
                 }
                 else if (newSelection === undefined) {
@@ -207,8 +209,8 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
         })
     }
 
-    get sims(): Simulation<any, any, any>[] {
-        return this.sheet.sims;
+    get simGuis(): SimulationGui<any, any, any>[] {
+        return this.sheet.simGuis;
     }
 
     get gearSets(): CharacterGearSet[] {
@@ -216,7 +218,6 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
     }
 
     selectGearSet(set: CharacterGearSet | undefined) {
-        console.log('selectGearSet');
         if (set === undefined) {
             this.selectionModel.clearSelection();
         }
@@ -247,7 +248,7 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
         const curSelection = this.selectionModel.getSelection();
         if (curSelection instanceof CustomColumn) {
             const selectedItem = curSelection.dataValue;
-            if ('simulate' in selectedItem && !this.sims.includes(selectedItem)) {
+            if ('simulate' in selectedItem && !this.simGuis.includes(selectedItem)) {
                 this.selectionModel.clearSelection();
             }
         }
@@ -325,15 +326,15 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                 });
         }
 
-        const simColumns: typeof this.columns = this.sims.map(sim => {
+        const simColumns: typeof this.columns = this.simGuis.map(simGui => {
             return {
-                dataValue: sim,
-                shortName: "sim-col-" + sim.shortName,
+                dataValue: simGui,
+                shortName: "sim-col-" + simGui.sim.shortName,
                 get displayName() {
-                    return sim.displayName;
+                    return simGui.sim.displayName;
                 },
-                getter: gearSet => this.sheet.getSimResult(sim, gearSet),
-                renderer: result => new SimResultMiniDisplay(this, sim, result),
+                getter: gearSet => this.sheet.getSimResult(simGui.sim, gearSet),
+                renderer: result => new SimResultMiniDisplay(this, simGui, result),
                 // TODO: improve this
                 colStyler: (value, colElement) => {
                     colElement.classList.add('hoverable');
@@ -585,10 +586,10 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
 
     // TODO: this is kinda bad, cross-talk between columns despite there being no reason to do so,
     // plus you want changes to immediately invalidate. I guess setting the inactivity time to 0 works?
-    private dirtySimColColors: Simulation<any, any, any>[] = [];
+    private dirtySimColColors: SimulationGui<any, any, any>[] = [];
     private readonly simColColorsTimer = new Inactivitytimer(0, () => this.reprocessSimColsColor());
 
-    requestProcessSimColColor(sim: Simulation<any, any, any>) {
+    requestProcessSimColColor(sim: SimulationGui<any, any, any>) {
         if (!this.dirtySimColColors.includes(sim)) {
             this.dirtySimColColors.push(sim);
             this.simColColorsTimer.ping();
@@ -603,11 +604,11 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
     }
 
     reprocessAllSimColColors() {
-        this.dirtySimColColors = [...this.sims];
+        this.dirtySimColColors = [...this.simGuis];
         this.simColColorsTimer.ping();
     }
 
-    reprocessSimColColor(sim: Simulation<any, any, any>) {
+    reprocessSimColColor(sim: SimulationGui<any, any, any>) {
         const col = this.columns.find(col => col.dataValue === sim);
         if (!col) {
             return;
@@ -677,7 +678,7 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
 
 export class SimResultDetailDisplay<X extends SimResult> extends HTMLElement {
     private _result: SimCurrentResult<X>;
-    private sim: Simulation<X, any, any>;
+    private sim: SimulationGui<X, any, any>;
 
     constructor(simDetailResultDisplay: SimResultData<any>) {
         super();
@@ -720,7 +721,7 @@ export function textWithToolTip(text: string, tooltip: string): HTMLElement {
 export class SimResultMiniDisplay extends HTMLElement {
     private _result: SimCurrentResult<any>;
 
-    constructor(private gearPlanTable: GearPlanTable, private sim: Simulation<any, any, any>, simCurrentResult: SimCurrentResult<any>) {
+    constructor(private gearPlanTable: GearPlanTable, private simGui: SimulationGui<any, any, any>, simCurrentResult: SimCurrentResult<any>) {
         super();
         this._result = simCurrentResult;
         this.update();
@@ -742,8 +743,8 @@ export class SimResultMiniDisplay extends HTMLElement {
             }
             this.textContent = result.mainDpsResult.toFixed(2);
             let tooltip: string;
-            if (this.sim.makeToolTip) {
-                tooltip = this.sim.makeToolTip(this._result.result);
+            if (this.simGui.makeToolTip) {
+                tooltip = this.simGui.makeToolTip(this._result.result);
             }
             else {
                 tooltip = Object.entries(result).map(entry => `${camel2title(entry[0])}: ${entry[1]}`)
@@ -754,7 +755,7 @@ export class SimResultMiniDisplay extends HTMLElement {
         else {
             this.textContent = this._result.status;
         }
-        this.gearPlanTable.requestProcessSimColColor(this.sim);
+        this.gearPlanTable.requestProcessSimColColor(this.simGui);
     }
 }
 
@@ -1165,9 +1166,9 @@ export class SeparatorViewer extends HTMLElement {
 
 function formatSimulationConfigArea<SettingsType extends SimSettings>(
     sheet: GearPlanSheet,
-    sim: Simulation<any, SettingsType, any>,
-    refreshColumn: (item: Simulation<any, SettingsType, any>) => void,
-    deleteColumn: (item: Simulation<any, SettingsType, any>) => void,
+    simGui: SimulationGui<any, SettingsType, any>,
+    refreshColumn: (item: SimulationGui<any, SettingsType, any>) => void,
+    deleteColumn: (item: SimulationGui<any, SettingsType, any>) => void,
     refreshHeaders: () => void): HTMLElement {
 
     const outerDiv = document.createElement("div");
@@ -1179,28 +1180,28 @@ function formatSimulationConfigArea<SettingsType extends SimSettings>(
     // outerDiv.appendChild(header);
     if (sheet._isViewOnly) {
         const title = document.createElement('h1');
-        title.textContent = sim.displayName;
+        title.textContent = simGui.sim.displayName;
     }
     else {
-        const titleEditor = new FieldBoundTextField(sim, 'displayName');
+        const titleEditor = new FieldBoundTextField(simGui.sim, 'displayName');
         titleEditor.addListener(val => {
             refreshHeaders();
         });
         titleEditor.classList.add('sim-name-editor');
         titleEditor.title = 'Rename this simulation';
         outerDiv.appendChild(titleEditor);
-        const deleteButton = makeActionButton("Delete", () => deleteColumn(sim));
+        const deleteButton = makeActionButton("Delete", () => deleteColumn(simGui));
         outerDiv.appendChild(deleteButton);
     }
-    const auto = !sim.manualRun;
-    const rerunAction = () => refreshColumn(sim);
+    const auto = !simGui.sim.manualRun;
+    const rerunAction = () => refreshColumn(simGui);
     if (!auto) {
         const rerunButton = makeActionButton("Rerun", rerunAction);
         outerDiv.appendChild(rerunButton);
     }
     const rerunTimer = new Inactivitytimer(300, rerunAction);
 
-    const originalSettings: SettingsType = sim.settings;
+    const originalSettings: SettingsType = simGui.sim.settings;
     const updateCallback = () => {
         sheet.requestSave();
         if (auto) {
@@ -1215,7 +1216,7 @@ function formatSimulationConfigArea<SettingsType extends SimSettings>(
         }
     };
     const settingsProxy = new Proxy(originalSettings, settingsProxyHandler);
-    const customInterface = sim.makeConfigInterface(settingsProxy, updateCallback);
+    const customInterface = simGui.makeConfigInterface(settingsProxy, updateCallback);
     customInterface.id = 'sim-config-area-inner';
     customInterface.classList.add('sim-config-area-inner');
     outerDiv.appendChild(customInterface);
@@ -1250,13 +1251,20 @@ export class GearPlanSheetGui extends GearPlanSheet {
     readonly editorArea: HTMLDivElement;
     readonly midBarArea: HTMLDivElement;
     readonly toolbarHolder: HTMLDivElement;
-    toolbarNode: Node;
+    private _simGuis: SimulationGui<any, any, any>[];
+
+    get simGuis() {
+        return this._simGuis;
+    }
+
+    toolbarNode: Node | undefined;
     // TODO: SimResult alone might not be enough since we'd want it to refresh automatically if settings are changed
-    private _editorItem: CharacterGearSet | Simulation<any, any, any> | SimResultData<SimResult> | undefined;
+    private _editorItem: CharacterGearSet | SimulationGui<any, any, any> | SimResultData<SimResult> | undefined;
 
     // Can't make ctor private for custom element, but DO NOT call this directly - use fromSaved or fromScratch
     constructor(...args: ConstructorParameters<typeof GearPlanSheet>) {
         super(...args);
+        this._simGuis = super.sims.map(sim => makeGui(sim));
         this.element = new GearPlanSheetElement();
         const element = this.element;
         element.classList.add('gear-sheet');
@@ -1366,7 +1374,7 @@ export class GearPlanSheetGui extends GearPlanSheet {
                 this.refreshToolbar();
             }
             else if (item['makeConfigInterface']) {
-                this.setupEditorArea(formatSimulationConfigArea(this, item as Simulation<any, any, any>, col => this._gearPlanTable.refreshColumn(col), col => this.delSim(col), () => this._gearPlanTable.refreshColHeaders()));
+                this.setupEditorArea(formatSimulationConfigArea(this, item as SimulationGui<any, any, any>, col => this._gearPlanTable.refreshColumn(col), col => this.delSim(col.sim), () => this._gearPlanTable.refreshColHeaders()));
             }
             else if (item instanceof SimResultData) {
                 this.setupEditorArea(new SimResultDetailDisplay(item));
@@ -1749,7 +1757,12 @@ export class GearPlanSheetGui extends GearPlanSheet {
 
     private setToolbarNode(node: Node | undefined) {
         this.toolbarNode = node;
-        this.toolbarHolder.replaceChildren(node);
+        if (node !== undefined) {
+            this.toolbarHolder.replaceChildren(node);
+        }
+        else {
+            this.toolbarHolder.replaceChildren();
+        }
     }
 
     private setupEditorArea(node: (Node & {
@@ -1809,7 +1822,7 @@ export class GearPlanSheetGui extends GearPlanSheet {
 
     refreshToolbar() {
         if (this._editorItem instanceof CharacterGearSet) {
-            if ('refresh' in this.toolbarNode && typeof this.toolbarNode.refresh === 'function') {
+            if (this.toolbarHolder !== undefined && 'refresh' in this.toolbarNode && typeof this.toolbarNode.refresh === 'function') {
                 this.toolbarNode.refresh(this._editorItem);
             }
         }
@@ -1837,10 +1850,12 @@ export class GearPlanSheetGui extends GearPlanSheet {
 
     addSim(sim: Simulation<any, any, any>) {
         super.addSim(sim);
+        this._simGuis.push(makeGui(sim));
         this.gearPlanTable?.simsChanged();
     }
 
     delSim(sim: Simulation<any, any, any>) {
+        this._simGuis = this._simGuis.filter(s => s.sim !== sim);
         super.delSim(sim);
         this.gearPlanTable?.simsChanged();
     }
