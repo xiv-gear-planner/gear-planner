@@ -34,7 +34,7 @@ import {
 import {
     FieldBoundCheckBox,
     FieldBoundIntField,
-    labeledCheckbox,
+    labeledCheckbox, makeActionButton,
     makeTrashIcon,
     quickElement
 } from "@xivgear/common-ui/components/util";
@@ -43,6 +43,7 @@ import {shortenItemName} from "@xivgear/core/util/strutils";
 import {GearPlanSheet} from "@xivgear/core/sheet";
 import {makeRelicStatEditor} from "./relic_stats";
 import {ShowHideButton} from "@xivgear/common-ui/components/show_hide_chevron";
+import {BaseModal} from "@xivgear/common-ui/components/modal";
 
 function statCellStylerRemover(cell: CustomCell<GearSlotItem, unknown>) {
     cell.classList.remove("secondary");
@@ -734,6 +735,7 @@ export class GearItemsViewTable extends CustomTable<GearSlotItem, EquipmentSet> 
         // Track the selected item in every category so that it can be more quickly refreshed
         data.push(new HeaderRow());
         let slotItem: GearItem = null;
+        let alts: ReturnType<typeof sheet.getAltItemsFor> = [];
         for (const [name, slot] of Object.entries(EquipSlotInfo)) {
             if (handledSlots && !handledSlots.includes(name as EquipSlotKey)) {
                 continue;
@@ -744,9 +746,13 @@ export class GearItemsViewTable extends CustomTable<GearSlotItem, EquipmentSet> 
                 const item = {
                     slot: slot,
                     item: equippedItem,
-                    slotId: slotId
+                    slotId: slotId,
+                    // alts: sheet.getAltItemsFor(equippedItem)
                 };
-                slotItem = equippedItem;
+                if (slotItem === null) {
+                    slotItem = equippedItem;
+                    alts = sheet.getAltItemsFor(equippedItem);
+                }
                 data.push(item);
                 if (!equippedItem.isCustomRelic) {
                     // TODO: make this readonly properly
@@ -788,9 +794,25 @@ export class GearItemsViewTable extends CustomTable<GearSlotItem, EquipmentSet> 
                 getter: item => {
                     return item.item.name;
                 },
-                renderer: (name: string) => {
-                    return document.createTextNode(shortenItemName(name));
-                },
+                // renderer: (item) => {
+                //     const name = item.item.name;
+                //     const itemNameSpan = quickElement('span', ['item-name'], [shortenItemName(name)]);
+                //     const out = quickElement('div', ['item-name-holder-view'], [itemNameSpan]);
+                //     return out;
+                // },
+                headerStyler: (_, colHeader) => {
+                    // console.log("Item", item);
+                    colHeader.classList.add('gear-items-view-item-header');
+                    if (alts.length > 0) {
+                        const altButton = makeActionButton(`+${alts.length} alt items`, () => {
+                            const modal = new AltItemsModal(slotItem, alts);
+                            modal.attachAndShow();
+                        });
+                        altButton.classList.add('gear-items-view-alts-button');
+                        colHeader.appendChild(altButton);
+                    }
+
+                }
                 // initialWidth: 300,
             },
             // {
@@ -836,6 +858,61 @@ export class GearItemsViewTable extends CustomTable<GearSlotItem, EquipmentSet> 
         this.data = data;
     }
 
+}
+
+export class AltItemsModal extends BaseModal {
+    constructor(baseItem: GearItem, altItems: GearItem[]) {
+        super();
+        this.headerText = 'Alternative Items';
+        console.log(altItems);
+
+        const text = document.createElement('p');
+        text.textContent = `The item ${baseItem.name} can be replaced by all of the following items, which have equivalent or better effective stats:`;
+        this.contentArea.appendChild(text);
+
+        const table : CustomTable<GearItem> = new CustomTable<GearItem>();
+        table.columns = [
+            {
+                shortName: "ilvl",
+                displayName: "Lv",
+                getter: item => {
+                    return item.ilvl.toString();
+                },
+            },
+            {
+                shortName: "icon",
+                displayName: "",
+                getter: item => {
+                    return item.iconUrl;
+                },
+                renderer: img => {
+                    const image = document.createElement('img');
+                    image.setAttribute('intrinsicsize', '64x64');
+                    image.src = img.toString();
+                    return image;
+                },
+            },
+            {
+                shortName: "itemname",
+                displayName: "Name",
+                getter: item => {
+                    return item.name;
+                },
+            },
+            {
+                shortName: 'acqsrc',
+                displayName: 'Source',
+                getter: item => item.acquisitionType,
+                renderer: value => {
+                    return document.createTextNode(value ? (formatAcquisitionSource(value) ?? 'Unknown') : 'Unknown');
+                }
+            },
+        ];
+        table.data = [new HeaderRow(), baseItem, ...altItems];
+        this.contentArea.appendChild(table);
+
+        this.addCloseButton();
+    }
 }
 
 export class ILvlRangePicker<ObjType> extends HTMLElement {
@@ -897,3 +974,4 @@ customElements.define("food-items-table", FoodItemsTable, {extends: "table"});
 customElements.define("food-items-view-table", FoodItemViewTable, {extends: "table"});
 customElements.define("ilvl-range-picker", ILvlRangePicker);
 customElements.define("food-stat-bonus", FoodStatBonusDisplay);
+customElements.define("alt-items-modal", AltItemsModal);
