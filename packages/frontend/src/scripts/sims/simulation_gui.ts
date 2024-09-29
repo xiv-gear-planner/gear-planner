@@ -1,5 +1,4 @@
-import { CharacterGearSet } from "@xivgear/core/gear";
-import { SimResult, SimSettings, SimSpec, Simulation } from "@xivgear/core/sims/sim_types";
+import { SimResult, SimSettings, Simulation } from "@xivgear/core/sims/sim_types";
 
 export type ResultTypeOfSim<Sim> = Sim extends Simulation<infer R, unknown, unknown> ? R : never;
 export type SettingsTypeOfSim<Sim> = Sim extends Simulation<SimResult, infer S, unknown> ? S : never;
@@ -7,45 +6,10 @@ export type ExportSettingsTypeOfSim<Sim> = Sim extends Simulation<SimResult, unk
 
 export abstract class SimulationGui<ResultType extends SimResult, SettingsType extends SimSettings, SettingsExport> {
 
-    _sim: Simulation<ResultType, SettingsType, SettingsExport>;
+    sim: Simulation<ResultType, SettingsType, SettingsExport>;
 
     constructor(sim: Simulation<ResultType, SettingsType, SettingsExport>) {
-        this._sim = sim;
-    }
-
-    get shortName(): string {
-        return this._sim.shortName;
-    }
-
-    get displayName(): string {
-        return this._sim.displayName;
-    }
-
-    get settings(): SettingsType {
-        return this._sim.settings;
-    }
-
-    set settings(newSettings: SettingsType) {
-        this._sim.settings = newSettings;
-    }
-
-    get spec(): SimSpec<Simulation<ResultType, SettingsType, SettingsExport>, SettingsExport> {
-        return this._sim.spec;
-    }
-    set spec(newSpec: SimSpec<Simulation<ResultType, SettingsType, SettingsExport>, SettingsExport>) {
-        this._sim.spec = newSpec;
-    }
-
-    get manualRun(): boolean {
-        return this._sim.manualRun;
-    }
-
-    simulate(set: CharacterGearSet): Promise<ResultType> {
-        return this._sim.simulate(set);
-    }
-
-    exportSettings(): SettingsExport {
-        return this._sim.exportSettings();
+        this.sim = sim;
     }
 
     /**
