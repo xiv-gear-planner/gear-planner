@@ -1,4 +1,4 @@
-import 'global-jsdom/register'
+import 'global-jsdom/register';
 import './polyfills';
 import Fastify, {FastifyRequest} from "fastify";
 import {getShortLink} from "@xivgear/core/external/shortlink_server";

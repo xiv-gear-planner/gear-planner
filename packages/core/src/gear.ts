@@ -943,3 +943,50 @@ export type ItemSingleStatDetail = {
 };
 
 
+/**
+ * Returns true if 'candidateItem' has identical or better stats than 'baseItem'.
+ *
+ * In order to be true, every stat must be identical or greater.
+ *
+ * @param candidateItem
+ * @param baseItem
+ */
+export function isSameOrBetterItem(candidateItem: GearItem, baseItem: GearItem): boolean {
+    // TODO: consider materia slots
+    // Ultimate weapons are equivalent to savage raid but with an extra materia slot. So an ultimate weapon should
+    // be considered an acceptable replacement for a savage weapon, but not the other way around.
+
+
+    // Phase 1: Raw stats
+    const candidateStats = candidateItem.stats;
+    const baseStats = baseItem.stats;
+    for (const [statKey, baseValue] of Object.entries(baseStats)) {
+        const candidateValue = candidateStats[statKey] as number;
+        if (candidateValue < baseValue) {
+            return false;
+        }
+    }
+    // Phase 2: Materia
+    // The logic here is to just check that every materia slot in the base item:
+    // 1. Exists in the candidate item,
+    // 2. is at least the same grade, and
+    // 3. is high grade if the source slot is also high grade
+    for (const baseSlot of baseItem.materiaSlots) {
+        const index = baseItem.materiaSlots.indexOf(baseSlot);
+        if (index in candidateItem.materiaSlots) {
+            const candidateSlot = candidateItem.materiaSlots[index];
+            if (candidateSlot.maxGrade < baseSlot.maxGrade) {
+                return false;
+            }
+            else if (baseSlot.allowsHighGrade && !candidateSlot.allowsHighGrade) {
+                return false;
+            }
+        }
+        else {
+            // Not enough slots
+            return false;
+        }
+    }
+
+    return true;
+}

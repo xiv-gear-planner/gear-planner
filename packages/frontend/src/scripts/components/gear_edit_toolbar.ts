@@ -4,7 +4,7 @@ import {MateriaPriorityPicker} from "./materia";
 import {StatTierDisplay} from "./stat_tier_display";
 import {CharacterGearSet} from "@xivgear/core/gear";
 import {makeActionButton, redoIcon, undoIcon} from "@xivgear/common-ui/components/util";
-import {recordEvent} from "@xivgear/core/analytics/analytics";
+import {recordEvent, recordSheetEvent} from "@xivgear/core/analytics/analytics";
 import { GearPlanSheetGui } from "./sheet";
 
 export class UndoArea extends HTMLDivElement {
@@ -69,10 +69,22 @@ export class GearEditToolbar extends HTMLDivElement {
         ilvlDiv.classList.add('ilvl-picker-area');
         const itemIlvlRange = new ILvlRangePicker(itemDisplaySettings, 'minILvl', 'maxILvl', 'Gear:');
         itemIlvlRange.addListener(displayUpdateCallback);
+        itemIlvlRange.addListener((min, max) => {
+            recordSheetEvent('itemIlvlRange', sheet, {
+                min: min,
+                max: max
+            });
+        });
         ilvlDiv.appendChild(itemIlvlRange);
 
         const foodIlvlRange = new ILvlRangePicker(itemDisplaySettings, 'minILvlFood', 'maxILvlFood', 'Food:');
         foodIlvlRange.addListener(displayUpdateCallback);
+        foodIlvlRange.addListener((min, max) => {
+            recordSheetEvent('foodIlvlRange', sheet, {
+                min: min,
+                max: max
+            });
+        });
         ilvlDiv.appendChild(foodIlvlRange);
 
         this.appendChild(ilvlDiv);

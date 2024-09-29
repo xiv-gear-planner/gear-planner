@@ -80,6 +80,7 @@ import {CustomFoodPopup, CustomItemPopup} from "./custom_item_manager";
 import {confirmDelete} from "@xivgear/common-ui/components/delete_confirm";
 import { SimulationGui } from "../sims/simulation_gui";
 import { makeGui } from "../sims/sim_guis";
+import {recordSheetEvent} from "@xivgear/core/analytics/analytics";
 import { MeldSolverDialog } from "./meld_solver_modal";
 
 export type GearSetSel = SingleCellRowOrHeaderSelect<CharacterGearSet>;
@@ -1521,6 +1522,11 @@ export class GearPlanSheetGui extends GearPlanSheet {
             },
             [undefined, ...Object.keys(RACE_STATS) as RaceName[]]);
         buttonsArea.appendChild(raceDropdown);
+        raceDropdown.addListener((val) => {
+            recordSheetEvent('changeRace', this, {
+                race: val
+            });
+        });
 
         const partySizeDropdown = new FieldBoundDataSelect<GearPlanSheet, PartyBonusAmount>(
             this,
@@ -1535,6 +1541,11 @@ export class GearPlanSheetGui extends GearPlanSheet {
             },
             rangeInc(0, MAX_PARTY_BONUS)
         );
+        partySizeDropdown.addListener((val) => {
+            recordSheetEvent('changePartyBonus', this, {
+                partyBonus: val
+            });
+        });
         buttonsArea.appendChild(partySizeDropdown);
 
         if (this.saveKey) {
