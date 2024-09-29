@@ -21,7 +21,7 @@ import {
     quickElement
 } from "@xivgear/common-ui/components/util";
 import {GearPlanSheet} from "@xivgear/core/sheet";
-import {recordEvent} from "@xivgear/core/analytics/analytics";
+import {recordCurrentSheetEvent, recordEvent} from "@xivgear/core/analytics/analytics";
 
 /**
  * Component for managing all materia slots on an item
@@ -425,6 +425,11 @@ export class MateriaPriorityPicker extends HTMLElement {
                     ctx.failValidation("Cannot be greater than " + MAX_GCD);
                 }
             }]
+        });
+        minGcdInput.addListener(val => {
+            recordCurrentSheetEvent('currentSheet', {
+                gcd: val
+            });
         });
         minGcdInput.pattern = '\\d\\.\\d\\d?';
         minGcdInput.title = 'Enter the minimum desired GCD in the form x.yz.\nSkS/SpS materia will be de-prioritized once this target GCD is met.';

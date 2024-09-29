@@ -17,6 +17,16 @@ export function recordEvent(name: string, data?: ExtraData) {
     }
 }
 
+export function recordCurrentSheetEvent(eventName: string, extraData: ExtraData) {
+    const sheet = window['currentSheet'];
+    if (sheet instanceof GearPlanSheet) {
+        recordSheetEvent(eventName, sheet, extraData);
+    }
+    else {
+        recordEvent(eventName, extraData);
+    }
+}
+
 export function recordSheetEvent(eventName: string, sheet: GearPlanSheet, extraData: ExtraData = {}) {
     const fullData = {
         // ...prepSheetData(sheet),
@@ -27,9 +37,9 @@ export function recordSheetEvent(eventName: string, sheet: GearPlanSheet, extraD
 }
 
 function prepSheetData(sheet: GearPlanSheet) {
-   return {
-       'job': sheet.classJobName,
-       'level': sheet.level,
-       'isync': sheet.ilvlSync
-   }
+    return {
+        'job': sheet.classJobName,
+        'level': sheet.level,
+        'isync': sheet.ilvlSync
+    }
 }

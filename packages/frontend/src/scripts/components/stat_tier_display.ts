@@ -16,6 +16,7 @@ import {
     vitToHp
 } from "@xivgear/xivmath/xivmath";
 import {GearPlanSheet} from "@xivgear/core/sheet";
+import {recordSheetEvent} from "@xivgear/core/analytics/analytics";
 
 interface Tiering {
     lower: number,
@@ -174,7 +175,11 @@ export class StatTierDisplay extends HTMLDivElement {
                         // singleStatTierDisplay.addEventListener('click', () => this.toggleState());
                         singleStatTierDisplay.addEventListener('click', (ev) => {
                             if (ev.detail == 1) {
-                                singleStatTierDisplay.expanded = !singleStatTierDisplay.expanded;
+                                const expanded = singleStatTierDisplay.expanded = !singleStatTierDisplay.expanded;
+                                recordSheetEvent('singleTierDisplayClick', this.sheet, {
+                                    expanded: expanded,
+                                    stat: stat
+                                });
                             }
                             else if (ev.detail >= 2) {
                                 // If this is a double click, the first click would have already toggled the state
@@ -183,6 +188,10 @@ export class StatTierDisplay extends HTMLDivElement {
                                 for (const display of this.eleMap.values()) {
                                     display.expanded = newState;
                                 }
+                                recordSheetEvent('allTierDisplayClick', this.sheet, {
+                                    expanded: newState,
+                                    stat: stat
+                                });
                             }
                         });
                     }
