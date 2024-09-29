@@ -15,7 +15,7 @@ import { BaseMultiCycleSim } from "@xivgear/core/sims/processors/sim_processors"
 export class BaseMultiCycleSimGui<ResultType extends CycleSimResult, InternalSettingsType extends SimSettings, CycleProcessorType extends CycleProcessor = CycleProcessor, FullResultType extends CycleSimResultFull<ResultType> = CycleSimResultFull<ResultType>>
     extends SimulationGui<FullResultType, InternalSettingsType, ExternalCycleSettings<InternalSettingsType>> {
     
-    declare _sim: BaseMultiCycleSim<ResultType, InternalSettingsType, CycleProcessorType, FullResultType>;
+    declare sim: BaseMultiCycleSim<ResultType, InternalSettingsType, CycleProcessorType, FullResultType>;
 
 
     /**
@@ -38,7 +38,7 @@ export class BaseMultiCycleSimGui<ResultType extends CycleSimResult, InternalSet
     makeConfigInterface(settings: InternalSettingsType, updateCallback: () => void): HTMLElement {
         // TODO: need internal settings panel
         const div = document.createElement("div");
-        div.appendChild(cycleSettingsGui(writeProxy(this._sim.cycleSettings, updateCallback)));
+        div.appendChild(cycleSettingsGui(writeProxy(this.sim.cycleSettings, updateCallback)));
         const custom = this.makeCustomConfigInterface(settings, updateCallback);
         if (custom) {
             custom.classList.add('custom-sim-settings-area');
@@ -46,8 +46,8 @@ export class BaseMultiCycleSimGui<ResultType extends CycleSimResult, InternalSet
             section.contentArea.append(custom);
             div.appendChild(section);
         }
-        div.appendChild(new BuffSettingsArea(this._sim.buffManager, updateCallback));
-        div.appendChild(new ResultSettingsArea(writeProxy(this._sim.resultSettings, updateCallback)));
+        div.appendChild(new BuffSettingsArea(this.sim.buffManager, updateCallback));
+        div.appendChild(new ResultSettingsArea(writeProxy(this.sim.resultSettings, updateCallback)));
         return div;
     }
 

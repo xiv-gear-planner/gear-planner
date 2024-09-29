@@ -14,7 +14,7 @@ import { CountSimResult, ExternalCountSettings, BaseUsageCountSim } from "@xivge
 export class BaseUsageCountSimGui<ResultType extends CountSimResult, InternalSettingsType extends SimSettings>
     extends SimulationGui<ResultType, InternalSettingsType, ExternalCountSettings<InternalSettingsType>> {
 
-    declare _sim: BaseUsageCountSim<ResultType, InternalSettingsType>;
+    declare sim: BaseUsageCountSim<ResultType, InternalSettingsType>;
 
     makeConfigInterface(settings: InternalSettingsType, updateCallback: () => void): HTMLElement {
         const div = document.createElement("div");
@@ -25,8 +25,8 @@ export class BaseUsageCountSimGui<ResultType extends CountSimResult, InternalSet
             section.contentArea.append(custom);
             div.appendChild(section);
         }
-        div.appendChild(new BuffSettingsArea(this._sim.buffManager, updateCallback));
-        div.appendChild(new ResultSettingsArea(writeProxy(this._sim.resultSettings, updateCallback)));
+        div.appendChild(new BuffSettingsArea(this.sim.buffManager, updateCallback));
+        div.appendChild(new ResultSettingsArea(writeProxy(this.sim.resultSettings, updateCallback)));
         return div;
     }
 
