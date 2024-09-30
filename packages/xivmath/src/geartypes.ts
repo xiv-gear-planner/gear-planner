@@ -593,6 +593,13 @@ export interface SimExport {
     name?: string
 }
 
+/**
+ * Represents fields injected by the shortlink server
+ */
+export type ApiInjectedValues = {
+    timestamp?: number
+}
+
 // TODO: further split this up. API vs Local should have different types.
 /**
  * Represents an exported set. Many of the fields fill the same role as the fields
@@ -601,7 +608,7 @@ export interface SimExport {
  * Some of the fields are only relevant for local saves, while others are only relevant
  * for external (API) saves.
  */
-export interface SheetExport {
+export type SheetExport = ApiInjectedValues & {
     /**
      * Name of the sheet.
      */
@@ -697,7 +704,7 @@ export interface SheetStatsExport extends SheetExport {
  * If it is an individual sheet export, then several of the properties that would normally live at the sheet level
  * will instead be here (such as job and level).
  */
-export interface SetExport {
+export type SetExport = ApiInjectedValues & {
     /**
      * Name of the gear set.
      */

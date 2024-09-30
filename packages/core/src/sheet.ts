@@ -145,6 +145,7 @@ export class GearPlanSheet {
     // General sheet properties
     _sheetName: string;
     _description: string;
+    lastModified: Date;
     readonly classJobName: JobName;
     readonly level: SupportedLevel;
     readonly ilvlSync: number | undefined;
@@ -198,6 +199,12 @@ export class GearPlanSheet {
         this.classJobName = importedData.job ?? 'WHM';
         this.ilvlSync = importedData.ilvlSync;
         this._description = importedData.description;
+        if (importedData.timestamp) {
+            this.lastModified = new Date(importedData.timestamp);
+        }
+        else {
+            this.lastModified = new Date(Date.now());
+        }
         if (importedData.itemDisplaySettings) {
             Object.assign(this._itemDisplaySettings, importedData.itemDisplaySettings);
         }
@@ -338,6 +345,7 @@ export class GearPlanSheet {
         }
         if (this.saveKey) {
             console.log("Saving sheet " + this.sheetName);
+            this.lastModified = new Date(Date.now());
             const fullExport = this.exportSheet(false);
             localStorage.setItem(this.saveKey, JSON.stringify(fullExport));
         }
@@ -440,6 +448,7 @@ export class GearPlanSheet {
             description: this.description,
             customItems: this._customItems.map(ci => ci.export()),
             customFoods: this._customFoods.map(cf => cf.export()),
+            timestamp: this.lastModified.getTime(),
         };
         if (!external) {
             out.saveKey = this._saveKey;
