@@ -1,0 +1,455 @@
+import { BuffController, PersonalBuff, PartyBuff } from "@xivgear/core/sims/sim_types";
+import { MNKGauge } from "./mnk_gauge";
+import { MnkGcdAbility, MnkOgcdAbility } from "./mnk_types"
+
+export const OpoForm: PersonalBuff = {
+    name: "Opo-Opo Form",
+    selfOnly: true,
+    duration: 30,
+    effects: {
+        // forces crit on bootshine and leaping opo
+        // provides opo-opo's fury stack on dragon kick
+    },
+    appliesTo: (ability) => OPO_ABILITIES.includes(ability.id),
+    beforeSnapshot: (controller: BuffController, ability) => {
+        controller.removeSelf();
+        if ([Bootshine.id, LeapingOpo.id].includes(ability.id)) {
+            return {
+                ...ability,
+                autoCrit: true,
+            }
+        } else if (ability.id === DragonKick.id) {
+            return {
+                ...ability,
+                activatesBuffs: [...ability.activatesBuffs, OpoFury],
+            }
+        }
+        return ability;
+    },
+};
+
+export const OpoFury: PersonalBuff = {
+    name: "Opo-Opo Fury",
+    selfOnly: true,
+    effects: {
+        // flat 200 potency increase
+    },
+    appliesTo: (ability) => [Bootshine.id, LeapingOpo.id].includes(ability.id),
+    beforeSnapshot: (controller: BuffController, ability) => {
+        controller.removeSelf();
+        return {
+            ...ability,
+            potency: ability.potency + 200,
+        }
+    },
+};
+
+export const RaptorForm: PersonalBuff = {
+    name: "Raptor Form",
+    selfOnly: true,
+    duration: 30,
+    effects: {
+        // allows execution of twin snakes and true strike I and II
+    },
+    appliesTo: (ability) => RAPTOR_ABILITIES.includes(ability.id),
+};
+
+export const RaptorFury: PersonalBuff = {
+    name: "Raptor Fury",
+    selfOnly: true,
+    effects: {
+        // flat 200 potency increase
+    },
+    appliesTo: (ability) => [TrueStrike.id, RisingRaptor.id].includes(ability.id),
+    beforeSnapshot: (controller: BuffController, ability) => {
+        controller.removeSelf();
+        return {
+            ...ability,
+            potency: ability.potency + 200,
+        }
+    },
+};
+
+
+export const CoeurlForm: PersonalBuff = {
+    name: "Coeurl Form",
+    selfOnly: true,
+    duration: 30,
+    effects: {
+        // allows execution of demolish, snap punch I and II
+    },
+    appliesTo: (ability) => COUERL_ABILITIES.includes(ability.id),
+};
+
+
+export const CoeurlFury: PersonalBuff = {
+    name: "Couerl Fury",
+    selfOnly: true,
+    stacks: 2,
+    effects: {
+        // flat 200 potency increase
+    },
+    appliesTo: (ability) => [SnapPunch.id, PouncingCouerl.id].includes(ability.id),
+    beforeSnapshot: (controller: BuffController, ability) => {
+        controller.subtractStacksSelf(1);
+        return {
+            ...ability,
+            potency: ability.potency + 200,
+        }
+    },
+};
+
+export const PerfectBalanceBuff: PersonalBuff = {
+    name: "Perfect Balance",
+    selfOnly: true,
+    duration: 30,
+    effects: {
+        // allows execution of all form Weaponskills and additionally builds beast chakra
+    },
+    appliesTo: (ability) => FORM_ABILITIES.includes(ability.id),
+    beforeSnapshot: (controller: BuffController, ability) => {
+        controller.subtractStacksSelf(1);
+        if ([Bootshine.id, LeapingOpo.id].includes(ability.id)) {
+            return {
+                ...ability,
+                autoCrit: true,
+            }
+        } else if (ability.id === DragonKick.id) {
+            return {
+                ...ability,
+                activatesBuffs: [...ability.activatesBuffs, OpoFury],
+            }
+        }
+        return ability;
+    },
+}
+
+export const FormlessFist: PersonalBuff = {
+    name: "Formless Fist",
+    selfOnly: true,
+    duration: 30,
+    effects: {
+        // allows execution of all form Weaponskills
+    },
+    appliesTo: (ability) => FORM_ABILITIES.includes(ability.id),
+    beforeSnapshot: (controller: BuffController, ability) => {
+        controller.subtractStacksSelf(1);
+        if ([Bootshine.id, LeapingOpo.id].includes(ability.id)) {
+            return {
+                ...ability,
+                autoCrit: true,
+            }
+        } else if (ability.id === DragonKick.id) {
+            return {
+                ...ability,
+                activatesBuffs: [...ability.activatesBuffs, OpoFury],
+            }
+        }
+        return ability;
+    },
+}
+
+export const RiddleOfFireBuff: PersonalBuff = {
+    name: "Riddle of Fire",
+    selfOnly: true,
+    duration: 20,
+    effects: {
+        dmgIncrease: 0.20,
+    },
+}
+
+export const BrotherhoodBuff: PartyBuff = {
+    job: "MNK",
+    cooldown: 120,
+    name: "Brotherhood",
+    selfOnly: false,
+    duration: 20,
+    effects: {
+        // Additional effect: allows the opening of up to ten chakra,
+        dmgIncrease: 0.05,
+    }
+}
+
+// TODO Is this simmable or something that should just be assumed?
+//export const MeditativeBrotherhood: PartyBuff = {}
+
+export const RiddleOfWindBuff: PersonalBuff = {
+    name: "Riddle of Wind",
+    duration: 15,
+    appliesTo: (ability) => ability.attackType == "Auto-attack",
+    effects: {
+        // reduces auto-attack delay by 50%
+        // TODO cycle processor needs a more specific haste type?
+    }
+}
+export const FiresRumination: PersonalBuff = {
+    name: "Fire's Rumination",
+    duration: 20,
+    effects: {
+        // allows execution of Fire's Reply
+    }
+}
+
+export const WindsRumination: PersonalBuff = {
+    name: "Wind's Rumination",
+    duration: 15,
+    effects: {
+        // allows execution of Fire's Reply
+    }
+}
+
+export const Bootshine: MnkGcdAbility = {
+    name: "Bootshine",
+    id: -1,
+    type: 'gcd',
+    gcd: 2.5,
+    potency: 220,
+    attackType: "Weaponskill",
+    activatesBuffs: [RaptorForm],
+    updateGauge: (gauge: MNKGauge) =>  gauge.opoFury = 0,
+}
+
+export const TrueStrike: MnkGcdAbility = {
+    name: "True Strike",
+    id: -1,
+    type: 'gcd',
+    gcd: 2.5,
+    potency: 220,
+    attackType: "Weaponskill",
+    activatesBuffs: [CoeurlForm],
+    updateGauge: (gauge: MNKGauge) =>  gauge.raptorFury = 0,
+}
+
+export const SnapPunch: MnkGcdAbility = {
+    name: "Snap Punch",
+    id: -1,
+    type: 'gcd',
+    gcd: 2.5,
+    potency: 330, // assumed positional hit
+    attackType: "Weaponskill",
+    activatesBuffs: [OpoForm],
+    updateGauge: (gauge: MNKGauge) => {
+        gauge.coeurlFury -= 1;
+    },
+}
+
+export const TwinSnakes: MnkGcdAbility = {
+    name: "Twin Snakes",
+    id: -1,
+    type: 'gcd',
+    gcd: 2.5,
+    potency: 420,
+    attackType: "Weaponskill",
+    activatesBuffs: [CoeurlForm],
+    updateGauge: (gauge: MNKGauge) =>  gauge.raptorFury = 1,
+}
+
+export const Demolish: MnkGcdAbility = {
+    name: "Demolish",
+    id: -1,
+    type: 'gcd',
+    gcd: 2.5,
+    potency: 420, // assumed positional hit
+    attackType: "Weaponskill",
+    activatesBuffs: [OpoForm],
+    updateGauge: (gauge: MNKGauge) =>  gauge.coeurlFury = 2,
+}
+
+/**
+ * @see OpoForm for conditional activation of opoFury buff
+ */
+export const DragonKick: MnkGcdAbility = {
+    name: "Dragon Kick",
+    id: -1,
+    type: 'gcd',
+    gcd: 2.5,
+    potency: 320,
+    attackType: "Weaponskill",
+    activatesBuffs: [RaptorForm],
+    // todo this gauge update needs a buff controller or something
+    updateGauge: (gauge: MNKGauge) =>  gauge.opoFury = 1,
+}
+
+export const PerfectBalance: MnkOgcdAbility = {
+    name: "Perfect Balance",
+    id: -1,
+    type: 'ogcd',
+    attackType: "Ability",
+    potency: null,
+    cooldown: {
+        time: 40,
+        reducedBy: 'none',
+        charges: 2,
+    },
+    activatesBuffs: [PerfectBalanceBuff]
+}
+
+export const FormShift: MnkGcdAbility = {
+    name: "Form Shift",
+    id: -1,
+    type: 'gcd',
+    attackType: "Weaponskill",
+    gcd: 2.5,
+    potency: null,
+    activatesBuffs: [FormlessFist]
+}
+
+export const TheForbiddenChakra: MnkOgcdAbility = {
+    name: "The Forbidden Chakra",
+    id: -1,
+    type: 'ogcd',
+    attackType: 'Ability',
+    potency: 400,
+    cooldown: {
+        time: 1,
+    },
+    updateGauge: (gauge: MNKGauge) => {
+        gauge.chakra -= 5;
+    }
+}
+
+export const ElixirField: MnkGcdAbility = {
+    name: "Elixir Field",
+    id: -1,
+    type: 'gcd',
+    attackType: 'Weaponskill',
+    gcd: 2.5,
+    potency: 800,
+    updateGauge: (gauge: MNKGauge) => {
+        gauge.lunarNadi = 1;
+    },
+    activatesBuffs: [FormlessFist],
+}
+
+export const FlintStrike: MnkGcdAbility = {
+    name: "Flint Strike",
+    id: -1,
+    type: 'gcd',
+    attackType: 'Weaponskill',
+    gcd: 2.5,
+    potency: 800,
+    updateGauge: (gauge: MNKGauge) => {
+        gauge.solarNadi = 1;
+    },
+    activatesBuffs: [FormlessFist],
+}
+
+export const TornadoKick: MnkGcdAbility = {
+    name: "TornadoKick",
+    id: -1,
+    type: 'gcd',
+    attackType: 'Weaponskill',
+    gcd: 2.5,
+    potency: 1200,
+    updateGauge: (gauge: MNKGauge) => {
+        gauge.lunarNadi = 0
+        gauge.solarNadi = 0;
+    },
+    activatesBuffs: [FormlessFist],
+}
+
+export const RiddleOfFire: MnkOgcdAbility = {
+    name: "Riddle of Fire",
+    id: -1,
+    type: 'ogcd',
+    attackType: 'Ability',
+    potency: null,
+    cooldown: {
+        time: 60,
+    },
+    activatesBuffs: [RiddleOfFireBuff, FiresRumination],
+}
+export const Brotherhood: MnkOgcdAbility = {
+    name: "Brotherhood",
+    id: -1,
+    type: 'ogcd',
+    attackType: 'Ability',
+    potency: null,
+    cooldown: {
+        time: 120,
+    },
+    activatesBuffs: [BrotherhoodBuff],
+}
+
+export const RiddleOfWind: MnkOgcdAbility = {
+    name: "Riddle of Wind",
+    id: -1,
+    type: 'ogcd',
+    attackType: 'Ability',
+    potency: null,
+    cooldown: {
+        time: 90,
+    },
+    activatesBuffs: [RiddleOfWindBuff, WindsRumination],
+}
+
+export const SixSidedStar: MnkGcdAbility = {
+    name: "Six-sided Star",
+    id: -1,
+    type: 'gcd',
+    gcd: 4,
+    attackType: 'Weaponskill',
+    potency: 780, // TODO add chakra potency
+    updateGauge: (gauge: MNKGauge) => {
+        gauge.chakra = 0
+    },
+}
+
+export const RisingPhoenix: MnkGcdAbility = {
+    ...FlintStrike,
+    name: "Rising Phoenix",
+    potency: 900,
+}
+
+export const PhantomRush: MnkGcdAbility = {
+    ...TornadoKick,
+    name: "Phantom Rush",
+    potency: 1500,
+}
+
+export const LeapingOpo: MnkGcdAbility = {
+    ...Bootshine,
+    name: "Leaping Opo",
+    potency: 260,
+}
+
+export const RisingRaptor: MnkGcdAbility = {
+    ...TrueStrike,
+    name: "Rising Raptor",
+    potency: 340,
+}
+
+export const PouncingCouerl: MnkGcdAbility = {
+    ...SnapPunch,
+    name: "Pouncing Couerl",
+    potency: 370, // assumed positional hit
+}
+
+export const ElixirBurst: MnkGcdAbility = {
+    ...ElixirField,
+    name: "Elixir Burst",
+    potency: 900,
+}
+
+export const WindsReply: MnkGcdAbility = {
+    name: "Wind's Reply",
+    id: -1,
+    type: 'gcd',
+    attackType: 'Weaponskill',
+    gcd: 2.5,
+    potency: 900,
+}
+export const FiresReply: MnkGcdAbility = {
+    name: "Fire's Reply",
+    id: -1,
+    type: 'gcd',
+    attackType: 'Weaponskill',
+    gcd: 2.5,
+    potency: 1200,
+    activatesBuffs: [FormlessFist],
+}
+
+const OPO_ABILITIES: number[] = [Bootshine.id, DragonKick.id, LeapingOpo.id];
+const RAPTOR_ABILITIES: number[] = [TrueStrike.id, TwinSnakes.id, RisingRaptor.id];
+const COUERL_ABILITIES: number[] = [SnapPunch.id, Demolish.id, PouncingCouerl.id];
+const FORM_ABILITIES: number[] = [Bootshine.id, DragonKick.id, LeapingOpo.id, TrueStrike.id, TwinSnakes.id, RisingRaptor.id, SnapPunch.id, Demolish.id, PouncingCouerl.id]
