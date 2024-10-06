@@ -116,7 +116,14 @@ export const SaltedEarth: DrkOgcdAbility = {
     attackType: "Ability",
     activatesBuffs: [SaltedEarthBuff],
     // Not really, it's 50 * 5, but WIP
-    potency: 250,
+    potency: 50, 
+    dot: {
+        // This is technically just the ID of the salted earth buff, but
+        // it'll do. It's important this is a buff because of speed scaling.
+        id: 749,
+        tickPotency: 75,
+        duration: 15,
+    },
     cooldown: {
         time: 90,
         charges: 1,

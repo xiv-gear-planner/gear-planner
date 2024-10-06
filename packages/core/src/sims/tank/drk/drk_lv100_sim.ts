@@ -83,8 +83,8 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
     displayName = drkSpec.displayName;
     cycleSettings: CycleSettings = {
         useAutos: true,
-        // 8 minutes and 34 seconds -- includes two pots and five bursts.
-        totalTime: (8 * 60) + 34,
+        // 8 minutes and 35 seconds -- includes two pots and five bursts.
+        totalTime: (8 * 60) + 35,
         cycles: 0,
         which: 'totalTime',
     }
@@ -194,7 +194,7 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
         console.log(`[DRK Sim] Running ${name}...`);
         return [{
             name: name,
-            cycleTime: (8 * 60) + 34,
+            cycleTime: (8 * 60) + 35,
             apply(cp: DrkCycleProcessor) {
                 // Pre-pull Unmend timing
                 const first = rotation.opener.shift();
