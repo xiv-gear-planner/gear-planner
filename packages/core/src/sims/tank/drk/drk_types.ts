@@ -21,7 +21,7 @@ export type DrkGcdAbility = GcdAbility & DrkAbility;
 
 export type DrkOgcdAbility = OgcdAbility & DrkAbility;
 
-/** DRK ability that costs shroud */
+/** DRK ability that costs blood */
 export type BloodAbility = DrkAbility & Readonly<{
     bloodCost: number;
 }>

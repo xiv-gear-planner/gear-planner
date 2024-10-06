@@ -40,6 +40,7 @@ export const Bloodspiller: DrkGcdAbility = {
     potency: 580,
     attackType: "Weaponskill",
     gcd: 2.5,
+    bloodCost: 50,
     updateBloodGauge: gauge => gauge.bloodGauge -= 50,
 };
 
