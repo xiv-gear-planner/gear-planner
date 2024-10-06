@@ -9,7 +9,6 @@ import { DrkExtraData, DrkAbility, DrkRotationData } from "./drk_types";
 import * as Drk250 from './rotations/drk_lv100_250';
 import * as Drk246 from './rotations/drk_lv100_246';
 import { Unmend } from './drk_actions';
-//import { HissatsuShinten, MeikyoShisui } from './sam_actions';
 import { BaseMultiCycleSim } from "@xivgear/core/sims/processors/sim_processors";
 
 export interface DrkSimResult extends CycleSimResult {
@@ -19,7 +18,7 @@ export interface DrkSimResult extends CycleSimResult {
 export interface DrkSettings extends SimSettings {
     usePotion: boolean;
     prepullUnmend: number; //the number given is how many seconds prepull we use Unmend.
-    // TODO: prepull Shadowstride?
+    // TODO: should I add a prepull Shadowstride option?
 }
 
 export interface DrkSettingsExternal extends ExternalCycleSettings<DrkSettings> {
