@@ -25,6 +25,7 @@ import {
 } from "@xivgear/core/sims/sim_types";
 import {CycleProcessor, CycleSimResult, ExternalCycleSettings, Rotation} from "@xivgear/core/sims/cycle_sim";
 import { BaseMultiCycleSim } from '@xivgear/core/sims/processors/sim_processors';
+import {gemdraught1mind} from "../../sims/common/potion";
 
 // Example of end-to-end simulation
 // This one is testing the simulation engine itself, so it copies the full simulation code rather than
@@ -1566,4 +1567,33 @@ describe('gcd clipping check', () => {
         canUse = cp.canUseWithoutClipping(pom);
         assert.equal(canUse, false);
     });
+});
+
+describe('potion logic', () => {
+    it('reflects potions', () => {
+        const cp = new CycleProcessor({
+            allBuffs: [],
+            cycleTime: 120,
+            stats: exampleGearSet.computedStats,
+            totalTime: 120,
+            useAutos: false
+        });
+        cp.use(filler);
+        cp.use(gemdraught1mind);
+        cp.use(filler);
+        cp.advanceTo(100);
+        cp.use(filler);
+        const displayRecords = cp.finalizedRecords;
+        const actualAbilities: FinalizedAbility[] = displayRecords.filter<FinalizedAbility>((record): record is FinalizedAbility => {
+            return 'ability' in record;
+        });
+        // console.log(actualAbilities);
+        // Unbuffed skill
+        assertClose(actualAbilities[0].directDamage, 15057.71, 0.01);
+        // Buffed skill
+        assertClose(actualAbilities[2].directDamage, 16627.44, 0.01);
+        // Unbuffed skill after it falls off
+        assertClose(actualAbilities[3].directDamage, 15057.71, 0.01);
+    });
+
 });
