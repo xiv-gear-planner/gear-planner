@@ -98,7 +98,7 @@ export const Delirium: DrkOgcdAbility = {
 
 export const CarveAndSpit: DrkOgcdAbility = {
     type: 'ogcd',
-    name: "CarveAndSpit",
+    name: "Carve And Spit",
     id: 3643,
     potency: 540,
     attackType: "Ability",
