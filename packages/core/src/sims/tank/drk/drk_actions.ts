@@ -120,7 +120,7 @@ export const SaltedEarth: DrkOgcdAbility = {
         // This is technically just the ID of the salted earth buff, but
         // it'll do. It's important this is a buff because of speed scaling.
         id: 749,
-        tickPotency: 75,
+        tickPotency: 50,
         duration: 15,
     },
     cooldown: {
