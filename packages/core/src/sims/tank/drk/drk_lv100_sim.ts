@@ -5,7 +5,7 @@ import { CharacterGearSet } from "@xivgear/core/gear";
 import { formatDuration } from "@xivgear/core/util/strutils";
 import { STANDARD_ANIMATION_LOCK } from "@xivgear/xivmath/xivconstants";
 import { DrkGauge } from "./drk_gauge";
-import { DrkExtraData, DrkAbility, DrkRotationData } from "./drk_types";
+import { DrkExtraData, DrkAbility, DrkRotationData, BloodWeaponBuff } from "./drk_types";
 import * as Drk250 from './rotations/drk_lv100_250';
 import * as Drk246 from './rotations/drk_lv100_246';
 import { Unmend } from './drk_actions';
@@ -18,7 +18,8 @@ export interface DrkSimResult extends CycleSimResult {
 export interface DrkSettings extends SimSettings {
     usePotion: boolean;
     prepullUnmend: number; //the number given is how many seconds prepull we use Unmend.
-    // TODO: should I add a prepull Shadowstride option?
+    fightTime: number; // the length of the fight in seconds
+    // TODO: should we add a prepull Shadowstride option? Would be nice to compare on differing killtimes
 }
 
 export interface DrkSettingsExternal extends ExternalCycleSettings<DrkSettings> {
@@ -28,7 +29,7 @@ export interface DrkSettingsExternal extends ExternalCycleSettings<DrkSettings> 
 export const drkSpec: SimSpec<DrkSim, DrkSettingsExternal> = {
     stub: "drk-sim-lv100",
     displayName: "DRK Sim",
-    description: 'Simulates a DRK rotation using level 100 abilities/traits.',
+    description: 'Simulates a DRK rotation using level 100 abilities/traits. Currently a work in progress, and only fully supports 2.50 and 2.46 GCD speeds.',
     makeNewSimInstance: function (): DrkSim {
         return new DrkSim();
     },
@@ -43,7 +44,7 @@ export const drkSpec: SimSpec<DrkSim, DrkSettingsExternal> = {
         contact: [{
             type: 'discord',
             discordTag: 'violet.stardust',
-            discordUid: '194908170030809098'
+            discordUid: '194908170030809098',
         }],
     }],
 };
@@ -83,8 +84,7 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
     displayName = drkSpec.displayName;
     cycleSettings: CycleSettings = {
         useAutos: true,
-        // 8 minutes and 35 seconds -- includes two pots and five bursts.
-        totalTime: (8 * 60) + 35,
+        totalTime: this.settings.fightTime,
         cycles: 0,
         which: 'totalTime',
     }
@@ -103,7 +103,8 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
     override makeDefaultSettings(): DrkSettings {
         return {
             usePotion: true,
-            prepullUnmend: 1, 
+            prepullUnmend: 1,
+            fightTime: (8 * 60) + 30, // 8 minutes and 30s, or 510 seconds
         };
     }
 
@@ -111,8 +112,13 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
         if (cp.currentTime >= cp.totalTime) {
             return null;
         }
-        
+
         const drkAbility = ability as DrkAbility;
+
+        let bloodWeaponActive = false 
+        if (cp.getActiveBuffs().includes(BloodWeaponBuff)) {
+            bloodWeaponActive = true
+        }
 
         // Add 200 mp every 3s. Imperfect, but it'll do.
         if (cp.currentTime % 3 === 0) {
@@ -134,11 +140,11 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
         }
 
         // Only use potion if enabled in settings
-        if (!this.settings.usePotion && ability.name.includes(' of Strength')) {
+        if (!this.settings.usePotion && ability.name.includes("of strength")) {
             return null;
         }
 
-        // Update gauge from the ability itself
+        // Update gauges
         if (drkAbility.updateBloodGauge !== undefined) {
             // Prevent gauge updates showing incorrectly on autos before this ability
             if (ability.type === 'gcd' && cp.nextGcdTime > cp.currentTime) {
@@ -146,12 +152,25 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
             }
             drkAbility.updateBloodGauge(cp.gauge);
         }
+        if (drkAbility.updateMP !== undefined) {
+            // Prevent gauge updates showing incorrectly on autos before this ability
+            if (ability.type === 'gcd' && cp.nextGcdTime > cp.currentTime) {
+                cp.advanceTo(cp.nextGcdTime);
+            }
+            drkAbility.updateMP(cp.gauge);
+        }
 
         const abilityUseResult = cp.use(ability);
 
         // TODO use up remaining gauge and Shadowbringer before the fight ends
         if (ability.type === 'gcd' && cp.fightEndingSoon()) {
             // TODO: cp.use(action name goes here);
+        }
+
+        // This needs to happen _after_ the ability is used.
+        if (bloodWeaponActive) {
+            cp.gauge.bloodGauge += 10
+            cp.gauge.magicPoints += 600
         }
 
         return abilityUseResult;
@@ -194,7 +213,7 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
         console.log(`[DRK Sim] Running ${name}...`);
         return [{
             name: name,
-            cycleTime: (8 * 60) + 35,
+            cycleTime: (8 * 60) + 38,
             apply(cp: DrkCycleProcessor) {
                 // Pre-pull Unmend timing
                 const first = rotation.opener.shift();

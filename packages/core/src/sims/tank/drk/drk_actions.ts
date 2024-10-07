@@ -115,7 +115,6 @@ export const SaltedEarth: DrkOgcdAbility = {
     id: 3639,
     attackType: "Ability",
     activatesBuffs: [SaltedEarthBuff],
-    // Not really, it's 50 * 5, but WIP
     potency: 50, 
     dot: {
         // This is technically just the ID of the salted earth buff, but

@@ -10,7 +10,7 @@ export class DrkGauge {
         return this._bloodGauge;
     }
 
-    get getMagicPoints(): number {
+    get magicPoints(): number {
         return this._magicPoints;
     }
 
@@ -30,9 +30,9 @@ export class DrkGauge {
             console.warn(`Overcapped MP by ${newGauge - 10000}.`);
         }
         if (newGauge < 0) {
-            console.warn(`Used ${this._magicPoints - newGauge} blood when you only have ${this._bloodGauge}.`)
+            console.warn(`Used ${this._magicPoints - newGauge} blood when you only have ${this._magicPoints}.`)
         }
-        this._bloodGauge = Math.max(Math.min(newGauge, 10000), 0);
+        this._magicPoints = Math.max(Math.min(newGauge, 10000), 0);
     }
 
     getGaugeState(): DrkGaugeState {

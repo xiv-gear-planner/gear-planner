@@ -70,7 +70,7 @@ export const BloodWeaponBuff: Buff = {
        // Adds 600 MP per usage
     },
     stacks: 3,
-    appliesTo: ability => ability.attackType === "Spell" || ability.attackType === "Weaponskill" ,
+    appliesTo: ability => ability.attackType === "Spell" || ability.attackType === "Weaponskill",
     beforeSnapshot<X extends Ability>(buffController: BuffController, ability: X): X {
         buffController.subtractStacksSelf(1)
         return null;
