@@ -55,6 +55,7 @@ export function abilityToDamageNew(stats: ComputedSetStats, ability: Ability, co
     }
     // noinspection AssignmentToFunctionParameterJS
     stats = combinedBuffEffects.modifyStats(stats);
+    // TODO: can we avoid having all of these separate stat modifications?
     return {
         directDamage: ability.potency ? potencyToDamage(stats, ability.potency, ability as DamagingAbility, combinedBuffEffects) : null,
         dot: 'dot' in ability ? {

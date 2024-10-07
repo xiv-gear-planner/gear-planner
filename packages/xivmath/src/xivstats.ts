@@ -200,6 +200,7 @@ export class ComputedSetStatsImpl implements ComputedSetStats {
             this.classJobStats,
             this.partyBonus
         );
+        Object.assign(out.finalBonusStats, this.finalBonusStats);
         modifications(out, out.finalBonusStats);
         return out;
     }
