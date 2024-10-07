@@ -1695,6 +1695,66 @@ div.gear-sheet-toolbar-holder {
 
 }
 
+.load-bar-outer {
+  border-style: solid;
+  border-width: 1px;
+  border-color: var(--border-color-highlight);
+  border-radius: 4px;
+}
+.load-bar-inner {
+  background-color: var(--border-color-highlight);
+  border-radius: 3px;
+}
+
+.meld-solver-set {
+  float: left;
+  font-weight: bold;
+  text-decoration: underline;
+}
+.meld-solver-area {
+  white-space: pre-wrap;
+}
+.meld-solver-settings {
+
+    float: left;
+    display: flex;
+    flex-direction: column;
+    border-width: 1px;
+    border-color: #00ff00;
+
+    li {
+      margin: 5px;
+      list-style-type: none;
+      float: left;
+
+      .meld-solver-target-gcd-input {
+        max-width: 30px;
+        border: var(--faint-border);
+        float: left;
+      }
+      .meld-solver-target-gcd-input:disabled {
+        border: var(--faint-border);
+        background-color: #333339;
+        color: #909090;
+      }
+      select.meld-solver-sim-dropdown {
+        float: left;
+        max-width: fit-content;
+        width: 100%;
+        option {
+          padding: 5px;
+        }
+      }
+    }
+
+  button {
+    margin: 5px;
+    border-width: 1px;
+    border-color: #909090;
+    float: left;
+    height: 100%;
+  }
+}
 .gear-set-editor-toolbar {
   > * {
     .shadow;

@@ -610,6 +610,17 @@ export class GearPlanSheet {
         this.recalcAll();
     }
 
+    importSim(simExport: SimExport): Simulation<any, any, any> {
+        const simSpec = getSimSpecByStub(simExport.stub);
+        if (simSpec === undefined) {
+            return null;
+        }
+        const rehydratedSim = simSpec.loadSavedSimInstance(simExport.settings);
+        rehydratedSim.displayName = simExport.name ?? undefined;
+        rehydratedSim.settings.includeInExport ??= true;
+        return rehydratedSim;
+    }
+
     /**
      * Convert a SetExport back to a CharacterGearSet.
      *

@@ -81,6 +81,7 @@ import {confirmDelete} from "@xivgear/common-ui/components/delete_confirm";
 import { SimulationGui } from "../sims/simulation_gui";
 import { makeGui } from "../sims/sim_guis";
 import {recordSheetEvent} from "@xivgear/core/analytics/analytics";
+import { MeldSolverDialog } from "./meld_solver_modal";
 
 export type GearSetSel = SingleCellRowOrHeaderSelect<CharacterGearSet>;
 
@@ -1736,6 +1737,12 @@ export class GearPlanSheetGui extends GearPlanSheet {
         this._sheetSetupDone = true;
     }
 
+    public refreshMateria() {
+        if (this._editorAreaNode instanceof GearSetEditor) {
+            this._editorAreaNode.refreshMateria();
+        }
+    }
+
     get topLevelElement() {
         return this.element;
     }
@@ -1864,6 +1871,15 @@ export class GearPlanSheetGui extends GearPlanSheet {
         const addSimDialog = new AddSimDialog(this);
         document.querySelector('body').appendChild(addSimDialog);
         addSimDialog.show();
+    }
+
+    showMeldSolveDialog() {
+        if (!(this._editorItem instanceof CharacterGearSet)) {
+            return;
+        }
+        const meldSolveDialog = new MeldSolverDialog(this, this.editorItem as CharacterGearSet);
+        document.querySelector('body').appendChild(meldSolveDialog);
+        meldSolveDialog.show();
     }
 
     get gearPlanTable(): GearPlanTable {
