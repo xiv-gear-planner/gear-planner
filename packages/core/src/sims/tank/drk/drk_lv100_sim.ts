@@ -104,7 +104,7 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
         return {
             usePotion: true,
             prepullUnmend: 1,
-            fightTime: (8 * 60) + 30, // 8 minutes and 30s, or 510 seconds
+            fightTime: (8 * 60) + 31, // 8 minutes and 30s, or 510 seconds
         };
     }
 
@@ -115,10 +115,14 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
 
         const drkAbility = ability as DrkAbility;
 
-        let bloodWeaponActive = false 
-        if (cp.getActiveBuffs().includes(BloodWeaponBuff)) {
-            bloodWeaponActive = true
-        }
+        let bloodWeaponActive = false
+    
+        cp.getActiveBuffs().forEach(function(buff) {
+            // Blood Weapon 
+            if(buff.statusId === 742) {
+                bloodWeaponActive = true
+            }
+        }); 
 
         // Add 200 mp every 3s. Imperfect, but it'll do.
         if (cp.currentTime % 3 === 0) {
@@ -160,17 +164,16 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
             drkAbility.updateMP(cp.gauge);
         }
 
+        if (bloodWeaponActive) {
+            cp.gauge.bloodGauge += 10
+            cp.gauge.magicPoints += 600
+        }
+
         const abilityUseResult = cp.use(ability);
 
         // TODO use up remaining gauge and Shadowbringer before the fight ends
         if (ability.type === 'gcd' && cp.fightEndingSoon()) {
             // TODO: cp.use(action name goes here);
-        }
-
-        // This needs to happen _after_ the ability is used.
-        if (bloodWeaponActive) {
-            cp.gauge.bloodGauge += 10
-            cp.gauge.magicPoints += 600
         }
 
         return abilityUseResult;

@@ -143,7 +143,7 @@ export const SaltAndDarkness: DrkOgcdAbility = {
 export const LivingShadow: DrkOgcdAbility = {
     type: 'ogcd',
     name: "Living Shadow",
-    id: 3639,
+    id: 16472,
     // Not really, but it's a WIP
     potency: 2450,
     attackType: "Ability",
