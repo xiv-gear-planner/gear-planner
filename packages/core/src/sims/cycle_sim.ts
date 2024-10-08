@@ -715,8 +715,7 @@ export class CycleProcessor {
         this.finalize();
         return (this.postDamageRecords.map(record => {
             if (isAbilityUse(record)) {
-
-                const partialRate = record.totalTimeTaken > 0 ? Math.max(0, Math.min(1, (this.totalTime - record.usedAt) / record.totalTimeTaken)) : 1;
+                const partialRate = record.totalTimeTaken > 0 ? Math.max(0, Math.min(1, (this.totalTime - record.usedAt) / record.appDelayFromStart)) : 1;
                 const directDamage = multiplyFixed(record.directDamage, partialRate);
                 const dot = record.dot;
                 const dotDmg = dot ? multiplyIndependent(dot.damagePerTick, dot.actualTickCount) : fixedValue(0);
