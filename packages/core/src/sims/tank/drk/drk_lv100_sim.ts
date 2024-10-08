@@ -118,12 +118,11 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
 
         const drkAbility = ability as DrkAbility;
 
-        let bloodWeaponActive = false
-    
+        let applyBloodWeapon = false
         cp.getActiveBuffs().forEach(function(buff) {
-            // Blood Weapon 
-            if(buff.statusId === 742) {
-                bloodWeaponActive = true
+            // Blood Weapon status ID is 742
+            if(buff.statusId === 742 && ability.type === 'gcd') {
+                applyBloodWeapon = true
             }
         }); 
 
@@ -167,7 +166,7 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
             drkAbility.updateMP(cp.gauge);
         }
 
-        if (bloodWeaponActive) {
+        if (applyBloodWeapon) {
             cp.gauge.bloodGauge += 10
             cp.gauge.magicPoints += 600
         }
