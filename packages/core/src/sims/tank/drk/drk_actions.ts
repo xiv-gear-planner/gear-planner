@@ -184,6 +184,6 @@ export const Shadowbringer: DrkOgcdAbility = {
     attackType: "Ability",
     cooldown: {
         time: 60,
-        charges: 1,
+        charges: 2,
     },
 };

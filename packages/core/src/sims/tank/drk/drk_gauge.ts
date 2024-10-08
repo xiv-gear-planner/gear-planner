@@ -30,7 +30,7 @@ export class DrkGauge {
             console.warn(`Overcapped MP by ${newGauge - 10000}.`);
         }
         if (newGauge < 0) {
-            console.warn(`Used ${this._magicPoints - newGauge} blood when you only have ${this._magicPoints}.`)
+            console.warn(`Used ${this._magicPoints - newGauge} MP when you only have ${this._magicPoints}.`)
         }
         this._magicPoints = Math.max(Math.min(newGauge, 10000), 0);
     }
