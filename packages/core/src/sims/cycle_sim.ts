@@ -1355,8 +1355,15 @@ export class CycleProcessor {
             },
         }
     }
-
-    private beforeAbility<X extends Ability>(originalAbility: X, buffs: Buff[]): X {
+    
+    /**
+     * Applies beforeAbility calls to a given ability. 
+     * 
+     * @param originalAbility the ability to modify
+     * @param buffs the buffs to apply
+     * @returns a modified ability
+     */
+    protected beforeAbility<X extends Ability>(originalAbility: X, buffs: Buff[]): X {
         let ability: X = originalAbility;
         for (const buff of buffs) {
             if ('beforeAbility' in buff) {

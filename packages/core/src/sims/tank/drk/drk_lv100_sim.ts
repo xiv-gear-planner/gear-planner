@@ -63,6 +63,12 @@ class DrkCycleProcessor extends CycleProcessor {
         return this.currentTime > (this.totalTime - 10);
     }
 
+    // Gets the DRK ability with Blood Weapon's blood and MP additions
+    // added to it.
+    getDrkAbilityWithBloodWeapon(ability: DrkAbility): DrkAbility {
+        return this.beforeAbility(ability, this.getActiveBuffsFor(ability));         
+    }
+
     override addAbilityUse(usedAbility: PreDmgAbilityUseRecordUnf) {
         // Add gauge data to this record for the UI
         const extraData: DrkExtraData = {
@@ -118,15 +124,7 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
 
         const drkAbility = ability as DrkAbility;
 
-        let applyBloodWeapon = false
-        cp.getActiveBuffs().forEach(function(buff) {
-            // Blood Weapon status ID is 742
-            if(buff.statusId === 742 && ability.type === 'gcd') {
-                applyBloodWeapon = true
-            }
-        }); 
-
-        // Add 200 mp every 3s. Imperfect, but it'll do.
+        // Add 200 mp every ~3sish. Imperfect, but it'll do for now.
         if (cp.currentTime % 3 === 0) {
             cp.gauge.magicPoints += 200
         }
@@ -151,24 +149,20 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
         }
 
         // Update gauges
-        if (drkAbility.updateBloodGauge !== undefined) {
+        const abilityWithBloodWeapon = cp.getDrkAbilityWithBloodWeapon(ability)
+        if (abilityWithBloodWeapon.updateBloodGauge !== undefined) {
             // Prevent gauge updates showing incorrectly on autos before this ability
             if (ability.type === 'gcd' && cp.nextGcdTime > cp.currentTime) {
                 cp.advanceTo(cp.nextGcdTime);
             }
-            drkAbility.updateBloodGauge(cp.gauge);
+            abilityWithBloodWeapon.updateBloodGauge(cp.gauge);
         }
-        if (drkAbility.updateMP !== undefined) {
+        if (abilityWithBloodWeapon.updateMP !== undefined) {
             // Prevent gauge updates showing incorrectly on autos before this ability
             if (ability.type === 'gcd' && cp.nextGcdTime > cp.currentTime) {
                 cp.advanceTo(cp.nextGcdTime);
             }
-            drkAbility.updateMP(cp.gauge);
-        }
-
-        if (applyBloodWeapon) {
-            cp.gauge.bloodGauge += 10
-            cp.gauge.magicPoints += 600
+            abilityWithBloodWeapon.updateMP(cp.gauge);
         }
 
         const abilityUseResult = cp.use(ability);
