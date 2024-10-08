@@ -103,8 +103,11 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
     override makeDefaultSettings(): DrkSettings {
         return {
             usePotion: true,
-            prepullUnmend: 1,
-            fightTime: (8 * 60) + 31, // 8 minutes and 30s, or 510 seconds
+            prepullUnmend: 1, 
+            // 8 minutes and 31s, or 511 seconds
+            // This is chosen since it's two pots, five bursts,
+            // and is somewhat even between the two main GCDs.
+            fightTime: (8 * 60) + 31,
         };
     }
 
