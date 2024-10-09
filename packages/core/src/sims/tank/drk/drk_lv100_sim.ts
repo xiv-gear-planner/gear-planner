@@ -234,7 +234,7 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
         console.log(`[DRK Sim] Running ${name}...`);
         return [{
             name: name,
-            cycleTime: (9 * 60),
+            cycleTime: 120,
             apply(cp: DrkCycleProcessor) {
                 // Pre-pull Unmend timing
                 const first = rotation.opener.shift();
