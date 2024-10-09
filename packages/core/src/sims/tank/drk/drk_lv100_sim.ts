@@ -29,7 +29,10 @@ export interface DrkSettingsExternal extends ExternalCycleSettings<DrkSettings> 
 export const drkSpec: SimSpec<DrkSim, DrkSettingsExternal> = {
     stub: "drk-sim-lv100",
     displayName: "DRK Sim",
-    description: 'Simulates a DRK rotation using level 100 abilities/traits. Currently a work in progress, and only fully supports 2.50 and 2.46 GCD speeds.',
+    description: `Simulates a DRK rotation using level 100 abilities/traits.
+Currently a work in progress, and only fully supports 2.50 and 2.46 GCD speeds.
+Defaults to simulating a killtime of 8m 30s (510s).
+Results are only currently accurate up to 9 minutes (540s).`,
     makeNewSimInstance: function (): DrkSim {
         return new DrkSim();
     },
@@ -73,7 +76,16 @@ class DrkCycleProcessor extends CycleProcessor {
         // Add gauge data to this record for the UI
         const extraData: DrkExtraData = {
             gauge: this.gauge.getGaugeState(),
+            darksideDuration: 0,
         };
+        
+        const darkside = usedAbility.buffs.find(buff => buff.name === "Darkside")
+        if (darkside) {
+            const buffData = this.getActiveBuffData(darkside, usedAbility.usedAt)
+            if (buffData) {
+                extraData.darksideDuration = Math.round(buffData.end - usedAbility.usedAt)
+            }
+        }
 
         const modified: PreDmgAbilityUseRecordUnf = {
             ...usedAbility,
@@ -94,6 +106,7 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
         cycles: 0,
         which: 'totalTime',
     }
+    mpTicks = 0
 
     constructor(settings?: DrkSettingsExternal) {
         super('DRK', settings);
@@ -110,10 +123,10 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
         return {
             usePotion: true,
             prepullUnmend: 1, 
-            // 8 minutes and 31s, or 511 seconds
+            // 8 minutes and 30s, or 510 seconds
             // This is chosen since it's two pots, five bursts,
             // and is somewhat even between the two main GCDs.
-            fightTime: (8 * 60) + 31,
+            fightTime: (8 * 60) + 30,
         };
     }
 
@@ -124,9 +137,18 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
 
         const drkAbility = ability as DrkAbility;
 
-        // Add 200 mp every ~3sish. Imperfect, but it'll do for now.
-        if (cp.currentTime % 3 === 0) {
-            cp.gauge.magicPoints += 200
+        // Add 200 mp every ~3sish. Very imperfect, but it'll do for now.
+        // In the future, MP should probably be refactored into the base processor.
+        // We use Math.floor to be pessimistic, i.e. worst case mana ticks.
+        const expectedMPTicks = Math.floor(Math.round(cp.currentTime) / 3)
+        // Reset mpTicks at the start of a new fight or simulation.
+        if (expectedMPTicks == 0) {
+            this.mpTicks = 0
+        }
+        const differenceInMPTicks = expectedMPTicks - this.mpTicks
+        if (differenceInMPTicks > 0) {
+            this.mpTicks += differenceInMPTicks
+            cp.gauge.magicPoints += differenceInMPTicks * 200
         }
 
         // Log when we try to use more gauge than what we currently have
@@ -212,7 +234,7 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
         console.log(`[DRK Sim] Running ${name}...`);
         return [{
             name: name,
-            cycleTime: (8 * 60) + 38,
+            cycleTime: (9 * 60),
             apply(cp: DrkCycleProcessor) {
                 // Pre-pull Unmend timing
                 const first = rotation.opener.shift();

@@ -1,4 +1,4 @@
-import { Darkside } from "./drk_gauge";
+import { Darkside, DrkGauge } from "./drk_gauge";
 import { DrkGcdAbility, DrkOgcdAbility, BloodWeaponBuff, DeliriumBuff, ScornBuff, SaltedEarthBuff } from "./drk_types";
 
 export const HardSlash: DrkGcdAbility = {
@@ -173,7 +173,31 @@ export const EdgeOfShadow: DrkOgcdAbility = {
         time: 1,
     },
     activatesBuffs: [Darkside],
-    updateMP: gauge => gauge.magicPoints -= 3000,
+    updateMP: (gauge: DrkGauge) => {
+        if (gauge.darkArts) {
+            gauge.darkArts = false;
+        } else {
+            gauge.magicPoints -= 3000;
+        }
+    }
+};
+
+export const TheBlackestNight: DrkOgcdAbility = {
+    type: 'ogcd',
+    name: "The Blackest Night",
+    id: 7393,
+    potency: 0,
+    attackType: "Ability",
+    cooldown: {
+        time: 15,
+    },
+    updateMP: (gauge: DrkGauge) => { 
+        gauge.magicPoints -= 3000;
+        // For the sake of ease, we'll assume that the TBN pops immediately. This is
+        // naturally imperfect, but is perfectly serviceable for the purposes of a
+        // damage sim.
+        gauge.darkArts = true;
+    },
 };
 
 export const Shadowbringer: DrkOgcdAbility = {

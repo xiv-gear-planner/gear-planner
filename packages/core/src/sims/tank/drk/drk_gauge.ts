@@ -5,6 +5,7 @@ export class DrkGauge {
 
     private _bloodGauge: number = 0;
     private _magicPoints: number = 10000;
+    private _darkArts: boolean;
 
     get bloodGauge(): number {
         return this._bloodGauge;
@@ -14,6 +15,10 @@ export class DrkGauge {
         return this._magicPoints;
     }
 
+    get darkArts(): boolean {
+        return this._darkArts;
+    }
+    
     set bloodGauge(newGauge: number) {
         if (newGauge > 100) {
             console.warn(`Overcapped Blood by ${newGauge - 100}.`);
@@ -24,7 +29,6 @@ export class DrkGauge {
         this._bloodGauge = Math.max(Math.min(newGauge, 100), 0);
     }
 
-    
     set magicPoints(newGauge: number) {
         if (newGauge > 10000) {
             console.warn(`Overcapped MP by ${newGauge - 10000}.`);
@@ -35,11 +39,16 @@ export class DrkGauge {
         this._magicPoints = Math.max(Math.min(newGauge, 10000), 0);
     }
 
+    set darkArts(newDarkArts: boolean) {
+        this._darkArts = newDarkArts
+    }
+
     getGaugeState(): DrkGaugeState {
         return {
             level: 100,
             blood: this.bloodGauge,
             mp: this.magicPoints,
+            darkArts: this.darkArts,
         }
     }
 }

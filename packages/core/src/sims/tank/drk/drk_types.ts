@@ -31,12 +31,14 @@ export type DrkGaugeState = {
     level: number,
     blood: number,
     mp: number,
+    darkArts: boolean,
 }
 
-/** Represents the extra data for UsedAbility */
+/** Represents the extra data for UsedAbility, primarily for consumption in the UI */
 export type DrkExtraData = {
     /** The DRK gauge data */
     gauge: DrkGaugeState,
+    darksideDuration: number,
 };
 
 export const ScornBuff: Buff = {
