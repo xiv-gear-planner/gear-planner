@@ -1,28 +1,35 @@
-import { CharacterGearSet } from "@xivgear/core/gear";
-import { EquippedItem, RawStats, EquipmentSet, EquipSlots, MeldableMateriaSlot, SetExport, SimExport } from "@xivgear/xivmath/geartypes";
-import { MateriaSubstat, ALL_SUB_STATS, MATERIA_ACCEPTABLE_OVERCAP_LOSS, NORMAL_GCD } from "@xivgear/xivmath/xivconstants";
-import { SimResult, SimSettings, Simulation } from "@xivgear/core/sims/sim_types";
+import { EquippedItem, RawStats, EquipmentSet, EquipSlots, MeldableMateriaSlot, SetExport } from "@xivgear/xivmath/geartypes";
+import { MateriaSubstat, ALL_SUB_STATS, NORMAL_GCD, MATERIA_ACCEPTABLE_OVERCAP_LOSS } from "@xivgear/xivmath/xivconstants";
 import { sksToGcd, spsToGcd } from "@xivgear/xivmath/xivmath";
-import { GearPlanSheet } from "@xivgear/core/sheet";
+import { CharacterGearSet } from "../gear";
+import { GearPlanSheet } from "../sheet";
 
-export class MeldSolverSettings {
-    sim: Simulation<SimResult, SimSettings, unknown>;
+export class GearsetGenerationSettings {
     gearset: CharacterGearSet;
     overwriteExistingMateria: boolean;
     useTargetGcd: boolean;
-    targetGcd?: number;
+    targetGcd: number;
+
+    constructor(gearset: CharacterGearSet, overwrite: boolean, useTargetGcd: boolean, targetGcd: number) {
+        this.gearset = gearset;
+        this.overwriteExistingMateria = overwrite;
+        this.useTargetGcd = useTargetGcd;
+        this.targetGcd = targetGcd;
+    }
+
+    static export(settings: GearsetGenerationSettings, sheet: GearPlanSheet): GearsetGenerationSettingsExport {
+        return {
+            ...settings,
+            gearset: sheet.exportGearSet(settings.gearset),
+        }
+    }
 }
 
-/**
- * Different from MeldsolverSettings because webworkers needs a serializable object
- * There's probably a better way than
- */
-export class MeldSolverSettingsExport {
-    sim: SimExport;
+export class GearsetGenerationSettingsExport {
     gearset: SetExport;
     overwriteExistingMateria: boolean;
     useTargetGcd: boolean;
-    targetGcd?: number;
+    targetGcd: number;
 }
 
 class ItemWithStats {
@@ -45,98 +52,34 @@ class EquipmentSetWithStats {
     }
 }
 
-export class MeldSolver {
+/**
+ * Produces possible gearsets for solving
+ */
+export class GearsetGenerator {
 
     readonly _sheet: GearPlanSheet;
-    readonly _settings: MeldSolverSettings;
+    readonly _settings: GearsetGenerationSettings;
 
     relevantStats: MateriaSubstat[]; //= ALL_SUB_STATS.filter(stat => this._sheet.isStatRelevant(stat) && stat != 'piety');
 
-    public constructor(sheet: GearPlanSheet, settings: MeldSolverSettings) {
+    public constructor(sheet: GearPlanSheet, settings: GearsetGenerationSettings) {
         this._sheet = sheet;
         this._settings = settings;
         this.relevantStats = ALL_SUB_STATS.filter(stat => this._sheet.isStatRelevant(stat) && stat != 'piety');
     }
 
-    public async solveMelds() : Promise<CharacterGearSet> {
-        
-        if (!this._settings.sim) {
-            return null;
-        }
+    getMeldPossibilitiesForGearset(settings: GearsetGenerationSettings): CharacterGearSet[] {
 
-        const generatedSets = this.getAllMeldCombinations(
-            this._settings.gearset,
-            this._settings.overwriteExistingMateria,
-            this._settings.useTargetGcd ? this._settings.targetGcd : null);
-
-        if (generatedSets.size == 0) {
-            return null;
-        }
-
-        const bestSet = await this.simulateSets(
-            generatedSets,
-            this._settings.sim
-        );
-
-        return bestSet;
-    }
-
-    async simulateSets(setsToSim: Set<CharacterGearSet>, sim: Simulation<SimResult, SimSettings, unknown>)
-    : Promise<CharacterGearSet> {
-
-        if (setsToSim.size == 0) {
-            return null;
-        }
-
-        let bestSimDps: number = 0;
-        let bestSet: CharacterGearSet;
-
-        let numSetsProcessed = 0;
-        let lastUpdate = 0;
-        const progressResolution = 0.01
-        const threshold = setsToSim.size * progressResolution;
-
-        /**
-         * Very important: order sets by sks to avoid generating rotations with every new set
-         */
-        const sortedSetsBySpeed = Array.from(setsToSim).sort((setA, setB) => {
-            const useSks = 'skillspeed' in this.relevantStats;
-            return useSks ?
-                setA.computedStats.skillspeed - setB.computedStats.skillspeed
-                : setA.computedStats.spellspeed - setB.computedStats.spellspeed
-        })
-        
-        postMessage(0);
-        for (const set of sortedSetsBySpeed) {
-            const result = await sim.simulate(set);
-            if (result.mainDpsResult > bestSimDps) {
-                bestSimDps = result.mainDpsResult;
-                bestSet = set;
-            }
-
-            numSetsProcessed++;
-
-            if (numSetsProcessed - lastUpdate >= threshold) {
-                postMessage(Math.floor(100 * (numSetsProcessed / setsToSim.size)));
-                lastUpdate = numSetsProcessed;
-            }
-        }
-
-        return bestSet;
-    }
-
-    getAllMeldCombinations(gearset: CharacterGearSet, overwriteMateria: boolean, targetGcd?: number): Set<CharacterGearSet> {
-
-        const levelStats = gearset.computedStats.levelStats;
+        const levelStats = settings.gearset.computedStats.levelStats;
         const override = this._sheet.classJobStats.gcdDisplayOverrides?.(this._sheet.level) ?? [];
-        const useSks = gearset.isStatRelevant('skillspeed');
+        const useSks = settings.gearset.isStatRelevant('skillspeed');
         const over = override.find(over => over.basis === (useSks ? 'sks' : 'sps'));
         const attackType = over ? over.attackType : useSks ? 'Weaponskill' : 'Spell';
-        const haste = gearset.computedStats.haste(attackType) + (over ? over.haste : 0);
+        const haste = settings.gearset.computedStats.haste(attackType) + (over ? over.haste : 0);
 
-        const equipment = this.cloneEquipmentset(gearset.equipment);
+        const equipment = this.cloneEquipmentset(settings.gearset.equipment);
         
-        if (overwriteMateria) {
+        if (settings.overwriteExistingMateria) {
             for (const slotKey of EquipSlots) {
                 const equipSlot = equipment[slotKey] as EquippedItem | null;
                 const gearItem = equipSlot?.gearItem;
@@ -146,7 +89,6 @@ export class MeldSolver {
             }
         }
 
-        const generatedGearsets = new Set<CharacterGearSet>
         let possibleMeldCombinations = new Map<string, EquipmentSetWithStats>();
         const baseEquipSet = new EquipmentSetWithStats(new EquipmentSet, new RawStats);
 
@@ -188,7 +130,7 @@ export class MeldSolver {
 
                     // Exclude anything that is already past our target GCD, because there's no anti-sks that will slow the set down to target
                     if (!newGearsets.has(setPlusNewPieceKey)
-                        && (!targetGcd || gcd > targetGcd)) { 
+                        && (!settings.useTargetGcd || gcd >= settings.targetGcd)) { 
 
                         const setPlusNewPiece = this.cloneEquipmentSetWithStats(currSet);
                         setPlusNewPiece.set[slotKey] = currPiece.item;
@@ -202,19 +144,32 @@ export class MeldSolver {
             possibleMeldCombinations = newGearsets;
         }
 
+        const generatedGearsets: CharacterGearSet[] = new Array(possibleMeldCombinations.size);
+        let i = 0;
         for (const combination of possibleMeldCombinations.values()) {
 
             const newGearset: CharacterGearSet = new CharacterGearSet(this._sheet);
-            newGearset.food = gearset.food;
+            newGearset.food = settings.gearset.food;
             newGearset.equipment = combination.set;
             
             newGearset.forceRecalc();
             const gcd = useSks ? newGearset.computedStats.gcdPhys(NORMAL_GCD, haste)
                                 : newGearset.computedStats.gcdMag(NORMAL_GCD, haste);
             
-            if (!targetGcd || gcd === targetGcd) {
-                generatedGearsets.add(newGearset);
+            if (settings.useTargetGcd && gcd !== settings.targetGcd) {
+                //console.log(`skipping, gcd=${gcd}`);
+                continue;
             }
+            
+            generatedGearsets[i] = newGearset;
+            i++;
+            /*
+            const speedStat = useSks ? newGearset.computedStats.skillspeed : newGearset.computedStats.spellspeed;
+            if (!generatedGearsets.has(speedStat)) {
+                generatedGearsets.set(speedStat, new Set);
+            }
+            generatedGearsets.get(speedStat).add(newGearset);
+            */
         }
 
         return generatedGearsets;
@@ -246,7 +201,6 @@ export class MeldSolver {
                     const newStats: RawStats = Object.assign({}, stats);
                     newStats[stat] += materia.primaryStatValue;
                     const newStatsKey = this.statsToString(newStats, this.relevantStats);
-
 
                     if (stats[stat] + materia.primaryStatValue - existingCombination.item.gearItem.statCaps[stat] < MATERIA_ACCEPTABLE_OVERCAP_LOSS
                         && !itemsToAdd.has(newStatsKey) // Skip if this combination of stats has been found

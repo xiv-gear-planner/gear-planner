@@ -1,11 +1,13 @@
 import { FieldBoundCheckBox, FieldBoundDataSelect, FieldBoundFloatField, makeActionButton } from "@xivgear/common-ui/components/util";
 import { CharacterGearSet } from "@xivgear/core/gear";
 import { GearPlanSheetGui } from "./sheet";
-import { SimResult, SimSettings, Simulation } from "@xivgear/core/sims/sim_types";
+import { SimResult, Simulation } from "@xivgear/core/sims/sim_types";
 import { MAX_GCD } from "@xivgear/xivmath/xivconstants";
 import { BaseModal } from "@xivgear/common-ui/components/modal";
-import { EquipSlots, SetExport } from "@xivgear/xivmath/geartypes";
-import { MeldSolverSettings, MeldSolverSettingsExport } from "@xivgear/core/materia/meldsolver";
+import { EquipSlots } from "@xivgear/xivmath/geartypes";
+import { MeldSolverSettings, MeldSolver } from "./meldsolver";
+import { GearsetGenerationSettings } from "@xivgear/core/solving/gearset_generation";
+import { SolverSimulationSettings } from "@xivgear/core/solving/sim_runner";
 import { recordEvent } from "@xivgear/core/analytics/analytics";
 
 export class MeldSolverDialog extends BaseModal {
@@ -18,8 +20,8 @@ export class MeldSolverDialog extends BaseModal {
     private cancelButton: HTMLButtonElement;
     readonly settingsDiv: MeldSolverSettingsMenu;
     private progressDisplay: MeldSolverProgressDisplay;
-    
-    private solveWorker: Worker;
+
+    private solver: MeldSolver;
 
     constructor(sheet: GearPlanSheetGui, set: CharacterGearSet) {
         super();
@@ -30,31 +32,22 @@ export class MeldSolverDialog extends BaseModal {
         form.method = 'dialog';
         this.inner.style.maxWidth = "25%"; // idk why this doesn't work in common-css but it don't.
 
-        this.solveWorker = this.makeActualWorker();
-
         this.classList.add('meld-solver-area');
         this.descriptionText = document.createElement('div');
         this.descriptionText.textContent = "Solve for the highest-dps set of melds for this gearset.\r\n"
-                                        + "Speed up computations by targeting a specific GCD and/or pre-filling some materia slots";
-        
+            + "Speed up computations by targeting a specific GCD and/or pre-filling some materia slots";
+
         this.setNameText = document.createElement('div');
         this.setNameText.textContent = `"${set.name}"`;
         this.setNameText.classList.add('meld-solver-set');
 
         this.settingsDiv = new MeldSolverSettingsMenu(sheet, set);
 
-        const outer = this; 
         let meld_solve_start: number;
-        this.solveWorker.onmessage = function (ev: MessageEvent) {
-            outer.messageReceived(ev);
-            recordEvent("SolveMelds", {
-                "Total Time Taken: ": Date.now() - (meld_solve_start ?? Date.now()),
-            });
-        };
 
         this.solveMeldsButton = makeActionButton("Solve Melds", async () => {
+            this.solver = new MeldSolver(sheet);
             meld_solve_start = Date.now();
-            this.solveWorker.postMessage([sheet.exportSheet(), this.exportSolverSettings()]);
 
             this.closeButton.disabled = true;
             this.settingsDiv.setEnabled(false);
@@ -63,10 +56,23 @@ export class MeldSolverDialog extends BaseModal {
             this.addButton(this.cancelButton);
             this.progressDisplay = new MeldSolverProgressDisplay;
             form.replaceChildren(this.progressDisplay);
+            const solverPromise = this.solver.solveMelds(
+                this.settingsDiv.gearsetGenSettings,
+                this.settingsDiv.simSettings,
+                (num: number) => {
+                    this.progressDisplay.loadbar.updateProgress(num);
+                    this.progressDisplay.text.textContent = "Simulating...";
+
+                });
+            solverPromise.then((set) => this.messageReceived(set));
+            recordEvent("SolveMelds", {
+                "Total Time Taken: ": Date.now() - (meld_solve_start ?? Date.now()),
+            });
+            solverPromise.catch((err) => console.log(err));
         });
 
         this.cancelButton = makeActionButton("Cancel", async () => {
-            this.solveWorker.terminate();
+            await this.solver.cancel();
 
             this.closeButton.disabled = false;
             this.settingsDiv.setEnabled(true);
@@ -75,7 +81,7 @@ export class MeldSolverDialog extends BaseModal {
             form.replaceChildren(this.settingsDiv);
             this.addButton(this.solveMeldsButton);
         });
-        
+
         this.addButton(this.solveMeldsButton);
 
         form.replaceChildren(
@@ -85,67 +91,28 @@ export class MeldSolverDialog extends BaseModal {
         this.contentArea.append(form);
     }
 
-    // Webpack sees this and it causes it to generate a separate js file for the worker.
-    // import.meta.url doesn't actually work for this - we need to use document.location as shown in the ctor.
-    // TODO: make sure the worker JS is not also ending up in the main JS
-    makeUselessWorker() {
-        this.solveWorker = new Worker(new URL(
-            // @ts-expect-error idk
-            '../workers/meld_solver_worker.ts', import.meta.url)
-        );
-    }
-
-    makeActualWorker(): Worker {
-        return new Worker(new URL(
-            './src_scripts_workers_meld_solver_worker_ts.js', document.location.toString())
-        );
-    }
-
     public refresh(set: CharacterGearSet) {
-        this.settingsDiv.settings.gearset = set;
+        this.settingsDiv.gearsetGenSettings.gearset = set;
     }
 
-    // For sending to worker
-    exportSolverSettings(): MeldSolverSettingsExport {
-        const setting = this.settingsDiv.settings.sim.exportSettings();
-        return {
-            ...this.settingsDiv.settings,
-            sim: {
-                stub: this.settingsDiv.settings.sim.spec.stub,
-                settings: setting as SimSettings,
-                name: this.settingsDiv.settings.sim.displayName,
-            },
-            gearset: this._sheet.exportGearSet(this.settingsDiv.settings.gearset),
-        };
-    }
+    messageReceived(set: CharacterGearSet) {
 
-    messageReceived(ev: MessageEvent) {
-        
-        if (typeof ev.data === 'number') {
-            this.progressDisplay.loadbar.updateProgress(ev.data as number);
-            if ((ev.data as number) === 0) {
-                this.progressDisplay.text.textContent = "Simulating...";
-            }  
-        }
-        else {
-            const set = this._sheet.importGearSet(ev.data as SetExport);
-            if (set) {
-                this.applyResult(set);
-                this.settingsDiv.settings.gearset.forceRecalc();
-                this._sheet.refreshMateria();
-                this.close();
-            }
+        if (set) {
+            this.applyResult(set);
+            this.settingsDiv.gearsetGenSettings.gearset.forceRecalc();
+            this._sheet.refreshMateria();
+            this.close();
         }
     }
 
     applyResult(newSet: CharacterGearSet) {
 
         for (const slotKey of EquipSlots) {
-            if (!this.settingsDiv.settings.gearset.equipment[slotKey]) {
+            if (!this.settingsDiv.gearsetGenSettings.gearset.equipment[slotKey]) {
                 continue;
             }
 
-            this.settingsDiv.settings.gearset.equipment[slotKey].melds = newSet.equipment[slotKey].melds;
+            this.settingsDiv.gearsetGenSettings.gearset.equipment[slotKey].melds = newSet.equipment[slotKey].melds;
         }
     }
 }
@@ -192,30 +159,29 @@ class MeldSolverProgressDisplay extends HTMLDivElement {
 }
 
 class MeldSolverSettingsMenu extends HTMLDivElement {
-    public settings: MeldSolverSettings;
+    public gearsetGenSettings: GearsetGenerationSettings;
+    public simSettings: SolverSimulationSettings;
     private overwriteMateriaText: HTMLSpanElement;
-    private overwriteMateriaCheckbox: FieldBoundCheckBox<MeldSolverSettings>;
-    private useTargetGcdCheckBox: FieldBoundCheckBox<MeldSolverSettings>;
-    private targetGcdInput: FieldBoundFloatField<MeldSolverSettings>;
+    private overwriteMateriaCheckbox: FieldBoundCheckBox<GearsetGenerationSettings>;
+    private useTargetGcdCheckBox: FieldBoundCheckBox<GearsetGenerationSettings>;
+    private targetGcdInput: FieldBoundFloatField<GearsetGenerationSettings>;
     private checkboxContainer: HTMLDivElement;
-    private simDropdown: FieldBoundDataSelect<MeldSolverSettings, Simulation<SimResult, unknown, unknown>>;
+    private simDropdown: FieldBoundDataSelect<SolverSimulationSettings, Simulation<SimResult, unknown, unknown>>;
 
     private readonly disableables = [];
     constructor(sheet: GearPlanSheetGui, set: CharacterGearSet) {
         super();
-        this.settings = {
-            gearset: set,
-            overwriteExistingMateria: false, 
-            useTargetGcd: false,
-            targetGcd: 2.50,
+        this.gearsetGenSettings = new GearsetGenerationSettings(set, false, false, 2.50);
+        this.simSettings = {
             sim: sheet.sims.at(0),
+            sets: undefined, // Not referenced in UI
         }
 
         const targetGcdText = document.createElement('span');
         targetGcdText.textContent = "Target GCD: ";
         targetGcdText.classList.add('meld-solver-settings');
 
-        this.targetGcdInput = new FieldBoundFloatField(this.settings, 'targetGcd', {
+        this.targetGcdInput = new FieldBoundFloatField(this.gearsetGenSettings, 'targetGcd', {
             postValidators: [ctx => {
                 const val = ctx.newValue;
                 // Check if user typed more than 2 digits, weird math because floating point fun
@@ -236,22 +202,22 @@ class MeldSolverSettingsMenu extends HTMLDivElement {
         this.targetGcdInput.classList.add('meld-solver-target-gcd-input');
         this.targetGcdInput.disabled = true;
 
-        this.useTargetGcdCheckBox = new FieldBoundCheckBox(this.settings, 'useTargetGcd');
+        this.useTargetGcdCheckBox = new FieldBoundCheckBox(this.gearsetGenSettings, 'useTargetGcd');
         this.useTargetGcdCheckBox.classList.add('meld-solver-settings');
 
         this.overwriteMateriaText = document.createElement('span');
         this.overwriteMateriaText.textContent = "Overwrite existing materia?";
         this.overwriteMateriaText.classList.add('meld-solver-settings');
 
-        this.overwriteMateriaCheckbox = new FieldBoundCheckBox(this.settings, 'overwriteExistingMateria');
+        this.overwriteMateriaCheckbox = new FieldBoundCheckBox(this.gearsetGenSettings, 'overwriteExistingMateria');
         this.overwriteMateriaCheckbox.classList.add('meld-solver-settings');
 
         const simText = document.createElement('span');
         simText.textContent = "Sim: ";
         simText.classList.add('meld-solver-settings');
 
-        this.simDropdown = new FieldBoundDataSelect<typeof this.settings, Simulation<SimResult, unknown, unknown>>(
-            this.settings,
+        this.simDropdown = new FieldBoundDataSelect<typeof this.simSettings, Simulation<SimResult, unknown, unknown>>(
+            this.simSettings,
             'sim',
             value => {
                 return value ? value.displayName : "None";
@@ -295,6 +261,6 @@ class MeldSolverSettingsMenu extends HTMLDivElement {
 }
 
 customElements.define('meld-solver-area', MeldSolverDialog);
-customElements.define('load-bar', LoadBar, {extends: 'div'});
-customElements.define('meld-solver-progress-display', MeldSolverProgressDisplay, {extends: 'div'});
-customElements.define('meld-solver-settings-menu', MeldSolverSettingsMenu, {extends: 'div'});
+customElements.define('load-bar', LoadBar, { extends: 'div' });
+customElements.define('meld-solver-progress-display', MeldSolverProgressDisplay, { extends: 'div' });
+customElements.define('meld-solver-settings-menu', MeldSolverSettingsMenu, { extends: 'div' });
