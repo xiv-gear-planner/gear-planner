@@ -120,7 +120,7 @@ export class SingleStatTierDisplay extends HTMLDivElement {
             if (tieringResult.lower > 0) {
                 lowerLeftDiv.textContent = '-' + tieringResult.lower;
                 div.classList.remove('stat-tiering-perfect');
-                this.lowerLeftDiv.title = `Your ${tiering.fullName} is ${tieringResult.lower} above the next-lowest tier.\nIn other words, you could lose up to ${tieringResult.lower} points without negatively impacting your ${tiering.fullName}.`;
+                lowerLeftDiv.title = `Your ${tiering.fullName} is ${tieringResult.lower} above the next-lowest tier.\nIn other words, you could lose up to ${tieringResult.lower} points without negatively impacting your ${tiering.fullName}.`;
             }
             else {
                 lowerLeftDiv.textContent = '✔';
