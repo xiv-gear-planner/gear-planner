@@ -40,7 +40,7 @@ class DRGGaugeGui {
 
                     const barInner = document.createElement('div');
                     barInner.style.backgroundColor = '#DB5858';
-                    barInner.style.width = `${firstmindsFocus}%`;
+                    barInner.style.width = `${firstmindsFocus * 50}%`;
                     barInner.style.height = '100%';
                     barOuter.appendChild(barInner);
 
