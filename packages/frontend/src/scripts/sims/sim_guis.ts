@@ -49,7 +49,7 @@ import {mpSimSpec} from "@xivgear/core/sims/healer/healer_mp";
 
 
 type SimGuiCtor<X extends Simulation<SimResult, unknown, unknown>> = {
-    new (sim: X): SimulationGui<ResultTypeOfSim<X>, SettingsTypeOfSim<X>, ExportSettingsTypeOfSim<X>>;
+    new(sim: X): SimulationGui<ResultTypeOfSim<X>, SettingsTypeOfSim<X>, ExportSettingsTypeOfSim<X>>;
 }
 
 function registerGui<X extends Simulation<SimResult, unknown, unknown>>(simSpec: SimSpec<X, unknown>, guiCtor: SimGuiCtor<X>) {
@@ -79,6 +79,7 @@ registerGui(sgeNewSheetSpec, SgeSheetSimGui);
 registerGui(astNewSheetSpec, AstSheetSimGui);
 registerGui(schNewSheetSpec, SchSimGui);
 registerGui(whmNewSheetSpec, WhmSimGui);
+registerGui(drgTopSimSpec, DRGTopSimGui);
 registerGui(rprSheetSpec, RprSheetSimGui);
 registerGui(vprSheetSpec, VprSimGui);
 registerGui(ninSpec, NinSheetSimGui);

@@ -48,6 +48,7 @@ export function registerDefaultSims() {
     registerSim(schNewSheetSpec);
     registerSim(whmNewSheetSpec);
     registerSim(mpSimSpec);
+    registerSim(drgTopSimSpec);
     registerSim(rprSheetSpec);
     registerSim(vprSheetSpec);
     registerSim(mnkSpec);
