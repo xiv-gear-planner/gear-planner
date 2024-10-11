@@ -92,6 +92,7 @@ registerGui(schNewSheetSpec, SchSimGui);
 registerGui(whmNewSheetSpec, WhmSimGui);
 registerGui(mpSimSpec, MPSimGui);
 // Melee
+registerGui(drgTopSimSpec, DRGTopSimGui);
 registerGui(rprSheetSpec, RprSheetSimGui);
 registerGui(vprSheetSpec, VprSimGui);
 registerGui(ninSpec, NinSheetSimGui);

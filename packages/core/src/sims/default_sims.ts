@@ -54,6 +54,7 @@ export function registerDefaultSims() {
     registerSim(whmNewSheetSpec);
     registerSim(mpSimSpec);
     // Melee
+    registerSim(drgTopSimSpec);
     registerSim(rprSheetSpec);
     registerSim(vprSheetSpec);
     registerSim(mnkSpec);
