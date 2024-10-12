@@ -1829,7 +1829,7 @@ export class GearPlanSheetGui extends GearPlanSheet {
 
     refreshToolbar() {
         if (this._editorItem instanceof CharacterGearSet) {
-            if (this.toolbarHolder !== undefined && 'refresh' in this.toolbarNode && typeof this.toolbarNode.refresh === 'function') {
+            if (this.toolbarNode !== undefined && 'refresh' in this.toolbarNode && typeof this.toolbarNode.refresh === 'function') {
                 this.toolbarNode.refresh(this._editorItem);
             }
         }

@@ -43,7 +43,7 @@ export function makeGemdraught(stat: RawStatKey, grade: GemdraughtGrade): Readon
         strength: 44157,
         dexterity: 44158,
         intelligence: 44160,
-    }
+    };
     const gradeToStatCap = [351, 392];
 
     return makePotion(`Grade ${grade} Gemdraught of ${camel2title(stat)}`, stat, statToPotItemId[stat], 0.1, gradeToStatCap[grade - 1]);

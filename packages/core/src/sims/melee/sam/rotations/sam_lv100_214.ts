@@ -345,6 +345,7 @@ export const Opener: SamAbility[] = [
     Actions.Gyofu,
     Actions.Yukikaze,
     Actions.MidareSetsugekka,
+    Actions.HissatsuShinten,
     Actions.KaeshiSetsugekka,
 ];
 
