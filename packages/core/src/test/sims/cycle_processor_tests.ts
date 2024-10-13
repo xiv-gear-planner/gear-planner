@@ -23,9 +23,16 @@ import {
     SimSettings,
     SimSpec
 } from "@xivgear/core/sims/sim_types";
-import {CycleProcessor, CycleSimResult, ExternalCycleSettings, Rotation} from "@xivgear/core/sims/cycle_sim";
+import {
+    CycleProcessor,
+    CycleSimResult,
+    ExternalCycleSettings,
+    MultiCycleSettings,
+    Rotation
+} from "@xivgear/core/sims/cycle_sim";
 import { BaseMultiCycleSim } from '@xivgear/core/sims/processors/sim_processors';
 import {gemdraught1mind} from "../../sims/common/potion";
+import {expect} from "chai";
 
 // Example of end-to-end simulation
 // This one is testing the simulation engine itself, so it copies the full simulation code rather than
@@ -431,15 +438,20 @@ const long: GcdAbility = {
     cast: 8
 };
 
+const defaultSettings: MultiCycleSettings = {
+
+    allBuffs: [],
+    cycleTime: 30,
+    stats: exampleGearSet.computedStats,
+    totalTime: 120,
+    useAutos: false,
+    cutoffMode: 'prorate-gcd',
+
+};
+
 describe('Swiftcast', () => {
     it('should handle swiftcast correctly', () => {
-        const cp = new CycleProcessor({
-            allBuffs: [],
-            cycleTime: 30,
-            stats: exampleGearSet.computedStats,
-            totalTime: 120,
-            useAutos: false
-        });
+        const cp = new CycleProcessor(defaultSettings);
         cp.use(filler);
         cp.use(Swiftcast);
         cp.use(filler);
@@ -479,13 +491,7 @@ describe('Swiftcast', () => {
 
     });
     it('should not start combat', () => {
-        const cp = new CycleProcessor({
-            allBuffs: [],
-            cycleTime: 30,
-            stats: exampleGearSet.computedStats,
-            totalTime: 120,
-            useAutos: false
-        });
+        const cp = new CycleProcessor(defaultSettings);
         cp.use(Swiftcast);
         cp.use(filler);
         cp.use(filler);
@@ -515,13 +521,7 @@ describe('Swiftcast', () => {
 
     });
     it('should not be consumed by an instant skill', () => {
-        const cp = new CycleProcessor({
-            allBuffs: [],
-            cycleTime: 30,
-            stats: exampleGearSet.computedStats,
-            totalTime: 120,
-            useAutos: false
-        });
+        const cp = new CycleProcessor(defaultSettings);
         cp.use(filler);
         cp.use(Swiftcast);
         cp.use(instant);
@@ -557,13 +557,7 @@ describe('Swiftcast', () => {
 
     });
     it('should work correctly with a long cast', () => {
-        const cp = new CycleProcessor({
-            allBuffs: [],
-            cycleTime: 30,
-            stats: exampleGearSet.computedStats,
-            totalTime: 120,
-            useAutos: false
-        });
+        const cp = new CycleProcessor(defaultSettings);
         cp.use(filler);
         cp.use(Swiftcast);
         cp.use(long);
@@ -632,13 +626,7 @@ const potBuffAbility: GcdAbility = {
 
 describe('Potency Buff Ability', () => {
     it('should increase the damage once', () => {
-        const cp = new CycleProcessor({
-            allBuffs: [],
-            cycleTime: 30,
-            stats: exampleGearSet.computedStats,
-            totalTime: 120,
-            useAutos: false
-        });
+        const cp = new CycleProcessor(defaultSettings);
         cp.use(filler);
         cp.use(potBuffAbility);
         cp.use(filler);
@@ -734,13 +722,7 @@ const bristle2: GcdAbility = {
 describe('Damage Buff Ability', () => {
     // TODO: test a DoT
     it('should increase the damage once', () => {
-        const cp = new CycleProcessor({
-            allBuffs: [],
-            cycleTime: 30,
-            stats: exampleGearSet.computedStats,
-            totalTime: 120,
-            useAutos: false
-        });
+        const cp = new CycleProcessor(defaultSettings);
         cp.use(filler);
         cp.use(bristle);
         cp.use(filler);
@@ -764,13 +746,7 @@ describe('Damage Buff Ability', () => {
 
     });
     it('should increase the damage once, other style', () => {
-        const cp = new CycleProcessor({
-            allBuffs: [],
-            cycleTime: 30,
-            stats: exampleGearSet.computedStats,
-            totalTime: 120,
-            useAutos: false
-        });
+        const cp = new CycleProcessor(defaultSettings);
         cp.use(filler);
         cp.use(bristle2);
         cp.use(filler);
@@ -793,13 +769,7 @@ describe('Damage Buff Ability', () => {
         assertClose(actualAbilities[3].directDamage, 15057.71, 1);
     });
     it('should multiply direct damage and dots by default', () => {
-        const cp = new CycleProcessor({
-            allBuffs: [],
-            cycleTime: 30,
-            stats: exampleGearSet.computedStats,
-            totalTime: 120,
-            useAutos: false
-        });
+        const cp = new CycleProcessor(defaultSettings);
         cp.use(dia);
         cp.advanceTo(27);
         cp.use(bristle);
@@ -833,13 +803,7 @@ describe('Damage Buff Ability', () => {
         assertClose(actualAbilities[3].totalDamage, dotTotal, 1);
     });
     it('should filter abilities correctly', () => {
-        const cp = new CycleProcessor({
-            allBuffs: [],
-            cycleTime: 30,
-            stats: exampleGearSet.computedStats,
-            totalTime: 120,
-            useAutos: false
-        });
+        const cp = new CycleProcessor(defaultSettings);
         cp.use(filler);
         cp.use(bristle);
         // Bristle does not apply to this
@@ -870,13 +834,7 @@ describe('Damage Buff Ability', () => {
 
 describe('Special record', () => {
     it('should be able to add and retrieve special records', () => {
-        const cp = new CycleProcessor({
-            allBuffs: [],
-            cycleTime: 30,
-            stats: exampleGearSet.computedStats,
-            totalTime: 120,
-            useAutos: false
-        });
+        const cp = new CycleProcessor(defaultSettings);
         cp.use(filler);
         cp.use(Swiftcast);
         cp.use(filler);
@@ -950,13 +908,7 @@ describe('Cycle processor alignment options', () => {
         // In this test, the CycleProcessor should start the first cycle post-combat-start, thus the first cycle should
         // be shorter so that it can end on the 30-second mark, but the rest of the cycles should be perfectly aligned
         // on 30-second increments.
-        const cp = new CycleProcessor({
-            allBuffs: [],
-            cycleTime: 30,
-            stats: exampleGearSet.computedStats,
-            totalTime: 120,
-            useAutos: false
-        });
+        const cp = new CycleProcessor(defaultSettings);
         cp.use(fixed);
         cp.use(fixed);
         cp.remainingCycles(cp => {
@@ -992,13 +944,7 @@ describe('Cycle processor alignment options', () => {
     // be longer so that the first cycle can end on the 30-second mark, but the rest of the cycles should be perfectly
     // aligned on 30-second increments.
     it('full alignment with in-cycle pre-pull', () => {
-        const cp = new CycleProcessor({
-            allBuffs: [],
-            cycleTime: 30,
-            stats: exampleGearSet.computedStats,
-            totalTime: 120,
-            useAutos: false
-        });
+        const cp = new CycleProcessor(defaultSettings);
         cp.remainingCycles(cp => {
             cp.useUntil(fixed, 'end');
         });
@@ -1032,13 +978,7 @@ describe('Cycle processor alignment options', () => {
         // In this test, the CycleProcessor should start the first cycle post-combat-start, thus the first cycle should
         // be shorter so that it can end on the 30-second mark, but the rest of the cycles should be perfectly aligned
         // on 30-second increments.
-        const cp = new CycleProcessor({
-            allBuffs: [],
-            cycleTime: 30,
-            stats: exampleGearSet.computedStats,
-            totalTime: 120,
-            useAutos: false
-        });
+        const cp = new CycleProcessor(defaultSettings);
         cp.cycleLengthMode = 'align-to-first';
         cp.use(fixed);
         cp.use(fixed);
@@ -1075,13 +1015,7 @@ describe('Cycle processor alignment options', () => {
         // In this test, the CycleProcessor should start the first cycle post-combat-start, thus the first cycle should
         // be shorter so that it can end on the 30-second mark, but the rest of the cycles should be perfectly aligned
         // on 30-second increments.
-        const cp = new CycleProcessor({
-            allBuffs: [],
-            cycleTime: 30,
-            stats: exampleGearSet.computedStats,
-            totalTime: 120,
-            useAutos: false
-        });
+        const cp = new CycleProcessor(defaultSettings);
         cp.cycleLengthMode = 'align-to-first';
         cp.oneCycle(cp => {
             // Longer GCD to make sure this actually takes up the full cycle time
@@ -1122,13 +1056,7 @@ describe('Cycle processor alignment options', () => {
         assertClose(displayRecords[18].usedAt, 119);
     });
     it('full duration with non-cycle pre-pull', () => {
-        const cp = new CycleProcessor({
-            allBuffs: [],
-            cycleTime: 30,
-            stats: exampleGearSet.computedStats,
-            totalTime: 120,
-            useAutos: false
-        });
+        const cp = new CycleProcessor(defaultSettings);
         cp.cycleLengthMode = 'full-duration';
         cp.use(fixed);
         cp.use(fixed);
@@ -1162,13 +1090,7 @@ describe('Cycle processor alignment options', () => {
 
     });
     it('full duration with in-cycle pre-pull', () => {
-        const cp = new CycleProcessor({
-            allBuffs: [],
-            cycleTime: 30,
-            stats: exampleGearSet.computedStats,
-            totalTime: 120,
-            useAutos: false
-        });
+        const cp = new CycleProcessor(defaultSettings);
         cp.cycleLengthMode = 'full-duration';
         cp.remainingCycles(cp => {
             cp.useUntil(fixed, 'end');
@@ -1218,11 +1140,8 @@ const fixedOdd: GcdAbility = {
 describe('Cycle processor re-alignment', () => {
     it('full alignment with non-cycle pre-pull', () => {
         const cp = new CycleProcessor({
-            allBuffs: [],
-            cycleTime: 30,
-            stats: exampleGearSet.computedStats,
-            totalTime: 139,
-            useAutos: false
+            ...defaultSettings,
+            totalTime: 139
         });
         cp.use(fixedOdd);
         cp.use(fixedOdd);
@@ -1253,11 +1172,8 @@ describe('Cycle processor re-alignment', () => {
     });
     it('full alignment with in-cycle pre-pull', () => {
         const cp = new CycleProcessor({
-            allBuffs: [],
-            cycleTime: 30,
-            stats: exampleGearSet.computedStats,
+            ...defaultSettings,
             totalTime: 170,
-            useAutos: false
         });
         cp.remainingCycles(cp => {
             cp.useUntil(fixedOdd, 'end');
@@ -1289,11 +1205,8 @@ describe('Cycle processor re-alignment', () => {
     });
     it('first-cycle alignment with out-of-cycle pre-pull', () => {
         const cp = new CycleProcessor({
-            allBuffs: [],
-            cycleTime: 30,
-            stats: exampleGearSet.computedStats,
+            ...defaultSettings,
             totalTime: 145,
-            useAutos: false
         });
         cp.cycleLengthMode = 'align-to-first';
         cp.use(fixedOdd);
@@ -1330,11 +1243,8 @@ describe('Cycle processor re-alignment', () => {
         // be shorter so that it can end on the 30-second mark, but the rest of the cycles should be perfectly aligned
         // on 30-second increments.
         const cp = new CycleProcessor({
-            allBuffs: [],
-            cycleTime: 30,
-            stats: exampleGearSet.computedStats,
+            ...defaultSettings,
             totalTime: 160,
-            useAutos: false
         });
         cp.cycleLengthMode = 'align-to-first';
         cp.remainingCycles(cp => {
@@ -1368,11 +1278,8 @@ describe('Cycle processor re-alignment', () => {
     });
     it('full duration with non-cycle pre-pull', () => {
         const cp = new CycleProcessor({
-            allBuffs: [],
-            cycleTime: 30,
-            stats: exampleGearSet.computedStats,
+            ...defaultSettings,
             totalTime: 300,
-            useAutos: false
         });
         cp.cycleLengthMode = 'full-duration';
         cp.use(fixedOdd);
@@ -1392,11 +1299,8 @@ describe('Cycle processor re-alignment', () => {
     });
     it('full duration with in-cycle pre-pull', () => {
         const cp = new CycleProcessor({
-            allBuffs: [],
-            cycleTime: 30,
-            stats: exampleGearSet.computedStats,
+            ...defaultSettings,
             totalTime: 295,
-            useAutos: false
         });
         cp.cycleLengthMode = 'full-duration';
         cp.remainingCycles(cp => {
@@ -1441,11 +1345,8 @@ const indefAb: Ability = {
 describe('indefinite buff handling', () => {
     it('can handle a manually applied indefinite buff', () => {
         const cp = new CycleProcessor({
-            allBuffs: [],
-            cycleTime: 30,
-            stats: exampleGearSet.computedStats,
+            ...defaultSettings,
             totalTime: 295,
-            useAutos: false
         });
         cp.activateBuff(indefBuff);
         cp.remainingCycles(cp => {
@@ -1461,11 +1362,8 @@ describe('indefinite buff handling', () => {
     });
     it('can handle an automatically applied indefinite buff', () => {
         const cp = new CycleProcessor({
-            allBuffs: [],
-            cycleTime: 30,
-            stats: exampleGearSet.computedStats,
+            ...defaultSettings,
             totalTime: 295,
-            useAutos: false
         });
         cp.oneCycle(cp => {
             cp.use(filler);
@@ -1503,11 +1401,9 @@ const longDelay: GcdAbility = {
 describe('application delay', () => {
     it('should default if not specified', () => {
         const cp = new CycleProcessor({
-            allBuffs: [],
+            ...defaultSettings,
             cycleTime: 120,
-            stats: exampleGearSet.computedStats,
             totalTime: 120,
-            useAutos: false
         });
         cp.use(filler);
         cp.use(filler);
@@ -1526,11 +1422,9 @@ describe('application delay', () => {
     });
     it('should respect an override', () => {
         const cp = new CycleProcessor({
-            allBuffs: [],
+            ...defaultSettings,
             cycleTime: 120,
-            stats: exampleGearSet.computedStats,
             totalTime: 120,
-            useAutos: false
         });
         cp.use(longDelay);
         cp.use(longDelay);
@@ -1553,11 +1447,9 @@ describe('application delay', () => {
 describe('gcd clipping check', () => {
     it('can check if an ogcd ability can be used without clipping', () => {
         const cp = new CycleProcessor({
-            allBuffs: [],
+            ...defaultSettings,
             cycleTime: 120,
-            stats: exampleGearSet.computedStats,
             totalTime: 120,
-            useAutos: false
         });
         cp.use(filler);
         let canUse = cp.canUseWithoutClipping(assize);
@@ -1572,11 +1464,9 @@ describe('gcd clipping check', () => {
 describe('potion logic', () => {
     it('reflects potions', () => {
         const cp = new CycleProcessor({
-            allBuffs: [],
+            ...defaultSettings,
             cycleTime: 120,
-            stats: exampleGearSet.computedStats,
             totalTime: 120,
-            useAutos: false
         });
         cp.use(filler);
         cp.use(gemdraught1mind);
@@ -1596,4 +1486,271 @@ describe('potion logic', () => {
         assertClose(actualAbilities[3].directDamage, 15057.71, 0.01);
     });
 
+});
+
+describe('cutoff modes', () => {
+    it('supports default prorate-gcd mode', () => {
+        // For this mode, the fight duration should be treated as 30 seconds, but the final GCD will be prorated
+        // based on how much of the full GCD time (regardless of the cast time) would have fit.
+        const cp = new CycleProcessor({
+            ...defaultSettings,
+            cycleTime: 30,
+            totalTime: 30,
+            cutoffMode: 'prorate-gcd'
+        });
+        cp.useUntil(filler, 50);
+        const displayRecords = cp.finalizedRecords;
+        const actualAbilities: FinalizedAbility[] = displayRecords.filter<FinalizedAbility>((record): record is FinalizedAbility => {
+            return 'ability' in record;
+        });
+        // Should take up full time
+        expect(cp.finalizedTimeBasis).to.equal(30);
+        expect(actualAbilities).to.have.length(14);
+        const firstAction = actualAbilities[0];
+        expect(firstAction.partialRate).to.be.null;
+        expect(firstAction.directDamage).to.be.closeTo(15057.71, 0.1);
+        // Final action should get prorated
+        const finalAction = actualAbilities[13];
+        expect(finalAction.usedAt).to.be.closeTo(28.55, 0.01);
+        expect(finalAction.original.totalTimeTaken).to.be.closeTo(2.31, 0.01);
+        // 0.6277 ~= (30 - 28.55) / 2.31
+        expect(finalAction.partialRate).to.be.closeTo(0.6277, 0.01);
+        expect(finalAction.directDamage).to.be.closeTo(9451.81, 0.1);
+    });
+    it('supports prorate-application mode', () => {
+        // For this mode, the fight duration should be treated as 30 seconds, but the final GCD will be prorated
+        // based on how much of the time between GCD start and application time would have fit into the remaining
+        // fight duration.
+        const cp = new CycleProcessor({
+            ...defaultSettings,
+            cycleTime: 30,
+            totalTime: 30,
+            cutoffMode: 'prorate-application'
+        });
+        cp.useUntil(filler, 50);
+        const displayRecords = cp.finalizedRecords;
+        const actualAbilities: FinalizedAbility[] = displayRecords.filter<FinalizedAbility>((record): record is FinalizedAbility => {
+            return 'ability' in record;
+        });
+        // Should take up full time
+        expect(cp.finalizedTimeBasis).to.equal(30);
+        expect(actualAbilities).to.have.length(14);
+        const firstAction = actualAbilities[0];
+        expect(firstAction.partialRate).to.be.null;
+        expect(firstAction.directDamage).to.be.closeTo(15057.71, 0.1);
+        // Final action should get prorated
+        const finalAction = actualAbilities[13];
+        expect(finalAction.usedAt).to.be.closeTo(28.55, 0.01);
+        expect(finalAction.original.appDelayFromStart).to.be.closeTo(1.48, 0.01);
+        // 0.9797 ~= (30 - 28.55) / 1.48
+        expect(finalAction.partialRate).to.be.closeTo(0.9797, 0.01);
+        expect(finalAction.directDamage).to.be.closeTo(14752.4865, 0.1);
+    });
+    it('supports lax-gcd mode', () => {
+        // For this mode, the fight duration will be extended to fit the final GCD.
+        const cp = new CycleProcessor({
+            ...defaultSettings,
+            cycleTime: 30,
+            totalTime: 30,
+            cutoffMode: 'lax-gcd'
+        });
+        cp.useUntil(filler, 50);
+        const displayRecords = cp.finalizedRecords;
+        const actualAbilities: FinalizedAbility[] = displayRecords.filter<FinalizedAbility>((record): record is FinalizedAbility => {
+            return 'ability' in record;
+        });
+        // Fight length is extended to hold the final GCD
+        expect(cp.finalizedTimeBasis).to.be.closeTo(30.8599, 0.01);
+        expect(actualAbilities).to.have.length(14);
+        const firstAction = actualAbilities[0];
+        expect(firstAction.partialRate).to.be.null;
+        expect(firstAction.directDamage).to.be.closeTo(15057.71, 0.1);
+        // Not prorated
+        const finalAction = actualAbilities[13];
+        expect(finalAction.usedAt).to.be.closeTo(28.55, 0.01);
+        // Gets the full damage
+        expect(finalAction.partialRate).to.be.null;
+        expect(finalAction.directDamage).to.be.closeTo(15057.71, 0.1);
+    });
+    it('supports lax-gcd mode, with many oGCDs padding out the fight length', () => {
+        // For this mode, the fight duration will be extended to fit the final GCD.
+        const cp = new CycleProcessor({
+            ...defaultSettings,
+            cycleTime: 30,
+            totalTime: 30,
+            cutoffMode: 'lax-gcd'
+        });
+        cp.useUntil(filler, 50);
+        cp.use(assize);
+        cp.use(assize);
+        cp.use(assize);
+        cp.use(assize);
+        const displayRecords = cp.finalizedRecords;
+        const actualAbilities: FinalizedAbility[] = displayRecords.filter<FinalizedAbility>((record): record is FinalizedAbility => {
+            return 'ability' in record;
+        });
+        // Fight length is extended to hold the final GCD and the clipping oGCDs
+        expect(cp.finalizedTimeBasis).to.be.closeTo(31.23, 0.01);
+        expect(actualAbilities).to.have.length(16);
+        const firstAction = actualAbilities[0];
+        expect(firstAction.partialRate).to.be.null;
+        expect(firstAction.directDamage).to.be.closeTo(15057.71, 0.1);
+        // Final GCD should be full
+        const finalGcd = actualAbilities[13];
+        expect(finalGcd.usedAt).to.be.closeTo(28.55, 0.01);
+        // Gets the full damage
+        expect(finalGcd.partialRate).to.be.null;
+        expect(finalGcd.directDamage).to.be.closeTo(15057.71, 0.1);
+        // Final oGCD should be full
+        const finalOGcd = actualAbilities[15];
+        // We're still allowed to squeeze in more oGCDs because it's still weaved into a valid GCD
+        expect(finalOGcd.usedAt).to.be.closeTo(30.63, 0.01);
+        // Gets the full damage
+        expect(finalOGcd.partialRate).to.be.null;
+        expect(finalOGcd.directDamage).to.be.closeTo(19452.27, 0.1);
+    });
+    it('supports lax-gcd mode, with long casts', () => {
+        // For this mode, the fight duration will be extended to fit the final GCD.
+        const cp = new CycleProcessor({
+            ...defaultSettings,
+            cycleTime: 30,
+            totalTime: 30,
+            cutoffMode: 'lax-gcd'
+        });
+        cp.use(filler);
+        cp.use(filler);
+        cp.advanceTo(20);
+        // This should fit entirely
+        // Due to SpS, it gets a ~7.5s cast time
+        cp.use(long);
+        // This should also fit, but goes over time
+        cp.use(long);
+        // This should not fit, as it goes beyond where the previous GCD should have ended
+        cp.use(assize);
+        const displayRecords = cp.finalizedRecords;
+        const actualAbilities: FinalizedAbility[] = displayRecords.filter<FinalizedAbility>((record): record is FinalizedAbility => {
+            return 'ability' in record;
+        });
+        // Fight length is increased so that there it fits what would otherwise be a partial GCD at the end
+        expect(cp.finalizedTimeBasis).to.be.closeTo(34.98, 0.01);
+        expect(actualAbilities).to.have.length(4);
+        const firstAction = actualAbilities[0];
+        expect(firstAction.partialRate).to.be.null;
+        expect(firstAction.directDamage).to.be.closeTo(15057.71, 0.1);
+        // full damage
+        const finalAction = actualAbilities[3];
+        expect(finalAction.usedAt).to.be.closeTo(27.49, 0.01);
+        // Gets the full damage
+        expect(finalAction.partialRate).to.be.null;
+        expect(finalAction.directDamage).to.be.closeTo(15057.71, 0.1);
+    });
+    it('supports strict-gcd mode', () => {
+        // In this mode, GCDs will be dropped entirely if they would not fit into the fight duration.
+        // The fight duration is the time where that GCD would have started.
+        const cp = new CycleProcessor({
+            ...defaultSettings,
+            cycleTime: 30,
+            totalTime: 30,
+            cutoffMode: 'strict-gcd'
+        });
+        cp.useUntil(filler, 50);
+        const displayRecords = cp.finalizedRecords;
+        const actualAbilities: FinalizedAbility[] = displayRecords.filter<FinalizedAbility>((record): record is FinalizedAbility => {
+            return 'ability' in record;
+        });
+        // Fight length is reduced so that there is no partial GCD at the end
+        expect(cp.finalizedTimeBasis).to.be.closeTo(28.55, 0.01);
+        expect(actualAbilities).to.have.length(13);
+        const firstAction = actualAbilities[0];
+        expect(firstAction.partialRate).to.be.null;
+        expect(firstAction.directDamage).to.be.closeTo(15057.71, 0.1);
+        // full damage
+        const finalAction = actualAbilities[12];
+        expect(finalAction.usedAt).to.be.closeTo(26.24, 0.01);
+        // Gets the full damage
+        expect(finalAction.partialRate).to.be.null;
+        expect(finalAction.directDamage).to.be.closeTo(15057.71, 0.1);
+    });
+    it('supports strict-gcd mode, with oGCDs padding fight length', () => {
+        // In this mode, GCDs will be dropped entirely if they would not fit into the fight duration.
+        // The fight duration is the time where that GCD would have started.
+        // This test checks behavior for when we drop more oGCDs than expected at the end (i.e. we would
+        // be hard clipping the next GCD).
+        // The current implementation allows a single over-time oGCD to count.
+        const cp = new CycleProcessor({
+            ...defaultSettings,
+            cycleTime: 30,
+            totalTime: 30,
+            cutoffMode: 'strict-gcd'
+        });
+        cp.use(filler);
+        cp.use(filler);
+        cp.advanceTo(26);
+        // This should fit entirely
+        cp.use(filler);
+        // But not all of these should fit
+        cp.use(assize);
+        cp.use(assize);
+        cp.use(assize);
+        cp.use(assize);
+        cp.use(assize);
+        cp.use(assize);
+        // These should all be ignored completely
+        cp.use(filler);
+        cp.use(assize);
+        cp.use(assize);
+        cp.use(assize);
+        const displayRecords = cp.finalizedRecords;
+        const actualAbilities: FinalizedAbility[] = displayRecords.filter<FinalizedAbility>((record): record is FinalizedAbility => {
+            return 'ability' in record;
+        });
+        // Fight length is reduced so that there is no partial GCD at the end
+        expect(cp.finalizedTimeBasis).to.be.closeTo(30.480, 0.01);
+        expect(actualAbilities).to.have.length(8);
+        const firstAction = actualAbilities[0];
+        expect(firstAction.partialRate).to.be.null;
+        expect(firstAction.directDamage).to.be.closeTo(15057.71, 0.1);
+        // full damage
+        const finalAction = actualAbilities[7];
+        expect(finalAction.usedAt).to.be.closeTo(29.88, 0.01);
+        // Gets the full damage
+        expect(finalAction.partialRate).to.be.null;
+        expect(finalAction.directDamage).to.be.closeTo(19452.27, 0.1);
+    });
+    it('supports strict-gcd mode, and does not allow long-cast GCDs to violate the time limit', () => {
+        // In this mode, GCDs will be dropped entirely if they would not fit into the fight duration.
+        // The fight duration is the time where that GCD would have started.
+        // This test checks that cast time, in addition to recast (GCD) time, is factored in to this decision.
+        const cp = new CycleProcessor({
+            ...defaultSettings,
+            cycleTime: 30,
+            totalTime: 30,
+            cutoffMode: 'strict-gcd'
+        });
+        cp.use(filler);
+        cp.use(filler);
+        cp.advanceTo(20);
+        // This should fit entirely
+        // Due to SpS, it gets a ~7.5s cast time
+        cp.use(long);
+        // This should not fit at all
+        cp.use(long);
+        cp.use(assize);
+        const displayRecords = cp.finalizedRecords;
+        const actualAbilities: FinalizedAbility[] = displayRecords.filter<FinalizedAbility>((record): record is FinalizedAbility => {
+            return 'ability' in record;
+        });
+        // Fight length is reduced so that there is no partial GCD at the end
+        expect(cp.finalizedTimeBasis).to.be.closeTo(27.49, 0.01);
+        expect(actualAbilities).to.have.length(3);
+        const firstAction = actualAbilities[0];
+        expect(firstAction.partialRate).to.be.null;
+        expect(firstAction.directDamage).to.be.closeTo(15057.71, 0.1);
+        // full damage
+        const finalAction = actualAbilities[2];
+        expect(finalAction.usedAt).to.be.closeTo(20, 0.01);
+        // Gets the full damage
+        expect(finalAction.partialRate).to.be.null;
+        expect(finalAction.directDamage).to.be.closeTo(15057.71, 0.1);
+    });
 });

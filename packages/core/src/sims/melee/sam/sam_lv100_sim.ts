@@ -1,16 +1,24 @@
-import { Ability, SimSettings, SimSpec } from "@xivgear/core/sims/sim_types";
-import { CycleProcessor, CycleSimResult, ExternalCycleSettings, MultiCycleSettings, AbilityUseResult, Rotation, PreDmgAbilityUseRecordUnf } from "@xivgear/core/sims/cycle_sim";
-import { CycleSettings } from "@xivgear/core/sims/cycle_settings";
-import { CharacterGearSet } from "@xivgear/core/gear";
-import { formatDuration } from "@xivgear/core/util/strutils";
-import { STANDARD_ANIMATION_LOCK } from "@xivgear/xivmath/xivconstants";
+import {Ability, SimSettings, SimSpec} from "@xivgear/core/sims/sim_types";
+import {
+    AbilityUseResult,
+    CycleProcessor,
+    CycleSimResult,
+    ExternalCycleSettings,
+    MultiCycleSettings,
+    PreDmgAbilityUseRecordUnf,
+    Rotation
+} from "@xivgear/core/sims/cycle_sim";
+import {CycleSettings} from "@xivgear/core/sims/cycle_settings";
+import {CharacterGearSet} from "@xivgear/core/gear";
+import {formatDuration} from "@xivgear/core/util/strutils";
+import {STANDARD_ANIMATION_LOCK} from "@xivgear/xivmath/xivconstants";
 import SAMGauge from "./sam_gauge";
-import { SAMExtraData, SAMRotationData, SamAbility } from "./sam_types";
+import {SamAbility, SAMExtraData, SAMRotationData} from "./sam_types";
 import * as SlowSamRotation from './rotations/sam_lv100_214';
 import * as MidSamRotation from './rotations/sam_lv100_207';
 import * as FastSamRotation from './rotations/sam_lv100_200';
-import { HissatsuShinten, MeikyoShisui } from './sam_actions';
-import { BaseMultiCycleSim } from "@xivgear/core/sims/processors/sim_processors";
+import {HissatsuShinten, MeikyoShisui} from './sam_actions';
+import {BaseMultiCycleSim} from "@xivgear/core/sims/processors/sim_processors";
 
 export interface SamSimResult extends CycleSimResult {
 
@@ -88,15 +96,19 @@ export class SamSim extends BaseMultiCycleSim<SamSimResult, SamSettings, SAMCycl
     spec = samSpec;
     shortName = "sam-sim-lv100";
     displayName = samSpec.displayName;
-    cycleSettings: CycleSettings = {
-        useAutos: true,
-        totalTime: (8 * 60) + 35,
-        cycles: 0,
-        which: 'totalTime',
-    }
 
     constructor(settings?: SamSettingsExternal) {
         super('SAM', settings);
+    }
+
+    override defaultCycleSettings(): CycleSettings {
+        return {
+            useAutos: true,
+            totalTime: (8 * 60) + 35,
+            cycles: 0,
+            which: 'totalTime',
+            cutoffMode: 'prorate-gcd'
+        };
     }
 
     protected createCycleProcessor(settings: MultiCycleSettings): SAMCycleProcessor {
@@ -189,8 +201,11 @@ export class SamSim extends BaseMultiCycleSim<SamSimResult, SamSettings, SAMCycl
 
     getRotationsToSimulate(set: CharacterGearSet): Rotation<SAMCycleProcessor>[] {
         const gcd = set.results.computedStats.gcdPhys(2.5, 13);
-        const { name, rotation } = SamSim.getRotationForGcd(gcd);
-        const settings = { ...this.settings };
+        const {
+            name,
+            rotation
+        } = SamSim.getRotationForGcd(gcd);
+        const settings = {...this.settings};
         const outer = this;
 
         console.log(`[SAM Sim] Running ${name}...`);
