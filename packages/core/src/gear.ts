@@ -953,18 +953,25 @@ export type ItemSingleStatDetail = {
  * @param baseItem
  */
 export function isSameOrBetterItem(candidateItem: GearItem, baseItem: GearItem): boolean {
-    // TODO: consider materia slots
-    // Ultimate weapons are equivalent to savage raid but with an extra materia slot. So an ultimate weapon should
-    // be considered an acceptable replacement for a savage weapon, but not the other way around.
-
+    // TODO: consider actual materia
 
     // Phase 1: Raw stats
     const candidateStats = candidateItem.stats;
     const baseStats = baseItem.stats;
     for (const [statKey, baseValue] of Object.entries(baseStats)) {
         const candidateValue = candidateStats[statKey] as number;
-        if (candidateValue < baseValue) {
-            return false;
+        // For skill/spell speed, we want an exact match, since allowing extra sks/sps could cause
+        // it to bump up a GCD tier.
+        if (statKey as RawStatKey == 'skillspeed' || statKey as RawStatKey == 'spellspeed') {
+            if (candidateValue != baseValue) {
+                return false;
+            }
+        }
+        // For everything else, it's fine if the candidate value is greater than the base value.
+        else {
+            if (candidateValue < baseValue) {
+                return false;
+            }
         }
     }
     // Phase 2: Materia
@@ -976,9 +983,13 @@ export function isSameOrBetterItem(candidateItem: GearItem, baseItem: GearItem):
         const index = baseItem.materiaSlots.indexOf(baseSlot);
         if (index in candidateItem.materiaSlots) {
             const candidateSlot = candidateItem.materiaSlots[index];
+            // Check that the supported grade is at least the same as the base item
             if (candidateSlot.maxGrade < baseSlot.maxGrade) {
                 return false;
             }
+            // Also check that if the base item allows high grade, that the candidate also does.
+            // Without this, an 11 would be considered an acceptable substitute to a 10, despite the fact that
+            // grade 11 materia are better than grade 10 materia.
             else if (baseSlot.allowsHighGrade && !candidateSlot.allowsHighGrade) {
                 return false;
             }
