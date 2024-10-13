@@ -1,6 +1,6 @@
 import {Ability, SimSettings, SimSpec} from "@xivgear/core/sims/sim_types";
 import {
-    AbilityUseResult,
+    AbilityUseResult, CutoffMode,
     CycleProcessor,
     CycleSimResult,
     ExternalCycleSettings,
@@ -103,12 +103,15 @@ export class SamSim extends BaseMultiCycleSim<SamSimResult, SamSettings, SAMCycl
 
     override defaultCycleSettings(): CycleSettings {
         return {
-            useAutos: true,
+            ...super.defaultCycleSettings(),
             totalTime: (8 * 60) + 35,
             cycles: 0,
             which: 'totalTime',
-            cutoffMode: 'prorate-gcd'
         };
+    }
+
+    override get defaultCutoffMode(): CutoffMode {
+        return 'prorate-application';
     }
 
     protected createCycleProcessor(settings: MultiCycleSettings): SAMCycleProcessor {

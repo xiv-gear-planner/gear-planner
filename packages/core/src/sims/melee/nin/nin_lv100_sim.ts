@@ -1,6 +1,6 @@
 import {Ability, Buff, OgcdAbility, SimSettings, SimSpec} from "@xivgear/core/sims/sim_types";
 import {
-    AbilityUseResult,
+    AbilityUseResult, CutoffMode,
     CycleProcessor,
     CycleSimResult,
     ExternalCycleSettings,
@@ -441,13 +441,17 @@ export class NinSim extends BaseMultiCycleSim<NinSimResult, NinSettings, NINCycl
 
     override defaultCycleSettings(): CycleSettings {
         return {
-            useAutos: true,
+            ...super.defaultCycleSettings(),
             totalTime: (6 * 60) + 32,
             cycles: 0,
             which: 'totalTime',
-            cutoffMode: 'prorate-gcd',
         };
     }
+
+    override get defaultCutoffMode(): CutoffMode {
+        return 'prorate-application';
+    }
+
 
     protected createCycleProcessor(settings: MultiCycleSettings): NINCycleProcessor {
         return new NINCycleProcessor({
