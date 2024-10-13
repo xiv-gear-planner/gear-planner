@@ -3019,6 +3019,11 @@ body.modern {
     button, select {
       --button-color: var(--bg-color);
     }
+
+    input {
+      background: var(--bg-color) !important;
+      border: none !important;
+    }
   }
 
   gear-set-editor {
@@ -3321,24 +3326,33 @@ gear-set-issues-modal {
 alt-items-modal {
   .modal-content-area {
     width: min-content;
+    max-width: 100%;
   }
-  table tr {
-    td, th {
-      padding-left: 15px;
-      padding-right: 15px;
-    }
-    *[col-id="icon"] {
-      height: 25px;
-      width: 23px;
-      min-width: 23px;
-      max-width: 23px;
-      padding-right: 0;
-      img {
-        height: 100%;
+
+  table {
+    width: max-content;
+
+    tr {
+      td, th {
+        padding-left: 15px;
+        padding-right: 15px;
       }
-    }
-    *[col-id="itemname"] {
-      padding-left: 0;
+
+      *[col-id="icon"] {
+        height: 25px;
+        width: 23px;
+        min-width: 23px;
+        max-width: 23px;
+        padding-right: 0;
+
+        img {
+          height: 100%;
+        }
+      }
+
+      *[col-id="itemname"] {
+        padding-left: 0;
+      }
     }
   }
 }

@@ -873,7 +873,7 @@ export class AltItemsModal extends BaseModal {
 
         const text = document.createElement('p');
         text.textContent = `The item ${baseItem.name} can be replaced by all of the following items, which have equivalent or better effective stats:`;
-        this.contentArea.appendChild(text);
+        this.contentArea.appendChild(quickElement('div', ['alt-items-text-holder'], [text]));
 
         const table : CustomTable<GearItem> = new CustomTable<GearItem>();
         table.columns = [
