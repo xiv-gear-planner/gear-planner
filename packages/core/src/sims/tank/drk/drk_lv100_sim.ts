@@ -1,5 +1,6 @@
 import { Ability, SimSettings, SimSpec } from "@xivgear/core/sims/sim_types";
 import { CycleProcessor, CycleSimResult, ExternalCycleSettings, MultiCycleSettings, AbilityUseResult, Rotation, PreDmgAbilityUseRecordUnf } from "@xivgear/core/sims/cycle_sim";
+import { combineBuffEffects } from "@xivgear/core/sims/sim_utils";
 import { CycleSettings } from "@xivgear/core/sims/cycle_settings";
 import { CharacterGearSet } from "@xivgear/core/gear";
 import { formatDuration } from "@xivgear/core/util/strutils";
@@ -8,7 +9,7 @@ import { DrkGauge } from "./drk_gauge";
 import { DrkExtraData, DrkAbility, DrkRotationData } from "./drk_types";
 import * as Drk250 from './rotations/drk_lv100_250';
 import * as Drk246 from './rotations/drk_lv100_246';
-import { Unmend } from './drk_actions';
+import { Unmend, LivingShadowShadowstride, LivingShadowDisesteem, LivingShadowAbyssalDrain, LivingShadowShadowbringer, LivingShadowEdgeOfShadow, LivingShadowBloodspiller } from './drk_actions';
 import { BaseMultiCycleSim } from "@xivgear/core/sims/processors/sim_processors";
 
 export interface DrkSimResult extends CycleSimResult {
@@ -52,9 +53,18 @@ Results are only currently accurate up to 9 minutes (540s).`,
     }],
 };
 
+// LivingShadowAbilityUsageTime is a type representing two
+// things: a Living Shadow ability and the time it should go off at
+type LivingShadowAbilityUsageTime = {
+    // The Living Shadow ability to use
+    ability: DrkAbility,
+    // The time to use the ability at
+    usageTime: number,
+}
+
 class DrkCycleProcessor extends CycleProcessor {
     gauge: DrkGauge;
-
+    
     constructor(settings: MultiCycleSettings) {
         super(settings);
         this.cycleLengthMode = 'full-duration';
@@ -72,11 +82,46 @@ class DrkCycleProcessor extends CycleProcessor {
         return this.beforeAbility(ability, this.getActiveBuffsFor(ability));         
     }
 
-    override addAbilityUse(usedAbility: PreDmgAbilityUseRecordUnf) {
+    applyLivingShadowAbility(abilityUsage: LivingShadowAbilityUsageTime) {
+        const buffs = [...this.getActiveBuffs(abilityUsage.usageTime)]
+        let darksideDuration = 0
+        // Get what the the Darkside duration would be at this
+        // point of time, for visualization in the UI
+        const darkside = buffs.find(buff => buff.name === "Darkside")
+        if (darkside) {
+            const buffData = this.getActiveBuffData(darkside, abilityUsage.usageTime)
+            if (buffData) {
+                darksideDuration = Math.round(buffData.end - abilityUsage.usageTime)
+            }
+        }
+
+        // However, Darkside does not apply to Living Shadow abilities, so
+        // we should remove it.
+        const filteredBuffs = buffs.filter(buff => { 
+            return buff.name !== "Darkside" && buff.name !== "Blood Weapon" && buff.name !== "Delirium"
+        })
+
+        this.addAbilityUse({
+            usedAt: abilityUsage.usageTime,
+            ability: abilityUsage.ability,
+            buffs: filteredBuffs,
+            combinedEffects: combineBuffEffects(filteredBuffs),
+            totalTimeTaken: 0,
+            appDelay: abilityUsage.ability.appDelay,
+            appDelayFromStart: abilityUsage.ability.appDelay,
+            castTimeFromStart: 0,
+            snapshotTimeFromStart: 0,
+            lockTime: 0
+        }, darksideDuration);
+    }
+
+    // Optional darkside duration so that it can be given manually (what it 'would be') 
+    // for abilities where it doesn't apply (Living Shadow's abilities).
+    override addAbilityUse(usedAbility: PreDmgAbilityUseRecordUnf, darksideDuration = 0) {
         // Add gauge data to this record for the UI
         const extraData: DrkExtraData = {
             gauge: this.gauge.getGaugeState(),
-            darksideDuration: 0,
+            darksideDuration: darksideDuration,
         };
         
         const darkside = usedAbility.buffs.find(buff => buff.name === "Darkside")
@@ -107,6 +152,10 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
         which: 'totalTime',
     }
     mpTicks = 0
+    // livingShadowAbilityUsages tracks which remaining Living Shadow abilities we have
+    // upcoming. It's implemented this way so that the entries and buffs are correct 
+    // on the timeline.
+    livingShadowAbilityUsages: LivingShadowAbilityUsageTime[] = []
 
     constructor(settings?: DrkSettingsExternal) {
         super('DRK', settings);
@@ -130,6 +179,24 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
         };
     }
 
+    // applyLivingShadowAbilities should be called before and after each ability
+    // usage to ensure that Living Shadow abilities are correctly positioned on the timeline.
+    private applyLivingShadowAbilities(cp: DrkCycleProcessor) {
+        if (this.livingShadowAbilityUsages && this.livingShadowAbilityUsages.length > 0) {
+            const usedAbilities = []
+            this.livingShadowAbilityUsages.forEach((abilityUsage, index) => {
+                if (abilityUsage.usageTime <= cp.currentTime) {
+                    cp.applyLivingShadowAbility(abilityUsage)
+                    usedAbilities.push(index)
+                }
+            })
+            usedAbilities.forEach(indexToRemove => {
+                this.livingShadowAbilityUsages.splice(indexToRemove, 1)
+            })
+        }
+
+    }
+
     use(cp: DrkCycleProcessor, ability: Ability): AbilityUseResult {
         if (cp.currentTime >= cp.totalTime) {
             return null;
@@ -150,6 +217,54 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
             this.mpTicks += differenceInMPTicks
             cp.gauge.magicPoints += differenceInMPTicks * 200
         }
+
+        // If we try to use Living Shadow, do it properly
+        if (ability.id === 16472) {
+            // After 6.8 delay, it does the following rotation with
+            // 2.18 seconds between each.
+            // Abyssal Drain
+            // Shadowstride (no damage)
+            // Flood of Shadow (Shadowbringer at level 90+)(AoE)
+            // Edge of Shadow
+            // Bloodspiller
+            // Carve and Spit (Disesteem(AoE) at level 100)
+            this.livingShadowAbilityUsages.push({
+                // Abyssal Drain
+                ability: LivingShadowAbyssalDrain,
+                usageTime: cp.currentTime + 6.8
+            })
+            // We could skip this, since it does no damage,
+            // but it makes the timeline more accurate to reality, so that's nice.
+            this.livingShadowAbilityUsages.push({
+                // Shadowstride
+                ability: LivingShadowShadowstride,
+                usageTime: cp.currentTime + 6.8 + 1*2.18
+            })     
+            this.livingShadowAbilityUsages.push({
+                // Shadowbringer
+                ability: LivingShadowShadowbringer,
+                usageTime: cp.currentTime + 6.8 + 2*2.18
+            })            
+            this.livingShadowAbilityUsages.push({
+                // Edge of Shadow
+                ability: LivingShadowEdgeOfShadow,
+                usageTime: cp.currentTime + 6.8 + 3*2.18
+            })
+            this.livingShadowAbilityUsages.push({
+                // Bloodspiller
+                ability: LivingShadowBloodspiller,
+                usageTime: cp.currentTime + 6.8 + 4*2.18
+            })
+            this.livingShadowAbilityUsages.push({
+                // Disesteem
+                ability: LivingShadowDisesteem,
+                usageTime: cp.currentTime + 6.8 + 5*2.18
+            })
+        }
+
+        // Apply Living Shadow abilities before attempting to use an ability
+        // AND before we move the timeline for that ability.
+        this.applyLivingShadowAbilities(cp)
 
         // Log when we try to use more gauge than what we currently have
         if (drkAbility.id === 7392 && cp.gauge.bloodGauge < 50) {
@@ -186,6 +301,11 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
             }
             abilityWithBloodWeapon.updateMP(cp.gauge);
         }
+
+
+        // Apply Living Shadow abilities before attempting to use an ability
+        // AND after we move the timeline for that ability.
+        this.applyLivingShadowAbilities(cp)
 
         const abilityUseResult = cp.use(ability);
 

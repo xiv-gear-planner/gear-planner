@@ -206,9 +206,9 @@ export const Loop: DrkAbility[] = [
     Actions.HardSlash,
     Actions.SyphonStrike,
     Actions.Souleater,
-    potionMaxStr, //6m pot -- TODO this should optimally be slightly later once Living Shadow delay is implemented
     Actions.LivingShadow,
     Actions.HardSlash,
+    potionMaxStr, //6m pot
     Actions.Bloodspiller,
     Actions.Delirium,
     Actions.Disesteem,
