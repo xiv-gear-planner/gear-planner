@@ -5,7 +5,9 @@ import { CharacterGearSet } from "@xivgear/core/gear";
 import { BaseMultiCycleSim } from "@xivgear/core/sims/processors/sim_processors";
 import { MnkAbility, MNKExtraData } from "./mnk_types";
 import { MNKGauge as MnkGauge } from "./mnk_gauge";
-import { Brotherhood, CoeurlForm, Demolish, DragonKick, ElixirBurst, FiresReply, FormlessFist, LeapingOpo, OpoForm, PerfectBalance, PerfectBalanceBuff, PouncingCouerl, RaptorForm, RiddleOfFire, RiddleOfWind, RisingRaptor, TheForbiddenChakra, TwinSnakes, WindsReply } from "./mnk_actions";
+import { Brotherhood, CoeurlForm, Demolish, DragonKick, ElixirBurst, FiresReply, FiresRumination, FormlessFist, LeapingOpo, OGCD_PRIORITY, OPO_ABILITIES, OpoForm, PerfectBalance, PerfectBalanceBuff, PhantomRush, PouncingCoeurl, RaptorForm, RiddleOfFire, RiddleOfFireBuff, RiddleOfWind, RisingPhoenix, RisingRaptor, SOLAR_WEAKEST_STRONGEST, TheForbiddenChakra, TwinSnakes, WindsReply, WindsRumination } from "./mnk_actions";
+import { sum } from "../../../util/array_utils";
+import { STANDARD_ANIMATION_LOCK } from "@xivgear/xivmath/xivconstants";
 
 export interface MnkSimResult extends CycleSimResult { }
 
@@ -126,7 +128,7 @@ class MNKCycleProcessor extends CycleProcessor {
                 break;
             case CoeurlForm:
                 if (this.gauge.coeurlFury) {
-                    this.useGcd(PouncingCouerl);
+                    this.useGcd(PouncingCoeurl);
                 } else {
                     this.useGcd(Demolish);
                 }

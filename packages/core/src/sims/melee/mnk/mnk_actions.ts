@@ -6,6 +6,7 @@ export const OpoForm: PersonalBuff = {
     name: "Opo-Opo Form",
     selfOnly: true,
     duration: 30,
+    statusId: 107,
     effects: {
         // forces crit on bootshine and leaping opo
         // provides opo-opo's fury stack on dragon kick
@@ -48,6 +49,7 @@ export const RaptorForm: PersonalBuff = {
     name: "Raptor Form",
     selfOnly: true,
     duration: 30,
+    statusId: 108,
     effects: {
         // allows execution of twin snakes and true strike I and II
     },
@@ -75,6 +77,7 @@ export const CoeurlForm: PersonalBuff = {
     name: "Coeurl Form",
     selfOnly: true,
     duration: 30,
+    statusId: 109,
     effects: {
         // allows execution of demolish, snap punch I and II
     },
@@ -89,7 +92,7 @@ export const CoeurlFury: PersonalBuff = {
     effects: {
         // flat 200 potency increase
     },
-    appliesTo: (ability) => [SnapPunch.id, PouncingCouerl.id].includes(ability.id),
+    appliesTo: (ability) => [SnapPunch.id, PouncingCoeurl.id].includes(ability.id),
     beforeSnapshot: (controller: BuffController, ability) => {
         controller.subtractStacksSelf(1);
         return {
@@ -103,6 +106,7 @@ export const PerfectBalanceBuff: PersonalBuff = {
     name: "Perfect Balance",
     selfOnly: true,
     duration: 30,
+    statusId: 110,
     effects: {
         // allows execution of all form Weaponskills and additionally builds beast chakra
     },
@@ -153,6 +157,7 @@ export const RiddleOfFireBuff: PersonalBuff = {
     name: "Riddle of Fire",
     selfOnly: true,
     duration: 20,
+    statusId: 1181,
     effects: {
         dmgIncrease: 0.20,
     },
@@ -164,6 +169,7 @@ export const BrotherhoodBuff: PartyBuff = {
     name: "Brotherhood",
     selfOnly: false,
     duration: 20,
+    statusId: 1185,
     effects: {
         // Additional effect: allows the opening of up to ten chakra,
         dmgIncrease: 0.05,
@@ -176,6 +182,7 @@ export const BrotherhoodBuff: PartyBuff = {
 export const RiddleOfWindBuff: PersonalBuff = {
     name: "Riddle of Wind",
     duration: 15,
+    statusId: 2687,
     appliesTo: (ability) => ability.attackType == "Auto-attack",
     effects: {
         // reduces auto-attack delay by 50%
@@ -185,6 +192,7 @@ export const RiddleOfWindBuff: PersonalBuff = {
 export const FiresRumination: PersonalBuff = {
     name: "Fire's Rumination",
     duration: 20,
+    statusId: 3843,
     effects: {
         // allows execution of Fire's Reply
     }
@@ -193,14 +201,17 @@ export const FiresRumination: PersonalBuff = {
 export const WindsRumination: PersonalBuff = {
     name: "Wind's Rumination",
     duration: 15,
+    statusId: 3842,
     effects: {
-        // allows execution of Fire's Reply
-    }
+        // allows execution of Wind's Reply
+    },
+    appliesTo: (ability) => ability.id === WindsReply.id,
+    beforeSnapshot: (bc, ab) => bc.removeSelf(),
 }
 
 export const Bootshine: MnkGcdAbility = {
     name: "Bootshine",
-    id: -1,
+    id: 53,
     type: 'gcd',
     gcd: 2.5,
     potency: 220,
@@ -211,7 +222,7 @@ export const Bootshine: MnkGcdAbility = {
 
 export const TrueStrike: MnkGcdAbility = {
     name: "True Strike",
-    id: -1,
+    id: 54,
     type: 'gcd',
     gcd: 2.5,
     potency: 220,
@@ -222,7 +233,7 @@ export const TrueStrike: MnkGcdAbility = {
 
 export const SnapPunch: MnkGcdAbility = {
     name: "Snap Punch",
-    id: -1,
+    id: 56,
     type: 'gcd',
     gcd: 2.5,
     potency: 330, // assumed positional hit
@@ -235,7 +246,7 @@ export const SnapPunch: MnkGcdAbility = {
 
 export const TwinSnakes: MnkGcdAbility = {
     name: "Twin Snakes",
-    id: -1,
+    id: 61,
     type: 'gcd',
     gcd: 2.5,
     potency: 420,
@@ -246,7 +257,7 @@ export const TwinSnakes: MnkGcdAbility = {
 
 export const Demolish: MnkGcdAbility = {
     name: "Demolish",
-    id: -1,
+    id: 66,
     type: 'gcd',
     gcd: 2.5,
     potency: 420, // assumed positional hit
@@ -260,7 +271,7 @@ export const Demolish: MnkGcdAbility = {
  */
 export const DragonKick: MnkGcdAbility = {
     name: "Dragon Kick",
-    id: -1,
+    id: 74,
     type: 'gcd',
     gcd: 2.5,
     potency: 320,
@@ -272,7 +283,7 @@ export const DragonKick: MnkGcdAbility = {
 
 export const PerfectBalance: MnkOgcdAbility = {
     name: "Perfect Balance",
-    id: -1,
+    id: 69,
     type: 'ogcd',
     attackType: "Ability",
     potency: null,
@@ -286,7 +297,7 @@ export const PerfectBalance: MnkOgcdAbility = {
 
 export const FormShift: MnkGcdAbility = {
     name: "Form Shift",
-    id: -1,
+    id: 4262,
     type: 'gcd',
     attackType: "Weaponskill",
     gcd: 2.5,
@@ -296,7 +307,7 @@ export const FormShift: MnkGcdAbility = {
 
 export const TheForbiddenChakra: MnkOgcdAbility = {
     name: "The Forbidden Chakra",
-    id: -1,
+    id: 3547,
     type: 'ogcd',
     attackType: 'Ability',
     potency: 400,
@@ -310,7 +321,7 @@ export const TheForbiddenChakra: MnkOgcdAbility = {
 
 export const ElixirField: MnkGcdAbility = {
     name: "Elixir Field",
-    id: -1,
+    id: 3545,
     type: 'gcd',
     attackType: 'Weaponskill',
     gcd: 2.5,
@@ -323,7 +334,7 @@ export const ElixirField: MnkGcdAbility = {
 
 export const FlintStrike: MnkGcdAbility = {
     name: "Flint Strike",
-    id: -1,
+    id: 25882,
     type: 'gcd',
     attackType: 'Weaponskill',
     gcd: 2.5,
@@ -336,7 +347,7 @@ export const FlintStrike: MnkGcdAbility = {
 
 export const TornadoKick: MnkGcdAbility = {
     name: "TornadoKick",
-    id: -1,
+    id: 3543,
     type: 'gcd',
     attackType: 'Weaponskill',
     gcd: 2.5,
@@ -350,7 +361,7 @@ export const TornadoKick: MnkGcdAbility = {
 
 export const RiddleOfFire: MnkOgcdAbility = {
     name: "Riddle of Fire",
-    id: -1,
+    id: 7395,
     type: 'ogcd',
     attackType: 'Ability',
     potency: null,
@@ -361,7 +372,7 @@ export const RiddleOfFire: MnkOgcdAbility = {
 }
 export const Brotherhood: MnkOgcdAbility = {
     name: "Brotherhood",
-    id: -1,
+    id: 7396,
     type: 'ogcd',
     attackType: 'Ability',
     potency: null,
@@ -373,7 +384,7 @@ export const Brotherhood: MnkOgcdAbility = {
 
 export const RiddleOfWind: MnkOgcdAbility = {
     name: "Riddle of Wind",
-    id: -1,
+    id: 25766,
     type: 'ogcd',
     attackType: 'Ability',
     potency: null,
@@ -385,7 +396,7 @@ export const RiddleOfWind: MnkOgcdAbility = {
 
 export const SixSidedStar: MnkGcdAbility = {
     name: "Six-sided Star",
-    id: -1,
+    id: 16476,
     type: 'gcd',
     gcd: 4,
     attackType: 'Weaponskill',
@@ -398,42 +409,48 @@ export const SixSidedStar: MnkGcdAbility = {
 export const RisingPhoenix: MnkGcdAbility = {
     ...FlintStrike,
     name: "Rising Phoenix",
+    id: 25768,
     potency: 900,
 }
 
 export const PhantomRush: MnkGcdAbility = {
     ...TornadoKick,
     name: "Phantom Rush",
+    id: 25769,
     potency: 1500,
 }
 
 export const LeapingOpo: MnkGcdAbility = {
     ...Bootshine,
     name: "Leaping Opo",
+    id: 36945,
     potency: 260,
 }
 
 export const RisingRaptor: MnkGcdAbility = {
     ...TrueStrike,
     name: "Rising Raptor",
+    id: 36946,
     potency: 340,
 }
 
-export const PouncingCouerl: MnkGcdAbility = {
+export const PouncingCoeurl: MnkGcdAbility = {
     ...SnapPunch,
     name: "Pouncing Couerl",
+    id: 36947,
     potency: 370, // assumed positional hit
 }
 
 export const ElixirBurst: MnkGcdAbility = {
     ...ElixirField,
     name: "Elixir Burst",
+    id: 36948,
     potency: 900,
 }
 
 export const WindsReply: MnkGcdAbility = {
     name: "Wind's Reply",
-    id: -1,
+    id: 36949,
     type: 'gcd',
     attackType: 'Weaponskill',
     gcd: 2.5,
@@ -441,7 +458,7 @@ export const WindsReply: MnkGcdAbility = {
 }
 export const FiresReply: MnkGcdAbility = {
     name: "Fire's Reply",
-    id: -1,
+    id: 36950,
     type: 'gcd',
     attackType: 'Weaponskill',
     gcd: 2.5,
@@ -451,5 +468,5 @@ export const FiresReply: MnkGcdAbility = {
 
 const OPO_ABILITIES: number[] = [Bootshine.id, DragonKick.id, LeapingOpo.id];
 const RAPTOR_ABILITIES: number[] = [TrueStrike.id, TwinSnakes.id, RisingRaptor.id];
-const COUERL_ABILITIES: number[] = [SnapPunch.id, Demolish.id, PouncingCouerl.id];
-const FORM_ABILITIES: number[] = [Bootshine.id, DragonKick.id, LeapingOpo.id, TrueStrike.id, TwinSnakes.id, RisingRaptor.id, SnapPunch.id, Demolish.id, PouncingCouerl.id]
+const COUERL_ABILITIES: number[] = [SnapPunch.id, Demolish.id, PouncingCoeurl.id];
+const FORM_ABILITIES: number[] = [Bootshine.id, DragonKick.id, LeapingOpo.id, TrueStrike.id, TwinSnakes.id, RisingRaptor.id, SnapPunch.id, Demolish.id, PouncingCoeurl.id]
