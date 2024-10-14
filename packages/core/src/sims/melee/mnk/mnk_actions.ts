@@ -54,6 +54,7 @@ export const RaptorForm: PersonalBuff = {
         // allows execution of twin snakes and true strike I and II
     },
     appliesTo: (ability) => RAPTOR_ABILITIES.includes(ability.id),
+    beforeSnapshot: (controller: BuffController, ability) => controller.removeSelf(),
 };
 
 export const RaptorFury: PersonalBuff = {
@@ -82,6 +83,7 @@ export const CoeurlForm: PersonalBuff = {
         // allows execution of demolish, snap punch I and II
     },
     appliesTo: (ability) => COUERL_ABILITIES.includes(ability.id),
+    beforeSnapshot: (controller: BuffController, ability) => controller.removeSelf(),
 };
 
 

@@ -27,7 +27,7 @@ export const mnkSpec: SimSpec<MnkSim, MnkSettingsExternal> = {
     },
     supportedJobs: ['MNK'],
     supportedLevels: [100],
-    isDefaultSim: true,
+    isDefaultSim: false,
 };
 
 class MNKCycleProcessor extends CycleProcessor {
@@ -134,13 +134,22 @@ class MNKCycleProcessor extends CycleProcessor {
                 }
                 break;
             case PerfectBalanceBuff:
-                // pb decision tree
+                // TODO pb decision tree
+                if (this.gauge.opoFury) {
+                    this.useGcd(LeapingOpo);
+                } else {
+                    this.useGcd(DragonKick);
+                }
                 break;
         }
     }
 
     getCurrentForm(): Buff {
         return this.getActiveBuffs().find(b => {
+            if (b.statusId === undefined) {
+                // unimplemented buff id, likely a fury "buff"
+                return undefined;
+            }
             if ([OpoForm.statusId, RaptorForm.statusId, CoeurlForm.statusId, FormlessFist.statusId, PerfectBalanceBuff.statusId].includes(b.statusId)) {
                 return b;
             }
