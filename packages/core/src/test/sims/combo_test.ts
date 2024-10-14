@@ -208,7 +208,8 @@ function quickTest(testCase: (cp: CycleProcessor) => void): FinalizedAbility[] {
         cycleTime: 120,
         stats: exampleGearSet.computedStats,
         totalTime: 295,
-        useAutos: false
+        useAutos: false,
+        cutoffMode: 'prorate-gcd'
     });
     testCase(cp);
     const displayRecords = cp.finalizedRecords;

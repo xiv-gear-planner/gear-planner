@@ -1,16 +1,24 @@
-import { Ability, SimSettings, SimSpec } from "@xivgear/core/sims/sim_types";
-import { CycleProcessor, CycleSimResult, ExternalCycleSettings, MultiCycleSettings, AbilityUseResult, Rotation, PreDmgAbilityUseRecordUnf } from "@xivgear/core/sims/cycle_sim";
-import { CycleSettings } from "@xivgear/core/sims/cycle_settings";
-import { CharacterGearSet } from "@xivgear/core/gear";
-import { formatDuration } from "@xivgear/core/util/strutils";
-import { STANDARD_ANIMATION_LOCK } from "@xivgear/xivmath/xivconstants";
+import {Ability, SimSettings, SimSpec} from "@xivgear/core/sims/sim_types";
+import {
+    AbilityUseResult, CutoffMode,
+    CycleProcessor,
+    CycleSimResult,
+    ExternalCycleSettings,
+    MultiCycleSettings,
+    PreDmgAbilityUseRecordUnf,
+    Rotation
+} from "@xivgear/core/sims/cycle_sim";
+import {CycleSettings} from "@xivgear/core/sims/cycle_settings";
+import {CharacterGearSet} from "@xivgear/core/gear";
+import {formatDuration} from "@xivgear/core/util/strutils";
+import {STANDARD_ANIMATION_LOCK} from "@xivgear/xivmath/xivconstants";
 import SAMGauge from "./sam_gauge";
-import { SAMExtraData, SAMRotationData, SamAbility } from "./sam_types";
+import {SamAbility, SAMExtraData, SAMRotationData} from "./sam_types";
 import * as SlowSamRotation from './rotations/sam_lv100_214';
 import * as MidSamRotation from './rotations/sam_lv100_207';
 import * as FastSamRotation from './rotations/sam_lv100_200';
-import { HissatsuShinten, MeikyoShisui } from './sam_actions';
-import { BaseMultiCycleSim } from "@xivgear/core/sims/processors/sim_processors";
+import {HissatsuShinten, MeikyoShisui} from './sam_actions';
+import {BaseMultiCycleSim} from "@xivgear/core/sims/processors/sim_processors";
 
 export interface SamSimResult extends CycleSimResult {
 
@@ -64,9 +72,11 @@ class SAMCycleProcessor extends CycleProcessor {
         this.gauge = new SAMGauge(settings.stats.level);
     }
 
-    shouldUseShinten(): boolean {
+    shouldUseShinten(rotation: SamAbility[], idx: number): boolean {
         // If the fight is ending soon, we should use up our remaining gauge.
-        return this.currentTime > (this.totalTime - 5) && this.gauge.kenkiGauge >= 25;
+        const numShintens = Math.floor(this.gauge.kenkiGauge / 25);
+        const remainingGcds = rotation.slice(idx).filter(action => action.type === 'gcd').length;
+        return rotation[idx].type === 'gcd' && numShintens === remainingGcds;
     }
 
     override addAbilityUse(usedAbility: PreDmgAbilityUseRecordUnf) {
@@ -88,15 +98,22 @@ export class SamSim extends BaseMultiCycleSim<SamSimResult, SamSettings, SAMCycl
     spec = samSpec;
     shortName = "sam-sim-lv100";
     displayName = samSpec.displayName;
-    cycleSettings: CycleSettings = {
-        useAutos: true,
-        totalTime: (8 * 60) + 35,
-        cycles: 0,
-        which: 'totalTime',
-    }
 
     constructor(settings?: SamSettingsExternal) {
         super('SAM', settings);
+    }
+
+    override defaultCycleSettings(): CycleSettings {
+        return {
+            ...super.defaultCycleSettings(),
+            totalTime: (8 * 60) + 35,
+            cycles: 0,
+            which: 'totalTime',
+        };
+    }
+
+    override get defaultCutoffMode(): CutoffMode {
+        return 'prorate-application';
     }
 
     protected createCycleProcessor(settings: MultiCycleSettings): SAMCycleProcessor {
@@ -148,12 +165,6 @@ export class SamSim extends BaseMultiCycleSim<SamSimResult, SamSettings, SAMCycl
         }
 
         const abilityUseResult = cp.use(ability);
-
-        // Use up remaining Kenki between GCDs before the rotation ends
-        if (ability.type === 'gcd' && cp.shouldUseShinten()) {
-            cp.use(HissatsuShinten);
-        }
-
         return abilityUseResult;
     }
 
@@ -206,12 +217,22 @@ export class SamSim extends BaseMultiCycleSim<SamSimResult, SamSettings, SAMCycl
                 }
 
                 // Opener
-                rotation.opener.forEach(action => outer.use(cp, action));
+                rotation.opener.forEach((action, idx) => {
+                    if (action.type === 'gcd' && cp.shouldUseShinten(rotation.opener, idx)) {
+                        outer.use(cp, HissatsuShinten);
+                    }
+                    outer.use(cp, action);
+                });
 
                 // Loop
                 if (rotation.loop?.length) {
                     cp.remainingCycles(() => {
-                        rotation.loop.forEach(action => outer.use(cp, action));
+                        rotation.loop.forEach((action, idx) => {
+                            if (action.type === 'gcd' && cp.shouldUseShinten(rotation.loop, idx)) {
+                                outer.use(cp, HissatsuShinten);
+                            }
+                            outer.use(cp, action)
+                        });
                     });
                 }
             }
