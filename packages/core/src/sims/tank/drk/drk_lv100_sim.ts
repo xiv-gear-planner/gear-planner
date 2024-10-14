@@ -74,8 +74,8 @@ class DrkCycleProcessor extends CycleProcessor {
     }
 
     fightEndingSoon(): boolean {
-        // If the fight is ending within the next 10 seconds (to dump resources)
-        return this.currentTime > (this.totalTime - 10);
+        // If the fight is ending within the next 12 seconds (to dump resources)
+        return this.currentTime > (this.totalTime - 12);
     }
 
     // Gets the DRK ability with Blood Weapon's blood and MP additions
@@ -237,7 +237,7 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
         }
 
         // If we try to use Living Shadow, do it properly
-        if (ability.id === 16472) {
+        if (ability.id === Actions.LivingShadow.id) {
             // After 6.8 delay, it does the following rotation with
             // 2.18 seconds between each.
             // Abyssal Drain
@@ -285,7 +285,7 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
         this.applyLivingShadowAbilities(cp)
 
         // Log when we try to use more gauge than what we currently have
-        if (drkAbility.id === 7392 && cp.gauge.bloodGauge < 50) {
+        if (drkAbility.id === Actions.Bloodspiller.id && cp.gauge.bloodGauge < 50) {
             console.warn(`[${formatDuration(cp.currentTime)}][DRK Sim] Attempted to use Bloodspiller when you only have ${cp.gauge.bloodGauge} blood`);
             return null;
         }
