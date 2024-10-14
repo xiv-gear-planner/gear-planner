@@ -6,7 +6,7 @@ import { CharacterGearSet } from "@xivgear/core/gear";
 import { formatDuration } from "@xivgear/core/util/strutils";
 import { STANDARD_ANIMATION_LOCK } from "@xivgear/xivmath/xivconstants";
 import { DrkGauge } from "./drk_gauge";
-import { DrkExtraData, DrkAbility, DrkRotationData } from "./drk_types";
+import { DrkExtraData, DrkAbility } from "./drk_types";
 import { sum } from "@xivgear/core/util/array_utils";
 import * as Drk250 from './rotations/drk_lv100_250';
 import * as Drk246 from './rotations/drk_lv100_246';
