@@ -72,9 +72,11 @@ class SAMCycleProcessor extends CycleProcessor {
         this.gauge = new SAMGauge(settings.stats.level);
     }
 
-    shouldUseShinten(): boolean {
+    shouldUseShinten(rotation: SamAbility[], idx: number): boolean {
         // If the fight is ending soon, we should use up our remaining gauge.
-        return this.currentTime > (this.totalTime - 5) && this.gauge.kenkiGauge >= 25;
+        const numShintens = Math.floor(this.gauge.kenkiGauge / 25);
+        const remainingGcds = rotation.slice(idx).filter(action => action.type === 'gcd').length;
+        return rotation[idx].type === 'gcd' && numShintens === remainingGcds;
     }
 
     override addAbilityUse(usedAbility: PreDmgAbilityUseRecordUnf) {
@@ -163,12 +165,6 @@ export class SamSim extends BaseMultiCycleSim<SamSimResult, SamSettings, SAMCycl
         }
 
         const abilityUseResult = cp.use(ability);
-
-        // Use up remaining Kenki between GCDs before the rotation ends
-        if (ability.type === 'gcd' && cp.shouldUseShinten()) {
-            cp.use(HissatsuShinten);
-        }
-
         return abilityUseResult;
     }
 
@@ -204,11 +200,8 @@ export class SamSim extends BaseMultiCycleSim<SamSimResult, SamSettings, SAMCycl
 
     getRotationsToSimulate(set: CharacterGearSet): Rotation<SAMCycleProcessor>[] {
         const gcd = set.results.computedStats.gcdPhys(2.5, 13);
-        const {
-            name,
-            rotation
-        } = SamSim.getRotationForGcd(gcd);
-        const settings = {...this.settings};
+        const { name, rotation } = SamSim.getRotationForGcd(gcd);
+        const settings = { ...this.settings };
         const outer = this;
 
         console.log(`[SAM Sim] Running ${name}...`);
@@ -224,12 +217,22 @@ export class SamSim extends BaseMultiCycleSim<SamSimResult, SamSettings, SAMCycl
                 }
 
                 // Opener
-                rotation.opener.forEach(action => outer.use(cp, action));
+                rotation.opener.forEach((action, idx) => {
+                    if (action.type === 'gcd' && cp.shouldUseShinten(rotation.opener, idx)) {
+                        outer.use(cp, HissatsuShinten);
+                    }
+                    outer.use(cp, action);
+                });
 
                 // Loop
                 if (rotation.loop?.length) {
                     cp.remainingCycles(() => {
-                        rotation.loop.forEach(action => outer.use(cp, action));
+                        rotation.loop.forEach((action, idx) => {
+                            if (action.type === 'gcd' && cp.shouldUseShinten(rotation.loop, idx)) {
+                                outer.use(cp, HissatsuShinten);
+                            }
+                            outer.use(cp, action)
+                        });
                     });
                 }
             }
