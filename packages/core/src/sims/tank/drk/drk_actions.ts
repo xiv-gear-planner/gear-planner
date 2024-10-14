@@ -159,7 +159,7 @@ export const Disesteem: DrkGcdAbility = {
     name: "Disesteem",
     id: 36932,
     potency: 1000,
-    attackType: "Spell",
+    attackType: "Weaponskill",
     gcd: 2.5,
 };
 
