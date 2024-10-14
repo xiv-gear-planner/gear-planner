@@ -77,6 +77,7 @@ export const Torcleaver: DrkGcdAbility = {
 export const Unmend: DrkGcdAbility = {
     type: 'gcd',
     name: "Unmend",
+    appDelay: 1,
     id: 3624,
     potency: 150,
     attackType: "Spell",
@@ -172,7 +173,7 @@ export const TheBlackestNight: DrkOgcdAbility = {
     type: 'ogcd',
     name: "The Blackest Night",
     id: 7393,
-    potency: 0,
+    potency: null,
     attackType: "Ability",
     cooldown: {
         time: 15,

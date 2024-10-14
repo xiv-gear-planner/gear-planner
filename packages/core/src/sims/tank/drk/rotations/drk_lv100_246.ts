@@ -2,35 +2,11 @@ import { potionMaxStr } from "@xivgear/core/sims/common/potion";
 import * as Actions from '../drk_actions';
 import { DrkAbility } from "../drk_types";
 
-export const Opener: DrkAbility[] = [
-    Actions.Unmend,
-    potionMaxStr,
-    Actions.HardSlash,
-    Actions.EdgeOfShadow,
-    Actions.LivingShadow,
-    Actions.SyphonStrike,
-    Actions.Souleater,
-    Actions.Delirium,
-    Actions.Disesteem,
-    Actions.SaltedEarth,
-    Actions.EdgeOfShadow,
-    Actions.ScarletDelirium,
-    Actions.EdgeOfShadow,
-    Actions.Comeuppance,
-    Actions.CarveAndSpit,
-    Actions.EdgeOfShadow,
-    Actions.Torcleaver,
-    Actions.Shadowbringer,
-    Actions.EdgeOfShadow,
-    Actions.Bloodspiller,
-    Actions.SaltAndDarkness,
-];
-
 // This is transcribed from https://www.youtube.com/watch?v=-qDvEZQU9dQ with: 
 // - an additional Edge in every two minute burst, assuming we have Dark Arts.
 // - a 6m pot added
 // - an extra GCD combo and bloodspiller added
-export const Loop: DrkAbility[] = [
+export const Rotation: DrkAbility[] = [
     Actions.HardSlash,
     Actions.SyphonStrike,
     Actions.Souleater,
