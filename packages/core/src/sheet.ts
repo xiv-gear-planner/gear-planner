@@ -290,12 +290,17 @@ export class GearPlanSheet {
     }
 
     async load() {
+        const dataManager = makeDataManager(this.classJobName, this.level, this.ilvlSync);
+        await dataManager.loadData();
+        await this.loadFromDataManager(dataManager);
+    }
+
+    async loadFromDataManager(dataManager: DataManager) {
         console.log("Loading sheet...");
         console.log("Reading data");
         const saved = this._importedData;
         const lvlItemInfo = LEVEL_ITEMS[this.level];
-        this.dataManager = makeDataManager(this.classJobName, this.level, this.ilvlSync);
-        await this.dataManager.loadData();
+        this.dataManager = dataManager;
         for (const importedSet of saved.sets) {
             this.addGearSet(this.importGearSet(importedSet));
         }
@@ -608,6 +613,17 @@ export class GearPlanSheet {
             this._customFoods.splice(idx, 1);
         }
         this.recalcAll();
+    }
+
+    importSim(simExport: SimExport): Simulation<any, any, any> {
+        const simSpec = getSimSpecByStub(simExport.stub);
+        if (simSpec === undefined) {
+            return null;
+        }
+        const rehydratedSim = simSpec.loadSavedSimInstance(simExport.settings);
+        rehydratedSim.displayName = simExport.name ?? undefined;
+        rehydratedSim.settings.includeInExport ??= true;
+        return rehydratedSim;
     }
 
     /**

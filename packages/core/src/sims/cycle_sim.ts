@@ -12,10 +12,10 @@ import {
     GcdAbility,
     OgcdAbility,
     PartyBuff,
-    SimResult,
-    SimSettings,
+    PostDmgUsedAbility,
     PreDmgUsedAbility,
-    PostDmgUsedAbility
+    SimResult,
+    SimSettings
 } from "./sim_types";
 import {ComputedSetStats} from "@xivgear/xivmath/geartypes";
 import {
@@ -208,6 +208,38 @@ export class CycleContext {
  */
 export type AbilityUseResult = 'full' | 'partial' | 'none';
 
+
+
+/* TODO: I thought of a better way to implement this.
+
+    This can all be implemented post-hoc.
+    There is no need to intertwine any of this logic into the `use` method itself.
+    It can instead be done purely via finalized records.
+    This also goes for pro-rating - it can just all happen outside.
+ */
+/**
+ * Since it is unlikely that a GCD will end perfectly on the fight end time, we need to have strategies for adjusting
+ * DPS based on when the last action happens.
+ *
+ * 'prorate-gcd' is the previous default behavior. The final GCD will have its damage prorated based on how much of it
+ * fit into the fight time.
+ *
+ * 'prorate-application' is like 'prorate-gcd', but will use the application time rather than the GCD time.
+ *
+ * 'lax-gcd' allows the final GCD to fit in its entirely, but uses the start of the next GCD as the time basis for
+ * calculating DPS, i.e. if the fight time is 120, but your last GCD comes back up at 121.5, then the DPS will be
+ * (damage / 121.5) rather than (damage / 120).
+ *
+ * 'strict-gcd' works like 'lax-gcd', but drops incomplete GCDs entirely and uses the time of the last GCD that you
+ * could start, but not finish, within the timestamp. There is one sort-of exception - if a GCD's entire recast period
+ * would fit, but then extra oGCDs are clipped, then exactly *one* oGCD is allowed to push past the time limit. This
+ * should not be relied upon and may be fixed in the future.
+ */
+export type CutoffMode = 'prorate-gcd'
+    | 'prorate-application'
+    | 'lax-gcd'
+    | 'strict-gcd';
+
 /**
  * Base settings object for a cycle based sim
  */
@@ -241,6 +273,10 @@ export type MultiCycleSettings = {
      * Whether to hide dividers indicating the start and end of a cycle
      */
     readonly hideCycleDividers?: boolean
+    /**
+     * How to deal with GCDs not lining up perfectly with the end of fight.
+     */
+    readonly cutoffMode: CutoffMode;
 }
 
 export type CycleFunction = (cycle: CycleContext) => void
@@ -405,6 +441,19 @@ export class CycleProcessor {
      */
     readonly cdTracker: CooldownTracker;
     private _cdEnforcementMode: CooldownMode;
+
+    /**
+     * The end-of-fight cutoff mode
+     */
+    readonly cutoffMode: CutoffMode;
+
+    /**
+     * If the cutoff mode is 'strict-gcd', this tracks what time basis we want to use as the real cutoff time.
+     * i.e. when does our last GCD end. This is only non-null once the fight is actually cut off.
+     *
+     * @private
+     */
+    private hardCutoffGcdTime: number | null = null;
     /**
      * Controls the logic used to re-align cycles. Since cycles typically do not last exactly their desired time
      * (i.e. there is drift), you can control how it should re-align cycles when this happens.
@@ -443,6 +492,7 @@ export class CycleProcessor {
             noIcon: true,
             potency: this.stats.jobStats.aaPotency
         };
+        this.cutoffMode = settings.cutoffMode;
     }
 
     get cdEnforcementMode(): CooldownMode {
@@ -559,6 +609,9 @@ export class CycleProcessor {
         // never starting combat.
         if (!this.combatStarted) {
             return this.totalTime;
+        }
+        if (this.isHardCutoff) {
+            return 0;
         }
         return Math.max(0, this.totalTime - this.nextGcdTime);
     }
@@ -708,6 +761,25 @@ export class CycleProcessor {
             }
         })
     }
+
+    computePartialRate(record: PostDmgUsedAbility): number {
+        switch (this.cutoffMode) {
+            case "prorate-gcd":
+                if (record.totalTimeTaken <= 0) {
+                    return 1;
+                }
+                return Math.max(0, Math.min(1, (this.totalTime - record.usedAt) / record.totalTimeTaken));
+            case "prorate-application":
+                if (record.appDelayFromStart <= 0) {
+                    return 1;
+                }
+                return Math.max(0, Math.min(1, (this.totalTime - record.usedAt) / record.appDelayFromStart));
+            case "lax-gcd":
+            case "strict-gcd":
+                return 1;
+        }
+    }
+
     /**
      * A record of events, including special rows and such.
      */
@@ -716,7 +788,7 @@ export class CycleProcessor {
         return (this.postDamageRecords.map(record => {
             if (isAbilityUse(record)) {
 
-                const partialRate = record.totalTimeTaken > 0 ? Math.max(0, Math.min(1, (this.totalTime - record.usedAt) / record.totalTimeTaken)) : 1;
+                const partialRate = this.computePartialRate(record);
                 const directDamage = multiplyFixed(record.directDamage, partialRate);
                 const dot = record.dot;
                 const dotDmg = dot ? multiplyIndependent(dot.damagePerTick, dot.actualTickCount) : fixedValue(0);
@@ -743,6 +815,33 @@ export class CycleProcessor {
         }));
     }
 
+    get finalizedTimeBasis(): number {
+        switch (this.cutoffMode) {
+            case "prorate-gcd":
+            case "prorate-application":
+                // For these, we use either the current time, or the total allowed time. Pro-rating the final GCD is
+                // handled in `get finalizedRecords()`
+                return Math.min(this.totalTime, this.currentTime);
+            case "lax-gcd":
+                return this.nextGcdTime;
+            case "strict-gcd": {
+                const cutoffTime = this.hardCutoffGcdTime;
+                if (cutoffTime !== null) {
+                    return cutoffTime;
+                }
+                // We can also have a situation where clipping oGCDs have pushed us over
+                const potentialMax = Math.max(...this.finalizedRecords.filter<FinalizedAbility>(isFinalizedAbilityUse)
+                    .map(record => record.usedAt + record.original.totalTimeTaken));
+                if (potentialMax > 9999999) {
+                    return Math.min(this.totalTime, this.currentTime);
+                }
+                else {
+                    return potentialMax;
+                }
+            }
+        }
+    }
+
     private isGcd(ability: Ability): ability is GcdAbility {
         return ability.type === 'gcd';
     }
@@ -759,6 +858,10 @@ export class CycleProcessor {
         }
     }
 
+    get isHardCutoff(): boolean {
+        return this.hardCutoffGcdTime !== null;
+    }
+
     /**
      * Use an ability
      *
@@ -768,9 +871,27 @@ export class CycleProcessor {
         // noinspection AssignmentToFunctionParameterJS
         ability = this.processCombo(ability);
         const isGcd = this.isGcd(ability);
-        if (this.remainingGcdTime <= 0) {
-            // Already over time limit. Ignore completely.
-            return 'none';
+        // if using a non-prorate mode, then allow oGCDs past the cutoff
+        const cutoffMode = this.cutoffMode;
+        if (isGcd || cutoffMode === 'prorate-gcd' || cutoffMode === 'prorate-application') {
+            if (this.remainingGcdTime <= 0 || this.isHardCutoff) {
+                // Already over time limit. Ignore completely.
+                return 'none';
+            }
+        }
+        // if using strict-gcd mode, we also want to ignore oGCDs past the cutoff
+        else if (cutoffMode === 'strict-gcd') {
+            if (this.remainingTime <= 0 || this.isHardCutoff) {
+                return 'none';
+            }
+        }
+        // This branch deals with the corner case where a long-cast GCD, or multiple clipped oGCDs
+        // push you over the edge and you try to use another oGCD.
+        // That oGCD shouldn't be considered "part of" the GCD like it would with a proper weave.
+        else if (cutoffMode === 'lax-gcd') {
+            if (this.remainingGcdTime <= 0 && this.nextGcdTime === this.currentTime) {
+                return 'none';
+            }
         }
         // Since we might not be at the start of the next GCD yet (e.g. back-to-back instant GCDs), we need to do the
         // CD checking at the time when we expect to actually use this GCD.
@@ -802,8 +923,22 @@ export class CycleProcessor {
         // noinspection AssignmentToFunctionParameterJS
         ability = this.beforeAbility(ability, preBuffs);
         const abilityGcd = isGcd ? (this.gcdTime(ability as GcdAbility, preCombinedEffects)) : 0;
+        if (this.isGcd(ability) && cutoffMode == 'strict-gcd') {
+            // If we would not be able to fit the GCD, flag it
+            if (this.remainingGcds(ability) < 1) {
+                this.hardCutoffGcdTime = this.currentTime;
+                return 'none';
+            }
+        }
         this.markCd(ability, preCombinedEffects);
         const effectiveCastTime: number | null = ability.cast ? this.castTime(ability, preCombinedEffects) : null;
+        // Also check that we can fit the cast time, for long-casts
+        if (cutoffMode == 'strict-gcd' && effectiveCastTime > this.remainingTime) {
+            if (this.isGcd(ability)) {
+                this.hardCutoffGcdTime = this.currentTime;
+                return 'none';
+            }
+        }
         const snapshotDelayFromStart = effectiveCastTime ? Math.max(0, effectiveCastTime - CAST_SNAPSHOT_PRE) : 0;
         const snapshotsAt = this.currentTime + snapshotDelayFromStart;
         // When this GCD will end (strictly in terms of GCD. e.g. a BLM spell where cast > recast will still take the cast time. This will be

@@ -5,6 +5,7 @@ import { sum } from "@xivgear/core/util/array_utils";
 import { addValues, applyStdDev, multiplyFixed } from "@xivgear/xivmath/deviation";
 import { PartyBuff, SimSettings, SimSpec, Simulation } from "@xivgear/core/sims/sim_types";
 import {
+    CutoffMode,
     CycleProcessor,
     CycleSimResult,
     CycleSimResultFull,
@@ -86,6 +87,10 @@ export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, Inter
         return jobData.role !== 'Healer' && jobData.role !== 'Caster';
     }
 
+    get defaultCutoffMode(): CutoffMode {
+        return 'prorate-gcd';
+    }
+
     /**
      * Return the default settings for this sim. You can override this to provide your own custom
      * settings. It should respect {@link useAutosByDefault}
@@ -96,6 +101,7 @@ export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, Inter
             totalTime: 6 * 120,
             which: 'totalTime',
             useAutos: this.useAutosByDefault,
+            cutoffMode: this.defaultCutoffMode
         }
     }
 
@@ -137,7 +143,8 @@ export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, Inter
                 cycleTime: rot.cycleTime,
                 allBuffs: allBuffs,
                 manuallyActivatedBuffs: this.manuallyActivatedBuffs ?? [],
-                useAutos: (this.cycleSettings.useAutos ?? true) && set.getItemInSlot('Weapon') !== null
+                useAutos: (this.cycleSettings.useAutos ?? true) && set.getItemInSlot('Weapon') !== null,
+                cutoffMode: this.cycleSettings.cutoffMode,
             });
             rot.apply(cp);
             return [rot.name ?? `Unnamed #${index + 1}`, cp];
@@ -151,7 +158,7 @@ export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, Inter
             cp.stats = set.computedStats;
             const used = cp.finalizedRecords.filter(isFinalizedAbilityUse);
             const totalDamage = addValues(...used.map(used => used.totalDamageFull));
-            const timeBasis = Math.min(cp.totalTime, cp.currentTime);
+            const timeBasis = cp.finalizedTimeBasis;
             const dps = multiplyFixed(totalDamage, 1.0 / timeBasis);
             const unbuffedPps = sum(used.map(used => used.totalPotency)) / cp.nextGcdTime;
             const buffTimings = [...cp.buffHistory];
@@ -171,7 +178,6 @@ export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, Inter
         const sorted = [...allResults];
         sorted.sort((a, b) => b.mainDpsResult - a.mainDpsResult);
         console.debug("Sim end");
-        console.log(`Num: ${sorted.length}`);
         const best = sorted[0];
         // @ts-expect-error Developer will need to override this method if they want to use a custom type for the
         // full result type.

@@ -13,6 +13,7 @@ import {GearPlanSheetGui, GRAPHICAL_SHEET_PROVIDER} from "./components/sheet";
 import {splitPath} from "@xivgear/core/nav/common_nav";
 import {applyCommonTopMenuFormatting} from "@xivgear/common-ui/components/top_menu";
 import {recordSheetEvent} from "@xivgear/core/analytics/analytics";
+import { workerPool } from "./workers/worker_pool";
 
 const pageTitle = 'XivGear - FFXIV Gear Planner';
 
@@ -191,6 +192,7 @@ export async function openSheet(planner: GearPlanSheetGui, changeHash: boolean =
         contentArea.replaceChildren(document.createTextNode("Error loading sheet!"));
     });
     await loadSheetPromise;
+    await workerPool.initializeworkers(planner);
 }
 
 export function showSheetPickerMenu() {

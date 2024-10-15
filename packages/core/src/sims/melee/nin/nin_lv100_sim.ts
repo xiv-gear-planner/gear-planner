@@ -1,14 +1,22 @@
-import { Ability, OgcdAbility, Buff, SimSettings, SimSpec } from "@xivgear/core/sims/sim_types";
-import { CycleProcessor, CycleSimResult, ExternalCycleSettings, MultiCycleSettings, AbilityUseResult, Rotation, PreDmgAbilityUseRecordUnf } from "@xivgear/core/sims/cycle_sim";
-import { CycleSettings } from "@xivgear/core/sims/cycle_settings";
-import { STANDARD_ANIMATION_LOCK } from "@xivgear/xivmath/xivconstants";
-import { potionMaxDex } from "@xivgear/core/sims/common/potion";
-import { Dokumori } from "@xivgear/core/sims/buffs";
+import {Ability, Buff, OgcdAbility, SimSettings, SimSpec} from "@xivgear/core/sims/sim_types";
+import {
+    AbilityUseResult, CutoffMode,
+    CycleProcessor,
+    CycleSimResult,
+    ExternalCycleSettings,
+    MultiCycleSettings,
+    PreDmgAbilityUseRecordUnf,
+    Rotation
+} from "@xivgear/core/sims/cycle_sim";
+import {CycleSettings} from "@xivgear/core/sims/cycle_settings";
+import {STANDARD_ANIMATION_LOCK} from "@xivgear/xivmath/xivconstants";
+import {potionMaxDex} from "@xivgear/core/sims/common/potion";
+import {Dokumori} from "@xivgear/core/sims/buffs";
 import NINGauge from "./nin_gauge";
-import { NinAbility, NinGcdAbility, MudraStep, NinjutsuAbility, NINExtraData } from "./nin_types";
+import {MudraStep, NinAbility, NINExtraData, NinGcdAbility, NinjutsuAbility} from "./nin_types";
 import * as Actions from './nin_actions';
 import * as Buffs from './nin_buffs';
-import { BaseMultiCycleSim } from "@xivgear/core/sims/processors/sim_processors";
+import {BaseMultiCycleSim} from "@xivgear/core/sims/processors/sim_processors";
 
 export interface NinSimResult extends CycleSimResult {
 
@@ -50,6 +58,7 @@ class RotationState {
     get combo() {
         return this._combo
     }
+
     set combo(newCombo: number) {
         this._combo = newCombo;
         if (this._combo >= 3) this._combo = 0;
@@ -140,7 +149,8 @@ class NINCycleProcessor extends CycleProcessor {
         // Use Raiju if it's available
         if (this.getBuffIfActive(Buffs.RaijuReady)) {
             fillerAction = Actions.Raiju;
-        } else {
+        }
+        else {
             // Use the next GCD in our basic combo
             fillerAction = Actions.SpinningEdge;
             switch (this.rotationState.combo) {
@@ -153,7 +163,8 @@ class NINCycleProcessor extends CycleProcessor {
                     const forceAeolian = this.getBuffIfActive(Buffs.KunaisBaneBuff) || this.getBuffIfActive(Dokumori);
                     if (this.gauge.kazematoi <= 3 && (!forceAeolian || this.gauge.kazematoi === 0)) {
                         fillerAction = Actions.ArmorCrush;
-                    } else {
+                    }
+                    else {
                         fillerAction = Actions.AeolianEdge;
                     }
                     break;
@@ -274,7 +285,8 @@ class NINCycleProcessor extends CycleProcessor {
                     this.useFillerGcd();
                     return idx;
                 }
-            } else {
+            }
+            else {
                 // Use the assigned ogcd based on a predefined order
                 result = this.useOgcd(order[idx]);
             }
@@ -283,7 +295,8 @@ class NINCycleProcessor extends CycleProcessor {
         // If our assigned ogcd was not used, use a filler ogcd
         if (result === null) {
             this.useFillerOgcd(1);
-        } else {
+        }
+        else {
             // Otherwise, continue with the ogcd order chain
             idx++;
         }
@@ -302,7 +315,8 @@ class NINCycleProcessor extends CycleProcessor {
          */
         if (phantomBuff && !comboIsBetter && (nextBuffWindow + 5 > phantomBuff.end || this.getBuffIfActive(Buffs.KunaisBaneBuff))) {
             this.usePhantom();
-        } else {
+        }
+        else {
             this.useCombo();
         }
     }
@@ -416,12 +430,6 @@ export class NinSim extends BaseMultiCycleSim<NinSimResult, NinSettings, NINCycl
     shortName = "nin-sim-lv100";
     displayName = ninSpec.displayName;
     manuallyActivatedBuffs = [Dokumori];
-    cycleSettings: CycleSettings = {
-        useAutos: true,
-        totalTime: (6 * 60) + 32,
-        cycles: 0,
-        which: 'totalTime'
-    }
 
     constructor(settings?: NinSettingsExternal) {
         super('NIN', settings);
@@ -430,6 +438,20 @@ export class NinSim extends BaseMultiCycleSim<NinSimResult, NinSettings, NINCycl
     makeDefaultSettings(): NinSettings {
         return {};
     }
+
+    override defaultCycleSettings(): CycleSettings {
+        return {
+            ...super.defaultCycleSettings(),
+            totalTime: (6 * 60) + 32,
+            cycles: 0,
+            which: 'totalTime',
+        };
+    }
+
+    override get defaultCutoffMode(): CutoffMode {
+        return 'prorate-application';
+    }
+
 
     protected createCycleProcessor(settings: MultiCycleSettings): NINCycleProcessor {
         return new NINCycleProcessor({

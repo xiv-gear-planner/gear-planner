@@ -3,9 +3,9 @@ import {ItemDisplaySettings, MateriaAutoFillController} from "@xivgear/xivmath/g
 import {MateriaPriorityPicker} from "./materia";
 import {StatTierDisplay} from "./stat_tier_display";
 import {CharacterGearSet} from "@xivgear/core/gear";
-import {GearPlanSheet} from "@xivgear/core/sheet";
 import {makeActionButton, redoIcon, undoIcon} from "@xivgear/common-ui/components/util";
 import {recordEvent, recordSheetEvent} from "@xivgear/core/analytics/analytics";
+import { GearPlanSheetGui } from "./sheet";
 
 export class UndoArea extends HTMLDivElement {
     private _currentSet: CharacterGearSet;
@@ -49,7 +49,7 @@ export class GearEditToolbar extends HTMLDivElement {
     private readonly statTierDisplay: StatTierDisplay;
     private undoArea: UndoArea;
 
-    constructor(sheet: GearPlanSheet,
+    constructor(sheet: GearPlanSheetGui,
                 itemDisplaySettings: ItemDisplaySettings,
                 displayUpdateCallback: () => void,
                 matFillCtrl: MateriaAutoFillController,
@@ -89,7 +89,7 @@ export class GearEditToolbar extends HTMLDivElement {
 
         this.appendChild(ilvlDiv);
 
-        const materiaPriority = new MateriaPriorityPicker(matFillCtrl);
+        const materiaPriority = new MateriaPriorityPicker(matFillCtrl, sheet);
         this.appendChild(materiaPriority);
 
         this.statTierDisplay = new StatTierDisplay(sheet);
