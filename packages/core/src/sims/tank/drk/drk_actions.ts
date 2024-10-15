@@ -223,7 +223,7 @@ export const LivingShadow: DrkOgcdAbility = {
     name: "Living Shadow",
     id: 16472,
     // Total potency of its abilities is 2450.
-    potency: 0,
+    potency: null,
     attackType: "Ability",
     activatesBuffs: [ScornBuff],
     cooldown: {
