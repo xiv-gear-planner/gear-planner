@@ -169,6 +169,7 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
         totalTime: this.settings.fightTime,
         cycles: 0,
         which: 'totalTime',
+        cutoffMode: 'prorate-gcd',
     }
     mpTicks = 0
     // livingShadowAbilityUsages tracks which remaining Living Shadow abilities we have
