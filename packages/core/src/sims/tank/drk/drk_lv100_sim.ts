@@ -20,7 +20,8 @@ export interface DrkSimResult extends CycleSimResult {
 
 export interface DrkSettings extends SimSettings {
     usePotion: boolean;
-    prepullTBN: boolean; // If we use a pre-pull TBN. Currently doesn't fully support 'false', but could in the future.
+    // If we use a pre-pull TBN. This should be exposed and more fully tested as 'false' once the computationally created rotation is implemented.
+    prepullTBN: boolean; 
     fightTime: number; // the length of the fight in seconds
     // TODO: should we add a prepull Shadowstride option? Would be nice to compare on differing killtimes
 }
@@ -299,7 +300,7 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
         }
 
         // Only use potion if enabled in settings
-        if (!this.settings.usePotion && ability.name.includes("of strength")) {
+        if (!this.settings.usePotion && ability.name.includes("of Strength")) {
             return null;
         }
 
@@ -341,6 +342,8 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
             cp.advanceTo(3 - STANDARD_ANIMATION_LOCK);
             // Hacky out of combat mana tick.
             cp.gauge.magicPoints += 600
+        } else {
+            cp.advanceTo(1 - STANDARD_ANIMATION_LOCK);
         }
         this.use(cp, Actions.Unmend)        
         cp.advanceForLateWeave([potionMaxStr]);
@@ -392,6 +395,7 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
         const rotation = DrkSim.getRotationForGcd(gcd);
 
         console.log(`[DRK Sim] Running Rotation for ${gcd} GCD...`);
+        console.log(`[DRK Sim] Settings configured: ${JSON.stringify(settings)}`)
         return [{
             cycleTime: 120,
             apply(cp: DrkCycleProcessor) {
