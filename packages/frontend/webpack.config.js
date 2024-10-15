@@ -1,9 +1,12 @@
 const HtmlWebpackPlugin = require("html-webpack-plugin");
+const NodePolyfillPlugin = require('node-polyfill-webpack-plugin');
 const path = require("path");
 module.exports = (env, argv) => {
     const prod = argv.mode === 'production';
     return {
-        entry: [path.resolve(__dirname, "./src/scripts/main.ts")],
+        entry: [path.resolve(__dirname, "./src/scripts/main.ts"),
+                path.resolve(__dirname, "./src/scripts/workers/worker_main.ts"),
+        ],
         output: {
             path: path.resolve(__dirname + "/dist"),
             clean: false
@@ -31,10 +34,20 @@ module.exports = (env, argv) => {
                 template: path.resolve(__dirname, "src/index.html"),
                 filename: "index.html",
                 inject: false
-            })
+            }),
+            new NodePolyfillPlugin()
         ],
         resolve: {
             extensions: ['.ts', '.js'],
+            fallback: {
+                "util": false,
+                "http": false,
+                "fs": false,
+                "canvas": false,
+                "net": false,
+                "tls": false,
+                "child_process": false,
+            }
         },
         devServer: {
             static: "./dist",

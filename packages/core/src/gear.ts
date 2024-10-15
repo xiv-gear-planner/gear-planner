@@ -296,7 +296,6 @@ export class CharacterGearSet {
     set food(food: FoodItem | undefined) {
         this.invalidate();
         this._food = food;
-        console.log(`Set ${this.name}: food => ${food?.name}`);
         this.notifyListeners();
     }
 
@@ -496,7 +495,7 @@ export class CharacterGearSet {
             computedStats: computedStats,
             issues: this.isSeparator ? [] : issues
         };
-        console.info("Recomputed stats", this._lastResult);
+        //console.info("Recomputed stats", this._lastResult);
         return this._lastResult;
     }
 
