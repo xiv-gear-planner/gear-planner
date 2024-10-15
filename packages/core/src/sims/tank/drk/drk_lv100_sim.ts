@@ -106,11 +106,9 @@ class DrkCycleProcessor extends CycleProcessor {
         // Get what the the Darkside duration would be at this
         // point of time, for visualization in the UI
         const darkside = buffs.find(buff => buff.name === "Darkside")
-        if (darkside) {
-            const buffData = this.getActiveBuffData(darkside, abilityUsage.usageTime)
-            if (buffData) {
-                darksideDuration = Math.round(buffData.end - abilityUsage.usageTime)
-            }
+        const buffData = darkside && this.getActiveBuffData(darkside, abilityUsage.usageTime)
+        if (buffData) {
+            darksideDuration = Math.round(buffData.end - abilityUsage.usageTime)
         }
 
         // However, Darkside does not apply to Living Shadow abilities, so
@@ -144,11 +142,9 @@ class DrkCycleProcessor extends CycleProcessor {
         };
         
         const darkside = usedAbility.buffs.find(buff => buff.name === "Darkside")
-        if (darkside) {
-            const buffData = this.getActiveBuffData(darkside, usedAbility.usedAt)
-            if (buffData) {
-                extraData.darksideDuration = Math.round(buffData.end - usedAbility.usedAt)
-            }
+        const buffData = darkside && this.getActiveBuffData(darkside, usedAbility.usedAt)
+        if (buffData) {
+            extraData.darksideDuration = Math.round(buffData.end - usedAbility.usedAt)
         }
 
         const modified: PreDmgAbilityUseRecordUnf = {
@@ -342,6 +338,7 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
             this.use(cp, Actions.TheBlackestNight)
             cp.advanceTo(3 - STANDARD_ANIMATION_LOCK);
             // Hacky out of combat mana tick.
+            // TODO: Refactor this once MP is handled in a more core way
             cp.gauge.magicPoints += 600
         } else {
             cp.advanceTo(1 - STANDARD_ANIMATION_LOCK);
