@@ -77,6 +77,7 @@ export const Torcleaver: DrkGcdAbility = {
 export const Unmend: DrkGcdAbility = {
     type: 'gcd',
     name: "Unmend",
+    appDelay: 1,
     id: 3624,
     potency: 150,
     attackType: "Spell",
@@ -140,20 +141,6 @@ export const SaltAndDarkness: DrkOgcdAbility = {
     },
 };
 
-export const LivingShadow: DrkOgcdAbility = {
-    type: 'ogcd',
-    name: "Living Shadow",
-    id: 16472,
-    // Not really, but it's a WIP
-    potency: 2450,
-    attackType: "Ability",
-    activatesBuffs: [ScornBuff],
-    cooldown: {
-        time: 120,
-        charges: 1,
-    },
-};
-
 export const Disesteem: DrkGcdAbility = {
     type: 'gcd',
     name: "Disesteem",
@@ -186,7 +173,7 @@ export const TheBlackestNight: DrkOgcdAbility = {
     type: 'ogcd',
     name: "The Blackest Night",
     id: 7393,
-    potency: 0,
+    potency: null,
     attackType: "Ability",
     cooldown: {
         time: 15,
@@ -210,4 +197,91 @@ export const Shadowbringer: DrkOgcdAbility = {
         time: 60,
         charges: 2,
     },
+};
+
+// While Living Shadow abilities are actually Weaponskills in some cases,
+// they've all been programmed to be abilities so that it doesn't roll GCD. 
+//
+// This shouldn't change anything damage wise.
+//
+// Living Shadow's rotation is the following:
+// Abyssal Drain (AoE)
+// Shadowstride (no damage)
+// Flood of Shadow (Shadowbringer at level 90+)(AoE)
+// Edge of Shadow
+// Bloodspiller
+// Carve and Spit (Disesteem(AoE) at level 100)
+
+// Esteem has the same stats as the player but ignores skill speed, Tank Mastery, and party strength bonus. 
+// It also substitutes Midlander racial strength bonus regardless of the player's race.
+// It has an alternate strength scaling.
+
+// Esteem updates buffs/debuffs in real time. It is NOT affected by Darkside or by Weakness, 
+// but mirrors all other statuses on the player (including tincture, AST cards, DNC partner buffs, and Damage Down).
+export const LivingShadow: DrkOgcdAbility = {
+    type: 'ogcd',
+    name: "Living Shadow",
+    id: 16472,
+    // Total potency of its abilities is 2450.
+    potency: null,
+    attackType: "Ability",
+    activatesBuffs: [ScornBuff],
+    cooldown: {
+        time: 120,
+        charges: 1,
+    },
+};
+
+export const LivingShadowShadowstride: DrkOgcdAbility = {
+    type: 'ogcd',
+    name: "(Living Shadow) Shadowstride",
+    animationLock: 0,
+    id: 38512,
+    potency: 0,
+    attackType: "Ability",
+};
+
+export const LivingShadowAbyssalDrain: DrkOgcdAbility = {
+    type: 'ogcd',
+    name: "(Living Shadow) Abyssal Drain",
+    animationLock: 0,
+    id: 17904,
+    potency: 420,
+    attackType: "Ability",
+};
+
+export const LivingShadowShadowbringer: DrkOgcdAbility = {
+    type: 'ogcd',
+    name: "(Living Shadow) Shadowbringer",
+    animationLock: 0,
+    id: 25881,
+    potency: 570,
+    attackType: "Ability",
+};
+
+export const LivingShadowEdgeOfShadow: DrkOgcdAbility = {
+    type: 'ogcd',
+    name: "(Living Shadow) Edge of Shadow",
+    animationLock: 0,
+    id: 17908,
+    potency: 420,
+    attackType: "Ability",
+};
+
+export const LivingShadowBloodspiller: DrkOgcdAbility = {
+    type: 'ogcd',
+    name: "(Living Shadow) Bloodspiller",
+    animationLock: 0,
+    id: 17909,
+    potency: 420,
+    attackType: "Ability",
+};
+
+export const LivingShadowDisesteem: DrkOgcdAbility = {
+    type: 'ogcd',
+    name: "(Living Shadow) Disesteem",
+    animationLock: 0,
+    id: 36933,
+    potency: 620,
+    attackType: "Ability",
 };

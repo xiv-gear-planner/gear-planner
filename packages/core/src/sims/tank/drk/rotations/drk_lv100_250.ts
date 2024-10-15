@@ -2,32 +2,8 @@ import { potionMaxStr } from "@xivgear/core/sims/common/potion";
 import * as Actions from '../drk_actions';
 import { DrkAbility } from "../drk_types";
 
-export const Opener: DrkAbility[] = [
-    Actions.Unmend,
-    potionMaxStr,
-    Actions.HardSlash,
-    Actions.EdgeOfShadow,
-    Actions.LivingShadow,
-    Actions.SyphonStrike,
-    Actions.Souleater,
-    Actions.Delirium,
-    Actions.Disesteem,
-    Actions.SaltedEarth,
-    Actions.EdgeOfShadow,
-    Actions.ScarletDelirium,
-    Actions.EdgeOfShadow,
-    Actions.Comeuppance,
-    Actions.CarveAndSpit,
-    Actions.EdgeOfShadow,
-    Actions.Torcleaver,
-    Actions.Shadowbringer,
-    Actions.EdgeOfShadow,
-    Actions.Bloodspiller,
-    Actions.SaltAndDarkness,
-];
-
 // This is transcribed from a spreadsheeted 2.50 rotation.
-export const Loop: DrkAbility[] = [
+export const Rotation: DrkAbility[] = [
     Actions.HardSlash,
     Actions.SyphonStrike,
     Actions.Souleater,
@@ -206,11 +182,12 @@ export const Loop: DrkAbility[] = [
     Actions.HardSlash,
     Actions.SyphonStrike,
     Actions.Souleater,
-    potionMaxStr, //6m pot -- TODO this should optimally be slightly later once Living Shadow delay is implemented
     Actions.LivingShadow,
     Actions.HardSlash,
+    potionMaxStr, //6m pot
     Actions.Bloodspiller,
     Actions.Delirium,
+    Actions.EdgeOfShadow,
     Actions.Disesteem,
     Actions.SaltedEarth,
     Actions.EdgeOfShadow,
@@ -221,13 +198,11 @@ export const Loop: DrkAbility[] = [
     Actions.CarveAndSpit,
     Actions.EdgeOfShadow,
     Actions.Torcleaver,
-    Actions.TheBlackestNight,
     Actions.Shadowbringer,
     Actions.EdgeOfShadow,
     Actions.Bloodspiller,
     Actions.SaltAndDarkness,
     Actions.SyphonStrike,
-    Actions.EdgeOfShadow,
     Actions.Souleater,
     Actions.Bloodspiller,
     Actions.HardSlash,
@@ -253,6 +228,7 @@ export const Loop: DrkAbility[] = [
     Actions.EdgeOfShadow,
     Actions.Comeuppance,
     Actions.Torcleaver,
+    Actions.TheBlackestNight,
     Actions.Bloodspiller,
     Actions.SyphonStrike,
     Actions.Souleater,

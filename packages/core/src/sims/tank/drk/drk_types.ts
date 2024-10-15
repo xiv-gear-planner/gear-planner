@@ -114,16 +114,3 @@ export const DeliriumBuff: Buff = {
     },
     statusId: 3836,
 };
-
-/** Represents the Rotation data based on GCD. */
-export type DrkRotationData = {
-    /** The name of the rotation selected */
-    name: string,
-    /** The actual rotations selected */
-    rotation: {
-        /** The opener for the rotation */
-        opener: DrkAbility[],
-        /** The optional rotation loop */
-        loop: DrkAbility[],
-    }
-};
