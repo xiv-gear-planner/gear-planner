@@ -187,10 +187,10 @@ export const RiddleOfWindBuff: PersonalBuff = {
     name: "Riddle of Wind",
     duration: 15,
     statusId: 2687,
-    appliesTo: (ability) => ability.attackType == "Auto-attack",
     effects: {
-        // reduces auto-attack delay by 50%
-        // TODO cycle processor needs a more specific haste type?
+        modifyStats: (stats, bonuses) => {
+            bonuses.bonusHaste.push(attackType => attackType === 'Auto-attack' ? 50 : 0);
+        }
     }
 }
 export const FiresRumination: PersonalBuff = {
