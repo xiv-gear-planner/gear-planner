@@ -151,26 +151,22 @@ export class GearsetGenerator {
             const newGearset: CharacterGearSet = new CharacterGearSet(this._sheet);
             newGearset.food = settings.gearset.food;
             newGearset.equipment = combination.set;
+            if (newGearset.equipment.Weapon) {
+                newGearset.equipment.Weapon.relicStats = settings.gearset.equipment.Weapon.relicStats ?? undefined;
+            }
             
             newGearset.forceRecalc();
             const gcd = useSks ? newGearset.computedStats.gcdPhys(NORMAL_GCD, haste)
                                 : newGearset.computedStats.gcdMag(NORMAL_GCD, haste);
             
             if (settings.useTargetGcd && gcd !== settings.targetGcd) {
-                //console.log(`skipping, gcd=${gcd}`);
                 continue;
             }
             
             generatedGearsets[i] = newGearset;
             i++;
-            /*
-            const speedStat = useSks ? newGearset.computedStats.skillspeed : newGearset.computedStats.spellspeed;
-            if (!generatedGearsets.has(speedStat)) {
-                generatedGearsets.set(speedStat, new Set);
-            }
-            generatedGearsets.get(speedStat).add(newGearset);
-            */
         }
+        generatedGearsets.length = i; // Cull empty objects
 
         return generatedGearsets;
     }
