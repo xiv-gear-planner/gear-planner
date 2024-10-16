@@ -1,10 +1,10 @@
-import { Ability, GcdAbility, OgcdAbility } from "@xivgear/core/sims/sim_types";
+import { Ability, Buff, GcdAbility, OgcdAbility } from "@xivgear/core/sims/sim_types";
 import { MNKGauge } from "./mnk_gauge";
 
 /** Represents a Monk-specific Ability */
 export type MnkAbility = Ability & Readonly<{
     /** Custom function to run to apply gauge updates relating to this ability */
-    updateGauge?(gauge: MNKGauge): void,
+    updateGauge?(gauge: MNKGauge, form?: Buff): void,
 }>;
 
 /** Represents a Monk-specific GCD Ability */
