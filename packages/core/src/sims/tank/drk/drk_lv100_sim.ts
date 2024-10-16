@@ -8,8 +8,6 @@ import { STANDARD_ANIMATION_LOCK } from "@xivgear/xivmath/xivconstants";
 import { Darkside, DrkGauge } from "./drk_gauge";
 import { DrkExtraData, DrkAbility, DrkGcdAbility, ScornBuff, SaltedEarthBuff, DeliriumBuff, BloodWeaponBuff, DrkOgcdAbility } from "./drk_types";
 import { sum } from "@xivgear/core/util/array_utils";
-import * as Drk250 from './rotations/drk_lv100_250';
-import * as Drk246 from './rotations/drk_lv100_246';
 import * as Actions from './drk_actions';
 import { BaseMultiCycleSim } from "@xivgear/core/sims/processors/sim_processors";
 import { potionMaxStr } from "@xivgear/core/sims/common/potion";
@@ -188,7 +186,7 @@ class DrkCycleProcessor extends CycleProcessor {
         return this.deliriumComboActions[this.rotationState.deliriumCombo++];
     }
 
-    // If Living Shadow has 94 seconds left on its cooldown and has been on cooldown for over six seconds, 
+    // If Living Shadow has 95 seconds left on its cooldown and has been on cooldown for over 5 seconds, 
     // we're 'in burst' and should send our built up resources and Edges.
     inBurst(): boolean {
         const livingShadowReadyAt = this.cdTracker.statusOf(Actions.LivingShadow).readyAt.relative
@@ -580,17 +578,6 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
             this.use(cp, Actions.EdgeOfShadow)
         }
     }
-    
-    // Legacy mechanism for getting rotation before it was implemented
-    // computationally in useDrkRotation().
-    // TODO: Remove this once we've built sufficient confidence.
-    static getRotationForGcd(gcd: number): DrkAbility[] {
-        if (gcd <= 2.46) {
-            return [...Drk246.Rotation]
-        }
-
-        return  [...Drk250.Rotation]
-    }
 
     getRotationsToSimulate(set: CharacterGearSet): Rotation<DrkCycleProcessor>[] {
         const gcd = set.results.computedStats.gcdPhys(2.5);
@@ -607,14 +594,6 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
                 cp.remainingCycles(() => {
                     outer.useDrkRotation(cp);
                 });
-
-                
-                // Legacy mechanism for getting rotation:
-                // Can be used for comparison purposes.
-                // const rotation = DrkSim.getRotationForGcd(gcd);
-                // cp.remainingCycles(() => {
-                //     rotation.forEach(action => outer.use(cp, action));
-                // });
             }
         }];
     }
