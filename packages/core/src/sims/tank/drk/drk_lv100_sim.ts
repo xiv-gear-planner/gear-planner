@@ -5,8 +5,8 @@ import { CycleSettings } from "@xivgear/core/sims/cycle_settings";
 import { CharacterGearSet } from "@xivgear/core/gear";
 import { formatDuration } from "@xivgear/core/util/strutils";
 import { STANDARD_ANIMATION_LOCK } from "@xivgear/xivmath/xivconstants";
-import { DrkGauge } from "./drk_gauge";
-import { DrkExtraData, DrkAbility } from "./drk_types";
+import { Darkside, DrkGauge } from "./drk_gauge";
+import { DrkExtraData, DrkAbility, DrkGcdAbility, ScornBuff, SaltedEarthBuff, DeliriumBuff, BloodWeaponBuff, DrkOgcdAbility } from "./drk_types";
 import { sum } from "@xivgear/core/util/array_utils";
 import * as Drk250 from './rotations/drk_lv100_250';
 import * as Drk246 from './rotations/drk_lv100_246';
@@ -19,10 +19,12 @@ export interface DrkSimResult extends CycleSimResult {
 }
 
 export interface DrkSettings extends SimSettings {
+    // If we use potions (used every six minutes).
     usePotion: boolean;
-    // If we use a pre-pull TBN. This should be exposed and more fully tested as 'false' once the computationally created rotation is implemented.
-    prepullTBN: boolean; 
-    fightTime: number; // the length of the fight in seconds
+    // If we use a pre-pull TBN.
+    prepullTBN: boolean;
+    // the length of the fight in seconds
+    fightTime: number;
     // TODO: should we add a prepull Shadowstride option? Would be nice to compare on differing killtimes
 }
 
@@ -34,9 +36,8 @@ export const drkSpec: SimSpec<DrkSim, DrkSettingsExternal> = {
     stub: "drk-sim-lv100",
     displayName: "DRK Sim",
     description: `Simulates a DRK rotation using level 100 abilities/traits.
-Currently a work in progress, and only fully supports 2.50 and 2.46 GCD speeds.
-Defaults to simulating a killtime of 8m 30s (510s).
-Results are only currently accurate up to 9 minutes (540s).`,
+If potions are enabled, will pot in the burst window every 6m (i.e. 0m, 6m, 12m, etc).
+Defaults to simulating a killtime of 8m 30s (510s).`,
     makeNewSimInstance: function (): DrkSim {
         return new DrkSim();
     },
@@ -56,27 +57,49 @@ Results are only currently accurate up to 9 minutes (540s).`,
     }],
 };
 
-// LivingShadowAbilityUsageTime is a type representing two
-// things: a Living Shadow ability and the time it should go off at
+// LivingShadowAbilityUsageTime is a type representing two things: 
+// - a Living Shadow ability
+// - the time it should go off at
+// This should be further enhanced to only include abilities where the
+// actor is Living Shadow, once that has been implemented for correct stats.
 type LivingShadowAbilityUsageTime = {
     // The Living Shadow ability to use
-    ability: DrkAbility,
+    ability: DrkOgcdAbility,
     // The time to use the ability at
     usageTime: number,
 }
 
+class RotationState {
+    private _combo: number = 0;
+    private _deliriumCombo: number = 0;
+
+    get combo() {
+        return this._combo
+    };    
+    get deliriumCombo() {
+        return this._deliriumCombo
+    };
+
+    set combo(newCombo) {
+        this._combo = newCombo;
+        if (this._combo >= 3) this._combo = 0;
+    }
+
+    set deliriumCombo(newCombo) {
+        this._deliriumCombo = newCombo;
+        if (this._deliriumCombo >= 3) this._deliriumCombo = 0;
+    }
+}
+
 class DrkCycleProcessor extends CycleProcessor {
     gauge: DrkGauge;
+    rotationState: RotationState;
     
     constructor(settings: MultiCycleSettings) {
         super(settings);
         this.cycleLengthMode = 'full-duration';
         this.gauge = new DrkGauge();
-    }
-
-    fightEndingSoon(): boolean {
-        // If the fight is ending within the next 12 seconds (to dump resources)
-        return this.currentTime > (this.totalTime - 12);
+        this.rotationState = new RotationState();
     }
 
     // Gets the DRK ability with Blood Weapon's blood and MP additions
@@ -105,7 +128,7 @@ class DrkCycleProcessor extends CycleProcessor {
         let darksideDuration = 0
         // Get what the the Darkside duration would be at this
         // point of time, for visualization in the UI
-        const darkside = buffs.find(buff => buff.name === "Darkside")
+        const darkside = buffs.find(buff => buff.name === Darkside.name)
         const buffData = darkside && this.getActiveBuffData(darkside, abilityUsage.usageTime)
         if (buffData) {
             darksideDuration = Math.round(buffData.end - abilityUsage.usageTime)
@@ -114,7 +137,7 @@ class DrkCycleProcessor extends CycleProcessor {
         // However, Darkside does not apply to Living Shadow abilities, so
         // we should remove it.
         const filteredBuffs = buffs.filter(buff => { 
-            return buff.name !== "Darkside" && buff.name !== "Blood Weapon" && buff.name !== "Delirium"
+            return buff.name !== Darkside.name && buff.name !== BloodWeaponBuff.name && buff.name !== DeliriumBuff.name && buff.name !== ScornBuff.name
         })
 
         this.addAbilityUse({
@@ -141,7 +164,7 @@ class DrkCycleProcessor extends CycleProcessor {
             darksideDuration: darksideDuration,
         };
         
-        const darkside = usedAbility.buffs.find(buff => buff.name === "Darkside")
+        const darkside = usedAbility.buffs.find(buff => buff.name === Darkside.name)
         const buffData = darkside && this.getActiveBuffData(darkside, usedAbility.usedAt)
         if (buffData) {
             extraData.darksideDuration = Math.round(buffData.end - usedAbility.usedAt)
@@ -153,6 +176,71 @@ class DrkCycleProcessor extends CycleProcessor {
         };
 
         super.addAbilityUse(modified);
+    }
+
+    comboActions: DrkGcdAbility[] = [Actions.HardSlash, Actions.SyphonStrike, Actions.Souleater];
+    getComboToUse() {
+        return this.comboActions[this.rotationState.combo++];
+    }
+
+    deliriumComboActions: DrkGcdAbility[] = [Actions.ScarletDelirium, Actions.Comeuppance, Actions.Torcleaver];
+    getDeliriumComboToUse() {
+        return this.deliriumComboActions[this.rotationState.deliriumCombo++];
+    }
+
+    // If Living Shadow has 94 seconds left on its cooldown and has been on cooldown for over six seconds, 
+    // we're 'in burst' and should send our built up resources and Edges.
+    inBurst(): boolean {
+        const livingShadowReadyAt = this.cdTracker.statusOf(Actions.LivingShadow).readyAt.relative
+        return livingShadowReadyAt > 95 && livingShadowReadyAt < 115;
+    }
+
+    // If the fight is ending within the next 12 seconds (to dump resources)
+    fightEndingSoon(): boolean {
+        return this.currentTime > (this.totalTime - 12);
+    }
+
+    isDeliriumActive(): boolean {
+        const buffs = this.getActiveBuffs()
+        const delirium = buffs.find(buff => buff.name === DeliriumBuff.name)
+        return delirium !== undefined
+    }
+
+    isBloodWeaponActive(): boolean {
+        const buffs = this.getActiveBuffs()
+        const bloodWeapon = buffs.find(buff => buff.name === BloodWeaponBuff.name)
+        return bloodWeapon !== undefined
+    }
+
+    getDarksideDuration(): number {
+        let darksideDuration = 0
+        const buffs = this.getActiveBuffs()
+        const darkside = buffs.find(buff => buff.name === Darkside.name)
+        const buffData = darkside && this.getActiveBuffData(darkside, this.currentTime)
+        if (buffData) {
+            darksideDuration = Math.round(buffData.end - this.currentTime)
+        }
+        return darksideDuration
+    }
+
+    shouldPot(): boolean {
+        const livingShadowReadyAt = this.cdTracker.statusOf(Actions.LivingShadow).readyAt.relative
+        const sixMinutesInSeconds = 360
+        const isSixMinuteWindow = this.currentTime % sixMinutesInSeconds < 20
+        return livingShadowReadyAt > 110 && livingShadowReadyAt < 120 && isSixMinuteWindow
+    }
+
+    shouldUseTBN(): boolean {
+        const livingShadowReadyAt = this.cdTracker.statusOf(Actions.LivingShadow).readyAt.relative
+        return livingShadowReadyAt < 30 && !this.gauge.darkArts && this.gauge.magicPoints >= 3000;
+    }
+
+    isScornActive(): boolean {
+        return this.getActiveBuffData(ScornBuff, this.currentTime)?.buff?.duration > 0
+    }
+
+    isSaltedEarthActive(): boolean {
+        return this.getActiveBuffData(SaltedEarthBuff, this.currentTime)?.buff?.duration > 0
     }
 }
 
@@ -211,6 +299,128 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
             })
         }
 
+    }
+
+    // Gets the next GCD to use in the DRK rotation.
+    // Note: this is stateful, and updates combos to the next combo.
+    getGCDToUse(cp: DrkCycleProcessor): DrkGcdAbility {
+        if (cp.inBurst() && cp.isScornActive()) {
+            return Actions.Disesteem;
+        }
+
+        // If Delirium is active, this must be higher priority than Bloodspillers
+        // since we can't use Bloodspillers
+        if (cp.isDeliriumActive()) {
+            return cp.getDeliriumComboToUse();
+        }
+
+        // Avoid overcapping blood:        
+        if (cp.cdTracker.statusOf(Actions.Delirium).readyAt.relative < 5 && cp.gauge.bloodGauge >= 80) {
+            return Actions.Bloodspiller;
+        }
+
+        if (cp.inBurst() && cp.gauge.bloodGauge >= 50){
+            return Actions.Bloodspiller;
+        }
+
+        // Next GCD is Souleater
+        if (cp.gauge.bloodGauge >= 90 && cp.rotationState.combo == 2) {
+            return Actions.Bloodspiller;
+        }
+
+        // Last priority, use combo
+        return cp.getComboToUse();
+    }
+
+    // Uses DRK actions as part of a rotation.
+    useDrkRotation(cp: DrkCycleProcessor) {
+        ////////
+        ///oGCDs
+        ////////
+        // Higher priority than any other oGCD: avoid overcap of mana
+        const nextGCDSyphonStrike = cp.rotationState.combo === 1
+        // lateWeaveDelirium is true if we could use Delirium later but before the next GCD
+        const lateWeaveDelirium = cp.canUseWithoutClipping(Actions.Delirium) && cp.totalTime > cp.cdTracker.statusOf(Actions.Delirium).readyAt.absolute
+        if ((cp.gauge.magicPoints >= 8400) && (nextGCDSyphonStrike || cp.isBloodWeaponActive() || cp.isDeliriumActive() || lateWeaveDelirium)) {
+            if (cp.canUseWithoutClipping(Actions.EdgeOfShadow)) {
+                this.use(cp, Actions.EdgeOfShadow)
+            }
+        }
+        if (cp.gauge.magicPoints >= 9200 && (nextGCDSyphonStrike || cp.isBloodWeaponActive() || cp.isDeliriumActive() || lateWeaveDelirium)) {
+            if (cp.canUseWithoutClipping(Actions.EdgeOfShadow)) {
+                this.use(cp, Actions.EdgeOfShadow)
+            }
+        }
+        if (cp.gauge.magicPoints >= 9800) {
+            if (cp.canUseWithoutClipping(Actions.EdgeOfShadow)) {
+                this.use(cp, Actions.EdgeOfShadow)
+            }
+        }
+
+        if (cp.canUseWithoutClipping(Actions.LivingShadow)) {
+            this.use(cp, Actions.LivingShadow);
+        }
+
+        if (cp.shouldPot() && cp.canUseWithoutClipping(potionMaxStr)) {
+            this.use(cp, potionMaxStr)
+        }
+
+        if (cp.inBurst() && cp.canUseWithoutClipping(Actions.Shadowbringer)) {
+            this.use(cp, Actions.Shadowbringer);
+        }
+
+        // Refresh Darkside if required
+        if (cp.getDarksideDuration() < 5 && cp.canUseWithoutClipping(Actions.EdgeOfShadow) && (cp.gauge.magicPoints >= 3000 || cp.gauge.darkArts)) {
+            this.use(cp, Actions.EdgeOfShadow)
+        }
+
+        if (cp.canUseWithoutClipping(Actions.Delirium)) {
+            this.use(cp, Actions.Delirium);
+        }
+
+        if (cp.isSaltedEarthActive() && cp.canUseWithoutClipping(Actions.SaltAndDarkness)) {
+            this.use(cp, Actions.SaltAndDarkness)
+        }
+
+        if (cp.canUseWithoutClipping(Actions.SaltedEarth)) {
+            this.use(cp, Actions.SaltedEarth);
+        }
+
+        if (cp.canUseWithoutClipping(Actions.CarveAndSpit)) {
+            this.use(cp, Actions.CarveAndSpit)
+        }
+
+        if(cp.shouldUseTBN() && cp.canUseWithoutClipping(Actions.TheBlackestNight)) {
+            this.use(cp, Actions.TheBlackestNight)
+        }
+
+        // Last priority oGCD: send all available Edges in burst
+        if (cp.inBurst()) {
+            if (cp.canUseWithoutClipping(Actions.EdgeOfShadow) && (cp.gauge.magicPoints >= 3000 || cp.gauge.darkArts)) {
+                this.use(cp, Actions.EdgeOfShadow);
+            }
+        }
+
+        // Dump resources if fight ending soon
+        if (cp.fightEndingSoon()) {
+            if (cp.canUseWithoutClipping(Actions.EdgeOfShadow) && (cp.gauge.magicPoints >= 3000 || cp.gauge.darkArts)) {
+                this.use(cp, Actions.EdgeOfShadow)
+            }
+            
+            if (cp.canUseWithoutClipping(Actions.Shadowbringer)) {
+                this.use(cp, Actions.Shadowbringer)
+            }
+        }
+
+        ////////
+        ////GCDs
+        ////////
+        // If we don't have time to use a GCD, return early.
+        if (cp.remainingGcdTime <= 0) {
+            return;
+        }
+
+        this.use(cp, (this.getGCDToUse(cp)))
     }
 
     use(cp: DrkCycleProcessor, ability: Ability): AbilityUseResult {
@@ -284,7 +494,7 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
 
         // Log when we try to use more gauge than what we currently have
         if (drkAbility.id === Actions.Bloodspiller.id && cp.gauge.bloodGauge < 50) {
-            console.warn(`[${formatDuration(cp.currentTime)}][DRK Sim] Attempted to use Bloodspiller when you only have ${cp.gauge.bloodGauge} blood`);
+            console.warn(`[DRK Sim][${formatDuration(cp.currentTime)}] Attempted to use Bloodspiller when you only have ${cp.gauge.bloodGauge} blood`);
             return null;
         }
 
@@ -323,14 +533,7 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
         // AND after we move the timeline for that ability.
         this.applyLivingShadowAbilities(cp)
 
-        const abilityUseResult = cp.use(ability);
-
-        // TODO use up remaining gauge and Shadowbringer before the fight ends
-        if (ability.type === 'gcd' && cp.fightEndingSoon()) {
-            // TODO: cp.use(action name goes here);
-        }
-
-        return abilityUseResult;
+        return cp.use(ability);
     }
 
     private useOpener(cp: DrkCycleProcessor, prepullTBN: boolean) {
@@ -356,26 +559,32 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
         this.use(cp, Actions.SaltedEarth)
         this.use(cp, Actions.EdgeOfShadow)
         this.use(cp, Actions.ScarletDelirium)
+        this.use(cp, Actions.Shadowbringer)
         this.use(cp, Actions.EdgeOfShadow)
         this.use(cp, Actions.Comeuppance)
         this.use(cp, Actions.CarveAndSpit)
         this.use(cp, Actions.EdgeOfShadow)
         this.use(cp, Actions.Torcleaver)
         this.use(cp, Actions.Shadowbringer)
-        this.use(cp, Actions.EdgeOfShadow)
+        if (prepullTBN) {
+            this.use(cp, Actions.EdgeOfShadow)
+        }
         this.use(cp, Actions.Bloodspiller)
         this.use(cp, Actions.SaltAndDarkness)
+        if (!prepullTBN) {
+            // Without the extra mana, do two filler GCDs before the Edge of Shadow. 
+            // This is a worst-case scenario mana wise, in reality it may be possible
+            // to get the Edge in after the Hard Slash.
+            this.use(cp, cp.getComboToUse())
+            this.use(cp, cp.getComboToUse())
+            this.use(cp, Actions.EdgeOfShadow)
+        }
     }
     
+    // Legacy mechanism for getting rotation before it was implemented
+    // computationally in useDrkRotation().
+    // TODO: Remove this once we've built sufficient confidence.
     static getRotationForGcd(gcd: number): DrkAbility[] {
-        // TODO: Once a generic computational rotation,
-        // it should be used for non-2.50/2.46 GCDs.
-
-        // This is fairly coarse as of right now, and supports
-        // only 2.46 and 2.50 particularly well. However, this
-        // seems good enough for a first draft, as those are
-        // the salient GCD speeds.
-
         if (gcd <= 2.46) {
             return [...Drk246.Rotation]
         }
@@ -388,10 +597,6 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
         const settings = { ...this.settings };
         const outer = this;
 
-        // TODO: Replace this with computationally generated rotation, though
-        // this remains useful to compare to for that implementation.
-        const rotation = DrkSim.getRotationForGcd(gcd);
-
         console.log(`[DRK Sim] Running Rotation for ${gcd} GCD...`);
         console.log(`[DRK Sim] Settings configured: ${JSON.stringify(settings)}`)
         return [{
@@ -399,12 +604,17 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
             apply(cp: DrkCycleProcessor) {
                 outer.useOpener(cp, settings.prepullTBN)
 
-                // Loop
-                if (rotation.length) {
                 cp.remainingCycles(() => {
-                        rotation.forEach(action => outer.use(cp, action));
-                    });
-                }
+                    outer.useDrkRotation(cp);
+                });
+
+                
+                // Legacy mechanism for getting rotation:
+                // Can be used for comparison purposes.
+                // const rotation = DrkSim.getRotationForGcd(gcd);
+                // cp.remainingCycles(() => {
+                //     rotation.forEach(action => outer.use(cp, action));
+                // });
             }
         }];
     }

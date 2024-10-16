@@ -2,10 +2,9 @@ import { potionMaxStr } from "@xivgear/core/sims/common/potion";
 import * as Actions from '../drk_actions';
 import { DrkAbility } from "../drk_types";
 
-// This is transcribed from https://www.youtube.com/watch?v=-qDvEZQU9dQ with: 
-// - an additional Edge in every two minute burst, assuming we have Dark Arts.
-// - a 6m pot added
-// - an extra GCD combo and bloodspiller added
+// This is a legacy implementation of a DRK 2.46 rotation based off
+// a real life example. This should be used solely for comparison purposes,
+// and DrkSim::useDrkRotation should be preferred.
 export const Rotation: DrkAbility[] = [
     Actions.HardSlash,
     Actions.SyphonStrike,
