@@ -160,7 +160,7 @@ export const FormlessFist: PersonalBuff = {
 export const RiddleOfFireBuff: PersonalBuff = {
     name: "Riddle of Fire",
     selfOnly: true,
-    duration: 20,
+    duration: 20.7,
     statusId: 1181,
     effects: {
         dmgIncrease: 0.20,
