@@ -67,11 +67,14 @@ export class MeldSolver {
             sheet: this._sheet.exportSheet(),
             data: GearsetGenerationSettings.export(gearsetGenSettings, this._sheet)
         };
-        console.log("n: ", workerPool.numFreeWorkers);
+
         const gearGenJob = workerPool.requestWork(gearsetGenRequest);
         this.jobs.push(gearGenJob)
 
         let sets: SetExport[] = await (gearGenJob.promise as Promise<SetExport[]>);
+        if (sets.length === 0) {
+            return null;
+        }
         this.jobs = [];
 
         const nSimJobs = workerPool.numFreeWorkers;
