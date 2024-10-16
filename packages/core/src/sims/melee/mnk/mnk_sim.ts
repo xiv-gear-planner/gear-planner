@@ -113,6 +113,11 @@ class MNKCycleProcessor extends CycleProcessor {
         const riddleReady = this.cdTracker.statusOf(RiddleOfFire).readyAt.relative;
         const gcd = this.chooseGcd();
         this.useGcd(gcd);
+        if (gcd.id === FiresReply.id) {
+            this.removeBuff(OpoForm);
+            this.removeBuff(RaptorForm);
+            this.removeBuff(CoeurlForm);
+        }
         if (form?.statusId === PerfectBalanceBuff.statusId) {
             this.removeBuff(OpoForm);
             this.removeBuff(RaptorForm);
