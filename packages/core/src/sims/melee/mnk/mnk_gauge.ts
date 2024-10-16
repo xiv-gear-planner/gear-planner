@@ -1,4 +1,4 @@
-import { MNKGaugeState } from './mnk_types';
+import { FuryType, MNKGaugeState } from './mnk_types';
 
 export class MNKGauge {
     // Initialized to assume you pressed Meditate before combat
@@ -14,6 +14,8 @@ export class MNKGauge {
 
     lunarNadi: number = 0;
     solarNadi: number = 0;
+
+    beastChakra: FuryType[] = [];
 
     getGaugeState(): MNKGaugeState {
         return this;

@@ -3,11 +3,9 @@ import { CycleProcessor, CycleSimResult, ExternalCycleSettings, MultiCycleSettin
 import { CycleSettings } from "@xivgear/core/sims/cycle_settings";
 import { CharacterGearSet } from "@xivgear/core/gear";
 import { BaseMultiCycleSim } from "@xivgear/core/sims/processors/sim_processors";
-import { MnkAbility, MNKExtraData } from "./mnk_types";
+import { MnkAbility, MNKExtraData, MnkGcdAbility } from "./mnk_types";
 import { MNKGauge as MnkGauge } from "./mnk_gauge";
-import { Brotherhood, CoeurlForm, Demolish, DragonKick, ElixirBurst, FiresReply, FiresRumination, FormlessFist, LeapingOpo, OGCD_PRIORITY, OPO_ABILITIES, OpoForm, PerfectBalance, PerfectBalanceBuff, PhantomRush, PouncingCoeurl, RaptorForm, RiddleOfFire, RiddleOfFireBuff, RiddleOfWind, RisingPhoenix, RisingRaptor, SOLAR_WEAKEST_STRONGEST, TheForbiddenChakra, TwinSnakes, WindsReply, WindsRumination } from "./mnk_actions";
-import { sum } from "../../../util/array_utils";
-import { STANDARD_ANIMATION_LOCK } from "@xivgear/xivmath/xivconstants";
+import { Brotherhood, CoeurlForm, Demolish, DragonKick, ElixirBurst, FiresReply, FiresRumination, FormlessFist, LeapingOpo, OPO_ABILITIES, OpoForm, PerfectBalance, PerfectBalanceBuff, PhantomRush, PouncingCoeurl, RaptorForm, RiddleOfFire, RiddleOfFireBuff, RiddleOfWind, RisingPhoenix, RisingRaptor, TheForbiddenChakra, TwinSnakes, WindsReply, WindsRumination } from "./mnk_actions";
 
 export interface MnkSimResult extends CycleSimResult { }
 
@@ -42,7 +40,7 @@ class MNKCycleProcessor extends CycleProcessor {
     use(ability: Ability): AbilityUseResult {
         const a = ability as MnkAbility;
         if (a.updateGauge) {
-            a.updateGauge(this.gauge);
+            a.updateGauge(this.gauge, this.getCurrentForm());
         }
         return super.use(ability);
     }
@@ -110,50 +108,167 @@ class MNKCycleProcessor extends CycleProcessor {
 
     // TODO implement logic to enter 1m and 2m burst windows appropriately
     doStep() {
-        switch (this.getCurrentForm()) {
-            case OpoForm:
-            case FormlessFist:
+        const form = this.getCurrentForm();
+        console.log(this.currentTime, form, this.gauge);
+        const riddleReady = this.cdTracker.statusOf(RiddleOfFire).readyAt.relative;
+        const gcd = this.chooseGcd();
+        this.useGcd(gcd);
+        if (form?.statusId === PerfectBalanceBuff.statusId) {
+            this.removeBuff(OpoForm);
+            this.removeBuff(RaptorForm);
+            this.removeBuff(CoeurlForm);
+        }
+        if (OPO_ABILITIES.includes(gcd.id) &&
+            form.statusId !== PerfectBalanceBuff.statusId &&
+            (riddleReady <= 7 || this.getActiveBuffs(this.currentTime + (this.gcdTime(DragonKick) * 4)).find(buff => buff.statusId === RiddleOfFireBuff.statusId))
+            && this.cdTracker.canUse(PerfectBalance)) {
+            this.useOgcd(PerfectBalance);
+            this.removeBuff(OpoForm);
+            this.removeBuff(RaptorForm);
+            this.removeBuff(CoeurlForm);
+        }
+        if (this.cdTracker.canUse(Brotherhood) && this.canUseWithoutClipping(Brotherhood)) {
+            this.useOgcd(Brotherhood);
+        }
+        if (this.cdTracker.canUse(RiddleOfFire) && this.canUseWithoutClipping(RiddleOfFire)) {
+            this.useOgcd(RiddleOfFire);
+        }
+        if (this.cdTracker.canUse(RiddleOfWind) && this.canUseWithoutClipping(RiddleOfWind)) {
+            this.useOgcd(RiddleOfWind);
+        }
+    }
+
+    chooseGcd(): MnkGcdAbility {
+        if (this.getActiveBuffs().find(buff => buff.statusId === WindsRumination.statusId)) {
+            return WindsReply;
+        }
+        switch (this.getCurrentForm()?.statusId) {
+            case OpoForm.statusId:
+            case FormlessFist.statusId:
                 if (this.gauge.opoFury) {
-                    this.useGcd(LeapingOpo);
-                } else {
-                    this.useGcd(DragonKick);
+                    return LeapingOpo;
                 }
-                break;
-            case RaptorForm:
+                return DragonKick;
+            case RaptorForm.statusId:
+                if (this.getActiveBuffs().find(buff => buff.statusId === FiresRumination.statusId)) {
+                    return FiresReply;
+                }
                 if (this.gauge.raptorFury) {
-                    this.useGcd(RisingRaptor);
-                } else {
-                    this.useGcd(TwinSnakes);
+                    return RisingRaptor;
                 }
-                break;
-            case CoeurlForm:
+                return TwinSnakes;
+            case CoeurlForm.statusId:
                 if (this.gauge.coeurlFury) {
-                    this.useGcd(PouncingCoeurl);
-                } else {
-                    this.useGcd(Demolish);
+                    return PouncingCoeurl;
                 }
-                break;
-            case PerfectBalanceBuff:
-                // TODO pb decision tree
-                if (this.gauge.opoFury) {
-                    this.useGcd(LeapingOpo);
+                return Demolish;
+            case PerfectBalanceBuff.statusId:
+                if (!this.gauge.lunarNadi || this.gauge.solarNadi) {
+                    // do an oporot of some kind
+                    if (this.gauge.opoFury) {
+                        return LeapingOpo;
+                    } else {
+                        return DragonKick;
+                    }
                 } else {
-                    this.useGcd(DragonKick);
+                    // building a solar nadi
+                    if (this.gauge.beastChakra.length === 0) {
+                        // attempt to sequence our least potent gcds out of RoF
+                        if (!this.gauge.opoFury) {
+                            return DragonKick;
+                        } else if (!this.gauge.coeurlFury) {
+                            return Demolish;
+                        } else if (!this.gauge.raptorFury) {
+                            return TwinSnakes;
+                        } else if (this.gauge.coeurlFury) {
+                            return PouncingCoeurl;
+                        } else if (this.gauge.raptorFury) {
+                            return RisingRaptor;
+                        } else {
+                            // autocrit bootshine lets go
+                            return LeapingOpo;
+                        }
+                    } else if (this.gauge.beastChakra.length === 1) {
+                        // attempt to sequence the next least potent gcd
+                        if (this.gauge.beastChakra.includes('opo')) {
+                            if (!this.gauge.coeurlFury) {
+                                return Demolish;
+                            } else if (!this.gauge.raptorFury) {
+                                return TwinSnakes;
+                            } else if (this.gauge.coeurlFury) {
+                                return PouncingCoeurl;
+                            } else {
+                                return RisingRaptor;
+                            }
+                        } else if (this.gauge.beastChakra.includes('raptor')) {
+                            if (!this.gauge.opoFury) {
+                                return DragonKick;
+                            } else if (!this.gauge.coeurlFury) {
+                                return Demolish;
+                            } else if (this.gauge.coeurlFury) {
+                                return PouncingCoeurl;
+                            } else {
+                                // autocrit bootshine lets go
+                                return LeapingOpo;
+                            }
+                        } else {
+                            // this.gauge.beastChakra.includes('coeurl')
+                            if (!this.gauge.opoFury) {
+                                return DragonKick;
+                            } else if (!this.gauge.raptorFury) {
+                                return TwinSnakes;
+                            } else if (this.gauge.raptorFury) {
+                                return RisingRaptor;
+                            } else {
+                                // autocrit bootshine lets go
+                                return LeapingOpo;
+                            }
+                        }
+                    } else if (this.gauge.beastChakra.length === 2) {
+                        const all = new Set(['opo', 'raptor', 'coeurl']);
+                        this.gauge.beastChakra.forEach(chakra => all.delete(chakra));
+                        if (all.has('opo')) {
+                            if (this.gauge.opoFury) {
+                                // need opo
+                                return LeapingOpo;
+                            }
+                            return DragonKick;
+                        } else if (all.has('raptor')) {
+                            // need raptor
+                            if (this.gauge.raptorFury) {
+                                return RisingRaptor;
+                            }
+                            return TwinSnakes;
+                        } else {
+                            // need coeurl
+                            if (this.gauge.coeurlFury) {
+                                return PouncingCoeurl;
+                            }
+                            return Demolish;
+                        }
+                    }
                 }
-                break;
+            default:
+                if (this.gauge.beastChakra.length === 3) {
+                    // formless with a blitz ready
+                    const s = new Set(this.gauge.beastChakra);
+                    if (s.size === 1) {
+                        if (this.gauge.lunarNadi && this.gauge.solarNadi) {
+                            return PhantomRush;
+                        }
+                        return ElixirBurst;
+                    }
+                    return RisingPhoenix;
+                }
+                console.warn("Infinite looping with no form")
+                // formless DK but this should never happen
+                return DragonKick;
         }
     }
 
     getCurrentForm(): Buff {
         return this.getActiveBuffs().find(b => {
-            if (b.statusId === undefined) {
-                // unimplemented buff id, likely a fury "buff"
-                return undefined;
-            }
-            if ([OpoForm.statusId, RaptorForm.statusId, CoeurlForm.statusId, FormlessFist.statusId, PerfectBalanceBuff.statusId].includes(b.statusId)) {
-                return b;
-            }
-            return undefined;
+            return b.statusId !== undefined && [OpoForm.statusId, RaptorForm.statusId, CoeurlForm.statusId, FormlessFist.statusId, PerfectBalanceBuff.statusId].includes(b.statusId);
         });
     }
 }
@@ -190,7 +305,7 @@ export class MnkSim extends BaseMultiCycleSim<CycleSimResult, MnkSettings, MNKCy
             cycleTime: 120,
             apply(cp: MNKCycleProcessor) {
                 cp.doubleLunarOpener();
-                while (cp.remainingTime > 0) {
+                while (cp.remainingTime - cp.nextGcdTime > 0) {
                     cp.doStep();
                 }
             }
@@ -200,7 +315,7 @@ export class MnkSim extends BaseMultiCycleSim<CycleSimResult, MnkSettings, MNKCy
             cycleTime: 120,
             apply(cp: MNKCycleProcessor) {
                 cp.solarLunarOpener();
-                while (cp.remainingTime > 0) {
+                while (cp.remainingTime - cp.nextGcdTime > 0) {
                     cp.doStep();
                 }
             }
