@@ -21,7 +21,6 @@ onmessage = async function (event) {
             data: null,
         };
         this.postMessage(response);
-        console.log("Done Init!");
         return;
     }
     const sheet = HEADLESS_SHEET_PROVIDER.fromExport(request.sheet);

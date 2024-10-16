@@ -13,6 +13,7 @@ import { recordEvent } from "@xivgear/core/analytics/analytics";
 export class MeldSolverDialog extends BaseModal {
     private _sheet: GearPlanSheetGui;
 
+    private form: HTMLFormElement;
     private descriptionText: HTMLDivElement;
     private setNameText: HTMLDivElement;
     readonly tempSettings: MeldSolverSettings;
@@ -28,8 +29,8 @@ export class MeldSolverDialog extends BaseModal {
         this._sheet = sheet;
         this.id = 'meld-solver-dialog';
         this.headerText = 'Meld Solver';
-        const form = document.createElement("form");
-        form.method = 'dialog';
+        this.form = document.createElement("form");
+        this.form.method = 'dialog';
         this.inner.style.maxWidth = "25%"; // idk why this doesn't work in common-css but it don't.
 
         this.classList.add('meld-solver-area');
@@ -49,13 +50,9 @@ export class MeldSolverDialog extends BaseModal {
             this.solver = new MeldSolver(sheet);
             meld_solve_start = Date.now();
 
-            this.closeButton.disabled = true;
-            this.settingsDiv.setEnabled(false);
-
             this.buttonArea.removeChild(this.solveMeldsButton);
-            this.addButton(this.cancelButton);
-            this.progressDisplay = new MeldSolverProgressDisplay;
-            form.replaceChildren(this.progressDisplay);
+            this.showProgress();
+
             const solverPromise = this.solver.solveMelds(
                 this.settingsDiv.gearsetGenSettings,
                 this.settingsDiv.simSettings,
@@ -64,7 +61,7 @@ export class MeldSolverDialog extends BaseModal {
                     this.progressDisplay.text.textContent = "Simulating...";
 
                 });
-            solverPromise.then((set) => this.messageReceived(set));
+            solverPromise.then((set) => this.solveResultReceived(set));
             recordEvent("SolveMelds", {
                 "Total Time Taken: ": Date.now() - (meld_solve_start ?? Date.now()),
             });
@@ -73,36 +70,28 @@ export class MeldSolverDialog extends BaseModal {
 
         this.cancelButton = makeActionButton("Cancel", async () => {
             await this.solver.cancel();
-
-            this.closeButton.disabled = false;
-            this.settingsDiv.setEnabled(true);
-
             this.buttonArea.removeChild(this.cancelButton);
-            form.replaceChildren(this.settingsDiv);
-            this.addButton(this.solveMeldsButton);
+
+            this.showSettings();
         });
 
-        this.addButton(this.solveMeldsButton);
-
-        form.replaceChildren(
-            this.descriptionText, document.createElement('br'),
-            this.setNameText, document.createElement('br'),
-            this.settingsDiv);
-        this.contentArea.append(form);
+        this.showSettings();
+        this.contentArea.append(this.form);
     }
 
     public refresh(set: CharacterGearSet) {
         this.settingsDiv.gearsetGenSettings.gearset = set;
     }
 
-    messageReceived(set: CharacterGearSet) {
-
+    solveResultReceived(set: CharacterGearSet) {
         if (set) {
             this.applyResult(set);
             this.settingsDiv.gearsetGenSettings.gearset.forceRecalc();
             this._sheet.refreshMateria();
             this.close();
+            return;
         }
+        this.showSettings();
     }
 
     applyResult(newSet: CharacterGearSet) {
@@ -114,6 +103,29 @@ export class MeldSolverDialog extends BaseModal {
 
             this.settingsDiv.gearsetGenSettings.gearset.equipment[slotKey].melds = newSet.equipment[slotKey].melds;
         }
+    }
+
+    showSettings() {
+
+        this.closeButton.disabled = false;
+        this.settingsDiv.setEnabled(true);
+
+        this.form.replaceChildren(
+            this.descriptionText, document.createElement('br'),
+            this.setNameText, document.createElement('br'),
+            this.settingsDiv
+        );
+        this.addButton(this.solveMeldsButton);
+    }
+
+    showProgress() {
+
+        this.closeButton.disabled = true;
+        this.settingsDiv.setEnabled(false);
+
+        this.progressDisplay = new MeldSolverProgressDisplay;
+        this.form.replaceChildren(this.progressDisplay);
+        this.addButton(this.cancelButton);
     }
 }
 

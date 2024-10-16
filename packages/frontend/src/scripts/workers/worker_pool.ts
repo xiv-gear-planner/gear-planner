@@ -149,7 +149,6 @@ export class WorkerPool {
         );
         worker.onmessage = (event) => {
             const id = this.activeJobIds.get(worker);
-            console.log("Done init?");
             this.onWorkerMessage(worker, id, event.data);
         }
 
