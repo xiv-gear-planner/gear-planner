@@ -269,6 +269,7 @@ class MeldSolverSettingsMenu extends HTMLDivElement {
                 item.disabled = !enabled;
             }
         }
+        this.targetGcdInput.disabled = !this.gearsetGenSettings.useTargetGcd;
     }
 }
 
