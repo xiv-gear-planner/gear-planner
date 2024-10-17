@@ -107,7 +107,7 @@ class MNKCycleProcessor extends CycleProcessor {
         this.useGcd(LeapingOpo);
         this.useOgcd(TheForbiddenChakra);
         this.useOgcd(RiddleOfWind);
-        this.useGcd(ElixirBurst);
+        this.useGcd(RisingPhoenix);
         this.useGcd(DragonKick);
         this.useGcd(WindsReply);
         this.useGcd(FiresReply);
@@ -280,25 +280,27 @@ export class MnkSim extends BaseMultiCycleSim<CycleSimResult, MnkSettings, MNKCy
     }
 
     getRotationsToSimulate(set: CharacterGearSet): Rotation<MNKCycleProcessor>[] {
-        return [{
-            name: 'double lunar',
-            cycleTime: 120,
-            apply(cp: MNKCycleProcessor) {
-                cp.doubleLunarOpener();
-                while (cp.remainingTime - cp.nextGcdTime > 0) {
-                    cp.doStep();
+        return [
+            {
+                name: 'double lunar',
+                cycleTime: 120,
+                apply(cp: MNKCycleProcessor) {
+                    cp.doubleLunarOpener();
+                    while (cp.remainingTime - cp.nextGcdTime > 0) {
+                        cp.doStep();
+                    }
+                }
+            },
+            {
+                name: 'solar lunar',
+                cycleTime: 120,
+                apply(cp: MNKCycleProcessor) {
+                    cp.solarLunarOpener();
+                    while (cp.remainingTime - cp.nextGcdTime > 0) {
+                        cp.doStep();
+                    }
                 }
             }
-        },
-        {
-            name: 'solar lunar',
-            cycleTime: 120,
-            apply(cp: MNKCycleProcessor) {
-                cp.solarLunarOpener();
-                while (cp.remainingTime - cp.nextGcdTime > 0) {
-                    cp.doStep();
-                }
-            }
-        }];
+        ];
     }
 }
