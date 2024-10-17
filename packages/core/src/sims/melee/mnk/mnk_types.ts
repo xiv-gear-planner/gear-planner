@@ -10,6 +10,10 @@ export type MnkAbility = Ability & Readonly<{
 /** Represents a Monk-specific GCD Ability */
 export type MnkGcdAbility = GcdAbility & MnkAbility;
 
+export type FuryAbility =  MnkGcdAbility & Readonly<{
+    fury: FuryType;
+}>;
+
 /** Represents a Monk-specific oGCD Ability */
 export type MnkOgcdAbility = OgcdAbility & MnkAbility;
 

@@ -1,6 +1,6 @@
-import { BuffController, PersonalBuff, PartyBuff } from "@xivgear/core/sims/sim_types";
+import { BuffController, PersonalBuff, PartyBuff, Ability } from "@xivgear/core/sims/sim_types";
 import { MNKGauge } from "./mnk_gauge";
-import { MnkGcdAbility, MnkOgcdAbility } from "./mnk_types"
+import { FuryAbility, MnkGcdAbility, MnkOgcdAbility } from "./mnk_types"
 
 export const OpoForm: PersonalBuff = {
     name: "Opo-Opo Form",
@@ -215,7 +215,7 @@ export const WindsRumination: PersonalBuff = {
     beforeSnapshot: (bc, ab) => bc.removeSelf(),
 }
 
-export const Bootshine: MnkGcdAbility = {
+export const Bootshine: FuryAbility = {
     name: "Bootshine",
     id: 53,
     type: 'gcd',
@@ -223,6 +223,7 @@ export const Bootshine: MnkGcdAbility = {
     potency: 220,
     attackType: "Weaponskill",
     activatesBuffs: [RaptorForm],
+    fury: 'opo',
     updateGauge: (gauge: MNKGauge, form) =>  {
         gauge.opoFury = 0;
         if (form && form.statusId === PerfectBalanceBuff.statusId) {
@@ -231,7 +232,7 @@ export const Bootshine: MnkGcdAbility = {
     }
 }
 
-export const TrueStrike: MnkGcdAbility = {
+export const TrueStrike: FuryAbility = {
     name: "True Strike",
     id: 54,
     type: 'gcd',
@@ -239,6 +240,7 @@ export const TrueStrike: MnkGcdAbility = {
     potency: 220,
     attackType: "Weaponskill",
     activatesBuffs: [CoeurlForm],
+    fury: 'raptor',
     updateGauge: (gauge: MNKGauge, form) =>  {
         gauge.raptorFury = 0;
         if (form && form.statusId === PerfectBalanceBuff.statusId) {
@@ -247,7 +249,7 @@ export const TrueStrike: MnkGcdAbility = {
     }
 }
 
-export const SnapPunch: MnkGcdAbility = {
+export const SnapPunch: FuryAbility = {
     name: "Snap Punch",
     id: 56,
     type: 'gcd',
@@ -255,6 +257,7 @@ export const SnapPunch: MnkGcdAbility = {
     potency: 330, // assumed positional hit
     attackType: "Weaponskill",
     activatesBuffs: [OpoForm],
+    fury: 'coeurl',
     updateGauge: (gauge: MNKGauge, form) =>  {
         gauge.coeurlFury -= 1;
         if (form && form.statusId === PerfectBalanceBuff.statusId) {
@@ -263,7 +266,7 @@ export const SnapPunch: MnkGcdAbility = {
     }
 }
 
-export const TwinSnakes: MnkGcdAbility = {
+export const TwinSnakes: FuryAbility = {
     name: "Twin Snakes",
     id: 61,
     type: 'gcd',
@@ -271,6 +274,7 @@ export const TwinSnakes: MnkGcdAbility = {
     potency: 420,
     attackType: "Weaponskill",
     activatesBuffs: [CoeurlForm],
+    fury: 'raptor',
     updateGauge: (gauge: MNKGauge, form) =>  {
         gauge.raptorFury = 1;
         if (form && form.statusId === PerfectBalanceBuff.statusId) {
@@ -279,7 +283,7 @@ export const TwinSnakes: MnkGcdAbility = {
     }
 }
 
-export const Demolish: MnkGcdAbility = {
+export const Demolish: FuryAbility = {
     name: "Demolish",
     id: 66,
     type: 'gcd',
@@ -287,6 +291,7 @@ export const Demolish: MnkGcdAbility = {
     potency: 420, // assumed positional hit
     attackType: "Weaponskill",
     activatesBuffs: [OpoForm],
+    fury: 'coeurl',
     updateGauge: (gauge: MNKGauge, form) =>  {
         gauge.coeurlFury = 2;
         if (form && form.statusId === PerfectBalanceBuff.statusId) {
@@ -298,7 +303,7 @@ export const Demolish: MnkGcdAbility = {
 /**
  * @see OpoForm for conditional activation of opoFury buff
  */
-export const DragonKick: MnkGcdAbility = {
+export const DragonKick: FuryAbility = {
     name: "Dragon Kick",
     id: 74,
     type: 'gcd',
@@ -306,7 +311,7 @@ export const DragonKick: MnkGcdAbility = {
     potency: 320,
     attackType: "Weaponskill",
     activatesBuffs: [RaptorForm],
-    // todo this gauge update needs a buff controller or something
+    fury: 'opo',
     updateGauge: (gauge: MNKGauge, form) =>  {
         gauge.opoFury = 1;
         if (form && form.statusId === PerfectBalanceBuff.statusId) {
@@ -460,21 +465,21 @@ export const PhantomRush: MnkGcdAbility = {
     potency: 1500,
 }
 
-export const LeapingOpo: MnkGcdAbility = {
+export const LeapingOpo: FuryAbility = {
     ...Bootshine,
     name: "Leaping Opo",
     id: 36945,
     potency: 260,
 }
 
-export const RisingRaptor: MnkGcdAbility = {
+export const RisingRaptor: FuryAbility = {
     ...TrueStrike,
     name: "Rising Raptor",
     id: 36946,
     potency: 340,
 }
 
-export const PouncingCoeurl: MnkGcdAbility = {
+export const PouncingCoeurl: FuryAbility = {
     ...SnapPunch,
     name: "Pouncing Couerl",
     id: 36947,
@@ -510,3 +515,5 @@ export const OPO_ABILITIES: number[] = [Bootshine.id, DragonKick.id, LeapingOpo.
 const RAPTOR_ABILITIES: number[] = [TrueStrike.id, TwinSnakes.id, RisingRaptor.id];
 const COUERL_ABILITIES: number[] = [SnapPunch.id, Demolish.id, PouncingCoeurl.id];
 const FORM_ABILITIES: number[] = [Bootshine.id, DragonKick.id, LeapingOpo.id, TrueStrike.id, TwinSnakes.id, RisingRaptor.id, SnapPunch.id, Demolish.id, PouncingCoeurl.id]
+/** The priority of gcds to execute when building a solar blitz to push the highest potency sequence under RoF */
+export const SOLAR_WEAKEST_STRONGEST: FuryAbility[] = [DragonKick, Demolish, TwinSnakes, PouncingCoeurl, RisingRaptor, LeapingOpo];

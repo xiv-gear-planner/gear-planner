@@ -3,9 +3,9 @@ import { CycleProcessor, CycleSimResult, ExternalCycleSettings, MultiCycleSettin
 import { CycleSettings } from "@xivgear/core/sims/cycle_settings";
 import { CharacterGearSet } from "@xivgear/core/gear";
 import { BaseMultiCycleSim } from "@xivgear/core/sims/processors/sim_processors";
-import { MnkAbility, MNKExtraData, MnkGcdAbility } from "./mnk_types";
+import { FuryAbility, FuryType, MnkAbility, MNKExtraData, MnkGcdAbility } from "./mnk_types";
 import { MNKGauge as MnkGauge } from "./mnk_gauge";
-import { Brotherhood, CoeurlForm, Demolish, DragonKick, ElixirBurst, FiresReply, FiresRumination, FormlessFist, LeapingOpo, OPO_ABILITIES, OpoForm, PerfectBalance, PerfectBalanceBuff, PhantomRush, PouncingCoeurl, RaptorForm, RiddleOfFire, RiddleOfFireBuff, RiddleOfWind, RisingPhoenix, RisingRaptor, TheForbiddenChakra, TwinSnakes, WindsReply, WindsRumination } from "./mnk_actions";
+import { Brotherhood, CoeurlForm, Demolish, DragonKick, ElixirBurst, FiresReply, FiresRumination, FormlessFist, LeapingOpo, OPO_ABILITIES, OpoForm, PerfectBalance, PerfectBalanceBuff, PhantomRush, PouncingCoeurl, RaptorForm, RiddleOfFire, RiddleOfFireBuff, RiddleOfWind, RisingPhoenix, RisingRaptor, SOLAR_WEAKEST_STRONGEST, TheForbiddenChakra, TwinSnakes, WindsReply, WindsRumination } from "./mnk_actions";
 
 export interface MnkSimResult extends CycleSimResult { }
 
@@ -109,7 +109,6 @@ class MNKCycleProcessor extends CycleProcessor {
     // TODO implement logic to enter 1m and 2m burst windows appropriately
     doStep() {
         const form = this.getCurrentForm();
-        console.log(this.currentTime, form, this.gauge);
         const gcd = this.chooseGcd();
         this.useGcd(gcd);
         if (gcd.id === FiresReply.id) {
@@ -173,81 +172,12 @@ class MNKCycleProcessor extends CycleProcessor {
                     }
                 } else {
                     // building a solar nadi
-                    if (this.gauge.beastChakra.length === 0) {
-                        // attempt to sequence our least potent gcds out of RoF
-                        if (!this.gauge.opoFury) {
-                            return DragonKick;
-                        } else if (!this.gauge.coeurlFury) {
-                            return Demolish;
-                        } else if (!this.gauge.raptorFury) {
-                            return TwinSnakes;
-                        } else if (this.gauge.coeurlFury) {
-                            return PouncingCoeurl;
-                        } else if (this.gauge.raptorFury) {
-                            return RisingRaptor;
-                        } else {
-                            // autocrit bootshine lets go
-                            return LeapingOpo;
-                        }
-                    } else if (this.gauge.beastChakra.length === 1) {
-                        // attempt to sequence the next least potent gcd
-                        if (this.gauge.beastChakra.includes('opo')) {
-                            if (!this.gauge.coeurlFury) {
-                                return Demolish;
-                            } else if (!this.gauge.raptorFury) {
-                                return TwinSnakes;
-                            } else if (this.gauge.coeurlFury) {
-                                return PouncingCoeurl;
-                            } else {
-                                return RisingRaptor;
-                            }
-                        } else if (this.gauge.beastChakra.includes('raptor')) {
-                            if (!this.gauge.opoFury) {
-                                return DragonKick;
-                            } else if (!this.gauge.coeurlFury) {
-                                return Demolish;
-                            } else if (this.gauge.coeurlFury) {
-                                return PouncingCoeurl;
-                            } else {
-                                // autocrit bootshine lets go
-                                return LeapingOpo;
-                            }
-                        } else {
-                            // this.gauge.beastChakra.includes('coeurl')
-                            if (!this.gauge.opoFury) {
-                                return DragonKick;
-                            } else if (!this.gauge.raptorFury) {
-                                return TwinSnakes;
-                            } else if (this.gauge.raptorFury) {
-                                return RisingRaptor;
-                            } else {
-                                // autocrit bootshine lets go
-                                return LeapingOpo;
-                            }
-                        }
-                    } else if (this.gauge.beastChakra.length === 2) {
-                        const all = new Set(['opo', 'raptor', 'coeurl']);
-                        this.gauge.beastChakra.forEach(chakra => all.delete(chakra));
-                        if (all.has('opo')) {
-                            if (this.gauge.opoFury) {
-                                // need opo
-                                return LeapingOpo;
-                            }
-                            return DragonKick;
-                        } else if (all.has('raptor')) {
-                            // need raptor
-                            if (this.gauge.raptorFury) {
-                                return RisingRaptor;
-                            }
-                            return TwinSnakes;
-                        } else {
-                            // need coeurl
-                            if (this.gauge.coeurlFury) {
-                                return PouncingCoeurl;
-                            }
-                            return Demolish;
-                        }
+                    const gcd = SOLAR_WEAKEST_STRONGEST.filter((gcd: FuryAbility) => !this.gauge.beastChakra.includes(gcd.fury)).shift();
+                    if (!gcd) {
+                        console.warn("Building a solar nadi but couldn't choose a fury type to build");
+                        return DragonKick;
                     }
+                    return gcd;
                 }
             default:
                 if (this.gauge.beastChakra.length === 3) {
