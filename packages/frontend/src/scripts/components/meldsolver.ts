@@ -73,7 +73,7 @@ export class MeldSolver {
 
         let sets: SetExport[] = await (gearGenJob.promise as Promise<SetExport[]>);
         if (sets.length === 0) {
-            return null;
+            return [undefined, undefined];
         }
         this.jobs = [];
 

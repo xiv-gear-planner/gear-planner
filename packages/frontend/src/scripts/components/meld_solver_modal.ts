@@ -345,7 +345,10 @@ class MeldSolverConfirmationDialog extends BaseModal {
             this.headerText = "No Results Found";
 
             const textElement = document.createElement('span');
-            textElement.textContent = "The solver didn't find any results"
+            textElement.textContent = "The solver didn't find any results. Try relaxing some of the settings."
+            this.contentArea.replaceChildren(textElement);
+            this.addButton(makeActionButton("Ok", (_ev) => this.close()));
+            return;
         }
 
         const materiaTotals = MeldSolverConfirmationDialog.getMateriaTotals(oldSet, newSet);
