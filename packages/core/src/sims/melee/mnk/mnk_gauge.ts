@@ -18,6 +18,14 @@ export class MNKGauge {
     beastChakra: FuryType[] = [];
 
     getGaugeState(): MNKGaugeState {
-        return this;
+        return {
+            chakra: this.chakra,
+            opoFury: this.opoFury,
+            raptorFury: this.raptorFury,
+            coeurlFury: this.coeurlFury,
+            lunarNadi: this.lunarNadi,
+            solarNadi: this.solarNadi,
+            beastChakra: this.beastChakra,
+        };
     }
 }
