@@ -1,11 +1,13 @@
-import { Ability, Buff, GcdAbility, SimSettings, SimSpec } from "@xivgear/core/sims/sim_types";
+import { Ability, Buff, GcdAbility, OgcdAbility, SimSettings, SimSpec } from "@xivgear/core/sims/sim_types";
 import { CycleProcessor, CycleSimResult, ExternalCycleSettings, MultiCycleSettings, AbilityUseResult, Rotation, PreDmgAbilityUseRecordUnf } from "@xivgear/core/sims/cycle_sim";
 import { CycleSettings } from "@xivgear/core/sims/cycle_settings";
 import { CharacterGearSet } from "@xivgear/core/gear";
 import { BaseMultiCycleSim } from "@xivgear/core/sims/processors/sim_processors";
-import { FuryAbility, FuryType, MnkAbility, MNKExtraData, MnkGcdAbility } from "./mnk_types";
+import { FuryAbility, MnkAbility, MNKExtraData, MnkGcdAbility } from "./mnk_types";
 import { MNKGauge as MnkGauge } from "./mnk_gauge";
-import { Brotherhood, CoeurlForm, Demolish, DragonKick, ElixirBurst, FiresReply, FiresRumination, FormlessFist, LeapingOpo, OPO_ABILITIES, OpoForm, PerfectBalance, PerfectBalanceBuff, PhantomRush, PouncingCoeurl, RaptorForm, RiddleOfFire, RiddleOfFireBuff, RiddleOfWind, RisingPhoenix, RisingRaptor, SOLAR_WEAKEST_STRONGEST, TheForbiddenChakra, TwinSnakes, WindsReply, WindsRumination } from "./mnk_actions";
+import { Brotherhood, CoeurlForm, Demolish, DragonKick, ElixirBurst, FiresReply, FiresRumination, FormlessFist, LeapingOpo, OGCD_PRIORITY, OPO_ABILITIES, OpoForm, PerfectBalance, PerfectBalanceBuff, PhantomRush, PouncingCoeurl, RaptorForm, RiddleOfFire, RiddleOfFireBuff, RiddleOfWind, RisingPhoenix, RisingRaptor, SOLAR_WEAKEST_STRONGEST, TheForbiddenChakra, TwinSnakes, WindsReply, WindsRumination } from "./mnk_actions";
+import { sum } from "../../../util/array_utils";
+import { STANDARD_ANIMATION_LOCK } from "@xivgear/xivmath/xivconstants";
 
 export interface MnkSimResult extends CycleSimResult { }
 
@@ -37,12 +39,24 @@ class MNKCycleProcessor extends CycleProcessor {
         this.gauge = new MnkGauge();
     }
 
-    use(ability: Ability): AbilityUseResult {
+    override use(ability: Ability): AbilityUseResult {
         const a = ability as MnkAbility;
         if (a.updateGauge) {
             a.updateGauge(this.gauge, this.getCurrentForm());
         }
         return super.use(ability);
+    }
+
+    override useOgcd(ability: OgcdAbility): AbilityUseResult {
+        // If an Ogcd isn't ready yet, but it can still be used without clipping, advance time until ready.
+        if (this.canUseWithoutClipping(ability)) {
+            const readyAt = this.cdTracker.statusOf(ability).readyAt.absolute;
+            if (this.totalTime > readyAt) {
+                this.advanceTo(readyAt);
+            }
+        }
+        // Only try to use the Ogcd if it's ready.
+        return this.cdTracker.canUse(ability) ? super.useOgcd(ability) : null;
     }
 
     override addAbilityUse(usedAbility: PreDmgAbilityUseRecordUnf) {
@@ -127,15 +141,16 @@ class MNKCycleProcessor extends CycleProcessor {
             this.removeBuff(RaptorForm);
             this.removeBuff(CoeurlForm);
         }
-        if (this.cdTracker.canUse(Brotherhood) && this.canUseWithoutClipping(Brotherhood)) {
-            this.useOgcd(Brotherhood);
-        }
-        if (this.cdTracker.canUse(RiddleOfFire) && this.canUseWithoutClipping(RiddleOfFire)) {
-            this.useOgcd(RiddleOfFire);
-        }
-        if (this.cdTracker.canUse(RiddleOfWind) && this.canUseWithoutClipping(RiddleOfWind)) {
-            this.useOgcd(RiddleOfWind);
-        }
+
+        const ogcdsAvailable: OgcdAbility[] = OGCD_PRIORITY.filter((ogcd: OgcdAbility) => this.cdTracker.canUse(ogcd, this.nextGcdTime))
+        ogcdsAvailable.forEach(ogcd => {
+            if (this.canUseWithoutClipping(ogcd)) {
+                if (ogcd.id === RiddleOfFire.id) {
+                    this.advanceForLateWeave([ogcd]);
+                }
+                this.useOgcd(ogcd);
+            }
+        })
     }
 
     chooseGcd(): MnkGcdAbility {
@@ -219,6 +234,23 @@ class MNKCycleProcessor extends CycleProcessor {
     get fourGcdTime(): number {
         return this.gcdTime(DragonKick) * 4;
     }
+
+    /** Advances to as late as possible.
+     * NOTE: I'm adding an extra 20ms to each animation lock to make sure we don't hit anything that's impossible to achieve ingame.
+     * Stolen from drk/rpr/vpr sim
+     */
+    advanceForLateWeave(weaves: OgcdAbility[]) {
+        const pingAndServerDelayAdjustment = 0.02;
+        const totalAnimLock = sum(weaves.map(ability => (ability.animationLock ?? STANDARD_ANIMATION_LOCK) + pingAndServerDelayAdjustment));
+        const remainingtime = this.nextGcdTime - this.currentTime;
+
+        if (totalAnimLock > remainingtime) {
+            return;
+        }
+
+        this.advanceTo(this.currentTime + (remainingtime - totalAnimLock));
+    }
+
 }
 
 export class MnkSim extends BaseMultiCycleSim<CycleSimResult, MnkSettings, MNKCycleProcessor> {
