@@ -82,6 +82,7 @@ import { SimulationGui } from "../sims/simulation_gui";
 import { makeGui } from "../sims/sim_guis";
 import {recordSheetEvent} from "@xivgear/core/analytics/analytics";
 import { MeldSolverDialog } from "./meld_solver_modal";
+import {insertAds} from "./ads";
 
 export type GearSetSel = SingleCellRowOrHeaderSelect<CharacterGearSet>;
 
@@ -1797,6 +1798,11 @@ export class GearPlanSheetGui extends GearPlanSheet {
             }
             else {
                 this.setToolbarNode(undefined);
+            }
+            // TODO: clean this up
+            if (node instanceof GearSetViewer) {
+                this.editorArea.style.position = 'relative';
+                insertAds(this.editorArea);
             }
         }
     }
