@@ -34,7 +34,7 @@ export const drkSpec: SimSpec<DrkSim, DrkSettingsExternal> = {
     stub: "drk-sim-lv100",
     displayName: "DRK Sim",
     description: `Simulates a DRK rotation using level 100 abilities/traits.
-If potions are enabled, will pot in the burst window every 6m (i.e. 0m, 6m, 12m, etc).
+If potions are enabled, pots in the burst window every 6m (i.e. 0m, 6m, 12m, etc).
 Defaults to simulating a killtime of 8m 30s (510s).`,
     makeNewSimInstance: function (): DrkSim {
         return new DrkSim();
