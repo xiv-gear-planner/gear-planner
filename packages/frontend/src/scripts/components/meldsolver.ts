@@ -56,7 +56,7 @@ export class MeldSolver {
     public async solveMelds(
         gearsetGenSettings: GearsetGenerationSettings,
         simSettings: SolverSimulationSettings,
-        update: (val: unknown) => void): Promise<CharacterGearSet> {
+        update: (val: unknown) => void): Promise<[CharacterGearSet, number]> {
 
         if (!simSettings) {
             return null;
@@ -121,6 +121,6 @@ export class MeldSolver {
             if (!b) return -1;
             return b.dps - a.dps
         });
-        return this._sheet.importGearSet(allResults.at(0).set);
+        return [this._sheet.importGearSet(allResults.at(0).set), allResults.at(0).dps];
     }
 }
