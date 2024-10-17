@@ -27,7 +27,7 @@ export class GearsetGenerationWorker extends WorkerBehavior<GearsetGenerationJob
         const setGenerator = new GearsetGenerator(this.sheet, gearsetGenSettings);
         const allGearsets = setGenerator.getMeldPossibilitiesForGearset(gearsetGenSettings);
 
-        const setsToExport: SetExport[] = allGearsets.map(set => this.sheet.exportGearSet(set)).filter(set => Object.keys(set).length !== 0);
+        const setsToExport: SetExport[] = allGearsets.map(set => this.sheet.exportGearSet(set));
 
         this.postResult(setsToExport);
     }
