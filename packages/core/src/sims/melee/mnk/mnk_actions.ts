@@ -1,4 +1,4 @@
-import { BuffController, PersonalBuff, PartyBuff, Ability, OgcdAbility } from "@xivgear/core/sims/sim_types";
+import { BuffController, PersonalBuff, PartyBuff, OgcdAbility } from "@xivgear/core/sims/sim_types";
 import { MNKGauge } from "./mnk_gauge";
 import { FuryAbility, MnkGcdAbility, MnkOgcdAbility } from "./mnk_types"
 
