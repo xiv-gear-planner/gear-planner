@@ -1,4 +1,4 @@
-import { BuffController, PersonalBuff, PartyBuff, Ability } from "@xivgear/core/sims/sim_types";
+import { BuffController, PersonalBuff, PartyBuff, Ability, OgcdAbility } from "@xivgear/core/sims/sim_types";
 import { MNKGauge } from "./mnk_gauge";
 import { FuryAbility, MnkGcdAbility, MnkOgcdAbility } from "./mnk_types"
 
@@ -517,3 +517,5 @@ const COUERL_ABILITIES: number[] = [SnapPunch.id, Demolish.id, PouncingCoeurl.id
 const FORM_ABILITIES: number[] = [Bootshine.id, DragonKick.id, LeapingOpo.id, TrueStrike.id, TwinSnakes.id, RisingRaptor.id, SnapPunch.id, Demolish.id, PouncingCoeurl.id]
 /** The priority of gcds to execute when building a solar blitz to push the highest potency sequence under RoF */
 export const SOLAR_WEAKEST_STRONGEST: FuryAbility[] = [DragonKick, Demolish, TwinSnakes, PouncingCoeurl, RisingRaptor, LeapingOpo];
+// TODO add TheForbiddenChakra
+export const OGCD_PRIORITY: OgcdAbility[] = [Brotherhood, RiddleOfFire, RiddleOfWind];
