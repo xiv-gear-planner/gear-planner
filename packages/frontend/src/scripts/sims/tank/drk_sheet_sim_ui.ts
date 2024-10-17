@@ -181,6 +181,10 @@ export class DrkSimGui extends BaseMultiCycleSimGui<DrkSimResult, DrkSettings> {
         const potCb = new FieldBoundCheckBox(settings, "usePotion");
 
         configDiv.appendChild(labeledCheckbox("Use Potion", potCb));
+        
+        const prepullTBNCB = new FieldBoundCheckBox(settings, "prepullTBN");
+
+        configDiv.appendChild(labeledCheckbox("Use The Blackest Night prepull", prepullTBNCB));
         return configDiv;
     }
 
