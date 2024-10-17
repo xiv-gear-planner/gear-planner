@@ -265,6 +265,16 @@ describe('New Datamanager', () => {
                 const item = dm.itemById(40136);
                 expect(item.isSyncedDown).to.eq(false);
             });
+            it('should downsync a lvl93 i660 weapon to 660 (remove melds but not change stats)', () => {
+                const item = dm.itemById(42085);
+                expect(item.isSyncedDown).to.eq(true);
+                expect(item.syncedDownTo).to.eq(660);
+                expect(item.unsyncedVersion.stats.wdMag).to.eq(item.stats.wdMag);
+                expect(item.unsyncedVersion.stats.mind).to.eq(item.stats.mind);
+                expect(item.unsyncedVersion.stats.crit).to.eq(item.stats.crit);
+                expect(item.unsyncedVersion.stats.determination).to.eq(item.stats.determination);
+                expect(item.materiaSlots).to.be.empty;
+            });
             it('should downsync a lvl94 i663 weapon to 660', () => {
                 // Cobalt Tungsten Pendulums
                 const item = dm.itemById(42162);
@@ -322,7 +332,6 @@ describe('New Datamanager', () => {
             //     expect(item.unsyncedVersion.stats.vitality).to.eq(580);
             //     expect(item.stats.vitality).to.eq(411);
             // });
-
         });
     })
 });
