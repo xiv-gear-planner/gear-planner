@@ -224,6 +224,7 @@ export const Bootshine: FuryAbility = {
     attackType: "Weaponskill",
     activatesBuffs: [RaptorForm],
     fury: 'opo',
+    buildsFury: false,
     updateGauge: (gauge: MNKGauge, form) =>  {
         gauge.opoFury = 0;
         if (form && form.statusId === PerfectBalanceBuff.statusId) {
@@ -241,6 +242,7 @@ export const TrueStrike: FuryAbility = {
     attackType: "Weaponskill",
     activatesBuffs: [CoeurlForm],
     fury: 'raptor',
+    buildsFury: true,
     updateGauge: (gauge: MNKGauge, form) =>  {
         gauge.raptorFury = 0;
         if (form && form.statusId === PerfectBalanceBuff.statusId) {
@@ -258,6 +260,7 @@ export const SnapPunch: FuryAbility = {
     attackType: "Weaponskill",
     activatesBuffs: [OpoForm],
     fury: 'coeurl',
+    buildsFury: false,
     updateGauge: (gauge: MNKGauge, form) =>  {
         gauge.coeurlFury -= 1;
         if (form && form.statusId === PerfectBalanceBuff.statusId) {
@@ -275,6 +278,7 @@ export const TwinSnakes: FuryAbility = {
     attackType: "Weaponskill",
     activatesBuffs: [CoeurlForm],
     fury: 'raptor',
+    buildsFury: true,
     updateGauge: (gauge: MNKGauge, form) =>  {
         gauge.raptorFury = 1;
         if (form && form.statusId === PerfectBalanceBuff.statusId) {
@@ -292,6 +296,7 @@ export const Demolish: FuryAbility = {
     attackType: "Weaponskill",
     activatesBuffs: [OpoForm],
     fury: 'coeurl',
+    buildsFury: true,
     updateGauge: (gauge: MNKGauge, form) =>  {
         gauge.coeurlFury = 2;
         if (form && form.statusId === PerfectBalanceBuff.statusId) {
@@ -312,6 +317,7 @@ export const DragonKick: FuryAbility = {
     attackType: "Weaponskill",
     activatesBuffs: [RaptorForm],
     fury: 'opo',
+    buildsFury: true,
     updateGauge: (gauge: MNKGauge, form) =>  {
         gauge.opoFury = 1;
         if (form && form.statusId === PerfectBalanceBuff.statusId) {
