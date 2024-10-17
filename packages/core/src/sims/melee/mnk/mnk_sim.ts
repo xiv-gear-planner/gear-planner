@@ -1,4 +1,4 @@
-import { Ability, Buff, SimSettings, SimSpec } from "@xivgear/core/sims/sim_types";
+import { Ability, Buff, GcdAbility, SimSettings, SimSpec } from "@xivgear/core/sims/sim_types";
 import { CycleProcessor, CycleSimResult, ExternalCycleSettings, MultiCycleSettings, AbilityUseResult, Rotation, PreDmgAbilityUseRecordUnf } from "@xivgear/core/sims/cycle_sim";
 import { CycleSettings } from "@xivgear/core/sims/cycle_settings";
 import { CharacterGearSet } from "@xivgear/core/gear";
@@ -110,7 +110,6 @@ class MNKCycleProcessor extends CycleProcessor {
     doStep() {
         const form = this.getCurrentForm();
         console.log(this.currentTime, form, this.gauge);
-        const riddleReady = this.cdTracker.statusOf(RiddleOfFire).readyAt.relative;
         const gcd = this.chooseGcd();
         this.useGcd(gcd);
         if (gcd.id === FiresReply.id) {
@@ -123,10 +122,7 @@ class MNKCycleProcessor extends CycleProcessor {
             this.removeBuff(RaptorForm);
             this.removeBuff(CoeurlForm);
         }
-        if (OPO_ABILITIES.includes(gcd.id) &&
-            form.statusId !== PerfectBalanceBuff.statusId &&
-            (riddleReady <= 7 || this.getActiveBuffs(this.currentTime + (this.gcdTime(DragonKick) * 4)).find(buff => buff.statusId === RiddleOfFireBuff.statusId))
-            && this.cdTracker.canUse(PerfectBalance)) {
+        if (this.shouldEnterBlitz(gcd, form)) {
             this.useOgcd(PerfectBalance);
             this.removeBuff(OpoForm);
             this.removeBuff(RaptorForm);
@@ -275,6 +271,23 @@ class MNKCycleProcessor extends CycleProcessor {
         return this.getActiveBuffs().find(b => {
             return b.statusId !== undefined && [OpoForm.statusId, RaptorForm.statusId, CoeurlForm.statusId, FormlessFist.statusId, PerfectBalanceBuff.statusId].includes(b.statusId);
         });
+    }
+
+    shouldEnterBlitz(gcd: GcdAbility, form: Buff): boolean {
+        const riddleReady = this.cdTracker.statusOf(RiddleOfFire).readyAt.relative;
+        return OPO_ABILITIES.includes(gcd.id) // just executed an opo ability
+            && form.statusId !== PerfectBalanceBuff.statusId // not already building a blitz
+            && (riddleReady <= 7 // Within 3 gcds of RoF coming off cooldown
+                // OR we're already in RoF and there's enough remaining time to land a blitz inside the current window
+                || this.getActiveBuffs(this.currentTime + this.fourGcdTime).find(buff => buff.statusId === RiddleOfFireBuff.statusId))
+            && this.cdTracker.canUse(PerfectBalance)
+    }
+
+    /*
+     *  Returns how long it takes to execute 4 gcds
+     */
+    get fourGcdTime(): number {
+        return this.gcdTime(DragonKick) * 4;
     }
 }
 
