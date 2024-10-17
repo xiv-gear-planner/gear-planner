@@ -1,4 +1,10 @@
-import { FieldBoundCheckBox, FieldBoundDataSelect, FieldBoundFloatField, makeActionButton } from "@xivgear/common-ui/components/util";
+import {
+    FieldBoundCheckBox,
+    FieldBoundDataSelect,
+    FieldBoundFloatField,
+    labelFor,
+    makeActionButton
+} from "@xivgear/common-ui/components/util";
 import { CharacterGearSet } from "@xivgear/core/gear";
 import { GearPlanSheetGui } from "./sheet";
 import { SimResult, Simulation } from "@xivgear/core/sims/sim_types";
@@ -32,7 +38,7 @@ export class MeldSolverDialog extends BaseModal {
         this.headerText = 'Meld Solver';
         this.form = document.createElement("form");
         this.form.method = 'dialog';
-        this.inner.style.maxWidth = "25%"; // idk why this doesn't work in common-css but it don't.
+        // this.inner.style.maxWidth = "25%"; // idk why this doesn't work in common-css but it don't.
 
         this.classList.add('meld-solver-area');
         this.descriptionText = document.createElement('div');
@@ -200,9 +206,6 @@ class MeldSolverSettingsMenu extends HTMLDivElement {
             sets: undefined, // Not referenced in UI
         }
 
-        const targetGcdText = document.createElement('span');
-        targetGcdText.textContent = "Target GCD: ";
-        targetGcdText.classList.add('meld-solver-settings');
 
         this.targetGcdInput = new FieldBoundFloatField(this.gearsetGenSettings, 'targetGcd', {
             postValidators: [ctx => {
@@ -220,20 +223,21 @@ class MeldSolverSettingsMenu extends HTMLDivElement {
             }]
         });
 
+        this.useTargetGcdCheckBox = new FieldBoundCheckBox(this.gearsetGenSettings, 'useTargetGcd');
+        this.useTargetGcdCheckBox.classList.add('meld-solver-settings');
         this.targetGcdInput.pattern = '\\d\\.\\d\\d?';
         this.targetGcdInput.title = 'Solve for the best set with this GCD'
         this.targetGcdInput.classList.add('meld-solver-target-gcd-input');
         this.targetGcdInput.disabled = true;
 
-        this.useTargetGcdCheckBox = new FieldBoundCheckBox(this.gearsetGenSettings, 'useTargetGcd');
-        this.useTargetGcdCheckBox.classList.add('meld-solver-settings');
-
-        this.overwriteMateriaText = document.createElement('span');
-        this.overwriteMateriaText.textContent = "Overwrite existing materia?";
-        this.overwriteMateriaText.classList.add('meld-solver-settings');
+        const targetGcdText = labelFor("Target GCD: ", this.useTargetGcdCheckBox);
+        targetGcdText.textContent = "Target GCD: ";
+        targetGcdText.classList.add('meld-solver-settings');
 
         this.overwriteMateriaCheckbox = new FieldBoundCheckBox(this.gearsetGenSettings, 'overwriteExistingMateria');
         this.overwriteMateriaCheckbox.classList.add('meld-solver-settings');
+        this.overwriteMateriaText = labelFor("Overwrite existing materia?", this.overwriteMateriaCheckbox);
+        this.overwriteMateriaText.classList.add('meld-solver-settings');
 
         const simText = document.createElement('span');
         simText.textContent = "Sim: ";
@@ -337,8 +341,8 @@ class MeldSolverConfirmationDialog extends BaseModal {
         const form = document.createElement("form");
         form.method = 'dialog';
         form.classList.add('meld-solver-result');
-        this.inner.style.maxWidth = "35%";
-        this.inner.style.width = "35%"
+        // this.inner.style.maxWidth = "35%";
+        // this.inner.style.width = "35%"
         //this.inner.style.maxWidth = "4%"; // idk why this doesn't work in common-css but it don't.
 
         if (!newSet) {
@@ -428,21 +432,19 @@ class MeldSolverConfirmationDialog extends BaseModal {
             }
 
             const delta = newTotal - oldTotal
-            const deltaElem = document.createElement('span');
+            const deltaElem = document.createElement('div');
             deltaElem.classList.add('meld-solver-result-materia-entry-delta');
-            deltaElem.textContent = delta == 0 ? "" : `(${delta > 0 ? "+" : ""}${delta})`;
+            deltaElem.textContent = delta === 0 ? "" : `(${delta > 0 ? "+" : ""}${delta})`;
 
             oldItem.appendChild(oldEntry);
             newItem.appendChild(newEntry);
-            newItem.appendChild(deltaElem)
+            newItem.appendChild(deltaElem);
             oldList.appendChild(oldItem);
             newList.appendChild(newItem);
         }
 
         oldSet.appendChild(oldList);
         newSet.appendChild(newList);
-        oldSet.style.width = "40%";
-        newSet.style.width = "40%";
         return [oldSet, newSet];
     }
 

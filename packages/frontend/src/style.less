@@ -7,6 +7,7 @@ custom-item-popup, custom-food-popup {
         &input {
           width: unset !important;
         }
+
         box-sizing: border-box;
         max-width: 100%;
         //border: var(--soft-border);
@@ -37,5 +38,111 @@ custom-item-popup, custom-food-popup {
     max-width: 800px;
     margin-left: auto;
     margin-right: auto;
+  }
+}
+
+sim-result-detail-display {
+  margin: auto;
+  display: block;
+  width: fit-content;
+}
+
+meld-solver-result-dialog {
+  .meld-solver-result {
+    display: flex;
+    flex-direction: row;
+
+    span.arrow {
+      margin: 20px;
+      font-size: xx-large;
+    }
+  }
+
+  .meld-solver-result-set {
+    width: 40%;
+    padding: 0;
+    margin: 0;
+
+    .meld-solver-result-set-sim {
+      color: color-mix(in srgb, currentColor var(--sim-color-mix-percent), color-mix(in hsl, #00ff00 var(--sim-result-relative, 50%), #ff0000));
+    }
+
+    .sim-best {
+      font-weight: bold;
+    }
+  }
+
+  ul {
+    display: flex;
+    flex-direction: column;
+
+    li {
+      display: flex;
+      margin-top: 5px;
+      margin-bottom: 5px;
+    }
+
+    list-style-type: none;
+    padding-inline-start: 0px;
+  }
+
+  .meld-solver-result-materia-entry {
+    display: contents;
+
+    --image-size: 25px;
+
+    div.meld-solver-result-image {
+      overflow: clip;
+      width: var(--image-size);
+      height: var(--image-size);
+      margin-right: 3%;
+      border-radius: 100%;
+    }
+
+    img {
+      //width: 100%;
+      height: 100%;
+      display: block;
+      aspect-ratio: 1;
+    }
+
+    .meld-solver-result-materia-entry-text {
+      width: 100%;
+      text-align: left;
+      display: flex;
+      flex-direction: row;
+
+      .meld-solver-result-materia-entry-count {
+        width: 35%;
+        margin-left: 5%;
+        text-align: left;
+      }
+
+      .meld-solver-result-materia-entry-stat {
+        width: 60%;
+        text-align: left;
+      }
+    }
+  }
+
+  .meld-solver-result-materia-entry-delta {
+    width: 20%;
+    text-align: left;
+  }
+
+  .meld-solver-result-materia-entry-zero {
+    color: var(--border-color-default);
+    //background-color: var(--scrollbar-bg);
+  }
+
+  .meld-solver-result-materia-entry-diff {
+    background-color: var(--scrollbar-bg);
+  }
+}
+
+meld-solver-area, meld-solver-result-dialog {
+  .modal-inner {
+    width: 500px;
+    max-width: 95vw;
   }
 }
