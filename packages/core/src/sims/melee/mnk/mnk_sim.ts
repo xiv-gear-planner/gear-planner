@@ -178,7 +178,7 @@ class MNKCycleProcessor extends CycleProcessor {
                 }
                 return Demolish;
             case PerfectBalanceBuff.statusId:
-                if (!this.gauge.lunarNadi || this.gauge.solarNadi) {
+                if (this.gauge.solarNadi) {
                     // do an oporot of some kind
                     if (this.gauge.opoFury) {
                         return LeapingOpo;
