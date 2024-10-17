@@ -187,9 +187,35 @@ class MNKCycleProcessor extends CycleProcessor {
                     }
                 } else {
                     // building a solar nadi
-                    const gcd = SOLAR_WEAKEST_STRONGEST.filter((gcd: FuryAbility) => !this.gauge.beastChakra.includes(gcd.fury)).shift();
+                    const gcd: FuryAbility = SOLAR_WEAKEST_STRONGEST
+                        // remove abilities that don't generate the beast chakra we need
+                        .filter((gcd: FuryAbility) => !this.gauge.beastChakra.includes(gcd.fury))
+                        // remove abilities that we shouldn't use due to overcap/lack of balls
+                        .filter((gcd: FuryAbility) => {
+                            switch (gcd.fury) {
+                                case "opo":
+                                    if (gcd.buildsFury) {
+                                        return this.gauge.opoFury == 0;
+                                    } else {
+                                        return this.gauge.opoFury != 0;
+                                    }
+                                case "raptor":
+                                    if (gcd.buildsFury) {
+                                        return this.gauge.raptorFury == 0;
+                                    } else {
+                                        return this.gauge.raptorFury != 0;
+                                    }
+                                case "coeurl":
+                                    if (gcd.buildsFury) {
+                                        return this.gauge.coeurlFury == 0;
+                                    } else {
+                                        return this.gauge.coeurlFury != 0;
+                                    }
+                            }
+                        })
+                        .shift();
                     if (!gcd) {
-                        console.warn("Building a solar nadi but couldn't choose a fury type to build");
+                        console.warn(`${this.currentTime} Building a solar nadi but couldn't choose a fury type to build`, this.gauge);
                         return DragonKick;
                     }
                     return gcd;

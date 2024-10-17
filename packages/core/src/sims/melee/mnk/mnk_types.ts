@@ -12,6 +12,8 @@ export type MnkGcdAbility = GcdAbility & MnkAbility;
 
 export type FuryAbility =  MnkGcdAbility & Readonly<{
     fury: FuryType;
+    /** Whether the ability fills or drains balls */
+    buildsFury: boolean;
 }>;
 
 /** Represents a Monk-specific oGCD Ability */
