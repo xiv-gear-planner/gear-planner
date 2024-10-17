@@ -263,17 +263,30 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
     },
     SAM: {
         ...STANDARD_MELEE,
-        gcdDisplayOverrides() {
-            return [{
-                shortLabel: 'GCD',
-                longLabel: '2.5s GCD w/ Fuka',
-                description: 'GCD recast time w/ Fuka',
-                gcdTime: 2.5,
-                attackType: 'Weaponskill',
-                haste: 13,
-                basis: 'sks',
-                isPrimary: true,
-            }]
+        gcdDisplayOverrides: (level) => {
+            if (level < 78) {
+                return [{
+                    shortLabel: 'GCD',
+                    longLabel: '2.5s GCD w/ Fuka',
+                    description: 'GCD recast time w/ Fuka',
+                    gcdTime: 2.5,
+                    attackType: 'Weaponskill',
+                    haste: 10,
+                    basis: 'sks',
+                    isPrimary: true,
+                }]
+            } else {
+                return [{
+                    shortLabel: 'GCD',
+                    longLabel: '2.5s GCD w/ Fuka',
+                    description: 'GCD recast time w/ Fuka',
+                    gcdTime: 2.5,
+                    attackType: 'Weaponskill',
+                    haste: 13, // Enhanced Fugetsu and Fuka
+                    basis: 'sks',
+                    isPrimary: true,
+                }]
+            }
         }
     },
     RPR: STANDARD_MELEE,
