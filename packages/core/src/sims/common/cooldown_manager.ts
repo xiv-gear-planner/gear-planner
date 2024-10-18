@@ -122,6 +122,22 @@ export class CooldownTracker {
     }
 
     /**
+     * Modifies the cooldown of the given ability by the delta specified.
+     * Negative delta will reduce the cooldown, positive delta will increase it.
+     *
+     * @param ability
+     * @param delta
+     */
+    public modifyCooldown(ability: Ability, delta: number) {
+        if (!hasCooldown(ability)) {
+            return
+        }
+        const key = cooldownKey(ability)
+        const cdState = this.currentState.get(key)
+        this.currentState.set(cooldownKey(ability), new InternalState(cdState.cappedAt + delta));
+    }
+
+    /**
      * Shift the timing of every cooldown, in order to allow CD usage to be adjusted
      * for pre-pull uses.
      *

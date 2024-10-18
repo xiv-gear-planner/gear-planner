@@ -5,7 +5,7 @@ export class WarGauge {
     private _beastGauge: number = 0;
 
     get beastGauge(): number {
-        return this.beastGauge;
+        return this._beastGauge;
     }
     
     set beastGauge(newGauge: number) {

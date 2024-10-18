@@ -1,6 +1,16 @@
 import { WarGauge } from "./war_gauge";
 import { WarGcdAbility, WarOgcdAbility, SurgingTempest, PrimalRendReadyBuff, PrimalRuinationReadyBuff, InnerReleaseBuff, NascentChaosBuff } from "./war_types";
 
+export const Tomahawk: WarGcdAbility = {
+    type: 'gcd',
+    name: "Tomahawk",
+    id: 46,
+    potency: 150,
+    attackType: "Weaponskill",
+    gcd: 2.5,
+    cast: 0,
+};
+
 export const HeavySwing: WarGcdAbility = {
     type: 'gcd',
     name: "Heavy Swing",
@@ -56,6 +66,18 @@ export const FellCleave: WarGcdAbility = {
     updateBeastGauge: gauge => gauge.beastGauge -= 50,
 };
 
+export const InnerChaos: WarGcdAbility = {
+    type: 'gcd',
+    name: "Inner Chaos",
+    id: 16465,
+    potency: 660,
+    attackType: "Weaponskill",
+    gcd: 2.5,
+    beastGaugeCost: 50,
+    updateBeastGauge: gauge => gauge.beastGauge -= 50,
+};
+
+
 export const PrimalRend: WarGcdAbility = {
     type: 'gcd',
     name: "Primal Rend",
@@ -63,6 +85,15 @@ export const PrimalRend: WarGcdAbility = {
     potency: 700,
     attackType: "Weaponskill",
     activatesBuffs: [PrimalRuinationReadyBuff],
+    gcd: 2.5,
+};
+
+export const PrimalRuination: WarGcdAbility = {
+    type: 'gcd',
+    name: "Primal Ruination",
+    id: 36925,
+    potency: 780,
+    attackType: "Weaponskill",
     gcd: 2.5,
 };
 
@@ -88,7 +119,7 @@ export const Infuriate: WarOgcdAbility = {
     activatesBuffs: [NascentChaosBuff],
     cooldown: {
         time: 30,
-        charges: 1,
+        charges: 2,
     },
     updateBeastGauge: (gauge: WarGauge) => gauge.beastGauge += 50
 };

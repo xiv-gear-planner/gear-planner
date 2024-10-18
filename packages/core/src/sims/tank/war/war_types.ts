@@ -31,6 +31,7 @@ export type WarGaugeState = {
 export type WarExtraData = {
     /** The WAR gauge data */
     gauge: WarGaugeState,
+    surgingTempest: number,
 };
 
 export const NascentChaosBuff: Buff = {
@@ -38,7 +39,9 @@ export const NascentChaosBuff: Buff = {
     duration: 30,
     selfOnly: true,
     effects: {
-       // Allows usage of Inner Chaos
+        forceCrit: true,
+        forceDhit: true,
+       // Also allows usage of Inner Chaos
     },
     appliesTo: ability => ability.name === "Inner Chaos",
     beforeSnapshot: removeSelf,
@@ -62,7 +65,9 @@ export const InnerReleaseBuff: Buff = {
     duration: 15,
     selfOnly: true,
     effects: {
-       // Allows usage of Fell Cleave for free
+        forceCrit: true,
+        forceDhit: true,
+       // Also allows usage of Fell Cleave for free
     },
     stacks: 3,
     appliesTo: ability => ability.name === "Fell Cleave",
@@ -78,7 +83,9 @@ export const PrimalRendReadyBuff: Buff = {
     duration: 30,
     selfOnly: true,
     effects: {
-       // Allows usage of Primal Rend
+        forceCrit: true,
+        forceDhit: true,
+        // Also allows usage of Primal Rend
     },
     stacks: 1,
     appliesTo: ability => ability.name === "Primal Rend",
@@ -94,7 +101,9 @@ export const PrimalRuinationReadyBuff: Buff = {
     duration: 20,
     selfOnly: true,
     effects: {
-       // Allows usage of Primal Ruination
+        forceCrit: true,
+        forceDhit: true,
+        // Also allows usage of Primal Ruination
     },
     stacks: 1,
     appliesTo: ability => ability.name === "Primal Ruination",
@@ -110,7 +119,7 @@ export const WrathfulBuff: Buff = {
     duration: 30,
     selfOnly: true,
     effects: {
-       // Allows usage of Primal Wrath
+       // Also allows usage of Primal Wrath
     },
     stacks: 1,
     appliesTo: ability => ability.name === "Primal Wrath",
