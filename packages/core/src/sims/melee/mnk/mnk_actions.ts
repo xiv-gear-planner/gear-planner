@@ -187,10 +187,9 @@ export const RiddleOfWindBuff: PersonalBuff = {
     name: "Riddle of Wind",
     duration: 15,
     statusId: 2687,
+    appliesTo: (ability) => ability.attackType === 'Auto-attack',
     effects: {
-        modifyStats: (stats, bonuses) => {
-            bonuses.bonusHaste.push(attackType => attackType === 'Auto-attack' ? 50 : 0);
-        }
+        haste: 50
     }
 }
 export const FiresRumination: PersonalBuff = {
@@ -242,7 +241,7 @@ export const TrueStrike: FuryAbility = {
     attackType: "Weaponskill",
     activatesBuffs: [CoeurlForm],
     fury: 'raptor',
-    buildsFury: true,
+    buildsFury: false,
     updateGauge: (gauge: MNKGauge, form) =>  {
         gauge.raptorFury = 0;
         if (form && form.statusId === PerfectBalanceBuff.statusId) {

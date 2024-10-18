@@ -299,13 +299,7 @@ export class MnkSim extends BaseMultiCycleSim<CycleSimResult, MnkSettings, MNKCy
     spec = mnkSpec;
     shortName = 'mnk-sim';
     displayName = mnkSpec.displayName;
-    cycleSettings: CycleSettings = {
-        useAutos: true,
-        cutoffMode: "prorate-gcd",
-        totalTime: (8 * 60),
-        cycles: 0,
-        which: 'totalTime',
-    };
+    cycleSettings: CycleSettings = this.defaultCycleSettings();
 
     constructor(settings?: MnkSettingsExternal) {
         super('MNK', settings);
@@ -342,7 +336,7 @@ export class MnkSim extends BaseMultiCycleSim<CycleSimResult, MnkSettings, MNKCy
                         cp.doStep();
                     }
                 }
-            }
+            },
         ];
     }
 }
