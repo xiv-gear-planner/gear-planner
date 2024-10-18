@@ -1,12 +1,11 @@
 import { Ability, SimSettings, SimSpec, OgcdAbility } from "@xivgear/core/sims/sim_types";
 import { CycleProcessor, CycleSimResult, ExternalCycleSettings, MultiCycleSettings, AbilityUseResult, Rotation, PreDmgAbilityUseRecordUnf } from "@xivgear/core/sims/cycle_sim";
-import { combineBuffEffects } from "@xivgear/core/sims/sim_utils";
 import { CycleSettings } from "@xivgear/core/sims/cycle_settings";
 import { CharacterGearSet } from "@xivgear/core/gear";
 import { formatDuration } from "@xivgear/core/util/strutils";
 import { STANDARD_ANIMATION_LOCK } from "@xivgear/xivmath/xivconstants";
 import { WarGauge } from "./war_gauge";
-import { WarExtraData, WarAbility, WarGcdAbility, WarOgcdAbility, WrathfulBuff, SurgingTempest, NascentChaosBuff, InnerReleaseBuff, PrimalRendReadyBuff, PrimalRuinationReadyBuff } from "./war_types";
+import { WarExtraData, WarAbility, WarGcdAbility, WrathfulBuff, SurgingTempest, NascentChaosBuff, InnerReleaseBuff, PrimalRendReadyBuff, PrimalRuinationReadyBuff } from "./war_types";
 import { sum } from "@xivgear/core/util/array_utils";
 import * as Actions from './war_actions';
 import { BaseMultiCycleSim } from "@xivgear/core/sims/processors/sim_processors";
