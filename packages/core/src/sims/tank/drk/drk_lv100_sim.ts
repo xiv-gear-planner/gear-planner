@@ -398,7 +398,7 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
             cycleTime: 120,
             apply(cp: DrkCycleProcessor) {
                 // Reset Living Shadow when beginning a new rotation, in case
-                // the old rotation happened mid execution of Living Shadow.
+                // the last simmed rotation stopped mid execution of Living Shadow.
                 outer.livingShadowAbilityUsages = []
 
                 outer.useOpener(cp, settings.prepullTBN)
