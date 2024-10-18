@@ -21,20 +21,20 @@ export class DrkGauge {
     
     set bloodGauge(newGauge: number) {
         if (newGauge > 100) {
-            console.warn(`Overcapped Blood by ${newGauge - 100}.`);
+            console.warn(`[DRK Sim] Overcapped Blood by ${newGauge - 100}.`);
         }
         if (newGauge < 0) {
-            console.warn(`Used ${this._bloodGauge - newGauge} blood when you only have ${this._bloodGauge}.`)
+            console.warn(`[DRK Sim] Used ${this._bloodGauge - newGauge} blood when you only have ${this._bloodGauge}.`)
         }
         this._bloodGauge = Math.max(Math.min(newGauge, 100), 0);
     }
 
     set magicPoints(newGauge: number) {
         if (newGauge > 10000) {
-            console.warn(`Overcapped MP by ${newGauge - 10000}.`);
+            console.warn(`[DRK Sim] Overcapped MP by ${newGauge - 10000}.`);
         }
         if (newGauge < 0) {
-            console.warn(`Used ${this._magicPoints - newGauge} MP when you only have ${this._magicPoints}.`)
+            console.warn(`[DRK Sim] Used ${this._magicPoints - newGauge} MP when you only have ${this._magicPoints}.`)
         }
         this._magicPoints = Math.max(Math.min(newGauge, 10000), 0);
     }

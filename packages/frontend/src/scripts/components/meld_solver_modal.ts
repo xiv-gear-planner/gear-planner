@@ -1,14 +1,21 @@
-import { FieldBoundCheckBox, FieldBoundDataSelect, FieldBoundFloatField, makeActionButton } from "@xivgear/common-ui/components/util";
+import {
+    FieldBoundCheckBox,
+    FieldBoundDataSelect,
+    FieldBoundFloatField,
+    labelFor,
+    makeActionButton
+} from "@xivgear/common-ui/components/util";
 import { CharacterGearSet } from "@xivgear/core/gear";
 import { GearPlanSheetGui } from "./sheet";
 import { SimResult, Simulation } from "@xivgear/core/sims/sim_types";
-import { MAX_GCD } from "@xivgear/xivmath/xivconstants";
+import { MAX_GCD, STAT_ABBREVIATIONS } from "@xivgear/xivmath/xivconstants";
 import { BaseModal } from "@xivgear/common-ui/components/modal";
 import { EquipSlots } from "@xivgear/xivmath/geartypes";
 import { MeldSolverSettings, MeldSolver } from "./meldsolver";
 import { GearsetGenerationSettings } from "@xivgear/core/solving/gearset_generation";
 import { SolverSimulationSettings } from "@xivgear/core/solving/sim_runner";
 import { recordEvent } from "@xivgear/core/analytics/analytics";
+import { Materia } from "@xivgear/xivmath/geartypes";
 
 export class MeldSolverDialog extends BaseModal {
     private _sheet: GearPlanSheetGui;
@@ -31,7 +38,7 @@ export class MeldSolverDialog extends BaseModal {
         this.headerText = 'Meld Solver';
         this.form = document.createElement("form");
         this.form.method = 'dialog';
-        this.inner.style.maxWidth = "25%"; // idk why this doesn't work in common-css but it don't.
+        // this.inner.style.maxWidth = "25%"; // idk why this doesn't work in common-css but it don't.
 
         this.classList.add('meld-solver-area');
         this.descriptionText = document.createElement('div');
@@ -61,7 +68,7 @@ export class MeldSolverDialog extends BaseModal {
                     this.progressDisplay.text.textContent = "Simulating...";
 
                 });
-            solverPromise.then((set) => this.solveResultReceived(set));
+            solverPromise.then(([set, dps]) => this.solveResultReceived(set, dps));
             recordEvent("SolveMelds", {
                 "Total Time Taken: ": Date.now() - (meld_solve_start ?? Date.now()),
             });
@@ -83,15 +90,11 @@ export class MeldSolverDialog extends BaseModal {
         this.settingsDiv.gearsetGenSettings.gearset = set;
     }
 
-    solveResultReceived(set: CharacterGearSet) {
-        if (set) {
-            this.applyResult(set);
-            this.settingsDiv.gearsetGenSettings.gearset.forceRecalc();
-            this._sheet.refreshMateria();
-            this.close();
-            return;
-        }
-        this.showSettings();
+    async solveResultReceived(set: CharacterGearSet, dps: number) {
+        const oldDps = (await this.settingsDiv.simSettings.sim.simulate(this.settingsDiv.gearsetGenSettings.gearset)).mainDpsResult;
+        const confirm = new MeldSolverConfirmationDialog(this._sheet, this.settingsDiv.gearsetGenSettings.gearset, set, [oldDps, dps], this.close);
+        document.querySelector('body').appendChild(confirm);
+        confirm.show();
     }
 
     applyResult(newSet: CharacterGearSet) {
@@ -183,15 +186,26 @@ class MeldSolverSettingsMenu extends HTMLDivElement {
     private readonly disableables = [];
     constructor(sheet: GearPlanSheetGui, set: CharacterGearSet) {
         super();
-        this.gearsetGenSettings = new GearsetGenerationSettings(set, false, false, 2.50);
+
+        let gcd = 2.5;
+        const override = sheet.classJobStats.gcdDisplayOverrides?.(sheet.level);
+        if (override && override.length >= 1) {
+            const haste = set.computedStats.haste(override[0].attackType) + (override[0].haste ?? 0);
+            switch (override[0].basis) {
+                case "sks":
+                    gcd = set.computedStats.gcdPhys(2.5, haste);
+                    break;
+                case "sps":
+                    gcd = set.computedStats.gcdMag(2.5, haste);
+                    break;
+            }
+        }
+        this.gearsetGenSettings = new GearsetGenerationSettings(set, false, false, gcd);
         this.simSettings = {
             sim: sheet.sims.at(0),
             sets: undefined, // Not referenced in UI
         }
 
-        const targetGcdText = document.createElement('span');
-        targetGcdText.textContent = "Target GCD: ";
-        targetGcdText.classList.add('meld-solver-settings');
 
         this.targetGcdInput = new FieldBoundFloatField(this.gearsetGenSettings, 'targetGcd', {
             postValidators: [ctx => {
@@ -209,20 +223,21 @@ class MeldSolverSettingsMenu extends HTMLDivElement {
             }]
         });
 
+        this.useTargetGcdCheckBox = new FieldBoundCheckBox(this.gearsetGenSettings, 'useTargetGcd');
+        this.useTargetGcdCheckBox.classList.add('meld-solver-settings');
         this.targetGcdInput.pattern = '\\d\\.\\d\\d?';
         this.targetGcdInput.title = 'Solve for the best set with this GCD'
         this.targetGcdInput.classList.add('meld-solver-target-gcd-input');
         this.targetGcdInput.disabled = true;
 
-        this.useTargetGcdCheckBox = new FieldBoundCheckBox(this.gearsetGenSettings, 'useTargetGcd');
-        this.useTargetGcdCheckBox.classList.add('meld-solver-settings');
-
-        this.overwriteMateriaText = document.createElement('span');
-        this.overwriteMateriaText.textContent = "Overwrite existing materia?";
-        this.overwriteMateriaText.classList.add('meld-solver-settings');
+        const targetGcdText = labelFor("Target GCD: ", this.useTargetGcdCheckBox);
+        targetGcdText.textContent = "Target GCD: ";
+        targetGcdText.classList.add('meld-solver-settings');
 
         this.overwriteMateriaCheckbox = new FieldBoundCheckBox(this.gearsetGenSettings, 'overwriteExistingMateria');
         this.overwriteMateriaCheckbox.classList.add('meld-solver-settings');
+        this.overwriteMateriaText = labelFor("Overwrite existing materia?", this.overwriteMateriaCheckbox);
+        this.overwriteMateriaText.classList.add('meld-solver-settings');
 
         const simText = document.createElement('span');
         simText.textContent = "Sim: ";
@@ -269,10 +284,219 @@ class MeldSolverSettingsMenu extends HTMLDivElement {
                 item.disabled = !enabled;
             }
         }
+        this.targetGcdInput.disabled = !this.gearsetGenSettings.useTargetGcd;
     }
 }
 
+class MateriaEntry extends HTMLDivElement {
+    materiaImgHolder: HTMLDivElement;
+    textContainer: HTMLSpanElement;
+    statText: HTMLSpanElement;
+    countText: HTMLSpanElement;
+
+    constructor(materia: Materia, count: number) {
+        super();
+        this.classList.add("meld-solver-result-materia-entry");
+
+        this.materiaImgHolder = document.createElement('div');
+        this.materiaImgHolder.classList.add('meld-solver-result-image');
+        const img = document.createElement('img');
+        img.src = materia.iconUrl.toString();
+        this.materiaImgHolder.appendChild(img);
+
+        this.statText = document.createElement('span');
+        this.statText.textContent = `+${materia.primaryStatValue} ${STAT_ABBREVIATIONS[materia.primaryStat]}`;
+        this.statText.classList.add('meld-solver-result-materia-entry-stat')
+
+        this.countText = document.createElement('span');
+        this.countText.textContent = `× ${count}`;
+        this.countText.classList.add('meld-solver-result-materia-entry-count')
+
+        this.textContainer = document.createElement('div');
+        this.textContainer.replaceChildren(this.statText, this.countText);
+        this.textContainer.classList.add('meld-solver-result-materia-entry-text');
+
+        this.replaceChildren(this.materiaImgHolder, this.textContainer);
+    }
+}
+
+class MeldSolverConfirmationDialog extends BaseModal {
+
+    newMateriaTotalsList: HTMLDivElement;
+    oldMateriaTotalsList: HTMLDivElement;
+    newSet: CharacterGearSet;
+    oldSet: CharacterGearSet;
+    sheet: GearPlanSheetGui;
+
+    applyButton: HTMLButtonElement;
+    discardButton: HTMLButtonElement;
+
+    constructor(sheet: GearPlanSheetGui, oldSet: CharacterGearSet, newSet: CharacterGearSet, [oldSimResult, newsimResult]: [number, number], closeParent: () => void) {
+        super();
+        this.sheet = sheet;
+        this.oldSet = oldSet;
+        this.newSet = newSet;
+
+        this.headerText = "Solver Results";
+        const form = document.createElement("form");
+        form.method = 'dialog';
+        form.classList.add('meld-solver-result');
+        // this.inner.style.maxWidth = "35%";
+        // this.inner.style.width = "35%"
+        //this.inner.style.maxWidth = "4%"; // idk why this doesn't work in common-css but it don't.
+
+        if (!newSet) {
+            this.headerText = "No Results Found";
+
+            const textElement = document.createElement('span');
+            textElement.textContent = "The solver didn't find any results. Try relaxing some of the settings."
+            this.contentArea.replaceChildren(textElement);
+            this.addButton(makeActionButton("Ok", (_ev) => this.close()));
+            return;
+        }
+
+        const materiaTotals = MeldSolverConfirmationDialog.getMateriaTotals(oldSet, newSet);
+
+        [this.oldMateriaTotalsList, this.newMateriaTotalsList] = this.buildMateriaLists([`"${oldSet.name}"`, "Solved Set"], materiaTotals, [oldSimResult, newsimResult]);
+
+        const arrow = document.createElement('span');
+        arrow.textContent = "→";
+        arrow.classList.add("arrow");
+
+        this.applyButton = makeActionButton("Apply", (ev) => {
+
+            if (this.newSet) {
+                this.applyResult(newSet);
+                this.oldSet.forceRecalc();
+                this.sheet.refreshMateria();
+                this.close();
+            }
+            closeParent();
+            this.close();
+        })
+
+        this.discardButton = makeActionButton("Discard", (_ev) => {
+            this.close();
+        })
+
+        this.addButton(this.applyButton);
+        this.addButton(this.discardButton);
+
+        form.replaceChildren(this.oldMateriaTotalsList, arrow, this.newMateriaTotalsList);
+        this.contentArea.append(form);
+    }
+
+    buildMateriaLists([oldName, newName]: [string, string], matTotals: Map<Materia, [number, number]>, [oldSimResult, newSimResult]: [number, number]): [HTMLDivElement, HTMLDivElement] {
+        const [oldSet, newSet] = [document.createElement('div'), document.createElement('div')];
+        oldSet.classList.add("meld-solver-result-set");
+        newSet.classList.add("meld-solver-result-set");
+        const [oldHead, newHead] = [document.createElement('h3'), document.createElement('h3')];
+        oldHead.textContent = oldName;
+        newHead.textContent = newName;
+        oldSet.appendChild(oldHead);
+        newSet.appendChild(newHead);
+
+        const [oldResultElem, newResultElem] = [document.createElement('span'), document.createElement('span')];
+        oldResultElem.textContent = oldSimResult.toFixed(2);
+        newResultElem.textContent = newSimResult.toFixed(2);
+        
+        let delta = newSimResult - oldSimResult;
+        if (delta / newSimResult < 0.001) {
+            delta = newSimResult * 0.001;
+        }
+
+        oldResultElem.classList.add(`meld-solver-result-set-sim`);
+        newResultElem.classList.add(`meld-solver-result-set-sim`);
+        oldResultElem.style.setProperty("--sim-result-relative", 0 + '%')
+        newResultElem.style.setProperty("--sim-result-relative", ((newSimResult - oldSimResult) / delta * 100).toFixed(1) + '%')
+        if (newSimResult > oldSimResult) {
+            newResultElem.style.fontWeight = "bold";
+        }
+        //newResultElem.classList.add(`meld-solver-result-set-sim-${newBetter ? "better" : "worse"}`);
+
+        oldSet.appendChild(oldResultElem);
+        newSet.appendChild(newResultElem);
+
+        const oldList = document.createElement('ul');
+        const newList = document.createElement('ul');
+        for (const [mat, [oldTotal, newTotal]] of matTotals) {
+            const [oldItem, newItem] = [document.createElement('li'), document.createElement('li')];
+        
+            const [oldEntry, newEntry] = [new MateriaEntry(mat, oldTotal), new MateriaEntry(mat, newTotal)];
+
+            if (oldTotal === 0) {
+                oldEntry.classList.add('meld-solver-result-materia-entry-zero');
+            }
+            if (newTotal === 0) {
+                newEntry.classList.add('meld-solver-result-materia-entry-zero');
+            }
+
+            const delta = newTotal - oldTotal
+            const deltaElem = document.createElement('div');
+            deltaElem.classList.add('meld-solver-result-materia-entry-delta');
+            deltaElem.textContent = delta === 0 ? "" : `(${delta > 0 ? "+" : ""}${delta})`;
+
+            oldItem.appendChild(oldEntry);
+            newItem.appendChild(newEntry);
+            newItem.appendChild(deltaElem);
+            oldList.appendChild(oldItem);
+            newList.appendChild(newItem);
+        }
+
+        oldSet.appendChild(oldList);
+        newSet.appendChild(newList);
+        return [oldSet, newSet];
+    }
+
+    static getMateriaTotals(oldSet: CharacterGearSet, newSet: CharacterGearSet): Map<Materia, [number, number]> {
+        const result: Map<Materia, [number, number]> = new Map;
+        for (const slotKey of EquipSlots) {
+            if (oldSet.equipment[slotKey]) {
+                for (const meldSlot of oldSet.equipment[slotKey].melds) {
+                    if (!meldSlot.equippedMateria) continue;
+
+                    const prevCount = result.get(meldSlot.equippedMateria);
+                    if (!prevCount) {
+                        result.set(meldSlot.equippedMateria, [1, 0]);
+                    }
+                    else {
+                        prevCount[0]++;
+                    }
+                }
+            }
+
+            if (newSet.equipment[slotKey]) {
+                for (const meldSlot of newSet.equipment[slotKey].melds) {
+                    if (!meldSlot.equippedMateria) continue;
+
+                    const prevCount = result.get(meldSlot.equippedMateria);
+                    if (!prevCount) {
+                        result.set(meldSlot.equippedMateria, [0, 1]);
+                    }
+                    else {
+                        prevCount[1]++;
+                    }
+                }
+            }
+        }
+
+        return result;
+    }
+
+    applyResult(newSet: CharacterGearSet) {
+
+        for (const slotKey of EquipSlots) {
+            if (!this.oldSet.equipment[slotKey] || !this.newSet.equipment[slotKey]) {
+                continue;
+            }
+
+            this.oldSet.equipment[slotKey].melds = newSet.equipment[slotKey].melds;
+        }
+    }
+}
 customElements.define('meld-solver-area', MeldSolverDialog);
 customElements.define('load-bar', LoadBar, { extends: 'div' });
 customElements.define('meld-solver-progress-display', MeldSolverProgressDisplay, { extends: 'div' });
 customElements.define('meld-solver-settings-menu', MeldSolverSettingsMenu, { extends: 'div' });
+customElements.define('meld-solver-result-materia-entry', MateriaEntry, { extends: 'div' });
+customElements.define('meld-solver-result-dialog', MeldSolverConfirmationDialog);

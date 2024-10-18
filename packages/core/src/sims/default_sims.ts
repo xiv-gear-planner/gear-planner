@@ -21,7 +21,16 @@ import { pldUsageSimSpec } from "./tank/pld_usage_sim_no_sks";
 import { pldSKSSheetSpec } from "./tank/pldsks_sim";
 import { drkSpec } from "./tank/drk/drk_lv100_sim";
 
+let registrationDone = false;
+
 export function registerDefaultSims() {
+    if (registrationDone) {
+        console.warn("Duplicate registration!", new Error("Duplicate registration!"));
+        return;
+    }
+    else {
+        registrationDone = true;
+    }
     registerSim(potRatioSimSpec);
     registerSim(pldUsageSimSpec);
     registerSim(pldSKSSheetSpec);
