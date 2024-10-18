@@ -449,7 +449,7 @@ export const SixSidedStar: MnkGcdAbility = {
     name: "Six-sided Star",
     id: 16476,
     type: 'gcd',
-    gcd: 4,
+    gcd: 5,
     attackType: 'Weaponskill',
     potency: 780, // TODO add chakra potency
     updateGauge: (gauge: MNKGauge) => {

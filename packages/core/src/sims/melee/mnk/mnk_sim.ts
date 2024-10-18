@@ -223,11 +223,14 @@ class MNKCycleProcessor extends CycleProcessor {
             default:
                 if (this.gauge.beastChakra.length === 3) {
                     // formless with a blitz ready
+                    if (this.gauge.lunarNadi && this.gauge.solarNadi) {
+                        // regardless of correct execution (Celestial Revolution) we get a phantom rush
+                        return PhantomRush;
+                    }
+
+                    // TODO implement CelestialRevolution even though it should never be executed.
                     const s = new Set(this.gauge.beastChakra);
                     if (s.size === 1) {
-                        if (this.gauge.lunarNadi && this.gauge.solarNadi) {
-                            return PhantomRush;
-                        }
                         return ElixirBurst;
                     }
                     return RisingPhoenix;
@@ -250,15 +253,15 @@ class MNKCycleProcessor extends CycleProcessor {
             && form.statusId !== PerfectBalanceBuff.statusId // not already building a blitz
             && (riddleReady <= 7 // Within 3 gcds of RoF coming off cooldown
                 // OR we're already in RoF and there's enough remaining time to land a blitz inside the current window
-                || this.getActiveBuffs(this.currentTime + this.fourGcdTime).find(buff => buff.statusId === RiddleOfFireBuff.statusId))
+                || this.getActiveBuffs(this.currentTime + this.timeToExecuteNGcds(4)).find(buff => buff.statusId === RiddleOfFireBuff.statusId))
             && this.cdTracker.canUse(PerfectBalance)
     }
 
     /*
      *  Returns how long it takes to execute 4 gcds
      */
-    get fourGcdTime(): number {
-        return this.gcdTime(DragonKick) * 4;
+    timeToExecuteNGcds(n: number): number {
+        return this.gcdTime(DragonKick) * n;
     }
 
     /** Advances to as late as possible.
