@@ -17,8 +17,8 @@ import { samSpec } from "./melee/sam/sam_lv100_sim";
 import { vprSheetSpec } from "./melee/vpr/vpr_sheet_sim";
 import { dncDtSheetSpec } from "./ranged/dnc_sim";
 import { registerSim } from "./sim_registry";
-import { pldUsageSimSpec } from "./tank/pld_usage_sim_no_sks";
-import { pldSKSSheetSpec } from "./tank/pldsks_sim";
+import { pldUsageSimSpec } from "./tank/pld/pld_usage_sim_no_sks";
+import { pldSKSSheetSpec } from "./tank/pld/pldsks_sim";
 import { drkSpec } from "./tank/drk/drk_lv100_sim";
 import { warSpec } from "./tank/war/war_sheet_sim";
 
