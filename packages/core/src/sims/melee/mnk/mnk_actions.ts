@@ -269,6 +269,20 @@ export const SnapPunch: FuryAbility = {
     }
 }
 
+// I'm not implementing all 4 meditations lol
+export const ForbiddenMeditation: MnkGcdAbility = {
+    name: "Forbidden Meditation",
+    id: 36942,
+    type: 'gcd',
+    gcd: 1,
+    potency: null,
+    attackType: "Ability",
+    fixedGcd: true,
+    updateGauge: (gauge: MNKGauge, form, inCombat) =>  {
+        gauge.gainChakra(inCombat ? 1 : 5);
+    }
+}
+
 export const TwinSnakes: FuryAbility = {
     name: "Twin Snakes",
     id: 61,
@@ -319,7 +333,9 @@ export const DragonKick: FuryAbility = {
     fury: 'opo',
     buildsFury: true,
     updateGauge: (gauge: MNKGauge, form) =>  {
-        gauge.opoFury = 1;
+        if ([FormlessFist.statusId, OpoForm.statusId, PerfectBalanceBuff.statusId].includes(form?.statusId)) {
+            gauge.opoFury = 1;
+        }
         if (form && form.statusId === PerfectBalanceBuff.statusId) {
             gauge.beastChakra.push('opo')
         }

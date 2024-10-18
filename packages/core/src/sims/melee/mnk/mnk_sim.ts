@@ -5,7 +5,7 @@ import { CharacterGearSet } from "@xivgear/core/gear";
 import { BaseMultiCycleSim } from "@xivgear/core/sims/processors/sim_processors";
 import { FuryAbility, MnkAbility, MNKExtraData, MnkGcdAbility } from "./mnk_types";
 import { MNKGauge as MnkGauge } from "./mnk_gauge";
-import { Brotherhood, CoeurlForm, Demolish, DragonKick, ElixirBurst, FiresReply, FiresRumination, FormlessFist, LeapingOpo, OGCD_PRIORITY, OPO_ABILITIES, OpoForm, PerfectBalance, PerfectBalanceBuff, PhantomRush, PouncingCoeurl, RaptorForm, RiddleOfFire, RiddleOfFireBuff, RiddleOfWind, RisingPhoenix, RisingRaptor, SOLAR_WEAKEST_STRONGEST, TheForbiddenChakra, TwinSnakes, WindsReply, WindsRumination } from "./mnk_actions";
+import { Brotherhood, CoeurlForm, Demolish, DragonKick, ElixirBurst, FiresReply, FiresRumination, ForbiddenMeditation, FormShift, FormlessFist, LeapingOpo, OGCD_PRIORITY, OPO_ABILITIES, OpoForm, PerfectBalance, PerfectBalanceBuff, PhantomRush, PouncingCoeurl, RaptorForm, RiddleOfFire, RiddleOfFireBuff, RiddleOfWind, RisingPhoenix, RisingRaptor, SOLAR_WEAKEST_STRONGEST, TheForbiddenChakra, TwinSnakes, WindsReply, WindsRumination } from "./mnk_actions";
 import { sum } from "../../../util/array_utils";
 import { STANDARD_ANIMATION_LOCK } from "@xivgear/xivmath/xivconstants";
 
@@ -42,7 +42,7 @@ class MNKCycleProcessor extends CycleProcessor {
     override use(ability: Ability): AbilityUseResult {
         const a = ability as MnkAbility;
         if (a.updateGauge) {
-            a.updateGauge(this.gauge, this.getCurrentForm());
+            a.updateGauge(this.gauge, this.getCurrentForm(), this.combatStarted);
         }
         return super.use(ability);
     }
@@ -74,13 +74,16 @@ class MNKCycleProcessor extends CycleProcessor {
 
     // 5s DK opener
     doubleLunarOpener() {
+        this.useGcd(ForbiddenMeditation);
+        this.useGcd(FormShift);
         this.useGcd(DragonKick);
+        this.cleanupForms();
         this.useOgcd(PerfectBalance);
-        this.useGcd(LeapingOpo);
-        this.useGcd(DragonKick);
+        this.useGcd(LeapingOpo); this.cleanupForms();
+        this.useGcd(DragonKick); this.cleanupForms();
         this.useOgcd(Brotherhood);
         this.useOgcd(RiddleOfFire);
-        this.useGcd(LeapingOpo);
+        this.useGcd(LeapingOpo); this.cleanupForms();
         this.useOgcd(TheForbiddenChakra);
         this.useOgcd(RiddleOfWind);
         this.useGcd(ElixirBurst);
@@ -88,23 +91,27 @@ class MNKCycleProcessor extends CycleProcessor {
         this.useGcd(WindsReply);
         this.useGcd(FiresReply);
         this.useGcd(LeapingOpo);
+        this.cleanupForms();
         this.useOgcd(PerfectBalance);
-        this.useGcd(DragonKick);
-        this.useGcd(LeapingOpo);
-        this.useGcd(DragonKick);
+        this.useGcd(DragonKick); this.cleanupForms();
+        this.useGcd(LeapingOpo); this.cleanupForms();
+        this.useGcd(DragonKick); this.cleanupForms();
         this.useGcd(ElixirBurst);
         this.useGcd(LeapingOpo);
     }
 
     // 5s DK opener
     solarLunarOpener() {
+        this.useGcd(ForbiddenMeditation);
+        this.useGcd(FormShift);
         this.useGcd(DragonKick);
+        this.cleanupForms();
         this.useOgcd(PerfectBalance);
-        this.useGcd(TwinSnakes);
-        this.useGcd(Demolish);
+        this.useGcd(TwinSnakes); this.cleanupForms();
+        this.useGcd(Demolish); this.cleanupForms();
         this.useOgcd(Brotherhood);
         this.useOgcd(RiddleOfFire);
-        this.useGcd(LeapingOpo);
+        this.useGcd(LeapingOpo); this.cleanupForms();
         this.useOgcd(TheForbiddenChakra);
         this.useOgcd(RiddleOfWind);
         this.useGcd(RisingPhoenix);
@@ -112,10 +119,11 @@ class MNKCycleProcessor extends CycleProcessor {
         this.useGcd(WindsReply);
         this.useGcd(FiresReply);
         this.useGcd(LeapingOpo);
+        this.cleanupForms();
         this.useOgcd(PerfectBalance);
-        this.useGcd(DragonKick);
-        this.useGcd(LeapingOpo);
-        this.useGcd(DragonKick);
+        this.useGcd(DragonKick); this.cleanupForms();
+        this.useGcd(LeapingOpo); this.cleanupForms();
+        this.useGcd(DragonKick); this.cleanupForms();
         this.useGcd(ElixirBurst);
         this.useGcd(LeapingOpo);
     }
@@ -131,15 +139,11 @@ class MNKCycleProcessor extends CycleProcessor {
             this.removeBuff(CoeurlForm);
         }
         if (form?.statusId === PerfectBalanceBuff.statusId) {
-            this.removeBuff(OpoForm);
-            this.removeBuff(RaptorForm);
-            this.removeBuff(CoeurlForm);
+            this.cleanupForms();
         }
         if (this.shouldEnterBlitz(gcd, form)) {
             this.useOgcd(PerfectBalance);
-            this.removeBuff(OpoForm);
-            this.removeBuff(RaptorForm);
-            this.removeBuff(CoeurlForm);
+            this.cleanupForms();
         }
 
         const ogcdsAvailable: OgcdAbility[] = OGCD_PRIORITY.filter((ogcd: OgcdAbility) => this.cdTracker.canUse(ogcd, this.nextGcdTime))
@@ -247,6 +251,14 @@ class MNKCycleProcessor extends CycleProcessor {
         return this.getActiveBuffs().find(b => {
             return b.statusId !== undefined && [OpoForm.statusId, RaptorForm.statusId, CoeurlForm.statusId, FormlessFist.statusId, PerfectBalanceBuff.statusId].includes(b.statusId);
         });
+    }
+
+    /** Any time perfect balance is used these buffs also need to be removed after every GCD */
+    cleanupForms() {
+        this.removeBuff(FormlessFist);
+        this.removeBuff(OpoForm);
+        this.removeBuff(RaptorForm);
+        this.removeBuff(CoeurlForm);
     }
 
     shouldEnterBlitz(gcd: GcdAbility, form: Buff): boolean {
