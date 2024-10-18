@@ -128,7 +128,6 @@ class MNKCycleProcessor extends CycleProcessor {
         this.useGcd(LeapingOpo);
     }
 
-    // TODO implement logic to enter 1m and 2m burst windows appropriately
     doStep() {
         const form = this.getCurrentForm();
         const gcd = this.chooseGcd();
@@ -184,15 +183,8 @@ class MNKCycleProcessor extends CycleProcessor {
                 }
                 return Demolish;
             case PerfectBalanceBuff.statusId:
-                if (this.gauge.solarNadi) {
-                    // do an oporot of some kind
-                    if (this.gauge.opoFury) {
-                        return LeapingOpo;
-                    } else {
-                        return DragonKick;
-                    }
-                } else {
-                    // building a solar nadi
+                // Prefer to check if we need a solar nadi so that 2m windows sequence RP or PR first.
+                if (!this.gauge.solarNadi) {
                     const gcd: FuryAbility = SOLAR_WEAKEST_STRONGEST
                         // remove abilities that don't generate the beast chakra we need
                         .filter((gcd: FuryAbility) => !this.gauge.beastChakra.includes(gcd.fury))
@@ -225,6 +217,13 @@ class MNKCycleProcessor extends CycleProcessor {
                         return DragonKick;
                     }
                     return gcd;
+                } else {
+                    // want a lunar nadi
+                    if (this.gauge.opoFury) {
+                        return LeapingOpo;
+                    } else {
+                        return DragonKick;
+                    }
                 }
             default:
                 if (this.gauge.beastChakra.length === 3) {
