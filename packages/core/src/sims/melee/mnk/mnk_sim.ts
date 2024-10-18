@@ -165,6 +165,8 @@ class MNKCycleProcessor extends CycleProcessor {
                 }
                 return DragonKick;
             case RaptorForm.statusId:
+                // Tell the actor to use FiresReply after an opo
+                // TODO FiresReply could be dropped if there isn't an Opo executed in its duration
                 if (this.getActiveBuffs().find(buff => buff.statusId === FiresRumination.statusId)) {
                     return FiresReply;
                 }
