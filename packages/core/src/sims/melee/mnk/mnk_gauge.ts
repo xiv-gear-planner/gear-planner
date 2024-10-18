@@ -1,8 +1,7 @@
 import { FuryType, MNKGaugeState } from './mnk_types';
 
 export class MNKGauge {
-    // Initialized to assume you pressed Meditate before combat
-    chakra: number = 5;
+    chakra: number = 0;
     // TODO add brotherhood support
     gainChakra(chakra: number) {
         this.chakra += chakra;
