@@ -92,7 +92,12 @@ class RotationState {
 class DrkCycleProcessor extends CycleProcessor {
     gauge: DrkGauge;
     rotationState: RotationState;
-    
+    mpTicks = 0
+    // livingShadowAbilityUsages tracks which remaining Living Shadow abilities we have
+    // upcoming. It's implemented this way so that the entries and buffs are correct 
+    // on the timeline.
+    livingShadowAbilityUsages: LivingShadowAbilityUsageTime[] = []
+
     constructor(settings: MultiCycleSettings) {
         super(settings);
         this.cycleLengthMode = 'full-duration';
@@ -253,11 +258,6 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
         which: 'totalTime',
         cutoffMode: 'prorate-gcd',
     }
-    mpTicks = 0
-    // livingShadowAbilityUsages tracks which remaining Living Shadow abilities we have
-    // upcoming. It's implemented this way so that the entries and buffs are correct 
-    // on the timeline.
-    livingShadowAbilityUsages: LivingShadowAbilityUsageTime[] = []
 
     constructor(settings?: DrkSettingsExternal) {
         super('DRK', settings);
@@ -284,16 +284,16 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
     // applyLivingShadowAbilities should be called before and after each ability
     // usage to ensure that Living Shadow abilities are correctly positioned on the timeline.
     private applyLivingShadowAbilities(cp: DrkCycleProcessor) {
-        if (this.livingShadowAbilityUsages && this.livingShadowAbilityUsages.length > 0) {
+        if (cp.livingShadowAbilityUsages && cp.livingShadowAbilityUsages.length > 0) {
             const usedAbilities = []
-            this.livingShadowAbilityUsages.forEach((abilityUsage, index) => {
+            cp.livingShadowAbilityUsages.forEach((abilityUsage, index) => {
                 if (abilityUsage.usageTime <= cp.currentTime) {
                     cp.applyLivingShadowAbility(abilityUsage)
                     usedAbilities.push(index)
                 }
             })
             usedAbilities.forEach(indexToRemove => {
-                this.livingShadowAbilityUsages.splice(indexToRemove, 1)
+                cp.livingShadowAbilityUsages.splice(indexToRemove, 1)
             })
         }
 
@@ -432,13 +432,9 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
         // In the future, MP should probably be refactored into the base processor.
         // We use Math.floor to be pessimistic, i.e. worst case mana ticks.
         const expectedMPTicks = Math.floor(Math.round(cp.currentTime) / 3)
-        // Reset mpTicks at the start of a new fight or simulation.
-        if (expectedMPTicks == 0) {
-            this.mpTicks = 0
-        }
-        const differenceInMPTicks = expectedMPTicks - this.mpTicks
+        const differenceInMPTicks = expectedMPTicks - cp.mpTicks
         if (differenceInMPTicks > 0) {
-            this.mpTicks += differenceInMPTicks
+            cp.mpTicks += differenceInMPTicks
             cp.gauge.magicPoints += differenceInMPTicks * 200
         }
 
@@ -452,34 +448,34 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
             // Edge of Shadow
             // Bloodspiller
             // Carve and Spit (Disesteem(AoE) at level 100)
-            this.livingShadowAbilityUsages.push({
+            cp.livingShadowAbilityUsages.push({
                 // Abyssal Drain
                 ability: Actions.LivingShadowAbyssalDrain,
                 usageTime: cp.currentTime + 6.8
             })
             // We could skip this, since it does no damage,
             // but it makes the timeline more accurate to reality, so that's nice.
-            this.livingShadowAbilityUsages.push({
+            cp.livingShadowAbilityUsages.push({
                 // Shadowstride
                 ability: Actions.LivingShadowShadowstride,
                 usageTime: cp.currentTime + 6.8 + 1*2.18
             })     
-            this.livingShadowAbilityUsages.push({
+            cp.livingShadowAbilityUsages.push({
                 // Shadowbringer
                 ability: Actions.LivingShadowShadowbringer,
                 usageTime: cp.currentTime + 6.8 + 2*2.18
             })            
-            this.livingShadowAbilityUsages.push({
+            cp.livingShadowAbilityUsages.push({
                 // Edge of Shadow
                 ability: Actions.LivingShadowEdgeOfShadow,
                 usageTime: cp.currentTime + 6.8 + 3*2.18
             })
-            this.livingShadowAbilityUsages.push({
+            cp.livingShadowAbilityUsages.push({
                 // Bloodspiller
                 ability: Actions.LivingShadowBloodspiller,
                 usageTime: cp.currentTime + 6.8 + 4*2.18
             })
-            this.livingShadowAbilityUsages.push({
+            cp.livingShadowAbilityUsages.push({
                 // Disesteem
                 ability: Actions.LivingShadowDisesteem,
                 usageTime: cp.currentTime + 6.8 + 5*2.18
@@ -589,10 +585,6 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
         return [{
             cycleTime: 120,
             apply(cp: DrkCycleProcessor) {
-                // Reset Living Shadow when beginning a new rotation, in case
-                // the last simmed rotation stopped mid execution of Living Shadow.
-                outer.livingShadowAbilityUsages = []
-
                 outer.useOpener(cp, settings.prepullTBN)
 
                 cp.remainingCycles(() => {
