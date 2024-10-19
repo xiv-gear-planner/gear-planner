@@ -310,8 +310,8 @@ export class WarSim extends BaseMultiCycleSim<WarSimResult, WarSettings, WarCycl
             this.use(cp, Actions.Infuriate);
         }
 
-        // Don't overcap Onslaughts. Use one if there's seven seconds left.
-        if (cp.getTimeUntilOnslaughtCapped() < 7 && cp.canUseWithoutClipping(Actions.Onslaught)) {
+        // Don't overcap Onslaughts.
+        if (cp.getTimeUntilOnslaughtCapped() < 3 && cp.canUseWithoutClipping(Actions.Onslaught)) {
             this.use(cp, Actions.Onslaught);
         }
 

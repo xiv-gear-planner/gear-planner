@@ -13,6 +13,10 @@ function dotPotencyToDamage(stats: ComputedSetStats, potency: number, dmgAbility
     const forceDh = false;
     const forceCrit = false;
     const nonCritDmg = baseDamageFull(modifiedStats, potency, dmgAbility.attackType, forceDh, forceCrit, true);
+    if (forceDh && forceCrit) {
+        // For forced crit + dhit abilities, don't apply crit twice
+        return multiplyFixed(nonCritDmg, combinedBuffEffects.dmgMod)
+    }
     const afterCritDh = applyDhCritFull(nonCritDmg, modifiedStats);
     return multiplyFixed(afterCritDh, combinedBuffEffects.dmgMod);
 }
@@ -32,6 +36,10 @@ function potencyToDamage(stats: ComputedSetStats, potency: number, dmgAbility: D
         }
     });
     const nonCritDmg = baseDamageFull(modifiedStats, potency, dmgAbility.attackType, forceDhit, forceCrit);
+    if (forceDhit && forceCrit) {
+        // For forced crit + dhit abilities, don't apply crit twice
+        return multiplyFixed(nonCritDmg, combinedBuffEffects.dmgMod)
+    }
     const afterCritDh = applyDhCritFull(nonCritDmg, modifiedStats);
     return multiplyFixed(afterCritDh, combinedBuffEffects.dmgMod);
 }

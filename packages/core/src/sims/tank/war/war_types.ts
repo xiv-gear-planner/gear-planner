@@ -87,7 +87,6 @@ export const PrimalRendReadyBuff: Buff = {
         forceDhit: true,
         // Also allows usage of Primal Rend
     },
-    stacks: 1,
     appliesTo: ability => ability.name === "Primal Rend",
     beforeSnapshot<X extends WarAbility>(buffController: BuffController, ability: X): X {
         buffController.removeSelf()
@@ -105,7 +104,6 @@ export const PrimalRuinationReadyBuff: Buff = {
         forceDhit: true,
         // Also allows usage of Primal Ruination
     },
-    stacks: 1,
     appliesTo: ability => ability.name === "Primal Ruination",
     beforeSnapshot<X extends WarAbility>(buffController: BuffController, ability: X): X {
         buffController.removeSelf()
@@ -121,7 +119,6 @@ export const WrathfulBuff: Buff = {
     effects: {
        // Also allows usage of Primal Wrath
     },
-    stacks: 1,
     appliesTo: ability => ability.name === "Primal Wrath",
     beforeSnapshot<X extends WarAbility>(buffController: BuffController, ability: X): X {
         buffController.removeSelf()
