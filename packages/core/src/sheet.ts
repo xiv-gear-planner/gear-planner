@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                // TODO: get back to fixing this at some point
+/* eslint-disable @typescript-eslint/no-explicit-any */                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                // TODO: get back to fixing this at some point
 import {
     CURRENT_MAX_LEVEL,
     defaultItemDisplaySettings,
@@ -453,8 +453,13 @@ export class GearPlanSheet {
 
     }
 
-    addGearSet(gearSet: CharacterGearSet) {
-        this._sets.push(gearSet);
+    addGearSet(gearSet: CharacterGearSet, index?: number) {
+        if (index === undefined) {
+            this._sets.push(gearSet);
+        }
+        else {
+            this._sets.splice(index, 0, gearSet);
+        }
         gearSet.addListener(() => {
             this.requestSave();
         });
@@ -480,10 +485,33 @@ export class GearPlanSheet {
         this._sets = sets;
     }
 
+    /**
+     * Clones the given gear set and adds it as a new gear set.
+     *
+     * This will add it prior to the next separator, since separators are typically used to delineate categories
+     * of sets.
+     *
+     * @param gearSet
+     */
     cloneAndAddGearSet(gearSet: CharacterGearSet) {
         const cloned = this.importGearSet(this.exportGearSet(gearSet));
-        cloned.name = cloned.name + ' copy';
-        this.addGearSet(cloned);
+        cloned.name += ' copy';
+        const toIndex: number | undefined = this.clonedSetPlacement(gearSet);
+        this.addGearSet(cloned, toIndex);
+    }
+
+    protected clonedSetPlacement(originalSet: CharacterGearSet): number | undefined {
+        const originalIndex = this.sets.indexOf(originalSet);
+        if (originalIndex >= 0) {
+            for (let i = originalIndex + 1; i < this.sets.length; i++) {
+                if (this.sets[i].isSeparator) {
+                    return i;
+                }
+            }
+        }
+        // fall back
+        return undefined;
+
     }
 
     /**
