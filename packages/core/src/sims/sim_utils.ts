@@ -50,7 +50,8 @@ export function abilityToDamageNew(stats: ComputedSetStats, ability: Ability, co
     if (!('potency' in ability)) {
         return {
             directDamage: null,
-            dot: null
+            dot: null,
+            channel: null
         }
     }
     // noinspection AssignmentToFunctionParameterJS
@@ -61,6 +62,12 @@ export function abilityToDamageNew(stats: ComputedSetStats, ability: Ability, co
         dot: 'dot' in ability ? {
             fullDurationTicks: ability.dot.duration === 'indefinite' ? 'indefinite' : (ability.dot.duration / 3),
             damagePerTick: dotPotencyToDamage(stats, ability.dot.tickPotency, ability, combinedBuffEffects),
+        } : null,
+        channel: 'channel' in ability ? {
+            // channeled actions tick once on use, and once per second afterwards for the full duration
+            fullDurationTicks: ability.channel.duration + 1,
+            // channeled actions use the same damage formula as DoTs currently
+            damagePerTick: dotPotencyToDamage(stats, ability.channel.tickPotency, ability, combinedBuffEffects),
         } : null,
     }
 }

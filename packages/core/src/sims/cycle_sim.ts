@@ -757,6 +757,10 @@ export class CycleProcessor {
                         ...record.dot,
                         damagePerTick: dmgInfo.dot.damagePerTick,
                     } : null,
+                    channel: record.channel ? {
+                        ...record.channel,
+                        damagePerTick: dmgInfo.channel.damagePerTick,
+                    } : null,
                 }
             }
         })
@@ -792,8 +796,12 @@ export class CycleProcessor {
                 const directDamage = multiplyFixed(record.directDamage, partialRate);
                 const dot = record.dot;
                 const dotDmg = dot ? multiplyIndependent(dot.damagePerTick, dot.actualTickCount) : fixedValue(0);
-                const totalDamage = addValues(directDamage, dotDmg);
-                const totalPotency = record.ability.potency + ('dot' in record.ability ? record.ability.dot.tickPotency * record.dot.actualTickCount : 0);
+                const channel = record.channel;
+                const channelDmg = channel ? multiplyIndependent(channel.damagePerTick, channel.actualTickCount) : fixedValue(0);
+                const totalDamage = addValues(directDamage, dotDmg, channelDmg);
+                const totalPotency = record.ability.potency
+                    + ('dot' in record.ability ? record.ability.dot.tickPotency * record.dot.actualTickCount : 0)
+                    + ('channel' in record.ability ? record.ability.channel.tickPotency * record.channel.actualTickCount : 0);
                 return {
                     usedAt: record.usedAt,
                     original: record,
@@ -801,6 +809,7 @@ export class CycleProcessor {
                     directDamage: directDamage.expected,
                     directDamageFull: directDamage,
                     dotInfo: dot,
+                    channelInfo: channel,
                     totalDamage: totalDamage.expected,
                     totalDamageFull: totalDamage,
                     totalPotency: totalPotency,
@@ -947,6 +956,7 @@ export class CycleProcessor {
         const animLock = animationLock(ability);
         const effectiveAnimLock = effectiveCastTime ? Math.max(effectiveCastTime + CASTER_TAX, animLock) : animLock;
         const animLockFinishedAt = this.currentTime + effectiveAnimLock;
+        const channelFinishedAt = 'channel' in ability ? this.currentTime + ability.channel.duration : undefined;
         this.advanceTo(snapshotsAt, true);
         const {
             buffs,
@@ -979,6 +989,7 @@ export class CycleProcessor {
             buffs: finalBuffs,
             usedAt: gcdStartsAt,
             dot: dmgInfo.dot,
+            channel: dmgInfo.channel,
             appDelay: appDelayFromSnapshot,
             appDelayFromStart: appDelayFromStart,
             totalTimeTaken: Math.max(effectiveAnimLock, abilityGcd),
@@ -998,15 +1009,22 @@ export class CycleProcessor {
         if (ability.activatesBuffs) {
             ability.activatesBuffs.forEach(buff => this.activateBuffWithDelay(buff, buffDelay));
         }
-        // Anim lock OR cast time, both effectively block use of skills.
-        // If cast time > GCD recast, then we use that instead. Also factor in caster tax.
-        this.advanceTo(animLockFinishedAt);
+        // if this is a channeled ability, then we need to advance to the end of the channel time without auto-attacks
+        if ('channel' in ability) {
+            this.advanceTo(channelFinishedAt, true);
+        } else {
+            // Anim lock OR cast time, both effectively block use of skills.
+            // If cast time > GCD recast, then we use that instead. Also factor in caster tax.
+            this.advanceTo(animLockFinishedAt);
+        }
         // If we're casting a long-cast, then the GCD is blocked for more than a GCD.
         if (isGcd) {
             this.nextGcdTime = Math.max(gcdFinishedAt, animLockFinishedAt);
         }
         // Account for potential GCD clipping
-        else {
+        else if ('channel' in ability) {
+            this.nextGcdTime = Math.max(this.nextGcdTime, channelFinishedAt);
+        } else {
             this.nextGcdTime = Math.max(this.nextGcdTime, animLockFinishedAt);
         }
         // Workaround for auto-attacks after first ability
@@ -1260,6 +1278,12 @@ export class CycleProcessor {
                 // Set our new DoT into the DoT map
                 this.dotMap.set(dotId, usedAbility);
             }
+        }
+
+        if (usedAbility.channel) {
+            // TODO: handle cutting off a channel early due to end of sim time
+            // TODO: allow cutting off a channel early by other action use?
+            usedAbility.channel.actualTickCount = usedAbility.channel.fullDurationTicks;
         }
     }
 
