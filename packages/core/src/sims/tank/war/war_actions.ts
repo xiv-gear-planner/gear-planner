@@ -118,7 +118,7 @@ export const Infuriate: WarOgcdAbility = {
     attackType: "Ability",
     activatesBuffs: [NascentChaosBuff],
     cooldown: {
-        time: 30,
+        time: 60,
         charges: 2,
     },
     updateBeastGauge: (gauge: WarGauge) => gauge.beastGauge += 50
