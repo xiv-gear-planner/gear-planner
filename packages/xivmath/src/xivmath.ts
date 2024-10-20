@@ -409,8 +409,6 @@ export function applyDhCrit(baseDamage: number, stats: ComputedSetStats) {
 
 export function dhCritPercentStdDev(stats: ComputedSetStats, forcedCrit: boolean, forcedDh: boolean) {
     return multiplyValues(
-        // forcedCrit ? chanceMultiplierStdDev(1, 1) : chanceMultiplierStdDev(stats.critChance, stats.critMulti),
-        // forcedDh ? chanceMultiplierStdDev(1, 1) : chanceMultiplierStdDev(stats.dhitChance, stats.dhitMulti),
         forcedCrit ? chanceMultiplierStdDev(1, stats.critMulti) : chanceMultiplierStdDev(stats.critChance, stats.critMulti),
         forcedDh ? chanceMultiplierStdDev(1, stats.dhitMulti) : chanceMultiplierStdDev(stats.dhitChance, stats.dhitMulti),
     );
