@@ -224,7 +224,9 @@ export class WarSim extends BaseMultiCycleSim<WarSimResult, WarSettings, WarCycl
 
     constructor(settings?: WarSettingsExternal) {
         super('WAR', settings);
-        this.cycleSettings.totalTime = settings.cycleSettings.totalTime;
+        if (this.cycleSettings && settings && settings.cycleSettings) {
+            this.cycleSettings.totalTime = settings.cycleSettings.totalTime;
+        }
     }
 
     protected createCycleProcessor(settings: MultiCycleSettings): WarCycleProcessor {
