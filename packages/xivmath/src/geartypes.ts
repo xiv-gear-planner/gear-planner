@@ -162,6 +162,10 @@ export interface GearItem extends XivCombatItem {
      */
     ilvl: number;
     /**
+     * equip level
+     */
+    equipLvl: number;
+    /**
      * The primary substat
      */
     primarySubstat: keyof RawStats | null;
