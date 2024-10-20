@@ -420,6 +420,10 @@ export class CycleProcessor {
      */
     readonly dotMap = new Map<number, PreDmgUsedAbility>();
     /**
+     * Map from channel effect ID to an object which tracks, among other things, when it was used.
+     */
+    readonly channelMap = new Map<number, PreDmgUsedAbility>();
+    /**
      * Contains party buffs which should not be activated automatically by virtue of coming from the class being
      * simulated.
      */
@@ -1281,9 +1285,12 @@ export class CycleProcessor {
         }
 
         if (usedAbility.channel) {
-            // TODO: handle cutting off a channel early due to end of sim time
             // TODO: allow cutting off a channel early by other action use?
-            usedAbility.channel.actualTickCount = usedAbility.channel.fullDurationTicks;
+            const channelId = usedAbility.ability['channel']?.id;
+            if (channelId !== undefined) {
+                // Set our new channel into the channel map
+                this.channelMap.set(channelId, usedAbility);
+            }
         }
     }
 
@@ -1300,6 +1307,13 @@ export class CycleProcessor {
             const currentTick = Math.floor(Math.min(this.currentTime, this.totalTime) / 3);
             const oldTick = Math.floor((existing.usedAt + existing.appDelayFromStart) / 3);
             existing.dot.actualTickCount = Math.min(currentTick - oldTick, existing.dot.fullDurationTicks === 'indefinite' ? Number.MAX_VALUE : existing.dot.fullDurationTicks);
+        });
+
+        // If any channels are still ticking, cut them off
+        this.channelMap.forEach((existing) => {
+            const currentTick = Math.floor(Math.min(this.currentTime, this.totalTime) + 1);
+            const oldTick = Math.floor((existing.usedAt + existing.appDelayFromStart) + 1);
+            existing.channel.actualTickCount = Math.min(currentTick - oldTick, existing.channel.fullDurationTicks);
         });
     }
 

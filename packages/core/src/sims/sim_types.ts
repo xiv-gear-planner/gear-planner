@@ -181,6 +181,7 @@ export type DotInfo = Readonly<{
 export type ChannelInfo = Readonly<{
     duration: number,
     tickPotency: number,
+    id: number
 }>;
 
 /**
@@ -397,7 +398,7 @@ export type DotDamageUnf = {
 };
 
 export type ChannelDamageUnf = {
-    fullDurationTicks: number,
+    fullDurationTicks: number, // does not support indefinite channels (none currently exist)
     damagePerTick: ComputedDamage,
     actualTickCount?: number
 };
