@@ -247,7 +247,7 @@ describe("Dmg/100p for known values", () => {
             }),
             // Pineapple Orange Jelly
             {}, level, getLevelStats(level), 'SMN', fakeSheetSMN.classJobStats, 0);
-        const dmg100p = baseDamageFull(stats, 100, 'Spell', false, false, false);
+        const dmg100p = baseDamageFull(stats, 100, 'Spell', false, false);
         expect(dmg100p.expected).to.eq(913);
         expect(stats.detMulti).to.eq(1.018);
         expect(stats.determination).to.eq(812);
@@ -279,7 +279,7 @@ describe("Dmg/100p for known values", () => {
             }),
             // Pineapple Orange Jelly
             {}, level, getLevelStats(level), 'SMN', fakeSheetSMN.classJobStats, 0);
-        const dmg100p = baseDamageFull(stats, 100, 'Spell', false, false, false);
+        const dmg100p = baseDamageFull(stats, 100, 'Spell', false, false);
         expect(dmg100p.expected).to.eq(1069);
         expect(stats.detMulti).to.eq(1.023);
         expect(stats.determination).to.eq(900);
@@ -311,7 +311,7 @@ describe("Dmg/100p for known values", () => {
             }),
             // Pineapple Orange Jelly
             {}, level, getLevelStats(level), 'WAR', fakeSheetWAR.classJobStats, 0);
-        const dmg100p = baseDamageFull(stats, 100, 'Weaponskill', false, false, false);
+        const dmg100p = baseDamageFull(stats, 100, 'Weaponskill', false, false);
         expect(dmg100p.expected).to.eq(656);
         expect(stats.mainStatValue).to.eq(1012);
         expect(stats.detMulti).to.eq(1.013);
@@ -343,7 +343,7 @@ describe("Dmg/100p for known values", () => {
             }),
             // Pineapple Orange Jelly
             {}, level, getLevelStats(level), 'WAR', fakeSheetWAR.classJobStats, 0);
-        const dmg100p = baseDamageFull(stats, 100, 'Weaponskill', false, false, false);
+        const dmg100p = baseDamageFull(stats, 100, 'Weaponskill', false, false);
         expect(dmg100p.expected).to.eq(703);
         expect(stats.mainStatValue).to.eq(1069);
         expect(stats.detMulti).to.eq(1.015);
@@ -376,7 +376,7 @@ describe("Dmg/100p for known values", () => {
             }),
             // Pineapple Orange Jelly
             {}, level, getLevelStats(level), 'SCH', fakeSheetSCH.classJobStats, 0);
-        const dmg100p = baseDamageFull(stats, 75, 'Spell', false, false, true);
+        const dmg100p = baseDamageFull(stats, 75, 'Spell', false, true);
         expect(dmg100p.expected).to.eq(467);
         expect(stats.determination).to.eq(440);
         expect(stats.detMulti).to.eq(1.0);
@@ -410,7 +410,7 @@ describe("Dmg/100p for known values", () => {
             }),
             // Pineapple Orange Jelly
             {}, level, getLevelStats(level), 'SCH', fakeSheetSCH.classJobStats, 0);
-        const dmg100p = baseDamageFull(stats, 75, 'Spell', false, false, true);
+        const dmg100p = baseDamageFull(stats, 75, 'Spell', false, true);
         expect(dmg100p.expected).to.eq(474);
         expect(stats.determination).to.eq(440);
         expect(stats.detMulti).to.eq(1.0);
@@ -444,7 +444,7 @@ describe("Dmg/100p for known values", () => {
             }),
             // Pineapple Orange Jelly
             {}, level, getLevelStats(level), 'SCH', fakeSheetSCH.classJobStats, 0);
-        const dmg100p = baseDamageFull(stats, 75, 'Spell', false, false, true);
+        const dmg100p = baseDamageFull(stats, 75, 'Spell', false, true);
         expect(dmg100p.expected).to.eq(475);
         expect(stats.determination).to.eq(440);
         expect(stats.detMulti).to.eq(1.0);
@@ -478,7 +478,7 @@ describe("Dmg/100p for known values", () => {
             }),
             // Pineapple Orange Jelly
             {}, level, getLevelStats(level), 'SCH', fakeSheetSCH.classJobStats, 0);
-        const dmg100p = baseDamageFull(stats, 75, 'Spell', false, false, true);
+        const dmg100p = baseDamageFull(stats, 75, 'Spell', false, true);
         expect(dmg100p.expected).to.eq(476);
         expect(stats.determination).to.eq(440);
         expect(stats.detMulti).to.eq(1.0);
@@ -520,7 +520,7 @@ describe("Dmg/100p for known values", () => {
         expect(stats.wdMag).to.eq(79);
         expect(stats.wdPhys).to.eq(79);
         expect(stats.wdMulti).to.eq(1.23);
-        const dmg100p = baseDamageFull(stats, 60, 'Weaponskill', false, false, true);
+        const dmg100p = baseDamageFull(stats, 60, 'Weaponskill', false, true);
         expect(dmg100p.expected).to.eq(381);
     });
 
@@ -554,7 +554,7 @@ describe("Dmg/100p for known values", () => {
         expect(stats.wdMag).to.eq(79);
         expect(stats.wdPhys).to.eq(79);
         expect(stats.wdMulti).to.eq(1.23);
-        const dmg100p = baseDamageFull(stats, 60, 'Weaponskill', false, false, true);
+        const dmg100p = baseDamageFull(stats, 60, 'Weaponskill', false, true);
         expect(dmg100p.expected).to.eq(381);
     });
 
@@ -588,7 +588,7 @@ describe("Dmg/100p for known values", () => {
         expect(stats.wdMag).to.eq(79);
         expect(stats.wdPhys).to.eq(79);
         expect(stats.wdMulti).to.eq(1.23);
-        const dmg100p = baseDamageFull(stats, 60, 'Weaponskill', false, false, true);
+        const dmg100p = baseDamageFull(stats, 60, 'Weaponskill', false, true);
         expect(dmg100p.expected).to.eq(382);
     });
 
@@ -622,7 +622,7 @@ describe("Dmg/100p for known values", () => {
         expect(stats.wdMag).to.eq(79);
         expect(stats.wdPhys).to.eq(79);
         expect(stats.wdMulti).to.eq(1.23);
-        const dmg100p = baseDamageFull(stats, 60, 'Weaponskill', false, false, true);
+        const dmg100p = baseDamageFull(stats, 60, 'Weaponskill', false, true);
         expect(dmg100p.expected).to.eq(383);
     });
 
@@ -656,7 +656,7 @@ describe("Dmg/100p for known values", () => {
         expect(stats.wdMag).to.eq(79);
         expect(stats.wdPhys).to.eq(79);
         expect(stats.wdMulti).to.eq(1.23);
-        const dmg100p = baseDamageFull(stats, 60, 'Weaponskill', false, false, true);
+        const dmg100p = baseDamageFull(stats, 60, 'Weaponskill', false, true);
         expect(dmg100p.expected).to.eq(458);
     });
 
@@ -690,7 +690,7 @@ describe("Dmg/100p for known values", () => {
         expect(stats.wdMag).to.eq(79);
         expect(stats.wdPhys).to.eq(79);
         expect(stats.wdMulti).to.eq(1.23);
-        const dmg100p = baseDamageFull(stats, 60, 'Weaponskill', false, false, true);
+        const dmg100p = baseDamageFull(stats, 60, 'Weaponskill', false, true);
         expect(dmg100p.expected).to.eq(461);
     });
 
@@ -724,7 +724,7 @@ describe("Dmg/100p for known values", () => {
         expect(stats.wdMag).to.eq(132);
         expect(stats.wdPhys).to.eq(132);
         expect(stats.wdMulti).to.eq(1.76);
-        const dmg100p = baseDamageFull(stats, 60, 'Weaponskill', false, false, true);
+        const dmg100p = baseDamageFull(stats, 60, 'Weaponskill', false, true);
         expect(dmg100p.expected).to.eq(1169);
     });
 });

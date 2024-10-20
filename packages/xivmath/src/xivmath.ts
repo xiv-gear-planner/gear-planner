@@ -1,5 +1,7 @@
 import {AttackType, ComputedSetStats, JobData, LevelStats} from "./geartypes";
 import {chanceMultiplierStdDev, fixedValue, multiplyValues, ValueWithDev} from "./deviation";
+import { GearAcquisitionSource } from "@xivgear/data-api-client/dataapi";
+import { ComputedSetStatsImpl } from "./xivstats";
 
 /*
     Common math for FFXIV.
@@ -272,7 +274,7 @@ function usesCasterDamageFormula(stats: ComputedSetStats, attackType: AttackType
 /**
  * Computes base damage. Does not factor in crit/dh RNG nor damage variance.
  */
-export function baseDamageFull(stats: ComputedSetStats, potency: number, attackType: AttackType = 'Unknown', autoDH: boolean = false, autoCrit: boolean = false, isDot: boolean = false): ValueWithDev {
+export function baseDamageFull(stats: ComputedSetStats, potency: number, attackType: AttackType = 'Unknown', autoDH: boolean = false, isDot: boolean = false): ValueWithDev {
 
     let spdMulti: number;
     const isAA = attackType === 'Auto-attack';
@@ -293,16 +295,6 @@ export function baseDamageFull(stats: ComputedSetStats, potency: number, attackT
     const mainStatMulti = isAA ? stats.aaStatMulti : stats.mainStatMulti;
     // Multiplier from weapon damage. If this is an auto-attack, use the AA multi instead of the pure WD multi.
     const wdMulti = isAA ? stats.aaMulti : stats.wdMulti;
-    // Multiplier for a successful crit
-    const critMulti = stats.critMulti;
-    // Crit chance
-    // const critRate = gear.computedStats.critChance + extraBuffCritRate;
-    const critRate = stats.critChance;
-    // Dh chance
-    // const dhRate = gear.computedStats.dhitChance + extraBuffDhRate;
-    const dhRate = stats.dhitChance;
-    // Multiplier for a successful DH
-    const dhMulti = stats.dhitMulti;
     // Det multiplier
     const detMulti = stats.detMulti;
     // Extra damage from auto DH bonus
@@ -344,14 +336,9 @@ export function baseDamageFull(stats: ComputedSetStats, potency: number, attackT
         const afterSpd = fl(afterWeaponDamage * spdMulti);
         stage1potency = afterSpd;
     }
-    // const d5 = fl(fl(afterWeaponDamage * critMulti) * DH_MULT)
-    // Factor in auto crit multiplier
-    const afterAutoCrit = autoCrit ? fl(stage1potency * (1 + (critRate * (critMulti - 1)))) : stage1potency;
-    // Factor in auto DH multiplier
-    const afterAutoDh = autoDH ? fl(afterAutoCrit * (1 + (dhRate * (dhMulti - 1)))) : afterAutoCrit;
+
     // Factor in trait multiplier, as well as the 1 extra damage if potency is less than 100
-    const finalDamage = fl(fl(afterAutoDh * traitMulti)) + ((potency < 100) ? 1 : 0);
-    // console.log([basePotency, afterDet, afterTnc, afterWeaponDamage, d5, afterAutoCrit, afterAutoDh, afterTrait]);
+    const finalDamage = fl(fl(stage1potency * traitMulti)) + ((potency < 100) ? 1 : 0);
 
     if (finalDamage <= 1) {
         return fixedValue(1);
@@ -423,15 +410,17 @@ export function applyDhCrit(baseDamage: number, stats: ComputedSetStats) {
     return baseDamage * (1 + stats.dhitChance * (stats.dhitMulti - 1)) * (1 + stats.critChance * (stats.critMulti - 1));
 }
 
-export function dhCritPercentStdDev(stats: ComputedSetStats) {
+export function dhCritPercentStdDev(stats: ComputedSetStats, forcedCrit: boolean, forcedDh: boolean) {
     return multiplyValues(
-        chanceMultiplierStdDev(stats.critChance, stats.critMulti),
-        chanceMultiplierStdDev(stats.dhitChance, stats.dhitMulti)
+        // forcedCrit ? chanceMultiplierStdDev(1, 1) : chanceMultiplierStdDev(stats.critChance, stats.critMulti),
+        // forcedDh ? chanceMultiplierStdDev(1, 1) : chanceMultiplierStdDev(stats.dhitChance, stats.dhitMulti),
+        forcedCrit ? chanceMultiplierStdDev(1, stats.critMulti) : chanceMultiplierStdDev(stats.critChance, stats.critMulti),
+        forcedDh ? chanceMultiplierStdDev(1, stats.dhitMulti) : chanceMultiplierStdDev(stats.dhitChance, stats.dhitMulti),
     );
 }
 
-export function applyDhCritFull(baseDamage: ValueWithDev, stats: ComputedSetStats): ValueWithDev {
-    const stdDevFromCritDh = dhCritPercentStdDev(stats);
+export function applyDhCritFull(baseDamage: ValueWithDev, stats: ComputedSetStats, forcedCrit: boolean, forcedDh: boolean): ValueWithDev {
+    const stdDevFromCritDh = dhCritPercentStdDev(stats, forcedCrit, forcedDh);
     return multiplyValues(baseDamage, stdDevFromCritDh);
 }
 

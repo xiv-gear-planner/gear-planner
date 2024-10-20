@@ -10,14 +10,10 @@ function dotPotencyToDamage(stats: ComputedSetStats, potency: number, dmgAbility
         bonuses.dhitChance += combinedBuffEffects.dhitChanceIncrease;
     });
     // TODO: are there any dots with auto-crit or auto-dh?
-    const forceDh = false;
+    const forceDhit = false;
     const forceCrit = false;
-    const nonCritDmg = baseDamageFull(modifiedStats, potency, dmgAbility.attackType, forceDh, forceCrit, true);
-    if (forceDh && forceCrit) {
-        // For forced crit + dhit abilities, don't apply crit twice
-        return multiplyFixed(nonCritDmg, combinedBuffEffects.dmgMod)
-    }
-    const afterCritDh = applyDhCritFull(nonCritDmg, modifiedStats);
+    const nonCritDmg = baseDamageFull(modifiedStats, potency, dmgAbility.attackType, forceDhit, true);
+    const afterCritDh = applyDhCritFull(nonCritDmg, modifiedStats, forceCrit, forceDhit);
     return multiplyFixed(afterCritDh, combinedBuffEffects.dmgMod);
 }
 
@@ -35,12 +31,8 @@ function potencyToDamage(stats: ComputedSetStats, potency: number, dmgAbility: D
             bonuses.forceDh = true;
         }
     });
-    const nonCritDmg = baseDamageFull(modifiedStats, potency, dmgAbility.attackType, forceDhit, forceCrit);
-    if (forceDhit && forceCrit) {
-        // For forced crit + dhit abilities, don't apply crit twice
-        return multiplyFixed(nonCritDmg, combinedBuffEffects.dmgMod)
-    }
-    const afterCritDh = applyDhCritFull(nonCritDmg, modifiedStats);
+    const nonCritDmg = baseDamageFull(modifiedStats, potency, dmgAbility.attackType, forceDhit);
+    const afterCritDh = applyDhCritFull(nonCritDmg, modifiedStats, forceCrit, forceDhit);
     return multiplyFixed(afterCritDh, combinedBuffEffects.dmgMod);
 }
 
