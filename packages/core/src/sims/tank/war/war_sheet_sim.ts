@@ -124,13 +124,24 @@ class WarCycleProcessor extends CycleProcessor {
         return surgingTempestDuration
     }
 
+    stormsEyeIsNextComboFinisher(): boolean {
+        const surgingTempestDuration = this.getSurgingTempestDuration()
+        if (surgingTempestDuration < 17) {
+            return true
+        }
+        return false
+    }
+
+    stormsPathIsNextComboFinisher(): boolean {
+        return !this.stormsEyeIsNextComboFinisher();
+    }
+
     comboActions: WarGcdAbility[] = [Actions.HeavySwing, Actions.Maim, Actions.StormsPath];
     getComboToUse() {
         if (this.rotationState.combo === 2) {
-            const surgingTempestDuration = this.getSurgingTempestDuration()
-            if (surgingTempestDuration < 17) {
-                this.rotationState.combo++
-                return Actions.StormsEye
+            if (this.stormsEyeIsNextComboFinisher()) {
+                this.rotationState.combo++;
+                return Actions.StormsEye;
             }
         }
         return this.comboActions[this.rotationState.combo++];
@@ -213,12 +224,13 @@ export class WarSim extends BaseMultiCycleSim<WarSimResult, WarSettings, WarCycl
 
     constructor(settings?: WarSettingsExternal) {
         super('WAR', settings);
+        this.cycleSettings.totalTime = settings.cycleSettings.totalTime;
     }
 
     protected createCycleProcessor(settings: MultiCycleSettings): WarCycleProcessor {
         return new WarCycleProcessor({
             ...settings,
-            hideCycleDividers: true
+            hideCycleDividers: true,
         });
     }
 
@@ -262,13 +274,17 @@ export class WarSim extends BaseMultiCycleSim<WarSimResult, WarSettings, WarCycl
             return Actions.FellCleave;
         }
 
-        // Next GCD will overcap
-        if (cp.gauge.beastGauge === 90 && cp.rotationState.combo == 1) {
+        // Next GCD will overcap if it's not Heavy Swing
+        if (cp.gauge.beastGauge === 100 && cp.rotationState.combo !== 0) {
             return Actions.FellCleave;
         }
 
-        // We need to refresh Surging Tempest soon.
-        if (cp.gauge.beastGauge >= 90 && cp.rotationState.combo == 2 && cp.getSurgingTempestDuration() < 15) {
+        if (cp.fightEndingSoon() && cp.gauge.beastGauge >= 50) {
+            return Actions.FellCleave;
+        }
+
+        // Next combo finisher is going to be Storm's Path (20 gauge), not Storm's Eye (10 Gauge)
+        if (cp.gauge.beastGauge >= 90 && cp.rotationState.combo === 2 && cp.stormsPathIsNextComboFinisher()) {
             return Actions.FellCleave;
         }
 
@@ -313,6 +329,17 @@ export class WarSim extends BaseMultiCycleSim<WarSimResult, WarSettings, WarCycl
         // Don't overcap Onslaughts.
         if (cp.getTimeUntilOnslaughtCapped() < 3 && cp.canUseWithoutClipping(Actions.Onslaught)) {
             this.use(cp, Actions.Onslaught);
+        }
+        
+        // Dump resources if fight ending soon
+        if (cp.fightEndingSoon()) {
+            if (cp.canUseWithoutClipping(Actions.Onslaught)) {
+                this.use(cp, Actions.Onslaught)
+            }
+            
+            if (cp.canUseWithoutClipping(Actions.Infuriate) && cp.gauge.beastGauge <= 50) {
+                this.use(cp, Actions.Infuriate)
+            }
         }
 
         ////////
@@ -376,7 +403,6 @@ export class WarSim extends BaseMultiCycleSim<WarSimResult, WarSettings, WarCycl
             cp.cdTracker.modifyCooldown(Actions.Infuriate, -5)
         }
         
-
         return cp.use(ability);
     }
 

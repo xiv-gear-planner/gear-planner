@@ -39,7 +39,7 @@ export class WarSimGui extends BaseMultiCycleSimGui<WarSimResult, WarSettings> {
                     barOuter.style.border = '1px solid black';
 
                     const barInner = document.createElement('div');
-                    barInner.style.backgroundColor = gauge >= 50 ? '#e5004e' : '#660929';
+                    barInner.style.backgroundColor = gauge >= 50 ? '#ffc500' : '#e47e08';
                     barInner.style.width = `${gauge}%`;
                     barInner.style.height = '100%';
                     barOuter.appendChild(barInner);
@@ -80,7 +80,7 @@ export class WarSimGui extends BaseMultiCycleSimGui<WarSimResult, WarSettings> {
                     barOuter.style.border = '1px solid black';
 
                     const barInner = document.createElement('div');
-                    barInner.style.backgroundColor = '#f913bc';
+                    barInner.style.backgroundColor = '#ee9199';
                     barInner.style.height = '100%';
                     barInner.style.width = `${Math.round((surgingTempestDuration/60) * 100)}%`;
                     barOuter.appendChild(barInner);
