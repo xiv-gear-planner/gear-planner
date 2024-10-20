@@ -1,8 +1,5 @@
 import {AttackType, ComputedSetStats, JobData, LevelStats} from "./geartypes";
 import {chanceMultiplierStdDev, fixedValue, multiplyValues, ValueWithDev} from "./deviation";
-import { GearAcquisitionSource } from "@xivgear/data-api-client/dataapi";
-import { ComputedSetStatsImpl } from "./xivstats";
-
 /*
     Common math for FFXIV.
 
