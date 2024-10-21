@@ -71,6 +71,8 @@ body {
   --button-height: 20px;
   --issue-warning-color: #be5116;
   --issue-error-color: #9c0000;
+  --toolbar-button-size: 40px;
+  --toolbar-border-radius: 8px;
 
 
   &.light-mode {
@@ -320,6 +322,7 @@ body {
   --zi-slot-materia-popup: 150;
   --zi-slot-materia-popup-cell: 180;
   --zi-tiering-expansion: 185;
+  --zi-toolbar-popout: 186;
   --zi-loading-blocker: 190;
   --zi-add-sim-dialog: 200;
   --zi-true-modal: 300;
@@ -1696,6 +1699,7 @@ div.gear-sheet-toolbar-holder {
   border-color: var(--border-color-highlight);
   border-radius: 4px;
 }
+
 .load-bar-inner {
   background-color: var(--border-color-highlight);
   border-radius: 3px;
@@ -1706,41 +1710,46 @@ div.gear-sheet-toolbar-holder {
   font-weight: bold;
   text-decoration: underline;
 }
+
 .meld-solver-area {
   white-space: pre-wrap;
 }
+
 .meld-solver-settings {
 
+  float: left;
+  display: flex;
+  flex-direction: column;
+  border-width: 1px;
+  border-color: #00ff00;
+
+  li {
+    margin: 5px;
+    list-style-type: none;
     float: left;
-    display: flex;
-    flex-direction: column;
-    border-width: 1px;
-    border-color: #00ff00;
 
-    li {
-      margin: 5px;
-      list-style-type: none;
+    .meld-solver-target-gcd-input {
+      max-width: 30px;
+      border: var(--faint-border);
       float: left;
+    }
 
-      .meld-solver-target-gcd-input {
-        max-width: 30px;
-        border: var(--faint-border);
-        float: left;
-      }
-      .meld-solver-target-gcd-input:disabled {
-        border: var(--faint-border);
-        background-color: #333339;
-        color: #909090;
-      }
-      select.meld-solver-sim-dropdown {
-        float: left;
-        max-width: fit-content;
-        width: 100%;
-        option {
-          padding: 5px;
-        }
+    .meld-solver-target-gcd-input:disabled {
+      border: var(--faint-border);
+      background-color: #333339;
+      color: #909090;
+    }
+
+    select.meld-solver-sim-dropdown {
+      float: left;
+      max-width: fit-content;
+      width: 100%;
+
+      option {
+        padding: 5px;
       }
     }
+  }
 
   button {
     margin: 5px;
@@ -1750,28 +1759,70 @@ div.gear-sheet-toolbar-holder {
     height: 100%;
   }
 }
+
 .gear-set-editor-toolbar {
+
+  display: flex;
+  flex-wrap: wrap-reverse;
+  justify-content: center;
+
   > * {
     .shadow;
   }
 
-  .undo-controls {
+  .toolbar-buttons-area {
     display: inline-flex;
     flex-direction: row;
     justify-content: space-between;
     margin-right: -3px;
     align-items: center;
     gap: 10px;
+    position: relative;
 
-    button {
-      line-height: 0;
-      width: 40px;
-      height: 40px;
-      font-size: 30px;
-      border-radius: 8px;
+    .popout-area {
+      position: absolute;
+      top: calc(100% + 8px);
+      background: var(--table-bg-color);
+      .standard-round-border;
+      width: max-content;
+      // TODO: make the shadow not extend down as far
+      box-shadow: var(--shadow-color) 0 12px 10px 0;
+      z-index: var(--zi-toolbar-popout);
+
+      > * {
+        // TODO: this isn't working right
+        // This is supposed to push the element to the right if it starts to hang off the left of the screen.
+        // The element can still go off the left.
+        position: sticky;
+      }
+    }
+
+    > button {
+      height: var(--toolbar-button-size);
+      border-radius: var(--toolbar-border-radius);
       display: flex;
       justify-content: center;
       padding: 2px;
+      position: relative;
+
+      &.big-text-btn {
+        font-size: 30px;
+        width: var(--toolbar-button-size);
+        line-height: 0;
+      }
+
+      &.popout-button {
+        padding-left: 5px;
+        padding-right: 5px;
+
+        &:active {
+          border-color: #0000;
+        }
+
+        &[popout-active="true"] {
+          background-color: var(--button-active-background-color);
+        }
+      }
 
       svg {
         margin: auto;
@@ -1780,24 +1831,26 @@ div.gear-sheet-toolbar-holder {
       }
     }
 
-    @media screen and (max-width: 630px) {
-      flex-direction: column;
-      gap: 2px;
-      justify-content: center;
-      align-items: center;
-      border-radius: 4px;
-      button {
-        width: 20px;
-        height: 20px;
-        font-size: 24px;
-      }
-    }
+    //@media screen and (max-width: 630px) {
+    //  flex-direction: column;
+    //  gap: 2px;
+    //  justify-content: center;
+    //  align-items: center;
+    //  border-radius: 4px;
+    //  --toolbar-button-size: 20px;
+    //  button.big-text-btn {
+    //    font-size: 24px;
+    //  }
+    //}
   }
+}
+
+set-view-toolbar {
+  display: contents;
 }
 
 div.gear-set-editor-toolbar, set-view-toolbar {
 
-  display: contents;
   width: fit-content;
   margin: auto;
 
@@ -1843,7 +1896,6 @@ div.gear-set-editor-toolbar, set-view-toolbar {
 
   materia-priority-picker {
     width: fit-content;
-    .standard-round-border;
 
     text-align: left;
 
@@ -3184,10 +3236,20 @@ body.modern {
     .single-stat-tier-display {
       background-color: color-mix(in srgb, var(--stat-color) 5%, var(--table-bg-color));
 
+      box-sizing: border-box;
+      padding: 4px;
+      height: var(--toolbar-button-size);
+      border-radius: var(--toolbar-border-radius);
+
       &.stat-tiering-perfect {
         background-color: color-mix(in srgb, var(--stat-color) 13%, var(--table-bg-color));
       }
     }
+  }
+
+  .gear-set-editor-toolbar .toolbar-buttons-area .popout-area {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
   }
 }
 
