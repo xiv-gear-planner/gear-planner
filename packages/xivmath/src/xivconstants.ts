@@ -85,26 +85,7 @@ export type RaceName = 'Duskwight' | 'Wildwood'
  */
 export const SupportedLevels = [70, 80, 90, 100] as const;
 export const CURRENT_MAX_LEVEL: SupportedLevel = 100;
-export const CURRENT_MAX_LEVEL_BLU: SupportedLevel = 80;
-// export const CURRENT_MAX_LEVEL_BST: SupportedLevel = ??;
 export type SupportedLevel = typeof SupportedLevels[number];
-
-/**
- * Lookup the current max level for a given job.
- *
- * @param job Job to lookup.
- * @returns Current max level for the job.
- */
-export function getMaxLevelByJob(job: JobName): number {
-    if (job === 'BLU') {
-        return CURRENT_MAX_LEVEL_BLU;
-    }
-    // if (job === 'BST') {
-    //     return CURRENT_MAX_LEVEL_BST;
-    // }
-    return CURRENT_MAX_LEVEL;
-}
-
 
 // TODO: block modifications to this
 /**
@@ -132,6 +113,7 @@ const STANDARD_HEALER: JobDataConst = {
     },
     aaPotency: MELEE_AUTO_POTENCY,
     excludedRelicSubstats: ['dhit'],
+    maxLevel: CURRENT_MAX_LEVEL,
 } as const;
 
 const STANDARD_TANK: JobDataConst = {
@@ -142,6 +124,7 @@ const STANDARD_TANK: JobDataConst = {
     // traitMulti: TODO: Tank Mastery?
     aaPotency: MELEE_AUTO_POTENCY,
     excludedRelicSubstats: ['dhit'],
+    maxLevel: CURRENT_MAX_LEVEL,
 } as const;
 
 const STANDARD_MELEE: JobDataConst = {
@@ -151,6 +134,7 @@ const STANDARD_MELEE: JobDataConst = {
     irrelevantSubstats: ['spellspeed', 'tenacity', 'piety'],
     aaPotency: MELEE_AUTO_POTENCY,
     excludedRelicSubstats: [],
+    maxLevel: CURRENT_MAX_LEVEL,
 } as const;
 
 const STANDARD_RANGED: JobDataConst = {
@@ -161,6 +145,7 @@ const STANDARD_RANGED: JobDataConst = {
     traitMulti: (level, attackType) => attackType === 'Auto-attack' ? 1.0 : 1.2, // Increased Action Damage II
     aaPotency: RANGE_AUTO_POTENCY,
     excludedRelicSubstats: [],
+    maxLevel: CURRENT_MAX_LEVEL,
 } as const;
 
 const STANDARD_CASTER: JobDataConst = {
@@ -174,6 +159,7 @@ const STANDARD_CASTER: JobDataConst = {
     },
     aaPotency: MELEE_AUTO_POTENCY,
     excludedRelicSubstats: [],
+    maxLevel: CURRENT_MAX_LEVEL,
 } as const;
 
 
@@ -341,6 +327,7 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
     },
     BLU: {
         ...STANDARD_CASTER,
+        maxLevel: 80,
         traitMulti: (level, attackType) => attackType === 'Auto-attack' ? 1.0 : 1.5, // Maim and Mend V
     },
     PCT: STANDARD_CASTER
@@ -629,7 +616,7 @@ const BLU_ITEM_DISPLAY = {
 } satisfies ItemDisplaySettings;
 
 export function getDefaultDisplaySettings(level: SupportedLevel, job: JobName): ItemDisplaySettings {
-    if (job === 'BLU' && level === CURRENT_MAX_LEVEL_BLU) {
+    if (job === 'BLU' && level === JOB_DATA.BLU.maxLevel) {
         return BLU_ITEM_DISPLAY;
     }
     return LEVEL_ITEMS[level].defaultDisplaySettings;
