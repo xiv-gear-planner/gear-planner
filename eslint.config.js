@@ -11,7 +11,7 @@ export default [
     {
         plugins: {
             '@stylistic/js': stylisticJs,
-            plugins: {'chai-friendly': pluginChaiFriendly},
+            'chai-friendly': pluginChaiFriendly,
         },
         ignores: ['**/build/', '**/dist/', '**/*.d.ts'],
         languageOptions: {

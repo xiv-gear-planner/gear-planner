@@ -197,8 +197,8 @@ function foodTableStatColumn(sheet: GearPlanSheet, stat: RawStatKey, highlightPr
             if (highlightPrimarySecondary) {
                 foodStatCellStyler(cell, stat);
             }
-        },
-    }
+        }
+    };
 
 }
 

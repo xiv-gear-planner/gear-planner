@@ -84,9 +84,8 @@ export function parseImport(text: string): ImportSpec {
         return {
             importType: 'json',
             rawData: text
-        }
-    }
-    catch (_) {
+        };
+    } catch (_) {
         // Fall through to return
     }
     return null;
