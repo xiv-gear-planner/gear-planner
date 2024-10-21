@@ -177,10 +177,13 @@ export function buildPreviewServer() {
                 // The rest are part of the static html
                 const job = exported['job'];
                 if (job) {
-                    const jobItems = document.createElement('link');
+                    const jobItemsPreload = document.createElement('link');
                     const jobItemsUrl = `https://data.xivgear.app/Items?job=${job}`;
-                    jobItems.href = jobItemsUrl;
-                    jobItems.as = 'fetch';
+                    jobItemsPreload.rel = 'preload';
+                    jobItemsPreload.href = jobItemsUrl;
+                    // For some reason, `.as = 'fetch'` doesn't work, but this does.
+                    jobItemsPreload.setAttribute("as", 'fetch');
+                    head.appendChild(jobItemsPreload);
                 }
                 return new Response(doc.documentElement.outerHTML, {
                     status: 200,
