@@ -5,7 +5,6 @@ import {
     DefaultMateriaFillPrio,
     getClassJobStats,
     getDefaultDisplaySettings,
-    getMaxLevelByJob,
     getRaceStats,
     JobName,
     LEVEL_ITEMS,
@@ -921,7 +920,7 @@ export class GearPlanSheet {
                 // Must be better or same stats
                 && isSameOrBetterItem(otherItem, thisItem)
                 // Only allow items up to current max level for this job
-                && otherItem.equipLvl <= getMaxLevelByJob(this.classJobName);
+                && otherItem.equipLvl <= this.classJobStats.maxLevel;
         });
     }
 }
