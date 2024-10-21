@@ -86,6 +86,12 @@ describe("backend stat resolver server", () => {
             assert.equal(response.statusCode, 200);
             const parsed = parser.parseFromString(response.body, 'text/html');
             assert.equal(parsed.querySelector('title').textContent, 'WHM 6.4 copy - XivGear - FFXIV Gear Planner');
+            // Check the preload
+            // TODO: last-child is kind of messy
+            const jobPreload = parsed.querySelector('link:last-child');
+            assert.equal(jobPreload.getAttribute('rel'), "preload");
+            assert.equal(jobPreload.getAttribute('href'), "https://data.xivgear.app/Items?job=WHM");
+            assert.equal(jobPreload.getAttribute('as'), "fetch");
         }).timeout(30_000);
         it("resolves shortlink with trailing slash", async () => {
             const response = await fastify.inject({

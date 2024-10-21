@@ -10,10 +10,12 @@ import {JobName, MAX_PARTY_BONUS} from "@xivgear/xivmath/xivconstants";
 import {
     DEFAULT_DESC,
     DEFAULT_NAME,
-    HASH_QUERY_PARAM, PREVIEW_MAX_DESC_LENGTH, PREVIEW_MAX_NAME_LENGTH,
+    HASH_QUERY_PARAM,
     NavPath,
     parsePath,
-    PATH_SEPARATOR
+    PATH_SEPARATOR,
+    PREVIEW_MAX_DESC_LENGTH,
+    PREVIEW_MAX_NAME_LENGTH
 } from "@xivgear/core/nav/common_nav";
 import {nonCachedFetch} from "./polyfills";
 import fastifyWebResponse from "fastify-web-response";
@@ -86,7 +88,7 @@ export function buildStatsServer() {
 
     fastifyInstance.get('/fulldata/bis/:job/:expac/:sheet', async (request: FastifyRequest, reply) => {
         const rawData = await getBisSheet(request.params['job'] as JobName, request.params['expac'] as string, request.params['sheet'] as string);
-        const out =  await importExportSheet(request, JSON.parse(rawData));
+        const out = await importExportSheet(request, JSON.parse(rawData));
         reply.header("cache-control", "max-age=7200, public");
         reply.send(out);
     });
@@ -100,6 +102,8 @@ export function buildPreviewServer() {
     const parser = new DOMParser();
 
     fastifyInstance.register(fastifyWebResponse);
+    // This endpoint acts as a proxy. If it detects that you are trying to load something that looks like a sheet,
+    // inject social media preview and preload urls.
     fastifyInstance.get('/', async (request: FastifyRequest, reply) => {
 
         async function resolveNav(nav: NavPath): Promise<object | null> {
@@ -130,6 +134,7 @@ export function buildPreviewServer() {
         request.log.info(pathPaths, 'Path');
         const serverUrl = getFrontendServer();
         const clientUrl = getFrontendPath();
+        // Fetch original index.html
         const responsePromise = nonCachedFetch(serverUrl + '/index.html', undefined);
         try {
             const exported: object | null = await resolveNav(nav);
@@ -167,6 +172,18 @@ export function buildPreviewServer() {
                     const newTitle = document.createElement('title');
                     newTitle.textContent = name;
                     head.append(newTitle);
+                }
+                // Inject preload properties based on job
+                // The rest are part of the static html
+                const job = exported['job'];
+                if (job) {
+                    const jobItemsPreload = document.createElement('link');
+                    const jobItemsUrl = `https://data.xivgear.app/Items?job=${job}`;
+                    jobItemsPreload.rel = 'preload';
+                    jobItemsPreload.href = jobItemsUrl;
+                    // For some reason, `.as = 'fetch'` doesn't work, but this does.
+                    jobItemsPreload.setAttribute("as", 'fetch');
+                    head.appendChild(jobItemsPreload);
                 }
                 return new Response(doc.documentElement.outerHTML, {
                     status: 200,
