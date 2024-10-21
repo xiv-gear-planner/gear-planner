@@ -86,7 +86,24 @@ export type RaceName = 'Duskwight' | 'Wildwood'
 export const SupportedLevels = [70, 80, 90, 100] as const;
 export const CURRENT_MAX_LEVEL: SupportedLevel = 100;
 export const CURRENT_MAX_LEVEL_BLU: SupportedLevel = 80;
+// export const CURRENT_MAX_LEVEL_BST: SupportedLevel = ??;
 export type SupportedLevel = typeof SupportedLevels[number];
+
+/**
+ * Lookup the current max level for a given job.
+ *
+ * @param job Job to lookup.
+ * @returns Current max level for the job.
+ */
+export function getMaxLevelByJob(job: JobName): number {
+    if (job === 'BLU') {
+        return CURRENT_MAX_LEVEL_BLU;
+    }
+    // if (job === 'BST') {
+    //     return CURRENT_MAX_LEVEL_BST;
+    // }
+    return CURRENT_MAX_LEVEL;
+}
 
 
 // TODO: block modifications to this
