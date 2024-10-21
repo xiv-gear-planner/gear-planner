@@ -108,7 +108,6 @@ export const PlentifulHarvest: RprGcdAbility = {
     activatesBuffs: [IdealHost]
 };
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const HarvestMoon: RprGcdAbility = {
     type: 'gcd',
     name: "Harvest Moon",

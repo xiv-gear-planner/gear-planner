@@ -15,7 +15,6 @@ onmessage = async function (event) {
         const sheet = HEADLESS_SHEET_PROVIDER.fromExport(request.sheet);
         dataManager = makeDataManager(sheet.classJobName, sheet.level, sheet.ilvlSync);
         await dataManager.loadData();
-        // eslint-disable-next-line no-case-declarations
         const response: AnyWorkResponse = {
             responseType: "done",
             data: null

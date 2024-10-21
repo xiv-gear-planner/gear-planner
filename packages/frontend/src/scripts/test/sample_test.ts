@@ -2,7 +2,7 @@
 import * as assert from "assert";
 import * as fs from "fs";
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const jsdom = require("jsdom");
 const {JSDOM} = jsdom;
 

@@ -139,7 +139,6 @@ class SageCycleProcessor extends CycleProcessor {
     }
 
     doOffMinuteBurst() {
-        // eslint-disable-next-line no-constant-condition
         while (true) {
             const canUse = this.canUseCooldowns(phlegma, [psyche]);
             if (canUse === 'yes') {
