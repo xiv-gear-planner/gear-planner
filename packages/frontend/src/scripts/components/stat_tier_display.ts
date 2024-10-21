@@ -110,7 +110,6 @@ export class SingleStatTierDisplay extends HTMLDivElement {
             const upperDiv = document.createElement('div');
             upperDiv.textContent = extraOffset.label;
             const lowerLeftDiv = document.createElement('div');
-            lowerLeftDiv.textContent;
             const lowerRightDiv = document.createElement('div');
 
             upperDiv.classList.add('single-stat-tier-display-upper');
