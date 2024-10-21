@@ -1,5 +1,4 @@
 import { GearPlanSheet } from "@xivgear/core/sheet";
-import { registerDefaultSims } from "@xivgear/core/sims/default_sims";
 import { SimRunner } from "@xivgear/core/solving/sim_runner";
 import { SetExport } from "@xivgear/xivmath/geartypes";
 import { WorkerBehavior } from "./worker_common";
@@ -12,10 +11,9 @@ export type SolverSimulationResult = {
 
 export type SolverSimulationJobContext = JobContext<SolverSimulationRequest, number, SolverSimulationResult>;
 
-registerDefaultSims();
 export class SolverSimulationRunner extends WorkerBehavior<SolverSimulationJobContext> {
 
-    readonly sheet: GearPlanSheet
+    readonly sheet: GearPlanSheet;
 
     public constructor(sheet: GearPlanSheet) {
         super();
@@ -34,14 +32,14 @@ export class SolverSimulationRunner extends WorkerBehavior<SolverSimulationJobCo
 
         const sorted = settings.sets?.map(s => this.sheet.importGearSet(s))?.sort((a, b) => {
             return a.computedStats.gcdPhys(2.5) - b.computedStats.gcdPhys(2.5);
-        })
+        });
 
         settings.sets = undefined;
         const [bestDps, bestSet] = await simRunner.simulateSetsAndReturnBest(sorted, this.postUpdate);
         const result = {
             dps: bestDps,
             set: this.sheet.exportGearSet(bestSet),
-        }
+        };
         this.postResult(result);
     }
 }
