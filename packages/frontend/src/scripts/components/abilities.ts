@@ -11,8 +11,9 @@ const abilityIconMap = new Map<number, Promise<XivApiAbilityData>>();
 async function getDataFor(abilityId: number): Promise<XivApiAbilityData> {
     if (abilityIconMap.has(abilityId)) {
         return abilityIconMap.get(abilityId);
-    } else {
-        const out = xivApiSingleCols('Action', abilityId, ['ID', 'Icon'] as const) as Promise<XivApiAbilityData>;
+    }
+    else {
+        const out = xivApiSingleCols('Action', abilityId, ['ID', 'Icon',] as const) as Promise<XivApiAbilityData>;
         abilityIconMap.set(abilityId, out);
         return out;
     }
@@ -27,4 +28,4 @@ export class AbilityIcon extends HTMLImageElement {
     }
 }
 
-customElements.define("ffxiv-ability-icon", AbilityIcon, {extends: "img"});
+customElements.define("ffxiv-ability-icon", AbilityIcon, {extends: "img",});

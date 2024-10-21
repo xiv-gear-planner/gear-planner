@@ -68,9 +68,9 @@ export class MeldSolverDialog extends BaseModal {
                     this.progressDisplay.text.textContent = "Simulating...";
 
                 });
-            solverPromise.then(([set, dps]) => this.solveResultReceived(set, dps));
+            solverPromise.then(([set, dps,]) => this.solveResultReceived(set, dps));
             recordEvent("SolveMelds", {
-                "Total Time Taken: ": Date.now() - (meldSolveStart ?? Date.now())
+                "Total Time Taken: ": Date.now() - (meldSolveStart ?? Date.now()),
             });
             solverPromise.catch((err) => console.log(err));
         });
@@ -92,7 +92,7 @@ export class MeldSolverDialog extends BaseModal {
 
     async solveResultReceived(set: CharacterGearSet, dps: number) {
         const oldDps = (await this.settingsDiv.simSettings.sim.simulate(this.settingsDiv.gearsetGenSettings.gearset)).mainDpsResult;
-        const confirm = new MeldSolverConfirmationDialog(this._sheet, this.settingsDiv.gearsetGenSettings.gearset, set, [oldDps, dps], this.close);
+        const confirm = new MeldSolverConfirmationDialog(this._sheet, this.settingsDiv.gearsetGenSettings.gearset, set, [oldDps, dps,], this.close);
         document.querySelector('body').appendChild(confirm);
         confirm.show();
     }
@@ -203,7 +203,7 @@ class MeldSolverSettingsMenu extends HTMLDivElement {
         this.gearsetGenSettings = new GearsetGenerationSettings(set, false, false, gcd);
         this.simSettings = {
             sim: sheet.sims.at(0),
-            sets: undefined // Not referenced in UI
+            sets: undefined, // Not referenced in UI
         };
 
 
@@ -213,12 +213,14 @@ class MeldSolverSettingsMenu extends HTMLDivElement {
                 // Check if user typed more than 2 digits, weird math because floating point fun
                 if (Math.round(val * 1000) % 10) {
                     ctx.failValidation("Enter at most two decimal points");
-                } else if (val < 0) {
+                }
+                else if (val < 0) {
                     ctx.failValidation("Enter a positive number");
-                } else if (val > MAX_GCD) {
+                }
+                else if (val > MAX_GCD) {
                     ctx.failValidation("Cannot be greater than " + MAX_GCD);
                 }
-            }]
+            },],
         });
 
         this.useTargetGcdCheckBox = new FieldBoundCheckBox(this.gearsetGenSettings, 'useTargetGcd');
@@ -247,7 +249,7 @@ class MeldSolverSettingsMenu extends HTMLDivElement {
             value => {
                 return value ? value.displayName : "None";
             },
-            [...sheet.sims]
+            [...sheet.sims,]
         );
         this.simDropdown.classList.add('meld-solver-sim-dropdown');
 
@@ -273,7 +275,7 @@ class MeldSolverSettingsMenu extends HTMLDivElement {
         };
 
         this.replaceChildren(this.checkboxContainer);
-        this.disableables = [this.overwriteMateriaCheckbox, this.useTargetGcdCheckBox, this.targetGcdInput, this.simDropdown];
+        this.disableables = [this.overwriteMateriaCheckbox, this.useTargetGcdCheckBox, this.targetGcdInput, this.simDropdown,];
     }
 
     setEnabled(enabled: boolean) {
@@ -329,7 +331,7 @@ class MeldSolverConfirmationDialog extends BaseModal {
     applyButton: HTMLButtonElement;
     discardButton: HTMLButtonElement;
 
-    constructor(sheet: GearPlanSheetGui, oldSet: CharacterGearSet, newSet: CharacterGearSet, [oldSimResult, newsimResult]: [number, number], closeParent: () => void) {
+    constructor(sheet: GearPlanSheetGui, oldSet: CharacterGearSet, newSet: CharacterGearSet, [oldSimResult, newsimResult,]: [number, number], closeParent: () => void) {
         super();
         this.sheet = sheet;
         this.oldSet = oldSet;
@@ -355,7 +357,7 @@ class MeldSolverConfirmationDialog extends BaseModal {
 
         const materiaTotals = MeldSolverConfirmationDialog.getMateriaTotals(oldSet, newSet);
 
-        [this.oldMateriaTotalsList, this.newMateriaTotalsList] = this.buildMateriaLists([`"${oldSet.name}"`, "Solved Set"], materiaTotals, [oldSimResult, newsimResult]);
+        [this.oldMateriaTotalsList, this.newMateriaTotalsList,] = this.buildMateriaLists([`"${oldSet.name}"`, "Solved Set",], materiaTotals, [oldSimResult, newsimResult,]);
 
         const arrow = document.createElement('span');
         arrow.textContent = "→";
@@ -384,17 +386,17 @@ class MeldSolverConfirmationDialog extends BaseModal {
         this.contentArea.append(form);
     }
 
-    buildMateriaLists([oldName, newName]: [string, string], matTotals: Map<Materia, [number, number]>, [oldSimResult, newSimResult]: [number, number]): [HTMLDivElement, HTMLDivElement] {
-        const [oldSet, newSet] = [document.createElement('div'), document.createElement('div')];
+    buildMateriaLists([oldName, newName,]: [string, string], matTotals: Map<Materia, [number, number]>, [oldSimResult, newSimResult,]: [number, number]): [HTMLDivElement, HTMLDivElement] {
+        const [oldSet, newSet,] = [document.createElement('div'), document.createElement('div'),];
         oldSet.classList.add("meld-solver-result-set");
         newSet.classList.add("meld-solver-result-set");
-        const [oldHead, newHead] = [document.createElement('h3'), document.createElement('h3')];
+        const [oldHead, newHead,] = [document.createElement('h3'), document.createElement('h3'),];
         oldHead.textContent = oldName;
         newHead.textContent = newName;
         oldSet.appendChild(oldHead);
         newSet.appendChild(newHead);
 
-        const [oldResultElem, newResultElem] = [document.createElement('span'), document.createElement('span')];
+        const [oldResultElem, newResultElem,] = [document.createElement('span'), document.createElement('span'),];
         oldResultElem.textContent = oldSimResult.toFixed(2);
         newResultElem.textContent = newSimResult.toFixed(2);
 
@@ -417,10 +419,10 @@ class MeldSolverConfirmationDialog extends BaseModal {
 
         const oldList = document.createElement('ul');
         const newList = document.createElement('ul');
-        for (const [mat, [oldTotal, newTotal]] of matTotals) {
-            const [oldItem, newItem] = [document.createElement('li'), document.createElement('li')];
+        for (const [mat, [oldTotal, newTotal,],] of matTotals) {
+            const [oldItem, newItem,] = [document.createElement('li'), document.createElement('li'),];
 
-            const [oldEntry, newEntry] = [new MateriaEntry(mat, oldTotal), new MateriaEntry(mat, newTotal)];
+            const [oldEntry, newEntry,] = [new MateriaEntry(mat, oldTotal), new MateriaEntry(mat, newTotal),];
 
             if (oldTotal === 0) {
                 oldEntry.classList.add('meld-solver-result-materia-entry-zero');
@@ -443,7 +445,7 @@ class MeldSolverConfirmationDialog extends BaseModal {
 
         oldSet.appendChild(oldList);
         newSet.appendChild(newList);
-        return [oldSet, newSet];
+        return [oldSet, newSet,];
     }
 
     static getMateriaTotals(oldSet: CharacterGearSet, newSet: CharacterGearSet): Map<Materia, [number, number]> {
@@ -455,8 +457,9 @@ class MeldSolverConfirmationDialog extends BaseModal {
 
                     const prevCount = result.get(meldSlot.equippedMateria);
                     if (!prevCount) {
-                        result.set(meldSlot.equippedMateria, [1, 0]);
-                    } else {
+                        result.set(meldSlot.equippedMateria, [1, 0,]);
+                    }
+                    else {
                         prevCount[0]++;
                     }
                 }
@@ -468,8 +471,9 @@ class MeldSolverConfirmationDialog extends BaseModal {
 
                     const prevCount = result.get(meldSlot.equippedMateria);
                     if (!prevCount) {
-                        result.set(meldSlot.equippedMateria, [0, 1]);
-                    } else {
+                        result.set(meldSlot.equippedMateria, [0, 1,]);
+                    }
+                    else {
                         prevCount[1]++;
                     }
                 }
@@ -491,8 +495,8 @@ class MeldSolverConfirmationDialog extends BaseModal {
     }
 }
 customElements.define('meld-solver-area', MeldSolverDialog);
-customElements.define('load-bar', LoadBar, { extends: 'div' });
-customElements.define('meld-solver-progress-display', MeldSolverProgressDisplay, { extends: 'div' });
-customElements.define('meld-solver-settings-menu', MeldSolverSettingsMenu, { extends: 'div' });
-customElements.define('meld-solver-result-materia-entry', MateriaEntry, { extends: 'div' });
+customElements.define('load-bar', LoadBar, { extends: 'div', });
+customElements.define('meld-solver-progress-display', MeldSolverProgressDisplay, { extends: 'div', });
+customElements.define('meld-solver-settings-menu', MeldSolverSettingsMenu, { extends: 'div', });
+customElements.define('meld-solver-result-materia-entry', MateriaEntry, { extends: 'div', });
 customElements.define('meld-solver-result-dialog', MeldSolverConfirmationDialog);

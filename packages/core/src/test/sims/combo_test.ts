@@ -12,8 +12,8 @@ const initial1 = {
     type: 'gcd',
     gcd: 2.5,
     combos: [{
-        comboBehavior: "start"
-    }]
+        comboBehavior: "start",
+    },],
 } as const satisfies Ability;
 
 const initial2 = {
@@ -24,8 +24,8 @@ const initial2 = {
     type: 'gcd',
     gcd: 2.5,
     combos: [{
-        comboBehavior: "start"
-    }]
+        comboBehavior: "start",
+    },],
 } as const satisfies Ability;
 
 const notCombo = {
@@ -36,8 +36,8 @@ const notCombo = {
     type: 'gcd',
     gcd: 2.5,
     combos: [{
-        comboBehavior: 'break'
-    }]
+        comboBehavior: 'break',
+    },],
 } as const satisfies Ability;
 
 const ogcd = {
@@ -45,7 +45,7 @@ const ogcd = {
     id: 100_101,
     attackType: 'Ability',
     potency: 123,
-    type: 'ogcd'
+    type: 'ogcd',
 } as const satisfies Ability;
 
 const ogcdInterrupt = {
@@ -55,8 +55,8 @@ const ogcdInterrupt = {
     potency: 124,
     type: 'ogcd',
     combos: [{
-        comboBehavior: 'break'
-    }]
+        comboBehavior: 'break',
+    },],
 } as const satisfies Ability;
 // TODO: oGCD that breaks all combos
 // TODO: gcd that doesn't break a specific combo
@@ -70,8 +70,8 @@ const ogcdWithOtherInterrupt = {
     type: 'ogcd',
     combos: [{
         comboKey: 'side combo',
-        comboBehavior: 'break'
-    }]
+        comboBehavior: 'break',
+    },],
 } as const satisfies Ability;
 
 const ogcdThatBreaksEverything = {
@@ -82,8 +82,8 @@ const ogcdThatBreaksEverything = {
     type: 'ogcd',
     combos: [{
         comboKey: "all",
-        comboBehavior: "break"
-    }]
+        comboBehavior: "break",
+    },],
 } as const satisfies Ability;
 
 const ogcdThatBreaksEverythingButThis = {
@@ -94,13 +94,13 @@ const ogcdThatBreaksEverythingButThis = {
     type: 'ogcd',
     combos: [
         {
-            comboBehavior: "nobreak"
+            comboBehavior: "nobreak",
         },
         {
             comboKey: "all",
-            comboBehavior: "break"
-        }
-    ]
+            comboBehavior: "break",
+        },
+    ],
 } as const satisfies Ability;
 
 const cont1 = {
@@ -112,9 +112,9 @@ const cont1 = {
     gcd: 2.5,
     combos: [{
         comboBehavior: "continue",
-        comboFrom: [initial1, initial2],
-        potency: 200
-    }]
+        comboFrom: [initial1, initial2,],
+        potency: 200,
+    },],
 } as const satisfies Ability;
 
 const cont2 = {
@@ -126,9 +126,9 @@ const cont2 = {
     gcd: 2.5,
     combos: [{
         comboBehavior: "continue",
-        comboFrom: [cont1],
-        potency: 500
-    }]
+        comboFrom: [cont1,],
+        potency: 500,
+    },],
 } as const satisfies Ability;
 
 const nonBreakingGcd = {
@@ -139,8 +139,8 @@ const nonBreakingGcd = {
     type: 'gcd',
     gcd: 2.5,
     combos: [{
-        comboBehavior: 'nobreak'
-    }]
+        comboBehavior: 'nobreak',
+    },],
 } as const satisfies Ability;
 
 const gnashKey = 'gnashingCombo';
@@ -153,11 +153,11 @@ const gnbGnash1 = {
     type: 'gcd',
     gcd: 2.5,
     combos: [{
-        comboBehavior: 'nobreak'
+        comboBehavior: 'nobreak',
     }, {
         comboKey: gnashKey,
-        comboBehavior: 'start'
-    }]
+        comboBehavior: 'start',
+    },],
 } as const satisfies Ability;
 
 const gnbGnash2 = {
@@ -169,13 +169,13 @@ const gnbGnash2 = {
     type: 'gcd',
     gcd: 2.5,
     combos: [{
-        comboBehavior: 'nobreak'
+        comboBehavior: 'nobreak',
     }, {
         comboKey: gnashKey,
         comboBehavior: 'continue',
-        comboFrom: [gnbGnash1],
-        potency: 460
-    }]
+        comboFrom: [gnbGnash1,],
+        potency: 460,
+    },],
 } as const satisfies Ability;
 
 const gnbGnash3 = {
@@ -186,13 +186,13 @@ const gnbGnash3 = {
     type: 'gcd',
     gcd: 2.5,
     combos: [{
-        comboBehavior: 'nobreak'
+        comboBehavior: 'nobreak',
     }, {
         comboKey: gnashKey,
         comboBehavior: 'continue',
-        comboFrom: [gnbGnash2],
-        potency: 540
-    }]
+        comboFrom: [gnbGnash2,],
+        potency: 540,
+    },],
 } as const satisfies Ability;
 
 /** TODO: test cases
@@ -209,7 +209,7 @@ function quickTest(testCase: (cp: CycleProcessor) => void): FinalizedAbility[] {
         stats: exampleGearSet.computedStats,
         totalTime: 295,
         useAutos: false,
-        cutoffMode: 'prorate-gcd'
+        cutoffMode: 'prorate-gcd',
     });
     testCase(cp);
     const displayRecords = cp.finalizedRecords;

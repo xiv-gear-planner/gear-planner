@@ -10,7 +10,8 @@ export function setModal(modal: Modal | undefined) {
     }
     if (modal) {
         document.addEventListener('mousedown', listener);
-    } else {
+    }
+    else {
         document.removeEventListener('mousedown', listener);
     }
     currentModal = modal;
@@ -23,7 +24,8 @@ export function closeModal() {
 const listener = (ev: MouseEvent) => {
     if (!currentModal) {
         return;
-    } else {
+    }
+    else {
         const modalElement = currentModal.element;
         if (!(ev.target instanceof HTMLElement)) {
             return;
@@ -33,7 +35,8 @@ const listener = (ev: MouseEvent) => {
             if (modalElement === eventTarget) {
                 // Click was on the modal. Ignore.
                 return;
-            } else {
+            }
+            else {
                 eventTarget = eventTarget.parentElement;
             }
         }

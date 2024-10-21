@@ -42,10 +42,12 @@ export function formatTopMenu(hash: string[]) {
             console.debug(`Expected: ${expected}, actual: ${hash}`);
             if (arrayEq(expected, hash)) {
                 link.classList.add('current-page');
-            } else {
+            }
+            else {
                 if (hash.length >= expected.length && arrayEq(hash.slice(0, expected.length), expected)) {
                     link.classList.add('current-page');
-                } else {
+                }
+                else {
                     link.classList.remove('current-page');
                 }
             }
@@ -60,7 +62,8 @@ export function showLoadingScreen() {
 export function setTitle(titlePart: string | undefined) {
     if (titlePart === undefined) {
         document.title = pageTitle;
-    } else {
+    }
+    else {
         document.title = titlePart + ' - ' + pageTitle;
     }
 }
@@ -72,7 +75,8 @@ export function earlyUiSetup() {
         ev.preventDefault();
         if (devMenu.style.display === 'none') {
             devMenu.style.display = '';
-        } else {
+        }
+        else {
             devMenu.style.display = 'none';
         }
     });

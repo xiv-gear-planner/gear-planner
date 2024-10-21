@@ -43,24 +43,24 @@ export const samSpec: SimSpec<SamSim, SamSettingsExternal> = {
     loadSavedSimInstance: function (exported: SamSettingsExternal) {
         return new SamSim(exported);
     },
-    supportedJobs: ['SAM'],
-    supportedLevels: [100],
+    supportedJobs: ['SAM',],
+    supportedLevels: [100,],
     isDefaultSim: true,
     maintainers: [{
         name: 'Makar',
         contact: [{
             type: 'discord',
             discordTag: 'makar',
-            discordUid: '85924030661533696'
-        }]
+            discordUid: '85924030661533696',
+        },],
     }, {
         name: 'boxer',
         contact: [{
             type: 'discord',
             discordTag: '.boxer',
-            discordUid: '123575345898061825'
-        }]
-    }]
+            discordUid: '123575345898061825',
+        },],
+    },],
 };
 
 class SAMCycleProcessor extends CycleProcessor {
@@ -82,12 +82,12 @@ class SAMCycleProcessor extends CycleProcessor {
     override addAbilityUse(usedAbility: PreDmgAbilityUseRecordUnf) {
         // Add gauge data to this record for the UI
         const extraData: SAMExtraData = {
-            gauge: this.gauge.getGaugeState()
+            gauge: this.gauge.getGaugeState(),
         };
 
         const modified: PreDmgAbilityUseRecordUnf = {
             ...usedAbility,
-            extraData
+            extraData,
         };
 
         super.addAbilityUse(modified);
@@ -108,7 +108,7 @@ export class SamSim extends BaseMultiCycleSim<SamSimResult, SamSettings, SAMCycl
             ...super.defaultCycleSettings(),
             totalTime: (8 * 60) + 35,
             cycles: 0,
-            which: 'totalTime'
+            which: 'totalTime',
         };
     }
 
@@ -119,14 +119,14 @@ export class SamSim extends BaseMultiCycleSim<SamSimResult, SamSettings, SAMCycl
     protected createCycleProcessor(settings: MultiCycleSettings): SAMCycleProcessor {
         return new SAMCycleProcessor({
             ...settings,
-            hideCycleDividers: true
+            hideCycleDividers: true,
         });
     }
 
     override makeDefaultSettings(): SamSettings {
         return {
             usePotion: true,
-            prePullMeikyo: 14
+            prePullMeikyo: 14,
         };
     }
 
@@ -173,9 +173,9 @@ export class SamSim extends BaseMultiCycleSim<SamSimResult, SamSettings, SAMCycl
             return {
                 name: "2.14 GCD Rotation",
                 rotation: {
-                    opener: [...SlowSamRotation.Opener],
-                    loop: [...SlowSamRotation.Loop]
-                }
+                    opener: [...SlowSamRotation.Opener,],
+                    loop: [...SlowSamRotation.Loop,],
+                },
             };
         }
 
@@ -183,25 +183,25 @@ export class SamSim extends BaseMultiCycleSim<SamSimResult, SamSettings, SAMCycl
             return {
                 name: "2.07 GCD Rotation",
                 rotation: {
-                    opener: [...MidSamRotation.Opener],
-                    loop: [...MidSamRotation.Loop]
-                }
+                    opener: [...MidSamRotation.Opener,],
+                    loop: [...MidSamRotation.Loop,],
+                },
             };
         }
 
         return {
             name: "2.00 GCD Rotation",
             rotation: {
-                opener: [...FastSamRotation.Opener],
-                loop: [...FastSamRotation.Loop]
-            }
+                opener: [...FastSamRotation.Opener,],
+                loop: [...FastSamRotation.Loop,],
+            },
         };
     }
 
     getRotationsToSimulate(set: CharacterGearSet): Rotation<SAMCycleProcessor>[] {
         const gcd = set.results.computedStats.gcdPhys(2.5, 13);
-        const { name, rotation } = SamSim.getRotationForGcd(gcd);
-        const settings = { ...this.settings };
+        const { name, rotation, } = SamSim.getRotationForGcd(gcd);
+        const settings = { ...this.settings, };
         const outer = this;
 
         console.log(`[SAM Sim] Running ${name}...`);
@@ -235,7 +235,7 @@ export class SamSim extends BaseMultiCycleSim<SamSimResult, SamSettings, SAMCycl
                         });
                     });
                 }
-            }
-        }];
+            },
+        },];
     }
 }

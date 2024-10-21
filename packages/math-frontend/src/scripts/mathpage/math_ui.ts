@@ -41,13 +41,13 @@ import {LoadingBlocker} from "@xivgear/common-ui/components/loader";
 
 hljs.registerLanguage('javascript', javascript);
 
-export const tableDisplayOptions = ['Show By Tier', 'Show Full'] as const;
+export const tableDisplayOptions = ['Show By Tier', 'Show Full',] as const;
 export type DisplayType = typeof tableDisplayOptions[number];
 
 
 function labeledInput(labelText: string, element: HTMLElement): HTMLDivElement {
     const label = labelFor(labelText, element);
-    return quickElement('div', ['vertical-labeled-input'], [label, element]);
+    return quickElement('div', ['vertical-labeled-input',], [label, element,]);
 }
 
 /**
@@ -89,14 +89,16 @@ function getPrimaryVarSpec<X extends object>(formulaSet: MathFormulaSet<X>): Var
     if (pvKey === 'level') {
         return {
             label: "Level",
-            type: "level"
+            type: "level",
         };
-    } else if (pvKey === 'job') {
+    }
+    else if (pvKey === 'job') {
         return {
             label: "Job",
-            type: 'job'
+            type: 'job',
         };
-    } else {
+    }
+    else {
         return formulaSet.variables.find(v => v['property'] === formulaSet.primaryVariable);
     }
 }
@@ -127,7 +129,7 @@ export class MathArea extends HTMLElement {
         this.generalSettings = {
             classJob: 'WHM',
             levelStats: undefined,
-            displayType: 'Show By Tier'
+            displayType: 'Show By Tier',
         };
         this.level = CURRENT_MAX_LEVEL;
 
@@ -136,7 +138,7 @@ export class MathArea extends HTMLElement {
         this.appendChild(this.heading);
 
         // Formula picker menu
-        this.menu = quickElement('div', ['formula-selector-area'], []);
+        this.menu = quickElement('div', ['formula-selector-area',], []);
         registered.forEach(reg => {
             const menuItem = makeActionButton(reg.name, () => {
                 this.setFormulaSet(reg);
@@ -148,16 +150,16 @@ export class MathArea extends HTMLElement {
         this.appendChild(this.menu);
 
         // Settings area which is not specific to any formula
-        const displayType = new FieldBoundDataSelect(writeProxy(this.generalSettings, () => this.update()), 'displayType', item => item.toString(), [...tableDisplayOptions]);
+        const displayType = new FieldBoundDataSelect(writeProxy(this.generalSettings, () => this.update()), 'displayType', item => item.toString(), [...tableDisplayOptions,]);
         const jobDropdown = new FieldBoundDataSelect(writeProxy(this.generalSettings, () => this.update()), 'classJob', item => item, Object.keys(JOB_DATA) as JobName[]);
         const levelDropdown = fieldBoundLevelSelect(writeProxy(this as {
             'level': SupportedLevel
         }, () => this.update()), 'level');
-        const genericSettingsArea = quickElement('div', ['generic-settings-area'], [labeledInput('Table Style', displayType), labeledInput('Job', jobDropdown), labeledInput('Level', levelDropdown)]);
+        const genericSettingsArea = quickElement('div', ['generic-settings-area',], [labeledInput('Table Style', displayType), labeledInput('Job', jobDropdown), labeledInput('Level', levelDropdown),]);
 
         // Settings area for specific formula. To be filled in when a formula is selected.
-        this.specificSettingsArea = quickElement('div', ['specific-settings-area'], []);
-        const settingsArea = quickElement('div', ['settings-area'], [genericSettingsArea, this.specificSettingsArea]);
+        this.specificSettingsArea = quickElement('div', ['specific-settings-area',], []);
+        const settingsArea = quickElement('div', ['settings-area',], [genericSettingsArea, this.specificSettingsArea,]);
         this.appendChild(settingsArea);
 
         // Landing text area. To be filled externally by the page loading scripts.
@@ -165,7 +167,7 @@ export class MathArea extends HTMLElement {
         this.appendChild(this.landingOuter);
 
         // Results table. Table itself is added on demand.
-        this.tableArea = quickElement('div', ['math-result-table-holder'], []);
+        this.tableArea = quickElement('div', ['math-result-table-holder',], []);
         this.appendChild(this.tableArea);
 
         // Formula text holder
@@ -177,12 +179,13 @@ export class MathArea extends HTMLElement {
         const showHide = new ShowHideButton(true, hidden => {
             if (hidden) {
                 this.subFormulaeArea.style.display = 'none';
-            } else {
+            }
+            else {
                 this.subFormulaeArea.style.display = '';
             }
         });
 
-        const formulaHeader = quickElement('h3', [], ['Show/Hide Formulae', showHide]);
+        const formulaHeader = quickElement('h3', [], ['Show/Hide Formulae', showHide,]);
         formulaHeader.addEventListener('click', ev => {
             showHide.toggle();
         });
@@ -202,7 +205,8 @@ export class MathArea extends HTMLElement {
         const saved = this.formulaSettingsStickyHolder.get(formulaSet as unknown as MathFormulaSet<object>);
         if (saved) {
             return saved as AllInputType;
-        } else {
+        }
+        else {
             const out = formulaSet.makeDefaultInputs(this.generalSettings);
             this.formulaSettingsStickyHolder.set(formulaSet as unknown as MathFormulaSet<object>, out);
             return out;
@@ -241,11 +245,11 @@ export class MathArea extends HTMLElement {
                     if (primary !== undefined) {
                         newPrimary[formulaSet.primaryVariable as string] = primary;
                     }
-                    const inputs = {...settings, ...newPrimary};
+                    const inputs = {...settings, ...newPrimary,};
                     const results: ResultSet = {};
                     for (const fn of funcs) {
                         results[fn.name] = {
-                            value: await fn.argExtractor(inputs, outer.generalSettings).then(args => fn.fn(...args)) as number
+                            value: await fn.argExtractor(inputs, outer.generalSettings).then(args => fn.fn(...args)) as number,
                         };
                     }
                     return {
@@ -254,7 +258,7 @@ export class MathArea extends HTMLElement {
                         inputsMax: inputs,
                         isOriginalPrimary: primaryFlag,
                         results: results,
-                        isRange: false
+                        isRange: false,
                     };
                 }
 
@@ -267,20 +271,21 @@ export class MathArea extends HTMLElement {
                 const primaryVariableSpec = getPrimaryVarSpec(formulaSet);
                 if (primaryVariableSpec === undefined) {
                     await addRow(undefined, true);
-                } else if (primaryVariableSpec.type === 'level') {
+                }
+                else if (primaryVariableSpec.type === 'level') {
                     const levels = SupportedLevels;
                     const selectedLevel = this.generalSettings.levelStats.level;
                     for (const level of levels) {
                         const fakeGeneralSettings: GeneralSettings = {
                             ...this.generalSettings,
-                            levelStats: LEVEL_STATS[level]
+                            levelStats: LEVEL_STATS[level],
                         };
-                        const inputs = {...settings};
+                        const inputs = {...settings,};
                         const results: ResultSet = {};
                         for (const fn of funcs) {
                             const args = await fn.argExtractor(inputs, fakeGeneralSettings);
                             results[fn.name] = {
-                                value: fn.fn(...args) as number
+                                value: fn.fn(...args) as number,
                             };
                         }
                         rows.push({
@@ -289,23 +294,24 @@ export class MathArea extends HTMLElement {
                             inputsMax: inputs,
                             isOriginalPrimary: level === selectedLevel,
                             isRange: false,
-                            results: results
+                            results: results,
                         });
                     }
-                } else if (primaryVariableSpec.type === 'job') {
+                }
+                else if (primaryVariableSpec.type === 'job') {
                     const jobs = Object.keys(JOB_DATA) as JobName[];
                     const selectedJob = this.generalSettings.classJob;
                     for (const job of jobs) {
                         const fakeGeneralSettings: GeneralSettings = {
                             ...this.generalSettings,
-                            classJob: job
+                            classJob: job,
                         };
-                        const inputs = {...settings};
+                        const inputs = {...settings,};
                         const results: ResultSet = {};
                         for (const fn of funcs) {
                             const args = await fn.argExtractor(inputs, fakeGeneralSettings);
                             results[fn.name] = {
-                                value: fn.fn(...args) as number
+                                value: fn.fn(...args) as number,
                             };
                         }
                         rows.push({
@@ -314,10 +320,11 @@ export class MathArea extends HTMLElement {
                             inputsMax: inputs,
                             isOriginalPrimary: job === selectedJob,
                             isRange: false,
-                            results: results
+                            results: results,
                         });
                     }
-                } else if (primaryVariableSpec.type === 'number' && primaryVariableSpec.integer) {
+                }
+                else if (primaryVariableSpec.type === 'number' && primaryVariableSpec.integer) {
                     const prop = primaryVariableSpec.property;
                     const currentPrimaryValue = settings[prop] as number;
                     const hardMin = primaryVariableSpec.min?.(this.generalSettings) ?? Number.MIN_SAFE_INTEGER;
@@ -346,7 +353,8 @@ export class MathArea extends HTMLElement {
                                 if (resultsEquals(last.results, next.results)) {
                                     last.inputs = next.inputs;
                                     last.isRange = true;
-                                } else {
+                                }
+                                else {
                                     // Otherwise, push old previous to the output list, and set a new comparison baseline.
                                     if (last !== base) {
                                         lowerOut.push(last);
@@ -374,7 +382,8 @@ export class MathArea extends HTMLElement {
                                 if (resultsEquals(last.results, next.results)) {
                                     last.inputsMax = next.inputsMax;
                                     last.isRange = true;
-                                } else {
+                                }
+                                else {
                                     // Otherwise, push old previous to the output list, and set a new comparison baseline.
                                     if (last !== base) {
                                         upperOut.push(last);
@@ -411,10 +420,11 @@ export class MathArea extends HTMLElement {
                         break;
                     }
                     }
-                } else {
+                }
+                else {
                     await addRow(undefined, true);
                 }
-                table.data = [new HeaderRow(), ...rows];
+                table.data = [new HeaderRow(), ...rows,];
                 for (const entry of table.dataRowMap.entries()) {
                     if (entry[0].isOriginalPrimary) {
                         scrollIntoView(entry[1], 'center');
@@ -429,10 +439,10 @@ export class MathArea extends HTMLElement {
             const newChildren = formulaSet.functions
                 .filter(formula => !formula.excludeFormula)
                 .map(formula => {
-                    const heading = quickElement('h3', [], [formula.name]);
-                    const codeArea = quickElement('pre', [], [functionText(formula.fn)]);
+                    const heading = quickElement('h3', [], [formula.name,]);
+                    const codeArea = quickElement('pre', [], [functionText(formula.fn),]);
                     hljs.configure({
-                        languages: ['js']
+                        languages: ['js',],
                     });
                     hljs.highlightElement(codeArea);
                     codeArea.querySelectorAll('span.hljs-title')
@@ -446,9 +456,9 @@ export class MathArea extends HTMLElement {
                                 break;
                             }
                         });
-                    const codeOuter = quickElement('div', ['code-outer'], [codeArea]);
-                    const formulaText = quickElement('div', ['function-code-area'], [codeOuter]);
-                    return quickElement('div', [], [heading, formulaText]);
+                    const codeOuter = quickElement('div', ['code-outer',], [codeArea,]);
+                    const formulaText = quickElement('div', ['function-code-area',], [codeOuter,]);
+                    return quickElement('div', [], [heading, formulaText,]);
                 });
 
             this.setFormulaAreaVisible(newChildren.length > 0);
@@ -461,13 +471,14 @@ export class MathArea extends HTMLElement {
                 columns.push({
                     displayName: 'Level',
                     shortName: 'lvl',
-                    getter: item => item.generalSettings.levelStats.level
+                    getter: item => item.generalSettings.levelStats.level,
                 });
-            } else if (formulaSet.primaryVariable === 'job') {
+            }
+            else if (formulaSet.primaryVariable === 'job') {
                 columns.push({
                     displayName: 'Job',
                     shortName: 'job',
-                    getter: item => item.generalSettings.classJob
+                    getter: item => item.generalSettings.classJob,
                 });
             }
             formulaSet.variables.forEach(variable => {
@@ -481,16 +492,17 @@ export class MathArea extends HTMLElement {
                             return {
                                 min: min,
                                 max: max,
-                                isRange: item.isRange && (min !== max)
+                                isRange: item.isRange && (min !== max),
                             };
                         },
                         renderer: value => {
                             if (value.isRange) {
                                 return document.createTextNode(`${value.min} - ${value.max}`);
-                            } else {
+                            }
+                            else {
                                 return document.createTextNode(`${value.min}`);
                             }
-                        }
+                        },
                     });
                 }
             });
@@ -504,7 +516,7 @@ export class MathArea extends HTMLElement {
                         const node = document.createElement('span');
                         node.textContent = value.value.toString();
                         return node;
-                    }
+                    },
                 });
             });
             table.columns = columns;
@@ -528,13 +540,14 @@ export class MathArea extends HTMLElement {
                     return row.dataItem.isOriginalPrimary;
                 },
                 clearSelection(): void {
-                }
+                },
             };
             this.tableArea.replaceChildren(table, this.loader);
             this.loading = true;
-            table.data = [new HeaderRow()];
+            table.data = [new HeaderRow(),];
             update().then(() => this.loading = false);
-        } else {
+        }
+        else {
             this.heading.textContent = 'Math';
             this.setFormulaAreaVisible(false);
             this.landingOuter.style.display = '';
@@ -543,7 +556,8 @@ export class MathArea extends HTMLElement {
             const active = btn.value === formulaSet?.stub;
             if (active) {
                 btn.classList.add('active');
-            } else {
+            }
+            else {
                 btn.classList.remove('active');
             }
         });
@@ -553,7 +567,8 @@ export class MathArea extends HTMLElement {
     setFormulaAreaVisible(visible: boolean): void {
         if (visible) {
             this.subFormulaeOuter.style.display = '';
-        } else {
+        }
+        else {
             this.subFormulaeOuter.style.display = 'none';
         }
     }
@@ -566,7 +581,8 @@ export class MathArea extends HTMLElement {
         this._loading = value;
         if (value) {
             this.loader.show();
-        } else {
+        }
+        else {
             this.loader.hide();
         }
     }
@@ -604,9 +620,10 @@ export class MathArea extends HTMLElement {
                 const validators: FbctPostValidator<AllArgType, number>[] = [];
                 validators.push(clampValues(variable.min?.(this.generalSettings), variable.max?.(this.generalSettings)));
                 if (variable.integer) {
-                    editor = new FieldBoundIntField(proxy, variable.property, {postValidators: validators});
-                } else {
-                    editor = new FieldBoundFloatField(proxy, variable.property, {postValidators: validators});
+                    editor = new FieldBoundIntField(proxy, variable.property, {postValidators: validators,});
+                }
+                else {
+                    editor = new FieldBoundFloatField(proxy, variable.property, {postValidators: validators,});
                 }
                 out.appendChild(labeledInput(variable.label, editor));
                 break;
@@ -633,7 +650,8 @@ export function openMath(formulaKey: string | null) {
     setMainContent('Math', mathArea);
     if (formulaSet) {
         mathArea.setFormulaSet(formulaSet);
-    } else {
+    }
+    else {
         mathArea.setFormulaSet(null);
     }
 }

@@ -99,7 +99,8 @@ export class CustomTableTitleRow extends HTMLTableRowElement {
         let node;
         if (title instanceof Node) {
             node = title;
-        } else {
+        }
+        else {
             node = document.createTextNode(title);
         }
         const cell = document.createElement("th");
@@ -147,7 +148,7 @@ export const noopSelectionModel: SelectionModel<any, undefined> = {
         return false;
     },
     clearSelection() {
-    }
+    },
 };
 
 export interface SelectionListener<SelectionType> {
@@ -272,8 +273,9 @@ export class CustomTable<RowDataType, SelectionType = never> extends HTMLTableEl
             const out = new CustomColumn(colDefPartial);
             Object.assign(out, colDefPartial);
             if (out.condition()) {
-                return [out];
-            } else {
+                return [out,];
+            }
+            else {
                 return [];
             }
         });
@@ -289,7 +291,7 @@ export class CustomTable<RowDataType, SelectionType = never> extends HTMLTableEl
     }
 
     get data() {
-        return [...this._data];
+        return [...this._data,];
     }
 
     /**
@@ -304,17 +306,21 @@ export class CustomTable<RowDataType, SelectionType = never> extends HTMLTableEl
             if (item instanceof HeaderRow) {
                 const header = new CustomTableHeaderRow(this);
                 newRowElements.push(header);
-            } else if (item instanceof TitleRow) {
+            }
+            else if (item instanceof TitleRow) {
                 newRowElements.push(new CustomTableTitleRow(this, item.title));
-            } else if (item instanceof SpecialRow) {
+            }
+            else if (item instanceof SpecialRow) {
                 const out = new CustomTableTitleRow(this, item.creator(this));
                 item.finisher(out, this);
                 newRowElements.push(out);
-            } else {
+            }
+            else {
                 if (this.dataRowMap.has(item)) {
                     newRowElements.push(this.dataRowMap.get(item));
-                } else {
-                    const newRow = new CustomRow<RowDataType>(item, this, {noInitialRefresh: true});
+                }
+                else {
+                    const newRow = new CustomRow<RowDataType>(item, this, {noInitialRefresh: true,});
                     this.dataRowMap.set(item, newRow);
                     newRow.refreshFull();
                     newRowElements.push(newRow);
@@ -328,7 +334,8 @@ export class CustomTable<RowDataType, SelectionType = never> extends HTMLTableEl
             if (value instanceof CustomRow) {
                 this.selectionRefreshables.push(value);
                 this._rows.push(value);
-            } else if (value instanceof CustomTableHeaderRow) {
+            }
+            else if (value instanceof CustomTableHeaderRow) {
                 this.selectionRefreshables.push(value);
                 this._rows.push(value);
             }
@@ -354,7 +361,8 @@ export class CustomTable<RowDataType, SelectionType = never> extends HTMLTableEl
         }
         if (item instanceof CustomRow) {
             item.refreshFull();
-        } else {
+        }
+        else {
             const row = this.dataRowMap.get(item);
             if (row) {
                 row.refreshFull();
@@ -367,7 +375,8 @@ export class CustomTable<RowDataType, SelectionType = never> extends HTMLTableEl
             for (const row of this._rows) {
                 row.refreshColumn(item);
             }
-        } else {
+        }
+        else {
             const col = this._columns.find(col => col.dataValue === item);
             if (col) {
                 for (const row of this._rows) {
@@ -395,23 +404,29 @@ export class CustomTable<RowDataType, SelectionType = never> extends HTMLTableEl
         if (target instanceof CustomRow) {
             this.selectionModel.clickRow(target);
             this.refreshSelection();
-        } else if (target instanceof CustomCell) {
+        }
+        else if (target instanceof CustomCell) {
             if (target.colDef.allowCellSelection) {
                 this.selectionModel.clickCell(target);
-            } else {
+            }
+            else {
                 this.selectionModel.clickRow(target.row);
             }
             this.refreshSelection();
-        } else if (target instanceof CustomTableHeaderCell) {
+        }
+        else if (target instanceof CustomTableHeaderCell) {
             if (target.colDef.allowHeaderSelection) {
                 this.selectionModel.clickColumnHeader(target.colDef);
                 this.refreshSelection();
             }
-        } else if (target instanceof HTMLButtonElement || target instanceof HTMLInputElement) {
+        }
+        else if (target instanceof HTMLButtonElement || target instanceof HTMLInputElement) {
             // Assume buttons/inputs will handle themselves
-        } else if (target === undefined || target === null) {
+        }
+        else if (target === undefined || target === null) {
             return;
-        } else {
+        }
+        else {
             this._handleClick(target.parentElement);
         }
     }
@@ -462,7 +477,8 @@ export class CustomColumn<RowDataType, CellDataType = string, ColumnDataType = a
     colStyler?: ColStyler<RowDataType, CellDataType> = (value, colElement, internalElement) => {
         if (value) {
             colElement.classList.add("value-truthy");
-        } else {
+        }
+        else {
             colElement.classList.add("value-falsey");
         }
     };
@@ -502,8 +518,9 @@ export class CustomRow<RowDataType> extends HTMLTableRowElement implements Refre
         for (const col of this.table.columns) {
             if (this.dataColMap.has(col)) {
                 newColElements.push(this.dataColMap.get(col));
-            } else {
-                const newCell = new CustomCell<RowDataType, any>(this.dataItem, col, this, {noInitialRefresh: true});
+            }
+            else {
+                const newCell = new CustomCell<RowDataType, any>(this.dataItem, col, this, {noInitialRefresh: true,});
                 this.dataColMap.set(col, newCell);
                 newColElements.push(newCell);
             }
@@ -569,21 +586,24 @@ export class CustomCell<RowDataType, CellDataType> extends HTMLTableCellElement 
             if (node) {
                 this.colDef.colStyler(this._cellValue, this, node, this.row.dataItem);
             }
-        } catch (e) {
+        }
+        catch (e) {
             console.error(e);
             node = document.createTextNode("Error");
         }
         const span = document.createElement('span');
         if (node === null || node === undefined) {
             this.replaceChildren(span);
-        } else {
+        }
+        else {
             // Due to some of the styling, the child must be a real HTML element and not a raw text node
             // Also, some elements don't support ::before, so insert a dummy span
             if (node.nodeType === this.TEXT_NODE) {
                 const text = node.textContent;
                 span.textContent = text;
                 this.replaceChildren(span);
-            } else {
+            }
+            else {
                 this.replaceChildren(span, node);
             }
         }
@@ -612,9 +632,9 @@ export class CustomCell<RowDataType, CellDataType> extends HTMLTableCellElement 
 
 }
 
-customElements.define("custom-table-row", CustomRow, {extends: "tr"});
-customElements.define("custom-table", CustomTable, {extends: "table"});
-customElements.define("custom-table-cell", CustomCell, {extends: "td"});
-customElements.define("custom-table-header-row", CustomTableHeaderRow, {extends: "tr"});
-customElements.define("custom-table-title-row", CustomTableTitleRow, {extends: "tr"});
-customElements.define("custom-table-header-cell", CustomTableHeaderCell, {extends: "th"});
+customElements.define("custom-table-row", CustomRow, {extends: "tr",});
+customElements.define("custom-table", CustomTable, {extends: "table",});
+customElements.define("custom-table-cell", CustomCell, {extends: "td",});
+customElements.define("custom-table-header-row", CustomTableHeaderRow, {extends: "tr",});
+customElements.define("custom-table-title-row", CustomTableTitleRow, {extends: "tr",});
+customElements.define("custom-table-header-cell", CustomTableHeaderCell, {extends: "th",});

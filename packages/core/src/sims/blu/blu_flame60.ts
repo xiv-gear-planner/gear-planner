@@ -16,7 +16,7 @@ export interface BluFlame60SettingsExternal extends ExternalCycleSettings<BluFla
 export const BluFlame60Spec: SimSpec<BluFlame60Sim, BluFlame60SettingsExternal> = {
     displayName: "BLU Flame 60s",
     stub: "blu-flame60",
-    supportedJobs: ["BLU"],
+    supportedJobs: ["BLU",],
     isDefaultSim: false,
     description: "Simulates a BLU Mortal Flame rotation with Moon Flute windows every 60s.",
 
@@ -26,7 +26,7 @@ export const BluFlame60Spec: SimSpec<BluFlame60Sim, BluFlame60SettingsExternal> 
 
     loadSavedSimInstance(exported: BluFlame60SettingsExternal) {
         return new BluFlame60Sim(exported);
-    }
+    },
 };
 
 export class BluFlame60Sim extends blu.BluSim<BluFlame60SimResult, BluFlame60Settings> {
@@ -141,7 +141,8 @@ export class BluFlame60Sim extends blu.BluSim<BluFlame60SimResult, BluFlame60Set
                         cycle.use(blu.Quasar);
                         cycle.use(blu.FeatherRain);
                         cycle.use(blu.MortalFlame);
-                    } else { // even Flute window after opener
+                    }
+                    else { // even Flute window after opener
                         cycle.use(blu.SonicBoom);
                         cycle.use(blu.Quasar);
                         sim.useOgcdFiller(cp);
@@ -202,12 +203,13 @@ export class BluFlame60Sim extends blu.BluSim<BluFlame60SimResult, BluFlame60Set
                         cycle.use(blu.Whistle);
                         cycle.use(blu.Tingle);
                         cycle.use(blu.MoonFlute);
-                    } else {
+                    }
+                    else {
                         // otherwise, finish off the fight with a Final Sting combo
                         sim.useStingCombo(cp);
                     }
                 });
-            }
-        }];
+            },
+        },];
     }
 }

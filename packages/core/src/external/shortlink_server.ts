@@ -9,7 +9,8 @@ function getServer() {
     if (override) {
         try {
             return new URL(override);
-        } catch (e) {
+        }
+        catch (e) {
             console.error('Invalid override URL, using default', override);
         }
     }
@@ -30,12 +31,13 @@ export async function getShortLink(stub: string): Promise<string> {
 export async function putShortLink(content: string, embed: boolean = false): Promise<URL> {
     return await fetch(getServer(), {
         method: "POST",
-        body: content
+        body: content,
     }).then(response => response.text()).then(uuid => {
         // If on prod, use the fancy share link.
         if (embed) {
             return makeUrl(EMBED_HASH, SHORTLINK_HASH, uuid);
-        } else {
+        }
+        else {
             return makeUrl(SHORTLINK_HASH, uuid);
         }
     });

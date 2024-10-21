@@ -17,7 +17,7 @@ export function registerSim(simSpec: SimSpec<any, any>) {
  * Get all registered sim specs
  */
 export function getRegisteredSimSpecs() {
-    return [...simSpecs];
+    return [...simSpecs,];
 }
 
 /**
@@ -44,7 +44,7 @@ export function getDefaultSims(job: JobName, level: SupportedLevel): SimSpec<any
             return false;
         }
         return spec.isDefaultSim ?? false;
-    })];
+    }),];
 
     if (defaultSims.length > 1) {
         defaultSims = defaultSims.filter(spec => spec.stub !== 'pr-sim');

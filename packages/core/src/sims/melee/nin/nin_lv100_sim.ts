@@ -40,17 +40,17 @@ export const ninSpec: SimSpec<NinSim, NinSettingsExternal> = {
     loadSavedSimInstance: function (exported: NinSettingsExternal) {
         return new NinSim(exported);
     },
-    supportedJobs: ['NIN'],
-    supportedLevels: [100],
+    supportedJobs: ['NIN',],
+    supportedLevels: [100,],
     isDefaultSim: true,
     maintainers: [{
         name: 'Makar',
         contact: [{
             type: 'discord',
             discordTag: 'makar',
-            discordUid: '85924030661533696'
-        }]
-    }]
+            discordUid: '85924030661533696',
+        },],
+    },],
 };
 
 class RotationState {
@@ -92,12 +92,12 @@ class NINCycleProcessor extends CycleProcessor {
     override addAbilityUse(usedAbility: PreDmgAbilityUseRecordUnf) {
         // Add gauge data to this record for the UI
         const extraData: NINExtraData = {
-            gauge: this.gauge.getGaugeState()
+            gauge: this.gauge.getGaugeState(),
         };
 
         const modified: PreDmgAbilityUseRecordUnf = {
             ...usedAbility,
-            extraData
+            extraData,
         };
 
         super.addAbilityUse(modified);
@@ -137,7 +137,7 @@ class NINCycleProcessor extends CycleProcessor {
         if (modified.id === Actions.AeolianEdge.id && this.gauge.kazematoi > 0) {
             modified = {
                 ...modified,
-                potency: modified.potency + 100
+                potency: modified.potency + 100,
             };
         }
 
@@ -149,7 +149,8 @@ class NINCycleProcessor extends CycleProcessor {
         // Use Raiju if it's available
         if (this.getBuffIfActive(Buffs.RaijuReady)) {
             fillerAction = Actions.Raiju;
-        } else {
+        }
+        else {
             // Use the next GCD in our basic combo
             fillerAction = Actions.SpinningEdge;
             switch (this.rotationState.combo) {
@@ -162,7 +163,8 @@ class NINCycleProcessor extends CycleProcessor {
                 const forceAeolian = this.getBuffIfActive(Buffs.KunaisBaneBuff) || this.getBuffIfActive(Dokumori);
                 if (this.gauge.kazematoi <= 3 && (!forceAeolian || this.gauge.kazematoi === 0)) {
                     fillerAction = Actions.ArmorCrush;
-                } else {
+                }
+                else {
                     fillerAction = Actions.AeolianEdge;
                 }
                 break;
@@ -183,7 +185,7 @@ class NINCycleProcessor extends CycleProcessor {
         const modified: MudraStep = {
             ...step,
             id: step.noChargeId,
-            cooldown: undefined
+            cooldown: undefined,
         };
         return this.useGcd(modified);
     }
@@ -212,14 +214,14 @@ class NINCycleProcessor extends CycleProcessor {
         }
         this.useGcd({
             ...Actions.Fuma,
-            animationLock: 0
+            animationLock: 0,
         });
         if (this.nextGcdTime <= this.totalTime) {
             this.advanceTo(this.nextGcdTime, true);
         }
         this.useGcd({
             ...Actions.Raiton,
-            animationLock: 0
+            animationLock: 0,
         });
         if (this.nextGcdTime <= this.totalTime) {
             this.advanceTo(this.nextGcdTime, true);
@@ -283,7 +285,8 @@ class NINCycleProcessor extends CycleProcessor {
                     this.useFillerGcd();
                     return idx;
                 }
-            } else {
+            }
+            else {
                 // Use the assigned ogcd based on a predefined order
                 result = this.useOgcd(order[idx]);
             }
@@ -292,7 +295,8 @@ class NINCycleProcessor extends CycleProcessor {
         // If our assigned ogcd was not used, use a filler ogcd
         if (result === null) {
             this.useFillerOgcd(1);
-        } else {
+        }
+        else {
             // Otherwise, continue with the ogcd order chain
             idx++;
         }
@@ -311,7 +315,8 @@ class NINCycleProcessor extends CycleProcessor {
          */
         if (phantomBuff && !comboIsBetter && (nextBuffWindow + 5 > phantomBuff.end || this.getBuffIfActive(Buffs.KunaisBaneBuff))) {
             this.usePhantom();
-        } else {
+        }
+        else {
             this.useCombo();
         }
     }
@@ -354,7 +359,7 @@ class NINCycleProcessor extends CycleProcessor {
 
     useOddMinBurst() {
         /* eslint-disable @typescript-eslint/no-unused-vars */
-        const ogcdOrder = [Actions.KunaisBane, Actions.DreamWithin];
+        const ogcdOrder = [Actions.KunaisBane, Actions.DreamWithin,];
         let counter = 0;
 
         counter = this.useOgcdInOrder(ogcdOrder, counter);
@@ -385,7 +390,7 @@ class NINCycleProcessor extends CycleProcessor {
 
     useEvenMinBurst() {
         /* eslint-disable @typescript-eslint/no-unused-vars */
-        const ogcdOrder = [Actions.KunaisBane, Actions.DreamWithin, Actions.TenChiJin, Actions.Meisui, Actions.TenriJindo];
+        const ogcdOrder = [Actions.KunaisBane, Actions.DreamWithin, Actions.TenChiJin, Actions.Meisui, Actions.TenriJindo,];
         let counter = 0;
 
         counter = this.useOgcdInOrder(ogcdOrder, counter);
@@ -424,7 +429,7 @@ export class NinSim extends BaseMultiCycleSim<NinSimResult, NinSettings, NINCycl
     spec = ninSpec;
     shortName = "nin-sim-lv100";
     displayName = ninSpec.displayName;
-    manuallyActivatedBuffs = [Dokumori];
+    manuallyActivatedBuffs = [Dokumori,];
 
     constructor(settings?: NinSettingsExternal) {
         super('NIN', settings);
@@ -439,7 +444,7 @@ export class NinSim extends BaseMultiCycleSim<NinSimResult, NinSettings, NINCycl
             ...super.defaultCycleSettings(),
             totalTime: (6 * 60) + 32,
             cycles: 0,
-            which: 'totalTime'
+            which: 'totalTime',
         };
     }
 
@@ -451,7 +456,7 @@ export class NinSim extends BaseMultiCycleSim<NinSimResult, NinSettings, NINCycl
     protected createCycleProcessor(settings: MultiCycleSettings): NINCycleProcessor {
         return new NINCycleProcessor({
             ...settings,
-            hideCycleDividers: true
+            hideCycleDividers: true,
         });
     }
 
@@ -520,7 +525,7 @@ export class NinSim extends BaseMultiCycleSim<NinSimResult, NinSettings, NINCycl
 
                     cp.useEvenMinBurst();
                 });
-            }
-        }];
+            },
+        },];
     }
 }

@@ -50,7 +50,7 @@ export const ScornBuff: Buff = {
     },
     appliesTo: ability => ability.name === "Disesteem",
     beforeSnapshot: removeSelf,
-    statusId: 3837
+    statusId: 3837,
 };
 
 export const SaltedEarthBuff: Buff = {
@@ -60,7 +60,7 @@ export const SaltedEarthBuff: Buff = {
     effects: {
         // Allows usage of Salt and Darkness
     },
-    statusId: 749
+    statusId: 749,
 };
 
 export const BloodWeaponBuff: Buff = {
@@ -89,14 +89,14 @@ export const BloodWeaponBuff: Buff = {
                 if (oldUpdateMP) {
                     oldUpdateMP(gauge);
                 }
-            }
+            },
         };
     },
     beforeSnapshot<X extends DrkAbility>(buffController: BuffController, ability: X): X {
         buffController.subtractStacksSelf(1);
         return ability;
     },
-    statusId: 742
+    statusId: 742,
 };
 
 export const DeliriumBuff: Buff = {
@@ -112,5 +112,5 @@ export const DeliriumBuff: Buff = {
         buffController.subtractStacksSelf(1);
         return ability;
     },
-    statusId: 3836
+    statusId: 3836,
 };

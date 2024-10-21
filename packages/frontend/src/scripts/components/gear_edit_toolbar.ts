@@ -19,7 +19,7 @@ function makeIlvlArea(
     itemIlvlRange.addListener((min, max) => {
         recordSheetEvent('itemIlvlRange', sheet, {
             min: min,
-            max: max
+            max: max,
         });
     });
     ilvlDiv.appendChild(itemIlvlRange);
@@ -29,7 +29,7 @@ function makeIlvlArea(
     foodIlvlRange.addListener((min, max) => {
         recordSheetEvent('foodIlvlRange', sheet, {
             min: min,
-            max: max
+            max: max,
         });
     });
     ilvlDiv.appendChild(foodIlvlRange);
@@ -54,12 +54,12 @@ export class ToolbarButtonsArea extends HTMLDivElement {
     constructor() {
         super();
         this.classList.add('toolbar-buttons-area');
-        this.undoButton = makeActionButton([undoIcon()], () => {
+        this.undoButton = makeActionButton([undoIcon(),], () => {
             recordEvent("undo");
             this.currentSet?.undo();
         }, 'Undo');
         this.undoButton.classList.add('big-text-btn');
-        this.redoButton = makeActionButton([redoIcon()], () => {
+        this.redoButton = makeActionButton([redoIcon(),], () => {
             recordEvent("redo");
             this.currentSet?.redo();
         }, 'Redo');
@@ -120,7 +120,8 @@ export class ToolbarButtonsArea extends HTMLDivElement {
         if (button.getAttribute(attr)) {
             button.removeAttribute(attr);
             this.setActivePopoutElement(undefined);
-        } else { // New button pressed - show popout
+        }
+        else { // New button pressed - show popout
             button.setAttribute(attr, 'true');
             this.panelButtons.forEach(btn => {
                 if (btn !== button) {
@@ -137,7 +138,8 @@ export class ToolbarButtonsArea extends HTMLDivElement {
             this.popoutArea.replaceChildren(popoutElement);
             this.popoutArea.style.display = '';
             currentToolbarPopout = popoutElement;
-        } else {
+        }
+        else {
             this.popoutArea.replaceChildren();
             this.popoutArea.style.display = 'none';
             currentToolbarPopout = null;
@@ -165,13 +167,13 @@ export class GearEditToolbar extends HTMLDivElement {
         this.buttonsArea = new ToolbarButtonsArea();
 
         const ilvlDiv = makeIlvlArea(sheet, itemDisplaySettings, displayUpdateCallback);
-        this.buttonsArea.addPanelButton(["Gear", document.createElement('br'), "Filters"], ilvlDiv);
+        this.buttonsArea.addPanelButton(["Gear", document.createElement('br'), "Filters",], ilvlDiv);
 
         this.appendChild(this.buttonsArea);
 
         const materiaPriority = new MateriaPriorityPicker(matFillCtrl, sheet);
 
-        this.buttonsArea.addPanelButton(["Materia", document.createElement('br'), "Fill/Solve"], materiaPriority);
+        this.buttonsArea.addPanelButton(["Materia", document.createElement('br'), "Fill/Solve",], materiaPriority);
 
         this.statTierDisplay = new StatTierDisplay(sheet);
         this.appendChild(this.statTierDisplay);
@@ -183,5 +185,5 @@ export class GearEditToolbar extends HTMLDivElement {
     }
 }
 
-customElements.define('gear-edit-toolbar', GearEditToolbar, {extends: 'div'});
-customElements.define('gear-edit-toolbar-buttons-area', ToolbarButtonsArea, {extends: 'div'});
+customElements.define('gear-edit-toolbar', GearEditToolbar, {extends: 'div',});
+customElements.define('gear-edit-toolbar-buttons-area', ToolbarButtonsArea, {extends: 'div',});

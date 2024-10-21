@@ -54,7 +54,7 @@ export class BaseUsageCountSimGui<ResultType extends CountSimResult, InternalSet
             "Expected +3σ": applyStdDev(result.mainDpsFull, 3),
             "Unbuffed PPS": result.unbuffedPps,
             "Total Damage": result.totalDamage.expected,
-            "Cycle Time": result.cycleTime.toFixed(3)
+            "Cycle Time": result.cycleTime.toFixed(3),
         });
         mainResultsTable.classList.add('main-results-table');
 
@@ -81,14 +81,15 @@ export class BaseUsageCountSimGui<ResultType extends CountSimResult, InternalSet
                         ability: ability,
                         usages: new Map<number, number>(),
                         outOfBuffs: 0,
-                        total: 0
+                        total: 0,
                     };
                     transposedData.push(abilityData);
                 }
                 abilityData.total += count;
                 if (duration !== null) {
                     abilityData.usages.set(duration, (abilityData.usages.get(duration) ?? 0) + count);
-                } else {
+                }
+                else {
                     abilityData.outOfBuffs += count;
                 }
             });
@@ -105,8 +106,8 @@ export class BaseUsageCountSimGui<ResultType extends CountSimResult, InternalSet
             getter: item => item.ability,
             renderer: (value: Ability) => {
                 return document.createTextNode(`${value.name}`);
-            }
-        }];
+            },
+        },];
         buffDurations.forEach(dur => {
             columns.push({
                 shortName: `buff-dur-${dur}`,
@@ -114,7 +115,7 @@ export class BaseUsageCountSimGui<ResultType extends CountSimResult, InternalSet
                 getter: bucket => {
                     return bucket.usages.get(dur) ?? 0;
                 },
-                renderer: value => document.createTextNode(value.toFixed(3))
+                renderer: value => document.createTextNode(value.toFixed(3)),
             });
         });
         columns.push({
@@ -123,7 +124,7 @@ export class BaseUsageCountSimGui<ResultType extends CountSimResult, InternalSet
             getter: bucket => {
                 return bucket.outOfBuffs;
             },
-            renderer: value => document.createTextNode(value.toFixed(3))
+            renderer: value => document.createTextNode(value.toFixed(3)),
         });
         columns.push({
             shortName: `total`,
@@ -131,12 +132,12 @@ export class BaseUsageCountSimGui<ResultType extends CountSimResult, InternalSet
             getter: bucket => {
                 return bucket.total;
             },
-            renderer: value => document.createTextNode(value.toFixed(3))
+            renderer: value => document.createTextNode(value.toFixed(3)),
         });
         bucketsTable.columns = columns;
 
-        bucketsTable.data = [new HeaderRow(), ...transposedData];
+        bucketsTable.data = [new HeaderRow(), ...transposedData,];
 
-        return quickElement('div', ['cycle-sim-results-table'], [mainResultsTable, bucketsTable]);
+        return quickElement('div', ['cycle-sim-results-table',], [mainResultsTable, bucketsTable,]);
     }
 }

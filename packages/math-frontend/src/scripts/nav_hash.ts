@@ -34,7 +34,7 @@ export function arrayEq(left: unknown[] | undefined, right: unknown[] | undefine
  * Get the current page path
  */
 export function getCurrentHash() {
-    return [...expectedHash];
+    return [...expectedHash,];
 }
 
 /**
@@ -66,11 +66,11 @@ export type NavPath = {
 };
 
 export function parsePath(originalPath: string[]): NavPath | null {
-    const path = [...originalPath];
+    const path = [...originalPath,];
     if (path.length === 0) {
         return {
             type: 'math',
-            formula: null
+            formula: null,
         };
     }
     const mainNav = path[0];
@@ -78,7 +78,7 @@ export function parsePath(originalPath: string[]): NavPath | null {
     if (mainNav === CALC_HASH) {
         return {
             type: 'math',
-            formula: path.length >= 2 ? path[1] : null
+            formula: path.length >= 2 ? path[1] : null,
         };
     }
     console.log('Unknown nav path', path);
@@ -129,7 +129,7 @@ export function setHash(...hashParts: string[]) {
             return;
         }
     }
-    expectedHash = [...hashParts];
+    expectedHash = [...hashParts,];
     console.log("New hash parts", hashParts);
     const hash = hashParts.map(part => encodeURIComponent(part)).join(PATH_SEPARATOR);
     manipulateUrlParams(params => params.set(HASH_QUERY_PARAM, hash));

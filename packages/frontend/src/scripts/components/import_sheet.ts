@@ -45,7 +45,8 @@ export class ImportSheetArea extends NamedSection {
         if (ready) {
             this.loader.hide();
             this.importButton.disabled = false;
-        } else {
+        }
+        else {
             this.loader.show();
             this.importButton.disabled = true;
         }
@@ -59,7 +60,8 @@ export class ImportSheetArea extends NamedSection {
             case "json":
                 try {
                     this.doJsonImport(parsed.rawData);
-                } catch (e) {
+                }
+                catch (e) {
                     console.error('Import error', e);
                     alert('Error importing');
                 }
@@ -112,9 +114,11 @@ export class ImportSheetArea extends NamedSection {
         const rawImport = JSON.parse(text);
         if ('sets' in rawImport && rawImport.sets.length) {
             this.sheetOpenCallback(GRAPHICAL_SHEET_PROVIDER.fromExport(rawImport));
-        } else if ('name' in rawImport && 'items' in rawImport) {
+        }
+        else if ('name' in rawImport && 'items' in rawImport) {
             this.sheetOpenCallback(GRAPHICAL_SHEET_PROVIDER.fromSetExport(rawImport));
-        } else {
+        }
+        else {
             alert("That doesn't look like a valid sheet or set");
         }
     }

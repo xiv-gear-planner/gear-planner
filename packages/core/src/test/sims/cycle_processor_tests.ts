@@ -54,7 +54,7 @@ const filler: GcdAbility = {
     potency: 310,
     attackType: "Spell",
     gcd: 2.5,
-    cast: 1.5
+    cast: 1.5,
 };
 
 const weaponSkill: GcdAbility = {
@@ -64,7 +64,7 @@ const weaponSkill: GcdAbility = {
     potency: 310,
     attackType: "Weaponskill",
     gcd: 2.5,
-    cast: 1.5
+    cast: 1.5,
 };
 
 const nop: GcdAbility = {
@@ -74,7 +74,7 @@ const nop: GcdAbility = {
     potency: null,
     attackType: "Spell",
     gcd: 2.5,
-    cast: 2.0
+    cast: 2.0,
 };
 
 const dia: GcdAbility = {
@@ -85,10 +85,10 @@ const dia: GcdAbility = {
     dot: {
         id: 1871,
         tickPotency: 65,
-        duration: 30
+        duration: 30,
     },
     attackType: "Spell",
-    gcd: 2.5
+    gcd: 2.5,
 };
 
 const assize: OgcdAbility = {
@@ -96,7 +96,7 @@ const assize: OgcdAbility = {
     type: 'ogcd',
     name: "Assize",
     potency: 400,
-    attackType: "Ability"
+    attackType: "Ability",
 };
 
 const pom: OgcdAbility = {
@@ -110,11 +110,11 @@ const pom: OgcdAbility = {
             selfOnly: true,
             duration: 15,
             effects: {
-                haste: 20
-            }
-        }
+                haste: 20,
+            },
+        },
     ],
-    attackType: "Ability"
+    attackType: "Ability",
 };
 
 const misery: GcdAbility = {
@@ -123,7 +123,7 @@ const misery: GcdAbility = {
     name: "Afflatus Misery",
     potency: 1240,
     attackType: "Spell",
-    gcd: 2.5
+    gcd: 2.5,
 };
 
 const lily: GcdAbility = {
@@ -132,7 +132,7 @@ const lily: GcdAbility = {
     name: "Afflatus Rapture",
     potency: 0,
     attackType: "Spell",
-    gcd: 2.5
+    gcd: 2.5,
 };
 
 export const testSimSpec: SimSpec<TestMultiCycleSim, TestSimSettingsExternal> = {
@@ -144,8 +144,8 @@ export const testSimSpec: SimSpec<TestMultiCycleSim, TestSimSettingsExternal> = 
         return new TestMultiCycleSim();
     },
     stub: "test-whm-sim",
-    supportedJobs: ['WHM'],
-    isDefaultSim: false
+    supportedJobs: ['WHM',],
+    isDefaultSim: false,
 };
 
 export interface TestSimResult extends CycleSimResult {
@@ -204,9 +204,9 @@ class TestMultiCycleSim extends BaseMultiCycleSim<TestSimResult, TestSimSettings
                     }
                     cycle.useUntil(filler, 'end');
                 });
-            }
+            },
 
-        }];
+        },];
     }
 }
 
@@ -217,7 +217,7 @@ const jobStatMultipliers: JobMultipliers = {
     intelligence: 105,
     mind: 115,
     strength: 55,
-    vitality: 100
+    vitality: 100,
 };
 // Stats from a set. These should be the stats WITH items and race bonus, but WITHOUT party bonus
 const rawStats = {
@@ -237,12 +237,12 @@ const rawStats = {
     vitality: 3321,
     wdMag: 132,
     wdPhys: 132,
-    weaponDelay: 3.44
+    weaponDelay: 3.44,
 };
 // Finalize the stats (add class modifiers, party bonus, etc)
 const stats = finalizeStats(rawStats, {}, 90, getLevelStats(90), 'WHM', {
     ...getClassJobStats('WHM'),
-    jobStatMultipliers: jobStatMultipliers
+    jobStatMultipliers: jobStatMultipliers,
 }, 5);
 
 // Turn the stats into a fake gear set. This object does not implement all of the methods that a CharacterGearSet
@@ -254,143 +254,143 @@ const expectedAbilities: UseResult[] = [
     {
         time: -8.41,
         name: 'NOP',
-        damage: 0
+        damage: 0,
     },
     {
         time: -6.10,
         name: 'NOP',
-        damage: 0
+        damage: 0,
     },
     {
         time: -3.79,
         name: 'NOP',
-        damage: 0
+        damage: 0,
     },
     {
         time: -1.48,
         name: 'Glare',
-        damage: 15057.71
+        damage: 15057.71,
     },
     {
         time: 0,
         name: 'Auto Attack',
-        damage: 33.301
+        damage: 33.301,
     },
     {
         time: 0.83,
         name: 'Dia',
-        damage: 37048.88
+        damage: 37048.88,
     },
     {
         time: 3.14,
         name: 'Glare',
-        damage: 15057.71
+        damage: 15057.71,
     },
     {
         time: 4.32,
         name: 'Auto Attack',
-        damage: 33.301
+        damage: 33.301,
     },
     {
         time: 5.45,
         name: 'Glare',
-        damage: 16633.961
+        damage: 16633.961,
     },
     {
         time: 6.93,
         name: 'Presence of Mind',
-        damage: 0
+        damage: 0,
     },
     {
         time: 7.76,
         name: 'Glare',
-        damage: 17631.999
+        damage: 17631.999,
     },
     {
         time: 8.96,
         name: "Assize",
-        damage: 22777.859
+        damage: 22777.859,
     },
     {
         time: 9.24,
         name: "Auto Attack",
-        damage: 38.994
+        damage: 38.994,
     },
     {
         time: 9.60,
         name: "Glare",
-        damage: 17631.999
+        damage: 17631.999,
     },
     {
         time: 11.44,
         name: "Glare",
-        damage: 17631.999
+        damage: 17631.999,
     },
     {
         time: 13.192,
         name: "Auto Attack",
-        damage: 38.994
+        damage: 38.994,
     },
     {
         time: 13.28,
         name: "Glare",
-        damage: 17631.999
+        damage: 17631.999,
     },
     {
         time: 15.12,
         name: "Glare",
-        damage: 17631.999
+        damage: 17631.999,
     },
     {
         time: 16.96,
         name: "Glare",
-        damage: 17631.999
+        damage: 17631.999,
     },
     {
         time: 17.744,
         name: "Auto Attack",
-        damage: 38.994
+        damage: 38.994,
     },
     {
         time: 18.80,
         name: "Glare",
-        damage: 17631.999
+        damage: 17631.999,
     },
     {
         time: 20.64,
         name: "Glare",
-        damage: 17631.999
+        damage: 17631.999,
     },
     {
         time: 21.696,
         name: "Auto Attack",
-        damage: 38.994
+        damage: 38.994,
     },
     {
         time: 22.48,
         name: "Glare",
-        damage: 17631.999
+        damage: 17631.999,
     },
     {
         time: 24.32,
         name: "Glare",
-        damage: 17631.999
+        damage: 17631.999,
     },
     {
         time: 25.928,
         name: "Auto Attack",
-        damage: 37.064
+        damage: 37.064,
     },
     {
         time: 26.63,
         name: "Glare",
-        damage: 15057.71
+        damage: 15057.71,
     },
     {
         time: 28.94,
         name: "Glare",
-        damage: 6909.599
-    }
+        damage: 6909.599,
+    },
 ];
 
 
@@ -422,10 +422,10 @@ const instant: GcdAbility = {
     dot: {
         id: 1871,
         tickPotency: 65,
-        duration: 30
+        duration: 30,
     },
     attackType: "Spell",
-    gcd: 2.5
+    gcd: 2.5,
 };
 
 const long: GcdAbility = {
@@ -435,7 +435,7 @@ const long: GcdAbility = {
     potency: 310,
     attackType: "Spell",
     gcd: 2.5,
-    cast: 8
+    cast: 8,
 };
 
 const defaultSettings: MultiCycleSettings = {
@@ -445,7 +445,7 @@ const defaultSettings: MultiCycleSettings = {
     stats: exampleGearSet.computedStats,
     totalTime: 120,
     useAutos: false,
-    cutoffMode: 'prorate-gcd'
+    cutoffMode: 'prorate-gcd',
 
 };
 
@@ -608,9 +608,9 @@ const potBuff: Buff = {
         controller.removeStatus(potBuff);
         return {
             ...ability,
-            potency: ability.potency + 100
+            potency: ability.potency + 100,
         };
-    }
+    },
 };
 
 const potBuffAbility: GcdAbility = {
@@ -621,7 +621,7 @@ const potBuffAbility: GcdAbility = {
     attackType: "Spell",
     gcd: 2.5,
     cast: 1.0,
-    activatesBuffs: [potBuff]
+    activatesBuffs: [potBuff,],
 };
 
 describe('Potency Buff Ability', () => {
@@ -655,15 +655,15 @@ function multiplyDamage(damageResult: DamageResult, multiplier: number, multiply
     return {
         directDamage: (damageResult.directDamage === null || !multiplyDirectDamage) ? damageResult.directDamage : {
             expected: damageResult.directDamage.expected * multiplier,
-            stdDev: 0
+            stdDev: 0,
         },
         dot: (damageResult.dot === null || !multiplyDot) ? damageResult.dot : {
             ...damageResult.dot,
             damagePerTick: {
                 expected: damageResult.directDamage.expected * multiplier,
-                stdDev: 0
-            }
-        }
+                stdDev: 0,
+            },
+        },
     };
 }
 
@@ -673,12 +673,12 @@ const bristleBuff: Buff = {
     cooldown: 60,
     duration: 10,
     effects: {
-        dmgIncrease: 0.5
+        dmgIncrease: 0.5,
     },
     job: 'BLU',
     name: "Bristle",
     beforeSnapshot: removeSelf,
-    appliesTo: ability => ability.attackType === "Spell" && ability.potency !== null
+    appliesTo: ability => ability.attackType === "Spell" && ability.potency !== null,
 };
 
 const bristle: GcdAbility = {
@@ -689,7 +689,7 @@ const bristle: GcdAbility = {
     attackType: "Spell",
     gcd: 2.5,
     cast: 1.0,
-    activatesBuffs: [bristleBuff]
+    activatesBuffs: [bristleBuff,],
 };
 
 // Demonstrates the longer but more flexible way
@@ -705,7 +705,7 @@ const bristleBuff2: Buff = {
             buffController.removeSelf();
             return multiplyDamage(damageResult, 1.5, true, true);
         }
-    }
+    },
 };
 
 const bristle2: GcdAbility = {
@@ -716,7 +716,7 @@ const bristle2: GcdAbility = {
     attackType: "Spell",
     gcd: 2.5,
     cast: 1.0,
-    activatesBuffs: [bristleBuff2]
+    activatesBuffs: [bristleBuff2,],
 };
 
 describe('Damage Buff Ability', () => {
@@ -891,7 +891,7 @@ const fixed: GcdAbility = {
     attackType: "Spell",
     gcd: 15,
     cast: 10,
-    fixedGcd: true
+    fixedGcd: true,
 };
 const fixedLonger: GcdAbility = {
     id: fakeId++,
@@ -901,7 +901,7 @@ const fixedLonger: GcdAbility = {
     attackType: "Spell",
     gcd: 20,
     cast: 16,
-    fixedGcd: true
+    fixedGcd: true,
 };
 describe('Cycle processor alignment options', () => {
     it('full alignment with non-cycle pre-pull', () => {
@@ -1134,14 +1134,14 @@ const fixedOdd: GcdAbility = {
     attackType: "Spell",
     gcd: 7,
     cast: 4,
-    fixedGcd: true
+    fixedGcd: true,
 };
 
 describe('Cycle processor re-alignment', () => {
     it('full alignment with non-cycle pre-pull', () => {
         const cp = new CycleProcessor({
             ...defaultSettings,
-            totalTime: 139
+            totalTime: 139,
         });
         cp.use(fixedOdd);
         cp.use(fixedOdd);
@@ -1173,7 +1173,7 @@ describe('Cycle processor re-alignment', () => {
     it('full alignment with in-cycle pre-pull', () => {
         const cp = new CycleProcessor({
             ...defaultSettings,
-            totalTime: 170
+            totalTime: 170,
         });
         cp.remainingCycles(cp => {
             cp.useUntil(fixedOdd, 'end');
@@ -1206,7 +1206,7 @@ describe('Cycle processor re-alignment', () => {
     it('first-cycle alignment with out-of-cycle pre-pull', () => {
         const cp = new CycleProcessor({
             ...defaultSettings,
-            totalTime: 145
+            totalTime: 145,
         });
         cp.cycleLengthMode = 'align-to-first';
         cp.use(fixedOdd);
@@ -1244,7 +1244,7 @@ describe('Cycle processor re-alignment', () => {
         // on 30-second increments.
         const cp = new CycleProcessor({
             ...defaultSettings,
-            totalTime: 160
+            totalTime: 160,
         });
         cp.cycleLengthMode = 'align-to-first';
         cp.remainingCycles(cp => {
@@ -1279,7 +1279,7 @@ describe('Cycle processor re-alignment', () => {
     it('full duration with non-cycle pre-pull', () => {
         const cp = new CycleProcessor({
             ...defaultSettings,
-            totalTime: 300
+            totalTime: 300,
         });
         cp.cycleLengthMode = 'full-duration';
         cp.use(fixedOdd);
@@ -1300,7 +1300,7 @@ describe('Cycle processor re-alignment', () => {
     it('full duration with in-cycle pre-pull', () => {
         const cp = new CycleProcessor({
             ...defaultSettings,
-            totalTime: 295
+            totalTime: 295,
         });
         cp.cycleLengthMode = 'full-duration';
         cp.remainingCycles(cp => {
@@ -1325,9 +1325,9 @@ const indefBuff: Buff = {
     name: "Indefinite Buff",
     selfOnly: true,
     effects: {
-        dmgIncrease: 4
+        dmgIncrease: 4,
     },
-    statusId: 2125
+    statusId: 2125,
 };
 
 const indefAb: Ability = {
@@ -1338,7 +1338,7 @@ const indefAb: Ability = {
     attackType: "Spell",
     gcd: 2.5,
     cast: 1.5,
-    activatesBuffs: [indefBuff]
+    activatesBuffs: [indefBuff,],
 
 };
 
@@ -1346,7 +1346,7 @@ describe('indefinite buff handling', () => {
     it('can handle a manually applied indefinite buff', () => {
         const cp = new CycleProcessor({
             ...defaultSettings,
-            totalTime: 295
+            totalTime: 295,
         });
         cp.activateBuff(indefBuff);
         cp.remainingCycles(cp => {
@@ -1363,7 +1363,7 @@ describe('indefinite buff handling', () => {
     it('can handle an automatically applied indefinite buff', () => {
         const cp = new CycleProcessor({
             ...defaultSettings,
-            totalTime: 295
+            totalTime: 295,
         });
         cp.oneCycle(cp => {
             cp.use(filler);
@@ -1394,7 +1394,7 @@ const longDelay: GcdAbility = {
     gcd: 2.5,
     cast: 1.5,
     appDelay: 1.2,
-    id: fakeId++
+    id: fakeId++,
 };
 
 
@@ -1403,7 +1403,7 @@ describe('application delay', () => {
         const cp = new CycleProcessor({
             ...defaultSettings,
             cycleTime: 120,
-            totalTime: 120
+            totalTime: 120,
         });
         cp.use(filler);
         cp.use(filler);
@@ -1424,7 +1424,7 @@ describe('application delay', () => {
         const cp = new CycleProcessor({
             ...defaultSettings,
             cycleTime: 120,
-            totalTime: 120
+            totalTime: 120,
         });
         cp.use(longDelay);
         cp.use(longDelay);
@@ -1449,7 +1449,7 @@ describe('gcd clipping check', () => {
         const cp = new CycleProcessor({
             ...defaultSettings,
             cycleTime: 120,
-            totalTime: 120
+            totalTime: 120,
         });
         cp.use(filler);
         let canUse = cp.canUseWithoutClipping(assize);
@@ -1466,7 +1466,7 @@ describe('potion logic', () => {
         const cp = new CycleProcessor({
             ...defaultSettings,
             cycleTime: 120,
-            totalTime: 120
+            totalTime: 120,
         });
         cp.use(filler);
         cp.use(gemdraught1mind);
@@ -1496,7 +1496,7 @@ describe('cutoff modes', () => {
             ...defaultSettings,
             cycleTime: 30,
             totalTime: 30,
-            cutoffMode: 'prorate-gcd'
+            cutoffMode: 'prorate-gcd',
         });
         cp.useUntil(filler, 50);
         const displayRecords = cp.finalizedRecords;
@@ -1525,7 +1525,7 @@ describe('cutoff modes', () => {
             ...defaultSettings,
             cycleTime: 30,
             totalTime: 30,
-            cutoffMode: 'prorate-application'
+            cutoffMode: 'prorate-application',
         });
         cp.useUntil(filler, 50);
         const displayRecords = cp.finalizedRecords;
@@ -1552,7 +1552,7 @@ describe('cutoff modes', () => {
             ...defaultSettings,
             cycleTime: 30,
             totalTime: 30,
-            cutoffMode: 'lax-gcd'
+            cutoffMode: 'lax-gcd',
         });
         cp.useUntil(filler, 50);
         const displayRecords = cp.finalizedRecords;
@@ -1578,7 +1578,7 @@ describe('cutoff modes', () => {
             ...defaultSettings,
             cycleTime: 30,
             totalTime: 30,
-            cutoffMode: 'lax-gcd'
+            cutoffMode: 'lax-gcd',
         });
         cp.useUntil(filler, 50);
         cp.use(assize);
@@ -1615,7 +1615,7 @@ describe('cutoff modes', () => {
             ...defaultSettings,
             cycleTime: 30,
             totalTime: 30,
-            cutoffMode: 'lax-gcd'
+            cutoffMode: 'lax-gcd',
         });
         cp.use(filler);
         cp.use(filler);
@@ -1651,7 +1651,7 @@ describe('cutoff modes', () => {
             ...defaultSettings,
             cycleTime: 30,
             totalTime: 30,
-            cutoffMode: 'strict-gcd'
+            cutoffMode: 'strict-gcd',
         });
         cp.useUntil(filler, 50);
         const displayRecords = cp.finalizedRecords;
@@ -1681,7 +1681,7 @@ describe('cutoff modes', () => {
             ...defaultSettings,
             cycleTime: 30,
             totalTime: 30,
-            cutoffMode: 'strict-gcd'
+            cutoffMode: 'strict-gcd',
         });
         cp.use(filler);
         cp.use(filler);
@@ -1725,7 +1725,7 @@ describe('cutoff modes', () => {
             ...defaultSettings,
             cycleTime: 30,
             totalTime: 30,
-            cutoffMode: 'strict-gcd'
+            cutoffMode: 'strict-gcd',
         });
         cp.use(filler);
         cp.use(filler);

@@ -3,7 +3,7 @@ import {JobName, MATERIA_SLOTS_MAX, SupportedLevel} from "@xivgear/xivmath/xivco
 import {BaseParamToStatKey, RelevantBaseParam} from "./xivapitypes";
 import {queryBaseParams} from "../datamanager_xivapi";
 
-const ETRO_SLOTS = ['weapon', 'offHand', 'head', 'body', 'hands', 'legs', 'feet', 'ears', 'neck', 'wrists', 'fingerL', 'fingerR'] as const;
+const ETRO_SLOTS = ['weapon', 'offHand', 'head', 'body', 'hands', 'legs', 'feet', 'ears', 'neck', 'wrists', 'fingerL', 'fingerR',] as const;
 // Works
 type ETRO_SLOT_KEY = typeof ETRO_SLOTS[number];
 
@@ -20,7 +20,7 @@ const ETRO_GEAR_SLOT_MAP: Record<ETRO_SLOT_KEY, EquipSlotKey> = {
     neck: "Neck",
     wrists: "Wrist",
     fingerL: "RingLeft",
-    fingerR: "RingRight"
+    fingerR: "RingRight",
 } as const;
 
 type EtroGearData = {
@@ -93,7 +93,8 @@ export async function getSetFromEtro(etroSetId: string) {
                     const stat = BaseParamToStatKey[paramData.Name as RelevantBaseParam];
                     relicStats[stat] = relicData[`param${i}Value`];
                 }
-            } else {
+            }
+            else {
                 continue;
             }
 
@@ -102,9 +103,11 @@ export async function getSetFromEtro(etroSetId: string) {
         let materiaKey;
         if (slotKey === 'RingLeft') {
             materiaKey = itemId + 'L';
-        } else if (slotKey === 'RingRight') {
+        }
+        else if (slotKey === 'RingRight') {
             materiaKey = itemId + 'R';
-        } else {
+        }
+        else {
             materiaKey = itemId;
         }
         const materiaData = response.materia ? response.materia[materiaKey] : false;
@@ -113,9 +116,10 @@ export async function getSetFromEtro(etroSetId: string) {
             for (let i = 1; i <= MATERIA_SLOTS_MAX; i++) {
                 const materiaMaybe = materiaData[i];
                 if (materiaMaybe) {
-                    materiaOut.push({id: materiaMaybe});
-                } else {
-                    materiaOut.push({id: -1});
+                    materiaOut.push({id: materiaMaybe,});
+                }
+                else {
+                    materiaOut.push({id: -1,});
                 }
             }
         }
@@ -123,12 +127,13 @@ export async function getSetFromEtro(etroSetId: string) {
             items[slotKey] = {
                 id: itemId,
                 materia: materiaOut,
-                relicStats: relicStats
+                relicStats: relicStats,
             };
-        } else {
+        }
+        else {
             items[slotKey] = {
                 id: itemId,
-                materia: materiaOut
+                materia: materiaOut,
             };
         }
     }
@@ -136,7 +141,8 @@ export async function getSetFromEtro(etroSetId: string) {
     if (response.food) {
         console.log('Fetching etro food', response.food);
         food = await fetch(`https://etro.gg/api/food/${response.food}/`).then(response => response.json()).then(json => json['item']);
-    } else {
+    }
+    else {
         food = undefined;
     }
     const setImport: SetExport = {
@@ -144,7 +150,7 @@ export async function getSetFromEtro(etroSetId: string) {
         job: response.jobAbbrev,
         food: food,
         items: items,
-        level: response.level
+        level: response.level,
     };
     return setImport;
 }

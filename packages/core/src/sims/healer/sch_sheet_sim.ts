@@ -30,7 +30,7 @@ const filler: SchGcdAbility = {
     potency: 310,
     attackType: "Spell",
     gcd: 2.5,
-    cast: 1.5
+    cast: 1.5,
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -40,7 +40,7 @@ const r2: SchGcdAbility = {
     id: 17870,
     potency: 220,
     attackType: "Spell",
-    gcd: 2.5
+    gcd: 2.5,
 };
 
 const bio: SchGcdAbility = {
@@ -51,10 +51,10 @@ const bio: SchGcdAbility = {
     dot: {
         duration: 30,
         tickPotency: 75,
-        id: 3089
+        id: 3089,
     },
     attackType: "Spell",
-    gcd: 2.5
+    gcd: 2.5,
 };
 
 export const ImpactImminent: PersonalBuff = {
@@ -70,21 +70,21 @@ export const ImpactImminent: PersonalBuff = {
     beforeSnapshot<X extends Ability>(buffController: BuffController, ability: X): X {
         buffController.removeSelf();
         return {
-            ...ability
+            ...ability,
         };
-    }
+    },
 };
 
 const chain: SchOgcdAbility = {
     type: 'ogcd',
     name: "Chain Strategem",
     id: 7436,
-    activatesBuffs: [Chain, ImpactImminent],
+    activatesBuffs: [Chain, ImpactImminent,],
     potency: null,
     attackType: "Ability",
     cooldown: {
-        time: 120
-    }
+        time: 120,
+    },
 };
 
 const baneful: SchOgcdAbility = {
@@ -95,9 +95,9 @@ const baneful: SchOgcdAbility = {
     dot: {
         duration: 15,
         tickPotency: 140,
-        id: 3883
+        id: 3883,
     },
-    attackType: "Ability"
+    attackType: "Ability",
 };
 
 const ed: SchOgcdAbility = {
@@ -106,7 +106,7 @@ const ed: SchOgcdAbility = {
     id: 167,
     potency: 100,
     attackType: "Ability",
-    updateGauge: gauge => gauge.aetherflow -= 1
+    updateGauge: gauge => gauge.aetherflow -= 1,
 };
 
 const aetherflow: SchOgcdAbility = {
@@ -116,9 +116,9 @@ const aetherflow: SchOgcdAbility = {
     potency: 0,
     attackType: "Ability",
     cooldown: {
-        time: 60
+        time: 60,
     },
-    updateGauge: gauge => gauge.aetherflow = 3
+    updateGauge: gauge => gauge.aetherflow = 3,
 };
 
 const diss: SchOgcdAbility = {
@@ -128,9 +128,9 @@ const diss: SchOgcdAbility = {
     potency: 0,
     attackType: "Ability",
     cooldown: {
-        time: 180
+        time: 180,
     },
-    updateGauge: gauge => gauge.aetherflow = 3
+    updateGauge: gauge => gauge.aetherflow = 3,
 };
 
 class SchGauge {
@@ -150,7 +150,7 @@ class SchGauge {
     getGaugeState(): SchGaugeState {
         return {
             level: 100,
-            aetherflow: this.aetherflow
+            aetherflow: this.aetherflow,
         };
     }
 
@@ -175,8 +175,8 @@ export const schNewSheetSpec: SimSpec<SchSim, SchSettingsExternal> = {
         return new SchSim();
     },
     stub: "sch-sheet-sim",
-    supportedJobs: ['SCH'],
-    isDefaultSim: true
+    supportedJobs: ['SCH',],
+    isDefaultSim: true,
 };
 
 class ScholarCycleProcessor extends CycleProcessor {
@@ -192,12 +192,12 @@ class ScholarCycleProcessor extends CycleProcessor {
     override addAbilityUse(usedAbility: PreDmgAbilityUseRecordUnf) {
         // Add gauge data to this record for the UI
         const extraData: SchExtraData = {
-            gauge: this.gauge.getGaugeState()
+            gauge: this.gauge.getGaugeState(),
         };
 
         const modified: PreDmgAbilityUseRecordUnf = {
             ...usedAbility,
-            extraData
+            extraData,
         };
 
         super.addAbilityUse(modified);
@@ -217,7 +217,8 @@ class ScholarCycleProcessor extends CycleProcessor {
         if (this.nextGcdTime >= this.nextBioTime && this.remainingTime > 15) {
             this.nextBioTime = this.nextGcdTime + 28.8;
             this.useGcd(bio);
-        } else {
+        }
+        else {
             this.useGcd(filler);
         }
     }
@@ -263,7 +264,7 @@ export class SchSim extends BaseMultiCycleSim<SchSimResult, SchSettings, Scholar
     spec = schNewSheetSpec;
     displayName = schNewSheetSpec.displayName;
     shortName = "sch-sheet-sim";
-    manuallyActivatedBuffs = [Chain];
+    manuallyActivatedBuffs = [Chain,];
 
     constructor(settings?: SchSettingsExternal) {
         super('SCH', settings);
@@ -272,13 +273,13 @@ export class SchSim extends BaseMultiCycleSim<SchSimResult, SchSettings, Scholar
     protected createCycleProcessor(settings: MultiCycleSettings): ScholarCycleProcessor {
         return new ScholarCycleProcessor({
             ...settings,
-            hideCycleDividers: true
+            hideCycleDividers: true,
         });
     }
 
     makeDefaultSettings(): SchSettings {
         return {
-            edsPerAfDiss: 3
+            edsPerAfDiss: 3,
         };
     }
 
@@ -313,7 +314,7 @@ export class SchSim extends BaseMultiCycleSim<SchSimResult, SchSettings, Scholar
                         }
                     }
                 });
-            }
+            },
         },
         ...rangeInc(10, 28, 2).map(i => ({
             name: `Redot at ${i}s`,
@@ -358,7 +359,7 @@ export class SchSim extends BaseMultiCycleSim<SchSimResult, SchSettings, Scholar
                         }
                     }
                 });
-            }
+            },
         })),
         ...rangeInc(2, 16, 2).map(i => ({
             name: `Delay dot to ${i}s`,
@@ -390,8 +391,8 @@ export class SchSim extends BaseMultiCycleSim<SchSimResult, SchSettings, Scholar
                         }
                     }
                 });
-            }
-        }))
+            },
+        })),
         ];
     }
 }

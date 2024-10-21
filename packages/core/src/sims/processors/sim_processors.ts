@@ -58,7 +58,8 @@ implements Simulation<FullResultType, InternalSettingsType, ExternalCycleSetting
             this.buffManager = BuffSettingsManager.fromSaved(settings.buffConfig);
             this.cycleSettings = this.rehydrateCycleSettings(settings.cycleSettings);
             this.resultSettings = settings.resultSettings ?? defaultResultSettings();
-        } else {
+        }
+        else {
             this.cycleSettings = this.defaultCycleSettings();
             this.buffManager = BuffSettingsManager.defaultForJob(job);
             this.resultSettings = defaultResultSettings();
@@ -72,7 +73,7 @@ implements Simulation<FullResultType, InternalSettingsType, ExternalCycleSetting
             customSettings: this.settings,
             buffConfig: this.buffManager.exportSetting(),
             cycleSettings: this.cycleSettings,
-            resultSettings: this.resultSettings
+            resultSettings: this.resultSettings,
         };
     }
 
@@ -100,7 +101,7 @@ implements Simulation<FullResultType, InternalSettingsType, ExternalCycleSetting
             totalTime: 6 * 120,
             which: 'totalTime',
             useAutos: this.useAutosByDefault,
-            cutoffMode: this.defaultCutoffMode
+            cutoffMode: this.defaultCutoffMode,
         };
     }
 
@@ -143,16 +144,16 @@ implements Simulation<FullResultType, InternalSettingsType, ExternalCycleSetting
                 allBuffs: allBuffs,
                 manuallyActivatedBuffs: this.manuallyActivatedBuffs ?? [],
                 useAutos: (this.cycleSettings.useAutos ?? true) && set.getItemInSlot('Weapon') !== null,
-                cutoffMode: this.cycleSettings.cutoffMode
+                cutoffMode: this.cycleSettings.cutoffMode,
             });
             rot.apply(cp);
-            return [rot.name ?? `Unnamed #${index + 1}`, cp];
+            return [rot.name ?? `Unnamed #${index + 1}`, cp,];
         });
     }
 
     calcDamage(set: CharacterGearSet): FullResultType {
         const allResults = this.cachedCycleProcessors.map(item => {
-            const [label, cp] = item;
+            const [label, cp,] = item;
 
             cp.stats = set.computedStats;
             const used = cp.finalizedRecords.filter(isFinalizedAbilityUse);
@@ -160,7 +161,7 @@ implements Simulation<FullResultType, InternalSettingsType, ExternalCycleSetting
             const timeBasis = cp.finalizedTimeBasis;
             const dps = multiplyFixed(totalDamage, 1.0 / timeBasis);
             const unbuffedPps = sum(used.map(used => used.totalPotency)) / cp.nextGcdTime;
-            const buffTimings = [...cp.buffHistory];
+            const buffTimings = [...cp.buffHistory,];
 
             return {
                 mainDpsResult: applyStdDev(dps, this.resultSettings.stdDevs ?? 0),
@@ -171,10 +172,10 @@ implements Simulation<FullResultType, InternalSettingsType, ExternalCycleSetting
                 unbuffedPps: unbuffedPps,
                 buffTimings: buffTimings,
                 totalTime: timeBasis,
-                label: label
+                label: label,
             } satisfies CycleSimResult as unknown as ResultType;
         });
-        const sorted = [...allResults];
+        const sorted = [...allResults,];
         sorted.sort((a, b) => b.mainDpsResult - a.mainDpsResult);
         console.debug("Sim end");
         const best = sorted[0];
@@ -183,7 +184,7 @@ implements Simulation<FullResultType, InternalSettingsType, ExternalCycleSetting
         return {
             mainDpsResult: best.mainDpsResult,
             all: sorted,
-            best: best
+            best: best,
         };
     }
 

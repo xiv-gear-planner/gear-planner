@@ -2,7 +2,8 @@ export function makeActionButton(label: string | (Node | string)[], action: (ev:
     const button = document.createElement("button");
     if (label instanceof Object) {
         button.replaceChildren(...label);
-    } else {
+    }
+    else {
         button.textContent = label;
     }
     button.addEventListener('click', ev => {
@@ -93,7 +94,8 @@ export class FieldBoundCheckBox<ObjType> extends HTMLInputElement {
         for (const listener of this.listeners) {
             try {
                 listener(newValue);
-            } catch (e) {
+            }
+            catch (e) {
                 console.error("Error in listener", e);
             }
         }
@@ -216,7 +218,7 @@ export class FieldBoundConvertingTextField<ObjType, FieldType> extends HTMLInput
                         },
                         ignoreChange() {
                             stop();
-                        }
+                        },
                     };
                     for (const preValidator of extraArgs.preValidators) {
                         preValidator(context);
@@ -238,7 +240,7 @@ export class FieldBoundConvertingTextField<ObjType, FieldType> extends HTMLInput
                         },
                         ignoreChange() {
                             stop();
-                        }
+                        },
                     };
                     for (const postValidator of extraArgs.postValidators) {
                         postValidator(context);
@@ -253,11 +255,13 @@ export class FieldBoundConvertingTextField<ObjType, FieldType> extends HTMLInput
                 for (const listener of this.listeners) {
                     try {
                         listener(newValue);
-                    } catch (e) {
+                    }
+                    catch (e) {
                         console.error("Error in listener", e);
                     }
                 }
-            } catch (e) {
+            }
+            catch (e) {
                 this._validationMessage = e.toString();
                 return;
             }
@@ -318,7 +322,8 @@ export class FieldBoundConvertingTextField2<ObjType, Field extends keyof ObjType
             for (const listener of this.listeners) {
                 try {
                     listener(newValue);
-                } catch (e) {
+                }
+                catch (e) {
                     console.error("Error in listener", e);
                 }
             }
@@ -344,8 +349,8 @@ export class FieldBoundIntField<ObjType> extends FieldBoundConvertingTextField<O
                 ctx.failValidation('Value must be an integer');
             }
         };
-        extraArgs.preValidators = [skipMinus, ...(extraArgs.preValidators ?? [])];
-        extraArgs.postValidators = [intValidator, ...(extraArgs.postValidators ?? [])];
+        extraArgs.preValidators = [skipMinus, ...(extraArgs.preValidators ?? []),];
+        extraArgs.postValidators = [intValidator, ...(extraArgs.postValidators ?? []),];
         // Spinner arrows aren't styleable. Love CSS!
         // extraArgs.type = extraArgs.type ?? 'number';
         // extraArgs.inputMode = extraArgs.inputMode ?? 'numeric';
@@ -367,8 +372,8 @@ export class FieldBoundFloatField<ObjType> extends FieldBoundConvertingTextField
                 ctx.failValidation('Value must be a number');
             }
         };
-        extraArgs.preValidators = [skipMinus, ...(extraArgs.preValidators ?? [])];
-        extraArgs.postValidators = [numberValidator, ...(extraArgs.postValidators ?? [])];
+        extraArgs.preValidators = [skipMinus, ...(extraArgs.preValidators ?? []),];
+        extraArgs.postValidators = [numberValidator, ...(extraArgs.postValidators ?? []),];
         // Spinner arrows aren't styleable. Love CSS!
         // extraArgs.type = extraArgs.type ?? 'number';
         // extraArgs.inputMode = extraArgs.inputMode ?? 'numeric';
@@ -388,11 +393,13 @@ export function clampValues(min: number | undefined, max: number | undefined): (
             if (ctx.newValue < min || ctx.newValue > max) {
                 ctx.failValidation(`Value must be between ${min} and ${max}`);
             }
-        } else if (min !== undefined) {
+        }
+        else if (min !== undefined) {
             if (ctx.newValue < min) {
                 ctx.failValidation(`Value must be great than or equal to ${min}`);
             }
-        } else if (max !== undefined) {
+        }
+        else if (max !== undefined) {
             if (ctx.newValue > max) {
                 ctx.failValidation(`Value must be less than or equal to ${max}`);
             }
@@ -420,7 +427,7 @@ export class FieldBoundDataSelect<ObjType, DataType> extends DataSelect<DataType
         const initialValue: DataType = obj[field] as DataType;
         // Give it something to display
         if (!options.includes(initialValue)) {
-            options = [initialValue, ...options];
+            options = [initialValue, ...options,];
         }
         super(options, valueDisplayName, value => {
             // @ts-expect-error - not sure how to do type def
@@ -621,11 +628,11 @@ export function redoIcon() {
     return svg;
 }
 
-customElements.define("option-data-element", OptionDataElement, {extends: "option"});
-customElements.define("data-select", DataSelect, {extends: "select"});
-customElements.define("field-bound-converting-text-field", FieldBoundConvertingTextField, {extends: "input"});
-customElements.define("field-bound-text-field", FieldBoundTextField, {extends: "input"});
-customElements.define("field-bound-float-field", FieldBoundFloatField, {extends: "input"});
-customElements.define("field-bound-int-field", FieldBoundIntField, {extends: "input"});
-customElements.define("field-bound-checkbox", FieldBoundCheckBox, {extends: "input"});
-customElements.define("field-bound-data-select", FieldBoundDataSelect, {extends: "select"});
+customElements.define("option-data-element", OptionDataElement, {extends: "option",});
+customElements.define("data-select", DataSelect, {extends: "select",});
+customElements.define("field-bound-converting-text-field", FieldBoundConvertingTextField, {extends: "input",});
+customElements.define("field-bound-text-field", FieldBoundTextField, {extends: "input",});
+customElements.define("field-bound-float-field", FieldBoundFloatField, {extends: "input",});
+customElements.define("field-bound-int-field", FieldBoundIntField, {extends: "input",});
+customElements.define("field-bound-checkbox", FieldBoundCheckBox, {extends: "input",});
+customElements.define("field-bound-data-select", FieldBoundDataSelect, {extends: "select",});

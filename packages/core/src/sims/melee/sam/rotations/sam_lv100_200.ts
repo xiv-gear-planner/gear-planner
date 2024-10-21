@@ -71,7 +71,7 @@ export const Opener: SamAbility[] = [
     Actions.Shifu,
     Actions.Kasha,
     Actions.Gyofu,
-    Actions.Jinpu
+    Actions.Jinpu,
 ];
 
 export const Loop: SamAbility[] = [
@@ -163,5 +163,5 @@ export const Loop: SamAbility[] = [
     Actions.Shifu,
     Actions.Kasha,
     Actions.Gyofu,
-    Actions.Jinpu
+    Actions.Jinpu,
 ];

@@ -36,7 +36,7 @@ export class VprGauge {
         return {
             level: 100,
             serpentOfferings: this.serpentOfferings,
-            rattlingCoils: this.rattlingCoils
+            rattlingCoils: this.rattlingCoils,
         };
     }
 }

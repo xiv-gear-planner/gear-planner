@@ -17,7 +17,7 @@ onmessage = async function (event) {
         await dataManager.loadData();
         const response: AnyWorkResponse = {
             responseType: "done",
-            data: null
+            data: null,
         };
         this.postMessage(response);
         return;

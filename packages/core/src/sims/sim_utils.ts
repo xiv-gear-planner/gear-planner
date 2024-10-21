@@ -50,7 +50,7 @@ export function abilityToDamageNew(stats: ComputedSetStats, ability: Ability, co
     if (!('potency' in ability)) {
         return {
             directDamage: null,
-            dot: null
+            dot: null,
         };
     }
     // noinspection AssignmentToFunctionParameterJS
@@ -60,8 +60,8 @@ export function abilityToDamageNew(stats: ComputedSetStats, ability: Ability, co
         directDamage: ability.potency ? potencyToDamage(stats, ability.potency, ability as DamagingAbility, combinedBuffEffects) : null,
         dot: 'dot' in ability ? {
             fullDurationTicks: ability.dot.duration === 'indefinite' ? 'indefinite' : (ability.dot.duration / 3),
-            damagePerTick: dotPotencyToDamage(stats, ability.dot.tickPotency, ability, combinedBuffEffects)
-        } : null
+            damagePerTick: dotPotencyToDamage(stats, ability.dot.tickPotency, ability, combinedBuffEffects),
+        } : null,
     };
 }
 
@@ -76,7 +76,7 @@ export function noBuffEffects(): CombinedBuffEffect {
         forceCrit: false,
         forceDhit: false,
         haste: 0,
-        modifyStats: stats => stats
+        modifyStats: stats => stats,
     };
 }
 

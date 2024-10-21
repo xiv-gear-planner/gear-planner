@@ -5,21 +5,21 @@ export abstract class WorkerBehavior<X extends JobContext<AnyWorkRequest, unknow
     postUpdate(update: UpdateTypeOf<X>) {
         postMessage({
             responseType: 'update',
-            data: update
+            data: update,
         });
     }
 
     postResult(result: ResponseTypeOf<X>) {
         postMessage({
             responseType: 'done',
-            data: result
+            data: result,
         });
     }
 
     postError(error: unknown) {
         postMessage({
             responseType: 'error',
-            data: error
+            data: error,
         });
     }
     abstract execute(request: RequestTypeOf<X>): void;

@@ -48,7 +48,7 @@ export class AllSlotMateriaManager extends HTMLElement {
     }
 
     updateDisplay() {
-        const children = [...this._children];
+        const children = [...this._children,];
         if (children.length === 0) {
             return;
         }
@@ -61,10 +61,12 @@ export class AllSlotMateriaManager extends HTMLElement {
                 const statDetail = this.gearSet.getStatDetail(this.slotName, materia.primaryStat, materiaPartial);
                 if (statDetail instanceof Object) {
                     slot.overcap = statDetail.overcapAmount;
-                } else {
+                }
+                else {
                     slot.overcap = 0;
                 }
-            } else {
+            }
+            else {
                 slot.overcap = 0;
             }
         }
@@ -80,21 +82,25 @@ export class AllSlotMateriaManager extends HTMLElement {
                 const textSpan = document.createElement("span");
                 if (equipSlot.gearItem.isCustomRelic) {
                     textSpan.textContent = "Click into cells to edit relic stats";
-                } else if (equipSlot.gearItem.isSyncedDown) {
+                }
+                else if (equipSlot.gearItem.isSyncedDown) {
                     textSpan.textContent = "Melds unavailable due to ilvl sync";
-                } else {
+                }
+                else {
                     textSpan.textContent = "No materia slots on this item";
                 }
                 this.replaceChildren(textSpan);
                 this._children = [];
-            } else {
+            }
+            else {
                 this._children = equipSlot.melds.map(meld => new SlotMateriaManager(this.sheet, meld, () => this.notifyChange()));
                 this.replaceChildren(...this._children);
                 this.classList.remove("materia-slot-no-equip");
                 this.classList.remove("materia-slot-no-slots");
                 this.classList.add("materia-manager-equipped");
             }
-        } else {
+        }
+        else {
             const textSpan = document.createElement("span");
             textSpan.textContent = "No item selected";
             this.replaceChildren(textSpan);
@@ -159,7 +165,8 @@ export class SlotMateriaManager extends HTMLElement {
     set popupOpen(open: boolean) {
         if (open) {
             this.classList.add('materia-manager-active');
-        } else {
+        }
+        else {
             this.classList.remove('materia-manager-active');
         }
     }
@@ -175,7 +182,8 @@ export class SlotMateriaManager extends HTMLElement {
             this.classList.remove("materia-slot-empty");
             this.classList.add("materia-slot-full");
             this.title = formatMateriaTitle(currentMat);
-        } else {
+        }
+        else {
             this.image.style.display = 'none';
             this.text.textContent = 'Empty';
             this.classList.remove('materia-normal', 'materia-overcap', 'materia-overcap-major');
@@ -207,9 +215,11 @@ export class SlotMateriaManager extends HTMLElement {
         this._overcap = overcap;
         if ((this.materiaSlot.equippedMateria === undefined) || overcap <= 0) {
             this.classList.add('materia-normal');
-        } else if (overcap < this.materiaSlot.equippedMateria.primaryStatValue) {
+        }
+        else if (overcap < this.materiaSlot.equippedMateria.primaryStatValue) {
             this.classList.add('materia-overcap');
-        } else {
+        }
+        else {
             this.classList.add('materia-overcap-major');
         }
         this.reformat();
@@ -245,7 +255,7 @@ export class MateriaCountDisplay extends HTMLElement {
     constructor(public readonly materia: Materia, public readonly count: number) {
         super();
         this.replaceChildren(
-            quickElement('div', ['materia-count-quantity'], [document.createTextNode(count + 'x')]),
+            quickElement('div', ['materia-count-quantity',], [document.createTextNode(count + 'x'),]),
             new SingleMateriaViewOnly(materia));
         this.title = formatMateriaTitle(materia);
     }
@@ -287,7 +297,7 @@ export class SlotMateriaManagerPopup extends HTMLElement {
         // Blank top-left
         const topLeftCell = document.createElement("th");
         // TODO: replace with fa-trash
-        const topLeft = quickElement('div', ['materia-picker-remove'], [faIcon('fa-trash-can')]);
+        const topLeft = quickElement('div', ['materia-picker-remove',], [faIcon('fa-trash-can'),]);
         topLeft.addEventListener('mousedown', (ev) => {
             this.submit(undefined);
             ev.stopPropagation();
@@ -321,7 +331,8 @@ export class SlotMateriaManagerPopup extends HTMLElement {
                     // Neeed in order to make selection outline work
                     cell.appendChild(document.createElement('span'));
                     cell.appendChild(image);
-                } else {
+                }
+                else {
                     row.insertCell();
                 }
             }
@@ -332,7 +343,7 @@ export class SlotMateriaManagerPopup extends HTMLElement {
             element: self,
             close() {
                 self.hide();
-            }
+            },
         });
         this.style.display = 'block';
     }
@@ -373,7 +384,7 @@ export class MateriaPriorityPicker extends HTMLElement {
                 default:
                     return "?";
                 }
-            }, [...MATERIA_FILL_MODES]);
+            }, [...MATERIA_FILL_MODES,]);
         fillModeDropdown.title = 'Control what happens when an item is selected.\n' +
             'Leave Empty: Do not fill any materia when selecting an item.\n' +
             'Prio Fill: Fill materia slots according to the priority above.\n' +
@@ -384,7 +395,7 @@ export class MateriaPriorityPicker extends HTMLElement {
         const fillModeLabel = labelFor("Fill Mode:", fillModeDropdown);
         fillModeDropdown.addListener((newValue) => {
             recordEvent("fillMode", {
-                'mode': newValue
+                'mode': newValue,
             });
         });
 
@@ -410,16 +421,18 @@ export class MateriaPriorityPicker extends HTMLElement {
                 // Check if user typed more than 2 digits, weird math because floating point fun
                 if (Math.round(val * 1000) % 10) {
                     ctx.failValidation("Enter at most two decimal points");
-                } else if (val < 0) {
+                }
+                else if (val < 0) {
                     ctx.failValidation("Enter a positive number");
-                } else if (val > MAX_GCD) {
+                }
+                else if (val > MAX_GCD) {
                     ctx.failValidation("Cannot be greater than " + MAX_GCD);
                 }
-            }]
+            },],
         });
         minGcdInput.addListener(val => {
             recordCurrentSheetEvent('currentSheet', {
-                gcd: val
+                gcd: val,
             });
         });
         minGcdInput.pattern = '\\d\\.\\d\\d?';
@@ -460,9 +473,11 @@ class MateriaDragger extends HTMLElement {
         let newOffset;
         if (xOffset > this.clientWidth) {
             newOffset = this.clientWidth;
-        } else if (-xOffset > this.clientWidth) {
+        }
+        else if (-xOffset > this.clientWidth) {
             newOffset = -this.clientWidth;
-        } else {
+        }
+        else {
             newOffset = xOffset;
         }
         this.inner.style.left = newOffset + 'px';
@@ -598,8 +613,9 @@ export class MateriaTotalsDisplay extends HTMLElement {
                         const materias = materiaCounts.get(id);
                         if (materias) {
                             materias.push(materia);
-                        } else {
-                            materiaCounts.set(id, [materia]);
+                        }
+                        else {
+                            materiaCounts.set(id, [materia,]);
                         }
                     }
                 }

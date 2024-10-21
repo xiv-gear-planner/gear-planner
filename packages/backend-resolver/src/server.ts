@@ -9,7 +9,8 @@ let fastify: FastifyInstance;
 if (process.env.IS_PREVIEW_SERVER === 'true') {
     console.log('Building preview server');
     fastify = buildPreviewServer();
-} else {
+}
+else {
     console.log('Building stats server');
     fastify = buildStatsServer();
 }
@@ -17,7 +18,8 @@ if (process.env.IS_PREVIEW_SERVER === 'true') {
 function validateUrl(url: string, description: string) {
     try {
         new URL(url);
-    } catch (e) {
+    }
+    catch (e) {
         console.error(`Not a valid ${description} URL: '${url}'`, url, e);
         throw e;
     }
@@ -53,7 +55,7 @@ if (dataApiOverride) {
 
 fastify.listen({
     port: 30000,
-    host: '0.0.0.0'
+    host: '0.0.0.0',
 }, (err, addr) => {
     if (err) {
         fastify.log.error(err);

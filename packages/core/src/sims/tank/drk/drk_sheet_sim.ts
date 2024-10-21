@@ -42,17 +42,17 @@ Defaults to simulating a killtime of 8m 30s (510s).`,
     loadSavedSimInstance: function (exported: DrkSettingsExternal) {
         return new DrkSim(exported);
     },
-    supportedJobs: ['DRK'],
-    supportedLevels: [100],
+    supportedJobs: ['DRK',],
+    supportedLevels: [100,],
     isDefaultSim: true,
     maintainers: [{
         name: 'Violet Stardust',
         contact: [{
             type: 'discord',
             discordTag: 'violet.stardust',
-            discordUid: '194908170030809098'
-        }]
-    }]
+            discordUid: '194908170030809098',
+        },],
+    },],
 };
 
 // LivingShadowAbilityUsageTime is a type representing two things:
@@ -127,7 +127,7 @@ class DrkCycleProcessor extends CycleProcessor {
     }
 
     applyLivingShadowAbility(abilityUsage: LivingShadowAbilityUsageTime) {
-        const buffs = [...this.getActiveBuffs(abilityUsage.usageTime)];
+        const buffs = [...this.getActiveBuffs(abilityUsage.usageTime),];
         let darksideDuration = 0;
         // Get what the the Darkside duration would be at this
         // point of time, for visualization in the UI
@@ -153,7 +153,7 @@ class DrkCycleProcessor extends CycleProcessor {
             appDelayFromStart: abilityUsage.ability.appDelay,
             castTimeFromStart: 0,
             snapshotTimeFromStart: 0,
-            lockTime: 0
+            lockTime: 0,
         }, darksideDuration);
     }
 
@@ -164,7 +164,7 @@ class DrkCycleProcessor extends CycleProcessor {
         // Add gauge data to this record for the UI
         const extraData: DrkExtraData = {
             gauge: this.gauge.getGaugeState(),
-            darksideDuration: darksideDuration
+            darksideDuration: darksideDuration,
         };
 
         const darkside = usedAbility.buffs.find(buff => buff.name === Darkside.name);
@@ -175,18 +175,18 @@ class DrkCycleProcessor extends CycleProcessor {
 
         const modified: PreDmgAbilityUseRecordUnf = {
             ...usedAbility,
-            extraData
+            extraData,
         };
 
         super.addAbilityUse(modified);
     }
 
-    comboActions: DrkGcdAbility[] = [Actions.HardSlash, Actions.SyphonStrike, Actions.Souleater];
+    comboActions: DrkGcdAbility[] = [Actions.HardSlash, Actions.SyphonStrike, Actions.Souleater,];
     getComboToUse() {
         return this.comboActions[this.rotationState.combo++];
     }
 
-    deliriumComboActions: DrkGcdAbility[] = [Actions.ScarletDelirium, Actions.Comeuppance, Actions.Torcleaver];
+    deliriumComboActions: DrkGcdAbility[] = [Actions.ScarletDelirium, Actions.Comeuppance, Actions.Torcleaver,];
     getDeliriumComboToUse() {
         return this.deliriumComboActions[this.rotationState.deliriumCombo++];
     }
@@ -256,7 +256,7 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
         totalTime: this.settings.fightTime,
         cycles: 0,
         which: 'totalTime',
-        cutoffMode: 'prorate-gcd'
+        cutoffMode: 'prorate-gcd',
     };
 
     constructor(settings?: DrkSettingsExternal) {
@@ -266,7 +266,7 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
     protected createCycleProcessor(settings: MultiCycleSettings): DrkCycleProcessor {
         return new DrkCycleProcessor({
             ...settings,
-            hideCycleDividers: true
+            hideCycleDividers: true,
         });
     }
 
@@ -277,7 +277,7 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
             // 8 minutes and 30s, or 510 seconds
             // This is chosen since it's two pots, five bursts,
             // and is somewhat even between the two main GCDs.
-            fightTime: (8 * 60) + 30
+            fightTime: (8 * 60) + 30,
         };
     }
 
@@ -458,34 +458,34 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
             cp.livingShadowAbilityUsages.push({
                 // Abyssal Drain
                 ability: Actions.LivingShadowAbyssalDrain,
-                usageTime: cp.currentTime + livingShadowDelay
+                usageTime: cp.currentTime + livingShadowDelay,
             });
             // We could skip this, since it does no damage,
             // but it makes the timeline more accurate to reality, so that's nice.
             cp.livingShadowAbilityUsages.push({
                 // Shadowstride
                 ability: Actions.LivingShadowShadowstride,
-                usageTime: cp.currentTime + livingShadowDelay + 1 * livingShadowDelayBetweenAbilities
+                usageTime: cp.currentTime + livingShadowDelay + 1 * livingShadowDelayBetweenAbilities,
             });
             cp.livingShadowAbilityUsages.push({
                 // Shadowbringer
                 ability: Actions.LivingShadowShadowbringer,
-                usageTime: cp.currentTime + livingShadowDelay + 2 * livingShadowDelayBetweenAbilities
+                usageTime: cp.currentTime + livingShadowDelay + 2 * livingShadowDelayBetweenAbilities,
             });
             cp.livingShadowAbilityUsages.push({
                 // Edge of Shadow
                 ability: Actions.LivingShadowEdgeOfShadow,
-                usageTime: cp.currentTime + livingShadowDelay + 3 * livingShadowDelayBetweenAbilities
+                usageTime: cp.currentTime + livingShadowDelay + 3 * livingShadowDelayBetweenAbilities,
             });
             cp.livingShadowAbilityUsages.push({
                 // Bloodspiller
                 ability: Actions.LivingShadowBloodspiller,
-                usageTime: cp.currentTime + livingShadowDelay + 4 * livingShadowDelayBetweenAbilities
+                usageTime: cp.currentTime + livingShadowDelay + 4 * livingShadowDelayBetweenAbilities,
             });
             cp.livingShadowAbilityUsages.push({
                 // Disesteem
                 ability: Actions.LivingShadowDisesteem,
-                usageTime: cp.currentTime + livingShadowDelay + 5 * livingShadowDelayBetweenAbilities
+                usageTime: cp.currentTime + livingShadowDelay + 5 * livingShadowDelayBetweenAbilities,
             });
         }
 
@@ -544,11 +544,12 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
             // Hacky out of combat mana tick.
             // TODO: Refactor this once MP is handled in a more core way
             cp.gauge.magicPoints += 600;
-        } else {
+        }
+        else {
             cp.advanceTo(1 - STANDARD_ANIMATION_LOCK);
         }
         this.use(cp, Actions.Unmend);
-        cp.advanceForLateWeave([potionMaxStr]);
+        cp.advanceForLateWeave([potionMaxStr,]);
         this.use(cp, potionMaxStr);
         this.use(cp, Actions.HardSlash);
         this.use(cp, Actions.EdgeOfShadow);
@@ -584,7 +585,7 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
 
     getRotationsToSimulate(set: CharacterGearSet): Rotation<DrkCycleProcessor>[] {
         const gcd = set.results.computedStats.gcdPhys(2.5);
-        const settings = { ...this.settings };
+        const settings = { ...this.settings, };
         const outer = this;
 
         console.log(`[DRK Sim] Running Rotation for ${gcd} GCD...`);
@@ -597,7 +598,7 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
                 cp.remainingCycles(() => {
                     outer.useDrkRotation(cp);
                 });
-            }
-        }];
+            },
+        },];
     }
 }

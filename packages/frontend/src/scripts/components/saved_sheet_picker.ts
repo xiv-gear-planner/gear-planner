@@ -17,7 +17,7 @@ export class SheetPickerTable extends CustomTable<SheetExport, SheetExport> {
                 getter: sheet => sheet,
                 renderer: (sheet: SheetExport) => {
                     const div = document.createElement("div");
-                    div.appendChild(makeActionButton([faIcon('fa-trash-can')], (ev) => {
+                    div.appendChild(makeActionButton([faIcon('fa-trash-can'),], (ev) => {
                         if (confirmDelete(ev, `Delete sheet '${sheet.name}'?`)) {
                             deleteSheetByKey(sheet.saveKey);
                             this.readData();
@@ -36,13 +36,13 @@ export class SheetPickerTable extends CustomTable<SheetExport, SheetExport> {
                     newTabLink.title = `Open sheet '${sheet.name}' in a new tab/window`;
                     div.appendChild(newTabLink);
                     return div;
-                }
+                },
             },
             {
                 shortName: "sheetlevel",
                 displayName: "Lvl",
                 getter: sheet => sheet.level,
-                fixedWidth: 40
+                fixedWidth: 40,
             },
             {
                 shortName: "sheetjob",
@@ -53,13 +53,13 @@ export class SheetPickerTable extends CustomTable<SheetExport, SheetExport> {
                 //     out.replaceChildren(new JobIcon(job), job);
                 //     return out;
                 // },
-                fixedWidth: 60
+                fixedWidth: 60,
             },
             {
                 shortName: "sheetname",
                 displayName: "Sheet Name",
-                getter: sheet => sheet.name
-            }
+                getter: sheet => sheet.name,
+            },
         ];
         this.readData();
         this.selectionModel = {
@@ -86,7 +86,7 @@ export class SheetPickerTable extends CustomTable<SheetExport, SheetExport> {
             },
             clearSelection(): void {
 
-            }
+            },
         };
     }
 
@@ -111,7 +111,8 @@ export class SheetPickerTable extends CustomTable<SheetExport, SheetExport> {
         }
         if (items.length === 0) {
             data.push(new TitleRow("You don't have any sheets. Click 'New Sheet' to get started."));
-        } else {
+        }
+        else {
             items.sort((left, right) => {
                 return parseInt(right.saveKey.split('-')[2]) - parseInt(left.saveKey.split('-')[2]);
             });
@@ -125,4 +126,4 @@ function startNewSheet() {
     showNewSheetForm();
 }
 
-customElements.define("gear-sheet-picker", SheetPickerTable, {extends: "table"});
+customElements.define("gear-sheet-picker", SheetPickerTable, {extends: "table",});

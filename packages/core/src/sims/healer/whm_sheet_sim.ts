@@ -50,14 +50,14 @@ export const whmSheetSpec: SimSpec<WhmSheetSim, WhmSheetSettings> = {
         return new WhmSheetSim();
     },
     stub: "whm-sheet-sim",
-    supportedJobs: ['WHM']
+    supportedJobs: ['WHM',],
 };
 
 // TODO: report MP time
 export class WhmSheetSim implements Simulation<WhmSheetSimResult, WhmSheetSettings, WhmSheetSettings> {
 
     exportSettings(): WhmSheetSettings {
-        return {...this.settings};
+        return {...this.settings,};
     };
 
     settings: WhmSheetSettings = {
@@ -67,7 +67,7 @@ export class WhmSheetSim implements Simulation<WhmSheetSimResult, WhmSheetSettin
         ldPerMin: 0,
         c3PerMin: 0,
         m2PerMin: 0,
-        rezPerMin: 0
+        rezPerMin: 0,
     };
 
     spec = whmSheetSpec;
@@ -116,7 +116,7 @@ export class WhmSheetSim implements Simulation<WhmSheetSimResult, WhmSheetSettin
             netMpPerMin: netMpPerMin,
             mpTime: mpTime,
             healBasePotRatio: healBasePotRatio,
-            effectiveHealPotRatio: effectiveHealPotRatio
+            effectiveHealPotRatio: effectiveHealPotRatio,
         };
     }
 
@@ -141,7 +141,8 @@ export class WhmSheetSim implements Simulation<WhmSheetSimResult, WhmSheetSettin
             // Logger.log("# Glares: " + 12*(Math.ceil(30/shortGcd)-1)-24*glare)
             result += 12 * 10 * tickMulti * diaDot;
             // Logger.log("Dia ticks: " + 12*10)
-        } else {
+        }
+        else {
             result += 12 * (fl(30 / shortGcd) - 1) * glare + 12 * dia - 24 * glare;
             // Logger.log("# Glares: " + 12*(Math.ceil(30/shortGcd)-1)-24*glare)
             result += 12 * 9 * tickMulti * diaDot;
@@ -162,7 +163,8 @@ export class WhmSheetSim implements Simulation<WhmSheetSimResult, WhmSheetSettin
         const shortGcd = stats.gcdMag(2.5);
         if (glare - dia > diaDot / 3 * stats.spsDotMulti * fl(30 / shortGcd) * (shortGcd - 30 % shortGcd)) {
             result += 12 * (Math.ceil(30 / shortGcd)) * 400;
-        } else {
+        }
+        else {
             result += 12 * (fl(30 / shortGcd)) * 400;
         }
         //misery + lillies
@@ -185,7 +187,8 @@ export class WhmSheetSim implements Simulation<WhmSheetSimResult, WhmSheetSettin
         const shortGcd = stats.gcdMag(2.5);
         if (glare - dia > diaDot / 3 * stats.spsDotMulti * fl(30 / shortGcd) * (shortGcd - 30 % shortGcd)) {
             result += 12 * (Math.ceil(30 / shortGcd) * shortGcd);
-        } else {
+        }
+        else {
             result += 12 * (fl(30 / shortGcd) * shortGcd);
         }
         // POM as multiplier normalized over 360s

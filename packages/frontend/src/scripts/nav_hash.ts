@@ -55,7 +55,7 @@ export function arrayEq(left: unknown[] | undefined, right: unknown[] | undefine
  * Get the current page path
  */
 export function getCurrentHash() {
-    return [...expectedHash];
+    return [...expectedHash,];
 }
 
 /**
@@ -71,7 +71,8 @@ export async function processHashLegacy() {
         // URL query param method causes the whole thing to be too long of a URL for the server to handle.
         if (split[0] === NO_REDIR_HASH) {
             await doNav(split.slice(1));
-        } else {
+        }
+        else {
             goHash(...split);
             location.hash = "";
         }
@@ -143,7 +144,8 @@ async function doNav(pathParts: string[]) {
             const json = JSON.parse(resolved);
             openExport(json, false, true);
             return;
-        } else {
+        }
+        else {
             console.error('Non-existent shortlink, or other error', uuid);
             // TODO: better error display for non-embed
             if (isEmbed) {
@@ -166,10 +168,12 @@ async function doNav(pathParts: string[]) {
                 const json = JSON.parse(resolved);
                 openExport(json, false, true);
                 return;
-            } else {
-                console.error('Non-existent bis, or other error', [nav.job, nav.expac, nav.sheet]);
             }
-        } catch (e) {
+            else {
+                console.error('Non-existent bis, or other error', [nav.job, nav.expac, nav.sheet,]);
+            }
+        }
+        catch (e) {
             console.error("Error loading bis", e);
         }
         const errMsg = document.createElement('h1');
@@ -214,7 +218,7 @@ export function setHash(...hashParts: string[]) {
             return;
         }
     }
-    expectedHash = [...hashParts];
+    expectedHash = [...hashParts,];
     console.log("New hash parts", hashParts);
     const hash = hashParts.map(part => encodeURIComponent(part)).join(PATH_SEPARATOR);
     // location.hash = '#' + hashParts.map(part => '/' + encodeURIComponent(part)).join('');

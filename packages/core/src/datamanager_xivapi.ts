@@ -38,23 +38,23 @@ const itemColumns = [
     'Rarity',
     // TODO need replacement
     // 'GameContentLinks'
-    'Delayms'
+    'Delayms',
 ] as const;
 const itemColsExtra = [
-    'LevelItem'
+    'LevelItem',
 ] as const;
 export type XivApiItemDataRaw = XivApiResultSingle<typeof itemColumns, typeof itemColsExtra>;
 // 'Item' is only there because I need to figure out how to keep the type checking happy
-const matCols = ['Item[].Name', 'Item[].Icon', 'Item[].LevelItem@as(raw)', 'BaseParam.nonexistent', 'Value'] as const;
+const matCols = ['Item[].Name', 'Item[].Icon', 'Item[].LevelItem@as(raw)', 'BaseParam.nonexistent', 'Value',] as const;
 // TODO: make a better way of doing this. matColsTrn represents the columns that are transitively included by way of
 // including a sub-column.
-const matColsTrn = ['Item', 'BaseParam'] as const;
+const matColsTrn = ['Item', 'BaseParam',] as const;
 export type XivApiMateriaDataRaw = XivApiResultSingle<typeof matCols, typeof matColsTrn>;
 // Food cols on the base Item table
-const foodBaseItemCols = ['Icon', 'Name', 'LevelItem', 'ItemAction'] as const;
+const foodBaseItemCols = ['Icon', 'Name', 'LevelItem', 'ItemAction',] as const;
 export type XivApiFoodDataRaw = XivApiResultSingle<typeof foodBaseItemCols>;
 // Food cols on the FoodItem table
-const foodItemFoodCols = ['BaseParam', 'ValueHQ', 'MaxHQ'] as const;
+const foodItemFoodCols = ['BaseParam', 'ValueHQ', 'MaxHQ',] as const;
 export type XivApiFoodItemDataRaw = XivApiResultSingle<typeof foodItemFoodCols>;
 export type IlvlSyncInfo = {
     readonly ilvl: number;
@@ -65,8 +65,8 @@ export function queryBaseParams() {
     return xivApiGet({
         requestType: "list",
         sheet: 'BaseParam',
-        columns: ['Name', 'OneHandWeaponPercent', 'TwoHandWeaponPercent', 'BraceletPercent', 'ChestPercent', 'EarringPercent', 'FeetPercent', 'HandsPercent', 'HeadPercent', 'LegsPercent', 'NecklacePercent', 'OffHandPercent', 'RingPercent'] as const,
-        columnsTrn: []
+        columns: ['Name', 'OneHandWeaponPercent', 'TwoHandWeaponPercent', 'BraceletPercent', 'ChestPercent', 'EarringPercent', 'FeetPercent', 'HandsPercent', 'HeadPercent', 'LegsPercent', 'NecklacePercent', 'OffHandPercent', 'RingPercent',] as const,
+        columnsTrn: [],
     }).then(data => {
         console.log(`Got ${data.Results.length} BaseParams`);
         return data;
@@ -106,13 +106,13 @@ export class XivApiDataManager implements DataManager {
         if (this._isyncPromise === undefined) {
             this._isyncPromise = Promise.all([baseParamPromise, xivApiGet({
                 requestType: 'list',
-                columns: ['*'] as const,
+                columns: ['*',] as const,
                 sheet: 'ItemLevel',
                 perPage: 500,
                 // Optimize these by not pulling a second unnecessary page
                 startPage: this._minIlvl > 500 ? 1 : 0,
-                pageLimit: 2
-            })]).then(responses => {
+                pageLimit: 2,
+            }),]).then(responses => {
                 const outMap = new Map<number, IlvlSyncInfo>();
                 const jobStats = getClassJobStats(this._classJob);
                 for (const row of responses[1].Results) {
@@ -134,10 +134,11 @@ export class XivApiDataManager implements DataManager {
                             const multi = jobStats.itemStatCapMultipliers?.[statsKey];
                             if (multi) {
                                 return Math.round(multi * Math.round(ilvlModifier * baseParamModifier / 1000));
-                            } else {
+                            }
+                            else {
                                 return Math.round(ilvlModifier * baseParamModifier / 1000);
                             }
-                        }
+                        },
                     } as const);
 
                 }
@@ -148,7 +149,8 @@ export class XivApiDataManager implements DataManager {
         const data = await this._isyncPromise;
         if (data.has(ilvl)) {
             return data.get(ilvl);
-        } else {
+        }
+        else {
             console.error(`ilvl ${ilvl} not found`);
             return null;
         }
@@ -188,7 +190,7 @@ export class XivApiDataManager implements DataManager {
                     Ring: requireNumber(value.RingPercent),
                     Weapon2H: requireNumber(value.TwoHandWeaponPercent),
                     Weapon1H: requireNumber(value.OneHandWeaponPercent),
-                    Wrist: requireNumber(value.BraceletPercent)
+                    Wrist: requireNumber(value.BraceletPercent),
                 };
                 return baseParams;
             }, {});
@@ -204,13 +206,14 @@ export class XivApiDataManager implements DataManager {
             columns: itemColumns,
             columnsTrn: itemColsExtra,
             // EquipSlotCategory! => EquipSlotCategory is not null => filters out now-useless belts
-            filters: [`LevelItem>=${this._minIlvl}`, `LevelItem<=${this._maxIlvl}`, `ClassJobCategory.${this._classJob}=1`, 'EquipSlotCategory>0']
+            filters: [`LevelItem>=${this._minIlvl}`, `LevelItem<=${this._maxIlvl}`, `ClassJobCategory.${this._classJob}=1`, 'EquipSlotCategory>0',],
         })
             .then(async (data) => {
                 if (data) {
                     console.log(`Got ${data.Results.length} Items`);
                     return data.Results;
-                } else {
+                }
+                else {
                     console.error(`Got No Items!`);
                     return null;
                 }
@@ -223,13 +226,13 @@ export class XivApiDataManager implements DataManager {
                     .map(i => new XivApiGearInfo(i));
                 // TODO: put up better error
             }, (e) => console.error(e));
-        const statsPromise = Promise.all([itemsPromise, baseParamPromise]).then(() => {
+        const statsPromise = Promise.all([itemsPromise, baseParamPromise,]).then(() => {
             console.log(`Finishing item calculations for ${this._allItems.length} items`);
             this._allItems.forEach(item => {
                 const itemIlvlPromise = this.getIlvlSyncData(baseParamPromise, item.ilvl);
                 if (this._ilvlSync) {
                     const ilvlSyncPromise = this.getIlvlSyncData(baseParamPromise, this._ilvlSync);
-                    extraPromises.push(Promise.all([itemIlvlPromise, ilvlSyncPromise]).then(([native, sync]) => {
+                    extraPromises.push(Promise.all([itemIlvlPromise, ilvlSyncPromise,]).then(([native, sync,]) => {
                         item.applyIlvlData(native, sync);
                         if (item.isCustomRelic) {
                             // console.debug('Applying relic model');
@@ -237,7 +240,8 @@ export class XivApiDataManager implements DataManager {
                             // console.debug('Applied', item.relicStatModel)
                         }
                     }));
-                } else {
+                }
+                else {
                     extraPromises.push(itemIlvlPromise.then(native => {
                         item.applyIlvlData(native);
                         if (item.isCustomRelic) {
@@ -258,7 +262,7 @@ export class XivApiDataManager implements DataManager {
             columns: matCols,
             columnsTrn: matColsTrn,
             pageLimit: 1,
-            perPage: 50
+            perPage: 50,
         })
             .then((data) => {
                 if (data) {
@@ -271,7 +275,8 @@ export class XivApiDataManager implements DataManager {
                             return processRawMateriaInfo(item);
                         });
                     console.log(`Processed ${this._allMateria.length} total Materia items`);
-                } else {
+                }
+                else {
                     console.error('Got No Materia!');
                 }
             }, e => {
@@ -282,8 +287,8 @@ export class XivApiDataManager implements DataManager {
             requestType: 'search',
             sheet: 'Item',
             // filters: ['ItemKind=5', 'ItemSearchCategory=45', `LevelItem>=${this._minIlvlFood}`, `LevelItem<=${this._maxIlvlFood}`],
-            filters: ['ItemSearchCategory=45', `LevelItem>=${this._minIlvlFood}`, `LevelItem<=${this._maxIlvlFood}`],
-            columns: foodBaseItemCols
+            filters: ['ItemSearchCategory=45', `LevelItem>=${this._minIlvlFood}`, `LevelItem<=${this._maxIlvlFood}`,],
+            columns: foodBaseItemCols,
         })
             .then((data) => {
                 console.log(`Got ${data.Results.length} Food Items`);
@@ -295,9 +300,9 @@ export class XivApiDataManager implements DataManager {
                     requestType: 'list',
                     sheet: 'ItemFood',
                     columns: foodItemFoodCols,
-                    rows: foodIds
+                    rows: foodIds,
                 });
-                const foodMap = new Map(food.Results.map(result => [result.ID, result]));
+                const foodMap = new Map(food.Results.map(result => [result.ID, result,]));
 
                 return rawFoods.map(item => {
                     const itemFoodData = foodMap.get(item.ItemAction['fields']['Data'][1]);
@@ -311,7 +316,7 @@ export class XivApiDataManager implements DataManager {
         const jobsPromise = xivApiGet({
             requestType: "list",
             sheet: "ClassJob",
-            columns: ['Abbreviation', 'ModifierDexterity', 'ModifierIntelligence', 'ModifierMind', 'ModifierStrength', 'ModifierVitality', 'ModifierHitPoints'] as const
+            columns: ['Abbreviation', 'ModifierDexterity', 'ModifierIntelligence', 'ModifierMind', 'ModifierStrength', 'ModifierVitality', 'ModifierHitPoints',] as const,
         })
             .then(data => {
                 console.log(`Got ${data.Results.length} Jobs`);
@@ -326,12 +331,12 @@ export class XivApiDataManager implements DataManager {
                         mind: rawJob.ModifierMind as number,
                         strength: rawJob.ModifierStrength as number,
                         vitality: rawJob.ModifierVitality as number,
-                        hp: rawJob.ModifierHitPoints as number
+                        hp: rawJob.ModifierHitPoints as number,
                     });
                 }
             });
         const ilvlPromise = this.getIlvlSyncData(baseParamPromise, 710);
-        await Promise.all([baseParamPromise, itemsPromise, statsPromise, materiaPromise, foodPromise, jobsPromise, ilvlPromise]);
+        await Promise.all([baseParamPromise, itemsPromise, statsPromise, materiaPromise, foodPromise, jobsPromise, ilvlPromise,]);
         await Promise.all(extraPromises);
     }
 
@@ -428,44 +433,57 @@ export class XivApiGearInfo implements GearItem {
         const eqs = data.EquipSlotCategory['fields'];
         if (!eqs) {
             console.error('EquipSlotCategory was null!', data);
-        } else if (eqs['MainHand']) {
+        }
+        else if (eqs['MainHand']) {
             this.displayGearSlotName = 'Weapon';
             if (eqs['OffHand']) {
                 this.occGearSlotName = 'Weapon2H';
-            } else {
+            }
+            else {
                 this.occGearSlotName = 'Weapon1H';
             }
-        } else if (eqs['OffHand']) {
+        }
+        else if (eqs['OffHand']) {
             this.displayGearSlotName = 'OffHand';
             this.occGearSlotName = 'OffHand';
-        } else if (eqs['Head']) {
+        }
+        else if (eqs['Head']) {
             this.displayGearSlotName = 'Head';
             this.occGearSlotName = 'Head';
-        } else if (eqs['Body']) {
+        }
+        else if (eqs['Body']) {
             this.displayGearSlotName = 'Body';
             this.occGearSlotName = 'Body';
-        } else if (eqs['Gloves']) {
+        }
+        else if (eqs['Gloves']) {
             this.displayGearSlotName = 'Hand';
             this.occGearSlotName = 'Hand';
-        } else if (eqs['Legs']) {
+        }
+        else if (eqs['Legs']) {
             this.displayGearSlotName = 'Legs';
             this.occGearSlotName = 'Legs';
-        } else if (eqs['Feet']) {
+        }
+        else if (eqs['Feet']) {
             this.displayGearSlotName = 'Feet';
             this.occGearSlotName = 'Feet';
-        } else if (eqs['Ears']) {
+        }
+        else if (eqs['Ears']) {
             this.displayGearSlotName = 'Ears';
             this.occGearSlotName = 'Ears';
-        } else if (eqs['Neck']) {
+        }
+        else if (eqs['Neck']) {
             this.displayGearSlotName = 'Neck';
             this.occGearSlotName = 'Neck';
-        } else if (eqs['Wrists']) {
+        }
+        else if (eqs['Wrists']) {
             this.displayGearSlotName = 'Wrist';
             this.occGearSlotName = 'Wrist';
-        } else if (eqs['FingerL'] || eqs['FingerR']) {
+        }
+        else if (eqs['FingerL'] || eqs['FingerR']) {
             this.displayGearSlotName = 'Ring';
             this.occGearSlotName = 'Ring';
-        } else {
+        }
+        else {
             console.error("Unknown slot data!", eqs);
         }
         this.displayGearSlot = this.displayGearSlotName ? DisplayGearSlotInfo[this.displayGearSlotName] : undefined;
@@ -484,7 +502,8 @@ export class XivApiGearInfo implements GearItem {
             if (!actualStatKey) {
                 // TODO: primary/secondary attribute bonus hits this
                 console.warn(`Bad stat key: ${paramName}`);
-            } else {
+            }
+            else {
                 this.stats[actualStatKey] = paramValue;
             }
         }
@@ -498,9 +517,11 @@ export class XivApiGearInfo implements GearItem {
                 const paramValue = requireNumber(data.BaseParamValueSpecial[i]);
                 if (paramId === 12) {
                     this.stats.wdPhys += paramValue;
-                } else if (paramId === 13) {
+                }
+                else if (paramId === 13) {
                     this.stats.wdMag += paramValue;
-                } else {
+                }
+                else {
                     const paramKey = BaseParamToStatKey[paramName];
                     if (paramKey) {
                         this.stats[paramKey] += paramValue;
@@ -518,14 +539,17 @@ export class XivApiGearInfo implements GearItem {
             if (this.displayGearSlot !== DisplayGearSlotInfo.OffHand) {
                 // Offhands never have materia slots
                 this.isCustomRelic = true;
-            } else if (!this.primarySubstat) {
+            }
+            else if (!this.primarySubstat) {
                 // If there is no primary substat on the item, then consider it a relic
                 this.isCustomRelic = true;
-            } else {
+            }
+            else {
                 // Otherwise, it's just a random item that just so happens to not have materia slots
                 this.isCustomRelic = false;
             }
-        } else {
+        }
+        else {
             // If it has materia slots, it definitely isn't a custom relic
             this.isCustomRelic = false;
             // Is overmelding allowed?
@@ -536,7 +560,7 @@ export class XivApiGearInfo implements GearItem {
                 this.materiaSlots.push({
                     maxGrade: MATERIA_LEVEL_MAX_NORMAL,
                     allowsHighGrade: true,
-                    ilvl: this.ilvl
+                    ilvl: this.ilvl,
                 });
             }
             if (overmeld) {
@@ -545,13 +569,13 @@ export class XivApiGearInfo implements GearItem {
                 this.materiaSlots.push({
                     maxGrade: MATERIA_LEVEL_MAX_NORMAL,
                     allowsHighGrade: true,
-                    ilvl: this.ilvl
+                    ilvl: this.ilvl,
                 });
                 for (let i = this.materiaSlots.length; i < MATERIA_SLOTS_MAX; i++) {
                     this.materiaSlots.push({
                         maxGrade: MATERIA_LEVEL_MAX_OVERMELD,
                         allowsHighGrade: false,
-                        ilvl: this.ilvl
+                        ilvl: this.ilvl,
                     });
                 }
             }
@@ -674,12 +698,13 @@ export class XivApiGearInfo implements GearItem {
             spellspeed: this.stats.spellspeed,
             skillspeed: this.stats.skillspeed,
             piety: this.stats.piety,
-            tenacity: this.stats.tenacity
+            tenacity: this.stats.tenacity,
         })
             .sort((left, right) => {
                 if (left[1] > right[1]) {
                     return 1;
-                } else if (left[1] < right[1]) {
+                }
+                else if (left[1] < right[1]) {
                     return -1;
                 }
                 return 0;
@@ -689,7 +714,8 @@ export class XivApiGearInfo implements GearItem {
         if (sortedStats.length < 2) {
             this.primarySubstat = null;
             this.secondarySubstat = null;
-        } else {
+        }
+        else {
             this.primarySubstat = sortedStats[0][0] as keyof RawStats;
             this.secondarySubstat = sortedStats[1][0] as keyof RawStats;
         }
@@ -700,17 +726,17 @@ export class XivApiGearInfo implements GearItem {
      */
     applyIlvlData(nativeIlvlInfo: IlvlSyncInfo, syncIlvlInfo?: IlvlSyncInfo) {
         const statCapsNative = {};
-        Object.entries(this.stats).forEach(([stat, _]) => {
+        Object.entries(this.stats).forEach(([stat, _,]) => {
             statCapsNative[stat] = nativeIlvlInfo.substatCap(this.occGearSlotName, stat as RawStatKey);
         });
         this.statCaps = statCapsNative;
         if (syncIlvlInfo && syncIlvlInfo.ilvl < this.ilvl) {
             this.unsyncedVersion = {
-                ...this
+                ...this,
             };
             this.materiaSlots = [];
             const statCapsSync = {};
-            Object.entries(this.stats).forEach(([stat, v]) => {
+            Object.entries(this.stats).forEach(([stat, v,]) => {
                 statCapsSync[stat] = syncIlvlInfo.substatCap(this.occGearSlotName, stat as RawStatKey);
             });
             this.stats = applyStatCaps(this.stats, statCapsSync);
@@ -718,7 +744,8 @@ export class XivApiGearInfo implements GearItem {
             this.computeSubstats();
             this.isSyncedDown = true;
             this.syncedDownTo = syncIlvlInfo.ilvl;
-        } else {
+        }
+        else {
             this.unsyncedVersion = this;
             this.isSyncedDown = false;
             this.syncedDownTo = null;
@@ -749,7 +776,7 @@ export class XivApiFoodInfo implements FoodItem {
             const baseParamName = requireString(foodData['BaseParam'][index].fields.Name) as RelevantBaseParam;
             this.bonuses[BaseParamToStatKey[baseParamName]] = {
                 percentage: requireNumber(foodData.ValueHQ[index]),
-                max: requireNumber(foodData.MaxHQ[index])
+                max: requireNumber(foodData.MaxHQ[index]),
             };
         }
         const sortedStats = Object.entries(this.bonuses).sort((entryA, entryB) => entryB[1].max - entryA[1].max).map(entry => entry[0] as RawStatKey).filter(stat => stat !== 'vitality');
@@ -786,7 +813,7 @@ export function processRawMateriaInfo(data: XivApiMateriaDataRaw): Materia[] {
             primaryStatValue: stats[stat],
             materiaGrade: grade,
             isHighGrade: (grade % 2) === 0,
-            ilvl: itemFields['LevelItem'] ?? 0
+            ilvl: itemFields['LevelItem'] ?? 0,
         });
     }
     return out;

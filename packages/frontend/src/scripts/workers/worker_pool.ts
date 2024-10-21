@@ -80,7 +80,8 @@ export class WorkerPool {
 
         if (response.responseType === 'done') {
             this.resolves.get(jobId)?.resolve(response.data ?? null);
-        } else { // response type === 'error'
+        }
+        else { // response type === 'error'
             this.resolves.get(jobId)?.reject(response.data ?? null);
         }
 
@@ -112,22 +113,23 @@ export class WorkerPool {
     public requestWork(request: AnyWorkRequest, updateCallback?: (upd: unknown) => void): { promise: Promise<unknown>, jobId: number } {
         const internalRequest: WorkRequestInternal = {
             jobId: this.createJobId(),
-            request: request
+            request: request,
         };
         if (updateCallback) {
             this.updateCallbacks.set(internalRequest.jobId, updateCallback);
         }
         if (this.freeWorkers.length > 0) {
             this.assignWorker(internalRequest, this.freeWorkers.pop());
-        } else {
+        }
+        else {
             this.messageQueue.push(internalRequest);
         }
 
         return {
             promise: new Promise((resolve, reject) => {
-                this.resolves.set(internalRequest.jobId, { resolve: resolve, reject: reject });
+                this.resolves.set(internalRequest.jobId, { resolve: resolve, reject: reject, });
             }),
-            jobId: internalRequest.jobId
+            jobId: internalRequest.jobId,
         };
     }
 
@@ -146,7 +148,7 @@ export class WorkerPool {
         const worker = new Worker(new URL(
             'src_scripts_workers_worker_main_ts.js', document.location.toString())
         , {
-            name: 'worker-' + this.workerId++
+            name: 'worker-' + this.workerId++,
         });
         worker.onmessage = (event) => {
             const id = this.activeJobIds.get(worker);
@@ -169,7 +171,7 @@ export class WorkerPool {
         const initReq: InitializationRequest = {
             jobType: 'workerInitialization',
             sheet: sheet.exportSheet(),
-            data: undefined
+            data: undefined,
         };
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         for (const _w of this.workers) {
@@ -209,7 +211,7 @@ export class WorkerPool {
         const initReq: InitializationRequest = {
             jobType: 'workerInitialization',
             sheet: sheet.exportSheet(),
-            data: undefined
+            data: undefined,
         };
 
         // Kinda hacky, but it works.
@@ -219,7 +221,7 @@ export class WorkerPool {
     }
 
     getWorkerByJobId(idToGet: number): Worker | null {
-        for (const [worker, id] of this.activeJobIds) {
+        for (const [worker, id,] of this.activeJobIds) {
             if (id === idToGet) {
                 return worker;
             }

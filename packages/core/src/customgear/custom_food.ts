@@ -16,7 +16,7 @@ export type CustomFoodExport = {
 function defaultBonus(): FoodStatBonus {
     return {
         max: 100,
-        percentage: 10
+        percentage: 10,
     };
 }
 
@@ -36,7 +36,7 @@ export class CustomFood implements FoodItem {
             primaryStat: null,
             primaryStatBonus: defaultBonus(),
             secondaryStat: null,
-            secondaryStatBonus: defaultBonus()
+            secondaryStatBonus: defaultBonus(),
         };
     }
 
@@ -44,7 +44,7 @@ export class CustomFood implements FoodItem {
         // Copy the defaults so that new fields can be added to existing items
         return new CustomFood({
             ...this.defaults(),
-            ...exportedData
+            ...exportedData,
         });
     }
 
@@ -52,13 +52,13 @@ export class CustomFood implements FoodItem {
         const data: CustomFoodExport = {
             ...this.defaults(),
             fakeId: fakeId,
-            name: "My Custom Food"
+            name: "My Custom Food",
         };
         return new CustomFood(data);
     }
 
     export(): CustomFoodExport {
-        return {...this._data};
+        return {...this._data,};
     }
 
     get ilvl(): number {
@@ -75,7 +75,7 @@ export class CustomFood implements FoodItem {
 
     get bonuses(): FoodBonuses {
         const out: FoodBonuses = {
-            vitality: this._data.vitalityBonus
+            vitality: this._data.vitalityBonus,
         };
         if (this.secondarySubStat) {
             out[this._data.secondaryStat] = this._data.secondaryStatBonus;

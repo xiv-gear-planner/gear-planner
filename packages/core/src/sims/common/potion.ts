@@ -17,7 +17,7 @@ function makePotion(name: string, stat: RawStatKey, itemId: number, bonus: numbe
         animationLock: 0.6,
         potency: null,
         cooldown: {
-            time: 270
+            time: 270,
         },
         activatesBuffs: [
             {
@@ -27,24 +27,24 @@ function makePotion(name: string, stat: RawStatKey, itemId: number, bonus: numbe
                 effects: {
                     modifyStats: (stats, bonuses) => {
                         bonuses[stat] = potionBonus(stats[stat], bonus, cap);
-                    }
-                }
-            }
-        ]
+                    },
+                },
+            },
+        ],
 
     };
 }
 
-export const GemdraughtGrades = [1, 2] as const;
+export const GemdraughtGrades = [1, 2,] as const;
 export type GemdraughtGrade = typeof GemdraughtGrades[number];
 export function makeGemdraught(stat: RawStatKey, grade: GemdraughtGrade): Readonly<OgcdAbility> {
     const statToPotItemId = {
         mind: 44161,
         strength: 44157,
         dexterity: 44158,
-        intelligence: 44160
+        intelligence: 44160,
     };
-    const gradeToStatCap = [351, 392];
+    const gradeToStatCap = [351, 392,];
 
     return makePotion(`Grade ${grade} Gemdraught of ${camel2title(stat)}`, stat, statToPotItemId[stat], 0.1, gradeToStatCap[grade - 1]);
 }

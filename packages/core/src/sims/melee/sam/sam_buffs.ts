@@ -4,35 +4,35 @@ import { Buff, Ability, BuffController } from "@xivgear/core/sims/sim_types";
  * Samurai-specific Buffs
  */
 const FUKA_ACTIONS: string[] = [
-    "Shifu", "Kasha"
+    "Shifu", "Kasha",
 ];
 const FUGETSU_ACTIONS: string[] = [
-    "Jinpu", "Gekko"
+    "Jinpu", "Gekko",
 ];
 const MEIKYO_ACTIONS: string[] = [
     "Yukikaze",
     ...FUKA_ACTIONS,
-    ...FUGETSU_ACTIONS
+    ...FUGETSU_ACTIONS,
 ];
 
 export const Fuka: Buff = {
     name: "Fuka",
     selfOnly: true,
     effects: {
-        haste: 13
+        haste: 13,
     },
     duration: 40,
-    statusId: 1299
+    statusId: 1299,
 };
 
 export const Fugetsu: Buff = {
     name: "Fugetsu",
     selfOnly: true,
     effects: {
-        dmgIncrease: 0.13
+        dmgIncrease: 0.13,
     },
     duration: 40,
-    statusId: 1298
+    statusId: 1298,
 };
 
 export const MeikyoShisuiBuff: Buff = {
@@ -47,15 +47,16 @@ export const MeikyoShisuiBuff: Buff = {
         const activatesBuffs = [];
         if (FUKA_ACTIONS.includes(ability.name)) {
             activatesBuffs.push(Fuka);
-        } else if (FUGETSU_ACTIONS.includes(ability.name)) {
+        }
+        else if (FUGETSU_ACTIONS.includes(ability.name)) {
             activatesBuffs.push(Fugetsu);
         }
         return {
             ...ability,
-            activatesBuffs: [...activatesBuffs]
+            activatesBuffs: [...activatesBuffs,],
         };
     },
     stacks: 3,
     duration: 40,
-    statusId: 1233
+    statusId: 1233,
 };

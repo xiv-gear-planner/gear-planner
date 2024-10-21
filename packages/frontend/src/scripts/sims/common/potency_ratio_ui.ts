@@ -20,7 +20,7 @@ export class PotencyRatioSimGui extends SimulationGui<PotencyRatioSimResults, Si
     makeResultDisplay(result: PotencyRatioSimResults): HTMLElement {
         const tbl = simpleMappedResultTable<PotencyRatioSimResults>({
             'mainDpsResult': 'Dmg/100p, with Crit/DH',
-            'withoutCritDh': 'Dmg/100p, no Crit/DH'
+            'withoutCritDh': 'Dmg/100p, no Crit/DH',
         })(result);
         tbl.classList.add('sim-basic-result-table');
         const description = makeDescriptionPanel();

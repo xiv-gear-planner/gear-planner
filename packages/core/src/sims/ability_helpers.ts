@@ -14,12 +14,13 @@ function defaultComboData(ability: Ability, hasOtherCombos: boolean): ComboData 
     if (ability.type === 'gcd' && hasOtherCombos) {
         return {
             comboBehavior: 'break',
-            comboKey: "all"
+            comboKey: "all",
         };
-    } else {
+    }
+    else {
         return {
             comboBehavior: 'nobreak',
-            comboKey: "all"
+            comboKey: "all",
         };
     }
 }
@@ -60,23 +61,25 @@ export function completeComboData(ability: Ability): FinalizedComboData {
         }
         if (key === "all") {
             others = combo;
-        } else {
+        }
+        else {
             combos.push({
                 ...combo,
-                comboKey: key
+                comboKey: key,
             });
         }
     }
     if (others === null) {
         if (combos.length > 0) {
             others = defaultComboData(ability, true);
-        } else {
+        }
+        else {
             others = defaultComboData(ability, false);
         }
     }
     return {
         combos: combos,
-        others: others
+        others: others,
     };
 }
 

@@ -55,7 +55,8 @@ export class RelicStatMemory {
         const stats = this.memory.get(item.id);
         if (nonEmptyRelicStats(stats)) {
             return stats;
-        } else {
+        }
+        else {
             return undefined;
         }
     }
@@ -71,7 +72,7 @@ export class RelicStatMemory {
     }
 
     import(relicStatMemory: RelicStatMemoryExport) {
-        Object.entries(relicStatMemory).every(([rawKey, stats]) => this.memory.set(parseInt(rawKey), stats));
+        Object.entries(relicStatMemory).every(([rawKey, stats,]) => this.memory.set(parseInt(rawKey), stats));
     }
 }
 
@@ -109,7 +110,8 @@ export class MateriaMemory {
         let bySlot: Map<number, number[]>;
         if (this.memory.has(equipSlot)) {
             bySlot = this.memory.get(equipSlot);
-        } else {
+        }
+        else {
             bySlot = new Map();
             this.memory.set(equipSlot, bySlot);
         }
@@ -121,7 +123,7 @@ export class MateriaMemory {
         this.memory.forEach((slotValue, slotKey) => {
             const items: SlotMateriaMemoryExport[] = [];
             slotValue.forEach((materiaIds, itemId) => {
-                items.push([itemId, materiaIds]);
+                items.push([itemId, materiaIds,]);
             });
             out[slotKey] = items;
         });
@@ -129,7 +131,7 @@ export class MateriaMemory {
     }
 
     import(memory: MateriaMemoryExport) {
-        Object.entries(memory).forEach(([slotKey, itemMemory]) => {
+        Object.entries(memory).forEach(([slotKey, itemMemory,]) => {
             const slotMap: Map<number, number[]> = new Map();
             for (const itemMemoryElement of itemMemory) {
                 slotMap.set(itemMemoryElement[0], itemMemoryElement[1]);
@@ -160,7 +162,7 @@ export class SetDisplaySettings {
             }
         });
         return {
-            hiddenSlots: hiddenSlots
+            hiddenSlots: hiddenSlots,
         };
     }
 
@@ -182,18 +184,20 @@ export function previewItemStatDetail(item: GearItem, stat: RawStatKey): ItemSin
                 fullAmount: unsynced,
                 overcapAmount: unsynced - synced,
                 cap: cap,
-                mode: "synced-down"
+                mode: "synced-down",
             };
-        } else {
+        }
+        else {
             return {
                 mode: 'unmelded',
                 effectiveAmount: synced,
                 fullAmount: synced,
                 cap: cap,
-                overcapAmount: 0
+                overcapAmount: 0,
             };
         }
-    } else {
+    }
+    else {
         // If there is later an ability to make melds sticky, this would be a good place to implement 'previewing' it.
         const statAmount = item.stats[stat];
         return {
@@ -201,7 +205,7 @@ export function previewItemStatDetail(item: GearItem, stat: RawStatKey): ItemSin
             effectiveAmount: statAmount,
             fullAmount: statAmount,
             overcapAmount: 0,
-            cap: cap
+            cap: cap,
         };
     }
 }
@@ -315,14 +319,16 @@ export class CharacterGearSet {
             const mode = materiaAutoFillController.autoFillMode;
             if (mode === 'leave_empty') {
                 // Do nothing
-            } else {
+            }
+            else {
                 // This var tracks what we would like to re-equip
                 let reEquip: Materia[] = [];
                 if (mode === 'retain_slot' || mode === 'retain_slot_else_prio') {
                     if (old && old.melds.find(meld => meld.equippedMateria)) {
                         reEquip = old.melds.map(meld => meld.equippedMateria).filter(value => value);
                     }
-                } else if (mode === 'retain_item' || mode === 'retain_item_else_prio') {
+                }
+                else if (mode === 'retain_item' || mode === 'retain_item_else_prio') {
                     const materiaIds = this.materiaMemory.get(slot, item);
                     materiaIds.forEach((materiaId, index) => {
                         if (materiaId <= 0) {
@@ -337,8 +343,9 @@ export class CharacterGearSet {
                 if (mode === 'autofill'
                     || (reEquip.length === 0
                         && (mode === 'retain_item_else_prio' || mode === 'retain_slot_else_prio'))) {
-                    this.fillMateria(materiaAutoFillController.prio, false, [slot]);
-                } else {
+                    this.fillMateria(materiaAutoFillController.prio, false, [slot,]);
+                }
+                else {
                     const eq = this.equipment[slot];
                     for (let i = 0; i < reEquip.length; i++) {
                         if (i in eq.melds) {
@@ -473,7 +480,7 @@ export class CharacterGearSet {
             if (leftRing.id === rightRing.id) {
                 issues.push({
                     severity: 'error',
-                    description: `You cannot equip ${leftRing.name} in both ring slots because it is a unique item.`
+                    description: `You cannot equip ${leftRing.name} in both ring slots because it is a unique item.`,
                 });
             }
         }
@@ -481,12 +488,12 @@ export class CharacterGearSet {
         if (!weapon) {
             issues.push({
                 severity: 'error',
-                description: 'You must equip a weapon'
+                description: 'You must equip a weapon',
             });
         }
         this._lastResult = {
             computedStats: computedStats,
-            issues: this.isSeparator ? [] : issues
+            issues: this.isSeparator ? [] : issues,
         };
         //console.info("Recomputed stats", this._lastResult);
         return this._lastResult;
@@ -501,7 +508,7 @@ export class CharacterGearSet {
         if (!equip.gearItem) {
             return {
                 stats: EMPTY_STATS,
-                issues: []
+                issues: [],
             };
         }
         const itemStats = new RawStats(equip.gearItem.stats);
@@ -513,7 +520,7 @@ export class CharacterGearSet {
                 issues.push({
                     severity: "warning",
                     description: `${EquipSlotInfo[slotId].name} is overcapped, losing ${statDetail.overcapAmount} ${stat}.`,
-                    affectedSlots: [slotId]
+                    affectedSlots: [slotId,],
                 });
             }
         }
@@ -522,14 +529,14 @@ export class CharacterGearSet {
             for (const failure of failures) {
                 issues.push({
                     ...failure,
-                    affectedSlots: [slotId]
+                    affectedSlots: [slotId,],
                 });
 
             }
         }
         return {
             stats: itemStats,
-            issues: issues
+            issues: issues,
         };
     }
 
@@ -551,7 +558,7 @@ export class CharacterGearSet {
                 overcapAmount: 0,
                 effectiveAmount: 0,
                 fullAmount: 0,
-                cap: 0
+                cap: 0,
             };
         }
         const stats = new RawStats(gearItem.stats);
@@ -569,18 +576,20 @@ export class CharacterGearSet {
                         fullAmount: current,
                         overcapAmount: current - cap,
                         cap: cap,
-                        mode: "synced-down"
+                        mode: "synced-down",
                     };
-                } else {
+                }
+                else {
                     return {
                         effectiveAmount: current,
                         fullAmount: current,
                         overcapAmount: 0,
                         cap: cap,
-                        mode: 'unmelded'
+                        mode: 'unmelded',
                     };
                 }
-            } else {
+            }
+            else {
                 const unsynced = gearItem.unsyncedVersion.stats[stat];
                 const synced = stats[stat];
                 if (synced < unsynced) {
@@ -589,15 +598,16 @@ export class CharacterGearSet {
                         fullAmount: unsynced,
                         overcapAmount: unsynced - synced,
                         cap: synced,
-                        mode: "synced-down"
+                        mode: "synced-down",
                     };
-                } else {
+                }
+                else {
                     return {
                         effectiveAmount: synced,
                         fullAmount: synced,
                         overcapAmount: 0,
                         cap: synced,
-                        mode: 'unmelded'
+                        mode: 'unmelded',
                     };
                 }
             }
@@ -621,7 +631,7 @@ export class CharacterGearSet {
                 overcapAmount: 0,
                 effectiveAmount: meldedStatValue,
                 fullAmount: meldedStatValue,
-                cap: meldedStatValue
+                cap: meldedStatValue,
             };
         }
         // Overcapped
@@ -632,23 +642,25 @@ export class CharacterGearSet {
                 fullAmount: meldedStatValue,
                 overcapAmount: 0,
                 cap: cap,
-                mode: "melded"
+                mode: "melded",
             };
-        } else if (overcapAmount < smallestMateria) {
+        }
+        else if (overcapAmount < smallestMateria) {
             return {
                 effectiveAmount: cap,
                 fullAmount: meldedStatValue,
                 overcapAmount: overcapAmount,
                 cap: cap,
-                mode: "melded-overcapped"
+                mode: "melded-overcapped",
             };
-        } else {
+        }
+        else {
             return {
                 effectiveAmount: cap,
                 fullAmount: meldedStatValue,
                 overcapAmount: overcapAmount,
                 cap: cap,
-                mode: "melded-overcapped-major"
+                mode: "melded-overcapped-major",
             };
         }
     }
@@ -772,7 +784,7 @@ export class CharacterGearSet {
         }
         const checkpoint: GearSetCheckpoint = {
             equipment: cloneEquipmentSet(this.equipment),
-            food: this._food
+            food: this._food,
         };
         const prev = this.currentCheckpoint;
         // Initial checkpoint
@@ -780,13 +792,14 @@ export class CharacterGearSet {
             this.currentCheckpoint = {
                 value: checkpoint,
                 prev: null,
-                next: null
+                next: null,
             };
-        } else {  // There was a previous checkpoint
+        }
+        else {  // There was a previous checkpoint
             const newNode: GearSetCheckpointNode = {
                 value: checkpoint,
                 prev: prev,
-                next: null
+                next: null,
             };
             // Insert into the chain, replacing any previous redo history
             prev.next = newNode;
@@ -837,7 +850,8 @@ export class CharacterGearSet {
             this.forceRecalc();
             this.notifyListeners();
             this._undoHook();
-        } finally {
+        }
+        finally {
             this._reverting = false;
         }
     }
@@ -851,7 +865,8 @@ export class CharacterGearSet {
             this.revertToCheckpoint(prev.value);
             this.currentCheckpoint = prev;
             return true;
-        } else {
+        }
+        else {
             return false;
         }
     }
@@ -862,7 +877,8 @@ export class CharacterGearSet {
             this.revertToCheckpoint(next.value);
             this.currentCheckpoint = next;
             return true;
-        } else {
+        }
+        else {
             return false;
         }
     }
@@ -878,9 +894,9 @@ export class CharacterGearSet {
 
 export function applyStatCaps(stats: RawStats, statCaps: { [K in RawStatKey]?: number }) {
     const out = {
-        ...stats
+        ...stats,
     };
-    Object.entries(stats).forEach(([stat, value]) => {
+    Object.entries(stats).forEach(([stat, value,]) => {
         if (NO_SYNC_STATS.includes(stat as RawStatKey)) {
             return;
         }
@@ -940,7 +956,7 @@ export function isSameOrBetterItem(candidateItem: GearItem, baseItem: GearItem):
     // Phase 1: Raw stats
     const candidateStats = candidateItem.stats;
     const baseStats = baseItem.stats;
-    for (const [statKey, baseValue] of Object.entries(baseStats)) {
+    for (const [statKey, baseValue,] of Object.entries(baseStats)) {
         const candidateValue = candidateStats[statKey] as number;
         // For skill/spell speed, we want an exact match, since allowing extra sks/sps could cause
         // it to bump up a GCD tier.
@@ -948,7 +964,8 @@ export function isSameOrBetterItem(candidateItem: GearItem, baseItem: GearItem):
             if (candidateValue !== baseValue) {
                 return false;
             }
-        } else { // For everything else, it's fine if the candidate value is greater than the base value.
+        }
+        else { // For everything else, it's fine if the candidate value is greater than the base value.
             if (candidateValue < baseValue) {
                 return false;
             }
@@ -966,13 +983,15 @@ export function isSameOrBetterItem(candidateItem: GearItem, baseItem: GearItem):
             // Check that the supported grade is at least the same as the base item
             if (candidateSlot.maxGrade < baseSlot.maxGrade) {
                 return false;
-            } else if (baseSlot.allowsHighGrade && !candidateSlot.allowsHighGrade) {
+            }
+            else if (baseSlot.allowsHighGrade && !candidateSlot.allowsHighGrade) {
                 // Also check that if the base item allows high grade, that the candidate also does.
                 // Without this, an 11 would be considered an acceptable substitute to a 10, despite the fact that
                 // grade 11 materia are better than grade 10 materia.
                 return false;
             }
-        } else {
+        }
+        else {
             // Not enough slots
             return false;
         }

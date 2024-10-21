@@ -33,7 +33,7 @@ describe("ComputedSetStats", () => {
             spellspeed: 1134,
             wdPhys: 141,
             wdMag: 141,
-            weaponDelay: 3.12
+            weaponDelay: 3.12,
         }), {}, level, getLevelStats(level), job, fakeSheet.classJobStats, 0);
         expect(stats.aaDelay).to.eq(3.12);
         expect(stats.aaMulti).to.eq(1.87);
@@ -89,22 +89,22 @@ describe("ComputedSetStats", () => {
             spellspeed: 1134,
             wdPhys: 141,
             wdMag: 141,
-            weaponDelay: 3.12
+            weaponDelay: 3.12,
         }),
         // Pineapple Orange Jelly
         {
             vitality: {
                 max: 203,
-                percentage: 10
+                percentage: 10,
             },
             crit: {
                 max: 132,
-                percentage: 10
+                percentage: 10,
             },
             spellspeed: {
                 max: 79,
-                percentage: 10
-            }
+                percentage: 10,
+            },
         }, level, getLevelStats(level), job, fakeSheet.classJobStats, 0);
         expect(stats.aaDelay).to.eq(3.12);
         expect(stats.aaMulti).to.eq(1.87);
@@ -160,22 +160,22 @@ describe("ComputedSetStats", () => {
             spellspeed: 1134,
             wdPhys: 141,
             wdMag: 141,
-            weaponDelay: 3.12
+            weaponDelay: 3.12,
         }),
         // Pineapple Orange Jelly
         {
             vitality: {
                 max: 203,
-                percentage: 10
+                percentage: 10,
             },
             crit: {
                 max: 132,
-                percentage: 10
+                percentage: 10,
             },
             spellspeed: {
                 max: 79,
-                percentage: 10
-            }
+                percentage: 10,
+            },
         }, level, getLevelStats(level), job, fakeSheet.classJobStats, 5);
         expect(stats.aaDelay).to.eq(3.12);
         expect(stats.aaMulti).to.eq(1.87);
@@ -243,7 +243,7 @@ describe("Dmg/100p for known values", () => {
             spellspeed: 1134,
             wdPhys: 114,
             wdMag: 114,
-            weaponDelay: 3.12
+            weaponDelay: 3.12,
         }),
         // Pineapple Orange Jelly
         {}, level, getLevelStats(level), 'SMN', fakeSheetSMN.classJobStats, 0);
@@ -275,7 +275,7 @@ describe("Dmg/100p for known values", () => {
             spellspeed: 1134,
             wdPhys: 114,
             wdMag: 114,
-            weaponDelay: 3.12
+            weaponDelay: 3.12,
         }),
         // Pineapple Orange Jelly
         {}, level, getLevelStats(level), 'SMN', fakeSheetSMN.classJobStats, 0);
@@ -307,7 +307,7 @@ describe("Dmg/100p for known values", () => {
             spellspeed: 1134,
             wdPhys: 141,
             wdMag: 141,
-            weaponDelay: 3.12
+            weaponDelay: 3.12,
         }),
         // Pineapple Orange Jelly
         {}, level, getLevelStats(level), 'WAR', fakeSheetWAR.classJobStats, 0);
@@ -339,7 +339,7 @@ describe("Dmg/100p for known values", () => {
             spellspeed: 1134,
             wdPhys: 141,
             wdMag: 141,
-            weaponDelay: 3.12
+            weaponDelay: 3.12,
         }),
         // Pineapple Orange Jelly
         {}, level, getLevelStats(level), 'WAR', fakeSheetWAR.classJobStats, 0);
@@ -372,7 +372,7 @@ describe("Dmg/100p for known values", () => {
             spellspeed: 420,
             wdPhys: 0,
             wdMag: 0,
-            weaponDelay: 3.12
+            weaponDelay: 3.12,
         }),
         // Pineapple Orange Jelly
         {}, level, getLevelStats(level), 'SCH', fakeSheetSCH.classJobStats, 0);
@@ -406,7 +406,7 @@ describe("Dmg/100p for known values", () => {
             spellspeed: 780,
             wdPhys: 0,
             wdMag: 0,
-            weaponDelay: 3.12
+            weaponDelay: 3.12,
         }),
         // Pineapple Orange Jelly
         {}, level, getLevelStats(level), 'SCH', fakeSheetSCH.classJobStats, 0);
@@ -440,7 +440,7 @@ describe("Dmg/100p for known values", () => {
             spellspeed: 816,
             wdPhys: 0,
             wdMag: 0,
-            weaponDelay: 3.12
+            weaponDelay: 3.12,
         }),
         // Pineapple Orange Jelly
         {}, level, getLevelStats(level), 'SCH', fakeSheetSCH.classJobStats, 0);
@@ -474,7 +474,7 @@ describe("Dmg/100p for known values", () => {
             spellspeed: 852,
             wdPhys: 0,
             wdMag: 0,
-            weaponDelay: 3.12
+            weaponDelay: 3.12,
         }),
         // Pineapple Orange Jelly
         {}, level, getLevelStats(level), 'SCH', fakeSheetSCH.classJobStats, 0);
@@ -508,7 +508,7 @@ describe("Dmg/100p for known values", () => {
             spellspeed: 852,
             wdPhys: 79,
             wdMag: 79,
-            weaponDelay: 3.12
+            weaponDelay: 3.12,
         }),
         // Pineapple Orange Jelly
         {}, level, getLevelStats(level), 'GNB', fakeSheetGNB.classJobStats, 0);
@@ -542,7 +542,7 @@ describe("Dmg/100p for known values", () => {
             spellspeed: 852,
             wdPhys: 79,
             wdMag: 79,
-            weaponDelay: 3.12
+            weaponDelay: 3.12,
         }),
         // Pineapple Orange Jelly
         {}, level, getLevelStats(level), 'GNB', fakeSheetGNB.classJobStats, 0);
@@ -576,7 +576,7 @@ describe("Dmg/100p for known values", () => {
             spellspeed: 852,
             wdPhys: 79,
             wdMag: 79,
-            weaponDelay: 3.12
+            weaponDelay: 3.12,
         }),
         // Pineapple Orange Jelly
         {}, level, getLevelStats(level), 'GNB', fakeSheetGNB.classJobStats, 0);
@@ -610,7 +610,7 @@ describe("Dmg/100p for known values", () => {
             spellspeed: 852,
             wdPhys: 79,
             wdMag: 79,
-            weaponDelay: 3.12
+            weaponDelay: 3.12,
         }),
         // Pineapple Orange Jelly
         {}, level, getLevelStats(level), 'GNB', fakeSheetGNB.classJobStats, 0);
@@ -644,7 +644,7 @@ describe("Dmg/100p for known values", () => {
             spellspeed: 852,
             wdPhys: 79,
             wdMag: 79,
-            weaponDelay: 3.12
+            weaponDelay: 3.12,
         }),
         // Pineapple Orange Jelly
         {}, level, getLevelStats(level), 'GNB', fakeSheetGNB.classJobStats, 0);
@@ -678,7 +678,7 @@ describe("Dmg/100p for known values", () => {
             spellspeed: 852,
             wdPhys: 79,
             wdMag: 79,
-            weaponDelay: 3.12
+            weaponDelay: 3.12,
         }),
         // Pineapple Orange Jelly
         {}, level, getLevelStats(level), 'GNB', fakeSheetGNB.classJobStats, 0);
@@ -712,7 +712,7 @@ describe("Dmg/100p for known values", () => {
             spellspeed: 852,
             wdPhys: 132,
             wdMag: 132,
-            weaponDelay: 3.12
+            weaponDelay: 3.12,
         }),
         // Pineapple Orange Jelly
         {}, level, getLevelStats(level), 'GNB', fakeSheetGNB.classJobStats, 0);

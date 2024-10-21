@@ -132,11 +132,11 @@ export function toSerializableForm(stats: ComputedSetStats): ComputedSetStats {
             ) {
                 return {
                     enumerable: true,
-                    configurable: true
+                    configurable: true,
                 };
             }
             return undefined;
-        }
+        },
     });
 }
 
@@ -399,7 +399,7 @@ function finalizeStatsInt(
     classJobStats: JobData,
     partyBonus: PartyBonusAmount
 ): RawStats {
-    const combinedStats: RawStats = {...gearStats};
+    const combinedStats: RawStats = {...gearStats,};
     const mainStatKey = classJobStats.mainStat;
     const aaStatKey = classJobStats.autoAttackStat;
     combinedStats[mainStatKey] = fl(combinedStats[mainStatKey] * (1 + 0.01 * partyBonus));

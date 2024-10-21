@@ -20,7 +20,7 @@ import {BaseParamMap} from "../datamanager";
 function err(description: string): GearSetIssue {
     return {
         severity: 'error',
-        description: description
+        description: description,
     };
 }
 
@@ -55,12 +55,14 @@ function ewRelic(large: number, small: number): EwRelicStatModel {
                     if (stat === statToReport) {
                         reportSmall = true;
                     }
-                } else if (current === this.largeValue) {
+                }
+                else if (current === this.largeValue) {
                     larges++;
                     if (stat === statToReport) {
                         reportLarge = true;
                     }
-                } else if (current !== 0 && (!statToReport || statToReport === stat)) {
+                }
+                else if (current !== 0 && (!statToReport || statToReport === stat)) {
                     // Also report if we have a non-zero value that is neither large nor small
                     out.push(err(`${current} is not a valid ${STAT_ABBREVIATIONS[stat]} amount - it should either be ${this.largeValue} or ${this.smallValue}`));
                 }
@@ -70,7 +72,7 @@ function ewRelic(large: number, small: number): EwRelicStatModel {
             }
             return out;
 
-        }
+        },
     };
 }
 
@@ -105,17 +107,19 @@ function customRelic(total: number): CustomRelicStatModel {
                         if (overcap <= reportingStatAmount) {
                             const reduceTo = reportingStatAmount - overcap;
                             out.unshift(err(`Sum of stats must be ${this.totalCap} or lower (currently ${runningTotal}). You could fix this by reducing ${STAT_ABBREVIATIONS[statToReport]} to ${reduceTo}.`));
-                        } else {
+                        }
+                        else {
                             // Report the generic message if not
                             out.unshift(err(`Sum of stats must be ${this.totalCap} or lower (currently ${runningTotal}).`));
                         }
                     }
-                } else {  // Otherwise, just report the generic message
+                }
+                else {  // Otherwise, just report the generic message
                     out.unshift(err(`Sum of stats must be ${this.totalCap} or lower (currently ${runningTotal}).`));
                 }
             }
             return out;
-        }
+        },
     };
 }
 
@@ -130,19 +134,21 @@ export function getRelicStatModelFor(gearItem: GearItem, baseParams: BaseParamMa
     const partial = getRelicStatModelForPartial(gearItem, baseParams);
     if (partial === null) {
         return null;
-    } else {
+    }
+    else {
         const jobData = getClassJobStats(job);
         return {
             excludedStats: jobData.excludedRelicSubstats,
             ...partial,
             validate(item: EquippedItem, statToReport?: Substat): GearSetIssue[] {
-                const failures = [...partial.validate(item, statToReport)];
+                const failures = [...partial.validate(item, statToReport),];
                 const relicStats = item.relicStats;
                 if (statToReport) {
                     if (relicStats[statToReport] && jobData.excludedRelicSubstats.includes(statToReport)) {
                         failures.push(err(`${STAT_FULL_NAMES[statToReport]} is not available on ${jobData.role.toLowerCase()} relics.`));
                     }
-                } else {
+                }
+                else {
                     for (const entry of Object.entries(relicStats)) {
                         const stat = entry[0] as Substat;
                         if (entry[1] && jobData.excludedRelicSubstats.includes(stat)) {
@@ -151,7 +157,7 @@ export function getRelicStatModelFor(gearItem: GearItem, baseParams: BaseParamMa
                     }
                 }
                 return failures;
-            }
+            },
         };
     }
 }
@@ -180,18 +186,18 @@ function getRelicStatModelForPartial(gearItem: GearItem, baseParams: BaseParamMa
         validate(item: EquippedItem, statToReport?: Substat): GearSetIssue[] {
             const out: GearSetIssue[] = [];
             const caps = item.gearItem.unsyncedVersion.statCaps;
-            for (const stat in (statToReport ? [statToReport] : ALL_SUB_STATS)) {
+            for (const stat in (statToReport ? [statToReport,] : ALL_SUB_STATS)) {
                 const current = item.relicStats[stat];
                 const cap = caps;
                 if (current && cap && current > cap) {
                     out.push({
                         severity: 'error',
-                        description: `Stat ${STAT_ABBREVIATIONS[stat]} must be ${cap} or lower.`
+                        description: `Stat ${STAT_ABBREVIATIONS[stat]} must be ${cap} or lower.`,
                     });
                 }
             }
             return out;
-        }
+        },
     };
 }
 

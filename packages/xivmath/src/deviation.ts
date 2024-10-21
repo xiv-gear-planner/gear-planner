@@ -21,7 +21,7 @@ export function addValues(...values: ValueWithDev[]): ValueWithDev {
     const stdDev = Math.sqrt(varianceSum);
     return {
         expected: sum,
-        stdDev: stdDev
+        stdDev: stdDev,
     };
 }
 
@@ -44,7 +44,7 @@ export function multiplyValues(...values: ValueWithDev[]): ValueWithDev {
     const stdDev = Math.sqrt(firstTerm - secondTerm);
     return {
         expected: product,
-        stdDev: stdDev
+        stdDev: stdDev,
     };
 }
 
@@ -72,7 +72,7 @@ export function multiplyIndependent(value: ValueWithDev, scalar: number) {
     return {
         expected: value.expected * scalar,
         // variance = k * dev**2 -> stddev = sqrt(variance)
-        stdDev: Math.sqrt(Math.abs(scalar)) * value.stdDev
+        stdDev: Math.sqrt(Math.abs(scalar)) * value.stdDev,
     };
 }
 
@@ -90,7 +90,7 @@ export function chanceMultiplierStdDev(chance: number, multiplier: number): Valu
     const stdDev = Math.sqrt(chance * (1 - chance)) * (multiplier - 1);
     return {
         expected: expected,
-        stdDev: stdDev
+        stdDev: stdDev,
     };
 }
 
@@ -102,7 +102,7 @@ export function chanceMultiplierStdDev(chance: number, multiplier: number): Valu
 export function fixedValue(value: number): ValueWithDev {
     return {
         expected: value,
-        stdDev: 0
+        stdDev: 0,
     };
 }
 

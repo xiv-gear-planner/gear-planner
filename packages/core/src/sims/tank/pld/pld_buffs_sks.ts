@@ -14,10 +14,10 @@ export const FightOrFlightBuff: Buff = {
     name: "Fight or Flight",
     selfOnly: true,
     effects: {
-        dmgIncrease: 0.25
+        dmgIncrease: 0.25,
     },
     duration: 19.96, // Not actually 20s, per nikroulah
-    statusId: 76
+    statusId: 76,
 };
 export const RequiescatBuff: Buff = {
     name: "Requiescat",
@@ -30,7 +30,7 @@ export const RequiescatBuff: Buff = {
     statusId: 1368,
     stacks: 4,
     appliesTo: ability => ability.attackType === "Spell",
-    beforeSnapshot: subtractStackSelf
+    beforeSnapshot: subtractStackSelf,
 };
 export const GoringBladeReadyBuff: Buff = {
     name: "Goring Blade Ready",
@@ -41,7 +41,7 @@ export const GoringBladeReadyBuff: Buff = {
     duration: 30,
     statusId: 3847,
     appliesTo: ability => ability.name === "Goring Blade",
-    beforeSnapshot: removeSelf
+    beforeSnapshot: removeSelf,
 };
 
 export const AtonementReadyBuff: Buff = {
@@ -53,7 +53,7 @@ export const AtonementReadyBuff: Buff = {
     appliesTo: ability => ability.name === "Atonement",
     beforeSnapshot: removeSelf,
     duration: 30,
-    statusId: 1902
+    statusId: 1902,
 };
 
 export const SupplicationReadyBuff: Buff = {
@@ -65,7 +65,7 @@ export const SupplicationReadyBuff: Buff = {
     appliesTo: ability => ability.name === "Supplication",
     beforeSnapshot: removeSelf,
     duration: 30,
-    statusId: 3827
+    statusId: 3827,
 };
 
 export const SepulchreReadyBuff: Buff = {
@@ -77,7 +77,7 @@ export const SepulchreReadyBuff: Buff = {
     appliesTo: ability => ability.name === "Sepulchre",
     beforeSnapshot: removeSelf,
     duration: 30,
-    statusId: 3828
+    statusId: 3828,
 };
 
 export const DivineMightBuff: Buff = {
@@ -89,7 +89,7 @@ export const DivineMightBuff: Buff = {
     appliesTo: ability => ability.name === "Holy Spirit",
     beforeSnapshot: removeSelf,
     duration: 30,
-    statusId: 2673
+    statusId: 2673,
 };
 
 export const BladeOfHonorReadyBuff: Buff = {
@@ -101,5 +101,5 @@ export const BladeOfHonorReadyBuff: Buff = {
     appliesTo: ability => ability.name === "Blade of Honor",
     beforeSnapshot: removeSelf,
     duration: 30,
-    statusId: 3831
+    statusId: 3831,
 };

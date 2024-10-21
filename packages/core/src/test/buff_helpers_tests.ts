@@ -9,8 +9,8 @@ describe("Buff Helpers", () => {
             selfOnly: true,
             name: "Test buff",
             effects: {
-                dmgIncrease: 0.5
-            }
+                dmgIncrease: 0.5,
+            },
         };
 
         it('is not relevant at start', () => {
@@ -29,8 +29,8 @@ describe("Buff Helpers", () => {
             selfOnly: true,
             name: "Test buff",
             effects: {
-                haste: 10
-            }
+                haste: 10,
+            },
         };
 
         it('is relevant at start', () => {
@@ -49,7 +49,7 @@ describe("Buff Helpers", () => {
             duration: 15,
             selfOnly: true,
             name: "Test buff",
-            effects: {}
+            effects: {},
         };
 
         it('is not relevant at start', () => {
@@ -68,8 +68,8 @@ describe("Buff Helpers", () => {
             name: "Test buff",
             effects: {
                 haste: 10,
-                dmgIncrease: 0.1
-            }
+                dmgIncrease: 0.1,
+            },
         };
 
         it('is relevant at start', () => {
@@ -88,7 +88,7 @@ describe("Buff Helpers", () => {
             name: "Test buff",
             beforeAbility() {
             },
-            effects: {}
+            effects: {},
         };
 
         it('is relevant at start', () => {
@@ -108,7 +108,7 @@ describe("Buff Helpers", () => {
             name: "Test buff",
             beforeSnapshot() {
             },
-            effects: {}
+            effects: {},
         };
 
         it('is not relevant at start', () => {
@@ -129,7 +129,7 @@ describe("Buff Helpers", () => {
             name: "Test buff",
             modifyDamage() {
             },
-            effects: {}
+            effects: {},
         };
 
         it('is not relevant at start', () => {

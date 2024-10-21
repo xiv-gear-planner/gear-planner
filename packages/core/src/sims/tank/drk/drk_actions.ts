@@ -8,7 +8,7 @@ export const HardSlash: DrkGcdAbility = {
     potency: 300,
     attackType: "Weaponskill",
     gcd: 2.5,
-    cast: 0
+    cast: 0,
 };
 
 export const SyphonStrike: DrkGcdAbility = {
@@ -19,7 +19,7 @@ export const SyphonStrike: DrkGcdAbility = {
     attackType: "Weaponskill",
     gcd: 2.5,
     cast: 0,
-    updateMP: gauge => gauge.magicPoints += 600
+    updateMP: gauge => gauge.magicPoints += 600,
 };
 
 export const Souleater: DrkGcdAbility = {
@@ -30,7 +30,7 @@ export const Souleater: DrkGcdAbility = {
     attackType: "Weaponskill",
     gcd: 2.5,
     cast: 0,
-    updateBloodGauge: gauge => gauge.bloodGauge += 20
+    updateBloodGauge: gauge => gauge.bloodGauge += 20,
 };
 
 export const Bloodspiller: DrkGcdAbility = {
@@ -41,7 +41,7 @@ export const Bloodspiller: DrkGcdAbility = {
     attackType: "Weaponskill",
     gcd: 2.5,
     bloodCost: 50,
-    updateBloodGauge: gauge => gauge.bloodGauge -= 50
+    updateBloodGauge: gauge => gauge.bloodGauge -= 50,
 };
 
 export const ScarletDelirium: DrkGcdAbility = {
@@ -51,7 +51,7 @@ export const ScarletDelirium: DrkGcdAbility = {
     potency: 600,
     attackType: "Weaponskill",
     gcd: 2.5,
-    updateMP: gauge => gauge.magicPoints += 200
+    updateMP: gauge => gauge.magicPoints += 200,
 };
 
 export const Comeuppance: DrkGcdAbility = {
@@ -61,7 +61,7 @@ export const Comeuppance: DrkGcdAbility = {
     potency: 700,
     attackType: "Weaponskill",
     gcd: 2.5,
-    updateMP: gauge => gauge.magicPoints += 200
+    updateMP: gauge => gauge.magicPoints += 200,
 };
 
 export const Torcleaver: DrkGcdAbility = {
@@ -71,7 +71,7 @@ export const Torcleaver: DrkGcdAbility = {
     potency: 800,
     attackType: "Weaponskill",
     gcd: 2.5,
-    updateMP: gauge => gauge.magicPoints += 200
+    updateMP: gauge => gauge.magicPoints += 200,
 };
 
 export const Unmend: DrkGcdAbility = {
@@ -81,7 +81,7 @@ export const Unmend: DrkGcdAbility = {
     id: 3624,
     potency: 150,
     attackType: "Spell",
-    gcd: 2.5
+    gcd: 2.5,
 };
 
 export const Delirium: DrkOgcdAbility = {
@@ -90,11 +90,11 @@ export const Delirium: DrkOgcdAbility = {
     id: 7390,
     potency: null,
     attackType: "Ability",
-    activatesBuffs: [BloodWeaponBuff, DeliriumBuff],
+    activatesBuffs: [BloodWeaponBuff, DeliriumBuff,],
     cooldown: {
         time: 60,
-        charges: 1
-    }
+        charges: 1,
+    },
 };
 
 export const CarveAndSpit: DrkOgcdAbility = {
@@ -105,9 +105,9 @@ export const CarveAndSpit: DrkOgcdAbility = {
     attackType: "Ability",
     cooldown: {
         time: 60,
-        charges: 1
+        charges: 1,
     },
-    updateMP: gauge => gauge.magicPoints += 600
+    updateMP: gauge => gauge.magicPoints += 600,
 };
 
 export const SaltedEarth: DrkOgcdAbility = {
@@ -115,19 +115,19 @@ export const SaltedEarth: DrkOgcdAbility = {
     name: "Salted Earth",
     id: 3639,
     attackType: "Ability",
-    activatesBuffs: [SaltedEarthBuff],
+    activatesBuffs: [SaltedEarthBuff,],
     potency: 50,
     dot: {
         // This is technically just the ID of the salted earth buff, but
         // it'll do. It's important this is a buff because of speed scaling.
         id: 749,
         tickPotency: 50,
-        duration: 15
+        duration: 15,
     },
     cooldown: {
         time: 90,
-        charges: 1
-    }
+        charges: 1,
+    },
 };
 
 export const SaltAndDarkness: DrkOgcdAbility = {
@@ -137,8 +137,8 @@ export const SaltAndDarkness: DrkOgcdAbility = {
     potency: 500,
     attackType: "Ability",
     cooldown: {
-        time: 30
-    }
+        time: 30,
+    },
 };
 
 export const Disesteem: DrkGcdAbility = {
@@ -147,7 +147,7 @@ export const Disesteem: DrkGcdAbility = {
     id: 36932,
     potency: 1000,
     attackType: "Weaponskill",
-    gcd: 2.5
+    gcd: 2.5,
 };
 
 export const EdgeOfShadow: DrkOgcdAbility = {
@@ -157,16 +157,17 @@ export const EdgeOfShadow: DrkOgcdAbility = {
     potency: 460,
     attackType: "Ability",
     cooldown: {
-        time: 1
+        time: 1,
     },
-    activatesBuffs: [Darkside],
+    activatesBuffs: [Darkside,],
     updateMP: (gauge: DrkGauge) => {
         if (gauge.darkArts) {
             gauge.darkArts = false;
-        } else {
+        }
+        else {
             gauge.magicPoints -= 3000;
         }
-    }
+    },
 };
 
 export const TheBlackestNight: DrkOgcdAbility = {
@@ -176,7 +177,7 @@ export const TheBlackestNight: DrkOgcdAbility = {
     potency: null,
     attackType: "Ability",
     cooldown: {
-        time: 15
+        time: 15,
     },
     updateMP: (gauge: DrkGauge) => {
         gauge.magicPoints -= 3000;
@@ -184,7 +185,7 @@ export const TheBlackestNight: DrkOgcdAbility = {
         // naturally imperfect, but is perfectly serviceable for the purposes of a
         // damage sim.
         gauge.darkArts = true;
-    }
+    },
 };
 
 export const Shadowbringer: DrkOgcdAbility = {
@@ -195,8 +196,8 @@ export const Shadowbringer: DrkOgcdAbility = {
     attackType: "Ability",
     cooldown: {
         time: 60,
-        charges: 2
-    }
+        charges: 2,
+    },
 };
 
 // While Living Shadow abilities are actually Weaponskills in some cases,
@@ -225,11 +226,11 @@ export const LivingShadow: DrkOgcdAbility = {
     // Total potency of its abilities is 2450.
     potency: null,
     attackType: "Ability",
-    activatesBuffs: [ScornBuff],
+    activatesBuffs: [ScornBuff,],
     cooldown: {
         time: 120,
-        charges: 1
-    }
+        charges: 1,
+    },
 };
 
 export const LivingShadowShadowstride: DrkOgcdAbility = {
@@ -238,7 +239,7 @@ export const LivingShadowShadowstride: DrkOgcdAbility = {
     animationLock: 0,
     id: 38512,
     potency: 0,
-    attackType: "Ability"
+    attackType: "Ability",
 };
 
 export const LivingShadowAbyssalDrain: DrkOgcdAbility = {
@@ -247,7 +248,7 @@ export const LivingShadowAbyssalDrain: DrkOgcdAbility = {
     animationLock: 0,
     id: 17904,
     potency: 420,
-    attackType: "Ability"
+    attackType: "Ability",
 };
 
 export const LivingShadowShadowbringer: DrkOgcdAbility = {
@@ -256,7 +257,7 @@ export const LivingShadowShadowbringer: DrkOgcdAbility = {
     animationLock: 0,
     id: 25881,
     potency: 570,
-    attackType: "Ability"
+    attackType: "Ability",
 };
 
 export const LivingShadowEdgeOfShadow: DrkOgcdAbility = {
@@ -265,7 +266,7 @@ export const LivingShadowEdgeOfShadow: DrkOgcdAbility = {
     animationLock: 0,
     id: 17908,
     potency: 420,
-    attackType: "Ability"
+    attackType: "Ability",
 };
 
 export const LivingShadowBloodspiller: DrkOgcdAbility = {
@@ -274,7 +275,7 @@ export const LivingShadowBloodspiller: DrkOgcdAbility = {
     animationLock: 0,
     id: 17909,
     potency: 420,
-    attackType: "Ability"
+    attackType: "Ability",
 };
 
 export const LivingShadowDisesteem: DrkOgcdAbility = {
@@ -283,5 +284,5 @@ export const LivingShadowDisesteem: DrkOgcdAbility = {
     animationLock: 0,
     id: 36933,
     potency: 620,
-    attackType: "Ability"
+    attackType: "Ability",
 };

@@ -16,7 +16,7 @@ export interface BluBreath60SettingsExternal extends ExternalCycleSettings<BluBr
 export const BluBreath60Spec: SimSpec<BluBreath60Sim, BluBreath60SettingsExternal> = {
     displayName: "BLU Breath 60s",
     stub: "blu-breath60",
-    supportedJobs: ["BLU"],
+    supportedJobs: ["BLU",],
     isDefaultSim: false,
     description: "Simulates a BLU Breath of Magic rotation with Moon Flute windows every 60s.",
 
@@ -26,7 +26,7 @@ export const BluBreath60Spec: SimSpec<BluBreath60Sim, BluBreath60SettingsExterna
 
     loadSavedSimInstance(exported: BluBreath60SettingsExternal) {
         return new BluBreath60Sim(exported);
-    }
+    },
 };
 
 export class BluBreath60Sim extends blu.BluSim<BluBreath60SimResult, BluBreath60Settings> {
@@ -147,7 +147,8 @@ export class BluBreath60Sim extends blu.BluSim<BluBreath60SimResult, BluBreath60
                     cycle.use(blu.Quasar);
                     if (cycle.cycleNumber === 0) {
                         cycle.use(blu.FeatherRain);
-                    } else {
+                    }
+                    else {
                         sim.useOgcdFiller(cp);
                     }
                     cycle.use(blu.BreathofMagic);
@@ -205,18 +206,20 @@ export class BluBreath60Sim extends blu.BluSim<BluBreath60SimResult, BluBreath60
                     if (cp.remainingGcdTime > preBloom) {
                         if (cp.isReady(blu.RoseOfDestruction)) {
                             cycle.use(blu.RoseOfDestruction);
-                        } else {
+                        }
+                        else {
                             cycle.use(blu.FeculentFlood);
                         }
                         cycle.use(blu.Whistle);
                         cycle.use(blu.Tingle);
                         cycle.use(blu.MoonFlute);
-                    } else {
+                    }
+                    else {
                         // otherwise, finish off the fight with a Final Sting combo
                         sim.useStingCombo(cp);
                     }
                 });
-            }
-        }];
+            },
+        },];
     }
 }

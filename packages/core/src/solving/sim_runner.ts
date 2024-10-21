@@ -10,7 +10,7 @@ export class SolverSimulationSettings {
     static import(settingsExp: SolverSimulationSettingsExport, sheet: GearPlanSheet): SolverSimulationSettings {
         return {
             sets: settingsExp.sets.map(sheet.importGearSet),
-            sim: sheet.importSim(settingsExp.sim)
+            sim: sheet.importSim(settingsExp.sim),
         };
     }
 
@@ -20,8 +20,8 @@ export class SolverSimulationSettings {
             sim: {
                 stub: settings.sim.spec.stub,
                 settings: settings.sim.exportSettings() as SimSettings,
-                name: settings.sim.displayName
-            }
+                name: settings.sim.displayName,
+            },
         };
     }
 }
@@ -77,6 +77,6 @@ export class SimRunner<SimType extends Simulation<SimResult, unknown, unknown>> 
             set = gearsets.shift();
         }
 
-        return [bestDps, bestSet];
+        return [bestDps, bestSet,];
     }
 }

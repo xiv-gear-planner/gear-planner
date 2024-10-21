@@ -35,8 +35,8 @@ export const rprSheetSpec: SimSpec<RprSheetSim, RprSimSettingsExternal> = {
     loadSavedSimInstance: function (exported: RprSimSettingsExternal) {
         return new RprSheetSim(exported);
     },
-    supportedJobs: ['RPR'],
-    isDefaultSim: true
+    supportedJobs: ['RPR',],
+    isDefaultSim: true,
 };
 
 class RotationState {
@@ -157,12 +157,12 @@ class RprCycleProcessor extends CycleProcessor {
 
         // Add gauge data to this record for the UI
         const extraData: RprExtraData = {
-            gauge: this.gauge.getGaugeState()
+            gauge: this.gauge.getGaugeState(),
         };
 
         const modified: PreDmgAbilityUseRecordUnf = {
             ...usedAbility,
-            extraData
+            extraData,
         };
 
         super.addAbilityUse(modified);
@@ -174,7 +174,8 @@ class RprCycleProcessor extends CycleProcessor {
 
             this.useOgcd(Actions.UnveiledGallows);
             this.useGcd(Actions.Gibbet);
-        } else {
+        }
+        else {
             this.useOgcd(Actions.UnveiledGibbet);
             this.useGcd(Actions.Gallows);
 
@@ -187,13 +188,14 @@ class RprCycleProcessor extends CycleProcessor {
         if (this.rotationState.nextGibGal === Actions.Gallows.id) {
             this.useGcd(Actions.ExecutionersGallows);
             this.useGcd(Actions.ExecutionersGibbet);
-        } else {
+        }
+        else {
             this.useGcd(Actions.ExecutionersGibbet);
             this.useGcd(Actions.ExecutionersGallows);
         }
     }
 
-    comboActions: RprGcdAbility[] = [Actions.Slice, Actions.WaxingSlice, Actions.InfernalSlice];
+    comboActions: RprGcdAbility[] = [Actions.Slice, Actions.WaxingSlice, Actions.InfernalSlice,];
     useCombo() {
         this.useGcd(this.comboActions[this.rotationState.combo++]);
         this.rotationState.lastComboTime = this.currentTime;
@@ -222,14 +224,14 @@ class RprCycleProcessor extends CycleProcessor {
 
         this.useGcd(Actions.ShadowOfDeath);
 
-        this.advanceForLateWeave([potionMaxStr]);
+        this.advanceForLateWeave([potionMaxStr,]);
         if (pot) {
             this.useOgcd(potionMaxStr);
         }
 
         this.useGcd(Actions.SoulSlice);
 
-        this.advanceForLateWeave([Actions.ArcaneCircle, Actions.Gluttony]);
+        this.advanceForLateWeave([Actions.ArcaneCircle, Actions.Gluttony,]);
         this.useOgcd(Actions.ArcaneCircle);
         this.useOgcd(Actions.Gluttony);
 
@@ -269,23 +271,26 @@ class RprCycleProcessor extends CycleProcessor {
                 this.useGcd(Actions.ShadowOfDeath);
                 this.useOgcd(Actions.ArcaneCircle);
                 this.useOgcd(potionMaxStr);
-            } else {
+            }
+            else {
                 /** If we can weave potion before AC */
                 if (acTime - (this.nextGcdTime + animationLock(Actions.ShadowOfDeath)) >= animationLock(potionMaxStr)) {
                     this.useGcd(Actions.ShadowOfDeath);
                     this.useOgcd(potionMaxStr);
                     this.useOgcd(Actions.ArcaneCircle);
-                } else {  /** We cannot fit both pot and AC, move pot back */
+                }
+                else {  /** We cannot fit both pot and AC, move pot back */
                     this.useOgcd(potionMaxStr);
                     this.useGcd(Actions.ShadowOfDeath);
                     this.useOgcd(Actions.ArcaneCircle);
                 }
             }
-        } else {
+        }
+        else {
             this.useGcd(Actions.ShadowOfDeath);
 
             if (this.currentTime < 240) { // Hacky way to single out the first burst
-                this.advanceForLateWeave([Actions.ArcaneCircle]);
+                this.advanceForLateWeave([Actions.ArcaneCircle,]);
             }
             this.useOgcd(Actions.ArcaneCircle);
         }
@@ -309,7 +314,8 @@ class RprCycleProcessor extends CycleProcessor {
         if (this.rotationState.lastComboTime + 30 < this.nextGcdTime + this.stats.gcdPhys(2.5) && this.rotationState.combo !== 0) {
             this.useCombo();
             this.useGcd(Actions.Perfectio);
-        } else {
+        }
+        else {
             this.useGcd(Actions.Perfectio);
 
             if (this.rotationState.combo !== 0) {
@@ -322,7 +328,8 @@ class RprCycleProcessor extends CycleProcessor {
             if (this.cdTracker.canUse(Actions.SoulSlice, this.nextGcdTime) && this.gauge.soulGauge <= 50) {
 
                 this.useGcd(Actions.SoulSlice);
-            } else {
+            }
+            else {
                 this.useCombo();
             }
         }
@@ -408,7 +415,7 @@ export class RprSheetSim extends BaseMultiCycleSim<RprSheetSimResult, RprSimSett
     spec = rprSheetSpec;
     shortName = "rpr-sheet-sim";
     displayName = rprSheetSpec.displayName;
-    manuallyActivatedBuffs = [ArcaneCircleBuff];
+    manuallyActivatedBuffs = [ArcaneCircleBuff,];
 
     constructor(settings?: RprSimSettingsExternal) {
         super('RPR', settings);
@@ -421,7 +428,7 @@ export class RprSheetSim extends BaseMultiCycleSim<RprSheetSimResult, RprSimSett
     protected createCycleProcessor(settings: MultiCycleSettings): RprCycleProcessor {
         return new RprCycleProcessor({
             ...settings,
-            hideCycleDividers: true
+            hideCycleDividers: true,
         });
     }
 
@@ -454,8 +461,8 @@ export class RprSheetSim extends BaseMultiCycleSim<RprSheetSimResult, RprSimSett
                         cp.useStandardDoubleShroud();
                     }
                 }
-            }
+            },
 
-        }];
+        },];
     }
 }

@@ -27,7 +27,8 @@ export function describeBuff(buff: Buff) {
     }
     if (parts.length > 0) {
         return `${baseName}: ${parts.join(', ')}`;
-    } else {
+    }
+    else {
         return baseName;
     }
 }
@@ -44,7 +45,8 @@ export class BuffListDisplay extends HTMLDivElement {
             if (buff.statusId !== undefined) {
                 this.appendChild(new StatusIcon(buff.statusId, buff.stacks));
                 hasImage = true;
-            } else {
+            }
+            else {
                 textOnly.push(buff);
             }
         }
@@ -62,4 +64,4 @@ export class BuffListDisplay extends HTMLDivElement {
 }
 
 
-customElements.define('buff-list-display', BuffListDisplay, {extends: 'div'});
+customElements.define('buff-list-display', BuffListDisplay, {extends: 'div',});

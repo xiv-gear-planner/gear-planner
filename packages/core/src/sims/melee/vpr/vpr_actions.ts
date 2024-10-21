@@ -10,7 +10,7 @@ export const SteelFangs: VprGcdAbility = {
     attackType: "Weaponskill",
     gcd: 2.5,
     cast: 0,
-    activatesBuffs: [HonedReavers]
+    activatesBuffs: [HonedReavers,],
 };
 
 export const ReavingFangs: VprGcdAbility = {
@@ -21,7 +21,7 @@ export const ReavingFangs: VprGcdAbility = {
     attackType: "Weaponskill",
     gcd: 2.5,
     cast: 0,
-    activatesBuffs: [HonedSteel]
+    activatesBuffs: [HonedSteel,],
 };
 
 export const HuntersSting: VprGcdAbility = {
@@ -32,7 +32,7 @@ export const HuntersSting: VprGcdAbility = {
     attackType: "Weaponskill",
     gcd: 2.5,
     cast: 0,
-    activatesBuffs: [HuntersInstinct]
+    activatesBuffs: [HuntersInstinct,],
 };
 
 export const SwiftskinsSting: VprGcdAbility = {
@@ -43,7 +43,7 @@ export const SwiftskinsSting: VprGcdAbility = {
     attackType: "Weaponskill",
     gcd: 2.5,
     cast: 0,
-    activatesBuffs: [Swiftscaled]
+    activatesBuffs: [Swiftscaled,],
 };
 
 export const FlankstingStrike: VprGcdAbility = {
@@ -54,8 +54,8 @@ export const FlankstingStrike: VprGcdAbility = {
     attackType: "Weaponskill",
     gcd: 2.5,
     cast: 0,
-    activatesBuffs: [HindstungVenom],
-    updateGauge: gauge => gauge.serpentOfferings += 10
+    activatesBuffs: [HindstungVenom,],
+    updateGauge: gauge => gauge.serpentOfferings += 10,
 };
 
 export const FlanksbaneFang: VprGcdAbility = {
@@ -66,8 +66,8 @@ export const FlanksbaneFang: VprGcdAbility = {
     attackType: "Weaponskill",
     gcd: 2.5,
     cast: 0,
-    activatesBuffs: [HindsbaneVenom],
-    updateGauge: gauge => gauge.serpentOfferings += 10
+    activatesBuffs: [HindsbaneVenom,],
+    updateGauge: gauge => gauge.serpentOfferings += 10,
 };
 
 export const HindstingStrike: VprGcdAbility = {
@@ -78,8 +78,8 @@ export const HindstingStrike: VprGcdAbility = {
     attackType: "Weaponskill",
     gcd: 2.5,
     cast: 0,
-    activatesBuffs: [FlanksbaneVenom],
-    updateGauge: gauge => gauge.serpentOfferings += 10
+    activatesBuffs: [FlanksbaneVenom,],
+    updateGauge: gauge => gauge.serpentOfferings += 10,
 };
 
 export const HindsbaneFang: VprGcdAbility = {
@@ -90,8 +90,8 @@ export const HindsbaneFang: VprGcdAbility = {
     attackType: "Weaponskill",
     gcd: 2.5,
     cast: 0,
-    activatesBuffs: [FlankstungVenom],
-    updateGauge: gauge => gauge.serpentOfferings += 10
+    activatesBuffs: [FlankstungVenom,],
+    updateGauge: gauge => gauge.serpentOfferings += 10,
 };
 
 export const Vicewinder: VprGcdAbility = {
@@ -104,9 +104,9 @@ export const Vicewinder: VprGcdAbility = {
     cast: 0,
     cooldown: {
         time: 40,
-        charges: 2
+        charges: 2,
     },
-    updateGauge: gauge => gauge.rattlingCoils += 1
+    updateGauge: gauge => gauge.rattlingCoils += 1,
 };
 
 export const HuntersCoil: VprGcdAbility = {
@@ -117,8 +117,8 @@ export const HuntersCoil: VprGcdAbility = {
     attackType: "Weaponskill",
     gcd: 3.0,
     cast: 0,
-    activatesBuffs: [HuntersInstinct],
-    updateGauge: gauge => gauge.serpentOfferings += 5
+    activatesBuffs: [HuntersInstinct,],
+    updateGauge: gauge => gauge.serpentOfferings += 5,
 };
 
 export const SwiftskinsCoil: VprGcdAbility = {
@@ -129,8 +129,8 @@ export const SwiftskinsCoil: VprGcdAbility = {
     attackType: "Weaponskill",
     gcd: 3.0,
     cast: 0,
-    activatesBuffs: [Swiftscaled],
-    updateGauge: gauge => gauge.serpentOfferings += 5
+    activatesBuffs: [Swiftscaled,],
+    updateGauge: gauge => gauge.serpentOfferings += 5,
 };
 
 export const UncoiledFury: VprGcdAbility = {
@@ -141,7 +141,7 @@ export const UncoiledFury: VprGcdAbility = {
     attackType: "Weaponskill",
     gcd: 3.5,
     cast: 0,
-    updateGauge: gauge => gauge.rattlingCoils -= 1
+    updateGauge: gauge => gauge.rattlingCoils -= 1,
 };
 
 export const Reawaken: VprGcdAbility = {
@@ -152,7 +152,7 @@ export const Reawaken: VprGcdAbility = {
     attackType: "Weaponskill",
     gcd: 2.2,
     cast: 0,
-    updateGauge: gauge => gauge.serpentOfferings -= 50
+    updateGauge: gauge => gauge.serpentOfferings -= 50,
 };
 
 const GenerationBase: VprGcdAbility = {
@@ -162,31 +162,31 @@ const GenerationBase: VprGcdAbility = {
     potency: 680,
     attackType: "Weaponskill",
     gcd: 2.0,
-    cast: 0
+    cast: 0,
 };
 
 export const FirstGeneration: VprGcdAbility = {
     ...GenerationBase,
     name: "First Generation",
-    id: 34627
+    id: 34627,
 };
 
 export const SecondGeneration: VprGcdAbility = {
     ...GenerationBase,
     name: "Second Generation",
-    id: 34628
+    id: 34628,
 };
 
 export const ThirdGeneration: VprGcdAbility = {
     ...GenerationBase,
     name: "Third Generation",
-    id: 34629
+    id: 34629,
 };
 
 export const FourthGeneration: VprGcdAbility = {
     ...GenerationBase,
     name: "Fourth Generation",
-    id: 34630
+    id: 34630,
 };
 
 export const Ouroboros: VprGcdAbility = {
@@ -196,7 +196,7 @@ export const Ouroboros: VprGcdAbility = {
     potency: 1150,
     attackType: "Weaponskill",
     gcd: 2.0,
-    cast: 0
+    cast: 0,
 };
 
 const LegacyBase: VprOgcdAbility = {
@@ -204,31 +204,31 @@ const LegacyBase: VprOgcdAbility = {
     id: null,
     type: 'ogcd',
     potency: 280,
-    attackType: 'Ability'
+    attackType: 'Ability',
 };
 
 export const FirstLegacy: VprOgcdAbility = {
     ...LegacyBase,
     name: "First Legacy",
-    id: 34640
+    id: 34640,
 };
 
 export const SecondLegacy: VprOgcdAbility = {
     ...LegacyBase,
     name: "Second Legacy",
-    id: 34641
+    id: 34641,
 };
 
 export const ThirdLegacy: VprOgcdAbility = {
     ...LegacyBase,
     name: "Third Legacy",
-    id: 34642
+    id: 34642,
 };
 
 export const FourthLegacy: VprOgcdAbility = {
     ...LegacyBase,
     name: "Fourth Legacy",
-    id: 34643
+    id: 34643,
 };
 
 export const SerpentsIre: VprOgcdAbility = {
@@ -238,11 +238,11 @@ export const SerpentsIre: VprOgcdAbility = {
     potency: 0,
     cooldown: {
         time: 120,
-        charges: 1
+        charges: 1,
     },
     attackType: 'Ability',
     updateGauge: gauge => gauge.rattlingCoils += 1,
-    activatesBuffs: [ReadyToReawaken]
+    activatesBuffs: [ReadyToReawaken,],
 };
 
 export const TwinfangBite: VprOgcdAbility = {
@@ -250,7 +250,7 @@ export const TwinfangBite: VprOgcdAbility = {
     id: 34636,
     type: 'ogcd',
     potency: 120,
-    attackType: 'Ability'
+    attackType: 'Ability',
 };
 
 export const TwinbloodBite: VprOgcdAbility = {
@@ -258,7 +258,7 @@ export const TwinbloodBite: VprOgcdAbility = {
     id: 34637,
     type: 'ogcd',
     potency: 120,
-    attackType: 'Ability'
+    attackType: 'Ability',
 };
 
 export const DeathRattle: VprOgcdAbility = {
@@ -266,7 +266,7 @@ export const DeathRattle: VprOgcdAbility = {
     id: 34634,
     type: 'ogcd',
     potency: 280,
-    attackType: 'Ability'
+    attackType: 'Ability',
 };
 
 export const UncoiledTwinfang: VprOgcdAbility = {
@@ -274,7 +274,7 @@ export const UncoiledTwinfang: VprOgcdAbility = {
     id: 34644,
     type: 'ogcd',
     potency: 120,
-    attackType: 'Ability'
+    attackType: 'Ability',
 };
 
 export const UncoiledTwinblood: VprOgcdAbility = {
@@ -282,5 +282,5 @@ export const UncoiledTwinblood: VprOgcdAbility = {
     id: 34645,
     type: 'ogcd',
     potency: 120,
-    attackType: 'Ability'
+    attackType: 'Ability',
 };

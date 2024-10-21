@@ -49,7 +49,7 @@ export class RprGaugeGui {
                     return div;
                 }
                 return document.createTextNode("");
-            }
+            },
         },
         {
             shortName: 'shroudGauge',
@@ -91,8 +91,8 @@ export class RprGaugeGui {
                     return div;
                 }
                 return document.createTextNode("");
-            }
-        }
+            },
+        },
         ];
     }
 }
@@ -102,7 +102,7 @@ export class RprSheetSimGui extends BaseMultiCycleSimGui<RprSheetSimResult, RprS
     override makeAbilityUsedTable(result: RprSheetSimResult): AbilitiesUsedTable {
         const extraColumns = RprGaugeGui.generateResultColumns(result);
         const table = super.makeAbilityUsedTable(result);
-        const newColumns = [...table.columns];
+        const newColumns = [...table.columns,];
         newColumns.splice(newColumns.findIndex(col => col.shortName === 'expected-damage') + 1, 0, ...extraColumns);
         table.columns = newColumns;
         return table;

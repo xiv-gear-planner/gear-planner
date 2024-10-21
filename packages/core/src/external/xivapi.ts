@@ -84,7 +84,8 @@ export async function xivApiGet<RequestType extends (XivApiListRequest | XivApiS
     Promise<XivApiResponse<RequestType>> {
     if (request.requestType === 'list') {
         return await xivApiGetList(request) as XivApiResponse<RequestType>;
-    } else {
+    }
+    else {
         return await xivApiSearch(request) as XivApiResponse<RequestType>;
     }
 }
@@ -111,7 +112,8 @@ export async function xivApiSearch<RequestType extends XivApiSearchRequest>(requ
         let thisQuery: string;
         if (lastCursor !== null) {
             thisQuery = query + '&cursor=' + lastCursor;
-        } else {
+        }
+        else {
             thisQuery = queryInitial;
         }
         const responseRaw = await xivApiFetch(thisQuery)
@@ -129,10 +131,10 @@ export async function xivApiSearch<RequestType extends XivApiSearchRequest>(requ
     }
     return {
         Results: results.map(resultRow => {
-            const out = {...resultRow['fields']};
+            const out = {...resultRow['fields'],};
             out['ID'] = resultRow['row_id'];
             return out;
-        })
+        }),
     };
 
 }
@@ -161,7 +163,8 @@ export async function xivApiGetList<RequestType extends XivApiListRequest>(reque
             if (response.length < perPage) {
                 break;
             }
-        } else {
+        }
+        else {
             break;
         }
     }
@@ -170,10 +173,10 @@ export async function xivApiGetList<RequestType extends XivApiListRequest>(reque
     }
     return {
         Results: results.map(resultRow => {
-            const out = {...resultRow['fields']};
+            const out = {...resultRow['fields'],};
             out['ID'] = resultRow['row_id'];
             return out;
-        })
+        }),
     };
 }
 
@@ -188,7 +191,8 @@ export function xivApiIconUrl(iconId: number, highRes: boolean = false) {
     const directory = asStr.substring(0, 3) + '000';
     if (highRes) {
         return `${XIVAPI_SERVER}/api/1/asset/ui/icon/${directory}/${asStr}_hr1.tex?format=png`;
-    } else {
+    }
+    else {
         return `${XIVAPI_SERVER}/api/1/asset/ui/icon/${directory}/${asStr}.tex?format=png`;
     }
 }

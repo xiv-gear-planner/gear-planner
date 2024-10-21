@@ -12,9 +12,9 @@ export const pldUsageSimSpec: SimSpec<PldUsageSim, PldUsageSimSettings> = {
         return new PldUsageSim();
     },
     stub: "pld-usage-sim",
-    supportedJobs: ['PLD'],
-    supportedLevels: [100],
-    isDefaultSim: true
+    supportedJobs: ['PLD',],
+    supportedLevels: [100,],
+    isDefaultSim: true,
 };
 
 export type PldUsageSimSettings = NonNullable<unknown>
@@ -55,95 +55,100 @@ export class PldUsageSim extends BaseUsageCountSim<PldUsageSimResults, PldUsageS
 
         if (buffDuration === null) {
             result = [
-                [Actions.buffed(Actions.conf), 7],
-                [Actions.buffed(Actions.faith), 7],
-                [Actions.buffed(Actions.truth), 7],
-                [Actions.buffed(Actions.valor), 7],
-                [Actions.buffed(Actions.goring), 7],
-                [Actions.buffed(Actions.royal), 3],
-                [Actions.buffed(Actions.atone), 2],
-                [Actions.buffed(Actions.supp), 4],
-                [Actions.buffed(Actions.sep), 6],
-                [Actions.buffed(Actions.hs), 6],
-                [Actions.fast, 19],
-                [Actions.riot, 19],
-                [Actions.royal, 16],
-                [Actions.atone, 17],
-                [Actions.supp, 15],
-                [Actions.sep, 13],
-                [Actions.hs, 13]
+                [Actions.buffed(Actions.conf), 7,],
+                [Actions.buffed(Actions.faith), 7,],
+                [Actions.buffed(Actions.truth), 7,],
+                [Actions.buffed(Actions.valor), 7,],
+                [Actions.buffed(Actions.goring), 7,],
+                [Actions.buffed(Actions.royal), 3,],
+                [Actions.buffed(Actions.atone), 2,],
+                [Actions.buffed(Actions.supp), 4,],
+                [Actions.buffed(Actions.sep), 6,],
+                [Actions.buffed(Actions.hs), 6,],
+                [Actions.fast, 19,],
+                [Actions.riot, 19,],
+                [Actions.royal, 16,],
+                [Actions.atone, 17,],
+                [Actions.supp, 15,],
+                [Actions.sep, 13,],
+                [Actions.hs, 13,],
             ];
-        } else if (buffDuration >= 30) {
+        }
+        else if (buffDuration >= 30) {
             result = [
-                [Actions.buffed(Actions.conf), 3.5],
-                [Actions.buffed(Actions.faith), 3.5],
-                [Actions.buffed(Actions.truth), 3.5],
-                [Actions.buffed(Actions.valor), 3.5],
-                [Actions.buffed(Actions.goring), 3.5],
-                [Actions.buffed(Actions.atone), 1],
-                [Actions.buffed(Actions.royal), 1.5],
-                [Actions.buffed(Actions.supp), 2],
-                [Actions.buffed(Actions.sep), 3],
-                [Actions.buffed(Actions.hs), 3],
-                [Actions.fast, 2],
-                [Actions.riot, 2],
-                [Actions.royal, 2],
-                [Actions.atone, 2],
-                [Actions.supp, 2.5],
-                [Actions.sep, 2],
-                [Actions.hs, 1.5]
+                [Actions.buffed(Actions.conf), 3.5,],
+                [Actions.buffed(Actions.faith), 3.5,],
+                [Actions.buffed(Actions.truth), 3.5,],
+                [Actions.buffed(Actions.valor), 3.5,],
+                [Actions.buffed(Actions.goring), 3.5,],
+                [Actions.buffed(Actions.atone), 1,],
+                [Actions.buffed(Actions.royal), 1.5,],
+                [Actions.buffed(Actions.supp), 2,],
+                [Actions.buffed(Actions.sep), 3,],
+                [Actions.buffed(Actions.hs), 3,],
+                [Actions.fast, 2,],
+                [Actions.riot, 2,],
+                [Actions.royal, 2,],
+                [Actions.atone, 2,],
+                [Actions.supp, 2.5,],
+                [Actions.sep, 2,],
+                [Actions.hs, 1.5,],
             ];
-        } else if (buffDuration >= 20) {
+        }
+        else if (buffDuration >= 20) {
             result = [
-                [Actions.buffed(Actions.conf), 3.5],
-                [Actions.buffed(Actions.faith), 3.5],
-                [Actions.buffed(Actions.truth), 3.5],
-                [Actions.buffed(Actions.valor), 3.5],
-                [Actions.buffed(Actions.goring), 3.5],
-                [Actions.buffed(Actions.royal), 1.5],
-                [Actions.buffed(Actions.atone), 1],
-                [Actions.buffed(Actions.supp), 2],
-                [Actions.buffed(Actions.sep), 3],
-                [Actions.buffed(Actions.hs), 3]
+                [Actions.buffed(Actions.conf), 3.5,],
+                [Actions.buffed(Actions.faith), 3.5,],
+                [Actions.buffed(Actions.truth), 3.5,],
+                [Actions.buffed(Actions.valor), 3.5,],
+                [Actions.buffed(Actions.goring), 3.5,],
+                [Actions.buffed(Actions.royal), 1.5,],
+                [Actions.buffed(Actions.atone), 1,],
+                [Actions.buffed(Actions.supp), 2,],
+                [Actions.buffed(Actions.sep), 3,],
+                [Actions.buffed(Actions.hs), 3,],
             ];
-        } else if (buffDuration >= 15) {
+        }
+        else if (buffDuration >= 15) {
             result = [
-                [Actions.buffed(Actions.conf), 3.5],
-                [Actions.buffed(Actions.faith), 3.5],
-                [Actions.buffed(Actions.truth), 3.5],
-                [Actions.buffed(Actions.valor), 3.5],
-                [Actions.buffed(Actions.goring), 3.5],
-                [Actions.buffed(Actions.royal), 0.5],
-                [Actions.buffed(Actions.atone), 0.5],
-                [Actions.buffed(Actions.supp), 1.5],
-                [Actions.buffed(Actions.sep), 1]
+                [Actions.buffed(Actions.conf), 3.5,],
+                [Actions.buffed(Actions.faith), 3.5,],
+                [Actions.buffed(Actions.truth), 3.5,],
+                [Actions.buffed(Actions.valor), 3.5,],
+                [Actions.buffed(Actions.goring), 3.5,],
+                [Actions.buffed(Actions.royal), 0.5,],
+                [Actions.buffed(Actions.atone), 0.5,],
+                [Actions.buffed(Actions.supp), 1.5,],
+                [Actions.buffed(Actions.sep), 1,],
             ];
-        } else {
+        }
+        else {
             return [];
         }
 
         const buffedOgcds: SkillCount[] = [
-            [Actions.buffed(Actions.imp), 3.5],
-            [Actions.buffed(Actions.cos), 3.5],
-            [Actions.buffed(Actions.exp), 3.5],
-            [Actions.buffed(Actions.int), 7],
-            [Actions.buffed(Actions.honor), 3.5]
+            [Actions.buffed(Actions.imp), 3.5,],
+            [Actions.buffed(Actions.cos), 3.5,],
+            [Actions.buffed(Actions.exp), 3.5,],
+            [Actions.buffed(Actions.int), 7,],
+            [Actions.buffed(Actions.honor), 3.5,],
         ];
         const fofOgcds: SkillCount[] = [
-            [Actions.buffed(Actions.imp), 7],
-            [Actions.buffed(Actions.cos), 7],
-            [Actions.buffed(Actions.exp), 7],
-            [Actions.buffed(Actions.int), 14],
-            [Actions.buffed(Actions.honor), 7]
+            [Actions.buffed(Actions.imp), 7,],
+            [Actions.buffed(Actions.cos), 7,],
+            [Actions.buffed(Actions.exp), 7,],
+            [Actions.buffed(Actions.int), 14,],
+            [Actions.buffed(Actions.honor), 7,],
         ];
         const unbuffedOgcds: SkillCount[] = [
-            [Actions.cos, 7],
-            [Actions.exp, 7]
+            [Actions.cos, 7,],
+            [Actions.exp, 7,],
         ];
 
         if (buffDuration) {
             result.push(...buffedOgcds);
-        } else {
+        }
+        else {
             result.push(...fofOgcds);
             result.push(...unbuffedOgcds);
         }
@@ -152,13 +157,15 @@ export class PldUsageSim extends BaseUsageCountSim<PldUsageSimResults, PldUsageS
 
         // autos
         if (buffDuration === null) {
-            result.push([Actions.auto, 280 / autoDelay]); // unbuffed autos 2/3 of the time
-            result.push([Actions.buffed(Actions.auto), 140 / autoDelay]);
-        } else if (buffDuration >= 30) {
-            result.push([Actions.auto, 35 / autoDelay]);
-            result.push([Actions.buffed(Actions.auto), 70 / autoDelay]);
-        } else if (buffDuration >= 15) {
-            result.push([Actions.buffed(Actions.auto), 3.5 * buffDuration / autoDelay]);
+            result.push([Actions.auto, 280 / autoDelay,]); // unbuffed autos 2/3 of the time
+            result.push([Actions.buffed(Actions.auto), 140 / autoDelay,]);
+        }
+        else if (buffDuration >= 30) {
+            result.push([Actions.auto, 35 / autoDelay,]);
+            result.push([Actions.buffed(Actions.auto), 70 / autoDelay,]);
+        }
+        else if (buffDuration >= 15) {
+            result.push([Actions.buffed(Actions.auto), 3.5 * buffDuration / autoDelay,]);
         }
 
         return result;

@@ -19,7 +19,8 @@ export function gearSetWarningIcon() {
 export function iconForIssues(...issues: GearSetIssue[]) {
     if (issues.find(issue => issue.severity === 'error')) {
         return gearSetErrorIcon();
-    } else {
+    }
+    else {
         return gearSetWarningIcon();
     }
 }
@@ -33,12 +34,13 @@ export class SetIssuesModal extends BaseModal {
         if (issues.length > 0) {
             this.classList.add('has-issues');
             for (const issue of issues) {
-                this.contentArea.appendChild(quickElement('div', ['gear-set-issue-block'], [
+                this.contentArea.appendChild(quickElement('div', ['gear-set-issue-block',], [
                     iconForIssues(issue),
-                    quickElement('span', [], [issue.description])
+                    quickElement('span', [], [issue.description,]),
                 ]));
             }
-        } else {
+        }
+        else {
             this.classList.add('no-issues');
             const text = document.createTextNode('This set has no issues.');
             this.contentArea.appendChild(text);

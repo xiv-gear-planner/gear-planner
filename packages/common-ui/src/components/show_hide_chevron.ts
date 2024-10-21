@@ -27,7 +27,8 @@ export class ShowHideButton extends HTMLElement {
     private setStyles() {
         if (this.isHidden) {
             this.classList.add('hidden');
-        } else {
+        }
+        else {
             this.classList.remove('hidden');
         }
     }

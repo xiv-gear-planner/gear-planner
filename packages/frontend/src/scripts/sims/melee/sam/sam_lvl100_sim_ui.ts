@@ -50,7 +50,7 @@ class SAMGaugeGui {
                     return div;
                 }
                 return document.createTextNode("");
-            }
+            },
         }, {
             shortName: 'meditation',
             displayName: 'Meditation',
@@ -85,7 +85,7 @@ class SAMGaugeGui {
                     return div;
                 }
                 return document.createTextNode("");
-            }
+            },
         }, {
             shortName: 'sen',
             displayName: 'Sen',
@@ -106,22 +106,22 @@ class SAMGaugeGui {
                     const senStyles = {
                         Setsu: {
                             clipPath: `polygon(50% 0%, 64% 25%, 92% 25%, 78% 50%, 92% 75%, 64% 75%, 50% 100%, 36% 75%, 8% 75%, 22% 50%, 8% 25%, 36% 25%)`,
-                            background: '#6E95D7'
+                            background: '#6E95D7',
                         },
                         Getsu: {
                             mask: `radial-gradient(circle at 25% 25%, #0000 40%, #000 0)`,
                             borderRadius: '20px',
-                            background: '#7462DB'
+                            background: '#7462DB',
                         },
                         Ka: {
                             clipPath: `polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%)`,
-                            background: '#DB5858'
-                        }
+                            background: '#DB5858',
+                        },
                     };
 
                     Object.keys(senStyles).forEach(key => {
                         const stack = document.createElement('span');
-                        for (const [k, v] of Object.entries(senStyles[key])) {
+                        for (const [k, v,] of Object.entries(senStyles[key])) {
                             stack.style[k] = v;
                         }
                         stack.style.height = '100%';
@@ -137,8 +137,8 @@ class SAMGaugeGui {
                     return div;
                 }
                 return document.createTextNode("");
-            }
-        }];
+            },
+        },];
     }
 }
 export class SamSimGui extends BaseMultiCycleSimGui<SamSimResult, SamSettings> {
@@ -146,7 +146,7 @@ export class SamSimGui extends BaseMultiCycleSimGui<SamSimResult, SamSettings> {
     override makeCustomConfigInterface(settings: SamSettings, _updateCallback: () => void): HTMLElement | null {
         const configDiv = document.createElement("div");
 
-        const ppField = new FieldBoundFloatField(settings, "prePullMeikyo", { inputMode: 'number' });
+        const ppField = new FieldBoundFloatField(settings, "prePullMeikyo", { inputMode: 'number', });
         const potCb = new FieldBoundCheckBox(settings, "usePotion");
 
         configDiv.appendChild(labelFor("Meikyo Pre-Pull Time:", ppField));
@@ -158,7 +158,7 @@ export class SamSimGui extends BaseMultiCycleSimGui<SamSimResult, SamSettings> {
     override makeAbilityUsedTable(result: SamSimResult): AbilitiesUsedTable {
         const extraColumns = SAMGaugeGui.generateResultColumns(result);
         const table = super.makeAbilityUsedTable(result);
-        const newColumns = [...table.columns];
+        const newColumns = [...table.columns,];
         newColumns.splice(newColumns.findIndex(col => col.shortName === 'expected-damage') + 1, 0, ...extraColumns);
         table.columns = newColumns;
         return table;

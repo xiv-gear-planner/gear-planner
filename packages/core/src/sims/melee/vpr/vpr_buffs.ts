@@ -15,9 +15,9 @@ export const HonedReavers: PersonalBuff = {
         buffController.removeSelf();
         return {
             ...ability,
-            potency: ability.potency + 100
+            potency: ability.potency + 100,
         };
-    }
+    },
 };
 
 export const HonedSteel: PersonalBuff = {
@@ -34,9 +34,9 @@ export const HonedSteel: PersonalBuff = {
         buffController.removeSelf();
         return {
             ...ability,
-            potency: ability.potency + 100
+            potency: ability.potency + 100,
         };
-    }
+    },
 };
 
 export const HuntersInstinct: PersonalBuff = {
@@ -45,9 +45,9 @@ export const HuntersInstinct: PersonalBuff = {
     duration: 40,
     selfOnly: true,
     effects: {
-        dmgIncrease: 0.1
+        dmgIncrease: 0.1,
     },
-    statusId: 3668
+    statusId: 3668,
 };
 
 export const Swiftscaled: PersonalBuff = {
@@ -56,9 +56,9 @@ export const Swiftscaled: PersonalBuff = {
     duration: 40,
     selfOnly: true,
     effects: {
-        haste: 15
+        haste: 15,
     },
-    statusId: 3669
+    statusId: 3669,
 };
 
 const ComboFinisherBaseBuff: Buff = {
@@ -73,9 +73,9 @@ const ComboFinisherBaseBuff: Buff = {
         buffController.removeSelf();
         return {
             ...ability,
-            potency: ability.potency + 100
+            potency: ability.potency + 100,
         };
-    }
+    },
 };
 
 export const FlankstungVenom: PersonalBuff = {
@@ -83,7 +83,7 @@ export const FlankstungVenom: PersonalBuff = {
     name: "Flankstung Venom",
     saveKey: "Flankstung Venom",
     appliesTo: ability => ability.id === Actions.FlankstingStrike.id,
-    statusId: 3645
+    statusId: 3645,
 };
 
 export const FlanksbaneVenom: PersonalBuff = {
@@ -91,7 +91,7 @@ export const FlanksbaneVenom: PersonalBuff = {
     name: "Flanksbane Venom",
     saveKey: "Flanksbane Venom",
     appliesTo: ability => ability.id === Actions.FlanksbaneFang.id,
-    statusId: 3646
+    statusId: 3646,
 };
 
 export const HindstungVenom: PersonalBuff = {
@@ -99,7 +99,7 @@ export const HindstungVenom: PersonalBuff = {
     name: "Hindstung Venom",
     saveKey: "Hindstung Venom",
     appliesTo: ability => ability.id === Actions.HindstingStrike.id,
-    statusId: 3647
+    statusId: 3647,
 };
 
 export const HindsbaneVenom: PersonalBuff = {
@@ -107,7 +107,7 @@ export const HindsbaneVenom: PersonalBuff = {
     name: "Hindsbane Venom",
     saveKey: "Hindsbane Venom",
     appliesTo: ability => ability.id === Actions.HindsbaneFang.id,
-    statusId: 3648
+    statusId: 3648,
 };
 
 export const ReadyToReawaken: PersonalBuff = {
@@ -124,9 +124,9 @@ export const ReadyToReawaken: PersonalBuff = {
         buffController.removeSelf();
         return {
             ...ability,
-            updateGauge: null
+            updateGauge: null,
         };
-    }
+    },
 };
 
 export const HuntersVenom: PersonalBuff = {
@@ -142,9 +142,9 @@ export const HuntersVenom: PersonalBuff = {
         buffController.removeSelf();
         return {
             ...ability,
-            potency: 170
+            potency: 170,
         };
-    }
+    },
 };
 
 export const SwiftskinsVenom: PersonalBuff = {
@@ -160,9 +160,9 @@ export const SwiftskinsVenom: PersonalBuff = {
         buffController.removeSelf();
         return {
             ...ability,
-            potency: 170
+            potency: 170,
         };
-    }
+    },
 };
 
 export const PoisedForTwinfang: PersonalBuff = {
@@ -178,9 +178,9 @@ export const PoisedForTwinfang: PersonalBuff = {
         buffController.removeSelf();
         return {
             ...ability,
-            potency: 170
+            potency: 170,
         };
-    }
+    },
 };
 
 export const PoisedForTwinblood: PersonalBuff = {
@@ -196,7 +196,7 @@ export const PoisedForTwinblood: PersonalBuff = {
         buffController.removeSelf();
         return {
             ...ability,
-            potency: 170
+            potency: 170,
         };
-    }
+    },
 };

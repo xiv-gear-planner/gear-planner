@@ -7,25 +7,25 @@ const chain: OgcdAbility & OriginCdAbility = {
     type: 'ogcd',
     name: "Chain",
     id: 7436,
-    activatesBuffs: [Chain],
+    activatesBuffs: [Chain,],
     potency: null,
     attackType: "Ability",
     cooldown: {
-        time: 120
-    }
+        time: 120,
+    },
 };
 
 const chainShared: OgcdAbility & SharedCdAbility = {
     type: 'ogcd',
     name: 'Chain II',
     id: 100_0001,
-    activatesBuffs: [Chain],
+    activatesBuffs: [Chain,],
     potency: null,
     attackType: "Ability",
     cooldown: {
         time: 60,
-        sharesCooldownWith: chain
-    }
+        sharesCooldownWith: chain,
+    },
 };
 
 const phlegma: GcdAbility = {
@@ -39,22 +39,22 @@ const phlegma: GcdAbility = {
     cooldown: {
         time: 40,
         // Mythical Phlegma VI where we get 3 charges
-        charges: 3
-    }
+        charges: 3,
+    },
 };
 
 const reduced: OgcdAbility = {
     type: 'ogcd',
     name: "Special Chain",
     id: 7436,
-    activatesBuffs: [Chain],
+    activatesBuffs: [Chain,],
     potency: null,
     attackType: "Ability",
     cooldown: {
         // Set original time to 240, let it be reduced
         time: 240,
-        reducedBy: "spellspeed"
-    }
+        reducedBy: "spellspeed",
+    },
 };
 
 class FakeTimeSource {
@@ -70,30 +70,30 @@ describe('cooldown manager', () => {
         assert.deepEqual(tracker.statusOf(ability), {
             readyAt: {
                 absolute: 0,
-                relative: 0
+                relative: 0,
             },
             readyToUse: true,
             capped: true,
             cappedAt: {
                 absolute: 0,
-                relative: 0
+                relative: 0,
             },
-            currentCharges: 1
+            currentCharges: 1,
         });
         // Wait 5 seconds, should still be identical
         ts.time = 5.0;
         assert.deepEqual(tracker.statusOf(ability), {
             readyAt: {
                 absolute: 5,
-                relative: 0
+                relative: 0,
             },
             readyToUse: true,
             capped: true,
             cappedAt: {
                 absolute: 5,
-                relative: 0
+                relative: 0,
             },
-            currentCharges: 1
+            currentCharges: 1,
         });
         // Use the CD
         tracker.useAbility(ability);
@@ -101,134 +101,134 @@ describe('cooldown manager', () => {
         assert.deepEqual(tracker.statusOf(ability), {
             readyAt: {
                 absolute: 125,
-                relative: 120
+                relative: 120,
             },
             readyToUse: false,
             capped: false,
             cappedAt: {
                 absolute: 125,
-                relative: 120
+                relative: 120,
             },
-            currentCharges: 0
+            currentCharges: 0,
         });
         ts.time = 10;
         // 5 seconds later, still on CD, but now 115 seconds remaining
         assert.deepEqual(tracker.statusOf(ability), {
             readyAt: {
                 absolute: 125,
-                relative: 115
+                relative: 115,
             },
             readyToUse: false,
             capped: false,
             cappedAt: {
                 absolute: 125,
-                relative: 115
+                relative: 115,
             },
-            currentCharges: 0
+            currentCharges: 0,
         });
         // Almost done
         ts.time = 120;
         assert.deepEqual(tracker.statusOf(ability), {
             readyAt: {
                 absolute: 125,
-                relative: 5
+                relative: 5,
             },
             readyToUse: false,
             capped: false,
             cappedAt: {
                 absolute: 125,
-                relative: 5
+                relative: 5,
             },
-            currentCharges: 0
+            currentCharges: 0,
         });
         ts.time = 125;
         // Now it's ready again
         assert.deepEqual(tracker.statusOf(ability), {
             readyAt: {
                 absolute: 125,
-                relative: 0
+                relative: 0,
             },
             readyToUse: true,
             capped: true,
             cappedAt: {
                 absolute: 125,
-                relative: 0
+                relative: 0,
             },
-            currentCharges: 1
+            currentCharges: 1,
         });
         ts.time = 130;
         // Still ready
         assert.deepEqual(tracker.statusOf(ability), {
             readyAt: {
                 absolute: 130,
-                relative: 0
+                relative: 0,
             },
             readyToUse: true,
             capped: true,
             cappedAt: {
                 absolute: 130,
-                relative: 0
+                relative: 0,
             },
-            currentCharges: 1
+            currentCharges: 1,
         });
         // Use it again
         tracker.useAbility(ability);
         assert.deepEqual(tracker.statusOf(ability), {
             readyAt: {
                 absolute: 250,
-                relative: 120
+                relative: 120,
             },
             readyToUse: false,
             capped: false,
             cappedAt: {
                 absolute: 250,
-                relative: 120
+                relative: 120,
             },
-            currentCharges: 0
+            currentCharges: 0,
         });
         ts.time = 140;
         assert.deepEqual(tracker.statusOf(ability), {
             readyAt: {
                 absolute: 250,
-                relative: 110
+                relative: 110,
             },
             readyToUse: false,
             capped: false,
             cappedAt: {
                 absolute: 250,
-                relative: 110
+                relative: 110,
             },
-            currentCharges: 0
+            currentCharges: 0,
         });
         ts.time = 250;
         // Ready again
         assert.deepEqual(tracker.statusOf(ability), {
             readyAt: {
                 absolute: 250,
-                relative: 0
+                relative: 0,
             },
             readyToUse: true,
             capped: true,
             cappedAt: {
                 absolute: 250,
-                relative: 0
+                relative: 0,
             },
-            currentCharges: 1
+            currentCharges: 1,
         });
         ts.time = 260;
         // Still ready
         assert.deepEqual(tracker.statusOf(ability), {
             readyAt: {
                 absolute: 260,
-                relative: 0
+                relative: 0,
             },
             readyToUse: true,
             capped: true,
             cappedAt: {
                 absolute: 260,
-                relative: 0
+                relative: 0,
             },
-            currentCharges: 1
+            currentCharges: 1,
         });
     });
     it('can handle a reduced cooldown', () => {
@@ -239,30 +239,30 @@ describe('cooldown manager', () => {
         assert.deepEqual(tracker.statusOf(ability), {
             readyAt: {
                 absolute: 0,
-                relative: 0
+                relative: 0,
             },
             readyToUse: true,
             capped: true,
             cappedAt: {
                 absolute: 0,
-                relative: 0
+                relative: 0,
             },
-            currentCharges: 1
+            currentCharges: 1,
         });
         // Wait 5 seconds, should still be identical
         ts.time = 5.0;
         assert.deepEqual(tracker.statusOf(ability), {
             readyAt: {
                 absolute: 5,
-                relative: 0
+                relative: 0,
             },
             readyToUse: true,
             capped: true,
             cappedAt: {
                 absolute: 5,
-                relative: 0
+                relative: 0,
             },
-            currentCharges: 1
+            currentCharges: 1,
         });
         // Use the CD
         tracker.useAbility(ability, 120);
@@ -270,134 +270,134 @@ describe('cooldown manager', () => {
         assert.deepEqual(tracker.statusOf(ability), {
             readyAt: {
                 absolute: 125,
-                relative: 120
+                relative: 120,
             },
             readyToUse: false,
             capped: false,
             cappedAt: {
                 absolute: 125,
-                relative: 120
+                relative: 120,
             },
-            currentCharges: 0
+            currentCharges: 0,
         });
         ts.time = 10;
         // 5 seconds later, still on CD, but now 115 seconds remaining
         assert.deepEqual(tracker.statusOf(ability), {
             readyAt: {
                 absolute: 125,
-                relative: 115
+                relative: 115,
             },
             readyToUse: false,
             capped: false,
             cappedAt: {
                 absolute: 125,
-                relative: 115
+                relative: 115,
             },
-            currentCharges: 0
+            currentCharges: 0,
         });
         // Almost done
         ts.time = 120;
         assert.deepEqual(tracker.statusOf(ability), {
             readyAt: {
                 absolute: 125,
-                relative: 5
+                relative: 5,
             },
             readyToUse: false,
             capped: false,
             cappedAt: {
                 absolute: 125,
-                relative: 5
+                relative: 5,
             },
-            currentCharges: 0
+            currentCharges: 0,
         });
         ts.time = 125;
         // Now it's ready again
         assert.deepEqual(tracker.statusOf(ability), {
             readyAt: {
                 absolute: 125,
-                relative: 0
+                relative: 0,
             },
             readyToUse: true,
             capped: true,
             cappedAt: {
                 absolute: 125,
-                relative: 0
+                relative: 0,
             },
-            currentCharges: 1
+            currentCharges: 1,
         });
         ts.time = 130;
         // Still ready
         assert.deepEqual(tracker.statusOf(ability), {
             readyAt: {
                 absolute: 130,
-                relative: 0
+                relative: 0,
             },
             readyToUse: true,
             capped: true,
             cappedAt: {
                 absolute: 130,
-                relative: 0
+                relative: 0,
             },
-            currentCharges: 1
+            currentCharges: 1,
         });
         // Use it again, this time with 100s
         tracker.useAbility(ability, 100);
         assert.deepEqual(tracker.statusOf(ability), {
             readyAt: {
                 absolute: 230,
-                relative: 100
+                relative: 100,
             },
             readyToUse: false,
             capped: false,
             cappedAt: {
                 absolute: 230,
-                relative: 100
+                relative: 100,
             },
-            currentCharges: 0
+            currentCharges: 0,
         });
         ts.time = 140;
         assert.deepEqual(tracker.statusOf(ability), {
             readyAt: {
                 absolute: 230,
-                relative: 90
+                relative: 90,
             },
             readyToUse: false,
             capped: false,
             cappedAt: {
                 absolute: 230,
-                relative: 90
+                relative: 90,
             },
-            currentCharges: 0
+            currentCharges: 0,
         });
         ts.time = 230;
         // Ready again
         assert.deepEqual(tracker.statusOf(ability), {
             readyAt: {
                 absolute: 230,
-                relative: 0
+                relative: 0,
             },
             readyToUse: true,
             capped: true,
             cappedAt: {
                 absolute: 230,
-                relative: 0
+                relative: 0,
             },
-            currentCharges: 1
+            currentCharges: 1,
         });
         ts.time = 260;
         // Still ready
         assert.deepEqual(tracker.statusOf(ability), {
             readyAt: {
                 absolute: 260,
-                relative: 0
+                relative: 0,
             },
             readyToUse: true,
             capped: true,
             cappedAt: {
                 absolute: 260,
-                relative: 0
+                relative: 0,
             },
-            currentCharges: 1
+            currentCharges: 1,
         });
     });
     it('can handle a charge-based cooldown', () => {
@@ -409,14 +409,14 @@ describe('cooldown manager', () => {
             readyToUse: true,
             readyAt: {
                 absolute: 0,
-                relative: 0
+                relative: 0,
             },
             capped: true,
             cappedAt: {
                 absolute: 0,
-                relative: 0
+                relative: 0,
             },
-            currentCharges: 3
+            currentCharges: 3,
         });
         // Still fully charged
         ts.time = 10;
@@ -424,14 +424,14 @@ describe('cooldown manager', () => {
             readyToUse: true,
             readyAt: {
                 absolute: 10,
-                relative: 0
+                relative: 0,
             },
             capped: true,
             cappedAt: {
                 absolute: 10,
-                relative: 0
+                relative: 0,
             },
-            currentCharges: 3
+            currentCharges: 3,
         });
         // Use once
         tracker.useAbility(ability);
@@ -439,14 +439,14 @@ describe('cooldown manager', () => {
             readyToUse: true,
             readyAt: {
                 absolute: 10,
-                relative: 0
+                relative: 0,
             },
             capped: false,
             cappedAt: {
                 absolute: 50,
-                relative: 40
+                relative: 40,
             },
-            currentCharges: 2
+            currentCharges: 2,
         });
         // Back to full
         ts.time = 50;
@@ -454,14 +454,14 @@ describe('cooldown manager', () => {
             readyToUse: true,
             readyAt: {
                 absolute: ts.time,
-                relative: 0
+                relative: 0,
             },
             capped: true,
             cappedAt: {
                 absolute: ts.time,
-                relative: 0
+                relative: 0,
             },
-            currentCharges: 3
+            currentCharges: 3,
         });
         // Still full
         ts.time = 60;
@@ -469,14 +469,14 @@ describe('cooldown manager', () => {
             readyToUse: true,
             readyAt: {
                 absolute: ts.time,
-                relative: 0
+                relative: 0,
             },
             capped: true,
             cappedAt: {
                 absolute: ts.time,
-                relative: 0
+                relative: 0,
             },
-            currentCharges: 3
+            currentCharges: 3,
         });
         // use ability several times in succession
         tracker.useAbility(ability);
@@ -484,14 +484,14 @@ describe('cooldown manager', () => {
             readyToUse: true,
             readyAt: {
                 absolute: ts.time,
-                relative: 0
+                relative: 0,
             },
             capped: false,
             cappedAt: {
                 absolute: 60 + 40,
-                relative: 40
+                relative: 40,
             },
-            currentCharges: 2
+            currentCharges: 2,
         });
         ts.time += 1;
         tracker.useAbility(ability);
@@ -499,14 +499,14 @@ describe('cooldown manager', () => {
             readyToUse: true,
             readyAt: {
                 absolute: ts.time,
-                relative: 0
+                relative: 0,
             },
             capped: false,
             cappedAt: {
                 absolute: 60 + 2 * 40,
-                relative: 2 * 40 - 1
+                relative: 2 * 40 - 1,
             },
-            currentCharges: 1
+            currentCharges: 1,
         });
         ts.time += 1;
         tracker.useAbility(ability);
@@ -514,70 +514,70 @@ describe('cooldown manager', () => {
             readyToUse: false,
             readyAt: {
                 absolute: 60 + 40,
-                relative: 40 - 2
+                relative: 40 - 2,
             },
             capped: false,
             cappedAt: {
                 absolute: 60 + 3 * 40,
-                relative: 3 * 40 - 2
+                relative: 3 * 40 - 2,
             },
-            currentCharges: 0
+            currentCharges: 0,
         });
         ts.time = 99;
         assert.deepEqual(tracker.statusOf(ability), {
             readyToUse: false,
             readyAt: {
                 absolute: 60 + 40,
-                relative: 1
+                relative: 1,
             },
             capped: false,
             cappedAt: {
                 absolute: 60 + 3 * 40,
-                relative: 81
+                relative: 81,
             },
-            currentCharges: 0
+            currentCharges: 0,
         });
         ts.time = 100;
         assert.deepEqual(tracker.statusOf(ability), {
             readyToUse: true,
             readyAt: {
                 absolute: 60 + 40,
-                relative: 0
+                relative: 0,
             },
             capped: false,
             cappedAt: {
                 absolute: 60 + 3 * 40,
-                relative: 80
+                relative: 80,
             },
-            currentCharges: 1
+            currentCharges: 1,
         });
         ts.time = 140;
         assert.deepEqual(tracker.statusOf(ability), {
             readyToUse: true,
             readyAt: {
                 absolute: ts.time,
-                relative: 0
+                relative: 0,
             },
             capped: false,
             cappedAt: {
                 absolute: 60 + 3 * 40,
-                relative: 40
+                relative: 40,
             },
-            currentCharges: 2
+            currentCharges: 2,
         });
         ts.time = 180;
         assert.deepEqual(tracker.statusOf(ability), {
             readyToUse: true,
             readyAt: {
                 absolute: ts.time,
-                relative: 0
+                relative: 0,
             },
             capped: true,
             cappedAt: {
                 absolute: 60 + 3 * 40,
-                relative: 0
+                relative: 0,
             },
-            currentCharges: 3
+            currentCharges: 3,
         });
     });
     it('handles shared CDs', () => {
@@ -590,14 +590,14 @@ describe('cooldown manager', () => {
             readyToUse: true,
             readyAt: {
                 absolute: 0,
-                relative: 0
+                relative: 0,
             },
             capped: true,
             cappedAt: {
                 absolute: 0,
-                relative: 0
+                relative: 0,
             },
-            currentCharges: 1
+            currentCharges: 1,
         };
         assert.deepEqual(tracker.statusOf(ability), e1);
         assert.deepEqual(tracker.statusOf(ability2), e1);
@@ -607,14 +607,14 @@ describe('cooldown manager', () => {
             readyToUse: false,
             readyAt: {
                 absolute: 120,
-                relative: 120
+                relative: 120,
             },
             capped: false,
             cappedAt: {
                 absolute: 120,
-                relative: 120
+                relative: 120,
             },
-            currentCharges: 0
+            currentCharges: 0,
         };
         assert.deepEqual(tracker.statusOf(ability), e2);
         assert.deepEqual(tracker.statusOf(ability2), e2);
@@ -623,14 +623,14 @@ describe('cooldown manager', () => {
             readyToUse: false,
             readyAt: {
                 absolute: 120,
-                relative: 90
+                relative: 90,
             },
             capped: false,
             cappedAt: {
                 absolute: 120,
-                relative: 90
+                relative: 90,
             },
-            currentCharges: 0
+            currentCharges: 0,
         };
         assert.deepEqual(tracker.statusOf(ability), e3);
         assert.deepEqual(tracker.statusOf(ability2), e3);
@@ -641,14 +641,14 @@ describe('cooldown manager', () => {
             readyToUse: false,
             readyAt: {
                 absolute: 120,
-                relative: 30
+                relative: 30,
             },
             capped: false,
             cappedAt: {
                 absolute: 120,
-                relative: 30
+                relative: 30,
             },
-            currentCharges: 0
+            currentCharges: 0,
         };
         assert.deepEqual(tracker.statusOf(ability), e4);
         assert.deepEqual(tracker.statusOf(ability2), e4);
@@ -658,14 +658,14 @@ describe('cooldown manager', () => {
             readyToUse: true,
             readyAt: {
                 absolute: 120,
-                relative: 0
+                relative: 0,
             },
             capped: true,
             cappedAt: {
                 absolute: 120,
-                relative: 0
+                relative: 0,
             },
-            currentCharges: 1
+            currentCharges: 1,
         };
         assert.deepEqual(tracker.statusOf(ability), e5);
         assert.deepEqual(tracker.statusOf(ability2), e5);
@@ -675,14 +675,14 @@ describe('cooldown manager', () => {
             readyToUse: true,
             readyAt: {
                 absolute: 150,
-                relative: 0
+                relative: 0,
             },
             capped: true,
             cappedAt: {
                 absolute: 150,
-                relative: 0
+                relative: 0,
             },
-            currentCharges: 1
+            currentCharges: 1,
         };
         assert.deepEqual(tracker.statusOf(ability), e6);
         assert.deepEqual(tracker.statusOf(ability2), e6);
@@ -692,14 +692,14 @@ describe('cooldown manager', () => {
             readyToUse: false,
             readyAt: {
                 absolute: 210,
-                relative: 60
+                relative: 60,
             },
             capped: false,
             cappedAt: {
                 absolute: 210,
-                relative: 60
+                relative: 60,
             },
-            currentCharges: 0
+            currentCharges: 0,
         };
         assert.deepEqual(tracker.statusOf(ability), e7);
         assert.deepEqual(tracker.statusOf(ability2), e7);
@@ -709,14 +709,14 @@ describe('cooldown manager', () => {
             readyToUse: false,
             readyAt: {
                 absolute: 210,
-                relative: 30
+                relative: 30,
             },
             capped: false,
             cappedAt: {
                 absolute: 210,
-                relative: 30
+                relative: 30,
             },
-            currentCharges: 0
+            currentCharges: 0,
         };
         assert.deepEqual(tracker.statusOf(ability), e8);
         assert.deepEqual(tracker.statusOf(ability2), e8);
@@ -726,14 +726,14 @@ describe('cooldown manager', () => {
             readyToUse: true,
             readyAt: {
                 absolute: 210,
-                relative: 0
+                relative: 0,
             },
             capped: true,
             cappedAt: {
                 absolute: 210,
-                relative: 0
+                relative: 0,
             },
-            currentCharges: 1
+            currentCharges: 1,
         };
         assert.deepEqual(tracker.statusOf(ability), e9);
         assert.deepEqual(tracker.statusOf(ability2), e9);
@@ -743,14 +743,14 @@ describe('cooldown manager', () => {
             readyToUse: true,
             readyAt: {
                 absolute: 240,
-                relative: 0
+                relative: 0,
             },
             capped: true,
             cappedAt: {
                 absolute: 240,
-                relative: 0
+                relative: 0,
             },
-            currentCharges: 1
+            currentCharges: 1,
         };
         assert.deepEqual(tracker.statusOf(ability), e10);
         assert.deepEqual(tracker.statusOf(ability2), e10);
@@ -765,14 +765,14 @@ describe('cooldown manager', () => {
             readyToUse: true,
             readyAt: {
                 absolute: 0,
-                relative: 0
+                relative: 0,
             },
             capped: true,
             cappedAt: {
                 absolute: 0,
-                relative: 0
+                relative: 0,
             },
-            currentCharges: 1
+            currentCharges: 1,
         };
         assert.deepEqual(tracker.statusOf(ability), e1);
         assert.deepEqual(tracker.statusOf(ability2), e1);
@@ -782,14 +782,14 @@ describe('cooldown manager', () => {
             readyToUse: false,
             readyAt: {
                 absolute: 60,
-                relative: 60
+                relative: 60,
             },
             capped: false,
             cappedAt: {
                 absolute: 60,
-                relative: 60
+                relative: 60,
             },
-            currentCharges: 0
+            currentCharges: 0,
         };
         assert.deepEqual(tracker.statusOf(ability), e2);
         assert.deepEqual(tracker.statusOf(ability2), e2);
@@ -798,14 +798,14 @@ describe('cooldown manager', () => {
             readyToUse: false,
             readyAt: {
                 absolute: 60,
-                relative: 40
+                relative: 40,
             },
             capped: false,
             cappedAt: {
                 absolute: 60,
-                relative: 40
+                relative: 40,
             },
-            currentCharges: 0
+            currentCharges: 0,
         };
         assert.deepEqual(tracker.statusOf(ability), e3);
         assert.deepEqual(tracker.statusOf(ability2), e3);
@@ -815,14 +815,14 @@ describe('cooldown manager', () => {
             readyToUse: true,
             readyAt: {
                 absolute: 60,
-                relative: 0
+                relative: 0,
             },
             capped: true,
             cappedAt: {
                 absolute: 60,
-                relative: 0
+                relative: 0,
             },
-            currentCharges: 1
+            currentCharges: 1,
         };
         assert.deepEqual(tracker.statusOf(ability), e4);
         assert.deepEqual(tracker.statusOf(ability2), e4);
@@ -832,14 +832,14 @@ describe('cooldown manager', () => {
             readyToUse: true,
             readyAt: {
                 absolute: 120,
-                relative: 0
+                relative: 0,
             },
             capped: true,
             cappedAt: {
                 absolute: 120,
-                relative: 0
+                relative: 0,
             },
-            currentCharges: 1
+            currentCharges: 1,
         };
         assert.deepEqual(tracker.statusOf(ability), e5);
         assert.deepEqual(tracker.statusOf(ability2), e5);
@@ -849,14 +849,14 @@ describe('cooldown manager', () => {
             readyToUse: true,
             readyAt: {
                 absolute: 90,
-                relative: 0
+                relative: 0,
             },
             capped: true,
             cappedAt: {
                 absolute: 90,
-                relative: 0
+                relative: 0,
             },
-            currentCharges: 1
+            currentCharges: 1,
         };
         assert.deepEqual(tracker.statusOf(ability), e6);
         assert.deepEqual(tracker.statusOf(ability2), e6);
@@ -866,14 +866,14 @@ describe('cooldown manager', () => {
             readyToUse: false,
             readyAt: {
                 absolute: 210,
-                relative: 120
+                relative: 120,
             },
             capped: false,
             cappedAt: {
                 absolute: 210,
-                relative: 120
+                relative: 120,
             },
-            currentCharges: 0
+            currentCharges: 0,
         };
         assert.deepEqual(tracker.statusOf(ability), e7);
         assert.deepEqual(tracker.statusOf(ability2), e7);
@@ -883,14 +883,14 @@ describe('cooldown manager', () => {
             readyToUse: false,
             readyAt: {
                 absolute: 210,
-                relative: 30
+                relative: 30,
             },
             capped: false,
             cappedAt: {
                 absolute: 210,
-                relative: 30
+                relative: 30,
             },
-            currentCharges: 0
+            currentCharges: 0,
         };
         assert.deepEqual(tracker.statusOf(ability), e8);
         assert.deepEqual(tracker.statusOf(ability2), e8);
@@ -900,14 +900,14 @@ describe('cooldown manager', () => {
             readyToUse: true,
             readyAt: {
                 absolute: 210,
-                relative: 0
+                relative: 0,
             },
             capped: true,
             cappedAt: {
                 absolute: 210,
-                relative: 0
+                relative: 0,
             },
-            currentCharges: 1
+            currentCharges: 1,
         };
         assert.deepEqual(tracker.statusOf(ability), e9);
         assert.deepEqual(tracker.statusOf(ability2), e9);
@@ -917,14 +917,14 @@ describe('cooldown manager', () => {
             readyToUse: true,
             readyAt: {
                 absolute: 240,
-                relative: 0
+                relative: 0,
             },
             capped: true,
             cappedAt: {
                 absolute: 240,
-                relative: 0
+                relative: 0,
             },
-            currentCharges: 1
+            currentCharges: 1,
         };
         assert.deepEqual(tracker.statusOf(ability), e10);
         assert.deepEqual(tracker.statusOf(ability2), e10);

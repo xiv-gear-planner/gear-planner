@@ -16,7 +16,7 @@ export interface BluF2PSettingsExternal extends ExternalCycleSettings<BluF2PSett
 export const BluF2PSpec: SimSpec<BluF2PSim, BluF2PSettingsExternal> = {
     displayName: "BLU Free Trial",
     stub: "blu-f2p",
-    supportedJobs: ["BLU"],
+    supportedJobs: ["BLU",],
     isDefaultSim: false,
     description: "Simulates a BLU Free Trial rotation with Moon Flute windows every 120s.",
 
@@ -26,7 +26,7 @@ export const BluF2PSpec: SimSpec<BluF2PSim, BluF2PSettingsExternal> = {
 
     loadSavedSimInstance(exported: BluF2PSettingsExternal) {
         return new BluF2PSim(exported);
-    }
+    },
 };
 
 export class BluF2PSim extends blu.BluSim<BluF2PSimResult, BluF2PSettings> {
@@ -134,7 +134,8 @@ export class BluF2PSim extends blu.BluSim<BluF2PSimResult, BluF2PSettings> {
                     cycle.use(blu.RoseOfDestruction);
                     if (cycle.cycleNumber === 0) {
                         cycle.use(blu.ShockStrike);
-                    } else {
+                    }
+                    else {
                         sim.useOgcdFiller(cp);
                     }
                     if (cycle.cycleNumber > 0 && cp.gcdRecast <= 2.20) {
@@ -150,7 +151,8 @@ export class BluF2PSim extends blu.BluSim<BluF2PSimResult, BluF2PSettings> {
                     cycle.use(blu.MatraMagic);
                     if (cycle.cycleNumber === 0) {
                         cycle.use(blu.FeatherRain);
-                    } else {
+                    }
+                    else {
                         sim.useOgcdFiller(cp);
                     }
                     cycle.use(blu.PhantomFlurry);
@@ -169,12 +171,13 @@ export class BluF2PSim extends blu.BluSim<BluF2PSimResult, BluF2PSettings> {
                         cycle.use(blu.MoonFlute);
                         sim.useOgcdFiller(cp);
                         cycle.use(blu.TripleTrident);
-                    } else {
+                    }
+                    else {
                         // otherwise, finish off the fight with a Final Sting combo
                         sim.useStingCombo(cp);
                     }
                 });
-            }
-        }];
+            },
+        },];
     }
 }

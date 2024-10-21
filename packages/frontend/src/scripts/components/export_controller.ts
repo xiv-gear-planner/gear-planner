@@ -49,7 +49,7 @@ const sheetJson = {
     exportInstantly: true,
     async doExport(sheet: GearPlanSheet): Promise<string> {
         return JSON.stringify(sheet.exportSheet(true));
-    }
+    },
 } as const as SheetExportMethod;
 
 /**
@@ -61,7 +61,7 @@ const sheetShortlink = {
     async doExport(sheet: GearPlanSheet): Promise<string> {
         const exportedSheet = JSON.stringify(sheet.exportSheet(true));
         return await putShortLink(exportedSheet).then(link => link.toString());
-    }
+    },
 } as const as SheetExportMethod;
 
 /**
@@ -83,7 +83,7 @@ const linkPerSet = {
             out += '\n';
         }
         return out;
-    }
+    },
 } as const as SheetExportMethod;
 
 /**
@@ -105,7 +105,7 @@ const embedLinkPerSet = {
             out += '\n';
         }
         return out;
-    }
+    },
 } as const as SheetExportMethod;
 
 /**
@@ -116,7 +116,7 @@ const setJson = {
     exportInstantly: true,
     async doExport(set: CharacterGearSet): Promise<string> {
         return JSON.stringify(set.sheet.exportGearSet(set, true));
-    }
+    },
 } as const as SetExportMethod;
 
 /**
@@ -128,7 +128,7 @@ const setShortlink = {
     async doExport(set: CharacterGearSet): Promise<string> {
         const exportedSheet = JSON.stringify(set.sheet.exportGearSet(set, true));
         return await putShortLink(exportedSheet).then(link => link.toString());
-    }
+    },
 } as const as SetExportMethod;
 
 /**
@@ -140,7 +140,7 @@ const setEmbedShortLink = {
     async doExport(set: CharacterGearSet): Promise<string> {
         const exportedSheet = JSON.stringify(set.sheet.exportGearSet(set, true));
         return await putShortLink(exportedSheet, true).then(link => link.toString());
-    }
+    },
 } as const as SetExportMethod;
 
 type TeamcraftItem = {
@@ -178,10 +178,11 @@ const exportSetToTeamcraft = {
             const existing = items.find(item => item.itemId === equippedItem.id);
             if (existing) {
                 existing.quantity++;
-            } else {
+            }
+            else {
                 items.push({
                     itemId: equippedItem.id,
-                    quantity: 1
+                    quantity: 1,
                 });
             }
         });
@@ -189,19 +190,20 @@ const exportSetToTeamcraft = {
             .map(item => `${item.itemId},null,${item.quantity}`)
             .join(';');
         return `https://ffxivteamcraft.com/import/${btoa(joinedItems)}`;
-    }
+    },
 } as const as SetExportMethod;
 
-const SHEET_EXPORT_OPTIONS = [sheetShortlink, linkPerSet, embedLinkPerSet, sheetJson] as const;
+const SHEET_EXPORT_OPTIONS = [sheetShortlink, linkPerSet, embedLinkPerSet, sheetJson,] as const;
 
-const SET_EXPORT_OPTIONS = [setShortlink, setEmbedShortLink, setJson, exportSetToTeamcraft] as const;
+const SET_EXPORT_OPTIONS = [setShortlink, setEmbedShortLink, setJson, exportSetToTeamcraft,] as const;
 
 // TODO: warning for when you export a single set as a sheet
 export function startExport(sheet: GearPlanSheet | CharacterGearSet) {
     let modal: ExportModal<unknown>;
     if (sheet instanceof GearPlanSheet) {
         modal = new SheetExportModal(sheet);
-    } else {
+    }
+    else {
         modal = new SetExportModal(sheet);
     }
     modal.attachAndShow();
@@ -289,7 +291,7 @@ abstract class ExportModal<X> extends BaseModal {
 
     doExport(selectedType: ExportMethod<X>): Promise<string> {
         recordSheetEvent("doExport", this.sheet, {
-            'exportType': selectedType.name
+            'exportType': selectedType.name,
         });
         return selectedType.doExport(this.item);
     };
@@ -306,7 +308,8 @@ abstract class ExportModal<X> extends BaseModal {
         if (selectedType.exportInstantly) {
             const content = await this.doExport(selectedType);
             this.setResultData(selectedType, content);
-        } else {
+        }
+        else {
             this.variableButton.textContent = 'Generate';
             this.textValue = DEFAULT_EXPORT_TEXT;
             this.varButtonAction = () => {
@@ -338,7 +341,8 @@ abstract class ExportModal<X> extends BaseModal {
         if (exportType.openInsteadOfCopy) {
             this.variableButton.textContent = 'Go';
             this.varButtonAction = () => window.open(data, '_blank');
-        } else {
+        }
+        else {
             this.variableButton.textContent = 'Copy';
             this.varButtonAction = () => navigator.clipboard.writeText(data);
         }

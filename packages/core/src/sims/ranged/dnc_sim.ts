@@ -12,9 +12,9 @@ export const dncDtSheetSpec: SimSpec<DncDtSim, DncDtSimSettings> = {
         return new DncDtSim();
     },
     stub: "dnc-dt-sim",
-    supportedJobs: ['DNC'],
-    supportedLevels: [100],
-    isDefaultSim: true
+    supportedJobs: ['DNC',],
+    supportedLevels: [100,],
+    isDefaultSim: true,
 };
 
 export type DncDtSimSettings = NonNullable<unknown>
@@ -29,7 +29,7 @@ const cascade: GcdAbility = {
     attackType: 'Weaponskill',
     potency: 220,
     gcd: 2.5,
-    id: 15989
+    id: 15989,
 } as const satisfies GcdAbility;
 
 const fountain: GcdAbility = {
@@ -38,7 +38,7 @@ const fountain: GcdAbility = {
     attackType: 'Weaponskill',
     potency: 280,
     gcd: 2.5,
-    id: 15990
+    id: 15990,
 } as const satisfies GcdAbility;
 
 
@@ -48,7 +48,7 @@ const reverseCascade: GcdAbility = {
     potency: 280,
     attackType: 'Weaponskill',
     gcd: 2.50,
-    id: 15991
+    id: 15991,
 } as const satisfies GcdAbility;
 
 const fountainFall: GcdAbility = {
@@ -57,7 +57,7 @@ const fountainFall: GcdAbility = {
     potency: 340,
     attackType: 'Weaponskill',
     gcd: 2.50,
-    id: 15992
+    id: 15992,
 } as const satisfies GcdAbility;
 
 const saberDance: GcdAbility = {
@@ -66,7 +66,7 @@ const saberDance: GcdAbility = {
     potency: 520,
     attackType: 'Weaponskill',
     gcd: 2.50,
-    id: 16005
+    id: 16005,
 } as const satisfies GcdAbility;
 
 const starfall: GcdAbility = {
@@ -77,7 +77,7 @@ const starfall: GcdAbility = {
     gcd: 2.50,
     autoCrit: true,
     autoDh: true,
-    id: 25792
+    id: 25792,
 } as const satisfies GcdAbility;
 
 const standardFinish: GcdAbility = {
@@ -87,7 +87,7 @@ const standardFinish: GcdAbility = {
     attackType: 'Weaponskill',
     gcd: 1.50,
     fixedGcd: true,
-    id: 16003
+    id: 16003,
 } as const satisfies GcdAbility;
 
 const techFinish: GcdAbility = {
@@ -97,8 +97,8 @@ const techFinish: GcdAbility = {
     attackType: 'Weaponskill',
     gcd: 1.50,
     fixedGcd: true,
-    activatesBuffs: [TechnicalFinish],
-    id: 16004
+    activatesBuffs: [TechnicalFinish,],
+    id: 16004,
 } as const satisfies GcdAbility;
 
 const tillana: GcdAbility = {
@@ -108,7 +108,7 @@ const tillana: GcdAbility = {
     attackType: 'Weaponskill',
     gcd: 2.50,
     fixedGcd: true,
-    id: 25790
+    id: 25790,
 } as const satisfies GcdAbility;
 
 const fanDance: OgcdAbility = {
@@ -117,9 +117,9 @@ const fanDance: OgcdAbility = {
     potency: 150,
     attackType: 'Ability',
     cooldown: {
-        time: 1
+        time: 1,
     },
-    id: 16007
+    id: 16007,
 } as const satisfies OgcdAbility;
 
 const fd3: OgcdAbility = {
@@ -128,9 +128,9 @@ const fd3: OgcdAbility = {
     potency: 200,
     attackType: 'Ability',
     cooldown: {
-        time: 1
+        time: 1,
     },
-    id: 16009
+    id: 16009,
 } as const satisfies OgcdAbility;
 
 const fd4: OgcdAbility = {
@@ -139,9 +139,9 @@ const fd4: OgcdAbility = {
     potency: 420,
     attackType: 'Ability',
     cooldown: {
-        time: 1
+        time: 1,
     },
-    id: 25791
+    id: 25791,
 } as const satisfies OgcdAbility;
 
 const finishingMove: GcdAbility = {
@@ -151,7 +151,7 @@ const finishingMove: GcdAbility = {
     attackType: 'Weaponskill',
     gcd: 2.50,
     // TODO: dt skill
-    id: 40001
+    id: 40001,
 } as const satisfies GcdAbility;
 
 const lastDance: GcdAbility = {
@@ -161,7 +161,7 @@ const lastDance: GcdAbility = {
     attackType: 'Weaponskill',
     gcd: 2.50,
     // TODO: dt skill
-    id: 40002
+    id: 40002,
 } as const satisfies GcdAbility;
 
 const danceOfTheDawn: GcdAbility = {
@@ -171,7 +171,7 @@ const danceOfTheDawn: GcdAbility = {
     attackType: 'Weaponskill',
     gcd: 2.50,
     // TODO: dt skill
-    id: 40003
+    id: 40003,
 } as const satisfies GcdAbility;
 
 const auto: AutoAttack = {
@@ -179,7 +179,7 @@ const auto: AutoAttack = {
     type: 'autoattack',
     potency: 90,
     attackType: 'Auto-attack',
-    id: 7
+    id: 7,
 } as const satisfies AutoAttack;
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -190,7 +190,7 @@ const standardStep: GcdAbility = {
     attackType: 'Weaponskill',
     gcd: 1.50,
     fixedGcd: true,
-    id: 15997
+    id: 15997,
 } as const satisfies GcdAbility;
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -201,7 +201,7 @@ const techStep: GcdAbility = {
     attackType: 'Weaponskill',
     gcd: 1.50,
     fixedGcd: true,
-    id: 15997
+    id: 15997,
 } as const satisfies GcdAbility;
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -212,7 +212,7 @@ const stepsAction: GcdAbility = {
     attackType: 'Weaponskill',
     gcd: 1.00,
     fixedGcd: true,
-    id: 15998
+    id: 15998,
 } as const satisfies GcdAbility;
 
 
@@ -259,7 +259,7 @@ export class DncDtSim extends BaseUsageCountSim<DncDtSimResults, DncDtSimSetting
         const cfCount = Math.floor((120 - nonCFStatic - (gcd * nonCFGcd)) / gcd);
         return {
             cascadeFountainCount: cfCount,
-            rotationCount: cfCount + nonCFGcd
+            rotationCount: cfCount + nonCFGcd,
         };
         /*
         if (gcd >= 2.46) {
@@ -389,78 +389,82 @@ export class DncDtSim extends BaseUsageCountSim<DncDtSimResults, DncDtSimSetting
         const FullCycleTime = this.totalCycleTime(set);
 
         const common: SkillCount[] = [
-            [danceOfTheDawn, 1],
-            [starfall, 1]
+            [danceOfTheDawn, 1,],
+            [starfall, 1,],
 
         ];
         let result: SkillCount[] = [];
         // Totals, regardless of buffs
         if (buffDuration === null) {
             result = [
-                [saberDance, SaberTotal],
-                [cascade, CascadeTotal],
-                [fountain, FountainTotal],
-                [reverseCascade, ReverseCascadeTotal],
-                [fountainFall, FountainfallTotal],
-                [standardFinish, StandardFinishTotal],
-                [tillana, TillanaTotal],
-                [fanDance, FanDanceTotal],
-                [fd3, FanDanceIIITotal],
-                [fd4, FanDanceIVTotal],
-                [finishingMove, FinishingMoveTotal],
-                [lastDance, LastDanceTotal],
-                [techFinish, 1]
+                [saberDance, SaberTotal,],
+                [cascade, CascadeTotal,],
+                [fountain, FountainTotal,],
+                [reverseCascade, ReverseCascadeTotal,],
+                [fountainFall, FountainfallTotal,],
+                [standardFinish, StandardFinishTotal,],
+                [tillana, TillanaTotal,],
+                [fanDance, FanDanceTotal,],
+                [fd3, FanDanceIIITotal,],
+                [fd4, FanDanceIVTotal,],
+                [finishingMove, FinishingMoveTotal,],
+                [lastDance, LastDanceTotal,],
+                [techFinish, 1,],
             ];
-        } else if (buffDuration >= 30) { // In buffs of at least 30 seconds
+        }
+        else if (buffDuration >= 30) { // In buffs of at least 30 seconds
             result = [
-                [saberDance, Saber30],
-                [cascade, Cascade30],
-                [fountain, Fountain30],
-                [reverseCascade, ReverseCascade30],
-                [fountainFall, Fountainfall30],
-                [standardFinish, StandardFinish30],
-                [tillana, Tillana30],
-                [fanDance, FanDance30],
-                [fd3, FanDanceIII30],
-                [fd4, FanDanceIV30],
-                [finishingMove, FinishingMove30],
-                [lastDance, LastDance30]
+                [saberDance, Saber30,],
+                [cascade, Cascade30,],
+                [fountain, Fountain30,],
+                [reverseCascade, ReverseCascade30,],
+                [fountainFall, Fountainfall30,],
+                [standardFinish, StandardFinish30,],
+                [tillana, Tillana30,],
+                [fanDance, FanDance30,],
+                [fd3, FanDanceIII30,],
+                [fd4, FanDanceIV30,],
+                [finishingMove, FinishingMove30,],
+                [lastDance, LastDance30,],
             ];
-        } else if (buffDuration >= 20) {  // In buffs of at least 20 seconds
+        }
+        else if (buffDuration >= 20) {  // In buffs of at least 20 seconds
             result = [
-                [saberDance, Saber20],
-                [cascade, Cascade20],
-                [fountain, Fountain20],
-                [reverseCascade, ReverseCascade20],
-                [fountainFall, Fountainfall20],
-                [standardFinish, StandardFinish20],
-                [tillana, Tillana20],
-                [fanDance, FanDance20],
-                [fd3, FanDanceIII20],
-                [fd4, FanDanceIV20],
-                [finishingMove, FinishingMove20],
-                [lastDance, LastDance20]
+                [saberDance, Saber20,],
+                [cascade, Cascade20,],
+                [fountain, Fountain20,],
+                [reverseCascade, ReverseCascade20,],
+                [fountainFall, Fountainfall20,],
+                [standardFinish, StandardFinish20,],
+                [tillana, Tillana20,],
+                [fanDance, FanDance20,],
+                [fd3, FanDanceIII20,],
+                [fd4, FanDanceIV20,],
+                [finishingMove, FinishingMove20,],
+                [lastDance, LastDance20,],
             ];
-        } else if (buffDuration >= 15) {  // In buffs of at least 15 seconds
+        }
+        else if (buffDuration >= 15) {  // In buffs of at least 15 seconds
             result = [
-                [saberDance, Saber15],
-                [cascade, Cascade15],
-                [fountain, Fountain15],
-                [reverseCascade, ReverseCascade15],
-                [fountainFall, Fountainfall15],
-                [standardFinish, StandardFinish15],
-                [tillana, Tillana15],
-                [fanDance, FanDance15],
-                [fd3, FanDanceIII15],
-                [fd4, FanDanceIV15],
-                [finishingMove, FinishingMove15],
-                [lastDance, LastDance15]
+                [saberDance, Saber15,],
+                [cascade, Cascade15,],
+                [fountain, Fountain15,],
+                [reverseCascade, ReverseCascade15,],
+                [fountainFall, Fountainfall15,],
+                [standardFinish, StandardFinish15,],
+                [tillana, Tillana15,],
+                [fanDance, FanDance15,],
+                [fd3, FanDanceIII15,],
+                [fd4, FanDanceIV15,],
+                [finishingMove, FinishingMove15,],
+                [lastDance, LastDance15,],
             ];
-        } else {
+        }
+        else {
             return [];
         }
         result.push(...common);
-        result.push([auto, (buffDuration ?? FullCycleTime) / set.computedStats.aaDelay]);
+        result.push([auto, (buffDuration ?? FullCycleTime) / set.computedStats.aaDelay,]);
         return result;
     }
 

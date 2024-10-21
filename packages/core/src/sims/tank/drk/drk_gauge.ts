@@ -48,7 +48,7 @@ export class DrkGauge {
             level: 100,
             blood: this.bloodGauge,
             mp: this.magicPoints,
-            darkArts: this.darkArts
+            darkArts: this.darkArts,
         };
     }
 }
@@ -61,7 +61,7 @@ export const Darkside: PersonalBuff = {
     duration: 30,
     selfOnly: true,
     effects: {
-        dmgIncrease: 0.1
+        dmgIncrease: 0.1,
     },
-    maxStackingDuration: 60
+    maxStackingDuration: 60,
 };

@@ -11,8 +11,9 @@ const statusIconMap = new Map<number, Promise<XivApiStatusData>>();
 async function getDataFor(statusId: number): Promise<XivApiStatusData> {
     if (statusIconMap.has(statusId)) {
         return statusIconMap.get(statusId);
-    } else {
-        const dataPromise = xivApiSingleCols('Status', statusId, ['ID', 'Icon', "MaxStacks"] as const);
+    }
+    else {
+        const dataPromise = xivApiSingleCols('Status', statusId, ['ID', 'Icon', "MaxStacks",] as const);
         const out: Promise<XivApiStatusData> = dataPromise.then(data => {
             return {
                 ID: data.ID as number,
@@ -24,7 +25,7 @@ async function getDataFor(statusId: number): Promise<XivApiStatusData> {
                     const stackOffset = effectiveStackCount - 1;
                     const iconId = (data.Icon['id'] as number) + stackOffset;
                     return xivApiIconUrl(iconId, highRes);
-                }
+                },
             } satisfies XivApiStatusData;
         });
 
@@ -49,4 +50,4 @@ export class StatusIcon extends HTMLImageElement {
     }
 }
 
-customElements.define("ffxiv-status-icon", StatusIcon, {extends: "img"});
+customElements.define("ffxiv-status-icon", StatusIcon, {extends: "img",});

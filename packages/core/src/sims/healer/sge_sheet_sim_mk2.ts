@@ -22,7 +22,7 @@ const filler: GcdAbility = {
     attackType: "Spell",
     gcd: 2.5,
     cast: 1.5,
-    id: 24312
+    id: 24312,
 };
 
 const eDosis: GcdAbility = {
@@ -32,14 +32,14 @@ const eDosis: GcdAbility = {
     dot: {
         id: 2864,
         duration: 30,
-        tickPotency: 75
+        tickPotency: 75,
     },
     attackType: "Spell",
     fixedGcd: true,
     gcd: 2.5,
     // TODO: can this be modeled in a more accurate way? it doesn't break anything but isn't nice to work with
     cast: 1.5,
-    id: 24314
+    id: 24314,
 };
 
 const phlegma: GcdAbility = {
@@ -52,8 +52,8 @@ const phlegma: GcdAbility = {
     id: 24313,
     cooldown: {
         time: 40.0,
-        charges: 2
-    }
+        charges: 2,
+    },
 };
 
 const psyche: OgcdAbility = {
@@ -63,8 +63,8 @@ const psyche: OgcdAbility = {
     potency: 600,
     attackType: "Ability",
     cooldown: {
-        time: 60
-    }
+        time: 60,
+    },
 };
 
 export interface SgeSheetSimResult extends CycleSimResult {
@@ -86,7 +86,7 @@ export const sgeNewSheetSpec: SimSpec<SgeSheetSim, SgeNewSheetSettingsExternal> 
         return new SgeSheetSim();
     },
     stub: "sge-sheet-sim-mk2",
-    supportedJobs: ['SGE'],
+    supportedJobs: ['SGE',],
     isDefaultSim: true,
     description: 'Simulates the standard SGE 2-minute rotation.',
     maintainers: [{
@@ -94,9 +94,9 @@ export const sgeNewSheetSpec: SimSpec<SgeSheetSim, SgeNewSheetSettingsExternal> 
         contact: [{
             type: 'discord',
             discordTag: 'xp',
-            discordUid: '126517290098229249'
-        }]
-    }]
+            discordUid: '126517290098229249',
+        },],
+    },],
 
 };
 
@@ -109,7 +109,8 @@ class SageCycleProcessor extends CycleProcessor {
     useDotIfWorth() {
         if (this.remainingTime > 15) {
             this.use(eDosis);
-        } else {
+        }
+        else {
             this.use(filler);
         }
     }
@@ -120,7 +121,8 @@ class SageCycleProcessor extends CycleProcessor {
             && this.remainingGcds(phlegma) <= 2
             && this.cdTracker.canUse(phlegma)) {
             return super.use(phlegma);
-        } else {
+        }
+        else {
             return super.use(ability);
         }
     }
@@ -132,7 +134,8 @@ class SageCycleProcessor extends CycleProcessor {
         if (this.isReady(psyche)) {
             this.use(psyche);
             this.use(phlegma);
-        } else {
+        }
+        else {
             this.doOffMinuteBurst();
         }
 
@@ -140,14 +143,16 @@ class SageCycleProcessor extends CycleProcessor {
 
     doOffMinuteBurst() {
         while (true) {
-            const canUse = this.canUseCooldowns(phlegma, [psyche]);
+            const canUse = this.canUseCooldowns(phlegma, [psyche,]);
             if (canUse === 'yes') {
                 this.use(phlegma);
                 this.use(psyche);
                 return;
-            } else if (canUse === 'no') {
+            }
+            else if (canUse === 'no') {
                 this.use(filler);
-            } else {
+            }
+            else {
                 return;
             }
         }
@@ -170,7 +175,7 @@ export class SgeSheetSim extends BaseMultiCycleSim<SgeSheetSimResult, SgeNewShee
 
     makeDefaultSettings(): SgeNewSheetSettings {
         return {
-            usePotion: false
+            usePotion: false,
         };
     }
 
@@ -198,7 +203,7 @@ export class SgeSheetSim extends BaseMultiCycleSim<SgeSheetSimResult, SgeNewShee
                     cp.useDotIfWorth();
                     cycle.useUntil(filler, 'end');
                 });
-            }
+            },
         }, ...rangeInc(2, 20, 2).map(i => ({
             name: `DoT clip ${i}s`,
             cycleTime: 120,
@@ -242,8 +247,8 @@ export class SgeSheetSim extends BaseMultiCycleSim<SgeSheetSimResult, SgeNewShee
                     cp.useDotIfWorth();
                     cycle.useUntil(filler, 'end');
                 });
-            }
-        }))
+            },
+        })),
         ];
     }
 

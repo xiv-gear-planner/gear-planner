@@ -16,7 +16,7 @@ export interface BluFlame120SettingsExternal extends ExternalCycleSettings<BluFl
 export const BluFlame120Spec: SimSpec<BluFlame120Sim, BluFlame120SettingsExternal> = {
     displayName: "BLU Flame 120s",
     stub: "blu-flame120",
-    supportedJobs: ["BLU"],
+    supportedJobs: ["BLU",],
     isDefaultSim: false,
     description: "Simulates a BLU Mortal Flame rotation with Moon Flute windows every 120s.",
 
@@ -26,7 +26,7 @@ export const BluFlame120Spec: SimSpec<BluFlame120Sim, BluFlame120SettingsExterna
 
     loadSavedSimInstance(exported: BluFlame120SettingsExternal) {
         return new BluFlame120Sim(exported);
-    }
+    },
 };
 
 export class BluFlame120Sim extends blu.BluSim<BluFlame120SimResult, BluFlame120Settings> {
@@ -171,21 +171,25 @@ export class BluFlame120Sim extends blu.BluSim<BluFlame120SimResult, BluFlame120
                     cp.use(blu.Tingle);
                     if (cp.isReady(blu.RoseOfDestruction)) {
                         cp.use(blu.RoseOfDestruction);
-                    } else {
+                    }
+                    else {
                         cp.use(blu.FeculentFlood);
                     }
                     cp.use(blu.MoonFlute);
                     sim.useOgcdFiller(cp);
                     cp.use(blu.TripleTrident);
-                } else {
+                }
+                else {
                     // otherwise, finish off the fight with a Final Sting combo
                     if (cp.isReady(blu.RoseOfDestruction)) {
                         cp.use(blu.RoseOfDestruction);
-                    } else {
+                    }
+                    else {
                         if (cp.isReady(blu.WingedReprobation)) {
                             cp.use(blu.WingedReprobation);
                             sim.useOgcdFiller(cp);
-                        } else {
+                        }
+                        else {
                             cp.use(blu.FeculentFlood);
                         }
                     }
@@ -226,28 +230,32 @@ export class BluFlame120Sim extends blu.BluSim<BluFlame120SimResult, BluFlame120
                         cycle.use(blu.Tingle);
                         if (cp.isReady(blu.RoseOfDestruction)) {
                             cycle.use(blu.RoseOfDestruction);
-                        } else {
+                        }
+                        else {
                             cycle.use(blu.FeculentFlood);
                         }
                         cycle.use(blu.MoonFlute);
                         sim.useOgcdFiller(cp);
                         cycle.use(blu.TripleTrident);
-                    } else {
+                    }
+                    else {
                         // otherwise, finish off the fight with a Final Sting combo
                         if (cp.isReady(blu.RoseOfDestruction)) {
                             cycle.use(blu.RoseOfDestruction);
-                        } else {
+                        }
+                        else {
                             if (cp.isReady(blu.WingedReprobation)) {
                                 cycle.use(blu.WingedReprobation);
                                 sim.useOgcdFiller(cp);
-                            } else {
+                            }
+                            else {
                                 cycle.use(blu.FeculentFlood);
                             }
                         }
                         sim.useStingCombo(cp);
                     }
                 });
-            }
-        }];
+            },
+        },];
     }
 }

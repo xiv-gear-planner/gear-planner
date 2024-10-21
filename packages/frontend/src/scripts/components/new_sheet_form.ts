@@ -70,11 +70,11 @@ export class NewSheetFormFieldSet extends HTMLFieldSetElement {
         this.appendChild(spacer());
         this.tempSettings = {
             ilvlSyncEnabled: defaults?.ilvlSyncEnabled ?? false,
-            ilvlSync: defaults?.ilvlSyncLevel ?? 650
+            ilvlSync: defaults?.ilvlSyncLevel ?? 650,
         };
         this.ilvlSyncCheckbox = new FieldBoundCheckBox(this.tempSettings, 'ilvlSyncEnabled');
         this.ilvlSyncCheckbox.id = 'new-sheet-ilvl-sync-enable';
-        this.append(quickElement('div', [], [this.ilvlSyncCheckbox, labelFor("Sync Item Level", this.ilvlSyncCheckbox)]));
+        this.append(quickElement('div', [], [this.ilvlSyncCheckbox, labelFor("Sync Item Level", this.ilvlSyncCheckbox),]));
         this.ilvlSyncValue = new FieldBoundIntField(this.tempSettings, 'ilvlSync', {
             postValidators: [
                 nonNegative,
@@ -82,8 +82,8 @@ export class NewSheetFormFieldSet extends HTMLFieldSetElement {
                     if (ctx.newValue > MAX_ILVL) {
                         ctx.failValidation("Enter a valid item level (too high)");
                     }
-                }
-            ]
+                },
+            ],
         });
         this.ilvlSyncValue.style.display = 'none';
         this.ilvlSyncCheckbox.addListener(() => this.recheck());
@@ -158,7 +158,7 @@ export class SaveAsModal extends BaseModal {
             level: existingSheet.level,
             name: defaultName,
             ilvlSyncEnabled: existingSheet.ilvlSync !== undefined,
-            ilvlSyncLevel: existingSheet.ilvlSync
+            ilvlSyncLevel: existingSheet.ilvlSync,
         });
         form.appendChild(this.fieldSet);
         this.contentArea.replaceChildren(form);
@@ -197,9 +197,9 @@ export class SaveAsModal extends BaseModal {
 }
 
 function spacer() {
-    return quickElement('div', ['vertical-spacer'], []);
+    return quickElement('div', ['vertical-spacer',], []);
 }
 
 customElements.define("save-as-modal", SaveAsModal);
-customElements.define("new-sheet-form-fieldset", NewSheetFormFieldSet, {extends: "fieldset"});
-customElements.define("new-sheet-form", NewSheetForm, {extends: "form"});
+customElements.define("new-sheet-form-fieldset", NewSheetFormFieldSet, {extends: "fieldset",});
+customElements.define("new-sheet-form", NewSheetForm, {extends: "form",});

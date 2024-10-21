@@ -57,7 +57,8 @@ implements Simulation<ResultType, InternalSettingsType, ExternalCountSettings<In
             Object.assign(this.settings, settings.customSettings ?? settings);
             this.buffManager = BuffSettingsManager.fromSaved(settings.buffConfig);
             this.resultSettings = settings.resultSettings ?? defaultResultSettings();
-        } else {
+        }
+        else {
             this.buffManager = BuffSettingsManager.defaultForJob(job);
             this.resultSettings = defaultResultSettings();
         }
@@ -78,7 +79,7 @@ implements Simulation<ResultType, InternalSettingsType, ExternalCountSettings<In
             durationMap.set(duration, newValue);
         });
         // Total skills used over one cycle
-        const totals = [...this.skillsInBuffDuration(set, null)];
+        const totals = [...this.skillsInBuffDuration(set, null),];
         // The end state of this map is to be a map from a duration to the skills that can be used in that duration
         // but **not** the next shorter duration.
         // e.g. if 3 of skill X fit in 15 seconds, and two additional fit in 20 seconds, then it would be
@@ -88,7 +89,7 @@ implements Simulation<ResultType, InternalSettingsType, ExternalCountSettings<In
         const durationKeys: number[] = Array.from(durationMap.keys()).filter(dur => dur);
         // Skills used out of buffs. This is modified in place, so whatever the longest buff duration is, it will
         // subtract from this. e.g. if we have 10 total, and 3 fit in 30s buffs, then this leaves 7.
-        const outOfBuffs = [...totals];
+        const outOfBuffs = [...totals,];
         // Keep track of next largest window (starting with the totals), so that we can "carve out" the usages that
         // would fit into a smaller window.
         let previous = outOfBuffs;
@@ -118,9 +119,9 @@ implements Simulation<ResultType, InternalSettingsType, ExternalCountSettings<In
         resultBuckets.push({
             maxDuration: null,
             minDuration: durationKeys.length > 0 ? durationKeys[0] : null,
-            skills: [...outOfBuffs],
+            skills: [...outOfBuffs,],
             buffs: [],
-            buffEffects: noBuffEffects()
+            buffEffects: noBuffEffects(),
         });
         // One bucket per buff duration
         for (let i = 0; i < durationKeys.length; i++) {
@@ -132,7 +133,7 @@ implements Simulation<ResultType, InternalSettingsType, ExternalCountSettings<In
                 minDuration: minDuration,
                 skills: skillsDurationMap.get(duration),
                 buffs: buffs,
-                buffEffects: combineBuffEffects(buffs)
+                buffEffects: combineBuffEffects(buffs),
             });
         }
         // Sum damage
@@ -172,7 +173,7 @@ implements Simulation<ResultType, InternalSettingsType, ExternalCountSettings<In
             mainDpsResult: applyStdDev(dps, this.resultSettings.stdDevs ?? 0),
             totalDamage: totalDamage,
             unbuffedPps: pps,
-            buffBuckets: resultBuckets
+            buffBuckets: resultBuckets,
         } satisfies CountSimResult as unknown as ResultType;
     }
 
@@ -198,7 +199,7 @@ implements Simulation<ResultType, InternalSettingsType, ExternalCountSettings<In
         return {
             customSettings: this.settings,
             buffConfig: this.buffManager.exportSetting(),
-            resultSettings: this.resultSettings
+            resultSettings: this.resultSettings,
         };
     }
 }

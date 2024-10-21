@@ -8,11 +8,11 @@ export class SgeSimGui extends SimulationGui<SgeSheetSimResult, SgeSheetSettings
 
     makeConfigInterface(settings: SgeSheetSettings): HTMLElement {
         const div = document.createElement("div");
-        const brdCheck = new FieldBoundCheckBox<SgeSheetSettings>(settings, 'hasBard', {id: 'brd-checkbox'});
+        const brdCheck = new FieldBoundCheckBox<SgeSheetSettings>(settings, 'hasBard', {id: 'brd-checkbox',});
         div.appendChild(labeledCheckbox('BRD in Party', brdCheck));
-        const schCheck = new FieldBoundCheckBox<SgeSheetSettings>(settings, 'hasScholar', {id: 'sch-checkbox'});
+        const schCheck = new FieldBoundCheckBox<SgeSheetSettings>(settings, 'hasScholar', {id: 'sch-checkbox',});
         div.appendChild(labeledCheckbox('SCH in Party', schCheck));
-        const drgCheck = new FieldBoundCheckBox<SgeSheetSettings>(settings, 'hasDragoon', {id: 'drg-checkbox'});
+        const drgCheck = new FieldBoundCheckBox<SgeSheetSettings>(settings, 'hasDragoon', {id: 'drg-checkbox',});
         div.appendChild(labeledCheckbox('DRG in Party', drgCheck));
         return div;
     }

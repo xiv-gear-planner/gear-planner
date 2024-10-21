@@ -27,7 +27,8 @@ export function fl(input: number) {
     // so we can just return floor + 1;
     if (loss >= 0.99999995) {
         return floored + 1;
-    } else {
+    }
+    else {
         return floored;
     }
 }
@@ -35,9 +36,11 @@ export function fl(input: number) {
 export function trunc(input: number) {
     if (input > 0) {
         return fl(input);
-    } else if (input < 0) {
+    }
+    else if (input < 0) {
         return -fl(-input);
-    } else {
+    }
+    else {
         return 0;
     }
 }
@@ -275,13 +278,15 @@ export function baseDamageFull(stats: ComputedSetStats, potency: number, attackT
     const isAA = attackType === 'Auto-attack';
     if (isAA) {
         spdMulti = stats.sksDotMulti;
-    } else if (isDot) {
+    }
+    else if (isDot) {
         // SkS: "Affects both the casting and recast timers, as well as the damage over time potency for
         // weaponskills and auto-attacks. The higher the value, the shorter the timers/higher the potency."
         // SpS: "Affects both the casting and recast timers for spells. The higher the value, the shorter
         // the timers. Also affects a spell's damage over time or healing over time potency."
         spdMulti = (attackType === 'Weaponskill') ? stats.sksDotMulti : stats.spsDotMulti;
-    } else {
+    }
+    else {
         spdMulti = 1.0;
     }
     // Multiplier from main stat
@@ -325,7 +330,8 @@ export function baseDamageFull(stats: ComputedSetStats, potency: number, attackT
         // noinspection UnnecessaryLocalVariableJS
         const afterSpd = fl(afterTnc * spdMulti);
         stage1potency = afterSpd;
-    } else {
+    }
+    else {
         const basePotency = fl(potency * mainStatMulti);
         // Factor in determination and auto DH multiplier
         const afterDet = fl(basePotency * effectiveDetMulti);
@@ -349,7 +355,8 @@ export function baseDamageFull(stats: ComputedSetStats, potency: number, attackT
 
     if (finalDamage <= 1) {
         return fixedValue(1);
-    } else {
+    }
+    else {
         // +-5% damage variance, uniform distribution.
         // Full formula is sqrt((max - min)^2 / 12)
         // === sqrt((1.05d - 0.95d)^2 / 12)
@@ -359,7 +366,7 @@ export function baseDamageFull(stats: ComputedSetStats, potency: number, attackT
         const stdDev = Math.sqrt(0.01 / 12) * finalDamage;
         return {
             expected: finalDamage,
-            stdDev: stdDev
+            stdDev: stdDev,
         };
     }
 }
@@ -400,7 +407,8 @@ export function baseHealing(stats: ComputedSetStats, potency: number, attackType
 
     if (afterTrait <= 0) {
         return 1;
-    } else {
+    }
+    else {
         return afterTrait;
     }
 }

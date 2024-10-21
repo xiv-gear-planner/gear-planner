@@ -18,7 +18,7 @@ import { BaseMultiCycleSim } from "../processors/sim_processors";
 const BLU_BLEED_SPELLS = [
     "Nightbloom",
     "Song of Torment",
-    "Aetherial Spark"
+    "Aetherial Spark",
 ] as const as readonly string[];
 
 /**
@@ -43,7 +43,7 @@ const BLU_PHYSICAL_SPELLS = [
     "Wild Rage",
     "Deep Clean",
     "Ruby Dynamics",
-    "Winged Reprobation"
+    "Winged Reprobation",
 ] as const as readonly string[];
 
 /**
@@ -51,7 +51,7 @@ const BLU_PHYSICAL_SPELLS = [
  */
 const BLU_CHANNELED_ABILITIES = [
     "Phantom Flurry",
-    "Apokalypsis"
+    "Apokalypsis",
 ] as const as readonly string[];
 
 /**
@@ -63,7 +63,7 @@ const Boost: Buff = {
     duration: 30,
     selfOnly: true,
     effects: {
-        dmgIncrease: 0.5 // only applies to damage spells
+        dmgIncrease: 0.5, // only applies to damage spells
     },
     appliesTo: ability => ability.attackType === "Spell" && ability.potency !== null,
     beforeSnapshot<X extends Ability>(buffController: BuffController, ability: X): X {
@@ -72,7 +72,7 @@ const Boost: Buff = {
         buffController.removeSelf();
         return null;
     },
-    statusId: 1716
+    statusId: 1716,
 };
 
 const WaxingNocturne: Buff = {
@@ -80,19 +80,19 @@ const WaxingNocturne: Buff = {
     duration: 15,
     selfOnly: true,
     effects: {
-        dmgIncrease: 0.50
+        dmgIncrease: 0.50,
     },
-    statusId: 1718
+    statusId: 1718,
 };
 
 const MightyGuard: Buff = {
     name: "Mighty Guard",
     selfOnly: true,
-    descriptionExtras: ["Reduces damage taken and increases enmity generation"],
+    descriptionExtras: ["Reduces damage taken and increases enmity generation",],
     effects: { // also changes the effects of certain BLU spells
-        dmgIncrease: -0.4
+        dmgIncrease: -0.4,
     },
-    statusId: 1719
+    statusId: 1719,
 };
 
 
@@ -100,11 +100,11 @@ const WaningNocturne: Buff = {
     name: "Waning Nocturne",
     duration: 15,
     selfOnly: true,
-    descriptionExtras: ["Prevents the use of auto-attacks, weaponskills, spells, or abilities"],
+    descriptionExtras: ["Prevents the use of auto-attacks, weaponskills, spells, or abilities",],
     effects: {
-        dmgIncrease: -1 // can't use any actions during Waning
+        dmgIncrease: -1, // can't use any actions during Waning
     },
-    statusId: 1727
+    statusId: 1727,
 };
 
 const Harmonized: Buff = {
@@ -112,7 +112,7 @@ const Harmonized: Buff = {
     duration: 30,
     selfOnly: true,
     effects: {
-        dmgIncrease: 0.8 // only applies to physical damage spells
+        dmgIncrease: 0.8, // only applies to physical damage spells
     },
     appliesTo: ability => ability.attackType === "Spell" && BLU_PHYSICAL_SPELLS.includes(ability.name),
     beforeSnapshot<X extends Ability>(buffController: BuffController, ability: X): X {
@@ -121,52 +121,52 @@ const Harmonized: Buff = {
         buffController.removeSelf();
         return null;
     },
-    statusId: 2118
+    statusId: 2118,
 };
 
 const TankMimicry: Buff = {
     name: "Aetheric Mimicry: Tank",
-    descriptionExtras: ["Increases defense and augments certain blue magic spells"],
+    descriptionExtras: ["Increases defense and augments certain blue magic spells",],
     selfOnly: true,
     effects: {}, // changes the effects of certain BLU spells
-    statusId: 2124
+    statusId: 2124,
 };
 
 const DpsMimicry: Buff = {
     name: "Aetheric Mimicry: DPS",
     selfOnly: true,
-    descriptionExtras: ["Doubles Matra Magic potency"],
+    descriptionExtras: ["Doubles Matra Magic potency",],
     effects: { // also changes the effects of certain BLU spells
         dhitChanceIncrease: 0.20,
-        critChanceIncrease: 0.20
+        critChanceIncrease: 0.20,
     },
     beforeSnapshot<X extends Ability>(buffController: BuffController, ability: X): X {
         if (ability.name === "Matra Magic") {
             return {
                 ...ability,
-                potency: 800
+                potency: 800,
             };
         }
         return null;
     },
-    statusId: 2125
+    statusId: 2125,
 };
 
 const HealerMimicry: Buff = {
     name: "Aetheric Mimicry: Healer",
     selfOnly: true,
-    descriptionExtras: ["Increases healing and augments certain blue magic spells"],
+    descriptionExtras: ["Increases healing and augments certain blue magic spells",],
     effects: {}, // changes the effects of certain BLU spells
-    statusId: 2126
+    statusId: 2126,
 };
 
 const BrushWithDeath: Buff = {
     name: "Brush with Death",
     duration: 600,
     selfOnly: true,
-    descriptionExtras: ["Prevents using certain blue magic spells"],
+    descriptionExtras: ["Prevents using certain blue magic spells",],
     effects: {}, // prevents certain BLU spells from being used
-    statusId: 2127
+    statusId: 2127,
 };
 
 const SurpanakhaBuff: Buff = {
@@ -181,14 +181,14 @@ const SurpanakhaBuff: Buff = {
     },
     beforeSnapshot: removeSelf,
     appliesTo: ability => ability.name === "Surpanakha",
-    statusId: 2130
+    statusId: 2130,
 };
 
 const Tingling: Buff = {
     name: "Tingling",
     duration: 15,
     selfOnly: true,
-    descriptionExtras: ["Increases the potency of the next physical damage spell cast by 100 per hit"],
+    descriptionExtras: ["Increases the potency of the next physical damage spell cast by 100 per hit",],
     effects: {
         // increases base potency of physical damage spells by 100 per hit
     },
@@ -202,28 +202,28 @@ const Tingling: Buff = {
             // TODO: revisit if physical damage dot ability is added
             return {
                 ...ability,
-                potency: ability.potency + bonusPotency
+                potency: ability.potency + bonusPotency,
             };
         }
         return null;
     },
-    statusId: 2492
+    statusId: 2492,
 };
 
 const BasicInstinct: Buff = {
     name: "Basic Instinct",
     selfOnly: true,
-    descriptionExtras: ["Ignores the damage penalty inflicted by Mighty Guard"],
+    descriptionExtras: ["Ignores the damage penalty inflicted by Mighty Guard",],
     effects: {
-        dmgIncrease: 1.0
+        dmgIncrease: 1.0,
     },
-    statusId: 2498
+    statusId: 2498,
 };
 
 const WingedReprobationBuff = {
     name: "Winged Reprobation",
     selfOnly: true,
-    descriptionExtras: ["Resets Winged Reprobation's recast timer"],
+    descriptionExtras: ["Resets Winged Reprobation's recast timer",],
     effects: {
         // only applies to Winged Reprobation
         // resets cast time of Winged Reprobation at 0-2 stacks
@@ -231,14 +231,14 @@ const WingedReprobationBuff = {
     },
     beforeSnapshot: removeSelf,
     appliesTo: ability => ability.name === "Winged Reprobation",
-    statusId: 3640
+    statusId: 3640,
 } as const satisfies Buff;
 
 const WingedRedemption: Buff = {
     name: "Winged Redemption",
     duration: 10,
     selfOnly: true,
-    descriptionExtras: ["Increases the potency of Conviction Marcato"],
+    descriptionExtras: ["Increases the potency of Conviction Marcato",],
     effects: {
         // only applies to Conviction Marcato
     },
@@ -247,12 +247,12 @@ const WingedRedemption: Buff = {
             buffController.removeSelf();
             return {
                 ...ability,
-                potency: 440
+                potency: 440,
             };
         }
         return null;
     },
-    statusId: 3641
+    statusId: 3641,
 };
 
 /**
@@ -267,11 +267,11 @@ export const SongOfTorment: GcdAbility = {
     dot: {
         tickPotency: 50,
         duration: 30,
-        id: 1714 // same effect as Nightbloom and Aetherial Spark (overwrites)
+        id: 1714, // same effect as Nightbloom and Aetherial Spark (overwrites)
     },
     gcd: 2.5,
     cast: 2.0,
-    id: 11386
+    id: 11386,
 };
 
 export const Bristle: GcdAbility = {
@@ -279,10 +279,10 @@ export const Bristle: GcdAbility = {
     type: "gcd",
     attackType: "Spell",
     potency: null,
-    activatesBuffs: [Boost],
+    activatesBuffs: [Boost,],
     gcd: 2.5,
     cast: 1.0,
-    id: 11393
+    id: 11393,
 };
 
 export const FinalSting: GcdAbility = {
@@ -290,10 +290,10 @@ export const FinalSting: GcdAbility = {
     type: "gcd",
     attackType: "Spell",
     potency: 2000,
-    activatesBuffs: [BrushWithDeath],
+    activatesBuffs: [BrushWithDeath,],
     gcd: 2.5,
     cast: 2.0,
-    id: 11407
+    id: 11407,
 };
 
 export const OffGuard: OgcdAbility = {
@@ -301,13 +301,13 @@ export const OffGuard: OgcdAbility = {
     type: "ogcd",
     attackType: "Spell",
     potency: null,
-    activatesBuffs: [OffGuardBuff],
+    activatesBuffs: [OffGuardBuff,],
     cast: 1.0, // casted ogcd
     cooldown: {
         time: 60,
-        reducedBy: "spellspeed"
+        reducedBy: "spellspeed",
     },
-    id: 11411
+    id: 11411,
 };
 
 export const MoonFlute: GcdAbility = {
@@ -315,10 +315,10 @@ export const MoonFlute: GcdAbility = {
     type: "gcd",
     attackType: "Spell",
     potency: null,
-    activatesBuffs: [WaxingNocturne],
+    activatesBuffs: [WaxingNocturne,],
     gcd: 2.5,
     cast: 2.0,
-    id: 11415
+    id: 11415,
 };
 
 export const FeatherRain: OgcdAbility = {
@@ -329,13 +329,13 @@ export const FeatherRain: OgcdAbility = {
     dot: {
         tickPotency: 40,
         duration: 6,
-        id: 1723
+        id: 1723,
     },
     animationLock: 0.6,
     cooldown: {
-        time: 30
+        time: 30,
     },
-    id: 11426
+    id: 11426,
 };
 
 export const ShockStrike: OgcdAbility = {
@@ -345,9 +345,9 @@ export const ShockStrike: OgcdAbility = {
     potency: 400,
     animationLock: 0.6,
     cooldown: {
-        time: 60
+        time: 60,
     },
-    id: 11429
+    id: 11429,
 };
 
 export const GlassDance: OgcdAbility = {
@@ -357,9 +357,9 @@ export const GlassDance: OgcdAbility = {
     potency: 350,
     animationLock: 0.6,
     cooldown: {
-        time: 90
+        time: 90,
     },
-    id: 11430
+    id: 11430,
 };
 
 export const SonicBoom: GcdAbility = {
@@ -369,7 +369,7 @@ export const SonicBoom: GcdAbility = {
     potency: 210,
     gcd: 2.5,
     cast: 1.0,
-    id: 18308
+    id: 18308,
 };
 
 export const Whistle: GcdAbility = {
@@ -377,10 +377,10 @@ export const Whistle: GcdAbility = {
     type: "gcd",
     attackType: "Spell",
     potency: null,
-    activatesBuffs: [Harmonized],
+    activatesBuffs: [Harmonized,],
     gcd: 2.5,
     cast: 1.0,
-    id: 18309
+    id: 18309,
 };
 
 export const Surpanakha: OgcdAbility = {
@@ -388,13 +388,13 @@ export const Surpanakha: OgcdAbility = {
     type: "ogcd",
     attackType: "Ability",
     potency: 200,
-    activatesBuffs: [SurpanakhaBuff],
+    activatesBuffs: [SurpanakhaBuff,],
     animationLock: 0.6,
     cooldown: {
         time: 30,
-        charges: 4
+        charges: 4,
     },
-    id: 18323
+    id: 18323,
 };
 
 export const Quasar: OgcdAbility = {
@@ -404,9 +404,9 @@ export const Quasar: OgcdAbility = {
     potency: 300,
     animationLock: 0.6,
     cooldown: {
-        time: 60 // shared with J Kick
+        time: 60, // shared with J Kick
     },
-    id: 18324
+    id: 18324,
 };
 
 export const JKick: OgcdAbility = {
@@ -416,9 +416,9 @@ export const JKick: OgcdAbility = {
     potency: 300,
     animationLock: 0.9,
     cooldown: {
-        time: 60 // shared with Quasar
+        time: 60, // shared with Quasar
     },
-    id: 18325
+    id: 18325,
 };
 
 export const TripleTrident: GcdAbility = {
@@ -430,9 +430,9 @@ export const TripleTrident: GcdAbility = {
     cast: 2.0,
     cooldown: {
         time: 90,
-        reducedBy: "spellspeed"
+        reducedBy: "spellspeed",
     },
-    id: 23264
+    id: 23264,
 };
 
 export const Tingle: GcdAbility = {
@@ -440,10 +440,10 @@ export const Tingle: GcdAbility = {
     type: "gcd",
     attackType: "Spell",
     potency: 100,
-    activatesBuffs: [Tingling],
+    activatesBuffs: [Tingling,],
     gcd: 2.5,
     cast: 2.0,
-    id: 23265
+    id: 23265,
 };
 
 export const FeculentFlood: GcdAbility = {
@@ -453,7 +453,7 @@ export const FeculentFlood: GcdAbility = {
     potency: 220,
     gcd: 2.5,
     cast: 2.0,
-    id: 23271
+    id: 23271,
 };
 
 export const RoseOfDestruction: GcdAbility = {
@@ -465,9 +465,9 @@ export const RoseOfDestruction: GcdAbility = {
     cast: 2.0,
     cooldown: {
         time: 30,
-        reducedBy: "spellspeed"
+        reducedBy: "spellspeed",
     },
-    id: 23275
+    id: 23275,
 };
 
 export const MatraMagic: GcdAbility = {
@@ -479,9 +479,9 @@ export const MatraMagic: GcdAbility = {
     cast: 2.0,
     cooldown: {
         time: 120,
-        reducedBy: "spellspeed"
+        reducedBy: "spellspeed",
     },
-    id: 23285
+    id: 23285,
 };
 
 export const PhantomFlurry: OgcdAbility = {
@@ -492,13 +492,13 @@ export const PhantomFlurry: OgcdAbility = {
     dot: {
         tickPotency: 200,
         duration: 18, // TODO: ticks once on use, and 1 tick per second afterwards for 6 total ticks over 5s
-        id: 2502
+        id: 2502,
     },
     animationLock: 0, // TODO: 5s channeled attack, prevents autos for duration
     cooldown: {
-        time: 120
+        time: 120,
     },
-    id: 23288
+    id: 23288,
 };
 
 export const Nightbloom: OgcdAbility = {
@@ -509,13 +509,13 @@ export const Nightbloom: OgcdAbility = {
     dot: {
         tickPotency: 75,
         duration: 60,
-        id: 1714 // same effect as Song of Torment and Aetherial Spark (overwrites)
+        id: 1714, // same effect as Song of Torment and Aetherial Spark (overwrites)
     },
     animationLock: 0.6,
     cooldown: {
-        time: 120
+        time: 120,
     },
-    id: 23290
+    id: 23290,
 };
 
 export const BreathofMagic: GcdAbility = {
@@ -526,11 +526,11 @@ export const BreathofMagic: GcdAbility = {
     dot: {
         tickPotency: 120,
         duration: 60,
-        id: 3712
+        id: 3712,
     },
     gcd: 2.5,
     cast: 2.0,
-    id: 34567
+    id: 34567,
 };
 
 export const ConvictionMarcato: GcdAbility = {
@@ -540,7 +540,7 @@ export const ConvictionMarcato: GcdAbility = {
     potency: 220, // 440 under Winged Redemption
     gcd: 2.5,
     cast: 2.0,
-    id: 34574
+    id: 34574,
 };
 
 export const WingedReprobation: GcdAbility = {
@@ -548,14 +548,14 @@ export const WingedReprobation: GcdAbility = {
     type: "gcd",
     attackType: "Spell",
     potency: 300, // 400 with 3 stacks of Winged Reprobation
-    activatesBuffs: [WingedReprobationBuff],
+    activatesBuffs: [WingedReprobationBuff,],
     gcd: 2.5,
     cast: 1.0,
     cooldown: {
         time: 90, // 90s cooldown after 3rd "stack" is consumed
-        reducedBy: "spellspeed"
+        reducedBy: "spellspeed",
     },
-    id: 34576
+    id: 34576,
 };
 
 export const MortalFlame: GcdAbility = {
@@ -566,11 +566,11 @@ export const MortalFlame: GcdAbility = {
     dot: {
         tickPotency: 40,
         duration: 'indefinite', // infinite duration
-        id: 3643
+        id: 3643,
     },
     gcd: 2.5,
     cast: 2.0,
-    id: 34579
+    id: 34579,
 };
 
 export const SeaShanty: OgcdAbility = {
@@ -580,9 +580,9 @@ export const SeaShanty: OgcdAbility = {
     potency: 500, // TODO: 1000 if weather is Rain, Showers, or Thunderstorms
     animationLock: 0.6,
     cooldown: {
-        time: 120
+        time: 120,
     },
-    id: 34580
+    id: 34580,
 };
 
 export const Apokalypsis: OgcdAbility = {
@@ -593,13 +593,13 @@ export const Apokalypsis: OgcdAbility = {
     dot: {
         tickPotency: 140,
         duration: 33, // TODO: ticks once on use, and 1 tick per second afterwards for 11 total ticks over 10s
-        id: 3644
+        id: 3644,
     },
     animationLock: 0, // TODO: 10s channeled attack, prevents autos for duration
     cooldown: {
-        time: 120 // shared with Being Mortal
+        time: 120, // shared with Being Mortal
     },
-    id: 34581
+    id: 34581,
 };
 
 export const BeingMortal: OgcdAbility = {
@@ -609,9 +609,9 @@ export const BeingMortal: OgcdAbility = {
     potency: 800,
     animationLock: 0.6,
     cooldown: {
-        time: 120 // shared with Apokalypsis
+        time: 120, // shared with Apokalypsis
     },
-    id: 34582
+    id: 34582,
 };
 
 /**
@@ -753,15 +753,15 @@ export class BLUCycleProcessor extends CycleProcessor {
             case 1: {
                 const buff: Buff = {
                     ...WingedReprobationBuff,
-                    stacks: newStackCount
+                    stacks: newStackCount,
                 };
                 const modified: Ability = {
                     ...WingedReprobation,
-                    activatesBuffs: [buff],
+                    activatesBuffs: [buff,],
                     cooldown: {
                         ...WingedReprobation.cooldown,
-                        time: 0
-                    }
+                        time: 0,
+                    },
                 };
                 out = super.use(modified);
                 break;
@@ -769,16 +769,16 @@ export class BLUCycleProcessor extends CycleProcessor {
             case 2: {
                 const buff: Buff = {
                     ...WingedReprobationBuff,
-                    descriptionExtras: ["Increases the potency of Winged Reprobation"],
-                    stacks: newStackCount
+                    descriptionExtras: ["Increases the potency of Winged Reprobation",],
+                    stacks: newStackCount,
                 };
                 const modified: Ability = {
                     ...WingedReprobation,
-                    activatesBuffs: [buff],
+                    activatesBuffs: [buff,],
                     cooldown: {
                         ...WingedReprobation.cooldown,
-                        time: 0
-                    }
+                        time: 0,
+                    },
                 };
                 out = super.use(modified);
                 break;
@@ -787,7 +787,7 @@ export class BLUCycleProcessor extends CycleProcessor {
                 const modified: Ability = {
                     ...WingedReprobation,
                     potency: 400,
-                    activatesBuffs: [WingedRedemption]
+                    activatesBuffs: [WingedRedemption,],
                 };
                 out = super.use(modified);
                 break;
@@ -804,15 +804,15 @@ export class BLUCycleProcessor extends CycleProcessor {
             const buff: Buff = {
                 ...SurpanakhaBuff,
                 effects: {
-                    dmgIncrease: multiplier
+                    dmgIncrease: multiplier,
                 },
-                stacks: newStackCount
+                stacks: newStackCount,
             };
             const modified: Ability = {
                 ...Surpanakha,
-                activatesBuffs: [buff],
+                activatesBuffs: [buff,],
                 // animation lock becomes internal cooldown for back-to-back uses
-                animationLock: this.surpanakhaCounter < 3 ? 1.0 : 0.6
+                animationLock: this.surpanakhaCounter < 3 ? 1.0 : 0.6,
             };
             const out = super.use(modified);
             this.surpanakhaCounter++;
@@ -853,7 +853,7 @@ export abstract class BluSim<_BluCycleSimResult, _BluSimSettings>
         return {
             dpsMimicryEnabled: true,
             mightyGuardEnabled: false,
-            basicInstinctEnabled: false
+            basicInstinctEnabled: false,
         };
     }
 
@@ -877,8 +877,8 @@ export abstract class BluSim<_BluCycleSimResult, _BluSimSettings>
                 ...MightyGuard,
                 effects: {
                     ...MightyGuard.effects,
-                    dmgIncrease: this.settings.basicInstinctEnabled ? 0 : -0.4
-                }
+                    dmgIncrease: this.settings.basicInstinctEnabled ? 0 : -0.4,
+                },
             };
             cp.activateBuff(buff);
             cp.spellBook.set(MightyGuard.name, 1);

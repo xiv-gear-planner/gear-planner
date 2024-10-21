@@ -29,8 +29,8 @@ export const vprSheetSpec: SimSpec<VprSheetSim, VprSimSettingsExternal> = {
     loadSavedSimInstance: function (exported: VprSimSettingsExternal) {
         return new VprSheetSim(exported);
     },
-    supportedJobs: ['VPR'],
-    isDefaultSim: true
+    supportedJobs: ['VPR',],
+    isDefaultSim: true,
 };
 
 class RotationState {
@@ -77,12 +77,12 @@ export class VprCycleProcessor extends CycleProcessor {
 
         // Add gauge data to this record for the UI
         const extraData: VprExtraData = {
-            gauge: this.gauge.getGaugeState()
+            gauge: this.gauge.getGaugeState(),
         };
 
         const modified: PreDmgAbilityUseRecordUnf = {
             ...usedAbility,
-            extraData
+            extraData,
         };
 
         super.addAbilityUse(modified);
@@ -186,14 +186,15 @@ export class VprCycleProcessor extends CycleProcessor {
         if (this.getActiveBuffData(HuntersInstinct)?.end < this.getActiveBuffData(Swiftscaled)?.end) {
             this.useHuntersCoil();
             this.useSwiftskinsCoil();
-        } else {
+        }
+        else {
             this.useSwiftskinsCoil();
             this.useHuntersCoil();
         }
     }
 
-    firstComboGcds: VprGcdAbility[] = [Actions.ReavingFangs, Actions.SteelFangs];
-    secondComboGcds: VprGcdAbility[] = [Actions.SwiftskinsSting, Actions.HuntersSting];
+    firstComboGcds: VprGcdAbility[] = [Actions.ReavingFangs, Actions.SteelFangs,];
+    secondComboGcds: VprGcdAbility[] = [Actions.SwiftskinsSting, Actions.HuntersSting,];
     public useDualWieldCombo() {
         switch (this.rotationState.comboStep) {
         case 0:
@@ -206,17 +207,22 @@ export class VprCycleProcessor extends CycleProcessor {
             /** Use finisher based on buff */
             if (this.getBuffIfActive(HindsbaneVenom)) {
                 this.useGcd(Actions.HindsbaneFang);
-            } else if (this.getBuffIfActive(HindstungVenom)) {
+            }
+            else if (this.getBuffIfActive(HindstungVenom)) {
                 this.useGcd(Actions.HindstingStrike);
-            } else if (this.getBuffIfActive(FlanksbaneVenom)) {
+            }
+            else if (this.getBuffIfActive(FlanksbaneVenom)) {
                 this.useGcd(Actions.FlanksbaneFang);
-            } else if (this.getBuffIfActive(FlankstungVenom)) {
+            }
+            else if (this.getBuffIfActive(FlankstungVenom)) {
                 this.useGcd(Actions.FlankstingStrike);
-            } else { // No buff running; Pick arbitrarily based on previous 2nd combo
+            }
+            else { // No buff running; Pick arbitrarily based on previous 2nd combo
                 /** If we just used Hunter's sting */
                 if (this.rotationState.nextSecondStep === 0) {
                     this.useGcd(Actions.HindsbaneFang); // Chosen arbitrarily from the flank options
-                } else if (this.rotationState.nextSecondStep === 1) { // If we just used Swiftskin's sting
+                }
+                else if (this.rotationState.nextSecondStep === 1) { // If we just used Swiftskin's sting
                     this.useGcd(Actions.FlanksbaneFang); // Chosen arbitrarily from the hind options
                 }
             }
@@ -276,7 +282,7 @@ export class VprCycleProcessor extends CycleProcessor {
         this.useDualWieldCombo(); // Will be Swifstkin's Sting because it is first to be used
         this.useGcd(Actions.Vicewinder);
 
-        this.advanceForLateWeave([potionMaxDex]);
+        this.advanceForLateWeave([potionMaxDex,]);
         this.useOgcd(potionMaxDex);
 
         this.useHuntersCoil();
@@ -378,12 +384,13 @@ export class VprCycleProcessor extends CycleProcessor {
             this.useOgcd(Actions.SerpentsIre);
             if (this.gauge.serpentOfferings === 100 && this.gauge.rattlingCoils > 0 && this.rotationState.comboStep === 2) {
                 this.useUncoiledFury();
-            } else {
+            }
+            else {
                 this.useDualWieldCombo();
             }
 
             if (this.canUseWithoutClipping(potionMaxDex)) {
-                this.advanceForLateWeave([potionMaxDex]);
+                this.advanceForLateWeave([potionMaxDex,]);
                 this.useOgcd(potionMaxDex);
             }
 
@@ -396,7 +403,8 @@ export class VprCycleProcessor extends CycleProcessor {
 
             if (this.gauge.serpentOfferings === 100 && this.gauge.rattlingCoils > 0 && this.rotationState.comboStep === 2) {
                 this.useUncoiledFury();
-            } else {
+            }
+            else {
                 this.useDualWieldCombo();
             }
 
@@ -411,7 +419,8 @@ export class VprCycleProcessor extends CycleProcessor {
                 this.useUncoiledFury();
                 this.useDreadWinderCombo();
                 return;
-            } else {
+            }
+            else {
                 this.useDreadWinderCombo();
                 return;
             }
@@ -460,7 +469,7 @@ export class VprSheetSim extends BaseMultiCycleSim<VprSimResult, VprSimSettings>
     protected createCycleProcessor(settings: MultiCycleSettings): VprCycleProcessor {
         return new VprCycleProcessor({
             ...settings,
-            hideCycleDividers: true
+            hideCycleDividers: true,
         });
     }
     getRotationsToSimulate(): Rotation<VprCycleProcessor>[] {
@@ -472,7 +481,7 @@ export class VprSheetSim extends BaseMultiCycleSim<VprSimResult, VprSimSettings>
                 while (cp.remainingTime > 0) {
                     cp.rotationStep();
                 }
-            }
-        }];
+            },
+        },];
     }
 }

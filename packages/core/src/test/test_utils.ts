@@ -35,14 +35,15 @@ export function makeFakeSet(stats: ComputedSetStats): CharacterGearSet {
             // did not equip a weapon.
             if (slot === 'Weapon') {
                 return {
-                    foo: 'bar'
+                    foo: 'bar',
                 } as unknown as GearItem;
-            } else {
+            }
+            else {
                 return null;
             }
         },
         isStatRelevant(stat: RawStatKey): boolean {
-            return ['piety', 'crit', 'dhit', 'spellspeed', 'determination'].includes(stat);
-        }
+            return ['piety', 'crit', 'dhit', 'spellspeed', 'determination',].includes(stat);
+        },
     } as CharacterGearSet;
 }

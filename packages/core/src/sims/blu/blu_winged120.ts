@@ -16,7 +16,7 @@ export interface BluWinged120SettingsExternal extends ExternalCycleSettings<BluW
 export const BluWinged120Spec: SimSpec<BluWinged120Sim, BluWinged120SettingsExternal> = {
     displayName: "BLU Winged 120s",
     stub: "blu-winged120",
-    supportedJobs: ["BLU"],
+    supportedJobs: ["BLU",],
     isDefaultSim: true,
     description: "Simulates a BLU Winged Reprobation rotation with Moon Flute windows every 120s.",
 
@@ -26,7 +26,7 @@ export const BluWinged120Spec: SimSpec<BluWinged120Sim, BluWinged120SettingsExte
 
     loadSavedSimInstance(exported: BluWinged120SettingsExternal) {
         return new BluWinged120Sim(exported);
-    }
+    },
 };
 
 export class BluWinged120Sim extends blu.BluSim<BluWinged120SimResult, BluWinged120Settings> {
@@ -141,14 +141,16 @@ export class BluWinged120Sim extends blu.BluSim<BluWinged120SimResult, BluWinged
                     cycle.use(blu.WingedReprobation);
                     if (cycle.cycleNumber === 0) {
                         cycle.use(blu.FeatherRain);
-                    } else {
+                    }
+                    else {
                         sim.useOgcdFiller(cp);
                     }
                     cycle.use(blu.SeaShanty);
                     cycle.use(blu.WingedReprobation);
                     if (cycle.cycleNumber === 0) {
                         cycle.use(blu.ShockStrike);
-                    } else {
+                    }
+                    else {
                         sim.useOgcdFiller(cp);
                     }
                     cycle.use(blu.BeingMortal);
@@ -177,28 +179,32 @@ export class BluWinged120Sim extends blu.BluSim<BluWinged120SimResult, BluWinged
                         cycle.use(blu.Tingle);
                         if (cp.isReady(blu.RoseOfDestruction)) {
                             cycle.use(blu.RoseOfDestruction);
-                        } else {
+                        }
+                        else {
                             cycle.use(blu.FeculentFlood);
                         }
                         cycle.use(blu.MoonFlute);
                         sim.useOgcdFiller(cp);
                         cycle.use(blu.TripleTrident);
-                    } else {
+                    }
+                    else {
                         // otherwise, finish off the fight with a Final Sting combo
                         if (cp.isReady(blu.RoseOfDestruction)) {
                             cycle.use(blu.RoseOfDestruction);
-                        } else {
+                        }
+                        else {
                             if (cp.isReady(blu.WingedReprobation)) {
                                 cycle.use(blu.WingedReprobation);
                                 sim.useOgcdFiller(cp);
-                            } else {
+                            }
+                            else {
                                 cycle.use(blu.FeculentFlood);
                             }
                         }
                         sim.useStingCombo(cp);
                     }
                 });
-            }
-        }];
+            },
+        },];
     }
 }

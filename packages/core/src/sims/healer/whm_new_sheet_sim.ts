@@ -30,7 +30,7 @@ const filler: WhmGcdAbility = {
     potency: 330,
     attackType: "Spell",
     gcd: 2.5,
-    cast: 1.5
+    cast: 1.5,
 };
 
 const dia: WhmGcdAbility = {
@@ -41,10 +41,10 @@ const dia: WhmGcdAbility = {
     dot: {
         id: 1871,
         tickPotency: 75,
-        duration: 30
+        duration: 30,
     },
     attackType: "Spell",
-    gcd: 2.5
+    gcd: 2.5,
 };
 
 const assize: WhmOgcdAbility = {
@@ -54,8 +54,8 @@ const assize: WhmOgcdAbility = {
     potency: 400,
     attackType: "Ability",
     cooldown: {
-        time: 40
-    }
+        time: 40,
+    },
 };
 
 export const SacredSight: PersonalBuff = {
@@ -72,9 +72,9 @@ export const SacredSight: PersonalBuff = {
     beforeSnapshot<X extends Ability>(buffController: BuffController, ability: X): X {
         buffController.subtractStacksSelf(1);
         return {
-            ...ability
+            ...ability,
         };
-    }
+    },
 };
 
 const pom: WhmOgcdAbility = {
@@ -88,16 +88,16 @@ const pom: WhmOgcdAbility = {
             selfOnly: true,
             duration: 15,
             effects: {
-                haste: 20
+                haste: 20,
             },
-            statusId: 157
+            statusId: 157,
         },
-        SacredSight
+        SacredSight,
     ],
     attackType: "Ability",
     cooldown: {
-        time: 120
-    }
+        time: 120,
+    },
 };
 
 const lily: WhmGcdAbility = {
@@ -110,7 +110,7 @@ const lily: WhmGcdAbility = {
     updateGauge: (gauge: WhmGauge) => {
         gauge.blueLilies -= 1;
         gauge.redLilies += 1;
-    }
+    },
 };
 
 const misery: WhmGcdAbility = {
@@ -120,7 +120,7 @@ const misery: WhmGcdAbility = {
     potency: 1320,
     attackType: "Spell",
     gcd: 2.5,
-    updateGauge: gauge => gauge.redLilies -= 3
+    updateGauge: gauge => gauge.redLilies -= 3,
 };
 
 const glare4: WhmGcdAbility = {
@@ -129,7 +129,7 @@ const glare4: WhmGcdAbility = {
     name: "Glare IV",
     potency: 640,
     attackType: "Spell",
-    gcd: 2.5
+    gcd: 2.5,
 };
 
 class WhmGauge {
@@ -160,7 +160,7 @@ class WhmGauge {
         return {
             level: 100,
             blueLilies: this.blueLilies,
-            redLilies: this.redLilies
+            redLilies: this.redLilies,
         };
     }
 }
@@ -185,8 +185,8 @@ export const whmNewSheetSpec: SimSpec<WhmSim, WhmSettingsExternal> = {
         return new WhmSim();
     },
     stub: "whm-new-sheet-sim",
-    supportedJobs: ['WHM'],
-    isDefaultSim: true
+    supportedJobs: ['WHM',],
+    isDefaultSim: true,
 };
 
 class WhmCycleProcessor extends CycleProcessor {
@@ -204,12 +204,12 @@ class WhmCycleProcessor extends CycleProcessor {
     override addAbilityUse(usedAbility: PreDmgAbilityUseRecordUnf) {
         // Add gauge data to this record for the UI
         const extraData: WhmExtraData = {
-            gauge: this.gauge.getGaugeState()
+            gauge: this.gauge.getGaugeState(),
         };
 
         const modified: PreDmgAbilityUseRecordUnf = {
             ...usedAbility,
-            extraData
+            extraData,
         };
 
         super.addAbilityUse(modified);
@@ -233,12 +233,15 @@ class WhmCycleProcessor extends CycleProcessor {
         if (this.nextGcdTime >= this.nextDiaTime && this.remainingTime > 15) {
             this.nextDiaTime = this.nextGcdTime + 28.8;
             this.useGcd(dia);
-        } else if (this.gauge.redLilies === 3){
+        }
+        else if (this.gauge.redLilies === 3){
             this.useGcd(misery);
-        } else if (this.sacredSight > 0) {
+        }
+        else if (this.sacredSight > 0) {
             this.useGcd(glare4);
             this.sacredSight -= 1;
-        } else {
+        }
+        else {
             this.useGcd(filler);
         }
     }
@@ -247,15 +250,18 @@ class WhmCycleProcessor extends CycleProcessor {
         if (this.nextGcdTime >= this.nextDiaTime && this.remainingTime > 15) {
             this.nextDiaTime = this.nextGcdTime + 28.8;
             this.useGcd(dia);
-        } else if ((this.gauge.redLilies === 3 && this.nextMiseryTime % 120 === 0) //use odd minute misery ASAP
+        }
+        else if ((this.gauge.redLilies === 3 && this.nextMiseryTime % 120 === 0) //use odd minute misery ASAP
             || (this.gauge.redLilies === 3 && this.remainingTime < 5)) { //or use misery if the fight will end now
             this.useGcd(misery);
-        } else if (this.gauge.redLilies < 3 && this.gauge.blueLilies > 0 && this.totalTime > this.nextMiseryTime + 7) {
+        }
+        else if (this.gauge.redLilies < 3 && this.gauge.blueLilies > 0 && this.totalTime > this.nextMiseryTime + 7) {
             this.useGcd(lily);
             if (this.gauge.redLilies === 3) {
                 this.nextMiseryTime += 60;
             }
-        } else {
+        }
+        else {
             this.useGcd(filler);
         }
     }
@@ -291,7 +297,7 @@ export class WhmSim extends BaseMultiCycleSim<WhmSimResult, WhmSettings, WhmCycl
     protected createCycleProcessor(settings: MultiCycleSettings): WhmCycleProcessor {
         return new WhmCycleProcessor({
             ...settings,
-            hideCycleDividers: true
+            hideCycleDividers: true,
         });
     }
 
@@ -327,7 +333,7 @@ export class WhmSim extends BaseMultiCycleSim<WhmSimResult, WhmSettings, WhmCycl
                         }
                     }
                 });
-            }
+            },
         },
         ...rangeInc(10, 28, 2).map(i => ({
             name: `Redot at ${i}s`,
@@ -362,7 +368,7 @@ export class WhmSim extends BaseMultiCycleSim<WhmSimResult, WhmSettings, WhmCycl
                         }
                     }
                 });
-            }
+            },
         })),
         ...rangeInc(2, 16, 2).map(i => ({
             name: `Delay dot to ${i}s`,
@@ -396,8 +402,8 @@ export class WhmSim extends BaseMultiCycleSim<WhmSimResult, WhmSettings, WhmCycl
                         }
                     }
                 });
-            }
-        }))
+            },
+        })),
         ];
     }
 }

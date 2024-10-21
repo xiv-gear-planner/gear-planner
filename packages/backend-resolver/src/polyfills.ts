@@ -2,14 +2,14 @@
 import {NodeFetchCache} from 'node-fetch-cache';
 
 const cachedFetch = NodeFetchCache.create({
-    shouldCacheResponse: (response: Response) => response.ok
+    shouldCacheResponse: (response: Response) => response.ok,
 });
 global.fetch = (input: Request | string | URL, init: RequestInit) => {
     return cachedFetch((input instanceof URL) ? input.toString() : input, init);
 };
 
 export const nonCachedFetch = NodeFetchCache.create({
-    shouldCacheResponse: () => false
+    shouldCacheResponse: () => false,
 });
 
 // Hack for JSDom not having ResizeObserver

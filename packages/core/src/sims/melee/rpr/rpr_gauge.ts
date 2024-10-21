@@ -34,7 +34,7 @@ export class RprGauge {
         return {
             level: 100,
             soul: this.soulGauge,
-            shroud: this.shroudGauge
+            shroud: this.shroudGauge,
         };
     }
 }

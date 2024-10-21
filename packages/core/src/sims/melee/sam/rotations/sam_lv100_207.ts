@@ -352,7 +352,7 @@ export const Opener: SamAbility[] = [
     Actions.Yukikaze,
     Actions.HissatsuShinten,
     Actions.MidareSetsugekka,
-    Actions.KaeshiSetsugekka
+    Actions.KaeshiSetsugekka,
 ];
 
 export const Loop: SamAbility[] = [];

@@ -16,7 +16,7 @@ export interface BluWinged60SettingsExternal extends ExternalCycleSettings<BluWi
 export const BluWinged60Spec: SimSpec<BluWinged60Sim, BluWinged60SettingsExternal> = {
     displayName: "BLU Winged 60s",
     stub: "blu-winged60",
-    supportedJobs: ["BLU"],
+    supportedJobs: ["BLU",],
     isDefaultSim: false,
     description: "Simulates a BLU Winged Reprobation rotation with Moon Flute windows every 60s.",
 
@@ -26,7 +26,7 @@ export const BluWinged60Spec: SimSpec<BluWinged60Sim, BluWinged60SettingsExterna
 
     loadSavedSimInstance(exported: BluWinged60SettingsExternal) {
         return new BluWinged60Sim(exported);
-    }
+    },
 };
 
 export class BluWinged60Sim extends blu.BluSim<BluWinged60SimResult, BluWinged60Settings> {
@@ -141,7 +141,8 @@ export class BluWinged60Sim extends blu.BluSim<BluWinged60SimResult, BluWinged60
                     cycle.use(blu.MatraMagic);
                     if (cycle.cycleNumber === 0) {
                         cycle.use(blu.FeatherRain);
-                    } else {
+                    }
+                    else {
                         sim.useOgcdFiller(cp);
                     }
                     cycle.use(blu.Surpanakha);
@@ -189,12 +190,13 @@ export class BluWinged60Sim extends blu.BluSim<BluWinged60SimResult, BluWinged60
                         cycle.use(blu.Whistle);
                         cycle.use(blu.Tingle);
                         cycle.use(blu.MoonFlute);
-                    } else {
+                    }
+                    else {
                         // otherwise, finish off the fight with a Final Sting combo
                         sim.useStingCombo(cp);
                     }
                 });
-            }
-        }];
+            },
+        },];
     }
 }

@@ -45,7 +45,8 @@ class DisplaySettingsImpl {
         const lightModeClass = 'light-mode';
         if (lightMode) {
             body.classList.add(lightModeClass);
-        } else {
+        }
+        else {
             body.classList.remove(lightModeClass);
         }
         setTimeout(() => {
@@ -61,7 +62,8 @@ class DisplaySettingsImpl {
         const modernTheme = this._modernTheme;
         if (modernTheme) {
             body.classList.add('modern');
-        } else {
+        }
+        else {
             body.classList.remove('modern');
         }
         setTimeout(() => {

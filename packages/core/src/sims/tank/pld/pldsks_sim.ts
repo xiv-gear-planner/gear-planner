@@ -32,7 +32,7 @@ const ActionRecordGCD: Record<PldEnum_GCD, GcdAbility> = {
     "Conf": Actions.Confiteor,
     "Faith": Actions.BladeOfFaith,
     "Truth": Actions.BladeOfTruth,
-    "Valor": Actions.BladeOfValor
+    "Valor": Actions.BladeOfValor,
 };
 
 const ActionRecordOgcd: Record<PldEnum_oGCD, OgcdAbility> = {
@@ -41,7 +41,7 @@ const ActionRecordOgcd: Record<PldEnum_oGCD, OgcdAbility> = {
     "Imp": Actions.Imperator,
     "Honor": Actions.BladeOfHonor,
     "Int": Actions.Intervene,
-    "FOF": Actions.FightOrFlight
+    "FOF": Actions.FightOrFlight,
 };
 
 class PaladinStateSystem {
@@ -58,32 +58,39 @@ class PaladinStateSystem {
     performAction(GCDused: GcdAbility) {
         if (GCDused === ActionRecordGCD["Fast"]) {
             this.comboState = 2;
-        } else if (GCDused === ActionRecordGCD["Riot"]) {
+        }
+        else if (GCDused === ActionRecordGCD["Riot"]) {
             if (this.comboState === 2)
                 this.comboState = 3;
             else
                 this.comboState = 0;
-        } else if (GCDused === ActionRecordGCD["Royal"]) {
+        }
+        else if (GCDused === ActionRecordGCD["Royal"]) {
             if (this.comboState === 3) {
                 this.comboState = 1;
                 this.divineMight = true;
                 this.swordOath = this.swordOath | this.A1Ready;
-            } else
+            }
+            else
                 this.comboState = 0;
-        } else if (GCDused === ActionRecordGCD["HS"]) {
+        }
+        else if (GCDused === ActionRecordGCD["HS"]) {
             // Consume Divine Might:
             this.divineMight = false;
-        } else if (GCDused === ActionRecordGCD["Atone"]) {
+        }
+        else if (GCDused === ActionRecordGCD["Atone"]) {
             if (this.swordOath & this.A1Ready) {
                 // Remove AtonementReady, Add Supplication Ready
                 this.swordOath = (this.swordOath & ~this.A1Ready) | this.A2Ready;
             }
-        } else if (GCDused === ActionRecordGCD["Supp"]) {
+        }
+        else if (GCDused === ActionRecordGCD["Supp"]) {
             if (this.swordOath & this.A2Ready) {
                 // Remove Supplication Ready, Add Sepulchre Ready
                 this.swordOath = (this.swordOath & ~this.A2Ready) | this.A3Ready;
             }
-        } else if (GCDused === ActionRecordGCD["Sep"]) {
+        }
+        else if (GCDused === ActionRecordGCD["Sep"]) {
             if (this.swordOath & this.A3Ready) {
                 // Remove Sepulchre Ready
                 this.swordOath = (this.swordOath & (~this.A3Ready));
@@ -93,7 +100,7 @@ class PaladinStateSystem {
 
 
     debugState() {
-        console.log([this.comboState, this.swordOath, this.divineMight].toString());
+        console.log([this.comboState, this.swordOath, this.divineMight,].toString());
     }
 }
 
@@ -129,8 +136,8 @@ export const pldSKSSheetSpec: SimSpec<PldSKSSheetSim, PldSKSSheetSettingsExterna
     makeNewSimInstance: function (): PldSKSSheetSim {
         return new PldSKSSheetSim();
     },
-    supportedJobs: ['PLD'],
-    supportedLevels: [100],
+    supportedJobs: ['PLD',],
+    supportedLevels: [100,],
     description: "Paladin w/SKS Strategy Simulator (DT 7.05)\n" +
         "A playground for trying different rotation ideas as they relate to PLD, at 2.50 GCD, and Faster!\n" +
         "Warning! Assert EXTREME caution when comparing different GCDs speeds. Mostly you should " +
@@ -141,9 +148,9 @@ export const pldSKSSheetSpec: SimSpec<PldSKSSheetSim, PldSKSSheetSettingsExterna
         contact: [{
             type: 'discord',
             discordTag: 'chromatophore',
-            discordUid: '240554238093164556'
-        }]
-    }]
+            discordUid: '240554238093164556',
+        },],
+    },],
 };
 
 class PldSKSCycleProcessor extends CycleProcessor {
@@ -170,7 +177,7 @@ class PldSKSCycleProcessor extends CycleProcessor {
             potency: newPotency ? newPotency : baseAction.potency,
             gcd: baseAction.gcd,
             cast: baseAction.cast,
-            activatesBuffs: baseAction.activatesBuffs
+            activatesBuffs: baseAction.activatesBuffs,
         };
         return act;
     }
@@ -220,12 +227,14 @@ class PldSKSCycleProcessor extends CycleProcessor {
 
         if (this.MyState.swordOath === this.MyState.A1Ready && evenMinute === false && !useOldPriority) {
             chosenAbility = ActionRecordGCD["Atone"];
-        } else if (this.MyState.comboState !== 3) {
+        }
+        else if (this.MyState.comboState !== 3) {
             if (this.MyState.comboState === 2)
                 chosenAbility = ActionRecordGCD["Riot"];
             else
                 chosenAbility = ActionRecordGCD["Fast"];
-        } else {
+        }
+        else {
             // If we are royal ready:
 
             // if play_for_nine_safety is on, let us divest ourselves of HS
@@ -344,7 +353,7 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
             perform12312OldPrio: false,
             use701potencies: false,
             hideCommentText: false,
-            simulateMissing9th: false
+            simulateMissing9th: false,
         };
     };
 
@@ -360,7 +369,7 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
     protected createCycleProcessor(settings: MultiCycleSettings): PldSKSCycleProcessor {
         return new PldSKSCycleProcessor({
             ...settings,
-            hideCycleDividers: true
+            hideCycleDividers: true,
         });
     }
 
@@ -448,11 +457,13 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
                         cp.addSpecialRow(`Late Weaving FOF at 2.50, OK! (Override)`);
                         strategyAlways9 = true;
                         strategySpecial250Late = false;
-                    } else {
+                    }
+                    else {
                         cp.addSpecialRow(`No SKS to consider due to 2.5 GCD`);
                         strategy250 = true;
                     }
-                } else if (strategyHubris) {
+                }
+                else if (strategyHubris) {
                     cp.addSpecialRow(``);
                     cp.addSpecialRow(`SKS Rotations are disabled.`);
                     cp.addSpecialRow(`Sim will DELIBERATELY CLIP GCD`);
@@ -462,25 +473,30 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
                     cp.addSpecialRow(`is performed for given Total Time.`);
                     cp.addSpecialRow(``);
                     strategy250 = true;
-                }  else if (physGCD > 2.46 || sim.settings.justMinimiseDrift) {
+                }
+                else if (physGCD > 2.46 || sim.settings.justMinimiseDrift) {
                     // We then have a variety of things to consider.
                     // at 2.47 and above, PLD is unlikely to achieve a 9 GCD FOF
                     // So we don't try, and instead aim to minimise buff drift
                     if (sim.settings.justMinimiseDrift) {
                         cp.addSpecialRow(`Just minimising drift, use FOF on CD always`);
                         strategyMinimise = true;
-                    } else if (sim.settings.alwaysLateWeave === true) {  // However we have setting over rides to force our hand:
+                    }
+                    else if (sim.settings.alwaysLateWeave === true) {  // However we have setting over rides to force our hand:
                         cp.addSpecialRow(`Late FOF w/2.43+ GCD (Override)`);
                         cp.addSpecialRow(`(+personal pps, --alignment & big drift)`);
                         strategyAlways9 = true;
-                    } else if (sim.settings.attempt9GCDAbove247 === true) {
+                    }
+                    else if (sim.settings.attempt9GCDAbove247 === true) {
                         cp.addSpecialRow(`9/8 FOF w/2.47+ GCD (Override)`);
                         strategy98Alt = true;
-                    } else {
+                    }
+                    else {
                         cp.addSpecialRow(`2.47+ GCD, aim to minimise drift`);
                         strategyMinimise = true;
                     }
-                } else if (physGCD > 2.42) {
+                }
+                else if (physGCD > 2.42) {
                     // At 2.43 to 2.46, it should be possible to alternate a 9 GCD and an 8 GCD
                     // FOF to minimise drift, and just get a little extra from party buffs
                     // It's so, so little though, lol.
@@ -494,36 +510,43 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
                             strategyAlways9 = true;
                             cp.addSpecialRow(`Late FOF w/2.43 GCD (Override)`);
                             cp.addSpecialRow(`(+personal pps, -buff alignment`);
-                        } else {
+                        }
+                        else {
                             strategy98Alt = true;
                             strategy98Force = true;
                             cp.addSpecialRow(`Presenting CLIP strat (+buff alignment, -potency)`);
                             cp.addSpecialRow(`(consider the 'always late' sim option)`);
                         }
-                    } else {
+                    }
+                    else {
                         // If we're 2.44 - 2.46
                         if (sim.settings.alwaysLateWeave === true) {
                             cp.addSpecialRow(`Late FOF w/2.43+ GCD (Override)`);
                             cp.addSpecialRow(`(+personal pps, -buff alignment)`);
                             strategyAlways9 = true;
-                        } else {
+                        }
+                        else {
                             cp.addSpecialRow(`2.44-2.46 GCD, alternating 9/8 FOFs`);
                             cp.addSpecialRow(`(+buff alignment, low drift)`);
                             strategy98Alt = true;
                         }
                     }
-                } else if (physGCD > 2.36) {  // Otherwise, if our GCD is 2.37 - 2.42 We will always late weave FOF:
+                }
+                else if (physGCD > 2.36) {  // Otherwise, if our GCD is 2.37 - 2.42 We will always late weave FOF:
                     cp.addSpecialRow(`Always Late FOF at 2.37+ GCD`);
                     strategyAlways9 = true;
-                } else { // Below that, things get weird, so let's just rely on the sim's override options:
+                }
+                else { // Below that, things get weird, so let's just rely on the sim's override options:
                     cp.addSpecialRow(`Phys GCD very low! Use Overrides to trial behavior:`);
                     if (sim.settings.alwaysLateWeave === true) {
                         cp.addSpecialRow(`Always late override, Late FOFs`);
                         strategyAlways9 = true;
-                    } else if (sim.settings.attempt9GCDAbove247 === true) {
+                    }
+                    else if (sim.settings.attempt9GCDAbove247 === true) {
                         cp.addSpecialRow(`9/8 Override, will late weave evens`);
                         strategy98Alt = true;
-                    } else {
+                    }
+                    else {
                         cp.addSpecialRow(`No Overrides, Minimizing Drift`);
                         strategyMinimise = true;
                     }
@@ -555,7 +578,8 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
                         cp.addSpecialRow("(option) late FOFs will be used with");
                         cp.addSpecialRow("incredible precision of 0.01s");
                         cp.addSpecialRow("");
-                    } else {
+                    }
+                    else {
                         cp.addSpecialRow("(option) delayed FOF Late weaves will be");
                         cp.addSpecialRow("used 0.1s before the late weave limit.");
                         cp.addSpecialRow("");
@@ -587,7 +611,8 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
                 cp.useGcd(ActionRecordGCD["Riot"]);
                 if (!sim.settings.burstOneGCDEarlier) {
                     cp.useGcd(ActionRecordGCD["Royal"]);
-                } else {
+                }
+                else {
                     cp.addSpecialRow(">> Override: Bursting 1 GCD earlier");
                 }
 
@@ -637,12 +662,14 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
                                             cp.addSpecialRow(">> This is after the next GCD.");
                                             cp.addSpecialRow(">> A non-sks inclined player likely uses the GCD");
                                             cp.addSpecialRow(">> Delaying FOF by " + (nextEarly - readyAt).toFixed(2) + "s");
-                                        } else {
+                                        }
+                                        else {
                                             cp.addSpecialRow(">> Clipping once available!");
                                             cp.advanceTo(readyAt);
                                             forceNextBurst = true;
                                         }
-                                    } else
+                                    }
+                                    else
                                         cp.addSpecialRow(">> Delaying FOF " + (nextEarly - readyAt).toFixed(2) + "s across GCD...", readyAt);
                                 }
                             }
@@ -657,7 +684,8 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
                             if (strategyMinimise)
                                 cp.addSpecialRow(`>> Using FOF ASAP`);
                             cp.useOgcd(ActionRecordOgcd["FOF"]);
-                        } else {
+                        }
+                        else {
                             // Should we try to late weave?
                             // DANGER DANGER: Magic number:
                             //let fof_is_not_early = cp.cdTracker.statusOf(ActionRecord_oGCD["FOF"]).readyAt.relative > 1.0;
@@ -674,11 +702,13 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
                                         const clipAmount = cp.nextGcdTime - beforeGCD;
                                         cp.addSpecialRow("! ALERT ! Clipped GCD! " + (clipAmount).toFixed(2) + "s");
                                         clipTotalTime += clipAmount;
-                                    } else {
+                                    }
+                                    else {
                                         cp.useOgcdLateWeave(ActionRecordOgcd["FOF"], sim.settings.useHyperRobotPrecision);
                                     }
 
-                                } else {
+                                }
+                                else {
                                     // a normal late weave is fine:
                                     cp.useOgcdLateWeave(ActionRecordOgcd["FOF"], sim.settings.useHyperRobotPrecision);
                                 }
@@ -688,7 +718,8 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
 
                                     cp.addSpecialRow(`>> Delay to FOF: ` + (delayedBy).toFixed(2) + `s`, fofUsedTime);
                                 }
-                            } else {
+                            }
+                            else {
                                 cp.addSpecialRow(`Using FOF ASAP`);
                                 cp.useOgcd(ActionRecordOgcd["FOF"]);
                             }
@@ -706,7 +737,7 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
 
                         // TODO: Intervene will be available earlier than other other oGCDs after a certain point:
                         const ogcdOrder = [ActionRecordOgcd["Imp"], ActionRecordOgcd["Cos"], ActionRecordOgcd["Exp"],
-                            ActionRecordOgcd["Int"], ActionRecordOgcd["Int"]];
+                            ActionRecordOgcd["Int"], ActionRecordOgcd["Int"],];
 
                         /////////////////
                         // We have now entered burst: perform all burst actions:
@@ -732,10 +763,12 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
                                     clipTotalTime += clipAmount;
                                 }
 
-                            } else {
+                            }
+                            else {
                                 cp.useOgcd(ActionRecordOgcd["Imp"]);
                             }
-                        } else {
+                        }
+                        else {
                             // we could not use imperator before, so we must melee first GCD
                             // The easiest way to check this is simply, is oGCDcounter 1 or not?
                         }
@@ -759,7 +792,8 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
                             cp.useOgcd(ActionRecordOgcd["Honor"]);
                             oGCDcounter = cp.useOgcdInOrder(ogcdOrder, oGCDcounter);
                             cp.useGcd(ActionRecordGCD["Gore"]);
-                        } else {
+                        }
+                        else {
                             // In this situation, we have not yet been able to give ourselves
                             // req stacks. We *may* have late weaved FOF:
                             cp.useGcd(ActionRecordGCD["Gore"]);
@@ -856,7 +890,8 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
                     if (endOfTimeBurn) {
                         // we also replace 1s with hardcasts under 3 phys GCDs, preventing a new combo starting
                         cp.useBurstFiller(false, cp.remainingGcdTime < (physGCD * 3));
-                    } else
+                    }
+                    else
                         cp.useFiller((evenMinute && strategy98Alt) || (strategyAlways9 && strategySpecial250Late),
                             sim.settings.perform12312OldPrio, sim.settings.avoidDoubleHS9s);
 
@@ -900,9 +935,9 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
                     cp.addSpecialRow("! ALERT !: Total clip time: " + clipTotalTime.toFixed(2) + "s");
                     cp.addSpecialRow("Avg of " + ((clipTotalTime / cp.currentTime) * 60).toFixed(2) + "s Clip every min");
                 }
-            }
+            },
 
-        }];
+        },];
     }
 
 }

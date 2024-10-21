@@ -52,12 +52,13 @@ export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
                             title += `Application Delay: ${roundTime(original.appDelay)}\n`;
                             title += `Cast Start to Application: ${roundTime(original.appDelayFromStart)}\n`;
                             title += `Effective Recast: ${roundTime(original.totalTimeTaken)}`;
-                        } else { // instant
+                        }
+                        else { // instant
                             title += `Application Delay: ${original.appDelayFromStart}\nAnimation Lock: ${original.totalTimeTaken}`;
                         }
                         colElement.title = title;
                     }
-                }
+                },
             },
             {
                 shortName: 'ability',
@@ -69,13 +70,15 @@ export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
                         out.classList.add('ability-cell');
                         if (ability.type === 'autoattack') {
                             out.appendChild(document.createTextNode('* '));
-                        } else if (ability.type !== "gcd") {
+                        }
+                        else if (ability.type !== "gcd") {
                             out.appendChild(document.createTextNode(' ⤷ '));
                         }
                         if (!ability.noIcon) {
                             if (ability.itemId) {
                                 out.appendChild(new ItemIcon(ability.itemId));
-                            } else if (ability.id) {
+                            }
+                            else if (ability.id) {
                                 out.appendChild(new AbilityIcon(ability.id));
                             }
                         }
@@ -84,10 +87,11 @@ export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
                         abilityNameSpan.classList.add('ability-name');
                         out.appendChild(abilityNameSpan);
                         return out;
-                    } else {
+                    }
+                    else {
                         return document.createTextNode(ability);
                     }
-                }
+                },
             },
             {
                 shortName: 'unbuffed-pot',
@@ -98,16 +102,18 @@ export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
                 renderer: (value: number | null, rowValue: DisplayRecordFinalized) => {
                     if (value !== null && isFinalizedAbilityUse(rowValue)) {
                         if (rowValue.ability.type === 'autoattack') {
-                            const text = quickElement('span', [], [value + '*']);
+                            const text = quickElement('span', [], [value + '*',]);
                             text.title = `${value} is the original potency, and does not reflect the weapon delay multiplier. However, the damage amount does reflect it.`;
                             return text;
-                        } else {
+                        }
+                        else {
                             return document.createTextNode(value.toString());
                         }
-                    } else {
+                    }
+                    else {
                         return document.createTextNode('--');
                     }
-                }
+                },
             },
             {
                 shortName: 'expected-damage',
@@ -124,7 +130,8 @@ export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
                             text += '*';
                         }
                         return document.createTextNode(text);
-                    } else {
+                    }
+                    else {
                         return null;
                     }
                 },
@@ -137,7 +144,8 @@ export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
                         if (value.dotInfo) {
                             if (value.dotInfo.fullDurationTicks === 'indefinite') {
                                 title.push(`This ability is an indefinite DoT. It dealt ${value.dotInfo.actualTickCount} ticks of ${value.dotInfo.damagePerTick.expected.toFixed(3)} each.\n`);
-                            } else {
+                            }
+                            else {
                                 title.push(`This ability is a DoT. It dealt ${value.dotInfo.actualTickCount}/${value.dotInfo.fullDurationTicks} ticks of ${value.dotInfo.damagePerTick.expected.toFixed(3)} each.\n`);
                             }
                         }
@@ -145,7 +153,7 @@ export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
                             colElement.title = title.join('\n');
                         }
                     }
-                }
+                },
             },
             {
                 shortName: 'Total Buffs',
@@ -170,7 +178,7 @@ export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
                         out.push(`${effects.haste}% Haste`);
                     }
                     return document.createTextNode(out.join(', '));
-                }
+                },
             },
             {
                 shortName: 'buffs',
@@ -178,13 +186,13 @@ export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
                 getter: (used: DisplayRecordFinalized) => used['buffs'] ?? [],
                 renderer: (buffs: Buff[]) => {
                     return new BuffListDisplay(buffs);
-                }
+                },
             },
-            ...extraColumns
+            ...extraColumns,
         ];
-        this.data = [new HeaderRow(), ...abilitiesUsed];
+        this.data = [new HeaderRow(), ...abilitiesUsed,];
         // this.style.tableLayout = 'auto';
     }
 }
 
-customElements.define('abilities-used-table', AbilitiesUsedTable, {extends: 'table'});
+customElements.define('abilities-used-table', AbilitiesUsedTable, {extends: 'table',});

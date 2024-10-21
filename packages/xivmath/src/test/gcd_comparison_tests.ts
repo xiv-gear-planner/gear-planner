@@ -104,7 +104,7 @@ describe('sks calc', () => {
                     etroOriginal: sksToGcdEtroOriginal(baseGcd, levelStats, sks, haste),
                     etroSimplified: sksToGcdEtroSimplified(baseGcd, levelStats, sks, haste),
                     makarOriginal: sksToGcdMakarOriginal(baseGcd, levelStats, sks, haste),
-                    makarSimplified: sksToGcdMakarSimplified(baseGcd, levelStats, sks, haste)
+                    makarSimplified: sksToGcdMakarSimplified(baseGcd, levelStats, sks, haste),
                 });
             }
         }

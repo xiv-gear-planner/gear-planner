@@ -43,7 +43,8 @@ async function importExportSheet(request: FastifyRequest, exported: object): Pro
         const parsed = parseInt(pb);
         if (!isNaN(parsed) && parsed >= 0 && parsed <= MAX_PARTY_BONUS) {
             sheet.partyBonus = parsed as PartyBonusAmount;
-        } else {
+        }
+        else {
             throw Error(`Party bonus '${pb}' is invalid`);
         }
     }
@@ -58,7 +59,7 @@ function buildServerBase() {
     const fastifyInstance = Fastify({
         logger: true,
         ignoreTrailingSlash: true,
-        ignoreDuplicateSlashes: true
+        ignoreDuplicateSlashes: true,
         // querystringParser: str => querystring.parse(str, '&', '=', {}),
     });
 
@@ -120,7 +121,8 @@ export function buildPreviewServer() {
                 case "bis":
                     return JSON.parse(await getBisSheet(nav.job, nav.expac, nav.sheet));
                 }
-            } catch (e) {
+            }
+            catch (e) {
                 request.log.error(e, 'Error loading nav');
             }
             return null;
@@ -157,7 +159,7 @@ export function buildPreviewServer() {
                     'og:type': 'website',
                     'og:title': name,
                     'og:description': desc,
-                    'og:url': url
+                    'og:url': url,
                 } as const;
                 for (const entry of Object.entries(propertyMap)) {
                     const meta = document.createElement('meta');
@@ -188,11 +190,12 @@ export function buildPreviewServer() {
                     headers: {
                         'content-type': 'text/html',
                         // use a longer cache duration for success
-                        'cache-control': 'max-age=7200, public'
-                    }
+                        'cache-control': 'max-age=7200, public',
+                    },
                 });
             }
-        } catch (e) {
+        }
+        catch (e) {
             request.log.error(e, 'Error injecting preview');
         }
         // If error or no additional data needed, then just pass through the response as-is
@@ -200,11 +203,11 @@ export function buildPreviewServer() {
         return new Response((await responsePromise).body, {
             status: 200,
             headers: {
-                'content-type': response.headers.get('content-type') || 'text/html'
+                'content-type': response.headers.get('content-type') || 'text/html',
                 // TODO: should these have caching?
                 // // use a shorter cache duration for these
                 // 'cache-control': response.headers.get('cache-control') || 'max-age=120, public'
-            }
+            },
         });
     });
 

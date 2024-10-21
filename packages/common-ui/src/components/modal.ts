@@ -19,7 +19,7 @@ export abstract class BaseModal extends HTMLElement {
         this.contentArea.classList.add('modal-content-area');
         this.buttonArea = document.createElement('div');
         this.buttonArea.classList.add('lower-button-area', 'modal-lower-button-area');
-        this.closeButton = makeActionButton([makeCloseButton()], () => {
+        this.closeButton = makeActionButton([makeCloseButton(),], () => {
             this.close();
         }, 'Close');
         this.closeButton.classList.add('modal-close-button');
@@ -58,7 +58,7 @@ export abstract class BaseModal extends HTMLElement {
             element: outer.inner,
             close() {
                 outer.remove();
-            }
+            },
         });
         setTimeout(() => this.classList.add('backdrop-active'), 5);
     }

@@ -490,7 +490,7 @@ export class CycleProcessor {
             name: 'Auto Attack',
             id: (this.stats.jobStats.aaPotency >= 90 ? 7 : 8),
             noIcon: true,
-            potency: this.stats.jobStats.aaPotency
+            potency: this.stats.jobStats.aaPotency,
         };
         this.cutoffMode = settings.cutoffMode;
     }
@@ -540,7 +540,7 @@ export class CycleProcessor {
             buff: buff,
             start: startTime,
             end: buff.duration === undefined ? Number.MAX_VALUE : (startTime + buff.duration),
-            forceEnd: false
+            forceEnd: false,
         });
     }
 
@@ -571,7 +571,7 @@ export class CycleProcessor {
             if (newStacks > 0) {
                 this.activateBuff({
                     ...au.buff,
-                    stacks: au.buff.stacks + stacksDelta
+                    stacks: au.buff.stacks + stacksDelta,
                 });
             }
         });
@@ -668,7 +668,8 @@ export class CycleProcessor {
             }
             if ((queryTime - time) < buff.duration) {
                 return;
-            } else if (this.isBuffAutomatic(buff)) {
+            }
+            else if (this.isBuffAutomatic(buff)) {
                 this.setBuffStartTime(buff, time + buff.cooldown);
             }
         });
@@ -716,7 +717,7 @@ export class CycleProcessor {
      */
     protected getActiveBuffData(buff: Buff, time = this.currentTime): BuffUsage {
         const activeBuffData = this.getActiveBuffsData(time).find(bd => bd.buff === buff);
-        return activeBuffData ? {...activeBuffData} : null;
+        return activeBuffData ? {...activeBuffData,} : null;
     }
 
     /**
@@ -731,7 +732,7 @@ export class CycleProcessor {
         }
         this.allRecords.push({
             usedAt: time ?? this.currentTime,
-            label: message
+            label: message,
         } satisfies SpecialRecord);
     }
 
@@ -746,15 +747,16 @@ export class CycleProcessor {
         return this.allRecords.map(record => {
             if (!isAbilityUse(record)) {
                 return record;
-            } else {
+            }
+            else {
                 const dmgInfo = this.modifyDamage(abilityToDamageNew(this.stats, record.ability, record.combinedEffects), record.ability, record.buffs);
                 return {
                     ...record,
                     directDamage: dmgInfo.directDamage ?? fixedValue(0),
                     dot: record.dot ? {
                         ...record.dot,
-                        damagePerTick: dmgInfo.dot.damagePerTick
-                    } : null
+                        damagePerTick: dmgInfo.dot.damagePerTick,
+                    } : null,
                 };
             }
         });
@@ -804,9 +806,10 @@ export class CycleProcessor {
                     totalPotency: totalPotency,
                     buffs: record.buffs,
                     combinedEffects: record.combinedEffects,
-                    ability: record.ability
+                    ability: record.ability,
                 } satisfies FinalizedAbility;
-            } else {
+            }
+            else {
                 return record;
             }
         }));
@@ -831,7 +834,8 @@ export class CycleProcessor {
                 .map(record => record.usedAt + record.original.totalTimeTaken));
             if (potentialMax > 9999999) {
                 return Math.min(this.totalTime, this.currentTime);
-            } else {
+            }
+            else {
                 return potentialMax;
             }
         }
@@ -852,7 +856,7 @@ export class CycleProcessor {
         const combined = combineBuffEffects(active);
         return {
             'buffs': active,
-            'combinedEffects': combined
+            'combinedEffects': combined,
         };
     }
 
@@ -876,12 +880,14 @@ export class CycleProcessor {
                 // Already over time limit. Ignore completely.
                 return 'none';
             }
-        } else if (cutoffMode === 'strict-gcd') {
+        }
+        else if (cutoffMode === 'strict-gcd') {
             // if using strict-gcd mode, we also want to ignore oGCDs past the cutoff
             if (this.remainingTime <= 0 || this.isHardCutoff) {
                 return 'none';
             }
-        } else if (cutoffMode === 'lax-gcd') {
+        }
+        else if (cutoffMode === 'lax-gcd') {
             // This branch deals with the corner case where a long-cast GCD, or multiple clipped oGCDs
             // push you over the edge and you try to use another oGCD.
             // That oGCD shouldn't be considered "part of" the GCD like it would with a proper weave.
@@ -946,7 +952,7 @@ export class CycleProcessor {
         this.advanceTo(snapshotsAt, true);
         const {
             buffs,
-            combinedEffects
+            combinedEffects,
         } = this.getCombinedEffectsFor(ability);
         // noinspection AssignmentToFunctionParameterJS
         ability = this.beforeSnapshot(ability, buffs);
@@ -957,7 +963,7 @@ export class CycleProcessor {
         const appDelayFromStart = appDelayFromSnapshot + snapshotDelayFromStart;
         const finalBuffs: Buff[] = Array.from(new Set<Buff>([
             ...preBuffs,
-            ...buffs]))
+            ...buffs,]))
             .filter(buff => {
                 return buffRelevantAtStart(buff) && preBuffs.includes(buff)
                     || buffRelevantAtSnapshot(buff) && buffs.includes(buff);
@@ -970,7 +976,7 @@ export class CycleProcessor {
             // Opposite applies for buffs falling off mid-cast.
             combinedEffects: {
                 ...combinedEffects,
-                haste: preCombinedEffects.haste
+                haste: preCombinedEffects.haste,
             },
             buffs: finalBuffs,
             usedAt: gcdStartsAt,
@@ -980,7 +986,7 @@ export class CycleProcessor {
             totalTimeTaken: Math.max(effectiveAnimLock, abilityGcd),
             castTimeFromStart: effectiveCastTime,
             snapshotTimeFromStart: snapshotDelayFromStart,
-            lockTime: effectiveAnimLock
+            lockTime: effectiveAnimLock,
         });
         this.addAbilityUse(usedAbility);
         // Since we don't have proper modeling for situations where you need to delay something to catch a buff,
@@ -1000,7 +1006,8 @@ export class CycleProcessor {
         // If we're casting a long-cast, then the GCD is blocked for more than a GCD.
         if (isGcd) {
             this.nextGcdTime = Math.max(gcdFinishedAt, animLockFinishedAt);
-        } else { // Account for potential GCD clipping
+        }
+        else { // Account for potential GCD clipping
             this.nextGcdTime = Math.max(this.nextGcdTime, animLockFinishedAt);
         }
         // Workaround for auto-attacks after first ability
@@ -1091,7 +1098,8 @@ export class CycleProcessor {
             currentTime += lockTime;
             if (currentTime > followingGcdTime) {
                 return 'no';
-            } else if (currentTime > this.totalTime) {
+            }
+            else if (currentTime > this.totalTime) {
                 return 'not-enough-time';
             }
         }
@@ -1113,7 +1121,8 @@ export class CycleProcessor {
         if (this.combatStarted && !this.combatStarting) {
             if (pauseAutos) {
                 this.nextAutoAttackTime += delta;
-            } else {
+            }
+            else {
                 if (advanceTo >= this.nextAutoAttackTime && this.combatStarted) {
                     this.currentTime = this.nextAutoAttackTime;
                     if (this.useAutos) {
@@ -1123,7 +1132,8 @@ export class CycleProcessor {
                     }
                 }
             }
-        } else {
+        }
+        else {
             this.nextAutoAttackTime = this.currentTime;
         }
         this.currentTime = advanceTo;
@@ -1132,7 +1142,7 @@ export class CycleProcessor {
     private recordAutoAttack() {
         const {
             buffs,
-            combinedEffects
+            combinedEffects,
         } = this.getCombinedEffectsFor(this.aaAbility);
         const appDelay = AUTOATTACK_APPLICATION_DELAY;
         this.addAbilityUse({
@@ -1146,7 +1156,7 @@ export class CycleProcessor {
             appDelayFromStart: appDelay,
             castTimeFromStart: 0,
             snapshotTimeFromStart: 0,
-            lockTime: 0
+            lockTime: 0,
         });
         const aaDelay = this.stats.aaDelay * (100 - this.stats.haste('Auto-attack') - combinedEffects.haste) / 100;
         this.nextAutoAttackTime = this.currentTime + aaDelay;
@@ -1258,7 +1268,7 @@ export class CycleProcessor {
      * Returns a record of individual cycles, including when each cycle started/ended.
      */
     get cycleRecords(): typeof this.cycles {
-        return [...this.cycles];
+        return [...this.cycles,];
     }
 
     private finalize() {
@@ -1370,7 +1380,8 @@ export class CycleProcessor {
         case "align-to-first": {
             if (this.currentCycle === 0) {
                 cycleTime = this.cycleTime;
-            } else {
+            }
+            else {
                 const adjustedExpectedStartTime = expectedStartTime + this.firstCycleStartTime;
                 const delta = actualStartTime - adjustedExpectedStartTime;
                 cycleTime = this.cycleTime - delta;
@@ -1387,13 +1398,13 @@ export class CycleProcessor {
         if (!this.hideCycleDividers) {
             this.allRecords.push({
                 label: "-- Start of Cycle --",
-                usedAt: this.currentTime
+                usedAt: this.currentTime,
             });
         }
         const cycleInfo: CycleInfo = {
             cycleNum: this.currentCycle,
             start: this.currentTime,
-            end: null
+            end: null,
         };
         this.cycles.push(cycleInfo);
         cycleFunction(ctx);
@@ -1401,7 +1412,7 @@ export class CycleProcessor {
         if (!this.hideCycleDividers) {
             this.allRecords.push({
                 label: "-- End of Cycle --",
-                usedAt: this.currentTime
+                usedAt: this.currentTime,
             });
         }
         cycleInfo.end = this.currentTime;
@@ -1429,7 +1440,8 @@ export class CycleProcessor {
     isReady(ability: Ability): boolean {
         if ('gcd' in ability) {
             return this.cdTracker.canUse(ability, this.nextGcdTime);
-        } else {
+        }
+        else {
             return this.cdTracker.canUse(ability);
         }
     }
@@ -1443,7 +1455,8 @@ export class CycleProcessor {
     timeUntilReady(ability: Ability): number {
         if ('gcd' in ability) {
             return this.cdTracker.statusOfAt(ability, this.nextGcdTime).readyAt.relative;
-        } else {
+        }
+        else {
             return this.cdTracker.statusOf(ability).readyAt.relative;
         }
 
@@ -1475,7 +1488,7 @@ export class CycleProcessor {
             },
             subtractStacksSelf(stacks: number): void {
                 this.modifyStacks(buff, stacks * -1);
-            }
+            },
         };
     }
 
@@ -1627,7 +1640,7 @@ export type ResultSettings = {
 
 export function defaultResultSettings(): ResultSettings {
     return {
-        stdDevs: 0
+        stdDevs: 0,
     };
 }
 
@@ -1643,7 +1656,7 @@ function updateComboTracker(combo: ComboData, ability: Ability, tracker: ComboTr
             // Update the 'out' var with the new ability data
             out = {
                 ...out,
-                ...combo
+                ...combo,
             };
             break;
         }
