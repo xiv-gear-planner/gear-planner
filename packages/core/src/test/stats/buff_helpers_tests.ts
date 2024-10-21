@@ -1,6 +1,6 @@
-import {Buff} from "../sims/sim_types";
+import {Buff} from "../../sims/sim_types";
 import {expect} from "chai";
-import {buffRelevantAtSnapshot, buffRelevantAtStart} from "../sims/buff_helpers";
+import {buffRelevantAtSnapshot, buffRelevantAtStart} from "../../sims/buff_helpers";
 
 describe("Buff Helpers", () => {
     describe('simple damage buff', () => {

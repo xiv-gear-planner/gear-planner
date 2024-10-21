@@ -125,11 +125,8 @@ class WarCycleProcessor extends CycleProcessor {
     }
 
     stormsEyeIsNextComboFinisher(): boolean {
-        const surgingTempestDuration = this.getSurgingTempestDuration()
-        if (surgingTempestDuration < 17) {
-            return true
-        }
-        return false
+        const surgingTempestDuration = this.getSurgingTempestDuration();
+        return surgingTempestDuration < 17;
     }
 
     stormsPathIsNextComboFinisher(): boolean {
@@ -157,6 +154,8 @@ class WarCycleProcessor extends CycleProcessor {
     }
 
     inBurst(): boolean {
+        // Six seconds after every (i.e. 0:06, 2:06, etc) burst, buffs will be up,
+        // and will remain up for twenty seconds.
         return this.currentTime % 126 < 20
     }
 
@@ -246,6 +245,12 @@ export class WarSim extends BaseMultiCycleSim<WarSimResult, WarSettings, WarCycl
         };
     }
 
+    willOvercapBeastGaugeNextGCD(cp: WarCycleProcessor): boolean {
+        const gaugeFullAndNotAtStartOfCombo = cp.gauge.beastGauge === 100 && cp.rotationState.combo !== 0
+        const gaugeWillBeOvercappedByStormsPath = cp.gauge.beastGauge >= 90 && cp.rotationState.combo === 2 && cp.stormsPathIsNextComboFinisher()
+        return gaugeFullAndNotAtStartOfCombo || gaugeWillBeOvercappedByStormsPath;
+    }
+
     // Gets the next GCD to use in the WAR rotation.
     // Note: this is stateful, and updates combos to the next combo.
     getGCDToUse(cp: WarCycleProcessor): WarGcdAbility {
@@ -276,17 +281,12 @@ export class WarSim extends BaseMultiCycleSim<WarSimResult, WarSettings, WarCycl
             return Actions.FellCleave;
         }
 
-        // Next GCD will overcap if it's not Heavy Swing
-        if (cp.gauge.beastGauge === 100 && cp.rotationState.combo !== 0) {
-            return Actions.FellCleave;
-        }
-
         if (cp.fightEndingSoon() && cp.gauge.beastGauge >= 50) {
             return Actions.FellCleave;
         }
 
-        // Next combo finisher is going to be Storm's Path (20 gauge), not Storm's Eye (10 Gauge)
-        if (cp.gauge.beastGauge >= 90 && cp.rotationState.combo === 2 && cp.stormsPathIsNextComboFinisher()) {
+        // Avoid overcap.
+        if (this.willOvercapBeastGaugeNextGCD(cp)) {
             return Actions.FellCleave;
         }
 

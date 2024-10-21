@@ -407,10 +407,10 @@ export function applyDhCrit(baseDamage: number, stats: ComputedSetStats) {
     return baseDamage * (1 + stats.dhitChance * (stats.dhitMulti - 1)) * (1 + stats.critChance * (stats.critMulti - 1));
 }
 
-export function dhCritPercentStdDev(stats: ComputedSetStats, forcedCrit: boolean, forcedDh: boolean) {
+export function dhCritPercentStdDev(stats: ComputedSetStats, forcedCrit: boolean, forcedDhit: boolean) {
     return multiplyValues(
         forcedCrit ? chanceMultiplierStdDev(1, stats.critMulti) : chanceMultiplierStdDev(stats.critChance, stats.critMulti),
-        forcedDh ? chanceMultiplierStdDev(1, stats.dhitMulti) : chanceMultiplierStdDev(stats.dhitChance, stats.dhitMulti),
+        forcedDhit ? chanceMultiplierStdDev(1, stats.dhitMulti) : chanceMultiplierStdDev(stats.dhitChance, stats.dhitMulti),
     );
 }
 
