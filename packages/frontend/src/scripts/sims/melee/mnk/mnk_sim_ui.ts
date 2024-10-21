@@ -36,7 +36,7 @@ class MNKGaugeGui {
                             stack.style.width = '16px';
                             stack.style.display = 'inline-block';
                             stack.style.overflow = 'hidden';
-                            if (i < chakra) {
+                            if (i <= chakra) {
                                 stack.style.background = '#f796c6';
                             }
                             div.appendChild(stack);
