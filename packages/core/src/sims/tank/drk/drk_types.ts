@@ -1,5 +1,5 @@
-import { Ability, GcdAbility, OgcdAbility, Buff, BuffController } from "@xivgear/core/sims/sim_types"
-import { DrkGauge } from "./drk_gauge"
+import { Ability, GcdAbility, OgcdAbility, Buff, BuffController } from "@xivgear/core/sims/sim_types";
+import { DrkGauge } from "./drk_gauge";
 import { removeSelf } from "@xivgear/core/sims/common/utils";
 
 /** A DRK-specific ability. */

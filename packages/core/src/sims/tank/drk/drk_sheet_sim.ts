@@ -72,10 +72,10 @@ class RotationState {
     private _deliriumCombo: number = 0;
 
     get combo() {
-        return this._combo
+        return this._combo;
     };    
     get deliriumCombo() {
-        return this._deliriumCombo
+        return this._deliriumCombo;
     };
 
     set combo(newCombo) {
@@ -92,11 +92,11 @@ class RotationState {
 class DrkCycleProcessor extends CycleProcessor {
     gauge: DrkGauge;
     rotationState: RotationState;
-    mpTicks = 0
+    mpTicks = 0;
     // livingShadowAbilityUsages tracks which remaining Living Shadow abilities we have
     // upcoming. It's implemented this way so that the entries and buffs are correct 
     // on the timeline.
-    livingShadowAbilityUsages: LivingShadowAbilityUsageTime[] = []
+    livingShadowAbilityUsages: LivingShadowAbilityUsageTime[] = [];
 
     constructor(settings: MultiCycleSettings) {
         super(settings);
@@ -321,6 +321,11 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
             return Actions.Bloodspiller;
         }
 
+        // Dump blood before the end of the fight.
+        if (cp.fightEndingSoon() && cp.gauge.bloodGauge >= 50) {
+            return Actions.Bloodspiller;
+        }
+
         // Next GCD is Souleater
         if (cp.gauge.bloodGauge >= 90 && cp.rotationState.combo == 2) {
             return Actions.Bloodspiller;
@@ -341,17 +346,17 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
         const lateWeaveDelirium = cp.canUseWithoutClipping(Actions.Delirium) && cp.totalTime > cp.cdTracker.statusOf(Actions.Delirium).readyAt.absolute
         if ((cp.gauge.magicPoints >= 8400) && (nextGCDSyphonStrike || cp.isBloodWeaponActive() || cp.isDeliriumActive() || lateWeaveDelirium)) {
             if (cp.canUseWithoutClipping(Actions.EdgeOfShadow)) {
-                this.use(cp, Actions.EdgeOfShadow)
+                this.use(cp, Actions.EdgeOfShadow);
             }
         }
         if (cp.gauge.magicPoints >= 9200 && (nextGCDSyphonStrike || cp.isBloodWeaponActive() || cp.isDeliriumActive() || lateWeaveDelirium)) {
             if (cp.canUseWithoutClipping(Actions.EdgeOfShadow)) {
-                this.use(cp, Actions.EdgeOfShadow)
+                this.use(cp, Actions.EdgeOfShadow);
             }
         }
         if (cp.gauge.magicPoints >= 9800) {
             if (cp.canUseWithoutClipping(Actions.EdgeOfShadow)) {
-                this.use(cp, Actions.EdgeOfShadow)
+                this.use(cp, Actions.EdgeOfShadow);
             }
         }
 
@@ -360,7 +365,7 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
         }
 
         if (cp.shouldPot() && cp.canUseWithoutClipping(potionMaxStr)) {
-            this.use(cp, potionMaxStr)
+            this.use(cp, potionMaxStr);
         }
 
         if (cp.inBurst() && cp.canUseWithoutClipping(Actions.Shadowbringer)) {
@@ -369,7 +374,7 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
 
         // Refresh Darkside if required
         if (cp.getDarksideDuration() < 5 && cp.canUseWithoutClipping(Actions.EdgeOfShadow) && (cp.gauge.magicPoints >= 3000 || cp.gauge.darkArts)) {
-            this.use(cp, Actions.EdgeOfShadow)
+            this.use(cp, Actions.EdgeOfShadow);
         }
 
         if (cp.canUseWithoutClipping(Actions.Delirium)) {
@@ -377,7 +382,7 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
         }
 
         if (cp.isSaltedEarthActive() && cp.canUseWithoutClipping(Actions.SaltAndDarkness)) {
-            this.use(cp, Actions.SaltAndDarkness)
+            this.use(cp, Actions.SaltAndDarkness);
         }
 
         if (cp.canUseWithoutClipping(Actions.SaltedEarth)) {
@@ -389,7 +394,7 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
         }
 
         if(cp.shouldUseTBN() && cp.canUseWithoutClipping(Actions.TheBlackestNight)) {
-            this.use(cp, Actions.TheBlackestNight)
+            this.use(cp, Actions.TheBlackestNight);
         }
 
         // Last priority oGCD: send all available Edges in burst
@@ -402,11 +407,11 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
         // Dump resources if fight ending soon
         if (cp.fightEndingSoon()) {
             if (cp.canUseWithoutClipping(Actions.EdgeOfShadow) && (cp.gauge.magicPoints >= 3000 || cp.gauge.darkArts)) {
-                this.use(cp, Actions.EdgeOfShadow)
+                this.use(cp, Actions.EdgeOfShadow);
             }
             
             if (cp.canUseWithoutClipping(Actions.Shadowbringer)) {
-                this.use(cp, Actions.Shadowbringer)
+                this.use(cp, Actions.Shadowbringer);
             }
         }
 
@@ -418,7 +423,7 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
             return;
         }
 
-        this.use(cp, (this.getGCDToUse(cp)))
+        this.use(cp, (this.getGCDToUse(cp)));
     }
 
     use(cp: DrkCycleProcessor, ability: Ability): AbilityUseResult {
@@ -432,10 +437,10 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
         // In the future, MP should probably be refactored into the base processor.
         // We use Math.floor to be pessimistic, i.e. worst case mana ticks.
         const expectedMPTicks = Math.floor(Math.round(cp.currentTime) / 3)
-        const differenceInMPTicks = expectedMPTicks - cp.mpTicks
+        const differenceInMPTicks = expectedMPTicks - cp.mpTicks;
         if (differenceInMPTicks > 0) {
-            cp.mpTicks += differenceInMPTicks
-            cp.gauge.magicPoints += differenceInMPTicks * 200
+            cp.mpTicks += differenceInMPTicks;
+            cp.gauge.magicPoints += differenceInMPTicks * 200;
         }
 
         // If we try to use Living Shadow, do it properly
@@ -448,43 +453,45 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
             // Edge of Shadow
             // Bloodspiller
             // Carve and Spit (Disesteem(AoE) at level 100)
+            const livingShadowDelay = 6.8;
+            const livingShadowDelayBetweenAbilities = 2.18; 
             cp.livingShadowAbilityUsages.push({
                 // Abyssal Drain
                 ability: Actions.LivingShadowAbyssalDrain,
-                usageTime: cp.currentTime + 6.8
+                usageTime: cp.currentTime + livingShadowDelay,
             })
             // We could skip this, since it does no damage,
             // but it makes the timeline more accurate to reality, so that's nice.
             cp.livingShadowAbilityUsages.push({
                 // Shadowstride
                 ability: Actions.LivingShadowShadowstride,
-                usageTime: cp.currentTime + 6.8 + 1*2.18
+                usageTime: cp.currentTime + livingShadowDelay + 1 * livingShadowDelayBetweenAbilities,
             })     
             cp.livingShadowAbilityUsages.push({
                 // Shadowbringer
                 ability: Actions.LivingShadowShadowbringer,
-                usageTime: cp.currentTime + 6.8 + 2*2.18
+                usageTime: cp.currentTime + livingShadowDelay + 2 * livingShadowDelayBetweenAbilities,
             })            
             cp.livingShadowAbilityUsages.push({
                 // Edge of Shadow
                 ability: Actions.LivingShadowEdgeOfShadow,
-                usageTime: cp.currentTime + 6.8 + 3*2.18
+                usageTime: cp.currentTime + livingShadowDelay + 3 * livingShadowDelayBetweenAbilities,
             })
             cp.livingShadowAbilityUsages.push({
                 // Bloodspiller
                 ability: Actions.LivingShadowBloodspiller,
-                usageTime: cp.currentTime + 6.8 + 4*2.18
+                usageTime: cp.currentTime + livingShadowDelay + 4 * livingShadowDelayBetweenAbilities,
             })
             cp.livingShadowAbilityUsages.push({
                 // Disesteem
                 ability: Actions.LivingShadowDisesteem,
-                usageTime: cp.currentTime + 6.8 + 5*2.18
+                usageTime: cp.currentTime + livingShadowDelay + 5 * livingShadowDelayBetweenAbilities,
             })
         }
 
         // Apply Living Shadow abilities before attempting to use an ability
         // AND before we move the timeline for that ability.
-        this.applyLivingShadowAbilities(cp)
+        this.applyLivingShadowAbilities(cp);
 
         // Log when we try to use more gauge than what we currently have
         if (drkAbility.id === Actions.Bloodspiller.id && cp.gauge.bloodGauge < 50) {
@@ -506,7 +513,7 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
         }
 
         // Update gauges
-        const abilityWithBloodWeapon = cp.getDrkAbilityWithBloodWeapon(ability)
+        const abilityWithBloodWeapon = cp.getDrkAbilityWithBloodWeapon(ability);
         if (abilityWithBloodWeapon.updateBloodGauge !== undefined) {
             // Prevent gauge updates showing incorrectly on autos before this ability
             if (ability.type === 'gcd' && cp.nextGcdTime > cp.currentTime) {
@@ -525,14 +532,14 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
 
         // Apply Living Shadow abilities before attempting to use an ability
         // AND after we move the timeline for that ability.
-        this.applyLivingShadowAbilities(cp)
+        this.applyLivingShadowAbilities(cp);
 
         return cp.use(ability);
     }
 
     private useOpener(cp: DrkCycleProcessor, prepullTBN: boolean) {
         if (prepullTBN) {
-            this.use(cp, Actions.TheBlackestNight)
+            this.use(cp, Actions.TheBlackestNight);
             cp.advanceTo(3 - STANDARD_ANIMATION_LOCK);
             // Hacky out of combat mana tick.
             // TODO: Refactor this once MP is handled in a more core way
@@ -540,38 +547,38 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
         } else {
             cp.advanceTo(1 - STANDARD_ANIMATION_LOCK);
         }
-        this.use(cp, Actions.Unmend)        
+        this.use(cp, Actions.Unmend);
         cp.advanceForLateWeave([potionMaxStr]);
-        this.use(cp, potionMaxStr)
-        this.use(cp, Actions.HardSlash)
-        this.use(cp, Actions.EdgeOfShadow)
-        this.use(cp, Actions.LivingShadow)
-        this.use(cp, Actions.SyphonStrike)
-        this.use(cp, Actions.Souleater)
-        this.use(cp, Actions.Delirium)
-        this.use(cp, Actions.Disesteem)
-        this.use(cp, Actions.SaltedEarth)
-        this.use(cp, Actions.EdgeOfShadow)
-        this.use(cp, Actions.ScarletDelirium)
-        this.use(cp, Actions.Shadowbringer)
-        this.use(cp, Actions.EdgeOfShadow)
-        this.use(cp, Actions.Comeuppance)
-        this.use(cp, Actions.CarveAndSpit)
-        this.use(cp, Actions.EdgeOfShadow)
-        this.use(cp, Actions.Torcleaver)
-        this.use(cp, Actions.Shadowbringer)
+        this.use(cp, potionMaxStr);
+        this.use(cp, Actions.HardSlash);
+        this.use(cp, Actions.EdgeOfShadow);
+        this.use(cp, Actions.LivingShadow);
+        this.use(cp, Actions.SyphonStrike);
+        this.use(cp, Actions.Souleater);
+        this.use(cp, Actions.Delirium);
+        this.use(cp, Actions.Disesteem);
+        this.use(cp, Actions.SaltedEarth);
+        this.use(cp, Actions.EdgeOfShadow);
+        this.use(cp, Actions.ScarletDelirium);
+        this.use(cp, Actions.Shadowbringer);
+        this.use(cp, Actions.EdgeOfShadow);
+        this.use(cp, Actions.Comeuppance);
+        this.use(cp, Actions.CarveAndSpit);
+        this.use(cp, Actions.EdgeOfShadow);
+        this.use(cp, Actions.Torcleaver);
+        this.use(cp, Actions.Shadowbringer);
         if (prepullTBN) {
-            this.use(cp, Actions.EdgeOfShadow)
+            this.use(cp, Actions.EdgeOfShadow);
         }
-        this.use(cp, Actions.Bloodspiller)
-        this.use(cp, Actions.SaltAndDarkness)
+        this.use(cp, Actions.Bloodspiller);
+        this.use(cp, Actions.SaltAndDarkness);
         if (!prepullTBN) {
             // Without the extra mana, do two filler GCDs before the Edge of Shadow. 
             // This is a worst-case scenario mana wise, in reality it may be possible
             // to get the Edge in after the Hard Slash.
-            this.use(cp, cp.getComboToUse())
-            this.use(cp, cp.getComboToUse())
-            this.use(cp, Actions.EdgeOfShadow)
+            this.use(cp, cp.getComboToUse());
+            this.use(cp, cp.getComboToUse());
+            this.use(cp, Actions.EdgeOfShadow);
         }
     }
 
@@ -585,7 +592,7 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
         return [{
             cycleTime: 120,
             apply(cp: DrkCycleProcessor) {
-                outer.useOpener(cp, settings.prepullTBN)
+                outer.useOpener(cp, settings.prepullTBN);
 
                 cp.remainingCycles(() => {
                     outer.useDrkRotation(cp);
