@@ -24,7 +24,7 @@ onmessage = async function (event) {
         return;
     }
     const sheet = HEADLESS_SHEET_PROVIDER.fromExport(request.sheet);
-    sheet.loadFromDataManager(dataManager);
+    await sheet.loadFromDataManager(dataManager);
     if (request.jobType === "generateGearset") {
         request = event.data as GearsetGenerationRequest;
         let gearsetGen = new GearsetGenerationWorker(sheet);
@@ -37,4 +37,4 @@ onmessage = async function (event) {
         await new SolverSimulationRunner(sheet).execute(request);
         return;
     }
-}
+};

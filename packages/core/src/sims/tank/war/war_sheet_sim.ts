@@ -148,7 +148,7 @@ class WarCycleProcessor extends CycleProcessor {
     }
 
     recordWrathful() {
-        if (this.wrathfulProgress == 2) {
+        if (this.wrathfulProgress === 2) {
             this.activateBuff(WrathfulBuff)
             this.wrathfulProgress = 0
         } else {

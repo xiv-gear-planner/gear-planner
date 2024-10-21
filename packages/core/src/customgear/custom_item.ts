@@ -107,6 +107,15 @@ export class CustomItem implements GearItem {
         this.recheckStats();
     }
 
+    get equipLvl() {
+        return this._data.equipLvl;
+    }
+
+    set equipLvl(equipLvl: number) {
+        this._data.equipLvl = equipLvl;
+        this.recheckStats();
+    }
+
     get respectCaps() {
         return this._data.respectCaps;
     }

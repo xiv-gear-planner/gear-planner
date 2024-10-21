@@ -335,7 +335,7 @@ export function baseDamageFull(stats: ComputedSetStats, potency: number, attackT
     }
 
     // Factor in trait multiplier, as well as the 1 extra damage if potency is less than 100
-    const finalDamage = fl(fl(stage1potency * traitMulti)) + ((potency < 100) ? 1 : 0);
+    const finalDamage = fl(stage1potency * traitMulti) + ((potency < 100) ? 1 : 0);
 
     if (finalDamage <= 1) {
         return fixedValue(1);
