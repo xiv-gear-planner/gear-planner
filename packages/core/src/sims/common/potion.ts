@@ -29,7 +29,7 @@ function makePotion(name: string, stat: RawStatKey, itemId: number, bonus: numbe
                         bonuses[stat] = potionBonus(stats[stat], bonus, cap);
                     },
                 },
-            }
+            },
         ],
 
     };

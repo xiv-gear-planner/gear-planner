@@ -59,7 +59,7 @@ export class SheetPickerTable extends CustomTable<SheetExport, SheetExport> {
                 shortName: "sheetname",
                 displayName: "Sheet Name",
                 getter: sheet => sheet.name,
-            }
+            },
         ];
         this.readData();
         this.selectionModel = {

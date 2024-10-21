@@ -259,7 +259,7 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
                 stats.bonusHaste.push(attackType =>
                     attackType === 'Weaponskill' || attackType === 'Auto-attack' ? 15 : 0);
             },
-        }
+        },
         ],
     },
     SAM: {
@@ -791,21 +791,21 @@ export const ARTIFACT_ITEM_LEVELS = [
     290,
     430,
     560,
-    690
+    690,
 ];
 
 export const BASIC_TOME_GEAR_ILVLS = [
     310,
     440,
     570,
-    700
+    700,
 ];
 
 export const RAID_TIER_ILVLS = [
     340, 370, 400,
     470, 500, 530,
     600, 630, 660,
-    730, 760, 790
+    730, 760, 790,
 ] as const as readonly number[];
 
 export function formatAcquisitionSource(source: GearAcquisitionSource): string | null {
@@ -846,7 +846,7 @@ const BLU_INT_WD = [
     // TODO: the following are predicted values for lvl90 BLU, will need to be verified
     [1340, 106], [1360, 107], [1390, 111], [1510, 113], [1590, 115], [1680, 117],
     [1780, 119], [1880, 121], [1980, 123], [2090, 125], [2200, 127], [2320, 129],
-    [2410, 131]
+    [2410, 131],
 ] as const as readonly (readonly number[])[];
 
 /**

@@ -99,7 +99,7 @@ const ogcdThatBreaksEverythingButThis = {
         {
             comboKey: "all",
             comboBehavior: "break",
-        }
+        },
     ],
 } as const satisfies Ability;
 

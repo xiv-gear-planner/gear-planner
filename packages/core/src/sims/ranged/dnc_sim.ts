@@ -390,7 +390,7 @@ export class DncDtSim extends BaseUsageCountSim<DncDtSimResults, DncDtSimSetting
 
         const common: SkillCount[] = [
             [danceOfTheDawn, 1],
-            [starfall, 1]
+            [starfall, 1],
 
         ];
         let result: SkillCount[] = [];
@@ -409,7 +409,7 @@ export class DncDtSim extends BaseUsageCountSim<DncDtSimResults, DncDtSimSetting
                 [fd4, FanDanceIVTotal],
                 [finishingMove, FinishingMoveTotal],
                 [lastDance, LastDanceTotal],
-                [techFinish, 1]
+                [techFinish, 1],
             ];
         }
         else if (buffDuration >= 30) { // In buffs of at least 30 seconds
@@ -425,7 +425,7 @@ export class DncDtSim extends BaseUsageCountSim<DncDtSimResults, DncDtSimSetting
                 [fd3, FanDanceIII30],
                 [fd4, FanDanceIV30],
                 [finishingMove, FinishingMove30],
-                [lastDance, LastDance30]
+                [lastDance, LastDance30],
             ];
         }
         else if (buffDuration >= 20) {  // In buffs of at least 20 seconds
@@ -441,7 +441,7 @@ export class DncDtSim extends BaseUsageCountSim<DncDtSimResults, DncDtSimSetting
                 [fd3, FanDanceIII20],
                 [fd4, FanDanceIV20],
                 [finishingMove, FinishingMove20],
-                [lastDance, LastDance20]
+                [lastDance, LastDance20],
             ];
         }
         else if (buffDuration >= 15) {  // In buffs of at least 15 seconds
@@ -457,7 +457,7 @@ export class DncDtSim extends BaseUsageCountSim<DncDtSimResults, DncDtSimSetting
                 [fd3, FanDanceIII15],
                 [fd4, FanDanceIV15],
                 [finishingMove, FinishingMove15],
-                [lastDance, LastDance15]
+                [lastDance, LastDance15],
             ];
         }
         else {

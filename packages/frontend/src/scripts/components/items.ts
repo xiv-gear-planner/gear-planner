@@ -266,7 +266,7 @@ export class FoodItemsTable extends CustomTable<FoodItem, FoodItem> {
             foodTableStatColumn(sheet, 'spellspeed', true),
             foodTableStatColumn(sheet, 'skillspeed', true),
             foodTableStatColumn(sheet, 'piety', true),
-            foodTableStatColumn(sheet, 'tenacity', true)
+            foodTableStatColumn(sheet, 'tenacity', true),
         ];
         this.selectionModel = {
             clickCell(cell: CustomCell<FoodItem, FoodItem>) {
@@ -346,7 +346,7 @@ export class FoodItemViewTable extends CustomTable<FoodItem, FoodItem> {
             foodTableStatViewColumn(sheet, item, 'spellspeed', true),
             foodTableStatViewColumn(sheet, item, 'skillspeed', true),
             foodTableStatViewColumn(sheet, item, 'piety', true),
-            foodTableStatViewColumn(sheet, item, 'tenacity', true)
+            foodTableStatViewColumn(sheet, item, 'tenacity', true),
         ];
         this.selectionModel = noopSelectionModel;
         super.data = [new HeaderRow(), item];
@@ -584,7 +584,7 @@ export class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
             itemTableStatColumn(sheet, gearSet, 'spellspeed', true),
             itemTableStatColumn(sheet, gearSet, 'skillspeed', true),
             itemTableStatColumn(sheet, gearSet, 'piety', true),
-            itemTableStatColumn(sheet, gearSet, 'tenacity', true)
+            itemTableStatColumn(sheet, gearSet, 'tenacity', true),
         ];
         const data: (TitleRow | HeaderRow | GearSlotItem)[] = [];
         const slotMateriaManagers = new Map<keyof EquipmentSet, AllSlotMateriaManager>();
@@ -858,7 +858,7 @@ export class GearItemsViewTable extends CustomTable<GearSlotItem, EquipmentSet> 
             itemTableStatColumn(sheet, gearSet, 'spellspeed', true),
             itemTableStatColumn(sheet, gearSet, 'skillspeed', true),
             itemTableStatColumn(sheet, gearSet, 'piety', true),
-            itemTableStatColumn(sheet, gearSet, 'tenacity', true)
+            itemTableStatColumn(sheet, gearSet, 'tenacity', true),
         ];
         this.selectionModel = noopSelectionModel;
         this.data = data;
@@ -912,7 +912,7 @@ export class AltItemsModal extends BaseModal {
                 renderer: value => {
                     return document.createTextNode(value ? (formatAcquisitionSource(value) ?? 'Unknown') : 'Unknown');
                 },
-            }
+            },
         ];
         table.data = [new HeaderRow(), baseItem, ...altItems];
         this.contentArea.appendChild(table);

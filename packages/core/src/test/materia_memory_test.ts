@@ -47,7 +47,7 @@ describe("Materia Memory", () => {
             {
                 materiaSlot: slot,
                 equippedMateria: mat2,
-            }
+            },
         ];
         const slots2: MeldableMateriaSlot[] = [
             {
@@ -57,7 +57,7 @@ describe("Materia Memory", () => {
             {
                 materiaSlot: slot,
                 equippedMateria: mat1,
-            }
+            },
         ];
         // Equip the same item in both slots
         const eq1: EquippedItem = new EquippedItem(gi1, slots1);

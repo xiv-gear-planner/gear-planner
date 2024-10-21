@@ -4,15 +4,15 @@ import { Buff, Ability, BuffController } from "@xivgear/core/sims/sim_types";
  * Samurai-specific Buffs
  */
 const FUKA_ACTIONS: string[] = [
-    "Shifu", "Kasha"
+    "Shifu", "Kasha",
 ];
 const FUGETSU_ACTIONS: string[] = [
-    "Jinpu", "Gekko"
+    "Jinpu", "Gekko",
 ];
 const MEIKYO_ACTIONS: string[] = [
     "Yukikaze",
     ...FUKA_ACTIONS,
-    ...FUGETSU_ACTIONS
+    ...FUGETSU_ACTIONS,
 ];
 
 export const Fuka: Buff = {

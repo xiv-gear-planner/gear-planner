@@ -112,7 +112,7 @@ const pom: OgcdAbility = {
             effects: {
                 haste: 20,
             },
-        }
+        },
     ],
     attackType: "Ability",
 };
@@ -390,7 +390,7 @@ const expectedAbilities: UseResult[] = [
         time: 28.94,
         name: "Glare",
         damage: 6909.599,
-    }
+    },
 ];
 
 

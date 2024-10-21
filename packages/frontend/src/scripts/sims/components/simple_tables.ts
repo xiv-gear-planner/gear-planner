@@ -43,7 +43,7 @@ export function simpleAutoResultTable(result: object): HTMLElement {
             displayName: 'Value',
             getter: item => item.value,
             renderer: bestEffortFormat,
-        }
+        },
     ];
     table.data = data;
     return table;
@@ -71,7 +71,7 @@ export function simpleMappedResultTable<X extends SimResult>(fieldNames: { [K in
                 displayName: 'Value',
                 getter: item => item.value,
                 renderer: bestEffortFormat,
-            }
+            },
         ];
         table.data = data;
         return table;

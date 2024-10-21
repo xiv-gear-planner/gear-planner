@@ -38,10 +38,10 @@ const itemColumns = [
     'Rarity',
     // TODO need replacement
     // 'GameContentLinks'
-    'Delayms'
+    'Delayms',
 ] as const;
 const itemColsExtra = [
-    'LevelItem'
+    'LevelItem',
 ] as const;
 export type XivApiItemDataRaw = XivApiResultSingle<typeof itemColumns, typeof itemColsExtra>;
 // 'Item' is only there because I need to figure out how to keep the type checking happy

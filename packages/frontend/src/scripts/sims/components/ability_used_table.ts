@@ -188,7 +188,7 @@ export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
                     return new BuffListDisplay(buffs);
                 },
             },
-            ...extraColumns
+            ...extraColumns,
         ];
         this.data = [new HeaderRow(), ...abilitiesUsed];
         // this.style.tableLayout = 'auto';

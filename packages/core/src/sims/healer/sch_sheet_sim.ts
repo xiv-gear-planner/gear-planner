@@ -392,7 +392,7 @@ export class SchSim extends BaseMultiCycleSim<SchSimResult, SchSettings, Scholar
                     }
                 });
             },
-        }))
+        })),
         ];
     }
 }

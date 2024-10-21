@@ -188,7 +188,7 @@ export const fof: OgcdAbility = {
             effects: {
                 dmgIncrease: 0.25,
             },
-        }
+        },
     ],
 };
 

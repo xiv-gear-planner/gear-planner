@@ -64,7 +64,7 @@ class RenameModal extends BaseModal {
 
         const form = quickElement('form', [], [
             this.nameInput,
-            this.descriptionInput
+            this.descriptionInput,
         ]);
         this.contentArea.appendChild(form);
         this.addButton(this.applyButton);

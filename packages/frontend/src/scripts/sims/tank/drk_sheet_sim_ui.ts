@@ -171,7 +171,7 @@ export class DrkSimGui extends BaseMultiCycleSimGui<DrkSimResult, DrkSettings> {
                 }
                 return document.createTextNode("");
             },
-        }
+        },
         ];
     }
 

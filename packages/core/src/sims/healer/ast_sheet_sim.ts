@@ -463,7 +463,7 @@ export class AstSim extends BaseMultiCycleSim<AstSimResult, AstSettings, AstCycl
                     }
                 });
             },
-        }))
+        })),
         ];
     }
 }

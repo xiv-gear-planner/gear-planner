@@ -382,7 +382,7 @@ export class StatTierDisplay extends HTMLDivElement {
                     description: 'Damage reduction from Tenacity',
                     tieringFunc: makeTiering(value => tenacityIncomingDmg(levelStats, value)),
                     extraOffsets: extraOffsets,
-                }
+                },
                 ];
             default:
                 return [{

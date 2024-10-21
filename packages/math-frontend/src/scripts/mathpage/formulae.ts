@@ -242,7 +242,7 @@ export function registerFormulae() {
                 argExtractor: async function (args, gen) {
                     return [gen.levelStats, args.sks];
                 },
-            }
+            },
         ],
         variables: [
             baseGcdVar,
@@ -253,7 +253,7 @@ export function registerFormulae() {
                 integer: true,
                 min: baseSub,
             },
-            hasteVar
+            hasteVar,
         ],
         primaryVariable: 'sks',
         makeDefaultInputs: (gen) => {
@@ -283,7 +283,7 @@ export function registerFormulae() {
                 argExtractor: async function (args, gen) {
                     return [gen.levelStats, args.sps];
                 },
-            }
+            },
         ],
         variables: [
             baseGcdVar,
@@ -294,7 +294,7 @@ export function registerFormulae() {
                 integer: true,
                 min: baseSub,
             },
-            hasteVar
+            hasteVar,
         ],
         makeDefaultInputs: (gen: GeneralSettings) => {
             return {

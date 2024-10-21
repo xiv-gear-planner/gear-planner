@@ -334,7 +334,7 @@ export class CustomFoodTable extends CustomTable<CustomFood> {
                     return new FieldBoundIntField(item.customData.secondaryStatBonus, 'max', {postValidators: [nonNegative],});
                 },
                 initialWidth: 60,
-            }
+            },
         ];
 
         this.refresh();

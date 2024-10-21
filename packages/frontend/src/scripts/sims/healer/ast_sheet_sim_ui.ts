@@ -79,7 +79,7 @@ class AstGaugeGui {
                 }
                 return document.createTextNode("");
             },
-        }
+        },
         ];
     }
 }

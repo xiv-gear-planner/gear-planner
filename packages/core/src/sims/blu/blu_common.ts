@@ -18,7 +18,7 @@ import { BaseMultiCycleSim } from "../processors/sim_processors";
 const BLU_BLEED_SPELLS = [
     "Nightbloom",
     "Song of Torment",
-    "Aetherial Spark"
+    "Aetherial Spark",
 ] as const as readonly string[];
 
 /**
@@ -43,7 +43,7 @@ const BLU_PHYSICAL_SPELLS = [
     "Wild Rage",
     "Deep Clean",
     "Ruby Dynamics",
-    "Winged Reprobation"
+    "Winged Reprobation",
 ] as const as readonly string[];
 
 /**
@@ -51,7 +51,7 @@ const BLU_PHYSICAL_SPELLS = [
  */
 const BLU_CHANNELED_ABILITIES = [
     "Phantom Flurry",
-    "Apokalypsis"
+    "Apokalypsis",
 ] as const as readonly string[];
 
 /**

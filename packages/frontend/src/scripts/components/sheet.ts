@@ -581,7 +581,7 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                 extraClasses: ['stat-col', 'multiplier-mit-stat-col'],
                 rowCondition: noSeparators,
             },
-            ...(viewOnly ? [] : simColumns)
+            ...(viewOnly ? [] : simColumns),
         ];
     }
 
@@ -839,7 +839,7 @@ export class GearSetEditor extends HTMLElement {
             makeActionButton('Change Name/Description', () => {
                 startRenameSet(writeProxy(this.gearSet, () => this.formatTitleDesc()));
             }),
-            issuesButton
+            issuesButton,
         ]);
 
         this.appendChild(buttonArea);
@@ -985,7 +985,7 @@ export class SeparatorEditor extends HTMLElement {
         const buttonArea = quickElement('div', ['gear-set-editor-button-area', 'button-row'], [
             makeActionButton('Change Name/Description', () => {
                 startRenameSet(writeProxy(this.gearSet, () => this.formatTitleDesc()));
-            })
+            }),
         ]);
 
         this.appendChild(buttonArea);
@@ -2096,7 +2096,7 @@ export class AddSimDialog extends BaseModal {
                 displayName: 'Name',
                 // fixedWidth: 500,
                 getter: item => item.displayName,
-            }
+            },
         ];
         this.table.data = this.sheet.relevantSims;
         const showAllCb = labeledCheckbox('Show sims for other jobs', new FieldBoundCheckBox<AddSimDialog>(this, 'showAllSims'));

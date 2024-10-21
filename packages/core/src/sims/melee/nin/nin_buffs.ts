@@ -16,19 +16,19 @@ export const KunaisBaneBuff: Buff = {
 };
 
 const NINJUTSU_ACTIONS_1STEP: string[] = [
-    "Fuma Shuriken"
+    "Fuma Shuriken",
 ];
 const NINJUTSU_ACTIONS_2STEP: string[] = [
     "Katon", "Raiton", "Hyoton",
-    "Hyosho Ranryu", "Goka Mekkyaku"
+    "Hyosho Ranryu", "Goka Mekkyaku",
 ];
 const NINJUTSU_ACTIONS_3STEP: string[] = [
-    "Huton", "Doton", "Suiton"
+    "Huton", "Doton", "Suiton",
 ];
 const NINJUTSU_ACTIONS: string[] = [
     ...NINJUTSU_ACTIONS_1STEP,
     ...NINJUTSU_ACTIONS_2STEP,
-    ...NINJUTSU_ACTIONS_3STEP
+    ...NINJUTSU_ACTIONS_3STEP,
 ];
 export const KassatsuBuff: Buff = {
     name: "Kassatsu",

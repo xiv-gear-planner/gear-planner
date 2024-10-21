@@ -59,7 +59,7 @@ export default [
             "@stylistic/js/no-mixed-spaces-and-tabs": "error",
             "@stylistic/js/comma-dangle": ["error", {
                 "functions": "never",
-                "arrays": "never",
+                "arrays": "always-multiline",
                 "objects": "always",
                 "imports": "never",
                 "exports": "never",

@@ -248,7 +248,7 @@ export class SgeSheetSim extends BaseMultiCycleSim<SgeSheetSimResult, SgeNewShee
                     cycle.useUntil(filler, 'end');
                 });
             },
-        }))
+        })),
         ];
     }
 

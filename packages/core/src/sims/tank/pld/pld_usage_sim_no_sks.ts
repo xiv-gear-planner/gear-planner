@@ -71,7 +71,7 @@ export class PldUsageSim extends BaseUsageCountSim<PldUsageSimResults, PldUsageS
                 [Actions.atone, 17],
                 [Actions.supp, 15],
                 [Actions.sep, 13],
-                [Actions.hs, 13]
+                [Actions.hs, 13],
             ];
         }
         else if (buffDuration >= 30) {
@@ -92,7 +92,7 @@ export class PldUsageSim extends BaseUsageCountSim<PldUsageSimResults, PldUsageS
                 [Actions.atone, 2],
                 [Actions.supp, 2.5],
                 [Actions.sep, 2],
-                [Actions.hs, 1.5]
+                [Actions.hs, 1.5],
             ];
         }
         else if (buffDuration >= 20) {
@@ -106,7 +106,7 @@ export class PldUsageSim extends BaseUsageCountSim<PldUsageSimResults, PldUsageS
                 [Actions.buffed(Actions.atone), 1],
                 [Actions.buffed(Actions.supp), 2],
                 [Actions.buffed(Actions.sep), 3],
-                [Actions.buffed(Actions.hs), 3]
+                [Actions.buffed(Actions.hs), 3],
             ];
         }
         else if (buffDuration >= 15) {
@@ -119,7 +119,7 @@ export class PldUsageSim extends BaseUsageCountSim<PldUsageSimResults, PldUsageS
                 [Actions.buffed(Actions.royal), 0.5],
                 [Actions.buffed(Actions.atone), 0.5],
                 [Actions.buffed(Actions.supp), 1.5],
-                [Actions.buffed(Actions.sep), 1]
+                [Actions.buffed(Actions.sep), 1],
             ];
         }
         else {
@@ -131,18 +131,18 @@ export class PldUsageSim extends BaseUsageCountSim<PldUsageSimResults, PldUsageS
             [Actions.buffed(Actions.cos), 3.5],
             [Actions.buffed(Actions.exp), 3.5],
             [Actions.buffed(Actions.int), 7],
-            [Actions.buffed(Actions.honor), 3.5]
+            [Actions.buffed(Actions.honor), 3.5],
         ];
         const fofOgcds: SkillCount[] = [
             [Actions.buffed(Actions.imp), 7],
             [Actions.buffed(Actions.cos), 7],
             [Actions.buffed(Actions.exp), 7],
             [Actions.buffed(Actions.int), 14],
-            [Actions.buffed(Actions.honor), 7]
+            [Actions.buffed(Actions.honor), 7],
         ];
         const unbuffedOgcds: SkillCount[] = [
             [Actions.cos, 7],
-            [Actions.exp, 7]
+            [Actions.exp, 7],
         ];
 
         if (buffDuration) {

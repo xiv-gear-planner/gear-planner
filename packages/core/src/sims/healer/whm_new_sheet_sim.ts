@@ -92,7 +92,7 @@ const pom: WhmOgcdAbility = {
             },
             statusId: 157,
         },
-        SacredSight
+        SacredSight,
     ],
     attackType: "Ability",
     cooldown: {
@@ -403,7 +403,7 @@ export class WhmSim extends BaseMultiCycleSim<WhmSimResult, WhmSettings, WhmCycl
                     }
                 });
             },
-        }))
+        })),
         ];
     }
 }

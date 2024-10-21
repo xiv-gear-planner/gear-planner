@@ -245,7 +245,7 @@ export const OffGuardBuff = {
 export const ALL_BUFFS = [
     Dokumori, Litany, Brotherhood, ArcaneCircleBuff, SearingLight, Embolden, StarryMuse,
     Devilment, TechnicalFinish, BattleVoice, RadiantFinale, Chain, Divination,
-    AstCard, OffGuardBuff
+    AstCard, OffGuardBuff,
 ] as const;
 
 export type BuffSaveKey = typeof ALL_BUFFS[number]['name'] | typeof ALL_BUFFS[number]['saveKey'];
