@@ -13,7 +13,7 @@
     "global-jsdom": "^25.0.0",
     "isomorphic-fetch": "^3.0.0",
     "jsdom": "^25.0.1",
-    "node-fetch-cache": "^5.0.2",
+    "node-fetch-cache": "^4.1.0",
     "npm-bundle": "^3.0.3",
     "fastify-web-response": "^0.1.2"
   },
