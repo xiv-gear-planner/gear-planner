@@ -539,4 +539,4 @@ const FORM_ABILITIES: number[] = [Bootshine.id, DragonKick.id, LeapingOpo.id, Tr
 /** The priority of gcds to execute when building a solar blitz to push the highest potency sequence under RoF */
 export const SOLAR_WEAKEST_STRONGEST: FuryAbility[] = [DragonKick, Demolish, TwinSnakes, PouncingCoeurl, RisingRaptor, LeapingOpo];
 // TODO add TheForbiddenChakra
-export const OGCD_PRIORITY: OgcdAbility[] = [Brotherhood, RiddleOfFire, RiddleOfWind];
+export const OGCD_PRIORITY: OgcdAbility[] = [Brotherhood, RiddleOfFire, RiddleOfWind, TheForbiddenChakra];

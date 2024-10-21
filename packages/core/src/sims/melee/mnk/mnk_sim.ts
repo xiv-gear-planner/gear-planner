@@ -5,7 +5,7 @@ import { CharacterGearSet } from "@xivgear/core/gear";
 import { BaseMultiCycleSim } from "@xivgear/core/sims/processors/sim_processors";
 import { FuryAbility, MnkAbility, MNKExtraData, MnkGcdAbility } from "./mnk_types";
 import { MNKGauge as MnkGauge } from "./mnk_gauge";
-import { Brotherhood, CoeurlForm, Demolish, DragonKick, ElixirBurst, FiresReply, FiresRumination, ForbiddenMeditation, FormShift, FormlessFist, LeapingOpo, OGCD_PRIORITY, OPO_ABILITIES, OpoForm, PerfectBalance, PerfectBalanceBuff, PhantomRush, PouncingCoeurl, RaptorForm, RiddleOfFire, RiddleOfFireBuff, RiddleOfWind, RisingPhoenix, RisingRaptor, SOLAR_WEAKEST_STRONGEST, TheForbiddenChakra, TwinSnakes, WindsReply, WindsRumination } from "./mnk_actions";
+import { Brotherhood, CoeurlForm, Demolish, DragonKick, ElixirBurst, FiresReply, FiresRumination, ForbiddenMeditation, FormShift, FormlessFist, LeapingOpo, OGCD_PRIORITY, OPO_ABILITIES, OpoForm, OpoFury, PerfectBalance, PerfectBalanceBuff, PhantomRush, PouncingCoeurl, RaptorForm, RiddleOfFire, RiddleOfFireBuff, RiddleOfWind, RisingPhoenix, RisingRaptor, SOLAR_WEAKEST_STRONGEST, TheForbiddenChakra, TwinSnakes, WindsReply, WindsRumination } from "./mnk_actions";
 import { sum } from "../../../util/array_utils";
 import { STANDARD_ANIMATION_LOCK } from "@xivgear/xivmath/xivconstants";
 
@@ -70,6 +70,12 @@ class MNKCycleProcessor extends CycleProcessor {
         };
 
         super.addAbilityUse(modified);
+        if (usedAbility.ability.type === 'gcd') {
+            const probableChakraGain = usedAbility.ability.id === LeapingOpo.id && usedAbility.buffs.find(buff => [PerfectBalanceBuff.statusId, OpoForm.statusId].includes(buff.statusId))
+                ? 1
+                : this.stats.critChance + usedAbility.combinedEffects.critChanceIncrease;
+            this.gauge.chakra += probableChakraGain;
+        }
     }
 
     // 5s DK opener
@@ -145,7 +151,12 @@ class MNKCycleProcessor extends CycleProcessor {
             this.cleanupForms();
         }
 
-        const ogcdsAvailable: OgcdAbility[] = OGCD_PRIORITY.filter((ogcd: OgcdAbility) => this.cdTracker.canUse(ogcd, this.nextGcdTime))
+        const ogcdsAvailable: OgcdAbility[] = OGCD_PRIORITY.filter((ogcd: OgcdAbility) => {
+            if (ogcd.id === TheForbiddenChakra.id) {
+                return this.gauge.chakra >= 5 && this.cdTracker.canUse(ogcd, this.nextGcdTime);
+            }
+            return this.cdTracker.canUse(ogcd, this.nextGcdTime)
+        });
         ogcdsAvailable.forEach(ogcd => {
             if (this.canUseWithoutClipping(ogcd)) {
                 if (ogcd.id === RiddleOfFire.id) {
