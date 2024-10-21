@@ -141,7 +141,7 @@ export function getRelicStatModelFor(gearItem: GearItem, baseParams: BaseParamMa
             excludedStats: jobData.excludedRelicSubstats,
             ...partial,
             validate(item: EquippedItem, statToReport?: Substat): GearSetIssue[] {
-                const failures = [...partial.validate(item, statToReport),];
+                const failures = [...partial.validate(item, statToReport)];
                 const relicStats = item.relicStats;
                 if (statToReport) {
                     if (relicStats[statToReport] && jobData.excludedRelicSubstats.includes(statToReport)) {
@@ -172,21 +172,21 @@ function getRelicStatModelForPartial(gearItem: GearItem, baseParams: BaseParamMa
     const statCap = gearItem.unsyncedVersion.statCaps['crit'];
     switch (gearItem.ilvl) {
     // EW relics are 2 capped stats, and one 72
-    case 665:
-        return ewRelic(statCap, Math.round(72 * slotModifier));
-    case 645:
-        return ewRelic(statCap, Math.round(72 * slotModifier));
-    case 535:
-        return customRelic(Math.round(468 * slotModifier));
-    case 515:
-        return customRelic(Math.round(462 * slotModifier));
+        case 665:
+            return ewRelic(statCap, Math.round(72 * slotModifier));
+        case 645:
+            return ewRelic(statCap, Math.round(72 * slotModifier));
+        case 535:
+            return customRelic(Math.round(468 * slotModifier));
+        case 515:
+            return customRelic(Math.round(462 * slotModifier));
     }
     return {
         type: "unknown",
         validate(item: EquippedItem, statToReport?: Substat): GearSetIssue[] {
             const out: GearSetIssue[] = [];
             const caps = item.gearItem.unsyncedVersion.statCaps;
-            for (const stat in (statToReport ? [statToReport,] : ALL_SUB_STATS)) {
+            for (const stat in (statToReport ? [statToReport] : ALL_SUB_STATS)) {
                 const current = item.relicStats[stat];
                 const cap = caps;
                 if (current && cap && current > cap) {

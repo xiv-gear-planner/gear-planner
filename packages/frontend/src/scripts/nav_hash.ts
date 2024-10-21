@@ -55,7 +55,7 @@ export function arrayEq(left: unknown[] | undefined, right: unknown[] | undefine
  * Get the current page path
  */
 export function getCurrentHash() {
-    return [...expectedHash,];
+    return [...expectedHash];
 }
 
 /**
@@ -120,67 +120,67 @@ async function doNav(pathParts: string[]) {
         hideWelcomeArea();
     }
     switch (nav.type) {
-    case "mysheets":
-        console.info("No sheet open");
-        showSheetPickerMenu();
-        return;
-    case "newsheet":
-        showNewSheetForm();
-        return;
-    case "importform":
-        showImportSheetForm();
-        return;
-    case "saved": {
-        const saveKey = nav.saveKey;
-        console.log("Loading: " + saveKey);
-        openSheetByKey(saveKey);
-        return;
-    }
-    case "shortlink": {
-        showLoadingScreen();
-        const uuid = nav.uuid;
-        const resolved: string | null = await getShortLink(uuid);
-        if (resolved) {
-            const json = JSON.parse(resolved);
-            openExport(json, false, true);
+        case "mysheets":
+            console.info("No sheet open");
+            showSheetPickerMenu();
+            return;
+        case "newsheet":
+            showNewSheetForm();
+            return;
+        case "importform":
+            showImportSheetForm();
+            return;
+        case "saved": {
+            const saveKey = nav.saveKey;
+            console.log("Loading: " + saveKey);
+            openSheetByKey(saveKey);
             return;
         }
-        else {
-            console.error('Non-existent shortlink, or other error', uuid);
-            // TODO: better error display for non-embed
-            if (isEmbed) {
-                displayEmbedError("That set/sheet does not seem to exist.");
-            }
-        }
-        break;
-    }
-    case "setjson":
-        openExport(nav.jsonBlob as SetExport, false, nav.viewOnly);
-        return;
-    case "sheetjson":
-        openExport(nav.jsonBlob as SheetExport, false, nav.viewOnly);
-        return;
-    case "bis": {
-        showLoadingScreen();
-        try {
-            const resolved: string | null = await getBisSheet(nav.job, nav.expac, nav.sheet);
+        case "shortlink": {
+            showLoadingScreen();
+            const uuid = nav.uuid;
+            const resolved: string | null = await getShortLink(uuid);
             if (resolved) {
                 const json = JSON.parse(resolved);
                 openExport(json, false, true);
                 return;
             }
             else {
-                console.error('Non-existent bis, or other error', [nav.job, nav.expac, nav.sheet,]);
+                console.error('Non-existent shortlink, or other error', uuid);
+                // TODO: better error display for non-embed
+                if (isEmbed) {
+                    displayEmbedError("That set/sheet does not seem to exist.");
+                }
             }
+            break;
         }
-        catch (e) {
-            console.error("Error loading bis", e);
+        case "setjson":
+            openExport(nav.jsonBlob as SetExport, false, nav.viewOnly);
+            return;
+        case "sheetjson":
+            openExport(nav.jsonBlob as SheetExport, false, nav.viewOnly);
+            return;
+        case "bis": {
+            showLoadingScreen();
+            try {
+                const resolved: string | null = await getBisSheet(nav.job, nav.expac, nav.sheet);
+                if (resolved) {
+                    const json = JSON.parse(resolved);
+                    openExport(json, false, true);
+                    return;
+                }
+                else {
+                    console.error('Non-existent bis, or other error', [nav.job, nav.expac, nav.sheet]);
+                }
+            }
+            catch (e) {
+                console.error("Error loading bis", e);
+            }
+            const errMsg = document.createElement('h1');
+            errMsg.textContent = 'Error Loading Sheet/Set';
+            setMainContent('Error', errMsg);
+            return;
         }
-        const errMsg = document.createElement('h1');
-        errMsg.textContent = 'Error Loading Sheet/Set';
-        setMainContent('Error', errMsg);
-        return;
-    }
     }
     console.error("I don't know what to do with this path", pathParts);
     // TODO: handle remaining invalid cases
@@ -218,7 +218,7 @@ export function setHash(...hashParts: string[]) {
             return;
         }
     }
-    expectedHash = [...hashParts,];
+    expectedHash = [...hashParts];
     console.log("New hash parts", hashParts);
     const hash = hashParts.map(part => encodeURIComponent(part)).join(PATH_SEPARATOR);
     // location.hash = '#' + hashParts.map(part => '/' + encodeURIComponent(part)).join('');

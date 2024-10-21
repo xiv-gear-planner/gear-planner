@@ -100,7 +100,7 @@ class PaladinStateSystem {
 
 
     debugState() {
-        console.log([this.comboState, this.swordOath, this.divineMight,].toString());
+        console.log([this.comboState, this.swordOath, this.divineMight].toString());
     }
 }
 
@@ -136,8 +136,8 @@ export const pldSKSSheetSpec: SimSpec<PldSKSSheetSim, PldSKSSheetSettingsExterna
     makeNewSimInstance: function (): PldSKSSheetSim {
         return new PldSKSSheetSim();
     },
-    supportedJobs: ['PLD',],
-    supportedLevels: [100,],
+    supportedJobs: ['PLD'],
+    supportedLevels: [100],
     description: "Paladin w/SKS Strategy Simulator (DT 7.05)\n" +
         "A playground for trying different rotation ideas as they relate to PLD, at 2.50 GCD, and Faster!\n" +
         "Warning! Assert EXTREME caution when comparing different GCDs speeds. Mostly you should " +
@@ -149,8 +149,8 @@ export const pldSKSSheetSpec: SimSpec<PldSKSSheetSim, PldSKSSheetSettingsExterna
             type: 'discord',
             discordTag: 'chromatophore',
             discordUid: '240554238093164556',
-        },],
-    },],
+        }],
+    }],
 };
 
 class PldSKSCycleProcessor extends CycleProcessor {
@@ -737,7 +737,7 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
 
                         // TODO: Intervene will be available earlier than other other oGCDs after a certain point:
                         const ogcdOrder = [ActionRecordOgcd["Imp"], ActionRecordOgcd["Cos"], ActionRecordOgcd["Exp"],
-                            ActionRecordOgcd["Int"], ActionRecordOgcd["Int"],];
+                            ActionRecordOgcd["Int"], ActionRecordOgcd["Int"]];
 
                         /////////////////
                         // We have now entered burst: perform all burst actions:
@@ -937,7 +937,7 @@ export class PldSKSSheetSim extends BaseMultiCycleSim<PldSKSSheetSimResult, PldS
                 }
             },
 
-        },];
+        }];
     }
 
 }

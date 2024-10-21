@@ -61,7 +61,7 @@ export class NINGaugeGui {
                 }
                 return document.createTextNode(textContent);
             },
-        },];
+        }];
     }
 
 }
@@ -70,7 +70,7 @@ export class NinSheetSimGui extends BaseMultiCycleSimGui<NinSimResult, NinSettin
     override makeAbilityUsedTable(result: NinSimResult): AbilitiesUsedTable {
         const extraColumns = NINGaugeGui.generateResultColumns(result);
         const table = super.makeAbilityUsedTable(result);
-        const newColumns = [...table.columns,];
+        const newColumns = [...table.columns];
         newColumns.splice(newColumns.findIndex(col => col.shortName === 'expected-damage') + 1, 0, ...extraColumns);
         table.columns = newColumns;
         return table;

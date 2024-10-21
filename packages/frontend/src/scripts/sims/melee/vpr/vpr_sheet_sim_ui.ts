@@ -86,7 +86,7 @@ class VprGaugeGui {
                 }
                 return document.createTextNode("");
             },
-        },
+        }
         ];
     }
 }
@@ -95,7 +95,7 @@ export class VprSimGui extends BaseMultiCycleSimGui<VprSimResult, VprSimSettings
     override makeAbilityUsedTable(result: VprSimResult): AbilitiesUsedTable {
         const extraColumns = VprGaugeGui.generateResultColumns(result);
         const table = super.makeAbilityUsedTable(result);
-        const newColumns = [...table.columns,];
+        const newColumns = [...table.columns];
         newColumns.splice(newColumns.findIndex(col => col.shortName === 'expected-damage') + 1, 0, ...extraColumns);
         table.columns = newColumns;
         return table;

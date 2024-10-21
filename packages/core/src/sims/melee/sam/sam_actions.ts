@@ -40,7 +40,7 @@ export const Jinpu: SamGcdAbility = {
     potency: 300,
     gcd: 2.5,
     cast: 0,
-    activatesBuffs: [Fugetsu,],
+    activatesBuffs: [Fugetsu],
     updateGauge: (gauge: SAMGauge) => {
         gauge.kenkiGauge += 5;
     },
@@ -54,7 +54,7 @@ export const Shifu: SamGcdAbility = {
     potency: 300,
     gcd: 2.5,
     cast: 0,
-    activatesBuffs: [Fuka,],
+    activatesBuffs: [Fuka],
     updateGauge: (gauge: SAMGauge) => {
         gauge.kenkiGauge += 5;
     },
@@ -288,7 +288,7 @@ export const MeikyoShisui: SamOgcdAbility = {
         time: 55,
         charges: 2,
     },
-    activatesBuffs: [MeikyoShisuiBuff,],
+    activatesBuffs: [MeikyoShisuiBuff],
 };
 
 export const Hagakure: SamOgcdAbility = {

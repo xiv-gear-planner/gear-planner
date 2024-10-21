@@ -10,7 +10,7 @@ export const SteelFangs: VprGcdAbility = {
     attackType: "Weaponskill",
     gcd: 2.5,
     cast: 0,
-    activatesBuffs: [HonedReavers,],
+    activatesBuffs: [HonedReavers],
 };
 
 export const ReavingFangs: VprGcdAbility = {
@@ -21,7 +21,7 @@ export const ReavingFangs: VprGcdAbility = {
     attackType: "Weaponskill",
     gcd: 2.5,
     cast: 0,
-    activatesBuffs: [HonedSteel,],
+    activatesBuffs: [HonedSteel],
 };
 
 export const HuntersSting: VprGcdAbility = {
@@ -32,7 +32,7 @@ export const HuntersSting: VprGcdAbility = {
     attackType: "Weaponskill",
     gcd: 2.5,
     cast: 0,
-    activatesBuffs: [HuntersInstinct,],
+    activatesBuffs: [HuntersInstinct],
 };
 
 export const SwiftskinsSting: VprGcdAbility = {
@@ -43,7 +43,7 @@ export const SwiftskinsSting: VprGcdAbility = {
     attackType: "Weaponskill",
     gcd: 2.5,
     cast: 0,
-    activatesBuffs: [Swiftscaled,],
+    activatesBuffs: [Swiftscaled],
 };
 
 export const FlankstingStrike: VprGcdAbility = {
@@ -54,7 +54,7 @@ export const FlankstingStrike: VprGcdAbility = {
     attackType: "Weaponskill",
     gcd: 2.5,
     cast: 0,
-    activatesBuffs: [HindstungVenom,],
+    activatesBuffs: [HindstungVenom],
     updateGauge: gauge => gauge.serpentOfferings += 10,
 };
 
@@ -66,7 +66,7 @@ export const FlanksbaneFang: VprGcdAbility = {
     attackType: "Weaponskill",
     gcd: 2.5,
     cast: 0,
-    activatesBuffs: [HindsbaneVenom,],
+    activatesBuffs: [HindsbaneVenom],
     updateGauge: gauge => gauge.serpentOfferings += 10,
 };
 
@@ -78,7 +78,7 @@ export const HindstingStrike: VprGcdAbility = {
     attackType: "Weaponskill",
     gcd: 2.5,
     cast: 0,
-    activatesBuffs: [FlanksbaneVenom,],
+    activatesBuffs: [FlanksbaneVenom],
     updateGauge: gauge => gauge.serpentOfferings += 10,
 };
 
@@ -90,7 +90,7 @@ export const HindsbaneFang: VprGcdAbility = {
     attackType: "Weaponskill",
     gcd: 2.5,
     cast: 0,
-    activatesBuffs: [FlankstungVenom,],
+    activatesBuffs: [FlankstungVenom],
     updateGauge: gauge => gauge.serpentOfferings += 10,
 };
 
@@ -117,7 +117,7 @@ export const HuntersCoil: VprGcdAbility = {
     attackType: "Weaponskill",
     gcd: 3.0,
     cast: 0,
-    activatesBuffs: [HuntersInstinct,],
+    activatesBuffs: [HuntersInstinct],
     updateGauge: gauge => gauge.serpentOfferings += 5,
 };
 
@@ -129,7 +129,7 @@ export const SwiftskinsCoil: VprGcdAbility = {
     attackType: "Weaponskill",
     gcd: 3.0,
     cast: 0,
-    activatesBuffs: [Swiftscaled,],
+    activatesBuffs: [Swiftscaled],
     updateGauge: gauge => gauge.serpentOfferings += 5,
 };
 
@@ -242,7 +242,7 @@ export const SerpentsIre: VprOgcdAbility = {
     },
     attackType: 'Ability',
     updateGauge: gauge => gauge.rattlingCoils += 1,
-    activatesBuffs: [ReadyToReawaken,],
+    activatesBuffs: [ReadyToReawaken],
 };
 
 export const TwinfangBite: VprOgcdAbility = {

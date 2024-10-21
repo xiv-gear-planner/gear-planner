@@ -92,7 +92,7 @@ const pom: WhmOgcdAbility = {
             },
             statusId: 157,
         },
-        SacredSight,
+        SacredSight
     ],
     attackType: "Ability",
     cooldown: {
@@ -185,7 +185,7 @@ export const whmNewSheetSpec: SimSpec<WhmSim, WhmSettingsExternal> = {
         return new WhmSim();
     },
     stub: "whm-new-sheet-sim",
-    supportedJobs: ['WHM',],
+    supportedJobs: ['WHM'],
     isDefaultSim: true,
 };
 
@@ -403,7 +403,7 @@ export class WhmSim extends BaseMultiCycleSim<WhmSimResult, WhmSettings, WhmCycl
                     }
                 });
             },
-        })),
+        }))
         ];
     }
 }

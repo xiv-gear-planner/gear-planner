@@ -43,8 +43,8 @@ export const samSpec: SimSpec<SamSim, SamSettingsExternal> = {
     loadSavedSimInstance: function (exported: SamSettingsExternal) {
         return new SamSim(exported);
     },
-    supportedJobs: ['SAM',],
-    supportedLevels: [100,],
+    supportedJobs: ['SAM'],
+    supportedLevels: [100],
     isDefaultSim: true,
     maintainers: [{
         name: 'Makar',
@@ -52,15 +52,15 @@ export const samSpec: SimSpec<SamSim, SamSettingsExternal> = {
             type: 'discord',
             discordTag: 'makar',
             discordUid: '85924030661533696',
-        },],
+        }],
     }, {
         name: 'boxer',
         contact: [{
             type: 'discord',
             discordTag: '.boxer',
             discordUid: '123575345898061825',
-        },],
-    },],
+        }],
+    }],
 };
 
 class SAMCycleProcessor extends CycleProcessor {
@@ -173,8 +173,8 @@ export class SamSim extends BaseMultiCycleSim<SamSimResult, SamSettings, SAMCycl
             return {
                 name: "2.14 GCD Rotation",
                 rotation: {
-                    opener: [...SlowSamRotation.Opener,],
-                    loop: [...SlowSamRotation.Loop,],
+                    opener: [...SlowSamRotation.Opener],
+                    loop: [...SlowSamRotation.Loop],
                 },
             };
         }
@@ -183,8 +183,8 @@ export class SamSim extends BaseMultiCycleSim<SamSimResult, SamSettings, SAMCycl
             return {
                 name: "2.07 GCD Rotation",
                 rotation: {
-                    opener: [...MidSamRotation.Opener,],
-                    loop: [...MidSamRotation.Loop,],
+                    opener: [...MidSamRotation.Opener],
+                    loop: [...MidSamRotation.Loop],
                 },
             };
         }
@@ -192,8 +192,8 @@ export class SamSim extends BaseMultiCycleSim<SamSimResult, SamSettings, SAMCycl
         return {
             name: "2.00 GCD Rotation",
             rotation: {
-                opener: [...FastSamRotation.Opener,],
-                loop: [...FastSamRotation.Loop,],
+                opener: [...FastSamRotation.Opener],
+                loop: [...FastSamRotation.Loop],
             },
         };
     }
@@ -236,6 +236,6 @@ export class SamSim extends BaseMultiCycleSim<SamSimResult, SamSettings, SAMCycl
                     });
                 }
             },
-        },];
+        }];
     }
 }

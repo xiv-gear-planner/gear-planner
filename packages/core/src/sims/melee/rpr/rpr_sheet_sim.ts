@@ -35,7 +35,7 @@ export const rprSheetSpec: SimSpec<RprSheetSim, RprSimSettingsExternal> = {
     loadSavedSimInstance: function (exported: RprSimSettingsExternal) {
         return new RprSheetSim(exported);
     },
-    supportedJobs: ['RPR',],
+    supportedJobs: ['RPR'],
     isDefaultSim: true,
 };
 
@@ -195,7 +195,7 @@ class RprCycleProcessor extends CycleProcessor {
         }
     }
 
-    comboActions: RprGcdAbility[] = [Actions.Slice, Actions.WaxingSlice, Actions.InfernalSlice,];
+    comboActions: RprGcdAbility[] = [Actions.Slice, Actions.WaxingSlice, Actions.InfernalSlice];
     useCombo() {
         this.useGcd(this.comboActions[this.rotationState.combo++]);
         this.rotationState.lastComboTime = this.currentTime;
@@ -224,14 +224,14 @@ class RprCycleProcessor extends CycleProcessor {
 
         this.useGcd(Actions.ShadowOfDeath);
 
-        this.advanceForLateWeave([potionMaxStr,]);
+        this.advanceForLateWeave([potionMaxStr]);
         if (pot) {
             this.useOgcd(potionMaxStr);
         }
 
         this.useGcd(Actions.SoulSlice);
 
-        this.advanceForLateWeave([Actions.ArcaneCircle, Actions.Gluttony,]);
+        this.advanceForLateWeave([Actions.ArcaneCircle, Actions.Gluttony]);
         this.useOgcd(Actions.ArcaneCircle);
         this.useOgcd(Actions.Gluttony);
 
@@ -290,7 +290,7 @@ class RprCycleProcessor extends CycleProcessor {
             this.useGcd(Actions.ShadowOfDeath);
 
             if (this.currentTime < 240) { // Hacky way to single out the first burst
-                this.advanceForLateWeave([Actions.ArcaneCircle,]);
+                this.advanceForLateWeave([Actions.ArcaneCircle]);
             }
             this.useOgcd(Actions.ArcaneCircle);
         }
@@ -415,7 +415,7 @@ export class RprSheetSim extends BaseMultiCycleSim<RprSheetSimResult, RprSimSett
     spec = rprSheetSpec;
     shortName = "rpr-sheet-sim";
     displayName = rprSheetSpec.displayName;
-    manuallyActivatedBuffs = [ArcaneCircleBuff,];
+    manuallyActivatedBuffs = [ArcaneCircleBuff];
 
     constructor(settings?: RprSimSettingsExternal) {
         super('RPR', settings);
@@ -463,6 +463,6 @@ export class RprSheetSim extends BaseMultiCycleSim<RprSheetSimResult, RprSimSett
                 }
             },
 
-        },];
+        }];
     }
 }

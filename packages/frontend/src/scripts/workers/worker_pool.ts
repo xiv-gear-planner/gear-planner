@@ -221,7 +221,7 @@ export class WorkerPool {
     }
 
     getWorkerByJobId(idToGet: number): Worker | null {
-        for (const [worker, id,] of this.activeJobIds) {
+        for (const [worker, id] of this.activeJobIds) {
             if (id === idToGet) {
                 return worker;
             }

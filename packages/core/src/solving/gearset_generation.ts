@@ -186,7 +186,7 @@ export class GearsetGenerator {
 
             // Add new items after the loop
             const itemsToAdd: Map<string, ItemWithStats> = new Map<string, ItemWithStats>();
-            for (const [statsKey, existingCombination,] of meldCombinations) {
+            for (const [statsKey, existingCombination] of meldCombinations) {
 
                 const stats = existingCombination.stats;
 

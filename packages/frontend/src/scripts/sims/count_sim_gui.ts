@@ -107,7 +107,7 @@ export class BaseUsageCountSimGui<ResultType extends CountSimResult, InternalSet
             renderer: (value: Ability) => {
                 return document.createTextNode(`${value.name}`);
             },
-        },];
+        }];
         buffDurations.forEach(dur => {
             columns.push({
                 shortName: `buff-dur-${dur}`,
@@ -136,8 +136,8 @@ export class BaseUsageCountSimGui<ResultType extends CountSimResult, InternalSet
         });
         bucketsTable.columns = columns;
 
-        bucketsTable.data = [new HeaderRow(), ...transposedData,];
+        bucketsTable.data = [new HeaderRow(), ...transposedData];
 
-        return quickElement('div', ['cycle-sim-results-table',], [mainResultsTable, bucketsTable,]);
+        return quickElement('div', ['cycle-sim-results-table'], [mainResultsTable, bucketsTable]);
     }
 }

@@ -18,7 +18,7 @@ import { BaseMultiCycleSim } from "../processors/sim_processors";
 const BLU_BLEED_SPELLS = [
     "Nightbloom",
     "Song of Torment",
-    "Aetherial Spark",
+    "Aetherial Spark"
 ] as const as readonly string[];
 
 /**
@@ -43,7 +43,7 @@ const BLU_PHYSICAL_SPELLS = [
     "Wild Rage",
     "Deep Clean",
     "Ruby Dynamics",
-    "Winged Reprobation",
+    "Winged Reprobation"
 ] as const as readonly string[];
 
 /**
@@ -51,7 +51,7 @@ const BLU_PHYSICAL_SPELLS = [
  */
 const BLU_CHANNELED_ABILITIES = [
     "Phantom Flurry",
-    "Apokalypsis",
+    "Apokalypsis"
 ] as const as readonly string[];
 
 /**
@@ -88,7 +88,7 @@ const WaxingNocturne: Buff = {
 const MightyGuard: Buff = {
     name: "Mighty Guard",
     selfOnly: true,
-    descriptionExtras: ["Reduces damage taken and increases enmity generation",],
+    descriptionExtras: ["Reduces damage taken and increases enmity generation"],
     effects: { // also changes the effects of certain BLU spells
         dmgIncrease: -0.4,
     },
@@ -100,7 +100,7 @@ const WaningNocturne: Buff = {
     name: "Waning Nocturne",
     duration: 15,
     selfOnly: true,
-    descriptionExtras: ["Prevents the use of auto-attacks, weaponskills, spells, or abilities",],
+    descriptionExtras: ["Prevents the use of auto-attacks, weaponskills, spells, or abilities"],
     effects: {
         dmgIncrease: -1, // can't use any actions during Waning
     },
@@ -126,7 +126,7 @@ const Harmonized: Buff = {
 
 const TankMimicry: Buff = {
     name: "Aetheric Mimicry: Tank",
-    descriptionExtras: ["Increases defense and augments certain blue magic spells",],
+    descriptionExtras: ["Increases defense and augments certain blue magic spells"],
     selfOnly: true,
     effects: {}, // changes the effects of certain BLU spells
     statusId: 2124,
@@ -135,7 +135,7 @@ const TankMimicry: Buff = {
 const DpsMimicry: Buff = {
     name: "Aetheric Mimicry: DPS",
     selfOnly: true,
-    descriptionExtras: ["Doubles Matra Magic potency",],
+    descriptionExtras: ["Doubles Matra Magic potency"],
     effects: { // also changes the effects of certain BLU spells
         dhitChanceIncrease: 0.20,
         critChanceIncrease: 0.20,
@@ -155,7 +155,7 @@ const DpsMimicry: Buff = {
 const HealerMimicry: Buff = {
     name: "Aetheric Mimicry: Healer",
     selfOnly: true,
-    descriptionExtras: ["Increases healing and augments certain blue magic spells",],
+    descriptionExtras: ["Increases healing and augments certain blue magic spells"],
     effects: {}, // changes the effects of certain BLU spells
     statusId: 2126,
 };
@@ -164,7 +164,7 @@ const BrushWithDeath: Buff = {
     name: "Brush with Death",
     duration: 600,
     selfOnly: true,
-    descriptionExtras: ["Prevents using certain blue magic spells",],
+    descriptionExtras: ["Prevents using certain blue magic spells"],
     effects: {}, // prevents certain BLU spells from being used
     statusId: 2127,
 };
@@ -188,7 +188,7 @@ const Tingling: Buff = {
     name: "Tingling",
     duration: 15,
     selfOnly: true,
-    descriptionExtras: ["Increases the potency of the next physical damage spell cast by 100 per hit",],
+    descriptionExtras: ["Increases the potency of the next physical damage spell cast by 100 per hit"],
     effects: {
         // increases base potency of physical damage spells by 100 per hit
     },
@@ -213,7 +213,7 @@ const Tingling: Buff = {
 const BasicInstinct: Buff = {
     name: "Basic Instinct",
     selfOnly: true,
-    descriptionExtras: ["Ignores the damage penalty inflicted by Mighty Guard",],
+    descriptionExtras: ["Ignores the damage penalty inflicted by Mighty Guard"],
     effects: {
         dmgIncrease: 1.0,
     },
@@ -223,7 +223,7 @@ const BasicInstinct: Buff = {
 const WingedReprobationBuff = {
     name: "Winged Reprobation",
     selfOnly: true,
-    descriptionExtras: ["Resets Winged Reprobation's recast timer",],
+    descriptionExtras: ["Resets Winged Reprobation's recast timer"],
     effects: {
         // only applies to Winged Reprobation
         // resets cast time of Winged Reprobation at 0-2 stacks
@@ -238,7 +238,7 @@ const WingedRedemption: Buff = {
     name: "Winged Redemption",
     duration: 10,
     selfOnly: true,
-    descriptionExtras: ["Increases the potency of Conviction Marcato",],
+    descriptionExtras: ["Increases the potency of Conviction Marcato"],
     effects: {
         // only applies to Conviction Marcato
     },
@@ -279,7 +279,7 @@ export const Bristle: GcdAbility = {
     type: "gcd",
     attackType: "Spell",
     potency: null,
-    activatesBuffs: [Boost,],
+    activatesBuffs: [Boost],
     gcd: 2.5,
     cast: 1.0,
     id: 11393,
@@ -290,7 +290,7 @@ export const FinalSting: GcdAbility = {
     type: "gcd",
     attackType: "Spell",
     potency: 2000,
-    activatesBuffs: [BrushWithDeath,],
+    activatesBuffs: [BrushWithDeath],
     gcd: 2.5,
     cast: 2.0,
     id: 11407,
@@ -301,7 +301,7 @@ export const OffGuard: OgcdAbility = {
     type: "ogcd",
     attackType: "Spell",
     potency: null,
-    activatesBuffs: [OffGuardBuff,],
+    activatesBuffs: [OffGuardBuff],
     cast: 1.0, // casted ogcd
     cooldown: {
         time: 60,
@@ -315,7 +315,7 @@ export const MoonFlute: GcdAbility = {
     type: "gcd",
     attackType: "Spell",
     potency: null,
-    activatesBuffs: [WaxingNocturne,],
+    activatesBuffs: [WaxingNocturne],
     gcd: 2.5,
     cast: 2.0,
     id: 11415,
@@ -377,7 +377,7 @@ export const Whistle: GcdAbility = {
     type: "gcd",
     attackType: "Spell",
     potency: null,
-    activatesBuffs: [Harmonized,],
+    activatesBuffs: [Harmonized],
     gcd: 2.5,
     cast: 1.0,
     id: 18309,
@@ -388,7 +388,7 @@ export const Surpanakha: OgcdAbility = {
     type: "ogcd",
     attackType: "Ability",
     potency: 200,
-    activatesBuffs: [SurpanakhaBuff,],
+    activatesBuffs: [SurpanakhaBuff],
     animationLock: 0.6,
     cooldown: {
         time: 30,
@@ -440,7 +440,7 @@ export const Tingle: GcdAbility = {
     type: "gcd",
     attackType: "Spell",
     potency: 100,
-    activatesBuffs: [Tingling,],
+    activatesBuffs: [Tingling],
     gcd: 2.5,
     cast: 2.0,
     id: 23265,
@@ -548,7 +548,7 @@ export const WingedReprobation: GcdAbility = {
     type: "gcd",
     attackType: "Spell",
     potency: 300, // 400 with 3 stacks of Winged Reprobation
-    activatesBuffs: [WingedReprobationBuff,],
+    activatesBuffs: [WingedReprobationBuff],
     gcd: 2.5,
     cast: 1.0,
     cooldown: {
@@ -719,20 +719,20 @@ export class BLUCycleProcessor extends CycleProcessor {
             let end: number = 0;
             const out = super.use(ability);
             switch (ability.name) {
-            case "Phantom Flurry": {
-                end = this.currentTime + 5; // 5s channel time
-                this.addSpecialRow("-- Flurry End --", end);
-                break;
-            }
-            case "Apokalypsis": {
-                end = this.currentTime + 10;  // 10s channel time
-                this.addSpecialRow("-- Apokalypsis End --", end);
-                break;
-            }
-            default: {
-                console.error(`Ability ${ability.name} does not have channel time information. This is a bug.`);
-                break;
-            }
+                case "Phantom Flurry": {
+                    end = this.currentTime + 5; // 5s channel time
+                    this.addSpecialRow("-- Flurry End --", end);
+                    break;
+                }
+                case "Apokalypsis": {
+                    end = this.currentTime + 10;  // 10s channel time
+                    this.addSpecialRow("-- Apokalypsis End --", end);
+                    break;
+                }
+                default: {
+                    console.error(`Ability ${ability.name} does not have channel time information. This is a bug.`);
+                    break;
+                }
             }
             // advance to the end of the channel time
             this.advanceTo(Math.max(this.currentTime, Math.min(end, this.totalTime)), true);
@@ -749,49 +749,49 @@ export class BLUCycleProcessor extends CycleProcessor {
             const newStackCount = this.wingedCounter + 1;
             let out: AbilityUseResult;
             switch (stackCount) {
-            case 0: // fall through
-            case 1: {
-                const buff: Buff = {
-                    ...WingedReprobationBuff,
-                    stacks: newStackCount,
-                };
-                const modified: Ability = {
-                    ...WingedReprobation,
-                    activatesBuffs: [buff,],
-                    cooldown: {
-                        ...WingedReprobation.cooldown,
-                        time: 0,
-                    },
-                };
-                out = super.use(modified);
-                break;
-            }
-            case 2: {
-                const buff: Buff = {
-                    ...WingedReprobationBuff,
-                    descriptionExtras: ["Increases the potency of Winged Reprobation",],
-                    stacks: newStackCount,
-                };
-                const modified: Ability = {
-                    ...WingedReprobation,
-                    activatesBuffs: [buff,],
-                    cooldown: {
-                        ...WingedReprobation.cooldown,
-                        time: 0,
-                    },
-                };
-                out = super.use(modified);
-                break;
-            }
-            case 3: {
-                const modified: Ability = {
-                    ...WingedReprobation,
-                    potency: 400,
-                    activatesBuffs: [WingedRedemption,],
-                };
-                out = super.use(modified);
-                break;
-            }
+                case 0: // fall through
+                case 1: {
+                    const buff: Buff = {
+                        ...WingedReprobationBuff,
+                        stacks: newStackCount,
+                    };
+                    const modified: Ability = {
+                        ...WingedReprobation,
+                        activatesBuffs: [buff],
+                        cooldown: {
+                            ...WingedReprobation.cooldown,
+                            time: 0,
+                        },
+                    };
+                    out = super.use(modified);
+                    break;
+                }
+                case 2: {
+                    const buff: Buff = {
+                        ...WingedReprobationBuff,
+                        descriptionExtras: ["Increases the potency of Winged Reprobation"],
+                        stacks: newStackCount,
+                    };
+                    const modified: Ability = {
+                        ...WingedReprobation,
+                        activatesBuffs: [buff],
+                        cooldown: {
+                            ...WingedReprobation.cooldown,
+                            time: 0,
+                        },
+                    };
+                    out = super.use(modified);
+                    break;
+                }
+                case 3: {
+                    const modified: Ability = {
+                        ...WingedReprobation,
+                        potency: 400,
+                        activatesBuffs: [WingedRedemption],
+                    };
+                    out = super.use(modified);
+                    break;
+                }
             }
             this.wingedCounter++;
             return out;
@@ -810,7 +810,7 @@ export class BLUCycleProcessor extends CycleProcessor {
             };
             const modified: Ability = {
                 ...Surpanakha,
-                activatesBuffs: [buff,],
+                activatesBuffs: [buff],
                 // animation lock becomes internal cooldown for back-to-back uses
                 animationLock: this.surpanakhaCounter < 3 ? 1.0 : 0.6,
             };

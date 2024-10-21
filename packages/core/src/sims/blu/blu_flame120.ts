@@ -16,7 +16,7 @@ export interface BluFlame120SettingsExternal extends ExternalCycleSettings<BluFl
 export const BluFlame120Spec: SimSpec<BluFlame120Sim, BluFlame120SettingsExternal> = {
     displayName: "BLU Flame 120s",
     stub: "blu-flame120",
-    supportedJobs: ["BLU",],
+    supportedJobs: ["BLU"],
     isDefaultSim: false,
     description: "Simulates a BLU Mortal Flame rotation with Moon Flute windows every 120s.",
 
@@ -256,6 +256,6 @@ export class BluFlame120Sim extends blu.BluSim<BluFlame120SimResult, BluFlame120
                     }
                 });
             },
-        },];
+        }];
     }
 }

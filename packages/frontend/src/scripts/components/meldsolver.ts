@@ -73,7 +73,7 @@ export class MeldSolver {
 
         let sets: SetExport[] = await (gearGenJob.promise as Promise<SetExport[]>);
         if (sets.length === 0) {
-            return [undefined, undefined,];
+            return [undefined, undefined];
         }
         this.jobs = [];
 
@@ -121,6 +121,6 @@ export class MeldSolver {
             if (!b) return -1;
             return b.dps - a.dps;
         });
-        return [this._sheet.importGearSet(allResults.at(0).set), allResults.at(0).dps,];
+        return [this._sheet.importGearSet(allResults.at(0).set), allResults.at(0).dps];
     }
 }

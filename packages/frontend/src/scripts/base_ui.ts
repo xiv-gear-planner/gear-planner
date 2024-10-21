@@ -164,7 +164,7 @@ export async function openExport(exported: (SheetExport | SetExport), changeHash
 }
 
 export function getHashForSaveKey(saveKey: string) {
-    return ["sheet", saveKey, "dont-copy-this-link", "use-the-export-button",];
+    return ["sheet", saveKey, "dont-copy-this-link", "use-the-export-button"];
 }
 
 export async function openSheet(planner: GearPlanSheetGui, changeHash: boolean = true) {

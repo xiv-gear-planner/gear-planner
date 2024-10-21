@@ -78,7 +78,7 @@ export type NavPath = {
 export type SheetType = NavPath['type'];
 
 export function parsePath(originalPath: string[]): NavPath | null {
-    let path = [...originalPath,];
+    let path = [...originalPath];
     let embed = false;
     if (path.length === 0) {
         return {
@@ -172,7 +172,7 @@ export function parsePath(originalPath: string[]): NavPath | null {
         if (path.length >= 4) {
             return {
                 type: 'bis',
-                path: [path[1], path[2], path[3],],
+                path: [path[1], path[2], path[3]],
                 job: path[1] as JobName,
                 expac: path[2],
                 sheet: path[3],
@@ -195,7 +195,7 @@ export function makeUrl(...pathParts: string[]): URL {
     const currentLocation = document.location;
     const params = new URLSearchParams(currentLocation.search);
     if (joinedPath.length > QUERY_PATH_MAX_LENGTH) {
-        const oldStyleHash = [NO_REDIR_HASH, ...pathParts,]
+        const oldStyleHash = [NO_REDIR_HASH, ...pathParts]
             .map(pp => encodeURIComponent(pp))
             .map(pp => '/' + pp)
             .join('');

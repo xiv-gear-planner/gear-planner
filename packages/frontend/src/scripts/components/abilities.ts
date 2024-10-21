@@ -13,7 +13,7 @@ async function getDataFor(abilityId: number): Promise<XivApiAbilityData> {
         return abilityIconMap.get(abilityId);
     }
     else {
-        const out = xivApiSingleCols('Action', abilityId, ['ID', 'Icon',] as const) as Promise<XivApiAbilityData>;
+        const out = xivApiSingleCols('Action', abilityId, ['ID', 'Icon'] as const) as Promise<XivApiAbilityData>;
         abilityIconMap.set(abilityId, out);
         return out;
     }

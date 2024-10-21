@@ -38,7 +38,7 @@ export const testSimSpec: SimSpec<TestMultiCycleSim, TestSimSettingsExternal> = 
         return new TestMultiCycleSim();
     },
     stub: "test-whm-sim",
-    supportedJobs: ['WHM',],
+    supportedJobs: ['WHM'],
     isDefaultSim: false,
 };
 
@@ -100,7 +100,7 @@ class TestMultiCycleSim extends BaseMultiCycleSim<TestSimResult, TestSimSettings
                 });
             },
 
-        },];
+        }];
     }
 }
 
@@ -148,7 +148,7 @@ class TestCustomMultiCycleSim extends BaseMultiCycleSim<TestSimResult, TestSimSe
                 cp.use(nop);
                 outer.fillerCount = cp.count;
             },
-        },];
+        }];
     }
 }
 
@@ -161,7 +161,7 @@ export const testCustomSimSpec: SimSpec<TestCustomMultiCycleSim, TestSimSettings
         return new TestCustomMultiCycleSim();
     },
     stub: "test-custom-sim",
-    supportedJobs: ['WHM',],
+    supportedJobs: ['WHM'],
     isDefaultSim: false,
 };
 describe('Sim with custom cycle processor', () => {

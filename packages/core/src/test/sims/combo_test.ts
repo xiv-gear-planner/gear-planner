@@ -13,7 +13,7 @@ const initial1 = {
     gcd: 2.5,
     combos: [{
         comboBehavior: "start",
-    },],
+    }],
 } as const satisfies Ability;
 
 const initial2 = {
@@ -25,7 +25,7 @@ const initial2 = {
     gcd: 2.5,
     combos: [{
         comboBehavior: "start",
-    },],
+    }],
 } as const satisfies Ability;
 
 const notCombo = {
@@ -37,7 +37,7 @@ const notCombo = {
     gcd: 2.5,
     combos: [{
         comboBehavior: 'break',
-    },],
+    }],
 } as const satisfies Ability;
 
 const ogcd = {
@@ -56,7 +56,7 @@ const ogcdInterrupt = {
     type: 'ogcd',
     combos: [{
         comboBehavior: 'break',
-    },],
+    }],
 } as const satisfies Ability;
 // TODO: oGCD that breaks all combos
 // TODO: gcd that doesn't break a specific combo
@@ -71,7 +71,7 @@ const ogcdWithOtherInterrupt = {
     combos: [{
         comboKey: 'side combo',
         comboBehavior: 'break',
-    },],
+    }],
 } as const satisfies Ability;
 
 const ogcdThatBreaksEverything = {
@@ -83,7 +83,7 @@ const ogcdThatBreaksEverything = {
     combos: [{
         comboKey: "all",
         comboBehavior: "break",
-    },],
+    }],
 } as const satisfies Ability;
 
 const ogcdThatBreaksEverythingButThis = {
@@ -99,7 +99,7 @@ const ogcdThatBreaksEverythingButThis = {
         {
             comboKey: "all",
             comboBehavior: "break",
-        },
+        }
     ],
 } as const satisfies Ability;
 
@@ -112,9 +112,9 @@ const cont1 = {
     gcd: 2.5,
     combos: [{
         comboBehavior: "continue",
-        comboFrom: [initial1, initial2,],
+        comboFrom: [initial1, initial2],
         potency: 200,
-    },],
+    }],
 } as const satisfies Ability;
 
 const cont2 = {
@@ -126,9 +126,9 @@ const cont2 = {
     gcd: 2.5,
     combos: [{
         comboBehavior: "continue",
-        comboFrom: [cont1,],
+        comboFrom: [cont1],
         potency: 500,
-    },],
+    }],
 } as const satisfies Ability;
 
 const nonBreakingGcd = {
@@ -140,7 +140,7 @@ const nonBreakingGcd = {
     gcd: 2.5,
     combos: [{
         comboBehavior: 'nobreak',
-    },],
+    }],
 } as const satisfies Ability;
 
 const gnashKey = 'gnashingCombo';
@@ -157,7 +157,7 @@ const gnbGnash1 = {
     }, {
         comboKey: gnashKey,
         comboBehavior: 'start',
-    },],
+    }],
 } as const satisfies Ability;
 
 const gnbGnash2 = {
@@ -173,9 +173,9 @@ const gnbGnash2 = {
     }, {
         comboKey: gnashKey,
         comboBehavior: 'continue',
-        comboFrom: [gnbGnash1,],
+        comboFrom: [gnbGnash1],
         potency: 460,
-    },],
+    }],
 } as const satisfies Ability;
 
 const gnbGnash3 = {
@@ -190,9 +190,9 @@ const gnbGnash3 = {
     }, {
         comboKey: gnashKey,
         comboBehavior: 'continue',
-        comboFrom: [gnbGnash2,],
+        comboFrom: [gnbGnash2],
         potency: 540,
-    },],
+    }],
 } as const satisfies Ability;
 
 /** TODO: test cases

@@ -186,7 +186,7 @@ export class CustomItem implements GearItem {
     private applyIlvlData(nativeIlvlInfo: IlvlSyncInfo, syncIlvlInfo?: IlvlSyncInfo) {
         if (this.respectCaps && nativeIlvlInfo) {
             const statCapsNative = {};
-            Object.entries(this.stats).forEach(([stat, _,]) => {
+            Object.entries(this.stats).forEach(([stat, _]) => {
                 statCapsNative[stat] = nativeIlvlInfo.substatCap(this.occGearSlotName, stat as RawStatKey);
             });
             this.statCaps = statCapsNative;
@@ -196,7 +196,7 @@ export class CustomItem implements GearItem {
                     stats: {...this.customData.stats,},
                 };
                 const statCapsSync = {};
-                Object.entries(this.stats).forEach(([stat, v,]) => {
+                Object.entries(this.stats).forEach(([stat, v]) => {
                     statCapsSync[stat] = syncIlvlInfo.substatCap(this.occGearSlotName, stat as RawStatKey);
                 });
                 this.statCaps = statCapsSync;

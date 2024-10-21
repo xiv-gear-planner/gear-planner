@@ -41,13 +41,13 @@ import {LoadingBlocker} from "@xivgear/common-ui/components/loader";
 
 hljs.registerLanguage('javascript', javascript);
 
-export const tableDisplayOptions = ['Show By Tier', 'Show Full',] as const;
+export const tableDisplayOptions = ['Show By Tier', 'Show Full'] as const;
 export type DisplayType = typeof tableDisplayOptions[number];
 
 
 function labeledInput(labelText: string, element: HTMLElement): HTMLDivElement {
     const label = labelFor(labelText, element);
-    return quickElement('div', ['vertical-labeled-input',], [label, element,]);
+    return quickElement('div', ['vertical-labeled-input'], [label, element]);
 }
 
 /**
@@ -138,7 +138,7 @@ export class MathArea extends HTMLElement {
         this.appendChild(this.heading);
 
         // Formula picker menu
-        this.menu = quickElement('div', ['formula-selector-area',], []);
+        this.menu = quickElement('div', ['formula-selector-area'], []);
         registered.forEach(reg => {
             const menuItem = makeActionButton(reg.name, () => {
                 this.setFormulaSet(reg);
@@ -150,16 +150,16 @@ export class MathArea extends HTMLElement {
         this.appendChild(this.menu);
 
         // Settings area which is not specific to any formula
-        const displayType = new FieldBoundDataSelect(writeProxy(this.generalSettings, () => this.update()), 'displayType', item => item.toString(), [...tableDisplayOptions,]);
+        const displayType = new FieldBoundDataSelect(writeProxy(this.generalSettings, () => this.update()), 'displayType', item => item.toString(), [...tableDisplayOptions]);
         const jobDropdown = new FieldBoundDataSelect(writeProxy(this.generalSettings, () => this.update()), 'classJob', item => item, Object.keys(JOB_DATA) as JobName[]);
         const levelDropdown = fieldBoundLevelSelect(writeProxy(this as {
             'level': SupportedLevel
         }, () => this.update()), 'level');
-        const genericSettingsArea = quickElement('div', ['generic-settings-area',], [labeledInput('Table Style', displayType), labeledInput('Job', jobDropdown), labeledInput('Level', levelDropdown),]);
+        const genericSettingsArea = quickElement('div', ['generic-settings-area'], [labeledInput('Table Style', displayType), labeledInput('Job', jobDropdown), labeledInput('Level', levelDropdown)]);
 
         // Settings area for specific formula. To be filled in when a formula is selected.
-        this.specificSettingsArea = quickElement('div', ['specific-settings-area',], []);
-        const settingsArea = quickElement('div', ['settings-area',], [genericSettingsArea, this.specificSettingsArea,]);
+        this.specificSettingsArea = quickElement('div', ['specific-settings-area'], []);
+        const settingsArea = quickElement('div', ['settings-area'], [genericSettingsArea, this.specificSettingsArea]);
         this.appendChild(settingsArea);
 
         // Landing text area. To be filled externally by the page loading scripts.
@@ -167,7 +167,7 @@ export class MathArea extends HTMLElement {
         this.appendChild(this.landingOuter);
 
         // Results table. Table itself is added on demand.
-        this.tableArea = quickElement('div', ['math-result-table-holder',], []);
+        this.tableArea = quickElement('div', ['math-result-table-holder'], []);
         this.appendChild(this.tableArea);
 
         // Formula text holder
@@ -185,7 +185,7 @@ export class MathArea extends HTMLElement {
             }
         });
 
-        const formulaHeader = quickElement('h3', [], ['Show/Hide Formulae', showHide,]);
+        const formulaHeader = quickElement('h3', [], ['Show/Hide Formulae', showHide]);
         formulaHeader.addEventListener('click', ev => {
             showHide.toggle();
         });
@@ -330,101 +330,101 @@ export class MathArea extends HTMLElement {
                     const hardMin = primaryVariableSpec.min?.(this.generalSettings) ?? Number.MIN_SAFE_INTEGER;
                     const hardMax = primaryVariableSpec.max?.(this.generalSettings) ?? Number.MAX_SAFE_INTEGER;
                     switch (this.generalSettings.displayType) {
-                    case "Show By Tier": {
+                        case "Show By Tier": {
                         // For tiering display, we start with the user-chosen value, and traverse both ways from
                         // there until we have filled in enough entries to satisfy the `displayEntries` property.
-                        const base = await makeRow(currentPrimaryValue, true);
-                        // Hard limit of number of entries to calculate in each directly. This should never be
-                        // hit in practice.
-                        const rangeLimit = 50000;
-                        const entriesRange = outer.displayEntries;
-                        const lowerOut: typeof rows = [];
-                        const upperOut: typeof rows = [];
-                        // Compute lower values
-                        {
-                            let last = base;
-                            for (let i = 0; i < rangeLimit; i++) {
-                                const nextVal = currentPrimaryValue - i;
-                                if (nextVal < hardMin) {
-                                    break;
-                                }
-                                const next = await makeRow(nextVal);
-                                // If any particular entry has identical results, combine it with the previous
-                                if (resultsEquals(last.results, next.results)) {
-                                    last.inputs = next.inputs;
-                                    last.isRange = true;
-                                }
-                                else {
-                                    // Otherwise, push old previous to the output list, and set a new comparison baseline.
-                                    if (last !== base) {
-                                        lowerOut.push(last);
-                                    }
-                                    last = next;
-                                    if (lowerOut.length > entriesRange) {
+                            const base = await makeRow(currentPrimaryValue, true);
+                            // Hard limit of number of entries to calculate in each directly. This should never be
+                            // hit in practice.
+                            const rangeLimit = 50000;
+                            const entriesRange = outer.displayEntries;
+                            const lowerOut: typeof rows = [];
+                            const upperOut: typeof rows = [];
+                            // Compute lower values
+                            {
+                                let last = base;
+                                for (let i = 0; i < rangeLimit; i++) {
+                                    const nextVal = currentPrimaryValue - i;
+                                    if (nextVal < hardMin) {
                                         break;
                                     }
-                                }
-                            }
-                            if (last !== base) {
-                                lowerOut.push(last);
-                            }
-                        }
-                        // Compute upper values
-                        {
-                            let last = base;
-                            for (let i = 0; i < rangeLimit; i++) {
-                                const nextVal = currentPrimaryValue + i;
-                                if (nextVal > hardMax) {
-                                    break;
-                                }
-                                const next = await makeRow(nextVal);
-                                // If any particular entry has identical results, combine it with the previous
-                                if (resultsEquals(last.results, next.results)) {
-                                    last.inputsMax = next.inputsMax;
-                                    last.isRange = true;
-                                }
-                                else {
-                                    // Otherwise, push old previous to the output list, and set a new comparison baseline.
-                                    if (last !== base) {
-                                        upperOut.push(last);
+                                    const next = await makeRow(nextVal);
+                                    // If any particular entry has identical results, combine it with the previous
+                                    if (resultsEquals(last.results, next.results)) {
+                                        last.inputs = next.inputs;
+                                        last.isRange = true;
                                     }
-                                    last = next;
-                                    if (upperOut.length > entriesRange) {
+                                    else {
+                                    // Otherwise, push old previous to the output list, and set a new comparison baseline.
+                                        if (last !== base) {
+                                            lowerOut.push(last);
+                                        }
+                                        last = next;
+                                        if (lowerOut.length > entriesRange) {
+                                            break;
+                                        }
+                                    }
+                                }
+                                if (last !== base) {
+                                    lowerOut.push(last);
+                                }
+                            }
+                            // Compute upper values
+                            {
+                                let last = base;
+                                for (let i = 0; i < rangeLimit; i++) {
+                                    const nextVal = currentPrimaryValue + i;
+                                    if (nextVal > hardMax) {
                                         break;
                                     }
+                                    const next = await makeRow(nextVal);
+                                    // If any particular entry has identical results, combine it with the previous
+                                    if (resultsEquals(last.results, next.results)) {
+                                        last.inputsMax = next.inputsMax;
+                                        last.isRange = true;
+                                    }
+                                    else {
+                                    // Otherwise, push old previous to the output list, and set a new comparison baseline.
+                                        if (last !== base) {
+                                            upperOut.push(last);
+                                        }
+                                        last = next;
+                                        if (upperOut.length > entriesRange) {
+                                            break;
+                                        }
+                                    }
+                                }
+                                if (last !== base) {
+                                    upperOut.push(last);
                                 }
                             }
-                            if (last !== base) {
-                                upperOut.push(last);
-                            }
-                        }
-                        // Combine values.
-                        // lower values need to be reversed, since they would be in descending order.
-                        lowerOut.reverse();
-                        rows.push(...lowerOut);
-                        rows.push(base);
-                        rows.push(...upperOut);
+                            // Combine values.
+                            // lower values need to be reversed, since they would be in descending order.
+                            lowerOut.reverse();
+                            rows.push(...lowerOut);
+                            rows.push(base);
+                            rows.push(...upperOut);
 
-                        break;
-                    }
-                    case "Show Full": {
-                        // Just calculate every desired row directly.
-                        const range = outer.displayEntries;
-                        const minValue = Math.max(currentPrimaryValue - range, hardMin);
-                        // If the user specifies 250, and the minimum is 200, then we want to expand the range to
-                        // compensate.
-                        const maxValue = Math.min(minValue + (2 * range), hardMax);
-                        for (let i = minValue; i <= maxValue; i++) {
-                            await addRow(i, i === currentPrimaryValue);
+                            break;
                         }
-                        break;
-                    }
+                        case "Show Full": {
+                        // Just calculate every desired row directly.
+                            const range = outer.displayEntries;
+                            const minValue = Math.max(currentPrimaryValue - range, hardMin);
+                            // If the user specifies 250, and the minimum is 200, then we want to expand the range to
+                            // compensate.
+                            const maxValue = Math.min(minValue + (2 * range), hardMax);
+                            for (let i = minValue; i <= maxValue; i++) {
+                                await addRow(i, i === currentPrimaryValue);
+                            }
+                            break;
+                        }
                     }
                 }
                 else {
                     await addRow(undefined, true);
                 }
-                table.data = [new HeaderRow(), ...rows,];
+                table.data = [new HeaderRow(), ...rows];
                 for (const entry of table.dataRowMap.entries()) {
                     if (entry[0].isOriginalPrimary) {
                         scrollIntoView(entry[1], 'center');
@@ -439,26 +439,26 @@ export class MathArea extends HTMLElement {
             const newChildren = formulaSet.functions
                 .filter(formula => !formula.excludeFormula)
                 .map(formula => {
-                    const heading = quickElement('h3', [], [formula.name,]);
-                    const codeArea = quickElement('pre', [], [functionText(formula.fn),]);
+                    const heading = quickElement('h3', [], [formula.name]);
+                    const codeArea = quickElement('pre', [], [functionText(formula.fn)]);
                     hljs.configure({
-                        languages: ['js',],
+                        languages: ['js'],
                     });
                     hljs.highlightElement(codeArea);
                     codeArea.querySelectorAll('span.hljs-title')
                         .forEach(element => {
                             switch (element.textContent) {
-                            case 'fl':
-                                element.setAttribute('title', 'Floor to integer');
-                                break;
-                            case 'flp':
-                                element.setAttribute('title', 'Floor to specified number of decimal places');
-                                break;
+                                case 'fl':
+                                    element.setAttribute('title', 'Floor to integer');
+                                    break;
+                                case 'flp':
+                                    element.setAttribute('title', 'Floor to specified number of decimal places');
+                                    break;
                             }
                         });
-                    const codeOuter = quickElement('div', ['code-outer',], [codeArea,]);
-                    const formulaText = quickElement('div', ['function-code-area',], [codeOuter,]);
-                    return quickElement('div', [], [heading, formulaText,]);
+                    const codeOuter = quickElement('div', ['code-outer'], [codeArea]);
+                    const formulaText = quickElement('div', ['function-code-area'], [codeOuter]);
+                    return quickElement('div', [], [heading, formulaText]);
                 });
 
             this.setFormulaAreaVisible(newChildren.length > 0);
@@ -544,7 +544,7 @@ export class MathArea extends HTMLElement {
             };
             this.tableArea.replaceChildren(table, this.loader);
             this.loading = true;
-            table.data = [new HeaderRow(),];
+            table.data = [new HeaderRow()];
             update().then(() => this.loading = false);
         }
         else {
@@ -615,19 +615,19 @@ export class MathArea extends HTMLElement {
         const out = document.createElement('div');
         for (const variable of formulaSet.variables) {
             switch (variable.type) {
-            case "number": {
-                let editor: HTMLElement;
-                const validators: FbctPostValidator<AllArgType, number>[] = [];
-                validators.push(clampValues(variable.min?.(this.generalSettings), variable.max?.(this.generalSettings)));
-                if (variable.integer) {
-                    editor = new FieldBoundIntField(proxy, variable.property, {postValidators: validators,});
+                case "number": {
+                    let editor: HTMLElement;
+                    const validators: FbctPostValidator<AllArgType, number>[] = [];
+                    validators.push(clampValues(variable.min?.(this.generalSettings), variable.max?.(this.generalSettings)));
+                    if (variable.integer) {
+                        editor = new FieldBoundIntField(proxy, variable.property, {postValidators: validators,});
+                    }
+                    else {
+                        editor = new FieldBoundFloatField(proxy, variable.property, {postValidators: validators,});
+                    }
+                    out.appendChild(labeledInput(variable.label, editor));
+                    break;
                 }
-                else {
-                    editor = new FieldBoundFloatField(proxy, variable.property, {postValidators: validators,});
-                }
-                out.appendChild(labeledInput(variable.label, editor));
-                break;
-            }
             }
         }
         return out;

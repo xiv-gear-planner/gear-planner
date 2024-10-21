@@ -72,7 +72,7 @@ export class RelicStatMemory {
     }
 
     import(relicStatMemory: RelicStatMemoryExport) {
-        Object.entries(relicStatMemory).every(([rawKey, stats,]) => this.memory.set(parseInt(rawKey), stats));
+        Object.entries(relicStatMemory).every(([rawKey, stats]) => this.memory.set(parseInt(rawKey), stats));
     }
 }
 
@@ -123,7 +123,7 @@ export class MateriaMemory {
         this.memory.forEach((slotValue, slotKey) => {
             const items: SlotMateriaMemoryExport[] = [];
             slotValue.forEach((materiaIds, itemId) => {
-                items.push([itemId, materiaIds,]);
+                items.push([itemId, materiaIds]);
             });
             out[slotKey] = items;
         });
@@ -131,7 +131,7 @@ export class MateriaMemory {
     }
 
     import(memory: MateriaMemoryExport) {
-        Object.entries(memory).forEach(([slotKey, itemMemory,]) => {
+        Object.entries(memory).forEach(([slotKey, itemMemory]) => {
             const slotMap: Map<number, number[]> = new Map();
             for (const itemMemoryElement of itemMemory) {
                 slotMap.set(itemMemoryElement[0], itemMemoryElement[1]);
@@ -343,7 +343,7 @@ export class CharacterGearSet {
                 if (mode === 'autofill'
                     || (reEquip.length === 0
                         && (mode === 'retain_item_else_prio' || mode === 'retain_slot_else_prio'))) {
-                    this.fillMateria(materiaAutoFillController.prio, false, [slot,]);
+                    this.fillMateria(materiaAutoFillController.prio, false, [slot]);
                 }
                 else {
                     const eq = this.equipment[slot];
@@ -520,7 +520,7 @@ export class CharacterGearSet {
                 issues.push({
                     severity: "warning",
                     description: `${EquipSlotInfo[slotId].name} is overcapped, losing ${statDetail.overcapAmount} ${stat}.`,
-                    affectedSlots: [slotId,],
+                    affectedSlots: [slotId],
                 });
             }
         }
@@ -529,7 +529,7 @@ export class CharacterGearSet {
             for (const failure of failures) {
                 issues.push({
                     ...failure,
-                    affectedSlots: [slotId,],
+                    affectedSlots: [slotId],
                 });
 
             }
@@ -896,7 +896,7 @@ export function applyStatCaps(stats: RawStats, statCaps: { [K in RawStatKey]?: n
     const out = {
         ...stats,
     };
-    Object.entries(stats).forEach(([stat, value,]) => {
+    Object.entries(stats).forEach(([stat, value]) => {
         if (NO_SYNC_STATS.includes(stat as RawStatKey)) {
             return;
         }
@@ -956,7 +956,7 @@ export function isSameOrBetterItem(candidateItem: GearItem, baseItem: GearItem):
     // Phase 1: Raw stats
     const candidateStats = candidateItem.stats;
     const baseStats = baseItem.stats;
-    for (const [statKey, baseValue,] of Object.entries(baseStats)) {
+    for (const [statKey, baseValue] of Object.entries(baseStats)) {
         const candidateValue = candidateStats[statKey] as number;
         // For skill/spell speed, we want an exact match, since allowing extra sks/sps could cause
         // it to bump up a GCD tier.

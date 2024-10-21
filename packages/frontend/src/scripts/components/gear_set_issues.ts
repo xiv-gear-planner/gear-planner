@@ -34,9 +34,9 @@ export class SetIssuesModal extends BaseModal {
         if (issues.length > 0) {
             this.classList.add('has-issues');
             for (const issue of issues) {
-                this.contentArea.appendChild(quickElement('div', ['gear-set-issue-block',], [
+                this.contentArea.appendChild(quickElement('div', ['gear-set-issue-block'], [
                     iconForIssues(issue),
-                    quickElement('span', [], [issue.description,]),
+                    quickElement('span', [], [issue.description])
                 ]));
             }
         }

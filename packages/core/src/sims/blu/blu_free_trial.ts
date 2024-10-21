@@ -16,7 +16,7 @@ export interface BluF2PSettingsExternal extends ExternalCycleSettings<BluF2PSett
 export const BluF2PSpec: SimSpec<BluF2PSim, BluF2PSettingsExternal> = {
     displayName: "BLU Free Trial",
     stub: "blu-f2p",
-    supportedJobs: ["BLU",],
+    supportedJobs: ["BLU"],
     isDefaultSim: false,
     description: "Simulates a BLU Free Trial rotation with Moon Flute windows every 120s.",
 
@@ -178,6 +178,6 @@ export class BluF2PSim extends blu.BluSim<BluF2PSimResult, BluF2PSettings> {
                     }
                 });
             },
-        },];
+        }];
     }
 }

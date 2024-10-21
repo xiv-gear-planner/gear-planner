@@ -80,7 +80,7 @@ const div: AstOgcdAbility = {
     type: 'ogcd',
     name: "Divination",
     id: 16552,
-    activatesBuffs: [Divination, Divining,],
+    activatesBuffs: [Divination, Divining],
     potency: null,
     attackType: "Ability",
     cooldown: {
@@ -137,7 +137,7 @@ const ls: AstOgcdAbility = {
     type: 'ogcd',
     name: "Lightspeed",
     id: 3606,
-    activatesBuffs: [LightspeedBuff,],
+    activatesBuffs: [LightspeedBuff],
     potency: null,
     attackType: "Ability",
     cooldown: {
@@ -232,7 +232,7 @@ class AstGauge {
     getGaugeState(): AstGaugeState {
         return {
             level: 100,
-            cards: new Set([...this.cards,]),
+            cards: new Set([...this.cards]),
         };
     }
 }
@@ -257,7 +257,7 @@ export const astNewSheetSpec: SimSpec<AstSim, AstSettingsExternal> = {
         return new AstSim();
     },
     stub: "ast-sheet-sim",
-    supportedJobs: ['AST',],
+    supportedJobs: ['AST'],
     isDefaultSim: true,
 };
 
@@ -355,7 +355,7 @@ export class AstSim extends BaseMultiCycleSim<AstSimResult, AstSettings, AstCycl
     spec = astNewSheetSpec;
     displayName = astNewSheetSpec.displayName;
     shortName = "ast-sheet-sim";
-    manuallyActivatedBuffs = [Divination,];
+    manuallyActivatedBuffs = [Divination];
 
     constructor(settings?: AstSettingsExternal) {
         super('AST', settings);
@@ -463,7 +463,7 @@ export class AstSim extends BaseMultiCycleSim<AstSimResult, AstSettings, AstCycl
                     }
                 });
             },
-        })),
+        }))
         ];
     }
 }

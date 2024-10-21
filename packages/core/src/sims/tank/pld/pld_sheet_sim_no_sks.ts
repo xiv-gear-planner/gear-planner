@@ -11,18 +11,18 @@ interface GcdState {
 
 function useNextAtone(cycle: CycleContext, state: GcdState): void {
     switch (state.swordOathStacks) {
-    case 3:
-        cycle.use(Actions.atone);
-        break;
-    case 2:
-        cycle.use(Actions.supp);
-        break;
-    case 1:
-        cycle.use(Actions.sep);
-        break;
-    default:
-        console.log("oops, something went wrong with atones");
-        state.swordOathStacks = 0;
+        case 3:
+            cycle.use(Actions.atone);
+            break;
+        case 2:
+            cycle.use(Actions.supp);
+            break;
+        case 1:
+            cycle.use(Actions.sep);
+            break;
+        default:
+            console.log("oops, something went wrong with atones");
+            state.swordOathStacks = 0;
     }
 
     state.swordOathStacks -= 1;
@@ -59,17 +59,17 @@ function useBurstFillerGcds(cycle: CycleContext, numFillers: number, state: GcdS
         }
         else {
             switch (state.comboProgress) {
-            case 0:
-                cycle.use(Actions.fast);
-                break;
-            case 1:
-                cycle.use(Actions.riot);
-                break;
-            case 2:
-                cycle.use(Actions.royal);
-                state.hasDivineMight = true;
-                state.swordOathStacks = 3;
-                break;
+                case 0:
+                    cycle.use(Actions.fast);
+                    break;
+                case 1:
+                    cycle.use(Actions.riot);
+                    break;
+                case 2:
+                    cycle.use(Actions.royal);
+                    state.hasDivineMight = true;
+                    state.swordOathStacks = 3;
+                    break;
             }
             state.comboProgress += 1;
             state.comboProgress %= 3;
@@ -129,7 +129,7 @@ export const pldSheetSpec: SimSpec<PldSheetSim, PldSheetSettingsExternal> = {
     loadSavedSimInstance(exported: PldSheetSettingsExternal) {
         return new PldSheetSim(exported);
     },
-    supportedJobs: ['PLD',],
+    supportedJobs: ['PLD'],
     isDefaultSim: false,
 };
 
@@ -173,6 +173,6 @@ export class PldSheetSim extends BaseMultiCycleSim<PldSheetSimResult, PldSheetSe
                 });
             },
 
-        },];
+        }];
     }
 }

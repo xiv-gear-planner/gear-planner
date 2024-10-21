@@ -7,7 +7,7 @@ const chain: OgcdAbility & OriginCdAbility = {
     type: 'ogcd',
     name: "Chain",
     id: 7436,
-    activatesBuffs: [Chain,],
+    activatesBuffs: [Chain],
     potency: null,
     attackType: "Ability",
     cooldown: {
@@ -19,7 +19,7 @@ const chainShared: OgcdAbility & SharedCdAbility = {
     type: 'ogcd',
     name: 'Chain II',
     id: 100_0001,
-    activatesBuffs: [Chain,],
+    activatesBuffs: [Chain],
     potency: null,
     attackType: "Ability",
     cooldown: {
@@ -47,7 +47,7 @@ const reduced: OgcdAbility = {
     type: 'ogcd',
     name: "Special Chain",
     id: 7436,
-    activatesBuffs: [Chain,],
+    activatesBuffs: [Chain],
     potency: null,
     attackType: "Ability",
     cooldown: {

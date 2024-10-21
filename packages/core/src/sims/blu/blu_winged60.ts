@@ -16,7 +16,7 @@ export interface BluWinged60SettingsExternal extends ExternalCycleSettings<BluWi
 export const BluWinged60Spec: SimSpec<BluWinged60Sim, BluWinged60SettingsExternal> = {
     displayName: "BLU Winged 60s",
     stub: "blu-winged60",
-    supportedJobs: ["BLU",],
+    supportedJobs: ["BLU"],
     isDefaultSim: false,
     description: "Simulates a BLU Winged Reprobation rotation with Moon Flute windows every 60s.",
 
@@ -197,6 +197,6 @@ export class BluWinged60Sim extends blu.BluSim<BluWinged60SimResult, BluWinged60
                     }
                 });
             },
-        },];
+        }];
     }
 }

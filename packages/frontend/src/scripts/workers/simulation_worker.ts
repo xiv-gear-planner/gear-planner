@@ -35,7 +35,7 @@ export class SolverSimulationRunner extends WorkerBehavior<SolverSimulationJobCo
         });
 
         settings.sets = undefined;
-        const [bestDps, bestSet,] = await simRunner.simulateSetsAndReturnBest(sorted, this.postUpdate);
+        const [bestDps, bestSet] = await simRunner.simulateSetsAndReturnBest(sorted, this.postUpdate);
         const result = {
             dps: bestDps,
             set: this.sheet.exportGearSet(bestSet),

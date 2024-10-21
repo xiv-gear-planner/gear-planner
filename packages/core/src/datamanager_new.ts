@@ -111,7 +111,7 @@ export class NewApiDataManager implements DataManager {
 
     async getIlvlSyncData(baseParamPromise: ReturnType<typeof this.queryBaseParams>, ilvl: number) {
         if (this._isyncPromise === undefined) {
-            this._isyncPromise = Promise.all([baseParamPromise, this.apiClient.itemLevel.itemLevels(),]).then(responses => {
+            this._isyncPromise = Promise.all([baseParamPromise, this.apiClient.itemLevel.itemLevels()]).then(responses => {
                 const outMap = new Map<number, IlvlSyncInfo>();
                 const jobStats = getClassJobStats(this._classJob);
                 for (const row of responses[1].data.items) {
@@ -124,58 +124,58 @@ export class NewApiDataManager implements DataManager {
                         substatCap(slot: OccGearSlotKey, statsKey: RawStatKey): number {
                             let ilvlModifier: number | null;
                             switch (statsKey) {
-                            case "hp":
-                                ilvlModifier = row.HP;
-                                break;
-                            case "vitality":
-                                ilvlModifier = row.vitality;
-                                break;
-                            case "strength":
-                                ilvlModifier = row.strength;
-                                break;
-                            case "dexterity":
-                                ilvlModifier = row.dexterity;
-                                break;
-                            case "intelligence":
-                                ilvlModifier = row.intelligence;
-                                break;
-                            case "mind":
-                                ilvlModifier = row.mind;
-                                break;
-                            case "piety":
-                                ilvlModifier = row.piety;
-                                break;
-                            case "crit":
-                                ilvlModifier = row.criticalHit;
-                                break;
-                            case "dhit":
-                                ilvlModifier = row.directHitRate;
-                                break;
-                            case "determination":
-                                ilvlModifier = row.determination;
-                                break;
-                            case "tenacity":
-                                ilvlModifier = row.tenacity;
-                                break;
-                            case "spellspeed":
-                                ilvlModifier = row.spellSpeed;
-                                break;
-                            case "skillspeed":
-                                ilvlModifier = row.skillSpeed;
-                                break;
-                            case "wdPhys":
-                                ilvlModifier = row.physicalDamage;
-                                break;
-                            case "wdMag":
-                                ilvlModifier = row.magicalDamage;
-                                break;
-                            case "weaponDelay":
-                                ilvlModifier = row.delay;
-                                break;
-                            default:
-                                console.warn(`Bad ilvl modifer! ${statsKey}:${slot}`);
-                                ilvlModifier = null;
-                                break;
+                                case "hp":
+                                    ilvlModifier = row.HP;
+                                    break;
+                                case "vitality":
+                                    ilvlModifier = row.vitality;
+                                    break;
+                                case "strength":
+                                    ilvlModifier = row.strength;
+                                    break;
+                                case "dexterity":
+                                    ilvlModifier = row.dexterity;
+                                    break;
+                                case "intelligence":
+                                    ilvlModifier = row.intelligence;
+                                    break;
+                                case "mind":
+                                    ilvlModifier = row.mind;
+                                    break;
+                                case "piety":
+                                    ilvlModifier = row.piety;
+                                    break;
+                                case "crit":
+                                    ilvlModifier = row.criticalHit;
+                                    break;
+                                case "dhit":
+                                    ilvlModifier = row.directHitRate;
+                                    break;
+                                case "determination":
+                                    ilvlModifier = row.determination;
+                                    break;
+                                case "tenacity":
+                                    ilvlModifier = row.tenacity;
+                                    break;
+                                case "spellspeed":
+                                    ilvlModifier = row.spellSpeed;
+                                    break;
+                                case "skillspeed":
+                                    ilvlModifier = row.skillSpeed;
+                                    break;
+                                case "wdPhys":
+                                    ilvlModifier = row.physicalDamage;
+                                    break;
+                                case "wdMag":
+                                    ilvlModifier = row.magicalDamage;
+                                    break;
+                                case "weaponDelay":
+                                    ilvlModifier = row.delay;
+                                    break;
+                                default:
+                                    console.warn(`Bad ilvl modifer! ${statsKey}:${slot}`);
+                                    ilvlModifier = null;
+                                    break;
 
                             }
                             const baseParamModifier = baseParams[statsKey as RawStatKey][slot];
@@ -285,7 +285,7 @@ export class NewApiDataManager implements DataManager {
                 });
                 // TODO: put up better error
             }, (e) => console.error(e));
-        const statsPromise = Promise.all([itemsPromise, baseParamPromise,]).then(() => {
+        const statsPromise = Promise.all([itemsPromise, baseParamPromise]).then(() => {
             console.log(`Finishing item calculations for ${this._allItems.length} items`);
             this._allItems.forEach(item => {
                 const itemIlvlPromise = this.getIlvlSyncData(baseParamPromise, item.ilvl);
@@ -301,7 +301,7 @@ export class NewApiDataManager implements DataManager {
                     isyncLvl = null;
                 }
                 const ilvlSyncPromise: Promise<IlvlSyncInfo> = isyncLvl === null ? Promise.resolve(undefined) : this.getIlvlSyncData(baseParamPromise, isyncLvl);
-                extraPromises.push(Promise.all([itemIlvlPromise, ilvlSyncPromise,]).then(([native, sync,]) => {
+                extraPromises.push(Promise.all([itemIlvlPromise, ilvlSyncPromise]).then(([native, sync]) => {
                     item.applyIlvlData(native, sync, this._level);
                     if (item.isCustomRelic) {
                         console.debug('Applying relic model');
@@ -368,7 +368,7 @@ export class NewApiDataManager implements DataManager {
                 }
             });
         const ilvlPromise = this.getIlvlSyncData(baseParamPromise, 710);
-        await Promise.all([baseParamPromise, itemsPromise, statsPromise, materiaPromise, foodPromise, jobsPromise, ilvlPromise,]);
+        await Promise.all([baseParamPromise, itemsPromise, statsPromise, materiaPromise, foodPromise, jobsPromise, ilvlPromise]);
         await Promise.all(extraPromises);
     }
 
@@ -587,57 +587,57 @@ export class DataApiGearInfo implements GearItem {
         }
         const acqSrcRaw: AcqSrc = data.acquisitionSource;
         switch (acqSrcRaw) {
-        case AcqSrc.NormalRaid:
-            this.acquisitionType = 'normraid';
-            break;
-        case AcqSrc.SavageRaid:
-            this.acquisitionType = 'raid';
-            break;
-        case AcqSrc.Tome:
-            this.acquisitionType = 'tome';
-            break;
-        case AcqSrc.AugTome:
-            this.acquisitionType = 'augtome';
-            break;
-        case AcqSrc.Crafted:
-            this.acquisitionType = 'crafted';
-            break;
-        case AcqSrc.AugCrafted:
-            this.acquisitionType = 'augcrafted';
-            break;
-        case AcqSrc.Relic:
-            this.acquisitionType = 'relic';
-            break;
-        case AcqSrc.Dungeon:
-            this.acquisitionType = 'dungeon';
-            break;
-        case AcqSrc.ExtremeTrial:
-            this.acquisitionType = 'extrial';
-            break;
-        case AcqSrc.Ultimate:
-            this.acquisitionType = 'ultimate';
-            break;
-        case AcqSrc.Artifact:
-            this.acquisitionType = 'artifact';
-            break;
-        case AcqSrc.AllianceRaid:
-            this.acquisitionType = 'alliance';
-            break;
-        case AcqSrc.Criterion:
-            this.acquisitionType = 'criterion';
-            break;
-        case AcqSrc.Other:
-            this.acquisitionType = 'other';
-            break;
-        case AcqSrc.Custom:
-            this.acquisitionType = 'custom';
-            break;
-        case AcqSrc.Unknown:
-            this.acquisitionType = 'other';
-            break;
-        default:
-            this.acquisitionType = 'other';
-            break;
+            case AcqSrc.NormalRaid:
+                this.acquisitionType = 'normraid';
+                break;
+            case AcqSrc.SavageRaid:
+                this.acquisitionType = 'raid';
+                break;
+            case AcqSrc.Tome:
+                this.acquisitionType = 'tome';
+                break;
+            case AcqSrc.AugTome:
+                this.acquisitionType = 'augtome';
+                break;
+            case AcqSrc.Crafted:
+                this.acquisitionType = 'crafted';
+                break;
+            case AcqSrc.AugCrafted:
+                this.acquisitionType = 'augcrafted';
+                break;
+            case AcqSrc.Relic:
+                this.acquisitionType = 'relic';
+                break;
+            case AcqSrc.Dungeon:
+                this.acquisitionType = 'dungeon';
+                break;
+            case AcqSrc.ExtremeTrial:
+                this.acquisitionType = 'extrial';
+                break;
+            case AcqSrc.Ultimate:
+                this.acquisitionType = 'ultimate';
+                break;
+            case AcqSrc.Artifact:
+                this.acquisitionType = 'artifact';
+                break;
+            case AcqSrc.AllianceRaid:
+                this.acquisitionType = 'alliance';
+                break;
+            case AcqSrc.Criterion:
+                this.acquisitionType = 'criterion';
+                break;
+            case AcqSrc.Other:
+                this.acquisitionType = 'other';
+                break;
+            case AcqSrc.Custom:
+                this.acquisitionType = 'custom';
+                break;
+            case AcqSrc.Unknown:
+                this.acquisitionType = 'other';
+                break;
+            default:
+                this.acquisitionType = 'other';
+                break;
         }
     }
 
@@ -674,7 +674,7 @@ export class DataApiGearInfo implements GearItem {
 
     applyIlvlData(nativeIlvlInfo: IlvlSyncInfo, syncIlvlInfo?: IlvlSyncInfo, level?: number) {
         const statCapsNative = {};
-        Object.entries(this.stats).forEach(([stat, _,]) => {
+        Object.entries(this.stats).forEach(([stat, _]) => {
             statCapsNative[stat] = nativeIlvlInfo.substatCap(this.occGearSlotName, stat as RawStatKey);
         });
         this.statCaps = statCapsNative;
@@ -685,7 +685,7 @@ export class DataApiGearInfo implements GearItem {
             this.syncedDownTo = syncIlvlInfo.ilvl;
             this.materiaSlots = [];
             const statCapsSync = {};
-            Object.entries(this.stats).forEach(([stat, v,]) => {
+            Object.entries(this.stats).forEach(([stat, v]) => {
                 statCapsSync[stat] = syncIlvlInfo.substatCap(this.occGearSlotName, stat as RawStatKey);
             });
             this.stats = applyStatCaps(this.stats, statCapsSync);

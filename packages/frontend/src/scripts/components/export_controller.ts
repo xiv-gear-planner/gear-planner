@@ -193,9 +193,9 @@ const exportSetToTeamcraft = {
     },
 } as const as SetExportMethod;
 
-const SHEET_EXPORT_OPTIONS = [sheetShortlink, linkPerSet, embedLinkPerSet, sheetJson,] as const;
+const SHEET_EXPORT_OPTIONS = [sheetShortlink, linkPerSet, embedLinkPerSet, sheetJson] as const;
 
-const SET_EXPORT_OPTIONS = [setShortlink, setEmbedShortLink, setJson, exportSetToTeamcraft,] as const;
+const SET_EXPORT_OPTIONS = [setShortlink, setEmbedShortLink, setJson, exportSetToTeamcraft] as const;
 
 // TODO: warning for when you export a single set as a sheet
 export function startExport(sheet: GearPlanSheet | CharacterGearSet) {

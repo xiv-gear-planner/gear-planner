@@ -29,13 +29,13 @@ function makePotion(name: string, stat: RawStatKey, itemId: number, bonus: numbe
                         bonuses[stat] = potionBonus(stats[stat], bonus, cap);
                     },
                 },
-            },
+            }
         ],
 
     };
 }
 
-export const GemdraughtGrades = [1, 2,] as const;
+export const GemdraughtGrades = [1, 2] as const;
 export type GemdraughtGrade = typeof GemdraughtGrades[number];
 export function makeGemdraught(stat: RawStatKey, grade: GemdraughtGrade): Readonly<OgcdAbility> {
     const statToPotItemId = {
@@ -44,7 +44,7 @@ export function makeGemdraught(stat: RawStatKey, grade: GemdraughtGrade): Readon
         dexterity: 44158,
         intelligence: 44160,
     };
-    const gradeToStatCap = [351, 392,];
+    const gradeToStatCap = [351, 392];
 
     return makePotion(`Grade ${grade} Gemdraught of ${camel2title(stat)}`, stat, statToPotItemId[stat], 0.1, gradeToStatCap[grade - 1]);
 }

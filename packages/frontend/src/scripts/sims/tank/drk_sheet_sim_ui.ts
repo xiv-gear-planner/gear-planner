@@ -171,7 +171,7 @@ export class DrkSimGui extends BaseMultiCycleSimGui<DrkSimResult, DrkSettings> {
                 }
                 return document.createTextNode("");
             },
-        },
+        }
         ];
     }
 
@@ -191,7 +191,7 @@ export class DrkSimGui extends BaseMultiCycleSimGui<DrkSimResult, DrkSettings> {
     override makeAbilityUsedTable(result: DrkSimResult): AbilitiesUsedTable {
         const extraColumns = DrkSimGui.generateResultColumns(result);
         const table = super.makeAbilityUsedTable(result);
-        const newColumns = [...table.columns,];
+        const newColumns = [...table.columns];
         newColumns.splice(newColumns.findIndex(col => col.shortName === 'expected-damage') + 1, 0, ...extraColumns);
         table.columns = newColumns;
         return table;

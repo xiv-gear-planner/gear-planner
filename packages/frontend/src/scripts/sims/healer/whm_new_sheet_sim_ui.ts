@@ -58,7 +58,7 @@ class WhmGaugeGui {
                 }
                 return document.createTextNode("");
             },
-        },
+        }
         ];
     }
 }
@@ -66,7 +66,7 @@ export class WhmSimGui extends BaseMultiCycleSimGui<WhmSimResult, WhmSettings> {
     override makeAbilityUsedTable(result: WhmSimResult): AbilitiesUsedTable {
         const extraColumns = WhmGaugeGui.generateResultColumns(result);
         const table = super.makeAbilityUsedTable(result);
-        const newColumns = [...table.columns,];
+        const newColumns = [...table.columns];
         newColumns.splice(newColumns.findIndex(col => col.shortName === 'expected-damage') + 1, 0, ...extraColumns);
         table.columns = newColumns;
         return table;

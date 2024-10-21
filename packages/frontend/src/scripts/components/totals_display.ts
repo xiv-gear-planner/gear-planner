@@ -36,48 +36,48 @@ export class SetTotalsDisplay extends HTMLElement {
             try {
                 let value: Omit<StatDisplayType, 'stat'>;
                 switch (stat) {
-                case "strength":
-                case "dexterity":
-                case "intelligence":
-                case "mind":
-                    value = {multiplier: stats.mainStatMulti,};
-                    break;
-                case "determination":
-                    value = {multiplier: stats.detMulti,};
-                    break;
-                case "tenacity":
-                    value = {
-                        multiplier: stats.tncMulti,
-                        incomingMulti: stats.tncIncomingMulti,
-                    };
-                    break;
-                case "piety":
-                    value = {perTick: stats.mpPerTick,};
-                    break;
-                case "crit":
-                    value = {
-                        chance: stats.critChance,
-                        multiplier: stats.critMulti,
-                    };
-                    break;
-                case "dhit":
-                    value = {
-                        chance: stats.dhitChance,
-                        multiplier: stats.dhitMulti,
-                    };
-                    break;
-                case "spellspeed":
-                    value = {
-                        gcd: stats.gcdMag(NORMAL_GCD),
-                        multiplier: stats.spsDotMulti,
-                    };
-                    break;
-                case "skillspeed":
-                    value = {
-                        gcd: stats.gcdPhys(NORMAL_GCD),
-                        multiplier: stats.sksDotMulti,
-                    };
-                    break;
+                    case "strength":
+                    case "dexterity":
+                    case "intelligence":
+                    case "mind":
+                        value = {multiplier: stats.mainStatMulti,};
+                        break;
+                    case "determination":
+                        value = {multiplier: stats.detMulti,};
+                        break;
+                    case "tenacity":
+                        value = {
+                            multiplier: stats.tncMulti,
+                            incomingMulti: stats.tncIncomingMulti,
+                        };
+                        break;
+                    case "piety":
+                        value = {perTick: stats.mpPerTick,};
+                        break;
+                    case "crit":
+                        value = {
+                            chance: stats.critChance,
+                            multiplier: stats.critMulti,
+                        };
+                        break;
+                    case "dhit":
+                        value = {
+                            chance: stats.dhitChance,
+                            multiplier: stats.dhitMulti,
+                        };
+                        break;
+                    case "spellspeed":
+                        value = {
+                            gcd: stats.gcdMag(NORMAL_GCD),
+                            multiplier: stats.spsDotMulti,
+                        };
+                        break;
+                    case "skillspeed":
+                        value = {
+                            gcd: stats.gcdPhys(NORMAL_GCD),
+                            multiplier: stats.sksDotMulti,
+                        };
+                        break;
                 }
                 if (value) {
                     this.appendChild(new SingleStatTotalDisplay(stat, {

@@ -12,9 +12,9 @@ export function levelLabel(item: SupportedLevel): string {
 }
 
 export function fieldBoundLevelSelect<ObjType>(obj: ObjType, field: PropertyOfType<ObjType, SupportedLevel>): FieldBoundDataSelect<ObjType, SupportedLevel> {
-    return new FieldBoundDataSelect(obj, field, levelLabel, [...SupportedLevels,]);
+    return new FieldBoundDataSelect(obj, field, levelLabel, [...SupportedLevels]);
 }
 
 export function levelSelect(callback: (level: SupportedLevel) => void, defaultLevel: SupportedLevel = CURRENT_MAX_LEVEL): DataSelect<SupportedLevel> {
-    return new DataSelect<SupportedLevel>([...SupportedLevels,], levelLabel, callback, defaultLevel);
+    return new DataSelect<SupportedLevel>([...SupportedLevels], levelLabel, callback, defaultLevel);
 }

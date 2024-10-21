@@ -156,7 +156,7 @@ export class StatTierDisplay extends HTMLDivElement {
     refresh(gearSet: CharacterGearSet) {
         let relevantStats = STAT_DISPLAY_ORDER.filter(stat => this.sheet.isStatRelevant(stat));
         if (this.sheet.ilvlSync && !relevantStats.includes('vitality')) {
-            relevantStats = ['vitality', ...relevantStats,];
+            relevantStats = ['vitality', ...relevantStats];
         }
         for (const stat of relevantStats) {
             try {
@@ -227,7 +227,7 @@ export class StatTierDisplay extends HTMLDivElement {
         else {
             const materia = relevantMateria[0];
             const materiaValue = materia.primaryStatValue;
-            const multipliers = [3, 2, 1, -1, -2, -3,];
+            const multipliers = [3, 2, 1, -1, -2, -3];
             extraOffsets = multipliers.map(multiplier => {
                 const value = multiplier * materiaValue;
                 const multiplierStr = multiplier < 0 ? multiplier.toString() : '+' + multiplier.toString();
@@ -243,158 +243,158 @@ export class StatTierDisplay extends HTMLDivElement {
         }
 
         switch (stat) {
-        case "strength":
-        case "dexterity":
-        case "intelligence":
-        case "mind":
-            return [{
-                label: abbrev,
-                fullName: stat + ' multiplier',
-                description: 'Damage multiplier from primary stat',
-                tieringFunc: makeTiering(value => mainStatMulti(levelStats, jobStats, value)),
-                extraOffsets: extraOffsets,
-            },];
-        case "vitality":
-            return [{
-                label: abbrev,
-                fullName: 'Hit Points',
-                description: 'Hit Points (affected by Vitality)',
-                tieringFunc: makeTiering(value => vitToHp(levelStats, jobStats, value)),
-                extraOffsets: extraOffsets,
-            },];
-        case "determination":
-            return [{
-                label: abbrev,
-                fullName: stat + ' multiplier',
-                description: 'Damage multiplier from Determination',
-                tieringFunc: makeTiering(value => detDmg(levelStats, value)),
-                extraOffsets: extraOffsets,
-            },];
-        case "piety":
-            return [{
-                label: abbrev,
-                fullName: 'MP Regen',
-                description: 'MP Regen (affected by Piety)',
-                tieringFunc: makeTiering(value => mpTick(levelStats, value)),
-                extraOffsets: extraOffsets,
-            },];
-        case "crit":
-            return [{
-                label: abbrev,
-                fullName: 'critical hit',
-                description: 'Critical hit (chance and multiplier)',
-                tieringFunc: makeTiering(value => critDmg(levelStats, value)),
-                extraOffsets: extraOffsets,
-            },];
-        case "dhit":
-            return [{
-                label: abbrev,
-                fullName: 'direct hit change',
-                description: 'Change to land a direct hit',
-                tieringFunc: makeTiering(value => dhitChance(levelStats, value)),
-                extraOffsets: extraOffsets,
-            },];
-        case "spellspeed": {
-            const tierDisplays: TieringDisplay[] = [];
-            if (gcdOver) {
-                gcdOver.filter(over => over.basis === 'sps')
-                    .forEach(over => {
-                        tierDisplays.push({
-                            label: over.shortLabel,
-                            fullName: over.longLabel,
-                            description: over.description,
-                            tieringFunc: makeTiering(value => {
-                                const haste = computed.haste(over.attackType) + over.haste;
-                                return spsToGcd(over.gcdTime, levelStats, value, haste);
-                            }),
-                            extraOffsets: extraOffsets,
-                        });
-                    });
-            }
-            else {
-                tierDisplays.push({
-                    label: abbrev + ' GCD',
-                    fullName: 'GCD for spells',
-                    description: 'Global cooldown (recast) time for spells',
-                    tieringFunc: makeTiering(value => {
-                        const haste = computed.haste('Spell');
-                        return spsToGcd(2.5, levelStats, value, haste);
-                    }),
+            case "strength":
+            case "dexterity":
+            case "intelligence":
+            case "mind":
+                return [{
+                    label: abbrev,
+                    fullName: stat + ' multiplier',
+                    description: 'Damage multiplier from primary stat',
+                    tieringFunc: makeTiering(value => mainStatMulti(levelStats, jobStats, value)),
                     extraOffsets: extraOffsets,
-                });
-            }
-            return [...tierDisplays, {
-                label: abbrev + ' DoT',
-                fullName: 'DoT scalar for spells',
-                description: 'DoT damage multiplier for spells',
-                tieringFunc: makeTiering(value => spsTickMulti(levelStats, value)),
-                extraOffsets: extraOffsets,
-            },];
-        }
-        case "skillspeed": {
-            const tierDisplays: TieringDisplay[] = [];
-            if (gcdOver) {
-                gcdOver.filter(over => over.basis === 'sks')
-                    .forEach(over => {
-                        tierDisplays.push({
-                            label: over.shortLabel,
-                            fullName: over.longLabel,
-                            description: over.description,
-                            tieringFunc: makeTiering(value => {
-                                const haste = computed.haste(over.attackType) + over.haste;
-                                return sksToGcd(over.gcdTime, levelStats, value, haste);
-                            }),
-                            extraOffsets: extraOffsets,
-                        });
-                    });
-            }
-            else {
-                tierDisplays.push({
-                    label: abbrev + ' GCD',
-                    fullName: 'GCD for weaponskills',
-                    description: 'Global cooldown (recast) time for weaponskills',
-                    tieringFunc: makeTiering(value => {
-                        const haste = computed.haste('Weaponskill');
-                        return sksToGcd(2.5, levelStats, value, haste);
-                    }),
+                }];
+            case "vitality":
+                return [{
+                    label: abbrev,
+                    fullName: 'Hit Points',
+                    description: 'Hit Points (affected by Vitality)',
+                    tieringFunc: makeTiering(value => vitToHp(levelStats, jobStats, value)),
                     extraOffsets: extraOffsets,
-                });
+                }];
+            case "determination":
+                return [{
+                    label: abbrev,
+                    fullName: stat + ' multiplier',
+                    description: 'Damage multiplier from Determination',
+                    tieringFunc: makeTiering(value => detDmg(levelStats, value)),
+                    extraOffsets: extraOffsets,
+                }];
+            case "piety":
+                return [{
+                    label: abbrev,
+                    fullName: 'MP Regen',
+                    description: 'MP Regen (affected by Piety)',
+                    tieringFunc: makeTiering(value => mpTick(levelStats, value)),
+                    extraOffsets: extraOffsets,
+                }];
+            case "crit":
+                return [{
+                    label: abbrev,
+                    fullName: 'critical hit',
+                    description: 'Critical hit (chance and multiplier)',
+                    tieringFunc: makeTiering(value => critDmg(levelStats, value)),
+                    extraOffsets: extraOffsets,
+                }];
+            case "dhit":
+                return [{
+                    label: abbrev,
+                    fullName: 'direct hit change',
+                    description: 'Change to land a direct hit',
+                    tieringFunc: makeTiering(value => dhitChance(levelStats, value)),
+                    extraOffsets: extraOffsets,
+                }];
+            case "spellspeed": {
+                const tierDisplays: TieringDisplay[] = [];
+                if (gcdOver) {
+                    gcdOver.filter(over => over.basis === 'sps')
+                        .forEach(over => {
+                            tierDisplays.push({
+                                label: over.shortLabel,
+                                fullName: over.longLabel,
+                                description: over.description,
+                                tieringFunc: makeTiering(value => {
+                                    const haste = computed.haste(over.attackType) + over.haste;
+                                    return spsToGcd(over.gcdTime, levelStats, value, haste);
+                                }),
+                                extraOffsets: extraOffsets,
+                            });
+                        });
+                }
+                else {
+                    tierDisplays.push({
+                        label: abbrev + ' GCD',
+                        fullName: 'GCD for spells',
+                        description: 'Global cooldown (recast) time for spells',
+                        tieringFunc: makeTiering(value => {
+                            const haste = computed.haste('Spell');
+                            return spsToGcd(2.5, levelStats, value, haste);
+                        }),
+                        extraOffsets: extraOffsets,
+                    });
+                }
+                return [...tierDisplays, {
+                    label: abbrev + ' DoT',
+                    fullName: 'DoT scalar for spells',
+                    description: 'DoT damage multiplier for spells',
+                    tieringFunc: makeTiering(value => spsTickMulti(levelStats, value)),
+                    extraOffsets: extraOffsets,
+                }];
             }
+            case "skillspeed": {
+                const tierDisplays: TieringDisplay[] = [];
+                if (gcdOver) {
+                    gcdOver.filter(over => over.basis === 'sks')
+                        .forEach(over => {
+                            tierDisplays.push({
+                                label: over.shortLabel,
+                                fullName: over.longLabel,
+                                description: over.description,
+                                tieringFunc: makeTiering(value => {
+                                    const haste = computed.haste(over.attackType) + over.haste;
+                                    return sksToGcd(over.gcdTime, levelStats, value, haste);
+                                }),
+                                extraOffsets: extraOffsets,
+                            });
+                        });
+                }
+                else {
+                    tierDisplays.push({
+                        label: abbrev + ' GCD',
+                        fullName: 'GCD for weaponskills',
+                        description: 'Global cooldown (recast) time for weaponskills',
+                        tieringFunc: makeTiering(value => {
+                            const haste = computed.haste('Weaponskill');
+                            return sksToGcd(2.5, levelStats, value, haste);
+                        }),
+                        extraOffsets: extraOffsets,
+                    });
+                }
 
-            return [...tierDisplays, {
-                label: abbrev + ' DoT',
-                fullName: 'DoT scalar for weaponskills',
-                description: 'DoT damage multiplier for weaponskills',
-                tieringFunc: makeTiering(value => sksTickMulti(levelStats, value)),
-                extraOffsets: extraOffsets,
-            },];
-        }
-        case "tenacity":
-            return [{
-                label: abbrev + ' Dmg',
-                fullName: stat + ' multiplier',
-                description: 'Damage multiplier from Tenacity',
-                tieringFunc: makeTiering(value => tenacityDmg(levelStats, value)),
-                extraOffsets: extraOffsets,
-            }, {
-                label: abbrev + ' Def',
-                fullName: stat + ' mitigation',
-                description: 'Damage reduction from Tenacity',
-                tieringFunc: makeTiering(value => tenacityIncomingDmg(levelStats, value)),
-                extraOffsets: extraOffsets,
-            },
-            ];
-        default:
-            return [{
-                label: abbrev,
-                fullName: abbrev,
-                description: abbrev,
-                tieringFunc: offset => ({
-                    lower: 0,
-                    upper: 0,
-                }),
-                extraOffsets: [],
-            },];
+                return [...tierDisplays, {
+                    label: abbrev + ' DoT',
+                    fullName: 'DoT scalar for weaponskills',
+                    description: 'DoT damage multiplier for weaponskills',
+                    tieringFunc: makeTiering(value => sksTickMulti(levelStats, value)),
+                    extraOffsets: extraOffsets,
+                }];
+            }
+            case "tenacity":
+                return [{
+                    label: abbrev + ' Dmg',
+                    fullName: stat + ' multiplier',
+                    description: 'Damage multiplier from Tenacity',
+                    tieringFunc: makeTiering(value => tenacityDmg(levelStats, value)),
+                    extraOffsets: extraOffsets,
+                }, {
+                    label: abbrev + ' Def',
+                    fullName: stat + ' mitigation',
+                    description: 'Damage reduction from Tenacity',
+                    tieringFunc: makeTiering(value => tenacityIncomingDmg(levelStats, value)),
+                    extraOffsets: extraOffsets,
+                }
+                ];
+            default:
+                return [{
+                    label: abbrev,
+                    fullName: abbrev,
+                    description: abbrev,
+                    tieringFunc: offset => ({
+                        lower: 0,
+                        upper: 0,
+                    }),
+                    extraOffsets: [],
+                }];
 
         }
     }

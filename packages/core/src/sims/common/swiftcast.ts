@@ -20,7 +20,7 @@ export const SwiftcastBuff: Buff = {
 };
 
 export const Swiftcast: OgcdAbility = {
-    activatesBuffs: [SwiftcastBuff,],
+    activatesBuffs: [SwiftcastBuff],
     id: 7561,
     name: "Swiftcast",
     potency: null,

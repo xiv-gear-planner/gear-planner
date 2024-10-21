@@ -17,7 +17,7 @@ export class SheetPickerTable extends CustomTable<SheetExport, SheetExport> {
                 getter: sheet => sheet,
                 renderer: (sheet: SheetExport) => {
                     const div = document.createElement("div");
-                    div.appendChild(makeActionButton([faIcon('fa-trash-can'),], (ev) => {
+                    div.appendChild(makeActionButton([faIcon('fa-trash-can')], (ev) => {
                         if (confirmDelete(ev, `Delete sheet '${sheet.name}'?`)) {
                             deleteSheetByKey(sheet.saveKey);
                             this.readData();
@@ -59,7 +59,7 @@ export class SheetPickerTable extends CustomTable<SheetExport, SheetExport> {
                 shortName: "sheetname",
                 displayName: "Sheet Name",
                 getter: sheet => sheet.name,
-            },
+            }
         ];
         this.readData();
         this.selectionModel = {

@@ -102,7 +102,7 @@ export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
                 renderer: (value: number | null, rowValue: DisplayRecordFinalized) => {
                     if (value !== null && isFinalizedAbilityUse(rowValue)) {
                         if (rowValue.ability.type === 'autoattack') {
-                            const text = quickElement('span', [], [value + '*',]);
+                            const text = quickElement('span', [], [value + '*']);
                             text.title = `${value} is the original potency, and does not reflect the weapon delay multiplier. However, the damage amount does reflect it.`;
                             return text;
                         }
@@ -188,9 +188,9 @@ export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
                     return new BuffListDisplay(buffs);
                 },
             },
-            ...extraColumns,
+            ...extraColumns
         ];
-        this.data = [new HeaderRow(), ...abilitiesUsed,];
+        this.data = [new HeaderRow(), ...abilitiesUsed];
         // this.style.tableLayout = 'auto';
     }
 }

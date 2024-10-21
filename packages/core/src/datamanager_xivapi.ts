@@ -38,23 +38,23 @@ const itemColumns = [
     'Rarity',
     // TODO need replacement
     // 'GameContentLinks'
-    'Delayms',
+    'Delayms'
 ] as const;
 const itemColsExtra = [
-    'LevelItem',
+    'LevelItem'
 ] as const;
 export type XivApiItemDataRaw = XivApiResultSingle<typeof itemColumns, typeof itemColsExtra>;
 // 'Item' is only there because I need to figure out how to keep the type checking happy
-const matCols = ['Item[].Name', 'Item[].Icon', 'Item[].LevelItem@as(raw)', 'BaseParam.nonexistent', 'Value',] as const;
+const matCols = ['Item[].Name', 'Item[].Icon', 'Item[].LevelItem@as(raw)', 'BaseParam.nonexistent', 'Value'] as const;
 // TODO: make a better way of doing this. matColsTrn represents the columns that are transitively included by way of
 // including a sub-column.
-const matColsTrn = ['Item', 'BaseParam',] as const;
+const matColsTrn = ['Item', 'BaseParam'] as const;
 export type XivApiMateriaDataRaw = XivApiResultSingle<typeof matCols, typeof matColsTrn>;
 // Food cols on the base Item table
-const foodBaseItemCols = ['Icon', 'Name', 'LevelItem', 'ItemAction',] as const;
+const foodBaseItemCols = ['Icon', 'Name', 'LevelItem', 'ItemAction'] as const;
 export type XivApiFoodDataRaw = XivApiResultSingle<typeof foodBaseItemCols>;
 // Food cols on the FoodItem table
-const foodItemFoodCols = ['BaseParam', 'ValueHQ', 'MaxHQ',] as const;
+const foodItemFoodCols = ['BaseParam', 'ValueHQ', 'MaxHQ'] as const;
 export type XivApiFoodItemDataRaw = XivApiResultSingle<typeof foodItemFoodCols>;
 export type IlvlSyncInfo = {
     readonly ilvl: number;
@@ -65,7 +65,7 @@ export function queryBaseParams() {
     return xivApiGet({
         requestType: "list",
         sheet: 'BaseParam',
-        columns: ['Name', 'OneHandWeaponPercent', 'TwoHandWeaponPercent', 'BraceletPercent', 'ChestPercent', 'EarringPercent', 'FeetPercent', 'HandsPercent', 'HeadPercent', 'LegsPercent', 'NecklacePercent', 'OffHandPercent', 'RingPercent',] as const,
+        columns: ['Name', 'OneHandWeaponPercent', 'TwoHandWeaponPercent', 'BraceletPercent', 'ChestPercent', 'EarringPercent', 'FeetPercent', 'HandsPercent', 'HeadPercent', 'LegsPercent', 'NecklacePercent', 'OffHandPercent', 'RingPercent'] as const,
         columnsTrn: [],
     }).then(data => {
         console.log(`Got ${data.Results.length} BaseParams`);
@@ -106,13 +106,13 @@ export class XivApiDataManager implements DataManager {
         if (this._isyncPromise === undefined) {
             this._isyncPromise = Promise.all([baseParamPromise, xivApiGet({
                 requestType: 'list',
-                columns: ['*',] as const,
+                columns: ['*'] as const,
                 sheet: 'ItemLevel',
                 perPage: 500,
                 // Optimize these by not pulling a second unnecessary page
                 startPage: this._minIlvl > 500 ? 1 : 0,
                 pageLimit: 2,
-            }),]).then(responses => {
+            })]).then(responses => {
                 const outMap = new Map<number, IlvlSyncInfo>();
                 const jobStats = getClassJobStats(this._classJob);
                 for (const row of responses[1].Results) {
@@ -206,7 +206,7 @@ export class XivApiDataManager implements DataManager {
             columns: itemColumns,
             columnsTrn: itemColsExtra,
             // EquipSlotCategory! => EquipSlotCategory is not null => filters out now-useless belts
-            filters: [`LevelItem>=${this._minIlvl}`, `LevelItem<=${this._maxIlvl}`, `ClassJobCategory.${this._classJob}=1`, 'EquipSlotCategory>0',],
+            filters: [`LevelItem>=${this._minIlvl}`, `LevelItem<=${this._maxIlvl}`, `ClassJobCategory.${this._classJob}=1`, 'EquipSlotCategory>0'],
         })
             .then(async (data) => {
                 if (data) {
@@ -226,13 +226,13 @@ export class XivApiDataManager implements DataManager {
                     .map(i => new XivApiGearInfo(i));
                 // TODO: put up better error
             }, (e) => console.error(e));
-        const statsPromise = Promise.all([itemsPromise, baseParamPromise,]).then(() => {
+        const statsPromise = Promise.all([itemsPromise, baseParamPromise]).then(() => {
             console.log(`Finishing item calculations for ${this._allItems.length} items`);
             this._allItems.forEach(item => {
                 const itemIlvlPromise = this.getIlvlSyncData(baseParamPromise, item.ilvl);
                 if (this._ilvlSync) {
                     const ilvlSyncPromise = this.getIlvlSyncData(baseParamPromise, this._ilvlSync);
-                    extraPromises.push(Promise.all([itemIlvlPromise, ilvlSyncPromise,]).then(([native, sync,]) => {
+                    extraPromises.push(Promise.all([itemIlvlPromise, ilvlSyncPromise]).then(([native, sync]) => {
                         item.applyIlvlData(native, sync);
                         if (item.isCustomRelic) {
                             // console.debug('Applying relic model');
@@ -287,7 +287,7 @@ export class XivApiDataManager implements DataManager {
             requestType: 'search',
             sheet: 'Item',
             // filters: ['ItemKind=5', 'ItemSearchCategory=45', `LevelItem>=${this._minIlvlFood}`, `LevelItem<=${this._maxIlvlFood}`],
-            filters: ['ItemSearchCategory=45', `LevelItem>=${this._minIlvlFood}`, `LevelItem<=${this._maxIlvlFood}`,],
+            filters: ['ItemSearchCategory=45', `LevelItem>=${this._minIlvlFood}`, `LevelItem<=${this._maxIlvlFood}`],
             columns: foodBaseItemCols,
         })
             .then((data) => {
@@ -302,7 +302,7 @@ export class XivApiDataManager implements DataManager {
                     columns: foodItemFoodCols,
                     rows: foodIds,
                 });
-                const foodMap = new Map(food.Results.map(result => [result.ID, result,]));
+                const foodMap = new Map(food.Results.map(result => [result.ID, result]));
 
                 return rawFoods.map(item => {
                     const itemFoodData = foodMap.get(item.ItemAction['fields']['Data'][1]);
@@ -316,7 +316,7 @@ export class XivApiDataManager implements DataManager {
         const jobsPromise = xivApiGet({
             requestType: "list",
             sheet: "ClassJob",
-            columns: ['Abbreviation', 'ModifierDexterity', 'ModifierIntelligence', 'ModifierMind', 'ModifierStrength', 'ModifierVitality', 'ModifierHitPoints',] as const,
+            columns: ['Abbreviation', 'ModifierDexterity', 'ModifierIntelligence', 'ModifierMind', 'ModifierStrength', 'ModifierVitality', 'ModifierHitPoints'] as const,
         })
             .then(data => {
                 console.log(`Got ${data.Results.length} Jobs`);
@@ -336,7 +336,7 @@ export class XivApiDataManager implements DataManager {
                 }
             });
         const ilvlPromise = this.getIlvlSyncData(baseParamPromise, 710);
-        await Promise.all([baseParamPromise, itemsPromise, statsPromise, materiaPromise, foodPromise, jobsPromise, ilvlPromise,]);
+        await Promise.all([baseParamPromise, itemsPromise, statsPromise, materiaPromise, foodPromise, jobsPromise, ilvlPromise]);
         await Promise.all(extraPromises);
     }
 
@@ -726,7 +726,7 @@ export class XivApiGearInfo implements GearItem {
      */
     applyIlvlData(nativeIlvlInfo: IlvlSyncInfo, syncIlvlInfo?: IlvlSyncInfo) {
         const statCapsNative = {};
-        Object.entries(this.stats).forEach(([stat, _,]) => {
+        Object.entries(this.stats).forEach(([stat, _]) => {
             statCapsNative[stat] = nativeIlvlInfo.substatCap(this.occGearSlotName, stat as RawStatKey);
         });
         this.statCaps = statCapsNative;
@@ -736,7 +736,7 @@ export class XivApiGearInfo implements GearItem {
             };
             this.materiaSlots = [];
             const statCapsSync = {};
-            Object.entries(this.stats).forEach(([stat, v,]) => {
+            Object.entries(this.stats).forEach(([stat, v]) => {
                 statCapsSync[stat] = syncIlvlInfo.substatCap(this.occGearSlotName, stat as RawStatKey);
             });
             this.stats = applyStatCaps(this.stats, statCapsSync);

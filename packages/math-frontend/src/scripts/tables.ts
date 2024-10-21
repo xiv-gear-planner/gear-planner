@@ -273,7 +273,7 @@ export class CustomTable<RowDataType, SelectionType = never> extends HTMLTableEl
             const out = new CustomColumn(colDefPartial);
             Object.assign(out, colDefPartial);
             if (out.condition()) {
-                return [out,];
+                return [out];
             }
             else {
                 return [];
@@ -291,7 +291,7 @@ export class CustomTable<RowDataType, SelectionType = never> extends HTMLTableEl
     }
 
     get data() {
-        return [...this._data,];
+        return [...this._data];
     }
 
     /**

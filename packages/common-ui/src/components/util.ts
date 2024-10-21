@@ -349,8 +349,8 @@ export class FieldBoundIntField<ObjType> extends FieldBoundConvertingTextField<O
                 ctx.failValidation('Value must be an integer');
             }
         };
-        extraArgs.preValidators = [skipMinus, ...(extraArgs.preValidators ?? []),];
-        extraArgs.postValidators = [intValidator, ...(extraArgs.postValidators ?? []),];
+        extraArgs.preValidators = [skipMinus, ...(extraArgs.preValidators ?? [])];
+        extraArgs.postValidators = [intValidator, ...(extraArgs.postValidators ?? [])];
         // Spinner arrows aren't styleable. Love CSS!
         // extraArgs.type = extraArgs.type ?? 'number';
         // extraArgs.inputMode = extraArgs.inputMode ?? 'numeric';
@@ -372,8 +372,8 @@ export class FieldBoundFloatField<ObjType> extends FieldBoundConvertingTextField
                 ctx.failValidation('Value must be a number');
             }
         };
-        extraArgs.preValidators = [skipMinus, ...(extraArgs.preValidators ?? []),];
-        extraArgs.postValidators = [numberValidator, ...(extraArgs.postValidators ?? []),];
+        extraArgs.preValidators = [skipMinus, ...(extraArgs.preValidators ?? [])];
+        extraArgs.postValidators = [numberValidator, ...(extraArgs.postValidators ?? [])];
         // Spinner arrows aren't styleable. Love CSS!
         // extraArgs.type = extraArgs.type ?? 'number';
         // extraArgs.inputMode = extraArgs.inputMode ?? 'numeric';
@@ -427,7 +427,7 @@ export class FieldBoundDataSelect<ObjType, DataType> extends DataSelect<DataType
         const initialValue: DataType = obj[field] as DataType;
         // Give it something to display
         if (!options.includes(initialValue)) {
-            options = [initialValue, ...options,];
+            options = [initialValue, ...options];
         }
         super(options, valueDisplayName, value => {
             // @ts-expect-error - not sure how to do type def
@@ -495,14 +495,14 @@ function makeSvgGlyph(viewbox: string, ...paths: string[]) {
 export function faIcon(faIconName: string, faType: string = 'fa-regular') {
 
     switch (faIconName) {
-    case 'fa-plus':
-        return makeSvgGlyph("0 0 448 512", "M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32V224H48c-17.7 0-32 14.3-32 32s14.3 32 32 32H192V432c0 17.7 14.3 32 32 32s32-14.3 32-32V288H400c17.7 0 32-14.3 32-32s-14.3-32-32-32H256V80z");
-    case 'fa-trash-can':
-        return makeTrashIcon();
-    case 'fa-arrow-up-right-from-square':
-        return makeSvgGlyph("0 0 512 512", "M320 0c-17.7 0-32 14.3-32 32s14.3 32 32 32h82.7L201.4 265.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L448 109.3V192c0 17.7 14.3 32 32 32s32-14.3 32-32V32c0-17.7-14.3-32-32-32H320zM80 32C35.8 32 0 67.8 0 112V432c0 44.2 35.8 80 80 80H400c44.2 0 80-35.8 80-80V320c0-17.7-14.3-32-32-32s-32 14.3-32 32V432c0 8.8-7.2 16-16 16H80c-8.8 0-16-7.2-16-16V112c0-8.8 7.2-16 16-16H192c17.7 0 32-14.3 32-32s-14.3-32-32-32H80z");
-    case 'fa-copy':
-        return makeSvgGlyph("0 0 448 512", "M384 336H192c-8.8 0-16-7.2-16-16V64c0-8.8 7.2-16 16-16l140.1 0L400 115.9V320c0 8.8-7.2 16-16 16zM192 384H384c35.3 0 64-28.7 64-64V115.9c0-12.7-5.1-24.9-14.1-33.9L366.1 14.1c-9-9-21.2-14.1-33.9-14.1H192c-35.3 0-64 28.7-64 64V320c0 35.3 28.7 64 64 64zM64 128c-35.3 0-64 28.7-64 64V448c0 35.3 28.7 64 64 64H256c35.3 0 64-28.7 64-64V416H272v32c0 8.8-7.2 16-16 16H64c-8.8 0-16-7.2-16-16V192c0-8.8 7.2-16 16-16H96V128H64z");
+        case 'fa-plus':
+            return makeSvgGlyph("0 0 448 512", "M256 80c0-17.7-14.3-32-32-32s-32 14.3-32 32V224H48c-17.7 0-32 14.3-32 32s14.3 32 32 32H192V432c0 17.7 14.3 32 32 32s32-14.3 32-32V288H400c17.7 0 32-14.3 32-32s-14.3-32-32-32H256V80z");
+        case 'fa-trash-can':
+            return makeTrashIcon();
+        case 'fa-arrow-up-right-from-square':
+            return makeSvgGlyph("0 0 512 512", "M320 0c-17.7 0-32 14.3-32 32s14.3 32 32 32h82.7L201.4 265.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L448 109.3V192c0 17.7 14.3 32 32 32s32-14.3 32-32V32c0-17.7-14.3-32-32-32H320zM80 32C35.8 32 0 67.8 0 112V432c0 44.2 35.8 80 80 80H400c44.2 0 80-35.8 80-80V320c0-17.7-14.3-32-32-32s-32 14.3-32 32V432c0 8.8-7.2 16-16 16H80c-8.8 0-16-7.2-16-16V112c0-8.8 7.2-16 16-16H192c17.7 0 32-14.3 32-32s-14.3-32-32-32H80z");
+        case 'fa-copy':
+            return makeSvgGlyph("0 0 448 512", "M384 336H192c-8.8 0-16-7.2-16-16V64c0-8.8 7.2-16 16-16l140.1 0L400 115.9V320c0 8.8-7.2 16-16 16zM192 384H384c35.3 0 64-28.7 64-64V115.9c0-12.7-5.1-24.9-14.1-33.9L366.1 14.1c-9-9-21.2-14.1-33.9-14.1H192c-35.3 0-64 28.7-64 64V320c0 35.3 28.7 64 64 64zM64 128c-35.3 0-64 28.7-64 64V448c0 35.3 28.7 64 64 64H256c35.3 0 64-28.7 64-64V416H272v32c0 8.8-7.2 16-16 16H64c-8.8 0-16-7.2-16-16V192c0-8.8 7.2-16 16-16H96V128H64z");
     }
     const element = document.createElement('i');
     element.classList.add(faType, faIconName);

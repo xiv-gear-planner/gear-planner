@@ -42,8 +42,8 @@ Defaults to simulating a killtime of 8m 30s (510s).`,
     loadSavedSimInstance: function (exported: DrkSettingsExternal) {
         return new DrkSim(exported);
     },
-    supportedJobs: ['DRK',],
-    supportedLevels: [100,],
+    supportedJobs: ['DRK'],
+    supportedLevels: [100],
     isDefaultSim: true,
     maintainers: [{
         name: 'Violet Stardust',
@@ -51,8 +51,8 @@ Defaults to simulating a killtime of 8m 30s (510s).`,
             type: 'discord',
             discordTag: 'violet.stardust',
             discordUid: '194908170030809098',
-        },],
-    },],
+        }],
+    }],
 };
 
 // LivingShadowAbilityUsageTime is a type representing two things:
@@ -127,7 +127,7 @@ class DrkCycleProcessor extends CycleProcessor {
     }
 
     applyLivingShadowAbility(abilityUsage: LivingShadowAbilityUsageTime) {
-        const buffs = [...this.getActiveBuffs(abilityUsage.usageTime),];
+        const buffs = [...this.getActiveBuffs(abilityUsage.usageTime)];
         let darksideDuration = 0;
         // Get what the the Darkside duration would be at this
         // point of time, for visualization in the UI
@@ -181,12 +181,12 @@ class DrkCycleProcessor extends CycleProcessor {
         super.addAbilityUse(modified);
     }
 
-    comboActions: DrkGcdAbility[] = [Actions.HardSlash, Actions.SyphonStrike, Actions.Souleater,];
+    comboActions: DrkGcdAbility[] = [Actions.HardSlash, Actions.SyphonStrike, Actions.Souleater];
     getComboToUse() {
         return this.comboActions[this.rotationState.combo++];
     }
 
-    deliriumComboActions: DrkGcdAbility[] = [Actions.ScarletDelirium, Actions.Comeuppance, Actions.Torcleaver,];
+    deliriumComboActions: DrkGcdAbility[] = [Actions.ScarletDelirium, Actions.Comeuppance, Actions.Torcleaver];
     getDeliriumComboToUse() {
         return this.deliriumComboActions[this.rotationState.deliriumCombo++];
     }
@@ -549,7 +549,7 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
             cp.advanceTo(1 - STANDARD_ANIMATION_LOCK);
         }
         this.use(cp, Actions.Unmend);
-        cp.advanceForLateWeave([potionMaxStr,]);
+        cp.advanceForLateWeave([potionMaxStr]);
         this.use(cp, potionMaxStr);
         this.use(cp, Actions.HardSlash);
         this.use(cp, Actions.EdgeOfShadow);
@@ -599,6 +599,6 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
                     outer.useDrkRotation(cp);
                 });
             },
-        },];
+        }];
     }
 }

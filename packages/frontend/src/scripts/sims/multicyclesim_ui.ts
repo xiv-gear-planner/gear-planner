@@ -84,7 +84,7 @@ export class BaseMultiCycleSimGui<ResultType extends CycleSimResult, InternalSet
     makeResultDisplay(result: FullResultType): HTMLElement {
         const mainResultsTable = this.makeMainResultDisplay(result.best, result.all.length > 1);
         const abilitiesUsedTable = this.makeAbilityUsedTable(result.best);
-        return quickElement('div', ['cycle-sim-results-table',], [mainResultsTable, abilitiesUsedTable,]);
+        return quickElement('div', ['cycle-sim-results-table'], [mainResultsTable, abilitiesUsedTable]);
     }
 
     makeToolTip(result: FullResultType): string {

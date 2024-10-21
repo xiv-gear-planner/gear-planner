@@ -44,7 +44,7 @@ class SchGaugeGui {
                 }
                 return document.createTextNode("");
             },
-        },
+        }
         ];
     }
 }
@@ -53,7 +53,7 @@ export class SchSimGui extends BaseMultiCycleSimGui<SchSimResult, SchSettings> {
         const configDiv = document.createElement("div");
         const edField = new FieldBoundIntField<SchSettings>(settings, 'edsPerAfDiss', {
             inputMode: 'number',
-            postValidators: [nonNegative,],
+            postValidators: [nonNegative],
         });
         edField.id = 'edField';
         const label = labelFor('Energy Drains per Aetherflow/Dissipation', edField);
@@ -65,7 +65,7 @@ export class SchSimGui extends BaseMultiCycleSimGui<SchSimResult, SchSettings> {
     makeAbilityUsedTable(result: SchSimResult): AbilitiesUsedTable {
         const extraColumns = SchGaugeGui.generateResultColumns(result);
         const table = super.makeAbilityUsedTable(result);
-        const newColumns = [...table.columns,];
+        const newColumns = [...table.columns];
         newColumns.splice(newColumns.findIndex(col => col.shortName === 'expected-damage') + 1, 0, ...extraColumns);
         table.columns = newColumns;
         return table;

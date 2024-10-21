@@ -29,7 +29,7 @@ export const vprSheetSpec: SimSpec<VprSheetSim, VprSimSettingsExternal> = {
     loadSavedSimInstance: function (exported: VprSimSettingsExternal) {
         return new VprSheetSim(exported);
     },
-    supportedJobs: ['VPR',],
+    supportedJobs: ['VPR'],
     isDefaultSim: true,
 };
 
@@ -193,41 +193,41 @@ export class VprCycleProcessor extends CycleProcessor {
         }
     }
 
-    firstComboGcds: VprGcdAbility[] = [Actions.ReavingFangs, Actions.SteelFangs,];
-    secondComboGcds: VprGcdAbility[] = [Actions.SwiftskinsSting, Actions.HuntersSting,];
+    firstComboGcds: VprGcdAbility[] = [Actions.ReavingFangs, Actions.SteelFangs];
+    secondComboGcds: VprGcdAbility[] = [Actions.SwiftskinsSting, Actions.HuntersSting];
     public useDualWieldCombo() {
         switch (this.rotationState.comboStep) {
-        case 0:
-            this.useGcd(this.firstComboGcds[this.rotationState.nextFirstStep++]);
-            break;
-        case 1:
-            this.useGcd(this.secondComboGcds[this.rotationState.nextSecondStep++]);
-            break;
-        case 2:
+            case 0:
+                this.useGcd(this.firstComboGcds[this.rotationState.nextFirstStep++]);
+                break;
+            case 1:
+                this.useGcd(this.secondComboGcds[this.rotationState.nextSecondStep++]);
+                break;
+            case 2:
             /** Use finisher based on buff */
-            if (this.getBuffIfActive(HindsbaneVenom)) {
-                this.useGcd(Actions.HindsbaneFang);
-            }
-            else if (this.getBuffIfActive(HindstungVenom)) {
-                this.useGcd(Actions.HindstingStrike);
-            }
-            else if (this.getBuffIfActive(FlanksbaneVenom)) {
-                this.useGcd(Actions.FlanksbaneFang);
-            }
-            else if (this.getBuffIfActive(FlankstungVenom)) {
-                this.useGcd(Actions.FlankstingStrike);
-            }
-            else { // No buff running; Pick arbitrarily based on previous 2nd combo
+                if (this.getBuffIfActive(HindsbaneVenom)) {
+                    this.useGcd(Actions.HindsbaneFang);
+                }
+                else if (this.getBuffIfActive(HindstungVenom)) {
+                    this.useGcd(Actions.HindstingStrike);
+                }
+                else if (this.getBuffIfActive(FlanksbaneVenom)) {
+                    this.useGcd(Actions.FlanksbaneFang);
+                }
+                else if (this.getBuffIfActive(FlankstungVenom)) {
+                    this.useGcd(Actions.FlankstingStrike);
+                }
+                else { // No buff running; Pick arbitrarily based on previous 2nd combo
                 /** If we just used Hunter's sting */
-                if (this.rotationState.nextSecondStep === 0) {
-                    this.useGcd(Actions.HindsbaneFang); // Chosen arbitrarily from the flank options
+                    if (this.rotationState.nextSecondStep === 0) {
+                        this.useGcd(Actions.HindsbaneFang); // Chosen arbitrarily from the flank options
+                    }
+                    else if (this.rotationState.nextSecondStep === 1) { // If we just used Swiftskin's sting
+                        this.useGcd(Actions.FlanksbaneFang); // Chosen arbitrarily from the hind options
+                    }
                 }
-                else if (this.rotationState.nextSecondStep === 1) { // If we just used Swiftskin's sting
-                    this.useGcd(Actions.FlanksbaneFang); // Chosen arbitrarily from the hind options
-                }
-            }
-            this.useOgcd(Actions.DeathRattle);
-            break;
+                this.useOgcd(Actions.DeathRattle);
+                break;
         }
 
         this.rotationState.comboStep += 1;
@@ -282,7 +282,7 @@ export class VprCycleProcessor extends CycleProcessor {
         this.useDualWieldCombo(); // Will be Swifstkin's Sting because it is first to be used
         this.useGcd(Actions.Vicewinder);
 
-        this.advanceForLateWeave([potionMaxDex,]);
+        this.advanceForLateWeave([potionMaxDex]);
         this.useOgcd(potionMaxDex);
 
         this.useHuntersCoil();
@@ -390,7 +390,7 @@ export class VprCycleProcessor extends CycleProcessor {
             }
 
             if (this.canUseWithoutClipping(potionMaxDex)) {
-                this.advanceForLateWeave([potionMaxDex,]);
+                this.advanceForLateWeave([potionMaxDex]);
                 this.useOgcd(potionMaxDex);
             }
 
@@ -482,6 +482,6 @@ export class VprSheetSim extends BaseMultiCycleSim<VprSimResult, VprSimSettings>
                     cp.rotationStep();
                 }
             },
-        },];
+        }];
     }
 }

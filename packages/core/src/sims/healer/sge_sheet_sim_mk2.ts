@@ -86,7 +86,7 @@ export const sgeNewSheetSpec: SimSpec<SgeSheetSim, SgeNewSheetSettingsExternal> 
         return new SgeSheetSim();
     },
     stub: "sge-sheet-sim-mk2",
-    supportedJobs: ['SGE',],
+    supportedJobs: ['SGE'],
     isDefaultSim: true,
     description: 'Simulates the standard SGE 2-minute rotation.',
     maintainers: [{
@@ -95,8 +95,8 @@ export const sgeNewSheetSpec: SimSpec<SgeSheetSim, SgeNewSheetSettingsExternal> 
             type: 'discord',
             discordTag: 'xp',
             discordUid: '126517290098229249',
-        },],
-    },],
+        }],
+    }],
 
 };
 
@@ -143,7 +143,7 @@ class SageCycleProcessor extends CycleProcessor {
 
     doOffMinuteBurst() {
         while (true) {
-            const canUse = this.canUseCooldowns(phlegma, [psyche,]);
+            const canUse = this.canUseCooldowns(phlegma, [psyche]);
             if (canUse === 'yes') {
                 this.use(phlegma);
                 this.use(psyche);
@@ -248,7 +248,7 @@ export class SgeSheetSim extends BaseMultiCycleSim<SgeSheetSimResult, SgeNewShee
                     cycle.useUntil(filler, 'end');
                 });
             },
-        })),
+        }))
         ];
     }
 

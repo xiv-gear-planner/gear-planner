@@ -90,7 +90,7 @@ export const Delirium: DrkOgcdAbility = {
     id: 7390,
     potency: null,
     attackType: "Ability",
-    activatesBuffs: [BloodWeaponBuff, DeliriumBuff,],
+    activatesBuffs: [BloodWeaponBuff, DeliriumBuff],
     cooldown: {
         time: 60,
         charges: 1,
@@ -115,7 +115,7 @@ export const SaltedEarth: DrkOgcdAbility = {
     name: "Salted Earth",
     id: 3639,
     attackType: "Ability",
-    activatesBuffs: [SaltedEarthBuff,],
+    activatesBuffs: [SaltedEarthBuff],
     potency: 50,
     dot: {
         // This is technically just the ID of the salted earth buff, but
@@ -159,7 +159,7 @@ export const EdgeOfShadow: DrkOgcdAbility = {
     cooldown: {
         time: 1,
     },
-    activatesBuffs: [Darkside,],
+    activatesBuffs: [Darkside],
     updateMP: (gauge: DrkGauge) => {
         if (gauge.darkArts) {
             gauge.darkArts = false;
@@ -226,7 +226,7 @@ export const LivingShadow: DrkOgcdAbility = {
     // Total potency of its abilities is 2450.
     potency: null,
     attackType: "Ability",
-    activatesBuffs: [ScornBuff,],
+    activatesBuffs: [ScornBuff],
     cooldown: {
         time: 120,
         charges: 1,

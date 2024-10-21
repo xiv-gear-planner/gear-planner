@@ -77,6 +77,6 @@ export class SimRunner<SimType extends Simulation<SimResult, unknown, unknown>> 
             set = gearsets.shift();
         }
 
-        return [bestDps, bestSet,];
+        return [bestDps, bestSet];
     }
 }

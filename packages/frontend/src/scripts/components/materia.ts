@@ -48,7 +48,7 @@ export class AllSlotMateriaManager extends HTMLElement {
     }
 
     updateDisplay() {
-        const children = [...this._children,];
+        const children = [...this._children];
         if (children.length === 0) {
             return;
         }
@@ -255,7 +255,7 @@ export class MateriaCountDisplay extends HTMLElement {
     constructor(public readonly materia: Materia, public readonly count: number) {
         super();
         this.replaceChildren(
-            quickElement('div', ['materia-count-quantity',], [document.createTextNode(count + 'x'),]),
+            quickElement('div', ['materia-count-quantity'], [document.createTextNode(count + 'x')]),
             new SingleMateriaViewOnly(materia));
         this.title = formatMateriaTitle(materia);
     }
@@ -297,7 +297,7 @@ export class SlotMateriaManagerPopup extends HTMLElement {
         // Blank top-left
         const topLeftCell = document.createElement("th");
         // TODO: replace with fa-trash
-        const topLeft = quickElement('div', ['materia-picker-remove',], [faIcon('fa-trash-can'),]);
+        const topLeft = quickElement('div', ['materia-picker-remove'], [faIcon('fa-trash-can')]);
         topLeft.addEventListener('mousedown', (ev) => {
             this.submit(undefined);
             ev.stopPropagation();
@@ -369,22 +369,22 @@ export class MateriaPriorityPicker extends HTMLElement {
         const fillModeDropdown = new FieldBoundDataSelect<MateriaAutoFillController, MateriaFillMode>(prioController, 'autoFillMode',
             (val: MateriaFillMode) => {
                 switch (val) {
-                case "leave_empty":
-                    return "Leave Empty";
-                case "autofill":
-                    return "Prio Fill";
-                case "retain_slot_else_prio":
-                    return "Keep Slot > Prio";
-                case "retain_item_else_prio":
-                    return "Keep Item > Prio";
-                case "retain_slot":
-                    return "Keep Slot > None";
-                case "retain_item":
-                    return "Keep Item > None";
-                default:
-                    return "?";
+                    case "leave_empty":
+                        return "Leave Empty";
+                    case "autofill":
+                        return "Prio Fill";
+                    case "retain_slot_else_prio":
+                        return "Keep Slot > Prio";
+                    case "retain_item_else_prio":
+                        return "Keep Item > Prio";
+                    case "retain_slot":
+                        return "Keep Slot > None";
+                    case "retain_item":
+                        return "Keep Item > None";
+                    default:
+                        return "?";
                 }
-            }, [...MATERIA_FILL_MODES,]);
+            }, [...MATERIA_FILL_MODES]);
         fillModeDropdown.title = 'Control what happens when an item is selected.\n' +
             'Leave Empty: Do not fill any materia when selecting an item.\n' +
             'Prio Fill: Fill materia slots according to the priority above.\n' +
@@ -428,7 +428,7 @@ export class MateriaPriorityPicker extends HTMLElement {
                 else if (val > MAX_GCD) {
                     ctx.failValidation("Cannot be greater than " + MAX_GCD);
                 }
-            },],
+            }],
         });
         minGcdInput.addListener(val => {
             recordCurrentSheetEvent('currentSheet', {
@@ -615,7 +615,7 @@ export class MateriaTotalsDisplay extends HTMLElement {
                             materias.push(materia);
                         }
                         else {
-                            materiaCounts.set(id, [materia,]);
+                            materiaCounts.set(id, [materia]);
                         }
                     }
                 }

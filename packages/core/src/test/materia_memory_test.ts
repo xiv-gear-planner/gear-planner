@@ -47,7 +47,7 @@ describe("Materia Memory", () => {
             {
                 materiaSlot: slot,
                 equippedMateria: mat2,
-            },
+            }
         ];
         const slots2: MeldableMateriaSlot[] = [
             {
@@ -57,7 +57,7 @@ describe("Materia Memory", () => {
             {
                 materiaSlot: slot,
                 equippedMateria: mat1,
-            },
+            }
         ];
         // Equip the same item in both slots
         const eq1: EquippedItem = new EquippedItem(gi1, slots1);
@@ -66,20 +66,20 @@ describe("Materia Memory", () => {
         mem.set("RingRight", eq2);
 
         // Verify behavior
-        expect(mem.get("RingLeft", eq1.gearItem)).to.deep.equal([mat1.id, mat2.id,]);
-        expect(mem.get("RingRight", eq2.gearItem)).to.deep.equal([-1, mat1.id,]);
+        expect(mem.get("RingLeft", eq1.gearItem)).to.deep.equal([mat1.id, mat2.id]);
+        expect(mem.get("RingRight", eq2.gearItem)).to.deep.equal([-1, mat1.id]);
 
         const exported = mem.export();
 
-        expect(exported.RingLeft).to.deep.equal([[1234, [mat1.id, mat2.id,],],]);
-        expect(exported.RingRight).to.deep.equal([[1234, [-1, mat1.id,],],]);
+        expect(exported.RingLeft).to.deep.equal([[1234, [mat1.id, mat2.id]]]);
+        expect(exported.RingRight).to.deep.equal([[1234, [-1, mat1.id]]]);
 
         const imported = new MateriaMemory();
         // serialize and deserialize to check that it isn't dependent on anything else
         imported.import(JSON.parse(JSON.stringify(exported)));
 
-        expect(imported.get("RingLeft", eq1.gearItem)).to.deep.equal([mat1.id, mat2.id,]);
-        expect(imported.get("RingRight", eq2.gearItem)).to.deep.equal([-1, mat1.id,]);
+        expect(imported.get("RingLeft", eq1.gearItem)).to.deep.equal([mat1.id, mat2.id]);
+        expect(imported.get("RingRight", eq2.gearItem)).to.deep.equal([-1, mat1.id]);
 
     });
 });

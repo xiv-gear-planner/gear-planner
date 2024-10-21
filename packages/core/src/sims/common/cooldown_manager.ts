@@ -88,16 +88,16 @@ export class CooldownTracker {
         const currentTime = this.currentTime;
         if (!status.readyToUse) {
             switch (this.mode) {
-            case "none":
+                case "none":
                 // Use it anyway
-                break;
-            case "warn":
-                console.warn(`[${formatDuration(currentTime)}] Ability ${ability.name} was used, but it is not ready for another ${status.readyAt.relative.toFixed(3)}s`);
-                break;
-            case "delay":
-                throw Error('Delay should be happening at the simulation level. This is a bug.');
-            case "reject":
-                throw Error(`[${formatDuration(currentTime)}] Ability ${ability.name} was used, but it is not ready for another ${status.readyAt.relative.toFixed(3)}s`);
+                    break;
+                case "warn":
+                    console.warn(`[${formatDuration(currentTime)}] Ability ${ability.name} was used, but it is not ready for another ${status.readyAt.relative.toFixed(3)}s`);
+                    break;
+                case "delay":
+                    throw Error('Delay should be happening at the simulation level. This is a bug.');
+                case "reject":
+                    throw Error(`[${formatDuration(currentTime)}] Ability ${ability.name} was used, but it is not ready for another ${status.readyAt.relative.toFixed(3)}s`);
             }
         }
         // If the ability would have been capped at 75 seconds, and it has a 30 second CD, it will not be capped at 105

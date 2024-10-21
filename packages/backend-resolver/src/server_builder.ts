@@ -109,17 +109,17 @@ export function buildPreviewServer() {
         async function resolveNav(nav: NavPath): Promise<object | null> {
             try {
                 switch (nav.type) {
-                case "newsheet":
-                case "importform":
-                case "saved":
-                    return null;
-                case "shortlink":
-                    return JSON.parse(await getShortLink(nav.uuid));
-                case "setjson":
-                case "sheetjson":
-                    return nav.jsonBlob;
-                case "bis":
-                    return JSON.parse(await getBisSheet(nav.job, nav.expac, nav.sheet));
+                    case "newsheet":
+                    case "importform":
+                    case "saved":
+                        return null;
+                    case "shortlink":
+                        return JSON.parse(await getShortLink(nav.uuid));
+                    case "setjson":
+                    case "sheetjson":
+                        return nav.jsonBlob;
+                    case "bis":
+                        return JSON.parse(await getBisSheet(nav.job, nav.expac, nav.sheet));
                 }
             }
             catch (e) {

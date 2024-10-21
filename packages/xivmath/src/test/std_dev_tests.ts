@@ -15,7 +15,7 @@ describe('ValueWithDev calculations', () => {
                 {
                     expected: 5,
                     stdDev: 1.0,
-                },
+                }
             ];
             const result = addValues(...values);
             expect(result.expected).to.equal(8); // 3 + 5
@@ -35,7 +35,7 @@ describe('ValueWithDev calculations', () => {
                 {
                     expected: 6,
                     stdDev: 0.2,
-                },
+                }
             ];
             const result = addValues(...values);
             expect(result.expected).to.equal(12); // 2 + 4 + 6
@@ -55,7 +55,7 @@ describe('ValueWithDev calculations', () => {
                 {
                     expected: 3,
                     stdDev: 0.4,
-                },
+                }
             ];
             const result = multiplyValues(...values);
             expect(result.expected).to.equal(2 * 3); // 2 * 3
@@ -76,7 +76,7 @@ describe('ValueWithDev calculations', () => {
                 {
                     expected: 5,
                     stdDev: 0.4,
-                },
+                }
             ];
             const result = multiplyValues(...values);
             expect(result.expected).to.equal(2 * 4 * 5); // 2 * 4 * 5

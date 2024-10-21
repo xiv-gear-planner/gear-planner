@@ -162,7 +162,7 @@ export const Fuma: NinjutsuAbility = {
     gcd: 1.5,
     fixedGcd: true,
     cast: 0,
-    steps: [Ten,],
+    steps: [Ten],
 };
 
 export const Raiton: NinjutsuAbility = {
@@ -174,8 +174,8 @@ export const Raiton: NinjutsuAbility = {
     gcd: 1.5,
     fixedGcd: true,
     cast: 0,
-    activatesBuffs: [RaijuReady,],
-    steps: [Ten, Chi,],
+    activatesBuffs: [RaijuReady],
+    steps: [Ten, Chi],
 };
 
 export const Suiton: NinjutsuAbility = {
@@ -187,8 +187,8 @@ export const Suiton: NinjutsuAbility = {
     gcd: 1.5,
     fixedGcd: true,
     cast: 0,
-    activatesBuffs: [ShadowWalker,],
-    steps: [Ten, Chi, Jin,],
+    activatesBuffs: [ShadowWalker],
+    steps: [Ten, Chi, Jin],
 };
 
 export const Hyosho: NinjutsuAbility = {
@@ -200,7 +200,7 @@ export const Hyosho: NinjutsuAbility = {
     gcd: 1.5,
     fixedGcd: true,
     cast: 0,
-    steps: [Ten, Jin,],
+    steps: [Ten, Jin],
 };
 
 /**
@@ -215,7 +215,7 @@ export const KunaisBane: NinOgcdAbility = {
     cooldown: {
         time: 60,
     },
-    activatesBuffs: [KunaisBaneBuff,],
+    activatesBuffs: [KunaisBaneBuff],
 };
 
 export const Kassatsu: NinOgcdAbility = {
@@ -227,7 +227,7 @@ export const Kassatsu: NinOgcdAbility = {
     cooldown: {
         time: 60,
     },
-    activatesBuffs: [KassatsuBuff,],
+    activatesBuffs: [KassatsuBuff],
 };
 
 export const TenChiJin: NinOgcdAbility = {
@@ -239,7 +239,7 @@ export const TenChiJin: NinOgcdAbility = {
     cooldown: {
         time: 120,
     },
-    activatesBuffs: [TenChiJinReady, TenriJindoReady,],
+    activatesBuffs: [TenChiJinReady, TenriJindoReady],
 };
 
 export const Meisui: NinOgcdAbility = {
@@ -251,7 +251,7 @@ export const Meisui: NinOgcdAbility = {
     cooldown: {
         time: 120,
     },
-    activatesBuffs: [MeisuiBuff,],
+    activatesBuffs: [MeisuiBuff],
     updateGauge: gauge => gauge.ninkiGauge += 50,
 };
 
@@ -264,7 +264,7 @@ export const Bunshin: NinkiAbility = {
     cooldown: {
         time: 90,
     },
-    activatesBuffs: [BunshinBuff, PhantomReady,],
+    activatesBuffs: [BunshinBuff, PhantomReady],
     updateGauge: gauge => gauge.ninkiGauge -= 50,
     ninkiCost: 50,
 };
@@ -278,7 +278,7 @@ export const DokumoriAbility: NinOgcdAbility = {
     cooldown: {
         time: 120,
     },
-    activatesBuffs: [Dokumori, Higi,],
+    activatesBuffs: [Dokumori, Higi],
     updateGauge: gauge => gauge.ninkiGauge += 40,
 };
 

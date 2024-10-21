@@ -168,8 +168,8 @@ class FoodStatBonusDisplay extends HTMLElement {
         super();
         this.appendChild(makeSpan(`+${value.percentage}%`));
         this.appendChild(document.createTextNode(' '));
-        this.appendChild(makeSpan(`≤${value.max}`, ['food-stat-narrow',]));
-        this.appendChild(makeSpan(`(max ${value.max})`, ['food-stat-wide',]));
+        this.appendChild(makeSpan(`≤${value.max}`, ['food-stat-narrow']));
+        this.appendChild(makeSpan(`(max ${value.max})`, ['food-stat-wide']));
     }
 }
 
@@ -247,12 +247,12 @@ export class FoodItemsTable extends CustomTable<FoodItem, FoodItem> {
                     return item.name;
                 },
                 renderer: (name: string, rowValue: FoodItem) => {
-                    const trashButton = quickElement('button', ['remove-food-button',], [makeTrashIcon(),]);
+                    const trashButton = quickElement('button', ['remove-food-button'], [makeTrashIcon()]);
                     trashButton.addEventListener('click', (ev) => {
                         gearSet.food = undefined;
                         this.refreshSelection();
                     });
-                    return quickElement('div', ['food-name-holder-editable',], [quickElement('span', [], [name,]), trashButton,]);
+                    return quickElement('div', ['food-name-holder-editable'], [quickElement('span', [], [name]), trashButton]);
                 },
                 // renderer: name => {
                 //     return quickElement('div', [], [document.createTextNode(name)]);
@@ -266,7 +266,7 @@ export class FoodItemsTable extends CustomTable<FoodItem, FoodItem> {
             foodTableStatColumn(sheet, 'spellspeed', true),
             foodTableStatColumn(sheet, 'skillspeed', true),
             foodTableStatColumn(sheet, 'piety', true),
-            foodTableStatColumn(sheet, 'tenacity', true),
+            foodTableStatColumn(sheet, 'tenacity', true)
         ];
         this.selectionModel = {
             clickCell(cell: CustomCell<FoodItem, FoodItem>) {
@@ -294,13 +294,13 @@ export class FoodItemsTable extends CustomTable<FoodItem, FoodItem> {
 
             },
         };
-        const displayItems = [...sheet.foodItemsForDisplay,];
+        const displayItems = [...sheet.foodItemsForDisplay];
         displayItems.sort((left, right) => left.ilvl - right.ilvl);
         if (displayItems.length > 0) {
-            super.data = [new HeaderRow(), ...displayItems,];
+            super.data = [new HeaderRow(), ...displayItems];
         }
         else {
-            super.data = [new HeaderRow(), new TitleRow('No items available - please check your filters'),];
+            super.data = [new HeaderRow(), new TitleRow('No items available - please check your filters')];
         }
     }
 }
@@ -346,10 +346,10 @@ export class FoodItemViewTable extends CustomTable<FoodItem, FoodItem> {
             foodTableStatViewColumn(sheet, item, 'spellspeed', true),
             foodTableStatViewColumn(sheet, item, 'skillspeed', true),
             foodTableStatViewColumn(sheet, item, 'piety', true),
-            foodTableStatViewColumn(sheet, item, 'tenacity', true),
+            foodTableStatViewColumn(sheet, item, 'tenacity', true)
         ];
         this.selectionModel = noopSelectionModel;
-        super.data = [new HeaderRow(), item,];
+        super.data = [new HeaderRow(), item];
     }
 }
 
@@ -507,14 +507,14 @@ export class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
                     return item.item.name;
                 },
                 renderer: (name: string, rowValue: GearSlotItem) => {
-                    const trashButton = quickElement('button', ['remove-item-button',], [makeTrashIcon(),]);
+                    const trashButton = quickElement('button', ['remove-item-button'], [makeTrashIcon()]);
                     trashButton.addEventListener('click', (ev) => {
                         gearSet.setEquip(rowValue.slotId, null);
                         selectionTracker.set(rowValue.slotId, null);
                         this.refreshSelection();
                         this.refreshMateria();
                     });
-                    return quickElement('div', ['item-name-holder-editable',], [quickElement('span', [], [shortenItemName(name),]), trashButton,]);
+                    return quickElement('div', ['item-name-holder-editable'], [quickElement('span', [], [shortenItemName(name)]), trashButton]);
                 },
                 colStyler: (value, colElement, internalElement, rowValue) => {
                     let title: string;
@@ -584,7 +584,7 @@ export class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
             itemTableStatColumn(sheet, gearSet, 'spellspeed', true),
             itemTableStatColumn(sheet, gearSet, 'skillspeed', true),
             itemTableStatColumn(sheet, gearSet, 'piety', true),
-            itemTableStatColumn(sheet, gearSet, 'tenacity', true),
+            itemTableStatColumn(sheet, gearSet, 'tenacity', true)
         ];
         const data: (TitleRow | HeaderRow | GearSlotItem)[] = [];
         const slotMateriaManagers = new Map<keyof EquipmentSet, AllSlotMateriaManager>();
@@ -593,7 +593,7 @@ export class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
         const selectionTracker = new Map<keyof EquipmentSet, CustomRow<GearSlotItem> | GearSlotItem>();
         this.selectionTracker = selectionTracker;
         const refreshSingleItem = (item: CustomRow<GearSlotItem> | GearSlotItem) => this.refreshRowData(item);
-        for (const [name, slot,] of Object.entries(EquipSlotInfo)) {
+        for (const [name, slot] of Object.entries(EquipSlotInfo)) {
             if (handledSlots && !handledSlots.includes(name as EquipSlotKey)) {
                 continue;
             }
@@ -625,7 +625,7 @@ export class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
                 }
             }
             if (itemsInSlot && itemsInSlot.length > 0) {
-                const sortedItems = [...itemsInSlot,];
+                const sortedItems = [...itemsInSlot];
                 sortedItems.sort((left, right) => left.ilvl - right.ilvl);
                 data.push(new HeaderRow());
                 for (const gearItem of sortedItems) {
@@ -742,7 +742,7 @@ export class GearItemsViewTable extends CustomTable<GearSlotItem, EquipmentSet> 
         data.push(new HeaderRow());
         let slotItem: GearItem = null;
         let alts: ReturnType<typeof sheet.getAltItemsFor> = [];
-        for (const [name, slot,] of Object.entries(EquipSlotInfo)) {
+        for (const [name, slot] of Object.entries(EquipSlotInfo)) {
             if (handledSlots && !handledSlots.includes(name as EquipSlotKey)) {
                 continue;
             }
@@ -858,7 +858,7 @@ export class GearItemsViewTable extends CustomTable<GearSlotItem, EquipmentSet> 
             itemTableStatColumn(sheet, gearSet, 'spellspeed', true),
             itemTableStatColumn(sheet, gearSet, 'skillspeed', true),
             itemTableStatColumn(sheet, gearSet, 'piety', true),
-            itemTableStatColumn(sheet, gearSet, 'tenacity', true),
+            itemTableStatColumn(sheet, gearSet, 'tenacity', true)
         ];
         this.selectionModel = noopSelectionModel;
         this.data = data;
@@ -874,7 +874,7 @@ export class AltItemsModal extends BaseModal {
 
         const text = document.createElement('p');
         text.textContent = `The item ${baseItem.name} can be replaced by all of the following items, which have equivalent or better effective stats:`;
-        this.contentArea.appendChild(quickElement('div', ['alt-items-text-holder',], [text,]));
+        this.contentArea.appendChild(quickElement('div', ['alt-items-text-holder'], [text]));
 
         const table : CustomTable<GearItem> = new CustomTable<GearItem>();
         table.columns = [
@@ -912,9 +912,9 @@ export class AltItemsModal extends BaseModal {
                 renderer: value => {
                     return document.createTextNode(value ? (formatAcquisitionSource(value) ?? 'Unknown') : 'Unknown');
                 },
-            },
+            }
         ];
-        table.data = [new HeaderRow(), baseItem, ...altItems,];
+        table.data = [new HeaderRow(), baseItem, ...altItems];
         this.contentArea.appendChild(table);
 
         this.addCloseButton();
@@ -945,14 +945,14 @@ export class ILvlRangePicker<ObjType> extends HTMLElement {
                 if (ctx.newValue >= (obj[maxField] as number)) {
                     ctx.failValidation('Minimum level must be less than the maximum level');
                 }
-            },],
+            }],
         });
         const upperBoundControl = new FieldBoundIntField(obj, maxField, {
             postValidators: [(ctx) => {
                 if (ctx.newValue < (obj[minField] as number)) {
                     ctx.failValidation('Maximum level must be greater than the minimum level');
                 }
-            },],
+            }],
         });
         lowerBoundControl.addListener(() => this.runListeners());
         upperBoundControl.addListener(() => this.runListeners());

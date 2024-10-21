@@ -40,8 +40,8 @@ export const ninSpec: SimSpec<NinSim, NinSettingsExternal> = {
     loadSavedSimInstance: function (exported: NinSettingsExternal) {
         return new NinSim(exported);
     },
-    supportedJobs: ['NIN',],
-    supportedLevels: [100,],
+    supportedJobs: ['NIN'],
+    supportedLevels: [100],
     isDefaultSim: true,
     maintainers: [{
         name: 'Makar',
@@ -49,8 +49,8 @@ export const ninSpec: SimSpec<NinSim, NinSettingsExternal> = {
             type: 'discord',
             discordTag: 'makar',
             discordUid: '85924030661533696',
-        },],
-    },],
+        }],
+    }],
 };
 
 class RotationState {
@@ -154,21 +154,21 @@ class NINCycleProcessor extends CycleProcessor {
             // Use the next GCD in our basic combo
             fillerAction = Actions.SpinningEdge;
             switch (this.rotationState.combo) {
-            case 1: {
-                fillerAction = Actions.GustSlash;
-                break;
-            }
-            case 2: {
+                case 1: {
+                    fillerAction = Actions.GustSlash;
+                    break;
+                }
+                case 2: {
                 // Force AE during burst windows if it's available. Otherwise, keep our stacks high
-                const forceAeolian = this.getBuffIfActive(Buffs.KunaisBaneBuff) || this.getBuffIfActive(Dokumori);
-                if (this.gauge.kazematoi <= 3 && (!forceAeolian || this.gauge.kazematoi === 0)) {
-                    fillerAction = Actions.ArmorCrush;
+                    const forceAeolian = this.getBuffIfActive(Buffs.KunaisBaneBuff) || this.getBuffIfActive(Dokumori);
+                    if (this.gauge.kazematoi <= 3 && (!forceAeolian || this.gauge.kazematoi === 0)) {
+                        fillerAction = Actions.ArmorCrush;
+                    }
+                    else {
+                        fillerAction = Actions.AeolianEdge;
+                    }
+                    break;
                 }
-                else {
-                    fillerAction = Actions.AeolianEdge;
-                }
-                break;
-            }
             }
             this.rotationState.combo++;
         }
@@ -359,7 +359,7 @@ class NINCycleProcessor extends CycleProcessor {
 
     useOddMinBurst() {
         /* eslint-disable @typescript-eslint/no-unused-vars */
-        const ogcdOrder = [Actions.KunaisBane, Actions.DreamWithin,];
+        const ogcdOrder = [Actions.KunaisBane, Actions.DreamWithin];
         let counter = 0;
 
         counter = this.useOgcdInOrder(ogcdOrder, counter);
@@ -390,7 +390,7 @@ class NINCycleProcessor extends CycleProcessor {
 
     useEvenMinBurst() {
         /* eslint-disable @typescript-eslint/no-unused-vars */
-        const ogcdOrder = [Actions.KunaisBane, Actions.DreamWithin, Actions.TenChiJin, Actions.Meisui, Actions.TenriJindo,];
+        const ogcdOrder = [Actions.KunaisBane, Actions.DreamWithin, Actions.TenChiJin, Actions.Meisui, Actions.TenriJindo];
         let counter = 0;
 
         counter = this.useOgcdInOrder(ogcdOrder, counter);
@@ -429,7 +429,7 @@ export class NinSim extends BaseMultiCycleSim<NinSimResult, NinSettings, NINCycl
     spec = ninSpec;
     shortName = "nin-sim-lv100";
     displayName = ninSpec.displayName;
-    manuallyActivatedBuffs = [Dokumori,];
+    manuallyActivatedBuffs = [Dokumori];
 
     constructor(settings?: NinSettingsExternal) {
         super('NIN', settings);
@@ -526,6 +526,6 @@ export class NinSim extends BaseMultiCycleSim<NinSimResult, NinSettings, NINCycl
                     cp.useEvenMinBurst();
                 });
             },
-        },];
+        }];
     }
 }

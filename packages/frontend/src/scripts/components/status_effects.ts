@@ -13,7 +13,7 @@ async function getDataFor(statusId: number): Promise<XivApiStatusData> {
         return statusIconMap.get(statusId);
     }
     else {
-        const dataPromise = xivApiSingleCols('Status', statusId, ['ID', 'Icon', "MaxStacks",] as const);
+        const dataPromise = xivApiSingleCols('Status', statusId, ['ID', 'Icon', "MaxStacks"] as const);
         const out: Promise<XivApiStatusData> = dataPromise.then(data => {
             return {
                 ID: data.ID as number,

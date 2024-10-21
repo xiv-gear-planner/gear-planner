@@ -17,7 +17,7 @@ export const DeathsDesign: PersonalBuff = {
 export const IdealHost: PersonalBuff = {
     name: "Ideal Host",
     selfOnly: true,
-    descriptionExtras: ["Able to execute actions normally only available while hidden",],
+    descriptionExtras: ["Able to execute actions normally only available while hidden"],
     effects: {
         // Only applies to Kunai's Bane and Mesui
     },

@@ -764,19 +764,19 @@ export class CycleProcessor {
 
     computePartialRate(record: PostDmgUsedAbility): number {
         switch (this.cutoffMode) {
-        case "prorate-gcd":
-            if (record.totalTimeTaken <= 0) {
+            case "prorate-gcd":
+                if (record.totalTimeTaken <= 0) {
+                    return 1;
+                }
+                return Math.max(0, Math.min(1, (this.totalTime - record.usedAt) / record.totalTimeTaken));
+            case "prorate-application":
+                if (record.appDelayFromStart <= 0) {
+                    return 1;
+                }
+                return Math.max(0, Math.min(1, (this.totalTime - record.usedAt) / record.appDelayFromStart));
+            case "lax-gcd":
+            case "strict-gcd":
                 return 1;
-            }
-            return Math.max(0, Math.min(1, (this.totalTime - record.usedAt) / record.totalTimeTaken));
-        case "prorate-application":
-            if (record.appDelayFromStart <= 0) {
-                return 1;
-            }
-            return Math.max(0, Math.min(1, (this.totalTime - record.usedAt) / record.appDelayFromStart));
-        case "lax-gcd":
-        case "strict-gcd":
-            return 1;
         }
     }
 
@@ -817,30 +817,30 @@ export class CycleProcessor {
 
     get finalizedTimeBasis(): number {
         switch (this.cutoffMode) {
-        case "prorate-gcd":
-        case "prorate-application":
+            case "prorate-gcd":
+            case "prorate-application":
             // For these, we use either the current time, or the total allowed time. Pro-rating the final GCD is
             // handled in `get finalizedRecords()`
-            return Math.min(this.totalTime, this.currentTime);
-        case "lax-gcd":
-            return this.nextGcdTime;
-        case "strict-gcd": {
-            const cutoffTime = this.hardCutoffGcdTime;
-            if (cutoffTime !== null) {
-                return cutoffTime;
-            }
-            // We can also have a situation where clipping oGCDs have pushed us over
-            const potentialMax = Math.max(...this.finalizedRecords.filter<FinalizedAbility>(isFinalizedAbilityUse)
-                .map(record => record.usedAt + record.original.totalTimeTaken));
-            if (potentialMax > 9999999) {
                 return Math.min(this.totalTime, this.currentTime);
+            case "lax-gcd":
+                return this.nextGcdTime;
+            case "strict-gcd": {
+                const cutoffTime = this.hardCutoffGcdTime;
+                if (cutoffTime !== null) {
+                    return cutoffTime;
+                }
+                // We can also have a situation where clipping oGCDs have pushed us over
+                const potentialMax = Math.max(...this.finalizedRecords.filter<FinalizedAbility>(isFinalizedAbilityUse)
+                    .map(record => record.usedAt + record.original.totalTimeTaken));
+                if (potentialMax > 9999999) {
+                    return Math.min(this.totalTime, this.currentTime);
+                }
+                else {
+                    return potentialMax;
+                }
             }
-            else {
-                return potentialMax;
-            }
-        }
-        default:
-            return undefined;
+            default:
+                return undefined;
         }
     }
 
@@ -900,16 +900,16 @@ export class CycleProcessor {
         const cdCheckTime = isGcd ? Math.max(this.nextGcdTime, this.currentTime) : this.currentTime;
         if (!this.cdTracker.canUse(ability, cdCheckTime)) {
             switch (this.cdEnforcementMode) {
-            case "none":
-            case "warn":
+                case "none":
+                case "warn":
                 // CD tracker will enforce this
-                break;
-            case "delay":
-                this.advanceTo(this.cdTracker.statusOf(ability).readyAt.absolute);
-                break;
+                    break;
+                case "delay":
+                    this.advanceTo(this.cdTracker.statusOf(ability).readyAt.absolute);
+                    break;
                 // TODO: don't enforce at the CD tracker level, only warn, since we already enforce here
-            case "reject":
-                throw Error(`Cooldown not ready: ${ability.name}, time ${this.currentTime}, in combat: ${this.combatStarted}`);
+                case "reject":
+                    throw Error(`Cooldown not ready: ${ability.name}, time ${this.currentTime}, in combat: ${this.combatStarted}`);
             }
         }
         if (isGcd) {
@@ -963,7 +963,7 @@ export class CycleProcessor {
         const appDelayFromStart = appDelayFromSnapshot + snapshotDelayFromStart;
         const finalBuffs: Buff[] = Array.from(new Set<Buff>([
             ...preBuffs,
-            ...buffs,]))
+            ...buffs]))
             .filter(buff => {
                 return buffRelevantAtStart(buff) && preBuffs.includes(buff)
                     || buffRelevantAtSnapshot(buff) && buffs.includes(buff);
@@ -1268,7 +1268,7 @@ export class CycleProcessor {
      * Returns a record of individual cycles, including when each cycle started/ended.
      */
     get cycleRecords(): typeof this.cycles {
-        return [...this.cycles,];
+        return [...this.cycles];
     }
 
     private finalize() {
@@ -1345,13 +1345,13 @@ export class CycleProcessor {
     cooldownTime(cooldown: Cooldown, effects: CombinedBuffEffect): number {
         const stats = effects.modifyStats(this.stats);
         switch (cooldown.reducedBy) {
-        case undefined:
-        case "none":
-            return cooldown.time;
-        case "spellspeed":
-            return stats.gcdMag(cooldown.time, effects.haste);
-        case "skillspeed":
-            return stats.gcdPhys(cooldown.time, effects.haste);
+            case undefined:
+            case "none":
+                return cooldown.time;
+            case "spellspeed":
+                return stats.gcdMag(cooldown.time, effects.haste);
+            case "skillspeed":
+                return stats.gcdPhys(cooldown.time, effects.haste);
         }
     }
 
@@ -1372,25 +1372,25 @@ export class CycleProcessor {
         const actualStartTime = this.currentTime;
         let cycleTime: number;
         switch (this.cycleLengthMode) {
-        case "align-absolute": {
-            const delta = actualStartTime - expectedStartTime;
-            cycleTime = this.cycleTime - delta;
-            break;
-        }
-        case "align-to-first": {
-            if (this.currentCycle === 0) {
-                cycleTime = this.cycleTime;
-            }
-            else {
-                const adjustedExpectedStartTime = expectedStartTime + this.firstCycleStartTime;
-                const delta = actualStartTime - adjustedExpectedStartTime;
+            case "align-absolute": {
+                const delta = actualStartTime - expectedStartTime;
                 cycleTime = this.cycleTime - delta;
+                break;
             }
-            break;
-        }
-        case "full-duration":
-            cycleTime = this.cycleTime;
-            break;
+            case "align-to-first": {
+                if (this.currentCycle === 0) {
+                    cycleTime = this.cycleTime;
+                }
+                else {
+                    const adjustedExpectedStartTime = expectedStartTime + this.firstCycleStartTime;
+                    const delta = actualStartTime - adjustedExpectedStartTime;
+                    cycleTime = this.cycleTime - delta;
+                }
+                break;
+            }
+            case "full-duration":
+                cycleTime = this.cycleTime;
+                break;
         }
         const ctx = new CycleContext(this, cycleTime);
         // console.debug('Delta', delta);
@@ -1647,26 +1647,26 @@ export function defaultResultSettings(): ResultSettings {
 function updateComboTracker(combo: ComboData, ability: Ability, tracker: ComboTracker): Ability {
     let out = ability;
     switch (combo.comboBehavior) {
-    case "start":
-        tracker.lastComboAbility = ability;
-        break;
-    case "continue":
-        if (tracker.lastComboAbility && tracker.lastComboAbility.id && combo.comboFrom.find(from => abilityEquals(from, tracker.lastComboAbility))) {
+        case "start":
             tracker.lastComboAbility = ability;
-            // Update the 'out' var with the new ability data
-            out = {
-                ...out,
-                ...combo,
-            };
             break;
-        }
+        case "continue":
+            if (tracker.lastComboAbility && tracker.lastComboAbility.id && combo.comboFrom.find(from => abilityEquals(from, tracker.lastComboAbility))) {
+                tracker.lastComboAbility = ability;
+                // Update the 'out' var with the new ability data
+                out = {
+                    ...out,
+                    ...combo,
+                };
+                break;
+            }
         // If the ability does not match, then fall through the same behavior as 'break'
-    case "break":
-        tracker.lastComboAbility = null;
-        break;
-    case "nobreak":
+        case "break":
+            tracker.lastComboAbility = null;
+            break;
+        case "nobreak":
         // Do nothing
-        break;
+            break;
     }
     return out;
 }

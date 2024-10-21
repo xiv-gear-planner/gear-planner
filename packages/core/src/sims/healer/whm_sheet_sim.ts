@@ -50,7 +50,7 @@ export const whmSheetSpec: SimSpec<WhmSheetSim, WhmSheetSettings> = {
         return new WhmSheetSim();
     },
     stub: "whm-sheet-sim",
-    supportedJobs: ['WHM',],
+    supportedJobs: ['WHM'],
 };
 
 // TODO: report MP time

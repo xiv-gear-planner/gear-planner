@@ -112,7 +112,7 @@ const pom: OgcdAbility = {
             effects: {
                 haste: 20,
             },
-        },
+        }
     ],
     attackType: "Ability",
 };
@@ -144,7 +144,7 @@ export const testSimSpec: SimSpec<TestMultiCycleSim, TestSimSettingsExternal> = 
         return new TestMultiCycleSim();
     },
     stub: "test-whm-sim",
-    supportedJobs: ['WHM',],
+    supportedJobs: ['WHM'],
     isDefaultSim: false,
 };
 
@@ -206,7 +206,7 @@ class TestMultiCycleSim extends BaseMultiCycleSim<TestSimResult, TestSimSettings
                 });
             },
 
-        },];
+        }];
     }
 }
 
@@ -390,7 +390,7 @@ const expectedAbilities: UseResult[] = [
         time: 28.94,
         name: "Glare",
         damage: 6909.599,
-    },
+    }
 ];
 
 
@@ -621,7 +621,7 @@ const potBuffAbility: GcdAbility = {
     attackType: "Spell",
     gcd: 2.5,
     cast: 1.0,
-    activatesBuffs: [potBuff,],
+    activatesBuffs: [potBuff],
 };
 
 describe('Potency Buff Ability', () => {
@@ -689,7 +689,7 @@ const bristle: GcdAbility = {
     attackType: "Spell",
     gcd: 2.5,
     cast: 1.0,
-    activatesBuffs: [bristleBuff,],
+    activatesBuffs: [bristleBuff],
 };
 
 // Demonstrates the longer but more flexible way
@@ -716,7 +716,7 @@ const bristle2: GcdAbility = {
     attackType: "Spell",
     gcd: 2.5,
     cast: 1.0,
-    activatesBuffs: [bristleBuff2,],
+    activatesBuffs: [bristleBuff2],
 };
 
 describe('Damage Buff Ability', () => {
@@ -1338,7 +1338,7 @@ const indefAb: Ability = {
     attackType: "Spell",
     gcd: 2.5,
     cast: 1.5,
-    activatesBuffs: [indefBuff,],
+    activatesBuffs: [indefBuff],
 
 };
 

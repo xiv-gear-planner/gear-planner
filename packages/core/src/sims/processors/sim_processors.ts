@@ -147,13 +147,13 @@ implements Simulation<FullResultType, InternalSettingsType, ExternalCycleSetting
                 cutoffMode: this.cycleSettings.cutoffMode,
             });
             rot.apply(cp);
-            return [rot.name ?? `Unnamed #${index + 1}`, cp,];
+            return [rot.name ?? `Unnamed #${index + 1}`, cp];
         });
     }
 
     calcDamage(set: CharacterGearSet): FullResultType {
         const allResults = this.cachedCycleProcessors.map(item => {
-            const [label, cp,] = item;
+            const [label, cp] = item;
 
             cp.stats = set.computedStats;
             const used = cp.finalizedRecords.filter(isFinalizedAbilityUse);
@@ -161,7 +161,7 @@ implements Simulation<FullResultType, InternalSettingsType, ExternalCycleSetting
             const timeBasis = cp.finalizedTimeBasis;
             const dps = multiplyFixed(totalDamage, 1.0 / timeBasis);
             const unbuffedPps = sum(used.map(used => used.totalPotency)) / cp.nextGcdTime;
-            const buffTimings = [...cp.buffHistory,];
+            const buffTimings = [...cp.buffHistory];
 
             return {
                 mainDpsResult: applyStdDev(dps, this.resultSettings.stdDevs ?? 0),
@@ -175,7 +175,7 @@ implements Simulation<FullResultType, InternalSettingsType, ExternalCycleSetting
                 label: label,
             } satisfies CycleSimResult as unknown as ResultType;
         });
-        const sorted = [...allResults,];
+        const sorted = [...allResults];
         sorted.sort((a, b) => b.mainDpsResult - a.mainDpsResult);
         console.debug("Sim end");
         const best = sorted[0];

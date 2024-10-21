@@ -72,7 +72,7 @@ export const pom: OgcdAbility = {
             effects: {
                 haste: 20,
             },
-        },
+        }
     ],
     attackType: "Ability",
 };

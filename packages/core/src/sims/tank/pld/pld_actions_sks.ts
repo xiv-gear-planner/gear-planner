@@ -33,7 +33,7 @@ export const RoyalAuthority: GcdAbility = {
     potency: 460,
     gcd: 2.5,
     cast: 0,
-    activatesBuffs: [AtonementReadyBuff, DivineMightBuff,],
+    activatesBuffs: [AtonementReadyBuff, DivineMightBuff],
 };
 
 export const Atonement: GcdAbility = {
@@ -44,7 +44,7 @@ export const Atonement: GcdAbility = {
     potency: 460,
     gcd: 2.5,
     cast: 0,
-    activatesBuffs: [SupplicationReadyBuff,],
+    activatesBuffs: [SupplicationReadyBuff],
 };
 export const Supplication: GcdAbility = {
     type: 'gcd',
@@ -55,7 +55,7 @@ export const Supplication: GcdAbility = {
     potency: 500,
     gcd: 2.5,
     cast: 0,
-    activatesBuffs: [SepulchreReadyBuff,],
+    activatesBuffs: [SepulchreReadyBuff],
 };
 export const Sepulchre: GcdAbility = {
     type: 'gcd',
@@ -132,7 +132,7 @@ export const BladeOfValor: GcdAbility = {
     potency: 1000,
     gcd: 2.5,
     cast: 0,
-    activatesBuffs: [BladeOfHonorReadyBuff,],
+    activatesBuffs: [BladeOfHonorReadyBuff],
 };
 
 
@@ -152,7 +152,7 @@ export const FightOrFlight: OgcdAbility = {
     cooldown: {
         time: 60,
     },
-    activatesBuffs: [FightOrFlightBuff, GoringBladeReadyBuff,],
+    activatesBuffs: [FightOrFlightBuff, GoringBladeReadyBuff],
 };
 export const Imperator: OgcdAbility = {
     type: 'ogcd',
@@ -163,7 +163,7 @@ export const Imperator: OgcdAbility = {
     cooldown: {
         time: 60,
     },
-    activatesBuffs: [RequiescatBuff,],
+    activatesBuffs: [RequiescatBuff],
 };
 export const BladeOfHonor: OgcdAbility = {
     type: 'ogcd',

@@ -76,7 +76,7 @@ export function parseImport(text: string): ImportSpec {
     if (bisExec !== null) {
         return {
             importType: 'bis',
-            path: [bisExec[1] as JobName, bisExec[2], bisExec[3],],
+            path: [bisExec[1] as JobName, bisExec[2], bisExec[3]],
         };
     }
     try {

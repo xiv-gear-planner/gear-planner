@@ -73,7 +73,7 @@ export class SheetProvider<SheetType extends GearPlanSheet> {
         }
         const gearPlanSheet = this.fromExport({
             race: undefined,
-            sets: [...importedData,],
+            sets: [...importedData],
             sims: importedData[0].sims ?? [],
             name: importedData[0].name ?? SHARED_SET_NAME,
             saveKey: undefined,
@@ -105,7 +105,7 @@ export class SheetProvider<SheetType extends GearPlanSheet> {
             sets: [{
                 name: "Default Set",
                 items: {},
-            },],
+            }],
             sims: [],
             ilvlSync: ilvlSync,
             // ctor will auto-fill the rest
@@ -215,7 +215,7 @@ export class GearPlanSheet {
             // }
         }
         this.materiaAutoFillPrio = {
-            statPrio: importedData.mfp ?? [...DefaultMateriaFillPrio.filter(stat => this.isStatRelevant(stat)),],
+            statPrio: importedData.mfp ?? [...DefaultMateriaFillPrio.filter(stat => this.isStatRelevant(stat))],
             // Just picking a bogus value so the user understands what it is
             minGcd: importedData.mfMinGcd ?? 2.05,
         };
@@ -473,7 +473,7 @@ export class GearPlanSheet {
     }
 
     reorderSet(gearSet: CharacterGearSet, to: number) {
-        const sets = [...this._sets,];
+        const sets = [...this._sets];
         const from = sets.indexOf(gearSet);
         if (from === to) {
             return;
@@ -618,11 +618,11 @@ export class GearPlanSheet {
     }
 
     get customItems() {
-        return [...this._customItems,];
+        return [...this._customItems];
     }
 
     get customFood() {
-        return [...this._customFoods,];
+        return [...this._customFoods];
     }
 
     deleteCustomItem(item: CustomItem) {
@@ -809,7 +809,7 @@ export class GearPlanSheet {
     }
 
     get relevantFood(): FoodItem[] {
-        return [...this._dmRelevantFood, ...this._customFoods,];
+        return [...this._dmRelevantFood, ...this._customFoods];
     }
 
     get relevantMateria(): Materia[] {
@@ -855,7 +855,7 @@ export class GearPlanSheet {
                     && (item.ilvl <= this._itemDisplaySettings.maxILvl
                         || item.isCustomRelic && this._itemDisplaySettings.higherRelics);
             }),
-            ...this._customItems,];
+            ...this._customItems];
     }
 
     onGearDisplaySettingsUpdate() {
@@ -868,7 +868,7 @@ export class GearPlanSheet {
 
     get foodItemsForDisplay(): FoodItem[] {
         // TODO: sorting?
-        return [...this._dmRelevantFood.filter(item => item.ilvl >= this._itemDisplaySettings.minILvlFood && item.ilvl <= this._itemDisplaySettings.maxILvlFood), ...this._customFoods,];
+        return [...this._dmRelevantFood.filter(item => item.ilvl >= this._itemDisplaySettings.minILvlFood && item.ilvl <= this._itemDisplaySettings.maxILvlFood), ...this._customFoods];
     }
 
     getBestMateria(stat: MateriaSubstat, meldSlot: MeldableMateriaSlot): Materia | undefined {

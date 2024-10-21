@@ -62,7 +62,7 @@ class AstGaugeGui {
 
                     Object.keys(cardStyles).forEach(key => {
                         const stack = document.createElement('span');
-                        for (const [k, v,] of Object.entries(cardStyles[key])) {
+                        for (const [k, v] of Object.entries(cardStyles[key])) {
                             stack.style[k] = v;
                         }
                         stack.style.height = '100%';
@@ -79,7 +79,7 @@ class AstGaugeGui {
                 }
                 return document.createTextNode("");
             },
-        },
+        }
         ];
     }
 }
@@ -88,7 +88,7 @@ export class AstSheetSimGui extends BaseMultiCycleSimGui<AstSimResult, AstSettin
     override makeAbilityUsedTable(result: AstSimResult): AbilitiesUsedTable {
         const extraColumns = AstGaugeGui.generateResultColumns(result);
         const table = super.makeAbilityUsedTable(result);
-        const newColumns = [...table.columns,];
+        const newColumns = [...table.columns];
         newColumns.splice(newColumns.findIndex(col => col.shortName === 'expected-damage') + 1, 0, ...extraColumns);
         table.columns = newColumns;
         return table;

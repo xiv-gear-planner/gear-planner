@@ -16,7 +16,7 @@ export interface BluBreath60SettingsExternal extends ExternalCycleSettings<BluBr
 export const BluBreath60Spec: SimSpec<BluBreath60Sim, BluBreath60SettingsExternal> = {
     displayName: "BLU Breath 60s",
     stub: "blu-breath60",
-    supportedJobs: ["BLU",],
+    supportedJobs: ["BLU"],
     isDefaultSim: false,
     description: "Simulates a BLU Breath of Magic rotation with Moon Flute windows every 60s.",
 
@@ -220,6 +220,6 @@ export class BluBreath60Sim extends blu.BluSim<BluBreath60SimResult, BluBreath60
                     }
                 });
             },
-        },];
+        }];
     }
 }

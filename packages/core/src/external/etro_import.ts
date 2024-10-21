@@ -3,7 +3,7 @@ import {JobName, MATERIA_SLOTS_MAX, SupportedLevel} from "@xivgear/xivmath/xivco
 import {BaseParamToStatKey, RelevantBaseParam} from "./xivapitypes";
 import {queryBaseParams} from "../datamanager_xivapi";
 
-const ETRO_SLOTS = ['weapon', 'offHand', 'head', 'body', 'hands', 'legs', 'feet', 'ears', 'neck', 'wrists', 'fingerL', 'fingerR',] as const;
+const ETRO_SLOTS = ['weapon', 'offHand', 'head', 'body', 'hands', 'legs', 'feet', 'ears', 'neck', 'wrists', 'fingerL', 'fingerR'] as const;
 // Works
 type ETRO_SLOT_KEY = typeof ETRO_SLOTS[number];
 

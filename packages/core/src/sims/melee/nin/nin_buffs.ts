@@ -16,24 +16,24 @@ export const KunaisBaneBuff: Buff = {
 };
 
 const NINJUTSU_ACTIONS_1STEP: string[] = [
-    "Fuma Shuriken",
+    "Fuma Shuriken"
 ];
 const NINJUTSU_ACTIONS_2STEP: string[] = [
     "Katon", "Raiton", "Hyoton",
-    "Hyosho Ranryu", "Goka Mekkyaku",
+    "Hyosho Ranryu", "Goka Mekkyaku"
 ];
 const NINJUTSU_ACTIONS_3STEP: string[] = [
-    "Huton", "Doton", "Suiton",
+    "Huton", "Doton", "Suiton"
 ];
 const NINJUTSU_ACTIONS: string[] = [
     ...NINJUTSU_ACTIONS_1STEP,
     ...NINJUTSU_ACTIONS_2STEP,
-    ...NINJUTSU_ACTIONS_3STEP,
+    ...NINJUTSU_ACTIONS_3STEP
 ];
 export const KassatsuBuff: Buff = {
     name: "Kassatsu",
     selfOnly: true,
-    descriptionExtras: ["Able to execute a ninjutsu without consuming charges while increasing damage",],
+    descriptionExtras: ["Able to execute a ninjutsu without consuming charges while increasing damage"],
     effects: {
         dmgIncrease: 0.3,
     },
@@ -47,7 +47,7 @@ export const KassatsuBuff: Buff = {
 export const TenChiJinReady: Buff = {
     name: "Ten Chi Jin",
     selfOnly: true,
-    descriptionExtras: ["Able to execute 3 ninjutsu actions in succession",],
+    descriptionExtras: ["Able to execute 3 ninjutsu actions in succession"],
     effects: {
         // Only applies to ninjutsu actions
     },
@@ -74,7 +74,7 @@ export const TenChiJinReady: Buff = {
 export const TenriJindoReady: Buff = {
     name: "Tenri Jindo Ready",
     selfOnly: true,
-    descriptionExtras: ["Able to execute Tenri Jindo",],
+    descriptionExtras: ["Able to execute Tenri Jindo"],
     effects: {
         // Only applies to Tenri Jindo
     },
@@ -87,7 +87,7 @@ export const TenriJindoReady: Buff = {
 export const ShadowWalker: Buff = {
     name: "Shadow Walker",
     selfOnly: true,
-    descriptionExtras: ["Able to execute actions normally only available while hidden",],
+    descriptionExtras: ["Able to execute actions normally only available while hidden"],
     effects: {
         // Only applies to Kunai's Bane and Mesui
     },
@@ -100,7 +100,7 @@ export const ShadowWalker: Buff = {
 export const MeisuiBuff: Buff = {
     name: "Meisui",
     selfOnly: true,
-    descriptionExtras: ["Increase potency of single-target ninki spenders",],
+    descriptionExtras: ["Increase potency of single-target ninki spenders"],
     effects: {
         // Only applies to Bhavacakra and Zesho Meppo
         // Increases potency of either by 150
@@ -120,7 +120,7 @@ export const MeisuiBuff: Buff = {
 export const BunshinBuff: Buff = {
     name: "Bunshin",
     selfOnly: true,
-    descriptionExtras: ["Deals additional damage when executing Weaponskills",],
+    descriptionExtras: ["Deals additional damage when executing Weaponskills"],
     effects: {
         // Only applies to Weaponskills
         // 160 pet potency per stack consumption
@@ -142,7 +142,7 @@ export const BunshinBuff: Buff = {
 export const RaijuReady: Buff = {
     name: "Raiju Ready",
     selfOnly: true,
-    descriptionExtras: ["Able to execute Fleeting/Forked Raiju",],
+    descriptionExtras: ["Able to execute Fleeting/Forked Raiju"],
     effects: {
         // Only applies to Raiju skills
     },
@@ -163,7 +163,7 @@ export const RaijuReady: Buff = {
 export const PhantomReady: Buff = {
     name: "Phantom Kamaitachi Ready",
     selfOnly: true,
-    descriptionExtras: ["Able to execute Phantom Kamaitachi",],
+    descriptionExtras: ["Able to execute Phantom Kamaitachi"],
     effects: {
         // Only applies to Phantom Kamaitachi
     },
@@ -176,7 +176,7 @@ export const PhantomReady: Buff = {
 export const Higi: Buff = {
     name: "Higi",
     selfOnly: true,
-    descriptionExtras: ["Able to execute Zesho Meppo or Deathfrog Medium",],
+    descriptionExtras: ["Able to execute Zesho Meppo or Deathfrog Medium"],
     effects: {
         // Only applies to Zesho Meppo and Deathfrog Medium
     },

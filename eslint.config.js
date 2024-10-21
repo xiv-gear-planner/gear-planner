@@ -59,7 +59,7 @@ export default [
             "@stylistic/js/no-mixed-spaces-and-tabs": "error",
             "@stylistic/js/comma-dangle": ["error", {
                 "functions": "never",
-                "arrays": "always",
+                "arrays": "never",
                 "objects": "always",
                 "imports": "never",
                 "exports": "never",
@@ -68,7 +68,7 @@ export default [
             "use-isnan": "error",
             "eqeqeq": "error",
             "no-var": "error",
-            "indent": "error",
+            "indent": ["error", 4, { "SwitchCase": 1 }],
             "prefer-const": "error",
             "camelcase": "error",
             "block-scoped-var": "error",

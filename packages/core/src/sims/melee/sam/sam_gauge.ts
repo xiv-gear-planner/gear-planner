@@ -55,7 +55,7 @@ class SAMGauge {
     getGaugeState(): SAMGaugeState {
         return {
             level: this.level,
-            sen: new Set([...this.sen,]),
+            sen: new Set([...this.sen]),
             kenki: this.kenkiGauge,
             meditation: this.meditation,
         };

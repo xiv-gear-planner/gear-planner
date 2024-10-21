@@ -79,7 +79,7 @@ const chain: SchOgcdAbility = {
     type: 'ogcd',
     name: "Chain Strategem",
     id: 7436,
-    activatesBuffs: [Chain, ImpactImminent,],
+    activatesBuffs: [Chain, ImpactImminent],
     potency: null,
     attackType: "Ability",
     cooldown: {
@@ -175,7 +175,7 @@ export const schNewSheetSpec: SimSpec<SchSim, SchSettingsExternal> = {
         return new SchSim();
     },
     stub: "sch-sheet-sim",
-    supportedJobs: ['SCH',],
+    supportedJobs: ['SCH'],
     isDefaultSim: true,
 };
 
@@ -264,7 +264,7 @@ export class SchSim extends BaseMultiCycleSim<SchSimResult, SchSettings, Scholar
     spec = schNewSheetSpec;
     displayName = schNewSheetSpec.displayName;
     shortName = "sch-sheet-sim";
-    manuallyActivatedBuffs = [Chain,];
+    manuallyActivatedBuffs = [Chain];
 
     constructor(settings?: SchSettingsExternal) {
         super('SCH', settings);
@@ -392,7 +392,7 @@ export class SchSim extends BaseMultiCycleSim<SchSimResult, SchSettings, Scholar
                     }
                 });
             },
-        })),
+        }))
         ];
     }
 }

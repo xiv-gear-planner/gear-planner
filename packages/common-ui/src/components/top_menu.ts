@@ -14,38 +14,38 @@ export function applyCommonTopMenuFormatting(link: HTMLAnchorElement) {
         return;
     }
     switch (link.textContent) {
-    case 'My Sheets':
-        link.replaceChildren(mySheetsIcon(), textSpan(link.textContent));
-        link.title = 'View your saved sheets';
-        break;
-    case 'New Sheet':
-        link.replaceChildren(newSheetIcon(), textSpan(link.textContent));
-        link.title = 'Create a new sheet from scratch';
-        break;
-    case 'Import':
-        link.replaceChildren(importIcon(), textSpan(link.textContent));
-        link.title = 'Import sheets, sets, or Etro links into a new sheet';
-        break;
-    case 'GitHub':
-        link.replaceChildren(githubIcon());
-        link.title = 'Source code on GitHub';
-        break;
-    case 'Settings':
-        link.replaceChildren(settingsIcon());
-        link.title = 'Light mode, theme, and other settings.';
-        break;
-    case 'Math':
-        link.replaceChildren(makeCalcIcon());
-        link.title = 'Math center';
-        break;
-    case 'Ko-Fi':
-        link.replaceChildren(makeDollarIcon());
-        link.title = 'Donate on Ko-Fi';
-        break;
-    case 'Patreon':
-        link.replaceChildren(makePatreonIcon());
-        link.title = 'Donate on Patreon';
-        break;
+        case 'My Sheets':
+            link.replaceChildren(mySheetsIcon(), textSpan(link.textContent));
+            link.title = 'View your saved sheets';
+            break;
+        case 'New Sheet':
+            link.replaceChildren(newSheetIcon(), textSpan(link.textContent));
+            link.title = 'Create a new sheet from scratch';
+            break;
+        case 'Import':
+            link.replaceChildren(importIcon(), textSpan(link.textContent));
+            link.title = 'Import sheets, sets, or Etro links into a new sheet';
+            break;
+        case 'GitHub':
+            link.replaceChildren(githubIcon());
+            link.title = 'Source code on GitHub';
+            break;
+        case 'Settings':
+            link.replaceChildren(settingsIcon());
+            link.title = 'Light mode, theme, and other settings.';
+            break;
+        case 'Math':
+            link.replaceChildren(makeCalcIcon());
+            link.title = 'Math center';
+            break;
+        case 'Ko-Fi':
+            link.replaceChildren(makeDollarIcon());
+            link.title = 'Donate on Ko-Fi';
+            break;
+        case 'Patreon':
+            link.replaceChildren(makePatreonIcon());
+            link.title = 'Donate on Patreon';
+            break;
     }
     link.setAttribute('formatted', 'true');
 }

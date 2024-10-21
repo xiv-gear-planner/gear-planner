@@ -14,7 +14,7 @@ async function getDataFor(itemId: number): Promise<XivApiItemData> {
         return itemIconMap.get(itemId);
     }
     else {
-        const out = xivApiSingleCols('Item', itemId, ['ID', 'Icon',] as const) as Promise<XivApiItemData>;
+        const out = xivApiSingleCols('Item', itemId, ['ID', 'Icon'] as const) as Promise<XivApiItemData>;
         itemIconMap.set(itemId, out);
         return out;
     }

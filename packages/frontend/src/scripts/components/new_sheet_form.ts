@@ -74,7 +74,7 @@ export class NewSheetFormFieldSet extends HTMLFieldSetElement {
         };
         this.ilvlSyncCheckbox = new FieldBoundCheckBox(this.tempSettings, 'ilvlSyncEnabled');
         this.ilvlSyncCheckbox.id = 'new-sheet-ilvl-sync-enable';
-        this.append(quickElement('div', [], [this.ilvlSyncCheckbox, labelFor("Sync Item Level", this.ilvlSyncCheckbox),]));
+        this.append(quickElement('div', [], [this.ilvlSyncCheckbox, labelFor("Sync Item Level", this.ilvlSyncCheckbox)]));
         this.ilvlSyncValue = new FieldBoundIntField(this.tempSettings, 'ilvlSync', {
             postValidators: [
                 nonNegative,
@@ -82,7 +82,7 @@ export class NewSheetFormFieldSet extends HTMLFieldSetElement {
                     if (ctx.newValue > MAX_ILVL) {
                         ctx.failValidation("Enter a valid item level (too high)");
                     }
-                },
+                }
             ],
         });
         this.ilvlSyncValue.style.display = 'none';
@@ -197,7 +197,7 @@ export class SaveAsModal extends BaseModal {
 }
 
 function spacer() {
-    return quickElement('div', ['vertical-spacer',], []);
+    return quickElement('div', ['vertical-spacer'], []);
 }
 
 customElements.define("save-as-modal", SaveAsModal);

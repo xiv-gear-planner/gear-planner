@@ -22,31 +22,31 @@ export class WhmSheetSimGui extends SimulationGui<WhmSheetSimResult, WhmSheetSet
 
         const ldPerMin = new FieldBoundFloatField<WhmSheetSettings>(settings, 'ldPerMin', {
             id: 'ldPerMin-input',
-            postValidators: [nonNegative,],
+            postValidators: [nonNegative],
         });
         const ldPerMinLabel = labelFor('Lucid Dreaming/Minute', ldPerMin);
-        outerDiv.appendChild(quickElement("div", ['labeled-item',], [ldPerMinLabel, ldPerMin,]));
+        outerDiv.appendChild(quickElement("div", ['labeled-item'], [ldPerMinLabel, ldPerMin]));
 
         const rezPerMin = new FieldBoundFloatField<WhmSheetSettings>(settings, 'rezPerMin', {
             id: 'rezPerMin-input',
-            postValidators: [nonNegative,],
+            postValidators: [nonNegative],
         });
         const rezPerMinLabel = labelFor('Raise/Minute', rezPerMin);
-        outerDiv.appendChild(quickElement("div", ['labeled-item',], [rezPerMinLabel, rezPerMin,]));
+        outerDiv.appendChild(quickElement("div", ['labeled-item'], [rezPerMinLabel, rezPerMin]));
 
         const m2perMin = new FieldBoundFloatField<WhmSheetSettings>(settings, 'm2PerMin', {
             id: 'm2PerMin-input',
-            postValidators: [nonNegative,],
+            postValidators: [nonNegative],
         });
         const m2perMinLabel = labelFor('Medica II/Minute', m2perMin);
-        outerDiv.appendChild(quickElement("div", ['labeled-item',], [m2perMinLabel, m2perMin,]));
+        outerDiv.appendChild(quickElement("div", ['labeled-item'], [m2perMinLabel, m2perMin]));
 
         const c3perMin = new FieldBoundFloatField<WhmSheetSettings>(settings, 'c3PerMin', {
             id: 'c3PerMin-input',
-            postValidators: [nonNegative,],
+            postValidators: [nonNegative],
         });
         const c3perMinLabel = labelFor('Cure III/Minute', c3perMin);
-        outerDiv.appendChild(quickElement("div", ['labeled-item',], [c3perMinLabel, c3perMin,]));
+        outerDiv.appendChild(quickElement("div", ['labeled-item'], [c3perMinLabel, c3perMin]));
 
         return outerDiv;
     }

@@ -19,12 +19,12 @@ export interface DisplayGearSlot {
 // Slots that we display. 2H and 1H weapons are both just considered 'weapons'.
 // In addition, a body piece that takes up the head slot as well (or all the left-hand slots) will still just be
 // a body.
-export const DisplayGearSlots = ['Weapon', 'OffHand', 'Head', 'Body', 'Hand', 'Legs', 'Feet', 'Ears', 'Neck', 'Wrist', 'Ring',] as const;
+export const DisplayGearSlots = ['Weapon', 'OffHand', 'Head', 'Body', 'Hand', 'Legs', 'Feet', 'Ears', 'Neck', 'Wrist', 'Ring'] as const;
 export type DisplayGearSlotKey = typeof DisplayGearSlots[number];
 // Slots that an item actually occupies. 2H and 1H weapons are distinct here.
 // TODO: this stuff *could* be XIVAPI-ified later, which would especially be useful if SE adds more gear that blocks out
 // other slots. It seems to return a '1' for the primary slot, and a '-1' for blocked slots.
-export const OccGearSlots = ['Weapon2H', 'Weapon1H', 'OffHand', 'Head', 'Body', 'Hand', 'Legs', 'Feet', 'Ears', 'Neck', 'Wrist', 'Ring',] as const;
+export const OccGearSlots = ['Weapon2H', 'Weapon1H', 'OffHand', 'Head', 'Body', 'Hand', 'Legs', 'Feet', 'Ears', 'Neck', 'Wrist', 'Ring'] as const;
 export type OccGearSlotKey = typeof OccGearSlots[number];
 
 // For future use, in the event that these actually require properties
@@ -50,7 +50,7 @@ export interface EquipSlot {
     name: string;
 }
 
-export const EquipSlots = ['Weapon', 'OffHand', 'Head', 'Body', 'Hand', 'Legs', 'Feet', 'Ears', 'Neck', 'Wrist', 'RingLeft', 'RingRight',] as const;
+export const EquipSlots = ['Weapon', 'OffHand', 'Head', 'Body', 'Hand', 'Legs', 'Feet', 'Ears', 'Neck', 'Wrist', 'RingLeft', 'RingRight'] as const;
 
 export type EquipSlotKey = typeof EquipSlots[number];
 
@@ -373,7 +373,7 @@ export type RawStatKey = keyof RawStats;
 /**
  * Stats that should not have ilvl caps applied
  */
-export const NO_SYNC_STATS: RawStatKey[] = ['weaponDelay',];
+export const NO_SYNC_STATS: RawStatKey[] = ['weaponDelay'];
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
 export class RawStats implements RawStats {
@@ -434,7 +434,7 @@ export interface LevelItemInfo {
 }
 
 
-export const ROLES = ['Healer', 'Melee', 'Ranged', 'Caster', 'Tank',] as const;
+export const ROLES = ['Healer', 'Melee', 'Ranged', 'Caster', 'Tank'] as const;
 
 export type RoleKey = typeof ROLES[number];
 
@@ -576,7 +576,7 @@ export class EquipmentSet {
 
 export function cloneEquipmentSet(set: EquipmentSet) {
     const out = new EquipmentSet();
-    Object.entries(set).forEach(([slot, equipped,]) => {
+    Object.entries(set).forEach(([slot, equipped]) => {
         if (equipped instanceof EquippedItem) {
             out[slot] = equipped.clone();
         }
@@ -827,7 +827,7 @@ export interface MateriaAutoFillPrio {
     minGcd: number;
 }
 
-export const MATERIA_FILL_MODES = ['leave_empty', 'autofill', 'retain_slot_else_prio', 'retain_item_else_prio', 'retain_slot', 'retain_item',] as const;
+export const MATERIA_FILL_MODES = ['leave_empty', 'autofill', 'retain_slot_else_prio', 'retain_item_else_prio', 'retain_slot', 'retain_item'] as const;
 export type MateriaFillMode = typeof MATERIA_FILL_MODES[number];
 
 export interface ItemDisplaySettings {
@@ -838,7 +838,7 @@ export interface ItemDisplaySettings {
     higherRelics: boolean
 }
 
-export const AttackTypes = ['Unknown', 'Auto-attack', 'Spell', 'Weaponskill', 'Ability', 'Item',] as const;
+export const AttackTypes = ['Unknown', 'Auto-attack', 'Spell', 'Weaponskill', 'Ability', 'Item'] as const;
 export type AttackType = typeof AttackTypes[number];
 
 
@@ -1008,7 +1008,7 @@ export class EquippedItem {
             }
         }
         else {
-            this.melds = [...melds,];
+            this.melds = [...melds];
         }
         if (gearItem.isCustomRelic) {
             this.relicStats = {};

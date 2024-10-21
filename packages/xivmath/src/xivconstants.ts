@@ -83,7 +83,7 @@ export type RaceName = 'Duskwight' | 'Wildwood'
 /**
  * Supported levels.
  */
-export const SupportedLevels = [70, 80, 90, 100,] as const;
+export const SupportedLevels = [70, 80, 90, 100] as const;
 export const CURRENT_MAX_LEVEL: SupportedLevel = 100;
 export const CURRENT_MAX_LEVEL_BLU: SupportedLevel = 80;
 export type SupportedLevel = typeof SupportedLevels[number];
@@ -108,30 +108,30 @@ const STANDARD_HEALER: JobDataConst = {
     role: 'Healer',
     mainStat: 'mind',
     autoAttackStat: 'strength',
-    irrelevantSubstats: ['skillspeed', 'tenacity',],
+    irrelevantSubstats: ['skillspeed', 'tenacity'],
     traitMulti: (level, attackType) => attackType === 'Auto-attack' ? 1.0 : 1.3, // Maim and Mend II
     itemStatCapMultipliers: {
         'vitality': 0.90,
     },
     aaPotency: MELEE_AUTO_POTENCY,
-    excludedRelicSubstats: ['dhit',],
+    excludedRelicSubstats: ['dhit'],
 } as const;
 
 const STANDARD_TANK: JobDataConst = {
     role: 'Tank',
     mainStat: 'strength',
     autoAttackStat: 'strength',
-    irrelevantSubstats: ['spellspeed', 'piety',],
+    irrelevantSubstats: ['spellspeed', 'piety'],
     // traitMulti: TODO: Tank Mastery?
     aaPotency: MELEE_AUTO_POTENCY,
-    excludedRelicSubstats: ['dhit',],
+    excludedRelicSubstats: ['dhit'],
 } as const;
 
 const STANDARD_MELEE: JobDataConst = {
     role: 'Melee',
     mainStat: 'strength',
     autoAttackStat: 'strength',
-    irrelevantSubstats: ['spellspeed', 'tenacity', 'piety',],
+    irrelevantSubstats: ['spellspeed', 'tenacity', 'piety'],
     aaPotency: MELEE_AUTO_POTENCY,
     excludedRelicSubstats: [],
 } as const;
@@ -140,7 +140,7 @@ const STANDARD_RANGED: JobDataConst = {
     role: 'Ranged',
     mainStat: 'dexterity',
     autoAttackStat: 'dexterity',
-    irrelevantSubstats: ['spellspeed', 'tenacity', 'piety',],
+    irrelevantSubstats: ['spellspeed', 'tenacity', 'piety'],
     traitMulti: (level, attackType) => attackType === 'Auto-attack' ? 1.0 : 1.2, // Increased Action Damage II
     aaPotency: RANGE_AUTO_POTENCY,
     excludedRelicSubstats: [],
@@ -150,7 +150,7 @@ const STANDARD_CASTER: JobDataConst = {
     role: 'Caster',
     mainStat: 'intelligence',
     autoAttackStat: 'strength',
-    irrelevantSubstats: ['skillspeed', 'tenacity', 'piety',],
+    irrelevantSubstats: ['skillspeed', 'tenacity', 'piety'],
     traitMulti: (level, attackType) => attackType === 'Auto-attack' ? 1.0 : 1.3, // Maim and Mend II
     itemStatCapMultipliers: {
         'vitality': 0.90,
@@ -186,7 +186,7 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
                 attackType: 'Spell',
                 haste: 20,
                 basis: 'sps',
-            },];
+            }];
         },
     },
     SGE: STANDARD_HEALER,
@@ -248,7 +248,7 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
                     || attackType === 'Auto-attack'
                             ? 20 : 0);
                 },
-            },],
+            }],
     },
     NIN: {
         ...STANDARD_MELEE,
@@ -259,7 +259,7 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
                 stats.bonusHaste.push(attackType =>
                     attackType === 'Weaponskill' || attackType === 'Auto-attack' ? 15 : 0);
             },
-        },
+        }
         ],
     },
     SAM: {
@@ -275,7 +275,7 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
                     haste: 10,
                     basis: 'sks',
                     isPrimary: true,
-                },];
+                }];
             }
             else {
                 return [{
@@ -287,7 +287,7 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
                     haste: 13, // Enhanced Fugetsu and Fuka
                     basis: 'sks',
                     isPrimary: true,
-                },];
+                }];
             }
         },
     },
@@ -306,7 +306,7 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
                 haste: 15,
                 basis: 'sks',
                 isPrimary: true,
-            },];
+            }];
         },
     },
     // Ranged
@@ -636,48 +636,48 @@ export function getDefaultDisplaySettings(level: SupportedLevel, job: JobName): 
 /**
  * Main stats in current version of the game.
  */
-export const MAIN_STATS = ['strength', 'dexterity', 'intelligence', 'mind', 'vitality',] as const;
+export const MAIN_STATS = ['strength', 'dexterity', 'intelligence', 'mind', 'vitality'] as const;
 // TODO: It's hacky to declare hp like this, but oh well.
 /**
  * Substats that are treated as main stats for stat calc purposes.
  */
-export const FAKE_MAIN_STATS = ['determination', 'piety',] as const;
+export const FAKE_MAIN_STATS = ['determination', 'piety'] as const;
 /**
  * Substats that get the substat-specific math treatment.
  */
-export const SPECIAL_SUB_STATS = ['crit', 'dhit', 'spellspeed', 'skillspeed', 'tenacity',] as const;
+export const SPECIAL_SUB_STATS = ['crit', 'dhit', 'spellspeed', 'skillspeed', 'tenacity'] as const;
 /**
  * All sub-stats
  */
-export const ALL_SUB_STATS = [...FAKE_MAIN_STATS, ...SPECIAL_SUB_STATS,] as const;
+export const ALL_SUB_STATS = [...FAKE_MAIN_STATS, ...SPECIAL_SUB_STATS] as const;
 // export const ALL_SUB_STATS: ((typeof FAKE_MAIN_STATS[number]) | (typeof SPECIAL_SUB_STATS[number]))[] = [...FAKE_MAIN_STATS, ...SPECIAL_SUB_STATS] as const;
 /**
  * All stats
  */
-export const ALL_STATS = [...MAIN_STATS, ...ALL_SUB_STATS,] as const;
+export const ALL_STATS = [...MAIN_STATS, ...ALL_SUB_STATS] as const;
 
 // TODO: make everything use this
-const statDisplayTmp: RawStatKey[] = ['vitality', ...MAIN_STATS, 'crit', 'dhit', 'determination', 'spellspeed', 'skillspeed', 'piety', 'tenacity',];
+const statDisplayTmp: RawStatKey[] = ['vitality', ...MAIN_STATS, 'crit', 'dhit', 'determination', 'spellspeed', 'skillspeed', 'piety', 'tenacity'];
 ALL_STATS.forEach(stat => {
     if (!statDisplayTmp.includes(stat)) {
         statDisplayTmp.push(stat);
     }
 });
 
-export const STAT_DISPLAY_ORDER: RawStatKey[] = [...statDisplayTmp,];
+export const STAT_DISPLAY_ORDER: RawStatKey[] = [...statDisplayTmp];
 
 /**
  * Which substats can be granted by materia.
  *
  * If SE ever gives us main stat or vitality materia again, this will need to be updated.
  */
-export const MateriaSubstats: (Exclude<typeof ALL_SUB_STATS[number], 'vitality'>)[] = ['crit', 'dhit', 'determination', 'spellspeed', 'skillspeed', 'piety', 'tenacity',];
+export const MateriaSubstats: (Exclude<typeof ALL_SUB_STATS[number], 'vitality'>)[] = ['crit', 'dhit', 'determination', 'spellspeed', 'skillspeed', 'piety', 'tenacity'];
 /**
  * Like MateriaSubstats, but in the order that makes the most sense for auto-fill.
  *
  * SkS/SpS are first because they realistically need to be in order for GCD-targeted auto-fill to work.
  */
-export const DefaultMateriaFillPrio: (Exclude<typeof ALL_SUB_STATS[number], 'vitality'>)[] = ['spellspeed', 'skillspeed', 'crit', 'dhit', 'determination', 'piety', 'tenacity',];
+export const DefaultMateriaFillPrio: (Exclude<typeof ALL_SUB_STATS[number], 'vitality'>)[] = ['spellspeed', 'skillspeed', 'crit', 'dhit', 'determination', 'piety', 'tenacity'];
 export type MateriaSubstat = typeof MateriaSubstats[number];
 
 /**
@@ -732,34 +732,34 @@ export const STAT_ABBREVIATIONS: Record<RawStatKey, string> = {
  */
 export function statById(id: number): keyof RawStats {
     switch (id) {
-    case 1:
-        return "strength";
-    case 2:
-        return "dexterity";
-    case 3:
-        return "vitality";
-    case 4:
-        return "intelligence";
-    case 5:
-        return "mind";
-    case 6:
-        return "piety";
-    case 7:
-        return "hp";
-    case 19:
-        return "tenacity";
-    case 22:
-        return "dhit";
-    case 27:
-        return "crit";
-    case 44:
-        return "determination";
-    case 45:
-        return "skillspeed";
-    case 46:
-        return "spellspeed";
-    default:
-        return undefined;
+        case 1:
+            return "strength";
+        case 2:
+            return "dexterity";
+        case 3:
+            return "vitality";
+        case 4:
+            return "intelligence";
+        case 5:
+            return "mind";
+        case 6:
+            return "piety";
+        case 7:
+            return "hp";
+        case 19:
+            return "tenacity";
+        case 22:
+            return "dhit";
+        case 27:
+            return "crit";
+        case 44:
+            return "determination";
+        case 45:
+            return "skillspeed";
+        case 46:
+            return "spellspeed";
+        default:
+            return undefined;
     }
 }
 
@@ -791,37 +791,37 @@ export const ARTIFACT_ITEM_LEVELS = [
     290,
     430,
     560,
-    690,
+    690
 ];
 
 export const BASIC_TOME_GEAR_ILVLS = [
     310,
     440,
     570,
-    700,
+    700
 ];
 
 export const RAID_TIER_ILVLS = [
     340, 370, 400,
     470, 500, 530,
     600, 630, 660,
-    730, 760, 790,
+    730, 760, 790
 ] as const as readonly number[];
 
 export function formatAcquisitionSource(source: GearAcquisitionSource): string | null {
     switch (source) {
-    case "augtome":
-        return "Aug. Tome";
-    case "augcrafted":
-        return "Aug. Crafted";
-    case "normraid":
-        return "Normal Raid";
-    case "extrial":
-        return "Extreme Trial";
-    case "alliance":
-        return "Alliance Raid";
-    case "other":
-        return null;
+        case "augtome":
+            return "Aug. Tome";
+        case "augcrafted":
+            return "Aug. Crafted";
+        case "normraid":
+            return "Normal Raid";
+        case "extrial":
+            return "Extreme Trial";
+        case "alliance":
+            return "Alliance Raid";
+        case "other":
+            return null;
     }
     return source[0].toUpperCase() + source.substring(1);
 }
@@ -830,23 +830,23 @@ export function formatAcquisitionSource(source: GearAcquisitionSource): string |
  * BLU intelligence stat to weapon damage modifier lookup table in [INT, WD] format
  */
 const BLU_INT_WD = [
-    [0, 12,], [9, 13,], [10, 14,], [11, 15,], [12, 16,], [13, 18,], [14, 20,], [16, 21,],
-    [17, 22,], [18, 23,], [19, 24,], [20, 26,], [21, 27,], [23, 28,], [24, 29,], [26, 30,],
-    [29, 31,], [30, 32,], [32, 33,], [34, 34,], [36, 35,], [38, 36,], [40, 37,], [44, 38,],
-    [46, 39,], [49, 40,], [52, 41,], [54, 42,], [58, 43,], [61, 44,], [62, 46,], [65, 47,],
-    [66, 48,], [67, 49,], [70, 50,], [72, 51,], [73, 52,], [74, 53,], [77, 54,], [78, 55,],
-    [79, 56,], [81, 57,], [94, 58,], [140, 59,], [160, 60,], [180, 61,], [230, 62,],
-    [250, 63,], [280, 64,], [320, 65,], [350, 66,], [360, 67,], [380, 68,], [400, 69,],
-    [420, 70,], [440, 71,], [460, 72,], [480, 73,], [500, 74,], [510, 75,], [530, 76,],
-    [550, 77,], [570, 78,], [590, 79,], [620, 80,], [650, 81,], [680, 82,], [710, 83,],
-    [740, 84,], [750, 85,], [770, 86,], [790, 87,], [810, 88,], [830, 89,], [860, 90,],
-    [880, 91,], [900, 92,], [930, 93,], [960, 94,], [990, 95,], [1030, 96,], [1060, 97,],
-    [1080, 98,], [1110, 99,], [1140, 100,], [1170, 101,], [1200, 102,], [1230, 103,],
-    [1260, 104,], [1290, 105,],
+    [0, 12], [9, 13], [10, 14], [11, 15], [12, 16], [13, 18], [14, 20], [16, 21],
+    [17, 22], [18, 23], [19, 24], [20, 26], [21, 27], [23, 28], [24, 29], [26, 30],
+    [29, 31], [30, 32], [32, 33], [34, 34], [36, 35], [38, 36], [40, 37], [44, 38],
+    [46, 39], [49, 40], [52, 41], [54, 42], [58, 43], [61, 44], [62, 46], [65, 47],
+    [66, 48], [67, 49], [70, 50], [72, 51], [73, 52], [74, 53], [77, 54], [78, 55],
+    [79, 56], [81, 57], [94, 58], [140, 59], [160, 60], [180, 61], [230, 62],
+    [250, 63], [280, 64], [320, 65], [350, 66], [360, 67], [380, 68], [400, 69],
+    [420, 70], [440, 71], [460, 72], [480, 73], [500, 74], [510, 75], [530, 76],
+    [550, 77], [570, 78], [590, 79], [620, 80], [650, 81], [680, 82], [710, 83],
+    [740, 84], [750, 85], [770, 86], [790, 87], [810, 88], [830, 89], [860, 90],
+    [880, 91], [900, 92], [930, 93], [960, 94], [990, 95], [1030, 96], [1060, 97],
+    [1080, 98], [1110, 99], [1140, 100], [1170, 101], [1200, 102], [1230, 103],
+    [1260, 104], [1290, 105],
     // TODO: the following are predicted values for lvl90 BLU, will need to be verified
-    [1340, 106,], [1360, 107,], [1390, 111,], [1510, 113,], [1590, 115,], [1680, 117,],
-    [1780, 119,], [1880, 121,], [1980, 123,], [2090, 125,], [2200, 127,], [2320, 129,],
-    [2410, 131,],
+    [1340, 106], [1360, 107], [1390, 111], [1510, 113], [1590, 115], [1680, 117],
+    [1780, 119], [1880, 121], [1980, 123], [2090, 125], [2200, 127], [2320, 129],
+    [2410, 131]
 ] as const as readonly (readonly number[])[];
 
 /**

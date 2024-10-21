@@ -44,7 +44,7 @@ export const ShadowOfDeath: RprGcdAbility = {
     gcd: 2.5,
     cast: 0,
     appDelay: 0,
-    activatesBuffs: [DeathsDesign,],
+    activatesBuffs: [DeathsDesign],
 };
 
 export const Harpe: RprGcdAbility = {
@@ -105,7 +105,7 @@ export const PlentifulHarvest: RprGcdAbility = {
     attackType: "Weaponskill",
     gcd: 2.5,
     cast: 0,
-    activatesBuffs: [IdealHost,],
+    activatesBuffs: [IdealHost],
 };
 
 export const HarvestMoon: RprGcdAbility = {
@@ -266,7 +266,7 @@ export const ArcaneCircle: RprOgcdAbility = {
     type: 'ogcd',
     name: "Arcane Circle",
     id: 24405,
-    activatesBuffs: [ArcaneCircleBuff,],
+    activatesBuffs: [ArcaneCircleBuff],
     potency: null,
     attackType: "Ability",
     cooldown: {

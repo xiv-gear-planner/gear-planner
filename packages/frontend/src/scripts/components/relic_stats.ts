@@ -22,7 +22,7 @@ export function makeRelicStatEditor(equipment: EquippedItem, stat: Substat, set:
                 else if (ctx.newValue > inputSubstatCap) {
                     ctx.failValidation(`Must be ${inputSubstatCap} or lower`);
                 }
-            },],
+            }],
         });
         const cap = gearItem.statCaps[stat] ?? 9999;
         input.type = 'number';
@@ -68,7 +68,7 @@ export function makeRelicStatEditor(equipment: EquippedItem, stat: Substat, set:
         return input;
     }
     else if (gearItem.relicStatModel.type === 'ewrelic') {
-        const input = new FieldBoundDataSelect(equipment.relicStats, stat, val => val.toString(), [0, gearItem.relicStatModel.smallValue, gearItem.relicStatModel.largeValue,]);
+        const input = new FieldBoundDataSelect(equipment.relicStats, stat, val => val.toString(), [0, gearItem.relicStatModel.smallValue, gearItem.relicStatModel.largeValue]);
         input.addEventListener('mousedown', e => e.stopPropagation());
         const cap = gearItem.statCaps[stat] ?? 9999;
         input.classList.add('gear-items-table-relic-stat-input');

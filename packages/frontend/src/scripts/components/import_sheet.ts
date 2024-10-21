@@ -57,42 +57,42 @@ export class ImportSheetArea extends NamedSection {
         const parsed = parseImport(text);
         if (parsed) {
             switch (parsed.importType) {
-            case "json":
-                try {
-                    this.doJsonImport(parsed.rawData);
-                }
-                catch (e) {
-                    console.error('Import error', e);
-                    alert('Error importing');
-                }
-                return;
-            case "shortlink":
-                this.doAsyncImport(() => getShortLink(decodeURIComponent(parsed.rawUuid)));
-                return;
-            case "etro":
-                this.ready = false;
-                Promise.all(parsed.rawUuids.map(getSetFromEtro)).then(sets => {
-                    const jobs = new Set<JobName>();
-                    sets.forEach(set => jobs.add(set.job));
-                    if (jobs.size > 1) {
-                        const confirmed = confirm(`The sets provided do not have the same job. The sheet will be imported as a ${sets[0].job} sheet based on the first link provided. To change jobs, re-order the URLs, or 'Save As' the sheet after creation.`);
-                        if (!confirmed) {
-                            this.ready = true;
-                            return;
-                        }
+                case "json":
+                    try {
+                        this.doJsonImport(parsed.rawData);
                     }
-                    const sheet = GRAPHICAL_SHEET_PROVIDER.fromSetExport(...sets);
-                    this.sheetOpenCallback(sheet);
-                    console.log("Loaded set from Etro");
-                }, err => {
-                    this.ready = true;
-                    console.error("Error loading set from Etro", err);
-                    alert('Error loading Etro set');
-                });
-                return;
-            case "bis":
-                this.doAsyncImport(() => getBisSheet(...parsed.path));
-                return;
+                    catch (e) {
+                        console.error('Import error', e);
+                        alert('Error importing');
+                    }
+                    return;
+                case "shortlink":
+                    this.doAsyncImport(() => getShortLink(decodeURIComponent(parsed.rawUuid)));
+                    return;
+                case "etro":
+                    this.ready = false;
+                    Promise.all(parsed.rawUuids.map(getSetFromEtro)).then(sets => {
+                        const jobs = new Set<JobName>();
+                        sets.forEach(set => jobs.add(set.job));
+                        if (jobs.size > 1) {
+                            const confirmed = confirm(`The sets provided do not have the same job. The sheet will be imported as a ${sets[0].job} sheet based on the first link provided. To change jobs, re-order the URLs, or 'Save As' the sheet after creation.`);
+                            if (!confirmed) {
+                                this.ready = true;
+                                return;
+                            }
+                        }
+                        const sheet = GRAPHICAL_SHEET_PROVIDER.fromSetExport(...sets);
+                        this.sheetOpenCallback(sheet);
+                        console.log("Loaded set from Etro");
+                    }, err => {
+                        this.ready = true;
+                        console.error("Error loading set from Etro", err);
+                        alert('Error loading Etro set');
+                    });
+                    return;
+                case "bis":
+                    this.doAsyncImport(() => getBisSheet(...parsed.path));
+                    return;
             }
         }
         console.error("Error loading imported data", text);

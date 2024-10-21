@@ -54,12 +54,12 @@ export class ToolbarButtonsArea extends HTMLDivElement {
     constructor() {
         super();
         this.classList.add('toolbar-buttons-area');
-        this.undoButton = makeActionButton([undoIcon(),], () => {
+        this.undoButton = makeActionButton([undoIcon()], () => {
             recordEvent("undo");
             this.currentSet?.undo();
         }, 'Undo');
         this.undoButton.classList.add('big-text-btn');
-        this.redoButton = makeActionButton([redoIcon(),], () => {
+        this.redoButton = makeActionButton([redoIcon()], () => {
             recordEvent("redo");
             this.currentSet?.redo();
         }, 'Redo');
@@ -167,13 +167,13 @@ export class GearEditToolbar extends HTMLDivElement {
         this.buttonsArea = new ToolbarButtonsArea();
 
         const ilvlDiv = makeIlvlArea(sheet, itemDisplaySettings, displayUpdateCallback);
-        this.buttonsArea.addPanelButton(["Gear", document.createElement('br'), "Filters",], ilvlDiv);
+        this.buttonsArea.addPanelButton(["Gear", document.createElement('br'), "Filters"], ilvlDiv);
 
         this.appendChild(this.buttonsArea);
 
         const materiaPriority = new MateriaPriorityPicker(matFillCtrl, sheet);
 
-        this.buttonsArea.addPanelButton(["Materia", document.createElement('br'), "Fill/Solve",], materiaPriority);
+        this.buttonsArea.addPanelButton(["Materia", document.createElement('br'), "Fill/Solve"], materiaPriority);
 
         this.statTierDisplay = new StatTierDisplay(sheet);
         this.appendChild(this.statTierDisplay);

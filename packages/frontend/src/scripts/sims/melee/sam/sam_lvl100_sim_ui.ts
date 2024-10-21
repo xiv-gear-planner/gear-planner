@@ -121,7 +121,7 @@ class SAMGaugeGui {
 
                     Object.keys(senStyles).forEach(key => {
                         const stack = document.createElement('span');
-                        for (const [k, v,] of Object.entries(senStyles[key])) {
+                        for (const [k, v] of Object.entries(senStyles[key])) {
                             stack.style[k] = v;
                         }
                         stack.style.height = '100%';
@@ -138,7 +138,7 @@ class SAMGaugeGui {
                 }
                 return document.createTextNode("");
             },
-        },];
+        }];
     }
 }
 export class SamSimGui extends BaseMultiCycleSimGui<SamSimResult, SamSettings> {
@@ -158,7 +158,7 @@ export class SamSimGui extends BaseMultiCycleSimGui<SamSimResult, SamSettings> {
     override makeAbilityUsedTable(result: SamSimResult): AbilitiesUsedTable {
         const extraColumns = SAMGaugeGui.generateResultColumns(result);
         const table = super.makeAbilityUsedTable(result);
-        const newColumns = [...table.columns,];
+        const newColumns = [...table.columns];
         newColumns.splice(newColumns.findIndex(col => col.shortName === 'expected-damage') + 1, 0, ...extraColumns);
         table.columns = newColumns;
         return table;

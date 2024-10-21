@@ -43,7 +43,7 @@ export class CustomItemTable extends CustomTable<CustomItem> {
                 getter: item => item,
                 renderer: (item: CustomItem) => {
                     const out = document.createElement('div');
-                    out.appendChild(makeActionButton([faIcon('fa-trash-can'),], (ev) => {
+                    out.appendChild(makeActionButton([faIcon('fa-trash-can')], (ev) => {
                         if (confirmDelete(ev, `Delete custom item '${item.name}'?`)) {
                             this.sheet.deleteCustomItem(item);
                             this.refresh();
@@ -72,7 +72,7 @@ export class CustomItemTable extends CustomTable<CustomItem> {
                 getter: item => item,
                 renderer: (item: CustomItem) => {
                     const ilvlInput = new FieldBoundIntField(item, 'ilvl', {
-                        postValidators: [nonNegative,],
+                        postValidators: [nonNegative],
                         inputMode: 'number',
                     });
                     const capBox = new FieldBoundCheckBox(item, 'respectCaps');
@@ -87,7 +87,7 @@ export class CustomItemTable extends CustomTable<CustomItem> {
                     ilvlInput.addListener(recheck);
                     capBox.addListener(() => recheck(item.ilvl));
                     recheck(item.ilvl);
-                    const holder = quickElement("div", [], [ilvlInput, capBox,]);
+                    const holder = quickElement("div", [], [ilvlInput, capBox]);
                     holder.style.display = 'flex';
                     ilvlInput.style.minWidth = '40px';
                     return holder;
@@ -100,7 +100,7 @@ export class CustomItemTable extends CustomTable<CustomItem> {
                 getter: item => item,
                 renderer: (item: CustomItem) => {
                     return new FieldBoundIntField(item.customData, 'largeMateriaSlots', {
-                        postValidators: [clampValues(0, 5),],
+                        postValidators: [clampValues(0, 5)],
                         inputMode: 'number',
                     });
                 },
@@ -111,7 +111,7 @@ export class CustomItemTable extends CustomTable<CustomItem> {
                 getter: item => item,
                 renderer: (item: CustomItem) => {
                     return new FieldBoundIntField(item.customData, 'smallMateriaSlots', {
-                        postValidators: [clampValues(0, 5),],
+                        postValidators: [clampValues(0, 5)],
                         inputMode: 'number',
                     });
                 },
@@ -124,7 +124,7 @@ export class CustomItemTable extends CustomTable<CustomItem> {
                     getter: item => item,
                     renderer: (item: CustomItem) => {
                         return new FieldBoundIntField(item.customData.stats, stat, {
-                            postValidators: [nonNegative,],
+                            postValidators: [nonNegative],
                             inputMode: 'number',
                         });
                     },
@@ -137,7 +137,7 @@ export class CustomItemTable extends CustomTable<CustomItem> {
                 getter: item => item,
                 renderer: ifWeapon((item: CustomItem) => {
                     return new FieldBoundIntField(item.customData.stats, "wdPhys", {
-                        postValidators: [nonNegative,],
+                        postValidators: [nonNegative],
                         inputMode: 'number',
                     });
                 }),
@@ -148,7 +148,7 @@ export class CustomItemTable extends CustomTable<CustomItem> {
                 getter: item => item,
                 renderer: ifWeapon((item: CustomItem) => {
                     return new FieldBoundIntField(item.customData.stats, "wdMag", {
-                        postValidators: [nonNegative,],
+                        postValidators: [nonNegative],
                         inputMode: 'number',
                     });
                 }),
@@ -160,14 +160,14 @@ export class CustomItemTable extends CustomTable<CustomItem> {
                 getter: item => item,
                 renderer: ifWeapon((item: CustomItem) => {
                     const out = new FieldBoundFloatField(item.customData.stats, "weaponDelay", {
-                        postValidators: [nonNegative,],
+                        postValidators: [nonNegative],
                         inputMode: 'number',
                     });
                     out.title = 'Enter weapon delay in seconds (e.g. 3.125)';
                     return out;
                 }),
                 initialWidth: 80,
-            },];
+            }];
         // TODO: haste?
 
         this.refresh();
@@ -177,7 +177,7 @@ export class CustomItemTable extends CustomTable<CustomItem> {
      * Refresh the table. Should be called after adding or removing an item.
      */
     refresh() {
-        this.data = [new HeaderRow(), ...this.sheet.customItems,];
+        this.data = [new HeaderRow(), ...this.sheet.customItems];
     }
 }
 
@@ -241,7 +241,7 @@ export class CustomFoodTable extends CustomTable<CustomFood> {
                 getter: item => item,
                 renderer: (item: CustomFood) => {
                     const out = document.createElement('div');
-                    out.appendChild(makeActionButton([faIcon('fa-trash-can'),], (ev) => {
+                    out.appendChild(makeActionButton([faIcon('fa-trash-can')], (ev) => {
                         if (confirmDelete(ev, `Delete custom item '${item.name}'?`)) {
                             this.sheet.deleteCustomFood(item);
                             this.refresh();
@@ -265,7 +265,7 @@ export class CustomFoodTable extends CustomTable<CustomFood> {
                 getter: item => item,
                 renderer: (item: CustomFood) => {
                     return new FieldBoundIntField(item.customData, 'ilvl', {
-                        postValidators: [nonNegative,],
+                        postValidators: [nonNegative],
                         inputMode: 'number',
                     });
                 },
@@ -275,7 +275,7 @@ export class CustomFoodTable extends CustomTable<CustomFood> {
                 displayName: 'Vit %',
                 getter: item => item,
                 renderer: (item: CustomFood) => {
-                    return new FieldBoundIntField(item.customData.vitalityBonus, 'percentage', {postValidators: [nonNegative,],});
+                    return new FieldBoundIntField(item.customData.vitalityBonus, 'percentage', {postValidators: [nonNegative],});
                 },
                 initialWidth: 60,
             }, {
@@ -283,7 +283,7 @@ export class CustomFoodTable extends CustomTable<CustomFood> {
                 displayName: 'Vit Max',
                 getter: item => item,
                 renderer: (item: CustomFood) => {
-                    return new FieldBoundIntField(item.customData.vitalityBonus, 'max', {postValidators: [nonNegative,],});
+                    return new FieldBoundIntField(item.customData.vitalityBonus, 'max', {postValidators: [nonNegative],});
                 },
                 initialWidth: 60,
             }, {
@@ -291,7 +291,7 @@ export class CustomFoodTable extends CustomTable<CustomFood> {
                 displayName: '1st Stat',
                 getter: item => item,
                 renderer: (item: CustomFood) => {
-                    return new FieldBoundDataSelect(item.customData, 'primaryStat', value => value ? STAT_FULL_NAMES[value] : 'None', [null, ...ALL_SUB_STATS,]);
+                    return new FieldBoundDataSelect(item.customData, 'primaryStat', value => value ? STAT_FULL_NAMES[value] : 'None', [null, ...ALL_SUB_STATS]);
                 },
                 initialWidth: 120,
             }, {
@@ -299,7 +299,7 @@ export class CustomFoodTable extends CustomTable<CustomFood> {
                 displayName: '%',
                 getter: item => item,
                 renderer: (item: CustomFood) => {
-                    return new FieldBoundIntField(item.customData.primaryStatBonus, 'percentage', {postValidators: [nonNegative,],});
+                    return new FieldBoundIntField(item.customData.primaryStatBonus, 'percentage', {postValidators: [nonNegative],});
                 },
                 initialWidth: 60,
             }, {
@@ -307,7 +307,7 @@ export class CustomFoodTable extends CustomTable<CustomFood> {
                 displayName: 'Max',
                 getter: item => item,
                 renderer: (item: CustomFood) => {
-                    return new FieldBoundIntField(item.customData.primaryStatBonus, 'max', {postValidators: [nonNegative,],});
+                    return new FieldBoundIntField(item.customData.primaryStatBonus, 'max', {postValidators: [nonNegative],});
                 },
                 initialWidth: 60,
             }, {
@@ -315,7 +315,7 @@ export class CustomFoodTable extends CustomTable<CustomFood> {
                 displayName: '2nd Stat',
                 getter: item => item,
                 renderer: (item: CustomFood) => {
-                    return new FieldBoundDataSelect(item.customData, 'secondaryStat', value => value ? STAT_FULL_NAMES[value] : 'None', [null, ...ALL_SUB_STATS,]);
+                    return new FieldBoundDataSelect(item.customData, 'secondaryStat', value => value ? STAT_FULL_NAMES[value] : 'None', [null, ...ALL_SUB_STATS]);
                 },
                 initialWidth: 120,
             }, {
@@ -323,7 +323,7 @@ export class CustomFoodTable extends CustomTable<CustomFood> {
                 displayName: '%',
                 getter: item => item,
                 renderer: (item: CustomFood) => {
-                    return new FieldBoundIntField(item.customData.secondaryStatBonus, 'percentage', {postValidators: [nonNegative,],});
+                    return new FieldBoundIntField(item.customData.secondaryStatBonus, 'percentage', {postValidators: [nonNegative],});
                 },
                 initialWidth: 60,
             }, {
@@ -331,10 +331,10 @@ export class CustomFoodTable extends CustomTable<CustomFood> {
                 displayName: 'Max',
                 getter: item => item,
                 renderer: (item: CustomFood) => {
-                    return new FieldBoundIntField(item.customData.secondaryStatBonus, 'max', {postValidators: [nonNegative,],});
+                    return new FieldBoundIntField(item.customData.secondaryStatBonus, 'max', {postValidators: [nonNegative],});
                 },
                 initialWidth: 60,
-            },
+            }
         ];
 
         this.refresh();
@@ -344,7 +344,7 @@ export class CustomFoodTable extends CustomTable<CustomFood> {
      * Refresh the table. Should be called after adding or removing an item.
      */
     refresh() {
-        this.data = [new HeaderRow(), ...this.sheet.customFood,];
+        this.data = [new HeaderRow(), ...this.sheet.customFood];
     }
 }
 
