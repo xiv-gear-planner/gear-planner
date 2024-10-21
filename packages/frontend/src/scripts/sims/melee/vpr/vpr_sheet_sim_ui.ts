@@ -86,7 +86,7 @@ class VprGaugeGui {
                 }
                 return document.createTextNode("");
             }
-        },
+        }
         ];
     }
 }

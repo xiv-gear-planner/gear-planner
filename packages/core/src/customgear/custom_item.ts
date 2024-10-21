@@ -61,7 +61,7 @@ export class CustomItem implements GearItem {
             largeMateriaSlots: 2,
             smallMateriaSlots: 0,
             materiaGrade: MATERIA_LEVEL_MAX_NORMAL,
-            stats: new RawStats(),
+            stats: new RawStats()
         };
     }
 
@@ -82,7 +82,7 @@ export class CustomItem implements GearItem {
             name: "My Custom " + slot,
             // respectCaps is true for new items
             respectCaps: true,
-            slot: slot,
+            slot: slot
         };
         return new CustomItem(data, sheet);
     }
@@ -146,7 +146,7 @@ export class CustomItem implements GearItem {
     }
 
     get displayGearSlotName(): DisplayGearSlotKey {
-        if (this.occGearSlotName == 'Weapon1H' || this.occGearSlotName == 'Weapon2H') {
+        if (this.occGearSlotName === 'Weapon1H' || this.occGearSlotName === 'Weapon2H') {
             return 'Weapon';
         }
         return this.occGearSlotName;
@@ -202,14 +202,12 @@ export class CustomItem implements GearItem {
                 this.statCaps = statCapsSync;
                 this.isSyncedDown = true;
                 this.syncedDownTo = syncIlvlInfo.ilvl;
-            }
-            else {
+            } else {
                 this.unsyncedVersion = this;
                 this.isSyncedDown = false;
                 this.syncedDownTo = null;
             }
-        }
-        else {
+        } else {
             this.statCaps = {};
             this.unsyncedVersion = this;
             this.isSyncedDown = false;
@@ -225,13 +223,12 @@ export class CustomItem implements GearItem {
             spellspeed: this.customData.stats.spellspeed,
             skillspeed: this.customData.stats.skillspeed,
             piety: this.customData.stats.piety,
-            tenacity: this.customData.stats.tenacity,
+            tenacity: this.customData.stats.tenacity
         })
             .sort((left, right) => {
                 if (left[1] > right[1]) {
                     return 1;
-                }
-                else if (left[1] < right[1]) {
+                } else if (left[1] < right[1]) {
                     return -1;
                 }
                 return 0;
@@ -241,8 +238,7 @@ export class CustomItem implements GearItem {
         if (sortedStats.length < 2) {
             this.primarySubstat = null;
             this.secondarySubstat = null;
-        }
-        else {
+        } else {
             this.primarySubstat = sortedStats[0][0] as keyof RawStats;
             this.secondarySubstat = sortedStats[1][0] as keyof RawStats;
         }

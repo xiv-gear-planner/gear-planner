@@ -17,7 +17,7 @@ import {
     tenacityDmg,
     tenacityIncomingDmg,
     vitToHp,
-    wdMulti,
+    wdMulti
 } from "@xivgear/xivmath/xivmath";
 import {getClassJobStats, JOB_DATA, JobName, MAIN_STATS, STAT_ABBREVIATIONS} from "@xivgear/xivmath/xivconstants";
 import {GeneralSettings, registerFormula} from "./math_main";
@@ -100,7 +100,7 @@ export function registerFormulae() {
         primaryVariable: "mainstat",
         makeDefaultInputs(generalSettings: GeneralSettings) {
             return {mainstat: generalSettings.levelStats.baseMainStat};
-        },
+        }
     });
 
     registerFormula<{
@@ -141,7 +141,7 @@ export function registerFormulae() {
                 wd: 101,
                 delay: 3.12
             };
-        },
+        }
     });
 
     registerFormula<{
@@ -166,7 +166,7 @@ export function registerFormulae() {
         primaryVariable: "det",
         makeDefaultInputs(generalSettings: GeneralSettings) {
             return {det: generalSettings.levelStats.baseMainStat};
-        },
+        }
     });
 
     registerFormula<{
@@ -197,7 +197,7 @@ export function registerFormulae() {
         primaryVariable: "tnc",
         makeDefaultInputs(generalSettings: GeneralSettings) {
             return {tnc: generalSettings.levelStats.baseSubStat};
-        },
+        }
     });
 
     registerFormula<{
@@ -222,7 +222,7 @@ export function registerFormulae() {
         primaryVariable: "piety",
         makeDefaultInputs(generalSettings: GeneralSettings) {
             return {piety: generalSettings.levelStats.baseSubStat};
-        },
+        }
     });
 
     registerFormula<SksSettings>({
@@ -233,16 +233,16 @@ export function registerFormulae() {
                 name: 'GCD',
                 fn: sksToGcd,
                 argExtractor: async function (args, gen) {
-                    return [args.baseGcd, gen.levelStats, args.sks, args.haste]
-                },
+                    return [args.baseGcd, gen.levelStats, args.sks, args.haste];
+                }
             },
             {
                 name: 'DoT Multi',
                 fn: sksTickMulti,
                 argExtractor: async function (args, gen) {
-                    return [gen.levelStats, args.sks]
-                },
-            },
+                    return [gen.levelStats, args.sks];
+                }
+            }
         ],
         variables: [
             baseGcdVar,
@@ -261,8 +261,8 @@ export function registerFormulae() {
                 baseGcd: 2.5,
                 sks: gen.levelStats.baseSubStat,
                 haste: 0
-            }
-        },
+            };
+        }
     });
 
     registerFormula<SpsSettings>({
@@ -274,16 +274,16 @@ export function registerFormulae() {
                 name: 'GCD',
                 fn: spsToGcd,
                 argExtractor: async function (args, gen) {
-                    return [args.baseGcd, gen.levelStats, args.sps, args.haste]
-                },
+                    return [args.baseGcd, gen.levelStats, args.sps, args.haste];
+                }
             },
             {
                 name: 'DoT Multi',
                 fn: spsTickMulti,
                 argExtractor: async function (args, gen) {
-                    return [gen.levelStats, args.sps]
-                },
-            },
+                    return [gen.levelStats, args.sps];
+                }
+            }
         ],
         variables: [
             baseGcdVar,
@@ -301,8 +301,8 @@ export function registerFormulae() {
                 baseGcd: 2.5,
                 sps: gen.levelStats.baseSubStat,
                 haste: 0
-            }
-        },
+            };
+        }
     });
 
     registerFormula<{
@@ -326,7 +326,7 @@ export function registerFormulae() {
         makeDefaultInputs: (gen) => {
             return {
                 crit: gen.levelStats.baseSubStat
-            }
+            };
         },
         primaryVariable: 'crit',
         variables: [{
@@ -384,11 +384,11 @@ export function registerFormulae() {
             name: 'Hit Points',
             fn: vitToHp,
             async argExtractor(arg, gen: GeneralSettings): Promise<Parameters<typeof vitToHp>> {
-                return [gen.levelStats, await getClassJobStatsFull(gen.classJob), arg.vit]
+                return [gen.levelStats, await getClassJobStatsFull(gen.classJob), arg.vit];
             }
         }],
         makeDefaultInputs: (gen: GeneralSettings) => {
-            return {vit: gen.levelStats.baseMainStat}
+            return {vit: gen.levelStats.baseMainStat};
         },
         primaryVariable: 'vit',
         variables: [{
@@ -408,47 +408,47 @@ export function registerFormulae() {
             excludeFormula: true,
             fn: (lvl: LevelStats) => lvl.baseMainStat,
             async argExtractor(arg, gen: GeneralSettings) {
-                return [gen.levelStats]
+                return [gen.levelStats];
             }
         }, {
             name: 'baseSub',
             excludeFormula: true,
             fn: (lvl: LevelStats) => lvl.baseSubStat,
             async argExtractor(arg, gen: GeneralSettings) {
-                return [gen.levelStats]
+                return [gen.levelStats];
             }
         }, {
             name: 'levelDiv',
             excludeFormula: true,
             fn: (lvl: LevelStats) => lvl.levelDiv,
             async argExtractor(arg, gen: GeneralSettings) {
-                return [gen.levelStats]
+                return [gen.levelStats];
             }
         }, {
             name: 'Base HP',
             excludeFormula: true,
             fn: (lvl: LevelStats) => lvl.hp,
             async argExtractor(arg, gen: GeneralSettings) {
-                return [gen.levelStats]
-            },
+                return [gen.levelStats];
+            }
         }, {
             name: 'HP Mod',
             excludeFormula: true,
             fn: (lvl: LevelStats, jobStats: JobData) => hpScalar(lvl, jobStats),
             async argExtractor(arg, gen: GeneralSettings) {
-                return [gen.levelStats, JOB_DATA[gen.classJob]]
-            },
+                return [gen.levelStats, JOB_DATA[gen.classJob]];
+            }
         }, {
             name: 'AP Mod',
             excludeFormula: true,
             fn: (lvl: LevelStats, jobStats: JobData) => mainStatPowerMod(lvl, jobStats),
             async argExtractor(arg, gen: GeneralSettings) {
-                return [gen.levelStats, JOB_DATA[gen.classJob]]
-            },
+                return [gen.levelStats, JOB_DATA[gen.classJob]];
+            }
 
         }],
         makeDefaultInputs: (generalSettings: GeneralSettings) => {
-            return {}
+            return {};
         },
         primaryVariable: 'level',
         variables: []
@@ -473,13 +473,13 @@ export function registerFormulae() {
                     const stats = await getClassJobStatsFull(gen.classJob);
                     return [stats];
                 }
-            }
+            };
         })],
         makeDefaultInputs: (generalSettings: GeneralSettings) => {
-            return {}
+            return {};
         },
         primaryVariable: 'job',
         variables: []
-    })
+    });
 }
 

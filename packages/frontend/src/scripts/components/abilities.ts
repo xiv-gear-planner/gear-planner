@@ -11,8 +11,7 @@ const abilityIconMap = new Map<number, Promise<XivApiAbilityData>>();
 async function getDataFor(abilityId: number): Promise<XivApiAbilityData> {
     if (abilityIconMap.has(abilityId)) {
         return abilityIconMap.get(abilityId);
-    }
-    else {
+    } else {
         const out = xivApiSingleCols('Action', abilityId, ['ID', 'Icon'] as const) as Promise<XivApiAbilityData>;
         abilityIconMap.set(abilityId, out);
         return out;

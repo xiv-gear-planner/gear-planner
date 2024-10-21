@@ -28,35 +28,35 @@ class AstGaugeGui {
                     const cardStyles = {
                         Balance: {
                             clipPath: `polygon(15% 0%, 85% 0%, 85% 100%, 15% 100%)`,
-                            background: '#ff6f00',
+                            background: '#ff6f00'
                         },
                         Arrow: {
                             clipPath: `polygon(15% 0%, 85% 0%, 85% 100%, 15% 100%)`,
-                            background: '#69ebff',
+                            background: '#69ebff'
                         },
                         Spire: {
                             clipPath: `polygon(15% 0%, 85% 0%, 85% 100%, 15% 100%)`,
-                            background: '#fff700',
+                            background: '#fff700'
                         },
                         Lord: {
                             clipPath: `polygon(15% 0%, 85% 0%, 85% 100%, 15% 100%)`,
-                            background: '#bd040a',
+                            background: '#bd040a'
                         },
                         Spear: {
                             clipPath: `polygon(15% 0%, 85% 0%, 85% 100%, 15% 100%)`,
-                            background: '#0059ff',
+                            background: '#0059ff'
                         },
                         Bole: {
                             clipPath: `polygon(15% 0%, 85% 0%, 85% 100%, 15% 100%)`,
-                            background: '#00bd23',
+                            background: '#00bd23'
                         },
                         Ewer: {
                             clipPath: `polygon(15% 0%, 85% 0%, 85% 100%, 15% 100%)`,
-                            background: '#00ddff',
+                            background: '#00ddff'
                         },
                         Lady: {
                             clipPath: `polygon(15% 0%, 85% 0%, 85% 100%, 15% 100%)`,
-                            background: '#ffe4d6',
+                            background: '#ffe4d6'
                         }
                     };
 
@@ -79,7 +79,7 @@ class AstGaugeGui {
                 }
                 return document.createTextNode("");
             }
-        },
+        }
         ];
     }
 }

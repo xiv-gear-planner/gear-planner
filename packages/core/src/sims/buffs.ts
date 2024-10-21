@@ -8,7 +8,7 @@ export const Dokumori = {
     cooldown: 120,
     selfOnly: false,
     effects: {
-        dmgIncrease: 0.05,
+        dmgIncrease: 0.05
     },
     startTime: 5.46,
     statusId: 3849
@@ -139,7 +139,7 @@ export const TechnicalFinish = {
     cooldown: 120,
     selfOnly: false,
     effects: {
-        dmgIncrease: 0.05,
+        dmgIncrease: 0.05
     },
     startTime: 7,
     statusId: 1822,
@@ -158,7 +158,7 @@ export const BattleVoice = {
     cooldown: 120,
     selfOnly: false,
     effects: {
-        dhitChanceIncrease: 0.20,
+        dhitChanceIncrease: 0.20
     },
     startTime: 6.4,
     statusId: 141
@@ -231,7 +231,7 @@ export const OffGuardBuff = {
     selfOnly: false,
     optional: true,
     effects: {
-        dmgIncrease: 0.05,
+        dmgIncrease: 0.05
     },
     startTime: 5,
     statusId: 1717

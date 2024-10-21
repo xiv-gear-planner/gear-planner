@@ -6,8 +6,7 @@ export function simMaintainersInfoElement(simSpec: SimSpec<any, any>): HTMLEleme
     if (simSpec.maintainers) {
         const maintainers = simSpec.maintainers;
         return quickElement('div', ['sim-contact-info-area'], ["Maintainers: ", ...maintainers.map(simMaintainerSingle)]);
-    }
-    else {
+    } else {
         return null;
     }
 }
@@ -19,11 +18,11 @@ function simMaintainerSingle(info: MaintainerInfo): HTMLElement {
 
 function contactInfoSingle(info: ContactInfo): HTMLElement {
     switch (info.type) {
-        case "discord": {
-            const discordLink = quickElement('a', ['discord-link'], [discordIcon(), info.discordTag]);
-            discordLink.href = `https://discord.com/users/${info.discordUid}`;
-            discordLink.target = '_blank';
-            return discordLink;
-        }
+    case "discord": {
+        const discordLink = quickElement('a', ['discord-link'], [discordIcon(), info.discordTag]);
+        discordLink.href = `https://discord.com/users/${info.discordUid}`;
+        discordLink.target = '_blank';
+        return discordLink;
+    }
     }
 }

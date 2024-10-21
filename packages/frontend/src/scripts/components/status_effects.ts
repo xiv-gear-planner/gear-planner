@@ -11,8 +11,7 @@ const statusIconMap = new Map<number, Promise<XivApiStatusData>>();
 async function getDataFor(statusId: number): Promise<XivApiStatusData> {
     if (statusIconMap.has(statusId)) {
         return statusIconMap.get(statusId);
-    }
-    else {
+    } else {
         const dataPromise = xivApiSingleCols('Status', statusId, ['ID', 'Icon', "MaxStacks"] as const);
         const out: Promise<XivApiStatusData> = dataPromise.then(data => {
             return {

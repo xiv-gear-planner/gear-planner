@@ -12,7 +12,7 @@ export const SwiftcastBuff: Buff = {
             return {
                 ...ability,
                 cast: 0
-            }
+            };
         }
         return null;
     },

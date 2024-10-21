@@ -78,8 +78,7 @@ export class SingleStatTierDisplay extends HTMLDivElement {
                 this.lowerLeftDiv.textContent = '-' + baseTiering.lower;
                 this.classList.remove('stat-tiering-perfect');
                 this.lowerLeftDiv.title = `Your ${tiering.fullName} is ${baseTiering.lower} above the next-lowest tier.\nIn other words, you could lose up to ${baseTiering.lower} points without negatively impacting your ${tiering.fullName}.`;
-            }
-            else {
+            } else {
                 this.lowerLeftDiv.textContent = '✔';
                 this.lowerLeftDiv.title = `Your ${tiering.fullName} is perfectly tiered.\nIf you lose any ${this.stat}, it will negatively impact your ${tiering.fullName}.`;
                 this.classList.add('stat-tiering-perfect');
@@ -121,8 +120,7 @@ export class SingleStatTierDisplay extends HTMLDivElement {
                 lowerLeftDiv.textContent = '-' + tieringResult.lower;
                 div.classList.remove('stat-tiering-perfect');
                 lowerLeftDiv.title = `Your ${tiering.fullName} is ${tieringResult.lower} above the next-lowest tier.\nIn other words, you could lose up to ${tieringResult.lower} points without negatively impacting your ${tiering.fullName}.`;
-            }
-            else {
+            } else {
                 lowerLeftDiv.textContent = '✔';
                 lowerLeftDiv.title = `Your ${tiering.fullName} is perfectly tiered.\nIf you lose any ${this.stat}, it will negatively impact your ${tiering.fullName}.`;
                 div.classList.add('stat-tiering-perfect');
@@ -167,21 +165,19 @@ export class StatTierDisplay extends HTMLDivElement {
                     let singleStatTierDisplay: SingleStatTierDisplay;
                     if (this.eleMap.has(key)) {
                         singleStatTierDisplay = this.eleMap.get(key);
-                    }
-                    else {
+                    } else {
                         singleStatTierDisplay = new SingleStatTierDisplay(stat);
                         this.eleMap.set(key, singleStatTierDisplay);
                         this.appendChild(singleStatTierDisplay);
                         // singleStatTierDisplay.addEventListener('click', () => this.toggleState());
                         singleStatTierDisplay.addEventListener('click', (ev) => {
-                            if (ev.detail == 1) {
+                            if (ev.detail === 1) {
                                 const expanded = singleStatTierDisplay.expanded = !singleStatTierDisplay.expanded;
                                 recordSheetEvent('singleTierDisplayClick', this.sheet, {
                                     expanded: expanded,
                                     stat: stat
                                 });
-                            }
-                            else if (ev.detail >= 2) {
+                            } else if (ev.detail >= 2) {
                                 // If this is a double click, the first click would have already toggled the state
                                 // of the target.
                                 const newState = singleStatTierDisplay.expanded;
@@ -199,8 +195,7 @@ export class StatTierDisplay extends HTMLDivElement {
                     // const tierDisplayNode = document.createElement('div');
                     // this.textContent += `${tieringDisplay.label}: -${tieringDisplay.tiering.lower} +${tieringDisplay.tiering.upper}; `;
                 }
-            }
-            catch (e) {
+            } catch (e) {
                 console.error("Error computing stat tiering", e);
             }
         }
@@ -224,8 +219,7 @@ export class StatTierDisplay extends HTMLDivElement {
 
         if (relevantMateria.length === 0) {
             extraOffsets = [];
-        }
-        else {
+        } else {
             const materia = relevantMateria[0];
             const materiaValue = materia.primaryStatValue;
             const multipliers = [3, 2, 1, -1, -2, -3];
@@ -238,164 +232,162 @@ export class StatTierDisplay extends HTMLDivElement {
                 return {
                     offset: value,
                     // Format as +5, +0, -5, etc
-                    label: label,
-                }
+                    label: label
+                };
             });
         }
 
         switch (stat) {
-            case "strength":
-            case "dexterity":
-            case "intelligence":
-            case "mind":
-                return [{
-                    label: abbrev,
-                    fullName: stat + ' multiplier',
-                    description: 'Damage multiplier from primary stat',
-                    tieringFunc: makeTiering(value => mainStatMulti(levelStats, jobStats, value)),
-                    extraOffsets: extraOffsets
-                }];
-            case "vitality":
-                return [{
-                    label: abbrev,
-                    fullName: 'Hit Points',
-                    description: 'Hit Points (affected by Vitality)',
-                    tieringFunc: makeTiering(value => vitToHp(levelStats, jobStats, value)),
-                    extraOffsets: extraOffsets
-                }];
-            case "determination":
-                return [{
-                    label: abbrev,
-                    fullName: stat + ' multiplier',
-                    description: 'Damage multiplier from Determination',
-                    tieringFunc: makeTiering(value => detDmg(levelStats, value)),
-                    extraOffsets: extraOffsets,
-                }];
-            case "piety":
-                return [{
-                    label: abbrev,
-                    fullName: 'MP Regen',
-                    description: 'MP Regen (affected by Piety)',
-                    tieringFunc: makeTiering(value => mpTick(levelStats, value)),
-                    extraOffsets: extraOffsets
-                }];
-            case "crit":
-                return [{
-                    label: abbrev,
-                    fullName: 'critical hit',
-                    description: 'Critical hit (chance and multiplier)',
-                    tieringFunc: makeTiering(value => critDmg(levelStats, value)),
-                    extraOffsets: extraOffsets,
-                }];
-            case "dhit":
-                return [{
-                    label: abbrev,
-                    fullName: 'direct hit change',
-                    description: 'Change to land a direct hit',
-                    tieringFunc: makeTiering(value => dhitChance(levelStats, value)),
-                    extraOffsets: extraOffsets,
-                }];
-            case "spellspeed": {
-                const tierDisplays: TieringDisplay[] = [];
-                if (gcdOver) {
-                    gcdOver.filter(over => over.basis === 'sps')
-                        .forEach(over => {
-                            tierDisplays.push({
-                                label: over.shortLabel,
-                                fullName: over.longLabel,
-                                description: over.description,
-                                tieringFunc: makeTiering(value => {
-                                    const haste = computed.haste(over.attackType) + over.haste;
-                                    return spsToGcd(over.gcdTime, levelStats, value, haste);
-                                }),
-                                extraOffsets: extraOffsets
-                            })
-                        })
-                }
-                else {
-                    tierDisplays.push({
-                        label: abbrev + ' GCD',
-                        fullName: 'GCD for spells',
-                        description: 'Global cooldown (recast) time for spells',
-                        tieringFunc: makeTiering(value => {
-                            const haste = computed.haste('Spell');
-                            return spsToGcd(2.5, levelStats, value, haste);
-                        }),
-                        extraOffsets: extraOffsets
+        case "strength":
+        case "dexterity":
+        case "intelligence":
+        case "mind":
+            return [{
+                label: abbrev,
+                fullName: stat + ' multiplier',
+                description: 'Damage multiplier from primary stat',
+                tieringFunc: makeTiering(value => mainStatMulti(levelStats, jobStats, value)),
+                extraOffsets: extraOffsets
+            }];
+        case "vitality":
+            return [{
+                label: abbrev,
+                fullName: 'Hit Points',
+                description: 'Hit Points (affected by Vitality)',
+                tieringFunc: makeTiering(value => vitToHp(levelStats, jobStats, value)),
+                extraOffsets: extraOffsets
+            }];
+        case "determination":
+            return [{
+                label: abbrev,
+                fullName: stat + ' multiplier',
+                description: 'Damage multiplier from Determination',
+                tieringFunc: makeTiering(value => detDmg(levelStats, value)),
+                extraOffsets: extraOffsets
+            }];
+        case "piety":
+            return [{
+                label: abbrev,
+                fullName: 'MP Regen',
+                description: 'MP Regen (affected by Piety)',
+                tieringFunc: makeTiering(value => mpTick(levelStats, value)),
+                extraOffsets: extraOffsets
+            }];
+        case "crit":
+            return [{
+                label: abbrev,
+                fullName: 'critical hit',
+                description: 'Critical hit (chance and multiplier)',
+                tieringFunc: makeTiering(value => critDmg(levelStats, value)),
+                extraOffsets: extraOffsets
+            }];
+        case "dhit":
+            return [{
+                label: abbrev,
+                fullName: 'direct hit change',
+                description: 'Change to land a direct hit',
+                tieringFunc: makeTiering(value => dhitChance(levelStats, value)),
+                extraOffsets: extraOffsets
+            }];
+        case "spellspeed": {
+            const tierDisplays: TieringDisplay[] = [];
+            if (gcdOver) {
+                gcdOver.filter(over => over.basis === 'sps')
+                    .forEach(over => {
+                        tierDisplays.push({
+                            label: over.shortLabel,
+                            fullName: over.longLabel,
+                            description: over.description,
+                            tieringFunc: makeTiering(value => {
+                                const haste = computed.haste(over.attackType) + over.haste;
+                                return spsToGcd(over.gcdTime, levelStats, value, haste);
+                            }),
+                            extraOffsets: extraOffsets
+                        });
                     });
-                }
-                return [...tierDisplays, {
-                    label: abbrev + ' DoT',
-                    fullName: 'DoT scalar for spells',
-                    description: 'DoT damage multiplier for spells',
-                    tieringFunc: makeTiering(value => spsTickMulti(levelStats, value)),
-                    extraOffsets: extraOffsets
-                }];
-            }
-            case "skillspeed": {
-                const tierDisplays: TieringDisplay[] = [];
-                if (gcdOver) {
-                    gcdOver.filter(over => over.basis === 'sks')
-                        .forEach(over => {
-                            tierDisplays.push({
-                                label: over.shortLabel,
-                                fullName: over.longLabel,
-                                description: over.description,
-                                tieringFunc: makeTiering(value => {
-                                    const haste = computed.haste(over.attackType) + over.haste;
-                                    return sksToGcd(over.gcdTime, levelStats, value, haste);
-                                }),
-                                extraOffsets: extraOffsets
-                            })
-                        })
-                }
-                else {
-                    tierDisplays.push({
-                        label: abbrev + ' GCD',
-                        fullName: 'GCD for weaponskills',
-                        description: 'Global cooldown (recast) time for weaponskills',
-                        tieringFunc: makeTiering(value => {
-                            const haste = computed.haste('Weaponskill');
-                            return sksToGcd(2.5, levelStats, value, haste);
-                        }),
-                        extraOffsets: extraOffsets
-                    })
-                }
-
-                return [...tierDisplays, {
-                    label: abbrev + ' DoT',
-                    fullName: 'DoT scalar for weaponskills',
-                    description: 'DoT damage multiplier for weaponskills',
-                    tieringFunc: makeTiering(value => sksTickMulti(levelStats, value)),
-                    extraOffsets: extraOffsets
-                }];
-            }
-            case "tenacity":
-                return [{
-                    label: abbrev + ' Dmg',
-                    fullName: stat + ' multiplier',
-                    description: 'Damage multiplier from Tenacity',
-                    tieringFunc: makeTiering(value => tenacityDmg(levelStats, value)),
-                    extraOffsets: extraOffsets
-                }, {
-                    label: abbrev + ' Def',
-                    fullName: stat + ' mitigation',
-                    description: 'Damage reduction from Tenacity',
-                    tieringFunc: makeTiering(value => tenacityIncomingDmg(levelStats, value)),
-                    extraOffsets: extraOffsets
-                }
-                ];
-            default:
-                return [{
-                    label: abbrev,
-                    fullName: abbrev,
-                    description: abbrev,
-                    tieringFunc: offset => ({
-                        lower: 0,
-                        upper: 0
+            } else {
+                tierDisplays.push({
+                    label: abbrev + ' GCD',
+                    fullName: 'GCD for spells',
+                    description: 'Global cooldown (recast) time for spells',
+                    tieringFunc: makeTiering(value => {
+                        const haste = computed.haste('Spell');
+                        return spsToGcd(2.5, levelStats, value, haste);
                     }),
-                    extraOffsets: []
-                }]
+                    extraOffsets: extraOffsets
+                });
+            }
+            return [...tierDisplays, {
+                label: abbrev + ' DoT',
+                fullName: 'DoT scalar for spells',
+                description: 'DoT damage multiplier for spells',
+                tieringFunc: makeTiering(value => spsTickMulti(levelStats, value)),
+                extraOffsets: extraOffsets
+            }];
+        }
+        case "skillspeed": {
+            const tierDisplays: TieringDisplay[] = [];
+            if (gcdOver) {
+                gcdOver.filter(over => over.basis === 'sks')
+                    .forEach(over => {
+                        tierDisplays.push({
+                            label: over.shortLabel,
+                            fullName: over.longLabel,
+                            description: over.description,
+                            tieringFunc: makeTiering(value => {
+                                const haste = computed.haste(over.attackType) + over.haste;
+                                return sksToGcd(over.gcdTime, levelStats, value, haste);
+                            }),
+                            extraOffsets: extraOffsets
+                        });
+                    });
+            } else {
+                tierDisplays.push({
+                    label: abbrev + ' GCD',
+                    fullName: 'GCD for weaponskills',
+                    description: 'Global cooldown (recast) time for weaponskills',
+                    tieringFunc: makeTiering(value => {
+                        const haste = computed.haste('Weaponskill');
+                        return sksToGcd(2.5, levelStats, value, haste);
+                    }),
+                    extraOffsets: extraOffsets
+                });
+            }
+
+            return [...tierDisplays, {
+                label: abbrev + ' DoT',
+                fullName: 'DoT scalar for weaponskills',
+                description: 'DoT damage multiplier for weaponskills',
+                tieringFunc: makeTiering(value => sksTickMulti(levelStats, value)),
+                extraOffsets: extraOffsets
+            }];
+        }
+        case "tenacity":
+            return [{
+                label: abbrev + ' Dmg',
+                fullName: stat + ' multiplier',
+                description: 'Damage multiplier from Tenacity',
+                tieringFunc: makeTiering(value => tenacityDmg(levelStats, value)),
+                extraOffsets: extraOffsets
+            }, {
+                label: abbrev + ' Def',
+                fullName: stat + ' mitigation',
+                description: 'Damage reduction from Tenacity',
+                tieringFunc: makeTiering(value => tenacityIncomingDmg(levelStats, value)),
+                extraOffsets: extraOffsets
+            }
+            ];
+        default:
+            return [{
+                label: abbrev,
+                fullName: abbrev,
+                description: abbrev,
+                tieringFunc: offset => ({
+                    lower: 0,
+                    upper: 0
+                }),
+                extraOffsets: []
+            }];
 
         }
     }
@@ -404,8 +396,8 @@ export class StatTierDisplay extends HTMLDivElement {
     private getCombinedTiering(currentValue: number, computation: ((statValue: number) => number)): Tiering {
         return {
             lower: this.getSingleTiering(false, currentValue, computation),
-            upper: this.getSingleTiering(true, currentValue, computation),
-        }
+            upper: this.getSingleTiering(true, currentValue, computation)
+        };
     }
 
     private getSingleTiering(upper: boolean, initialValue: number, computation: (statValue: number) => number) {

@@ -92,7 +92,7 @@ export class RprGaugeGui {
                 }
                 return document.createTextNode("");
             }
-        },
+        }
         ];
     }
 }

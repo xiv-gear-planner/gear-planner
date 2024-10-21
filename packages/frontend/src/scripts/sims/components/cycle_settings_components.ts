@@ -13,7 +13,7 @@ export function cycleSettingsGui(cycleSettings: CycleSettings) {
     const timeField = new FieldBoundFloatField(cycleSettings, 'totalTime', {
         inputMode: 'number',
         // 1 hour of sim time should be enough for any application
-        postValidators: [clampValues(0, 60 * 60)],
+        postValidators: [clampValues(0, 60 * 60)]
     });
     timeField.id = 'cycle-total-time';
     const label = labelFor('Total Time:', timeField);

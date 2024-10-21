@@ -58,7 +58,7 @@ const reduced: OgcdAbility = {
 };
 
 class FakeTimeSource {
-    time: number = 0
+    time: number = 0;
 }
 
 describe('cooldown manager', () => {
@@ -78,7 +78,7 @@ describe('cooldown manager', () => {
                 absolute: 0,
                 relative: 0
             },
-            currentCharges: 1,
+            currentCharges: 1
         });
         // Wait 5 seconds, should still be identical
         ts.time = 5.0;
@@ -93,7 +93,7 @@ describe('cooldown manager', () => {
                 absolute: 5,
                 relative: 0
             },
-            currentCharges: 1,
+            currentCharges: 1
         });
         // Use the CD
         tracker.useAbility(ability);
@@ -109,7 +109,7 @@ describe('cooldown manager', () => {
                 absolute: 125,
                 relative: 120
             },
-            currentCharges: 0,
+            currentCharges: 0
         });
         ts.time = 10;
         // 5 seconds later, still on CD, but now 115 seconds remaining
@@ -124,7 +124,7 @@ describe('cooldown manager', () => {
                 absolute: 125,
                 relative: 115
             },
-            currentCharges: 0,
+            currentCharges: 0
         });
         // Almost done
         ts.time = 120;
@@ -139,7 +139,7 @@ describe('cooldown manager', () => {
                 absolute: 125,
                 relative: 5
             },
-            currentCharges: 0,
+            currentCharges: 0
         });
         ts.time = 125;
         // Now it's ready again
@@ -154,7 +154,7 @@ describe('cooldown manager', () => {
                 absolute: 125,
                 relative: 0
             },
-            currentCharges: 1,
+            currentCharges: 1
         });
         ts.time = 130;
         // Still ready
@@ -169,7 +169,7 @@ describe('cooldown manager', () => {
                 absolute: 130,
                 relative: 0
             },
-            currentCharges: 1,
+            currentCharges: 1
         });
         // Use it again
         tracker.useAbility(ability);
@@ -184,7 +184,7 @@ describe('cooldown manager', () => {
                 absolute: 250,
                 relative: 120
             },
-            currentCharges: 0,
+            currentCharges: 0
         });
         ts.time = 140;
         assert.deepEqual(tracker.statusOf(ability), {
@@ -198,7 +198,7 @@ describe('cooldown manager', () => {
                 absolute: 250,
                 relative: 110
             },
-            currentCharges: 0,
+            currentCharges: 0
         });
         ts.time = 250;
         // Ready again
@@ -213,7 +213,7 @@ describe('cooldown manager', () => {
                 absolute: 250,
                 relative: 0
             },
-            currentCharges: 1,
+            currentCharges: 1
         });
         ts.time = 260;
         // Still ready
@@ -228,7 +228,7 @@ describe('cooldown manager', () => {
                 absolute: 260,
                 relative: 0
             },
-            currentCharges: 1,
+            currentCharges: 1
         });
     });
     it('can handle a reduced cooldown', () => {
@@ -247,7 +247,7 @@ describe('cooldown manager', () => {
                 absolute: 0,
                 relative: 0
             },
-            currentCharges: 1,
+            currentCharges: 1
         });
         // Wait 5 seconds, should still be identical
         ts.time = 5.0;
@@ -262,7 +262,7 @@ describe('cooldown manager', () => {
                 absolute: 5,
                 relative: 0
             },
-            currentCharges: 1,
+            currentCharges: 1
         });
         // Use the CD
         tracker.useAbility(ability, 120);
@@ -278,7 +278,7 @@ describe('cooldown manager', () => {
                 absolute: 125,
                 relative: 120
             },
-            currentCharges: 0,
+            currentCharges: 0
         });
         ts.time = 10;
         // 5 seconds later, still on CD, but now 115 seconds remaining
@@ -293,7 +293,7 @@ describe('cooldown manager', () => {
                 absolute: 125,
                 relative: 115
             },
-            currentCharges: 0,
+            currentCharges: 0
         });
         // Almost done
         ts.time = 120;
@@ -308,7 +308,7 @@ describe('cooldown manager', () => {
                 absolute: 125,
                 relative: 5
             },
-            currentCharges: 0,
+            currentCharges: 0
         });
         ts.time = 125;
         // Now it's ready again
@@ -323,7 +323,7 @@ describe('cooldown manager', () => {
                 absolute: 125,
                 relative: 0
             },
-            currentCharges: 1,
+            currentCharges: 1
         });
         ts.time = 130;
         // Still ready
@@ -338,7 +338,7 @@ describe('cooldown manager', () => {
                 absolute: 130,
                 relative: 0
             },
-            currentCharges: 1,
+            currentCharges: 1
         });
         // Use it again, this time with 100s
         tracker.useAbility(ability, 100);
@@ -353,7 +353,7 @@ describe('cooldown manager', () => {
                 absolute: 230,
                 relative: 100
             },
-            currentCharges: 0,
+            currentCharges: 0
         });
         ts.time = 140;
         assert.deepEqual(tracker.statusOf(ability), {
@@ -367,7 +367,7 @@ describe('cooldown manager', () => {
                 absolute: 230,
                 relative: 90
             },
-            currentCharges: 0,
+            currentCharges: 0
         });
         ts.time = 230;
         // Ready again
@@ -382,7 +382,7 @@ describe('cooldown manager', () => {
                 absolute: 230,
                 relative: 0
             },
-            currentCharges: 1,
+            currentCharges: 1
         });
         ts.time = 260;
         // Still ready
@@ -397,7 +397,7 @@ describe('cooldown manager', () => {
                 absolute: 260,
                 relative: 0
             },
-            currentCharges: 1,
+            currentCharges: 1
         });
     });
     it('can handle a charge-based cooldown', () => {
@@ -416,7 +416,7 @@ describe('cooldown manager', () => {
                 absolute: 0,
                 relative: 0
             },
-            currentCharges: 3,
+            currentCharges: 3
         });
         // Still fully charged
         ts.time = 10;
@@ -431,7 +431,7 @@ describe('cooldown manager', () => {
                 absolute: 10,
                 relative: 0
             },
-            currentCharges: 3,
+            currentCharges: 3
         });
         // Use once
         tracker.useAbility(ability);
@@ -446,7 +446,7 @@ describe('cooldown manager', () => {
                 absolute: 50,
                 relative: 40
             },
-            currentCharges: 2,
+            currentCharges: 2
         });
         // Back to full
         ts.time = 50;
@@ -461,7 +461,7 @@ describe('cooldown manager', () => {
                 absolute: ts.time,
                 relative: 0
             },
-            currentCharges: 3,
+            currentCharges: 3
         });
         // Still full
         ts.time = 60;
@@ -476,7 +476,7 @@ describe('cooldown manager', () => {
                 absolute: ts.time,
                 relative: 0
             },
-            currentCharges: 3,
+            currentCharges: 3
         });
         // use ability several times in succession
         tracker.useAbility(ability);
@@ -491,7 +491,7 @@ describe('cooldown manager', () => {
                 absolute: 60 + 40,
                 relative: 40
             },
-            currentCharges: 2,
+            currentCharges: 2
         });
         ts.time += 1;
         tracker.useAbility(ability);
@@ -506,7 +506,7 @@ describe('cooldown manager', () => {
                 absolute: 60 + 2 * 40,
                 relative: 2 * 40 - 1
             },
-            currentCharges: 1,
+            currentCharges: 1
         });
         ts.time += 1;
         tracker.useAbility(ability);
@@ -521,7 +521,7 @@ describe('cooldown manager', () => {
                 absolute: 60 + 3 * 40,
                 relative: 3 * 40 - 2
             },
-            currentCharges: 0,
+            currentCharges: 0
         });
         ts.time = 99;
         assert.deepEqual(tracker.statusOf(ability), {
@@ -535,7 +535,7 @@ describe('cooldown manager', () => {
                 absolute: 60 + 3 * 40,
                 relative: 81
             },
-            currentCharges: 0,
+            currentCharges: 0
         });
         ts.time = 100;
         assert.deepEqual(tracker.statusOf(ability), {
@@ -549,7 +549,7 @@ describe('cooldown manager', () => {
                 absolute: 60 + 3 * 40,
                 relative: 80
             },
-            currentCharges: 1,
+            currentCharges: 1
         });
         ts.time = 140;
         assert.deepEqual(tracker.statusOf(ability), {
@@ -563,7 +563,7 @@ describe('cooldown manager', () => {
                 absolute: 60 + 3 * 40,
                 relative: 40
             },
-            currentCharges: 2,
+            currentCharges: 2
         });
         ts.time = 180;
         assert.deepEqual(tracker.statusOf(ability), {
@@ -577,7 +577,7 @@ describe('cooldown manager', () => {
                 absolute: 60 + 3 * 40,
                 relative: 0
             },
-            currentCharges: 3,
+            currentCharges: 3
         });
     });
     it('handles shared CDs', () => {
@@ -597,7 +597,7 @@ describe('cooldown manager', () => {
                 absolute: 0,
                 relative: 0
             },
-            currentCharges: 1,
+            currentCharges: 1
         };
         assert.deepEqual(tracker.statusOf(ability), e1);
         assert.deepEqual(tracker.statusOf(ability2), e1);
@@ -614,7 +614,7 @@ describe('cooldown manager', () => {
                 absolute: 120,
                 relative: 120
             },
-            currentCharges: 0,
+            currentCharges: 0
         };
         assert.deepEqual(tracker.statusOf(ability), e2);
         assert.deepEqual(tracker.statusOf(ability2), e2);
@@ -630,7 +630,7 @@ describe('cooldown manager', () => {
                 absolute: 120,
                 relative: 90
             },
-            currentCharges: 0,
+            currentCharges: 0
         };
         assert.deepEqual(tracker.statusOf(ability), e3);
         assert.deepEqual(tracker.statusOf(ability2), e3);
@@ -648,7 +648,7 @@ describe('cooldown manager', () => {
                 absolute: 120,
                 relative: 30
             },
-            currentCharges: 0,
+            currentCharges: 0
         };
         assert.deepEqual(tracker.statusOf(ability), e4);
         assert.deepEqual(tracker.statusOf(ability2), e4);
@@ -665,7 +665,7 @@ describe('cooldown manager', () => {
                 absolute: 120,
                 relative: 0
             },
-            currentCharges: 1,
+            currentCharges: 1
         };
         assert.deepEqual(tracker.statusOf(ability), e5);
         assert.deepEqual(tracker.statusOf(ability2), e5);
@@ -682,7 +682,7 @@ describe('cooldown manager', () => {
                 absolute: 150,
                 relative: 0
             },
-            currentCharges: 1,
+            currentCharges: 1
         };
         assert.deepEqual(tracker.statusOf(ability), e6);
         assert.deepEqual(tracker.statusOf(ability2), e6);
@@ -699,7 +699,7 @@ describe('cooldown manager', () => {
                 absolute: 210,
                 relative: 60
             },
-            currentCharges: 0,
+            currentCharges: 0
         };
         assert.deepEqual(tracker.statusOf(ability), e7);
         assert.deepEqual(tracker.statusOf(ability2), e7);
@@ -716,7 +716,7 @@ describe('cooldown manager', () => {
                 absolute: 210,
                 relative: 30
             },
-            currentCharges: 0,
+            currentCharges: 0
         };
         assert.deepEqual(tracker.statusOf(ability), e8);
         assert.deepEqual(tracker.statusOf(ability2), e8);
@@ -733,7 +733,7 @@ describe('cooldown manager', () => {
                 absolute: 210,
                 relative: 0
             },
-            currentCharges: 1,
+            currentCharges: 1
         };
         assert.deepEqual(tracker.statusOf(ability), e9);
         assert.deepEqual(tracker.statusOf(ability2), e9);
@@ -750,7 +750,7 @@ describe('cooldown manager', () => {
                 absolute: 240,
                 relative: 0
             },
-            currentCharges: 1,
+            currentCharges: 1
         };
         assert.deepEqual(tracker.statusOf(ability), e10);
         assert.deepEqual(tracker.statusOf(ability2), e10);
@@ -772,7 +772,7 @@ describe('cooldown manager', () => {
                 absolute: 0,
                 relative: 0
             },
-            currentCharges: 1,
+            currentCharges: 1
         };
         assert.deepEqual(tracker.statusOf(ability), e1);
         assert.deepEqual(tracker.statusOf(ability2), e1);
@@ -789,7 +789,7 @@ describe('cooldown manager', () => {
                 absolute: 60,
                 relative: 60
             },
-            currentCharges: 0,
+            currentCharges: 0
         };
         assert.deepEqual(tracker.statusOf(ability), e2);
         assert.deepEqual(tracker.statusOf(ability2), e2);
@@ -805,7 +805,7 @@ describe('cooldown manager', () => {
                 absolute: 60,
                 relative: 40
             },
-            currentCharges: 0,
+            currentCharges: 0
         };
         assert.deepEqual(tracker.statusOf(ability), e3);
         assert.deepEqual(tracker.statusOf(ability2), e3);
@@ -822,7 +822,7 @@ describe('cooldown manager', () => {
                 absolute: 60,
                 relative: 0
             },
-            currentCharges: 1,
+            currentCharges: 1
         };
         assert.deepEqual(tracker.statusOf(ability), e4);
         assert.deepEqual(tracker.statusOf(ability2), e4);
@@ -839,7 +839,7 @@ describe('cooldown manager', () => {
                 absolute: 120,
                 relative: 0
             },
-            currentCharges: 1,
+            currentCharges: 1
         };
         assert.deepEqual(tracker.statusOf(ability), e5);
         assert.deepEqual(tracker.statusOf(ability2), e5);
@@ -856,7 +856,7 @@ describe('cooldown manager', () => {
                 absolute: 90,
                 relative: 0
             },
-            currentCharges: 1,
+            currentCharges: 1
         };
         assert.deepEqual(tracker.statusOf(ability), e6);
         assert.deepEqual(tracker.statusOf(ability2), e6);
@@ -873,7 +873,7 @@ describe('cooldown manager', () => {
                 absolute: 210,
                 relative: 120
             },
-            currentCharges: 0,
+            currentCharges: 0
         };
         assert.deepEqual(tracker.statusOf(ability), e7);
         assert.deepEqual(tracker.statusOf(ability2), e7);
@@ -890,7 +890,7 @@ describe('cooldown manager', () => {
                 absolute: 210,
                 relative: 30
             },
-            currentCharges: 0,
+            currentCharges: 0
         };
         assert.deepEqual(tracker.statusOf(ability), e8);
         assert.deepEqual(tracker.statusOf(ability2), e8);
@@ -907,7 +907,7 @@ describe('cooldown manager', () => {
                 absolute: 210,
                 relative: 0
             },
-            currentCharges: 1,
+            currentCharges: 1
         };
         assert.deepEqual(tracker.statusOf(ability), e9);
         assert.deepEqual(tracker.statusOf(ability2), e9);
@@ -924,7 +924,7 @@ describe('cooldown manager', () => {
                 absolute: 240,
                 relative: 0
             },
-            currentCharges: 1,
+            currentCharges: 1
         };
         assert.deepEqual(tracker.statusOf(ability), e10);
         assert.deepEqual(tracker.statusOf(ability2), e10);

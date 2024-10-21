@@ -81,7 +81,7 @@ export class CustomTableHeaderRow<RowDataType> extends HTMLTableRowElement imple
     }
 
     refreshColumn(colDef: CustomColumn<RowDataType>) {
-        this._cells.find(cell => cell.colDef == colDef)?.refreshFull();
+        this._cells.find(cell => cell.colDef === colDef)?.refreshFull();
     }
 
     refreshSelection() {
@@ -99,8 +99,7 @@ export class CustomTableTitleRow extends HTMLTableRowElement {
         let node;
         if (title instanceof Node) {
             node = title;
-        }
-        else {
+        } else {
             node = document.createTextNode(title);
         }
         const cell = document.createElement("th");
@@ -261,7 +260,7 @@ export class CustomTable<RowDataType, SelectionType = never> extends HTMLTableEl
         this.appendChild(this.createTBody());
         this.addEventListener('mousedown', ev => {
             this.handleClick(ev);
-        })
+        });
     }
 
     get columns() {
@@ -274,9 +273,8 @@ export class CustomTable<RowDataType, SelectionType = never> extends HTMLTableEl
             Object.assign(out, colDefPartial);
             if (out.condition()) {
                 return [out];
-            }
-            else {
-                return []
+            } else {
+                return [];
             }
         });
         // TODO: see if successive refreshFull calls can be coalesced
@@ -306,20 +304,16 @@ export class CustomTable<RowDataType, SelectionType = never> extends HTMLTableEl
             if (item instanceof HeaderRow) {
                 const header = new CustomTableHeaderRow(this);
                 newRowElements.push(header);
-            }
-            else if (item instanceof TitleRow) {
+            } else if (item instanceof TitleRow) {
                 newRowElements.push(new CustomTableTitleRow(this, item.title));
-            }
-            else if (item instanceof SpecialRow) {
+            } else if (item instanceof SpecialRow) {
                 const out = new CustomTableTitleRow(this, item.creator(this));
                 item.finisher(out, this);
                 newRowElements.push(out);
-            }
-            else {
+            } else {
                 if (this.dataRowMap.has(item)) {
                     newRowElements.push(this.dataRowMap.get(item));
-                }
-                else {
+                } else {
                     const newRow = new CustomRow<RowDataType>(item, this, {noInitialRefresh: true});
                     this.dataRowMap.set(item, newRow);
                     newRow.refreshFull();
@@ -334,8 +328,7 @@ export class CustomTable<RowDataType, SelectionType = never> extends HTMLTableEl
             if (value instanceof CustomRow) {
                 this.selectionRefreshables.push(value);
                 this._rows.push(value);
-            }
-            else if (value instanceof CustomTableHeaderRow) {
+            } else if (value instanceof CustomTableHeaderRow) {
                 this.selectionRefreshables.push(value);
                 this._rows.push(value);
             }
@@ -361,8 +354,7 @@ export class CustomTable<RowDataType, SelectionType = never> extends HTMLTableEl
         }
         if (item instanceof CustomRow) {
             item.refreshFull();
-        }
-        else {
+        } else {
             const row = this.dataRowMap.get(item);
             if (row) {
                 row.refreshFull();
@@ -375,8 +367,7 @@ export class CustomTable<RowDataType, SelectionType = never> extends HTMLTableEl
             for (const row of this._rows) {
                 row.refreshColumn(item);
             }
-        }
-        else {
+        } else {
             const col = this._columns.find(col => col.dataValue === item);
             if (col) {
                 for (const row of this._rows) {
@@ -404,29 +395,23 @@ export class CustomTable<RowDataType, SelectionType = never> extends HTMLTableEl
         if (target instanceof CustomRow) {
             this.selectionModel.clickRow(target);
             this.refreshSelection();
-        }
-        else if (target instanceof CustomCell) {
+        } else if (target instanceof CustomCell) {
             if (target.colDef.allowCellSelection) {
                 this.selectionModel.clickCell(target);
-            }
-            else {
+            } else {
                 this.selectionModel.clickRow(target.row);
             }
             this.refreshSelection();
-        }
-        else if (target instanceof CustomTableHeaderCell) {
+        } else if (target instanceof CustomTableHeaderCell) {
             if (target.colDef.allowHeaderSelection) {
                 this.selectionModel.clickColumnHeader(target.colDef);
                 this.refreshSelection();
             }
-        }
-        else if (target instanceof HTMLButtonElement || target instanceof HTMLInputElement) {
+        } else if (target instanceof HTMLButtonElement || target instanceof HTMLInputElement) {
             // Assume buttons/inputs will handle themselves
-        }
-        else if (target === undefined || target === null) {
+        } else if (target === undefined || target === null) {
             return;
-        }
-        else {
+        } else {
             this._handleClick(target.parentElement);
         }
     }
@@ -476,10 +461,9 @@ export class CustomColumn<RowDataType, CellDataType = string, ColumnDataType = a
     renderer?: CellRenderer<RowDataType, CellDataType> = (value) => document.createTextNode(value.toString());
     colStyler?: ColStyler<RowDataType, CellDataType> = (value, colElement, internalElement) => {
         if (value) {
-            colElement.classList.add("value-truthy")
-        }
-        else {
-            colElement.classList.add("value-falsey")
+            colElement.classList.add("value-truthy");
+        } else {
+            colElement.classList.add("value-falsey");
         }
     };
     condition?: () => boolean = () => true;
@@ -518,8 +502,7 @@ export class CustomRow<RowDataType> extends HTMLTableRowElement implements Refre
         for (const col of this.table.columns) {
             if (this.dataColMap.has(col)) {
                 newColElements.push(this.dataColMap.get(col));
-            }
-            else {
+            } else {
                 const newCell = new CustomCell<RowDataType, any>(this.dataItem, col, this, {noInitialRefresh: true});
                 this.dataColMap.set(col, newCell);
                 newColElements.push(newCell);
@@ -593,16 +576,14 @@ export class CustomCell<RowDataType, CellDataType> extends HTMLTableCellElement 
         const span = document.createElement('span');
         if (node === null || node === undefined) {
             this.replaceChildren(span);
-        }
-        else {
+        } else {
             // Due to some of the styling, the child must be a real HTML element and not a raw text node
             // Also, some elements don't support ::before, so insert a dummy span
             if (node.nodeType === this.TEXT_NODE) {
                 const text = node.textContent;
                 span.textContent = text;
                 this.replaceChildren(span);
-            }
-            else {
+            } else {
                 this.replaceChildren(span, node);
             }
         }

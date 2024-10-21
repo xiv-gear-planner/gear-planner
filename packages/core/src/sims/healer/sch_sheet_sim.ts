@@ -40,7 +40,7 @@ const r2: SchGcdAbility = {
     id: 17870,
     potency: 220,
     attackType: "Spell",
-    gcd: 2.5,
+    gcd: 2.5
 };
 
 const bio: SchGcdAbility = {
@@ -54,7 +54,7 @@ const bio: SchGcdAbility = {
         id: 3089
     },
     attackType: "Spell",
-    gcd: 2.5,
+    gcd: 2.5
 };
 
 export const ImpactImminent: PersonalBuff = {
@@ -66,14 +66,14 @@ export const ImpactImminent: PersonalBuff = {
         // Allows use of Baneful Impaction
     },
     statusId: 3882,
-    appliesTo: ability => ability.id == baneful.id,
+    appliesTo: ability => ability.id === baneful.id,
     beforeSnapshot<X extends Ability>(buffController: BuffController, ability: X): X {
         buffController.removeSelf();
         return {
-            ...ability,
+            ...ability
         };
-    },
-}
+    }
+};
 
 const chain: SchOgcdAbility = {
     type: 'ogcd',
@@ -106,7 +106,7 @@ const ed: SchOgcdAbility = {
     id: 167,
     potency: 100,
     attackType: "Ability",
-    updateGauge: gauge => gauge.aetherflow -= 1,
+    updateGauge: gauge => gauge.aetherflow -= 1
 };
 
 const aetherflow: SchOgcdAbility = {
@@ -118,8 +118,8 @@ const aetherflow: SchOgcdAbility = {
     cooldown: {
         time: 60
     },
-    updateGauge: gauge => gauge.aetherflow = 3,
-}
+    updateGauge: gauge => gauge.aetherflow = 3
+};
 
 const diss: SchOgcdAbility = {
     type: 'ogcd',
@@ -130,8 +130,8 @@ const diss: SchOgcdAbility = {
     cooldown: {
         time: 180
     },
-    updateGauge: gauge => gauge.aetherflow = 3,
-}
+    updateGauge: gauge => gauge.aetherflow = 3
+};
 
 class SchGauge {
     private _aetherflow: number = 0;
@@ -140,7 +140,7 @@ class SchGauge {
     }
     set aetherflow(newAF: number) {
         if (newAF < 0) {
-            console.warn(`Used Energy Drain when empty`)
+            console.warn(`Used Energy Drain when empty`);
         }
 
         this._aetherflow = Math.max(Math.min(newAF, 3), 0);
@@ -150,8 +150,8 @@ class SchGauge {
     getGaugeState(): SchGaugeState {
         return {
             level: 100,
-            aetherflow: this.aetherflow,
-        }
+            aetherflow: this.aetherflow
+        };
     }
 
 }
@@ -192,20 +192,20 @@ class ScholarCycleProcessor extends CycleProcessor {
     override addAbilityUse(usedAbility: PreDmgAbilityUseRecordUnf) {
         // Add gauge data to this record for the UI
         const extraData: SchExtraData = {
-            gauge: this.gauge.getGaugeState(),
+            gauge: this.gauge.getGaugeState()
         };
 
         const modified: PreDmgAbilityUseRecordUnf = {
             ...usedAbility,
-            extraData,
+            extraData
         };
 
         super.addAbilityUse(modified);
     }
-    
+
     override use(ability: Ability): AbilityUseResult {
         const schAbility = ability as SchAbility;
-        
+
         // Update gauge from the ability itself
         if (schAbility.updateGauge !== undefined) {
             schAbility.updateGauge(this.gauge);
@@ -217,8 +217,7 @@ class ScholarCycleProcessor extends CycleProcessor {
         if (this.nextGcdTime >= this.nextBioTime && this.remainingTime > 15) {
             this.nextBioTime = this.nextGcdTime + 28.8;
             this.useGcd(bio);
-        }
-        else {
+        } else {
             this.useGcd(filler);
         }
     }
@@ -273,16 +272,16 @@ export class SchSim extends BaseMultiCycleSim<SchSimResult, SchSettings, Scholar
     protected createCycleProcessor(settings: MultiCycleSettings): ScholarCycleProcessor {
         return new ScholarCycleProcessor({
             ...settings,
-            hideCycleDividers: true,
+            hideCycleDividers: true
         });
     }
 
     makeDefaultSettings(): SchSettings {
         return {
-            edsPerAfDiss: 3,
+            edsPerAfDiss: 3
         };
     }
-    
+
     getRotationsToSimulate(): Rotation[] {
         const sim = this;
         return [{
@@ -327,7 +326,7 @@ export class SchSim extends BaseMultiCycleSim<SchSimResult, SchSettings, Scholar
                 cp.oneCycle(cycle =>{
                     cp.useOgcd(diss);
                     cp.useTwoMinBurst();
-                    while (cycle.cycleRemainingGcdTime > 0) { 
+                    while (cycle.cycleRemainingGcdTime > 0) {
                         cp.useDotIfWorth();
                         if (cp.isReady(aetherflow)) {
                             cp.use(aetherflow);
@@ -359,7 +358,7 @@ export class SchSim extends BaseMultiCycleSim<SchSimResult, SchSettings, Scholar
                         }
                     }
                 });
-            },
+            }
         })),
         ...rangeInc(2, 16, 2).map(i => ({
             name: `Delay dot to ${i}s`,
@@ -391,8 +390,8 @@ export class SchSim extends BaseMultiCycleSim<SchSimResult, SchSettings, Scholar
                         }
                     }
                 });
-            },
+            }
         }))
-        ]
+        ];
     }
 }

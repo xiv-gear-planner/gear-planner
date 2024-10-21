@@ -166,7 +166,7 @@ const exportSetToTeamcraft = {
                     if (materia) {
                         allMateria.push(materia);
                     }
-                })
+                });
             }
         });
         // TODO: should food be included in this? What quantity of food?
@@ -178,12 +178,11 @@ const exportSetToTeamcraft = {
             const existing = items.find(item => item.itemId === equippedItem.id);
             if (existing) {
                 existing.quantity++;
-            }
-            else {
+            } else {
                 items.push({
                     itemId: equippedItem.id,
                     quantity: 1
-                })
+                });
             }
         });
         const joinedItems = items
@@ -202,8 +201,7 @@ export function startExport(sheet: GearPlanSheet | CharacterGearSet) {
     let modal: ExportModal<unknown>;
     if (sheet instanceof GearPlanSheet) {
         modal = new SheetExportModal(sheet);
-    }
-    else {
+    } else {
         modal = new SetExportModal(sheet);
     }
     modal.attachAndShow();
@@ -257,7 +255,7 @@ abstract class ExportModal<X> extends BaseModal {
             fieldset.appendChild(labeled);
             htmlInputElement.addEventListener('change', ev => {
                 this.selectedOption = opt;
-            })
+            });
         });
 
         this.contentArea.appendChild(fieldset);
@@ -291,7 +289,7 @@ abstract class ExportModal<X> extends BaseModal {
 
     doExport(selectedType: ExportMethod<X>): Promise<string> {
         recordSheetEvent("doExport", this.sheet, {
-            'exportType': selectedType.name,
+            'exportType': selectedType.name
         });
         return selectedType.doExport(this.item);
     };
@@ -308,8 +306,7 @@ abstract class ExportModal<X> extends BaseModal {
         if (selectedType.exportInstantly) {
             const content = await this.doExport(selectedType);
             this.setResultData(selectedType, content);
-        }
-        else {
+        } else {
             this.variableButton.textContent = 'Generate';
             this.textValue = DEFAULT_EXPORT_TEXT;
             this.varButtonAction = () => {
@@ -322,7 +319,7 @@ abstract class ExportModal<X> extends BaseModal {
                     console.error(err);
                     this.setResultData(selectedType, "Error!");
                 });
-            }
+            };
         }
 
     }
@@ -341,8 +338,7 @@ abstract class ExportModal<X> extends BaseModal {
         if (exportType.openInsteadOfCopy) {
             this.variableButton.textContent = 'Go';
             this.varButtonAction = () => window.open(data, '_blank');
-        }
-        else {
+        } else {
             this.variableButton.textContent = 'Copy';
             this.varButtonAction = () => navigator.clipboard.writeText(data);
         }

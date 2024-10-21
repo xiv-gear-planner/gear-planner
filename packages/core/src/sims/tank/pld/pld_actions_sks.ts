@@ -1,6 +1,6 @@
 import {AtonementReadyBuff, SupplicationReadyBuff, SepulchreReadyBuff,
-        DivineMightBuff, BladeOfHonorReadyBuff, RequiescatBuff, FightOrFlightBuff,
-        GoringBladeReadyBuff} from './pld_buffs_sks';
+    DivineMightBuff, BladeOfHonorReadyBuff, RequiescatBuff, FightOrFlightBuff,
+    GoringBladeReadyBuff} from './pld_buffs_sks';
 import {GcdAbility, OgcdAbility} from "@xivgear/core/sims/sim_types";
 
 /**
@@ -45,7 +45,7 @@ export const Atonement: GcdAbility = {
     gcd: 2.5,
     cast: 0,
     activatesBuffs: [SupplicationReadyBuff]
-}
+};
 export const Supplication: GcdAbility = {
     type: 'gcd',
     name: "Supplication",
@@ -56,7 +56,7 @@ export const Supplication: GcdAbility = {
     gcd: 2.5,
     cast: 0,
     activatesBuffs: [SepulchreReadyBuff]
-}
+};
 export const Sepulchre: GcdAbility = {
     type: 'gcd',
     name: "Sepulchre",
@@ -66,7 +66,7 @@ export const Sepulchre: GcdAbility = {
     potency: 540,
     gcd: 2.5,
     cast: 0
-}
+};
 
 export const HolySpirit: GcdAbility = {
     type: 'gcd',
@@ -76,7 +76,7 @@ export const HolySpirit: GcdAbility = {
     potency: 500,
     gcd: 2.5,
     cast: 0
-}
+};
 export const HolySpiritHardcast: GcdAbility = {
     type: 'gcd',
     name: "Holy Spirit (hard cast)",
@@ -85,7 +85,7 @@ export const HolySpiritHardcast: GcdAbility = {
     potency: 400,
     gcd: 2.5,
     cast: 1.5
-}
+};
 
 export const GoringBlade: GcdAbility = {
     type: 'gcd',
@@ -95,7 +95,7 @@ export const GoringBlade: GcdAbility = {
     potency: 700,
     gcd: 2.5,
     cast: 0
-}
+};
 
 export const Confiteor: GcdAbility = {
     type: 'gcd',
@@ -105,7 +105,7 @@ export const Confiteor: GcdAbility = {
     potency: 1000,
     gcd: 2.5,
     cast: 0
-}
+};
 export const BladeOfFaith: GcdAbility = {
     type: 'gcd',
     name: "Blade of Faith",
@@ -114,7 +114,7 @@ export const BladeOfFaith: GcdAbility = {
     potency: 760,
     gcd: 2.5,
     cast: 0
-}
+};
 export const BladeOfTruth: GcdAbility = {
     type: 'gcd',
     name: "Blade of Truth",
@@ -123,7 +123,7 @@ export const BladeOfTruth: GcdAbility = {
     potency: 880,
     gcd: 2.5,
     cast: 0
-}
+};
 export const BladeOfValor: GcdAbility = {
     type: 'gcd',
     name: "Blade of Valor",
@@ -133,7 +133,7 @@ export const BladeOfValor: GcdAbility = {
     gcd: 2.5,
     cast: 0,
     activatesBuffs: [BladeOfHonorReadyBuff]
-}
+};
 
 
 
@@ -153,7 +153,7 @@ export const FightOrFlight: OgcdAbility = {
         time: 60
     },
     activatesBuffs: [FightOrFlightBuff, GoringBladeReadyBuff]
-}
+};
 export const Imperator: OgcdAbility = {
     type: 'ogcd',
     name: "Imperator",
@@ -164,7 +164,7 @@ export const Imperator: OgcdAbility = {
         time: 60
     },
     activatesBuffs: [RequiescatBuff]
-}
+};
 export const BladeOfHonor: OgcdAbility = {
     type: 'ogcd',
     name: "Blade of Honor",
@@ -175,7 +175,7 @@ export const BladeOfHonor: OgcdAbility = {
     cooldown: {
         time: 1
     }
-}
+};
 
 export const Intervene: OgcdAbility = {
     type: 'ogcd',
@@ -187,7 +187,7 @@ export const Intervene: OgcdAbility = {
         time: 30,
         charges: 2
     }
-}
+};
 export const Expiacion: OgcdAbility = {
     type: 'ogcd',
     name: "Expiacion",
@@ -197,7 +197,7 @@ export const Expiacion: OgcdAbility = {
     cooldown: {
         time: 30
     }
-}
+};
 export const CircleOfScorn: OgcdAbility = {
     type: 'ogcd',
     name: "Circle of Scorn",
@@ -212,4 +212,4 @@ export const CircleOfScorn: OgcdAbility = {
     cooldown: {
         time: 30
     }
-}
+};

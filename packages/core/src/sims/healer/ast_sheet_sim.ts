@@ -44,7 +44,7 @@ const combust: AstGcdAbility = {
         duration: 30
     },
     attackType: "Spell",
-    gcd: 2.5,
+    gcd: 2.5
 };
 
 const star: AstOgcdAbility = {
@@ -67,14 +67,14 @@ export const Divining: PersonalBuff = {
         // Allows use of Oracle
     },
     statusId: 3893,
-    appliesTo: ability => ability.id == oracle.id,
+    appliesTo: ability => ability.id === oracle.id,
     beforeSnapshot<X extends Ability>(buffController: BuffController, ability: X): X {
         buffController.removeSelf();
         return {
-            ...ability,
+            ...ability
         };
-    },
-}
+    }
+};
 
 const div: AstOgcdAbility = {
     type: 'ogcd',
@@ -125,8 +125,8 @@ export const LightspeedBuff: PersonalBuff = {
         if (ability.type === 'gcd' && ability.cast >= 0) {
             return {
                 ...ability,
-                cast: ability.cast - 2.5,
-            }
+                cast: ability.cast - 2.5
+            };
         }
         return null;
     },
@@ -144,7 +144,7 @@ const ls: AstOgcdAbility = {
         time: 60,
         charges: 2
     }
-}
+};
 
 const astralDraw: AstOgcdAbility = {
     type: 'ogcd',
@@ -158,7 +158,7 @@ const astralDraw: AstOgcdAbility = {
         gauge.addCard("Arrow");
         gauge.addCard("Spire");
         gauge.addCard("Lord");
-    },
+    }
 };
 
 const umbralDraw: AstOgcdAbility = {
@@ -173,7 +173,7 @@ const umbralDraw: AstOgcdAbility = {
         gauge.addCard("Bole");
         gauge.addCard("Ewer");
         gauge.addCard("Lady");
-    },
+    }
 };
 
 const lord: AstOgcdAbility = {
@@ -184,7 +184,7 @@ const lord: AstOgcdAbility = {
     attackType: "Ability",
     updateGauge: (gauge: AstGauge) => {
         gauge.playCard("Lord");
-    },
+    }
 };
 
 const balance: AstOgcdAbility = {
@@ -195,7 +195,7 @@ const balance: AstOgcdAbility = {
     attackType: "Ability",
     updateGauge: (gauge: AstGauge) => {
         gauge.playCard("Balance");
-    },
+    }
 };
 
 const spear: AstOgcdAbility = {
@@ -206,7 +206,7 @@ const spear: AstOgcdAbility = {
     attackType: "Ability",
     updateGauge: (gauge: AstGauge) => {
         gauge.playCard("Spear");
-    },
+    }
 };
 
 class AstGauge {
@@ -232,8 +232,8 @@ class AstGauge {
     getGaugeState(): AstGaugeState {
         return {
             level: 100,
-            cards: new Set([...this.cards]),
-        }
+            cards: new Set([...this.cards])
+        };
     }
 }
 
@@ -279,20 +279,20 @@ class AstCycleProcessor extends CycleProcessor {
     override addAbilityUse(usedAbility: PreDmgAbilityUseRecordUnf) {
         // Add gauge data to this record for the UI
         const extraData: AstExtraData = {
-            gauge: this.gauge.getGaugeState(),
+            gauge: this.gauge.getGaugeState()
         };
 
         const modified: PreDmgAbilityUseRecordUnf = {
             ...usedAbility,
-            extraData,
+            extraData
         };
 
         super.addAbilityUse(modified);
     }
-    
+
     override use(ability: Ability): AbilityUseResult {
         const astAbility = ability as AstAbility;
-        
+
         // Update gauge from the ability itself
         if (astAbility.updateGauge !== undefined) {
             astAbility.updateGauge(this.gauge);
@@ -304,18 +304,17 @@ class AstCycleProcessor extends CycleProcessor {
         if (this.nextGcdTime >= this.nextCombustTime && this.remainingTime > 15) {
             this.nextCombustTime = this.nextGcdTime + 28.8;
             this.useGcd(combust);
-        }
-        else {
+        } else {
             this.useGcd(filler);
         }
     }
 
     Draw() {
         this.nextDrawTime = this.currentTime + 55;
-        if (this.drawState == 0) {
+        if (this.drawState === 0) {
             this.use(umbralDraw);
             this.drawState++;
-        } else if (this.drawState == 1) {
+        } else if (this.drawState === 1) {
             this.use(astralDraw);
             this.drawState = 0;
         }
@@ -348,7 +347,7 @@ export class AstSim extends BaseMultiCycleSim<AstSimResult, AstSettings, AstCycl
     makeDefaultSettings(): AstSettings {
         return {
 
-        }
+        };
     };
 
     spec = astNewSheetSpec;
@@ -363,7 +362,7 @@ export class AstSim extends BaseMultiCycleSim<AstSimResult, AstSettings, AstCycl
     protected createCycleProcessor(settings: MultiCycleSettings): AstCycleProcessor {
         return new AstCycleProcessor({
             ...settings,
-            hideCycleDividers: true,
+            hideCycleDividers: true
         });
     }
 
@@ -381,7 +380,7 @@ export class AstSim extends BaseMultiCycleSim<AstSimResult, AstSettings, AstCycl
                         cp.useDotIfWorth();
                         if (cp.isReady(star)) {
                             cp.use(star);
-                        } else if (cp.currentTime > cp.nextDrawTime && cp.drawState == 1) {
+                        } else if (cp.currentTime > cp.nextDrawTime && cp.drawState === 1) {
                             cp.Draw();
                             if (cp.remainingTime < cp.timeUntilReady(div)) {
                                 cp.useDotIfWorth();
@@ -389,7 +388,7 @@ export class AstSim extends BaseMultiCycleSim<AstSimResult, AstSettings, AstCycl
                             }
                         }
                     }
-                })
+                });
             }
         },
         ...rangeInc(10, 28, 2).map(i => ({
@@ -406,7 +405,7 @@ export class AstSim extends BaseMultiCycleSim<AstSimResult, AstSettings, AstCycl
                         cp.useDotIfWorth();
                         if (cp.isReady(star)) {
                             cp.use(star);
-                        } else if (cp.currentTime > cp.nextDrawTime && cp.drawState == 1) {
+                        } else if (cp.currentTime > cp.nextDrawTime && cp.drawState === 1) {
                             cp.Draw();
                             if (cp.remainingTime < cp.timeUntilReady(div)) {
                                 cp.useDotIfWorth();
@@ -423,7 +422,7 @@ export class AstSim extends BaseMultiCycleSim<AstSimResult, AstSettings, AstCycl
                         cp.useDotIfWorth();
                         if (cp.isReady(star)) {
                             cp.use(star);
-                        } else if (cp.currentTime > cp.nextDrawTime && cp.drawState == 1) {
+                        } else if (cp.currentTime > cp.nextDrawTime && cp.drawState === 1) {
                             cp.Draw();
                             if (cp.remainingTime < cp.timeUntilReady(div)) {
                                 cp.useDotIfWorth();
@@ -432,7 +431,7 @@ export class AstSim extends BaseMultiCycleSim<AstSimResult, AstSettings, AstCycl
                         }
                     }
                 });
-            },
+            }
         })),
         ...rangeInc(2, 16, 2).map(i => ({
             name: `Delay dot to ${i}s`,
@@ -448,7 +447,7 @@ export class AstSim extends BaseMultiCycleSim<AstSimResult, AstSettings, AstCycl
                         cp.useDotIfWorth();
                         if (cp.isReady(star)) {
                             cp.use(star);
-                        } else if (cp.currentTime > cp.nextDrawTime && cp.drawState == 1) {
+                        } else if (cp.currentTime > cp.nextDrawTime && cp.drawState === 1) {
                             cp.Draw();
                             if (cp.remainingTime < cp.timeUntilReady(div)) {
                                 cp.useDotIfWorth();
@@ -456,9 +455,9 @@ export class AstSim extends BaseMultiCycleSim<AstSimResult, AstSettings, AstCycl
                             }
                         }
                     }
-                })
-            },
+                });
+            }
         }))
-    ];
+        ];
     }
 }

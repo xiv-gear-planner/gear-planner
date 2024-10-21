@@ -1,4 +1,4 @@
-import 'global-jsdom/register'
+import 'global-jsdom/register';
 import {exampleGearSet} from "./common_values";
 import assert from "assert";
 import {Ability, FinalizedAbility} from "@xivgear/core/sims/sim_types";
@@ -45,7 +45,7 @@ const ogcd = {
     id: 100_101,
     attackType: 'Ability',
     potency: 123,
-    type: 'ogcd',
+    type: 'ogcd'
 } as const satisfies Ability;
 
 const ogcdInterrupt = {
@@ -70,7 +70,7 @@ const ogcdWithOtherInterrupt = {
     type: 'ogcd',
     combos: [{
         comboKey: 'side combo',
-        comboBehavior: 'break',
+        comboBehavior: 'break'
     }]
 } as const satisfies Ability;
 
@@ -82,7 +82,7 @@ const ogcdThatBreaksEverything = {
     type: 'ogcd',
     combos: [{
         comboKey: "all",
-        comboBehavior: "break",
+        comboBehavior: "break"
     }]
 } as const satisfies Ability;
 
@@ -94,11 +94,11 @@ const ogcdThatBreaksEverythingButThis = {
     type: 'ogcd',
     combos: [
         {
-            comboBehavior: "nobreak",
+            comboBehavior: "nobreak"
         },
         {
             comboKey: "all",
-            comboBehavior: "break",
+            comboBehavior: "break"
         }
     ]
 } as const satisfies Ability;
@@ -139,8 +139,8 @@ const nonBreakingGcd = {
     type: 'gcd',
     gcd: 2.5,
     combos: [{
-        comboBehavior: 'nobreak',
-    }],
+        comboBehavior: 'nobreak'
+    }]
 } as const satisfies Ability;
 
 const gnashKey = 'gnashingCombo';
@@ -153,7 +153,7 @@ const gnbGnash1 = {
     type: 'gcd',
     gcd: 2.5,
     combos: [{
-        comboBehavior: 'nobreak',
+        comboBehavior: 'nobreak'
     }, {
         comboKey: gnashKey,
         comboBehavior: 'start'
@@ -169,7 +169,7 @@ const gnbGnash2 = {
     type: 'gcd',
     gcd: 2.5,
     combos: [{
-        comboBehavior: 'nobreak',
+        comboBehavior: 'nobreak'
     }, {
         comboKey: gnashKey,
         comboBehavior: 'continue',
@@ -186,7 +186,7 @@ const gnbGnash3 = {
     type: 'gcd',
     gcd: 2.5,
     combos: [{
-        comboBehavior: 'nobreak',
+        comboBehavior: 'nobreak'
     }, {
         comboKey: gnashKey,
         comboBehavior: 'continue',
@@ -449,5 +449,5 @@ describe('sim processor combo support', () => {
         assert.equal(actualAbilities[9].totalPotency, gnbGnash2.combos[1].potency);
         assert.equal(actualAbilities[10].totalPotency, cont2.combos[0].potency);
         assert.equal(actualAbilities[11].totalPotency, gnbGnash3.potency);
-    })
+    });
 });

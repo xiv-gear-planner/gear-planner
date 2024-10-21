@@ -82,8 +82,8 @@ export function parsePath(originalPath: string[]): NavPath | null {
     let embed = false;
     if (path.length === 0) {
         return {
-            type: 'mysheets',
-        }
+            type: 'mysheets'
+        };
     }
     if (path[0] === EMBED_HASH) {
         embed = true;
@@ -103,16 +103,14 @@ export function parsePath(originalPath: string[]): NavPath | null {
             type: 'saved',
             viewOnly: false,
             saveKey: path[1],
-            embed: false,
-        }
-    }
-    else if (mainNav === "newsheet") {
+            embed: false
+        };
+    } else if (mainNav === "newsheet") {
         embedWarn();
         return {
             type: 'newsheet'
-        }
-    }
-    else if (mainNav === "importsheet" || mainNav === VIEW_SHEET_HASH) {
+        };
+    } else if (mainNav === "importsheet" || mainNav === VIEW_SHEET_HASH) {
         const viewOnly = mainNav === VIEW_SHEET_HASH;
         // Cannot embed a full sheet
         embedWarn();
@@ -120,9 +118,8 @@ export function parsePath(originalPath: string[]): NavPath | null {
         if (path.length === 1) {
             return {
                 type: 'importform'
-            }
-        }
-        else {
+            };
+        } else {
             const json = path.slice(1).join(PATH_SEPARATOR);
             const parsed = JSON.parse(decodeURI(json)) as SheetExport;
             return {
@@ -130,18 +127,16 @@ export function parsePath(originalPath: string[]): NavPath | null {
                 jsonBlob: parsed,
                 embed: false,
                 viewOnly: viewOnly
-            }
+            };
         }
-    }
-    else if (mainNav === "importset" || mainNav === VIEW_SET_HASH) {
+    } else if (mainNav === "importset" || mainNav === VIEW_SET_HASH) {
         // TODO: weird case with ['viewset'] only
         if (path.length === 1) {
             embedWarn();
             return {
                 type: 'importform'
-            }
-        }
-        else {
+            };
+        } else {
             const json = path.slice(1).join(PATH_SEPARATOR);
             const parsed = JSON.parse(decodeURI(json)) as SetExport;
             const viewOnly = mainNav === VIEW_SET_HASH;
@@ -153,21 +148,19 @@ export function parsePath(originalPath: string[]): NavPath | null {
                 type: 'setjson',
                 jsonBlob: parsed,
                 embed: embed,
-                viewOnly: viewOnly,
-            }
+                viewOnly: viewOnly
+            };
         }
-    }
-    else if (mainNav === SHORTLINK_HASH) {
+    } else if (mainNav === SHORTLINK_HASH) {
         if (path.length >= 2) {
             return {
                 type: 'shortlink',
                 uuid: path[1],
                 embed: embed,
                 viewOnly: true
-            }
+            };
         }
-    }
-    else if (mainNav === BIS_HASH) {
+    } else if (mainNav === BIS_HASH) {
         embedWarn();
         if (path.length >= 4) {
             return {
@@ -178,7 +171,7 @@ export function parsePath(originalPath: string[]): NavPath | null {
                 sheet: path[3],
                 viewOnly: true,
                 embed: false
-            }
+            };
         }
     }
     console.log('Unknown nav path', path);
@@ -212,7 +205,7 @@ export function makeUrl(...pathParts: string[]): URL {
  * @param input The legacy hash path
  */
 export function splitHashLegacy(input: string) {
-    return (input.startsWith("#") ? input.substring(1) : input).split('/').filter(item => item).map(item => decodeURIComponent(item))
+    return (input.startsWith("#") ? input.substring(1) : input).split('/').filter(item => item).map(item => decodeURIComponent(item));
 }
 
 /**

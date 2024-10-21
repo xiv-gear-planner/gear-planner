@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import 'global-jsdom/register'
+import 'global-jsdom/register';
 import {describe, it} from "mocha";
 import * as assert from "assert";
 import {assertClose, makeFakeSet} from "@xivgear/core/test/test_utils";
@@ -88,7 +88,7 @@ const dia: GcdAbility = {
         duration: 30
     },
     attackType: "Spell",
-    gcd: 2.5,
+    gcd: 2.5
 };
 
 const assize: OgcdAbility = {
@@ -110,8 +110,8 @@ const pom: OgcdAbility = {
             selfOnly: true,
             duration: 15,
             effects: {
-                haste: 20,
-            },
+                haste: 20
+            }
         }
     ],
     attackType: "Ability"
@@ -123,7 +123,7 @@ const misery: GcdAbility = {
     name: "Afflatus Misery",
     potency: 1240,
     attackType: "Spell",
-    gcd: 2.5,
+    gcd: 2.5
 };
 
 const lily: GcdAbility = {
@@ -132,7 +132,7 @@ const lily: GcdAbility = {
     name: "Afflatus Rapture",
     potency: 0,
     attackType: "Spell",
-    gcd: 2.5,
+    gcd: 2.5
 };
 
 export const testSimSpec: SimSpec<TestMultiCycleSim, TestSimSettingsExternal> = {
@@ -390,7 +390,7 @@ const expectedAbilities: UseResult[] = [
         time: 28.94,
         name: "Glare",
         damage: 6909.599
-    },
+    }
 ];
 
 
@@ -425,7 +425,7 @@ const instant: GcdAbility = {
         duration: 30
     },
     attackType: "Spell",
-    gcd: 2.5,
+    gcd: 2.5
 };
 
 const long: GcdAbility = {
@@ -445,7 +445,7 @@ const defaultSettings: MultiCycleSettings = {
     stats: exampleGearSet.computedStats,
     totalTime: 120,
     useAutos: false,
-    cutoffMode: 'prorate-gcd',
+    cutoffMode: 'prorate-gcd'
 
 };
 
@@ -609,7 +609,7 @@ const potBuff: Buff = {
         return {
             ...ability,
             potency: ability.potency + 100
-        }
+        };
     }
 };
 
@@ -663,8 +663,8 @@ function multiplyDamage(damageResult: DamageResult, multiplier: number, multiply
                 expected: damageResult.directDamage.expected * multiplier,
                 stdDev: 0
             }
-        },
-    }
+        }
+    };
 }
 
 // Demonstrates one way of doing a one-off damage increase
@@ -678,7 +678,7 @@ const bristleBuff: Buff = {
     job: 'BLU',
     name: "Bristle",
     beforeSnapshot: removeSelf,
-    appliesTo: ability => ability.attackType === "Spell" && ability.potency !== null,
+    appliesTo: ability => ability.attackType === "Spell" && ability.potency !== null
 };
 
 const bristle: GcdAbility = {
@@ -689,7 +689,7 @@ const bristle: GcdAbility = {
     attackType: "Spell",
     gcd: 2.5,
     cast: 1.0,
-    activatesBuffs: [bristleBuff],
+    activatesBuffs: [bristleBuff]
 };
 
 // Demonstrates the longer but more flexible way
@@ -1173,7 +1173,7 @@ describe('Cycle processor re-alignment', () => {
     it('full alignment with in-cycle pre-pull', () => {
         const cp = new CycleProcessor({
             ...defaultSettings,
-            totalTime: 170,
+            totalTime: 170
         });
         cp.remainingCycles(cp => {
             cp.useUntil(fixedOdd, 'end');
@@ -1206,7 +1206,7 @@ describe('Cycle processor re-alignment', () => {
     it('first-cycle alignment with out-of-cycle pre-pull', () => {
         const cp = new CycleProcessor({
             ...defaultSettings,
-            totalTime: 145,
+            totalTime: 145
         });
         cp.cycleLengthMode = 'align-to-first';
         cp.use(fixedOdd);
@@ -1244,7 +1244,7 @@ describe('Cycle processor re-alignment', () => {
         // on 30-second increments.
         const cp = new CycleProcessor({
             ...defaultSettings,
-            totalTime: 160,
+            totalTime: 160
         });
         cp.cycleLengthMode = 'align-to-first';
         cp.remainingCycles(cp => {
@@ -1279,7 +1279,7 @@ describe('Cycle processor re-alignment', () => {
     it('full duration with non-cycle pre-pull', () => {
         const cp = new CycleProcessor({
             ...defaultSettings,
-            totalTime: 300,
+            totalTime: 300
         });
         cp.cycleLengthMode = 'full-duration';
         cp.use(fixedOdd);
@@ -1300,7 +1300,7 @@ describe('Cycle processor re-alignment', () => {
     it('full duration with in-cycle pre-pull', () => {
         const cp = new CycleProcessor({
             ...defaultSettings,
-            totalTime: 295,
+            totalTime: 295
         });
         cp.cycleLengthMode = 'full-duration';
         cp.remainingCycles(cp => {
@@ -1346,7 +1346,7 @@ describe('indefinite buff handling', () => {
     it('can handle a manually applied indefinite buff', () => {
         const cp = new CycleProcessor({
             ...defaultSettings,
-            totalTime: 295,
+            totalTime: 295
         });
         cp.activateBuff(indefBuff);
         cp.remainingCycles(cp => {
@@ -1363,7 +1363,7 @@ describe('indefinite buff handling', () => {
     it('can handle an automatically applied indefinite buff', () => {
         const cp = new CycleProcessor({
             ...defaultSettings,
-            totalTime: 295,
+            totalTime: 295
         });
         cp.oneCycle(cp => {
             cp.use(filler);
@@ -1403,7 +1403,7 @@ describe('application delay', () => {
         const cp = new CycleProcessor({
             ...defaultSettings,
             cycleTime: 120,
-            totalTime: 120,
+            totalTime: 120
         });
         cp.use(filler);
         cp.use(filler);
@@ -1424,7 +1424,7 @@ describe('application delay', () => {
         const cp = new CycleProcessor({
             ...defaultSettings,
             cycleTime: 120,
-            totalTime: 120,
+            totalTime: 120
         });
         cp.use(longDelay);
         cp.use(longDelay);
@@ -1449,12 +1449,12 @@ describe('gcd clipping check', () => {
         const cp = new CycleProcessor({
             ...defaultSettings,
             cycleTime: 120,
-            totalTime: 120,
+            totalTime: 120
         });
         cp.use(filler);
         let canUse = cp.canUseWithoutClipping(assize);
         assert.equal(canUse, true);
-        
+
         cp.use(assize);
         canUse = cp.canUseWithoutClipping(pom);
         assert.equal(canUse, false);
@@ -1466,7 +1466,7 @@ describe('potion logic', () => {
         const cp = new CycleProcessor({
             ...defaultSettings,
             cycleTime: 120,
-            totalTime: 120,
+            totalTime: 120
         });
         cp.use(filler);
         cp.use(gemdraught1mind);

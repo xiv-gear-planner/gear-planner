@@ -22,8 +22,7 @@ export class NamedSection extends HTMLElement {
         if (value !== null) {
             this.header.textContent = value;
             delete this.header.style.display;
-        }
-        else {
+        } else {
             this.header.textContent = '';
             this.header.style.display = 'none';
         }

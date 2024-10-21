@@ -80,8 +80,7 @@ export class WorkerPool {
 
         if (response.responseType === 'done') {
             this.resolves.get(jobId)?.resolve(response.data ?? null);
-        }
-        else { // response type === 'error'
+        } else { // response type === 'error'
             this.resolves.get(jobId)?.reject(response.data ?? null);
         }
 
@@ -120,8 +119,7 @@ export class WorkerPool {
         }
         if (this.freeWorkers.length > 0) {
             this.assignWorker(internalRequest, this.freeWorkers.pop());
-        }
-        else {
+        } else {
             this.messageQueue.push(internalRequest);
         }
 
@@ -129,8 +127,8 @@ export class WorkerPool {
             promise: new Promise((resolve, reject) => {
                 this.resolves.set(internalRequest.jobId, { resolve: resolve, reject: reject });
             }),
-            jobId: internalRequest.jobId,
-        }
+            jobId: internalRequest.jobId
+        };
     }
 
     // Webpack sees this and it causes it to generate a separate js file for the worker.
@@ -148,8 +146,8 @@ export class WorkerPool {
         const worker = new Worker(new URL(
             'src_scripts_workers_worker_main_ts.js', document.location.toString())
         , {
-                name: 'worker-' + this.workerId++,
-            });
+            name: 'worker-' + this.workerId++
+        });
         worker.onmessage = (event) => {
             const id = this.activeJobIds.get(worker);
             this.onWorkerMessage(worker, id, event.data);
@@ -171,7 +169,7 @@ export class WorkerPool {
         const initReq: InitializationRequest = {
             jobType: 'workerInitialization',
             sheet: sheet.exportSheet(),
-            data: undefined,
+            data: undefined
         };
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         for (const _w of this.workers) {
@@ -211,8 +209,8 @@ export class WorkerPool {
         const initReq: InitializationRequest = {
             jobType: 'workerInitialization',
             sheet: sheet.exportSheet(),
-            data: undefined,
-        }
+            data: undefined
+        };
 
         // Kinda hacky, but it works.
         //requestWork() pulls off the back of freeWorkers so we have a guarantee that the right worker gets init'ed

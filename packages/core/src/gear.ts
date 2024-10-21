@@ -55,8 +55,7 @@ export class RelicStatMemory {
         const stats = this.memory.get(item.id);
         if (nonEmptyRelicStats(stats)) {
             return stats;
-        }
-        else {
+        } else {
             return undefined;
         }
     }
@@ -94,7 +93,7 @@ export class MateriaMemory {
     get(equipSlot: EquipSlotKey, item: GearItem): number[] {
         const bySlot = this.memory.get(equipSlot);
         if (!bySlot) {
-            return []
+            return [];
         }
         const byItem = bySlot.get(item.id);
         return byItem ?? [];
@@ -110,8 +109,7 @@ export class MateriaMemory {
         let bySlot: Map<number, number[]>;
         if (this.memory.has(equipSlot)) {
             bySlot = this.memory.get(equipSlot);
-        }
-        else {
+        } else {
             bySlot = new Map();
             this.memory.set(equipSlot, bySlot);
         }
@@ -162,8 +160,8 @@ export class SetDisplaySettings {
             }
         });
         return {
-            hiddenSlots: hiddenSlots,
-        }
+            hiddenSlots: hiddenSlots
+        };
     }
 
     import(imported: SetDisplaySettingsExport) {
@@ -185,9 +183,8 @@ export function previewItemStatDetail(item: GearItem, stat: RawStatKey): ItemSin
                 overcapAmount: unsynced - synced,
                 cap: cap,
                 mode: "synced-down"
-            }
-        }
-        else {
+            };
+        } else {
             return {
                 mode: 'unmelded',
                 effectiveAmount: synced,
@@ -196,8 +193,7 @@ export function previewItemStatDetail(item: GearItem, stat: RawStatKey): ItemSin
                 overcapAmount: 0
             };
         }
-    }
-    else {
+    } else {
         // If there is later an ability to make melds sticky, this would be a good place to implement 'previewing' it.
         const statAmount = item.stats[stat];
         return {
@@ -205,8 +201,8 @@ export function previewItemStatDetail(item: GearItem, stat: RawStatKey): ItemSin
             effectiveAmount: statAmount,
             fullAmount: statAmount,
             overcapAmount: 0,
-            cap: cap,
-        }
+            cap: cap
+        };
     }
 }
 
@@ -319,16 +315,14 @@ export class CharacterGearSet {
             const mode = materiaAutoFillController.autoFillMode;
             if (mode === 'leave_empty') {
                 // Do nothing
-            }
-            else {
+            } else {
                 // This var tracks what we would like to re-equip
                 let reEquip: Materia[] = [];
                 if (mode === 'retain_slot' || mode === 'retain_slot_else_prio') {
                     if (old && old.melds.find(meld => meld.equippedMateria)) {
                         reEquip = old.melds.map(meld => meld.equippedMateria).filter(value => value);
                     }
-                }
-                else if (mode === 'retain_item' || mode === 'retain_item_else_prio') {
+                } else if (mode === 'retain_item' || mode === 'retain_item_else_prio') {
                     const materiaIds = this.materiaMemory.get(slot, item);
                     materiaIds.forEach((materiaId, index) => {
                         if (materiaId <= 0) {
@@ -344,8 +338,7 @@ export class CharacterGearSet {
                     || (reEquip.length === 0
                         && (mode === 'retain_item_else_prio' || mode === 'retain_slot_else_prio'))) {
                     this.fillMateria(materiaAutoFillController.prio, false, [slot]);
-                }
-                else {
+                } else {
                     const eq = this.equipment[slot];
                     for (let i = 0; i < reEquip.length; i++) {
                         if (i in eq.melds) {
@@ -360,7 +353,7 @@ export class CharacterGearSet {
                 }
             }
         }
-        this.notifyListeners()
+        this.notifyListeners();
     }
 
     /**
@@ -577,19 +570,17 @@ export class CharacterGearSet {
                         overcapAmount: current - cap,
                         cap: cap,
                         mode: "synced-down"
-                    }
-                }
-                else {
+                    };
+                } else {
                     return {
                         effectiveAmount: current,
                         fullAmount: current,
                         overcapAmount: 0,
                         cap: cap,
                         mode: 'unmelded'
-                    }
+                    };
                 }
-            }
-            else {
+            } else {
                 const unsynced = gearItem.unsyncedVersion.stats[stat];
                 const synced = stats[stat];
                 if (synced < unsynced) {
@@ -599,16 +590,15 @@ export class CharacterGearSet {
                         overcapAmount: unsynced - synced,
                         cap: synced,
                         mode: "synced-down"
-                    }
-                }
-                else {
+                    };
+                } else {
                     return {
                         effectiveAmount: synced,
                         fullAmount: synced,
                         overcapAmount: 0,
                         cap: synced,
                         mode: 'unmelded'
-                    }
+                    };
                 }
             }
         }
@@ -632,7 +622,7 @@ export class CharacterGearSet {
                 effectiveAmount: meldedStatValue,
                 fullAmount: meldedStatValue,
                 cap: meldedStatValue
-            }
+            };
         }
         // Overcapped
         const overcapAmount = meldedStatValue - cap;
@@ -642,26 +632,24 @@ export class CharacterGearSet {
                 fullAmount: meldedStatValue,
                 overcapAmount: 0,
                 cap: cap,
-                mode: "melded",
-            }
-        }
-        else if (overcapAmount < smallestMateria) {
+                mode: "melded"
+            };
+        } else if (overcapAmount < smallestMateria) {
             return {
                 effectiveAmount: cap,
                 fullAmount: meldedStatValue,
                 overcapAmount: overcapAmount,
                 cap: cap,
-                mode: "melded-overcapped",
-            }
-        }
-        else {
+                mode: "melded-overcapped"
+            };
+        } else {
             return {
                 effectiveAmount: cap,
                 fullAmount: meldedStatValue,
                 overcapAmount: overcapAmount,
                 cap: cap,
-                mode: "melded-overcapped-major",
-            }
+                mode: "melded-overcapped-major"
+            };
         }
     }
 
@@ -780,7 +768,7 @@ export class CharacterGearSet {
 
     private recordCheckpointInt() {
         if (!this.checkpointEnabled || this._reverting) {
-            return
+            return;
         }
         const checkpoint: GearSetCheckpoint = {
             equipment: cloneEquipmentSet(this.equipment),
@@ -793,10 +781,8 @@ export class CharacterGearSet {
                 value: checkpoint,
                 prev: null,
                 next: null
-            }
-        }
-        // There was a previous checkpoint
-        else {
+            };
+        } else {  // There was a previous checkpoint
             const newNode: GearSetCheckpointNode = {
                 value: checkpoint,
                 prev: prev,
@@ -815,7 +801,7 @@ export class CharacterGearSet {
      */
     recordCheckpoint() {
         if (!this.checkpointEnabled || this._reverting) {
-            return
+            return;
         }
         this.checkpointTimer.ping();
     }
@@ -839,7 +825,7 @@ export class CharacterGearSet {
      */
     private revertToCheckpoint(checkpoint: GearSetCheckpoint) {
         if (!this.checkpointEnabled) {
-            return
+            return;
         }
         console.log("Reverting");
         // This flag causes things to not record more checkpoints in the middle of reverting to a checkpoint
@@ -851,8 +837,7 @@ export class CharacterGearSet {
             this.forceRecalc();
             this.notifyListeners();
             this._undoHook();
-        }
-        finally {
+        } finally {
             this._reverting = false;
         }
     }
@@ -866,8 +851,7 @@ export class CharacterGearSet {
             this.revertToCheckpoint(prev.value);
             this.currentCheckpoint = prev;
             return true;
-        }
-        else {
+        } else {
             return false;
         }
     }
@@ -878,8 +862,7 @@ export class CharacterGearSet {
             this.revertToCheckpoint(next.value);
             this.currentCheckpoint = next;
             return true;
-        }
-        else {
+        } else {
             return false;
         }
     }
@@ -922,7 +905,7 @@ export function applyStatCaps(stats: RawStats, statCaps: { [K in RawStatKey]?: n
  * 'cap' is the cap.
  */
 export type ItemSingleStatDetail = {
-    // TODO: see if there's a way to enforce that effectiveAmount == fullAMount == cap for this branch
+    // TODO: see if there's a way to enforce that effectiveAmount === fullAMount === cap for this branch
     mode: 'unmelded' | 'melded',
     overcapAmount: 0,
     effectiveAmount: number,
@@ -961,13 +944,11 @@ export function isSameOrBetterItem(candidateItem: GearItem, baseItem: GearItem):
         const candidateValue = candidateStats[statKey] as number;
         // For skill/spell speed, we want an exact match, since allowing extra sks/sps could cause
         // it to bump up a GCD tier.
-        if (statKey as RawStatKey == 'skillspeed' || statKey as RawStatKey == 'spellspeed') {
-            if (candidateValue != baseValue) {
+        if (statKey as RawStatKey === 'skillspeed' || statKey as RawStatKey === 'spellspeed') {
+            if (candidateValue !== baseValue) {
                 return false;
             }
-        }
-        // For everything else, it's fine if the candidate value is greater than the base value.
-        else {
+        } else { // For everything else, it's fine if the candidate value is greater than the base value.
             if (candidateValue < baseValue) {
                 return false;
             }
@@ -985,15 +966,13 @@ export function isSameOrBetterItem(candidateItem: GearItem, baseItem: GearItem):
             // Check that the supported grade is at least the same as the base item
             if (candidateSlot.maxGrade < baseSlot.maxGrade) {
                 return false;
-            }
-            // Also check that if the base item allows high grade, that the candidate also does.
-            // Without this, an 11 would be considered an acceptable substitute to a 10, despite the fact that
-            // grade 11 materia are better than grade 10 materia.
-            else if (baseSlot.allowsHighGrade && !candidateSlot.allowsHighGrade) {
+            } else if (baseSlot.allowsHighGrade && !candidateSlot.allowsHighGrade) {
+                // Also check that if the base item allows high grade, that the candidate also does.
+                // Without this, an 11 would be considered an acceptable substitute to a 10, despite the fact that
+                // grade 11 materia are better than grade 10 materia.
                 return false;
             }
-        }
-        else {
+        } else {
             // Not enough slots
             return false;
         }

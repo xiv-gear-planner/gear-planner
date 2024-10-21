@@ -84,8 +84,7 @@ export class BluWinged120Sim extends blu.BluSim<BluWinged120SimResult, BluWinged
 
         if (!weaveSoon && cp.bleedEnd < nextBleedStart &&
             Math.min(bloomCd.readyAt.absolute - bleedComboTime,
-            cp.remainingTime - bleedComboTime) > 15)
-        {
+                cp.remainingTime - bleedComboTime) > 15) {
             cp.use(blu.Bristle);
             this.useOgcdFiller(cp);
             cp.use(blu.SongOfTorment);
@@ -108,8 +107,7 @@ export class BluWinged120Sim extends blu.BluSim<BluWinged120SimResult, BluWinged
 
         // if fight is about to end, use remaining Winged Reprobation stacks
         if (cp.remainingTime < blu.WingedReprobation.cooldown.time &&
-            cp.isReady(blu.WingedReprobation))
-        {
+            cp.isReady(blu.WingedReprobation)) {
             cp.use(blu.WingedReprobation);
             this.useOgcdFiller(cp);
             return;
@@ -136,8 +134,8 @@ export class BluWinged120Sim extends blu.BluSim<BluWinged120SimResult, BluWinged
                 cp.use(blu.MoonFlute);
                 cp.use(blu.JKick);
                 cp.use(blu.TripleTrident);
-                
-                // cycle based off of Nightbloom (fixed cooldown: 120s)                
+
+                // cycle based off of Nightbloom (fixed cooldown: 120s)
                 cp.remainingCycles(cycle => {
                     cycle.use(blu.Nightbloom);
                     cycle.use(blu.WingedReprobation);

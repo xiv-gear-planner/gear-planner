@@ -20,8 +20,8 @@ export class GearsetGenerationSettings {
     static export(settings: GearsetGenerationSettings, sheet: GearPlanSheet): GearsetGenerationSettingsExport {
         return {
             ...settings,
-            gearset: sheet.exportGearSet(settings.gearset),
-        }
+            gearset: sheet.exportGearSet(settings.gearset)
+        };
     }
 }
 
@@ -65,7 +65,7 @@ export class GearsetGenerator {
     public constructor(sheet: GearPlanSheet, settings: GearsetGenerationSettings) {
         this._sheet = sheet;
         this._settings = settings;
-        this.relevantStats = ALL_SUB_STATS.filter(stat => this._sheet.isStatRelevant(stat) && stat != 'piety');
+        this.relevantStats = ALL_SUB_STATS.filter(stat => this._sheet.isStatRelevant(stat) && stat !== 'piety');
     }
 
     getMeldPossibilitiesForGearset(settings: GearsetGenerationSettings): CharacterGearSet[] {
@@ -78,7 +78,7 @@ export class GearsetGenerator {
         const haste = settings.gearset.computedStats.haste(attackType) + (over ? over.haste : 0);
 
         const equipment = this.cloneEquipmentset(settings.gearset.equipment);
-        
+
         if (settings.overwriteExistingMateria) {
             for (const slotKey of EquipSlots) {
                 const equipSlot = equipment[slotKey] as EquippedItem | null;
@@ -107,7 +107,7 @@ export class GearsetGenerator {
          * Basic Algorithm (here n = number of equipment slots filled)
          * n = 0: Return all melds for 0th gear slot
          * n > 0: Find all possible combinations for n-1. For each of these, append all melds for n'th gear slot
-         * 
+         *
          * Solve n=0, then iterate through n=11, caching the previous results.
          * This is O(m^11), where m is the number of unique-statted ways to meld one gear piece.
          * It may be better than O(m^11) if discarding duplicate/worse sets improves the complexity. idk
@@ -126,11 +126,11 @@ export class GearsetGenerator {
                     const setPlusNewPieceKey = this.statsToString(setStatsWithPiece, this.relevantStats);
 
                     const gcd = useSks ? sksToGcd(NORMAL_GCD, levelStats, setStatsWithPiece['skillspeed'], haste)
-                                        : spsToGcd(NORMAL_GCD, levelStats, setStatsWithPiece['spellspeed'], haste);
+                        : spsToGcd(NORMAL_GCD, levelStats, setStatsWithPiece['spellspeed'], haste);
 
                     // Exclude anything that is already past our target GCD, because there's no anti-sks that will slow the set down to target
                     if (!newGearsets.has(setPlusNewPieceKey)
-                        && (!settings.useTargetGcd || gcd >= settings.targetGcd)) { 
+                        && (!settings.useTargetGcd || gcd >= settings.targetGcd)) {
 
                         const setPlusNewPiece = this.cloneEquipmentSetWithStats(currSet);
                         setPlusNewPiece.set[slotKey] = currPiece.item;
@@ -154,15 +154,15 @@ export class GearsetGenerator {
             if (newGearset.equipment.Weapon) {
                 newGearset.equipment.Weapon.relicStats = settings.gearset.equipment.Weapon.relicStats ?? undefined;
             }
-            
+
             newGearset.forceRecalc();
             const gcd = useSks ? newGearset.computedStats.gcdPhys(NORMAL_GCD, haste)
-                                : newGearset.computedStats.gcdMag(NORMAL_GCD, haste);
-            
+                : newGearset.computedStats.gcdMag(NORMAL_GCD, haste);
+
             if (settings.useTargetGcd && gcd !== settings.targetGcd) {
                 continue;
             }
-            
+
             generatedGearsets[i] = newGearset;
             i++;
         }
@@ -185,7 +185,7 @@ export class GearsetGenerator {
             }
 
             // Add new items after the loop
-            const itemsToAdd: Map<string, ItemWithStats> = new Map<string, ItemWithStats>(); 
+            const itemsToAdd: Map<string, ItemWithStats> = new Map<string, ItemWithStats>();
             for (const [statsKey, existingCombination] of meldCombinations) {
 
                 const stats = existingCombination.stats;
@@ -216,7 +216,7 @@ export class GearsetGenerator {
             }
 
         }
-        
+
         return new Set(meldCombinations.values());
     }
 
@@ -227,7 +227,7 @@ export class GearsetGenerator {
 
     cloneEquipmentset(set: EquipmentSet): EquipmentSet {
         const result = new EquipmentSet;
-        for(const equipSlotKey in set) {
+        for (const equipSlotKey in set) {
             if (set[equipSlotKey] === null || set[equipSlotKey] === undefined) continue;
             result[equipSlotKey] = this.cloneEquippedItem(set[equipSlotKey]);
         }

@@ -51,7 +51,7 @@ export function abilityToDamageNew(stats: ComputedSetStats, ability: Ability, co
         return {
             directDamage: null,
             dot: null
-        }
+        };
     }
     // noinspection AssignmentToFunctionParameterJS
     stats = combinedBuffEffects.modifyStats(stats);
@@ -60,9 +60,9 @@ export function abilityToDamageNew(stats: ComputedSetStats, ability: Ability, co
         directDamage: ability.potency ? potencyToDamage(stats, ability.potency, ability as DamagingAbility, combinedBuffEffects) : null,
         dot: 'dot' in ability ? {
             fullDurationTicks: ability.dot.duration === 'indefinite' ? 'indefinite' : (ability.dot.duration / 3),
-            damagePerTick: dotPotencyToDamage(stats, ability.dot.tickPotency, ability, combinedBuffEffects),
-        } : null,
-    }
+            damagePerTick: dotPotencyToDamage(stats, ability.dot.tickPotency, ability, combinedBuffEffects)
+        } : null
+    };
 }
 
 /**

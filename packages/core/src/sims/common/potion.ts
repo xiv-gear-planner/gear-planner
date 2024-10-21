@@ -17,7 +17,7 @@ function makePotion(name: string, stat: RawStatKey, itemId: number, bonus: numbe
         animationLock: 0.6,
         potency: null,
         cooldown: {
-            time: 270,
+            time: 270
         },
         activatesBuffs: [
             {
@@ -30,7 +30,7 @@ function makePotion(name: string, stat: RawStatKey, itemId: number, bonus: numbe
                     }
                 }
             }
-        ],
+        ]
 
     };
 }
@@ -42,7 +42,7 @@ export function makeGemdraught(stat: RawStatKey, grade: GemdraughtGrade): Readon
         mind: 44161,
         strength: 44157,
         dexterity: 44158,
-        intelligence: 44160,
+        intelligence: 44160
     };
     const gradeToStatCap = [351, 392];
 

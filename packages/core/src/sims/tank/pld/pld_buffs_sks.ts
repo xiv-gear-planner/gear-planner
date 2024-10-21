@@ -42,7 +42,7 @@ export const GoringBladeReadyBuff: Buff = {
     statusId: 3847,
     appliesTo: ability => ability.name === "Goring Blade",
     beforeSnapshot: removeSelf
-}
+};
 
 export const AtonementReadyBuff: Buff = {
     name: "Atonement Ready",
@@ -90,7 +90,7 @@ export const DivineMightBuff: Buff = {
     beforeSnapshot: removeSelf,
     duration: 30,
     statusId: 2673
-}
+};
 
 export const BladeOfHonorReadyBuff: Buff = {
     name: "Blade of Honor Ready",
@@ -102,4 +102,4 @@ export const BladeOfHonorReadyBuff: Buff = {
     beforeSnapshot: removeSelf,
     duration: 30,
     statusId: 3831
-}
+};

@@ -52,15 +52,15 @@ export const samSpec: SimSpec<SamSim, SamSettingsExternal> = {
             type: 'discord',
             discordTag: 'makar',
             discordUid: '85924030661533696'
-        }],
+        }]
     }, {
         name: 'boxer',
         contact: [{
             type: 'discord',
             discordTag: '.boxer',
             discordUid: '123575345898061825'
-        }],
-    }],
+        }]
+    }]
 };
 
 class SAMCycleProcessor extends CycleProcessor {
@@ -82,12 +82,12 @@ class SAMCycleProcessor extends CycleProcessor {
     override addAbilityUse(usedAbility: PreDmgAbilityUseRecordUnf) {
         // Add gauge data to this record for the UI
         const extraData: SAMExtraData = {
-            gauge: this.gauge.getGaugeState(),
+            gauge: this.gauge.getGaugeState()
         };
 
         const modified: PreDmgAbilityUseRecordUnf = {
             ...usedAbility,
-            extraData,
+            extraData
         };
 
         super.addAbilityUse(modified);
@@ -108,7 +108,7 @@ export class SamSim extends BaseMultiCycleSim<SamSimResult, SamSettings, SAMCycl
             ...super.defaultCycleSettings(),
             totalTime: (8 * 60) + 35,
             cycles: 0,
-            which: 'totalTime',
+            which: 'totalTime'
         };
     }
 
@@ -126,7 +126,7 @@ export class SamSim extends BaseMultiCycleSim<SamSimResult, SamSettings, SAMCycl
     override makeDefaultSettings(): SamSettings {
         return {
             usePotion: true,
-            prePullMeikyo: 14,
+            prePullMeikyo: 14
         };
     }
 
@@ -174,9 +174,9 @@ export class SamSim extends BaseMultiCycleSim<SamSimResult, SamSettings, SAMCycl
                 name: "2.14 GCD Rotation",
                 rotation: {
                     opener: [...SlowSamRotation.Opener],
-                    loop: [...SlowSamRotation.Loop],
+                    loop: [...SlowSamRotation.Loop]
                 }
-            }
+            };
         }
 
         if (gcd >= 2.04) {
@@ -184,18 +184,18 @@ export class SamSim extends BaseMultiCycleSim<SamSimResult, SamSettings, SAMCycl
                 name: "2.07 GCD Rotation",
                 rotation: {
                     opener: [...MidSamRotation.Opener],
-                    loop: [...MidSamRotation.Loop],
+                    loop: [...MidSamRotation.Loop]
                 }
-            }
+            };
         }
 
         return {
             name: "2.00 GCD Rotation",
             rotation: {
                 opener: [...FastSamRotation.Opener],
-                loop: [...FastSamRotation.Loop],
+                loop: [...FastSamRotation.Loop]
             }
-        }
+        };
     }
 
     getRotationsToSimulate(set: CharacterGearSet): Rotation<SAMCycleProcessor>[] {
@@ -231,11 +231,11 @@ export class SamSim extends BaseMultiCycleSim<SamSimResult, SamSettings, SAMCycl
                             if (action.type === 'gcd' && cp.shouldUseShinten(rotation.loop, idx)) {
                                 outer.use(cp, HissatsuShinten);
                             }
-                            outer.use(cp, action)
+                            outer.use(cp, action);
                         });
                     });
                 }
             }
         }];
     }
-} 
+}

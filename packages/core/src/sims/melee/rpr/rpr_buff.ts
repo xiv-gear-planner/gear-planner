@@ -1,6 +1,6 @@
 import {PersonalBuff} from "@xivgear/core/sims/sim_types";
 import {removeSelf} from "@xivgear/core/sims/common/utils";
-import * as Actions from "./rpr_actions"
+import * as Actions from "./rpr_actions";
 
 export const DeathsDesign: PersonalBuff = {
     name: "Death's Design",
@@ -11,7 +11,7 @@ export const DeathsDesign: PersonalBuff = {
         dmgIncrease: 0.1
     },
     statusId: 2586,
-    maxStackingDuration: 60,
+    maxStackingDuration: 60
 };
 
 export const IdealHost: PersonalBuff = {
@@ -21,8 +21,8 @@ export const IdealHost: PersonalBuff = {
     effects: {
         // Only applies to Kunai's Bane and Mesui
     },
-    appliesTo: ability => ability.id == Actions.Enshroud.id,
+    appliesTo: ability => ability.id === Actions.Enshroud.id,
     beforeSnapshot: removeSelf,
     duration: 30,
-    statusId: 3905, 
+    statusId: 3905
 };

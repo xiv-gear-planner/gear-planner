@@ -57,7 +57,7 @@ export abstract class BaseModal extends HTMLElement {
         setModal({
             element: outer.inner,
             close() {
-                outer.remove()
+                outer.remove();
             }
         });
         setTimeout(() => this.classList.add('backdrop-active'), 5);

@@ -1,6 +1,6 @@
 import {SimSpec} from "@xivgear/core/sims/sim_types";
 import {CharacterGearSet} from "@xivgear/core/gear";
-import * as Actions from "./pld_actions_no_sks"
+import * as Actions from "./pld_actions_no_sks";
 import { ExternalCountSettings, CountSimResult, BaseUsageCountSim, SkillCount } from "@xivgear/core/sims/processors/count_sim";
 
 export const pldUsageSimSpec: SimSpec<PldUsageSim, PldUsageSimSettings> = {
@@ -34,7 +34,7 @@ export class PldUsageSim extends BaseUsageCountSim<PldUsageSimResults, PldUsageS
     }
 
     makeDefaultSettings(): PldUsageSimSettings {
-        return {}
+        return {};
     }
 
     totalCycleTime(set: CharacterGearSet): number {
@@ -71,7 +71,7 @@ export class PldUsageSim extends BaseUsageCountSim<PldUsageSimResults, PldUsageS
                 [Actions.atone, 17],
                 [Actions.supp, 15],
                 [Actions.sep, 13],
-                [Actions.hs, 13],
+                [Actions.hs, 13]
             ];
         } else if (buffDuration >= 30) {
             result = [
@@ -91,7 +91,7 @@ export class PldUsageSim extends BaseUsageCountSim<PldUsageSimResults, PldUsageS
                 [Actions.atone, 2],
                 [Actions.supp, 2.5],
                 [Actions.sep, 2],
-                [Actions.hs, 1.5],
+                [Actions.hs, 1.5]
             ];
         } else if (buffDuration >= 20) {
             result = [
@@ -104,7 +104,7 @@ export class PldUsageSim extends BaseUsageCountSim<PldUsageSimResults, PldUsageS
                 [Actions.buffed(Actions.atone), 1],
                 [Actions.buffed(Actions.supp), 2],
                 [Actions.buffed(Actions.sep), 3],
-                [Actions.buffed(Actions.hs), 3],
+                [Actions.buffed(Actions.hs), 3]
             ];
         } else if (buffDuration >= 15) {
             result = [
@@ -116,7 +116,7 @@ export class PldUsageSim extends BaseUsageCountSim<PldUsageSimResults, PldUsageS
                 [Actions.buffed(Actions.royal), 0.5],
                 [Actions.buffed(Actions.atone), 0.5],
                 [Actions.buffed(Actions.supp), 1.5],
-                [Actions.buffed(Actions.sep), 1],
+                [Actions.buffed(Actions.sep), 1]
             ];
         } else {
             return [];
@@ -127,38 +127,38 @@ export class PldUsageSim extends BaseUsageCountSim<PldUsageSimResults, PldUsageS
             [Actions.buffed(Actions.cos), 3.5],
             [Actions.buffed(Actions.exp), 3.5],
             [Actions.buffed(Actions.int), 7],
-            [Actions.buffed(Actions.honor), 3.5],
+            [Actions.buffed(Actions.honor), 3.5]
         ];
         const fofOgcds: SkillCount[] = [
             [Actions.buffed(Actions.imp), 7],
             [Actions.buffed(Actions.cos), 7],
             [Actions.buffed(Actions.exp), 7],
             [Actions.buffed(Actions.int), 14],
-            [Actions.buffed(Actions.honor), 7],
+            [Actions.buffed(Actions.honor), 7]
         ];
         const unbuffedOgcds: SkillCount[] = [
             [Actions.cos, 7],
-            [Actions.exp, 7],
+            [Actions.exp, 7]
         ];
 
         if (buffDuration) {
             result.push(...buffedOgcds);
         } else {
-            result.push(...fofOgcds)
+            result.push(...fofOgcds);
             result.push(...unbuffedOgcds);
         }
 
-        const auto_delay = set.computedStats.aaDelay;
+        const autoDelay = set.computedStats.aaDelay;
 
         // autos
         if (buffDuration === null) {
-            result.push([Actions.auto, 280 / auto_delay]) // unbuffed autos 2/3 of the time
-            result.push([Actions.buffed(Actions.auto), 140 / auto_delay])
+            result.push([Actions.auto, 280 / autoDelay]); // unbuffed autos 2/3 of the time
+            result.push([Actions.buffed(Actions.auto), 140 / autoDelay]);
         } else if (buffDuration >= 30) {
-            result.push([Actions.auto, 35 / auto_delay])
-            result.push([Actions.buffed(Actions.auto), 70 / auto_delay])
+            result.push([Actions.auto, 35 / autoDelay]);
+            result.push([Actions.buffed(Actions.auto), 70 / autoDelay]);
         } else if (buffDuration >= 15) {
-            result.push([Actions.buffed(Actions.auto), 3.5 * buffDuration / auto_delay])
+            result.push([Actions.buffed(Actions.auto), 3.5 * buffDuration / autoDelay]);
         }
 
         return result;

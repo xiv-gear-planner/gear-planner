@@ -256,10 +256,10 @@ export class DncDtSim extends BaseUsageCountSim<DncDtSimResults, DncDtSimSetting
     } {
 
         const gcd = set.computedStats.gcdPhys(2.5);
-        const cfCount = Math.floor((120 - nonCFStatic - (gcd * nonCFGcd))/gcd);
+        const cfCount = Math.floor((120 - nonCFStatic - (gcd * nonCFGcd)) / gcd);
         return {
             cascadeFountainCount: cfCount,
-            rotationCount: cfCount + nonCFGcd,
+            rotationCount: cfCount + nonCFGcd
         };
         /*
         if (gcd >= 2.46) {
@@ -310,7 +310,7 @@ export class DncDtSim extends BaseUsageCountSim<DncDtSimResults, DncDtSimSetting
         // TODO
         // Taken from the calcs done in the gearset picking some random comp
         const Esprit = 407.8;
-        const Esprit_TF = 115.9514882;
+        const EspiritTF = 115.9514882;
 
 
         // Copied from google doc
@@ -323,8 +323,8 @@ export class DncDtSim extends BaseUsageCountSim<DncDtSimResults, DncDtSimSetting
 
         const TechFinishTotal = 1;
 
-        const DanceOfTheDawnTotal= 1;
-        
+        const DanceOfTheDawnTotal = 1;
+
         const StandardFinishTotal = 2;
         const StandardFinish15 = 0;
         const StandardFinish20 = 0;
@@ -350,7 +350,7 @@ export class DncDtSim extends BaseUsageCountSim<DncDtSimResults, DncDtSimSetting
         const cf = this.getCfRotQty(set, staticTime, numNonCfGcds).cascadeFountainCount;
 
         const SaberTotal = Esprit / 50 - 1;
-        const Saber20 = Math.min((65 + Esprit_TF * 18.5 / 20) / 50, 2);
+        const Saber20 = Math.min((65 + EspiritTF * 18.5 / 20) / 50, 2);
         const Saber15 = Saber20 / 2;
         const Saber30 = 4 / 31 * (SaberTotal - Saber20) + Saber20;
 
@@ -366,7 +366,7 @@ export class DncDtSim extends BaseUsageCountSim<DncDtSimResults, DncDtSimSetting
 
         const FountainfallTotal = FountainTotal / 2 + 2;
         //const Fountainfall20 = 4 - Saber20 > 2 ? 1 + 1 / 6 * (5 - Saber20) : 4 - Saber20 > 1 ? 1 : 1 / 6 * (5 - Saber20);
-        const Fountainfall20 = Math.min(2 - Saber20, 1)
+        const Fountainfall20 = Math.min(2 - Saber20, 1);
         const Fountainfall15 = 1 / 2 * Fountainfall20;
         const Fountainfall30 = 4 / 31 * (FountainfallTotal - Fountainfall20) + Fountainfall20;
 
@@ -390,7 +390,7 @@ export class DncDtSim extends BaseUsageCountSim<DncDtSimResults, DncDtSimSetting
 
         const common: SkillCount[] = [
             [danceOfTheDawn, 1],
-            [starfall, 1],
+            [starfall, 1]
 
         ];
         let result: SkillCount[] = [];
@@ -409,11 +409,9 @@ export class DncDtSim extends BaseUsageCountSim<DncDtSimResults, DncDtSimSetting
                 [fd4, FanDanceIVTotal],
                 [finishingMove, FinishingMoveTotal],
                 [lastDance, LastDanceTotal],
-                [techFinish, 1],
-            ]
-        }
-        // In buffs of at least 30 seconds
-        else if (buffDuration >= 30) {
+                [techFinish, 1]
+            ];
+        } else if (buffDuration >= 30) { // In buffs of at least 30 seconds
             result = [
                 [saberDance, Saber30],
                 [cascade, Cascade30],
@@ -426,11 +424,9 @@ export class DncDtSim extends BaseUsageCountSim<DncDtSimResults, DncDtSimSetting
                 [fd3, FanDanceIII30],
                 [fd4, FanDanceIV30],
                 [finishingMove, FinishingMove30],
-                [lastDance, LastDance30],
-            ]
-        }
-        // In buffs of at least 20 seconds
-        else if (buffDuration >= 20) {
+                [lastDance, LastDance30]
+            ];
+        } else if (buffDuration >= 20) {  // In buffs of at least 20 seconds
             result = [
                 [saberDance, Saber20],
                 [cascade, Cascade20],
@@ -443,11 +439,9 @@ export class DncDtSim extends BaseUsageCountSim<DncDtSimResults, DncDtSimSetting
                 [fd3, FanDanceIII20],
                 [fd4, FanDanceIV20],
                 [finishingMove, FinishingMove20],
-                [lastDance, LastDance20],
-            ]
-        }
-        // In buffs of at least 15 seconds
-        else if (buffDuration >= 15) {
+                [lastDance, LastDance20]
+            ];
+        } else if (buffDuration >= 15) {  // In buffs of at least 15 seconds
             result = [
                 [saberDance, Saber15],
                 [cascade, Cascade15],
@@ -460,11 +454,10 @@ export class DncDtSim extends BaseUsageCountSim<DncDtSimResults, DncDtSimSetting
                 [fd3, FanDanceIII15],
                 [fd4, FanDanceIV15],
                 [finishingMove, FinishingMove15],
-                [lastDance, LastDance15],
-            ]
-        }
-        else {
-            return []
+                [lastDance, LastDance15]
+            ];
+        } else {
+            return [];
         }
         result.push(...common);
         result.push([auto, (buffDuration ?? FullCycleTime) / set.computedStats.aaDelay]);
@@ -472,6 +465,6 @@ export class DncDtSim extends BaseUsageCountSim<DncDtSimResults, DncDtSimSetting
     }
 
     makeDefaultSettings(): DncDtSimSettings {
-        return {}
+        return {};
     }
 }

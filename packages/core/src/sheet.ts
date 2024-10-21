@@ -84,7 +84,7 @@ export class SheetProvider<SheetType extends GearPlanSheet> {
             itemDisplaySettings: defaultItemDisplaySettings,
             // TODO: make these smarter - make them deduplicate identical items
             customItems: importedData.flatMap(imp => imp.customItems ?? []),
-            customFoods: importedData.flatMap(imp => imp.customFoods ?? []),
+            customFoods: importedData.flatMap(imp => imp.customFoods ?? [])
         });
         if (importedData[0].sims === undefined) {
             gearPlanSheet.addDefaultSims();
@@ -136,8 +136,7 @@ function loadSaved(sheetKey: string): SheetExport | null {
     const item = localStorage.getItem(sheetKey);
     if (item) {
         return JSON.parse(item) as SheetExport;
-    }
-    else {
+    } else {
         return null;
     }
 }
@@ -201,8 +200,7 @@ export class GearPlanSheet {
         this._description = importedData.description;
         if (importedData.itemDisplaySettings) {
             Object.assign(this._itemDisplaySettings, importedData.itemDisplaySettings);
-        }
-        else {
+        } else {
             const defaults = getDefaultDisplaySettings(this.level, this.classJobName);
             Object.assign(this._itemDisplaySettings, defaults);
             // TODO: investigate if this logic is worth doing
@@ -283,7 +281,7 @@ export class GearPlanSheet {
                 console.log('nothing to refresh');
             }
 
-        }
+        };
     }
 
     setViewOnly() {
@@ -321,8 +319,7 @@ export class GearPlanSheet {
                         rehydratedSim.settings.includeInExport = true;
                     }
                     this.addSim(rehydratedSim);
-                }
-                catch (e) {
+                } catch (e) {
                     console.error("Error loading sim settings", e);
                 }
             }
@@ -346,8 +343,7 @@ export class GearPlanSheet {
             console.log("Saving sheet " + this.sheetName);
             const fullExport = this.exportSheet(false);
             localStorage.setItem(this.saveKey, JSON.stringify(fullExport));
-        }
-        else {
+        } else {
             console.info("Ignoring request to save sheet because it has no save key");
         }
     }
@@ -445,7 +441,7 @@ export class GearPlanSheet {
             ilvlSync: this.ilvlSync,
             description: this.description,
             customItems: this._customItems.map(ci => ci.export()),
-            customFoods: this._customFoods.map(cf => cf.export()),
+            customFoods: this._customFoods.map(cf => cf.export())
         };
         if (!external) {
             out.saveKey = this._saveKey;
@@ -457,8 +453,7 @@ export class GearPlanSheet {
     addGearSet(gearSet: CharacterGearSet, index?: number) {
         if (index === undefined) {
             this._sets.push(gearSet);
-        }
-        else {
+        } else {
             this._sets.splice(index, 0, gearSet);
         }
         gearSet.addListener(() => {
@@ -533,8 +528,8 @@ export class GearPlanSheet {
                     // On the other hand, *most* real exports would have slots filled (BiS etc)
                     id: inSlot.gearItem.id,
                     materia: inSlot.melds.map(meld => {
-                        return {id: meld.equippedMateria?.id ?? -1}
-                    }),
+                        return {id: meld.equippedMateria?.id ?? -1};
+                    })
                 };
                 if (inSlot.relicStats && Object.entries(inSlot.relicStats)) {
                     exportedItem.relicStats = {...inSlot.relicStats};
@@ -556,8 +551,7 @@ export class GearPlanSheet {
             out.sims = this.exportSims(true);
             out.customItems = this._customItems.map(ci => ci.export());
             out.customFoods = this._customFoods.map(cf => cf.export());
-        }
-        else {
+        } else {
             if (set.relicStatMemory) {
                 out.relicStatMemory = set.relicStatMemory.export();
             }
@@ -572,8 +566,7 @@ export class GearPlanSheet {
         const custom = this._customItems.find(ci => ci.id === id);
         if (custom) {
             return custom;
-        }
-        else {
+        } else {
             return this.dataManager.itemById(id);
         }
     }
@@ -582,8 +575,7 @@ export class GearPlanSheet {
         const custom = this._customFoods.find(cf => cf.id === id);
         if (custom) {
             return custom;
-        }
-        else {
+        } else {
             return this.dataManager.foodById(id);
         }
     }
@@ -596,8 +588,7 @@ export class GearPlanSheet {
         if (this._customItems.length === 0) {
             // TODO: make this random + larger
             return 10_000_000_000_000 + Math.floor(Math.random() * 1_000_000);
-        }
-        else {
+        } else {
             return Math.max(...this._customItems.map(ci => ci.id)) + 1;
         }
     }
@@ -668,8 +659,7 @@ export class GearPlanSheet {
         set.description = importedSet.description;
         if (importedSet.isSeparator) {
             set.isSeparator = true;
-        }
-        else {
+        } else {
 
             for (const equipmentSlot in importedSet.items) {
                 const importedItem: ItemSlotExport = importedSet.items[equipmentSlot];
@@ -767,8 +757,7 @@ export class GearPlanSheet {
         }
         if (this.classJobEarlyStats.irrelevantSubstats) {
             return !this.classJobEarlyStats.irrelevantSubstats.includes(stat as Substat);
-        }
-        else {
+        } else {
             return true;
         }
     }
@@ -822,8 +811,7 @@ export class GearPlanSheet {
         materia.sort((left, right) => {
             if (left.materiaGrade > right.materiaGrade) {
                 return -1;
-            }
-            else if (left.materiaGrade < right.materiaGrade) {
+            } else if (left.materiaGrade < right.materiaGrade) {
                 return 1;
             }
             return 0;
@@ -873,7 +861,7 @@ export class GearPlanSheet {
 
     getBestMateria(stat: MateriaSubstat, meldSlot: MeldableMateriaSlot): Materia | undefined {
         const materiaFilter = (materia: Materia) => {
-            return isMateriaAllowed(materia, meldSlot.materiaSlot) && materia.primaryStat == stat;
+            return isMateriaAllowed(materia, meldSlot.materiaSlot) && materia.primaryStat === stat;
         };
         const sortedOptions = this.relevantMateria.filter(materiaFilter).sort((first, second) => second.primaryStatValue - first.primaryStatValue);
         return sortedOptions.length >= 1 ? sortedOptions[0] : undefined;
@@ -888,8 +876,7 @@ export class GearPlanSheet {
         for (const simSpec of sims) {
             try {
                 this.addSim(simSpec.makeNewSimInstance());
-            }
-            catch (e) {
+            } catch (e) {
                 console.error(`Error adding default sim ${simSpec.displayName} (${simSpec.stub})`, e);
             }
         }

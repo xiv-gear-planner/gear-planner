@@ -44,7 +44,7 @@ class SchGaugeGui {
                 }
                 return document.createTextNode("");
             }
-        },
+        }
         ];
     }
 }

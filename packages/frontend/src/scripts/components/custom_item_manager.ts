@@ -23,11 +23,10 @@ function ifWeapon(fn: (item: CustomItem) => HTMLElement): (item: CustomItem) => 
     return (item: CustomItem) => {
         if (item.displayGearSlotName === 'Weapon') {
             return fn(item);
-        }
-        else {
+        } else {
             return document.createTextNode('');
         }
-    }
+    };
 }
 
 /**
@@ -79,8 +78,7 @@ export class CustomItemTable extends CustomTable<CustomItem> {
                     const recheck = (ilvl: number) => {
                         if (!sheet.ilvlSyncInfo(ilvl)) {
                             ilvlInput._validationMessage = `Data for item level ${ilvl} does not exist. Caps will not be applied even if enabled.`;
-                        }
-                        else {
+                        } else {
                             ilvlInput._validationMessage = undefined;
                         }
                     };
@@ -129,7 +127,7 @@ export class CustomItemTable extends CustomTable<CustomItem> {
                         });
                     },
                     initialWidth: 40
-                }
+                };
             }),
             {
                 shortName: 'wdPhys',
@@ -141,7 +139,7 @@ export class CustomItemTable extends CustomTable<CustomItem> {
                         inputMode: 'number'
                     });
                 }),
-                initialWidth: 40,
+                initialWidth: 40
             }, {
                 shortName: 'wdMag',
                 displayName: 'WdM',
@@ -201,9 +199,8 @@ export class CustomItemPopup extends BaseModal {
             // Don't show 2H weapons for 1H/offhand classes
             if (slot === 'Weapon2H' && this.sheet.classJobStats.offhand) {
                 return;
-            }
-            // Don't show 1H/Shield for 2H classes
-            else if ((slot === 'Weapon1H' || slot === 'OffHand') && !this.sheet.classJobStats.offhand) {
+            } else if ((slot === 'Weapon1H' || slot === 'OffHand') && !this.sheet.classJobStats.offhand) {
+                // Don't show 1H/Shield for 2H classes
                 return;
             }
             newCustomItemDropdown.addAction({
@@ -211,7 +208,7 @@ export class CustomItemPopup extends BaseModal {
                 action: () => {
                     sheet.newCustomItem(slot);
                     table.refresh();
-                },
+                }
             });
         });
         this.addButton(newCustomItemDropdown);
@@ -267,7 +264,7 @@ export class CustomFoodTable extends CustomTable<CustomFood> {
                     return new FieldBoundIntField(item.customData, 'ilvl', {
                         postValidators: [nonNegative],
                         inputMode: 'number'
-                    })
+                    });
                 },
                 initialWidth: 60
             }, {
@@ -334,7 +331,7 @@ export class CustomFoodTable extends CustomTable<CustomFood> {
                     return new FieldBoundIntField(item.customData.secondaryStatBonus, 'max', {postValidators: [nonNegative]});
                 },
                 initialWidth: 60
-            },
+            }
         ];
 
         this.refresh();

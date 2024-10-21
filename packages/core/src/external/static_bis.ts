@@ -9,8 +9,7 @@ function getServer() {
     if (override) {
         try {
             return new URL(override);
-        }
-        catch (e) {
+        } catch (e) {
             console.error('Invalid override URL, using default', override);
         }
     }

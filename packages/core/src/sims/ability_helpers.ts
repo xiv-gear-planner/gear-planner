@@ -15,13 +15,12 @@ function defaultComboData(ability: Ability, hasOtherCombos: boolean): ComboData 
         return {
             comboBehavior: 'break',
             comboKey: "all"
-        }
-    }
-    else {
+        };
+    } else {
         return {
             comboBehavior: 'nobreak',
             comboKey: "all"
-        }
+        };
     }
 }
 
@@ -61,8 +60,7 @@ export function completeComboData(ability: Ability): FinalizedComboData {
         }
         if (key === "all") {
             others = combo;
-        }
-        else {
+        } else {
             combos.push({
                 ...combo,
                 comboKey: key
@@ -72,14 +70,13 @@ export function completeComboData(ability: Ability): FinalizedComboData {
     if (others === null) {
         if (combos.length > 0) {
             others = defaultComboData(ability, true);
-        }
-        else {
+        } else {
             others = defaultComboData(ability, false);
         }
     }
     return {
         combos: combos,
-        others: others,
+        others: others
     };
 }
 

@@ -18,13 +18,13 @@ export class DrkGauge {
     get darkArts(): boolean {
         return this._darkArts;
     }
-    
+
     set bloodGauge(newGauge: number) {
         if (newGauge > 100) {
             console.warn(`[DRK Sim] Overcapped Blood by ${newGauge - 100}.`);
         }
         if (newGauge < 0) {
-            console.warn(`[DRK Sim] Used ${this._bloodGauge - newGauge} blood when you only have ${this._bloodGauge}.`)
+            console.warn(`[DRK Sim] Used ${this._bloodGauge - newGauge} blood when you only have ${this._bloodGauge}.`);
         }
         this._bloodGauge = Math.max(Math.min(newGauge, 100), 0);
     }
@@ -34,13 +34,13 @@ export class DrkGauge {
             console.warn(`[DRK Sim] Overcapped MP by ${newGauge - 10000}.`);
         }
         if (newGauge < 0) {
-            console.warn(`[DRK Sim] Used ${this._magicPoints - newGauge} MP when you only have ${this._magicPoints}.`)
+            console.warn(`[DRK Sim] Used ${this._magicPoints - newGauge} MP when you only have ${this._magicPoints}.`);
         }
         this._magicPoints = Math.max(Math.min(newGauge, 10000), 0);
     }
 
     set darkArts(newDarkArts: boolean) {
-        this._darkArts = newDarkArts
+        this._darkArts = newDarkArts;
     }
 
     getGaugeState(): DrkGaugeState {
@@ -48,8 +48,8 @@ export class DrkGauge {
             level: 100,
             blood: this.bloodGauge,
             mp: this.magicPoints,
-            darkArts: this.darkArts,
-        }
+            darkArts: this.darkArts
+        };
     }
 }
 
@@ -61,7 +61,7 @@ export const Darkside: PersonalBuff = {
     duration: 30,
     selfOnly: true,
     effects: {
-        dmgIncrease: 0.1,
+        dmgIncrease: 0.1
     },
-    maxStackingDuration: 60,
+    maxStackingDuration: 60
 };

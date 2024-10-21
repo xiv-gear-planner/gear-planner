@@ -69,7 +69,7 @@ export class MeldSolver {
         };
 
         const gearGenJob = workerPool.requestWork(gearsetGenRequest);
-        this.jobs.push(gearGenJob)
+        this.jobs.push(gearGenJob);
 
         let sets: SetExport[] = await (gearGenJob.promise as Promise<SetExport[]>);
         if (sets.length === 0) {
@@ -88,7 +88,7 @@ export class MeldSolver {
 
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         for (const _i of range(0, nSimJobs)) {
-            
+
             let jobSets = sets.splice(sets.length - Math.min(nSetsPerJob, sets.length));
             const simRequest: SolverSimulationRequest = {
                 jobType: 'solverSimulation',
@@ -97,7 +97,7 @@ export class MeldSolver {
                     ...SolverSimulationSettings.export(simSettings, this._sheet),
                     sets: jobSets
                 }
-            }
+            };
 
             this.jobs.push(workerPool.requestWork(simRequest, (numSimmed: number) => {
                 totalSimmed += numSimmed;
@@ -119,7 +119,7 @@ export class MeldSolver {
         allResults.sort((a, b) => {
             if (!a) return 1;
             if (!b) return -1;
-            return b.dps - a.dps
+            return b.dps - a.dps;
         });
         return [this._sheet.importGearSet(allResults.at(0).set), allResults.at(0).dps];
     }

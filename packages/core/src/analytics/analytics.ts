@@ -11,8 +11,7 @@ export function recordEvent(name: string, data?: ExtraData) {
         // Don't blindly expect this to exist - someone might block the script with an adblocker, and we don't want
         // the rest of the site to blow up. It also might just be down.
         umami?.track(name, data);
-    }
-    catch (e) {
+    } catch (e) {
         console.error("Error recording analytics", e);
     }
 }
@@ -21,8 +20,7 @@ export function recordCurrentSheetEvent(eventName: string, extraData: ExtraData)
     const sheet = window['currentSheet'];
     if (sheet instanceof GearPlanSheet) {
         recordSheetEvent(eventName, sheet, extraData);
-    }
-    else {
+    } else {
         recordEvent(eventName, extraData);
     }
 }
@@ -41,5 +39,5 @@ function prepSheetData(sheet: GearPlanSheet) {
         'job': sheet.classJobName,
         'level': sheet.level,
         'isync': sheet.ilvlSync
-    }
+    };
 }

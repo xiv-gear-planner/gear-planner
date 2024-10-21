@@ -11,15 +11,13 @@ export function makeRelicStatEditor(equipment: EquippedItem, stat: Substat, set:
         div.classList.add('relic-stat-excluded');
         div.title = 'You cannot use this relic stat on this class';
         return div;
-    }
-    else if (gearItem.relicStatModel.type === 'unknown' || gearItem.relicStatModel.type === 'customrelic') {
+    } else if (gearItem.relicStatModel.type === 'unknown' || gearItem.relicStatModel.type === 'customrelic') {
         const inputSubstatCap = gearItem.unsyncedVersion.statCaps[stat] ?? 1000;
         const input = new FieldBoundIntField(equipment.relicStats, stat, {
             postValidators: [ctx => {
                 if (ctx.newValue < 0) {
                     ctx.failValidation('Must be greater than zero');
-                }
-                else if (ctx.newValue > inputSubstatCap) {
+                } else if (ctx.newValue > inputSubstatCap) {
                     ctx.failValidation(`Must be ${inputSubstatCap} or lower`);
                 }
             }]
@@ -37,13 +35,11 @@ export function makeRelicStatEditor(equipment: EquippedItem, stat: Substat, set:
                 const newValue = equipment.relicStats[stat];
                 if (newValue > cap) {
                     input.title = `Synced down:\n${newValue}/${cap}`;
-                }
-                else {
+                } else {
                     input.removeAttribute('title');
                     delete input.title;
                 }
-            }
-            else {
+            } else {
                 input.classList.add('relic-validation-failed');
                 input.title = validationFailures.join('\n');
             }
@@ -61,13 +57,12 @@ export function makeRelicStatEditor(equipment: EquippedItem, stat: Substat, set:
                     if (reval) {
                         reval();
                     }
-                })
+                });
             }, 10);
 
         });
         return input;
-    }
-    else if (gearItem.relicStatModel.type === 'ewrelic') {
+    } else if (gearItem.relicStatModel.type === 'ewrelic') {
         const input = new FieldBoundDataSelect(equipment.relicStats, stat, val => val.toString(), [0, gearItem.relicStatModel.smallValue, gearItem.relicStatModel.largeValue]);
         input.addEventListener('mousedown', e => e.stopPropagation());
         const cap = gearItem.statCaps[stat] ?? 9999;
@@ -81,13 +76,11 @@ export function makeRelicStatEditor(equipment: EquippedItem, stat: Substat, set:
                 const newValue = equipment.relicStats[stat];
                 if (newValue > cap) {
                     input.title = `Synced down:\n${newValue}/${cap}`;
-                }
-                else {
+                } else {
                     input.removeAttribute('title');
                     delete input.title;
                 }
-            }
-            else {
+            } else {
                 input.classList.add('relic-validation-failed');
                 input.title = validationFailures.join('\n');
             }
@@ -106,7 +99,7 @@ export function makeRelicStatEditor(equipment: EquippedItem, stat: Substat, set:
                     if (reval) {
                         reval();
                     }
-                })
+                });
             }, 10);
 
         });

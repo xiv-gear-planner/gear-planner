@@ -13,7 +13,7 @@ async function ensureJobDataLoaded() {
     await xivApiGet({
         requestType: 'list',
         sheet: 'ClassJob',
-        columns: ['Abbreviation', 'Icon'] as const,
+        columns: ['Abbreviation', 'Icon'] as const
     }).then(results => {
         results.Results.forEach(value => {
             jobIconMap.set(requireString(value.Abbreviation) as JobName, xivApiIconUrl(requireNumber(value.Icon['id'])));

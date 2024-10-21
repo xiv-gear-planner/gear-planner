@@ -114,7 +114,7 @@ const STANDARD_HEALER: JobDataConst = {
         'vitality': 0.90
     },
     aaPotency: MELEE_AUTO_POTENCY,
-    excludedRelicSubstats: ['dhit'],
+    excludedRelicSubstats: ['dhit']
 } as const;
 
 const STANDARD_TANK: JobDataConst = {
@@ -124,7 +124,7 @@ const STANDARD_TANK: JobDataConst = {
     irrelevantSubstats: ['spellspeed', 'piety'],
     // traitMulti: TODO: Tank Mastery?
     aaPotency: MELEE_AUTO_POTENCY,
-    excludedRelicSubstats: ['dhit'],
+    excludedRelicSubstats: ['dhit']
 } as const;
 
 const STANDARD_MELEE: JobDataConst = {
@@ -133,7 +133,7 @@ const STANDARD_MELEE: JobDataConst = {
     autoAttackStat: 'strength',
     irrelevantSubstats: ['spellspeed', 'tenacity', 'piety'],
     aaPotency: MELEE_AUTO_POTENCY,
-    excludedRelicSubstats: [],
+    excludedRelicSubstats: []
 } as const;
 
 const STANDARD_RANGED: JobDataConst = {
@@ -143,7 +143,7 @@ const STANDARD_RANGED: JobDataConst = {
     irrelevantSubstats: ['spellspeed', 'tenacity', 'piety'],
     traitMulti: (level, attackType) => attackType === 'Auto-attack' ? 1.0 : 1.2, // Increased Action Damage II
     aaPotency: RANGE_AUTO_POTENCY,
-    excludedRelicSubstats: [],
+    excludedRelicSubstats: []
 } as const;
 
 const STANDARD_CASTER: JobDataConst = {
@@ -156,7 +156,7 @@ const STANDARD_CASTER: JobDataConst = {
         'vitality': 0.90
     },
     aaPotency: MELEE_AUTO_POTENCY,
-    excludedRelicSubstats: [],
+    excludedRelicSubstats: []
 } as const;
 
 
@@ -177,7 +177,7 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
                 gcdTime: 2.5,
                 attackType: 'Spell',
                 haste: 0,
-                basis: 'sps',
+                basis: 'sps'
             }, {
                 shortLabel: 'PoM GCD',
                 longLabel: '2.5s GCD with PoM',
@@ -185,8 +185,8 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
                 gcdTime: 2.5,
                 attackType: 'Spell',
                 haste: 20,
-                basis: 'sps',
-            }]
+                basis: 'sps'
+            }];
         }
     },
     SGE: STANDARD_HEALER,
@@ -240,15 +240,15 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
                 }
             },
             {
-            minLevel: 76,
-            apply: (stats) => {
-                stats.bonusHaste.push(attackType =>
-                    attackType === 'Weaponskill'
+                minLevel: 76,
+                apply: (stats) => {
+                    stats.bonusHaste.push(attackType =>
+                        attackType === 'Weaponskill'
                     || attackType === 'Spell'
                     || attackType === 'Auto-attack'
-                        ? 20 : 0);
-            }
-        }]
+                            ? 20 : 0);
+                }
+            }]
     },
     NIN: {
         ...STANDARD_MELEE,
@@ -274,8 +274,8 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
                     attackType: 'Weaponskill',
                     haste: 10,
                     basis: 'sks',
-                    isPrimary: true,
-                }]
+                    isPrimary: true
+                }];
             } else {
                 return [{
                     shortLabel: 'GCD',
@@ -285,8 +285,8 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
                     attackType: 'Weaponskill',
                     haste: 13, // Enhanced Fugetsu and Fuka
                     basis: 'sks',
-                    isPrimary: true,
-                }]
+                    isPrimary: true
+                }];
             }
         }
     },
@@ -304,8 +304,8 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
                 attackType: 'Weaponskill',
                 haste: 15,
                 basis: 'sks',
-                isPrimary: true,
-            }]
+                isPrimary: true
+            }];
         }
     },
     // Ranged
@@ -319,12 +319,12 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
     BLM: STANDARD_CASTER,
     SMN: STANDARD_CASTER,
     RDM: {
-        ...STANDARD_CASTER,
+        ...STANDARD_CASTER
         // irrelevantSubstats: ['skillspeed', 'tenacity', 'piety'],
     },
     BLU: {
         ...STANDARD_CASTER,
-        traitMulti: (level, attackType) => attackType === 'Auto-attack' ? 1.0 : 1.5, // Maim and Mend V
+        traitMulti: (level, attackType) => attackType === 'Auto-attack' ? 1.0 : 1.5 // Maim and Mend V
     },
     PCT: STANDARD_CASTER
 };
@@ -353,14 +353,14 @@ export const RACE_STATS: Record<RaceName, RawStats> = {
         strength: 2,
         dexterity: 3,
         intelligence: -1,
-        mind: -1,
+        mind: -1
     }),
     "Keepers of the Moon": new RawStats({
         strength: -1,
         dexterity: 2,
         vitality: -2,
         intelligence: 1,
-        mind: 3,
+        mind: 3
     }),
     // Roe
     "Sea Wolf": new RawStats({
@@ -368,14 +368,14 @@ export const RACE_STATS: Record<RaceName, RawStats> = {
         dexterity: -1,
         vitality: 3,
         intelligence: -2,
-        mind: 1,
+        mind: 1
     }),
     Hellsguard: new RawStats({
         strength: 0,
         dexterity: -2,
         vitality: 3,
         intelligence: 0,
-        mind: 2,
+        mind: 2
     }),
     // Hroth
     "The Lost": new RawStats({
@@ -383,14 +383,14 @@ export const RACE_STATS: Record<RaceName, RawStats> = {
         dexterity: -3,
         vitality: 3,
         intelligence: -3,
-        mind: 3,
+        mind: 3
     }),
     Helion: new RawStats({
         strength: 3,
         dexterity: -3,
         vitality: 3,
         intelligence: -3,
-        mind: 3,
+        mind: 3
     }),
     // Hyur
     Highlander: new RawStats({
@@ -398,14 +398,14 @@ export const RACE_STATS: Record<RaceName, RawStats> = {
         dexterity: 0,
         vitality: 2,
         intelligence: -2,
-        mind: 0,
+        mind: 0
     }),
     Midlander: new RawStats({
         strength: 2,
         dexterity: -1,
         vitality: 0,
         intelligence: 3,
-        mind: -1,
+        mind: -1
     }),
     // Lala
     Plainsfolk: new RawStats({
@@ -413,14 +413,14 @@ export const RACE_STATS: Record<RaceName, RawStats> = {
         dexterity: 3,
         vitality: -1,
         intelligence: 2,
-        mind: 0,
+        mind: 0
     }),
     Dunesfolk: new RawStats({
         strength: -1,
         dexterity: 1,
         vitality: -2,
         intelligence: 2,
-        mind: 3,
+        mind: 3
     }),
     // Viera
     Rava: new RawStats({
@@ -428,14 +428,14 @@ export const RACE_STATS: Record<RaceName, RawStats> = {
         dexterity: 3,
         vitality: -2,
         intelligence: 1,
-        mind: 1,
+        mind: 1
     }),
     Veena: new RawStats({
         strength: -1,
         dexterity: 0,
         vitality: -1,
         intelligence: 3,
-        mind: 2,
+        mind: 2
     }),
     // Au Ra
     Xaela: new RawStats({
@@ -443,15 +443,15 @@ export const RACE_STATS: Record<RaceName, RawStats> = {
         dexterity: 0,
         vitality: 2,
         intelligence: 0,
-        mind: -2,
+        mind: -2
     }),
     Raen: new RawStats({
         strength: -1,
         dexterity: 2,
         vitality: -1,
         intelligence: 0,
-        mind: 3,
-    }),
+        mind: 3
+    })
 };
 
 /**
@@ -466,12 +466,12 @@ export const LEVEL_STATS: Record<SupportedLevel, LevelStats> = {
         hp: 1700,
         hpScalar: {
             Tank: 18.8,
-            other: 14,
+            other: 14
         },
         mainStatPowerMod: {
             Tank: 105,
-            other: 125,
-        },
+            other: 125
+        }
     },
     80: {
         level: 80,
@@ -481,12 +481,12 @@ export const LEVEL_STATS: Record<SupportedLevel, LevelStats> = {
         hp: 2000,
         hpScalar: {
             Tank: 26.6,
-            other: 18.8,
+            other: 18.8
         },
         mainStatPowerMod: {
             Tank: 115,
-            other: 165,
-        },
+            other: 165
+        }
     },
     90: {
         level: 90,
@@ -496,11 +496,11 @@ export const LEVEL_STATS: Record<SupportedLevel, LevelStats> = {
         hp: 3000,
         hpScalar: {
             Tank: 34.6,
-            other: 24.3,
+            other: 24.3
         },
         mainStatPowerMod: {
             Tank: 156,
-            other: 195,
+            other: 195
         }
     },
     // DAWNTRAIL TODO: replace with real values once known
@@ -516,13 +516,13 @@ export const LEVEL_STATS: Record<SupportedLevel, LevelStats> = {
         hp: 4000,
         hpScalar: {
             Tank: 43,
-            other: 30.1,
+            other: 30.1
         },
         mainStatPowerMod: {
             // Verified per Mahdi
             Tank: 190,
             // Verified per Mahdi
-            other: 237,
+            other: 237
         }
     }
 };
@@ -731,34 +731,34 @@ export const STAT_ABBREVIATIONS: Record<RawStatKey, string> = {
  */
 export function statById(id: number): keyof RawStats {
     switch (id) {
-        case 1:
-            return "strength";
-        case 2:
-            return "dexterity";
-        case 3:
-            return "vitality";
-        case 4:
-            return "intelligence";
-        case 5:
-            return "mind";
-        case 6:
-            return "piety";
-        case 7:
-            return "hp";
-        case 19:
-            return "tenacity";
-        case 22:
-            return "dhit";
-        case 27:
-            return "crit";
-        case 44:
-            return "determination";
-        case 45:
-            return "skillspeed";
-        case 46:
-            return "spellspeed";
-        default:
-            return undefined;
+    case 1:
+        return "strength";
+    case 2:
+        return "dexterity";
+    case 3:
+        return "vitality";
+    case 4:
+        return "intelligence";
+    case 5:
+        return "mind";
+    case 6:
+        return "piety";
+    case 7:
+        return "hp";
+    case 19:
+        return "tenacity";
+    case 22:
+        return "dhit";
+    case 27:
+        return "crit";
+    case 44:
+        return "determination";
+    case 45:
+        return "skillspeed";
+    case 46:
+        return "spellspeed";
+    default:
+        return undefined;
     }
 }
 
@@ -766,8 +766,7 @@ export function statById(id: number): keyof RawStats {
 export function getLevelStats(level: SupportedLevel) {
     if (level) {
         return LEVEL_STATS[level];
-    }
-    else {
+    } else {
         console.error("Invalid level!");
         return LEVEL_STATS[90];
     }
@@ -780,8 +779,7 @@ export function getClassJobStats(job: JobName) {
 export function getRaceStats(race: RaceName | undefined) {
     if (race) {
         return RACE_STATS[race];
-    }
-    else {
+    } else {
         return EMPTY_STATS;
     }
 }
@@ -790,7 +788,7 @@ export const ARTIFACT_ITEM_LEVELS = [
     290,
     430,
     560,
-    690,
+    690
 ];
 
 export const BASIC_TOME_GEAR_ILVLS = [
@@ -809,18 +807,18 @@ export const RAID_TIER_ILVLS = [
 
 export function formatAcquisitionSource(source: GearAcquisitionSource): string | null {
     switch (source) {
-        case "augtome":
-            return "Aug. Tome";
-        case "augcrafted":
-            return "Aug. Crafted";
-        case "normraid":
-            return "Normal Raid";
-        case "extrial":
-            return "Extreme Trial";
-        case "alliance":
-            return "Alliance Raid";
-        case "other":
-            return null;
+    case "augtome":
+        return "Aug. Tome";
+    case "augcrafted":
+        return "Aug. Crafted";
+    case "normraid":
+        return "Normal Raid";
+    case "extrial":
+        return "Extreme Trial";
+    case "alliance":
+        return "Alliance Raid";
+    case "other":
+        return null;
     }
     return source[0].toUpperCase() + source.substring(1);
 }

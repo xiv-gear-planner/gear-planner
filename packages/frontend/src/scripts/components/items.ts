@@ -76,37 +76,31 @@ function statCellStyler(cell: CustomCell<GearSlotItem, unknown>, value: ItemSing
         if (cap) {
             if (current >= cap) {
                 isPrimary = true;
-            }
-            else if (current > 0) {
+            } else if (current > 0) {
                 isSecondary = true;
             }
         }
-    }
-    else {
+    } else {
         if (cell.dataItem.item.primarySubstat === stat) {
             isPrimary = true;
-        }
-        else if (cell.dataItem.item.secondarySubstat === stat) {
+        } else if (cell.dataItem.item.secondarySubstat === stat) {
             isSecondary = true;
         }
     }
     if (isPrimary) {
         cell.classList.add("primary");
         cell.classList.remove("secondary");
-    }
-    else if (isSecondary) {
+    } else if (isSecondary) {
         cell.classList.add("secondary");
         cell.classList.remove("primary");
-    }
-    else {
+    } else {
         cell.classList.remove("secondary");
         cell.classList.remove("primary");
     }
 
     if (value.effectiveAmount === 0) {
         cell.classList.add("stat-zero");
-    }
-    else {
+    } else {
         cell.classList.remove("stat-zero");
     }
     cell.classList.remove("stat-melded-overcapped");
@@ -116,20 +110,16 @@ function statCellStyler(cell: CustomCell<GearSlotItem, unknown>, value: ItemSing
     if (value.mode === 'melded') {
         modeLabel = 'Melded: \n';
         cell.classList.add("stat-melded");
-    }
-    else if (value.mode === 'melded-overcapped') {
+    } else if (value.mode === 'melded-overcapped') {
         modeLabel = 'Overcapped: \n';
         cell.classList.add("stat-melded-overcapped");
-    }
-    else if (value.mode === 'melded-overcapped-major') {
+    } else if (value.mode === 'melded-overcapped-major') {
         modeLabel = 'Overcapped: \n';
         cell.classList.add("stat-melded-overcapped-major");
-    }
-    else if (value.mode === 'synced-down') {
+    } else if (value.mode === 'synced-down') {
         modeLabel = 'Synced Down: \n';
         cell.classList.add("stat-synced-down");
-    }
-    else {
+    } else {
         modeLabel = '';
     }
     cell.title = `${modeLabel}${value.fullAmount} / ${value.cap}`;
@@ -147,8 +137,7 @@ function foodStatCellStyler(cell: CustomCell<FoodItem, unknown>, stat: keyof Raw
     cell.classList.add("stat-" + stat);
     if (cell.dataItem.primarySubStat === stat) {
         cell.classList.add("primary");
-    }
-    else if (cell.dataItem.secondarySubStat === stat) {
+    } else if (cell.dataItem.secondarySubStat === stat) {
         cell.classList.add("secondary");
     }
     if (cell._cellValue === 0) {
@@ -181,8 +170,7 @@ class FoodStatBonusDisplay extends HTMLElement {
 function statBonusDisplay(value: FoodStatBonus) {
     if (value) {
         return new FoodStatBonusDisplay(value);
-    }
-    else {
+    } else {
         return document.createTextNode("");
     }
 }
@@ -191,8 +179,8 @@ function foodTableStatViewColumn(sheet: GearPlanSheet, item: FoodItem, stat: Raw
     const wrapped = foodTableStatColumn(sheet, stat, highlightPrimarySecondary);
     return {
         ...wrapped,
-        condition: () => (item.primarySubStat === stat || item.secondarySubStat === stat),
-    }
+        condition: () => (item.primarySubStat === stat || item.secondarySubStat === stat)
+    };
 }
 
 function foodTableStatColumn(sheet: GearPlanSheet, stat: RawStatKey, highlightPrimarySecondary: boolean = false): CustomColumnSpec<FoodItem, unknown, unknown> {
@@ -207,8 +195,8 @@ function foodTableStatColumn(sheet: GearPlanSheet, stat: RawStatKey, highlightPr
         colStyler: (value, cell, node) => {
             cell.classList.add('food-stat-col');
             highlightPrimarySecondary ? foodStatCellStyler(cell, stat) : undefined;
-        },
-    }
+        }
+    };
 
 }
 
@@ -223,7 +211,7 @@ export class FoodItemsTable extends CustomTable<FoodItem, FoodItem> {
             {
                 shortName: "ilvl",
                 displayName: "iLvl",
-                getter: item => item.ilvl,
+                getter: item => item.ilvl
             },
             {
                 shortName: "icon",
@@ -236,7 +224,7 @@ export class FoodItemsTable extends CustomTable<FoodItem, FoodItem> {
                     image.setAttribute('intrinsicsize', '64x64');
                     image.src = img.toString();
                     return image;
-                },
+                }
             },
             {
                 shortName: "itemname",
@@ -264,7 +252,7 @@ export class FoodItemsTable extends CustomTable<FoodItem, FoodItem> {
             foodTableStatColumn(sheet, 'spellspeed', true),
             foodTableStatColumn(sheet, 'skillspeed', true),
             foodTableStatColumn(sheet, 'piety', true),
-            foodTableStatColumn(sheet, 'tenacity', true),
+            foodTableStatColumn(sheet, 'tenacity', true)
         ];
         this.selectionModel = {
             clickCell(cell: CustomCell<FoodItem, FoodItem>) {
@@ -296,8 +284,7 @@ export class FoodItemsTable extends CustomTable<FoodItem, FoodItem> {
         displayItems.sort((left, right) => left.ilvl - right.ilvl);
         if (displayItems.length > 0) {
             super.data = [new HeaderRow(), ...displayItems];
-        }
-        else {
+        } else {
             super.data = [new HeaderRow(), new TitleRow('No items available - please check your filters')];
         }
     }
@@ -311,7 +298,7 @@ export class FoodItemViewTable extends CustomTable<FoodItem, FoodItem> {
             {
                 shortName: "ilvl",
                 displayName: "",
-                getter: item => item.ilvl,
+                getter: item => item.ilvl
             },
             {
                 shortName: "icon",
@@ -324,14 +311,14 @@ export class FoodItemViewTable extends CustomTable<FoodItem, FoodItem> {
                     image.setAttribute('intrinsicsize', '64x64');
                     image.src = img.toString();
                     return image;
-                },
+                }
             },
             {
                 shortName: "itemname",
                 displayName: "Food",
                 getter: item => {
                     return item.name;
-                },
+                }
                 // renderer: name => {
                 //     return quickElement('div', [], [document.createTextNode(name)]);
                 // }
@@ -344,7 +331,7 @@ export class FoodItemViewTable extends CustomTable<FoodItem, FoodItem> {
             foodTableStatViewColumn(sheet, item, 'spellspeed', true),
             foodTableStatViewColumn(sheet, item, 'skillspeed', true),
             foodTableStatViewColumn(sheet, item, 'piety', true),
-            foodTableStatViewColumn(sheet, item, 'tenacity', true),
+            foodTableStatViewColumn(sheet, item, 'tenacity', true)
         ];
         this.selectionModel = noopSelectionModel;
         super.data = [new HeaderRow(), item];
@@ -377,14 +364,12 @@ function itemTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, stat: 
                 }
                 // If it is equipped, then display the relic cell editor
                 return new RelicCellInfo(set, item, slotItem.slotId, stat as Substat);
-            }
-            else {
+            } else {
                 // Not a relic, or not an editable stat. Display normally
                 const selected = set.getItemInSlot(slotItem.slotId) === item;
                 if (selected) {
                     return set.getStatDetail(slotItem.slotId, stat);
-                }
-                else {
+                } else {
                     return previewItemStatDetail(item, stat);
                 }
             }
@@ -403,17 +388,13 @@ function itemTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, stat: 
                         const cap = equipment.gearItem.statCaps[stat];
                         if (cap) {
                             return document.createTextNode(Math.min(equipment.relicStats[stat], cap).toString());
-                        }
-                        else {
+                        } else {
                             return document.createTextNode(equipment.relicStats[stat].toString());
                         }
-                    }
-                    // If not, display the editor
-                    else {
+                    } else { // If not, display the editor
                         return makeRelicStatEditor(equipment, value.stat, set);
                     }
-                }
-                else {
+                } else {
                     return null;
                 }
             }
@@ -427,16 +408,14 @@ function itemTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, stat: 
                 if (highlightPrimarySecondary) {
                     if (value instanceof RelicCellInfo) {
                         statCellStylerRemover(cell);
+                    } else {
+                        statCellStyler(cell, value, stat);
                     }
-                    else {
-                        statCellStyler(cell, value, stat)
-                    }
-                }
-                else {
+                } else {
                     cell.classList.add('stat-cell');
                 }
-            },
-    }
+            }
+    };
 }
 
 function makeShowHideRow(label: string, initiallyHidden: boolean = false, setter: (newValue: boolean) => void, extraElements: HTMLElement[] = []): SpecialRow<GearSlotItem, EquipmentSet> {
@@ -462,7 +441,7 @@ function makeShowHideRow(label: string, initiallyHidden: boolean = false, setter
                 row.cells.item(0).classList.add('hoverable');
             }
         }
-    )
+    );
 }
 
 /**
@@ -497,7 +476,7 @@ export class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
                     image.setAttribute('intrinsicsize', '64x64');
                     image.src = img.toString();
                     return image;
-                },
+                }
             },
             {
                 shortName: "itemname",
@@ -519,8 +498,7 @@ export class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
                     let title: string;
                     if (rowValue.item.acquisitionType === 'custom') {
                         title = `${value} (Custom Item)`;
-                    }
-                    else {
+                    } else {
                         title = `${value} (${rowValue.item.id})`;
                         const formattedAcqSrc = formatAcquisitionSource(rowValue.item.acquisitionType);
                         if (formattedAcqSrc) {
@@ -547,8 +525,7 @@ export class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
                         span.style.textDecoration = "line-through";
                         span.style.opacity = "50%";
                         span.title = "Melds unavailable due to ilvl sync";
-                    }
-                    else {
+                    } else {
                         span.textContent = value.materiaSlots.length.toString();
                     }
                     return span;
@@ -564,13 +541,12 @@ export class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
                 renderer: value => {
                     if (value) {
                         return document.createTextNode(value);
-                    }
-                    else {
+                    } else {
                         return document.createTextNode("");
                     }
                 },
                 initialWidth: 33,
-                condition: () => handledSlots === undefined || handledSlots.includes('Weapon'),
+                condition: () => handledSlots === undefined || handledSlots.includes('Weapon')
             },
             itemTableStatColumn(sheet, gearSet, 'vitality'),
             itemTableStatColumn(sheet, gearSet, 'strength'),
@@ -583,7 +559,7 @@ export class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
             itemTableStatColumn(sheet, gearSet, 'spellspeed', true),
             itemTableStatColumn(sheet, gearSet, 'skillspeed', true),
             itemTableStatColumn(sheet, gearSet, 'piety', true),
-            itemTableStatColumn(sheet, gearSet, 'tenacity', true),
+            itemTableStatColumn(sheet, gearSet, 'tenacity', true)
         ];
         const data: (TitleRow | HeaderRow | GearSlotItem)[] = [];
         const slotMateriaManagers = new Map<keyof EquipmentSet, AllSlotMateriaManager>();
@@ -638,8 +614,7 @@ export class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
                         selectionTracker.set(slotId, item);
                     }
                 }
-            }
-            else {
+            } else {
                 data.push(new TitleRow('No items available - please check your filters'));
             }
             const matMgr = new AllSlotMateriaManager(sheet, gearSet, slotId, () => {
@@ -718,11 +693,10 @@ export class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
         this.dataRowMap.forEach((row, value) => {
             if (this.gearSet.isSlotCollapsed(value.slotId) && !this.selectionModel.isRowSelected(row)) {
                 row.style.display = 'none';
-            }
-            else {
+            } else {
                 row.style.display = '';
             }
-        })
+        });
     }
 }
 
@@ -751,7 +725,7 @@ export class GearItemsViewTable extends CustomTable<GearSlotItem, EquipmentSet> 
                 const item = {
                     slot: slot,
                     item: equippedItem,
-                    slotId: slotId,
+                    slotId: slotId
                     // alts: sheet.getAltItemsFor(equippedItem)
                 };
                 if (slotItem === null) {
@@ -778,7 +752,7 @@ export class GearItemsViewTable extends CustomTable<GearSlotItem, EquipmentSet> 
                 displayName: "",
                 getter: item => {
                     return item.item.ilvl.toString();
-                },
+                }
             },
             {
                 shortName: "icon",
@@ -791,7 +765,7 @@ export class GearItemsViewTable extends CustomTable<GearSlotItem, EquipmentSet> 
                     image.setAttribute('intrinsicsize', '64x64');
                     image.src = img.toString();
                     return image;
-                },
+                }
             },
             {
                 shortName: "itemname",
@@ -857,7 +831,7 @@ export class GearItemsViewTable extends CustomTable<GearSlotItem, EquipmentSet> 
             itemTableStatColumn(sheet, gearSet, 'spellspeed', true),
             itemTableStatColumn(sheet, gearSet, 'skillspeed', true),
             itemTableStatColumn(sheet, gearSet, 'piety', true),
-            itemTableStatColumn(sheet, gearSet, 'tenacity', true),
+            itemTableStatColumn(sheet, gearSet, 'tenacity', true)
         ];
         this.selectionModel = noopSelectionModel;
         this.data = data;
@@ -882,7 +856,7 @@ export class AltItemsModal extends BaseModal {
                 displayName: "Lv",
                 getter: item => {
                     return item.ilvl.toString();
-                },
+                }
             },
             {
                 shortName: "icon",
@@ -895,14 +869,14 @@ export class AltItemsModal extends BaseModal {
                     image.setAttribute('intrinsicsize', '64x64');
                     image.src = img.toString();
                     return image;
-                },
+                }
             },
             {
                 shortName: "itemname",
                 displayName: "Name",
                 getter: item => {
                     return item.name;
-                },
+                }
             },
             {
                 shortName: 'acqsrc',
@@ -911,7 +885,7 @@ export class AltItemsModal extends BaseModal {
                 renderer: value => {
                     return document.createTextNode(value ? (formatAcquisitionSource(value) ?? 'Unknown') : 'Unknown');
                 }
-            },
+            }
         ];
         table.data = [new HeaderRow(), baseItem, ...altItems];
         this.contentArea.appendChild(table);

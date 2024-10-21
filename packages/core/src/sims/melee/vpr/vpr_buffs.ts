@@ -1,5 +1,5 @@
 import { Ability, Buff, BuffController, PersonalBuff } from "@xivgear/core/sims/sim_types";
-import * as Actions from "./vpr_actions"
+import * as Actions from "./vpr_actions";
 
 export const HonedReavers: PersonalBuff = {
     name: "Honed Reavers",
@@ -10,15 +10,15 @@ export const HonedReavers: PersonalBuff = {
         // Increases potency of Reaving Fang by 100
     },
     statusId: 3772,
-    appliesTo: ability => ability.id == Actions.ReavingFangs.id,
+    appliesTo: ability => ability.id === Actions.ReavingFangs.id,
     beforeSnapshot<X extends Ability>(buffController: BuffController, ability: X): X {
         buffController.removeSelf();
         return {
             ...ability,
-            potency: ability.potency + 100,
+            potency: ability.potency + 100
         };
-    },
-}
+    }
+};
 
 export const HonedSteel: PersonalBuff = {
     name: "Honed Steel",
@@ -29,15 +29,15 @@ export const HonedSteel: PersonalBuff = {
         // Increases potency of Reaving Fang by 100
     },
     statusId: 3772,
-    appliesTo: ability => ability.id == Actions.SteelFangs.id,
+    appliesTo: ability => ability.id === Actions.SteelFangs.id,
     beforeSnapshot<X extends Ability>(buffController: BuffController, ability: X): X {
         buffController.removeSelf();
         return {
             ...ability,
-            potency: ability.potency + 100,
+            potency: ability.potency + 100
         };
-    },
-}
+    }
+};
 
 export const HuntersInstinct: PersonalBuff = {
     name: "Hunter's Instinct",
@@ -47,7 +47,7 @@ export const HuntersInstinct: PersonalBuff = {
     effects: {
         dmgIncrease: 0.1
     },
-    statusId: 3668,
+    statusId: 3668
 };
 
 export const Swiftscaled: PersonalBuff = {
@@ -56,13 +56,13 @@ export const Swiftscaled: PersonalBuff = {
     duration: 40,
     selfOnly: true,
     effects: {
-        haste: 15,
+        haste: 15
     },
-    statusId: 3669,
+    statusId: 3669
 };
 
 const ComboFinisherBaseBuff: Buff = {
-    name: null, 
+    name: null,
     saveKey: null,
     duration: 60,
     selfOnly: true,
@@ -73,42 +73,42 @@ const ComboFinisherBaseBuff: Buff = {
         buffController.removeSelf();
         return {
             ...ability,
-            potency: ability.potency + 100,
+            potency: ability.potency + 100
         };
-    },
-}
+    }
+};
 
 export const FlankstungVenom: PersonalBuff = {
     ...ComboFinisherBaseBuff,
     name: "Flankstung Venom",
     saveKey: "Flankstung Venom",
-    appliesTo: ability => ability.id == Actions.FlankstingStrike.id,
-    statusId: 3645,
-}
+    appliesTo: ability => ability.id === Actions.FlankstingStrike.id,
+    statusId: 3645
+};
 
 export const FlanksbaneVenom: PersonalBuff = {
     ...ComboFinisherBaseBuff,
     name: "Flanksbane Venom",
     saveKey: "Flanksbane Venom",
-    appliesTo: ability => ability.id == Actions.FlanksbaneFang.id,
-    statusId: 3646,
-}
+    appliesTo: ability => ability.id === Actions.FlanksbaneFang.id,
+    statusId: 3646
+};
 
 export const HindstungVenom: PersonalBuff = {
     ...ComboFinisherBaseBuff,
     name: "Hindstung Venom",
     saveKey: "Hindstung Venom",
-    appliesTo: ability => ability.id == Actions.HindstingStrike.id,
-    statusId: 3647,
-}
+    appliesTo: ability => ability.id === Actions.HindstingStrike.id,
+    statusId: 3647
+};
 
 export const HindsbaneVenom: PersonalBuff = {
     ...ComboFinisherBaseBuff,
     name: "Hindsbane Venom",
     saveKey: "Hindsbane Venom",
-    appliesTo: ability => ability.id == Actions.HindsbaneFang.id,
-    statusId: 3648,
-}
+    appliesTo: ability => ability.id === Actions.HindsbaneFang.id,
+    statusId: 3648
+};
 
 export const ReadyToReawaken: PersonalBuff = {
     name: "Ready to Reawaken",
@@ -118,15 +118,15 @@ export const ReadyToReawaken: PersonalBuff = {
     effects: {
         // Makes reawaken free
     },
-    appliesTo: ability => ability.id == Actions.Reawaken.id,
+    appliesTo: ability => ability.id === Actions.Reawaken.id,
     statusId: 3671,
     beforeSnapshot<VprGcdAbility>(buffController: BuffController, ability: VprGcdAbility): VprGcdAbility {
         buffController.removeSelf();
         return {
             ...ability,
-            updateGauge: null, 
+            updateGauge: null
         };
-    },
+    }
 };
 
 export const HuntersVenom: PersonalBuff = {
@@ -137,15 +137,15 @@ export const HuntersVenom: PersonalBuff = {
     effects: {
         // Increases Twinfang Bite potency by 50
     },
-    appliesTo: ability => ability.id == Actions.TwinfangBite.id,
+    appliesTo: ability => ability.id === Actions.TwinfangBite.id,
     beforeAbility<VprOgcdAbility>(buffController: BuffController, ability: VprOgcdAbility): VprOgcdAbility {
         buffController.removeSelf();
         return {
             ...ability,
-            potency: 170,
+            potency: 170
         };
     }
-}
+};
 
 export const SwiftskinsVenom: PersonalBuff = {
     name: "Swiftskin's Venom",
@@ -155,15 +155,15 @@ export const SwiftskinsVenom: PersonalBuff = {
     effects: {
         // Increases Twinfang Bite potency by 50
     },
-    appliesTo: ability => ability.id == Actions.TwinbloodBite.id,
+    appliesTo: ability => ability.id === Actions.TwinbloodBite.id,
     beforeAbility<VprOgcdAbility>(buffController: BuffController, ability: VprOgcdAbility): VprOgcdAbility {
         buffController.removeSelf();
         return {
             ...ability,
-            potency: 170,
+            potency: 170
         };
     }
-}
+};
 
 export const PoisedForTwinfang: PersonalBuff = {
     name: "Poised for Twinfang",
@@ -173,15 +173,15 @@ export const PoisedForTwinfang: PersonalBuff = {
     effects: {
         // Increases Twinfang Bite potency by 50
     },
-    appliesTo: ability => ability.id == Actions.UncoiledTwinfang.id,
+    appliesTo: ability => ability.id === Actions.UncoiledTwinfang.id,
     beforeAbility<VprOgcdAbility>(buffController: BuffController, ability: VprOgcdAbility): VprOgcdAbility {
         buffController.removeSelf();
         return {
             ...ability,
-            potency: 170,
+            potency: 170
         };
     }
-}
+};
 
 export const PoisedForTwinblood: PersonalBuff = {
     name: "Poised for Twinblood",
@@ -191,12 +191,12 @@ export const PoisedForTwinblood: PersonalBuff = {
     effects: {
         // Increases Twinfang Bite potency by 50
     },
-    appliesTo: ability => ability.id == Actions.UncoiledTwinblood.id,
+    appliesTo: ability => ability.id === Actions.UncoiledTwinblood.id,
     beforeAbility<VprOgcdAbility>(buffController: BuffController, ability: VprOgcdAbility): VprOgcdAbility {
         buffController.removeSelf();
         return {
             ...ability,
-            potency: 170,
+            potency: 170
         };
     }
-}
+};

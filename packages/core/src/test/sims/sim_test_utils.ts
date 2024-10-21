@@ -36,8 +36,7 @@ export function assertSimAbilityResults(result: CycleSimResultFull<CycleSimResul
     }
     if ('displayRecords' in result) {
         displayRecords = result.displayRecords;
-    }
-    else {
+    } else {
         displayRecords = result;
     }
     const actualAbilities: FinalizedAbility[] = displayRecords.filter<FinalizedAbility>((record): record is FinalizedAbility => {
@@ -58,8 +57,7 @@ export function assertSimAbilityResults(result: CycleSimResultFull<CycleSimResul
         };
         if (i >= expectedAbilities.length) {
             failures.push(`Item ${i} failed: Expected to be done, but there was another ability (${JSON.stringify(actual)}`);
-        }
-        else {
+        } else {
             const expected = expectedAbilities[i];
             if (expected.name !== actual.name) {
                 failures.push(`Item ${i} failed: Expected ability '${expected.name}', but it was '${actual.name}'`);

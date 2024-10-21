@@ -27,8 +27,7 @@ export function registerDefaultSims() {
     if (registrationDone) {
         console.warn("Duplicate registration!", new Error("Duplicate registration!"));
         return;
-    }
-    else {
+    } else {
         registrationDone = true;
     }
     registerSim(potRatioSimSpec);

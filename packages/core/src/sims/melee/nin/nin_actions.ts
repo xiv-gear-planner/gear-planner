@@ -19,7 +19,7 @@ export const SpinningEdge: NinGcdAbility = {
         if (gauge.level > 62) {
             gauge.ninkiGauge += 5;
         }
-    },
+    }
 };
 
 export const GustSlash: NinGcdAbility = {
@@ -34,7 +34,7 @@ export const GustSlash: NinGcdAbility = {
         if (gauge.level > 62) {
             gauge.ninkiGauge += 5;
         }
-    },
+    }
 };
 
 export const AeolianEdge: NinGcdAbility = {
@@ -54,7 +54,7 @@ export const AeolianEdge: NinGcdAbility = {
             gauge.ninkiGauge += 5;
         }
         gauge.kazematoi--;
-    },
+    }
 };
 
 export const ArmorCrush: NinGcdAbility = {
@@ -74,7 +74,7 @@ export const ArmorCrush: NinGcdAbility = {
             gauge.ninkiGauge += 5;
         }
         gauge.kazematoi += 2;
-    },
+    }
 };
 
 export const Raiju: NinGcdAbility = {
@@ -85,7 +85,7 @@ export const Raiju: NinGcdAbility = {
     potency: 700,
     gcd: 2.5,
     cast: 0,
-    updateGauge: gauge => gauge.ninkiGauge += 5,
+    updateGauge: gauge => gauge.ninkiGauge += 5
 };
 
 export const Phantom: NinGcdAbility = {
@@ -96,7 +96,7 @@ export const Phantom: NinGcdAbility = {
     potency: 600, // TODO: Mark as Pet Damage Potency
     gcd: 2.5,
     cast: 0,
-    updateGauge: gauge => gauge.ninkiGauge += 10,
+    updateGauge: gauge => gauge.ninkiGauge += 10
 };
 
 export const Ten: MudraStep & OriginCdAbility = {
@@ -108,11 +108,11 @@ export const Ten: MudraStep & OriginCdAbility = {
     potency: null,
     cooldown: {
         time: 20,
-        charges: 2,
+        charges: 2
     },
     gcd: 0.5,
     fixedGcd: true,
-    cast: 0,
+    cast: 0
 };
 
 export const Chi: MudraStep & SharedCdAbility = {
@@ -125,11 +125,11 @@ export const Chi: MudraStep & SharedCdAbility = {
     cooldown: {
         time: 20,
         charges: 2,
-        sharesCooldownWith: Ten,
+        sharesCooldownWith: Ten
     },
     gcd: 0.5,
     fixedGcd: true,
-    cast: 0,
+    cast: 0
 };
 
 export const Jin: MudraStep & SharedCdAbility = {
@@ -142,11 +142,11 @@ export const Jin: MudraStep & SharedCdAbility = {
     cooldown: {
         time: 20,
         charges: 2,
-        sharesCooldownWith: Ten,
+        sharesCooldownWith: Ten
     },
     gcd: 0.5,
     fixedGcd: true,
-    cast: 0,
+    cast: 0
 };
 
 export const Fuma: NinjutsuAbility = {
@@ -158,7 +158,7 @@ export const Fuma: NinjutsuAbility = {
     gcd: 1.5,
     fixedGcd: true,
     cast: 0,
-    steps: [Ten],
+    steps: [Ten]
 };
 
 export const Raiton: NinjutsuAbility = {
@@ -171,7 +171,7 @@ export const Raiton: NinjutsuAbility = {
     fixedGcd: true,
     cast: 0,
     activatesBuffs: [RaijuReady],
-    steps: [Ten, Chi],
+    steps: [Ten, Chi]
 };
 
 export const Suiton: NinjutsuAbility = {
@@ -184,7 +184,7 @@ export const Suiton: NinjutsuAbility = {
     fixedGcd: true,
     cast: 0,
     activatesBuffs: [ShadowWalker],
-    steps: [Ten, Chi, Jin],
+    steps: [Ten, Chi, Jin]
 };
 
 export const Hyosho: NinjutsuAbility = {
@@ -196,7 +196,7 @@ export const Hyosho: NinjutsuAbility = {
     gcd: 1.5,
     fixedGcd: true,
     cast: 0,
-    steps: [Ten, Jin],
+    steps: [Ten, Jin]
 };
 
 /**
@@ -211,7 +211,7 @@ export const KunaisBane: NinOgcdAbility = {
     cooldown: {
         time: 60
     },
-    activatesBuffs: [KunaisBaneBuff],
+    activatesBuffs: [KunaisBaneBuff]
 };
 
 export const Kassatsu: NinOgcdAbility = {
@@ -223,7 +223,7 @@ export const Kassatsu: NinOgcdAbility = {
     cooldown: {
         time: 60
     },
-    activatesBuffs: [KassatsuBuff],
+    activatesBuffs: [KassatsuBuff]
 };
 
 export const TenChiJin: NinOgcdAbility = {
@@ -235,7 +235,7 @@ export const TenChiJin: NinOgcdAbility = {
     cooldown: {
         time: 120
     },
-    activatesBuffs: [TenChiJinReady, TenriJindoReady],
+    activatesBuffs: [TenChiJinReady, TenriJindoReady]
 };
 
 export const Meisui: NinOgcdAbility = {
@@ -248,8 +248,8 @@ export const Meisui: NinOgcdAbility = {
         time: 120
     },
     activatesBuffs: [MeisuiBuff],
-    updateGauge: gauge => gauge.ninkiGauge += 50,
-}
+    updateGauge: gauge => gauge.ninkiGauge += 50
+};
 
 export const Bunshin: NinkiAbility = {
     type: 'ogcd',
@@ -262,7 +262,7 @@ export const Bunshin: NinkiAbility = {
     },
     activatesBuffs: [BunshinBuff, PhantomReady],
     updateGauge: gauge => gauge.ninkiGauge -= 50,
-    ninkiCost: 50,
+    ninkiCost: 50
 };
 
 export const DokumoriAbility: NinOgcdAbility = {
@@ -275,7 +275,7 @@ export const DokumoriAbility: NinOgcdAbility = {
         time: 120
     },
     activatesBuffs: [Dokumori, Higi],
-    updateGauge: gauge => gauge.ninkiGauge += 40,
+    updateGauge: gauge => gauge.ninkiGauge += 40
 };
 
 export const DreamWithin: NinOgcdAbility = {
@@ -283,8 +283,8 @@ export const DreamWithin: NinOgcdAbility = {
     name: "Dream Within a Dream",
     id: 3566,
     attackType: "Ability",
-    potency: 150 * 3, // Multihit
-}
+    potency: 150 * 3 // Multihit
+};
 
 export const Bhavacakra: NinkiAbility = {
     type: 'ogcd',
@@ -293,7 +293,7 @@ export const Bhavacakra: NinkiAbility = {
     attackType: "Ability",
     potency: 380,
     updateGauge: gauge => gauge.ninkiGauge -= 50,
-    ninkiCost: 50,
+    ninkiCost: 50
 };
 
 export const ZeshoMeppo: NinkiAbility = {
@@ -303,7 +303,7 @@ export const ZeshoMeppo: NinkiAbility = {
     attackType: "Ability",
     potency: 700,
     updateGauge: gauge => gauge.ninkiGauge -= 50,
-    ninkiCost: 50,
+    ninkiCost: 50
 };
 
 export const TenriJindo: NinOgcdAbility = {
@@ -311,5 +311,5 @@ export const TenriJindo: NinOgcdAbility = {
     name: "Tenri Jindo",
     id: 36961,
     attackType: "Ability",
-    potency: 1100,
+    potency: 1100
 };

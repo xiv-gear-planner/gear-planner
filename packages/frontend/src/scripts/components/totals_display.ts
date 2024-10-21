@@ -9,7 +9,7 @@ export class SetViewToolbar extends HTMLElement {
 
     constructor(gearSet: CharacterGearSet) {
         super();
-        this.totalsDisplay = new SetTotalsDisplay(gearSet)
+        this.totalsDisplay = new SetTotalsDisplay(gearSet);
         this.appendChild(this.totalsDisplay);
     }
 
@@ -36,48 +36,48 @@ export class SetTotalsDisplay extends HTMLElement {
             try {
                 let value: Omit<StatDisplayType, 'stat'>;
                 switch (stat) {
-                    case "strength":
-                    case "dexterity":
-                    case "intelligence":
-                    case "mind":
-                        value = {multiplier: stats.mainStatMulti};
-                        break;
-                    case "determination":
-                        value = {multiplier: stats.detMulti};
-                        break;
-                    case "tenacity":
-                        value = {
-                            multiplier: stats.tncMulti,
-                            incomingMulti: stats.tncIncomingMulti
-                        };
-                        break;
-                    case "piety":
-                        value = {perTick: stats.mpPerTick};
-                        break;
-                    case "crit":
-                        value = {
-                            chance: stats.critChance,
-                            multiplier: stats.critMulti
-                        };
-                        break;
-                    case "dhit":
-                        value = {
-                            chance: stats.dhitChance,
-                            multiplier: stats.dhitMulti
-                        };
-                        break;
-                    case "spellspeed":
-                        value = {
-                            gcd: stats.gcdMag(NORMAL_GCD),
-                            multiplier: stats.spsDotMulti
-                        };
-                        break;
-                    case "skillspeed":
-                        value = {
-                            gcd: stats.gcdPhys(NORMAL_GCD),
-                            multiplier: stats.sksDotMulti
-                        };
-                        break;
+                case "strength":
+                case "dexterity":
+                case "intelligence":
+                case "mind":
+                    value = {multiplier: stats.mainStatMulti};
+                    break;
+                case "determination":
+                    value = {multiplier: stats.detMulti};
+                    break;
+                case "tenacity":
+                    value = {
+                        multiplier: stats.tncMulti,
+                        incomingMulti: stats.tncIncomingMulti
+                    };
+                    break;
+                case "piety":
+                    value = {perTick: stats.mpPerTick};
+                    break;
+                case "crit":
+                    value = {
+                        chance: stats.critChance,
+                        multiplier: stats.critMulti
+                    };
+                    break;
+                case "dhit":
+                    value = {
+                        chance: stats.dhitChance,
+                        multiplier: stats.dhitMulti
+                    };
+                    break;
+                case "spellspeed":
+                    value = {
+                        gcd: stats.gcdMag(NORMAL_GCD),
+                        multiplier: stats.spsDotMulti
+                    };
+                    break;
+                case "skillspeed":
+                    value = {
+                        gcd: stats.gcdPhys(NORMAL_GCD),
+                        multiplier: stats.sksDotMulti
+                    };
+                    break;
                 }
                 if (value) {
                     this.appendChild(new SingleStatTotalDisplay(stat, {
@@ -85,8 +85,7 @@ export class SetTotalsDisplay extends HTMLElement {
                         ...value
                     } as StatDisplayType));
                 }
-            }
-            catch (e) {
+            } catch (e) {
                 console.error("Error computing stat totals", e);
             }
         }
@@ -121,23 +120,19 @@ export class SingleStatTotalDisplay extends HTMLDivElement {
                 this.appendChild(quickTextDiv('stat-total-lower-left', `${(value.chance * 100.0).toFixed(1)}%`));
                 this.appendChild(quickTextDiv('stat-total-lower-right', `x${value.multiplier.toFixed(3)}`));
                 this.classList.add('stat-total-wide');
-            }
-            else if ('gcd' in value) {
+            } else if ('gcd' in value) {
                 this.appendChild(quickTextDiv('stat-total-lower-left', value.gcd.toString()));
                 this.appendChild(quickTextDiv('stat-total-lower-right', `x${value.multiplier.toFixed(3)}`));
                 this.classList.add('stat-total-wide');
-            }
-            else if ('incomingMulti' in value) {
+            } else if ('incomingMulti' in value) {
                 this.appendChild(quickTextDiv('stat-total-lower-left', value.multiplier.toString() + ','));
                 this.appendChild(quickTextDiv('stat-total-lower-right', `${toRelPct(value.incomingMulti - 1, 1)}%`));
                 this.classList.add('stat-total-wide');
-            }
-            else {
+            } else {
                 this.appendChild(quickTextDiv('stat-total-lower-center', `x${value.multiplier.toFixed(3)}`));
                 this.classList.add('stat-total-narrow');
             }
-        }
-        else {
+        } else {
             this.appendChild(quickTextDiv('stat-total-lower-center', `+${value.perTick.toFixed(0)}/tick`));
             this.classList.add('stat-total-narrow');
         }

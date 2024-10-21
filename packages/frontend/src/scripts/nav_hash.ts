@@ -71,8 +71,7 @@ export async function processHashLegacy() {
         // URL query param method causes the whole thing to be too long of a URL for the server to handle.
         if (split[0] === NO_REDIR_HASH) {
             await doNav(split.slice(1));
-        }
-        else {
+        } else {
             goHash(...split);
             location.hash = "";
         }
@@ -120,67 +119,64 @@ async function doNav(pathParts: string[]) {
         hideWelcomeArea();
     }
     switch (nav.type) {
-        case "mysheets":
-            console.info("No sheet open");
-            showSheetPickerMenu();
+    case "mysheets":
+        console.info("No sheet open");
+        showSheetPickerMenu();
+        return;
+    case "newsheet":
+        showNewSheetForm();
+        return;
+    case "importform":
+        showImportSheetForm();
+        return;
+    case "saved": {
+        const saveKey = nav.saveKey;
+        console.log("Loading: " + saveKey);
+        openSheetByKey(saveKey);
+        return;
+    }
+    case "shortlink": {
+        showLoadingScreen();
+        const uuid = nav.uuid;
+        const resolved: string | null = await getShortLink(uuid);
+        if (resolved) {
+            const json = JSON.parse(resolved);
+            openExport(json, false, true);
             return;
-        case "newsheet":
-            showNewSheetForm();
-            return;
-        case "importform":
-            showImportSheetForm();
-            return;
-        case "saved": {
-            const saveKey = nav.saveKey;
-            console.log("Loading: " + saveKey);
-            openSheetByKey(saveKey);
-            return;
+        } else {
+            console.error('Non-existent shortlink, or other error', uuid);
+            // TODO: better error display for non-embed
+            if (isEmbed) {
+                displayEmbedError("That set/sheet does not seem to exist.");
+            }
         }
-        case "shortlink": {
-            showLoadingScreen();
-            const uuid = nav.uuid;
-            const resolved: string | null = await getShortLink(uuid);
+        break;
+    }
+    case "setjson":
+        openExport(nav.jsonBlob as SetExport, false, nav.viewOnly);
+        return;
+    case "sheetjson":
+        openExport(nav.jsonBlob as SheetExport, false, nav.viewOnly);
+        return;
+    case "bis": {
+        showLoadingScreen();
+        try {
+            const resolved: string | null = await getBisSheet(nav.job, nav.expac, nav.sheet);
             if (resolved) {
                 const json = JSON.parse(resolved);
                 openExport(json, false, true);
                 return;
+            } else {
+                console.error('Non-existent bis, or other error', [nav.job, nav.expac, nav.sheet]);
             }
-            else {
-                console.error('Non-existent shortlink, or other error', uuid);
-                // TODO: better error display for non-embed
-                if (isEmbed) {
-                    displayEmbedError("That set/sheet does not seem to exist.");
-                }
-            }
-            break;
+        } catch (e) {
+            console.error("Error loading bis", e);
         }
-        case "setjson":
-            openExport(nav.jsonBlob as SetExport, false, nav.viewOnly);
-            return;
-        case "sheetjson":
-            openExport(nav.jsonBlob as SheetExport, false, nav.viewOnly);
-            return;
-        case "bis": {
-            showLoadingScreen();
-            try {
-                const resolved: string | null = await getBisSheet(nav.job, nav.expac, nav.sheet);
-                if (resolved) {
-                    const json = JSON.parse(resolved);
-                    openExport(json, false, true);
-                    return;
-                }
-                else {
-                    console.error('Non-existent bis, or other error', [nav.job, nav.expac, nav.sheet]);
-                }
-            }
-            catch (e) {
-                console.error("Error loading bis", e);
-            }
-            const errMsg = document.createElement('h1');
-            errMsg.textContent = 'Error Loading Sheet/Set';
-            setMainContent('Error', errMsg);
-            return;
-        }
+        const errMsg = document.createElement('h1');
+        errMsg.textContent = 'Error Loading Sheet/Set';
+        setMainContent('Error', errMsg);
+        return;
+    }
     }
     console.error("I don't know what to do with this path", pathParts);
     // TODO: handle remaining invalid cases

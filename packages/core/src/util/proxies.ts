@@ -5,5 +5,5 @@ export function writeProxy<X extends object>(obj: X, action: () => void): X {
             action();
             return true;
         }
-    })
+    });
 }

@@ -20,8 +20,7 @@ const pageTitle = 'XivGear - FFXIV Gear Planner';
 export async function initialLoad() {
     if (location.hash) {
         await processHashLegacy();
-    }
-    else {
+    } else {
         await processNav();
     }
     handleWelcomeArea();
@@ -38,16 +37,14 @@ export const welcomeCloseButton = document.getElementById("welcome-close-button"
 export function handleWelcomeArea() {
     if (getHash()?.length > 0) {
         // hideWelcomeArea();
-    }
-    else {
+    } else {
         if (SETTINGS.hideWelcomeMessage) {
             hideWelcomeArea();
-        }
-        else {
+        } else {
             welcomeCloseButton.addEventListener('click', () => {
                 SETTINGS.hideWelcomeMessage = true;
                 hideWelcomeArea();
-            })
+            });
         }
     }
 }
@@ -82,8 +79,7 @@ export function formatTopMenu(hash: string[]) {
             console.debug(`Expected: ${expected}, actual: ${hash}`);
             if (arrayEq(expected, hash)) {
                 link.classList.add('current-page');
-            }
-            else {
+            } else {
                 link.classList.remove('current-page');
             }
         }
@@ -114,8 +110,7 @@ export function showImportSheetForm() {
 export function setTitle(titlePart: string | undefined) {
     if (titlePart === undefined) {
         document.title = pageTitle;
-    }
-    else {
+    } else {
         document.title = titlePart + ' - ' + pageTitle;
     }
 }
@@ -128,8 +123,7 @@ export async function openSheetByKey(sheet: string) {
     if (planner) {
         recordSheetEvent("openSheetByKey", planner);
         await openSheet(planner);
-    }
-    else {
+    } else {
         contentArea.replaceChildren(document.createTextNode("That sheet does not exist."));
         setTitle('Error');
     }
@@ -148,13 +142,11 @@ export async function openExport(exported: (SheetExport | SetExport), changeHash
     if (embed) {
         if (isFullSheet) {
             displayEmbedError("Embedding is only supported for a single set, not a full sheet. Consider embedding sets individually and/or linking to the full sheet rather than embedding it.");
-        }
-        else {
+        } else {
             sheet.setViewOnly();
             openEmbed(sheet);
         }
-    }
-    else {
+    } else {
         if (viewOnly) {
             sheet.setViewOnly();
         }
@@ -183,8 +175,7 @@ export async function openSheet(planner: GearPlanSheetGui, changeHash: boolean =
         if (arrayEq(newHash, oldHash)) {
             contentArea.replaceChildren(planner.topLevelElement);
             setTitle(planner.sheetName);
-        }
-        else {
+        } else {
             console.log("Canceled showing sheet due to hash change", oldHash, newHash);
         }
     }, (reason) => {
@@ -213,8 +204,7 @@ export function earlyUiSetup() {
         ev.preventDefault();
         if (devMenu.style.display === 'none') {
             devMenu.style.display = '';
-        }
-        else {
+        } else {
             devMenu.style.display = 'none';
         }
     });

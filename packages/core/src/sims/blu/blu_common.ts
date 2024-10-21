@@ -51,7 +51,7 @@ const BLU_PHYSICAL_SPELLS = [
  */
 const BLU_CHANNELED_ABILITIES = [
     "Phantom Flurry",
-    "Apokalypsis",
+    "Apokalypsis"
 ] as const as readonly string[];
 
 /**
@@ -144,8 +144,8 @@ const DpsMimicry: Buff = {
         if (ability.name === "Matra Magic") {
             return {
                 ...ability,
-                potency: 800,
-            }
+                potency: 800
+            };
         }
         return null;
     },
@@ -202,8 +202,8 @@ const Tingling: Buff = {
             // TODO: revisit if physical damage dot ability is added
             return {
                 ...ability,
-                potency: ability.potency + bonusPotency,
-            }
+                potency: ability.potency + bonusPotency
+            };
         }
         return null;
     },
@@ -247,8 +247,8 @@ const WingedRedemption: Buff = {
             buffController.removeSelf();
             return {
                 ...ability,
-                potency: 440,
-            }
+                potency: 440
+            };
         }
         return null;
     },
@@ -719,20 +719,20 @@ export class BLUCycleProcessor extends CycleProcessor {
             let end: number = 0;
             const out = super.use(ability);
             switch (ability.name) {
-                case "Phantom Flurry": {
-                    end = this.currentTime + 5; // 5s channel time
-                    this.addSpecialRow("-- Flurry End --", end);
-                    break;
-                }
-                case "Apokalypsis": {
-                    end = this.currentTime + 10;  // 10s channel time
-                    this.addSpecialRow("-- Apokalypsis End --", end);
-                    break;
-                }
-                default: {
-                    console.error(`Ability ${ability.name} does not have channel time information. This is a bug.`);
-                    break;
-                }
+            case "Phantom Flurry": {
+                end = this.currentTime + 5; // 5s channel time
+                this.addSpecialRow("-- Flurry End --", end);
+                break;
+            }
+            case "Apokalypsis": {
+                end = this.currentTime + 10;  // 10s channel time
+                this.addSpecialRow("-- Apokalypsis End --", end);
+                break;
+            }
+            default: {
+                console.error(`Ability ${ability.name} does not have channel time information. This is a bug.`);
+                break;
+            }
             }
             // advance to the end of the channel time
             this.advanceTo(Math.max(this.currentTime, Math.min(end, this.totalTime)), true);
@@ -749,49 +749,49 @@ export class BLUCycleProcessor extends CycleProcessor {
             const newStackCount = this.wingedCounter + 1;
             let out: AbilityUseResult;
             switch (stackCount) {
-                case 0: // fall through
-                case 1: {
-                    const buff: Buff = {
-                        ...WingedReprobationBuff,
-                        stacks: newStackCount
-                    };
-                    const modified: Ability = {
-                        ...WingedReprobation,
-                        activatesBuffs: [buff],
-                        cooldown: {
-                            ...WingedReprobation.cooldown,
-                            time: 0,
-                        }
-                    };
-                    out = super.use(modified);
-                    break;
-                }
-                case 2: {
-                    const buff: Buff = {
-                        ...WingedReprobationBuff,
-                        descriptionExtras: ["Increases the potency of Winged Reprobation"],
-                        stacks: newStackCount
-                    };
-                    const modified: Ability = {
-                        ...WingedReprobation,
-                        activatesBuffs: [buff],
-                        cooldown: {
-                            ...WingedReprobation.cooldown,
-                            time: 0,
-                        }
-                    };
-                    out = super.use(modified);
-                    break;
-                }
-                case 3: {
-                    const modified: Ability = {
-                        ...WingedReprobation,
-                        potency: 400,
-                        activatesBuffs: [WingedRedemption],
-                    };
-                    out = super.use(modified);
-                    break;
-                }
+            case 0: // fall through
+            case 1: {
+                const buff: Buff = {
+                    ...WingedReprobationBuff,
+                    stacks: newStackCount
+                };
+                const modified: Ability = {
+                    ...WingedReprobation,
+                    activatesBuffs: [buff],
+                    cooldown: {
+                        ...WingedReprobation.cooldown,
+                        time: 0
+                    }
+                };
+                out = super.use(modified);
+                break;
+            }
+            case 2: {
+                const buff: Buff = {
+                    ...WingedReprobationBuff,
+                    descriptionExtras: ["Increases the potency of Winged Reprobation"],
+                    stacks: newStackCount
+                };
+                const modified: Ability = {
+                    ...WingedReprobation,
+                    activatesBuffs: [buff],
+                    cooldown: {
+                        ...WingedReprobation.cooldown,
+                        time: 0
+                    }
+                };
+                out = super.use(modified);
+                break;
+            }
+            case 3: {
+                const modified: Ability = {
+                    ...WingedReprobation,
+                    potency: 400,
+                    activatesBuffs: [WingedRedemption]
+                };
+                out = super.use(modified);
+                break;
+            }
             }
             this.wingedCounter++;
             return out;
@@ -804,7 +804,7 @@ export class BLUCycleProcessor extends CycleProcessor {
             const buff: Buff = {
                 ...SurpanakhaBuff,
                 effects: {
-                    dmgIncrease: multiplier,
+                    dmgIncrease: multiplier
                 },
                 stacks: newStackCount
             };
@@ -812,7 +812,7 @@ export class BLUCycleProcessor extends CycleProcessor {
                 ...Surpanakha,
                 activatesBuffs: [buff],
                 // animation lock becomes internal cooldown for back-to-back uses
-                animationLock: this.surpanakhaCounter < 3 ? 1.0 : 0.6,
+                animationLock: this.surpanakhaCounter < 3 ? 1.0 : 0.6
             };
             const out = super.use(modified);
             this.surpanakhaCounter++;
@@ -853,7 +853,7 @@ export abstract class BluSim<_BluCycleSimResult, _BluSimSettings>
         return {
             dpsMimicryEnabled: true,
             mightyGuardEnabled: false,
-            basicInstinctEnabled: false,
+            basicInstinctEnabled: false
         };
     }
 
@@ -877,7 +877,7 @@ export abstract class BluSim<_BluCycleSimResult, _BluSimSettings>
                 ...MightyGuard,
                 effects: {
                     ...MightyGuard.effects,
-                    dmgIncrease: this.settings.basicInstinctEnabled ? 0 : -0.4,
+                    dmgIncrease: this.settings.basicInstinctEnabled ? 0 : -0.4
                 }
             };
             cp.activateBuff(buff);

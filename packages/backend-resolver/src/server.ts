@@ -9,8 +9,7 @@ let fastify: FastifyInstance;
 if (process.env.IS_PREVIEW_SERVER === 'true') {
     console.log('Building preview server');
     fastify = buildPreviewServer();
-}
-else {
+} else {
     console.log('Building stats server');
     fastify = buildStatsServer();
 }
@@ -18,8 +17,7 @@ else {
 function validateUrl(url: string, description: string) {
     try {
         new URL(url);
-    }
-    catch (e) {
+    } catch (e) {
         console.error(`Not a valid ${description} URL: '${url}'`, url, e);
         throw e;
     }

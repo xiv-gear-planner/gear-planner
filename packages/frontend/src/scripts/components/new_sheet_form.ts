@@ -21,7 +21,7 @@ export class NewSheetFormFieldSet extends HTMLFieldSetElement {
     readonly levelDropdown: DataSelect<SupportedLevel>;
     readonly ilvlSyncCheckbox: FieldBoundCheckBox<typeof this.tempSettings>;
     readonly ilvlSyncValue: FieldBoundIntField<typeof this.tempSettings>;
-    readonly tempSettings
+    readonly tempSettings;
 
     constructor(defaults: {
         name?: string,
@@ -80,7 +80,7 @@ export class NewSheetFormFieldSet extends HTMLFieldSetElement {
                 nonNegative,
                 (ctx) => {
                     if (ctx.newValue > MAX_ILVL) {
-                        ctx.failValidation("Enter a valid item level (too high)")
+                        ctx.failValidation("Enter a valid item level (too high)");
                     }
                 }
             ]
@@ -126,7 +126,7 @@ export class NewSheetForm extends HTMLFormElement {
 
         onsubmit = (ev) => {
             this.doSubmit();
-        }
+        };
     }
 
     takeFocus() {

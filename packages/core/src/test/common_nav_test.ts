@@ -11,7 +11,7 @@ describe('path splitting and joining', () => {
         const pathOriginal = 'foo/bar|asdf/zxcv';
         const newSplit = splitPath(pathOriginal);
         expect(newSplit).to.deep.equals(['foo/bar', 'asdf/zxcv']);
-    })
+    });
 });
 
 describe('parsePath', () => {
@@ -80,26 +80,26 @@ describe('parsePath', () => {
         });
         it('resolves import sheet', () => {
             const setValue = {
-                foo: 'bar|baz',
+                foo: 'bar|baz'
             };
             const result = parsePath(['importsheet', JSON.stringify(setValue)]);
             expect(result).to.deep.equals({
                 type: 'sheetjson',
                 jsonBlob: setValue,
                 embed: false,
-                viewOnly: false,
+                viewOnly: false
             });
         });
         it('does not try to embed import sheet', () => {
             const setValue = {
-                foo: 'bar|baz',
+                foo: 'bar|baz'
             };
             const result = parsePath(['embed', 'importsheet', JSON.stringify(setValue)]);
             expect(result).to.deep.equals({
                 type: 'sheetjson',
                 jsonBlob: setValue,
                 embed: false,
-                viewOnly: false,
+                viewOnly: false
             });
         });
     });
@@ -107,26 +107,26 @@ describe('parsePath', () => {
     describe('viewsheet', () => {
         it('resolves view sheet', () => {
             const setValue = {
-                foo: 'bar|baz',
+                foo: 'bar|baz'
             };
             const result = parsePath(['viewsheet', JSON.stringify(setValue)]);
             expect(result).to.deep.equals({
                 type: 'sheetjson',
                 jsonBlob: setValue,
                 embed: false,
-                viewOnly: true,
+                viewOnly: true
             });
         });
         it('does not try to embed view sheet', () => {
             const setValue = {
-                foo: 'bar|baz',
+                foo: 'bar|baz'
             };
             const result = parsePath(['embed', 'viewsheet', JSON.stringify(setValue)]);
             expect(result).to.deep.equals({
                 type: 'sheetjson',
                 jsonBlob: setValue,
                 embed: false,
-                viewOnly: true,
+                viewOnly: true
             });
         });
     });
@@ -134,27 +134,27 @@ describe('parsePath', () => {
     describe('importset', () => {
         it('resolves import set', () => {
             const setValue = {
-                foo: 'bar|baz',
+                foo: 'bar|baz'
             };
             const result = parsePath(['importset', JSON.stringify(setValue)]);
             expect(result).to.deep.equals({
                 type: 'setjson',
                 jsonBlob: setValue,
                 embed: false,
-                viewOnly: false,
+                viewOnly: false
             });
         });
 
         it('does not try to embed import set', () => {
             const setValue = {
-                foo: 'bar|baz',
+                foo: 'bar|baz'
             };
             const result = parsePath(['embed', 'importset', JSON.stringify(setValue)]);
             expect(result).to.deep.equals({
                 type: 'setjson',
                 jsonBlob: setValue,
                 embed: false,
-                viewOnly: false,
+                viewOnly: false
             });
         });
     });
@@ -162,26 +162,26 @@ describe('parsePath', () => {
     describe('viewset', () => {
         it('resolves view set', () => {
             const setValue = {
-                foo: 'bar|baz',
+                foo: 'bar|baz'
             };
             const result = parsePath(['viewset', JSON.stringify(setValue)]);
             expect(result).to.deep.equals({
                 type: 'setjson',
                 jsonBlob: setValue,
                 embed: false,
-                viewOnly: true,
+                viewOnly: true
             });
         });
         it('can embed view set', () => {
             const setValue = {
-                foo: 'bar|baz',
+                foo: 'bar|baz'
             };
             const result = parsePath(['embed', 'viewset', JSON.stringify(setValue)]);
             expect(result).to.deep.equals({
                 type: 'setjson',
                 jsonBlob: setValue,
                 embed: true,
-                viewOnly: true,
+                viewOnly: true
             });
         });
     });
@@ -243,6 +243,6 @@ describe('parsePath', () => {
             expect(result).to.be.null;
         });
 
-    })
+    });
 
 });

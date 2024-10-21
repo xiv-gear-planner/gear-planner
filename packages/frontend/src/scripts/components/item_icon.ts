@@ -12,8 +12,7 @@ const itemIconMap = new Map<number, Promise<XivApiItemData>>();
 async function getDataFor(itemId: number): Promise<XivApiItemData> {
     if (itemIconMap.has(itemId)) {
         return itemIconMap.get(itemId);
-    }
-    else {
+    } else {
         const out = xivApiSingleCols('Item', itemId, ['ID', 'Icon'] as const) as Promise<XivApiItemData>;
         itemIconMap.set(itemId, out);
         return out;

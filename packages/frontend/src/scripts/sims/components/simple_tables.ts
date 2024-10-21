@@ -11,8 +11,7 @@ type SimpleResultEntry = {
 export function bestEffortFormat(value: unknown): Node {
     if (typeof value === 'number') {
         return document.createTextNode(value.toFixed(3));
-    }
-    else {
+    } else {
         return document.createTextNode(value.toString());
     }
 }
@@ -36,13 +35,13 @@ export function simpleAutoResultTable(result: object): HTMLElement {
         {
             shortName: 'key',
             displayName: 'Key',
-            getter: item => item.name,
+            getter: item => item.name
         },
         {
             shortName: 'value',
             displayName: 'Value',
             getter: item => item.value,
-            renderer: bestEffortFormat,
+            renderer: bestEffortFormat
         }
     ];
     table.data = data;
@@ -64,16 +63,16 @@ export function simpleMappedResultTable<X extends SimResult>(fieldNames: { [K in
             {
                 shortName: 'key',
                 displayName: 'Key',
-                getter: item => item.name,
+                getter: item => item.name
             },
             {
                 shortName: 'value',
                 displayName: 'Value',
                 getter: item => item.value,
-                renderer: bestEffortFormat,
+                renderer: bestEffortFormat
             }
         ];
         table.data = data;
         return table;
-    }
+    };
 }

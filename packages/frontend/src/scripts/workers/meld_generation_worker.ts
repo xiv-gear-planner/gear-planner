@@ -21,7 +21,7 @@ export class GearsetGenerationWorker extends WorkerBehavior<GearsetGenerationJob
         const gearset = this.sheet.importGearSet(settings.gearset);
         const gearsetGenSettings = {
             ...settings,
-            gearset,
+            gearset
         };
 
         const setGenerator = new GearsetGenerator(this.sheet, gearsetGenSettings);

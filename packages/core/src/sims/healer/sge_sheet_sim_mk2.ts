@@ -39,7 +39,7 @@ const eDosis: GcdAbility = {
     gcd: 2.5,
     // TODO: can this be modeled in a more accurate way? it doesn't break anything but isn't nice to work with
     cast: 1.5,
-    id: 24314,
+    id: 24314
 };
 
 const phlegma: GcdAbility = {
@@ -95,8 +95,8 @@ export const sgeNewSheetSpec: SimSpec<SgeSheetSim, SgeNewSheetSettingsExternal> 
             type: 'discord',
             discordTag: 'xp',
             discordUid: '126517290098229249'
-        }],
-    }],
+        }]
+    }]
 
 };
 
@@ -109,8 +109,7 @@ class SageCycleProcessor extends CycleProcessor {
     useDotIfWorth() {
         if (this.remainingTime > 15) {
             this.use(eDosis);
-        }
-        else {
+        } else {
             this.use(filler);
         }
     }
@@ -121,8 +120,7 @@ class SageCycleProcessor extends CycleProcessor {
             && this.remainingGcds(phlegma) <= 2
             && this.cdTracker.canUse(phlegma)) {
             return super.use(phlegma);
-        }
-        else {
+        } else {
             return super.use(ability);
         }
     }
@@ -134,8 +132,7 @@ class SageCycleProcessor extends CycleProcessor {
         if (this.isReady(psyche)) {
             this.use(psyche);
             this.use(phlegma);
-        }
-        else {
+        } else {
             this.doOffMinuteBurst();
         }
 
@@ -149,11 +146,9 @@ class SageCycleProcessor extends CycleProcessor {
                 this.use(phlegma);
                 this.use(psyche);
                 return;
-            }
-            else if (canUse === 'no') {
+            } else if (canUse === 'no') {
                 this.use(filler);
-            }
-            else {
+            } else {
                 return;
             }
         }
@@ -248,7 +243,7 @@ export class SgeSheetSim extends BaseMultiCycleSim<SgeSheetSimResult, SgeNewShee
                     cp.useDotIfWorth();
                     cycle.useUntil(filler, 'end');
                 });
-            },
+            }
         }))
         ];
     }

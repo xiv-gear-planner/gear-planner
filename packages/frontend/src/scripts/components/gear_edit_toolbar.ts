@@ -10,7 +10,7 @@ import {GearPlanSheetGui} from "./sheet";
 function makeIlvlArea(
     sheet: GearPlanSheetGui,
     itemDisplaySettings: ItemDisplaySettings,
-    displayUpdateCallback: () => void,
+    displayUpdateCallback: () => void
 ) {
     const ilvlDiv = document.createElement('div');
     ilvlDiv.classList.add('ilvl-picker-area');
@@ -39,9 +39,9 @@ function makeIlvlArea(
 let currentToolbarPopout: HTMLElement | null = null;
 
 document.addEventListener('resize', () => {
-   if (currentToolbarPopout !== null) {
-       // TODO
-   }
+    if (currentToolbarPopout !== null) {
+        // TODO
+    }
 });
 
 export class ToolbarButtonsArea extends HTMLDivElement {
@@ -120,9 +120,7 @@ export class ToolbarButtonsArea extends HTMLDivElement {
         if (button.getAttribute(attr)) {
             button.removeAttribute(attr);
             this.setActivePopoutElement(undefined);
-        }
-        // New button pressed - show popout
-        else {
+        } else { // New button pressed - show popout
             button.setAttribute(attr, 'true');
             this.panelButtons.forEach(btn => {
                 if (btn !== button) {
@@ -139,8 +137,7 @@ export class ToolbarButtonsArea extends HTMLDivElement {
             this.popoutArea.replaceChildren(popoutElement);
             this.popoutArea.style.display = '';
             currentToolbarPopout = popoutElement;
-        }
-        else {
+        } else {
             this.popoutArea.replaceChildren();
             this.popoutArea.style.display = 'none';
             currentToolbarPopout = null;
@@ -153,9 +150,9 @@ export class GearEditToolbar extends HTMLDivElement {
     private buttonsArea: ToolbarButtonsArea;
 
     constructor(sheet: GearPlanSheetGui,
-                itemDisplaySettings: ItemDisplaySettings,
-                displayUpdateCallback: () => void,
-                matFillCtrl: MateriaAutoFillController,
+        itemDisplaySettings: ItemDisplaySettings,
+        displayUpdateCallback: () => void,
+        matFillCtrl: MateriaAutoFillController
     ) {
         super();
         this.classList.add('gear-set-editor-toolbar');

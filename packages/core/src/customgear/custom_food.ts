@@ -17,7 +17,7 @@ function defaultBonus(): FoodStatBonus {
     return {
         max: 100,
         percentage: 10
-    }
+    };
 }
 
 export class CustomFood implements FoodItem {
@@ -36,7 +36,7 @@ export class CustomFood implements FoodItem {
             primaryStat: null,
             primaryStatBonus: defaultBonus(),
             secondaryStat: null,
-            secondaryStatBonus: defaultBonus(),
+            secondaryStatBonus: defaultBonus()
         };
     }
 
@@ -52,7 +52,7 @@ export class CustomFood implements FoodItem {
         const data: CustomFoodExport = {
             ...this.defaults(),
             fakeId: fakeId,
-            name: "My Custom Food",
+            name: "My Custom Food"
         };
         return new CustomFood(data);
     }
@@ -75,7 +75,7 @@ export class CustomFood implements FoodItem {
 
     get bonuses(): FoodBonuses {
         const out: FoodBonuses = {
-            vitality: this._data.vitalityBonus,
+            vitality: this._data.vitalityBonus
         };
         if (this.secondarySubStat) {
             out[this._data.secondaryStat] = this._data.secondaryStatBonus;

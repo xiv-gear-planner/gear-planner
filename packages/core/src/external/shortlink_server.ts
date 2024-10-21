@@ -9,8 +9,7 @@ function getServer() {
     if (override) {
         try {
             return new URL(override);
-        }
-        catch (e) {
+        } catch (e) {
             console.error('Invalid override URL, using default', override);
         }
     }
@@ -36,8 +35,7 @@ export async function putShortLink(content: string, embed: boolean = false): Pro
         // If on prod, use the fancy share link.
         if (embed) {
             return makeUrl(EMBED_HASH, SHORTLINK_HASH, uuid);
-        }
-        else {
+        } else {
             return makeUrl(SHORTLINK_HASH, uuid);
         }
     });

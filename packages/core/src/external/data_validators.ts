@@ -22,8 +22,7 @@ export function requireType<T extends BuiltinType>(input: unknown, expected: T):
     const actualType = typeof input;
     if (actualType === expected) {
         return input as never;
-    }
-    else {
+    } else {
         throw Error(`Expected type ${expected}, got {} (value: [${input}]`);
     }
 }
@@ -43,11 +42,9 @@ export function requireBool(input: unknown) {
 export function requireBoolish(input: unknown) {
     if (input === 0) {
         return false;
-    }
-    else if (input === 1) {
+    } else if (input === 1) {
         return true;
-    }
-    else {
+    } else {
         return requireBool(input);
     }
 }
@@ -56,8 +53,7 @@ export function requireBoolish(input: unknown) {
 export function requireArray(input: unknown): any[] {
     if (Array.isArray(input)) {
         return input;
-    }
-    else {
+    } else {
         throw Error(`Expected array, got ${input}`);
     }
 }
@@ -78,8 +74,7 @@ export function requireArrayTyped<T extends BuiltinType>(input: unknown, memberT
     if (good) {
         // @ts-expect-error - idk
         return input;
-    }
-    else {
+    } else {
         throw Error(`Expected array to contain ${memberType}, got ${input}`);
     }
 }

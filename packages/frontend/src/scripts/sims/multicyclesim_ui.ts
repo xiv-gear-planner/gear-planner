@@ -14,7 +14,7 @@ import { BaseMultiCycleSim } from "@xivgear/core/sims/processors/sim_processors"
 
 export class BaseMultiCycleSimGui<ResultType extends CycleSimResult, InternalSettingsType extends SimSettings, CycleProcessorType extends CycleProcessor = CycleProcessor, FullResultType extends CycleSimResultFull<ResultType> = CycleSimResultFull<ResultType>>
     extends SimulationGui<FullResultType, InternalSettingsType, ExternalCycleSettings<InternalSettingsType>> {
-    
+
     declare sim: BaseMultiCycleSim<ResultType, InternalSettingsType, CycleProcessorType, FullResultType>;
 
 
@@ -70,7 +70,7 @@ export class BaseMultiCycleSimGui<ResultType extends CycleSimResult, InternalSet
             "Time Taken": result.totalTime
         };
         if (includeRotationName) {
-            data["Rotation"] = result.label
+            data["Rotation"] = result.label;
         }
         const mainResultsTable = simpleAutoResultTable(data);
         mainResultsTable.classList.add('main-results-table');

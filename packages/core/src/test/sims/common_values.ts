@@ -48,7 +48,7 @@ export const dia: GcdAbility = {
         duration: 30
     },
     attackType: "Spell",
-    gcd: 2.5,
+    gcd: 2.5
 };
 
 export const assize: OgcdAbility = {
@@ -70,8 +70,8 @@ export const pom: OgcdAbility = {
             selfOnly: true,
             duration: 15,
             effects: {
-                haste: 20,
-            },
+                haste: 20
+            }
         }
     ],
     attackType: "Ability"
@@ -83,7 +83,7 @@ export const misery: GcdAbility = {
     name: "Afflatus Misery",
     potency: 1240,
     attackType: "Spell",
-    gcd: 2.5,
+    gcd: 2.5
 };
 
 export const lily: GcdAbility = {
@@ -92,7 +92,7 @@ export const lily: GcdAbility = {
     name: "Afflatus Rapture",
     potency: 0,
     attackType: "Spell",
-    gcd: 2.5,
+    gcd: 2.5
 };
 // Replace data that would normally be loaded from xivapi with fixed data
 const jobStatMultipliers: JobMultipliers = {

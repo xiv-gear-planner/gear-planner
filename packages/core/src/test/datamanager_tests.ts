@@ -1,5 +1,5 @@
-import 'global-jsdom/register'
-import 'isomorphic-fetch'
+import 'global-jsdom/register';
+import 'isomorphic-fetch';
 import * as assert from "assert";
 import {RawStats} from "@xivgear/xivmath/geartypes";
 import {NewApiDataManager} from "../datamanager_new";
@@ -333,5 +333,5 @@ describe('New Datamanager', () => {
             //     expect(item.stats.vitality).to.eq(411);
             // });
         });
-    })
+    });
 });

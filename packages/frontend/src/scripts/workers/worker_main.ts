@@ -18,7 +18,7 @@ onmessage = async function (event) {
         // eslint-disable-next-line no-case-declarations
         const response: AnyWorkResponse = {
             responseType: "done",
-            data: null,
+            data: null
         };
         this.postMessage(response);
         return;

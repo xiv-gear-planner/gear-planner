@@ -36,8 +36,7 @@ export async function openEmbed(sheet: GearPlanSheetGui) {
         embedDiv.replaceChildren(editorArea);
         console.log("openEmbed end");
         setTitle('Embed');
-    }
-    catch (e) {
+    } catch (e) {
         console.error("Error loading embed", e);
         displayEmbedError();
     }

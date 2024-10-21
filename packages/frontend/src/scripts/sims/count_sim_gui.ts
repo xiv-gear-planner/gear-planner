@@ -88,8 +88,7 @@ export class BaseUsageCountSimGui<ResultType extends CountSimResult, InternalSet
                 abilityData.total += count;
                 if (duration !== null) {
                     abilityData.usages.set(duration, (abilityData.usages.get(duration) ?? 0) + count);
-                }
-                else {
+                } else {
                     abilityData.outOfBuffs += count;
                 }
             });
@@ -113,26 +112,26 @@ export class BaseUsageCountSimGui<ResultType extends CountSimResult, InternalSet
                 shortName: `buff-dur-${dur}`,
                 displayName: `In ${dur}s Buffs`,
                 getter: bucket => {
-                    return bucket.usages.get(dur) ?? 0
+                    return bucket.usages.get(dur) ?? 0;
                 },
-                renderer: value => document.createTextNode(value.toFixed(3)),
-            })
+                renderer: value => document.createTextNode(value.toFixed(3))
+            });
         });
         columns.push({
             shortName: `out-of-buffs`,
             displayName: `Out of Buffs`,
             getter: bucket => {
-                return bucket.outOfBuffs
+                return bucket.outOfBuffs;
             },
-            renderer: value => document.createTextNode(value.toFixed(3)),
+            renderer: value => document.createTextNode(value.toFixed(3))
         });
         columns.push({
             shortName: `total`,
             displayName: `Total`,
             getter: bucket => {
-                return bucket.total
+                return bucket.total;
             },
-            renderer: value => document.createTextNode(value.toFixed(3)),
+            renderer: value => document.createTextNode(value.toFixed(3))
         });
         bucketsTable.columns = columns;
 

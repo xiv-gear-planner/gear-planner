@@ -71,15 +71,15 @@ export function parsePath(originalPath: string[]): NavPath | null {
         return {
             type: 'math',
             formula: null
-        }
+        };
     }
     const mainNav = path[0];
 
     if (mainNav === CALC_HASH) {
         return {
             type: 'math',
-            formula: path.length >= 2 ? path[1] : null,
-        }
+            formula: path.length >= 2 ? path[1] : null
+        };
     }
     console.log('Unknown nav path', path);
     return null;
@@ -88,10 +88,10 @@ export function parsePath(originalPath: string[]): NavPath | null {
 async function doNav(pathParts: string[]) {
     const nav = parsePath(pathParts);
     switch (nav.type) {
-        case "math": {
-            openMath(nav.formula);
-            return;
-        }
+    case "math": {
+        openMath(nav.formula);
+        return;
+    }
     }
     console.error("I don't know what to do with this path", pathParts);
     // TODO: handle remaining invalid cases

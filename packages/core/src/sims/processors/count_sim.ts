@@ -40,7 +40,7 @@ export type BuffWindowUsages = {
 export type SkillCount = [ability: Ability, count: number];
 
 export abstract class BaseUsageCountSim<ResultType extends CountSimResult, InternalSettingsType extends SimSettings>
-    implements Simulation<ResultType, InternalSettingsType, ExternalCountSettings<InternalSettingsType>> {
+implements Simulation<ResultType, InternalSettingsType, ExternalCountSettings<InternalSettingsType>> {
 
     abstract displayName: string;
     abstract shortName: string;
@@ -57,8 +57,7 @@ export abstract class BaseUsageCountSim<ResultType extends CountSimResult, Inter
             Object.assign(this.settings, settings.customSettings ?? settings);
             this.buffManager = BuffSettingsManager.fromSaved(settings.buffConfig);
             this.resultSettings = settings.resultSettings ?? defaultResultSettings();
-        }
-        else {
+        } else {
             this.buffManager = BuffSettingsManager.defaultForJob(job);
             this.resultSettings = defaultResultSettings();
         }
@@ -173,7 +172,7 @@ export abstract class BaseUsageCountSim<ResultType extends CountSimResult, Inter
             mainDpsResult: applyStdDev(dps, this.resultSettings.stdDevs ?? 0),
             totalDamage: totalDamage,
             unbuffedPps: pps,
-            buffBuckets: resultBuckets,
+            buffBuckets: resultBuckets
         } satisfies CountSimResult as unknown as ResultType;
     }
 

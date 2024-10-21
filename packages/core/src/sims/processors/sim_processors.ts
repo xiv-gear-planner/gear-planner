@@ -23,7 +23,7 @@ import { BuffSettingsManager } from "@xivgear/core/sims/common/party_comp_settin
  * and provide your own generic types.
  */
 export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, InternalSettingsType extends SimSettings, CycleProcessorType extends CycleProcessor = CycleProcessor, FullResultType extends CycleSimResultFull<ResultType> = CycleSimResultFull<ResultType>>
-    implements Simulation<FullResultType, InternalSettingsType, ExternalCycleSettings<InternalSettingsType>> {
+implements Simulation<FullResultType, InternalSettingsType, ExternalCycleSettings<InternalSettingsType>> {
 
     abstract displayName: string;
     abstract shortName: string;
@@ -58,8 +58,7 @@ export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, Inter
             this.buffManager = BuffSettingsManager.fromSaved(settings.buffConfig);
             this.cycleSettings = this.rehydrateCycleSettings(settings.cycleSettings);
             this.resultSettings = settings.resultSettings ?? defaultResultSettings();
-        }
-        else {
+        } else {
             this.cycleSettings = this.defaultCycleSettings();
             this.buffManager = BuffSettingsManager.defaultForJob(job);
             this.resultSettings = defaultResultSettings();
@@ -102,7 +101,7 @@ export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, Inter
             which: 'totalTime',
             useAutos: this.useAutosByDefault,
             cutoffMode: this.defaultCutoffMode
-        }
+        };
     }
 
     rehydrateCycleSettings(imported: Partial<CycleSettings>): CycleSettings {
@@ -136,7 +135,7 @@ export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, Inter
         const allBuffs = this.buffManager.enabledBuffs;
         const rotations = this.getRotationsToSimulate(set);
         return rotations.map((rot, index) => {
-        
+
             const cp = this.createCycleProcessor({
                 stats: set.computedStats,
                 totalTime: this.cycleSettings.totalTime,
@@ -144,7 +143,7 @@ export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, Inter
                 allBuffs: allBuffs,
                 manuallyActivatedBuffs: this.manuallyActivatedBuffs ?? [],
                 useAutos: (this.cycleSettings.useAutos ?? true) && set.getItemInSlot('Weapon') !== null,
-                cutoffMode: this.cycleSettings.cutoffMode,
+                cutoffMode: this.cycleSettings.cutoffMode
             });
             rot.apply(cp);
             return [rot.name ?? `Unnamed #${index + 1}`, cp];
@@ -172,7 +171,7 @@ export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, Inter
                 unbuffedPps: unbuffedPps,
                 buffTimings: buffTimings,
                 totalTime: timeBasis,
-                label: label,
+                label: label
             } satisfies CycleSimResult as unknown as ResultType;
         });
         const sorted = [...allResults];
@@ -191,7 +190,7 @@ export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, Inter
     async simulate(set: CharacterGearSet): Promise<FullResultType> {
         console.debug("Sim start");
         const setSpeed = set.isStatRelevant('spellspeed') ? set.computedStats.spellspeed : set.computedStats.skillspeed;
-        if (setSpeed != this.cachedSpeed) {
+        if (setSpeed !== this.cachedSpeed) {
             this.cachedCycleProcessors = this.generateRotations(set);
             this.cachedSpeed = setSpeed;
         }

@@ -50,8 +50,7 @@ export class BuffSettingsManager {
             const job = val.job;
             if (job in map) {
                 map[job].push(val);
-            }
-            else {
+            } else {
                 map[job] = [val];
             }
             return map;
@@ -81,8 +80,8 @@ export class BuffSettingsManager {
         return {
             jobs: this.jobs.filter(jobSetting => jobSetting.enabled)
                 .map(jobSetting => jobSetting.job),
-            buffs: this.individuallyEnabledBuffs.map(buff => BuffSettingsManager.getBuffKey(buff)),
-        }
+            buffs: this.individuallyEnabledBuffs.map(buff => BuffSettingsManager.getBuffKey(buff))
+        };
     }
 
     get allJobs() {

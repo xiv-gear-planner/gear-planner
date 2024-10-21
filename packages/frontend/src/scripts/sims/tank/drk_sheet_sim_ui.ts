@@ -54,7 +54,7 @@ export class DrkSimGui extends BaseMultiCycleSimGui<DrkSimResult, DrkSettings> {
         },
         {
             shortName: 'darkside',
-            displayName: 'Darkside', 
+            displayName: 'Darkside',
             getter: used => isFinalizedAbilityUse(used) ? used.original : null,
             renderer: (usedAbility?: PreDmgUsedAbility) => {
                 if (usedAbility?.extraData !== undefined) {
@@ -82,7 +82,7 @@ export class DrkSimGui extends BaseMultiCycleSimGui<DrkSimResult, DrkSettings> {
                     const barInner = document.createElement('div');
                     barInner.style.backgroundColor = '#f913bc';
                     barInner.style.height = '100%';
-                    barInner.style.width = `${Math.round((darksideDuration/60) * 100)}%`;
+                    barInner.style.width = `${Math.round((darksideDuration / 60) * 100)}%`;
                     barOuter.appendChild(barInner);
 
                     div.appendChild(barOuter);
@@ -95,7 +95,7 @@ export class DrkSimGui extends BaseMultiCycleSimGui<DrkSimResult, DrkSettings> {
         },
         {
             shortName: 'darkArts',
-            displayName: 'Dark Arts', 
+            displayName: 'Dark Arts',
             getter: used => isFinalizedAbilityUse(used) ? used.original : null,
             renderer: (usedAbility?: PreDmgUsedAbility) => {
                 if (usedAbility?.extraData !== undefined) {
@@ -160,7 +160,7 @@ export class DrkSimGui extends BaseMultiCycleSimGui<DrkSimResult, DrkSettings> {
 
                     const barInner = document.createElement('div');
                     barInner.style.backgroundColor = '#df5591';
-                    barInner.style.width = `${Math.round((mp/10000) * 100)}%`;
+                    barInner.style.width = `${Math.round((mp / 10000) * 100)}%`;
                     barInner.style.height = '100%';
                     barOuter.appendChild(barInner);
 
@@ -171,17 +171,17 @@ export class DrkSimGui extends BaseMultiCycleSimGui<DrkSimResult, DrkSettings> {
                 }
                 return document.createTextNode("");
             }
-        },
+        }
         ];
     }
-    
+
     override makeCustomConfigInterface(settings: DrkSettings, _updateCallback: () => void): HTMLElement | null {
         const configDiv = document.createElement("div");
 
         const potCb = new FieldBoundCheckBox(settings, "usePotion");
 
         configDiv.appendChild(labeledCheckbox("Use Potion", potCb));
-        
+
         const prepullTBNCB = new FieldBoundCheckBox(settings, "prepullTBN");
 
         configDiv.appendChild(labeledCheckbox("Use The Blackest Night prepull", prepullTBNCB));

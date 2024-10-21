@@ -8,7 +8,7 @@ export const fast: GcdAbility = {
     attackType: "Weaponskill",
     gcd: 2.5,
     fixedGcd: true
-}
+};
 
 export const riot: GcdAbility = {
     id: 15,
@@ -18,7 +18,7 @@ export const riot: GcdAbility = {
     attackType: "Weaponskill",
     gcd: 2.5,
     fixedGcd: true
-}
+};
 
 export const royal: GcdAbility = {
     id: 3539,
@@ -28,7 +28,7 @@ export const royal: GcdAbility = {
     attackType: "Weaponskill",
     gcd: 2.5,
     fixedGcd: true
-}
+};
 
 export const atone: GcdAbility = {
     id: 16460,
@@ -38,7 +38,7 @@ export const atone: GcdAbility = {
     attackType: "Weaponskill",
     gcd: 2.5,
     fixedGcd: true
-}
+};
 
 export const supp: GcdAbility = {
     id: 36918,
@@ -48,7 +48,7 @@ export const supp: GcdAbility = {
     attackType: "Weaponskill",
     gcd: 2.5,
     fixedGcd: true
-}
+};
 
 export const sep: GcdAbility = {
     id: 36919,
@@ -58,7 +58,7 @@ export const sep: GcdAbility = {
     attackType: "Weaponskill",
     gcd: 2.5,
     fixedGcd: true
-}
+};
 
 export const hs: GcdAbility = {
     id: 7384,
@@ -68,7 +68,7 @@ export const hs: GcdAbility = {
     attackType: "Spell",
     gcd: 2.5,
     fixedGcd: true
-}
+};
 
 export const goring: GcdAbility = {
     id: 3538,
@@ -78,7 +78,7 @@ export const goring: GcdAbility = {
     attackType: "Weaponskill",
     gcd: 2.5,
     fixedGcd: true
-}
+};
 
 export const conf: GcdAbility = {
     id: 16459,
@@ -88,7 +88,7 @@ export const conf: GcdAbility = {
     attackType: "Spell",
     gcd: 2.5,
     fixedGcd: true
-}
+};
 
 export const faith: GcdAbility = {
     id: 25748,
@@ -98,7 +98,7 @@ export const faith: GcdAbility = {
     attackType: "Spell",
     gcd: 2.5,
     fixedGcd: true
-}
+};
 
 export const truth: GcdAbility = {
     id: 25749,
@@ -108,7 +108,7 @@ export const truth: GcdAbility = {
     attackType: "Spell",
     gcd: 2.5,
     fixedGcd: true
-}
+};
 
 export const valor: GcdAbility = {
     id: 25750,
@@ -118,7 +118,7 @@ export const valor: GcdAbility = {
     attackType: "Spell",
     gcd: 2.5,
     fixedGcd: true
-}
+};
 
 export const cos: OgcdAbility = {
     id: 23,
@@ -131,7 +131,7 @@ export const cos: OgcdAbility = {
         tickPotency: 30
     },
     attackType: "Ability"
-}
+};
 
 export const exp: OgcdAbility = {
     id: 25747,
@@ -139,7 +139,7 @@ export const exp: OgcdAbility = {
     name: "Expiacion",
     potency: 450,
     attackType: "Ability"
-}
+};
 
 export const int: OgcdAbility = {
     id: 16461,
@@ -147,7 +147,7 @@ export const int: OgcdAbility = {
     name: "Intervene",
     potency: 150,
     attackType: "Ability"
-}
+};
 
 export const imp: OgcdAbility = {
     id: 36921,
@@ -155,7 +155,7 @@ export const imp: OgcdAbility = {
     name: "Imperator",
     potency: 580,
     attackType: "Ability"
-}
+};
 
 export const honor: OgcdAbility = {
     id: 36922,
@@ -163,7 +163,7 @@ export const honor: OgcdAbility = {
     name: "Blade of Honor",
     potency: 1000,
     attackType: "Ability"
-}
+};
 
 export const auto: AutoAttack = {
     name: 'Auto Attack',
@@ -171,7 +171,7 @@ export const auto: AutoAttack = {
     potency: 90,
     attackType: 'Auto-attack',
     id: 7
-}
+};
 
 export const fof: OgcdAbility = {
     id: 20,
@@ -190,29 +190,29 @@ export const fof: OgcdAbility = {
             }
         }
     ]
-}
+};
 
 export function buffed(ability: Ability & Partial<DamagingAbility>): Ability {
-	if (!ability.dot) {
-		return {
-			...ability,
-			name: `${ability.name} (FoF)`,
-			potency: ability.potency * 1.25,
-			id: -ability.id,
-		};
-	}
+    if (!ability.dot) {
+        return {
+            ...ability,
+            name: `${ability.name} (FoF)`,
+            potency: ability.potency * 1.25,
+            id: -ability.id
+        };
+    }
 
-	const {dot: d, ...rest} = ability;
+    const {dot: d, ...rest} = ability;
 
-	return {
-		...rest,
-		name: `${ability.name} (FoF)`,
-		potency: ability.potency * 1.25,
-		id: -ability.id,
-		dot: {
-			...d,
-			id: -d.id,
-			tickPotency: d.tickPotency * 1.25,
-		}
-	};
+    return {
+        ...rest,
+        name: `${ability.name} (FoF)`,
+        potency: ability.potency * 1.25,
+        id: -ability.id,
+        dot: {
+            ...d,
+            id: -d.id,
+            tickPotency: d.tickPotency * 1.25
+        }
+    };
 }

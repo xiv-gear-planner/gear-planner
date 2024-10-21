@@ -48,7 +48,7 @@ export class BluWinged60Sim extends blu.BluSim<BluWinged60SimResult, BluWinged60
             cp.use(blu.FeatherRain);
             return;
         }
-        
+
         if (shockStrikeReady && cp.remainingTime < blu.ShockStrike.cooldown.time) {
             cp.use(blu.ShockStrike);
             return;
@@ -75,8 +75,7 @@ export class BluWinged60Sim extends blu.BluSim<BluWinged60SimResult, BluWinged60
 
         if (!featherRainSoon && cp.bleedEnd < nextBleedStart &&
             Math.min(bloomCd.readyAt.absolute - bleedComboTime,
-            cp.remainingTime - bleedComboTime) > 15)
-        {
+                cp.remainingTime - bleedComboTime) > 15) {
             cp.use(blu.Bristle);
             this.useOgcdFiller(cp);
             this.useOgcdFiller(cp);
@@ -95,8 +94,7 @@ export class BluWinged60Sim extends blu.BluSim<BluWinged60SimResult, BluWinged60
         // use Rose of Destruction if off cooldown and it won't interfere with the next Flute window
         if (cp.isReady(blu.RoseOfDestruction) &&
             cp.cdTracker.statusOfAt(blu.ShockStrike, cp.nextGcdTime).readyAt.relative >
-            cp.stats.gcdMag(blu.RoseOfDestruction.cooldown.time)) 
-        {
+            cp.stats.gcdMag(blu.RoseOfDestruction.cooldown.time)) {
             cp.use(blu.RoseOfDestruction);
             return;
         }
@@ -119,8 +117,8 @@ export class BluWinged60Sim extends blu.BluSim<BluWinged60SimResult, BluWinged60
 
                 // start of first cycle opener
                 cp.use(blu.MoonFlute);
-                
-                // cycle based off of Nightbloom (fixed cooldown: 120s)                
+
+                // cycle based off of Nightbloom (fixed cooldown: 120s)
                 cp.remainingCycles(cycle => {
                     // TODO: this is a hack to avoid floating point errors at fast gcds
                     if (cp.gcdRecast < 2.19) {

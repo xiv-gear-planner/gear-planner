@@ -11,7 +11,7 @@ export class VprGauge {
             console.warn(`Overcapped Serpent Offerings by ${newGauge - 100}.`);
         }
         if (newGauge < 0) {
-            console.warn(`Used ${this._serpentOfferings - newGauge} when you only have ${this._serpentOfferings}.`)
+            console.warn(`Used ${this._serpentOfferings - newGauge} when you only have ${this._serpentOfferings}.`);
         }
         this._serpentOfferings = Math.max(Math.min(newGauge, 100), 0);
     }
@@ -25,7 +25,7 @@ export class VprGauge {
             console.warn(`Overcapped Rattling Coils by ${newCoils - 3}.`);
         }
         if (newCoils < 0) {
-            console.warn(`Used Rattling coils when empty`)
+            console.warn(`Used Rattling coils when empty`);
         }
 
         this._rattlingCoils = Math.max(Math.min(newCoils, 3), 0);
@@ -36,7 +36,7 @@ export class VprGauge {
         return {
             level: 100,
             serpentOfferings: this.serpentOfferings,
-            rattlingCoils: this.rattlingCoils,
-        }
+            rattlingCoils: this.rattlingCoils
+        };
     }
 }

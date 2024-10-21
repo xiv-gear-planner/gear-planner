@@ -20,7 +20,7 @@ const ETRO_GEAR_SLOT_MAP: Record<ETRO_SLOT_KEY, EquipSlotKey> = {
     neck: "Neck",
     wrists: "Wrist",
     fingerL: "RingLeft",
-    fingerR: "RingRight",
+    fingerR: "RingRight"
 } as const;
 
 type EtroGearData = {
@@ -93,8 +93,7 @@ export async function getSetFromEtro(etroSetId: string) {
                     const stat = BaseParamToStatKey[paramData.Name as RelevantBaseParam];
                     relicStats[stat] = relicData[`param${i}Value`];
                 }
-            }
-            else {
+            } else {
                 continue;
             }
 
@@ -103,11 +102,9 @@ export async function getSetFromEtro(etroSetId: string) {
         let materiaKey;
         if (slotKey === 'RingLeft') {
             materiaKey = itemId + 'L';
-        }
-        else if (slotKey === 'RingRight') {
+        } else if (slotKey === 'RingRight') {
             materiaKey = itemId + 'R';
-        }
-        else {
+        } else {
             materiaKey = itemId;
         }
         const materiaData = response.materia ? response.materia[materiaKey] : false;
@@ -117,8 +114,7 @@ export async function getSetFromEtro(etroSetId: string) {
                 const materiaMaybe = materiaData[i];
                 if (materiaMaybe) {
                     materiaOut.push({id: materiaMaybe});
-                }
-                else {
+                } else {
                     materiaOut.push({id: -1});
                 }
             }
@@ -128,21 +124,19 @@ export async function getSetFromEtro(etroSetId: string) {
                 id: itemId,
                 materia: materiaOut,
                 relicStats: relicStats
-            }
-        }
-        else {
+            };
+        } else {
             items[slotKey] = {
                 id: itemId,
                 materia: materiaOut
-            }
+            };
         }
     }
     let food: number | undefined;
     if (response.food) {
         console.log('Fetching etro food', response.food);
         food = await fetch(`https://etro.gg/api/food/${response.food}/`).then(response => response.json()).then(json => json['item']);
-    }
-    else {
+    } else {
         food = undefined;
     }
     const setImport: SetExport = {

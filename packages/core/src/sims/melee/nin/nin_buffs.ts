@@ -16,7 +16,7 @@ export const KunaisBaneBuff: Buff = {
 };
 
 const NINJUTSU_ACTIONS_1STEP: string[] = [
-    "Fuma Shuriken",
+    "Fuma Shuriken"
 ];
 const NINJUTSU_ACTIONS_2STEP: string[] = [
     "Katon", "Raiton", "Hyoton",
@@ -28,7 +28,7 @@ const NINJUTSU_ACTIONS_3STEP: string[] = [
 const NINJUTSU_ACTIONS: string[] = [
     ...NINJUTSU_ACTIONS_1STEP,
     ...NINJUTSU_ACTIONS_2STEP,
-    ...NINJUTSU_ACTIONS_3STEP,
+    ...NINJUTSU_ACTIONS_3STEP
 ];
 export const KassatsuBuff: Buff = {
     name: "Kassatsu",
@@ -56,8 +56,8 @@ export const TenChiJinReady: Buff = {
         if (!NINJUTSU_ACTIONS_3STEP.includes(ability.name)) {
             return {
                 ...ability,
-                gcd: 1.0,
-            }
+                gcd: 1.0
+            };
         }
         return null;
     },
@@ -65,7 +65,7 @@ export const TenChiJinReady: Buff = {
         if (NINJUTSU_ACTIONS_3STEP.includes(ability.name)) {
             buffController.removeSelf();
         }
-        return null
+        return null;
     },
     duration: 6,
     statusId: 1186
@@ -110,7 +110,7 @@ export const MeisuiBuff: Buff = {
         buffController.removeSelf();
         return {
             ...ability,
-            potency: ability.potency + 150,
+            potency: ability.potency + 150
         };
     },
     duration: 30,
@@ -131,7 +131,7 @@ export const BunshinBuff: Buff = {
         return {
             ...ability,
             // TODO: the potency addition here should be pet potency
-            potency: ability.potency + 160,
+            potency: ability.potency + 160
         };
     },
     stacks: 5,

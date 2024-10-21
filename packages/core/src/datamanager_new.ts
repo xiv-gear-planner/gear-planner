@@ -22,7 +22,7 @@ import {
     OccGearSlotKey,
     RawStatKey,
     RawStats,
-    RelicStatModel,
+    RelicStatModel
 } from "@xivgear/xivmath/geartypes";
 import {BaseParamToStatKey, RelevantBaseParam} from "./external/xivapitypes";
 import {getRelicStatModelFor} from "./relicstats/relicstats";
@@ -107,7 +107,7 @@ export class NewApiDataManager implements DataManager {
     private _maxIlvlForEquipLevelWeapon: Map<number, number>;
 
     private queryBaseParams() {
-        return this.apiClient.baseParams.baseParams()
+        return this.apiClient.baseParams.baseParams();
     }
 
     async getIlvlSyncData(baseParamPromise: ReturnType<typeof this.queryBaseParams>, ilvl: number) {
@@ -125,69 +125,68 @@ export class NewApiDataManager implements DataManager {
                         substatCap(slot: OccGearSlotKey, statsKey: RawStatKey): number {
                             let ilvlModifier: number | null;
                             switch (statsKey) {
-                                case "hp":
-                                    ilvlModifier = row.HP;
-                                    break;
-                                case "vitality":
-                                    ilvlModifier = row.vitality;
-                                    break;
-                                case "strength":
-                                    ilvlModifier = row.strength;
-                                    break;
-                                case "dexterity":
-                                    ilvlModifier = row.dexterity;
-                                    break;
-                                case "intelligence":
-                                    ilvlModifier = row.intelligence;
-                                    break;
-                                case "mind":
-                                    ilvlModifier = row.mind;
-                                    break;
-                                case "piety":
-                                    ilvlModifier = row.piety;
-                                    break;
-                                case "crit":
-                                    ilvlModifier = row.criticalHit;
-                                    break;
-                                case "dhit":
-                                    ilvlModifier = row.directHitRate;
-                                    break;
-                                case "determination":
-                                    ilvlModifier = row.determination;
-                                    break;
-                                case "tenacity":
-                                    ilvlModifier = row.tenacity;
-                                    break;
-                                case "spellspeed":
-                                    ilvlModifier = row.spellSpeed;
-                                    break;
-                                case "skillspeed":
-                                    ilvlModifier = row.skillSpeed;
-                                    break;
-                                case "wdPhys":
-                                    ilvlModifier = row.physicalDamage;
-                                    break;
-                                case "wdMag":
-                                    ilvlModifier = row.magicalDamage;
-                                    break;
-                                case "weaponDelay":
-                                    ilvlModifier = row.delay;
-                                    break;
-                                default:
-                                    console.warn(`Bad ilvl modifer! ${statsKey}:${slot}`);
-                                    ilvlModifier = null;
-                                    break;
+                            case "hp":
+                                ilvlModifier = row.HP;
+                                break;
+                            case "vitality":
+                                ilvlModifier = row.vitality;
+                                break;
+                            case "strength":
+                                ilvlModifier = row.strength;
+                                break;
+                            case "dexterity":
+                                ilvlModifier = row.dexterity;
+                                break;
+                            case "intelligence":
+                                ilvlModifier = row.intelligence;
+                                break;
+                            case "mind":
+                                ilvlModifier = row.mind;
+                                break;
+                            case "piety":
+                                ilvlModifier = row.piety;
+                                break;
+                            case "crit":
+                                ilvlModifier = row.criticalHit;
+                                break;
+                            case "dhit":
+                                ilvlModifier = row.directHitRate;
+                                break;
+                            case "determination":
+                                ilvlModifier = row.determination;
+                                break;
+                            case "tenacity":
+                                ilvlModifier = row.tenacity;
+                                break;
+                            case "spellspeed":
+                                ilvlModifier = row.spellSpeed;
+                                break;
+                            case "skillspeed":
+                                ilvlModifier = row.skillSpeed;
+                                break;
+                            case "wdPhys":
+                                ilvlModifier = row.physicalDamage;
+                                break;
+                            case "wdMag":
+                                ilvlModifier = row.magicalDamage;
+                                break;
+                            case "weaponDelay":
+                                ilvlModifier = row.delay;
+                                break;
+                            default:
+                                console.warn(`Bad ilvl modifer! ${statsKey}:${slot}`);
+                                ilvlModifier = null;
+                                break;
 
                             }
                             const baseParamModifier = baseParams[statsKey as RawStatKey][slot];
                             const jobCap = jobStats.itemStatCapMultipliers?.[statsKey];
                             if (jobCap !== undefined) {
                                 return Math.round(jobCap * Math.round(ilvlModifier * baseParamModifier / 1000));
-                            }
-                            else {
+                            } else {
                                 return Math.round(ilvlModifier * baseParamModifier / 1000);
                             }
-                        },
+                        }
                     } as const);
 
                 }
@@ -198,8 +197,7 @@ export class NewApiDataManager implements DataManager {
         const data = await this._isyncPromise;
         if (data.has(ilvl)) {
             return data.get(ilvl);
-        }
-        else {
+        } else {
             console.error(`ilvl ${ilvl} not found`);
             return null;
         }
@@ -254,8 +252,7 @@ export class NewApiDataManager implements DataManager {
                 if (data) {
                     console.log(`Got ${data.data.items.length} Items`);
                     return data.data.items;
-                }
-                else {
+                } else {
                     console.error(`Got No Items!`);
                     return null;
                 }
@@ -266,10 +263,9 @@ export class NewApiDataManager implements DataManager {
                         try {
                             return Object.keys(i.baseParamMapHQ).length > 0
                                 || (i.classJobs.includes('BLU') && i.equipSlotCategory.mainHand === 1); // Don't filter out BLU weapons
-                        }
-                        catch (e) {
+                        } catch (e) {
                             console.log(e);
-                            throw e
+                            throw e;
                         }
                     })
                     .map(i => new DataApiGearInfo(i));
@@ -279,11 +275,10 @@ export class NewApiDataManager implements DataManager {
                     // Track maximum ilvl seen for a particular equip level
                     if (item.displayGearSlotName === 'Weapon' || item.displayGearSlotName === 'OffHand') {
                         this._maxIlvlForEquipLevelWeapon.set(item.equipLvl, Math.max(item.ilvl, this._maxIlvlForEquipLevelWeapon.get(item.equipLvl) ?? 0));
-                    }
-                    else {
+                    } else {
                         this._maxIlvlForEquipLevel.set(item.equipLvl, Math.max(item.ilvl, this._maxIlvlForEquipLevel.get(item.equipLvl) ?? 0));
                     }
-                })
+                });
                 // TODO: put up better error
             }, (e) => console.error(e));
         const statsPromise = Promise.all([itemsPromise, baseParamPromise]).then(() => {
@@ -294,12 +289,9 @@ export class NewApiDataManager implements DataManager {
                 // Downsync by ilvl directly
                 if (this._ilvlSync && this._ilvlSync < item.ilvl) {
                     isyncLvl = this._ilvlSync;
-                }
-                // Downsync by equip lvl, infer correct ilvl
-                else if (this._level < item.equipLvl) {
+                } else if (this._level < item.equipLvl) { // Downsync by equip lvl, infer correct ilvl
                     isyncLvl = this._maxIlvlForEquipLevel.get(this._level);
-                }
-                else {
+                } else {
                     isyncLvl = null;
                 }
                 const ilvlSyncPromise: Promise<IlvlSyncInfo> = isyncLvl === null ? Promise.resolve(undefined) : this.getIlvlSyncData(baseParamPromise, isyncLvl);
@@ -308,7 +300,7 @@ export class NewApiDataManager implements DataManager {
                     if (item.isCustomRelic) {
                         console.debug('Applying relic model');
                         item.relicStatModel = getRelicStatModelFor(item, this._baseParams, this._classJob);
-                        console.debug('Applied', item.relicStatModel)
+                        console.debug('Applied', item.relicStatModel);
                     }
                 }));
             });
@@ -328,8 +320,7 @@ export class NewApiDataManager implements DataManager {
                             return processRawMateriaInfo(item);
                         });
                     console.log(`Processed ${this._allMateria.length} total Materia items`);
-                }
-                else {
+                } else {
                     console.error('Got No Materia!');
                 }
             }, e => {
@@ -365,7 +356,7 @@ export class NewApiDataManager implements DataManager {
                         mind: rawJob.modifierMind,
                         strength: rawJob.modifierStrength,
                         vitality: rawJob.modifierVitality,
-                        hp: rawJob.modifierHitPoints,
+                        hp: rawJob.modifierHitPoints
                     });
                 }
             });
@@ -380,7 +371,7 @@ export class NewApiDataManager implements DataManager {
         }
         const multi = this._jobMultipliers.get(job);
         if (!multi) {
-            throw Error(`No data for job ${job}`)
+            throw Error(`No data for job ${job}`);
         }
         return multi;
     }
@@ -468,57 +459,44 @@ export class DataApiGearInfo implements GearItem {
         const eqs = data.equipSlotCategory;
         if (!eqs) {
             console.error('EquipSlotCategory was null!', data);
-        }
-        else if (eqs.mainHand) {
+        } else if (eqs.mainHand) {
             this.displayGearSlotName = 'Weapon';
             if (eqs.offHand) {
-                this.occGearSlotName = 'Weapon2H'
-            }
-            else {
+                this.occGearSlotName = 'Weapon2H';
+            } else {
                 this.occGearSlotName = 'Weapon1H';
             }
-        }
-        else if (eqs.offHand) {
+        } else if (eqs.offHand) {
             this.displayGearSlotName = 'OffHand';
             this.occGearSlotName = 'OffHand';
-        }
-        else if (eqs.head) {
+        } else if (eqs.head) {
             this.displayGearSlotName = 'Head';
             this.occGearSlotName = 'Head';
-        }
-        else if (eqs.body) {
+        } else if (eqs.body) {
             this.displayGearSlotName = 'Body';
             this.occGearSlotName = 'Body';
-        }
-        else if (eqs.gloves) {
+        } else if (eqs.gloves) {
             this.displayGearSlotName = 'Hand';
             this.occGearSlotName = 'Hand';
-        }
-        else if (eqs.legs) {
+        } else if (eqs.legs) {
             this.displayGearSlotName = 'Legs';
             this.occGearSlotName = 'Legs';
-        }
-        else if (eqs.feet) {
+        } else if (eqs.feet) {
             this.displayGearSlotName = 'Feet';
             this.occGearSlotName = 'Feet';
-        }
-        else if (eqs.ears) {
+        } else if (eqs.ears) {
             this.displayGearSlotName = 'Ears';
             this.occGearSlotName = 'Ears';
-        }
-        else if (eqs.neck) {
+        } else if (eqs.neck) {
             this.displayGearSlotName = 'Neck';
             this.occGearSlotName = 'Neck';
-        }
-        else if (eqs.wrists) {
+        } else if (eqs.wrists) {
             this.displayGearSlotName = 'Wrist';
             this.occGearSlotName = 'Wrist';
-        }
-        else if (eqs.fingerL || eqs.fingerR) {
+        } else if (eqs.fingerL || eqs.fingerR) {
             this.displayGearSlotName = 'Ring';
             this.occGearSlotName = 'Ring';
-        }
-        else {
+        } else {
             console.error("Unknown slot data!", eqs);
         }
         this.displayGearSlot = this.displayGearSlotName ? DisplayGearSlotInfo[this.displayGearSlotName] : undefined;
@@ -539,24 +517,21 @@ export class DataApiGearInfo implements GearItem {
         this.isUnique = data.unique;
         this.computeSubstats();
         this.materiaSlots = [];
-        const baseMatCount: number = data.materiaSlotCount
+        const baseMatCount: number = data.materiaSlotCount;
         if (baseMatCount === 0) {
             // If there are no materia slots, then it might be a custom relic
             // TODO: is this branch still needed?
             if (this.displayGearSlot !== DisplayGearSlotInfo.OffHand) {
                 // Offhands never have materia slots
                 this.isCustomRelic = true;
-            }
-            else if (!this.primarySubstat) {
+            } else if (!this.primarySubstat) {
                 // If there is no primary substat on the item, then consider it a relic
                 this.isCustomRelic = true;
-            }
-            else {
+            } else {
                 // Otherwise, it's just a random item that just so happens to not have materia slots
                 this.isCustomRelic = false;
             }
-        }
-        else {
+        } else {
             // If it has materia slots, it definitely isn't a custom relic
             this.isCustomRelic = false;
             // Is overmelding allowed?
@@ -589,57 +564,57 @@ export class DataApiGearInfo implements GearItem {
         }
         const acqSrcRaw: AcqSrc = data.acquisitionSource;
         switch (acqSrcRaw) {
-            case AcqSrc.NormalRaid:
-                this.acquisitionType = 'normraid';
-                break;
-            case AcqSrc.SavageRaid:
-                this.acquisitionType = 'raid';
-                break;
-            case AcqSrc.Tome:
-                this.acquisitionType = 'tome';
-                break;
-            case AcqSrc.AugTome:
-                this.acquisitionType = 'augtome';
-                break;
-            case AcqSrc.Crafted:
-                this.acquisitionType = 'crafted';
-                break;
-            case AcqSrc.AugCrafted:
-                this.acquisitionType = 'augcrafted';
-                break;
-            case AcqSrc.Relic:
-                this.acquisitionType = 'relic';
-                break;
-            case AcqSrc.Dungeon:
-                this.acquisitionType = 'dungeon';
-                break;
-            case AcqSrc.ExtremeTrial:
-                this.acquisitionType = 'extrial';
-                break;
-            case AcqSrc.Ultimate:
-                this.acquisitionType = 'ultimate';
-                break;
-            case AcqSrc.Artifact:
-                this.acquisitionType = 'artifact';
-                break;
-            case AcqSrc.AllianceRaid:
-                this.acquisitionType = 'alliance';
-                break;
-            case AcqSrc.Criterion:
-                this.acquisitionType = 'criterion';
-                break;
-            case AcqSrc.Other:
-                this.acquisitionType = 'other';
-                break;
-            case AcqSrc.Custom:
-                this.acquisitionType = 'custom';
-                break;
-            case AcqSrc.Unknown:
-                this.acquisitionType = 'other';
-                break;
-            default:
-                this.acquisitionType = 'other';
-                break;
+        case AcqSrc.NormalRaid:
+            this.acquisitionType = 'normraid';
+            break;
+        case AcqSrc.SavageRaid:
+            this.acquisitionType = 'raid';
+            break;
+        case AcqSrc.Tome:
+            this.acquisitionType = 'tome';
+            break;
+        case AcqSrc.AugTome:
+            this.acquisitionType = 'augtome';
+            break;
+        case AcqSrc.Crafted:
+            this.acquisitionType = 'crafted';
+            break;
+        case AcqSrc.AugCrafted:
+            this.acquisitionType = 'augcrafted';
+            break;
+        case AcqSrc.Relic:
+            this.acquisitionType = 'relic';
+            break;
+        case AcqSrc.Dungeon:
+            this.acquisitionType = 'dungeon';
+            break;
+        case AcqSrc.ExtremeTrial:
+            this.acquisitionType = 'extrial';
+            break;
+        case AcqSrc.Ultimate:
+            this.acquisitionType = 'ultimate';
+            break;
+        case AcqSrc.Artifact:
+            this.acquisitionType = 'artifact';
+            break;
+        case AcqSrc.AllianceRaid:
+            this.acquisitionType = 'alliance';
+            break;
+        case AcqSrc.Criterion:
+            this.acquisitionType = 'criterion';
+            break;
+        case AcqSrc.Other:
+            this.acquisitionType = 'other';
+            break;
+        case AcqSrc.Custom:
+            this.acquisitionType = 'custom';
+            break;
+        case AcqSrc.Unknown:
+            this.acquisitionType = 'other';
+            break;
+        default:
+            this.acquisitionType = 'other';
+            break;
         }
     }
 
@@ -651,13 +626,12 @@ export class DataApiGearInfo implements GearItem {
             spellspeed: this.stats.spellspeed,
             skillspeed: this.stats.skillspeed,
             piety: this.stats.piety,
-            tenacity: this.stats.tenacity,
+            tenacity: this.stats.tenacity
         })
             .sort((left, right) => {
                 if (left[1] > right[1]) {
                     return 1;
-                }
-                else if (left[1] < right[1]) {
+                } else if (left[1] < right[1]) {
                     return -1;
                 }
                 return 0;
@@ -667,8 +641,7 @@ export class DataApiGearInfo implements GearItem {
         if (sortedStats.length < 2) {
             this.primarySubstat = null;
             this.secondarySubstat = null;
-        }
-        else {
+        } else {
             this.primarySubstat = sortedStats[0][0] as keyof RawStats;
             this.secondarySubstat = sortedStats[1][0] as keyof RawStats;
         }
@@ -694,8 +667,7 @@ export class DataApiGearInfo implements GearItem {
             this.statCaps = statCapsSync;
             this.computeSubstats();
             this.isSyncedDown = true;
-        }
-        else {
+        } else {
             this.unsyncedVersion = this;
             this.syncedDownTo = null;
             this.isSyncedDown = false;

@@ -30,7 +30,7 @@ describe('Individual item math', () => {
                 statCaps: syncedStatCaps,
                 unsyncedVersion: {
                     stats: stats,
-                    statCaps: statCaps,
+                    statCaps: statCaps
                 },
                 isSyncedDown: true
             } as GearItem, 'crit');
@@ -50,7 +50,7 @@ describe('Individual item math', () => {
                 statCaps: syncedStatCaps,
                 unsyncedVersion: {
                     stats: stats,
-                    statCaps: statCaps,
+                    statCaps: statCaps
                 },
                 isSyncedDown: true
             } as GearItem, 'crit');

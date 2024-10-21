@@ -575,13 +575,13 @@ export class EquipmentSet {
 }
 
 export function cloneEquipmentSet(set: EquipmentSet) {
-        const out = new EquipmentSet();
-        Object.entries(set).forEach(([slot, equipped]) => {
-            if (equipped instanceof EquippedItem) {
-                out[slot] = equipped.clone();
-            }
-        });
-        return out;
+    const out = new EquipmentSet();
+    Object.entries(set).forEach(([slot, equipped]) => {
+        if (equipped instanceof EquippedItem) {
+            out[slot] = equipped.clone();
+        }
+    });
+    return out;
 }
 
 export interface MateriaSlot {
@@ -1004,10 +1004,9 @@ export class EquippedItem {
                 this.melds.push({
                     materiaSlot: materiaSlot,
                     equippedMateria: null
-                })
+                });
             }
-        }
-        else {
+        } else {
             this.melds = [...melds];
         }
         if (gearItem.isCustomRelic) {
@@ -1021,7 +1020,7 @@ export class EquippedItem {
         );
         // Deep clone the materia slots
         this.melds.forEach((slot, index) => {
-            out.melds[index].equippedMateria = slot.equippedMateria
+            out.melds[index].equippedMateria = slot.equippedMateria;
         });
         if (this.relicStats !== undefined && out.relicStats !== undefined) {
             Object.assign(out.relicStats, this.relicStats);

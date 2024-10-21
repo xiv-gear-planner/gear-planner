@@ -106,16 +106,16 @@ class SAMGaugeGui {
                     const senStyles = {
                         Setsu: {
                             clipPath: `polygon(50% 0%, 64% 25%, 92% 25%, 78% 50%, 92% 75%, 64% 75%, 50% 100%, 36% 75%, 8% 75%, 22% 50%, 8% 25%, 36% 25%)`,
-                            background: '#6E95D7',
+                            background: '#6E95D7'
                         },
                         Getsu: {
                             mask: `radial-gradient(circle at 25% 25%, #0000 40%, #000 0)`,
                             borderRadius: '20px',
-                            background: '#7462DB',
+                            background: '#7462DB'
                         },
                         Ka: {
                             clipPath: `polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%)`,
-                            background: '#DB5858',
+                            background: '#DB5858'
                         }
                     };
 
@@ -142,7 +142,7 @@ class SAMGaugeGui {
     }
 }
 export class SamSimGui extends BaseMultiCycleSimGui<SamSimResult, SamSettings> {
-    
+
     override makeCustomConfigInterface(settings: SamSettings, _updateCallback: () => void): HTMLElement | null {
         const configDiv = document.createElement("div");
 

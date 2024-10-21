@@ -19,8 +19,7 @@ export function gearSetWarningIcon() {
 export function iconForIssues(...issues: GearSetIssue[]) {
     if (issues.find(issue => issue.severity === 'error')) {
         return gearSetErrorIcon();
-    }
-    else {
+    } else {
         return gearSetWarningIcon();
     }
 }
@@ -39,8 +38,7 @@ export class SetIssuesModal extends BaseModal {
                     quickElement('span', [], [issue.description])
                 ]));
             }
-        }
-        else {
+        } else {
             this.classList.add('no-issues');
             const text = document.createTextNode('This set has no issues.');
             this.contentArea.appendChild(text);

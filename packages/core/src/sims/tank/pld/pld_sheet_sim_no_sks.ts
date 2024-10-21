@@ -1,6 +1,6 @@
 import {SimSettings, SimSpec} from "@xivgear/core/sims/sim_types";
 import {CycleProcessor, CycleContext, CycleSimResult, ExternalCycleSettings, Rotation} from "@xivgear/core/sims/cycle_sim";
-import * as Actions from "./pld_actions_no_sks"
+import * as Actions from "./pld_actions_no_sks";
 import { BaseMultiCycleSim } from "@xivgear/core/sims/processors/sim_processors";
 
 interface GcdState {
@@ -12,7 +12,7 @@ interface GcdState {
 function useNextAtone(cycle: CycleContext, state: GcdState): void {
     switch (state.swordOathStacks) {
     case 3:
-        cycle.use(Actions.atone)
+        cycle.use(Actions.atone);
         break;
     case 2:
         cycle.use(Actions.supp);
@@ -21,7 +21,7 @@ function useNextAtone(cycle: CycleContext, state: GcdState): void {
         cycle.use(Actions.sep);
         break;
     default:
-        console.log("oops, something went wrong with atones")
+        console.log("oops, something went wrong with atones");
         state.swordOathStacks = 0;
     }
 
@@ -123,7 +123,7 @@ export const pldSheetSpec: SimSpec<PldSheetSim, PldSheetSettingsExternal> = {
     },
     supportedJobs: ['PLD'],
     isDefaultSim: false
-}
+};
 
 export class PldSheetSim extends BaseMultiCycleSim<PldSheetSimResult, PldSheetSettings> {
 
@@ -152,7 +152,7 @@ export class PldSheetSim extends BaseMultiCycleSim<PldSheetSimResult, PldSheetSe
                         hasDivineMight: true,
                         swordOathStacks: 3,
                         comboProgress: 0 // 0, 1, or 2
-                    }
+                    };
 
                     for (let i = 0; i < 7; ++i) {
                         useBurst(cycle);

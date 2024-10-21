@@ -13,8 +13,7 @@ export function confirmDelete(event: {
 }, message: string): boolean {
     if (event.altKey) {
         return true;
-    }
-    else {
+    } else {
         return confirm(message + '\n\nYou can bypass this by holding "alt" while clicking the delete button.');
     }
 }

@@ -5,8 +5,7 @@ import {PropertyOfType} from "@xivgear/core/util/types";
 export function levelLabel(item: SupportedLevel): string {
     if (item <= CURRENT_MAX_LEVEL) {
         return item.toString();
-    }
-    else {
+    } else {
         return item.toString() + ' (Preview)';
     }
 }

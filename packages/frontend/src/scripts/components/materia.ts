@@ -61,12 +61,10 @@ export class AllSlotMateriaManager extends HTMLElement {
                 const statDetail = this.gearSet.getStatDetail(this.slotName, materia.primaryStat, materiaPartial);
                 if (statDetail instanceof Object) {
                     slot.overcap = statDetail.overcapAmount;
-                }
-                else {
+                } else {
                     slot.overcap = 0;
                 }
-            }
-            else {
+            } else {
                 slot.overcap = 0;
             }
         }
@@ -81,26 +79,22 @@ export class AllSlotMateriaManager extends HTMLElement {
                 this.classList.remove("materia-manager-equipped");
                 const textSpan = document.createElement("span");
                 if (equipSlot.gearItem.isCustomRelic) {
-                    textSpan.textContent = "Click into cells to edit relic stats"
-                }
-                else if (equipSlot.gearItem.isSyncedDown) {
+                    textSpan.textContent = "Click into cells to edit relic stats";
+                } else if (equipSlot.gearItem.isSyncedDown) {
                     textSpan.textContent = "Melds unavailable due to ilvl sync";
-                }
-                else {
+                } else {
                     textSpan.textContent = "No materia slots on this item";
                 }
                 this.replaceChildren(textSpan);
                 this._children = [];
-            }
-            else {
+            } else {
                 this._children = equipSlot.melds.map(meld => new SlotMateriaManager(this.sheet, meld, () => this.notifyChange()));
                 this.replaceChildren(...this._children);
                 this.classList.remove("materia-slot-no-equip");
                 this.classList.remove("materia-slot-no-slots");
-                this.classList.add("materia-manager-equipped")
+                this.classList.add("materia-manager-equipped");
             }
-        }
-        else {
+        } else {
             const textSpan = document.createElement("span");
             textSpan.textContent = "No item selected";
             this.replaceChildren(textSpan);
@@ -165,8 +159,7 @@ export class SlotMateriaManager extends HTMLElement {
     set popupOpen(open: boolean) {
         if (open) {
             this.classList.add('materia-manager-active');
-        }
-        else {
+        } else {
             this.classList.remove('materia-manager-active');
         }
     }
@@ -182,8 +175,7 @@ export class SlotMateriaManager extends HTMLElement {
             this.classList.remove("materia-slot-empty");
             this.classList.add("materia-slot-full");
             this.title = formatMateriaTitle(currentMat);
-        }
-        else {
+        } else {
             this.image.style.display = 'none';
             this.text.textContent = 'Empty';
             this.classList.remove('materia-normal', 'materia-overcap', 'materia-overcap-major');
@@ -215,11 +207,9 @@ export class SlotMateriaManager extends HTMLElement {
         this._overcap = overcap;
         if ((this.materiaSlot.equippedMateria === undefined) || overcap <= 0) {
             this.classList.add('materia-normal');
-        }
-        else if (overcap < this.materiaSlot.equippedMateria.primaryStatValue) {
+        } else if (overcap < this.materiaSlot.equippedMateria.primaryStatValue) {
             this.classList.add('materia-overcap');
-        }
-        else {
+        } else {
             this.classList.add('materia-overcap-major');
         }
         this.reformat();
@@ -331,8 +321,7 @@ export class SlotMateriaManagerPopup extends HTMLElement {
                     // Neeed in order to make selection outline work
                     cell.appendChild(document.createElement('span'));
                     cell.appendChild(image);
-                }
-                else {
+                } else {
                     row.insertCell();
                 }
             }
@@ -369,20 +358,20 @@ export class MateriaPriorityPicker extends HTMLElement {
         const fillModeDropdown = new FieldBoundDataSelect<MateriaAutoFillController, MateriaFillMode>(prioController, 'autoFillMode',
             (val: MateriaFillMode) => {
                 switch (val) {
-                    case "leave_empty":
-                        return "Leave Empty";
-                    case "autofill":
-                        return "Prio Fill";
-                    case "retain_slot_else_prio":
-                        return "Keep Slot > Prio";
-                    case "retain_item_else_prio":
-                        return "Keep Item > Prio";
-                    case "retain_slot":
-                        return "Keep Slot > None";
-                    case "retain_item":
-                        return "Keep Item > None";
-                    default:
-                        return "?";
+                case "leave_empty":
+                    return "Leave Empty";
+                case "autofill":
+                    return "Prio Fill";
+                case "retain_slot_else_prio":
+                    return "Keep Slot > Prio";
+                case "retain_item_else_prio":
+                    return "Keep Item > Prio";
+                case "retain_slot":
+                    return "Keep Slot > None";
+                case "retain_item":
+                    return "Keep Item > None";
+                default:
+                    return "?";
                 }
             }, [...MATERIA_FILL_MODES]);
         fillModeDropdown.title = 'Control what happens when an item is selected.\n' +
@@ -394,9 +383,9 @@ export class MateriaPriorityPicker extends HTMLElement {
             'Keep Item, else None: Remember what materia was equipped to each item. If none equipped, leave empty.';
         const fillModeLabel = labelFor("Fill Mode:", fillModeDropdown);
         fillModeDropdown.addListener((newValue) => {
-           recordEvent("fillMode", {
-               'mode': newValue,
-           })
+            recordEvent("fillMode", {
+                'mode': newValue
+            });
         });
 
         const fillEmptyNow = makeActionButton('Fill Empty', () => {
@@ -421,11 +410,9 @@ export class MateriaPriorityPicker extends HTMLElement {
                 // Check if user typed more than 2 digits, weird math because floating point fun
                 if (Math.round(val * 1000) % 10) {
                     ctx.failValidation("Enter at most two decimal points");
-                }
-                else if (val < 0) {
+                } else if (val < 0) {
                     ctx.failValidation("Enter a positive number");
-                }
-                else if (val > MAX_GCD) {
+                } else if (val > MAX_GCD) {
                     ctx.failValidation("Cannot be greater than " + MAX_GCD);
                 }
             }]
@@ -439,7 +426,7 @@ export class MateriaPriorityPicker extends HTMLElement {
         minGcdInput.title = 'Enter the minimum desired GCD in the form x.yz.\nSkS/SpS materia will be de-prioritized once this target GCD is met.';
         minGcdInput.classList.add('min-gcd-input');
         this.replaceChildren(header, drag, minGcdText, minGcdInput, document.createElement('br'),
-                            solveMelds, fillEmptyNow, fillAllNow, fillModeLabel, fillModeDropdown);
+            solveMelds, fillEmptyNow, fillAllNow, fillModeLabel, fillModeDropdown);
     }
 }
 
@@ -473,11 +460,9 @@ class MateriaDragger extends HTMLElement {
         let newOffset;
         if (xOffset > this.clientWidth) {
             newOffset = this.clientWidth;
-        }
-        else if (-xOffset > this.clientWidth) {
+        } else if (-xOffset > this.clientWidth) {
             newOffset = -this.clientWidth;
-        }
-        else {
+        } else {
             newOffset = xOffset;
         }
         this.inner.style.left = newOffset + 'px';
@@ -613,8 +598,7 @@ export class MateriaTotalsDisplay extends HTMLElement {
                         const materias = materiaCounts.get(id);
                         if (materias) {
                             materias.push(materia);
-                        }
-                        else {
+                        } else {
                             materiaCounts.set(id, [materia]);
                         }
                     }
@@ -623,7 +607,7 @@ export class MateriaTotalsDisplay extends HTMLElement {
         }
         const elements: MateriaCountDisplay[] = [];
         materiaCounts.forEach((value, key) => {
-            elements.push(new MateriaCountDisplay(value[0], value.length))
+            elements.push(new MateriaCountDisplay(value[0], value.length));
         });
         elements.sort((left, right) => {
             const primary = right.count - left.count;

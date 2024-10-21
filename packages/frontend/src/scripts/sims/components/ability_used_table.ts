@@ -18,7 +18,7 @@ function formatTime(time: number) {
     time = Math.abs(time);
     const minute = Math.floor(time / 60);
     const second = time % 60;
-    return (`${negative ? '-' : ''}${minute}:${second.toFixed(2).padStart(5, '0')}`)
+    return (`${negative ? '-' : ''}${minute}:${second.toFixed(2).padStart(5, '0')}`);
 }
 
 
@@ -52,9 +52,7 @@ export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
                             title += `Application Delay: ${roundTime(original.appDelay)}\n`;
                             title += `Cast Start to Application: ${roundTime(original.appDelayFromStart)}\n`;
                             title += `Effective Recast: ${roundTime(original.totalTimeTaken)}`;
-                        }
-                        // instant
-                        else {
+                        } else { // instant
                             title += `Application Delay: ${original.appDelayFromStart}\nAnimation Lock: ${original.totalTimeTaken}`;
                         }
                         colElement.title = title;
@@ -71,15 +69,13 @@ export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
                         out.classList.add('ability-cell');
                         if (ability.type === 'autoattack') {
                             out.appendChild(document.createTextNode('* '));
-                        }
-                        else if (ability.type !== "gcd") {
+                        } else if (ability.type !== "gcd") {
                             out.appendChild(document.createTextNode(' ⤷ '));
                         }
                         if (!ability.noIcon) {
                             if (ability.itemId) {
                                 out.appendChild(new ItemIcon(ability.itemId));
-                            }
-                            else if (ability.id) {
+                            } else if (ability.id) {
                                 out.appendChild(new AbilityIcon(ability.id));
                             }
                         }
@@ -88,8 +84,7 @@ export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
                         abilityNameSpan.classList.add('ability-name');
                         out.appendChild(abilityNameSpan);
                         return out;
-                    }
-                    else {
+                    } else {
                         return document.createTextNode(ability);
                     }
                 }
@@ -106,12 +101,10 @@ export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
                             const text = quickElement('span', [], [value + '*']);
                             text.title = `${value} is the original potency, and does not reflect the weapon delay multiplier. However, the damage amount does reflect it.`;
                             return text;
-                        }
-                        else {
+                        } else {
                             return document.createTextNode(value.toString());
                         }
-                    }
-                    else {
+                    } else {
                         return document.createTextNode('--');
                     }
                 }
@@ -131,8 +124,7 @@ export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
                             text += '*';
                         }
                         return document.createTextNode(text);
-                    }
-                    else {
+                    } else {
                         return null;
                     }
                 },
@@ -145,8 +137,7 @@ export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
                         if (value.dotInfo) {
                             if (value.dotInfo.fullDurationTicks === 'indefinite') {
                                 title.push(`This ability is an indefinite DoT. It dealt ${value.dotInfo.actualTickCount} ticks of ${value.dotInfo.damagePerTick.expected.toFixed(3)} each.\n`);
-                            }
-                            else {
+                            } else {
                                 title.push(`This ability is a DoT. It dealt ${value.dotInfo.actualTickCount}/${value.dotInfo.fullDurationTicks} ticks of ${value.dotInfo.damagePerTick.expected.toFixed(3)} each.\n`);
                             }
                         }
@@ -154,7 +145,7 @@ export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
                             colElement.title = title.join('\n');
                         }
                     }
-                },
+                }
             },
             {
                 shortName: 'Total Buffs',
@@ -187,9 +178,9 @@ export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
                 getter: (used: DisplayRecordFinalized) => used['buffs'] ?? [],
                 renderer: (buffs: Buff[]) => {
                     return new BuffListDisplay(buffs);
-                },
+                }
             },
-            ...extraColumns,
+            ...extraColumns
         ];
         this.data = [new HeaderRow(), ...abilitiesUsed];
         // this.style.tableLayout = 'auto';
