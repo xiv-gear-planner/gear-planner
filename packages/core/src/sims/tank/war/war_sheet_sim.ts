@@ -154,9 +154,11 @@ class WarCycleProcessor extends CycleProcessor {
     }
 
     inBurst(): boolean {
+        const timeIntoTwoMinutes = this.currentTime % 120;
+        
         // Six seconds after every (i.e. 0:06, 2:06, etc) burst, buffs will be up,
         // and will remain up for twenty seconds.
-        return this.currentTime % 126 < 20
+        return 6 <= timeIntoTwoMinutes && timeIntoTwoMinutes < 26
     }
 
     // If the fight is ending within the next 12 seconds (to dump resources)
