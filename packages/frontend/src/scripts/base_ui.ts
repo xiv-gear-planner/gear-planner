@@ -192,7 +192,7 @@ export async function openSheet(planner: GearPlanSheetGui, changeHash: boolean =
         contentArea.replaceChildren(document.createTextNode("Error loading sheet!"));
     });
     await loadSheetPromise;
-    await workerPool.initializeworkers(planner);
+    await workerPool.initializeWorkers(planner);
 }
 
 export function showSheetPickerMenu() {

@@ -2,11 +2,13 @@
 
 import eslint from '@eslint/js';
 import tseslint from 'typescript-eslint';
+import pluginChaiFriendly from 'eslint-plugin-chai-friendly';
 
 export default [
     eslint.configs.recommended,
     ...tseslint.configs.recommended,
     {
+        plugins: {'chai-friendly': pluginChaiFriendly},
         ignores: ['**/build/', '**/dist/', '**/*.d.ts'],
         languageOptions: {
             // parser: parser,
@@ -21,6 +23,7 @@ export default [
                 "warn",
                 {
                     "args": "none",
+                    "caughtErrors": "none"
                 }
             ],
             "accessor-pairs": [
@@ -39,7 +42,15 @@ export default [
             ],
             "@typescript-eslint/no-this-alias": [
                 "off"
-            ]
+            ],
+            "@typescript-eslint/no-unused-expressions": "off", // disable original rule
+            "chai-friendly/no-unused-expressions": [
+                "error",
+                {
+                    "allowTernary": true
+                }
+            ],
+            "@typescript-eslint/no-empty-object-type": "off",
         }
     }
 ];

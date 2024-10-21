@@ -83,7 +83,7 @@ export function multiplyIndependent(value: ValueWithDev, scalar: number) {
  * while if the roll fails, the value is equal to 1.
  *
  * @param chance The chance for the roll to succeed.
- * @param multiplier The multiplier if the roll fails.
+ * @param multiplier The multiplier if the roll succeeds.
  */
 export function chanceMultiplierStdDev(chance: number, multiplier: number): ValueWithDev {
     const expected = chance * (multiplier - 1) + 1;

@@ -206,7 +206,9 @@ function foodTableStatColumn(sheet: GearPlanSheet, stat: RawStatKey, highlightPr
         condition: () => sheet.isStatRelevant(stat),
         colStyler: (value, cell, node) => {
             cell.classList.add('food-stat-col');
-            highlightPrimarySecondary ? foodStatCellStyler(cell, stat) : undefined;
+            if (highlightPrimarySecondary) {
+                foodStatCellStyler(cell, stat)
+            }
         },
     }
 

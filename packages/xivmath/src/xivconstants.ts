@@ -85,6 +85,7 @@ export type RaceName = 'Duskwight' | 'Wildwood'
  */
 export const SupportedLevels = [70, 80, 90, 100] as const;
 export const CURRENT_MAX_LEVEL: SupportedLevel = 100;
+export const CURRENT_MAX_LEVEL_BLU: SupportedLevel = 80;
 export type SupportedLevel = typeof SupportedLevels[number];
 
 
@@ -604,15 +605,15 @@ export const LEVEL_ITEMS: Record<SupportedLevel, LevelItemInfo> = {
     }
 };
 
-const BLU_80_ITEM_DISPLAY = {
+const BLU_ITEM_DISPLAY = {
     ...LEVEL_ITEMS[80].defaultDisplaySettings,
     minILvl: 520,
     maxILvl: 535
 } satisfies ItemDisplaySettings;
 
 export function getDefaultDisplaySettings(level: SupportedLevel, job: JobName): ItemDisplaySettings {
-    if (job === 'BLU' && level === 80) {
-        return BLU_80_ITEM_DISPLAY;
+    if (job === 'BLU' && level === CURRENT_MAX_LEVEL_BLU) {
+        return BLU_ITEM_DISPLAY;
     }
     return LEVEL_ITEMS[level].defaultDisplaySettings;
 }
