@@ -127,7 +127,7 @@ export class WorkerPool {
 
         return {
             promise: new Promise((resolve, reject) => {
-                this.resolves.set(internalRequest.jobId, { resolve: resolve, reject: reject, });
+                this.resolves.set(internalRequest.jobId, { resolve: resolve, reject: reject });
             }),
             jobId: internalRequest.jobId,
         };

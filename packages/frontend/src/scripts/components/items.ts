@@ -974,10 +974,10 @@ export class ILvlRangePicker<ObjType> extends HTMLElement {
     }
 }
 
-customElements.define("gear-items-table", GearItemsTable, {extends: "table",});
-customElements.define("gear-items-view-table", GearItemsViewTable, {extends: "table",});
-customElements.define("food-items-table", FoodItemsTable, {extends: "table",});
-customElements.define("food-items-view-table", FoodItemViewTable, {extends: "table",});
+customElements.define("gear-items-table", GearItemsTable, {extends: "table"});
+customElements.define("gear-items-view-table", GearItemsViewTable, {extends: "table"});
+customElements.define("food-items-table", FoodItemsTable, {extends: "table"});
+customElements.define("food-items-view-table", FoodItemViewTable, {extends: "table"});
 customElements.define("ilvl-range-picker", ILvlRangePicker);
 customElements.define("food-stat-bonus", FoodStatBonusDisplay);
 customElements.define("alt-items-modal", AltItemsModal);

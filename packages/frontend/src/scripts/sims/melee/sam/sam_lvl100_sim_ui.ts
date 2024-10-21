@@ -146,7 +146,7 @@ export class SamSimGui extends BaseMultiCycleSimGui<SamSimResult, SamSettings> {
     override makeCustomConfigInterface(settings: SamSettings, _updateCallback: () => void): HTMLElement | null {
         const configDiv = document.createElement("div");
 
-        const ppField = new FieldBoundFloatField(settings, "prePullMeikyo", { inputMode: 'number', });
+        const ppField = new FieldBoundFloatField(settings, "prePullMeikyo", { inputMode: 'number' });
         const potCb = new FieldBoundCheckBox(settings, "usePotion");
 
         configDiv.appendChild(labelFor("Meikyo Pre-Pull Time:", ppField));

@@ -717,7 +717,7 @@ export class CycleProcessor {
      */
     protected getActiveBuffData(buff: Buff, time = this.currentTime): BuffUsage {
         const activeBuffData = this.getActiveBuffsData(time).find(bd => bd.buff === buff);
-        return activeBuffData ? {...activeBuffData,} : null;
+        return activeBuffData ? {...activeBuffData} : null;
     }
 
     /**

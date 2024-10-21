@@ -31,4 +31,4 @@ export class JobIcon extends HTMLImageElement {
     }
 }
 
-customElements.define("ffxiv-job-icon", JobIcon, {extends: "img",});
+customElements.define("ffxiv-job-icon", JobIcon, {extends: "img"});

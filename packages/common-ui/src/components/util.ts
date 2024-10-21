@@ -628,11 +628,11 @@ export function redoIcon() {
     return svg;
 }
 
-customElements.define("option-data-element", OptionDataElement, {extends: "option",});
-customElements.define("data-select", DataSelect, {extends: "select",});
-customElements.define("field-bound-converting-text-field", FieldBoundConvertingTextField, {extends: "input",});
-customElements.define("field-bound-text-field", FieldBoundTextField, {extends: "input",});
-customElements.define("field-bound-float-field", FieldBoundFloatField, {extends: "input",});
-customElements.define("field-bound-int-field", FieldBoundIntField, {extends: "input",});
-customElements.define("field-bound-checkbox", FieldBoundCheckBox, {extends: "input",});
-customElements.define("field-bound-data-select", FieldBoundDataSelect, {extends: "select",});
+customElements.define("option-data-element", OptionDataElement, {extends: "option"});
+customElements.define("data-select", DataSelect, {extends: "select"});
+customElements.define("field-bound-converting-text-field", FieldBoundConvertingTextField, {extends: "input"});
+customElements.define("field-bound-text-field", FieldBoundTextField, {extends: "input"});
+customElements.define("field-bound-float-field", FieldBoundFloatField, {extends: "input"});
+customElements.define("field-bound-int-field", FieldBoundIntField, {extends: "input"});
+customElements.define("field-bound-checkbox", FieldBoundCheckBox, {extends: "input"});
+customElements.define("field-bound-data-select", FieldBoundDataSelect, {extends: "select"});

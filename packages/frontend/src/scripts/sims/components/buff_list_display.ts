@@ -64,4 +64,4 @@ export class BuffListDisplay extends HTMLDivElement {
 }
 
 
-customElements.define('buff-list-display', BuffListDisplay, {extends: 'div',});
+customElements.define('buff-list-display', BuffListDisplay, {extends: 'div'});

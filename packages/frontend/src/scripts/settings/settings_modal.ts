@@ -14,10 +14,10 @@ class SettingsModal extends BaseModal {
         const settings = DISPLAY_SETTINGS;
         const lightModeCb = new FieldBoundCheckBox(settings, 'lightMode');
         const lightModeToggle = new BoolToggle(lightModeCb, 'Light', 'Dark');
-        lightModeCb.addListener(val => recordEvent('lightModeToggle', {lightMode: val,}));
+        lightModeCb.addListener(val => recordEvent('lightModeToggle', {lightMode: val}));
         const modernThemeCb = new FieldBoundCheckBox(settings, 'modernTheme');
         const modernThemeToggle = new BoolToggle(modernThemeCb, 'Modern', 'Classic');
-        modernThemeCb.addListener(val => recordEvent('modernTheme', {modernTheme: val,}));
+        modernThemeCb.addListener(val => recordEvent('modernTheme', {modernTheme: val}));
 
         this.contentArea.append(lightModeToggle);
         this.contentArea.append(modernThemeToggle);

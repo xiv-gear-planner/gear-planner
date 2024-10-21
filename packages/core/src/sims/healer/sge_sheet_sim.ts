@@ -53,7 +53,7 @@ export const sgeSheetSpec: SimSpec<SgeSheetSim, SgeSheetSettings> = {
 export class SgeSheetSim implements Simulation<SgeSheetSimResult, SgeSheetSettings, SgeSheetSettings> {
 
     exportSettings(): SgeSheetSettings {
-        return {...this.settings,};
+        return {...this.settings};
     };
 
     settings: SgeSheetSettings = {

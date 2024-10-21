@@ -185,5 +185,5 @@ export class GearEditToolbar extends HTMLDivElement {
     }
 }
 
-customElements.define('gear-edit-toolbar', GearEditToolbar, {extends: 'div',});
-customElements.define('gear-edit-toolbar-buttons-area', ToolbarButtonsArea, {extends: 'div',});
+customElements.define('gear-edit-toolbar', GearEditToolbar, {extends: 'div'});
+customElements.define('gear-edit-toolbar-buttons-area', ToolbarButtonsArea, {extends: 'div'});

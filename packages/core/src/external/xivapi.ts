@@ -131,7 +131,7 @@ export async function xivApiSearch<RequestType extends XivApiSearchRequest>(requ
     }
     return {
         Results: results.map(resultRow => {
-            const out = {...resultRow['fields'],};
+            const out = {...resultRow['fields']};
             out['ID'] = resultRow['row_id'];
             return out;
         }),
@@ -173,7 +173,7 @@ export async function xivApiGetList<RequestType extends XivApiListRequest>(reque
     }
     return {
         Results: results.map(resultRow => {
-            const out = {...resultRow['fields'],};
+            const out = {...resultRow['fields']};
             out['ID'] = resultRow['row_id'];
             return out;
         }),

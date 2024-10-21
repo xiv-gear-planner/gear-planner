@@ -585,7 +585,7 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
 
     getRotationsToSimulate(set: CharacterGearSet): Rotation<DrkCycleProcessor>[] {
         const gcd = set.results.computedStats.gcdPhys(2.5);
-        const settings = { ...this.settings, };
+        const settings = { ...this.settings };
         const outer = this;
 
         console.log(`[DRK Sim] Running Rotation for ${gcd} GCD...`);

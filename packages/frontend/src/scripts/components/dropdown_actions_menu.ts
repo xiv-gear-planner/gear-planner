@@ -52,5 +52,5 @@ export class DropdownActionMenu extends HTMLSelectElement {
     }
 }
 
-customElements.define('dropdown-action-menu', DropdownActionMenu, {extends: 'select',});
-customElements.define('dropdown-action-item', DropdownActionItem, {extends: 'option',});
+customElements.define('dropdown-action-menu', DropdownActionMenu, {extends: 'select'});
+customElements.define('dropdown-action-item', DropdownActionItem, {extends: 'option'});

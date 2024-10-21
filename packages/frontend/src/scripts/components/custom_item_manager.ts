@@ -275,7 +275,7 @@ export class CustomFoodTable extends CustomTable<CustomFood> {
                 displayName: 'Vit %',
                 getter: item => item,
                 renderer: (item: CustomFood) => {
-                    return new FieldBoundIntField(item.customData.vitalityBonus, 'percentage', {postValidators: [nonNegative],});
+                    return new FieldBoundIntField(item.customData.vitalityBonus, 'percentage', {postValidators: [nonNegative]});
                 },
                 initialWidth: 60,
             }, {
@@ -283,7 +283,7 @@ export class CustomFoodTable extends CustomTable<CustomFood> {
                 displayName: 'Vit Max',
                 getter: item => item,
                 renderer: (item: CustomFood) => {
-                    return new FieldBoundIntField(item.customData.vitalityBonus, 'max', {postValidators: [nonNegative],});
+                    return new FieldBoundIntField(item.customData.vitalityBonus, 'max', {postValidators: [nonNegative]});
                 },
                 initialWidth: 60,
             }, {
@@ -299,7 +299,7 @@ export class CustomFoodTable extends CustomTable<CustomFood> {
                 displayName: '%',
                 getter: item => item,
                 renderer: (item: CustomFood) => {
-                    return new FieldBoundIntField(item.customData.primaryStatBonus, 'percentage', {postValidators: [nonNegative],});
+                    return new FieldBoundIntField(item.customData.primaryStatBonus, 'percentage', {postValidators: [nonNegative]});
                 },
                 initialWidth: 60,
             }, {
@@ -307,7 +307,7 @@ export class CustomFoodTable extends CustomTable<CustomFood> {
                 displayName: 'Max',
                 getter: item => item,
                 renderer: (item: CustomFood) => {
-                    return new FieldBoundIntField(item.customData.primaryStatBonus, 'max', {postValidators: [nonNegative],});
+                    return new FieldBoundIntField(item.customData.primaryStatBonus, 'max', {postValidators: [nonNegative]});
                 },
                 initialWidth: 60,
             }, {
@@ -323,7 +323,7 @@ export class CustomFoodTable extends CustomTable<CustomFood> {
                 displayName: '%',
                 getter: item => item,
                 renderer: (item: CustomFood) => {
-                    return new FieldBoundIntField(item.customData.secondaryStatBonus, 'percentage', {postValidators: [nonNegative],});
+                    return new FieldBoundIntField(item.customData.secondaryStatBonus, 'percentage', {postValidators: [nonNegative]});
                 },
                 initialWidth: 60,
             }, {
@@ -331,7 +331,7 @@ export class CustomFoodTable extends CustomTable<CustomFood> {
                 displayName: 'Max',
                 getter: item => item,
                 renderer: (item: CustomFood) => {
-                    return new FieldBoundIntField(item.customData.secondaryStatBonus, 'max', {postValidators: [nonNegative],});
+                    return new FieldBoundIntField(item.customData.secondaryStatBonus, 'max', {postValidators: [nonNegative]});
                 },
                 initialWidth: 60,
             },
@@ -380,6 +380,6 @@ export class CustomFoodPopup extends BaseModal {
 }
 
 customElements.define('custom-item-popup', CustomItemPopup);
-customElements.define('custom-item-table', CustomItemTable, {extends: 'table',});
+customElements.define('custom-item-table', CustomItemTable, {extends: 'table'});
 customElements.define('custom-food-popup', CustomFoodPopup);
-customElements.define('custom-food-table', CustomFoodTable, {extends: 'table',});
+customElements.define('custom-food-table', CustomFoodTable, {extends: 'table'});

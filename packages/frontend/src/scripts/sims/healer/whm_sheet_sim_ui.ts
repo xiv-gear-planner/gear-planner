@@ -11,11 +11,11 @@ export class WhmSheetSimGui extends SimulationGui<WhmSheetSimResult, WhmSheetSet
         const outerDiv = document.createElement("div");
         const checkboxesDiv = document.createElement("div");
 
-        const brdCheck = new FieldBoundCheckBox<WhmSheetSettings>(settings, 'hasBard', {id: 'brd-checkbox',});
+        const brdCheck = new FieldBoundCheckBox<WhmSheetSettings>(settings, 'hasBard', {id: 'brd-checkbox'});
         checkboxesDiv.appendChild(labeledCheckbox('BRD in Party', brdCheck));
-        const schCheck = new FieldBoundCheckBox<WhmSheetSettings>(settings, 'hasScholar', {id: 'sch-checkbox',});
+        const schCheck = new FieldBoundCheckBox<WhmSheetSettings>(settings, 'hasScholar', {id: 'sch-checkbox'});
         checkboxesDiv.appendChild(labeledCheckbox('SCH in Party', schCheck));
-        const drgCheck = new FieldBoundCheckBox<WhmSheetSettings>(settings, 'hasDragoon', {id: 'drg-checkbox',});
+        const drgCheck = new FieldBoundCheckBox<WhmSheetSettings>(settings, 'hasDragoon', {id: 'drg-checkbox'});
         checkboxesDiv.appendChild(labeledCheckbox('DRG in Party', drgCheck));
 
         outerDiv.appendChild(checkboxesDiv);

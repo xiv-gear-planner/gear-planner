@@ -174,7 +174,7 @@ export class GearPlanSheet {
 
     // Display settings
     private _showAdvancedStats: boolean;
-    private readonly _itemDisplaySettings: ItemDisplaySettings = {...defaultItemDisplaySettings,};
+    private readonly _itemDisplaySettings: ItemDisplaySettings = {...defaultItemDisplaySettings};
 
     // Init related
     private _setupDone: boolean = false;
@@ -533,11 +533,11 @@ export class GearPlanSheet {
                     // On the other hand, *most* real exports would have slots filled (BiS etc)
                     id: inSlot.gearItem.id,
                     materia: inSlot.melds.map(meld => {
-                        return {id: meld.equippedMateria?.id ?? -1,};
+                        return {id: meld.equippedMateria?.id ?? -1};
                     }),
                 };
                 if (inSlot.relicStats && Object.entries(inSlot.relicStats)) {
-                    exportedItem.relicStats = {...inSlot.relicStats,};
+                    exportedItem.relicStats = {...inSlot.relicStats};
                 }
                 items[equipmentKey] = exportedItem;
             }

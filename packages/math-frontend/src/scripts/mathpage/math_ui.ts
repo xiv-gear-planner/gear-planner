@@ -245,7 +245,7 @@ export class MathArea extends HTMLElement {
                     if (primary !== undefined) {
                         newPrimary[formulaSet.primaryVariable as string] = primary;
                     }
-                    const inputs = {...settings, ...newPrimary,};
+                    const inputs = {...settings, ...newPrimary};
                     const results: ResultSet = {};
                     for (const fn of funcs) {
                         results[fn.name] = {
@@ -280,7 +280,7 @@ export class MathArea extends HTMLElement {
                             ...this.generalSettings,
                             levelStats: LEVEL_STATS[level],
                         };
-                        const inputs = {...settings,};
+                        const inputs = {...settings};
                         const results: ResultSet = {};
                         for (const fn of funcs) {
                             const args = await fn.argExtractor(inputs, fakeGeneralSettings);
@@ -306,7 +306,7 @@ export class MathArea extends HTMLElement {
                             ...this.generalSettings,
                             classJob: job,
                         };
-                        const inputs = {...settings,};
+                        const inputs = {...settings};
                         const results: ResultSet = {};
                         for (const fn of funcs) {
                             const args = await fn.argExtractor(inputs, fakeGeneralSettings);
@@ -620,10 +620,10 @@ export class MathArea extends HTMLElement {
                     const validators: FbctPostValidator<AllArgType, number>[] = [];
                     validators.push(clampValues(variable.min?.(this.generalSettings), variable.max?.(this.generalSettings)));
                     if (variable.integer) {
-                        editor = new FieldBoundIntField(proxy, variable.property, {postValidators: validators,});
+                        editor = new FieldBoundIntField(proxy, variable.property, {postValidators: validators});
                     }
                     else {
-                        editor = new FieldBoundFloatField(proxy, variable.property, {postValidators: validators,});
+                        editor = new FieldBoundFloatField(proxy, variable.property, {postValidators: validators});
                     }
                     out.appendChild(labeledInput(variable.label, editor));
                     break;

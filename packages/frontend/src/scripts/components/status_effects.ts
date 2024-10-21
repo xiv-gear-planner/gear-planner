@@ -50,4 +50,4 @@ export class StatusIcon extends HTMLImageElement {
     }
 }
 
-customElements.define("ffxiv-status-icon", StatusIcon, {extends: "img",});
+customElements.define("ffxiv-status-icon", StatusIcon, {extends: "img"});

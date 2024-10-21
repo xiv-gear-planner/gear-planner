@@ -4,11 +4,11 @@ import * as fs from "fs";
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const jsdom = require("jsdom");
-const {JSDOM,} = jsdom;
+const {JSDOM} = jsdom;
 
 function makeDom() {
     const buffer = fs.readFileSync("./dist/index.html");
-    const dom = new JSDOM(buffer, {runScripts: "dangerously",});
+    const dom = new JSDOM(buffer, {runScripts: "dangerously"});
     dom.virtualConsole.sendTo(console);
     console.log("DOM started");
     return dom;

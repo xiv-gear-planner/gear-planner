@@ -200,8 +200,8 @@ export class SamSim extends BaseMultiCycleSim<SamSimResult, SamSettings, SAMCycl
 
     getRotationsToSimulate(set: CharacterGearSet): Rotation<SAMCycleProcessor>[] {
         const gcd = set.results.computedStats.gcdPhys(2.5, 13);
-        const { name, rotation, } = SamSim.getRotationForGcd(gcd);
-        const settings = { ...this.settings, };
+        const { name, rotation } = SamSim.getRotationForGcd(gcd);
+        const settings = { ...this.settings };
         const outer = this;
 
         console.log(`[SAM Sim] Running ${name}...`);

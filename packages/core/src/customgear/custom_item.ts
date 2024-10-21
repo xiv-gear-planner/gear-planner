@@ -95,7 +95,7 @@ export class CustomItem implements GearItem {
     }
 
     export(): CustomItemExport {
-        return {...this._data,};
+        return {...this._data};
     }
 
     get ilvl() {
@@ -193,7 +193,7 @@ export class CustomItem implements GearItem {
             if (syncIlvlInfo && syncIlvlInfo.ilvl < this.ilvl) {
                 this.unsyncedVersion = {
                     ...this,
-                    stats: {...this.customData.stats,},
+                    stats: {...this.customData.stats},
                 };
                 const statCapsSync = {};
                 Object.entries(this.stats).forEach(([stat, v]) => {

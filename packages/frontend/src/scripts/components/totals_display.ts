@@ -40,10 +40,10 @@ export class SetTotalsDisplay extends HTMLElement {
                     case "dexterity":
                     case "intelligence":
                     case "mind":
-                        value = {multiplier: stats.mainStatMulti,};
+                        value = {multiplier: stats.mainStatMulti};
                         break;
                     case "determination":
-                        value = {multiplier: stats.detMulti,};
+                        value = {multiplier: stats.detMulti};
                         break;
                     case "tenacity":
                         value = {
@@ -52,7 +52,7 @@ export class SetTotalsDisplay extends HTMLElement {
                         };
                         break;
                     case "piety":
-                        value = {perTick: stats.mpPerTick,};
+                        value = {perTick: stats.mpPerTick};
                         break;
                     case "crit":
                         value = {
@@ -153,4 +153,4 @@ function quickTextDiv(cls: string, content: string) {
 
 customElements.define('set-view-toolbar', SetViewToolbar);
 customElements.define('set-totals-display', SetTotalsDisplay);
-customElements.define('stat-total', SingleStatTotalDisplay, {extends: 'div',});
+customElements.define('stat-total', SingleStatTotalDisplay, {extends: 'div'});

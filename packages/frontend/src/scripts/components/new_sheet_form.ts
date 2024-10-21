@@ -201,5 +201,5 @@ function spacer() {
 }
 
 customElements.define("save-as-modal", SaveAsModal);
-customElements.define("new-sheet-form-fieldset", NewSheetFormFieldSet, {extends: "fieldset",});
-customElements.define("new-sheet-form", NewSheetForm, {extends: "form",});
+customElements.define("new-sheet-form-fieldset", NewSheetFormFieldSet, {extends: "fieldset"});
+customElements.define("new-sheet-form", NewSheetForm, {extends: "form"});

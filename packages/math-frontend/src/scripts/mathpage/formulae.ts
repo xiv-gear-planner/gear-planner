@@ -99,7 +99,7 @@ export function registerFormulae() {
         }],
         primaryVariable: "mainstat",
         makeDefaultInputs(generalSettings: GeneralSettings) {
-            return {mainstat: generalSettings.levelStats.baseMainStat,};
+            return {mainstat: generalSettings.levelStats.baseMainStat};
         },
     });
 
@@ -165,7 +165,7 @@ export function registerFormulae() {
         }],
         primaryVariable: "det",
         makeDefaultInputs(generalSettings: GeneralSettings) {
-            return {det: generalSettings.levelStats.baseMainStat,};
+            return {det: generalSettings.levelStats.baseMainStat};
         },
     });
 
@@ -196,7 +196,7 @@ export function registerFormulae() {
         }],
         primaryVariable: "tnc",
         makeDefaultInputs(generalSettings: GeneralSettings) {
-            return {tnc: generalSettings.levelStats.baseSubStat,};
+            return {tnc: generalSettings.levelStats.baseSubStat};
         },
     });
 
@@ -221,7 +221,7 @@ export function registerFormulae() {
         }],
         primaryVariable: "piety",
         makeDefaultInputs(generalSettings: GeneralSettings) {
-            return {piety: generalSettings.levelStats.baseSubStat,};
+            return {piety: generalSettings.levelStats.baseSubStat};
         },
     });
 
@@ -363,7 +363,7 @@ export function registerFormulae() {
             },
         }],
         makeDefaultInputs: (gen: GeneralSettings) => {
-            return {dhit: gen.levelStats.baseSubStat,};
+            return {dhit: gen.levelStats.baseSubStat};
         },
         primaryVariable: "dhit",
         variables: [{
@@ -388,7 +388,7 @@ export function registerFormulae() {
             },
         }],
         makeDefaultInputs: (gen: GeneralSettings) => {
-            return {vit: gen.levelStats.baseMainStat,};
+            return {vit: gen.levelStats.baseMainStat};
         },
         primaryVariable: 'vit',
         variables: [{

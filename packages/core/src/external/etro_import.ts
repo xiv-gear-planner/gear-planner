@@ -116,10 +116,10 @@ export async function getSetFromEtro(etroSetId: string) {
             for (let i = 1; i <= MATERIA_SLOTS_MAX; i++) {
                 const materiaMaybe = materiaData[i];
                 if (materiaMaybe) {
-                    materiaOut.push({id: materiaMaybe,});
+                    materiaOut.push({id: materiaMaybe});
                 }
                 else {
-                    materiaOut.push({id: -1,});
+                    materiaOut.push({id: -1});
                 }
             }
         }

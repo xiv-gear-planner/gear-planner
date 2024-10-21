@@ -195,4 +195,4 @@ export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
     }
 }
 
-customElements.define('abilities-used-table', AbilitiesUsedTable, {extends: 'table',});
+customElements.define('abilities-used-table', AbilitiesUsedTable, {extends: 'table'});

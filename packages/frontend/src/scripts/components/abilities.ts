@@ -28,4 +28,4 @@ export class AbilityIcon extends HTMLImageElement {
     }
 }
 
-customElements.define("ffxiv-ability-icon", AbilityIcon, {extends: "img",});
+customElements.define("ffxiv-ability-icon", AbilityIcon, {extends: "img"});

@@ -248,7 +248,7 @@ export class NewApiDataManager implements DataManager {
         console.log("Loading items");
 
 
-        const itemsPromise = this.apiClient.items.items({job: this._classJob,})
+        const itemsPromise = this.apiClient.items.items({job: this._classJob})
             .then(async (data) => {
                 if (data) {
                     console.log(`Got ${data.data.items.length} Items`);

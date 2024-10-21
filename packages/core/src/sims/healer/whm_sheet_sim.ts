@@ -57,7 +57,7 @@ export const whmSheetSpec: SimSpec<WhmSheetSim, WhmSheetSettings> = {
 export class WhmSheetSim implements Simulation<WhmSheetSimResult, WhmSheetSettings, WhmSheetSettings> {
 
     exportSettings(): WhmSheetSettings {
-        return {...this.settings,};
+        return {...this.settings};
     };
 
     settings: WhmSheetSettings = {

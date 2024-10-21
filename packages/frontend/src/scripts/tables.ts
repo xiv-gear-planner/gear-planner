@@ -297,7 +297,7 @@ export class CustomTable<RowDataType, SelectionType = never> extends HTMLTableEl
     }
 
     protected makeDataRow(item: RowDataType): CustomRow<RowDataType> {
-        return new CustomRow<RowDataType>(item, this, {noInitialRefresh: true,});
+        return new CustomRow<RowDataType>(item, this, {noInitialRefresh: true});
     }
 
     /**
@@ -530,7 +530,7 @@ export class CustomRow<RowDataType> extends HTMLTableRowElement implements Refre
             }
             else {
                 if (col.rowCondition(this.dataItem)) {
-                    const newCell = new CustomCell<RowDataType, any>(this.dataItem, col, this, {noInitialRefresh: true,});
+                    const newCell = new CustomCell<RowDataType, any>(this.dataItem, col, this, {noInitialRefresh: true});
                     this.dataColMap.set(col, newCell);
                     newColElements.push(newCell);
                 }
@@ -541,7 +541,7 @@ export class CustomRow<RowDataType> extends HTMLTableRowElement implements Refre
                         renderer: () => quickElement('span', [], []),
                         colStyler: () => null,
                     });
-                    const newCell = new CustomCell<RowDataType, any>(this.dataItem, dummyCol, this, {noInitialRefresh: true,});
+                    const newCell = new CustomCell<RowDataType, any>(this.dataItem, dummyCol, this, {noInitialRefresh: true});
                     this.dataColMap.set(col, newCell);
                     newColElements.push(newCell);
                 }
@@ -657,9 +657,9 @@ export class CustomCell<RowDataType, CellDataType> extends HTMLTableCellElement 
 
 }
 
-customElements.define("custom-table-row", CustomRow, {extends: "tr",});
-customElements.define("custom-table", CustomTable, {extends: "table",});
-customElements.define("custom-table-cell", CustomCell, {extends: "td",});
-customElements.define("custom-table-header-row", CustomTableHeaderRow, {extends: "tr",});
-customElements.define("custom-table-title-row", CustomTableTitleRow, {extends: "tr",});
-customElements.define("custom-table-header-cell", CustomTableHeaderCell, {extends: "th",});
+customElements.define("custom-table-row", CustomRow, {extends: "tr"});
+customElements.define("custom-table", CustomTable, {extends: "table"});
+customElements.define("custom-table-cell", CustomCell, {extends: "td"});
+customElements.define("custom-table-header-row", CustomTableHeaderRow, {extends: "tr"});
+customElements.define("custom-table-title-row", CustomTableTitleRow, {extends: "tr"});
+customElements.define("custom-table-header-cell", CustomTableHeaderCell, {extends: "th"});

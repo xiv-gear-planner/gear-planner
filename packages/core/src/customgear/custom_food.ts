@@ -58,7 +58,7 @@ export class CustomFood implements FoodItem {
     }
 
     export(): CustomFoodExport {
-        return {...this._data,};
+        return {...this._data};
     }
 
     get ilvl(): number {

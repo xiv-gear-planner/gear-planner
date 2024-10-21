@@ -495,8 +495,8 @@ class MeldSolverConfirmationDialog extends BaseModal {
     }
 }
 customElements.define('meld-solver-area', MeldSolverDialog);
-customElements.define('load-bar', LoadBar, { extends: 'div', });
-customElements.define('meld-solver-progress-display', MeldSolverProgressDisplay, { extends: 'div', });
-customElements.define('meld-solver-settings-menu', MeldSolverSettingsMenu, { extends: 'div', });
-customElements.define('meld-solver-result-materia-entry', MateriaEntry, { extends: 'div', });
+customElements.define('load-bar', LoadBar, { extends: 'div' });
+customElements.define('meld-solver-progress-display', MeldSolverProgressDisplay, { extends: 'div' });
+customElements.define('meld-solver-settings-menu', MeldSolverSettingsMenu, { extends: 'div' });
+customElements.define('meld-solver-result-materia-entry', MateriaEntry, { extends: 'div' });
 customElements.define('meld-solver-result-dialog', MeldSolverConfirmationDialog);

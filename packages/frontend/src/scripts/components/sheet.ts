@@ -2197,7 +2197,7 @@ customElements.define("gear-set-editor", GearSetEditor);
 customElements.define("separator-editor", SeparatorEditor);
 customElements.define("gear-set-viewer", GearSetViewer);
 customElements.define("separator-viewer", SeparatorViewer);
-customElements.define("gear-plan-table", GearPlanTable, {extends: "table",});
+customElements.define("gear-plan-table", GearPlanTable, {extends: "table"});
 customElements.define("gear-plan", GearPlanSheetElement);
 customElements.define("sim-result-display", SimResultMiniDisplay);
 customElements.define("sim-result-detail-display", SimResultDetailDisplay);

@@ -30,4 +30,4 @@ export class ItemIcon extends HTMLImageElement {
     }
 }
 
-customElements.define("ffxiv-item-icon", ItemIcon, {extends: "img",});
+customElements.define("ffxiv-item-icon", ItemIcon, {extends: "img"});

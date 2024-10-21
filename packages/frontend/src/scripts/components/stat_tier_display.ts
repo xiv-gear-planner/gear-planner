@@ -423,5 +423,5 @@ export class StatTierDisplay extends HTMLDivElement {
     }
 }
 
-customElements.define('stat-tiering-area', StatTierDisplay, {extends: 'div',});
-customElements.define('single-stat-tier-display', SingleStatTierDisplay, {extends: 'div',});
+customElements.define('stat-tiering-area', StatTierDisplay, {extends: 'div'});
+customElements.define('single-stat-tier-display', SingleStatTierDisplay, {extends: 'div'});

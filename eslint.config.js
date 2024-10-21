@@ -60,7 +60,7 @@ export default [
             "@stylistic/js/comma-dangle": ["error", {
                 "functions": "never",
                 "arrays": "always-multiline",
-                "objects": "always",
+                "objects": "always-multiline",
                 "imports": "never",
                 "exports": "never",
             }],
