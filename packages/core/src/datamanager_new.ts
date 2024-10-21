@@ -43,7 +43,6 @@ type FoodType = Awaited<ReturnType<ApiClientRawType<'food', 'foodItems'>>>['data
 
 async function retryFetch(...params: Parameters<typeof fetch>): Promise<Response> {
     let tries = 5;
-    // eslint-disable-next-line no-constant-condition
     while (true) {
         tries--;
         const result = await fetch(...params);
