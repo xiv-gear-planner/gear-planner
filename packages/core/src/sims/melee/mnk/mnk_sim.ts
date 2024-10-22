@@ -71,13 +71,13 @@ class MNKCycleProcessor extends CycleProcessor {
 
         super.addAbilityUse(modified);
         if (usedAbility.ability.type === 'gcd' && this.combatStarted) {
-            const probableChakraGain = usedAbility.ability.id === LeapingOpo.id && usedAbility.buffs.find(buff => [PerfectBalanceBuff.statusId, OpoForm.statusId].includes(buff.statusId))
+            const probableChakraGain = usedAbility.ability.id === LeapingOpo.id && usedAbility.buffs.find(buff => [PerfectBalanceBuff.statusId, FormlessFist.statusId, OpoForm.statusId].includes(buff.statusId))
                 ? 1
                 : this.stats.critChance + usedAbility.combinedEffects.critChanceIncrease;
             const brotherhoodChakra = usedAbility.buffs.find(buff => buff.statusId === BrotherhoodBuff.statusId)
                 ? 1
                 : 0;
-            this.gauge.chakra.gainChakra(probableChakraGain + brotherhoodChakra);
+            this.gauge.gainChakra(probableChakraGain + brotherhoodChakra);
         }
     }
 
