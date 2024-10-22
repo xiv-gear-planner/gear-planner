@@ -881,7 +881,7 @@ export class AltItemsModal extends BaseModal {
         table.columns = [
             {
                 shortName: "ilvl",
-                displayName: "Lv",
+                displayName: "iLv",
                 getter: item => {
                     return item.ilvl.toString();
                 },

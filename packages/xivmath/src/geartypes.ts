@@ -495,6 +495,11 @@ export interface JobDataConst {
      * Can return null to keep the defaults.
      */
     gcdDisplayOverrides?: (level: SupportedLevel) => (GcdDisplayOverride[]) | null;
+
+    /**
+     * The maximum level of the job.
+     */
+    readonly maxLevel: SupportedLevel;
 }
 
 export type GcdDisplayOverride = {
