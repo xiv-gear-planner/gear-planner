@@ -168,6 +168,26 @@ class MNKCycleProcessor extends CycleProcessor {
         })
     }
 
+    get opo(): MnkGcdAbility {
+        if (this.gauge.opoFury) {
+            return LeapingOpo;
+        }
+        return DragonKick;
+    }
+    get raptor(): MnkGcdAbility {
+        if (this.gauge.raptorFury) {
+            return RisingRaptor;
+        }
+        return TwinSnakes;
+    }
+
+    get coeurl(): MnkGcdAbility {
+        if (this.gauge.coeurlFury) {
+            return PouncingCoeurl;
+        }
+        return Demolish;
+    }
+
     chooseGcd(): MnkGcdAbility {
         if (this.getActiveBuffs().find(buff => buff.statusId === WindsRumination.statusId)) {
             return WindsReply;
@@ -179,25 +199,16 @@ class MNKCycleProcessor extends CycleProcessor {
         switch (this.getCurrentForm()?.statusId) {
             case OpoForm.statusId:
             case FormlessFist.statusId:
-                if (this.gauge.opoFury) {
-                    return LeapingOpo;
-                }
-                return DragonKick;
+                return this.opo;
             case RaptorForm.statusId:
                 // Tell the actor to use FiresReply after an opo
                 // TODO FiresReply could be dropped if there isn't an Opo executed in its duration
                 if (this.getActiveBuffs().find(buff => buff.statusId === FiresRumination.statusId)) {
                     return FiresReply;
                 }
-                if (this.gauge.raptorFury) {
-                    return RisingRaptor;
-                }
-                return TwinSnakes;
+                return this.raptor;
             case CoeurlForm.statusId:
-                if (this.gauge.coeurlFury) {
-                    return PouncingCoeurl;
-                }
-                return Demolish;
+                return this.coeurl;
             case PerfectBalanceBuff.statusId:
                 // Prefer to check if we need a solar nadi so that 2m windows sequence RP or PR first.
                 if (!this.gauge.solarNadi) {
@@ -235,11 +246,7 @@ class MNKCycleProcessor extends CycleProcessor {
                     return gcd;
                 } else {
                     // want a lunar nadi
-                    if (this.gauge.opoFury) {
-                        return LeapingOpo;
-                    } else {
-                        return DragonKick;
-                    }
+                    return this.opo;
                 }
             default:
                 if (this.gauge.beastChakra.length === 3) {
