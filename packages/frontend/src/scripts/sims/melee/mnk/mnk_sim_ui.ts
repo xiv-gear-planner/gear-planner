@@ -38,7 +38,8 @@ class MNKGaugeGui {
                             stack.style.overflow = 'hidden';
                             if (i <= chakra - 5) {
                                 stack.style.background = '#f32908';
-                            } else if (i <= chakra) {
+                            }
+                            else if (i <= chakra) {
                                 stack.style.background = '#f37208';
                             }
                             div.appendChild(stack);
@@ -115,7 +116,7 @@ class MNKGaugeGui {
                         return div;
                     }
                     return document.createTextNode("");
-                }
+                },
             },
             {
                 shortName: 'nadi',
@@ -166,7 +167,7 @@ class MNKGaugeGui {
                         return div;
                     }
                     return document.createTextNode("");
-                }
+                },
             },
             {
                 shortName: 'beastChakra',
@@ -210,7 +211,7 @@ class MNKGaugeGui {
                         return div;
                     }
                     return document.createTextNode("");
-                }
+                },
             },
         ];
     }

@@ -1,6 +1,6 @@
 import { BuffController, PersonalBuff, PartyBuff, OgcdAbility } from "@xivgear/core/sims/sim_types";
 import { MNKGauge } from "./mnk_gauge";
-import { FuryAbility, MnkGcdAbility, MnkOgcdAbility } from "./mnk_types"
+import { FuryAbility, MnkGcdAbility, MnkOgcdAbility } from "./mnk_types";
 
 export const OpoForm: PersonalBuff = {
     name: "Opo-Opo Form",
@@ -18,12 +18,13 @@ export const OpoForm: PersonalBuff = {
             return {
                 ...ability,
                 autoCrit: true,
-            }
-        } else if (ability.id === DragonKick.id) {
+            };
+        }
+        else if (ability.id === DragonKick.id) {
             return {
                 ...ability,
                 activatesBuffs: [...ability.activatesBuffs, OpoFury],
-            }
+            };
         }
         return ability;
     },
@@ -41,7 +42,7 @@ export const OpoFury: PersonalBuff = {
         return {
             ...ability,
             potency: ability.potency + 200,
-        }
+        };
     },
 };
 
@@ -69,7 +70,7 @@ export const RaptorFury: PersonalBuff = {
         return {
             ...ability,
             potency: ability.potency + 200,
-        }
+        };
     },
 };
 
@@ -100,7 +101,7 @@ export const CoeurlFury: PersonalBuff = {
         return {
             ...ability,
             potency: ability.potency + 200,
-        }
+        };
     },
 };
 
@@ -120,16 +121,17 @@ export const PerfectBalanceBuff: PersonalBuff = {
             return {
                 ...ability,
                 autoCrit: true,
-            }
-        } else if (ability.id === DragonKick.id) {
+            };
+        }
+        else if (ability.id === DragonKick.id) {
             return {
                 ...ability,
                 activatesBuffs: [...ability.activatesBuffs, OpoFury],
-            }
+            };
         }
         return ability;
     },
-}
+};
 
 export const FormlessFist: PersonalBuff = {
     name: "Formless Fist",
@@ -146,16 +148,17 @@ export const FormlessFist: PersonalBuff = {
             return {
                 ...ability,
                 autoCrit: true,
-            }
-        } else if (ability.id === DragonKick.id) {
+            };
+        }
+        else if (ability.id === DragonKick.id) {
             return {
                 ...ability,
                 activatesBuffs: [...ability.activatesBuffs, OpoFury],
-            }
+            };
         }
         return ability;
     },
-}
+};
 
 export const RiddleOfFireBuff: PersonalBuff = {
     name: "Riddle of Fire",
@@ -165,7 +168,7 @@ export const RiddleOfFireBuff: PersonalBuff = {
     effects: {
         dmgIncrease: 0.20,
     },
-}
+};
 
 export const BrotherhoodBuff: PartyBuff = {
     job: "MNK",
@@ -177,8 +180,8 @@ export const BrotherhoodBuff: PartyBuff = {
     effects: {
         // Additional effect: allows the opening of up to ten chakra,
         dmgIncrease: 0.05,
-    }
-}
+    },
+};
 
 // TODO Is this simmable or something that should just be assumed?
 //export const MeditativeBrotherhood: PartyBuff = {}
@@ -189,9 +192,9 @@ export const RiddleOfWindBuff: PersonalBuff = {
     statusId: 2687,
     appliesTo: (ability) => ability.attackType === 'Auto-attack',
     effects: {
-        haste: 50
-    }
-}
+        haste: 50,
+    },
+};
 export const FiresRumination: PersonalBuff = {
     name: "Fire's Rumination",
     duration: 20,
@@ -201,7 +204,7 @@ export const FiresRumination: PersonalBuff = {
     },
     appliesTo: (ability) => ability.id === FiresReply.id,
     beforeSnapshot: (bc, ab) => bc.removeSelf(),
-}
+};
 
 export const WindsRumination: PersonalBuff = {
     name: "Wind's Rumination",
@@ -212,7 +215,7 @@ export const WindsRumination: PersonalBuff = {
     },
     appliesTo: (ability) => ability.id === WindsReply.id,
     beforeSnapshot: (bc, ab) => bc.removeSelf(),
-}
+};
 
 export const Bootshine: FuryAbility = {
     name: "Bootshine",
@@ -227,10 +230,10 @@ export const Bootshine: FuryAbility = {
     updateGauge: (gauge: MNKGauge, form) => {
         gauge.opoFury = 0;
         if (form && form.statusId === PerfectBalanceBuff.statusId) {
-            gauge.beastChakra.push('opo')
+            gauge.beastChakra.push('opo');
         }
-    }
-}
+    },
+};
 
 export const TrueStrike: FuryAbility = {
     name: "True Strike",
@@ -245,10 +248,10 @@ export const TrueStrike: FuryAbility = {
     updateGauge: (gauge: MNKGauge, form) => {
         gauge.raptorFury = 0;
         if (form && form.statusId === PerfectBalanceBuff.statusId) {
-            gauge.beastChakra.push('raptor')
+            gauge.beastChakra.push('raptor');
         }
-    }
-}
+    },
+};
 
 export const SnapPunch: FuryAbility = {
     name: "Snap Punch",
@@ -263,10 +266,10 @@ export const SnapPunch: FuryAbility = {
     updateGauge: (gauge: MNKGauge, form) => {
         gauge.coeurlFury -= 1;
         if (form && form.statusId === PerfectBalanceBuff.statusId) {
-            gauge.beastChakra.push('coeurl')
+            gauge.beastChakra.push('coeurl');
         }
-    }
-}
+    },
+};
 
 // I'm not implementing all 4 meditations lol
 export const ForbiddenMeditation: MnkGcdAbility = {
@@ -279,8 +282,8 @@ export const ForbiddenMeditation: MnkGcdAbility = {
     fixedGcd: true,
     updateGauge: (gauge: MNKGauge, form, inCombat) => {
         gauge.gainChakra(inCombat ? 1 : 5);
-    }
-}
+    },
+};
 
 export const TwinSnakes: FuryAbility = {
     name: "Twin Snakes",
@@ -295,10 +298,10 @@ export const TwinSnakes: FuryAbility = {
     updateGauge: (gauge: MNKGauge, form) => {
         gauge.raptorFury = 1;
         if (form && form.statusId === PerfectBalanceBuff.statusId) {
-            gauge.beastChakra.push('raptor')
+            gauge.beastChakra.push('raptor');
         }
-    }
-}
+    },
+};
 
 export const Demolish: FuryAbility = {
     name: "Demolish",
@@ -313,10 +316,10 @@ export const Demolish: FuryAbility = {
     updateGauge: (gauge: MNKGauge, form) => {
         gauge.coeurlFury = 2;
         if (form && form.statusId === PerfectBalanceBuff.statusId) {
-            gauge.beastChakra.push('coeurl')
+            gauge.beastChakra.push('coeurl');
         }
-    }
-}
+    },
+};
 
 /**
  * @see OpoForm for conditional activation of opoFury buff
@@ -336,10 +339,10 @@ export const DragonKick: FuryAbility = {
             gauge.opoFury = 1;
         }
         if (form && form.statusId === PerfectBalanceBuff.statusId) {
-            gauge.beastChakra.push('opo')
+            gauge.beastChakra.push('opo');
         }
-    }
-}
+    },
+};
 
 export const PerfectBalance: MnkOgcdAbility = {
     name: "Perfect Balance",
@@ -354,9 +357,9 @@ export const PerfectBalance: MnkOgcdAbility = {
     },
     activatesBuffs: [PerfectBalanceBuff],
     updateGauge: (gauge: MNKGauge) => {
-        gauge.beastChakra = []
-    }
-}
+        gauge.beastChakra = [];
+    },
+};
 
 export const FormShift: MnkGcdAbility = {
     name: "Form Shift",
@@ -365,8 +368,8 @@ export const FormShift: MnkGcdAbility = {
     attackType: "Weaponskill",
     gcd: 2.5,
     potency: null,
-    activatesBuffs: [FormlessFist]
-}
+    activatesBuffs: [FormlessFist],
+};
 
 export const TheForbiddenChakra: MnkOgcdAbility = {
     name: "The Forbidden Chakra",
@@ -379,8 +382,8 @@ export const TheForbiddenChakra: MnkOgcdAbility = {
     },
     updateGauge: (gauge: MNKGauge) => {
         gauge.chakra -= 5;
-    }
-}
+    },
+};
 
 export const ElixirField: MnkGcdAbility = {
     name: "Elixir Field",
@@ -394,7 +397,7 @@ export const ElixirField: MnkGcdAbility = {
         gauge.beastChakra = [];
     },
     activatesBuffs: [FormlessFist],
-}
+};
 
 export const FlintStrike: MnkGcdAbility = {
     name: "Flint Strike",
@@ -408,7 +411,7 @@ export const FlintStrike: MnkGcdAbility = {
         gauge.beastChakra = [];
     },
     activatesBuffs: [FormlessFist],
-}
+};
 
 export const CelestialRevolution: MnkGcdAbility = {
     name: "Celestial Revolution",
@@ -420,13 +423,14 @@ export const CelestialRevolution: MnkGcdAbility = {
     updateGauge: (gauge: MNKGauge) => {
         if (gauge.solarNadi) {
             gauge.lunarNadi = 1;
-        } else {
+        }
+        else {
             gauge.solarNadi = 1;
         }
         gauge.beastChakra = [];
     },
     activatesBuffs: [FormlessFist],
-}
+};
 
 export const TornadoKick: MnkGcdAbility = {
     name: "TornadoKick",
@@ -436,12 +440,12 @@ export const TornadoKick: MnkGcdAbility = {
     gcd: 2.5,
     potency: 1200,
     updateGauge: (gauge: MNKGauge) => {
-        gauge.lunarNadi = 0
+        gauge.lunarNadi = 0;
         gauge.solarNadi = 0;
         gauge.beastChakra = [];
     },
     activatesBuffs: [FormlessFist],
-}
+};
 
 export const RiddleOfFire: MnkOgcdAbility = {
     name: "Riddle of Fire",
@@ -453,7 +457,7 @@ export const RiddleOfFire: MnkOgcdAbility = {
         time: 60,
     },
     activatesBuffs: [RiddleOfFireBuff, FiresRumination],
-}
+};
 export const Brotherhood: MnkOgcdAbility = {
     name: "Brotherhood",
     id: 7396,
@@ -464,7 +468,7 @@ export const Brotherhood: MnkOgcdAbility = {
         time: 120,
     },
     activatesBuffs: [BrotherhoodBuff],
-}
+};
 
 export const RiddleOfWind: MnkOgcdAbility = {
     name: "Riddle of Wind",
@@ -476,7 +480,7 @@ export const RiddleOfWind: MnkOgcdAbility = {
         time: 90,
     },
     activatesBuffs: [RiddleOfWindBuff, WindsRumination],
-}
+};
 
 export const SixSidedStar: MnkGcdAbility = {
     name: "Six-sided Star",
@@ -486,51 +490,51 @@ export const SixSidedStar: MnkGcdAbility = {
     attackType: 'Weaponskill',
     potency: 780, // TODO add chakra potency
     updateGauge: (gauge: MNKGauge) => {
-        gauge.chakra = 0
+        gauge.chakra = 0;
     },
-}
+};
 
 export const RisingPhoenix: MnkGcdAbility = {
     ...FlintStrike,
     name: "Rising Phoenix",
     id: 25768,
     potency: 900,
-}
+};
 
 export const PhantomRush: MnkGcdAbility = {
     ...TornadoKick,
     name: "Phantom Rush",
     id: 25769,
     potency: 1500,
-}
+};
 
 export const LeapingOpo: FuryAbility = {
     ...Bootshine,
     name: "Leaping Opo",
     id: 36945,
     potency: 260,
-}
+};
 
 export const RisingRaptor: FuryAbility = {
     ...TrueStrike,
     name: "Rising Raptor",
     id: 36946,
     potency: 340,
-}
+};
 
 export const PouncingCoeurl: FuryAbility = {
     ...SnapPunch,
     name: "Pouncing Couerl",
     id: 36947,
     potency: 370, // assumed positional hit
-}
+};
 
 export const ElixirBurst: MnkGcdAbility = {
     ...ElixirField,
     name: "Elixir Burst",
     id: 36948,
     potency: 900,
-}
+};
 
 export const WindsReply: MnkGcdAbility = {
     name: "Wind's Reply",
@@ -539,7 +543,7 @@ export const WindsReply: MnkGcdAbility = {
     attackType: 'Weaponskill',
     gcd: 2.5,
     potency: 900,
-}
+};
 export const FiresReply: MnkGcdAbility = {
     name: "Fire's Reply",
     id: 36950,
@@ -548,12 +552,12 @@ export const FiresReply: MnkGcdAbility = {
     gcd: 2.5,
     potency: 1200,
     activatesBuffs: [FormlessFist],
-}
+};
 
 export const OPO_ABILITIES: number[] = [Bootshine.id, DragonKick.id, LeapingOpo.id];
 const RAPTOR_ABILITIES: number[] = [TrueStrike.id, TwinSnakes.id, RisingRaptor.id];
 const COUERL_ABILITIES: number[] = [SnapPunch.id, Demolish.id, PouncingCoeurl.id];
-const FORM_ABILITIES: number[] = [Bootshine.id, DragonKick.id, LeapingOpo.id, TrueStrike.id, TwinSnakes.id, RisingRaptor.id, SnapPunch.id, Demolish.id, PouncingCoeurl.id]
+const FORM_ABILITIES: number[] = [Bootshine.id, DragonKick.id, LeapingOpo.id, TrueStrike.id, TwinSnakes.id, RisingRaptor.id, SnapPunch.id, Demolish.id, PouncingCoeurl.id];
 /** The priority of gcds to execute when building a solar blitz to push the highest potency sequence under RoF */
 export const SOLAR_WEAKEST_STRONGEST: FuryAbility[] = [DragonKick, Demolish, TwinSnakes, PouncingCoeurl, RisingRaptor, LeapingOpo];
 export const OGCD_PRIORITY: OgcdAbility[] = [Brotherhood, RiddleOfFire, RiddleOfWind, TheForbiddenChakra];

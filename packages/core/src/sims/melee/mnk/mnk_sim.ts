@@ -5,7 +5,7 @@ import { CharacterGearSet } from "@xivgear/core/gear";
 import { BaseMultiCycleSim } from "@xivgear/core/sims/processors/sim_processors";
 import { FuryAbility, MnkAbility, MNKExtraData, MnkGcdAbility } from "./mnk_types";
 import { MNKGauge as MnkGauge } from "./mnk_gauge";
-import { Brotherhood, BrotherhoodBuff, CelestialRevolution, CoeurlForm, Demolish, DragonKick, ElixirBurst, FiresReply, FiresRumination, ForbiddenMeditation, FormShift, FormlessFist, LeapingOpo, OGCD_PRIORITY, OPO_ABILITIES, OpoForm, OpoFury, PerfectBalance, PerfectBalanceBuff, PhantomRush, PouncingCoeurl, RaptorForm, RiddleOfFire, RiddleOfFireBuff, RiddleOfWind, RisingPhoenix, RisingRaptor, SOLAR_WEAKEST_STRONGEST, SixSidedStar, TheForbiddenChakra, TwinSnakes, WindsReply, WindsRumination } from "./mnk_actions";
+import { Brotherhood, BrotherhoodBuff, CelestialRevolution, CoeurlForm, Demolish, DragonKick, ElixirBurst, FiresReply, FiresRumination, ForbiddenMeditation, FormShift, FormlessFist, LeapingOpo, OGCD_PRIORITY, OPO_ABILITIES, OpoForm, PerfectBalance, PerfectBalanceBuff, PhantomRush, PouncingCoeurl, RaptorForm, RiddleOfFire, RiddleOfFireBuff, RiddleOfWind, RisingPhoenix, RisingRaptor, SOLAR_WEAKEST_STRONGEST, SixSidedStar, TheForbiddenChakra, TwinSnakes, WindsReply, WindsRumination } from "./mnk_actions";
 import { Brotherhood as BrotherhoodGlobalBuff } from "@xivgear/core/sims/buffs";
 import { sum } from "../../../util/array_utils";
 import { STANDARD_ANIMATION_LOCK } from "@xivgear/xivmath/xivconstants";
@@ -158,7 +158,7 @@ class MNKCycleProcessor extends CycleProcessor {
             if (ogcd.id === TheForbiddenChakra.id) {
                 return this.gauge.chakra >= 5 && this.cdTracker.canUse(ogcd, this.nextGcdTime);
             }
-            return this.cdTracker.canUse(ogcd, this.nextGcdTime)
+            return this.cdTracker.canUse(ogcd, this.nextGcdTime);
         });
         ogcdsAvailable.forEach(ogcd => {
             if (this.canUseWithoutClipping(ogcd)) {
@@ -168,7 +168,7 @@ class MNKCycleProcessor extends CycleProcessor {
                 }
                 this.useOgcd(ogcd);
             }
-        })
+        });
     }
 
     get opo(): MnkGcdAbility {
@@ -227,21 +227,24 @@ class MNKCycleProcessor extends CycleProcessor {
                             switch (gcd.fury) {
                                 case "opo":
                                     if (gcd.buildsFury) {
-                                        return this.gauge.opoFury == 0;
-                                    } else {
-                                        return this.gauge.opoFury != 0;
+                                        return this.gauge.opoFury === 0;
+                                    }
+                                    else {
+                                        return this.gauge.opoFury !== 0;
                                     }
                                 case "raptor":
                                     if (gcd.buildsFury) {
-                                        return this.gauge.raptorFury == 0;
-                                    } else {
-                                        return this.gauge.raptorFury != 0;
+                                        return this.gauge.raptorFury === 0;
+                                    }
+                                    else {
+                                        return this.gauge.raptorFury !== 0;
                                     }
                                 case "coeurl":
                                     if (gcd.buildsFury) {
-                                        return this.gauge.coeurlFury == 0;
-                                    } else {
-                                        return this.gauge.coeurlFury != 0;
+                                        return this.gauge.coeurlFury === 0;
+                                    }
+                                    else {
+                                        return this.gauge.coeurlFury !== 0;
                                     }
                             }
                         })
@@ -251,7 +254,8 @@ class MNKCycleProcessor extends CycleProcessor {
                         return DragonKick;
                     }
                     return gcd;
-                } else {
+                }
+                else {
                     // want a lunar nadi
                     return this.opo;
                 }
@@ -260,7 +264,7 @@ class MNKCycleProcessor extends CycleProcessor {
                     // formless with a blitz ready
                     return this.chooseBlitz();
                 }
-                console.warn("Infinite looping with no form")
+                console.warn("Infinite looping with no form");
                 // formless DK but this should never happen
                 return DragonKick;
         }
@@ -281,7 +285,7 @@ class MNKCycleProcessor extends CycleProcessor {
             case 3:
                 return RisingPhoenix;
         }
-        console.warn(`${this.currentTime} failed to select a blitz, choosing celestial revolution for punishment.`)
+        console.warn(`${this.currentTime} failed to select a blitz, choosing celestial revolution for punishment.`);
         return CelestialRevolution;
     }
 
@@ -310,7 +314,8 @@ class MNKCycleProcessor extends CycleProcessor {
                     // this condition will skip a formless-fist opo
                     || this.remainingGcdTime <= this.cdTracker.statusOf(PerfectBalance).currentCharges * this.timeToExecuteNGcds(5))
                 && this.cdTracker.canUse(PerfectBalance);
-        } else if (riddleStatus.readyAt.absolute >= this.totalTime) {
+        }
+        else if (riddleStatus.readyAt.absolute >= this.totalTime) {
             // riddle won't be back before the end of the fight, we should do a naked blitz
             return form?.statusId !== PerfectBalanceBuff.statusId // not already building a blitz
                 && ((OPO_ABILITIES.includes(gcd.id) // just executed an opo ability
@@ -318,7 +323,8 @@ class MNKCycleProcessor extends CycleProcessor {
                     // this condition will skip a formless-fist opo
                     || this.remainingGcdTime <= this.cdTracker.statusOf(PerfectBalance).currentCharges * this.timeToExecuteNGcds(5))
                     && this.cdTracker.canUse(PerfectBalance));
-        } else {
+        }
+        else {
             // riddle will be back or is currently off cooldown
             return form?.statusId !== PerfectBalanceBuff.statusId // not already building a blitz
                 && OPO_ABILITIES.includes(gcd.id) // just executed an opo ability
@@ -365,7 +371,7 @@ export class MnkSim extends BaseMultiCycleSim<CycleSimResult, MnkSettings, MNKCy
     }
 
     override makeDefaultSettings(): MnkSettings {
-        return {}
+        return {};
     }
 
     protected createCycleProcessor(settings: MultiCycleSettings): MNKCycleProcessor {
@@ -384,7 +390,7 @@ export class MnkSim extends BaseMultiCycleSim<CycleSimResult, MnkSettings, MNKCy
                     while (cp.remainingGcdTime > 0) {
                         cp.doStep();
                     }
-                }
+                },
             },
             {
                 name: 'solar lunar',
@@ -394,7 +400,7 @@ export class MnkSim extends BaseMultiCycleSim<CycleSimResult, MnkSettings, MNKCy
                     while (cp.remainingGcdTime > 0) {
                         cp.doStep();
                     }
-                }
+                },
             },
         ];
     }
