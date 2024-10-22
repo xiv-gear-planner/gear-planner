@@ -30,7 +30,7 @@ export const vprSheetSpec: SimSpec<VprSheetSim, VprSimSettingsExternal> = {
         return new VprSheetSim(exported);
     },
     supportedJobs: ['VPR'],
-    isDefaultSim: true
+    isDefaultSim: true,
 };
 
 class RotationState {
@@ -43,7 +43,7 @@ class RotationState {
     }
     private _nextSecondStep: number = 0;
     get nextSecondStep() {
-        return this._nextSecondStep
+        return this._nextSecondStep;
     }
     set nextSecondStep(new2ndGcd: number) {
         this._nextSecondStep = new2ndGcd % 2;
@@ -96,31 +96,31 @@ export class VprCycleProcessor extends CycleProcessor {
         const vprAbility = ability as VprAbility;
 
         if (vprAbility.updateGauge) {
-            
+
             /** prevent weird gauge update if an auto lands between now and nextGcdTime */
-            if (ability.type == 'gcd' &&  this.nextGcdTime > this.currentTime) {
+            if (ability.type === 'gcd' &&  this.nextGcdTime > this.currentTime) {
                 this.advanceTo(this.nextGcdTime);
-            } 
+            }
 
             /** Don't update gauge if we are awakening and ready to reawaken */
-            if ( !(vprAbility.id == Actions.Reawaken.id && this.getBuffIfActive(ReadyToReawaken)) ) {
+            if ( !(vprAbility.id === Actions.Reawaken.id && this.getBuffIfActive(ReadyToReawaken)) ) {
                 vprAbility.updateGauge(this.gauge);
             }
         }
 
-        if (vprAbility.id == Actions.FlanksbaneFang.id
-            || vprAbility.id == Actions.FlankstingStrike.id
-            || vprAbility.id == Actions.HindsbaneFang.id
-            || vprAbility.id == Actions.HindstingStrike.id
+        if (vprAbility.id === Actions.FlanksbaneFang.id
+            || vprAbility.id === Actions.FlankstingStrike.id
+            || vprAbility.id === Actions.HindsbaneFang.id
+            || vprAbility.id === Actions.HindstingStrike.id
         ) {
             this.rotationState.lastDualWieldFinisher = vprAbility as VprGcdAbility;
         }
 
-        return super.use(ability)
+        return super.use(ability);
     }
 
     override useOgcd(ability: OgcdAbility): AbilityUseResult {
-        
+
         /** If the ogcd can be used without clipping, do so.
          * NOTE: You still need to check if you can use without clipping when making rotation decisions.
          * This just forces the ogcd through if you already know you can use it.
@@ -176,10 +176,10 @@ export class VprCycleProcessor extends CycleProcessor {
     useDreadWinderCombo() {
         this.useDreadWinder();
 
-        if (this.getActiveBuffData(HuntersInstinct) == null) {
+        if (this.getActiveBuffData(HuntersInstinct) === null) {
             console.warn("No Hunter's Instinct when starting Dreadwinder Combo!");
         }
-        if (this.getActiveBuffData(Swiftscaled) == null) {
+        if (this.getActiveBuffData(Swiftscaled) === null) {
             console.warn("no Swiftscaled when starting Dreadwinder Combo!");
         }
 
@@ -204,7 +204,7 @@ export class VprCycleProcessor extends CycleProcessor {
                 this.useGcd(this.secondComboGcds[this.rotationState.nextSecondStep++]);
                 break;
             case 2:
-                /** Use finisher based on buff */
+            /** Use finisher based on buff */
                 if (this.getBuffIfActive(HindsbaneVenom)) {
                     this.useGcd(Actions.HindsbaneFang);
                 }
@@ -212,19 +212,17 @@ export class VprCycleProcessor extends CycleProcessor {
                     this.useGcd(Actions.HindstingStrike);
                 }
                 else if (this.getBuffIfActive(FlanksbaneVenom)) {
-                    this.useGcd(Actions.FlanksbaneFang)
+                    this.useGcd(Actions.FlanksbaneFang);
                 }
                 else if (this.getBuffIfActive(FlankstungVenom)) {
                     this.useGcd(Actions.FlankstingStrike);
                 }
                 else { // No buff running; Pick arbitrarily based on previous 2nd combo
-
-                    /** If we just used Hunter's sting */
-                    if (this.rotationState.nextSecondStep == 0) {
+                /** If we just used Hunter's sting */
+                    if (this.rotationState.nextSecondStep === 0) {
                         this.useGcd(Actions.HindsbaneFang); // Chosen arbitrarily from the flank options
                     }
-                    /** If we just used Swiftskin's sting */
-                    else if (this.rotationState.nextSecondStep == 1) {
+                    else if (this.rotationState.nextSecondStep === 1) { // If we just used Swiftskin's sting
                         this.useGcd(Actions.FlanksbaneFang); // Chosen arbitrarily from the hind options
                     }
                 }
@@ -270,7 +268,7 @@ export class VprCycleProcessor extends CycleProcessor {
 
         /** Use combo till we're good with finisher
          * Note: always iterates at least once*/
-        while (numCombosNeeded > 0) { 
+        while (numCombosNeeded > 0) {
             this.useDualWieldCombo();
             numCombosNeeded--;
         }
@@ -285,7 +283,7 @@ export class VprCycleProcessor extends CycleProcessor {
         this.useGcd(Actions.Vicewinder);
 
         this.advanceForLateWeave([potionMaxDex]);
-        this.useOgcd(potionMaxDex)
+        this.useOgcd(potionMaxDex);
 
         this.useHuntersCoil();
         this.useSwiftskinsCoil();
@@ -310,7 +308,7 @@ export class VprCycleProcessor extends CycleProcessor {
     }
 
     getGcdTimeAfterSerpentsIre(): number {
-        const gcdTime = this.gcdTime(Actions.ReavingFangs); // We already have a rule not to use non-dualwield gcds, so we can be assured that this is accurate. 
+        const gcdTime = this.gcdTime(Actions.ReavingFangs); // We already have a rule not to use non-dualwield gcds, so we can be assured that this is accurate.
 
         const serpentsIreReady = this.cdTracker.statusOf(Actions.SerpentsIre).readyAt.absolute;
         let gcdAfterSerpentsIre = this.nextGcdTime;
@@ -320,16 +318,16 @@ export class VprCycleProcessor extends CycleProcessor {
         }
 
         /** If ire gets pushed back due to clipping, push back one gcd */
-        if (serpentsIreReady + (Actions.SerpentsIre.animationLock ?? STANDARD_ANIMATION_LOCK) > gcdAfterSerpentsIre) { 
+        if (serpentsIreReady + (Actions.SerpentsIre.animationLock ?? STANDARD_ANIMATION_LOCK) > gcdAfterSerpentsIre) {
             gcdAfterSerpentsIre += 1;
         }
-        
+
         return gcdAfterSerpentsIre;
     }
 
     isImmediatelyBeforeBurst(): boolean {
 
-        const gcdTime = this.gcdTime(Actions.ReavingFangs); // We already have a rule not to use non-dualwield gcds, so we can be assured that this is accurate. 
+        const gcdTime = this.gcdTime(Actions.ReavingFangs); // We already have a rule not to use non-dualwield gcds, so we can be assured that this is accurate.
         const gcdAfterSerpentsIre = this.getGcdTimeAfterSerpentsIre();
         const reawakenStart = gcdAfterSerpentsIre + gcdTime;
 
@@ -340,7 +338,7 @@ export class VprCycleProcessor extends CycleProcessor {
 
         /** We are going to shift the GCDs around to make math easier.
          * Pretend we are starting after all of (hypothetical reawaken, UFs, Twinblade Combos) have been used, immediately.
-         * That means the rest of the gcds before 2min reawaken are *all* dual wield combos. 
+         * That means the rest of the gcds before 2min reawaken are *all* dual wield combos.
         */
         const numTwinbladeCombosToUse = 3 - this.rotationState.numDreadwindersUsed;
         const numRattlingCoils = this.gauge.rattlingCoils + numTwinbladeCombosToUse + (targetTime < this.cdTracker.statusOf(Actions.SerpentsIre).readyAt.absolute ? 0 : 1); // +1 for Serpent's ire
@@ -357,16 +355,16 @@ export class VprCycleProcessor extends CycleProcessor {
 
         /** Advance to our next combo-neutral spot, to make counting easier. */
         let combo = this.rotationState.comboStep;
-        if (combo != 0) {
-            while (combo != 0) {
+        if (combo !== 0) {
+            while (combo !== 0) {
                 start += dualWieldGcd;
-                combo = (combo + 1) % 3
+                combo = (combo + 1) % 3;
             }
             numFinishersBeforeTarget += 1;
         }
 
         const numGcdsBeforeTarget = Math.max(Math.floor((targetTime - start) / dualWieldGcd), 0);
-        numFinishersBeforeTarget += Math.floor(numGcdsBeforeTarget / 3)
+        numFinishersBeforeTarget += Math.floor(numGcdsBeforeTarget / 3);
 
         startingGuage += 10 * numFinishersBeforeTarget;
 
@@ -384,7 +382,7 @@ export class VprCycleProcessor extends CycleProcessor {
 
         if (this.canUseWithoutClipping(Actions.SerpentsIre)) {
             this.useOgcd(Actions.SerpentsIre);
-            if (this.gauge.serpentOfferings == 100 && this.gauge.rattlingCoils > 0 && this.rotationState.comboStep == 2) {
+            if (this.gauge.serpentOfferings === 100 && this.gauge.rattlingCoils > 0 && this.rotationState.comboStep === 2) {
                 this.useUncoiledFury();
             }
             else {
@@ -403,7 +401,7 @@ export class VprCycleProcessor extends CycleProcessor {
         /** Pre-burst logic */
         if (this.cdTracker.statusOf(Actions.SerpentsIre).readyAt.absolute - this.nextGcdTime < 10) {
 
-            if (this.gauge.serpentOfferings == 100 && this.gauge.rattlingCoils > 0 && this.rotationState.comboStep == 2) {
+            if (this.gauge.serpentOfferings === 100 && this.gauge.rattlingCoils > 0 && this.rotationState.comboStep === 2) {
                 this.useUncoiledFury();
             }
             else {
@@ -416,8 +414,8 @@ export class VprCycleProcessor extends CycleProcessor {
         if (this.cdTracker.canUse(Actions.Vicewinder)
             && this.gauge.serpentOfferings + 10 <= 100
             && this.cdTracker.statusOfAt(Actions.SerpentsIre, this.nextGcdTime).readyAt.relative > 10) {
-        
-            if (this.gauge.rattlingCoils == 3) {
+
+            if (this.gauge.rattlingCoils === 3) {
                 this.useUncoiledFury();
                 this.useDreadWinderCombo();
                 return;
@@ -430,21 +428,21 @@ export class VprCycleProcessor extends CycleProcessor {
 
         const postReawakenTime = this.nextGcdTime + this.getReawakenDuration();
         const nextSecondaryBuffRefresh = (this.cdTracker.statusOfAt(Actions.Vicewinder, postReawakenTime).readyToUse) ?
-                                        postReawakenTime + this.gcdTime(Actions.Vicewinder)
-                                        : postReawakenTime + ((1 - this.rotationState.comboStep) % 3) * this.gcdTime(Actions.ReavingFangs); 
+            postReawakenTime + this.gcdTime(Actions.Vicewinder)
+            : postReawakenTime + ((1 - this.rotationState.comboStep) % 3) * this.gcdTime(Actions.ReavingFangs);
 
         if (this.gauge.serpentOfferings >= 50
             && nextSecondaryBuffRefresh < this.getActiveBuffData(HuntersInstinct).end
             && nextSecondaryBuffRefresh < this.getActiveBuffData(Swiftscaled).end
             && this.willHaveGaugeForBurst()) {
-            
+
             this.useReawaken();
             return;
         }
 
         if (this.gauge.rattlingCoils > 2
-           || (this.gauge.rattlingCoils > 0 && this.cdTracker.statusOf(Actions.SerpentsIre).readyAt.relative > this.remainingGcdTime) 
-           || (this.rotationState.comboStep == 2 && this.gauge.serpentOfferings == 100 && this.gauge.rattlingCoils > 0)
+           || (this.gauge.rattlingCoils > 0 && this.cdTracker.statusOf(Actions.SerpentsIre).readyAt.relative > this.remainingGcdTime)
+           || (this.rotationState.comboStep === 2 && this.gauge.serpentOfferings === 100 && this.gauge.rattlingCoils > 0)
         ) {
             this.useUncoiledFury();
             return;
@@ -483,7 +481,7 @@ export class VprSheetSim extends BaseMultiCycleSim<VprSimResult, VprSimSettings>
                 while (cp.remainingTime > 0) {
                     cp.rotationStep();
                 }
-            }
+            },
         }];
     }
 }

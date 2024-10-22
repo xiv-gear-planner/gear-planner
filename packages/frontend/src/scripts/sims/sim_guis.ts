@@ -42,7 +42,7 @@ type SimGuiCtor<X extends Simulation<SimResult, unknown, unknown>> = {
 }
 
 function registerGui<X extends Simulation<SimResult, unknown, unknown>>(simSpec: SimSpec<X, unknown>, guiCtor: SimGuiCtor<X>) {
-    simGuiMap.set(simSpec as SimSpec<never, never>, guiCtor as SimGuiCtor<never>)
+    simGuiMap.set(simSpec as SimSpec<never, never>, guiCtor as SimGuiCtor<never>);
 }
 
 function getGuiCtor<X extends Simulation<never, never, never>>(simSpec: SimSpec<X, never>): SimGuiCtor<X> {
@@ -56,7 +56,7 @@ export function makeGui<X extends Simulation<SimResult, unknown, unknown>>(sim: 
 
 export const simGuiMap: Map<SimSpec<never, never>, SimGuiCtor<never>> = new Map;
 
-registerGui(potRatioSimSpec, PotencyRatioSimGui)
+registerGui(potRatioSimSpec, PotencyRatioSimGui);
 registerGui(potRatioSimSpec, PotencyRatioSimGui);
 registerGui(pldUsageSimSpec, BaseUsageCountSimGui);
 registerGui(pldSKSSheetSpec, BaseMultiCycleSimGui);

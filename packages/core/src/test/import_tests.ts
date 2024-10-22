@@ -65,7 +65,7 @@ describe('Import Functionality', () => {
         assert.equal(result['path'][0], 'sge');
         assert.equal(result['path'][1], 'endwalker');
         assert.equal(result['path'][2], 'dsr');
-    })
+    });
 });
 describe('Import Functionality (New)', () => {
     it('Should recognize shortlinks', () => {
@@ -118,5 +118,5 @@ describe('Import Functionality (New)', () => {
         assert.equal(result['path'][0], 'sge');
         assert.equal(result['path'][1], 'endwalker');
         assert.equal(result['path'][2], 'dsr');
-    })
+    });
 });

@@ -12,7 +12,7 @@ describe('Individual item math', () => {
                 stats: stats,
                 statCaps: statCaps,
                 unsyncedVersion: this,
-                isSyncedDown: false
+                isSyncedDown: false,
             } as GearItem, 'crit');
             expect(preview.mode).to.equal('unmelded');
             expect(preview.cap).to.equal(250);
@@ -32,7 +32,7 @@ describe('Individual item math', () => {
                     stats: stats,
                     statCaps: statCaps,
                 },
-                isSyncedDown: true
+                isSyncedDown: true,
             } as GearItem, 'crit');
             expect(preview.mode).to.equal('synced-down');
             expect(preview.cap).to.equal(180);
@@ -52,7 +52,7 @@ describe('Individual item math', () => {
                     stats: stats,
                     statCaps: statCaps,
                 },
-                isSyncedDown: true
+                isSyncedDown: true,
             } as GearItem, 'crit');
             expect(preview.mode).to.equal('unmelded');
             expect(preview.cap).to.equal(180);

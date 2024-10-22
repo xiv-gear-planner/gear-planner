@@ -6,7 +6,7 @@ export class ResultSettingsArea extends NamedSection {
     constructor(resultSettings: ResultSettings) {
         super("Result Settings");
         const inputField = new FieldBoundFloatField(resultSettings, 'stdDevs', {
-            inputMode: 'number'
+            inputMode: 'number',
         });
         const label = labelFor('+/- Standard Deviations', inputField);
         label.style.display = 'block';

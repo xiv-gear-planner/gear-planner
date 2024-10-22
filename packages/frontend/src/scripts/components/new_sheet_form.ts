@@ -21,7 +21,7 @@ export class NewSheetFormFieldSet extends HTMLFieldSetElement {
     readonly levelDropdown: DataSelect<SupportedLevel>;
     readonly ilvlSyncCheckbox: FieldBoundCheckBox<typeof this.tempSettings>;
     readonly ilvlSyncValue: FieldBoundIntField<typeof this.tempSettings>;
-    readonly tempSettings
+    readonly tempSettings;
 
     constructor(defaults: {
         name?: string,
@@ -70,7 +70,7 @@ export class NewSheetFormFieldSet extends HTMLFieldSetElement {
         this.appendChild(spacer());
         this.tempSettings = {
             ilvlSyncEnabled: defaults?.ilvlSyncEnabled ?? false,
-            ilvlSync: defaults?.ilvlSyncLevel ?? 650
+            ilvlSync: defaults?.ilvlSyncLevel ?? 650,
         };
         this.ilvlSyncCheckbox = new FieldBoundCheckBox(this.tempSettings, 'ilvlSyncEnabled');
         this.ilvlSyncCheckbox.id = 'new-sheet-ilvl-sync-enable';
@@ -80,10 +80,10 @@ export class NewSheetFormFieldSet extends HTMLFieldSetElement {
                 nonNegative,
                 (ctx) => {
                     if (ctx.newValue > MAX_ILVL) {
-                        ctx.failValidation("Enter a valid item level (too high)")
+                        ctx.failValidation("Enter a valid item level (too high)");
                     }
-                }
-            ]
+                },
+            ],
         });
         this.ilvlSyncValue.style.display = 'none';
         this.ilvlSyncCheckbox.addListener(() => this.recheck());
@@ -126,7 +126,7 @@ export class NewSheetForm extends HTMLFormElement {
 
         onsubmit = (ev) => {
             this.doSubmit();
-        }
+        };
     }
 
     takeFocus() {
@@ -158,7 +158,7 @@ export class SaveAsModal extends BaseModal {
             level: existingSheet.level,
             name: defaultName,
             ilvlSyncEnabled: existingSheet.ilvlSync !== undefined,
-            ilvlSyncLevel: existingSheet.ilvlSync
+            ilvlSyncLevel: existingSheet.ilvlSync,
         });
         form.appendChild(this.fieldSet);
         this.contentArea.replaceChildren(form);

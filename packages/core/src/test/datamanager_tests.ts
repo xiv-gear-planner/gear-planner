@@ -1,5 +1,5 @@
-import 'global-jsdom/register'
-import 'isomorphic-fetch'
+import 'global-jsdom/register';
+import 'isomorphic-fetch';
 import * as assert from "assert";
 import {RawStats} from "@xivgear/xivmath/geartypes";
 import {NewApiDataManager} from "../datamanager_new";
@@ -33,7 +33,7 @@ describe('Old Datamanager', () => {
             crit: 306,
             determination: 214,
             vitality: 412,
-            weaponDelay: 3.12
+            weaponDelay: 3.12,
         }));
 
         // GearItem props
@@ -64,7 +64,7 @@ describe('Old Datamanager', () => {
             wdPhys: 132,
             weaponDelay: NaN, // TODO: ?
             vitality: 412,
-            hp: 0
+            hp: 0,
         });
         eq(codexOfAscension.materiaSlots.length, 2);
         eq(codexOfAscension.isCustomRelic, false);
@@ -117,7 +117,7 @@ describe('New Datamanager', () => {
             crit: 306,
             determination: 214,
             vitality: 412,
-            weaponDelay: 3.12
+            weaponDelay: 3.12,
         }));
 
         // GearItem props
@@ -148,7 +148,7 @@ describe('New Datamanager', () => {
             wdPhys: 132,
             weaponDelay: 0, // TODO: ?
             vitality: 412,
-            hp: 0
+            hp: 0,
         });
         eq(codexOfAscension.materiaSlots.length, 2);
         eq(codexOfAscension.isCustomRelic, false);
@@ -333,5 +333,5 @@ describe('New Datamanager', () => {
             //     expect(item.stats.vitality).to.eq(411);
             // });
         });
-    })
+    });
 });

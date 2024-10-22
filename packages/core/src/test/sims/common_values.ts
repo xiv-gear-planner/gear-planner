@@ -14,7 +14,7 @@ export const filler: GcdAbility = {
     potency: 310,
     attackType: "Spell",
     gcd: 2.5,
-    cast: 1.5
+    cast: 1.5,
 };
 
 export const weaponSkill: GcdAbility = {
@@ -24,7 +24,7 @@ export const weaponSkill: GcdAbility = {
     potency: 310,
     attackType: "Weaponskill",
     gcd: 2.5,
-    cast: 1.5
+    cast: 1.5,
 };
 
 export const nop: GcdAbility = {
@@ -34,7 +34,7 @@ export const nop: GcdAbility = {
     potency: null,
     attackType: "Spell",
     gcd: 2.5,
-    cast: 2.0
+    cast: 2.0,
 };
 
 export const dia: GcdAbility = {
@@ -45,7 +45,7 @@ export const dia: GcdAbility = {
     dot: {
         id: 1871,
         tickPotency: 65,
-        duration: 30
+        duration: 30,
     },
     attackType: "Spell",
     gcd: 2.5,
@@ -56,7 +56,7 @@ export const assize: OgcdAbility = {
     type: 'ogcd',
     name: "Assize",
     potency: 400,
-    attackType: "Ability"
+    attackType: "Ability",
 };
 
 export const pom: OgcdAbility = {
@@ -72,9 +72,9 @@ export const pom: OgcdAbility = {
             effects: {
                 haste: 20,
             },
-        }
+        },
     ],
-    attackType: "Ability"
+    attackType: "Ability",
 };
 
 export const misery: GcdAbility = {
@@ -101,7 +101,7 @@ const jobStatMultipliers: JobMultipliers = {
     intelligence: 105,
     mind: 115,
     strength: 55,
-    vitality: 100
+    vitality: 100,
 };
 // Stats from a set. These should be the stats WITH items and race bonus, but WITHOUT party bonus
 const rawStats = {
@@ -121,12 +121,12 @@ const rawStats = {
     vitality: 3321,
     wdMag: 132,
     wdPhys: 132,
-    weaponDelay: 3.44
+    weaponDelay: 3.44,
 };
 // Finalize the stats (add class modifiers, party bonus, etc)
 const stats = finalizeStats(rawStats, {}, 90, getLevelStats(90), 'WHM', {
     ...getClassJobStats('WHM'),
-    jobStatMultipliers: jobStatMultipliers
+    jobStatMultipliers: jobStatMultipliers,
 }, 5);
 
 // Turn the stats into a fake gear set. This object does not implement all of the methods that a CharacterGearSet

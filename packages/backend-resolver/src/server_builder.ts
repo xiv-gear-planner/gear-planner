@@ -190,7 +190,7 @@ export function buildPreviewServer() {
                     headers: {
                         'content-type': 'text/html',
                         // use a longer cache duration for success
-                        'cache-control': 'max-age=7200, public'
+                        'cache-control': 'max-age=7200, public',
                     },
                 });
             }

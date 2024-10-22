@@ -89,14 +89,14 @@ function getPrimaryVarSpec<X extends object>(formulaSet: MathFormulaSet<X>): Var
     if (pvKey === 'level') {
         return {
             label: "Level",
-            type: "level"
-        }
+            type: "level",
+        };
     }
     else if (pvKey === 'job') {
         return {
             label: "Job",
-            type: 'job'
-        }
+            type: 'job',
+        };
     }
     else {
         return formulaSet.variables.find(v => v['property'] === formulaSet.primaryVariable);
@@ -129,7 +129,7 @@ export class MathArea extends HTMLElement {
         this.generalSettings = {
             classJob: 'WHM',
             levelStats: undefined,
-            displayType: 'Show By Tier'
+            displayType: 'Show By Tier',
         };
         this.level = CURRENT_MAX_LEVEL;
 
@@ -249,8 +249,8 @@ export class MathArea extends HTMLElement {
                     const results: ResultSet = {};
                     for (const fn of funcs) {
                         results[fn.name] = {
-                            value: await fn.argExtractor(inputs, outer.generalSettings).then(args => fn.fn(...args)) as number
-                        }
+                            value: await fn.argExtractor(inputs, outer.generalSettings).then(args => fn.fn(...args)) as number,
+                        };
                     }
                     return {
                         generalSettings: outer.generalSettings,
@@ -258,7 +258,7 @@ export class MathArea extends HTMLElement {
                         inputsMax: inputs,
                         isOriginalPrimary: primaryFlag,
                         results: results,
-                        isRange: false
+                        isRange: false,
                     };
                 }
 
@@ -278,7 +278,7 @@ export class MathArea extends HTMLElement {
                     for (const level of levels) {
                         const fakeGeneralSettings: GeneralSettings = {
                             ...this.generalSettings,
-                            levelStats: LEVEL_STATS[level]
+                            levelStats: LEVEL_STATS[level],
                         };
                         const inputs = {...settings};
                         const results: ResultSet = {};
@@ -286,7 +286,7 @@ export class MathArea extends HTMLElement {
                             const args = await fn.argExtractor(inputs, fakeGeneralSettings);
                             results[fn.name] = {
                                 value: fn.fn(...args) as number,
-                            }
+                            };
                         }
                         rows.push({
                             generalSettings: fakeGeneralSettings,
@@ -294,35 +294,35 @@ export class MathArea extends HTMLElement {
                             inputsMax: inputs,
                             isOriginalPrimary: level === selectedLevel,
                             isRange: false,
-                            results: results
+                            results: results,
                         });
                     }
                 }
-                    else if (primaryVariableSpec.type === 'job') {
-                        const jobs = Object.keys(JOB_DATA) as JobName[];
-                        const selectedJob = this.generalSettings.classJob;
-                        for (const job of jobs) {
-                            const fakeGeneralSettings: GeneralSettings = {
-                                ...this.generalSettings,
-                                classJob: job
+                else if (primaryVariableSpec.type === 'job') {
+                    const jobs = Object.keys(JOB_DATA) as JobName[];
+                    const selectedJob = this.generalSettings.classJob;
+                    for (const job of jobs) {
+                        const fakeGeneralSettings: GeneralSettings = {
+                            ...this.generalSettings,
+                            classJob: job,
+                        };
+                        const inputs = {...settings};
+                        const results: ResultSet = {};
+                        for (const fn of funcs) {
+                            const args = await fn.argExtractor(inputs, fakeGeneralSettings);
+                            results[fn.name] = {
+                                value: fn.fn(...args) as number,
                             };
-                            const inputs = {...settings};
-                            const results: ResultSet = {};
-                            for (const fn of funcs) {
-                                const args = await fn.argExtractor(inputs, fakeGeneralSettings);
-                                results[fn.name] = {
-                                    value: fn.fn(...args) as number,
-                                }
-                            }
-                            rows.push({
-                                generalSettings: fakeGeneralSettings,
-                                inputs: inputs,
-                                inputsMax: inputs,
-                                isOriginalPrimary: job === selectedJob,
-                                isRange: false,
-                                results: results
-                            });
                         }
+                        rows.push({
+                            generalSettings: fakeGeneralSettings,
+                            inputs: inputs,
+                            inputsMax: inputs,
+                            isOriginalPrimary: job === selectedJob,
+                            isRange: false,
+                            results: results,
+                        });
+                    }
                 }
                 else if (primaryVariableSpec.type === 'number' && primaryVariableSpec.integer) {
                     const prop = primaryVariableSpec.property;
@@ -331,8 +331,8 @@ export class MathArea extends HTMLElement {
                     const hardMax = primaryVariableSpec.max?.(this.generalSettings) ?? Number.MAX_SAFE_INTEGER;
                     switch (this.generalSettings.displayType) {
                         case "Show By Tier": {
-                            // For tiering display, we start with the user-chosen value, and traverse both ways from
-                            // there until we have filled in enough entries to satisfy the `displayEntries` property.
+                        // For tiering display, we start with the user-chosen value, and traverse both ways from
+                        // there until we have filled in enough entries to satisfy the `displayEntries` property.
                             const base = await makeRow(currentPrimaryValue, true);
                             // Hard limit of number of entries to calculate in each directly. This should never be
                             // hit in practice.
@@ -354,8 +354,8 @@ export class MathArea extends HTMLElement {
                                         last.inputs = next.inputs;
                                         last.isRange = true;
                                     }
-                                    // Otherwise, push old previous to the output list, and set a new comparison baseline.
                                     else {
+                                    // Otherwise, push old previous to the output list, and set a new comparison baseline.
                                         if (last !== base) {
                                             lowerOut.push(last);
                                         }
@@ -383,8 +383,8 @@ export class MathArea extends HTMLElement {
                                         last.inputsMax = next.inputsMax;
                                         last.isRange = true;
                                     }
-                                    // Otherwise, push old previous to the output list, and set a new comparison baseline.
                                     else {
+                                    // Otherwise, push old previous to the output list, and set a new comparison baseline.
                                         if (last !== base) {
                                             upperOut.push(last);
                                         }
@@ -408,7 +408,7 @@ export class MathArea extends HTMLElement {
                             break;
                         }
                         case "Show Full": {
-                            // Just calculate every desired row directly.
+                        // Just calculate every desired row directly.
                             const range = outer.displayEntries;
                             const minValue = Math.max(currentPrimaryValue - range, hardMin);
                             // If the user specifies 250, and the minimum is 200, then we want to expand the range to
@@ -442,7 +442,7 @@ export class MathArea extends HTMLElement {
                     const heading = quickElement('h3', [], [formula.name]);
                     const codeArea = quickElement('pre', [], [functionText(formula.fn)]);
                     hljs.configure({
-                        languages: ['js']
+                        languages: ['js'],
                     });
                     hljs.highlightElement(codeArea);
                     codeArea.querySelectorAll('span.hljs-title')
@@ -471,14 +471,14 @@ export class MathArea extends HTMLElement {
                 columns.push({
                     displayName: 'Level',
                     shortName: 'lvl',
-                    getter: item => item.generalSettings.levelStats.level
+                    getter: item => item.generalSettings.levelStats.level,
                 });
             }
             else if (formulaSet.primaryVariable === 'job') {
                 columns.push({
                     displayName: 'Job',
                     shortName: 'job',
-                    getter: item => item.generalSettings.classJob
+                    getter: item => item.generalSettings.classJob,
                 });
             }
             formulaSet.variables.forEach(variable => {
@@ -487,13 +487,13 @@ export class MathArea extends HTMLElement {
                         displayName: variable.label,
                         shortName: 'var-' + variable.property.toString(),
                         getter: item => {
-                            const min = item.inputs[variable.property]
+                            const min = item.inputs[variable.property];
                             const max = item.inputsMax[variable.property];
                             return {
                                 min: min,
                                 max: max,
-                                isRange: item.isRange && (min !== max)
-                            }
+                                isRange: item.isRange && (min !== max),
+                            };
                         },
                         renderer: value => {
                             if (value.isRange) {
@@ -502,7 +502,7 @@ export class MathArea extends HTMLElement {
                             else {
                                 return document.createTextNode(`${value.min}`);
                             }
-                        }
+                        },
                     });
                 }
             });
@@ -540,7 +540,7 @@ export class MathArea extends HTMLElement {
                     return row.dataItem.isOriginalPrimary;
                 },
                 clearSelection(): void {
-                }
+                },
             };
             this.tableArea.replaceChildren(table, this.loader);
             this.loading = true;
@@ -580,7 +580,7 @@ export class MathArea extends HTMLElement {
     set loading(value: boolean) {
         this._loading = value;
         if (value) {
-            this.loader.show()
+            this.loader.show();
         }
         else {
             this.loader.hide();

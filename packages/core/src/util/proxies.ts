@@ -4,6 +4,6 @@ export function writeProxy<X extends object>(obj: X, action: () => void): X {
             target[prop] = value;
             action();
             return true;
-        }
-    })
+        },
+    });
 }

@@ -51,14 +51,14 @@ export const samSpec: SimSpec<SamSim, SamSettingsExternal> = {
         contact: [{
             type: 'discord',
             discordTag: 'makar',
-            discordUid: '85924030661533696'
+            discordUid: '85924030661533696',
         }],
     }, {
         name: 'boxer',
         contact: [{
             type: 'discord',
             discordTag: '.boxer',
-            discordUid: '123575345898061825'
+            discordUid: '123575345898061825',
         }],
     }],
 };
@@ -119,7 +119,7 @@ export class SamSim extends BaseMultiCycleSim<SamSimResult, SamSettings, SAMCycl
     protected createCycleProcessor(settings: MultiCycleSettings): SAMCycleProcessor {
         return new SAMCycleProcessor({
             ...settings,
-            hideCycleDividers: true
+            hideCycleDividers: true,
         });
     }
 
@@ -175,8 +175,8 @@ export class SamSim extends BaseMultiCycleSim<SamSimResult, SamSettings, SAMCycl
                 rotation: {
                     opener: [...SlowSamRotation.Opener],
                     loop: [...SlowSamRotation.Loop],
-                }
-            }
+                },
+            };
         }
 
         if (gcd >= 2.04) {
@@ -185,8 +185,8 @@ export class SamSim extends BaseMultiCycleSim<SamSimResult, SamSettings, SAMCycl
                 rotation: {
                     opener: [...MidSamRotation.Opener],
                     loop: [...MidSamRotation.Loop],
-                }
-            }
+                },
+            };
         }
 
         return {
@@ -194,8 +194,8 @@ export class SamSim extends BaseMultiCycleSim<SamSimResult, SamSettings, SAMCycl
             rotation: {
                 opener: [...FastSamRotation.Opener],
                 loop: [...FastSamRotation.Loop],
-            }
-        }
+            },
+        };
     }
 
     getRotationsToSimulate(set: CharacterGearSet): Rotation<SAMCycleProcessor>[] {
@@ -231,11 +231,11 @@ export class SamSim extends BaseMultiCycleSim<SamSimResult, SamSettings, SAMCycl
                             if (action.type === 'gcd' && cp.shouldUseShinten(rotation.loop, idx)) {
                                 outer.use(cp, HissatsuShinten);
                             }
-                            outer.use(cp, action)
+                            outer.use(cp, action);
                         });
                     });
                 }
-            }
+            },
         }];
     }
-} 
+}

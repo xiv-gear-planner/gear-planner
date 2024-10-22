@@ -10,7 +10,7 @@ import {GearPlanSheetGui} from "./sheet";
 function makeIlvlArea(
     sheet: GearPlanSheetGui,
     itemDisplaySettings: ItemDisplaySettings,
-    displayUpdateCallback: () => void,
+    displayUpdateCallback: () => void
 ) {
     const ilvlDiv = document.createElement('div');
     ilvlDiv.classList.add('ilvl-picker-area');
@@ -19,7 +19,7 @@ function makeIlvlArea(
     itemIlvlRange.addListener((min, max) => {
         recordSheetEvent('itemIlvlRange', sheet, {
             min: min,
-            max: max
+            max: max,
         });
     });
     ilvlDiv.appendChild(itemIlvlRange);
@@ -29,7 +29,7 @@ function makeIlvlArea(
     foodIlvlRange.addListener((min, max) => {
         recordSheetEvent('foodIlvlRange', sheet, {
             min: min,
-            max: max
+            max: max,
         });
     });
     ilvlDiv.appendChild(foodIlvlRange);
@@ -39,9 +39,9 @@ function makeIlvlArea(
 let currentToolbarPopout: HTMLElement | null = null;
 
 document.addEventListener('resize', () => {
-   if (currentToolbarPopout !== null) {
-       // TODO
-   }
+    if (currentToolbarPopout !== null) {
+        // TODO
+    }
 });
 
 export class ToolbarButtonsArea extends HTMLDivElement {
@@ -121,8 +121,7 @@ export class ToolbarButtonsArea extends HTMLDivElement {
             button.removeAttribute(attr);
             this.setActivePopoutElement(undefined);
         }
-        // New button pressed - show popout
-        else {
+        else { // New button pressed - show popout
             button.setAttribute(attr, 'true');
             this.panelButtons.forEach(btn => {
                 if (btn !== button) {
@@ -153,9 +152,9 @@ export class GearEditToolbar extends HTMLDivElement {
     private buttonsArea: ToolbarButtonsArea;
 
     constructor(sheet: GearPlanSheetGui,
-                itemDisplaySettings: ItemDisplaySettings,
-                displayUpdateCallback: () => void,
-                matFillCtrl: MateriaAutoFillController,
+        itemDisplaySettings: ItemDisplaySettings,
+        displayUpdateCallback: () => void,
+        matFillCtrl: MateriaAutoFillController
     ) {
         super();
         this.classList.add('gear-set-editor-toolbar');

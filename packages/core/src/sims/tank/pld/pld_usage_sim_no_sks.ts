@@ -1,6 +1,6 @@
 import {SimSpec} from "@xivgear/core/sims/sim_types";
 import {CharacterGearSet} from "@xivgear/core/gear";
-import * as Actions from "./pld_actions_no_sks"
+import * as Actions from "./pld_actions_no_sks";
 import { ExternalCountSettings, CountSimResult, BaseUsageCountSim, SkillCount } from "@xivgear/core/sims/processors/count_sim";
 
 export const pldUsageSimSpec: SimSpec<PldUsageSim, PldUsageSimSettings> = {
@@ -14,7 +14,7 @@ export const pldUsageSimSpec: SimSpec<PldUsageSim, PldUsageSimSettings> = {
     stub: "pld-usage-sim",
     supportedJobs: ['PLD'],
     supportedLevels: [100],
-    isDefaultSim: true
+    isDefaultSim: true,
 };
 
 export type PldUsageSimSettings = NonNullable<unknown>
@@ -34,7 +34,7 @@ export class PldUsageSim extends BaseUsageCountSim<PldUsageSimResults, PldUsageS
     }
 
     makeDefaultSettings(): PldUsageSimSettings {
-        return {}
+        return {};
     }
 
     totalCycleTime(set: CharacterGearSet): number {
@@ -73,7 +73,8 @@ export class PldUsageSim extends BaseUsageCountSim<PldUsageSimResults, PldUsageS
                 [Actions.sep, 13],
                 [Actions.hs, 13],
             ];
-        } else if (buffDuration >= 30) {
+        }
+        else if (buffDuration >= 30) {
             result = [
                 [Actions.buffed(Actions.conf), 3.5],
                 [Actions.buffed(Actions.faith), 3.5],
@@ -93,7 +94,8 @@ export class PldUsageSim extends BaseUsageCountSim<PldUsageSimResults, PldUsageS
                 [Actions.sep, 2],
                 [Actions.hs, 1.5],
             ];
-        } else if (buffDuration >= 20) {
+        }
+        else if (buffDuration >= 20) {
             result = [
                 [Actions.buffed(Actions.conf), 3.5],
                 [Actions.buffed(Actions.faith), 3.5],
@@ -106,7 +108,8 @@ export class PldUsageSim extends BaseUsageCountSim<PldUsageSimResults, PldUsageS
                 [Actions.buffed(Actions.sep), 3],
                 [Actions.buffed(Actions.hs), 3],
             ];
-        } else if (buffDuration >= 15) {
+        }
+        else if (buffDuration >= 15) {
             result = [
                 [Actions.buffed(Actions.conf), 3.5],
                 [Actions.buffed(Actions.faith), 3.5],
@@ -118,7 +121,8 @@ export class PldUsageSim extends BaseUsageCountSim<PldUsageSimResults, PldUsageS
                 [Actions.buffed(Actions.supp), 1.5],
                 [Actions.buffed(Actions.sep), 1],
             ];
-        } else {
+        }
+        else {
             return [];
         }
 
@@ -143,22 +147,25 @@ export class PldUsageSim extends BaseUsageCountSim<PldUsageSimResults, PldUsageS
 
         if (buffDuration) {
             result.push(...buffedOgcds);
-        } else {
-            result.push(...fofOgcds)
+        }
+        else {
+            result.push(...fofOgcds);
             result.push(...unbuffedOgcds);
         }
 
-        const auto_delay = set.computedStats.aaDelay;
+        const autoDelay = set.computedStats.aaDelay;
 
         // autos
         if (buffDuration === null) {
-            result.push([Actions.auto, 280 / auto_delay]) // unbuffed autos 2/3 of the time
-            result.push([Actions.buffed(Actions.auto), 140 / auto_delay])
-        } else if (buffDuration >= 30) {
-            result.push([Actions.auto, 35 / auto_delay])
-            result.push([Actions.buffed(Actions.auto), 70 / auto_delay])
-        } else if (buffDuration >= 15) {
-            result.push([Actions.buffed(Actions.auto), 3.5 * buffDuration / auto_delay])
+            result.push([Actions.auto, 280 / autoDelay]); // unbuffed autos 2/3 of the time
+            result.push([Actions.buffed(Actions.auto), 140 / autoDelay]);
+        }
+        else if (buffDuration >= 30) {
+            result.push([Actions.auto, 35 / autoDelay]);
+            result.push([Actions.buffed(Actions.auto), 70 / autoDelay]);
+        }
+        else if (buffDuration >= 15) {
+            result.push([Actions.buffed(Actions.auto), 3.5 * buffDuration / autoDelay]);
         }
 
         return result;

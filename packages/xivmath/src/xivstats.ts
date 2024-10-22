@@ -160,7 +160,7 @@ export class ComputedSetStatsImpl implements ComputedSetStats {
         readonly levelStats: LevelStats,
         private readonly classJob: JobName,
         private readonly classJobStats: JobData,
-        private readonly partyBonus: PartyBonusAmount,
+        private readonly partyBonus: PartyBonusAmount
     ) {
         this.finalBonusStats = new RawBonusStats();
         // TODO: order of operations here
@@ -186,8 +186,8 @@ export class ComputedSetStatsImpl implements ComputedSetStats {
             this.levelStats,
             this.classJob,
             this.classJobStats,
-            this.partyBonus,
-        )
+            this.partyBonus
+        );
     }
 
     withModifications(modifications: StatModification): ComputedSetStatsImpl {
@@ -382,7 +382,7 @@ export function finalizeStats(
     levelStats: LevelStats,
     classJob: JobName,
     classJobStats: JobData,
-    partyBonus: PartyBonusAmount,
+    partyBonus: PartyBonusAmount
 ) {
     return new ComputedSetStatsImpl(
         gearStats, foodStats, level, levelStats, classJob, classJobStats, partyBonus);
@@ -397,7 +397,7 @@ function finalizeStatsInt(
     levelStats: LevelStats,
     classJob: JobName,
     classJobStats: JobData,
-    partyBonus: PartyBonusAmount,
+    partyBonus: PartyBonusAmount
 ): RawStats {
     const combinedStats: RawStats = {...gearStats};
     const mainStatKey = classJobStats.mainStat;

@@ -44,6 +44,6 @@ export function makeFakeSet(stats: ComputedSetStats): CharacterGearSet {
         },
         isStatRelevant(stat: RawStatKey): boolean {
             return ['piety', 'crit', 'dhit', 'spellspeed', 'determination'].includes(stat);
-        }
+        },
     } as CharacterGearSet;
 }

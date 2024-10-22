@@ -81,7 +81,7 @@ export class AllSlotMateriaManager extends HTMLElement {
                 this.classList.remove("materia-manager-equipped");
                 const textSpan = document.createElement("span");
                 if (equipSlot.gearItem.isCustomRelic) {
-                    textSpan.textContent = "Click into cells to edit relic stats"
+                    textSpan.textContent = "Click into cells to edit relic stats";
                 }
                 else if (equipSlot.gearItem.isSyncedDown) {
                     textSpan.textContent = "Melds unavailable due to ilvl sync";
@@ -97,7 +97,7 @@ export class AllSlotMateriaManager extends HTMLElement {
                 this.replaceChildren(...this._children);
                 this.classList.remove("materia-slot-no-equip");
                 this.classList.remove("materia-slot-no-slots");
-                this.classList.add("materia-manager-equipped")
+                this.classList.add("materia-manager-equipped");
             }
         }
         else {
@@ -343,7 +343,7 @@ export class SlotMateriaManagerPopup extends HTMLElement {
             element: self,
             close() {
                 self.hide();
-            }
+            },
         });
         this.style.display = 'block';
     }
@@ -394,9 +394,9 @@ export class MateriaPriorityPicker extends HTMLElement {
             'Keep Item, else None: Remember what materia was equipped to each item. If none equipped, leave empty.';
         const fillModeLabel = labelFor("Fill Mode:", fillModeDropdown);
         fillModeDropdown.addListener((newValue) => {
-           recordEvent("fillMode", {
-               'mode': newValue,
-           })
+            recordEvent("fillMode", {
+                'mode': newValue,
+            });
         });
 
         const fillEmptyNow = makeActionButton('Fill Empty', () => {
@@ -428,18 +428,18 @@ export class MateriaPriorityPicker extends HTMLElement {
                 else if (val > MAX_GCD) {
                     ctx.failValidation("Cannot be greater than " + MAX_GCD);
                 }
-            }]
+            }],
         });
         minGcdInput.addListener(val => {
             recordCurrentSheetEvent('currentSheet', {
-                gcd: val
+                gcd: val,
             });
         });
         minGcdInput.pattern = '\\d\\.\\d\\d?';
         minGcdInput.title = 'Enter the minimum desired GCD in the form x.yz.\nSkS/SpS materia will be de-prioritized once this target GCD is met.';
         minGcdInput.classList.add('min-gcd-input');
         this.replaceChildren(header, drag, minGcdText, minGcdInput, document.createElement('br'),
-                            solveMelds, fillEmptyNow, fillAllNow, fillModeLabel, fillModeDropdown);
+            solveMelds, fillEmptyNow, fillAllNow, fillModeLabel, fillModeDropdown);
     }
 }
 
@@ -623,7 +623,7 @@ export class MateriaTotalsDisplay extends HTMLElement {
         }
         const elements: MateriaCountDisplay[] = [];
         materiaCounts.forEach((value, key) => {
-            elements.push(new MateriaCountDisplay(value[0], value.length))
+            elements.push(new MateriaCountDisplay(value[0], value.length));
         });
         elements.sort((left, right) => {
             const primary = right.count - left.count;

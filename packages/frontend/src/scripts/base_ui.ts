@@ -47,7 +47,7 @@ export function handleWelcomeArea() {
             welcomeCloseButton.addEventListener('click', () => {
                 SETTINGS.hideWelcomeMessage = true;
                 hideWelcomeArea();
-            })
+            });
         }
     }
 }
@@ -142,7 +142,7 @@ export async function openExport(exported: (SheetExport | SetExport), changeHash
     const analyticsData = {
         'isEmbed': embed,
         'viewOnly': viewOnly,
-        'nav': getHash()
+        'nav': getHash(),
     };
     recordSheetEvent('openExport', sheet, analyticsData);
     if (embed) {

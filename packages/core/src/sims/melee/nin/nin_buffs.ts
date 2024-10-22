@@ -9,10 +9,10 @@ export const KunaisBaneBuff: Buff = {
     name: "Kunai's Bane",
     selfOnly: true,
     effects: {
-        dmgIncrease: 0.1
+        dmgIncrease: 0.1,
     },
     duration: 16.25,
-    statusId: 3906
+    statusId: 3906,
 };
 
 const NINJUTSU_ACTIONS_1STEP: string[] = [
@@ -20,10 +20,10 @@ const NINJUTSU_ACTIONS_1STEP: string[] = [
 ];
 const NINJUTSU_ACTIONS_2STEP: string[] = [
     "Katon", "Raiton", "Hyoton",
-    "Hyosho Ranryu", "Goka Mekkyaku"
+    "Hyosho Ranryu", "Goka Mekkyaku",
 ];
 const NINJUTSU_ACTIONS_3STEP: string[] = [
-    "Huton", "Doton", "Suiton"
+    "Huton", "Doton", "Suiton",
 ];
 const NINJUTSU_ACTIONS: string[] = [
     ...NINJUTSU_ACTIONS_1STEP,
@@ -35,13 +35,13 @@ export const KassatsuBuff: Buff = {
     selfOnly: true,
     descriptionExtras: ["Able to execute a ninjutsu without consuming charges while increasing damage"],
     effects: {
-        dmgIncrease: 0.3
+        dmgIncrease: 0.3,
     },
     appliesTo: ability => NINJUTSU_ACTIONS.includes(ability.name),
     beforeSnapshot: removeSelf,
     // The duration of Kassatsu is increased here to ensure it will be active even if the ogcd is mistimed
     duration: 30,
-    statusId: 497
+    statusId: 497,
 };
 
 export const TenChiJinReady: Buff = {
@@ -57,7 +57,7 @@ export const TenChiJinReady: Buff = {
             return {
                 ...ability,
                 gcd: 1.0,
-            }
+            };
         }
         return null;
     },
@@ -65,10 +65,10 @@ export const TenChiJinReady: Buff = {
         if (NINJUTSU_ACTIONS_3STEP.includes(ability.name)) {
             buffController.removeSelf();
         }
-        return null
+        return null;
     },
     duration: 6,
-    statusId: 1186
+    statusId: 1186,
 };
 
 export const TenriJindoReady: Buff = {
@@ -81,7 +81,7 @@ export const TenriJindoReady: Buff = {
     appliesTo: ability => ability.name === "Tenri Jindo",
     beforeSnapshot: removeSelf,
     duration: 30,
-    statusId: 3851
+    statusId: 3851,
 };
 
 export const ShadowWalker: Buff = {
@@ -94,7 +94,7 @@ export const ShadowWalker: Buff = {
     appliesTo: ability => ability.name === "Meisui" || ability.name === "Kunai's Bane",
     beforeSnapshot: removeSelf,
     duration: 20,
-    statusId: 3848
+    statusId: 3848,
 };
 
 export const MeisuiBuff: Buff = {
@@ -114,7 +114,7 @@ export const MeisuiBuff: Buff = {
         };
     },
     duration: 30,
-    statusId: 2689
+    statusId: 2689,
 };
 
 export const BunshinBuff: Buff = {
@@ -136,7 +136,7 @@ export const BunshinBuff: Buff = {
     },
     stacks: 5,
     duration: 30,
-    statusId: 1954
+    statusId: 1954,
 };
 
 export const RaijuReady: Buff = {
@@ -150,13 +150,14 @@ export const RaijuReady: Buff = {
     beforeSnapshot<X extends Ability>(buffController: BuffController, ability: X): void {
         if (ability.name.endsWith(' Raiju')) {
             buffController.subtractStacksSelf(1);
-        } else if (ability.name === 'Raiton') {
+        }
+        else if (ability.name === 'Raiton') {
             buffController.addStacksSelf(1);
         }
     },
     stacks: 1,
     duration: 30,
-    statusId: 2690
+    statusId: 2690,
 };
 
 export const PhantomReady: Buff = {
@@ -169,7 +170,7 @@ export const PhantomReady: Buff = {
     appliesTo: ability => ability.name === "Phantom Kamaitachi",
     beforeSnapshot: removeSelf,
     duration: 45,
-    statusId: 2723
+    statusId: 2723,
 };
 
 export const Higi: Buff = {
@@ -182,5 +183,5 @@ export const Higi: Buff = {
     appliesTo: ability => ability.name === "Zesho Meppo" || ability.name === "Deathfrog Medium",
     beforeSnapshot: removeSelf,
     duration: 30,
-    statusId: 3850
+    statusId: 3850,
 };

@@ -54,7 +54,7 @@ export function assertSimAbilityResults(result: CycleSimResultFull<CycleSimResul
         const actual: UseResult = {
             damage: actualUse.totalDamage,
             name: actualUse.ability.name,
-            time: actualUse.usedAt
+            time: actualUse.usedAt,
         };
         if (i >= expectedAbilities.length) {
             failures.push(`Item ${i} failed: Expected to be done, but there was another ability (${JSON.stringify(actual)}`);

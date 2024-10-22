@@ -25,7 +25,7 @@ async function getDataFor(statusId: number): Promise<XivApiStatusData> {
                     const stackOffset = effectiveStackCount - 1;
                     const iconId = (data.Icon['id'] as number) + stackOffset;
                     return xivApiIconUrl(iconId, highRes);
-                }
+                },
             } satisfies XivApiStatusData;
         });
 

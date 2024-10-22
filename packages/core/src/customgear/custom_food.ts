@@ -16,8 +16,8 @@ export type CustomFoodExport = {
 function defaultBonus(): FoodStatBonus {
     return {
         max: 100,
-        percentage: 10
-    }
+        percentage: 10,
+    };
 }
 
 export class CustomFood implements FoodItem {
@@ -44,7 +44,7 @@ export class CustomFood implements FoodItem {
         // Copy the defaults so that new fields can be added to existing items
         return new CustomFood({
             ...this.defaults(),
-            ...exportedData
+            ...exportedData,
         });
     }
 
