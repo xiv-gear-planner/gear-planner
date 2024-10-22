@@ -884,12 +884,41 @@ export class CycleProcessor {
     }
 
     /**
+     * Modifies an ability for the level that is being processed by the cycle sim.
+     *
+     * @param ability the ability to modify
+     * @returns the modified ability
+     */
+    applyLevelModifiers(ability: Ability): Ability {
+        if (!ability || !ability.levelModifiers) {
+            return ability;
+        }
+        const level = this.stats.level;
+        console.log("Applying modifications:", ability.levelModifiers);
+        const relevantModifications = ability.levelModifiers.filter(mod => mod.minLevel <= level && mod.maxLevel >= level);
+        console.log("Relevant modifications:", relevantModifications);
+        if (relevantModifications.length === 0) {
+            return ability;
+        }
+        // Just in case there's multiple, pick the one with the highest min level. There should not be multiple.
+        const modification = relevantModifications.reduce((currentLowest, mod) => currentLowest.minLevel > mod.minLevel ? currentLowest : mod);
+        const modifiedAbility = {
+            ...ability,
+            ...modification,
+            minLevel: undefined,
+            maxLevel: undefined,
+        };
+        return modifiedAbility;
+    }
+
+    /**
      * Use an ability
      *
      * @param ability The ability to use
      */
     use(ability: Ability): AbilityUseResult {
         // noinspection AssignmentToFunctionParameterJS
+        ability = this.applyLevelModifiers(ability);
         ability = this.processCombo(ability);
         const isGcd = this.isGcd(ability);
         // if using a non-prorate mode, then allow oGCDs past the cutoff

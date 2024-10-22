@@ -245,6 +245,15 @@ export type DamagingAbility = Readonly<{
 }>;
 
 /**
+ * Represents a set of ability attributes that should be applied
+ * between two levels.
+ */
+export type LevelModifier = ({
+    minLevel: number,
+    maxLevel: number })
+& Omit<Partial<BaseAbility>, 'levelModifiers'>;
+
+/**
  * Combo mode:
  * start: starts a combo.
  * continue: continue (or finish) a combo. If there is no combo, then this is treated as 'break'.
@@ -309,6 +318,12 @@ export type BaseAbility = Readonly<{
      * Override the default application delay
      */
     appDelay?: number,
+    /**
+     * A list of level modifiers, that can override properties of the ability
+     * at the specified level. Two level modifiers should not overlap, i.e.
+     * you should have 1-50 and 51-100 instead of 1-100 and 51-100.
+     */
+    levelModifiers?: LevelModifier[],
 } & (NonDamagingAbility | DamagingAbility)>;
 
 /**

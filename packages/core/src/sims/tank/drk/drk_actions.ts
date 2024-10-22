@@ -9,6 +9,18 @@ export const HardSlash: DrkGcdAbility = {
     attackType: "Weaponskill",
     gcd: 2.5,
     cast: 0,
+    levelModifiers: [
+        {
+            minLevel: 1,
+            maxLevel: 83,
+            potency: 150,
+        },
+        {
+            minLevel: 84,
+            maxLevel: 93,
+            potency: 180,
+        },
+    ],
 };
 
 export const SyphonStrike: DrkGcdAbility = {
@@ -20,6 +32,18 @@ export const SyphonStrike: DrkGcdAbility = {
     gcd: 2.5,
     cast: 0,
     updateMP: gauge => gauge.magicPoints += 600,
+    levelModifiers: [
+        {
+            minLevel: 1,
+            maxLevel: 83,
+            potency: 240,
+        },
+        {
+            minLevel: 84,
+            maxLevel: 93,
+            potency: 260,
+        },
+    ],
 };
 
 export const Souleater: DrkGcdAbility = {
@@ -31,6 +55,18 @@ export const Souleater: DrkGcdAbility = {
     gcd: 2.5,
     cast: 0,
     updateBloodGauge: gauge => gauge.bloodGauge += 20,
+    levelModifiers: [
+        {
+            minLevel: 1,
+            maxLevel: 83,
+            potency: 320,
+        },
+        {
+            minLevel: 84,
+            maxLevel: 93,
+            potency: 360,
+        },
+    ],
 };
 
 export const Bloodspiller: DrkGcdAbility = {
@@ -42,6 +78,13 @@ export const Bloodspiller: DrkGcdAbility = {
     gcd: 2.5,
     bloodCost: 50,
     updateBloodGauge: gauge => gauge.bloodGauge -= 50,
+    levelModifiers: [
+        {
+            minLevel: 1,
+            maxLevel: 93,
+            potency: 500,
+        },
+    ],
 };
 
 export const ScarletDelirium: DrkGcdAbility = {
@@ -51,7 +94,6 @@ export const ScarletDelirium: DrkGcdAbility = {
     potency: 600,
     attackType: "Weaponskill",
     gcd: 2.5,
-    updateMP: gauge => gauge.magicPoints += 200,
 };
 
 export const Comeuppance: DrkGcdAbility = {
@@ -61,7 +103,6 @@ export const Comeuppance: DrkGcdAbility = {
     potency: 700,
     attackType: "Weaponskill",
     gcd: 2.5,
-    updateMP: gauge => gauge.magicPoints += 200,
 };
 
 export const Torcleaver: DrkGcdAbility = {
@@ -71,7 +112,6 @@ export const Torcleaver: DrkGcdAbility = {
     potency: 800,
     attackType: "Weaponskill",
     gcd: 2.5,
-    updateMP: gauge => gauge.magicPoints += 200,
 };
 
 export const Unmend: DrkGcdAbility = {
@@ -108,6 +148,13 @@ export const CarveAndSpit: DrkOgcdAbility = {
         charges: 1,
     },
     updateMP: gauge => gauge.magicPoints += 600,
+    levelModifiers: [
+        {
+            minLevel: 1,
+            maxLevel: 93,
+            potency: 510,
+        },
+    ],
 };
 
 export const SaltedEarth: DrkOgcdAbility = {
@@ -128,6 +175,13 @@ export const SaltedEarth: DrkOgcdAbility = {
         time: 90,
         charges: 1,
     },
+    levelModifiers: [
+        {
+            minLevel: 1,
+            maxLevel: 85,
+            activatesBuffs: [],
+        },
+    ],
 };
 
 export const SaltAndDarkness: DrkOgcdAbility = {
@@ -204,14 +258,6 @@ export const Shadowbringer: DrkOgcdAbility = {
 // they've all been programmed to be abilities so that it doesn't roll GCD.
 //
 // This shouldn't change anything damage wise.
-//
-// Living Shadow's rotation is the following:
-// Abyssal Drain (AoE)
-// Shadowstride (no damage)
-// Flood of Shadow (Shadowbringer at level 90+)(AoE)
-// Edge of Shadow
-// Bloodspiller
-// Carve and Spit (Disesteem(AoE) at level 100)
 
 // Esteem has the same stats as the player but ignores skill speed, Tank Mastery, and party strength bonus.
 // It also substitutes Midlander racial strength bonus regardless of the player's race.
@@ -231,6 +277,13 @@ export const LivingShadow: DrkOgcdAbility = {
         time: 120,
         charges: 1,
     },
+    levelModifiers: [
+        {
+            minLevel: 1,
+            maxLevel: 99,
+            activatesBuffs: [],
+        },
+    ],
 };
 
 export const LivingShadowShadowstride: DrkOgcdAbility = {
@@ -249,6 +302,13 @@ export const LivingShadowAbyssalDrain: DrkOgcdAbility = {
     id: 17904,
     potency: 420,
     attackType: "Ability",
+    levelModifiers: [
+        {
+            minLevel: 1,
+            maxLevel: 87,
+            potency: 340,
+        },
+    ],
 };
 
 export const LivingShadowShadowbringer: DrkOgcdAbility = {
@@ -267,6 +327,23 @@ export const LivingShadowEdgeOfShadow: DrkOgcdAbility = {
     id: 17908,
     potency: 420,
     attackType: "Ability",
+    levelModifiers: [
+        {
+            minLevel: 1,
+            maxLevel: 87,
+            potency: 340,
+        },
+    ],
+};
+
+// Level 80 only, upgraded to Shadowbringer at level 90+
+export const LivingShadowFloodOfShadow: DrkOgcdAbility = {
+    type: 'ogcd',
+    name: "(Living Shadow) Flood of Shadow",
+    animationLock: 0,
+    id: 17907,
+    potency: 340,
+    attackType: "Ability",
 };
 
 export const LivingShadowBloodspiller: DrkOgcdAbility = {
@@ -276,6 +353,30 @@ export const LivingShadowBloodspiller: DrkOgcdAbility = {
     id: 17909,
     potency: 420,
     attackType: "Ability",
+    levelModifiers: [
+        {
+            minLevel: 1,
+            maxLevel: 87,
+            potency: 340,
+        },
+    ],
+};
+
+// Upgraded to Disesteem at level 100+
+export const LivingShadowCarveAndSpit: DrkOgcdAbility = {
+    type: 'ogcd',
+    name: "(Living Shadow) Carve And Spit",
+    animationLock: 0,
+    id: 17915,
+    potency: 420,
+    attackType: "Ability",
+    levelModifiers: [
+        {
+            minLevel: 1,
+            maxLevel: 87,
+            potency: 340,
+        },
+    ],
 };
 
 export const LivingShadowDisesteem: DrkOgcdAbility = {
