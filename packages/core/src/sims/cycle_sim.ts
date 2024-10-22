@@ -784,9 +784,9 @@ export class CycleProcessor {
                         ...record.channel,
                         damagePerTick: dmgInfo.channel.damagePerTick,
                     } : null,
-                }
+                };
             }
-        })
+        });
     }
 
     computePartialRate(record: PostDmgUsedAbility): number {
@@ -1037,7 +1037,8 @@ export class CycleProcessor {
         // if this is a channeled ability, then we need to advance to the end of the channel time without auto-attacks
         if ('channel' in ability) {
             this.advanceTo(channelFinishedAt, true);
-        } else {
+        }
+        else {
             // Anim lock OR cast time, both effectively block use of skills.
             // If cast time > GCD recast, then we use that instead. Also factor in caster tax.
             this.advanceTo(animLockFinishedAt);
@@ -1049,7 +1050,8 @@ export class CycleProcessor {
         // Account for potential GCD clipping
         else if ('channel' in ability) {
             this.nextGcdTime = Math.max(this.nextGcdTime, channelFinishedAt);
-        } else {
+        }
+        else {
             this.nextGcdTime = Math.max(this.nextGcdTime, animLockFinishedAt);
         }
         // Workaround for auto-attacks after first ability

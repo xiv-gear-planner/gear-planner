@@ -661,17 +661,17 @@ function multiplyDamage(damageResult: DamageResult, multiplier: number, multiply
             ...damageResult.dot,
             damagePerTick: {
                 expected: damageResult.directDamage.expected * multiplier,
-                stdDev: 0
-            }
+                stdDev: 0,
+            },
         },
         channel: (damageResult.channel === null || !multiplyDot) ? damageResult.channel : {
             ...damageResult.channel,
             damagePerTick: {
                 expected: damageResult.directDamage.expected * multiplier,
-                stdDev: 0
-            }
+                stdDev: 0,
+            },
         },
-    }
+    };
 }
 
 // Demonstrates one way of doing a one-off damage increase

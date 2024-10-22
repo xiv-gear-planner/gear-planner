@@ -51,8 +51,8 @@ export function abilityToDamageNew(stats: ComputedSetStats, ability: Ability, co
         return {
             directDamage: null,
             dot: null,
-            channel: null
-        }
+            channel: null,
+        };
     }
     // noinspection AssignmentToFunctionParameterJS
     stats = combinedBuffEffects.modifyStats(stats);
@@ -69,7 +69,7 @@ export function abilityToDamageNew(stats: ComputedSetStats, ability: Ability, co
             // channeled actions use the same damage formula as DoTs currently
             damagePerTick: dotPotencyToDamage(stats, ability.channel.tickPotency, ability, combinedBuffEffects),
         } : null,
-    }
+    };
 }
 
 /**
