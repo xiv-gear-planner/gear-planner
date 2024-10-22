@@ -5,7 +5,7 @@ import { CharacterGearSet } from "@xivgear/core/gear";
 import { BaseMultiCycleSim } from "@xivgear/core/sims/processors/sim_processors";
 import { FuryAbility, MnkAbility, MNKExtraData, MnkGcdAbility } from "./mnk_types";
 import { MNKGauge as MnkGauge } from "./mnk_gauge";
-import { Brotherhood, CoeurlForm, Demolish, DragonKick, ElixirBurst, FiresReply, FiresRumination, ForbiddenMeditation, FormShift, FormlessFist, LeapingOpo, OGCD_PRIORITY, OPO_ABILITIES, OpoForm, OpoFury, PerfectBalance, PerfectBalanceBuff, PhantomRush, PouncingCoeurl, RaptorForm, RiddleOfFire, RiddleOfFireBuff, RiddleOfWind, RisingPhoenix, RisingRaptor, SOLAR_WEAKEST_STRONGEST, TheForbiddenChakra, TwinSnakes, WindsReply, WindsRumination } from "./mnk_actions";
+import { Brotherhood, CelestialRevolution, CoeurlForm, Demolish, DragonKick, ElixirBurst, FiresReply, FiresRumination, ForbiddenMeditation, FormShift, FormlessFist, LeapingOpo, OGCD_PRIORITY, OPO_ABILITIES, OpoForm, OpoFury, PerfectBalance, PerfectBalanceBuff, PhantomRush, PouncingCoeurl, RaptorForm, RiddleOfFire, RiddleOfFireBuff, RiddleOfWind, RisingPhoenix, RisingRaptor, SOLAR_WEAKEST_STRONGEST, TheForbiddenChakra, TwinSnakes, WindsReply, WindsRumination } from "./mnk_actions";
 import { sum } from "../../../util/array_utils";
 import { STANDARD_ANIMATION_LOCK } from "@xivgear/xivmath/xivconstants";
 
@@ -92,7 +92,7 @@ class MNKCycleProcessor extends CycleProcessor {
         this.useGcd(LeapingOpo); this.cleanupForms();
         this.useOgcd(TheForbiddenChakra);
         this.useOgcd(RiddleOfWind);
-        this.useGcd(ElixirBurst);
+        this.useGcd(this.chooseBlitz());
         this.useGcd(DragonKick);
         this.useGcd(WindsReply);
         this.useGcd(FiresReply);
@@ -102,7 +102,7 @@ class MNKCycleProcessor extends CycleProcessor {
         this.useGcd(DragonKick); this.cleanupForms();
         this.useGcd(LeapingOpo); this.cleanupForms();
         this.useGcd(DragonKick); this.cleanupForms();
-        this.useGcd(ElixirBurst);
+        this.useGcd(this.chooseBlitz());
         this.useGcd(LeapingOpo);
     }
 
@@ -120,7 +120,7 @@ class MNKCycleProcessor extends CycleProcessor {
         this.useGcd(LeapingOpo); this.cleanupForms();
         this.useOgcd(TheForbiddenChakra);
         this.useOgcd(RiddleOfWind);
-        this.useGcd(RisingPhoenix);
+        this.useGcd(this.chooseBlitz());
         this.useGcd(DragonKick);
         this.useGcd(WindsReply);
         this.useGcd(FiresReply);
@@ -130,7 +130,7 @@ class MNKCycleProcessor extends CycleProcessor {
         this.useGcd(DragonKick); this.cleanupForms();
         this.useGcd(LeapingOpo); this.cleanupForms();
         this.useGcd(DragonKick); this.cleanupForms();
-        this.useGcd(ElixirBurst);
+        this.useGcd(this.chooseBlitz());
         this.useGcd(LeapingOpo);
     }
 
@@ -239,22 +239,32 @@ class MNKCycleProcessor extends CycleProcessor {
             default:
                 if (this.gauge.beastChakra.length === 3) {
                     // formless with a blitz ready
-                    if (this.gauge.lunarNadi && this.gauge.solarNadi) {
-                        // regardless of correct execution (Celestial Revolution) we get a phantom rush
-                        return PhantomRush;
-                    }
-
-                    // TODO implement CelestialRevolution even though it should never be executed.
-                    const s = new Set(this.gauge.beastChakra);
-                    if (s.size === 1) {
-                        return ElixirBurst;
-                    }
-                    return RisingPhoenix;
+                    return this.chooseBlitz();
                 }
                 console.warn("Infinite looping with no form")
                 // formless DK but this should never happen
                 return DragonKick;
         }
+    }
+
+    chooseBlitz(): MnkGcdAbility {
+        if (this.gauge.lunarNadi && this.gauge.solarNadi) {
+            // regardless of correct execution (Celestial Revolution) we get a phantom rush
+            return PhantomRush;
+        }
+
+        // TODO implement CelestialRevolution even though it should never be executed.
+        const s = new Set(this.gauge.beastChakra);
+        switch (s.size) {
+            case 1:
+                return ElixirBurst;
+            case 2:
+                return CelestialRevolution;
+            case 3:
+                return RisingPhoenix;
+        }
+        console.warn(`${this.currentTime} failed to select a blitz, choosing celestial revolution for punishment.`)
+        return CelestialRevolution;
     }
 
     getCurrentForm(): Buff {

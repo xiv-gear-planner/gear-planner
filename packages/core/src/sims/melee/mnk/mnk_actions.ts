@@ -224,7 +224,7 @@ export const Bootshine: FuryAbility = {
     activatesBuffs: [RaptorForm],
     fury: 'opo',
     buildsFury: false,
-    updateGauge: (gauge: MNKGauge, form) =>  {
+    updateGauge: (gauge: MNKGauge, form) => {
         gauge.opoFury = 0;
         if (form && form.statusId === PerfectBalanceBuff.statusId) {
             gauge.beastChakra.push('opo')
@@ -242,7 +242,7 @@ export const TrueStrike: FuryAbility = {
     activatesBuffs: [CoeurlForm],
     fury: 'raptor',
     buildsFury: false,
-    updateGauge: (gauge: MNKGauge, form) =>  {
+    updateGauge: (gauge: MNKGauge, form) => {
         gauge.raptorFury = 0;
         if (form && form.statusId === PerfectBalanceBuff.statusId) {
             gauge.beastChakra.push('raptor')
@@ -260,7 +260,7 @@ export const SnapPunch: FuryAbility = {
     activatesBuffs: [OpoForm],
     fury: 'coeurl',
     buildsFury: false,
-    updateGauge: (gauge: MNKGauge, form) =>  {
+    updateGauge: (gauge: MNKGauge, form) => {
         gauge.coeurlFury -= 1;
         if (form && form.statusId === PerfectBalanceBuff.statusId) {
             gauge.beastChakra.push('coeurl')
@@ -277,7 +277,7 @@ export const ForbiddenMeditation: MnkGcdAbility = {
     potency: null,
     attackType: "Ability",
     fixedGcd: true,
-    updateGauge: (gauge: MNKGauge, form, inCombat) =>  {
+    updateGauge: (gauge: MNKGauge, form, inCombat) => {
         gauge.gainChakra(inCombat ? 1 : 5);
     }
 }
@@ -292,7 +292,7 @@ export const TwinSnakes: FuryAbility = {
     activatesBuffs: [CoeurlForm],
     fury: 'raptor',
     buildsFury: true,
-    updateGauge: (gauge: MNKGauge, form) =>  {
+    updateGauge: (gauge: MNKGauge, form) => {
         gauge.raptorFury = 1;
         if (form && form.statusId === PerfectBalanceBuff.statusId) {
             gauge.beastChakra.push('raptor')
@@ -310,7 +310,7 @@ export const Demolish: FuryAbility = {
     activatesBuffs: [OpoForm],
     fury: 'coeurl',
     buildsFury: true,
-    updateGauge: (gauge: MNKGauge, form) =>  {
+    updateGauge: (gauge: MNKGauge, form) => {
         gauge.coeurlFury = 2;
         if (form && form.statusId === PerfectBalanceBuff.statusId) {
             gauge.beastChakra.push('coeurl')
@@ -331,7 +331,7 @@ export const DragonKick: FuryAbility = {
     activatesBuffs: [RaptorForm],
     fury: 'opo',
     buildsFury: true,
-    updateGauge: (gauge: MNKGauge, form) =>  {
+    updateGauge: (gauge: MNKGauge, form) => {
         if ([FormlessFist.statusId, OpoForm.statusId, PerfectBalanceBuff.statusId].includes(form?.statusId)) {
             gauge.opoFury = 1;
         }
@@ -353,7 +353,7 @@ export const PerfectBalance: MnkOgcdAbility = {
         charges: 2,
     },
     activatesBuffs: [PerfectBalanceBuff],
-    updateGauge: (gauge: MNKGauge) =>  {
+    updateGauge: (gauge: MNKGauge) => {
         gauge.beastChakra = []
     }
 }
@@ -405,6 +405,24 @@ export const FlintStrike: MnkGcdAbility = {
     potency: 800,
     updateGauge: (gauge: MNKGauge) => {
         gauge.solarNadi = 1;
+        gauge.beastChakra = [];
+    },
+    activatesBuffs: [FormlessFist],
+}
+
+export const CelestialRevolution: MnkGcdAbility = {
+    name: "Celestial Revolution",
+    id: 25765,
+    type: 'gcd',
+    attackType: 'Weaponskill',
+    gcd: 2.5,
+    potency: 600,
+    updateGauge: (gauge: MNKGauge) => {
+        if (gauge.solarNadi) {
+            gauge.lunarNadi = 1;
+        } else {
+            gauge.solarNadi = 1;
+        }
         gauge.beastChakra = [];
     },
     activatesBuffs: [FormlessFist],
@@ -538,5 +556,4 @@ const COUERL_ABILITIES: number[] = [SnapPunch.id, Demolish.id, PouncingCoeurl.id
 const FORM_ABILITIES: number[] = [Bootshine.id, DragonKick.id, LeapingOpo.id, TrueStrike.id, TwinSnakes.id, RisingRaptor.id, SnapPunch.id, Demolish.id, PouncingCoeurl.id]
 /** The priority of gcds to execute when building a solar blitz to push the highest potency sequence under RoF */
 export const SOLAR_WEAKEST_STRONGEST: FuryAbility[] = [DragonKick, Demolish, TwinSnakes, PouncingCoeurl, RisingRaptor, LeapingOpo];
-// TODO add TheForbiddenChakra
 export const OGCD_PRIORITY: OgcdAbility[] = [Brotherhood, RiddleOfFire, RiddleOfWind, TheForbiddenChakra];
