@@ -5,7 +5,7 @@ import { CharacterGearSet } from "@xivgear/core/gear";
 import { BaseMultiCycleSim } from "@xivgear/core/sims/processors/sim_processors";
 import { FuryAbility, MnkAbility, MNKExtraData, MnkGcdAbility } from "./mnk_types";
 import { MNKGauge as MnkGauge } from "./mnk_gauge";
-import { Brotherhood, CelestialRevolution, CoeurlForm, Demolish, DragonKick, ElixirBurst, FiresReply, FiresRumination, ForbiddenMeditation, FormShift, FormlessFist, LeapingOpo, OGCD_PRIORITY, OPO_ABILITIES, OpoForm, OpoFury, PerfectBalance, PerfectBalanceBuff, PhantomRush, PouncingCoeurl, RaptorForm, RiddleOfFire, RiddleOfFireBuff, RiddleOfWind, RisingPhoenix, RisingRaptor, SOLAR_WEAKEST_STRONGEST, SixSidedStar, TheForbiddenChakra, TwinSnakes, WindsReply, WindsRumination } from "./mnk_actions";
+import { Brotherhood, BrotherhoodBuff, CelestialRevolution, CoeurlForm, Demolish, DragonKick, ElixirBurst, FiresReply, FiresRumination, ForbiddenMeditation, FormShift, FormlessFist, LeapingOpo, OGCD_PRIORITY, OPO_ABILITIES, OpoForm, OpoFury, PerfectBalance, PerfectBalanceBuff, PhantomRush, PouncingCoeurl, RaptorForm, RiddleOfFire, RiddleOfFireBuff, RiddleOfWind, RisingPhoenix, RisingRaptor, SOLAR_WEAKEST_STRONGEST, SixSidedStar, TheForbiddenChakra, TwinSnakes, WindsReply, WindsRumination } from "./mnk_actions";
 import { Brotherhood as BrotherhoodGlobalBuff } from "@xivgear/core/sims/buffs";
 import { sum } from "../../../util/array_utils";
 import { STANDARD_ANIMATION_LOCK } from "@xivgear/xivmath/xivconstants";
@@ -74,7 +74,10 @@ class MNKCycleProcessor extends CycleProcessor {
             const probableChakraGain = usedAbility.ability.id === LeapingOpo.id && usedAbility.buffs.find(buff => [PerfectBalanceBuff.statusId, OpoForm.statusId].includes(buff.statusId))
                 ? 1
                 : this.stats.critChance + usedAbility.combinedEffects.critChanceIncrease;
-            this.gauge.chakra += probableChakraGain;
+            const brotherhoodChakra = usedAbility.buffs.find(buff => buff.statusId === BrotherhoodBuff.statusId)
+                ? 1
+                : 0;
+            this.gauge.chakra += probableChakraGain + brotherhoodChakra;
         }
     }
 

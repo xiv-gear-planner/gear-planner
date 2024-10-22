@@ -36,8 +36,10 @@ class MNKGaugeGui {
                             stack.style.width = '16px';
                             stack.style.display = 'inline-block';
                             stack.style.overflow = 'hidden';
-                            if (i <= chakra) {
-                                stack.style.background = '#f796c6';
+                            if (i <= chakra - 5) {
+                                stack.style.background = '#f32908';
+                            } else if (i <= chakra) {
+                                stack.style.background = '#f37208';
                             }
                             div.appendChild(stack);
                         }
