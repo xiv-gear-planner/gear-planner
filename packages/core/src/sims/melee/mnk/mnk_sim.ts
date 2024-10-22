@@ -5,7 +5,8 @@ import { CharacterGearSet } from "@xivgear/core/gear";
 import { BaseMultiCycleSim } from "@xivgear/core/sims/processors/sim_processors";
 import { FuryAbility, MnkAbility, MNKExtraData, MnkGcdAbility } from "./mnk_types";
 import { MNKGauge as MnkGauge } from "./mnk_gauge";
-import { Brotherhood, CelestialRevolution, CoeurlForm, Demolish, DragonKick, ElixirBurst, FiresReply, FiresRumination, ForbiddenMeditation, FormShift, FormlessFist, LeapingOpo, OGCD_PRIORITY, OPO_ABILITIES, OpoForm, OpoFury, PerfectBalance, PerfectBalanceBuff, PhantomRush, PouncingCoeurl, RaptorForm, RiddleOfFire, RiddleOfFireBuff, RiddleOfWind, RisingPhoenix, RisingRaptor, SOLAR_WEAKEST_STRONGEST, TheForbiddenChakra, TwinSnakes, WindsReply, WindsRumination } from "./mnk_actions";
+import { Brotherhood, CelestialRevolution, CoeurlForm, Demolish, DragonKick, ElixirBurst, FiresReply, FiresRumination, ForbiddenMeditation, FormShift, FormlessFist, LeapingOpo, OGCD_PRIORITY, OPO_ABILITIES, OpoForm, OpoFury, PerfectBalance, PerfectBalanceBuff, PhantomRush, PouncingCoeurl, RaptorForm, RiddleOfFire, RiddleOfFireBuff, RiddleOfWind, RisingPhoenix, RisingRaptor, SOLAR_WEAKEST_STRONGEST, SixSidedStar, TheForbiddenChakra, TwinSnakes, WindsReply, WindsRumination } from "./mnk_actions";
+import { Brotherhood as BrotherhoodGlobalBuff } from "@xivgear/core/sims/buffs";
 import { sum } from "../../../util/array_utils";
 import { STANDARD_ANIMATION_LOCK } from "@xivgear/xivmath/xivconstants";
 
@@ -35,7 +36,6 @@ class MNKCycleProcessor extends CycleProcessor {
 
     constructor(settings: MultiCycleSettings) {
         super(settings);
-        this.cycleLengthMode = 'full-duration';
         this.gauge = new MnkGauge();
     }
 
@@ -160,6 +160,7 @@ class MNKCycleProcessor extends CycleProcessor {
         ogcdsAvailable.forEach(ogcd => {
             if (this.canUseWithoutClipping(ogcd)) {
                 if (ogcd.id === RiddleOfFire.id) {
+                    // TODO implement RoF holding
                     this.advanceForLateWeave([ogcd]);
                 }
                 this.useOgcd(ogcd);
@@ -170,6 +171,10 @@ class MNKCycleProcessor extends CycleProcessor {
     chooseGcd(): MnkGcdAbility {
         if (this.getActiveBuffs().find(buff => buff.statusId === WindsRumination.statusId)) {
             return WindsReply;
+        }
+        if (this.remainingGcds(DragonKick) <= 1) {
+            // last GCD of a fight
+            return SixSidedStar;
         }
         switch (this.getCurrentForm()?.statusId) {
             case OpoForm.statusId:
@@ -321,6 +326,7 @@ export class MnkSim extends BaseMultiCycleSim<CycleSimResult, MnkSettings, MNKCy
     shortName = 'mnk-sim';
     displayName = mnkSpec.displayName;
     cycleSettings: CycleSettings = this.defaultCycleSettings();
+    manuallyActivatedBuffs = [BrotherhoodGlobalBuff];
 
     constructor(settings?: MnkSettingsExternal) {
         super('MNK', settings);
@@ -343,7 +349,7 @@ export class MnkSim extends BaseMultiCycleSim<CycleSimResult, MnkSettings, MNKCy
                 cycleTime: 120,
                 apply(cp: MNKCycleProcessor) {
                     cp.doubleLunarOpener();
-                    while (cp.remainingTime - cp.nextGcdTime > 0) {
+                    while (cp.remainingGcdTime > 0) {
                         cp.doStep();
                     }
                 }
@@ -353,7 +359,7 @@ export class MnkSim extends BaseMultiCycleSim<CycleSimResult, MnkSettings, MNKCy
                 cycleTime: 120,
                 apply(cp: MNKCycleProcessor) {
                     cp.solarLunarOpener();
-                    while (cp.remainingTime - cp.nextGcdTime > 0) {
+                    while (cp.remainingGcdTime > 0) {
                         cp.doStep();
                     }
                 }
