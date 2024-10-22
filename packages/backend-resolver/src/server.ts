@@ -55,7 +55,7 @@ if (dataApiOverride) {
 
 fastify.listen({
     port: 30000,
-    host: '0.0.0.0'
+    host: '0.0.0.0',
 }, (err, addr) => {
     if (err) {
         fastify.log.error(err);

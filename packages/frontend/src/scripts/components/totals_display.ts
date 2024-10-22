@@ -9,7 +9,7 @@ export class SetViewToolbar extends HTMLElement {
 
     constructor(gearSet: CharacterGearSet) {
         super();
-        this.totalsDisplay = new SetTotalsDisplay(gearSet)
+        this.totalsDisplay = new SetTotalsDisplay(gearSet);
         this.appendChild(this.totalsDisplay);
     }
 
@@ -48,7 +48,7 @@ export class SetTotalsDisplay extends HTMLElement {
                     case "tenacity":
                         value = {
                             multiplier: stats.tncMulti,
-                            incomingMulti: stats.tncIncomingMulti
+                            incomingMulti: stats.tncIncomingMulti,
                         };
                         break;
                     case "piety":
@@ -57,32 +57,32 @@ export class SetTotalsDisplay extends HTMLElement {
                     case "crit":
                         value = {
                             chance: stats.critChance,
-                            multiplier: stats.critMulti
+                            multiplier: stats.critMulti,
                         };
                         break;
                     case "dhit":
                         value = {
                             chance: stats.dhitChance,
-                            multiplier: stats.dhitMulti
+                            multiplier: stats.dhitMulti,
                         };
                         break;
                     case "spellspeed":
                         value = {
                             gcd: stats.gcdMag(NORMAL_GCD),
-                            multiplier: stats.spsDotMulti
+                            multiplier: stats.spsDotMulti,
                         };
                         break;
                     case "skillspeed":
                         value = {
                             gcd: stats.gcdPhys(NORMAL_GCD),
-                            multiplier: stats.sksDotMulti
+                            multiplier: stats.sksDotMulti,
                         };
                         break;
                 }
                 if (value) {
                     this.appendChild(new SingleStatTotalDisplay(stat, {
                         stat: stats[stat],
-                        ...value
+                        ...value,
                     } as StatDisplayType));
                 }
             }

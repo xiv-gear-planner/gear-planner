@@ -107,7 +107,7 @@ export class ImportSheetArea extends NamedSection {
             this.ready = true;
             console.error("Error importing set/sheet", err);
             alert('Error loading set/sheet');
-        })
+        });
     }
 
     doJsonImport(text: string) {

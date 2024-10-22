@@ -55,7 +55,7 @@ class RotationState {
     private _combo: number = 0;
 
     get combo() {
-        return this._combo
+        return this._combo;
     };
 
     set combo(newCombo) {
@@ -68,7 +68,7 @@ class WarCycleProcessor extends CycleProcessor {
     gauge: WarGauge;
     rotationState: RotationState;
     wrathfulProgress = 0;
-    
+
     constructor(settings: MultiCycleSettings) {
         super(settings);
         this.cycleLengthMode = 'full-duration';
@@ -83,11 +83,11 @@ class WarCycleProcessor extends CycleProcessor {
         const pingAndServerDelayAdjustment = 0.02;
         const totalAnimLock = sum(weaves.map(ability => (ability.animationLock ?? STANDARD_ANIMATION_LOCK) + pingAndServerDelayAdjustment));
         const remainingtime = this.nextGcdTime - this.currentTime;
-    
+
         if (totalAnimLock > remainingtime) {
-           return;
+            return;
         }
-    
+
         this.advanceTo(this.currentTime + (remainingtime - totalAnimLock));
     }
 
@@ -97,14 +97,14 @@ class WarCycleProcessor extends CycleProcessor {
             gauge: this.gauge.getGaugeState(),
             surgingTempest: 0,
         };
-        
-        const surgingTempest = usedAbility.buffs.find(buff => buff.name === SurgingTempest.name)
-        const buffData = surgingTempest && this.getActiveBuffData(surgingTempest, usedAbility.usedAt)
+
+        const surgingTempest = usedAbility.buffs.find(buff => buff.name === SurgingTempest.name);
+        const buffData = surgingTempest && this.getActiveBuffData(surgingTempest, usedAbility.usedAt);
         if (buffData) {
-            extraData.surgingTempest = Math.round(buffData.end - usedAbility.usedAt)
+            extraData.surgingTempest = Math.round(buffData.end - usedAbility.usedAt);
         }
 
-        
+
         const modified: PreDmgAbilityUseRecordUnf = {
             ...usedAbility,
             extraData,
@@ -114,14 +114,14 @@ class WarCycleProcessor extends CycleProcessor {
     }
 
     getSurgingTempestDuration(): number {
-        let surgingTempestDuration = 0
-        const buffs = [...this.getActiveBuffs(this.currentTime)]
-        const surgingTempest = buffs.find(buff => buff.name === SurgingTempest.name)
-        const buffData = surgingTempest && this.getActiveBuffData(surgingTempest, this.currentTime)
+        let surgingTempestDuration = 0;
+        const buffs = [...this.getActiveBuffs(this.currentTime)];
+        const surgingTempest = buffs.find(buff => buff.name === SurgingTempest.name);
+        const buffData = surgingTempest && this.getActiveBuffData(surgingTempest, this.currentTime);
         if (buffData) {
-            surgingTempestDuration = Math.round(buffData.end - this.currentTime)
+            surgingTempestDuration = Math.round(buffData.end - this.currentTime);
         }
-        return surgingTempestDuration
+        return surgingTempestDuration;
     }
 
     stormsEyeIsNextComboFinisher(): boolean {
@@ -146,19 +146,20 @@ class WarCycleProcessor extends CycleProcessor {
 
     recordWrathful() {
         if (this.wrathfulProgress === 2) {
-            this.activateBuff(WrathfulBuff)
-            this.wrathfulProgress = 0
-        } else {
-            this.wrathfulProgress++
+            this.activateBuff(WrathfulBuff);
+            this.wrathfulProgress = 0;
+        }
+        else {
+            this.wrathfulProgress++;
         }
     }
 
     inBurst(): boolean {
         const timeIntoTwoMinutes = this.currentTime % 120;
-        
+
         // Six seconds after every (i.e. 0:06, 2:06, etc) burst, buffs will be up,
         // and will remain up for twenty seconds.
-        return 6 <= timeIntoTwoMinutes && timeIntoTwoMinutes < 26
+        return 6 <= timeIntoTwoMinutes && timeIntoTwoMinutes < 26;
     }
 
     // If the fight is ending within the next 12 seconds (to dump resources)
@@ -167,47 +168,47 @@ class WarCycleProcessor extends CycleProcessor {
     }
 
     isPrimalRuinationReadyActive(): boolean {
-        const buffs = this.getActiveBuffs()
-        const prr = buffs.find(buff => buff.name === PrimalRuinationReadyBuff.name)
-        return prr !== undefined
+        const buffs = this.getActiveBuffs();
+        const prr = buffs.find(buff => buff.name === PrimalRuinationReadyBuff.name);
+        return prr !== undefined;
     }
 
     isPrimalRendReadyActive(): boolean {
-        const buffs = this.getActiveBuffs()
-        const prr = buffs.find(buff => buff.name === PrimalRendReadyBuff.name)
-        return prr !== undefined
+        const buffs = this.getActiveBuffs();
+        const prr = buffs.find(buff => buff.name === PrimalRendReadyBuff.name);
+        return prr !== undefined;
     }
 
     isInnerReleaseActive(): boolean {
-        const buffs = this.getActiveBuffs()
-        const innerRelease = buffs.find(buff => buff.name === InnerReleaseBuff.name)
-        return innerRelease !== undefined
+        const buffs = this.getActiveBuffs();
+        const innerRelease = buffs.find(buff => buff.name === InnerReleaseBuff.name);
+        return innerRelease !== undefined;
     }
 
     isNascentChaosActive(): boolean {
-        const buffs = this.getActiveBuffs()
-        const nc = buffs.find(buff => buff.name === NascentChaosBuff.name)
-        return nc !== undefined
+        const buffs = this.getActiveBuffs();
+        const nc = buffs.find(buff => buff.name === NascentChaosBuff.name);
+        return nc !== undefined;
     }
 
     isWrathfulActive(): boolean {
-        const buffs = this.getActiveBuffs()
-        const wrathful = buffs.find(buff => buff.name === WrathfulBuff.name)
-        return wrathful !== undefined
+        const buffs = this.getActiveBuffs();
+        const wrathful = buffs.find(buff => buff.name === WrathfulBuff.name);
+        return wrathful !== undefined;
     }
 
     shouldPot(): boolean {
-        const sixMinutesInSeconds = 360
-        const isSixMinuteWindow = this.currentTime % sixMinutesInSeconds < 20
-        return isSixMinuteWindow
+        const sixMinutesInSeconds = 360;
+        const isSixMinuteWindow = this.currentTime % sixMinutesInSeconds < 20;
+        return isSixMinuteWindow;
     }
 
     getTimeUntilInfuriateCapped(): number {
-        return this.cdTracker.statusOf(Actions.Infuriate).cappedAt.absolute - this.currentTime
+        return this.cdTracker.statusOf(Actions.Infuriate).cappedAt.absolute - this.currentTime;
     }
 
     getTimeUntilOnslaughtCapped(): number {
-        return this.cdTracker.statusOf(Actions.Onslaught).cappedAt.absolute - this.currentTime
+        return this.cdTracker.statusOf(Actions.Onslaught).cappedAt.absolute - this.currentTime;
     }
 }
 
@@ -221,7 +222,7 @@ export class WarSim extends BaseMultiCycleSim<WarSimResult, WarSettings, WarCycl
         cycles: 0,
         which: 'totalTime',
         cutoffMode: 'prorate-gcd',
-    }
+    };
 
     constructor(settings?: WarSettingsExternal) {
         super('WAR', settings);
@@ -248,8 +249,8 @@ export class WarSim extends BaseMultiCycleSim<WarSimResult, WarSettings, WarCycl
     }
 
     willOvercapBeastGaugeNextGCD(cp: WarCycleProcessor): boolean {
-        const gaugeFullAndNotAtStartOfCombo = cp.gauge.beastGauge === 100 && cp.rotationState.combo !== 0
-        const gaugeWillBeOvercappedByStormsPath = cp.gauge.beastGauge >= 90 && cp.rotationState.combo === 2 && cp.stormsPathIsNextComboFinisher()
+        const gaugeFullAndNotAtStartOfCombo = cp.gauge.beastGauge === 100 && cp.rotationState.combo !== 0;
+        const gaugeWillBeOvercappedByStormsPath = cp.gauge.beastGauge >= 90 && cp.rotationState.combo === 2 && cp.stormsPathIsNextComboFinisher();
         return gaugeFullAndNotAtStartOfCombo || gaugeWillBeOvercappedByStormsPath;
     }
 
@@ -302,11 +303,11 @@ export class WarSim extends BaseMultiCycleSim<WarSimResult, WarSettings, WarCycl
         ///oGCDs
         ////////
         if (cp.canUseWithoutClipping(Actions.InnerRelease)) {
-            this.use(cp, Actions.InnerRelease)
+            this.use(cp, Actions.InnerRelease);
         }
 
         if (cp.shouldPot() && cp.canUseWithoutClipping(potionMaxStr)) {
-            this.use(cp, potionMaxStr)
+            this.use(cp, potionMaxStr);
         }
 
         if (cp.isWrathfulActive() && cp.canUseWithoutClipping(Actions.PrimalWrath)){
@@ -334,15 +335,15 @@ export class WarSim extends BaseMultiCycleSim<WarSimResult, WarSettings, WarCycl
         if (cp.getTimeUntilOnslaughtCapped() < 3 && cp.canUseWithoutClipping(Actions.Onslaught)) {
             this.use(cp, Actions.Onslaught);
         }
-        
+
         // Dump resources if fight ending soon
         if (cp.fightEndingSoon()) {
             if (cp.canUseWithoutClipping(Actions.Onslaught)) {
-                this.use(cp, Actions.Onslaught)
+                this.use(cp, Actions.Onslaught);
             }
-            
+
             if (cp.canUseWithoutClipping(Actions.Infuriate) && cp.gauge.beastGauge <= 50) {
-                this.use(cp, Actions.Infuriate)
+                this.use(cp, Actions.Infuriate);
             }
         }
 
@@ -354,7 +355,7 @@ export class WarSim extends BaseMultiCycleSim<WarSimResult, WarSettings, WarCycl
             return;
         }
 
-        this.use(cp, (this.getGCDToUse(cp)))
+        this.use(cp, (this.getGCDToUse(cp)));
     }
 
     use(cp: WarCycleProcessor, ability: Ability): AbilityUseResult {
@@ -381,7 +382,7 @@ export class WarSim extends BaseMultiCycleSim<WarSimResult, WarSettings, WarCycl
         if (warAbility.id === Actions.InnerRelease.id) {
             // Hack: Only re-activate Surging Tempest if it's already active.
             if (cp.getSurgingTempestDuration() > 0) {
-                cp.extendBuffByDuration(SurgingTempest, 10)
+                cp.extendBuffByDuration(SurgingTempest, 10);
             }
         }
 
@@ -392,52 +393,53 @@ export class WarSim extends BaseMultiCycleSim<WarSimResult, WarSettings, WarCycl
 
         // Update gauges, but not for our free Fell Cleaves
         if (cp.isInnerReleaseActive() && warAbility.id === Actions.FellCleave.id) {
-            cp.recordWrathful()
-        } else if (warAbility.updateBeastGauge !== undefined) {
+            cp.recordWrathful();
+        }
+        else if (warAbility.updateBeastGauge !== undefined) {
             // Prevent gauge updates showing incorrectly on autos before this ability
             if (ability.type === 'gcd' && cp.nextGcdTime > cp.currentTime) {
                 cp.advanceTo(cp.nextGcdTime);
             }
-        
+
             warAbility.updateBeastGauge(cp.gauge);
         }
 
         // Lower Infuriate cooldown if appropriate
         if (warAbility.id === Actions.FellCleave.id || warAbility.id === Actions.InnerChaos.id) {
-            cp.cdTracker.modifyCooldown(Actions.Infuriate, -5)
+            cp.cdTracker.modifyCooldown(Actions.Infuriate, -5);
         }
-        
+
         return cp.use(ability);
     }
 
-    private useOpener(cp: WarCycleProcessor) {            
+    private useOpener(cp: WarCycleProcessor) {
         cp.advanceTo(1 - STANDARD_ANIMATION_LOCK);
-        this.use(cp, Actions.Tomahawk)
-        this.use(cp, Actions.Infuriate)
-        this.use(cp, Actions.Maim)
-        this.use(cp, Actions.StormsEye)
-        this.use(cp, Actions.InnerRelease)
-        cp.advanceForLateWeave([potionMaxStr])
-        this.use(cp, potionMaxStr)
-        this.use(cp, Actions.InnerChaos)
-        this.use(cp, Actions.Upheaval)
-        this.use(cp, Actions.Onslaught)
-        this.use(cp, Actions.PrimalRend)
-        this.use(cp, Actions.Onslaught)
-        this.use(cp, Actions.PrimalRuination)
-        this.use(cp, Actions.Onslaught)
-        this.use(cp, Actions.FellCleave)
-        this.use(cp, Actions.FellCleave)
-        this.use(cp, Actions.FellCleave)
-        this.use(cp, Actions.PrimalWrath)
-        this.use(cp, Actions.Infuriate)
-        this.use(cp, Actions.InnerChaos)
-        this.use(cp, Actions.HeavySwing)
-        this.use(cp, Actions.Maim)
-        this.use(cp, Actions.StormsPath)
-        this.use(cp, Actions.FellCleave)
-        this.use(cp, Actions.Infuriate)
-        this.use(cp, Actions.InnerChaos)
+        this.use(cp, Actions.Tomahawk);
+        this.use(cp, Actions.Infuriate);
+        this.use(cp, Actions.Maim);
+        this.use(cp, Actions.StormsEye);
+        this.use(cp, Actions.InnerRelease);
+        cp.advanceForLateWeave([potionMaxStr]);
+        this.use(cp, potionMaxStr);
+        this.use(cp, Actions.InnerChaos);
+        this.use(cp, Actions.Upheaval);
+        this.use(cp, Actions.Onslaught);
+        this.use(cp, Actions.PrimalRend);
+        this.use(cp, Actions.Onslaught);
+        this.use(cp, Actions.PrimalRuination);
+        this.use(cp, Actions.Onslaught);
+        this.use(cp, Actions.FellCleave);
+        this.use(cp, Actions.FellCleave);
+        this.use(cp, Actions.FellCleave);
+        this.use(cp, Actions.PrimalWrath);
+        this.use(cp, Actions.Infuriate);
+        this.use(cp, Actions.InnerChaos);
+        this.use(cp, Actions.HeavySwing);
+        this.use(cp, Actions.Maim);
+        this.use(cp, Actions.StormsPath);
+        this.use(cp, Actions.FellCleave);
+        this.use(cp, Actions.Infuriate);
+        this.use(cp, Actions.InnerChaos);
     }
 
     getRotationsToSimulate(set: CharacterGearSet): Rotation<WarCycleProcessor>[] {
@@ -446,16 +448,16 @@ export class WarSim extends BaseMultiCycleSim<WarSimResult, WarSettings, WarCycl
         const outer = this;
 
         console.log(`[WAR Sim] Running Rotation for ${gcd} GCD...`);
-        console.log(`[WAR Sim] Settings configured: ${JSON.stringify(settings)}`)
+        console.log(`[WAR Sim] Settings configured: ${JSON.stringify(settings)}`);
         return [{
             cycleTime: 120,
             apply(cp: WarCycleProcessor) {
-                outer.useOpener(cp)
+                outer.useOpener(cp);
 
                 cp.remainingCycles(() => {
                     outer.useWarRotation(cp);
                 });
-            }
+            },
         }];
     }
-} 
+}

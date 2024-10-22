@@ -9,7 +9,7 @@ global.fetch = (input: Request | string | URL, init: RequestInit) => {
 };
 
 export const nonCachedFetch = NodeFetchCache.create({
-    shouldCacheResponse: () => false
+    shouldCacheResponse: () => false,
 });
 
 // Hack for JSDom not having ResizeObserver

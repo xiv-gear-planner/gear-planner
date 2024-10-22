@@ -149,7 +149,7 @@ export const Higanbana: SamGcdAbility = {
     dot: {
         id: 1228,
         duration: 60,
-        tickPotency: 50
+        tickPotency: 50,
     },
     gcd: 2.5,
     cast: 1.3,

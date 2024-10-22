@@ -48,9 +48,11 @@ export const AeolianEdge: NinGcdAbility = {
     updateGauge: (gauge: NINGauge) => {
         if (gauge.level > 84) {
             gauge.ninkiGauge += 15;
-        } else if (gauge.level > 78) {
+        }
+        else if (gauge.level > 78) {
             gauge.ninkiGauge += 10;
-        } else if (gauge.level > 62) {
+        }
+        else if (gauge.level > 62) {
             gauge.ninkiGauge += 5;
         }
         gauge.kazematoi--;
@@ -68,9 +70,11 @@ export const ArmorCrush: NinGcdAbility = {
     updateGauge: (gauge: NINGauge) => {
         if (gauge.level > 84) {
             gauge.ninkiGauge += 15;
-        } else if (gauge.level > 78) {
+        }
+        else if (gauge.level > 78) {
             gauge.ninkiGauge += 10;
-        } else if (gauge.level > 62) {
+        }
+        else if (gauge.level > 62) {
             gauge.ninkiGauge += 5;
         }
         gauge.kazematoi += 2;
@@ -209,7 +213,7 @@ export const KunaisBane: NinOgcdAbility = {
     attackType: "Ability",
     potency: 600,
     cooldown: {
-        time: 60
+        time: 60,
     },
     activatesBuffs: [KunaisBaneBuff],
 };
@@ -221,7 +225,7 @@ export const Kassatsu: NinOgcdAbility = {
     attackType: "Ability",
     potency: null,
     cooldown: {
-        time: 60
+        time: 60,
     },
     activatesBuffs: [KassatsuBuff],
 };
@@ -233,7 +237,7 @@ export const TenChiJin: NinOgcdAbility = {
     attackType: "Ability",
     potency: null,
     cooldown: {
-        time: 120
+        time: 120,
     },
     activatesBuffs: [TenChiJinReady, TenriJindoReady],
 };
@@ -245,11 +249,11 @@ export const Meisui: NinOgcdAbility = {
     attackType: "Ability",
     potency: null,
     cooldown: {
-        time: 120
+        time: 120,
     },
     activatesBuffs: [MeisuiBuff],
     updateGauge: gauge => gauge.ninkiGauge += 50,
-}
+};
 
 export const Bunshin: NinkiAbility = {
     type: 'ogcd',
@@ -258,7 +262,7 @@ export const Bunshin: NinkiAbility = {
     attackType: "Ability",
     potency: null,
     cooldown: {
-        time: 90
+        time: 90,
     },
     activatesBuffs: [BunshinBuff, PhantomReady],
     updateGauge: gauge => gauge.ninkiGauge -= 50,
@@ -272,7 +276,7 @@ export const DokumoriAbility: NinOgcdAbility = {
     attackType: "Ability",
     potency: 300,
     cooldown: {
-        time: 120
+        time: 120,
     },
     activatesBuffs: [Dokumori, Higi],
     updateGauge: gauge => gauge.ninkiGauge += 40,
@@ -284,7 +288,7 @@ export const DreamWithin: NinOgcdAbility = {
     id: 3566,
     attackType: "Ability",
     potency: 150 * 3, // Multihit
-}
+};
 
 export const Bhavacakra: NinkiAbility = {
     type: 'ogcd',

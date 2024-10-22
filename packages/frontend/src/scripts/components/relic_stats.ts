@@ -22,7 +22,7 @@ export function makeRelicStatEditor(equipment: EquippedItem, stat: Substat, set:
                 else if (ctx.newValue > inputSubstatCap) {
                     ctx.failValidation(`Must be ${inputSubstatCap} or lower`);
                 }
-            }]
+            }],
         });
         const cap = gearItem.statCaps[stat] ?? 9999;
         input.type = 'number';
@@ -61,7 +61,7 @@ export function makeRelicStatEditor(equipment: EquippedItem, stat: Substat, set:
                     if (reval) {
                         reval();
                     }
-                })
+                });
             }, 10);
 
         });
@@ -106,7 +106,7 @@ export function makeRelicStatEditor(equipment: EquippedItem, stat: Substat, set:
                     if (reval) {
                         reval();
                     }
-                })
+                });
             }, 10);
 
         });

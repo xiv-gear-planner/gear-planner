@@ -34,7 +34,7 @@ describe("ComputedSetStats", () => {
             spellspeed: 1134,
             wdPhys: 141,
             wdMag: 141,
-            weaponDelay: 3.12
+            weaponDelay: 3.12,
         }), {}, level, getLevelStats(level), job, fakeSheet.classJobStats, 0);
         expect(stats.aaDelay).to.eq(3.12);
         expect(stats.aaMulti).to.eq(1.87);
@@ -75,38 +75,38 @@ describe("ComputedSetStats", () => {
     it('computes correctly with food and no party bonus', async () => {
         await loadPromise;
         const stats = finalizeStats(new RawStats({
-                hp: 0,
-                vitality: 4119,
-                strength: fl(440 * 0.9),
-                dexterity: 440,
-                intelligence: 462,
-                mind: 4448,
-                piety: 564,
-                crit: 2988,
-                dhit: 690,
-                determination: 2706,
-                tenacity: 420,
-                skillspeed: 420,
-                spellspeed: 1134,
-                wdPhys: 141,
-                wdMag: 141,
-                weaponDelay: 3.12
-            }),
-            // Pineapple Orange Jelly
-            {
-                vitality: {
-                    max: 203,
-                    percentage: 10
-                },
-                crit: {
-                    max: 132,
-                    percentage: 10,
-                },
-                spellspeed: {
-                    max: 79,
-                    percentage: 10
-                }
-            }, level, getLevelStats(level), job, fakeSheet.classJobStats, 0);
+            hp: 0,
+            vitality: 4119,
+            strength: fl(440 * 0.9),
+            dexterity: 440,
+            intelligence: 462,
+            mind: 4448,
+            piety: 564,
+            crit: 2988,
+            dhit: 690,
+            determination: 2706,
+            tenacity: 420,
+            skillspeed: 420,
+            spellspeed: 1134,
+            wdPhys: 141,
+            wdMag: 141,
+            weaponDelay: 3.12,
+        }),
+        // Pineapple Orange Jelly
+        {
+            vitality: {
+                max: 203,
+                percentage: 10,
+            },
+            crit: {
+                max: 132,
+                percentage: 10,
+            },
+            spellspeed: {
+                max: 79,
+                percentage: 10,
+            },
+        }, level, getLevelStats(level), job, fakeSheet.classJobStats, 0);
         expect(stats.aaDelay).to.eq(3.12);
         expect(stats.aaMulti).to.eq(1.87);
         expect(stats.aaStatMulti).to.eq(0.77);
@@ -146,38 +146,38 @@ describe("ComputedSetStats", () => {
     it('computes correctly with food and with party bonus', async () => {
         await loadPromise;
         const stats = finalizeStats(new RawStats({
-                hp: 0,
-                vitality: 4119,
-                strength: fl(440 * 0.9),
-                dexterity: 440,
-                intelligence: 462,
-                mind: 4448,
-                piety: 564,
-                crit: 2988,
-                dhit: 690,
-                determination: 2706,
-                tenacity: 420,
-                skillspeed: 420,
-                spellspeed: 1134,
-                wdPhys: 141,
-                wdMag: 141,
-                weaponDelay: 3.12
-            }),
-            // Pineapple Orange Jelly
-            {
-                vitality: {
-                    max: 203,
-                    percentage: 10
-                },
-                crit: {
-                    max: 132,
-                    percentage: 10,
-                },
-                spellspeed: {
-                    max: 79,
-                    percentage: 10
-                }
-            }, level, getLevelStats(level), job, fakeSheet.classJobStats, 5);
+            hp: 0,
+            vitality: 4119,
+            strength: fl(440 * 0.9),
+            dexterity: 440,
+            intelligence: 462,
+            mind: 4448,
+            piety: 564,
+            crit: 2988,
+            dhit: 690,
+            determination: 2706,
+            tenacity: 420,
+            skillspeed: 420,
+            spellspeed: 1134,
+            wdPhys: 141,
+            wdMag: 141,
+            weaponDelay: 3.12,
+        }),
+        // Pineapple Orange Jelly
+        {
+            vitality: {
+                max: 203,
+                percentage: 10,
+            },
+            crit: {
+                max: 132,
+                percentage: 10,
+            },
+            spellspeed: {
+                max: 79,
+                percentage: 10,
+            },
+        }, level, getLevelStats(level), job, fakeSheet.classJobStats, 5);
         expect(stats.aaDelay).to.eq(3.12);
         expect(stats.aaMulti).to.eq(1.87);
         expect(stats.aaStatMulti).to.eq(0.87);
@@ -229,25 +229,25 @@ describe("Dmg/100p for known values", () => {
     it('SMN test 1', async () => {
         await loadPromiseSMN;
         const stats = finalizeStats(new RawStats({
-                hp: 0,
-                vitality: 4119,
-                strength: fl(440 * 0.9),
-                dexterity: 440,
-                intelligence: 1038,
-                mind: 4448,
-                piety: 564,
-                crit: 2988,
-                dhit: 690,
-                determination: 812,
-                tenacity: 420,
-                skillspeed: 420,
-                spellspeed: 1134,
-                wdPhys: 114,
-                wdMag: 114,
-                weaponDelay: 3.12
-            }),
-            // Pineapple Orange Jelly
-            {}, level, getLevelStats(level), 'SMN', fakeSheetSMN.classJobStats, 0);
+            hp: 0,
+            vitality: 4119,
+            strength: fl(440 * 0.9),
+            dexterity: 440,
+            intelligence: 1038,
+            mind: 4448,
+            piety: 564,
+            crit: 2988,
+            dhit: 690,
+            determination: 812,
+            tenacity: 420,
+            skillspeed: 420,
+            spellspeed: 1134,
+            wdPhys: 114,
+            wdMag: 114,
+            weaponDelay: 3.12,
+        }),
+        // Pineapple Orange Jelly
+        {}, level, getLevelStats(level), 'SMN', fakeSheetSMN.classJobStats, 0);
         const dmg100p = baseDamageFull(stats, 100, 'Spell', false, false);
         expect(dmg100p.expected).to.eq(913);
         expect(stats.detMulti).to.eq(1.018);
@@ -261,25 +261,25 @@ describe("Dmg/100p for known values", () => {
     it('SMN test 2', async () => {
         await loadPromiseSMN;
         const stats = finalizeStats(new RawStats({
-                hp: 0,
-                vitality: 4119,
-                strength: fl(440 * 0.9),
-                dexterity: 440,
-                intelligence: 1167,
-                mind: 4448,
-                piety: 564,
-                crit: 2988,
-                dhit: 690,
-                determination: 900,
-                tenacity: 420,
-                skillspeed: 420,
-                spellspeed: 1134,
-                wdPhys: 114,
-                wdMag: 114,
-                weaponDelay: 3.12
-            }),
-            // Pineapple Orange Jelly
-            {}, level, getLevelStats(level), 'SMN', fakeSheetSMN.classJobStats, 0);
+            hp: 0,
+            vitality: 4119,
+            strength: fl(440 * 0.9),
+            dexterity: 440,
+            intelligence: 1167,
+            mind: 4448,
+            piety: 564,
+            crit: 2988,
+            dhit: 690,
+            determination: 900,
+            tenacity: 420,
+            skillspeed: 420,
+            spellspeed: 1134,
+            wdPhys: 114,
+            wdMag: 114,
+            weaponDelay: 3.12,
+        }),
+        // Pineapple Orange Jelly
+        {}, level, getLevelStats(level), 'SMN', fakeSheetSMN.classJobStats, 0);
         const dmg100p = baseDamageFull(stats, 100, 'Spell', false, false);
         expect(dmg100p.expected).to.eq(1069);
         expect(stats.detMulti).to.eq(1.023);
@@ -293,25 +293,25 @@ describe("Dmg/100p for known values", () => {
     it('WAR test 1', async () => {
         await loadPromiseWAR;
         const stats = finalizeStats(new RawStats({
-                hp: 0,
-                vitality: 4119,
-                strength: 1012,
-                dexterity: 440,
-                intelligence: 1167,
-                mind: 4448,
-                piety: 564,
-                crit: 2988,
-                dhit: 690,
-                determination: 699,
-                tenacity: 420,
-                skillspeed: 420,
-                spellspeed: 1134,
-                wdPhys: 141,
-                wdMag: 141,
-                weaponDelay: 3.12
-            }),
-            // Pineapple Orange Jelly
-            {}, level, getLevelStats(level), 'WAR', fakeSheetWAR.classJobStats, 0);
+            hp: 0,
+            vitality: 4119,
+            strength: 1012,
+            dexterity: 440,
+            intelligence: 1167,
+            mind: 4448,
+            piety: 564,
+            crit: 2988,
+            dhit: 690,
+            determination: 699,
+            tenacity: 420,
+            skillspeed: 420,
+            spellspeed: 1134,
+            wdPhys: 141,
+            wdMag: 141,
+            weaponDelay: 3.12,
+        }),
+        // Pineapple Orange Jelly
+        {}, level, getLevelStats(level), 'WAR', fakeSheetWAR.classJobStats, 0);
         const dmg100p = baseDamageFull(stats, 100, 'Weaponskill', false, false);
         expect(dmg100p.expected).to.eq(656);
         expect(stats.mainStatValue).to.eq(1012);
@@ -325,25 +325,25 @@ describe("Dmg/100p for known values", () => {
     it('WAR test 2', async () => {
         await loadPromiseWAR;
         const stats = finalizeStats(new RawStats({
-                hp: 0,
-                vitality: 4119,
-                strength: 1069,
-                dexterity: 440,
-                intelligence: 1167,
-                mind: 4448,
-                piety: 564,
-                crit: 2988,
-                dhit: 690,
-                determination: 739,
-                tenacity: 420,
-                skillspeed: 420,
-                spellspeed: 1134,
-                wdPhys: 141,
-                wdMag: 141,
-                weaponDelay: 3.12
-            }),
-            // Pineapple Orange Jelly
-            {}, level, getLevelStats(level), 'WAR', fakeSheetWAR.classJobStats, 0);
+            hp: 0,
+            vitality: 4119,
+            strength: 1069,
+            dexterity: 440,
+            intelligence: 1167,
+            mind: 4448,
+            piety: 564,
+            crit: 2988,
+            dhit: 690,
+            determination: 739,
+            tenacity: 420,
+            skillspeed: 420,
+            spellspeed: 1134,
+            wdPhys: 141,
+            wdMag: 141,
+            weaponDelay: 3.12,
+        }),
+        // Pineapple Orange Jelly
+        {}, level, getLevelStats(level), 'WAR', fakeSheetWAR.classJobStats, 0);
         const dmg100p = baseDamageFull(stats, 100, 'Weaponskill', false, false);
         expect(dmg100p.expected).to.eq(703);
         expect(stats.mainStatValue).to.eq(1069);
@@ -358,25 +358,25 @@ describe("Dmg/100p for known values", () => {
     it('SCH test 0', async () => {
         await loadPromiseSCH;
         const stats = finalizeStats(new RawStats({
-                hp: 0,
-                vitality: 4119,
-                strength: fl(440 * 0.9),
-                dexterity: 440,
-                intelligence: 1038,
-                mind: 2060,
-                piety: 564,
-                crit: 2988,
-                dhit: 690,
-                determination: 440,
-                tenacity: 420,
-                skillspeed: 420,
-                spellspeed: 420,
-                wdPhys: 0,
-                wdMag: 0,
-                weaponDelay: 3.12
-            }),
-            // Pineapple Orange Jelly
-            {}, level, getLevelStats(level), 'SCH', fakeSheetSCH.classJobStats, 0);
+            hp: 0,
+            vitality: 4119,
+            strength: fl(440 * 0.9),
+            dexterity: 440,
+            intelligence: 1038,
+            mind: 2060,
+            piety: 564,
+            crit: 2988,
+            dhit: 690,
+            determination: 440,
+            tenacity: 420,
+            skillspeed: 420,
+            spellspeed: 420,
+            wdPhys: 0,
+            wdMag: 0,
+            weaponDelay: 3.12,
+        }),
+        // Pineapple Orange Jelly
+        {}, level, getLevelStats(level), 'SCH', fakeSheetSCH.classJobStats, 0);
         const dmg100p = baseDamageFull(stats, 75, 'Spell', false, true);
         expect(dmg100p.expected).to.eq(467);
         expect(stats.determination).to.eq(440);
@@ -392,25 +392,25 @@ describe("Dmg/100p for known values", () => {
     it('SCH test 1', async () => {
         await loadPromiseSCH;
         const stats = finalizeStats(new RawStats({
-                hp: 0,
-                vitality: 4119,
-                strength: fl(440 * 0.9),
-                dexterity: 440,
-                intelligence: 1038,
-                mind: 2060,
-                piety: 564,
-                crit: 2988,
-                dhit: 690,
-                determination: 440,
-                tenacity: 420,
-                skillspeed: 420,
-                spellspeed: 780,
-                wdPhys: 0,
-                wdMag: 0,
-                weaponDelay: 3.12
-            }),
-            // Pineapple Orange Jelly
-            {}, level, getLevelStats(level), 'SCH', fakeSheetSCH.classJobStats, 0);
+            hp: 0,
+            vitality: 4119,
+            strength: fl(440 * 0.9),
+            dexterity: 440,
+            intelligence: 1038,
+            mind: 2060,
+            piety: 564,
+            crit: 2988,
+            dhit: 690,
+            determination: 440,
+            tenacity: 420,
+            skillspeed: 420,
+            spellspeed: 780,
+            wdPhys: 0,
+            wdMag: 0,
+            weaponDelay: 3.12,
+        }),
+        // Pineapple Orange Jelly
+        {}, level, getLevelStats(level), 'SCH', fakeSheetSCH.classJobStats, 0);
         const dmg100p = baseDamageFull(stats, 75, 'Spell', false, true);
         expect(dmg100p.expected).to.eq(474);
         expect(stats.determination).to.eq(440);
@@ -426,25 +426,25 @@ describe("Dmg/100p for known values", () => {
     it('SCH test 2', async () => {
         await loadPromiseSCH;
         const stats = finalizeStats(new RawStats({
-                hp: 0,
-                vitality: 4119,
-                strength: fl(440 * 0.9),
-                dexterity: 440,
-                intelligence: 1038,
-                mind: 2060,
-                piety: 564,
-                crit: 2988,
-                dhit: 690,
-                determination: 440,
-                tenacity: 420,
-                skillspeed: 420,
-                spellspeed: 816,
-                wdPhys: 0,
-                wdMag: 0,
-                weaponDelay: 3.12
-            }),
-            // Pineapple Orange Jelly
-            {}, level, getLevelStats(level), 'SCH', fakeSheetSCH.classJobStats, 0);
+            hp: 0,
+            vitality: 4119,
+            strength: fl(440 * 0.9),
+            dexterity: 440,
+            intelligence: 1038,
+            mind: 2060,
+            piety: 564,
+            crit: 2988,
+            dhit: 690,
+            determination: 440,
+            tenacity: 420,
+            skillspeed: 420,
+            spellspeed: 816,
+            wdPhys: 0,
+            wdMag: 0,
+            weaponDelay: 3.12,
+        }),
+        // Pineapple Orange Jelly
+        {}, level, getLevelStats(level), 'SCH', fakeSheetSCH.classJobStats, 0);
         const dmg100p = baseDamageFull(stats, 75, 'Spell', false, true);
         expect(dmg100p.expected).to.eq(475);
         expect(stats.determination).to.eq(440);
@@ -460,25 +460,25 @@ describe("Dmg/100p for known values", () => {
     it('SCH test 3', async () => {
         await loadPromiseSCH;
         const stats = finalizeStats(new RawStats({
-                hp: 0,
-                vitality: 4119,
-                strength: fl(440 * 0.9),
-                dexterity: 440,
-                intelligence: 1038,
-                mind: 2060,
-                piety: 564,
-                crit: 2988,
-                dhit: 690,
-                determination: 440,
-                tenacity: 420,
-                skillspeed: 420,
-                spellspeed: 852,
-                wdPhys: 0,
-                wdMag: 0,
-                weaponDelay: 3.12
-            }),
-            // Pineapple Orange Jelly
-            {}, level, getLevelStats(level), 'SCH', fakeSheetSCH.classJobStats, 0);
+            hp: 0,
+            vitality: 4119,
+            strength: fl(440 * 0.9),
+            dexterity: 440,
+            intelligence: 1038,
+            mind: 2060,
+            piety: 564,
+            crit: 2988,
+            dhit: 690,
+            determination: 440,
+            tenacity: 420,
+            skillspeed: 420,
+            spellspeed: 852,
+            wdPhys: 0,
+            wdMag: 0,
+            weaponDelay: 3.12,
+        }),
+        // Pineapple Orange Jelly
+        {}, level, getLevelStats(level), 'SCH', fakeSheetSCH.classJobStats, 0);
         const dmg100p = baseDamageFull(stats, 75, 'Spell', false, true);
         expect(dmg100p.expected).to.eq(476);
         expect(stats.determination).to.eq(440);
@@ -494,25 +494,25 @@ describe("Dmg/100p for known values", () => {
     it('GNB Test 1', async () => {
         await loadPromiseGNB;
         const stats = finalizeStats(new RawStats({
-                hp: 0,
-                vitality: 4119,
-                strength: 1371,
-                dexterity: 440,
-                intelligence: 1038,
-                mind: 2060,
-                piety: 564,
-                crit: 2988,
-                dhit: 690,
-                determination: 987,
-                tenacity: 420,
-                skillspeed: 420,
-                spellspeed: 852,
-                wdPhys: 79,
-                wdMag: 79,
-                weaponDelay: 3.12
-            }),
-            // Pineapple Orange Jelly
-            {}, level, getLevelStats(level), 'GNB', fakeSheetGNB.classJobStats, 0);
+            hp: 0,
+            vitality: 4119,
+            strength: 1371,
+            dexterity: 440,
+            intelligence: 1038,
+            mind: 2060,
+            piety: 564,
+            crit: 2988,
+            dhit: 690,
+            determination: 987,
+            tenacity: 420,
+            skillspeed: 420,
+            spellspeed: 852,
+            wdPhys: 79,
+            wdMag: 79,
+            weaponDelay: 3.12,
+        }),
+        // Pineapple Orange Jelly
+        {}, level, getLevelStats(level), 'GNB', fakeSheetGNB.classJobStats, 0);
         expect(stats.determination).to.eq(987);
         expect(stats.detMulti).to.eq(1.027);
         expect(stats.skillspeed).to.eq(420);
@@ -528,25 +528,25 @@ describe("Dmg/100p for known values", () => {
     it('GNB Test 2', async () => {
         await loadPromiseGNB;
         const stats = finalizeStats(new RawStats({
-                hp: 0,
-                vitality: 4119,
-                strength: 1371,
-                dexterity: 440,
-                intelligence: 1038,
-                mind: 2060,
-                piety: 564,
-                crit: 2988,
-                dhit: 690,
-                determination: 987,
-                tenacity: 420,
-                skillspeed: 456,
-                spellspeed: 852,
-                wdPhys: 79,
-                wdMag: 79,
-                weaponDelay: 3.12
-            }),
-            // Pineapple Orange Jelly
-            {}, level, getLevelStats(level), 'GNB', fakeSheetGNB.classJobStats, 0);
+            hp: 0,
+            vitality: 4119,
+            strength: 1371,
+            dexterity: 440,
+            intelligence: 1038,
+            mind: 2060,
+            piety: 564,
+            crit: 2988,
+            dhit: 690,
+            determination: 987,
+            tenacity: 420,
+            skillspeed: 456,
+            spellspeed: 852,
+            wdPhys: 79,
+            wdMag: 79,
+            weaponDelay: 3.12,
+        }),
+        // Pineapple Orange Jelly
+        {}, level, getLevelStats(level), 'GNB', fakeSheetGNB.classJobStats, 0);
         expect(stats.determination).to.eq(987);
         expect(stats.detMulti).to.eq(1.027);
         expect(stats.skillspeed).to.eq(456);
@@ -562,25 +562,25 @@ describe("Dmg/100p for known values", () => {
     it('GNB Test 3', async () => {
         await loadPromiseGNB;
         const stats = finalizeStats(new RawStats({
-                hp: 0,
-                vitality: 4119,
-                strength: 1371,
-                dexterity: 440,
-                intelligence: 1038,
-                mind: 2060,
-                piety: 564,
-                crit: 2988,
-                dhit: 690,
-                determination: 987,
-                tenacity: 420,
-                skillspeed: 492,
-                spellspeed: 852,
-                wdPhys: 79,
-                wdMag: 79,
-                weaponDelay: 3.12
-            }),
-            // Pineapple Orange Jelly
-            {}, level, getLevelStats(level), 'GNB', fakeSheetGNB.classJobStats, 0);
+            hp: 0,
+            vitality: 4119,
+            strength: 1371,
+            dexterity: 440,
+            intelligence: 1038,
+            mind: 2060,
+            piety: 564,
+            crit: 2988,
+            dhit: 690,
+            determination: 987,
+            tenacity: 420,
+            skillspeed: 492,
+            spellspeed: 852,
+            wdPhys: 79,
+            wdMag: 79,
+            weaponDelay: 3.12,
+        }),
+        // Pineapple Orange Jelly
+        {}, level, getLevelStats(level), 'GNB', fakeSheetGNB.classJobStats, 0);
         expect(stats.determination).to.eq(987);
         expect(stats.detMulti).to.eq(1.027);
         expect(stats.skillspeed).to.eq(492);
@@ -596,25 +596,25 @@ describe("Dmg/100p for known values", () => {
     it('GNB Test 4', async () => {
         await loadPromiseGNB;
         const stats = finalizeStats(new RawStats({
-                hp: 0,
-                vitality: 4119,
-                strength: 1371,
-                dexterity: 440,
-                intelligence: 1038,
-                mind: 2060,
-                piety: 564,
-                crit: 2988,
-                dhit: 690,
-                determination: 987,
-                tenacity: 420,
-                skillspeed: 564,
-                spellspeed: 852,
-                wdPhys: 79,
-                wdMag: 79,
-                weaponDelay: 3.12
-            }),
-            // Pineapple Orange Jelly
-            {}, level, getLevelStats(level), 'GNB', fakeSheetGNB.classJobStats, 0);
+            hp: 0,
+            vitality: 4119,
+            strength: 1371,
+            dexterity: 440,
+            intelligence: 1038,
+            mind: 2060,
+            piety: 564,
+            crit: 2988,
+            dhit: 690,
+            determination: 987,
+            tenacity: 420,
+            skillspeed: 564,
+            spellspeed: 852,
+            wdPhys: 79,
+            wdMag: 79,
+            weaponDelay: 3.12,
+        }),
+        // Pineapple Orange Jelly
+        {}, level, getLevelStats(level), 'GNB', fakeSheetGNB.classJobStats, 0);
         expect(stats.determination).to.eq(987);
         expect(stats.detMulti).to.eq(1.027);
         expect(stats.skillspeed).to.eq(564);
@@ -630,25 +630,25 @@ describe("Dmg/100p for known values", () => {
     it('GNB Test 5', async () => {
         await loadPromiseGNB;
         const stats = finalizeStats(new RawStats({
-                hp: 0,
-                vitality: 4119,
-                strength: 1606,
-                dexterity: 440,
-                intelligence: 1038,
-                mind: 2060,
-                piety: 564,
-                crit: 2988,
-                dhit: 690,
-                determination: 1113,
-                tenacity: 420,
-                skillspeed: 456,
-                spellspeed: 852,
-                wdPhys: 79,
-                wdMag: 79,
-                weaponDelay: 3.12
-            }),
-            // Pineapple Orange Jelly
-            {}, level, getLevelStats(level), 'GNB', fakeSheetGNB.classJobStats, 0);
+            hp: 0,
+            vitality: 4119,
+            strength: 1606,
+            dexterity: 440,
+            intelligence: 1038,
+            mind: 2060,
+            piety: 564,
+            crit: 2988,
+            dhit: 690,
+            determination: 1113,
+            tenacity: 420,
+            skillspeed: 456,
+            spellspeed: 852,
+            wdPhys: 79,
+            wdMag: 79,
+            weaponDelay: 3.12,
+        }),
+        // Pineapple Orange Jelly
+        {}, level, getLevelStats(level), 'GNB', fakeSheetGNB.classJobStats, 0);
         expect(stats.determination).to.eq(1113);
         expect(stats.detMulti).to.eq(1.033);
         expect(stats.skillspeed).to.eq(456);
@@ -664,25 +664,25 @@ describe("Dmg/100p for known values", () => {
     it('GNB Test 6', async () => {
         await loadPromiseGNB;
         const stats = finalizeStats(new RawStats({
-                hp: 0,
-                vitality: 4119,
-                strength: 1606,
-                dexterity: 440,
-                intelligence: 1038,
-                mind: 2060,
-                piety: 564,
-                crit: 2988,
-                dhit: 690,
-                determination: 1113,
-                tenacity: 420,
-                skillspeed: 600,
-                spellspeed: 852,
-                wdPhys: 79,
-                wdMag: 79,
-                weaponDelay: 3.12
-            }),
-            // Pineapple Orange Jelly
-            {}, level, getLevelStats(level), 'GNB', fakeSheetGNB.classJobStats, 0);
+            hp: 0,
+            vitality: 4119,
+            strength: 1606,
+            dexterity: 440,
+            intelligence: 1038,
+            mind: 2060,
+            piety: 564,
+            crit: 2988,
+            dhit: 690,
+            determination: 1113,
+            tenacity: 420,
+            skillspeed: 600,
+            spellspeed: 852,
+            wdPhys: 79,
+            wdMag: 79,
+            weaponDelay: 3.12,
+        }),
+        // Pineapple Orange Jelly
+        {}, level, getLevelStats(level), 'GNB', fakeSheetGNB.classJobStats, 0);
         expect(stats.determination).to.eq(1113);
         expect(stats.detMulti).to.eq(1.033);
         expect(stats.skillspeed).to.eq(600);
@@ -697,25 +697,25 @@ describe("Dmg/100p for known values", () => {
     it('GNB Test 7', async () => {
         await loadPromiseGNB;
         const stats = finalizeStats(new RawStats({
-                hp: 0,
-                vitality: 4119,
-                strength: 2620,
-                dexterity: 440,
-                intelligence: 1038,
-                mind: 2060,
-                piety: 564,
-                crit: 2988,
-                dhit: 690,
-                determination: 1667,
-                tenacity: 420,
-                skillspeed: 492,
-                spellspeed: 852,
-                wdPhys: 132,
-                wdMag: 132,
-                weaponDelay: 3.12
-            }),
-            // Pineapple Orange Jelly
-            {}, level, getLevelStats(level), 'GNB', fakeSheetGNB.classJobStats, 0);
+            hp: 0,
+            vitality: 4119,
+            strength: 2620,
+            dexterity: 440,
+            intelligence: 1038,
+            mind: 2060,
+            piety: 564,
+            crit: 2988,
+            dhit: 690,
+            determination: 1667,
+            tenacity: 420,
+            skillspeed: 492,
+            spellspeed: 852,
+            wdPhys: 132,
+            wdMag: 132,
+            weaponDelay: 3.12,
+        }),
+        // Pineapple Orange Jelly
+        {}, level, getLevelStats(level), 'GNB', fakeSheetGNB.classJobStats, 0);
         expect(stats.determination).to.eq(1667);
         expect(stats.detMulti).to.eq(1.061);
         expect(stats.skillspeed).to.eq(492);
@@ -737,24 +737,24 @@ describe("Final damage values for known values", () => {
         // Values taken from https://xivgear.app/?page=sl%7C730195d3-a9ee-4d29-a868-67cf5d613b0a
         // i.e. 7.1 BiS for Warrior.
         const stats = finalizeStats(new RawStats({
-                hp: 0,
-                vitality: 4119,
-                strength: 4839,
-                dexterity: 440,
-                intelligence: 1167,
-                mind: 4448,
-                piety: 564,
-                crit: 3253,
-                dhit: 1176,
-                determination: 2525,
-                tenacity: 868,
-                skillspeed: 420,
-                spellspeed: 1134,
-                wdPhys: 146,
-                wdMag: 146,
-                weaponDelay: 3.12
-            }),
-            {}, level, getLevelStats(level), 'WAR', fakeSheetWAR.classJobStats, 0);
+            hp: 0,
+            vitality: 4119,
+            strength: 4839,
+            dexterity: 440,
+            intelligence: 1167,
+            mind: 4448,
+            piety: 564,
+            crit: 3253,
+            dhit: 1176,
+            determination: 2525,
+            tenacity: 868,
+            skillspeed: 420,
+            spellspeed: 1134,
+            wdPhys: 146,
+            wdMag: 146,
+            weaponDelay: 3.12,
+        }),
+        {}, level, getLevelStats(level), 'WAR', fakeSheetWAR.classJobStats, 0);
         const fellCleavePotency = 580;
         const dmg100p = baseDamageFull(stats, fellCleavePotency, 'Weaponskill', true, false);
         expect(dmg100p.expected).to.eq(25898);

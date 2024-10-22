@@ -83,7 +83,7 @@ export class CustomTableHeaderRow<RowDataType> extends HTMLTableRowElement imple
     }
 
     refreshColumn(colDef: CustomColumn<RowDataType>) {
-        this._cells.find(cell => cell.colDef == colDef)?.refreshFull();
+        this._cells.find(cell => cell.colDef === colDef)?.refreshFull();
     }
 
     refreshSelection() {
@@ -150,7 +150,7 @@ export const noopSelectionModel: SelectionModel<any, undefined> = {
         return false;
     },
     clearSelection() {
-    }
+    },
 };
 
 export interface SelectionListener<SelectionType> {
@@ -263,7 +263,7 @@ export class CustomTable<RowDataType, SelectionType = never> extends HTMLTableEl
         this.appendChild(this.createTBody());
         this.addEventListener('mousedown', ev => {
             this.handleClick(ev);
-        })
+        });
     }
 
     get columns() {
@@ -278,7 +278,7 @@ export class CustomTable<RowDataType, SelectionType = never> extends HTMLTableEl
                 return [out];
             }
             else {
-                return []
+                return [];
             }
         });
         // TODO: see if successive refreshFull calls can be coalesced
@@ -297,7 +297,7 @@ export class CustomTable<RowDataType, SelectionType = never> extends HTMLTableEl
     }
 
     protected makeDataRow(item: RowDataType): CustomRow<RowDataType> {
-        return new CustomRow<RowDataType>(item, this, {noInitialRefresh: true})
+        return new CustomRow<RowDataType>(item, this, {noInitialRefresh: true});
     }
 
     /**
@@ -483,10 +483,10 @@ export class CustomColumn<RowDataType, CellDataType = string, ColumnDataType = a
     renderer?: CellRenderer<RowDataType, CellDataType> = (value) => document.createTextNode(value.toString());
     colStyler?: ColStyler<RowDataType, CellDataType> = (value, colElement, internalElement) => {
         if (value) {
-            colElement.classList.add("value-truthy")
+            colElement.classList.add("value-truthy");
         }
         else {
-            colElement.classList.add("value-falsey")
+            colElement.classList.add("value-falsey");
         }
     };
     condition?: () => boolean = () => true;

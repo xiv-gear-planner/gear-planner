@@ -48,7 +48,7 @@ export class NINGaugeGui {
                     return div;
                 }
                 return document.createTextNode("");
-            }
+            },
         }, {
             shortName: 'kazematoi',
             displayName: 'Kazematoi',
@@ -60,7 +60,7 @@ export class NINGaugeGui {
                     textContent = '🗡️'.repeat(gauge.kazematoi);
                 }
                 return document.createTextNode(textContent);
-            }
+            },
         }];
     }
 

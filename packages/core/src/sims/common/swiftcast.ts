@@ -11,12 +11,12 @@ export const SwiftcastBuff: Buff = {
             controller.removeStatus(SwiftcastBuff);
             return {
                 ...ability,
-                cast: 0
-            }
+                cast: 0,
+            };
         }
         return null;
     },
-    statusId: 167
+    statusId: 167,
 };
 
 export const Swiftcast: OgcdAbility = {
@@ -28,6 +28,6 @@ export const Swiftcast: OgcdAbility = {
     attackType: 'Ability',
     animationLock: 0.6,
     cooldown: {
-        time: 60
-    }
+        time: 60,
+    },
 };

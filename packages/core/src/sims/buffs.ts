@@ -11,7 +11,7 @@ export const Dokumori = {
         dmgIncrease: 0.05,
     },
     startTime: 5.46,
-    statusId: 3849
+    statusId: 3849,
 } as const satisfies PartyBuff;
 
 export const Litany = {
@@ -22,10 +22,10 @@ export const Litany = {
     cooldown: 120,
     selfOnly: false,
     effects: {
-        critChanceIncrease: 0.10
+        critChanceIncrease: 0.10,
     },
     startTime: 5.60,
-    statusId: 786
+    statusId: 786,
 } as const satisfies PartyBuff;
 
 export const Brotherhood = {
@@ -36,11 +36,11 @@ export const Brotherhood = {
     cooldown: 120,
     selfOnly: false,
     effects: {
-        dmgIncrease: 0.05
+        dmgIncrease: 0.05,
     },
     startTime: 7.5,
     // TODO: there are two of these, 1185 and 2174, one is probably pvp
-    statusId: 1185
+    statusId: 1185,
 } as const satisfies PartyBuff;
 
 export const ArcaneCircleBuff = {
@@ -51,10 +51,10 @@ export const ArcaneCircleBuff = {
     cooldown: 120,
     selfOnly: false,
     effects: {
-        dmgIncrease: 0.03
+        dmgIncrease: 0.03,
     },
     startTime: 4.59,
-    statusId: 2599
+    statusId: 2599,
 } as const satisfies PartyBuff;
 
 export const SearingLight = {
@@ -65,10 +65,10 @@ export const SearingLight = {
     cooldown: 120,
     selfOnly: false,
     effects: {
-        dmgIncrease: 0.05
+        dmgIncrease: 0.05,
     },
     startTime: 4.7,
-    statusId: 2703
+    statusId: 2703,
 } as const satisfies PartyBuff;
 
 export const Embolden = {
@@ -79,11 +79,11 @@ export const Embolden = {
     cooldown: 120,
     selfOnly: false,
     effects: {
-        dmgIncrease: 0.05
+        dmgIncrease: 0.05,
     },
     startTime: 6.5,
     // This is the party member version of this, not the self version
-    statusId: 1297
+    statusId: 1297,
 } as const satisfies PartyBuff;
 
 export const StarryMuse = {
@@ -94,11 +94,11 @@ export const StarryMuse = {
     cooldown: 120,
     selfOnly: false,
     effects: {
-        dmgIncrease: 0.05
+        dmgIncrease: 0.05,
     },
     // TODO: Double check if we want to go with this or with the triple-weave opener.
     startTime: 5.0,
-    statusId: 3685
+    statusId: 3685,
 } as const satisfies PartyBuff;
 
 export const Devilment = {
@@ -111,10 +111,10 @@ export const Devilment = {
     selfOnly: false,
     effects: {
         dhitChanceIncrease: 0.20,
-        critChanceIncrease: 0.20
+        critChanceIncrease: 0.20,
     },
     startTime: 7.2,
-    statusId: 1825
+    statusId: 1825,
 } as const satisfies PartyBuff;
 
 /* With how the cycle processer script currently handles buffs, this wouldn't properly work
@@ -147,7 +147,7 @@ export const TechnicalFinish = {
     appliesTo(ability: Ability): boolean {
         const buffList = ability.activatesBuffs;
         return buffList === undefined || !buffList.includes(TechnicalFinish);
-    }
+    },
 } as const satisfies PartyBuff;
 
 export const BattleVoice = {
@@ -161,7 +161,7 @@ export const BattleVoice = {
         dhitChanceIncrease: 0.20,
     },
     startTime: 6.4,
-    statusId: 141
+    statusId: 141,
 } as const satisfies PartyBuff;
 
 export const RadiantFinale = {
@@ -172,10 +172,10 @@ export const RadiantFinale = {
     cooldown: 120,
     selfOnly: false,
     effects: {
-        dmgIncrease: 0.06
+        dmgIncrease: 0.06,
     },
     startTime: 5.7,
-    statusId: 2964
+    statusId: 2964,
 } as const satisfies PartyBuff;
 
 export const Chain = {
@@ -186,10 +186,10 @@ export const Chain = {
     cooldown: 120,
     selfOnly: false,
     effects: {
-        critChanceIncrease: 0.10
+        critChanceIncrease: 0.10,
     },
     startTime: 7,
-    statusId: 1221
+    statusId: 1221,
 } as const satisfies PartyBuff;
 
 export const Divination = {
@@ -200,10 +200,10 @@ export const Divination = {
     cooldown: 120,
     selfOnly: false,
     effects: {
-        dmgIncrease: 0.06
+        dmgIncrease: 0.06,
     },
     startTime: 7,
-    statusId: 1878
+    statusId: 1878,
 } as const satisfies PartyBuff;
 
 export const AstCard = {
@@ -215,11 +215,11 @@ export const AstCard = {
     selfOnly: false,
     optional: true,
     effects: {
-        dmgIncrease: 0.06
+        dmgIncrease: 0.06,
     },
     startTime: 4,
     // three IDs for this
-    statusId: 829
+    statusId: 829,
 } as const satisfies PartyBuff;
 
 export const OffGuardBuff = {
@@ -234,7 +234,7 @@ export const OffGuardBuff = {
         dmgIncrease: 0.05,
     },
     startTime: 5,
-    statusId: 1717
+    statusId: 1717,
 } as const satisfies PartyBuff;
 
 /**
@@ -245,7 +245,7 @@ export const OffGuardBuff = {
 export const ALL_BUFFS = [
     Dokumori, Litany, Brotherhood, ArcaneCircleBuff, SearingLight, Embolden, StarryMuse,
     Devilment, TechnicalFinish, BattleVoice, RadiantFinale, Chain, Divination,
-    AstCard, OffGuardBuff
+    AstCard, OffGuardBuff,
 ] as const;
 
 export type BuffSaveKey = typeof ALL_BUFFS[number]['name'] | typeof ALL_BUFFS[number]['saveKey'];

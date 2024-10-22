@@ -11,7 +11,7 @@ describe('path splitting and joining', () => {
         const pathOriginal = 'foo/bar|asdf/zxcv';
         const newSplit = splitPath(pathOriginal);
         expect(newSplit).to.deep.equals(['foo/bar', 'asdf/zxcv']);
-    })
+    });
 });
 
 describe('parsePath', () => {
@@ -20,7 +20,7 @@ describe('parsePath', () => {
         it('resolves empty path to mysheets', () => {
             const result = parsePath([]);
             expect(result).to.deep.equals({
-                type: 'mysheets'
+                type: 'mysheets',
             });
         });
         it('resolves raw embed to null', () => {
@@ -36,7 +36,7 @@ describe('parsePath', () => {
                 type: 'saved',
                 viewOnly: false,
                 saveKey: 'foo',
-                embed: false
+                embed: false,
             });
         });
         it('does not try to embed saved sheet', () => {
@@ -45,7 +45,7 @@ describe('parsePath', () => {
                 type: 'saved',
                 viewOnly: false,
                 saveKey: 'foo',
-                embed: false
+                embed: false,
             });
         });
     });
@@ -54,19 +54,19 @@ describe('parsePath', () => {
         it('resolves newsheet path', () => {
             const result = parsePath(['newsheet']);
             expect(result).to.deep.equals({
-                type: 'newsheet'
+                type: 'newsheet',
             });
         });
         it('does not try to embed newsheet', () => {
             const result = parsePath(['embed', 'newsheet']);
             expect(result).to.deep.equals({
-                type: 'newsheet'
+                type: 'newsheet',
             });
         });
         it('resolves import form', () => {
             const result = parsePath(['importsheet']);
             expect(result).to.deep.equals({
-                type: 'importform'
+                type: 'importform',
             });
         });
     });
@@ -75,7 +75,7 @@ describe('parsePath', () => {
         it('does not try to embed import form', () => {
             const result = parsePath(['embed', 'importsheet']);
             expect(result).to.deep.equals({
-                type: 'importform'
+                type: 'importform',
             });
         });
         it('resolves import sheet', () => {
@@ -195,7 +195,7 @@ describe('parsePath', () => {
                 type: 'shortlink',
                 uuid: 'asdf',
                 embed: false,
-                viewOnly: true
+                viewOnly: true,
             });
         });
         it('can embed shortlink', () => {
@@ -204,7 +204,7 @@ describe('parsePath', () => {
                 type: 'shortlink',
                 uuid: 'asdf',
                 embed: true,
-                viewOnly: true
+                viewOnly: true,
             });
         });
         it('returns null if no link', () => {
@@ -223,7 +223,7 @@ describe('parsePath', () => {
                 expac: 'endwalker',
                 sheet: 'anabaseios',
                 embed: false,
-                viewOnly: true
+                viewOnly: true,
             });
         });
         it('does not try to embed bis', () => {
@@ -235,7 +235,7 @@ describe('parsePath', () => {
                 expac: 'endwalker',
                 sheet: 'anabaseios',
                 embed: false,
-                viewOnly: true
+                viewOnly: true,
             });
         });
         it('returns null if incomplete url', () => {
@@ -243,6 +243,6 @@ describe('parsePath', () => {
             expect(result).to.be.null;
         });
 
-    })
+    });
 
 });

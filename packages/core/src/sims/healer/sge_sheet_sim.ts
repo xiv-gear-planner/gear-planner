@@ -47,7 +47,7 @@ export const sgeSheetSpec: SimSpec<SgeSheetSim, SgeSheetSettings> = {
     },
     stub: "sge-sheet-sim",
     supportedJobs: ['SGE'],
-    description: 'Legacy SGE sim. Same math and logic as the old spreadsheets.'
+    description: 'Legacy SGE sim. Same math and logic as the old spreadsheets.',
 };
 
 export class SgeSheetSim implements Simulation<SgeSheetSimResult, SgeSheetSettings, SgeSheetSettings> {
@@ -66,7 +66,7 @@ export class SgeSheetSim implements Simulation<SgeSheetSimResult, SgeSheetSettin
         eDiagPerMin: 0,
         eProgPerMin: 0,
         // TODO: pick reasonable defaults
-        toxPerMin: 0
+        toxPerMin: 0,
     };
 
     spec = sgeSheetSpec;
@@ -102,7 +102,7 @@ export class SgeSheetSim implements Simulation<SgeSheetSimResult, SgeSheetSettin
         return {
             mainDpsResult: result,
             pps: ppsFinalResult,
-        }
+        };
     }
 
     PhlegmaB(cycle: number) {
@@ -121,7 +121,7 @@ export class SgeSheetSim implements Simulation<SgeSheetSimResult, SgeSheetSettin
             + this.settings.progPerMin + this.settings.eProgPerMin;
     }
 
-// Average potency of a 180s rotation
+    // Average potency of a 180s rotation
     getP(stats: ComputedSetStats, cycle: number) {
         let result = 0;
         result += this.PhlegmaB(cycle);
@@ -131,15 +131,15 @@ export class SgeSheetSim implements Simulation<SgeSheetSimResult, SgeSheetSettin
         // 1 dot + x dosis3pot
         if (2.5 * dosis3pot > edosis3tickPot / 3 * spsScalar * (2.5 + Math.floor(27.5 / shortGcd) * shortGcd) * (shortGcd - 27.5 % shortGcd)) {
             result += 6 * (Math.ceil((27.5) / (shortGcd))) * dosis3pot;
-            result += 6 * 10 * spsScalar * edosis3tickPot
+            result += 6 * 10 * spsScalar * edosis3tickPot;
         }
         else {
             result += 6 * (Math.floor((27.5) / (shortGcd))) * dosis3pot;
             result += 6 * 9 * spsScalar * edosis3tickPot;
-            result += 6 * ((3 - (30 % shortGcd)) / 3) * spsScalar * edosis3tickPot
+            result += 6 * ((3 - (30 % shortGcd)) / 3) * spsScalar * edosis3tickPot;
         }
         result -= filler * dosis3pot * cycle / 60;
-        return result
+        return result;
     }
 
     //
@@ -167,16 +167,16 @@ export class SgeSheetSim implements Simulation<SgeSheetSimResult, SgeSheetSettin
     //     return result
     // }
 
-// Actual time taken by a 180s rotation
+    // Actual time taken by a 180s rotation
     getCycle(stats: ComputedSetStats) {
         let result = 0;
         //1 dot + x dosis3pot
         const shortGcd = stats.gcdMag(2.5);
         if (2.5 * dosis3pot > edosis3tickPot / 3 * stats.spsDotMulti * (2.5 + Math.floor(27.5 / shortGcd) * shortGcd) * (shortGcd - 27.5 % shortGcd)) {
-            result += 6 * (Math.ceil((27.5) / (shortGcd)) * (shortGcd) + 2.5)
+            result += 6 * (Math.ceil((27.5) / (shortGcd)) * (shortGcd) + 2.5);
         }
         else {
-            result += 6 * (Math.floor((27.5) / (shortGcd)) * (shortGcd) + 2.5)
+            result += 6 * (Math.floor((27.5) / (shortGcd)) * (shortGcd) + 2.5);
         }
         return result;
     }

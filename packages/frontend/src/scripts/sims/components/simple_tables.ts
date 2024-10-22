@@ -28,7 +28,7 @@ export function simpleAutoResultTable(result: object): HTMLElement {
     for (const fieldKey in result) {
         data.push({
             name: camel2title(fieldKey),
-            value: result[fieldKey]
+            value: result[fieldKey],
         });
     }
     const table = new CustomTable<SimpleResultEntry>();
@@ -43,7 +43,7 @@ export function simpleAutoResultTable(result: object): HTMLElement {
             displayName: 'Value',
             getter: item => item.value,
             renderer: bestEffortFormat,
-        }
+        },
     ];
     table.data = data;
     return table;
@@ -56,7 +56,7 @@ export function simpleMappedResultTable<X extends SimResult>(fieldNames: { [K in
         for (const fieldKey in fieldNames) {
             data.push({
                 name: fieldNames[fieldKey],
-                value: result[fieldKey]
+                value: result[fieldKey],
             });
         }
         const table = new CustomTable<SimpleResultEntry>();
@@ -71,9 +71,9 @@ export function simpleMappedResultTable<X extends SimResult>(fieldNames: { [K in
                 displayName: 'Value',
                 getter: item => item.value,
                 renderer: bestEffortFormat,
-            }
+            },
         ];
         table.data = data;
         return table;
-    }
+    };
 }

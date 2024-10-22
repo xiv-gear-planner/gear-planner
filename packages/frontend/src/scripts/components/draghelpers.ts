@@ -27,6 +27,6 @@ export function installDragHelper(args: {dragHandle: HTMLElement, dragOuter: HTM
 
     }, {
 
-    })
+    });
 
 }

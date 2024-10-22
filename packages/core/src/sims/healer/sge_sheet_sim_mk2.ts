@@ -22,7 +22,7 @@ const filler: GcdAbility = {
     attackType: "Spell",
     gcd: 2.5,
     cast: 1.5,
-    id: 24312
+    id: 24312,
 };
 
 const eDosis: GcdAbility = {
@@ -32,7 +32,7 @@ const eDosis: GcdAbility = {
     dot: {
         id: 2864,
         duration: 30,
-        tickPotency: 75
+        tickPotency: 75,
     },
     attackType: "Spell",
     fixedGcd: true,
@@ -52,8 +52,8 @@ const phlegma: GcdAbility = {
     id: 24313,
     cooldown: {
         time: 40.0,
-        charges: 2
-    }
+        charges: 2,
+    },
 };
 
 const psyche: OgcdAbility = {
@@ -63,8 +63,8 @@ const psyche: OgcdAbility = {
     potency: 600,
     attackType: "Ability",
     cooldown: {
-        time: 60
-    }
+        time: 60,
+    },
 };
 
 export interface SgeSheetSimResult extends CycleSimResult {
@@ -94,7 +94,7 @@ export const sgeNewSheetSpec: SimSpec<SgeSheetSim, SgeNewSheetSettingsExternal> 
         contact: [{
             type: 'discord',
             discordTag: 'xp',
-            discordUid: '126517290098229249'
+            discordUid: '126517290098229249',
         }],
     }],
 
@@ -142,7 +142,6 @@ class SageCycleProcessor extends CycleProcessor {
     }
 
     doOffMinuteBurst() {
-        // eslint-disable-next-line no-constant-condition
         while (true) {
             const canUse = this.canUseCooldowns(phlegma, [psyche]);
             if (canUse === 'yes') {
@@ -176,7 +175,7 @@ export class SgeSheetSim extends BaseMultiCycleSim<SgeSheetSimResult, SgeNewShee
 
     makeDefaultSettings(): SgeNewSheetSettings {
         return {
-            usePotion: false
+            usePotion: false,
         };
     }
 
@@ -204,7 +203,7 @@ export class SgeSheetSim extends BaseMultiCycleSim<SgeSheetSimResult, SgeNewShee
                     cp.useDotIfWorth();
                     cycle.useUntil(filler, 'end');
                 });
-            }
+            },
         }, ...rangeInc(2, 20, 2).map(i => ({
             name: `DoT clip ${i}s`,
             cycleTime: 120,
@@ -249,7 +248,7 @@ export class SgeSheetSim extends BaseMultiCycleSim<SgeSheetSimResult, SgeNewShee
                     cycle.useUntil(filler, 'end');
                 });
             },
-        }))
+        })),
         ];
     }
 

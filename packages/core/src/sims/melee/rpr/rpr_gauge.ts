@@ -11,7 +11,7 @@ export class RprGauge {
             console.warn(`Overcapped Soul by ${newGauge - 100}.`);
         }
         if (newGauge < 0) {
-            console.warn(`Used ${this._soulGauge - newGauge} soul when you only have ${this._soulGauge}.`)
+            console.warn(`Used ${this._soulGauge - newGauge} soul when you only have ${this._soulGauge}.`);
         }
         this._soulGauge = Math.max(Math.min(newGauge, 100), 0);
     }
@@ -25,7 +25,7 @@ export class RprGauge {
             console.warn(`Overcapped shroud by ${newGauge - 100}.`);
         }
         if (newGauge < 0) {
-            console.warn(`Used ${this._shroudGauge - newGauge} shroud when you only have ${this._shroudGauge}.`)
+            console.warn(`Used ${this._shroudGauge - newGauge} shroud when you only have ${this._shroudGauge}.`);
         }
         this._shroudGauge = Math.max(Math.min(newGauge, 100), 0);
     }
@@ -35,6 +35,6 @@ export class RprGauge {
             level: 100,
             soul: this.soulGauge,
             shroud: this.shroudGauge,
-        }
+        };
     }
 }

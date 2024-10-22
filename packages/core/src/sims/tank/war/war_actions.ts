@@ -29,7 +29,7 @@ export const Maim: WarGcdAbility = {
     attackType: "Weaponskill",
     gcd: 2.5,
     cast: 0,
-    updateBeastGauge: (gauge: WarGauge) => gauge.beastGauge += 10
+    updateBeastGauge: (gauge: WarGauge) => gauge.beastGauge += 10,
 };
 
 export const StormsPath: WarGcdAbility = {
@@ -40,7 +40,7 @@ export const StormsPath: WarGcdAbility = {
     attackType: "Weaponskill",
     gcd: 2.5,
     cast: 0,
-    updateBeastGauge: (gauge: WarGauge) => gauge.beastGauge += 20
+    updateBeastGauge: (gauge: WarGauge) => gauge.beastGauge += 20,
 };
 
 export const StormsEye: WarGcdAbility = {
@@ -52,7 +52,7 @@ export const StormsEye: WarGcdAbility = {
     gcd: 2.5,
     cast: 0,
     activatesBuffs: [SurgingTempest],
-    updateBeastGauge: (gauge: WarGauge) => gauge.beastGauge += 10
+    updateBeastGauge: (gauge: WarGauge) => gauge.beastGauge += 10,
 };
 
 export const FellCleave: WarGcdAbility = {
@@ -121,7 +121,7 @@ export const Infuriate: WarOgcdAbility = {
         time: 60,
         charges: 2,
     },
-    updateBeastGauge: (gauge: WarGauge) => gauge.beastGauge += 50
+    updateBeastGauge: (gauge: WarGauge) => gauge.beastGauge += 50,
 };
 
 
@@ -130,7 +130,7 @@ export const PrimalWrath: WarOgcdAbility = {
     name: "Primal Wrath",
     id: 36924,
     potency: 700,
-    attackType: "Ability",    
+    attackType: "Ability",
     cooldown: {
         time: 1,
     },
@@ -141,7 +141,7 @@ export const Upheaval: WarOgcdAbility = {
     name: "Upheaval",
     id: 7387,
     potency: 400,
-    attackType: "Ability",    
+    attackType: "Ability",
     cooldown: {
         time: 30,
     },
@@ -153,7 +153,7 @@ export const Onslaught: WarOgcdAbility = {
     id: 7386,
     potency: 150,
     animationLock: 0.8,
-    attackType: "Ability",    
+    attackType: "Ability",
     cooldown: {
         time: 30,
         charges: 3,

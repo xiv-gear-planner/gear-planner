@@ -192,7 +192,7 @@ function foodTableStatViewColumn(sheet: GearPlanSheet, item: FoodItem, stat: Raw
     return {
         ...wrapped,
         condition: () => (item.primarySubStat === stat || item.secondarySubStat === stat),
-    }
+    };
 }
 
 function foodTableStatColumn(sheet: GearPlanSheet, stat: RawStatKey, highlightPrimarySecondary: boolean = false): CustomColumnSpec<FoodItem, unknown, unknown> {
@@ -206,9 +206,11 @@ function foodTableStatColumn(sheet: GearPlanSheet, stat: RawStatKey, highlightPr
         condition: () => sheet.isStatRelevant(stat),
         colStyler: (value, cell, node) => {
             cell.classList.add('food-stat-col');
-            highlightPrimarySecondary ? foodStatCellStyler(cell, stat) : undefined;
+            if (highlightPrimarySecondary) {
+                foodStatCellStyler(cell, stat);
+            }
         },
-    }
+    };
 
 }
 
@@ -251,7 +253,7 @@ export class FoodItemsTable extends CustomTable<FoodItem, FoodItem> {
                         this.refreshSelection();
                     });
                     return quickElement('div', ['food-name-holder-editable'], [quickElement('span', [], [name]), trashButton]);
-                }
+                },
                 // renderer: name => {
                 //     return quickElement('div', [], [document.createTextNode(name)]);
                 // }
@@ -290,7 +292,7 @@ export class FoodItemsTable extends CustomTable<FoodItem, FoodItem> {
             },
             clearSelection(): void {
 
-            }
+            },
         };
         const displayItems = [...sheet.foodItemsForDisplay];
         displayItems.sort((left, right) => left.ilvl - right.ilvl);
@@ -408,8 +410,7 @@ function itemTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, stat: 
                             return document.createTextNode(equipment.relicStats[stat].toString());
                         }
                     }
-                    // If not, display the editor
-                    else {
+                    else { // If not, display the editor
                         return makeRelicStatEditor(equipment, value.stat, set);
                     }
                 }
@@ -429,14 +430,14 @@ function itemTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, stat: 
                         statCellStylerRemover(cell);
                     }
                     else {
-                        statCellStyler(cell, value, stat)
+                        statCellStyler(cell, value, stat);
                     }
                 }
                 else {
                     cell.classList.add('stat-cell');
                 }
             },
-    }
+    };
 }
 
 function makeShowHideRow(label: string, initiallyHidden: boolean = false, setter: (newValue: boolean) => void, extraElements: HTMLElement[] = []): SpecialRow<GearSlotItem, EquipmentSet> {
@@ -462,7 +463,7 @@ function makeShowHideRow(label: string, initiallyHidden: boolean = false, setter
                 row.cells.item(0).classList.add('hoverable');
             }
         }
-    )
+    );
 }
 
 /**
@@ -484,7 +485,7 @@ export class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
                 getter: item => {
                     return item.item.ilvl.toString();
                 },
-                fixedWidth: 32
+                fixedWidth: 32,
             },
             {
                 shortName: "icon",
@@ -531,7 +532,7 @@ export class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
                         title += `\nSynced to ${rowValue.item.syncedDownTo}`;
                     }
                     colElement.title = title;
-                }
+                },
             },
             {
                 shortName: "mats",
@@ -552,7 +553,7 @@ export class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
                         span.textContent = value.materiaSlots.length.toString();
                     }
                     return span;
-                }
+                },
             },
             {
                 shortName: "wd",
@@ -608,7 +609,7 @@ export class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
             data.push(makeShowHideRow(slot.name, gearSet.isSlotCollapsed(slotId), (val) => {
                 gearSet.setSlotCollapsed(slotId, val);
                 recordSheetEvent('hideSlot', sheet, {
-                    hidden: val
+                    hidden: val,
                 });
                 this.updateShowHide();
             }, extras));
@@ -631,7 +632,7 @@ export class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
                     const item = {
                         slot: slot,
                         item: gearItem,
-                        slotId: slotId
+                        slotId: slotId,
                     };
                     data.push(item);
                     if (gearSet.getItemInSlot(slotId) === gearItem) {
@@ -691,7 +692,7 @@ export class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
             },
             clearSelection() {
                 // no-op
-            }
+            },
         };
         this.data = data;
         this.updateShowHide();
@@ -722,7 +723,7 @@ export class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
             else {
                 row.style.display = '';
             }
-        })
+        });
     }
 }
 
@@ -817,7 +818,7 @@ export class GearItemsViewTable extends CustomTable<GearSlotItem, EquipmentSet> 
                         colHeader.appendChild(altButton);
                     }
 
-                }
+                },
                 // initialWidth: 300,
             },
             // {
@@ -879,7 +880,7 @@ export class AltItemsModal extends BaseModal {
         table.columns = [
             {
                 shortName: "ilvl",
-                displayName: "Lv",
+                displayName: "iLv",
                 getter: item => {
                     return item.ilvl.toString();
                 },
@@ -910,7 +911,7 @@ export class AltItemsModal extends BaseModal {
                 getter: item => item.acquisitionType,
                 renderer: value => {
                     return document.createTextNode(value ? (formatAcquisitionSource(value) ?? 'Unknown') : 'Unknown');
-                }
+                },
             },
         ];
         table.data = [new HeaderRow(), baseItem, ...altItems];
@@ -944,14 +945,14 @@ export class ILvlRangePicker<ObjType> extends HTMLElement {
                 if (ctx.newValue >= (obj[maxField] as number)) {
                     ctx.failValidation('Minimum level must be less than the maximum level');
                 }
-            }]
+            }],
         });
         const upperBoundControl = new FieldBoundIntField(obj, maxField, {
             postValidators: [(ctx) => {
                 if (ctx.newValue < (obj[minField] as number)) {
                     ctx.failValidation('Maximum level must be greater than the minimum level');
                 }
-            }]
+            }],
         });
         lowerBoundControl.addListener(() => this.runListeners());
         upperBoundControl.addListener(() => this.runListeners());

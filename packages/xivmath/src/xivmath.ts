@@ -22,7 +22,7 @@ import {chanceMultiplierStdDev, fixedValue, multiplyValues, ValueWithDev} from "
 export function fl(input: number) {
     const floored = Math.floor(input);
     const loss = input - floored;
-    // e.g. if input is 2.999..., then floored == 2 and loss == 0.999...
+    // e.g. if input is 2.999..., then floored === 2 and loss === 0.999...
     // so we can just return floor + 1;
     if (loss >= 0.99999995) {
         return floored + 1;
@@ -343,15 +343,15 @@ export function baseDamageFull(stats: ComputedSetStats, potency: number, attackT
     else {
         // +-5% damage variance, uniform distribution.
         // Full formula is sqrt((max - min)^2 / 12)
-        // == sqrt((1.05d - 0.95d)^2 / 12)
-        // == sqrt((.1d)^2 / 12)
-        // == sqrt(d^2 * .01 / 12)
-        // == d * sqrt(.01 / 12)
+        // === sqrt((1.05d - 0.95d)^2 / 12)
+        // === sqrt((.1d)^2 / 12)
+        // === sqrt(d^2 * .01 / 12)
+        // === d * sqrt(.01 / 12)
         const stdDev = Math.sqrt(0.01 / 12) * finalDamage;
         return {
             expected: finalDamage,
-            stdDev: stdDev
-        }
+            stdDev: stdDev,
+        };
     }
 }
 
@@ -410,7 +410,7 @@ export function applyDhCrit(baseDamage: number, stats: ComputedSetStats) {
 export function dhCritPercentStdDev(stats: ComputedSetStats, forcedCrit: boolean, forcedDhit: boolean) {
     return multiplyValues(
         forcedCrit ? chanceMultiplierStdDev(1, stats.critMulti) : chanceMultiplierStdDev(stats.critChance, stats.critMulti),
-        forcedDhit ? chanceMultiplierStdDev(1, stats.dhitMulti) : chanceMultiplierStdDev(stats.dhitChance, stats.dhitMulti),
+        forcedDhit ? chanceMultiplierStdDev(1, stats.dhitMulti) : chanceMultiplierStdDev(stats.dhitChance, stats.dhitMulti)
     );
 }
 

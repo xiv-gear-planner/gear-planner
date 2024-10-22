@@ -50,11 +50,11 @@ export class WarSimGui extends BaseMultiCycleSimGui<WarSimResult, WarSettings> {
                     return div;
                 }
                 return document.createTextNode("");
-            }
+            },
         },
         {
             shortName: 'surgingTempest',
-            displayName: 'Surging Tempest', 
+            displayName: 'Surging Tempest',
             getter: used => isFinalizedAbilityUse(used) ? used.original : null,
             renderer: (usedAbility?: PreDmgUsedAbility) => {
                 if (usedAbility?.extraData !== undefined) {
@@ -82,7 +82,7 @@ export class WarSimGui extends BaseMultiCycleSimGui<WarSimResult, WarSettings> {
                     const barInner = document.createElement('div');
                     barInner.style.backgroundColor = '#ee9199';
                     barInner.style.height = '100%';
-                    barInner.style.width = `${Math.round((surgingTempestDuration/60) * 100)}%`;
+                    barInner.style.width = `${Math.round((surgingTempestDuration / 60) * 100)}%`;
                     barOuter.appendChild(barInner);
 
                     div.appendChild(barOuter);
@@ -91,11 +91,11 @@ export class WarSimGui extends BaseMultiCycleSimGui<WarSimResult, WarSettings> {
                     return div;
                 }
                 return document.createTextNode("");
-            }
+            },
         },
         ];
     }
-    
+
     override makeCustomConfigInterface(settings: WarSettings, _updateCallback: () => void): HTMLElement | null {
         const configDiv = document.createElement("div");
 

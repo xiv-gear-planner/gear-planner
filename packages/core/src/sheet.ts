@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                // TODO: get back to fixing this at some point
 import {
     CURRENT_MAX_LEVEL,
-    CURRENT_MAX_LEVEL_BLU,
     defaultItemDisplaySettings,
     DefaultMateriaFillPrio,
     getClassJobStats,
@@ -104,10 +103,10 @@ export class SheetProvider<SheetType extends GearPlanSheet> {
             saveKey: sheetKey,
             sets: [{
                 name: "Default Set",
-                items: {}
+                items: {},
             }],
             sims: [],
-            ilvlSync: ilvlSync
+            ilvlSync: ilvlSync,
             // ctor will auto-fill the rest
         };
         const gearPlanSheet = this.construct(sheetKey, fakeExport);
@@ -217,7 +216,7 @@ export class GearPlanSheet {
         this.materiaAutoFillPrio = {
             statPrio: importedData.mfp ?? [...DefaultMateriaFillPrio.filter(stat => this.isStatRelevant(stat))],
             // Just picking a bogus value so the user understands what it is
-            minGcd: importedData.mfMinGcd ?? 2.05
+            minGcd: importedData.mfMinGcd ?? 2.05,
         };
         this.materiaFillMode = importedData.mfm ?? 'retain_item';
 
@@ -281,9 +280,9 @@ export class GearPlanSheet {
             },
             refreshOnly(): void {
                 console.log('nothing to refresh');
-            }
+            },
 
-        }
+        };
     }
 
     setViewOnly() {
@@ -407,7 +406,7 @@ export class GearPlanSheet {
             ({
                 stub: sim.spec.stub,
                 settings: sim.exportSettings(),
-                name: sim.displayName
+                name: sim.displayName,
             }));
     }
 
@@ -423,7 +422,7 @@ export class GearPlanSheet {
             if (fullStats) {
                 const augGs: SetStatsExport = {
                     ...rawExport,
-                    computedStats: toSerializableForm(set.computedStats)
+                    computedStats: toSerializableForm(set.computedStats),
                 };
                 return augGs;
             }
@@ -533,7 +532,7 @@ export class GearPlanSheet {
                     // On the other hand, *most* real exports would have slots filled (BiS etc)
                     id: inSlot.gearItem.id,
                     materia: inSlot.melds.map(meld => {
-                        return {id: meld.equippedMateria?.id ?? -1}
+                        return {id: meld.equippedMateria?.id ?? -1};
                     }),
                 };
                 if (inSlot.relicStats && Object.entries(inSlot.relicStats)) {
@@ -547,7 +546,7 @@ export class GearPlanSheet {
             items: items,
             food: set.food ? set.food.id : undefined,
             description: set.description,
-            isSeparator: set.isSeparator
+            isSeparator: set.isSeparator,
         };
         if (external) {
             out.job = this.classJobName;
@@ -719,7 +718,7 @@ export class GearPlanSheet {
             result: undefined,
             resultPromise: undefined,
             status: 'Running',
-            error: undefined
+            error: undefined,
         };
         out.resultPromise = new Promise((resolve, reject) => {
             simPromise.then(result => {
@@ -753,7 +752,7 @@ export class GearPlanSheet {
     statsForJob(job: JobName): JobData {
         return {
             ...getClassJobStats(job),
-            jobStatMultipliers: this.dataManager.multipliersForJob(job)
+            jobStatMultipliers: this.dataManager.multipliersForJob(job),
         };
     }
 
@@ -873,7 +872,7 @@ export class GearPlanSheet {
 
     getBestMateria(stat: MateriaSubstat, meldSlot: MeldableMateriaSlot): Materia | undefined {
         const materiaFilter = (materia: Materia) => {
-            return isMateriaAllowed(materia, meldSlot.materiaSlot) && materia.primaryStat == stat;
+            return isMateriaAllowed(materia, meldSlot.materiaSlot) && materia.primaryStat === stat;
         };
         const sortedOptions = this.relevantMateria.filter(materiaFilter).sort((first, second) => second.primaryStatValue - first.primaryStatValue);
         return sortedOptions.length >= 1 ? sortedOptions[0] : undefined;
@@ -920,8 +919,8 @@ export class GearPlanSheet {
                 && otherItem.occGearSlotName === thisItem.occGearSlotName
                 // Must be better or same stats
                 && isSameOrBetterItem(otherItem, thisItem)
-                // if BLU, only allow items up to current max BLU level
-                && (this.classJobName !== 'BLU' || otherItem.equipLvl <= CURRENT_MAX_LEVEL_BLU);
+                // Only allow items up to current max level for this job
+                && otherItem.equipLvl <= this.classJobStats.maxLevel;
         });
     }
 }

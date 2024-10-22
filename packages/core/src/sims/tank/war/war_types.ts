@@ -1,5 +1,5 @@
-import { Ability, GcdAbility, OgcdAbility, Buff, BuffController } from "@xivgear/core/sims/sim_types"
-import { WarGauge } from "./war_gauge"
+import { Ability, GcdAbility, OgcdAbility, Buff, BuffController } from "@xivgear/core/sims/sim_types";
+import { WarGauge } from "./war_gauge";
 import { removeSelf } from "@xivgear/core/sims/common/utils";
 import { PersonalBuff } from "@xivgear/core/sims/sim_types";
 
@@ -7,7 +7,7 @@ import { PersonalBuff } from "@xivgear/core/sims/sim_types";
 export type WarAbility = Ability & Readonly<{
     /** Run if an ability needs to update the Blood gauge */
     updateBeastGauge?(gauge: WarGauge): void;
-    
+
     /** The Beast Gauge cost of the ability */
     beastGaugeCost?: number;
 }>
@@ -41,7 +41,7 @@ export const NascentChaosBuff: Buff = {
     effects: {
         forceCrit: true,
         forceDhit: true,
-       // Also allows usage of Inner Chaos
+        // Also allows usage of Inner Chaos
     },
     appliesTo: ability => ability.name === "Inner Chaos",
     beforeSnapshot: removeSelf,
@@ -67,12 +67,12 @@ export const InnerReleaseBuff: Buff = {
     effects: {
         forceCrit: true,
         forceDhit: true,
-       // Also allows usage of Fell Cleave for free
+        // Also allows usage of Fell Cleave for free
     },
     stacks: 3,
     appliesTo: ability => ability.name === "Fell Cleave",
     beforeSnapshot<X extends WarAbility>(buffController: BuffController, ability: X): X {
-        buffController.subtractStacksSelf(1)
+        buffController.subtractStacksSelf(1);
         return ability;
     },
     statusId: 1177,
@@ -89,7 +89,7 @@ export const PrimalRendReadyBuff: Buff = {
     },
     appliesTo: ability => ability.name === "Primal Rend",
     beforeSnapshot<X extends WarAbility>(buffController: BuffController, ability: X): X {
-        buffController.removeSelf()
+        buffController.removeSelf();
         return ability;
     },
     statusId: 2624,
@@ -106,7 +106,7 @@ export const PrimalRuinationReadyBuff: Buff = {
     },
     appliesTo: ability => ability.name === "Primal Ruination",
     beforeSnapshot<X extends WarAbility>(buffController: BuffController, ability: X): X {
-        buffController.removeSelf()
+        buffController.removeSelf();
         return ability;
     },
     statusId: 3834,
@@ -117,11 +117,11 @@ export const WrathfulBuff: Buff = {
     duration: 30,
     selfOnly: true,
     effects: {
-       // Also allows usage of Primal Wrath
+        // Also allows usage of Primal Wrath
     },
     appliesTo: ability => ability.name === "Primal Wrath",
     beforeSnapshot<X extends WarAbility>(buffController: BuffController, ability: X): X {
-        buffController.removeSelf()
+        buffController.removeSelf();
         return ability;
     },
     statusId: 3901,

@@ -57,7 +57,7 @@ class AstGaugeGui {
                         Lady: {
                             clipPath: `polygon(15% 0%, 85% 0%, 85% 100%, 15% 100%)`,
                             background: '#ffe4d6',
-                        }
+                        },
                     };
 
                     Object.keys(cardStyles).forEach(key => {
@@ -78,7 +78,7 @@ class AstGaugeGui {
                     return div;
                 }
                 return document.createTextNode("");
-            }
+            },
         },
         ];
     }

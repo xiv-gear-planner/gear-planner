@@ -1,6 +1,6 @@
 import {AtonementReadyBuff, SupplicationReadyBuff, SepulchreReadyBuff,
-        DivineMightBuff, BladeOfHonorReadyBuff, RequiescatBuff, FightOrFlightBuff,
-        GoringBladeReadyBuff} from './pld_buffs_sks';
+    DivineMightBuff, BladeOfHonorReadyBuff, RequiescatBuff, FightOrFlightBuff,
+    GoringBladeReadyBuff} from './pld_buffs_sks';
 import {GcdAbility, OgcdAbility} from "@xivgear/core/sims/sim_types";
 
 /**
@@ -14,7 +14,7 @@ export const FastBlade: GcdAbility = {
     attackType: "Weaponskill",
     potency: 220,
     gcd: 2.5,
-    cast: 0
+    cast: 0,
 };
 export const RiotBlade: GcdAbility = {
     type: 'gcd',
@@ -23,7 +23,7 @@ export const RiotBlade: GcdAbility = {
     attackType: "Weaponskill",
     potency: 330,
     gcd: 2.5,
-    cast: 0
+    cast: 0,
 };
 export const RoyalAuthority: GcdAbility = {
     type: 'gcd',
@@ -33,7 +33,7 @@ export const RoyalAuthority: GcdAbility = {
     potency: 460,
     gcd: 2.5,
     cast: 0,
-    activatesBuffs: [AtonementReadyBuff, DivineMightBuff]
+    activatesBuffs: [AtonementReadyBuff, DivineMightBuff],
 };
 
 export const Atonement: GcdAbility = {
@@ -44,8 +44,8 @@ export const Atonement: GcdAbility = {
     potency: 460,
     gcd: 2.5,
     cast: 0,
-    activatesBuffs: [SupplicationReadyBuff]
-}
+    activatesBuffs: [SupplicationReadyBuff],
+};
 export const Supplication: GcdAbility = {
     type: 'gcd',
     name: "Supplication",
@@ -55,8 +55,8 @@ export const Supplication: GcdAbility = {
     potency: 500,
     gcd: 2.5,
     cast: 0,
-    activatesBuffs: [SepulchreReadyBuff]
-}
+    activatesBuffs: [SepulchreReadyBuff],
+};
 export const Sepulchre: GcdAbility = {
     type: 'gcd',
     name: "Sepulchre",
@@ -65,8 +65,8 @@ export const Sepulchre: GcdAbility = {
     attackType: "Weaponskill",
     potency: 540,
     gcd: 2.5,
-    cast: 0
-}
+    cast: 0,
+};
 
 export const HolySpirit: GcdAbility = {
     type: 'gcd',
@@ -75,8 +75,8 @@ export const HolySpirit: GcdAbility = {
     attackType: "Spell",
     potency: 500,
     gcd: 2.5,
-    cast: 0
-}
+    cast: 0,
+};
 export const HolySpiritHardcast: GcdAbility = {
     type: 'gcd',
     name: "Holy Spirit (hard cast)",
@@ -84,8 +84,8 @@ export const HolySpiritHardcast: GcdAbility = {
     attackType: "Spell",
     potency: 400,
     gcd: 2.5,
-    cast: 1.5
-}
+    cast: 1.5,
+};
 
 export const GoringBlade: GcdAbility = {
     type: 'gcd',
@@ -94,8 +94,8 @@ export const GoringBlade: GcdAbility = {
     attackType: "Weaponskill",
     potency: 700,
     gcd: 2.5,
-    cast: 0
-}
+    cast: 0,
+};
 
 export const Confiteor: GcdAbility = {
     type: 'gcd',
@@ -104,8 +104,8 @@ export const Confiteor: GcdAbility = {
     attackType: "Spell",
     potency: 1000,
     gcd: 2.5,
-    cast: 0
-}
+    cast: 0,
+};
 export const BladeOfFaith: GcdAbility = {
     type: 'gcd',
     name: "Blade of Faith",
@@ -113,8 +113,8 @@ export const BladeOfFaith: GcdAbility = {
     attackType: "Spell",
     potency: 760,
     gcd: 2.5,
-    cast: 0
-}
+    cast: 0,
+};
 export const BladeOfTruth: GcdAbility = {
     type: 'gcd',
     name: "Blade of Truth",
@@ -122,8 +122,8 @@ export const BladeOfTruth: GcdAbility = {
     attackType: "Spell",
     potency: 880,
     gcd: 2.5,
-    cast: 0
-}
+    cast: 0,
+};
 export const BladeOfValor: GcdAbility = {
     type: 'gcd',
     name: "Blade of Valor",
@@ -132,8 +132,8 @@ export const BladeOfValor: GcdAbility = {
     potency: 1000,
     gcd: 2.5,
     cast: 0,
-    activatesBuffs: [BladeOfHonorReadyBuff]
-}
+    activatesBuffs: [BladeOfHonorReadyBuff],
+};
 
 
 
@@ -150,10 +150,10 @@ export const FightOrFlight: OgcdAbility = {
     attackType: "Ability",
     potency: null,
     cooldown: {
-        time: 60
+        time: 60,
     },
-    activatesBuffs: [FightOrFlightBuff, GoringBladeReadyBuff]
-}
+    activatesBuffs: [FightOrFlightBuff, GoringBladeReadyBuff],
+};
 export const Imperator: OgcdAbility = {
     type: 'ogcd',
     name: "Imperator",
@@ -161,10 +161,10 @@ export const Imperator: OgcdAbility = {
     attackType: "Ability",
     potency: 580,
     cooldown: {
-        time: 60
+        time: 60,
     },
-    activatesBuffs: [RequiescatBuff]
-}
+    activatesBuffs: [RequiescatBuff],
+};
 export const BladeOfHonor: OgcdAbility = {
     type: 'ogcd',
     name: "Blade of Honor",
@@ -173,9 +173,9 @@ export const BladeOfHonor: OgcdAbility = {
     attackType: "Ability",
     potency: 1000,
     cooldown: {
-        time: 1
-    }
-}
+        time: 1,
+    },
+};
 
 export const Intervene: OgcdAbility = {
     type: 'ogcd',
@@ -185,9 +185,9 @@ export const Intervene: OgcdAbility = {
     potency: 150,
     cooldown: {
         time: 30,
-        charges: 2
-    }
-}
+        charges: 2,
+    },
+};
 export const Expiacion: OgcdAbility = {
     type: 'ogcd',
     name: "Expiacion",
@@ -195,9 +195,9 @@ export const Expiacion: OgcdAbility = {
     attackType: "Ability",
     potency: 450,
     cooldown: {
-        time: 30
-    }
-}
+        time: 30,
+    },
+};
 export const CircleOfScorn: OgcdAbility = {
     type: 'ogcd',
     name: "Circle of Scorn",
@@ -207,9 +207,9 @@ export const CircleOfScorn: OgcdAbility = {
     dot: {
         id: 248,
         tickPotency: 30,
-        duration: 15
+        duration: 15,
     },
     cooldown: {
-        time: 30
-    }
-}
+        time: 30,
+    },
+};

@@ -38,10 +38,10 @@ const itemColumns = [
     'Rarity',
     // TODO need replacement
     // 'GameContentLinks'
-    'Delayms'
+    'Delayms',
 ] as const;
 const itemColsExtra = [
-    'LevelItem'
+    'LevelItem',
 ] as const;
 export type XivApiItemDataRaw = XivApiResultSingle<typeof itemColumns, typeof itemColsExtra>;
 // 'Item' is only there because I need to figure out how to keep the type checking happy
@@ -66,7 +66,7 @@ export function queryBaseParams() {
         requestType: "list",
         sheet: 'BaseParam',
         columns: ['Name', 'OneHandWeaponPercent', 'TwoHandWeaponPercent', 'BraceletPercent', 'ChestPercent', 'EarringPercent', 'FeetPercent', 'HandsPercent', 'HeadPercent', 'LegsPercent', 'NecklacePercent', 'OffHandPercent', 'RingPercent'] as const,
-        columnsTrn: []
+        columnsTrn: [],
     }).then(data => {
         console.log(`Got ${data.Results.length} BaseParams`);
         return data;
@@ -190,7 +190,7 @@ export class XivApiDataManager implements DataManager {
                     Ring: requireNumber(value.RingPercent),
                     Weapon2H: requireNumber(value.TwoHandWeaponPercent),
                     Weapon1H: requireNumber(value.OneHandWeaponPercent),
-                    Wrist: requireNumber(value.BraceletPercent)
+                    Wrist: requireNumber(value.BraceletPercent),
                 };
                 return baseParams;
             }, {});
@@ -262,7 +262,7 @@ export class XivApiDataManager implements DataManager {
             columns: matCols,
             columnsTrn: matColsTrn,
             pageLimit: 1,
-            perPage: 50
+            perPage: 50,
         })
             .then((data) => {
                 if (data) {
@@ -288,7 +288,7 @@ export class XivApiDataManager implements DataManager {
             sheet: 'Item',
             // filters: ['ItemKind=5', 'ItemSearchCategory=45', `LevelItem>=${this._minIlvlFood}`, `LevelItem<=${this._maxIlvlFood}`],
             filters: ['ItemSearchCategory=45', `LevelItem>=${this._minIlvlFood}`, `LevelItem<=${this._maxIlvlFood}`],
-            columns: foodBaseItemCols
+            columns: foodBaseItemCols,
         })
             .then((data) => {
                 console.log(`Got ${data.Results.length} Food Items`);
@@ -316,7 +316,7 @@ export class XivApiDataManager implements DataManager {
         const jobsPromise = xivApiGet({
             requestType: "list",
             sheet: "ClassJob",
-            columns: ['Abbreviation', 'ModifierDexterity', 'ModifierIntelligence', 'ModifierMind', 'ModifierStrength', 'ModifierVitality', 'ModifierHitPoints'] as const
+            columns: ['Abbreviation', 'ModifierDexterity', 'ModifierIntelligence', 'ModifierMind', 'ModifierStrength', 'ModifierVitality', 'ModifierHitPoints'] as const,
         })
             .then(data => {
                 console.log(`Got ${data.Results.length} Jobs`);
@@ -346,7 +346,7 @@ export class XivApiDataManager implements DataManager {
         }
         const multi = this._jobMultipliers.get(job);
         if (!multi) {
-            throw Error(`No data for job ${job}`)
+            throw Error(`No data for job ${job}`);
         }
         return multi;
     }
@@ -437,7 +437,7 @@ export class XivApiGearInfo implements GearItem {
         else if (eqs['MainHand']) {
             this.displayGearSlotName = 'Weapon';
             if (eqs['OffHand']) {
-                this.occGearSlotName = 'Weapon2H'
+                this.occGearSlotName = 'Weapon2H';
             }
             else {
                 this.occGearSlotName = 'Weapon1H';
@@ -560,7 +560,7 @@ export class XivApiGearInfo implements GearItem {
                 this.materiaSlots.push({
                     maxGrade: MATERIA_LEVEL_MAX_NORMAL,
                     allowsHighGrade: true,
-                    ilvl: this.ilvl
+                    ilvl: this.ilvl,
                 });
             }
             if (overmeld) {
@@ -569,13 +569,13 @@ export class XivApiGearInfo implements GearItem {
                 this.materiaSlots.push({
                     maxGrade: MATERIA_LEVEL_MAX_NORMAL,
                     allowsHighGrade: true,
-                    ilvl: this.ilvl
+                    ilvl: this.ilvl,
                 });
                 for (let i = this.materiaSlots.length; i < MATERIA_SLOTS_MAX; i++) {
                     this.materiaSlots.push({
                         maxGrade: MATERIA_LEVEL_MAX_OVERMELD,
                         allowsHighGrade: false,
-                        ilvl: this.ilvl
+                        ilvl: this.ilvl,
                     });
                 }
             }
@@ -732,7 +732,7 @@ export class XivApiGearInfo implements GearItem {
         this.statCaps = statCapsNative;
         if (syncIlvlInfo && syncIlvlInfo.ilvl < this.ilvl) {
             this.unsyncedVersion = {
-                ...this
+                ...this,
             };
             this.materiaSlots = [];
             const statCapsSync = {};
@@ -777,7 +777,7 @@ export class XivApiFoodInfo implements FoodItem {
             this.bonuses[BaseParamToStatKey[baseParamName]] = {
                 percentage: requireNumber(foodData.ValueHQ[index]),
                 max: requireNumber(foodData.MaxHQ[index]),
-            }
+            };
         }
         const sortedStats = Object.entries(this.bonuses).sort((entryA, entryB) => entryB[1].max - entryA[1].max).map(entry => entry[0] as RawStatKey).filter(stat => stat !== 'vitality');
         if (sortedStats.length >= 1) {
@@ -813,7 +813,7 @@ export function processRawMateriaInfo(data: XivApiMateriaDataRaw): Materia[] {
             primaryStatValue: stats[stat],
             materiaGrade: grade,
             isHighGrade: (grade % 2) === 0,
-            ilvl: itemFields['LevelItem'] ?? 0
+            ilvl: itemFields['LevelItem'] ?? 0,
         });
     }
     return out;

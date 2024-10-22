@@ -26,7 +26,7 @@ export const BluFlame60Spec: SimSpec<BluFlame60Sim, BluFlame60SettingsExternal> 
 
     loadSavedSimInstance(exported: BluFlame60SettingsExternal) {
         return new BluFlame60Sim(exported);
-    }
+    },
 };
 
 export class BluFlame60Sim extends blu.BluSim<BluFlame60SimResult, BluFlame60Settings> {
@@ -75,8 +75,7 @@ export class BluFlame60Sim extends blu.BluSim<BluFlame60SimResult, BluFlame60Set
 
         if (!featherRainSoon && cp.bleedEnd < nextBleedStart &&
             Math.min(bloomCd.readyAt.absolute - bleedComboTime,
-            cp.remainingTime - bleedComboTime) > 15)
-        {
+                cp.remainingTime - bleedComboTime) > 15) {
             cp.use(blu.Bristle);
             this.useOgcdFiller(cp);
             this.useOgcdFiller(cp);
@@ -95,8 +94,7 @@ export class BluFlame60Sim extends blu.BluSim<BluFlame60SimResult, BluFlame60Set
         // use Rose of Destruction if off cooldown and it won't interfere with the next Flute window
         if (cp.isReady(blu.RoseOfDestruction) &&
             cp.cdTracker.statusOfAt(blu.ShockStrike, cp.nextGcdTime).readyAt.relative >
-            cp.stats.gcdMag(blu.RoseOfDestruction.cooldown.time)) 
-        {
+            cp.stats.gcdMag(blu.RoseOfDestruction.cooldown.time)) {
             cp.use(blu.RoseOfDestruction);
             return;
         }
@@ -121,7 +119,7 @@ export class BluFlame60Sim extends blu.BluSim<BluFlame60SimResult, BluFlame60Set
                 cp.use(blu.RoseOfDestruction);
                 cp.use(blu.MoonFlute);
 
-                // cycle based off of Nightbloom (fixed cooldown: 120s)                
+                // cycle based off of Nightbloom (fixed cooldown: 120s)
                 cp.remainingCycles(cycle => {
                     // TODO: this is a hack to avoid floating point errors at fast gcds
                     if (cp.gcdRecast < 2.19) {
@@ -144,8 +142,7 @@ export class BluFlame60Sim extends blu.BluSim<BluFlame60SimResult, BluFlame60Set
                         cycle.use(blu.FeatherRain);
                         cycle.use(blu.MortalFlame);
                     }
-                    // even Flute window after opener
-                    else {
+                    else { // even Flute window after opener
                         cycle.use(blu.SonicBoom);
                         cycle.use(blu.Quasar);
                         sim.useOgcdFiller(cp);
@@ -206,12 +203,13 @@ export class BluFlame60Sim extends blu.BluSim<BluFlame60SimResult, BluFlame60Set
                         cycle.use(blu.Whistle);
                         cycle.use(blu.Tingle);
                         cycle.use(blu.MoonFlute);
-                    } else {
+                    }
+                    else {
                         // otherwise, finish off the fight with a Final Sting combo
                         sim.useStingCombo(cp);
                     }
                 });
-            }
+            },
         }];
     }
 }

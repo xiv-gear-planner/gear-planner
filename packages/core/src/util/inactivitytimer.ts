@@ -20,7 +20,7 @@ export class Inactivitytimer {
         const expectedCount = this.counter;
         setTimeout(() => {
             this.pingAfter(expectedCount);
-        }, this._inactivityTimeMs)
+        }, this._inactivityTimeMs);
     }
 
     private pingAfter(exectedCount: number) {

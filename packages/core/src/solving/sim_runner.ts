@@ -11,7 +11,7 @@ export class SolverSimulationSettings {
         return {
             sets: settingsExp.sets.map(sheet.importGearSet),
             sim: sheet.importSim(settingsExp.sim),
-        }
+        };
     }
 
     static export(settings: SolverSimulationSettings, sheet: GearPlanSheet): SolverSimulationSettingsExport {
@@ -21,8 +21,8 @@ export class SolverSimulationSettings {
                 stub: settings.sim.spec.stub,
                 settings: settings.sim.exportSettings() as SimSettings,
                 name: settings.sim.displayName,
-            }
-        }
+            },
+        };
     }
 }
 
@@ -33,7 +33,7 @@ export class SolverSimulationSettingsExport {
 
 export class SimRunner<SimType extends Simulation<SimResult, unknown, unknown>> {
 
-    _sim: SimType
+    _sim: SimType;
 
     constructor(sim: SimType) {
         this._sim = sim;
@@ -45,7 +45,7 @@ export class SimRunner<SimType extends Simulation<SimResult, unknown, unknown>> 
     async simulateSetsAndReturnBest(gearsets: CharacterGearSet[], update: (n: number) => void): Promise<[number, CharacterGearSet]> {
 
         if (!gearsets
-            || gearsets.length == 0
+            || gearsets.length === 0
             || !this._sim) {
 
             return null;
