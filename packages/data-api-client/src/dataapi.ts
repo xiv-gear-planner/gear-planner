@@ -457,8 +457,12 @@ export class HttpClient<SecurityDataType = unknown> {
       body: typeof body === "undefined" || body === null ? null : payloadFormatter(body),
     }).then(async (response) => {
       const r = response.clone() as HttpResponse<T, E>;
-      r.data = null as unknown as T;
-      r.error = null as unknown as E;
+      try {
+          r.data = null as unknown as T;
+          r.error = null as unknown as E;
+      }catch (e) {
+         const foo = 5+5;
+      }
 
       const data = !responseFormat
         ? r

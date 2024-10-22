@@ -43,7 +43,6 @@ type FoodType = Awaited<ReturnType<ApiClientRawType<'food', 'foodItems'>>>['data
 
 async function retryFetch(...params: Parameters<typeof fetch>): Promise<Response> {
     let tries = 5;
-    // eslint-disable-next-line no-constant-condition
     while (true) {
         tries--;
         const result = await fetch(...params);
@@ -304,7 +303,7 @@ export class NewApiDataManager implements DataManager {
                 }
                 const ilvlSyncPromise: Promise<IlvlSyncInfo> = isyncLvl === null ? Promise.resolve(undefined) : this.getIlvlSyncData(baseParamPromise, isyncLvl);
                 extraPromises.push(Promise.all([itemIlvlPromise, ilvlSyncPromise]).then(([native, sync]) => {
-                    item.applyIlvlData(native, sync);
+                    item.applyIlvlData(native, sync, this._level);
                     if (item.isCustomRelic) {
                         console.debug('Applying relic model');
                         item.relicStatModel = getRelicStatModelFor(item, this._baseParams, this._classJob);
@@ -674,13 +673,13 @@ export class DataApiGearInfo implements GearItem {
         }
     }
 
-    applyIlvlData(nativeIlvlInfo: IlvlSyncInfo, syncIlvlInfo?: IlvlSyncInfo) {
+    applyIlvlData(nativeIlvlInfo: IlvlSyncInfo, syncIlvlInfo?: IlvlSyncInfo, level?: number) {
         const statCapsNative = {};
         Object.entries(this.stats).forEach(([stat, _]) => {
             statCapsNative[stat] = nativeIlvlInfo.substatCap(this.occGearSlotName, stat as RawStatKey);
         });
         this.statCaps = statCapsNative;
-        if (syncIlvlInfo && syncIlvlInfo.ilvl < this.ilvl) {
+        if (syncIlvlInfo && (syncIlvlInfo.ilvl < this.ilvl || level < this.equipLvl)) {
             this.unsyncedVersion = {
                 ...this
             };

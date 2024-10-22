@@ -86,7 +86,7 @@ export function parseImport(text: string): ImportSpec {
             rawData: text
         }
     }
-    catch (e) {
+    catch (_) {
         // Fall through to return
     }
     return null;

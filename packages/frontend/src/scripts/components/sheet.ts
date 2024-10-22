@@ -1412,7 +1412,7 @@ export class GearPlanSheetGui extends GearPlanSheet {
             const addRowButton = makeActionButton("New Gear Set", () => {
                 const newSet = new CharacterGearSet(this);
                 newSet.name = "New Set";
-                this.addGearSet(newSet, true);
+                this.addGearSet(newSet, undefined, true);
             });
             buttonsArea.appendChild(addRowButton);
 
@@ -1807,8 +1807,8 @@ export class GearPlanSheetGui extends GearPlanSheet {
         }
     }
 
-    addGearSet(gearSet: CharacterGearSet, select: boolean = false) {
-        super.addGearSet(gearSet);
+    addGearSet(gearSet: CharacterGearSet, index?: number, select: boolean = false) {
+        super.addGearSet(gearSet, index);
         this._gearPlanTable?.dataChanged();
         gearSet.addListener(() => {
             if (this._gearPlanTable) {
@@ -1856,8 +1856,9 @@ export class GearPlanSheetGui extends GearPlanSheet {
 
     cloneAndAddGearSet(gearSet: CharacterGearSet, select: boolean = true) {
         const cloned = this.importGearSet(this.exportGearSet(gearSet));
-        cloned.name = cloned.name + ' copy';
-        this.addGearSet(cloned, select);
+        cloned.name += ' copy';
+        const toIndex: number | undefined = this.clonedSetPlacement(gearSet);
+        this.addGearSet(cloned, toIndex, select);
     }
 
 
@@ -2018,7 +2019,7 @@ export class ImportSetsModal extends BaseModal {
                             return;
                         }
                         sets.forEach(set => {
-                            this.sheet.addGearSet(this.sheet.importGearSet(set), true);
+                            this.sheet.addGearSet(this.sheet.importGearSet(set), undefined, true);
                         });
                         console.log("Imported set(s) from Etro");
                         this.close();
@@ -2062,7 +2063,7 @@ export class ImportSetsModal extends BaseModal {
                 for (let i = 0; i < imports.length; i++) {
                     // Select the first imported set
                     const set = imports[i];
-                    this.sheet.addGearSet(set, i === 0);
+                    this.sheet.addGearSet(set, undefined, i === 0);
                 }
             }
             closeModal();
@@ -2071,7 +2072,7 @@ export class ImportSetsModal extends BaseModal {
             if (!this.checkJob(false, rawImport.job)) {
                 return;
             }
-            this.sheet.addGearSet(this.sheet.importGearSet(rawImport), true);
+            this.sheet.addGearSet(this.sheet.importGearSet(rawImport), undefined, true);
             closeModal();
         }
         else {

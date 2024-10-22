@@ -87,7 +87,6 @@ export const SupportedLevels = [70, 80, 90, 100] as const;
 export const CURRENT_MAX_LEVEL: SupportedLevel = 100;
 export type SupportedLevel = typeof SupportedLevels[number];
 
-
 // TODO: block modifications to this
 /**
  * Empty stats object.
@@ -114,6 +113,7 @@ const STANDARD_HEALER: JobDataConst = {
     },
     aaPotency: MELEE_AUTO_POTENCY,
     excludedRelicSubstats: ['dhit'],
+    maxLevel: CURRENT_MAX_LEVEL,
 } as const;
 
 const STANDARD_TANK: JobDataConst = {
@@ -124,6 +124,7 @@ const STANDARD_TANK: JobDataConst = {
     // traitMulti: TODO: Tank Mastery?
     aaPotency: MELEE_AUTO_POTENCY,
     excludedRelicSubstats: ['dhit'],
+    maxLevel: CURRENT_MAX_LEVEL,
 } as const;
 
 const STANDARD_MELEE: JobDataConst = {
@@ -133,6 +134,7 @@ const STANDARD_MELEE: JobDataConst = {
     irrelevantSubstats: ['spellspeed', 'tenacity', 'piety'],
     aaPotency: MELEE_AUTO_POTENCY,
     excludedRelicSubstats: [],
+    maxLevel: CURRENT_MAX_LEVEL,
 } as const;
 
 const STANDARD_RANGED: JobDataConst = {
@@ -143,6 +145,7 @@ const STANDARD_RANGED: JobDataConst = {
     traitMulti: (level, attackType) => attackType === 'Auto-attack' ? 1.0 : 1.2, // Increased Action Damage II
     aaPotency: RANGE_AUTO_POTENCY,
     excludedRelicSubstats: [],
+    maxLevel: CURRENT_MAX_LEVEL,
 } as const;
 
 const STANDARD_CASTER: JobDataConst = {
@@ -156,6 +159,7 @@ const STANDARD_CASTER: JobDataConst = {
     },
     aaPotency: MELEE_AUTO_POTENCY,
     excludedRelicSubstats: [],
+    maxLevel: CURRENT_MAX_LEVEL,
 } as const;
 
 
@@ -263,17 +267,30 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
     },
     SAM: {
         ...STANDARD_MELEE,
-        gcdDisplayOverrides() {
-            return [{
-                shortLabel: 'GCD',
-                longLabel: '2.5s GCD w/ Fuka',
-                description: 'GCD recast time w/ Fuka',
-                gcdTime: 2.5,
-                attackType: 'Weaponskill',
-                haste: 13,
-                basis: 'sks',
-                isPrimary: true,
-            }]
+        gcdDisplayOverrides: (level) => {
+            if (level < 78) {
+                return [{
+                    shortLabel: 'GCD',
+                    longLabel: '2.5s GCD w/ Fuka',
+                    description: 'GCD recast time w/ Fuka',
+                    gcdTime: 2.5,
+                    attackType: 'Weaponskill',
+                    haste: 10,
+                    basis: 'sks',
+                    isPrimary: true,
+                }]
+            } else {
+                return [{
+                    shortLabel: 'GCD',
+                    longLabel: '2.5s GCD w/ Fuka',
+                    description: 'GCD recast time w/ Fuka',
+                    gcdTime: 2.5,
+                    attackType: 'Weaponskill',
+                    haste: 13, // Enhanced Fugetsu and Fuka
+                    basis: 'sks',
+                    isPrimary: true,
+                }]
+            }
         }
     },
     RPR: STANDARD_MELEE,
@@ -310,6 +327,7 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
     },
     BLU: {
         ...STANDARD_CASTER,
+        maxLevel: 80,
         traitMulti: (level, attackType) => attackType === 'Auto-attack' ? 1.0 : 1.5, // Maim and Mend V
     },
     PCT: STANDARD_CASTER
@@ -591,15 +609,15 @@ export const LEVEL_ITEMS: Record<SupportedLevel, LevelItemInfo> = {
     }
 };
 
-const BLU_80_ITEM_DISPLAY = {
+const BLU_ITEM_DISPLAY = {
     ...LEVEL_ITEMS[80].defaultDisplaySettings,
     minILvl: 520,
     maxILvl: 535
 } satisfies ItemDisplaySettings;
 
 export function getDefaultDisplaySettings(level: SupportedLevel, job: JobName): ItemDisplaySettings {
-    if (job === 'BLU' && level === 80) {
-        return BLU_80_ITEM_DISPLAY;
+    if (job === 'BLU' && level === JOB_DATA.BLU.maxLevel) {
+        return BLU_ITEM_DISPLAY;
     }
     return LEVEL_ITEMS[level].defaultDisplaySettings;
 }

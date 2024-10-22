@@ -350,7 +350,7 @@ export function baseDamageFull(stats: ComputedSetStats, potency: number, attackT
     // Factor in auto DH multiplier
     const afterAutoDh = autoDH ? fl(afterAutoCrit * (1 + (dhRate * (dhMulti - 1)))) : afterAutoCrit;
     // Factor in trait multiplier, as well as the 1 extra damage if potency is less than 100
-    const finalDamage = fl(fl(afterAutoDh * traitMulti)) + ((potency < 100) ? 1 : 0);
+    const finalDamage = fl(afterAutoDh * traitMulti) + ((potency < 100) ? 1 : 0);
     // console.log([basePotency, afterDet, afterTnc, afterWeaponDamage, d5, afterAutoCrit, afterAutoDh, afterTrait]);
 
     if (finalDamage <= 1) {

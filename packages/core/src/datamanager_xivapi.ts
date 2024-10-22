@@ -406,6 +406,7 @@ export class XivApiGearInfo implements GearItem {
     name: string;
     iconUrl: URL;
     ilvl: number;
+    equipLvl: number;
     displayGearSlot: DisplayGearSlot;
     displayGearSlotName: DisplayGearSlotKey;
     occGearSlotName: OccGearSlotKey;

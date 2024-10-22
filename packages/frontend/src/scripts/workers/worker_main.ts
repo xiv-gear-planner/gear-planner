@@ -15,17 +15,15 @@ onmessage = async function (event) {
         const sheet = HEADLESS_SHEET_PROVIDER.fromExport(request.sheet);
         dataManager = makeDataManager(sheet.classJobName, sheet.level, sheet.ilvlSync);
         await dataManager.loadData();
-        // eslint-disable-next-line no-case-declarations
         const response: AnyWorkResponse = {
             responseType: "done",
             data: null,
         };
         this.postMessage(response);
-        console.log("Done Init!");
         return;
     }
     const sheet = HEADLESS_SHEET_PROVIDER.fromExport(request.sheet);
-    sheet.loadFromDataManager(dataManager);
+    await sheet.loadFromDataManager(dataManager);
     if (request.jobType === "generateGearset") {
         request = event.data as GearsetGenerationRequest;
         let gearsetGen = new GearsetGenerationWorker(sheet);
@@ -38,4 +36,4 @@ onmessage = async function (event) {
         await new SolverSimulationRunner(sheet).execute(request);
         return;
     }
-}
+};

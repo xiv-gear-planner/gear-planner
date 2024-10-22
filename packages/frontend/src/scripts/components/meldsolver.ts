@@ -56,7 +56,7 @@ export class MeldSolver {
     public async solveMelds(
         gearsetGenSettings: GearsetGenerationSettings,
         simSettings: SolverSimulationSettings,
-        update: (val: unknown) => void): Promise<CharacterGearSet> {
+        update: (val: unknown) => void): Promise<[CharacterGearSet, number]> {
 
         if (!simSettings) {
             return null;
@@ -67,11 +67,14 @@ export class MeldSolver {
             sheet: this._sheet.exportSheet(),
             data: GearsetGenerationSettings.export(gearsetGenSettings, this._sheet)
         };
-        console.log("n: ", workerPool.numFreeWorkers);
+
         const gearGenJob = workerPool.requestWork(gearsetGenRequest);
         this.jobs.push(gearGenJob)
 
         let sets: SetExport[] = await (gearGenJob.promise as Promise<SetExport[]>);
+        if (sets.length === 0) {
+            return [undefined, undefined];
+        }
         this.jobs = [];
 
         const nSimJobs = workerPool.numFreeWorkers;
@@ -118,6 +121,6 @@ export class MeldSolver {
             if (!b) return -1;
             return b.dps - a.dps
         });
-        return this._sheet.importGearSet(allResults.at(0).set);
+        return [this._sheet.importGearSet(allResults.at(0).set), allResults.at(0).dps];
     }
 }
