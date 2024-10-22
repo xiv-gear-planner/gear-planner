@@ -210,6 +210,10 @@ class MNKCycleProcessor extends CycleProcessor {
             case CoeurlForm.statusId:
                 return this.coeurl;
             case PerfectBalanceBuff.statusId:
+                /* TODO this conditional does not optimally sequence a 0 nadi naked blitz at the end of the fight
+                 * it picks a lunar solar window when a double lunar would have higher expected potency at 100
+                 */
+
                 // Prefer to check if we need a solar nadi so that 2m windows sequence RP or PR first.
                 if (!this.gauge.solarNadi) {
                     const gcd: FuryAbility = SOLAR_WEAKEST_STRONGEST
@@ -265,7 +269,6 @@ class MNKCycleProcessor extends CycleProcessor {
             return PhantomRush;
         }
 
-        // TODO implement CelestialRevolution even though it should never be executed.
         const s = new Set(this.gauge.beastChakra);
         switch (s.size) {
             case 1:
@@ -294,13 +297,32 @@ class MNKCycleProcessor extends CycleProcessor {
     }
 
     shouldEnterBlitz(gcd: GcdAbility, form: Buff): boolean {
-        const riddleReady = this.cdTracker.statusOf(RiddleOfFire).readyAt.relative;
-        return OPO_ABILITIES.includes(gcd.id) // just executed an opo ability
-            && form.statusId !== PerfectBalanceBuff.statusId // not already building a blitz
-            && (riddleReady <= 7 // Within 3 gcds of RoF coming off cooldown
-                // OR we're already in RoF and there's enough remaining time to land a blitz inside the current window
-                || this.getActiveBuffs(this.currentTime + this.timeToExecuteNGcds(4)).find(buff => buff.statusId === RiddleOfFireBuff.statusId))
-            && this.cdTracker.canUse(PerfectBalance)
+        const riddleActive = this.getActiveBuffs().find(buff => buff.statusId === RiddleOfFireBuff.statusId);
+        const riddleStatus = this.cdTracker.statusOf(RiddleOfFire);
+        if (riddleActive) {
+            // we are in a burst window
+            return form?.statusId !== PerfectBalanceBuff.statusId // not already building a blitz
+                && (OPO_ABILITIES.includes(gcd.id) // just executed an opo ability
+                    // the fight is about to end and we need to blitz + SSS
+                    // this condition will skip a formless-fist opo
+                    || this.remainingGcdTime <= this.cdTracker.statusOf(PerfectBalance).currentCharges * this.timeToExecuteNGcds(5))
+                && this.cdTracker.canUse(PerfectBalance);
+        } else if (riddleStatus.readyAt.absolute >= this.totalTime) {
+            // riddle won't be back before the end of the fight, we should do a naked blitz
+            return form?.statusId !== PerfectBalanceBuff.statusId // not already building a blitz
+                && ((OPO_ABILITIES.includes(gcd.id) // just executed an opo ability
+                    // the fight is about to end and we need to blitz + SSS
+                    // this condition will skip a formless-fist opo
+                    || this.remainingGcdTime <= this.cdTracker.statusOf(PerfectBalance).currentCharges * this.timeToExecuteNGcds(5))
+                    && this.cdTracker.canUse(PerfectBalance));
+        } else {
+            // riddle will be back or is currently off cooldown
+            return form?.statusId !== PerfectBalanceBuff.statusId // not already building a blitz
+                && OPO_ABILITIES.includes(gcd.id) // just executed an opo ability
+                // TODO odd minute lunar nadi windows should look for a +1 opo not a -3 thru 0 opo
+                && riddleStatus.readyAt.relative <= this.timeToExecuteNGcds(3) // Within 3 gcds of RoF coming off cooldown
+                && this.cdTracker.canUse(PerfectBalance);
+        }
     }
 
     /*
