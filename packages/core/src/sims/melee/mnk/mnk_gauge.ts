@@ -2,8 +2,8 @@ import { FuryType, MNKGaugeState } from './mnk_types';
 
 export class MNKGauge {
     chakra: number = 0;
-    // TODO add brotherhood support
     gainChakra(chakra: number) {
+        // TODO ideally this would cap chakra at 5/10 but chakra is currently implemented probabilistically it is nice that it overcaps
         this.chakra += chakra;
     }
 

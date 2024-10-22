@@ -77,7 +77,7 @@ class MNKCycleProcessor extends CycleProcessor {
             const brotherhoodChakra = usedAbility.buffs.find(buff => buff.statusId === BrotherhoodBuff.statusId)
                 ? 1
                 : 0;
-            this.gauge.chakra += probableChakraGain + brotherhoodChakra;
+            this.gauge.chakra.gainChakra(probableChakraGain + brotherhoodChakra);
         }
     }
 
