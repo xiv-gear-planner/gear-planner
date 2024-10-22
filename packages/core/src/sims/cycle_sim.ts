@@ -649,12 +649,31 @@ export class CycleProcessor {
 
             // If the buff isn't going to fall off before reapplication, we simply extend it to max
             if (activeBuff && activeBuff.end > this.currentTime + delay) {
-
                 activeBuff.end = Math.min(activeBuff.end + buff.duration, this.currentTime + buff.maxStackingDuration);
                 return;
             }
         }
         this.setBuffStartTime(buff, this.currentTime + delay);
+    }
+
+    /**
+     * Manually extend a buff.
+     *
+     * @param buff The buff
+     * @param duration The duration to extend it.
+     */
+    extendBuffByDuration(buff: Buff, duration: number) {
+        /** If the buff can stack duration /and/ it's already up, we can just extend it and return. */
+        if (buff.maxStackingDuration) {
+            const activeBuff = this.getActiveBuffsData().find(bd => bd.buff === buff);
+
+            // If the buff isn't going to fall off before reapplication, we simply extend it to max
+            if (activeBuff && activeBuff.end > this.currentTime) {
+                activeBuff.end = Math.min(activeBuff.end + duration, this.currentTime + buff.maxStackingDuration);
+                return;
+            }
+        }
+        this.setBuffStartTime(buff, this.currentTime);
     }
 
     private recheckAutoBuffs() {

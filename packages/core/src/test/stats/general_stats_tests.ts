@@ -1,9 +1,10 @@
 import {finalizeStats} from "@xivgear/xivmath/xivstats";
 import {RawStats} from "@xivgear/xivmath/geartypes";
 import {getLevelStats} from "@xivgear/xivmath/xivconstants";
-import {HEADLESS_SHEET_PROVIDER} from "../sheet";
 import {expect} from "chai";
-import {baseDamageFull, fl} from "@xivgear/xivmath/xivmath";
+import {applyDhCritFull, baseDamageFull, fl} from "@xivgear/xivmath/xivmath";
+import { multiplyFixed } from "@xivgear/xivmath/deviation";
+import { HEADLESS_SHEET_PROVIDER } from "../../sheet";
 
 
 const level = 100;
@@ -247,7 +248,7 @@ describe("Dmg/100p for known values", () => {
         }),
         // Pineapple Orange Jelly
         {}, level, getLevelStats(level), 'SMN', fakeSheetSMN.classJobStats, 0);
-        const dmg100p = baseDamageFull(stats, 100, 'Spell', false, false, false);
+        const dmg100p = baseDamageFull(stats, 100, 'Spell', false, false);
         expect(dmg100p.expected).to.eq(913);
         expect(stats.detMulti).to.eq(1.018);
         expect(stats.determination).to.eq(812);
@@ -279,7 +280,7 @@ describe("Dmg/100p for known values", () => {
         }),
         // Pineapple Orange Jelly
         {}, level, getLevelStats(level), 'SMN', fakeSheetSMN.classJobStats, 0);
-        const dmg100p = baseDamageFull(stats, 100, 'Spell', false, false, false);
+        const dmg100p = baseDamageFull(stats, 100, 'Spell', false, false);
         expect(dmg100p.expected).to.eq(1069);
         expect(stats.detMulti).to.eq(1.023);
         expect(stats.determination).to.eq(900);
@@ -311,7 +312,7 @@ describe("Dmg/100p for known values", () => {
         }),
         // Pineapple Orange Jelly
         {}, level, getLevelStats(level), 'WAR', fakeSheetWAR.classJobStats, 0);
-        const dmg100p = baseDamageFull(stats, 100, 'Weaponskill', false, false, false);
+        const dmg100p = baseDamageFull(stats, 100, 'Weaponskill', false, false);
         expect(dmg100p.expected).to.eq(656);
         expect(stats.mainStatValue).to.eq(1012);
         expect(stats.detMulti).to.eq(1.013);
@@ -343,7 +344,7 @@ describe("Dmg/100p for known values", () => {
         }),
         // Pineapple Orange Jelly
         {}, level, getLevelStats(level), 'WAR', fakeSheetWAR.classJobStats, 0);
-        const dmg100p = baseDamageFull(stats, 100, 'Weaponskill', false, false, false);
+        const dmg100p = baseDamageFull(stats, 100, 'Weaponskill', false, false);
         expect(dmg100p.expected).to.eq(703);
         expect(stats.mainStatValue).to.eq(1069);
         expect(stats.detMulti).to.eq(1.015);
@@ -376,7 +377,7 @@ describe("Dmg/100p for known values", () => {
         }),
         // Pineapple Orange Jelly
         {}, level, getLevelStats(level), 'SCH', fakeSheetSCH.classJobStats, 0);
-        const dmg100p = baseDamageFull(stats, 75, 'Spell', false, false, true);
+        const dmg100p = baseDamageFull(stats, 75, 'Spell', false, true);
         expect(dmg100p.expected).to.eq(467);
         expect(stats.determination).to.eq(440);
         expect(stats.detMulti).to.eq(1.0);
@@ -410,7 +411,7 @@ describe("Dmg/100p for known values", () => {
         }),
         // Pineapple Orange Jelly
         {}, level, getLevelStats(level), 'SCH', fakeSheetSCH.classJobStats, 0);
-        const dmg100p = baseDamageFull(stats, 75, 'Spell', false, false, true);
+        const dmg100p = baseDamageFull(stats, 75, 'Spell', false, true);
         expect(dmg100p.expected).to.eq(474);
         expect(stats.determination).to.eq(440);
         expect(stats.detMulti).to.eq(1.0);
@@ -444,7 +445,7 @@ describe("Dmg/100p for known values", () => {
         }),
         // Pineapple Orange Jelly
         {}, level, getLevelStats(level), 'SCH', fakeSheetSCH.classJobStats, 0);
-        const dmg100p = baseDamageFull(stats, 75, 'Spell', false, false, true);
+        const dmg100p = baseDamageFull(stats, 75, 'Spell', false, true);
         expect(dmg100p.expected).to.eq(475);
         expect(stats.determination).to.eq(440);
         expect(stats.detMulti).to.eq(1.0);
@@ -478,7 +479,7 @@ describe("Dmg/100p for known values", () => {
         }),
         // Pineapple Orange Jelly
         {}, level, getLevelStats(level), 'SCH', fakeSheetSCH.classJobStats, 0);
-        const dmg100p = baseDamageFull(stats, 75, 'Spell', false, false, true);
+        const dmg100p = baseDamageFull(stats, 75, 'Spell', false, true);
         expect(dmg100p.expected).to.eq(476);
         expect(stats.determination).to.eq(440);
         expect(stats.detMulti).to.eq(1.0);
@@ -520,7 +521,7 @@ describe("Dmg/100p for known values", () => {
         expect(stats.wdMag).to.eq(79);
         expect(stats.wdPhys).to.eq(79);
         expect(stats.wdMulti).to.eq(1.23);
-        const dmg100p = baseDamageFull(stats, 60, 'Weaponskill', false, false, true);
+        const dmg100p = baseDamageFull(stats, 60, 'Weaponskill', false, true);
         expect(dmg100p.expected).to.eq(381);
     });
 
@@ -554,7 +555,7 @@ describe("Dmg/100p for known values", () => {
         expect(stats.wdMag).to.eq(79);
         expect(stats.wdPhys).to.eq(79);
         expect(stats.wdMulti).to.eq(1.23);
-        const dmg100p = baseDamageFull(stats, 60, 'Weaponskill', false, false, true);
+        const dmg100p = baseDamageFull(stats, 60, 'Weaponskill', false, true);
         expect(dmg100p.expected).to.eq(381);
     });
 
@@ -588,7 +589,7 @@ describe("Dmg/100p for known values", () => {
         expect(stats.wdMag).to.eq(79);
         expect(stats.wdPhys).to.eq(79);
         expect(stats.wdMulti).to.eq(1.23);
-        const dmg100p = baseDamageFull(stats, 60, 'Weaponskill', false, false, true);
+        const dmg100p = baseDamageFull(stats, 60, 'Weaponskill', false, true);
         expect(dmg100p.expected).to.eq(382);
     });
 
@@ -622,7 +623,7 @@ describe("Dmg/100p for known values", () => {
         expect(stats.wdMag).to.eq(79);
         expect(stats.wdPhys).to.eq(79);
         expect(stats.wdMulti).to.eq(1.23);
-        const dmg100p = baseDamageFull(stats, 60, 'Weaponskill', false, false, true);
+        const dmg100p = baseDamageFull(stats, 60, 'Weaponskill', false, true);
         expect(dmg100p.expected).to.eq(383);
     });
 
@@ -656,7 +657,7 @@ describe("Dmg/100p for known values", () => {
         expect(stats.wdMag).to.eq(79);
         expect(stats.wdPhys).to.eq(79);
         expect(stats.wdMulti).to.eq(1.23);
-        const dmg100p = baseDamageFull(stats, 60, 'Weaponskill', false, false, true);
+        const dmg100p = baseDamageFull(stats, 60, 'Weaponskill', false, true);
         expect(dmg100p.expected).to.eq(458);
     });
 
@@ -690,10 +691,9 @@ describe("Dmg/100p for known values", () => {
         expect(stats.wdMag).to.eq(79);
         expect(stats.wdPhys).to.eq(79);
         expect(stats.wdMulti).to.eq(1.23);
-        const dmg100p = baseDamageFull(stats, 60, 'Weaponskill', false, false, true);
+        const dmg100p = baseDamageFull(stats, 60, 'Weaponskill', false, true);
         expect(dmg100p.expected).to.eq(461);
     });
-
     it('GNB Test 7', async () => {
         await loadPromiseGNB;
         const stats = finalizeStats(new RawStats({
@@ -724,7 +724,60 @@ describe("Dmg/100p for known values", () => {
         expect(stats.wdMag).to.eq(132);
         expect(stats.wdPhys).to.eq(132);
         expect(stats.wdMulti).to.eq(1.76);
-        const dmg100p = baseDamageFull(stats, 60, 'Weaponskill', false, false, true);
+        const dmg100p = baseDamageFull(stats, 60, 'Weaponskill', false, true);
         expect(dmg100p.expected).to.eq(1169);
+    });
+});
+
+describe("Final damage values for known values", () => {
+    const fakeSheetWAR = HEADLESS_SHEET_PROVIDER.fromScratch("unused", "unused", 'WAR', level, undefined);
+    const loadPromiseWAR = fakeSheetWAR.load();
+    it('WAR test autocrit/dh', async () => {
+        await loadPromiseWAR;
+        // Values taken from https://xivgear.app/?page=sl%7C730195d3-a9ee-4d29-a868-67cf5d613b0a
+        // i.e. 7.1 BiS for Warrior.
+        const stats = finalizeStats(new RawStats({
+            hp: 0,
+            vitality: 4119,
+            strength: 4839,
+            dexterity: 440,
+            intelligence: 1167,
+            mind: 4448,
+            piety: 564,
+            crit: 3253,
+            dhit: 1176,
+            determination: 2525,
+            tenacity: 868,
+            skillspeed: 420,
+            spellspeed: 1134,
+            wdPhys: 146,
+            wdMag: 146,
+            weaponDelay: 3.12,
+        }),
+        {}, level, getLevelStats(level), 'WAR', fakeSheetWAR.classJobStats, 0);
+        const fellCleavePotency = 580;
+        const dmg100p = baseDamageFull(stats, fellCleavePotency, 'Weaponskill', true, false);
+        expect(dmg100p.expected).to.eq(25898);
+        expect(stats.mainStatValue).to.eq(4839);
+        expect(stats.detMulti).to.eq(1.105);
+        expect(stats.determination).to.eq(2525);
+        expect(stats.mainStatMulti).to.eq(19.99);
+        expect(stats.wdMag).to.eq(146);
+        expect(stats.wdPhys).to.eq(146);
+        expect(stats.wdMulti).to.eq(1.92);
+        expect(stats.autoDhBonus).to.eq(0.038);
+        const modifiedStats = stats.withModifications((stats, bonuses) => {
+            bonuses.forceCrit = true;
+            bonuses.forceDh = true;
+        });
+        const afterCritDh = applyDhCritFull(dmg100p, modifiedStats, true, true);
+        expect(afterCritDh).to.not.undefined;
+        expect(afterCritDh.expected).to.eq(51893.1175);
+        expect(fl(afterCritDh.stdDev)).to.eq(1498);
+        const surgingTempestMod = 1.1;
+        const finalDamage = multiplyFixed(afterCritDh, surgingTempestMod);
+        expect(finalDamage).to.not.undefined;
+        expect(finalDamage.expected).to.eq(57082.42925000001);
+        expect(fl(finalDamage.stdDev)).to.eq(1647);
     });
 });
