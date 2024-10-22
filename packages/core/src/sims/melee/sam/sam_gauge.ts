@@ -58,7 +58,7 @@ class SAMGauge {
             sen: new Set([...this.sen]),
             kenki: this.kenkiGauge,
             meditation: this.meditation,
-        }
+        };
     }
 }
 

@@ -31,7 +31,7 @@ export async function getShortLink(stub: string): Promise<string> {
 export async function putShortLink(content: string, embed: boolean = false): Promise<URL> {
     return await fetch(getServer(), {
         method: "POST",
-        body: content
+        body: content,
     }).then(response => response.text()).then(uuid => {
         // If on prod, use the fancy share link.
         if (embed) {

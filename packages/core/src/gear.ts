@@ -94,7 +94,7 @@ export class MateriaMemory {
     get(equipSlot: EquipSlotKey, item: GearItem): number[] {
         const bySlot = this.memory.get(equipSlot);
         if (!bySlot) {
-            return []
+            return [];
         }
         const byItem = bySlot.get(item.id);
         return byItem ?? [];
@@ -163,7 +163,7 @@ export class SetDisplaySettings {
         });
         return {
             hiddenSlots: hiddenSlots,
-        }
+        };
     }
 
     import(imported: SetDisplaySettingsExport) {
@@ -184,8 +184,8 @@ export function previewItemStatDetail(item: GearItem, stat: RawStatKey): ItemSin
                 fullAmount: unsynced,
                 overcapAmount: unsynced - synced,
                 cap: cap,
-                mode: "synced-down"
-            }
+                mode: "synced-down",
+            };
         }
         else {
             return {
@@ -193,7 +193,7 @@ export function previewItemStatDetail(item: GearItem, stat: RawStatKey): ItemSin
                 effectiveAmount: synced,
                 fullAmount: synced,
                 cap: cap,
-                overcapAmount: 0
+                overcapAmount: 0,
             };
         }
     }
@@ -206,7 +206,7 @@ export function previewItemStatDetail(item: GearItem, stat: RawStatKey): ItemSin
             fullAmount: statAmount,
             overcapAmount: 0,
             cap: cap,
-        }
+        };
     }
 }
 
@@ -360,7 +360,7 @@ export class CharacterGearSet {
                 }
             }
         }
-        this.notifyListeners()
+        this.notifyListeners();
     }
 
     /**
@@ -480,7 +480,7 @@ export class CharacterGearSet {
             if (leftRing.id === rightRing.id) {
                 issues.push({
                     severity: 'error',
-                    description: `You cannot equip ${leftRing.name} in both ring slots because it is a unique item.`
+                    description: `You cannot equip ${leftRing.name} in both ring slots because it is a unique item.`,
                 });
             }
         }
@@ -488,12 +488,12 @@ export class CharacterGearSet {
         if (!weapon) {
             issues.push({
                 severity: 'error',
-                description: 'You must equip a weapon'
+                description: 'You must equip a weapon',
             });
         }
         this._lastResult = {
             computedStats: computedStats,
-            issues: this.isSeparator ? [] : issues
+            issues: this.isSeparator ? [] : issues,
         };
         //console.info("Recomputed stats", this._lastResult);
         return this._lastResult;
@@ -508,7 +508,7 @@ export class CharacterGearSet {
         if (!equip.gearItem) {
             return {
                 stats: EMPTY_STATS,
-                issues: []
+                issues: [],
             };
         }
         const itemStats = new RawStats(equip.gearItem.stats);
@@ -520,7 +520,7 @@ export class CharacterGearSet {
                 issues.push({
                     severity: "warning",
                     description: `${EquipSlotInfo[slotId].name} is overcapped, losing ${statDetail.overcapAmount} ${stat}.`,
-                    affectedSlots: [slotId]
+                    affectedSlots: [slotId],
                 });
             }
         }
@@ -529,14 +529,14 @@ export class CharacterGearSet {
             for (const failure of failures) {
                 issues.push({
                     ...failure,
-                    affectedSlots: [slotId]
+                    affectedSlots: [slotId],
                 });
 
             }
         }
         return {
             stats: itemStats,
-            issues: issues
+            issues: issues,
         };
     }
 
@@ -558,7 +558,7 @@ export class CharacterGearSet {
                 overcapAmount: 0,
                 effectiveAmount: 0,
                 fullAmount: 0,
-                cap: 0
+                cap: 0,
             };
         }
         const stats = new RawStats(gearItem.stats);
@@ -576,8 +576,8 @@ export class CharacterGearSet {
                         fullAmount: current,
                         overcapAmount: current - cap,
                         cap: cap,
-                        mode: "synced-down"
-                    }
+                        mode: "synced-down",
+                    };
                 }
                 else {
                     return {
@@ -585,8 +585,8 @@ export class CharacterGearSet {
                         fullAmount: current,
                         overcapAmount: 0,
                         cap: cap,
-                        mode: 'unmelded'
-                    }
+                        mode: 'unmelded',
+                    };
                 }
             }
             else {
@@ -598,8 +598,8 @@ export class CharacterGearSet {
                         fullAmount: unsynced,
                         overcapAmount: unsynced - synced,
                         cap: synced,
-                        mode: "synced-down"
-                    }
+                        mode: "synced-down",
+                    };
                 }
                 else {
                     return {
@@ -607,8 +607,8 @@ export class CharacterGearSet {
                         fullAmount: synced,
                         overcapAmount: 0,
                         cap: synced,
-                        mode: 'unmelded'
-                    }
+                        mode: 'unmelded',
+                    };
                 }
             }
         }
@@ -631,8 +631,8 @@ export class CharacterGearSet {
                 overcapAmount: 0,
                 effectiveAmount: meldedStatValue,
                 fullAmount: meldedStatValue,
-                cap: meldedStatValue
-            }
+                cap: meldedStatValue,
+            };
         }
         // Overcapped
         const overcapAmount = meldedStatValue - cap;
@@ -643,7 +643,7 @@ export class CharacterGearSet {
                 overcapAmount: 0,
                 cap: cap,
                 mode: "melded",
-            }
+            };
         }
         else if (overcapAmount < smallestMateria) {
             return {
@@ -652,7 +652,7 @@ export class CharacterGearSet {
                 overcapAmount: overcapAmount,
                 cap: cap,
                 mode: "melded-overcapped",
-            }
+            };
         }
         else {
             return {
@@ -661,7 +661,7 @@ export class CharacterGearSet {
                 overcapAmount: overcapAmount,
                 cap: cap,
                 mode: "melded-overcapped-major",
-            }
+            };
         }
     }
 
@@ -780,11 +780,11 @@ export class CharacterGearSet {
 
     private recordCheckpointInt() {
         if (!this.checkpointEnabled || this._reverting) {
-            return
+            return;
         }
         const checkpoint: GearSetCheckpoint = {
             equipment: cloneEquipmentSet(this.equipment),
-            food: this._food
+            food: this._food,
         };
         const prev = this.currentCheckpoint;
         // Initial checkpoint
@@ -792,15 +792,14 @@ export class CharacterGearSet {
             this.currentCheckpoint = {
                 value: checkpoint,
                 prev: null,
-                next: null
-            }
+                next: null,
+            };
         }
-        // There was a previous checkpoint
-        else {
+        else {  // There was a previous checkpoint
             const newNode: GearSetCheckpointNode = {
                 value: checkpoint,
                 prev: prev,
-                next: null
+                next: null,
             };
             // Insert into the chain, replacing any previous redo history
             prev.next = newNode;
@@ -815,7 +814,7 @@ export class CharacterGearSet {
      */
     recordCheckpoint() {
         if (!this.checkpointEnabled || this._reverting) {
-            return
+            return;
         }
         this.checkpointTimer.ping();
     }
@@ -839,7 +838,7 @@ export class CharacterGearSet {
      */
     private revertToCheckpoint(checkpoint: GearSetCheckpoint) {
         if (!this.checkpointEnabled) {
-            return
+            return;
         }
         console.log("Reverting");
         // This flag causes things to not record more checkpoints in the middle of reverting to a checkpoint
@@ -895,7 +894,7 @@ export class CharacterGearSet {
 
 export function applyStatCaps(stats: RawStats, statCaps: { [K in RawStatKey]?: number }) {
     const out = {
-        ...stats
+        ...stats,
     };
     Object.entries(stats).forEach(([stat, value]) => {
         if (NO_SYNC_STATS.includes(stat as RawStatKey)) {
@@ -922,7 +921,7 @@ export function applyStatCaps(stats: RawStats, statCaps: { [K in RawStatKey]?: n
  * 'cap' is the cap.
  */
 export type ItemSingleStatDetail = {
-    // TODO: see if there's a way to enforce that effectiveAmount == fullAMount == cap for this branch
+    // TODO: see if there's a way to enforce that effectiveAmount === fullAMount === cap for this branch
     mode: 'unmelded' | 'melded',
     overcapAmount: 0,
     effectiveAmount: number,
@@ -961,13 +960,12 @@ export function isSameOrBetterItem(candidateItem: GearItem, baseItem: GearItem):
         const candidateValue = candidateStats[statKey] as number;
         // For skill/spell speed, we want an exact match, since allowing extra sks/sps could cause
         // it to bump up a GCD tier.
-        if (statKey as RawStatKey == 'skillspeed' || statKey as RawStatKey == 'spellspeed') {
-            if (candidateValue != baseValue) {
+        if (statKey as RawStatKey === 'skillspeed' || statKey as RawStatKey === 'spellspeed') {
+            if (candidateValue !== baseValue) {
                 return false;
             }
         }
-        // For everything else, it's fine if the candidate value is greater than the base value.
-        else {
+        else { // For everything else, it's fine if the candidate value is greater than the base value.
             if (candidateValue < baseValue) {
                 return false;
             }
@@ -986,10 +984,10 @@ export function isSameOrBetterItem(candidateItem: GearItem, baseItem: GearItem):
             if (candidateSlot.maxGrade < baseSlot.maxGrade) {
                 return false;
             }
-            // Also check that if the base item allows high grade, that the candidate also does.
-            // Without this, an 11 would be considered an acceptable substitute to a 10, despite the fact that
-            // grade 11 materia are better than grade 10 materia.
             else if (baseSlot.allowsHighGrade && !candidateSlot.allowsHighGrade) {
+                // Also check that if the base item allows high grade, that the candidate also does.
+                // Without this, an 11 would be considered an acceptable substitute to a 10, despite the fact that
+                // grade 11 materia are better than grade 10 materia.
                 return false;
             }
         }

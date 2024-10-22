@@ -82,7 +82,7 @@ export class BuffSettingsManager {
             jobs: this.jobs.filter(jobSetting => jobSetting.enabled)
                 .map(jobSetting => jobSetting.job),
             buffs: this.individuallyEnabledBuffs.map(buff => BuffSettingsManager.getBuffKey(buff)),
-        }
+        };
     }
 
     get allJobs() {

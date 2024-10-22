@@ -71,7 +71,7 @@ export class CustomItem implements GearItem {
             ...this.defaults(),
             // respectCaps is false for existing items to not cause changes to sheets
             respectCaps: false,
-            ...exportedData
+            ...exportedData,
         }, sheet);
     }
 
@@ -107,6 +107,15 @@ export class CustomItem implements GearItem {
         this.recheckStats();
     }
 
+    get equipLvl() {
+        return this._data.equipLvl;
+    }
+
+    set equipLvl(equipLvl: number) {
+        this._data.equipLvl = equipLvl;
+        this.recheckStats();
+    }
+
     get respectCaps() {
         return this._data.respectCaps;
     }
@@ -137,7 +146,7 @@ export class CustomItem implements GearItem {
     }
 
     get displayGearSlotName(): DisplayGearSlotKey {
-        if (this.occGearSlotName == 'Weapon1H' || this.occGearSlotName == 'Weapon2H') {
+        if (this.occGearSlotName === 'Weapon1H' || this.occGearSlotName === 'Weapon2H') {
             return 'Weapon';
         }
         return this.occGearSlotName;
@@ -153,14 +162,14 @@ export class CustomItem implements GearItem {
             out.push({
                 maxGrade: this._data.materiaGrade,
                 allowsHighGrade: true,
-                ilvl: this.ilvl
+                ilvl: this.ilvl,
             });
         }
         for (let i = 0; i < this._data.smallMateriaSlots; i++) {
             out.push({
                 maxGrade: this._data.materiaGrade - 1,
                 allowsHighGrade: false,
-                ilvl: this.ilvl
+                ilvl: this.ilvl,
             });
         }
         return out;
@@ -184,7 +193,7 @@ export class CustomItem implements GearItem {
             if (syncIlvlInfo && syncIlvlInfo.ilvl < this.ilvl) {
                 this.unsyncedVersion = {
                     ...this,
-                    stats: {...this.customData.stats}
+                    stats: {...this.customData.stats},
                 };
                 const statCapsSync = {};
                 Object.entries(this.stats).forEach(([stat, v]) => {

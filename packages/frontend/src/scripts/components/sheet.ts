@@ -98,13 +98,13 @@ function mainStatCol(sheet: GearPlanSheet, stat: RawStatKey): CustomColumnSpec<C
         displayName: STAT_ABBREVIATIONS[stat],
         getter: gearSet => ({
             stat: gearSet.computedStats[stat],
-            multiplier: gearSet.computedStats.mainStatMulti
+            multiplier: gearSet.computedStats.mainStatMulti,
         }),
         condition: () => sheet.isStatRelevant(stat),
         renderer: multiplierStatTooltip,
         extraClasses: ['stat-col', 'main-stat-col'],
         rowCondition: noSeparators,
-    }
+    };
 }
 
 function tooltipMultiStatCol(sheet: GearPlanSheet, stat: RawStatKey, multiKey: { [K in keyof ComputedSetStats]: ComputedSetStats[K] extends number ? K : never }[keyof ComputedSetStats]): CustomColumnSpec<CharacterGearSet, MultiplierStat> {
@@ -113,13 +113,13 @@ function tooltipMultiStatCol(sheet: GearPlanSheet, stat: RawStatKey, multiKey: {
         displayName: STAT_ABBREVIATIONS[stat],
         getter: gearSet => ({
             stat: gearSet.computedStats[stat],
-            multiplier: gearSet.computedStats[multiKey]
+            multiplier: gearSet.computedStats[multiKey],
         }),
         condition: () => sheet.isStatRelevant(stat),
         renderer: multiplierStatTooltip,
         extraClasses: ['stat-col', 'compact-multiplier-stat-col'],
         rowCondition: noSeparators,
-    }
+    };
 }
 
 function multiplierStatTooltip(stats: MultiplierStat) {
@@ -206,8 +206,8 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                 else if (newSelection === undefined) {
                     setSelection(undefined);
                 }
-            }
-        })
+            },
+        });
     }
 
     get simGuis(): SimulationGui<any, any, any>[] {
@@ -308,7 +308,7 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                     rowCondition: noSeparators,
                     renderer: gcd => document.createTextNode(gcd.toFixed(2)),
                     initialWidth: statColWidth + 10,
-                })
+                });
             }
         }
         else {
@@ -352,7 +352,7 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                     colHeader.title = 'Click to configure simulation settings';
                 },
                 rowCondition: noSeparators,
-            }
+            };
         });
 
         const outer = this;
@@ -423,11 +423,11 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                             rowBeingDragged.classList.remove('dragging');
                             console.log('Drag end');
                             rowBeingDragged = null;
-                        }
+                        },
                     });
                     div.appendChild(dragger);
                     return div;
-                }
+                },
             },
             {
                 shortName: "setname",
@@ -461,7 +461,7 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                         for (const issue of issues) {
                             let titlePart = `${capitalizeFirstLetter(issue.severity)}: ${issue.description}`;
                             if (issue.affectedSlots) {
-                                titlePart += ` (${issue.affectedSlots.join(', ')})`
+                                titlePart += ` (${issue.affectedSlots.join(', ')})`;
                             }
                             title += '\n - ' + titlePart;
                         }
@@ -474,7 +474,7 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                         nameSpan.style.fontWeight = 'bold';
                     }
                     return div;
-                }
+                },
                 // initialWidth: 300,
             },
             ...(viewOnly ? simColumns : []),
@@ -484,7 +484,7 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                 displayName: "WD",
                 getter: gearSet => ({
                     stat: Math.max(gearSet.computedStats.wdMag, gearSet.computedStats.wdPhys),
-                    multiplier: gearSet.computedStats.wdMulti
+                    multiplier: gearSet.computedStats.wdMulti,
                 }),
                 initialWidth: statColWidth,
                 renderer: multiplierStatTooltip,
@@ -518,7 +518,7 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                 getter: gearSet => ({
                     stat: gearSet.computedStats.crit,
                     chance: gearSet.computedStats.critChance,
-                    multiplier: gearSet.computedStats.critMulti
+                    multiplier: gearSet.computedStats.critMulti,
                 }) as ChanceStat,
                 renderer: chanceStatDisplay,
                 condition: () => this.sheet.isStatRelevant('crit'),
@@ -531,7 +531,7 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                 getter: gearSet => ({
                     stat: gearSet.computedStats.dhit,
                     chance: gearSet.computedStats.dhitChance,
-                    multiplier: gearSet.computedStats.dhitMulti
+                    multiplier: gearSet.computedStats.dhitMulti,
                 }) as ChanceStat,
                 renderer: chanceStatDisplay,
                 condition: () => this.sheet.isStatRelevant('dhit'),
@@ -543,7 +543,7 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                 displayName: "DET",
                 getter: gearSet => ({
                     stat: gearSet.computedStats.determination,
-                    multiplier: gearSet.computedStats.detMulti
+                    multiplier: gearSet.computedStats.detMulti,
                 }) as MultiplierStat,
                 renderer: multiplierStatDisplay,
                 condition: () => this.sheet.isStatRelevant('determination'),
@@ -574,7 +574,7 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                 getter: gearSet => ({
                     stat: gearSet.computedStats.tenacity,
                     multiplier: gearSet.computedStats.tncMulti,
-                    incomingMulti: gearSet.computedStats.tncIncomingMulti
+                    incomingMulti: gearSet.computedStats.tncIncomingMulti,
                 }) as MultiplierMitStat,
                 renderer: multiplierMitStatDisplay,
                 condition: () => this.sheet.isStatRelevant('tenacity'),
@@ -696,7 +696,7 @@ export class SimResultDetailDisplay<X extends SimResult> extends HTMLElement {
     update() {
         if (this._result.status === 'Done') {
             if (this.sim.makeResultDisplay) {
-                this.replaceChildren(this.sim.makeResultDisplay(this._result.result))
+                this.replaceChildren(this.sim.makeResultDisplay(this._result.result));
             }
             else {
                 // TODO: style this properly
@@ -765,7 +765,7 @@ function stringToParagraphs(text: string): HTMLParagraphElement[] {
         const p = document.createElement('p');
         p.textContent = line;
         return p;
-    })
+    });
 }
 
 /**
@@ -839,7 +839,7 @@ export class GearSetEditor extends HTMLElement {
             makeActionButton('Change Name/Description', () => {
                 startRenameSet(writeProxy(this.gearSet, () => this.formatTitleDesc()));
             }),
-            issuesButton
+            issuesButton,
         ]);
 
         this.appendChild(buttonArea);
@@ -1214,7 +1214,7 @@ function formatSimulationConfigArea<SettingsType extends SimSettings>(
             target[prop] = value;
             updateCallback();
             return true;
-        }
+        },
     };
     const settingsProxy = new Proxy(originalSettings, settingsProxyHandler);
     const customInterface = simGui.makeConfigInterface(settingsProxy, updateCallback);
@@ -1417,7 +1417,7 @@ export class GearPlanSheetGui extends GearPlanSheet {
 
             sheetOptions.addAction({
                 label: 'Name/Description',
-                action: () => startRenameSheet(this)
+                action: () => startRenameSheet(this),
             });
             sheetOptions.addAction({
                 label: 'Manage Custom Items',
@@ -1434,7 +1434,7 @@ export class GearPlanSheetGui extends GearPlanSheet {
                     set.name = 'Separator';
                     set.isSeparator = true;
                     this.addGearSet(set);
-                }
+                },
             });
             // const renameButton = makeActionButton("Sheet Name/Description", () => {
             //     startRenameSheet(this);
@@ -1444,7 +1444,7 @@ export class GearPlanSheetGui extends GearPlanSheet {
         }
 
 
-        if (this.ilvlSync != undefined) {
+        if (this.ilvlSync !== undefined) {
             const span = quickElement('span', [], [document.createTextNode(`ilvl Sync: ${this.ilvlSync}`)]);
             const ilvlSyncLabel = quickElement('div', ['like-a-button'], [span]);
             // ilvlSyncLabel.title = 'To change the item level sync, click the "Save As" button and create a '
@@ -1524,7 +1524,7 @@ export class GearPlanSheetGui extends GearPlanSheet {
         buttonsArea.appendChild(raceDropdown);
         raceDropdown.addListener((val) => {
             recordSheetEvent('changeRace', this, {
-                race: val
+                race: val,
             });
         });
 
@@ -1543,7 +1543,7 @@ export class GearPlanSheetGui extends GearPlanSheet {
         );
         partySizeDropdown.addListener((val) => {
             recordSheetEvent('changePartyBonus', this, {
-                partyBonus: val
+                partyBonus: val,
             });
         });
         buttonsArea.appendChild(partySizeDropdown);
@@ -1650,7 +1650,7 @@ export class GearPlanSheetGui extends GearPlanSheet {
                 if (outer._editorAreaNode instanceof GearSetEditor) {
                     // outer._editorAreaNode.refreshMateria();
                 }
-            }
+            },
 
         };
         this._materiaAutoFillController = matFillCtrl;
@@ -1732,7 +1732,7 @@ export class GearPlanSheetGui extends GearPlanSheet {
             // First, try to select a real gear set
             const firstNonSeparator = this.sets.find(set => !set.isSeparator);
             // Failing that, just select whatever
-            this._gearPlanTable.selectGearSet(firstNonSeparator ?? this.sets[0])
+            this._gearPlanTable.selectGearSet(firstNonSeparator ?? this.sets[0]);
         }
         this._sheetSetupDone = true;
     }
@@ -2041,7 +2041,7 @@ export class ImportSetsModal extends BaseModal {
             this.ready = true;
             console.error("Error importing set/sheet", err);
             alert('Error loading set/sheet');
-        })
+        });
     }
 
     doJsonImport(text: string) {
@@ -2096,7 +2096,7 @@ export class AddSimDialog extends BaseModal {
                 displayName: 'Name',
                 // fixedWidth: 500,
                 getter: item => item.displayName,
-            }
+            },
         ];
         this.table.data = this.sheet.relevantSims;
         const showAllCb = labeledCheckbox('Show sims for other jobs', new FieldBoundCheckBox<AddSimDialog>(this, 'showAllSims'));
@@ -2144,7 +2144,7 @@ export class AddSimDialog extends BaseModal {
                 else {
                     submitButton.disabled = true;
                 }
-            }
+            },
         });
         this.contentArea.append(form);
     }

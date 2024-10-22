@@ -50,7 +50,7 @@ class SAMGaugeGui {
                     return div;
                 }
                 return document.createTextNode("");
-            }
+            },
         }, {
             shortName: 'meditation',
             displayName: 'Meditation',
@@ -85,7 +85,7 @@ class SAMGaugeGui {
                     return div;
                 }
                 return document.createTextNode("");
-            }
+            },
         }, {
             shortName: 'sen',
             displayName: 'Sen',
@@ -116,7 +116,7 @@ class SAMGaugeGui {
                         Ka: {
                             clipPath: `polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%)`,
                             background: '#DB5858',
-                        }
+                        },
                     };
 
                     Object.keys(senStyles).forEach(key => {
@@ -137,12 +137,12 @@ class SAMGaugeGui {
                     return div;
                 }
                 return document.createTextNode("");
-            }
+            },
         }];
     }
 }
 export class SamSimGui extends BaseMultiCycleSimGui<SamSimResult, SamSettings> {
-    
+
     override makeCustomConfigInterface(settings: SamSettings, _updateCallback: () => void): HTMLElement | null {
         const configDiv = document.createElement("div");
 

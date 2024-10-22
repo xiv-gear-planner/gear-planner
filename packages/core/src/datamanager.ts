@@ -1,5 +1,5 @@
 import {JobName, SupportedLevel} from "@xivgear/xivmath/xivconstants";
-import {FoodItem, GearItem, JobMultipliers, Materia, OccGearSlotKey, RawStatKey,} from "@xivgear/xivmath/geartypes";
+import {FoodItem, GearItem, JobMultipliers, Materia, OccGearSlotKey, RawStatKey} from "@xivgear/xivmath/geartypes";
 // import {XivApiDataManager} from "./datamanager_xivapi";
 import {NewApiDataManager} from "./datamanager_new";
 import {IlvlSyncInfo} from "./datamanager_xivapi";

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // REQUIRED - sets up fake HTML classes
-import 'global-jsdom/register'
+import 'global-jsdom/register';
 import {describe, it} from "mocha";
 import {assize, dia, exampleGearSet, filler, lily, misery, nop, pom} from "./common_values";
 import * as assert from "assert";
@@ -39,7 +39,7 @@ export const testSimSpec: SimSpec<TestMultiCycleSim, TestSimSettingsExternal> = 
     },
     stub: "test-whm-sim",
     supportedJobs: ['WHM'],
-    isDefaultSim: false
+    isDefaultSim: false,
 };
 
 export interface TestSimResult extends CycleSimResult {
@@ -98,7 +98,7 @@ class TestMultiCycleSim extends BaseMultiCycleSim<TestSimResult, TestSimSettings
                     }
                     cycle.useUntil(filler, 'end');
                 });
-            }
+            },
 
         }];
     }
@@ -147,7 +147,7 @@ class TestCustomMultiCycleSim extends BaseMultiCycleSim<TestSimResult, TestSimSe
                 cp.use(dia);
                 cp.use(nop);
                 outer.fillerCount = cp.count;
-            }
+            },
         }];
     }
 }
@@ -162,7 +162,7 @@ export const testCustomSimSpec: SimSpec<TestCustomMultiCycleSim, TestSimSettings
     },
     stub: "test-custom-sim",
     supportedJobs: ['WHM'],
-    isDefaultSim: false
+    isDefaultSim: false,
 };
 describe('Sim with custom cycle processor', () => {
     // Test the simulation

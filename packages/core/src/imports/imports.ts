@@ -42,21 +42,21 @@ export function parseImport(text: string): ImportSpec {
         return {
             importType: "shortlink",
             rawUuid: slExec[1],
-        }
+        };
     }
     const sheetExec = importSheetUrlRegex.exec(text) || importSheetUrlRegexNew.exec(text);
     if (sheetExec !== null) {
         return {
             importType: "json",
-            rawData: decodeURIComponent(sheetExec[1])
-        }
+            rawData: decodeURIComponent(sheetExec[1]),
+        };
     }
-    const setExec = importSetUrlRegex.exec(text)|| importSetUrlRegexNew.exec(text);
+    const setExec = importSetUrlRegex.exec(text) || importSetUrlRegexNew.exec(text);
     if (setExec !== null) {
         return {
             importType: "json",
-            rawData: decodeURIComponent(setExec[1])
-        }
+            rawData: decodeURIComponent(setExec[1]),
+        };
     }
     const etroExec = etroRegex.exec(text);
     // TODO: check level as well
@@ -70,23 +70,23 @@ export function parseImport(text: string): ImportSpec {
         return {
             importType: 'etro',
             rawUuids: uuids,
-        }
+        };
     }
     const bisExec = bisRegex.exec(text) || bisRegexNew.exec(text);
     if (bisExec !== null) {
         return {
             importType: 'bis',
-            path: [bisExec[1] as JobName, bisExec[2], bisExec[3]]
-        }
+            path: [bisExec[1] as JobName, bisExec[2], bisExec[3]],
+        };
     }
     try {
         JSON.parse(text);
         return {
             importType: 'json',
-            rawData: text
-        }
+            rawData: text,
+        };
     }
-    catch (e) {
+    catch (_) {
         // Fall through to return
     }
     return null;

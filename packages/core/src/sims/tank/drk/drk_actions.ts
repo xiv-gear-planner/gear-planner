@@ -116,7 +116,7 @@ export const SaltedEarth: DrkOgcdAbility = {
     id: 3639,
     attackType: "Ability",
     activatesBuffs: [SaltedEarthBuff],
-    potency: 50, 
+    potency: 50,
     dot: {
         // This is technically just the ID of the salted earth buff, but
         // it'll do. It's important this is a buff because of speed scaling.
@@ -163,10 +163,11 @@ export const EdgeOfShadow: DrkOgcdAbility = {
     updateMP: (gauge: DrkGauge) => {
         if (gauge.darkArts) {
             gauge.darkArts = false;
-        } else {
+        }
+        else {
             gauge.magicPoints -= 3000;
         }
-    }
+    },
 };
 
 export const TheBlackestNight: DrkOgcdAbility = {
@@ -178,7 +179,7 @@ export const TheBlackestNight: DrkOgcdAbility = {
     cooldown: {
         time: 15,
     },
-    updateMP: (gauge: DrkGauge) => { 
+    updateMP: (gauge: DrkGauge) => {
         gauge.magicPoints -= 3000;
         // For the sake of ease, we'll assume that the TBN pops immediately. This is
         // naturally imperfect, but is perfectly serviceable for the purposes of a
@@ -200,7 +201,7 @@ export const Shadowbringer: DrkOgcdAbility = {
 };
 
 // While Living Shadow abilities are actually Weaponskills in some cases,
-// they've all been programmed to be abilities so that it doesn't roll GCD. 
+// they've all been programmed to be abilities so that it doesn't roll GCD.
 //
 // This shouldn't change anything damage wise.
 //
@@ -212,11 +213,11 @@ export const Shadowbringer: DrkOgcdAbility = {
 // Bloodspiller
 // Carve and Spit (Disesteem(AoE) at level 100)
 
-// Esteem has the same stats as the player but ignores skill speed, Tank Mastery, and party strength bonus. 
+// Esteem has the same stats as the player but ignores skill speed, Tank Mastery, and party strength bonus.
 // It also substitutes Midlander racial strength bonus regardless of the player's race.
 // It has an alternate strength scaling.
 
-// Esteem updates buffs/debuffs in real time. It is NOT affected by Darkside or by Weakness, 
+// Esteem updates buffs/debuffs in real time. It is NOT affected by Darkside or by Weakness,
 // but mirrors all other statuses on the player (including tincture, AST cards, DNC partner buffs, and Damage Down).
 export const LivingShadow: DrkOgcdAbility = {
     type: 'ogcd',

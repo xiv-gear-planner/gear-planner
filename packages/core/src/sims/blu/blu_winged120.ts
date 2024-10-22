@@ -26,7 +26,7 @@ export const BluWinged120Spec: SimSpec<BluWinged120Sim, BluWinged120SettingsExte
 
     loadSavedSimInstance(exported: BluWinged120SettingsExternal) {
         return new BluWinged120Sim(exported);
-    }
+    },
 };
 
 export class BluWinged120Sim extends blu.BluSim<BluWinged120SimResult, BluWinged120Settings> {
@@ -84,8 +84,7 @@ export class BluWinged120Sim extends blu.BluSim<BluWinged120SimResult, BluWinged
 
         if (!weaveSoon && cp.bleedEnd < nextBleedStart &&
             Math.min(bloomCd.readyAt.absolute - bleedComboTime,
-            cp.remainingTime - bleedComboTime) > 15)
-        {
+                cp.remainingTime - bleedComboTime) > 15) {
             cp.use(blu.Bristle);
             this.useOgcdFiller(cp);
             cp.use(blu.SongOfTorment);
@@ -108,8 +107,7 @@ export class BluWinged120Sim extends blu.BluSim<BluWinged120SimResult, BluWinged
 
         // if fight is about to end, use remaining Winged Reprobation stacks
         if (cp.remainingTime < blu.WingedReprobation.cooldown.time &&
-            cp.isReady(blu.WingedReprobation))
-        {
+            cp.isReady(blu.WingedReprobation)) {
             cp.use(blu.WingedReprobation);
             this.useOgcdFiller(cp);
             return;
@@ -136,21 +134,23 @@ export class BluWinged120Sim extends blu.BluSim<BluWinged120SimResult, BluWinged
                 cp.use(blu.MoonFlute);
                 cp.use(blu.JKick);
                 cp.use(blu.TripleTrident);
-                
-                // cycle based off of Nightbloom (fixed cooldown: 120s)                
+
+                // cycle based off of Nightbloom (fixed cooldown: 120s)
                 cp.remainingCycles(cycle => {
                     cycle.use(blu.Nightbloom);
                     cycle.use(blu.WingedReprobation);
                     if (cycle.cycleNumber === 0) {
                         cycle.use(blu.FeatherRain);
-                    } else {
+                    }
+                    else {
                         sim.useOgcdFiller(cp);
                     }
                     cycle.use(blu.SeaShanty);
                     cycle.use(blu.WingedReprobation);
                     if (cycle.cycleNumber === 0) {
                         cycle.use(blu.ShockStrike);
-                    } else {
+                    }
+                    else {
                         sim.useOgcdFiller(cp);
                     }
                     cycle.use(blu.BeingMortal);
@@ -179,28 +179,32 @@ export class BluWinged120Sim extends blu.BluSim<BluWinged120SimResult, BluWinged
                         cycle.use(blu.Tingle);
                         if (cp.isReady(blu.RoseOfDestruction)) {
                             cycle.use(blu.RoseOfDestruction);
-                        } else {
+                        }
+                        else {
                             cycle.use(blu.FeculentFlood);
                         }
                         cycle.use(blu.MoonFlute);
                         sim.useOgcdFiller(cp);
                         cycle.use(blu.TripleTrident);
-                    } else {
+                    }
+                    else {
                         // otherwise, finish off the fight with a Final Sting combo
                         if (cp.isReady(blu.RoseOfDestruction)) {
                             cycle.use(blu.RoseOfDestruction);
-                        } else {
+                        }
+                        else {
                             if (cp.isReady(blu.WingedReprobation)) {
                                 cycle.use(blu.WingedReprobation);
                                 sim.useOgcdFiller(cp);
-                            } else {
+                            }
+                            else {
                                 cycle.use(blu.FeculentFlood);
                             }
                         }
                         sim.useStingCombo(cp);
                     }
                 });
-            }
+            },
         }];
     }
 }

@@ -51,11 +51,11 @@ export class MeldSolverDialog extends BaseModal {
 
         this.settingsDiv = new MeldSolverSettingsMenu(sheet, set);
 
-        let meld_solve_start: number;
+        let meldSolveStart: number;
 
         this.solveMeldsButton = makeActionButton("Solve Melds", async () => {
             this.solver = new MeldSolver(sheet);
-            meld_solve_start = Date.now();
+            meldSolveStart = Date.now();
 
             this.buttonArea.removeChild(this.solveMeldsButton);
             this.showProgress();
@@ -70,7 +70,7 @@ export class MeldSolverDialog extends BaseModal {
                 });
             solverPromise.then(([set, dps]) => this.solveResultReceived(set, dps));
             recordEvent("SolveMelds", {
-                "Total Time Taken: ": Date.now() - (meld_solve_start ?? Date.now()),
+                "Total Time Taken: ": Date.now() - (meldSolveStart ?? Date.now()),
             });
             solverPromise.catch((err) => console.log(err));
         });
@@ -204,7 +204,7 @@ class MeldSolverSettingsMenu extends HTMLDivElement {
         this.simSettings = {
             sim: sheet.sims.at(0),
             sets: undefined, // Not referenced in UI
-        }
+        };
 
 
         this.targetGcdInput = new FieldBoundFloatField(this.gearsetGenSettings, 'targetGcd', {
@@ -220,13 +220,13 @@ class MeldSolverSettingsMenu extends HTMLDivElement {
                 else if (val > MAX_GCD) {
                     ctx.failValidation("Cannot be greater than " + MAX_GCD);
                 }
-            }]
+            }],
         });
 
         this.useTargetGcdCheckBox = new FieldBoundCheckBox(this.gearsetGenSettings, 'useTargetGcd');
         this.useTargetGcdCheckBox.classList.add('meld-solver-settings');
         this.targetGcdInput.pattern = '\\d\\.\\d\\d?';
-        this.targetGcdInput.title = 'Solve for the best set with this GCD'
+        this.targetGcdInput.title = 'Solve for the best set with this GCD';
         this.targetGcdInput.classList.add('meld-solver-target-gcd-input');
         this.targetGcdInput.disabled = true;
 
@@ -249,12 +249,12 @@ class MeldSolverSettingsMenu extends HTMLDivElement {
             value => {
                 return value ? value.displayName : "None";
             },
-            [...sheet.sims],
+            [...sheet.sims]
         );
         this.simDropdown.classList.add('meld-solver-sim-dropdown');
 
         const span1 = document.createElement('li');
-        span1.replaceChildren(this.overwriteMateriaCheckbox, this.overwriteMateriaText)
+        span1.replaceChildren(this.overwriteMateriaCheckbox, this.overwriteMateriaText);
 
         const span2 = document.createElement('li');
         span2.replaceChildren(this.useTargetGcdCheckBox, targetGcdText, this.targetGcdInput);
@@ -268,11 +268,11 @@ class MeldSolverSettingsMenu extends HTMLDivElement {
             span1,
             span2,
             span3
-        )
+        );
 
         this.useTargetGcdCheckBox.onclick = (evt) => {
             this.targetGcdInput.disabled = !this.targetGcdInput.disabled;
-        }
+        };
 
         this.replaceChildren(this.checkboxContainer);
         this.disableables = [this.overwriteMateriaCheckbox, this.useTargetGcdCheckBox, this.targetGcdInput, this.simDropdown];
@@ -306,11 +306,11 @@ class MateriaEntry extends HTMLDivElement {
 
         this.statText = document.createElement('span');
         this.statText.textContent = `+${materia.primaryStatValue} ${STAT_ABBREVIATIONS[materia.primaryStat]}`;
-        this.statText.classList.add('meld-solver-result-materia-entry-stat')
+        this.statText.classList.add('meld-solver-result-materia-entry-stat');
 
         this.countText = document.createElement('span');
         this.countText.textContent = `× ${count}`;
-        this.countText.classList.add('meld-solver-result-materia-entry-count')
+        this.countText.classList.add('meld-solver-result-materia-entry-count');
 
         this.textContainer = document.createElement('div');
         this.textContainer.replaceChildren(this.statText, this.countText);
@@ -349,7 +349,7 @@ class MeldSolverConfirmationDialog extends BaseModal {
             this.headerText = "No Results Found";
 
             const textElement = document.createElement('span');
-            textElement.textContent = "The solver didn't find any results. Try relaxing some of the settings."
+            textElement.textContent = "The solver didn't find any results. Try relaxing some of the settings.";
             this.contentArea.replaceChildren(textElement);
             this.addButton(makeActionButton("Ok", (_ev) => this.close()));
             return;
@@ -373,11 +373,11 @@ class MeldSolverConfirmationDialog extends BaseModal {
             }
             closeParent();
             this.close();
-        })
+        });
 
         this.discardButton = makeActionButton("Discard", (_ev) => {
             this.close();
-        })
+        });
 
         this.addButton(this.applyButton);
         this.addButton(this.discardButton);
@@ -399,7 +399,7 @@ class MeldSolverConfirmationDialog extends BaseModal {
         const [oldResultElem, newResultElem] = [document.createElement('span'), document.createElement('span')];
         oldResultElem.textContent = oldSimResult.toFixed(2);
         newResultElem.textContent = newSimResult.toFixed(2);
-        
+
         let delta = newSimResult - oldSimResult;
         if (delta / newSimResult < 0.001) {
             delta = newSimResult * 0.001;
@@ -407,8 +407,8 @@ class MeldSolverConfirmationDialog extends BaseModal {
 
         oldResultElem.classList.add(`meld-solver-result-set-sim`);
         newResultElem.classList.add(`meld-solver-result-set-sim`);
-        oldResultElem.style.setProperty("--sim-result-relative", 0 + '%')
-        newResultElem.style.setProperty("--sim-result-relative", ((newSimResult - oldSimResult) / delta * 100).toFixed(1) + '%')
+        oldResultElem.style.setProperty("--sim-result-relative", 0 + '%');
+        newResultElem.style.setProperty("--sim-result-relative", ((newSimResult - oldSimResult) / delta * 100).toFixed(1) + '%');
         if (newSimResult > oldSimResult) {
             newResultElem.style.fontWeight = "bold";
         }
@@ -421,7 +421,7 @@ class MeldSolverConfirmationDialog extends BaseModal {
         const newList = document.createElement('ul');
         for (const [mat, [oldTotal, newTotal]] of matTotals) {
             const [oldItem, newItem] = [document.createElement('li'), document.createElement('li')];
-        
+
             const [oldEntry, newEntry] = [new MateriaEntry(mat, oldTotal), new MateriaEntry(mat, newTotal)];
 
             if (oldTotal === 0) {
@@ -431,7 +431,7 @@ class MeldSolverConfirmationDialog extends BaseModal {
                 newEntry.classList.add('meld-solver-result-materia-entry-zero');
             }
 
-            const delta = newTotal - oldTotal
+            const delta = newTotal - oldTotal;
             const deltaElem = document.createElement('div');
             deltaElem.classList.add('meld-solver-result-materia-entry-delta');
             deltaElem.textContent = delta === 0 ? "" : `(${delta > 0 ? "+" : ""}${delta})`;

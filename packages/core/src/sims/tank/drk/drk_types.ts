@@ -1,18 +1,18 @@
-import { Ability, GcdAbility, OgcdAbility, Buff, BuffController } from "@xivgear/core/sims/sim_types"
-import { DrkGauge } from "./drk_gauge"
+import { Ability, GcdAbility, OgcdAbility, Buff, BuffController } from "@xivgear/core/sims/sim_types";
+import { DrkGauge } from "./drk_gauge";
 import { removeSelf } from "@xivgear/core/sims/common/utils";
 
 /** A DRK-specific ability. */
 export type DrkAbility = Ability & Readonly<{
     /** Run if an ability needs to update the Blood gauge */
     updateBloodGauge?(gauge: DrkGauge): void;
-    
+
     /** The Blood cost of the ability */
     bloodCost?: number;
 
     /** Run if an ability needs to update MP */
     updateMP?(gauge: DrkGauge): void;
-    
+
     /** The MP cost of the ability */
     mp?: number;
 }>
@@ -46,7 +46,7 @@ export const ScornBuff: Buff = {
     duration: 30,
     selfOnly: true,
     effects: {
-       // Allows usage of Disesteem
+        // Allows usage of Disesteem
     },
     appliesTo: ability => ability.name === "Disesteem",
     beforeSnapshot: removeSelf,
@@ -58,7 +58,7 @@ export const SaltedEarthBuff: Buff = {
     duration: 15,
     selfOnly: true,
     effects: {
-       // Allows usage of Salt and Darkness
+        // Allows usage of Salt and Darkness
     },
     statusId: 749,
 };
@@ -68,33 +68,33 @@ export const BloodWeaponBuff: Buff = {
     duration: 15,
     selfOnly: true,
     effects: {
-       // Adds 10 blood per usage
-       // Adds 600 MP per usage
+        // Adds 10 blood per usage
+        // Adds 600 MP per usage
     },
     stacks: 3,
     appliesTo: ability => ability.type === "gcd",
     beforeAbility<X extends DrkAbility>(buffController: BuffController, ability: X): X {
-        const oldUpdateBlood = ability.updateBloodGauge
-        const oldUpdateMP = ability.updateMP
+        const oldUpdateBlood = ability.updateBloodGauge;
+        const oldUpdateMP = ability.updateMP;
         return {
             ...ability,
             updateBloodGauge: gauge => {
-                gauge.bloodGauge += 10
+                gauge.bloodGauge += 10;
                 if (oldUpdateBlood) {
-                    oldUpdateBlood(gauge)
+                    oldUpdateBlood(gauge);
                 }
             },
             updateMP: gauge => {
-                gauge.magicPoints += 600
+                gauge.magicPoints += 600;
                 if (oldUpdateMP) {
-                    oldUpdateMP(gauge)
+                    oldUpdateMP(gauge);
                 }
             },
         };
     },
     beforeSnapshot<X extends DrkAbility>(buffController: BuffController, ability: X): X {
-        buffController.subtractStacksSelf(1)
-        return ability
+        buffController.subtractStacksSelf(1);
+        return ability;
     },
     statusId: 742,
 };
@@ -104,12 +104,12 @@ export const DeliriumBuff: Buff = {
     duration: 15,
     selfOnly: true,
     effects: {
-       // Allows usage of Delirium combo
+        // Allows usage of Delirium combo
     },
     stacks: 3,
     appliesTo: ability => ability.name === "Scarlet Delirium" || ability.name === "Comeuppance" || ability.name === "Torcleaver",
     beforeSnapshot<X extends Ability>(buffController: BuffController, ability: X): X {
-        buffController.subtractStacksSelf(1)
+        buffController.subtractStacksSelf(1);
         return ability;
     },
     statusId: 3836,

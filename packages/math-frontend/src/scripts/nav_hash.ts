@@ -70,8 +70,8 @@ export function parsePath(originalPath: string[]): NavPath | null {
     if (path.length === 0) {
         return {
             type: 'math',
-            formula: null
-        }
+            formula: null,
+        };
     }
     const mainNav = path[0];
 
@@ -79,7 +79,7 @@ export function parsePath(originalPath: string[]): NavPath | null {
         return {
             type: 'math',
             formula: path.length >= 2 ? path[1] : null,
-        }
+        };
     }
     console.log('Unknown nav path', path);
     return null;

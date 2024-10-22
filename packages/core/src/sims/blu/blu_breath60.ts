@@ -26,7 +26,7 @@ export const BluBreath60Spec: SimSpec<BluBreath60Sim, BluBreath60SettingsExterna
 
     loadSavedSimInstance(exported: BluBreath60SettingsExternal) {
         return new BluBreath60Sim(exported);
-    }
+    },
 };
 
 export class BluBreath60Sim extends blu.BluSim<BluBreath60SimResult, BluBreath60Settings> {
@@ -75,8 +75,7 @@ export class BluBreath60Sim extends blu.BluSim<BluBreath60SimResult, BluBreath60
 
         if (!featherRainSoon && cp.bleedEnd < nextBleedStart &&
             Math.min(bloomCd.readyAt.absolute - bleedComboTime,
-            cp.remainingTime - bleedComboTime) > 15)
-        {
+                cp.remainingTime - bleedComboTime) > 15) {
             cp.use(blu.Bristle);
             this.useOgcdFiller(cp);
             this.useOgcdFiller(cp);
@@ -95,8 +94,7 @@ export class BluBreath60Sim extends blu.BluSim<BluBreath60SimResult, BluBreath60
         // use Rose of Destruction if off cooldown and it won't interfere with the next Flute window
         if (cp.isReady(blu.RoseOfDestruction) &&
             cp.cdTracker.statusOfAt(blu.Quasar, cp.nextGcdTime).readyAt.relative + cp.gcdRecast * 2 >
-            cp.stats.gcdMag(blu.RoseOfDestruction.cooldown.time)) 
-        {
+            cp.stats.gcdMag(blu.RoseOfDestruction.cooldown.time)) {
             cp.use(blu.RoseOfDestruction);
             return;
         }
@@ -149,7 +147,8 @@ export class BluBreath60Sim extends blu.BluSim<BluBreath60SimResult, BluBreath60
                     cycle.use(blu.Quasar);
                     if (cycle.cycleNumber === 0) {
                         cycle.use(blu.FeatherRain);
-                    } else {
+                    }
+                    else {
                         sim.useOgcdFiller(cp);
                     }
                     cycle.use(blu.BreathofMagic);
@@ -207,18 +206,20 @@ export class BluBreath60Sim extends blu.BluSim<BluBreath60SimResult, BluBreath60
                     if (cp.remainingGcdTime > preBloom) {
                         if (cp.isReady(blu.RoseOfDestruction)) {
                             cycle.use(blu.RoseOfDestruction);
-                        } else {
+                        }
+                        else {
                             cycle.use(blu.FeculentFlood);
                         }
                         cycle.use(blu.Whistle);
                         cycle.use(blu.Tingle);
                         cycle.use(blu.MoonFlute);
-                    } else {
+                    }
+                    else {
                         // otherwise, finish off the fight with a Final Sting combo
                         sim.useStingCombo(cp);
                     }
                 });
-            }
+            },
         }];
     }
 }

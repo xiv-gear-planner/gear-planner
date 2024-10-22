@@ -4,10 +4,10 @@ import assert from "assert";
 describe('write proxy', () => {
     it('triggers when written to', () => {
         const foo = {
-            'bar': 10
+            'bar': 10,
         };
         const counter = {
-            count: 0
+            count: 0,
         };
         const proxy = writeProxy(foo, () => counter.count++);
         proxy.bar++;
@@ -17,7 +17,7 @@ describe('write proxy', () => {
         const foo = {
         };
         const counter = {
-            count: 0
+            count: 0,
         };
         const proxy = writeProxy(foo, () => counter.count++);
         proxy['bar'] = 5;
@@ -25,10 +25,10 @@ describe('write proxy', () => {
     });
     it('does not trigger when reading', () => {
         const foo = {
-            'bar': 10
+            'bar': 10,
         };
         const counter = {
-            count: 0
+            count: 0,
         };
         const proxy = writeProxy(foo, () => counter.count++);
         const newVal = proxy.bar + 1;

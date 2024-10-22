@@ -16,7 +16,7 @@ export function requireType<T extends BuiltinType>(input: unknown, expected: T):
                     T extends 'symbol' ? symbol :
                         T extends 'undefined' ? undefined :
                             T extends 'object' ? object :
-                                // eslint-disable-next-line @typescript-eslint/ban-types
+                                // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
                                 T extends 'function' ? Function :
                                     never {
     const actualType = typeof input;
@@ -70,7 +70,7 @@ export function requireArrayTyped<T extends BuiltinType>(input: unknown, memberT
                     T extends 'symbol' ? symbol[] :
                         T extends 'undefined' ? undefined[] :
                             T extends 'object' ? object[] :
-                                // eslint-disable-next-line @typescript-eslint/ban-types
+                                // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
                                 T extends 'function' ? Function[] :
                                     never {
     const asArray = requireArray(input);

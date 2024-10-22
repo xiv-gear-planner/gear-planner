@@ -60,7 +60,7 @@ export class WorkerPool {
         return this.freeWorkers.length;
     }
 
-    constructor(numWorkers: 4) {
+    constructor(numWorkers: number) {
 
         this.currJobId = 0;
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -85,7 +85,7 @@ export class WorkerPool {
             this.resolves.get(jobId)?.reject(response.data ?? null);
         }
 
-        if (this.messageQueue.length != 0) {
+        if (this.messageQueue.length !== 0) {
             const msg = this.messageQueue.pop();
             this.assignWorker(msg, worker);
             return;
@@ -113,8 +113,8 @@ export class WorkerPool {
     public requestWork(request: AnyWorkRequest, updateCallback?: (upd: unknown) => void): { promise: Promise<unknown>, jobId: number } {
         const internalRequest: WorkRequestInternal = {
             jobId: this.createJobId(),
-            request: request
-        }
+            request: request,
+        };
         if (updateCallback) {
             this.updateCallbacks.set(internalRequest.jobId, updateCallback);
         }
@@ -130,12 +130,11 @@ export class WorkerPool {
                 this.resolves.set(internalRequest.jobId, { resolve: resolve, reject: reject });
             }),
             jobId: internalRequest.jobId,
-        }
+        };
     }
 
     // Webpack sees this and it causes it to generate a separate js file for the worker.
     // import.meta.url doesn't actually work for this - we need to use document.location as shown in the ctor.
-    // TODO: make sure the worker JS is not also ending up in the main JS
     private makeUselessWorker() {
         new Worker(new URL(
             // @ts-expect-error idk
@@ -143,23 +142,27 @@ export class WorkerPool {
         );
     }
 
+    workerId = 0;
+
     private makeActualWorker(): Worker {
         const worker = new Worker(new URL(
             'src_scripts_workers_worker_main_ts.js', document.location.toString())
-        );
+        , {
+            name: 'worker-' + this.workerId++,
+        });
         worker.onmessage = (event) => {
             const id = this.activeJobIds.get(worker);
             this.onWorkerMessage(worker, id, event.data);
-        }
+        };
 
         worker.onerror = (_event: ErrorEvent) => {
             this.freeWorkers.push(worker);
-        }
+        };
 
         return worker;
     }
 
-    public async initializeworkers(sheet: GearPlanSheet) {
+    public async initializeWorkers(sheet: GearPlanSheet) {
         const promises = [];
         if (this.freeWorkers.length !== this.workers.length) {
             console.error(`Can't initialize workers: Worker busy. Workers: ${this.workers.length}, free: ${this.freeWorkers.length}`);
@@ -169,7 +172,7 @@ export class WorkerPool {
             jobType: 'workerInitialization',
             sheet: sheet.exportSheet(),
             data: undefined,
-        }
+        };
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         for (const _w of this.workers) {
 
@@ -181,6 +184,7 @@ export class WorkerPool {
             console.log("Promise done");
         }
     }
+
     currJobId: number = 0;
     private createJobId() {
         return this.currJobId++;
@@ -208,7 +212,7 @@ export class WorkerPool {
             jobType: 'workerInitialization',
             sheet: sheet.exportSheet(),
             data: undefined,
-        }
+        };
 
         // Kinda hacky, but it works.
         //requestWork() pulls off the back of freeWorkers so we have a guarantee that the right worker gets init'ed
@@ -225,8 +229,8 @@ export class WorkerPool {
 
         return null;
     }
-
-
 }
 
+// TODO: pool size
+// Going too high seemed to slow it down even on a system with more than enough cores
 export const workerPool: WorkerPool = new WorkerPool(4);

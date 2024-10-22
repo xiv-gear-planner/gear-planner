@@ -57,7 +57,7 @@ class WhmGaugeGui {
                     return div;
                 }
                 return document.createTextNode("");
-            }
+            },
         },
         ];
     }

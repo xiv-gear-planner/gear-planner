@@ -6,12 +6,12 @@ describe("Materia Memory", () => {
     it("can save and restore", () => {
         const mem = new MateriaMemory();
         const gi1: GearItem = {
-            id: 1234
+            id: 1234,
         } as GearItem;
         const slot: MateriaSlot = {
             allowsHighGrade: true,
             maxGrade: 12,
-            ilvl: 999
+            ilvl: 999,
         };
         const mat1: Materia = {
             iconUrl: undefined,
@@ -22,9 +22,9 @@ describe("Materia Memory", () => {
             primaryStat: 'determination',
             primaryStatValue: 50,
             stats: new RawStats({
-                determination: 50
+                determination: 50,
             }),
-            ilvl: 690
+            ilvl: 690,
         };
         const mat2: Materia = {
             iconUrl: undefined,
@@ -35,29 +35,29 @@ describe("Materia Memory", () => {
             primaryStat: 'dhit',
             primaryStatValue: 10,
             stats: new RawStats({
-                dhit: 10
+                dhit: 10,
             }),
-            ilvl: 690
+            ilvl: 690,
         };
         const slots1: MeldableMateriaSlot[] = [
             {
                 materiaSlot: slot,
-                equippedMateria: mat1
+                equippedMateria: mat1,
             },
             {
                 materiaSlot: slot,
-                equippedMateria: mat2
-            }
+                equippedMateria: mat2,
+            },
         ];
         const slots2: MeldableMateriaSlot[] = [
             {
                 materiaSlot: slot,
-                equippedMateria: undefined
+                equippedMateria: undefined,
             },
             {
                 materiaSlot: slot,
-                equippedMateria: mat1
-            }
+                equippedMateria: mat1,
+            },
         ];
         // Equip the same item in both slots
         const eq1: EquippedItem = new EquippedItem(gi1, slots1);

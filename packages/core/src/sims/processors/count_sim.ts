@@ -40,7 +40,7 @@ export type BuffWindowUsages = {
 export type SkillCount = [ability: Ability, count: number];
 
 export abstract class BaseUsageCountSim<ResultType extends CountSimResult, InternalSettingsType extends SimSettings>
-    implements Simulation<ResultType, InternalSettingsType, ExternalCountSettings<InternalSettingsType>> {
+implements Simulation<ResultType, InternalSettingsType, ExternalCountSettings<InternalSettingsType>> {
 
     abstract displayName: string;
     abstract shortName: string;
@@ -121,7 +121,7 @@ export abstract class BaseUsageCountSim<ResultType extends CountSimResult, Inter
             minDuration: durationKeys.length > 0 ? durationKeys[0] : null,
             skills: [...outOfBuffs],
             buffs: [],
-            buffEffects: noBuffEffects()
+            buffEffects: noBuffEffects(),
         });
         // One bucket per buff duration
         for (let i = 0; i < durationKeys.length; i++) {
@@ -133,7 +133,7 @@ export abstract class BaseUsageCountSim<ResultType extends CountSimResult, Inter
                 minDuration: minDuration,
                 skills: skillsDurationMap.get(duration),
                 buffs: buffs,
-                buffEffects: combineBuffEffects(buffs)
+                buffEffects: combineBuffEffects(buffs),
             });
         }
         // Sum damage
@@ -204,7 +204,7 @@ export abstract class BaseUsageCountSim<ResultType extends CountSimResult, Inter
         return {
             customSettings: this.settings,
             buffConfig: this.buffManager.exportSetting(),
-            resultSettings: this.resultSettings
+            resultSettings: this.resultSettings,
         };
     }
 }

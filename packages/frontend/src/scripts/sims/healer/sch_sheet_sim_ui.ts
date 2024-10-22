@@ -43,7 +43,7 @@ class SchGaugeGui {
                     return div;
                 }
                 return document.createTextNode("");
-            }
+            },
         },
         ];
     }
@@ -53,7 +53,7 @@ export class SchSimGui extends BaseMultiCycleSimGui<SchSimResult, SchSettings> {
         const configDiv = document.createElement("div");
         const edField = new FieldBoundIntField<SchSettings>(settings, 'edsPerAfDiss', {
             inputMode: 'number',
-            postValidators: [nonNegative]
+            postValidators: [nonNegative],
         });
         edField.id = 'edField';
         const label = labelFor('Energy Drains per Aetherflow/Dissipation', edField);

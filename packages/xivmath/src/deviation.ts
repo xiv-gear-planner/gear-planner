@@ -16,13 +16,13 @@ export function addValues(...values: ValueWithDev[]): ValueWithDev {
     let varianceSum = 0;
     for (const value of values) {
         sum += value.expected;
-        varianceSum += value.stdDev ** 2
+        varianceSum += value.stdDev ** 2;
     }
     const stdDev = Math.sqrt(varianceSum);
     return {
         expected: sum,
-        stdDev: stdDev
-    }
+        stdDev: stdDev,
+    };
 }
 
 /**
@@ -44,8 +44,8 @@ export function multiplyValues(...values: ValueWithDev[]): ValueWithDev {
     const stdDev = Math.sqrt(firstTerm - secondTerm);
     return {
         expected: product,
-        stdDev: stdDev
-    }
+        stdDev: stdDev,
+    };
 }
 
 /**
@@ -72,8 +72,8 @@ export function multiplyIndependent(value: ValueWithDev, scalar: number) {
     return {
         expected: value.expected * scalar,
         // variance = k * dev**2 -> stddev = sqrt(variance)
-        stdDev: Math.sqrt(Math.abs(scalar)) * value.stdDev
-    }
+        stdDev: Math.sqrt(Math.abs(scalar)) * value.stdDev,
+    };
 }
 
 /**
@@ -83,15 +83,15 @@ export function multiplyIndependent(value: ValueWithDev, scalar: number) {
  * while if the roll fails, the value is equal to 1.
  *
  * @param chance The chance for the roll to succeed.
- * @param multiplier The multiplier if the roll fails.
+ * @param multiplier The multiplier if the roll succeeds.
  */
 export function chanceMultiplierStdDev(chance: number, multiplier: number): ValueWithDev {
     const expected = chance * (multiplier - 1) + 1;
     const stdDev = Math.sqrt(chance * (1 - chance)) * (multiplier - 1);
     return {
         expected: expected,
-        stdDev: stdDev
-    }
+        stdDev: stdDev,
+    };
 }
 
 /**
@@ -102,8 +102,8 @@ export function chanceMultiplierStdDev(chance: number, multiplier: number): Valu
 export function fixedValue(value: number): ValueWithDev {
     return {
         expected: value,
-        stdDev: 0
-    }
+        stdDev: 0,
+    };
 }
 
 /**

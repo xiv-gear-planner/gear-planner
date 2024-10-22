@@ -31,7 +31,7 @@ export function recordSheetEvent(eventName: string, sheet: GearPlanSheet, extraD
     const fullData = {
         // ...prepSheetData(sheet),
         ...extraData,
-        sheet: prepSheetData(sheet)
+        sheet: prepSheetData(sheet),
     };
     recordEvent(eventName, fullData);
 }
@@ -40,6 +40,6 @@ function prepSheetData(sheet: GearPlanSheet) {
     return {
         'job': sheet.classJobName,
         'level': sheet.level,
-        'isync': sheet.ilvlSync
-    }
+        'isync': sheet.ilvlSync,
+    };
 }
