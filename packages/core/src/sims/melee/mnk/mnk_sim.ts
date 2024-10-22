@@ -308,11 +308,13 @@ class MNKCycleProcessor extends CycleProcessor {
         const riddleStatus = this.cdTracker.statusOf(RiddleOfFire);
         if (riddleActive) {
             // we are in a burst window
+            const riddleWillFitBlitz = this.getActiveBuffs(this.currentTime + this.timeToExecuteNGcds(4)).find(buff => buff.statusId === RiddleOfFireBuff.statusId);
             return form?.statusId !== PerfectBalanceBuff.statusId // not already building a blitz
                 && (OPO_ABILITIES.includes(gcd.id) // just executed an opo ability
                     // the fight is about to end and we need to blitz + SSS
                     // this condition will skip a formless-fist opo
                     || this.remainingGcdTime <= this.cdTracker.statusOf(PerfectBalance).currentCharges * this.timeToExecuteNGcds(5))
+                && riddleWillFitBlitz
                 && this.cdTracker.canUse(PerfectBalance);
         }
         else if (riddleStatus.readyAt.absolute >= this.totalTime) {
