@@ -148,11 +148,9 @@ class MNKCycleProcessor extends CycleProcessor {
         this.useGcd(LeapingOpo);
     }
 
-    /**
-     * Executes a monk gcd and handles buff cleanup and ogcd weaving
-     */
-    doStep(gcd: MnkGcdAbility) {
+    doStep() {
         const form = this.getCurrentForm();
+        const gcd = this.chooseGcd();
         this.useGcd(gcd);
         if (gcd.id === FiresReply.id) {
             this.removeBuff(OpoForm);
@@ -425,7 +423,7 @@ export class MnkSim extends BaseMultiCycleSim<CycleSimResult, MnkSettings, MNKCy
                     cp.setOpener("LL");
                     cp.doubleLunarOpener();
                     while (cp.remainingGcdTime > 0) {
-                        cp.doStep(cp.chooseGcd());
+                        cp.doStep();
                     }
                 },
             },
@@ -436,7 +434,7 @@ export class MnkSim extends BaseMultiCycleSim<CycleSimResult, MnkSettings, MNKCy
                     cp.setOpener("SL");
                     cp.solarLunarOpener();
                     while (cp.remainingGcdTime > 0) {
-                        cp.doStep(cp.chooseGcd());
+                        cp.doStep();
                     }
                 },
             },
