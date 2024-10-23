@@ -360,9 +360,14 @@ class MNKCycleProcessor extends CycleProcessor {
         }
         else {
             // riddle will be back or is currently off cooldown
+            if (this.gauge.fullNadis && this.opener == "SL"){
+                // look for a +1 opo instead of a -2-0 opo
+                // TODO the -3 umm ackshually window takes dragon kick sequencing in to account
+                console.log("looking for a +1");
+                return false;
+            }
             return form?.statusId !== PerfectBalanceBuff.statusId // not already building a blitz
                 && OPO_ABILITIES.includes(gcd.id) // just executed an opo ability
-                // TODO odd minute lunar nadi windows should look for a +1 opo not a -3 thru 0 opo
                 && riddleStatus.readyAt.relative <= this.timeToExecuteNGcds(3) // Within 3 gcds of RoF coming off cooldown
                 && this.cdTracker.canUse(PerfectBalance);
         }
