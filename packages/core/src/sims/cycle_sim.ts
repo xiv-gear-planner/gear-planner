@@ -894,19 +894,16 @@ export class CycleProcessor {
             return ability;
         }
         const level = this.stats.level;
-        console.log("Applying modifications:", ability.levelModifiers);
-        const relevantModifications = ability.levelModifiers.filter(mod => mod.minLevel <= level && mod.maxLevel >= level);
-        console.log("Relevant modifications:", relevantModifications);
+        const relevantModifications = ability.levelModifiers.filter(mod => mod.minLevel <= level);
         if (relevantModifications.length === 0) {
             return ability;
         }
-        // Just in case there's multiple, pick the one with the highest min level. There should not be multiple.
+        // If there's multiple, pick the one with the highest min level.
         const modification = relevantModifications.reduce((currentLowest, mod) => currentLowest.minLevel > mod.minLevel ? currentLowest : mod);
         const modifiedAbility = {
             ...ability,
             ...modification,
             minLevel: undefined,
-            maxLevel: undefined,
         };
         return modifiedAbility;
     }

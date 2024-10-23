@@ -250,7 +250,7 @@ export type DamagingAbility = Readonly<{
  */
 export type LevelModifier = ({
     minLevel: number,
-    maxLevel: number })
+})
 & Omit<Partial<BaseAbility>, 'levelModifiers'>;
 
 /**
@@ -320,8 +320,8 @@ export type BaseAbility = Readonly<{
     appDelay?: number,
     /**
      * A list of level modifiers, that can override properties of the ability
-     * at the specified level. Two level modifiers should not overlap, i.e.
-     * you should have 1-50 and 51-100 instead of 1-100 and 51-100.
+     * at the specified level. An action will have its properties overriden for
+     * the highest `minLevel` specified.
      */
     levelModifiers?: LevelModifier[],
 } & (NonDamagingAbility | DamagingAbility)>;

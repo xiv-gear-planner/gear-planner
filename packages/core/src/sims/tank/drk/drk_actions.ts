@@ -5,20 +5,18 @@ export const HardSlash: DrkGcdAbility = {
     type: 'gcd',
     name: "Hard Slash",
     id: 3617,
-    potency: 300,
+    potency: 150,
     attackType: "Weaponskill",
     gcd: 2.5,
     cast: 0,
     levelModifiers: [
         {
-            minLevel: 1,
-            maxLevel: 83,
-            potency: 150,
+            minLevel: 84,
+            potency: 180,
         },
         {
-            minLevel: 84,
-            maxLevel: 93,
-            potency: 180,
+            minLevel: 94,
+            potency: 300,
         },
     ],
 };
@@ -27,21 +25,19 @@ export const SyphonStrike: DrkGcdAbility = {
     type: 'gcd',
     name: "Syphon Strike",
     id: 3623,
-    potency: 380,
+    potency: 240, //380
     attackType: "Weaponskill",
     gcd: 2.5,
     cast: 0,
     updateMP: gauge => gauge.magicPoints += 600,
     levelModifiers: [
         {
-            minLevel: 1,
-            maxLevel: 83,
-            potency: 240,
+            minLevel: 84,
+            potency: 260,
         },
         {
-            minLevel: 84,
-            maxLevel: 93,
-            potency: 260,
+            minLevel: 94,
+            potency: 380,
         },
     ],
 };
@@ -50,21 +46,19 @@ export const Souleater: DrkGcdAbility = {
     type: 'gcd',
     name: "Souleater",
     id: 3632,
-    potency: 480,
+    potency: 320,
     attackType: "Weaponskill",
     gcd: 2.5,
     cast: 0,
     updateBloodGauge: gauge => gauge.bloodGauge += 20,
     levelModifiers: [
         {
-            minLevel: 1,
-            maxLevel: 83,
-            potency: 320,
+            minLevel: 84,
+            potency: 360,
         },
         {
-            minLevel: 84,
-            maxLevel: 93,
-            potency: 360,
+            minLevel: 94,
+            potency: 480,
         },
     ],
 };
@@ -73,16 +67,15 @@ export const Bloodspiller: DrkGcdAbility = {
     type: 'gcd',
     name: "Bloodspiller",
     id: 7392,
-    potency: 580,
+    potency: 500,
     attackType: "Weaponskill",
     gcd: 2.5,
     bloodCost: 50,
     updateBloodGauge: gauge => gauge.bloodGauge -= 50,
     levelModifiers: [
         {
-            minLevel: 1,
-            maxLevel: 93,
-            potency: 500,
+            minLevel: 94,
+            potency: 580,
         },
     ],
 };
@@ -141,7 +134,7 @@ export const CarveAndSpit: DrkOgcdAbility = {
     type: 'ogcd',
     name: "Carve and Spit",
     id: 3643,
-    potency: 540,
+    potency: 510,
     attackType: "Ability",
     cooldown: {
         time: 60,
@@ -150,9 +143,8 @@ export const CarveAndSpit: DrkOgcdAbility = {
     updateMP: gauge => gauge.magicPoints += 600,
     levelModifiers: [
         {
-            minLevel: 1,
-            maxLevel: 93,
-            potency: 510,
+            minLevel: 94,
+            potency: 540,
         },
     ],
 };
@@ -162,7 +154,7 @@ export const SaltedEarth: DrkOgcdAbility = {
     name: "Salted Earth",
     id: 3639,
     attackType: "Ability",
-    activatesBuffs: [SaltedEarthBuff],
+    activatesBuffs: [],
     potency: 50,
     dot: {
         // This is technically just the ID of the salted earth buff, but
@@ -177,9 +169,8 @@ export const SaltedEarth: DrkOgcdAbility = {
     },
     levelModifiers: [
         {
-            minLevel: 1,
-            maxLevel: 85,
-            activatesBuffs: [],
+            minLevel: 86,
+            activatesBuffs: [SaltedEarthBuff],
         },
     ],
 };
@@ -272,16 +263,15 @@ export const LivingShadow: DrkOgcdAbility = {
     // Total potency of its abilities is 2450.
     potency: null,
     attackType: "Ability",
-    activatesBuffs: [ScornBuff],
+    activatesBuffs: [],
     cooldown: {
         time: 120,
         charges: 1,
     },
     levelModifiers: [
         {
-            minLevel: 1,
-            maxLevel: 99,
-            activatesBuffs: [],
+            minLevel: 100,
+            activatesBuffs: [ScornBuff],
         },
     ],
 };
@@ -300,13 +290,12 @@ export const LivingShadowAbyssalDrain: DrkOgcdAbility = {
     name: "(Living Shadow) Abyssal Drain",
     animationLock: 0,
     id: 17904,
-    potency: 420,
+    potency: 340,
     attackType: "Ability",
     levelModifiers: [
         {
-            minLevel: 1,
-            maxLevel: 87,
-            potency: 340,
+            minLevel: 88,
+            potency: 420,
         },
     ],
 };
@@ -325,13 +314,12 @@ export const LivingShadowEdgeOfShadow: DrkOgcdAbility = {
     name: "(Living Shadow) Edge of Shadow",
     animationLock: 0,
     id: 17908,
-    potency: 420,
+    potency: 340,
     attackType: "Ability",
     levelModifiers: [
         {
-            minLevel: 1,
-            maxLevel: 87,
-            potency: 340,
+            minLevel: 88,
+            potency: 420,
         },
     ],
 };
@@ -351,13 +339,12 @@ export const LivingShadowBloodspiller: DrkOgcdAbility = {
     name: "(Living Shadow) Bloodspiller",
     animationLock: 0,
     id: 17909,
-    potency: 420,
+    potency: 340,
     attackType: "Ability",
     levelModifiers: [
         {
-            minLevel: 1,
-            maxLevel: 87,
-            potency: 340,
+            minLevel: 88,
+            potency: 420,
         },
     ],
 };
@@ -368,13 +355,12 @@ export const LivingShadowCarveAndSpit: DrkOgcdAbility = {
     name: "(Living Shadow) Carve And Spit",
     animationLock: 0,
     id: 17915,
-    potency: 420,
+    potency: 340,
     attackType: "Ability",
     levelModifiers: [
         {
-            minLevel: 1,
-            maxLevel: 87,
-            potency: 340,
+            minLevel: 88,
+            potency: 420,
         },
     ],
 };
