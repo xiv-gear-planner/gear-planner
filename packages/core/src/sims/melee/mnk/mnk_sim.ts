@@ -110,18 +110,20 @@ class MNKCycleProcessor extends CycleProcessor {
         this.useGcd(LeapingOpo); this.cleanupForms();
         this.useOgcd(TheForbiddenChakra);
         this.useOgcd(RiddleOfWind);
-        this.useGcd(this.chooseBlitz());
+
+        // Now that all mandatory weaves are done, switch to doStep to handle automatically using TFC
+        this.doStep(this.chooseBlitz());
+        // use this gcd specifically as doStep decides to re-enter perfect balance here which is fine but with
+        // hardcoding costs us a formless gcd from fires reply
         this.useGcd(DragonKick);
-        this.useGcd(WindsReply);
-        this.useGcd(FiresReply);
-        this.useGcd(LeapingOpo);
-        this.cleanupForms();
-        this.useOgcd(PerfectBalance);
-        this.useGcd(DragonKick); this.cleanupForms();
-        this.useGcd(LeapingOpo); this.cleanupForms();
-        this.useGcd(DragonKick); this.cleanupForms();
-        this.useGcd(this.chooseBlitz());
-        this.useGcd(LeapingOpo);
+        this.doStep(WindsReply);
+        this.doStep(FiresReply);
+        this.doStep(LeapingOpo);
+        this.doStep(DragonKick);
+        this.doStep(LeapingOpo);
+        this.doStep(DragonKick);
+        this.doStep(this.chooseBlitz());
+        this.doStep(LeapingOpo);
     }
 
     // 5s DK opener
@@ -138,23 +140,30 @@ class MNKCycleProcessor extends CycleProcessor {
         this.useGcd(LeapingOpo); this.cleanupForms();
         this.useOgcd(TheForbiddenChakra);
         this.useOgcd(RiddleOfWind);
-        this.useGcd(this.chooseBlitz());
+
+        // Now that all mandatory weaves are done, switch to doStep to handle automatically using TFC
+        this.doStep(this.chooseBlitz());
+        // use this gcd specifically as doStep decides to re-enter perfect balance here which is fine but with
+        // hardcoding costs us a formless gcd from fires reply
         this.useGcd(DragonKick);
-        this.useGcd(WindsReply);
-        this.useGcd(FiresReply);
-        this.useGcd(LeapingOpo);
+        this.doStep(WindsReply);
+        this.doStep(FiresReply);
+        this.doStep(LeapingOpo);
+
+        // manual PB because
         this.cleanupForms();
         this.useOgcd(PerfectBalance);
-        this.useGcd(DragonKick); this.cleanupForms();
-        this.useGcd(LeapingOpo); this.cleanupForms();
-        this.useGcd(DragonKick); this.cleanupForms();
-        this.useGcd(this.chooseBlitz());
-        this.useGcd(LeapingOpo);
+        this.doStep(DragonKick);
+        this.doStep(LeapingOpo);
+        this.doStep(DragonKick);
+        this.doStep(this.chooseBlitz());
+        this.doStep(LeapingOpo);
     }
 
-    doStep() {
+    /** gcd may be supplied by openers that want to have ogcd + buff handling done automatically */
+    doStep(gcd? :MnkGcdAbility) {
         const form = this.getCurrentForm();
-        const gcd = this.chooseGcd();
+        gcd ??= this.chooseGcd();
         this.useGcd(gcd);
         if (gcd.id === FiresReply.id) {
             this.removeBuff(OpoForm);
