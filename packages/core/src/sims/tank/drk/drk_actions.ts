@@ -8,6 +8,7 @@ export const HardSlash: DrkGcdAbility = {
     potency: 150,
     attackType: "Weaponskill",
     gcd: 2.5,
+    appDelay: 0.58,
     cast: 0,
     levelModifiers: [
         {
@@ -28,6 +29,7 @@ export const SyphonStrike: DrkGcdAbility = {
     potency: 240, //380
     attackType: "Weaponskill",
     gcd: 2.5,
+    appDelay: 0.62,
     cast: 0,
     updateMP: gauge => gauge.magicPoints += 600,
     levelModifiers: [
@@ -49,6 +51,7 @@ export const Souleater: DrkGcdAbility = {
     potency: 320,
     attackType: "Weaponskill",
     gcd: 2.5,
+    appDelay: 0.62,
     cast: 0,
     updateBloodGauge: gauge => gauge.bloodGauge += 20,
     levelModifiers: [
@@ -70,6 +73,7 @@ export const Bloodspiller: DrkGcdAbility = {
     potency: 500,
     attackType: "Weaponskill",
     gcd: 2.5,
+    appDelay: 0.80,
     bloodCost: 50,
     updateBloodGauge: gauge => gauge.bloodGauge -= 50,
     levelModifiers: [
@@ -87,6 +91,7 @@ export const ScarletDelirium: DrkGcdAbility = {
     potency: 600,
     attackType: "Weaponskill",
     gcd: 2.5,
+    appDelay: 0.62,
 };
 
 export const Comeuppance: DrkGcdAbility = {
@@ -96,6 +101,7 @@ export const Comeuppance: DrkGcdAbility = {
     potency: 700,
     attackType: "Weaponskill",
     gcd: 2.5,
+    appDelay: 0.67,
 };
 
 export const Torcleaver: DrkGcdAbility = {
@@ -105,16 +111,17 @@ export const Torcleaver: DrkGcdAbility = {
     potency: 800,
     attackType: "Weaponskill",
     gcd: 2.5,
+    appDelay: 0.62,
 };
 
 export const Unmend: DrkGcdAbility = {
     type: 'gcd',
     name: "Unmend",
-    appDelay: 1,
     id: 3624,
     potency: 150,
     attackType: "Spell",
     gcd: 2.5,
+    appDelay: 1,
 };
 
 export const Delirium: DrkOgcdAbility = {
@@ -128,6 +135,7 @@ export const Delirium: DrkOgcdAbility = {
         time: 60,
         charges: 1,
     },
+    appDelay: 0,
 };
 
 export const CarveAndSpit: DrkOgcdAbility = {
@@ -140,6 +148,7 @@ export const CarveAndSpit: DrkOgcdAbility = {
         time: 60,
         charges: 1,
     },
+    appDelay: 1.47,
     updateMP: gauge => gauge.magicPoints += 600,
     levelModifiers: [
         {
@@ -167,6 +176,7 @@ export const SaltedEarth: DrkOgcdAbility = {
         time: 90,
         charges: 1,
     },
+    appDelay: 0.76,
     levelModifiers: [
         {
             minLevel: 86,
@@ -184,6 +194,7 @@ export const SaltAndDarkness: DrkOgcdAbility = {
     cooldown: {
         time: 30,
     },
+    appDelay: 0.76,
 };
 
 export const Disesteem: DrkGcdAbility = {
@@ -193,6 +204,7 @@ export const Disesteem: DrkGcdAbility = {
     potency: 1000,
     attackType: "Weaponskill",
     gcd: 2.5,
+    appDelay: 1.65,
 };
 
 export const EdgeOfDarkness: DrkOgcdAbility = {
@@ -204,6 +216,7 @@ export const EdgeOfDarkness: DrkOgcdAbility = {
     cooldown: {
         time: 1,
     },
+    appDelay: 0.62,
     activatesBuffs: [Darkside],
     updateMP: (gauge: DrkGauge) => {
         if (gauge.darkArts) {
@@ -224,6 +237,7 @@ export const EdgeOfShadow: DrkOgcdAbility = {
     cooldown: {
         time: 1,
     },
+    appDelay: 0.62,
     activatesBuffs: [Darkside],
     updateMP: (gauge: DrkGauge) => {
         if (gauge.darkArts) {
@@ -263,6 +277,7 @@ export const Shadowbringer: DrkOgcdAbility = {
         time: 60,
         charges: 2,
     },
+    appDelay: 0.62,
 };
 
 // While Living Shadow abilities are actually Weaponskills in some cases,

@@ -213,6 +213,17 @@ class DrkCycleProcessor extends CycleProcessor {
         return delirium !== undefined;
     }
 
+    wouldOvercapBloodInUpcomingDelirium(): boolean {
+        // Is Delirium coming up?
+        if (this.cdTracker.statusOf(Actions.Delirium).readyAt.relative < (this.stats.gcdPhys(2.5) * 2)) {
+            // Are we about to get to a blood value that would cause Delirium to overcap?
+            if (this.gauge.bloodGauge >= 80 || (this.gauge.bloodGauge >= 70 && this.rotationState.combo === 2)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     getEdgeAction(): DrkOgcdAbility {
         if (this.stats.level < 74) {
             return Actions.EdgeOfDarkness;
@@ -312,6 +323,13 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
     // Gets the next GCD to use in the DRK rotation.
     // Note: this is stateful, and updates combos to the next combo.
     getGCDToUse(cp: DrkCycleProcessor): DrkGcdAbility {
+        // Not overcapping blood for an upcoming Delirium a higher priority than Disesteem.
+        // This is only really needed for unrealistically high GCD speeds, but it doesn't
+        // affect reasonable GCD speeds in any way.
+        if (!cp.isDeliriumActive() && cp.wouldOvercapBloodInUpcomingDelirium()) {
+            return Actions.Bloodspiller;
+        }
+
         if (cp.inBurst() && cp.isScornActive()) {
             return Actions.Disesteem;
         }
@@ -323,10 +341,8 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
         }
 
         // Avoid overcapping blood:
-        if (cp.cdTracker.statusOf(Actions.Delirium).readyAt.relative < 5) {
-            if (cp.gauge.bloodGauge >= 80 || (cp.gauge.bloodGauge >= 70 && cp.rotationState.combo === 2)) {
-                return Actions.Bloodspiller;
-            }
+        if (cp.wouldOvercapBloodInUpcomingDelirium()) {
+            return Actions.Bloodspiller;
         }
 
         if (cp.inBurst() && cp.gauge.bloodGauge >= 50){
@@ -390,13 +406,13 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
             }
         }
 
+        if (cp.canUseWithoutClipping(Actions.Delirium)) {
+            this.use(cp, Actions.Delirium);
+        }
+
         // Refresh Darkside if required
         if (cp.getDarksideDuration() < 5 && cp.canUseWithoutClipping(edgeAction) && (cp.gauge.magicPoints >= 3000 || cp.gauge.darkArts)) {
             this.use(cp, edgeAction);
-        }
-
-        if (cp.canUseWithoutClipping(Actions.Delirium)) {
-            this.use(cp, Actions.Delirium);
         }
 
         if (cp.isSaltedEarthActive() && cp.canUseWithoutClipping(Actions.SaltAndDarkness)) {
