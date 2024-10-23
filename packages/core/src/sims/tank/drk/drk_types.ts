@@ -107,7 +107,19 @@ export const DeliriumBuff: Buff = {
         // Allows usage of Delirium combo
     },
     stacks: 3,
-    appliesTo: ability => ability.name === "Scarlet Delirium" || ability.name === "Comeuppance" || ability.name === "Torcleaver",
+    appliesTo: ability => ability.name === "Scarlet Delirium" || ability.name === "Comeuppance" || ability.name === "Torcleaver" || ability.name === "Bloodspiller",
+    beforeAbility<X extends DrkAbility>(buffController: BuffController, ability: X): X {
+        const oldUpdateMP = ability.updateMP;
+        return {
+            ...ability,
+            updateMP: gauge => {
+                gauge.magicPoints += 200;
+                if (oldUpdateMP) {
+                    oldUpdateMP(gauge);
+                }
+            },
+        };
+    },
     beforeSnapshot<X extends Ability>(buffController: BuffController, ability: X): X {
         buffController.subtractStacksSelf(1);
         return ability;

@@ -245,6 +245,16 @@ export type DamagingAbility = Readonly<{
 }>;
 
 /**
+ * Represents a set of ability attributes that should be applied
+ * above a certain level. Can be used to express e.g. traits increasing
+ * the potency of skills, or granting new buffs.
+ */
+export type LevelModifier = ({
+    minLevel: number,
+})
+& Omit<Partial<BaseAbility>, 'levelModifiers'>;
+
+/**
  * Combo mode:
  * start: starts a combo.
  * continue: continue (or finish) a combo. If there is no combo, then this is treated as 'break'.
@@ -309,6 +319,12 @@ export type BaseAbility = Readonly<{
      * Override the default application delay
      */
     appDelay?: number,
+    /**
+     * A list of level modifiers, that can override properties of the ability
+     * at the specified level. An action will have its properties overriden for
+     * the highest `minLevel` specified.
+     */
+    levelModifiers?: LevelModifier[],
 } & (NonDamagingAbility | DamagingAbility)>;
 
 /**
