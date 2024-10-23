@@ -195,6 +195,26 @@ export const Disesteem: DrkGcdAbility = {
     gcd: 2.5,
 };
 
+export const EdgeOfDarkness: DrkOgcdAbility = {
+    type: 'ogcd',
+    name: "Edge of Darkness",
+    id: 16467,
+    potency: 300,
+    attackType: "Ability",
+    cooldown: {
+        time: 1,
+    },
+    activatesBuffs: [Darkside],
+    updateMP: (gauge: DrkGauge) => {
+        if (gauge.darkArts) {
+            gauge.darkArts = false;
+        }
+        else {
+            gauge.magicPoints -= 3000;
+        }
+    },
+};
+
 export const EdgeOfShadow: DrkOgcdAbility = {
     type: 'ogcd',
     name: "Edge of Shadow",

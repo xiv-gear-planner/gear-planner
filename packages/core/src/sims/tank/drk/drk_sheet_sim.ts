@@ -6,7 +6,7 @@ import { CharacterGearSet } from "@xivgear/core/gear";
 import { formatDuration } from "@xivgear/core/util/strutils";
 import { STANDARD_ANIMATION_LOCK } from "@xivgear/xivmath/xivconstants";
 import { Darkside, DrkGauge } from "./drk_gauge";
-import { DrkExtraData, DrkAbility, DrkGcdAbility, ScornBuff, SaltedEarthBuff, DeliriumBuff, BloodWeaponBuff } from "./drk_types";
+import { DrkExtraData, DrkAbility, DrkGcdAbility, ScornBuff, SaltedEarthBuff, DeliriumBuff, BloodWeaponBuff, DrkOgcdAbility } from "./drk_types";
 import { sum } from "@xivgear/core/util/array_utils";
 import * as Actions from './drk_actions';
 import { BaseMultiCycleSim } from "@xivgear/core/sims/processors/sim_processors";
@@ -43,7 +43,7 @@ Defaults to simulating a killtime of 8m 30s (510s).`,
         return new DrkSim(exported);
     },
     supportedJobs: ['DRK'],
-    supportedLevels: [100, 90, 80],
+    supportedLevels: [100, 90, 80, 70],
     isDefaultSim: true,
     maintainers: [{
         name: 'Violet Stardust',
@@ -194,11 +194,12 @@ class DrkCycleProcessor extends CycleProcessor {
         return this.deliriumComboActions[this.rotationState.deliriumCombo++];
     }
 
-    // If Living Shadow has 95 seconds left on its cooldown and has been on cooldown for over 5 seconds,
-    // we're 'in burst' and should send our built up resources and Edges.
     inBurst(): boolean {
-        const livingShadowReadyAt = this.cdTracker.statusOf(Actions.LivingShadow).readyAt.relative;
-        return livingShadowReadyAt > 95 && livingShadowReadyAt < 115;
+        const timeIntoTwoMinutes = this.currentTime % 120;
+
+        // Seven seconds after every (i.e. 0:07, 2:07, etc) burst, buffs will be up,
+        // and will remain up for twenty seconds.
+        return 7 < timeIntoTwoMinutes && timeIntoTwoMinutes < 27;
     }
 
     // If the fight is ending within the next 12 seconds (to dump resources)
@@ -210,6 +211,13 @@ class DrkCycleProcessor extends CycleProcessor {
         const buffs = this.getActiveBuffs();
         const delirium = buffs.find(buff => buff.name === DeliriumBuff.name);
         return delirium !== undefined;
+    }
+
+    getEdgeAction(): DrkOgcdAbility {
+        if (this.stats.level < 74) {
+            return Actions.EdgeOfDarkness;
+        }
+        return Actions.EdgeOfShadow;
     }
 
     isBloodWeaponActive(): boolean {
@@ -230,15 +238,15 @@ class DrkCycleProcessor extends CycleProcessor {
     }
 
     shouldPot(): boolean {
-        const livingShadowReadyAt = this.cdTracker.statusOf(Actions.LivingShadow).readyAt.relative;
         const sixMinutesInSeconds = 360;
-        const isSixMinuteWindow = this.currentTime % sixMinutesInSeconds < 20;
-        return livingShadowReadyAt > 110 && livingShadowReadyAt < 120 && isSixMinuteWindow;
+        const timeInSixMinuteWindow = this.currentTime % sixMinutesInSeconds;
+        return timeInSixMinuteWindow > 2.7 && timeInSixMinuteWindow < 22.7;
     }
 
     shouldUseTBN(): boolean {
-        const livingShadowReadyAt = this.cdTracker.statusOf(Actions.LivingShadow).readyAt.relative;
-        return livingShadowReadyAt < 30 && !this.gauge.darkArts && this.gauge.magicPoints >= 3000;
+        const timeIntoTwoMinutes = this.currentTime % 120;
+        const timeUntilNextBurst = 120 - timeIntoTwoMinutes;
+        return timeUntilNextBurst < 22 && !this.gauge.darkArts && this.gauge.magicPoints >= 3000;
     }
 
     isScornActive(): boolean {
@@ -299,7 +307,6 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
                 cp.livingShadowAbilityUsages.splice(indexToRemove, 1);
             });
         }
-
     }
 
     // Gets the next GCD to use in the DRK rotation.
@@ -316,8 +323,10 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
         }
 
         // Avoid overcapping blood:
-        if (cp.cdTracker.statusOf(Actions.Delirium).readyAt.relative < 5 && cp.gauge.bloodGauge >= 80) {
-            return Actions.Bloodspiller;
+        if (cp.cdTracker.statusOf(Actions.Delirium).readyAt.relative < 5) {
+            if (cp.gauge.bloodGauge >= 80 || (cp.gauge.bloodGauge >= 70 && cp.rotationState.combo === 2)) {
+                return Actions.Bloodspiller;
+            }
         }
 
         if (cp.inBurst() && cp.gauge.bloodGauge >= 50){
@@ -344,27 +353,31 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
         ///oGCDs
         ////////
         // Higher priority than any other oGCD: avoid overcap of mana
+        // Edge of Shadow / Edge of Darkness
+        const edgeAction = cp.getEdgeAction();
         const nextGCDSyphonStrike = cp.rotationState.combo === 1;
         // lateWeaveDelirium is true if we could use Delirium later but before the next GCD
         const lateWeaveDelirium = cp.canUseWithoutClipping(Actions.Delirium) && cp.totalTime > cp.cdTracker.statusOf(Actions.Delirium).readyAt.absolute;
         if ((cp.gauge.magicPoints >= 8400) && (nextGCDSyphonStrike || cp.isBloodWeaponActive() || cp.isDeliriumActive() || lateWeaveDelirium)) {
-            if (cp.canUseWithoutClipping(Actions.EdgeOfShadow)) {
-                this.use(cp, Actions.EdgeOfShadow);
+            if (cp.canUseWithoutClipping(edgeAction)) {
+                this.use(cp, edgeAction);
             }
         }
         if (cp.gauge.magicPoints >= 9200 && (nextGCDSyphonStrike || cp.isBloodWeaponActive() || cp.isDeliriumActive() || lateWeaveDelirium)) {
-            if (cp.canUseWithoutClipping(Actions.EdgeOfShadow)) {
-                this.use(cp, Actions.EdgeOfShadow);
+            if (cp.canUseWithoutClipping(edgeAction)) {
+                this.use(cp, edgeAction);
             }
         }
         if (cp.gauge.magicPoints >= 9800) {
-            if (cp.canUseWithoutClipping(Actions.EdgeOfShadow)) {
-                this.use(cp, Actions.EdgeOfShadow);
+            if (cp.canUseWithoutClipping(edgeAction)) {
+                this.use(cp, edgeAction);
             }
         }
 
-        if (cp.canUseWithoutClipping(Actions.LivingShadow)) {
-            this.use(cp, Actions.LivingShadow);
+        if (cp.stats.level >= 80) {
+            if (cp.canUseWithoutClipping(Actions.LivingShadow)) {
+                this.use(cp, Actions.LivingShadow);
+            }
         }
 
         if (cp.shouldPot() && cp.canUseWithoutClipping(potionMaxStr)) {
@@ -378,8 +391,8 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
         }
 
         // Refresh Darkside if required
-        if (cp.getDarksideDuration() < 5 && cp.canUseWithoutClipping(Actions.EdgeOfShadow) && (cp.gauge.magicPoints >= 3000 || cp.gauge.darkArts)) {
-            this.use(cp, Actions.EdgeOfShadow);
+        if (cp.getDarksideDuration() < 5 && cp.canUseWithoutClipping(edgeAction) && (cp.gauge.magicPoints >= 3000 || cp.gauge.darkArts)) {
+            this.use(cp, edgeAction);
         }
 
         if (cp.canUseWithoutClipping(Actions.Delirium)) {
@@ -404,15 +417,15 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
 
         // Last priority oGCD: send all available Edges in burst
         if (cp.inBurst()) {
-            if (cp.canUseWithoutClipping(Actions.EdgeOfShadow) && (cp.gauge.magicPoints >= 3000 || cp.gauge.darkArts)) {
-                this.use(cp, Actions.EdgeOfShadow);
+            if (cp.canUseWithoutClipping(edgeAction) && (cp.gauge.magicPoints >= 3000 || cp.gauge.darkArts)) {
+                this.use(cp, edgeAction);
             }
         }
 
         // Dump resources if fight ending soon
         if (cp.fightEndingSoon()) {
-            if (cp.canUseWithoutClipping(Actions.EdgeOfShadow) && (cp.gauge.magicPoints >= 3000 || cp.gauge.darkArts)) {
-                this.use(cp, Actions.EdgeOfShadow);
+            if (cp.canUseWithoutClipping(edgeAction) && (cp.gauge.magicPoints >= 3000 || cp.gauge.darkArts)) {
+                this.use(cp, edgeAction);
             }
 
             if (cp.stats.level >= 90) {
@@ -531,6 +544,10 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
         // Bloodspillers are free.
         if (cp.isDeliriumActive() && drkAbility.id === Actions.Bloodspiller.id) {
             // Do not spend Blood for Deliriums.
+            // Manually update Blood gauge instead if Blood Weapon is active.
+            if (cp.isBloodWeaponActive()) {
+                cp.gauge.bloodGauge += 10;
+            }
         }
         else {
             if (abilityWithBloodWeapon.updateBloodGauge !== undefined) {
@@ -558,7 +575,7 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
         return cp.use(ability);
     }
 
-    private useLevel80Opener(cp: DrkCycleProcessor, prepullTBN: boolean) {
+    private useLevel80OrBelowOpener(cp: DrkCycleProcessor, prepullTBN: boolean) {
         if (prepullTBN) {
             this.use(cp, Actions.TheBlackestNight);
             cp.advanceTo(3 - STANDARD_ANIMATION_LOCK);
@@ -573,22 +590,24 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
         cp.advanceForLateWeave([potionMaxStr]);
         this.use(cp, potionMaxStr);
         this.use(cp, Actions.HardSlash);
-        this.use(cp, Actions.EdgeOfShadow);
-        this.use(cp, Actions.LivingShadow);
+        this.use(cp, cp.getEdgeAction());
+        if (cp.stats.level >= 80) {
+            this.use(cp, Actions.LivingShadow);
+        }
         this.use(cp, Actions.SyphonStrike);
         this.use(cp, Actions.Souleater);
         this.use(cp, Actions.Delirium);
         this.use(cp, cp.getComboToUse());
         this.use(cp, Actions.SaltedEarth);
-        this.use(cp, Actions.EdgeOfShadow);
+        this.use(cp, cp.getEdgeAction());
         this.use(cp, Actions.Bloodspiller);
-        this.use(cp, Actions.EdgeOfShadow);
+        this.use(cp, cp.getEdgeAction());
         this.use(cp, Actions.Bloodspiller);
         this.use(cp, Actions.CarveAndSpit);
-        this.use(cp, Actions.EdgeOfShadow);
+        this.use(cp, cp.getEdgeAction());
         this.use(cp, Actions.Bloodspiller);
         if (prepullTBN) {
-            this.use(cp, Actions.EdgeOfShadow);
+            this.use(cp, cp.getEdgeAction());
         }
         this.use(cp, Actions.Bloodspiller);
         if (!prepullTBN) {
@@ -597,7 +616,7 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
             // to get the Edge in after the Hard Slash.
             this.use(cp, cp.getComboToUse());
             this.use(cp, cp.getComboToUse());
-            this.use(cp, Actions.EdgeOfShadow);
+            this.use(cp, cp.getEdgeAction());
         }
     }
 
@@ -701,9 +720,7 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
             this.useLevel90Opener(cp, prepullTBN);
         }
         else {
-            // It's not compatible for anything below 80, but 80 will be the closest
-            // simulation, I guess.
-            this.useLevel80Opener(cp, prepullTBN);
+            this.useLevel80OrBelowOpener(cp, prepullTBN);
         }
     }
 
