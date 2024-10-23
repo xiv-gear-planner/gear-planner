@@ -3,7 +3,7 @@ import { CycleProcessor, CycleSimResult, ExternalCycleSettings, MultiCycleSettin
 import { CycleSettings } from "@xivgear/core/sims/cycle_settings";
 import { CharacterGearSet } from "@xivgear/core/gear";
 import { BaseMultiCycleSim } from "@xivgear/core/sims/processors/sim_processors";
-import { FuryAbility, MnkAbility, MNKExtraData, MnkGcdAbility } from "./mnk_types";
+import { FuryAbility, MnkAbility, MNKExtraData, MnkGcdAbility, Opener } from "./mnk_types";
 import { MNKGauge as MnkGauge } from "./mnk_gauge";
 import { Brotherhood, BrotherhoodBuff, CelestialRevolution, CoeurlForm, Demolish, DragonKick, ElixirBurst, FiresReply, FiresRumination, ForbiddenMeditation, FormShift, FormlessFist, LeapingOpo, OGCD_PRIORITY, OPO_ABILITIES, OpoForm, PerfectBalance, PerfectBalanceBuff, PhantomRush, PouncingCoeurl, RaptorForm, RiddleOfFire, RiddleOfFireBuff, RiddleOfWind, RisingPhoenix, RisingRaptor, SOLAR_WEAKEST_STRONGEST, SixSidedStar, TheForbiddenChakra, TwinSnakes, WindsReply, WindsRumination } from "./mnk_actions";
 import { Brotherhood as BrotherhoodGlobalBuff } from "@xivgear/core/sims/buffs";
@@ -34,9 +34,20 @@ export const mnkSpec: SimSpec<MnkSim, MnkSettingsExternal> = {
 class MNKCycleProcessor extends CycleProcessor {
     gauge: MnkGauge;
 
+    // this shouldn't be changed after first initialization
+    private opener: Opener;
+
     constructor(settings: MultiCycleSettings) {
         super(settings);
         this.gauge = new MnkGauge();
+    }
+
+    setOpener(o: Opener) {
+        if (this.opener) {
+            console.warn("Attempted to change opener state");
+            return;
+        }
+        this.opener = o;
     }
 
     override use(ability: Ability): AbilityUseResult {
@@ -165,7 +176,6 @@ class MNKCycleProcessor extends CycleProcessor {
         ogcdsAvailable.forEach(ogcd => {
             if (this.canUseWithoutClipping(ogcd)) {
                 if (ogcd.id === RiddleOfFire.id) {
-                    // TODO implement RoF holding
                     this.advanceForLateWeave([ogcd]);
                 }
                 this.useOgcd(ogcd);
@@ -220,42 +230,26 @@ class MNKCycleProcessor extends CycleProcessor {
                  */
 
                 // Prefer to check if we need a solar nadi so that 2m windows sequence RP or PR first.
-                if (!this.gauge.solarNadi) {
-                    const gcd: FuryAbility = SOLAR_WEAKEST_STRONGEST
-                        // remove abilities that don't generate the beast chakra we need
-                        .filter((gcd: FuryAbility) => !this.gauge.beastChakra.includes(gcd.fury))
-                        // remove abilities that we shouldn't use due to overcap/lack of balls
-                        .filter((gcd: FuryAbility) => {
-                            switch (gcd.fury) {
-                                case "opo":
-                                    if (gcd.buildsFury) {
-                                        return this.gauge.opoFury === 0;
-                                    }
-                                    else {
-                                        return this.gauge.opoFury !== 0;
-                                    }
-                                case "raptor":
-                                    if (gcd.buildsFury) {
-                                        return this.gauge.raptorFury === 0;
-                                    }
-                                    else {
-                                        return this.gauge.raptorFury !== 0;
-                                    }
-                                case "coeurl":
-                                    if (gcd.buildsFury) {
-                                        return this.gauge.coeurlFury === 0;
-                                    }
-                                    else {
-                                        return this.gauge.coeurlFury !== 0;
-                                    }
-                            }
-                        })
-                        .shift();
-                    if (!gcd) {
-                        console.warn(`${this.currentTime} Building a solar nadi but couldn't choose a fury type to build`, this.gauge);
-                        return DragonKick;
+                if (this.gauge.emptyNadis) {
+                    // if we have no nadis we need to make a decision based on our opener goals
+                    switch (this.opener) {
+                        case "LL":
+                            // an LL opener will have be empty during the 2nd blitz of a 2m burst window
+                            // should use another lunar blitz (for PR > EB)
+                            // want a lunar nadi
+                            return this.opo;
+                            break;
+                        case "SL":
+                            // an SL opener will have be empty during the 1st blitz of a 2m burst window
+                            // should start sequencing a solar lunar blitz (RP > EB)
+                            return this.sequenceSolarNadi();
+                            break;
                     }
-                    return gcd;
+                }
+
+                // we have existing gauge state
+                if (!this.gauge.solarNadi) {
+                    return this.sequenceSolarNadi();
                 }
                 else {
                     // want a lunar nadi
@@ -289,6 +283,44 @@ class MNKCycleProcessor extends CycleProcessor {
         }
         console.warn(`${this.currentTime} failed to select a blitz, choosing celestial revolution for punishment.`);
         return CelestialRevolution;
+    }
+
+    private sequenceSolarNadi(): MnkGcdAbility {
+        const gcd: FuryAbility = SOLAR_WEAKEST_STRONGEST
+            // remove abilities that don't generate the beast chakra we need
+            .filter((gcd: FuryAbility) => !this.gauge.beastChakra.includes(gcd.fury))
+            // remove abilities that we shouldn't use due to overcap/lack of balls
+            .filter((gcd: FuryAbility) => {
+                switch (gcd.fury) {
+                    case "opo":
+                        if (gcd.buildsFury) {
+                            return this.gauge.opoFury === 0;
+                        }
+                        else {
+                            return this.gauge.opoFury !== 0;
+                        }
+                    case "raptor":
+                        if (gcd.buildsFury) {
+                            return this.gauge.raptorFury === 0;
+                        }
+                        else {
+                            return this.gauge.raptorFury !== 0;
+                        }
+                    case "coeurl":
+                        if (gcd.buildsFury) {
+                            return this.gauge.coeurlFury === 0;
+                        }
+                        else {
+                            return this.gauge.coeurlFury !== 0;
+                        }
+                }
+            })
+            .shift();
+        if (!gcd) {
+            console.warn(`${this.currentTime} Building a solar nadi but couldn't choose a fury type to build`, this.gauge);
+            return DragonKick;
+        }
+        return gcd;
     }
 
     getCurrentForm(): Buff {
@@ -390,6 +422,7 @@ export class MnkSim extends BaseMultiCycleSim<CycleSimResult, MnkSettings, MNKCy
                 name: 'double lunar',
                 cycleTime: 120,
                 apply(cp: MNKCycleProcessor) {
+                    cp.setOpener("LL");
                     cp.doubleLunarOpener();
                     while (cp.remainingGcdTime > 0) {
                         cp.doStep(cp.chooseGcd());
@@ -400,6 +433,7 @@ export class MnkSim extends BaseMultiCycleSim<CycleSimResult, MnkSettings, MNKCy
                 name: 'solar lunar',
                 cycleTime: 120,
                 apply(cp: MNKCycleProcessor) {
+                    cp.setOpener("SL");
                     cp.solarLunarOpener();
                     while (cp.remainingGcdTime > 0) {
                         cp.doStep(cp.chooseGcd());

@@ -14,6 +14,10 @@ export class MNKGauge {
     lunarNadi: number = 0;
     solarNadi: number = 0;
 
+    public get emptyNadis(): boolean {
+        return !(this.lunarNadi || this.solarNadi);
+    }
+
     beastChakra: FuryType[] = [];
 
     getGaugeState(): MNKGaugeState {

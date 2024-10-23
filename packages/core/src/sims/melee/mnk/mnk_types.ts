@@ -20,7 +20,9 @@ export type FuryAbility =  MnkGcdAbility & Readonly<{
 export type MnkOgcdAbility = OgcdAbility & MnkAbility;
 
 /** Abilities may cost or gain balls, as well as build beast chakras while blitzing */
-export type FuryType = 'opo' | 'raptor' | 'coeurl'
+export type FuryType = 'opo' | 'raptor' | 'coeurl';
+
+export type Opener = "SL" | "LL";
 
 /** Represents the Monk gauge state */
 export type MNKGaugeState = {
