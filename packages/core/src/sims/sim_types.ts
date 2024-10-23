@@ -246,7 +246,8 @@ export type DamagingAbility = Readonly<{
 
 /**
  * Represents a set of ability attributes that should be applied
- * between two levels.
+ * above a certain level. Can be used to express e.g. traits increasing
+ * the potency of skills, or granting new buffs.
  */
 export type LevelModifier = ({
     minLevel: number,
