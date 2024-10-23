@@ -183,8 +183,20 @@ export const BrotherhoodBuff: PartyBuff = {
     },
 };
 
-// TODO Is this simmable or something that should just be assumed?
-//export const MeditativeBrotherhood: PartyBuff = {}
+/** Look at mnk_sim to see how this is shimmed.
+  * Hint recommended that we should assume 2.5 GCD for the 7 other party members since chakra is probabilistic right now.
+  */
+export const MeditativeBrotherhood: PartyBuff = {
+    job: "MNK",
+    cooldown: 120,
+    name: "Meditative Brotherhood",
+    selfOnly: false,
+    duration: 20,
+    statusId: 1182,
+    effects: {
+        // Party members under this buff have a 20% chance of generating chakra on a weaponskill / spell
+    },
+};
 
 export const RiddleOfWindBuff: PersonalBuff = {
     name: "Riddle of Wind",
@@ -467,7 +479,7 @@ export const Brotherhood: MnkOgcdAbility = {
     cooldown: {
         time: 120,
     },
-    activatesBuffs: [BrotherhoodBuff],
+    activatesBuffs: [BrotherhoodBuff, MeditativeBrotherhood],
 };
 
 export const RiddleOfWind: MnkOgcdAbility = {

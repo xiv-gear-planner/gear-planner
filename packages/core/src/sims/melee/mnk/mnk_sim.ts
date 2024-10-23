@@ -5,7 +5,7 @@ import { CharacterGearSet } from "@xivgear/core/gear";
 import { BaseMultiCycleSim } from "@xivgear/core/sims/processors/sim_processors";
 import { FuryAbility, MnkAbility, MNKExtraData, MnkGcdAbility, Opener } from "./mnk_types";
 import { MNKGauge as MnkGauge } from "./mnk_gauge";
-import { Brotherhood, BrotherhoodBuff, CelestialRevolution, CoeurlForm, Demolish, DragonKick, ElixirBurst, FiresReply, FiresRumination, ForbiddenMeditation, FormShift, FormlessFist, LeapingOpo, OGCD_PRIORITY, OPO_ABILITIES, OpoForm, PerfectBalance, PerfectBalanceBuff, PhantomRush, PouncingCoeurl, RaptorForm, RiddleOfFire, RiddleOfFireBuff, RiddleOfWind, RisingPhoenix, RisingRaptor, SOLAR_WEAKEST_STRONGEST, SixSidedStar, TheForbiddenChakra, TwinSnakes, WindsReply, WindsRumination } from "./mnk_actions";
+import { Brotherhood, BrotherhoodBuff, CelestialRevolution, CoeurlForm, Demolish, DragonKick, ElixirBurst, FiresReply, FiresRumination, ForbiddenMeditation, FormShift, FormlessFist, LeapingOpo, MeditativeBrotherhood, OGCD_PRIORITY, OPO_ABILITIES, OpoForm, PerfectBalance, PerfectBalanceBuff, PhantomRush, PouncingCoeurl, RaptorForm, RiddleOfFire, RiddleOfFireBuff, RiddleOfWind, RisingPhoenix, RisingRaptor, SOLAR_WEAKEST_STRONGEST, SixSidedStar, TheForbiddenChakra, TwinSnakes, WindsReply, WindsRumination } from "./mnk_actions";
 import { Brotherhood as BrotherhoodGlobalBuff } from "@xivgear/core/sims/buffs";
 import { sum } from "../../../util/array_utils";
 import { STANDARD_ANIMATION_LOCK } from "@xivgear/xivmath/xivconstants";
@@ -88,7 +88,11 @@ class MNKCycleProcessor extends CycleProcessor {
             const brotherhoodChakra = usedAbility.buffs.find(buff => buff.statusId === BrotherhoodBuff.statusId)
                 ? 1
                 : 0;
-            this.gauge.gainChakra(probableChakraGain + brotherhoodChakra);
+            const meditativeBhChakra = usedAbility.buffs.find(buff => buff.statusId === MeditativeBrotherhood.statusId)
+                // 20% chance * 7 party members * our gcd ratio to party member gcds (Hint's suggestion)
+                ? .2 * 7 * (this.timeToExecuteNGcds(1) / 2.5)
+                : 0;
+            this.gauge.gainChakra(probableChakraGain + brotherhoodChakra + meditativeBhChakra);
         }
     }
 
@@ -360,10 +364,9 @@ class MNKCycleProcessor extends CycleProcessor {
         }
         else {
             // riddle will be back or is currently off cooldown
-            if (this.gauge.fullNadis && this.opener == "SL"){
+            if (this.gauge.fullNadis && this.opener === "SL"){
                 // look for a +1 opo instead of a -2-0 opo
                 // TODO the -3 umm ackshually window takes dragon kick sequencing in to account
-                console.log("looking for a +1");
                 return false;
             }
             return form?.statusId !== PerfectBalanceBuff.statusId // not already building a blitz
@@ -374,7 +377,7 @@ class MNKCycleProcessor extends CycleProcessor {
     }
 
     /*
-     *  Returns how long it takes to execute 4 gcds
+     *  Returns how long it takes to execute N gcds
      */
     timeToExecuteNGcds(n: number): number {
         return this.gcdTime(DragonKick) * n;
