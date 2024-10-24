@@ -1,0 +1,31 @@
+.switch-nitro-color {
+  background-color: var(--bg-color) !important;
+  color: var(--fg-color) !important;
+  * {
+    color: var(--fg-color) !important;
+  }
+
+}
+
+div#nitropay-ccpa-modal {
+  .switch-nitro-color;
+}
+
+div#ncmp__tool div.ncmp__banner-web {
+  .switch-nitro-color;
+}
+
+body:not(.light-mode) {
+  div#nitropay-ccpa-modal {
+    img {
+      filter: invert();
+    }
+  }
+
+  div#ncmp__modal {
+    div.ncmp__modal-web {
+      filter: invert() hue-rotate(180deg);
+    }
+  }
+
+}
