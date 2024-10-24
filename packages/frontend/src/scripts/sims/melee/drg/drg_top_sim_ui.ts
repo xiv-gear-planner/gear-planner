@@ -3,7 +3,6 @@ import { PreDmgUsedAbility } from "@xivgear/core/sims/sim_types";
 import { CustomColumnSpec } from "../../../tables";
 import { AbilitiesUsedTable } from "../../components/ability_used_table";
 import { BaseMultiCycleSimGui } from "../../multicyclesim_ui";
-import { FieldBoundFloatField, FieldBoundCheckBox, labelFor, labeledCheckbox } from "@xivgear/common-ui/components/util";
 import { DRGTopSimResult, DRGTopSimSettings } from "@xivgear/core/sims/melee/drg/drg_top_sim";
 import { DRGExtraData } from "@xivgear/core/sims/melee/drg/drg_types";
 
