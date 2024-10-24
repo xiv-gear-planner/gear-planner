@@ -1,11 +1,8 @@
 import { Ability, OgcdAbility, Buff, SimSettings, SimSpec, Simulation } from "@xivgear/core/sims/sim_types";
 import { CycleProcessor, CycleSimResult, ExternalCycleSettings, MultiCycleSettings, AbilityUseResult, Rotation, PreDmgAbilityUseRecordUnf, CycleSimResultFull } from "@xivgear/core/sims/cycle_sim";
-import { CycleSettings } from "@xivgear/core/sims/cycle_settings";
-import { STANDARD_ANIMATION_LOCK } from "@xivgear/xivmath/xivconstants";
-import { potionMaxDex, potionMaxStr } from "@xivgear/core/sims/common/potion";
-import { Dokumori } from "@xivgear/core/sims/buffs";
+import { potionMaxStr } from "@xivgear/core/sims/common/potion";
 import DRGGauge from "./drg_gauge";
-import { DrgAbility, DrgGcdAbility, DrgOgcdAbility, DRGGaugeState, DRGExtraData } from "./drg_types";
+import { DrgAbility, DrgGcdAbility, DRGExtraData } from "./drg_types";
 import * as Actions from './drg_actions';
 import * as Buffs from './drg_buffs';
 import { BaseMultiCycleSim } from "@xivgear/core/sims/processors/sim_processors";
@@ -257,7 +254,7 @@ export class DRGTopCycleProcessor extends CycleProcessor {
             this.useOgcd(Actions.DragonfireDive);
         else if (this.timeUntilReady(Actions.Nastrond) <= 0 && !!this.getBuffIfActive(Buffs.NastrondReady))
             this.useOgcd(Actions.Nastrond);
-        else if (this.timeUntilReady(Actions.Stardiver) <= 0)
+        else if (this.timeUntilReady(Actions.Stardiver) <= 0 && !!this.getBuffIfActive(Buffs.LifeOfTheDragon))
             this.useOgcd(Actions.Stardiver);
         else if (this.timeUntilReady(Actions.MirageDive) <= 0 && !!this.getBuffIfActive(Buffs.DiveReady))
             this.useOgcd(Actions.MirageDive);
