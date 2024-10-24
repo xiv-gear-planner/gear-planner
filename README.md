@@ -6,21 +6,19 @@ The goal of this project is to provide a better UX for assembling and testing ge
 
 The rough road map is:
 - Done: Provide a good UI for making gear sets.
-- Done for some jobs: Allow DPS to be simulated within the same UI, allowing changes to be quickly tested.
 - Done: Allow for multiple sims on the same job to compare across multiple party comps or fights.
+- Done for most jobs: Allow DPS to be simulated within the same UI, allowing changes to be quickly tested.
 - Future: full or at least partial brute force BiS solving.
 
-This is still in the very early stages, so only a couple jobs are supported.
-
-If you'd like to add jobs or simulations, see [contributing](CONTRIBUTING.md).
+If you'd like to add jobs, simulations, or other features/fixes see [contributing](CONTRIBUTING.md).
 
 You can try it out [here](https://xivgear.app).
 
 ## Help Wanted
 
 We are still looking for people to write simulations for the following jobs:
-- Tanks: WAR, DRK, GNB
-- Melee: MNK, DRG
+- Tanks: GNB
+- Melee: DRG
 - Phys Ranged: BRD, MCH
 - Casters: BLM, SMN, RDM, PCT
 
