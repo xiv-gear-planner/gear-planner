@@ -38,6 +38,7 @@ import { potRatioSimSpec } from "@xivgear/core/sims/common/potency_ratio";
 import { BluSimGui } from "./blu/blu_common_ui";
 import { DrkSimGui } from "./tank/drk_sheet_sim_ui";
 import { WarSimGui } from "./tank/war_sheet_sim_ui";
+import { pldSKSSimGui } from "./tank/pldsks_sheet_sim_ui";
 
 type SimGuiCtor<X extends Simulation<SimResult, unknown, unknown>> = {
     new (sim: X): SimulationGui<ResultTypeOfSim<X>, SettingsTypeOfSim<X>, ExportSettingsTypeOfSim<X>>;
@@ -61,7 +62,7 @@ export const simGuiMap: Map<SimSpec<never, never>, SimGuiCtor<never>> = new Map;
 registerGui(potRatioSimSpec, PotencyRatioSimGui);
 registerGui(potRatioSimSpec, PotencyRatioSimGui);
 registerGui(pldUsageSimSpec, BaseUsageCountSimGui);
-registerGui(pldSKSSheetSpec, BaseMultiCycleSimGui);
+registerGui(pldSKSSheetSpec, pldSKSSimGui);
 registerGui(whmSheetSpec, WhmSheetSimGui);
 registerGui(sgeSheetSpec, SgeSimGui);
 registerGui(drkSpec, DrkSimGui);
