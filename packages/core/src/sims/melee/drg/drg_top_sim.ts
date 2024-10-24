@@ -22,7 +22,7 @@ export interface DRGTopSettingsExternal extends ExternalCycleSettings<DRGTopSimS
 
 export const drgTopSimSpec: SimSpec<DrgTopSim, DRGTopSettingsExternal> = {
     stub: "drg-top-sim",
-    displayName: "DRG TOP Sim",
+    displayName: "DRG Ultimate LvL 90 Sim",
     makeNewSimInstance: function (): DrgTopSim {
         return new DrgTopSim();
     },
