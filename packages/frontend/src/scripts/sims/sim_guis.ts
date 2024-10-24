@@ -7,6 +7,7 @@ import { SgeSheetSimGui } from "./healer/sge_sheet_sim_mk2_ui";
 import { AstSheetSimGui } from "./healer/ast_sheet_sim_ui";
 import { SchSimGui } from "./healer/sch_sheet_sim_ui";
 import { WhmSimGui } from "./healer/whm_new_sheet_sim_ui";
+import { DRGTopSimGui } from "./melee/drg/drg_top_sim_ui";
 import { RprSheetSimGui } from "./melee/rpr/rpr_sheet_sim_ui";
 import { VprSimGui } from "./melee/vpr/vpr_sheet_sim_ui";
 import { NinSheetSimGui } from "./melee/nin/nin_lvl100_sim_ui";
@@ -19,6 +20,7 @@ import { sgeSheetSpec } from "@xivgear/core/sims/healer/sge_sheet_sim";
 import { sgeNewSheetSpec } from "@xivgear/core/sims/healer/sge_sheet_sim_mk2";
 import { whmNewSheetSpec } from "@xivgear/core/sims/healer/whm_new_sheet_sim";
 import { whmSheetSpec } from "@xivgear/core/sims/healer/whm_sheet_sim";
+import { drgTopSimSpec } from "@xivgear/core/sims/melee/drg/drg_top_sim";
 import { ninSpec } from "@xivgear/core/sims/melee/nin/nin_lv100_sim";
 import { rprSheetSpec } from "@xivgear/core/sims/melee/rpr/rpr_sheet_sim";
 import { samSpec } from "@xivgear/core/sims/melee/sam/sam_lv100_sim";
@@ -40,7 +42,7 @@ import { DrkSimGui } from "./tank/drk_sheet_sim_ui";
 import { WarSimGui } from "./tank/war_sheet_sim_ui";
 
 type SimGuiCtor<X extends Simulation<SimResult, unknown, unknown>> = {
-    new (sim: X): SimulationGui<ResultTypeOfSim<X>, SettingsTypeOfSim<X>, ExportSettingsTypeOfSim<X>>;
+    new(sim: X): SimulationGui<ResultTypeOfSim<X>, SettingsTypeOfSim<X>, ExportSettingsTypeOfSim<X>>;
 }
 
 function registerGui<X extends Simulation<SimResult, unknown, unknown>>(simSpec: SimSpec<X, unknown>, guiCtor: SimGuiCtor<X>) {
@@ -70,6 +72,7 @@ registerGui(sgeNewSheetSpec, SgeSheetSimGui);
 registerGui(astNewSheetSpec, AstSheetSimGui);
 registerGui(schNewSheetSpec, SchSimGui);
 registerGui(whmNewSheetSpec, WhmSimGui);
+registerGui(drgTopSimSpec, DRGTopSimGui);
 registerGui(rprSheetSpec, RprSheetSimGui);
 registerGui(vprSheetSpec, VprSimGui);
 registerGui(ninSpec, NinSheetSimGui);
