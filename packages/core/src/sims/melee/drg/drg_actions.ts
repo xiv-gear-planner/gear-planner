@@ -159,7 +159,7 @@ export const Geirskogul: DrgOgcdAbility = {
         time: 60
     },
     attackType: 'Ability',
-    activatesBuffs: [NastrondReady]
+    activatesBuffs: [NastrondReady, LifeOfTheDragon]
 };
 
 export const Nastrond: DrgOgcdAbility = {
