@@ -1,6 +1,7 @@
 .switch-nitro-color {
   background-color: var(--bg-color) !important;
   color: var(--fg-color) !important;
+
   * {
     color: var(--fg-color) !important;
   }
@@ -25,6 +26,43 @@ body:not(.light-mode) {
   div#ncmp__modal {
     div.ncmp__modal-web {
       filter: invert() hue-rotate(180deg);
+    }
+  }
+
+}
+
+
+.extra-information-link {
+  &:not(:empty) {
+    display: block;
+  }
+
+  &:empty {
+    display: none;
+  }
+
+  button {
+    all: inherit;
+    cursor: pointer;
+    text-decoration: underline;
+    margin: auto;
+  }
+}
+
+#fallback-privacy-area {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  background-color: var(--table-bg-color);
+
+  padding: 2px;
+  padding-right: 4px;
+
+  border-top-right-radius: 6px;
+
+  span, div {
+    &.extra-information-link::before {
+      content: ' - ';
     }
   }
 
