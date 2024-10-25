@@ -647,29 +647,34 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
             processed.sort((cellA, cellB) => (cellA[1] - cellB[1]));
             const worst = processed[0];
             const best = processed[processed.length - 1];
-            let worstValue = worst[1];
+            const worstValue = worst[1];
             const bestValue = best[1];
-            let delta = bestValue - worstValue;
-            if (delta === 0) {
+            const percentWorse = worstValue / bestValue;
+            if (percentWorse === 1) {
+                // The results are all the same. Return.
                 return;
-            }
-            if (bestValue > 0) {
-                // If less than 0.5% difference
-                const minDeltaRelative = 0.001;
-                if (delta / bestValue < minDeltaRelative) {
-                    delta = bestValue * minDeltaRelative;
-                    worstValue = bestValue - delta;
-                }
             }
             for (const [cell, value] of processed) {
                 cell.classList.add('sim-column-valid');
-                const relative = (value - worstValue) / delta * 100;
-                cell.style.setProperty('--sim-result-relative', relative.toFixed(1) + '%');
-                if (value === bestValue) {
-                    cell.classList.add('sim-column-best');
-                }
-                else if (value === worstValue) {
+                const threePercentWorse = 0.97;
+                // This value represents the percent worse this value is, e.g. 0.985 for 98.5% as good.
+                const percentWorseComparedToBest = value / bestValue;
+                // e.g. 1.5 if our value was 0.985
+                const numberToBeComparedToThree = 100 * (percentWorseComparedToBest - threePercentWorse);
+                // This is three percent or more worse than the best rating. Give it the worst rating we can.
+                if (numberToBeComparedToThree <= 0) {
+                    cell.style.setProperty('--sim-result-relative', '0%');
                     cell.classList.add('sim-column-worst');
+                }
+                else {
+                    // For example, if it's 98.5% when compared to the best value, this will be 50%
+                    const percentageOfThreePercent = (numberToBeComparedToThree / 3) * 100;
+                    if (percentageOfThreePercent > 0) {
+                        cell.style.setProperty('--sim-result-relative', percentageOfThreePercent.toFixed(1) + '%');
+                    }
+                    if (value === bestValue) {
+                        cell.classList.add('sim-column-best');
+                    }
                 }
             }
         }
