@@ -1,6 +1,5 @@
 import {recordEvent} from "@xivgear/core/analytics/analytics";
 import {BaseModal} from "@xivgear/common-ui/components/modal";
-import {contentArea} from "../base_ui";
 
 type DisplayCondition = (width: number, height: number) => boolean;
 
@@ -98,11 +97,14 @@ class ManagedAd {
 
     /**
      * Based on the new screen size, determine if this ad should be displayed
-     *
-     * @param width
-     * @param height
      */
-    recheck(width: number, height: number): void {
+    recheck(): void {
+        const parentElement = this.adContainer.outer.parentElement;
+        if (!parentElement) {
+            this.showing = false;
+        }
+        const width = parentElement.clientWidth;
+        const height = parentElement.clientHeight;
         this.showing = this.condition(width, height) && adsEnabled();
     }
 
@@ -173,12 +175,10 @@ window.addEventListener('resize', recheckAds);
 
 function recheckAds() {
     console.debug('recheckAds');
-    const width = document.documentElement.clientWidth;
-    const height = document.documentElement.clientHeight;
     let oneAdShown = false;
     if (adsEnabled()) {
         currentAds.forEach(ad => {
-            ad.recheck(width, height);
+            ad.recheck();
             console.debug(`recheckAds: ${ad.id} => ${ad.showing}`);
             if (ad.showing && !oneAdShown) {
                 oneAdShown = true;
@@ -191,10 +191,11 @@ function recheckAds() {
     if (oneAdShown) {
         fallbackPrivacyArea.style.display = 'none';
     }
-    // const firstShowing = currentAds.find(ad => ad.showExtras);
-    // if (firstShowing) {
-    //     firstShowing.showExtras = true;
-    // }
+    else {
+        fallbackPrivacyArea.style.display = '';
+        moveLinksToFallbackPrivacyArea();
+
+    }
 }
 
 export function insertAds(element: HTMLElement) {
@@ -299,8 +300,12 @@ const fallbackPrivacyArea = document.createElement('div');
 fallbackPrivacyArea.id = 'fallback-privacy-area';
 fallbackPrivacyArea.classList.add('shadow');
 
-export function installFallbackPrivacyArea() {
+function moveLinksToFallbackPrivacyArea() {
     fallbackPrivacyArea.replaceChildren(...extraLinks);
+}
+
+export function installFallbackPrivacyArea() {
+    moveLinksToFallbackPrivacyArea();
     document.querySelector('body')?.appendChild(fallbackPrivacyArea);
 }
 

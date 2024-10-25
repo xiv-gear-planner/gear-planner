@@ -60,9 +60,14 @@ body:not(.light-mode) {
 
   border-top-right-radius: 6px;
 
+  >* {
+    display: inline-block !important;
+  }
+
   span, div {
     &.extra-information-link::before {
       content: ' - ';
+      padding-left: 5px;
     }
   }
 
