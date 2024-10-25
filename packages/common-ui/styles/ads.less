@@ -65,9 +65,14 @@ body:not(.light-mode) {
   }
 
   span, div {
-    &.extra-information-link::before {
-      content: ' - ';
-      padding-left: 5px;
+    &.extra-information-link {
+      &:empty {
+        display: none !important;
+      }
+      &.extra-information-link::before {
+        content: ' - ';
+        padding-left: 5px;
+      }
     }
   }
 
