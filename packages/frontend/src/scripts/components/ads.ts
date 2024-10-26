@@ -102,6 +102,7 @@ class ManagedAd {
         const parentElement = this.adContainer.outer.parentElement;
         if (!parentElement) {
             this.showing = false;
+            return false;
         }
         const width = parentElement.clientWidth;
         const height = parentElement.clientHeight;
