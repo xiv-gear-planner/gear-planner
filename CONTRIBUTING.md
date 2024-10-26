@@ -58,8 +58,11 @@ create your `Simulation` instance.
 3. Optional: Write an extension of `SimSettings` if your sim
 has settings.
 4. Add a line in simulation.ts to call `registerSim(simSpec)`
-5. Optional: Add a GUI for your sim in `packages/frontend/src/scripts/sims`, and
-register it in `sim_guis.ts`.
+5. Add a GUI for your sim in `sim_guis.ts`. There are two default GUIs that can be
+used, `BaseUsageCountSimGui` for count-based sims and `BaseMultiCycleSimGui` for cycle
+sims. Optionally, you can write a custom UI in `packages/frontend/src/scripts/sims`, 
+and register it instead. A custom UI can show sim-specific things like custom options, 
+and gauge state throughout the rotation.
 
 The main method for simulation logic is `async simulate(set: CharacterGearSet): Promise<SimResult> {}`.
 Note that it is async - this is because it is expected that:
