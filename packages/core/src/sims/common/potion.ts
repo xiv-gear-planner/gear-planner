@@ -27,9 +27,9 @@ function makePotion(name: string, stat: RawStatKey, itemId: number, bonus: numbe
                 effects: {
                     modifyStats: (stats, bonuses) => {
                         bonuses[stat] = potionBonus(stats[stat], bonus, cap);
-                    }
-                }
-            }
+                    },
+                },
+            },
         ],
 
     };

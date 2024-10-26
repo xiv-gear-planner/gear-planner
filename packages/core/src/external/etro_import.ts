@@ -127,14 +127,14 @@ export async function getSetFromEtro(etroSetId: string) {
             items[slotKey] = {
                 id: itemId,
                 materia: materiaOut,
-                relicStats: relicStats
-            }
+                relicStats: relicStats,
+            };
         }
         else {
             items[slotKey] = {
                 id: itemId,
-                materia: materiaOut
-            }
+                materia: materiaOut,
+            };
         }
     }
     let food: number | undefined;
@@ -150,7 +150,7 @@ export async function getSetFromEtro(etroSetId: string) {
         job: response.jobAbbrev,
         food: food,
         items: items,
-        level: response.level
+        level: response.level,
     };
     return setImport;
 }

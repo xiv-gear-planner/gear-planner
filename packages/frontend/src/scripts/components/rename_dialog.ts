@@ -17,7 +17,7 @@ export function startRenameSheet(sheet: GearPlanSheet) {
         },
         set description(desc) {
             sheet.description = desc;
-        }
+        },
     });
     startRename(modal);
 }

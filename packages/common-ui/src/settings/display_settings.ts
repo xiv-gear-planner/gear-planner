@@ -44,10 +44,10 @@ class DisplaySettingsImpl {
         body.style.setProperty('--input-transition-time', '0');
         const lightModeClass = 'light-mode';
         if (lightMode) {
-            body.classList.add(lightModeClass)
+            body.classList.add(lightModeClass);
         }
         else {
-            body.classList.remove(lightModeClass)
+            body.classList.remove(lightModeClass);
         }
         setTimeout(() => {
             body.style.removeProperty('--transition-time');

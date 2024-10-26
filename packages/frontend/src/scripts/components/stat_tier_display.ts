@@ -173,11 +173,11 @@ export class StatTierDisplay extends HTMLDivElement {
                         this.appendChild(singleStatTierDisplay);
                         // singleStatTierDisplay.addEventListener('click', () => this.toggleState());
                         singleStatTierDisplay.addEventListener('click', (ev) => {
-                            if (ev.detail == 1) {
+                            if (ev.detail === 1) {
                                 const expanded = singleStatTierDisplay.expanded = !singleStatTierDisplay.expanded;
                                 recordSheetEvent('singleTierDisplayClick', this.sheet, {
                                     expanded: expanded,
-                                    stat: stat
+                                    stat: stat,
                                 });
                             }
                             else if (ev.detail >= 2) {
@@ -189,7 +189,7 @@ export class StatTierDisplay extends HTMLDivElement {
                                 }
                                 recordSheetEvent('allTierDisplayClick', this.sheet, {
                                     expanded: newState,
-                                    stat: stat
+                                    stat: stat,
                                 });
                             }
                         });
@@ -238,7 +238,7 @@ export class StatTierDisplay extends HTMLDivElement {
                     offset: value,
                     // Format as +5, +0, -5, etc
                     label: label,
-                }
+                };
             });
         }
 
@@ -252,7 +252,7 @@ export class StatTierDisplay extends HTMLDivElement {
                     fullName: stat + ' multiplier',
                     description: 'Damage multiplier from primary stat',
                     tieringFunc: makeTiering(value => mainStatMulti(levelStats, jobStats, value)),
-                    extraOffsets: extraOffsets
+                    extraOffsets: extraOffsets,
                 }];
             case "vitality":
                 return [{
@@ -260,7 +260,7 @@ export class StatTierDisplay extends HTMLDivElement {
                     fullName: 'Hit Points',
                     description: 'Hit Points (affected by Vitality)',
                     tieringFunc: makeTiering(value => vitToHp(levelStats, jobStats, value)),
-                    extraOffsets: extraOffsets
+                    extraOffsets: extraOffsets,
                 }];
             case "determination":
                 return [{
@@ -276,7 +276,7 @@ export class StatTierDisplay extends HTMLDivElement {
                     fullName: 'MP Regen',
                     description: 'MP Regen (affected by Piety)',
                     tieringFunc: makeTiering(value => mpTick(levelStats, value)),
-                    extraOffsets: extraOffsets
+                    extraOffsets: extraOffsets,
                 }];
             case "crit":
                 return [{
@@ -307,9 +307,9 @@ export class StatTierDisplay extends HTMLDivElement {
                                     const haste = computed.haste(over.attackType) + over.haste;
                                     return spsToGcd(over.gcdTime, levelStats, value, haste);
                                 }),
-                                extraOffsets: extraOffsets
-                            })
-                        })
+                                extraOffsets: extraOffsets,
+                            });
+                        });
                 }
                 else {
                     tierDisplays.push({
@@ -320,7 +320,7 @@ export class StatTierDisplay extends HTMLDivElement {
                             const haste = computed.haste('Spell');
                             return spsToGcd(2.5, levelStats, value, haste);
                         }),
-                        extraOffsets: extraOffsets
+                        extraOffsets: extraOffsets,
                     });
                 }
                 return [...tierDisplays, {
@@ -328,7 +328,7 @@ export class StatTierDisplay extends HTMLDivElement {
                     fullName: 'DoT scalar for spells',
                     description: 'DoT damage multiplier for spells',
                     tieringFunc: makeTiering(value => spsTickMulti(levelStats, value)),
-                    extraOffsets: extraOffsets
+                    extraOffsets: extraOffsets,
                 }];
             }
             case "skillspeed": {
@@ -344,9 +344,9 @@ export class StatTierDisplay extends HTMLDivElement {
                                     const haste = computed.haste(over.attackType) + over.haste;
                                     return sksToGcd(over.gcdTime, levelStats, value, haste);
                                 }),
-                                extraOffsets: extraOffsets
-                            })
-                        })
+                                extraOffsets: extraOffsets,
+                            });
+                        });
                 }
                 else {
                     tierDisplays.push({
@@ -357,8 +357,8 @@ export class StatTierDisplay extends HTMLDivElement {
                             const haste = computed.haste('Weaponskill');
                             return sksToGcd(2.5, levelStats, value, haste);
                         }),
-                        extraOffsets: extraOffsets
-                    })
+                        extraOffsets: extraOffsets,
+                    });
                 }
 
                 return [...tierDisplays, {
@@ -366,7 +366,7 @@ export class StatTierDisplay extends HTMLDivElement {
                     fullName: 'DoT scalar for weaponskills',
                     description: 'DoT damage multiplier for weaponskills',
                     tieringFunc: makeTiering(value => sksTickMulti(levelStats, value)),
-                    extraOffsets: extraOffsets
+                    extraOffsets: extraOffsets,
                 }];
             }
             case "tenacity":
@@ -375,14 +375,14 @@ export class StatTierDisplay extends HTMLDivElement {
                     fullName: stat + ' multiplier',
                     description: 'Damage multiplier from Tenacity',
                     tieringFunc: makeTiering(value => tenacityDmg(levelStats, value)),
-                    extraOffsets: extraOffsets
+                    extraOffsets: extraOffsets,
                 }, {
                     label: abbrev + ' Def',
                     fullName: stat + ' mitigation',
                     description: 'Damage reduction from Tenacity',
                     tieringFunc: makeTiering(value => tenacityIncomingDmg(levelStats, value)),
-                    extraOffsets: extraOffsets
-                }
+                    extraOffsets: extraOffsets,
+                },
                 ];
             default:
                 return [{
@@ -391,10 +391,10 @@ export class StatTierDisplay extends HTMLDivElement {
                     description: abbrev,
                     tieringFunc: offset => ({
                         lower: 0,
-                        upper: 0
+                        upper: 0,
                     }),
-                    extraOffsets: []
-                }]
+                    extraOffsets: [],
+                }];
 
         }
     }
@@ -404,7 +404,7 @@ export class StatTierDisplay extends HTMLDivElement {
         return {
             lower: this.getSingleTiering(false, currentValue, computation),
             upper: this.getSingleTiering(true, currentValue, computation),
-        }
+        };
     }
 
     private getSingleTiering(upper: boolean, initialValue: number, computation: (statValue: number) => number) {

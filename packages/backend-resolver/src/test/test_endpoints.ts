@@ -10,14 +10,14 @@ describe("backend stat resolver server", () => {
         it("responds to health check", async () => {
             const response = await fastify.inject({
                 method: 'GET',
-                url: '/healthcheck'
+                url: '/healthcheck',
             });
             assert.equal(response.statusCode, 200);
         });
         it("can serve correct data", async () => {
             const response = await fastify.inject({
                 method: 'GET',
-                url: '/fulldata/f9b260a9-650c-445a-b3eb-c56d8d968501'
+                url: '/fulldata/f9b260a9-650c-445a-b3eb-c56d8d968501',
             });
             assert.equal(response.statusCode, 200);
             const json = response.json() as SheetStatsExport;
@@ -37,7 +37,7 @@ describe("backend stat resolver server", () => {
         it("can serve correct data with party size 0", async () => {
             const response = await fastify.inject({
                 method: 'GET',
-                url: '/fulldata/f9b260a9-650c-445a-b3eb-c56d8d968501?partyBonus=0'
+                url: '/fulldata/f9b260a9-650c-445a-b3eb-c56d8d968501?partyBonus=0',
             });
             assert.equal(response.statusCode, 200);
             const json = response.json() as SheetStatsExport;
@@ -57,7 +57,7 @@ describe("backend stat resolver server", () => {
         it("can serve correct data with party size 5", async () => {
             const response = await fastify.inject({
                 method: 'GET',
-                url: '/fulldata/f9b260a9-650c-445a-b3eb-c56d8d968501?partyBonus=5'
+                url: '/fulldata/f9b260a9-650c-445a-b3eb-c56d8d968501?partyBonus=5',
             });
             assert.equal(response.statusCode, 200);
             const json = response.json() as SheetStatsExport;
@@ -81,7 +81,7 @@ describe("backend stat resolver server", () => {
         it("resolves shortlink", async () => {
             const response = await fastify.inject({
                 method: 'GET',
-                url: `/?page=${SHORTLINK_HASH}|f9b260a9-650c-445a-b3eb-c56d8d968501`
+                url: `/?page=${SHORTLINK_HASH}|f9b260a9-650c-445a-b3eb-c56d8d968501`,
             });
             assert.equal(response.statusCode, 200);
             const parsed = parser.parseFromString(response.body, 'text/html');
@@ -96,7 +96,7 @@ describe("backend stat resolver server", () => {
         it("resolves shortlink with trailing slash", async () => {
             const response = await fastify.inject({
                 method: 'GET',
-                url: `/?page=${SHORTLINK_HASH}|f9b260a9-650c-445a-b3eb-c56d8d968501`
+                url: `/?page=${SHORTLINK_HASH}|f9b260a9-650c-445a-b3eb-c56d8d968501`,
             });
             assert.equal(response.statusCode, 200);
             const parsed = parser.parseFromString(response.body, 'text/html');
@@ -105,7 +105,7 @@ describe("backend stat resolver server", () => {
         it("resolves bis link", async () => {
             const response = await fastify.inject({
                 method: 'GET',
-                url: `/?page=${BIS_HASH}|sge|endwalker|anabaseios`
+                url: `/?page=${BIS_HASH}|sge|endwalker|anabaseios`,
             });
             assert.equal(response.statusCode, 200);
             const parsed = parser.parseFromString(response.body, 'text/html');
@@ -114,7 +114,7 @@ describe("backend stat resolver server", () => {
         it("resolves bis link with trailing slash", async () => {
             const response = await fastify.inject({
                 method: 'GET',
-                url: `/?page=${BIS_HASH}|sge|endwalker|anabaseios`
+                url: `/?page=${BIS_HASH}|sge|endwalker|anabaseios`,
             });
             assert.equal(response.statusCode, 200);
             const parsed = parser.parseFromString(response.body, 'text/html');

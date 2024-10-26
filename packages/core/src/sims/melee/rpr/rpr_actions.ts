@@ -10,7 +10,7 @@ export const Slice: RprGcdAbility = {
     attackType: "Weaponskill",
     gcd: 2.5,
     cast: 0,
-    updateSoulGauge: gauge => gauge.soulGauge += 10
+    updateSoulGauge: gauge => gauge.soulGauge += 10,
 };
 
 export const WaxingSlice: RprGcdAbility = {
@@ -21,7 +21,7 @@ export const WaxingSlice: RprGcdAbility = {
     attackType: "Weaponskill",
     gcd: 2.5,
     cast: 0,
-    updateSoulGauge: gauge => gauge.soulGauge += 10
+    updateSoulGauge: gauge => gauge.soulGauge += 10,
 };
 
 export const InfernalSlice: RprGcdAbility = {
@@ -56,7 +56,7 @@ export const Harpe: RprGcdAbility = {
     gcd: 2.5,
     cast: 1.3,
     appDelay: 0.9,
-    updateSoulGauge: gauge => gauge.soulGauge += 10
+    updateSoulGauge: gauge => gauge.soulGauge += 10,
 };
 
 
@@ -68,7 +68,7 @@ export const Gibbet: RprGcdAbility = {
     attackType: "Weaponskill",
     gcd: 2.5,
     cast: 0,
-    updateShroudGauge: gauge => gauge.shroudGauge += 10
+    updateShroudGauge: gauge => gauge.shroudGauge += 10,
 };
 
 export const Gallows: RprGcdAbility = {
@@ -79,7 +79,7 @@ export const Gallows: RprGcdAbility = {
     attackType: "Weaponskill",
     gcd: 2.5,
     cast: 0,
-    updateShroudGauge: gauge => gauge.shroudGauge += 10
+    updateShroudGauge: gauge => gauge.shroudGauge += 10,
 };
 
 export const SoulSlice: RprGcdAbility = {
@@ -180,7 +180,7 @@ export const VoidReapingUnbuffed: RprGcdAbility = {
     attackType: "Weaponskill",
     gcd: 1.5,
     cast: 0,
-    fixedGcd: true
+    fixedGcd: true,
 };
 
 export const VoidReaping: RprGcdAbility = {
@@ -191,7 +191,7 @@ export const VoidReaping: RprGcdAbility = {
     attackType: "Weaponskill",
     gcd: 1.5,
     cast: 0,
-    fixedGcd: true
+    fixedGcd: true,
 };
 
 export const CrossReaping: RprGcdAbility = {
@@ -202,7 +202,7 @@ export const CrossReaping: RprGcdAbility = {
     attackType: "Weaponskill",
     gcd: 1.5,
     cast: 0,
-    fixedGcd: true
+    fixedGcd: true,
 };
 
 export const Gluttony: RprOgcdAbility = {
@@ -260,7 +260,7 @@ export const Enshroud: RprOgcdAbility = {
     potency: 0,
     attackType: "Ability",
     updateShroudGauge: gauge => gauge.shroudGauge -= 50,
-}
+};
 
 export const ArcaneCircle: RprOgcdAbility = {
     type: 'ogcd',

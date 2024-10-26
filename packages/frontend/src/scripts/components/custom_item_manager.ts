@@ -27,7 +27,7 @@ function ifWeapon(fn: (item: CustomItem) => HTMLElement): (item: CustomItem) => 
         else {
             return document.createTextNode('');
         }
-    }
+    };
 }
 
 /**
@@ -51,7 +51,7 @@ export class CustomItemTable extends CustomTable<CustomItem> {
                     }, 'Delete this item'));
                     return out;
                 },
-                initialWidth: 40
+                initialWidth: 40,
             },
             {
                 shortName: 'name',
@@ -60,12 +60,12 @@ export class CustomItemTable extends CustomTable<CustomItem> {
                 renderer: (item: CustomItem) => {
                     return new FieldBoundTextField(item.customData, 'name');
                 },
-                initialWidth: 150
+                initialWidth: 150,
             }, {
                 shortName: 'slot',
                 displayName: 'Slot',
                 getter: item => item.occGearSlotName,
-                initialWidth: 85
+                initialWidth: 85,
             }, {
                 shortName: 'ilvl',
                 displayName: 'ilvl (cap?)',
@@ -73,7 +73,7 @@ export class CustomItemTable extends CustomTable<CustomItem> {
                 renderer: (item: CustomItem) => {
                     const ilvlInput = new FieldBoundIntField(item, 'ilvl', {
                         postValidators: [nonNegative],
-                        inputMode: 'number'
+                        inputMode: 'number',
                     });
                     const capBox = new FieldBoundCheckBox(item, 'respectCaps');
                     const recheck = (ilvl: number) => {
@@ -92,7 +92,7 @@ export class CustomItemTable extends CustomTable<CustomItem> {
                     ilvlInput.style.minWidth = '40px';
                     return holder;
                 },
-                initialWidth: 80
+                initialWidth: 80,
             },
             {
                 shortName: 'mat-large',
@@ -101,10 +101,10 @@ export class CustomItemTable extends CustomTable<CustomItem> {
                 renderer: (item: CustomItem) => {
                     return new FieldBoundIntField(item.customData, 'largeMateriaSlots', {
                         postValidators: [clampValues(0, 5)],
-                        inputMode: 'number'
+                        inputMode: 'number',
                     });
                 },
-                initialWidth: 60
+                initialWidth: 60,
             }, {
                 shortName: 'mat-small',
                 displayName: 'Sm Mat',
@@ -112,10 +112,10 @@ export class CustomItemTable extends CustomTable<CustomItem> {
                 renderer: (item: CustomItem) => {
                     return new FieldBoundIntField(item.customData, 'smallMateriaSlots', {
                         postValidators: [clampValues(0, 5)],
-                        inputMode: 'number'
+                        inputMode: 'number',
                     });
                 },
-                initialWidth: 60
+                initialWidth: 60,
             },
             ...ALL_STATS.map(stat => {
                 return {
@@ -125,11 +125,11 @@ export class CustomItemTable extends CustomTable<CustomItem> {
                     renderer: (item: CustomItem) => {
                         return new FieldBoundIntField(item.customData.stats, stat, {
                             postValidators: [nonNegative],
-                            inputMode: 'number'
+                            inputMode: 'number',
                         });
                     },
-                    initialWidth: 40
-                }
+                    initialWidth: 40,
+                };
             }),
             {
                 shortName: 'wdPhys',
@@ -138,7 +138,7 @@ export class CustomItemTable extends CustomTable<CustomItem> {
                 renderer: ifWeapon((item: CustomItem) => {
                     return new FieldBoundIntField(item.customData.stats, "wdPhys", {
                         postValidators: [nonNegative],
-                        inputMode: 'number'
+                        inputMode: 'number',
                     });
                 }),
                 initialWidth: 40,
@@ -149,10 +149,10 @@ export class CustomItemTable extends CustomTable<CustomItem> {
                 renderer: ifWeapon((item: CustomItem) => {
                     return new FieldBoundIntField(item.customData.stats, "wdMag", {
                         postValidators: [nonNegative],
-                        inputMode: 'number'
+                        inputMode: 'number',
                     });
                 }),
-                initialWidth: 40
+                initialWidth: 40,
 
             }, {
                 shortName: 'wDelay',
@@ -161,12 +161,12 @@ export class CustomItemTable extends CustomTable<CustomItem> {
                 renderer: ifWeapon((item: CustomItem) => {
                     const out = new FieldBoundFloatField(item.customData.stats, "weaponDelay", {
                         postValidators: [nonNegative],
-                        inputMode: 'number'
+                        inputMode: 'number',
                     });
                     out.title = 'Enter weapon delay in seconds (e.g. 3.125)';
                     return out;
                 }),
-                initialWidth: 80
+                initialWidth: 80,
             }];
         // TODO: haste?
 
@@ -202,8 +202,8 @@ export class CustomItemPopup extends BaseModal {
             if (slot === 'Weapon2H' && this.sheet.classJobStats.offhand) {
                 return;
             }
-            // Don't show 1H/Shield for 2H classes
             else if ((slot === 'Weapon1H' || slot === 'OffHand') && !this.sheet.classJobStats.offhand) {
+                // Don't show 1H/Shield for 2H classes
                 return;
             }
             newCustomItemDropdown.addAction({
@@ -249,7 +249,7 @@ export class CustomFoodTable extends CustomTable<CustomFood> {
                     }, 'Delete this item'));
                     return out;
                 },
-                initialWidth: 40
+                initialWidth: 40,
             },
             {
                 shortName: 'name',
@@ -258,7 +258,7 @@ export class CustomFoodTable extends CustomTable<CustomFood> {
                 renderer: (item: CustomFood) => {
                     return new FieldBoundTextField(item.customData, 'name');
                 },
-                initialWidth: 150
+                initialWidth: 150,
             }, {
                 shortName: 'ilvl',
                 displayName: 'ilvl',
@@ -266,10 +266,10 @@ export class CustomFoodTable extends CustomTable<CustomFood> {
                 renderer: (item: CustomFood) => {
                     return new FieldBoundIntField(item.customData, 'ilvl', {
                         postValidators: [nonNegative],
-                        inputMode: 'number'
-                    })
+                        inputMode: 'number',
+                    });
                 },
-                initialWidth: 60
+                initialWidth: 60,
             }, {
                 shortName: 'vitality-percent',
                 displayName: 'Vit %',
@@ -277,7 +277,7 @@ export class CustomFoodTable extends CustomTable<CustomFood> {
                 renderer: (item: CustomFood) => {
                     return new FieldBoundIntField(item.customData.vitalityBonus, 'percentage', {postValidators: [nonNegative]});
                 },
-                initialWidth: 60
+                initialWidth: 60,
             }, {
                 shortName: 'vitality-cap',
                 displayName: 'Vit Max',
@@ -285,7 +285,7 @@ export class CustomFoodTable extends CustomTable<CustomFood> {
                 renderer: (item: CustomFood) => {
                     return new FieldBoundIntField(item.customData.vitalityBonus, 'max', {postValidators: [nonNegative]});
                 },
-                initialWidth: 60
+                initialWidth: 60,
             }, {
                 shortName: 'primary-stat',
                 displayName: '1st Stat',
@@ -293,7 +293,7 @@ export class CustomFoodTable extends CustomTable<CustomFood> {
                 renderer: (item: CustomFood) => {
                     return new FieldBoundDataSelect(item.customData, 'primaryStat', value => value ? STAT_FULL_NAMES[value] : 'None', [null, ...ALL_SUB_STATS]);
                 },
-                initialWidth: 120
+                initialWidth: 120,
             }, {
                 shortName: 'primary-stat-percent',
                 displayName: '%',
@@ -301,7 +301,7 @@ export class CustomFoodTable extends CustomTable<CustomFood> {
                 renderer: (item: CustomFood) => {
                     return new FieldBoundIntField(item.customData.primaryStatBonus, 'percentage', {postValidators: [nonNegative]});
                 },
-                initialWidth: 60
+                initialWidth: 60,
             }, {
                 shortName: 'primary-stat-cap',
                 displayName: 'Max',
@@ -309,7 +309,7 @@ export class CustomFoodTable extends CustomTable<CustomFood> {
                 renderer: (item: CustomFood) => {
                     return new FieldBoundIntField(item.customData.primaryStatBonus, 'max', {postValidators: [nonNegative]});
                 },
-                initialWidth: 60
+                initialWidth: 60,
             }, {
                 shortName: 'secondary-stat',
                 displayName: '2nd Stat',
@@ -317,7 +317,7 @@ export class CustomFoodTable extends CustomTable<CustomFood> {
                 renderer: (item: CustomFood) => {
                     return new FieldBoundDataSelect(item.customData, 'secondaryStat', value => value ? STAT_FULL_NAMES[value] : 'None', [null, ...ALL_SUB_STATS]);
                 },
-                initialWidth: 120
+                initialWidth: 120,
             }, {
                 shortName: 'secondary-stat-percent',
                 displayName: '%',
@@ -325,7 +325,7 @@ export class CustomFoodTable extends CustomTable<CustomFood> {
                 renderer: (item: CustomFood) => {
                     return new FieldBoundIntField(item.customData.secondaryStatBonus, 'percentage', {postValidators: [nonNegative]});
                 },
-                initialWidth: 60
+                initialWidth: 60,
             }, {
                 shortName: 'secondary-stat-cap',
                 displayName: 'Max',
@@ -333,7 +333,7 @@ export class CustomFoodTable extends CustomTable<CustomFood> {
                 renderer: (item: CustomFood) => {
                     return new FieldBoundIntField(item.customData.secondaryStatBonus, 'max', {postValidators: [nonNegative]});
                 },
-                initialWidth: 60
+                initialWidth: 60,
             },
         ];
 

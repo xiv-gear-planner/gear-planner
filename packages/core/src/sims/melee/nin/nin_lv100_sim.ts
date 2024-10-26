@@ -48,7 +48,7 @@ export const ninSpec: SimSpec<NinSim, NinSettingsExternal> = {
         contact: [{
             type: 'discord',
             discordTag: 'makar',
-            discordUid: '85924030661533696'
+            discordUid: '85924030661533696',
         }],
     }],
 };
@@ -56,7 +56,7 @@ export const ninSpec: SimSpec<NinSim, NinSettingsExternal> = {
 class RotationState {
     private _combo: number = 0;
     get combo() {
-        return this._combo
+        return this._combo;
     }
 
     set combo(newCombo: number) {
@@ -138,7 +138,7 @@ class NINCycleProcessor extends CycleProcessor {
             modified = {
                 ...modified,
                 potency: modified.potency + 100,
-            }
+            };
         }
 
         return super.use(modified);
@@ -159,7 +159,7 @@ class NINCycleProcessor extends CycleProcessor {
                     break;
                 }
                 case 2: {
-                    // Force AE during burst windows if it's available. Otherwise, keep our stacks high
+                // Force AE during burst windows if it's available. Otherwise, keep our stacks high
                     const forceAeolian = this.getBuffIfActive(Buffs.KunaisBaneBuff) || this.getBuffIfActive(Dokumori);
                     if (this.gauge.kazematoi <= 3 && (!forceAeolian || this.gauge.kazematoi === 0)) {
                         fillerAction = Actions.ArmorCrush;
@@ -194,7 +194,7 @@ class NINCycleProcessor extends CycleProcessor {
         // Use the Mudra combination
         for (let i = 0; i < action.steps.length; i++) {
             // Only consume charges on the first step and if we don't have kassatsu
-            const useCharge = i === 0 && !this.getBuffIfActive(Buffs.KassatsuBuff)
+            const useCharge = i === 0 && !this.getBuffIfActive(Buffs.KassatsuBuff);
             this.useMudra(action.steps[i], useCharge);
         }
 
@@ -390,7 +390,7 @@ class NINCycleProcessor extends CycleProcessor {
 
     useEvenMinBurst() {
         /* eslint-disable @typescript-eslint/no-unused-vars */
-        const ogcdOrder = [Actions.KunaisBane, Actions.DreamWithin, Actions.TenChiJin, Actions.Meisui, Actions.TenriJindo]
+        const ogcdOrder = [Actions.KunaisBane, Actions.DreamWithin, Actions.TenChiJin, Actions.Meisui, Actions.TenriJindo];
         let counter = 0;
 
         counter = this.useOgcdInOrder(ogcdOrder, counter);
@@ -456,7 +456,7 @@ export class NinSim extends BaseMultiCycleSim<NinSimResult, NinSettings, NINCycl
     protected createCycleProcessor(settings: MultiCycleSettings): NINCycleProcessor {
         return new NINCycleProcessor({
             ...settings,
-            hideCycleDividers: true
+            hideCycleDividers: true,
         });
     }
 
@@ -525,7 +525,7 @@ export class NinSim extends BaseMultiCycleSim<NinSimResult, NinSettings, NINCycl
 
                     cp.useEvenMinBurst();
                 });
-            }
-        }]
+            },
+        }];
     }
-} 
+}

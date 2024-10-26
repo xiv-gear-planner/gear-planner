@@ -18,7 +18,7 @@ function formatTime(time: number) {
     time = Math.abs(time);
     const minute = Math.floor(time / 60);
     const second = time % 60;
-    return (`${negative ? '-' : ''}${minute}:${second.toFixed(2).padStart(5, '0')}`)
+    return (`${negative ? '-' : ''}${minute}:${second.toFixed(2).padStart(5, '0')}`);
 }
 
 
@@ -53,13 +53,12 @@ export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
                             title += `Cast Start to Application: ${roundTime(original.appDelayFromStart)}\n`;
                             title += `Effective Recast: ${roundTime(original.totalTimeTaken)}`;
                         }
-                        // instant
-                        else {
+                        else { // instant
                             title += `Application Delay: ${original.appDelayFromStart}\nAnimation Lock: ${original.totalTimeTaken}`;
                         }
                         colElement.title = title;
                     }
-                }
+                },
             },
             {
                 shortName: 'ability',
@@ -92,7 +91,7 @@ export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
                     else {
                         return document.createTextNode(ability);
                     }
-                }
+                },
             },
             {
                 shortName: 'unbuffed-pot',
@@ -114,7 +113,7 @@ export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
                     else {
                         return document.createTextNode('--');
                     }
-                }
+                },
             },
             {
                 shortName: 'expected-damage',
@@ -179,7 +178,7 @@ export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
                         out.push(`${effects.haste}% Haste`);
                     }
                     return document.createTextNode(out.join(', '));
-                }
+                },
             },
             {
                 shortName: 'buffs',

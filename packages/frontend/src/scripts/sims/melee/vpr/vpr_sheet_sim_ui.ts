@@ -49,7 +49,7 @@ class VprGaugeGui {
                     return div;
                 }
                 return document.createTextNode("");
-            }
+            },
         },
         {
             shortName: 'rattlingCoils',
@@ -85,7 +85,7 @@ class VprGaugeGui {
                     return div;
                 }
                 return document.createTextNode("");
-            }
+            },
         },
         ];
     }

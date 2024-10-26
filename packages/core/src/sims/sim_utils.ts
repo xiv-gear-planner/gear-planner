@@ -10,10 +10,10 @@ function dotPotencyToDamage(stats: ComputedSetStats, potency: number, dmgAbility
         bonuses.dhitChance += combinedBuffEffects.dhitChanceIncrease;
     });
     // TODO: are there any dots with auto-crit or auto-dh?
-    const forceDh = false;
+    const forceDhit = false;
     const forceCrit = false;
-    const nonCritDmg = baseDamageFull(modifiedStats, potency, dmgAbility.attackType, forceDh, forceCrit, true);
-    const afterCritDh = applyDhCritFull(nonCritDmg, modifiedStats);
+    const nonCritDmg = baseDamageFull(modifiedStats, potency, dmgAbility.attackType, forceDhit, true);
+    const afterCritDh = applyDhCritFull(nonCritDmg, modifiedStats, forceCrit, forceDhit);
     return multiplyFixed(afterCritDh, combinedBuffEffects.dmgMod);
 }
 
@@ -31,8 +31,8 @@ function potencyToDamage(stats: ComputedSetStats, potency: number, dmgAbility: D
             bonuses.forceDh = true;
         }
     });
-    const nonCritDmg = baseDamageFull(modifiedStats, potency, dmgAbility.attackType, forceDhit, forceCrit);
-    const afterCritDh = applyDhCritFull(nonCritDmg, modifiedStats);
+    const nonCritDmg = baseDamageFull(modifiedStats, potency, dmgAbility.attackType, forceDhit);
+    const afterCritDh = applyDhCritFull(nonCritDmg, modifiedStats, forceCrit, forceDhit);
     return multiplyFixed(afterCritDh, combinedBuffEffects.dmgMod);
 }
 
@@ -50,8 +50,8 @@ export function abilityToDamageNew(stats: ComputedSetStats, ability: Ability, co
     if (!('potency' in ability)) {
         return {
             directDamage: null,
-            dot: null
-        }
+            dot: null,
+        };
     }
     // noinspection AssignmentToFunctionParameterJS
     stats = combinedBuffEffects.modifyStats(stats);
@@ -62,7 +62,7 @@ export function abilityToDamageNew(stats: ComputedSetStats, ability: Ability, co
             fullDurationTicks: ability.dot.duration === 'indefinite' ? 'indefinite' : (ability.dot.duration / 3),
             damagePerTick: dotPotencyToDamage(stats, ability.dot.tickPotency, ability, combinedBuffEffects),
         } : null,
-    }
+    };
 }
 
 /**
@@ -76,7 +76,7 @@ export function noBuffEffects(): CombinedBuffEffect {
         forceCrit: false,
         forceDhit: false,
         haste: 0,
-        modifyStats: stats => stats
+        modifyStats: stats => stats,
     };
 }
 

@@ -22,7 +22,7 @@ import {
     OccGearSlotKey,
     RawStatKey,
     RawStats,
-    RelicStatModel,
+    RelicStatModel
 } from "@xivgear/xivmath/geartypes";
 import {BaseParamToStatKey, RelevantBaseParam} from "./external/xivapitypes";
 import {getRelicStatModelFor} from "./relicstats/relicstats";
@@ -65,7 +65,7 @@ const apiClient = new DataApiClient<never>({
     baseUrl: "https://data.xivgear.app",
     // baseUrl: "https://betadata.xivgear.app",
     // baseUrl: "http://localhost:8085",
-    customFetch: retryFetch
+    customFetch: retryFetch,
 });
 
 export function setDataApi(baseUrl: string) {
@@ -106,7 +106,7 @@ export class NewApiDataManager implements DataManager {
     private _maxIlvlForEquipLevelWeapon: Map<number, number>;
 
     private queryBaseParams() {
-        return this.apiClient.baseParams.baseParams()
+        return this.apiClient.baseParams.baseParams();
     }
 
     async getIlvlSyncData(baseParamPromise: ReturnType<typeof this.queryBaseParams>, ilvl: number) {
@@ -238,7 +238,7 @@ export class NewApiDataManager implements DataManager {
                     Ring: requireNumber(value.ringPercent),
                     Weapon2H: requireNumber(value.twoHandWeaponPercent),
                     Weapon1H: requireNumber(value.oneHandWeaponPercent),
-                    Wrist: requireNumber(value.braceletPercent)
+                    Wrist: requireNumber(value.braceletPercent),
                 };
                 return baseParams;
             }, {});
@@ -268,7 +268,7 @@ export class NewApiDataManager implements DataManager {
                         }
                         catch (e) {
                             console.log(e);
-                            throw e
+                            throw e;
                         }
                     })
                     .map(i => new DataApiGearInfo(i));
@@ -282,7 +282,7 @@ export class NewApiDataManager implements DataManager {
                     else {
                         this._maxIlvlForEquipLevel.set(item.equipLvl, Math.max(item.ilvl, this._maxIlvlForEquipLevel.get(item.equipLvl) ?? 0));
                     }
-                })
+                });
                 // TODO: put up better error
             }, (e) => console.error(e));
         const statsPromise = Promise.all([itemsPromise, baseParamPromise]).then(() => {
@@ -294,8 +294,7 @@ export class NewApiDataManager implements DataManager {
                 if (this._ilvlSync && this._ilvlSync < item.ilvl) {
                     isyncLvl = this._ilvlSync;
                 }
-                // Downsync by equip lvl, infer correct ilvl
-                else if (this._level < item.equipLvl) {
+                else if (this._level < item.equipLvl) { // Downsync by equip lvl, infer correct ilvl
                     isyncLvl = this._maxIlvlForEquipLevel.get(this._level);
                 }
                 else {
@@ -307,7 +306,7 @@ export class NewApiDataManager implements DataManager {
                     if (item.isCustomRelic) {
                         console.debug('Applying relic model');
                         item.relicStatModel = getRelicStatModelFor(item, this._baseParams, this._classJob);
-                        console.debug('Applied', item.relicStatModel)
+                        console.debug('Applied', item.relicStatModel);
                     }
                 }));
             });
@@ -379,7 +378,7 @@ export class NewApiDataManager implements DataManager {
         }
         const multi = this._jobMultipliers.get(job);
         if (!multi) {
-            throw Error(`No data for job ${job}`)
+            throw Error(`No data for job ${job}`);
         }
         return multi;
     }
@@ -471,7 +470,7 @@ export class DataApiGearInfo implements GearItem {
         else if (eqs.mainHand) {
             this.displayGearSlotName = 'Weapon';
             if (eqs.offHand) {
-                this.occGearSlotName = 'Weapon2H'
+                this.occGearSlotName = 'Weapon2H';
             }
             else {
                 this.occGearSlotName = 'Weapon1H';
@@ -538,7 +537,7 @@ export class DataApiGearInfo implements GearItem {
         this.isUnique = data.unique;
         this.computeSubstats();
         this.materiaSlots = [];
-        const baseMatCount: number = data.materiaSlotCount
+        const baseMatCount: number = data.materiaSlotCount;
         if (baseMatCount === 0) {
             // If there are no materia slots, then it might be a custom relic
             // TODO: is this branch still needed?
@@ -566,7 +565,7 @@ export class DataApiGearInfo implements GearItem {
                 this.materiaSlots.push({
                     maxGrade: MATERIA_LEVEL_MAX_NORMAL,
                     allowsHighGrade: true,
-                    ilvl: data.ilvl
+                    ilvl: data.ilvl,
                 });
             }
             if (overmeld) {
@@ -575,13 +574,13 @@ export class DataApiGearInfo implements GearItem {
                 this.materiaSlots.push({
                     maxGrade: MATERIA_LEVEL_MAX_NORMAL,
                     allowsHighGrade: true,
-                    ilvl: data.ilvl
+                    ilvl: data.ilvl,
                 });
                 for (let i = this.materiaSlots.length; i < MATERIA_SLOTS_MAX; i++) {
                     this.materiaSlots.push({
                         maxGrade: MATERIA_LEVEL_MAX_OVERMELD,
                         allowsHighGrade: false,
-                        ilvl: data.ilvl
+                        ilvl: data.ilvl,
                     });
                 }
             }
@@ -681,7 +680,7 @@ export class DataApiGearInfo implements GearItem {
         this.statCaps = statCapsNative;
         if (syncIlvlInfo && (syncIlvlInfo.ilvl < this.ilvl || level < this.equipLvl)) {
             this.unsyncedVersion = {
-                ...this
+                ...this,
             };
             this.syncedDownTo = syncIlvlInfo.ilvl;
             this.materiaSlots = [];
@@ -762,7 +761,7 @@ export function processRawMateriaInfo(data: MateriaType): Materia[] {
             primaryStatValue: stats[stat],
             materiaGrade: grade,
             isHighGrade: (grade % 2) === 0,
-            ilvl: itemData.ilvl ?? 0
+            ilvl: itemData.ilvl ?? 0,
         });
     }
     return out;

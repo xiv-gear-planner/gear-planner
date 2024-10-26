@@ -109,7 +109,7 @@ const STANDARD_HEALER: JobDataConst = {
     irrelevantSubstats: ['skillspeed', 'tenacity'],
     traitMulti: (level, attackType) => attackType === 'Auto-attack' ? 1.0 : 1.3, // Maim and Mend II
     itemStatCapMultipliers: {
-        'vitality': 0.90
+        'vitality': 0.90,
     },
     aaPotency: MELEE_AUTO_POTENCY,
     excludedRelicSubstats: ['dhit'],
@@ -155,7 +155,7 @@ const STANDARD_CASTER: JobDataConst = {
     irrelevantSubstats: ['skillspeed', 'tenacity', 'piety'],
     traitMulti: (level, attackType) => attackType === 'Auto-attack' ? 1.0 : 1.3, // Maim and Mend II
     itemStatCapMultipliers: {
-        'vitality': 0.90
+        'vitality': 0.90,
     },
     aaPotency: MELEE_AUTO_POTENCY,
     excludedRelicSubstats: [],
@@ -189,8 +189,8 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
                 attackType: 'Spell',
                 haste: 20,
                 basis: 'sps',
-            }]
-        }
+            }];
+        },
     },
     SGE: STANDARD_HEALER,
     SCH: STANDARD_HEALER,
@@ -199,7 +199,7 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
     PLD: {
         ...STANDARD_TANK,
         // irrelevantSubstats: ['piety'],
-        offhand: true
+        offhand: true,
     },
     WAR: STANDARD_TANK,
     DRK: STANDARD_TANK,
@@ -218,7 +218,7 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
                         || attackType === 'Spell'
                         || attackType === 'Auto-attack'
                             ? 5 : 0);
-                }
+                },
             },
             {
                 minLevel: 20,
@@ -229,7 +229,7 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
                         || attackType === 'Spell'
                         || attackType === 'Auto-attack'
                             ? 10 : 0);
-                }
+                },
             },
             {
                 minLevel: 40,
@@ -240,18 +240,18 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
                         || attackType === 'Spell'
                         || attackType === 'Auto-attack'
                             ? 15 : 0);
-                }
+                },
             },
             {
-            minLevel: 76,
-            apply: (stats) => {
-                stats.bonusHaste.push(attackType =>
-                    attackType === 'Weaponskill'
+                minLevel: 76,
+                apply: (stats) => {
+                    stats.bonusHaste.push(attackType =>
+                        attackType === 'Weaponskill'
                     || attackType === 'Spell'
                     || attackType === 'Auto-attack'
-                        ? 20 : 0);
-            }
-        }]
+                            ? 20 : 0);
+                },
+            }],
     },
     NIN: {
         ...STANDARD_MELEE,
@@ -261,9 +261,9 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
             apply: stats => {
                 stats.bonusHaste.push(attackType =>
                     attackType === 'Weaponskill' || attackType === 'Auto-attack' ? 15 : 0);
-            }
-        }
-        ]
+            },
+        },
+        ],
     },
     SAM: {
         ...STANDARD_MELEE,
@@ -278,8 +278,9 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
                     haste: 10,
                     basis: 'sks',
                     isPrimary: true,
-                }]
-            } else {
+                }];
+            }
+            else {
                 return [{
                     shortLabel: 'GCD',
                     longLabel: '2.5s GCD w/ Fuka',
@@ -289,9 +290,9 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
                     haste: 13, // Enhanced Fugetsu and Fuka
                     basis: 'sks',
                     isPrimary: true,
-                }]
+                }];
             }
-        }
+        },
     },
     RPR: STANDARD_MELEE,
     VPR: {
@@ -308,15 +309,15 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
                 haste: 15,
                 basis: 'sks',
                 isPrimary: true,
-            }]
-        }
+            }];
+        },
     },
     // Ranged
     BRD: STANDARD_RANGED,
     MCH: STANDARD_RANGED,
     DNC: {
         ...STANDARD_RANGED,
-        aaPotency: MELEE_AUTO_POTENCY
+        aaPotency: MELEE_AUTO_POTENCY,
     },
     // Caster
     BLM: STANDARD_CASTER,
@@ -330,7 +331,7 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
         maxLevel: 80,
         traitMulti: (level, attackType) => attackType === 'Auto-attack' ? 1.0 : 1.5, // Maim and Mend V
     },
-    PCT: STANDARD_CASTER
+    PCT: STANDARD_CASTER,
 };
 
 
@@ -344,13 +345,13 @@ export const RACE_STATS: Record<RaceName, RawStats> = {
     'Duskwight': new RawStats({
         vitality: -1,
         intelligence: 3,
-        mind: 1
+        mind: 1,
     }),
     'Wildwood': new RawStats({
         dexterity: 3,
         vitality: -1,
         intelligence: 2,
-        mind: -1
+        mind: -1,
     }),
     // Miqo
     "Seekers of the Sun": new RawStats({
@@ -505,7 +506,7 @@ export const LEVEL_STATS: Record<SupportedLevel, LevelStats> = {
         mainStatPowerMod: {
             Tank: 156,
             other: 195,
-        }
+        },
     },
     // DAWNTRAIL TODO: replace with real values once known
     100: {
@@ -527,8 +528,8 @@ export const LEVEL_STATS: Record<SupportedLevel, LevelStats> = {
             Tank: 190,
             // Verified per Mahdi
             other: 237,
-        }
-    }
+        },
+    },
 };
 
 /**
@@ -550,8 +551,8 @@ export const LEVEL_ITEMS: Record<SupportedLevel, LevelItemInfo> = {
             maxILvl: 405,
             minILvlFood: 640,
             maxILvlFood: 999,
-            higherRelics: true
-        }
+            higherRelics: true,
+        },
     },
     80: {
         minILvl: 430,
@@ -570,8 +571,8 @@ export const LEVEL_ITEMS: Record<SupportedLevel, LevelItemInfo> = {
             maxILvl: 475,
             minILvlFood: 640,
             maxILvlFood: 999,
-            higherRelics: true
-        }
+            higherRelics: true,
+        },
     },
     // DAWNTRAIL TODO: cap off level 90 items
     90: {
@@ -588,8 +589,8 @@ export const LEVEL_ITEMS: Record<SupportedLevel, LevelItemInfo> = {
             maxILvl: 999,
             minILvlFood: 640,
             maxILvlFood: 999,
-            higherRelics: true
-        }
+            higherRelics: true,
+        },
     },
     100: {
         minILvl: 640,
@@ -604,15 +605,15 @@ export const LEVEL_ITEMS: Record<SupportedLevel, LevelItemInfo> = {
             maxILvl: 999,
             minILvlFood: 670,
             maxILvlFood: 999,
-            higherRelics: true
-        }
-    }
+            higherRelics: true,
+        },
+    },
 };
 
 const BLU_ITEM_DISPLAY = {
     ...LEVEL_ITEMS[80].defaultDisplaySettings,
     minILvl: 520,
-    maxILvl: 535
+    maxILvl: 535,
 } satisfies ItemDisplaySettings;
 
 export function getDefaultDisplaySettings(level: SupportedLevel, job: JobName): ItemDisplaySettings {
@@ -702,7 +703,7 @@ export const STAT_FULL_NAMES: Record<RawStatKey, string> = {
     vitality: "Vitality",
     wdMag: "Weapon Damage (Magical)",
     wdPhys: "Weapon Damage (Physical)",
-    weaponDelay: "Auto-Attack Delay"
+    weaponDelay: "Auto-Attack Delay",
 };
 
 /**
@@ -724,7 +725,7 @@ export const STAT_ABBREVIATIONS: Record<RawStatKey, string> = {
     vitality: "VIT",
     wdMag: "WDm",
     wdPhys: "WDp",
-    weaponDelay: "Dly"
+    weaponDelay: "Dly",
 };
 
 /**
@@ -801,14 +802,14 @@ export const BASIC_TOME_GEAR_ILVLS = [
     310,
     440,
     570,
-    700
+    700,
 ];
 
 export const RAID_TIER_ILVLS = [
     340, 370, 400,
     470, 500, 530,
     600, 630, 660,
-    730, 760, 790
+    730, 760, 790,
 ] as const as readonly number[];
 
 export function formatAcquisitionSource(source: GearAcquisitionSource): string | null {
@@ -849,7 +850,7 @@ const BLU_INT_WD = [
     // TODO: the following are predicted values for lvl90 BLU, will need to be verified
     [1340, 106], [1360, 107], [1390, 111], [1510, 113], [1590, 115], [1680, 117],
     [1780, 119], [1880, 121], [1980, 123], [2090, 125], [2200, 127], [2320, 129],
-    [2410, 131]
+    [2410, 131],
 ] as const as readonly (readonly number[])[];
 
 /**
@@ -872,7 +873,7 @@ export const defaultItemDisplaySettings: ItemDisplaySettings = {
     maxILvl: 999,
     minILvlFood: 610,
     maxILvlFood: 999,
-    higherRelics: true
+    higherRelics: true,
 } as const;
 
 export const MAX_PARTY_BONUS: PartyBonusAmount = 5;

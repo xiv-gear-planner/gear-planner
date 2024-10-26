@@ -1,4 +1,4 @@
-import 'global-jsdom/register'
+import 'global-jsdom/register';
 import {exampleGearSet} from "./common_values";
 import assert from "assert";
 import {Ability, FinalizedAbility} from "@xivgear/core/sims/sim_types";
@@ -12,8 +12,8 @@ const initial1 = {
     type: 'gcd',
     gcd: 2.5,
     combos: [{
-        comboBehavior: "start"
-    }]
+        comboBehavior: "start",
+    }],
 } as const satisfies Ability;
 
 const initial2 = {
@@ -24,8 +24,8 @@ const initial2 = {
     type: 'gcd',
     gcd: 2.5,
     combos: [{
-        comboBehavior: "start"
-    }]
+        comboBehavior: "start",
+    }],
 } as const satisfies Ability;
 
 const notCombo = {
@@ -36,8 +36,8 @@ const notCombo = {
     type: 'gcd',
     gcd: 2.5,
     combos: [{
-        comboBehavior: 'break'
-    }]
+        comboBehavior: 'break',
+    }],
 } as const satisfies Ability;
 
 const ogcd = {
@@ -55,8 +55,8 @@ const ogcdInterrupt = {
     potency: 124,
     type: 'ogcd',
     combos: [{
-        comboBehavior: 'break'
-    }]
+        comboBehavior: 'break',
+    }],
 } as const satisfies Ability;
 // TODO: oGCD that breaks all combos
 // TODO: gcd that doesn't break a specific combo
@@ -71,7 +71,7 @@ const ogcdWithOtherInterrupt = {
     combos: [{
         comboKey: 'side combo',
         comboBehavior: 'break',
-    }]
+    }],
 } as const satisfies Ability;
 
 const ogcdThatBreaksEverything = {
@@ -83,7 +83,7 @@ const ogcdThatBreaksEverything = {
     combos: [{
         comboKey: "all",
         comboBehavior: "break",
-    }]
+    }],
 } as const satisfies Ability;
 
 const ogcdThatBreaksEverythingButThis = {
@@ -99,8 +99,8 @@ const ogcdThatBreaksEverythingButThis = {
         {
             comboKey: "all",
             comboBehavior: "break",
-        }
-    ]
+        },
+    ],
 } as const satisfies Ability;
 
 const cont1 = {
@@ -113,8 +113,8 @@ const cont1 = {
     combos: [{
         comboBehavior: "continue",
         comboFrom: [initial1, initial2],
-        potency: 200
-    }]
+        potency: 200,
+    }],
 } as const satisfies Ability;
 
 const cont2 = {
@@ -127,8 +127,8 @@ const cont2 = {
     combos: [{
         comboBehavior: "continue",
         comboFrom: [cont1],
-        potency: 500
-    }]
+        potency: 500,
+    }],
 } as const satisfies Ability;
 
 const nonBreakingGcd = {
@@ -156,8 +156,8 @@ const gnbGnash1 = {
         comboBehavior: 'nobreak',
     }, {
         comboKey: gnashKey,
-        comboBehavior: 'start'
-    }]
+        comboBehavior: 'start',
+    }],
 } as const satisfies Ability;
 
 const gnbGnash2 = {
@@ -174,8 +174,8 @@ const gnbGnash2 = {
         comboKey: gnashKey,
         comboBehavior: 'continue',
         comboFrom: [gnbGnash1],
-        potency: 460
-    }]
+        potency: 460,
+    }],
 } as const satisfies Ability;
 
 const gnbGnash3 = {
@@ -191,8 +191,8 @@ const gnbGnash3 = {
         comboKey: gnashKey,
         comboBehavior: 'continue',
         comboFrom: [gnbGnash2],
-        potency: 540
-    }]
+        potency: 540,
+    }],
 } as const satisfies Ability;
 
 /** TODO: test cases
@@ -209,7 +209,7 @@ function quickTest(testCase: (cp: CycleProcessor) => void): FinalizedAbility[] {
         stats: exampleGearSet.computedStats,
         totalTime: 295,
         useAutos: false,
-        cutoffMode: 'prorate-gcd'
+        cutoffMode: 'prorate-gcd',
     });
     testCase(cp);
     const displayRecords = cp.finalizedRecords;
@@ -449,5 +449,5 @@ describe('sim processor combo support', () => {
         assert.equal(actualAbilities[9].totalPotency, gnbGnash2.combos[1].potency);
         assert.equal(actualAbilities[10].totalPotency, cont2.combos[0].potency);
         assert.equal(actualAbilities[11].totalPotency, gnbGnash3.potency);
-    })
+    });
 });

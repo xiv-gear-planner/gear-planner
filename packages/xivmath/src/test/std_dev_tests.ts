@@ -10,12 +10,12 @@ describe('ValueWithDev calculations', () => {
             const values: ValueWithDev[] = [
                 {
                     expected: 3,
-                    stdDev: 0.5
+                    stdDev: 0.5,
                 },
                 {
                     expected: 5,
-                    stdDev: 1.0
-                }
+                    stdDev: 1.0,
+                },
             ];
             const result = addValues(...values);
             expect(result.expected).to.equal(8); // 3 + 5
@@ -26,16 +26,16 @@ describe('ValueWithDev calculations', () => {
             const values: ValueWithDev[] = [
                 {
                     expected: 2,
-                    stdDev: 0.3
+                    stdDev: 0.3,
                 },
                 {
                     expected: 4,
-                    stdDev: 0.7
+                    stdDev: 0.7,
                 },
                 {
                     expected: 6,
-                    stdDev: 0.2
-                }
+                    stdDev: 0.2,
+                },
             ];
             const result = addValues(...values);
             expect(result.expected).to.equal(12); // 2 + 4 + 6
@@ -50,12 +50,12 @@ describe('ValueWithDev calculations', () => {
             const values: ValueWithDev[] = [
                 {
                     expected: 2,
-                    stdDev: 0.5
+                    stdDev: 0.5,
                 },
                 {
                     expected: 3,
-                    stdDev: 0.4
-                }
+                    stdDev: 0.4,
+                },
             ];
             const result = multiplyValues(...values);
             expect(result.expected).to.equal(2 * 3); // 2 * 3
@@ -67,16 +67,16 @@ describe('ValueWithDev calculations', () => {
             const values: ValueWithDev[] = [
                 {
                     expected: 2,
-                    stdDev: 0.2
+                    stdDev: 0.2,
                 },
                 {
                     expected: 4,
-                    stdDev: 0.3
+                    stdDev: 0.3,
                 },
                 {
                     expected: 5,
-                    stdDev: 0.4
-                }
+                    stdDev: 0.4,
+                },
             ];
             const result = multiplyValues(...values);
             expect(result.expected).to.equal(2 * 4 * 5); // 2 * 4 * 5
@@ -88,7 +88,7 @@ describe('ValueWithDev calculations', () => {
         it('should return expected value and standard deviation for independent values', () => {
             const value: ValueWithDev = {
                 expected: 10,
-                stdDev: 5
+                stdDev: 5,
             };
             const result1 = multiplyIndependent(value, 4);
             expect(result1.expected).to.equal(40); // 2 * 4 * 5

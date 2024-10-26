@@ -13,7 +13,7 @@ export const potRatioSimSpec: SimSpec<PotencyRatioSim, SimSettings> = {
     },
     stub: "pr-sim",
     description: "Expected damage per 100 potency",
-    isDefaultSim: true
+    isDefaultSim: true,
 };
 
 export interface PotencyRatioSimResults extends SimResult {
@@ -26,7 +26,7 @@ export interface PotencyRatioSimResults extends SimResult {
 export class PotencyRatioSim implements Simulation<PotencyRatioSimResults, SimSettings, EmptyObject> {
     exportSettings() {
         return {
-            ...this.settings
+            ...this.settings,
         };
     };
 
@@ -39,7 +39,7 @@ export class PotencyRatioSim implements Simulation<PotencyRatioSimResults, SimSe
         const final = applyDhCrit(base, set.computedStats);
         return {
             mainDpsResult: final,
-            withoutCritDh: base
+            withoutCritDh: base,
         };
     };
 

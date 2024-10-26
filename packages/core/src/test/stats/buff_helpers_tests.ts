@@ -1,6 +1,6 @@
-import {Buff} from "../sims/sim_types";
+import {Buff} from "../../sims/sim_types";
 import {expect} from "chai";
-import {buffRelevantAtSnapshot, buffRelevantAtStart} from "../sims/buff_helpers";
+import {buffRelevantAtSnapshot, buffRelevantAtStart} from "../../sims/buff_helpers";
 
 describe("Buff Helpers", () => {
     describe('simple damage buff', () => {
@@ -9,7 +9,7 @@ describe("Buff Helpers", () => {
             selfOnly: true,
             name: "Test buff",
             effects: {
-                dmgIncrease: 0.5
+                dmgIncrease: 0.5,
             },
         };
 
@@ -29,7 +29,7 @@ describe("Buff Helpers", () => {
             selfOnly: true,
             name: "Test buff",
             effects: {
-                haste: 10
+                haste: 10,
             },
         };
 
@@ -68,7 +68,7 @@ describe("Buff Helpers", () => {
             name: "Test buff",
             effects: {
                 haste: 10,
-                dmgIncrease: 0.1
+                dmgIncrease: 0.1,
             },
         };
 

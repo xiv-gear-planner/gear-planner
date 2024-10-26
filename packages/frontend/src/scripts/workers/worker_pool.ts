@@ -113,7 +113,7 @@ export class WorkerPool {
     public requestWork(request: AnyWorkRequest, updateCallback?: (upd: unknown) => void): { promise: Promise<unknown>, jobId: number } {
         const internalRequest: WorkRequestInternal = {
             jobId: this.createJobId(),
-            request: request
+            request: request,
         };
         if (updateCallback) {
             this.updateCallbacks.set(internalRequest.jobId, updateCallback);
@@ -130,7 +130,7 @@ export class WorkerPool {
                 this.resolves.set(internalRequest.jobId, { resolve: resolve, reject: reject });
             }),
             jobId: internalRequest.jobId,
-        }
+        };
     }
 
     // Webpack sees this and it causes it to generate a separate js file for the worker.
@@ -148,8 +148,8 @@ export class WorkerPool {
         const worker = new Worker(new URL(
             'src_scripts_workers_worker_main_ts.js', document.location.toString())
         , {
-                name: 'worker-' + this.workerId++,
-            });
+            name: 'worker-' + this.workerId++,
+        });
         worker.onmessage = (event) => {
             const id = this.activeJobIds.get(worker);
             this.onWorkerMessage(worker, id, event.data);
@@ -212,7 +212,7 @@ export class WorkerPool {
             jobType: 'workerInitialization',
             sheet: sheet.exportSheet(),
             data: undefined,
-        }
+        };
 
         // Kinda hacky, but it works.
         //requestWork() pulls off the back of freeWorkers so we have a guarantee that the right worker gets init'ed

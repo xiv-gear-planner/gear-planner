@@ -26,7 +26,7 @@ export const BluFlame120Spec: SimSpec<BluFlame120Sim, BluFlame120SettingsExterna
 
     loadSavedSimInstance(exported: BluFlame120SettingsExternal) {
         return new BluFlame120Sim(exported);
-    }
+    },
 };
 
 export class BluFlame120Sim extends blu.BluSim<BluFlame120SimResult, BluFlame120Settings> {
@@ -84,8 +84,7 @@ export class BluFlame120Sim extends blu.BluSim<BluFlame120SimResult, BluFlame120
 
         if (!weaveSoon && cp.bleedEnd < nextBleedStart &&
             Math.min(bloomCd.readyAt.absolute - bleedComboTime,
-            cp.remainingTime - bleedComboTime) > 15)
-        {
+                cp.remainingTime - bleedComboTime) > 15) {
             cp.use(blu.Bristle);
             this.useOgcdFiller(cp);
             cp.use(blu.SongOfTorment);
@@ -110,8 +109,7 @@ export class BluFlame120Sim extends blu.BluSim<BluFlame120SimResult, BluFlame120
         // or, if fight is about to end, use remaining Winged Reprobation stacks
         if ((cp.currentTime < 120 && cp.wingedCounter < 2) ||
             (cp.remainingTime < blu.WingedReprobation.cooldown.time &&
-            cp.isReady(blu.WingedReprobation)))
-        {
+            cp.isReady(blu.WingedReprobation))) {
             cp.use(blu.WingedReprobation);
             this.useOgcdFiller(cp);
             return;
@@ -173,28 +171,32 @@ export class BluFlame120Sim extends blu.BluSim<BluFlame120SimResult, BluFlame120
                     cp.use(blu.Tingle);
                     if (cp.isReady(blu.RoseOfDestruction)) {
                         cp.use(blu.RoseOfDestruction);
-                    } else {
+                    }
+                    else {
                         cp.use(blu.FeculentFlood);
                     }
                     cp.use(blu.MoonFlute);
                     sim.useOgcdFiller(cp);
                     cp.use(blu.TripleTrident);
-                } else {
+                }
+                else {
                     // otherwise, finish off the fight with a Final Sting combo
                     if (cp.isReady(blu.RoseOfDestruction)) {
                         cp.use(blu.RoseOfDestruction);
-                    } else {
+                    }
+                    else {
                         if (cp.isReady(blu.WingedReprobation)) {
                             cp.use(blu.WingedReprobation);
                             sim.useOgcdFiller(cp);
-                        } else {
+                        }
+                        else {
                             cp.use(blu.FeculentFlood);
                         }
                     }
                     sim.useStingCombo(cp);
                 }
-                
-                // cycle based off of Nightbloom (fixed cooldown: 120s)                
+
+                // cycle based off of Nightbloom (fixed cooldown: 120s)
                 cp.remainingCycles(cycle => {
                     cycle.use(blu.Nightbloom);
                     cycle.use(blu.WingedReprobation);
@@ -228,28 +230,32 @@ export class BluFlame120Sim extends blu.BluSim<BluFlame120SimResult, BluFlame120
                         cycle.use(blu.Tingle);
                         if (cp.isReady(blu.RoseOfDestruction)) {
                             cycle.use(blu.RoseOfDestruction);
-                        } else {
+                        }
+                        else {
                             cycle.use(blu.FeculentFlood);
                         }
                         cycle.use(blu.MoonFlute);
                         sim.useOgcdFiller(cp);
                         cycle.use(blu.TripleTrident);
-                    } else {
+                    }
+                    else {
                         // otherwise, finish off the fight with a Final Sting combo
                         if (cp.isReady(blu.RoseOfDestruction)) {
                             cycle.use(blu.RoseOfDestruction);
-                        } else {
+                        }
+                        else {
                             if (cp.isReady(blu.WingedReprobation)) {
                                 cycle.use(blu.WingedReprobation);
                                 sim.useOgcdFiller(cp);
-                            } else {
+                            }
+                            else {
                                 cycle.use(blu.FeculentFlood);
                             }
                         }
                         sim.useStingCombo(cp);
                     }
                 });
-            }
+            },
         }];
     }
 }

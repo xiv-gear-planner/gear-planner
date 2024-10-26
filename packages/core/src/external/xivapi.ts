@@ -134,7 +134,7 @@ export async function xivApiSearch<RequestType extends XivApiSearchRequest>(requ
             const out = {...resultRow['fields']};
             out['ID'] = resultRow['row_id'];
             return out;
-        })
+        }),
     };
 
 }
@@ -147,7 +147,7 @@ export async function xivApiGetList<RequestType extends XivApiListRequest>(reque
     if (request.columns?.length > 0) {
         query += '&fields=' + request.columns.join(',');
     }
-    if (request.rows != null) {
+    if (request.rows !== null) {
         query += '&rows=' + request.rows.join(',');
     }
     let remainingPages = request.pageLimit ?? 4;
@@ -176,7 +176,7 @@ export async function xivApiGetList<RequestType extends XivApiListRequest>(reque
             const out = {...resultRow['fields']};
             out['ID'] = resultRow['row_id'];
             return out;
-        })
+        }),
     };
 }
 

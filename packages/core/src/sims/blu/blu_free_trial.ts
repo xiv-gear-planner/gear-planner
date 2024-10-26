@@ -26,7 +26,7 @@ export const BluF2PSpec: SimSpec<BluF2PSim, BluF2PSettingsExternal> = {
 
     loadSavedSimInstance(exported: BluF2PSettingsExternal) {
         return new BluF2PSim(exported);
-    }
+    },
 };
 
 export class BluF2PSim extends blu.BluSim<BluF2PSimResult, BluF2PSettings> {
@@ -84,8 +84,7 @@ export class BluF2PSim extends blu.BluSim<BluF2PSimResult, BluF2PSettings> {
 
         if (!weaveSoon && cp.bleedEnd < nextBleedStart &&
             Math.min(bloomCd.readyAt.absolute - bleedComboTime,
-            cp.remainingTime - bleedComboTime) > 15)
-        {
+                cp.remainingTime - bleedComboTime) > 15) {
             cp.use(blu.Bristle);
             this.useOgcdFiller(cp);
             cp.use(blu.SongOfTorment);
@@ -103,8 +102,7 @@ export class BluF2PSim extends blu.BluSim<BluF2PSimResult, BluF2PSettings> {
         // use Rose of Destruction if off cooldown and it won't interfere with the next Flute window
         if (cp.isReady(blu.RoseOfDestruction) &&
             cp.cdTracker.statusOfAt(blu.Nightbloom, cp.nextGcdTime).readyAt.relative >
-            cp.stats.gcdMag(blu.RoseOfDestruction.cooldown.time)) 
-        {
+            cp.stats.gcdMag(blu.RoseOfDestruction.cooldown.time)) {
             cp.use(blu.RoseOfDestruction);
             return;
         }
@@ -129,14 +127,15 @@ export class BluF2PSim extends blu.BluSim<BluF2PSimResult, BluF2PSettings> {
                 cp.use(blu.MoonFlute);
                 cp.use(blu.JKick);
                 cp.use(blu.TripleTrident);
-                
-                // cycle based off of Nightbloom (fixed cooldown: 120s)                
+
+                // cycle based off of Nightbloom (fixed cooldown: 120s)
                 cp.remainingCycles(cycle => {
                     cycle.use(blu.Nightbloom);
                     cycle.use(blu.RoseOfDestruction);
                     if (cycle.cycleNumber === 0) {
                         cycle.use(blu.ShockStrike);
-                    } else {
+                    }
+                    else {
                         sim.useOgcdFiller(cp);
                     }
                     if (cycle.cycleNumber > 0 && cp.gcdRecast <= 2.20) {
@@ -152,7 +151,8 @@ export class BluF2PSim extends blu.BluSim<BluF2PSimResult, BluF2PSettings> {
                     cycle.use(blu.MatraMagic);
                     if (cycle.cycleNumber === 0) {
                         cycle.use(blu.FeatherRain);
-                    } else {
+                    }
+                    else {
                         sim.useOgcdFiller(cp);
                     }
                     cycle.use(blu.PhantomFlurry);
@@ -171,12 +171,13 @@ export class BluF2PSim extends blu.BluSim<BluF2PSimResult, BluF2PSettings> {
                         cycle.use(blu.MoonFlute);
                         sim.useOgcdFiller(cp);
                         cycle.use(blu.TripleTrident);
-                    } else {
+                    }
+                    else {
                         // otherwise, finish off the fight with a Final Sting combo
                         sim.useStingCombo(cp);
                     }
                 });
-            }
+            },
         }];
     }
 }
