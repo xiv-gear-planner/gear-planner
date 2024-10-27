@@ -79,19 +79,30 @@ describe("backend stat resolver server", () => {
         const fastify = buildPreviewServer();
         const parser = new DOMParser();
         it("resolves shortlink", async () => {
+            const uuid = 'f9b260a9-650c-445a-b3eb-c56d8d968501';
             const response = await fastify.inject({
                 method: 'GET',
-                url: `/?page=${SHORTLINK_HASH}|f9b260a9-650c-445a-b3eb-c56d8d968501`,
+                url: `/?page=${SHORTLINK_HASH}|${uuid}`,
             });
             assert.equal(response.statusCode, 200);
             const parsed = parser.parseFromString(response.body, 'text/html');
             assert.equal(parsed.querySelector('title').textContent, 'WHM 6.4 copy - XivGear - FFXIV Gear Planner');
-            // Check the preload
-            // TODO: last-child is kind of messy
-            const jobPreload = parsed.querySelector('link:last-child');
+
+            // Check the preloads
+            const preloads = Array.from(parsed.querySelectorAll('link'))
+                .filter(link => link.rel === 'preload');
+
+            const jobPreload = preloads[0];
             assert.equal(jobPreload.getAttribute('rel'), "preload");
             assert.equal(jobPreload.getAttribute('href'), "https://data.xivgear.app/Items?job=WHM");
             assert.equal(jobPreload.getAttribute('as'), "fetch");
+            assert.equal(jobPreload.hasAttribute('crossorigin'), true);
+
+            const shortlinkPreload = preloads[1];
+            assert.equal(shortlinkPreload.getAttribute('rel'), "preload");
+            assert.equal(shortlinkPreload.getAttribute('href'), `https://api.xivgear.app/shortlink/${uuid}`);
+            assert.equal(shortlinkPreload.getAttribute('as'), "fetch");
+            assert.equal(shortlinkPreload.hasAttribute('crossorigin'), true);
         }).timeout(30_000);
         it("resolves shortlink with trailing slash", async () => {
             const response = await fastify.inject({
@@ -110,6 +121,22 @@ describe("backend stat resolver server", () => {
             assert.equal(response.statusCode, 200);
             const parsed = parser.parseFromString(response.body, 'text/html');
             assert.equal(parsed.querySelector('title').textContent, '6.55 Savage SGE BiS - XivGear - FFXIV Gear Planner');
+
+            // Check the preloads
+            const preloads = Array.from(parsed.querySelectorAll('link'))
+                .filter(link => link.rel === 'preload');
+
+            const jobPreload = preloads[0];
+            assert.equal(jobPreload.getAttribute('rel'), "preload");
+            assert.equal(jobPreload.getAttribute('href'), "https://data.xivgear.app/Items?job=SGE");
+            assert.equal(jobPreload.getAttribute('as'), "fetch");
+            assert.equal(jobPreload.hasAttribute('crossorigin'), true);
+
+            const shortlinkPreload = preloads[1];
+            assert.equal(shortlinkPreload.getAttribute('rel'), "preload");
+            assert.equal(shortlinkPreload.getAttribute('href'), `https://staticbis.xivgear.app/sge/endwalker/anabaseios.json`);
+            assert.equal(shortlinkPreload.getAttribute('as'), "fetch");
+            assert.equal(shortlinkPreload.hasAttribute('crossorigin'), true);
         }).timeout(30_000);
         it("resolves bis link with trailing slash", async () => {
             const response = await fastify.inject({

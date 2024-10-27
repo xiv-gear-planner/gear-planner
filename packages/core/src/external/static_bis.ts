@@ -23,7 +23,11 @@ export function setServerOverride(server: string) {
     localStorage.setItem(STORAGE_KEY, server);
 }
 
-export async function getBisSheet(job: JobName, expac: string, sheetFileName: string): Promise<string> {
-    const FULL_URL = new URL(`/${encodeURIComponent(job)}/${encodeURIComponent(expac)}/${encodeURIComponent(sheetFileName)}.json`, getServer());
+export function getBisSheetFetchUrl(job: JobName, expac: string, sheetFileName: string): URL {
+    return new URL(`/${encodeURIComponent(job)}/${encodeURIComponent(expac)}/${encodeURIComponent(sheetFileName)}.json`, getServer());
+}
+
+export async function getBisSheet(...params: Parameters<typeof getBisSheetFetchUrl>): Promise<string> {
+    const FULL_URL = getBisSheetFetchUrl(...params);
     return await fetch(FULL_URL).then(response => response.text());
 }
