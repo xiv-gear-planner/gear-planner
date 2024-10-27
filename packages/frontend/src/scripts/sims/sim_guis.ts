@@ -1,7 +1,6 @@
 import { ExportSettingsTypeOfSim, ResultTypeOfSim, SettingsTypeOfSim, SimulationGui } from "./simulation_gui";
 import { PotencyRatioSimGui } from "./common/potency_ratio_ui";
 import { BaseUsageCountSimGui } from "./count_sim_gui";
-import { BaseMultiCycleSimGui } from "./multicyclesim_ui";
 import { WhmSheetSimGui } from "./healer/whm_sheet_sim_ui";
 import { SgeSheetSimGui } from "./healer/sge_sheet_sim_mk2_ui";
 import { AstSheetSimGui } from "./healer/ast_sheet_sim_ui";
