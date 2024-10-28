@@ -1,7 +1,6 @@
 import { ExportSettingsTypeOfSim, ResultTypeOfSim, SettingsTypeOfSim, SimulationGui } from "./simulation_gui";
 import { PotencyRatioSimGui } from "./common/potency_ratio_ui";
 import { BaseUsageCountSimGui } from "./count_sim_gui";
-import { BaseMultiCycleSimGui } from "./multicyclesim_ui";
 import { WhmSheetSimGui } from "./healer/whm_sheet_sim_ui";
 import { SgeSheetSimGui } from "./healer/sge_sheet_sim_mk2_ui";
 import { AstSheetSimGui } from "./healer/ast_sheet_sim_ui";
@@ -38,6 +37,7 @@ import { potRatioSimSpec } from "@xivgear/core/sims/common/potency_ratio";
 import { BluSimGui } from "./blu/blu_common_ui";
 import { DrkSimGui } from "./tank/drk_sheet_sim_ui";
 import { WarSimGui } from "./tank/war_sheet_sim_ui";
+import { pldSKSSimGui } from "./tank/pldsks_sheet_sim_ui";
 
 type SimGuiCtor<X extends Simulation<SimResult, unknown, unknown>> = {
     new (sim: X): SimulationGui<ResultTypeOfSim<X>, SettingsTypeOfSim<X>, ExportSettingsTypeOfSim<X>>;
@@ -61,7 +61,7 @@ export const simGuiMap: Map<SimSpec<never, never>, SimGuiCtor<never>> = new Map;
 registerGui(potRatioSimSpec, PotencyRatioSimGui);
 registerGui(potRatioSimSpec, PotencyRatioSimGui);
 registerGui(pldUsageSimSpec, BaseUsageCountSimGui);
-registerGui(pldSKSSheetSpec, BaseMultiCycleSimGui);
+registerGui(pldSKSSheetSpec, pldSKSSimGui);
 registerGui(whmSheetSpec, WhmSheetSimGui);
 registerGui(sgeSheetSpec, SgeSimGui);
 registerGui(drkSpec, DrkSimGui);
