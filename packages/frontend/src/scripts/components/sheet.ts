@@ -647,29 +647,36 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
             processed.sort((cellA, cellB) => (cellA[1] - cellB[1]));
             const worst = processed[0];
             const best = processed[processed.length - 1];
-            let worstValue = worst[1];
+            const worstValue = worst[1];
             const bestValue = best[1];
-            let delta = bestValue - worstValue;
-            if (delta === 0) {
+            const percentWorse = worstValue / bestValue;
+            if (percentWorse === 1) {
+                // The results are all the same. Return.
                 return;
-            }
-            if (bestValue > 0) {
-                // If less than 0.5% difference
-                const minDeltaRelative = 0.001;
-                if (delta / bestValue < minDeltaRelative) {
-                    delta = bestValue * minDeltaRelative;
-                    worstValue = bestValue - delta;
-                }
             }
             for (const [cell, value] of processed) {
                 cell.classList.add('sim-column-valid');
-                const relative = (value - worstValue) / delta * 100;
-                cell.style.setProperty('--sim-result-relative', relative.toFixed(1) + '%');
-                if (value === bestValue) {
-                    cell.classList.add('sim-column-best');
-                }
-                else if (value === worstValue) {
+                const fivePercentWorse = 0.95;
+                // This value represents the percent worse this value is, e.g. 0.985 for 98.5% as good.
+                const percentWorseComparedToBest = value / bestValue;
+                // e.g. 2.5 if our value was 0.975
+                const numberToBeProcessed = 100 * (percentWorseComparedToBest - fivePercentWorse);
+
+                // This is five percent or more worse than the best rating. Give it the worst rating we can.
+                if (numberToBeProcessed <= 0) {
+                    cell.style.setProperty('--sim-result-relative', '0%');
                     cell.classList.add('sim-column-worst');
+                }
+                else {
+                    // Log base 1.017 on our number -- which makes anything just below five or above be considered worst gradient.
+                    // We use a logarithmic scale so that the percentage gets less favourable the further away from the best it is.
+                    const percentageScore = Math.log(numberToBeProcessed + 1) / Math.log(1.018);
+                    const adjustedPercentageScore = Math.min(Math.max(percentageScore, 0), 100);
+                    cell.style.setProperty('--sim-result-relative', adjustedPercentageScore.toFixed(1) + '%');
+                    if (value === bestValue) {
+                        cell.style.setProperty('--sim-result-relative', '100%');
+                        cell.classList.add('sim-column-best');
+                    }
                 }
             }
         }
