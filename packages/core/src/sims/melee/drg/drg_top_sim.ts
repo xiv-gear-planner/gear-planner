@@ -1,5 +1,5 @@
-import { Ability, OgcdAbility, Buff, SimSettings, SimSpec, Simulation } from "@xivgear/core/sims/sim_types";
-import { CycleProcessor, CycleSimResult, ExternalCycleSettings, MultiCycleSettings, AbilityUseResult, Rotation, PreDmgAbilityUseRecordUnf, CycleSimResultFull } from "@xivgear/core/sims/cycle_sim";
+import { Ability, OgcdAbility, Buff, SimSettings, SimSpec } from "@xivgear/core/sims/sim_types";
+import { CycleProcessor, CycleSimResult, ExternalCycleSettings, MultiCycleSettings, AbilityUseResult, Rotation, PreDmgAbilityUseRecordUnf } from "@xivgear/core/sims/cycle_sim";
 import { potionMaxStr } from "@xivgear/core/sims/common/potion";
 import DRGGauge from "./drg_gauge";
 import { DrgAbility, DrgGcdAbility, DRGExtraData } from "./drg_types";
@@ -126,7 +126,7 @@ export class DRGTopCycleProcessor extends CycleProcessor {
             drgAbility.updateGauge(this.gauge);
         }
 
-        var result = super.use(ability);
+        const result = super.use(ability);
 
         if (this.getBuffIfActive(Buffs.LifeSurge) && ability.attackType === 'Weaponskill')
             this.removeBuff(Buffs.LifeSurge);
@@ -176,6 +176,7 @@ export class DRGTopCycleProcessor extends CycleProcessor {
                         this.rotationState.combo = ComboState.None;
                         break;
                 }
+                break;
             default:
                 fillerAction = Actions.TrueThrust;
                 break;
