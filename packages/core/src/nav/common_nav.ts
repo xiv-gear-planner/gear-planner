@@ -227,6 +227,4 @@ export function splitPath(input: string) {
         .filter(item => item)
         .map(item => decodeURIComponent(item))
         .map(pp => pp.replaceAll(VERTICAL_BAR_REPLACEMENT, PATH_SEPARATOR));
-    // TODO: replace | with a lookalike character?
-    // .map(item => item.replaceAll())
 }

@@ -141,7 +141,6 @@ export async function xivApiSearch<RequestType extends XivApiSearchRequest>(requ
 
 
 export async function xivApiGetList<RequestType extends XivApiListRequest>(request: RequestType): Promise<XivApiResponse<RequestType>> {
-    // TODO: raise limit after testing
     const perPage = request.perPage ?? DEFAULT_PER_PAGE;
     let query = `${XIVAPI_SERVER}/api/1/sheet/${request.sheet}?limit=${perPage}`;
     if (request.columns?.length > 0) {

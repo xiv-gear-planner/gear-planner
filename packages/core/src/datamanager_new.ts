@@ -561,7 +561,7 @@ export class DataApiGearInfo implements GearItem {
             const overmeld: boolean = data.advancedMeldingPermitted;
             // The materia slot count represents slots that are always meldable
             for (let i = 0; i < baseMatCount; i++) {
-                // TODO: figure out grade automatically
+                // TODO: figure out grade automatically - isn't this filtering done on the UI somewhere?
                 this.materiaSlots.push({
                     maxGrade: MATERIA_LEVEL_MAX_NORMAL,
                     allowsHighGrade: true,

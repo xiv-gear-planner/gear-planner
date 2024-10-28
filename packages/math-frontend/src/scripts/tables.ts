@@ -250,10 +250,7 @@ export class CustomTable<RowDataType, SelectionType = never> extends HTMLTableEl
     selectionRefreshables: SelectionRefresh[] = [];
     _rows: RefreshableRow<RowDataType>[] = [];
     _columns: CustomColumn<RowDataType, any>[];
-    // TODO
-    // selectionEnabled: boolean;
     selectionModel: SelectionModel<RowDataType, SelectionType> = noopSelectionModel;
-    curSelection: SelectionType = null;
 
     constructor() {
         super();
