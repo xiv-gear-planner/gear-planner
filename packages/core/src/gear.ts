@@ -229,6 +229,7 @@ type GearSetCheckpointNode = {
 export class CharacterGearSet {
     private _name: string;
     private _description: string;
+    private _recommended: boolean;
     equipment: EquipmentSet;
     listeners: (() => void)[] = [];
     private _dirtyComp: boolean = true;
@@ -279,6 +280,14 @@ export class CharacterGearSet {
         this.notifyListeners();
     }
 
+    get recommended() {
+        return this._recommended;
+    }
+
+    set recommended(rec: boolean) {
+        this._recommended = rec;
+        this.notifyListeners();
+    }
 
     get food(): FoodItem | undefined {
         return this._food;

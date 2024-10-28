@@ -768,6 +768,10 @@ export interface SetExport {
      * Indicates that this set is a separator rather than an actual set
      */
     isSeparator?: boolean,
+    /**
+     * If this set has been marked as recommended.
+     */
+    recommended?: boolean,
 }
 
 /**

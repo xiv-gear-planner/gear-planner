@@ -546,6 +546,7 @@ export class GearPlanSheet {
             items: items,
             food: set.food ? set.food.id : undefined,
             description: set.description,
+            recommended: set.recommended,
             isSeparator: set.isSeparator,
         };
         if (external) {
@@ -665,11 +666,11 @@ export class GearPlanSheet {
         const set = new CharacterGearSet(this);
         set.name = importedSet.name;
         set.description = importedSet.description;
+        set.recommended = importedSet.recommended;
         if (importedSet.isSeparator) {
             set.isSeparator = true;
         }
         else {
-
             for (const equipmentSlot in importedSet.items) {
                 const importedItem: ItemSlotExport = importedSet.items[equipmentSlot];
                 if (!importedItem) {

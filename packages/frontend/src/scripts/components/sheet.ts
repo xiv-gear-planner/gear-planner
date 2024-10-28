@@ -20,7 +20,8 @@ import {
     FieldBoundTextField,
     labeledCheckbox,
     makeActionButton,
-    quickElement
+    quickElement,
+    starIcon
 } from "@xivgear/common-ui/components/util";
 import {closeModal} from "@xivgear/common-ui/modalcontrol";
 import {
@@ -455,8 +456,6 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                         const icon = iconForIssues(...issues);
                         icon.classList.add('gear-set-issue-icon');
                         nameSpan.prepend(icon);
-                        // elements.unshift(icon);
-                        // div.appendChild(icon);
                         title += '\nThis set has problems:';
                         for (const issue of issues) {
                             let titlePart = `${capitalizeFirstLetter(issue.severity)}: ${issue.description}`;
@@ -465,6 +464,21 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                             }
                             title += '\n - ' + titlePart;
                         }
+                    }
+                    if (value.recommended) {
+                        const div = document.createElement('div');
+                        div.style.overflow = 'hidden';
+                        div.style.display = 'block';
+                        const icon = starIcon();
+                        icon.style.display = 'inline';
+                        div.append(icon);
+                        div.title = "Recommended Set";
+                        const recommendedSpan = document.createElement('span');
+                        recommendedSpan.textContent = "Recommended Set";
+                        recommendedSpan.style.fontWeight = 'bold';
+                        recommendedSpan.style.display = 'inline';
+                        div.append(recommendedSpan);
+                        nameSpan.prepend(div);
                     }
                     const div = document.createElement('div');
                     div.classList.add('set-name-desc-holder');
@@ -475,7 +489,6 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                     }
                     return div;
                 },
-                // initialWidth: 300,
             },
             ...(viewOnly ? simColumns : []),
             ...gcdColumns,
@@ -836,7 +849,7 @@ export class GearSetEditor extends HTMLElement {
             makeActionButton('Export This Set', () => {
                 startExport(this.gearSet);
             }),
-            makeActionButton('Change Name/Description', () => {
+            makeActionButton('Change Properties', () => {
                 startRenameSet(writeProxy(this.gearSet, () => this.formatTitleDesc()));
             }),
             issuesButton,
