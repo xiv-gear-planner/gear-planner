@@ -30,7 +30,7 @@ export const drgTopSimSpec: SimSpec<DrgTopSim, DRGTopSettingsExternal> = {
         return new DrgTopSim(exported);
     },
     supportedJobs: ["DRG"],
-    supportedLevels: [100],
+    supportedLevels: [90],
     isDefaultSim: false,
     maintainers: [{
         name: "WildWolf",
