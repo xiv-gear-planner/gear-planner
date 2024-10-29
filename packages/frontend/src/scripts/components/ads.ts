@@ -34,6 +34,7 @@ class ManagedAd {
     private _showExtras: boolean = false;
     private _installed: boolean = false;
     private readonly adSize: AdSize;
+    private ad: unknown;
 
     constructor(public readonly id: string, size: AdSize, condition: DisplayCondition) {
         this.adContainer = makeFixedArea(id, size[0], size[1]);
@@ -55,7 +56,9 @@ class ManagedAd {
             if (value) {
                 console.debug("branch 1", value);
                 this.adContainer.outer.style.display = '';
-                this.installAdPlacementsIfNeeded();
+                if (!this._installed) {
+                    this.installAdPlacement();
+                }
             }
             else {
                 console.debug("branch 2", value);
@@ -66,13 +69,14 @@ class ManagedAd {
         }
     }
 
+    onNavigate(): void {
+        this.ad?.['onNavigate']?.();
+    }
+
     /**
      * Install the ad code if it has not already been installed for this ad
      */
-    private installAdPlacementsIfNeeded(): void {
-        if (this._installed) {
-            return;
-        }
+    private installAdPlacement(): void {
         const element = this.adContainer.inner;
         let id = element.id;
         if (!id) {
@@ -83,7 +87,7 @@ class ManagedAd {
         }
         setTimeout(() => {
             console.debug(`createAd: ${window['nitroAds'] !== undefined}`);
-            window['nitroAds']?.createAd(id, {
+            this.ad = window['nitroAds']?.createAd(id, {
                 "refreshTime": 30,
                 "renderVisibleOnly": true,
                 "sizes": [
@@ -215,6 +219,8 @@ function recheckAds() {
     }
 }
 
+let firstLoad = true;
+
 export function insertAds(element: HTMLElement) {
 
     if (currentAds.length === 0) {
@@ -275,7 +281,12 @@ export function insertAds(element: HTMLElement) {
     }
     element.prepend(...currentAds.map(a => a.adContainer.outer));
     setTimeout(recheckAds);
-
+    if (firstLoad) {
+        firstLoad = false;
+    }
+    else {
+        currentAds.forEach(ad => ad.onNavigate());
+    }
 }
 
 // set up extra links
