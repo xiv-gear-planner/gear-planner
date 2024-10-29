@@ -1,5 +1,6 @@
 import {recordEvent} from "@xivgear/core/analytics/analytics";
 import {BaseModal} from "@xivgear/common-ui/components/modal";
+import {arrayEq} from "../nav_hash";
 
 type DisplayCondition = (width: number, height: number) => boolean;
 
@@ -50,12 +51,15 @@ class ManagedAd {
         // ignore no-ops, except when ads were not installed due to the script not having loaded yet
         if (value !== this._showing || (value && !this._installed)) {
             if (value) {
+                console.debug("branch 1", value);
                 this.adContainer.outer.style.display = '';
                 this.installAdPlacementsIfNeeded();
             }
             else {
+                console.debug("branch 2", value);
                 this.adContainer.outer.style.display = 'none';
             }
+            console.debug("branch 3", value);
             this._showing = value;
         }
     }
@@ -112,7 +116,11 @@ class ManagedAd {
     }
 
     addExtras(extraLinks: HTMLElement[]) {
-        this.adContainer.middle.replaceChildren(this.adContainer.inner, ...extraLinks);
+        const newChildren = [this.adContainer.inner, ...extraLinks];
+        if (!arrayEq(newChildren, Array.from(this.adContainer.middle.childNodes))) {
+            console.debug("New children");
+            this.adContainer.middle.replaceChildren(this.adContainer.inner, ...extraLinks);
+        }
     }
 }
 
