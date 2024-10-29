@@ -81,14 +81,14 @@ class ManagedAd {
                 "sizes": [
                     [
                         this.adSize[0].toString(),
-                        this.adSize[1].toString()
-                    ]
+                        this.adSize[1].toString(),
+                    ],
                 ],
                 "report": {
                     "enabled": true,
                     "icon": true,
                     "wording": "Report Ad",
-                    "position": "top-right"
+                    "position": "top-right",
                 },
             });
         });
@@ -398,7 +398,7 @@ function getPrivacyHtml(): string {
         "Partner, the data is sent directly from Your Browser to the Advertising\n" +
         "Partner. The data is never sent to nor stored by the Service. As such, the\n" +
         "Service cannot assist You in retrieving or removing any data pertaining to\n" +
-        "You from any Advertising Parnters.</p>\n"
+        "You from any Advertising Parnters.</p>\n";
 }
 
 class PrivacyPolicyModal extends BaseModal {
