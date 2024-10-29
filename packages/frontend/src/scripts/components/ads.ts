@@ -20,6 +20,8 @@ type AdContainerElements = {
      * The outer, determines vertical position.
      */
     outer: HTMLDivElement,
+
+    linksHolder: HTMLDivElement,
 }
 
 /**
@@ -116,10 +118,9 @@ class ManagedAd {
     }
 
     addExtras(extraLinks: HTMLElement[]) {
-        const newChildren = [this.adContainer.inner, ...extraLinks];
-        if (!arrayEq(newChildren, Array.from(this.adContainer.middle.childNodes))) {
-            console.debug("New children");
-            this.adContainer.middle.replaceChildren(this.adContainer.inner, ...extraLinks);
+        if (!arrayEq(extraLinks, Array.from(this.adContainer.linksHolder.childNodes))) {
+            console.debug("New children", extraLinks);
+            this.adContainer.linksHolder.replaceChildren(...extraLinks);
         }
     }
 }
@@ -156,6 +157,9 @@ function makeFixedArea(id: string, width: number, height: number): AdContainerEl
     middle.style.padding = '5px';
     middle.classList.add('shadow-big');
 
+    const extraLinksHolder = document.createElement('div');
+    extraLinksHolder.style.display = 'contents';
+    middle.appendChild(extraLinksHolder);
 
     const outer = document.createElement('div');
     outer.style.position = 'sticky';
@@ -172,6 +176,7 @@ function makeFixedArea(id: string, width: number, height: number): AdContainerEl
         inner: inner,
         middle: middle,
         outer: outer,
+        linksHolder: extraLinksHolder,
     };
 }
 
@@ -180,7 +185,8 @@ type AdSize = [300, 600] | [160, 600];
 let idCounter = 1;
 
 const currentAds: ManagedAd[] = [];
-const extraLinks: HTMLElement[] = [];
+const extraLinksHolderInner = document.createElement('div');
+extraLinksHolderInner.style.display = 'content';
 
 window.addEventListener('resize', recheckAds);
 
@@ -193,7 +199,7 @@ function recheckAds() {
             console.debug(`recheckAds: ${ad.id} => ${ad.showing}`);
             if (ad.showing && !oneAdShown) {
                 oneAdShown = true;
-                ad.addExtras(extraLinks);
+                ad.addExtras([extraLinksHolderInner]);
             }
         });
         window['__cmp']?.('addConsentLink');
@@ -262,7 +268,6 @@ export function insertAds(element: HTMLElement) {
                 }
                 currentAds.push(adAreaRightNarrow);
             }
-            recheckAds();
         }
         catch (e) {
             console.error(e);
@@ -276,6 +281,7 @@ export function insertAds(element: HTMLElement) {
 // set up extra links
 
 {
+    const extraLinks: HTMLElement[] = [];
     {
         // General privacy policy
         const privacyPolicyLink = document.createElement('a');
@@ -304,6 +310,7 @@ export function insertAds(element: HTMLElement) {
         extraLinks.push(gdprLink);
     }
     extraLinks.forEach(el => el.classList.add('extra-information-link'));
+    extraLinksHolderInner.replaceChildren(...extraLinks);
 }
 
 // Used as a fallback place to display privacy links if there are no ad areas
@@ -312,7 +319,7 @@ fallbackPrivacyArea.id = 'fallback-privacy-area';
 fallbackPrivacyArea.classList.add('shadow');
 
 function moveLinksToFallbackPrivacyArea() {
-    fallbackPrivacyArea.replaceChildren(...extraLinks);
+    fallbackPrivacyArea.replaceChildren(extraLinksHolderInner);
 }
 
 export function installFallbackPrivacyArea() {
