@@ -23,8 +23,12 @@ export function setServerOverride(server: string) {
     localStorage.setItem(STORAGE_KEY, server);
 }
 
+export function getShortlinkFetchUrl(stub: string): URL {
+    return new URL(encodeURIComponent(stub), getServer());
+}
+
 export async function getShortLink(stub: string): Promise<string> {
-    const FULL_URL = new URL(encodeURIComponent(stub), getServer());
+    const FULL_URL = getShortlinkFetchUrl(stub);
     return await fetch(FULL_URL).then(response => response.text());
 }
 
