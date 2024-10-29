@@ -167,7 +167,7 @@ function makeFixedArea(id: string, width: number, height: number): AdContainerEl
     };
 }
 
-type AdSize = [300, 600] | [150, 300];
+type AdSize = [300, 600] | [160, 600];
 
 let idCounter = 1;
 
@@ -207,7 +207,7 @@ export function insertAds(element: HTMLElement) {
 
         try {
             const sideWideCond: DisplayCondition = (w, h) => w >= 1900 && h > 800;
-            const sideNarrowCond: DisplayCondition = (w, h) => w >= 1560 && h > 550 && !sideWideCond(w, h);
+            const sideNarrowCond: DisplayCondition = (w, h) => w >= 1560 && h > 700 && !sideWideCond(w, h);
             {
                 const size: AdSize = [300, 600];
                 const adAreaLeftWide = new ManagedAd('float-area-wide-left', size, sideWideCond);
@@ -232,7 +232,7 @@ export function insertAds(element: HTMLElement) {
                 currentAds.push(adAreaRightWide);
             }
             {
-                const size: AdSize = [150, 300];
+                const size: AdSize = [160, 600];
                 const adAreaLeftNarrow = new ManagedAd('float-area-narrow-left', size, sideNarrowCond);
                 {
                     const outer = adAreaLeftNarrow.adContainer.outer;
