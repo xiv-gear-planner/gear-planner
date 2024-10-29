@@ -46,7 +46,7 @@ class ManagedAd {
     }
 
     set showing(value: boolean) {
-        console.log("set showing", value);
+        console.debug("set showing", value);
         // ignore no-ops, except when ads were not installed due to the script not having loaded yet
         if (value !== this._showing || (value && !this._installed)) {
             if (value) {
@@ -76,7 +76,7 @@ class ManagedAd {
             return;
         }
         setTimeout(() => {
-            console.log(`createAd: ${window['nitroAds'] !== undefined}`);
+            console.debug(`createAd: ${window['nitroAds'] !== undefined}`);
             window['nitroAds']?.createAd(id, {
                 "refreshTime": 30,
                 "renderVisibleOnly": true,
