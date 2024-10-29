@@ -46,6 +46,7 @@ class ManagedAd {
     }
 
     set showing(value: boolean) {
+        console.log("set showing", value);
         // ignore no-ops, except when ads were not installed due to the script not having loaded yet
         if (value !== this._showing || (value && !this._installed)) {
             if (value) {
@@ -63,7 +64,7 @@ class ManagedAd {
      * Install the ad code if it has not already been installed for this ad
      */
     private installAdPlacementsIfNeeded(): void {
-        if (!this._installed) {
+        if (this._installed) {
             return;
         }
         const element = this.adContainer.inner;
@@ -75,6 +76,7 @@ class ManagedAd {
             return;
         }
         setTimeout(() => {
+            console.log(`createAd: ${window['nitroAds'] !== undefined}`);
             window['nitroAds']?.createAd(id, {
                 "refreshTime": 30,
                 "renderVisibleOnly": true,
@@ -131,10 +133,10 @@ function makeFixedArea(id: string, width: number, height: number): AdContainerEl
     const inner = document.createElement('div');
     inner.style.height = `${height}px`;
     inner.style.width = `${width}px`;
+    inner.id = id;
 
     const middle = document.createElement('div');
     middle.appendChild(inner);
-    middle.id = id;
     middle.style.position = 'absolute';
     middle.style.backgroundColor = 'var(--table-bg-color)';
     middle.style.display = '';
