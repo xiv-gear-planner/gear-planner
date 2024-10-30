@@ -104,11 +104,12 @@ export function buildPreviewServer() {
 
     let extraScripts: string[];
     const extraScriptsRaw = process.env.EXTRA_SCRIPTS;
-    if (extraScripts) {
+    if (extraScriptsRaw) {
         extraScripts = extraScriptsRaw.split(';');
         console.log('extra scripts', extraScripts);
     }
     else {
+        console.log('no extra scripts');
         extraScripts = [];
     }
 
