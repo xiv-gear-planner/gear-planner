@@ -1410,7 +1410,6 @@ export class GearPlanSheetGui extends GearPlanSheet {
         buttonsArea.appendChild(showHideButton);
 
         this._gearPlanTable = new GearPlanTable(this, item => this.editorItem = item);
-
         this.showAdvancedStats = SETTINGS.viewDetailedStats ?? false;
         // Buttons and controls at the bottom of the table
         // this.buttonRow.id = 'gear-sheet-button-row';
@@ -1744,7 +1743,6 @@ export class GearPlanSheetGui extends GearPlanSheet {
             // Failing that, just select whatever
             this._gearPlanTable.selectGearSet(firstNonSeparator ?? this.sets[0]);
         }
-
         this._sheetSetupDone = true;
     }
 
