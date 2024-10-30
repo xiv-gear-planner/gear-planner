@@ -226,8 +226,8 @@ export function insertAds(element: HTMLElement) {
     if (currentAds.length === 0) {
 
         try {
-            const sideWideCond: DisplayCondition = (w, h) => w >= 1900 && h > 800;
-            const sideNarrowCond: DisplayCondition = (w, h) => w >= 1560 && h > 700 && !sideWideCond(w, h);
+            const sideWideCond: DisplayCondition = (w, h) => w >= 1900 && h > 650;
+            const sideNarrowCond: DisplayCondition = (w, h) => w >= 1560 && h > 650 && !sideWideCond(w, h);
             {
                 const size: AdSize = [300, 600];
                 const adAreaLeftWide = new ManagedAd('float-area-wide-left', size, sideWideCond);
