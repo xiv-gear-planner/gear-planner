@@ -258,17 +258,6 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
         this.setupColumns();
     }
 
-    //
-    // addSim(sim: Simulation<any, any, any>) {
-    //     this._sims.push(sim);
-    //     this.setupColumns();
-    // }
-    //
-    // delSim(sim: Simulation<any, any, any>) {
-    //     this._sims = this._sims.filter(s => s !== sim);
-    //     this.setupColumns();
-    // }
-
     private setupColumns() {
         const viewOnly = this.sheet._isViewOnly;
         if (viewOnly) {
@@ -282,8 +271,6 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
             this.classList.add('editable');
         }
         const statColWidth = 40;
-        // const chanceStatColWidth = viewOnly ? 110 : 160;
-        // const multiStatColWidth = viewOnly ? 70 : 120;
 
         const jobData = getClassJobStats(this.sheet.classJobName);
 
@@ -396,7 +383,6 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                             rowBeingDragged = null;
                         },
                         moveHandler: (ev) => {
-                            // let target = ev.target;
                             const dragY = ev.clientY;
                             const target = this._rows.find(row => {
                                 const el = row.element;
@@ -443,6 +429,7 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                     // Description is only on view-only mode
                     if (viewOnly) {
                         const descSpan = document.createElement('span');
+                        descSpan.style.fontStyle = 'italic';
                         elements.push(descSpan);
                         if (trimmedDesc) {
                             descSpan.textContent = trimmedDesc;
@@ -465,21 +452,6 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                             title += '\n - ' + titlePart;
                         }
                     }
-                    if (value.recommended) {
-                        const div = document.createElement('div');
-                        div.style.overflow = 'hidden';
-                        div.style.display = 'block';
-                        const icon = starIcon();
-                        icon.style.display = 'inline';
-                        div.append(icon);
-                        div.title = "Recommended Set";
-                        const recommendedSpan = document.createElement('span');
-                        recommendedSpan.textContent = "Recommended Set";
-                        recommendedSpan.style.fontWeight = 'bold';
-                        recommendedSpan.style.display = 'inline';
-                        div.append(recommendedSpan);
-                        nameSpan.prepend(div);
-                    }
                     const div = document.createElement('div');
                     div.classList.add('set-name-desc-holder');
                     div.replaceChildren(...elements);
@@ -487,6 +459,31 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                     if (value.isSeparator) {
                         nameSpan.style.fontWeight = 'bold';
                     }
+
+                    if (value.recommended) {
+                        if (viewOnly) {
+                            const recommendedSetDiv = document.createElement('div');
+                            recommendedSetDiv.style.overflow = 'hidden';
+                            recommendedSetDiv.style.display = 'block';
+                            const icon = starIcon();
+                            icon.style.display = 'inline';
+                            recommendedSetDiv.append(icon);
+                            recommendedSetDiv.title = "Recommended Set";
+                            const recommendedSpan = document.createElement('span');
+                            recommendedSpan.textContent = "Recommended Set";
+                            recommendedSpan.style.fontWeight = 'bold';
+                            recommendedSpan.style.color = 'var(--recommended-text-colour)';
+                            recommendedSpan.style.display = 'inline';
+                            recommendedSetDiv.append(recommendedSpan);
+                            nameSpan.prepend(recommendedSetDiv);
+                        }
+                        else if (!viewOnly) {
+                            const icon = starIcon();
+                            icon.style.display = 'inline';
+                            nameSpan.prepend(icon);
+                        }
+                    }
+
                     return div;
                 },
             },
@@ -721,7 +718,6 @@ export class SimResultDetailDisplay<X extends SimResult> extends HTMLElement {
         else {
             this.textContent = this._result.status;
         }
-        // this.gearPlanTable.requestProcessSimColColor(this.sim);
     }
 }
 
@@ -1414,6 +1410,7 @@ export class GearPlanSheetGui extends GearPlanSheet {
         buttonsArea.appendChild(showHideButton);
 
         this._gearPlanTable = new GearPlanTable(this, item => this.editorItem = item);
+
         this.showAdvancedStats = SETTINGS.viewDetailedStats ?? false;
         // Buttons and controls at the bottom of the table
         // this.buttonRow.id = 'gear-sheet-button-row';
@@ -1747,6 +1744,7 @@ export class GearPlanSheetGui extends GearPlanSheet {
             // Failing that, just select whatever
             this._gearPlanTable.selectGearSet(firstNonSeparator ?? this.sets[0]);
         }
+
         this._sheetSetupDone = true;
     }
 
