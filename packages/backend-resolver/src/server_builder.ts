@@ -20,6 +20,7 @@ import {
 import {nonCachedFetch} from "./polyfills";
 import fastifyWebResponse from "fastify-web-response";
 import {getFrontendPath, getFrontendServer} from "./frontend_file_server";
+import process from "process";
 
 let initDone = false;
 
@@ -101,12 +102,23 @@ export function buildPreviewServer() {
 
     const parser = new DOMParser();
 
+    let extraScripts: string[];
+    const extraScriptsRaw = process.env.EXTRA_SCRIPTS;
+    if (extraScripts) {
+        extraScripts = extraScriptsRaw.split(';');
+        console.log('extra scripts', extraScripts);
+    }
+    else {
+        extraScripts = [];
+    }
+
     fastifyInstance.register(fastifyWebResponse);
     // This endpoint acts as a proxy. If it detects that you are trying to load something that looks like a sheet,
     // inject social media preview and preload urls.
     fastifyInstance.get('/', async (request: FastifyRequest, reply) => {
 
         let sheetDataPreloadUrl: URL | undefined = undefined;
+
         async function resolveNav(nav: NavPath): Promise<object | null> {
             try {
                 switch (nav.type) {
@@ -166,19 +178,20 @@ export function buildPreviewServer() {
                     'og:url': url,
                 } as const;
                 for (const entry of Object.entries(propertyMap)) {
-                    const meta = document.createElement('meta');
+                    const meta = doc.createElement('meta');
                     meta.setAttribute('property', entry[0]);
                     meta.setAttribute('content', entry[1]);
                     head.append(meta);
                 }
                 if (name !== DEFAULT_NAME) {
                     head.querySelector('title')?.remove();
-                    const newTitle = document.createElement('title');
+                    const newTitle = doc.createElement('title');
                     newTitle.textContent = name;
                     head.append(newTitle);
                 }
+
                 function addFetchPreload(url: string) {
-                    const preload = document.createElement('link');
+                    const preload = doc.createElement('link');
                     preload.rel = 'preload';
                     preload.href = url;
                     // For some reason, `.as = 'fetch'` doesn't work, but this does.
@@ -186,6 +199,7 @@ export function buildPreviewServer() {
                     preload.setAttribute("crossorigin", "");
                     head.appendChild(preload);
                 }
+
                 // Inject preload properties based on job
                 // The rest are part of the static html
                 const job = exported['job'];
@@ -194,6 +208,20 @@ export function buildPreviewServer() {
                 }
                 if (sheetDataPreloadUrl !== undefined) {
                     addFetchPreload(sheetDataPreloadUrl.toString());
+                }
+                if (extraScripts) {
+                    function addExtraScript(url: string, extraProps: object = {}) {
+                        const script = doc.createElement('script');
+                        script.src = url;
+                        Object.entries(extraProps).forEach(([k, v]) => {
+                            script.setAttribute(k, v);
+                        });
+                        head.appendChild(script);
+                    }
+
+                    extraScripts.forEach(scriptUrl => {
+                        addExtraScript(scriptUrl, {'async': ''});
+                    });
                 }
                 return new Response(doc.documentElement.outerHTML, {
                     status: 200,
