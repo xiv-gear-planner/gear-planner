@@ -92,13 +92,13 @@ describe("backend stat resolver server", () => {
             const preloads = Array.from(parsed.querySelectorAll('link'))
                 .filter(link => link.rel === 'preload');
 
-            const jobPreload = preloads[0];
+            const jobPreload = preloads[preloads.length - 2];
             assert.equal(jobPreload.getAttribute('rel'), "preload");
             assert.equal(jobPreload.getAttribute('href'), "https://data.xivgear.app/Items?job=WHM");
             assert.equal(jobPreload.getAttribute('as'), "fetch");
             assert.equal(jobPreload.hasAttribute('crossorigin'), true);
 
-            const shortlinkPreload = preloads[1];
+            const shortlinkPreload = preloads[preloads.length - 1];
             assert.equal(shortlinkPreload.getAttribute('rel'), "preload");
             assert.equal(shortlinkPreload.getAttribute('href'), `https://api.xivgear.app/shortlink/${uuid}`);
             assert.equal(shortlinkPreload.getAttribute('as'), "fetch");
@@ -126,13 +126,13 @@ describe("backend stat resolver server", () => {
             const preloads = Array.from(parsed.querySelectorAll('link'))
                 .filter(link => link.rel === 'preload');
 
-            const jobPreload = preloads[0];
+            const jobPreload = preloads[preloads.length - 2];
             assert.equal(jobPreload.getAttribute('rel'), "preload");
             assert.equal(jobPreload.getAttribute('href'), "https://data.xivgear.app/Items?job=SGE");
             assert.equal(jobPreload.getAttribute('as'), "fetch");
             assert.equal(jobPreload.hasAttribute('crossorigin'), true);
 
-            const shortlinkPreload = preloads[1];
+            const shortlinkPreload = preloads[preloads.length - 1];
             assert.equal(shortlinkPreload.getAttribute('rel'), "preload");
             assert.equal(shortlinkPreload.getAttribute('href'), `https://staticbis.xivgear.app/sge/endwalker/anabaseios.json`);
             assert.equal(shortlinkPreload.getAttribute('as'), "fetch");
