@@ -1809,7 +1809,9 @@ export class GearPlanSheetGui extends GearPlanSheet {
             // TODO: clean this up
             if (node instanceof GearSetViewer) {
                 this.editorArea.style.position = 'relative';
-                insertAds(this.editorArea);
+                if (!this.isEmbed) {
+                    insertAds(this.editorArea);
+                }
             }
         }
     }

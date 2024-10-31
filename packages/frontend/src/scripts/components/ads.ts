@@ -209,6 +209,9 @@ function recheckAds() {
         window['__cmp']?.('addConsentLink');
         window['__uspapi']?.('addLink', 1);
     }
+    else {
+        console.debug('recheckAds: not enabled');
+    }
     if (oneAdShown) {
         fallbackPrivacyArea.style.display = 'none';
     }
@@ -325,6 +328,8 @@ export function insertAds(element: HTMLElement) {
 }
 
 // Used as a fallback place to display privacy links if there are no ad areas
+// TODO: this should attach at the top-level rather than as part of the editor, so that the privacy link can appear
+// on all pages.
 const fallbackPrivacyArea = document.createElement('div');
 fallbackPrivacyArea.id = 'fallback-privacy-area';
 fallbackPrivacyArea.classList.add('shadow');
