@@ -340,93 +340,93 @@ export function installFallbackPrivacyArea() {
 
 function getPrivacyHtml(): string {
     return "<h1 id=\"privacy-policy\">Privacy Policy</h1>\n" +
-        "<p>Last updated October 24th, 2024. </p>\n" +
+        "<p>Last updated October 30th, 2024. </p>\n" +
         "<h2 id=\"definitions\">Definitions</h2>\n" +
-        "<p>The &quot;Service&quot; refers to the collective services provided when\n" +
+        "<p>The &quot;Service&quot; refers to the collective services provided when\n    " +
         "you browse to or otherwise interact with the xivgear.app website.</p>\n" +
-        "<p>&quot;Advertising Partner&quot; refers to any third party which provides, directly or\n" +
-        "indirectly, advertisements which your Browser may display, including providers\n" +
+        "<p>&quot;Advertising Partner&quot; refers to any third party which provides, directly or\n    " +
+        "indirectly, advertisements which your Browser may display, including providers\n    " +
         "such as advertising resellers.</p>\n" +
-        "<p>&quot;Browser&quot; refers to a program, commonly referred to as a &quot;web browser&quot;, which\n" +
+        "<p>&quot;Browser&quot; refers to a program, commonly referred to as a &quot;web browser&quot;, which\n    " +
         "acts as the graphical interface between You and the Service.</p>\n" +
         "<h2 id=\"information-we-collect-and-how-we-use-it\">Information We Collect and How We Use It</h2>\n" +
-        "<p>We may collect and store information in connection with Your use of the \n" +
-        "Service, including any information You, a web Browser, or any other \n" +
-        "client software acting on Your behalf transmits to the service. This \n" +
+        "<p>We may collect and store information in connection with Your use of the\n    " +
+        "Service, including any information You, a web Browser, or any other\n    " +
+        "client software acting on Your behalf transmits to the service. This\n    " +
         "includes all of the following:</p>\n" +
-        "<ul>\n" +
-        "<li>Data required for a functioning network connnection, such as Your IP address</li>\n" +
-        "<li>Data voluntarily provided by Your Browser, including but not limited to \n" +
-        "Browser type, version, screen resolution, and referring URL (the page You \n" +
-        "were on when You clicked on a link to this Service).</li>\n" +
+        "<ul>\n    " +
+        "<li>Data required for a functioning network connnection, such as Your IP address</li>\n    " +
+        "<li>Data voluntarily provided by Your Browser, including but not limited to\n        " +
+        "Browser type, version, screen resolution, and referring URL (the page You\n        " +
+        "were on when You clicked on a link to this Service). This may also include\n        geolocation data.\n    </li>\n    " +
         "<li>Additional analytics data, such as button clicks and page visit duration</li>\n" +
         "</ul>\n" +
-        "<p>The Service does not request any Personally Identifiable Information from You.\n" +
-        "You should not enter any Personally Identifiable Information into the website,\n" +
+        "<p>The Service does not request any Personally Identifiable Information from You.\n    " +
+        "You should not enter any Personally Identifiable Information into the website,\n    " +
         "as it will be indistinguishable from non-PII data.</p>\n" +
-        "<p>If You use the Service to publish any content, then that content will be fully\n" +
-        "accessible to any member of the public. Publishing content is only performed\n" +
-        "when clicking a button containing the word &quot;Export&quot; or &quot;Share&quot; and \n" +
-        "subsequently choosing to generate a link to the content. Published content\n" +
-        "is not associated with an individual nor user account. That is, all published\n" +
+        "<p>If You use the Service to publish any content, then that content will be fully\n    " +
+        "accessible to any member of the public. Publishing content is only performed\n    " +
+        "when clicking a button containing the word &quot;Export&quot; or &quot;Share&quot; and\n    " +
+        "subsequently choosing to generate a link to the content. Published content\n    " +
+        "is not associated with an individual nor user account. That is, all published\n    " +
         "content is published anonymously.</p>\n" +
         "<h2 id=\"information-collected-by-advertising-partners\">Information Collected By Advertising Partners</h2>\n" +
-        "<p>Advertising partners may collect similar information. They may use that \n" +
+        "<p>Advertising partners may collect similar information. They may use that\n    " +
         "information to personalize Your experience and display relevant advertising.</p>\n" +
         "<h2 id=\"cookies\">Cookies</h2>\n" +
-        "<p>Cookies are a part of HTTP transactions, where a server can send the client\n" +
-        "a &quot;Cookie&quot;, which consists of a key (name), a value, and optionally data\n" +
-        "specifying which sites the Cookie is valid for. Upon subsequent visits to\n" +
-        "a website where that Cookie is valid, Your Browser may voluntarily send the\n" +
-        "Cookie&#39;s key and value back to the server. To understand how Your Browser\n" +
-        "stores Cookies on Your device, or decides when to send a Cookie back to a\n" +
-        "server, You should consult Your Browser&#39;s documentation. Your Browser may offer\n" +
-        "settings which will restrict which Cookies will be accepted. Cookies may be used\n" +
-        "to uniquely identify Your Browser, such as to allow You to remain logged into\n" +
-        "an account after closing Your Browser, or by advertisers to track You across\n" +
+        "<p>Cookies are a part of HTTP transactions, where a server can send the client\n    " +
+        "a &quot;Cookie&quot;, which consists of a key (name), a value, and optionally data\n    " +
+        "specifying which sites the Cookie is valid for. Upon subsequent visits to\n    " +
+        "a website where that Cookie is valid, Your Browser may voluntarily send the\n    " +
+        "Cookie&#39;s key and value back to the server. To understand how Your Browser\n    " +
+        "stores Cookies on Your device, or decides when to send a Cookie back to a\n    " +
+        "server, You should consult Your Browser&#39;s documentation. Your Browser may offer\n    " +
+        "settings which will restrict which Cookies will be accepted. Cookies may be used\n    " +
+        "to uniquely identify Your Browser, such as to allow You to remain logged into\n    " +
+        "an account after closing Your Browser, or by advertisers to track You across\n    " +
         "multiple different web sites in order to build a profile of Your interests.</p>\n" +
-        "<p>The Service itself does not use Cookies, except to track certain privacy \n" +
-        "opt-outs. Neither the Service itself, nor our analytics solution (Umami) use\n" +
+        "<p>The Service itself does not use Cookies, except to track certain privacy\n    " +
+        "opt-outs. Neither the Service itself, nor our analytics solution (Umami) use\n    " +
         "Cookies.</p>\n" +
-        "<p>Pages from the Service which Your Browser displays may contain script tag\n" +
-        "which request that Your Browser additionally execute scripts from our\n" +
-        "Advertising Partners. Should Your Browser execute these scripts, our\n" +
-        "Advertising Partners may use Cookies or other tracking technologies (see\n" +
-        "below) to serve You customized advertising based on Your interactions with\n" +
-        "other websites, and to track Your interactions on this Service. Advertising\n" +
-        "partners may use this data for many purposes, including customizing \n" +
-        "advertisements that You see on other websites, or selling such data to other\n" +
+        "<p>Pages from the Service which Your Browser displays may contain script tag\n    " +
+        "which request that Your Browser additionally execute scripts from our\n    " +
+        "Advertising Partners. Should Your Browser execute these scripts, our\n    " +
+        "Advertising Partners may use Cookies or other tracking technologies (see\n    " +
+        "below) to serve You customized advertising based on Your interactions with\n    " +
+        "other websites, and to track Your interactions on this Service. Advertising\n    " +
+        "partners may use this data for many purposes, including customizing\n    " +
+        "advertisements that You see on other websites, or selling such data to other\n    " +
         "entities.</p>\n" +
         "<h2 id=\"other-tracking-technologies\">Other Tracking Technologies</h2>\n" +
-        "<p>The Service uses &quot;Local Storage&quot; to store Your settings and saved sheets.\n" +
-        "This data is not transmitted to the Service except when You opt to publish\n" +
-        "content, at which point the saved sheet data is transmitted to the Service\n" +
-        "and made public. Different Browsers handle Local Storage differently. Most\n" +
-        "Browsers will persist Local Storage across multiple browsing sessions. Some\n" +
+        "<p>The Service uses &quot;Local Storage&quot; to store Your settings and saved sheets.\n    " +
+        "This data is not transmitted to the Service except when You opt to publish\n    " +
+        "content, at which point the saved sheet data is transmitted to the Service\n    " +
+        "and made public. Different Browsers handle Local Storage differently. Most\n    " +
+        "Browsers will persist Local Storage across multiple browsing sessions. Some\n    " +
         "Browsers may decline to do so.</p>\n" +
-        "<p>As with Cookies, any Advertising Partners may use other tracking\n" +
-        "technologies, such as Local Storage, session storage, tracking pixels,\n" +
-        "any other methods, or a combination of methods to attempt to associate \n" +
+        "<p>As with Cookies, any Advertising Partners may use other tracking\n    " +
+        "technologies, such as Local Storage, session storage, tracking pixels,\n    " +
+        "any other methods, or a combination of methods to attempt to associate\n    " +
         "multiple Browser sessions to a single user.</p>\n" +
-        "<p>Please note that if Your Browser downloads and executes a script from our \n" +
-        "Advertising Partners, any behavior of that script is outside the control\n" +
-        "of the Service. Furthermore, the exact behavior of your Browser as it pertains\n" +
-        "to any of those technologies is outside of the control of the Service as well\n" +
+        "<p>Please note that if Your Browser downloads and executes a script from our\n    " +
+        "Advertising Partners, any behavior of that script is outside the control\n    " +
+        "of the Service. Furthermore, the exact behavior of your Browser as it pertains\n    " +
+        "to any of those technologies is outside of the control of the Service as well\n    " +
         "as Advertising Partners.</p>\n" +
         "<h2 id=\"for-eu-users-only\">For EU Users Only</h2>\n" +
-        "<p>When you use the Service, Advertising Partners may access information provided by Your Browser and information about Your interests from other sources to customize advertising or other purposes, should you consent to such. You will be prompted for Your consent to share data with all or some of these Advertising Partners upon your first visit. You revisit or change these choices later from the &quot;Update consent preferences&quot; link on the page.</p>\n" +
-        "<h2 id=\"for-california-users-only\">For California Users Only</h2>\n" +
-        "<p>When you use the Service, Advertising Partners may access information provided by Your Browser and information about Your interests from other sources to customize advertising or other purposes, should you consent to such. You can manage this consent by clicking the &quot;Do Not Sell My Personal Information&quot; link on the page.</p>\n" +
+        "<p>When you use the Service, Advertising Partners may access information provided by Your Browser and information about\n    Your interests from other sources to customize advertising or other purposes, should you consent to such. You will\n    be prompted for Your consent to share data with all or some of these Advertising Partners upon your first visit. You\n    revisit or change these choices later from the &quot;Update consent preferences&quot; link on the page. Note that\n    this link will only appear if it appears that you are visiting from a location within the European Union.</p>\n<p>You can submit any requests via email at wdxiv [at] icloud dot com. Submitting a request for data retrieval or\n    removal does not require you to create an account with the Service, as the Service does not currently offer\n    accounts.</p>\n" +
+        "<h2 id=\"for-california-users-only\">For California Users Only</h2>\n<p>The CCPA provides consumers located in the state of California with certain rights regarding their personal\n    information and data. The following section describes those rights and explains how to exercise them.</p>\n" +
+        "<p>When you use the Service, Advertising Partners may access information provided by Your Browser and information about\n    Your interests from other sources to customize advertising or other purposes, should you consent to such. You can\n    manage this consent by clicking the &quot;Do Not Sell My Personal Information&quot; link on the page. Note that this\n    link will only appear if it appears that you are visiting from a location within California.</p>\n<h3>Access to Specific Information and Data Portability Rights</h3>\n<p>You have the right to request the the Service disclose certain information to you about our collection and use of\n    your personal information over the past 12 months. However, please note that as the data is collected strictly by\n    third parties, the Service cannot identify individual users, and as such, may be unable to assist with requests for\n    data removal or data portability.</p>\n<p>While this information may also be available in this privacy policy, You have the right to request:</p>\n<ul>\n    <li>The categories of personal information we collected about you.</li>\n    <li>The categories of sources for the personal information we collected about you.</li>\n    <li>Our business or commercial purpose for collecting or selling that personal information.</li>\n    <li>The categories of third parties with whom we share that personal information.</li>\n    <li>The specific pieces of personal information we collected about you (also called data portability request)</li>\n    <li>If we sold or disclose your personal information for a business purpose, two separate lists disclosing:</li>\n    <li>Sales, identifying the personal information categories that each category of recipient purchased, and</li>\n    <li>Disclosures for a business purpose, identifying the personal information categories that each category of\n        recipient obtained\n    </li>\n</ul>\n<h3>Non-Discimination</h3>\n<p>Should You choose to exercise your right to opt out, the Service will not discriminate against you in any way. You\n    are still free to access the Service as you otherwise would. We will not:</p>\n<ul>\n    <li>Deny you goods or services.</li>\n    <li>Charge you different prices or rates for goods or services, including through granting discounts or imposing\n        penalties.\n    </li>\n    <li>Provide you a different level or quality of goods or services.</li>\n    <li>Suggest that you may receive a different price or rate for goods or services or a different level of quality of\n        goods or services.\n    </li>\n</ul>\n<h3>Removal or Portability Requests</h3>\n<p>You can submit any requests via email at wdxiv [at] icloud dot com. We cannot respond to your request or provide you\n    with personal information if we cannot verify your identity or authority to make the request and confirm the\n    personal information relates to you. Submitting a request for data retrieval or\n    removal does not require you to create an account with the Service, as the Service does not currently offer\n    accounts.</p>\n<h3>Information We Collect</h3>\n<p>The specific nature and purpose(s) of data collection is described elsewhere in this privacy policy.</p>\n<h3>Use of Personal Information</h3>\n<p>\n    Third parties may collect and retain Your information, including Personal Information, for one or more of the\n    following business purposes:\n</p>\n<ul>\n    <li>To advertisements relevant to your interests, including targeted offers, as well as to provide targeted\n        advertisements on other websites or services.\n    </li>\n    <li>As described to you when collecting your personal information or as otherwise set forth in the CCPA.</li>\n    <li>To process requests for removal or portability.</li>\n</ul>\n<h3>Sharing Personal Information</h3>\n<p>If you have not opted out of the sale of your personal information, then the Service or any of its partners may\n    request that your Browser execute scripts from third parties, including scripts which may instruct your browser to\n    send Personal Information to such third parties.</p>\n<p>Categories of third parties which may collect such data through scripts include:</p>\n<ul>\n    <li>Third parties with whom we partner to provide advertisements.</li>\n    <li>Contractors and service providers.</li>\n    <li>Data aggregators.</li>\n</ul>\n" +
         "<h2 id=\"advertising-partners\">Advertising Partners</h2>\n" +
-        "<p>Our Advertising is provided via NitroPay (www.nitropay.com). NitroPay may \n" +
-        "display Advertising from other providers. You may view the full list of\n" +
+        "<p>Our Advertising is provided via NitroPay (www.nitropay.com). NitroPay may\n    " +
+        "display Advertising from other providers. You may view the full list of\n    " +
         "potential Advertising Partners at <a href=\"https://xivgear.app/ads.txt\">https://xivgear.app/ads.txt</a>.</p>\n" +
-        "<p>Please note that should Your Browser execute any Advertising Partner scripts,\n" +
-        "and should those scripts collect any data for transmission to the Avertising\n" +
-        "Partner, the data is sent directly from Your Browser to the Advertising\n" +
-        "Partner. The data is never sent to nor stored by the Service. As such, the\n" +
-        "Service cannot assist You in retrieving or removing any data pertaining to\n" +
-        "You from any Advertising Parnters.</p>\n";
+        "<p>Please note that should Your Browser execute any Advertising Partner scripts,\n    " +
+        "and should those scripts collect any data for transmission to the Avertising\n    " +
+        "Partner, the data is sent directly from Your Browser to the Advertising\n    Partner. The data is never sent to nor stored by the Service. As such, the\n" +
+        "    " +
+        "Service cannot assist You in retrieving or removing any data pertaining to\n    " +
+        "You from any Advertising Parnters.</p>\n\n<h2>Changes To This Policy</h2>\n<p>We reserve the right to update or change our Privacy Policy at any time. You should check this Privacy Policy\n    regularly. Your continued use of the Service after the policy is modified will constitute your acknowledgement\n    and acceptance of the changes.</p>";
 }
 
 class PrivacyPolicyModal extends BaseModal {
