@@ -132,6 +132,7 @@ class ManagedAd {
 
 
 window.addEventListener('nitroAds.loaded', () => {
+    console.debug('nitroAds.loaded');
     recheckAds();
 });
 
@@ -223,6 +224,8 @@ function recheckAds() {
     }
 }
 
+window['recheckAds'] = recheckAds;
+
 let firstLoad = true;
 
 export function insertAds(element: HTMLElement) {
@@ -233,8 +236,11 @@ export function insertAds(element: HTMLElement) {
             if (adsEnabled()) {
                 recordEvent('adsEnabled');
             }
-            else {
+            else if (Array.from(document.head.querySelectorAll('script')).find(script => script.src && script.src.includes('nitro'))) {
                 recordEvent('adsDisabled');
+            }
+            else {
+                recordEvent('adsNotInjected');
             }
         }, 10_000);
 
@@ -325,6 +331,7 @@ export function insertAds(element: HTMLElement) {
     }
     element.prepend(...currentAds.map(a => a.adContainer.outer));
     setTimeout(recheckAds);
+    setTimeout(recheckAds, 2_000);
     if (firstLoad) {
         firstLoad = false;
     }
