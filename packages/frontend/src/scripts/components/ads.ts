@@ -69,7 +69,8 @@ class ManagedAd {
     }
 
     onNavigate(): void {
-        this.ad?.['onNavigate']?.();
+        // this.ad?.['onNavigate']?.();
+        this.installAdPlacement();
     }
 
     /**
@@ -195,6 +196,8 @@ const extraLinksHolderInner = document.createElement('div');
 extraLinksHolderInner.style.display = 'content';
 
 window.addEventListener('resize', recheckAds);
+
+window['currentAds'] = currentAds;
 
 function recheckAds() {
     setTimeout(() => {
@@ -341,7 +344,7 @@ export function insertAds(element: HTMLElement) {
             firstLoad = false;
         }
         else {
-            currentAds.forEach(ad => ad.onNavigate());
+            setTimeout(() => currentAds.forEach(ad => ad.onNavigate()));
         }
     }, 200);
 }
