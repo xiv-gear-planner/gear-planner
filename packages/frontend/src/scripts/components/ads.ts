@@ -61,6 +61,7 @@ class ManagedAd {
                 this.installAdPlacement();
                 // if (!this._installed) {
                 // }
+                // setTimeout(() => this.ad['checkVisible'](), 100);
             }
             else {
                 this.adContainer.outer.style.display = 'none';
@@ -90,7 +91,7 @@ class ManagedAd {
             return;
         }
         setTimeout(() => {
-            console.trace(`createAd: ${window['nitroAds'] !== undefined}`);
+            console.debug(`createAd: ${this.id}`);
             this.ad = window['nitroAds'].createAd(id, {
                 "refreshTime": 30,
                 "renderVisibleOnly": true,
