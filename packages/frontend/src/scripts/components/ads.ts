@@ -343,7 +343,7 @@ export function insertAds(element: HTMLElement) {
         else {
             currentAds.forEach(ad => ad.onNavigate());
         }
-    });
+    }, 200);
 }
 
 // set up extra links
