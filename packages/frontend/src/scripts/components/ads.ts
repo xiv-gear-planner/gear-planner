@@ -35,10 +35,12 @@ class ManagedAd {
     private _installed: boolean = false;
     private readonly adSize: AdSize;
     private ad: unknown;
+    private readonly extraSizes: AdSize[];
 
-    constructor(public readonly id: string, size: AdSize, condition: DisplayCondition) {
+    constructor(public readonly id: string, size: AdSize, condition: DisplayCondition, extraSizes: AdSize[] = []) {
         this.adContainer = makeFixedArea(id, size[0], size[1]);
         this.adSize = size;
+        this.extraSizes = extraSizes;
         this.condition = condition;
     }
 
@@ -54,17 +56,14 @@ class ManagedAd {
         // ignore no-ops, except when ads were not installed due to the script not having loaded yet
         if (value !== this._showing || (value && !this._installed)) {
             if (value) {
-                console.debug("branch 1", value);
                 this.adContainer.outer.style.display = '';
                 if (!this._installed) {
                     this.installAdPlacement();
                 }
             }
             else {
-                console.debug("branch 2", value);
                 this.adContainer.outer.style.display = 'none';
             }
-            console.debug("branch 3", value);
             this._showing = value;
         }
     }
@@ -87,7 +86,7 @@ class ManagedAd {
         }
         setTimeout(() => {
             console.debug(`createAd: ${window['nitroAds'] !== undefined}`);
-            this.ad = window['nitroAds']?.createAd(id, {
+            this.ad = window['nitroAds'].createAd(id, {
                 "refreshTime": 30,
                 "renderVisibleOnly": true,
                 "sizes": [
@@ -95,6 +94,7 @@ class ManagedAd {
                         this.adSize[0].toString(),
                         this.adSize[1].toString(),
                     ],
+                    ...this.extraSizes.map(es => [es[0].toString(), es[1].toString()]),
                 ],
                 "report": {
                     "enabled": true,
@@ -103,6 +103,7 @@ class ManagedAd {
                     "position": "top-right",
                 },
             });
+            recordEvent('createAd', {'id': id});
         });
         this._installed = true;
     }
@@ -184,7 +185,7 @@ function makeFixedArea(id: string, width: number, height: number): AdContainerEl
     };
 }
 
-type AdSize = [300, 600] | [160, 600];
+type AdSize = [300, 600] | [160, 600] | [300, 250];
 
 let idCounter = 1;
 
@@ -227,13 +228,30 @@ let firstLoad = true;
 export function insertAds(element: HTMLElement) {
 
     if (currentAds.length === 0) {
+        // Analytics
+        setTimeout(() => {
+            if (adsEnabled()) {
+                recordEvent('adsEnabled');
+            }
+            else {
+                recordEvent('adsDisabled');
+            }
+        }, 10_000);
 
         try {
+            // Display on very wide 2-column
             const sideWideCond: DisplayCondition = (w, h) => w >= 1900 && h > 650;
-            const sideNarrowCond: DisplayCondition = (w, h) => w >= 1560 && h > 650 && !sideWideCond(w, h);
+            // Display on very wide 2-column without sufficient height
+            const sideWideShortCond: DisplayCondition = (w, h) => w >= 1900 && h > 350 && !sideWideCond(w, h);
+            // Display on less wide 2-column, or wide 1-column
+            const sideNarrowCond: DisplayCondition = (w, h) =>
+                ((w >= 1560 && h > 650)
+                || (w <= 1210 && w >= 1012 && h > 650))
+                && !sideWideCond(w, h) && !sideWideShortCond(w, h);
             {
                 const size: AdSize = [300, 600];
-                const adAreaLeftWide = new ManagedAd('float-area-wide-left', size, sideWideCond);
+                const extraSizes: AdSize[] = [[160, 600], [300, 250]];
+                const adAreaLeftWide = new ManagedAd('float-area-wide-left', size, sideWideCond, extraSizes);
                 {
                     const outer = adAreaLeftWide.adContainer.outer;
                     const middle = adAreaLeftWide.adContainer.middle;
@@ -243,7 +261,30 @@ export function insertAds(element: HTMLElement) {
                 }
                 currentAds.push(adAreaLeftWide);
 
-                const adAreaRightWide = new ManagedAd('float-area-wide-right', size, sideWideCond);
+                const adAreaRightWide = new ManagedAd('float-area-wide-right', size, sideWideCond, extraSizes);
+                {
+                    const outer = adAreaRightWide.adContainer.outer;
+                    const middle = adAreaRightWide.adContainer.middle;
+                    outer.style.left = '100%';
+                    middle.style.right = '0';
+                    middle.style.marginRight = '-5px';
+                    middle.style.borderRadius = '10px 0 0 0';
+                }
+                currentAds.push(adAreaRightWide);
+            }
+            {
+                const size: AdSize = [300, 250];
+                const adAreaLeftWide = new ManagedAd('float-area-wide-short-left', size, sideWideShortCond);
+                {
+                    const outer = adAreaLeftWide.adContainer.outer;
+                    const middle = adAreaLeftWide.adContainer.middle;
+                    outer.style.left = '0';
+                    middle.style.marginLeft = '-5px';
+                    middle.style.borderRadius = '0 10px 0 0';
+                }
+                currentAds.push(adAreaLeftWide);
+
+                const adAreaRightWide = new ManagedAd('float-area-wide-short-right', size, sideWideShortCond);
                 {
                     const outer = adAreaRightWide.adContainer.outer;
                     const middle = adAreaRightWide.adContainer.middle;

@@ -221,7 +221,9 @@ export function buildPreviewServer() {
                     }
 
                     extraScripts.forEach(scriptUrl => {
-                        addExtraScript(scriptUrl, {'async': ''});
+                        if (nav['embed'] !== true) {
+                            addExtraScript(scriptUrl, {'async': ''});
+                        }
                     });
                 }
                 return new Response(doc.documentElement.outerHTML, {
