@@ -51,11 +51,18 @@ class MNKCycleProcessor extends CycleProcessor {
     }
 
     override use(ability: Ability): AbilityUseResult {
-        const a = ability as MnkAbility;
-        if (a.updateGauge) {
-            a.updateGauge(this.gauge, this.getCurrentForm(), this.combatStarted);
+        let mnkAbility = ability as MnkAbility;
+        if (mnkAbility.id === SixSidedStar.id) {
+            // MARK SixSidedStar chakra potency generation
+            mnkAbility = {
+                ...mnkAbility,
+                potency: SixSidedStar.potency + Math.floor(this.gauge.chakra) * 80,
+            };
         }
-        return super.use(ability);
+        if (mnkAbility.updateGauge) {
+            mnkAbility.updateGauge(this.gauge, this.getCurrentForm(), this.combatStarted);
+        }
+        return super.use(mnkAbility);
     }
 
     override useOgcd(ability: OgcdAbility): AbilityUseResult {
@@ -161,7 +168,7 @@ class MNKCycleProcessor extends CycleProcessor {
     }
 
     /** gcd may be supplied by openers that want to have ogcd + buff handling done automatically */
-    doStep(gcd? :MnkGcdAbility) {
+    doStep(gcd?: MnkGcdAbility) {
         const form = this.getCurrentForm();
         gcd ??= this.chooseGcd();
         this.useGcd(gcd);
@@ -373,7 +380,7 @@ class MNKCycleProcessor extends CycleProcessor {
         }
         else {
             // riddle will be back or is currently off cooldown
-            if (this.gauge.fullNadis && this.opener === "SL"){
+            if (this.gauge.fullNadis && this.opener === "SL") {
                 // look for a +1 opo instead of a -2-0 opo
                 // TODO the -3 umm ackshually window takes dragon kick sequencing in to account
                 return false;

@@ -500,7 +500,7 @@ export const SixSidedStar: MnkGcdAbility = {
     type: 'gcd',
     gcd: 5,
     attackType: 'Weaponskill',
-    potency: 780, // TODO add chakra potency
+    potency: 780, // potency adjusted in MNKCycleProcessor::use
     updateGauge: (gauge: MNKGauge) => {
         gauge.chakra = 0;
     },
