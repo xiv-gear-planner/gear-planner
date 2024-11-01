@@ -82,7 +82,7 @@ export async function getSetFromEtro(etroSetId: string) {
                 relicStats = {};
                 const relicData = await getEtroRelic(relicId);
                 itemId = relicData.baseItem.id;
-                // TODO: this probably does some redundant hits on xivapi
+                // TODO: convert this to use new datamanager
                 const baseParams = (await queryBaseParams()).Results;
                 for (let i = 0; i <= 5; i++) {
                     const paramId = relicData[`param${i}`];

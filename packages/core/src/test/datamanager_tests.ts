@@ -21,7 +21,6 @@ describe('New Datamanager', () => {
         // Basic item props
         eq(codexOfAscension.id, 40176);
         eq(codexOfAscension.name, 'Codex of Ascension');
-        // TODO: fix the extra / ?
         eq(codexOfAscension.iconUrl.toString(), 'https://beta.xivapi.com/api/1/asset/ui/icon/033000/033387_hr1.tex?format=png');
 
         // XivCombatItem props
@@ -74,7 +73,6 @@ describe('New Datamanager', () => {
         eq(codexOfAscension.relicStatModel, undefined);
 
         // This item should be filtered out due to being too low of an ilvl
-        // TODO: the new DataManager should just load everything, and filtering should be done visually
         // const ilvl545book = dm.itemById(34691);
         // eq(ilvl545book, undefined);
 

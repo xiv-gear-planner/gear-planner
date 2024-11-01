@@ -474,7 +474,6 @@ export class CycleProcessor {
     private _rowCount = 0;
 
     constructor(private settings: MultiCycleSettings) {
-        // TODO: set enforcement mode
         this.cdTracker = new CooldownTracker(() => this.currentTime);
         this._cdEnforcementMode = 'warn';
         this.cycleTime = settings.cycleTime;

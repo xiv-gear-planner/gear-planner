@@ -7,7 +7,6 @@ export type JsonImportSpec = {
     importType: 'json',
     rawData: string
 }
-// TODO: also support bis links
 export type ShortlinkImportSpec = {
     importType: 'shortlink',
     rawUuid: string

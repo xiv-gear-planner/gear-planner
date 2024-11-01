@@ -416,7 +416,6 @@ export class GearPlanSheet {
     exportSheet(external: boolean, fullStats: true): SheetStatsExport;
 
     exportSheet(external: boolean = false, fullStats: boolean = false): SheetExport | SheetStatsExport {
-        // TODO: make this async
         const sets = this._sets.map(set => {
             const rawExport = this.exportGearSet(set, false);
             if (fullStats) {
@@ -593,7 +592,6 @@ export class GearPlanSheet {
 
     private get nextCustomItemId() {
         if (this._customItems.length === 0) {
-            // TODO: make this random + larger
             return 10_000_000_000_000 + Math.floor(Math.random() * 1_000_000);
         }
         else {
@@ -866,7 +864,6 @@ export class GearPlanSheet {
     }
 
     get foodItemsForDisplay(): FoodItem[] {
-        // TODO: sorting?
         return [...this._dmRelevantFood.filter(item => item.ilvl >= this._itemDisplaySettings.minILvlFood && item.ilvl <= this._itemDisplaySettings.maxILvlFood), ...this._customFoods];
     }
 

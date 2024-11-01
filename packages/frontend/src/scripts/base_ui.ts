@@ -121,7 +121,6 @@ export function setTitle(titlePart: string | undefined) {
 }
 
 export async function openSheetByKey(sheet: string) {
-    // TODO: handle nonexistent sheet
     setTitle('Loading Sheet');
     console.log('openSheetByKey: ', sheet);
     const planner = GRAPHICAL_SHEET_PROVIDER.fromSaved(sheet);

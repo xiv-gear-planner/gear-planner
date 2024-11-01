@@ -33,17 +33,14 @@ export class CustomItem implements GearItem {
 
     unsyncedVersion: GearItem = this;
     isCustomRelic: boolean = false;
-    // TODO: syncing and stat caps not supported
     isSyncedDown: boolean = false;
     relicStatModel = undefined;
-    // unsyncedVersion: GearItem = null;
     acquisitionType: GearAcquisitionSource = 'custom';
 
-    // TODO
     primarySubstat: keyof RawStats = null;
     secondarySubstat: keyof RawStats = null;
-    // statCaps: { determination?: number; piety?: number; crit?: number; dhit?: number; spellspeed?: number; skillspeed?: number; tenacity?: number; hp?: number; vitality?: number; strength?: number; dexterity?: number; intelligence?: number; mind?: number; wdPhys?: number; wdMag?: number; weaponDelay?: number; };
     statCaps = {};
+    // TODO: pull this out into a constant somewhere
     iconUrl: URL = new URL(xivApiIconUrl(26270));
     syncedDownTo: number | null;
     private _data: CustomItemExport;

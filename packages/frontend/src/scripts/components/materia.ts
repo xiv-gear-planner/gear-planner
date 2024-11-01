@@ -193,19 +193,6 @@ export class SlotMateriaManager extends HTMLElement {
         }
     }
 
-    // TODO: remove
-    // setColor(overcap: 'normal' | 'overcap' | 'overcap-major') {
-    //     switch (overcap) {
-    //         case "normal":
-    //             break;
-    //         case "overcap":
-    //             break;
-    //         case "overcap-major":
-    //             break;
-    //
-    //     }
-    // }
-
     // eslint-disable-next-line accessor-pairs
     set overcap(overcap: number) {
         if (overcap === this._overcap) {
@@ -296,7 +283,6 @@ export class SlotMateriaManagerPopup extends HTMLElement {
         const headerRow = body.insertRow();
         // Blank top-left
         const topLeftCell = document.createElement("th");
-        // TODO: replace with fa-trash
         const topLeft = quickElement('div', ['materia-picker-remove'], [faIcon('fa-trash-can')]);
         topLeft.addEventListener('mousedown', (ev) => {
             this.submit(undefined);
