@@ -104,7 +104,7 @@ class ManagedAd {
                 },
             });
             recordEvent('createAd', {'id': id});
-        });
+        }, 50);
         this._installed = true;
     }
 
@@ -197,31 +197,34 @@ extraLinksHolderInner.style.display = 'content';
 window.addEventListener('resize', recheckAds);
 
 function recheckAds() {
-    console.debug('recheckAds');
-    let oneAdShown = false;
-    if (adsEnabled()) {
-        currentAds.forEach(ad => {
-            ad.recheck();
-            console.debug(`recheckAds: ${ad.id} => ${ad.showing}`);
-            if (ad.showing && !oneAdShown) {
-                oneAdShown = true;
-                ad.addExtras([extraLinksHolderInner]);
-            }
-        });
-        window['__cmp']?.('addConsentLink');
-        window['__uspapi']?.('addLink', 1);
-    }
-    else {
-        console.debug('recheckAds: not enabled');
-    }
-    if (oneAdShown) {
-        fallbackPrivacyArea.style.display = 'none';
-    }
-    else {
-        fallbackPrivacyArea.style.display = '';
-        moveLinksToFallbackPrivacyArea();
+    setTimeout(() => {
 
-    }
+        console.debug('recheckAds');
+        let oneAdShown = false;
+        if (adsEnabled()) {
+            currentAds.forEach(ad => {
+                ad.recheck();
+                console.debug(`recheckAds: ${ad.id} => ${ad.showing}`);
+                if (ad.showing && !oneAdShown) {
+                    oneAdShown = true;
+                    ad.addExtras([extraLinksHolderInner]);
+                }
+            });
+            window['__cmp']?.('addConsentLink');
+            window['__uspapi']?.('addLink', 1);
+        }
+        else {
+            console.debug('recheckAds: not enabled');
+        }
+        if (oneAdShown) {
+            fallbackPrivacyArea.style.display = 'none';
+        }
+        else {
+            fallbackPrivacyArea.style.display = '';
+            moveLinksToFallbackPrivacyArea();
+
+        }
+    });
 }
 
 window['recheckAds'] = recheckAds;
@@ -230,114 +233,117 @@ let firstLoad = true;
 
 export function insertAds(element: HTMLElement) {
 
-    if (currentAds.length === 0) {
-        // Analytics
-        setTimeout(() => {
-            if (adsEnabled()) {
-                recordEvent('adsEnabled');
-            }
-            else if (Array.from(document.head.querySelectorAll('script')).find(script => script.src && script.src.includes('nitro'))) {
-                recordEvent('adsDisabled');
-            }
-            else {
-                recordEvent('adsNotInjected');
-            }
-        }, 10_000);
+    setTimeout(() => {
 
-        try {
-            // Display on very wide 2-column
-            const sideWideCond: DisplayCondition = (w, h) => w >= 1900 && h > 650;
-            // Display on very wide 2-column without sufficient height
-            const sideWideShortCond: DisplayCondition = (w, h) => w >= 1900 && h > 350 && !sideWideCond(w, h);
-            // Display on less wide 2-column, or wide 1-column
-            const sideNarrowCond: DisplayCondition = (w, h) =>
-                ((w >= 1560 && h > 650)
-                || (w <= 1210 && w >= 1012 && h > 650))
-                && !sideWideCond(w, h) && !sideWideShortCond(w, h);
-            {
-                const size: AdSize = [300, 600];
-                const extraSizes: AdSize[] = [[160, 600], [300, 250]];
-                const adAreaLeftWide = new ManagedAd('float-area-wide-left', size, sideWideCond, extraSizes);
-                {
-                    const outer = adAreaLeftWide.adContainer.outer;
-                    const middle = adAreaLeftWide.adContainer.middle;
-                    outer.style.left = '0';
-                    middle.style.marginLeft = '-5px';
-                    middle.style.borderRadius = '0 10px 0 0';
+        if (currentAds.length === 0) {
+            // Analytics
+            setTimeout(() => {
+                if (adsEnabled()) {
+                    recordEvent('adsEnabled');
                 }
-                currentAds.push(adAreaLeftWide);
+                else if (Array.from(document.head.querySelectorAll('script')).find(script => script.src && script.src.includes('nitro'))) {
+                    recordEvent('adsDisabled');
+                }
+                else {
+                    recordEvent('adsNotInjected', {'page': document.location.search});
+                }
+            }, 10_000);
 
-                const adAreaRightWide = new ManagedAd('float-area-wide-right', size, sideWideCond, extraSizes);
+            try {
+                // Display on very wide 2-column
+                const sideWideCond: DisplayCondition = (w, h) => w >= 1900 && h > 650;
+                // Display on very wide 2-column without sufficient height
+                const sideWideShortCond: DisplayCondition = (w, h) => w >= 1900 && h > 350 && !sideWideCond(w, h);
+                // Display on less wide 2-column, or wide 1-column
+                const sideNarrowCond: DisplayCondition = (w, h) =>
+                    ((w >= 1560 && h > 650)
+                        || (w <= 1210 && w >= 1012 && h > 650))
+                    && !sideWideCond(w, h) && !sideWideShortCond(w, h);
                 {
-                    const outer = adAreaRightWide.adContainer.outer;
-                    const middle = adAreaRightWide.adContainer.middle;
-                    outer.style.left = '100%';
-                    middle.style.right = '0';
-                    middle.style.marginRight = '-5px';
-                    middle.style.borderRadius = '10px 0 0 0';
+                    const size: AdSize = [300, 600];
+                    const extraSizes: AdSize[] = [[160, 600], [300, 250]];
+                    const adAreaLeftWide = new ManagedAd('float-area-wide-left', size, sideWideCond, extraSizes);
+                    {
+                        const outer = adAreaLeftWide.adContainer.outer;
+                        const middle = adAreaLeftWide.adContainer.middle;
+                        outer.style.left = '0';
+                        middle.style.marginLeft = '-5px';
+                        middle.style.borderRadius = '0 10px 0 0';
+                    }
+                    currentAds.push(adAreaLeftWide);
+
+                    const adAreaRightWide = new ManagedAd('float-area-wide-right', size, sideWideCond, extraSizes);
+                    {
+                        const outer = adAreaRightWide.adContainer.outer;
+                        const middle = adAreaRightWide.adContainer.middle;
+                        outer.style.left = '100%';
+                        middle.style.right = '0';
+                        middle.style.marginRight = '-5px';
+                        middle.style.borderRadius = '10px 0 0 0';
+                    }
+                    currentAds.push(adAreaRightWide);
                 }
-                currentAds.push(adAreaRightWide);
+                {
+                    const size: AdSize = [300, 250];
+                    const adAreaLeftWide = new ManagedAd('float-area-wide-short-left', size, sideWideShortCond);
+                    {
+                        const outer = adAreaLeftWide.adContainer.outer;
+                        const middle = adAreaLeftWide.adContainer.middle;
+                        outer.style.left = '0';
+                        middle.style.marginLeft = '-5px';
+                        middle.style.borderRadius = '0 10px 0 0';
+                    }
+                    currentAds.push(adAreaLeftWide);
+
+                    const adAreaRightWide = new ManagedAd('float-area-wide-short-right', size, sideWideShortCond);
+                    {
+                        const outer = adAreaRightWide.adContainer.outer;
+                        const middle = adAreaRightWide.adContainer.middle;
+                        outer.style.left = '100%';
+                        middle.style.right = '0';
+                        middle.style.marginRight = '-5px';
+                        middle.style.borderRadius = '10px 0 0 0';
+                    }
+                    currentAds.push(adAreaRightWide);
+                }
+                {
+                    const size: AdSize = [160, 600];
+                    const adAreaLeftNarrow = new ManagedAd('float-area-narrow-left', size, sideNarrowCond);
+                    {
+                        const outer = adAreaLeftNarrow.adContainer.outer;
+                        const middle = adAreaLeftNarrow.adContainer.middle;
+                        outer.style.left = '0';
+                        middle.style.marginLeft = '-5px';
+                        middle.style.borderRadius = '0 10px 0 0';
+                    }
+                    currentAds.push(adAreaLeftNarrow);
+
+                    const adAreaRightNarrow = new ManagedAd('float-area-narrow-right', size, sideNarrowCond);
+                    {
+                        const outer = adAreaRightNarrow.adContainer.outer;
+                        const middle = adAreaRightNarrow.adContainer.middle;
+                        outer.style.left = '100%';
+                        middle.style.right = '0';
+                        middle.style.marginRight = '-5px';
+                        middle.style.borderRadius = '10px 0 0 0';
+                    }
+                    currentAds.push(adAreaRightNarrow);
+                }
             }
-            {
-                const size: AdSize = [300, 250];
-                const adAreaLeftWide = new ManagedAd('float-area-wide-short-left', size, sideWideShortCond);
-                {
-                    const outer = adAreaLeftWide.adContainer.outer;
-                    const middle = adAreaLeftWide.adContainer.middle;
-                    outer.style.left = '0';
-                    middle.style.marginLeft = '-5px';
-                    middle.style.borderRadius = '0 10px 0 0';
-                }
-                currentAds.push(adAreaLeftWide);
-
-                const adAreaRightWide = new ManagedAd('float-area-wide-short-right', size, sideWideShortCond);
-                {
-                    const outer = adAreaRightWide.adContainer.outer;
-                    const middle = adAreaRightWide.adContainer.middle;
-                    outer.style.left = '100%';
-                    middle.style.right = '0';
-                    middle.style.marginRight = '-5px';
-                    middle.style.borderRadius = '10px 0 0 0';
-                }
-                currentAds.push(adAreaRightWide);
-            }
-            {
-                const size: AdSize = [160, 600];
-                const adAreaLeftNarrow = new ManagedAd('float-area-narrow-left', size, sideNarrowCond);
-                {
-                    const outer = adAreaLeftNarrow.adContainer.outer;
-                    const middle = adAreaLeftNarrow.adContainer.middle;
-                    outer.style.left = '0';
-                    middle.style.marginLeft = '-5px';
-                    middle.style.borderRadius = '0 10px 0 0';
-                }
-                currentAds.push(adAreaLeftNarrow);
-
-                const adAreaRightNarrow = new ManagedAd('float-area-narrow-right', size, sideNarrowCond);
-                {
-                    const outer = adAreaRightNarrow.adContainer.outer;
-                    const middle = adAreaRightNarrow.adContainer.middle;
-                    outer.style.left = '100%';
-                    middle.style.right = '0';
-                    middle.style.marginRight = '-5px';
-                    middle.style.borderRadius = '10px 0 0 0';
-                }
-                currentAds.push(adAreaRightNarrow);
+            catch (e) {
+                console.error(e);
             }
         }
-        catch (e) {
-            console.error(e);
+        element.prepend(...currentAds.map(a => a.adContainer.outer));
+        setTimeout(recheckAds);
+        setTimeout(recheckAds, 2_000);
+        if (firstLoad) {
+            firstLoad = false;
         }
-    }
-    element.prepend(...currentAds.map(a => a.adContainer.outer));
-    setTimeout(recheckAds);
-    setTimeout(recheckAds, 2_000);
-    if (firstLoad) {
-        firstLoad = false;
-    }
-    else {
-        currentAds.forEach(ad => ad.onNavigate());
-    }
+        else {
+            currentAds.forEach(ad => ad.onNavigate());
+        }
+    });
 }
 
 // set up extra links
