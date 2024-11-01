@@ -115,19 +115,19 @@ class RprCycleProcessor extends CycleProcessor {
     override use(ability: Ability): AbilityUseResult {
         const rprAbility = ability as RprAbility;
 
-        if (rprAbility.updateSoulGauge !== null || rprAbility.updateShroudGauge !== null) {
+        if (rprAbility.updateSoulGauge !== undefined || rprAbility.updateShroudGauge !== undefined) {
 
             /** prevent weird gauge update if an auto lands between now and nextGcdTime */
             if (ability.type === 'gcd' &&  this.nextGcdTime > this.currentTime) {
                 this.advanceTo(this.nextGcdTime);
             }
 
-            if (rprAbility.updateSoulGauge !== null) {
+            if (rprAbility.updateSoulGauge !== undefined) {
                 rprAbility.updateSoulGauge(this.gauge);
             }
 
             /** If the ability updates shroud gauge and also is not our free enshroud from Ideal Host, update the gauge */
-            if (rprAbility.updateShroudGauge !== null
+            if (rprAbility.updateShroudGauge !== undefined
                 && !(this.getBuffIfActive(IdealHost) && ability.id === Actions.Enshroud.id)) {
 
                 rprAbility.updateShroudGauge(this.gauge);
