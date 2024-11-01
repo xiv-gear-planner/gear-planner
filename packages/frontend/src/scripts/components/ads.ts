@@ -57,20 +57,24 @@ class ManagedAd {
         if (value !== this._showing || (value && !this._installed)) {
             if (value) {
                 this.adContainer.outer.style.display = '';
-                if (!this._installed) {
-                    this.installAdPlacement();
-                }
+                this.adContainer.middle.prepend(this.adContainer.inner);
+                this.installAdPlacement();
+                // if (!this._installed) {
+                // }
             }
             else {
                 this.adContainer.outer.style.display = 'none';
+                this.adContainer.middle.removeChild(this.adContainer.inner);
             }
             this._showing = value;
         }
     }
 
     onNavigate(): void {
-        // this.ad?.['onNavigate']?.();
-        this.installAdPlacement();
+    //     // this.ad?.['onNavigate']?.();
+    //     if (this.showing) {
+    //         this.installAdPlacement();
+    //     }
     }
 
     /**
@@ -86,7 +90,7 @@ class ManagedAd {
             return;
         }
         setTimeout(() => {
-            console.debug(`createAd: ${window['nitroAds'] !== undefined}`);
+            console.trace(`createAd: ${window['nitroAds'] !== undefined}`);
             this.ad = window['nitroAds'].createAd(id, {
                 "refreshTime": 30,
                 "renderVisibleOnly": true,
@@ -337,6 +341,7 @@ export function insertAds(element: HTMLElement) {
                 console.error(e);
             }
         }
+        currentAds.forEach(ad => ad.showing = false);
         element.prepend(...currentAds.map(a => a.adContainer.outer));
         setTimeout(recheckAds);
         setTimeout(recheckAds, 2_000);
