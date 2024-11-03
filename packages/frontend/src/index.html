@@ -1,6 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <link rel="stylesheet" href="./style.css"/>
+    <script blocking="render">
+        if (localStorage.getItem('light-mode') === 'true') {
+            document.addEventListener('DOMContentLoaded', () => {
+                document.querySelector('body').classList.add('light-mode');
+            });
+        }
+    </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, height=device-height, initial-scale=0.75, user-scalable=no">
     <!--    <meta property="og:title" content="XivGear - FFXIV Gear Planner"/>-->
@@ -19,7 +27,6 @@
             window.nitroAds.queue.push(["addUserToken", arguments])
         }, queue: []
     };</script>
-    <link rel="stylesheet" href="./style.css"/>
     <link rel="preload" href="https://data.xivgear.app/BaseParams" as="fetch" crossorigin/>
     <link rel="preload" href="https://data.xivgear.app/Materia" as="fetch" crossorigin/>
     <link rel="preload" href="https://data.xivgear.app/Food" as="fetch" crossorigin/>
