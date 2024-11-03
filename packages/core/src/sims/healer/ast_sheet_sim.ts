@@ -300,6 +300,18 @@ class AstCycleProcessor extends CycleProcessor {
         return super.use(ability);
     }
 
+    override useOgcd(ability: OgcdAbility): AbilityUseResult {
+        // If an Ogcd isn't ready yet, but it can still be used without clipping, advance time until ready.
+        if (this.canUseWithoutClipping(ability)) {
+            const readyAt = this.cdTracker.statusOf(ability).readyAt.absolute;
+            if (this.totalTime > readyAt) {
+                this.advanceTo(readyAt);
+            }
+        }
+        // Only try to use the Ogcd if it's ready.
+        return this.cdTracker.canUse(ability) ? super.useOgcd(ability) : null;
+    }
+
     useDotIfWorth() {
         if (this.nextGcdTime >= this.nextCombustTime && this.remainingTime > 15) {
             this.nextCombustTime = this.nextGcdTime + 28.8;
@@ -340,7 +352,7 @@ class AstCycleProcessor extends CycleProcessor {
         //oracleReady = false;
 
         this.useDotIfWorth();
-        this.use(star);
+        this.useOgcd(star);
     }
 }
 
@@ -380,8 +392,8 @@ export class AstSim extends BaseMultiCycleSim<AstSimResult, AstSettings, AstCycl
                     cp.useTwoMinBurst();
                     while (cycle.cycleRemainingGcdTime > 0) {
                         cp.useDotIfWorth();
-                        if (cp.isReady(star)) {
-                            cp.use(star);
+                        if (cp.canUseWithoutClipping(star)) {
+                            cp.useOgcd(star);
                         }
                         else if (cp.currentTime > cp.nextDrawTime && cp.drawState === 1) {
                             cp.Draw();
@@ -406,8 +418,8 @@ export class AstSim extends BaseMultiCycleSim<AstSimResult, AstSettings, AstCycl
                     cp.useTwoMinBurst();
                     while (cycle.cycleRemainingGcdTime > 0) {
                         cp.useDotIfWorth();
-                        if (cp.isReady(star)) {
-                            cp.use(star);
+                        if (cp.canUseWithoutClipping(star)) {
+                            cp.useOgcd(star);
                         }
                         else if (cp.currentTime > cp.nextDrawTime && cp.drawState === 1) {
                             cp.Draw();
@@ -424,8 +436,8 @@ export class AstSim extends BaseMultiCycleSim<AstSimResult, AstSettings, AstCycl
                     cp.useTwoMinBurst();
                     while (cycle.cycleRemainingGcdTime > 0) {
                         cp.useDotIfWorth();
-                        if (cp.isReady(star)) {
-                            cp.use(star);
+                        if (cp.canUseWithoutClipping(star)) {
+                            cp.useOgcd(star);
                         }
                         else if (cp.currentTime > cp.nextDrawTime && cp.drawState === 1) {
                             cp.Draw();
@@ -450,8 +462,8 @@ export class AstSim extends BaseMultiCycleSim<AstSimResult, AstSettings, AstCycl
                     cp.useTwoMinBurst();
                     while (cycle.cycleRemainingGcdTime > 0) {
                         cp.useDotIfWorth();
-                        if (cp.isReady(star)) {
-                            cp.use(star);
+                        if (cp.canUseWithoutClipping(star)) {
+                            cp.useOgcd(star);
                         }
                         else if (cp.currentTime > cp.nextDrawTime && cp.drawState === 1) {
                             cp.Draw();
