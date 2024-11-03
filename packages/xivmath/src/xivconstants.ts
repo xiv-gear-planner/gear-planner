@@ -821,7 +821,7 @@ export function formatAcquisitionSource(source: GearAcquisitionSource): string |
         case "normraid":
             return "Normal Raid";
         case "extrial":
-            return "Extreme Trial";
+            return "Ex. Trial";
         case "alliance":
             return "Alliance Raid";
         case "other":

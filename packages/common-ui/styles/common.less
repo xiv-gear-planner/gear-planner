@@ -1240,8 +1240,16 @@ table.gear-items-table, table.food-items-table {
     min-width: 23px;
   }
 
-  td[col-id='itemname'] {
-    max-width: 1px;
+  // TODO: was this needed for some other reason? This is breaking shrinkability of item names.
+  //td[col-id='itemname'] {
+  //  max-width: 1px;
+  //}
+  th[col-id='itemname'] {
+    width: max-content;
+    min-width: max-content;
+    max-width: unset;
+    margin-left: -73px;
+    position: relative;
   }
 
   td[col-id='mats'], td[col-id='wd'] {
@@ -1275,6 +1283,7 @@ table.gear-items-table, table.food-items-table {
           flex-grow: 99;
           overflow: hidden;
           text-overflow: ellipsis;
+          width: 1px;
         }
 
         .remove-item-button, .remove-food-button {
@@ -2564,23 +2573,18 @@ gear-set-viewer {
       }
     }
 
-    //.item-name-holder-view {
-    //  display: flex;
-    //  flex-direction: row;
-    //
-    //  span.item-name {
-    //    flex-basis: 1px;
-    //    flex-grow: 99;
-    //    overflow: hidden;
-    //    text-overflow: ellipsis;
-    //  }
-    //
-    //  span.item-alts {
-    //    flex-basis: fit-content;
-    //    flex-shrink: 0;
-    //    flex-grow: 0;
-    //  }
-    //}
+    .item-name-holder-view {
+      text-overflow: ellipsis;
+      overflow: hidden;
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      >span {
+        vertical-align: middle;
+      }
+    }
   }
 
   .food-view-table {

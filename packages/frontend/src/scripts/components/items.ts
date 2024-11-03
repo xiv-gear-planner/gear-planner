@@ -800,12 +800,12 @@ export class GearItemsViewTable extends CustomTable<GearSlotItem, EquipmentSet> 
                 getter: item => {
                     return item.item.name;
                 },
-                // renderer: (item) => {
-                //     const name = item.item.name;
-                //     const itemNameSpan = quickElement('span', ['item-name'], [shortenItemName(name)]);
-                //     const out = quickElement('div', ['item-name-holder-view'], [itemNameSpan]);
-                //     return out;
-                // },
+                renderer: (item) => {
+                    const name = item;
+                    const itemNameSpan = quickElement('span', ['item-name'], [shortenItemName(name)]);
+                    const out = quickElement('div', ['item-name-holder-view'], [itemNameSpan]);
+                    return out;
+                },
                 headerStyler: (_, colHeader) => {
                     // console.log("Item", item);
                     colHeader.classList.add('gear-items-view-item-header');
