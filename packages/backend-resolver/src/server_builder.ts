@@ -225,6 +225,7 @@ export function buildPreviewServer() {
                             addExtraScript(scriptUrl, {'async': ''});
                         }
                     });
+                    doc.documentElement.setAttribute('scripts-injected', 'true');
                 }
                 return new Response(doc.documentElement.outerHTML, {
                     status: 200,
