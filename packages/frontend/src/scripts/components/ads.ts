@@ -246,12 +246,19 @@ export function insertAds(element: HTMLElement) {
         if (currentAds.length === 0) {
             // Analytics
             setTimeout(() => {
+                // Everything good
                 if (adsEnabled()) {
-                    recordEvent('adsEnabled');
+                    recordEvent('adsEnabled', {'page': document.location.search});
                 }
+                // Script present, but blocked from working correctly
                 else if (Array.from(document.head.querySelectorAll('script')).find(script => script.src && script.src.includes('nitro'))) {
-                    recordEvent('adsDisabled');
+                    recordEvent('adsDisabled', {'page': document.location.search});
                 }
+                // Script injected, but was later removed
+                else if (document.documentElement.getAttribute('scripts-injected') === 'true') {
+                    recordEvent('adsScriptRemoved', {'page': document.location.search});
+                }
+                // Script not injected by server
                 else {
                     recordEvent('adsNotInjected', {'page': document.location.search});
                 }
@@ -264,8 +271,7 @@ export function insertAds(element: HTMLElement) {
                 const sideWideShortCond: DisplayCondition = (w, h) => w >= 1900 && h > 350 && !sideWideCond(w, h);
                 // Display on less wide 2-column, or wide 1-column
                 const sideNarrowCond: DisplayCondition = (w, h) =>
-                    ((w >= 1560 && h > 650)
-                        || (w <= 1210 && w >= 1012 && h > 650))
+                    h > 650 && (w >= 1560 || (w <= 1210 && w >= 950))
                     && !sideWideCond(w, h) && !sideWideShortCond(w, h);
                 {
                     const size: AdSize = [300, 600];
