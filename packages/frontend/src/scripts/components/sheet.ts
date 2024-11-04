@@ -1704,7 +1704,8 @@ export class GearPlanSheetGui extends GearPlanSheet {
             }
         });
         dragTarget.addEventListener('pointerdown', (ev) => {
-            if (ev.target !== dragTarget) {
+            const altDragTarget = this.toolbarNode;
+            if (ev.target !== dragTarget && ev.target !== altDragTarget) {
                 return;
             }
             ev.preventDefault();
