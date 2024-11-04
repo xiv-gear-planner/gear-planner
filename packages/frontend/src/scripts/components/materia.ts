@@ -22,7 +22,7 @@ import {
 } from "@xivgear/common-ui/components/util";
 import {GearPlanSheet} from "@xivgear/core/sheet";
 import {recordCurrentSheetEvent, recordEvent} from "@xivgear/core/analytics/analytics";
-import { GearPlanSheetGui } from "./sheet";
+import {GearPlanSheetGui} from "./sheet";
 
 /**
  * Component for managing all materia slots on an item
@@ -424,8 +424,10 @@ export class MateriaPriorityPicker extends HTMLElement {
         minGcdInput.pattern = '\\d\\.\\d\\d?';
         minGcdInput.title = 'Enter the minimum desired GCD in the form x.yz.\nSkS/SpS materia will be de-prioritized once this target GCD is met.';
         minGcdInput.classList.add('min-gcd-input');
-        this.replaceChildren(header, drag, minGcdText, minGcdInput, document.createElement('br'),
-            solveMelds, fillEmptyNow, fillAllNow, fillModeLabel, fillModeDropdown);
+        this.replaceChildren(header, drag, document.createElement('br'),
+            minGcdText, minGcdInput, document.createElement('br'),
+            fillModeLabel, fillModeDropdown, document.createElement('br'),
+            solveMelds, fillEmptyNow, fillAllNow);
     }
 }
 

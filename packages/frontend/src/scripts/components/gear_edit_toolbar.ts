@@ -79,8 +79,8 @@ export class ToolbarButtonsArea extends HTMLDivElement {
         });
         this.popoutArea.addEventListener('mousedown', evStop);
         this.popoutArea.addEventListener('mouseup', evStop);
-        this.popoutArea.addEventListener('pointerdown', evStop);
-        this.popoutArea.addEventListener('pointerup', evStop);
+        // this.popoutArea.addEventListener('pointerdown', evStop);
+        // this.popoutArea.addEventListener('pointerup', evStop);
         this.replaceChildren(this.undoButton, this.redoButton);
     }
 
@@ -105,9 +105,6 @@ export class ToolbarButtonsArea extends HTMLDivElement {
         const outer = this;
         const button = makeActionButton(label, (ev) => {
             outer.setActivePopout(button, popoutElement);
-        });
-        button.addEventListener('pointerdown', ev => {
-            console.log(ev);
         });
         button.classList.add('popout-button');
         this.appendChild(button);
