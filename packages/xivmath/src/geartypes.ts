@@ -309,6 +309,10 @@ export interface ComputedSetStats extends RawStats {
      */
     readonly wdMulti: number,
     /**
+     * Pet action WD multiplier. Uses a slightly lower job modifier.
+     */
+    readonly wdMultiPetAction: number,
+    /**
      * Multiplier from main stat.
      */
     readonly mainStatMulti: number
@@ -317,6 +321,10 @@ export interface ComputedSetStats extends RawStats {
      * else).
      */
     readonly aaStatMulti: number
+    /**
+     * Multiplier from main stat for Living Shadow abilities.
+     */
+    readonly mainStatMultiLivingShadow: number
 
     /**
      * Trait multiplier
@@ -365,7 +373,7 @@ export interface RawStats {
     skillspeed: number,
     wdPhys: number,
     wdMag: number,
-    weaponDelay: number
+    weaponDelay: number,
 }
 
 export type RawStatKey = keyof RawStats;
@@ -393,6 +401,8 @@ export class RawStats implements RawStats {
     wdPhys: number = 0;
     wdMag: number = 0;
     weaponDelay: number = 0;
+    // Optional, as this shouldn't be on everything (e.g. items), just the final computation.
+    livingShadowStrength?: number = 0;
 
     constructor(values: ({ [K in RawStatKey]?: number } | undefined) = undefined) {
         if (values) {

@@ -172,11 +172,18 @@ export class NewApiDataManager implements DataManager {
                                 case "weaponDelay":
                                     ilvlModifier = row.delay;
                                     break;
+                                case "livingShadowStrength":
+                                    ilvlModifier = row.strength;
+                                    break;
                                 default:
                                     console.warn(`Bad ilvl modifer! ${statsKey}:${slot}`);
                                     ilvlModifier = null;
                                     break;
 
+                            }
+                            if (statsKey === "livingShadowStrength") {
+                                // This doesn't apply to items, so we're just preventing errors here.
+                                return 1;
                             }
                             const baseParamModifier = baseParams[statsKey as RawStatKey][slot];
                             const jobCap = jobStats.itemStatCapMultipliers?.[statsKey];

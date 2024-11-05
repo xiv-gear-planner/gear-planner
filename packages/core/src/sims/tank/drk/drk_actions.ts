@@ -26,7 +26,7 @@ export const SyphonStrike: DrkGcdAbility = {
     type: 'gcd',
     name: "Syphon Strike",
     id: 3623,
-    potency: 240, //380
+    potency: 240,
     attackType: "Weaponskill",
     gcd: 2.5,
     appDelay: 0.62,
@@ -314,6 +314,7 @@ export const LivingShadow: DrkOgcdAbility = {
 export const LivingShadowShadowstride: DrkOgcdAbility = {
     type: 'ogcd',
     name: "(Living Shadow) Shadowstride",
+    alternativeScaling: "Living Shadow",
     animationLock: 0,
     id: 38512,
     potency: 0,
@@ -323,6 +324,7 @@ export const LivingShadowShadowstride: DrkOgcdAbility = {
 export const LivingShadowAbyssalDrain: DrkOgcdAbility = {
     type: 'ogcd',
     name: "(Living Shadow) Abyssal Drain",
+    alternativeScaling: "Living Shadow",
     animationLock: 0,
     id: 17904,
     potency: 340,
@@ -338,6 +340,7 @@ export const LivingShadowAbyssalDrain: DrkOgcdAbility = {
 export const LivingShadowShadowbringer: DrkOgcdAbility = {
     type: 'ogcd',
     name: "(Living Shadow) Shadowbringer",
+    alternativeScaling: "Living Shadow",
     animationLock: 0,
     id: 25881,
     potency: 570,
@@ -347,6 +350,7 @@ export const LivingShadowShadowbringer: DrkOgcdAbility = {
 export const LivingShadowEdgeOfShadow: DrkOgcdAbility = {
     type: 'ogcd',
     name: "(Living Shadow) Edge of Shadow",
+    alternativeScaling: "Living Shadow",
     animationLock: 0,
     id: 17908,
     potency: 340,
@@ -363,6 +367,7 @@ export const LivingShadowEdgeOfShadow: DrkOgcdAbility = {
 export const LivingShadowFloodOfShadow: DrkOgcdAbility = {
     type: 'ogcd',
     name: "(Living Shadow) Flood of Shadow",
+    alternativeScaling: "Living Shadow",
     animationLock: 0,
     id: 17907,
     potency: 340,
@@ -372,6 +377,7 @@ export const LivingShadowFloodOfShadow: DrkOgcdAbility = {
 export const LivingShadowBloodspiller: DrkOgcdAbility = {
     type: 'ogcd',
     name: "(Living Shadow) Bloodspiller",
+    alternativeScaling: "Living Shadow",
     animationLock: 0,
     id: 17909,
     potency: 340,
@@ -388,6 +394,7 @@ export const LivingShadowBloodspiller: DrkOgcdAbility = {
 export const LivingShadowCarveAndSpit: DrkOgcdAbility = {
     type: 'ogcd',
     name: "(Living Shadow) Carve And Spit",
+    alternativeScaling: "Living Shadow",
     animationLock: 0,
     id: 17915,
     potency: 340,
@@ -403,6 +410,7 @@ export const LivingShadowCarveAndSpit: DrkOgcdAbility = {
 export const LivingShadowDisesteem: DrkOgcdAbility = {
     type: 'ogcd',
     name: "(Living Shadow) Disesteem",
+    alternativeScaling: "Living Shadow",
     animationLock: 0,
     id: 36933,
     potency: 620,

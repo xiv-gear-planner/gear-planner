@@ -18,6 +18,7 @@ import {
     dhitDmg,
     fl,
     mainStatMulti,
+    mainStatMultiLivingShadow,
     mpTick,
     sksTickMulti,
     sksToGcd,
@@ -28,7 +29,7 @@ import {
     vitToHp,
     wdMulti
 } from "./xivmath";
-import {JobName, SupportedLevel} from "./xivconstants";
+import {getRaceStats, JobName, RaceName, SupportedLevel} from "./xivconstants";
 import {sum} from "@xivgear/core/util/array_utils";
 
 /**
@@ -160,7 +161,8 @@ export class ComputedSetStatsImpl implements ComputedSetStats {
         readonly levelStats: LevelStats,
         private readonly classJob: JobName,
         private readonly classJobStats: JobData,
-        private readonly partyBonus: PartyBonusAmount
+        private readonly partyBonus: PartyBonusAmount,
+        private readonly race: RaceName
     ) {
         this.finalBonusStats = new RawBonusStats();
         // TODO: order of operations here
@@ -186,7 +188,8 @@ export class ComputedSetStatsImpl implements ComputedSetStats {
             this.levelStats,
             this.classJob,
             this.classJobStats,
-            this.partyBonus
+            this.partyBonus,
+            this.race
         );
     }
 
@@ -198,7 +201,8 @@ export class ComputedSetStatsImpl implements ComputedSetStats {
             this.levelStats,
             this.classJob,
             this.classJobStats,
-            this.partyBonus
+            this.partyBonus,
+            this.race
         );
         Object.assign(out.finalBonusStats, this.finalBonusStats);
         modifications(out, out.finalBonusStats);
@@ -349,12 +353,25 @@ export class ComputedSetStatsImpl implements ComputedSetStats {
         return this[this.classJobStats.mainStat];
     }
 
+    get livingShadowStrength(): number {
+        return this.currentStats.livingShadowStrength;
+    }
+
     get mainStatMulti(): number {
         return mainStatMulti(this.levelStats, this.classJobStats, this.mainStatValue);
     };
 
     get aaStatMulti(): number {
         return mainStatMulti(this.levelStats, this.classJobStats, this[this.classJobStats.autoAttackStat]);
+    };
+
+    get mainStatMultiLivingShadow(): number {
+        return mainStatMultiLivingShadow(this.levelStats, this.classJobStats, this.livingShadowStrength);
+    };
+
+    get wdMultiPetAction(): number {
+        const wdEffective = Math.max(this.wdMag, this.wdPhys);
+        return wdMulti(this.levelStats, this.classJobStats, wdEffective, true);
     };
 
     get autoDhBonus(): number {
@@ -382,10 +399,12 @@ export function finalizeStats(
     levelStats: LevelStats,
     classJob: JobName,
     classJobStats: JobData,
-    partyBonus: PartyBonusAmount
+    partyBonus: PartyBonusAmount,
+    race: RaceName
 ) {
     return new ComputedSetStatsImpl(
-        gearStats, foodStats, level, levelStats, classJob, classJobStats, partyBonus);
+        gearStats, foodStats, level, levelStats, classJob, classJobStats, partyBonus, race
+    );
 
 }
 
@@ -397,7 +416,8 @@ function finalizeStatsInt(
     levelStats: LevelStats,
     classJob: JobName,
     classJobStats: JobData,
-    partyBonus: PartyBonusAmount
+    partyBonus: PartyBonusAmount,
+    race: RaceName
 ): RawStats {
     const combinedStats: RawStats = {...gearStats};
     const mainStatKey = classJobStats.mainStat;
@@ -406,6 +426,19 @@ function finalizeStatsInt(
     if (mainStatKey !== aaStatKey) {
         combinedStats[aaStatKey] = fl(combinedStats[aaStatKey] * (1 + 0.01 * partyBonus));
     }
+
+    let livingShadowRaceBonus = 2;
+    const racialBonus = getRaceStats(race);
+    if (racialBonus) {
+        const strengthBonus = racialBonus['strength'];
+        if (strengthBonus) {
+            livingShadowRaceBonus -= strengthBonus;
+        }
+    }
+    // Living Shadow does not take into account party bonus, and uses +2 racial
+    combinedStats.livingShadowStrength = combinedStats['strength'] + livingShadowRaceBonus;
+
+
     combinedStats.vitality = fl(combinedStats.vitality * (1 + 0.01 * partyBonus));
     // Food stats
     for (const stat in foodStats) {

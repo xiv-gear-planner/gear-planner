@@ -242,6 +242,7 @@ export type DamagingAbility = Readonly<{
     autoCrit?: boolean,
     autoDh?: boolean,
     dot?: DotInfo,
+    alternativeScaling?: AlternativeScaling,
 }>;
 
 /**
@@ -262,6 +263,12 @@ export type LevelModifier = ({
  * nobreak: no impact on any current combo. Default for non-GCDs.
  */
 export type ComboBehavior = ComboData['comboBehavior'];
+
+/**
+ * Alternate scalings that can exist for abilities, e.g. Living
+ * Shadow and Bunshin.
+ */
+export type AlternativeScaling = 'Living Shadow';
 
 export type BaseAbility = Readonly<{
     /**
@@ -325,7 +332,12 @@ export type BaseAbility = Readonly<{
      * the highest `minLevel` specified.
      */
     levelModifiers?: LevelModifier[],
+    /**
+    * If the ability uses alternate scaling, such as Living Shadow.
+    */
+    alternativeScaling?: AlternativeScaling,
 } & (NonDamagingAbility | DamagingAbility)>;
+
 
 /**
  * Represents the cooldown of an ability
