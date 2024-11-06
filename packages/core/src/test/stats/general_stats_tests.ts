@@ -820,12 +820,14 @@ describe("Final damage values for known values", () => {
         expect(damageBeforeCrit580.expected).to.eq(537);
     });
     it('Dark Knight Living Shadow known value scaling', async () => {
+        // Based on known values from the following spreadsheet (and some testing I did myself):
+        // https://docs.google.com/spreadsheets/d/1NlVtvjxYCh-_HGFb3R0VEvbjJcBTcnNDoloo_H-WzQ8/edit?gid=566755418#gid=566755418
         await loadPromiseDRK;
         const stats = finalizeStats(new RawStats({
-            hp: 9822,
-            vitality: 494,
-            strength: 471,
-            dexterity: 415,
+            hp: 7707,
+            vitality: 489,
+            strength: 467,
+            dexterity: 421,
             intelligence: 261,
             mind: 179,
             piety: 440,
@@ -835,18 +837,18 @@ describe("Final damage values for known values", () => {
             tenacity: 420,
             skillspeed: 430,
             spellspeed: 420,
-            wdPhys: 36,
-            wdMag: 36,
+            wdPhys: 35,
+            wdMag: 35,
             weaponDelay: 2.96,
         }),
-        {}, level, getLevelStats(level), 'DRK', fakeSheetDRK.classJobStats, 0, "The Lost");
-        expect(stats.mainStatValue).to.eq(471);
-        // Seekers of the Sun have a +2 bonus, like Living Shadow. The Lost have +3.
-        expect(stats.livingShadowStrength).to.eq(470);
+        {}, level, getLevelStats(level), 'DRK', fakeSheetDRK.classJobStats, 0, "Rava");
+        expect(stats.mainStatValue).to.eq(467);
+        // Living Shadow has a +2 bonus, and we remove the base racial strength of 20.
+        expect(stats.livingShadowStrength).to.eq(449);
         expect(stats.determination).to.eq(440);
-        expect(stats.wdMag).to.eq(36);
-        expect(stats.wdPhys).to.eq(36);
-        expect(stats.mainStatMultiLivingShadow).to.eq(1.14);
+        expect(stats.wdMag).to.eq(35);
+        expect(stats.wdPhys).to.eq(35);
+        expect(stats.mainStatMultiLivingShadow).to.eq(1.04);
 
         // These match up with observed values.
 
@@ -854,9 +856,12 @@ describe("Final damage values for known values", () => {
         const damageBeforeCrit420 = baseDamageFull(stats, 420, 'Ability', false, false, "Living Shadow");
         expect(damageBeforeCrit420.expected).to.eq(344);
 
+        // 570 potency Living Shadow Attack
+        const damageBeforeCrit570 = baseDamageFull(stats, 570, 'Ability', false, false, "Living Shadow");
+        expect(damageBeforeCrit570.expected).to.eq(467);
+
         // 620 potency Living Shadow Attack
         const damageBeforeCrit620 = baseDamageFull(stats, 620, 'Ability', false, false, "Living Shadow");
         expect(damageBeforeCrit620.expected).to.eq(508);
-
     });
 });

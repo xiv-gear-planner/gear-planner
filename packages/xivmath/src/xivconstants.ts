@@ -510,7 +510,7 @@ export const LEVEL_STATS: Record<SupportedLevel, LevelStats> = {
     // DAWNTRAIL TODO: replace with real values once known
     100: {
         level: 100,
-        // Tentative guess
+        // Verified
         baseMainStat: 440,
         // Updated
         baseSubStat: 420,

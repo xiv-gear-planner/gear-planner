@@ -182,7 +182,7 @@ export class NewApiDataManager implements DataManager {
 
                             }
                             if (statsKey === "livingShadowStrength") {
-                                // This doesn't apply to items, so we're just preventing errors here.
+                                // This doesn't apply to items, so we're just preventing errors with an early return.
                                 return 1;
                             }
                             const baseParamModifier = baseParams[statsKey as RawStatKey][slot];

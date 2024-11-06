@@ -366,7 +366,7 @@ export class ComputedSetStatsImpl implements ComputedSetStats {
     };
 
     get mainStatMultiLivingShadow(): number {
-        return mainStatMultiLivingShadow(this.levelStats, this.classJobStats, this.livingShadowStrength);
+        return mainStatMultiLivingShadow(this.levelStats, this.livingShadowStrength);
     };
 
     get wdMultiPetAction(): number {
@@ -430,6 +430,8 @@ function finalizeStatsInt(
     let livingShadowRaceBonus = 2;
     const racialBonus = getRaceStats(race);
     if (racialBonus) {
+        // Remove the 'base' race bonus of 20.
+        livingShadowRaceBonus -= 20;
         const strengthBonus = racialBonus['strength'];
         if (strengthBonus) {
             livingShadowRaceBonus -= strengthBonus;
@@ -437,7 +439,6 @@ function finalizeStatsInt(
     }
     // Living Shadow does not take into account party bonus, and uses +2 racial
     combinedStats.livingShadowStrength = combinedStats['strength'] + livingShadowRaceBonus;
-
 
     combinedStats.vitality = fl(combinedStats.vitality * (1 + 0.01 * partyBonus));
     // Food stats
