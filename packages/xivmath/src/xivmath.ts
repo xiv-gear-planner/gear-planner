@@ -291,8 +291,6 @@ function usesCasterDamageFormula(stats: ComputedSetStats, attackType: AttackType
  * Computes base damage. Does not factor in crit/dh RNG nor damage variance.
  */
 export function baseDamageFull(stats: ComputedSetStats, potency: number, attackType: AttackType = 'Unknown', autoDH: boolean = false, isDot: boolean = false, alternativeScalings: AlternativeScaling[] = []): ValueWithDev {
-//export function baseDamageFull(stats: ComputedSetStats, potency: number, attackType: AttackType = 'Unknown', autoDH: boolean = false, isDot: boolean = false, alternativeScaling: AlternativeScaling = undefined): ValueWithDev {
-
     let spdMulti: number;
     const isAA = attackType === 'Auto-attack';
     if (isAA) {
