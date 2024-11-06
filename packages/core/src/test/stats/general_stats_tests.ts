@@ -5,6 +5,7 @@ import {expect} from "chai";
 import {applyDhCritFull, baseDamageFull, fl} from "@xivgear/xivmath/xivmath";
 import { multiplyFixed } from "@xivgear/xivmath/deviation";
 import { HEADLESS_SHEET_PROVIDER } from "../../sheet";
+import { AlternativeScaling } from "../../sims/sim_types";
 
 
 const level = 100;
@@ -851,17 +852,18 @@ describe("Final damage values for known values", () => {
         expect(stats.mainStatMultiLivingShadow).to.eq(1.04);
 
         // These match up with observed values.
+        const livingShadowScalings: AlternativeScaling[] = ["Living Shadow Strength Scaling", "Pet Action Weapon Damage"];
 
         // 420 potency Living Shadow Attack
-        const damageBeforeCrit420 = baseDamageFull(stats, 420, 'Ability', false, false, "Living Shadow");
+        const damageBeforeCrit420 = baseDamageFull(stats, 420, 'Ability', false, false, livingShadowScalings);
         expect(damageBeforeCrit420.expected).to.eq(344);
 
         // 570 potency Living Shadow Attack
-        const damageBeforeCrit570 = baseDamageFull(stats, 570, 'Ability', false, false, "Living Shadow");
+        const damageBeforeCrit570 = baseDamageFull(stats, 570, 'Ability', false, false, livingShadowScalings);
         expect(damageBeforeCrit570.expected).to.eq(467);
 
         // 620 potency Living Shadow Attack
-        const damageBeforeCrit620 = baseDamageFull(stats, 620, 'Ability', false, false, "Living Shadow");
+        const damageBeforeCrit620 = baseDamageFull(stats, 620, 'Ability', false, false, livingShadowScalings);
         expect(damageBeforeCrit620.expected).to.eq(508);
     });
 });

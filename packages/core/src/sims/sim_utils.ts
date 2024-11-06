@@ -12,7 +12,7 @@ function dotPotencyToDamage(stats: ComputedSetStats, potency: number, dmgAbility
     // TODO: are there any dots with auto-crit or auto-dh?
     const forceDhit = false;
     const forceCrit = false;
-    const nonCritDmg = baseDamageFull(modifiedStats, potency, dmgAbility.attackType, forceDhit, true, dmgAbility.alternativeScaling);
+    const nonCritDmg = baseDamageFull(modifiedStats, potency, dmgAbility.attackType, forceDhit, true, dmgAbility.alternativeScalings);
     const afterCritDh = applyDhCritFull(nonCritDmg, modifiedStats, forceCrit, forceDhit);
     return multiplyFixed(afterCritDh, combinedBuffEffects.dmgMod);
 }
@@ -31,7 +31,7 @@ function potencyToDamage(stats: ComputedSetStats, potency: number, dmgAbility: D
             bonuses.forceDh = true;
         }
     });
-    const nonCritDmg = baseDamageFull(modifiedStats, potency, dmgAbility.attackType, forceDhit, false, dmgAbility.alternativeScaling);
+    const nonCritDmg = baseDamageFull(modifiedStats, potency, dmgAbility.attackType, forceDhit, false, dmgAbility.alternativeScalings);
     const afterCritDh = applyDhCritFull(nonCritDmg, modifiedStats, forceCrit, forceDhit);
     return multiplyFixed(afterCritDh, combinedBuffEffects.dmgMod);
 }

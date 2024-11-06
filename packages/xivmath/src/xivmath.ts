@@ -290,7 +290,8 @@ function usesCasterDamageFormula(stats: ComputedSetStats, attackType: AttackType
 /**
  * Computes base damage. Does not factor in crit/dh RNG nor damage variance.
  */
-export function baseDamageFull(stats: ComputedSetStats, potency: number, attackType: AttackType = 'Unknown', autoDH: boolean = false, isDot: boolean = false, alternativeScaling: AlternativeScaling = undefined): ValueWithDev {
+export function baseDamageFull(stats: ComputedSetStats, potency: number, attackType: AttackType = 'Unknown', autoDH: boolean = false, isDot: boolean = false, alternativeScalings: AlternativeScaling[] = []): ValueWithDev {
+//export function baseDamageFull(stats: ComputedSetStats, potency: number, attackType: AttackType = 'Unknown', autoDH: boolean = false, isDot: boolean = false, alternativeScaling: AlternativeScaling = undefined): ValueWithDev {
 
     let spdMulti: number;
     const isAA = attackType === 'Auto-attack';
@@ -313,10 +314,14 @@ export function baseDamageFull(stats: ComputedSetStats, potency: number, attackT
     // Multiplier from weapon damage. If this is an auto-attack, use the AA multi instead of the pure WD multi.
     let wdMulti = isAA ? stats.aaMulti : stats.wdMulti;
 
-    // Override the multipliers for Living Shadow abilities
-    if (alternativeScaling === "Living Shadow") {
-        mainStatMulti = stats.mainStatMultiLivingShadow;
-        wdMulti = stats.wdMultiPetAction;
+    // Process alternative scalings for the ability
+    if (alternativeScalings) {
+        if (alternativeScalings.find(scaling => scaling === "Living Shadow Strength Scaling")) {
+            mainStatMulti = stats.mainStatMultiLivingShadow;
+        }
+        if (alternativeScalings.find(scaling => scaling ===  "Pet Action Weapon Damage")) {
+            wdMulti = stats.wdMultiPetAction;
+        }
     }
 
     // Det multiplier

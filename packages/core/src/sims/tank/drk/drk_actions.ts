@@ -1,5 +1,5 @@
 import { Darkside, DrkGauge } from "./drk_gauge";
-import { DrkGcdAbility, DrkOgcdAbility, BloodWeaponBuff, DeliriumBuff, ScornBuff, SaltedEarthBuff } from "./drk_types";
+import { DrkGcdAbility, DrkOgcdAbility, BloodWeaponBuff, DeliriumBuff, ScornBuff, SaltedEarthBuff, livingShadowScalings } from "./drk_types";
 
 export const HardSlash: DrkGcdAbility = {
     type: 'gcd',
@@ -282,15 +282,6 @@ export const Shadowbringer: DrkOgcdAbility = {
 
 // While Living Shadow abilities are actually Weaponskills in some cases,
 // they've all been programmed to be abilities so that it doesn't roll GCD.
-//
-// This shouldn't change anything damage wise.
-
-// Esteem has the same stats as the player but ignores skill speed, Tank Mastery, and party strength bonus.
-// It also substitutes Midlander racial strength bonus regardless of the player's race.
-// It has an alternate strength scaling.
-
-// Esteem updates buffs/debuffs in real time. It is NOT affected by Darkside or by Weakness,
-// but mirrors all other statuses on the player (including tincture, AST cards, DNC partner buffs, and Damage Down).
 export const LivingShadow: DrkOgcdAbility = {
     type: 'ogcd',
     name: "Living Shadow",
@@ -314,7 +305,7 @@ export const LivingShadow: DrkOgcdAbility = {
 export const LivingShadowShadowstride: DrkOgcdAbility = {
     type: 'ogcd',
     name: "(Living Shadow) Shadowstride",
-    alternativeScaling: "Living Shadow",
+    alternativeScalings: livingShadowScalings,
     animationLock: 0,
     id: 38512,
     potency: 0,
@@ -324,7 +315,7 @@ export const LivingShadowShadowstride: DrkOgcdAbility = {
 export const LivingShadowAbyssalDrain: DrkOgcdAbility = {
     type: 'ogcd',
     name: "(Living Shadow) Abyssal Drain",
-    alternativeScaling: "Living Shadow",
+    alternativeScalings: livingShadowScalings,
     animationLock: 0,
     id: 17904,
     potency: 340,
@@ -340,7 +331,7 @@ export const LivingShadowAbyssalDrain: DrkOgcdAbility = {
 export const LivingShadowShadowbringer: DrkOgcdAbility = {
     type: 'ogcd',
     name: "(Living Shadow) Shadowbringer",
-    alternativeScaling: "Living Shadow",
+    alternativeScalings: livingShadowScalings,
     animationLock: 0,
     id: 25881,
     potency: 570,
@@ -350,7 +341,7 @@ export const LivingShadowShadowbringer: DrkOgcdAbility = {
 export const LivingShadowEdgeOfShadow: DrkOgcdAbility = {
     type: 'ogcd',
     name: "(Living Shadow) Edge of Shadow",
-    alternativeScaling: "Living Shadow",
+    alternativeScalings: livingShadowScalings,
     animationLock: 0,
     id: 17908,
     potency: 340,
@@ -367,7 +358,7 @@ export const LivingShadowEdgeOfShadow: DrkOgcdAbility = {
 export const LivingShadowFloodOfShadow: DrkOgcdAbility = {
     type: 'ogcd',
     name: "(Living Shadow) Flood of Shadow",
-    alternativeScaling: "Living Shadow",
+    alternativeScalings: livingShadowScalings,
     animationLock: 0,
     id: 17907,
     potency: 340,
@@ -377,7 +368,7 @@ export const LivingShadowFloodOfShadow: DrkOgcdAbility = {
 export const LivingShadowBloodspiller: DrkOgcdAbility = {
     type: 'ogcd',
     name: "(Living Shadow) Bloodspiller",
-    alternativeScaling: "Living Shadow",
+    alternativeScalings: livingShadowScalings,
     animationLock: 0,
     id: 17909,
     potency: 340,
@@ -394,7 +385,7 @@ export const LivingShadowBloodspiller: DrkOgcdAbility = {
 export const LivingShadowCarveAndSpit: DrkOgcdAbility = {
     type: 'ogcd',
     name: "(Living Shadow) Carve And Spit",
-    alternativeScaling: "Living Shadow",
+    alternativeScalings: livingShadowScalings,
     animationLock: 0,
     id: 17915,
     potency: 340,
@@ -410,7 +401,7 @@ export const LivingShadowCarveAndSpit: DrkOgcdAbility = {
 export const LivingShadowDisesteem: DrkOgcdAbility = {
     type: 'ogcd',
     name: "(Living Shadow) Disesteem",
-    alternativeScaling: "Living Shadow",
+    alternativeScalings: livingShadowScalings,
     animationLock: 0,
     id: 36933,
     potency: 620,

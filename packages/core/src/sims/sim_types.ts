@@ -242,7 +242,7 @@ export type DamagingAbility = Readonly<{
     autoCrit?: boolean,
     autoDh?: boolean,
     dot?: DotInfo,
-    alternativeScaling?: AlternativeScaling,
+    alternativeScalings?: AlternativeScaling[],
 }>;
 
 /**
@@ -266,9 +266,9 @@ export type ComboBehavior = ComboData['comboBehavior'];
 
 /**
  * Alternate scalings that can exist for abilities, e.g. Living
- * Shadow and Bunshin.
+ * Shadow, Bunshin, SMN pet actions.
  */
-export type AlternativeScaling = 'Living Shadow';
+export type AlternativeScaling = "Living Shadow Strength Scaling" | "Pet Action Weapon Damage";
 
 export type BaseAbility = Readonly<{
     /**
@@ -333,9 +333,10 @@ export type BaseAbility = Readonly<{
      */
     levelModifiers?: LevelModifier[],
     /**
-    * If the ability uses alternate scaling, such as Living Shadow.
+    * If the ability uses alternate scalings, such as Living Shadow Strength
+    * scaling or using the pet action Weapon Damage multiplier.
     */
-    alternativeScaling?: AlternativeScaling,
+    alternativeScalings?: AlternativeScaling[],
 } & (NonDamagingAbility | DamagingAbility)>;
 
 
