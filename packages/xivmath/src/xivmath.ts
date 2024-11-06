@@ -205,7 +205,8 @@ export function mainStatMulti(levelStats: LevelStats, jobStats: JobData, mainsta
  * @param livingShadowStrength
  */
 export function mainStatMultiLivingShadow(levelStats: LevelStats, livingShadowStrength: number) {
-    // Living Shadow always uses the 'other' power scaling.
+    // Living Shadow always uses the 'other' power scaling, i.e.
+    // without Tank Mastery.
     const apMod = levelStats.mainStatPowerMod['other'];
     return Math.max(0, (trunc(apMod * (livingShadowStrength - levelStats.baseMainStat) / levelStats.baseMainStat) + 100) / 100);
 }
@@ -317,13 +318,6 @@ export function baseDamageFull(stats: ComputedSetStats, potency: number, attackT
         mainStatMulti = stats.mainStatMultiLivingShadow;
         wdMulti = stats.wdMultiPetAction;
     }
-
-
-    // const jobMod = 100;
-    // +2 is racial bonus
-    //f(AP) = (237/440) * fl(petScalar*(fl(440 * jobMod/100)+2+7) - 440) + 100
-    //f(AP) = mainStatMulti *  fl(*(fl(440 * jobMod/100)+2+7) - 440) + 100
-    // fl(fl(fl(potency * f(AP)/100)*f(WD/100)*100/100)
 
     // Det multiplier
     const detMulti = stats.detMulti;
