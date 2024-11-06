@@ -782,17 +782,15 @@ describe("Final damage values for known values", () => {
         expect(finalDamage.expected).to.eq(57082.42925000001);
         expect(fl(finalDamage.stdDev)).to.eq(1647);
     });
-    it('Dark Knight Living Shadow scaling', async () => {
+    it('Dark Knight known value scaling', async () => {
         await loadPromiseDRK;
-        // Values taken from and compared to the observed values here:
-        // https://docs.google.com/spreadsheets/d/1NlVtvjxYCh-_HGFb3R0VEvbjJcBTcnNDoloo_H-WzQ8/edit?gid=566755418#gid=566755418
         const stats = finalizeStats(new RawStats({
-            hp: 7707,
-            vitality: 489,
-            strength: 469,
-            dexterity: 421,
-            intelligence: 265,
-            mind: 177,
+            hp: 9822,
+            vitality: 494,
+            strength: 471,
+            dexterity: 415,
+            intelligence: 261,
+            mind: 179,
             piety: 440,
             crit: 420,
             dhit: 420,
@@ -800,28 +798,65 @@ describe("Final damage values for known values", () => {
             tenacity: 420,
             skillspeed: 430,
             spellspeed: 420,
-            wdPhys: 35,
-            wdMag: 35,
-            weaponDelay: 3.12,
+            wdPhys: 36,
+            wdMag: 36,
+            weaponDelay: 2.96,
         }),
-        {}, level, getLevelStats(level), 'DRK', fakeSheetDRK.classJobStats, 0, "Seekers of the Sun");
-        expect(stats.mainStatValue).to.eq(469);
-        // Seekers of the Sun have a +2 bonus, like Living Shadow.
-        expect(stats.livingShadowStrength).to.eq(469);
+        {}, level, getLevelStats(level), 'DRK', fakeSheetDRK.classJobStats, 0, "The Lost");
+
+
+        // These match up with observed values.
+
+        // 300 Potency is Hard Slash at level 100
+        const damageBeforeCrit300Potency = baseDamageFull(stats, 300, 'Ability', false, false);
+        expect(damageBeforeCrit300Potency.expected).to.eq(277);
+
+        // 460 Potency is Edge of Shadow at level 100
+        const damageBeforeCrit460 = baseDamageFull(stats, 460, 'Ability', false, false);
+        expect(damageBeforeCrit460.expected).to.eq(425);
+
+        // 580 Potency is Bloodspiller at level 100
+        const damageBeforeCrit580 = baseDamageFull(stats, 580, 'Ability', false, false);
+        expect(damageBeforeCrit580.expected).to.eq(537);
+    });
+    it('Dark Knight Living Shadow known value scaling', async () => {
+        await loadPromiseDRK;
+        const stats = finalizeStats(new RawStats({
+            hp: 9822,
+            vitality: 494,
+            strength: 471,
+            dexterity: 415,
+            intelligence: 261,
+            mind: 179,
+            piety: 440,
+            crit: 420,
+            dhit: 420,
+            determination: 440,
+            tenacity: 420,
+            skillspeed: 430,
+            spellspeed: 420,
+            wdPhys: 36,
+            wdMag: 36,
+            weaponDelay: 2.96,
+        }),
+        {}, level, getLevelStats(level), 'DRK', fakeSheetDRK.classJobStats, 0, "The Lost");
+        expect(stats.mainStatValue).to.eq(471);
+        // Seekers of the Sun have a +2 bonus, like Living Shadow. The Lost have +3.
+        expect(stats.livingShadowStrength).to.eq(470);
         expect(stats.determination).to.eq(440);
-        expect(stats.wdMag).to.eq(35);
-        expect(stats.wdPhys).to.eq(35);
+        expect(stats.wdMag).to.eq(36);
+        expect(stats.wdPhys).to.eq(36);
+        expect(stats.mainStatMultiLivingShadow).to.eq(1.14);
+
+        // These match up with observed values.
 
         // 420 potency Living Shadow Attack
         const damageBeforeCrit420 = baseDamageFull(stats, 420, 'Ability', false, false, "Living Shadow");
-        // TODO This should be 344
         expect(damageBeforeCrit420.expected).to.eq(344);
 
         // 620 potency Living Shadow Attack
         const damageBeforeCrit620 = baseDamageFull(stats, 620, 'Ability', false, false, "Living Shadow");
-        // TODO Should be 508
         expect(damageBeforeCrit620.expected).to.eq(508);
 
-        expect(stats.mainStatMultiLivingShadow).to.eq(1.14);
     });
 });
