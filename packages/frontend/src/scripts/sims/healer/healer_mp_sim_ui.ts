@@ -2,7 +2,7 @@ import { SimulationGui } from "../simulation_gui";
 import { EmptyObject } from "@xivgear/core/util/types";
 import { NamedSection } from "../../components/section";
 import { simpleMappedResultTable } from "../components/simple_tables";
-import { MPResult, MPSettings, } from "@xivgear/core/sims/healer/healer_mp";
+import { MPResult, MPSettings } from "@xivgear/core/sims/healer/healer_mp";
 
 export class MPSimGui extends SimulationGui<MPResult, MPSettings, EmptyObject> {
     makeToolTip = null;
@@ -12,7 +12,7 @@ export class MPSimGui extends SimulationGui<MPResult, MPSettings, EmptyObject> {
         const tbl = simpleMappedResultTable<MPResult>({
             'mainDpsResult': 'MP per minute',
             'baseRegen': 'MP Regen without actions',
-            'minutesToZero': 'Minutes to Zero'
+            'minutesToZero': 'Minutes to Zero',
         })(result);
         tbl.classList.add('sim-basic-result-table');
         const description = this.makeDescriptionPanel();

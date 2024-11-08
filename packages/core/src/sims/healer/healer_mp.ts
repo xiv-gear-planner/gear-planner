@@ -30,7 +30,7 @@ const thinAirCooldown = 60;
 
 export interface MPResult extends SimResult {
     baseRegen: number;
-    minutesToZero: number | 'Positive';   
+    minutesToZero: number | 'Positive';
 }
 
 export interface MPSettings extends SimSettings {
@@ -49,28 +49,25 @@ export const mpSimSpec: SimSpec<MPPerMinute, MPSettings> = {
     description: "Mp economy",
     isDefaultSim: false,
     supportedJobs: ['AST', 'SCH', 'SGE', 'WHM'],
-}
+};
 
 export class MPPerMinute implements Simulation<MPResult, MPSettings, EmptyObject>{
     exportSettings() {
-        return{
-            ...this.settings
-        }
+        return {
+            ...this.settings,
+        };
     }
     spec = mpSimSpec;
     shortName = 'mp';
     displayName = mpSimSpec.displayName;
-    settings={};
+    settings = {};
 
     async simulate(set: CharacterGearSet): Promise<MPResult> {
-        const sim = this;
-        var mpResult: number = 0;
-        var baseRegen: number = 0;
-        var minutesToZero: number | 'Positive';
-
-        
+        let mpResult: number = 0;
+        let baseRegen: number = 0;
+        let minutesToZero: number | 'Positive';
         const tick = set.computedStats.mpPerTick;
-        baseRegen = (tick * 20)
+        baseRegen = (tick * 20);
         mpResult += baseRegen;
 
         const lucidTotal = (lucidPotency * 10) * (lucidDuration / 3);
@@ -79,11 +76,12 @@ export class MPPerMinute implements Simulation<MPResult, MPSettings, EmptyObject
         mpResult += drawMP * (60 / drawCooldown);
 
         const speed = set.computedStats.gcdMag(NORMAL_GCD, 0);
-        var numGCDs = (60 / speed);
+        const numGCDs = (60 / speed);
         mpResult -= (numGCDs * fillerMP);
 
         if (mpResult < 0){
-            minutesToZero = -1 * maxMP / mpResult;}
+            minutesToZero = -1 * maxMP / mpResult;
+        }
         else {
             minutesToZero = "Positive";
         }
@@ -92,6 +90,6 @@ export class MPPerMinute implements Simulation<MPResult, MPSettings, EmptyObject
             mainDpsResult: mpResult,
             baseRegen: baseRegen,
             minutesToZero: minutesToZero,
-        }
+        };
     }
 }
