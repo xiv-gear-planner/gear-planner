@@ -1,4 +1,6 @@
 import { ExportSettingsTypeOfSim, ResultTypeOfSim, SettingsTypeOfSim, SimulationGui } from "./simulation_gui";
+import { SimResult, SimSpec, Simulation } from "@xivgear/core/sims/sim_types";
+
 import { PotencyRatioSimGui } from "./common/potency_ratio_ui";
 import { BaseUsageCountSimGui } from "./count_sim_gui";
 import { WhmSheetSimGui } from "./healer/whm_sheet_sim_ui";
@@ -10,8 +12,13 @@ import { RprSheetSimGui } from "./melee/rpr/rpr_sheet_sim_ui";
 import { VprSimGui } from "./melee/vpr/vpr_sheet_sim_ui";
 import { NinSheetSimGui } from "./melee/nin/nin_lvl100_sim_ui";
 import { SamSimGui } from "./melee/sam/sam_lvl100_sim_ui";
-import { SimResult, SimSpec, Simulation } from "@xivgear/core/sims/sim_types";
 import { SgeSimGui } from "./healer/sge_sheet_sim_ui";
+import { BluSimGui } from "./blu/blu_common_ui";
+import { DrkSimGui } from "./tank/drk_sheet_sim_ui";
+import { WarSimGui } from "./tank/war_sheet_sim_ui";
+import { pldSKSSimGui } from "./tank/pldsks_sheet_sim_ui";
+import { MPSimGui } from "./healer/healer_mp_sim_ui";
+
 import { astNewSheetSpec } from "@xivgear/core/sims/healer/ast_sheet_sim";
 import { schNewSheetSpec } from "@xivgear/core/sims/healer/sch_sheet_sim";
 import { sgeSheetSpec } from "@xivgear/core/sims/healer/sge_sheet_sim";
@@ -34,10 +41,8 @@ import { BluF2PSpec } from "@xivgear/core/sims/blu/blu_free_trial";
 import { BluWinged120Spec } from "@xivgear/core/sims/blu/blu_winged120";
 import { BluWinged60Spec } from "@xivgear/core/sims/blu/blu_winged60";
 import { potRatioSimSpec } from "@xivgear/core/sims/common/potency_ratio";
-import { BluSimGui } from "./blu/blu_common_ui";
-import { DrkSimGui } from "./tank/drk_sheet_sim_ui";
-import { WarSimGui } from "./tank/war_sheet_sim_ui";
-import { pldSKSSimGui } from "./tank/pldsks_sheet_sim_ui";
+import { mpSimSpec } from "@xivgear/core/sims/healer/healer_mp";
+
 
 type SimGuiCtor<X extends Simulation<SimResult, unknown, unknown>> = {
     new (sim: X): SimulationGui<ResultTypeOfSim<X>, SettingsTypeOfSim<X>, ExportSettingsTypeOfSim<X>>;
@@ -58,7 +63,6 @@ export function makeGui<X extends Simulation<SimResult, unknown, unknown>>(sim: 
 
 export const simGuiMap: Map<SimSpec<never, never>, SimGuiCtor<never>> = new Map;
 
-registerGui(potRatioSimSpec, PotencyRatioSimGui);
 registerGui(potRatioSimSpec, PotencyRatioSimGui);
 registerGui(pldUsageSimSpec, BaseUsageCountSimGui);
 registerGui(pldSKSSheetSpec, pldSKSSimGui);
@@ -81,3 +85,4 @@ registerGui(BluWinged60Spec, BluSimGui);
 registerGui(BluFlame60Spec, BluSimGui);
 registerGui(BluF2PSpec, BluSimGui);
 registerGui(dncDtSheetSpec, BaseUsageCountSimGui);
+registerGui(mpSimSpec, MPSimGui);

@@ -11,6 +11,7 @@ import { sgeSheetSpec } from "./healer/sge_sheet_sim";
 import { sgeNewSheetSpec } from "./healer/sge_sheet_sim_mk2";
 import { whmNewSheetSpec } from "./healer/whm_new_sheet_sim";
 import { whmSheetSpec } from "./healer/whm_sheet_sim";
+import { mpSimSpec } from "./healer/healer_mp";
 import { ninSpec } from "./melee/nin/nin_lv100_sim";
 import { rprSheetSpec } from "./melee/rpr/rpr_sheet_sim";
 import { samSpec } from "./melee/sam/sam_lv100_sim";
@@ -43,6 +44,7 @@ export function registerDefaultSims() {
     registerSim(astNewSheetSpec);
     registerSim(schNewSheetSpec);
     registerSim(whmNewSheetSpec);
+    registerSim(mpSimSpec);
     registerSim(rprSheetSpec);
     registerSim(vprSheetSpec);
     registerSim(ninSpec);
