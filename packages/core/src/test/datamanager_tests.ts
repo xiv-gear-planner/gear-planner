@@ -22,7 +22,7 @@ describe('New Datamanager', () => {
         eq(codexOfAscension.id, 40176);
         eq(codexOfAscension.name, 'Codex of Ascension');
         eq(codexOfAscension.nameTranslation.en, 'Codex of Ascension');
-        eq(codexOfAscension.nameTranslation.de, 'Codex of Ascension');
+        eq(codexOfAscension.nameTranslation.de, 'Kodex des Aufstiegs');
         eq(codexOfAscension.iconUrl.toString(), 'https://beta.xivapi.com/api/1/asset/ui/icon/033000/033387_hr1.tex?format=png');
 
         // XivCombatItem props
@@ -90,7 +90,7 @@ describe('New Datamanager', () => {
         eq(food.id, 44096);
         eq(food.name, "Vegetable Soup");
         eq(food.nameTranslation.en, "Vegetable Soup");
-        eq(food.nameTranslation.de, "Vegetable Soup");
+        eq(food.nameTranslation.de, "Gemüsesuppe");
         eq(food.primarySubStat, 'dhit');
         eq(food.secondarySubStat, 'determination');
         eq(food.bonuses.dhit.max, 121);
