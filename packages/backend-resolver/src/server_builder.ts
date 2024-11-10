@@ -7,6 +7,7 @@ import {getBisSheet, getBisSheetFetchUrl} from "@xivgear/core/external/static_bi
 // import {registerDefaultSims} from "@xivgear/gearplan-frontend/sims/default_sims";
 import {HEADLESS_SHEET_PROVIDER} from "@xivgear/core/sheet";
 import {JobName, MAX_PARTY_BONUS} from "@xivgear/xivmath/xivconstants";
+import cors from '@fastify/cors';
 import {
     DEFAULT_DESC,
     DEFAULT_NAME,
@@ -63,11 +64,11 @@ function buildServerBase() {
         ignoreDuplicateSlashes: true,
         // querystringParser: str => querystring.parse(str, '&', '=', {}),
     });
+    fastifyInstance.register(cors, {
+        methods: ['GET', 'OPTIONS'],
+        strictPreflight: false,
+    });
 
-    // fastifyInstance.get('/echo', async (request: FastifyRequest, reply) => {
-    //     return request.query;
-    // });
-    //
     fastifyInstance.get('/healthcheck', async (request, reply) => {
         return 'up';
     });
