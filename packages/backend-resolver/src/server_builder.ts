@@ -66,6 +66,7 @@ function buildServerBase() {
     });
     fastifyInstance.register(cors, {
         methods: ['GET', 'OPTIONS'],
+        strictPreflight: false,
     });
 
     fastifyInstance.get('/healthcheck', async (request, reply) => {
