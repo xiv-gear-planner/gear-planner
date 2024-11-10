@@ -1,3 +1,4 @@
+import {Language} from "@xivgear/core/i18n/translation";
 
 
 export type PersistentSettings = {
@@ -7,6 +8,8 @@ export type PersistentSettings = {
     set modernTheme(lightMode: boolean);
     get viewDetailedStats(): boolean | undefined;
     set viewDetailedStats(detailedStats: boolean);
+    get languageOverride(): Language | undefined;
+    set languageOverride(value: Language);
     hideWelcomeMessage: boolean;
 }
 
@@ -14,6 +17,7 @@ const LIGHT_MODE_KEY = 'light-mode';
 const MODERN_THEME_KEY = 'modern-theme';
 const DETAILED_STATS_KEY = 'detailed-stats';
 const HIDE_WELCOME_KEY = 'hide-welcome-area';
+const LANGUAGE_OVERRIDE_KEY = 'language-override';
 export const SETTINGS: PersistentSettings = {
     get lightMode(): boolean | undefined {
         return getBool(LIGHT_MODE_KEY);
@@ -39,6 +43,12 @@ export const SETTINGS: PersistentSettings = {
     set hideWelcomeMessage(value: boolean) {
         setBool(HIDE_WELCOME_KEY, value);
     },
+    get languageOverride(): Language {
+        return localStorage.getItem(LANGUAGE_OVERRIDE_KEY) as Language;
+    },
+    set languageOverride(value: Language) {
+        localStorage.setItem(LANGUAGE_OVERRIDE_KEY, value);
+    },
 };
 
 function getBool(key: string): boolean | undefined {
@@ -50,6 +60,7 @@ function getBool(key: string): boolean | undefined {
         return raw === 'true';
     }
 }
+
 function setBool(key: string, value: boolean) {
     localStorage.setItem(key, String(value));
 }

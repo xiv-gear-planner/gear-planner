@@ -31,6 +31,7 @@ import {DataApiClient, FoodStatBonus, GearAcquisitionSource as AcqSrc} from "@xi
 import {BaseParamMap, DataManager} from "./datamanager";
 import {IlvlSyncInfo} from "./datamanager_xivapi";
 import {applyStatCaps} from "./gear";
+import {toTranslatable, TranslatableString} from "./i18n/translation";
 
 type ApiClientRawType<X extends keyof DataApiClient<never>, Y extends keyof DataApiClient<never>[X]> = DataApiClient<never>[X][Y]
 
@@ -62,8 +63,8 @@ async function retryFetch(...params: Parameters<typeof fetch>): Promise<Response
 }
 
 const apiClient = new DataApiClient<never>({
-    baseUrl: "https://data.xivgear.app",
-    // baseUrl: "https://betadata.xivgear.app",
+    // baseUrl: "https://data.xivgear.app",
+    baseUrl: "https://betadata.xivgear.app",
     // baseUrl: "http://localhost:8085",
     customFetch: retryFetch,
 });
@@ -436,6 +437,7 @@ export class NewApiDataManager implements DataManager {
 export class DataApiGearInfo implements GearItem {
     readonly id: number;
     readonly name: string;
+    readonly nameTranslation: TranslatableString;
     readonly iconUrl: URL;
     readonly equipLvl: number;
     readonly ilvl: number;
@@ -460,6 +462,7 @@ export class DataApiGearInfo implements GearItem {
     constructor(data: ItemType) {
         this.id = data.rowId;
         this.name = data.name;
+        this.nameTranslation = toTranslatable(data.name, data.nameTranslations);
         this.equipLvl = data.equipLevel;
         this.ilvl = data.ilvl;
         this.iconUrl = new URL(data.icon.pngIconUrl);
@@ -711,6 +714,7 @@ export class DataApiFoodInfo implements FoodItem {
     iconUrl: URL;
     id: number;
     name: string;
+    readonly nameTranslation: TranslatableString;
     ilvl: number;
     primarySubStat: RawStatKey | undefined;
     secondarySubStat: RawStatKey | undefined;
@@ -720,6 +724,7 @@ export class DataApiFoodInfo implements FoodItem {
         this.name = requireString(data.name);
         this.iconUrl = new URL(data.icon.pngIconUrl);
         this.ilvl = requireNumber(data.levelItem);
+        this.nameTranslation = toTranslatable(this.name, data.nameTranslations);
         for (const rawKey in data.bonusesHQ) {
             if (rawKey === '0') {
                 continue;
@@ -754,6 +759,7 @@ export function processRawMateriaInfo(data: MateriaType): Materia[] {
         const grade = (i + 1);
         out.push({
             name: itemName,
+            nameTranslation: toTranslatable(itemName, itemData.nameTranslations),
             id: itemId,
             iconUrl: new URL(itemData.icon.pngIconUrl),
             stats: stats,

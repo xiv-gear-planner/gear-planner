@@ -1,6 +1,7 @@
 import {FoodBonuses, FoodItem, FoodStatBonus, Substat} from "@xivgear/xivmath/geartypes";
 import {CURRENT_MAX_LEVEL, LEVEL_ITEMS} from "@xivgear/xivmath/xivconstants";
 import {xivApiIconUrl} from "../external/xivapi";
+import {toTranslatable, TranslatableString} from "../i18n/translation";
 
 export type CustomFoodExport = {
     ilvl: number;
@@ -67,6 +68,10 @@ export class CustomFood implements FoodItem {
 
     get name(): string {
         return this._data.name;
+    }
+
+    get nameTranslation(): TranslatableString {
+        return toTranslatable(this.name);
     }
 
     get id(): number {

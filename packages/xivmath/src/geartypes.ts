@@ -11,6 +11,7 @@ import {
 import {CustomItemExport} from "@xivgear/core/customgear/custom_item";
 import {CustomFoodExport} from "@xivgear/core/customgear/custom_food";
 import {RawBonusStats, StatModification} from "./xivstats";
+import {TranslatableString} from "@xivgear/core/i18n/translation";
 
 export interface DisplayGearSlot {
 
@@ -127,6 +128,10 @@ export interface XivItem {
      * Item name
      */
     name: string;
+    /**
+     * Item name, including translations
+     */
+    readonly nameTranslation: TranslatableString;
     /**
      * Item ID
      */

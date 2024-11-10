@@ -14,6 +14,7 @@ import {CURRENT_MAX_LEVEL, LEVEL_ITEMS, MATERIA_LEVEL_MAX_NORMAL} from "@xivgear
 import {IlvlSyncInfo} from "../datamanager_xivapi";
 import {applyStatCaps} from "../gear";
 import {GearPlanSheet} from "../sheet";
+import {toTranslatable} from "../i18n/translation";
 
 export type CustomItemExport = {
     ilvl: number;
@@ -128,6 +129,10 @@ export class CustomItem implements GearItem {
 
     get name() {
         return this._data.name;
+    }
+
+    get nameTranslation() {
+        return toTranslatable(this.name);
     }
 
     get occGearSlotName() {

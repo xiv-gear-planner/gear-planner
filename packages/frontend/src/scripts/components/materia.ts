@@ -249,7 +249,7 @@ export class MateriaCountDisplay extends HTMLElement {
 }
 
 export function formatMateriaTitle(materia: Materia): string {
-    return `${materia.name}: +${materia.primaryStatValue} ${STAT_FULL_NAMES[materia.primaryStat]}`;
+    return `${materia.nameTranslation}: +${materia.primaryStatValue} ${STAT_FULL_NAMES[materia.primaryStat]}`;
 }
 
 export class SlotMateriaManagerPopup extends HTMLElement {

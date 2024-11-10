@@ -19,6 +19,7 @@ import {requireArrayTyped, requireBool, requireNumber, requireString} from "./ex
 import {getRelicStatModelFor} from "./relicstats/relicstats";
 import {BaseParamMap, DataManager} from "./datamanager";
 import { applyStatCaps } from "./gear";
+import {toTranslatable, TranslatableString} from "./i18n/translation";
 
 const itemColumns = [
     // Basic item properties
@@ -404,6 +405,7 @@ export class XivApiDataManager implements DataManager {
 export class XivApiGearInfo implements GearItem {
     id: number;
     name: string;
+    nameTranslation: TranslatableString;
     iconUrl: URL;
     ilvl: number;
     equipLvl: number;
@@ -428,6 +430,7 @@ export class XivApiGearInfo implements GearItem {
     constructor(data: XivApiItemDataRaw) {
         this.id = requireNumber(data.ID);
         this.name = requireString(data.Name);
+        this.nameTranslation = toTranslatable(this.name);
         this.ilvl = requireNumber(data.LevelItem['value']);
         this.iconUrl = new URL(xivApiIconUrl(requireNumber(data.Icon['id']), true));
         const eqs = data.EquipSlotCategory['fields'];
@@ -763,6 +766,7 @@ export class XivApiFoodInfo implements FoodItem {
     iconUrl: URL;
     id: number;
     name: string;
+    nameTranslation: TranslatableString;
     ilvl: number;
     primarySubStat: RawStatKey | undefined;
     secondarySubStat: RawStatKey | undefined;
@@ -770,6 +774,7 @@ export class XivApiFoodInfo implements FoodItem {
     constructor(data: XivApiFoodDataRaw, foodData: XivApiFoodItemDataRaw) {
         this.id = requireNumber(data.ID);
         this.name = requireString(data.Name);
+        this.nameTranslation = toTranslatable(this.name);
         this.iconUrl = new URL(xivApiIconUrl(requireNumber(data.Icon['id'])));
         this.ilvl = requireNumber(data.LevelItem['value']);
         for (const index in requireArrayTyped(foodData.BaseParam, 'object')) {
@@ -806,6 +811,7 @@ export function processRawMateriaInfo(data: XivApiMateriaDataRaw): Materia[] {
         const grade = (i + 1);
         out.push({
             name: itemName,
+            nameTranslation: toTranslatable(itemName),
             id: itemId,
             iconUrl: new URL(xivApiIconUrl(requireNumber(itemFields['Icon']['id']), true)),
             stats: stats,
