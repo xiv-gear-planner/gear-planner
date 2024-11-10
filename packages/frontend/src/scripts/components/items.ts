@@ -244,7 +244,7 @@ export class FoodItemsTable extends CustomTable<FoodItem, FoodItem> {
                 shortName: "itemname",
                 displayName: "Name",
                 getter: item => {
-                    return item.name;
+                    return item.nameTranslation.asCurrentLang;
                 },
                 renderer: (name: string, rowValue: FoodItem) => {
                     const trashButton = quickElement('button', ['remove-food-button'], [makeTrashIcon()]);
@@ -332,7 +332,7 @@ export class FoodItemViewTable extends CustomTable<FoodItem, FoodItem> {
                 shortName: "itemname",
                 displayName: "Food",
                 getter: item => {
-                    return item.name;
+                    return item.nameTranslation.asCurrentLang;
                 },
                 // renderer: name => {
                 //     return quickElement('div', [], [document.createTextNode(name)]);
@@ -504,7 +504,7 @@ export class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
                 shortName: "itemname",
                 displayName: "Name",
                 getter: item => {
-                    return item.item.name;
+                    return item.item.nameTranslation.asCurrentLang;
                 },
                 renderer: (name: string, rowValue: GearSlotItem) => {
                     const trashButton = quickElement('button', ['remove-item-button'], [makeTrashIcon()]);
@@ -798,7 +798,7 @@ export class GearItemsViewTable extends CustomTable<GearSlotItem, EquipmentSet> 
                 shortName: "itemname",
                 displayName: headingText,
                 getter: item => {
-                    return item.item.name;
+                    return item.item.nameTranslation.asCurrentLang;
                 },
                 renderer: (item) => {
                     const name = item;
@@ -873,7 +873,7 @@ export class AltItemsModal extends BaseModal {
         console.log(altItems);
 
         const text = document.createElement('p');
-        text.textContent = `The item ${baseItem.name} can be replaced by all of the following items, which have equivalent or better effective stats:`;
+        text.textContent = `The item ${baseItem.nameTranslation} can be replaced by all of the following items, which have equivalent or better effective stats:`;
         this.contentArea.appendChild(quickElement('div', ['alt-items-text-holder'], [text]));
 
         const table : CustomTable<GearItem> = new CustomTable<GearItem>();
@@ -902,7 +902,7 @@ export class AltItemsModal extends BaseModal {
                 shortName: "itemname",
                 displayName: "Name",
                 getter: item => {
-                    return item.name;
+                    return item.nameTranslation.asCurrentLang;
                 },
             },
             {

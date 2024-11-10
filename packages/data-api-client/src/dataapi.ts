@@ -108,6 +108,7 @@ export type FoodItemAction = XivApiObject &
 export type FoodItemBase = XivApiObject &
   XivApiBase & {
     name?: string;
+    nameTranslations?: XivApiLangString;
     icon?: Icon;
     /** @format int32 */
     levelItem?: number;
@@ -170,6 +171,7 @@ export type ItemBase = XivApiObject &
     /** @format int32 */
     ilvl?: number;
     name?: string;
+    nameTranslations?: XivApiLangString;
     icon?: Icon;
     equipSlotCategory?: EquipSlotCategory;
     /** @format int32 */
@@ -256,6 +258,7 @@ export interface MateriaEndpointResponse {
 export type MateriaItem = XivApiObject &
   XivApiBase & {
     name?: string;
+    nameTranslations?: XivApiLangString;
     icon?: Icon;
     /** @format int32 */
     ilvl?: number;
@@ -263,6 +266,13 @@ export type MateriaItem = XivApiObject &
 
 export interface XivApiBase {
   schemaVersion?: XivApiSchemaVersion;
+}
+
+export interface XivApiLangString {
+  en?: string;
+  de?: string;
+  fr?: string;
+  jp?: string;
 }
 
 export type XivApiObject = XivApiBase & {
@@ -457,12 +467,8 @@ export class HttpClient<SecurityDataType = unknown> {
       body: typeof body === "undefined" || body === null ? null : payloadFormatter(body),
     }).then(async (response) => {
       const r = response.clone() as HttpResponse<T, E>;
-      try {
-          r.data = null as unknown as T;
-          r.error = null as unknown as E;
-      }catch (e) {
-         const foo = 5+5;
-      }
+      r.data = null as unknown as T;
+      r.error = null as unknown as E;
 
       const data = !responseFormat
         ? r

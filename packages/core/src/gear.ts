@@ -480,7 +480,7 @@ export class CharacterGearSet {
             if (leftRing.id === rightRing.id) {
                 issues.push({
                     severity: 'error',
-                    description: `You cannot equip ${leftRing.name} in both ring slots because it is a unique item.`,
+                    description: `You cannot equip ${leftRing.nameTranslation} in both ring slots because it is a unique item.`,
                 });
             }
         }

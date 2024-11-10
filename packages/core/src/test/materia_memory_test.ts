@@ -1,6 +1,7 @@
 import {MateriaMemory} from "../gear";
 import {EquippedItem, GearItem, Materia, MateriaSlot, MeldableMateriaSlot, RawStats} from "@xivgear/xivmath/geartypes";
 import {expect} from "chai";
+import {toTranslatable} from "../i18n/translation";
 
 describe("Materia Memory", () => {
     it("can save and restore", () => {
@@ -19,6 +20,7 @@ describe("Materia Memory", () => {
             isHighGrade: true,
             materiaGrade: 12,
             name: "Test Materia",
+            nameTranslation: toTranslatable("Test Materia"),
             primaryStat: 'determination',
             primaryStatValue: 50,
             stats: new RawStats({
@@ -32,6 +34,7 @@ describe("Materia Memory", () => {
             isHighGrade: true,
             materiaGrade: 11,
             name: "Test Materia",
+            nameTranslation: toTranslatable("Test Materia"),
             primaryStat: 'dhit',
             primaryStatValue: 10,
             stats: new RawStats({

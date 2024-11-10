@@ -4,16 +4,16 @@ import {NewSheetForm} from "./components/new_sheet_form";
 import {ImportSheetArea} from "./components/import_sheet";
 import {SetExport, SheetExport} from "@xivgear/xivmath/geartypes";
 import {displayEmbedError, openEmbed} from "./embed";
-import {SETTINGS} from "./settings/persistent_settings";
 import {LoadingBlocker} from "@xivgear/common-ui/components/loader";
 import {SheetPickerTable} from "./components/saved_sheet_picker";
-import {DISPLAY_SETTINGS} from "./settings/display_settings";
-import {showSettingsModal} from "./settings/settings_modal";
 import {GearPlanSheetGui, GRAPHICAL_SHEET_PROVIDER} from "./components/sheet";
 import {splitPath} from "@xivgear/core/nav/common_nav";
 import {applyCommonTopMenuFormatting} from "@xivgear/common-ui/components/top_menu";
 import {recordSheetEvent} from "@xivgear/core/analytics/analytics";
 import { workerPool } from "./workers/worker_pool";
+import {showSettingsModal} from "@xivgear/common-ui/settings/settings_modal";
+import {SETTINGS} from "@xivgear/common-ui/settings/persistent_settings";
+import {DISPLAY_SETTINGS} from "@xivgear/common-ui/settings/display_settings";
 
 const pageTitle = 'XivGear - FFXIV Gear Planner';
 

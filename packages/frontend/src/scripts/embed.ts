@@ -2,6 +2,7 @@ import {LoadingBlocker} from "@xivgear/common-ui/components/loader";
 
 import {setTitle} from "./base_ui";
 import {GearPlanSheetGui} from "./components/sheet";
+import {recordEvent} from "@xivgear/core/analytics/analytics";
 
 let embedDiv: HTMLDivElement;
 
@@ -21,6 +22,7 @@ export function earlyEmbedInit() {
 }
 
 export async function openEmbed(sheet: GearPlanSheetGui) {
+    recordEvent('openEmbed');
     console.log("openEmbed start");
     sheet.isEmbed = true;
     try {
@@ -38,6 +40,7 @@ export async function openEmbed(sheet: GearPlanSheetGui) {
         setTitle('Embed');
     }
     catch (e) {
+        recordEvent('openEmbedError');
         console.error("Error loading embed", e);
         displayEmbedError();
     }

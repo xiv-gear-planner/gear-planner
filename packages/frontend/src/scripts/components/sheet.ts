@@ -62,7 +62,6 @@ import {startRenameSet, startRenameSheet} from "./rename_dialog";
 import {writeProxy} from "@xivgear/core/util/proxies";
 import {LoadingBlocker} from "@xivgear/common-ui/components/loader";
 import {GearEditToolbar} from "./gear_edit_toolbar";
-import {SETTINGS} from "../settings/persistent_settings";
 import {openSheetByKey, setTitle} from "../base_ui";
 import {parseImport} from "@xivgear/core/imports/imports";
 import {getShortLink} from "@xivgear/core/external/shortlink_server";
@@ -83,6 +82,7 @@ import { makeGui } from "../sims/sim_guis";
 import {recordSheetEvent} from "@xivgear/core/analytics/analytics";
 import { MeldSolverDialog } from "./meld_solver_modal";
 import {insertAds} from "./ads";
+import {SETTINGS} from "@xivgear/common-ui/settings/persistent_settings";
 
 export type GearSetSel = SingleCellRowOrHeaderSelect<CharacterGearSet>;
 
