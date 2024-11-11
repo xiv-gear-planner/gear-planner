@@ -335,8 +335,7 @@ export function baseDamageFull(stats: ComputedSetStats, potency: number, attackT
     // Process alternative scalings for the ability
     if (alternativeScalings) {
         if (alternativeScalings.find(scaling => scaling === "Living Shadow Strength Scaling")) {
-            //mainStatMulti = mainStatMultiLivingShadow(stats.levelStats, stats.livingShadowStrength);
-            // TODO Violet Bonuses
+            // TODO This does not currently take into account potion bonuses.
             const livingShadowStrength = getLivingShadowStrength(stats.gearStats.strength, stats.racialStats);
             mainStatMulti = mainStatMultiLivingShadow(stats.levelStats, livingShadowStrength);
         }

@@ -18,7 +18,6 @@ import {
     dhitDmg,
     fl,
     mainStatMulti,
-    mainStatMultiLivingShadow,
     mpTick,
     sksTickMulti,
     sksToGcd,
