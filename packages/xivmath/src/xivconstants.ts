@@ -703,7 +703,6 @@ export const STAT_FULL_NAMES: Record<RawStatKey, string> = {
     wdMag: "Weapon Damage (Magical)",
     wdPhys: "Weapon Damage (Physical)",
     weaponDelay: "Auto-Attack Delay",
-    livingShadowStrength: "Living Shadow Strength",
 };
 
 /**
@@ -726,8 +725,6 @@ export const STAT_ABBREVIATIONS: Record<RawStatKey, string> = {
     wdMag: "WDm",
     wdPhys: "WDp",
     weaponDelay: "Dly",
-    // Not intended to be shown in any UI.
-    livingShadowStrength: "LSS",
 };
 
 /**

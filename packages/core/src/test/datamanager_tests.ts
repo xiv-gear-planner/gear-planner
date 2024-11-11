@@ -63,7 +63,6 @@ describe('New Datamanager', () => {
             weaponDelay: 0, // TODO: ?
             vitality: 412,
             hp: 0,
-            livingShadowStrength: 1,
         });
         eq(codexOfAscension.materiaSlots.length, 2);
         eq(codexOfAscension.isCustomRelic, false);

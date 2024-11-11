@@ -322,15 +322,20 @@ export interface ComputedSetStats extends RawStats {
      */
     readonly aaStatMulti: number
     /**
-     * Multiplier from main stat for Living Shadow abilities.
+     * Stats coming from the gear pre-party bonus. Important for some abilities' alternate
+     * scalings (e.g. Living Shadow).
      */
-    readonly mainStatMultiLivingShadow: number
-
+    readonly gearStats: RawStats
+    /**
+     * Stats coming from race. Will be the total value, after modification, e.g. 20 if unmodified
+     * or 23 if the race has a +3 modifier. Important to calculate special strength values for
+     * some abilities' alternate scalings (e.g. Living Shadow, Bunshin)
+     */
+    readonly racialStats: RawStats
     /**
      * Trait multiplier
      */
     traitMulti(attackType: AttackType): number;
-
     /**
      * Bonus added to det multiplier for automatic direct hits
      */
@@ -401,8 +406,6 @@ export class RawStats implements RawStats {
     wdPhys: number = 0;
     wdMag: number = 0;
     weaponDelay: number = 0;
-    // Optional, as this shouldn't be on everything (e.g. items), just the final computation.
-    livingShadowStrength?: number = 0;
 
     constructor(values: ({ [K in RawStatKey]?: number } | undefined) = undefined) {
         if (values) {

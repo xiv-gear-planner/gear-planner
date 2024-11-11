@@ -153,15 +153,16 @@ export class ComputedSetStatsImpl implements ComputedSetStats {
 
     protected readonly finalBonusStats: RawBonusStats;
     private currentStats: RawStats;
+    private _racialStats: RawStats;
 
     constructor(
-        private readonly gearStats: RawStats,
+        readonly gearStats: RawStats,
         private readonly foodStats: FoodBonuses,
         readonly level: SupportedLevel,
         readonly levelStats: LevelStats,
         private readonly classJob: JobName,
         private readonly classJobStats: JobData,
-        private readonly partyBonus: PartyBonusAmount,
+        readonly partyBonus: PartyBonusAmount,
         private readonly race: RaceName
     ) {
         this.finalBonusStats = new RawBonusStats();
@@ -178,6 +179,33 @@ export class ComputedSetStatsImpl implements ComputedSetStats {
                 trait.apply(this.finalBonusStats);
             });
         }
+
+        const racialStats = new RawStats({
+            vitality: 20,
+            strength: 20,
+            intelligence: 20,
+            dexterity: 20,
+            mind: 20,
+        });
+        const racialBonus = getRaceStats(this.race);
+        if (racialBonus) {
+            if (racialBonus.vitality) {
+                racialStats['vitality'] += racialBonus.vitality;
+            }
+            if (racialBonus.strength) {
+                racialStats['strength'] += racialBonus.strength;
+            }
+            if (racialBonus.intelligence) {
+                racialStats['intelligence'] += racialBonus.intelligence;
+            }
+            if (racialBonus.dexterity) {
+                racialStats['dexterity'] += racialBonus.dexterity;
+            }
+            if (racialBonus.mind) {
+                racialStats['mind'] += racialBonus.mind;
+            }
+        }
+        this._racialStats = racialStats;
     }
 
     private recalc() {
@@ -188,8 +216,7 @@ export class ComputedSetStatsImpl implements ComputedSetStats {
             this.levelStats,
             this.classJob,
             this.classJobStats,
-            this.partyBonus,
-            this.race
+            this.partyBonus
         );
     }
 
@@ -302,6 +329,10 @@ export class ComputedSetStatsImpl implements ComputedSetStats {
         return this.classJobStats;
     }
 
+    get racialStats(): RawStats {
+        return this._racialStats;
+    }
+
     get critChance(): number {
         if (this.finalBonusStats.forceCrit) {
             return 1;
@@ -353,20 +384,12 @@ export class ComputedSetStatsImpl implements ComputedSetStats {
         return this[this.classJobStats.mainStat];
     }
 
-    get livingShadowStrength(): number {
-        return this.currentStats.livingShadowStrength;
-    }
-
     get mainStatMulti(): number {
         return mainStatMulti(this.levelStats, this.classJobStats, this.mainStatValue);
     };
 
     get aaStatMulti(): number {
         return mainStatMulti(this.levelStats, this.classJobStats, this[this.classJobStats.autoAttackStat]);
-    };
-
-    get mainStatMultiLivingShadow(): number {
-        return mainStatMultiLivingShadow(this.levelStats, this.livingShadowStrength);
     };
 
     get wdMultiPetAction(): number {
@@ -416,8 +439,7 @@ function finalizeStatsInt(
     levelStats: LevelStats,
     classJob: JobName,
     classJobStats: JobData,
-    partyBonus: PartyBonusAmount,
-    race: RaceName
+    partyBonus: PartyBonusAmount
 ): RawStats {
     const combinedStats: RawStats = {...gearStats};
     const mainStatKey = classJobStats.mainStat;
@@ -426,19 +448,6 @@ function finalizeStatsInt(
     if (mainStatKey !== aaStatKey) {
         combinedStats[aaStatKey] = fl(combinedStats[aaStatKey] * (1 + 0.01 * partyBonus));
     }
-
-    let livingShadowRaceBonus = 2;
-    const racialBonus = getRaceStats(race);
-    if (racialBonus) {
-        // Remove the 'base' race bonus of 20.
-        livingShadowRaceBonus -= 20;
-        const strengthBonus = racialBonus['strength'];
-        if (strengthBonus) {
-            livingShadowRaceBonus -= strengthBonus;
-        }
-    }
-    // Living Shadow does not take into account party bonus, and uses +2 racial
-    combinedStats.livingShadowStrength = combinedStats['strength'] + livingShadowRaceBonus;
 
     combinedStats.vitality = fl(combinedStats.vitality * (1 + 0.01 * partyBonus));
     // Food stats

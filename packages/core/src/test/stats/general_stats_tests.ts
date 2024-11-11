@@ -844,12 +844,9 @@ describe("Final damage values for known values", () => {
         }),
         {}, level, getLevelStats(level), 'DRK', fakeSheetDRK.classJobStats, 0, "Rava");
         expect(stats.mainStatValue).to.eq(467);
-        // Living Shadow has a +2 bonus, and we remove the base racial strength of 20.
-        expect(stats.livingShadowStrength).to.eq(449);
         expect(stats.determination).to.eq(440);
         expect(stats.wdMag).to.eq(35);
         expect(stats.wdPhys).to.eq(35);
-        expect(stats.mainStatMultiLivingShadow).to.eq(1.04);
 
         // These match up with observed values.
         const livingShadowScalings: AlternativeScaling[] = ["Living Shadow Strength Scaling", "Pet Action Weapon Damage"];

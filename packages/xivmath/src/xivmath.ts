@@ -1,4 +1,4 @@
-import {AttackType, ComputedSetStats, JobData, LevelStats} from "./geartypes";
+import {AttackType, ComputedSetStats, JobData, LevelStats, RawStats} from "./geartypes";
 import {chanceMultiplierStdDev, fixedValue, multiplyValues, ValueWithDev} from "./deviation";
 import { AlternativeScaling } from "@xivgear/core/sims/sim_types";
 /*
@@ -288,6 +288,26 @@ function usesCasterDamageFormula(stats: ComputedSetStats, attackType: AttackType
 }
 
 /**
+ * Gets Living Shadow's strength value from a given set of gear stats and racial bonuses.
+ *
+ * @param rawStrength The raw strength (pre party bonus)
+ * @param racialStats the (total) stats for the race performing the attack
+ */
+export function getLivingShadowStrength(rawStrength: number, racialStats: RawStats): number {
+    // Remove the strength racial bonus
+    if (racialStats) {
+        const strengthBonus = racialStats['strength'];
+        if (strengthBonus) {
+            rawStrength -= strengthBonus;
+        }
+    }
+
+    const livingShadowRacialBonus = 2;
+    rawStrength += livingShadowRacialBonus;
+    return rawStrength;
+}
+
+/**
  * Computes base damage. Does not factor in crit/dh RNG nor damage variance.
  */
 export function baseDamageFull(stats: ComputedSetStats, potency: number, attackType: AttackType = 'Unknown', autoDH: boolean = false, isDot: boolean = false, alternativeScalings: AlternativeScaling[] = []): ValueWithDev {
@@ -315,7 +335,10 @@ export function baseDamageFull(stats: ComputedSetStats, potency: number, attackT
     // Process alternative scalings for the ability
     if (alternativeScalings) {
         if (alternativeScalings.find(scaling => scaling === "Living Shadow Strength Scaling")) {
-            mainStatMulti = stats.mainStatMultiLivingShadow;
+            //mainStatMulti = mainStatMultiLivingShadow(stats.levelStats, stats.livingShadowStrength);
+            // TODO Violet Bonuses
+            const livingShadowStrength = getLivingShadowStrength(stats.gearStats.strength, stats.racialStats);
+            mainStatMulti = mainStatMultiLivingShadow(stats.levelStats, livingShadowStrength);
         }
         if (alternativeScalings.find(scaling => scaling ===  "Pet Action Weapon Damage")) {
             wdMulti = stats.wdMultiPetAction;
