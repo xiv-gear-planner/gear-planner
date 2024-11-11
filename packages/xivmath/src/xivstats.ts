@@ -447,7 +447,6 @@ function finalizeStatsInt(
     if (mainStatKey !== aaStatKey) {
         combinedStats[aaStatKey] = fl(combinedStats[aaStatKey] * (1 + 0.01 * partyBonus));
     }
-
     combinedStats.vitality = fl(combinedStats.vitality * (1 + 0.01 * partyBonus));
     // Food stats
     for (const stat in foodStats) {

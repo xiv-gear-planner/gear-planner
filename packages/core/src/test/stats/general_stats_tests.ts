@@ -821,7 +821,7 @@ describe("Final damage values for known values", () => {
         const damageBeforeCrit580 = baseDamageFull(stats, 580, 'Ability', false, false);
         expect(damageBeforeCrit580.expected).to.eq(537);
     });
-    it('Dark Knight Living Shadow known value scaling', async () => {
+    it('Dark Knight Living Shadow known value scaling with low strength', async () => {
         // Based on known values from the following spreadsheet (and some testing I did myself):
         // https://docs.google.com/spreadsheets/d/1NlVtvjxYCh-_HGFb3R0VEvbjJcBTcnNDoloo_H-WzQ8/edit?gid=566755418#gid=566755418
         await loadPromiseDRK;
@@ -864,5 +864,45 @@ describe("Final damage values for known values", () => {
         // 620 potency Living Shadow Attack
         const damageBeforeCrit620 = baseDamageFull(stats, 620, 'Ability', false, false, livingShadowScalingOverrides);
         expect(damageBeforeCrit620.expected).to.eq(508);
+    });
+    it('Dark Knight Living Shadow known value scaling with higher strength', async () => {
+        await loadPromiseDRK;
+        // Based off 7.05 BiS.
+        const stats = finalizeStats(new RawStats({
+            hp: 226061,
+            vitality: 5109,
+            strength: 4842,
+            dexterity: 415,
+            intelligence: 261,
+            mind: 179,
+            piety: 440,
+            crit: 3174,
+            dhit: 1338,
+            determination: 2231,
+            tenacity: 868,
+            skillspeed: 430,
+            spellspeed: 420,
+            wdPhys: 146,
+            wdMag: 146,
+            weaponDelay: 2.96,
+        }),
+        {}, level, getLevelStats(level), 'DRK', fakeSheetDRK.classJobStats, 0, "The Lost");
+        expect(stats.mainStatValue).to.eq(4842);
+
+        // These match up with observed values.
+        const livingShadowScalings: AlternativeScaling[] = ["Living Shadow Strength Scaling", "Pet Action Weapon Damage"];
+        const livingShadowScalingOverrides = getScalingOverrides(livingShadowScalings, stats);
+
+        // 420 potency Living Shadow Attack
+        const damageBeforeCrit420 = baseDamageFull(stats, 420, 'Ability', false, false, livingShadowScalingOverrides);
+        expect(damageBeforeCrit420.expected).to.eq(21770);
+
+        // 570 potency Living Shadow Attack
+        const damageBeforeCrit570 = baseDamageFull(stats, 570, 'Ability', false, false, livingShadowScalingOverrides);
+        expect(damageBeforeCrit570.expected).to.eq(29546);
+
+        // 620 potency Living Shadow Attack
+        const damageBeforeCrit620 = baseDamageFull(stats, 620, 'Ability', false, false, livingShadowScalingOverrides);
+        expect(damageBeforeCrit620.expected).to.eq(32140);
     });
 });
