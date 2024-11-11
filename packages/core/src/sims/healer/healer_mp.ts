@@ -97,7 +97,7 @@ export class MPPerMinute implements Simulation<MPResult, MPSettings, EmptyObject
             numFillerGCDs -= (60 / ((3 / 4) * lilyCooldown));
             numFillerGCDs -= (60 / thinAirCooldown);
             numFillerGCDs -= (numGlare4s * (60 / pomCooldown));
-            numFillerGCDs += (0.1 * pomDuration) * (60/ pomCooldown);
+            numFillerGCDs += (0.1 * pomDuration) * (60 / pomCooldown);
         }
 
         mpResult -= (numFillerGCDs * fillerMP);
