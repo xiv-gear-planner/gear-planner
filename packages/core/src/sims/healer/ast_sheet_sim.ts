@@ -53,6 +53,7 @@ const star: AstOgcdAbility = {
     name: "Earthly Star",
     potency: 310,
     attackType: "Ability",
+    alternativeScalings: ["Pet Action Weapon Damage"],
     cooldown: {
         time: 60,
     },
