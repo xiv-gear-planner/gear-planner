@@ -314,6 +314,10 @@ export interface ComputedSetStats extends RawStats {
      */
     readonly wdMulti: number,
     /**
+     * Pet action WD multiplier. Uses a slightly lower job modifier.
+     */
+    readonly wdMultiPetAction: number,
+    /**
      * Multiplier from main stat.
      */
     readonly mainStatMulti: number
@@ -322,12 +326,21 @@ export interface ComputedSetStats extends RawStats {
      * else).
      */
     readonly aaStatMulti: number
-
+    /**
+     * Stats coming from the gear pre-party bonus. Important for some abilities' alternate
+     * scalings (e.g. Living Shadow).
+     */
+    readonly gearStats: RawStats
+    /**
+     * Stats coming from race. Will be the total value, after modification, e.g. 20 if unmodified
+     * or 23 if the race has a +3 modifier. Important to calculate special strength values for
+     * some abilities' alternate scalings (e.g. Living Shadow, Bunshin)
+     */
+    readonly racialStats: RawStats
     /**
      * Trait multiplier
      */
     traitMulti(attackType: AttackType): number;
-
     /**
      * Bonus added to det multiplier for automatic direct hits
      */
@@ -370,7 +383,7 @@ export interface RawStats {
     skillspeed: number,
     wdPhys: number,
     wdMag: number,
-    weaponDelay: number
+    weaponDelay: number,
 }
 
 export type RawStatKey = keyof RawStats;

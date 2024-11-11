@@ -242,6 +242,7 @@ export type DamagingAbility = Readonly<{
     autoCrit?: boolean,
     autoDh?: boolean,
     dot?: DotInfo,
+    alternativeScalings?: AlternativeScaling[],
 }>;
 
 /**
@@ -262,6 +263,12 @@ export type LevelModifier = ({
  * nobreak: no impact on any current combo. Default for non-GCDs.
  */
 export type ComboBehavior = ComboData['comboBehavior'];
+
+/**
+ * Alternate scalings that can exist for abilities, e.g. Living
+ * Shadow, Bunshin, SMN pet actions.
+ */
+export type AlternativeScaling = "Living Shadow Strength Scaling" | "Pet Action Weapon Damage";
 
 export type BaseAbility = Readonly<{
     /**
@@ -325,7 +332,13 @@ export type BaseAbility = Readonly<{
      * the highest `minLevel` specified.
      */
     levelModifiers?: LevelModifier[],
+    /**
+    * If the ability uses alternate scalings, such as Living Shadow Strength
+    * scaling or using the pet action Weapon Damage multiplier.
+    */
+    alternativeScalings?: AlternativeScaling[],
 } & (NonDamagingAbility | DamagingAbility)>;
+
 
 /**
  * Represents the cooldown of an ability
@@ -696,4 +709,21 @@ export type CombinedBuffEffect = {
      * Function for modifying a ComputedSetStats for any changes which cannot be expressed using the other fields.
      */
     modifyStats: (stats: ComputedSetStats) => ComputedSetStats,
+}
+
+/**
+ * Represents different overrides to values used in calculating damage.
+ * This can and should be extended for other things that are specially overriden
+ * by abilities in the future.
+ */
+export type ScalingOverrides = {
+    /**
+     * Main stat multiplier. Overriden by abilities like Living Shadow and Bunshin.
+     */
+    mainStatMulti: number,
+    /**
+     * Weapon damage multiplier. Overriden by pet abilities and abilities with alternate
+     * actors, e.g. Earthly Star, Living Shadow, Queen, SMN abilities.
+     */
+    wdMulti: number,
 }
