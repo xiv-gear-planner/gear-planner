@@ -1,6 +1,6 @@
 import {AttackType, ComputedSetStats, JobData, LevelStats, RawStats} from "./geartypes";
 import {chanceMultiplierStdDev, fixedValue, multiplyValues, ValueWithDev} from "./deviation";
-import { AlternativeScaling } from "@xivgear/core/sims/sim_types";
+import { ScalingOverrides } from "@xivgear/core/sims/sim_types";
 /*
     Common math for FFXIV.
 
@@ -308,9 +308,20 @@ export function getLivingShadowStrength(rawStrength: number, racialStats: RawSta
 }
 
 /**
+ * Returns the "zero" ScalingOverrides object, which represents normal scalings for
+ * an ability.
+ */
+export function getDefaultScalings(stats: ComputedSetStats): ScalingOverrides {
+    return {
+        mainStatMulti: stats.mainStatMulti,
+        wdMulti: stats.wdMulti,
+    };
+}
+
+/**
  * Computes base damage. Does not factor in crit/dh RNG nor damage variance.
  */
-export function baseDamageFull(stats: ComputedSetStats, potency: number, attackType: AttackType = 'Unknown', autoDH: boolean = false, isDot: boolean = false, alternativeScalings: AlternativeScaling[] = []): ValueWithDev {
+export function baseDamageFull(stats: ComputedSetStats, potency: number, attackType: AttackType = 'Unknown', autoDH: boolean = false, isDot: boolean = false, scalingOverrides = getDefaultScalings(stats)): ValueWithDev {
     let spdMulti: number;
     const isAA = attackType === 'Auto-attack';
     if (isAA) {
@@ -327,21 +338,15 @@ export function baseDamageFull(stats: ComputedSetStats, potency: number, attackT
         spdMulti = 1.0;
     }
     // Multiplier from main stat
-    let mainStatMulti = isAA ? stats.aaStatMulti : stats.mainStatMulti;
+    let mainStatMulti = scalingOverrides.mainStatMulti;
 
-    // Multiplier from weapon damage. If this is an auto-attack, use the AA multi instead of the pure WD multi.
-    let wdMulti = isAA ? stats.aaMulti : stats.wdMulti;
+    // Multiplier from weapon damage.
+    let wdMulti = scalingOverrides.wdMulti;
 
-    // Process alternative scalings for the ability
-    if (alternativeScalings) {
-        if (alternativeScalings.find(scaling => scaling === "Living Shadow Strength Scaling")) {
-            // TODO This does not currently take into account potion bonuses.
-            const livingShadowStrength = getLivingShadowStrength(stats.gearStats.strength, stats.racialStats);
-            mainStatMulti = mainStatMultiLivingShadow(stats.levelStats, livingShadowStrength);
-        }
-        if (alternativeScalings.find(scaling => scaling ===  "Pet Action Weapon Damage")) {
-            wdMulti = stats.wdMultiPetAction;
-        }
+    //If this is an auto-attack, use the AA multis.
+    if (isAA) {
+        mainStatMulti = stats.aaStatMulti;
+        wdMulti = stats.aaMulti;
     }
 
     // Det multiplier

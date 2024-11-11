@@ -710,3 +710,20 @@ export type CombinedBuffEffect = {
      */
     modifyStats: (stats: ComputedSetStats) => ComputedSetStats,
 }
+
+/**
+ * Represents different overrides to values used in calculating damage.
+ * This can and should be extended for other things that are specially overriden
+ * by abilities in the future.
+ */
+export type ScalingOverrides = {
+    /**
+     * Main stat multiplier. Overriden by abilities like Living Shadow and Bunshin.
+     */
+    mainStatMulti: number,
+    /**
+     * Weapon damage multiplier. Overriden by pet abilities and abilities with alternate
+     * actors, e.g. Earthly Star, Living Shadow, Queen, SMN abilities.
+     */
+    wdMulti: number,
+}
