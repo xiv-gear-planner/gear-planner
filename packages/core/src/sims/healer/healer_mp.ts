@@ -26,8 +26,9 @@ const assizeMP = 500;
 const lilyCooldown = 20;
 //const lilyMP = 0;
 const thinAirCooldown = 60;
-const glare4Cooldown = 120;
-
+const pomCooldown = 120;
+const pomDuration = 15;
+const numGlare4s = 3;
 
 export interface MPResult extends SimResult {
     baseRegen: number;
@@ -95,7 +96,8 @@ export class MPPerMinute implements Simulation<MPResult, MPSettings, EmptyObject
             mpResult += assizeMP * (60 / assizeCooldown);
             numFillerGCDs -= (60 / ((3 / 4) * lilyCooldown));
             numFillerGCDs -= (60 / thinAirCooldown);
-            numFillerGCDs -= (60 / (glare4Cooldown / 3));
+            numFillerGCDs -= (numGlare4s * (60 / pomCooldown));
+            numFillerGCDs += (0.1 * pomDuration) * (60/ pomCooldown);
         }
 
         mpResult -= (numFillerGCDs * fillerMP);
