@@ -14,7 +14,7 @@ const fillerMP = 400;
 const drawCooldown = 60;
 const drawMP = 2000;
 
-/*const aetherflowCooldown = 60;
+const aetherflowCooldown = 60;
 const aetherflowMP = 2000;
 
 const addersgallCooldown = 20;
@@ -24,9 +24,10 @@ const rhizomataCooldown = 90;
 const assizeCooldown = 40;
 const assizeMP = 500;
 const lilyCooldown = 20;
-const lilyMP = 0;
+//const lilyMP = 0;
 const thinAirCooldown = 60;
-*/
+const glare4Cooldown = 120;
+
 
 export interface MPResult extends SimResult {
     baseRegen: number;
@@ -67,17 +68,37 @@ export class MPPerMinute implements Simulation<MPResult, MPSettings, EmptyObject
         let baseRegen: number = 0;
         let minutesToZero: number | 'Positive';
         const tick = set.computedStats.mpPerTick;
+        const job = set.computedStats.job;
         baseRegen = (tick * 20);
         mpResult += baseRegen;
 
         const lucidTotal = (lucidPotency * 10) * (lucidDuration / 3);
         mpResult += lucidTotal * (60 / lucidCooldown);
 
-        mpResult += drawMP * (60 / drawCooldown);
-
         const speed = set.computedStats.gcdMag(NORMAL_GCD, 0);
-        const numGCDs = (60 / speed);
-        mpResult -= (numGCDs * fillerMP);
+        let numFillerGCDs = (60 / speed);
+
+        if (job === "AST") {
+            mpResult += drawMP * (60 / drawCooldown);
+        }
+
+        if (job === "SCH") {
+            mpResult += aetherflowMP * (60 / aetherflowCooldown);
+        }
+
+        if (job === "SGE") {
+            mpResult += addersgallMP * (60 / addersgallCooldown);
+            mpResult += addersgallMP * (60 / rhizomataCooldown);
+        }
+
+        if (job === "WHM") {
+            mpResult += assizeMP * (60 / assizeCooldown);
+            numFillerGCDs -= (60 / ((3 / 4) * lilyCooldown));
+            numFillerGCDs -= (60 / thinAirCooldown);
+            numFillerGCDs -= (60 / (glare4Cooldown / 3));
+        }
+
+        mpResult -= (numFillerGCDs * fillerMP);
 
         if (mpResult < 0){
             minutesToZero = -1 * maxMP / mpResult;
