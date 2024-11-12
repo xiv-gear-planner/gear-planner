@@ -79,7 +79,7 @@ export const Bloodspiller: DrkGcdAbility = {
     levelModifiers: [
         {
             minLevel: 94,
-            potency: 580,
+            potency: 600,
         },
     ],
 };
@@ -88,7 +88,7 @@ export const ScarletDelirium: DrkGcdAbility = {
     type: 'gcd',
     name: "Scarlet Delirium",
     id: 36928,
-    potency: 600,
+    potency: 620,
     attackType: "Weaponskill",
     gcd: 2.5,
     appDelay: 0.62,
@@ -98,7 +98,7 @@ export const Comeuppance: DrkGcdAbility = {
     type: 'gcd',
     name: "Comeuppance",
     id: 36929,
-    potency: 700,
+    potency: 720,
     attackType: "Weaponskill",
     gcd: 2.5,
     appDelay: 0.67,
@@ -108,7 +108,7 @@ export const Torcleaver: DrkGcdAbility = {
     type: 'gcd',
     name: "Torcleaver",
     id: 36930,
-    potency: 800,
+    potency: 820,
     attackType: "Weaponskill",
     gcd: 2.5,
     appDelay: 0.62,
