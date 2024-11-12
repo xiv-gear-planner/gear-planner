@@ -114,7 +114,7 @@ const tillana: GcdAbility = {
 const fanDance: OgcdAbility = {
     name: 'Fan Dance',
     type: 'ogcd',
-    potency: 150,
+    potency: 180,
     attackType: 'Ability',
     cooldown: {
         time: 1,
@@ -125,7 +125,7 @@ const fanDance: OgcdAbility = {
 const fd3: OgcdAbility = {
     name: 'Fan Dance III',
     type: 'ogcd',
-    potency: 200,
+    potency: 220,
     attackType: 'Ability',
     cooldown: {
         time: 1,
