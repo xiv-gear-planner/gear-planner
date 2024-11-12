@@ -18,7 +18,7 @@ import { BaseMultiCycleSim } from "@xivgear/core/sims/processors/sim_processors"
 const filler: GcdAbility = {
     type: 'gcd',
     name: "Dosis III",
-    potency: 360,
+    potency: 370,
     attackType: "Spell",
     gcd: 2.5,
     cast: 1.5,
