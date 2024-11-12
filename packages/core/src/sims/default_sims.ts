@@ -14,6 +14,7 @@ import { whmSheetSpec } from "./healer/whm_sheet_sim";
 import { mpSimSpec } from "./healer/healer_mp";
 import { ninSpec } from "./melee/nin/nin_lv100_sim";
 import { rprSheetSpec } from "./melee/rpr/rpr_sheet_sim";
+import { mnkSpec } from "./melee/mnk/mnk_sim";
 import { samSpec } from "./melee/sam/sam_lv100_sim";
 import { vprSheetSpec } from "./melee/vpr/vpr_sheet_sim";
 import { dncDtSheetSpec } from "./ranged/dnc_sim";
@@ -47,6 +48,7 @@ export function registerDefaultSims() {
     registerSim(mpSimSpec);
     registerSim(rprSheetSpec);
     registerSim(vprSheetSpec);
+    registerSim(mnkSpec);
     registerSim(ninSpec);
     registerSim(samSpec);
     registerSim(BluWinged120Spec);
