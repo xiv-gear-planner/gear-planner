@@ -11,6 +11,7 @@ import {
 import {CustomItemExport} from "@xivgear/core/customgear/custom_item";
 import {CustomFoodExport} from "@xivgear/core/customgear/custom_food";
 import {RawBonusStats, StatModification} from "./xivstats";
+import {TranslatableString} from "@xivgear/core/i18n/translation";
 
 export interface DisplayGearSlot {
 
@@ -39,7 +40,7 @@ export const DisplayGearSlotInfo: Record<DisplayGearSlotKey, DisplayGearSlot> = 
     Ears: {},
     Neck: {},
     Wrist: {},
-    Ring: {}
+    Ring: {},
 } as const;
 
 export interface EquipSlot {
@@ -58,63 +59,63 @@ export const EquipSlotInfo: Record<EquipSlotKey, EquipSlot> = {
     Weapon: {
         slot: 'Weapon',
         name: 'Weapon',
-        gearSlot: DisplayGearSlotInfo.Weapon
+        gearSlot: DisplayGearSlotInfo.Weapon,
     },
     OffHand: {
         slot: 'OffHand',
         name: 'Off-Hand',
-        gearSlot: DisplayGearSlotInfo.OffHand
+        gearSlot: DisplayGearSlotInfo.OffHand,
     },
     Head: {
         slot: 'Head',
         name: 'Head',
-        gearSlot: DisplayGearSlotInfo.Head
+        gearSlot: DisplayGearSlotInfo.Head,
     },
     Body: {
         slot: 'Body',
         name: 'Body',
-        gearSlot: DisplayGearSlotInfo.Body
+        gearSlot: DisplayGearSlotInfo.Body,
     },
     Hand: {
         slot: 'Hand',
         name: 'Hand',
-        gearSlot: DisplayGearSlotInfo.Hand
+        gearSlot: DisplayGearSlotInfo.Hand,
     },
     Legs: {
         slot: 'Legs',
         name: 'Legs',
-        gearSlot: DisplayGearSlotInfo.Legs
+        gearSlot: DisplayGearSlotInfo.Legs,
     },
     Feet: {
         slot: 'Feet',
         name: 'Feet',
-        gearSlot: DisplayGearSlotInfo.Feet
+        gearSlot: DisplayGearSlotInfo.Feet,
     },
     Ears: {
         slot: 'Ears',
         name: 'Ears',
-        gearSlot: DisplayGearSlotInfo.Ears
+        gearSlot: DisplayGearSlotInfo.Ears,
     },
     Neck: {
         slot: 'Neck',
         name: 'Neck',
-        gearSlot: DisplayGearSlotInfo.Neck
+        gearSlot: DisplayGearSlotInfo.Neck,
     },
     Wrist: {
         slot: 'Wrist',
         name: 'Wrist',
-        gearSlot: DisplayGearSlotInfo.Wrist
+        gearSlot: DisplayGearSlotInfo.Wrist,
     },
     RingLeft: {
         slot: 'RingLeft',
         name: 'Left Ring',
-        gearSlot: DisplayGearSlotInfo.Ring
+        gearSlot: DisplayGearSlotInfo.Ring,
     },
     RingRight: {
         slot: 'RingRight',
         name: 'Right Ring',
-        gearSlot: DisplayGearSlotInfo.Ring
-    }
+        gearSlot: DisplayGearSlotInfo.Ring,
+    },
 } as const;
 
 // type KeyOfType<T, V> = keyof {
@@ -127,6 +128,10 @@ export interface XivItem {
      * Item name
      */
     name: string;
+    /**
+     * Item name, including translations
+     */
+    readonly nameTranslation: TranslatableString;
     /**
      * Item ID
      */
@@ -161,6 +166,10 @@ export interface GearItem extends XivCombatItem {
      * ilvl
      */
     ilvl: number;
+    /**
+     * equip level
+     */
+    equipLvl: number;
     /**
      * The primary substat
      */
@@ -305,6 +314,10 @@ export interface ComputedSetStats extends RawStats {
      */
     readonly wdMulti: number,
     /**
+     * Pet action WD multiplier. Uses a slightly lower job modifier.
+     */
+    readonly wdMultiPetAction: number,
+    /**
      * Multiplier from main stat.
      */
     readonly mainStatMulti: number
@@ -313,12 +326,21 @@ export interface ComputedSetStats extends RawStats {
      * else).
      */
     readonly aaStatMulti: number
-
+    /**
+     * Stats coming from the gear pre-party bonus. Important for some abilities' alternate
+     * scalings (e.g. Living Shadow).
+     */
+    readonly gearStats: RawStats
+    /**
+     * Stats coming from race. Will be the total value, after modification, e.g. 20 if unmodified
+     * or 23 if the race has a +3 modifier. Important to calculate special strength values for
+     * some abilities' alternate scalings (e.g. Living Shadow, Bunshin)
+     */
+    readonly racialStats: RawStats
     /**
      * Trait multiplier
      */
     traitMulti(attackType: AttackType): number;
-
     /**
      * Bonus added to det multiplier for automatic direct hits
      */
@@ -361,7 +383,7 @@ export interface RawStats {
     skillspeed: number,
     wdPhys: number,
     wdMag: number,
-    weaponDelay: number
+    weaponDelay: number,
 }
 
 export type RawStatKey = keyof RawStats;
@@ -491,6 +513,11 @@ export interface JobDataConst {
      * Can return null to keep the defaults.
      */
     gcdDisplayOverrides?: (level: SupportedLevel) => (GcdDisplayOverride[]) | null;
+
+    /**
+     * The maximum level of the job.
+     */
+    readonly maxLevel: SupportedLevel;
 }
 
 export type GcdDisplayOverride = {
@@ -571,13 +598,13 @@ export class EquipmentSet {
 }
 
 export function cloneEquipmentSet(set: EquipmentSet) {
-        const out = new EquipmentSet();
-        Object.entries(set).forEach(([slot, equipped]) => {
-            if (equipped instanceof EquippedItem) {
-                out[slot] = equipped.clone();
-            }
-        });
-        return out;
+    const out = new EquipmentSet();
+    Object.entries(set).forEach(([slot, equipped]) => {
+        if (equipped instanceof EquippedItem) {
+            out[slot] = equipped.clone();
+        }
+    });
+    return out;
 }
 
 export interface MateriaSlot {
@@ -999,8 +1026,8 @@ export class EquippedItem {
             for (const materiaSlot of gearItem.materiaSlots) {
                 this.melds.push({
                     materiaSlot: materiaSlot,
-                    equippedMateria: null
-                })
+                    equippedMateria: null,
+                });
             }
         }
         else {
@@ -1017,7 +1044,7 @@ export class EquippedItem {
         );
         // Deep clone the materia slots
         this.melds.forEach((slot, index) => {
-            out.melds[index].equippedMateria = slot.equippedMateria
+            out.melds[index].equippedMateria = slot.equippedMateria;
         });
         if (this.relicStats !== undefined && out.relicStats !== undefined) {
             Object.assign(out.relicStats, this.relicStats);

@@ -14,14 +14,14 @@ function defaultComboData(ability: Ability, hasOtherCombos: boolean): ComboData 
     if (ability.type === 'gcd' && hasOtherCombos) {
         return {
             comboBehavior: 'break',
-            comboKey: "all"
-        }
+            comboKey: "all",
+        };
     }
     else {
         return {
             comboBehavior: 'nobreak',
-            comboKey: "all"
-        }
+            comboKey: "all",
+        };
     }
 }
 
@@ -65,7 +65,7 @@ export function completeComboData(ability: Ability): FinalizedComboData {
         else {
             combos.push({
                 ...combo,
-                comboKey: key
+                comboKey: key,
             });
         }
     }

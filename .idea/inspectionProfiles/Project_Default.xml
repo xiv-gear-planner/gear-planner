@@ -19,7 +19,7 @@
     <inspection_tool class="HtmlUnknownTag" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="myValues">
         <value>
-          <list size="45">
+          <list size="48">
             <item index="0" class="java.lang.String" itemvalue="nobr" />
             <item index="1" class="java.lang.String" itemvalue="noembed" />
             <item index="2" class="java.lang.String" itemvalue="comment" />
@@ -65,6 +65,9 @@
             <item index="42" class="java.lang.String" itemvalue="custom-item-popup" />
             <item index="43" class="java.lang.String" itemvalue="custom-food-popup" />
             <item index="44" class="java.lang.String" itemvalue="alt-items-modal" />
+            <item index="45" class="java.lang.String" itemvalue="meld-solver-area" />
+            <item index="46" class="java.lang.String" itemvalue="meld-solver-result-dialog" />
+            <item index="47" class="java.lang.String" itemvalue="settings-modal" />
           </list>
         </value>
       </option>

@@ -44,7 +44,6 @@ export async function xivApiFetch(...params: Parameters<typeof fetch>): Promise<
 
 async function xFetchInternal(...params: Parameters<typeof fetch>): Promise<Response> {
     let tries = 5;
-    // eslint-disable-next-line no-constant-condition
     while (true) {
         tries--;
         const result = await fetch(...params);
@@ -135,20 +134,19 @@ export async function xivApiSearch<RequestType extends XivApiSearchRequest>(requ
             const out = {...resultRow['fields']};
             out['ID'] = resultRow['row_id'];
             return out;
-        })
+        }),
     };
 
 }
 
 
 export async function xivApiGetList<RequestType extends XivApiListRequest>(request: RequestType): Promise<XivApiResponse<RequestType>> {
-    // TODO: raise limit after testing
     const perPage = request.perPage ?? DEFAULT_PER_PAGE;
     let query = `${XIVAPI_SERVER}/api/1/sheet/${request.sheet}?limit=${perPage}`;
     if (request.columns?.length > 0) {
         query += '&fields=' + request.columns.join(',');
     }
-    if (request.rows != null) {
+    if (request.rows !== null) {
         query += '&rows=' + request.rows.join(',');
     }
     let remainingPages = request.pageLimit ?? 4;
@@ -177,7 +175,7 @@ export async function xivApiGetList<RequestType extends XivApiListRequest>(reque
             const out = {...resultRow['fields']};
             out['ID'] = resultRow['row_id'];
             return out;
-        })
+        }),
     };
 }
 

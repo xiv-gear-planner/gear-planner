@@ -22,7 +22,7 @@ import {
 } from "@xivgear/common-ui/components/util";
 import {GearPlanSheet} from "@xivgear/core/sheet";
 import {recordCurrentSheetEvent, recordEvent} from "@xivgear/core/analytics/analytics";
-import { GearPlanSheetGui } from "./sheet";
+import {GearPlanSheetGui} from "./sheet";
 
 /**
  * Component for managing all materia slots on an item
@@ -81,7 +81,7 @@ export class AllSlotMateriaManager extends HTMLElement {
                 this.classList.remove("materia-manager-equipped");
                 const textSpan = document.createElement("span");
                 if (equipSlot.gearItem.isCustomRelic) {
-                    textSpan.textContent = "Click into cells to edit relic stats"
+                    textSpan.textContent = "Click into cells to edit relic stats";
                 }
                 else if (equipSlot.gearItem.isSyncedDown) {
                     textSpan.textContent = "Melds unavailable due to ilvl sync";
@@ -97,7 +97,7 @@ export class AllSlotMateriaManager extends HTMLElement {
                 this.replaceChildren(...this._children);
                 this.classList.remove("materia-slot-no-equip");
                 this.classList.remove("materia-slot-no-slots");
-                this.classList.add("materia-manager-equipped")
+                this.classList.add("materia-manager-equipped");
             }
         }
         else {
@@ -193,19 +193,6 @@ export class SlotMateriaManager extends HTMLElement {
         }
     }
 
-    // TODO: remove
-    // setColor(overcap: 'normal' | 'overcap' | 'overcap-major') {
-    //     switch (overcap) {
-    //         case "normal":
-    //             break;
-    //         case "overcap":
-    //             break;
-    //         case "overcap-major":
-    //             break;
-    //
-    //     }
-    // }
-
     // eslint-disable-next-line accessor-pairs
     set overcap(overcap: number) {
         if (overcap === this._overcap) {
@@ -262,7 +249,7 @@ export class MateriaCountDisplay extends HTMLElement {
 }
 
 export function formatMateriaTitle(materia: Materia): string {
-    return `${materia.name}: +${materia.primaryStatValue} ${STAT_FULL_NAMES[materia.primaryStat]}`;
+    return `${materia.nameTranslation}: +${materia.primaryStatValue} ${STAT_FULL_NAMES[materia.primaryStat]}`;
 }
 
 export class SlotMateriaManagerPopup extends HTMLElement {
@@ -296,7 +283,6 @@ export class SlotMateriaManagerPopup extends HTMLElement {
         const headerRow = body.insertRow();
         // Blank top-left
         const topLeftCell = document.createElement("th");
-        // TODO: replace with fa-trash
         const topLeft = quickElement('div', ['materia-picker-remove'], [faIcon('fa-trash-can')]);
         topLeft.addEventListener('mousedown', (ev) => {
             this.submit(undefined);
@@ -343,7 +329,7 @@ export class SlotMateriaManagerPopup extends HTMLElement {
             element: self,
             close() {
                 self.hide();
-            }
+            },
         });
         this.style.display = 'block';
     }
@@ -394,9 +380,9 @@ export class MateriaPriorityPicker extends HTMLElement {
             'Keep Item, else None: Remember what materia was equipped to each item. If none equipped, leave empty.';
         const fillModeLabel = labelFor("Fill Mode:", fillModeDropdown);
         fillModeDropdown.addListener((newValue) => {
-           recordEvent("fillMode", {
-               'mode': newValue,
-           })
+            recordEvent("fillMode", {
+                'mode': newValue,
+            });
         });
 
         const fillEmptyNow = makeActionButton('Fill Empty', () => {
@@ -428,18 +414,20 @@ export class MateriaPriorityPicker extends HTMLElement {
                 else if (val > MAX_GCD) {
                     ctx.failValidation("Cannot be greater than " + MAX_GCD);
                 }
-            }]
+            }],
         });
         minGcdInput.addListener(val => {
             recordCurrentSheetEvent('currentSheet', {
-                gcd: val
+                gcd: val,
             });
         });
         minGcdInput.pattern = '\\d\\.\\d\\d?';
         minGcdInput.title = 'Enter the minimum desired GCD in the form x.yz.\nSkS/SpS materia will be de-prioritized once this target GCD is met.';
         minGcdInput.classList.add('min-gcd-input');
-        this.replaceChildren(header, drag, minGcdText, minGcdInput, document.createElement('br'),
-                            solveMelds, fillEmptyNow, fillAllNow, fillModeLabel, fillModeDropdown);
+        this.replaceChildren(header, drag, document.createElement('br'),
+            minGcdText, minGcdInput, document.createElement('br'),
+            fillModeLabel, fillModeDropdown, document.createElement('br'),
+            solveMelds, fillEmptyNow, fillAllNow);
     }
 }
 
@@ -623,7 +611,7 @@ export class MateriaTotalsDisplay extends HTMLElement {
         }
         const elements: MateriaCountDisplay[] = [];
         materiaCounts.forEach((value, key) => {
-            elements.push(new MateriaCountDisplay(value[0], value.length))
+            elements.push(new MateriaCountDisplay(value[0], value.length));
         });
         elements.sort((left, right) => {
             const primary = right.count - left.count;

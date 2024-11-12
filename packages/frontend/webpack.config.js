@@ -1,11 +1,12 @@
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const NodePolyfillPlugin = require('node-polyfill-webpack-plugin');
 const path = require("path");
+const BeastiesWebpackPlugin = require("beasties-webpack-plugin");
 module.exports = (env, argv) => {
     const prod = argv.mode === 'production';
     return {
         entry: [path.resolve(__dirname, "./src/scripts/main.ts"),
-                path.resolve(__dirname, "./src/scripts/workers/worker_main.ts"),
+                // path.resolve(__dirname, "./src/scripts/workers/worker_main.ts"),
         ],
         output: {
             path: path.resolve(__dirname + "/dist"),
@@ -35,7 +36,14 @@ module.exports = (env, argv) => {
                 filename: "index.html",
                 inject: false
             }),
-            new NodePolyfillPlugin()
+            new NodePolyfillPlugin(),
+            new BeastiesWebpackPlugin({
+                preload: false,
+                path: './dist/',
+                publicPath: '',
+                logLevel: 'debug',
+                includeSelectors: ['body.light-mode']
+            })
         ],
         resolve: {
             extensions: ['.ts', '.js'],

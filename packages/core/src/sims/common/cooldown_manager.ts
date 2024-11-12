@@ -89,7 +89,7 @@ export class CooldownTracker {
         if (!status.readyToUse) {
             switch (this.mode) {
                 case "none":
-                    // Use it anyway
+                // Use it anyway
                     break;
                 case "warn":
                     console.warn(`[${formatDuration(currentTime)}] Ability ${ability.name} was used, but it is not ready for another ${status.readyAt.relative.toFixed(3)}s`);
@@ -119,6 +119,22 @@ export class CooldownTracker {
             when = this.currentTime;
         }
         return this.statusOfAt(ability, when).readyToUse;
+    }
+
+    /**
+     * Modifies the cooldown of the given ability by the delta specified.
+     * Negative delta will reduce the cooldown, positive delta will increase it.
+     *
+     * @param ability
+     * @param delta
+     */
+    public modifyCooldown(ability: Ability, delta: number) {
+        if (!hasCooldown(ability)) {
+            return;
+        }
+        const key = cooldownKey(ability);
+        const cdState = this.currentState.get(key);
+        this.currentState.set(cooldownKey(ability), new InternalState(cdState.cappedAt + delta));
     }
 
     /**
@@ -168,19 +184,18 @@ export class CooldownTracker {
                 return {
                     readyAt: {
                         absolute: desiredTime,
-                        relative: 0
+                        relative: 0,
                     },
                     readyToUse: true,
                     capped: true,
                     cappedAt: {
                         absolute: desiredTime,
-                        relative: 0
+                        relative: 0,
                     },
                     currentCharges: ability.cooldown?.charges ?? 1,
-                }
+                };
             }
-            // Not capped
-            else {
+            else { // Not capped
                 // Figure out if we have charges.
                 // Start with full charges, then subtract a charge for every cooldown worth of time until we would
                 // be capped.
@@ -205,7 +220,7 @@ export class CooldownTracker {
                     return {
                         readyAt: {
                             absolute: cappedAt,
-                            relative: cappedAt - desiredTime
+                            relative: cappedAt - desiredTime,
                         },
                         readyToUse: false,
                         capped: false,
@@ -214,7 +229,7 @@ export class CooldownTracker {
                             relative: cappedAt - desiredTime,
                         },
                         currentCharges: 0,
-                    }
+                    };
                 }
                 else {
 
@@ -233,7 +248,7 @@ export class CooldownTracker {
                         return {
                             readyAt: {
                                 absolute: desiredTime,
-                                relative: 0
+                                relative: 0,
                             },
                             readyToUse: true,
                             capped: false,
@@ -242,7 +257,7 @@ export class CooldownTracker {
                                 relative: cappedAt - desiredTime,
                             },
                             currentCharges: currentCharges,
-                        }
+                        };
                     }
                     else {
                         // e.g. if CD is 60 seconds, two charges, and we have 75 seconds until capped,
@@ -251,7 +266,7 @@ export class CooldownTracker {
                         return {
                             readyAt: {
                                 absolute: remaining + desiredTime,
-                                relative: remaining
+                                relative: remaining,
                             },
                             readyToUse: false,
                             capped: false,
@@ -260,7 +275,7 @@ export class CooldownTracker {
                                 relative: cappedAt - desiredTime,
                             },
                             currentCharges: currentCharges,
-                        }
+                        };
                     }
                 }
             }
@@ -275,16 +290,16 @@ function defaultStatus(ability: Ability, absTime: number): CooldownStatus {
     return {
         readyAt: {
             absolute: absTime,
-            relative: 0
+            relative: 0,
         },
         readyToUse: true,
         capped: true,
         cappedAt: {
             absolute: absTime,
-            relative: 0
+            relative: 0,
         },
         currentCharges: ability.cooldown?.charges ?? 1,
-    }
+    };
 }
 
 /**
@@ -301,7 +316,7 @@ function cooldownKey(ability: CdAbility): number {
         if (current.cooldown.sharesCooldownWith !== undefined) {
             current = current.cooldown.sharesCooldownWith;
             if (seen.includes(current)) {
-                throw Error(`Ability ${ability.name} has circular references of CD sharing.`)
+                throw Error(`Ability ${ability.name} has circular references of CD sharing.`);
             }
             seen.push(current);
         }
@@ -309,7 +324,7 @@ function cooldownKey(ability: CdAbility): number {
             return current.id;
         }
     }
-    throw Error(`Ability ${ability.name} has too many layers of nested CD share.`)
+    throw Error(`Ability ${ability.name} has too many layers of nested CD share.`);
 }
 
 function hasCooldown(ability: Ability): ability is CdAbility {

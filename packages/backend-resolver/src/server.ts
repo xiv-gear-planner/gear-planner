@@ -5,15 +5,6 @@ import {buildPreviewServer, buildStatsServer} from "./server_builder";
 import {FastifyInstance} from "fastify";
 import {setDataApi} from "@xivgear/core/datamanager_new";
 
-let fastify: FastifyInstance;
-if (process.env.IS_PREVIEW_SERVER === 'true') {
-    console.log('Building preview server');
-    fastify = buildPreviewServer();
-}
-else {
-    console.log('Building stats server');
-    fastify = buildStatsServer();
-}
 
 function validateUrl(url: string, description: string) {
     try {
@@ -53,9 +44,19 @@ if (dataApiOverride) {
     setDataApi(dataApiOverride);
 }
 
+let fastify: FastifyInstance;
+if (process.env.IS_PREVIEW_SERVER === 'true') {
+    console.log('Building preview server');
+    fastify = buildPreviewServer();
+}
+else {
+    console.log('Building stats server');
+    fastify = buildStatsServer();
+}
+
 fastify.listen({
     port: 30000,
-    host: '0.0.0.0'
+    host: '0.0.0.0',
 }, (err, addr) => {
     if (err) {
         fastify.log.error(err);

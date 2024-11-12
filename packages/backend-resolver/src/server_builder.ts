@@ -1,23 +1,27 @@
 import 'global-jsdom/register';
 import './polyfills';
 import Fastify, {FastifyRequest} from "fastify";
-import {getShortLink} from "@xivgear/core/external/shortlink_server";
+import {getShortLink, getShortlinkFetchUrl} from "@xivgear/core/external/shortlink_server";
 import {PartyBonusAmount, SetExport, SheetExport, SheetStatsExport} from "@xivgear/xivmath/geartypes";
-import {getBisSheet} from "@xivgear/core/external/static_bis";
+import {getBisSheet, getBisSheetFetchUrl} from "@xivgear/core/external/static_bis";
 // import {registerDefaultSims} from "@xivgear/gearplan-frontend/sims/default_sims";
 import {HEADLESS_SHEET_PROVIDER} from "@xivgear/core/sheet";
 import {JobName, MAX_PARTY_BONUS} from "@xivgear/xivmath/xivconstants";
+import cors from '@fastify/cors';
 import {
     DEFAULT_DESC,
     DEFAULT_NAME,
-    HASH_QUERY_PARAM, PREVIEW_MAX_DESC_LENGTH, PREVIEW_MAX_NAME_LENGTH,
+    HASH_QUERY_PARAM,
     NavPath,
     parsePath,
-    PATH_SEPARATOR
+    PATH_SEPARATOR,
+    PREVIEW_MAX_DESC_LENGTH,
+    PREVIEW_MAX_NAME_LENGTH
 } from "@xivgear/core/nav/common_nav";
 import {nonCachedFetch} from "./polyfills";
 import fastifyWebResponse from "fastify-web-response";
 import {getFrontendPath, getFrontendServer} from "./frontend_file_server";
+import process from "process";
 
 let initDone = false;
 
@@ -60,11 +64,11 @@ function buildServerBase() {
         ignoreDuplicateSlashes: true,
         // querystringParser: str => querystring.parse(str, '&', '=', {}),
     });
+    fastifyInstance.register(cors, {
+        methods: ['GET', 'OPTIONS'],
+        strictPreflight: false,
+    });
 
-    // fastifyInstance.get('/echo', async (request: FastifyRequest, reply) => {
-    //     return request.query;
-    // });
-    //
     fastifyInstance.get('/healthcheck', async (request, reply) => {
         return 'up';
     });
@@ -86,7 +90,7 @@ export function buildStatsServer() {
 
     fastifyInstance.get('/fulldata/bis/:job/:expac/:sheet', async (request: FastifyRequest, reply) => {
         const rawData = await getBisSheet(request.params['job'] as JobName, request.params['expac'] as string, request.params['sheet'] as string);
-        const out =  await importExportSheet(request, JSON.parse(rawData));
+        const out = await importExportSheet(request, JSON.parse(rawData));
         reply.header("cache-control", "max-age=7200, public");
         reply.send(out);
     });
@@ -99,8 +103,23 @@ export function buildPreviewServer() {
 
     const parser = new DOMParser();
 
+    let extraScripts: string[];
+    const extraScriptsRaw = process.env.EXTRA_SCRIPTS;
+    if (extraScriptsRaw) {
+        extraScripts = extraScriptsRaw.split(';');
+        console.log('extra scripts', extraScripts);
+    }
+    else {
+        console.log('no extra scripts');
+        extraScripts = [];
+    }
+
     fastifyInstance.register(fastifyWebResponse);
+    // This endpoint acts as a proxy. If it detects that you are trying to load something that looks like a sheet,
+    // inject social media preview and preload urls.
     fastifyInstance.get('/', async (request: FastifyRequest, reply) => {
+
+        let sheetDataPreloadUrl: URL | undefined = undefined;
 
         async function resolveNav(nav: NavPath): Promise<object | null> {
             try {
@@ -110,11 +129,14 @@ export function buildPreviewServer() {
                     case "saved":
                         return null;
                     case "shortlink":
+                        // TODO: combine these into one call
+                        sheetDataPreloadUrl = getShortlinkFetchUrl(nav.uuid);
                         return JSON.parse(await getShortLink(nav.uuid));
                     case "setjson":
                     case "sheetjson":
                         return nav.jsonBlob;
                     case "bis":
+                        sheetDataPreloadUrl = getBisSheetFetchUrl(nav.job, nav.expac, nav.sheet);
                         return JSON.parse(await getBisSheet(nav.job, nav.expac, nav.sheet));
                 }
             }
@@ -130,6 +152,7 @@ export function buildPreviewServer() {
         request.log.info(pathPaths, 'Path');
         const serverUrl = getFrontendServer();
         const clientUrl = getFrontendPath();
+        // Fetch original index.html
         const responsePromise = nonCachedFetch(serverUrl + '/index.html', undefined);
         try {
             const exported: object | null = await resolveNav(nav);
@@ -157,23 +180,60 @@ export function buildPreviewServer() {
                     'og:url': url,
                 } as const;
                 for (const entry of Object.entries(propertyMap)) {
-                    const meta = document.createElement('meta');
+                    const meta = doc.createElement('meta');
                     meta.setAttribute('property', entry[0]);
                     meta.setAttribute('content', entry[1]);
                     head.append(meta);
                 }
                 if (name !== DEFAULT_NAME) {
                     head.querySelector('title')?.remove();
-                    const newTitle = document.createElement('title');
+                    const newTitle = doc.createElement('title');
                     newTitle.textContent = name;
                     head.append(newTitle);
+                }
+
+                function addFetchPreload(url: string) {
+                    const preload = doc.createElement('link');
+                    preload.rel = 'preload';
+                    preload.href = url;
+                    // For some reason, `.as = 'fetch'` doesn't work, but this does.
+                    preload.setAttribute("as", 'fetch');
+                    preload.setAttribute("crossorigin", "");
+                    head.appendChild(preload);
+                }
+
+                // Inject preload properties based on job
+                // The rest are part of the static html
+                const job = exported['job'];
+                if (job) {
+                    addFetchPreload(`https://data.xivgear.app/Items?job=${job}`);
+                }
+                if (sheetDataPreloadUrl !== undefined) {
+                    addFetchPreload(sheetDataPreloadUrl.toString());
+                }
+                if (extraScripts) {
+                    function addExtraScript(url: string, extraProps: object = {}) {
+                        const script = doc.createElement('script');
+                        script.src = url;
+                        Object.entries(extraProps).forEach(([k, v]) => {
+                            script.setAttribute(k, v);
+                        });
+                        head.appendChild(script);
+                    }
+
+                    extraScripts.forEach(scriptUrl => {
+                        if (nav['embed'] !== true) {
+                            addExtraScript(scriptUrl, {'async': ''});
+                        }
+                    });
+                    doc.documentElement.setAttribute('scripts-injected', 'true');
                 }
                 return new Response(doc.documentElement.outerHTML, {
                     status: 200,
                     headers: {
                         'content-type': 'text/html',
                         // use a longer cache duration for success
-                        'cache-control': 'max-age=7200, public'
+                        'cache-control': 'max-age=7200, public',
                     },
                 });
             }

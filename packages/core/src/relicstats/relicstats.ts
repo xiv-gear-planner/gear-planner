@@ -20,8 +20,8 @@ import {BaseParamMap} from "../datamanager";
 function err(description: string): GearSetIssue {
     return {
         severity: 'error',
-        description: description
-    }
+        description: description,
+    };
 }
 
 function ewRelic(large: number, small: number): EwRelicStatModel {
@@ -50,20 +50,20 @@ function ewRelic(large: number, small: number): EwRelicStatModel {
                     out.push(err(`Stat ${STAT_ABBREVIATIONS[stat]} must be ${cap} or lower. `));
                 }
                 // Keep track of small/large counts
-                if (current == this.smallValue) {
+                if (current === this.smallValue) {
                     smalls++;
                     if (stat === statToReport) {
                         reportSmall = true;
                     }
                 }
-                else if (current == this.largeValue) {
+                else if (current === this.largeValue) {
                     larges++;
                     if (stat === statToReport) {
                         reportLarge = true;
                     }
                 }
-                // Also report if we have a non-zero value that is neither large nor small
                 else if (current !== 0 && (!statToReport || statToReport === stat)) {
+                    // Also report if we have a non-zero value that is neither large nor small
                     out.push(err(`${current} is not a valid ${STAT_ABBREVIATIONS[stat]} amount - it should either be ${this.largeValue} or ${this.smallValue}`));
                 }
             }
@@ -72,8 +72,8 @@ function ewRelic(large: number, small: number): EwRelicStatModel {
             }
             return out;
 
-        }
-    }
+        },
+    };
 }
 
 function customRelic(total: number): CustomRelicStatModel {
@@ -114,14 +114,13 @@ function customRelic(total: number): CustomRelicStatModel {
                         }
                     }
                 }
-                // Otherwise, just report the generic message
-                else {
+                else {  // Otherwise, just report the generic message
                     out.unshift(err(`Sum of stats must be ${this.totalCap} or lower (currently ${runningTotal}).`));
                 }
             }
             return out;
-        }
-    }
+        },
+    };
 }
 
 /**
@@ -158,8 +157,8 @@ export function getRelicStatModelFor(gearItem: GearItem, baseParams: BaseParamMa
                     }
                 }
                 return failures;
-            }
-        }
+            },
+        };
     }
 }
 
@@ -172,7 +171,7 @@ function getRelicStatModelForPartial(gearItem: GearItem, baseParams: BaseParamMa
     const slotModifier = baseParams['crit'][gearItem.occGearSlotName] / 140;
     const statCap = gearItem.unsyncedVersion.statCaps['crit'];
     switch (gearItem.ilvl) {
-        // EW relics are 2 capped stats, and one 72
+    // EW relics are 2 capped stats, and one 72
         case 665:
             return ewRelic(statCap, Math.round(72 * slotModifier));
         case 645:
@@ -193,12 +192,12 @@ function getRelicStatModelForPartial(gearItem: GearItem, baseParams: BaseParamMa
                 if (current && cap && current > cap) {
                     out.push({
                         severity: 'error',
-                        description: `Stat ${STAT_ABBREVIATIONS[stat]} must be ${cap} or lower.`
+                        description: `Stat ${STAT_ABBREVIATIONS[stat]} must be ${cap} or lower.`,
                     });
                 }
             }
             return out;
-        }
-    }
+        },
+    };
 }
 

@@ -22,7 +22,7 @@ export const Fuka: Buff = {
         haste: 13,
     },
     duration: 40,
-    statusId: 1299
+    statusId: 1299,
 };
 
 export const Fugetsu: Buff = {
@@ -32,7 +32,7 @@ export const Fugetsu: Buff = {
         dmgIncrease: 0.13,
     },
     duration: 40,
-    statusId: 1298
+    statusId: 1298,
 };
 
 export const MeikyoShisuiBuff: Buff = {
@@ -47,7 +47,8 @@ export const MeikyoShisuiBuff: Buff = {
         const activatesBuffs = [];
         if (FUKA_ACTIONS.includes(ability.name)) {
             activatesBuffs.push(Fuka);
-        } else if (FUGETSU_ACTIONS.includes(ability.name)) {
+        }
+        else if (FUGETSU_ACTIONS.includes(ability.name)) {
             activatesBuffs.push(Fugetsu);
         }
         return {
@@ -57,5 +58,5 @@ export const MeikyoShisuiBuff: Buff = {
     },
     stacks: 3,
     duration: 40,
-    statusId: 1233
+    statusId: 1233,
 };

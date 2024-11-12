@@ -1,7 +1,7 @@
 import {SimSettings, SimSpec} from "@xivgear/core/sims/sim_types";
 import {CycleProcessor, CycleContext, CycleSimResult, ExternalCycleSettings, Rotation} from "@xivgear/core/sims/cycle_sim";
-import * as Actions from "./pld_actions_no_sks"
-import { BaseMultiCycleSim } from "../processors/sim_processors";
+import * as Actions from "./pld_actions_no_sks";
+import { BaseMultiCycleSim } from "@xivgear/core/sims/processors/sim_processors";
 
 interface GcdState {
     hasDivineMight: boolean,
@@ -11,18 +11,18 @@ interface GcdState {
 
 function useNextAtone(cycle: CycleContext, state: GcdState): void {
     switch (state.swordOathStacks) {
-    case 3:
-        cycle.use(Actions.atone)
-        break;
-    case 2:
-        cycle.use(Actions.supp);
-        break;
-    case 1:
-        cycle.use(Actions.sep);
-        break;
-    default:
-        console.log("oops, something went wrong with atones")
-        state.swordOathStacks = 0;
+        case 3:
+            cycle.use(Actions.atone);
+            break;
+        case 2:
+            cycle.use(Actions.supp);
+            break;
+        case 1:
+            cycle.use(Actions.sep);
+            break;
+        default:
+            console.log("oops, something went wrong with atones");
+            state.swordOathStacks = 0;
     }
 
     state.swordOathStacks -= 1;
@@ -48,25 +48,28 @@ function useBurstFillerGcds(cycle: CycleContext, numFillers: number, state: GcdS
         if (state.swordOathStacks > 0 && state.swordOathStacks <= (numFillers - i)) {
             // if enough gcds to get to sepulchre, prioritize that
             useNextAtone(cycle, state);
-        } else if (state.hasDivineMight) {
+        }
+        else if (state.hasDivineMight) {
             cycle.use(Actions.hs);
             state.hasDivineMight = false;
-        } else if (state.swordOathStacks > 0) {
+        }
+        else if (state.swordOathStacks > 0) {
             // use remaining atones to fill
             useNextAtone(cycle, state);
-        } else {
+        }
+        else {
             switch (state.comboProgress) {
-            case 0:
-                cycle.use(Actions.fast);
-                break;
-            case 1:
-                cycle.use(Actions.riot);
-                break;
-            case 2:
-                cycle.use(Actions.royal);
-                state.hasDivineMight = true;
-                state.swordOathStacks = 3;
-                break;
+                case 0:
+                    cycle.use(Actions.fast);
+                    break;
+                case 1:
+                    cycle.use(Actions.riot);
+                    break;
+                case 2:
+                    cycle.use(Actions.royal);
+                    state.hasDivineMight = true;
+                    state.swordOathStacks = 3;
+                    break;
             }
             state.comboProgress += 1;
             state.comboProgress %= 3;
@@ -79,23 +82,28 @@ function useFillerGcds(cycle: CycleContext, numFillers: number, state: GcdState)
         if (state.swordOathStacks === 3) {
             // prioritize spending the first atone to enable the ideal fof
             useNextAtone(cycle, state);
-        } else if (state.comboProgress === 2) {
+        }
+        else if (state.comboProgress === 2) {
             if (state.swordOathStacks === 2) {
                 // supplication
                 useNextAtone(cycle, state);
-            } else if (state.hasDivineMight) {
+            }
+            else if (state.hasDivineMight) {
                 cycle.use(Actions.hs);
                 state.hasDivineMight = false;
-            } else if (state.swordOathStacks > 0) {
+            }
+            else if (state.swordOathStacks > 0) {
                 // sepulchre
                 useNextAtone(cycle, state);
-            } else {
+            }
+            else {
                 cycle.use(Actions.royal);
                 state.hasDivineMight = true;
                 state.swordOathStacks = 3;
                 state.comboProgress = 0;
             }
-        } else {
+        }
+        else {
             cycle.use(state.comboProgress === 0 ? Actions.fast : Actions.riot);
             state.comboProgress += 1;
             state.comboProgress %= 3;
@@ -122,8 +130,8 @@ export const pldSheetSpec: SimSpec<PldSheetSim, PldSheetSettingsExternal> = {
         return new PldSheetSim(exported);
     },
     supportedJobs: ['PLD'],
-    isDefaultSim: false
-}
+    isDefaultSim: false,
+};
 
 export class PldSheetSim extends BaseMultiCycleSim<PldSheetSimResult, PldSheetSettings> {
 
@@ -151,8 +159,8 @@ export class PldSheetSim extends BaseMultiCycleSim<PldSheetSimResult, PldSheetSe
                     const state: GcdState = {
                         hasDivineMight: true,
                         swordOathStacks: 3,
-                        comboProgress: 0 // 0, 1, or 2
-                    }
+                        comboProgress: 0, // 0, 1, or 2
+                    };
 
                     for (let i = 0; i < 7; ++i) {
                         useBurst(cycle);
@@ -163,7 +171,7 @@ export class PldSheetSim extends BaseMultiCycleSim<PldSheetSimResult, PldSheetSe
                         useFillerGcds(cycle, 11, state);
                     }
                 });
-            }
+            },
 
         }];
     }

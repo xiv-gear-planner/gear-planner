@@ -22,7 +22,7 @@ import {
     OccGearSlotKey,
     RawStatKey,
     RawStats,
-    RelicStatModel,
+    RelicStatModel
 } from "@xivgear/xivmath/geartypes";
 import {BaseParamToStatKey, RelevantBaseParam} from "./external/xivapitypes";
 import {getRelicStatModelFor} from "./relicstats/relicstats";
@@ -31,6 +31,7 @@ import {DataApiClient, FoodStatBonus, GearAcquisitionSource as AcqSrc} from "@xi
 import {BaseParamMap, DataManager} from "./datamanager";
 import {IlvlSyncInfo} from "./datamanager_xivapi";
 import {applyStatCaps} from "./gear";
+import {toTranslatable, TranslatableString} from "./i18n/translation";
 
 type ApiClientRawType<X extends keyof DataApiClient<never>, Y extends keyof DataApiClient<never>[X]> = DataApiClient<never>[X][Y]
 
@@ -43,7 +44,6 @@ type FoodType = Awaited<ReturnType<ApiClientRawType<'food', 'foodItems'>>>['data
 
 async function retryFetch(...params: Parameters<typeof fetch>): Promise<Response> {
     let tries = 5;
-    // eslint-disable-next-line no-constant-condition
     while (true) {
         tries--;
         const result = await fetch(...params);
@@ -66,7 +66,7 @@ const apiClient = new DataApiClient<never>({
     baseUrl: "https://data.xivgear.app",
     // baseUrl: "https://betadata.xivgear.app",
     // baseUrl: "http://localhost:8085",
-    customFetch: retryFetch
+    customFetch: retryFetch,
 });
 
 export function setDataApi(baseUrl: string) {
@@ -107,7 +107,7 @@ export class NewApiDataManager implements DataManager {
     private _maxIlvlForEquipLevelWeapon: Map<number, number>;
 
     private queryBaseParams() {
-        return this.apiClient.baseParams.baseParams()
+        return this.apiClient.baseParams.baseParams();
     }
 
     async getIlvlSyncData(baseParamPromise: ReturnType<typeof this.queryBaseParams>, ilvl: number) {
@@ -239,7 +239,7 @@ export class NewApiDataManager implements DataManager {
                     Ring: requireNumber(value.ringPercent),
                     Weapon2H: requireNumber(value.twoHandWeaponPercent),
                     Weapon1H: requireNumber(value.oneHandWeaponPercent),
-                    Wrist: requireNumber(value.braceletPercent)
+                    Wrist: requireNumber(value.braceletPercent),
                 };
                 return baseParams;
             }, {});
@@ -269,7 +269,7 @@ export class NewApiDataManager implements DataManager {
                         }
                         catch (e) {
                             console.log(e);
-                            throw e
+                            throw e;
                         }
                     })
                     .map(i => new DataApiGearInfo(i));
@@ -283,7 +283,7 @@ export class NewApiDataManager implements DataManager {
                     else {
                         this._maxIlvlForEquipLevel.set(item.equipLvl, Math.max(item.ilvl, this._maxIlvlForEquipLevel.get(item.equipLvl) ?? 0));
                     }
-                })
+                });
                 // TODO: put up better error
             }, (e) => console.error(e));
         const statsPromise = Promise.all([itemsPromise, baseParamPromise]).then(() => {
@@ -295,8 +295,7 @@ export class NewApiDataManager implements DataManager {
                 if (this._ilvlSync && this._ilvlSync < item.ilvl) {
                     isyncLvl = this._ilvlSync;
                 }
-                // Downsync by equip lvl, infer correct ilvl
-                else if (this._level < item.equipLvl) {
+                else if (this._level < item.equipLvl) { // Downsync by equip lvl, infer correct ilvl
                     isyncLvl = this._maxIlvlForEquipLevel.get(this._level);
                 }
                 else {
@@ -304,11 +303,11 @@ export class NewApiDataManager implements DataManager {
                 }
                 const ilvlSyncPromise: Promise<IlvlSyncInfo> = isyncLvl === null ? Promise.resolve(undefined) : this.getIlvlSyncData(baseParamPromise, isyncLvl);
                 extraPromises.push(Promise.all([itemIlvlPromise, ilvlSyncPromise]).then(([native, sync]) => {
-                    item.applyIlvlData(native, sync);
+                    item.applyIlvlData(native, sync, this._level);
                     if (item.isCustomRelic) {
                         console.debug('Applying relic model');
                         item.relicStatModel = getRelicStatModelFor(item, this._baseParams, this._classJob);
-                        console.debug('Applied', item.relicStatModel)
+                        console.debug('Applied', item.relicStatModel);
                     }
                 }));
             });
@@ -380,7 +379,7 @@ export class NewApiDataManager implements DataManager {
         }
         const multi = this._jobMultipliers.get(job);
         if (!multi) {
-            throw Error(`No data for job ${job}`)
+            throw Error(`No data for job ${job}`);
         }
         return multi;
     }
@@ -438,6 +437,7 @@ export class NewApiDataManager implements DataManager {
 export class DataApiGearInfo implements GearItem {
     readonly id: number;
     readonly name: string;
+    readonly nameTranslation: TranslatableString;
     readonly iconUrl: URL;
     readonly equipLvl: number;
     readonly ilvl: number;
@@ -462,6 +462,7 @@ export class DataApiGearInfo implements GearItem {
     constructor(data: ItemType) {
         this.id = data.rowId;
         this.name = data.name;
+        this.nameTranslation = toTranslatable(data.name, data.nameTranslations);
         this.equipLvl = data.equipLevel;
         this.ilvl = data.ilvl;
         this.iconUrl = new URL(data.icon.pngIconUrl);
@@ -472,7 +473,7 @@ export class DataApiGearInfo implements GearItem {
         else if (eqs.mainHand) {
             this.displayGearSlotName = 'Weapon';
             if (eqs.offHand) {
-                this.occGearSlotName = 'Weapon2H'
+                this.occGearSlotName = 'Weapon2H';
             }
             else {
                 this.occGearSlotName = 'Weapon1H';
@@ -539,7 +540,7 @@ export class DataApiGearInfo implements GearItem {
         this.isUnique = data.unique;
         this.computeSubstats();
         this.materiaSlots = [];
-        const baseMatCount: number = data.materiaSlotCount
+        const baseMatCount: number = data.materiaSlotCount;
         if (baseMatCount === 0) {
             // If there are no materia slots, then it might be a custom relic
             // TODO: is this branch still needed?
@@ -563,11 +564,11 @@ export class DataApiGearInfo implements GearItem {
             const overmeld: boolean = data.advancedMeldingPermitted;
             // The materia slot count represents slots that are always meldable
             for (let i = 0; i < baseMatCount; i++) {
-                // TODO: figure out grade automatically
+                // TODO: figure out grade automatically - isn't this filtering done on the UI somewhere?
                 this.materiaSlots.push({
                     maxGrade: MATERIA_LEVEL_MAX_NORMAL,
                     allowsHighGrade: true,
-                    ilvl: data.ilvl
+                    ilvl: data.ilvl,
                 });
             }
             if (overmeld) {
@@ -576,13 +577,13 @@ export class DataApiGearInfo implements GearItem {
                 this.materiaSlots.push({
                     maxGrade: MATERIA_LEVEL_MAX_NORMAL,
                     allowsHighGrade: true,
-                    ilvl: data.ilvl
+                    ilvl: data.ilvl,
                 });
                 for (let i = this.materiaSlots.length; i < MATERIA_SLOTS_MAX; i++) {
                     this.materiaSlots.push({
                         maxGrade: MATERIA_LEVEL_MAX_OVERMELD,
                         allowsHighGrade: false,
-                        ilvl: data.ilvl
+                        ilvl: data.ilvl,
                     });
                 }
             }
@@ -674,15 +675,15 @@ export class DataApiGearInfo implements GearItem {
         }
     }
 
-    applyIlvlData(nativeIlvlInfo: IlvlSyncInfo, syncIlvlInfo?: IlvlSyncInfo) {
+    applyIlvlData(nativeIlvlInfo: IlvlSyncInfo, syncIlvlInfo?: IlvlSyncInfo, level?: number) {
         const statCapsNative = {};
         Object.entries(this.stats).forEach(([stat, _]) => {
             statCapsNative[stat] = nativeIlvlInfo.substatCap(this.occGearSlotName, stat as RawStatKey);
         });
         this.statCaps = statCapsNative;
-        if (syncIlvlInfo && syncIlvlInfo.ilvl < this.ilvl) {
+        if (syncIlvlInfo && (syncIlvlInfo.ilvl < this.ilvl || level < this.equipLvl)) {
             this.unsyncedVersion = {
-                ...this
+                ...this,
             };
             this.syncedDownTo = syncIlvlInfo.ilvl;
             this.materiaSlots = [];
@@ -713,6 +714,7 @@ export class DataApiFoodInfo implements FoodItem {
     iconUrl: URL;
     id: number;
     name: string;
+    readonly nameTranslation: TranslatableString;
     ilvl: number;
     primarySubStat: RawStatKey | undefined;
     secondarySubStat: RawStatKey | undefined;
@@ -722,6 +724,7 @@ export class DataApiFoodInfo implements FoodItem {
         this.name = requireString(data.name);
         this.iconUrl = new URL(data.icon.pngIconUrl);
         this.ilvl = requireNumber(data.levelItem);
+        this.nameTranslation = toTranslatable(this.name, data.nameTranslations);
         for (const rawKey in data.bonusesHQ) {
             if (rawKey === '0') {
                 continue;
@@ -756,6 +759,7 @@ export function processRawMateriaInfo(data: MateriaType): Materia[] {
         const grade = (i + 1);
         out.push({
             name: itemName,
+            nameTranslation: toTranslatable(itemName, itemData.nameTranslations),
             id: itemId,
             iconUrl: new URL(itemData.icon.pngIconUrl),
             stats: stats,
@@ -763,7 +767,7 @@ export function processRawMateriaInfo(data: MateriaType): Materia[] {
             primaryStatValue: stats[stat],
             materiaGrade: grade,
             isHighGrade: (grade % 2) === 0,
-            ilvl: itemData.ilvl ?? 0
+            ilvl: itemData.ilvl ?? 0,
         });
     }
     return out;

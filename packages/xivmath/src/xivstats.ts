@@ -28,7 +28,7 @@ import {
     vitToHp,
     wdMulti
 } from "./xivmath";
-import {JobName, SupportedLevel} from "./xivconstants";
+import {getRaceStats, JobName, RaceName, SupportedLevel} from "./xivconstants";
 import {sum} from "@xivgear/core/util/array_utils";
 
 /**
@@ -152,15 +152,17 @@ export class ComputedSetStatsImpl implements ComputedSetStats {
 
     protected readonly finalBonusStats: RawBonusStats;
     private currentStats: RawStats;
+    private _racialStats: RawStats;
 
     constructor(
-        private readonly gearStats: RawStats,
+        readonly gearStats: RawStats,
         private readonly foodStats: FoodBonuses,
         readonly level: SupportedLevel,
         readonly levelStats: LevelStats,
         private readonly classJob: JobName,
         private readonly classJobStats: JobData,
-        private readonly partyBonus: PartyBonusAmount,
+        readonly partyBonus: PartyBonusAmount,
+        private readonly race: RaceName
     ) {
         this.finalBonusStats = new RawBonusStats();
         // TODO: order of operations here
@@ -176,6 +178,33 @@ export class ComputedSetStatsImpl implements ComputedSetStats {
                 trait.apply(this.finalBonusStats);
             });
         }
+
+        const racialStats = new RawStats({
+            vitality: 20,
+            strength: 20,
+            intelligence: 20,
+            dexterity: 20,
+            mind: 20,
+        });
+        const racialBonus = getRaceStats(this.race);
+        if (racialBonus) {
+            if (racialBonus.vitality) {
+                racialStats['vitality'] += racialBonus.vitality;
+            }
+            if (racialBonus.strength) {
+                racialStats['strength'] += racialBonus.strength;
+            }
+            if (racialBonus.intelligence) {
+                racialStats['intelligence'] += racialBonus.intelligence;
+            }
+            if (racialBonus.dexterity) {
+                racialStats['dexterity'] += racialBonus.dexterity;
+            }
+            if (racialBonus.mind) {
+                racialStats['mind'] += racialBonus.mind;
+            }
+        }
+        this._racialStats = racialStats;
     }
 
     private recalc() {
@@ -186,8 +215,8 @@ export class ComputedSetStatsImpl implements ComputedSetStats {
             this.levelStats,
             this.classJob,
             this.classJobStats,
-            this.partyBonus,
-        )
+            this.partyBonus
+        );
     }
 
     withModifications(modifications: StatModification): ComputedSetStatsImpl {
@@ -198,7 +227,8 @@ export class ComputedSetStatsImpl implements ComputedSetStats {
             this.levelStats,
             this.classJob,
             this.classJobStats,
-            this.partyBonus
+            this.partyBonus,
+            this.race
         );
         Object.assign(out.finalBonusStats, this.finalBonusStats);
         modifications(out, out.finalBonusStats);
@@ -298,6 +328,10 @@ export class ComputedSetStatsImpl implements ComputedSetStats {
         return this.classJobStats;
     }
 
+    get racialStats(): RawStats {
+        return this._racialStats;
+    }
+
     get critChance(): number {
         if (this.finalBonusStats.forceCrit) {
             return 1;
@@ -357,6 +391,11 @@ export class ComputedSetStatsImpl implements ComputedSetStats {
         return mainStatMulti(this.levelStats, this.classJobStats, this[this.classJobStats.autoAttackStat]);
     };
 
+    get wdMultiPetAction(): number {
+        const wdEffective = Math.max(this.wdMag, this.wdPhys);
+        return wdMulti(this.levelStats, this.classJobStats, wdEffective, true);
+    };
+
     get autoDhBonus(): number {
         return autoDhBonusDmg(this.levelStats, this.dhit);
     };
@@ -383,9 +422,11 @@ export function finalizeStats(
     classJob: JobName,
     classJobStats: JobData,
     partyBonus: PartyBonusAmount,
+    race: RaceName
 ) {
     return new ComputedSetStatsImpl(
-        gearStats, foodStats, level, levelStats, classJob, classJobStats, partyBonus);
+        gearStats, foodStats, level, levelStats, classJob, classJobStats, partyBonus, race
+    );
 
 }
 
@@ -397,7 +438,7 @@ function finalizeStatsInt(
     levelStats: LevelStats,
     classJob: JobName,
     classJobStats: JobData,
-    partyBonus: PartyBonusAmount,
+    partyBonus: PartyBonusAmount
 ): RawStats {
     const combinedStats: RawStats = {...gearStats};
     const mainStatKey = classJobStats.mainStat;

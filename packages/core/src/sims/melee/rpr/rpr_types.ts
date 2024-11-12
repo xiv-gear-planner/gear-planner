@@ -1,5 +1,5 @@
-import { Ability, GcdAbility, OgcdAbility } from "@xivgear/core/sims/sim_types"
-import { RprGauge } from "./rpr_gauge"
+import { Ability, GcdAbility, OgcdAbility } from "@xivgear/core/sims/sim_types";
+import { RprGauge } from "./rpr_gauge";
 
 // This file is broadly copied as needed from NIN
 
@@ -8,7 +8,7 @@ export type RprAbility = Ability & Readonly<{
 
     /** Run if an ability needs to update the Soul gauge */
     updateSoulGauge?(gauge: RprGauge): void;
-    
+
     /** The Soul cost of the ability */
     soulCost?: number;
 
@@ -32,7 +32,7 @@ export type SoulAbility = RprAbility & Readonly<{
 
 /** Rpr ability that costs shroud */
 export type ShroudAbility = RprAbility & Readonly<{
-    
+
     shroudCost: number;
 }>
 

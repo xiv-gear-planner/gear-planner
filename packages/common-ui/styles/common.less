@@ -71,6 +71,8 @@ body {
   --button-height: 20px;
   --issue-warning-color: #be5116;
   --issue-error-color: #9c0000;
+  --toolbar-button-size: 40px;
+  --toolbar-border-radius: 8px;
 
 
   &.light-mode {
@@ -267,6 +269,7 @@ body {
 .header-area, .gear-sheet-editor-area {
   p {
     .standard-paragraph;
+    max-width: 600px;
   }
 }
 
@@ -320,7 +323,9 @@ body {
   --zi-slot-materia-popup: 150;
   --zi-slot-materia-popup-cell: 180;
   --zi-tiering-expansion: 185;
+  --zi-toolbar-popout: 186;
   --zi-loading-blocker: 190;
+  --zi-privacy-link: 195;
   --zi-add-sim-dialog: 200;
   --zi-true-modal: 300;
 }
@@ -1236,8 +1241,16 @@ table.gear-items-table, table.food-items-table {
     min-width: 23px;
   }
 
-  td[col-id='itemname'] {
-    max-width: 1px;
+  // TODO: was this needed for some other reason? This is breaking shrinkability of item names.
+  //td[col-id='itemname'] {
+  //  max-width: 1px;
+  //}
+  th[col-id='itemname'] {
+    width: max-content;
+    min-width: max-content;
+    max-width: unset;
+    margin-left: -73px;
+    position: relative;
   }
 
   td[col-id='mats'], td[col-id='wd'] {
@@ -1271,6 +1284,7 @@ table.gear-items-table, table.food-items-table {
           flex-grow: 99;
           overflow: hidden;
           text-overflow: ellipsis;
+          width: 1px;
         }
 
         .remove-item-button, .remove-food-button {
@@ -1344,114 +1358,6 @@ h1.js-warning {
   text-decoration: underline 2px double #ff0000;
 }
 
-sim-result-detail-display {
-  margin: auto;
-  display: block;
-  width: fit-content;
-}
-
-meld-solver-result-dialog { .meld-solver-result {
-    display: flex;
-    flex-direction: row;
-
-    span.arrow {
-      margin: 20px;
-      display: inline-flex;
-      align-items: flex-start;
-      font-size: xx-large;
-    }
-  }
-
-  .meld-solver-result-set {
-    width: 40%;
-    padding: 0;
-    margin: 0;
-
-    .meld-solver-result-set-sim {
-      color: color-mix(in srgb, currentColor var(--sim-color-mix-percent), color-mix(in hsl, #00ff00 var(--sim-result-relative, 50%), #ff0000));
-    }
-    .sim-best {
-      font-weight: bold;
-    }
-  }
-  ul {
-    display: flex;
-    flex-direction: column;
-    li {
-      float: left;
-      display: flex;
-      flex-direction: row;
-      width: 100%;
-      margin-top: 5px;
-      margin-bottom: 5px;
-    }
-    list-style-type: none;
-    padding-inline-start: 0px;
-  }
-  .meld-solver-result-materia-entry {
-    .standard-border-radius;
-    display: flex;
-    flex-direction: row;
-    position: relative;
-    margin: 1%;
-    margin-right: 5%;
-    width: 80%;
-    height: fit-content;
-    font-weight: normal;
-    vertical-align: middle;
-    box-sizing: border-box;
-    float: left;
-
-    --image-size: 20px;
-
-    div.meld-solver-result-image {
-      overflow: clip;
-      width: var(--image-size);
-      height: var(--image-size);
-      padding: 0;
-      margin: 0;
-      margin-right: 3%;
-      //border: 1px #3c623c solid;
-      border-radius: 100%;
-      display: inline-block;
-      vertical-align: middle;
-    }
-
-    img {
-      width: 100%;
-      height: 100%;
-      display: block;
-    }
-
-    .meld-solver-result-materia-entry-text {
-      width: 100%;
-      text-align: left;
-      display: flex;
-      flex-direction: row;
-      .meld-solver-result-materia-entry-count {
-        width: 35%;
-        margin-left: 5%;
-        text-align: left;
-      }
-      .meld-solver-result-materia-entry-stat {
-        width: 60%;
-        text-align: left;
-      }
-    }
-  }
-  .meld-solver-result-materia-entry-delta {
-    width: 20%;
-    text-align: left;
-  }
-
-  .meld-solver-result-materia-entry-zero {
-    color: var(--border-color-default);
-    //background-color: var(--scrollbar-bg);
-  }
-  .meld-solver-result-materia-entry-diff {
-    background-color: var(--scrollbar-bg);
-  }
-}
 
 table all-slot-materia-manager {
   //width: max-content;
@@ -1804,6 +1710,7 @@ div.gear-sheet-toolbar-holder {
   border-color: var(--border-color-highlight);
   border-radius: 4px;
 }
+
 .load-bar-inner {
   background-color: var(--border-color-highlight);
   border-radius: 3px;
@@ -1814,41 +1721,46 @@ div.gear-sheet-toolbar-holder {
   font-weight: bold;
   text-decoration: underline;
 }
+
 .meld-solver-area {
   white-space: pre-wrap;
 }
+
 .meld-solver-settings {
 
+  float: left;
+  display: flex;
+  flex-direction: column;
+  border-width: 1px;
+  border-color: #00ff00;
+
+  li {
+    margin: 5px;
+    list-style-type: none;
     float: left;
-    display: flex;
-    flex-direction: column;
-    border-width: 1px;
-    border-color: #00ff00;
 
-    li {
-      margin: 5px;
-      list-style-type: none;
+    .meld-solver-target-gcd-input {
+      max-width: 30px;
+      border: var(--faint-border);
       float: left;
+    }
 
-      .meld-solver-target-gcd-input {
-        max-width: 30px;
-        border: var(--faint-border);
-        float: left;
-      }
-      .meld-solver-target-gcd-input:disabled {
-        border: var(--faint-border);
-        background-color: #333339;
-        color: #909090;
-      }
-      select.meld-solver-sim-dropdown {
-        float: left;
-        max-width: fit-content;
-        width: 100%;
-        option {
-          padding: 5px;
-        }
+    .meld-solver-target-gcd-input:disabled {
+      border: var(--faint-border);
+      background-color: #333339;
+      color: #909090;
+    }
+
+    select.meld-solver-sim-dropdown {
+      float: left;
+      max-width: fit-content;
+      width: 100%;
+
+      option {
+        padding: 5px;
       }
     }
+  }
 
   button {
     margin: 5px;
@@ -1858,28 +1770,70 @@ div.gear-sheet-toolbar-holder {
     height: 100%;
   }
 }
+
 .gear-set-editor-toolbar {
+
+  display: flex;
+  flex-wrap: wrap-reverse;
+  justify-content: center;
+
   > * {
     .shadow;
   }
 
-  .undo-controls {
+  .toolbar-buttons-area {
     display: inline-flex;
     flex-direction: row;
     justify-content: space-between;
     margin-right: -3px;
     align-items: center;
     gap: 10px;
+    position: relative;
 
-    button {
-      line-height: 0;
-      width: 40px;
-      height: 40px;
-      font-size: 30px;
-      border-radius: 8px;
+    .popout-area {
+      position: absolute;
+      top: calc(100% + 8px);
+      background: var(--table-bg-color);
+      .standard-round-border;
+      width: max-content;
+      // TODO: make the shadow not extend down as far
+      box-shadow: var(--shadow-color) 0 12px 10px 0;
+      z-index: var(--zi-toolbar-popout);
+
+      > * {
+        // TODO: this isn't working right
+        // This is supposed to push the element to the right if it starts to hang off the left of the screen.
+        // The element can still go off the left.
+        position: sticky;
+      }
+    }
+
+    > button {
+      height: var(--toolbar-button-size);
+      border-radius: var(--toolbar-border-radius);
       display: flex;
       justify-content: center;
       padding: 2px;
+      position: relative;
+
+      &.big-text-btn {
+        font-size: 30px;
+        width: var(--toolbar-button-size);
+        line-height: 0;
+      }
+
+      &.popout-button {
+        padding-left: 5px;
+        padding-right: 5px;
+
+        &:active {
+          border-color: #0000;
+        }
+
+        &[popout-active="true"] {
+          background-color: var(--button-active-background-color);
+        }
+      }
 
       svg {
         margin: auto;
@@ -1888,24 +1842,26 @@ div.gear-sheet-toolbar-holder {
       }
     }
 
-    @media screen and (max-width: 630px) {
-      flex-direction: column;
-      gap: 2px;
-      justify-content: center;
-      align-items: center;
-      border-radius: 4px;
-      button {
-        width: 20px;
-        height: 20px;
-        font-size: 24px;
-      }
-    }
+    //@media screen and (max-width: 630px) {
+    //  flex-direction: column;
+    //  gap: 2px;
+    //  justify-content: center;
+    //  align-items: center;
+    //  border-radius: 4px;
+    //  --toolbar-button-size: 20px;
+    //  button.big-text-btn {
+    //    font-size: 24px;
+    //  }
+    //}
   }
+}
+
+set-view-toolbar {
+  display: contents;
 }
 
 div.gear-set-editor-toolbar, set-view-toolbar {
 
-  display: contents;
   width: fit-content;
   margin: auto;
 
@@ -1951,7 +1907,6 @@ div.gear-set-editor-toolbar, set-view-toolbar {
 
   materia-priority-picker {
     width: fit-content;
-    .standard-round-border;
 
     text-align: left;
 
@@ -1996,7 +1951,7 @@ div.gear-set-editor-toolbar, set-view-toolbar {
           position: relative;
           // These need to not be the real drag target
           pointer-events: none;
-          padding: 1px;
+          padding: 4px;
           width: 25px;
           text-align: center;
 
@@ -2619,23 +2574,18 @@ gear-set-viewer {
       }
     }
 
-    //.item-name-holder-view {
-    //  display: flex;
-    //  flex-direction: row;
-    //
-    //  span.item-name {
-    //    flex-basis: 1px;
-    //    flex-grow: 99;
-    //    overflow: hidden;
-    //    text-overflow: ellipsis;
-    //  }
-    //
-    //  span.item-alts {
-    //    flex-basis: fit-content;
-    //    flex-shrink: 0;
-    //    flex-grow: 0;
-    //  }
-    //}
+    .item-name-holder-view {
+      text-overflow: ellipsis;
+      overflow: hidden;
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      >span {
+        vertical-align: middle;
+      }
+    }
   }
 
   .food-view-table {
@@ -3292,10 +3242,20 @@ body.modern {
     .single-stat-tier-display {
       background-color: color-mix(in srgb, var(--stat-color) 5%, var(--table-bg-color));
 
+      box-sizing: border-box;
+      padding: 4px;
+      height: var(--toolbar-button-size);
+      border-radius: var(--toolbar-border-radius);
+
       &.stat-tiering-perfect {
         background-color: color-mix(in srgb, var(--stat-color) 13%, var(--table-bg-color));
       }
     }
+  }
+
+  .gear-set-editor-toolbar .toolbar-buttons-area .popout-area {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
   }
 }
 
@@ -3557,4 +3517,17 @@ math-area {
 button[disabled] {
   pointer-events: none;
   opacity: 50%;
+}
+
+settings-modal {
+  .modal-content-area {
+    padding: 15px;
+    >* {
+      display: block;
+    }
+    #language-picker {
+      width: 100%;
+    }
+  }
+
 }

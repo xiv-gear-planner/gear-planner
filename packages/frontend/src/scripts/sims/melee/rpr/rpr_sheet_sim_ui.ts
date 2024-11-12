@@ -49,7 +49,7 @@ export class RprGaugeGui {
                     return div;
                 }
                 return document.createTextNode("");
-            }
+            },
         },
         {
             shortName: 'shroudGauge',
@@ -91,7 +91,7 @@ export class RprGaugeGui {
                     return div;
                 }
                 return document.createTextNode("");
-            }
+            },
         },
         ];
     }

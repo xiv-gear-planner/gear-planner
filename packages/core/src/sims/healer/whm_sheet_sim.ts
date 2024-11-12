@@ -67,7 +67,7 @@ export class WhmSheetSim implements Simulation<WhmSheetSimResult, WhmSheetSettin
         ldPerMin: 0,
         c3PerMin: 0,
         m2PerMin: 0,
-        rezPerMin: 0
+        rezPerMin: 0,
     };
 
     spec = whmSheetSpec;
@@ -117,7 +117,7 @@ export class WhmSheetSim implements Simulation<WhmSheetSimResult, WhmSheetSettin
             mpTime: mpTime,
             healBasePotRatio: healBasePotRatio,
             effectiveHealPotRatio: effectiveHealPotRatio,
-        }
+        };
     }
 
     afflatusTime(stats: ComputedSetStats, cycle: number) {
@@ -128,7 +128,7 @@ export class WhmSheetSim implements Simulation<WhmSheetSimResult, WhmSheetSettin
         return this.settings.c3PerMin + this.settings.m2PerMin + this.settings.rezPerMin;
     }
 
-// Average potency of a 360s rotation
+    // Average potency of a 360s rotation
     getP(stats: ComputedSetStats, cycle: number) {
         const filler = this.fillerGcdPerMinute();
         let result = 0;
@@ -139,19 +139,19 @@ export class WhmSheetSim implements Simulation<WhmSheetSimResult, WhmSheetSettin
         if (glare - dia > diaDot / 3 * tickMulti * fl(30 / shortGcd) * (shortGcd - 30 % shortGcd)) {
             result += 12 * (Math.ceil(30 / shortGcd) - 1) * glare + 12 * dia - 24 * glare;
             // Logger.log("# Glares: " + 12*(Math.ceil(30/shortGcd)-1)-24*glare)
-            result += 12 * 10 * tickMulti * diaDot
+            result += 12 * 10 * tickMulti * diaDot;
             // Logger.log("Dia ticks: " + 12*10)
         }
         else {
             result += 12 * (fl(30 / shortGcd) - 1) * glare + 12 * dia - 24 * glare;
             // Logger.log("# Glares: " + 12*(Math.ceil(30/shortGcd)-1)-24*glare)
             result += 12 * 9 * tickMulti * diaDot;
-            result += 12 * ((3 - (30 % shortGcd)) / 3) * tickMulti * diaDot
+            result += 12 * ((3 - (30 % shortGcd)) / 3) * tickMulti * diaDot;
             // Logger.log("Dia ticks: " + (12*9+12*((3-(30 % shortGcd))/3)))
         }
         result -= filler * glare * cycle / 60;
         // Logger.log("Potency: " + result)
-        return result
+        return result;
     }
 
     /**
@@ -177,7 +177,7 @@ export class WhmSheetSim implements Simulation<WhmSheetSimResult, WhmSheetSettin
         result += 1100 * this.settings.c3PerMin * cycle / 60;
         //thin air
         result -= 400 * cycle / 60;
-        return result
+        return result;
     }
 
     // Actual time taken by a 360s rotation
@@ -186,15 +186,15 @@ export class WhmSheetSim implements Simulation<WhmSheetSimResult, WhmSheetSettin
         //1 dia + x glares/lily/misery
         const shortGcd = stats.gcdMag(2.5);
         if (glare - dia > diaDot / 3 * stats.spsDotMulti * fl(30 / shortGcd) * (shortGcd - 30 % shortGcd)) {
-            result += 12 * (Math.ceil(30 / shortGcd) * shortGcd)
+            result += 12 * (Math.ceil(30 / shortGcd) * shortGcd);
         }
         else {
-            result += 12 * (fl(30 / shortGcd) * shortGcd)
+            result += 12 * (fl(30 / shortGcd) * shortGcd);
         }
         // POM as multiplier normalized over 360s
         result *= 360 / ((45 / 0.80) + 315);
         // Logger.log("GCD: "+shortGcd+" Cycle: " +result)
-        return result
+        return result;
     }
 
     // TODO: move all the 'x perminute' things into a single object we can pass around
@@ -215,7 +215,7 @@ export class WhmSheetSim implements Simulation<WhmSheetSimResult, WhmSheetSettin
         let cycle = this.getCycle(stats);
         const afflatusT = this.afflatusTime(stats, cycle);
         cycle += afflatusT;
-        return this.getMP(stats, cycle) / cycle
+        return this.getMP(stats, cycle) / cycle;
     }
 
     mpGainedPerSec(stats: ComputedSetStats) {
@@ -230,7 +230,7 @@ export class WhmSheetSim implements Simulation<WhmSheetSimResult, WhmSheetSettin
         let result = 0;
         result += stats.mpPerTick / 3;
         result -= this.mpUsedPerSec(stats);
-        return fl(-10000 / result)
+        return fl(-10000 / result);
     }
 
     // function summing(accumulator, currentValue) {

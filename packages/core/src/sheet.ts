@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                // TODO: get back to fixing this at some point
+/* eslint-disable @typescript-eslint/no-explicit-any */                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                // TODO: get back to fixing this at some point
 import {
     CURRENT_MAX_LEVEL,
     defaultItemDisplaySettings,
@@ -103,10 +103,10 @@ export class SheetProvider<SheetType extends GearPlanSheet> {
             saveKey: sheetKey,
             sets: [{
                 name: "Default Set",
-                items: {}
+                items: {},
             }],
             sims: [],
-            ilvlSync: ilvlSync
+            ilvlSync: ilvlSync,
             // ctor will auto-fill the rest
         };
         const gearPlanSheet = this.construct(sheetKey, fakeExport);
@@ -216,7 +216,7 @@ export class GearPlanSheet {
         this.materiaAutoFillPrio = {
             statPrio: importedData.mfp ?? [...DefaultMateriaFillPrio.filter(stat => this.isStatRelevant(stat))],
             // Just picking a bogus value so the user understands what it is
-            minGcd: importedData.mfMinGcd ?? 2.05
+            minGcd: importedData.mfMinGcd ?? 2.05,
         };
         this.materiaFillMode = importedData.mfm ?? 'retain_item';
 
@@ -280,9 +280,9 @@ export class GearPlanSheet {
             },
             refreshOnly(): void {
                 console.log('nothing to refresh');
-            }
+            },
 
-        }
+        };
     }
 
     setViewOnly() {
@@ -406,7 +406,7 @@ export class GearPlanSheet {
             ({
                 stub: sim.spec.stub,
                 settings: sim.exportSettings(),
-                name: sim.displayName
+                name: sim.displayName,
             }));
     }
 
@@ -416,13 +416,12 @@ export class GearPlanSheet {
     exportSheet(external: boolean, fullStats: true): SheetStatsExport;
 
     exportSheet(external: boolean = false, fullStats: boolean = false): SheetExport | SheetStatsExport {
-        // TODO: make this async
         const sets = this._sets.map(set => {
             const rawExport = this.exportGearSet(set, false);
             if (fullStats) {
                 const augGs: SetStatsExport = {
                     ...rawExport,
-                    computedStats: toSerializableForm(set.computedStats)
+                    computedStats: toSerializableForm(set.computedStats),
                 };
                 return augGs;
             }
@@ -453,8 +452,13 @@ export class GearPlanSheet {
 
     }
 
-    addGearSet(gearSet: CharacterGearSet) {
-        this._sets.push(gearSet);
+    addGearSet(gearSet: CharacterGearSet, index?: number) {
+        if (index === undefined) {
+            this._sets.push(gearSet);
+        }
+        else {
+            this._sets.splice(index, 0, gearSet);
+        }
         gearSet.addListener(() => {
             this.requestSave();
         });
@@ -480,10 +484,33 @@ export class GearPlanSheet {
         this._sets = sets;
     }
 
+    /**
+     * Clones the given gear set and adds it as a new gear set.
+     *
+     * This will add it prior to the next separator, since separators are typically used to delineate categories
+     * of sets.
+     *
+     * @param gearSet
+     */
     cloneAndAddGearSet(gearSet: CharacterGearSet) {
         const cloned = this.importGearSet(this.exportGearSet(gearSet));
-        cloned.name = cloned.name + ' copy';
-        this.addGearSet(cloned);
+        cloned.name += ' copy';
+        const toIndex: number | undefined = this.clonedSetPlacement(gearSet);
+        this.addGearSet(cloned, toIndex);
+    }
+
+    protected clonedSetPlacement(originalSet: CharacterGearSet): number | undefined {
+        const originalIndex = this.sets.indexOf(originalSet);
+        if (originalIndex >= 0) {
+            for (let i = originalIndex + 1; i < this.sets.length; i++) {
+                if (this.sets[i].isSeparator) {
+                    return i;
+                }
+            }
+        }
+        // fall back
+        return undefined;
+
     }
 
     /**
@@ -504,7 +531,7 @@ export class GearPlanSheet {
                     // On the other hand, *most* real exports would have slots filled (BiS etc)
                     id: inSlot.gearItem.id,
                     materia: inSlot.melds.map(meld => {
-                        return {id: meld.equippedMateria?.id ?? -1}
+                        return {id: meld.equippedMateria?.id ?? -1};
                     }),
                 };
                 if (inSlot.relicStats && Object.entries(inSlot.relicStats)) {
@@ -518,7 +545,7 @@ export class GearPlanSheet {
             items: items,
             food: set.food ? set.food.id : undefined,
             description: set.description,
-            isSeparator: set.isSeparator
+            isSeparator: set.isSeparator,
         };
         if (external) {
             out.job = this.classJobName;
@@ -565,7 +592,6 @@ export class GearPlanSheet {
 
     private get nextCustomItemId() {
         if (this._customItems.length === 0) {
-            // TODO: make this random + larger
             return 10_000_000_000_000 + Math.floor(Math.random() * 1_000_000);
         }
         else {
@@ -690,7 +716,7 @@ export class GearPlanSheet {
             result: undefined,
             resultPromise: undefined,
             status: 'Running',
-            error: undefined
+            error: undefined,
         };
         out.resultPromise = new Promise((resolve, reject) => {
             simPromise.then(result => {
@@ -724,7 +750,7 @@ export class GearPlanSheet {
     statsForJob(job: JobName): JobData {
         return {
             ...getClassJobStats(job),
-            jobStatMultipliers: this.dataManager.multipliersForJob(job)
+            jobStatMultipliers: this.dataManager.multipliersForJob(job),
         };
     }
 
@@ -838,13 +864,12 @@ export class GearPlanSheet {
     }
 
     get foodItemsForDisplay(): FoodItem[] {
-        // TODO: sorting?
         return [...this._dmRelevantFood.filter(item => item.ilvl >= this._itemDisplaySettings.minILvlFood && item.ilvl <= this._itemDisplaySettings.maxILvlFood), ...this._customFoods];
     }
 
     getBestMateria(stat: MateriaSubstat, meldSlot: MeldableMateriaSlot): Materia | undefined {
         const materiaFilter = (materia: Materia) => {
-            return isMateriaAllowed(materia, meldSlot.materiaSlot) && materia.primaryStat == stat;
+            return isMateriaAllowed(materia, meldSlot.materiaSlot) && materia.primaryStat === stat;
         };
         const sortedOptions = this.relevantMateria.filter(materiaFilter).sort((first, second) => second.primaryStatValue - first.primaryStatValue);
         return sortedOptions.length >= 1 ? sortedOptions[0] : undefined;
@@ -890,7 +915,9 @@ export class GearPlanSheet {
                 // Must be same slot
                 && otherItem.occGearSlotName === thisItem.occGearSlotName
                 // Must be better or same stats
-                && isSameOrBetterItem(otherItem, thisItem);
+                && isSameOrBetterItem(otherItem, thisItem)
+                // Only allow items up to current max level for this job
+                && otherItem.equipLvl <= this.classJobStats.maxLevel;
         });
     }
 }

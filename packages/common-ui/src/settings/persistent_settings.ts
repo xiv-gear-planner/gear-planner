@@ -1,3 +1,4 @@
+import {Language} from "@xivgear/core/i18n/translation";
 
 
 export type PersistentSettings = {
@@ -7,6 +8,8 @@ export type PersistentSettings = {
     set modernTheme(lightMode: boolean);
     get viewDetailedStats(): boolean | undefined;
     set viewDetailedStats(detailedStats: boolean);
+    get languageOverride(): Language | undefined;
+    set languageOverride(value: Language);
     hideWelcomeMessage: boolean;
 }
 
@@ -14,21 +17,22 @@ const LIGHT_MODE_KEY = 'light-mode';
 const MODERN_THEME_KEY = 'modern-theme';
 const DETAILED_STATS_KEY = 'detailed-stats';
 const HIDE_WELCOME_KEY = 'hide-welcome-area';
+const LANGUAGE_OVERRIDE_KEY = 'language-override';
 export const SETTINGS: PersistentSettings = {
     get lightMode(): boolean | undefined {
-        return getBool(LIGHT_MODE_KEY)
+        return getBool(LIGHT_MODE_KEY);
     },
     set lightMode(value: boolean) {
         setBool(LIGHT_MODE_KEY, value);
     },
     get modernTheme(): boolean | undefined {
-        return getBool(MODERN_THEME_KEY)
+        return getBool(MODERN_THEME_KEY);
     },
     set modernTheme(value: boolean) {
         setBool(MODERN_THEME_KEY, value);
     },
     get viewDetailedStats(): boolean | undefined {
-        return getBool(DETAILED_STATS_KEY)
+        return getBool(DETAILED_STATS_KEY);
     },
     set viewDetailedStats(value: boolean) {
         setBool(DETAILED_STATS_KEY, value);
@@ -38,7 +42,13 @@ export const SETTINGS: PersistentSettings = {
     },
     set hideWelcomeMessage(value: boolean) {
         setBool(HIDE_WELCOME_KEY, value);
-    }
+    },
+    get languageOverride(): Language {
+        return localStorage.getItem(LANGUAGE_OVERRIDE_KEY) as Language;
+    },
+    set languageOverride(value: Language) {
+        localStorage.setItem(LANGUAGE_OVERRIDE_KEY, value);
+    },
 };
 
 function getBool(key: string): boolean | undefined {
@@ -50,6 +60,7 @@ function getBool(key: string): boolean | undefined {
         return raw === 'true';
     }
 }
+
 function setBool(key: string, value: boolean) {
     localStorage.setItem(key, String(value));
 }

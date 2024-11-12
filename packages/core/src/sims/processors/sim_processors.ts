@@ -23,7 +23,7 @@ import { BuffSettingsManager } from "@xivgear/core/sims/common/party_comp_settin
  * and provide your own generic types.
  */
 export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, InternalSettingsType extends SimSettings, CycleProcessorType extends CycleProcessor = CycleProcessor, FullResultType extends CycleSimResultFull<ResultType> = CycleSimResultFull<ResultType>>
-    implements Simulation<FullResultType, InternalSettingsType, ExternalCycleSettings<InternalSettingsType>> {
+implements Simulation<FullResultType, InternalSettingsType, ExternalCycleSettings<InternalSettingsType>> {
 
     abstract displayName: string;
     abstract shortName: string;
@@ -73,7 +73,7 @@ export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, Inter
             customSettings: this.settings,
             buffConfig: this.buffManager.exportSetting(),
             cycleSettings: this.cycleSettings,
-            resultSettings: this.resultSettings
+            resultSettings: this.resultSettings,
         };
     }
 
@@ -101,8 +101,8 @@ export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, Inter
             totalTime: 6 * 120,
             which: 'totalTime',
             useAutos: this.useAutosByDefault,
-            cutoffMode: this.defaultCutoffMode
-        }
+            cutoffMode: this.defaultCutoffMode,
+        };
     }
 
     rehydrateCycleSettings(imported: Partial<CycleSettings>): CycleSettings {
@@ -136,7 +136,7 @@ export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, Inter
         const allBuffs = this.buffManager.enabledBuffs;
         const rotations = this.getRotationsToSimulate(set);
         return rotations.map((rot, index) => {
-        
+
             const cp = this.createCycleProcessor({
                 stats: set.computedStats,
                 totalTime: this.cycleSettings.totalTime,
@@ -184,14 +184,14 @@ export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, Inter
         return {
             mainDpsResult: best.mainDpsResult,
             all: sorted,
-            best: best
+            best: best,
         };
     }
 
     async simulate(set: CharacterGearSet): Promise<FullResultType> {
         console.debug("Sim start");
         const setSpeed = set.isStatRelevant('spellspeed') ? set.computedStats.spellspeed : set.computedStats.skillspeed;
-        if (setSpeed != this.cachedSpeed) {
+        if (setSpeed !== this.cachedSpeed) {
             this.cachedCycleProcessors = this.generateRotations(set);
             this.cachedSpeed = setSpeed;
         }

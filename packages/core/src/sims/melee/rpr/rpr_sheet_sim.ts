@@ -36,13 +36,13 @@ export const rprSheetSpec: SimSpec<RprSheetSim, RprSimSettingsExternal> = {
         return new RprSheetSim(exported);
     },
     supportedJobs: ['RPR'],
-    isDefaultSim: true
+    isDefaultSim: true,
 };
 
 class RotationState {
     private _combo: number = 0;
     get combo() {
-        return this._combo
+        return this._combo;
     };
 
     set combo(newCombo) {
@@ -68,7 +68,7 @@ class RotationState {
     /** Alternate gibbet/gallows */
     nextGibGal = Actions.Gallows.id;
     gibGalSwap() {
-        this.nextGibGal = (this.nextGibGal == Actions.Gallows.id) ? Actions.Gibbet.id : Actions.Gallows.id;
+        this.nextGibGal = (this.nextGibGal === Actions.Gallows.id) ? Actions.Gibbet.id : Actions.Gallows.id;
     }
 
     /** Alternates between 50 and 100.
@@ -115,20 +115,20 @@ class RprCycleProcessor extends CycleProcessor {
     override use(ability: Ability): AbilityUseResult {
         const rprAbility = ability as RprAbility;
 
-        if (rprAbility.updateSoulGauge != null || rprAbility.updateShroudGauge != null) {
-            
-            /** prevent weird gauge update if an auto lands between now and nextGcdTime */
-            if (ability.type == 'gcd' &&  this.nextGcdTime > this.currentTime) {
-                this.advanceTo(this.nextGcdTime);
-            } 
+        if (rprAbility.updateSoulGauge !== undefined || rprAbility.updateShroudGauge !== undefined) {
 
-            if (rprAbility.updateSoulGauge != null) {
+            /** prevent weird gauge update if an auto lands between now and nextGcdTime */
+            if (ability.type === 'gcd' &&  this.nextGcdTime > this.currentTime) {
+                this.advanceTo(this.nextGcdTime);
+            }
+
+            if (rprAbility.updateSoulGauge !== undefined) {
                 rprAbility.updateSoulGauge(this.gauge);
             }
 
             /** If the ability updates shroud gauge and also is not our free enshroud from Ideal Host, update the gauge */
-            if (rprAbility.updateShroudGauge != null
-                && !(this.getBuffIfActive(IdealHost) && ability.id == Actions.Enshroud.id)) {
+            if (rprAbility.updateShroudGauge !== undefined
+                && !(this.getBuffIfActive(IdealHost) && ability.id === Actions.Enshroud.id)) {
 
                 rprAbility.updateShroudGauge(this.gauge);
             }
@@ -137,8 +137,8 @@ class RprCycleProcessor extends CycleProcessor {
         if (rprAbility === Actions.ShadowOfDeath) {
             this.rotationState.sodNumber++;
         }
-    
-        return super.use(ability)
+
+        return super.use(ability);
     }
 
     override useOgcd(ability: OgcdAbility): AbilityUseResult {
@@ -170,7 +170,7 @@ class RprCycleProcessor extends CycleProcessor {
 
     useGibGal() {
 
-        if (this.rotationState.nextGibGal == Actions.Gallows.id) {
+        if (this.rotationState.nextGibGal === Actions.Gallows.id) {
 
             this.useOgcd(Actions.UnveiledGallows);
             this.useGcd(Actions.Gibbet);
@@ -185,7 +185,7 @@ class RprCycleProcessor extends CycleProcessor {
     useGluttonyAndExecutioners() {
         this.useOgcd(Actions.Gluttony);
 
-        if (this.rotationState.nextGibGal == Actions.Gallows.id) {
+        if (this.rotationState.nextGibGal === Actions.Gallows.id) {
             this.useGcd(Actions.ExecutionersGallows);
             this.useGcd(Actions.ExecutionersGibbet);
         }
@@ -212,7 +212,7 @@ class RprCycleProcessor extends CycleProcessor {
         this.useOgcd(Actions.LemuresSlice);
 
         this.useGcd(Actions.VoidReaping);
-        this.useGcd(Actions.CrossReaping)
+        this.useGcd(Actions.CrossReaping);
         this.useOgcd(Actions.LemuresSlice);
 
         this.useGcd(Actions.Communio);
@@ -237,14 +237,14 @@ class RprCycleProcessor extends CycleProcessor {
 
         this.useGcd(Actions.ExecutionersGallowsUnbuffed);
         this.useGcd(Actions.ExecutionersGibbet);
-        
+
         this.useGcd(Actions.SoulSlice);
 
         this.useGcd(Actions.PlentifulHarvest);
 
         this.useEnshroud();
         this.useGcd(Actions.Perfectio);
-    
+
         this.useGibGal();
         this.useGcd(Actions.ShadowOfDeath);
     }
@@ -254,7 +254,7 @@ class RprCycleProcessor extends CycleProcessor {
 
         this.useGcd(Actions.ShadowOfDeath);
         this.useGcd(Actions.VoidReapingUnbuffed);
-        
+
         /** If we cannot weave AC here, there's a logic error in when to enshroud */
         let acTime = Math.max(this.cdTracker.statusOf(Actions.ArcaneCircle).readyAt.absolute, this.currentTime);
         const nextReaping = this.nextGcdTime + this.gcdTime(Actions.ShadowOfDeath);
@@ -279,8 +279,7 @@ class RprCycleProcessor extends CycleProcessor {
                     this.useOgcd(potionMaxStr);
                     this.useOgcd(Actions.ArcaneCircle);
                 }
-                /** We cannot fit both pot and AC, move pot back */
-                else {
+                else {  /** We cannot fit both pot and AC, move pot back */
                     this.useOgcd(potionMaxStr);
                     this.useGcd(Actions.ShadowOfDeath);
                     this.useOgcd(Actions.ArcaneCircle);
@@ -312,14 +311,14 @@ class RprCycleProcessor extends CycleProcessor {
         this.useEnshroud();
 
         /** if combo is gonna break we need to continue it */
-        if (this.rotationState.lastComboTime + 30 < this.nextGcdTime + this.stats.gcdPhys(2.5) && this.rotationState.combo != 0) {
+        if (this.rotationState.lastComboTime + 30 < this.nextGcdTime + this.stats.gcdPhys(2.5) && this.rotationState.combo !== 0) {
             this.useCombo();
             this.useGcd(Actions.Perfectio);
         }
-        else{
+        else {
             this.useGcd(Actions.Perfectio);
 
-            if (this.rotationState.combo != 0) {
+            if (this.rotationState.combo !== 0) {
                 this.useCombo();
             }
         }
@@ -343,7 +342,7 @@ class RprCycleProcessor extends CycleProcessor {
         /** set rotation state to pre-odd-shroud-and-gluttony */
         this.rotationState.spendSoulThreshold = 100;
         this.rotationState.oddShroudUsed = false;
-        
+
     }
 
     useFiller() {
@@ -376,7 +375,7 @@ class RprCycleProcessor extends CycleProcessor {
         /** If SS is available the gcd after next one, use unveiled > gibgal to not overcap */
         if (this.cdTracker.statusOf(Actions.SoulSlice).readyAt.absolute <= this.nextGcdTime + this.stats.gcdPhys(this.gcdBase)
             && this.gauge.soulGauge >= 50
-            && this.cdTracker.statusOf(Actions.Gluttony).readyAt.absolute > this.nextGcdTime + 2*this.stats.gcdPhys(this.gcdBase)) {
+            && this.cdTracker.statusOf(Actions.Gluttony).readyAt.absolute > this.nextGcdTime + 2 * this.stats.gcdPhys(this.gcdBase)) {
 
             this.useGibGal();
             return;
@@ -385,7 +384,7 @@ class RprCycleProcessor extends CycleProcessor {
         /** Use SS if its off cd and won't overcap */
         if (this.cdTracker.canUse(Actions.SoulSlice, this.nextGcdTime)
             && this.gauge.soulGauge <= 50) {
-            
+
             this.useGcd(Actions.SoulSlice);
             return;
         }
@@ -401,7 +400,7 @@ class RprCycleProcessor extends CycleProcessor {
 
         /** Spend soul if we're at the threshold */
         if (this.gauge.soulGauge >= this.rotationState.spendSoulThreshold
-            && (this.gauge.shroudGauge < 50 || this.gauge.soulGauge == 100) //Only spend up to 50 shroud, unless we're going to overcap
+            && (this.gauge.shroudGauge < 50 || this.gauge.soulGauge === 100) //Only spend up to 50 shroud, unless we're going to overcap
         ) {
             this.useGibGal();
             return;
@@ -440,8 +439,8 @@ export class RprSheetSim extends BaseMultiCycleSim<RprSheetSimResult, RprSimSett
 
             apply(cp: RprCycleProcessor) {
 
-                const numPots = Math.ceil(cp.remainingTime / 360) // Force pots during 2mins
-                const maxAllowableDelay = cp.remainingTime - ((numPots- 1) * 360)
+                const numPots = Math.ceil(cp.remainingTime / 360); // Force pots during 2mins
+                const maxAllowableDelay = cp.remainingTime - ((numPots - 1) * 360);
                 const potOpener = maxAllowableDelay <= 120;
 
                 const enshroudTime = cp.gcdTime(Actions.CrossReaping) + 3 * cp.gcdTime(Actions.ShadowOfDeath) - animationLock(Actions.ArcaneCircle);
@@ -460,10 +459,10 @@ export class RprSheetSim extends BaseMultiCycleSim<RprSheetSimResult, RprSimSett
 
                     if (cp.remainingGcdTime > 0) {
                         cp.useStandardDoubleShroud();
-                    }   
+                    }
                 }
-            }
+            },
 
-        }]
+        }];
     }
-} 
+}

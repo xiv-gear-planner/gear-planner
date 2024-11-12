@@ -54,7 +54,7 @@ export class BaseUsageCountSimGui<ResultType extends CountSimResult, InternalSet
             "Expected +3σ": applyStdDev(result.mainDpsFull, 3),
             "Unbuffed PPS": result.unbuffedPps,
             "Total Damage": result.totalDamage.expected,
-            "Cycle Time": result.cycleTime.toFixed(3)
+            "Cycle Time": result.cycleTime.toFixed(3),
         });
         mainResultsTable.classList.add('main-results-table');
 
@@ -81,7 +81,7 @@ export class BaseUsageCountSimGui<ResultType extends CountSimResult, InternalSet
                         ability: ability,
                         usages: new Map<number, number>(),
                         outOfBuffs: 0,
-                        total: 0
+                        total: 0,
                     };
                     transposedData.push(abilityData);
                 }
@@ -106,23 +106,23 @@ export class BaseUsageCountSimGui<ResultType extends CountSimResult, InternalSet
             getter: item => item.ability,
             renderer: (value: Ability) => {
                 return document.createTextNode(`${value.name}`);
-            }
+            },
         }];
         buffDurations.forEach(dur => {
             columns.push({
                 shortName: `buff-dur-${dur}`,
                 displayName: `In ${dur}s Buffs`,
                 getter: bucket => {
-                    return bucket.usages.get(dur) ?? 0
+                    return bucket.usages.get(dur) ?? 0;
                 },
                 renderer: value => document.createTextNode(value.toFixed(3)),
-            })
+            });
         });
         columns.push({
             shortName: `out-of-buffs`,
             displayName: `Out of Buffs`,
             getter: bucket => {
-                return bucket.outOfBuffs
+                return bucket.outOfBuffs;
             },
             renderer: value => document.createTextNode(value.toFixed(3)),
         });
@@ -130,7 +130,7 @@ export class BaseUsageCountSimGui<ResultType extends CountSimResult, InternalSet
             shortName: `total`,
             displayName: `Total`,
             getter: bucket => {
-                return bucket.total
+                return bucket.total;
             },
             renderer: value => document.createTextNode(value.toFixed(3)),
         });

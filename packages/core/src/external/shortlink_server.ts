@@ -23,15 +23,19 @@ export function setServerOverride(server: string) {
     localStorage.setItem(STORAGE_KEY, server);
 }
 
+export function getShortlinkFetchUrl(stub: string): URL {
+    return new URL(encodeURIComponent(stub), getServer());
+}
+
 export async function getShortLink(stub: string): Promise<string> {
-    const FULL_URL = new URL(encodeURIComponent(stub), getServer());
+    const FULL_URL = getShortlinkFetchUrl(stub);
     return await fetch(FULL_URL).then(response => response.text());
 }
 
 export async function putShortLink(content: string, embed: boolean = false): Promise<URL> {
     return await fetch(getServer(), {
         method: "POST",
-        body: content
+        body: content,
     }).then(response => response.text()).then(uuid => {
         // If on prod, use the fancy share link.
         if (embed) {

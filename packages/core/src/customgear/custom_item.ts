@@ -14,6 +14,7 @@ import {CURRENT_MAX_LEVEL, LEVEL_ITEMS, MATERIA_LEVEL_MAX_NORMAL} from "@xivgear
 import {IlvlSyncInfo} from "../datamanager_xivapi";
 import {applyStatCaps} from "../gear";
 import {GearPlanSheet} from "../sheet";
+import {toTranslatable} from "../i18n/translation";
 
 export type CustomItemExport = {
     ilvl: number;
@@ -33,17 +34,14 @@ export class CustomItem implements GearItem {
 
     unsyncedVersion: GearItem = this;
     isCustomRelic: boolean = false;
-    // TODO: syncing and stat caps not supported
     isSyncedDown: boolean = false;
     relicStatModel = undefined;
-    // unsyncedVersion: GearItem = null;
     acquisitionType: GearAcquisitionSource = 'custom';
 
-    // TODO
     primarySubstat: keyof RawStats = null;
     secondarySubstat: keyof RawStats = null;
-    // statCaps: { determination?: number; piety?: number; crit?: number; dhit?: number; spellspeed?: number; skillspeed?: number; tenacity?: number; hp?: number; vitality?: number; strength?: number; dexterity?: number; intelligence?: number; mind?: number; wdPhys?: number; wdMag?: number; weaponDelay?: number; };
     statCaps = {};
+    // TODO: pull this out into a constant somewhere
     iconUrl: URL = new URL(xivApiIconUrl(26270));
     syncedDownTo: number | null;
     private _data: CustomItemExport;
@@ -71,7 +69,7 @@ export class CustomItem implements GearItem {
             ...this.defaults(),
             // respectCaps is false for existing items to not cause changes to sheets
             respectCaps: false,
-            ...exportedData
+            ...exportedData,
         }, sheet);
     }
 
@@ -107,6 +105,15 @@ export class CustomItem implements GearItem {
         this.recheckStats();
     }
 
+    get equipLvl() {
+        return this._data.equipLvl;
+    }
+
+    set equipLvl(equipLvl: number) {
+        this._data.equipLvl = equipLvl;
+        this.recheckStats();
+    }
+
     get respectCaps() {
         return this._data.respectCaps;
     }
@@ -124,6 +131,10 @@ export class CustomItem implements GearItem {
         return this._data.name;
     }
 
+    get nameTranslation() {
+        return toTranslatable(this.name);
+    }
+
     get occGearSlotName() {
         return this._data.slot;
     }
@@ -137,7 +148,7 @@ export class CustomItem implements GearItem {
     }
 
     get displayGearSlotName(): DisplayGearSlotKey {
-        if (this.occGearSlotName == 'Weapon1H' || this.occGearSlotName == 'Weapon2H') {
+        if (this.occGearSlotName === 'Weapon1H' || this.occGearSlotName === 'Weapon2H') {
             return 'Weapon';
         }
         return this.occGearSlotName;
@@ -153,14 +164,14 @@ export class CustomItem implements GearItem {
             out.push({
                 maxGrade: this._data.materiaGrade,
                 allowsHighGrade: true,
-                ilvl: this.ilvl
+                ilvl: this.ilvl,
             });
         }
         for (let i = 0; i < this._data.smallMateriaSlots; i++) {
             out.push({
                 maxGrade: this._data.materiaGrade - 1,
                 allowsHighGrade: false,
-                ilvl: this.ilvl
+                ilvl: this.ilvl,
             });
         }
         return out;
@@ -184,7 +195,7 @@ export class CustomItem implements GearItem {
             if (syncIlvlInfo && syncIlvlInfo.ilvl < this.ilvl) {
                 this.unsyncedVersion = {
                     ...this,
-                    stats: {...this.customData.stats}
+                    stats: {...this.customData.stats},
                 };
                 const statCapsSync = {};
                 Object.entries(this.stats).forEach(([stat, v]) => {

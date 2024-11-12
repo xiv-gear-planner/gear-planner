@@ -83,7 +83,7 @@ export class CustomTableHeaderRow<RowDataType> extends HTMLTableRowElement imple
     }
 
     refreshColumn(colDef: CustomColumn<RowDataType>) {
-        this._cells.find(cell => cell.colDef == colDef)?.refreshFull();
+        this._cells.find(cell => cell.colDef === colDef)?.refreshFull();
     }
 
     refreshSelection() {
@@ -150,7 +150,7 @@ export const noopSelectionModel: SelectionModel<any, undefined> = {
         return false;
     },
     clearSelection() {
-    }
+    },
 };
 
 export interface SelectionListener<SelectionType> {
@@ -246,16 +246,14 @@ export interface RefreshableRow<X> {
     get element(): HTMLElement
 }
 
+// TODO: there is a redundant copy of this in math-frontend, put these in common-ui
 export class CustomTable<RowDataType, SelectionType = never> extends HTMLTableElement {
     _data: (RowDataType | HeaderRow | TitleRow)[] = [];
     dataRowMap: Map<RowDataType, CustomRow<RowDataType>> = new Map<RowDataType, CustomRow<RowDataType>>();
     selectionRefreshables: SelectionRefresh[] = [];
     _rows: RefreshableRow<RowDataType>[] = [];
     _columns: CustomColumn<RowDataType, any>[];
-    // TODO
-    // selectionEnabled: boolean;
     selectionModel: SelectionModel<RowDataType, SelectionType> = noopSelectionModel;
-    curSelection: SelectionType = null;
 
     constructor() {
         super();
@@ -263,7 +261,7 @@ export class CustomTable<RowDataType, SelectionType = never> extends HTMLTableEl
         this.appendChild(this.createTBody());
         this.addEventListener('mousedown', ev => {
             this.handleClick(ev);
-        })
+        });
     }
 
     get columns() {
@@ -278,7 +276,7 @@ export class CustomTable<RowDataType, SelectionType = never> extends HTMLTableEl
                 return [out];
             }
             else {
-                return []
+                return [];
             }
         });
         // TODO: see if successive refreshFull calls can be coalesced
@@ -287,7 +285,6 @@ export class CustomTable<RowDataType, SelectionType = never> extends HTMLTableEl
     }
 
     set data(newData: (RowDataType | HeaderRow | TitleRow)[]) {
-        // TODO
         this._data = newData;
         this._onDataChanged();
     }
@@ -297,7 +294,7 @@ export class CustomTable<RowDataType, SelectionType = never> extends HTMLTableEl
     }
 
     protected makeDataRow(item: RowDataType): CustomRow<RowDataType> {
-        return new CustomRow<RowDataType>(item, this, {noInitialRefresh: true})
+        return new CustomRow<RowDataType>(item, this, {noInitialRefresh: true});
     }
 
     /**
@@ -483,10 +480,10 @@ export class CustomColumn<RowDataType, CellDataType = string, ColumnDataType = a
     renderer?: CellRenderer<RowDataType, CellDataType> = (value) => document.createTextNode(value.toString());
     colStyler?: ColStyler<RowDataType, CellDataType> = (value, colElement, internalElement) => {
         if (value) {
-            colElement.classList.add("value-truthy")
+            colElement.classList.add("value-truthy");
         }
         else {
-            colElement.classList.add("value-falsey")
+            colElement.classList.add("value-falsey");
         }
     };
     condition?: () => boolean = () => true;

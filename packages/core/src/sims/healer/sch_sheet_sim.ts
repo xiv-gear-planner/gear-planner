@@ -30,7 +30,7 @@ const filler: SchGcdAbility = {
     potency: 310,
     attackType: "Spell",
     gcd: 2.5,
-    cast: 1.5
+    cast: 1.5,
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -51,7 +51,7 @@ const bio: SchGcdAbility = {
     dot: {
         duration: 30,
         tickPotency: 75,
-        id: 3089
+        id: 3089,
     },
     attackType: "Spell",
     gcd: 2.5,
@@ -66,14 +66,14 @@ export const ImpactImminent: PersonalBuff = {
         // Allows use of Baneful Impaction
     },
     statusId: 3882,
-    appliesTo: ability => ability.id == baneful.id,
+    appliesTo: ability => ability.id === baneful.id,
     beforeSnapshot<X extends Ability>(buffController: BuffController, ability: X): X {
         buffController.removeSelf();
         return {
             ...ability,
         };
     },
-}
+};
 
 const chain: SchOgcdAbility = {
     type: 'ogcd',
@@ -83,8 +83,8 @@ const chain: SchOgcdAbility = {
     potency: null,
     attackType: "Ability",
     cooldown: {
-        time: 120
-    }
+        time: 120,
+    },
 };
 
 const baneful: SchOgcdAbility = {
@@ -95,9 +95,9 @@ const baneful: SchOgcdAbility = {
     dot: {
         duration: 15,
         tickPotency: 140,
-        id: 3883
+        id: 3883,
     },
-    attackType: "Ability"
+    attackType: "Ability",
 };
 
 const ed: SchOgcdAbility = {
@@ -116,10 +116,10 @@ const aetherflow: SchOgcdAbility = {
     potency: 0,
     attackType: "Ability",
     cooldown: {
-        time: 60
+        time: 60,
     },
     updateGauge: gauge => gauge.aetherflow = 3,
-}
+};
 
 const diss: SchOgcdAbility = {
     type: 'ogcd',
@@ -128,10 +128,10 @@ const diss: SchOgcdAbility = {
     potency: 0,
     attackType: "Ability",
     cooldown: {
-        time: 180
+        time: 180,
     },
     updateGauge: gauge => gauge.aetherflow = 3,
-}
+};
 
 class SchGauge {
     private _aetherflow: number = 0;
@@ -140,7 +140,7 @@ class SchGauge {
     }
     set aetherflow(newAF: number) {
         if (newAF < 0) {
-            console.warn(`Used Energy Drain when empty`)
+            console.warn(`Used Energy Drain when empty`);
         }
 
         this._aetherflow = Math.max(Math.min(newAF, 3), 0);
@@ -151,7 +151,7 @@ class SchGauge {
         return {
             level: 100,
             aetherflow: this.aetherflow,
-        }
+        };
     }
 
 }
@@ -176,7 +176,7 @@ export const schNewSheetSpec: SimSpec<SchSim, SchSettingsExternal> = {
     },
     stub: "sch-sheet-sim",
     supportedJobs: ['SCH'],
-    isDefaultSim: true
+    isDefaultSim: true,
 };
 
 class ScholarCycleProcessor extends CycleProcessor {
@@ -202,10 +202,10 @@ class ScholarCycleProcessor extends CycleProcessor {
 
         super.addAbilityUse(modified);
     }
-    
+
     override use(ability: Ability): AbilityUseResult {
         const schAbility = ability as SchAbility;
-        
+
         // Update gauge from the ability itself
         if (schAbility.updateGauge !== undefined) {
             schAbility.updateGauge(this.gauge);
@@ -282,7 +282,7 @@ export class SchSim extends BaseMultiCycleSim<SchSimResult, SchSettings, Scholar
             edsPerAfDiss: 3,
         };
     }
-    
+
     getRotationsToSimulate(): Rotation[] {
         const sim = this;
         return [{
@@ -314,7 +314,7 @@ export class SchSim extends BaseMultiCycleSim<SchSimResult, SchSettings, Scholar
                         }
                     }
                 });
-            }
+            },
         },
         ...rangeInc(10, 28, 2).map(i => ({
             name: `Redot at ${i}s`,
@@ -327,7 +327,7 @@ export class SchSim extends BaseMultiCycleSim<SchSimResult, SchSettings, Scholar
                 cp.oneCycle(cycle =>{
                     cp.useOgcd(diss);
                     cp.useTwoMinBurst();
-                    while (cycle.cycleRemainingGcdTime > 0) { 
+                    while (cycle.cycleRemainingGcdTime > 0) {
                         cp.useDotIfWorth();
                         if (cp.isReady(aetherflow)) {
                             cp.use(aetherflow);
@@ -392,7 +392,7 @@ export class SchSim extends BaseMultiCycleSim<SchSimResult, SchSettings, Scholar
                     }
                 });
             },
-        }))
-        ]
+        })),
+        ];
     }
 }

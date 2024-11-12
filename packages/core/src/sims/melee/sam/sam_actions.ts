@@ -10,7 +10,7 @@ export const Gyofu: SamGcdAbility = {
     name: "Gyofu",
     id: 36963,
     attackType: "Weaponskill",
-    potency: 230,
+    potency: 240,
     gcd: 2.5,
     cast: 0,
     updateGauge: (gauge: SAMGauge) => {
@@ -149,7 +149,7 @@ export const Higanbana: SamGcdAbility = {
     dot: {
         id: 1228,
         duration: 60,
-        tickPotency: 50
+        tickPotency: 50,
     },
     gcd: 2.5,
     cast: 1.3,
@@ -211,7 +211,7 @@ export const Zanshin: KenkiAbility = {
     name: "Zanshin",
     id: 36964,
     attackType: "Ability",
-    potency: 820,
+    potency: 900,
     updateGauge: gauge => gauge.kenkiGauge -= 50,
     kenkiCost: 50,
 };
@@ -246,7 +246,7 @@ export const HissatsuGyoten: KenkiAbility = {
     attackType: "Ability",
     potency: 100,
     cooldown: {
-        time: 10,
+        time: 5,
     },
     updateGauge: gauge => gauge.kenkiGauge -= 10,
     kenkiCost: 10,

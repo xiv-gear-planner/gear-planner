@@ -104,7 +104,7 @@ export const Vicewinder: VprGcdAbility = {
     cast: 0,
     cooldown: {
         time: 40,
-        charges: 2
+        charges: 2,
     },
     updateGauge: gauge => gauge.rattlingCoils += 1,
 };
@@ -142,7 +142,7 @@ export const UncoiledFury: VprGcdAbility = {
     gcd: 3.5,
     cast: 0,
     updateGauge: gauge => gauge.rattlingCoils -= 1,
-}
+};
 
 export const Reawaken: VprGcdAbility = {
     type: 'gcd',
@@ -153,7 +153,7 @@ export const Reawaken: VprGcdAbility = {
     gcd: 2.2,
     cast: 0,
     updateGauge: gauge => gauge.serpentOfferings -= 50,
-}
+};
 
 const GenerationBase: VprGcdAbility = {
     name: null,
@@ -163,31 +163,31 @@ const GenerationBase: VprGcdAbility = {
     attackType: "Weaponskill",
     gcd: 2.0,
     cast: 0,
-}
+};
 
 export const FirstGeneration: VprGcdAbility = {
     ...GenerationBase,
     name: "First Generation",
     id: 34627,
-}
+};
 
 export const SecondGeneration: VprGcdAbility = {
     ...GenerationBase,
     name: "Second Generation",
     id: 34628,
-}
+};
 
 export const ThirdGeneration: VprGcdAbility = {
     ...GenerationBase,
     name: "Third Generation",
     id: 34629,
-}
+};
 
 export const FourthGeneration: VprGcdAbility = {
     ...GenerationBase,
     name: "Fourth Generation",
     id: 34630,
-}
+};
 
 export const Ouroboros: VprGcdAbility = {
     name: "Ouroboros",
@@ -197,39 +197,39 @@ export const Ouroboros: VprGcdAbility = {
     attackType: "Weaponskill",
     gcd: 2.0,
     cast: 0,
-}
+};
 
 const LegacyBase: VprOgcdAbility = {
     name: null,
     id: null,
     type: 'ogcd',
     potency: 280,
-    attackType: 'Ability'
-}
+    attackType: 'Ability',
+};
 
 export const FirstLegacy: VprOgcdAbility = {
     ...LegacyBase,
     name: "First Legacy",
     id: 34640,
-}
+};
 
 export const SecondLegacy: VprOgcdAbility = {
     ...LegacyBase,
     name: "Second Legacy",
     id: 34641,
-}
+};
 
 export const ThirdLegacy: VprOgcdAbility = {
     ...LegacyBase,
     name: "Third Legacy",
     id: 34642,
-}
+};
 
 export const FourthLegacy: VprOgcdAbility = {
     ...LegacyBase,
     name: "Fourth Legacy",
     id: 34643,
-}
+};
 
 export const SerpentsIre: VprOgcdAbility = {
     name: "Serpent's Ire",
@@ -238,12 +238,12 @@ export const SerpentsIre: VprOgcdAbility = {
     potency: 0,
     cooldown: {
         time: 120,
-        charges: 1
+        charges: 1,
     },
     attackType: 'Ability',
     updateGauge: gauge => gauge.rattlingCoils += 1,
     activatesBuffs: [ReadyToReawaken],
-}
+};
 
 export const TwinfangBite: VprOgcdAbility = {
     name: "Twinfang Bite",
@@ -251,7 +251,7 @@ export const TwinfangBite: VprOgcdAbility = {
     type: 'ogcd',
     potency: 120,
     attackType: 'Ability',
-}
+};
 
 export const TwinbloodBite: VprOgcdAbility = {
     name: "Twinblood Bite",
@@ -259,7 +259,7 @@ export const TwinbloodBite: VprOgcdAbility = {
     type: 'ogcd',
     potency: 120,
     attackType: 'Ability',
-}
+};
 
 export const DeathRattle: VprOgcdAbility = {
     name: "Death Rattle",
@@ -267,7 +267,7 @@ export const DeathRattle: VprOgcdAbility = {
     type: 'ogcd',
     potency: 280,
     attackType: 'Ability',
-}
+};
 
 export const UncoiledTwinfang: VprOgcdAbility = {
     name: "Uncoiled Twinfang",
@@ -275,7 +275,7 @@ export const UncoiledTwinfang: VprOgcdAbility = {
     type: 'ogcd',
     potency: 120,
     attackType: 'Ability',
-}
+};
 
 export const UncoiledTwinblood: VprOgcdAbility = {
     name: "Uncoiled Twinblood",
@@ -283,4 +283,4 @@ export const UncoiledTwinblood: VprOgcdAbility = {
     type: 'ogcd',
     potency: 120,
     attackType: 'Ability',
-}
+};

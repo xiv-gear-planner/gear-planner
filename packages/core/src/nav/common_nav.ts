@@ -83,7 +83,7 @@ export function parsePath(originalPath: string[]): NavPath | null {
     if (path.length === 0) {
         return {
             type: 'mysheets',
-        }
+        };
     }
     if (path[0] === EMBED_HASH) {
         embed = true;
@@ -104,13 +104,13 @@ export function parsePath(originalPath: string[]): NavPath | null {
             viewOnly: false,
             saveKey: path[1],
             embed: false,
-        }
+        };
     }
     else if (mainNav === "newsheet") {
         embedWarn();
         return {
-            type: 'newsheet'
-        }
+            type: 'newsheet',
+        };
     }
     else if (mainNav === "importsheet" || mainNav === VIEW_SHEET_HASH) {
         const viewOnly = mainNav === VIEW_SHEET_HASH;
@@ -119,8 +119,8 @@ export function parsePath(originalPath: string[]): NavPath | null {
         // TODO: weird case with ['viewsheet'] only - should handle better
         if (path.length === 1) {
             return {
-                type: 'importform'
-            }
+                type: 'importform',
+            };
         }
         else {
             const json = path.slice(1).join(PATH_SEPARATOR);
@@ -129,8 +129,8 @@ export function parsePath(originalPath: string[]): NavPath | null {
                 type: 'sheetjson',
                 jsonBlob: parsed,
                 embed: false,
-                viewOnly: viewOnly
-            }
+                viewOnly: viewOnly,
+            };
         }
     }
     else if (mainNav === "importset" || mainNav === VIEW_SET_HASH) {
@@ -138,8 +138,8 @@ export function parsePath(originalPath: string[]): NavPath | null {
         if (path.length === 1) {
             embedWarn();
             return {
-                type: 'importform'
-            }
+                type: 'importform',
+            };
         }
         else {
             const json = path.slice(1).join(PATH_SEPARATOR);
@@ -154,7 +154,7 @@ export function parsePath(originalPath: string[]): NavPath | null {
                 jsonBlob: parsed,
                 embed: embed,
                 viewOnly: viewOnly,
-            }
+            };
         }
     }
     else if (mainNav === SHORTLINK_HASH) {
@@ -163,8 +163,8 @@ export function parsePath(originalPath: string[]): NavPath | null {
                 type: 'shortlink',
                 uuid: path[1],
                 embed: embed,
-                viewOnly: true
-            }
+                viewOnly: true,
+            };
         }
     }
     else if (mainNav === BIS_HASH) {
@@ -177,8 +177,8 @@ export function parsePath(originalPath: string[]): NavPath | null {
                 expac: path[2],
                 sheet: path[3],
                 viewOnly: true,
-                embed: false
-            }
+                embed: false,
+            };
         }
     }
     console.log('Unknown nav path', path);
@@ -212,7 +212,7 @@ export function makeUrl(...pathParts: string[]): URL {
  * @param input The legacy hash path
  */
 export function splitHashLegacy(input: string) {
-    return (input.startsWith("#") ? input.substring(1) : input).split('/').filter(item => item).map(item => decodeURIComponent(item))
+    return (input.startsWith("#") ? input.substring(1) : input).split('/').filter(item => item).map(item => decodeURIComponent(item));
 }
 
 /**
@@ -227,6 +227,4 @@ export function splitPath(input: string) {
         .filter(item => item)
         .map(item => decodeURIComponent(item))
         .map(pp => pp.replaceAll(VERTICAL_BAR_REPLACEMENT, PATH_SEPARATOR));
-    // TODO: replace | with a lookalike character?
-    // .map(item => item.replaceAll())
 }
