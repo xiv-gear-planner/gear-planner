@@ -287,7 +287,7 @@ export const DreamWithin: NinOgcdAbility = {
     name: "Dream Within a Dream",
     id: 3566,
     attackType: "Ability",
-    potency: 150 * 3, // Multihit
+    potency: 180 * 3, // Multihit
 };
 
 export const Bhavacakra: NinkiAbility = {
