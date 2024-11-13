@@ -432,7 +432,7 @@ export class VprCycleProcessor extends CycleProcessor {
             : postReawakenTime + ((1 - this.rotationState.comboStep) % 3) * this.gcdTime(Actions.ReavingFangs);
 
         if (this.gauge.serpentOfferings >= 50
-            && (nextSecondaryBuffRefresh < this.getActiveBuffData(HuntersInstinct).end || this.getActiveBuffData(HuntersInstinct).end > this.totalTime) 
+            && (nextSecondaryBuffRefresh < this.getActiveBuffData(HuntersInstinct).end || this.getActiveBuffData(HuntersInstinct).end > this.totalTime)
             && (nextSecondaryBuffRefresh < this.getActiveBuffData(Swiftscaled).end || this.getActiveBuffData(Swiftscaled).end > this.totalTime)
             && (this.willHaveGaugeForBurst() || this.getGcdTimeAfterSerpentsIre() + this.getReawakenDuration() > this.totalTime)
         ) {
