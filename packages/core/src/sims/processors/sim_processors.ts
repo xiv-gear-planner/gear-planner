@@ -50,7 +50,7 @@ implements Simulation<FullResultType, InternalSettingsType, ExternalCycleSetting
     readonly manualRun = false;
 
     private cachedCycleProcessors: [string, CycleProcessor][];
-    private cachedSpeed: number;
+    private cacheKey: string;
 
     protected constructor(public readonly job: JobName, settings?: ExternalCycleSettings<InternalSettingsType>) {
         this.settings = this.makeDefaultSettings();
@@ -137,7 +137,6 @@ implements Simulation<FullResultType, InternalSettingsType, ExternalCycleSetting
         const allBuffs = this.buffManager.enabledBuffs;
         const rotations = this.getRotationsToSimulate(set);
         return rotations.map((rot, index) => {
-
             const cp = this.createCycleProcessor({
                 stats: set.computedStats,
                 totalTime: this.cycleSettings.totalTime,
@@ -191,10 +190,11 @@ implements Simulation<FullResultType, InternalSettingsType, ExternalCycleSetting
 
     async simulate(set: CharacterGearSet): Promise<FullResultType> {
         console.debug("Sim start");
-        const setSpeed = set.isStatRelevant('spellspeed') ? set.computedStats.spellspeed : set.computedStats.skillspeed;
-        if (setSpeed !== this.cachedSpeed) {
+        const cacheKey = this.getCacheKey(set);
+        console.debug(`Sim cacheKey = '${cacheKey}'`);
+        if (cacheKey !== this.cacheKey) {
             this.cachedCycleProcessors = this.generateRotations(set);
-            this.cachedSpeed = setSpeed;
+            this.cacheKey = cacheKey;
         }
         return this.calcDamage(set);
     };
@@ -205,7 +205,33 @@ implements Simulation<FullResultType, InternalSettingsType, ExternalCycleSetting
 
     invalidateCaches() {
         this.cachedCycleProcessors = [];
-        this.cachedSpeed = undefined;
+        this.cacheKey = undefined;
     }
 
+    /**
+     * Gets the cache key for the generated rotation. This ensures that the rotation doesn't need to be
+     * recomputed when only damage increasing stats change.
+     *
+     * By default, the key is generated off the set's speed and whether or not a weapon is equipped.
+     * The weapon equipped key exists since auto-attacks can only be part of the rotation with a weapon.
+     *
+     * This can be overridden if the sim has a special reason to do so. For example, if the behaviour
+     * of your rotation changes based on if you reach a threshold of crit, that could be made into a cache key.
+     *
+     * It's not recommended to have the key depend on a specific stat (i.e. your crit stat), as it will cause a
+     * lot of unnecessary reprocessing to occur.
+     *
+     * @param set The CharacterGearSet to base the cache key off.
+     * @return The cache key.
+     * @protected
+     */
+    protected getCacheKey(set: CharacterGearSet) : string {
+        const spellSpeed = set.computedStats.spellspeed;
+        const skillSpeed = set.computedStats.skillspeed;
+
+        // Without a weapon equipped, we can't know how to apply auto-attacks, so
+        // we need this so that auto-attacks get applied when one is equipped.
+        const weaponEquipped = set.getItemInSlot('Weapon') !== null;
+        return `spellSpeed=${spellSpeed}, skillSpeed=${skillSpeed}, weaponEquipped=${weaponEquipped}`;
+    }
 }

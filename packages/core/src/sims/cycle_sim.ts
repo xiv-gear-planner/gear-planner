@@ -1192,7 +1192,6 @@ export class CycleProcessor {
         this.addAbilityUse({
             usedAt: this.currentTime,
             ability: this.aaAbility,
-            //directDamage: dmgInfo.directDamage,
             buffs: buffs,
             combinedEffects: combinedEffects,
             totalTimeTaken: 0,
