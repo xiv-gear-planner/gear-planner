@@ -357,6 +357,7 @@ class SheetExportModal extends ExportModal<GearPlanSheet> {
     get previewUrl(): string {
         const exported = this.sheet.exportSheet(true);
         const url = makeUrl(VIEW_SET_HASH, JSON.stringify(exported));
+        console.log("Preview url", url);
         return url.toString();
     }
 }
@@ -370,6 +371,7 @@ class SetExportModal extends ExportModal<CharacterGearSet> {
     get previewUrl(): string {
         const exported = this.sheet.exportGearSet(this.item, true);
         const url = makeUrl(VIEW_SET_HASH, JSON.stringify(exported));
+        console.log("Preview url", url);
         return url.toString();
     }
 }

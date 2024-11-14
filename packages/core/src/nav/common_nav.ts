@@ -124,7 +124,7 @@ export function parsePath(originalPath: string[]): NavPath | null {
         }
         else {
             const json = path.slice(1).join(PATH_SEPARATOR);
-            const parsed = JSON.parse(decodeURI(json)) as SheetExport;
+            const parsed = JSON.parse(decodeURIComponent(json)) as SheetExport;
             return {
                 type: 'sheetjson',
                 jsonBlob: parsed,
@@ -143,7 +143,7 @@ export function parsePath(originalPath: string[]): NavPath | null {
         }
         else {
             const json = path.slice(1).join(PATH_SEPARATOR);
-            const parsed = JSON.parse(decodeURI(json)) as SetExport;
+            const parsed = JSON.parse(decodeURIComponent(json)) as SetExport;
             const viewOnly = mainNav === VIEW_SET_HASH;
             if (!viewOnly) {
                 embedWarn();
