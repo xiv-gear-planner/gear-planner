@@ -1,7 +1,7 @@
-import { CharacterGearSet } from "@xivgear/core/gear";
-import { SimResult, SimSettings, SimSpec, Simulation } from "@xivgear/core/sims/sim_types";
-import { NORMAL_GCD } from "@xivgear/xivmath/xivconstants";
-import { EmptyObject } from "../../util/types";
+import {CharacterGearSet} from "@xivgear/core/gear";
+import {SimResult, SimSettings, SimSpec, Simulation} from "@xivgear/core/sims/sim_types";
+import {NORMAL_GCD} from "@xivgear/xivmath/xivconstants";
+import {EmptyObject} from "../../util/types";
 
 const maxMP = 10000;
 
@@ -53,16 +53,20 @@ export const mpSimSpec: SimSpec<MPPerMinute, MPSettings> = {
     supportedJobs: ['AST', 'SCH', 'SGE', 'WHM'],
 };
 
-export class MPPerMinute implements Simulation<MPResult, MPSettings, EmptyObject>{
+export class MPPerMinute implements Simulation<MPResult, MPSettings, EmptyObject> {
     exportSettings() {
         return {
             ...this.settings,
         };
     }
+
     spec = mpSimSpec;
     shortName = 'mp';
     displayName = mpSimSpec.displayName;
     settings = {};
+
+    settingsChanged() {
+    }
 
     async simulate(set: CharacterGearSet): Promise<MPResult> {
         let mpResult: number = 0;
@@ -102,7 +106,7 @@ export class MPPerMinute implements Simulation<MPResult, MPSettings, EmptyObject
 
         mpResult -= (numFillerGCDs * fillerMP);
 
-        if (mpResult < 0){
+        if (mpResult < 0) {
             minutesToZero = -1 * maxMP / mpResult;
         }
         else {
