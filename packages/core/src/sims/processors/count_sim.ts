@@ -64,6 +64,9 @@ implements Simulation<ResultType, InternalSettingsType, ExternalCountSettings<In
         }
     }
 
+    settingsChanged(): void {
+    }
+
     abstract makeDefaultSettings(): InternalSettingsType;
 
     async simulate(set: CharacterGearSet): Promise<ResultType> {

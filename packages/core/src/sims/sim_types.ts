@@ -135,6 +135,11 @@ export interface Simulation<ResultType extends SimResult, SettingsType extends S
      * may also be implemented for changes to gear sets.
      */
     readonly manualRun?: boolean;
+
+    /**
+     * Notify the sim that settings have changed
+     */
+    settingsChanged(): void;
 }
 
 /**

@@ -51,6 +51,7 @@ implements Simulation<FullResultType, InternalSettingsType, ExternalCycleSetting
 
     private cachedCycleProcessors: [string, CycleProcessor][];
     private cachedSpeed: number;
+
     protected constructor(public readonly job: JobName, settings?: ExternalCycleSettings<InternalSettingsType>) {
         this.settings = this.makeDefaultSettings();
         if (settings !== undefined) {
@@ -197,5 +198,14 @@ implements Simulation<FullResultType, InternalSettingsType, ExternalCycleSetting
         }
         return this.calcDamage(set);
     };
+
+    settingsChanged() {
+        this.invalidateCaches();
+    }
+
+    invalidateCaches() {
+        this.cachedCycleProcessors = [];
+        this.cachedSpeed = undefined;
+    }
 
 }

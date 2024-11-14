@@ -80,6 +80,9 @@ export class WhmSheetSim implements Simulation<WhmSheetSimResult, WhmSheetSettin
         }
     }
 
+    settingsChanged() {
+    }
+
     extraDhRate() {
         return (this.settings.hasBard ? (battleVoiceAvg + brdDhAvg) : 0);
     }

@@ -44,4 +44,8 @@ export class PotencyRatioSim implements Simulation<PotencyRatioSimResults, SimSe
     };
 
     spec = potRatioSimSpec;
+
+    settingsChanged(): void {
+
+    }
 }

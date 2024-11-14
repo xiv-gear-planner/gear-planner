@@ -79,6 +79,9 @@ export class SgeSheetSim implements Simulation<SgeSheetSimResult, SgeSheetSettin
         }
     }
 
+    settingsChanged() {
+    }
+
     extraDhRate() {
         return (this.settings.hasBard ? (battleVoiceAvg + brdDhAvg) : 0);
     }
