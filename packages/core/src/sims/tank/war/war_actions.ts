@@ -1,5 +1,5 @@
-import { WarGauge } from "./war_gauge";
-import { WarGcdAbility, WarOgcdAbility, SurgingTempest, PrimalRendReadyBuff, PrimalRuinationReadyBuff, InnerReleaseBuff, NascentChaosBuff } from "./war_types";
+import {WarGauge} from "./war_gauge";
+import {WarGcdAbility, WarOgcdAbility, SurgingTempest, PrimalRendReadyBuff, PrimalRuinationReadyBuff, InnerReleaseBuff, NascentChaosBuff} from "./war_types";
 
 export const Tomahawk: WarGcdAbility = {
     type: 'gcd',

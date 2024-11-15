@@ -1,6 +1,7 @@
 import {AttackType, ComputedSetStats, JobData, LevelStats, RawStats} from "./geartypes";
 import {chanceMultiplierStdDev, fixedValue, multiplyValues, ValueWithDev} from "./deviation";
-import { ScalingOverrides } from "@xivgear/core/sims/sim_types";
+import {ScalingOverrides} from "@xivgear/core/sims/sim_types";
+
 /*
     Common math for FFXIV.
 

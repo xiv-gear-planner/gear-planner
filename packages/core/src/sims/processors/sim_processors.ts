@@ -1,9 +1,9 @@
-import { JOB_DATA, JobName } from "@xivgear/xivmath/xivconstants";
-import { CycleSettings } from "@xivgear/core/sims/cycle_settings";
-import { CharacterGearSet } from "@xivgear/core/gear";
-import { sum } from "@xivgear/core/util/array_utils";
-import { addValues, applyStdDev, multiplyFixed } from "@xivgear/xivmath/deviation";
-import { PartyBuff, SimSettings, SimSpec, Simulation } from "@xivgear/core/sims/sim_types";
+import {JOB_DATA, JobName} from "@xivgear/xivmath/xivconstants";
+import {CycleSettings} from "@xivgear/core/sims/cycle_settings";
+import {CharacterGearSet} from "@xivgear/core/gear";
+import {sum} from "@xivgear/core/util/array_utils";
+import {addValues, applyStdDev, multiplyFixed} from "@xivgear/xivmath/deviation";
+import {PartyBuff, SimSettings, SimSpec, Simulation} from "@xivgear/core/sims/sim_types";
 import {
     CutoffMode,
     CycleProcessor,
@@ -16,14 +16,14 @@ import {
     ResultSettings,
     Rotation
 } from "@xivgear/core/sims/cycle_sim";
-import { BuffSettingsManager } from "@xivgear/core/sims/common/party_comp_settings";
+import {BuffSettingsManager} from "@xivgear/core/sims/common/party_comp_settings";
 
 /**
  * Base class for a CycleProcessor based simulation. You should extend this class,
  * and provide your own generic types.
  */
 export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, InternalSettingsType extends SimSettings, CycleProcessorType extends CycleProcessor = CycleProcessor, FullResultType extends CycleSimResultFull<ResultType> = CycleSimResultFull<ResultType>>
-implements Simulation<FullResultType, InternalSettingsType, ExternalCycleSettings<InternalSettingsType>> {
+    implements Simulation<FullResultType, InternalSettingsType, ExternalCycleSettings<InternalSettingsType>> {
 
     abstract displayName: string;
     abstract shortName: string;

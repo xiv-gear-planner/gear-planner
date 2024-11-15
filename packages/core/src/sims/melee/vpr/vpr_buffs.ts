@@ -1,4 +1,4 @@
-import { Ability, Buff, BuffController, PersonalBuff } from "@xivgear/core/sims/sim_types";
+import {Ability, Buff, BuffController, PersonalBuff} from "@xivgear/core/sims/sim_types";
 import * as Actions from "./vpr_actions";
 
 export const HonedReavers: PersonalBuff = {

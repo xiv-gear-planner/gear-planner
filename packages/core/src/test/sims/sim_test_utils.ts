@@ -2,7 +2,7 @@
 import {isClose} from "@xivgear/core/test/test_utils";
 import {FinalizedAbility, PartyBuff} from "@xivgear/core/sims/sim_types";
 import {CycleSimResult, CycleSimResultFull, DisplayRecordFinalized} from "@xivgear/core/sims/cycle_sim";
-import { BaseMultiCycleSim } from "@xivgear/core/sims/processors/sim_processors";
+import {BaseMultiCycleSim} from "@xivgear/core/sims/processors/sim_processors";
 
 /**
  * Type that represents the time, name, and damage of an ability

@@ -1,6 +1,6 @@
-import { Fugetsu, Fuka, MeikyoShisuiBuff } from "./sam_buffs";
+import {Fugetsu, Fuka, MeikyoShisuiBuff} from "./sam_buffs";
 import SAMGauge from "./sam_gauge";
-import { KenkiAbility, SamGcdAbility, SamOgcdAbility } from "./sam_types";
+import {KenkiAbility, SamGcdAbility, SamOgcdAbility} from "./sam_types";
 
 /**
  * GCD Actions

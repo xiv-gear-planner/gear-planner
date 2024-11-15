@@ -4,6 +4,7 @@ import eslint from '@eslint/js';
 import tseslint from 'typescript-eslint';
 import stylisticJs from '@stylistic/eslint-plugin-js'
 import pluginChaiFriendly from 'eslint-plugin-chai-friendly';
+import namedImportSpacing from 'eslint-plugin-named-import-spacing';
 
 export default [
     eslint.configs.recommended,
@@ -12,6 +13,7 @@ export default [
         plugins: {
             '@stylistic/js': stylisticJs,
             'chai-friendly': pluginChaiFriendly,
+            'named-import-spacing': namedImportSpacing,
         },
         ignores: ['**/build/', '**/dist/', '**/*.d.ts'],
         languageOptions: {
@@ -68,10 +70,16 @@ export default [
             "use-isnan": "error",
             "eqeqeq": "error",
             "no-var": "error",
-            "indent": ["error", 4, { "SwitchCase": 1 }],
+            "@stylistic/js/indent": ["error", 4, {
+                "SwitchCase": 1,
+                // This makes it ignore continuation indents for when a long class declaration (e.g. lots of
+                // 'implements') causes it to wrap to a second line.
+                "ignoredNodes": ["ClassDeclaration"],
+            }],
             "prefer-const": "error",
             "camelcase": "error",
             "block-scoped-var": "error",
+            "named-import-spacing/named-import-spacing": ["error", "never"]
         }
     }
 ];

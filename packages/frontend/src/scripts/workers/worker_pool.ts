@@ -1,8 +1,8 @@
-import { GearPlanSheet } from "@xivgear/core/sheet";
-import { GearsetGenerationSettingsExport } from "@xivgear/core/solving/gearset_generation";
-import { SolverSimulationSettingsExport } from "@xivgear/core/solving/sim_runner";
-import { range } from "@xivgear/core/util/array_utils";
-import { SheetExport } from "@xivgear/xivmath/geartypes";
+import {GearPlanSheet} from "@xivgear/core/sheet";
+import {GearsetGenerationSettingsExport} from "@xivgear/core/solving/gearset_generation";
+import {SolverSimulationSettingsExport} from "@xivgear/core/solving/sim_runner";
+import {range} from "@xivgear/core/util/array_utils";
+import {SheetExport} from "@xivgear/xivmath/geartypes";
 
 type ResolveReject = {
     resolve: (res: unknown) => void,

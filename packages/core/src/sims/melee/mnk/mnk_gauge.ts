@@ -1,4 +1,4 @@
-import { FuryType, MNKGaugeState } from './mnk_types';
+import {FuryType, MNKGaugeState} from './mnk_types';
 
 export class MNKGauge {
     chakra: number = 0;

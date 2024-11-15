@@ -1,10 +1,10 @@
-import { CycleSimResult, DisplayRecordFinalized, isFinalizedAbilityUse } from "@xivgear/core/sims/cycle_sim";
-import { CustomColumnSpec } from "../../../tables";
-import { AbilitiesUsedTable } from "../../components/ability_used_table";
-import { BaseMultiCycleSimGui } from "../../multicyclesim_ui";
-import { MnkSimResult, MnkSettings } from "@xivgear/core/sims/melee/mnk/mnk_sim";
-import { PreDmgUsedAbility } from "@xivgear/core/sims/sim_types";
-import { MNKExtraData } from "@xivgear/core/sims/melee/mnk/mnk_types";
+import {CycleSimResult, DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/core/sims/cycle_sim";
+import {CustomColumnSpec} from "../../../tables";
+import {AbilitiesUsedTable} from "../../components/ability_used_table";
+import {BaseMultiCycleSimGui} from "../../multicyclesim_ui";
+import {MnkSimResult, MnkSettings} from "@xivgear/core/sims/melee/mnk/mnk_sim";
+import {PreDmgUsedAbility} from "@xivgear/core/sims/sim_types";
+import {MNKExtraData} from "@xivgear/core/sims/melee/mnk/mnk_types";
 
 class MNKGaugeGui {
 

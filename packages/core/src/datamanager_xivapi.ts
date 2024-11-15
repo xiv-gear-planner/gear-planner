@@ -18,7 +18,7 @@ import {BaseParamToStatKey, RelevantBaseParam, xivApiStatMapping} from "./extern
 import {requireArrayTyped, requireBool, requireNumber, requireString} from "./external/data_validators";
 import {getRelicStatModelFor} from "./relicstats/relicstats";
 import {BaseParamMap, DataManager} from "./datamanager";
-import { applyStatCaps } from "./gear";
+import {applyStatCaps} from "./gear";
 import {toTranslatable, TranslatableString} from "./i18n/translation";
 
 const itemColumns = [

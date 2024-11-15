@@ -77,10 +77,10 @@ import {SaveAsModal} from "./new_sheet_form";
 import {DropdownActionMenu} from "./dropdown_actions_menu";
 import {CustomFoodPopup, CustomItemPopup} from "./custom_item_manager";
 import {confirmDelete} from "@xivgear/common-ui/components/delete_confirm";
-import { SimulationGui } from "../sims/simulation_gui";
-import { makeGui } from "../sims/sim_guis";
+import {SimulationGui} from "../sims/simulation_gui";
+import {makeGui} from "../sims/sim_guis";
 import {recordSheetEvent} from "@xivgear/core/analytics/analytics";
-import { MeldSolverDialog } from "./meld_solver_modal";
+import {MeldSolverDialog} from "./meld_solver_modal";
 import {insertAds} from "./ads";
 import {SETTINGS} from "@xivgear/common-ui/settings/persistent_settings";
 

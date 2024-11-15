@@ -1,4 +1,4 @@
-import { WarGaugeState } from "./war_types";
+import {WarGaugeState} from "./war_types";
 
 export class WarGauge {
 

@@ -1,10 +1,10 @@
-import { CycleSimResult, DisplayRecordFinalized, isFinalizedAbilityUse } from "@xivgear/core/sims/cycle_sim";
-import { AbilitiesUsedTable } from "../../components/ability_used_table";
-import { BaseMultiCycleSimGui } from "../../multicyclesim_ui";
-import { PreDmgUsedAbility } from "@xivgear/core/sims/sim_types";
-import { CustomColumnSpec } from "../../../tables";
-import { NinSimResult, NinSettings } from "@xivgear/core/sims/melee/nin/nin_lv100_sim";
-import { NINExtraData } from "@xivgear/core/sims/melee/nin/nin_types";
+import {CycleSimResult, DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/core/sims/cycle_sim";
+import {AbilitiesUsedTable} from "../../components/ability_used_table";
+import {BaseMultiCycleSimGui} from "../../multicyclesim_ui";
+import {PreDmgUsedAbility} from "@xivgear/core/sims/sim_types";
+import {CustomColumnSpec} from "../../../tables";
+import {NinSimResult, NinSettings} from "@xivgear/core/sims/melee/nin/nin_lv100_sim";
+import {NINExtraData} from "@xivgear/core/sims/melee/nin/nin_types";
 
 export class NINGaugeGui {
     static generateResultColumns(result: CycleSimResult): CustomColumnSpec<DisplayRecordFinalized, unknown, unknown>[] {

@@ -1,7 +1,7 @@
-import { SetExport, SimExport } from "@xivgear/xivmath/geartypes";
-import { CharacterGearSet } from "../gear";
-import { SimResult, SimSettings, Simulation } from "../sims/sim_types";
-import { GearPlanSheet } from "../sheet";
+import {SetExport, SimExport} from "@xivgear/xivmath/geartypes";
+import {CharacterGearSet} from "../gear";
+import {SimResult, SimSettings, Simulation} from "../sims/sim_types";
+import {GearPlanSheet} from "../sheet";
 
 export class SolverSimulationSettings {
     sim: Simulation<SimResult, unknown, unknown>;

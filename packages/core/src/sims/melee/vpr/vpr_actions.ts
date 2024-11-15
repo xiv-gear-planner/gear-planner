@@ -1,5 +1,5 @@
-import { VprGcdAbility, VprOgcdAbility } from "./vpr_types";
-import { FlanksbaneVenom, FlankstungVenom, HindsbaneVenom, HindstungVenom, HonedReavers, HonedSteel, HuntersInstinct, ReadyToReawaken, Swiftscaled } from "./vpr_buffs";
+import {VprGcdAbility, VprOgcdAbility} from "./vpr_types";
+import {FlanksbaneVenom, FlankstungVenom, HindsbaneVenom, HindstungVenom, HonedReavers, HonedSteel, HuntersInstinct, ReadyToReawaken, Swiftscaled} from "./vpr_buffs";
 
 
 export const SteelFangs: VprGcdAbility = {

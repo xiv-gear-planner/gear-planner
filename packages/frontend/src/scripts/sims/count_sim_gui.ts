@@ -1,15 +1,15 @@
-import { Ability, SimSettings } from "@xivgear/core/sims/sim_types";
-import { SimulationGui } from "./simulation_gui";
-import { writeProxy } from "@xivgear/core/util/proxies";
-import { NamedSection } from "../components/section";
-import { ResultSettingsArea } from "./components/result_settings";
-import { BuffSettingsArea } from "./party_comp_settings";
-import { quickElement } from "@xivgear/common-ui/components/util";
-import { abilityEquals } from "@xivgear/core/sims/ability_helpers";
-import { applyStdDev } from "@xivgear/xivmath/deviation";
-import { CustomTable, HeaderRow } from "../tables";
-import { simpleAutoResultTable } from "./components/simple_tables";
-import { CountSimResult, ExternalCountSettings, BaseUsageCountSim } from "@xivgear/core/sims/processors/count_sim";
+import {Ability, SimSettings} from "@xivgear/core/sims/sim_types";
+import {SimulationGui} from "./simulation_gui";
+import {writeProxy} from "@xivgear/core/util/proxies";
+import {NamedSection} from "../components/section";
+import {ResultSettingsArea} from "./components/result_settings";
+import {BuffSettingsArea} from "./party_comp_settings";
+import {quickElement} from "@xivgear/common-ui/components/util";
+import {abilityEquals} from "@xivgear/core/sims/ability_helpers";
+import {applyStdDev} from "@xivgear/xivmath/deviation";
+import {CustomTable, HeaderRow} from "../tables";
+import {simpleAutoResultTable} from "./components/simple_tables";
+import {CountSimResult, ExternalCountSettings, BaseUsageCountSim} from "@xivgear/core/sims/processors/count_sim";
 
 export class BaseUsageCountSimGui<ResultType extends CountSimResult, InternalSettingsType extends SimSettings>
     extends SimulationGui<ResultType, InternalSettingsType, ExternalCountSettings<InternalSettingsType>> {

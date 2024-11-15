@@ -5,17 +5,17 @@ import {
     labelFor,
     makeActionButton
 } from "@xivgear/common-ui/components/util";
-import { CharacterGearSet } from "@xivgear/core/gear";
-import { GearPlanSheetGui } from "./sheet";
-import { SimResult, Simulation } from "@xivgear/core/sims/sim_types";
-import { MAX_GCD, STAT_ABBREVIATIONS } from "@xivgear/xivmath/xivconstants";
-import { BaseModal } from "@xivgear/common-ui/components/modal";
-import { EquipSlots } from "@xivgear/xivmath/geartypes";
-import { MeldSolverSettings, MeldSolver } from "./meldsolver";
-import { GearsetGenerationSettings } from "@xivgear/core/solving/gearset_generation";
-import { SolverSimulationSettings } from "@xivgear/core/solving/sim_runner";
-import { recordEvent } from "@xivgear/core/analytics/analytics";
-import { Materia } from "@xivgear/xivmath/geartypes";
+import {CharacterGearSet} from "@xivgear/core/gear";
+import {GearPlanSheetGui} from "./sheet";
+import {SimResult, Simulation} from "@xivgear/core/sims/sim_types";
+import {MAX_GCD, STAT_ABBREVIATIONS} from "@xivgear/xivmath/xivconstants";
+import {BaseModal} from "@xivgear/common-ui/components/modal";
+import {EquipSlots} from "@xivgear/xivmath/geartypes";
+import {MeldSolverSettings, MeldSolver} from "./meldsolver";
+import {GearsetGenerationSettings} from "@xivgear/core/solving/gearset_generation";
+import {SolverSimulationSettings} from "@xivgear/core/solving/sim_runner";
+import {recordEvent} from "@xivgear/core/analytics/analytics";
+import {Materia} from "@xivgear/xivmath/geartypes";
 
 export class MeldSolverDialog extends BaseModal {
     private _sheet: GearPlanSheetGui;

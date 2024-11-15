@@ -1,4 +1,4 @@
-import { VprGaugeState } from "./vpr_types";
+import {VprGaugeState} from "./vpr_types";
 
 export class VprGauge {
 

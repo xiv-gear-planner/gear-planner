@@ -1,4 +1,4 @@
-import { RprGaugeState } from "./rpr_types";
+import {RprGaugeState} from "./rpr_types";
 
 export class RprGauge {
 

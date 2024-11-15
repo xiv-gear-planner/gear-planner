@@ -10,7 +10,7 @@ import {
 import {STANDARD_ANIMATION_LOCK} from "@xivgear/xivmath/xivconstants";
 import * as Actions from './pld_actions_sks';
 import * as Buffs from './pld_buffs_sks';
-import { BaseMultiCycleSim } from "@xivgear/core/sims/processors/sim_processors";
+import {BaseMultiCycleSim} from "@xivgear/core/sims/processors/sim_processors";
 
 // keys for Action records structures:
 type PldEnum_GCD = "Fast" | "Riot" | "Royal" | "HS" | "HSHC" | "Atone" |

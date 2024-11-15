@@ -3,10 +3,10 @@ import {RawStats} from "@xivgear/xivmath/geartypes";
 import {getLevelStats} from "@xivgear/xivmath/xivconstants";
 import {expect} from "chai";
 import {applyDhCritFull, baseDamageFull, fl} from "@xivgear/xivmath/xivmath";
-import { multiplyFixed } from "@xivgear/xivmath/deviation";
-import { HEADLESS_SHEET_PROVIDER } from "../../sheet";
-import { AlternativeScaling } from "../../sims/sim_types";
-import { getScalingOverrides } from "../../sims/sim_utils";
+import {multiplyFixed} from "@xivgear/xivmath/deviation";
+import {HEADLESS_SHEET_PROVIDER} from "../../sheet";
+import {AlternativeScaling} from "../../sims/sim_types";
+import {getScalingOverrides} from "../../sims/sim_utils";
 
 
 const level = 100;

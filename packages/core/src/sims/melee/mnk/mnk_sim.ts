@@ -1,14 +1,14 @@
-import { Ability, Buff, GcdAbility, OgcdAbility, SimSettings, SimSpec } from "@xivgear/core/sims/sim_types";
-import { CycleProcessor, CycleSimResult, ExternalCycleSettings, MultiCycleSettings, AbilityUseResult, Rotation, PreDmgAbilityUseRecordUnf } from "@xivgear/core/sims/cycle_sim";
-import { CycleSettings } from "@xivgear/core/sims/cycle_settings";
-import { CharacterGearSet } from "@xivgear/core/gear";
-import { BaseMultiCycleSim } from "@xivgear/core/sims/processors/sim_processors";
-import { FuryAbility, MnkAbility, MNKExtraData, MnkGcdAbility, Opener } from "./mnk_types";
-import { MNKGauge as MnkGauge } from "./mnk_gauge";
-import { Brotherhood, BrotherhoodBuff, CelestialRevolution, CoeurlForm, Demolish, DragonKick, ElixirBurst, FiresReply, FiresRumination, ForbiddenMeditation, FormShift, FormlessFist, LeapingOpo, MeditativeBrotherhood, OGCD_PRIORITY, OPO_ABILITIES, OpoForm, PerfectBalance, PerfectBalanceBuff, PhantomRush, PouncingCoeurl, RaptorForm, RiddleOfFire, RiddleOfFireBuff, RiddleOfWind, RisingPhoenix, RisingRaptor, SOLAR_WEAKEST_STRONGEST, SixSidedStar, TheForbiddenChakra, TwinSnakes, WindsReply, WindsRumination } from "./mnk_actions";
-import { Brotherhood as BrotherhoodGlobalBuff } from "@xivgear/core/sims/buffs";
-import { sum } from "../../../util/array_utils";
-import { STANDARD_ANIMATION_LOCK } from "@xivgear/xivmath/xivconstants";
+import {Ability, Buff, GcdAbility, OgcdAbility, SimSettings, SimSpec} from "@xivgear/core/sims/sim_types";
+import {CycleProcessor, CycleSimResult, ExternalCycleSettings, MultiCycleSettings, AbilityUseResult, Rotation, PreDmgAbilityUseRecordUnf} from "@xivgear/core/sims/cycle_sim";
+import {CycleSettings} from "@xivgear/core/sims/cycle_settings";
+import {CharacterGearSet} from "@xivgear/core/gear";
+import {BaseMultiCycleSim} from "@xivgear/core/sims/processors/sim_processors";
+import {FuryAbility, MnkAbility, MNKExtraData, MnkGcdAbility, Opener} from "./mnk_types";
+import {MNKGauge as MnkGauge} from "./mnk_gauge";
+import {Brotherhood, BrotherhoodBuff, CelestialRevolution, CoeurlForm, Demolish, DragonKick, ElixirBurst, FiresReply, FiresRumination, ForbiddenMeditation, FormShift, FormlessFist, LeapingOpo, MeditativeBrotherhood, OGCD_PRIORITY, OPO_ABILITIES, OpoForm, PerfectBalance, PerfectBalanceBuff, PhantomRush, PouncingCoeurl, RaptorForm, RiddleOfFire, RiddleOfFireBuff, RiddleOfWind, RisingPhoenix, RisingRaptor, SOLAR_WEAKEST_STRONGEST, SixSidedStar, TheForbiddenChakra, TwinSnakes, WindsReply, WindsRumination} from "./mnk_actions";
+import {Brotherhood as BrotherhoodGlobalBuff} from "@xivgear/core/sims/buffs";
+import {sum} from "../../../util/array_utils";
+import {STANDARD_ANIMATION_LOCK} from "@xivgear/xivmath/xivconstants";
 
 export interface MnkSimResult extends CycleSimResult { }
 

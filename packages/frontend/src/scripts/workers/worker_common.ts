@@ -1,4 +1,4 @@
-import { AnyWorkRequest, JobContext, RequestTypeOf, ResponseTypeOf, UpdateTypeOf } from "./worker_pool";
+import {AnyWorkRequest, JobContext, RequestTypeOf, ResponseTypeOf, UpdateTypeOf} from "./worker_pool";
 
 export abstract class WorkerBehavior<X extends JobContext<AnyWorkRequest, unknown, unknown>> {
 
