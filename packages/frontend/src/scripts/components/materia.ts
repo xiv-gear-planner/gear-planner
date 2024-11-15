@@ -415,7 +415,7 @@ export class MateriaPriorityPicker extends HTMLElement {
                     ctx.failValidation("Cannot be greater than " + MAX_GCD);
                 }
             }],
-        });
+        }, true);
         minGcdInput.addListener(val => {
             recordCurrentSheetEvent('currentSheet', {
                 gcd: val,

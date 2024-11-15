@@ -43,7 +43,7 @@ export class MeldSolverDialog extends BaseModal {
         this.classList.add('meld-solver-area');
         this.descriptionText = document.createElement('div');
         this.descriptionText.textContent = "Solve for the highest-dps set of melds for this gearset.\r\n"
-            + "Speed up computations by targeting a specific GCD and/or pre-filling some materia slots";
+            + "Computation will be much slower without a target GCD.";
 
         this.setNameText = document.createElement('div');
         this.setNameText.textContent = `"${set.name}"`;
@@ -200,7 +200,7 @@ class MeldSolverSettingsMenu extends HTMLDivElement {
                     break;
             }
         }
-        this.gearsetGenSettings = new GearsetGenerationSettings(set, false, false, gcd);
+        this.gearsetGenSettings = new GearsetGenerationSettings(set, false, true, gcd);
         this.simSettings = {
             sim: sheet.sims.at(0),
             sets: undefined, // Not referenced in UI
@@ -221,14 +221,13 @@ class MeldSolverSettingsMenu extends HTMLDivElement {
                     ctx.failValidation("Cannot be greater than " + MAX_GCD);
                 }
             }],
-        });
+        }, true);
 
         this.useTargetGcdCheckBox = new FieldBoundCheckBox(this.gearsetGenSettings, 'useTargetGcd');
         this.useTargetGcdCheckBox.classList.add('meld-solver-settings');
         this.targetGcdInput.pattern = '\\d\\.\\d\\d?';
         this.targetGcdInput.title = 'Solve for the best set with this GCD';
         this.targetGcdInput.classList.add('meld-solver-target-gcd-input');
-        this.targetGcdInput.disabled = true;
 
         const targetGcdText = labelFor("Target GCD: ", this.useTargetGcdCheckBox);
         targetGcdText.textContent = "Target GCD: ";

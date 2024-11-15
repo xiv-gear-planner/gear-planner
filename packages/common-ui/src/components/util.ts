@@ -364,7 +364,7 @@ export class FieldBoundIntField<ObjType> extends FieldBoundConvertingTextField<O
 }
 
 export class FieldBoundFloatField<ObjType> extends FieldBoundConvertingTextField<ObjType, number> {
-    constructor(obj: ObjType, field: { [K in keyof ObjType]: ObjType[K] extends number ? K : never }[keyof ObjType], extraArgs: FbctArgs<ObjType, number> = {}) {
+    constructor(obj: ObjType, field: { [K in keyof ObjType]: ObjType[K] extends number ? K : never }[keyof ObjType], extraArgs: FbctArgs<ObjType, number> = {}, displayTwoDecimalPlaces = false) {
         const numberValidator = (ctx) => {
             // filter out NaNs and other garbage values
             // noinspection PointlessArithmeticExpressionJS
@@ -377,7 +377,9 @@ export class FieldBoundFloatField<ObjType> extends FieldBoundConvertingTextField
         // Spinner arrows aren't styleable. Love CSS!
         // extraArgs.type = extraArgs.type ?? 'number';
         // extraArgs.inputMode = extraArgs.inputMode ?? 'numeric';
-        super(obj, field, (s) => s.toString(), (s) => Number(s), extraArgs);
+        // Primarily useful when displaying GCD speeds, i.e. 2.50 instead of 2.5.
+        const toStringFunc = displayTwoDecimalPlaces ? (x: number) => x.toFixed(2) : (x: number) => x.toString();
+        super(obj, field, (s) => toStringFunc(s), (s) => Number(s), extraArgs);
     }
 }
 
