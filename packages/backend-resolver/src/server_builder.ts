@@ -146,15 +146,15 @@ export function buildPreviewServer() {
             return null;
         }
 
-        const path = request.query[HASH_QUERY_PARAM] ?? '';
-        const pathPaths = path.split(PATH_SEPARATOR);
-        const nav = parsePath(pathPaths);
-        request.log.info(pathPaths, 'Path');
         const serverUrl = getFrontendServer();
         const clientUrl = getFrontendPath();
         // Fetch original index.html
         const responsePromise = nonCachedFetch(serverUrl + '/index.html', undefined);
         try {
+            const path = request.query[HASH_QUERY_PARAM] ?? '';
+            const pathPaths = path.split(PATH_SEPARATOR);
+            const nav = parsePath(pathPaths);
+            request.log.info(pathPaths, 'Path');
             const exported: object | null = await resolveNav(nav);
             if (exported !== null) {
                 let name: string = exported['name'] || "";

@@ -1212,6 +1212,7 @@ function formatSimulationConfigArea<SettingsType extends SimSettings>(
 
     const originalSettings: SettingsType = simGui.sim.settings;
     const updateCallback = () => {
+        simGui.sim.settingsChanged();
         sheet.requestSave();
         if (auto) {
             rerunTimer.ping();

@@ -52,7 +52,7 @@ implements Simulation<FullResultType, InternalSettingsType, ExternalCycleSetting
     readonly manualRun = false;
 
     private cachedCycleProcessors: [string, CycleProcessor][];
-    private cachedRotationKey: RotationCacheKey;
+    private cachedRotationKey: RotationCacheKey | undefined;
 
     protected constructor(public readonly job: JobName, settings?: ExternalCycleSettings<InternalSettingsType>) {
         this.settings = this.makeDefaultSettings();
@@ -208,5 +208,14 @@ implements Simulation<FullResultType, InternalSettingsType, ExternalCycleSetting
         }
         return this.calcDamage(set);
     };
+
+    settingsChanged() {
+        this.invalidateCaches();
+    }
+
+    invalidateCaches() {
+        this.cachedCycleProcessors = [];
+        this.cachedRotationKey = undefined;
+    }
 
 }
