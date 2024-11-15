@@ -17,3 +17,28 @@ export function rangeInc(startInclusive: number, endInclusive: number, increment
     }
     return out;
 }
+
+/**
+ * Determine if two arrays have equal members. Not a deep equals - only inspects one level.
+ *
+ * @param left The first array
+ * @param right The second array
+ */
+export function arrayEq(left: unknown[] | undefined, right: unknown[] | undefined) {
+    if (left === undefined && right === undefined) {
+        return true;
+    }
+    if (left === undefined || right === undefined) {
+        return false;
+    }
+    if (left.length !== right.length) {
+        return false;
+    }
+    for (let i = 0; i < left.length; i++) {
+        if (left[i] !== right[i]) {
+            return false;
+        }
+    }
+    return true;
+}
+
