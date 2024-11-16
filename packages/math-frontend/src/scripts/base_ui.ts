@@ -1,9 +1,10 @@
-import {arrayEq, goHash, processNav, setHash} from "./nav_hash";
+import {goHash, processNav, setHash} from "./nav_hash";
 import {DISPLAY_SETTINGS} from "@xivgear/common-ui/settings/display_settings";
 import {showSettingsModal} from "@xivgear/common-ui/settings/settings_modal";
 import {splitPath} from "@xivgear/core/nav/common_nav";
 import {LoadingBlocker} from "@xivgear/common-ui/components/loader";
 import {applyCommonTopMenuFormatting} from "@xivgear/common-ui/components/top_menu";
+import {arrayEq} from "@xivgear/core/util/array_utils";
 
 const pageTitle = 'XivGear - FFXIV Gear Planner';
 

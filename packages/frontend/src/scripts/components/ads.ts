@@ -1,6 +1,6 @@
 import {recordEvent} from "@xivgear/core/analytics/analytics";
 import {BaseModal} from "@xivgear/common-ui/components/modal";
-import {arrayEq} from "../nav_hash";
+import {arrayEq} from "@xivgear/core/util/array_utils";
 
 type DisplayCondition = (width: number, height: number) => boolean;
 
