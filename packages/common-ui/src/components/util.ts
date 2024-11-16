@@ -172,6 +172,14 @@ export interface FbctArgs<ObjType, FieldType> {
     inputMode?: string;
 }
 
+export interface FieldBoundFloatFieldFbctArgs<ObjType, FieldType> extends FbctArgs<ObjType, FieldType> {
+    /**
+     * Optionally, how many decimal places to fix the float to. You can use 2 to make GCD speeds (i.e. 2.50)
+     * show up as 2.50 instead of 2.5.
+     */
+    fixDecimals?: number;
+}
+
 export class FieldBoundConvertingTextField<ObjType, FieldType> extends HTMLInputElement {
 
     reloadValue: () => void;
@@ -364,7 +372,7 @@ export class FieldBoundIntField<ObjType> extends FieldBoundConvertingTextField<O
 }
 
 export class FieldBoundFloatField<ObjType> extends FieldBoundConvertingTextField<ObjType, number> {
-    constructor(obj: ObjType, field: { [K in keyof ObjType]: ObjType[K] extends number ? K : never }[keyof ObjType], extraArgs: FbctArgs<ObjType, number> = {}, displayTwoDecimalPlaces = false) {
+    constructor(obj: ObjType, field: { [K in keyof ObjType]: ObjType[K] extends number ? K : never }[keyof ObjType], extraArgs: FieldBoundFloatFieldFbctArgs<ObjType, number> = {}) {
         const numberValidator = (ctx) => {
             // filter out NaNs and other garbage values
             // noinspection PointlessArithmeticExpressionJS
@@ -377,8 +385,7 @@ export class FieldBoundFloatField<ObjType> extends FieldBoundConvertingTextField
         // Spinner arrows aren't styleable. Love CSS!
         // extraArgs.type = extraArgs.type ?? 'number';
         // extraArgs.inputMode = extraArgs.inputMode ?? 'numeric';
-        // Primarily useful when displaying GCD speeds, i.e. 2.50 instead of 2.5.
-        const toStringFunc = displayTwoDecimalPlaces ? (x: number) => x.toFixed(2) : (x: number) => x.toString();
+        const toStringFunc = extraArgs.fixDecimals ? (x: number) => x.toFixed(extraArgs.fixDecimals) : (x: number) => x.toString();
         super(obj, field, (s) => toStringFunc(s), (s) => Number(s), extraArgs);
     }
 }

@@ -221,7 +221,8 @@ class MeldSolverSettingsMenu extends HTMLDivElement {
                     ctx.failValidation("Cannot be greater than " + MAX_GCD);
                 }
             }],
-        }, true);
+            fixDecimals: 2,
+        });
 
         this.useTargetGcdCheckBox = new FieldBoundCheckBox(this.gearsetGenSettings, 'useTargetGcd');
         this.useTargetGcdCheckBox.classList.add('meld-solver-settings');
