@@ -13,9 +13,9 @@ import {
     Rotation
 } from "@xivgear/core/sims/cycle_sim";
 import {getRegisteredSimSpecs} from "@xivgear/core/sims/sim_registry";
-import { BaseMultiCycleSim } from '@xivgear/core/sims/processors/sim_processors';
-import { potRatioSimSpec } from '@xivgear/core/sims/common/potency_ratio';
-import { registerDefaultSims } from '@xivgear/core/sims/default_sims';
+import {BaseMultiCycleSim} from '@xivgear/core/sims/processors/sim_processors';
+import {potRatioSimSpec} from '@xivgear/core/sims/common/potency_ratio';
+import {registerDefaultSims} from '@xivgear/core/sims/default_sims';
 
 // Example of end-to-end simulation
 // This one is testing the simulation engine itself, so it copies the full simulation code rather than

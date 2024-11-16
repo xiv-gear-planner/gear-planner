@@ -1,5 +1,5 @@
-import { Darkside, DrkGauge } from "./drk_gauge";
-import { DrkGcdAbility, DrkOgcdAbility, BloodWeaponBuff, DeliriumBuff, ScornBuff, SaltedEarthBuff, livingShadowScalings } from "./drk_types";
+import {Darkside, DrkGauge} from "./drk_gauge";
+import {DrkGcdAbility, DrkOgcdAbility, BloodWeaponBuff, DeliriumBuff, ScornBuff, SaltedEarthBuff, livingShadowScalings} from "./drk_types";
 
 export const HardSlash: DrkGcdAbility = {
     type: 'gcd',

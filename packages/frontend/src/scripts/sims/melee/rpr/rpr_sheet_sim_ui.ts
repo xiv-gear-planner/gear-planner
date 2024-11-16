@@ -1,10 +1,10 @@
-import { CycleSimResult, DisplayRecordFinalized, isFinalizedAbilityUse } from "@xivgear/core/sims/cycle_sim";
-import { PreDmgUsedAbility } from "@xivgear/core/sims/sim_types";
-import { CustomColumnSpec } from "../../../tables";
-import { AbilitiesUsedTable } from "../../components/ability_used_table";
-import { BaseMultiCycleSimGui } from "../../multicyclesim_ui";
-import { RprSheetSimResult, RprSimSettings } from "@xivgear/core/sims/melee/rpr/rpr_sheet_sim";
-import { RprExtraData } from "@xivgear/core/sims/melee/rpr/rpr_types";
+import {CycleSimResult, DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/core/sims/cycle_sim";
+import {PreDmgUsedAbility} from "@xivgear/core/sims/sim_types";
+import {CustomColumnSpec} from "../../../tables";
+import {AbilitiesUsedTable} from "../../components/ability_used_table";
+import {BaseMultiCycleSimGui} from "../../multicyclesim_ui";
+import {RprSheetSimResult, RprSimSettings} from "@xivgear/core/sims/melee/rpr/rpr_sheet_sim";
+import {RprExtraData} from "@xivgear/core/sims/melee/rpr/rpr_types";
 
 export class RprGaugeGui {
 

@@ -1,4 +1,4 @@
-import { SAMGaugeState, KenkiAbility } from './sam_types';
+import {SAMGaugeState, KenkiAbility} from './sam_types';
 
 class SAMGauge {
     constructor(level: number) {

@@ -1,8 +1,8 @@
-import { SetExport } from "@xivgear/xivmath/geartypes";
-import { GearPlanSheet } from "@xivgear/core/sheet";
-import { GearsetGenerator } from "@xivgear/core/solving/gearset_generation";
-import { WorkerBehavior } from "./worker_common";
-import { GearsetGenerationRequest, JobContext } from "./worker_pool";
+import {SetExport} from "@xivgear/xivmath/geartypes";
+import {GearPlanSheet} from "@xivgear/core/sheet";
+import {GearsetGenerator} from "@xivgear/core/solving/gearset_generation";
+import {WorkerBehavior} from "./worker_common";
+import {GearsetGenerationRequest, JobContext} from "./worker_pool";
 
 
 export type GearsetGenerationJobContext = JobContext<GearsetGenerationRequest, never, SetExport[]>;

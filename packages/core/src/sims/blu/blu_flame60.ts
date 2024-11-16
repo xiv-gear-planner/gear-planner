@@ -1,5 +1,5 @@
-import { Swiftcast } from "@xivgear/core/sims/common/swiftcast";
-import { STANDARD_ANIMATION_LOCK } from "@xivgear/xivmath/xivconstants";
+import {Swiftcast} from "@xivgear/core/sims/common/swiftcast";
+import {STANDARD_ANIMATION_LOCK} from "@xivgear/xivmath/xivconstants";
 import * as blu from "./blu_common";
 import {SimSpec} from "@xivgear/core/sims/sim_types";
 import {CycleSimResult, ExternalCycleSettings, Rotation} from "@xivgear/core/sims/cycle_sim";

@@ -7,13 +7,13 @@ import {
     SimSpec,
     Simulation
 } from "@xivgear/core/sims/sim_types";
-import { BuffSettingsExport, BuffSettingsManager } from "@xivgear/core/sims/common/party_comp_settings";
-import { defaultResultSettings, ResultSettings } from "@xivgear/core/sims/cycle_sim";
-import { addValues, applyStdDev, multiplyFixed, multiplyIndependent, ValueWithDev } from "@xivgear/xivmath/deviation";
-import { JobName } from "@xivgear/xivmath/xivconstants";
-import { CharacterGearSet } from "@xivgear/core/gear";
-import { abilityEquals } from "@xivgear/core/sims/ability_helpers";
-import { abilityToDamageNew, combineBuffEffects, noBuffEffects } from "@xivgear/core/sims/sim_utils";
+import {BuffSettingsExport, BuffSettingsManager} from "@xivgear/core/sims/common/party_comp_settings";
+import {defaultResultSettings, ResultSettings} from "@xivgear/core/sims/cycle_sim";
+import {addValues, applyStdDev, multiplyFixed, multiplyIndependent, ValueWithDev} from "@xivgear/xivmath/deviation";
+import {JobName} from "@xivgear/xivmath/xivconstants";
+import {CharacterGearSet} from "@xivgear/core/gear";
+import {abilityEquals} from "@xivgear/core/sims/ability_helpers";
+import {abilityToDamageNew, combineBuffEffects, noBuffEffects} from "@xivgear/core/sims/sim_utils";
 
 export type ExternalCountSettings<InternalSettingsType extends SimSettings> = {
     customSettings: InternalSettingsType,

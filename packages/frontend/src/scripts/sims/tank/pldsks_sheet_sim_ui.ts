@@ -1,7 +1,7 @@
-import { FieldBoundCheckBox, labeledCheckbox, labelFor } from "@xivgear/common-ui/components/util";
-import { BaseMultiCycleSimGui } from "../multicyclesim_ui";
+import {FieldBoundCheckBox, labeledCheckbox, labelFor} from "@xivgear/common-ui/components/util";
+import {BaseMultiCycleSimGui} from "../multicyclesim_ui";
 
-import { PldSKSSheetSettings, PldSKSSheetSimResult } from "@xivgear/core/sims/tank/pld/pldsks_sim";
+import {PldSKSSheetSettings, PldSKSSheetSimResult} from "@xivgear/core/sims/tank/pld/pldsks_sim";
 
 // Restoring the PLD SKS Sim settings UI, via the new SimGui class
 

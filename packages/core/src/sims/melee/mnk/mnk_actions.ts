@@ -1,6 +1,6 @@
-import { BuffController, PersonalBuff, PartyBuff, OgcdAbility } from "@xivgear/core/sims/sim_types";
-import { MNKGauge } from "./mnk_gauge";
-import { FuryAbility, MnkGcdAbility, MnkOgcdAbility } from "./mnk_types";
+import {BuffController, PersonalBuff, PartyBuff, OgcdAbility} from "@xivgear/core/sims/sim_types";
+import {MNKGauge} from "./mnk_gauge";
+import {FuryAbility, MnkGcdAbility, MnkOgcdAbility} from "./mnk_types";
 
 export const OpoForm: PersonalBuff = {
     name: "Opo-Opo Form",

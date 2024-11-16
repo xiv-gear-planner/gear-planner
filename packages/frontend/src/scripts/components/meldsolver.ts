@@ -1,11 +1,11 @@
-import { CharacterGearSet } from "@xivgear/core/gear";
-import { SetExport, SimExport } from "@xivgear/xivmath/geartypes";
-import { SimResult, SimSettings, Simulation } from "@xivgear/core/sims/sim_types";
-import { GearPlanSheet } from "@xivgear/core/sheet";
-import { GearsetGenerationRequest, SolverSimulationRequest, workerPool } from "../workers/worker_pool";
-import { GearsetGenerationSettings } from "@xivgear/core/solving/gearset_generation";
-import { SolverSimulationSettings } from "@xivgear/core/solving/sim_runner";
-import { range } from "@xivgear/core/util/array_utils";
+import {CharacterGearSet} from "@xivgear/core/gear";
+import {SetExport, SimExport} from "@xivgear/xivmath/geartypes";
+import {SimResult, SimSettings, Simulation} from "@xivgear/core/sims/sim_types";
+import {GearPlanSheet} from "@xivgear/core/sheet";
+import {GearsetGenerationRequest, SolverSimulationRequest, workerPool} from "../workers/worker_pool";
+import {GearsetGenerationSettings} from "@xivgear/core/solving/gearset_generation";
+import {SolverSimulationSettings} from "@xivgear/core/solving/sim_runner";
+import {range} from "@xivgear/core/util/array_utils";
 
 export class MeldSolverSettings {
     sim: Simulation<SimResult, SimSettings, unknown>;

@@ -1,8 +1,8 @@
-import { EquippedItem, RawStats, EquipmentSet, EquipSlots, MeldableMateriaSlot, SetExport } from "@xivgear/xivmath/geartypes";
-import { MateriaSubstat, ALL_SUB_STATS, NORMAL_GCD, MATERIA_ACCEPTABLE_OVERCAP_LOSS } from "@xivgear/xivmath/xivconstants";
-import { sksToGcd, spsToGcd } from "@xivgear/xivmath/xivmath";
-import { CharacterGearSet } from "../gear";
-import { GearPlanSheet } from "../sheet";
+import {EquippedItem, RawStats, EquipmentSet, EquipSlots, MeldableMateriaSlot, SetExport} from "@xivgear/xivmath/geartypes";
+import {MateriaSubstat, ALL_SUB_STATS, NORMAL_GCD, MATERIA_ACCEPTABLE_OVERCAP_LOSS} from "@xivgear/xivmath/xivconstants";
+import {sksToGcd, spsToGcd} from "@xivgear/xivmath/xivmath";
+import {CharacterGearSet} from "../gear";
+import {GearPlanSheet} from "../sheet";
 
 export class GearsetGenerationSettings {
     gearset: CharacterGearSet;

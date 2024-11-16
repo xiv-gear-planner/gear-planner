@@ -1,6 +1,6 @@
-import { ArcaneCircleBuff } from "@xivgear/core/sims/buffs";
-import { RprGcdAbility, RprOgcdAbility } from "./rpr_types";
-import { DeathsDesign, IdealHost } from "./rpr_buff";
+import {ArcaneCircleBuff} from "@xivgear/core/sims/buffs";
+import {RprGcdAbility, RprOgcdAbility} from "./rpr_types";
+import {DeathsDesign, IdealHost} from "./rpr_buff";
 
 export const Slice: RprGcdAbility = {
     type: 'gcd',

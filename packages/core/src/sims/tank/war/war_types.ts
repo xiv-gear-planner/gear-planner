@@ -1,7 +1,7 @@
-import { Ability, GcdAbility, OgcdAbility, Buff, BuffController } from "@xivgear/core/sims/sim_types";
-import { WarGauge } from "./war_gauge";
-import { removeSelf } from "@xivgear/core/sims/common/utils";
-import { PersonalBuff } from "@xivgear/core/sims/sim_types";
+import {Ability, GcdAbility, OgcdAbility, Buff, BuffController} from "@xivgear/core/sims/sim_types";
+import {WarGauge} from "./war_gauge";
+import {removeSelf} from "@xivgear/core/sims/common/utils";
+import {PersonalBuff} from "@xivgear/core/sims/sim_types";
 
 /** A WAR-specific ability. */
 export type WarAbility = Ability & Readonly<{

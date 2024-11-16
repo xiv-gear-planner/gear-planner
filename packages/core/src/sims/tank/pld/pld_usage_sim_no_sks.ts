@@ -1,7 +1,7 @@
 import {SimSpec} from "@xivgear/core/sims/sim_types";
 import {CharacterGearSet} from "@xivgear/core/gear";
 import * as Actions from "./pld_actions_no_sks";
-import { ExternalCountSettings, CountSimResult, BaseUsageCountSim, SkillCount } from "@xivgear/core/sims/processors/count_sim";
+import {ExternalCountSettings, CountSimResult, BaseUsageCountSim, SkillCount} from "@xivgear/core/sims/processors/count_sim";
 
 export const pldUsageSimSpec: SimSpec<PldUsageSim, PldUsageSimSettings> = {
     displayName: "PLD Lv100 Sim (sks not fully supported)",

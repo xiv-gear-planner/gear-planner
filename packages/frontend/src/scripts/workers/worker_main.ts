@@ -1,9 +1,9 @@
-import { HEADLESS_SHEET_PROVIDER } from "@xivgear/core/sheet";
-import { registerDefaultSims } from "@xivgear/core/sims/default_sims";
-import { GearsetGenerationWorker } from "./meld_generation_worker";
-import { AnyWorkRequest, InitializationRequest, GearsetGenerationRequest, AnyWorkResponse, SolverSimulationRequest } from "./worker_pool";
-import { SolverSimulationRunner } from "./simulation_worker";
-import { makeDataManager } from "@xivgear/core/datamanager";
+import {HEADLESS_SHEET_PROVIDER} from "@xivgear/core/sheet";
+import {registerDefaultSims} from "@xivgear/core/sims/default_sims";
+import {GearsetGenerationWorker} from "./meld_generation_worker";
+import {AnyWorkRequest, InitializationRequest, GearsetGenerationRequest, AnyWorkResponse, SolverSimulationRequest} from "./worker_pool";
+import {SolverSimulationRunner} from "./simulation_worker";
+import {makeDataManager} from "@xivgear/core/datamanager";
 
 registerDefaultSims();
 let dataManager = null;

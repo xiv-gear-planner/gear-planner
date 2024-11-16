@@ -1,4 +1,4 @@
-import { SimResult, SimSettings, Simulation } from "@xivgear/core/sims/sim_types";
+import {SimResult, SimSettings, Simulation} from "@xivgear/core/sims/sim_types";
 
 export type ResultTypeOfSim<Sim> = Sim extends Simulation<infer R, unknown, unknown> ? R : never;
 export type SettingsTypeOfSim<Sim> = Sim extends Simulation<SimResult, infer S, unknown> ? S : never;

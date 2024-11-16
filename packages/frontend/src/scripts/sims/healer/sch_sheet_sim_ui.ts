@@ -1,10 +1,10 @@
-import { FieldBoundIntField, nonNegative, labelFor } from "@xivgear/common-ui/components/util";
-import { AbilitiesUsedTable } from "../components/ability_used_table";
-import { BaseMultiCycleSimGui } from "../multicyclesim_ui";
-import { CycleSimResult, DisplayRecordFinalized, isFinalizedAbilityUse } from "@xivgear/core/sims/cycle_sim";
-import { PreDmgUsedAbility } from "@xivgear/core/sims/sim_types";
-import { CustomColumnSpec } from "../../tables";
-import { SchExtraData, SchSimResult, SchSettings } from "@xivgear/core/sims/healer/sch_sheet_sim";
+import {FieldBoundIntField, nonNegative, labelFor} from "@xivgear/common-ui/components/util";
+import {AbilitiesUsedTable} from "../components/ability_used_table";
+import {BaseMultiCycleSimGui} from "../multicyclesim_ui";
+import {CycleSimResult, DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/core/sims/cycle_sim";
+import {PreDmgUsedAbility} from "@xivgear/core/sims/sim_types";
+import {CustomColumnSpec} from "../../tables";
+import {SchExtraData, SchSimResult, SchSettings} from "@xivgear/core/sims/healer/sch_sheet_sim";
 
 class SchGaugeGui {
 

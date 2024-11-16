@@ -1,9 +1,9 @@
-import { SimSettings } from "@xivgear/core/sims/sim_types";
-import { SimulationGui } from "../simulation_gui";
-import { EmptyObject } from "@xivgear/core/util/types";
-import { NamedSection } from "../../components/section";
-import { simpleMappedResultTable } from "../components/simple_tables";
-import { PotencyRatioSimResults } from "@xivgear/core/sims/common/potency_ratio";
+import {SimSettings} from "@xivgear/core/sims/sim_types";
+import {SimulationGui} from "../simulation_gui";
+import {EmptyObject} from "@xivgear/core/util/types";
+import {NamedSection} from "../../components/section";
+import {simpleMappedResultTable} from "../components/simple_tables";
+import {PotencyRatioSimResults} from "@xivgear/core/sims/common/potency_ratio";
 
 function makeDescriptionPanel() {
     const out = new NamedSection('Potency Ratio');

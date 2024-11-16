@@ -1,7 +1,7 @@
 import {SimSettings, SimSpec} from "@xivgear/core/sims/sim_types";
 import {CycleProcessor, CycleContext, CycleSimResult, ExternalCycleSettings, Rotation} from "@xivgear/core/sims/cycle_sim";
 import * as Actions from "./pld_actions_no_sks";
-import { BaseMultiCycleSim } from "@xivgear/core/sims/processors/sim_processors";
+import {BaseMultiCycleSim} from "@xivgear/core/sims/processors/sim_processors";
 
 interface GcdState {
     hasDivineMight: boolean,
