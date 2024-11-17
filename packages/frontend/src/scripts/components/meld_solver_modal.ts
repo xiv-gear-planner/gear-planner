@@ -193,14 +193,13 @@ class MeldSolverSettingsMenu extends HTMLDivElement {
         if (override && override.length >= 1) {
             haste += (override[0].haste ?? 0);
         }
-        gcd = Math.min(set.computedStats.gcdPhys(2.5, haste), set.computedStats.gcdMag(2.5, haste));;
-        
+        gcd = Math.min(set.computedStats.gcdPhys(2.5, haste), set.computedStats.gcdMag(2.5, haste));
+
         this.gearsetGenSettings = new GearsetGenerationSettings(set, false, true, gcd);
         this.simSettings = {
             sim: sheet.sims.at(0),
             sets: undefined, // Not referenced in UI
         };
-
 
         this.targetGcdInput = new FieldBoundFloatField(this.gearsetGenSettings, 'targetGcd', {
             postValidators: [ctx => {
