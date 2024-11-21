@@ -303,19 +303,38 @@ export class GnbSim extends BaseMultiCycleSim<GnbSimResult, GnbSettings, GnbCycl
         return cp.gauge.cartridges === 3 && cp.rotationState.combo === 2;
     }
 
-    isGcdOffCooldown(cp: GnbCycleProcessor, ability: GnbGcdAbility): boolean {
-        return cp.cdTracker.canUse(ability, cp.currentTime) || cp.cdTracker.canUse(ability, cp.nextGcdTime);
+    shouldUseGCD(cp: GnbCycleProcessor, ability: GnbGcdAbility): boolean {
+        const cooldown = cp.cdTracker.statusOfAt(ability, cp.nextGcdTime);
+        const relativeCooldown = cooldown.readyAt.relative;
+        const gcdSpeed = cp.stats.gcdPhys(2.5);
+        // This check needs to be added for strange GCD tiers. It's better to microclip than let Gnashing
+        // Fang and Double Down drift out of No Mercy.
+        if (ability.id === Actions.DoubleDown.id && !(cp.getNoMercyDuration() > 0)) {
+            // Double Down will naturally be faster than No Mercy at faster speeds, but
+            // we always want it to be in No Mercy.
+            return false;
+        }
+        // If No Mercy isn't up AND it's coming up next GCD, we should wait a GCD.
+        if (ability.id === Actions.GnashingFang.id && (!(cp.getNoMercyDuration() > 0) &&  cp.cdTracker.statusOfAt(Actions.NoMercy, cp.nextGcdTime + gcdSpeed).readyToUse)) {
+            return false;
+        }
+        // (gcdSpeed / 20) is the potential amount it could be delayed by.
+        const shouldUseGCD = relativeCooldown === 0  || relativeCooldown <= (gcdSpeed / 20);
+        if (shouldUseGCD) {
+            cp.advanceTo(cooldown.readyAt.absolute);
+        }
+        return shouldUseGCD;
     }
 
     // Gets the next GCD to use in the GNB rotation.
     // Note: this is stateful, and updates combos to the next combo.
     getGCDToUse(cp: GnbCycleProcessor): GnbGcdAbility {
         // Start Gnashing Fang combo
-        if (cp.gauge.cartridges >= Actions.GnashingFang.cartridgeCost && this.isGcdOffCooldown(cp, Actions.GnashingFang)) {
+        if (cp.gauge.cartridges >= Actions.GnashingFang.cartridgeCost && this.shouldUseGCD(cp, Actions.GnashingFang)) {
             return cp.getGnashingFangComboToUse();
         }
 
-        if (cp.gauge.cartridges >= Actions.DoubleDown.cartridgeCost && this.isGcdOffCooldown(cp, Actions.DoubleDown)) {
+        if (cp.gauge.cartridges >= Actions.DoubleDown.cartridgeCost && this.shouldUseGCD(cp, Actions.DoubleDown)) {
             return Actions.DoubleDown;
         }
 
@@ -372,18 +391,25 @@ export class GnbSim extends BaseMultiCycleSim<GnbSimResult, GnbSettings, GnbCycl
         ////////
         ///oGCDs
         ////////
-        if (cp.canUseWithoutClipping(Actions.NoMercy)) {
-            this.use(cp, Actions.NoMercy);
-        }
-
         if (cp.isContinuationReady()) {
             const continuation: GnbOgcdAbility = cp.getActiveContinuationAction();
             // Should always be defined, but just in case.
             if (continuation) {
-                if (cp.canUseWithoutClipping(continuation)) {
+                // Prefer using No Mercy -> Continuation if possible
+                if (cp.canUseOgcdsWithoutClipping([Actions.NoMercy, continuation] )) {
+                    this.use(cp, Actions.NoMercy);
+                    this.use(cp, continuation);
+
+                }
+                // Then, prioritize Continuation -> No Mercy
+                else if (cp.canUseWithoutClipping(continuation)) {
                     this.use(cp, continuation);
                 }
             }
+        }
+
+        if (cp.canUseWithoutClipping(Actions.NoMercy)) {
+            this.use(cp, Actions.NoMercy);
         }
 
         if (cp.canUseWithoutClipping(Actions.BowShock)) {
