@@ -271,7 +271,7 @@ export interface ComputedSetStats extends RawStats {
     /**
      * Base haste value for a given attack type
      */
-    haste(attackType: AttackType): number;
+    haste(attackType: AttackType, hasteType?: 'Y'| 'Z'): number;
 
     /**
      * Crit chance. Ranges from 0 to 1.

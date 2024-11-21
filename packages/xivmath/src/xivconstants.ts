@@ -212,44 +212,64 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
                 minLevel: 1,
                 maxLevel: 19,
                 apply: (stats) => {
-                    stats.bonusHaste.push(attackType =>
-                        attackType === 'Weaponskill'
-                        || attackType === 'Spell'
-                        || attackType === 'Auto-attack'
-                            ? 5 : 0);
-                },
+                    stats.bonusHaste.push({
+                        type: 'Z',
+                        apply: (attackType) => {
+                            return attackType === 'Weaponskill'
+                                || attackType === 'Spell'
+                                || attackType === 'Auto-attack'
+                                ? 5 : 0;
+                        },
+                    },
+                    )
+                }
             },
             {
                 minLevel: 20,
                 maxLevel: 39,
                 apply: (stats) => {
-                    stats.bonusHaste.push(attackType =>
-                        attackType === 'Weaponskill'
-                        || attackType === 'Spell'
-                        || attackType === 'Auto-attack'
-                            ? 10 : 0);
-                },
+                    stats.bonusHaste.push({
+                        type: 'Z',
+                        apply: (attackType) => {
+                            return attackType === 'Weaponskill'
+                                || attackType === 'Spell'
+                                || attackType === 'Auto-attack'
+                                ? 10 : 0;
+                        },
+                    },
+                    )
+                }
             },
             {
                 minLevel: 40,
                 maxLevel: 75,
                 apply: (stats) => {
-                    stats.bonusHaste.push(attackType =>
-                        attackType === 'Weaponskill'
-                        || attackType === 'Spell'
-                        || attackType === 'Auto-attack'
-                            ? 15 : 0);
-                },
+                    stats.bonusHaste.push({
+                        type: 'Z',
+                        apply: (attackType) => {
+                            return attackType === 'Weaponskill'
+                                || attackType === 'Spell'
+                                || attackType === 'Auto-attack'
+                                ? 15 : 0;
+                        },
+                    },
+                    )
+                }
             },
             {
                 minLevel: 76,
                 apply: (stats) => {
-                    stats.bonusHaste.push(attackType =>
-                        attackType === 'Weaponskill'
-                    || attackType === 'Spell'
-                    || attackType === 'Auto-attack'
-                            ? 20 : 0);
-                },
+                    stats.bonusHaste.push({
+                        type: 'Z',
+                        apply: (attackType) => {
+                            return attackType === 'Weaponskill'
+                                || attackType === 'Spell'
+                                || attackType === 'Auto-attack'
+                                ? 20 : 0;
+                        },
+                    },
+                    )
+                }
             }],
     },
     NIN: {

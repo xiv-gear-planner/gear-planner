@@ -1202,8 +1202,17 @@ export class CycleProcessor {
             snapshotTimeFromStart: 0,
             lockTime: 0,
         });
-        const aaDelay = this.stats.aaDelay * (100 - this.stats.haste('Auto-attack') - combinedEffects.haste) / 100;
-        this.nextAutoAttackTime = this.currentTime + aaDelay;
+        if (combinedEffects.haste) {
+            // the buffs do not know their haste, assume they are the same type and stack additively for back-compat
+            const aaDelay = this.stats.aaDelay * (100 - this.stats.haste('Auto-attack') - combinedEffects.haste) / 100;
+            this.nextAutoAttackTime = this.currentTime + aaDelay;
+        } else {
+            // see https://www.akhmorning.com/allagan-studies/how-to-be-a-math-wizard/shadowbringers/speed/#gcds--cast-times
+            const gcd_2 = (100 - this.stats.haste('Auto-attack', 'Y') - combinedEffects.hasteY) / 100;
+            const gcd_3 = (100 - this.stats.haste('Auto-attack', 'Z') - combinedEffects.hasteZ) / 100;
+            const aaDelay = this.stats.aaDelay * gcd_2 * gcd_3;
+            this.nextAutoAttackTime = this.currentTime + aaDelay;
+        }
     }
 
     /**

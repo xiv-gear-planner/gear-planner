@@ -49,7 +49,10 @@ export function addStats(baseStats: RawStats, addedStats: RawStats): void {
 /**
  * Function from an attack type to a haste amount. Haste amount is percentage, e.g. 20 haste = 20% faster.
  */
-export type HasteBonus = (attackType: AttackType) => number;
+export type HasteBonus = {
+    type?: 'Y' | 'Z',
+    apply: (attackType: AttackType) => number;
+}
 
 /**
  * Represents a post-computation stat modification (e.g. a crit chance buff).
@@ -243,8 +246,14 @@ export class ComputedSetStatsImpl implements ComputedSetStats {
         return spsToGcd(baseGcd, this.levelStats, this.spellspeed, haste);
     }
 
-    haste(attackType: AttackType): number {
-        return sum(this.finalBonusStats.bonusHaste.map(hb => hb(attackType)));
+    haste(attackType: AttackType, hasteType?: 'Y' | 'Z'): number {
+        return sum(this.finalBonusStats.bonusHaste.map(hb => {
+            if (hasteType === undefined || hb.type === undefined) {
+                // assume the haste applies for backwards compatibility
+                return hb.apply(attackType)
+            }
+            return hb.type === hasteType ? hb.apply(attackType) : 0
+        }));
     }
 
     traitMulti(attackType: AttackType): number {

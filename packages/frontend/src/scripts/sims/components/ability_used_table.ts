@@ -177,6 +177,12 @@ export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
                     if (effects.haste) {
                         out.push(`${effects.haste}% Haste`);
                     }
+                    if (effects.hasteY) {
+                        out.push(`${effects.hasteY}% Haste`);
+                    }
+                    if (effects.hasteZ) {
+                        out.push(`${effects.hasteZ}% Haste`);
+                    }
                     return document.createTextNode(out.join(', '));
                 },
             },

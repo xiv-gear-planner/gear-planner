@@ -204,7 +204,7 @@ export const RiddleOfWindBuff: PersonalBuff = {
     statusId: 2687,
     appliesTo: (ability) => ability.attackType === 'Auto-attack',
     effects: {
-        haste: 50,
+        hasteY: 50,
     },
 };
 export const FiresRumination: PersonalBuff = {
