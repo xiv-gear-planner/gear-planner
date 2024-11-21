@@ -28,7 +28,7 @@ export const mnkSpec: SimSpec<MnkSim, MnkSettingsExternal> = {
     },
     supportedJobs: ['MNK'],
     supportedLevels: [100],
-    isDefaultSim: false,
+    isDefaultSim: true,
 };
 
 class MNKCycleProcessor extends CycleProcessor {
