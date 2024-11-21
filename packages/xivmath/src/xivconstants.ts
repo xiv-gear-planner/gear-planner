@@ -220,9 +220,9 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
                                 || attackType === 'Auto-attack'
                                 ? 5 : 0;
                         },
-                    },
-                    )
-                }
+                    }
+                    );
+                },
             },
             {
                 minLevel: 20,
@@ -236,9 +236,9 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
                                 || attackType === 'Auto-attack'
                                 ? 10 : 0;
                         },
-                    },
-                    )
-                }
+                    }
+                    );
+                },
             },
             {
                 minLevel: 40,
@@ -252,9 +252,9 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
                                 || attackType === 'Auto-attack'
                                 ? 15 : 0;
                         },
-                    },
-                    )
-                }
+                    }
+                    );
+                },
             },
             {
                 minLevel: 76,
@@ -267,9 +267,9 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
                                 || attackType === 'Auto-attack'
                                 ? 20 : 0;
                         },
-                    },
-                    )
-                }
+                    }
+                    );
+                },
             }],
     },
     NIN: {

@@ -250,9 +250,9 @@ export class ComputedSetStatsImpl implements ComputedSetStats {
         return sum(this.finalBonusStats.bonusHaste.map(hb => {
             if (hasteType === undefined || hb.type === undefined) {
                 // assume the haste applies for backwards compatibility
-                return hb.apply(attackType)
+                return hb.apply(attackType);
             }
-            return hb.type === hasteType ? hb.apply(attackType) : 0
+            return hb.type === hasteType ? hb.apply(attackType) : 0;
         }));
     }
 
