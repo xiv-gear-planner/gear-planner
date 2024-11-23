@@ -188,24 +188,18 @@ class MeldSolverSettingsMenu extends HTMLDivElement {
         super();
 
         let gcd = 2.5;
+        let haste = Math.max(set.computedStats.haste("Weaponskill"), set.computedStats.haste("Spell"));
         const override = sheet.classJobStats.gcdDisplayOverrides?.(sheet.level);
         if (override && override.length >= 1) {
-            const haste = set.computedStats.haste(override[0].attackType) + (override[0].haste ?? 0);
-            switch (override[0].basis) {
-                case "sks":
-                    gcd = set.computedStats.gcdPhys(2.5, haste);
-                    break;
-                case "sps":
-                    gcd = set.computedStats.gcdMag(2.5, haste);
-                    break;
-            }
+            haste += (override[0].haste ?? 0);
         }
+        gcd = Math.min(set.computedStats.gcdPhys(2.5, haste), set.computedStats.gcdMag(2.5, haste));
+
         this.gearsetGenSettings = new GearsetGenerationSettings(set, false, true, gcd);
         this.simSettings = {
             sim: sheet.sims.at(0),
             sets: undefined, // Not referenced in UI
         };
-
 
         this.targetGcdInput = new FieldBoundFloatField(this.gearsetGenSettings, 'targetGcd', {
             postValidators: [ctx => {
