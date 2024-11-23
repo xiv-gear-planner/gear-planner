@@ -1098,6 +1098,34 @@ export class CycleProcessor {
         return readyAt <= Math.min(maxDelayAt, this.totalTime);
     }
 
+    /**
+     * Determines whether or not a list of Off-GCD abilities can be used without clipping the GCD
+     *
+     * @param ogcds The Off-GCD abilitiesto check for
+     * @returns whether or not the abilities can be used in sequence without clipping the GCD
+     */
+    canUseOgcdsWithoutClipping(ogcds: OgcdAbility[]) {
+        const currentTime = this.currentTime;
+
+        let timeAfterOgcds = currentTime;
+        for (const ogcd of ogcds) {
+            // Time until oGCD is off CD
+            const waitTime = this.cdTracker.statusOfAt(ogcd, timeAfterOgcds).readyAt.relative;
+            // Wait for it to be off CD
+            timeAfterOgcds += waitTime;
+            // Lock or cast time
+            const lockTime = this.castTime(ogcd, this.getCombinedEffectsFor(ogcd, timeAfterOgcds).combinedEffects);
+            timeAfterOgcds += lockTime;
+            if (currentTime > timeAfterOgcds) {
+                return false;
+            }
+            else if (timeAfterOgcds > this.totalTime) {
+                return false;
+            }
+        }
+        return timeAfterOgcds <= this.nextGcdTime;
+    }
+
     // Counter that makes this fail on purpose if buggy sim rotation code gets into an infinite loop
     _canUseCdCount: number = 0;
 

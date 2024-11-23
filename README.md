@@ -17,7 +17,6 @@ You can try it out [here](https://xivgear.app).
 ## Help Wanted
 
 We are still looking for people to write simulations for the following jobs:
-- Tanks: GNB
 - Melee: DRG
 - Phys Ranged: BRD, MCH
 - Casters: BLM, SMN, RDM, PCT
