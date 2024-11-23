@@ -20,7 +20,8 @@ import {
     FieldBoundTextField,
     labeledCheckbox,
     makeActionButton,
-    quickElement
+    quickElement,
+    starIcon
 } from "@xivgear/common-ui/components/util";
 import {closeModal} from "@xivgear/common-ui/modalcontrol";
 import {
@@ -258,17 +259,6 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
         this.setupColumns();
     }
 
-    //
-    // addSim(sim: Simulation<any, any, any>) {
-    //     this._sims.push(sim);
-    //     this.setupColumns();
-    // }
-    //
-    // delSim(sim: Simulation<any, any, any>) {
-    //     this._sims = this._sims.filter(s => s !== sim);
-    //     this.setupColumns();
-    // }
-
     private setupColumns() {
         const viewOnly = this.sheet._isViewOnly;
         if (viewOnly) {
@@ -282,8 +272,6 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
             this.classList.add('editable');
         }
         const statColWidth = 40;
-        // const chanceStatColWidth = viewOnly ? 110 : 160;
-        // const multiStatColWidth = viewOnly ? 70 : 120;
 
         const jobData = getClassJobStats(this.sheet.classJobName);
 
@@ -396,7 +384,6 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                             rowBeingDragged = null;
                         },
                         moveHandler: (ev) => {
-                            // let target = ev.target;
                             const dragY = ev.clientY;
                             const target = this._rows.find(row => {
                                 const el = row.element;
@@ -443,6 +430,7 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                     // Description is only on view-only mode
                     if (viewOnly) {
                         const descSpan = document.createElement('span');
+                        descSpan.style.fontStyle = 'italic';
                         elements.push(descSpan);
                         if (trimmedDesc) {
                             descSpan.textContent = trimmedDesc;
@@ -456,8 +444,6 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                         const icon = iconForIssues(...issues);
                         icon.classList.add('gear-set-issue-icon');
                         nameSpan.prepend(icon);
-                        // elements.unshift(icon);
-                        // div.appendChild(icon);
                         title += '\nThis set has problems:';
                         for (const issue of issues) {
                             let titlePart = `${capitalizeFirstLetter(issue.severity)}: ${issue.description}`;
@@ -474,9 +460,33 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                     if (value.isSeparator) {
                         nameSpan.style.fontWeight = 'bold';
                     }
+
+                    if (value.recommended) {
+                        if (viewOnly) {
+                            const recommendedSetDiv = document.createElement('div');
+                            recommendedSetDiv.style.overflow = 'hidden';
+                            recommendedSetDiv.style.display = 'block';
+                            const icon = starIcon();
+                            icon.style.display = 'inline';
+                            recommendedSetDiv.append(icon);
+                            recommendedSetDiv.title = "Recommended Set";
+                            const recommendedSpan = document.createElement('span');
+                            recommendedSpan.textContent = "Recommended Set";
+                            recommendedSpan.style.fontWeight = 'bold';
+                            recommendedSpan.style.color = 'var(--recommended-text-colour)';
+                            recommendedSpan.style.display = 'inline';
+                            recommendedSetDiv.append(recommendedSpan);
+                            nameSpan.prepend(recommendedSetDiv);
+                        }
+                        else if (!viewOnly) {
+                            const icon = starIcon();
+                            icon.style.display = 'inline';
+                            nameSpan.prepend(icon);
+                        }
+                    }
+
                     return div;
                 },
-                // initialWidth: 300,
             },
             ...(viewOnly ? simColumns : []),
             ...gcdColumns,
@@ -716,7 +726,6 @@ export class SimResultDetailDisplay<X extends SimResult> extends HTMLElement {
         else {
             this.textContent = this._result.status;
         }
-        // this.gearPlanTable.requestProcessSimColColor(this.sim);
     }
 }
 
@@ -844,7 +853,7 @@ export class GearSetEditor extends HTMLElement {
             makeActionButton('Export This Set', () => {
                 startExport(this.gearSet);
             }),
-            makeActionButton('Change Name/Description', () => {
+            makeActionButton('Change Properties', () => {
                 startRenameSet(writeProxy(this.gearSet, () => this.formatTitleDesc()));
             }),
             issuesButton,
