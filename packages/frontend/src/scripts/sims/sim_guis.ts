@@ -18,6 +18,7 @@ import {BluSimGui} from "./blu/blu_common_ui";
 import {DrkSimGui} from "./tank/drk_sheet_sim_ui";
 import {WarSimGui} from "./tank/war_sheet_sim_ui";
 import {GnbSimGui} from "./tank/gnb_sheet_sim_ui";
+import {PldSimGui} from "./tank/pld_sheet_sim_ui";
 import {pldSKSSimGui} from "./tank/pldsks_sheet_sim_ui";
 import {MPSimGui} from "./healer/healer_mp_sim_ui";
 
@@ -37,6 +38,7 @@ import {pldUsageSimSpec} from "@xivgear/core/sims/tank/pld/pld_usage_sim_no_sks"
 import {warSpec} from "@xivgear/core/sims/tank/war/war_sheet_sim";
 import {drkSpec} from "@xivgear/core/sims/tank/drk/drk_sheet_sim";
 import {gnbSpec} from "@xivgear/core/sims/tank/gnb/gnb_sheet_sim";
+import {pldSpec} from "@xivgear/core/sims/tank/pld/pld_sheet_sim";
 import {pldSKSSheetSpec} from "@xivgear/core/sims/tank/pld/pldsks_sim";
 import {BluBreath60Spec} from "@xivgear/core/sims/blu/blu_breath60";
 import {BluFlame120Spec} from "@xivgear/core/sims/blu/blu_flame120";
@@ -75,6 +77,7 @@ registerGui(sgeSheetSpec, SgeSimGui);
 registerGui(drkSpec, DrkSimGui);
 registerGui(warSpec, WarSimGui);
 registerGui(gnbSpec, GnbSimGui);
+registerGui(pldSpec, PldSimGui);
 registerGui(sgeNewSheetSpec, SgeSheetSimGui);
 registerGui(astNewSheetSpec, AstSheetSimGui);
 registerGui(schNewSheetSpec, SchSimGui);

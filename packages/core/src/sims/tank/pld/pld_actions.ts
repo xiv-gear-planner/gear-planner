@@ -1,13 +1,14 @@
 import {AtonementReadyBuff, SupplicationReadyBuff, SepulchreReadyBuff,
     DivineMightBuff, BladeOfHonorReadyBuff, RequiescatBuff, FightOrFlightBuff,
-    GoringBladeReadyBuff} from './pld_buffs_sks';
-import {GcdAbility, OgcdAbility} from "@xivgear/core/sims/sim_types";
+    GoringBladeReadyBuff,
+    ConfiteorReadyBuff,
+    PldGcdAbility,
+    PldOgcdAbility} from './pld_types';
 
 /**
  * Paladin GCD Actions
  */
-
-export const FastBlade: GcdAbility = {
+export const FastBlade: PldGcdAbility = {
     type: 'gcd',
     name: "Fast Blade",
     id: 9,
@@ -16,7 +17,8 @@ export const FastBlade: GcdAbility = {
     gcd: 2.5,
     cast: 0,
 };
-export const RiotBlade: GcdAbility = {
+
+export const RiotBlade: PldGcdAbility = {
     type: 'gcd',
     name: "Riot Blade",
     id: 15,
@@ -25,7 +27,8 @@ export const RiotBlade: GcdAbility = {
     gcd: 2.5,
     cast: 0,
 };
-export const RoyalAuthority: GcdAbility = {
+
+export const RoyalAuthority: PldGcdAbility = {
     type: 'gcd',
     name: "Royal Authority",
     id: 3539,
@@ -36,7 +39,7 @@ export const RoyalAuthority: GcdAbility = {
     activatesBuffs: [AtonementReadyBuff, DivineMightBuff],
 };
 
-export const Atonement: GcdAbility = {
+export const Atonement: PldGcdAbility = {
     type: 'gcd',
     name: "Atonement",
     id: 16460,
@@ -46,10 +49,10 @@ export const Atonement: GcdAbility = {
     cast: 0,
     activatesBuffs: [SupplicationReadyBuff],
 };
-export const Supplication: GcdAbility = {
+
+export const Supplication: PldGcdAbility = {
     type: 'gcd',
     name: "Supplication",
-    // todo update dawntrail
     id: 36918,
     attackType: "Weaponskill",
     potency: 500,
@@ -57,10 +60,10 @@ export const Supplication: GcdAbility = {
     cast: 0,
     activatesBuffs: [SepulchreReadyBuff],
 };
-export const Sepulchre: GcdAbility = {
+
+export const Sepulchre: PldGcdAbility = {
     type: 'gcd',
     name: "Sepulchre",
-    // todo update dawntrail
     id: 36919,
     attackType: "Weaponskill",
     potency: 540,
@@ -68,7 +71,7 @@ export const Sepulchre: GcdAbility = {
     cast: 0,
 };
 
-export const HolySpirit: GcdAbility = {
+export const HolySpirit: PldGcdAbility = {
     type: 'gcd',
     name: "Holy Spirit",
     id: 7384,
@@ -77,7 +80,8 @@ export const HolySpirit: GcdAbility = {
     gcd: 2.5,
     cast: 0,
 };
-export const HolySpiritHardcast: GcdAbility = {
+
+export const HolySpiritHardcast: PldGcdAbility = {
     type: 'gcd',
     name: "Holy Spirit (hard cast)",
     id: 7384,
@@ -87,7 +91,7 @@ export const HolySpiritHardcast: GcdAbility = {
     cast: 1.5,
 };
 
-export const GoringBlade: GcdAbility = {
+export const GoringBlade: PldGcdAbility = {
     type: 'gcd',
     name: "Goring Blade",
     id: 3538,
@@ -97,7 +101,7 @@ export const GoringBlade: GcdAbility = {
     cast: 0,
 };
 
-export const Confiteor: GcdAbility = {
+export const Confiteor: PldGcdAbility = {
     type: 'gcd',
     name: "Confiteor",
     id: 16459,
@@ -106,7 +110,8 @@ export const Confiteor: GcdAbility = {
     gcd: 2.5,
     cast: 0,
 };
-export const BladeOfFaith: GcdAbility = {
+
+export const BladeOfFaith: PldGcdAbility = {
     type: 'gcd',
     name: "Blade of Faith",
     id: 25748,
@@ -115,7 +120,8 @@ export const BladeOfFaith: GcdAbility = {
     gcd: 2.5,
     cast: 0,
 };
-export const BladeOfTruth: GcdAbility = {
+
+export const BladeOfTruth: PldGcdAbility = {
     type: 'gcd',
     name: "Blade of Truth",
     id: 25749,
@@ -124,7 +130,8 @@ export const BladeOfTruth: GcdAbility = {
     gcd: 2.5,
     cast: 0,
 };
-export const BladeOfValor: GcdAbility = {
+
+export const BladeOfValor: PldGcdAbility = {
     type: 'gcd',
     name: "Blade of Valor",
     id: 25750,
@@ -135,15 +142,10 @@ export const BladeOfValor: GcdAbility = {
     activatesBuffs: [BladeOfHonorReadyBuff],
 };
 
-
-
-
 /**
  * Paladin oGCD Actions
  */
-
-
-export const FightOrFlight: OgcdAbility = {
+export const FightOrFlight: PldOgcdAbility = {
     type: 'ogcd',
     name: "Fight or Flight",
     id: 20,
@@ -154,7 +156,8 @@ export const FightOrFlight: OgcdAbility = {
     },
     activatesBuffs: [FightOrFlightBuff, GoringBladeReadyBuff],
 };
-export const Imperator: OgcdAbility = {
+
+export const Imperator: PldOgcdAbility = {
     type: 'ogcd',
     name: "Imperator",
     id: 36921,
@@ -163,12 +166,12 @@ export const Imperator: OgcdAbility = {
     cooldown: {
         time: 60,
     },
-    activatesBuffs: [RequiescatBuff],
+    activatesBuffs: [RequiescatBuff, ConfiteorReadyBuff],
 };
-export const BladeOfHonor: OgcdAbility = {
+
+export const BladeOfHonor: PldOgcdAbility = {
     type: 'ogcd',
     name: "Blade of Honor",
-    // todo update dawntrail
     id: 36922,
     attackType: "Ability",
     potency: 1000,
@@ -177,10 +180,11 @@ export const BladeOfHonor: OgcdAbility = {
     },
 };
 
-export const Intervene: OgcdAbility = {
+export const Intervene: PldOgcdAbility = {
     type: 'ogcd',
     name: "Intervene",
     id: 16461,
+    animationLock: 0.8,
     attackType: "Ability",
     potency: 150,
     cooldown: {
@@ -188,7 +192,8 @@ export const Intervene: OgcdAbility = {
         charges: 2,
     },
 };
-export const Expiacion: OgcdAbility = {
+
+export const Expiacion: PldOgcdAbility = {
     type: 'ogcd',
     name: "Expiacion",
     id: 25747,
@@ -198,7 +203,8 @@ export const Expiacion: OgcdAbility = {
         time: 30,
     },
 };
-export const CircleOfScorn: OgcdAbility = {
+
+export const CircleOfScorn: PldOgcdAbility = {
     type: 'ogcd',
     name: "Circle of Scorn",
     id: 23,
