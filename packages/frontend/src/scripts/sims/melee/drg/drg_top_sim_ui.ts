@@ -1,10 +1,10 @@
-import { CycleSimResult, DisplayRecordFinalized, isFinalizedAbilityUse } from "@xivgear/core/sims/cycle_sim";
-import { PreDmgUsedAbility } from "@xivgear/core/sims/sim_types";
-import { CustomColumnSpec } from "../../../tables";
-import { AbilitiesUsedTable } from "../../components/ability_used_table";
-import { BaseMultiCycleSimGui } from "../../multicyclesim_ui";
-import { DRGTopSimResult, DRGTopSimSettings } from "@xivgear/core/sims/melee/drg/drg_top_sim";
-import { DRGExtraData } from "@xivgear/core/sims/melee/drg/drg_types";
+import {CycleSimResult, DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/core/sims/cycle_sim";
+import {PreDmgUsedAbility} from "@xivgear/core/sims/sim_types";
+import {CustomColumnSpec} from "../../../tables";
+import {AbilitiesUsedTable} from "../../components/ability_used_table";
+import {BaseMultiCycleSimGui} from "../../multicyclesim_ui";
+import {DRGTopSimResult, DRGTopSimSettings} from "@xivgear/core/sims/melee/drg/drg_top_sim";
+import {DRGExtraData} from "@xivgear/core/sims/melee/drg/drg_types";
 
 class DRGGaugeGui {
 
@@ -49,7 +49,7 @@ class DRGGaugeGui {
                     return div;
                 }
                 return document.createTextNode("");
-            }
+            },
         }];
     }
 }

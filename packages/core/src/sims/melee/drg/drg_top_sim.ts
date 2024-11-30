@@ -1,12 +1,12 @@
-import { Ability, OgcdAbility, Buff, SimSettings, SimSpec } from "@xivgear/core/sims/sim_types";
-import { CycleProcessor, CycleSimResult, ExternalCycleSettings, MultiCycleSettings, AbilityUseResult, Rotation, PreDmgAbilityUseRecordUnf } from "@xivgear/core/sims/cycle_sim";
-import { potionMaxStr } from "@xivgear/core/sims/common/potion";
+import {Ability, OgcdAbility, Buff, SimSettings, SimSpec} from "@xivgear/core/sims/sim_types";
+import {CycleProcessor, CycleSimResult, ExternalCycleSettings, MultiCycleSettings, AbilityUseResult, Rotation, PreDmgAbilityUseRecordUnf} from "@xivgear/core/sims/cycle_sim";
+import {potionMaxStr} from "@xivgear/core/sims/common/potion";
 import DRGGauge from "./drg_gauge";
-import { DrgAbility, DrgGcdAbility, DRGExtraData } from "./drg_types";
+import {DrgAbility, DrgGcdAbility, DRGExtraData} from "./drg_types";
 import * as Actions from './drg_actions';
 import * as Buffs from './drg_buffs';
-import { BaseMultiCycleSim } from "@xivgear/core/sims/processors/sim_processors";
-import { CharacterGearSet } from "../../../gear";
+import {BaseMultiCycleSim} from "@xivgear/core/sims/processors/sim_processors";
+import {CharacterGearSet} from "../../../gear";
 
 export interface DRGTopSimSettings extends SimSettings {
 
@@ -37,10 +37,10 @@ export const drgTopSimSpec: SimSpec<DrgTopSim, DRGTopSettingsExternal> = {
         contact: [{
             type: "discord",
             discordTag: "wildwolf",
-            discordUid: "108974906472955904"
-        }]
-    }]
-}
+            discordUid: "108974906472955904",
+        }],
+    }],
+};
 
 enum ComboState {
     None,
@@ -97,13 +97,13 @@ export class DRGTopCycleProcessor extends CycleProcessor {
 
     protected override addAbilityUse(usedAbility: PreDmgAbilityUseRecordUnf): void {
         const extraData: DRGExtraData = {
-            gauge: this.gauge.getGaugeState()
+            gauge: this.gauge.getGaugeState(),
         };
 
         const modified: PreDmgAbilityUseRecordUnf = {
             ...usedAbility,
-            extraData
-        }
+            extraData,
+        };
 
         super.addAbilityUse(modified);
     }
@@ -275,15 +275,15 @@ export class DrgTopSim extends BaseMultiCycleSim<DRGTopSimResult, DRGTopSimSetti
     protected createCycleProcessor(settings: MultiCycleSettings): DRGTopCycleProcessor {
         return new DRGTopCycleProcessor({
             ...settings,
-            hideCycleDividers: true
+            hideCycleDividers: true,
         });
     }
     getRotationsToSimulate(set: CharacterGearSet): Rotation<DRGTopCycleProcessor>[] {
         return [{
             cycleTime: 120,
             apply(cp: DRGTopCycleProcessor) {
-                const numPots = Math.ceil(cp.remainingTime / 360) // Force pots during 2mins
-                const maxAllowableDelay = cp.remainingTime - ((numPots - 1) * 360)
+                const numPots = Math.ceil(cp.remainingTime / 360); // Force pots during 2mins
+                const maxAllowableDelay = cp.remainingTime - ((numPots - 1) * 360);
                 const potOpener = maxAllowableDelay <= 120;
                 cp.useOpener(potOpener);
 
@@ -292,8 +292,8 @@ export class DrgTopSim extends BaseMultiCycleSim<DRGTopSimResult, DRGTopSimSetti
 
                     cp.useOgcdCooldown();
                     cp.useOgcdCooldown();
-                })
-            }
+                });
+            },
         }];
     }
 
