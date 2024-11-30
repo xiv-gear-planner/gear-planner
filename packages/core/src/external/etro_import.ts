@@ -1,4 +1,4 @@
-import {EquipSlotKey, ItemSlotExport, SetExport} from "@xivgear/xivmath/geartypes";
+import {EquipSlotKey, ItemSlotExport, SetExportExternalSingle} from "@xivgear/xivmath/geartypes";
 import {JobName, MATERIA_SLOTS_MAX, SupportedLevel} from "@xivgear/xivmath/xivconstants";
 import {BaseParamToStatKey, RelevantBaseParam} from "./xivapitypes";
 import {queryBaseParams} from "../datamanager_xivapi";
@@ -145,7 +145,7 @@ export async function getSetFromEtro(etroSetId: string) {
     else {
         food = undefined;
     }
-    const setImport: SetExport = {
+    const setImport: SetExportExternalSingle = {
         name: response.name,
         job: response.jobAbbrev,
         food: food,

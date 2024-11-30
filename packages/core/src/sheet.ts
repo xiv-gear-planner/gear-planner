@@ -29,7 +29,7 @@ import {
     OccGearSlotKey,
     PartyBonusAmount,
     RawStatKey,
-    SetExport,
+    SetExport, SetExportExternalSingle,
     SetStatsExport,
     SheetExport,
     SheetStatsExport,
@@ -66,12 +66,12 @@ export class SheetProvider<SheetType extends GearPlanSheet> {
         return this.construct(undefined, importedData);
     }
 
-    fromSetExport(...importedData: SetExport[]): SheetType {
+    fromSetExport(...importedData: SetExportExternalSingle[]): SheetType {
         if (importedData.length === 0) {
             throw Error("Imported sets cannot be be empty");
         }
         const gearPlanSheet = this.fromExport({
-            race: undefined,
+            race: importedData[0].race ?? undefined,
             sets: [...importedData],
             sims: importedData[0].sims ?? [],
             name: importedData[0].name ?? SHARED_SET_NAME,
@@ -79,7 +79,7 @@ export class SheetProvider<SheetType extends GearPlanSheet> {
             job: importedData[0].job,
             level: importedData[0].level,
             ilvlSync: importedData[0].ilvlSync,
-            partyBonus: 0,
+            partyBonus: importedData[0].partyBonus ?? 0,
             itemDisplaySettings: defaultItemDisplaySettings,
             // TODO: make these smarter - make them deduplicate identical items
             customItems: importedData.flatMap(imp => imp.customItems ?? []),
@@ -513,6 +513,9 @@ export class GearPlanSheet {
 
     }
 
+    exportGearSet(set: CharacterGearSet): SetExport;
+    exportGearSet(set: CharacterGearSet, external: false): SetExport;
+    exportGearSet(set: CharacterGearSet, external: true): SetExportExternalSingle;
     /**
      * Export a CharacterGearSet to a SetExport so that it can safely be serialized for saving or sharing.
      *
@@ -520,7 +523,7 @@ export class GearPlanSheet {
      * @param external true to include fields which are useful for exporting but not saving (e.g. including job name
      * for single set exports).
      */
-    exportGearSet(set: CharacterGearSet, external: boolean = false): SetExport {
+    exportGearSet(set: CharacterGearSet, external: boolean = false): SetExport | SetExportExternalSingle {
         const items: { [K in EquipSlotKey]?: ItemSlotExport } = {};
         for (const equipmentKey in set.equipment) {
             const inSlot: EquippedItem = set.equipment[equipmentKey];
@@ -548,12 +551,15 @@ export class GearPlanSheet {
             isSeparator: set.isSeparator,
         };
         if (external) {
-            out.job = this.classJobName;
-            out.level = this.level;
-            out.ilvlSync = this.ilvlSync;
-            out.sims = this.exportSims(true);
-            out.customItems = this._customItems.map(ci => ci.export());
-            out.customFoods = this._customFoods.map(cf => cf.export());
+            const ext = out as SetExportExternalSingle;
+            ext.job = this.classJobName;
+            ext.level = this.level;
+            ext.ilvlSync = this.ilvlSync;
+            ext.sims = this.exportSims(true);
+            ext.customItems = this._customItems.map(ci => ci.export());
+            ext.customFoods = this._customFoods.map(cf => cf.export());
+            ext.partyBonus = this._partyBonus;
+            ext.race = this._race;
         }
         else {
             if (set.relicStatMemory) {
