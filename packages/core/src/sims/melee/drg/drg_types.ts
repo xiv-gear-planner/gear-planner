@@ -1,4 +1,4 @@
-import { Ability, GcdAbility, OgcdAbility } from "@xivgear/core/sims/sim_types";
+import {Ability, GcdAbility, OgcdAbility} from "@xivgear/core/sims/sim_types";
 import DRGGauge from "./drg_gauge";
 
 /** Represents a Dragoon-specific Ability */

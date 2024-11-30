@@ -1,4 +1,4 @@
-import { DRGGaugeState } from "./drg_types";
+import {DRGGaugeState} from "./drg_types";
 
 class DRGGauge {
     constructor() {
@@ -21,8 +21,8 @@ class DRGGauge {
 
     getGaugeState(): DRGGaugeState {
         return {
-            FirstmindsFocus: this.FirstmindsFocus
-        }
+            FirstmindsFocus: this.FirstmindsFocus,
+        };
     }
 }
 export default DRGGauge;
