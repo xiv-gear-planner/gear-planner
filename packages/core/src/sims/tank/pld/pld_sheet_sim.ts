@@ -216,11 +216,13 @@ class PldCycleProcessor extends CycleProcessor {
         return isSixMinuteWindow;
     }
 
-    isNineGCDFoFPossibleAtThisSpeed(): boolean {
+    shouldWeGoForNineGCDFoFAtThisSpeed(): boolean {
         const gcdSpeedPhys = this.stats.gcdPhys(2.5);
         const gcdSpeedMag = this.stats.gcdMag(2.5);
-        // Technically, it's _theoretically_ possible at faster GCD speeds (where this total is >= 19.75 but still below 20),
-        // but I don't want to support anything that's not possible in-game.
+        // It's still possible to get nine GCD FoFs at slower speeds (where this total is >= 19.75 but still below 20),
+        // but it's awkward, often suboptimal to I don't want to support anything that's not possible in-game.
+        // 19.75 (e.g. <=2.44 physical GCD speed, <=2.50 magical GCD speed) seems to be the boundary of where it
+        // makes sense for us to go for nine GCD FoFs.
         return gcdSpeedPhys * 4 + gcdSpeedMag * 4 < 19.75;
     }
 }
@@ -312,7 +314,7 @@ export class PldSim extends BaseMultiCycleSim<PldSimResult, PldSettings, PldCycl
         // If FoF is coming up, progress our combo so that we have the higher potency stuff in FoF
         // We only do this if it's not possible to fit all of our Atonement combo in FoF. Otherwise
         // there's no reason to advance.
-        if (!cp.isNineGCDFoFPossibleAtThisSpeed()) {
+        if (!cp.shouldWeGoForNineGCDFoFAtThisSpeed()) {
             // Two GCDs until FoF
             if (cp.getFightOrFlightDuration() === 0 && cp.cdTracker.statusOfAt(Actions.FightOrFlight, cp.nextGcdTime + gcdSpeedPhys).readyToUse) {
                 // Using Atonement here means there's a higher chance our FoF has higher potency in it
@@ -366,7 +368,7 @@ export class PldSim extends BaseMultiCycleSim<PldSimResult, PldSettings, PldCycl
         ////////
         if (cp.canUseWithoutClipping(Actions.FightOrFlight)) {
             // If we're fast enough to get nine GCDs in FoF, we should always solo late weave FoF
-            if (cp.isNineGCDFoFPossibleAtThisSpeed()) {
+            if (cp.shouldWeGoForNineGCDFoFAtThisSpeed()) {
                 cp.advanceForLateWeave([Actions.FightOrFlight]);
             }
             this.use(cp, Actions.FightOrFlight);
@@ -439,7 +441,7 @@ export class PldSim extends BaseMultiCycleSim<PldSimResult, PldSettings, PldCycl
         cp.advanceForLateWeave([potionMaxStr]);
         this.use(cp, potionMaxStr);
         this.use(cp, cp.getComboToUse());
-        if (cp.isNineGCDFoFPossibleAtThisSpeed()) {
+        if (cp.shouldWeGoForNineGCDFoFAtThisSpeed()) {
             cp.advanceForLateWeave([Actions.FightOrFlight]);
             this.use(cp, Actions.FightOrFlight);
             this.use(cp, Actions.GoringBlade);
