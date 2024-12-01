@@ -201,6 +201,14 @@ class PldCycleProcessor extends CycleProcessor {
         const isSixMinuteWindow = this.currentTime % sixMinutesInSeconds < 20;
         return isSixMinuteWindow;
     }
+
+    isNineGCDFoFPossibleAtThisSpeed(): boolean {
+        const gcdSpeedPhys = this.stats.gcdPhys(2.5);
+        const gcdSpeedMag = this.stats.gcdMag(2.5);
+        // Technically, it's _theoretically_ possible at faster GCD speeds (where this total is >= 19.75 but still below 20),
+        // but I don't want to support anything that's not possible in-game.
+        return gcdSpeedPhys * 4 + gcdSpeedMag * 4 < 19.75;
+    }
 }
 
 export class PldSim extends BaseMultiCycleSim<PldSimResult, PldSettings, PldCycleProcessor> {
@@ -244,7 +252,7 @@ export class PldSim extends BaseMultiCycleSim<PldSimResult, PldSettings, PldCycl
     }
 
     willOvercapBuffsNextGCD(cp: PldCycleProcessor): boolean {
-        return cp.rotationState.combo === 2 &&  this.haveAnyRoyalAuthorityBuffs(cp);
+        return cp.rotationState.combo === 2 && this.haveAnyRoyalAuthorityBuffs(cp);
     }
 
     // Gets the next GCD to use in the PLD rotation.
@@ -289,11 +297,10 @@ export class PldSim extends BaseMultiCycleSim<PldSimResult, PldSettings, PldCycl
 
         // If FoF is coming up, progress our combo so that we have the higher potency stuff in FoF
         if (cp.getFightOrFlightDuration() === 0 && cp.cdTracker.statusOfAt(Actions.FightOrFlight, cp.nextGcdTime + gcdSpeedPhys).readyToUse) {
-        // Using Atonement here means there's a higher chance our FoF has higher potency in it
+            // Using Atonement here means there's a higher chance our FoF has higher potency in it
             if (cp.isAtonementReadyBuffActive()) {
                 return Actions.Atonement;
             }
-
             if (cp.isSupplicationReadyBuffActive()) {
                 return Actions.Supplication;
             }
@@ -330,6 +337,10 @@ export class PldSim extends BaseMultiCycleSim<PldSimResult, PldSettings, PldCycl
         ///oGCDs
         ////////
         if (cp.canUseWithoutClipping(Actions.FightOrFlight)) {
+            // If we're fast enough to get nine GCDs in FoF, we should always solo late weave FoF
+            if (cp.isNineGCDFoFPossibleAtThisSpeed()) {
+                cp.advanceForLateWeave([Actions.FightOrFlight]);
+            }
             this.use(cp, Actions.FightOrFlight);
         }
 
@@ -400,18 +411,35 @@ export class PldSim extends BaseMultiCycleSim<PldSimResult, PldSettings, PldCycl
         cp.advanceForLateWeave([potionMaxStr]);
         this.use(cp, potionMaxStr);
         this.use(cp, cp.getComboToUse());
-        this.use(cp, Actions.FightOrFlight);
-        this.use(cp, Actions.Imperator);
-        this.use(cp, Actions.Confiteor);
-        this.use(cp, Actions.CircleOfScorn);
-        this.use(cp, Actions.Expiacion);
-        this.use(cp, Actions.BladeOfFaith);
-        this.use(cp, Actions.Intervene);
-        this.use(cp, Actions.BladeOfTruth);
-        this.use(cp, Actions.Intervene);
-        this.use(cp, Actions.BladeOfValor);
-        this.use(cp, Actions.BladeOfHonor);
-        this.use(cp, Actions.GoringBlade);
+        if (cp.isNineGCDFoFPossibleAtThisSpeed()) {
+            cp.advanceForLateWeave([Actions.FightOrFlight]);
+            this.use(cp, Actions.FightOrFlight);
+            this.use(cp, Actions.GoringBlade);
+            this.use(cp, Actions.Imperator);
+            this.use(cp, Actions.CircleOfScorn);
+            this.use(cp, Actions.Confiteor);
+            this.use(cp, Actions.Expiacion);
+            this.use(cp, Actions.Intervene);
+            this.use(cp, Actions.BladeOfFaith);
+            this.use(cp, Actions.Intervene);
+            this.use(cp, Actions.BladeOfTruth);
+            this.use(cp, Actions.BladeOfValor);
+            this.use(cp, Actions.BladeOfHonor);
+        }
+        else {
+            this.use(cp, Actions.FightOrFlight);
+            this.use(cp, Actions.Imperator);
+            this.use(cp, Actions.Confiteor);
+            this.use(cp, Actions.CircleOfScorn);
+            this.use(cp, Actions.Expiacion);
+            this.use(cp, Actions.BladeOfFaith);
+            this.use(cp, Actions.Intervene);
+            this.use(cp, Actions.BladeOfTruth);
+            this.use(cp, Actions.Intervene);
+            this.use(cp, Actions.BladeOfValor);
+            this.use(cp, Actions.BladeOfHonor);
+            this.use(cp, Actions.GoringBlade);
+        }
         this.use(cp, Actions.Atonement);
         this.use(cp, Actions.Supplication);
         this.use(cp, Actions.Sepulchre);
