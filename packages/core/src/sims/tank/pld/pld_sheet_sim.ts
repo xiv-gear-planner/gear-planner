@@ -172,6 +172,20 @@ class PldCycleProcessor extends CycleProcessor {
         return buff !== undefined;
     }
 
+    getNumberOfGoodFillerGCDsLeft(): number {
+        const divineMight = this.isDivineMightBuffActive() ? 1 : 0;
+        if (this.isAtonementReadyBuffActive()) {
+            return 3 + divineMight;
+        }
+        if (this.isSupplicationReadyBuffActive()) {
+            return 2 + divineMight;
+        }
+        if (this.isSepulchreReadyBuffActive()) {
+            return 1 + divineMight;
+        }
+        return divineMight;
+    }
+
     isSupplicationReadyBuffActive(): boolean {
         const buffs = this.getActiveBuffs();
         const buff = buffs.find(buff => buff.name === SupplicationReadyBuff.name);
@@ -282,7 +296,7 @@ export class PldSim extends BaseMultiCycleSim<PldSimResult, PldSettings, PldCycl
                 return Actions.Supplication;
             }
             // If we can finish the Atonement combo, it's better to get a Supplication than a Holy Spirit as the last buffed GCD
-            if (cp.getFightOrFlightDuration() >= gcdSpeedPhys * 3 ) {
+            if (cp.getFightOrFlightDuration() >= gcdSpeedPhys * 3) {
                 if (cp.isAtonementReadyBuffActive()) {
                     return Actions.Atonement;
                 }
@@ -296,13 +310,27 @@ export class PldSim extends BaseMultiCycleSim<PldSimResult, PldSettings, PldCycl
         }
 
         // If FoF is coming up, progress our combo so that we have the higher potency stuff in FoF
-        if (cp.getFightOrFlightDuration() === 0 && cp.cdTracker.statusOfAt(Actions.FightOrFlight, cp.nextGcdTime + gcdSpeedPhys).readyToUse) {
-            // Using Atonement here means there's a higher chance our FoF has higher potency in it
-            if (cp.isAtonementReadyBuffActive()) {
-                return Actions.Atonement;
+        // We only do this if it's not possible to fit all of our Atonement combo in FoF. Otherwise
+        // there's no reason to advance.
+        if (!cp.isNineGCDFoFPossibleAtThisSpeed()) {
+            // Two GCDs until FoF
+            if (cp.getFightOrFlightDuration() === 0 && cp.cdTracker.statusOfAt(Actions.FightOrFlight, cp.nextGcdTime + gcdSpeedPhys).readyToUse) {
+                // Using Atonement here means there's a higher chance our FoF has higher potency in it
+                if (cp.isAtonementReadyBuffActive()) {
+                    return Actions.Atonement;
+                }
             }
-            if (cp.isSupplicationReadyBuffActive()) {
-                return Actions.Supplication;
+
+            // One GCD until FoF
+            if (cp.getFightOrFlightDuration() === 0 && cp.cdTracker.statusOfAt(Actions.FightOrFlight, cp.nextGcdTime).readyToUse) {
+                // If we only have three left, we shouldn't use Supplication, since spells + Goring = 5
+                if (cp.getNumberOfGoodFillerGCDsLeft() === 3 && !this.willOvercapBuffsNextGCD(cp)) {
+                    return cp.getComboToUse();
+                }
+
+                if (cp.isSupplicationReadyBuffActive()) {
+                    return Actions.Supplication;
+                }
             }
         }
 
