@@ -74,11 +74,15 @@ class RotationState {
 
 class PldCycleProcessor extends CycleProcessor {
     rotationState: RotationState;
+    // Used in combination with shouldWeAlternateNineGCDFoFAtThisSpeed to determine
+    // if we're nine GCD FoFing now.
+    shouldWeNineGCDFoFThisAlternation: boolean;
 
     constructor(settings: MultiCycleSettings) {
         super(settings);
         this.cycleLengthMode = 'full-duration';
         this.rotationState = new RotationState();
+        this.shouldWeNineGCDFoFThisAlternation = true;
     }
 
     /** Advances to as late as possible.
@@ -98,7 +102,6 @@ class PldCycleProcessor extends CycleProcessor {
 
     override addAbilityUse(usedAbility: PreDmgAbilityUseRecordUnf) {
         // Add gauge data to this record for the UI
-        // TODO Violet FoF duration
         const extraData: PldExtraData = {
             fightOrFlightDuration: 0,
             requiescatStacks: 0,
@@ -216,14 +219,38 @@ class PldCycleProcessor extends CycleProcessor {
         return isSixMinuteWindow;
     }
 
-    shouldWeGoForNineGCDFoFAtThisSpeed(): boolean {
+    shouldWeAlternateNineGCDFoFAtThisSpeed(): boolean {
         const gcdSpeedPhys = this.stats.gcdPhys(2.5);
         const gcdSpeedMag = this.stats.gcdMag(2.5);
-        // It's still possible to get nine GCD FoFs at slower speeds (where this total is >= 19.75 but still below 20),
-        // but it's awkward, often suboptimal to I don't want to support anything that's not possible in-game.
-        // 19.75 (e.g. <=2.44 physical GCD speed, <=2.50 magical GCD speed) seems to be the boundary of where it
-        // makes sense for us to go for nine GCD FoFs.
-        return gcdSpeedPhys * 4 + gcdSpeedMag * 4 < 19.75;
+        const timeForEightGCDs = gcdSpeedPhys * 4 + gcdSpeedMag * 4;
+        // This covers roughly 2.44-2.46 physical GCD and 2.50 magical GCD.
+        // For this speed, we want to alternate 8 GCD and 9 GCD FoFs.
+        return timeForEightGCDs > 19.75 && timeForEightGCDs < 19.85;
+    }
+
+    shouldWeAlwaysGoForNineGCDFoFAtThisSpeed(): boolean {
+        const gcdSpeedPhys = this.stats.gcdPhys(2.5);
+        const gcdSpeedMag = this.stats.gcdMag(2.5);
+        const timeForEightGCDs = gcdSpeedPhys * 4 + gcdSpeedMag * 4;
+        // This is the speed at which we should do 9 GCD FoF every time.
+        // It's still possible to get nine GCD FoFs at slower speeds (where this total is >= 19.75 but still below 19.96).
+        // 19.75 (e.g. <2.44 physical GCD speed, <=2.50 magical GCD speed) seems to be the boundary of where it
+        // makes sense for us to go for nine GCD FoFs every time.
+        return timeForEightGCDs < 19.75;
+    }
+
+    shouldWeGoForNineGCDFoFNow(): boolean {
+        if (this.shouldWeAlwaysGoForNineGCDFoFAtThisSpeed()) {
+            return true;
+        }
+
+        if (this.shouldWeAlternateNineGCDFoFAtThisSpeed()) {
+            const shouldWeGoForNine = this.shouldWeNineGCDFoFThisAlternation;
+            this.shouldWeNineGCDFoFThisAlternation = !shouldWeGoForNine;
+            return shouldWeGoForNine;
+        }
+
+        return false;
     }
 }
 
@@ -314,7 +341,7 @@ export class PldSim extends BaseMultiCycleSim<PldSimResult, PldSettings, PldCycl
         // If FoF is coming up, progress our combo so that we have the higher potency stuff in FoF
         // We only do this if it's not possible to fit all of our Atonement combo in FoF. Otherwise
         // there's no reason to advance.
-        if (!cp.shouldWeGoForNineGCDFoFAtThisSpeed()) {
+        if (!cp.shouldWeAlwaysGoForNineGCDFoFAtThisSpeed()) {
             // Two GCDs until FoF
             if (cp.getFightOrFlightDuration() === 0 && cp.cdTracker.statusOfAt(Actions.FightOrFlight, cp.nextGcdTime + gcdSpeedPhys).readyToUse) {
                 // Using Atonement here means there's a higher chance our FoF has higher potency in it
@@ -367,8 +394,8 @@ export class PldSim extends BaseMultiCycleSim<PldSimResult, PldSettings, PldCycl
         ///oGCDs
         ////////
         if (cp.canUseWithoutClipping(Actions.FightOrFlight)) {
-            // If we're fast enough to get nine GCDs in FoF, we should always solo late weave FoF
-            if (cp.shouldWeGoForNineGCDFoFAtThisSpeed()) {
+            // If we want to go for 9 GCD FoF, we need to late weave it.
+            if (cp.shouldWeGoForNineGCDFoFNow()) {
                 cp.advanceForLateWeave([Actions.FightOrFlight]);
             }
             this.use(cp, Actions.FightOrFlight);
@@ -441,7 +468,7 @@ export class PldSim extends BaseMultiCycleSim<PldSimResult, PldSettings, PldCycl
         cp.advanceForLateWeave([potionMaxStr]);
         this.use(cp, potionMaxStr);
         this.use(cp, cp.getComboToUse());
-        if (cp.shouldWeGoForNineGCDFoFAtThisSpeed()) {
+        if (cp.shouldWeGoForNineGCDFoFNow()) {
             cp.advanceForLateWeave([Actions.FightOrFlight]);
             this.use(cp, Actions.FightOrFlight);
             this.use(cp, Actions.GoringBlade);
