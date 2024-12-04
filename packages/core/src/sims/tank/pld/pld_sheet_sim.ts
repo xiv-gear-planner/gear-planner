@@ -245,9 +245,7 @@ class PldCycleProcessor extends CycleProcessor {
         }
 
         if (this.shouldWeAlternateNineGCDFoFAtThisSpeed()) {
-            const shouldWeGoForNine = this.shouldWeNineGCDFoFThisAlternation;
-            this.shouldWeNineGCDFoFThisAlternation = !shouldWeGoForNine;
-            return shouldWeGoForNine;
+            return this.shouldWeNineGCDFoFThisAlternation;
         }
 
         return false;
@@ -341,7 +339,7 @@ export class PldSim extends BaseMultiCycleSim<PldSimResult, PldSettings, PldCycl
         // If FoF is coming up, progress our combo so that we have the higher potency stuff in FoF
         // We only do this if it's not possible to fit all of our Atonement combo in FoF. Otherwise
         // there's no reason to advance.
-        if (!cp.shouldWeAlwaysGoForNineGCDFoFAtThisSpeed()) {
+        if (!cp.shouldWeGoForNineGCDFoFNow()) {
             // Two GCDs until FoF
             if (cp.getFightOrFlightDuration() === 0 && cp.cdTracker.statusOfAt(Actions.FightOrFlight, cp.nextGcdTime + gcdSpeedPhys).readyToUse) {
                 // Using Atonement here means there's a higher chance our FoF has higher potency in it
@@ -443,6 +441,12 @@ export class PldSim extends BaseMultiCycleSim<PldSimResult, PldSettings, PldCycl
     use(cp: PldCycleProcessor, ability: Ability): AbilityUseResult {
         if (cp.currentTime >= cp.totalTime) {
             return null;
+        }
+
+        if (ability.name === Actions.FightOrFlight.name) {
+            // For the GCDs that alternate 8/9 GCD FoFs, this alternates FoF when we use it.
+            const currentNineGCDFoFAlternation = cp.shouldWeNineGCDFoFThisAlternation;
+            cp.shouldWeNineGCDFoFThisAlternation = !currentNineGCDFoFAlternation;
         }
 
         // If an Ogcd isn't ready yet, but it can still be used without clipping, advance time until ready.
