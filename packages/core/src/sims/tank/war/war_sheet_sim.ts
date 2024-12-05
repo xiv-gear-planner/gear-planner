@@ -5,7 +5,7 @@ import {CharacterGearSet} from "@xivgear/core/gear";
 import {formatDuration} from "@xivgear/core/util/strutils";
 import {STANDARD_ANIMATION_LOCK} from "@xivgear/xivmath/xivconstants";
 import {WarGauge} from "./war_gauge";
-import {WarExtraData, WarAbility, WarGcdAbility, WrathfulBuff, SurgingTempest, NascentChaosBuff, InnerReleaseBuff, PrimalRendReadyBuff, PrimalRuinationReadyBuff} from "./war_types";
+import {WarExtraData, WarAbility, WarGcdAbility, WrathfulBuff, SurgingTempest, NascentChaosBuff, InnerReleaseBuff, PrimalRendReadyBuff, PrimalRuinationReadyBuff, WarOgcdAbility} from "./war_types";
 import {sum} from "@xivgear/core/util/array_utils";
 import * as Actions from './war_actions';
 import {BaseMultiCycleSim} from "@xivgear/core/sims/processors/sim_processors";
@@ -29,7 +29,7 @@ export interface WarSettingsExternal extends ExternalCycleSettings<WarSettings> 
 export const warSpec: SimSpec<WarSim, WarSettingsExternal> = {
     stub: "war-sheet-sim",
     displayName: "WAR Sim",
-    description: `Simulates a WAR rotation using level 100 abilities/traits.
+    description: `Simulates a WAR rotation for level 100/90/80/70.
 If potions are enabled, pots in the burst window every 6m (i.e. 0m, 6m, 12m, etc).
 Defaults to simulating a killtime of 8m 30s (510s).`,
     makeNewSimInstance: function (): WarSim {
@@ -39,7 +39,7 @@ Defaults to simulating a killtime of 8m 30s (510s).`,
         return new WarSim(exported);
     },
     supportedJobs: ['WAR'],
-    supportedLevels: [100],
+    supportedLevels: [70, 80, 90, 100],
     isDefaultSim: true,
     maintainers: [{
         name: 'Violet Stardust',
@@ -68,12 +68,16 @@ class WarCycleProcessor extends CycleProcessor {
     gauge: WarGauge;
     rotationState: RotationState;
     wrathfulProgress = 0;
+    // We track the Onslaught action to use after we've applied level modifiers,
+    // so that we have an accurate number of charges.
+    onslaughtAction: WarOgcdAbility;
 
     constructor(settings: MultiCycleSettings) {
         super(settings);
         this.cycleLengthMode = 'full-duration';
         this.gauge = new WarGauge();
         this.rotationState = new RotationState();
+        this.onslaughtAction = this.applyLevelModifiers(Actions.Onslaught) as WarOgcdAbility;
     }
 
     /** Advances to as late as possible.
@@ -192,6 +196,9 @@ class WarCycleProcessor extends CycleProcessor {
     }
 
     isWrathfulActive(): boolean {
+        if (this.stats.level < 96) {
+            return false;
+        }
         const buffs = this.getActiveBuffs();
         const wrathful = buffs.find(buff => buff.name === WrathfulBuff.name);
         return wrathful !== undefined;
@@ -208,7 +215,7 @@ class WarCycleProcessor extends CycleProcessor {
     }
 
     getTimeUntilOnslaughtCapped(): number {
-        return this.cdTracker.statusOf(Actions.Onslaught).cappedAt.absolute - this.currentTime;
+        return this.cdTracker.statusOf(this.onslaughtAction).cappedAt.absolute - this.currentTime;
     }
 }
 
@@ -322,8 +329,8 @@ export class WarSim extends BaseMultiCycleSim<WarSimResult, WarSettings, WarCycl
             this.use(cp, Actions.Infuriate);
         }
 
-        if (cp.inBurst() && cp.canUseWithoutClipping(Actions.Onslaught)) {
-            this.use(cp, Actions.Onslaught);
+        if (cp.inBurst() && cp.canUseWithoutClipping(cp.onslaughtAction)) {
+            this.use(cp, cp.onslaughtAction);
         }
 
         // Don't overcap Infuriates. Use one if there's seven seconds left.
@@ -332,14 +339,14 @@ export class WarSim extends BaseMultiCycleSim<WarSimResult, WarSettings, WarCycl
         }
 
         // Don't overcap Onslaughts.
-        if (cp.getTimeUntilOnslaughtCapped() < 3 && cp.canUseWithoutClipping(Actions.Onslaught)) {
-            this.use(cp, Actions.Onslaught);
+        if (cp.getTimeUntilOnslaughtCapped() < 3 && cp.canUseWithoutClipping(cp.onslaughtAction)) {
+            this.use(cp, cp.onslaughtAction);
         }
 
         // Dump resources if fight ending soon
         if (cp.fightEndingSoon()) {
-            if (cp.canUseWithoutClipping(Actions.Onslaught)) {
-                this.use(cp, Actions.Onslaught);
+            if (cp.canUseWithoutClipping(cp.onslaughtAction)) {
+                this.use(cp, cp.onslaughtAction);
             }
 
             if (cp.canUseWithoutClipping(Actions.Infuriate) && cp.gauge.beastGauge <= 50) {
@@ -413,33 +420,65 @@ export class WarSim extends BaseMultiCycleSim<WarSimResult, WarSettings, WarCycl
     }
 
     private useOpener(cp: WarCycleProcessor) {
+        const level = cp.stats.level;
         cp.advanceTo(1 - STANDARD_ANIMATION_LOCK);
         this.use(cp, Actions.Tomahawk);
         this.use(cp, Actions.Infuriate);
+        this.use(cp, Actions.HeavySwing);
         this.use(cp, Actions.Maim);
         this.use(cp, Actions.StormsEye);
         this.use(cp, Actions.InnerRelease);
         cp.advanceForLateWeave([potionMaxStr]);
         this.use(cp, potionMaxStr);
-        this.use(cp, Actions.InnerChaos);
+        if (level >= 80) {
+            this.use(cp, Actions.InnerChaos);
+        }
+        else {
+            this.use(cp, Actions.FellCleave);
+        }
         this.use(cp, Actions.Upheaval);
-        this.use(cp, Actions.Onslaught);
-        this.use(cp, Actions.PrimalRend);
-        this.use(cp, Actions.Onslaught);
-        this.use(cp, Actions.PrimalRuination);
-        this.use(cp, Actions.Onslaught);
+        this.use(cp, cp.onslaughtAction);
+        if (level >= 90) {
+            this.use(cp, Actions.PrimalRend);
+            this.use(cp, cp.onslaughtAction);
+        }
+        // Avoid Primal Rend -> Onslaught -> Onslaught at 90.
+        if (level >= 100) {
+            this.use(cp, Actions.PrimalRuination);
+            this.use(cp, cp.onslaughtAction);
+        }
         this.use(cp, Actions.FellCleave);
+        if (level < 90) {
+            // Use the Onslaught we didn't use after Primal Rend.
+            this.use(cp, cp.onslaughtAction);
+        }
         this.use(cp, Actions.FellCleave);
+        if (level < 100 && level >= 88) {
+            // If we have it, use the Onslaught we didn't use after Primal Ruination.
+            this.use(cp, cp.onslaughtAction);
+        }
         this.use(cp, Actions.FellCleave);
-        this.use(cp, Actions.PrimalWrath);
+        if (level >= 96) {
+            this.use(cp, Actions.PrimalWrath);
+        }
         this.use(cp, Actions.Infuriate);
-        this.use(cp, Actions.InnerChaos);
+        if (level >= 80) {
+            this.use(cp, Actions.InnerChaos);
+        }
+        else {
+            this.use(cp, Actions.FellCleave);
+        }
         this.use(cp, Actions.HeavySwing);
         this.use(cp, Actions.Maim);
         this.use(cp, Actions.StormsPath);
         this.use(cp, Actions.FellCleave);
         this.use(cp, Actions.Infuriate);
-        this.use(cp, Actions.InnerChaos);
+        if (level >= 80) {
+            this.use(cp, Actions.InnerChaos);
+        }
+        else {
+            this.use(cp, Actions.FellCleave);
+        }
     }
 
     getRotationsToSimulate(set: CharacterGearSet): Rotation<WarCycleProcessor>[] {
