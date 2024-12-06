@@ -543,8 +543,17 @@ export type BuffEffects = {
     forceDhit?: boolean,
     /**
      * Haste. Expressed as the percentage value, e.g. 20 = 20% faster GCD
+     * Remains for backwards compatibility with calculations and Buffs that do not know their typing
      */
     haste?: number,
+    /**
+     * Haste. Expressed as the percentage value, e.g. 20 = 20% faster GCD
+     */
+    hasteY?: number,
+    /**
+     * Haste. Expressed as the percentage value, e.g. 20 = 20% faster GCD
+     */
+    hasteZ?: number,
     /**
      * Modify stats directly
      */
@@ -710,6 +719,16 @@ export type CombinedBuffEffect = {
      * Haste as an integer, e.g. 20 haste = 20% lower cast/gcd time.
      */
     haste: number,
+    /**
+     * Type-Y haste as an integer, e.g. 20 haste = 20% lower cast/gcd time.
+     * see https://www.akhmorning.com/allagan-studies/how-to-be-a-math-wizard/shadowbringers/speed/#gcds--cast-times
+     */
+    hasteY: number,
+    /**
+     * Type-Z haste as an integer, e.g. 20 haste = 20% lower cast/gcd time.
+     * see https://www.akhmorning.com/allagan-studies/how-to-be-a-math-wizard/shadowbringers/speed/#gcds--cast-times
+     */
+    hasteZ: number,
     /**
      * Function for modifying a ComputedSetStats for any changes which cannot be expressed using the other fields.
      */
