@@ -1,0 +1,25 @@
+gauge-outer {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 100%;
+  box-sizing: border-box;
+
+  &.sim-gauge {
+    padding: 2px 0 2px 0;
+  }
+}
+
+gauge-bar {
+  display: inline-block;
+  overflow: hidden;
+  width: 120px;
+  border-radius: 20px;
+  background-color: #00000033;
+  height: calc(100% - 3px);
+  border: 1px solid black;
+
+  .gauge-bar-inner {
+    height: 100%;
+  }
+}
