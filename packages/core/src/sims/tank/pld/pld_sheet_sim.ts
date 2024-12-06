@@ -7,7 +7,7 @@ import {sum} from "@xivgear/core/util/array_utils";
 import * as Actions from './pld_actions';
 import {BaseMultiCycleSim} from "@xivgear/core/sims/processors/sim_processors";
 import {potionMaxStr} from "@xivgear/core/sims/common/potion";
-import {AtonementReadyBuff, BladeOfHonorReadyBuff, ConfiteorReadyBuff, DivineMightBuff, FightOrFlightBuff, GoringBladeReadyBuff, PldExtraData, PldGcdAbility, RequiescatBuff, SepulchreReadyBuff, SupplicationReadyBuff} from "./pld_types";
+import {AtonementReadyBuff, BladeOfHonorReadyBuff, ConfiteorReadyBuff, DivineMightBuff, FightOrFlightBuff, GoringBladeReadyBuff, PldExtraData, PldGcdAbility, PldOgcdAbility, RequiescatBuff, SepulchreReadyBuff, SupplicationReadyBuff} from "./pld_types";
 
 export interface PldSimResult extends CycleSimResult {
 
@@ -27,7 +27,7 @@ export interface PldSettingsExternal extends ExternalCycleSettings<PldSettings> 
 export const pldSpec: SimSpec<PldSim, PldSettingsExternal> = {
     stub: "pld-sheet-sim",
     displayName: "PLD Sim",
-    description: `Simulates a PLD rotation using level 100 abilities/traits.
+    description: `Simulates a PLD rotation for level 100/90/80/70.
 If potions are enabled, pots in the burst window every 6m (i.e. 0m, 6m, 12m, etc).
 Defaults to simulating a killtime of 8m 30s (510s).`,
     makeNewSimInstance: function (): PldSim {
@@ -37,7 +37,7 @@ Defaults to simulating a killtime of 8m 30s (510s).`,
         return new PldSim(exported);
     },
     supportedJobs: ['PLD'],
-    supportedLevels: [100],
+    supportedLevels: [70, 80, 90, 100],
     isDefaultSim: true,
     maintainers: [{
         name: 'Violet Stardust',
@@ -77,12 +77,26 @@ class PldCycleProcessor extends CycleProcessor {
     // Used in combination with shouldWeAlternateNineGCDFoFAtThisSpeed to determine
     // if we're nine GCD FoFing now.
     shouldWeNineGCDFoFThisAlternation: boolean;
+    expiacionAbility: PldOgcdAbility;
+    requiescatAbility: PldOgcdAbility;
 
     constructor(settings: MultiCycleSettings) {
         super(settings);
         this.cycleLengthMode = 'full-duration';
         this.rotationState = new RotationState();
         this.shouldWeNineGCDFoFThisAlternation = true;
+        if (this.stats.level >= 86) {
+            this.expiacionAbility = Actions.Expiacion;
+        }
+        else {
+            this.expiacionAbility = Actions.SpiritsWithin;
+        }
+        if (this.stats.level >= 96) {
+            this.requiescatAbility = Actions.Imperator;
+        }
+        else {
+            this.requiescatAbility = Actions.Requiescat;
+        }
     }
 
     /** Advances to as late as possible.
@@ -147,7 +161,7 @@ class PldCycleProcessor extends CycleProcessor {
         return this.currentTime > (this.totalTime - 12);
     }
 
-    getRequiscatStacks(): number {
+    getRequiescatStacks(): number {
         let stacks = 0;
         const buffs = this.getActiveBuffs();
         const buff = buffs.find(buff => buff.name === RequiescatBuff.name);
@@ -155,6 +169,18 @@ class PldCycleProcessor extends CycleProcessor {
             stacks = buff.stacks;
         }
         return stacks;
+    }
+
+    // getRequiescatComboActions gets the list of GCD actions that should be/can be used with Requiescat
+    // stacks at the current level.
+    getRequiescatComboActions(): PldGcdAbility[] {
+        if (this.stats.level < 80) {
+            return [Actions.HolySpiritRequiescat, Actions.HolySpiritRequiescat, Actions.HolySpiritRequiescat, Actions.HolySpiritRequiescat];
+        }
+        if (this.stats.level < 90) {
+            return [Actions.Confiteor, Actions.HolySpiritRequiescat, Actions.HolySpiritRequiescat, Actions.HolySpiritRequiescat];
+        }
+        return [Actions.Confiteor, Actions.BladeOfFaith, Actions.BladeOfTruth, Actions.BladeOfValor];
     }
 
     isConfiteorReadyBuffActive(): boolean {
@@ -299,13 +325,17 @@ export class PldSim extends BaseMultiCycleSim<PldSimResult, PldSettings, PldCycl
     // Gets the next GCD to use in the PLD rotation.
     // Note: this is stateful, and updates combos to the next combo.
     getGCDToUse(cp: PldCycleProcessor): PldGcdAbility {
-        const requiescatStacks = cp.getRequiscatStacks();
-        const confiteorComboActions: PldGcdAbility[] = [Actions.Confiteor, Actions.BladeOfFaith, Actions.BladeOfTruth, Actions.BladeOfValor];
+        const requiescatStacks = cp.getRequiescatStacks();
+        const requiescatComboActions: PldGcdAbility[] = cp.getRequiescatComboActions();
         if (requiescatStacks === 4 && cp.isConfiteorReadyBuffActive()) {
             return Actions.Confiteor;
         }
         if (requiescatStacks > 0) {
-            return confiteorComboActions[4 - requiescatStacks];
+            const comboAction = requiescatComboActions[4 - requiescatStacks];
+            // It's not possible to use Requiescat Holy Spirits if we have Divine Might active.
+            if (!(comboAction === Actions.HolySpiritRequiescat && cp.isDivineMightBuffActive())) {
+                return requiescatComboActions[4 - requiescatStacks];
+            }
         }
 
         if (cp.isGoringBladeReadyBuffActive()) {
@@ -316,6 +346,13 @@ export class PldSim extends BaseMultiCycleSim<PldSimResult, PldSettings, PldCycl
 
         // If we're in FoF, prioritize highest potency filler
         if (cp.getFightOrFlightDuration() > 0) {
+            if (cp.stats.level <= 84) {
+                // Before Atonement actions get buffed, Holy Spirit is 400 potency, whereas
+                // Atonement is 360, Supplication is 380, Sepulchre is 400
+                if (cp.isDivineMightBuffActive()) {
+                    return Actions.HolySpirit;
+                }
+            }
             if (cp.isSepulchreReadyBuffActive()) {
                 return Actions.Sepulchre;
             }
@@ -399,16 +436,16 @@ export class PldSim extends BaseMultiCycleSim<PldSimResult, PldSettings, PldCycl
             this.use(cp, Actions.FightOrFlight);
         }
 
-        if (cp.canUseWithoutClipping(Actions.Imperator)) {
-            this.use(cp, Actions.Imperator);
+        if (cp.canUseWithoutClipping(cp.requiescatAbility)) {
+            this.use(cp, cp.requiescatAbility);
         }
 
         if (cp.canUseWithoutClipping(Actions.CircleOfScorn)) {
             this.use(cp, Actions.CircleOfScorn);
         }
 
-        if (cp.canUseWithoutClipping(Actions.Expiacion)) {
-            this.use(cp, Actions.Expiacion);
+        if (cp.canUseWithoutClipping(cp.expiacionAbility)) {
+            this.use(cp, cp.expiacionAbility);
         }
 
         if (cp.isBladeOfHonorReadyBuffActive()) {
@@ -466,6 +503,8 @@ export class PldSim extends BaseMultiCycleSim<PldSimResult, PldSettings, PldCycl
     }
 
     private useOpener(cp: PldCycleProcessor) {
+        const level = cp.stats.level;
+        const requiescatComboActions = cp.getRequiescatComboActions();
         this.use(cp, Actions.HolySpiritHardcast);
         this.use(cp, cp.getComboToUse());
         this.use(cp, cp.getComboToUse());
@@ -476,34 +515,40 @@ export class PldSim extends BaseMultiCycleSim<PldSimResult, PldSettings, PldCycl
             cp.advanceForLateWeave([Actions.FightOrFlight]);
             this.use(cp, Actions.FightOrFlight);
             this.use(cp, Actions.GoringBlade);
-            this.use(cp, Actions.Imperator);
+            this.use(cp, cp.requiescatAbility);
             this.use(cp, Actions.CircleOfScorn);
-            this.use(cp, Actions.Confiteor);
-            this.use(cp, Actions.Expiacion);
+            this.use(cp, requiescatComboActions[0]);
+            this.use(cp, cp.expiacionAbility);
             this.use(cp, Actions.Intervene);
-            this.use(cp, Actions.BladeOfFaith);
+            this.use(cp, requiescatComboActions[1]);
             this.use(cp, Actions.Intervene);
-            this.use(cp, Actions.BladeOfTruth);
-            this.use(cp, Actions.BladeOfValor);
-            this.use(cp, Actions.BladeOfHonor);
+            this.use(cp, requiescatComboActions[2]);
+            this.use(cp, requiescatComboActions[3]);
+            if (level >= 100) {
+                this.use(cp, Actions.BladeOfHonor);
+            }
         }
         else {
             this.use(cp, Actions.FightOrFlight);
-            this.use(cp, Actions.Imperator);
-            this.use(cp, Actions.Confiteor);
+            this.use(cp, cp.requiescatAbility);
+            this.use(cp, requiescatComboActions[0]);
             this.use(cp, Actions.CircleOfScorn);
-            this.use(cp, Actions.Expiacion);
-            this.use(cp, Actions.BladeOfFaith);
+            this.use(cp, cp.expiacionAbility);
+            this.use(cp, requiescatComboActions[1]);
             this.use(cp, Actions.Intervene);
-            this.use(cp, Actions.BladeOfTruth);
+            this.use(cp, requiescatComboActions[2]);
             this.use(cp, Actions.Intervene);
-            this.use(cp, Actions.BladeOfValor);
-            this.use(cp, Actions.BladeOfHonor);
+            this.use(cp, requiescatComboActions[3]);
+            if (level >= 100) {
+                this.use(cp, Actions.BladeOfHonor);
+            }
             this.use(cp, Actions.GoringBlade);
         }
-        this.use(cp, Actions.Atonement);
-        this.use(cp, Actions.Supplication);
-        this.use(cp, Actions.Sepulchre);
+        if (level >= 76) {
+            this.use(cp, Actions.Atonement);
+            this.use(cp, Actions.Supplication);
+            this.use(cp, Actions.Sepulchre);
+        }
         this.use(cp, Actions.HolySpirit);
     }
 
