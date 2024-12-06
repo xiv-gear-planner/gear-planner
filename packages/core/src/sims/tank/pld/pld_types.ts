@@ -8,8 +8,8 @@ export function subtractStackSelf(controller: BuffController): void {
 
 /** A PLD-specific ability. */
 export type PldAbility = Ability & Readonly<{
-    // PLD doesn't have anything special to its abilities (i.e. no gauge), but this
-    // is still useful to have a type for PLD abilities.
+    // Whether or not this ability consumes a stack of Requiescat.
+    consumesRequiescat?: boolean
 }>
 
 export type PldGcdAbility = GcdAbility & PldAbility;
@@ -44,7 +44,7 @@ export const RequiescatBuff: Buff = {
     duration: 30,
     statusId: 1368,
     stacks: 4,
-    appliesTo: ability => ability.attackType === "Spell",
+    appliesTo: (ability: PldGcdAbility) => ability.consumesRequiescat,
     beforeSnapshot: subtractStackSelf,
 };
 
@@ -115,7 +115,7 @@ export const DivineMightBuff: Buff = {
     effects: {
         // Allows usage of instant cast Holy Spirit
     },
-    appliesTo: ability => ability.name === "Holy Spirit",
+    appliesTo: (ability: PldGcdAbility) => ability.name === "Holy Spirit" && !ability.consumesRequiescat,
     beforeSnapshot: removeSelf,
     duration: 30,
     statusId: 2673,
