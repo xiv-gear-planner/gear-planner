@@ -10,6 +10,7 @@ import {SchSimGui} from "./healer/sch_sheet_sim_ui";
 import {WhmSimGui} from "./healer/whm_new_sheet_sim_ui";
 import {RprSheetSimGui} from "./melee/rpr/rpr_sheet_sim_ui";
 import {VprSimGui} from "./melee/vpr/vpr_sheet_sim_ui";
+import {DRGTopSimGui} from "./melee/drg/drg_top_sim_ui";
 import {NinSheetSimGui} from "./melee/nin/nin_lvl100_sim_ui";
 import {MnkSimGui} from "./melee/mnk/mnk_sim_ui";
 import {SamSimGui} from "./melee/sam/sam_lvl100_sim_ui";
@@ -30,6 +31,7 @@ import {whmNewSheetSpec} from "@xivgear/core/sims/healer/whm_new_sheet_sim";
 import {whmSheetSpec} from "@xivgear/core/sims/healer/whm_sheet_sim";
 import {ninSpec} from "@xivgear/core/sims/melee/nin/nin_lv100_sim";
 import {mnkSpec} from "@xivgear/core/sims/melee/mnk/mnk_sim";
+import {drgTopSimSpec} from "@xivgear/core/sims/melee/drg/drg_top_sim";
 import {rprSheetSpec} from "@xivgear/core/sims/melee/rpr/rpr_sheet_sim";
 import {samSpec} from "@xivgear/core/sims/melee/sam/sam_lv100_sim";
 import {vprSheetSpec} from "@xivgear/core/sims/melee/vpr/vpr_sheet_sim";
@@ -51,7 +53,7 @@ import {mpSimSpec} from "@xivgear/core/sims/healer/healer_mp";
 
 
 type SimGuiCtor<X extends Simulation<SimResult, unknown, unknown>> = {
-    new (sim: X): SimulationGui<ResultTypeOfSim<X>, SettingsTypeOfSim<X>, ExportSettingsTypeOfSim<X>>;
+    new(sim: X): SimulationGui<ResultTypeOfSim<X>, SettingsTypeOfSim<X>, ExportSettingsTypeOfSim<X>>;
 }
 
 function registerGui<X extends Simulation<SimResult, unknown, unknown>>(simSpec: SimSpec<X, unknown>, guiCtor: SimGuiCtor<X>) {
@@ -82,6 +84,7 @@ registerGui(sgeNewSheetSpec, SgeSheetSimGui);
 registerGui(astNewSheetSpec, AstSheetSimGui);
 registerGui(schNewSheetSpec, SchSimGui);
 registerGui(whmNewSheetSpec, WhmSimGui);
+registerGui(drgTopSimSpec, DRGTopSimGui);
 registerGui(rprSheetSpec, RprSheetSimGui);
 registerGui(vprSheetSpec, VprSimGui);
 registerGui(ninSpec, NinSheetSimGui);
