@@ -83,6 +83,8 @@ export function noBuffEffects(): CombinedBuffEffect {
         forceCrit: false,
         forceDhit: false,
         haste: 0,
+        hasteY: 0,
+        hasteZ: 0,
         modifyStats: stats => stats,
     };
 }
@@ -127,6 +129,12 @@ export function combineBuffEffects(buffs: Buff[]): CombinedBuffEffect {
         }
         if (effects.haste) {
             combinedEffects.haste += effects.haste;
+        }
+        if (effects.hasteY) {
+            combinedEffects.hasteY += effects.hasteY;
+        }
+        if (effects.hasteZ) {
+            combinedEffects.hasteZ += effects.hasteZ;
         }
         if (effects.forceCrit) {
             combinedEffects.forceCrit = true;
