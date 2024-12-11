@@ -36,13 +36,16 @@ export function registerDefaultSims() {
     else {
         registrationDone = true;
     }
+    // General
     registerSim(potRatioSimSpec);
+    // Tanks
     registerSim(pldUsageSimSpec);
     registerSim(pldSKSSheetSpec);
     registerSim(drkSpec);
     registerSim(warSpec);
     registerSim(gnbSpec);
     registerSim(pldSpec);
+    // Healers
     registerSim(whmSheetSpec);
     registerSim(sgeSheetSpec);
     registerSim(sgeNewSheetSpec);
@@ -50,16 +53,19 @@ export function registerDefaultSims() {
     registerSim(schNewSheetSpec);
     registerSim(whmNewSheetSpec);
     registerSim(mpSimSpec);
+    // Melee
     registerSim(rprSheetSpec);
     registerSim(vprSheetSpec);
     registerSim(mnkSpec);
     registerSim(ninSpec);
     registerSim(samSpec);
+    // Ranged
+    registerSim(dncDtSheetSpec);
+    // Caster
     registerSim(BluWinged120Spec);
     registerSim(BluFlame120Spec);
     registerSim(BluBreath60Spec);
     registerSim(BluWinged60Spec);
     registerSim(BluFlame60Spec);
     registerSim(BluF2PSpec);
-    registerSim(dncDtSheetSpec);
 }

@@ -2,6 +2,9 @@ import {NamedSection} from "../components/section";
 import {BuffSettingsManager} from "@xivgear/core/sims/common/party_comp_settings";
 import {FieldBoundCheckBox, labeledCheckbox} from "@xivgear/common-ui/components/util";
 
+/**
+ * Provides the settings area for configuring party buffs.
+ */
 export class BuffSettingsArea extends NamedSection {
     constructor(settings: BuffSettingsManager, updateCallback: () => void) {
         super('Party Comp/Raid Buffs');
