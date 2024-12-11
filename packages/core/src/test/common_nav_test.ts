@@ -18,20 +18,20 @@ describe('parsePath', () => {
 
     describe('mysheets', () => {
         it('resolves empty path to mysheets', () => {
-            const result = parsePath([]);
+            const result = parsePath([], undefined);
             expect(result).to.deep.equals({
                 type: 'mysheets',
             });
         });
         it('resolves raw embed to null', () => {
-            const result = parsePath(['embed']);
+            const result = parsePath(['embed'], undefined);
             expect(result).to.be.null;
         });
     });
 
     describe('saved sheets', () => {
         it('resolves saved sheet path', () => {
-            const result = parsePath(['sheet', 'foo']);
+            const result = parsePath(['sheet', 'foo'], undefined);
             expect(result).to.deep.equals({
                 type: 'saved',
                 viewOnly: false,
@@ -40,7 +40,7 @@ describe('parsePath', () => {
             });
         });
         it('does not try to embed saved sheet', () => {
-            const result = parsePath(['embed', 'sheet', 'foo']);
+            const result = parsePath(['embed', 'sheet', 'foo'], undefined);
             expect(result).to.deep.equals({
                 type: 'saved',
                 viewOnly: false,
@@ -52,19 +52,19 @@ describe('parsePath', () => {
 
     describe('newsheet', () => {
         it('resolves newsheet path', () => {
-            const result = parsePath(['newsheet']);
+            const result = parsePath(['newsheet'], undefined);
             expect(result).to.deep.equals({
                 type: 'newsheet',
             });
         });
         it('does not try to embed newsheet', () => {
-            const result = parsePath(['embed', 'newsheet']);
+            const result = parsePath(['embed', 'newsheet'], undefined);
             expect(result).to.deep.equals({
                 type: 'newsheet',
             });
         });
         it('resolves import form', () => {
-            const result = parsePath(['importsheet']);
+            const result = parsePath(['importsheet'], undefined);
             expect(result).to.deep.equals({
                 type: 'importform',
             });
@@ -73,7 +73,7 @@ describe('parsePath', () => {
 
     describe('importsheet', () => {
         it('does not try to embed import form', () => {
-            const result = parsePath(['embed', 'importsheet']);
+            const result = parsePath(['embed', 'importsheet'], undefined);
             expect(result).to.deep.equals({
                 type: 'importform',
             });
@@ -82,7 +82,7 @@ describe('parsePath', () => {
             const setValue = {
                 foo: 'bar|baz',
             };
-            const result = parsePath(['importsheet', JSON.stringify(setValue)]);
+            const result = parsePath(['importsheet', JSON.stringify(setValue)], undefined);
             expect(result).to.deep.equals({
                 type: 'sheetjson',
                 jsonBlob: setValue,
@@ -94,7 +94,7 @@ describe('parsePath', () => {
             const setValue = {
                 foo: 'bar|baz',
             };
-            const result = parsePath(['embed', 'importsheet', JSON.stringify(setValue)]);
+            const result = parsePath(['embed', 'importsheet', JSON.stringify(setValue)], undefined);
             expect(result).to.deep.equals({
                 type: 'sheetjson',
                 jsonBlob: setValue,
@@ -109,7 +109,7 @@ describe('parsePath', () => {
             const setValue = {
                 foo: 'bar|baz',
             };
-            const result = parsePath(['viewsheet', JSON.stringify(setValue)]);
+            const result = parsePath(['viewsheet', JSON.stringify(setValue)], undefined);
             expect(result).to.deep.equals({
                 type: 'sheetjson',
                 jsonBlob: setValue,
@@ -121,7 +121,7 @@ describe('parsePath', () => {
             const setValue = {
                 foo: 'bar|baz',
             };
-            const result = parsePath(['embed', 'viewsheet', JSON.stringify(setValue)]);
+            const result = parsePath(['embed', 'viewsheet', JSON.stringify(setValue)], undefined);
             expect(result).to.deep.equals({
                 type: 'sheetjson',
                 jsonBlob: setValue,
@@ -136,7 +136,7 @@ describe('parsePath', () => {
             const setValue = {
                 foo: 'bar|baz',
             };
-            const result = parsePath(['importset', JSON.stringify(setValue)]);
+            const result = parsePath(['importset', JSON.stringify(setValue)], undefined);
             expect(result).to.deep.equals({
                 type: 'setjson',
                 jsonBlob: setValue,
@@ -149,7 +149,7 @@ describe('parsePath', () => {
             const setValue = {
                 foo: 'bar|baz',
             };
-            const result = parsePath(['embed', 'importset', JSON.stringify(setValue)]);
+            const result = parsePath(['embed', 'importset', JSON.stringify(setValue)], undefined);
             expect(result).to.deep.equals({
                 type: 'setjson',
                 jsonBlob: setValue,
@@ -164,7 +164,7 @@ describe('parsePath', () => {
             const setValue = {
                 foo: 'bar|baz',
             };
-            const result = parsePath(['viewset', JSON.stringify(setValue)]);
+            const result = parsePath(['viewset', JSON.stringify(setValue)], undefined);
             expect(result).to.deep.equals({
                 type: 'setjson',
                 jsonBlob: setValue,
@@ -176,7 +176,7 @@ describe('parsePath', () => {
             const setValue = {
                 foo: 'bar|baz',
             };
-            const result = parsePath(['embed', 'viewset', JSON.stringify(setValue)]);
+            const result = parsePath(['embed', 'viewset', JSON.stringify(setValue)], undefined);
             expect(result).to.deep.equals({
                 type: 'setjson',
                 jsonBlob: setValue,
@@ -190,7 +190,7 @@ describe('parsePath', () => {
     describe('shortlink', () => {
 
         it('can resolve shortlink', () => {
-            const result = parsePath(['sl', 'asdf']);
+            const result = parsePath(['sl', 'asdf'], undefined);
             expect(result).to.deep.equals({
                 type: 'shortlink',
                 uuid: 'asdf',
@@ -199,7 +199,7 @@ describe('parsePath', () => {
             });
         });
         it('can embed shortlink', () => {
-            const result = parsePath(['embed', 'sl', 'asdf']);
+            const result = parsePath(['embed', 'sl', 'asdf'], undefined);
             expect(result).to.deep.equals({
                 type: 'shortlink',
                 uuid: 'asdf',
@@ -208,14 +208,14 @@ describe('parsePath', () => {
             });
         });
         it('returns null if no link', () => {
-            const result = parsePath(['sl']);
+            const result = parsePath(['sl'], undefined);
             expect(result).to.be.null;
         });
     });
 
     describe('bis', () => {
         it('can resolve bis', () => {
-            const result = parsePath(['bis', 'sge', 'endwalker', 'anabaseios']);
+            const result = parsePath(['bis', 'sge', 'endwalker', 'anabaseios'], undefined);
             expect(result).to.deep.equals({
                 type: 'bis',
                 path: ['sge', 'endwalker', 'anabaseios'],
@@ -227,7 +227,7 @@ describe('parsePath', () => {
             });
         });
         it('does not try to embed bis', () => {
-            const result = parsePath(['embed', 'bis', 'sge', 'endwalker', 'anabaseios']);
+            const result = parsePath(['embed', 'bis', 'sge', 'endwalker', 'anabaseios'], undefined);
             expect(result).to.deep.equals({
                 type: 'bis',
                 path: ['sge', 'endwalker', 'anabaseios'],
@@ -239,7 +239,7 @@ describe('parsePath', () => {
             });
         });
         it('returns null if incomplete url', () => {
-            const result = parsePath(['bis', 'sge', 'endwalker']);
+            const result = parsePath(['bis', 'sge', 'endwalker'], undefined);
             expect(result).to.be.null;
         });
 

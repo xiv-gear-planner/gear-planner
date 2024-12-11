@@ -2,7 +2,7 @@ import {getHash, goHash, isEmbed, processHashLegacy, processNav, setHash} from "
 import {NamedSection} from "./components/section";
 import {NewSheetForm} from "./components/new_sheet_form";
 import {ImportSheetArea} from "./components/import_sheet";
-import {SetExport, SheetExport} from "@xivgear/xivmath/geartypes";
+import {SetExport, SetExportExternalSingle, SheetExport} from "@xivgear/xivmath/geartypes";
 import {displayEmbedError, openEmbed} from "./embed";
 import {LoadingBlocker} from "@xivgear/common-ui/components/loader";
 import {SheetPickerTable} from "./components/saved_sheet_picker";
@@ -135,7 +135,30 @@ export async function openSheetByKey(sheet: string) {
     }
 }
 
-export async function openExport(exported: (SheetExport | SetExport), changeHash: boolean, viewOnly: boolean) {
+export async function openExport(exportedPre: (SheetExport | SetExport), changeHash: boolean, viewOnly: boolean, onlySetIndex: number | undefined) {
+    const exportedInitial = exportedPre;
+    const initiallyFullSheet = 'sets' in exportedInitial;
+    if (onlySetIndex !== undefined) {
+        if (!initiallyFullSheet) {
+            console.warn("onlySetIndex does not make sense when isFullSheet is false");
+        }
+        else {
+            const theSet = exportedInitial.sets[onlySetIndex];
+            // noinspection AssignmentToFunctionParameterJS
+            exportedPre = {
+                ...theSet,
+                job: exportedInitial.job,
+                level: exportedInitial.level,
+                ilvlSync: exportedInitial.ilvlSync,
+                sims: exportedInitial.sims,
+                customItems: exportedInitial.customItems,
+                customFoods: exportedInitial.customFoods,
+                partyBonus: exportedInitial.partyBonus,
+                race: exportedInitial.race,
+            } satisfies SetExportExternalSingle;
+        }
+    }
+    const exported = exportedPre;
     const isFullSheet = 'sets' in exported;
     const sheet = isFullSheet ? GRAPHICAL_SHEET_PROVIDER.fromExport(exported) : GRAPHICAL_SHEET_PROVIDER.fromSetExport(exported);
     const embed = isEmbed();

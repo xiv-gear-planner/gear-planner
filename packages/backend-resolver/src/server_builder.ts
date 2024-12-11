@@ -12,11 +12,11 @@ import {
     DEFAULT_DESC,
     DEFAULT_NAME,
     HASH_QUERY_PARAM,
-    NavPath,
+    NavPath, ONLY_SET_QUERY_PARAM,
     parsePath,
     PATH_SEPARATOR,
     PREVIEW_MAX_DESC_LENGTH,
-    PREVIEW_MAX_NAME_LENGTH
+    PREVIEW_MAX_NAME_LENGTH, tryParseOptionalIntParam
 } from "@xivgear/core/nav/common_nav";
 import {nonCachedFetch} from "./polyfills";
 import fastifyWebResponse from "fastify-web-response";
@@ -152,9 +152,11 @@ export function buildPreviewServer() {
         const responsePromise = nonCachedFetch(serverUrl + '/index.html', undefined);
         try {
             const path = request.query[HASH_QUERY_PARAM] ?? '';
+            const osIndex: number | undefined = tryParseOptionalIntParam(request.query[ONLY_SET_QUERY_PARAM]);
             const pathPaths = path.split(PATH_SEPARATOR);
-            const nav = parsePath(pathPaths);
+            const nav = parsePath(pathPaths, osIndex);
             request.log.info(pathPaths, 'Path');
+            // TODO: wire up osIndex to this
             const exported: object | null = await resolveNav(nav);
             if (exported !== null) {
                 let name: string = exported['name'] || "";
