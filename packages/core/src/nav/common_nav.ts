@@ -19,6 +19,11 @@ export const CALC_HASH = 'math';
 export const PATH_SEPARATOR = '|';
 /** The query param used to represent the path */
 export const HASH_QUERY_PARAM = 'page';
+
+/**
+ * The query param used to select a single gear set out of a sheet.
+ */
+export const ONLY_SET_QUERY_PARAM = 'onlySetIndex';
 /**
  * Special hash value used to indicate that the page should stay with the old-style hash, rather than redirecting
  * to the new style query parameter.
@@ -60,7 +65,8 @@ export type NavPath = {
     saveKey: string
 } | {
     type: 'shortlink',
-    uuid: string
+    uuid: string,
+    onlySetIndex?: number
 } | {
     type: 'setjson'
     jsonBlob: object
@@ -73,11 +79,12 @@ export type NavPath = {
     job: JobName,
     expac: string,
     sheet: string,
+    onlySetIndex?: number
 }));
 
 export type SheetType = NavPath['type'];
 
-export function parsePath(originalPath: string[]): NavPath | null {
+export function parsePath(originalPath: string[], onlySetIndex: number | undefined): NavPath | null {
     let path = [...originalPath];
     let embed = false;
     if (path.length === 0) {
@@ -164,6 +171,7 @@ export function parsePath(originalPath: string[]): NavPath | null {
                 uuid: path[1],
                 embed: embed,
                 viewOnly: true,
+                onlySetIndex: onlySetIndex,
             };
         }
     }
@@ -178,6 +186,7 @@ export function parsePath(originalPath: string[]): NavPath | null {
                 sheet: path[3],
                 viewOnly: true,
                 embed: false,
+                onlySetIndex: onlySetIndex,
             };
         }
     }
@@ -227,4 +236,16 @@ export function splitPath(input: string) {
         .filter(item => item)
         .map(item => decodeURIComponent(item))
         .map(pp => pp.replaceAll(VERTICAL_BAR_REPLACEMENT, PATH_SEPARATOR));
+}
+
+export function tryParseOptionalIntParam(input: string | undefined): number | undefined {
+    if (input) {
+        try {
+            return parseInt(input);
+        }
+        catch (e) {
+            console.error(`Error parsing '${input}'`, e);
+        }
+    }
+    return undefined;
 }

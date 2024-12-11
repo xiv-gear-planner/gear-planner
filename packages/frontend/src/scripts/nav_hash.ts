@@ -1,10 +1,10 @@
 import {
     HASH_QUERY_PARAM,
-    NO_REDIR_HASH,
+    NO_REDIR_HASH, ONLY_SET_QUERY_PARAM,
     parsePath,
     PATH_SEPARATOR,
     splitHashLegacy,
-    splitPath
+    splitPath, tryParseOptionalIntParam
 } from "@xivgear/core/nav/common_nav";
 import {displayEmbedError, earlyEmbedInit} from "./embed";
 import {SetExport, SheetExport} from "@xivgear/xivmath/geartypes";
@@ -22,6 +22,7 @@ import {
     showSheetPickerMenu
 } from "./base_ui";
 import {arrayEq} from "@xivgear/core/util/array_utils";
+import * as os from "node:os";
 
 let expectedHash: string[] | undefined = undefined;
 
@@ -47,7 +48,7 @@ export async function processHashLegacy() {
         // This path allows certain things such as /viewset/<json> to continue to use the old-style hash, since the
         // URL query param method causes the whole thing to be too long of a URL for the server to handle.
         if (split[0] === NO_REDIR_HASH) {
-            await doNav(split.slice(1));
+            await doNav(split.slice(1), undefined);
         }
         else {
             goHash(...split);
@@ -67,10 +68,12 @@ export async function processHashLegacy() {
 export async function processNav() {
     // Remove the literal #
     // let hash = splitHash(location.hash);
-    const path = getQueryParams().get(HASH_QUERY_PARAM) ?? '';
+    const qp = getQueryParams();
+    const path = qp.get(HASH_QUERY_PARAM) ?? '';
+    const osIndex = tryParseOptionalIntParam(qp.get(ONLY_SET_QUERY_PARAM));
     const pathParts = splitPath(path);
     formatTopMenu(pathParts);
-    console.info("processQuery", pathParts);
+    console.info("processQuery", pathParts, osIndex);
     if (pathParts.length > 0) {
         hideWelcomeArea();
     }
@@ -79,11 +82,11 @@ export async function processNav() {
         return;
     }
     expectedHash = pathParts;
-    await doNav(pathParts);
+    await doNav(pathParts, osIndex);
 }
 
-async function doNav(pathParts: string[]) {
-    const nav = parsePath(pathParts);
+async function doNav(pathParts: string[], onlySetIndex: number | undefined) {
+    const nav = parsePath(pathParts, onlySetIndex);
     if (nav === null) {
         console.error('unknown nav', pathParts);
         showSheetPickerMenu();
@@ -119,7 +122,7 @@ async function doNav(pathParts: string[]) {
             const resolved: string | null = await getShortLink(uuid);
             if (resolved) {
                 const json = JSON.parse(resolved);
-                openExport(json, false, true);
+                openExport(json, false, true, onlySetIndex);
                 return;
             }
             else {
@@ -132,10 +135,10 @@ async function doNav(pathParts: string[]) {
             break;
         }
         case "setjson":
-            openExport(nav.jsonBlob as SetExport, false, nav.viewOnly);
+            openExport(nav.jsonBlob as SetExport, false, nav.viewOnly, onlySetIndex);
             return;
         case "sheetjson":
-            openExport(nav.jsonBlob as SheetExport, false, nav.viewOnly);
+            openExport(nav.jsonBlob as SheetExport, false, nav.viewOnly, onlySetIndex);
             return;
         case "bis": {
             showLoadingScreen();
@@ -143,7 +146,7 @@ async function doNav(pathParts: string[]) {
                 const resolved: string | null = await getBisSheet(nav.job, nav.expac, nav.sheet);
                 if (resolved) {
                     const json = JSON.parse(resolved);
-                    openExport(json, false, true);
+                    openExport(json, false, true, onlySetIndex);
                     return;
                 }
                 else {

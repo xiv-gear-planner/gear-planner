@@ -71,7 +71,7 @@ import {simpleAutoResultTable} from "../sims/components/simple_tables";
 import {rangeInc} from "@xivgear/core/util/array_utils";
 import {SimCurrentResult, SimResult, SimSettings, SimSpec, Simulation} from "@xivgear/core/sims/sim_types";
 import {getRegisteredSimSpecs} from "@xivgear/core/sims/sim_registry";
-import {makeUrl} from "@xivgear/core/nav/common_nav";
+import {makeUrl, ONLY_SET_QUERY_PARAM} from "@xivgear/core/nav/common_nav";
 import {simMaintainersInfoElement} from "./sims";
 import {SaveAsModal} from "./new_sheet_form";
 import {DropdownActionMenu} from "./dropdown_actions_menu";
@@ -1031,6 +1031,7 @@ export class GearSetViewer extends HTMLElement {
             const headingLink = document.createElement('a');
             const hash = getCurrentHash();
             const linkUrl = makeUrl(...hash.slice(1));
+            linkUrl.searchParams.delete(ONLY_SET_QUERY_PARAM);
             headingLink.href = linkUrl.toString();
             headingLink.target = '_blank';
             headingLink.replaceChildren(this.gearSet.name, faIcon('fa-arrow-up-right-from-square', 'fa'));
@@ -1442,7 +1443,7 @@ export class GearPlanSheetGui extends GearPlanSheet {
                     const set = new CharacterGearSet(this);
                     set.name = 'Separator';
                     set.isSeparator = true;
-                    this.addGearSet(set);
+                    this.addGearSet(set, undefined, true);
                 },
             });
             // const renameButton = makeActionButton("Sheet Name/Description", () => {
