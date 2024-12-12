@@ -1,4 +1,4 @@
-import {NavState, parsePath, splitHashLegacy, splitPath} from "../nav/common_nav";
+import {NavPath, NavState, parsePath, splitHashLegacy, splitPath} from "../nav/common_nav";
 import {expect} from "chai";
 
 describe('path splitting and joining', () => {
@@ -196,7 +196,9 @@ describe('parsePath', () => {
                 uuid: 'asdf',
                 embed: false,
                 viewOnly: true,
-            });
+                onlySetIndex: undefined,
+                defaultSelectionIndex: undefined,
+            } satisfies NavPath);
         });
         it('can embed shortlink', () => {
             const result = parsePath(new NavState(['embed', 'sl', 'asdf']));
@@ -205,6 +207,30 @@ describe('parsePath', () => {
                 uuid: 'asdf',
                 embed: true,
                 viewOnly: true,
+                onlySetIndex: undefined,
+                defaultSelectionIndex: undefined,
+            });
+        });
+        it('can handle selection index', () => {
+            const result = parsePath(new NavState(['embed', 'sl', 'asdf'], undefined, 3));
+            expect(result).to.deep.equals({
+                type: 'shortlink',
+                uuid: 'asdf',
+                embed: true,
+                viewOnly: true,
+                onlySetIndex: undefined,
+                defaultSelectionIndex: 3,
+            });
+        });
+        it('can handle exclusive index', () => {
+            const result = parsePath(new NavState(['embed', 'sl', 'asdf'], 2, undefined));
+            expect(result).to.deep.equals({
+                type: 'shortlink',
+                uuid: 'asdf',
+                embed: true,
+                viewOnly: true,
+                onlySetIndex: 2,
+                defaultSelectionIndex: undefined,
             });
         });
         it('returns null if no link', () => {
@@ -224,6 +250,8 @@ describe('parsePath', () => {
                 sheet: 'anabaseios',
                 embed: false,
                 viewOnly: true,
+                onlySetIndex: undefined,
+                defaultSelectionIndex: undefined,
             });
         });
         it('does not try to embed bis', () => {
@@ -236,6 +264,36 @@ describe('parsePath', () => {
                 sheet: 'anabaseios',
                 embed: false,
                 viewOnly: true,
+                onlySetIndex: undefined,
+                defaultSelectionIndex: undefined,
+            });
+        });
+        it('can resolve bis with selection index', () => {
+            const result = parsePath(new NavState(['bis', 'sge', 'endwalker', 'anabaseios'], undefined, 5));
+            expect(result).to.deep.equals({
+                type: 'bis',
+                path: ['sge', 'endwalker', 'anabaseios'],
+                job: 'sge',
+                expac: 'endwalker',
+                sheet: 'anabaseios',
+                embed: false,
+                viewOnly: true,
+                onlySetIndex: undefined,
+                defaultSelectionIndex: 5,
+            });
+        });
+        it('can resolve bis with exclusive index', () => {
+            const result = parsePath(new NavState(['bis', 'sge', 'endwalker', 'anabaseios'], 4, undefined));
+            expect(result).to.deep.equals({
+                type: 'bis',
+                path: ['sge', 'endwalker', 'anabaseios'],
+                job: 'sge',
+                expac: 'endwalker',
+                sheet: 'anabaseios',
+                embed: false,
+                viewOnly: true,
+                onlySetIndex: 4,
+                defaultSelectionIndex: undefined,
             });
         });
         it('returns null if incomplete url', () => {
