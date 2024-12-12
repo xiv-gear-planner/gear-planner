@@ -1,4 +1,4 @@
-import {getHash, goHash, isEmbed, processHashLegacy, processNav, setHash} from "./nav_hash";
+import {getHash, goPath, isEmbed, processHashLegacy, processNav, setPath} from "./nav_hash";
 import {NamedSection} from "./components/section";
 import {NewSheetForm} from "./components/new_sheet_form";
 import {ImportSheetArea} from "./components/import_sheet";
@@ -7,7 +7,7 @@ import {displayEmbedError, openEmbed} from "./embed";
 import {LoadingBlocker} from "@xivgear/common-ui/components/loader";
 import {SheetPickerTable} from "./components/saved_sheet_picker";
 import {GearPlanSheetGui, GRAPHICAL_SHEET_PROVIDER} from "./components/sheet";
-import {splitPath} from "@xivgear/core/nav/common_nav";
+import {NavState, splitPath} from "@xivgear/core/nav/common_nav";
 import {applyCommonTopMenuFormatting} from "@xivgear/common-ui/components/top_menu";
 import {recordSheetEvent} from "@xivgear/core/analytics/analytics";
 import {workerPool} from "./workers/worker_pool";
@@ -68,13 +68,14 @@ export function initTopMenu() {
         if (href?.startsWith('?page=')) {
             link.addEventListener('click', e => {
                 e.preventDefault();
-                goHash(...splitPath(href.slice(6)));
+                goPath(...splitPath(href.slice(6)));
             });
         }
     });
 }
 
-export function formatTopMenu(hash: string[]) {
+export function formatTopMenu(nav: NavState) {
+    const hash = nav.path;
     topMenuArea.querySelectorAll('a').forEach(link => {
         const href = link.getAttribute('href');
         applyCommonTopMenuFormatting(link);
@@ -96,7 +97,7 @@ export function showLoadingScreen() {
 }
 
 export function showNewSheetForm() {
-    setHash('newsheet');
+    setPath('newsheet');
     const section = new NamedSection('New Gear Planning Sheet');
     const form = new NewSheetForm(openSheet);
     section.contentArea.replaceChildren(form);
@@ -105,9 +106,9 @@ export function showNewSheetForm() {
 }
 
 export function showImportSheetForm() {
-    setHash('importsheet');
+    setPath('importsheet');
     setMainContent('Import Sheet', new ImportSheetArea(async sheet => {
-        setHash('imported');
+        setPath('imported');
         openSheet(sheet, false);
     }));
 }
@@ -135,7 +136,7 @@ export async function openSheetByKey(sheet: string) {
     }
 }
 
-export async function openExport(exportedPre: (SheetExport | SetExport), changeHash: boolean, viewOnly: boolean, onlySetIndex: number | undefined) {
+export async function openExport(exportedPre: (SheetExport | SetExport), changeHash: boolean, viewOnly: boolean, onlySetIndex: number | undefined, defaultSelectionIndex: number | undefined) {
     const exportedInitial = exportedPre;
     const initiallyFullSheet = 'sets' in exportedInitial;
     if (onlySetIndex !== undefined) {
@@ -161,6 +162,9 @@ export async function openExport(exportedPre: (SheetExport | SetExport), changeH
     const exported = exportedPre;
     const isFullSheet = 'sets' in exported;
     const sheet = isFullSheet ? GRAPHICAL_SHEET_PROVIDER.fromExport(exported) : GRAPHICAL_SHEET_PROVIDER.fromSetExport(exported);
+    if (defaultSelectionIndex !== undefined) {
+        sheet.defaultSelectionIndex = defaultSelectionIndex;
+    }
     const embed = isEmbed();
     const analyticsData = {
         'isEmbed': embed,
@@ -196,7 +200,7 @@ export async function openSheet(planner: GearPlanSheetGui, changeHash: boolean =
     document['planner'] = planner;
     window['currentSheet'] = planner;
     if (changeHash) {
-        setHash("sheet", planner.saveKey, "dont-copy-this-link", "use-the-export-button");
+        setPath("sheet", planner.saveKey, "dont-copy-this-link", "use-the-export-button");
     }
     contentArea.replaceChildren(planner.topLevelElement);
     const oldHash = getHash();
@@ -257,7 +261,7 @@ export function earlyUiSetup() {
     nukeButton.addEventListener('click', (ev) => {
         if (confirm('This will DELETE ALL sheets, sets, and settings.')) {
             localStorage.clear();
-            setHash();
+            setPath();
             location.reload();
         }
     });

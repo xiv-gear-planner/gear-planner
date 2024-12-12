@@ -1,5 +1,6 @@
 import {SetExport, SheetExport} from "@xivgear/xivmath/geartypes";
 import {JobName} from "@xivgear/xivmath/xivconstants";
+import {arrayEq} from "../util/array_utils";
 
 /** For loading saved sheets via UUID */
 export const SHORTLINK_HASH = 'sl';
@@ -24,6 +25,8 @@ export const HASH_QUERY_PARAM = 'page';
  * The query param used to select a single gear set out of a sheet.
  */
 export const ONLY_SET_QUERY_PARAM = 'onlySetIndex';
+
+export const SELECTION_INDEX_QUERY_PARAM = 'selectedIndex';
 /**
  * Special hash value used to indicate that the page should stay with the old-style hash, rather than redirecting
  * to the new style query parameter.
@@ -66,7 +69,8 @@ export type NavPath = {
 } | {
     type: 'shortlink',
     uuid: string,
-    onlySetIndex?: number
+    onlySetIndex?: number,
+    defaultSelectionIndex?: number,
 } | {
     type: 'setjson'
     jsonBlob: object
@@ -79,13 +83,35 @@ export type NavPath = {
     job: JobName,
     expac: string,
     sheet: string,
-    onlySetIndex?: number
+    onlySetIndex?: number,
+    defaultSelectionIndex?: number,
 }));
 
 export type SheetType = NavPath['type'];
 
-export function parsePath(originalPath: string[], onlySetIndex: number | undefined): NavPath | null {
-    let path = [...originalPath];
+export class NavState {
+    constructor(private readonly _path: string[], readonly onlySetIndex: number | undefined = undefined, readonly selectIndex: number | undefined = undefined) {
+    }
+
+    get path(): string[] {
+        return [...this._path];
+    }
+
+    get encodedPath(): string {
+        return this.path.map(part => encodeURIComponent(part)).join(PATH_SEPARATOR);
+    }
+
+    isEqual(other: NavState): boolean {
+        return arrayEq(this._path, other._path) && this.onlySetIndex === other.onlySetIndex && this.selectIndex === other.selectIndex;
+    }
+
+    toString() {
+        return `NavState(${this._path.join('|')}, ${this.onlySetIndex}, ${this.selectIndex})`;
+    }
+}
+
+export function parsePath(state: NavState): NavPath | null {
+    let path = state.path;
     let embed = false;
     if (path.length === 0) {
         return {
@@ -171,7 +197,8 @@ export function parsePath(originalPath: string[], onlySetIndex: number | undefin
                 uuid: path[1],
                 embed: embed,
                 viewOnly: true,
-                onlySetIndex: onlySetIndex,
+                onlySetIndex: state.onlySetIndex,
+                defaultSelectionIndex: state.selectIndex,
             };
         }
     }
@@ -186,7 +213,8 @@ export function parsePath(originalPath: string[], onlySetIndex: number | undefin
                 sheet: path[3],
                 viewOnly: true,
                 embed: false,
-                onlySetIndex: onlySetIndex,
+                onlySetIndex: state.onlySetIndex,
+                defaultSelectionIndex: state.selectIndex,
             };
         }
     }
@@ -196,23 +224,36 @@ export function parsePath(originalPath: string[], onlySetIndex: number | undefin
 
 const VERTICAL_BAR_REPLACEMENT = '\u2758';
 
-export function makeUrl(...pathParts: string[]): URL {
-    const joinedPath = pathParts
+export function makeUrlSimple(...path: string[]): URL {
+    return makeUrl(new NavState(path));
+}
+
+export function makeUrl(navState: NavState): URL {
+    const joinedPath = navState.path
         .map(pp => encodeURIComponent(pp))
         .map(pp => pp.replaceAll(PATH_SEPARATOR, VERTICAL_BAR_REPLACEMENT))
         .join(PATH_SEPARATOR);
     const currentLocation = document.location;
     const params = new URLSearchParams(currentLocation.search);
+    const baseUrl = document.location.toString();
+    params.delete(ONLY_SET_QUERY_PARAM);
+    params.delete(SELECTION_INDEX_QUERY_PARAM);
+    if (navState.onlySetIndex !== undefined) {
+        params.set(ONLY_SET_QUERY_PARAM, navState.onlySetIndex.toString());
+    }
+    else if (navState.selectIndex !== undefined) {
+        params.set(SELECTION_INDEX_QUERY_PARAM, navState.selectIndex.toString());
+    }
     if (joinedPath.length > QUERY_PATH_MAX_LENGTH) {
-        const oldStyleHash = [NO_REDIR_HASH, ...pathParts]
+        const oldStyleHash = [NO_REDIR_HASH, ...navState.path]
             .map(pp => encodeURIComponent(pp))
             .map(pp => '/' + pp)
             .join('');
         params.delete(HASH_QUERY_PARAM);
-        return new URL(`?${params.toString()}#${oldStyleHash}`, document.location.toString());
+        return new URL(`?${params.toString()}#${oldStyleHash}`, baseUrl);
     }
     params.set(HASH_QUERY_PARAM, joinedPath);
-    return new URL(`?${params.toString()}`, document.location.toString());
+    return new URL(`?${params.toString()}`, baseUrl);
 }
 
 /**

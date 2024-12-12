@@ -12,11 +12,15 @@ import {
     DEFAULT_DESC,
     DEFAULT_NAME,
     HASH_QUERY_PARAM,
-    NavPath, ONLY_SET_QUERY_PARAM,
+    NavPath,
+    NavState,
+    ONLY_SET_QUERY_PARAM,
     parsePath,
     PATH_SEPARATOR,
     PREVIEW_MAX_DESC_LENGTH,
-    PREVIEW_MAX_NAME_LENGTH, tryParseOptionalIntParam
+    PREVIEW_MAX_NAME_LENGTH,
+    SELECTION_INDEX_QUERY_PARAM,
+    tryParseOptionalIntParam
 } from "@xivgear/core/nav/common_nav";
 import {nonCachedFetch} from "./polyfills";
 import fastifyWebResponse from "fastify-web-response";
@@ -153,14 +157,22 @@ export function buildPreviewServer() {
         try {
             const path = request.query[HASH_QUERY_PARAM] ?? '';
             const osIndex: number | undefined = tryParseOptionalIntParam(request.query[ONLY_SET_QUERY_PARAM]);
+            const selIndex: number | undefined = tryParseOptionalIntParam(request.query[SELECTION_INDEX_QUERY_PARAM]);
             const pathPaths = path.split(PATH_SEPARATOR);
-            const nav = parsePath(pathPaths, osIndex);
+            const state = new NavState(pathPaths, osIndex, selIndex);
+            const nav = parsePath(state);
             request.log.info(pathPaths, 'Path');
             // TODO: wire up osIndex to this
             const exported: object | null = await resolveNav(nav);
             if (exported !== null) {
-                let name: string = exported['name'] || "";
-                let desc: string = exported['description'] || "";
+                let name: string;
+                let desc: string;
+                let set = undefined;
+                if (osIndex !== undefined) {
+                    set = exported['sets'][osIndex] as SetExport;
+                }
+                name = set?.['name'] || exported['name'] || "";
+                desc = set?.['description'] || exported['description'] || "";
                 if (name.length > PREVIEW_MAX_NAME_LENGTH) {
                     name = name.substring(0, PREVIEW_MAX_NAME_LENGTH) + "…";
                 }

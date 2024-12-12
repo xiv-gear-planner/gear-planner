@@ -8,7 +8,7 @@ import {closeModal} from "@xivgear/common-ui/modalcontrol";
 import {putShortLink} from "@xivgear/core/external/shortlink_server";
 import {CharacterGearSet} from "@xivgear/core/gear";
 import {BaseModal} from "@xivgear/common-ui/components/modal";
-import {makeUrl, ONLY_SET_QUERY_PARAM, VIEW_SET_HASH} from "@xivgear/core/nav/common_nav";
+import {makeUrlSimple, ONLY_SET_QUERY_PARAM, VIEW_SET_HASH} from "@xivgear/core/nav/common_nav";
 import {GearPlanSheet} from "@xivgear/core/sheet";
 import {writeProxy} from "@xivgear/core/util/proxies";
 import {EquipSlots, Materia, XivItem} from "@xivgear/xivmath/geartypes";
@@ -368,7 +368,7 @@ class SheetExportModal extends ExportModal<GearPlanSheet> {
 
     get previewUrl(): string {
         const exported = this.sheet.exportSheet(true);
-        const url = makeUrl(VIEW_SET_HASH, JSON.stringify(exported));
+        const url = makeUrlSimple(VIEW_SET_HASH, JSON.stringify(exported));
         console.log("Preview url", url);
         return url.toString();
     }
@@ -382,7 +382,7 @@ class SetExportModal extends ExportModal<CharacterGearSet> {
 
     get previewUrl(): string {
         const exported = this.sheet.exportGearSet(this.item, true);
-        const url = makeUrl(VIEW_SET_HASH, JSON.stringify(exported));
+        const url = makeUrlSimple(VIEW_SET_HASH, JSON.stringify(exported));
         console.log("Preview url", url);
         return url.toString();
     }

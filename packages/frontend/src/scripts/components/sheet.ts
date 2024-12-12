@@ -49,7 +49,7 @@ import {
     RaceName,
     STAT_ABBREVIATIONS
 } from "@xivgear/xivmath/xivconstants";
-import {getCurrentHash} from "../nav_hash";
+import {getCurrentHash, getCurrentState} from "../nav_hash";
 import {MateriaTotalsDisplay} from "./materia";
 import {FoodItemsTable, FoodItemViewTable, GearItemsTable, GearItemsViewTable} from "./items";
 import {SetViewToolbar} from "./totals_display";
@@ -71,7 +71,7 @@ import {simpleAutoResultTable} from "../sims/components/simple_tables";
 import {rangeInc} from "@xivgear/core/util/array_utils";
 import {SimCurrentResult, SimResult, SimSettings, SimSpec, Simulation} from "@xivgear/core/sims/sim_types";
 import {getRegisteredSimSpecs} from "@xivgear/core/sims/sim_registry";
-import {makeUrl, ONLY_SET_QUERY_PARAM} from "@xivgear/core/nav/common_nav";
+import {makeUrl, makeUrlSimple, NavState, ONLY_SET_QUERY_PARAM} from "@xivgear/core/nav/common_nav";
 import {simMaintainersInfoElement} from "./sims";
 import {SaveAsModal} from "./new_sheet_form";
 import {DropdownActionMenu} from "./dropdown_actions_menu";
@@ -1030,7 +1030,7 @@ export class GearSetViewer extends HTMLElement {
         if (this.sheet.isEmbed) {
             const headingLink = document.createElement('a');
             const hash = getCurrentHash();
-            const linkUrl = makeUrl(...hash.slice(1));
+            const linkUrl = makeUrl(new NavState(hash.slice(1), undefined, getCurrentState().onlySetIndex));
             linkUrl.searchParams.delete(ONLY_SET_QUERY_PARAM);
             headingLink.href = linkUrl.toString();
             headingLink.target = '_blank';
@@ -1254,6 +1254,7 @@ export class GearPlanSheetGui extends GearPlanSheet {
     private readonly _loadingScreen: LoadingBlocker;
     private _gearEditToolBar: GearEditToolbar;
     private _selectFirstRowByDefault: boolean = false;
+    private _defaultSelectionIndex: number | undefined = undefined;
     readonly headerArea: HTMLDivElement;
     readonly tableArea: HTMLDivElement;
     readonly tableHolderOuter: HTMLDivElement;
@@ -1335,6 +1336,14 @@ export class GearPlanSheetGui extends GearPlanSheet {
 
     setSelectFirstRowByDefault() {
         this._selectFirstRowByDefault = true;
+    }
+
+    get defaultSelectionIndex(): number | undefined {
+        return this._defaultSelectionIndex;
+    }
+
+    set defaultSelectionIndex(value: number | undefined) {
+        this._defaultSelectionIndex = value;
     }
 
     private get editorItem() {
@@ -1739,7 +1748,16 @@ export class GearPlanSheetGui extends GearPlanSheet {
             document.addEventListener('pointerup', after);
         });
 
-        if (this._selectFirstRowByDefault && this.sets.length >= 1) {
+        if (this._defaultSelectionIndex !== undefined) {
+            const characterGearSet = this.sets[this._defaultSelectionIndex];
+            if (characterGearSet) {
+                this._gearPlanTable.selectGearSet(characterGearSet);
+            }
+            else {
+                console.error("Invalid selection index", this._defaultSelectionIndex);
+            }
+        }
+        else if (this._selectFirstRowByDefault && this.sets.length >= 1) {
             // First, try to select a real gear set
             const firstNonSeparator = this.sets.find(set => !set.isSeparator);
             // Failing that, just select whatever
