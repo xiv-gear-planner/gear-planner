@@ -25,7 +25,6 @@ import {
     showNewSheetForm,
     showSheetPickerMenu
 } from "./base_ui";
-import {arrayEq} from "@xivgear/core/util/array_utils";
 
 // let expectedHash: string[] | undefined = undefined;
 
@@ -59,9 +58,12 @@ export async function processHashLegacy() {
         // This path allows certain things such as /viewset/<json> to continue to use the old-style hash, since the
         // URL query param method causes the whole thing to be too long of a URL for the server to handle.
         if (split[0] === NO_REDIR_HASH) {
-            await doNav(state);
+            // The actual list is prefixed with the NO_REDIR_HASH, indicating that it should be stripped and not redirected.
+            const trueState = new NavState(split.splice(1), undefined, undefined);
+            await doNav(trueState);
         }
         else {
+            // Otherwise, redirect to a new-style hash
             goPath(...split);
             location.hash = "";
         }
