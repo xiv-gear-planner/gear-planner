@@ -4,7 +4,8 @@ import {
     NO_REDIR_HASH,
     ONLY_SET_QUERY_PARAM,
     parsePath,
-    PATH_SEPARATOR, SELECTION_INDEX_QUERY_PARAM,
+    PATH_SEPARATOR,
+    SELECTION_INDEX_QUERY_PARAM,
     splitHashLegacy,
     splitPath,
     tryParseOptionalIntParam
@@ -257,7 +258,11 @@ export function goPath(...hashParts: string[]) {
 
 export function goNav(nav: NavState) {
     const encodedPath = nav.encodedPath;
-    manipulateUrlParams(params => params.set(HASH_QUERY_PARAM, encodedPath));
+    manipulateUrlParams(params => {
+        params.set(HASH_QUERY_PARAM, encodedPath);
+        params.set(ONLY_SET_QUERY_PARAM, nav.onlySetIndex.toString());
+        params.set(SELECTION_INDEX_QUERY_PARAM, nav.selectIndex.toString());
+    });
     processNav();
 }
 
