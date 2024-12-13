@@ -1,4 +1,4 @@
-import {parsePath, splitHashLegacy, splitPath} from "../nav/common_nav";
+import {NavPath, NavState, parsePath, splitHashLegacy, splitPath} from "../nav/common_nav";
 import {expect} from "chai";
 
 describe('path splitting and joining', () => {
@@ -18,20 +18,20 @@ describe('parsePath', () => {
 
     describe('mysheets', () => {
         it('resolves empty path to mysheets', () => {
-            const result = parsePath([]);
+            const result = parsePath(new NavState([]));
             expect(result).to.deep.equals({
                 type: 'mysheets',
             });
         });
         it('resolves raw embed to null', () => {
-            const result = parsePath(['embed']);
+            const result = parsePath(new NavState(['embed']));
             expect(result).to.be.null;
         });
     });
 
     describe('saved sheets', () => {
         it('resolves saved sheet path', () => {
-            const result = parsePath(['sheet', 'foo']);
+            const result = parsePath(new NavState(['sheet', 'foo']));
             expect(result).to.deep.equals({
                 type: 'saved',
                 viewOnly: false,
@@ -40,7 +40,7 @@ describe('parsePath', () => {
             });
         });
         it('does not try to embed saved sheet', () => {
-            const result = parsePath(['embed', 'sheet', 'foo']);
+            const result = parsePath(new NavState(['embed', 'sheet', 'foo']));
             expect(result).to.deep.equals({
                 type: 'saved',
                 viewOnly: false,
@@ -52,19 +52,19 @@ describe('parsePath', () => {
 
     describe('newsheet', () => {
         it('resolves newsheet path', () => {
-            const result = parsePath(['newsheet']);
+            const result = parsePath(new NavState(['newsheet']));
             expect(result).to.deep.equals({
                 type: 'newsheet',
             });
         });
         it('does not try to embed newsheet', () => {
-            const result = parsePath(['embed', 'newsheet']);
+            const result = parsePath(new NavState(['embed', 'newsheet']));
             expect(result).to.deep.equals({
                 type: 'newsheet',
             });
         });
         it('resolves import form', () => {
-            const result = parsePath(['importsheet']);
+            const result = parsePath(new NavState(['importsheet']));
             expect(result).to.deep.equals({
                 type: 'importform',
             });
@@ -73,7 +73,7 @@ describe('parsePath', () => {
 
     describe('importsheet', () => {
         it('does not try to embed import form', () => {
-            const result = parsePath(['embed', 'importsheet']);
+            const result = parsePath(new NavState(['embed', 'importsheet']));
             expect(result).to.deep.equals({
                 type: 'importform',
             });
@@ -82,7 +82,7 @@ describe('parsePath', () => {
             const setValue = {
                 foo: 'bar|baz',
             };
-            const result = parsePath(['importsheet', JSON.stringify(setValue)]);
+            const result = parsePath(new NavState(['importsheet', JSON.stringify(setValue)]));
             expect(result).to.deep.equals({
                 type: 'sheetjson',
                 jsonBlob: setValue,
@@ -94,7 +94,7 @@ describe('parsePath', () => {
             const setValue = {
                 foo: 'bar|baz',
             };
-            const result = parsePath(['embed', 'importsheet', JSON.stringify(setValue)]);
+            const result = parsePath(new NavState(['embed', 'importsheet', JSON.stringify(setValue)]));
             expect(result).to.deep.equals({
                 type: 'sheetjson',
                 jsonBlob: setValue,
@@ -109,7 +109,7 @@ describe('parsePath', () => {
             const setValue = {
                 foo: 'bar|baz',
             };
-            const result = parsePath(['viewsheet', JSON.stringify(setValue)]);
+            const result = parsePath(new NavState(['viewsheet', JSON.stringify(setValue)]));
             expect(result).to.deep.equals({
                 type: 'sheetjson',
                 jsonBlob: setValue,
@@ -121,7 +121,7 @@ describe('parsePath', () => {
             const setValue = {
                 foo: 'bar|baz',
             };
-            const result = parsePath(['embed', 'viewsheet', JSON.stringify(setValue)]);
+            const result = parsePath(new NavState(['embed', 'viewsheet', JSON.stringify(setValue)]));
             expect(result).to.deep.equals({
                 type: 'sheetjson',
                 jsonBlob: setValue,
@@ -136,7 +136,7 @@ describe('parsePath', () => {
             const setValue = {
                 foo: 'bar|baz',
             };
-            const result = parsePath(['importset', JSON.stringify(setValue)]);
+            const result = parsePath(new NavState(['importset', JSON.stringify(setValue)]));
             expect(result).to.deep.equals({
                 type: 'setjson',
                 jsonBlob: setValue,
@@ -149,7 +149,7 @@ describe('parsePath', () => {
             const setValue = {
                 foo: 'bar|baz',
             };
-            const result = parsePath(['embed', 'importset', JSON.stringify(setValue)]);
+            const result = parsePath(new NavState(['embed', 'importset', JSON.stringify(setValue)]));
             expect(result).to.deep.equals({
                 type: 'setjson',
                 jsonBlob: setValue,
@@ -164,7 +164,7 @@ describe('parsePath', () => {
             const setValue = {
                 foo: 'bar|baz',
             };
-            const result = parsePath(['viewset', JSON.stringify(setValue)]);
+            const result = parsePath(new NavState(['viewset', JSON.stringify(setValue)]));
             expect(result).to.deep.equals({
                 type: 'setjson',
                 jsonBlob: setValue,
@@ -176,7 +176,7 @@ describe('parsePath', () => {
             const setValue = {
                 foo: 'bar|baz',
             };
-            const result = parsePath(['embed', 'viewset', JSON.stringify(setValue)]);
+            const result = parsePath(new NavState(['embed', 'viewset', JSON.stringify(setValue)]));
             expect(result).to.deep.equals({
                 type: 'setjson',
                 jsonBlob: setValue,
@@ -190,32 +190,58 @@ describe('parsePath', () => {
     describe('shortlink', () => {
 
         it('can resolve shortlink', () => {
-            const result = parsePath(['sl', 'asdf']);
+            const result = parsePath(new NavState(['sl', 'asdf']));
             expect(result).to.deep.equals({
                 type: 'shortlink',
                 uuid: 'asdf',
                 embed: false,
                 viewOnly: true,
-            });
+                onlySetIndex: undefined,
+                defaultSelectionIndex: undefined,
+            } satisfies NavPath);
         });
         it('can embed shortlink', () => {
-            const result = parsePath(['embed', 'sl', 'asdf']);
+            const result = parsePath(new NavState(['embed', 'sl', 'asdf']));
             expect(result).to.deep.equals({
                 type: 'shortlink',
                 uuid: 'asdf',
                 embed: true,
                 viewOnly: true,
+                onlySetIndex: undefined,
+                defaultSelectionIndex: undefined,
+            });
+        });
+        it('can handle selection index', () => {
+            const result = parsePath(new NavState(['embed', 'sl', 'asdf'], undefined, 3));
+            expect(result).to.deep.equals({
+                type: 'shortlink',
+                uuid: 'asdf',
+                embed: true,
+                viewOnly: true,
+                onlySetIndex: undefined,
+                defaultSelectionIndex: 3,
+            });
+        });
+        it('can handle exclusive index', () => {
+            const result = parsePath(new NavState(['embed', 'sl', 'asdf'], 2, undefined));
+            expect(result).to.deep.equals({
+                type: 'shortlink',
+                uuid: 'asdf',
+                embed: true,
+                viewOnly: true,
+                onlySetIndex: 2,
+                defaultSelectionIndex: undefined,
             });
         });
         it('returns null if no link', () => {
-            const result = parsePath(['sl']);
+            const result = parsePath(new NavState(['sl']));
             expect(result).to.be.null;
         });
     });
 
     describe('bis', () => {
         it('can resolve bis', () => {
-            const result = parsePath(['bis', 'sge', 'endwalker', 'anabaseios']);
+            const result = parsePath(new NavState(['bis', 'sge', 'endwalker', 'anabaseios']));
             expect(result).to.deep.equals({
                 type: 'bis',
                 path: ['sge', 'endwalker', 'anabaseios'],
@@ -224,10 +250,12 @@ describe('parsePath', () => {
                 sheet: 'anabaseios',
                 embed: false,
                 viewOnly: true,
+                onlySetIndex: undefined,
+                defaultSelectionIndex: undefined,
             });
         });
         it('does not try to embed bis', () => {
-            const result = parsePath(['embed', 'bis', 'sge', 'endwalker', 'anabaseios']);
+            const result = parsePath(new NavState(['embed', 'bis', 'sge', 'endwalker', 'anabaseios']));
             expect(result).to.deep.equals({
                 type: 'bis',
                 path: ['sge', 'endwalker', 'anabaseios'],
@@ -236,10 +264,40 @@ describe('parsePath', () => {
                 sheet: 'anabaseios',
                 embed: false,
                 viewOnly: true,
+                onlySetIndex: undefined,
+                defaultSelectionIndex: undefined,
+            });
+        });
+        it('can resolve bis with selection index', () => {
+            const result = parsePath(new NavState(['bis', 'sge', 'endwalker', 'anabaseios'], undefined, 5));
+            expect(result).to.deep.equals({
+                type: 'bis',
+                path: ['sge', 'endwalker', 'anabaseios'],
+                job: 'sge',
+                expac: 'endwalker',
+                sheet: 'anabaseios',
+                embed: false,
+                viewOnly: true,
+                onlySetIndex: undefined,
+                defaultSelectionIndex: 5,
+            });
+        });
+        it('can resolve bis with exclusive index', () => {
+            const result = parsePath(new NavState(['bis', 'sge', 'endwalker', 'anabaseios'], 4, undefined));
+            expect(result).to.deep.equals({
+                type: 'bis',
+                path: ['sge', 'endwalker', 'anabaseios'],
+                job: 'sge',
+                expac: 'endwalker',
+                sheet: 'anabaseios',
+                embed: false,
+                viewOnly: true,
+                onlySetIndex: 4,
+                defaultSelectionIndex: undefined,
             });
         });
         it('returns null if incomplete url', () => {
-            const result = parsePath(['bis', 'sge', 'endwalker']);
+            const result = parsePath(new NavState(['bis', 'sge', 'endwalker']));
             expect(result).to.be.null;
         });
 

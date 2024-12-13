@@ -1,4 +1,4 @@
-import {EMBED_HASH, makeUrl, SHORTLINK_HASH} from "../nav/common_nav";
+import {EMBED_HASH, makeUrl, NavState, SHORTLINK_HASH} from "../nav/common_nav";
 
 const SHORTLINK_SERVER: URL = new URL("https://api.xivgear.app/shortlink/");
 
@@ -39,10 +39,10 @@ export async function putShortLink(content: string, embed: boolean = false): Pro
     }).then(response => response.text()).then(uuid => {
         // If on prod, use the fancy share link.
         if (embed) {
-            return makeUrl(EMBED_HASH, SHORTLINK_HASH, uuid);
+            return makeUrl(new NavState([EMBED_HASH, SHORTLINK_HASH, uuid]));
         }
         else {
-            return makeUrl(SHORTLINK_HASH, uuid);
+            return makeUrl(new NavState([SHORTLINK_HASH, uuid]));
         }
     });
 }
