@@ -204,7 +204,13 @@ export const RiddleOfWindBuff: PersonalBuff = {
     statusId: 2687,
     appliesTo: (ability) => ability.attackType === 'Auto-attack',
     effects: {
-        haste: 50,
+        /**
+         * Riddle of Wind is actually a 50% increase type-Y speed buff. But until gear-planner supports type-Y and
+         * type-Z speed buffs separately (this only affects Monk auto attacks currently) the actual recast time
+         * of autos can be simulated by pretending it's a 40% type-Z speed buff.
+         * The correct in game auto timing is 1.024 between autos.
+         */
+        haste: 40,
     },
 };
 export const FiresRumination: PersonalBuff = {
