@@ -51,7 +51,7 @@ import {mpSimSpec} from "@xivgear/core/sims/healer/healer_mp";
 
 
 type SimGuiCtor<X extends Simulation<SimResult, unknown, unknown>> = {
-    new (sim: X): SimulationGui<ResultTypeOfSim<X>, SettingsTypeOfSim<X>, ExportSettingsTypeOfSim<X>>;
+    new(sim: X): SimulationGui<ResultTypeOfSim<X>, SettingsTypeOfSim<X>, ExportSettingsTypeOfSim<X>>;
 }
 
 function registerGui<X extends Simulation<SimResult, unknown, unknown>>(simSpec: SimSpec<X, unknown>, guiCtor: SimGuiCtor<X>) {
@@ -62,6 +62,11 @@ function getGuiCtor<X extends Simulation<never, never, never>>(simSpec: SimSpec<
     return simGuiMap.get(simSpec as SimSpec<never, never>);
 }
 
+/**
+ * Given a simulation, construct a {@link SimulationGui} instance most appropriate for that sim.
+ *
+ * @param sim The simulation
+ */
 export function makeGui<X extends Simulation<SimResult, unknown, unknown>>(sim: X): SimulationGui<ResultTypeOfSim<X>, SettingsTypeOfSim<X>, ExportSettingsTypeOfSim<X>> {
     const ctor: SimGuiCtor<X> = getGuiCtor(sim.spec);
     return new ctor(sim);
@@ -69,29 +74,35 @@ export function makeGui<X extends Simulation<SimResult, unknown, unknown>>(sim: 
 
 export const simGuiMap: Map<SimSpec<never, never>, SimGuiCtor<never>> = new Map;
 
+// General
 registerGui(potRatioSimSpec, PotencyRatioSimGui);
+// Tanks
 registerGui(pldUsageSimSpec, BaseUsageCountSimGui);
 registerGui(pldSKSSheetSpec, pldSKSSimGui);
-registerGui(whmSheetSpec, WhmSheetSimGui);
-registerGui(sgeSheetSpec, SgeSimGui);
 registerGui(drkSpec, DrkSimGui);
 registerGui(warSpec, WarSimGui);
 registerGui(gnbSpec, GnbSimGui);
 registerGui(pldSpec, PldSimGui);
+// Healers
+registerGui(whmSheetSpec, WhmSheetSimGui);
+registerGui(sgeSheetSpec, SgeSimGui);
 registerGui(sgeNewSheetSpec, SgeSheetSimGui);
 registerGui(astNewSheetSpec, AstSheetSimGui);
 registerGui(schNewSheetSpec, SchSimGui);
 registerGui(whmNewSheetSpec, WhmSimGui);
+registerGui(mpSimSpec, MPSimGui);
+// Melee
 registerGui(rprSheetSpec, RprSheetSimGui);
 registerGui(vprSheetSpec, VprSimGui);
 registerGui(ninSpec, NinSheetSimGui);
 registerGui(mnkSpec, MnkSimGui);
 registerGui(samSpec, SamSimGui);
+// Ranged
+registerGui(dncDtSheetSpec, BaseUsageCountSimGui);
+// Caster
 registerGui(BluWinged120Spec, BluSimGui);
 registerGui(BluFlame120Spec, BluSimGui);
 registerGui(BluBreath60Spec, BluSimGui);
 registerGui(BluWinged60Spec, BluSimGui);
 registerGui(BluFlame60Spec, BluSimGui);
 registerGui(BluF2PSpec, BluSimGui);
-registerGui(dncDtSheetSpec, BaseUsageCountSimGui);
-registerGui(mpSimSpec, MPSimGui);
