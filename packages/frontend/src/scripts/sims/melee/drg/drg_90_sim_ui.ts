@@ -3,7 +3,7 @@ import {PreDmgUsedAbility} from "@xivgear/core/sims/sim_types";
 import {CustomColumnSpec} from "../../../tables";
 import {AbilitiesUsedTable} from "../../components/ability_used_table";
 import {BaseMultiCycleSimGui} from "../../multicyclesim_ui";
-import {DRGTopSimResult, DRGTopSimSettings} from "@xivgear/core/sims/melee/drg/drg_top_sim";
+import {DRG90SimResult, DRG90SimSettings} from "@xivgear/core/sims/melee/drg/drg_90_sim";
 import {DRGExtraData} from "@xivgear/core/sims/melee/drg/drg_types";
 
 class DRGGaugeGui {
@@ -54,9 +54,9 @@ class DRGGaugeGui {
     }
 }
 
-export class DRGTopSimGui extends BaseMultiCycleSimGui<DRGTopSimResult, DRGTopSimSettings> {
+export class DRG90SimGui extends BaseMultiCycleSimGui<DRG90SimResult, DRG90SimSettings> {
 
-    override makeAbilityUsedTable(result: DRGTopSimResult): AbilitiesUsedTable {
+    override makeAbilityUsedTable(result: DRG90SimResult): AbilitiesUsedTable {
         const extraColumns = DRGGaugeGui.generateResultColumns(result);
         const table = super.makeAbilityUsedTable(result);
         const newColumns = [...table.columns];

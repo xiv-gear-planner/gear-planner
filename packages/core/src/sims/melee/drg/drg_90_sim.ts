@@ -8,26 +8,26 @@ import * as Buffs from './drg_buffs';
 import {BaseMultiCycleSim} from "@xivgear/core/sims/processors/sim_processors";
 import {CharacterGearSet} from "../../../gear";
 
-export interface DRGTopSimSettings extends SimSettings {
+export interface DRG90SimSettings extends SimSettings {
 
 }
 
-export interface DRGTopSimResult extends CycleSimResult {
+export interface DRG90SimResult extends CycleSimResult {
 
 }
 
-export interface DRGTopSettingsExternal extends ExternalCycleSettings<DRGTopSimSettings> {
+export interface DRG90SettingsExternal extends ExternalCycleSettings<DRG90SimSettings> {
 
 }
 
-export const drgTopSimSpec: SimSpec<DrgTopSim, DRGTopSettingsExternal> = {
+export const drg90SimSpec: SimSpec<Drg90Sim, DRG90SettingsExternal> = {
     stub: "drg-top-sim",
     displayName: "DRG Ultimate LvL 90 Sim",
-    makeNewSimInstance: function (): DrgTopSim {
-        return new DrgTopSim();
+    makeNewSimInstance: function (): Drg90Sim {
+        return new Drg90Sim();
     },
-    loadSavedSimInstance: function (exported: DRGTopSettingsExternal): DrgTopSim {
-        return new DrgTopSim(exported);
+    loadSavedSimInstance: function (exported: DRG90SettingsExternal): Drg90Sim {
+        return new Drg90Sim(exported);
     },
     supportedJobs: ["DRG"],
     supportedLevels: [90],
@@ -71,7 +71,7 @@ class RotationState {
     }
 }
 
-export class DRGTopCycleProcessor extends CycleProcessor {
+export class DRG90CycleProcessor extends CycleProcessor {
     rotationState: RotationState;
     gauge: DRGGauge;
 
@@ -262,26 +262,26 @@ export class DRGTopCycleProcessor extends CycleProcessor {
     }
 }
 
-export class DrgTopSim extends BaseMultiCycleSim<DRGTopSimResult, DRGTopSimSettings, DRGTopCycleProcessor> {
-    displayName = drgTopSimSpec.displayName;
-    shortName = drgTopSimSpec.stub;
-    spec = drgTopSimSpec;
-    constructor(settings?: DRGTopSettingsExternal) {
+export class Drg90Sim extends BaseMultiCycleSim<DRG90SimResult, DRG90SimSettings, DRG90CycleProcessor> {
+    displayName = drg90SimSpec.displayName;
+    shortName = drg90SimSpec.stub;
+    spec = drg90SimSpec;
+    constructor(settings?: DRG90SettingsExternal) {
         super('DRG', settings);
     }
-    makeDefaultSettings(): DRGTopSimSettings {
+    makeDefaultSettings(): DRG90SimSettings {
         return {};
     }
-    protected createCycleProcessor(settings: MultiCycleSettings): DRGTopCycleProcessor {
-        return new DRGTopCycleProcessor({
+    protected createCycleProcessor(settings: MultiCycleSettings): DRG90CycleProcessor {
+        return new DRG90CycleProcessor({
             ...settings,
             hideCycleDividers: true,
         });
     }
-    getRotationsToSimulate(set: CharacterGearSet): Rotation<DRGTopCycleProcessor>[] {
+    getRotationsToSimulate(set: CharacterGearSet): Rotation<DRG90CycleProcessor>[] {
         return [{
             cycleTime: 120,
-            apply(cp: DRGTopCycleProcessor) {
+            apply(cp: DRG90CycleProcessor) {
                 const numPots = Math.ceil(cp.remainingTime / 360); // Force pots during 2mins
                 const maxAllowableDelay = cp.remainingTime - ((numPots - 1) * 360);
                 const potOpener = maxAllowableDelay <= 120;
