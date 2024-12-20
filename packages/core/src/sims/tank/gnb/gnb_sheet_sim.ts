@@ -29,7 +29,7 @@ export interface GnbSettingsExternal extends ExternalCycleSettings<GnbSettings> 
 export const gnbSpec: SimSpec<GnbSim, GnbSettingsExternal> = {
     stub: "gnb-sheet-sim",
     displayName: "GNB Sim",
-    description: `Simulates a GNB rotation using level 100 abilities/traits.
+    description: `Simulates a GNB rotation for level 100/90/80/70.
 If potions are enabled, pots in the burst window every 6m (i.e. 0m, 6m, 12m, etc).
 Defaults to simulating a killtime of 8m 30s (510s).`,
     makeNewSimInstance: function (): GnbSim {
@@ -39,7 +39,7 @@ Defaults to simulating a killtime of 8m 30s (510s).`,
         return new GnbSim(exported);
     },
     supportedJobs: ['GNB'],
-    supportedLevels: [100],
+    supportedLevels: [100, 90, 80, 70],
     isDefaultSim: true,
     maintainers: [{
         name: 'Violet Stardust',
@@ -87,12 +87,20 @@ class RotationState {
 class GnbCycleProcessor extends CycleProcessor {
     gauge: GnbGauge;
     rotationState: RotationState;
+    blastingZoneAbility: GnbOgcdAbility;
 
     constructor(settings: MultiCycleSettings) {
         super(settings);
         this.cycleLengthMode = 'full-duration';
-        this.gauge = new GnbGauge();
+        this.gauge = new GnbGauge(this.stats.level);
         this.rotationState = new RotationState();
+
+        if (this.stats.level >= 80) {
+            this.blastingZoneAbility = Actions.BlastingZone;
+        }
+        else {
+            this.blastingZoneAbility = Actions.DangerZone;
+        }
     }
 
     /** Advances to as late as possible.
@@ -120,7 +128,7 @@ class GnbCycleProcessor extends CycleProcessor {
         const noMercy = usedAbility.buffs.find(buff => buff.name === NoMercyBuff.name);
         const buffData = noMercy && this.getActiveBuffData(noMercy, usedAbility.usedAt);
         if (buffData) {
-            extraData.noMercyDuration = Math.round(buffData.end - usedAbility.usedAt);
+            extraData.noMercyDuration = buffData.end - usedAbility.usedAt;
         }
 
 
@@ -226,6 +234,10 @@ class GnbCycleProcessor extends CycleProcessor {
     }
 
     wouldOvercapCartsFromUpcomingBloodfest(): boolean {
+        if (this.stats.level < 76) {
+            // We don't have Bloodfest unlocked.
+            return false;
+        }
         const carts = this.gauge.cartridges;
         const bloodfestOffCdRelative = this.cdTracker.statusOf(Actions.Bloodfest).readyAt.relative;
         const gcdSpeed = this.stats.gcdPhys(2.5);
@@ -234,6 +246,12 @@ class GnbCycleProcessor extends CycleProcessor {
         const timeToSpendCarts = gcdSpeed * carts;
         const oneGcdMinusAnimationLock = gcdSpeed - STANDARD_ANIMATION_LOCK;
         return bloodfestOffCdRelative <= timeToSpendCarts + oneGcdMinusAnimationLock;
+    }
+
+    haveCartsAndBloodfestIsOffCooldown(): boolean {
+        const carts = this.gauge.cartridges;
+        const bloodfestOffCdRelative = this.cdTracker.statusOf(Actions.Bloodfest).readyAt.relative;
+        return carts >= 1 && bloodfestOffCdRelative === 0;
     }
 
     getActiveContinuationAction(): GnbOgcdAbility {
@@ -300,7 +318,7 @@ export class GnbSim extends BaseMultiCycleSim<GnbSimResult, GnbSettings, GnbCycl
     }
 
     willOvercapCartsNextGCD(cp: GnbCycleProcessor): boolean {
-        return cp.gauge.cartridges === 3 && cp.rotationState.combo === 2;
+        return cp.gauge.cartridges === cp.gauge.maxCartridges && cp.rotationState.combo === 2;
     }
 
     shouldUseGCD(cp: GnbCycleProcessor, ability: GnbGcdAbility): boolean {
@@ -329,26 +347,61 @@ export class GnbSim extends BaseMultiCycleSim<GnbSimResult, GnbSettings, GnbCycl
     // Gets the next GCD to use in the GNB rotation.
     // Note: this is stateful, and updates combos to the next combo.
     getGCDToUse(cp: GnbCycleProcessor): GnbGcdAbility {
+        const noMercyDuration = cp.getNoMercyDuration();
+        // If we have less than thirty seconds, but still enough time to do our bigger attacks, use Sonic Break as soon as possible.
+        const timeRemaining =  cp.totalTime - cp.currentTime;
+        if (cp.isReadyToBreakBuffActive() && (timeRemaining < 30) && (noMercyDuration > 0 && timeRemaining > cp.stats.gcdPhys(2.5) * 4)) {
+            return Actions.SonicBreak;
+        }
+
         // Start Gnashing Fang combo
         if (cp.gauge.cartridges >= Actions.GnashingFang.cartridgeCost && this.shouldUseGCD(cp, Actions.GnashingFang)) {
             return cp.getGnashingFangComboToUse();
         }
 
-        if (cp.gauge.cartridges >= Actions.DoubleDown.cartridgeCost && this.shouldUseGCD(cp, Actions.DoubleDown)) {
-            return Actions.DoubleDown;
+        if (cp.stats.level >= 90) {
+            if (cp.gauge.cartridges >= Actions.DoubleDown.cartridgeCost && this.shouldUseGCD(cp, Actions.DoubleDown)) {
+                return Actions.DoubleDown;
+            }
         }
 
-        if (cp.gauge.cartridges >= 1 && cp.wouldOvercapCartsFromUpcomingBloodfest()) {
-            return Actions.BurstStrike;
+        // If we're at level 100 (and have the Bloodfest combo) we want to spend carts early.
+        // Otherwise, we just don't want to overcap.
+        if (cp.stats.level >= 100) {
+            if (cp.gauge.cartridges >= 1 && cp.wouldOvercapCartsFromUpcomingBloodfest()) {
+                return Actions.BurstStrike;
+            }
         }
 
-        // Bloodfest Combo
-        if (cp.getNoMercyDuration() > 0 && (cp.isReadyToReignBuffActive() || cp.isBloodfestComboActive())) {
-            return cp.getBloodfestComboToUse();
+        // Dump carts, so long as we're not about to miss cart spending GCDs in burst if we do.
+        // This only really comes up at edge case GCDs, but there's no reason not to account for it.
+        const gnashingFangCd = cp.cdTracker.statusOf(Actions.GnashingFang).readyAt.relative;
+        const doubleDownCd = cp.cdTracker.statusOf(Actions.DoubleDown).readyAt.relative;
+        let numberOfCartSpendingGcdsUpBeforeNoMercyExpires = 0;
+        if (gnashingFangCd < noMercyDuration) {
+            numberOfCartSpendingGcdsUpBeforeNoMercyExpires++;
+        }
+        if (cp.stats.level >= 90) {
+            if (doubleDownCd < noMercyDuration) {
+                numberOfCartSpendingGcdsUpBeforeNoMercyExpires++;
+            }
+        }
+
+        // If we have Bloodfest unlocked
+        if (cp.stats.level >= 76) {
+            // Spend carts if Bloodfest is waiting for us.
+            if (noMercyDuration > 0 && cp.haveCartsAndBloodfestIsOffCooldown()) {
+                return Actions.BurstStrike;
+            }
         }
 
         if (cp.isReadyToBreakBuffActive()) {
             return Actions.SonicBreak;
+        }
+
+        // Start or continue Bloodfest Combo at a higher priority if we only have that many GCDs left, since it's our biggest
+        if (noMercyDuration > 0 && (cp.isReadyToReignBuffActive() || cp.isBloodfestComboActive()) && timeRemaining < cp.stats.gcdPhys(2.5) * (4 - cp.rotationState.bloodfestCombo)) {
+            return cp.getBloodfestComboToUse();
         }
 
         // Continue Gnashing Fang combo
@@ -356,17 +409,17 @@ export class GnbSim extends BaseMultiCycleSim<GnbSimResult, GnbSettings, GnbCycl
             return cp.getGnashingFangComboToUse();
         }
 
-        // Dump carts, so long as we're not about to miss cart spending GCDs in burst if we do.
-        // This only really comes up at edge case GCDs, but there's no reason not to account for it.
-        const noMercyDuration = cp.getNoMercyDuration();
-        const gnashingFangCd = cp.cdTracker.statusOf(Actions.GnashingFang).readyAt.relative;
-        const doubleDownCd = cp.cdTracker.statusOf(Actions.DoubleDown).readyAt.relative;
-        let numberOfCartSpendingGcdsUpBeforeNoMercyExpires = 0;
-        if (gnashingFangCd < noMercyDuration) {
-            numberOfCartSpendingGcdsUpBeforeNoMercyExpires++;
+        const lionHeartNext = cp.rotationState.bloodfestCombo === 2;
+        const twoPlusGCDsLeftInNoMercy = noMercyDuration >= (cp.nextGcdTime - cp.currentTime) + cp.stats.gcdPhys(2.5);
+        // Dump resources if in burst at a higher priority than Bloodfest combo if we have time to finish our Bloodfest combo.
+        // This means that Continuation will stay in No Mercy.
+        if (lionHeartNext && twoPlusGCDsLeftInNoMercy && cp.gauge.cartridges > numberOfCartSpendingGcdsUpBeforeNoMercyExpires) {
+            return Actions.BurstStrike;
         }
-        if (doubleDownCd < noMercyDuration) {
-            numberOfCartSpendingGcdsUpBeforeNoMercyExpires++;
+
+        // Start or continue Bloodfest Combo
+        if (noMercyDuration > 0 && (cp.isReadyToReignBuffActive() || cp.isBloodfestComboActive())) {
+            return cp.getBloodfestComboToUse();
         }
 
         // Dump resources if in burst
@@ -423,8 +476,11 @@ export class GnbSim extends BaseMultiCycleSim<GnbSimResult, GnbSettings, GnbCycl
         // We need the cartridge check even though we unload carts before Bloodfest just in case
         // our GCD is at Solid Barrel before Bloodfest comes up. In this case, we intentionally drift
         // Bloodfest slightly.
-        if (cp.canUseWithoutClipping(Actions.Bloodfest) && cp.gauge.cartridges === 0) {
-            this.use(cp, Actions.Bloodfest);
+        // Bloodfest is unlocked at level 76.
+        if (cp.stats.level >= 76) {
+            if (cp.canUseWithoutClipping(Actions.Bloodfest) && cp.gauge.cartridges === 0) {
+                this.use(cp, Actions.Bloodfest);
+            }
         }
 
         if (cp.shouldPot() && cp.canUseWithoutClipping(potionMaxStr)) {
@@ -480,6 +536,68 @@ export class GnbSim extends BaseMultiCycleSim<GnbSimResult, GnbSettings, GnbCycl
         return cp.use(ability);
     }
 
+    private useOpener70(cp: GnbCycleProcessor) {
+        cp.advanceTo(STANDARD_ANIMATION_LOCK);
+        this.use(cp, Actions.LightningShot);
+        this.use(cp, cp.getComboToUse());
+        cp.advanceForLateWeave([potionMaxStr]);
+        this.use(cp, potionMaxStr);
+        this.use(cp, cp.getComboToUse());
+        cp.advanceForLateWeave([Actions.NoMercy]);
+        this.use(cp, Actions.NoMercy);
+        this.use(cp, cp.getComboToUse());
+        this.use(cp, Actions.DangerZone);
+        this.use(cp, Actions.BowShock);
+        this.use(cp, cp.getGnashingFangComboToUse());
+        this.use(cp, Actions.JugularRip);
+        this.use(cp, Actions.SonicBreak);
+        this.use(cp, cp.getGnashingFangComboToUse());
+        this.use(cp, Actions.AbdomenTear);
+        this.use(cp, cp.getGnashingFangComboToUse());
+        this.use(cp, Actions.EyeGouge);
+    }
+
+    private useOpener8090(cp: GnbCycleProcessor) {
+        const gcd = cp.stats.gcdPhys(2.5);
+        cp.advanceTo(STANDARD_ANIMATION_LOCK);
+        this.use(cp, Actions.LightningShot);
+        this.use(cp, cp.getComboToUse());
+        if (gcd <= 2.47) {
+            this.use(cp, cp.getComboToUse());
+            cp.advanceForLateWeave([potionMaxStr]);
+            this.use(cp, potionMaxStr);
+            this.use(cp, cp.getComboToUse());
+            cp.advanceForLateWeave([Actions.NoMercy]);
+            this.use(cp, Actions.NoMercy);
+            this.use(cp, cp.getGnashingFangComboToUse());
+            this.use(cp, Actions.BowShock);
+            this.use(cp, Actions.JugularRip);
+            this.use(cp, Actions.SonicBreak);
+            this.use(cp, Actions.BlastingZone);
+            this.use(cp, Actions.Bloodfest);
+        }
+        else {
+            cp.advanceForLateWeave([potionMaxStr]);
+            this.use(cp, potionMaxStr);
+            this.use(cp, cp.getComboToUse());
+            this.use(cp, Actions.NoMercy);
+            this.use(cp, Actions.Bloodfest);
+            this.use(cp, cp.getGnashingFangComboToUse());
+            this.use(cp, Actions.JugularRip);
+            this.use(cp, Actions.SonicBreak);
+            this.use(cp, Actions.BlastingZone);
+            this.use(cp, Actions.BowShock);
+        }
+        if (cp.stats.level >= 90) {
+            this.use(cp, Actions.DoubleDown);
+        }
+        this.use(cp, cp.getGnashingFangComboToUse());
+        this.use(cp, Actions.AbdomenTear);
+        this.use(cp, cp.getGnashingFangComboToUse());
+        this.use(cp, Actions.EyeGouge);
+    }
+
+
     // For GCD Speeds >=2.48
     private useSlowOpener(cp: GnbCycleProcessor) {
         cp.advanceTo(STANDARD_ANIMATION_LOCK);
@@ -534,11 +652,19 @@ export class GnbSim extends BaseMultiCycleSim<GnbSimResult, GnbSettings, GnbCycl
     }
 
     private useOpener(cp: GnbCycleProcessor, gcd: number) {
-        if (gcd >= 2.48) {
-            this.useSlowOpener(cp);
+        if (cp.stats.level === 100) {
+            if (gcd >= 2.48) {
+                this.useSlowOpener(cp);
+            }
+            else {
+                this.useFastOpener(cp);
+            }
+        }
+        else if (cp.stats.level >= 80 && cp.stats.level <= 90) {
+            this.useOpener8090(cp);
         }
         else {
-            this.useFastOpener(cp);
+            this.useOpener70(cp);
         }
     }
 
