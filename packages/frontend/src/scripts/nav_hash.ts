@@ -1,10 +1,14 @@
 import {
     HASH_QUERY_PARAM,
+    NavState,
     NO_REDIR_HASH,
+    ONLY_SET_QUERY_PARAM,
     parsePath,
     PATH_SEPARATOR,
+    SELECTION_INDEX_QUERY_PARAM,
     splitHashLegacy,
-    splitPath
+    splitPath,
+    tryParseOptionalIntParam
 } from "@xivgear/core/nav/common_nav";
 import {displayEmbedError, earlyEmbedInit} from "./embed";
 import {SetExport, SheetExport} from "@xivgear/xivmath/geartypes";
@@ -18,21 +22,28 @@ import {
     openSheetByKey,
     setMainContent,
     showImportSheetForm,
-    showLoadingScreen, showNewSheetForm,
+    showLoadingScreen,
+    showNewSheetForm,
     showSheetPickerMenu
 } from "./base_ui";
-import {arrayEq} from "@xivgear/core/util/array_utils";
 
-let expectedHash: string[] | undefined = undefined;
+// let expectedHash: string[] | undefined = undefined;
+
+
+let expectedState: NavState = new NavState(["$$$UNINITIALIZED$$$"], undefined, undefined);
 
 let embed = false;
 
 
-/**
- * Get the current page path
- */
 export function getCurrentHash() {
-    return [...expectedHash];
+    return expectedState.path;
+}
+
+/**
+ * Get the current navigation state, or undefined if it has not been processed yet.
+ */
+export function getCurrentState(): NavState {
+    return expectedState;
 }
 
 /**
@@ -41,51 +52,59 @@ export function getCurrentHash() {
 export async function processHashLegacy() {
     const newHash = location.hash;
     const split = splitHashLegacy(newHash);
-    formatTopMenu(split);
+    const state = new NavState(split, undefined, undefined);
+    formatTopMenu(state);
     if (split.length > 0) {
         console.log('processHashLegacy', newHash);
         // This path allows certain things such as /viewset/<json> to continue to use the old-style hash, since the
         // URL query param method causes the whole thing to be too long of a URL for the server to handle.
         if (split[0] === NO_REDIR_HASH) {
-            await doNav(split.slice(1));
+            // The actual list is prefixed with the NO_REDIR_HASH, indicating that it should be stripped and not redirected.
+            const trueState = new NavState(split.splice(1), undefined, undefined);
+            await doNav(trueState);
         }
         else {
-            goHash(...split);
+            // Otherwise, redirect to a new-style hash
+            goPath(...split);
             location.hash = "";
         }
     }
 }
 
 /**
- * Process a potential change in hash.
+ * Process a potential change in navigation state.
  *
  * Note that unlike the old hash-based method, there is no catch-all listener for hash changes. Rather, anything
- * wishing to change the hash should use {@link goHash} to have the navigation automatically performed (if the
- * entire desired state can be determined from the path alone), or {@link setHash} if you wish to set the location
+ * wishing to change the hash should use {@link goPath} to have the navigation automatically performed (if the
+ * entire desired state can be determined from the path alone), or {@link setPath} if you wish to set the location
  * but manually replace the page contents.
  */
 export async function processNav() {
     // Remove the literal #
     // let hash = splitHash(location.hash);
-    const path = getQueryParams().get(HASH_QUERY_PARAM) ?? '';
+    const qp = getQueryParams();
+    const path = qp.get(HASH_QUERY_PARAM) ?? '';
+    const osIndex = tryParseOptionalIntParam(qp.get(ONLY_SET_QUERY_PARAM));
+    const selIndex = tryParseOptionalIntParam(qp.get(SELECTION_INDEX_QUERY_PARAM));
     const pathParts = splitPath(path);
-    formatTopMenu(pathParts);
-    console.info("processQuery", pathParts);
+    const newNav = new NavState(pathParts, osIndex, selIndex);
+    formatTopMenu(newNav);
+    console.info("processQuery", newNav);
     if (pathParts.length > 0) {
         hideWelcomeArea();
     }
-    if (arrayEq(pathParts, expectedHash)) {
-        console.info("Ignoring internal query change");
+    if (expectedState.isEqual(newNav)) {
+        console.info("Ignoring internal nav change");
         return;
     }
-    expectedHash = pathParts;
-    await doNav(pathParts);
+    expectedState = newNav;
+    await doNav(newNav);
 }
 
-async function doNav(pathParts: string[]) {
-    const nav = parsePath(pathParts);
+async function doNav(navState: NavState) {
+    const nav = parsePath(navState);
     if (nav === null) {
-        console.error('unknown nav', pathParts);
+        console.error('unknown nav', navState);
         showSheetPickerMenu();
         return;
     }
@@ -119,7 +138,7 @@ async function doNav(pathParts: string[]) {
             const resolved: string | null = await getShortLink(uuid);
             if (resolved) {
                 const json = JSON.parse(resolved);
-                openExport(json, false, true);
+                openExport(json, false, true, nav.onlySetIndex, nav.defaultSelectionIndex);
                 return;
             }
             else {
@@ -132,10 +151,10 @@ async function doNav(pathParts: string[]) {
             break;
         }
         case "setjson":
-            openExport(nav.jsonBlob as SetExport, false, nav.viewOnly);
+            openExport(nav.jsonBlob as SetExport, false, nav.viewOnly, undefined, undefined);
             return;
         case "sheetjson":
-            openExport(nav.jsonBlob as SheetExport, false, nav.viewOnly);
+            openExport(nav.jsonBlob as SheetExport, false, nav.viewOnly, undefined, undefined);
             return;
         case "bis": {
             showLoadingScreen();
@@ -143,7 +162,7 @@ async function doNav(pathParts: string[]) {
                 const resolved: string | null = await getBisSheet(nav.job, nav.expac, nav.sheet);
                 if (resolved) {
                     const json = JSON.parse(resolved);
-                    openExport(json, false, true);
+                    openExport(json, false, true, nav.onlySetIndex, nav.defaultSelectionIndex);
                     return;
                 }
                 else {
@@ -159,7 +178,7 @@ async function doNav(pathParts: string[]) {
             return;
         }
     }
-    console.error("I don't know what to do with this path", pathParts);
+    console.error("I don't know what to do with this path", navState);
     // TODO: handle remaining invalid cases
 }
 
@@ -177,6 +196,10 @@ function manipulateUrlParams(action: (params: URLSearchParams) => void) {
     }
 }
 
+export function setPath(...pathParts: string[]) {
+    setNav(new NavState(pathParts, undefined, undefined));
+}
+
 /**
  * Change the path of the current URL. Does not perform the actual navigation (i.e. the page contents will not be
  * changed). This will, however, update the state of the top menu - that is, if you navigate to the 'new sheet' page,
@@ -186,30 +209,31 @@ function manipulateUrlParams(action: (params: URLSearchParams) => void) {
  * for some paths. For example, when importing a sheet, the 'imported' path does not contain the actual sheet data
  * nor anything that would lead to it, so it must use this method.
  *
- * @param hashParts The path parts, e.g. for 'foo|bar', use ['foo', 'bar'] as the argument.
+ * @param newState The new navigation state to assume.
  */
-export function setHash(...hashParts: string[]) {
+export function setNav(newState: NavState) {
+    const hashParts = newState.path;
     for (const hashPart of hashParts) {
         if (hashPart === undefined) {
             console.error(new Error("Undefined url hash part!"), hashParts);
             return;
         }
     }
-    expectedHash = [...hashParts];
+    expectedState = newState;
     console.log("New hash parts", hashParts);
     const hash = hashParts.map(part => encodeURIComponent(part)).join(PATH_SEPARATOR);
     // location.hash = '#' + hashParts.map(part => '/' + encodeURIComponent(part)).join('');
     // console.log(location.hash);
     manipulateUrlParams(params => params.set(HASH_QUERY_PARAM, hash));
     // TODO: there are redundant calls to this
-    formatTopMenu(expectedHash);
+    formatTopMenu(newState);
     if (hashParts.length > 0) {
         hideWelcomeArea();
     }
 }
 
 export function getHash(): string[] | undefined {
-    return expectedHash;
+    return getCurrentState().path;
 }
 
 /**
@@ -222,15 +246,23 @@ export function getHash(): string[] | undefined {
  *
  * @param hashParts The path parts, e.g. for 'foo|bar', use ['foo', 'bar'] as the argument.
  */
-export function goHash(...hashParts: string[]) {
+export function goPath(...hashParts: string[]) {
     for (const hashPart of hashParts) {
         if (hashPart === undefined) {
             console.error(new Error("Undefined url hash part!"), hashParts);
             return;
         }
     }
-    const hash = hashParts.map(part => encodeURIComponent(part)).join(PATH_SEPARATOR);
-    manipulateUrlParams(params => params.set(HASH_QUERY_PARAM, hash));
+    goNav(new NavState(hashParts, undefined, undefined));
+}
+
+export function goNav(nav: NavState) {
+    const encodedPath = nav.encodedPath;
+    manipulateUrlParams(params => {
+        params.set(HASH_QUERY_PARAM, encodedPath);
+        params.set(ONLY_SET_QUERY_PARAM, nav.onlySetIndex?.toString());
+        params.set(SELECTION_INDEX_QUERY_PARAM, nav.selectIndex?.toString());
+    });
     processNav();
 }
 
