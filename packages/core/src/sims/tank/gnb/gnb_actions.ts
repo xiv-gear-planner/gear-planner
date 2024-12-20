@@ -248,7 +248,7 @@ export const DangerZone: GnbOgcdAbility = {
     type: 'ogcd',
     name: "Danger Zone",
     id: 16144,
-    potency: 800,
+    potency: 250,
     attackType: "Ability",
     cooldown: {
         time: 30,

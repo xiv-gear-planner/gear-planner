@@ -469,8 +469,8 @@ export class GnbSim extends BaseMultiCycleSim<GnbSimResult, GnbSettings, GnbCycl
             this.use(cp, Actions.BowShock);
         }
 
-        if (cp.canUseWithoutClipping(Actions.BlastingZone)) {
-            this.use(cp, Actions.BlastingZone);
+        if (cp.canUseWithoutClipping(cp.blastingZoneAbility)) {
+            this.use(cp, cp.blastingZoneAbility);
         }
 
         // We need the cartridge check even though we unload carts before Bloodfest just in case
