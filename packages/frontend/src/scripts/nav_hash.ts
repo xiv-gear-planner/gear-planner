@@ -260,8 +260,18 @@ export function goNav(nav: NavState) {
     const encodedPath = nav.encodedPath;
     manipulateUrlParams(params => {
         params.set(HASH_QUERY_PARAM, encodedPath);
-        params.set(ONLY_SET_QUERY_PARAM, nav.onlySetIndex?.toString());
-        params.set(SELECTION_INDEX_QUERY_PARAM, nav.selectIndex?.toString());
+        if (nav.onlySetIndex === undefined) {
+            params.delete(ONLY_SET_QUERY_PARAM);
+        }
+        else {
+            params.set(ONLY_SET_QUERY_PARAM, nav.onlySetIndex?.toString());
+        }
+        if (nav.selectIndex === undefined) {
+            params.delete(SELECTION_INDEX_QUERY_PARAM);
+        }
+        else {
+            params.set(SELECTION_INDEX_QUERY_PARAM, nav.selectIndex?.toString());
+        }
     });
     processNav();
 }
