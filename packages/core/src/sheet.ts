@@ -98,7 +98,7 @@ export class SheetProvider<SheetType extends GearPlanSheet> {
             job: classJob,
             level: level,
             name: sheetName,
-            partyBonus: 0,
+            partyBonus: classJob === 'BLU' ? 1 : 5,
             race: undefined,
             saveKey: sheetKey,
             sets: [{

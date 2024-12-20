@@ -94,7 +94,7 @@ describe('importing and exporting', () => {
 
             // Does not keep these
             expect(newSheet.race).to.equal(undefined);
-            expect(newSheet.partyBonus).to.equal(0);
+            expect(newSheet.partyBonus).to.equal(5);
             // Should come from set name
             expect(newSheet.sheetName).to.equal('Foo2');
 
