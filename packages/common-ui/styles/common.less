@@ -1993,7 +1993,13 @@ div.gear-set-editor-toolbar, set-view-toolbar {
     width: fit-content;
     min-width: 52px;
     transition: box-shadow var(--transition-time) linear;
-    cursor: pointer;
+
+    &.stat-tiering-clickable {
+      cursor: pointer;
+    }
+    &.stat-tiering-unclickable {
+      cursor: default;
+    }
 
     div.single-stat-tier-display-upper {
       display: block;

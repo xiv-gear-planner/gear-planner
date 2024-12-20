@@ -42,6 +42,7 @@ export class SingleStatTierDisplay extends HTMLDivElement {
     private readonly upperDiv: HTMLDivElement;
     private readonly expansionDiv: HTMLDivElement;
     private _expanded: boolean;
+    private _clickable: boolean;
 
     constructor(private stat: RawStatKey) {
         super();
@@ -63,13 +64,14 @@ export class SingleStatTierDisplay extends HTMLDivElement {
 
         this.expansionDiv = document.createElement('div');
         this.expansionDiv.classList.add('single-stat-tier-display-expansion');
-        this.expansionDiv.textContent = "Foo bar";
+        this.expansionDiv.textContent = "If you can read this, it is a bug.";
         this.appendChild(this.expansionDiv);
 
         this.expanded = false;
     }
 
     refresh(tiering: TieringDisplay): void {
+        // Formatting of the base element (always visible)
         this.upperDiv.textContent = tiering.label;
         this.upperDiv.title = `${tiering.label}: ${tiering.description}`;
         {
@@ -88,6 +90,7 @@ export class SingleStatTierDisplay extends HTMLDivElement {
             this.lowerRightDiv.title = `You must gain ${baseTiering.upper} points of ${this.stat} in order to increase your ${tiering.fullName}.`;
         }
 
+        // Formatting of the extra pop-down elements
         let hasSeenNegative: boolean = false;
         const elements: Node[] = [];
         tiering.extraOffsets.forEach((extraOffset) => {
@@ -133,6 +136,9 @@ export class SingleStatTierDisplay extends HTMLDivElement {
             elements.push(div);
         });
         this.expansionDiv.replaceChildren(...elements);
+
+        // if nothing to expand, be unclickable
+        this.clickable = tiering.extraOffsets.length > 0;
     }
 
     get expanded(): boolean {
@@ -142,6 +148,22 @@ export class SingleStatTierDisplay extends HTMLDivElement {
     set expanded(value: boolean) {
         this._expanded = value;
         this.expansionDiv.style.display = value ? '' : 'none';
+    }
+
+    get clickable(): boolean {
+        return this._clickable;
+    }
+
+    set clickable(value: boolean) {
+        if (value) {
+            this.classList.add('stat-tiering-clickable');
+            this.classList.remove('stat-tiering-unclickable');
+        }
+        else {
+            this.classList.remove('stat-tiering-clickable');
+            this.classList.add('stat-tiering-unclickable');
+        }
+        this._clickable = value;
     }
 }
 
@@ -173,24 +195,26 @@ export class StatTierDisplay extends HTMLDivElement {
                         this.appendChild(singleStatTierDisplay);
                         // singleStatTierDisplay.addEventListener('click', () => this.toggleState());
                         singleStatTierDisplay.addEventListener('click', (ev) => {
-                            if (ev.detail === 1) {
-                                const expanded = singleStatTierDisplay.expanded = !singleStatTierDisplay.expanded;
-                                recordSheetEvent('singleTierDisplayClick', this.sheet, {
-                                    expanded: expanded,
-                                    stat: stat,
-                                });
-                            }
-                            else if (ev.detail >= 2) {
-                                // If this is a double click, the first click would have already toggled the state
-                                // of the target.
-                                const newState = singleStatTierDisplay.expanded;
-                                for (const display of this.eleMap.values()) {
-                                    display.expanded = newState;
+                            if (singleStatTierDisplay.clickable) {
+                                if (ev.detail === 1) {
+                                    const expanded = singleStatTierDisplay.expanded = !singleStatTierDisplay.expanded;
+                                    recordSheetEvent('singleTierDisplayClick', this.sheet, {
+                                        expanded: expanded,
+                                        stat: stat,
+                                    });
                                 }
-                                recordSheetEvent('allTierDisplayClick', this.sheet, {
-                                    expanded: newState,
-                                    stat: stat,
-                                });
+                                else if (ev.detail >= 2) {
+                                    // If this is a double click, the first click would have already toggled the state
+                                    // of the target.
+                                    const newState = singleStatTierDisplay.expanded;
+                                    for (const display of this.eleMap.values()) {
+                                        display.expanded = newState;
+                                    }
+                                    recordSheetEvent('allTierDisplayClick', this.sheet, {
+                                        expanded: newState,
+                                        stat: stat,
+                                    });
+                                }
                             }
                         });
                     }
