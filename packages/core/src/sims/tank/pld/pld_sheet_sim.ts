@@ -124,7 +124,7 @@ class PldCycleProcessor extends CycleProcessor {
         const fof = usedAbility.buffs.find(buff => buff.name === FightOrFlightBuff.name);
         const fofBuffData = fof && this.getActiveBuffData(fof, usedAbility.usedAt);
         if (fofBuffData) {
-            extraData.fightOrFlightDuration = Math.round(fofBuffData.end - usedAbility.usedAt);
+            extraData.fightOrFlightDuration = fofBuffData.end - usedAbility.usedAt;
         }
 
         const requiescat = usedAbility.buffs.find(buff => buff.name === RequiescatBuff.name);

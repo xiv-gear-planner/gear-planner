@@ -23,7 +23,6 @@ export type BeastGaugeAbility = WarAbility & Readonly<{
 
 /** Represents the WAR gauge state */
 export type WarGaugeState = {
-    level: number,
     beastGauge: number,
 }
 
