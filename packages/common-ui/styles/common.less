@@ -875,11 +875,20 @@ table.gear-plan-table {
     --chance-stat-col-width: 40px;
     --multi-stat-col-width: 40px;
     --multi-mit-stat-col-width: 40px;
+    @media screen and (max-width: 800px) {
+      .stat-col-less-important {
+        display: none;
+      }
+    }
 
     &.show-advanced-stats {
       --chance-stat-col-width: 110px;
       --multi-stat-col-width: 70px;
       --multi-mit-stat-col-width: 130px;
+
+      .stat-col-less-important {
+        display: revert;
+      }
 
       .extra-stat-info {
         display: unset !important;
@@ -1107,7 +1116,6 @@ gear-plan {
     // I hate css
     margin-right: -60px;
     width: min(100%, 100vw);
-    pointer-events: none;
     background-color: color-mix(in srgb, var(--bg-color) 80%, transparent);
 
     border-top: var(--standard-border);
