@@ -44,10 +44,21 @@ export const SETTINGS: PersistentSettings = {
         setBool(HIDE_WELCOME_KEY, value);
     },
     get languageOverride(): Language {
-        return localStorage.getItem(LANGUAGE_OVERRIDE_KEY) as Language;
+        const value = localStorage.getItem(LANGUAGE_OVERRIDE_KEY);
+        // Previous versions had a bug where `languageOverride = undefined` would cause the setting to be the
+        // string "undefined" instead of an actual null.
+        if (!value || value === 'undefined') {
+            return undefined;
+        }
+        return value as Language;
     },
     set languageOverride(value: Language) {
-        localStorage.setItem(LANGUAGE_OVERRIDE_KEY, value);
+        if (value) {
+            localStorage.setItem(LANGUAGE_OVERRIDE_KEY, value);
+        }
+        else {
+            localStorage.removeItem(LANGUAGE_OVERRIDE_KEY);
+        }
     },
 };
 
