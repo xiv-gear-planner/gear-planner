@@ -33,7 +33,6 @@ export type BloodAbility = DrkAbility & Readonly<{
 
 /** Represents the DRK gauge state */
 export type DrkGaugeState = {
-    level: number,
     blood: number,
     mp: number,
     darkArts: boolean,

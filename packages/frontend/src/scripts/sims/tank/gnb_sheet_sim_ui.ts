@@ -16,6 +16,7 @@ export class GnbSimGui extends BaseMultiCycleSimGui<GnbSimResult, GnbSettings> {
             renderer: (usedAbility?: PreDmgUsedAbility) => {
                 if (usedAbility?.extraData !== undefined) {
                     const cartridges = (usedAbility.extraData as GnbExtraData).gauge.cartridges;
+                    const maxCarts = (usedAbility.extraData as GnbExtraData).gauge.maxCartridges;
 
                     const div = document.createElement('div');
                     div.style.height = '100%';
@@ -28,7 +29,7 @@ export class GnbSimGui extends BaseMultiCycleSimGui<GnbSimResult, GnbSettings> {
                     const span = document.createElement('span');
                     span.textContent = `${cartridges}`;
 
-                    for (let i = 1; i <= 3; i++) {
+                    for (let i = 1; i <= maxCarts; i++) {
                         const stack = document.createElement('span');
                         stack.style.clipPath = `circle()`;
                         stack.style.background = '#00000033';
@@ -68,7 +69,7 @@ export class GnbSimGui extends BaseMultiCycleSimGui<GnbSimResult, GnbSettings> {
                     div.style.boxSizing = 'border-box';
 
                     const span = document.createElement('span');
-                    span.textContent = `${noMercyDuration}s`;
+                    span.textContent = `${noMercyDuration.toFixed(1)}s`;
 
                     const barOuter = document.createElement('div');
                     barOuter.style.borderRadius = '20px';

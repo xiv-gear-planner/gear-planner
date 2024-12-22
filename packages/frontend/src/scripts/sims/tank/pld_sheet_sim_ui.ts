@@ -18,7 +18,7 @@ export class PldSimGui extends BaseMultiCycleSimGui<PldSimResult, PldSettings> {
                 renderer: (usedAbility?: PreDmgUsedAbility) => {
                     if (usedAbility?.extraData !== undefined) {
                         const fightOrFlightDuration = (usedAbility.extraData as PldExtraData).fightOrFlightDuration;
-                        const out = new GaugeWithText<number>(() => '#B14FAE', v => `${fightOrFlightDuration}s`, v => v / 20 * 100);
+                        const out = new GaugeWithText<number>(() => '#B14FAE', v => `${fightOrFlightDuration.toFixed(1)}s`, v => v / 20 * 100);
                         out.setDataValue(fightOrFlightDuration);
                         out.classList.add('sim-gauge');
                         return out;

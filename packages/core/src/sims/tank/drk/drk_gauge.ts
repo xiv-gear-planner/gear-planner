@@ -45,7 +45,6 @@ export class DrkGauge {
 
     getGaugeState(): DrkGaugeState {
         return {
-            level: 100,
             blood: this.bloodGauge,
             mp: this.magicPoints,
             darkArts: this.darkArts,
