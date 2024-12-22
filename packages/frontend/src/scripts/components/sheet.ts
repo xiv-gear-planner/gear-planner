@@ -103,7 +103,7 @@ function mainStatCol(sheet: GearPlanSheet, stat: RawStatKey): CustomColumnSpec<C
         }),
         condition: () => sheet.isStatRelevant(stat),
         renderer: multiplierStatTooltip,
-        extraClasses: ['stat-col', 'main-stat-col'],
+        extraClasses: ['stat-col', 'main-stat-col', 'stat-col-less-important'],
         rowCondition: noSeparators,
     };
 }
@@ -118,7 +118,7 @@ function tooltipMultiStatCol(sheet: GearPlanSheet, stat: RawStatKey, multiKey: {
         }),
         condition: () => sheet.isStatRelevant(stat),
         renderer: multiplierStatTooltip,
-        extraClasses: ['stat-col', 'compact-multiplier-stat-col'],
+        extraClasses: ['stat-col', 'compact-multiplier-stat-col', 'stat-col-less-important'],
         rowCondition: noSeparators,
     };
 }
@@ -489,14 +489,14 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                 }),
                 initialWidth: statColWidth,
                 renderer: multiplierStatTooltip,
-                extraClasses: ['stat-col'],
+                extraClasses: ['stat-col', 'stat-col-less-important'],
                 rowCondition: noSeparators,
             } as CustomColumnSpec<CharacterGearSet, MultiplierStat>,
             {
                 shortName: "hp",
                 displayName: "HP",
                 getter: gearSet => gearSet.computedStats.hp,
-                extraClasses: ['stat-col', 'stat-col-hp'],
+                extraClasses: ['stat-col', 'stat-col-hp', 'stat-col-less-important'],
                 rowCondition: noSeparators,
             },
             {
@@ -523,7 +523,7 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                 }) as ChanceStat,
                 renderer: chanceStatDisplay,
                 condition: () => this.sheet.isStatRelevant('crit'),
-                extraClasses: ['stat-col', 'chance-stat-col'],
+                extraClasses: ['stat-col', 'chance-stat-col', 'stat-col-less-important'],
                 rowCondition: noSeparators,
             },
             {
@@ -536,7 +536,7 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                 }) as ChanceStat,
                 renderer: chanceStatDisplay,
                 condition: () => this.sheet.isStatRelevant('dhit'),
-                extraClasses: ['stat-col', 'chance-stat-col'],
+                extraClasses: ['stat-col', 'chance-stat-col', 'stat-col-less-important'],
                 rowCondition: noSeparators,
             },
             {
@@ -548,7 +548,7 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                 }) as MultiplierStat,
                 renderer: multiplierStatDisplay,
                 condition: () => this.sheet.isStatRelevant('determination'),
-                extraClasses: ['stat-col', 'multiplier-stat-col'],
+                extraClasses: ['stat-col', 'multiplier-stat-col', 'stat-col-less-important'],
                 rowCondition: noSeparators,
             },
             {
@@ -568,6 +568,7 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                 initialWidth: statColWidth,
                 condition: () => this.sheet.isStatRelevant('piety'),
                 rowCondition: noSeparators,
+                extraClasses: ['stat-col-less-important'],
             },
             {
                 shortName: "tenacity",
@@ -579,7 +580,7 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                 }) as MultiplierMitStat,
                 renderer: multiplierMitStatDisplay,
                 condition: () => this.sheet.isStatRelevant('tenacity'),
-                extraClasses: ['stat-col', 'multiplier-mit-stat-col'],
+                extraClasses: ['stat-col', 'multiplier-mit-stat-col', 'stat-col-less-important'],
                 rowCondition: noSeparators,
             },
             ...(viewOnly ? [] : simColumns),
