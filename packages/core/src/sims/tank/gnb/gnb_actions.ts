@@ -22,7 +22,7 @@ export const KeenEdge: GnbGcdAbility = {
     cast: 0,
     levelModifiers: [
         {
-            minLevel: 94,
+            minLevel: 84,
             potency: 200,
         },
         {
@@ -42,7 +42,7 @@ export const BrutalShell: GnbGcdAbility = {
     cast: 0,
     levelModifiers: [
         {
-            minLevel: 94,
+            minLevel: 84,
             potency: 300,
         },
         {
@@ -63,7 +63,7 @@ export const SolidBarrel: GnbGcdAbility = {
     updateCartridges: (gauge: GnbGauge) => gauge.cartridges += 1,
     levelModifiers: [
         {
-            minLevel: 94,
+            minLevel: 84,
             potency: 360,
         },
         {
