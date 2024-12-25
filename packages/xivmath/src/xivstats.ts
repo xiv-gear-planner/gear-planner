@@ -9,7 +9,7 @@ import {
     RawStats
 } from "./geartypes";
 import {
-    autoAttackModifier,
+    autoAttackModifier, autoCritBonusDmg,
     autoDhBonusDmg,
     critChance,
     critDmg,
@@ -399,6 +399,10 @@ export class ComputedSetStatsImpl implements ComputedSetStats {
     get autoDhBonus(): number {
         return autoDhBonusDmg(this.levelStats, this.dhit);
     };
+
+    get autoCritMulti(): number {
+        return autoCritBonusDmg(this.critMulti, this.finalBonusStats.critChance);
+    }
 
     get mpPerTick(): number {
         return mpTick(this.levelStats, this.piety);

@@ -246,6 +246,10 @@ export function autoDhBonusDmg(levelStats: LevelStats, dhit: number) {
     return fl(140 * ((dhit - levelStats.baseSubStat) / levelStats.levelDiv)) / 1000;
 }
 
+export function autoCritBonusDmg(critMulti: number, bonusCritChance: number) {
+    return 1 + (critMulti * bonusCritChance);
+}
+
 /**
  * Convert a piety stat to (MP regen)/tick amount.
  *
@@ -319,10 +323,11 @@ export function getDefaultScalings(stats: ComputedSetStats): ScalingOverrides {
     };
 }
 
+// TODO: autoCrit unit tests
 /**
  * Computes base damage. Does not factor in crit/dh RNG nor damage variance.
  */
-export function baseDamageFull(stats: ComputedSetStats, potency: number, attackType: AttackType = 'Unknown', autoDH: boolean = false, isDot: boolean = false, scalingOverrides = getDefaultScalings(stats)): ValueWithDev {
+export function baseDamageFull(stats: ComputedSetStats, potency: number, attackType: AttackType = 'Unknown', autoDH: boolean = false, isDot: boolean = false, scalingOverrides = getDefaultScalings(stats), autoCrit: boolean = false): ValueWithDev {
     let spdMulti: number;
     const isAA = attackType === 'Auto-attack';
     if (isAA) {
@@ -358,6 +363,7 @@ export function baseDamageFull(stats: ComputedSetStats, potency: number, attackT
     const detAutoDhMulti = flp(3, detMulti + autoDhBonus);
     const traitMulti = stats.traitMulti(attackType);
     const effectiveDetMulti = autoDH ? detAutoDhMulti : detMulti;
+    const autoCritMulti = autoCrit ? stats.autoCritMulti : 1;
 
     // Base action potency and main stat multi
     let stage1potency: number;

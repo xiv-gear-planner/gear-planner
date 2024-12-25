@@ -346,6 +346,10 @@ export interface ComputedSetStats extends RawStats {
      */
     readonly autoDhBonus: number;
     /**
+     * Bonus added to TODO for automatic critical hits
+     */
+    readonly autoCritMulti: number;
+    /**
      * MP Per Tick
      */
     readonly mpPerTick: number;
