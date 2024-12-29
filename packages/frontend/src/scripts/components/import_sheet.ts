@@ -7,6 +7,7 @@ import {getBisSheet} from "@xivgear/core/external/static_bis";
 import {NamedSection} from "./section";
 import {GearPlanSheetGui, GRAPHICAL_SHEET_PROVIDER} from "./sheet";
 import {JobName} from "@xivgear/xivmath/xivconstants";
+import {extractSingleSet} from "@xivgear/core/util/sheet_utils";
 
 export class ImportSheetArea extends NamedSection {
     private readonly loader: LoadingBlocker;
@@ -59,7 +60,7 @@ export class ImportSheetArea extends NamedSection {
             switch (parsed.importType) {
                 case "json":
                     try {
-                        this.doJsonImport(parsed.rawData);
+                        this.doJsonImport(parsed.rawData, undefined);
                     }
                     catch (e) {
                         console.error('Import error', e);
@@ -67,7 +68,7 @@ export class ImportSheetArea extends NamedSection {
                     }
                     return;
                 case "shortlink":
-                    this.doAsyncImport(() => getShortLink(decodeURIComponent(parsed.rawUuid)));
+                    this.doAsyncImport(() => getShortLink(decodeURIComponent(parsed.rawUuid)), parsed.onlySetIndex);
                     return;
                 case "etro":
                     this.ready = false;
@@ -91,7 +92,7 @@ export class ImportSheetArea extends NamedSection {
                     });
                     return;
                 case "bis":
-                    this.doAsyncImport(() => getBisSheet(...parsed.path));
+                    this.doAsyncImport(() => getBisSheet(...parsed.path), parsed.onlySetIndex);
                     return;
             }
         }
@@ -99,10 +100,10 @@ export class ImportSheetArea extends NamedSection {
         alert('That doesn\'t look like a valid import.');
     }
 
-    doAsyncImport(provider: () => Promise<string>) {
+    doAsyncImport(provider: () => Promise<string>, onlySetIndex: number | undefined) {
         this.ready = false;
         provider().then(raw => {
-            this.doJsonImport(raw);
+            this.doJsonImport(raw, onlySetIndex);
         }, err => {
             this.ready = true;
             console.error("Error importing set/sheet", err);
@@ -110,10 +111,16 @@ export class ImportSheetArea extends NamedSection {
         });
     }
 
-    doJsonImport(text: string) {
+    doJsonImport(text: string, onlySetIndex: number | undefined) {
         const rawImport = JSON.parse(text);
         if ('sets' in rawImport && rawImport.sets.length) {
-            this.sheetOpenCallback(GRAPHICAL_SHEET_PROVIDER.fromExport(rawImport));
+            if (onlySetIndex !== undefined) {
+                const single = extractSingleSet(rawImport, onlySetIndex);
+                this.sheetOpenCallback(GRAPHICAL_SHEET_PROVIDER.fromSetExport(single));
+            }
+            else {
+                this.sheetOpenCallback(GRAPHICAL_SHEET_PROVIDER.fromExport(rawImport));
+            }
         }
         else if ('name' in rawImport && 'items' in rawImport) {
             this.sheetOpenCallback(GRAPHICAL_SHEET_PROVIDER.fromSetExport(rawImport));
