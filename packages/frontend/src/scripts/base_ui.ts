@@ -2,7 +2,7 @@ import {getHash, goPath, isEmbed, processHashLegacy, processNav, setPath} from "
 import {NamedSection} from "./components/section";
 import {NewSheetForm} from "./components/new_sheet_form";
 import {ImportSheetArea} from "./components/import_sheet";
-import {SetExport, SetExportExternalSingle, SheetExport} from "@xivgear/xivmath/geartypes";
+import {SetExport, SheetExport} from "@xivgear/xivmath/geartypes";
 import {displayEmbedError, openEmbed} from "./embed";
 import {LoadingBlocker} from "@xivgear/common-ui/components/loader";
 import {SheetPickerTable} from "./components/saved_sheet_picker";
@@ -15,6 +15,7 @@ import {showSettingsModal} from "@xivgear/common-ui/settings/settings_modal";
 import {SETTINGS} from "@xivgear/common-ui/settings/persistent_settings";
 import {DISPLAY_SETTINGS} from "@xivgear/common-ui/settings/display_settings";
 import {arrayEq} from "@xivgear/core/util/array_utils";
+import {extractSingleSet} from "@xivgear/core/util/sheet_utils";
 
 const pageTitle = 'XivGear - FFXIV Gear Planner';
 
@@ -136,7 +137,7 @@ export async function openSheetByKey(sheet: string) {
     }
 }
 
-export async function openExport(exportedPre: (SheetExport | SetExport), changeHash: boolean, viewOnly: boolean, onlySetIndex: number | undefined, defaultSelectionIndex: number | undefined) {
+export async function openExport(exportedPre: SheetExport | SetExport, viewOnly: boolean, onlySetIndex: number | undefined, defaultSelectionIndex: number | undefined) {
     const exportedInitial = exportedPre;
     const initiallyFullSheet = 'sets' in exportedInitial;
     if (onlySetIndex !== undefined) {
@@ -144,19 +145,7 @@ export async function openExport(exportedPre: (SheetExport | SetExport), changeH
             console.warn("onlySetIndex does not make sense when isFullSheet is false");
         }
         else {
-            const theSet = exportedInitial.sets[onlySetIndex];
-            // noinspection AssignmentToFunctionParameterJS
-            exportedPre = {
-                ...theSet,
-                job: exportedInitial.job,
-                level: exportedInitial.level,
-                ilvlSync: exportedInitial.ilvlSync,
-                sims: exportedInitial.sims,
-                customItems: exportedInitial.customItems,
-                customFoods: exportedInitial.customFoods,
-                partyBonus: exportedInitial.partyBonus,
-                race: exportedInitial.race,
-            } satisfies SetExportExternalSingle;
+            exportedPre = extractSingleSet(exportedInitial, onlySetIndex);
         }
     }
     const exported = exportedPre;

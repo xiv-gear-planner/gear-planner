@@ -138,7 +138,7 @@ async function doNav(navState: NavState) {
             const resolved: string | null = await getShortLink(uuid);
             if (resolved) {
                 const json = JSON.parse(resolved);
-                openExport(json, false, true, nav.onlySetIndex, nav.defaultSelectionIndex);
+                openExport(json, true, nav.onlySetIndex, nav.defaultSelectionIndex);
                 return;
             }
             else {
@@ -151,10 +151,10 @@ async function doNav(navState: NavState) {
             break;
         }
         case "setjson":
-            openExport(nav.jsonBlob as SetExport, false, nav.viewOnly, undefined, undefined);
+            openExport(nav.jsonBlob as SetExport, nav.viewOnly, undefined, undefined);
             return;
         case "sheetjson":
-            openExport(nav.jsonBlob as SheetExport, false, nav.viewOnly, undefined, undefined);
+            openExport(nav.jsonBlob as SheetExport, nav.viewOnly, undefined, undefined);
             return;
         case "bis": {
             showLoadingScreen();
@@ -162,7 +162,7 @@ async function doNav(navState: NavState) {
                 const resolved: string | null = await getBisSheet(nav.job, nav.expac, nav.sheet);
                 if (resolved) {
                     const json = JSON.parse(resolved);
-                    openExport(json, false, true, nav.onlySetIndex, nav.defaultSelectionIndex);
+                    openExport(json, true, nav.onlySetIndex, nav.defaultSelectionIndex);
                     return;
                 }
                 else {

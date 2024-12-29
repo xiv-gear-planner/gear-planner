@@ -2032,7 +2032,7 @@ export class ImportSetsModal extends BaseModal {
             switch (parsed.importType) {
                 case "json":
                     try {
-                        this.doJsonImport(parsed.rawData);
+                        this.doJsonImport(parsed.rawData, undefined);
                     }
                     catch (e) {
                         console.error('Import error', e);
@@ -2040,7 +2040,7 @@ export class ImportSetsModal extends BaseModal {
                     }
                     return;
                 case "shortlink":
-                    this.doAsyncImport(() => getShortLink(decodeURIComponent(parsed.rawUuid)));
+                    this.doAsyncImport(() => getShortLink(decodeURIComponent(parsed.rawUuid)), parsed.onlySetIndex);
                     return;
                 case "etro":
                     this.ready = false;
@@ -2061,7 +2061,7 @@ export class ImportSetsModal extends BaseModal {
                     });
                     return;
                 case "bis":
-                    this.doAsyncImport(() => getBisSheet(...parsed.path));
+                    this.doAsyncImport(() => getBisSheet(...parsed.path), parsed.onlySetIndex);
                     return;
             }
         }
@@ -2069,10 +2069,10 @@ export class ImportSetsModal extends BaseModal {
         alert('That doesn\'t look like a valid import.');
     }
 
-    doAsyncImport(provider: () => Promise<string>) {
+    doAsyncImport(provider: () => Promise<string>, onlySetIndex: number | undefined) {
         this.ready = false;
         provider().then(raw => {
-            this.doJsonImport(raw);
+            this.doJsonImport(raw, onlySetIndex);
             this.ready = true;
         }, err => {
             this.ready = true;
@@ -2081,20 +2081,31 @@ export class ImportSetsModal extends BaseModal {
         });
     }
 
-    doJsonImport(text: string) {
+    doJsonImport(text: string, onlySetIndex: number | undefined) {
         const rawImport = JSON.parse(text);
         if ('sets' in rawImport && rawImport.sets.length) {
             if (!this.checkJob(true, rawImport.job)) {
                 return;
             }
-            // import everything
-            if (confirm(`This will import ${rawImport.sets.length} gear sets into this sheet.`)) {
-                const sets: SetExport[] = rawImport.sets;
-                const imports = sets.map(set => this.sheet.importGearSet(set));
-                for (let i = 0; i < imports.length; i++) {
-                    // Select the first imported set
-                    const set = imports[i];
-                    this.sheet.addGearSet(set, undefined, i === 0);
+            const sets: SetExport[] = rawImport.sets;
+            if (onlySetIndex !== undefined) {
+                const theSet = sets[onlySetIndex];
+                if (!theSet) {
+                    console.error(`Index ${onlySetIndex} is not valid with sets length of ${sets.length}`);
+                    alert("Not valid");
+                }
+                const imported = this.sheet.importGearSet(theSet);
+                this.sheet.addGearSet(imported, undefined, true);
+            }
+            else {
+                // import everything
+                if (confirm(`This will import ${rawImport.sets.length} gear sets into this sheet.`)) {
+                    const imports = sets.map(set => this.sheet.importGearSet(set));
+                    for (let i = 0; i < imports.length; i++) {
+                        // Select the first imported set
+                        const set = imports[i];
+                        this.sheet.addGearSet(set, undefined, i === 0);
+                    }
                 }
             }
             closeModal();

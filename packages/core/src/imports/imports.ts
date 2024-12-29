@@ -1,23 +1,33 @@
 import {getBisSheet} from "../external/static_bis";
 import {JobName} from "@xivgear/xivmath/xivconstants";
+import {
+    HASH_QUERY_PARAM,
+    NavState,
+    ONLY_SET_QUERY_PARAM,
+    parsePath,
+    splitPath,
+    tryParseOptionalIntParam
+} from "../nav/common_nav";
 
 export const SHARED_SET_NAME = 'Imported Set';
 
 export type JsonImportSpec = {
     importType: 'json',
-    rawData: string
+    rawData: string,
 }
 export type ShortlinkImportSpec = {
     importType: 'shortlink',
-    rawUuid: string
+    rawUuid: string,
+    onlySetIndex?: number,
 }
 export type EtroImportSpec = {
     importType: 'etro',
-    rawUuids: string[]
+    rawUuids: string[],
 }
 export type BisImportSpec = {
     importType: 'bis',
-    path: Parameters<typeof getBisSheet>
+    path: Parameters<typeof getBisSheet>,
+    onlySetIndex?: number,
 }
 
 export type ImportSpec = JsonImportSpec | ShortlinkImportSpec | EtroImportSpec | BisImportSpec;
@@ -26,31 +36,28 @@ const importSheetUrlRegex = RegExp(".*/(?:viewsheet|importsheet)/(.*)$");
 const importSetUrlRegex = RegExp(".*/(?:viewset|importset)/(.*)$");
 const importShortlinkRegex = RegExp(".*/(?:sl|share)/(.*)$");
 const bisRegex = RegExp(".*/bis/(.*?)/(.*?)/(.*?)$");
-const importSheetUrlRegexNew = RegExp(".*[&?]page=(?:viewsheet|importsheet)\\|(.*)$");
-const importSetUrlRegexNew = RegExp(".*[&?]page=(?:viewset|importset)\\|(.*)$");
-const importShortlinkRegexNew = RegExp(".*[&?]page=(?:sl|share)\\|(.*)$");
-const bisRegexNew = RegExp(".*[&?]page=bis\\|(.*?)\\|(.*?)\\|(.*?)$");
+const newStyleUrl = RegExp(".*[&?]page=(.*)$");
 const etroRegex = RegExp("https://etro\\.gg/gearset/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})");
 
 export function parseImport(text: string): ImportSpec {
 
     text = text.replaceAll('%7C', '|');
 
-    const slExec = importShortlinkRegex.exec(text) || importShortlinkRegexNew.exec(text);
+    const slExec = importShortlinkRegex.exec(text);
     if (slExec !== null) {
         return {
             importType: "shortlink",
             rawUuid: slExec[1],
         };
     }
-    const sheetExec = importSheetUrlRegex.exec(text) || importSheetUrlRegexNew.exec(text);
+    const sheetExec = importSheetUrlRegex.exec(text);
     if (sheetExec !== null) {
         return {
             importType: "json",
             rawData: decodeURIComponent(sheetExec[1]),
         };
     }
-    const setExec = importSetUrlRegex.exec(text) || importSetUrlRegexNew.exec(text);
+    const setExec = importSetUrlRegex.exec(text);
     if (setExec !== null) {
         return {
             importType: "json",
@@ -71,12 +78,53 @@ export function parseImport(text: string): ImportSpec {
             rawUuids: uuids,
         };
     }
-    const bisExec = bisRegex.exec(text) || bisRegexNew.exec(text);
+    const bisExec = bisRegex.exec(text);
     if (bisExec !== null) {
         return {
             importType: 'bis',
             path: [bisExec[1] as JobName, bisExec[2], bisExec[3]],
         };
+    }
+    // Catch-all for new-style links
+    const slNewExec = newStyleUrl.exec(text);
+    if (slNewExec !== null) {
+        try {
+            const url = new URL(text.trim());
+            const qp = url.searchParams;
+            const path = qp.get(HASH_QUERY_PARAM) ?? '';
+            const osIndex = tryParseOptionalIntParam(qp.get(ONLY_SET_QUERY_PARAM));
+            const pathParts = splitPath(path);
+            const importNav = new NavState(pathParts, osIndex, undefined);
+            const parsed = parsePath(importNav);
+            if (parsed) {
+                switch (parsed.type) {
+                    case "shortlink":
+                        return {
+                            importType: "shortlink",
+                            rawUuid: parsed.uuid,
+                            onlySetIndex: parsed.onlySetIndex,
+                        };
+                    case "setjson":
+                    case "sheetjson":
+                        return {
+                            importType: "json",
+                            // TODO: this should be revised as we don't need to double-parse the json
+                            rawData: JSON.stringify(parsed.jsonBlob),
+                        };
+                    case "bis":
+                        return {
+                            importType: 'bis',
+                            path: [parsed.job, parsed.expac, parsed.sheet],
+                            onlySetIndex: parsed.onlySetIndex,
+                        };
+                    default:
+                        return null;
+                }
+            }
+        }
+        catch (e) {
+            console.error("This looks like a link, but did not parse correctly.", e);
+        }
     }
     try {
         JSON.parse(text);
