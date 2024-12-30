@@ -1,6 +1,6 @@
 import {
     autoAttackModifier,
-    autoDhBonusDmg,
+    autoDhitBonusDmg,
     critChance,
     critDmg,
     detDmg,
@@ -357,7 +357,7 @@ export function registerFormulae() {
             },
         }, {
             name: "Auto-DH Bonus",
-            fn: autoDhBonusDmg,
+            fn: autoDhitBonusDmg,
             argExtractor: async function (arg, gen: GeneralSettings) {
                 return [gen.levelStats, arg.dhit];
             },

@@ -346,9 +346,13 @@ export interface ComputedSetStats extends RawStats {
      */
     readonly autoDhBonus: number;
     /**
-     * Bonus added to TODO for automatic critical hits
+     * Bonus added to crit multi by crit chance buffs when auto-critting.
      */
-    readonly autoCritMulti: number;
+    readonly autoCritBuffMulti: number;
+    /**
+     * Bonus added to DH multi by DH chance buffs when auto-DHing.
+     */
+    readonly autoDhitBuffMulti: number;
     /**
      * MP Per Tick
      */
