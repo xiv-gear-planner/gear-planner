@@ -254,7 +254,7 @@ export function autoDhitBonusDmg(levelStats: LevelStats, dhit: number) {
  * @param bonusCritChance The amount of extra critical strike chance from buffs.
  */
 export function autoCritBuffDmg(critMulti: number, bonusCritChance: number) {
-    return flp(2, 1 + ((critMulti - 1) * bonusCritChance));
+    return flp(3, 1 + ((critMulti - 1) * bonusCritChance));
 }
 
 /**
@@ -264,7 +264,7 @@ export function autoCritBuffDmg(critMulti: number, bonusCritChance: number) {
  * @param bonusDhChance The amount of extra critical strike chance from buffs.
  */
 export function autoDhitBuffDmg(dhMulti: number, bonusDhChance: number) {
-    return flp(2, 1 + ((dhMulti - 1) * bonusDhChance));
+    return flp(3, 1 + ((dhMulti - 1) * bonusDhChance));
 }
 
 /**
