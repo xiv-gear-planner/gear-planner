@@ -150,6 +150,7 @@ export function detDmg(levelStats: LevelStats, det: number) {
  * @param levelStats Level stats for the level at which the computation is to be performed.
  * @param jobStats Job stats for the job for which the computation is to be performed.
  * @param wd The weapon damage value.
+ * @param petAction Whether this is a pet action.
  */
 export function wdMulti(levelStats: LevelStats, jobStats: JobData, wd: number, petAction: boolean = false) {
     let mainStatJobMod = jobStats.jobStatMultipliers[jobStats.mainStat];
@@ -242,8 +243,28 @@ export function tenacityIncomingDmg(levelStats: LevelStats, tenacity: number) {
  * @param levelStats Level stats for the level at which the computation is to be performed.
  * @param dhit The direct hit stat value.
  */
-export function autoDhBonusDmg(levelStats: LevelStats, dhit: number) {
+export function autoDhitBonusDmg(levelStats: LevelStats, dhit: number) {
     return fl(140 * ((dhit - levelStats.baseSubStat) / levelStats.levelDiv)) / 1000;
+}
+
+/**
+ * Compute auto-crit bonus damage granted by crit chance buffs which would otherwise be redundant on an auto-crit.
+ *
+ * @param critMulti       The normal critical strike multiplier.
+ * @param bonusCritChance The amount of extra critical strike chance from buffs.
+ */
+export function autoCritBuffDmg(critMulti: number, bonusCritChance: number) {
+    return flp(3, 1 + ((critMulti - 1) * bonusCritChance));
+}
+
+/**
+ * Compute auto-dhit bonus damage granted by dhit chance buffs which would otherwise be redundant on an auto-dhit.
+ *
+ * @param dhMulti       The normal critical strike multiplier.
+ * @param bonusDhChance The amount of extra critical strike chance from buffs.
+ */
+export function autoDhitBuffDmg(dhMulti: number, bonusDhChance: number) {
+    return flp(3, 1 + ((dhMulti - 1) * bonusDhChance));
 }
 
 /**
@@ -319,10 +340,11 @@ export function getDefaultScalings(stats: ComputedSetStats): ScalingOverrides {
     };
 }
 
+// TODO: autoCrit unit tests
 /**
  * Computes base damage. Does not factor in crit/dh RNG nor damage variance.
  */
-export function baseDamageFull(stats: ComputedSetStats, potency: number, attackType: AttackType = 'Unknown', autoDH: boolean = false, isDot: boolean = false, scalingOverrides = getDefaultScalings(stats)): ValueWithDev {
+export function baseDamageFull(stats: ComputedSetStats, potency: number, attackType: AttackType = 'Unknown', autoDH: boolean = false, isDot: boolean = false, scalingOverrides = getDefaultScalings(stats), autoCrit: boolean = false): ValueWithDev {
     let spdMulti: number;
     const isAA = attackType === 'Auto-attack';
     if (isAA) {
@@ -455,6 +477,7 @@ export function baseHealing(stats: ComputedSetStats, potency: number, attackType
  *
  * @param baseDamage The base damage amount.
  * @param stats The stats.
+ * @deprecated Use {@link #applyDhCritFull}
  */
 export function applyDhCrit(baseDamage: number, stats: ComputedSetStats) {
     return baseDamage * (1 + stats.dhitChance * (stats.dhitMulti - 1)) * (1 + stats.critChance * (stats.critMulti - 1));
@@ -462,8 +485,8 @@ export function applyDhCrit(baseDamage: number, stats: ComputedSetStats) {
 
 export function dhCritPercentStdDev(stats: ComputedSetStats, forcedCrit: boolean, forcedDhit: boolean) {
     return multiplyValues(
-        forcedCrit ? chanceMultiplierStdDev(1, stats.critMulti) : chanceMultiplierStdDev(stats.critChance, stats.critMulti),
-        forcedDhit ? chanceMultiplierStdDev(1, stats.dhitMulti) : chanceMultiplierStdDev(stats.dhitChance, stats.dhitMulti)
+        forcedCrit ? chanceMultiplierStdDev(1, stats.critMulti * stats.autoCritBuffMulti) : chanceMultiplierStdDev(stats.critChance, stats.critMulti),
+        forcedDhit ? chanceMultiplierStdDev(1, stats.dhitMulti * stats.autoDhitBuffMulti) : chanceMultiplierStdDev(stats.dhitChance, stats.dhitMulti)
     );
 }
 

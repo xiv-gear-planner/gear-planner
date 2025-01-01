@@ -10,7 +10,9 @@ import {
 } from "./geartypes";
 import {
     autoAttackModifier,
-    autoDhBonusDmg,
+    autoCritBuffDmg,
+    autoDhitBonusDmg,
+    autoDhitBuffDmg,
     critChance,
     critDmg,
     detDmg,
@@ -68,6 +70,7 @@ export class RawBonusStats extends RawStats {
     dhitDmg: number = 0;
     detMulti: number = 0;
     bonusHaste: HasteBonus[] = [];
+    // TODO: These should be used when possible
     forceCrit: boolean = false;
     forceDh: boolean = false;
 }
@@ -332,22 +335,30 @@ export class ComputedSetStatsImpl implements ComputedSetStats {
         return this._racialStats;
     }
 
+    get baseCritChance(): number {
+        return clamp(0, 1, critChance(this.levelStats, this.crit));
+    }
+
     get critChance(): number {
         if (this.finalBonusStats.forceCrit) {
             return 1;
         }
-        return clamp(0, 1, critChance(this.levelStats, this.crit) + this.finalBonusStats.critChance);
+        return clamp(0, 1, this.baseCritChance + this.finalBonusStats.critChance);
     }
 
     get critMulti(): number {
         return critDmg(this.levelStats, this.crit) + this.finalBonusStats.critDmg;
     };
 
+    get baseDhitChance(): number {
+        return clamp(0, 1, dhitChance(this.levelStats, this.dhit));
+    }
+
     get dhitChance(): number {
         if (this.finalBonusStats.forceDh) {
             return 1;
         }
-        return clamp(0, 1, dhitChance(this.levelStats, this.dhit) + this.finalBonusStats.dhitChance);
+        return clamp(0, 1, this.baseDhitChance + this.finalBonusStats.dhitChance);
     };
 
     get dhitMulti(): number {
@@ -397,8 +408,16 @@ export class ComputedSetStatsImpl implements ComputedSetStats {
     };
 
     get autoDhBonus(): number {
-        return autoDhBonusDmg(this.levelStats, this.dhit);
+        return autoDhitBonusDmg(this.levelStats, this.dhit);
     };
+
+    get autoCritBuffMulti(): number {
+        return autoCritBuffDmg(this.critMulti, this.finalBonusStats.critChance);
+    }
+
+    get autoDhitBuffMulti(): number {
+        return autoDhitBuffDmg(this.dhitMulti, this.finalBonusStats.dhitChance);
+    }
 
     get mpPerTick(): number {
         return mpTick(this.levelStats, this.piety);
