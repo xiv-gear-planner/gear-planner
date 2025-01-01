@@ -22,7 +22,7 @@ export type CartridgeAbility = GnbAbility & Readonly<{
 
 /** Represents the GNB gauge state */
 export type GnbGaugeState = {
-    level: number,
+    maxCartridges: number,
     cartridges: number,
 }
 

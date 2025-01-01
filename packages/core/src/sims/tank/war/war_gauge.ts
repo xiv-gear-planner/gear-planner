@@ -20,7 +20,6 @@ export class WarGauge {
 
     getGaugeState(): WarGaugeState {
         return {
-            level: 100,
             beastGauge: this.beastGauge,
         };
     }
