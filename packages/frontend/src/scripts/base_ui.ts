@@ -1,4 +1,4 @@
-import {getHash, goPath, isEmbed, processHashLegacy, processNav, setPath} from "./nav_hash";
+import {getCurrentState, getHash, goPath, isEmbed, processHashLegacy, processNav, setPath} from "./nav_hash";
 import {NamedSection} from "./components/section";
 import {NewSheetForm} from "./components/new_sheet_form";
 import {ImportSheetArea} from "./components/import_sheet";
@@ -7,7 +7,7 @@ import {displayEmbedError, openEmbed} from "./embed";
 import {LoadingBlocker} from "@xivgear/common-ui/components/loader";
 import {SheetPickerTable} from "./components/saved_sheet_picker";
 import {GearPlanSheetGui, GRAPHICAL_SHEET_PROVIDER} from "./components/sheet";
-import {NavState, splitPath} from "@xivgear/core/nav/common_nav";
+import {makeUrl, NavState, splitPath} from "@xivgear/core/nav/common_nav";
 import {applyCommonTopMenuFormatting} from "@xivgear/common-ui/components/top_menu";
 import {recordSheetEvent} from "@xivgear/core/analytics/analytics";
 import {workerPool} from "./workers/worker_pool";
@@ -137,14 +137,25 @@ export async function openSheetByKey(sheet: string) {
     }
 }
 
+type OriginalSheetBacklinkData = {
+    sheetName: string,
+    sheetUrl: URL,
+}
+
 export async function openExport(exportedPre: SheetExport | SetExport, viewOnly: boolean, onlySetIndex: number | undefined, defaultSelectionIndex: number | undefined) {
     const exportedInitial = exportedPre;
     const initiallyFullSheet = 'sets' in exportedInitial;
+    let backlink: OriginalSheetBacklinkData = null;
     if (onlySetIndex !== undefined) {
         if (!initiallyFullSheet) {
             console.warn("onlySetIndex does not make sense when isFullSheet is false");
         }
         else {
+            const navState = getCurrentState();
+            backlink = {
+                sheetName: exportedInitial.name,
+                sheetUrl: makeUrl(new NavState(navState.path, undefined, navState.onlySetIndex)),
+            };
             exportedPre = extractSingleSet(exportedInitial, onlySetIndex);
         }
     }
@@ -172,6 +183,9 @@ export async function openExport(exportedPre: SheetExport | SetExport, viewOnly:
     }
     else {
         if (viewOnly) {
+            if (backlink !== null) {
+                sheet.configureBacklinkArea(backlink.sheetName, backlink.sheetUrl);
+            }
             sheet.setViewOnly();
         }
         // sheet.name = SHARED_SET_NAME;

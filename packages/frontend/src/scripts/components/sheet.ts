@@ -83,6 +83,7 @@ import {recordSheetEvent} from "@xivgear/core/analytics/analytics";
 import {MeldSolverDialog} from "./meld_solver_modal";
 import {insertAds} from "./ads";
 import {SETTINGS} from "@xivgear/common-ui/settings/persistent_settings";
+import {isInIframe} from "@xivgear/common-ui/util/detect_iframe";
 
 export type GearSetSel = SingleCellRowOrHeaderSelect<CharacterGearSet>;
 
@@ -1257,6 +1258,7 @@ export class GearPlanSheetGui extends GearPlanSheet {
     private _selectFirstRowByDefault: boolean = false;
     private _defaultSelectionIndex: number | undefined = undefined;
     readonly headerArea: HTMLDivElement;
+    readonly headerBacklinkArea: HTMLDivElement;
     readonly tableArea: HTMLDivElement;
     readonly tableHolderOuter: HTMLDivElement;
     readonly tableHolder: HTMLDivElement;
@@ -1284,6 +1286,9 @@ export class GearPlanSheetGui extends GearPlanSheet {
         element.classList.add('loading');
         this.headerArea = document.createElement('div');
         this.headerArea.classList.add('header-area');
+        this.headerBacklinkArea = document.createElement('div');
+        this.headerBacklinkArea.classList.add('header-backlink-area');
+        this.headerBacklinkArea.style.display = 'none';
         this.tableArea = document.createElement("div");
         this.tableArea.classList.add('gear-sheet-table-area', 'hide-when-loading');
         this.tableHolder = document.createElement('div');
@@ -1301,6 +1306,7 @@ export class GearPlanSheetGui extends GearPlanSheet {
         this.toolbarHolder = document.createElement('div');
         this.toolbarHolder.classList.add('gear-sheet-toolbar-holder', 'hide-when-loading');
         element.appendChild(this.headerArea);
+        element.appendChild(this.headerBacklinkArea);
         element.appendChild(this.tableArea);
         element.appendChild(this.midBarArea);
         element.appendChild(this.editorArea);
@@ -1589,7 +1595,7 @@ export class GearPlanSheetGui extends GearPlanSheet {
             }
             else {
                 const unsavedWarning = document.createElement('h4');
-                unsavedWarning.textContent = 'This imported sheet will not be saved unless you use the "Save As" button below.';
+                unsavedWarning.textContent = 'This imported sheet will not be saved unless you use the "Save As" button in the "More Actions..." menu below the table.';
                 this.headerArea.appendChild(unsavedWarning);
             }
             this.headerArea.style.display = '';
@@ -1953,6 +1959,18 @@ export class GearPlanSheetGui extends GearPlanSheet {
     set sheetName(name: string) {
         super.sheetName = name;
         setTitle(this._sheetName);
+    }
+
+    configureBacklinkArea(sheetName: string, sheetUrl: URL): void {
+        const area = this.headerBacklinkArea;
+        const linkElement = document.createElement('a');
+        linkElement.href = sheetUrl.toString();
+        linkElement.textContent = sheetName;
+        if (isInIframe()) {
+            linkElement.target = '_blank';
+        }
+        area.replaceChildren("This set is part of a sheet: ", linkElement);
+        area.style.display = '';
     }
 }
 
