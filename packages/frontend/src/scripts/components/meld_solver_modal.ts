@@ -258,17 +258,53 @@ class MeldSolverSettingsMenu extends HTMLDivElement {
 
         this.checkboxContainer = document.createElement('div');
         this.checkboxContainer.classList.add('meld-solver-settings');
-        this.checkboxContainer.replaceChildren(
-            span1,
-            span2,
-            span3
-        );
+        const children = [span1, span2, span3];
+        this.checkboxContainer.replaceChildren(...children);
+
+        const pentameldWarning = document.createElement('li');
+        pentameldWarning.style.overflow = 'hidden';
+        pentameldWarning.style.display = 'block';
+        pentameldWarning.style.maxWidth = "90%";
+        const warningSpan = document.createElement('span');
+        warningSpan.textContent = "⚠️ Solving pentameld sets can take a long time. To speed it up, try filling some materia and solving without Overwrite existing materia.";
+        warningSpan.style.fontSize = '90%';
+        warningSpan.style.display = 'inline';
+        pentameldWarning.append(warningSpan);
+
+        const gearsetGenSettings = this.gearsetGenSettings;
+        const calculateNumberOfMateriaToSolve = function() {
+            return EquipSlots.reduce(((acc, slotKey) => {
+                const item = gearsetGenSettings.gearset.equipment[slotKey];
+                if (item) {
+                    return acc + item.melds.reduce(((acc, meldSlot) => (gearsetGenSettings.overwriteExistingMateria || !meldSlot.equippedMateria) ? 1 + acc : acc), 0);
+                }
+                return acc;
+            }), 0
+            );
+        };
+
+        // 23 accounts for 2 melds on each left/right side and 3 slots for the weapon (e.g. ultimate weapon).
+        const maxNumberOfMateriaWithoutPentamelding = 23;
+
+        const gearsetContainsPentamelds = calculateNumberOfMateriaToSolve() > maxNumberOfMateriaWithoutPentamelding;
+        pentameldWarning.style.visibility = gearsetContainsPentamelds ? "visible" : "hidden";
+
+        // Setting overwrite materia will increase the materia to solve for if some are set.
+        this.overwriteMateriaCheckbox.onchange = function() {
+            const gearsetContainsPentamelds = calculateNumberOfMateriaToSolve() > maxNumberOfMateriaWithoutPentamelding;
+            pentameldWarning.style.visibility = gearsetContainsPentamelds ? "visible" : "hidden";
+        };
 
         this.useTargetGcdCheckBox.onclick = (evt) => {
             this.targetGcdInput.disabled = !this.targetGcdInput.disabled;
         };
 
         this.replaceChildren(this.checkboxContainer);
+
+        this.style.columnCount = "2";
+        this.style.columnRule = "4px";
+        this.appendChild(pentameldWarning);
+
         this.disableables = [this.overwriteMateriaCheckbox, this.useTargetGcdCheckBox, this.targetGcdInput, this.simDropdown];
     }
 
