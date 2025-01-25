@@ -40,8 +40,10 @@ export interface DataManager {
     multipliersForJob(job: JobName): JobMultipliers;
 
     getIlvlSyncInfo(ilvl: number): IlvlSyncInfo | undefined;
+
+    getImplicitIlvlSync(level: number, isWeapon: boolean): number | undefined;
 }
 
-export function makeDataManager(classJob: JobName, level: SupportedLevel, ilvlSync?: number | undefined) {
+export function makeDataManager(classJob: JobName, level: SupportedLevel, ilvlSync?: number | undefined): DataManager {
     return new NewApiDataManager(classJob, level, ilvlSync);
 }

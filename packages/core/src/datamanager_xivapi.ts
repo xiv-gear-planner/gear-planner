@@ -399,6 +399,10 @@ export class XivApiDataManager implements DataManager {
     getIlvlSyncInfo(ilvl: number): IlvlSyncInfo {
         return this._isyncData.get(ilvl);
     }
+
+    getImplicitIlvlSync(level: number, isWeapon: boolean): number | undefined {
+        return undefined;
+    }
 }
 
 // noinspection RedundantIfStatementJS
