@@ -431,6 +431,11 @@ export class NewApiDataManager implements DataManager {
     getIlvlSyncInfo(ilvl: number): IlvlSyncInfo | undefined {
         return this._isyncData.get(ilvl);
     }
+
+    getImplicitIlvlSync(level: number, isWeapon: boolean): number | undefined {
+        return (isWeapon ? this._maxIlvlForEquipLevelWeapon : this._maxIlvlForEquipLevel).get(level);
+    }
+
 }
 
 // noinspection RedundantIfStatementJS

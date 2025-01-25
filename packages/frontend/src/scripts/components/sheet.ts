@@ -42,7 +42,6 @@ import {
 } from "@xivgear/xivmath/geartypes";
 import {CharacterGearSet} from "@xivgear/core/gear";
 import {
-    CURRENT_MAX_LEVEL,
     getClassJobStats,
     JobName,
     MAX_PARTY_BONUS,
@@ -1470,19 +1469,25 @@ export class GearPlanSheetGui extends GearPlanSheet {
             buttonsArea.appendChild(sheetOptions);
         }
 
-        const isIlvlSynced = this.ilvlSync !== undefined;
-        const isLvlSynced = this.level !== CURRENT_MAX_LEVEL;
+        const si = this.syncInfo;
+        const isIlvlSynced = si.ilvlSync !== null;
+        const isLvlSynced = si.lvlSync !== null;
         if (isIlvlSynced || isLvlSynced) {
             let text = 'Sync: ';
             if (isLvlSynced) {
-                text += `lv${this.level} `;
+                text += `lv${si.lvlSync} `;
             }
-            if (isIlvlSynced) {
-                text += `i${this.ilvlSync}`;
+            if (si.ilvlSync !== null) {
+                if (si.ilvlSyncIsExplicit) {
+                    text += `i${si.ilvlSync}`;
+                }
+                else {
+                    text += `(i${si.ilvlSync})`;
+                }
             }
             const span = quickElement('span', [], [text]);
             const ilvlSyncLabel = quickElement('div', ['like-a-button'], [span]);
-            // ilvlSyncLabel.title = 'To change the item level sync, click the "Save As" button and create a '
+            ilvlSyncLabel.title = 'To change the item level sync, click the "Save As" button to create a new sheet with a different level/ilvl.';
             buttonsArea.appendChild(ilvlSyncLabel);
         }
 
