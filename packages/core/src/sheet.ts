@@ -37,7 +37,7 @@ import {
     SimExport,
     Substat
 } from "@xivgear/xivmath/geartypes";
-import {CharacterGearSet, isSameOrBetterItem} from "./gear";
+import {CharacterGearSet, isSameOrBetterItem, SyncInfo} from "./gear";
 import {DataManager, makeDataManager} from "./datamanager";
 import {Inactivitytimer} from "./util/inactivitytimer";
 import {writeProxy} from "./util/proxies";
@@ -958,13 +958,3 @@ export class GearPlanSheet {
         }
     }
 }
-
-type SyncInfo = {
-    lvlSync: number | null;
-} & ({
-    ilvlSync: null;
-    ilvlSyncIsExplicit: never;
-} | {
-    ilvlSync: number;
-    ilvlSyncIsExplicit: boolean;
-});

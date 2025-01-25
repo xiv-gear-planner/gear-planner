@@ -40,7 +40,7 @@ import {
     SetExport,
     SheetExport
 } from "@xivgear/xivmath/geartypes";
-import {CharacterGearSet} from "@xivgear/core/gear";
+import {CharacterGearSet, SyncInfo} from "@xivgear/core/gear";
 import {
     getClassJobStats,
     JobName,
@@ -1469,23 +1469,9 @@ export class GearPlanSheetGui extends GearPlanSheet {
             buttonsArea.appendChild(sheetOptions);
         }
 
-        const si = this.syncInfo;
-        const isIlvlSynced = si.ilvlSync !== null;
-        const isLvlSynced = si.lvlSync !== null;
-        if (isIlvlSynced || isLvlSynced) {
-            let text = 'Sync: ';
-            if (isLvlSynced) {
-                text += `lv${si.lvlSync} `;
-            }
-            if (si.ilvlSync !== null) {
-                if (si.ilvlSyncIsExplicit) {
-                    text += `i${si.ilvlSync}`;
-                }
-                else {
-                    text += `(i${si.ilvlSync})`;
-                }
-            }
-            const span = quickElement('span', [], [text]);
+        const siFmt = formatSyncInfo(this.syncInfo);
+        if (siFmt !== null) {
+            const span = quickElement('span', [], [siFmt]);
             const ilvlSyncLabel = quickElement('div', ['like-a-button'], [span]);
             ilvlSyncLabel.title = 'To change the item level sync, click the "Save As" button to create a new sheet with a different level/ilvl.';
             buttonsArea.appendChild(ilvlSyncLabel);
@@ -2269,6 +2255,27 @@ export class GraphicalSheetProvider extends SheetProvider<GearPlanSheetGui> {
         out?.setSelectFirstRowByDefault();
         return out;
     }
+}
+
+function formatSyncInfo(si: SyncInfo): string | null {
+    const isIlvlSynced = si.ilvlSync !== null;
+    const isLvlSynced = si.lvlSync !== null;
+    if (isIlvlSynced || isLvlSynced) {
+        let text = 'Sync: ';
+        if (isLvlSynced) {
+            text += `lv${si.lvlSync} `;
+        }
+        if (si.ilvlSync !== null) {
+            if (si.ilvlSyncIsExplicit) {
+                text += `i${si.ilvlSync}`;
+            }
+            else {
+                text += `(i${si.ilvlSync})`;
+            }
+        }
+        return text;
+    }
+    return null;
 }
 
 export const GRAPHICAL_SHEET_PROVIDER = new GraphicalSheetProvider();

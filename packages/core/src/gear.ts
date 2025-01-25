@@ -998,3 +998,13 @@ export function isSameOrBetterItem(candidateItem: GearItem, baseItem: GearItem):
 
     return true;
 }
+
+export type SyncInfo = {
+    lvlSync: number | null;
+} & ({
+    ilvlSync: null;
+    ilvlSyncIsExplicit: never;
+} | {
+    ilvlSync: number;
+    ilvlSyncIsExplicit: boolean;
+});
