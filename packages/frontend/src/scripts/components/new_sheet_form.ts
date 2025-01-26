@@ -15,13 +15,18 @@ import {BaseModal} from "@xivgear/common-ui/components/modal";
 import {SHARED_SET_NAME} from "@xivgear/core/imports/imports";
 import {recordSheetEvent} from "@xivgear/core/analytics/analytics";
 
+export type NewSheetTempSettings = {
+    ilvlSyncEnabled: boolean,
+    ilvlSync: number,
+}
+
 export class NewSheetFormFieldSet extends HTMLFieldSetElement {
     readonly nameInput: HTMLInputElement;
     readonly jobDropdown: DataSelect<JobName>;
     readonly levelDropdown: DataSelect<SupportedLevel>;
     readonly ilvlSyncCheckbox: FieldBoundCheckBox<typeof this.tempSettings>;
     readonly ilvlSyncValue: FieldBoundIntField<typeof this.tempSettings>;
-    readonly tempSettings;
+    readonly tempSettings: NewSheetTempSettings;
 
     constructor(defaults: {
         name?: string,
@@ -99,6 +104,19 @@ export class NewSheetFormFieldSet extends HTMLFieldSetElement {
         this.ilvlSyncValue.style.display = this.ilvlSyncCheckbox.currentValue ? '' : 'none';
     }
 
+    validateIsync(): boolean {
+        const ilvlSyncEnabled = this.tempSettings.ilvlSyncEnabled;
+        const ilvlSync = this.tempSettings.ilvlSync;
+        const level: SupportedLevel = this.levelDropdown.selectedItem;
+        if (ilvlSyncEnabled) {
+            const expectedMaxIlvl = LEVEL_ITEMS[level]?.defaultIlvlSync ?? MAX_ILVL;
+            if (ilvlSync > expectedMaxIlvl) {
+                return confirm(`Are you sure you want to create a sheet with an ilvl sync of ${ilvlSync} but a level of ${level}?`);
+            }
+        }
+        return true;
+    }
+
 }
 
 type SheetOpenCallback = (sheet: GearPlanSheet) => Promise<unknown>
@@ -138,6 +156,10 @@ export class NewSheetForm extends HTMLFormElement {
     }
 
     private doSubmit() {
+        const result = this.fieldSet.validateIsync();
+        if (!result) {
+            return;
+        }
         const nextSheetSaveStub = getNextSheetInternalName();
         const gearPlanSheet = GRAPHICAL_SHEET_PROVIDER.fromScratch(nextSheetSaveStub, this.fieldSet.nameInput.value, this.fieldSet.jobDropdown.selectedItem, this.fieldSet.levelDropdown.selectedItem, this.fieldSet.tempSettings.ilvlSyncEnabled ? this.fieldSet.tempSettings.ilvlSync : undefined);
         recordSheetEvent("newSheet", gearPlanSheet);
@@ -172,19 +194,25 @@ export class SaveAsModal extends BaseModal {
         form.addEventListener('submit', (ev) => {
             ev.preventDefault();
             ev.stopPropagation();
+            const result = this.fieldSet.validateIsync();
+            if (!result) {
+                return;
+            }
+            const ilvlSyncEnabled = this.fieldSet.tempSettings.ilvlSyncEnabled;
+            const ilvlSync = this.fieldSet.tempSettings.ilvlSync;
+            const level: SupportedLevel = this.fieldSet.levelDropdown.selectedItem;
             const newJob = this.fieldSet.jobDropdown.selectedItem;
             if (newJob !== undefined && newJob !== existingSheet.classJobName) {
                 const result = confirm(`You are attempting to change a sheet from ${existingSheet.classJobName} to ${newJob}. Items may need to be re-selected.`);
                 if (!result) {
-                    this.close();
                     return;
                 }
             }
             const newSheetSaveKey: string = existingSheet.saveAs(
                 this.fieldSet.nameInput.value,
                 newJob,
-                this.fieldSet.levelDropdown.selectedItem,
-                this.fieldSet.tempSettings.ilvlSyncEnabled ? this.fieldSet.tempSettings.ilvlSync : undefined
+                level,
+                ilvlSyncEnabled ? ilvlSync : undefined
             );
             const newSheet = GRAPHICAL_SHEET_PROVIDER.fromSaved(newSheetSaveKey);
             console.log("new sheet key", newSheet.saveKey);
