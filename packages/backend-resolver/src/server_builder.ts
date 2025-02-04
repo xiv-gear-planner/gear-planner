@@ -26,6 +26,7 @@ import {nonCachedFetch} from "./polyfills";
 import fastifyWebResponse from "fastify-web-response";
 import {getFrontendPath, getFrontendServer} from "./frontend_file_server";
 import process from "process";
+import {extractSingleSet} from "@xivgear/core/util/sheet_utils";
 
 let initDone = false;
 
@@ -40,7 +41,19 @@ function doInit() {
     // registerDefaultSims();
 }
 
-async function importExportSheet(request: FastifyRequest, exported: object): Promise<SheetStatsExport> {
+async function importExportSheet(request: FastifyRequest, exportedPre: SheetExport | SetExport, nav?: NavPath): Promise<SheetStatsExport> {
+    const exportedInitial: SheetExport | SetExport = exportedPre;
+    const initiallyFullSheet = 'sets' in exportedPre;
+    const onlySetIndex: number | undefined = nav?.['onlySetIndex'];
+    if (onlySetIndex !== undefined) {
+        if (!initiallyFullSheet) {
+            request.log.warn("onlySetIndex does not make sense when isFullSheet is false");
+        }
+        else {
+            exportedPre = extractSingleSet(exportedInitial as SheetExport, onlySetIndex);
+        }
+    }
+    const exported = exportedPre;
     const isFullSheet = 'sets' in exported;
     const sheet = isFullSheet ? HEADLESS_SHEET_PROVIDER.fromExport(exported as SheetExport) : HEADLESS_SHEET_PROVIDER.fromSetExport(exported as SetExport);
     sheet.setViewOnly();
@@ -80,11 +93,61 @@ function buildServerBase() {
     return fastifyInstance;
 }
 
+type NavResult = {
+    preloadUrl: URL | null,
+    sheetData: Promise<object>
+}
+
+function resolveNavData(nav: NavPath): NavResult | null {
+    switch (nav.type) {
+        case "newsheet":
+        case "importform":
+        case "saved":
+            return null;
+        case "shortlink":
+            // TODO: combine these into one call
+            return {
+                preloadUrl: getShortlinkFetchUrl(nav.uuid),
+                sheetData: getShortLink(nav.uuid).then(JSON.parse),
+            };
+        case "setjson":
+        case "sheetjson":
+            return {
+                preloadUrl: null,
+                sheetData: Promise.resolve(nav.jsonBlob),
+            };
+        case "bis":
+            return {
+                preloadUrl: getBisSheetFetchUrl(nav.job, nav.expac, nav.sheet),
+                sheetData: getBisSheet(nav.job, nav.expac, nav.sheet).then(JSON.parse),
+            };
+    }
+    throw Error(`Unable to resolve nav result: ${nav.type}`);
+}
+
 export function buildStatsServer() {
 
     const fastifyInstance = buildServerBase();
 
-    // TODO: write something like this but using the new generic pathing logic
+    fastifyInstance.get('/fulldata', async (request: FastifyRequest, reply) => {
+        // TODO: deduplicate this code
+        const path = request.query[HASH_QUERY_PARAM] ?? '';
+        const osIndex: number | undefined = tryParseOptionalIntParam(request.query[ONLY_SET_QUERY_PARAM]);
+        const selIndex: number | undefined = tryParseOptionalIntParam(request.query[SELECTION_INDEX_QUERY_PARAM]);
+        const pathPaths = path.split(PATH_SEPARATOR);
+        const state = new NavState(pathPaths, osIndex, selIndex);
+        const nav = parsePath(state);
+        request.log.info(pathPaths, 'Path');
+        const navResult = resolveNavData(nav);
+        if (navResult !== null) {
+            const exported: object = await navResult.sheetData;
+            const out = await importExportSheet(request, exported as (SetExport | SheetExport), nav);
+            reply.header("cache-control", "max-age=7200, public");
+            reply.send(out);
+        }
+        reply.status(404);
+    });
+
     fastifyInstance.get('/fulldata/:uuid', async (request: FastifyRequest, reply) => {
         const rawData = await getShortLink(request.params['uuid'] as string);
         const out = await importExportSheet(request, JSON.parse(rawData));
@@ -123,32 +186,6 @@ export function buildPreviewServer() {
     // inject social media preview and preload urls.
     fastifyInstance.get('/', async (request: FastifyRequest, reply) => {
 
-        let sheetDataPreloadUrl: URL | undefined = undefined;
-
-        async function resolveNav(nav: NavPath): Promise<object | null> {
-            try {
-                switch (nav.type) {
-                    case "newsheet":
-                    case "importform":
-                    case "saved":
-                        return null;
-                    case "shortlink":
-                        // TODO: combine these into one call
-                        sheetDataPreloadUrl = getShortlinkFetchUrl(nav.uuid);
-                        return JSON.parse(await getShortLink(nav.uuid));
-                    case "setjson":
-                    case "sheetjson":
-                        return nav.jsonBlob;
-                    case "bis":
-                        sheetDataPreloadUrl = getBisSheetFetchUrl(nav.job, nav.expac, nav.sheet);
-                        return JSON.parse(await getBisSheet(nav.job, nav.expac, nav.sheet));
-                }
-            }
-            catch (e) {
-                request.log.error(e, 'Error loading nav');
-            }
-            return null;
-        }
 
         const serverUrl = getFrontendServer();
         const clientUrl = getFrontendPath();
@@ -162,9 +199,10 @@ export function buildPreviewServer() {
             const state = new NavState(pathPaths, osIndex, selIndex);
             const nav = parsePath(state);
             request.log.info(pathPaths, 'Path');
-            // TODO: wire up osIndex to this
-            const exported: object | null = await resolveNav(nav);
-            if (exported !== null) {
+            const navResult = resolveNavData(nav);
+            if (navResult !== null) {
+                const exported: object = await navResult.sheetData;
+                const sheetDataPreloadUrl = navResult.preloadUrl;
                 let name: string;
                 let desc: string;
                 let set = undefined;

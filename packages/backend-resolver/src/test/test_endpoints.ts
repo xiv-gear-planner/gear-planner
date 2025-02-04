@@ -17,6 +17,7 @@ function readPreviewProps(document: Document): Record<string, string> {
     return out;
 }
 
+// TODO: add tests for nonexistent UUIDs and other error cases
 describe("backend servers", () => {
     describe("set fulldata endpoint", () => {
         const fastify = buildStatsServer();
