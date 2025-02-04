@@ -149,15 +149,38 @@ export function buildStatsServer() {
     });
 
     fastifyInstance.get('/fulldata/:uuid', async (request: FastifyRequest, reply) => {
+        const osIndex: number | undefined = tryParseOptionalIntParam(request.query[ONLY_SET_QUERY_PARAM]);
+        const selIndex: number | undefined = tryParseOptionalIntParam(request.query[SELECTION_INDEX_QUERY_PARAM]);
+        const nav: NavPath = {
+            type: 'shortlink',
+            uuid: request.params['uuid'],
+            onlySetIndex: osIndex,
+            defaultSelectionIndex: selIndex,
+            embed: false,
+            viewOnly: true,
+        };
         const rawData = await getShortLink(request.params['uuid'] as string);
-        const out = await importExportSheet(request, JSON.parse(rawData));
+        const out = await importExportSheet(request, JSON.parse(rawData), nav);
         reply.header("cache-control", "max-age=7200, public");
         reply.send(out);
     });
 
     fastifyInstance.get('/fulldata/bis/:job/:expac/:sheet', async (request: FastifyRequest, reply) => {
+        const osIndex: number | undefined = tryParseOptionalIntParam(request.query[ONLY_SET_QUERY_PARAM]);
+        const selIndex: number | undefined = tryParseOptionalIntParam(request.query[SELECTION_INDEX_QUERY_PARAM]);
+        const nav: NavPath = {
+            type: 'bis',
+            job: request.params['job'],
+            expac: request.params['expac'],
+            sheet: request.params['sheet'],
+            path: [request.params['job'], request.params['expac'], request.params['sheet']],
+            onlySetIndex: osIndex,
+            defaultSelectionIndex: selIndex,
+            embed: false,
+            viewOnly: true,
+        };
         const rawData = await getBisSheet(request.params['job'] as JobName, request.params['expac'] as string, request.params['sheet'] as string);
-        const out = await importExportSheet(request, JSON.parse(rawData));
+        const out = await importExportSheet(request, JSON.parse(rawData), nav);
         reply.header("cache-control", "max-age=7200, public");
         reply.send(out);
     });
