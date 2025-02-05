@@ -79,6 +79,7 @@ export type NavPath = {
     jsonBlob: object
 } | {
     type: 'bis',
+    // TODO: is this being used anywhere?
     path: string[],
     job: JobName,
     expac: string,
