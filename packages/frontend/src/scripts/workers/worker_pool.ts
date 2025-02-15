@@ -231,6 +231,8 @@ export class WorkerPool {
     }
 }
 
-// TODO: pool size
-// Going too high seemed to slow it down even on a system with more than enough cores
-export const workerPool: WorkerPool = new WorkerPool(4);
+// set maxWorkers to the number of logical processors (minimum 4)
+// defaults to 4 on browsers that don't support hardwareConcurrency (widely supported)
+// some browsers (e.g. Safari, Brave) clamp or randomize hardwareConcurrency to prevent device fingerprinting
+const maxWorkers = Math.max((navigator.hardwareConcurrency || 4), 4);
+export const workerPool: WorkerPool = new WorkerPool(maxWorkers);
