@@ -231,8 +231,8 @@ export class WorkerPool {
     }
 }
 
-// set maxWorkers to the number of logical processors - 1 (minimum of 1)
-// defaults to 3 on browsers that don't support hardwareConcurrency (widely supported)
+// set maxWorkers to the number of logical processors (minimum 4)
+// defaults to 4 on browsers that don't support hardwareConcurrency (widely supported)
 // some browsers (e.g. Safari, Brave) clamp or randomize hardwareConcurrency to prevent device fingerprinting
-const maxWorkers = Math.max((navigator.hardwareConcurrency || 4) - 1, 1);
+const maxWorkers = Math.max((navigator.hardwareConcurrency || 4), 4);
 export const workerPool: WorkerPool = new WorkerPool(maxWorkers);
