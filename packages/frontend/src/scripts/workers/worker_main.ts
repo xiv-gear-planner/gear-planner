@@ -1,7 +1,7 @@
 import {HEADLESS_SHEET_PROVIDER} from "@xivgear/core/sheet";
 import {registerDefaultSims} from "@xivgear/core/sims/default_sims";
 import {GearsetGenerationWorker} from "./meld_generation_worker";
-import {AnyWorkRequest, AnyWorkResponse, MainToWorkerMessage, PingResponse, WorkerToMainMessage} from "./worker_pool";
+import {AnyWorkRequest, AnyWorkResponse, MainToWorkerMessage, WorkerToMainMessage} from "./worker_pool";
 import {SolverSimulationRunner} from "./simulation_worker";
 import {makeDataManager} from "@xivgear/core/datamanager";
 import {JobInfo} from "./worker_common";
