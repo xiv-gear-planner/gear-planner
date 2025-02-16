@@ -123,6 +123,10 @@ export class WhmSheetSim implements Simulation<WhmSheetSimResult, WhmSheetSettin
         };
     }
 
+    async simulateSimple(set: CharacterGearSet): Promise<number> {
+        return (await this.simulate(set)).mainDpsResult;
+    }
+
     afflatusTime(stats: ComputedSetStats, cycle: number) {
         return 6 * stats.gcdMag(2.5) * (cycle / 360 - 1);
     }

@@ -53,19 +53,18 @@ export class SimRunner<SimType extends Simulation<SimResult, unknown, unknown>> 
 
         update(0);
         let numSetsProcessed = 0;
-        const threshold = gearsets.length * .05;
+        const threshold = gearsets.length * 0.05;
 
         let bestDps = 0;
         let bestSet = null;
         let set = gearsets.shift();
         while (set) {
-            let result = await this._sim.simulate(set);
+            const result = await this._sim.simulateSimple(set);
 
-            if (result.mainDpsResult > bestDps) {
-                bestDps = result.mainDpsResult;
+            if (result > bestDps) {
+                bestDps = result;
                 bestSet = set;
             }
-            result = undefined;
 
             numSetsProcessed++;
             if (numSetsProcessed > threshold) {

@@ -154,6 +154,24 @@ export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, Inter
         });
     }
 
+    calcDamageSimple(set: CharacterGearSet): number {
+        const allResults = this.cachedCycleProcessors.map(item => {
+            const cp = item[1];
+            cp.stats = set.computedStats;
+            const used = cp.finalizedRecords.filter(isFinalizedAbilityUse);
+            const totalDamage = addValues(...used.map(used => used.totalDamageFull));
+            const timeBasis = cp.finalizedTimeBasis;
+            const dps = multiplyFixed(totalDamage, 1.0 / timeBasis);
+
+            return applyStdDev(dps, this.resultSettings.stdDevs ?? 0);
+        });
+        const sorted = [...allResults];
+        sorted.sort((a, b) => b - a);
+        console.debug("Sim end");
+        const best = sorted[0];
+        return best;
+    }
+
     calcDamage(set: CharacterGearSet): FullResultType {
         const allResults = this.cachedCycleProcessors.map(item => {
             const [label, cp] = item;
@@ -207,6 +225,16 @@ export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, Inter
             this.cachedRotationKey = cacheKey;
         }
         return this.calcDamage(set);
+    };
+
+    async simulateSimple(set: CharacterGearSet): Promise<number> {
+        console.debug("Sim start");
+        const cacheKey = this.computeCacheKey(set);
+        if (!arrayEq(this.cachedRotationKey, cacheKey)) {
+            this.cachedCycleProcessors = this.generateRotations(set);
+            this.cachedRotationKey = cacheKey;
+        }
+        return this.calcDamageSimple(set);
     };
 
     settingsChanged() {

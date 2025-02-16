@@ -560,7 +560,7 @@ export class CycleProcessor {
      * Modifies the stack value for a given buff. The stack value provided should be the modified amount and not the final amount
      *
      * @param buff The Buff
-     * @param stacks The stack modification to add
+     * @param stacksDelta +/- change in stacks
      */
     modifyBuffStacks(buff: Buff, stacksDelta: number) {
         const activeUsages = this.getActiveBuffsData().filter(buffHist => buffHist.buff.name === buff.name);

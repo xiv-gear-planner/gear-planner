@@ -60,13 +60,17 @@ export class MeldSolverDialog extends BaseModal {
             this.buttonArea.removeChild(this.solveMeldsButton);
             this.showProgress();
 
+            let displayedSimText: boolean = false;
             const solverPromise = this.solver.solveMelds(
                 this.settingsDiv.gearsetGenSettings,
                 this.settingsDiv.simSettings,
-                (num: number) => {
+                (num: number, total: number) => {
                     this.progressDisplay.loadbar.updateProgress(num);
-                    this.progressDisplay.text.textContent = "Simulating...";
-
+                    // Don't re-render this unnecessarily
+                    if (!displayedSimText) {
+                        this.progressDisplay.text.textContent = `Simulating ${total} sets...`;
+                        displayedSimText = true;
+                    }
                 });
             solverPromise.then(([set, dps]) => this.solveResultReceived(set, dps));
             recordEvent("SolveMelds", {
@@ -265,6 +269,7 @@ class MeldSolverSettingsMenu extends HTMLDivElement {
         pentameldWarning.style.overflow = 'hidden';
         pentameldWarning.style.display = 'block';
         pentameldWarning.style.maxWidth = "90%";
+        pentameldWarning.style.width = "90%";
         const warningSpan = document.createElement('span');
         warningSpan.textContent = "⚠️ Solving pentameld sets can take a long time. To speed it up, try filling some materia and solving without Overwrite existing materia.";
         warningSpan.style.fontSize = '90%';

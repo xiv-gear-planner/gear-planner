@@ -108,6 +108,11 @@ export class SgeSheetSim implements Simulation<SgeSheetSimResult, SgeSheetSettin
         };
     }
 
+    async simulateSimple(set: CharacterGearSet): Promise<number> {
+        return (await this.simulate(set)).mainDpsResult;
+    }
+
+
     PhlegmaB(cycle: number) {
         return (phlegmaPot - dosis3pot) * (cycle / 40);
     }

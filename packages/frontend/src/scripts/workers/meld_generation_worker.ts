@@ -1,7 +1,7 @@
 import {SetExport} from "@xivgear/xivmath/geartypes";
 import {GearPlanSheet} from "@xivgear/core/sheet";
 import {GearsetGenerator} from "@xivgear/core/solving/gearset_generation";
-import {WorkerBehavior} from "./worker_common";
+import {JobInfo, WorkerBehavior} from "./worker_common";
 import {GearsetGenerationRequest, JobContext} from "./worker_pool";
 
 
@@ -10,8 +10,8 @@ export type GearsetGenerationJobContext = JobContext<GearsetGenerationRequest, n
 export class GearsetGenerationWorker extends WorkerBehavior<GearsetGenerationJobContext> {
 
     sheet: GearPlanSheet;
-    constructor(sheet: GearPlanSheet) {
-        super();
+    constructor(sheet: GearPlanSheet, info: JobInfo) {
+        super(info);
         this.sheet = sheet;
     }
 

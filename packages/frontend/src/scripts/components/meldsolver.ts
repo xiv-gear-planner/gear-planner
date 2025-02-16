@@ -44,19 +44,16 @@ export class MeldSolver {
 
     public async cancel() {
         const promises = [];
-        for (const promise of this.jobs) {
-            promises.push(workerPool.cancelJob(promise.jobId, this._sheet));
+        for (const job of this.jobs) {
+            promises.push(workerPool.cancelJob(job.jobId));
         }
-
-        for (const promise of promises) {
-            await promise;
-        }
+        await Promise.all(promises);
     }
 
     public async solveMelds(
         gearsetGenSettings: GearsetGenerationSettings,
         simSettings: SolverSimulationSettings,
-        update: (val: unknown) => void): Promise<[CharacterGearSet, number]> {
+        update: (val: unknown, total: number) => void): Promise<[CharacterGearSet, number]> {
 
         if (!simSettings) {
             return null;
@@ -68,7 +65,7 @@ export class MeldSolver {
             data: GearsetGenerationSettings.export(gearsetGenSettings, this._sheet),
         };
 
-        const gearGenJob = workerPool.requestWork(gearsetGenRequest);
+        const gearGenJob = workerPool.submitTask(gearsetGenRequest);
         this.jobs.push(gearGenJob);
 
         let sets: SetExport[] = await (gearGenJob.promise as Promise<SetExport[]>);
@@ -77,7 +74,7 @@ export class MeldSolver {
         }
         this.jobs = [];
 
-        const nSimJobs = workerPool.numFreeWorkers;
+        const nSimJobs = workerPool.maxWorkers;
         const nSetsPerJob = Math.ceil(sets.length / nSimJobs);
         const numSets = sets.length;
         let totalSimmed = 0;
@@ -86,8 +83,7 @@ export class MeldSolver {
         console.log("Workers: ", nSimJobs);
         console.log(nSetsPerJob, " per worker");
 
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        for (const _i of range(0, nSimJobs)) {
+        for (const _ of range(0, nSimJobs)) {
 
             let jobSets = sets.splice(sets.length - Math.min(nSetsPerJob, sets.length));
             const simRequest: SolverSimulationRequest = {
@@ -99,9 +95,9 @@ export class MeldSolver {
                 },
             };
 
-            this.jobs.push(workerPool.requestWork(simRequest, (numSimmed: number) => {
+            this.jobs.push(workerPool.submitTask(simRequest, (numSimmed: number) => {
                 totalSimmed += numSimmed;
-                update(100 * totalSimmed / numSets);
+                update(100 * totalSimmed / numSets, numSets);
             }));
             jobSets = undefined;
         }
