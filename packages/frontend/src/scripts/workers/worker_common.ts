@@ -12,6 +12,10 @@ export type JobInfo = {
     jobId: number,
 }
 
+export function postMsg(msg: WorkerToMainMessage) {
+    postMessage(msg);
+}
+
 export abstract class WorkerBehavior<X extends JobContext<AnyWorkRequest, unknown, unknown>> {
 
     protected readonly jobId: number;
@@ -21,10 +25,10 @@ export abstract class WorkerBehavior<X extends JobContext<AnyWorkRequest, unknow
     }
 
     post(response: AnyWorkResponse) {
-        postMessage({
+        postMsg({
             res: response,
             jobId: this.jobId,
-        } satisfies WorkerToMainMessage);
+        });
     }
 
     postUpdate(update: UpdateTypeOf<X>) {
@@ -50,3 +54,7 @@ export abstract class WorkerBehavior<X extends JobContext<AnyWorkRequest, unknow
 
     abstract execute(request: RequestTypeOf<X>): void;
 }
+
+export const DEBUG_FINAL_REGISTRY = new FinalizationRegistry((item) => {
+    console.info("Finalized " + item);
+});

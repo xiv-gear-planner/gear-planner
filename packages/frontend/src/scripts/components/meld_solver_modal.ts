@@ -10,12 +10,11 @@ import {GearPlanSheetGui} from "./sheet";
 import {SimResult, Simulation} from "@xivgear/core/sims/sim_types";
 import {MAX_GCD, STAT_ABBREVIATIONS} from "@xivgear/xivmath/xivconstants";
 import {BaseModal} from "@xivgear/common-ui/components/modal";
-import {EquipSlots} from "@xivgear/xivmath/geartypes";
-import {MeldSolverSettings, MeldSolver} from "./meldsolver";
+import {EquipSlots, Materia} from "@xivgear/xivmath/geartypes";
+import {MeldSolver, MeldSolverSettings} from "./meldsolver";
 import {GearsetGenerationSettings} from "@xivgear/core/solving/gearset_generation";
 import {SolverSimulationSettings} from "@xivgear/core/solving/sim_runner";
-import {recordEvent} from "@xivgear/core/analytics/analytics";
-import {Materia} from "@xivgear/xivmath/geartypes";
+import {recordSheetEvent} from "@xivgear/core/analytics/analytics";
 
 export class MeldSolverDialog extends BaseModal {
     private _sheet: GearPlanSheetGui;
@@ -51,12 +50,10 @@ export class MeldSolverDialog extends BaseModal {
 
         this.settingsDiv = new MeldSolverSettingsMenu(sheet, set);
 
-        let meldSolveStart: number;
 
         this.solveMeldsButton = makeActionButton("Solve Melds", async () => {
             this.solver = new MeldSolver(sheet);
-            meldSolveStart = Date.now();
-
+            const meldSolveStart: number = Date.now();
             this.buttonArea.removeChild(this.solveMeldsButton);
             this.showProgress();
 
@@ -64,19 +61,20 @@ export class MeldSolverDialog extends BaseModal {
             const solverPromise = this.solver.solveMelds(
                 this.settingsDiv.gearsetGenSettings,
                 this.settingsDiv.simSettings,
-                (num: number, total: number) => {
-                    this.progressDisplay.loadbar.updateProgress(num);
+                (percentage: number, total: number) => {
+                    this.progressDisplay.loadbar.updateProgress(percentage);
                     // Don't re-render this unnecessarily
                     if (!displayedSimText) {
                         this.progressDisplay.text.textContent = `Simulating ${total} sets...`;
                         displayedSimText = true;
                     }
                 });
-            solverPromise.then(([set, dps]) => this.solveResultReceived(set, dps));
-            recordEvent("SolveMelds", {
-                "Total Time Taken: ": Date.now() - (meldSolveStart ?? Date.now()),
+            solverPromise.then(([set, dps]) => this.solveResultReceived(set, dps)).catch(err => console.error(err));
+            const timeTaken = Date.now() - (meldSolveStart);
+            console.log("Time taken: " + timeTaken);
+            recordSheetEvent("SolveMelds", sheet, {
+                "time": timeTaken,
             });
-            solverPromise.catch((err) => console.log(err));
         });
 
         this.cancelButton = makeActionButton("Cancel", async () => {
@@ -156,8 +154,8 @@ class LoadBar extends HTMLDivElement {
         this.replaceChildren(this.outerBar);
     }
 
-    updateProgress(progress: number) {
-        this.innerBar.style.width = `${progress}%`;
+    updateProgress(progressPercentage: number) {
+        this.innerBar.style.width = `${progressPercentage}%`;
     }
 }
 
@@ -188,6 +186,7 @@ class MeldSolverSettingsMenu extends HTMLDivElement {
     private simDropdown: FieldBoundDataSelect<SolverSimulationSettings, Simulation<SimResult, unknown, unknown>>;
 
     private readonly disableables = [];
+
     constructor(sheet: GearPlanSheetGui, set: CharacterGearSet) {
         super();
 
@@ -277,15 +276,14 @@ class MeldSolverSettingsMenu extends HTMLDivElement {
         pentameldWarning.append(warningSpan);
 
         const gearsetGenSettings = this.gearsetGenSettings;
-        const calculateNumberOfMateriaToSolve = function() {
-            return EquipSlots.reduce(((acc, slotKey) => {
+        const calculateNumberOfMateriaToSolve = function () {
+            return EquipSlots.reduce((acc, slotKey) => {
                 const item = gearsetGenSettings.gearset.equipment[slotKey];
                 if (item) {
-                    return acc + item.melds.reduce(((acc, meldSlot) => (gearsetGenSettings.overwriteExistingMateria || !meldSlot.equippedMateria) ? 1 + acc : acc), 0);
+                    return acc + item.melds.reduce((acc, meldSlot) => (gearsetGenSettings.overwriteExistingMateria || !meldSlot.equippedMateria) ? 1 + acc : acc, 0);
                 }
                 return acc;
-            }), 0
-            );
+            }, 0);
         };
 
         // 23 accounts for 2 melds on each left/right side and 3 slots for the weapon (e.g. ultimate weapon).
@@ -295,7 +293,7 @@ class MeldSolverSettingsMenu extends HTMLDivElement {
         pentameldWarning.style.visibility = gearsetContainsPentamelds ? "visible" : "hidden";
 
         // Setting overwrite materia will increase the materia to solve for if some are set.
-        this.overwriteMateriaCheckbox.onchange = function() {
+        this.overwriteMateriaCheckbox.onchange = () => {
             const gearsetContainsPentamelds = calculateNumberOfMateriaToSolve() > maxNumberOfMateriaWithoutPentamelding;
             pentameldWarning.style.visibility = gearsetContainsPentamelds ? "visible" : "hidden";
         };
@@ -529,9 +527,10 @@ class MeldSolverConfirmationDialog extends BaseModal {
         }
     }
 }
+
 customElements.define('meld-solver-area', MeldSolverDialog);
-customElements.define('load-bar', LoadBar, { extends: 'div' });
-customElements.define('meld-solver-progress-display', MeldSolverProgressDisplay, { extends: 'div' });
-customElements.define('meld-solver-settings-menu', MeldSolverSettingsMenu, { extends: 'div' });
-customElements.define('meld-solver-result-materia-entry', MateriaEntry, { extends: 'div' });
+customElements.define('load-bar', LoadBar, {extends: 'div'});
+customElements.define('meld-solver-progress-display', MeldSolverProgressDisplay, {extends: 'div'});
+customElements.define('meld-solver-settings-menu', MeldSolverSettingsMenu, {extends: 'div'});
+customElements.define('meld-solver-result-materia-entry', MateriaEntry, {extends: 'div'});
 customElements.define('meld-solver-result-dialog', MeldSolverConfirmationDialog);

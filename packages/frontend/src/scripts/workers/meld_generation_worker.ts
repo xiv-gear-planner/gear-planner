@@ -1,7 +1,7 @@
 import {SetExport} from "@xivgear/xivmath/geartypes";
 import {GearPlanSheet} from "@xivgear/core/sheet";
 import {GearsetGenerator} from "@xivgear/core/solving/gearset_generation";
-import {JobInfo, WorkerBehavior} from "./worker_common";
+import {DEBUG_FINAL_REGISTRY, JobInfo, WorkerBehavior} from "./worker_common";
 import {GearsetGenerationRequest, JobContext} from "./worker_pool";
 
 
@@ -13,6 +13,7 @@ export class GearsetGenerationWorker extends WorkerBehavior<GearsetGenerationJob
     constructor(sheet: GearPlanSheet, info: JobInfo) {
         super(info);
         this.sheet = sheet;
+        DEBUG_FINAL_REGISTRY.register(this, "GearsetGenerationWorker");
     }
 
     override async execute(request: GearsetGenerationRequest) {
@@ -30,5 +31,7 @@ export class GearsetGenerationWorker extends WorkerBehavior<GearsetGenerationJob
         const setsToExport: SetExport[] = allGearsets.map(set => this.sheet.exportGearSet(set));
 
         this.postResult(setsToExport);
+
+        setsToExport.splice(0, setsToExport.length);
     }
 }

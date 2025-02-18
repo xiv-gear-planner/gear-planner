@@ -53,7 +53,7 @@ export class MeldSolver {
     public async solveMelds(
         gearsetGenSettings: GearsetGenerationSettings,
         simSettings: SolverSimulationSettings,
-        update: (val: unknown, total: number) => void): Promise<[CharacterGearSet, number]> {
+        update: (percentage: unknown, total: number) => void): Promise<[CharacterGearSet, number]> {
 
         if (!simSettings) {
             return null;
@@ -68,6 +68,9 @@ export class MeldSolver {
         const gearGenJob = workerPool.submitTask(gearsetGenRequest);
         this.jobs.push(gearGenJob);
 
+        // This will return gear sets "loosely ordered", where they are broken into buckets based on
+        // the usual cycle sim cache key (weapon delay + sks + sps). Each bucket is placed contiguously
+        // into the list, but there is no guarantee of ordering of the buckets.
         let sets: SetExport[] = await (gearGenJob.promise as Promise<SetExport[]>);
         if (sets.length === 0) {
             return [undefined, undefined];
@@ -78,14 +81,20 @@ export class MeldSolver {
         const nSetsPerJob = Math.ceil(sets.length / nSimJobs);
         const numSets = sets.length;
         let totalSimmed = 0;
+        // Split up very large chunks of work, so that we don't get a "long tail" issue where one worker
+        // has lagged behind but the other workers have no way of picking up the slack.
+        const numWorkSplits = Math.max(nSimJobs, Math.ceil(numSets / 1_000));
 
         console.log("Solving ", sets.length, " sets");
         console.log("Workers: ", nSimJobs);
         console.log(nSetsPerJob, " per worker");
 
-        for (const _ of range(0, nSimJobs)) {
+        for (const _ of range(0, numWorkSplits)) {
 
             let jobSets = sets.splice(sets.length - Math.min(nSetsPerJob, sets.length));
+            if (jobSets.length === 0) {
+                break;
+            }
             const simRequest: SolverSimulationRequest = {
                 jobType: 'solverSimulation',
                 sheet: this._sheet.exportSheet(),

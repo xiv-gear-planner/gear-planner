@@ -73,6 +73,7 @@ export class SimRunner<SimType extends Simulation<SimResult, unknown, unknown>> 
             }
 
             set = undefined;
+            // TODO: this has to mutate the underlying array, might be slower?
             set = gearsets.shift();
         }
 

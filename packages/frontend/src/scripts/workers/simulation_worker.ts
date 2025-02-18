@@ -29,13 +29,10 @@ export class SolverSimulationRunner extends WorkerBehavior<SolverSimulationJobCo
             this.postResult(null);
             return;
         }
-
-        const sorted = settings.sets?.map(s => this.sheet.importGearSet(s))?.sort((a, b) => {
-            return a.computedStats.gcdPhys(2.5) - b.computedStats.gcdPhys(2.5);
-        });
+        const imported = settings.sets.map(s => this.sheet.importGearSet(s));
 
         settings.sets = undefined;
-        const [bestDps, bestSet] = await simRunner.simulateSetsAndReturnBest(sorted, (n) => this.postUpdate(n));
+        const [bestDps, bestSet] = await simRunner.simulateSetsAndReturnBest(imported, (n) => this.postUpdate(n));
         const result = {
             dps: bestDps,
             set: this.sheet.exportGearSet(bestSet),

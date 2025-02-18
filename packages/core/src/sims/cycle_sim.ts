@@ -28,10 +28,21 @@ import {
 import {CooldownMode, CooldownTracker} from "./common/cooldown_manager";
 import {addValues, fixedValue, multiplyFixed, multiplyIndependent, ValueWithDev} from "@xivgear/xivmath/deviation";
 import {abilityEquals, animationLock, appDelay, completeComboData, FinalizedComboData} from "./ability_helpers";
-import {abilityToDamageNew, combineBuffEffects} from "./sim_utils";
+import {abilityToDamageNew, combineBuffEffects, noBuffEffects} from "./sim_utils";
 import {BuffSettingsExport} from "./common/party_comp_settings";
 import {CycleSettings} from "./cycle_settings";
 import {buffRelevantAtSnapshot, buffRelevantAtStart} from "./buff_helpers";
+
+/**
+ * Represents the "zero" CombinedBuffEffect object, which represents not having any offensive buffs.
+ * This should not be modified in place.
+ */
+const NO_BUFF_EFFECTS = noBuffEffects();
+
+const NO_BUFFS = {
+    'buffs': [],
+    'combinedEffects': NO_BUFF_EFFECTS,
+};
 
 /**
  * CycleContext is similar to CycleProcessor, but is scoped to within a cycle. It provides methods
@@ -209,7 +220,6 @@ export class CycleContext {
 export type AbilityUseResult = 'full' | 'partial' | 'none';
 
 
-
 /* TODO: I thought of a better way to implement this.
 
     This can all be implemented post-hoc.
@@ -277,6 +287,11 @@ export type MultiCycleSettings = {
      * How to deal with GCDs not lining up perfectly with the end of fight.
      */
     readonly cutoffMode: CutoffMode;
+    /**
+     * Enables simple mode - don't record any information that would purely be used for visuals on the report.
+     * The final DPS number is the only thing that matters.
+     */
+    readonly simpleMode?: boolean;
 }
 
 export type CycleFunction = (cycle: CycleContext) => void
@@ -473,6 +488,8 @@ export class CycleProcessor {
      */
     private _rowCount = 0;
 
+    private _simple: boolean;
+
     constructor(private settings: MultiCycleSettings) {
         this.cdTracker = new CooldownTracker(() => this.currentTime);
         this._cdEnforcementMode = 'warn';
@@ -492,6 +509,7 @@ export class CycleProcessor {
             potency: this.stats.jobStats.aaPotency,
         };
         this.cutoffMode = settings.cutoffMode;
+        this._simple = settings.simpleMode ?? false;
     }
 
     get cdEnforcementMode(): CooldownMode {
@@ -822,9 +840,9 @@ export class CycleProcessor {
                     totalDamage: totalDamage.expected,
                     totalDamageFull: totalDamage,
                     totalPotency: totalPotency,
-                    buffs: record.buffs,
+                    buffs: this._simple ? [] : record.buffs,
                     combinedEffects: record.combinedEffects,
-                    ability: record.ability,
+                    ability: this._simple ? null : record.ability,
                 } satisfies FinalizedAbility;
             }
             else {
@@ -837,8 +855,8 @@ export class CycleProcessor {
         switch (this.cutoffMode) {
             case "prorate-gcd":
             case "prorate-application":
-            // For these, we use either the current time, or the total allowed time. Pro-rating the final GCD is
-            // handled in `get finalizedRecords()`
+                // For these, we use either the current time, or the total allowed time. Pro-rating the final GCD is
+                // handled in `get finalizedRecords()`
                 return Math.min(this.totalTime, this.currentTime);
             case "lax-gcd":
                 return this.nextGcdTime;
@@ -870,10 +888,13 @@ export class CycleProcessor {
         buffs: ReturnType<typeof this.getActiveBuffs>,
         combinedEffects: ReturnType<typeof combineBuffEffects>,
     } {
-        const active = this.getActiveBuffsFor(ability, time);
-        const combined = combineBuffEffects(active);
+        const active: Buff[] = this.getActiveBuffsFor(ability, time);
+        if (active.length === 0) {
+            return NO_BUFFS;
+        }
+        const combined: CombinedBuffEffect = combineBuffEffects(active);
         return {
-            'buffs': active,
+            'buffs': this._simple ? [] : active,
             'combinedEffects': combined,
         };
     }
@@ -946,7 +967,7 @@ export class CycleProcessor {
             switch (this.cdEnforcementMode) {
                 case "none":
                 case "warn":
-                // CD tracker will enforce this
+                    // CD tracker will enforce this
                     break;
                 case "delay":
                     this.advanceTo(this.cdTracker.statusOf(ability).readyAt.absolute);
@@ -1737,7 +1758,7 @@ function updateComboTracker(combo: ComboData, ability: Ability, tracker: ComboTr
             tracker.lastComboAbility = null;
             break;
         case "nobreak":
-        // Do nothing
+            // Do nothing
             break;
     }
     return out;

@@ -1,6 +1,21 @@
 import {ComputedSetStats} from "@xivgear/xivmath/geartypes";
-import {Ability, AlternativeScaling, Buff, CombinedBuffEffect, ComputedDamage, DamageResult, DamagingAbility, ScalingOverrides} from "./sim_types";
-import {applyDhCritFull, baseDamageFull, getDefaultScalings, getLivingShadowStrength, mainStatMultiLivingShadow} from "@xivgear/xivmath/xivmath";
+import {
+    Ability,
+    AlternativeScaling,
+    Buff,
+    CombinedBuffEffect,
+    ComputedDamage,
+    DamageResult,
+    DamagingAbility,
+    ScalingOverrides
+} from "./sim_types";
+import {
+    applyDhCritFull,
+    baseDamageFull,
+    getDefaultScalings,
+    getLivingShadowStrength,
+    mainStatMultiLivingShadow
+} from "@xivgear/xivmath/xivmath";
 import {multiplyFixed} from "@xivgear/xivmath/deviation";
 import {StatModification} from "@xivgear/xivmath/xivstats";
 
@@ -73,7 +88,7 @@ export function abilityToDamageNew(stats: ComputedSetStats, ability: Ability, co
 }
 
 /**
- * Returns the "zero" CombinedBuffEffect object, which represents not having any offensive buffs.
+ * Returns the "zero" CombinedBuffEffect object, which represents not having any offensive buffs. This is safe to modify in place.
  */
 export function noBuffEffects(): CombinedBuffEffect {
     return {
