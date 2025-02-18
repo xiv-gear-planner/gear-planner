@@ -40,7 +40,7 @@ export type BuffWindowUsages = {
 export type SkillCount = [ability: Ability, count: number];
 
 export abstract class BaseUsageCountSim<ResultType extends CountSimResult, InternalSettingsType extends SimSettings>
-implements Simulation<ResultType, InternalSettingsType, ExternalCountSettings<InternalSettingsType>> {
+    implements Simulation<ResultType, InternalSettingsType, ExternalCountSettings<InternalSettingsType>> {
 
     abstract displayName: string;
     abstract shortName: string;
@@ -178,6 +178,10 @@ implements Simulation<ResultType, InternalSettingsType, ExternalCountSettings<In
             unbuffedPps: pps,
             buffBuckets: resultBuckets,
         } satisfies CountSimResult as unknown as ResultType;
+    }
+
+    async simulateSimple(set: CharacterGearSet): Promise<number> {
+        return (await this.simulate(set)).mainDpsResult;
     }
 
     /**

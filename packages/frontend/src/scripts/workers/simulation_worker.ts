@@ -1,7 +1,7 @@
 import {GearPlanSheet} from "@xivgear/core/sheet";
 import {SimRunner} from "@xivgear/core/solving/sim_runner";
 import {SetExport} from "@xivgear/xivmath/geartypes";
-import {WorkerBehavior} from "./worker_common";
+import {JobInfo, WorkerBehavior} from "./worker_common";
 import {JobContext, SolverSimulationRequest} from "./worker_pool";
 
 export type SolverSimulationResult = {
@@ -15,8 +15,8 @@ export class SolverSimulationRunner extends WorkerBehavior<SolverSimulationJobCo
 
     readonly sheet: GearPlanSheet;
 
-    public constructor(sheet: GearPlanSheet) {
-        super();
+    public constructor(sheet: GearPlanSheet, info: JobInfo) {
+        super(info);
         this.sheet = sheet;
     }
 
@@ -29,13 +29,10 @@ export class SolverSimulationRunner extends WorkerBehavior<SolverSimulationJobCo
             this.postResult(null);
             return;
         }
-
-        const sorted = settings.sets?.map(s => this.sheet.importGearSet(s))?.sort((a, b) => {
-            return a.computedStats.gcdPhys(2.5) - b.computedStats.gcdPhys(2.5);
-        });
+        const imported = settings.sets.map(s => this.sheet.importGearSet(s));
 
         settings.sets = undefined;
-        const [bestDps, bestSet] = await simRunner.simulateSetsAndReturnBest(sorted, this.postUpdate);
+        const [bestDps, bestSet] = await simRunner.simulateSetsAndReturnBest(imported, (n) => this.postUpdate(n));
         const result = {
             dps: bestDps,
             set: this.sheet.exportGearSet(bestSet),

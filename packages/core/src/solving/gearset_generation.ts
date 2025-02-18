@@ -1,5 +1,17 @@
-import {EquippedItem, RawStats, EquipmentSet, EquipSlots, MeldableMateriaSlot, SetExport} from "@xivgear/xivmath/geartypes";
-import {MateriaSubstat, ALL_SUB_STATS, NORMAL_GCD, MATERIA_ACCEPTABLE_OVERCAP_LOSS} from "@xivgear/xivmath/xivconstants";
+import {
+    EquipmentSet,
+    EquippedItem,
+    EquipSlots,
+    MeldableMateriaSlot,
+    RawStats,
+    SetExport
+} from "@xivgear/xivmath/geartypes";
+import {
+    ALL_SUB_STATS,
+    MATERIA_ACCEPTABLE_OVERCAP_LOSS,
+    MateriaSubstat,
+    NORMAL_GCD
+} from "@xivgear/xivmath/xivconstants";
 import {sksToGcd, spsToGcd} from "@xivgear/xivmath/xivmath";
 import {CharacterGearSet} from "../gear";
 import {GearPlanSheet} from "../sheet";
@@ -144,8 +156,7 @@ export class GearsetGenerator {
             possibleMeldCombinations = newGearsets;
         }
 
-        const generatedGearsets: CharacterGearSet[] = new Array(possibleMeldCombinations.size);
-        let i = 0;
+        const gcdMap = new Map<string, CharacterGearSet[]>();
         for (const combination of possibleMeldCombinations.values()) {
 
             const newGearset: CharacterGearSet = new CharacterGearSet(this._sheet);
@@ -163,10 +174,26 @@ export class GearsetGenerator {
                 continue;
             }
 
-            generatedGearsets[i] = newGearset;
-            i++;
+            const stats = newGearset.computedStats;
+            const sps = stats.spellspeed;
+            const sks = stats.skillspeed;
+            const wdly = stats.weaponDelay;
+            // TODO: other sims have their own cache key, so take that into account?
+            const cacheKey = [sps, sks, wdly].join(";");
+            const existing = gcdMap.get(cacheKey);
+            if (existing !== undefined) {
+                existing.push(newGearset);
+            }
+            else {
+                gcdMap.set(cacheKey, [newGearset]);
+            }
         }
-        generatedGearsets.length = i; // Cull empty objects
+
+        // Push them in rough order of GCD
+        const generatedGearsets: CharacterGearSet[] = [];
+        gcdMap.forEach((sets) => {
+            generatedGearsets.push(...sets);
+        });
 
         return generatedGearsets;
     }

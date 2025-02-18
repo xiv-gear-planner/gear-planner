@@ -43,6 +43,11 @@ export class PotencyRatioSim implements Simulation<PotencyRatioSimResults, SimSe
         };
     };
 
+    async simulateSimple(set: CharacterGearSet): Promise<number> {
+        return (await this.simulate(set)).mainDpsResult;
+    }
+
+
     spec = potRatioSimSpec;
 
     settingsChanged(): void {

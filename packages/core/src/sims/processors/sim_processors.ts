@@ -134,7 +134,7 @@ export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, Inter
     };
 
 
-    generateRotations(set: CharacterGearSet): [string, CycleProcessor][] {
+    generateRotations(set: CharacterGearSet, simple: boolean = false): [string, CycleProcessor][] {
 
         const allBuffs = this.buffManager.enabledBuffs;
         const rotations = this.getRotationsToSimulate(set);
@@ -148,10 +148,29 @@ export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, Inter
                 manuallyActivatedBuffs: this.manuallyActivatedBuffs ?? [],
                 useAutos: (this.cycleSettings.useAutos ?? true) && set.getItemInSlot('Weapon') !== null,
                 cutoffMode: this.cycleSettings.cutoffMode,
+                simpleMode: simple,
             });
             rot.apply(cp);
             return [rot.name ?? `Unnamed #${index + 1}`, cp];
         });
+    }
+
+    calcDamageSimple(set: CharacterGearSet): number {
+        const allResults = this.cachedCycleProcessors.map(item => {
+            const cp = item[1];
+            cp.stats = set.computedStats;
+            const used = cp.finalizedRecords.filter(isFinalizedAbilityUse);
+            const totalDamage = addValues(...used.map(used => used.totalDamageFull));
+            const timeBasis = cp.finalizedTimeBasis;
+            const dps = multiplyFixed(totalDamage, 1.0 / timeBasis);
+
+            return applyStdDev(dps, this.resultSettings.stdDevs ?? 0);
+        });
+        const sorted = [...allResults];
+        sorted.sort((a, b) => b - a);
+        console.debug("Sim end");
+        const best = sorted[0];
+        return best;
     }
 
     calcDamage(set: CharacterGearSet): FullResultType {
@@ -207,6 +226,20 @@ export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, Inter
             this.cachedRotationKey = cacheKey;
         }
         return this.calcDamage(set);
+    };
+
+    async simulateSimple(set: CharacterGearSet): Promise<number> {
+        console.debug("Sim start");
+        const cacheKey = this.computeCacheKey(set);
+        if (!arrayEq(this.cachedRotationKey, cacheKey)) {
+            // console.error(`cache MISS: ${this.cachedRotationKey} => ${cacheKey}`);
+            this.cachedCycleProcessors = this.generateRotations(set, true);
+            this.cachedRotationKey = cacheKey;
+        }
+        // else {
+        //     console.error("cache HIT");
+        // }
+        return this.calcDamageSimple(set);
     };
 
     settingsChanged() {
