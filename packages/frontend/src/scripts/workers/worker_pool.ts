@@ -2,6 +2,7 @@ import {GearPlanSheet} from "@xivgear/core/sheet";
 import {GearsetGenerationSettingsExport} from "@xivgear/core/solving/gearset_generation";
 import {SolverSimulationSettingsExport} from "@xivgear/core/solving/sim_runner";
 import {SheetExport} from "@xivgear/xivmath/geartypes";
+import {SETTINGS} from "@xivgear/common-ui/settings/persistent_settings";
 
 type ResolveReject = {
     resolve: (res: unknown) => void,
@@ -392,11 +393,13 @@ export class WorkerPool {
 
 }
 
-// set maxWorkers to the number of logical processors (minimum 4)
-// defaults to 4 on browsers that don't support hardwareConcurrency (widely supported)
-// some browsers (e.g. Safari, Brave) clamp or randomize hardwareConcurrency to prevent device fingerprinting
-const maxWorkers = Math.max((navigator.hardwareConcurrency || 4), 4);
-export const workerPool: WorkerPool = new WorkerPool(1, maxWorkers);
+// Logic for maxWorkers:
+// If explicit override exists, use that.
+// If navigator.hardwareConcurrency is not available, default to 4. Some browsers clamp or randomize hardwareConcurrency to prevent device fingerprinting.
+// If it is, then clamp its value to between 4 and 24.
+// Intensive meld solving frequently crashes on Chrome if the worker pool size is greater than 24.
+const maxWorkers = SETTINGS.workersOverride ?? Math.min(24, Math.max((navigator.hardwareConcurrency || 4)), 4);
+export const WORKER_POOL: WorkerPool = new WorkerPool(1, maxWorkers);
 
 // Debugging
-window['workerPool'] = workerPool;
+window['workerPool'] = WORKER_POOL;

@@ -2,7 +2,7 @@ import {CharacterGearSet} from "@xivgear/core/gear";
 import {SetExport, SimExport} from "@xivgear/xivmath/geartypes";
 import {SimResult, SimSettings, Simulation} from "@xivgear/core/sims/sim_types";
 import {GearPlanSheet} from "@xivgear/core/sheet";
-import {GearsetGenerationRequest, SolverSimulationRequest, workerPool} from "../workers/worker_pool";
+import {GearsetGenerationRequest, SolverSimulationRequest, WORKER_POOL} from "../workers/worker_pool";
 import {GearsetGenerationSettings} from "@xivgear/core/solving/gearset_generation";
 import {SolverSimulationSettings} from "@xivgear/core/solving/sim_runner";
 import {range} from "@xivgear/core/util/array_utils";
@@ -45,7 +45,7 @@ export class MeldSolver {
     public async cancel() {
         const promises = [];
         for (const job of this.jobs) {
-            promises.push(workerPool.cancelJob(job.jobId));
+            promises.push(WORKER_POOL.cancelJob(job.jobId));
         }
         await Promise.all(promises);
     }
@@ -65,7 +65,7 @@ export class MeldSolver {
             data: GearsetGenerationSettings.export(gearsetGenSettings, this._sheet),
         };
 
-        const gearGenJob = workerPool.submitTask(gearsetGenRequest);
+        const gearGenJob = WORKER_POOL.submitTask(gearsetGenRequest);
         this.jobs.push(gearGenJob);
 
         // This will return gear sets "loosely ordered", where they are broken into buckets based on
@@ -77,7 +77,7 @@ export class MeldSolver {
         }
         this.jobs = [];
 
-        const nSimJobs = workerPool.maxWorkers;
+        const nSimJobs = WORKER_POOL.maxWorkers;
         const nSetsPerJob = Math.ceil(sets.length / nSimJobs);
         const numSets = sets.length;
         let totalSimmed = 0;
@@ -104,7 +104,7 @@ export class MeldSolver {
                 },
             };
 
-            this.jobs.push(workerPool.submitTask(simRequest, (numSimmed: number) => {
+            this.jobs.push(WORKER_POOL.submitTask(simRequest, (numSimmed: number) => {
                 totalSimmed += numSimmed;
                 update(100 * totalSimmed / numSets, numSets);
             }));

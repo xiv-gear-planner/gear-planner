@@ -371,6 +371,27 @@ export class FieldBoundIntField<ObjType> extends FieldBoundConvertingTextField<O
     }
 }
 
+export class FieldBoundOrUndefIntField<ObjType> extends FieldBoundConvertingTextField<ObjType, number | undefined> {
+    constructor(obj: ObjType, field: { [K in keyof ObjType]: ObjType[K] extends (number | undefined) ? K : never }[keyof ObjType], extraArgs: FbctArgs<ObjType, number | undefined> = {}) {
+        const intValidator = (ctx) => {
+            if (ctx.newValue !== undefined && ctx.newValue % 1 !== 0) {
+                ctx.failValidation('Value must be an integer');
+            }
+        };
+        extraArgs.preValidators = [skipMinus, ...(extraArgs.preValidators ?? [])];
+        extraArgs.postValidators = [intValidator, ...(extraArgs.postValidators ?? [])];
+        // Spinner arrows aren't styleable. Love CSS!
+        // extraArgs.type = extraArgs.type ?? 'number';
+        // extraArgs.inputMode = extraArgs.inputMode ?? 'numeric';
+        super(obj, field, (s) => s === undefined ? "" : s.toString(), (s) => s.trim() === "" ? undefined : Number(s), extraArgs);
+        if (this.type === 'numeric') {
+            if (!this.step) {
+                this.step = '1';
+            }
+        }
+    }
+}
+
 export class FieldBoundFloatField<ObjType> extends FieldBoundConvertingTextField<ObjType, number> {
     constructor(obj: ObjType, field: { [K in keyof ObjType]: ObjType[K] extends number ? K : never }[keyof ObjType], extraArgs: FieldBoundFloatFieldFbctArgs<ObjType, number> = {}) {
         const numberValidator = (ctx) => {
@@ -642,6 +663,7 @@ customElements.define("data-select", DataSelect, {extends: "select"});
 customElements.define("field-bound-converting-text-field", FieldBoundConvertingTextField, {extends: "input"});
 customElements.define("field-bound-text-field", FieldBoundTextField, {extends: "input"});
 customElements.define("field-bound-float-field", FieldBoundFloatField, {extends: "input"});
+customElements.define("field-bound-int-or-undef-field", FieldBoundOrUndefIntField, {extends: "input"});
 customElements.define("field-bound-int-field", FieldBoundIntField, {extends: "input"});
 customElements.define("field-bound-checkbox", FieldBoundCheckBox, {extends: "input"});
 customElements.define("field-bound-data-select", FieldBoundDataSelect, {extends: "select"});

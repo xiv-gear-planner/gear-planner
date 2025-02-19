@@ -57,9 +57,10 @@ export class SimRunner<SimType extends Simulation<SimResult, unknown, unknown>> 
 
         let bestDps = 0;
         let bestSet = null;
-        let set = gearsets.shift();
-        while (set) {
+        for (let i = 0; i < gearsets.length; i++) {
+            const set = gearsets[i];
             const result = await this._sim.simulateSimple(set);
+            gearsets[i] = undefined;
 
             if (result > bestDps) {
                 bestDps = result;
@@ -71,10 +72,6 @@ export class SimRunner<SimType extends Simulation<SimResult, unknown, unknown>> 
                 update(numSetsProcessed);
                 numSetsProcessed = 0;
             }
-
-            set = undefined;
-            // TODO: this has to mutate the underlying array, might be slower?
-            set = gearsets.shift();
         }
 
         return [bestDps, bestSet];

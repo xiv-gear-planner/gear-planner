@@ -10,6 +10,7 @@ export type PersistentSettings = {
     set viewDetailedStats(detailedStats: boolean);
     get languageOverride(): Language | undefined;
     set languageOverride(value: Language);
+    workersOverride: number | undefined;
     hideWelcomeMessage: boolean;
 }
 
@@ -18,6 +19,7 @@ const MODERN_THEME_KEY = 'modern-theme';
 const DETAILED_STATS_KEY = 'detailed-stats';
 const HIDE_WELCOME_KEY = 'hide-welcome-area';
 const LANGUAGE_OVERRIDE_KEY = 'language-override';
+const WORKERS_OVERRIDE_KEY = 'workers-override';
 export const SETTINGS: PersistentSettings = {
     get lightMode(): boolean | undefined {
         return getBool(LIGHT_MODE_KEY);
@@ -60,7 +62,18 @@ export const SETTINGS: PersistentSettings = {
             localStorage.removeItem(LANGUAGE_OVERRIDE_KEY);
         }
     },
+    get workersOverride(): number | undefined {
+        return getInt(WORKERS_OVERRIDE_KEY);
+    },
+    set workersOverride(value: number | undefined) {
+        if (value < 2) {
+            throw new Error("Value must be an integer >= 2");
+        }
+        setInt(WORKERS_OVERRIDE_KEY, value);
+    },
 };
+
+window['xivgearSettings'] = SETTINGS;
 
 function getBool(key: string): boolean | undefined {
     const raw = localStorage.getItem(key);
@@ -74,4 +87,24 @@ function getBool(key: string): boolean | undefined {
 
 function setBool(key: string, value: boolean) {
     localStorage.setItem(key, String(value));
+}
+
+function getInt(key: string): number | undefined {
+    const raw = localStorage.getItem(key);
+    if (raw === undefined || raw === null) {
+        return undefined;
+    }
+    return parseInt(raw, 10);
+}
+
+function setInt(key: string, value: number | undefined) {
+    if (value === undefined) {
+        localStorage.removeItem(key);
+    }
+    else {
+        if (Math.floor(value) !== value) {
+            throw new Error(`Not an integer: ${value} (${key})`);
+        }
+        localStorage.setItem(key, value.toString());
+    }
 }
