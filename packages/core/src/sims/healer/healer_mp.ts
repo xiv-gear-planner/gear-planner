@@ -119,4 +119,9 @@ export class MPPerMinute implements Simulation<MPResult, MPSettings, EmptyObject
             minutesToZero: minutesToZero,
         };
     }
+
+    async simulateSimple(set: CharacterGearSet): Promise<number> {
+        return (await this.simulate(set)).mainDpsResult;
+    }
+
 }
