@@ -33,7 +33,6 @@ body {
   --action-col-width: 73px;
   --set-name-col-width: 300px;
   --item-name-col-width: 300px;
-  --button-color: var(--bg-color);
   --materia-melded-slot-blend-color: #cccccc;
   --scrollbar-fg: #666675;
   --scrollbar-bg: #444454;
@@ -59,8 +58,8 @@ body {
   --table-bg-color-selected: #303345;
   --table-bg-color-hover: #3a4055;
   --table-selected-outline-color: #0ba3df;
-  --action-button-hover-color: #ddf;
-  --button-hover-color: #303649;
+  --action-input-hover-background-color: #ddf;
+  --input-hover-background-color: #303649;
   --selection-border-opacity: 80%;
   --sim-color-mix-percent: 70%;
   --shadow-color: black;
@@ -83,16 +82,15 @@ body {
     --table-bg-color: #fff8f1;
     --table-bg-color-selected: #fdebd3;
     --table-bg-color-hover: #f1d8b8;
-    --button-color: var(--table-bg-color);
-    --button-hover-color: var(--table-bg-color-hover);
-    --input-background-color: #fffafa;
+    --input-hover-background-color: var(--table-bg-color-hover);
+    --input-background-color: var(--table-bg-color);
     --materia-melded-slot-blend-color: #666666;
     --scrollbar-fg: #887461;
     --scrollbar-bg: #b7a691;
     --stat-tiering-box-mix-color: #000;
     --plain-link-color: #1a3072;
     --plain-link-hover-color: #2778a9;
-    --action-button-hover-color: #833e1d;
+    --action-input-hover-background-color: #833e1d;
     --table-selected-outline-color: #d28996;
     --relic-stat-input-background-color: #efab8a;
     --relic-stat-input-background-hover-color: #ffc2a5;
@@ -109,7 +107,7 @@ body {
     }
 
     .gear-sheets-table {
-      --button-color: var(--bg-color);
+      --input-background-color: var(--bg-color);
     }
   }
 
@@ -204,8 +202,8 @@ body {
     }
 
     a.current-page {
-      //background-image: linear-gradient(var(--button-hover-color) 80%, var(--bg-color));
-      background-color: var(--button-hover-color);
+      //background-image: linear-gradient(var(--input-hover-background-color) 80%, var(--bg-color));
+      background-color: var(--input-hover-background-color);
     }
 
     a:active {
@@ -294,10 +292,10 @@ body {
   border: none;
 
   &:hover {
-    color: var(--action-button-hover-color);
+    color: var(--action-input-hover-background-color);
 
     svg {
-      fill: var(--action-button-hover-color);
+      fill: var(--action-input-hover-background-color);
     }
   }
 }
@@ -425,7 +423,7 @@ table {
         .table-element-hover-active;
 
         span.header-cell-gear {
-          color: var(--action-button-hover-color);
+          color: var(--action-input-hover-background-color);
           opacity: unset;
         }
       }
@@ -622,7 +620,7 @@ select {
   .like-a-button;
 
   &:hover, &:focus {
-    background-color: var(--button-hover-color);
+    background-color: var(--input-hover-background-color);
   }
 }
 
@@ -633,7 +631,7 @@ select {
 
 .like-a-button {
   color: var(--fg-color);
-  background-color: var(--button-color);
+  background-color: var(--input-background-color);
   .standard-border-radius;
   border: var(--standard-border-input);
   .button-font-style;
@@ -647,7 +645,7 @@ button {
 
   &:hover {
     .no-transition;
-    background-color: var(--button-hover-color);
+    background-color: var(--input-hover-background-color);
   }
 
   &:active {
@@ -667,7 +665,7 @@ input {
   &[type="text"],
   &[type="number"] {
     color: var(--fg-color);
-    background-color: var(--input-background-color);
+    //background-color: var(--input-background-color);
     .standard-border-radius;
     border-color: var(--border-color);
 
@@ -771,7 +769,7 @@ table.gear-plan-table {
         font-size: 13.2px;
 
         &:hover {
-          color: var(--action-button-hover-color);
+          color: var(--action-input-hover-background-color);
         }
       }
 
@@ -993,7 +991,7 @@ div.chance-stat-display, div.multiplier-stat-display, div.multiplier-mit-stat-di
 
       .new-sheet-row:hover {
         .svg-glyph {
-          fill: var(--action-button-hover-color);
+          fill: var(--action-input-hover-background-color);
         }
       }
 
@@ -1318,10 +1316,10 @@ table.gear-items-table, table.food-items-table {
             }
 
             &:hover {
-              fill: var(--action-button-hover-color);
+              fill: var(--action-input-hover-background-color);
 
               svg {
-                fill: var(--action-button-hover-color);
+                fill: var(--action-input-hover-background-color);
               }
             }
           }
@@ -1389,7 +1387,7 @@ table all-slot-materia-manager {
 
 slot-materia-manager:hover {
   &:not(:has(slot-materia-popup:hover)) {
-    background-color: var(--button-hover-color);
+    background-color: var(--input-hover-background-color);
   }
 }
 
@@ -1881,7 +1879,7 @@ div.gear-set-editor-toolbar, set-view-toolbar {
     display: inline-block;
     vertical-align: top;
     margin: 5px;
-    background-color: var(--button-color);
+    background-color: var(--input-background-color);
     @media screen and (max-width: 530px) {
       margin-left: 2px;
       margin-right: 2px;
@@ -1906,7 +1904,7 @@ div.gear-set-editor-toolbar, set-view-toolbar {
       input {
         border: var(--faint-border);
         padding: 0 0 0 0;
-        background: none;
+        //background: none;
         width: 30px;
         text-align: center;
         margin-right: 2px;
@@ -3134,12 +3132,12 @@ body.modern {
 
   &.light-mode {
     --bg-color: #e5dad7;
-    --button-hover-color: #ddb581;
+    --input-hover-background-color: #ddb581;
   }
 
   &:not(.light-mode) {
     --table-bg-color: #24242c;
-    --button-color: var(--table-bg-color);
+    --input-background-color: var(--table-bg-color);
   }
 
   .stat-cell {
@@ -3147,16 +3145,12 @@ body.modern {
   }
 
   .gear-sheet-midbar-area {
-    background-color: var(--button-color);
+    background-color: var(--input-background-color);
 
     button, select {
-      --button-color: var(--bg-color);
+      --input-background-color: var(--bg-color);
     }
 
-    input {
-      background: var(--bg-color) !important;
-      border: none !important;
-    }
   }
 
   gear-set-editor {
@@ -3299,7 +3293,7 @@ bool-toggle {
     display: none;
   }
 
-  --bool-toggle-bg-color: var(--button-color);
+  --bool-toggle-bg-color: var(--input-background-color);
   --bool-toggle-slider-bg-color: var(--bg-color);
 
   .bool-toggle-label {
@@ -3360,7 +3354,7 @@ bool-toggle {
   }
 
   &:hover {
-    --bool-toggle-bg-color: var(--button-hover-color);
+    --bool-toggle-bg-color: var(--input-hover-background-color);
   }
 
   &:active {
@@ -3439,7 +3433,7 @@ gear-set-issues-modal {
 }
 
 .invert-input-colors {
-  --button-color: var(--bg-color);
+  --input-background-color: var(--bg-color);
 
   input, textarea {
     background-color: var(--bg-color);
@@ -3511,7 +3505,7 @@ math-area {
       margin: 3px;
 
       &.active {
-        background-color: var(--button-hover-color);
+        background-color: var(--input-hover-background-color);
       }
     }
   }
@@ -3550,6 +3544,11 @@ settings-modal {
     }
   }
 
+}
+
+input {
+  background: var(--input-background-color);
+  border: none !important;
 }
 
 @import 'gauge.less';
