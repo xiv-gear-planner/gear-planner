@@ -3,7 +3,7 @@ import {
     clampValues,
     FieldBoundCheckBox,
     FieldBoundDataSelect,
-    FieldBoundIntField, FieldBoundOrUndefIntField,
+    FieldBoundOrUndefIntField,
     labelFor,
     quickElement
 } from "@xivgear/common-ui/components/util";
