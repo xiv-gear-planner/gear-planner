@@ -235,6 +235,7 @@ export class WorkerPool {
     currentSheet: GearPlanSheet | null = null;
 
     constructor(readonly minWorkers: number, readonly maxWorkers: number) {
+        console.log(`WorkerPool starting. minWorkers ${minWorkers}, maxWorkers ${maxWorkers}`);
         this.stateUpdate();
     }
 
@@ -280,6 +281,7 @@ export class WorkerPool {
         let i = this.workers.length;
         while (i--) {
             if (this.workers[i].status === 'terminated') {
+                console.log("Removing terminated worker");
                 this.workers.splice(i, 1);
             }
         }
