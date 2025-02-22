@@ -401,6 +401,7 @@ export class WorkerPool {
 // If it is, then clamp its value to between 4 and 24.
 // Intensive meld solving frequently crashes on Chrome if the worker pool size is greater than 24.
 const maxWorkers = SETTINGS.workersOverride ?? Math.min(24, Math.max((navigator.hardwareConcurrency || 4), 4));
+console.log(`Worker pool size settings: explicit setting ${SETTINGS.workersOverride}, navigator.hardwareConcurrency ${navigator.hardwareConcurrency}, final value ${maxWorkers}`);
 export const WORKER_POOL: WorkerPool = new WorkerPool(1, maxWorkers);
 
 // Debugging
