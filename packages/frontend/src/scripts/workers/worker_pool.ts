@@ -398,7 +398,7 @@ export class WorkerPool {
 // If navigator.hardwareConcurrency is not available, default to 4. Some browsers clamp or randomize hardwareConcurrency to prevent device fingerprinting.
 // If it is, then clamp its value to between 4 and 24.
 // Intensive meld solving frequently crashes on Chrome if the worker pool size is greater than 24.
-const maxWorkers = SETTINGS.workersOverride ?? Math.min(24, Math.max((navigator.hardwareConcurrency || 4)), 4);
+const maxWorkers = SETTINGS.workersOverride ?? Math.min(24, Math.max((navigator.hardwareConcurrency || 4), 4));
 export const WORKER_POOL: WorkerPool = new WorkerPool(1, maxWorkers);
 
 // Debugging
