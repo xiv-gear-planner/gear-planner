@@ -29,10 +29,8 @@ export class SolverSimulationRunner extends WorkerBehavior<SolverSimulationJobCo
             this.postResult(null);
             return;
         }
-        const imported = settings.sets.map(s => this.sheet.importGearSet(s));
 
-        settings.sets = undefined;
-        const [bestDps, bestSet] = await simRunner.simulateSetsAndReturnBest(imported, (n) => this.postUpdate(n));
+        const [bestDps, bestSet] = await simRunner.simulateSetsAndReturnBest(this.sheet, settings.sets, (n) => this.postUpdate(n));
         const result = {
             dps: bestDps,
             set: this.sheet.exportGearSet(bestSet),

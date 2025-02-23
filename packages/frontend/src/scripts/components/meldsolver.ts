@@ -1,5 +1,5 @@
 import {CharacterGearSet} from "@xivgear/core/gear";
-import {SetExport, SimExport} from "@xivgear/xivmath/geartypes";
+import {MicroSetExport, SetExport, SimExport} from "@xivgear/xivmath/geartypes";
 import {SimResult, SimSettings, Simulation} from "@xivgear/core/sims/sim_types";
 import {GearPlanSheet} from "@xivgear/core/sheet";
 import {GearsetGenerationSettings} from "@xivgear/core/solving/gearset_generation";
@@ -68,7 +68,7 @@ export class MeldSolver {
             data: GearsetGenerationSettings.export(gearsetGenSettings, this._sheet),
         };
 
-        let sets: SetExport[] = [];
+        let sets: MicroSetExport[] = [];
 
         const gearGenJob = WORKER_POOL.submitTask<GearsetGenerationJobContext>(gearsetGenRequest, s => sets.push(...s));
         this.jobs.push(gearGenJob);
@@ -81,20 +81,34 @@ export class MeldSolver {
         }
         this.jobs = [];
 
+        // Give GC time to catch up?
+        await new Promise(resolve => setTimeout(resolve, 1_000));
+
         const nSimJobs = WORKER_POOL.maxWorkers;
         const nSetsPerJob = Math.ceil(sets.length / nSimJobs);
         const numSets = sets.length;
+        update(0, numSets);
         let totalSimmed = 0;
         // Split up very large chunks of work, so that we don't get a "long tail" issue where one worker
         // has lagged behind but the other workers have no way of picking up the slack.
+        // Cap at 1000 sets per sub-job
         const numWorkSplits = Math.max(nSimJobs, Math.ceil(numSets / 1_000));
 
         console.log("Solving ", sets.length, " sets");
         console.log("Workers: ", nSimJobs);
         console.log(nSetsPerJob, " per worker");
 
-        for (const _ of range(0, numWorkSplits)) {
+        const solverSimulationSettingsExport = SolverSimulationSettings.export(simSettings);
 
+        let pending = 0;
+
+        for (const _ of range(0, numWorkSplits)) {
+            // await new Promise(resolve => setTimeout(resolve, 500));
+            // Don't bother queueing an unnecessary amount of jobs because the job request is heavy
+            while (pending >= WORKER_POOL.maxWorkers + 2) {
+                // TODO not very good
+                await new Promise(resolve => setTimeout(resolve, 200));
+            }
             let jobSets = sets.splice(sets.length - Math.min(nSetsPerJob, sets.length));
             if (jobSets.length === 0) {
                 break;
@@ -103,17 +117,22 @@ export class MeldSolver {
                 jobType: 'solverSimulation',
                 sheet: this._sheet.exportSheet(),
                 data: {
-                    ...SolverSimulationSettings.export(simSettings, this._sheet),
+                    ...solverSimulationSettingsExport,
                     sets: jobSets,
                 },
             };
-
-            this.jobs.push(WORKER_POOL.submitTask<SolverSimulationJobContext>(simRequest, (numSimmed: number) => {
+            jobSets = undefined;
+            const task = WORKER_POOL.submitTask<SolverSimulationJobContext>(simRequest, (numSimmed: number) => {
                 totalSimmed += numSimmed;
                 update(100 * totalSimmed / numSets, numSets);
-            }));
-            jobSets = undefined;
+            });
+
+            this.jobs.push(task);
+            task.promise.then(() => pending -= 1);
+
+            pending += 1;
         }
+
         sets = undefined;
 
         const allResults: {
@@ -122,7 +141,10 @@ export class MeldSolver {
         }[] = [];
 
         for (const job of this.jobs) {
-            allResults.push(await (job.promise as Promise< {dps: number, set: SetExport }>));
+            allResults.push(await (job.promise as Promise<{
+                dps: number,
+                set: SetExport
+            }>));
         }
 
         allResults.sort((a, b) => {
@@ -130,6 +152,7 @@ export class MeldSolver {
             if (!b) return -1;
             return b.dps - a.dps;
         });
+
         return [this._sheet.importGearSet(allResults.at(0).set), allResults.at(0).dps];
     }
 }

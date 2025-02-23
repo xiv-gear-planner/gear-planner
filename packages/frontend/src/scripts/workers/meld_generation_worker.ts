@@ -1,11 +1,18 @@
-import {SetExport} from "@xivgear/xivmath/geartypes";
+import {
+    EquippedItem,
+    EquipSlotKey,
+    MicroSetExport,
+    MicroSlotExport,
+    RelicStatsExport
+} from "@xivgear/xivmath/geartypes";
 import {GearPlanSheet} from "@xivgear/core/sheet";
 import {GearsetGenerator} from "@xivgear/core/solving/gearset_generation";
 import {DEBUG_FINAL_REGISTRY, JobInfo, WorkerBehavior} from "./worker_common";
 import {CharacterGearSet} from "@xivgear/core/gear";
 import {GearsetGenerationRequest, JobContext} from "@xivgear/core/workers/worker_types";
+import {setToMicroExport} from "@xivgear/core/workers/worker_utils";
 
-export type GearsetGenerationJobContext = JobContext<GearsetGenerationRequest, SetExport[], 'done'>;
+export type GearsetGenerationJobContext = JobContext<GearsetGenerationRequest, MicroSetExport[], 'done'>;
 
 export class GearsetGenerationWorker extends WorkerBehavior<GearsetGenerationJobContext> {
 
@@ -28,10 +35,17 @@ export class GearsetGenerationWorker extends WorkerBehavior<GearsetGenerationJob
 
         const setGenerator = new GearsetGenerator(this.sheet, gearsetGenSettings);
         const genCallback: ((sets: CharacterGearSet[]) => void) = (sets: CharacterGearSet[]) => {
-            const exportedSets: SetExport[] = sets.map(set => this.sheet.exportGearSet(set));
-            this.postUpdate(exportedSets);
+            const exports: MicroSetExport[] = [];
+            sets.forEach(set => {
+                exports.push(setToMicroExport(set));
+            });
+            this.postUpdate(exports);
         };
+
         setGenerator.getMeldPossibilitiesForGearset(gearsetGenSettings, genCallback);
-        this.postResult('done');
+
+        this.postResult(
+            'done'
+        );
     }
 }

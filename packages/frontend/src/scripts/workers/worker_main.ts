@@ -63,6 +63,7 @@ onmessage = async function (event) {
         }
     }
     catch (e) {
+        console.error("Error in worker", e);
         postMsg({
             jobId: jobId,
             res: {

@@ -3,9 +3,14 @@ import {SETTINGS} from "@xivgear/common-ui/settings/persistent_settings";
 import {
     AnyJobContext,
     InitializationRequest,
-    JobUpdateCallback, MainToWorkerMessage, PingRequest, RequestTypeOf,
-    ResponseTypeOf, UpdateTypeOf,
-    WorkerStatus, WorkerToMainMessage,
+    JobUpdateCallback,
+    MainToWorkerMessage,
+    PingRequest,
+    RequestTypeOf,
+    ResponseTypeOf,
+    UpdateTypeOf,
+    WorkerStatus,
+    WorkerToMainMessage,
     WorkRequestInternal
 } from "@xivgear/core/workers/worker_types";
 import {PingContext} from "./ping_worker";
@@ -79,6 +84,12 @@ class SheetWorker {
         return this.status === 'initializing';
     }
 
+    /**
+     * Start work on this worker.
+     *
+     * @param request The work request
+     * @param isInitializer True if this is an initializer, false if this is a real workload.
+     */
     startWork(request: WorkRequestInternal<AnyJobContext>, isInitializer: boolean = false) {
         if (!this.isFree && !isInitializer) {
             throw new Error(`Cannot assign work to worker when it is not ready (state '${this.status}')`);

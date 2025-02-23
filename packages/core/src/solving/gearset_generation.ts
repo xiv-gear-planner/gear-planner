@@ -1,4 +1,5 @@
 import {
+    ComputedSetStats,
     EquipmentSet,
     EquippedItem,
     EquipSlots,
@@ -64,6 +65,14 @@ class EquipmentSetWithStats {
     }
 }
 
+function getRotationCacheKey(stats: ComputedSetStats): string {
+    const sps = stats.spellspeed;
+    const sks = stats.skillspeed;
+    const wdly = stats.weaponDelay;
+    // TODO: other sims have their own cache key, so take that into account?
+    return [sps, sks, wdly].join(";");
+}
+
 /**
  * Produces possible gearsets for solving
  */
@@ -82,6 +91,7 @@ export class GearsetGenerator {
 
     getMeldPossibilitiesForGearset(settings: GearsetGenerationSettings, genCallback: ((sets: CharacterGearSet[]) => void)): void {
 
+        console.log("Meld generator: Init");
         const levelStats = settings.gearset.computedStats.levelStats;
         const override = this._sheet.classJobStats.gcdDisplayOverrides?.(this._sheet.level) ?? [];
         const useSks = settings.gearset.isStatRelevant('skillspeed');
@@ -104,17 +114,22 @@ export class GearsetGenerator {
         let possibleMeldCombinations = new Map<string, EquipmentSetWithStats>();
         const baseEquipSet = new EquipmentSetWithStats(new EquipmentSet, new RawStats);
 
+        console.log("Meld generator: Phase 1");
+
         // Generate these first to avoid re-doing them. Also saves memory by letting our EquipmentSets shallow copy EquippedItems which all reside in here.
         const allIndividualGearPieces: Map<string, Set<ItemWithStats>> = new Map<string, Set<ItemWithStats>>();
         for (const slotKey of EquipSlots) {
             if (equipment[slotKey] === null || equipment[slotKey] === undefined) continue;
 
+            console.log(`Meld generator: generating combinations for ${slotKey}`);
             const pieceCombinations = this.getAllMeldCombinationsForGearItem(equipment[slotKey]);
+            console.log(`Meld generator: ${pieceCombinations.size} combinations for ${slotKey}`);
             allIndividualGearPieces.set(slotKey, pieceCombinations);
         }
 
         possibleMeldCombinations.set(this.statsToString(baseEquipSet.stats, this.relevantStats), baseEquipSet);
 
+        console.log("Meld generation: Phase 2");
         /**
          * Basic Algorithm (here n = number of equipment slots filled)
          * n = 0: Return all melds for 0th gear slot
@@ -155,7 +170,9 @@ export class GearsetGenerator {
 
             possibleMeldCombinations = newGearsets;
         }
+        console.log(`Meld generation: Phase 2 found ${possibleMeldCombinations.size} combinations`);
 
+        console.log("Meld generation: Phase 3");
         const gcdMap = new Map<string, CharacterGearSet[]>();
         for (const combination of possibleMeldCombinations.values()) {
 
@@ -175,11 +192,7 @@ export class GearsetGenerator {
             }
 
             const stats = newGearset.computedStats;
-            const sps = stats.spellspeed;
-            const sks = stats.skillspeed;
-            const wdly = stats.weaponDelay;
-            // TODO: other sims have their own cache key, so take that into account?
-            const cacheKey = [sps, sks, wdly].join(";");
+            const cacheKey = getRotationCacheKey(stats);
             const existing = gcdMap.get(cacheKey);
             if (existing !== undefined) {
                 existing.push(newGearset);
@@ -189,15 +202,12 @@ export class GearsetGenerator {
             }
         }
 
+        console.log("Meld generation: Phase 4");
         // Push them in rough order of GCD so that rotation caching works well
-        // const generatedGearsets: CharacterGearSet[] = [];
         gcdMap.forEach((sets) => {
             genCallback(sets);
-            // generatedGearsets.push(...sets);
-            sets.splice(0, sets.length);
+            sets.length = 0;
         });
-
-        // return generatedGearsets;
     }
 
     public getAllMeldCombinationsForGearItem(equippedItem: EquippedItem): Set<ItemWithStats> | null {
