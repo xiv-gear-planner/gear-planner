@@ -2,10 +2,13 @@ import {CharacterGearSet} from "@xivgear/core/gear";
 import {SetExport, SimExport} from "@xivgear/xivmath/geartypes";
 import {SimResult, SimSettings, Simulation} from "@xivgear/core/sims/sim_types";
 import {GearPlanSheet} from "@xivgear/core/sheet";
-import {GearsetGenerationRequest, SolverSimulationRequest, WORKER_POOL} from "../workers/worker_pool";
 import {GearsetGenerationSettings} from "@xivgear/core/solving/gearset_generation";
 import {SolverSimulationSettings} from "@xivgear/core/solving/sim_runner";
 import {range} from "@xivgear/core/util/array_utils";
+import {WORKER_POOL} from "../workers/worker_pool";
+import {GearsetGenerationRequest, SolverSimulationRequest} from "@xivgear/core/workers/worker_types";
+import {GearsetGenerationJobContext} from "../workers/meld_generation_worker";
+import {SolverSimulationJobContext} from "../workers/simulation_worker";
 
 export class MeldSolverSettings {
     sim: Simulation<SimResult, SimSettings, unknown>;
@@ -65,13 +68,14 @@ export class MeldSolver {
             data: GearsetGenerationSettings.export(gearsetGenSettings, this._sheet),
         };
 
-        const gearGenJob = WORKER_POOL.submitTask(gearsetGenRequest);
-        this.jobs.push(gearGenJob);
+        let sets: SetExport[] = [];
 
+        const gearGenJob = WORKER_POOL.submitTask<GearsetGenerationJobContext>(gearsetGenRequest, s => sets.push(...s));
+        this.jobs.push(gearGenJob);
+        await gearGenJob.promise;
         // This will return gear sets "loosely ordered", where they are broken into buckets based on
         // the usual cycle sim cache key (weapon delay + sks + sps). Each bucket is placed contiguously
         // into the list, but there is no guarantee of ordering of the buckets.
-        let sets: SetExport[] = await (gearGenJob.promise as Promise<SetExport[]>);
         if (sets.length === 0) {
             return [undefined, undefined];
         }
@@ -104,7 +108,7 @@ export class MeldSolver {
                 },
             };
 
-            this.jobs.push(WORKER_POOL.submitTask(simRequest, (numSimmed: number) => {
+            this.jobs.push(WORKER_POOL.submitTask<SolverSimulationJobContext>(simRequest, (numSimmed: number) => {
                 totalSimmed += numSimmed;
                 update(100 * totalSimmed / numSets, numSets);
             }));

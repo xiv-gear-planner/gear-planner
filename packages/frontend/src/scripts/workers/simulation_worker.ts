@@ -2,7 +2,7 @@ import {GearPlanSheet} from "@xivgear/core/sheet";
 import {SimRunner} from "@xivgear/core/solving/sim_runner";
 import {SetExport} from "@xivgear/xivmath/geartypes";
 import {JobInfo, WorkerBehavior} from "./worker_common";
-import {JobContext, SolverSimulationRequest} from "./worker_pool";
+import {JobContext, SolverSimulationRequest} from "@xivgear/core/workers/worker_types";
 
 export type SolverSimulationResult = {
     dps: number;

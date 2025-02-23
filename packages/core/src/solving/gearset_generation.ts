@@ -80,7 +80,7 @@ export class GearsetGenerator {
         this.relevantStats = ALL_SUB_STATS.filter(stat => this._sheet.isStatRelevant(stat) && stat !== 'piety');
     }
 
-    getMeldPossibilitiesForGearset(settings: GearsetGenerationSettings): CharacterGearSet[] {
+    getMeldPossibilitiesForGearset(settings: GearsetGenerationSettings, genCallback: ((sets: CharacterGearSet[]) => void)): void {
 
         const levelStats = settings.gearset.computedStats.levelStats;
         const override = this._sheet.classJobStats.gcdDisplayOverrides?.(this._sheet.level) ?? [];
@@ -189,13 +189,15 @@ export class GearsetGenerator {
             }
         }
 
-        // Push them in rough order of GCD
-        const generatedGearsets: CharacterGearSet[] = [];
+        // Push them in rough order of GCD so that rotation caching works well
+        // const generatedGearsets: CharacterGearSet[] = [];
         gcdMap.forEach((sets) => {
-            generatedGearsets.push(...sets);
+            genCallback(sets);
+            // generatedGearsets.push(...sets);
+            sets.splice(0, sets.length);
         });
 
-        return generatedGearsets;
+        // return generatedGearsets;
     }
 
     public getAllMeldCombinationsForGearItem(equippedItem: EquippedItem): Set<ItemWithStats> | null {

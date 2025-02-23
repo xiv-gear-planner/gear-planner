@@ -1,11 +1,16 @@
 import {HEADLESS_SHEET_PROVIDER} from "@xivgear/core/sheet";
 import {registerDefaultSims} from "@xivgear/core/sims/default_sims";
 import {GearsetGenerationWorker} from "./meld_generation_worker";
-import {AnyWorkRequest, AnyWorkResponse, MainToWorkerMessage, WorkerToMainMessage} from "./worker_pool";
 import {SolverSimulationRunner} from "./simulation_worker";
 import {makeDataManager} from "@xivgear/core/datamanager";
 import {JobInfo, postMsg} from "./worker_common";
 import {PingWorker} from "./ping_worker";
+import {
+    AnyJobContext,
+    AnyWorkRequest,
+    MainToWorkerMessage,
+    WorkerToMainMessage, WorkResponseDone
+} from "@xivgear/core/workers/worker_types";
 
 registerDefaultSims();
 let dataManager = null;
@@ -23,14 +28,14 @@ onmessage = async function (event) {
             dataManager = makeDataManager(sheet.classJobName, sheet.level, sheet.ilvlSync);
             await dataManager.loadData();
 
-            const response: AnyWorkResponse = {
+            const response: WorkResponseDone<AnyJobContext> = {
                 responseType: "done",
                 data: null,
             };
             this.postMessage({
                 res: response,
                 jobId: jobId,
-            } satisfies WorkerToMainMessage);
+            } satisfies WorkerToMainMessage<AnyJobContext>);
             return;
         }
 
