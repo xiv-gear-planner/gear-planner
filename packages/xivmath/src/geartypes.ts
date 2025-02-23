@@ -1086,7 +1086,8 @@ export class EquippedItem {
  * needed for brute force solving. This is useful for reducing memory usage.
  */
 export type MicroSetExport = {
-    slots: MicroSlotExport[]
+    slots: MicroSlotExport[],
+    foodId: number | null,
 }
 
 export type MicroSlotExport = [slot: EquipSlotKey, itemId: number, materiaIds: (number | null)[], relicStats: RelicStatsExport | null];

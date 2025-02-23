@@ -179,8 +179,11 @@ export class GearsetGenerator {
             const newGearset: CharacterGearSet = new CharacterGearSet(this._sheet);
             newGearset.food = settings.gearset.food;
             newGearset.equipment = combination.set;
-            if (newGearset.equipment.Weapon) {
-                newGearset.equipment.Weapon.relicStats = settings.gearset.equipment.Weapon.relicStats ?? undefined;
+
+            for (const slotKey of EquipSlots) {
+                if (settings.gearset.equipment[slotKey]?.gearItem?.isCustomRelic) {
+                    newGearset.equipment[slotKey].relicStats = settings.gearset.equipment[slotKey].relicStats ?? undefined;
+                }
             }
 
             newGearset.forceRecalc();

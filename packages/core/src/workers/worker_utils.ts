@@ -29,21 +29,24 @@ export function setToMicroExport(set: CharacterGearSet): MicroSetExport {
     }
     return {
         slots: slots,
+        foodId: set.food?.id ?? null,
     };
 }
 
 export function microExportToFullExport(s: MicroSetExport): SetExport {
-    const fakeItemsImport: Partial<ItemsSlotsExport> = {};
+    const fakeItemsImport: ItemsSlotsExport = {};
     s.slots.forEach(s => {
         const slotName = s[0];
+        const relicStuff = s[3];
         fakeItemsImport[slotName] = {
             id: s[1],
             materia: s[2].map(m => ({id: m ?? -1})),
-            relicStats: s[3] ?? undefined,
+            relicStats: relicStuff ?? undefined,
         };
     });
     return {
         items: fakeItemsImport,
+        food: s.foodId ?? undefined,
         name: "",
     };
 }
