@@ -1,10 +1,4 @@
-import {
-    EquippedItem,
-    EquipSlotKey,
-    MicroSetExport,
-    MicroSlotExport,
-    RelicStatsExport
-} from "@xivgear/xivmath/geartypes";
+import {MicroSetExport} from "@xivgear/xivmath/geartypes";
 import {GearPlanSheet} from "@xivgear/core/sheet";
 import {GearsetGenerator} from "@xivgear/core/solving/gearset_generation";
 import {DEBUG_FINAL_REGISTRY, JobInfo, WorkerBehavior} from "./worker_common";
