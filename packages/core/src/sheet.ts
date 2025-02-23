@@ -383,7 +383,7 @@ export class GearPlanSheet {
      * @param ilvlSync New ilvl sync. Leave unspecified or use special value 'keep' to keep existing ilvl sync.
      * @returns The saveKey of the new sheet.
      */
-    saveAs(name?: string, job?: JobName, level?: SupportedLevel, ilvlSync: number | 'keep' = 'keep'): string {
+    saveAs(name: string, job: JobName, level: SupportedLevel, ilvlSync: number | 'keep' | undefined): string {
         const exported = this.exportSheet(true);
         if (name !== undefined) {
             exported.name = name;
