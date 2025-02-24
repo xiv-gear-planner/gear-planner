@@ -96,11 +96,12 @@ class SheetWorker {
         }
         this._status = isInitializer ? 'initializing' : 'processing';
         this._activeWorkRequest = request;
-        console.debug(`${this.name}: startWork for ${request.workerMessage.jobType}`);
         this.post({
             jobId: request.jobId,
             req: request.workerMessage,
         });
+        // Don't retain unnecessary memory
+        request.workerMessage = null;
     }
 
     post(msg: MainToWorkerMessage) {
@@ -108,7 +109,6 @@ class SheetWorker {
     }
 
     async setSheet(sheet: GearPlanSheet): Promise<void> {
-        console.debug(`${this.name}: setSheet`);
         this.reset();
         const innerReq: InitializationRequest = {
             sheet: sheet.exportSheet(),
@@ -122,11 +122,8 @@ class SheetWorker {
 
     private onMessage(event: MessageEvent) {
 
-        console.debug(`${this.name}: onMessage`);
-        // TODO: move jobId somewhere
         const msg = event.data as WorkerToMainMessage<AnyJobContext>;
         const response = msg.res;
-        console.debug(`response type: ${response.responseType}`);
 
         if (this._activeWorkRequest === null || this._activeWorkRequest?.jobId !== msg.jobId) {
             // Job was already re-assigned, ignore result
@@ -154,20 +151,17 @@ class SheetWorker {
     }
 
     private jobDone() {
-        console.debug(`${this.name}: jobDone`);
         this._status = 'idle';
         this._activeWorkRequest = null;
         this.readyCallback();
     }
 
     private onError(_event: ErrorEvent) {
-        console.debug(`${this.name}: onError`);
         this._activeWorkRequest.promiseControl.reject(_event ?? null);
         this.jobDone();
     }
 
     private reset() {
-        console.debug(`${this.name}: reset`);
         this._status = 'uninitialized';
         if (this._activeWorkRequest !== null) {
             this._activeWorkRequest.promiseControl.reject("worker reset");

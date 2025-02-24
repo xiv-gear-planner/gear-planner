@@ -348,7 +348,7 @@ export class GearPlanSheet {
             localStorage.setItem(this.saveKey, JSON.stringify(fullExport));
         }
         else {
-            console.info("Ignoring request to save sheet because it has no save key");
+            console.debug("Ignoring request to save sheet because it has no save key");
         }
     }
 

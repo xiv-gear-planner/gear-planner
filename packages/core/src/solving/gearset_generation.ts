@@ -155,7 +155,8 @@ export class GearsetGenerator {
                     const gcd = useSks ? sksToGcd(NORMAL_GCD, levelStats, setStatsWithPiece['skillspeed'], haste)
                         : spsToGcd(NORMAL_GCD, levelStats, setStatsWithPiece['spellspeed'], haste);
 
-                    // Exclude anything that is already past our target GCD, because there's no anti-sks that will slow the set down to target
+                    // Don't put in duplicates in terms of stats.
+                    // Also exclude anything that is already past our target GCD, because there's no anti-sks that will slow the set down to target.
                     if (!newGearsets.has(setPlusNewPieceKey)
                         && (!settings.useTargetGcd || gcd >= settings.targetGcd)) {
 
@@ -284,7 +285,8 @@ export class GearsetGenerator {
     statsToString(stats: RawStats, relevantStats: MateriaSubstat[]): string {
         let result = "";
         for (const statKey of relevantStats) {
-            result += stats[statKey].toString() + ',';
+            // Use semicolon to avoid potential number formatting localization issues
+            result += stats[statKey].toString() + ';';
         }
 
         return result;

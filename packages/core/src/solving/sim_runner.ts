@@ -73,6 +73,7 @@ export class SimRunner<SimType extends Simulation<SimResult, unknown, unknown>> 
                 numSetsProcessed = 0;
             }
         }
+        update(numSetsProcessed);
 
         return [bestDps, bestSet];
     }

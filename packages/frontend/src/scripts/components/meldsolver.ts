@@ -4,7 +4,6 @@ import {SimResult, SimSettings, Simulation} from "@xivgear/core/sims/sim_types";
 import {GearPlanSheet} from "@xivgear/core/sheet";
 import {GearsetGenerationSettings} from "@xivgear/core/solving/gearset_generation";
 import {SolverSimulationSettings} from "@xivgear/core/solving/sim_runner";
-import {range} from "@xivgear/core/util/array_utils";
 import {WORKER_POOL} from "../workers/worker_pool";
 import {GearsetGenerationRequest, SolverSimulationRequest} from "@xivgear/core/workers/worker_types";
 import {GearsetGenerationJobContext} from "../workers/meld_generation_worker";
@@ -30,6 +29,7 @@ export class MeldSolverSettingsExport {
     targetGcd?: number;
 }
 
+let pending = 0;
 /**
  * Represents a **Single Instance** of meld solvin
  */
@@ -68,7 +68,7 @@ export class MeldSolver {
             data: GearsetGenerationSettings.export(gearsetGenSettings, this._sheet),
         };
 
-        let sets: MicroSetExport[] = [];
+        const sets: MicroSetExport[] = [];
 
         const gearGenJob = WORKER_POOL.submitTask<GearsetGenerationJobContext>(gearsetGenRequest, s => sets.push(...s));
         this.jobs.push(gearGenJob);
@@ -81,34 +81,35 @@ export class MeldSolver {
         }
         this.jobs = [];
 
-        // Give GC time to catch up?
-        await new Promise(resolve => setTimeout(resolve, 1_000));
-
-        const nSimJobs = WORKER_POOL.maxWorkers;
-        const nSetsPerJob = Math.ceil(sets.length / nSimJobs);
+        const maxWorkers = WORKER_POOL.maxWorkers;
         const numSets = sets.length;
-        update(0, numSets);
-        let totalSimmed = 0;
         // Split up very large chunks of work, so that we don't get a "long tail" issue where one worker
         // has lagged behind but the other workers have no way of picking up the slack.
-        // Cap at 1000 sets per sub-job
-        const numWorkSplits = Math.max(nSimJobs, Math.ceil(numSets / 1_000));
+        // Cap at 5000 sets per sub-job
+        const numWorkSplits = Math.max(maxWorkers, Math.ceil(numSets / 1_000));
+        const nSetsPerJob = Math.ceil(sets.length / numWorkSplits);
+        update(0, numSets);
+        let totalSimmed = 0;
 
-        console.log("Solving ", sets.length, " sets");
-        console.log("Workers: ", nSimJobs);
-        console.log(nSetsPerJob, " per worker");
+        // Give GC time to catch up, also gives the UI a chance to update
+        await new Promise(resolve => setTimeout(resolve, 1_000));
+
+        console.log(`Solving ${sets.length} sets`);
+        console.log(`Workers: ${maxWorkers}`);
+        console.log(`${nSetsPerJob} per worker`);
 
         const solverSimulationSettingsExport = SolverSimulationSettings.export(simSettings);
 
-        let pending = 0;
+        pending = 0;
 
-        for (const _ of range(0, numWorkSplits)) {
+        while (sets.length > 0) {
             // await new Promise(resolve => setTimeout(resolve, 500));
             // Don't bother queueing an unnecessary amount of jobs because the job request is heavy
             while (pending >= WORKER_POOL.maxWorkers + 2) {
                 // TODO not very good
-                await new Promise(resolve => setTimeout(resolve, 200));
+                await new Promise(resolve => setTimeout(resolve, 100));
             }
+            // Take from the end of the list, modifying in place
             let jobSets = sets.splice(sets.length - Math.min(nSetsPerJob, sets.length));
             if (jobSets.length === 0) {
                 break;
@@ -128,12 +129,15 @@ export class MeldSolver {
             });
 
             this.jobs.push(task);
-            task.promise.then(() => pending -= 1);
+            task.promise.then(() => {
+                // Small delay to let GC catch up
+                setTimeout(() => {
+                    pending -= 1;
+                }, 200);
+            });
 
             pending += 1;
         }
-
-        sets = undefined;
 
         const allResults: {
             dps: number,
@@ -145,6 +149,13 @@ export class MeldSolver {
                 dps: number,
                 set: SetExport
             }>));
+        }
+
+        if (totalSimmed !== numSets) {
+            console.log(`MISMATCH: Simmed ${totalSimmed} / ${numSets} sets`);
+        }
+        else {
+            console.log(`Simmed ${totalSimmed} sets`);
         }
 
         allResults.sort((a, b) => {
