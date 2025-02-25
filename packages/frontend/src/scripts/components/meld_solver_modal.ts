@@ -56,18 +56,56 @@ export class MeldSolverDialog extends BaseModal {
             const meldSolveStart: number = Date.now();
             this.buttonArea.removeChild(this.solveMeldsButton);
             this.showProgress();
+            this.progressDisplay.loadbar.updateProgress(0);
 
             let displayedSimText: boolean = false;
             const solverPromise = this.solver.solveMelds(
                 this.settingsDiv.gearsetGenSettings,
                 this.settingsDiv.simSettings,
-                (percentage: number, total: number) => {
-                    this.progressDisplay.loadbar.updateProgress(percentage);
-                    // Don't re-render this unnecessarily
-                    if (!displayedSimText) {
-                        this.progressDisplay.text.textContent = `Simulating ${total} sets...`;
-                        displayedSimText = true;
+                update => {
+                    if ('done' in update) {
+                        const percentage = 100.0 * update.done / update.total;
+                        this.progressDisplay.loadbar.updateProgress(percentage);
+                        // Don't re-render this unnecessarily
+                        if (!displayedSimText) {
+                            this.progressDisplay.text.textContent = `Simulating ${update.total} sets...`;
+                            displayedSimText = true;
+                        }
                     }
+                    else {
+                        let out: string;
+                        switch (update.phase) {
+                            case 0:
+                                out = "Initializing...";
+                                break;
+                            case 1:
+                                out = "Generating Piece Combinations...";
+                                break;
+                            case 2:
+                                if ("subPhase" in update) {
+                                    out = `Generating Sets - Slot ${update.subPhase.phase} / ${update.subPhase.phaseMax}... ${update.count} so far`;
+                                }
+                                else {
+                                    out = `Generating Sets... ${update.count} so far`;
+                                }
+                                break;
+                            case 3:
+                                if ("subPhase" in update) {
+                                    out = `Sorting ${update.subPhase.phase} / ${update.subPhase.phaseMax} Sets...`;
+                                }
+                                else {
+                                    out = `Sorting ${update.count} Sets...`;
+                                }
+                                break;
+                            case 4:
+                                out = `Finalizing ${update.count} Sets (${update.subPhase.phase} / ${update.subPhase.phaseMax})...`;
+                                break;
+                            default:
+                                return;
+                        }
+                        this.progressDisplay.text.textContent = out;
+                    }
+
                 });
             solverPromise.then(([set, dps]) => this.solveResultReceived(set, dps)).catch(err => console.error(err));
             const timeTaken = Date.now() - (meldSolveStart);
@@ -128,7 +166,7 @@ export class MeldSolverDialog extends BaseModal {
         this.closeButton.disabled = true;
         this.settingsDiv.setEnabled(false);
 
-        this.progressDisplay = new MeldSolverProgressDisplay;
+        this.progressDisplay = new MeldSolverProgressDisplay();
         this.form.replaceChildren(this.progressDisplay);
         this.addButton(this.cancelButton);
     }

@@ -69,6 +69,9 @@ class SheetWorker {
     terminate(): void {
         console.log(`${this.name}: Worker terminating - current status is '${this.status}'`);
         this._status = 'terminated';
+        if (this._activeWorkRequest !== null) {
+            this._activeWorkRequest.promiseControl.reject("worker terminated");
+        }
         this.worker.terminate();
     }
 
@@ -319,7 +322,15 @@ export class WorkerPool {
         await Promise.all(promises);
     }
 
-    public async cancelJob(id: number) {
+    public cancelJob(id: number) {
+        for (let i = 0; i < this.messageQueue.length; i++) {
+            const msg = this.messageQueue[i];
+            if (msg.jobId === id) {
+                this.messageQueue.splice(i, 1);
+                msg.promiseControl.reject("job canceled");
+                return;
+            }
+        }
         for (const wrk of this.workers) {
             if (wrk.activeJobId === id) {
                 wrk.terminate();

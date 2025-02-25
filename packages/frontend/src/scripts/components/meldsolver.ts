@@ -6,8 +6,12 @@ import {GearsetGenerationSettings} from "@xivgear/core/solving/gearset_generatio
 import {SolverSimulationSettings} from "@xivgear/core/solving/sim_runner";
 import {WORKER_POOL} from "../workers/worker_pool";
 import {GearsetGenerationRequest, SolverSimulationRequest} from "@xivgear/core/workers/worker_types";
-import {GearsetGenerationJobContext} from "../workers/meld_generation_worker";
 import {SolverSimulationJobContext} from "../workers/simulation_worker";
+import {
+    GearsetGenerationJobContext,
+    GearsetGenerationStatusUpdate,
+    MeldSolvingStatusUpdate
+} from "@xivgear/core/solving/types";
 
 export class MeldSolverSettings {
     sim: Simulation<SimResult, SimSettings, unknown>;
@@ -30,6 +34,7 @@ export class MeldSolverSettingsExport {
 }
 
 let pending = 0;
+
 /**
  * Represents a **Single Instance** of meld solvin
  */
@@ -46,17 +51,16 @@ export class MeldSolver {
     }
 
     public async cancel() {
-        const promises = [];
         for (const job of this.jobs) {
-            promises.push(WORKER_POOL.cancelJob(job.jobId));
+            WORKER_POOL.cancelJob(job.jobId);
         }
-        await Promise.all(promises);
     }
 
     public async solveMelds(
         gearsetGenSettings: GearsetGenerationSettings,
         simSettings: SolverSimulationSettings,
-        update: (percentage: unknown, total: number) => void): Promise<[CharacterGearSet, number]> {
+        update: (update: GearsetGenerationStatusUpdate | MeldSolvingStatusUpdate) => void
+    ): Promise<[CharacterGearSet, number]> {
 
         if (!simSettings) {
             return null;
@@ -70,7 +74,19 @@ export class MeldSolver {
 
         const sets: MicroSetExport[] = [];
 
-        const gearGenJob = WORKER_POOL.submitTask<GearsetGenerationJobContext>(gearsetGenRequest, s => sets.push(...s));
+        const gearGenJob = WORKER_POOL.submitTask<GearsetGenerationJobContext>(gearsetGenRequest, s => {
+            if (s.type === 'sets') {
+                for (let i = 0; i < s.sets.length; i++) {
+                    sets.push(s.sets[i]);
+                }
+            }
+            else if (s.type === 'status') {
+                update(s);
+            }
+            else {
+                console.warn(`Unknown update type: ${s['type']}`);
+            }
+        });
         this.jobs.push(gearGenJob);
         await gearGenJob.promise;
         // This will return gear sets "loosely ordered", where they are broken into buckets based on
@@ -88,7 +104,10 @@ export class MeldSolver {
         // Cap at 5000 sets per sub-job
         const numWorkSplits = Math.max(maxWorkers, Math.ceil(numSets / 1_000));
         const nSetsPerJob = Math.ceil(sets.length / numWorkSplits);
-        update(0, numSets);
+        update({
+            done: 0,
+            total: numSets,
+        });
         let totalSimmed = 0;
 
         // Give GC time to catch up, also gives the UI a chance to update
@@ -125,7 +144,10 @@ export class MeldSolver {
             jobSets = undefined;
             const task = WORKER_POOL.submitTask<SolverSimulationJobContext>(simRequest, (numSimmed: number) => {
                 totalSimmed += numSimmed;
-                update(100 * totalSimmed / numSets, numSets);
+                update({
+                    done: totalSimmed,
+                    total: numSets,
+                });
             });
 
             this.jobs.push(task);
@@ -133,7 +155,7 @@ export class MeldSolver {
                 // Small delay to let GC catch up
                 setTimeout(() => {
                     pending -= 1;
-                }, 200);
+                }, 500);
             });
 
             pending += 1;

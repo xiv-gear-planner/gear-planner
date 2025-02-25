@@ -2,8 +2,10 @@ import {
     ComputedSetStats,
     EquipmentSet,
     EquippedItem,
+    EquipSlotKey,
     EquipSlots,
     MeldableMateriaSlot,
+    MicroSetExport,
     RawStats,
     SetExport
 } from "@xivgear/xivmath/geartypes";
@@ -16,6 +18,9 @@ import {
 import {sksToGcd, spsToGcd} from "@xivgear/xivmath/xivmath";
 import {CharacterGearSet} from "../gear";
 import {GearPlanSheet} from "../sheet";
+import {GearsetGenerationStatusUpdate} from "./types";
+import {setToMicroExport} from "../workers/worker_utils";
+
 
 export class GearsetGenerationSettings {
     gearset: CharacterGearSet;
@@ -65,13 +70,18 @@ class EquipmentSetWithStats {
     }
 }
 
-function getRotationCacheKey(stats: ComputedSetStats): string {
+function getRotationCacheKey(stats: ComputedSetStats): RotationCacheKey {
     const sps = stats.spellspeed;
     const sks = stats.skillspeed;
     const wdly = stats.weaponDelay;
-    // TODO: other sims have their own cache key, so take that into account?
-    return [sps, sks, wdly].join(";");
+    // Supports up to 26.2144s weapon delay, 65536 sks, 65536 sps while staying in 50 bits (53 bits is safe for JS integers)
+    // Floor just in case a 5th digit somehow got in there
+    // Can't use << because for some reason it converts to int32 first
+    return sps * Math.pow(2, 34) + sks * Math.pow(2, 18) + Math.floor(wdly * 10_000);
 }
+
+type AllStatDedupKey = string;
+type RotationCacheKey = number;
 
 /**
  * Produces possible gearsets for solving
@@ -89,9 +99,13 @@ export class GearsetGenerator {
         this.relevantStats = ALL_SUB_STATS.filter(stat => this._sheet.isStatRelevant(stat) && stat !== 'piety');
     }
 
-    getMeldPossibilitiesForGearset(settings: GearsetGenerationSettings, genCallback: ((sets: CharacterGearSet[]) => void)): void {
+    async getMeldPossibilitiesForGearset(settings: GearsetGenerationSettings, genCallback: (sets: MicroSetExport[]) => void, statusCallback: (update: Omit<GearsetGenerationStatusUpdate, "type">) => void): Promise<void> {
 
         console.log("Meld generator: Init");
+        statusCallback({
+            phase: 0,
+            count: 0,
+        });
         const levelStats = settings.gearset.computedStats.levelStats;
         const override = this._sheet.classJobStats.gcdDisplayOverrides?.(this._sheet.level) ?? [];
         const useSks = settings.gearset.isStatRelevant('skillspeed');
@@ -111,13 +125,17 @@ export class GearsetGenerator {
             }
         }
 
-        let possibleMeldCombinations = new Map<string, EquipmentSetWithStats>();
+        let possibleMeldCombinations = new Map<AllStatDedupKey, EquipmentSetWithStats>();
         const baseEquipSet = new EquipmentSetWithStats(new EquipmentSet, new RawStats);
 
         console.log("Meld generator: Phase 1");
+        statusCallback({
+            phase: 1,
+            count: 0,
+        });
 
         // Generate these first to avoid re-doing them. Also saves memory by letting our EquipmentSets shallow copy EquippedItems which all reside in here.
-        const allIndividualGearPieces: Map<string, Set<ItemWithStats>> = new Map<string, Set<ItemWithStats>>();
+        const allIndividualGearPieces: Map<EquipSlotKey, Set<ItemWithStats>> = new Map<EquipSlotKey, Set<ItemWithStats>>();
         for (const slotKey of EquipSlots) {
             if (equipment[slotKey] === null || equipment[slotKey] === undefined) continue;
 
@@ -127,9 +145,13 @@ export class GearsetGenerator {
             allIndividualGearPieces.set(slotKey, pieceCombinations);
         }
 
-        possibleMeldCombinations.set(this.statsToString(baseEquipSet.stats, this.relevantStats), baseEquipSet);
+        possibleMeldCombinations.set(this.statsToKey(baseEquipSet.stats), baseEquipSet);
 
         console.log("Meld generation: Phase 2");
+        statusCallback({
+            phase: 2,
+            count: 0,
+        });
         /**
          * Basic Algorithm (here n = number of equipment slots filled)
          * n = 0: Return all melds for 0th gear slot
@@ -140,17 +162,27 @@ export class GearsetGenerator {
          * It may be better than O(m^11) if discarding duplicate/worse sets improves the complexity. idk
          * This code is very hot.
          */
-        for (const slotKey of EquipSlots) {
+        for (let i = 0; i < EquipSlots.length; i++) {
+            const slotKey = EquipSlots[i];
 
             if (equipment[slotKey] === null || equipment[slotKey] === undefined) continue;
 
-            const newGearsets = new Map<string, EquipmentSetWithStats>();
+            statusCallback({
+                phase: 2,
+                count: possibleMeldCombinations.size,
+                subPhase: {
+                    phase: i,
+                    phaseMax: EquipSlots.length,
+                },
+            });
+
+            const newGearsets = new Map<AllStatDedupKey, EquipmentSetWithStats>();
             for (const currSet of possibleMeldCombinations.values()) {
 
                 for (const currPiece of allIndividualGearPieces.get(slotKey).values()) {
 
-                    const setStatsWithPiece = this.addStats(Object.assign({}, currSet.stats), currPiece.stats);
-                    const setPlusNewPieceKey = this.statsToString(setStatsWithPiece, this.relevantStats);
+                    const setStatsWithPiece = this.addStats({...currSet.stats}, currPiece.stats);
+                    const setPlusNewPieceKey = this.statsToKey(setStatsWithPiece);
 
                     const gcd = useSks ? sksToGcd(NORMAL_GCD, levelStats, setStatsWithPiece['skillspeed'], haste)
                         : spsToGcd(NORMAL_GCD, levelStats, setStatsWithPiece['spellspeed'], haste);
@@ -173,9 +205,28 @@ export class GearsetGenerator {
         }
         console.log(`Meld generation: Phase 2 found ${possibleMeldCombinations.size} combinations`);
 
+        statusCallback({
+            phase: 3,
+            count: possibleMeldCombinations.size,
+        });
         console.log("Meld generation: Phase 3");
-        const gcdMap = new Map<string, CharacterGearSet[]>();
-        for (const combination of possibleMeldCombinations.values()) {
+        const gcdMap = new Map<RotationCacheKey, MicroSetExport[]>();
+        let count = 0;
+        let lastReported = 0;
+        const total = possibleMeldCombinations.size;
+        for (const [key, combination] of possibleMeldCombinations) {
+            if (count - lastReported >= 10_000) {
+                statusCallback({
+                    phase: 3,
+                    count: total,
+                    subPhase: {
+                        phase: count,
+                        phaseMax: total,
+                    },
+                });
+                lastReported = count;
+            }
+            count++;
 
             const newGearset: CharacterGearSet = new CharacterGearSet(this._sheet);
             newGearset.food = settings.gearset.food;
@@ -199,26 +250,50 @@ export class GearsetGenerator {
             const cacheKey = getRotationCacheKey(stats);
             const existing = gcdMap.get(cacheKey);
             if (existing !== undefined) {
-                existing.push(newGearset);
+                existing.push(setToMicroExport(newGearset));
             }
             else {
-                gcdMap.set(cacheKey, [newGearset]);
+                gcdMap.set(cacheKey, [setToMicroExport(newGearset)]);
             }
+            possibleMeldCombinations.delete(key);
         }
 
+        const gcdMapSize = gcdMap.size;
+        statusCallback({
+            phase: 4,
+            count: total,
+            subPhase: {
+                phase: 0,
+                phaseMax: gcdMapSize,
+            },
+        });
+
         console.log("Meld generation: Phase 4");
+        let gcdMapDone = 0;
         // Push them in rough order of GCD so that rotation caching works well
-        gcdMap.forEach((sets) => {
+        for (const [key, sets] of gcdMap) {
             genCallback(sets);
             sets.length = 0;
-        });
+            gcdMap.delete(key);
+            gcdMapDone++;
+            statusCallback({
+                phase: 4,
+                count: total,
+                subPhase: {
+                    phase: gcdMapDone,
+                    phaseMax: gcdMapSize,
+                },
+            });
+        }
     }
 
     public getAllMeldCombinationsForGearItem(equippedItem: EquippedItem): Set<ItemWithStats> | null {
-        const meldCombinations: Map<string, ItemWithStats> = new Map<string, ItemWithStats>();
 
         const basePiece = new ItemWithStats(this.cloneEquippedItem(equippedItem), this.getPieceEffectiveStats(equippedItem));
-        meldCombinations.set(this.statsToString(equippedItem.gearItem.stats, this.relevantStats), basePiece);
+
+        const meldCombinations: Map<AllStatDedupKey, ItemWithStats> = new Map<AllStatDedupKey, ItemWithStats>();
+        // Pre-seed this with the base item stats
+        meldCombinations.set(this.statsToKey(equippedItem.gearItem.stats), basePiece);
 
         for (let slotNum = 0; slotNum < equippedItem.gearItem.materiaSlots.length; slotNum += 1) {
 
@@ -228,25 +303,33 @@ export class GearsetGenerator {
             }
 
             // Add new items after the loop
-            const itemsToAdd: Map<string, ItemWithStats> = new Map<string, ItemWithStats>();
+            const itemsToAdd: Map<AllStatDedupKey, ItemWithStats> = new Map<AllStatDedupKey, ItemWithStats>();
             for (const [statsKey, existingCombination] of meldCombinations) {
 
                 const stats = existingCombination.stats;
 
                 for (const stat of this.relevantStats) {
 
+                    // Use best materia for the slot, e.g. ignore possibility of a materia XI if the slot supports XII
                     const materia = this._sheet.getBestMateria(stat, existingCombination.item.melds[slotNum]);
 
-                    const newStats: RawStats = Object.assign({}, stats);
-                    newStats[stat] += materia.primaryStatValue;
-                    const newStatsKey = this.statsToString(newStats, this.relevantStats);
+                    // Copy stats
+                    const newStats: RawStats = {...stats};
+                    // Old amount
+                    const oldStatAmount = newStats[stat];
+                    // New amount == old amount plus newly-added materia, or the stat cap, whichever is lesser
+                    const newStatAmount = Math.min(oldStatAmount + materia.primaryStatValue, existingCombination.item.gearItem.statCaps[stat]);
+                    newStats[stat] = newStatAmount;
+                    // e.g. if my materia is 54, and I go from 100 to 154, no overcap.
+                    // But if my materia is 54, and I go from 100 to 152, we lost 2 to overcap.
+                    // 2 == 54 - (152 - 100)
+                    const lostToOvercap = Math.max(0, materia.primaryStatValue - (newStatAmount - oldStatAmount));
+                    const newStatsKey = this.statsToKey(newStats);
 
-                    if (stats[stat] + materia.primaryStatValue - existingCombination.item.gearItem.statCaps[stat] < MATERIA_ACCEPTABLE_OVERCAP_LOSS
-                        && !itemsToAdd.has(newStatsKey) // Skip if this combination of stats has been found
-                    ) {
+                    // Ignore anything that will cause large amounts of overcap, any skip any non-unique stat totals
+                    if (lostToOvercap <= MATERIA_ACCEPTABLE_OVERCAP_LOSS && !itemsToAdd.has(newStatsKey)) {
                         const newMelds: MeldableMateriaSlot[] = this.cloneMelds(existingCombination.item.melds);
                         newMelds[slotNum].equippedMateria = materia;
-
                         itemsToAdd.set(newStatsKey, new ItemWithStats(new EquippedItem(equippedItem.gearItem, newMelds), newStats));
                     }
                 }
@@ -254,8 +337,8 @@ export class GearsetGenerator {
                 meldCombinations.delete(statsKey); // Only take fully melded items
             }
 
-            for (const item of itemsToAdd) {
-                meldCombinations.set(item[0], item[1]);
+            for (const [key, item] of itemsToAdd) {
+                meldCombinations.set(key, item);
             }
 
         }
@@ -265,7 +348,7 @@ export class GearsetGenerator {
 
     cloneEquipmentSetWithStats(set: EquipmentSetWithStats): EquipmentSetWithStats {
         // Shallow copy the individual pieces because they don't need to be unique. i.e. We only need one copy of a DET/DET weapon
-        return new EquipmentSetWithStats(Object.assign({}, set.set), Object.assign({}, set.stats));
+        return new EquipmentSetWithStats({...set.set}, Object.assign({}, set.stats));
     }
 
     cloneEquipmentset(set: EquipmentSet): EquipmentSet {
@@ -282,8 +365,9 @@ export class GearsetGenerator {
         return new EquippedItem(item.gearItem, this.cloneMelds(item.melds));
     }
 
-    statsToString(stats: RawStats, relevantStats: MateriaSubstat[]): string {
+    statsToKey(stats: RawStats): AllStatDedupKey {
         let result = "";
+        const relevantStats = this.relevantStats;
         for (const statKey of relevantStats) {
             // Use semicolon to avoid potential number formatting localization issues
             result += stats[statKey].toString() + ';';
@@ -304,19 +388,11 @@ export class GearsetGenerator {
     getPieceEffectiveStats(item: EquippedItem): RawStats {
         const stats = Object.assign({}, item.gearItem.stats);
         for (const meld of item.melds) {
-            if (meld.equippedMateria === null || meld.equippedMateria === undefined) continue;
-            stats[meld.equippedMateria.primaryStat] += meld.equippedMateria.primaryStatValue;
-        }
-
-        return stats;
-    }
-
-    getEquipmentSetEffectiveStats(set: EquipmentSet): RawStats {
-
-        let stats = new RawStats;
-        for (const piece in set) {
-            if (set[piece] === null || set[piece] === undefined) continue;
-            stats = this.addStats(stats, this.getPieceEffectiveStats(set[piece]));
+            if (meld.equippedMateria === null || meld.equippedMateria === undefined) {
+                continue;
+            }
+            const stat = meld.equippedMateria.primaryStat;
+            stats[stat] = Math.min(item.gearItem.statCaps[stat] ?? 999_999, stats[stat] + meld.equippedMateria.primaryStatValue);
         }
 
         return stats;
