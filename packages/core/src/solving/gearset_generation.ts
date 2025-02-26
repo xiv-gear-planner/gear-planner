@@ -135,13 +135,13 @@ export class GearsetGenerator {
         });
 
         // Generate these first to avoid re-doing them. Also saves memory by letting our EquipmentSets shallow copy EquippedItems which all reside in here.
-        const allIndividualGearPieces: Map<EquipSlotKey, Set<ItemWithStats>> = new Map<EquipSlotKey, Set<ItemWithStats>>();
+        const allIndividualGearPieces: Map<EquipSlotKey, ItemWithStats[]> = new Map<EquipSlotKey, ItemWithStats[]>();
         for (const slotKey of EquipSlots) {
             if (equipment[slotKey] === null || equipment[slotKey] === undefined) continue;
 
             console.log(`Meld generator: generating combinations for ${slotKey}`);
             const pieceCombinations = this.getAllMeldCombinationsForGearItem(equipment[slotKey]);
-            console.log(`Meld generator: ${pieceCombinations.size} combinations for ${slotKey}`);
+            console.log(`Meld generator: ${pieceCombinations.length} combinations for ${slotKey}`);
             allIndividualGearPieces.set(slotKey, pieceCombinations);
         }
 
@@ -287,7 +287,7 @@ export class GearsetGenerator {
         }
     }
 
-    public getAllMeldCombinationsForGearItem(equippedItem: EquippedItem): Set<ItemWithStats> | null {
+    public getAllMeldCombinationsForGearItem(equippedItem: EquippedItem): ItemWithStats[] {
 
         const basePiece = new ItemWithStats(this.cloneEquippedItem(equippedItem), this.getPieceEffectiveStats(equippedItem));
 
@@ -318,7 +318,7 @@ export class GearsetGenerator {
                     // Old amount
                     const oldStatAmount = newStats[stat];
                     // New amount == old amount plus newly-added materia, or the stat cap, whichever is lesser
-                    const newStatAmount = Math.min(oldStatAmount + materia.primaryStatValue, existingCombination.item.gearItem.statCaps[stat]);
+                    const newStatAmount = Math.min(oldStatAmount + materia.primaryStatValue, existingCombination.item.gearItem.statCaps[stat] ?? 999_999);
                     newStats[stat] = newStatAmount;
                     // e.g. if my materia is 54, and I go from 100 to 154, no overcap.
                     // But if my materia is 54, and I go from 100 to 152, we lost 2 to overcap.
@@ -343,7 +343,7 @@ export class GearsetGenerator {
 
         }
 
-        return new Set(meldCombinations.values());
+        return Array.from(meldCombinations.values());
     }
 
     cloneEquipmentSetWithStats(set: EquipmentSetWithStats): EquipmentSetWithStats {
