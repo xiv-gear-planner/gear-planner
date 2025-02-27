@@ -1,6 +1,6 @@
 import {BaseModal} from "@xivgear/common-ui/components/modal";
 import {
-    clampValues, clampValuesOrUndef,
+    clampValuesOrUndef,
     FieldBoundCheckBox,
     FieldBoundDataSelect,
     FieldBoundOrUndefIntField,
@@ -11,7 +11,7 @@ import {DISPLAY_SETTINGS} from "./display_settings";
 import {BoolToggle} from "@xivgear/common-ui/components/bool_toggle";
 import {recordEvent} from "@xivgear/core/analytics/analytics";
 import {ALL_LANGS, LangaugeDisplayName, Language} from "@xivgear/i18n/translation";
-import {PersistentSettings, SETTINGS} from "./persistent_settings";
+import {SETTINGS} from "./persistent_settings";
 
 
 class SettingsModal extends BaseModal {

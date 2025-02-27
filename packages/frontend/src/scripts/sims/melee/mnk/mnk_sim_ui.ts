@@ -1,8 +1,8 @@
 import {CycleSimResult, DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/core/sims/cycle_sim";
-import {ColDefs, CustomColumn, CustomColumnSpec} from "@xivgear/common-ui/table/tables";
+import {ColDefs, CustomColumnSpec} from "@xivgear/common-ui/table/tables";
 import {AbilitiesUsedTable} from "../../components/ability_used_table";
 import {BaseMultiCycleSimGui} from "../../multicyclesim_ui";
-import {MnkSimResult, MnkSettings} from "@xivgear/core/sims/melee/mnk/mnk_sim";
+import {MnkSettings, MnkSimResult} from "@xivgear/core/sims/melee/mnk/mnk_sim";
 import {PreDmgUsedAbility} from "@xivgear/core/sims/sim_types";
 import {MNKExtraData} from "@xivgear/core/sims/melee/mnk/mnk_types";
 
@@ -26,7 +26,7 @@ class MNKGaugeGui {
                         div.style.boxSizing = 'border-box';
 
                         const span = document.createElement('span');
-                        span.textContent = `${chakra.toLocaleString(undefined, { minimumFractionDigits: 3 })}`;
+                        span.textContent = `${chakra.toLocaleString(undefined, {minimumFractionDigits: 3})}`;
 
                         for (let i = 1; i < 6; i++) {
                             const stack = document.createElement('span');
@@ -216,6 +216,7 @@ class MNKGaugeGui {
         ];
     }
 }
+
 export class MnkSimGui extends BaseMultiCycleSimGui<MnkSimResult, MnkSettings> {
 
     override makeCustomConfigInterface(settings: MnkSettings, _updateCallback: () => void): HTMLElement | null {

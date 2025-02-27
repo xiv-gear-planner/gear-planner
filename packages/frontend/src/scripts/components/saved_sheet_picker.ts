@@ -3,7 +3,6 @@ import {
     CustomColumn,
     CustomRow,
     CustomTable,
-    SingleRowSelectionModel,
     SpecialRow, TableSelectionModel,
     TitleRow
 } from "@xivgear/common-ui/table/tables";

@@ -6,7 +6,7 @@ import {
     CombinedBuffEffect,
     ComputedDamage,
     DamageResult,
-    DamagingAbility,
+    DamagingAbility
 } from "./sim_types";
 import {
     applyDhCritFull,

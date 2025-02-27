@@ -3,7 +3,7 @@ import {AbilitiesUsedTable} from "../components/ability_used_table";
 import {BaseMultiCycleSimGui} from "../multicyclesim_ui";
 import {CycleSimResult, DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/core/sims/cycle_sim";
 import {PreDmgUsedAbility} from "@xivgear/core/sims/sim_types";
-import {col, ColDefs} from "@xivgear/common-ui/table/tables";
+import {ColDefs} from "@xivgear/common-ui/table/tables";
 import {SchExtraData, SchSettings, SchSimResult} from "@xivgear/core/sims/healer/sch_sheet_sim";
 
 class SchGaugeGui {

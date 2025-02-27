@@ -10,7 +10,6 @@ import {
     CustomRow,
     CustomTable,
     HeaderRow,
-    SingleCellRowOrHeaderSelect,
     SingleCellRowOrHeaderSelectionModel,
     SingleRowSelectionModel,
     TableSelectionModel
