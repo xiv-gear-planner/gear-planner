@@ -1,14 +1,14 @@
-import {FieldBoundIntField, nonNegative, labelFor} from "@xivgear/common-ui/components/util";
+import {FieldBoundIntField, labelFor, nonNegative} from "@xivgear/common-ui/components/util";
 import {AbilitiesUsedTable} from "../components/ability_used_table";
 import {BaseMultiCycleSimGui} from "../multicyclesim_ui";
 import {CycleSimResult, DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/core/sims/cycle_sim";
 import {PreDmgUsedAbility} from "@xivgear/core/sims/sim_types";
-import {CustomColumnSpec} from "../../tables";
-import {SchExtraData, SchSimResult, SchSettings} from "@xivgear/core/sims/healer/sch_sheet_sim";
+import {col, ColDefs} from "@xivgear/common-ui/table/tables";
+import {SchExtraData, SchSettings, SchSimResult} from "@xivgear/core/sims/healer/sch_sheet_sim";
 
 class SchGaugeGui {
 
-    static generateResultColumns(result: CycleSimResult): CustomColumnSpec<DisplayRecordFinalized, unknown, unknown>[] {
+    static generateResultColumns(result: CycleSimResult): ColDefs<DisplayRecordFinalized> {
         return [{
             shortName: 'aetherflow',
             displayName: 'Aetherflow',
@@ -48,6 +48,7 @@ class SchGaugeGui {
         ];
     }
 }
+
 export class SchSimGui extends BaseMultiCycleSimGui<SchSimResult, SchSettings> {
     makeCustomConfigInterface(settings: SchSettings, updateCallback: () => void): HTMLElement | null {
         const configDiv = document.createElement("div");
@@ -65,7 +66,7 @@ export class SchSimGui extends BaseMultiCycleSimGui<SchSimResult, SchSettings> {
     makeAbilityUsedTable(result: SchSimResult): AbilitiesUsedTable {
         const extraColumns = SchGaugeGui.generateResultColumns(result);
         const table = super.makeAbilityUsedTable(result);
-        const newColumns = [...table.columns];
+        const newColumns: ColDefs<DisplayRecordFinalized> = [...table.columns];
         newColumns.splice(newColumns.findIndex(col => col.shortName === 'expected-damage') + 1, 0, ...extraColumns);
         table.columns = newColumns;
         return table;

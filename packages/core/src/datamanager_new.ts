@@ -31,7 +31,7 @@ import {DataApiClient, FoodStatBonus, GearAcquisitionSource as AcqSrc} from "@xi
 import {BaseParamMap, DataManager} from "./datamanager";
 import {IlvlSyncInfo} from "./datamanager_xivapi";
 import {applyStatCaps} from "./gear";
-import {toTranslatable, TranslatableString} from "./i18n/translation";
+import {toTranslatable, TranslatableString} from "@xivgear/i18n/translation";
 
 type ApiClientRawType<X extends keyof DataApiClient<never>, Y extends keyof DataApiClient<never>[X]> = DataApiClient<never>[X][Y]
 

@@ -1,7 +1,7 @@
 import {JOB_DATA, JobName} from "@xivgear/xivmath/xivconstants";
 import {CycleSettings} from "@xivgear/core/sims/cycle_settings";
 import {CharacterGearSet} from "@xivgear/core/gear";
-import {arrayEq, sum} from "@xivgear/core/util/array_utils";
+import {arrayEq, sum} from "@xivgear/util/array_utils";
 import {addValues, applyStdDev, multiplyFixed} from "@xivgear/xivmath/deviation";
 import {PartyBuff, SimSettings, SimSpec, Simulation} from "@xivgear/core/sims/sim_types";
 import {

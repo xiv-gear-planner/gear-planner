@@ -5,7 +5,7 @@ import {GearPlanSheet} from "@xivgear/core/sheet";
 import {GearsetGenerationRequest, SolverSimulationRequest, WORKER_POOL} from "../workers/worker_pool";
 import {GearsetGenerationSettings} from "@xivgear/core/solving/gearset_generation";
 import {SolverSimulationSettings} from "@xivgear/core/solving/sim_runner";
-import {range} from "@xivgear/core/util/array_utils";
+import {range} from "@xivgear/util/array_utils";
 
 export class MeldSolverSettings {
     sim: Simulation<SimResult, SimSettings, unknown>;

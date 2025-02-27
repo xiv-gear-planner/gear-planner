@@ -39,8 +39,8 @@ import {
 } from "@xivgear/xivmath/geartypes";
 import {CharacterGearSet, isSameOrBetterItem, SyncInfo} from "./gear";
 import {DataManager, makeDataManager} from "./datamanager";
-import {Inactivitytimer} from "./util/inactivitytimer";
-import {writeProxy} from "./util/proxies";
+import {Inactivitytimer} from "@xivgear/util/inactivitytimer";
+import {writeProxy} from "@xivgear/util/proxies";
 import {SHARED_SET_NAME} from "@xivgear/core/imports/imports";
 import {SimCurrentResult, SimResult, Simulation} from "./sims/sim_types";
 import {getDefaultSims, getRegisteredSimSpecs, getSimSpecByStub} from "./sims/sim_registry";

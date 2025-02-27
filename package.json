@@ -1,18 +1,19 @@
 {
   "name": "gearplan",
   "version": "1.0.0",
-  "type": "module",
   "browser": {
     "[module-name]": false
   },
   "workspaces": [
+    "packages/util",
+    "packages/i18n",
+    "packages/data-api-client",
     "packages/xivmath",
     "packages/core",
+    "packages/backend-resolver",
     "packages/common-ui",
     "packages/frontend",
-    "packages/math-frontend",
-    "packages/backend-resolver",
-    "packages/data-api-client"
+    "packages/math-frontend"
   ],
   "devDependencies": {
     "@eslint/js": "^9.13.0",

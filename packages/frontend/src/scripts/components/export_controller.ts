@@ -10,7 +10,7 @@ import {CharacterGearSet} from "@xivgear/core/gear";
 import {BaseModal} from "@xivgear/common-ui/components/modal";
 import {makeUrlSimple, ONLY_SET_QUERY_PARAM, VIEW_SET_HASH} from "@xivgear/core/nav/common_nav";
 import {GearPlanSheet} from "@xivgear/core/sheet";
-import {writeProxy} from "@xivgear/core/util/proxies";
+import {writeProxy} from "@xivgear/util/proxies";
 import {EquipSlots, Materia, XivItem} from "@xivgear/xivmath/geartypes";
 import {recordSheetEvent} from "@xivgear/core/analytics/analytics";
 

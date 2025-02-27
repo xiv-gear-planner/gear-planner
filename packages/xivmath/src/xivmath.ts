@@ -1,6 +1,5 @@
-import {AttackType, ComputedSetStats, JobData, LevelStats, RawStats} from "./geartypes";
+import {AttackType, ComputedSetStats, JobData, JobDataConst, LevelStats, RawStats, ScalingOverrides} from "./geartypes";
 import {chanceMultiplierStdDev, fixedValue, multiplyValues, ValueWithDev} from "./deviation";
-import {ScalingOverrides} from "@xivgear/core/sims/sim_types";
 
 /*
     Common math for FFXIV.
@@ -519,12 +518,11 @@ export function vitToHp(levelStats: LevelStats, jobStats: JobData, vitality: num
     return fl(levelStats.hp * jobStats.jobStatMultipliers.hp / 100) + fl((vitality - levelStats.baseMainStat) * hpMod);
 }
 
-export function hpScalar(levelStats: LevelStats, jobStats: JobData) {
+export function hpScalar(levelStats: LevelStats, jobStats: JobDataConst) {
     // @ts-expect-error - can't figure out type def
     return levelStats.hpScalar[jobStats.role] ?? levelStats.hpScalar.other;
 }
 
-export function mainStatPowerMod(levelStats: LevelStats, jobStats: JobData) {
-    // @ts-expect-error - can't figure out type def
+export function mainStatPowerMod(levelStats: LevelStats, jobStats: JobDataConst) {
     return levelStats.mainStatPowerMod[jobStats.role] ?? levelStats.mainStatPowerMod.other;
 }

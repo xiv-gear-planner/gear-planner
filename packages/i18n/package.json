@@ -1,20 +1,13 @@
 {
-  "name": "@xivgear/common-ui",
+  "name": "@xivgear/i18n",
   "version": "1.0.0",
   "description": "",
   "scripts": {
     "build": "tsc --build"
   },
-  "dependencies": {
-    "@xivgear/core": "^1.0.0",
-    "@xivgear/i18n": "^1.0.0"
-  },
   "devDependencies": {
     "ts-node": "^10.9.2",
-    "ts-loader": "^9.5.1",
-    "ts-mocha": "^10.0.0",
-    "chai": "^4.5.0",
-    "@types/chai": "^4.3.16"
+    "ts-loader": "^9.5.1"
   },
   "exports": {
     "./*": "./src/*.ts"

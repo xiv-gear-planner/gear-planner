@@ -48,7 +48,7 @@ export abstract class BaseModal extends HTMLElement {
     }
 
     attachAndShow() {
-        document.querySelector('body').appendChild(this);
+        document.querySelector('body')?.appendChild(this);
         this.show();
     }
 

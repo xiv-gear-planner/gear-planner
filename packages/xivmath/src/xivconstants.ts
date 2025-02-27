@@ -733,7 +733,7 @@ export const STAT_ABBREVIATIONS: Record<RawStatKey, string> = {
  * @param id The ID
  * @returns The stat key
  */
-export function statById(id: number): keyof RawStats {
+export function statById(id: number): keyof RawStats | undefined {
     switch (id) {
         case 1:
             return "strength";
@@ -790,6 +790,7 @@ export function getRaceStats(race: RaceName | undefined) {
     }
 }
 
+// Are these still needed? This is done server-side now.
 export const ARTIFACT_ITEM_LEVELS = [
     290,
     430,

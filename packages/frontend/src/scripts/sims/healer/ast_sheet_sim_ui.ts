@@ -1,13 +1,13 @@
 import {CycleSimResult, DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/core/sims/cycle_sim";
 import {PreDmgUsedAbility} from "@xivgear/core/sims/sim_types";
-import {CustomColumnSpec} from "../../tables";
+import {col, CustomColumn, CustomColumnSpec} from "@xivgear/common-ui/table/tables";
 import {AbilitiesUsedTable} from "../components/ability_used_table";
 import {BaseMultiCycleSimGui} from "../multicyclesim_ui";
 import {AstExtraData, AstSimResult, AstSettings} from "@xivgear/core/sims/healer/ast_sheet_sim";
 
 class AstGaugeGui {
 
-    static generateResultColumns(result: CycleSimResult): CustomColumnSpec<DisplayRecordFinalized, unknown, unknown>[] {
+    static generateResultColumns(result: CycleSimResult): CustomColumn<DisplayRecordFinalized, unknown, unknown>[] {
         return [{
             shortName: 'cards',
             displayName: 'Cards',
@@ -80,7 +80,7 @@ class AstGaugeGui {
                 return document.createTextNode("");
             },
         },
-        ];
+        ].map(col);
     }
 }
 export class AstSheetSimGui extends BaseMultiCycleSimGui<AstSimResult, AstSettings> {

@@ -1,20 +1,18 @@
 {
-  "name": "@xivgear/xivmath",
+  "name": "@xivgear/util",
   "version": "1.0.0",
   "description": "",
   "scripts": {
     "build": "tsc --build",
-    "test": "ts-mocha src/test/**/*tests.ts"
+    "test": "ts-mocha --exit 'src/test/**/*test.ts' 'src/test/**/*tests.ts'"
   },
   "devDependencies": {
-    "@types/chai": "^4.3.16",
-    "chai": "^4.5.0",
+    "ts-node": "^10.9.2",
     "ts-loader": "^9.5.1",
     "ts-mocha": "^10.0.0",
-    "ts-node": "^10.9.2"
-  },
-  "dependencies": {
-    "@xivgear/i18n": "^1.0.0"
+    "chai": "^4.5.0",
+    "@types/chai": "^4.3.16",
+    "@types/jsdom": "^21.1.3"
   },
   "exports": {
     "./*": "./src/*.ts"

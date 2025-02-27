@@ -1,13 +1,13 @@
 import {SETTINGS} from "./persistent_settings";
-import {isValidLanguage, Language, setCurrentLanguage} from "@xivgear/core/i18n/translation";
+import {isValidLanguage, Language, setCurrentLanguage} from "@xivgear/i18n/translation";
 
 
 const DEFAULT_LIGHT_MODE = false;
 const DEFAULT_MODERN_THEME = true;
 
 class DisplaySettingsImpl {
-    private _lightMode: boolean;
-    private _modernTheme: boolean;
+    private _lightMode!: boolean;
+    private _modernTheme!: boolean;
     private _languageOverride: Language | undefined;
 
     loadSettings() {
@@ -41,7 +41,7 @@ class DisplaySettingsImpl {
         this.applyModernTheme();
     }
 
-    get languageOverride(): Language {
+    get languageOverride(): Language | undefined {
         return this._languageOverride;
     }
 
@@ -54,6 +54,9 @@ class DisplaySettingsImpl {
     private applyLightMode() {
         const lightMode = this._lightMode;
         const body = document.querySelector('body');
+        if (body === null) {
+            throw Error(`Unable to set light mode because body was null!`);
+        }
         body.style.setProperty('--transition-time', '0');
         body.style.setProperty('--input-transition-time', '0');
         const lightModeClass = 'light-mode';
@@ -71,6 +74,9 @@ class DisplaySettingsImpl {
 
     private applyModernTheme() {
         const body = document.querySelector('body');
+        if (body === null) {
+            throw Error(`Unable to set modern theme because body was null!`);
+        }
         body.style.setProperty('--transition-time', '0');
         body.style.setProperty('--input-transition-time', '0');
         const modernTheme = this._modernTheme;

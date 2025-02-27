@@ -1,6 +1,6 @@
 import {DataSelect, FieldBoundDataSelect} from "./util";
 import {CURRENT_MAX_LEVEL, SupportedLevel, SupportedLevels} from "@xivgear/xivmath/xivconstants";
-import {PropertyOfType} from "@xivgear/core/util/types";
+import {PropertyOfType} from "@xivgear/util/types";
 
 export function levelLabel(item: SupportedLevel): string {
     if (item <= CURRENT_MAX_LEVEL) {

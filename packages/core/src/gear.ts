@@ -38,7 +38,7 @@ import {
     SlotMateriaMemoryExport,
     XivCombatItem
 } from "@xivgear/xivmath/geartypes";
-import {Inactivitytimer} from "./util/inactivitytimer";
+import {Inactivitytimer} from "@xivgear/util/inactivitytimer";
 import {addStats, finalizeStats} from "@xivgear/xivmath/xivstats";
 import {GearPlanSheet} from "./sheet";
 import {isMateriaAllowed} from "./materia/materia_utils";

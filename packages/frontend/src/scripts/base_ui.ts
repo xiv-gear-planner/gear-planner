@@ -14,7 +14,7 @@ import {WORKER_POOL} from "./workers/worker_pool";
 import {showSettingsModal} from "@xivgear/common-ui/settings/settings_modal";
 import {SETTINGS} from "@xivgear/common-ui/settings/persistent_settings";
 import {DISPLAY_SETTINGS} from "@xivgear/common-ui/settings/display_settings";
-import {arrayEq} from "@xivgear/core/util/array_utils";
+import {arrayEq} from "@xivgear/util/array_utils";
 import {extractSingleSet} from "@xivgear/core/util/sheet_utils";
 
 const pageTitle = 'XivGear - FFXIV Gear Planner';

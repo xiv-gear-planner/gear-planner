@@ -10,7 +10,7 @@ import {
 } from "@xivgear/core/sims/cycle_sim";
 import {CycleSettings} from "@xivgear/core/sims/cycle_settings";
 import {CharacterGearSet} from "@xivgear/core/gear";
-import {formatDuration} from "@xivgear/core/util/strutils";
+import {formatDuration} from "@xivgear/util/strutils";
 import {STANDARD_ANIMATION_LOCK} from "@xivgear/xivmath/xivconstants";
 import SAMGauge from "./sam_gauge";
 import {SamAbility, SAMExtraData, SAMRotationData} from "./sam_types";

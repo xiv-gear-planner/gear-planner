@@ -1,5 +1,5 @@
-import {CustomColumnSpec, CustomTable, HeaderRow} from "../../tables";
-import {toRelPct} from "@xivgear/core/util/strutils";
+import {CustomColumnSpec, CustomTable, HeaderRow} from "@xivgear/common-ui/table/tables";
+import {toRelPct} from "@xivgear/util/strutils";
 import {AbilityIcon} from "../../components/abilities";
 import {BuffListDisplay} from "./buff_list_display";
 import {DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/core/sims/cycle_sim";

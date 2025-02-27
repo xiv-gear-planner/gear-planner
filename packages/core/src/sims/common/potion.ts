@@ -1,7 +1,7 @@
 import {OgcdAbility} from "../sim_types";
 import {fl} from "@xivgear/xivmath/xivmath";
 import {RawStatKey} from "@xivgear/xivmath/geartypes";
-import {camel2title} from "@xivgear/core/util/strutils";
+import {camel2title} from "@xivgear/util/strutils";
 
 function potionBonus(initialValue: number, bonus: number, cap: number): number {
     return Math.min(fl(initialValue * bonus), cap);

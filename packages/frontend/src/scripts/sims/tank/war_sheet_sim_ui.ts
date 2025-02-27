@@ -3,7 +3,7 @@ import {WarSettings, WarSimResult} from "@xivgear/core/sims/tank/war/war_sheet_s
 import {BaseMultiCycleSimGui} from "../multicyclesim_ui";
 import {AbilitiesUsedTable} from "../components/ability_used_table";
 import {CycleSimResult, DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/core/sims/cycle_sim";
-import {CustomColumnSpec} from "../../tables";
+import {ColDefs, CustomColumnSpec} from "@xivgear/common-ui/table/tables";
 import {PreDmgUsedAbility} from "@xivgear/core/sims/sim_types";
 import {WarExtraData} from "@xivgear/core/sims/tank/war/war_types";
 
@@ -108,7 +108,7 @@ export class WarSimGui extends BaseMultiCycleSimGui<WarSimResult, WarSettings> {
     override makeAbilityUsedTable(result: WarSimResult): AbilitiesUsedTable {
         const extraColumns = WarSimGui.generateResultColumns(result);
         const table = super.makeAbilityUsedTable(result);
-        const newColumns = [...table.columns];
+        const newColumns: ColDefs<DisplayRecordFinalized> = [...table.columns];
         newColumns.splice(newColumns.findIndex(col => col.shortName === 'expected-damage') + 1, 0, ...extraColumns);
         table.columns = newColumns;
         return table;

@@ -20,7 +20,7 @@ import {
     wdMulti
 } from "@xivgear/xivmath/xivmath";
 import {getClassJobStats, JOB_DATA, JobName, MAIN_STATS, STAT_ABBREVIATIONS} from "@xivgear/xivmath/xivconstants";
-import {GeneralSettings, registerFormula} from "./math_main";
+import {Func, GeneralSettings, MathFormula, registerFormula} from "./math_main";
 import {DataManager, makeDataManager} from "@xivgear/core/datamanager";
 import {JobData, LevelStats} from "@xivgear/xivmath/geartypes";
 
@@ -70,6 +70,15 @@ async function getClassJobStatsFull(job: JobName) {
 const baseMain = (generalSettings: GeneralSettings) => generalSettings.levelStats.baseMainStat;
 const baseSub = (generalSettings: GeneralSettings) => generalSettings.levelStats.baseSubStat;
 
+/**
+ * Formual "wrapper" (actually just a pass-through) to allow for internal type-consistency for function arguments
+ *
+ * @param formula The formula to wrap
+ */
+function formula<AllArgType, FuncType extends Func>(formula: MathFormula<AllArgType, FuncType>): MathFormula<AllArgType, Func> {
+    return formula;
+}
+
 // TODO: baseDamageFull
 // TODO: baseHealing
 // TODO: social media previews
@@ -83,13 +92,14 @@ export function registerFormulae() {
     }>({
         name: "Main Stat",
         stub: "main-stat",
-        functions: [{
+        functions: [formula({
             name: "Main Stat Multiplier",
             fn: mainStatMulti,
             argExtractor: async function (arg, gen: GeneralSettings) {
-                return [gen.levelStats, getClassJobStats(gen.classJob), arg.mainstat];
+                // This one technically doesn't need this
+                return [gen.levelStats, getClassJobStats(gen.classJob) as JobData, arg.mainstat] as const;
             },
-        }],
+        })],
         variables: [{
             type: "number",
             label: "Main Stat Value",
@@ -97,11 +107,17 @@ export function registerFormulae() {
             integer: true,
             min: baseMain,
         }],
-        primaryVariable: "mainstat",
-        makeDefaultInputs(generalSettings: GeneralSettings) {
+        primaryVariable:
+            "mainstat",
+        makeDefaultInputs(generalSettings
+                              :
+                              GeneralSettings
+        ) {
             return {mainstat: generalSettings.levelStats.baseMainStat};
-        },
-    });
+        }
+        ,
+    })
+    ;
 
     registerFormula<{
         'wd': number,
@@ -109,19 +125,19 @@ export function registerFormulae() {
     }>({
         name: "Weapon Damage",
         stub: "weapon-damage",
-        functions: [{
+        functions: [formula({
             name: "Weapon Damage Multiplier",
             fn: wdMulti,
             argExtractor: async function (arg, gen: GeneralSettings) {
-                return [gen.levelStats, await getClassJobStatsFull(gen.classJob), arg.wd];
+                return [gen.levelStats, await getClassJobStatsFull(gen.classJob), arg.wd, false] as const;
             },
-        }, {
+        }), formula({
             name: "Auto-Attack Multiplier",
             fn: autoAttackModifier,
             argExtractor: async function (arg, gen: GeneralSettings) {
-                return [gen.levelStats, await getClassJobStatsFull(gen.classJob), arg.delay, arg.wd];
+                return [gen.levelStats, await getClassJobStatsFull(gen.classJob), arg.delay, arg.wd] as const;
             },
-        }],
+        })],
         variables: [{
             type: "number",
             label: "Weapon Damage Value",
@@ -149,13 +165,13 @@ export function registerFormulae() {
     }>({
         name: "Determination",
         stub: "det",
-        functions: [{
+        functions: [formula({
             name: "Determination Multiplier",
             fn: detDmg,
             argExtractor: async function (arg, gen: GeneralSettings) {
-                return [gen.levelStats, arg.det];
+                return [gen.levelStats, arg.det] as const;
             },
-        }],
+        })],
         variables: [{
             type: "number",
             label: "Determination Stat",
@@ -174,19 +190,19 @@ export function registerFormulae() {
     }>({
         name: "Tenacity",
         stub: "tnc",
-        functions: [{
+        functions: [formula({
             name: "Outgoing Multiplier",
             fn: tenacityDmg,
             argExtractor: async function (arg, gen: GeneralSettings) {
-                return [gen.levelStats, arg.tnc];
+                return [gen.levelStats, arg.tnc] as const;
             },
-        }, {
+        }), formula({
             name: "Incoming Multiplier",
             fn: tenacityIncomingDmg,
             argExtractor: async function (arg, gen: GeneralSettings) {
-                return [gen.levelStats, arg.tnc];
+                return [gen.levelStats, arg.tnc] as const;
             },
-        }],
+        })],
         variables: [{
             type: "number",
             label: "Tenacity Stat",
@@ -205,13 +221,13 @@ export function registerFormulae() {
     }>({
         name: "Piety",
         stub: "piety",
-        functions: [{
+        functions: [formula({
             name: "MP/3s",
             fn: mpTick,
             argExtractor: async function (arg, gen: GeneralSettings) {
-                return [gen.levelStats, arg.piety];
+                return [gen.levelStats, arg.piety] as const;
             },
-        }],
+        })],
         variables: [{
             type: "number",
             label: "Piety Stat",
@@ -229,20 +245,20 @@ export function registerFormulae() {
         stub: 'sks',
         name: 'Skill Speed',
         functions: [
-            {
+            formula({
                 name: 'GCD',
                 fn: sksToGcd,
                 argExtractor: async function (args, gen) {
-                    return [args.baseGcd, gen.levelStats, args.sks, args.haste];
+                    return [args.baseGcd, gen.levelStats, args.sks, args.haste] as const;
                 },
-            },
-            {
+            }),
+            formula({
                 name: 'DoT Multi',
                 fn: sksTickMulti,
                 argExtractor: async function (args, gen) {
-                    return [gen.levelStats, args.sks];
+                    return [gen.levelStats, args.sks] as const;
                 },
-            },
+            }),
         ],
         variables: [
             baseGcdVar,
@@ -270,20 +286,20 @@ export function registerFormulae() {
         name: 'Spell Speed',
         primaryVariable: 'sps',
         functions: [
-            {
+            formula({
                 name: 'GCD',
                 fn: spsToGcd,
                 argExtractor: async function (args, gen) {
-                    return [args.baseGcd, gen.levelStats, args.sps, args.haste];
+                    return [args.baseGcd, gen.levelStats, args.sps, args.haste] as const;
                 },
-            },
-            {
+            }),
+            formula({
                 name: 'DoT Multi',
                 fn: spsTickMulti,
                 argExtractor: async function (args, gen) {
-                    return [gen.levelStats, args.sps];
+                    return [gen.levelStats, args.sps] as const;
                 },
-            },
+            }),
         ],
         variables: [
             baseGcdVar,
@@ -310,19 +326,19 @@ export function registerFormulae() {
     }>({
         name: "Crit",
         stub: "crit",
-        functions: [{
+        functions: [formula({
             name: "Crit Chance",
             fn: critChance,
             argExtractor: async function (arg, gen: GeneralSettings) {
-                return [gen.levelStats, arg.crit];
+                return [gen.levelStats, arg.crit] as const;
             },
-        }, {
+        }), formula({
             name: "Crit Damage",
             fn: critDmg,
             argExtractor: async function (arg, gen: GeneralSettings) {
-                return [gen.levelStats, arg.crit];
+                return [gen.levelStats, arg.crit] as const;
             },
-        }],
+        })],
         makeDefaultInputs: (gen) => {
             return {
                 crit: gen.levelStats.baseSubStat,
@@ -343,25 +359,25 @@ export function registerFormulae() {
     }>({
         name: 'Direct Hit',
         stub: "dhit",
-        functions: [{
+        functions: [formula({
             name: "DH Chance",
             fn: dhitChance,
             argExtractor: async function (arg, gen: GeneralSettings) {
-                return [gen.levelStats, arg.dhit];
+                return [gen.levelStats, arg.dhit] as const;
             },
-        }, {
+        }), formula({
             name: "DH Damage",
             fn: dhitDmg,
             argExtractor: async function (arg, gen: GeneralSettings) {
-                return [gen.levelStats, arg.dhit];
+                return [gen.levelStats, arg.dhit] as const;
             },
-        }, {
+        }), formula({
             name: "Auto-DH Bonus",
             fn: autoDhitBonusDmg,
             argExtractor: async function (arg, gen: GeneralSettings) {
-                return [gen.levelStats, arg.dhit];
+                return [gen.levelStats, arg.dhit] as const;
             },
-        }],
+        })],
         makeDefaultInputs: (gen: GeneralSettings) => {
             return {dhit: gen.levelStats.baseSubStat};
         },
@@ -380,13 +396,13 @@ export function registerFormulae() {
     }>({
         name: 'Vitality',
         stub: 'vit',
-        functions: [{
+        functions: [formula({
             name: 'Hit Points',
             fn: vitToHp,
-            async argExtractor(arg, gen: GeneralSettings): Promise<Parameters<typeof vitToHp>> {
-                return [gen.levelStats, await getClassJobStatsFull(gen.classJob), arg.vit];
+            async argExtractor(arg, gen: GeneralSettings) {
+                return [gen.levelStats, await getClassJobStatsFull(gen.classJob), arg.vit] as const;
             },
-        }],
+        })],
         makeDefaultInputs: (gen: GeneralSettings) => {
             return {vit: gen.levelStats.baseMainStat};
         },
@@ -403,50 +419,49 @@ export function registerFormulae() {
     registerFormula<Record<string, never>>({
         name: 'Levels',
         stub: 'lvlmod',
-        functions: [{
+        functions: [formula({
             name: 'baseMain',
             excludeFormula: true,
             fn: (lvl: LevelStats) => lvl.baseMainStat,
             async argExtractor(arg, gen: GeneralSettings) {
-                return [gen.levelStats];
+                return [gen.levelStats] as const;
             },
-        }, {
+        }), formula({
             name: 'baseSub',
             excludeFormula: true,
             fn: (lvl: LevelStats) => lvl.baseSubStat,
             async argExtractor(arg, gen: GeneralSettings) {
-                return [gen.levelStats];
+                return [gen.levelStats] as const;
             },
-        }, {
+        }), formula({
             name: 'levelDiv',
             excludeFormula: true,
             fn: (lvl: LevelStats) => lvl.levelDiv,
             async argExtractor(arg, gen: GeneralSettings) {
-                return [gen.levelStats];
+                return [gen.levelStats] as const;
             },
-        }, {
+        }), formula({
             name: 'Base HP',
             excludeFormula: true,
             fn: (lvl: LevelStats) => lvl.hp,
             async argExtractor(arg, gen: GeneralSettings) {
-                return [gen.levelStats];
+                return [gen.levelStats] as const;
             },
-        }, {
+        }), formula({
             name: 'HP Mod',
             excludeFormula: true,
-            fn: (lvl: LevelStats, jobStats: JobData) => hpScalar(lvl, jobStats),
+            fn: hpScalar,
             async argExtractor(arg, gen: GeneralSettings) {
-                return [gen.levelStats, JOB_DATA[gen.classJob]];
+                return [gen.levelStats, JOB_DATA[gen.classJob]] as const;
             },
-        }, {
+        }), formula({
             name: 'AP Mod',
             excludeFormula: true,
-            fn: (lvl: LevelStats, jobStats: JobData) => mainStatPowerMod(lvl, jobStats),
+            fn: mainStatPowerMod,
             async argExtractor(arg, gen: GeneralSettings) {
-                return [gen.levelStats, JOB_DATA[gen.classJob]];
+                return [gen.levelStats, JOB_DATA[gen.classJob]] as const;
             },
-
-        }],
+        })],
         makeDefaultInputs: (generalSettings: GeneralSettings) => {
             return {};
         },
@@ -456,24 +471,24 @@ export function registerFormulae() {
     registerFormula<Record<string, never>>({
         name: 'Jobs',
         stub: 'job',
-        functions: [{
+        functions: [formula({
             name: 'AA Pot',
             excludeFormula: true,
             fn: (jobData: JobData) => jobData.aaPotency,
             async argExtractor(arg, gen: GeneralSettings) {
                 const stats = await getClassJobStatsFull(gen.classJob);
-                return [stats];
+                return [stats] as const;
             },
-        }, ...([...MAIN_STATS, 'hp'] as const).map(stat => {
-            return {
+        }), ...([...MAIN_STATS, 'hp'] as const).map(stat => {
+            return formula({
                 name: STAT_ABBREVIATIONS[stat],
                 excludeFormula: true,
                 fn: (jobData: JobData) => jobData.jobStatMultipliers[stat],
                 async argExtractor(arg, gen: GeneralSettings) {
                     const stats = await getClassJobStatsFull(gen.classJob);
-                    return [stats];
+                    return [stats] as const;
                 },
-            };
+            });
         })],
         makeDefaultInputs: (generalSettings: GeneralSettings) => {
             return {};

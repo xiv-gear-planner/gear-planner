@@ -2,18 +2,10 @@ import {CALC_HASH, HASH_QUERY_PARAM, PATH_SEPARATOR, splitPath} from "@xivgear/c
 
 import {formatTopMenu} from "./base_ui";
 import {openMath} from "./mathpage/math_ui";
-import {arrayEq} from "@xivgear/core/util/array_utils";
+import {arrayEq} from "@xivgear/util/array_utils";
 
 let expectedHash: string[] | undefined = undefined;
 
-
-
-/**
- * Get the current page path
- */
-export function getCurrentHash() {
-    return [...expectedHash];
-}
 
 /**
  * Process a potential change in hash.
@@ -65,10 +57,12 @@ export function parsePath(originalPath: string[]): NavPath | null {
 
 async function doNav(pathParts: string[]) {
     const nav = parsePath(pathParts);
-    switch (nav.type) {
-        case "math": {
-            openMath(nav.formula);
-            return;
+    if (nav !== null) {
+        switch (nav.type) {
+            case "math": {
+                openMath(nav.formula);
+                return;
+            }
         }
     }
     console.error("I don't know what to do with this path", pathParts);
@@ -85,7 +79,7 @@ function manipulateUrlParams(action: (params: URLSearchParams) => void) {
     action(params);
     const after = params.toString();
     if (before !== after) {
-        history.pushState(null, null, '?' + params.toString());
+        history.pushState(null, "", '?' + params.toString());
     }
 }
 
@@ -112,10 +106,6 @@ export function setHash(...hashParts: string[]) {
     const hash = hashParts.map(part => encodeURIComponent(part)).join(PATH_SEPARATOR);
     manipulateUrlParams(params => params.set(HASH_QUERY_PARAM, hash));
     formatTopMenu(expectedHash);
-}
-
-export function getHash(): string[] | undefined {
-    return expectedHash;
 }
 
 /**

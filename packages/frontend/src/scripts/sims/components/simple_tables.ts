@@ -1,5 +1,5 @@
-import {CustomTable} from "../../tables";
-import {camel2title} from "@xivgear/core/util/strutils";
+import {CustomTable} from "@xivgear/common-ui/table/tables";
+import {camel2title} from "@xivgear/util/strutils";
 
 import {SimResult} from "@xivgear/core/sims/sim_types";
 

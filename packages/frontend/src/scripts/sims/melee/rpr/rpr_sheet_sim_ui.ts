@@ -1,6 +1,6 @@
 import {CycleSimResult, DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/core/sims/cycle_sim";
 import {PreDmgUsedAbility} from "@xivgear/core/sims/sim_types";
-import {CustomColumnSpec} from "../../../tables";
+import {ColDefs, CustomColumnSpec} from "@xivgear/common-ui/table/tables";
 import {AbilitiesUsedTable} from "../../components/ability_used_table";
 import {BaseMultiCycleSimGui} from "../../multicyclesim_ui";
 import {RprSheetSimResult, RprSimSettings} from "@xivgear/core/sims/melee/rpr/rpr_sheet_sim";
@@ -99,10 +99,11 @@ export class RprGaugeGui {
 
 export class RprSheetSimGui extends BaseMultiCycleSimGui<RprSheetSimResult, RprSimSettings> {
 
+    // TODO: since these are all pretty much the same, just make an actual method for inserting custom columns
     override makeAbilityUsedTable(result: RprSheetSimResult): AbilitiesUsedTable {
         const extraColumns = RprGaugeGui.generateResultColumns(result);
         const table = super.makeAbilityUsedTable(result);
-        const newColumns = [...table.columns];
+        const newColumns: ColDefs<DisplayRecordFinalized> = [...table.columns];
         newColumns.splice(newColumns.findIndex(col => col.shortName === 'expected-damage') + 1, 0, ...extraColumns);
         table.columns = newColumns;
         return table;

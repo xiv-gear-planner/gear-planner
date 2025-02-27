@@ -1,6 +1,6 @@
 import {CycleSimResult, DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/core/sims/cycle_sim";
 import {PreDmgUsedAbility} from "@xivgear/core/sims/sim_types";
-import {CustomColumnSpec} from "../../tables";
+import {ColDefs, CustomColumnSpec} from "@xivgear/common-ui/table/tables";
 import {AbilitiesUsedTable} from "../components/ability_used_table";
 import {BaseMultiCycleSimGui} from "../multicyclesim_ui";
 import {WhmExtraData, WhmSimResult, WhmSettings} from "@xivgear/core/sims/healer/whm_new_sheet_sim";
@@ -66,7 +66,7 @@ export class WhmSimGui extends BaseMultiCycleSimGui<WhmSimResult, WhmSettings> {
     override makeAbilityUsedTable(result: WhmSimResult): AbilitiesUsedTable {
         const extraColumns = WhmGaugeGui.generateResultColumns(result);
         const table = super.makeAbilityUsedTable(result);
-        const newColumns = [...table.columns];
+        const newColumns: ColDefs<DisplayRecordFinalized> = [...table.columns];
         newColumns.splice(newColumns.findIndex(col => col.shortName === 'expected-damage') + 1, 0, ...extraColumns);
         table.columns = newColumns;
         return table;

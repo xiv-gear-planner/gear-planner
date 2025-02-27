@@ -6,15 +6,6 @@
   "exclude": [
     "./node_modules",
     "./dist",
-    "*.d.ts",
-    ".."
-  ],
-  "references": [
-    {
-      "path": "../xivmath"
-    },
-    {
-      "path": "../core"
-    }
+    "*.d.ts"
   ]
 }

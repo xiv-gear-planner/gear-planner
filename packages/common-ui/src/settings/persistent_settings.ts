@@ -1,4 +1,4 @@
-import {Language} from "@xivgear/core/i18n/translation";
+import {Language} from "@xivgear/i18n/translation";
 
 
 export type PersistentSettings = {
@@ -45,7 +45,7 @@ export const SETTINGS: PersistentSettings = {
     set hideWelcomeMessage(value: boolean) {
         setBool(HIDE_WELCOME_KEY, value);
     },
-    get languageOverride(): Language {
+    get languageOverride(): Language | undefined {
         const value = localStorage.getItem(LANGUAGE_OVERRIDE_KEY);
         // Previous versions had a bug where `languageOverride = undefined` would cause the setting to be the
         // string "undefined" instead of an actual null.
@@ -66,14 +66,21 @@ export const SETTINGS: PersistentSettings = {
         return getInt(WORKERS_OVERRIDE_KEY);
     },
     set workersOverride(value: number | undefined) {
-        if (value < 2) {
+        if (value !== undefined && value < 2) {
             throw new Error("Value must be an integer >= 2");
         }
         setInt(WORKERS_OVERRIDE_KEY, value);
     },
 };
 
-window['xivgearSettings'] = SETTINGS;
+declare global {
+    // noinspection JSUnusedGlobalSymbols
+    interface Window {
+        xivgearSettings: typeof SETTINGS;
+    }
+}
+
+window.xivgearSettings = SETTINGS;
 
 function getBool(key: string): boolean | undefined {
     const raw = localStorage.getItem(key);

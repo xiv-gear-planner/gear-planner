@@ -1,4 +1,4 @@
-import {writeProxy} from "../util/proxies";
+import {writeProxy} from "@xivgear/util/proxies";
 import assert from "assert";
 
 describe('write proxy', () => {

@@ -1,4 +1,4 @@
-import {formatDuration} from "../../util/strutils";
+import {formatDuration} from "@xivgear/util/strutils";
 import {Ability, CdAbility} from "../sim_types";
 
 export type CooldownMode = 'none' | 'warn' | 'delay' | 'reject';

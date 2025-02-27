@@ -1,5 +1,5 @@
 import {SimulationGui} from "../simulation_gui";
-import {EmptyObject} from "@xivgear/core/util/types";
+import {EmptyObject} from "@xivgear/util/types";
 import {NamedSection} from "../../components/section";
 import {simpleMappedResultTable} from "../components/simple_tables";
 import {MPResult, MPSettings} from "@xivgear/core/sims/healer/healer_mp";

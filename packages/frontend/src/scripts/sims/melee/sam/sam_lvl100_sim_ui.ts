@@ -1,6 +1,6 @@
 import {CycleSimResult, DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/core/sims/cycle_sim";
 import {PreDmgUsedAbility} from "@xivgear/core/sims/sim_types";
-import {CustomColumnSpec} from "../../../tables";
+import {ColDefs, CustomColumnSpec} from "@xivgear/common-ui/table/tables";
 import {AbilitiesUsedTable} from "../../components/ability_used_table";
 import {BaseMultiCycleSimGui} from "../../multicyclesim_ui";
 import {FieldBoundFloatField, FieldBoundCheckBox, labelFor, labeledCheckbox} from "@xivgear/common-ui/components/util";
@@ -158,7 +158,7 @@ export class SamSimGui extends BaseMultiCycleSimGui<SamSimResult, SamSettings> {
     override makeAbilityUsedTable(result: SamSimResult): AbilitiesUsedTable {
         const extraColumns = SAMGaugeGui.generateResultColumns(result);
         const table = super.makeAbilityUsedTable(result);
-        const newColumns = [...table.columns];
+        const newColumns : ColDefs<DisplayRecordFinalized> = [...table.columns];
         newColumns.splice(newColumns.findIndex(col => col.shortName === 'expected-damage') + 1, 0, ...extraColumns);
         table.columns = newColumns;
         return table;

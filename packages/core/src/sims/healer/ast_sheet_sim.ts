@@ -1,7 +1,7 @@
 import {Divination} from "@xivgear/core/sims/buffs";
 import {Ability, BuffController, GcdAbility, OgcdAbility, PersonalBuff, SimSettings, SimSpec} from "@xivgear/core/sims/sim_types";
 import {CycleProcessor, CycleSimResult, ExternalCycleSettings, MultiCycleSettings, Rotation, PreDmgAbilityUseRecordUnf, AbilityUseResult} from "@xivgear/core/sims/cycle_sim";
-import {rangeInc} from "@xivgear/core/util/array_utils";
+import {rangeInc} from "@xivgear/util/array_utils";
 import {BaseMultiCycleSim} from "@xivgear/core/sims/processors/sim_processors";
 //import {potionMaxMind} from "@xivgear/core/sims/common/potion";
 

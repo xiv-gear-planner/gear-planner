@@ -1,4 +1,4 @@
-import {CustomTable, HeaderRow} from "../tables";
+import {CustomTable, HeaderRow} from "@xivgear/common-ui/table/tables";
 import {GearPlanSheet} from "@xivgear/core/sheet";
 import {
     clampValues,
@@ -9,7 +9,8 @@ import {
     FieldBoundIntField,
     FieldBoundTextField,
     makeActionButton,
-    nonNegative, quickElement
+    nonNegative,
+    quickElement
 } from "@xivgear/common-ui/components/util";
 import {ALL_STATS, ALL_SUB_STATS, STAT_ABBREVIATIONS, STAT_FULL_NAMES} from "@xivgear/xivmath/xivconstants";
 import {BaseModal} from "@xivgear/common-ui/components/modal";

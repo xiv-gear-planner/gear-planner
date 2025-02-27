@@ -6,6 +6,7 @@ import {
     JobData,
     LevelStats,
     PartyBonusAmount,
+    RawStatKey,
     RawStats
 } from "./geartypes";
 import {
@@ -31,7 +32,7 @@ import {
     wdMulti
 } from "./xivmath";
 import {getRaceStats, JobName, RaceName, SupportedLevel} from "./xivconstants";
-import {sum} from "@xivgear/core/util/array_utils";
+import {sum} from "@xivgear/util/array_utils";
 
 /**
  * Adds the stats of 'addedStats' into 'baseStats'.
@@ -154,7 +155,8 @@ export function toSerializableForm(stats: ComputedSetStats): ComputedSetStats {
 export class ComputedSetStatsImpl implements ComputedSetStats {
 
     protected readonly finalBonusStats: RawBonusStats;
-    private currentStats: RawStats;
+    // This is initialized when the ctor calls this.recalc()
+    private currentStats!: RawStats;
     private _racialStats: RawStats;
 
     constructor(
@@ -468,12 +470,15 @@ function finalizeStatsInt(
     }
     combinedStats.vitality = fl(combinedStats.vitality * (1 + 0.01 * partyBonus));
     // Food stats
-    for (const stat in foodStats) {
+    for (const key in foodStats) {
+        const stat = key as RawStatKey;
         // These operate on base values, without the party buff
-        const bonus: FoodStatBonus = foodStats[stat];
-        const startingValue = gearStats[stat];
-        const extraValue = Math.min(bonus.max, Math.floor(startingValue * (bonus.percentage / 100)));
-        combinedStats[stat] += extraValue;
+        const bonus: FoodStatBonus | undefined = foodStats[stat];
+        if (bonus !== undefined) {
+            const startingValue = gearStats[stat];
+            const extraValue = Math.min(bonus.max, Math.floor(startingValue * (bonus.percentage / 100)));
+            combinedStats[stat] += extraValue;
+        }
     }
     return combinedStats;
 }

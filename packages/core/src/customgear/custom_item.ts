@@ -1,4 +1,5 @@
 import {
+    CustomItemExport,
     DisplayGearSlot,
     DisplayGearSlotInfo,
     DisplayGearSlotKey,
@@ -14,21 +15,7 @@ import {CURRENT_MAX_LEVEL, LEVEL_ITEMS, MATERIA_LEVEL_MAX_NORMAL} from "@xivgear
 import {IlvlSyncInfo} from "../datamanager_xivapi";
 import {applyStatCaps} from "../gear";
 import {GearPlanSheet} from "../sheet";
-import {toTranslatable} from "../i18n/translation";
-
-export type CustomItemExport = {
-    ilvl: number;
-    equipLvl: number;
-    largeMateriaSlots: number;
-    smallMateriaSlots: number;
-    materiaGrade: number;
-    name: string;
-    fakeId: number;
-    slot: OccGearSlotKey;
-    isUnique: boolean;
-    stats: RawStats;
-    respectCaps: boolean;
-}
+import {toTranslatable} from "@xivgear/i18n/translation";
 
 export class CustomItem implements GearItem {
 

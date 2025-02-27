@@ -3,11 +3,11 @@ import {CycleProcessor, CycleSimResult, ExternalCycleSettings, MultiCycleSetting
 import {combineBuffEffects} from "@xivgear/core/sims/sim_utils";
 import {CycleSettings} from "@xivgear/core/sims/cycle_settings";
 import {CharacterGearSet} from "@xivgear/core/gear";
-import {formatDuration} from "@xivgear/core/util/strutils";
+import {formatDuration} from "@xivgear/util/strutils";
 import {STANDARD_ANIMATION_LOCK} from "@xivgear/xivmath/xivconstants";
 import {Darkside, DrkGauge} from "./drk_gauge";
 import {DrkExtraData, DrkAbility, DrkGcdAbility, ScornBuff, SaltedEarthBuff, DeliriumBuff, BloodWeaponBuff, DrkOgcdAbility} from "./drk_types";
-import {sum} from "@xivgear/core/util/array_utils";
+import {sum} from "@xivgear/util/array_utils";
 import * as Actions from './drk_actions';
 import {BaseMultiCycleSim} from "@xivgear/core/sims/processors/sim_processors";
 import {potionMaxStr} from "@xivgear/core/sims/common/potion";
