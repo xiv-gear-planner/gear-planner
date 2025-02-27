@@ -184,13 +184,16 @@ export class SaveAsModal extends BaseModal {
         });
         form.appendChild(this.fieldSet);
         this.contentArea.replaceChildren(form);
-        const submitButton = document.createElement("button");
+        const submitButton = quickElement("button", [], ['New Sheet']);
         submitButton.type = 'submit';
-        submitButton.textContent = "New Sheet";
         this.addButton(submitButton);
         submitButton.addEventListener('click', () => {
             form.requestSubmit();
         });
+        const fakeSubmitButton = quickElement("button", [], ['New Sheet']);
+        fakeSubmitButton.style.display = 'none';
+        fakeSubmitButton.type = 'submit';
+        form.appendChild(fakeSubmitButton);
         form.addEventListener('submit', (ev) => {
             ev.preventDefault();
             ev.stopPropagation();

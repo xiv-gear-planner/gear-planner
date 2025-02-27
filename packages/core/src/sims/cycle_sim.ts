@@ -488,7 +488,7 @@ export class CycleProcessor {
      */
     private _rowCount = 0;
 
-    private _simple: boolean;
+    private readonly _simple: boolean;
 
     constructor(private settings: MultiCycleSettings) {
         this.cdTracker = new CooldownTracker(() => this.currentTime);
@@ -840,9 +840,11 @@ export class CycleProcessor {
                     totalDamage: totalDamage.expected,
                     totalDamageFull: totalDamage,
                     totalPotency: totalPotency,
-                    buffs: this._simple ? [] : record.buffs,
+                    // buffs: this._simple ? [] : record.buffs,
+                    buffs: record.buffs,
                     combinedEffects: record.combinedEffects,
-                    ability: this._simple ? null : record.ability,
+                    // ability: this._simple ? null : record.ability,
+                    ability: record.ability,
                 } satisfies FinalizedAbility;
             }
             else {
@@ -894,7 +896,8 @@ export class CycleProcessor {
         }
         const combined: CombinedBuffEffect = combineBuffEffects(active);
         return {
-            'buffs': this._simple ? [] : active,
+            'buffs': active,
+            // 'buffs': this._simple ? [] : active,
             'combinedEffects': combined,
         };
     }
@@ -1026,7 +1029,7 @@ export class CycleProcessor {
         const dmgInfo = this.modifyDamage(abilityToDamageNew(this.stats, ability, combinedEffects), ability, buffs);
         const appDelayFromSnapshot = appDelay(ability);
         const appDelayFromStart = appDelayFromSnapshot + snapshotDelayFromStart;
-        const finalBuffs: Buff[] = Array.from(new Set<Buff>([
+        const finalBuffs: Buff[] = this._simple ? [] : Array.from(new Set<Buff>([
             ...preBuffs,
             ...buffs]))
             .filter(buff => {
