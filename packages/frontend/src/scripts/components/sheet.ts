@@ -1566,7 +1566,7 @@ export class GearPlanSheetGui extends GearPlanSheet {
                     return `${value} Unique Roles`;
                 }
             },
-            rangeInc(0, MAX_PARTY_BONUS)
+            rangeInc(0, MAX_PARTY_BONUS) as PartyBonusAmount[]
         );
         partySizeDropdown.addListener((val) => {
             recordSheetEvent('changePartyBonus', this, {
