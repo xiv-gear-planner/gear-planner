@@ -2,7 +2,14 @@ import 'global-jsdom/register';
 import './polyfills';
 import Fastify, {FastifyRequest} from "fastify";
 import {getShortLink, getShortlinkFetchUrl} from "@xivgear/core/external/shortlink_server";
-import {PartyBonusAmount, SetExport, SheetExport, SheetStatsExport, TopLevelExport} from "@xivgear/xivmath/geartypes";
+import {
+    PartyBonusAmount,
+    SetExport,
+    SetExportExternalSingle,
+    SheetExport,
+    SheetStatsExport,
+    TopLevelExport
+} from "@xivgear/xivmath/geartypes";
 import {getBisSheet, getBisSheetFetchUrl} from "@xivgear/core/external/static_bis";
 import {HEADLESS_SHEET_PROVIDER} from "@xivgear/core/sheet";
 import {JobName, MAX_PARTY_BONUS} from "@xivgear/xivmath/xivconstants";
@@ -28,6 +35,8 @@ import process from "process";
 import {extractSingleSet} from "@xivgear/core/util/sheet_utils";
 
 let initDone = false;
+
+type ExportedData = SheetExport | SetExportExternalSingle;
 
 function checkInit() {
     if (!initDone) {
@@ -99,7 +108,7 @@ function buildServerBase() {
 
 type NavResult = {
     preloadUrl: URL | null,
-    sheetData: Promise<(SheetExport | SetExport)>
+    sheetData: Promise<(ExportedData)>
 }
 
 function resolveNavData(nav: NavPath | null): NavResult | null {
@@ -286,7 +295,7 @@ export function buildPreviewServer() {
 
                 // Inject preload properties based on job
                 // The rest are part of the static html
-                const job = exported['job'];
+                const job = exported.job;
                 if (job) {
                     addFetchPreload(`https://data.xivgear.app/Items?job=${job}`);
                 }
@@ -303,8 +312,10 @@ export function buildPreviewServer() {
                         head.appendChild(script);
                     }
 
+                    const isEmbed = nav !== null && 'embed' in nav && nav.embed;
+                    // Don't inject these if embedded
                     extraScripts.forEach(scriptUrl => {
-                        if (nav?.['embed'] !== true) {
+                        if (!isEmbed) {
                             addExtraScript(scriptUrl, {'async': ''});
                         }
                     });
