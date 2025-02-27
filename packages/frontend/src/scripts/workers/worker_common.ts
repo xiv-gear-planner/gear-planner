@@ -1,18 +1,17 @@
 import {
+    AnyJobContext,
     AnyWorkRequest,
     AnyWorkResponse,
-    JobContext,
-    RequestTypeOf,
-    ResponseTypeOf,
+    JobContext, RequestTypeOf, ResponseTypeOf,
     UpdateTypeOf,
     WorkerToMainMessage
-} from "./worker_pool";
+} from "@xivgear/core/workers/worker_types";
 
 export type JobInfo = {
     jobId: number,
 }
 
-export function postMsg(msg: WorkerToMainMessage) {
+export function postMsg(msg: WorkerToMainMessage<AnyJobContext>) {
     postMessage(msg);
 }
 
@@ -24,7 +23,7 @@ export abstract class WorkerBehavior<X extends JobContext<AnyWorkRequest, unknow
         this.jobId = jobInfo.jobId;
     }
 
-    post(response: AnyWorkResponse) {
+    post(response: AnyWorkResponse<X>) {
         postMsg({
             res: response,
             jobId: this.jobId,

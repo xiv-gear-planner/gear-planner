@@ -1,11 +1,38 @@
 import {HEADLESS_SHEET_PROVIDER} from "@xivgear/core/sheet";
 import {registerDefaultSims} from "@xivgear/core/sims/default_sims";
 import {GearsetGenerationWorker} from "./meld_generation_worker";
-import {AnyWorkRequest, AnyWorkResponse, MainToWorkerMessage, WorkerToMainMessage} from "./worker_pool";
 import {SolverSimulationRunner} from "./simulation_worker";
 import {makeDataManager} from "@xivgear/core/datamanager";
 import {JobInfo, postMsg} from "./worker_common";
 import {PingWorker} from "./ping_worker";
+import {
+    AnyJobContext,
+    AnyWorkRequest,
+    MainToWorkerMessage,
+    WorkerToMainMessage, WorkResponseDone
+} from "@xivgear/core/workers/worker_types";
+
+const originalConsoleValues: Partial<typeof console> = {
+    log: console.log,
+    info: console.info,
+    trace: console.trace,
+    debug: console.debug,
+} as const;
+
+const silencedConsoleValues: typeof originalConsoleValues = {
+    log: () => {},
+    info: () => {},
+    trace: () => {},
+    debug: () => {},
+} as const;
+
+function blockConsoleSpam() {
+    Object.assign(console, silencedConsoleValues);
+}
+
+function resetConsoleToDefault() {
+    Object.assign(console, originalConsoleValues);
+}
 
 registerDefaultSims();
 let dataManager = null;
@@ -23,14 +50,14 @@ onmessage = async function (event) {
             dataManager = makeDataManager(sheet.classJobName, sheet.level, sheet.ilvlSync);
             await dataManager.loadData();
 
-            const response: AnyWorkResponse = {
+            const response: WorkResponseDone<AnyJobContext> = {
                 responseType: "done",
                 data: null,
             };
             this.postMessage({
                 res: response,
                 jobId: jobId,
-            } satisfies WorkerToMainMessage);
+            } satisfies WorkerToMainMessage<AnyJobContext>);
             return;
         }
 
@@ -42,10 +69,10 @@ onmessage = async function (event) {
             await pinger.execute(request);
             return;
         }
-        // This sheet is fresh for each work request, but it re-uses an already-loaded DataManager.
-        const sheet = HEADLESS_SHEET_PROVIDER.fromExport(request.sheet);
-        await sheet.loadFromDataManager(dataManager);
         if (request.jobType === "generateGearset") {
+            // This sheet is fresh for each work request, but it re-uses an already-loaded DataManager.
+            const sheet = HEADLESS_SHEET_PROVIDER.fromExport(request.sheet);
+            await sheet.loadFromDataManager(dataManager);
             let gearsetGen = new GearsetGenerationWorker(sheet, jobInfo);
             await gearsetGen.execute(request);
             // TODO
@@ -53,11 +80,17 @@ onmessage = async function (event) {
             return;
         }
         if (request.jobType === "solverSimulation") {
+            blockConsoleSpam();
+            // This sheet is fresh for each work request, but it re-uses an already-loaded DataManager.
+            const sheet = HEADLESS_SHEET_PROVIDER.fromExport(request.sheet);
+            await sheet.loadFromDataManager(dataManager);
             await new SolverSimulationRunner(sheet, jobInfo).execute(request);
             return;
         }
     }
     catch (e) {
+        resetConsoleToDefault();
+        originalConsoleValues.error("Error in worker", e);
         postMsg({
             jobId: jobId,
             res: {
@@ -65,5 +98,8 @@ onmessage = async function (event) {
                 data: e,
             },
         });
+    }
+    finally {
+        resetConsoleToDefault();
     }
 };

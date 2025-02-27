@@ -1,5 +1,5 @@
 import {JobInfo, WorkerBehavior} from "./worker_common";
-import {JobContext, PingData, PingRequest} from "./worker_pool";
+import {JobContext, PingData, PingRequest} from "@xivgear/core/workers/worker_types";
 
 export type PingContext = JobContext<PingRequest, never, PingData>;
 

@@ -1,74 +1,20 @@
 import {GearPlanSheet} from "@xivgear/core/sheet";
-import {GearsetGenerationSettingsExport} from "@xivgear/core/solving/gearset_generation";
-import {SolverSimulationSettingsExport} from "@xivgear/core/solving/sim_runner";
-import {SheetExport} from "@xivgear/xivmath/geartypes";
 import {SETTINGS} from "@xivgear/common-ui/settings/persistent_settings";
+import {
+    AnyJobContext,
+    InitializationRequest,
+    JobUpdateCallback,
+    MainToWorkerMessage,
+    PingRequest,
+    RequestTypeOf,
+    ResponseTypeOf,
+    UpdateTypeOf,
+    WorkerStatus,
+    WorkerToMainMessage,
+    WorkRequestInternal
+} from "@xivgear/core/workers/worker_types";
+import {PingContext} from "./ping_worker";
 
-type ResolveReject = {
-    resolve: (res: unknown) => void,
-    reject: (rej: unknown) => void,
-}
-
-type WorkRequest<JobType extends string, RequestDataType> = {
-    jobType: JobType,
-    sheet: SheetExport;
-    data: RequestDataType,
-}
-
-export type InitializationRequest = WorkRequest<'workerInitialization', SheetExport>;
-export type GearsetGenerationRequest = WorkRequest<'generateGearset', GearsetGenerationSettingsExport>
-export type SolverSimulationRequest = WorkRequest<'solverSimulation', SolverSimulationSettingsExport>
-
-export type PingData = {
-    pingId: unknown,
-    waitMs: number,
-}
-
-export type PingRequest = WorkRequest<'ping', PingData>
-export type PingResponse = WorkResponse<'ping'>
-
-export type AnyWorkRequest =
-    InitializationRequest
-    | GearsetGenerationRequest
-    | SolverSimulationRequest
-    | PingRequest;
-
-export type MainToWorkerMessage = {
-    req: AnyWorkRequest,
-    jobId: number,
-}
-
-type WorkRequestInternal = {
-    jobId: number,
-    workerMessage: AnyWorkRequest,
-    updateCallback: (upd: unknown) => void,
-    promiseControl: ResolveReject,
-    promise: Promise<unknown>,
-}
-
-type WorkResponse<ResponseType extends string> = {
-    responseType: ResponseType;
-    data: unknown;
-}
-
-export type RequestTypeOf<X> = X extends JobContext<infer R, unknown, unknown> ? R : never;
-export type UpdateTypeOf<X> = X extends JobContext<AnyWorkRequest, infer U, unknown> ? U : never;
-export type ResponseTypeOf<X> = X extends JobContext<AnyWorkRequest, unknown, infer R> ? R : never;
-
-export type AnyWorkResponse = WorkResponse<'update'> | WorkResponse<'done'> | WorkResponse<'error'>;
-
-export type WorkerToMainMessage = {
-    res: AnyWorkResponse,
-    jobId: number,
-}
-
-export type JobContext<Req extends AnyWorkRequest, Upd, Resp> = {
-    dummyReq: Req,
-    dummyUpd: Upd,
-    dummyResp: Resp,
-}
-
-type WorkerStatus = 'uninitialized' | 'idle' | 'processing' | 'terminated' | 'initializing';
 
 let currJobId: number = 0;
 
@@ -76,19 +22,19 @@ function nextJobId(): number {
     return currJobId++;
 }
 
-function makeWorkRequest(request: AnyWorkRequest, updateCallback?: (upd: unknown) => void): {
-    promise: Promise<unknown>,
+function makeWorkRequest<T extends AnyJobContext>(request: RequestTypeOf<T>, updateCallback?: JobUpdateCallback<T>): {
+    promise: Promise<ResponseTypeOf<T>>,
     jobId: number,
-    internalRequest: WorkRequestInternal
+    internalRequest: WorkRequestInternal<T>
 } {
     const jobId = nextJobId();
-    let outerResolve: (value: unknown) => void;
+    let outerResolve: (value: ResponseTypeOf<T>) => void;
     let outerReject: (reason?: never) => void;
-    const promise = new Promise((resolve, reject) => {
+    const promise: Promise<ResponseTypeOf<T>> = new Promise((resolve, reject) => {
         outerResolve = resolve;
         outerReject = reject;
     });
-    const internalRequest: WorkRequestInternal = {
+    const internalRequest: WorkRequestInternal<T> = {
         jobId: jobId,
         workerMessage: request,
         updateCallback: updateCallback,
@@ -108,7 +54,7 @@ function makeWorkRequest(request: AnyWorkRequest, updateCallback?: (upd: unknown
 class SheetWorker {
 
     private _status: WorkerStatus = 'uninitialized';
-    private _activeWorkRequest: WorkRequestInternal | null = null;
+    private _activeWorkRequest: WorkRequestInternal<AnyJobContext> | null = null;
 
     constructor(private readonly worker: Worker, readonly name: string, private readonly readyCallback: () => void) {
         worker.onmessage = (event) => {
@@ -123,6 +69,9 @@ class SheetWorker {
     terminate(): void {
         console.log(`${this.name}: Worker terminating - current status is '${this.status}'`);
         this._status = 'terminated';
+        if (this._activeWorkRequest !== null) {
+            this._activeWorkRequest.promiseControl.reject("worker terminated");
+        }
         this.worker.terminate();
     }
 
@@ -138,17 +87,24 @@ class SheetWorker {
         return this.status === 'initializing';
     }
 
-    startWork(request: WorkRequestInternal, isInitializer: boolean = false) {
+    /**
+     * Start work on this worker.
+     *
+     * @param request The work request
+     * @param isInitializer True if this is an initializer, false if this is a real workload.
+     */
+    startWork(request: WorkRequestInternal<AnyJobContext>, isInitializer: boolean = false) {
         if (!this.isFree && !isInitializer) {
             throw new Error(`Cannot assign work to worker when it is not ready (state '${this.status}')`);
         }
         this._status = isInitializer ? 'initializing' : 'processing';
         this._activeWorkRequest = request;
-        console.debug(`${this.name}: startWork for ${request.workerMessage.jobType}`);
         this.post({
             jobId: request.jobId,
             req: request.workerMessage,
         });
+        // Don't retain unnecessary memory
+        request.workerMessage = null;
     }
 
     post(msg: MainToWorkerMessage) {
@@ -156,7 +112,6 @@ class SheetWorker {
     }
 
     async setSheet(sheet: GearPlanSheet): Promise<void> {
-        console.debug(`${this.name}: setSheet`);
         this.reset();
         const innerReq: InitializationRequest = {
             sheet: sheet.exportSheet(),
@@ -170,11 +125,8 @@ class SheetWorker {
 
     private onMessage(event: MessageEvent) {
 
-        console.debug(`${this.name}: onMessage`);
-        // TODO: move jobId somewhere
-        const msg = event.data as WorkerToMainMessage;
+        const msg = event.data as WorkerToMainMessage<AnyJobContext>;
         const response = msg.res;
-        console.debug(`response type: ${response.responseType}`);
 
         if (this._activeWorkRequest === null || this._activeWorkRequest?.jobId !== msg.jobId) {
             // Job was already re-assigned, ignore result
@@ -182,7 +134,7 @@ class SheetWorker {
             return;
         }
         if (response.responseType === 'update') {
-            this._activeWorkRequest.updateCallback(response.data);
+            this._activeWorkRequest.updateCallback?.(response.data as UpdateTypeOf<AnyJobContext>);
             return;
         }
         else if (response.responseType === 'done') {
@@ -202,20 +154,17 @@ class SheetWorker {
     }
 
     private jobDone() {
-        console.debug(`${this.name}: jobDone`);
         this._status = 'idle';
         this._activeWorkRequest = null;
         this.readyCallback();
     }
 
     private onError(_event: ErrorEvent) {
-        console.debug(`${this.name}: onError`);
         this._activeWorkRequest.promiseControl.reject(_event ?? null);
         this.jobDone();
     }
 
     private reset() {
-        console.debug(`${this.name}: reset`);
         this._status = 'uninitialized';
         if (this._activeWorkRequest !== null) {
             this._activeWorkRequest.promiseControl.reject("worker reset");
@@ -231,7 +180,7 @@ class SheetWorker {
 export class WorkerPool {
 
     workers: SheetWorker[] = [];
-    messageQueue: WorkRequestInternal[] = [];
+    messageQueue: WorkRequestInternal<AnyJobContext>[] = [];
     currentSheet: GearPlanSheet | null = null;
 
     constructor(readonly minWorkers: number, readonly maxWorkers: number) {
@@ -325,8 +274,10 @@ export class WorkerPool {
         }
     }
 
-    public submitTask(request: AnyWorkRequest, updateCallback?: (upd: unknown) => void): {
-        promise: Promise<unknown>,
+    // This parameter is defaulted to 'never' as a workaround to force the parameter to be explicitly specified, as we
+    // do not get adequate type checking without that.
+    public submitTask<T extends AnyJobContext = never>(request: RequestTypeOf<T>, updateCallback?: JobUpdateCallback<T>): {
+        promise: Promise<ResponseTypeOf<T>>,
         jobId: number
     } {
         const inner = makeWorkRequest(request, updateCallback);
@@ -371,7 +322,15 @@ export class WorkerPool {
         await Promise.all(promises);
     }
 
-    public async cancelJob(id: number) {
+    public cancelJob(id: number) {
+        for (let i = 0; i < this.messageQueue.length; i++) {
+            const msg = this.messageQueue[i];
+            if (msg.jobId === id) {
+                this.messageQueue.splice(i, 1);
+                msg.promiseControl.reject("job canceled");
+                return;
+            }
+        }
         for (const wrk of this.workers) {
             if (wrk.activeJobId === id) {
                 wrk.terminate();
@@ -389,7 +348,7 @@ export class WorkerPool {
             jobType: "ping",
             sheet: undefined,
         };
-        const requested = this.submitTask(req);
+        const requested = this.submitTask<PingContext>(req);
         return requested.promise;
     }
 

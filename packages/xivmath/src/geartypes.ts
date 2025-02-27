@@ -337,10 +337,12 @@ export interface ComputedSetStats extends RawStats {
      * some abilities' alternate scalings (e.g. Living Shadow, Bunshin)
      */
     readonly racialStats: RawStats
+
     /**
      * Trait multiplier
      */
     traitMulti(attackType: AttackType): number;
+
     /**
      * Bonus added to det multiplier for automatic direct hits
      */
@@ -743,9 +745,7 @@ export interface SetExport {
     /**
      * Equipped items (and their materia and/or relic stats)
      */
-    items: {
-        [K in EquipSlotKey]?: ItemSlotExport
-    };
+    items: ItemsSlotsExport,
     /**
      * Equipped food (by item ID)
      */
@@ -766,6 +766,10 @@ export interface SetExport {
      */
     isSeparator?: boolean,
 }
+
+export type ItemsSlotsExport = {
+    [K in EquipSlotKey]?: ItemSlotExport
+};
 
 /**
  * Type that represents a single set exported as a top-level sheet.
@@ -845,9 +849,11 @@ export interface ItemSlotExport {
     /**
      * If this is a relic, represents the current stats of the relic.
      */
-    relicStats?: {
-        [K in Substat]?: number
-    }
+    relicStats?: RelicStatsExport,
+}
+
+export type RelicStatsExport = {
+    [K in Substat]?: number
 }
 
 export type PartyBonusAmount = 0 | 1 | 2 | 3 | 4 | 5;
@@ -1074,3 +1080,21 @@ export class EquippedItem {
     }
 }
 
+
+// TODO: look at Int16Array and friends to see if this can be compressed further
+// Idea:
+/*
+MicroSetExport has a single TypedArray, where we store items in a flat structure.
+e.g. [slot1slotId, slot1itemId, slot1materiaCount, slot1materia1id, ... slot1materiaNid, slot2slotId, ... etc]
+Could even take it a step further and pack multiple sets into one big array.
+ */
+/**
+ * MicroSetExport is a minimal analog to {@link SetExport} which contains the bare minimum information
+ * needed for brute force solving. This is useful for reducing memory usage.
+ */
+export type MicroSetExport = MicroSlotExport[];
+
+export type FoodMicroSlotExport = [slot: "food", foodId: number];
+export type NormalItemMicroSlotExport = [slot: EquipSlotKey, itemId: number, ...materiaIds: (number | null)[]];
+export type RelicItemMicroSlotExport = [slot: EquipSlotKey, itemId: number, "relic", relicStats: RelicStatsExport];
+export type MicroSlotExport = FoodMicroSlotExport | NormalItemMicroSlotExport | RelicItemMicroSlotExport;
