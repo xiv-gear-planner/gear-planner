@@ -1,11 +1,11 @@
 import {
     CustomRelicStatModel,
-    EquippedItem, EquipSlotKey,
+    EquippedItem,
     EwRelicStatModel,
     GearItem,
     GearSetIssue,
     PartialRelicStatModel,
-    RelicStatModel, RelicStats,
+    RelicStatModel,
     Substat
 } from "@xivgear/xivmath/geartypes";
 import {
@@ -171,7 +171,7 @@ function getRelicStatModelForPartial(gearItem: GearItem, baseParams: BaseParamMa
     const slotModifier = baseParams.crit[gearItem.occGearSlotName] / 140;
     const statCap = gearItem.unsyncedVersion.statCaps.crit;
     switch (gearItem.ilvl) {
-    // EW relics are 2 capped stats, and one 72
+        // EW relics are 2 capped stats, and one 72
         case 665:
             return ewRelic(statCap, Math.round(72 * slotModifier));
         case 645:

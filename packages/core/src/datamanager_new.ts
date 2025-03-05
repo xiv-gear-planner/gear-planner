@@ -32,7 +32,7 @@ import {BaseParamMap, DataManager} from "./datamanager";
 import {IlvlSyncInfo} from "./datamanager_xivapi";
 import {applyStatCaps} from "./gear";
 import {toTranslatable, TranslatableString} from "@xivgear/i18n/translation";
-import {AnyStringIndex, RawStatsPart} from "@xivgear/util/types";
+import {RawStatsPart} from "@xivgear/util/types";
 
 type ApiClientRawType<X extends keyof DataApiClient<never>, Y extends keyof DataApiClient<never>[X]> = DataApiClient<never>[X][Y]
 
