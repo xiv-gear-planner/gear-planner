@@ -81,7 +81,7 @@ import {CustomFoodPopup, CustomItemPopup} from "./custom_item_manager";
 import {confirmDelete} from "@xivgear/common-ui/components/delete_confirm";
 import {SimulationGui} from "../sims/simulation_gui";
 import {makeGui} from "../sims/sim_guis";
-import {recordSheetEvent} from "@xivgear/core/analytics/analytics";
+import {recordSheetEvent} from "@xivgear/gearplan-frontend/analytics/analytics";
 import {MeldSolverDialog} from "./meld_solver_modal";
 import {insertAds} from "./ads";
 import {SETTINGS} from "@xivgear/common-ui/settings/persistent_settings";
@@ -391,8 +391,11 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, SingleCellRowOr
                                     rowBeingDragged.classList.add('dragging');
                                     return;
                                 }
+                                else if (target instanceof Node) {
+                                    target = target["parentElement"] as EventTarget;
+                                }
                                 else {
-                                    target = target['parentElement'];
+                                    break;
                                 }
                             }
                             rowBeingDragged = null;
@@ -1222,14 +1225,9 @@ function formatSimulationConfigArea<SettingsType extends SimSettings>(
             rerunTimer.ping();
         }
     };
-    const settingsProxyHandler: ProxyHandler<SettingsType> = {
-        set(target, prop, value, receiver) {
-            target[prop] = value;
-            updateCallback();
-            return true;
-        },
-    };
-    const settingsProxy = new Proxy(originalSettings, settingsProxyHandler);
+    const settingsProxy = writeProxy(originalSettings, () => {
+        updateCallback();
+    });
     const customInterface = simGui.makeConfigInterface(settingsProxy, updateCallback);
     customInterface.id = 'sim-config-area-inner';
     customInterface.classList.add('sim-config-area-inner');
@@ -1382,7 +1380,7 @@ export class GearPlanSheetGui extends GearPlanSheet {
             }
             else if (item instanceof CharacterGearSet) {
                 // TODO: centralize these debugging shortcuts
-                window['currentGearSet'] = item;
+                window.currentGearSet = item;
                 if (item.isSeparator) {
                     if (this._isViewOnly) {
                         this.setupEditorArea(new SeparatorViewer(item));
@@ -1401,7 +1399,7 @@ export class GearPlanSheetGui extends GearPlanSheet {
                 }
                 this.refreshToolbar();
             }
-            else if (item['makeConfigInterface']) {
+            else if ('makeConfigInterface' in item) {
                 this.setupEditorArea(formatSimulationConfigArea(this, item as SimulationGui<any, any, any>, col => this._gearPlanTable.refreshColumn(col), col => this.delSim(col.sim), () => this._gearPlanTable.refreshColHeaders()));
             }
             else if (item instanceof SimResultData) {
@@ -1852,8 +1850,8 @@ export class GearPlanSheetGui extends GearPlanSheet {
             if (this._gearPlanTable) {
                 this._gearPlanTable.refreshRowData(gearSet);
                 this.refreshToolbar();
-                if (this._editorItem === gearSet) {
-                    this._editorAreaNode?.['refresh']();
+                if (this._editorItem === gearSet && 'refresh' in this._editorAreaNode) {
+                    (this._editorAreaNode.refresh as () => void)();
                 }
             }
             this.requestSave();

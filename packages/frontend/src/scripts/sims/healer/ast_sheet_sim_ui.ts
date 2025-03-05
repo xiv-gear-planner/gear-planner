@@ -4,11 +4,12 @@ import {col, CustomColumn} from "@xivgear/common-ui/table/tables";
 import {AbilitiesUsedTable} from "../components/ability_used_table";
 import {BaseMultiCycleSimGui} from "../multicyclesim_ui";
 import {AstExtraData, AstSettings, AstSimResult} from "@xivgear/core/sims/healer/ast_sheet_sim";
+import {StyleSwitcher, WritableCssProp} from "@xivgear/common-ui/util/types";
 
 class AstGaugeGui {
 
     static generateResultColumns(result: CycleSimResult): CustomColumn<DisplayRecordFinalized, unknown, unknown>[] {
-        return [{
+        return [col({
             shortName: 'cards',
             displayName: 'Cards',
             getter: used => isFinalizedAbilityUse(used) ? used.original : null,
@@ -25,7 +26,7 @@ class AstGaugeGui {
                     div.style.padding = '2px 0 2px 0';
                     div.style.boxSizing = 'border-box';
 
-                    const cardStyles = {
+                    const cardStyles: StyleSwitcher = {
                         Balance: {
                             clipPath: `polygon(15% 0%, 85% 0%, 85% 100%, 15% 100%)`,
                             background: '#ff6f00',
@@ -58,12 +59,12 @@ class AstGaugeGui {
                             clipPath: `polygon(15% 0%, 85% 0%, 85% 100%, 15% 100%)`,
                             background: '#ffe4d6',
                         },
-                    };
+                    } as const;
 
-                    Object.keys(cardStyles).forEach(key => {
+                    for (const key in cardStyles) {
                         const stack = document.createElement('span');
-                        for (const [k, v] of Object.entries(cardStyles[key])) {
-                            stack.style[k] = v;
+                        for (const [k, v] of Object.entries(cardStyles[key as keyof typeof cardStyles])) {
+                            stack.style[k as WritableCssProp] = v;
                         }
                         stack.style.height = '100%';
                         stack.style.width = '16px';
@@ -73,14 +74,14 @@ class AstGaugeGui {
                             stack.style.background = '#00000033';
                         }
                         div.appendChild(stack);
-                    });
+                    };
 
                     return div;
                 }
                 return document.createTextNode("");
             },
-        },
-        ].map(col);
+        }),
+        ];
     }
 }
 

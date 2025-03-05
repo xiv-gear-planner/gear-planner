@@ -891,15 +891,15 @@ export class CharacterGearSet {
     }
 }
 
-export function applyStatCaps(stats: RawStats, statCaps: { [K in RawStatKey]?: number }) {
+export function applyStatCaps(stats: RawStats, statCaps: { [K in RawStatKey]?: number }): RawStats {
     const out = {
         ...stats,
-    };
+    } as RawStats;
     Object.entries(stats).forEach(([stat, value]) => {
         if (NO_SYNC_STATS.includes(stat as RawStatKey)) {
             return;
         }
-        out[stat] = Math.min(value, statCaps[stat] ?? 999999);
+        out[stat as RawStatKey] = Math.min(value, statCaps[stat as RawStatKey] ?? 999999);
     });
     return out;
 }
@@ -956,7 +956,7 @@ export function isSameOrBetterItem(candidateItem: GearItem, baseItem: GearItem):
     const candidateStats = candidateItem.stats;
     const baseStats = baseItem.stats;
     for (const [statKey, baseValue] of Object.entries(baseStats)) {
-        const candidateValue = candidateStats[statKey] as number;
+        const candidateValue = candidateStats[statKey as RawStatKey] as number;
         // For skill/spell speed, we want an exact match, since allowing extra sks/sps could cause
         // it to bump up a GCD tier.
         if (statKey as RawStatKey === 'skillspeed' || statKey as RawStatKey === 'spellspeed') {

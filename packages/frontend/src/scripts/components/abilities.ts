@@ -2,7 +2,9 @@ import {xivApiIconUrl, xivApiSingleCols} from "@xivgear/core/external/xivapi";
 
 export interface XivApiAbilityData {
     ID: number,
-    Icon: string
+    Icon: {
+        id: number,
+    }
 }
 
 const abilityIconMap = new Map<number, Promise<XivApiAbilityData>>();

@@ -55,7 +55,7 @@ export class BuffSettingsManager {
                 map[job] = [val];
             }
             return map;
-        }), {});
+        }), {} as Record<JobName, PartyBuff[]>);
     }
 
     private static getBuffKey(buff: PartyBuff): BuffSaveKey {

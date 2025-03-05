@@ -6,6 +6,7 @@ import {BaseMultiCycleSimGui} from "../../multicyclesim_ui";
 import {FieldBoundFloatField, FieldBoundCheckBox, labelFor, labeledCheckbox} from "@xivgear/common-ui/components/util";
 import {SamSimResult, SamSettings} from "@xivgear/core/sims/melee/sam/sam_lv100_sim";
 import {SAMExtraData} from "@xivgear/core/sims/melee/sam/sam_types";
+import {StyleSwitcher, WritableCssProp} from "@xivgear/common-ui/util/types";
 
 class SAMGaugeGui {
 
@@ -103,7 +104,7 @@ class SAMGaugeGui {
                     div.style.padding = '2px 0 2px 0';
                     div.style.boxSizing = 'border-box';
 
-                    const senStyles = {
+                    const senStyles: StyleSwitcher = {
                         Setsu: {
                             clipPath: `polygon(50% 0%, 64% 25%, 92% 25%, 78% 50%, 92% 75%, 64% 75%, 50% 100%, 36% 75%, 8% 75%, 22% 50%, 8% 25%, 36% 25%)`,
                             background: '#6E95D7',
@@ -122,7 +123,7 @@ class SAMGaugeGui {
                     Object.keys(senStyles).forEach(key => {
                         const stack = document.createElement('span');
                         for (const [k, v] of Object.entries(senStyles[key])) {
-                            stack.style[k] = v;
+                            stack.style[k as WritableCssProp] = v;
                         }
                         stack.style.height = '100%';
                         stack.style.width = '16px';

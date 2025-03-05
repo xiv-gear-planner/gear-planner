@@ -4,7 +4,6 @@ import {SimResult, SimSettings, Simulation} from "@xivgear/core/sims/sim_types";
 import {GearPlanSheet} from "@xivgear/core/sheet";
 import {GearsetGenerationSettings} from "@xivgear/core/solving/gearset_generation";
 import {SolverSimulationSettings} from "@xivgear/core/solving/sim_runner";
-import {range} from "@xivgear/util/array_utils";
 import {WORKER_POOL} from "../workers/worker_pool";
 import {GearsetGenerationRequest, SolverSimulationRequest} from "@xivgear/core/workers/worker_types";
 import {SolverSimulationJobContext} from "../workers/simulation_worker";

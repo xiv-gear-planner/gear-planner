@@ -10,7 +10,7 @@ import {DrkExtraData} from "@xivgear/core/sims/tank/drk/drk_types";
 export class DrkSimGui extends BaseMultiCycleSimGui<DrkSimResult, DrkSettings> {
 
     static generateResultColumns(result: CycleSimResult): CustomColumn<DisplayRecordFinalized, unknown, unknown>[] {
-        return [{
+        return [col({
             shortName: 'bloodGauge',
             displayName: 'Blood',
             getter: used => isFinalizedAbilityUse(used) ? used.original : null,
@@ -51,7 +51,7 @@ export class DrkSimGui extends BaseMultiCycleSimGui<DrkSimResult, DrkSettings> {
                 }
                 return document.createTextNode("");
             },
-        }, {
+        }), col({
             shortName: 'darkside',
             displayName: 'Darkside',
             getter: used => isFinalizedAbilityUse(used) ? used.original : null,
@@ -91,7 +91,7 @@ export class DrkSimGui extends BaseMultiCycleSimGui<DrkSimResult, DrkSettings> {
                 }
                 return document.createTextNode("");
             },
-        }, {
+        }), col({
             shortName: 'darkArts',
             displayName: 'Dark Arts',
             getter: used => isFinalizedAbilityUse(used) ? used.original : null,
@@ -127,7 +127,7 @@ export class DrkSimGui extends BaseMultiCycleSimGui<DrkSimResult, DrkSettings> {
                 }
                 return document.createTextNode("");
             },
-        }, {
+        }), col({
             shortName: 'mp',
             displayName: 'MP',
             getter: used => isFinalizedAbilityUse(used) ? used.original : null,
@@ -168,7 +168,7 @@ export class DrkSimGui extends BaseMultiCycleSimGui<DrkSimResult, DrkSettings> {
                 }
                 return document.createTextNode("");
             },
-        }].map(col);
+        })];
     }
 
     override makeCustomConfigInterface(settings: DrkSettings, _updateCallback: () => void): HTMLElement | null {

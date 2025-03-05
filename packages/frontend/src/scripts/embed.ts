@@ -2,7 +2,7 @@ import {LoadingBlocker} from "@xivgear/common-ui/components/loader";
 
 import {setTitle} from "./base_ui";
 import {GearPlanSheetGui} from "./components/sheet";
-import {recordEvent} from "@xivgear/core/analytics/analytics";
+import {recordEvent} from "@xivgear/common-ui/analytics/analytics";
 
 let embedDiv: HTMLDivElement;
 
@@ -30,6 +30,7 @@ export async function openEmbed(sheet: GearPlanSheetGui) {
         console.log("openEmbed mid");
         const editorArea = sheet.editorArea;
         // TODO: this is bad
+        // @ts-expect-error i know it's bad
         const statTotals = sheet.editorArea.firstChild['toolbar'].firstChild;
 
         const placeHolder = editorArea.querySelector("a#embed-stats-placeholder");

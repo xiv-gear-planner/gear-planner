@@ -1,9 +1,9 @@
 import {CharacterGearSet} from "@xivgear/core/gear";
-import {makeFakeSet} from "@xivgear/core/test/test_utils";
 import {JobMultipliers} from "@xivgear/xivmath/geartypes";
 import {getClassJobStats, getLevelStats} from "@xivgear/xivmath/xivconstants";
 import {finalizeStats} from "@xivgear/xivmath/xivstats";
 import {GcdAbility, OgcdAbility} from "@xivgear/core/sims/sim_types";
+import {makeFakeSet} from "../test_utils";
 
 let fakeId = 0x200_0000;
 

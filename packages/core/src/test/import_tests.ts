@@ -1,12 +1,21 @@
 import {it} from "mocha";
-import {parseImport} from "../imports/imports";
+import {ImportSpec, parseImport as originalParseImport} from "../imports/imports";
 import * as assert from "assert";
+
+type TestImportSpec = ImportSpec & {
+    path: string[],
+    [key: string]: unknown;
+}
+
+function parseImport(...params: Parameters<typeof originalParseImport>): TestImportSpec {
+    return originalParseImport(...params) as TestImportSpec;
+}
 
 describe('Import Functionality', () => {
     it('Should recognize shortlinks', () => {
         const result = parseImport("https://xivgear.app/#/sl/583af709-becb-43b8-aea7-3ae2459d58d8");
         assert.equal(result.importType, 'shortlink');
-        assert.equal(result['rawUuid'], '583af709-becb-43b8-aea7-3ae2459d58d8');
+        assert.equal(result.rawUuid as unknown, '583af709-becb-43b8-aea7-3ae2459d58d8');
     });
     it('Should recognize share-style shortlinks', () => {
         const result = parseImport("https://share.xivgear.app/share/583af709-becb-43b8-aea7-3ae2459d58d8");

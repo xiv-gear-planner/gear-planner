@@ -9,11 +9,11 @@ export function installDragHelper(args: {dragHandle: HTMLElement, dragOuter: HTM
         args.dragHandle.style.cursor = 'grabbing';
         body.style.cursor = 'grabbing';
         // args.dragOuter.setPointerCapture(ev.pointerId);
-        const move = ev => {
+        const move = (ev: PointerEvent) => {
             ev.preventDefault();
             args.moveHandler?.(ev);
         };
-        const up = (ev) => {
+        const up = (ev: PointerEvent) => {
             body.removeEventListener('pointermove', move);
             body.removeEventListener('pointerup', up);
             // body.releasePointerCapture(ev.pointerId);

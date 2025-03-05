@@ -21,7 +21,7 @@ import {
     quickElement
 } from "@xivgear/common-ui/components/util";
 import {GearPlanSheet} from "@xivgear/core/sheet";
-import {recordCurrentSheetEvent, recordEvent} from "@xivgear/core/analytics/analytics";
+import {recordCurrentSheetEvent, recordEvent} from "@xivgear/common-ui/analytics/analytics";
 import {GearPlanSheetGui} from "./sheet";
 
 /**

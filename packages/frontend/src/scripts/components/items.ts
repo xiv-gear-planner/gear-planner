@@ -15,6 +15,7 @@ import {
     Substat
 } from "@xivgear/xivmath/geartypes";
 import {
+    col,
     CustomCell,
     CustomColumn,
     CustomColumnSpec,
@@ -45,7 +46,7 @@ import {GearPlanSheet} from "@xivgear/core/sheet";
 import {makeRelicStatEditor} from "./relic_stats";
 import {ShowHideButton} from "@xivgear/common-ui/components/show_hide_chevron";
 import {BaseModal} from "@xivgear/common-ui/components/modal";
-import {recordSheetEvent} from "@xivgear/core/analytics/analytics";
+import {recordSheetEvent} from "@xivgear/common-ui/analytics/analytics";
 
 function statCellStylerRemover(cell: CustomCell<GearSlotItem, unknown>) {
     cell.classList.remove("secondary");
@@ -227,7 +228,7 @@ export class FoodItemsTable extends CustomTable<FoodItem, TableSelectionModel<Fo
                 displayName: "iLvl",
                 getter: item => item.ilvl,
             },
-            {
+            col({
                 shortName: "icon",
                 displayName: "",
                 getter: item => {
@@ -239,7 +240,7 @@ export class FoodItemsTable extends CustomTable<FoodItem, TableSelectionModel<Fo
                     image.src = img.toString();
                     return image;
                 },
-            },
+            }),
             {
                 shortName: "itemname",
                 displayName: "Name",
@@ -316,7 +317,7 @@ export class FoodItemViewTable extends CustomTable<FoodItem> {
                 displayName: "",
                 getter: item => item.ilvl,
             },
-            {
+            col({
                 shortName: "icon",
                 displayName: "",
                 getter: item => {
@@ -328,7 +329,7 @@ export class FoodItemViewTable extends CustomTable<FoodItem> {
                     image.src = img.toString();
                     return image;
                 },
-            },
+            }),
             {
                 shortName: "itemname",
                 displayName: "Food",
@@ -404,10 +405,10 @@ function itemTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, stat: 
                     if (sheet._isViewOnly) {
                         const cap = equipment.gearItem.statCaps[stat];
                         if (cap) {
-                            return document.createTextNode(Math.min(equipment.relicStats[stat], cap).toString());
+                            return document.createTextNode(Math.min(equipment.relicStats[value.stat] ?? 0, cap).toString());
                         }
                         else {
-                            return document.createTextNode(equipment.relicStats[stat].toString());
+                            return document.createTextNode(equipment.relicStats[value.stat].toString());
                         }
                     }
                     else { // If not, display the editor
@@ -487,7 +488,7 @@ export class GearItemsTable extends CustomTable<GearSlotItem, TableSelectionMode
                 },
                 fixedWidth: 32,
             },
-            {
+            col({
                 shortName: "icon",
                 displayName: "",
                 getter: item => {
@@ -499,8 +500,8 @@ export class GearItemsTable extends CustomTable<GearSlotItem, TableSelectionMode
                     image.src = img.toString();
                     return image;
                 },
-            },
-            {
+            }),
+            col({
                 shortName: "itemname",
                 displayName: "Name",
                 getter: item => {
@@ -533,7 +534,7 @@ export class GearItemsTable extends CustomTable<GearSlotItem, TableSelectionMode
                     }
                     colElement.title = title;
                 },
-            },
+            }),
             {
                 shortName: "mats",
                 displayName: "Mat",
@@ -555,7 +556,7 @@ export class GearItemsTable extends CustomTable<GearSlotItem, TableSelectionMode
                     return span;
                 },
             },
-            {
+            col({
                 shortName: "wd",
                 displayName: "WD",
                 getter: item => {
@@ -564,7 +565,7 @@ export class GearItemsTable extends CustomTable<GearSlotItem, TableSelectionMode
                 },
                 renderer: value => {
                     if (value) {
-                        return document.createTextNode(value);
+                        return document.createTextNode(String(value));
                     }
                     else {
                         return document.createTextNode("");
@@ -572,7 +573,7 @@ export class GearItemsTable extends CustomTable<GearSlotItem, TableSelectionMode
                 },
                 initialWidth: 33,
                 condition: () => handledSlots === undefined || handledSlots.includes('Weapon'),
-            },
+            }),
             itemTableStatColumn(sheet, gearSet, 'vitality'),
             itemTableStatColumn(sheet, gearSet, 'strength'),
             itemTableStatColumn(sheet, gearSet, 'dexterity'),
@@ -781,7 +782,7 @@ export class GearItemsViewTable extends CustomTable<GearSlotItem> {
                     return item.item.ilvl.toString();
                 },
             },
-            {
+            col({
                 shortName: "icon",
                 displayName: "",
                 getter: item => {
@@ -793,8 +794,8 @@ export class GearItemsViewTable extends CustomTable<GearSlotItem> {
                     image.src = img.toString();
                     return image;
                 },
-            },
-            {
+            }),
+            col({
                 shortName: "itemname",
                 displayName: headingText,
                 getter: item => {
@@ -820,7 +821,7 @@ export class GearItemsViewTable extends CustomTable<GearSlotItem> {
 
                 },
                 // initialWidth: 300,
-            },
+            }),
             // {
             //     shortName: "mats",
             //     displayName: "Mat",
@@ -884,7 +885,7 @@ export class AltItemsModal extends BaseModal {
                     return item.ilvl.toString();
                 },
             },
-            {
+            col({
                 shortName: "icon",
                 displayName: "",
                 getter: item => {
@@ -896,7 +897,7 @@ export class AltItemsModal extends BaseModal {
                     image.src = img.toString();
                     return image;
                 },
-            },
+            }),
             {
                 shortName: "itemname",
                 displayName: "Name",
@@ -904,14 +905,14 @@ export class AltItemsModal extends BaseModal {
                     return item.nameTranslation.asCurrentLang;
                 },
             },
-            {
+            col({
                 shortName: 'acqsrc',
                 displayName: 'Source',
                 getter: item => item.acquisitionType,
                 renderer: value => {
                     return document.createTextNode(value ? (formatAcquisitionSource(value) ?? 'Unknown') : 'Unknown');
                 },
-            },
+            }),
         ];
         table.data = [new HeaderRow(), baseItem, ...altItems];
         this.contentArea.appendChild(table);

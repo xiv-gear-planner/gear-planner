@@ -1,4 +1,4 @@
-import {CustomColumnSpec, CustomTable, HeaderRow} from "@xivgear/common-ui/table/tables";
+import {col, CustomColumnSpec, CustomTable, HeaderRow} from "@xivgear/common-ui/table/tables";
 import {toRelPct} from "@xivgear/util/strutils";
 import {AbilityIcon} from "../../components/abilities";
 import {BuffListDisplay} from "./buff_list_display";
@@ -34,7 +34,7 @@ export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
         this.style.tableLayout = 'fixed';
         this.classList.add('abilities-used-table');
         this.columns = [
-            {
+            col({
                 shortName: 'time',
                 displayName: 'Time',
                 getter: used => used,
@@ -59,7 +59,7 @@ export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
                         colElement.title = title;
                     }
                 },
-            },
+            }),
             {
                 shortName: 'ability',
                 displayName: 'Ability',
@@ -115,7 +115,7 @@ export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
                     }
                 },
             },
-            {
+            col({
                 shortName: 'expected-damage',
                 displayName: 'Damage',
                 getter: used => used,
@@ -154,8 +154,8 @@ export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
                         }
                     }
                 },
-            },
-            {
+            }),
+            col({
                 shortName: 'Total Buffs',
                 displayName: 'Total Buffs',
                 getter: used => isFinalizedAbilityUse(used) ? used.combinedEffects : undefined,
@@ -179,15 +179,15 @@ export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
                     }
                     return document.createTextNode(out.join(', '));
                 },
-            },
-            {
+            }),
+            col({
                 shortName: 'buffs',
                 displayName: 'Buffs Active',
-                getter: (used: DisplayRecordFinalized) => used['buffs'] ?? [],
+                getter: (used: DisplayRecordFinalized) => 'buffs' in used ? used.buffs : [],
                 renderer: (buffs: Buff[]) => {
                     return new BuffListDisplay(buffs);
                 },
-            },
+            }),
             ...extraColumns,
         ];
         this.data = [new HeaderRow(), ...abilitiesUsed];

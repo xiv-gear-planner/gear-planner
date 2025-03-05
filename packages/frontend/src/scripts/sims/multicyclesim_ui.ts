@@ -11,6 +11,7 @@ import {simpleAutoResultTable} from "./components/simple_tables";
 import {AbilitiesUsedTable} from "./components/ability_used_table";
 import {quickElement} from "@xivgear/common-ui/components/util";
 import {BaseMultiCycleSim} from "@xivgear/core/sims/processors/sim_processors";
+import {AnyStringIndex} from "@xivgear/util/types";
 
 export class BaseMultiCycleSimGui<ResultType extends CycleSimResult, InternalSettingsType extends SimSettings, CycleProcessorType extends CycleProcessor = CycleProcessor, FullResultType extends CycleSimResultFull<ResultType> = CycleSimResultFull<ResultType>>
     extends SimulationGui<FullResultType, InternalSettingsType, ExternalCycleSettings<InternalSettingsType>> {
@@ -60,7 +61,7 @@ export class BaseMultiCycleSimGui<ResultType extends CycleSimResult, InternalSet
      */
     makeMainResultDisplay(result: ResultType, includeRotationName: boolean = false): HTMLElement {
         // noinspection JSNonASCIINames
-        const data = {
+        const data: AnyStringIndex = {
             "Expected DPS": result.mainDpsFull.expected,
             "Std Deviation": result.mainDpsFull.stdDev,
             "Expected +1σ": applyStdDev(result.mainDpsFull, 1),

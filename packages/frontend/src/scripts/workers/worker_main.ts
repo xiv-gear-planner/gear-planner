@@ -2,7 +2,7 @@ import {HEADLESS_SHEET_PROVIDER} from "@xivgear/core/sheet";
 import {registerDefaultSims} from "@xivgear/core/sims/default_sims";
 import {GearsetGenerationWorker} from "./meld_generation_worker";
 import {SolverSimulationRunner} from "./simulation_worker";
-import {makeDataManager} from "@xivgear/core/datamanager";
+import {DataManager, makeDataManager} from "@xivgear/core/datamanager";
 import {JobInfo, postMsg} from "./worker_common";
 import {PingWorker} from "./ping_worker";
 import {
@@ -35,7 +35,7 @@ function resetConsoleToDefault() {
 }
 
 registerDefaultSims();
-let dataManager = null;
+let dataManager: DataManager | null = null;
 onmessage = async function (event) {
 
     const msg = event.data as MainToWorkerMessage;

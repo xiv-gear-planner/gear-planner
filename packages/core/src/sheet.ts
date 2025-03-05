@@ -526,7 +526,8 @@ export class GearPlanSheet {
      */
     exportGearSet(set: CharacterGearSet, external: boolean = false): SetExport | SetExportExternalSingle {
         const items: { [K in EquipSlotKey]?: ItemSlotExport } = {};
-        for (const equipmentKey in set.equipment) {
+        for (const k in set.equipment) {
+            const equipmentKey = k as EquipSlotKey;
             const inSlot: EquippedItem = set.equipment[equipmentKey];
             if (inSlot) {
                 const exportedItem: ItemSlotExport = {
@@ -676,7 +677,7 @@ export class GearPlanSheet {
         else {
 
             for (const equipmentSlot in importedSet.items) {
-                const importedItem: ItemSlotExport = importedSet.items[equipmentSlot];
+                const importedItem: ItemSlotExport = importedSet.items[equipmentSlot as EquipSlotKey];
                 if (!importedItem) {
                     continue;
                 }
@@ -696,7 +697,7 @@ export class GearPlanSheet {
                 if (importedItem.relicStats && equipped.gearItem.isCustomRelic) {
                     Object.assign(equipped.relicStats, importedItem.relicStats);
                 }
-                set.equipment[equipmentSlot] = equipped;
+                set.equipment[equipmentSlot as EquipSlotKey] = equipped;
             }
             if (importedSet.food) {
                 set.food = this.foodById(importedSet.food);

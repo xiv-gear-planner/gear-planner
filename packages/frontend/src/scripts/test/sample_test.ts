@@ -8,7 +8,7 @@ const {JSDOM} = jsdom;
 
 function makeDom() {
     const buffer = fs.readFileSync("./dist/index.html");
-    const dom = new JSDOM(buffer, {runScripts: "dangerously"});
+    const dom = new JSDOM(buffer, {runScripts: "dangerously", url: "https://xivgear.app/"});
     dom.virtualConsole.sendTo(console);
     console.log("DOM started");
     return dom;

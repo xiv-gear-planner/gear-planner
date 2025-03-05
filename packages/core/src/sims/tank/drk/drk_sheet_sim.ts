@@ -307,7 +307,7 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
     // usage to ensure that Living Shadow abilities are correctly positioned on the timeline.
     private applyLivingShadowAbilities(cp: DrkCycleProcessor) {
         if (cp.livingShadowAbilityUsages && cp.livingShadowAbilityUsages.length > 0) {
-            const usedAbilities = [];
+            const usedAbilities: number[] = [];
             cp.livingShadowAbilityUsages.forEach((abilityUsage, index) => {
                 if (abilityUsage.usageTime <= cp.currentTime) {
                     cp.applyLivingShadowAbility(abilityUsage);

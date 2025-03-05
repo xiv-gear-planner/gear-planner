@@ -4,7 +4,7 @@ import {MateriaPriorityPicker} from "./materia";
 import {StatTierDisplay} from "./stat_tier_display";
 import {CharacterGearSet} from "@xivgear/core/gear";
 import {makeActionButton, redoIcon, undoIcon} from "@xivgear/common-ui/components/util";
-import {recordEvent, recordSheetEvent} from "@xivgear/core/analytics/analytics";
+import {recordEvent, recordSheetEvent} from "@xivgear/common-ui/analytics/analytics";
 import {GearPlanSheetGui} from "./sheet";
 
 function makeIlvlArea(

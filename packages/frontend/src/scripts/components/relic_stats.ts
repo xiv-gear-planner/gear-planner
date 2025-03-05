@@ -1,6 +1,10 @@
-import {EquippedItem, Substat} from "@xivgear/xivmath/geartypes";
+import {EquippedItem, RelicStats, Substat} from "@xivgear/xivmath/geartypes";
 import {CharacterGearSet} from "@xivgear/core/gear";
 import {FieldBoundDataSelect, FieldBoundIntField} from "@xivgear/common-ui/components/util";
+
+type HasValidation = {
+    revalidate: () => void;
+}
 
 export function makeRelicStatEditor(equipment: EquippedItem, stat: Substat, set: CharacterGearSet): HTMLElement {
     const gearItem = equipment.gearItem;
@@ -23,7 +27,7 @@ export function makeRelicStatEditor(equipment: EquippedItem, stat: Substat, set:
                     ctx.failValidation(`Must be ${inputSubstatCap} or lower`);
                 }
             }],
-        });
+        }) as FieldBoundIntField<RelicStats> & HasValidation;
         const cap = gearItem.statCaps[stat] ?? 9999;
         input.type = 'number';
         input.pattern = '[0-9]*';
@@ -49,7 +53,7 @@ export function makeRelicStatEditor(equipment: EquippedItem, stat: Substat, set:
             }
         };
         reval();
-        input['revalidate'] = reval;
+        input.revalidate = reval;
         // Disgusting
         input.addListener(() => {
             setTimeout(() => {
@@ -57,7 +61,7 @@ export function makeRelicStatEditor(equipment: EquippedItem, stat: Substat, set:
                 const row = input.closest('tr');
                 const inputs = row.querySelectorAll('select, input');
                 inputs.forEach(inp => {
-                    const reval = inp['revalidate'];
+                    const reval = (inp as unknown as HasValidation).revalidate;
                     if (reval) {
                         reval();
                     }
@@ -93,7 +97,7 @@ export function makeRelicStatEditor(equipment: EquippedItem, stat: Substat, set:
             }
         };
         reval();
-        input['revalidate'] = reval;
+        (input as unknown as HasValidation).revalidate = reval;
         // Disgusting
         input.addListener(() => {
             setTimeout(() => {
@@ -102,7 +106,7 @@ export function makeRelicStatEditor(equipment: EquippedItem, stat: Substat, set:
                 const inputs = row.querySelectorAll('select, input');
                 console.log('inputs', []);
                 inputs.forEach(inp => {
-                    const reval = inp['revalidate'];
+                    const reval = (input as unknown as HasValidation).revalidate;
                     if (reval) {
                         reval();
                     }

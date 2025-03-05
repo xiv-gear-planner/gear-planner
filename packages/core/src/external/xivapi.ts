@@ -179,7 +179,12 @@ export async function xivApiGetList<RequestType extends XivApiListRequest>(reque
     };
 }
 
-function isNonEmpty(row: object) {
+type Row = {
+    row_id: number;
+    fields: object[];
+}
+
+function isNonEmpty(row: Row) {
     return row['row_id'] > 0 && Object.keys(row['fields']).length > 0;
 }
 

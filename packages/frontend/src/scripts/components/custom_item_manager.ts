@@ -1,4 +1,4 @@
-import {CustomTable, HeaderRow} from "@xivgear/common-ui/table/tables";
+import {col, CustomTable, HeaderRow} from "@xivgear/common-ui/table/tables";
 import {GearPlanSheet} from "@xivgear/core/sheet";
 import {
     clampValues,
@@ -119,7 +119,7 @@ export class CustomItemTable extends CustomTable<CustomItem> {
                 initialWidth: 60,
             },
             ...ALL_STATS.map(stat => {
-                return {
+                return col({
                     shortName: STAT_ABBREVIATIONS[stat],
                     displayName: STAT_ABBREVIATIONS[stat],
                     getter: item => item,
@@ -130,7 +130,7 @@ export class CustomItemTable extends CustomTable<CustomItem> {
                         });
                     },
                     initialWidth: 40,
-                };
+                });
             }),
             {
                 shortName: 'wdPhys',

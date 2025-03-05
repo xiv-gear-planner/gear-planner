@@ -14,7 +14,6 @@ function makeDescriptionPanel() {
 }
 
 export class PotencyRatioSimGui extends SimulationGui<PotencyRatioSimResults, SimSettings, EmptyObject> {
-    makeToolTip = null;
     makeConfigInterface = makeDescriptionPanel;
 
     makeResultDisplay(result: PotencyRatioSimResults): HTMLElement {

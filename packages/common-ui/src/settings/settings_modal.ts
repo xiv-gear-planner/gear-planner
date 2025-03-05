@@ -9,7 +9,7 @@ import {
 } from "@xivgear/common-ui/components/util";
 import {DISPLAY_SETTINGS} from "./display_settings";
 import {BoolToggle} from "@xivgear/common-ui/components/bool_toggle";
-import {recordEvent} from "@xivgear/core/analytics/analytics";
+import {recordEvent} from "../analytics/analytics";
 import {ALL_LANGS, LangaugeDisplayName, Language} from "@xivgear/i18n/translation";
 import {SETTINGS} from "./persistent_settings";
 

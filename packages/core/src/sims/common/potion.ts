@@ -1,13 +1,13 @@
 import {OgcdAbility} from "../sim_types";
 import {fl} from "@xivgear/xivmath/xivmath";
-import {RawStatKey} from "@xivgear/xivmath/geartypes";
+import {Mainstat} from "@xivgear/xivmath/geartypes";
 import {camel2title} from "@xivgear/util/strutils";
 
 function potionBonus(initialValue: number, bonus: number, cap: number): number {
     return Math.min(fl(initialValue * bonus), cap);
 }
 
-function makePotion(name: string, stat: RawStatKey, itemId: number, bonus: number, cap: number): Readonly<OgcdAbility> {
+function makePotion(name: string, stat: Mainstat, itemId: number, bonus: number, cap: number): Readonly<OgcdAbility> {
     return {
         name,
         id: 35106,
@@ -37,12 +37,14 @@ function makePotion(name: string, stat: RawStatKey, itemId: number, bonus: numbe
 
 export const GemdraughtGrades = [1, 2] as const;
 export type GemdraughtGrade = typeof GemdraughtGrades[number];
-export function makeGemdraught(stat: RawStatKey, grade: GemdraughtGrade): Readonly<OgcdAbility> {
+
+export function makeGemdraught(stat: Mainstat, grade: GemdraughtGrade): Readonly<OgcdAbility> {
     const statToPotItemId = {
         mind: 44161,
         strength: 44157,
         dexterity: 44158,
         intelligence: 44160,
+        vitality: 44159,
     };
     const gradeToStatCap = [351, 392];
 

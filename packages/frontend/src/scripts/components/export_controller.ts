@@ -12,7 +12,7 @@ import {makeUrlSimple, ONLY_SET_QUERY_PARAM, VIEW_SET_HASH} from "@xivgear/core/
 import {GearPlanSheet} from "@xivgear/core/sheet";
 import {writeProxy} from "@xivgear/util/proxies";
 import {EquipSlots, Materia, XivItem} from "@xivgear/xivmath/geartypes";
-import {recordSheetEvent} from "@xivgear/core/analytics/analytics";
+import {recordSheetEvent} from "@xivgear/common-ui/analytics/analytics";
 
 type ExportMethod<X> = {
     /**
@@ -221,7 +221,13 @@ export function startExport(sheet: GearPlanSheet | CharacterGearSet) {
     modal.attachAndShow();
 }
 
-window["startExport"] = startExport;
+declare global {
+    interface Window {
+        startExport: typeof startExport;
+    }
+}
+
+window.startExport = startExport;
 
 const DEFAULT_EXPORT_TEXT = 'Choose an export type from above, then click "Generate" below.\n\nYou can also click "Preview" to get an idea of what your sheet/set will look like after exporting.';
 

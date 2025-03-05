@@ -1,4 +1,4 @@
-import {writeProxy} from "@xivgear/util/proxies";
+import {writeProxy} from "../proxies";
 import assert from "assert";
 
 describe('write proxy', () => {
@@ -20,7 +20,8 @@ describe('write proxy', () => {
             count: 0,
         };
         const proxy = writeProxy(foo, () => counter.count++);
-        proxy['bar'] = 5;
+        // @ts-expect-error this is a test
+        proxy.bar = 5;
         assert.equal(counter.count, 1);
     });
     it('does not trigger when reading', () => {
