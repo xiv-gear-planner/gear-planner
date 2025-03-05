@@ -38,16 +38,26 @@ function makePotion(name: string, stat: Mainstat, itemId: number, bonus: number,
 export const GemdraughtGrades = [1, 2] as const;
 export type GemdraughtGrade = typeof GemdraughtGrades[number];
 
-export function makeGemdraught(stat: Mainstat, grade: GemdraughtGrade): Readonly<OgcdAbility> {
-    const statToPotItemId = {
-        mind: 44161,
-        strength: 44157,
-        dexterity: 44158,
-        intelligence: 44160,
-        vitality: 44159,
-    };
-    const gradeToStatCap = [351, 392];
+export type PotionStat = Exclude<Mainstat, 'vitality'>;
 
+const statToPotItemId = {
+    mind: 44161,
+    strength: 44157,
+    dexterity: 44158,
+    intelligence: 44160,
+} as const;
+
+const gradeToStatCap: number[] & {
+    // Enforce that this list has the same length as GemdraughtGrades
+    length: typeof GemdraughtGrades["length"]
+} = [351, 392] as const;
+
+/**
+ * Create a gemdraught for the given
+ * @param stat
+ * @param grade
+ */
+export function makeGemdraught(stat: PotionStat, grade: GemdraughtGrade): Readonly<OgcdAbility> {
     return makePotion(`Grade ${grade} Gemdraught of ${camel2title(stat)}`, stat, statToPotItemId[stat], 0.1, gradeToStatCap[grade - 1]);
 }
 
