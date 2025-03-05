@@ -11,3 +11,9 @@ export type WritableCssProp = {
 export type StyleSwitcher = Record<string, {
     [K in WritableCssProp]?: string;
 }>;
+
+export type XivApiIcon = {
+    id: number,
+    path: string,
+    path_hr1: string,
+}

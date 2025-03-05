@@ -10,5 +10,7 @@ export type AnyStringIndex = {
     [K: string]: unknown;
 }
 
+export type AnyStringIndexOpt = Partial<AnyStringIndex>
+
 export type RawStatsPart = Partial<RawStats>;
 

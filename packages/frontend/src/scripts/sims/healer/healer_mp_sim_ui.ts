@@ -5,7 +5,6 @@ import {simpleMappedResultTable} from "../components/simple_tables";
 import {MPResult, MPSettings} from "@xivgear/core/sims/healer/healer_mp";
 
 export class MPSimGui extends SimulationGui<MPResult, MPSettings, EmptyObject> {
-    makeToolTip = null;
     makeConfigInterface = this.makeDescriptionPanel;
 
     makeResultDisplay(result: MPResult): HTMLElement {

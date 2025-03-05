@@ -2,7 +2,7 @@ import {CustomTable} from "@xivgear/common-ui/table/tables";
 import {camel2title} from "@xivgear/util/strutils";
 
 import {SimResult} from "@xivgear/core/sims/sim_types";
-import {AnyStringIndex} from "@xivgear/util/types";
+import {AnyStringIndexOpt} from "@xivgear/util/types";
 
 type SimpleResultEntry = {
     name: string;
@@ -24,12 +24,12 @@ export function bestEffortFormat(value: unknown): Node {
  *
  * @param result The result to display
  */
-export function simpleAutoResultTable(result: AnyStringIndex): HTMLElement {
+export function simpleAutoResultTable(result: object): HTMLElement {
     const data: SimpleResultEntry[] = [];
     for (const fieldKey in result) {
         data.push({
             name: camel2title(fieldKey),
-            value: result[fieldKey],
+            value: (result as AnyStringIndexOpt)[fieldKey],
         });
     }
     const table = new CustomTable<SimpleResultEntry>();
