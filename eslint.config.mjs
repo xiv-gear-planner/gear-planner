@@ -72,10 +72,13 @@ export default [
             "eqeqeq": "error",
             "no-var": "error",
             "@stylistic/js/indent": ["error", 4, {
-                "SwitchCase": 1,
+                SwitchCase: 1,
                 // This makes it ignore continuation indents for when a long class declaration (e.g. lots of
                 // 'implements') causes it to wrap to a second line.
-                "ignoredNodes": ["ClassDeclaration"],
+                ignoredNodes: ["ClassDeclaration"],
+                FunctionExpression: {
+                    parameters: "first"
+                }
             }],
             "prefer-const": "error",
             "camelcase": "error",
