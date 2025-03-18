@@ -543,6 +543,9 @@ export class GearPlanSheet {
                 if (inSlot.relicStats && Object.entries(inSlot.relicStats)) {
                     exportedItem.relicStats = {...inSlot.relicStats};
                 }
+                if (inSlot.gearItem.isNqVersion) {
+                    exportedItem.forceNq = true;
+                }
                 items[equipmentKey] = exportedItem;
             }
         }
@@ -575,13 +578,13 @@ export class GearPlanSheet {
         return out;
     }
 
-    itemById(id: number): GearItem {
+    itemById(id: number, forceNq: boolean = false): GearItem {
         const custom = this._customItems.find(ci => ci.id === id);
         if (custom) {
             return custom;
         }
         else {
-            return this.dataManager.itemById(id);
+            return this.dataManager.itemById(id, forceNq);
         }
     }
 
@@ -682,7 +685,7 @@ export class GearPlanSheet {
                 if (!importedItem) {
                     continue;
                 }
-                const baseItem = this.itemById(importedItem.id);
+                const baseItem = this.itemById(importedItem.id, importedItem.forceNq);
                 if (!baseItem) {
                     continue;
                 }
@@ -855,11 +858,13 @@ export class GearPlanSheet {
     }
 
     get itemsForDisplay(): GearItem[] {
+        const settings = this._itemDisplaySettings;
         return [
             ...this.dataManager.allItems.filter(item => {
-                return item.ilvl >= this._itemDisplaySettings.minILvl
-                    && (item.ilvl <= this._itemDisplaySettings.maxILvl
-                        || item.isCustomRelic && this._itemDisplaySettings.higherRelics);
+                return item.ilvl >= settings.minILvl
+                    && (item.ilvl <= settings.maxILvl
+                        || item.isCustomRelic && settings.higherRelics)
+                    && (!item.isNqVersion || settings.showNq);
             }),
             ...this._customItems];
     }

@@ -531,6 +531,12 @@ export const LEVEL_STATS: Record<SupportedLevel, LevelStats> = {
     },
 };
 
+const defaultItemDispBase = {
+    showNq: false,
+    higherRelics: true,
+    maxILvlFood: 999,
+} as const satisfies Partial<ItemDisplaySettings>;
+
 /**
  * Numbers governing the minimum/maximum item levels to request from xivapi, as well as default display settings.
  */
@@ -546,11 +552,10 @@ export const LEVEL_ITEMS: Record<SupportedLevel, LevelItemInfo> = {
         minMateria: 5,
         maxMateria: 6,
         defaultDisplaySettings: {
+            ...defaultItemDispBase,
             minILvl: 380,
             maxILvl: 405,
             minILvlFood: 640,
-            maxILvlFood: 999,
-            higherRelics: true,
         },
     },
     80: {
@@ -562,6 +567,7 @@ export const LEVEL_ITEMS: Record<SupportedLevel, LevelItemInfo> = {
         minMateria: 7,
         maxMateria: 8,
         defaultDisplaySettings: {
+            ...defaultItemDispBase,
             // Defaults appropriate for TEA since it is the most common reason to be making
             // a level 80 gear set.
             // There is a BLU-specific override since BLU's only level 80 weapons are 530,
@@ -569,8 +575,6 @@ export const LEVEL_ITEMS: Record<SupportedLevel, LevelItemInfo> = {
             minILvl: 450,
             maxILvl: 475,
             minILvlFood: 640,
-            maxILvlFood: 999,
-            higherRelics: true,
         },
     },
     // DAWNTRAIL TODO: cap off level 90 items
@@ -584,11 +588,10 @@ export const LEVEL_ITEMS: Record<SupportedLevel, LevelItemInfo> = {
         minMateria: 7,
         maxMateria: 10,
         defaultDisplaySettings: {
+            ...defaultItemDispBase,
             minILvl: 640,
             maxILvl: 999,
             minILvlFood: 640,
-            maxILvlFood: 999,
-            higherRelics: true,
         },
     },
     100: {
@@ -599,12 +602,11 @@ export const LEVEL_ITEMS: Record<SupportedLevel, LevelItemInfo> = {
         minMateria: 9,
         maxMateria: 12,
         defaultDisplaySettings: {
+            ...defaultItemDispBase,
             // Raise this when more gear is available
             minILvl: 680,
             maxILvl: 999,
             minILvlFood: 670,
-            maxILvlFood: 999,
-            higherRelics: true,
         },
     },
 };
@@ -874,6 +876,7 @@ export const defaultItemDisplaySettings: ItemDisplaySettings = {
     minILvlFood: 610,
     maxILvlFood: 999,
     higherRelics: true,
+    showNq: false,
 } as const;
 
 export const MAX_PARTY_BONUS: PartyBonusAmount = 5;

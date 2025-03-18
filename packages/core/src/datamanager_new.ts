@@ -206,8 +206,10 @@ export class NewApiDataManager implements DataManager {
         }
     }
 
-    itemById(id: number): (GearItem | undefined) {
-        return this._allItems.find(item => item.id === id);
+    itemById(id: number, forceNq: boolean = false): (GearItem | undefined) {
+        return this._allItems.find(item => {
+            return item.id === id && item.isNqVersion === forceNq;
+        });
     }
 
     materiaById(id: number): (Materia | undefined) {
@@ -273,7 +275,14 @@ export class NewApiDataManager implements DataManager {
                             throw e;
                         }
                     })
-                    .map(i => new DataApiGearInfo(i));
+                    .flatMap(i => {
+                        if (i.canBeHq) {
+                            return [new DataApiGearInfo(i), new DataApiGearInfo(i, true)];
+                        }
+                        else {
+                            return [new DataApiGearInfo(i)];
+                        }
+                    });
                 this._maxIlvlForEquipLevel = new Map();
                 this._maxIlvlForEquipLevelWeapon = new Map();
                 this._allItems.forEach(item => {
@@ -464,11 +473,19 @@ export class DataApiGearInfo implements GearItem {
     isSyncedDown: boolean;
     relicStatModel: RelicStatModel;
     syncedDownTo: number | null;
+    isNqVersion: boolean;
 
-    constructor(data: ItemType) {
+    constructor(data: ItemType, forceNq: boolean = false) {
+        this.isNqVersion = forceNq;
         this.id = data.rowId;
-        this.name = data.name;
-        this.nameTranslation = toTranslatable(data.name, data.nameTranslations);
+        if (forceNq) {
+            this.name = '(NQ) ' + data.name;
+            this.nameTranslation = toTranslatable(data.name, data.nameTranslations, i => `(NQ) ${i}`);
+        }
+        else {
+            this.name = data.name;
+            this.nameTranslation = toTranslatable(data.name, data.nameTranslations);
+        }
         this.equipLvl = data.equipLevel;
         this.ilvl = data.ilvl;
         this.iconUrl = new URL(data.icon.pngIconUrl);
@@ -531,17 +548,18 @@ export class DataApiGearInfo implements GearItem {
         this.displayGearSlot = this.displayGearSlotName ? DisplayGearSlotInfo[this.displayGearSlotName] : undefined;
         const weaponDelayRaw = (data.delayMs);
         this.stats = new RawStats();
-        this.stats.wdPhys = (data.damagePhysHQ);
-        this.stats.wdMag = (data.damageMagHQ);
+        this.stats.wdPhys = forceNq ? data.damagePhys : data.damagePhysHQ;
+        this.stats.wdMag = forceNq ? data.damageMag : data.damageMagHQ;
         this.stats.weaponDelay = weaponDelayRaw ? (weaponDelayRaw / 1000.0) : 0;
-        for (const key in data.baseParamMapHQ) {
+        const paramMap = forceNq ? data.baseParamMap : data.baseParamMapHQ;
+        for (const key in paramMap) {
             const intKey = parseInt(key);
             const baseParam = statById(intKey);
             if (baseParam === undefined) {
                 // console.warn(`Undefined baseParam! ${key}`);
                 continue;
             }
-            this.stats[baseParam] = data.baseParamMapHQ[key];
+            this.stats[baseParam] = paramMap[key];
         }
         this.isUnique = data.unique;
         this.computeSubstats();

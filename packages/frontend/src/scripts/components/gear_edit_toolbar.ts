@@ -3,18 +3,24 @@ import {ItemDisplaySettings, MateriaAutoFillController} from "@xivgear/xivmath/g
 import {MateriaPriorityPicker} from "./materia";
 import {StatTierDisplay} from "./stat_tier_display";
 import {CharacterGearSet} from "@xivgear/core/gear";
-import {makeActionButton, redoIcon, undoIcon} from "@xivgear/common-ui/components/util";
+import {
+    FieldBoundCheckBox,
+    labeledCheckbox,
+    makeActionButton,
+    redoIcon,
+    undoIcon
+} from "@xivgear/common-ui/components/util";
 import {GearPlanSheetGui} from "./sheet";
 import {recordSheetEvent} from "../analytics/analytics";
 import {recordEvent} from "@xivgear/common-ui/analytics/analytics";
 
-function makeIlvlArea(
+function makeGearFiltersArea(
     sheet: GearPlanSheetGui,
     itemDisplaySettings: ItemDisplaySettings,
     displayUpdateCallback: () => void
 ) {
-    const ilvlDiv = document.createElement('div');
-    ilvlDiv.classList.add('ilvl-picker-area');
+    const filtersDiv = document.createElement('div');
+    filtersDiv.classList.add('ilvl-picker-area');
     const itemIlvlRange = new ILvlRangePicker(itemDisplaySettings, 'minILvl', 'maxILvl', 'Gear:');
     itemIlvlRange.addListener(displayUpdateCallback);
     itemIlvlRange.addListener((min, max) => {
@@ -23,7 +29,7 @@ function makeIlvlArea(
             max: max,
         });
     });
-    ilvlDiv.appendChild(itemIlvlRange);
+    filtersDiv.appendChild(itemIlvlRange);
 
     const foodIlvlRange = new ILvlRangePicker(itemDisplaySettings, 'minILvlFood', 'maxILvlFood', 'Food:');
     foodIlvlRange.addListener(displayUpdateCallback);
@@ -33,8 +39,14 @@ function makeIlvlArea(
             max: max,
         });
     });
-    ilvlDiv.appendChild(foodIlvlRange);
-    return ilvlDiv;
+    filtersDiv.appendChild(foodIlvlRange);
+
+    const nqCb = new FieldBoundCheckBox(itemDisplaySettings, 'showNq', {
+        id: 'show-nq-cb',
+    });
+    const nqCbWithLabel = labeledCheckbox('Show NQ Items', nqCb);
+    filtersDiv.appendChild(nqCbWithLabel);
+    return filtersDiv;
 }
 
 let currentToolbarPopout: HTMLElement | null = null;
@@ -150,9 +162,9 @@ export class GearEditToolbar extends HTMLDivElement {
     private buttonsArea: ToolbarButtonsArea;
 
     constructor(sheet: GearPlanSheetGui,
-        itemDisplaySettings: ItemDisplaySettings,
-        displayUpdateCallback: () => void,
-        matFillCtrl: MateriaAutoFillController
+                itemDisplaySettings: ItemDisplaySettings,
+                displayUpdateCallback: () => void,
+                matFillCtrl: MateriaAutoFillController
     ) {
         super();
         this.classList.add('gear-set-editor-toolbar');
@@ -164,7 +176,7 @@ export class GearEditToolbar extends HTMLDivElement {
 
         this.buttonsArea = new ToolbarButtonsArea();
 
-        const ilvlDiv = makeIlvlArea(sheet, itemDisplaySettings, displayUpdateCallback);
+        const ilvlDiv = makeGearFiltersArea(sheet, itemDisplaySettings, displayUpdateCallback);
         this.buttonsArea.addPanelButton(["Gear", document.createElement('br'), "Filters"], ilvlDiv);
 
         this.appendChild(this.buttonsArea);

@@ -196,6 +196,7 @@ export interface GearItem extends XivCombatItem {
     isUnique: boolean;
     acquisitionType: GearAcquisitionSource;
     relicStatModel: RelicStatModel | undefined;
+    isNqVersion: boolean;
 }
 
 export interface FoodStatBonus {
@@ -880,6 +881,10 @@ export interface ItemSlotExport {
      * If this is a relic, represents the current stats of the relic.
      */
     relicStats?: RelicStatsExport,
+    /**
+     * Force this to be an NQ item instead of HQ if available.
+     */
+    forceNq?: boolean,
 }
 
 export type RelicStatsExport = {
@@ -915,7 +920,8 @@ export interface ItemDisplaySettings {
     maxILvl: number,
     minILvlFood: number,
     maxILvlFood: number,
-    higherRelics: boolean
+    higherRelics: boolean,
+    showNq: boolean,
 }
 
 export const AttackTypes = ['Unknown', 'Auto-attack', 'Spell', 'Weaponskill', 'Ability', 'Item'] as const;
