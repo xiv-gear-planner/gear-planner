@@ -3,14 +3,14 @@ import {DrkSettings, DrkSimResult} from "@xivgear/core/sims/tank/drk/drk_sheet_s
 import {BaseMultiCycleSimGui} from "../multicyclesim_ui";
 import {AbilitiesUsedTable} from "../components/ability_used_table";
 import {CycleSimResult, DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/core/sims/cycle_sim";
-import {CustomColumnSpec} from "../../tables";
+import {col, CustomColumn} from "@xivgear/common-ui/table/tables";
 import {PreDmgUsedAbility} from "@xivgear/core/sims/sim_types";
 import {DrkExtraData} from "@xivgear/core/sims/tank/drk/drk_types";
 
 export class DrkSimGui extends BaseMultiCycleSimGui<DrkSimResult, DrkSettings> {
 
-    static generateResultColumns(result: CycleSimResult): CustomColumnSpec<DisplayRecordFinalized, unknown, unknown>[] {
-        return [{
+    static generateResultColumns(result: CycleSimResult): CustomColumn<DisplayRecordFinalized, unknown, unknown>[] {
+        return [col({
             shortName: 'bloodGauge',
             displayName: 'Blood',
             getter: used => isFinalizedAbilityUse(used) ? used.original : null,
@@ -51,8 +51,7 @@ export class DrkSimGui extends BaseMultiCycleSimGui<DrkSimResult, DrkSettings> {
                 }
                 return document.createTextNode("");
             },
-        },
-        {
+        }), col({
             shortName: 'darkside',
             displayName: 'Darkside',
             getter: used => isFinalizedAbilityUse(used) ? used.original : null,
@@ -92,8 +91,7 @@ export class DrkSimGui extends BaseMultiCycleSimGui<DrkSimResult, DrkSettings> {
                 }
                 return document.createTextNode("");
             },
-        },
-        {
+        }), col({
             shortName: 'darkArts',
             displayName: 'Dark Arts',
             getter: used => isFinalizedAbilityUse(used) ? used.original : null,
@@ -129,8 +127,7 @@ export class DrkSimGui extends BaseMultiCycleSimGui<DrkSimResult, DrkSettings> {
                 }
                 return document.createTextNode("");
             },
-        },
-        {
+        }), col({
             shortName: 'mp',
             displayName: 'MP',
             getter: used => isFinalizedAbilityUse(used) ? used.original : null,
@@ -171,8 +168,7 @@ export class DrkSimGui extends BaseMultiCycleSimGui<DrkSimResult, DrkSettings> {
                 }
                 return document.createTextNode("");
             },
-        },
-        ];
+        })];
     }
 
     override makeCustomConfigInterface(settings: DrkSettings, _updateCallback: () => void): HTMLElement | null {

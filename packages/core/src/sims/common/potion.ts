@@ -1,13 +1,13 @@
 import {OgcdAbility} from "../sim_types";
 import {fl} from "@xivgear/xivmath/xivmath";
-import {RawStatKey} from "@xivgear/xivmath/geartypes";
-import {camel2title} from "@xivgear/core/util/strutils";
+import {Mainstat} from "@xivgear/xivmath/geartypes";
+import {camel2title} from "@xivgear/util/strutils";
 
 function potionBonus(initialValue: number, bonus: number, cap: number): number {
     return Math.min(fl(initialValue * bonus), cap);
 }
 
-function makePotion(name: string, stat: RawStatKey, itemId: number, bonus: number, cap: number): Readonly<OgcdAbility> {
+function makePotion(name: string, stat: Mainstat, itemId: number, bonus: number, cap: number): Readonly<OgcdAbility> {
     return {
         name,
         id: 35106,
@@ -37,15 +37,27 @@ function makePotion(name: string, stat: RawStatKey, itemId: number, bonus: numbe
 
 export const GemdraughtGrades = [1, 2] as const;
 export type GemdraughtGrade = typeof GemdraughtGrades[number];
-export function makeGemdraught(stat: RawStatKey, grade: GemdraughtGrade): Readonly<OgcdAbility> {
-    const statToPotItemId = {
-        mind: 44161,
-        strength: 44157,
-        dexterity: 44158,
-        intelligence: 44160,
-    };
-    const gradeToStatCap = [351, 392];
 
+export type PotionStat = Exclude<Mainstat, 'vitality'>;
+
+const statToPotItemId = {
+    mind: 44161,
+    strength: 44157,
+    dexterity: 44158,
+    intelligence: 44160,
+} as const;
+
+const gradeToStatCap: number[] & {
+    // Enforce that this list has the same length as GemdraughtGrades
+    length: typeof GemdraughtGrades["length"]
+} = [351, 392] as const;
+
+/**
+ * Create a gemdraught for the given
+ * @param stat
+ * @param grade
+ */
+export function makeGemdraught(stat: PotionStat, grade: GemdraughtGrade): Readonly<OgcdAbility> {
     return makePotion(`Grade ${grade} Gemdraught of ${camel2title(stat)}`, stat, statToPotItemId[stat], 0.1, gradeToStatCap[grade - 1]);
 }
 

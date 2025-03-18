@@ -108,7 +108,7 @@ async function doNav(navState: NavState) {
         showSheetPickerMenu();
         return;
     }
-    if (nav['embed']) {
+    if ('embed' in nav && nav.embed) {
         embed = true;
         earlyEmbedInit();
     }

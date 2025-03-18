@@ -11,10 +11,10 @@ import {SimResult, Simulation} from "@xivgear/core/sims/sim_types";
 import {MAX_GCD, STAT_ABBREVIATIONS} from "@xivgear/xivmath/xivconstants";
 import {BaseModal} from "@xivgear/common-ui/components/modal";
 import {EquipSlots, Materia} from "@xivgear/xivmath/geartypes";
-import {MeldSolver, MeldSolverSettings} from "./meldsolver";
+import {MeldSolver} from "./meldsolver";
 import {GearsetGenerationSettings} from "@xivgear/core/solving/gearset_generation";
 import {SolverSimulationSettings} from "@xivgear/core/solving/sim_runner";
-import {recordSheetEvent} from "@xivgear/core/analytics/analytics";
+import {recordSheetEvent} from "../analytics/analytics";
 
 export class MeldSolverDialog extends BaseModal {
     private _sheet: GearPlanSheetGui;
@@ -22,7 +22,6 @@ export class MeldSolverDialog extends BaseModal {
     private form: HTMLFormElement;
     private descriptionText: HTMLDivElement;
     private setNameText: HTMLDivElement;
-    readonly tempSettings: MeldSolverSettings;
     private solveMeldsButton: HTMLButtonElement;
     private cancelButton: HTMLButtonElement;
     readonly settingsDiv: MeldSolverSettingsMenu;
@@ -223,18 +222,19 @@ class MeldSolverSettingsMenu extends HTMLDivElement {
     private checkboxContainer: HTMLDivElement;
     private simDropdown: FieldBoundDataSelect<SolverSimulationSettings, Simulation<SimResult, unknown, unknown>>;
 
-    private readonly disableables = [];
+    private readonly disableables: {
+        disabled?: boolean
+    }[] = [];
 
     constructor(sheet: GearPlanSheetGui, set: CharacterGearSet) {
         super();
 
-        let gcd = 2.5;
         let haste = Math.max(set.computedStats.haste("Weaponskill"), set.computedStats.haste("Spell"));
         const override = sheet.classJobStats.gcdDisplayOverrides?.(sheet.level);
         if (override && override.length >= 1) {
             haste += (override[0].haste ?? 0);
         }
-        gcd = Math.min(set.computedStats.gcdPhys(2.5, haste), set.computedStats.gcdMag(2.5, haste));
+        const gcd = Math.min(set.computedStats.gcdPhys(2.5, haste), set.computedStats.gcdMag(2.5, haste));
 
         this.gearsetGenSettings = new GearsetGenerationSettings(set, false, true, gcd);
         this.simSettings = {

@@ -2,9 +2,15 @@ import 'global-jsdom/register';
 import './polyfills';
 import Fastify, {FastifyRequest} from "fastify";
 import {getShortLink, getShortlinkFetchUrl} from "@xivgear/core/external/shortlink_server";
-import {PartyBonusAmount, SetExport, SheetExport, SheetStatsExport} from "@xivgear/xivmath/geartypes";
+import {
+    PartyBonusAmount,
+    SetExport,
+    SetExportExternalSingle,
+    SheetExport,
+    SheetStatsExport,
+    TopLevelExport
+} from "@xivgear/xivmath/geartypes";
 import {getBisSheet, getBisSheetFetchUrl} from "@xivgear/core/external/static_bis";
-// import {registerDefaultSims} from "@xivgear/gearplan-frontend/sims/default_sims";
 import {HEADLESS_SHEET_PROVIDER} from "@xivgear/core/sheet";
 import {JobName, MAX_PARTY_BONUS} from "@xivgear/xivmath/xivconstants";
 import cors from '@fastify/cors';
@@ -30,6 +36,8 @@ import {extractSingleSet} from "@xivgear/core/util/sheet_utils";
 
 let initDone = false;
 
+type ExportedData = SheetExport | SetExportExternalSingle;
+
 function checkInit() {
     if (!initDone) {
         doInit();
@@ -41,10 +49,15 @@ function doInit() {
     // registerDefaultSims();
 }
 
-async function importExportSheet(request: FastifyRequest, exportedPre: SheetExport | SetExport, nav?: NavPath): Promise<SheetStatsExport> {
+type SheetRequest = FastifyRequest<{
+    Querystring: Record<string, string | undefined>;
+    Params: Record<string, string>;
+}>;
+
+async function importExportSheet(request: SheetRequest, exportedPre: SheetExport | SetExport, nav?: NavPath): Promise<SheetStatsExport> {
     const exportedInitial: SheetExport | SetExport = exportedPre;
     const initiallyFullSheet = 'sets' in exportedPre;
-    const onlySetIndex: number | undefined = nav?.['onlySetIndex'];
+    const onlySetIndex: number | undefined = (nav !== undefined && "onlySetIndex" in nav) ? nav.onlySetIndex : undefined;
     if (onlySetIndex !== undefined) {
         if (!initiallyFullSheet) {
             request.log.warn("onlySetIndex does not make sense when isFullSheet is false");
@@ -57,7 +70,7 @@ async function importExportSheet(request: FastifyRequest, exportedPre: SheetExpo
     const isFullSheet = 'sets' in exported;
     const sheet = isFullSheet ? HEADLESS_SHEET_PROVIDER.fromExport(exported as SheetExport) : HEADLESS_SHEET_PROVIDER.fromSetExport(exported as SetExport);
     sheet.setViewOnly();
-    const pb = request.query['partyBonus'] as string | undefined;
+    const pb = request.query.partyBonus;
     if (pb) {
         const parsed = parseInt(pb);
         if (!isNaN(parsed) && parsed >= 0 && parsed <= MAX_PARTY_BONUS) {
@@ -95,10 +108,13 @@ function buildServerBase() {
 
 type NavResult = {
     preloadUrl: URL | null,
-    sheetData: Promise<object>
+    sheetData: Promise<(ExportedData)>
 }
 
-function resolveNavData(nav: NavPath): NavResult | null {
+function resolveNavData(nav: NavPath | null): NavResult | null {
+    if (nav === null) {
+        return null;
+    }
     switch (nav.type) {
         case "newsheet":
         case "importform":
@@ -114,7 +130,7 @@ function resolveNavData(nav: NavPath): NavResult | null {
         case "sheetjson":
             return {
                 preloadUrl: null,
-                sheetData: Promise.resolve(nav.jsonBlob),
+                sheetData: Promise.resolve(nav.jsonBlob as TopLevelExport),
             };
         case "bis":
             return {
@@ -129,9 +145,9 @@ export function buildStatsServer() {
 
     const fastifyInstance = buildServerBase();
 
-    fastifyInstance.get('/fulldata', async (request: FastifyRequest, reply) => {
+    fastifyInstance.get('/fulldata', async (request: SheetRequest, reply) => {
         // TODO: deduplicate this code
-        const path = request.query[HASH_QUERY_PARAM] ?? '';
+        const path = request.query?.[HASH_QUERY_PARAM] ?? '';
         const osIndex: number | undefined = tryParseOptionalIntParam(request.query[ONLY_SET_QUERY_PARAM]);
         const selIndex: number | undefined = tryParseOptionalIntParam(request.query[SELECTION_INDEX_QUERY_PARAM]);
         const pathPaths = path.split(PATH_SEPARATOR);
@@ -139,7 +155,7 @@ export function buildStatsServer() {
         const nav = parsePath(state);
         request.log.info(pathPaths, 'Path');
         const navResult = resolveNavData(nav);
-        if (navResult !== null) {
+        if (nav !== null && navResult !== null) {
             const exported: object = await navResult.sheetData;
             const out = await importExportSheet(request, exported as (SetExport | SheetExport), nav);
             reply.header("cache-control", "max-age=7200, public");
@@ -148,7 +164,7 @@ export function buildStatsServer() {
         reply.status(404);
     });
 
-    fastifyInstance.get('/fulldata/:uuid', async (request: FastifyRequest, reply) => {
+    fastifyInstance.get('/fulldata/:uuid', async (request: SheetRequest, reply) => {
         const osIndex: number | undefined = tryParseOptionalIntParam(request.query[ONLY_SET_QUERY_PARAM]);
         const selIndex: number | undefined = tryParseOptionalIntParam(request.query[SELECTION_INDEX_QUERY_PARAM]);
         const nav: NavPath = {
@@ -165,12 +181,12 @@ export function buildStatsServer() {
         reply.send(out);
     });
 
-    fastifyInstance.get('/fulldata/bis/:job/:expac/:sheet', async (request: FastifyRequest, reply) => {
+    fastifyInstance.get('/fulldata/bis/:job/:expac/:sheet', async (request: SheetRequest, reply) => {
         const osIndex: number | undefined = tryParseOptionalIntParam(request.query[ONLY_SET_QUERY_PARAM]);
         const selIndex: number | undefined = tryParseOptionalIntParam(request.query[SELECTION_INDEX_QUERY_PARAM]);
         const nav: NavPath = {
             type: 'bis',
-            job: request.params['job'],
+            job: request.params['job'] as JobName,
             expac: request.params['expac'],
             sheet: request.params['sheet'],
             path: [request.params['job'], request.params['expac'], request.params['sheet']],
@@ -207,7 +223,7 @@ export function buildPreviewServer() {
     fastifyInstance.register(fastifyWebResponse);
     // This endpoint acts as a proxy. If it detects that you are trying to load something that looks like a sheet,
     // inject social media preview and preload urls.
-    fastifyInstance.get('/', async (request: FastifyRequest, reply) => {
+    fastifyInstance.get('/', async (request: SheetRequest, reply) => {
 
 
         const serverUrl = getFrontendServer();
@@ -224,13 +240,13 @@ export function buildPreviewServer() {
             request.log.info(pathPaths, 'Path');
             const navResult = resolveNavData(nav);
             if (navResult !== null) {
-                const exported: object = await navResult.sheetData;
+                const exported = await navResult.sheetData;
                 const sheetDataPreloadUrl = navResult.preloadUrl;
                 let name: string;
                 let desc: string;
                 let set = undefined;
-                if (osIndex !== undefined) {
-                    set = exported['sets'][osIndex] as SetExport;
+                if (osIndex !== undefined && 'sets' in exported) {
+                    set = exported.sets[osIndex] as SetExport;
                 }
                 name = set?.['name'] || exported['name'] || "";
                 desc = set?.['description'] || exported['description'] || "";
@@ -279,11 +295,11 @@ export function buildPreviewServer() {
 
                 // Inject preload properties based on job
                 // The rest are part of the static html
-                const job = exported['job'];
+                const job = exported.job;
                 if (job) {
                     addFetchPreload(`https://data.xivgear.app/Items?job=${job}`);
                 }
-                if (sheetDataPreloadUrl !== undefined) {
+                if (sheetDataPreloadUrl) {
                     addFetchPreload(sheetDataPreloadUrl.toString());
                 }
                 if (extraScripts) {
@@ -296,8 +312,10 @@ export function buildPreviewServer() {
                         head.appendChild(script);
                     }
 
+                    const isEmbed = nav !== null && 'embed' in nav && nav.embed;
+                    // Don't inject these if embedded
                     extraScripts.forEach(scriptUrl => {
-                        if (nav['embed'] !== true) {
+                        if (!isEmbed) {
                             addExtraScript(scriptUrl, {'async': ''});
                         }
                     });

@@ -2,7 +2,7 @@ import {CycleSimResult, DisplayRecordFinalized, isFinalizedAbilityUse} from "@xi
 import {AbilitiesUsedTable} from "../../components/ability_used_table";
 import {BaseMultiCycleSimGui} from "../../multicyclesim_ui";
 import {PreDmgUsedAbility} from "@xivgear/core/sims/sim_types";
-import {CustomColumnSpec} from "../../../tables";
+import {ColDefs, CustomColumnSpec} from "@xivgear/common-ui/table/tables";
 import {NinSettings, NinSimResult} from "@xivgear/core/sims/melee/nin/nin_lv100_sim";
 import {NINExtraData} from "@xivgear/core/sims/melee/nin/nin_types";
 import {GaugeWithText} from "@xivgear/common-ui/components/gauges";
@@ -49,7 +49,7 @@ export class NinSheetSimGui extends BaseMultiCycleSimGui<NinSimResult, NinSettin
     override makeAbilityUsedTable(result: NinSimResult): AbilitiesUsedTable {
         const extraColumns = NINGaugeGui.generateResultColumns(result);
         const table = super.makeAbilityUsedTable(result);
-        const newColumns = [...table.columns];
+        const newColumns: ColDefs<DisplayRecordFinalized> = [...table.columns];
         newColumns.splice(newColumns.findIndex(col => col.shortName === 'expected-damage') + 1, 0, ...extraColumns);
         table.columns = newColumns;
         return table;

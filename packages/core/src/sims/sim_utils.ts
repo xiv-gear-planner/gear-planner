@@ -1,4 +1,4 @@
-import {ComputedSetStats} from "@xivgear/xivmath/geartypes";
+import {ComputedSetStats, ScalingOverrides} from "@xivgear/xivmath/geartypes";
 import {
     Ability,
     AlternativeScaling,
@@ -6,8 +6,7 @@ import {
     CombinedBuffEffect,
     ComputedDamage,
     DamageResult,
-    DamagingAbility,
-    ScalingOverrides
+    DamagingAbility
 } from "./sim_types";
 import {
     applyDhCritFull,

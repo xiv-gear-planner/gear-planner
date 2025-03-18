@@ -3,7 +3,7 @@ import {CycleProcessor, CycleSimResult, ExternalCycleSettings, MultiCycleSetting
 import {CycleSettings} from "@xivgear/core/sims/cycle_settings";
 import {CharacterGearSet} from "@xivgear/core/gear";
 import {STANDARD_ANIMATION_LOCK} from "@xivgear/xivmath/xivconstants";
-import {sum} from "@xivgear/core/util/array_utils";
+import {sum} from "@xivgear/util/array_utils";
 import * as Actions from './pld_actions';
 import {BaseMultiCycleSim} from "@xivgear/core/sims/processors/sim_processors";
 import {potionMaxStr} from "@xivgear/core/sims/common/potion";

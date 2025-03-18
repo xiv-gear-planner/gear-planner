@@ -5,13 +5,15 @@ import {SheetStatsExport} from "@xivgear/xivmath/geartypes";
 import {BIS_HASH, SHORTLINK_HASH} from "@xivgear/core/nav/common_nav";
 
 function readPreviewProps(document: Document): Record<string, string> {
-    const out = {};
+    const out: Record<string, string> = {};
     document.querySelectorAll("head meta")
         .forEach(meta => {
             const key = meta.getAttribute("property");
             if (key?.startsWith("og:")) {
                 const value = meta.getAttribute("content");
-                out[key] = value;
+                if (value !== null) {
+                    out[key] = value;
+                }
             }
         });
     return out;
@@ -43,7 +45,7 @@ describe("backend servers", () => {
             assert.equal(json.sets.length, 13);
             const firstSet = json.sets[0];
             assert.equal(firstSet.name, "6.4 Never gonna");
-            assert.equal(firstSet.items.Weapon.id, 40173);
+            assert.equal(firstSet.items.Weapon?.id, 40173);
             const stats = firstSet.computedStats;
             assert.equal(stats.hp, 74421);
             assert.equal(stats.mind, 3374);
@@ -63,7 +65,7 @@ describe("backend servers", () => {
             assert.equal(json.sets.length, 13);
             const firstSet = json.sets[0];
             assert.equal(firstSet.name, "6.4 Never gonna");
-            assert.equal(firstSet.items.Weapon.id, 40173);
+            assert.equal(firstSet.items.Weapon?.id, 40173);
             const stats = firstSet.computedStats;
             assert.equal(stats.hp, 74421);
             assert.equal(stats.mind, 3374);
@@ -83,7 +85,7 @@ describe("backend servers", () => {
             assert.equal(json.sets.length, 13);
             const firstSet = json.sets[0];
             assert.equal(firstSet.name, "6.4 Never gonna");
-            assert.equal(firstSet.items.Weapon.id, 40173);
+            assert.equal(firstSet.items.Weapon?.id, 40173);
             const stats = firstSet.computedStats;
             assert.equal(stats.mind, 3542);
             assert.equal(stats.hp, 78455);
@@ -101,7 +103,7 @@ describe("backend servers", () => {
             });
             assert.equal(response.statusCode, 200);
             const parsed = parser.parseFromString(response.body, 'text/html');
-            assert.equal(parsed.querySelector('title').textContent, slTitle);
+            assert.equal(parsed.querySelector('title')?.textContent, slTitle);
 
             // Check the preloads
             const preloads = Array.from(parsed.querySelectorAll('link'))
@@ -131,7 +133,7 @@ describe("backend servers", () => {
             });
             assert.equal(response.statusCode, 200);
             const parsed = parser.parseFromString(response.body, 'text/html');
-            assert.equal(parsed.querySelector('title').textContent, slTitle);
+            assert.equal(parsed.querySelector('title')?.textContent, slTitle);
         }).timeout(30_000);
         it("resolves shortlink with set selection index", async () => {
             const uuid = 'f9b260a9-650c-445a-b3eb-c56d8d968501';
@@ -141,7 +143,7 @@ describe("backend servers", () => {
             });
             assert.equal(response.statusCode, 200);
             const parsed = parser.parseFromString(response.body, 'text/html');
-            assert.equal(parsed.querySelector('title').textContent, slTitle);
+            assert.equal(parsed.querySelector('title')?.textContent, slTitle);
 
 
             // Check the preloads
@@ -174,7 +176,7 @@ describe("backend servers", () => {
             assert.equal(response.statusCode, 200);
             const parsed = parser.parseFromString(response.body, 'text/html');
             const setTitle = '6.4 Week 1 2.43 b - XivGear - FFXIV Gear Planner';
-            assert.equal(parsed.querySelector('title').textContent, setTitle);
+            assert.equal(parsed.querySelector('title')?.textContent, setTitle);
 
             // Check the preloads
             const preloads = Array.from(parsed.querySelectorAll('link'))
@@ -205,7 +207,7 @@ describe("backend servers", () => {
             });
             assert.equal(response.statusCode, 200);
             const parsed = parser.parseFromString(response.body, 'text/html');
-            assert.equal(parsed.querySelector('title').textContent, bisTitle);
+            assert.equal(parsed.querySelector('title')?.textContent, bisTitle);
 
             // Check the preloads
             const preloads = Array.from(parsed.querySelectorAll('link'))
@@ -235,7 +237,7 @@ describe("backend servers", () => {
             });
             assert.equal(response.statusCode, 200);
             const parsed = parser.parseFromString(response.body, 'text/html');
-            assert.equal(parsed.querySelector('title').textContent, '6.55 Savage SGE BiS - XivGear - FFXIV Gear Planner');
+            assert.equal(parsed.querySelector('title')?.textContent, '6.55 Savage SGE BiS - XivGear - FFXIV Gear Planner');
         }).timeout(30_000);
         it("resolves bis link with onlySetIndex", async () => {
             const response = await fastify.inject({
@@ -248,7 +250,7 @@ describe("backend servers", () => {
             const setTitle = '2.45 Non-Relic - XivGear - FFXIV Gear Planner';
             const setDesc = '(6.4) - Same as WHM 2.45. Lowest piety but highest DPS.\n\nXivGear is an advanced and easy-to-use FFXIV gear planner/set builder with built-in simulation support.';
 
-            assert.equal(parsed.querySelector('title').textContent, setTitle);
+            assert.equal(parsed.querySelector('title')?.textContent, setTitle);
 
             // Check the preloads
             const preloads = Array.from(parsed.querySelectorAll('link'))

@@ -31,7 +31,8 @@ import {DataApiClient, FoodStatBonus, GearAcquisitionSource as AcqSrc} from "@xi
 import {BaseParamMap, DataManager} from "./datamanager";
 import {IlvlSyncInfo} from "./datamanager_xivapi";
 import {applyStatCaps} from "./gear";
-import {toTranslatable, TranslatableString} from "./i18n/translation";
+import {toTranslatable, TranslatableString} from "@xivgear/i18n/translation";
+import {RawStatsPart} from "@xivgear/util/types";
 
 type ApiClientRawType<X extends keyof DataApiClient<never>, Y extends keyof DataApiClient<never>[X]> = DataApiClient<never>[X][Y]
 
@@ -245,7 +246,7 @@ export class NewApiDataManager implements DataManager {
             }, {});
             return data;
         });
-        const extraPromises = [];
+        const extraPromises: Promise<unknown>[] = [];
         console.log("Loading items");
 
 
@@ -681,9 +682,10 @@ export class DataApiGearInfo implements GearItem {
     }
 
     applyIlvlData(nativeIlvlInfo: IlvlSyncInfo, syncIlvlInfo?: IlvlSyncInfo, level?: number) {
-        const statCapsNative = {};
+        const statCapsNative: RawStatsPart = {};
         Object.entries(this.stats).forEach(([stat, _]) => {
-            statCapsNative[stat] = nativeIlvlInfo.substatCap(this.occGearSlotName, stat as RawStatKey);
+            const rsk = stat as RawStatKey;
+            statCapsNative[rsk] = nativeIlvlInfo.substatCap(this.occGearSlotName, rsk);
         });
         this.statCaps = statCapsNative;
         if (syncIlvlInfo && (syncIlvlInfo.ilvl < this.ilvl || level < this.equipLvl)) {
@@ -692,9 +694,10 @@ export class DataApiGearInfo implements GearItem {
             };
             this.syncedDownTo = syncIlvlInfo.ilvl;
             this.materiaSlots = [];
-            const statCapsSync = {};
+            const statCapsSync: RawStatsPart = {};
             Object.entries(this.stats).forEach(([stat, v]) => {
-                statCapsSync[stat] = syncIlvlInfo.substatCap(this.occGearSlotName, stat as RawStatKey);
+                const rsk = stat as RawStatKey;
+                statCapsSync[rsk] = syncIlvlInfo.substatCap(this.occGearSlotName, rsk);
             });
             this.stats = applyStatCaps(this.stats, statCapsSync);
             this.statCaps = statCapsSync;

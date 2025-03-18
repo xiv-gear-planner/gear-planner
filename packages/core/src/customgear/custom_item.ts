@@ -1,4 +1,5 @@
 import {
+    CustomItemExport,
     DisplayGearSlot,
     DisplayGearSlotInfo,
     DisplayGearSlotKey,
@@ -14,28 +15,15 @@ import {CURRENT_MAX_LEVEL, LEVEL_ITEMS, MATERIA_LEVEL_MAX_NORMAL} from "@xivgear
 import {IlvlSyncInfo} from "../datamanager_xivapi";
 import {applyStatCaps} from "../gear";
 import {GearPlanSheet} from "../sheet";
-import {toTranslatable} from "../i18n/translation";
-
-export type CustomItemExport = {
-    ilvl: number;
-    equipLvl: number;
-    largeMateriaSlots: number;
-    smallMateriaSlots: number;
-    materiaGrade: number;
-    name: string;
-    fakeId: number;
-    slot: OccGearSlotKey;
-    isUnique: boolean;
-    stats: RawStats;
-    respectCaps: boolean;
-}
+import {toTranslatable} from "@xivgear/i18n/translation";
+import {RawStatsPart} from "@xivgear/util/types";
 
 export class CustomItem implements GearItem {
 
     unsyncedVersion: GearItem = this;
     isCustomRelic: boolean = false;
     isSyncedDown: boolean = false;
-    relicStatModel = undefined;
+    relicStatModel: undefined = undefined;
     acquisitionType: GearAcquisitionSource = 'custom';
 
     primarySubstat: keyof RawStats = null;
@@ -187,9 +175,9 @@ export class CustomItem implements GearItem {
 
     private applyIlvlData(nativeIlvlInfo: IlvlSyncInfo, syncIlvlInfo?: IlvlSyncInfo) {
         if (this.respectCaps && nativeIlvlInfo) {
-            const statCapsNative = {};
+            const statCapsNative: RawStatsPart = {};
             Object.entries(this.stats).forEach(([stat, _]) => {
-                statCapsNative[stat] = nativeIlvlInfo.substatCap(this.occGearSlotName, stat as RawStatKey);
+                statCapsNative[stat as RawStatKey] = nativeIlvlInfo.substatCap(this.occGearSlotName, stat as RawStatKey);
             });
             this.statCaps = statCapsNative;
             if (syncIlvlInfo && syncIlvlInfo.ilvl < this.ilvl) {
@@ -197,9 +185,9 @@ export class CustomItem implements GearItem {
                     ...this,
                     stats: {...this.customData.stats},
                 };
-                const statCapsSync = {};
+                const statCapsSync: RawStatsPart = {};
                 Object.entries(this.stats).forEach(([stat, v]) => {
-                    statCapsSync[stat] = syncIlvlInfo.substatCap(this.occGearSlotName, stat as RawStatKey);
+                    statCapsSync[stat as RawStatKey] = syncIlvlInfo.substatCap(this.occGearSlotName, stat as RawStatKey);
                 });
                 this.statCaps = statCapsSync;
                 this.isSyncedDown = true;

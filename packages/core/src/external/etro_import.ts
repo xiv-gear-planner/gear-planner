@@ -1,4 +1,4 @@
-import {EquipSlotKey, ItemSlotExport, SetExportExternalSingle} from "@xivgear/xivmath/geartypes";
+import {EquipSlotKey, ItemSlotExport, SetExportExternalSingle, Substat} from "@xivgear/xivmath/geartypes";
 import {JobName, MATERIA_SLOTS_MAX, SupportedLevel} from "@xivgear/xivmath/xivconstants";
 import {BaseParamToStatKey, RelevantBaseParam} from "./xivapitypes";
 import {queryBaseParams} from "../datamanager_xivapi";
@@ -85,13 +85,13 @@ export async function getSetFromEtro(etroSetId: string) {
                 // TODO: convert this to use new datamanager
                 const baseParams = (await queryBaseParams()).Results;
                 for (let i = 0; i <= 5; i++) {
-                    const paramId = relicData[`param${i}`];
+                    const paramId = relicData[`param${i}` as keyof EtroRelic];
                     if (!paramId) {
                         break;
                     }
                     const paramData = baseParams.find(item => item.ID === paramId);
                     const stat = BaseParamToStatKey[paramData.Name as RelevantBaseParam];
-                    relicStats[stat] = relicData[`param${i}Value`];
+                    relicStats[stat as Substat] = relicData[`param${i}Value` as keyof EtroRelic] as number;
                 }
             }
             else {

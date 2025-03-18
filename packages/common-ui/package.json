@@ -5,6 +5,10 @@
   "scripts": {
     "build": "tsc --build"
   },
+  "dependencies": {
+    "@xivgear/core": "^1.0.0",
+    "@xivgear/i18n": "^1.0.0"
+  },
   "devDependencies": {
     "ts-node": "^10.9.2",
     "ts-loader": "^9.5.1",

@@ -1,4 +1,4 @@
-import {formatDuration} from "../../util/strutils";
+import {formatDuration} from "@xivgear/util/strutils";
 import {Ability, CdAbility} from "../sim_types";
 
 export type CooldownMode = 'none' | 'warn' | 'delay' | 'reject';
@@ -308,7 +308,7 @@ function defaultStatus(ability: Ability, absTime: number): CooldownStatus {
  * @param ability
  */
 function cooldownKey(ability: CdAbility): number {
-    const seen = [];
+    const seen: CdAbility[] = [];
     let current = ability;
     let attempts = 10;
     // This SHOULDN'T happen with the new types, but leaving this check just in case.

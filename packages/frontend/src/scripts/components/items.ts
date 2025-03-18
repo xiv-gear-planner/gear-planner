@@ -15,16 +15,17 @@ import {
     Substat
 } from "@xivgear/xivmath/geartypes";
 import {
+    col,
     CustomCell,
     CustomColumn,
     CustomColumnSpec,
     CustomRow,
     CustomTable,
     HeaderRow,
-    noopSelectionModel,
     SpecialRow,
+    TableSelectionModel,
     TitleRow
-} from "../tables";
+} from "@xivgear/common-ui/table/tables";
 import {
     formatAcquisitionSource,
     MateriaSubstat,
@@ -40,12 +41,12 @@ import {
     quickElement
 } from "@xivgear/common-ui/components/util";
 import {AllSlotMateriaManager} from "./materia";
-import {shortenItemName} from "@xivgear/core/util/strutils";
+import {shortenItemName} from "@xivgear/util/strutils";
 import {GearPlanSheet} from "@xivgear/core/sheet";
 import {makeRelicStatEditor} from "./relic_stats";
 import {ShowHideButton} from "@xivgear/common-ui/components/show_hide_chevron";
 import {BaseModal} from "@xivgear/common-ui/components/modal";
-import {recordSheetEvent} from "@xivgear/core/analytics/analytics";
+import {recordSheetEvent} from "../analytics/analytics";
 
 function statCellStylerRemover(cell: CustomCell<GearSlotItem, unknown>) {
     cell.classList.remove("secondary");
@@ -215,7 +216,7 @@ function foodTableStatColumn(sheet: GearPlanSheet, stat: RawStatKey, highlightPr
 }
 
 
-export class FoodItemsTable extends CustomTable<FoodItem, FoodItem> {
+export class FoodItemsTable extends CustomTable<FoodItem, TableSelectionModel<FoodItem, never, never, FoodItem | undefined>> {
     constructor(sheet: GearPlanSheet, gearSet: CharacterGearSet) {
         super();
         this.classList.add("food-items-table");
@@ -227,7 +228,7 @@ export class FoodItemsTable extends CustomTable<FoodItem, FoodItem> {
                 displayName: "iLvl",
                 getter: item => item.ilvl,
             },
-            {
+            col({
                 shortName: "icon",
                 displayName: "",
                 getter: item => {
@@ -239,7 +240,7 @@ export class FoodItemsTable extends CustomTable<FoodItem, FoodItem> {
                     image.src = img.toString();
                     return image;
                 },
-            },
+            }),
             {
                 shortName: "itemname",
                 displayName: "Name",
@@ -268,6 +269,7 @@ export class FoodItemsTable extends CustomTable<FoodItem, FoodItem> {
             foodTableStatColumn(sheet, 'piety', true),
             foodTableStatColumn(sheet, 'tenacity', true),
         ];
+        // TODO: write a dedicated selection model for this
         this.selectionModel = {
             clickCell(cell: CustomCell<FoodItem, FoodItem>) {
 
@@ -305,7 +307,7 @@ export class FoodItemsTable extends CustomTable<FoodItem, FoodItem> {
     }
 }
 
-export class FoodItemViewTable extends CustomTable<FoodItem, FoodItem> {
+export class FoodItemViewTable extends CustomTable<FoodItem> {
     constructor(sheet: GearPlanSheet, item: FoodItem) {
         super();
         this.classList.add("food-items-table");
@@ -315,7 +317,7 @@ export class FoodItemViewTable extends CustomTable<FoodItem, FoodItem> {
                 displayName: "",
                 getter: item => item.ilvl,
             },
-            {
+            col({
                 shortName: "icon",
                 displayName: "",
                 getter: item => {
@@ -327,7 +329,7 @@ export class FoodItemViewTable extends CustomTable<FoodItem, FoodItem> {
                     image.src = img.toString();
                     return image;
                 },
-            },
+            }),
             {
                 shortName: "itemname",
                 displayName: "Food",
@@ -348,7 +350,6 @@ export class FoodItemViewTable extends CustomTable<FoodItem, FoodItem> {
             foodTableStatViewColumn(sheet, item, 'piety', true),
             foodTableStatViewColumn(sheet, item, 'tenacity', true),
         ];
-        this.selectionModel = noopSelectionModel;
         super.data = [new HeaderRow(), item];
     }
 }
@@ -404,10 +405,10 @@ function itemTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, stat: 
                     if (sheet._isViewOnly) {
                         const cap = equipment.gearItem.statCaps[stat];
                         if (cap) {
-                            return document.createTextNode(Math.min(equipment.relicStats[stat], cap).toString());
+                            return document.createTextNode(Math.min(equipment.relicStats[value.stat] ?? 0, cap).toString());
                         }
                         else {
-                            return document.createTextNode(equipment.relicStats[stat].toString());
+                            return document.createTextNode(equipment.relicStats[value.stat].toString());
                         }
                     }
                     else { // If not, display the editor
@@ -440,11 +441,11 @@ function itemTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, stat: 
     };
 }
 
-function makeShowHideRow(label: string, initiallyHidden: boolean = false, setter: (newValue: boolean) => void, extraElements: HTMLElement[] = []): SpecialRow<GearSlotItem, EquipmentSet> {
+function makeShowHideRow(label: string, initiallyHidden: boolean = false, setter: (newValue: boolean) => void, extraElements: HTMLElement[] = []): SpecialRow<CustomTable<GearSlotItem>> {
 
     const showHide = new ShowHideButton(initiallyHidden, setter);
 
-    return new SpecialRow<GearSlotItem, EquipmentSet>(
+    return new SpecialRow<CustomTable<GearSlotItem>>(
         tbl => {
             const div = document.createElement('div');
             div.classList.add('special-row-holder');
@@ -469,7 +470,7 @@ function makeShowHideRow(label: string, initiallyHidden: boolean = false, setter
 /**
  * Table for displaying gear options for all slots
  aa*/
-export class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
+export class GearItemsTable extends CustomTable<GearSlotItem, TableSelectionModel<GearSlotItem, never, never, EquipmentSet>> {
     private readonly materiaManagers: AllSlotMateriaManager[];
     private selectionTracker: Map<keyof EquipmentSet, CustomRow<GearSlotItem> | GearSlotItem>;
 
@@ -487,7 +488,7 @@ export class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
                 },
                 fixedWidth: 32,
             },
-            {
+            col({
                 shortName: "icon",
                 displayName: "",
                 getter: item => {
@@ -499,8 +500,8 @@ export class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
                     image.src = img.toString();
                     return image;
                 },
-            },
-            {
+            }),
+            col({
                 shortName: "itemname",
                 displayName: "Name",
                 getter: item => {
@@ -533,7 +534,7 @@ export class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
                     }
                     colElement.title = title;
                 },
-            },
+            }),
             {
                 shortName: "mats",
                 displayName: "Mat",
@@ -555,7 +556,7 @@ export class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
                     return span;
                 },
             },
-            {
+            col({
                 shortName: "wd",
                 displayName: "WD",
                 getter: item => {
@@ -564,7 +565,7 @@ export class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
                 },
                 renderer: value => {
                     if (value) {
-                        return document.createTextNode(value);
+                        return document.createTextNode(String(value));
                     }
                     else {
                         return document.createTextNode("");
@@ -572,7 +573,7 @@ export class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
                 },
                 initialWidth: 33,
                 condition: () => handledSlots === undefined || handledSlots.includes('Weapon'),
-            },
+            }),
             itemTableStatColumn(sheet, gearSet, 'vitality'),
             itemTableStatColumn(sheet, gearSet, 'strength'),
             itemTableStatColumn(sheet, gearSet, 'dexterity'),
@@ -730,7 +731,7 @@ export class GearItemsTable extends CustomTable<GearSlotItem, EquipmentSet> {
 /**
  * Table for displaying only equipped items, read-only
  */
-export class GearItemsViewTable extends CustomTable<GearSlotItem, EquipmentSet> {
+export class GearItemsViewTable extends CustomTable<GearSlotItem> {
 
     constructor(sheet: GearPlanSheet, gearSet: CharacterGearSet, itemMapping: Map<EquipSlotKey, GearItem>, handledSlots?: EquipSlotKey[]) {
         super();
@@ -781,7 +782,7 @@ export class GearItemsViewTable extends CustomTable<GearSlotItem, EquipmentSet> 
                     return item.item.ilvl.toString();
                 },
             },
-            {
+            col({
                 shortName: "icon",
                 displayName: "",
                 getter: item => {
@@ -793,8 +794,8 @@ export class GearItemsViewTable extends CustomTable<GearSlotItem, EquipmentSet> 
                     image.src = img.toString();
                     return image;
                 },
-            },
-            {
+            }),
+            col({
                 shortName: "itemname",
                 displayName: headingText,
                 getter: item => {
@@ -820,7 +821,7 @@ export class GearItemsViewTable extends CustomTable<GearSlotItem, EquipmentSet> 
 
                 },
                 // initialWidth: 300,
-            },
+            }),
             // {
             //     shortName: "mats",
             //     displayName: "Mat",
@@ -860,7 +861,6 @@ export class GearItemsViewTable extends CustomTable<GearSlotItem, EquipmentSet> 
             itemTableStatColumn(sheet, gearSet, 'piety', true),
             itemTableStatColumn(sheet, gearSet, 'tenacity', true),
         ];
-        this.selectionModel = noopSelectionModel;
         this.data = data;
     }
 
@@ -876,7 +876,7 @@ export class AltItemsModal extends BaseModal {
         text.textContent = `The item ${baseItem.nameTranslation} can be replaced by all of the following items, which have equivalent or better effective stats:`;
         this.contentArea.appendChild(quickElement('div', ['alt-items-text-holder'], [text]));
 
-        const table : CustomTable<GearItem> = new CustomTable<GearItem>();
+        const table: CustomTable<GearItem> = new CustomTable<GearItem>();
         table.columns = [
             {
                 shortName: "ilvl",
@@ -885,7 +885,7 @@ export class AltItemsModal extends BaseModal {
                     return item.ilvl.toString();
                 },
             },
-            {
+            col({
                 shortName: "icon",
                 displayName: "",
                 getter: item => {
@@ -897,7 +897,7 @@ export class AltItemsModal extends BaseModal {
                     image.src = img.toString();
                     return image;
                 },
-            },
+            }),
             {
                 shortName: "itemname",
                 displayName: "Name",
@@ -905,14 +905,14 @@ export class AltItemsModal extends BaseModal {
                     return item.nameTranslation.asCurrentLang;
                 },
             },
-            {
+            col({
                 shortName: 'acqsrc',
                 displayName: 'Source',
                 getter: item => item.acquisitionType,
                 renderer: value => {
                     return document.createTextNode(value ? (formatAcquisitionSource(value) ?? 'Unknown') : 'Unknown');
                 },
-            },
+            }),
         ];
         table.data = [new HeaderRow(), baseItem, ...altItems];
         this.contentArea.appendChild(table);

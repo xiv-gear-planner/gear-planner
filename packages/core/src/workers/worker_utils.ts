@@ -12,7 +12,7 @@ import {
 export function setToMicroExport(set: CharacterGearSet): MicroSetExport {
     const slots: MicroSlotExport[] = [];
     for (const equipmentKey in set.equipment) {
-        const inSlot: EquippedItem = set.equipment[equipmentKey];
+        const inSlot: EquippedItem = set.equipment[equipmentKey as EquipSlotKey];
         if (inSlot) {
             if (inSlot.gearItem.isCustomRelic) {
                 const exportedItem: MicroSlotExport = [

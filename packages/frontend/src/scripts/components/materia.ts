@@ -21,8 +21,9 @@ import {
     quickElement
 } from "@xivgear/common-ui/components/util";
 import {GearPlanSheet} from "@xivgear/core/sheet";
-import {recordCurrentSheetEvent, recordEvent} from "@xivgear/core/analytics/analytics";
+import {recordEvent} from "@xivgear/common-ui/analytics/analytics";
 import {GearPlanSheetGui} from "./sheet";
+import {recordCurrentSheetEvent} from "../analytics/analytics";
 
 /**
  * Component for managing all materia slots on an item
@@ -480,8 +481,8 @@ export class MateriaDragList extends HTMLElement {
     private subOptions: MateriaDragger[] = [];
     private currentlyDragging: MateriaDragger | undefined;
     private currentDropIndex: number;
-    private readonly moveListener: (ev) => void;
-    private readonly upListener: (ev) => unknown;
+    private readonly moveListener: (ev: PointerEvent) => void;
+    private readonly upListener: (ev: PointerEvent) => unknown;
 
     constructor(private prioController: MateriaAutoFillController) {
         super();
@@ -501,8 +502,8 @@ export class MateriaDragList extends HTMLElement {
             // Prevents touchscreen scrolling
             dragger.addEventListener('touchstart', ev => ev.preventDefault());
         }
-        this.moveListener = (ev) => this.handleMouseMove(ev);
-        this.upListener = (ev) => this.handleMouseUp(ev);
+        this.moveListener = (ev: PointerEvent) => this.handleMouseMove(ev);
+        this.upListener = (ev: PointerEvent) => this.handleMouseUp(ev);
         // this.addEventListener('pointermove', this.moveListener);
         this.fixChildren();
     }

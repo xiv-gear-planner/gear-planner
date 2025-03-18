@@ -168,10 +168,10 @@ function getRelicStatModelForPartial(gearItem: GearItem, baseParams: BaseParamMa
     }
     // BaseParam tells you that 2h = 140%, 1h = 100%, and shield = 40%
     // Just use crit, it should be the same for all of them
-    const slotModifier = baseParams['crit'][gearItem.occGearSlotName] / 140;
-    const statCap = gearItem.unsyncedVersion.statCaps['crit'];
+    const slotModifier = baseParams.crit[gearItem.occGearSlotName] / 140;
+    const statCap = gearItem.unsyncedVersion.statCaps.crit;
     switch (gearItem.ilvl) {
-    // EW relics are 2 capped stats, and one 72
+        // EW relics are 2 capped stats, and one 72
         case 665:
             return ewRelic(statCap, Math.round(72 * slotModifier));
         case 645:
@@ -186,13 +186,14 @@ function getRelicStatModelForPartial(gearItem: GearItem, baseParams: BaseParamMa
         validate(item: EquippedItem, statToReport?: Substat): GearSetIssue[] {
             const out: GearSetIssue[] = [];
             const caps = item.gearItem.unsyncedVersion.statCaps;
-            for (const stat in (statToReport ? [statToReport] : ALL_SUB_STATS)) {
-                const current = item.relicStats[stat];
-                const cap = caps;
+            const stats: readonly Substat[] = (statToReport ? [statToReport] as const : ALL_SUB_STATS);
+            for (const stat of stats) {
+                const current: number = item.relicStats[stat as Substat];
+                const cap = caps[stat as Substat];
                 if (current && cap && current > cap) {
                     out.push({
                         severity: 'error',
-                        description: `Stat ${STAT_ABBREVIATIONS[stat]} must be ${cap} or lower.`,
+                        description: `Stat ${STAT_ABBREVIATIONS[stat as Substat]} must be ${cap} or lower.`,
                     });
                 }
             }

@@ -3,7 +3,9 @@ import {requireNumber} from "@xivgear/core/external/data_validators";
 
 export interface XivApiItemData {
     ID: number,
-    Icon: string
+    Icon: {
+        id: number,
+    }
 }
 
 const itemIconMap = new Map<number, Promise<XivApiItemData>>();

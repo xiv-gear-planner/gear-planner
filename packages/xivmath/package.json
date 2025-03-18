@@ -7,11 +7,14 @@
     "test": "ts-mocha src/test/**/*tests.ts"
   },
   "devDependencies": {
-    "ts-node": "^10.9.2",
+    "@types/chai": "^4.3.16",
+    "chai": "^4.5.0",
     "ts-loader": "^9.5.1",
     "ts-mocha": "^10.0.0",
-    "chai": "^4.5.0",
-    "@types/chai": "^4.3.16"
+    "ts-node": "^10.9.2"
+  },
+  "dependencies": {
+    "@xivgear/i18n": "^1.0.0"
   },
   "exports": {
     "./*": "./src/*.ts"

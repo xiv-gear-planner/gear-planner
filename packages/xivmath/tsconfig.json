@@ -1,19 +1,16 @@
 {
-  "compilerOptions": {
-    "target": "es2022",
-    "sourceMap": true,
-    "module": "nodenext",
-    "moduleResolution": "nodenext",
-    "composite": true,
-    "outDir": "./build",
-    "noImplicitReturns": true,
-    "strictBindCallApply": true,
-    "allowSyntheticDefaultImports": true,
-  },
+  "extends": "../../tsconfig.json",
   "include": [
     "src"
   ],
   "exclude": [
-    "node_modules"
+    "./node_modules",
+    "./dist",
+    "*.d.ts"
+  ],
+  "references": [
+    {
+      "path": "../i18n"
+    }
   ]
 }

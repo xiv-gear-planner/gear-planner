@@ -6,7 +6,7 @@ import * as Actions from "./rpr_actions";
 import {RprAbility, RprExtraData, RprGcdAbility} from "./rpr_types";
 import {RprGauge} from "./rpr_gauge";
 import {DeathsDesign, IdealHost} from "./rpr_buff";
-import {sum} from "@xivgear/core/util/array_utils";
+import {sum} from "@xivgear/util/array_utils";
 import {STANDARD_ANIMATION_LOCK} from "@xivgear/xivmath/xivconstants";
 import {animationLock} from "@xivgear/core/sims/ability_helpers";
 import {BaseMultiCycleSim} from "@xivgear/core/sims/processors/sim_processors";

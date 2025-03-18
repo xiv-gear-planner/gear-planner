@@ -1,7 +1,7 @@
 import {MateriaMemory} from "../gear";
 import {EquippedItem, GearItem, Materia, MateriaSlot, MeldableMateriaSlot, RawStats} from "@xivgear/xivmath/geartypes";
 import {expect} from "chai";
-import {toTranslatable} from "../i18n/translation";
+import {toTranslatable} from "@xivgear/i18n/translation";
 
 describe("Materia Memory", () => {
     it("can save and restore", () => {

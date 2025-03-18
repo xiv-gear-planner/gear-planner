@@ -164,7 +164,7 @@ export class WhmSheetSim implements Simulation<WhmSheetSimResult, WhmSheetSettin
     /**
      * MP usage of a full cycle
      */
-    getMP(stats: ComputedSetStats, cycle) {
+    getMP(stats: ComputedSetStats, cycle: number) {
         let result = 0;
         // TODO: why is the dot multiplier factored in here?
         const shortGcd = stats.gcdMag(2.5);

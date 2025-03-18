@@ -2,11 +2,11 @@ import {Ability, SimSettings, SimSpec, OgcdAbility} from "@xivgear/core/sims/sim
 import {CycleProcessor, CycleSimResult, ExternalCycleSettings, MultiCycleSettings, AbilityUseResult, Rotation, PreDmgAbilityUseRecordUnf} from "@xivgear/core/sims/cycle_sim";
 import {CycleSettings} from "@xivgear/core/sims/cycle_settings";
 import {CharacterGearSet} from "@xivgear/core/gear";
-import {formatDuration} from "@xivgear/core/util/strutils";
+import {formatDuration} from "@xivgear/util/strutils";
 import {STANDARD_ANIMATION_LOCK} from "@xivgear/xivmath/xivconstants";
 import {GnbGauge} from "./gnb_gauge";
 import {GnbGcdAbility, GnbOgcdAbility, ReadyToBlastBuff, ReadyToRipBuff, NoMercyBuff, ReadyToTearBuff, ReadyToGougeBuff, ReadyToBreakBuff, ReadyToReignBuff, GnbExtraData, GnbAbility} from "./gnb_types";
-import {sum} from "@xivgear/core/util/array_utils";
+import {sum} from "@xivgear/util/array_utils";
 import * as Actions from './gnb_actions';
 import {BaseMultiCycleSim} from "@xivgear/core/sims/processors/sim_processors";
 import {potionMaxStr} from "@xivgear/core/sims/common/potion";

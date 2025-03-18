@@ -1,6 +1,6 @@
 import {SetExport, SheetExport} from "@xivgear/xivmath/geartypes";
 import {JobName} from "@xivgear/xivmath/xivconstants";
-import {arrayEq} from "../util/array_utils";
+import {arrayEq} from "@xivgear/util/array_utils";
 
 /** For loading saved sheets via UUID */
 export const SHORTLINK_HASH = 'sl';

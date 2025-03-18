@@ -29,7 +29,7 @@ export class OptionDataElement<X> extends HTMLOptionElement {
 }
 
 export class DataSelect<X> extends HTMLSelectElement {
-    constructor(items: X[], textGetter: (item: X) => string, callback: ((newValue: X) => void) | undefined, initialSelectedItem: typeof items[number] = undefined) {
+    constructor(items: X[], textGetter: (item: X) => string, callback: ((newValue: X) => void) | undefined, initialSelectedItem: (typeof items[number] | undefined) = undefined) {
         super();
         for (const item of items) {
             const opt = new OptionDataElement(item);
@@ -121,9 +121,9 @@ export class FieldBoundCheckBox<ObjType> extends HTMLInputElement {
 }
 
 export interface ValidationContext<ObjType> {
-    ignoreChange();
+    ignoreChange(): void;
 
-    failValidation(message: string);
+    failValidation(message: string): void;
 
     get obj(): ObjType;
 }
@@ -208,7 +208,7 @@ export class FieldBoundConvertingTextField<ObjType, FieldType> extends HTMLInput
             try {
                 const newRawValue = this.value;
                 let _stop = false;
-                const fail = (msg) => {
+                const fail = (msg: string) => {
                     _stop = true;
                     this._validationMessage = msg;
                 };
@@ -270,7 +270,7 @@ export class FieldBoundConvertingTextField<ObjType, FieldType> extends HTMLInput
                 }
             }
             catch (e) {
-                this._validationMessage = e.toString();
+                this._validationMessage = String(e);
                 return;
             }
         };
@@ -343,16 +343,16 @@ export class FieldBoundConvertingTextField2<ObjType, Field extends keyof ObjType
     }
 }
 
-const skipMinus = (ctx: PreValidationContext<never>) => {
+const skipMinus = (ctx: PreValidationContext<unknown>) => {
     if (ctx.newRawValue === '-') {
         ctx.ignoreChange();
     }
 };
 
-// new FieldBoundConvertingTextField(new CharacterGearSet(null), 'food', food => food.toString(), str => new XivApiFoodInfo({}));
+
 export class FieldBoundIntField<ObjType> extends FieldBoundConvertingTextField<ObjType, number> {
     constructor(obj: ObjType, field: { [K in keyof ObjType]: ObjType[K] extends number ? K : never }[keyof ObjType], extraArgs: FbctArgs<ObjType, number> = {}) {
-        const intValidator = (ctx) => {
+        const intValidator: Exclude<typeof extraArgs.postValidators, undefined>[number] = (ctx) => {
             if (ctx.newValue % 1 !== 0) {
                 ctx.failValidation('Value must be an integer');
             }
@@ -373,7 +373,7 @@ export class FieldBoundIntField<ObjType> extends FieldBoundConvertingTextField<O
 
 export class FieldBoundOrUndefIntField<ObjType> extends FieldBoundConvertingTextField<ObjType, number | undefined> {
     constructor(obj: ObjType, field: { [K in keyof ObjType]: ObjType[K] extends (number | undefined) ? K : never }[keyof ObjType], extraArgs: FbctArgs<ObjType, number | undefined> = {}) {
-        const intValidator = (ctx) => {
+        const intValidator: Exclude<typeof extraArgs.postValidators, undefined>[number] = (ctx) => {
             if (ctx.newValue !== undefined && ctx.newValue % 1 !== 0) {
                 ctx.failValidation('Value must be an integer');
             }
@@ -394,7 +394,7 @@ export class FieldBoundOrUndefIntField<ObjType> extends FieldBoundConvertingText
 
 export class FieldBoundFloatField<ObjType> extends FieldBoundConvertingTextField<ObjType, number> {
     constructor(obj: ObjType, field: { [K in keyof ObjType]: ObjType[K] extends number ? K : never }[keyof ObjType], extraArgs: FieldBoundFloatFieldFbctArgs<ObjType, number> = {}) {
-        const numberValidator = (ctx) => {
+        const numberValidator: Exclude<typeof extraArgs.postValidators, undefined>[number] = (ctx) => {
             // filter out NaNs and other garbage values
             // noinspection PointlessArithmeticExpressionJS
             if (ctx.newValue * 0 !== 0) {
@@ -417,8 +417,31 @@ export const nonNegative = (ctx: PostValidationContext<never, number>) => {
     }
 };
 
-export function clampValues(min: number | undefined, max: number | undefined): (ctx: PostValidationContext<never, number>) => void {
-    return (ctx: PostValidationContext<never, number>) => {
+export function clampValuesOrUndef<Ignored>(min: number | undefined, max: number | undefined): (ctx: PostValidationContext<Ignored, number | undefined>) => void {
+    return (ctx: PostValidationContext<Ignored, number | undefined>) => {
+        if (ctx.newValue === undefined) {
+            return;
+        }
+        if (min !== undefined && max !== undefined) {
+            if (ctx.newValue < min || ctx.newValue > max) {
+                ctx.failValidation(`Value must be between ${min} and ${max}`);
+            }
+        }
+        else if (min !== undefined) {
+            if (ctx.newValue < min) {
+                ctx.failValidation(`Value must be great than or equal to ${min}`);
+            }
+        }
+        else if (max !== undefined) {
+            if (ctx.newValue > max) {
+                ctx.failValidation(`Value must be less than or equal to ${max}`);
+            }
+        }
+    };
+}
+
+export function clampValues<Ignored>(min: number | undefined, max: number | undefined): (ctx: PostValidationContext<Ignored, number>) => void {
+    return (ctx: PostValidationContext<Ignored, number>) => {
         if (min !== undefined && max !== undefined) {
             if (ctx.newValue < min || ctx.newValue > max) {
                 ctx.failValidation(`Value must be between ${min} and ${max}`);
@@ -450,7 +473,6 @@ export class FieldBoundTextField<ObjType> extends FieldBoundConvertingTextField<
 // }
 export class FieldBoundDataSelect<ObjType, DataType> extends DataSelect<DataType> {
 
-    reloadValue: () => void;
     listeners: ((value: DataType) => void)[] = [];
 
     constructor(obj: ObjType, field: { [K in keyof ObjType]: ObjType[K] extends DataType ? K : never }[keyof ObjType], valueDisplayName: (value: DataType) => string, options: DataType[]) {

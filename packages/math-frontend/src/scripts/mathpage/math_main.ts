@@ -1,7 +1,7 @@
 import {JobName} from "@xivgear/xivmath/xivconstants";
 import {LevelStats} from "@xivgear/xivmath/geartypes";
 import {DisplayType} from "./math_ui";
-import {PropertyOfType} from "@xivgear/core/util/types";
+import {PropertyOfType} from "@xivgear/util/types";
 
 export type GeneralSettings = {
     classJob: JobName;
@@ -10,7 +10,7 @@ export type GeneralSettings = {
     displayType: DisplayType;
 }
 
-export type Func = (...args: unknown[]) => unknown
+export type Func = (...args: never[]) => unknown;
 
 /**
  * Represents a single, simple formula, e.g. crit stat to crit chance

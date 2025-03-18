@@ -315,7 +315,7 @@ export class WorkerPool {
 
     public async setSheet(sheet: GearPlanSheet) {
         this.currentSheet = sheet;
-        const promises = [];
+        const promises: Promise<unknown>[] = [];
         this.workers.forEach((worker: SheetWorker) => {
             promises.push(worker.setSheet(sheet).then(() => this.stateUpdate()));
         });
@@ -363,5 +363,12 @@ const maxWorkers = SETTINGS.workersOverride ?? Math.min(24, Math.max((navigator.
 console.log(`Worker pool size settings: explicit setting ${SETTINGS.workersOverride}, navigator.hardwareConcurrency ${navigator.hardwareConcurrency}, final value ${maxWorkers}`);
 export const WORKER_POOL: WorkerPool = new WorkerPool(1, maxWorkers);
 
+
+declare global {
+    interface Window {
+        workerPool: typeof WORKER_POOL;
+    }
+}
+
 // Debugging
-window['workerPool'] = WORKER_POOL;
+window.workerPool = WORKER_POOL;

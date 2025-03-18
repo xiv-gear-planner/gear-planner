@@ -2,7 +2,7 @@ import {CycleProcessor, CycleSimResult, CycleSimResultFull, ExternalCycleSetting
 import {SimulationGui} from "./simulation_gui";
 import {SimSettings} from "@xivgear/core/sims/sim_types";
 import {cycleSettingsGui} from "./components/cycle_settings_components";
-import {writeProxy} from "@xivgear/core/util/proxies";
+import {writeProxy} from "@xivgear/util/proxies";
 import {NamedSection} from "../components/section";
 import {BuffSettingsArea} from "./party_comp_settings";
 import {ResultSettingsArea} from "./components/result_settings";
@@ -11,6 +11,7 @@ import {simpleAutoResultTable} from "./components/simple_tables";
 import {AbilitiesUsedTable} from "./components/ability_used_table";
 import {quickElement} from "@xivgear/common-ui/components/util";
 import {BaseMultiCycleSim} from "@xivgear/core/sims/processors/sim_processors";
+import {AnyStringIndex} from "@xivgear/util/types";
 
 export class BaseMultiCycleSimGui<ResultType extends CycleSimResult, InternalSettingsType extends SimSettings, CycleProcessorType extends CycleProcessor = CycleProcessor, FullResultType extends CycleSimResultFull<ResultType> = CycleSimResultFull<ResultType>>
     extends SimulationGui<FullResultType, InternalSettingsType, ExternalCycleSettings<InternalSettingsType>> {
@@ -60,7 +61,7 @@ export class BaseMultiCycleSimGui<ResultType extends CycleSimResult, InternalSet
      */
     makeMainResultDisplay(result: ResultType, includeRotationName: boolean = false): HTMLElement {
         // noinspection JSNonASCIINames
-        const data = {
+        const data: AnyStringIndex = {
             "Expected DPS": result.mainDpsFull.expected,
             "Std Deviation": result.mainDpsFull.stdDev,
             "Expected +1σ": applyStdDev(result.mainDpsFull, 1),

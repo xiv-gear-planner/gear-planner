@@ -353,7 +353,8 @@ export class GearsetGenerator {
 
     cloneEquipmentset(set: EquipmentSet): EquipmentSet {
         const result = new EquipmentSet;
-        for (const equipSlotKey in set) {
+        for (const key in set) {
+            const equipSlotKey = key as EquipSlotKey;
             if (set[equipSlotKey] === null || set[equipSlotKey] === undefined) continue;
             result[equipSlotKey] = this.cloneEquippedItem(set[equipSlotKey]);
         }

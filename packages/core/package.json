@@ -7,7 +7,10 @@
     "test": "ts-mocha --exit 'src/test/**/*test.ts' 'src/test/**/*tests.ts'"
   },
   "dependencies": {
-    "@xivgear/data-api-client": "^1.0.0"
+    "@xivgear/data-api-client": "^1.0.0",
+    "@xivgear/i18n": "^1.0.0",
+    "@xivgear/util": "^1.0.0",
+    "@xivgear/xivmath": "^1.0.0"
   },
   "devDependencies": {
     "ts-node": "^10.9.2",

@@ -103,7 +103,7 @@ describe('importing and exporting', () => {
             expect(newSet.name).to.equal('Bar');
 
             // Weapon is forcibly deleted because we can't use a WHM weapon on a SGE sheet
-            expect(newSet.equipment.Weapon).to.be.undefined;
+            expect(newSet.equipment.Weapon).to.be.null;
             const hat = newSet.equipment.Head;
             expect(hat.gearItem.id).to.equal(HAT_ID);
             expect(hat.melds[0].equippedMateria.id).to.equal(MATERIA_ID);

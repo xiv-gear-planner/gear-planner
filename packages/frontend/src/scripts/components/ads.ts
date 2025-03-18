@@ -1,6 +1,6 @@
-import {recordEvent} from "@xivgear/core/analytics/analytics";
+import {recordEvent} from "@xivgear/common-ui/analytics/analytics";
 import {BaseModal} from "@xivgear/common-ui/components/modal";
-import {arrayEq} from "@xivgear/core/util/array_utils";
+import {arrayEq} from "@xivgear/util/array_utils";
 
 type DisplayCondition = (width: number, height: number) => boolean;
 
@@ -22,6 +22,19 @@ type AdContainerElements = {
     outer: HTMLDivElement,
 
     linksHolder: HTMLDivElement,
+}
+
+declare global {
+    interface Window {
+        nitroAds?: {
+            createAd(id: string, props: unknown): void;
+            loaded: boolean;
+        };
+        currentAds?: ManagedAd[];
+        __cmp(...args: unknown[]): void;
+        __uspapi(...args: unknown[]): void;
+        recheckAds(): void;
+    }
 }
 
 /**
@@ -92,7 +105,7 @@ class ManagedAd {
         }
         setTimeout(() => {
             console.debug(`createAd: ${this.id}`);
-            this.ad = window['nitroAds'].createAd(id, {
+            this.ad = window.nitroAds.createAd(id, {
                 "refreshTime": 30,
                 "renderVisibleOnly": true,
                 "sizes": [
@@ -146,7 +159,7 @@ window.addEventListener('nitroAds.loaded', () => {
  * Whether ads are enabled
  */
 function adsEnabled(): boolean {
-    return window['nitroAds']?.loaded ?? false;
+    return window.nitroAds?.loaded ?? false;
 }
 
 
@@ -202,7 +215,7 @@ extraLinksHolderInner.style.display = 'content';
 
 window.addEventListener('resize', recheckAds);
 
-window['currentAds'] = currentAds;
+window.currentAds = currentAds;
 
 function recheckAds() {
     setTimeout(() => {
@@ -218,8 +231,8 @@ function recheckAds() {
                     ad.addExtras([extraLinksHolderInner]);
                 }
             });
-            window['__cmp']?.('addConsentLink');
-            window['__uspapi']?.('addLink', 1);
+            window.__cmp?.('addConsentLink');
+            window.__uspapi?.('addLink', 1);
         }
         else {
             console.debug('recheckAds: not enabled');
@@ -235,7 +248,7 @@ function recheckAds() {
     });
 }
 
-window['recheckAds'] = recheckAds;
+window.recheckAds = recheckAds;
 
 let firstLoad = true;
 

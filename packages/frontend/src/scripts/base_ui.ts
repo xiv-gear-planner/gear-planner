@@ -9,14 +9,25 @@ import {SheetPickerTable} from "./components/saved_sheet_picker";
 import {GearPlanSheetGui, GRAPHICAL_SHEET_PROVIDER} from "./components/sheet";
 import {makeUrl, NavState, splitPath} from "@xivgear/core/nav/common_nav";
 import {applyCommonTopMenuFormatting} from "@xivgear/common-ui/components/top_menu";
-import {recordSheetEvent} from "@xivgear/core/analytics/analytics";
 import {WORKER_POOL} from "./workers/worker_pool";
 import {showSettingsModal} from "@xivgear/common-ui/settings/settings_modal";
 import {SETTINGS} from "@xivgear/common-ui/settings/persistent_settings";
 import {DISPLAY_SETTINGS} from "@xivgear/common-ui/settings/display_settings";
-import {arrayEq} from "@xivgear/core/util/array_utils";
+import {arrayEq} from "@xivgear/util/array_utils";
 import {extractSingleSet} from "@xivgear/core/util/sheet_utils";
+import {CharacterGearSet} from "@xivgear/core/gear";
+import {recordSheetEvent} from "./analytics/analytics";
 
+declare global {
+    interface Document {
+        planner?: GearPlanSheetGui;
+    }
+    // noinspection JSUnusedGlobalSymbols
+    interface Window {
+        currentSheet?: GearPlanSheetGui;
+        currentGearSet?: CharacterGearSet;
+    }
+}
 const pageTitle = 'XivGear - FFXIV Gear Planner';
 
 export async function initialLoad() {
@@ -58,7 +69,7 @@ export function hideWelcomeArea() {
     welcomeArea.style.display = 'none';
 }
 
-export function setMainContent(title: string, ...nodes) {
+export function setMainContent(title: string, ...nodes: Parameters<ParentNode['replaceChildren']>) {
     contentArea.replaceChildren(...nodes);
     setTitle(title);
 }
@@ -200,8 +211,8 @@ export function getHashForSaveKey(saveKey: string) {
 export async function openSheet(planner: GearPlanSheetGui, changeHash: boolean = true) {
     setTitle('Loading Sheet');
     console.log('openSheet: ', planner.saveKey);
-    document['planner'] = planner;
-    window['currentSheet'] = planner;
+    document.planner = planner;
+    window.currentSheet = planner;
     if (changeHash) {
         setPath("sheet", planner.saveKey, "dont-copy-this-link", "use-the-export-button");
     }

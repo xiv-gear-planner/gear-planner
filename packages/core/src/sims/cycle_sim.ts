@@ -39,10 +39,15 @@ import {buffRelevantAtSnapshot, buffRelevantAtStart} from "./buff_helpers";
  */
 const NO_BUFF_EFFECTS = noBuffEffects();
 
-const NO_BUFFS = {
+const NO_BUFFS: CombinedBuffsAndEffects = {
     'buffs': [],
     'combinedEffects': NO_BUFF_EFFECTS,
 };
+
+type CombinedBuffsAndEffects = {
+        buffs: Buff[],
+        combinedEffects: CombinedBuffEffect,
+    }
 
 /**
  * CycleContext is similar to CycleProcessor, but is scoped to within a cycle. It provides methods
@@ -886,10 +891,7 @@ export class CycleProcessor {
         return ability.type === 'gcd';
     }
 
-    private getCombinedEffectsFor(ability: Ability, time = this.currentTime): {
-        buffs: ReturnType<typeof this.getActiveBuffs>,
-        combinedEffects: ReturnType<typeof combineBuffEffects>,
-    } {
+    private getCombinedEffectsFor(ability: Ability, time = this.currentTime): CombinedBuffsAndEffects {
         const active: Buff[] = this.getActiveBuffsFor(ability, time);
         if (active.length === 0) {
             return NO_BUFFS;
@@ -923,10 +925,10 @@ export class CycleProcessor {
         }
         // If there's multiple, pick the one with the highest min level.
         const modification = relevantModifications.reduce((currentLowest, mod) => currentLowest.minLevel > mod.minLevel ? currentLowest : mod);
-        const modifiedAbility = {
+        const modifiedAbility: Ability = {
             ...ability,
             ...modification,
-            minLevel: undefined,
+            levelModifiers: [],
         };
         return modifiedAbility;
     }
@@ -1333,8 +1335,8 @@ export class CycleProcessor {
             this.combatStarted = true;
             this.combatStarting = true;
         }
-        if (usedAbility.dot) {
-            const dotId = usedAbility.ability['dot']?.id;
+        if (usedAbility.dot && 'dot' in usedAbility.ability) {
+            const dotId = usedAbility.ability.dot?.id;
             // If the ability places a DoT, then check if we need to cut off an existing DoT
             if (dotId !== undefined) {
                 const existing = this.dotMap.get(dotId);

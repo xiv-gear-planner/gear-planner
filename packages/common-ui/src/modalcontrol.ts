@@ -1,7 +1,9 @@
 export interface Modal {
     close(): void;
+
     element: HTMLElement;
 }
+
 let currentModal: Modal | undefined = undefined;
 
 export function setModal(modal: Modal | undefined) {
@@ -34,7 +36,7 @@ const listener = (ev: MouseEvent) => {
         if (!(ev.target instanceof HTMLElement)) {
             return;
         }
-        let eventTarget = ev.target;
+        let eventTarget: HTMLElement | null = ev.target;
         while (eventTarget) {
             if (modalElement === eventTarget) {
                 // Click was on the modal. Ignore.

@@ -2,7 +2,8 @@ export function sum(numbers: number[]) {
     return numbers.reduce((sum, val) => sum + val, 0);
 }
 
-export function range(startInclusive: number, endExclusive: number, increment: number = 1) {
+// TODO: these ignore startInclusive
+export function range(startInclusive: number, endExclusive: number, increment: number = 1): number[] {
     const out = [];
     for (let i = 0; i < endExclusive; i += increment) {
         out.push(i);
@@ -10,7 +11,8 @@ export function range(startInclusive: number, endExclusive: number, increment: n
     return out;
 }
 
-export function rangeInc(startInclusive: number, endInclusive: number, increment: number = 1) {
+// TODO: these ignore startInclusive
+export function rangeInc(startInclusive: number, endInclusive: number, increment: number = 1): number[] {
     const out = [];
     for (let i = 0; i <= endInclusive; i += increment) {
         out.push(i);

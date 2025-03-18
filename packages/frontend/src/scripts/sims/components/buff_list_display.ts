@@ -1,5 +1,5 @@
 import {StatusIcon} from "../../components/status_effects";
-import {toRelPct} from "@xivgear/core/util/strutils";
+import {toRelPct} from "@xivgear/util/strutils";
 import {Buff} from "@xivgear/core/sims/sim_types";
 
 

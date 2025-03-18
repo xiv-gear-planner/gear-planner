@@ -1,4 +1,4 @@
-import {CustomTable, HeaderRow} from "../tables";
+import {col, CustomTable, HeaderRow} from "@xivgear/common-ui/table/tables";
 import {GearPlanSheet} from "@xivgear/core/sheet";
 import {
     clampValues,
@@ -9,7 +9,8 @@ import {
     FieldBoundIntField,
     FieldBoundTextField,
     makeActionButton,
-    nonNegative, quickElement
+    nonNegative,
+    quickElement
 } from "@xivgear/common-ui/components/util";
 import {ALL_STATS, ALL_SUB_STATS, STAT_ABBREVIATIONS, STAT_FULL_NAMES} from "@xivgear/xivmath/xivconstants";
 import {BaseModal} from "@xivgear/common-ui/components/modal";
@@ -118,7 +119,7 @@ export class CustomItemTable extends CustomTable<CustomItem> {
                 initialWidth: 60,
             },
             ...ALL_STATS.map(stat => {
-                return {
+                return col({
                     shortName: STAT_ABBREVIATIONS[stat],
                     displayName: STAT_ABBREVIATIONS[stat],
                     getter: item => item,
@@ -129,7 +130,7 @@ export class CustomItemTable extends CustomTable<CustomItem> {
                         });
                     },
                     initialWidth: 40,
-                };
+                });
             }),
             {
                 shortName: 'wdPhys',

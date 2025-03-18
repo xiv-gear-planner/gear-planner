@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import {quickElement} from "@xivgear/common-ui/components/util";
+import {quickElement} from "../components/util";
 
 function setCellProps(cell: HTMLTableCellElement, colDef: CustomColumn<any, any>) {
     cell.setAttribute("col-id", colDef.shortName);
@@ -50,7 +50,7 @@ export class CustomTableHeaderCell<RowDataType, CellDataType, ColumnDataType> ex
     }
 
     refreshSelection() {
-        this.selected = this.table.selectionModel.isColumnHeaderSelected(this._colDef as CustomColumn<RowDataType>);
+        this.selected = this.table.selectionModel.isColumnHeaderSelected(this._colDef as CustomColumn<unknown, unknown, unknown>);
     }
 
     set selected(selected) {
@@ -112,25 +112,29 @@ export class CustomTableTitleRow extends HTMLTableRowElement {
     }
 }
 
-export interface SelectionModel<RowDataType, SelectionType> {
+export interface TableSelectionModel<
+    RowDataType,
+    CellDataType = never,
+    ColumnDataType = never,
+    SelectionType = SingleCellRowOrHeaderSelection<RowDataType, CellDataType, ColumnDataType>> {
     getSelection(): SelectionType;
 
-    clickCell(cell: CustomCell<RowDataType, SelectionType>);
+    clickCell(cell: CustomCell<RowDataType, CellDataType>): void;
 
-    clickColumnHeader(col: CustomColumn<RowDataType>);
+    clickColumnHeader(col: CustomColumn<RowDataType, CellDataType, ColumnDataType>): void;
 
-    clickRow(row: CustomRow<RowDataType>);
+    clickRow(row: CustomRow<RowDataType>): void;
 
-    isCellSelectedDirectly(cell: CustomCell<RowDataType, SelectionType>);
+    isCellSelectedDirectly(cell: CustomCell<RowDataType, CellDataType>): boolean;
 
-    isRowSelected(row: CustomRow<RowDataType>);
+    isRowSelected(row: CustomRow<RowDataType>): boolean;
 
-    isColumnHeaderSelected(col: CustomColumn<RowDataType>);
+    isColumnHeaderSelected(col: CustomColumn<RowDataType, CellDataType, ColumnDataType>): boolean;
 
     clearSelection(): void;
 }
 
-export const noopSelectionModel: SelectionModel<any, undefined> = {
+export const noopSelectionModel: TableSelectionModel<any, any, any, null> = {
     isCellSelectedDirectly(cell: CustomCell<any, any>) {
         return false;
     },
@@ -140,10 +144,10 @@ export const noopSelectionModel: SelectionModel<any, undefined> = {
     },
     clickRow(cell: CustomRow<any>) {
     },
-    getSelection(): undefined {
-        return undefined;
+    getSelection(): null {
+        return null;
     },
-    isColumnHeaderSelected(col: CustomColumn<any>) {
+    isColumnHeaderSelected(col: CustomColumn<any, unknown, unknown>) {
         return false;
     },
     isRowSelected(item: any) {
@@ -154,15 +158,28 @@ export const noopSelectionModel: SelectionModel<any, undefined> = {
 };
 
 export interface SelectionListener<SelectionType> {
-    onNewSelection(newSelection: SelectionType);
+    onNewSelection(newSelection: SelectionType): void;
 }
 
-export type SingleCellRowOrHeaderSelect<X> = CustomColumn<X> | CustomCell<X, any> | CustomRow<X> | undefined;
+// deprecated
+export type SingleCellRowOrHeaderSelect<X> = CustomColumn<X> | CustomCell<X, any> | CustomRow<X> | null;
 
-export class SingleSelectionModel<TableDataType, ExtraType = never> implements SelectionModel<TableDataType, SingleCellRowOrHeaderSelect<TableDataType> | ExtraType> {
+export type SingleCellRowOrHeaderSelection<RowDataType, CellDataType = never, ColumnDataType = never>
+    = CustomRow<RowDataType>
+    | CustomColumn<RowDataType, CellDataType, ColumnDataType>
+    | CustomCell<RowDataType, CellDataType>
+    | null;
 
-    private _selection: ExtraType | SingleCellRowOrHeaderSelect<TableDataType> = undefined;
-    private _listeners: SelectionListener<ExtraType | SingleCellRowOrHeaderSelect<TableDataType>>[] = [];
+// export type SingleCellRowOrHeaderSelection<RowDataType, CellDataType = never, ColumnDataType = never>
+//     = CustomRow<RowDataType>
+//     | (RowDataType extends never ? never : CustomColumn<RowDataType, CellDataType, ColumnDataType>)
+//     | (CellDataType extends never ? never : CustomCell<RowDataType, CellDataType>)
+//     | null;
+
+export class SingleRowSelectionModel<RowDataType> implements TableSelectionModel<RowDataType, never, never, CustomRow<RowDataType> | null> {
+
+    private _selection: CustomRow<RowDataType> | null = null;
+    private _listeners: SelectionListener<CustomRow<RowDataType> | null>[] = [];
 
     private notifyListeners() {
         for (const listener of this._listeners) {
@@ -170,50 +187,154 @@ export class SingleSelectionModel<TableDataType, ExtraType = never> implements S
         }
     }
 
-    addListener(listener: SelectionListener<SingleCellRowOrHeaderSelect<TableDataType> | ExtraType>) {
+    addListener(listener: SelectionListener<typeof this._selection>) {
         this._listeners.push(listener);
     }
 
-    getSelection(): ExtraType | SingleCellRowOrHeaderSelect<TableDataType> {
+    getSelection(): typeof this._selection {
         return this._selection;
     }
 
-    clickCell(cell: CustomCell<TableDataType, ExtraType>) {
-        this._selection = cell;
-        this.notifyListeners();
+    clickCell(cell: CustomCell<RowDataType, never>) {
     }
 
-    clickColumnHeader(col: CustomColumn<TableDataType>) {
-        this._selection = col;
-        this.notifyListeners();
+    clickColumnHeader(col: CustomColumn<RowDataType, never, never>) {
     }
 
-    clickRow(row: CustomRow<TableDataType>) {
+    clickRow(row: CustomRow<RowDataType>) {
         this._selection = row;
         this.notifyListeners();
     }
 
-    isCellSelectedDirectly(cell: CustomCell<TableDataType, ExtraType>) {
-        return cell === this._selection;
+    isCellSelectedDirectly(cell: CustomCell<RowDataType, never>) {
+        return false;
     }
 
-    isRowSelected(row: CustomRow<TableDataType>) {
+    isRowSelected(row: CustomRow<RowDataType>) {
         return row === this._selection;
     }
 
-    isColumnHeaderSelected(col: CustomColumn<TableDataType>) {
+    isColumnHeaderSelected(col: CustomColumn<RowDataType, never, never>) {
+        return false;
+    }
+
+    clearSelection() {
+        this._selection = null;
+        this.notifyListeners();
+    }
+}
+
+export class SingleRowConvertingSelectionModel<RowType, OutDataType = RowType> implements TableSelectionModel<RowType, never, never, OutDataType | null> {
+
+    private readonly delegate: SingleRowSelectionModel<RowType>;
+    private readonly _listeners: SelectionListener<OutDataType | null>[] = [];
+
+    constructor(private readonly converter: (row: CustomRow<RowType>) => OutDataType) {
+        this.delegate = new SingleRowSelectionModel<RowType>();
+        const outer = this;
+        this.delegate.addListener({
+            onNewSelection(newSelection: CustomRow<RowType> | null): void {
+                const converted = outer.convert(newSelection);
+                outer._listeners.forEach(listener => listener.onNewSelection(converted));
+            },
+        });
+    }
+
+    private convert(value: CustomRow<RowType> | null): OutDataType | null {
+        if (value === null) {
+            return null;
+        }
+        return this.converter(value);
+    }
+
+    getSelection(): OutDataType | null {
+        return this.convert(this.delegate.getSelection());
+    }
+
+    addListener(listener: SelectionListener<OutDataType | null>) {
+        this._listeners.push(listener);
+    }
+
+    clickCell(cell: CustomCell<RowType, never>) {
+        this.delegate.clickCell(cell);
+    }
+
+    clickColumnHeader(col: CustomColumn<RowType, never, never>) {
+        this.delegate.clickColumnHeader(col);
+    }
+
+    clickRow(row: CustomRow<RowType>) {
+        this.delegate.clickRow(row);
+    }
+
+    isCellSelectedDirectly(cell: CustomCell<RowType, never>): boolean {
+        return this.delegate.isCellSelectedDirectly(cell);
+    }
+
+    isRowSelected(row: CustomRow<RowType>): boolean {
+        return this.delegate.isRowSelected(row);
+    }
+
+    isColumnHeaderSelected(col: CustomColumn<RowType, never, never>): boolean {
+        return this.delegate.isColumnHeaderSelected(col);
+    }
+
+    clearSelection() {
+        this.delegate.clearSelection();
+    }
+
+}
+
+export class SingleCellRowOrHeaderSelectionModel<RowDataType, CellDataType, ColumnDataType> implements TableSelectionModel<RowDataType, CellDataType, ColumnDataType, SingleCellRowOrHeaderSelection<RowDataType, CellDataType, ColumnDataType>> {
+
+    private _selection: SingleCellRowOrHeaderSelection<RowDataType, CellDataType, ColumnDataType> = null;
+    private _listeners: SelectionListener<CustomRow<RowDataType> | CustomColumn<RowDataType, CellDataType, ColumnDataType> | CustomCell<RowDataType, CellDataType> | null>[] = [];
+
+    private notifyListeners() {
+        for (const listener of this._listeners) {
+            listener.onNewSelection(this.getSelection());
+        }
+    }
+
+    addListener(listener: SelectionListener<typeof this._selection>) {
+        this._listeners.push(listener);
+    }
+
+    getSelection(): typeof this._selection {
+        return this._selection;
+    }
+
+    clickCell(cell: CustomCell<RowDataType, CellDataType>) {
+        this._selection = cell;
+        this.notifyListeners();
+    }
+
+    clickColumnHeader(col: CustomColumn<RowDataType, CellDataType, ColumnDataType>) {
+        this._selection = col;
+        this.notifyListeners();
+    }
+
+    clickRow(row: CustomRow<RowDataType>) {
+        this._selection = row;
+        this.notifyListeners();
+    }
+
+    isCellSelectedDirectly(cell: CustomCell<RowDataType, CellDataType>) {
+        return cell === this._selection;
+    }
+
+    isRowSelected(row: CustomRow<RowDataType>) {
+        return row === this._selection;
+    }
+
+    isColumnHeaderSelected(col: CustomColumn<RowDataType, CellDataType, ColumnDataType>) {
         return col === this._selection;
     }
 
     clearSelection() {
-        this._selection = undefined;
+        this._selection = null;
         this.notifyListeners();
     }
-
-    // TODO
-    // removeListener(listener: SimpleSelectionListener<X>) {
-    //     this._listeners.
-    // }
 }
 
 export class HeaderRow {
@@ -228,9 +349,10 @@ export class TitleRow {
     }
 }
 
-export class SpecialRow<RowDataType, SelectionType> {
-    constructor(public readonly creator: (table: CustomTable<RowDataType, SelectionType>) => Node,
-                public readonly finisher: (row: CustomTableTitleRow, table: CustomTable<RowDataType, SelectionType>) => void = () => null) {
+export class SpecialRow<T extends CustomTable<any>> {
+    constructor(public readonly creator: (table: T) => Node,
+                public readonly finisher: (row: CustomTableTitleRow, table: T) => void = () => {
+                }) {
     }
 }
 
@@ -239,21 +361,21 @@ export interface SelectionRefresh {
 }
 
 export interface RefreshableRow<X> {
-    refreshFull(),
+    refreshFull(): void;
 
-    refreshColumn(colDef: CustomColumn<X>),
+    refreshColumn(colDef: CustomColumn<X, any>): void;
 
-    get element(): HTMLElement
+    get element(): HTMLElement;
 }
 
 // TODO: there is a redundant copy of this in math-frontend, put these in common-ui
-export class CustomTable<RowDataType, SelectionType = never> extends HTMLTableElement {
+export class CustomTable<RowDataType, SelectionType extends TableSelectionModel<RowDataType, unknown, unknown, unknown> = TableSelectionModel<RowDataType, unknown, unknown, never>> extends HTMLTableElement {
     _data: (RowDataType | HeaderRow | TitleRow)[] = [];
     dataRowMap: Map<RowDataType, CustomRow<RowDataType>> = new Map<RowDataType, CustomRow<RowDataType>>();
     selectionRefreshables: SelectionRefresh[] = [];
     _rows: RefreshableRow<RowDataType>[] = [];
-    _columns: CustomColumn<RowDataType, any>[];
-    selectionModel: SelectionModel<RowDataType, SelectionType> = noopSelectionModel;
+    _columns!: CustomColumn<RowDataType, unknown, unknown>[];
+    selectionModel: SelectionType = noopSelectionModel as SelectionType;
 
     constructor() {
         super();
@@ -264,14 +386,22 @@ export class CustomTable<RowDataType, SelectionType = never> extends HTMLTableEl
         });
     }
 
-    get columns() {
+    get columns(): CustomColumn<RowDataType, unknown, unknown>[] {
         return this._columns;
     }
 
-    set columns(cols: CustomColumnSpec<RowDataType, any, any>[]) {
-        this._columns = cols.flatMap(colDefPartial => {
-            const out = new CustomColumn(colDefPartial);
-            Object.assign(out, colDefPartial);
+    set columns(cols: (CustomColumn<RowDataType, unknown, unknown> | CustomColumnSpec<RowDataType, any>)[]) {
+        this._columns = cols.flatMap(cdef => {
+            if (cdef instanceof CustomColumn) {
+                if (cdef.condition()) {
+                    return [cdef];
+                }
+                else {
+                    return [];
+                }
+            }
+            const out = new CustomColumn(cdef);
+            Object.assign(out, cdef);
             if (out.condition()) {
                 return [out];
             }
@@ -319,8 +449,9 @@ export class CustomTable<RowDataType, SelectionType = never> extends HTMLTableEl
                 newRowElements.push(out);
             }
             else {
-                if (this.dataRowMap.has(item)) {
-                    newRowElements.push(this.dataRowMap.get(item));
+                const row = this.dataRowMap.get(item);
+                if (row !== undefined) {
+                    newRowElements.push(row);
                 }
                 else {
                     const newRow = this.makeDataRow(item);
@@ -403,7 +534,7 @@ export class CustomTable<RowDataType, SelectionType = never> extends HTMLTableEl
         }
     }
 
-    _handleClick(target) {
+    _handleClick(target: EventTarget | null) {
         if (target instanceof CustomRow) {
             this.selectionModel.clickRow(target);
             this.refreshSelection();
@@ -429,21 +560,23 @@ export class CustomTable<RowDataType, SelectionType = never> extends HTMLTableEl
         else if (target === undefined || target === null) {
             return;
         }
-        else {
+        else if (target instanceof Node) {
             this._handleClick(target.parentElement);
         }
     }
 }
 
-export type CellRenderer<RowDataType, CellDataType> = (value: CellDataType, rowValue: RowDataType) => Node | null;
+export type CellRenderer<RowDataType, CellDataType> = (value: CellDataType, rowValue: RowDataType) => (Node | null);
 export type ColStyler<RowDataType, CellDataType> = (value: CellDataType, colElement: CustomCell<RowDataType, CellDataType>, internalElement: Node, rowValue: RowDataType) => void;
 
-export interface CustomColumnSpec<RowDataType, CellDataType = string, ColumnDataType = any> {
+export interface CustomColumnSpec<RowDataType, CellDataType, ColumnDataType = any> {
+    // Required
     shortName: string;
     displayName: string;
+    getter: (item: RowDataType) => CellDataType;
+    // Optional
     allowHeaderSelection?: boolean;
     allowCellSelection?: boolean;
-    getter: (item: RowDataType) => CellDataType;
     renderer?: CellRenderer<RowDataType, CellDataType>;
     colStyler?: ColStyler<RowDataType, CellDataType>;
     condition?: () => boolean;
@@ -455,15 +588,19 @@ export interface CustomColumnSpec<RowDataType, CellDataType = string, ColumnData
     extraClasses?: string[];
 }
 
+export function col<RowDataType, CellDataType = string, ColumnDataType = any>(cdef: CustomColumnSpec<RowDataType, CellDataType, ColumnDataType>): CustomColumn<RowDataType, CellDataType, ColumnDataType> {
+    return new CustomColumn<RowDataType, CellDataType, ColumnDataType>(cdef);
+}
+
 export class CustomColumn<RowDataType, CellDataType = string, ColumnDataType = any> {
-    private _original?: CustomColumnSpec<RowDataType, CellDataType, ColumnDataType>;
+    private _original: CustomColumnSpec<RowDataType, CellDataType, ColumnDataType>;
 
     constructor(colDefPartial: CustomColumnSpec<RowDataType, CellDataType, ColumnDataType>) {
         Object.assign(this, colDefPartial);
         this._original = colDefPartial;
     }
 
-    shortName: string;
+    shortName!: string;
 
     get displayName() {
         // Name can change after the fact, so query the original spec
@@ -476,9 +613,9 @@ export class CustomColumn<RowDataType, CellDataType = string, ColumnDataType = a
 
     allowHeaderSelection?: boolean = false;
     allowCellSelection?: boolean = false;
-    getter: (item: RowDataType) => CellDataType;
-    renderer?: CellRenderer<RowDataType, CellDataType> = (value) => document.createTextNode(value.toString());
-    colStyler?: ColStyler<RowDataType, CellDataType> = (value, colElement, internalElement) => {
+    getter!: (item: RowDataType) => CellDataType;
+    renderer: CellRenderer<RowDataType, CellDataType> = (value) => document.createTextNode(String(value));
+    colStyler: ColStyler<RowDataType, CellDataType> = (value, colElement, internalElement) => {
         if (value) {
             colElement.classList.add("value-truthy");
         }
@@ -486,13 +623,13 @@ export class CustomColumn<RowDataType, CellDataType = string, ColumnDataType = a
             colElement.classList.add("value-falsey");
         }
     };
-    condition?: () => boolean = () => true;
-    rowCondition?: (item: RowDataType) => boolean = () => true;
-    initialWidth?: number | undefined = undefined;
-    extraClasses?: string[] = undefined;
-    fixedWidth?: number | undefined = undefined;
+    condition: () => boolean = () => true;
+    rowCondition: (item: RowDataType) => boolean = () => true;
+    initialWidth: number | undefined = undefined;
+    extraClasses: string[] = [];
+    fixedWidth: number | undefined = undefined;
     dataValue?: ColumnDataType;
-    headerStyler?: (value: ColumnDataType, colHeader: CustomTableHeaderCell<RowDataType, CellDataType, ColumnDataType>) => void;
+    headerStyler?: (value: typeof this.dataValue, colHeader: CustomTableHeaderCell<RowDataType, CellDataType, ColumnDataType>) => void;
 }
 
 export type RefreshableOpts = {
@@ -502,7 +639,7 @@ export type RefreshableOpts = {
 export class CustomRow<RowDataType> extends HTMLTableRowElement implements RefreshableRow<RowDataType> {
     dataItem: RowDataType;
     table: CustomTable<RowDataType, any>;
-    dataColMap: Map<CustomColumn<RowDataType>, CustomCell<RowDataType, any>> = new Map<CustomColumn<RowDataType>, CustomCell<RowDataType, any>>();
+    dataColMap: Map<CustomColumn<RowDataType, unknown, unknown>, CustomCell<RowDataType, unknown>> = new Map<CustomColumn<RowDataType, unknown, unknown>, CustomCell<RowDataType, unknown>>();
     private _selected: boolean = false;
 
     constructor(dataItem: RowDataType, table: CustomTable<RowDataType, any>, opts?: RefreshableOpts) {
@@ -515,15 +652,16 @@ export class CustomRow<RowDataType> extends HTMLTableRowElement implements Refre
     }
 
 
-    refreshColumn(colDef: CustomColumn<RowDataType, string, any>) {
+    refreshColumn(colDef: CustomColumn<RowDataType, unknown, unknown>) {
         this.dataColMap.get(colDef)?.refreshFull();
     }
 
     refreshFull() {
-        const newColElements: CustomCell<RowDataType, any>[] = [];
+        const newColElements: CustomCell<RowDataType, unknown>[] = [];
         for (const col of this.table.columns) {
-            if (this.dataColMap.has(col)) {
-                newColElements.push(this.dataColMap.get(col));
+            const c = this.dataColMap.get(col);
+            if (c !== undefined) {
+                newColElements.push(c);
             }
             else {
                 if (col.rowCondition(this.dataItem)) {
@@ -534,6 +672,7 @@ export class CustomRow<RowDataType> extends HTMLTableRowElement implements Refre
                 else {
                     const dummyCol: CustomColumn<RowDataType, null> = new CustomColumn<RowDataType, null>({
                         ...col,
+                        displayName: col.displayName,
                         getter: () => null,
                         renderer: () => quickElement('span', [], []),
                         colStyler: () => null,
@@ -581,7 +720,7 @@ export class CustomCell<RowDataType, CellDataType> extends HTMLTableCellElement 
     dataItem: RowDataType;
     colDef: CustomColumn<RowDataType, CellDataType>;
     row: CustomRow<RowDataType>;
-    _cellValue: CellDataType;
+    _cellValue!: CellDataType;
     private _selected: boolean = false;
 
     constructor(dataItem: RowDataType, colDef: CustomColumn<RowDataType, CellDataType>, row: CustomRow<RowDataType>, opts?: RefreshableOpts) {
@@ -597,7 +736,7 @@ export class CustomCell<RowDataType, CellDataType> extends HTMLTableCellElement 
     }
 
     refreshFull() {
-        let node: Node;
+        let node: Node | null;
         try {
             this._cellValue = this.colDef.getter(this.dataItem);
             node = this.colDef.renderer(this._cellValue, this.row.dataItem);
@@ -617,8 +756,7 @@ export class CustomCell<RowDataType, CellDataType> extends HTMLTableCellElement 
             // Due to some of the styling, the child must be a real HTML element and not a raw text node
             // Also, some elements don't support ::before, so insert a dummy span
             if (node.nodeType === this.TEXT_NODE) {
-                const text = node.textContent;
-                span.textContent = text;
+                span.textContent = node.textContent ?? '';
                 this.replaceChildren(span);
             }
             else {
@@ -653,6 +791,8 @@ export class CustomCell<RowDataType, CellDataType> extends HTMLTableCellElement 
     }
 
 }
+
+export type ColDefs<RowDataType> = (CustomColumn<RowDataType> | CustomColumnSpec<RowDataType, any>)[];
 
 customElements.define("custom-table-row", CustomRow, {extends: "tr"});
 customElements.define("custom-table", CustomTable, {extends: "table"});

@@ -3,8 +3,6 @@ import {SimulationGui} from "../simulation_gui";
 import {SgeSheetSettings, SgeSheetSimResult} from "@xivgear/core/sims/healer/sge_sheet_sim";
 
 export class SgeSimGui extends SimulationGui<SgeSheetSimResult, SgeSheetSettings, SgeSheetSettings> {
-    makeToolTip = undefined;
-    makeResultDisplay = undefined;
 
     makeConfigInterface(settings: SgeSheetSettings): HTMLElement {
         const div = document.createElement("div");

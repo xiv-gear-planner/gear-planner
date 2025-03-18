@@ -1,17 +1,19 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // TODO: get back to fixing this at some point
-import {camel2title, capitalizeFirstLetter, toRelPct} from "@xivgear/core/util/strutils";
+import {camel2title, capitalizeFirstLetter, toRelPct} from "@xivgear/util/strutils";
 import {BaseModal} from "@xivgear/common-ui/components/modal";
 import {
+    col,
     CustomCell,
     CustomColumn,
     CustomColumnSpec,
     CustomRow,
     CustomTable,
     HeaderRow,
-    SingleCellRowOrHeaderSelect,
-    SingleSelectionModel
-} from "../tables";
+    SingleCellRowOrHeaderSelectionModel,
+    SingleRowSelectionModel,
+    TableSelectionModel
+} from "@xivgear/common-ui/table/tables";
 import {GearPlanSheet, SheetProvider} from "@xivgear/core/sheet";
 import {
     faIcon,
@@ -56,10 +58,10 @@ import {SetViewToolbar} from "./totals_display";
 import {scrollIntoView} from "@xivgear/common-ui/util/scrollutil";
 import {installDragHelper} from "./draghelpers";
 import {iconForIssues, SetIssuesModal} from "./gear_set_issues";
-import {Inactivitytimer} from "@xivgear/core/util/inactivitytimer";
+import {Inactivitytimer} from "@xivgear/util/inactivitytimer";
 import {startExport} from "./export_controller";
 import {startRenameSet, startRenameSheet} from "./rename_dialog";
-import {writeProxy} from "@xivgear/core/util/proxies";
+import {writeProxy} from "@xivgear/util/proxies";
 import {LoadingBlocker} from "@xivgear/common-ui/components/loader";
 import {GearEditToolbar} from "./gear_edit_toolbar";
 import {openSheetByKey, setTitle} from "../base_ui";
@@ -68,7 +70,7 @@ import {getShortLink} from "@xivgear/core/external/shortlink_server";
 import {getSetFromEtro} from "@xivgear/core/external/etro_import";
 import {getBisSheet} from "@xivgear/core/external/static_bis";
 import {simpleAutoResultTable} from "../sims/components/simple_tables";
-import {rangeInc} from "@xivgear/core/util/array_utils";
+import {rangeInc} from "@xivgear/util/array_utils";
 import {SimCurrentResult, SimResult, SimSettings, SimSpec, Simulation} from "@xivgear/core/sims/sim_types";
 import {getRegisteredSimSpecs} from "@xivgear/core/sims/sim_registry";
 import {makeUrl, NavState, ONLY_SET_QUERY_PARAM} from "@xivgear/core/nav/common_nav";
@@ -79,13 +81,11 @@ import {CustomFoodPopup, CustomItemPopup} from "./custom_item_manager";
 import {confirmDelete} from "@xivgear/common-ui/components/delete_confirm";
 import {SimulationGui} from "../sims/simulation_gui";
 import {makeGui} from "../sims/sim_guis";
-import {recordSheetEvent} from "@xivgear/core/analytics/analytics";
+import {recordSheetEvent} from "@xivgear/gearplan-frontend/analytics/analytics";
 import {MeldSolverDialog} from "./meld_solver_modal";
 import {insertAds} from "./ads";
 import {SETTINGS} from "@xivgear/common-ui/settings/persistent_settings";
 import {isInIframe} from "@xivgear/common-ui/util/detect_iframe";
-
-export type GearSetSel = SingleCellRowOrHeaderSelect<CharacterGearSet>;
 
 const noSeparators = (set: CharacterGearSet) => !set.isSeparator;
 
@@ -182,20 +182,21 @@ export class SimResultData<ResultType extends SimResult> {
 /**
  * A table of gear sets
  */
-export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
+export class GearPlanTable extends CustomTable<CharacterGearSet, SingleCellRowOrHeaderSelectionModel<CharacterGearSet, SimCurrentResult, SimulationGui<any, any, any>>> {
 
     private readonly sheet: GearPlanSheetGui;
 
-    constructor(sheet: GearPlanSheetGui, setSelection: (item: CharacterGearSet | SimulationGui<any, any, any> | SimResultData<any> | undefined) => void) {
+    constructor(sheet: GearPlanSheetGui, setSelection: (item: CharacterGearSet | SimulationGui<any, any, any> | SimResultData<any> | null) => void) {
         super();
         this.sheet = sheet;
         this.classList.add("gear-plan-table");
         this.classList.add("hoverable");
         this.setupColumns();
-        const selModel = new SingleSelectionModel<CharacterGearSet, GearSetSel>();
+        const selModel = new SingleCellRowOrHeaderSelectionModel<CharacterGearSet, SimCurrentResult, SimulationGui<any, any, any>>();
+        // const selModel = new SingleSelectionModel();
         this.selectionModel = selModel;
         selModel.addListener({
-            onNewSelection(newSelection: GearSetSel) {
+            onNewSelection(newSelection) {
                 if (newSelection instanceof CustomRow) {
                     setSelection(newSelection.dataItem);
                 }
@@ -288,12 +289,12 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
 
         const jobData = getClassJobStats(this.sheet.classJobName);
 
-        const gcdColumns: typeof this.columns = [];
+        const gcdColumns: CustomColumnSpec<CharacterGearSet, any>[] = [];
         const override = jobData.gcdDisplayOverrides?.(this.sheet.level);
         if (override) {
             let counter = 0;
             for (const gcdOver of override) {
-                gcdColumns.push({
+                gcdColumns.push(col({
                     shortName: "gcd-custom-" + counter++,
                     displayName: gcdOver.shortLabel,
                     getter: gearSet => {
@@ -310,12 +311,12 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                     rowCondition: noSeparators,
                     renderer: gcd => document.createTextNode(gcd.toFixed(2)),
                     initialWidth: statColWidth + 10,
-                });
+                }));
             }
         }
         else {
             gcdColumns.push(
-                {
+                col({
                     shortName: "gcd",
                     displayName: "GCD",
                     getter: gearSet => {
@@ -326,11 +327,11 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                     renderer: gcd => document.createTextNode(gcd.toFixed(2)),
                     rowCondition: noSeparators,
                     initialWidth: statColWidth + 10,
-                });
+                }));
         }
 
-        const simColumns: typeof this.columns = this.simGuis.map(simGui => {
-            return {
+        const simColumns: CustomColumnSpec<CharacterGearSet, SimCurrentResult, SimulationGui<any, any, any>>[] = this.simGuis.map(simGui => {
+            return ({
                 dataValue: simGui,
                 shortName: "sim-col-" + simGui.sim.shortName,
                 get displayName() {
@@ -354,7 +355,7 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                     colHeader.title = 'Click to configure simulation settings';
                 },
                 rowCondition: noSeparators,
-            };
+            });
         });
 
         const outer = this;
@@ -390,8 +391,11 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                                     rowBeingDragged.classList.add('dragging');
                                     return;
                                 }
+                                else if (target instanceof Node) {
+                                    target = target["parentElement"] as EventTarget;
+                                }
                                 else {
-                                    target = target['parentElement'];
+                                    break;
                                 }
                             }
                             rowBeingDragged = null;
@@ -562,7 +566,7 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                 shortName: "sps",
                 displayName: "SPS",
             },
-            {
+            col({
                 shortName: "piety",
                 displayName: "PIE",
                 getter: gearSet => gearSet.computedStats.piety,
@@ -570,8 +574,8 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                 condition: () => this.sheet.isStatRelevant('piety'),
                 rowCondition: noSeparators,
                 extraClasses: ['stat-col-less-important'],
-            },
-            {
+            }),
+            col({
                 shortName: "tenacity",
                 displayName: "TNC",
                 getter: gearSet => ({
@@ -583,7 +587,7 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, GearSetSel> {
                 condition: () => this.sheet.isStatRelevant('tenacity'),
                 extraClasses: ['stat-col', 'multiplier-mit-stat-col', 'stat-col-less-important'],
                 rowCondition: noSeparators,
-            },
+            }),
             ...(viewOnly ? [] : simColumns),
         ];
     }
@@ -1221,14 +1225,9 @@ function formatSimulationConfigArea<SettingsType extends SimSettings>(
             rerunTimer.ping();
         }
     };
-    const settingsProxyHandler: ProxyHandler<SettingsType> = {
-        set(target, prop, value, receiver) {
-            target[prop] = value;
-            updateCallback();
-            return true;
-        },
-    };
-    const settingsProxy = new Proxy(originalSettings, settingsProxyHandler);
+    const settingsProxy = writeProxy(originalSettings, () => {
+        updateCallback();
+    });
     const customInterface = simGui.makeConfigInterface(settingsProxy, updateCallback);
     customInterface.id = 'sim-config-area-inner';
     customInterface.classList.add('sim-config-area-inner');
@@ -1381,7 +1380,7 @@ export class GearPlanSheetGui extends GearPlanSheet {
             }
             else if (item instanceof CharacterGearSet) {
                 // TODO: centralize these debugging shortcuts
-                window['currentGearSet'] = item;
+                window.currentGearSet = item;
                 if (item.isSeparator) {
                     if (this._isViewOnly) {
                         this.setupEditorArea(new SeparatorViewer(item));
@@ -1400,7 +1399,7 @@ export class GearPlanSheetGui extends GearPlanSheet {
                 }
                 this.refreshToolbar();
             }
-            else if (item['makeConfigInterface']) {
+            else if ('makeConfigInterface' in item) {
                 this.setupEditorArea(formatSimulationConfigArea(this, item as SimulationGui<any, any, any>, col => this._gearPlanTable.refreshColumn(col), col => this.delSim(col.sim), () => this._gearPlanTable.refreshColHeaders()));
             }
             else if (item instanceof SimResultData) {
@@ -1565,7 +1564,7 @@ export class GearPlanSheetGui extends GearPlanSheet {
                     return `${value} Unique Roles`;
                 }
             },
-            rangeInc(0, MAX_PARTY_BONUS)
+            rangeInc(0, MAX_PARTY_BONUS) as PartyBonusAmount[]
         );
         partySizeDropdown.addListener((val) => {
             recordSheetEvent('changePartyBonus', this, {
@@ -1851,8 +1850,8 @@ export class GearPlanSheetGui extends GearPlanSheet {
             if (this._gearPlanTable) {
                 this._gearPlanTable.refreshRowData(gearSet);
                 this.refreshToolbar();
-                if (this._editorItem === gearSet) {
-                    this._editorAreaNode?.['refresh']();
+                if (this._editorItem === gearSet && 'refresh' in this._editorAreaNode) {
+                    (this._editorAreaNode.refresh as () => void)();
                 }
             }
             this.requestSave();
@@ -2143,7 +2142,7 @@ export class ImportSetsModal extends BaseModal {
 }
 
 export class AddSimDialog extends BaseModal {
-    private readonly table: CustomTable<SimSpec<any, any>, SingleCellRowOrHeaderSelect<SimSpec<any, any>>>;
+    private readonly table: CustomTable<SimSpec<any, any>, TableSelectionModel<SimSpec<any, any>>>;
     private _showAllSims: boolean = false;
 
     constructor(private sheet: GearPlanSheet) {
@@ -2153,7 +2152,7 @@ export class AddSimDialog extends BaseModal {
         const form = document.createElement("form");
         form.method = 'dialog';
         this.table = new CustomTable();
-        const selModel: SingleSelectionModel<SimSpec<any, any>> = new SingleSelectionModel();
+        const selModel = new SingleRowSelectionModel<SimSpec<any, any>>();
         this.table.selectionModel = selModel;
         this.table.classList.add('hoverable');
         this.table.columns = [

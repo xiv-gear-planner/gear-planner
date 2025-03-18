@@ -1,6 +1,6 @@
 import {BaseModal} from "@xivgear/common-ui/components/modal";
 import {
-    clampValues,
+    clampValuesOrUndef,
     FieldBoundCheckBox,
     FieldBoundDataSelect,
     FieldBoundOrUndefIntField,
@@ -9,8 +9,8 @@ import {
 } from "@xivgear/common-ui/components/util";
 import {DISPLAY_SETTINGS} from "./display_settings";
 import {BoolToggle} from "@xivgear/common-ui/components/bool_toggle";
-import {recordEvent} from "@xivgear/core/analytics/analytics";
-import {ALL_LANGS, LangaugeDisplayName, Language} from "@xivgear/core/i18n/translation";
+import {recordEvent} from "../analytics/analytics";
+import {ALL_LANGS, LangaugeDisplayName, Language} from "@xivgear/i18n/translation";
 import {SETTINGS} from "./persistent_settings";
 
 
@@ -54,7 +54,7 @@ class SettingsModal extends BaseModal {
         this.contentArea.append(document.createElement('br'));
 
         const workersCount = new FieldBoundOrUndefIntField(SETTINGS, 'workersOverride', {
-            postValidators: [clampValues(2, 1024)],
+            postValidators: [clampValuesOrUndef(2, 1024)],
         });
         workersCount.style.width = '100%';
         workersCount.style.boxSizing = 'border-box';

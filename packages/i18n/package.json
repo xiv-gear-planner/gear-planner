@@ -1,0 +1,20 @@
+{
+  "name": "@xivgear/i18n",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "build": "tsc --build"
+  },
+  "devDependencies": {
+    "ts-node": "^10.9.2",
+    "ts-loader": "^9.5.1"
+  },
+  "exports": {
+    "./*": "./src/*.ts"
+  },
+  "files": [
+    "package.json",
+    "tsconfig.json",
+    "src/*.ts"
+  ]
+}

@@ -1,4 +1,5 @@
 import {xivApiIconUrl, xivApiSingleCols} from "@xivgear/core/external/xivapi";
+import {AnyStringIndex} from "@xivgear/util/types";
 
 export interface XivApiStatusData {
     ID: number,
@@ -23,7 +24,7 @@ async function getDataFor(statusId: number): Promise<XivApiStatusData> {
                     const effectiveStackCount = Math.max(1, Math.min(data.MaxStacks as number, stacks));
                     // 0/1 stack uses the base value, 2 stacks is base+1, 3 is base+2, etc.
                     const stackOffset = effectiveStackCount - 1;
-                    const iconId = (data.Icon['id'] as number) + stackOffset;
+                    const iconId = ((data.Icon as AnyStringIndex).id as number) + stackOffset;
                     return xivApiIconUrl(iconId, highRes);
                 },
             } satisfies XivApiStatusData;

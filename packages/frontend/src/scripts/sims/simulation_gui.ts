@@ -27,7 +27,7 @@ export abstract class SimulationGui<ResultType extends SimResult, SettingsType e
      * @param result The result
      * @returns The tooltip
      */
-    abstract makeToolTip?(result: ResultType): string;
+    makeToolTip?(result: ResultType): string;
 
     /**
      * Overrides the results display when clicking into a sim result cell in the set table.
@@ -35,5 +35,5 @@ export abstract class SimulationGui<ResultType extends SimResult, SettingsType e
      * @param result The result
      * @return the result HTML
      */
-    abstract makeResultDisplay?(result: ResultType): HTMLElement;
+    makeResultDisplay?(result: ResultType): HTMLElement;
 }

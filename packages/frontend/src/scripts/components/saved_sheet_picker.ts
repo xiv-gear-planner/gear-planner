@@ -1,11 +1,18 @@
-import {CustomCell, CustomColumn, CustomRow, CustomTable, SpecialRow, TitleRow} from "../tables";
+import {
+    CustomCell,
+    CustomColumn,
+    CustomRow,
+    CustomTable,
+    SpecialRow, TableSelectionModel,
+    TitleRow
+} from "@xivgear/common-ui/table/tables";
 import {SheetExport} from "@xivgear/xivmath/geartypes";
 import {faIcon, makeActionButton} from "@xivgear/common-ui/components/util";
 import {deleteSheetByKey} from "@xivgear/core/persistence/saved_sheets";
 import {getHashForSaveKey, openSheetByKey, showNewSheetForm} from "../base_ui";
 import {confirmDelete} from "@xivgear/common-ui/components/delete_confirm";
 
-export class SheetPickerTable extends CustomTable<SheetExport, SheetExport> {
+export class SheetPickerTable extends CustomTable<SheetExport, TableSelectionModel<SheetExport, never, never, SheetExport | null>> {
     constructor() {
         super();
         this.classList.add("gear-sheets-table");
@@ -72,7 +79,7 @@ export class SheetPickerTable extends CustomTable<SheetExport, SheetExport> {
             clickRow(row: CustomRow<SheetExport>) {
                 openSheetByKey(row.dataItem.saveKey);
             },
-            getSelection(): SheetExport {
+            getSelection(): SheetExport | null {
                 return null;
             },
             isCellSelectedDirectly(cell: CustomCell<SheetExport, SheetExport>) {

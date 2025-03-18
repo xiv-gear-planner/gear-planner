@@ -1,6 +1,6 @@
 import 'global-jsdom/register';
 import {HEADLESS_SHEET_PROVIDER} from "@xivgear/core/sheet";
-import {rangeInc} from "@xivgear/core/util/array_utils";
+import {rangeInc} from "@xivgear/util/array_utils";
 import {SgeSheetSim} from '@xivgear/core/sims/healer/sge_sheet_sim_mk2';
 import {registerDefaultSims} from '@xivgear/core/sims/default_sims';
 
