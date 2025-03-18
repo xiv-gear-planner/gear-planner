@@ -20,6 +20,7 @@ export function setToMicroExport(set: CharacterGearSet): MicroSetExport {
                     // TODO: determine if it makes more sense to just serialize empty materia slots as {}
                     // The advantage is that {} is a lot smaller than {"id":-1}, and exports are already long
                     // On the other hand, *most* real exports would have slots filled (BiS etc)
+                    // To indicate NQ items, add .5 to the item ID
                     inSlot.gearItem.id,
                     "relic",
                     (inSlot.relicStats && Object.entries(inSlot.relicStats)) ? {...inSlot.relicStats} : null,
@@ -33,7 +34,7 @@ export function setToMicroExport(set: CharacterGearSet): MicroSetExport {
                     // TODO: determine if it makes more sense to just serialize empty materia slots as {}
                     // The advantage is that {} is a lot smaller than {"id":-1}, and exports are already long
                     // On the other hand, *most* real exports would have slots filled (BiS etc)
-                    inSlot.gearItem.id,
+                    inSlot.gearItem.id + (inSlot.gearItem.isNqVersion ? 0.5 : 0),
                     ...inSlot.melds.map(meld => {
                         return meld.equippedMateria?.id ?? null;
                     }),
@@ -65,10 +66,21 @@ export function microExportToFullExport(s: MicroSetExport): SetExport {
                 };
             }
             else {
-                fakeItemsImport[slotName] = {
-                    id: s[1],
-                    materia: s.slice(2).map(m => ({id: (m as number) ?? -1})),
-                };
+                const itemIdRaw = s[1];
+                const mod = itemIdRaw % 1;
+                if (mod !== 0) {
+                    fakeItemsImport[slotName] = {
+                        id: Math.floor(s[1]),
+                        forceNq: true,
+                        materia: s.slice(2).map(m => ({id: (m as number) ?? -1})),
+                    };
+                }
+                else {
+                    fakeItemsImport[slotName] = {
+                        id: s[1],
+                        materia: s.slice(2).map(m => ({id: (m as number) ?? -1})),
+                    };
+                }
             }
         }
     });

@@ -29,7 +29,7 @@ export interface DataManager {
     readonly ilvlSync: number;
     readonly level: number;
 
-    itemById(id: number): GearItem | undefined;
+    itemById(id: number, forceNq?: boolean): GearItem | undefined;
 
     materiaById(id: number): Materia | undefined;
 

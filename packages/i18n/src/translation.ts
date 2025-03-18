@@ -60,6 +60,20 @@ class TranslatableImpl implements TranslatableString {
 
 }
 
-export function toTranslatable(defaultValue: string, data: Partial<TranslatableString> = {}): TranslatableString {
-    return new TranslatableImpl(defaultValue, data);
+export function toTranslatable(defaultValue: string, data: Partial<TranslatableString> = {}, mapper?: (input: string) => string): TranslatableString {
+    if (mapper) {
+        const adjustedData: typeof data = {};
+        Object.entries(data).forEach(([key, value]) => {
+            if (typeof value === 'string') {
+                adjustedData[key as keyof TranslationData] = mapper(value);
+            }
+            else {
+                adjustedData[key as keyof TranslationData] = value;
+            }
+        });
+        return new TranslatableImpl(mapper(defaultValue), adjustedData);
+    }
+    else {
+        return new TranslatableImpl(defaultValue, data);
+    }
 }

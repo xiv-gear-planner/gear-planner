@@ -20,6 +20,7 @@ import {RawStatsPart} from "@xivgear/util/types";
 
 export class CustomItem implements GearItem {
 
+    isNqVersion: boolean = false;
     unsyncedVersion: GearItem = this;
     isCustomRelic: boolean = false;
     isSyncedDown: boolean = false;

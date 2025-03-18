@@ -196,6 +196,7 @@ export interface GearItem extends XivCombatItem {
     isUnique: boolean;
     acquisitionType: GearAcquisitionSource;
     relicStatModel: RelicStatModel | undefined;
+    isNqVersion: boolean;
 }
 
 export interface FoodStatBonus {
@@ -880,6 +881,10 @@ export interface ItemSlotExport {
      * If this is a relic, represents the current stats of the relic.
      */
     relicStats?: RelicStatsExport,
+    /**
+     * Force this to be an NQ item instead of HQ if available.
+     */
+    forceNq?: boolean,
 }
 
 export type RelicStatsExport = {
@@ -915,7 +920,8 @@ export interface ItemDisplaySettings {
     maxILvl: number,
     minILvlFood: number,
     maxILvlFood: number,
-    higherRelics: boolean
+    higherRelics: boolean,
+    showNq: boolean,
 }
 
 export const AttackTypes = ['Unknown', 'Auto-attack', 'Spell', 'Weaponskill', 'Ability', 'Item'] as const;
@@ -1134,13 +1140,16 @@ MicroSetExport has a single TypedArray, where we store items in a flat structure
 e.g. [slot1slotId, slot1itemId, slot1materiaCount, slot1materia1id, ... slot1materiaNid, slot2slotId, ... etc]
 Could even take it a step further and pack multiple sets into one big array.
  */
+
 /**
  * MicroSetExport is a minimal analog to {@link SetExport} which contains the bare minimum information
- * needed for brute force solving. This is useful for reducing memory usage.
+ * needed for brute force solving. This is useful for reducing memory usage. These are meant to be very dense in
+ * terms of memory, so they use hacks like adding 0.5 to item IDs to signify an NQ item.
  */
 export type MicroSetExport = MicroSlotExport[];
 
 export type FoodMicroSlotExport = [slot: "food", foodId: number];
+// The itemId in this case has 0.5 added to it to indicate an NQ item
 export type NormalItemMicroSlotExport = [slot: EquipSlotKey, itemId: number, ...materiaIds: (number | null)[]];
 export type RelicItemMicroSlotExport = [slot: EquipSlotKey, itemId: number, "relic", relicStats: RelicStatsExport];
 export type MicroSlotExport = FoodMicroSlotExport | NormalItemMicroSlotExport | RelicItemMicroSlotExport;
