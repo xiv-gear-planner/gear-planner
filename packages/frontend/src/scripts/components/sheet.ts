@@ -49,7 +49,8 @@ import {
     MAX_PARTY_BONUS,
     RACE_STATS,
     RaceName,
-    STAT_ABBREVIATIONS
+    STAT_ABBREVIATIONS,
+    SupportedLevel
 } from "@xivgear/xivmath/xivconstants";
 import {getCurrentHash, getCurrentState} from "../nav_hash";
 import {MateriaTotalsDisplay} from "./materia";
@@ -1468,7 +1469,7 @@ export class GearPlanSheetGui extends GearPlanSheet {
             buttonsArea.appendChild(sheetOptions);
         }
 
-        const siFmt = formatSyncInfo(this.syncInfo);
+        const siFmt = formatSyncInfo(this.syncInfo, this.level);
         if (siFmt !== null) {
             const span = quickElement('span', [], [siFmt]);
             const ilvlSyncLabel = quickElement('div', ['like-a-button'], [span]);
@@ -2256,13 +2257,18 @@ export class GraphicalSheetProvider extends SheetProvider<GearPlanSheetGui> {
     }
 }
 
-function formatSyncInfo(si: SyncInfo): string | null {
+function formatSyncInfo(si: SyncInfo, level: SupportedLevel): string | null {
     const isIlvlSynced = si.ilvlSync !== null;
     const isLvlSynced = si.lvlSync !== null;
     if (isIlvlSynced || isLvlSynced) {
         let text = 'Sync: ';
         if (isLvlSynced) {
             text += `lv${si.lvlSync} `;
+        }
+        // If level sync isn't explicitly set, show the level anyway
+        // if item level sync is present in any way to avoid confusion.
+        else if (si.ilvlSync !== null) {
+            text += `lv${level} `;
         }
         if (si.ilvlSync !== null) {
             if (si.ilvlSyncIsExplicit) {
