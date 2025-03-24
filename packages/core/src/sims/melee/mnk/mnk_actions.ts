@@ -560,7 +560,7 @@ export const WindsReply: MnkGcdAbility = {
     type: 'gcd',
     attackType: 'Weaponskill',
     gcd: 2.5,
-    potency: 900,
+    potency: 1040,
 };
 export const FiresReply: MnkGcdAbility = {
     name: "Fire's Reply",
@@ -568,7 +568,7 @@ export const FiresReply: MnkGcdAbility = {
     type: 'gcd',
     attackType: 'Weaponskill',
     gcd: 2.5,
-    potency: 1200,
+    potency: 1400,
     activatesBuffs: [FormlessFist],
 };
 
