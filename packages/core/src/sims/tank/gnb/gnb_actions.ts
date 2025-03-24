@@ -188,7 +188,7 @@ export const ReignOfBeasts: GnbGcdAbility = {
     type: 'gcd',
     name: "Reign of Beasts",
     id: 36937,
-    potency: 800,
+    potency: 1000,
     attackType: "Weaponskill",
     gcd: 2.5,
 };
@@ -197,7 +197,7 @@ export const NobleBlood: GnbGcdAbility = {
     type: 'gcd',
     name: "Noble Blood",
     id: 36938,
-    potency: 1000,
+    potency: 1100,
     attackType: "Weaponskill",
     gcd: 2.5,
 };
