@@ -204,11 +204,17 @@ export const Upheaval: WarOgcdAbility = {
     type: 'ogcd',
     name: "Upheaval",
     id: 7387,
-    potency: 420,
+    potency: 400,
     attackType: "Ability",
     cooldown: {
         time: 30,
     },
+    levelModifiers: [
+        {
+            minLevel: 94,
+            potency: 420,
+        },
+    ],
 };
 
 export const Onslaught: WarOgcdAbility = {
