@@ -37,10 +37,10 @@ const dia: WhmGcdAbility = {
     id: 16532,
     type: 'gcd',
     name: "Dia",
-    potency: 75,
+    potency: 80,
     dot: {
         id: 1871,
-        tickPotency: 75,
+        tickPotency: 80,
         duration: 30,
     },
     attackType: "Spell",

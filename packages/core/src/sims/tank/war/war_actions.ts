@@ -26,7 +26,7 @@ export const HeavySwing: WarGcdAbility = {
         },
         {
             minLevel: 94,
-            potency: 220,
+            potency: 240,
         },
     ],
 };
@@ -68,7 +68,7 @@ export const StormsPath: WarGcdAbility = {
         },
         {
             minLevel: 94,
-            potency: 480,
+            potency: 500,
         },
     ],
 };
@@ -90,7 +90,7 @@ export const StormsEye: WarGcdAbility = {
         },
         {
             minLevel: 94,
-            potency: 480,
+            potency: 500,
         },
     ],
 };
@@ -209,6 +209,12 @@ export const Upheaval: WarOgcdAbility = {
     cooldown: {
         time: 30,
     },
+    levelModifiers: [
+        {
+            minLevel: 94,
+            potency: 420,
+        },
+    ],
 };
 
 export const Onslaught: WarOgcdAbility = {

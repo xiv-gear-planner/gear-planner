@@ -50,7 +50,7 @@ const bio: SchGcdAbility = {
     potency: 0,
     dot: {
         duration: 30,
-        tickPotency: 75,
+        tickPotency: 80,
         id: 3089,
     },
     attackType: "Spell",

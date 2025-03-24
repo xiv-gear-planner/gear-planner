@@ -203,7 +203,7 @@ const LegacyBase: VprOgcdAbility = {
     name: null,
     id: null,
     type: 'ogcd',
-    potency: 280,
+    potency: 320,
     attackType: 'Ability',
 };
 

@@ -32,7 +32,7 @@ const eDosis: GcdAbility = {
     dot: {
         id: 2864,
         duration: 30,
-        tickPotency: 75,
+        tickPotency: 80,
     },
     attackType: "Spell",
     fixedGcd: true,
