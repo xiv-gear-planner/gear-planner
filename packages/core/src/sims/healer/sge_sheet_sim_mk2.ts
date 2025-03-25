@@ -7,7 +7,7 @@ import {
     MultiCycleSettings,
     Rotation
 } from "@xivgear/core/sims/cycle_sim";
-import {gemdraught1mind} from "@xivgear/core/sims/common/potion";
+import {potionMaxMind} from "@xivgear/core/sims/common/potion";
 import {rangeInc} from "@xivgear/util/array_utils";
 import {animationLock} from "@xivgear/core/sims/ability_helpers";
 import {BaseMultiCycleSim} from "@xivgear/core/sims/processors/sim_processors";
@@ -186,7 +186,7 @@ export class SgeSheetSim extends BaseMultiCycleSim<SgeSheetSimResult, SgeNewShee
             cycleTime: 120,
             apply(cp: SageCycleProcessor) {
                 if (outer.settings.usePotion) {
-                    cp.useOgcd(gemdraught1mind);
+                    cp.useOgcd(potionMaxMind);
                 }
                 cp.useGcd(filler);
                 cp.remainingCycles(cycle => {
@@ -209,7 +209,7 @@ export class SgeSheetSim extends BaseMultiCycleSim<SgeSheetSimResult, SgeNewShee
             cycleTime: 120,
             apply(cp: SageCycleProcessor) {
                 if (outer.settings.usePotion) {
-                    cp.useOgcd(gemdraught1mind);
+                    cp.useOgcd(potionMaxMind);
                 }
                 const DOT_CLIP_AMOUNT = i;
                 cp.useGcd(filler);
