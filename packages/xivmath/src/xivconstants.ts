@@ -604,9 +604,9 @@ export const LEVEL_ITEMS: Record<SupportedLevel, LevelItemInfo> = {
         defaultDisplaySettings: {
             ...defaultItemDispBase,
             // Raise this when more gear is available
-            minILvl: 680,
+            minILvl: 740,
             maxILvl: 999,
-            minILvlFood: 670,
+            minILvlFood: 710,
         },
     },
 };
