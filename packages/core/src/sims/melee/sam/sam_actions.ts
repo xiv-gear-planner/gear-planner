@@ -95,6 +95,7 @@ export const MidareSetsugekka: SamGcdAbility = {
     attackType: "Weaponskill",
     potency: 640,
     autoCrit: true,
+    fixedCastOnly: true,
     gcd: 2.5,
     cast: 1.3,
     updateGauge: (gauge: SAMGauge) => {
@@ -121,6 +122,7 @@ export const TendoSetsugekka: SamGcdAbility = {
     attackType: "Weaponskill",
     potency: 1100,
     autoCrit: true,
+    fixedCastOnly: true,
     gcd: 2.5,
     cast: 1.3,
     updateGauge: (gauge: SAMGauge) => {
@@ -151,6 +153,7 @@ export const Higanbana: SamGcdAbility = {
         duration: 60,
         tickPotency: 50,
     },
+    fixedCastOnly: true,
     gcd: 2.5,
     cast: 1.3,
     updateGauge: (gauge: SAMGauge) => {
@@ -166,6 +169,7 @@ export const OgiNamikiri: SamGcdAbility = {
     attackType: "Weaponskill",
     potency: 1000,
     autoCrit: true,
+    fixedCastOnly: true,
     gcd: 2.5,
     cast: 1.3,
     updateGauge: gauge => gauge.meditation++,
