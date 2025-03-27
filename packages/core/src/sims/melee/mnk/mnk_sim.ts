@@ -439,6 +439,16 @@ export class MnkSim extends BaseMultiCycleSim<CycleSimResult, MnkSettings, MNKCy
     }
 
     /**
+     * It is rotationally important for monk abilities to be recorded with all of their buffs, and simulateSimple
+     * doesn't store those for other sims as an optimization. We don't get that optimization.
+     * This is because chakra gain is important to our DPS, and at the time of writing this is only recorded based
+     * on the Buffs that are snapshotted in addAbilityUse.
+     */
+    override async simulateSimple(set: CharacterGearSet): Promise<number> {
+        return (await this.simulate(set)).mainDpsResult;
+    }
+
+    /**
      * Because monk has a probabilistic chakra generation, the rotation changes due to crit chance.
      * Preserving crit chance at the same GCD tier leads to inaccurate DPS estimates.
      * This means monk sim doesn't get to use the cache behavior much at all.
