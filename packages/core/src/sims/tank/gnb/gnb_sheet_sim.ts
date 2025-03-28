@@ -20,6 +20,10 @@ export interface GnbSettings extends SimSettings {
     usePotion: boolean;
     // the length of the fight in seconds
     fightTime: number;
+    // If set, will make the rotation 'cheat' and assume that Gnashing
+    // Fang and Double Down align perfectly with the GCD.
+    // This will make the rotation consistent across sub-tiers of SKS.
+    pretendThatMicroclipsDontExist: boolean;
 }
 
 export interface GnbSettingsExternal extends ExternalCycleSettings<GnbSettings> {
@@ -314,6 +318,7 @@ export class GnbSim extends BaseMultiCycleSim<GnbSimResult, GnbSettings, GnbCycl
             // This is chosen since it's two pots, five bursts,
             // and is somewhat even between the two main GCDs.
             fightTime: (8 * 60) + 30,
+            pretendThatMicroclipsDontExist: true,
         };
     }
 
@@ -336,10 +341,20 @@ export class GnbSim extends BaseMultiCycleSim<GnbSimResult, GnbSettings, GnbCycl
         if (ability.id === Actions.GnashingFang.id && (!(cp.getNoMercyDuration() > 0) &&  cp.cdTracker.statusOfAt(Actions.NoMercy, cp.nextGcdTime + gcdSpeed).readyToUse)) {
             return false;
         }
-        // (gcdSpeed / 20) is the potential amount it could be delayed by.
-        const shouldUseGCD = relativeCooldown === 0  || relativeCooldown <= (gcdSpeed / 20);
+
+        // (gcdSpeed / 12) is the potential amount it could be delayed by.
+        const shouldUseGCD = relativeCooldown === 0  || relativeCooldown <= (gcdSpeed / 12);
         if (shouldUseGCD) {
-            cp.advanceTo(cooldown.readyAt.absolute);
+            // We are microclipping
+            if (relativeCooldown > 0) {
+                // If we pretend that microclips don't exist and we have perfect
+                // alignment, we will simply use Gnashing Fang early. Otherwise,
+                // we should microclip so that Gnashing Fang and Double Down
+                // do not drift.
+                if (!this.settings.pretendThatMicroclipsDontExist) {
+                    cp.advanceTo(cooldown.readyAt.absolute);
+                }
+            }
         }
         return shouldUseGCD;
     }
