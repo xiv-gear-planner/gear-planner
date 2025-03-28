@@ -348,7 +348,8 @@ export class GnbSim extends BaseMultiCycleSim<GnbSimResult, GnbSettings, GnbCycl
             // We are microclipping
             if (relativeCooldown > 0) {
                 // If we pretend that microclips don't exist and we have perfect
-                // alignment, we will simply use Gnashing Fang early. Otherwise,
+                // alignment, we will simply use Gnashing Fang before it comes off cooldown,
+                // essentially pretending that the SkS scaling is the same. Otherwise,
                 // we should microclip so that Gnashing Fang and Double Down
                 // do not drift.
                 if (!this.settings.pretendThatMicroclipsDontExist) {
