@@ -342,8 +342,8 @@ export class GnbSim extends BaseMultiCycleSim<GnbSimResult, GnbSettings, GnbCycl
             return false;
         }
 
-        // (gcdSpeed / 12) is the potential amount it could be delayed by.
-        const shouldUseGCD = relativeCooldown === 0  || relativeCooldown <= (gcdSpeed / 12);
+        // (gcdSpeed / 20) is the potential amount it could be delayed by.
+        const shouldUseGCD = relativeCooldown === 0  || relativeCooldown <= (gcdSpeed / 20);
         if (shouldUseGCD) {
             // We are microclipping
             if (relativeCooldown > 0) {
