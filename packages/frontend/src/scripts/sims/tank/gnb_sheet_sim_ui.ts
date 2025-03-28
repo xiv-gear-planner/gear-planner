@@ -104,6 +104,10 @@ export class GnbSimGui extends BaseMultiCycleSimGui<GnbSimResult, GnbSettings> {
         const potCb = new FieldBoundCheckBox(settings, "usePotion");
 
         configDiv.appendChild(labeledCheckbox("Use Potion", potCb));
+
+        const pretendMicroclipsDontExistCB = new FieldBoundCheckBox(settings, "pretendThatMicroclipsDontExist");
+
+        configDiv.appendChild(labeledCheckbox("Assume that Gnashing Fang microclips don't exist", pretendMicroclipsDontExistCB));
         return configDiv;
     }
 
