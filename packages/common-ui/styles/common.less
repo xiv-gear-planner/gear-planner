@@ -596,6 +596,7 @@ table {
         padding: 0;
         margin: 0;
         border-right: none;
+        box-sizing: content-box;
 
         img {
           display: block;
@@ -1225,7 +1226,7 @@ table.gear-items-table, table.food-items-table {
     box-sizing: border-box;
   }
 
-  img {
+  > tbody > * > td > img {
     height: 100%;
   }
 
@@ -1385,14 +1386,19 @@ table all-slot-materia-manager {
   }
 }
 
-slot-materia-manager:hover {
+slot-materia-manager.editable:hover {
   &:not(:has(slot-materia-popup:hover)) {
     background-color: var(--input-hover-background-color);
   }
 }
 
+slot-materia-manager {
+  cursor: pointer;
+}
+
 slot-materia-manager, single-materia-view-only {
-  .standard-border-radius;
+
+  border-radius: 20px;
   display: inline-block;
   position: relative;
   margin-right: 5px;
@@ -1401,7 +1407,6 @@ slot-materia-manager, single-materia-view-only {
   font-weight: normal;
   vertical-align: middle;
   box-sizing: border-box;
-  cursor: pointer;
 
   --image-size: 18px;
 
@@ -1456,6 +1461,13 @@ slot-materia-manager, single-materia-view-only {
     //div.materia-image-holder {
     //  border-color: var(--materia-overcap-major);
     //}
+  }
+
+  &.materia-slot-full {
+    div.materia-image-holder {
+      background-color: #666;
+    }
+
   }
 }
 
@@ -2479,10 +2491,6 @@ gear-set-viewer {
     .shadow;
   }
 
-  all-slot-materia-manager {
-    pointer-events: none;
-  }
-
   slot-materia-manager {
     cursor: default;
   }
@@ -3482,6 +3490,7 @@ alt-items-modal {
         min-width: 23px;
         max-width: 23px;
         padding-right: 0;
+        box-sizing: content-box;
 
         img {
           height: 100%;

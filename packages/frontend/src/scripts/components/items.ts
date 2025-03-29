@@ -12,9 +12,11 @@ import {
     GearSlotItem,
     RawStatKey,
     RawStats,
-    Substat
+    Substat,
+    XivItem
 } from "@xivgear/xivmath/geartypes";
 import {
+    CellRenderer,
     col,
     CustomCell,
     CustomColumn,
@@ -232,14 +234,9 @@ export class FoodItemsTable extends CustomTable<FoodItem, TableSelectionModel<Fo
                 shortName: "icon",
                 displayName: "",
                 getter: item => {
-                    return item.iconUrl;
+                    return item;
                 },
-                renderer: img => {
-                    const image = document.createElement('img');
-                    image.setAttribute('intrinsicsize', '64x64');
-                    image.src = img.toString();
-                    return image;
-                },
+                renderer: itemIconRenderer(),
             }),
             {
                 shortName: "itemname",
@@ -321,14 +318,9 @@ export class FoodItemViewTable extends CustomTable<FoodItem> {
                 shortName: "icon",
                 displayName: "",
                 getter: item => {
-                    return item.iconUrl;
+                    return item;
                 },
-                renderer: img => {
-                    const image = document.createElement('img');
-                    image.setAttribute('intrinsicsize', '64x64');
-                    image.src = img.toString();
-                    return image;
-                },
+                renderer: itemIconRenderer(),
             }),
             {
                 shortName: "itemname",
@@ -492,14 +484,9 @@ export class GearItemsTable extends CustomTable<GearSlotItem, TableSelectionMode
                 shortName: "icon",
                 displayName: "",
                 getter: item => {
-                    return item.item.iconUrl;
+                    return item.item;
                 },
-                renderer: img => {
-                    const image = document.createElement('img');
-                    image.setAttribute('intrinsicsize', '64x64');
-                    image.src = img.toString();
-                    return image;
-                },
+                renderer: itemIconRenderer(),
             }),
             col({
                 shortName: "itemname",
@@ -644,7 +631,7 @@ export class GearItemsTable extends CustomTable<GearSlotItem, TableSelectionMode
             else {
                 data.push(new TitleRow('No items available - please check your filters'));
             }
-            const matMgr = new AllSlotMateriaManager(sheet, gearSet, slotId, () => {
+            const matMgr = new AllSlotMateriaManager(sheet, gearSet, slotId, true, () => {
                 // Update whatever was selected
                 const prevSelection = selectionTracker.get(slotId);
                 if (prevSelection) {
@@ -762,8 +749,7 @@ export class GearItemsViewTable extends CustomTable<GearSlotItem> {
                 }
                 data.push(item);
                 if (!equippedItem.isCustomRelic) {
-                    // TODO: make this readonly properly
-                    const matMgr = new AllSlotMateriaManager(sheet, gearSet, slotId);
+                    const matMgr = new AllSlotMateriaManager(sheet, gearSet, slotId, false);
                     data.push(new SpecialRow(tbl => matMgr));
                 }
             }
@@ -786,14 +772,9 @@ export class GearItemsViewTable extends CustomTable<GearSlotItem> {
                 shortName: "icon",
                 displayName: "",
                 getter: item => {
-                    return item.item.iconUrl;
+                    return item.item;
                 },
-                renderer: img => {
-                    const image = document.createElement('img');
-                    image.setAttribute('intrinsicsize', '64x64');
-                    image.src = img.toString();
-                    return image;
-                },
+                renderer: itemIconRenderer(),
             }),
             col({
                 shortName: "itemname",
@@ -889,14 +870,9 @@ export class AltItemsModal extends BaseModal {
                 shortName: "icon",
                 displayName: "",
                 getter: item => {
-                    return item.iconUrl;
+                    return item;
                 },
-                renderer: img => {
-                    const image = document.createElement('img');
-                    image.setAttribute('intrinsicsize', '64x64');
-                    image.src = img.toString();
-                    return image;
-                },
+                renderer: itemIconRenderer(),
             }),
             {
                 shortName: "itemname",
@@ -972,6 +948,40 @@ export class ILvlRangePicker<ObjType> extends HTMLElement {
             listener(this.obj[this.minField] as number, this.obj[this.maxField] as number);
         }
     }
+}
+
+export function itemIconRenderer<RowType>(): CellRenderer<RowType, XivItem> {
+    return item => {
+        const img = item.iconUrl;
+        const image = document.createElement('img');
+        image.setAttribute('intrinsicsize', '80x80');
+        image.src = img.toString();
+        image.classList.add('item-icon');
+        if ('rarity' in item) {
+            const rarity = item.rarity as number;
+            switch (rarity) {
+                case 1:
+                    image.classList.add('item-rarity-normal');
+                    break;
+                case 2:
+                    image.classList.add('item-rarity-green');
+                    break;
+                case 3:
+                    image.classList.add('item-rarity-blue');
+                    break;
+                case 4:
+                    image.classList.add('item-rarity-relic');
+                    break;
+            }
+        }
+        else {
+            image.classList.add('item-rarity-unknown');
+        }
+        image.addEventListener('load', () => {
+            image.classList.add('loaded');
+        });
+        return image;
+    };
 }
 
 customElements.define("gear-items-table", GearItemsTable, {extends: "table"});

@@ -1623,6 +1623,7 @@ export class CycleProcessor {
         return ability;
     }
 
+    // TODO: this should not look at buffs directly. It should only be concerned with CombinedBuffEffects
     private modifyDamage(originalDamage: DamageResult, ability: Ability, buffs: Buff[]): DamageResult {
         let damage: DamageResult = originalDamage;
         for (const buff of buffs) {
