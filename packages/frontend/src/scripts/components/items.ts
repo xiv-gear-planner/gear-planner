@@ -12,7 +12,7 @@ import {
     GearSlotItem,
     RawStatKey,
     RawStats,
-    Substat, XivCombatItem,
+    Substat,
     XivItem
 } from "@xivgear/xivmath/geartypes";
 import {
