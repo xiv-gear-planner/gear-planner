@@ -1226,7 +1226,7 @@ table.gear-items-table, table.food-items-table {
     box-sizing: border-box;
   }
 
-  img {
+  > tbody > * > td > img {
     height: 100%;
   }
 
@@ -1386,14 +1386,19 @@ table all-slot-materia-manager {
   }
 }
 
-slot-materia-manager:hover {
+slot-materia-manager.editable:hover {
   &:not(:has(slot-materia-popup:hover)) {
     background-color: var(--input-hover-background-color);
   }
 }
 
+slot-materia-manager {
+  cursor: pointer;
+}
+
 slot-materia-manager, single-materia-view-only {
-  .standard-border-radius;
+
+  border-radius: 20px;
   display: inline-block;
   position: relative;
   margin-right: 5px;
@@ -1402,7 +1407,6 @@ slot-materia-manager, single-materia-view-only {
   font-weight: normal;
   vertical-align: middle;
   box-sizing: border-box;
-  cursor: pointer;
 
   --image-size: 18px;
 
@@ -2485,10 +2489,6 @@ gear-set-viewer {
 
   materia-totals-display, .gear-items-view-table, .food-view-table {
     .shadow;
-  }
-
-  all-slot-materia-manager {
-    pointer-events: none;
   }
 
   slot-materia-manager {

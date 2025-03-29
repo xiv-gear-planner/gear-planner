@@ -631,7 +631,7 @@ export class GearItemsTable extends CustomTable<GearSlotItem, TableSelectionMode
             else {
                 data.push(new TitleRow('No items available - please check your filters'));
             }
-            const matMgr = new AllSlotMateriaManager(sheet, gearSet, slotId, () => {
+            const matMgr = new AllSlotMateriaManager(sheet, gearSet, slotId, true, () => {
                 // Update whatever was selected
                 const prevSelection = selectionTracker.get(slotId);
                 if (prevSelection) {
@@ -749,8 +749,7 @@ export class GearItemsViewTable extends CustomTable<GearSlotItem> {
                 }
                 data.push(item);
                 if (!equippedItem.isCustomRelic) {
-                    // TODO: make this readonly properly
-                    const matMgr = new AllSlotMateriaManager(sheet, gearSet, slotId);
+                    const matMgr = new AllSlotMateriaManager(sheet, gearSet, slotId, false);
                     data.push(new SpecialRow(tbl => matMgr));
                 }
             }
@@ -955,7 +954,7 @@ export function itemIconRenderer<RowType>(): CellRenderer<RowType, XivItem> {
     return item => {
         const img = item.iconUrl;
         const image = document.createElement('img');
-        image.setAttribute('intrinsicsize', '64x64');
+        image.setAttribute('intrinsicsize', '80x80');
         image.src = img.toString();
         image.classList.add('item-icon');
         if ('rarity' in item) {
@@ -978,6 +977,9 @@ export function itemIconRenderer<RowType>(): CellRenderer<RowType, XivItem> {
         else {
             image.classList.add('item-rarity-unknown');
         }
+        image.addEventListener('load', () => {
+            image.classList.add('loaded');
+        });
         return image;
     };
 }

@@ -34,6 +34,7 @@ export class AllSlotMateriaManager extends HTMLElement {
     constructor(private sheet: GearPlanSheet,
                 private gearSet: CharacterGearSet,
                 private slotName: keyof EquipmentSet,
+                private readonly editable: boolean,
                 private extraCallback: () => void = () => {
                 }) {
         super();
@@ -94,7 +95,7 @@ export class AllSlotMateriaManager extends HTMLElement {
                 this._children = [];
             }
             else {
-                this._children = equipSlot.melds.map(meld => new SlotMateriaManager(this.sheet, meld, () => this.notifyChange()));
+                this._children = equipSlot.melds.map(meld => new SlotMateriaManager(this.sheet, meld, () => this.notifyChange(), this.editable));
                 this.replaceChildren(...this._children);
                 this.classList.remove("materia-slot-no-equip");
                 this.classList.remove("materia-slot-no-slots");
@@ -128,17 +129,23 @@ export class SlotMateriaManager extends HTMLElement {
     private readonly image: HTMLImageElement;
     private _overcap: number;
 
-    constructor(private sheet: GearPlanSheet, public materiaSlot: MeldableMateriaSlot, private callback: () => void) {
+    constructor(private sheet: GearPlanSheet, public materiaSlot: MeldableMateriaSlot, private callback: () => void, editable: boolean) {
         super();
         this.classList.add("slot-materia-manager");
         if (!materiaSlot.materiaSlot.allowsHighGrade) {
             this.classList.add("materia-slot-overmeld");
         }
         this.classList.add("slot-materia-manager");
-        this.addEventListener('mousedown', (ev) => {
-            this.showPopup();
-            ev.stopPropagation();
-        });
+        if (editable) {
+            this.addEventListener('mousedown', (ev) => {
+                this.showPopup();
+                ev.stopPropagation();
+            });
+            this.classList.add('editable');
+        }
+        else {
+            this.classList.add('readonly');
+        }
         const imageHolder = document.createElement("div");
         imageHolder.classList.add("materia-image-holder");
         this.image = document.createElement("img");
@@ -187,7 +194,7 @@ export class SlotMateriaManager extends HTMLElement {
         else {
             this.image.style.display = 'none';
             this.text.textContent = 'Empty';
-            this.classList.remove('materia-normal', 'materia-overcap', 'materia-overcap-major');
+            this.classList.remove('materia-normal', 'materia-overcap', 'materia-overcap-major', 'materia-slot-full');
             // this.classList.remove('materia-slot-full', 'materia-normal', 'materia-overcap', 'materia-overcap-major')
             this.classList.add("materia-slot-empty");
             delete this.title;
@@ -312,11 +319,16 @@ export class SlotMateriaManagerPopup extends HTMLElement {
                     cell.title = formatMateriaTitle(materia);
                     const image = document.createElement("img");
                     image.src = materia.iconUrl.toString();
+                    image.setAttribute('intrinsicsize', '80x80');
                     if (this.materiaSlot.equippedMateria === materia) {
                         cell.setAttribute("is-selected", "true");
                     }
-                    // Neeed in order to make selection outline work
+                    // Needed in order to make selection outline work
                     cell.appendChild(document.createElement('span'));
+                    image.classList.add('item-rarity-normal');
+                    image.addEventListener('load', () => {
+                        image.classList.add('loaded');
+                    });
                     cell.appendChild(image);
                 }
                 else {
