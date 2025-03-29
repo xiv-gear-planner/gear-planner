@@ -197,6 +197,7 @@ export interface GearItem extends XivCombatItem {
     acquisitionType: GearAcquisitionSource;
     relicStatModel: RelicStatModel | undefined;
     isNqVersion: boolean;
+    rarity: number;
 }
 
 export interface FoodStatBonus {
