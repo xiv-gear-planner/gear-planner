@@ -474,6 +474,7 @@ export class DataApiGearInfo implements GearItem {
     relicStatModel: RelicStatModel;
     syncedDownTo: number | null;
     isNqVersion: boolean;
+    readonly rarity: number;
 
     constructor(data: ItemType, forceNq: boolean = false) {
         this.isNqVersion = forceNq;
@@ -666,6 +667,7 @@ export class DataApiGearInfo implements GearItem {
                 this.acquisitionType = 'other';
                 break;
         }
+        this.rarity = data.rarity;
     }
 
     private computeSubstats() {

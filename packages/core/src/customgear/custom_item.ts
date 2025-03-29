@@ -26,6 +26,7 @@ export class CustomItem implements GearItem {
     isSyncedDown: boolean = false;
     relicStatModel: undefined = undefined;
     acquisitionType: GearAcquisitionSource = 'custom';
+    readonly rarity = 1;
 
     primarySubstat: keyof RawStats = null;
     secondarySubstat: keyof RawStats = null;
