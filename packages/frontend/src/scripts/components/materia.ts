@@ -138,8 +138,16 @@ export class SlotMateriaManager extends HTMLElement {
         this.classList.add("slot-materia-manager");
         if (editable) {
             this.addEventListener('mousedown', (ev) => {
-                this.showPopup();
+                if (ev.altKey) {
+                    this.materiaSlot.equippedMateria = null;
+                    callback();
+                    this.reformat();
+                }
+                else {
+                    this.showPopup();
+                }
                 ev.stopPropagation();
+                ev.preventDefault();
             });
             this.classList.add('editable');
         }
@@ -189,7 +197,7 @@ export class SlotMateriaManager extends HTMLElement {
             this.text.textContent = `+${displayedNumber} ${STAT_ABBREVIATIONS[currentMat.primaryStat]}`;
             this.classList.remove("materia-slot-empty");
             this.classList.add("materia-slot-full");
-            this.title = formatMateriaTitle(currentMat);
+            this.title = `${formatMateriaTitle(currentMat)}\nAlt-click to remove.`;
         }
         else {
             this.image.style.display = 'none';
@@ -197,7 +205,7 @@ export class SlotMateriaManager extends HTMLElement {
             this.classList.remove('materia-normal', 'materia-overcap', 'materia-overcap-major', 'materia-slot-full');
             // this.classList.remove('materia-slot-full', 'materia-normal', 'materia-overcap', 'materia-overcap-major')
             this.classList.add("materia-slot-empty");
-            delete this.title;
+            this.title = 'Click to select materia';
         }
     }
 
