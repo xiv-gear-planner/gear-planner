@@ -1,3 +1,4 @@
+import {toSerializableForm} from "@xivgear/util/proxies";
 
 export type ExtraData = {
     [key: string]: unknown
@@ -22,3 +23,26 @@ export function recordEvent(name: string, data?: ExtraData) {
     }
 }
 
+export function recordError(where: string, error: unknown) {
+    if (error instanceof Error) {
+        const eventData = {
+            ...toSerializableForm(error),
+            where: where,
+        };
+        umami.track("error", eventData);
+    }
+    else if (error instanceof Object) {
+        const eventData = {
+            ...error,
+            where: where,
+        };
+        umami.track("error", eventData);
+    }
+    else {
+        const eventData = {
+            stringData: String(error),
+            where: where,
+        };
+        umami.track("error", eventData);
+    }
+}
