@@ -26,6 +26,7 @@ import {
     showNewSheetForm,
     showSheetPickerMenu
 } from "./base_ui";
+import {recordError} from "@xivgear/common-ui/analytics/analytics";
 
 // let expectedHash: string[] | undefined = undefined;
 
@@ -144,8 +145,17 @@ async function doNav(navState: NavState) {
             else {
                 console.error('Non-existent shortlink, or other error', uuid);
                 // TODO: better error display for non-embed
-                if (isEmbed) {
+                if (isEmbed()) {
                     displayEmbedError("That set/sheet does not seem to exist.");
+                }
+                else {
+                    const errMsg = document.createElement('h1');
+                    errMsg.textContent = 'Error Loading Sheet/Set: That sheet does not seem to exist.';
+                    recordError('load', {
+                        'type': 'uuidDoesNotExist',
+                        'uuid': uuid,
+                    });
+                    setMainContent('Error', errMsg);
                 }
             }
             break;
@@ -167,10 +177,12 @@ async function doNav(navState: NavState) {
                 }
                 else {
                     console.error('Non-existent bis, or other error', [nav.job, nav.expac, nav.sheet]);
+                    recordError("load", `Non-existent bis, or other error: ${nav.job}, ${nav.expac}, ${nav.sheet}`);
                 }
             }
             catch (e) {
                 console.error("Error loading bis", e);
+                recordError("load", e);
             }
             const errMsg = document.createElement('h1');
             errMsg.textContent = 'Error Loading Sheet/Set';

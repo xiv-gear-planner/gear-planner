@@ -49,7 +49,7 @@ import {getNextSheetInternalName} from "./persistence/saved_sheets";
 import {CustomItem} from "./customgear/custom_item";
 import {CustomFood} from "./customgear/custom_food";
 import {IlvlSyncInfo} from "./datamanager_xivapi";
-import {toSerializableForm} from "@xivgear/xivmath/xivstats";
+import {statsSerializationProxy} from "@xivgear/xivmath/xivstats";
 import {isMateriaAllowed} from "./materia/materia_utils";
 
 export type SheetCtorArgs = ConstructorParameters<typeof GearPlanSheet>
@@ -423,7 +423,7 @@ export class GearPlanSheet {
             if (fullStats) {
                 const augGs: SetStatsExport = {
                     ...rawExport,
-                    computedStats: toSerializableForm(set.computedStats),
+                    computedStats: statsSerializationProxy(set.computedStats),
                 };
                 return augGs;
             }

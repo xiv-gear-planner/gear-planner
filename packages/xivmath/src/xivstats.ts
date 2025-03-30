@@ -86,7 +86,7 @@ function clamp(min: number, max: number, value: number) {
  *
  * @param stats
  */
-export function toSerializableForm(stats: ComputedSetStats): ComputedSetStats {
+export function statsSerializationProxy(stats: ComputedSetStats): ComputedSetStats {
     // The purpose of this is that the fullstats API won't correctly serialize the ComputedSetStatsImpl normally.
     // We care about the
     return new Proxy(stats, {
