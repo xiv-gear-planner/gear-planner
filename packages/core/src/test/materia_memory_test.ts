@@ -42,24 +42,29 @@ describe("Materia Memory", () => {
             }),
             ilvl: 690,
         };
+        // TODO: when 'locked' becomes part of the export, update this test
         const slots1: MeldableMateriaSlot[] = [
             {
                 materiaSlot: slot,
                 equippedMateria: mat1,
+                locked: false,
             },
             {
                 materiaSlot: slot,
                 equippedMateria: mat2,
+                locked: false,
             },
         ];
         const slots2: MeldableMateriaSlot[] = [
             {
                 materiaSlot: slot,
                 equippedMateria: undefined,
+                locked: false,
             },
             {
                 materiaSlot: slot,
                 equippedMateria: mat1,
+                locked: false,
             },
         ];
         // Equip the same item in both slots

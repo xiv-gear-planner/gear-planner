@@ -17,7 +17,7 @@ import {
     FieldBoundDataSelect,
     FieldBoundFloatField,
     labelFor,
-    makeActionButton,
+    makeActionButton, makeTrashIcon,
     quickElement
 } from "@xivgear/common-ui/components/util";
 import {GearPlanSheet} from "@xivgear/core/sheet";
@@ -143,6 +143,10 @@ export class SlotMateriaManager extends HTMLElement {
                     callback();
                     this.reformat();
                 }
+                else if (ev.ctrlKey) {
+                    this.materiaSlot.locked = !this.materiaSlot.locked;
+                    this.reformat();
+                }
                 else {
                     this.showPopup();
                 }
@@ -190,6 +194,7 @@ export class SlotMateriaManager extends HTMLElement {
 
     reformat() {
         const currentMat = this.materiaSlot.equippedMateria;
+        let title: string;
         if (currentMat) {
             this.image.src = currentMat.iconUrl.toString();
             this.image.style.display = 'block';
@@ -197,7 +202,7 @@ export class SlotMateriaManager extends HTMLElement {
             this.text.textContent = `+${displayedNumber} ${STAT_ABBREVIATIONS[currentMat.primaryStat]}`;
             this.classList.remove("materia-slot-empty");
             this.classList.add("materia-slot-full");
-            this.title = `${formatMateriaTitle(currentMat)}\nAlt-click to remove.`;
+            title = `${formatMateriaTitle(currentMat)}\n\nAlt-click to remove.`;
         }
         else {
             this.image.style.display = 'none';
@@ -205,8 +210,19 @@ export class SlotMateriaManager extends HTMLElement {
             this.classList.remove('materia-normal', 'materia-overcap', 'materia-overcap-major', 'materia-slot-full');
             // this.classList.remove('materia-slot-full', 'materia-normal', 'materia-overcap', 'materia-overcap-major')
             this.classList.add("materia-slot-empty");
-            this.title = 'Click to select materia';
+            title = 'Click to select materia\n';
         }
+        title += `\nCtrl-click to ${this.materiaSlot.locked ? 'unlock' : 'prevent auto-fill/solving from affecting this slot.'}.`;
+        if (this.materiaSlot.locked) {
+            this.classList.add('materia-slot-locked');
+            this.classList.remove('materia-slot-unlocked');
+            title = 'This slot is LOCKED. It will not be affected by auto-fill nor the solver.\n' + title;
+        }
+        else {
+            this.classList.add('materia-slot-unlocked');
+            this.classList.remove('materia-slot-locked');
+        }
+        this.title = title;
     }
 
     // eslint-disable-next-line accessor-pairs
@@ -299,12 +315,12 @@ export class SlotMateriaManagerPopup extends HTMLElement {
         const headerRow = body.insertRow();
         // Blank top-left
         const topLeftCell = document.createElement("th");
-        const topLeft = quickElement('div', ['materia-picker-remove'], [faIcon('fa-trash-can')]);
-        topLeft.addEventListener('mousedown', (ev) => {
+        const trash = quickElement('div', ['materia-picker-remove'], [makeTrashIcon()]);
+        trash.addEventListener('mousedown', (ev) => {
             this.submit(undefined);
             ev.stopPropagation();
         });
-        topLeftCell.appendChild(topLeft);
+        topLeftCell.appendChild(trash);
         headerRow.appendChild(topLeftCell);
         for (const stat of stats) {
             const headerCell = document.createElement("th");
@@ -353,6 +369,10 @@ export class SlotMateriaManagerPopup extends HTMLElement {
             },
         });
         this.style.display = 'block';
+        // this.addEventListener('mouseenter', e => {
+        //     e.stopPropagation();
+        // });
+        this.title = '';
     }
 
     submit(materia: Materia | undefined) {

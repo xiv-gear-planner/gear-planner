@@ -374,6 +374,7 @@ export interface ComputedSetStats extends RawStats {
 export interface MeldableMateriaSlot {
     materiaSlot: MateriaSlot;
     equippedMateria: Materia | null;
+    locked: boolean;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
@@ -1091,6 +1092,7 @@ export class EquippedItem {
                 this.melds.push({
                     materiaSlot: materiaSlot,
                     equippedMateria: null,
+                    locked: false,
                 });
             }
         }
