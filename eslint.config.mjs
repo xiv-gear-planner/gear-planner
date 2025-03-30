@@ -44,6 +44,7 @@ export default [
                 "off"
             ],
             "@typescript-eslint/no-unused-expressions": "off", // disable original rule
+            // "@typescript-eslint/strict-boolean-expressions": "error",
             "chai-friendly/no-unused-expressions": [
                 "error",
                 {

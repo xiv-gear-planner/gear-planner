@@ -121,14 +121,14 @@ export const LightspeedBuff: PersonalBuff = {
     name: "Lightspeed",
     selfOnly: true,
     descriptionOverride: "Instant casts for 15 seconds",
-    beforeAbility<X extends Ability>(controller: BuffController, ability: X): X | null {
-        if (ability.type === 'gcd' && ability.cast >= 0) {
+    beforeAbility<X extends Ability>(controller: BuffController, ability: X): X | void {
+        if (ability.type === 'gcd' && ability.cast !== undefined && ability.cast >= 0) {
             return {
                 ...ability,
                 cast: ability.cast - 2.5,
             };
         }
-        return null;
+        return;
     },
     statusId: 841,
 };
@@ -309,7 +309,7 @@ class AstCycleProcessor extends CycleProcessor {
             }
         }
         // Only try to use the Ogcd if it's ready.
-        return this.cdTracker.canUse(ability) ? super.useOgcd(ability) : null;
+        return this.cdTracker.canUse(ability) ? super.useOgcd(ability) : 'none';
     }
 
     useDotIfWorth() {

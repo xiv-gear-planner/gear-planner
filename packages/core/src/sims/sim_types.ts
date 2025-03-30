@@ -521,7 +521,7 @@ export type FinalizedAbility = {
     partialRate: number | null,
     directDamage: number,
     directDamageFull: ComputedDamage,
-    dotInfo: DotDamageUnf,
+    dotInfo: DotDamageUnf | null,
     combinedEffects: CombinedBuffEffect,
     ability: Ability,
     buffs: Buff[]

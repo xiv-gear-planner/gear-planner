@@ -40,7 +40,7 @@ export type FinalizedComboData = {
 export function completeComboData(ability: Ability): FinalizedComboData {
     const all = ability.combos ?? [];
     const combos = [];
-    let others: ComboData = null;
+    let others: ComboData | null = null;
     for (const combo of all) {
         const key = combo.comboKey ?? 'default';
         // For continuations, validate that they actually continue off of something that

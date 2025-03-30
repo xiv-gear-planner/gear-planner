@@ -148,22 +148,22 @@ describe("Auto Crit and Dh Damage Calculation", () => {
                 dhitChanceIncrease: -1,
             },
         }]));
-        expect(damageResult.directDamage.expected).to.be.closeTo(633, 0.01);
-        expect(damageResult.directDamage.stdDev).to.be.closeTo(18.273, 0.01);
+        expect(damageResult.directDamage?.expected).to.be.closeTo(633, 0.01);
+        expect(damageResult.directDamage?.stdDev).to.be.closeTo(18.273, 0.01);
     });
     it('no bonuses', async () => {
         const stats = await makeStats;
         const damageResult = abilityToDamageNew(stats, ability, combineBuffEffects([]));
-        expect(damageResult.directDamage.expected).to.be.closeTo(729.037, 0.01);
-        expect(damageResult.directDamage.stdDev).to.be.closeTo(165.271, 0.01);
+        expect(damageResult.directDamage?.expected).to.be.closeTo(729.037, 0.01);
+        expect(damageResult.directDamage?.stdDev).to.be.closeTo(165.271, 0.01);
     });
     it('dh bonus but no auto dh', async () => {
         const stats = await makeStats;
         const damageResult = abilityToDamageNew(stats, ability, combineBuffEffects([dhChanceBuff]));
         // We're adding approximately a 50% chance to do 25% more damage, so should be about a 12.5% increase.
-        expect(damageResult.directDamage.expected).to.be.closeTo(818.975, 0.01);
+        expect(damageResult.directDamage?.expected).to.be.closeTo(818.975, 0.01);
         // Variance also goes up as a result
-        expect(damageResult.directDamage.stdDev).to.be.closeTo(201.754, 0.01);
+        expect(damageResult.directDamage?.stdDev).to.be.closeTo(201.754, 0.01);
     });
     it('no bonuses + force crit on skill', async () => {
         const stats = await makeStats;
@@ -173,9 +173,9 @@ describe("Auto Crit and Dh Damage Calculation", () => {
         } satisfies GcdAbility & DamagingAbility;
         const damageResult = abilityToDamageNew(stats, modAbility, combineBuffEffects([]));
         // Crit multi is 1.584, so this is the baseline of 633 * 1.584 (plus the natural guaranteed crit bonus)
-        expect(damageResult.directDamage.expected).to.be.closeTo(1015.957, 0.01);
+        expect(damageResult.directDamage?.expected).to.be.closeTo(1015.957, 0.01);
         // Variance goes down since we no longer have crit RNG
-        expect(damageResult.directDamage.stdDev).to.be.closeTo(63.376, 0.01);
+        expect(damageResult.directDamage?.stdDev).to.be.closeTo(63.376, 0.01);
     });
     it('no bonuses + force crit on buff', async () => {
         const stats = await makeStats;
@@ -185,8 +185,8 @@ describe("Auto Crit and Dh Damage Calculation", () => {
                 forceCrit: true,
             },
         }]));
-        expect(damageResult.directDamage.expected).to.be.closeTo(1015.957, 0.01);
-        expect(damageResult.directDamage.stdDev).to.be.closeTo(63.376, 0.01);
+        expect(damageResult.directDamage?.expected).to.be.closeTo(1015.957, 0.01);
+        expect(damageResult.directDamage?.stdDev).to.be.closeTo(63.376, 0.01);
     });
     it('no bonuses + force dhit on skill', async () => {
         const stats = await makeStats;
@@ -196,8 +196,8 @@ describe("Auto Crit and Dh Damage Calculation", () => {
         } satisfies GcdAbility & DamagingAbility;
         const damageResult = abilityToDamageNew(stats, modAbility, combineBuffEffects([]));
         // We're guaranteeing a 25% damage bonus, so should be about +25% over base.
-        expect(damageResult.directDamage.expected).to.be.closeTo(912.166, 0.01);
-        expect(damageResult.directDamage.stdDev).to.be.closeTo(200.239, 0.01);
+        expect(damageResult.directDamage?.expected).to.be.closeTo(912.166, 0.01);
+        expect(damageResult.directDamage?.stdDev).to.be.closeTo(200.239, 0.01);
     });
     it('no bonuses + force dhit on buff', async () => {
         const stats = await makeStats;
@@ -208,8 +208,8 @@ describe("Auto Crit and Dh Damage Calculation", () => {
             },
         }]));
         // We're guaranteeing a 25% damage bonus, so should be about +25% over base.
-        expect(damageResult.directDamage.expected).to.be.closeTo(912.166, 0.01);
-        expect(damageResult.directDamage.stdDev).to.be.closeTo(200.239, 0.01);
+        expect(damageResult.directDamage?.expected).to.be.closeTo(912.166, 0.01);
+        expect(damageResult.directDamage?.stdDev).to.be.closeTo(200.239, 0.01);
     });
     it('dhit bonus + force dhit on skill', async () => {
         const stats = await makeStats;
@@ -219,15 +219,15 @@ describe("Auto Crit and Dh Damage Calculation", () => {
         } satisfies GcdAbility & DamagingAbility;
         const damageResult = abilityToDamageNew(stats, modAbility, combineBuffEffects([dhChanceBuff]));
         // This should be a +25% boost from the guaranteed DH, plus another 12.5 or so for the bonus
-        expect(damageResult.directDamage.expected).to.be.closeTo(1026.187, 0.01);
-        expect(damageResult.directDamage.stdDev).to.be.closeTo(225.269, 0.01);
+        expect(damageResult.directDamage?.expected).to.be.closeTo(1026.187, 0.01);
+        expect(damageResult.directDamage?.stdDev).to.be.closeTo(225.269, 0.01);
     });
     it('dhit bonus + force dhit on buff', async () => {
         const stats = await makeStats;
         const damageResult = abilityToDamageNew(stats, ability, combineBuffEffects([dhChanceBuff, dhForceBuff]));
         // This should be a +25% boost from the guaranteed DH, plus another 12.5 or so for the bonus
-        expect(damageResult.directDamage.expected).to.be.closeTo(1026.187, 0.01);
-        expect(damageResult.directDamage.stdDev).to.be.closeTo(225.269, 0.01);
+        expect(damageResult.directDamage?.expected).to.be.closeTo(1026.187, 0.01);
+        expect(damageResult.directDamage?.stdDev).to.be.closeTo(225.269, 0.01);
     });
     it('crit bonus + force crit on skill', async () => {
         const stats = await makeStats;
@@ -237,24 +237,24 @@ describe("Auto Crit and Dh Damage Calculation", () => {
         } satisfies GcdAbility & DamagingAbility;
         const damageResult = abilityToDamageNew(stats, modAbility, combineBuffEffects([critChanceBuff]));
         // Baseline * 1.584 from the crit itself * 1.292 (.584 * 0.5 + 1)
-        expect(damageResult.directDamage.expected).to.be.closeTo(1312.617, 0.01);
+        expect(damageResult.directDamage?.expected).to.be.closeTo(1312.617, 0.01);
         // Less variance because no crit RNG
-        expect(damageResult.directDamage.stdDev).to.be.closeTo(81.882, 0.01);
+        expect(damageResult.directDamage?.stdDev).to.be.closeTo(81.882, 0.01);
     });
     it('crit bonus + force crit on buff', async () => {
         const stats = await makeStats;
         const damageResult = abilityToDamageNew(stats, ability, combineBuffEffects([critChanceBuff, critForceBuff]));
         // Baseline * 1.584 from the crit itself * 1.292 (.584 * 0.5 + 1)
-        expect(damageResult.directDamage.expected).to.be.closeTo(1312.617, 0.01);
+        expect(damageResult.directDamage?.expected).to.be.closeTo(1312.617, 0.01);
         // Less variance because no crit RNG
-        expect(damageResult.directDamage.stdDev).to.be.closeTo(81.882, 0.01);
+        expect(damageResult.directDamage?.stdDev).to.be.closeTo(81.882, 0.01);
     });
     it('everything', async () => {
         const stats = await makeStats;
         const damageResult = abilityToDamageNew(stats, ability, combineBuffEffects([critChanceBuff, critForceBuff, dhChanceBuff, dhForceBuff]));
         // Baseline * 1.584 from the crit itself * 1.292 (.584 * 0.5 + 1) * 1.25 (dh) * 1.125 (dh bonus)
-        expect(damageResult.directDamage.expected).to.be.closeTo(1847.631, 0.01);
+        expect(damageResult.directDamage?.expected).to.be.closeTo(1847.631, 0.01);
         // Even less variance because neither crit nor dhit rng
-        expect(damageResult.directDamage.stdDev).to.be.closeTo(53.337, 0.01);
+        expect(damageResult.directDamage?.stdDev).to.be.closeTo(53.337, 0.01);
     });
 });

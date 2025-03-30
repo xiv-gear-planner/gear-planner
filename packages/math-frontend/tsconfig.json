@@ -1,8 +1,5 @@
 {
   "extends": "../../tsconfig.json",
-  "compilerOptions": {
-    "strict": true,
-  },
   "include": [
     "src/scripts"
   ],

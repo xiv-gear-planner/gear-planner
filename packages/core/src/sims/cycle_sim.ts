@@ -7,7 +7,7 @@ import {
     ComboData,
     ComboKey,
     Cooldown,
-    DamageResult,
+    DamageResult, DotDamageUnf,
     FinalizedAbility,
     GcdAbility,
     OgcdAbility,
@@ -438,7 +438,9 @@ export class CycleProcessor {
     /**
      * Map from DoT effect ID to an object which tracks, among other things, when it was used.
      */
-    readonly dotMap = new Map<number, PreDmgUsedAbility>();
+    readonly dotMap = new Map<number, PreDmgUsedAbility & {
+        dot: DotDamageUnf,
+    }>();
     /**
      * Contains party buffs which should not be activated automatically by virtue of coming from the class being
      * simulated.
@@ -503,7 +505,7 @@ export class CycleProcessor {
         this.stats = settings.stats;
         this.manuallyActivatedBuffs = settings.manuallyActivatedBuffs ?? [];
         this.useAutos = settings.useAutos;
-        this.hideCycleDividers = settings.hideCycleDividers;
+        this.hideCycleDividers = settings.hideCycleDividers ?? false;
         this.comboTrackerMap = new Map();
         this.aaAbility = {
             attackType: 'Auto-attack',
@@ -737,7 +739,7 @@ export class CycleProcessor {
      */
     getActiveBuffsFor(ability: Ability, time = this.currentTime): Buff[] {
         return this.getActiveBuffs(time).filter(buff => {
-            if ('appliesTo' in buff) {
+            if ('appliesTo' in buff && buff.appliesTo !== undefined) {
                 return buff.appliesTo(ability);
             }
             return true;
@@ -756,7 +758,7 @@ export class CycleProcessor {
      * @param time The time to query. Defaults to current time.
      * @returns BuffUsage for the buff, or null if this buff is not active
      */
-    protected getActiveBuffData(buff: Buff, time = this.currentTime): BuffUsage {
+    protected getActiveBuffData(buff: Buff, time = this.currentTime): BuffUsage | null {
         const activeBuffData = this.getActiveBuffsData(time).find(bd => bd.buff === buff);
         return activeBuffData ? {...activeBuffData} : null;
     }
@@ -796,7 +798,7 @@ export class CycleProcessor {
                     directDamage: dmgInfo.directDamage ?? fixedValue(0),
                     dot: record.dot ? {
                         ...record.dot,
-                        damagePerTick: dmgInfo.dot.damagePerTick,
+                        damagePerTick: dmgInfo.dot!.damagePerTick,
                     } : null,
                 };
             }
@@ -826,22 +828,23 @@ export class CycleProcessor {
      */
     get finalizedRecords(): readonly DisplayRecordFinalized[] {
         this.finalize();
-        return (this.postDamageRecords.map(record => {
+        return this.postDamageRecords.map(record => {
             if (isAbilityUse(record)) {
 
                 const partialRate = this.computePartialRate(record);
                 const directDamage = multiplyFixed(record.directDamage, partialRate);
                 const dot = record.dot;
-                const dotDmg = dot ? multiplyIndependent(dot.damagePerTick, dot.actualTickCount) : fixedValue(0);
+                const dotDmg = dot ? multiplyIndependent(dot.damagePerTick, dot.actualTickCount ?? 0) : fixedValue(0);
                 const totalDamage = addValues(directDamage, dotDmg);
-                const totalPotency = record.ability.potency + ('dot' in record.ability ? record.ability.dot.tickPotency * record.dot.actualTickCount : 0);
+                // TODO: these types are requiring a lot of !
+                const totalPotency = (record.ability.potency ?? 0) + ('dot' in record.ability ? record.ability.dot!.tickPotency * record.dot!.actualTickCount!  : 0);
                 return {
                     usedAt: record.usedAt,
                     original: record,
                     partialRate: partialRate === 1 ? null : partialRate,
                     directDamage: directDamage.expected,
                     directDamageFull: directDamage,
-                    dotInfo: dot,
+                    dotInfo: dot ?? null,
                     totalDamage: totalDamage.expected,
                     totalDamageFull: totalDamage,
                     totalPotency: totalPotency,
@@ -855,7 +858,7 @@ export class CycleProcessor {
             else {
                 return record;
             }
-        }));
+        });
     }
 
     get finalizedTimeBasis(): number {
@@ -883,7 +886,7 @@ export class CycleProcessor {
                 }
             }
             default:
-                return undefined;
+                throw new Error(`Unknown cutoff mode: '${this.cutoffMode}'`);
         }
     }
 
@@ -1340,7 +1343,7 @@ export class CycleProcessor {
             // If the ability places a DoT, then check if we need to cut off an existing DoT
             if (dotId !== undefined) {
                 const existing = this.dotMap.get(dotId);
-                if (existing) {
+                if (existing !== undefined) {
                     // Get the current tick number at the time when the DoT would actually apply based on the skill's
                     // application delay.
                     const currentTick = Math.floor((usedAbility.usedAt + usedAbility.appDelayFromStart) / 3);

@@ -4,7 +4,7 @@ import {
     EquipSlotKey,
     ItemsSlotsExport,
     MicroSetExport,
-    MicroSlotExport,
+    MicroSlotExport, RelicItemMicroSlotExport,
     RelicStatsExport,
     SetExport
 } from "@xivgear/xivmath/geartypes";
@@ -12,10 +12,10 @@ import {
 export function setToMicroExport(set: CharacterGearSet): MicroSetExport {
     const slots: MicroSlotExport[] = [];
     for (const equipmentKey in set.equipment) {
-        const inSlot: EquippedItem = set.equipment[equipmentKey as EquipSlotKey];
+        const inSlot: EquippedItem | null = set.equipment[equipmentKey as EquipSlotKey];
         if (inSlot) {
             if (inSlot.gearItem.isCustomRelic) {
-                const exportedItem: MicroSlotExport = [
+                const exportedItem: RelicItemMicroSlotExport = [
                     equipmentKey as EquipSlotKey,
                     // TODO: determine if it makes more sense to just serialize empty materia slots as {}
                     // The advantage is that {} is a lot smaller than {"id":-1}, and exports are already long
@@ -84,9 +84,12 @@ export function microExportToFullExport(s: MicroSetExport): SetExport {
             }
         }
     });
-    return {
+    const out: SetExport = {
         items: fakeItemsImport,
-        food: foodId,
         name: "",
     };
+    if (foodId !== null) {
+        out.food = foodId;
+    }
+    return out;
 }
