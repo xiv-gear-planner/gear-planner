@@ -194,6 +194,7 @@ export class SlotMateriaManager extends HTMLElement {
 
     reformat() {
         const currentMat = this.materiaSlot.equippedMateria;
+        // TODO: can the ordering be improved here?
         let title: string;
         if (currentMat) {
             this.image.src = currentMat.iconUrl.toString();

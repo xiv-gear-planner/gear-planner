@@ -132,7 +132,7 @@ export class MateriaMemory {
             const items: SlotMateriaMemoryExport[] = [];
             slotValue.forEach((memories, itemId) => {
                 // TODO: this does not remember locked/unlocked status
-                items.push([itemId, memories.map(m => m.id)]);
+                items.push([itemId, memories.map(m => m.id), memories.map(m => m.locked)]);
             });
             out[slotKey] = items;
         });
@@ -143,10 +143,11 @@ export class MateriaMemory {
         Object.entries(memory).forEach(([slotKey, itemMemory]) => {
             const slotMap: Map<number, SingleMateriaMemory[]> = new Map();
             for (const itemMemoryElement of itemMemory) {
-                slotMap.set(itemMemoryElement[0], itemMemoryElement[1].map(i => {
+                const locked: boolean[] | undefined = itemMemoryElement[2];
+                slotMap.set(itemMemoryElement[0], itemMemoryElement[1].map((id, index) => {
                     return {
-                        id: i,
-                        locked: false,
+                        id: id,
+                        locked: locked ? (locked[index] ?? false) : false,
                     };
                 }));
             }
@@ -377,26 +378,29 @@ export class CharacterGearSet {
                         }
                     });
                 }
-                // TODO: test that this didn't break
-                if (mode === 'autofill'
-                    || (reEquip.length === 0
-                        && (mode === 'retain_item_else_prio' || mode === 'retain_slot_else_prio'))) {
-                    this.fillMateria(materiaAutoFillController.prio, false, [slot]);
-                }
-                else {
-                    const eq = this.equipment[slot];
-                    for (let i = 0; i < reEquip.length; i++) {
-                        if (i in eq.melds) {
-                            const meld = eq.melds[i];
-                            const req = reEquip[i];
-                            const materia = req.materia;
-                            if (materia && isMateriaAllowed(materia, meld.materiaSlot)) {
-                                meld.equippedMateria = materia;
-                                meld.locked = req.locked;
-                            }
+                // We want to unconditionally restore locked materia
+                const eq = this.equipment[slot];
+                for (let i = 0; i < reEquip.length; i++) {
+                    if (i in eq.melds) {
+                        const meld = eq.melds[i];
+                        const req = reEquip[i];
+                        meld.locked = req.locked;
+                        const materia = req.materia;
+                        if (materia && isMateriaAllowed(materia, meld.materiaSlot)
+                            // We want to restore the materia if the slot is locked, or if the mode is not autofill
+                            && (meld.locked || mode !== 'autofill')) {
+                            meld.equippedMateria = materia;
                         }
                     }
+                }
 
+                // If the mode is 'autofill', unconditionally refill materia according to prio
+                // If the mode is 'retain_item_else_prio' or 'retain_slot_else_prio', only refill if either there
+                // was no memory whatsoever, or all slots were empty.
+                if (mode === 'autofill'
+                    || ((reEquip.length === 0 || !reEquip.find(re => re.materia !== null))
+                        && (mode === 'retain_item_else_prio' || mode === 'retain_slot_else_prio'))) {
+                    this.fillMateria(materiaAutoFillController.prio, false, [slot]);
                 }
             }
         }
