@@ -134,8 +134,8 @@ function resolveNavData(nav: NavPath | null): NavResult | null {
             };
         case "bis":
             return {
-                preloadUrl: getBisSheetFetchUrl(nav.job, nav.expac, nav.sheet),
-                sheetData: getBisSheet(nav.job, nav.expac, nav.sheet).then(JSON.parse),
+                preloadUrl: getBisSheetFetchUrl(nav.job, nav.folder ? nav.folder : "", nav.sheet),
+                sheetData: getBisSheet(nav.job, nav.folder ? nav.folder : "", nav.sheet).then(JSON.parse),
             };
     }
     throw Error(`Unable to resolve nav result: ${nav.type}`);
@@ -181,21 +181,40 @@ export function buildStatsServer() {
         reply.send(out);
     });
 
-    fastifyInstance.get('/fulldata/bis/:job/:expac/:sheet', async (request: SheetRequest, reply) => {
+    fastifyInstance.get('/fulldata/bis/:job/:sheet', async (request: SheetRequest, reply) => {
         const osIndex: number | undefined = tryParseOptionalIntParam(request.query[ONLY_SET_QUERY_PARAM]);
         const selIndex: number | undefined = tryParseOptionalIntParam(request.query[SELECTION_INDEX_QUERY_PARAM]);
         const nav: NavPath = {
             type: 'bis',
             job: request.params['job'] as JobName,
-            expac: request.params['expac'],
             sheet: request.params['sheet'],
-            path: [request.params['job'], request.params['expac'], request.params['sheet']],
+            path: [request.params['job'], request.params['sheet']],
             onlySetIndex: osIndex,
             defaultSelectionIndex: selIndex,
             embed: false,
             viewOnly: true,
         };
-        const rawData = await getBisSheet(request.params['job'] as JobName, request.params['expac'] as string, request.params['sheet'] as string);
+        const rawData = await getBisSheet(request.params['job'] as JobName, "", request.params['sheet'] as string);
+        const out = await importExportSheet(request, JSON.parse(rawData), nav);
+        reply.header("cache-control", "max-age=7200, public");
+        reply.send(out);
+    });
+
+    fastifyInstance.get('/fulldata/bis/:job/:folder/:sheet', async (request: SheetRequest, reply) => {
+        const osIndex: number | undefined = tryParseOptionalIntParam(request.query[ONLY_SET_QUERY_PARAM]);
+        const selIndex: number | undefined = tryParseOptionalIntParam(request.query[SELECTION_INDEX_QUERY_PARAM]);
+        const nav: NavPath = {
+            type: 'bis',
+            job: request.params['job'] as JobName,
+            folder: request.params['folder'],
+            sheet: request.params['sheet'],
+            path: [request.params['job'], request.params['folder'], request.params['sheet']],
+            onlySetIndex: osIndex,
+            defaultSelectionIndex: selIndex,
+            embed: false,
+            viewOnly: true,
+        };
+        const rawData = await getBisSheet(request.params['job'] as JobName, request.params['folder'] as string, request.params['sheet'] as string);
         const out = await importExportSheet(request, JSON.parse(rawData), nav);
         reply.header("cache-control", "max-age=7200, public");
         reply.send(out);
