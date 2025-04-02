@@ -134,8 +134,8 @@ function resolveNavData(nav: NavPath | null): NavResult | null {
             };
         case "bis":
             return {
-                preloadUrl: getBisSheetFetchUrl(nav.job, nav.folder ? nav.folder : "", nav.sheet),
-                sheetData: getBisSheet(nav.job, nav.folder ? nav.folder : "", nav.sheet).then(JSON.parse),
+                preloadUrl: getBisSheetFetchUrl(nav.job, nav.folder ?? "", nav.sheet),
+                sheetData: getBisSheet(nav.job, nav.folder ?? "", nav.sheet).then(JSON.parse),
             };
     }
     throw Error(`Unable to resolve nav result: ${nav.type}`);
