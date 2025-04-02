@@ -169,15 +169,15 @@ async function doNav(navState: NavState) {
         case "bis": {
             showLoadingScreen();
             try {
-                const resolved: string | null = await getBisSheet(nav.job, nav.expac, nav.sheet);
+                const resolved: string | null = await getBisSheet(nav.job, nav.folder, nav.sheet);
                 if (resolved) {
                     const json = JSON.parse(resolved);
                     openExport(json, true, nav.onlySetIndex, nav.defaultSelectionIndex);
                     return;
                 }
                 else {
-                    console.error('Non-existent bis, or other error', [nav.job, nav.expac, nav.sheet]);
-                    recordError("load", `Non-existent bis, or other error: ${nav.job}, ${nav.expac}, ${nav.sheet}`);
+                    console.error('Non-existent bis, or other error', [nav.job, nav.folder, nav.sheet]);
+                    recordError("load", `Non-existent bis, or other error: ${nav.job}, ${nav.folder}, ${nav.sheet}`);
                 }
             }
             catch (e) {

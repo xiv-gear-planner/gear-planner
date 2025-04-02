@@ -114,7 +114,7 @@ export function parseImport(text: string): ImportSpec {
                     case "bis":
                         return {
                             importType: 'bis',
-                            path: [parsed.job, parsed.expac, parsed.sheet],
+                            path: [parsed.job, parsed.folder, parsed.sheet],
                             onlySetIndex: parsed.onlySetIndex,
                         };
                     default:
