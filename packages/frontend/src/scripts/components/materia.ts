@@ -436,6 +436,22 @@ export class MateriaPriorityPicker extends HTMLElement {
             recordEvent("fillAll");
         }, 'Empty out and re-fill all materia slots according to the chosen priority.');
 
+        const lockAllEquipped = makeActionButton('Lock Filled', () => {
+            // TODO
+        }, 'Lock all equipped materia');
+
+        const lockAllEmpty = makeActionButton('Lock Empty', () => {
+            // TODO
+        }, 'Lock all empty materia slots');
+
+        const unlockAll = makeActionButton('Unlock All', () => {
+            // TODO
+        }, 'Unlock all slots');
+
+        const unequipAll = makeActionButton('Unequip All', () => {
+            // TODO
+        }, 'Unequip all unlocked materia');
+
         const solveMelds = makeActionButton('Solve', () => sheet.showMeldSolveDialog(), "Solve for the highest damage melds for your chosen gear");
 
         const drag = new MateriaDragList(prioController);
