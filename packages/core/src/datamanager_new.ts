@@ -33,6 +33,7 @@ import {IlvlSyncInfo} from "./datamanager_xivapi";
 import {applyStatCaps} from "./gear";
 import {toTranslatable, TranslatableString} from "@xivgear/i18n/translation";
 import {RawStatsPart} from "@xivgear/util/types";
+import {recordError} from "@xivgear/common-ui/analytics/analytics";
 
 type ApiClientRawType<X extends keyof DataApiClient<never>, Y extends keyof DataApiClient<never>[X]> = DataApiClient<never>[X][Y]
 
@@ -57,7 +58,9 @@ async function retryFetch(...params: Parameters<typeof fetch>): Promise<Response
         if (result.status >= 400) {
             const content = JSON.stringify(await result.json());
             console.error(`Data API error: ${result.status}: ${result.statusText}`, params[0], content);
-            throw Error(`Data API error: ${result.status}: ${result.statusText} (${params[0]}\n${content}`);
+            const error = Error(`Data API error: ${result.status}: ${result.statusText} (${params[0]}\n${content}`);
+            recordError("datamanager", error, {fetchUrl: String(params[0])});
+            throw error;
         }
         return result;
     }
