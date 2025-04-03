@@ -17,6 +17,7 @@ import {arrayEq} from "@xivgear/util/array_utils";
 import {extractSingleSet} from "@xivgear/core/util/sheet_utils";
 import {CharacterGearSet} from "@xivgear/core/gear";
 import {recordSheetEvent} from "./analytics/analytics";
+import {recordError} from "@xivgear/common-ui/analytics/analytics";
 
 declare global {
     interface Document {
@@ -230,6 +231,7 @@ export async function openSheet(planner: GearPlanSheetGui, changeHash: boolean =
         }
     }, (reason) => {
         console.error(reason);
+        recordError("load", reason);
         contentArea.replaceChildren(document.createTextNode("Error loading sheet!"));
     });
     await loadSheetPromise;

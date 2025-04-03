@@ -1240,6 +1240,7 @@ table.gear-items-table, table.food-items-table {
 
   [col-id='ilvl'] {
     overflow: visible;
+    text-align: center;
   }
 
   [col-id='icon'] {
@@ -1253,9 +1254,9 @@ table.gear-items-table, table.food-items-table {
   //  max-width: 1px;
   //}
   th[col-id='itemname'] {
-    width: max-content;
+    //width: max-content;
     min-width: max-content;
-    max-width: unset;
+    //max-width: unset;
     margin-left: -73px;
     position: relative;
   }
@@ -3124,13 +3125,9 @@ body.modern {
         }
       }
 
-      > tr > td {
+      > tr > * {
         padding-left: 5px;
         padding-right: 5px;
-
-        &[col-id='itemname'] {
-          padding-left: 5px;
-        }
       }
     }
 
