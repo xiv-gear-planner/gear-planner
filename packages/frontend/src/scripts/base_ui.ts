@@ -23,6 +23,7 @@ declare global {
     interface Document {
         planner?: GearPlanSheetGui;
     }
+
     // noinspection JSUnusedGlobalSymbols
     interface Window {
         currentSheet?: GearPlanSheetGui;
@@ -169,6 +170,10 @@ export async function openExport(exportedPre: SheetExport | SetExport, viewOnly:
                 sheetUrl: makeUrl(new NavState(navState.path, undefined, navState.onlySetIndex)),
             };
             exportedPre = extractSingleSet(exportedInitial, onlySetIndex);
+            if (exportedPre === undefined) {
+                setMainContent('Error', `Error: Set index ${onlySetIndex} is not valid.`);
+                return;
+            }
         }
     }
     const exported = exportedPre;
