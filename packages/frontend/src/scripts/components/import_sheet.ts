@@ -8,6 +8,7 @@ import {NamedSection} from "./section";
 import {GearPlanSheetGui, GRAPHICAL_SHEET_PROVIDER} from "./sheet";
 import {JobName} from "@xivgear/xivmath/xivconstants";
 import {extractSingleSet} from "@xivgear/core/util/sheet_utils";
+import {setMainContent} from "../base_ui";
 
 export class ImportSheetArea extends NamedSection {
     private readonly loader: LoadingBlocker;
@@ -114,8 +115,12 @@ export class ImportSheetArea extends NamedSection {
     doJsonImport(text: string, onlySetIndex: number | undefined) {
         const rawImport = JSON.parse(text);
         if ('sets' in rawImport && rawImport.sets.length) {
-            if (onlySetIndex !== undefined) {
+            if (onlySetIndex !== undefined && onlySetIndex in rawImport.sets) {
                 const single = extractSingleSet(rawImport, onlySetIndex);
+                if (single === undefined) {
+                    alert(`Error: Set index ${onlySetIndex} is not valid.`);
+                    return;
+                }
                 this.sheetOpenCallback(GRAPHICAL_SHEET_PROVIDER.fromSetExport(single));
             }
             else {
