@@ -537,7 +537,10 @@ export class GearPlanSheet {
                     // On the other hand, *most* real exports would have slots filled (BiS etc)
                     id: inSlot.gearItem.id,
                     materia: inSlot.melds.map(meld => {
-                        return {id: meld.equippedMateria?.id ?? -1};
+                        return {
+                            id: meld.equippedMateria?.id ?? -1,
+                            locked: meld.locked,
+                        };
                     }),
                 };
                 if (inSlot.relicStats && Object.entries(inSlot.relicStats)) {
@@ -691,12 +694,18 @@ export class GearPlanSheet {
                 }
                 const equipped = new EquippedItem(baseItem);
                 for (let i = 0; i < Math.min(equipped.melds.length, importedItem.materia.length); i++) {
-                    const id = importedItem.materia[i].id;
+                    const importedMateria = importedItem.materia[i];
+                    const id = importedMateria.id;
                     const mat = this.dataManager.materiaById(id);
+                    const slot = equipped.melds[i];
+                    if (slot === undefined) {
+                        console.error(`mismatched materia slot! i == ${i}, slots length == ${equipped.melds.length}`);
+                    }
+                    slot.locked = importedMateria.locked ?? false;
                     if (!mat) {
                         continue;
                     }
-                    equipped.melds[i].equippedMateria = mat;
+                    slot.equippedMateria = mat;
                 }
                 if (importedItem.relicStats && equipped.gearItem.isCustomRelic) {
                     Object.assign(equipped.relicStats, importedItem.relicStats);
