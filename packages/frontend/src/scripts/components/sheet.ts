@@ -52,7 +52,7 @@ import {
     STAT_ABBREVIATIONS,
     SupportedLevel
 } from "@xivgear/xivmath/xivconstants";
-import {getCurrentHash, getCurrentState} from "../nav_hash";
+import {getCurrentHash, getCurrentState, manipulateUrlParams, processNav} from "../nav_hash";
 import {MateriaTotalsDisplay} from "./materia";
 import {FoodItemsTable, FoodItemViewTable, GearItemsTable, GearItemsViewTable} from "./items";
 import {SetViewToolbar} from "./totals_display";
@@ -1976,6 +1976,18 @@ export class GearPlanSheetGui extends GearPlanSheet {
         if (isInIframe()) {
             linkElement.target = '_blank';
         }
+        else {
+            // Don't fully reload the page for no reason
+            linkElement.addEventListener('click', (e) => {
+                const existingUrl = new URL(document.location.toString());
+                if (existingUrl.origin === sheetUrl.origin
+                    && existingUrl.pathname === sheetUrl.pathname) {
+                    e.preventDefault();
+                    history.pushState(null, null, sheetUrl);
+                    processNav();
+                }
+            });
+        }
         area.replaceChildren("This set is part of a sheet: ", linkElement);
         area.style.display = '';
     }
@@ -2272,7 +2284,7 @@ function formatSyncInfo(si: SyncInfo, level: SupportedLevel): string | null {
         if (isLvlSynced) {
             text += `lv${si.lvlSync} `;
         }
-        // If level sync isn't explicitly set, show the level anyway
+            // If level sync isn't explicitly set, show the level anyway
         // if item level sync is present in any way to avoid confusion.
         else if (si.ilvlSync !== null) {
             text += `lv${level} `;
