@@ -8,7 +8,6 @@ import {NamedSection} from "./section";
 import {GearPlanSheetGui, GRAPHICAL_SHEET_PROVIDER} from "./sheet";
 import {JobName} from "@xivgear/xivmath/xivconstants";
 import {extractSingleSet} from "@xivgear/core/util/sheet_utils";
-import {setMainContent} from "../base_ui";
 
 export class ImportSheetArea extends NamedSection {
     private readonly loader: LoadingBlocker;

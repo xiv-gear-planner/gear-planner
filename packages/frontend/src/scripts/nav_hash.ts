@@ -10,7 +10,7 @@ import {
     splitPath,
     tryParseOptionalIntParam
 } from "@xivgear/core/nav/common_nav";
-import {displayEmbedError, earlyEmbedInit} from "./embed";
+import {earlyEmbedInit} from "./embed";
 import {SetExport, SheetExport} from "@xivgear/xivmath/geartypes";
 import {getShortLink} from "@xivgear/core/external/shortlink_server";
 import {getBisSheet} from "@xivgear/core/external/static_bis";
@@ -21,6 +21,7 @@ import {
     openExport,
     openSheetByKey,
     setMainContent,
+    showFatalError,
     showImportSheetForm,
     showLoadingScreen,
     showNewSheetForm,
@@ -144,21 +145,13 @@ async function doNav(navState: NavState) {
             }
             else {
                 console.error('Non-existent shortlink, or other error', uuid);
-                // TODO: better error display for non-embed
-                if (isEmbed()) {
-                    displayEmbedError("That set/sheet does not seem to exist.");
-                }
-                else {
-                    const errMsg = document.createElement('h1');
-                    errMsg.textContent = 'Error Loading Sheet/Set: That sheet does not seem to exist.';
-                    recordError('load', {
-                        'type': 'uuidDoesNotExist',
-                        'uuid': uuid,
-                    });
-                    setMainContent('Error', errMsg);
-                }
+                recordError('load', {
+                    'type': 'uuidDoesNotExist',
+                    'uuid': uuid,
+                });
+                showFatalError("That set/sheet does not seem to exist");
+                return;
             }
-            break;
         }
         case "setjson":
             openExport(nav.jsonBlob as SetExport, nav.viewOnly, undefined, undefined);

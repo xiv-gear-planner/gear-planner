@@ -3,7 +3,7 @@ import {NamedSection} from "./components/section";
 import {NewSheetForm} from "./components/new_sheet_form";
 import {ImportSheetArea} from "./components/import_sheet";
 import {SetExport, SheetExport} from "@xivgear/xivmath/geartypes";
-import {displayEmbedError, openEmbed} from "./embed";
+import {getEmbedDiv, openEmbed} from "./embed";
 import {LoadingBlocker} from "@xivgear/common-ui/components/loader";
 import {SheetPickerTable} from "./components/saved_sheet_picker";
 import {GearPlanSheetGui, GRAPHICAL_SHEET_PROVIDER} from "./components/sheet";
@@ -74,6 +74,20 @@ export function hideWelcomeArea() {
 export function setMainContent(title: string, ...nodes: Parameters<ParentNode['replaceChildren']>) {
     contentArea.replaceChildren(...nodes);
     setTitle(title);
+}
+
+export function showFatalError(errorText: string) {
+    recordError("showFatalError", errorText);
+    const errMsg = document.createElement('h1');
+    errMsg.textContent = errorText;
+    const embedDiv = getEmbedDiv();
+    if (embedDiv !== undefined) {
+        setTitle("Error");
+        embedDiv.replaceChildren(errMsg);
+    }
+    else {
+        setMainContent("Error", errMsg);
+    }
 }
 
 export function initTopMenu() {
@@ -171,8 +185,8 @@ export async function openExport(exportedPre: SheetExport | SetExport, viewOnly:
             };
             exportedPre = extractSingleSet(exportedInitial, onlySetIndex);
             if (exportedPre === undefined) {
-                setMainContent('Error', `Error: Set index ${onlySetIndex} is not valid.`);
-                return;
+                showFatalError(`Error: Set index ${onlySetIndex} is not valid.`);
+                throw new Error(`Error: Set index ${onlySetIndex} is not valid.`);
             }
         }
     }
@@ -191,7 +205,7 @@ export async function openExport(exportedPre: SheetExport | SetExport, viewOnly:
     recordSheetEvent('openExport', sheet, analyticsData);
     if (embed) {
         if (isFullSheet) {
-            displayEmbedError("Embedding is only supported for a single set, not a full sheet. Consider embedding sets individually and/or linking to the full sheet rather than embedding it.");
+            showFatalError("Embedding is only supported for a single set, not a full sheet. Consider embedding sets individually and/or linking to the full sheet rather than embedding it.");
         }
         else {
             sheet.setViewOnly();
