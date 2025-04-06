@@ -18,11 +18,13 @@ import {extractSingleSet} from "@xivgear/core/util/sheet_utils";
 import {CharacterGearSet} from "@xivgear/core/gear";
 import {recordSheetEvent} from "./analytics/analytics";
 import {recordError} from "@xivgear/common-ui/analytics/analytics";
+import {isInIframe} from "@xivgear/common-ui/util/detect_iframe";
 
 declare global {
     interface Document {
         planner?: GearPlanSheetGui;
     }
+
     // noinspection JSUnusedGlobalSymbols
     interface Window {
         currentSheet?: GearPlanSheetGui;
@@ -178,6 +180,25 @@ export async function openExport(exportedPre: SheetExport | SetExport, viewOnly:
         sheet.defaultSelectionIndex = defaultSelectionIndex;
     }
     const embed = isEmbed();
+    if (isInIframe()) {
+        const extraData: {
+            topLocation?: string,
+            referrer?: string,
+        } = {};
+        try {
+            extraData['topLocation'] = window.top.location.hostname;
+        }
+        catch (e) {
+            // Ignored
+        }
+        if (document.referrer) {
+            extraData['referrer'] = document.referrer;
+        }
+        recordSheetEvent('iframe', sheet, extraData);
+        if (!isEmbed()) {
+            recordSheetEvent('nonEmbeddedIframe', sheet, extraData);
+        }
+    }
     const analyticsData = {
         'isEmbed': embed,
         'viewOnly': viewOnly,
