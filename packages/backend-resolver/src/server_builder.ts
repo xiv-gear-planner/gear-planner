@@ -63,7 +63,11 @@ async function importExportSheet(request: SheetRequest, exportedPre: SheetExport
             request.log.warn("onlySetIndex does not make sense when isFullSheet is false");
         }
         else {
-            exportedPre = extractSingleSet(exportedInitial as SheetExport, onlySetIndex);
+            const singleMaybe = extractSingleSet(exportedInitial as SheetExport, onlySetIndex);
+            if (singleMaybe === undefined) {
+                throw new Error(`Error: Set index ${onlySetIndex} is not valid.`);
+            }
+            exportedPre = singleMaybe;
         }
     }
     const exported = exportedPre;

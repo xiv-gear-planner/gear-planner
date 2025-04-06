@@ -1,10 +1,14 @@
 import {LoadingBlocker} from "@xivgear/common-ui/components/loader";
 
-import {setTitle} from "./base_ui";
+import {setTitle, showFatalError} from "./base_ui";
 import {GearPlanSheetGui} from "./components/sheet";
-import {recordEvent} from "@xivgear/common-ui/analytics/analytics";
+import {recordError, recordEvent} from "@xivgear/common-ui/analytics/analytics";
 
 let embedDiv: HTMLDivElement;
+
+export function getEmbedDiv(): HTMLDivElement | undefined {
+    return embedDiv;
+}
 
 export function earlyEmbedInit() {
     console.log("Embed early init");
@@ -41,18 +45,8 @@ export async function openEmbed(sheet: GearPlanSheetGui) {
         setTitle('Embed');
     }
     catch (e) {
-        recordEvent('openEmbedError');
+        recordError('openEmbed', e);
         console.error("Error loading embed", e);
-        displayEmbedError();
+        showFatalError("Error loading embed");
     }
-}
-
-export function displayEmbedError(reason?: string) {
-    recordEvent('displayEmbedError', reason !== undefined ? {
-        'embedErrorReason': reason,
-    } : undefined);
-    setTitle("Error");
-    const text = document.createElement('p');
-    text.textContent = "Embed failed to load. " + (reason ?? "Make sure the link points to a set (not a full sheet).");
-    embedDiv.replaceChildren(text);
 }
