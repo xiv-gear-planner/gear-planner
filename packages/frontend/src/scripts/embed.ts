@@ -48,6 +48,9 @@ export async function openEmbed(sheet: GearPlanSheetGui) {
 }
 
 export function displayEmbedError(reason?: string) {
+    recordEvent('displayEmbedError', reason !== undefined ? {
+        'embedErrorReason': reason,
+    } : undefined);
     setTitle("Error");
     const text = document.createElement('p');
     text.textContent = "Embed failed to load. " + (reason ?? "Make sure the link points to a set (not a full sheet).");
