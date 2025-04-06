@@ -62,6 +62,12 @@ async function retryFetch(...params: Parameters<typeof fetch>): Promise<Response
             recordError("datamanager", error, {fetchUrl: String(params[0])});
             throw error;
         }
+        if (result.status !== 200) {
+            recordError("datamanager", {
+                "status": result.status,
+                "statusText": result.statusText,
+            });
+        }
         return result;
     }
 }
