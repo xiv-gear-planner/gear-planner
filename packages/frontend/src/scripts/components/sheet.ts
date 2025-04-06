@@ -87,6 +87,7 @@ import {MeldSolverDialog} from "./meld_solver_modal";
 import {insertAds} from "./ads";
 import {SETTINGS} from "@xivgear/common-ui/settings/persistent_settings";
 import {isInIframe} from "@xivgear/common-ui/util/detect_iframe";
+import {recordEvent} from "@xivgear/common-ui/analytics/analytics";
 
 const noSeparators = (set: CharacterGearSet) => !set.isSeparator;
 
@@ -1041,6 +1042,9 @@ export class GearSetViewer extends HTMLElement {
             linkUrl.searchParams.delete(ONLY_SET_QUERY_PARAM);
             headingLink.href = linkUrl.toString();
             headingLink.target = '_blank';
+            headingLink.addEventListener('click', () => {
+                recordSheetEvent("openEmbedToFull", this.sheet);
+            });
             headingLink.replaceChildren(this.gearSet.name, faIcon('fa-arrow-up-right-from-square', 'fa'));
             heading.replaceChildren(headingLink);
         }
@@ -1966,6 +1970,9 @@ export class GearPlanSheetGui extends GearPlanSheet {
         const linkElement = document.createElement('a');
         linkElement.href = sheetUrl.toString();
         linkElement.textContent = sheetName;
+        linkElement.addEventListener('click', () => {
+            recordEvent('openNormalBacklink');
+        });
         if (isInIframe()) {
             linkElement.target = '_blank';
         }
