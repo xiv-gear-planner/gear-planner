@@ -145,9 +145,71 @@ function resolveNavData(nav: NavPath | null): NavResult | null {
     throw Error(`Unable to resolve nav result: ${nav.type}`);
 }
 
+export type EmbedCheckResponse = {
+    isValid: true,
+} | {
+    isValid: false,
+    reason: string,
+}
+
 export function buildStatsServer() {
 
     const fastifyInstance = buildServerBase();
+
+    fastifyInstance.get('/validateEmbed', async (request: SheetRequest, reply) => {
+        const path = request.query?.[HASH_QUERY_PARAM] ?? '';
+        const osIndex: number | undefined = tryParseOptionalIntParam(request.query[ONLY_SET_QUERY_PARAM]);
+        const selIndex: number | undefined = tryParseOptionalIntParam(request.query[SELECTION_INDEX_QUERY_PARAM]);
+        const pathPaths = path.split(PATH_SEPARATOR);
+        const state = new NavState(pathPaths, osIndex, selIndex);
+        const nav = parsePath(state);
+        request.log.info(pathPaths, 'Path');
+        const navResult = resolveNavData(nav);
+        if (nav !== null && navResult !== null) {
+            const exported: ExportedData = await navResult.sheetData;
+            reply.header("cache-control", "max-age=7200, public");
+            if ('sets' in exported) {
+                reply.send({
+                    isValid: false,
+                    reason: "full sheets cannot be embedded",
+                } satisfies EmbedCheckResponse);
+            }
+            else if ("embed" in nav && nav.embed) {
+                reply.send({
+                    isValid: true,
+                } satisfies EmbedCheckResponse);
+            }
+            else {
+                reply.send({
+                    isValid: false,
+                    reason: "not an embed",
+                } satisfies EmbedCheckResponse);
+            }
+        }
+        else {
+            reply.send({
+                isValid: false,
+                reason: `path ${pathPaths} not found`,
+            } satisfies EmbedCheckResponse);
+        }
+    });
+
+    fastifyInstance.get('/basedata', async (request: SheetRequest, reply) => {
+        const path = request.query?.[HASH_QUERY_PARAM] ?? '';
+        const osIndex: number | undefined = tryParseOptionalIntParam(request.query[ONLY_SET_QUERY_PARAM]);
+        const selIndex: number | undefined = tryParseOptionalIntParam(request.query[SELECTION_INDEX_QUERY_PARAM]);
+        const pathPaths = path.split(PATH_SEPARATOR);
+        const state = new NavState(pathPaths, osIndex, selIndex);
+        const nav = parsePath(state);
+        request.log.info(pathPaths, 'Path');
+        const navResult = resolveNavData(nav);
+        if (nav !== null && navResult !== null) {
+            const exported: ExportedData = await navResult.sheetData;
+            reply.header("cache-control", "max-age=7200, public");
+            reply.send(exported);
+        }
+        reply.status(404);
+    });
 
     fastifyInstance.get('/fulldata', async (request: SheetRequest, reply) => {
         // TODO: deduplicate this code
@@ -160,7 +222,7 @@ export function buildStatsServer() {
         request.log.info(pathPaths, 'Path');
         const navResult = resolveNavData(nav);
         if (nav !== null && navResult !== null) {
-            const exported: object = await navResult.sheetData;
+            const exported: ExportedData = await navResult.sheetData;
             const out = await importExportSheet(request, exported as (SetExport | SheetExport), nav);
             reply.header("cache-control", "max-age=7200, public");
             reply.send(out);
