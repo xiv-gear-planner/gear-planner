@@ -246,7 +246,7 @@ describe('parsePath', () => {
                 type: 'bis',
                 path: ['sge', 'endwalker', 'anabaseios'],
                 job: 'sge',
-                expac: 'endwalker',
+                folder: 'endwalker',
                 sheet: 'anabaseios',
                 embed: false,
                 viewOnly: true,
@@ -260,7 +260,7 @@ describe('parsePath', () => {
                 type: 'bis',
                 path: ['sge', 'endwalker', 'anabaseios'],
                 job: 'sge',
-                expac: 'endwalker',
+                folder: 'endwalker',
                 sheet: 'anabaseios',
                 embed: false,
                 viewOnly: true,
@@ -274,7 +274,7 @@ describe('parsePath', () => {
                 type: 'bis',
                 path: ['sge', 'endwalker', 'anabaseios'],
                 job: 'sge',
-                expac: 'endwalker',
+                folder: 'endwalker',
                 sheet: 'anabaseios',
                 embed: false,
                 viewOnly: true,
@@ -288,7 +288,7 @@ describe('parsePath', () => {
                 type: 'bis',
                 path: ['sge', 'endwalker', 'anabaseios'],
                 job: 'sge',
-                expac: 'endwalker',
+                folder: 'endwalker',
                 sheet: 'anabaseios',
                 embed: false,
                 viewOnly: true,
@@ -296,11 +296,19 @@ describe('parsePath', () => {
                 defaultSelectionIndex: undefined,
             });
         });
-        it('returns null if incomplete url', () => {
-            const result = parsePath(new NavState(['bis', 'sge', 'endwalker']));
-            expect(result).to.be.null;
+        it('can resolve bis without a folder', () => {
+            const result = parsePath(new NavState(['bis', 'war', 'current'], 4, undefined));
+            expect(result).to.deep.equals({
+                type: 'bis',
+                path: ['war', 'current'],
+                job: 'war',
+                sheet: 'current',
+                embed: false,
+                viewOnly: true,
+                onlySetIndex: 4,
+                defaultSelectionIndex: undefined,
+            });
         });
-
     });
 
 });
