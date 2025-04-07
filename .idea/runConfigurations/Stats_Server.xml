@@ -8,7 +8,7 @@
     <option name="enabledTsNodeEsmLoader" value="false" />
     <option name="interpreterOptions" value="" />
     <option name="workingDirectory" value="E:\IdeaProjects\gearplan\packages\backend-resolver\src" />
-    <option name="tsconfigFile" value="E:\IdeaProjects\gearplan\packages\backend-resolver\tsconfig.json" />
+    <option name="tsconfigFile" value="" />
     <option name="extraTypeScriptOptions" value="-O {\&quot;strict\&quot;:false} -T" />
     <option name="scriptName" value="$PROJECT_DIR$/packages/backend-resolver/src/server.ts" />
     <option name="programParameters" value="" />
