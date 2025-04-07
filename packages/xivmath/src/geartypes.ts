@@ -374,6 +374,7 @@ export interface ComputedSetStats extends RawStats {
 export interface MeldableMateriaSlot {
     materiaSlot: MateriaSlot;
     equippedMateria: Materia | null;
+    locked: boolean;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
@@ -747,7 +748,7 @@ export type RelicStatMemoryExport = {
 };
 
 
-export type SlotMateriaMemoryExport = [item: number, materiaIds: number[]];
+export type SlotMateriaMemoryExport = [item: number, materiaIds: number[], locked?: boolean[]];
 
 export type MateriaMemoryExport = {
     [slot in EquipSlotKey]?: SlotMateriaMemoryExport[]
@@ -876,7 +877,8 @@ export interface ItemSlotExport {
         /**
          * The item ID of this materia. -1 indicates no materia equipped in this slot.
          */
-        id: number
+        id: number,
+        locked?: boolean,
     } | undefined)[],
     /**
      * If this is a relic, represents the current stats of the relic.
@@ -1091,6 +1093,7 @@ export class EquippedItem {
                 this.melds.push({
                     materiaSlot: materiaSlot,
                     equippedMateria: null,
+                    locked: false,
                 });
             }
         }

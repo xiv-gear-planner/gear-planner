@@ -76,12 +76,15 @@ export class RelicStatMemory {
     }
 }
 
+type SingleMateriaMemory = {
+    id: number,
+    locked: boolean,
+}
 
-// TODO: this is not yet part of exports
 export class MateriaMemory {
     // Map from equipment slot to item ID to list of materia IDs.
     // The extra layer is needed here because you might have the same (non-unique) ring equipped in both slots.
-    private readonly memory: Map<EquipSlotKey, Map<number, number[]>> = new Map();
+    private readonly memory: Map<EquipSlotKey, Map<number, SingleMateriaMemory[]>> = new Map();
 
     /**
      * Get the remembered materia for an item
@@ -91,7 +94,7 @@ export class MateriaMemory {
      * @param equipSlot The equipment slot (needed to differentiate left/right ring)
      * @param item The item in question
      */
-    get(equipSlot: EquipSlotKey, item: GearItem): number[] {
+    get(equipSlot: EquipSlotKey, item: GearItem): SingleMateriaMemory[] {
         const bySlot = this.memory.get(equipSlot);
         if (!bySlot) {
             return [];
@@ -107,7 +110,7 @@ export class MateriaMemory {
      * @param item The item which is about to be unequipped from that slot.
      */
     set(equipSlot: EquipSlotKey, item: EquippedItem) {
-        let bySlot: Map<number, number[]>;
+        let bySlot: Map<number, SingleMateriaMemory[]>;
         if (this.memory.has(equipSlot)) {
             bySlot = this.memory.get(equipSlot);
         }
@@ -115,15 +118,21 @@ export class MateriaMemory {
             bySlot = new Map();
             this.memory.set(equipSlot, bySlot);
         }
-        bySlot.set(item.gearItem.id, item.melds.map(meld => meld.equippedMateria?.id ?? -1));
+        bySlot.set(item.gearItem.id, item.melds.map(meld => {
+            return {
+                id: meld.equippedMateria?.id ?? -1,
+                locked: meld.locked,
+            };
+        }));
     }
 
     export(): MateriaMemoryExport {
         const out: MateriaMemoryExport = {};
         this.memory.forEach((slotValue, slotKey) => {
             const items: SlotMateriaMemoryExport[] = [];
-            slotValue.forEach((materiaIds, itemId) => {
-                items.push([itemId, materiaIds]);
+            slotValue.forEach((memories, itemId) => {
+                // TODO: this does not remember locked/unlocked status
+                items.push([itemId, memories.map(m => m.id), memories.map(m => m.locked)]);
             });
             out[slotKey] = items;
         });
@@ -132,9 +141,15 @@ export class MateriaMemory {
 
     import(memory: MateriaMemoryExport) {
         Object.entries(memory).forEach(([slotKey, itemMemory]) => {
-            const slotMap: Map<number, number[]> = new Map();
+            const slotMap: Map<number, SingleMateriaMemory[]> = new Map();
             for (const itemMemoryElement of itemMemory) {
-                slotMap.set(itemMemoryElement[0], itemMemoryElement[1]);
+                const locked: boolean[] | undefined = itemMemoryElement[2];
+                slotMap.set(itemMemoryElement[0], itemMemoryElement[1].map((id, index) => {
+                    return {
+                        id: id,
+                        locked: locked ? (locked[index] ?? false) : false,
+                    };
+                }));
             }
             this.memory.set(slotKey as EquipSlotKey, slotMap);
         });
@@ -322,41 +337,70 @@ export class CharacterGearSet {
             }
             else {
                 // This var tracks what we would like to re-equip
-                let reEquip: Materia[] = [];
+                let reEquip: {
+                    materia: Materia | null,
+                    locked: boolean,
+                }[] = [];
                 if (mode === 'retain_slot' || mode === 'retain_slot_else_prio') {
                     if (old && old.melds.find(meld => meld.equippedMateria)) {
-                        reEquip = old.melds.map(meld => meld.equippedMateria).filter(value => value);
+                        reEquip = old.melds.map(meld => {
+                            return {
+                                materia: meld.equippedMateria,
+                                locked: meld.locked,
+                            };
+                        }).filter(value => value);
                     }
                 }
                 else if (mode === 'retain_item' || mode === 'retain_item_else_prio') {
-                    const materiaIds = this.materiaMemory.get(slot, item);
-                    materiaIds.forEach((materiaId, index) => {
+                    const remembered = this.materiaMemory.get(slot, item);
+                    remembered.forEach((slotMemory, index) => {
+                        const materiaId = slotMemory.id;
                         if (materiaId <= 0) {
-                            return;
+                            reEquip.push({
+                                materia: null,
+                                locked: slotMemory.locked,
+                            });
                         }
-                        const meld = this.equipment[slot].melds[index];
-                        if (meld) {
-                            reEquip.push(this._sheet.getMateriaById(materiaId));
+                        else {
+                            const meld = this.equipment[slot].melds[index];
+                            if (meld) {
+                                reEquip.push({
+                                    materia: this._sheet.getMateriaById(materiaId),
+                                    locked: slotMemory.locked,
+                                });
+                            }
+                            else {
+                                reEquip.push({
+                                    materia: null,
+                                    locked: slotMemory.locked,
+                                });
+                            }
                         }
                     });
                 }
-                if (mode === 'autofill'
-                    || (reEquip.length === 0
-                        && (mode === 'retain_item_else_prio' || mode === 'retain_slot_else_prio'))) {
-                    this.fillMateria(materiaAutoFillController.prio, false, [slot]);
-                }
-                else {
-                    const eq = this.equipment[slot];
-                    for (let i = 0; i < reEquip.length; i++) {
-                        if (i in eq.melds) {
-                            const meld = eq.melds[i];
-                            const materia = reEquip[i];
-                            if (materia && isMateriaAllowed(materia, meld.materiaSlot)) {
-                                meld.equippedMateria = reEquip[i];
-                            }
+                // We want to unconditionally restore locked materia
+                const eq = this.equipment[slot];
+                for (let i = 0; i < reEquip.length; i++) {
+                    if (i in eq.melds) {
+                        const meld = eq.melds[i];
+                        const req = reEquip[i];
+                        meld.locked = req.locked;
+                        const materia = req.materia;
+                        if (materia && isMateriaAllowed(materia, meld.materiaSlot)
+                            // We want to restore the materia if the slot is locked, or if the mode is not autofill
+                            && (meld.locked || mode !== 'autofill')) {
+                            meld.equippedMateria = materia;
                         }
                     }
+                }
 
+                // If the mode is 'autofill', unconditionally refill materia according to prio
+                // If the mode is 'retain_item_else_prio' or 'retain_slot_else_prio', only refill if either there
+                // was no memory whatsoever, or all slots were empty.
+                if (mode === 'autofill'
+                    || ((reEquip.length === 0 || !reEquip.find(re => re.materia !== null))
+                        && (mode === 'retain_item_else_prio' || mode === 'retain_slot_else_prio'))) {
+                    this.fillMateria(materiaAutoFillController.prio, false, [slot]);
                 }
             }
         }
@@ -681,7 +725,11 @@ export class CharacterGearSet {
                 const equipSlot = this.equipment[slotKey] as EquippedItem | null;
                 const gearItem = equipSlot?.gearItem;
                 if (gearItem) {
-                    equipSlot.melds.forEach(meldSlot => meldSlot.equippedMateria = null);
+                    equipSlot.melds.forEach(meldSlot => {
+                        if (!meldSlot.locked) {
+                            meldSlot.equippedMateria = null;
+                        }
+                    });
                 }
             }
             this.forceRecalc();
@@ -692,7 +740,7 @@ export class CharacterGearSet {
             if (gearItem) {
                 materiaLoop: for (const meldSlot of equipSlot.melds) {
                     // If overwriting, we already cleared the slots, so this check is fine in any scenario.
-                    if (meldSlot.equippedMateria) {
+                    if (meldSlot.equippedMateria || meldSlot.locked) {
                         continue;
                     }
                     const slotStats = this.getSlotEffectiveStats(slotKey);
