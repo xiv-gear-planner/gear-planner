@@ -149,6 +149,23 @@ export function buildStatsServer() {
 
     const fastifyInstance = buildServerBase();
 
+    fastifyInstance.get('/basedata', async (request: SheetRequest, reply) => {
+        const path = request.query?.[HASH_QUERY_PARAM] ?? '';
+        const osIndex: number | undefined = tryParseOptionalIntParam(request.query[ONLY_SET_QUERY_PARAM]);
+        const selIndex: number | undefined = tryParseOptionalIntParam(request.query[SELECTION_INDEX_QUERY_PARAM]);
+        const pathPaths = path.split(PATH_SEPARATOR);
+        const state = new NavState(pathPaths, osIndex, selIndex);
+        const nav = parsePath(state);
+        request.log.info(pathPaths, 'Path');
+        const navResult = resolveNavData(nav);
+        if (nav !== null && navResult !== null) {
+            const exported: object = await navResult.sheetData;
+            reply.header("cache-control", "max-age=7200, public");
+            reply.send(exported);
+        }
+        reply.status(404);
+    });
+
     fastifyInstance.get('/fulldata', async (request: SheetRequest, reply) => {
         // TODO: deduplicate this code
         const path = request.query?.[HASH_QUERY_PARAM] ?? '';
