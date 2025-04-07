@@ -33,7 +33,7 @@ import {IlvlSyncInfo} from "./datamanager_xivapi";
 import {applyStatCaps} from "./gear";
 import {toTranslatable, TranslatableString} from "@xivgear/i18n/translation";
 import {RawStatsPart} from "@xivgear/util/types";
-import {recordError} from "@xivgear/common-ui/analytics/analytics";
+// import {recordError} from "@xivgear/common-ui/analytics/analytics";
 
 type ApiClientRawType<X extends keyof DataApiClient<never>, Y extends keyof DataApiClient<never>[X]> = DataApiClient<never>[X][Y]
 
@@ -59,14 +59,16 @@ async function retryFetch(...params: Parameters<typeof fetch>): Promise<Response
             const content = JSON.stringify(await result.json());
             console.error(`Data API error: ${result.status}: ${result.statusText}`, params[0], content);
             const error = Error(`Data API error: ${result.status}: ${result.statusText} (${params[0]}\n${content}`);
-            recordError("datamanager", error, {fetchUrl: String(params[0])});
+            // TODO: it would be nice to be able to record these, but they would create an unacceptable
+            // dependency loop.
+            // recordError("datamanager", error, {fetchUrl: String(params[0])});
             throw error;
         }
         if (result.status !== 200) {
-            recordError("datamanager", {
-                "status": result.status,
-                "statusText": result.statusText,
-            });
+            // recordError("datamanager", {
+            //     "status": result.status,
+            //     "statusText": result.statusText,
+            // });
         }
         return result;
     }
@@ -263,14 +265,8 @@ export class NewApiDataManager implements DataManager {
 
         const itemsPromise = this.apiClient.items.items({job: this._classJob})
             .then(async (data) => {
-                if (data) {
-                    console.log(`Got ${data.data.items.length} Items`);
-                    return data.data.items;
-                }
-                else {
-                    console.error(`Got No Items!`);
-                    return null;
-                }
+                console.log(`Got ${data.data.items.length} Items`);
+                return data.data.items;
             }).then((rawItems) => {
                 this._allItems = rawItems
                     .filter(i => {
@@ -304,7 +300,7 @@ export class NewApiDataManager implements DataManager {
                     }
                 });
                 // TODO: put up better error
-            }, (e) => console.error(e));
+            });
         const statsPromise = Promise.all([itemsPromise, baseParamPromise]).then(() => {
             console.log(`Finishing item calculations for ${this._allItems.length} items`);
             this._allItems.forEach(item => {
@@ -336,22 +332,15 @@ export class NewApiDataManager implements DataManager {
         console.log("Loading materia");
         const materiaPromise = this.apiClient.materia.materia()
             .then((data) => {
-                if (data) {
-                    console.log(`Got ${data.data.items.length} Materia Types`);
-                    this._allMateria = data.data.items
-                        // TODO: if a materia is discontinued but should still be available for old
-                        // sets, this will not work.
-                        .filter(i => i.value[MATERIA_LEVEL_MAX_NORMAL - 1])
-                        .flatMap(item => {
-                            return processRawMateriaInfo(item);
-                        });
-                    console.log(`Processed ${this._allMateria.length} total Materia items`);
-                }
-                else {
-                    console.error('Got No Materia!');
-                }
-            }, e => {
-                console.error(e);
+                console.log(`Got ${data.data.items.length} Materia Types`);
+                this._allMateria = data.data.items
+                    // TODO: if a materia is discontinued but should still be available for old
+                    // sets, this will not work.
+                    .filter(i => i.value[MATERIA_LEVEL_MAX_NORMAL - 1])
+                    .flatMap(item => {
+                        return processRawMateriaInfo(item);
+                    });
+                console.log(`Processed ${this._allMateria.length} total Materia items`);
             });
         console.log("Loading food");
         const foodPromise = this.apiClient.food.foodItems()
@@ -366,8 +355,7 @@ export class NewApiDataManager implements DataManager {
                 });
             })
             .then((processedFoods) => processedFoods.filter(food => Object.keys(food.bonuses).length > 1))
-            .then((foods) => this._allFoodItems = foods,
-                e => console.error(e));
+            .then((foods) => this._allFoodItems = foods);
         console.log("Loading jobs");
         const jobsPromise = this.apiClient.jobs.jobs()
             .then(data => {
@@ -387,6 +375,7 @@ export class NewApiDataManager implements DataManager {
                     });
                 }
             });
+        // These will all resolve at the same time, so it doesn't matter which one we await
         const ilvlPromise = this.getIlvlSyncData(baseParamPromise, 710);
         await Promise.all([baseParamPromise, itemsPromise, statsPromise, materiaPromise, foodPromise, jobsPromise, ilvlPromise]);
         await Promise.all(extraPromises);

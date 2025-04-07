@@ -271,9 +271,10 @@ export async function openSheet(planner: GearPlanSheetGui, changeHash: boolean =
     }, (reason) => {
         console.error(reason);
         recordError("load", reason);
-        contentArea.replaceChildren(document.createTextNode("Error loading sheet!"));
+        showFatalError("Error Loading Sheet!");
     });
     await loadSheetPromise;
+    // TODO: does this visibly slow down sheet access?
     await WORKER_POOL.setSheet(planner);
 }
 

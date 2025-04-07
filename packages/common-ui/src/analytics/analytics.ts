@@ -61,3 +61,13 @@ export function recordError(where: string, error: unknown, extraProps: object = 
         console.error("error logging error", e);
     }
 }
+
+try {
+    window.addEventListener('unhandledrejection', e => {
+        recordError("unhandledRejection", String(e.reason));
+    });
+}
+catch (e) {
+    // Likely, browser does not support this
+    console.warn("Could not install unhandled promise tracker", e);
+}
