@@ -29,6 +29,7 @@ import {
     MateriaAutoFillController,
     MateriaAutoFillPrio,
     MateriaMemoryExport,
+    MeldableMateriaSlot,
     NO_SYNC_STATS,
     RawStatKey,
     RawStats,
@@ -247,7 +248,6 @@ export class CharacterGearSet {
     equipment: EquipmentSet;
     listeners: (() => void)[] = [];
     private _dirtyComp: boolean = true;
-    private _updateKey: number = 0;
     private _lastResult: GearSetResult;
     private _jobOverride: JobName;
     private _raceOverride: RaceName;
@@ -271,11 +271,10 @@ export class CharacterGearSet {
         this.equipment = new EquipmentSet();
     }
 
-    get updateKey() {
-        return this._updateKey;
-    }
 
-
+    /**
+     * The name of the set
+     */
     get name() {
         return this._name;
     }
@@ -285,6 +284,9 @@ export class CharacterGearSet {
         this.notifyListeners();
     }
 
+    /**
+     * Optional description for the set. May be undefined if not specified.
+     */
     get description() {
         return this._description;
     }
@@ -294,18 +296,22 @@ export class CharacterGearSet {
         this.notifyListeners();
     }
 
-
+    /**
+     * The food item currently equipped, else undefined if no food is equipped.
+     */
     get food(): FoodItem | undefined {
         return this._food;
     }
 
+    /**
+     * The sheet of which this set is a member.
+     */
     get sheet(): GearPlanSheet {
         return this._sheet;
     }
 
     private invalidate() {
         this._dirtyComp = true;
-        this._updateKey++;
     }
 
     set food(food: FoodItem | undefined) {
@@ -314,6 +320,14 @@ export class CharacterGearSet {
         this.notifyListeners();
     }
 
+    /**
+     * Set a new equipment piece into the given slot. Unlike directly setting fields on {@link #equipment}, this will
+     * also handle things like materia autofill, invalidation, saving, etc.
+     *
+     * @param slot
+     * @param item
+     * @param materiaAutoFillController
+     */
     setEquip(slot: EquipSlotKey, item: GearItem, materiaAutoFillController?: MateriaAutoFillController) {
         if (this.equipment[slot]?.gearItem === item) {
             return;
@@ -427,6 +441,8 @@ export class CharacterGearSet {
     }
 
     private notifyListeners() {
+        // This records a checkpoint and also triggers an eventual save.
+
         // TODO: a little janky. This is to work around an issue where by updating properties after importing, we
         // get an extra refresh request. Simple hack is to just refuse to issue any requests until we have at least
         // one listener.
@@ -444,15 +460,35 @@ export class CharacterGearSet {
         }
     }
 
+    /**
+     * Invalidate calculations for this set, and notify listeners that something has changed about the set, possibly
+     * triggering a UI refresh. This will typically also save and create an undo checkpoint.
+     */
     forceRecalc() {
         this.invalidate();
         this.notifyListeners();
     }
 
+    /**
+     * Notify listeners that something has changed, without invalidating. This will typically also save and create an
+     * undo checkpoint.
+     */
+    nonRecalcNotify() {
+        this.notifyListeners();
+    }
+
+    /**
+     * Add a listener, which will be called when modifications are made to this set.
+     * @param listener
+     */
     addListener(listener: () => void) {
         this.listeners.push(listener);
     }
 
+    /**
+     * Return the plain gear item in a slot.
+     * @param slot
+     */
     getItemInSlot(slot: keyof EquipmentSet): GearItem | null {
         const inSlot = this.equipment[slot];
         if (inSlot === null || inSlot === undefined) {
@@ -462,20 +498,32 @@ export class CharacterGearSet {
         return inSlot.gearItem;
     }
 
+    /**
+     * All items currently equipped (excluding food)
+     */
     get allEquippedItems(): XivCombatItem[] {
         return Object.values(this.equipment)
             .filter(slotEquipment => slotEquipment && slotEquipment.gearItem)
             .map((slotEquipment: EquippedItem) => slotEquipment.gearItem);
     }
 
+    /**
+     * Get a list of errors and warnings regarding this gear set.
+     */
     get issues(): readonly GearSetIssue[] {
         return this.results.issues;
     }
 
+    /**
+     * Get the computed stats of this set.
+     */
     get computedStats(): ComputedSetStats {
         return this.results.computedStats;
     }
 
+    /**
+     * Get the computed stats ({@link computedStats}) and issues ({@link issues}).
+     */
     get results(): GearSetResult {
         const issues: GearSetIssue[] = [];
         if (!this._dirtyComp) {
@@ -542,6 +590,11 @@ export class CharacterGearSet {
         return this._lastResult;
     }
 
+    /**
+     * Get the effective stats and issues pertaining to a specific slot.
+     *
+     * @param slotId
+     */
     getSlotEffectiveStatsFull(slotId: EquipSlotKey): {
         stats: RawStats,
         issues: GearSetIssue[]
@@ -588,11 +641,24 @@ export class CharacterGearSet {
         return this.getSlotEffectiveStatsFull(slotId).stats;
     }
 
+    /**
+     * Compute the stat details for a specific slot and stat. Accepts an optional materiaOverride argument which allows you to
+     * "preview" the stats without actually equipping those materia.
+     * @param slotId
+     * @param stat
+     * @param materiaOverride
+     */
     getStatDetail(slotId: keyof EquipmentSet, stat: RawStatKey, materiaOverride?: Materia[]): ReturnType<typeof this.getEquipStatDetail> {
         const equip = this.equipment[slotId];
         return this.getEquipStatDetail(equip, stat, materiaOverride);
     }
 
+    /**
+     * Compute the stat details for a specific slot and stat, but also allows overriding the equipped item.
+     * @param equip
+     * @param stat
+     * @param materiaOverride
+     */
     getEquipStatDetail(equip: EquippedItem, stat: RawStatKey, materiaOverride?: Materia[]): ItemSingleStatDetail {
         const gearItem = equip.gearItem;
         if (!gearItem) {
@@ -794,12 +860,20 @@ export class CharacterGearSet {
         this.forceRecalc();
     }
 
+    /**
+     * Whether a stat is relevant to this set.
+     * @param stat
+     */
     isStatRelevant(stat: RawStatKey) {
         return this._sheet.isStatRelevant(stat);
     }
 
     private collapsed: boolean;
 
+    /**
+     * Whether a particular slot should be collapsed on the UI.
+     * @param slotId
+     */
     isSlotCollapsed(slotId: EquipSlotKey) {
         return this.displaySettings.isSlotHidden(slotId);
     }
@@ -820,6 +894,14 @@ export class CharacterGearSet {
     When you roll back (or forward) to a checkpoint, notify listeners, and the callback.
     In addition, while performing a roll, _reverting is temporarily set to true, so that it doesn't try to checkpoint
     an undo/redo itself.
+
+    Furthermore, as this complicates the web of requestSave/invalidate/recordCheckpoint, the way this should work is:
+    If something makes a change that would require a recalculation, it should only call forceRecalc().
+    forceRecalc() will trigger everything - notifyListeners (which also results in a save), and recordCheckpoint.
+
+    If something makes a change that does not require a recalc (e.g. locking/unlocking a materia slot),
+    but still needs to be saved, then it should instead
+    call nonRecalcNotify, which results in a save + checkpoint but not a recalc.
      */
     readonly checkpointTimer = new Inactivitytimer(100, () => {
         this.recordCheckpointInt();
@@ -895,7 +977,6 @@ export class CharacterGearSet {
         this._food = checkpoint.food;
         try {
             this.forceRecalc();
-            this.notifyListeners();
             this._undoHook();
         }
         finally {
@@ -904,7 +985,9 @@ export class CharacterGearSet {
     }
 
     /**
-     * Perform an undo
+     * Perform an undo - i.e. restore this set's state to the previous checkpoint.
+     *
+     * If there was no previous checkpoint, returns false.
      */
     undo(): boolean {
         const prev = this.currentCheckpoint?.prev;
@@ -918,6 +1001,11 @@ export class CharacterGearSet {
         }
     }
 
+    /**
+     * Perform a redo - i.e. restore this set's state to the next checkpoint.
+     *
+     * If there was no previous checkpoint, returns false.
+     */
     redo(): boolean {
         const next = this.currentCheckpoint?.next;
         if (next) {
@@ -930,12 +1018,58 @@ export class CharacterGearSet {
         }
     }
 
+    /**
+     * Whether there is a previous checkpoint available.
+     */
     canUndo(): boolean {
         return this.currentCheckpoint?.prev?.value !== undefined;
     }
 
+    /**
+     * Whether there is a next checkpoint available.
+     */
     canRedo(): boolean {
         return this.currentCheckpoint?.next?.value !== undefined;
+    }
+
+    /**
+     * Run a function against every equipment slot, regardless of whether anything is equipped or not.
+     *
+     * @param f The function. The first parameter is the EquipSlotKey, the second is the EquippedItem or null
+     * if nothing is equipped.
+     */
+    forEachSlot(f: (key: EquipSlotKey, item: EquippedItem | null) => void): void {
+        for (const equipmentKey of EquipSlots) {
+            const equipment: EquippedItem | null = this.equipment[equipmentKey];
+            f(equipmentKey, equipment);
+        }
+    }
+
+    /**
+     * Run a function against every equipment slot which has an item equipped.
+     *
+     * @param f The function. The first parameter is the EquipSlotKey, the second is the EquippedItem.
+     */
+    forEachEquippedItem(f: (key: EquipSlotKey, item: EquippedItem) => void): void {
+        this.forEachSlot((key, item) => {
+            if (item !== null) {
+                f(key, item);
+            }
+        });
+    }
+
+    /**
+     * Run a function against every materia slot on currently equipped gear.
+     *
+     * @param f The function. The first parameter is the EquipSlotKey, the second is the EquippedItem, third is the
+     * materia slot itself, and fourth is the index of the materia slot on the item.
+     */
+    forEachMateriaSlot(f: (key: EquipSlotKey, item: EquippedItem, slot: MeldableMateriaSlot, slotIndex: number) => void) {
+        this.forEachEquippedItem((key, item) => {
+            for (let i = 0; i < item.melds.length; i++) {
+                f(key, item, item.melds[i], i);
+            }
+        });
     }
 }
 

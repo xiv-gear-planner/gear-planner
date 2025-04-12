@@ -13,11 +13,11 @@ import {
 import {MateriaSubstat, MAX_GCD, STAT_ABBREVIATIONS, STAT_FULL_NAMES} from "@xivgear/xivmath/xivconstants";
 import {closeModal, setModal} from "@xivgear/common-ui/modalcontrol";
 import {
-    faIcon,
     FieldBoundDataSelect,
     FieldBoundFloatField,
     labelFor,
-    makeActionButton, makeTrashIcon,
+    makeActionButton,
+    makeTrashIcon,
     quickElement
 } from "@xivgear/common-ui/components/util";
 import {GearPlanSheet} from "@xivgear/core/sheet";
@@ -145,6 +145,7 @@ export class SlotMateriaManager extends HTMLElement {
                 }
                 else if (ev.ctrlKey) {
                     this.materiaSlot.locked = !this.materiaSlot.locked;
+                    sheet.requestSave();
                     this.reformat();
                 }
                 else {
@@ -437,20 +438,24 @@ export class MateriaPriorityPicker extends HTMLElement {
         }, 'Empty out and re-fill all materia slots according to the chosen priority.');
 
         const lockAllEquipped = makeActionButton('Lock Filled', () => {
-            // TODO
+            prioController.lockFilled();
         }, 'Lock all equipped materia');
+        lockAllEquipped.classList.add('narrow-button');
 
         const lockAllEmpty = makeActionButton('Lock Empty', () => {
-            // TODO
+            prioController.lockEmpty();
         }, 'Lock all empty materia slots');
+        lockAllEmpty.classList.add('narrow-button');
 
         const unlockAll = makeActionButton('Unlock All', () => {
-            // TODO
+            prioController.unlockAll();
         }, 'Unlock all slots');
+        unlockAll.classList.add('narrow-button');
 
-        const unequipAll = makeActionButton('Unequip All', () => {
-            // TODO
+        const unequipAll = makeActionButton('Unequip Unlocked', () => {
+            prioController.unequipUnlocked();
         }, 'Unequip all unlocked materia');
+        unequipAll.classList.add('narrow-button');
 
         const solveMelds = makeActionButton('Solve', () => sheet.showMeldSolveDialog(), "Solve for the highest damage melds for your chosen gear");
 
@@ -483,10 +488,15 @@ export class MateriaPriorityPicker extends HTMLElement {
         minGcdInput.pattern = '\\d\\.\\d\\d?';
         minGcdInput.title = 'Enter the minimum desired GCD in the form x.yz.\nSkS/SpS materia will be de-prioritized once this target GCD is met.';
         minGcdInput.classList.add('min-gcd-input');
-        this.replaceChildren(header, drag, document.createElement('br'),
-            minGcdText, minGcdInput, document.createElement('br'),
-            fillModeLabel, fillModeDropdown, document.createElement('br'),
-            solveMelds, fillEmptyNow, fillAllNow);
+        this.replaceChildren(header, drag,
+            document.createElement('br'),
+            minGcdText, minGcdInput,
+            document.createElement('br'),
+            fillModeLabel, fillModeDropdown,
+            document.createElement('br'),
+            solveMelds, fillEmptyNow, fillAllNow,
+            document.createElement('br'),
+            lockAllEquipped, lockAllEmpty, unlockAll, unequipAll);
     }
 }
 

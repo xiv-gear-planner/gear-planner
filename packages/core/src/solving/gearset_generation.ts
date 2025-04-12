@@ -292,6 +292,11 @@ export class GearsetGenerator {
         }
     }
 
+    /**
+     * Given an item, find all possible combinations of materia, minus those that have exactly the same resulting stats
+     * as another combination.
+     * @param equippedItem
+     */
     public getAllMeldCombinationsForGearItem(equippedItem: EquippedItem): ItemWithStats[] {
 
         const basePiece = new ItemWithStats(this.cloneEquippedItem(equippedItem), this.getPieceEffectiveStats(equippedItem));
