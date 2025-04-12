@@ -374,6 +374,7 @@ export interface ComputedSetStats extends RawStats {
 export interface MeldableMateriaSlot {
     materiaSlot: MateriaSlot;
     equippedMateria: Materia | null;
+    locked: boolean;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-declaration-merging
@@ -741,13 +742,12 @@ export type CustomFoodExport = {
 }
 
 
-
 export type RelicStatMemoryExport = {
     [p: number]: RelicStats;
 };
 
 
-export type SlotMateriaMemoryExport = [item: number, materiaIds: number[]];
+export type SlotMateriaMemoryExport = [item: number, materiaIds: number[], locked?: boolean[]];
 
 export type MateriaMemoryExport = {
     [slot in EquipSlotKey]?: SlotMateriaMemoryExport[]
@@ -876,7 +876,8 @@ export interface ItemSlotExport {
         /**
          * The item ID of this materia. -1 indicates no materia equipped in this slot.
          */
-        id: number
+        id: number,
+        locked?: boolean,
     } | undefined)[],
     /**
      * If this is a relic, represents the current stats of the relic.
@@ -895,17 +896,48 @@ export type RelicStatsExport = {
 export type PartyBonusAmount = 0 | 1 | 2 | 3 | 4 | 5;
 
 
-export interface MateriaAutoFillController {
+/**
+ * MateriaAutoFillController is the interface for bulk materia actions and some
+ * settings related to them.
+ */
+export type MateriaAutoFillController = {
     readonly prio: MateriaAutoFillPrio;
     autoFillMode: MateriaFillMode;
 
+    /**
+     * callback() should be called after changing settings to ensure they get saved.
+     */
     callback(): void;
 
+    /**
+     * Fill empty slots according to priority.
+     */
     fillEmpty(): void;
 
+    /**
+     * Fill all slots according to priority, overwriting existing materia if needed.
+     */
     fillAll(): void;
 
-    refreshOnly(): void;
+    /**
+     * Lock all filled slots.
+     */
+    lockFilled(): void;
+
+    /**
+     * Lock all empty slots.
+     */
+    lockEmpty(): void;
+
+    /**
+     * Unlock all slots.
+     */
+    unlockAll(): void;
+
+    /**
+     * Unequip materia in unlocked slots.
+     */
+    unequipUnlocked(): void;
 }
 
 export interface MateriaAutoFillPrio {
@@ -1077,6 +1109,10 @@ export type RelicStats = {
     [K in Substat]?: number
 }
 
+/**
+ * EquippedItem represents an item as it is actually equipped, not just a base item. Thus includes customizations such
+ * as equipped materia, materia locking, and custom relic stats.
+ */
 export class EquippedItem {
 
     gearItem: GearItem;
@@ -1091,6 +1127,7 @@ export class EquippedItem {
                 this.melds.push({
                     materiaSlot: materiaSlot,
                     equippedMateria: null,
+                    locked: false,
                 });
             }
         }
@@ -1102,6 +1139,9 @@ export class EquippedItem {
         }
     }
 
+    /**
+     * Clone creates a deep clone of this EquippedItem.
+     */
     clone(): EquippedItem {
         const out = new EquippedItem(
             this.gearItem
@@ -1109,6 +1149,7 @@ export class EquippedItem {
         // Deep clone the materia slots
         this.melds.forEach((slot, index) => {
             out.melds[index].equippedMateria = slot.equippedMateria;
+            out.melds[index].locked = slot.locked;
         });
         if (this.relicStats !== undefined && out.relicStats !== undefined) {
             Object.assign(out.relicStats, this.relicStats);

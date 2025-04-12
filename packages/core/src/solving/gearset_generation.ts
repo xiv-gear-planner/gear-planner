@@ -120,7 +120,12 @@ export class GearsetGenerator {
                 const equipSlot = equipment[slotKey] as EquippedItem | null;
                 const gearItem = equipSlot?.gearItem;
                 if (gearItem) {
-                    equipSlot.melds.forEach(meldSlot => meldSlot.equippedMateria = null);
+                    equipSlot.melds.forEach(meldSlot => {
+                        // Don't overwrite locked slots
+                        if (!meldSlot.locked) {
+                            meldSlot.equippedMateria = null;
+                        }
+                    });
                 }
             }
         }
@@ -287,6 +292,11 @@ export class GearsetGenerator {
         }
     }
 
+    /**
+     * Given an item, find all possible combinations of materia, minus those that have exactly the same resulting stats
+     * as another combination.
+     * @param equippedItem
+     */
     public getAllMeldCombinationsForGearItem(equippedItem: EquippedItem): ItemWithStats[] {
 
         const basePiece = new ItemWithStats(this.cloneEquippedItem(equippedItem), this.getPieceEffectiveStats(equippedItem));
@@ -297,8 +307,10 @@ export class GearsetGenerator {
 
         for (let slotNum = 0; slotNum < equippedItem.gearItem.materiaSlots.length; slotNum += 1) {
 
-            // We are presuming that any pre-existing materia is locked. Skip this slot and continue from next.
-            if (equippedItem.melds[slotNum].equippedMateria !== null && equippedItem.melds[slotNum].equippedMateria !== undefined) {
+            // Skip a slot if it is either explicitly locked, or it has something in it already (which would imply that
+            // the user did not wish to overwrite existing materia)
+            const slot = equippedItem.melds[slotNum];
+            if (slot.locked || slot.equippedMateria !== null && slot.equippedMateria !== undefined) {
                 continue;
             }
 
@@ -340,7 +352,6 @@ export class GearsetGenerator {
             for (const [key, item] of itemsToAdd) {
                 meldCombinations.set(key, item);
             }
-
         }
 
         return Array.from(meldCombinations.values());

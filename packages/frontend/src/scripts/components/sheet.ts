@@ -1421,7 +1421,7 @@ export class GearPlanSheetGui extends GearPlanSheet {
     }
 
 
-    setupRealGui() {
+    private setupRealGui() {
         const buttonsArea = this.buttonsArea;
         const showHideButton = makeActionButton('≡', () => {
             const cls = 'showing';
@@ -1642,6 +1642,17 @@ export class GearPlanSheetGui extends GearPlanSheet {
 
 
         const outer = this;
+
+        function doSet(f: (set: CharacterGearSet) => void): void {
+            let set;
+            if ((set = outer._editorItem) instanceof CharacterGearSet) {
+                f(set);
+                if (outer._editorAreaNode instanceof GearSetEditor) {
+                    outer._editorAreaNode.refreshMateria();
+                }
+            }
+        }
+
         const matFillCtrl: MateriaAutoFillController = {
 
             get autoFillMode() {
@@ -1658,30 +1669,50 @@ export class GearPlanSheetGui extends GearPlanSheet {
                 outer.requestSave();
             },
             fillAll(): void {
-                let set;
-                if ((set = outer._editorItem) instanceof CharacterGearSet) {
-                    set.fillMateria(outer.materiaAutoFillPrio, true);
-                    if (outer._editorAreaNode instanceof GearSetEditor) {
-                        outer._editorAreaNode.refreshMateria();
-                    }
-                }
+                doSet(set => set.fillMateria(outer.materiaAutoFillPrio, true));
             },
             fillEmpty(): void {
-                let set;
-                if ((set = outer._editorItem) instanceof CharacterGearSet) {
-                    set.fillMateria(outer.materiaAutoFillPrio, false);
-                    if (outer._editorAreaNode instanceof GearSetEditor) {
-                        outer._editorAreaNode.refreshMateria();
-                    }
-                }
+                doSet(set => set.fillMateria(outer.materiaAutoFillPrio, false));
             },
-            // TODO: remove?
-            refreshOnly() {
-                if (outer._editorAreaNode instanceof GearSetEditor) {
-                    // outer._editorAreaNode.refreshMateria();
-                }
+            lockEmpty(): void {
+                doSet(set => {
+                    set.forEachMateriaSlot((_key, _item, slot) => {
+                        if (!slot.equippedMateria) {
+                            slot.locked = true;
+                        }
+                    });
+                    // Only save - no recalc
+                    set.nonRecalcNotify();
+                });
             },
-
+            lockFilled(): void {
+                doSet(set => {
+                    set.forEachMateriaSlot((_key, _item, slot) => {
+                        if (slot.equippedMateria) {
+                            slot.locked = true;
+                        }
+                    });
+                    set.nonRecalcNotify();
+                });
+            },
+            unequipUnlocked(): void {
+                doSet(set => {
+                    set.forEachMateriaSlot((_key, _item, slot) => {
+                        if (!slot.locked) {
+                            slot.equippedMateria = null;
+                        }
+                    });
+                    set.forceRecalc();
+                });
+            },
+            unlockAll(): void {
+                doSet(set => {
+                    set.forEachMateriaSlot((_key, _item, slot) => {
+                        slot.locked = false;
+                    });
+                    set.nonRecalcNotify();
+                });
+            },
         };
         this._materiaAutoFillController = matFillCtrl;
         this._gearEditToolBar = new GearEditToolbar(
@@ -1777,12 +1808,18 @@ export class GearPlanSheetGui extends GearPlanSheet {
         this._sheetSetupDone = true;
     }
 
+    /**
+     * Refresh all materia widgets on the current sheet.
+     */
     public refreshMateria() {
         if (this._editorAreaNode instanceof GearSetEditor) {
             this._editorAreaNode.refreshMateria();
         }
     }
 
+    /**
+     * The top-level element which is to be added to the page.
+     */
     get topLevelElement() {
         return this.element;
     }
@@ -1792,6 +1829,10 @@ export class GearPlanSheetGui extends GearPlanSheet {
         this.setupRealGui();
     }
 
+    /**
+     * Called when gear filters have been changed. It will eventually result in gear lists being refreshed, but with
+     * a delay such that multiple successive updates are coalesced into a single refresh.
+     */
     onGearDisplaySettingsUpdate() {
         this.gearUpdateTimer.ping();
     }
@@ -1874,6 +1915,9 @@ export class GearPlanSheetGui extends GearPlanSheet {
         }
     }
 
+    /**
+     * Refreshes the toolbar. Should be called when switching sets.
+     */
     refreshToolbar() {
         if (this._editorItem instanceof CharacterGearSet) {
             if (this.toolbarNode !== undefined && 'refresh' in this.toolbarNode && typeof this.toolbarNode.refresh === 'function') {
@@ -1915,12 +1959,18 @@ export class GearPlanSheetGui extends GearPlanSheet {
         this.gearPlanTable?.simsChanged();
     }
 
+    /**
+     * Show the add simulation modal.
+     */
     showAddSimDialog() {
         const addSimDialog = new AddSimDialog(this);
         document.querySelector('body').appendChild(addSimDialog);
         addSimDialog.show();
     }
 
+    /**
+     * Show the meld solving modal.
+     */
     showMeldSolveDialog() {
         if (!(this._editorItem instanceof CharacterGearSet)) {
             return;
@@ -1930,6 +1980,9 @@ export class GearPlanSheetGui extends GearPlanSheet {
         meldSolveDialog.show();
     }
 
+    /**
+     * The gear sheets table.
+     */
     get gearPlanTable(): GearPlanTable {
         return this._gearPlanTable;
     }
@@ -2284,9 +2337,9 @@ function formatSyncInfo(si: SyncInfo, level: SupportedLevel): string | null {
         if (isLvlSynced) {
             text += `lv${si.lvlSync} `;
         }
-        // If level sync isn't explicitly set, show the level anyway
-        // if item level sync is present in any way to avoid confusion.
         else if (si.ilvlSync !== null) {
+            // If level sync isn't explicitly set, show the level anyway
+            // if item level sync is present in any way to avoid confusion.
             text += `lv${level} `;
         }
         if (si.ilvlSync !== null) {

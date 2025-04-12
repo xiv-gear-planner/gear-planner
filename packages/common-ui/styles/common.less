@@ -1395,6 +1395,10 @@ slot-materia-manager.editable:hover {
 
 slot-materia-manager {
   cursor: pointer;
+
+  slot-materia-popup {
+    cursor: unset;
+  }
 }
 
 slot-materia-manager, single-materia-view-only {
@@ -1433,6 +1437,10 @@ slot-materia-manager, single-materia-view-only {
     width: 100%;
     height: 100%;
     display: block;
+  }
+
+  &.materia-slot-locked {
+    box-shadow: 0 0 2px 2px #777 inset;
   }
 
   &.materia-manager-active {
@@ -1982,6 +1990,11 @@ div.gear-set-editor-toolbar, set-view-toolbar {
 
       // When a drag is active, THIS needs to be the target of pointer events so that
       // the math works right.
+    }
+
+    .meld-solver-tips {
+      width: 200px;
+      padding: 5px;
     }
   }
 
@@ -3556,6 +3569,11 @@ settings-modal {
 input {
   background: var(--input-background-color);
   border: none !important;
+}
+
+button.narrow-button {
+  width: min-content;
+  height: fit-content;
 }
 
 @import 'gauge.less';
