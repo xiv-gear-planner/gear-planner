@@ -3,7 +3,6 @@ import {
     EquippedItem,
     GearItem,
     Materia,
-    MateriaMemoryExport,
     MateriaSlot,
     MeldableMateriaSlot,
     RawStats, SlotMateriaMemoryExport
