@@ -82,7 +82,7 @@ export type NavPath = {
     // TODO: is this being used anywhere?
     path: string[],
     job: JobName,
-    expac: string,
+    folder?: string,
     sheet: string,
     onlySetIndex?: number,
     defaultSelectionIndex?: number,
@@ -205,12 +205,24 @@ export function parsePath(state: NavState): NavPath | null {
     }
     else if (mainNav === BIS_HASH) {
         embedWarn();
+        if (path.length === 3) {
+            return {
+                type: 'bis',
+                path: [path[1], path[2]],
+                job: path[1] as JobName,
+                sheet: path[2],
+                viewOnly: true,
+                embed: false,
+                onlySetIndex: state.onlySetIndex,
+                defaultSelectionIndex: state.selectIndex,
+            };
+        }
         if (path.length >= 4) {
             return {
                 type: 'bis',
                 path: [path[1], path[2], path[3]],
                 job: path[1] as JobName,
-                expac: path[2],
+                folder: path[2],
                 sheet: path[3],
                 viewOnly: true,
                 embed: false,
