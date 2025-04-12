@@ -2022,6 +2022,7 @@ div.gear-set-editor-toolbar, set-view-toolbar {
     &.stat-tiering-clickable {
       cursor: pointer;
     }
+
     &.stat-tiering-unclickable {
       cursor: default;
     }
@@ -2042,32 +2043,28 @@ div.gear-set-editor-toolbar, set-view-toolbar {
       > div.single-stat-tier-display-lower-left {
         color: color-mix(in srgb, var(--stat-color) 70%, var(--stat-tiering-box-mix-color));
         line-height: 0;
-        //float: left;
       }
     }
 
     &.stat-tiering-perfect {
       .number-format-perfect;
-
-      //border-color: color-mix(in srgb, var(--stat-color) 60%, var(--border-color));
       box-shadow: 0 0 5px -1px inset color-mix(in srgb, var(--stat-color) 50%, var(--border-color));
-      //border-width: 2px;
     }
 
-    --inner-padding: 3px;
+    --inner-padding: 0px;
 
     div.single-stat-tier-display-lower-left {
       display: inline-block;
       padding-left: var(--inner-padding);
       padding-right: var(--inner-padding);
-      //float: left;
+      width: 49%;
     }
 
     div.single-stat-tier-display-lower-right {
       display: inline-block;
       padding-left: var(--inner-padding);
       padding-right: var(--inner-padding);
-      //float: right;
+      width: 49%;
     }
 
     div.single-stat-tier-display-expansion {
@@ -2617,7 +2614,8 @@ gear-set-viewer {
       right: 0;
       top: 0;
       bottom: 0;
-      >span {
+
+      > span {
         vertical-align: middle;
       }
     }
@@ -3550,9 +3548,11 @@ button[disabled] {
 settings-modal {
   .modal-content-area {
     padding: 15px;
-    >* {
+
+    > * {
       display: block;
     }
+
     #language-picker {
       width: 100%;
     }

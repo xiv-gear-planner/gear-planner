@@ -313,6 +313,7 @@ export class WorkerPool {
         return new SheetWorker(worker, name, () => this.stateUpdate());
     }
 
+    // TODO: this is called upon sheet load. It should be as minimal as possible.
     public async setSheet(sheet: GearPlanSheet) {
         this.currentSheet = sheet;
         const promises: Promise<unknown>[] = [];

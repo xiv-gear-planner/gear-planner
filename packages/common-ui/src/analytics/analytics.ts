@@ -23,26 +23,51 @@ export function recordEvent(name: string, data?: ExtraData) {
     }
 }
 
-export function recordError(where: string, error: unknown) {
-    if (error instanceof Error) {
-        const eventData = {
-            ...toSerializableForm(error),
-            where: where,
-        };
-        umami.track("error", eventData);
+export function recordError(where: string, error: unknown, extraProps: object = {}) {
+    const umami = window.umami;
+    try {
+        if (error instanceof Error) {
+            const eventData = {
+                ...toSerializableForm(error),
+                ...extraProps,
+                where: where,
+            };
+            umami?.track("error", eventData);
+        }
+        else if (error instanceof Object) {
+            const eventData = {
+                ...error,
+                ...extraProps,
+                where: where,
+            };
+            umami?.track("error", eventData);
+        }
+        else {
+            const eventData = {
+                stringData: String(error),
+                ...extraProps,
+                where: where,
+            };
+            umami?.track("error", eventData);
+        }
     }
-    else if (error instanceof Object) {
-        const eventData = {
-            ...error,
-            where: where,
-        };
-        umami.track("error", eventData);
+    catch (e) {
+        try {
+            recordEvent("errorLoggingError", {msg: String(e)});
+        }
+        catch (e) {
+            // ignored
+        }
+        console.error("error logging error", e);
     }
-    else {
-        const eventData = {
-            stringData: String(error),
-            where: where,
-        };
-        umami.track("error", eventData);
-    }
+}
+
+try {
+    window.addEventListener('unhandledrejection', e => {
+        recordError("unhandledRejection", String(e.reason));
+    });
+}
+catch (e) {
+    // Likely, browser does not support this
+    console.warn("Could not install unhandled promise tracker", e);
 }
