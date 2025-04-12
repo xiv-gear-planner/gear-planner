@@ -452,10 +452,12 @@ export class MateriaPriorityPicker extends HTMLElement {
         }, 'Unlock all slots');
         unlockAll.classList.add('narrow-button');
 
-        const unequipAll = makeActionButton('Unequip Unlocked', () => {
+        const unequipAll = makeActionButton('Remove Unlocked', () => {
             prioController.unequipUnlocked();
         }, 'Unequip all unlocked materia');
         unequipAll.classList.add('narrow-button');
+
+        const tips = quickElement('div', ['meld-solver-tips'], ['Tip: Ctrl-click a materia slot to lock/unlock it. Alt-click to remove materia.']);
 
         const solveMelds = makeActionButton('Solve', () => sheet.showMeldSolveDialog(), "Solve for the highest damage melds for your chosen gear");
 
@@ -496,7 +498,10 @@ export class MateriaPriorityPicker extends HTMLElement {
             document.createElement('br'),
             solveMelds, fillEmptyNow, fillAllNow,
             document.createElement('br'),
-            lockAllEquipped, lockAllEmpty, unlockAll, unequipAll);
+            lockAllEquipped, lockAllEmpty, unlockAll, unequipAll,
+            document.createElement('br'),
+            tips
+        );
     }
 }
 
