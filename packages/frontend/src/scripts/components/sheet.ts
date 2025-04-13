@@ -444,7 +444,15 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, SingleCellRowOr
                 renderer: (value: CharacterGearSet) => {
                     const nameSpan = document.createElement('span');
                     const elements: Element[] = [nameSpan];
-                    nameSpan.textContent = value.name;
+                    if (value.name.trim().length === 0
+                        && (value.description === undefined || value.description.trim().length === 0)) {
+                        // If length is zero, insert an NBSP so that the row doesn't collapse to 0 pixels when viewing
+                        // a separator with an empty title+desc.
+                        nameSpan.textContent = '\xa0';
+                    }
+                    else {
+                        nameSpan.textContent = value.name;
+                    }
                     const trimmedDesc = value.description?.trim();
                     let title = value.name;
                     // Description is only on view-only mode
