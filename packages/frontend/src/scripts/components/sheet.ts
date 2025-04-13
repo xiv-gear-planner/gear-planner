@@ -1986,8 +1986,10 @@ export class GearPlanSheetGui extends GearPlanSheet {
             return;
         }
         const meldSolveDialog = new MeldSolverDialog(this, this.editorItem as CharacterGearSet);
-        document.querySelector('body').appendChild(meldSolveDialog);
-        meldSolveDialog.show();
+        if (meldSolveDialog) {
+            document.querySelector('body').appendChild(meldSolveDialog);
+            meldSolveDialog.show();
+        }
     }
 
     /**
