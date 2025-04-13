@@ -223,7 +223,7 @@ export class CustomItemPopup extends BaseModal {
     close() {
         super.close();
         this.sheet.requestSave();
-        this.sheet.onGearDisplaySettingsUpdate();
+        this.sheet.gearDisplaySettingsUpdateLater();
         this.sheet.recheckCustomItems();
         this.sheet.recalcAll();
     }
@@ -375,7 +375,7 @@ export class CustomFoodPopup extends BaseModal {
     close() {
         super.close();
         this.sheet.requestSave();
-        this.sheet.onGearDisplaySettingsUpdate();
+        this.sheet.gearDisplaySettingsUpdateLater();
         this.sheet.recalcAll();
     }
 }
