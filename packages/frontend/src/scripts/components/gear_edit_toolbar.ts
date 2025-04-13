@@ -144,6 +144,15 @@ export class ToolbarButtonsArea extends HTMLDivElement {
         this.panelButtons.push(button);
     }
 
+    addPanelButtonModal(label: (string | Node)[], showModalFunc: () => void) {
+        const button = makeActionButton(label, (ev) => {
+            showModalFunc();
+        });
+        button.classList.add('popout-button');
+        this.appendChild(button);
+        this.panelButtons.push(button);
+    }
+
     closePopout(): void {
         const attr = 'popout-active';
         this.panelButtons.forEach(btn => {
@@ -197,11 +206,6 @@ export class GearEditToolbar extends HTMLDivElement {
         super();
         this.classList.add('gear-set-editor-toolbar');
 
-        // const leftDrag = quickElement('div', ['toolbar-float-left'], [document.createTextNode('≡')])
-        // const rightDrag = quickElement('div', ['toolbar-float-right'], [document.createTextNode('≡')])
-        // this.appendChild(leftDrag);
-        // this.appendChild(rightDrag);
-
         this.buttonsArea = new ToolbarButtonsArea();
 
         const ilvlDiv = makeGearFiltersArea(sheet, itemDisplaySettings, updateGearDisplayNow, () => {
@@ -214,7 +218,9 @@ export class GearEditToolbar extends HTMLDivElement {
 
         const materiaPriority = new MateriaPriorityPicker(matFillCtrl, sheet);
 
-        this.buttonsArea.addPanelButton(["Materia", document.createElement('br'), "Fill/Solve"], materiaPriority);
+        this.buttonsArea.addPanelButton(["Materia", document.createElement('br'), "Fill/Lock"], materiaPriority);
+
+        this.buttonsArea.addPanelButtonModal(["Meld", document.createElement('br'), "Solver"], () => sheet.showMeldSolveDialog());
 
         this.statTierDisplay = new StatTierDisplay(sheet);
         this.appendChild(this.statTierDisplay);
