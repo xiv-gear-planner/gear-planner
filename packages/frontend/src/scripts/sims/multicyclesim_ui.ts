@@ -137,8 +137,8 @@ export class BaseMultiCycleSimGui<ResultType extends CycleSimResult, InternalSet
     makeResultDisplay(result: FullResultType): HTMLElement {
         const mainResultsTable = this.makeMainResultDisplay(result.best, result.all.length > 1);
         const abilitiesUsedTable = this.makeAbilityUsedTable(result.best);
+        const mainHolder = quickElement('div', ['cycle-sim-table-holder', 'cycle-sim-main-holder'], [mainResultsTable]);
         if (result.all.length > 1) {
-            const mainHolder = quickElement('div', ['cycle-sim-table-holder', 'cycle-sim-main-holder'], [mainResultsTable]);
             const rotationsTable = this.makeRotationsTable(result, mainHolder, abilitiesUsedTable);
             return quickElement('div', ['cycle-sim-results', 'cycle-sim-results-full'], [
                 mainHolder,
@@ -149,7 +149,10 @@ export class BaseMultiCycleSimGui<ResultType extends CycleSimResult, InternalSet
             ]);
         }
         else {
-            return quickElement('div', ['cycle-sim-results', 'cycle-sim-results-simple'], [mainResultsTable, abilitiesUsedTable]);
+            return quickElement('div', ['cycle-sim-results', 'cycle-sim-results-simple'], [
+                mainHolder,
+                quickElement('div', ['cycle-sim-table-holder', 'cycle-sim-abilities-holder'], [abilitiesUsedTable]),
+            ]);
         }
     }
 
