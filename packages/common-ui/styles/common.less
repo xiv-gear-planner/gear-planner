@@ -3485,6 +3485,40 @@ button.narrow-button {
 
 @import 'gauge.less';
 
+expandable-text {
+
+  p {
+    margin-top: 0;
+  }
+
+
+  &.truncated {
+    .truncatable-text-area-inner {
+      -webkit-line-clamp: var(--truncatable-line-clamp);
+      overflow: hidden;
+      -webkit-box-orient: vertical;
+      display: -webkit-box;
+      mask-image: linear-gradient(180deg, black 90%, transparent 100%);
+    }
+    .truncation-expand-button {
+      display: unset;
+    }
+  }
+  .truncation-expand-button {
+    display: none;
+    margin-bottom: 10px;
+  }
+}
+
+.set-description-holder {
+  --truncatable-line-clamp: 6;
+  margin-bottom: 16px;
+  button {
+    .shadow;
+    border-radius: 5px;
+  }
+}
+
 // TODO: narrow version of this
 // TODO: table is a bit too wide normally
 .cycle-sim-results {

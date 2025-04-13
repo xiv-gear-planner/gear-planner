@@ -88,6 +88,7 @@ import {insertAds} from "./ads";
 import {SETTINGS} from "@xivgear/common-ui/settings/persistent_settings";
 import {isInIframe} from "@xivgear/common-ui/util/detect_iframe";
 import {recordEvent} from "@xivgear/common-ui/analytics/analytics";
+import {ExpandableText} from "@xivgear/common-ui/components/expandy_text";
 
 const noSeparators = (set: CharacterGearSet) => !set.isSeparator;
 
@@ -784,6 +785,14 @@ export class SimResultMiniDisplay extends HTMLElement {
     }
 }
 
+function makeDescriptionHolder(text: string): HTMLElement {
+    const fullParagraphs = stringToParagraphs(text);
+    const out = new ExpandableText();
+    out.classList.add('set-description-holder');
+    out.setChildren(fullParagraphs);
+    return out;
+}
+
 function stringToParagraphs(text: string): HTMLParagraphElement[] {
     return text.trim().split('\n').map(line => {
         const p = document.createElement('p');
@@ -800,7 +809,7 @@ export class GearSetEditor extends HTMLElement {
     private readonly gearSet: CharacterGearSet;
     private gearTables: GearItemsTable[] = [];
     private header: HTMLHeadingElement;
-    private desc: HTMLDivElement;
+    private desc: ExpandableText;
     private issuesButtonContent: HTMLSpanElement;
 
     constructor(sheet: GearPlanSheet, gearSet: CharacterGearSet) {
@@ -810,19 +819,19 @@ export class GearSetEditor extends HTMLElement {
         this.setup();
     }
 
-    formatTitleDesc() {
+    formatTitleDesc(): void {
         this.header.textContent = this.gearSet.name;
         const trimmedDesc = this.gearSet.description?.trim();
         if (trimmedDesc) {
             this.desc.style.display = '';
-            this.desc.replaceChildren(...stringToParagraphs(trimmedDesc));
+            this.desc.setChildren(stringToParagraphs(trimmedDesc));
         }
         else {
             this.desc.style.display = 'none';
         }
     }
 
-    checkIssues() {
+    checkIssues(): void{
         const issues = this.gearSet.issues;
         if (issues.length >= 1) {
             this.issuesButtonContent.replaceChildren(iconForIssues(...issues), `${issues.length} issue${issues.length === 1 ? '' : 's'}`);
@@ -844,7 +853,8 @@ export class GearSetEditor extends HTMLElement {
         // this.appendChild(nameEditor);
 
         this.header = document.createElement('h2');
-        this.desc = document.createElement('div');
+        this.desc = new ExpandableText();
+        this.desc.classList.add('set-description-holder');
         this.appendChild(this.header);
         this.appendChild(this.desc);
         this.formatTitleDesc();
@@ -1062,7 +1072,7 @@ export class GearSetViewer extends HTMLElement {
         this.appendChild(heading);
 
         if (this.gearSet.description) {
-            const descContainer = quickElement('div', [], stringToParagraphs(this.gearSet.description));
+            const descContainer = makeDescriptionHolder(this.gearSet.description);
             this.appendChild(descContainer);
         }
 
