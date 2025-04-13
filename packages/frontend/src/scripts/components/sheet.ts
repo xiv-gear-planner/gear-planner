@@ -1726,9 +1726,7 @@ export class GearPlanSheetGui extends GearPlanSheet {
         this._gearEditToolBar = new GearEditToolbar(
             this,
             this.itemDisplaySettings,
-            // () => this.gearUpdateTimer.ping(),
-            () => {
-            },
+            () => this.gearDisplaySettingsUpdateNow(),
             matFillCtrl
         );
 
@@ -1841,8 +1839,12 @@ export class GearPlanSheetGui extends GearPlanSheet {
      * Called when gear filters have been changed. It will eventually result in gear lists being refreshed, but with
      * a delay such that multiple successive updates are coalesced into a single refresh.
      */
-    onGearDisplaySettingsUpdate() {
+    gearDisplaySettingsUpdateLater() {
         this.gearUpdateTimer.ping();
+    }
+
+    gearDisplaySettingsUpdateNow() {
+        this.gearUpdateTimer.runNext();
     }
 
     get materiaAutoFillController() {
