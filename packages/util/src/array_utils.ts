@@ -2,19 +2,38 @@ export function sum(numbers: number[]) {
     return numbers.reduce((sum, val) => sum + val, 0);
 }
 
-// TODO: these ignore startInclusive
+/**
+ * Range produces a range of numbers starting with startInclusive and ending before endExclusive.
+ *
+ * If startInclusive is greater than endExclusive, or increment is not positive, the behavior of this function
+ * is undefined.
+ *
+ * @param startInclusive
+ * @param endExclusive
+ * @param increment defaults to 1
+ */
 export function range(startInclusive: number, endExclusive: number, increment: number = 1): number[] {
     const out = [];
-    for (let i = 0; i < endExclusive; i += increment) {
+    for (let i = startInclusive; i < endExclusive; i += increment) {
         out.push(i);
     }
     return out;
 }
 
-// TODO: these ignore startInclusive
+/**
+ * Range produces a range of numbers starting with startInclusive and ending with endExclusive (assuming it would
+ * have been included in the range based on startInclusive and endInclusive.
+ *
+ * If startInclusive is greater than endInclusive, or increment is not positive, the behavior of this function
+ * is undefined.
+ *
+ * @param startInclusive
+ * @param endInclusive
+ * @param increment defaults to 1
+ */
 export function rangeInc(startInclusive: number, endInclusive: number, increment: number = 1): number[] {
     const out = [];
-    for (let i = 0; i <= endInclusive; i += increment) {
+    for (let i = startInclusive; i <= endInclusive; i += increment) {
         out.push(i);
     }
     return out;

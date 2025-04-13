@@ -459,8 +459,6 @@ export class MateriaPriorityPicker extends HTMLElement {
 
         const tips = quickElement('div', ['meld-solver-tips'], ['Tip: Ctrl-click a materia slot to lock/unlock it. Alt-click to remove materia.']);
 
-        const solveMelds = makeActionButton('Solve', () => sheet.showMeldSolveDialog(), "Solve for the highest damage melds for your chosen gear");
-
         const drag = new MateriaDragList(prioController);
 
         const minGcdText = document.createElement('span');
@@ -496,7 +494,7 @@ export class MateriaPriorityPicker extends HTMLElement {
             document.createElement('br'),
             fillModeLabel, fillModeDropdown,
             document.createElement('br'),
-            solveMelds, fillEmptyNow, fillAllNow,
+            fillEmptyNow, fillAllNow,
             document.createElement('br'),
             lockAllEquipped, lockAllEmpty, unlockAll, unequipAll,
             document.createElement('br'),

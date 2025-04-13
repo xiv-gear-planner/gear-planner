@@ -1097,16 +1097,20 @@ export class GearPlanSheet {
     /**
      * Overridable hook for when gear display settings are updated.
      */
-    onGearDisplaySettingsUpdate() {
+    gearDisplaySettingsUpdateLater() {
+
+    }
+
+    gearDisplaySettingsUpdateNow() {
 
     }
 
     /**
-     * The item display settings. Uses a proxy which automatically calls {@link #onGearDisplaySettingsUpdate} after
+     * The item display settings. Uses a proxy which automatically calls {@link #gearDisplaySettingsUpdateLater} after
      * any fields are modified.
      */
     get itemDisplaySettings(): ItemDisplaySettings {
-        return writeProxy(this._itemDisplaySettings, () => this.onGearDisplaySettingsUpdate());
+        return writeProxy(this._itemDisplaySettings, () => this.gearDisplaySettingsUpdateLater());
     }
 
     /**

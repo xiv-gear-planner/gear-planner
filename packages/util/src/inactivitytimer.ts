@@ -23,6 +23,14 @@ export class Inactivitytimer {
         }, this._inactivityTimeMs);
     }
 
+    runNext() {
+        this.counter++;
+        const expectedCount = this.counter;
+        setTimeout(() => {
+            this.pingAfter(expectedCount);
+        }, 0);
+    }
+
     private pingAfter(exectedCount: number) {
         // console.debug('pingafter', exectedCount, this.counter);
         if (this.counter === exectedCount) {

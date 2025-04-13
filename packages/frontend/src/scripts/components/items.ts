@@ -589,7 +589,11 @@ export class GearItemsTable extends CustomTable<GearSlotItem, TableSelectionMode
             const extras = [];
             if (slotId === 'Weapon') {
                 const cb = new FieldBoundCheckBox(sheet.itemDisplaySettings, 'higherRelics');
+                cb.addListener(() => {
+                    sheet.gearDisplaySettingsUpdateNow();
+                });
                 const lcb = labeledCheckbox('Display relics above max ilvl setting', cb);
+                lcb.addEventListener('click', e => e.stopPropagation());
                 extras.push(lcb);
             }
             // TODO: initial value needs to apply to this
