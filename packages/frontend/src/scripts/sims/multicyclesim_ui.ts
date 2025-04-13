@@ -16,7 +16,6 @@ import {
     col, CustomCell, CustomColumn, CustomRow,
     CustomTable,
     HeaderRow, SingleCellRowOrHeaderSelection,
-    SingleRowSelectionModel,
     TableSelectionModel
 } from "@xivgear/common-ui/table/tables";
 
