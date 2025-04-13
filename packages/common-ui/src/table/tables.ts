@@ -368,13 +368,13 @@ export interface RefreshableRow<X> {
     get element(): HTMLElement;
 }
 
-// TODO: there is a redundant copy of this in math-frontend, put these in common-ui
 export class CustomTable<RowDataType, SelectionType extends TableSelectionModel<RowDataType, unknown, unknown, unknown> = TableSelectionModel<RowDataType, unknown, unknown, never>> extends HTMLTableElement {
     _data: (RowDataType | HeaderRow | TitleRow)[] = [];
     dataRowMap: Map<RowDataType, CustomRow<RowDataType>> = new Map<RowDataType, CustomRow<RowDataType>>();
     selectionRefreshables: SelectionRefresh[] = [];
     _rows: RefreshableRow<RowDataType>[] = [];
     _columns!: CustomColumn<RowDataType, unknown, unknown>[];
+    // TODO: should changing selection model also refresh the current selection?
     selectionModel: SelectionType = noopSelectionModel as SelectionType;
 
     constructor() {

@@ -6,6 +6,7 @@ import {DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/core/sims/
 import {AutoAttack, Buff, CombinedBuffEffect, GcdAbility, OgcdAbility} from "@xivgear/core/sims/sim_types";
 import {ItemIcon} from "../../components/item_icon";
 import {quickElement} from "@xivgear/common-ui/components/util";
+import {abilityToDamageNew} from "@xivgear/core/sims/sim_utils";
 
 /**
  * Format a time into the format x:yy.zz
@@ -190,8 +191,11 @@ export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
             }),
             ...extraColumns,
         ];
-        this.data = [new HeaderRow(), ...abilitiesUsed];
-        // this.style.tableLayout = 'auto';
+        this.setNewData(abilitiesUsed);
+    }
+
+    setNewData(used: readonly DisplayRecordFinalized[]) {
+        this.data = [new HeaderRow(), ...used];
     }
 }
 

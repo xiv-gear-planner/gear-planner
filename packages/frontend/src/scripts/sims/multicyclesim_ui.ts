@@ -7,11 +7,18 @@ import {NamedSection} from "../components/section";
 import {BuffSettingsArea} from "./party_comp_settings";
 import {ResultSettingsArea} from "./components/result_settings";
 import {applyStdDev} from "@xivgear/xivmath/deviation";
-import {simpleAutoResultTable} from "./components/simple_tables";
+import {bestEffortFormat, simpleAutoResultTable} from "./components/simple_tables";
 import {AbilitiesUsedTable} from "./components/ability_used_table";
 import {quickElement} from "@xivgear/common-ui/components/util";
 import {BaseMultiCycleSim} from "@xivgear/core/sims/processors/sim_processors";
 import {AnyStringIndex} from "@xivgear/util/types";
+import {
+    col, CustomCell, CustomColumn, CustomRow,
+    CustomTable,
+    HeaderRow, SingleCellRowOrHeaderSelection,
+    SingleRowSelectionModel,
+    TableSelectionModel
+} from "@xivgear/common-ui/table/tables";
 
 export class BaseMultiCycleSimGui<ResultType extends CycleSimResult, InternalSettingsType extends SimSettings, CycleProcessorType extends CycleProcessor = CycleProcessor, FullResultType extends CycleSimResultFull<ResultType> = CycleSimResultFull<ResultType>>
     extends SimulationGui<FullResultType, InternalSettingsType, ExternalCycleSettings<InternalSettingsType>> {
@@ -78,6 +85,51 @@ export class BaseMultiCycleSimGui<ResultType extends CycleSimResult, InternalSet
         return mainResultsTable;
     }
 
+    private makeRotationsTable(result: FullResultType, mainResultsTableHolder: HTMLElement, abilitiesUsedTable: AbilitiesUsedTable): HTMLTableElement {
+        const out = new CustomTable<ResultType, TableSelectionModel<ResultType>>();
+        out.columns = [
+            col({
+                shortName: 'rotname',
+                displayName: 'Rotation',
+                getter: item => item.label,
+            }), col({
+                shortName: 'dps',
+                displayName: 'DPS',
+                getter: item => item.mainDpsResult,
+                renderer: bestEffortFormat,
+            })];
+        // These are sorted, so the first result is the highest which is the default selection
+        let currentSelection = result.all[0];
+        const outer = this;
+        out.selectionModel = {
+            clickCell(cell: CustomCell<ResultType, never>): void {
+            },
+            clickColumnHeader(col: CustomColumn<ResultType, never, never>): void {
+            },
+            clickRow(row: CustomRow<ResultType>): void {
+                currentSelection = row.dataItem;
+                abilitiesUsedTable.setNewData(currentSelection.abilitiesUsed);
+                mainResultsTableHolder.replaceChildren(outer.makeMainResultDisplay(currentSelection, true));
+            },
+            getSelection(): SingleCellRowOrHeaderSelection<ResultType, never, never> {
+                return null;
+            },
+            isCellSelectedDirectly(cell: CustomCell<ResultType, never>): boolean {
+                return false;
+            },
+            isColumnHeaderSelected(col: CustomColumn<ResultType, never, never>): boolean {
+                return false;
+            },
+            isRowSelected(row: CustomRow<ResultType>): boolean {
+                return row.dataItem === currentSelection;
+            },
+            clearSelection(): void {
+            },
+        };
+        out.data = [new HeaderRow(), ...result.all];
+        return out;
+    }
+
     makeAbilityUsedTable(result: ResultType): AbilitiesUsedTable {
         return new AbilitiesUsedTable(result.displayRecords);
     }
@@ -85,7 +137,20 @@ export class BaseMultiCycleSimGui<ResultType extends CycleSimResult, InternalSet
     makeResultDisplay(result: FullResultType): HTMLElement {
         const mainResultsTable = this.makeMainResultDisplay(result.best, result.all.length > 1);
         const abilitiesUsedTable = this.makeAbilityUsedTable(result.best);
-        return quickElement('div', ['cycle-sim-results-table'], [mainResultsTable, abilitiesUsedTable]);
+        if (result.all.length > 1) {
+            const mainHolder = quickElement('div', ['cycle-sim-table-holder', 'cycle-sim-main-holder'], [mainResultsTable]);
+            const rotationsTable = this.makeRotationsTable(result, mainHolder, abilitiesUsedTable);
+            return quickElement('div', ['cycle-sim-results', 'cycle-sim-results-full'], [
+                mainHolder,
+                quickElement('div', ['cycle-sim-table-holder', 'cycle-sim-rotations-holder'], [
+                    quickElement('div', ['scroll-table-holder'], [rotationsTable]),
+                ]),
+                quickElement('div', ['cycle-sim-table-holder', 'cycle-sim-abilities-holder'], [abilitiesUsedTable]),
+            ]);
+        }
+        else {
+            return quickElement('div', ['cycle-sim-results', 'cycle-sim-results-simple'], [mainResultsTable, abilitiesUsedTable]);
+        }
     }
 
     makeToolTip(result: FullResultType): string {
