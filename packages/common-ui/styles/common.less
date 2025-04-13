@@ -2498,10 +2498,6 @@ gear-set-viewer {
     margin-bottom: 10px;
   }
 
-  .set-description-holder {
-    --truncatable-line-clamp: 8;
-    margin-bottom: 16px;
-  }
 
   materia-totals-display, .gear-items-view-table, .food-view-table {
     .shadow;
@@ -3589,25 +3585,30 @@ expandable-text {
     margin-top: 0;
   }
 
-  .truncatable-text-area-inner {
-    -webkit-line-clamp: var(--truncatable-line-clamp);
-    overflow: hidden;
-    -webkit-box-orient: vertical;
-    display: -webkit-box;
-    mask-image: linear-gradient(180deg, black 90%, transparent 100%);
-  }
 
-  &.expanded {
+  &.truncated {
     .truncatable-text-area-inner {
-      display: unset;
-      mask-image: unset;
+      -webkit-line-clamp: var(--truncatable-line-clamp);
+      overflow: hidden;
+      -webkit-box-orient: vertical;
+      display: -webkit-box;
+      mask-image: linear-gradient(180deg, black 90%, transparent 100%);
     }
     .truncation-expand-button {
-      display: none;
+      display: unset;
     }
   }
   .truncation-expand-button {
+    display: none;
     margin-bottom: 10px;
   }
+}
 
+.set-description-holder {
+  --truncatable-line-clamp: 6;
+  margin-bottom: 16px;
+  button {
+    .shadow;
+    border-radius: 5px;
+  }
 }
