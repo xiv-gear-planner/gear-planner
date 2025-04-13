@@ -779,17 +779,10 @@ export class SimResultMiniDisplay extends HTMLElement {
 
 function makeDescriptionHolder(text: string): HTMLElement {
     const fullParagraphs = stringToParagraphs(text);
-    if (text.length < 200) {
-        const out = quickElement('div', ['set-description-holder'], []);
-        out.replaceChildren(...fullParagraphs);
-        return out;
-    }
-    else {
-        const out = new ExpandableText();
-        out.classList.add('set-description-holder');
-        out.setChildren(fullParagraphs);
-        return out;
-    }
+    const out = new ExpandableText();
+    out.classList.add('set-description-holder');
+    out.setChildren(fullParagraphs);
+    return out;
 }
 
 function stringToParagraphs(text: string): HTMLParagraphElement[] {
