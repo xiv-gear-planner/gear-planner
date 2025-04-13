@@ -190,8 +190,11 @@ export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
             }),
             ...extraColumns,
         ];
-        this.data = [new HeaderRow(), ...abilitiesUsed];
-        // this.style.tableLayout = 'auto';
+        this.setNewData(abilitiesUsed);
+    }
+
+    setNewData(used: readonly DisplayRecordFinalized[]) {
+        this.data = [new HeaderRow(), ...used];
     }
 }
 
