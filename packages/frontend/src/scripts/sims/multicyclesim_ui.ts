@@ -140,10 +140,10 @@ export class BaseMultiCycleSimGui<ResultType extends CycleSimResult, InternalSet
         if (result.all.length > 1) {
             const rotationsTable = this.makeRotationsTable(result, mainHolder, abilitiesUsedTable);
             return quickElement('div', ['cycle-sim-results', 'cycle-sim-results-full'], [
-                mainHolder,
                 quickElement('div', ['cycle-sim-table-holder', 'cycle-sim-rotations-holder'], [
                     quickElement('div', ['scroll-table-holder'], [rotationsTable]),
                 ]),
+                mainHolder,
                 quickElement('div', ['cycle-sim-table-holder', 'cycle-sim-abilities-holder'], [abilitiesUsedTable]),
             ]);
         }
