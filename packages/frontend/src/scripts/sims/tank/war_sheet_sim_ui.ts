@@ -3,14 +3,15 @@ import {WarSettings, WarSimResult} from "@xivgear/core/sims/tank/war/war_sheet_s
 import {BaseMultiCycleSimGui} from "../multicyclesim_ui";
 import {AbilitiesUsedTable} from "../components/ability_used_table";
 import {CycleSimResult, DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/core/sims/cycle_sim";
-import {ColDefs, CustomColumnSpec} from "@xivgear/common-ui/table/tables";
+import {col, ColDefs, CustomColumnSpec} from "@xivgear/common-ui/table/tables";
 import {PreDmgUsedAbility} from "@xivgear/core/sims/sim_types";
 import {WarExtraData} from "@xivgear/core/sims/tank/war/war_types";
+import {GaugeWithText} from "@xivgear/common-ui/components/gauges";
 
 export class WarSimGui extends BaseMultiCycleSimGui<WarSimResult, WarSettings> {
 
     static generateResultColumns(result: CycleSimResult): CustomColumnSpec<DisplayRecordFinalized, unknown, unknown>[] {
-        return [{
+        return [col({
             shortName: 'beastGauge',
             displayName: 'Beast Gauge',
             getter: used => isFinalizedAbilityUse(used) ? used.original : null,
@@ -18,41 +19,21 @@ export class WarSimGui extends BaseMultiCycleSimGui<WarSimResult, WarSettings> {
                 if (usedAbility?.extraData !== undefined) {
                     const gauge = (usedAbility.extraData as WarExtraData).gauge.beastGauge;
 
-                    const div = document.createElement('div');
-                    div.style.height = '100%';
-                    div.style.display = 'flex';
-                    div.style.alignItems = 'center';
-                    div.style.gap = '6px';
-                    div.style.padding = '2px 0 2px 0';
-                    div.style.boxSizing = 'border-box';
-
-                    const span = document.createElement('span');
-                    span.textContent = `${gauge}`;
-
-                    const barOuter = document.createElement('div');
-                    barOuter.style.borderRadius = '20px';
-                    barOuter.style.background = '#00000033';
-                    barOuter.style.width = '120px';
-                    barOuter.style.height = 'calc(100% - 3px)';
-                    barOuter.style.display = 'inline-block';
-                    barOuter.style.overflow = 'hidden';
-                    barOuter.style.border = '1px solid black';
-
-                    const barInner = document.createElement('div');
-                    barInner.style.backgroundColor = gauge >= 50 ? '#ffc500' : '#e47e08';
-                    barInner.style.width = `${gauge}%`;
-                    barInner.style.height = '100%';
-                    barOuter.appendChild(barInner);
-
-                    div.appendChild(barOuter);
-                    div.appendChild(span);
-
-                    return div;
+                    const out = new GaugeWithText<number>(
+                        val => (val >= 50 ? '#ffc500' : '#e47e08'),
+                        val => val.toString(),
+                        val => val
+                    );
+                    out.setDataValue(gauge);
+                    return out;
                 }
                 return document.createTextNode("");
             },
-        },
-        {
+            colStyler: (value, colElement) => {
+                colElement.style.minWidth = '50px';
+                colElement.style.maxWidth = '150px';
+            },
+        }), col({
             shortName: 'surgingTempest',
             displayName: 'Surging Tempest',
             getter: used => isFinalizedAbilityUse(used) ? used.original : null,
@@ -92,7 +73,7 @@ export class WarSimGui extends BaseMultiCycleSimGui<WarSimResult, WarSettings> {
                 }
                 return document.createTextNode("");
             },
-        },
+        }),
         ];
     }
 

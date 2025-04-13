@@ -3,7 +3,7 @@ export class GaugeWithText<X> extends HTMLElement {
     private readonly bar: GaugeBar<X>;
     private readonly label: HTMLSpanElement;
 
-    constructor(barColorFunc: (val: X) => Color, private readonly labelFormat: (val: X) => string, private readonly toPercent: (val: X) => number) {
+    constructor(barColorFunc: (val: X) => Color, private readonly labelFormat: (val: X) => string, toPercent: (val: X) => number) {
         super();
         this.bar = new GaugeBar(barColorFunc, toPercent);
         this.label = document.createElement('span');
