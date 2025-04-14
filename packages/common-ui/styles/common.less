@@ -537,14 +537,16 @@ table {
           > *:first-child::before {
             left: 0;
             border-left: var(--border-style);
-            border-radius: 5px 0 0 5px;
+            border-top-left-radius: 5px;
+            border-bottom-left-radius: 5px;
           }
         }
 
         &:last-child {
           > *:first-child::before {
             border-right: var(--border-style);
-            border-radius: 0 5px 5px 0;
+            border-top-right-radius: 5px;
+            border-bottom-right-radius: 5px;
           }
         }
       }
