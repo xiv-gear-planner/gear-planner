@@ -131,9 +131,7 @@ export class MeldSolverDialog extends BaseModal {
 
     async solveResultReceived(set: CharacterGearSet, dps: number) {
         const oldDps = (await this.settingsDiv.simSettings.sim.simulate(this.settingsDiv.gearsetGenSettings.gearset)).mainDpsResult;
-        const confirm = new MeldSolverConfirmationDialog(this._sheet, this.settingsDiv.gearsetGenSettings.gearset, set, [oldDps, dps], this.close);
-        document.querySelector('body').appendChild(confirm);
-        confirm.show();
+        new MeldSolverConfirmationDialog(this._sheet, this.settingsDiv.gearsetGenSettings.gearset, set, [oldDps, dps], this.close).attachAndShow();
     }
 
     applyResult(newSet: CharacterGearSet) {

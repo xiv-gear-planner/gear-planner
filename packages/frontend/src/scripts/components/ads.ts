@@ -27,7 +27,7 @@ type AdContainerElements = {
 declare global {
     interface Window {
         nitroAds?: {
-            createAd(id: string, props: unknown): void;
+            createAd(id: string, props: unknown): unknown;
             loaded: boolean;
         };
         currentAds?: ManagedAd[];

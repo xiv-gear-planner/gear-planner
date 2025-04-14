@@ -831,7 +831,7 @@ export class GearSetEditor extends HTMLElement {
         }
     }
 
-    checkIssues(): void{
+    checkIssues(): void {
         const issues = this.gearSet.issues;
         if (issues.length >= 1) {
             this.issuesButtonContent.replaceChildren(iconForIssues(...issues), `${issues.length} issue${issues.length === 1 ? '' : 's'}`);
@@ -1983,21 +1983,18 @@ export class GearPlanSheetGui extends GearPlanSheet {
      * Show the add simulation modal.
      */
     showAddSimDialog() {
-        const addSimDialog = new AddSimDialog(this);
-        document.querySelector('body').appendChild(addSimDialog);
-        addSimDialog.show();
+        new AddSimDialog(this).attachAndShow();
     }
 
     /**
      * Show the meld solving modal.
      */
     showMeldSolveDialog() {
+        // TODO: this feels like it should be a method of the set, not the sheet.
         if (!(this._editorItem instanceof CharacterGearSet)) {
             return;
         }
-        const meldSolveDialog = new MeldSolverDialog(this, this.editorItem as CharacterGearSet);
-        document.querySelector('body').appendChild(meldSolveDialog);
-        meldSolveDialog.show();
+        new MeldSolverDialog(this, this.editorItem as CharacterGearSet).attachAndShow();
     }
 
     /**

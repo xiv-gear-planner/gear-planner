@@ -28,8 +28,7 @@ export function startRenameSet(set: CharacterGearSet) {
 }
 
 function startRename(modal: RenameModal) {
-    document.querySelector('body').appendChild(modal);
-    modal.show();
+    modal.attachAndShow();
 }
 
 class RenameModal extends BaseModal {
