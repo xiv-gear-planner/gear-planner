@@ -8,6 +8,12 @@ export const SHORTLINK_HASH = 'sl';
 export const SHARE_LINK = 'https://share.xivgear.app/share/';
 /** For loading bis sheets */
 export const BIS_HASH = 'bis';
+
+/**
+ * The BiS browser
+ */
+export const BIS_BROWSER_HASH = 'bisbrowser';
+
 /** For viewing a sheet via json blob */
 export const VIEW_SHEET_HASH = 'viewsheet';
 /** For viewing an individual set via json blob */
@@ -86,6 +92,10 @@ export type NavPath = {
     sheet: string,
     onlySetIndex?: number,
     defaultSelectionIndex?: number,
+} | {
+    type: 'bisbrowser',
+    path: string[],
+    // TODO: more?
 }));
 
 export type SheetType = NavPath['type'];
@@ -230,6 +240,15 @@ export function parsePath(state: NavState): NavPath | null {
                 defaultSelectionIndex: state.selectIndex,
             };
         }
+    }
+    else if (mainNav === BIS_BROWSER_HASH) {
+        embedWarn();
+        return {
+            type: 'bisbrowser',
+            path: [...path.slice(1)],
+            embed: false,
+            viewOnly: true,
+        };
     }
     console.log('Unknown nav path', path);
     return null;

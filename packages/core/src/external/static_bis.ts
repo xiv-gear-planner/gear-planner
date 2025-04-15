@@ -1,5 +1,23 @@
 import {JobName} from "@xivgear/xivmath/xivconstants";
 
+export type BaseNode = {
+    fileName: string,
+    parent?: DirNode,
+}
+
+export type LeafNode = BaseNode & {
+    type: 'file',
+    contentName?: string,
+    contentDescription?: string,
+}
+
+export type DirNode = BaseNode & {
+    type: 'dir',
+    children: AnyNode[],
+}
+
+export type AnyNode = LeafNode | DirNode;
+
 const STATIC_SERVER: URL = new URL("https://staticbis.xivgear.app/");
 
 const STORAGE_KEY = 'staticbis-server-override';
@@ -33,4 +51,37 @@ export function getBisSheetFetchUrl(job: JobName, folder: string, sheetFileName:
 export async function getBisSheet(...params: Parameters<typeof getBisSheetFetchUrl>): Promise<string> {
     const FULL_URL = getBisSheetFetchUrl(...params);
     return await fetch(FULL_URL).then(response => response.text());
+}
+
+/**
+ * Set the 'parent' link on children to this node, recursively.
+ *
+ * @param node
+ */
+function attachParent(node: DirNode): void {
+    node.children.forEach(child => {
+        child.parent = node;
+        if (child.type === 'dir') {
+            attachParent(child);
+        }
+    });
+}
+
+export async function getBisIndex(): Promise<DirNode> {
+    const url = new URL(`/_index.json`, getServer());
+    const out = await fetch(url).then(response => response.json()) as DirNode;
+    attachParent(out);
+    return out;
+}
+
+/**
+ * Remove '.json' extension.
+ *
+ * @param filename
+ */
+export function stripFilename(filename: string): string {
+    if (filename.toLowerCase().endsWith(".json")) {
+        return filename.substring(0, filename.length - 5);
+    }
+    return filename;
 }

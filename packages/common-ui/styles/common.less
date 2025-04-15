@@ -1042,6 +1042,90 @@ div.chance-stat-display, div.multiplier-stat-display, div.multiplier-mit-stat-di
   }
 }
 
+#content-area > .bis-browser {
+  .named-section-content-area {
+    width: 600px;
+
+    table.bis-browser-table {
+      overflow: auto;
+      padding: 0;
+      width: 100%;
+
+
+      tr {
+        height: 23px;
+        max-height: 23px;
+      }
+
+      tr:first-child {
+        th {
+          position: sticky;
+          top: 0;
+          z-index: 1;
+        }
+      }
+
+      td {
+        border: none;
+        border-top: var(--standard-border);
+      }
+
+      th {
+        --thick-border: none;
+      }
+
+      .new-sheet-row:hover {
+        .svg-glyph {
+          fill: var(--action-input-hover-background-color);
+        }
+      }
+
+      .new-sheet-row th {
+        font-weight: normal;
+
+        i, svg {
+          padding-left: 8px;
+          padding-right: 8px;
+        }
+      }
+
+      td[col-id="sheetactions"] {
+        width: 50px;
+        max-height: 23px;
+        height: 23px;
+
+        .svg-glyph {
+          font-size: 13.2px;
+        }
+
+        i {
+          font-size: 14px;
+        }
+
+        > div {
+          display: inline-block;
+          height: 20px;
+        }
+
+        button {
+          .borderless-button;
+          padding: 0;
+          margin-left: 0;
+        }
+
+        //
+        //div {
+        //  display: flex;
+        //
+        //  button {
+        //    flex: 1;
+        //  }
+        //}
+      }
+    }
+  }
+}
+
 gear-plan {
   //margin: auto;
   //width: fit-content;
@@ -3500,10 +3584,12 @@ expandable-text {
       display: -webkit-box;
       mask-image: linear-gradient(180deg, black 90%, transparent 100%);
     }
+
     .truncation-expand-button {
       display: unset;
     }
   }
+
   .truncation-expand-button {
     display: none;
     margin-bottom: 10px;
@@ -3513,6 +3599,7 @@ expandable-text {
 .set-description-holder {
   --truncatable-line-clamp: 6;
   margin-bottom: 16px;
+
   button {
     .shadow;
     border-radius: 5px;

@@ -13,7 +13,7 @@ import {
 import {earlyEmbedInit} from "./embed";
 import {SetExport, SheetExport} from "@xivgear/xivmath/geartypes";
 import {getShortLink} from "@xivgear/core/external/shortlink_server";
-import {getBisSheet} from "@xivgear/core/external/static_bis";
+import {getBisIndex, getBisSheet} from "@xivgear/core/external/static_bis";
 
 import {
     formatTopMenu,
@@ -28,6 +28,8 @@ import {
     showSheetPickerMenu
 } from "./base_ui";
 import {recordError} from "@xivgear/common-ui/analytics/analytics";
+import {quickElement} from "@xivgear/common-ui/components/util";
+import {BisBrowser} from "./components/bis_browser";
 
 // let expectedHash: string[] | undefined = undefined;
 
@@ -118,23 +120,23 @@ async function doNav(navState: NavState) {
         hideWelcomeArea();
     }
     switch (nav.type) {
-        case "mysheets":
+        case 'mysheets':
             console.info("No sheet open");
             showSheetPickerMenu();
             return;
-        case "newsheet":
+        case 'newsheet':
             showNewSheetForm();
             return;
-        case "importform":
+        case 'importform':
             showImportSheetForm();
             return;
-        case "saved": {
+        case 'saved': {
             const saveKey = nav.saveKey;
             console.log("Loading: " + saveKey);
             openSheetByKey(saveKey);
             return;
         }
-        case "shortlink": {
+        case 'shortlink': {
             showLoadingScreen();
             const uuid = nav.uuid;
             const resolved: string | null = await getShortLink(uuid);
@@ -153,13 +155,13 @@ async function doNav(navState: NavState) {
                 return;
             }
         }
-        case "setjson":
+        case 'setjson':
             openExport(nav.jsonBlob as SetExport, nav.viewOnly, undefined, undefined);
             return;
-        case "sheetjson":
+        case 'sheetjson':
             openExport(nav.jsonBlob as SheetExport, nav.viewOnly, undefined, undefined);
             return;
-        case "bis": {
+        case 'bis': {
             showLoadingScreen();
             try {
                 const resolved: string | null = await getBisSheet(nav.job, nav.folder, nav.sheet);
@@ -177,9 +179,22 @@ async function doNav(navState: NavState) {
                 console.error("Error loading bis", e);
                 recordError("load", e);
             }
-            const errMsg = document.createElement('h1');
-            errMsg.textContent = 'Error Loading Sheet/Set';
-            setMainContent('Error', errMsg);
+            showFatalError('Error Loading Sheet/Set');
+            return;
+        }
+        case 'bisbrowser': {
+            showLoadingScreen();
+            try {
+                const index = await getBisIndex();
+                console.log("BiS Index", index);
+                const bisBrowserElement = new BisBrowser();
+                bisBrowserElement.setData(index);
+                setMainContent('BiS', bisBrowserElement.element);
+            }
+            catch (e) {
+                console.error(e);
+                showFatalError('Error Loading BiS Index');
+            }
             return;
         }
     }
