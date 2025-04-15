@@ -1,24 +1,35 @@
-import {AnyNode, DirNode, stripFilename} from "@xivgear/core/external/static_bis";
+import {AnyNode, DirNode} from "@xivgear/core/external/static_bis";
 import {
     col,
     CustomCell,
     CustomColumn,
     CustomRow,
     CustomTable,
-    HeaderRow,
     SingleCellRowOrHeaderSelection,
     TableSelectionModel
 } from "@xivgear/common-ui/table/tables";
 import {NamedSection} from "./section";
-import {goNav, goPath} from "../nav_hash";
-import {BIS_HASH} from "@xivgear/core/nav/common_nav";
+import {BIS_BROWSER_HASH, BIS_HASH} from "@xivgear/core/nav/common_nav";
+import {JOB_DATA} from "@xivgear/xivmath/xivconstants";
+import {makeActionButton, mySheetsIcon, quickElement} from "@xivgear/common-ui/components/util";
+import {capitalizeFirstLetter} from "@xivgear/util/strutils";
+
+type NodeInfo = {
+    name: string,
+    description: string | null,
+}
 
 export class BisBrowser {
-    private namedSection: NamedSection;
-    private table: CustomTable<AnyNode, TableSelectionModel<AnyNode>>;
+
+    private readonly namedSection: NamedSection;
+    private readonly table: CustomTable<AnyNode, TableSelectionModel<AnyNode>>;
+    private readonly buttonRow: HTMLElement;
+    private readonly upButton: HTMLButtonElement;
+
     private currentNode: DirNode;
 
-    constructor() {
+    constructor(private readonly navCallback: (path: string[], navigate: boolean) => void) {
+        const outer = this;
         this.namedSection = new NamedSection();
         this.namedSection.classList.add('bis-browser');
         this.table = new CustomTable();
@@ -29,20 +40,33 @@ export class BisBrowser {
                 getter(item: AnyNode): string {
                     return item.type;
                 },
+                renderer(itemType: AnyNode['type']) {
+                    if (itemType === 'file') {
+                        return quickElement('b', [], ['🗋']);
+                    }
+                    else {
+                        return mySheetsIcon();
+                    }
+                },
+                fixedWidth: 30,
             }), col({
                 shortName: "name",
                 displayName: "Name",
-                getter(item: AnyNode): string {
-                    if (item.type === 'file') {
-                        return item.contentName ?? item.fileName;
+                getter(item: AnyNode): NodeInfo {
+                    return formatInfo(item);
+                },
+                renderer(info: NodeInfo) {
+                    const out: Element[] = [];
+                    out.push(quickElement('div', ['bis-sheet-name'], [info.name]));
+                    if (info.description) {
+                        out.push(quickElement('div', ['bis-sheet-description'], [info.description]));
                     }
-                    return item.fileName;
+                    return quickElement('div', ['bis-sheet-info'], out);
                 },
             }),
         ];
         this.table.classList.add('hoverable');
         this.table.classList.add('bis-browser-table');
-        const outer = this;
         this.table.selectionModel = {
             clickCell(cell: CustomCell<AnyNode, never>): void {
             },
@@ -55,15 +79,8 @@ export class BisBrowser {
                     outer.setData(di);
                 }
                 else {
-                    let path: string[] = [];
-                    let currentNode: AnyNode = di;
-                    // Don't add the root node as part of the path
-                    while (currentNode.parent) {
-                        const filename = stripFilename(currentNode.fileName);
-                        path = [filename, ...path];
-                        currentNode = currentNode.parent;
-                    }
-                    goPath(BIS_HASH, ...path);
+                    const path = di.path;
+                    navCallback([BIS_HASH, ...path], true);
                 }
             },
             getSelection(): SingleCellRowOrHeaderSelection<AnyNode, never, never> {
@@ -81,16 +98,84 @@ export class BisBrowser {
             clearSelection(): void {
             },
         };
-        this.namedSection.contentArea.replaceChildren(this.table);
+        this.upButton = makeActionButton('Up', () => {
+            this.setData(this.currentNode.parent);
+        });
+        this.upButton.classList.add('up-button');
+        this.buttonRow = quickElement('div', ['button-row'], [this.upButton]);
+        this.namedSection.contentArea.replaceChildren(this.buttonRow, this.table);
     }
 
-    setData(data: DirNode) {
-        this.currentNode = data;
-        this.table.data = [new HeaderRow(), ...data.children];
-        this.namedSection.titleText = data.fileName;
+    setData(node: DirNode) {
+        this.currentNode = node;
+        this.table.data = [
+            ...([...node.children].sort((a, b) => {
+                if (a.type === "dir" && b.type === "file") {
+                    return -1;
+                }
+                else if (a.type === "file" && b.type === "dir") {
+                    return 1;
+                }
+                else {
+                    return formatInfo(a).name.localeCompare(formatInfo(b).name);
+                }
+            })),
+        ];
+        this.namedSection.titleText = formattedPath(node).join(" - ");
+        if (node.parent) {
+            this.upButton.disabled = false;
+            this.upButton.textContent = `↰ Back to ${formatInfo(node.parent).name}`;
+        }
+        else {
+            this.upButton.textContent = '';
+            this.upButton.disabled = node.parent === undefined;
+        }
+        this.navCallback([BIS_BROWSER_HASH, ...node.path], false);
     }
 
     get element(): HTMLElement {
         return this.namedSection;
     }
+}
+
+function formattedPath(node: DirNode): string[] {
+    if (!node.parent) {
+        return ["Best-in-Slot Gear"];
+    }
+    let out: string[] = [];
+    let current = node;
+    while (current.parent) {
+        out = [formatInfo(current).name, ...out];
+        current = current.parent;
+    }
+    return out;
+}
+
+function formatInfo(node: AnyNode): NodeInfo {
+    if (!node.parent) {
+        return {
+            name: "Best-in-Slot Gear",
+            description: null,
+        };
+    }
+    else if (node.type === 'file') {
+        let desc = node.contentDescription;
+        if (desc && desc.length > 200) {
+            desc = desc.substring(0, 200) + '…';
+        }
+        return {
+            name: node.contentName ?? node.fileName,
+            description: desc,
+        };
+    }
+    else if (node.fileName.toUpperCase() in JOB_DATA) {
+        return {
+            name: node.fileName.toUpperCase(),
+            description: null,
+        };
+    }
+    return {
+        name: capitalizeFirstLetter(node.fileName),
+        description: null,
+    };
 }

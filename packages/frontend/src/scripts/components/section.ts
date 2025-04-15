@@ -14,6 +14,7 @@ export class NamedSection extends HTMLElement {
         this.titleText = title;
         this.replaceChildren(this.header, this._contentArea);
     }
+
     get titleText(): string {
         return this.header.textContent;
     }

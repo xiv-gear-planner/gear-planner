@@ -971,6 +971,7 @@ div.chance-stat-display, div.multiplier-stat-display, div.multiplier-mit-stat-di
       tr {
         height: 23px;
         max-height: 23px;
+        cursor: pointer;
       }
 
       tr:first-child {
@@ -1046,6 +1047,31 @@ div.chance-stat-display, div.multiplier-stat-display, div.multiplier-mit-stat-di
   .named-section-content-area {
     width: 600px;
 
+    .button-row {
+
+      margin-bottom: 5px;
+      display: flex;
+
+      .up-button {
+        background-color: var(--table-bg-color);
+        flex-grow: 1;
+        text-align: left;
+        border-radius: 0;
+        padding: 5px;
+        box-sizing: content-box;
+        margin: 0;
+        cursor: pointer;
+
+        &:hover {
+          background-color: var(--table-bg-color-hover);
+        }
+
+        &:disabled {
+          visibility: hidden;
+        }
+      }
+    }
+
     table.bis-browser-table {
       overflow: auto;
       padding: 0;
@@ -1055,6 +1081,7 @@ div.chance-stat-display, div.multiplier-stat-display, div.multiplier-mit-stat-di
       tr {
         height: 23px;
         max-height: 23px;
+        cursor: pointer;
       }
 
       tr:first-child {
@@ -1068,12 +1095,32 @@ div.chance-stat-display, div.multiplier-stat-display, div.multiplier-mit-stat-di
       td {
         border: none;
         border-top: var(--standard-border);
+
+        &[col-id="type"] {
+          font-size: 30px;
+          text-align: center;
+        }
+        &[col-id="name"] {
+          padding-top: 10px;
+          padding-bottom: 10px;
+
+          div.bis-sheet-name {
+            font-weight: bold;
+            font-size: 17px;
+          }
+          div.bis-sheet-description {
+            font-size: 15px;
+            opacity: 75%;
+          }
+        }
+
       }
 
       th {
         --thick-border: none;
       }
 
+      // TODO: repurpose as the "up" row
       .new-sheet-row:hover {
         .svg-glyph {
           fill: var(--action-input-hover-background-color);
@@ -1089,6 +1136,7 @@ div.chance-stat-display, div.multiplier-stat-display, div.multiplier-mit-stat-di
         }
       }
 
+      // TODO: repurpose as icon row?
       td[col-id="sheetactions"] {
         width: 50px;
         max-height: 23px;

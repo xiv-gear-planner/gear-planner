@@ -3,6 +3,8 @@ import {JobName} from "@xivgear/xivmath/xivconstants";
 export type BaseNode = {
     fileName: string,
     parent?: DirNode,
+    pathPart: string,
+    path: string[],
 }
 
 export type LeafNode = BaseNode & {
@@ -58,19 +60,28 @@ export async function getBisSheet(...params: Parameters<typeof getBisSheetFetchU
  *
  * @param node
  */
-function attachParent(node: DirNode): void {
-    node.children.forEach(child => {
-        child.parent = node;
-        if (child.type === 'dir') {
-            attachParent(child);
-        }
-    });
+function finalizeNode(node: AnyNode): void {
+    const pathPath = node.type === 'file' ? stripFilename(node.fileName) : node.fileName;
+    node.pathPart = pathPath;
+    if (node.parent) {
+        // TODO: fileName is wrong
+        node.path = [...node.parent.path, pathPath];
+    }
+    else {
+        node.path = [];
+    }
+    if (node.type === 'dir') {
+        node.children.forEach(child => {
+            child.parent = node;
+            finalizeNode(child);
+        });
+    }
 }
 
 export async function getBisIndex(): Promise<DirNode> {
     const url = new URL(`/_index.json`, getServer());
     const out = await fetch(url).then(response => response.json()) as DirNode;
-    attachParent(out);
+    finalizeNode(out);
     return out;
 }
 
