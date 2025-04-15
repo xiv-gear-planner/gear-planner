@@ -63,13 +63,22 @@ export type SheetBasePath = {
     viewOnly: boolean
 }
 
+/**
+ * NavPath represents a more processed location of a page within the SPA. It encompasses the "type" of page (such as
+ * a local sheet editor, the "my sheets" page, or a publicly-available set), and other relevant details, like
+ * whether it is embedded or not, and view-only vs editable.
+ */
 export type NavPath = {
     type: 'mysheets',
 } | {
     type: 'newsheet',
 } | {
     type: 'importform'
-} | (SheetBasePath & ({
+} | {
+    type: 'bisbrowser',
+    path: string[],
+    // TODO: more?
+} | SheetBasePath & ({
     type: 'saved',
     saveKey: string
 } | {
@@ -92,14 +101,16 @@ export type NavPath = {
     sheet: string,
     onlySetIndex?: number,
     defaultSelectionIndex?: number,
-} | {
-    type: 'bisbrowser',
-    path: string[],
-    // TODO: more?
-}));
+});
 
 export type SheetType = NavPath['type'];
 
+/**
+ * NavState represents a very raw location of a page within the SPA. It encompasses the `path` query parameter, as well
+ * as a couple other optional parameters.
+ *
+ * {@link #parsePath} can turn a NavState into a NavPath.
+ */
 export class NavState {
     constructor(private readonly _path: string[], readonly onlySetIndex: number | undefined = undefined, readonly selectIndex: number | undefined = undefined) {
     }
@@ -121,6 +132,11 @@ export class NavState {
     }
 }
 
+/**
+ * Parse a NavState into a NavPath.
+ *
+ * @param state
+ */
 export function parsePath(state: NavState): NavPath | null {
     let path = state.path;
     let embed = false;
@@ -246,8 +262,6 @@ export function parsePath(state: NavState): NavPath | null {
         return {
             type: 'bisbrowser',
             path: [...path.slice(1)],
-            embed: false,
-            viewOnly: true,
         };
     }
     console.log('Unknown nav path', path);
@@ -260,6 +274,11 @@ export function makeUrlSimple(...path: string[]): URL {
     return makeUrl(new NavState(path));
 }
 
+/**
+ * Turns a NavState into a URL.
+ *
+ * @param navState
+ */
 export function makeUrl(navState: NavState): URL {
     const joinedPath = navState.path
         .map(pp => encodeURIComponent(pp))
