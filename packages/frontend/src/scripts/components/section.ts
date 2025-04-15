@@ -21,7 +21,7 @@ export class NamedSection extends HTMLElement {
     set titleText(value: string | null) {
         if (value !== null) {
             this.header.textContent = value;
-            delete this.header.style.display;
+            this.header.style.display = '';
         }
         else {
             this.header.textContent = '';
