@@ -44,7 +44,7 @@ export const NascentChaosBuff: Buff = {
     },
     appliesTo: ability => ability.name === "Inner Chaos",
     beforeSnapshot: removeSelf,
-    statusId: 50267,
+    statusId: 1897,
 };
 
 export const SurgingTempest: PersonalBuff = {
