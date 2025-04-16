@@ -242,7 +242,7 @@ export class ComputedSetStatsImpl implements ComputedSetStats {
             // If the new food is not specified, use current food.
             // If the new food is null, use empty food.
             // If the new food is not null, use its bonuses.
-            'newFood' in pre ? (pre.newFood ?? {}) : this.foodStats,
+            'newFoodBonuses' in pre ? (pre.newFoodBonuses ?? {}) : this.foodStats,
             this.level,
             this.levelStats,
             this.classJob,
@@ -469,7 +469,7 @@ export function finalizeStats(
 
 }
 
-function finalizeStatsInt(
+export function finalizeStatsInt(
     // TODO: gearStats is currently gear + race/job base stuff. Separate these out.
     gearStats: RawStats,
     foodStats: FoodBonuses,

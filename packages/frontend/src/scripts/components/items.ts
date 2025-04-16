@@ -167,8 +167,9 @@ function makeSpan(text: string, classes: string[] = []) {
 }
 
 class FoodStatBonusDisplay extends HTMLElement {
-    constructor(value: FoodStatBonus) {
+    constructor(value: FoodStatBonusWithEffective) {
         super();
+        this.appendChild(makeSpan(`e +${value.effective}`));
         this.appendChild(makeSpan(`+${value.percentage}%`));
         this.appendChild(document.createTextNode(' '));
         this.appendChild(makeSpan(`≤${value.max}`, ['food-stat-narrow']));
@@ -176,13 +177,17 @@ class FoodStatBonusDisplay extends HTMLElement {
     }
 }
 
+type FoodStatBonusWithEffective = FoodStatBonus & {
+    effective: number;
+}
+
 /**
  * Formats a cell to display the % and max like on a food or tincture.
  *
  * @param value The stat bonus value.
  */
-function statBonusDisplay(value: FoodStatBonus) {
-    if (value) {
+function statBonusDisplay(value: FoodStatBonusWithEffective) {
+    if ((value.percentage ?? 0 > 0) || (value.max ?? 0 > 0)) {
         return new FoodStatBonusDisplay(value);
     }
     else {
@@ -190,20 +195,23 @@ function statBonusDisplay(value: FoodStatBonus) {
     }
 }
 
-function foodTableStatViewColumn(sheet: GearPlanSheet, item: FoodItem, stat: RawStatKey, highlightPrimarySecondary: boolean = false): CustomColumnSpec<FoodItem, unknown, unknown> {
-    const wrapped = foodTableStatColumn(sheet, stat, highlightPrimarySecondary);
+function foodTableStatViewColumn(sheet: GearPlanSheet, set: CharacterGearSet, item: FoodItem, stat: RawStatKey, highlightPrimarySecondary: boolean = false): CustomColumnSpec<FoodItem, unknown, unknown> {
+    const wrapped = foodTableStatColumn(sheet, set, stat, highlightPrimarySecondary);
     return {
         ...wrapped,
         condition: () => (item.primarySubStat === stat || item.secondarySubStat === stat),
     };
 }
 
-function foodTableStatColumn(sheet: GearPlanSheet, stat: RawStatKey, highlightPrimarySecondary: boolean = false): CustomColumnSpec<FoodItem, unknown, unknown> {
-    return {
+function foodTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, stat: RawStatKey, highlightPrimarySecondary: boolean = false): CustomColumnSpec<FoodItem, unknown, unknown> {
+    return col({
         shortName: stat,
         displayName: STAT_ABBREVIATIONS[stat],
         getter: item => {
-            return item.bonuses[stat];
+            return {
+                ...item.bonuses[stat],
+                effective: set.getEffectiveFoodBonuses(item)[stat],
+            } satisfies FoodStatBonusWithEffective;
         },
         renderer: statBonusDisplay,
         condition: () => sheet.isStatRelevant(stat),
@@ -213,7 +221,7 @@ function foodTableStatColumn(sheet: GearPlanSheet, stat: RawStatKey, highlightPr
                 foodStatCellStyler(cell, stat);
             }
         },
-    };
+    });
 
 }
 
@@ -257,14 +265,15 @@ export class FoodItemsTable extends CustomTable<FoodItem, TableSelectionModel<Fo
                 // }
                 // initialWidth: 200,
             },
-            foodTableStatColumn(sheet, 'vitality'),
-            foodTableStatColumn(sheet, 'crit', true),
-            foodTableStatColumn(sheet, 'dhit', true),
-            foodTableStatColumn(sheet, 'determination', true),
-            foodTableStatColumn(sheet, 'spellspeed', true),
-            foodTableStatColumn(sheet, 'skillspeed', true),
-            foodTableStatColumn(sheet, 'piety', true),
-            foodTableStatColumn(sheet, 'tenacity', true),
+            // TODO: VIT always gets filtered out
+            foodTableStatColumn(sheet, gearSet, 'vitality'),
+            foodTableStatColumn(sheet, gearSet, 'crit', true),
+            foodTableStatColumn(sheet, gearSet, 'dhit', true),
+            foodTableStatColumn(sheet, gearSet, 'determination', true),
+            foodTableStatColumn(sheet, gearSet, 'spellspeed', true),
+            foodTableStatColumn(sheet, gearSet, 'skillspeed', true),
+            foodTableStatColumn(sheet, gearSet, 'piety', true),
+            foodTableStatColumn(sheet, gearSet, 'tenacity', true),
         ];
         // TODO: write a dedicated selection model for this
         this.selectionModel = {
@@ -305,7 +314,7 @@ export class FoodItemsTable extends CustomTable<FoodItem, TableSelectionModel<Fo
 }
 
 export class FoodItemViewTable extends CustomTable<FoodItem> {
-    constructor(sheet: GearPlanSheet, item: FoodItem) {
+    constructor(sheet: GearPlanSheet, gearSet: CharacterGearSet, item: FoodItem) {
         super();
         this.classList.add("food-items-table");
         super.columns = [
@@ -333,14 +342,14 @@ export class FoodItemViewTable extends CustomTable<FoodItem> {
                 // }
                 // initialWidth: 200,
             },
-            foodTableStatViewColumn(sheet, item, 'vitality'),
-            foodTableStatViewColumn(sheet, item, 'crit', true),
-            foodTableStatViewColumn(sheet, item, 'dhit', true),
-            foodTableStatViewColumn(sheet, item, 'determination', true),
-            foodTableStatViewColumn(sheet, item, 'spellspeed', true),
-            foodTableStatViewColumn(sheet, item, 'skillspeed', true),
-            foodTableStatViewColumn(sheet, item, 'piety', true),
-            foodTableStatViewColumn(sheet, item, 'tenacity', true),
+            foodTableStatViewColumn(sheet, gearSet, item, 'vitality'),
+            foodTableStatViewColumn(sheet, gearSet, item, 'crit', true),
+            foodTableStatViewColumn(sheet, gearSet, item, 'dhit', true),
+            foodTableStatViewColumn(sheet, gearSet, item, 'determination', true),
+            foodTableStatViewColumn(sheet, gearSet, item, 'spellspeed', true),
+            foodTableStatViewColumn(sheet, gearSet, item, 'skillspeed', true),
+            foodTableStatViewColumn(sheet, gearSet, item, 'piety', true),
+            foodTableStatViewColumn(sheet, gearSet, item, 'tenacity', true),
         ];
         super.data = [new HeaderRow(), item];
     }

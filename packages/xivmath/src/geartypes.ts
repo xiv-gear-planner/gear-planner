@@ -244,7 +244,7 @@ export interface ComputedSetStats extends RawStats {
     /**
      * Current level
      */
-    readonly level: number,
+    readonly level: SupportedLevel,
     /**
      * Current level stats modifier
      */
@@ -367,7 +367,7 @@ export interface ComputedSetStats extends RawStats {
      * Auto-attack delay
      */
     readonly aaDelay: number;
-  
+
     readonly effectiveFoodBonuses: RawStats;
 
     withModifications(modifications: StatModification, pre?: StatPreModifications): ComputedSetStats;
