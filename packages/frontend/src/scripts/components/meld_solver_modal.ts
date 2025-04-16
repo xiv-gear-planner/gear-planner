@@ -261,7 +261,6 @@ class MeldSolverSettingsMenu extends HTMLDivElement {
 
         this.useTargetGcdCheckBox = new FieldBoundCheckBox(this.gearsetGenSettings, 'useTargetGcd');
         this.useTargetGcdCheckBox.classList.add('meld-solver-settings');
-        this.targetGcdInput.pattern = '\\d\\.\\d\\d?';
         this.targetGcdInput.title = 'Solve for the best set with this GCD';
         this.targetGcdInput.classList.add('meld-solver-target-gcd-input');
 
