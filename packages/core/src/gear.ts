@@ -591,6 +591,16 @@ export class CharacterGearSet {
     }
 
     /**
+     * Given a food item, get the actual bonuses it would provide.
+     *
+     * @param foodItem
+     */
+    getEffectiveFoodBonuses(foodItem: FoodItem): RawStats {
+        const stats = this.computedStats;
+        return stats.withModifications(() => {}, {newFoodBonuses: foodItem.bonuses}).effectiveFoodBonuses;
+    }
+
+    /**
      * Get the effective stats and issues pertaining to a specific slot.
      *
      * @param slotId

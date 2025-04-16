@@ -2,6 +2,7 @@ import {
     AttackType,
     ComputedSetStats,
     FoodBonuses,
+    FoodItem,
     FoodStatBonus,
     JobData,
     LevelStats,
@@ -60,6 +61,14 @@ export type HasteBonus = (attackType: AttackType) => number;
  * The modifier should modify the 'bonuses' object in-place.
  */
 export type StatModification = (stats: ComputedSetStats, bonuses: RawBonusStats) => void;
+
+/**
+ * Represents a stat modification that is applied earlier in the process compared to {@link StatModification}.
+ * This allows you to change the "base" values rather than merely applying final bonuses.
+ */
+export type StatPreModifications = {
+    newFoodBonuses?: FoodBonuses | null,
+}
 
 /**
  * Represents post-computation stat modifications.
@@ -158,6 +167,7 @@ export class ComputedSetStatsImpl implements ComputedSetStats {
     // This is initialized when the ctor calls this.recalc()
     private currentStats!: RawStats;
     private _racialStats: RawStats;
+    private _effectiveFoodBonuses!: RawStats;
 
     constructor(
         readonly gearStats: RawStats,
@@ -213,7 +223,7 @@ export class ComputedSetStatsImpl implements ComputedSetStats {
     }
 
     private recalc() {
-        this.currentStats = finalizeStatsInt(
+        const finalized = finalizeStatsInt(
             this.gearStats,
             this.foodStats,
             this.level,
@@ -222,12 +232,17 @@ export class ComputedSetStatsImpl implements ComputedSetStats {
             this.classJobStats,
             this.partyBonus
         );
+        this.currentStats = finalized.raw;
+        this._effectiveFoodBonuses = finalized.effectiveFoodBonuses;
     }
 
-    withModifications(modifications: StatModification): ComputedSetStatsImpl {
+    withModifications(modifications: StatModification, pre: StatPreModifications = {}): ComputedSetStatsImpl {
         const out = new ComputedSetStatsImpl(
             this.gearStats,
-            this.foodStats,
+            // If the new food is not specified, use current food.
+            // If the new food is null, use empty food.
+            // If the new food is not null, use its bonuses.
+            'newFood' in pre ? (pre.newFood ?? {}) : this.foodStats,
             this.level,
             this.levelStats,
             this.classJob,
@@ -433,6 +448,9 @@ export class ComputedSetStatsImpl implements ComputedSetStats {
         return this.weaponDelay;
     };
 
+    get effectiveFoodBonuses(): RawStats {
+        return this._effectiveFoodBonuses;
+    }
 }
 
 export function finalizeStats(
@@ -460,7 +478,10 @@ function finalizeStatsInt(
     classJob: JobName,
     classJobStats: JobData,
     partyBonus: PartyBonusAmount
-): RawStats {
+): {
+    raw: RawStats,
+    effectiveFoodBonuses: RawStats
+} {
     const combinedStats: RawStats = {...gearStats};
     const mainStatKey = classJobStats.mainStat;
     const aaStatKey = classJobStats.autoAttackStat;
@@ -469,6 +490,7 @@ function finalizeStatsInt(
         combinedStats[aaStatKey] = fl(combinedStats[aaStatKey] * (1 + 0.01 * partyBonus));
     }
     combinedStats.vitality = fl(combinedStats.vitality * (1 + 0.01 * partyBonus));
+    const effectiveFoodBonuses = new RawStats();
     // Food stats
     for (const key in foodStats) {
         const stat = key as RawStatKey;
@@ -478,7 +500,11 @@ function finalizeStatsInt(
             const startingValue = gearStats[stat];
             const extraValue = Math.min(bonus.max, Math.floor(startingValue * (bonus.percentage / 100)));
             combinedStats[stat] += extraValue;
+            effectiveFoodBonuses[stat] += extraValue;
         }
     }
-    return combinedStats;
+    return {
+        raw: combinedStats,
+        effectiveFoodBonuses: effectiveFoodBonuses,
+    };
 }
