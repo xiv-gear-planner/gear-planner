@@ -87,8 +87,9 @@ import {MeldSolverDialog} from "./meld_solver_modal";
 import {insertAds} from "./ads";
 import {SETTINGS} from "@xivgear/common-ui/settings/persistent_settings";
 import {isInIframe} from "@xivgear/common-ui/util/detect_iframe";
-import {recordEvent} from "@xivgear/common-ui/analytics/analytics";
+import {recordError, recordEvent} from "@xivgear/common-ui/analytics/analytics";
 import {ExpandableText} from "@xivgear/common-ui/components/expandy_text";
+import {setDataManagerErrorReporter} from "@xivgear/core/datamanager_new";
 
 const noSeparators = (set: CharacterGearSet) => !set.isSeparator;
 
@@ -96,6 +97,15 @@ const isSafari: boolean = (() => {
     const ua = navigator.userAgent.toLowerCase();
     return ua.includes('safari') && !ua.includes('chrome');
 })();
+
+// Set up error reporting for DataManager
+setDataManagerErrorReporter((response, params) => {
+    recordError("datamanagerfetch", `fetch error: ${response.status}: ${response.statusText} (${params[0]})`, {
+        fetchUrl: params[0],
+        statusCode: response.status,
+        statusText: response.statusText,
+    });
+});
 
 function mainStatCol(sheet: GearPlanSheet, stat: RawStatKey): CustomColumnSpec<CharacterGearSet, MultiplierStat> {
     return {
@@ -831,7 +841,7 @@ export class GearSetEditor extends HTMLElement {
         }
     }
 
-    checkIssues(): void{
+    checkIssues(): void {
         const issues = this.gearSet.issues;
         if (issues.length >= 1) {
             this.issuesButtonContent.replaceChildren(iconForIssues(...issues), `${issues.length} issue${issues.length === 1 ? '' : 's'}`);

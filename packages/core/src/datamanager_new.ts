@@ -44,6 +44,15 @@ type FoodType = Awaited<ReturnType<ApiClientRawType<'food', 'foodItems'>>>['data
 // type JobType = Awaited<ReturnType<ApiClientRawType<'jobs', 'jobs'>>>['data']['items'][number]
 // type ItemLevelType = Awaited<ReturnType<ApiClientRawType<'itemLevel', 'itemLevels'>>>['data']['items'][number]
 
+export type DataManagerErrorReporter = (r: Response, params: Parameters<typeof fetch>) => void;
+
+let errorReporter: DataManagerErrorReporter = () => {
+};
+
+export function setDataManagerErrorReporter(reporter: DataManagerErrorReporter) {
+    errorReporter = reporter;
+}
+
 async function retryFetch(...params: Parameters<typeof fetch>): Promise<Response> {
     let tries = 5;
     while (true) {
@@ -64,11 +73,10 @@ async function retryFetch(...params: Parameters<typeof fetch>): Promise<Response
             // recordError("datamanager", error, {fetchUrl: String(params[0])});
             throw error;
         }
-        if (result.status !== 200) {
-            // recordError("datamanager", {
-            //     "status": result.status,
-            //     "statusText": result.statusText,
-            // });
+        if (!result.ok) {
+            console.error(`Data API error: ${result.status}: ${result.statusText}`, params[0]);
+            errorReporter(result, params);
+            throw new Error(`Data API error: ${result.status}: ${result.statusText} (${params[0]}`);
         }
         return result;
     }
