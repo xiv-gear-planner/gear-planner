@@ -443,6 +443,23 @@ export class GnbSim extends BaseMultiCycleSim<GnbSimResult, GnbSettings, GnbCycl
             return Actions.BurstStrike;
         }
 
+        // If No Mercy is up after this GCD and we will only get 8 GCDs in the upcoming No Mercy, then we
+        // can use Burst Strike beforehand for a buffed Hypervelocity.
+        // We check level since there will be Burst Strike GCDs in sub 100 GNB, whereas there won't for 100 GNB.
+        if (cp.stats.level >= 100) {
+            const relativeCd = cp.cdTracker.statusOf(Actions.NoMercy).readyAt.relative;
+            // Is No Mercy coming up after this GCD?
+            if (relativeCd <= cp.stats.gcdPhys(2.5) + STANDARD_ANIMATION_LOCK) {
+                // Will we only get 8 GCDs in it?
+                // The 9 here counts:
+                // - The immediately following GCD (not in No Mercy)
+                // - The 8 GCDs we'll get in No Mercy
+                if (relativeCd + NoMercyBuff.duration <= cp.stats.gcdPhys(2.5) * 9) {
+                    return Actions.BurstStrike;
+                }
+            }
+        }
+
         if (this.willOvercapCartsNextGCD(cp)) {
             return Actions.BurstStrike;
         }
