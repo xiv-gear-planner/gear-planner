@@ -98,10 +98,26 @@ export const HyperchargeBuff: Buff = {
     statusId: 3864,
 };
 
-export const FullmetalfieldBuff: Buff = {
+export const FullMetalFieldReadyBuff: Buff = {
     name: "Full Metal Field ready",
     duration: 30,
     selfOnly: true,
     appliesTo: ability => ability.name === "Full Metal Field",
+    beforeSnapshot: removeSelf,
+};
+
+export const FreeHypercharge: Buff = {
+    name: "Hypercharge ready",
+    selfOnly: true,
+    appliesTo: ability => ability.name === "Hypercharge"
+    beforeSnapshot: removeSelf,
+    duration: 30,
+};
+
+export const ExcavatorReadyBuff: Buff = {
+    name: "Excavator ready",
+    duration: 30,
+    selfOnly: true,
+    appliesTo: ability => ability.name === "Excavator",
     beforeSnapshot: removeSelf,
 };

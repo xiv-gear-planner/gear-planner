@@ -1,6 +1,6 @@
 import {MchHeat} from "./mch_heatgauge";
 import {MchBattery} from "./mch_batterygauge";
-import {MchGcdAbility, MchogcdAbility, ReassembleBuff, AutomatonQueenBuff, HyperchargeBuff} from "./mch_types";
+import {MchGcdAbility, MchogcdAbility, ReassembleBuff, AutomatonQueenBuff, HyperchargeBuff, FreeHyperchargeBuff, , ExcavatorReadyBuff} from "./mch_types";
 
 /**
  * MCH GCD Actions
@@ -50,6 +50,7 @@ export const drill: MchGcdAbility = {
     cast: 0,
     cooldown: {
         time: 20,
+        reducedBy: "skillspeed",
         charges: 2,
     },
 };
@@ -62,10 +63,11 @@ export const chainsaw: MchGcdAbility = {
     attackType: "Weaponskill",
     gcd: 2.5,
     cast: 0,
-    activatesBuffs: [ExcavatorBuff],
+    activatesBuffs: [ExcavatorReadyBuff],
     updateBatteryGauge: (gauge: Batterygauge) => gauge.batteryGauge += 20,
     cooldown: {
         time: 60,
+        reducedBy: "skillspeed",
     },
 };
 
@@ -91,6 +93,7 @@ export const airanchor: MchGcdAbility = {
     updateBatteryGauge: (gauge: Batterygauge) => gauge.batteryGauge += 20,
     cooldown: {
         time: 60,
+        reducedBy: "skillspeed",
     },
 };
 
@@ -109,7 +112,7 @@ export const blazingshot: MchGcdAbility = {
     type: 'gcd',
     name: "Blazing Shot",
     id: 36978,
-    potency: 240 + 20,
+    potency: 240,
     attackType: "Weaponskill",
     gcd: 1.5,
 };
@@ -134,8 +137,8 @@ export const barrelstabilizer: MchoGcdAbility = {
     id: 7414,
     potency: null,
     attackType: "Ability",
-    activatesBuffs: [FullmetalfieldBuff],
-    updateHeatGauge: (gauge: Heatgauge) => gauge.heatGauge += 50,
+    activatesBuffs: [FullMetalFieldReadyBuff],
+    activatesBuffs: [FreeHyperchargeBuff],
 };
 
 export const reassemble: MchoGcdAbility = {
