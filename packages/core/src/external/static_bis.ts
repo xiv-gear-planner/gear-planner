@@ -26,9 +26,9 @@ export function setServerOverride(server: string) {
 export function getBisSheetFetchUrl(path: string[]): URL {
     let current: URL = new URL(getServer());
     for (let i = 0; i < path.length - 1; i++) {
-        current = new URL(`./${path[i]}/`, current);
+        current = new URL(`./${encodeURIComponent(path[i])}/`, current);
     }
-    current = new URL(`./${path[path.length - 1]}.json`, current);
+    current = new URL(`./${encodeURIComponent(path[path.length - 1])}.json`, current);
     return current;
 }
 
