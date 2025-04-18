@@ -1,4 +1,3 @@
-import {getBisSheet} from "../external/static_bis";
 import {JobName} from "@xivgear/xivmath/xivconstants";
 import {
     HASH_QUERY_PARAM,

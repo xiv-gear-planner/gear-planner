@@ -1,5 +1,3 @@
-import {JobName} from "@xivgear/xivmath/xivconstants";
-
 const STATIC_SERVER: URL = new URL("https://staticbis.xivgear.app/");
 
 const STORAGE_KEY = 'staticbis-server-override';
