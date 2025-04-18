@@ -254,17 +254,17 @@ describe('parsePath', () => {
                 defaultSelectionIndex: undefined,
             });
         });
-        it('does not try to embed bis', () => {
-            const result = parsePath(new NavState(['embed', 'bis', 'sge', 'endwalker', 'anabaseios']));
+        it('can embed bis', () => {
+            const result = parsePath(new NavState(['embed', 'bis', 'sge', 'endwalker', 'anabaseios'], 1));
             expect(result).to.deep.equals({
                 type: 'bis',
                 path: ['sge', 'endwalker', 'anabaseios'],
                 job: 'sge',
                 folder: 'endwalker',
                 sheet: 'anabaseios',
-                embed: false,
+                embed: true,
                 viewOnly: true,
-                onlySetIndex: undefined,
+                onlySetIndex: 1,
                 defaultSelectionIndex: undefined,
             });
         });
