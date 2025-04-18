@@ -138,8 +138,8 @@ function resolveNavData(nav: NavPath | null): NavResult | null {
             };
         case "bis":
             return {
-                preloadUrl: getBisSheetFetchUrl(nav.job, nav.folder ?? "", nav.sheet),
-                sheetData: getBisSheet(nav.job, nav.folder ?? "", nav.sheet).then(JSON.parse),
+                preloadUrl: getBisSheetFetchUrl(nav.path),
+                sheetData: getBisSheet(nav.path).then(JSON.parse),
             };
     }
     throw Error(`Unable to resolve nav result: ${nav.type}`);
@@ -260,7 +260,7 @@ export function buildStatsServer() {
             embed: false,
             viewOnly: true,
         };
-        const rawData = await getBisSheet(request.params['job'] as JobName, "", request.params['sheet'] as string);
+        const rawData = await getBisSheet([request.params['job'] as JobName, request.params['sheet'] as string]);
         const out = await importExportSheet(request, JSON.parse(rawData), nav);
         reply.header("cache-control", "max-age=7200, public");
         reply.send(out);
@@ -280,7 +280,7 @@ export function buildStatsServer() {
             embed: false,
             viewOnly: true,
         };
-        const rawData = await getBisSheet(request.params['job'] as JobName, request.params['folder'] as string, request.params['sheet'] as string);
+        const rawData = await getBisSheet([request.params['job'], request.params['folder'], request.params['sheet']]);
         const out = await importExportSheet(request, JSON.parse(rawData), nav);
         reply.header("cache-control", "max-age=7200, public");
         reply.send(out);

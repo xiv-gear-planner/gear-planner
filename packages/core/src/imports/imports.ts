@@ -26,7 +26,7 @@ export type EtroImportSpec = {
 }
 export type BisImportSpec = {
     importType: 'bis',
-    path: Parameters<typeof getBisSheet>,
+    path: string[],
     onlySetIndex?: number,
 }
 
@@ -35,6 +35,7 @@ export type ImportSpec = JsonImportSpec | ShortlinkImportSpec | EtroImportSpec |
 const importSheetUrlRegex = RegExp(".*/(?:viewsheet|importsheet)/(.*)$");
 const importSetUrlRegex = RegExp(".*/(?:viewset|importset)/(.*)$");
 const importShortlinkRegex = RegExp(".*/(?:sl|share)/(.*)$");
+// This can remain only supporting the old form, because no legacy URLs would have existed with the new URL style
 const bisRegex = RegExp(".*/bis/(.*?)/(.*?)/(.*?)$");
 const newStyleUrl = RegExp(".*[&?]page=(.*)$");
 const etroRegex = RegExp("https://etro\\.gg/gearset/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})");
@@ -114,7 +115,7 @@ export function parseImport(text: string): ImportSpec {
                     case "bis":
                         return {
                             importType: 'bis',
-                            path: [parsed.job, parsed.folder, parsed.sheet],
+                            path: parsed.path,
                             onlySetIndex: parsed.onlySetIndex,
                         };
                     default:

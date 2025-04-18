@@ -20,7 +20,6 @@ import {
     hideWelcomeArea,
     openExport,
     openSheetByKey,
-    setMainContent,
     showFatalError,
     showImportSheetForm,
     showLoadingScreen,
@@ -104,87 +103,93 @@ export async function processNav() {
 }
 
 async function doNav(navState: NavState) {
-    const nav = parsePath(navState);
-    if (nav === null) {
-        console.error('unknown nav', navState);
-        showSheetPickerMenu();
-        return;
-    }
-    if ('embed' in nav && nav.embed) {
-        embed = true;
-        earlyEmbedInit();
-    }
-    if (nav.type !== 'mysheets') {
-        hideWelcomeArea();
-    }
-    switch (nav.type) {
-        case "mysheets":
-            console.info("No sheet open");
+    try {
+
+        const nav = parsePath(navState);
+        if (nav === null) {
+            console.error('unknown nav', navState);
             showSheetPickerMenu();
             return;
-        case "newsheet":
-            showNewSheetForm();
-            return;
-        case "importform":
-            showImportSheetForm();
-            return;
-        case "saved": {
-            const saveKey = nav.saveKey;
-            console.log("Loading: " + saveKey);
-            openSheetByKey(saveKey);
-            return;
         }
-        case "shortlink": {
-            showLoadingScreen();
-            const uuid = nav.uuid;
-            const resolved: string | null = await getShortLink(uuid);
-            if (resolved) {
-                const json = JSON.parse(resolved);
-                openExport(json, true, nav.onlySetIndex, nav.defaultSelectionIndex);
+        if ('embed' in nav && nav.embed) {
+            embed = true;
+            earlyEmbedInit();
+        }
+        if (nav.type !== 'mysheets') {
+            hideWelcomeArea();
+        }
+        switch (nav.type) {
+            case "mysheets":
+                console.info("No sheet open");
+                showSheetPickerMenu();
+                return;
+            case "newsheet":
+                showNewSheetForm();
+                return;
+            case "importform":
+                showImportSheetForm();
+                return;
+            case "saved": {
+                const saveKey = nav.saveKey;
+                console.log("Loading: " + saveKey);
+                openSheetByKey(saveKey);
                 return;
             }
-            else {
-                console.error('Non-existent shortlink, or other error', uuid);
-                recordError('load', {
-                    'type': 'uuidDoesNotExist',
-                    'uuid': uuid,
-                });
-                showFatalError("That set/sheet does not seem to exist");
-                return;
-            }
-        }
-        case "setjson":
-            openExport(nav.jsonBlob as SetExport, nav.viewOnly, undefined, undefined);
-            return;
-        case "sheetjson":
-            openExport(nav.jsonBlob as SheetExport, nav.viewOnly, undefined, undefined);
-            return;
-        case "bis": {
-            showLoadingScreen();
-            try {
-                const resolved: string | null = await getBisSheet(nav.job, nav.folder, nav.sheet);
+            case "shortlink": {
+                showLoadingScreen();
+                const uuid = nav.uuid;
+                const resolved: string | null = await getShortLink(uuid);
                 if (resolved) {
                     const json = JSON.parse(resolved);
                     openExport(json, true, nav.onlySetIndex, nav.defaultSelectionIndex);
                     return;
                 }
                 else {
-                    console.error('Non-existent bis, or other error', [nav.job, nav.folder, nav.sheet]);
-                    recordError("load", `Non-existent bis, or other error: ${nav.job}, ${nav.folder}, ${nav.sheet}`);
+                    console.error('Non-existent shortlink, or other error', uuid);
+                    recordError('load', {
+                        'type': 'uuidDoesNotExist',
+                        'uuid': uuid,
+                    });
+                    showFatalError("That set/sheet does not seem to exist");
+                    return;
                 }
             }
-            catch (e) {
-                console.error("Error loading bis", e);
-                recordError("load", e);
+            case "setjson":
+                openExport(nav.jsonBlob as SetExport, nav.viewOnly, undefined, undefined);
+                return;
+            case "sheetjson":
+                openExport(nav.jsonBlob as SheetExport, nav.viewOnly, undefined, undefined);
+                return;
+            case "bis": {
+                showLoadingScreen();
+                try {
+                    const resolved: string | null = await getBisSheet(nav.path);
+                    if (resolved) {
+                        const json = JSON.parse(resolved);
+                        openExport(json, true, nav.onlySetIndex, nav.defaultSelectionIndex);
+                        return;
+                    }
+                    else {
+                        console.error('Non-existent bis, or other error', [nav.job, nav.folder, nav.sheet]);
+                        recordError("load", `Non-existent bis, or other error: ${nav.job}, ${nav.folder}, ${nav.sheet}`);
+                    }
+                }
+                catch (e) {
+                    console.error("Error loading bis", e);
+                    recordError("load", e);
+                    showFatalError("Error loading BiS sheet");
+                }
+                showFatalError("Error loading BiS sheet");
+                return;
             }
-            const errMsg = document.createElement('h1');
-            errMsg.textContent = 'Error Loading Sheet/Set';
-            setMainContent('Error', errMsg);
-            return;
         }
     }
+    catch (e) {
+        recordError('doNav', e);
+        showFatalError("navigation error");
+    }
     console.error("I don't know what to do with this path", navState);
-    // TODO: handle remaining invalid cases
+    showFatalError("This does not seem to be a valid page");
 }
 
 function getQueryParams(): URLSearchParams {

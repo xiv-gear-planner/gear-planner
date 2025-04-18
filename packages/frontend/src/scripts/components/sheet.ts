@@ -2181,7 +2181,7 @@ export class ImportSetsModal extends BaseModal {
                     });
                     return;
                 case "bis":
-                    this.doAsyncImport(() => getBisSheet(...parsed.path), parsed.onlySetIndex);
+                    this.doAsyncImport(() => getBisSheet(parsed.path), parsed.onlySetIndex);
                     return;
             }
         }
