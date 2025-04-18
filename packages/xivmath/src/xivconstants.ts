@@ -606,7 +606,7 @@ export const LEVEL_ITEMS: Record<SupportedLevel, LevelItemInfo> = {
             // Raise this when more gear is available
             minILvl: 740,
             maxILvl: 999,
-            minILvlFood: 710,
+            minILvlFood: 740,
         },
     },
 };

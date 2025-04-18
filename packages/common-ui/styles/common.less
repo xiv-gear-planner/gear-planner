@@ -2371,6 +2371,19 @@ food-stat-bonus {
     float: right;
     padding-right: 0;
   }
+
+  .food-cap {
+    display: contents;
+  }
+
+  &.food-capped {
+    .food-cap {
+      > * {
+        opacity: 50%;
+      }
+    }
+  }
+
 }
 
 table.food-items-table {
@@ -3500,10 +3513,12 @@ expandable-text {
       display: -webkit-box;
       mask-image: linear-gradient(180deg, black 90%, transparent 100%);
     }
+
     .truncation-expand-button {
       display: unset;
     }
   }
+
   .truncation-expand-button {
     display: none;
     margin-bottom: 10px;
@@ -3513,6 +3528,7 @@ expandable-text {
 .set-description-holder {
   --truncatable-line-clamp: 6;
   margin-bottom: 16px;
+
   button {
     .shadow;
     border-radius: 5px;

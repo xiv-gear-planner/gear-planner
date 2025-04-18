@@ -169,12 +169,30 @@ function makeSpan(text: string, classes: string[] = []) {
 class FoodStatBonusDisplay extends HTMLElement {
     constructor(value: FoodStatBonusWithEffective) {
         super();
-        this.appendChild(makeSpan(`e +${value.effective}`));
-        this.appendChild(makeSpan(`+${value.percentage}%`));
-        this.appendChild(document.createTextNode(' '));
-        this.appendChild(makeSpan(`≤${value.max}`, ['food-stat-narrow']));
-        this.appendChild(makeSpan(`(max ${value.max})`, ['food-stat-wide']));
+        const capped = value.effective >= value.max;
+        if (capped) {
+            this.classList.add('food-capped');
+        }
+        else {
+            this.classList.add('food-undercapped');
+        }
+        this.appendChild(makeSpan(`+${value.effective}`));
+        // this.appendChild(makeSpan(`+${value.percentage}%`));
+        this.appendChild(quickElement('div', ['food-cap'], [
+            document.createTextNode(' '),
+            // TODO: remove food-stat-wide/narrow
+            // makeSpan(capped ? ' (Full)' : ` / ${value.max}`, []),
+            makeSpan(capped ? ' ✔' : ` / ${value.max}`, ['food-stat-wide']),
+            makeSpan(capped ? ' ✔' : ``, ['food-stat-narrow']),
+            // makeSpan(`(max ${value.max})`, ['food-stat-wide']),
+            // makeSpan(`≤${value.max}`, ['food-stat-narrow']),
+            // makeSpan(`(max ${value.max})`, ['food-stat-wide']),
+        ]));
     }
+}
+
+function addFoodCellTooltip(value: FoodStatBonusWithEffective, cell: HTMLElement) {
+    cell.title = `Effective: ${value.effective}\nBonus: ${value.percentage}%\nMax: ${value.max}`;
 }
 
 type FoodStatBonusWithEffective = FoodStatBonus & {
@@ -220,6 +238,7 @@ function foodTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, stat: 
             if (highlightPrimarySecondary) {
                 foodStatCellStyler(cell, stat);
             }
+            addFoodCellTooltip(value, cell);
         },
     });
 
