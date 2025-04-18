@@ -485,7 +485,6 @@ export class MateriaPriorityPicker extends HTMLElement {
                 gcd: val,
             });
         });
-        minGcdInput.pattern = '\\d\\.\\d\\d?';
         minGcdInput.title = 'Enter the minimum desired GCD in the form x.yz.\nSkS/SpS materia will be de-prioritized once this target GCD is met.';
         minGcdInput.classList.add('min-gcd-input');
         this.replaceChildren(header, drag,

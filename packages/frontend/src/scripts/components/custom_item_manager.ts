@@ -74,7 +74,6 @@ export class CustomItemTable extends CustomTable<CustomItem> {
                 renderer: (item: CustomItem) => {
                     const ilvlInput = new FieldBoundIntField(item, 'ilvl', {
                         postValidators: [nonNegative],
-                        inputMode: 'number',
                     });
                     const capBox = new FieldBoundCheckBox(item, 'respectCaps');
                     const recheck = (ilvl: number) => {
@@ -102,7 +101,6 @@ export class CustomItemTable extends CustomTable<CustomItem> {
                 renderer: (item: CustomItem) => {
                     return new FieldBoundIntField(item.customData, 'largeMateriaSlots', {
                         postValidators: [clampValues(0, 5)],
-                        inputMode: 'number',
                     });
                 },
                 initialWidth: 60,
@@ -113,7 +111,6 @@ export class CustomItemTable extends CustomTable<CustomItem> {
                 renderer: (item: CustomItem) => {
                     return new FieldBoundIntField(item.customData, 'smallMateriaSlots', {
                         postValidators: [clampValues(0, 5)],
-                        inputMode: 'number',
                     });
                 },
                 initialWidth: 60,
@@ -126,7 +123,6 @@ export class CustomItemTable extends CustomTable<CustomItem> {
                     renderer: (item: CustomItem) => {
                         return new FieldBoundIntField(item.customData.stats, stat, {
                             postValidators: [nonNegative],
-                            inputMode: 'number',
                         });
                     },
                     initialWidth: 40,
@@ -139,7 +135,6 @@ export class CustomItemTable extends CustomTable<CustomItem> {
                 renderer: ifWeapon((item: CustomItem) => {
                     return new FieldBoundIntField(item.customData.stats, "wdPhys", {
                         postValidators: [nonNegative],
-                        inputMode: 'number',
                     });
                 }),
                 initialWidth: 40,
@@ -150,7 +145,6 @@ export class CustomItemTable extends CustomTable<CustomItem> {
                 renderer: ifWeapon((item: CustomItem) => {
                     return new FieldBoundIntField(item.customData.stats, "wdMag", {
                         postValidators: [nonNegative],
-                        inputMode: 'number',
                     });
                 }),
                 initialWidth: 40,
@@ -162,7 +156,6 @@ export class CustomItemTable extends CustomTable<CustomItem> {
                 renderer: ifWeapon((item: CustomItem) => {
                     const out = new FieldBoundFloatField(item.customData.stats, "weaponDelay", {
                         postValidators: [nonNegative],
-                        inputMode: 'number',
                     });
                     out.title = 'Enter weapon delay in seconds (e.g. 3.125)';
                     return out;
@@ -267,7 +260,6 @@ export class CustomFoodTable extends CustomTable<CustomFood> {
                 renderer: (item: CustomFood) => {
                     return new FieldBoundIntField(item.customData, 'ilvl', {
                         postValidators: [nonNegative],
-                        inputMode: 'number',
                     });
                 },
                 initialWidth: 60,
