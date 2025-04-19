@@ -245,7 +245,7 @@ export function parsePath(state: NavState): NavPath | null {
         if (path.length >= 4) {
             return {
                 type: 'bis',
-                path: [path[1], path[2], path[3]],
+                path: path.slice(1),
                 job: path[1] as JobName,
                 folder: path[2],
                 sheet: path[path.length - 1],

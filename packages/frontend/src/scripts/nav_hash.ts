@@ -112,120 +112,121 @@ export async function processNav() {
  */
 async function doNav(navState: NavState) {
     try {
-    const nav = parsePath(navState);
-    if (nav === null) {
-        console.error('unknown nav', navState);
-        showSheetPickerMenu();
-        return;
-    }
-    if ('embed' in nav && nav.embed) {
-        embed = true;
-        earlyEmbedInit();
-    }
-    if (nav.type !== 'mysheets') {
-        hideWelcomeArea();
-    }
-    switch (nav.type) {
-        case "mysheets":
-            console.info("No sheet open");
+        const nav = parsePath(navState);
+        if (nav === null) {
+            console.error('unknown nav', navState);
             showSheetPickerMenu();
             return;
-        case "newsheet":
-            showNewSheetForm();
-            return;
-        case "importform":
-            showImportSheetForm();
-            return;
-        case "saved": {
-            const saveKey = nav.saveKey;
-            console.log("Loading: " + saveKey);
-            openSheetByKey(saveKey);
-            return;
         }
-        case "shortlink": {
-            showLoadingScreen();
-            const uuid = nav.uuid;
-            const resolved: string | null = await getShortLink(uuid);
-            if (resolved) {
-                const json = JSON.parse(resolved);
-                openExport(json, true, nav.onlySetIndex, nav.defaultSelectionIndex);
+        if ('embed' in nav && nav.embed) {
+            embed = true;
+            earlyEmbedInit();
+        }
+        if (nav.type !== 'mysheets') {
+            hideWelcomeArea();
+        }
+        switch (nav.type) {
+            case "mysheets":
+                console.info("No sheet open");
+                showSheetPickerMenu();
+                return;
+            case "newsheet":
+                showNewSheetForm();
+                return;
+            case "importform":
+                showImportSheetForm();
+                return;
+            case "saved": {
+                const saveKey = nav.saveKey;
+                console.log("Loading: " + saveKey);
+                openSheetByKey(saveKey);
                 return;
             }
-            else {
-                console.error('Non-existent shortlink, or other error', uuid);
-                recordError('load', {
-                    'type': 'uuidDoesNotExist',
-                    'uuid': uuid,
-                });
-                showFatalError("That set/sheet does not seem to exist");
-                return;
-            }
-        }
-        case "setjson":
-            openExport(nav.jsonBlob as SetExport, nav.viewOnly, undefined, undefined);
-            return;
-        case "sheetjson":
-            openExport(nav.jsonBlob as SheetExport, nav.viewOnly, undefined, undefined);
-            return;
-        case "bis": {
-            showLoadingScreen();
-            try {
-                const resolved: string | null = await getBisSheet(nav.job, nav.folder, nav.sheet);
+            case "shortlink": {
+                showLoadingScreen();
+                const uuid = nav.uuid;
+                const resolved: string | null = await getShortLink(uuid);
                 if (resolved) {
                     const json = JSON.parse(resolved);
                     openExport(json, true, nav.onlySetIndex, nav.defaultSelectionIndex);
                     return;
                 }
                 else {
-                    console.error('Non-existent bis, or other error', [nav.job, nav.folder, nav.sheet]);
-                    recordError("load", `Non-existent bis, or other error: ${nav.job}, ${nav.folder}, ${nav.sheet}`);
+                    console.error('Non-existent shortlink, or other error', uuid);
+                    recordError('load', {
+                        'type': 'uuidDoesNotExist',
+                        'uuid': uuid,
+                    });
+                    showFatalError("That set/sheet does not seem to exist");
+                    return;
                 }
             }
-            catch (e) {
-                console.error("Error loading bis", e);
-                recordError("load", e);
-                showFatalError("Error loading BiS sheet");
-            }
-            showFatalError("Error loading BiS sheet");
-            return;
-        }
-        case 'bisbrowser': {
-            showLoadingScreen();
-            try {
-                // TODO: have it display a placeholder component until loaded
-                const index = await getBisIndex();
-                let current: AnyNode = index;
-                nav.path.forEach(pathPart => {
-                    if (current.type === 'file') {
-                        showFatalError(`${pathPart} Does Not Exist`);
+            case "setjson":
+                openExport(nav.jsonBlob as SetExport, nav.viewOnly, undefined, undefined);
+                return;
+            case "sheetjson":
+                openExport(nav.jsonBlob as SheetExport, nav.viewOnly, undefined, undefined);
+                return;
+            case "bis": {
+                showLoadingScreen();
+                try {
+                    const resolved: string | null = await getBisSheet(nav.path);
+                    if (resolved) {
+                        const json = JSON.parse(resolved);
+                        openExport(json, true, nav.onlySetIndex, nav.defaultSelectionIndex);
                         return;
-                    }
-                    current = current.children.find(node => node.pathPart === pathPart);
-                    if (!current) {
-                        showFatalError(`${pathPart} Does Not Exist`);
-                        return;
-                    }
-                });
-                console.log("BiS Index", index);
-                const bisBrowserElement = new BisBrowser((path, nav) => {
-                    if (nav) {
-                        goPath(...path);
                     }
                     else {
-                        setPath(...path);
+                        console.error('Non-existent bis, or other error', nav.path);
+                        recordError("load", `Non-existent bis, or other error: ${nav.path.join("|")}`);
                     }
-                });
-                bisBrowserElement.setData(current);
-                setMainContent('BiS', bisBrowserElement.element);
+                }
+                catch (e) {
+                    console.error("Error loading bis", e);
+                    recordError("load", e);
+                    showFatalError("Error loading BiS sheet");
+                }
+                showFatalError("Error loading BiS sheet");
+                return;
             }
-            catch (e) {
-                console.error(e);
-                showFatalError('Error Loading BiS Index');
+            case 'bisbrowser': {
+                showLoadingScreen();
+                try {
+                    // TODO: have it display a placeholder component until loaded
+                    const index = await getBisIndex();
+                    let current: AnyNode = index;
+                    nav.path.forEach(pathPart => {
+                        if (current.type === 'file') {
+                            showFatalError(`${pathPart} Does Not Exist`);
+                            return;
+                        }
+                        current = current.children.find(node => node.pathPart === pathPart);
+                        if (!current) {
+                            showFatalError(`${pathPart} Does Not Exist`);
+                            return;
+                        }
+                    });
+                    console.log("BiS Index", index);
+                    const bisBrowserElement = new BisBrowser((path, nav) => {
+                        if (nav) {
+                            goPath(...path);
+                        }
+                        else {
+                            setPath(...path);
+                        }
+                    });
+                    bisBrowserElement.setData(current);
+                    setMainContent('BiS', bisBrowserElement.element);
+                }
+                catch (e) {
+                    console.error(e);
+                    showFatalError('Error Loading BiS Index');
+                }
+                return;
             }
-            return;
         }
     }
-    } catch (e) {
+    catch (e) {
         recordError('doNav', e);
         showFatalError("navigation error");
     }

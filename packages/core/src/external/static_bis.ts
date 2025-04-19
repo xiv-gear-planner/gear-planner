@@ -1,5 +1,3 @@
-import {JobName} from "@xivgear/xivmath/xivconstants";
-
 export type BaseNode = {
     fileName: string,
     parent?: DirNode,
