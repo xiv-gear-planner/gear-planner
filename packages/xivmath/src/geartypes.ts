@@ -8,7 +8,7 @@ import {
     SupportedLevel
 } from "./xivconstants";
 
-import {RawBonusStats, StatModification} from "./xivstats";
+import {RawBonusStats, StatModification, StatPreModifications} from "./xivstats";
 import {TranslatableString} from "@xivgear/i18n/translation";
 
 export interface DisplayGearSlot {
@@ -244,7 +244,7 @@ export interface ComputedSetStats extends RawStats {
     /**
      * Current level
      */
-    readonly level: number,
+    readonly level: SupportedLevel,
     /**
      * Current level stats modifier
      */
@@ -368,7 +368,9 @@ export interface ComputedSetStats extends RawStats {
      */
     readonly aaDelay: number;
 
-    withModifications(modifications: StatModification): ComputedSetStats;
+    readonly effectiveFoodBonuses: RawStats;
+
+    withModifications(modifications: StatModification, pre?: StatPreModifications): ComputedSetStats;
 }
 
 export interface MeldableMateriaSlot {

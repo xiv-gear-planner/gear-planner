@@ -11,7 +11,6 @@ import {NamedSection} from "../../components/section";
 export function cycleSettingsGui(cycleSettings: CycleSettings) {
     const out = new NamedSection('Cycle Settings');
     const timeField = new FieldBoundFloatField(cycleSettings, 'totalTime', {
-        inputMode: 'number',
         // 1 hour of sim time should be enough for any application
         postValidators: [clampValues(0, 60 * 60)],
     });

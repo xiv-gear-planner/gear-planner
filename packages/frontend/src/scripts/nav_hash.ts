@@ -111,6 +111,7 @@ export async function processNav() {
  * @param navState
  */
 async function doNav(navState: NavState) {
+    try {
     const nav = parsePath(navState);
     if (nav === null) {
         console.error('unknown nav', navState);
@@ -125,23 +126,23 @@ async function doNav(navState: NavState) {
         hideWelcomeArea();
     }
     switch (nav.type) {
-        case 'mysheets':
+        case "mysheets":
             console.info("No sheet open");
             showSheetPickerMenu();
             return;
-        case 'newsheet':
+        case "newsheet":
             showNewSheetForm();
             return;
-        case 'importform':
+        case "importform":
             showImportSheetForm();
             return;
-        case 'saved': {
+        case "saved": {
             const saveKey = nav.saveKey;
             console.log("Loading: " + saveKey);
             openSheetByKey(saveKey);
             return;
         }
-        case 'shortlink': {
+        case "shortlink": {
             showLoadingScreen();
             const uuid = nav.uuid;
             const resolved: string | null = await getShortLink(uuid);
@@ -160,13 +161,13 @@ async function doNav(navState: NavState) {
                 return;
             }
         }
-        case 'setjson':
+        case "setjson":
             openExport(nav.jsonBlob as SetExport, nav.viewOnly, undefined, undefined);
             return;
-        case 'sheetjson':
+        case "sheetjson":
             openExport(nav.jsonBlob as SheetExport, nav.viewOnly, undefined, undefined);
             return;
-        case 'bis': {
+        case "bis": {
             showLoadingScreen();
             try {
                 const resolved: string | null = await getBisSheet(nav.job, nav.folder, nav.sheet);
@@ -183,8 +184,9 @@ async function doNav(navState: NavState) {
             catch (e) {
                 console.error("Error loading bis", e);
                 recordError("load", e);
+                showFatalError("Error loading BiS sheet");
             }
-            showFatalError('Error Loading Sheet/Set');
+            showFatalError("Error loading BiS sheet");
             return;
         }
         case 'bisbrowser': {
@@ -223,8 +225,12 @@ async function doNav(navState: NavState) {
             return;
         }
     }
+    } catch (e) {
+        recordError('doNav', e);
+        showFatalError("navigation error");
+    }
     console.error("I don't know what to do with this path", navState);
-    // TODO: handle remaining invalid cases
+    showFatalError("This does not seem to be a valid page");
 }
 
 /**

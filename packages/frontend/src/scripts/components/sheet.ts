@@ -87,8 +87,9 @@ import {MeldSolverDialog} from "./meld_solver_modal";
 import {insertAds} from "./ads";
 import {SETTINGS} from "@xivgear/common-ui/settings/persistent_settings";
 import {isInIframe} from "@xivgear/common-ui/util/detect_iframe";
-import {recordEvent} from "@xivgear/common-ui/analytics/analytics";
+import {recordError, recordEvent} from "@xivgear/common-ui/analytics/analytics";
 import {ExpandableText} from "@xivgear/common-ui/components/expandy_text";
+import {setDataManagerErrorReporter} from "@xivgear/core/datamanager_new";
 
 const noSeparators = (set: CharacterGearSet) => !set.isSeparator;
 
@@ -96,6 +97,15 @@ const isSafari: boolean = (() => {
     const ua = navigator.userAgent.toLowerCase();
     return ua.includes('safari') && !ua.includes('chrome');
 })();
+
+// Set up error reporting for DataManager
+setDataManagerErrorReporter((response, params) => {
+    recordError("datamanagerfetch", `fetch error: ${response.status}: ${response.statusText} (${params[0]})`, {
+        fetchUrl: params[0],
+        statusCode: response.status,
+        statusText: response.statusText,
+    });
+});
 
 function mainStatCol(sheet: GearPlanSheet, stat: RawStatKey): CustomColumnSpec<CharacterGearSet, MultiplierStat> {
     return {
@@ -811,6 +821,7 @@ export class GearSetEditor extends HTMLElement {
     private header: HTMLHeadingElement;
     private desc: ExpandableText;
     private issuesButtonContent: HTMLSpanElement;
+    private foodTable: FoodItemsTable;
 
     constructor(sheet: GearPlanSheet, gearSet: CharacterGearSet) {
         super();
@@ -831,7 +842,7 @@ export class GearSetEditor extends HTMLElement {
         }
     }
 
-    checkIssues(): void{
+    checkIssues(): void {
         const issues = this.gearSet.issues;
         if (issues.length >= 1) {
             this.issuesButtonContent.replaceChildren(iconForIssues(...issues), `${issues.length} issue${issues.length === 1 ? '' : 's'}`);
@@ -932,10 +943,10 @@ export class GearSetEditor extends HTMLElement {
         // this.appendChild(gearTable);
 
         // Food table
-        const foodTable = new FoodItemsTable(this.sheet, this.gearSet);
-        foodTable.classList.add('food-table');
+        this.foodTable = new FoodItemsTable(this.sheet, this.gearSet);
+        this.foodTable.classList.add('food-table');
         // foodTable.id = "food-items-table";
-        this.appendChild(foodTable);
+        this.appendChild(this.foodTable);
         this.checkIssues();
     }
 
@@ -950,6 +961,7 @@ export class GearSetEditor extends HTMLElement {
 
     refresh() {
         this.checkIssues();
+        this.foodTable.refreshFull();
     }
 
     private undoRedoHotkeyHandler = (ev: KeyboardEvent) => {
@@ -994,7 +1006,7 @@ export class SeparatorEditor extends HTMLElement {
 
     formatTitleDesc() {
 
-        this.header.textContent = this.gearSet.name;
+        this.header.textContent = this.gearSet.name.trim().length === 0 ? "<No Name>" : this.gearSet.name;
         const trimmedDesc = this.gearSet.description?.trim();
         if (trimmedDesc) {
             this.desc.style.display = '';
@@ -1159,7 +1171,7 @@ export class GearSetViewer extends HTMLElement {
         // Food table TODO make readonly
         const food = this.gearSet.food;
         if (food) {
-            const foodTable = new FoodItemViewTable(this.sheet, food);
+            const foodTable = new FoodItemViewTable(this.sheet, this.gearSet, food);
             foodTable.classList.add('food-view-table');
             // foodTable.id = "food-items-table";
             this.appendChild(foodTable);
@@ -2171,7 +2183,7 @@ export class ImportSetsModal extends BaseModal {
                     });
                     return;
                 case "bis":
-                    this.doAsyncImport(() => getBisSheet(...parsed.path), parsed.onlySetIndex);
+                    this.doAsyncImport(() => getBisSheet(parsed.path), parsed.onlySetIndex);
                     return;
             }
         }

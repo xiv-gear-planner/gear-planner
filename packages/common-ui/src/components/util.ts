@@ -167,9 +167,14 @@ export interface FbctArgs<ObjType, FieldType> {
      */
     type?: string;
     /**
-     * The HTML input inputmode.
+     * The HTML input inputmode. Common values include 'decimal', 'email', 'none', 'numeric', 'search', 'tel', 'text',
+     * and 'url'.
      */
     inputMode?: string;
+    /**
+     * Sets the pattern attribute
+     */
+    pattern?: string;
 }
 
 export interface FieldBoundFloatFieldFbctArgs<ObjType, FieldType> extends FbctArgs<ObjType, FieldType> {
@@ -194,6 +199,9 @@ export class FieldBoundConvertingTextField<ObjType, FieldType> extends HTMLInput
         this.type = extraArgs.type ?? 'text';
         if (extraArgs.inputMode) {
             this.inputMode = extraArgs.inputMode;
+        }
+        if (extraArgs.pattern) {
+            this.pattern = extraArgs.pattern;
         }
         // @ts-expect-error - not sure how to do type def correctly
         this.reloadValue = () => this.value = valueToString(obj[field]);
@@ -359,10 +367,14 @@ export class FieldBoundIntField<ObjType> extends FieldBoundConvertingTextField<O
         };
         extraArgs.preValidators = [skipMinus, ...(extraArgs.preValidators ?? [])];
         extraArgs.postValidators = [intValidator, ...(extraArgs.postValidators ?? [])];
+        const defaultSettings: Partial<FbctArgs<ObjType, number>> = {
+            pattern: "\\d*",
+            inputMode: 'number',
+        };
         // Spinner arrows aren't styleable. Love CSS!
         // extraArgs.type = extraArgs.type ?? 'number';
         // extraArgs.inputMode = extraArgs.inputMode ?? 'numeric';
-        super(obj, field, (s) => s.toString(), (s) => Number(s), extraArgs);
+        super(obj, field, (s) => s.toString(), (s) => Number(s), {...defaultSettings, ...extraArgs});
         if (this.type === 'numeric') {
             if (!this.step) {
                 this.step = '1';
@@ -380,10 +392,14 @@ export class FieldBoundOrUndefIntField<ObjType> extends FieldBoundConvertingText
         };
         extraArgs.preValidators = [skipMinus, ...(extraArgs.preValidators ?? [])];
         extraArgs.postValidators = [intValidator, ...(extraArgs.postValidators ?? [])];
+        const defaultSettings: Partial<FbctArgs<ObjType, number | undefined>> = {
+            pattern: "\\d*",
+            inputMode: 'number',
+        };
         // Spinner arrows aren't styleable. Love CSS!
         // extraArgs.type = extraArgs.type ?? 'number';
         // extraArgs.inputMode = extraArgs.inputMode ?? 'numeric';
-        super(obj, field, (s) => s === undefined ? "" : s.toString(), (s) => s.trim() === "" ? undefined : Number(s), extraArgs);
+        super(obj, field, (s) => s === undefined ? "" : s.toString(), (s) => s.trim() === "" ? undefined : Number(s), {...extraArgs, ...defaultSettings});
         if (this.type === 'numeric') {
             if (!this.step) {
                 this.step = '1';
@@ -403,11 +419,18 @@ export class FieldBoundFloatField<ObjType> extends FieldBoundConvertingTextField
         };
         extraArgs.preValidators = [skipMinus, ...(extraArgs.preValidators ?? [])];
         extraArgs.postValidators = [numberValidator, ...(extraArgs.postValidators ?? [])];
+        const defaultSettings: Partial<FbctArgs<ObjType, number | undefined>> = {
+            // pattern: "\\d*",
+            inputMode: 'decimal',
+        };
         // Spinner arrows aren't styleable. Love CSS!
         // extraArgs.type = extraArgs.type ?? 'number';
         // extraArgs.inputMode = extraArgs.inputMode ?? 'numeric';
         const toStringFunc = extraArgs.fixDecimals ? (x: number) => x.toFixed(extraArgs.fixDecimals) : (x: number) => x.toString();
-        super(obj, field, (s) => toStringFunc(s), (s) => Number(s), extraArgs);
+        if (extraArgs.fixDecimals !== undefined) {
+            defaultSettings.pattern = `[0-9]*\\.?[0-9]{0,${extraArgs.fixDecimals}}`;
+        }
+        super(obj, field, (s) => toStringFunc(s), (s) => Number(s), {...defaultSettings, ...extraArgs});
     }
 }
 
@@ -522,8 +545,12 @@ export function labeledRadioButton(label: string, radioButton: HTMLInputElement)
 
 export function quickElement<X extends keyof HTMLElementTagNameMap>(tag: X, classes: string[], nodes: Parameters<ParentNode['replaceChildren']>): HTMLElementTagNameMap[X] {
     const element = document.createElement(tag);
-    element.replaceChildren(...nodes);
-    element.classList.add(...classes);
+    if (nodes.length > 0) {
+        element.replaceChildren(...nodes);
+    }
+    if (classes.length > 0) {
+        element.classList.add(...classes);
+    }
     return element;
 }
 
