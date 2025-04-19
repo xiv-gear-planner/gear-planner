@@ -464,7 +464,7 @@ export type PreDmgUsedAbility = {
     /**
      * If a DoT, the DoT damage
      */
-    dot?: DotDamageUnf,
+    dot?: DotDamageUnf | null,
     /**
      * The total cast time from usedAt
      */
@@ -499,7 +499,7 @@ export type PreDmgUsedAbility = {
 
 export type PostDmgUsedAbility = PreDmgUsedAbility & {
     directDamage: ComputedDamage,
-    dot?: DotDamageUnf
+    dot?: DotDamageUnf | null
 }
 /**
  * Represents a pseudo-ability used to round out a cycle to exactly 120s.
@@ -585,8 +585,6 @@ export type BaseBuff = Readonly<{
     selfOnly?: boolean,
     /** The effect(s) of the buff */
     effects: BuffEffects,
-    /** For buffs whose duration can stack*/
-    maxStackingDuration?: number;
     /**
      * Filter what abilities this buff applies to
      *
@@ -657,13 +655,15 @@ export type BaseBuff = Readonly<{
     descriptionOverride?: never,
 })>;
 
-export type PartyBuff = BaseBuff & Readonly<{
+export type PartyBuff = BaseBuff & DurationBuff & Readonly<{
     /** Job of buff */
     job: JobName,
     /** Cooldown */
     cooldown: number,
-    /** "Optional" would be things like DNC partner buffs, where merely having the job
-     // in your comp does not mean you would necessarily get the buff. */
+    /**
+     * "Optional" flag indicates things like DNC partner buffs or AST cards, where merely having the job
+     * in your comp does not mean you would necessarily get the buff.
+     */
     optional?: boolean,
 
     selfOnly: false,
@@ -678,12 +678,20 @@ export type PartyBuff = BaseBuff & Readonly<{
     duration: number,
 }>;
 
-export type PersonalBuff = BaseBuff & Readonly<{
+export type PersonalBuff = BaseBuff & (DurationBuff | IndefiniteBuff);
+
+export type DurationBuff = Readonly<{
+    duration: number;
     /**
-     * Duration. Optional for personal buffs - omit to signify an indefinite buff.
+     * For buffs whose duration can stack (e.g. WAR self-buff), this specifies the max duration.
      */
-    duration?: number | undefined;
+    maxStackingDuration?: number;
 }>;
+
+export type IndefiniteBuff = Readonly<{
+    duration: never;
+    maxStackingDuration: never;
+}>
 
 export type Buff = PersonalBuff | PartyBuff;
 

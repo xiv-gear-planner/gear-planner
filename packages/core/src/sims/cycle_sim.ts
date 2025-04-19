@@ -591,11 +591,12 @@ export class CycleProcessor {
         const activeUsages = this.getActiveBuffsData().filter(buffHist => buffHist.buff.name === buff.name);
         this.removeBuff(buff);
         activeUsages.forEach(au => {
-            const newStacks = au.buff.stacks + stacksDelta;
+            // If stacks is undefined, then default to one stack
+            const newStacks = (au.buff.stacks ?? 1) + stacksDelta;
             if (newStacks > 0) {
                 this.activateBuff({
                     ...au.buff,
-                    stacks: au.buff.stacks + stacksDelta,
+                    stacks: newStacks,
                 });
             }
         });
@@ -800,7 +801,7 @@ export class CycleProcessor {
                         ...record.dot,
                         damagePerTick: dmgInfo.dot!.damagePerTick,
                     } : null,
-                };
+                } satisfies PostDmgDisplayRecordUnf;
             }
         });
     }
@@ -930,9 +931,9 @@ export class CycleProcessor {
         const modification = relevantModifications.reduce((currentLowest, mod) => currentLowest.minLevel > mod.minLevel ? currentLowest : mod);
         const modifiedAbility: Ability = {
             ...ability,
-            ...modification,
             levelModifiers: [],
         };
+        Object.assign(modifiedAbility, modification);
         return modifiedAbility;
     }
 
@@ -1006,7 +1007,7 @@ export class CycleProcessor {
             }
         }
         this.markCd(ability, preCombinedEffects);
-        const effectiveCastTime: number | null = ability.cast ? this.castTime(ability, preCombinedEffects) : null;
+        const effectiveCastTime: number = ability.cast ? this.castTime(ability, preCombinedEffects) : 0;
         // Also check that we can fit the cast time, for long-casts
         if (cutoffMode === 'strict-gcd' && effectiveCastTime > this.remainingTime) {
             if (this.isGcd(ability)) {
@@ -1338,7 +1339,7 @@ export class CycleProcessor {
             this.combatStarted = true;
             this.combatStarting = true;
         }
-        if (usedAbility.dot && 'dot' in usedAbility.ability) {
+        if ((usedAbility.dot && 'dot' in usedAbility.ability) {
             const dotId = usedAbility.ability.dot?.id;
             // If the ability places a DoT, then check if we need to cut off an existing DoT
             if (dotId !== undefined) {
@@ -1359,6 +1360,7 @@ export class CycleProcessor {
                         existing.dot.fullDurationTicks === 'indefinite' ? Number.MAX_VALUE : existing.dot.fullDurationTicks);
                     existing.dot.actualTickCount = tickCount;
                 }
+                usedAbility.dot;
                 // Set our new DoT into the DoT map
                 this.dotMap.set(dotId, usedAbility);
             }
@@ -1603,7 +1605,7 @@ export class CycleProcessor {
     protected beforeAbility<X extends Ability>(originalAbility: X, buffs: Buff[]): X {
         let ability: X = originalAbility;
         for (const buff of buffs) {
-            if ('beforeAbility' in buff) {
+            if (buff.beforeAbility) {
                 const modified: X | void = buff.beforeAbility(this.makeBuffController(buff), ability);
                 if (modified) {
                     ability = modified;
@@ -1616,7 +1618,7 @@ export class CycleProcessor {
     private beforeSnapshot<X extends Ability>(originalAbility: X, buffs: Buff[]): X {
         let ability: X = originalAbility;
         for (const buff of buffs) {
-            if ('beforeSnapshot' in buff) {
+            if (buff.beforeSnapshot) {
                 const modified: X | void = buff.beforeSnapshot(this.makeBuffController(buff), ability);
                 if (modified) {
                     ability = modified;
@@ -1630,7 +1632,7 @@ export class CycleProcessor {
     private modifyDamage(originalDamage: DamageResult, ability: Ability, buffs: Buff[]): DamageResult {
         let damage: DamageResult = originalDamage;
         for (const buff of buffs) {
-            if ('modifyDamage' in buff) {
+            if (buff.modifyDamage) {
                 const modified: DamageResult | void = buff.modifyDamage(this.makeBuffController(buff), damage, ability);
                 if (modified) {
                     damage = modified;
@@ -1666,6 +1668,8 @@ export class CycleProcessor {
         for (const combo of comboData.combos) {
             const key = combo.comboKey;
             seen.push(key);
+            // TODO: this fails in strict mode, because combo.comboKey is optional, but we fill all these in via
+            // completeComboData.
             const tracker = this.getComboTracker(key);
             out = updateComboTracker(combo, out, tracker);
         }

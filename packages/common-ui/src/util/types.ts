@@ -1,3 +1,4 @@
+// TODO: most of these don't need to be in frontend
 type IfEquals<X, Y, A = X, B = never> =
     (<T>() => T extends X ? 1 : 2) extends (<T>() => T extends Y ? 1 : 2) ? A : B;
 
@@ -32,3 +33,10 @@ export type XivApiIcon = {
     path: string,
     path_hr1: string,
 }
+
+/**
+ * Type representing T, but with K properties being required instead of optional.
+ */
+export type RequireProps<T, K extends keyof T> = T & {
+    [P in K]-?: T[P];
+};

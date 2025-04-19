@@ -23,7 +23,7 @@ export function setToMicroExport(set: CharacterGearSet): MicroSetExport {
                     // To indicate NQ items, add .5 to the item ID
                     inSlot.gearItem.id,
                     "relic",
-                    (inSlot.relicStats && Object.entries(inSlot.relicStats)) ? {...inSlot.relicStats} : null,
+                    (inSlot.relicStats && Object.entries(inSlot.relicStats)) ? {...inSlot.relicStats} : {},
                 ];
                 slots.push(exportedItem);
 

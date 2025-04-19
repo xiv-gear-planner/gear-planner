@@ -89,7 +89,7 @@ export function completeComboData(ability: Ability): FinalizedComboData {
  * @param left The first ability to compare.
  * @param right The second ability to compare.
  */
-export function abilityEquals(left: Ability, right: Ability) {
+export function abilityEquals(left: Ability | null | undefined, right: Ability | null | undefined) {
     if (left === right) {
         return true;
     }

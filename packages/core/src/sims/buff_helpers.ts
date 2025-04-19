@@ -1,6 +1,11 @@
 import {Buff} from "./sim_types";
 
-function nonZero(number: number): boolean {
+/**
+ * Returns true if the argument not null, not undefined, and greater than zero.
+ *
+ * @param number
+ */
+function nonZero(number: number | undefined | null): boolean {
     return (number ?? 0) > 0;
 }
 
