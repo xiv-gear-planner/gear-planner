@@ -92,7 +92,7 @@ export class ImportSheetArea extends NamedSection {
                     });
                     return;
                 case "bis":
-                    this.doAsyncImport(() => getBisSheet(...parsed.path), parsed.onlySetIndex);
+                    this.doAsyncImport(() => getBisSheet(parsed.path), parsed.onlySetIndex);
                     return;
             }
         }
@@ -114,8 +114,12 @@ export class ImportSheetArea extends NamedSection {
     doJsonImport(text: string, onlySetIndex: number | undefined) {
         const rawImport = JSON.parse(text);
         if ('sets' in rawImport && rawImport.sets.length) {
-            if (onlySetIndex !== undefined) {
+            if (onlySetIndex !== undefined && onlySetIndex in rawImport.sets) {
                 const single = extractSingleSet(rawImport, onlySetIndex);
+                if (single === undefined) {
+                    alert(`Error: Set index ${onlySetIndex} is not valid.`);
+                    return;
+                }
                 this.sheetOpenCallback(GRAPHICAL_SHEET_PROVIDER.fromSetExport(single));
             }
             else {

@@ -13,11 +13,11 @@ import {
 import {MateriaSubstat, MAX_GCD, STAT_ABBREVIATIONS, STAT_FULL_NAMES} from "@xivgear/xivmath/xivconstants";
 import {closeModal, setModal} from "@xivgear/common-ui/modalcontrol";
 import {
-    faIcon,
     FieldBoundDataSelect,
     FieldBoundFloatField,
     labelFor,
     makeActionButton,
+    makeTrashIcon,
     quickElement
 } from "@xivgear/common-ui/components/util";
 import {GearPlanSheet} from "@xivgear/core/sheet";
@@ -138,8 +138,21 @@ export class SlotMateriaManager extends HTMLElement {
         this.classList.add("slot-materia-manager");
         if (editable) {
             this.addEventListener('mousedown', (ev) => {
-                this.showPopup();
+                if (ev.altKey) {
+                    this.materiaSlot.equippedMateria = null;
+                    callback();
+                    this.reformat();
+                }
+                else if (ev.ctrlKey) {
+                    this.materiaSlot.locked = !this.materiaSlot.locked;
+                    sheet.requestSave();
+                    this.reformat();
+                }
+                else {
+                    this.showPopup();
+                }
                 ev.stopPropagation();
+                ev.preventDefault();
             });
             this.classList.add('editable');
         }
@@ -182,6 +195,8 @@ export class SlotMateriaManager extends HTMLElement {
 
     reformat() {
         const currentMat = this.materiaSlot.equippedMateria;
+        // TODO: can the ordering be improved here?
+        let title: string;
         if (currentMat) {
             this.image.src = currentMat.iconUrl.toString();
             this.image.style.display = 'block';
@@ -189,7 +204,7 @@ export class SlotMateriaManager extends HTMLElement {
             this.text.textContent = `+${displayedNumber} ${STAT_ABBREVIATIONS[currentMat.primaryStat]}`;
             this.classList.remove("materia-slot-empty");
             this.classList.add("materia-slot-full");
-            this.title = formatMateriaTitle(currentMat);
+            title = `${formatMateriaTitle(currentMat)}\n\nAlt-click to remove.`;
         }
         else {
             this.image.style.display = 'none';
@@ -197,8 +212,19 @@ export class SlotMateriaManager extends HTMLElement {
             this.classList.remove('materia-normal', 'materia-overcap', 'materia-overcap-major', 'materia-slot-full');
             // this.classList.remove('materia-slot-full', 'materia-normal', 'materia-overcap', 'materia-overcap-major')
             this.classList.add("materia-slot-empty");
-            delete this.title;
+            title = 'Click to select materia\n';
         }
+        title += `\nCtrl-click to ${this.materiaSlot.locked ? 'unlock' : 'prevent auto-fill/solving from affecting this slot.'}.`;
+        if (this.materiaSlot.locked) {
+            this.classList.add('materia-slot-locked');
+            this.classList.remove('materia-slot-unlocked');
+            title = 'This slot is LOCKED. It will not be affected by auto-fill nor the solver.\n' + title;
+        }
+        else {
+            this.classList.add('materia-slot-unlocked');
+            this.classList.remove('materia-slot-locked');
+        }
+        this.title = title;
     }
 
     // eslint-disable-next-line accessor-pairs
@@ -291,12 +317,12 @@ export class SlotMateriaManagerPopup extends HTMLElement {
         const headerRow = body.insertRow();
         // Blank top-left
         const topLeftCell = document.createElement("th");
-        const topLeft = quickElement('div', ['materia-picker-remove'], [faIcon('fa-trash-can')]);
-        topLeft.addEventListener('mousedown', (ev) => {
+        const trash = quickElement('div', ['materia-picker-remove'], [makeTrashIcon()]);
+        trash.addEventListener('mousedown', (ev) => {
             this.submit(undefined);
             ev.stopPropagation();
         });
-        topLeftCell.appendChild(topLeft);
+        topLeftCell.appendChild(trash);
         headerRow.appendChild(topLeftCell);
         for (const stat of stats) {
             const headerCell = document.createElement("th");
@@ -345,6 +371,10 @@ export class SlotMateriaManagerPopup extends HTMLElement {
             },
         });
         this.style.display = 'block';
+        // this.addEventListener('mouseenter', e => {
+        //     e.stopPropagation();
+        // });
+        this.title = '';
     }
 
     submit(materia: Materia | undefined) {
@@ -407,7 +437,27 @@ export class MateriaPriorityPicker extends HTMLElement {
             recordEvent("fillAll");
         }, 'Empty out and re-fill all materia slots according to the chosen priority.');
 
-        const solveMelds = makeActionButton('Solve', () => sheet.showMeldSolveDialog(), "Solve for the highest damage melds for your chosen gear");
+        const lockAllEquipped = makeActionButton('Lock Filled', () => {
+            prioController.lockFilled();
+        }, 'Lock all equipped materia');
+        lockAllEquipped.classList.add('narrow-button');
+
+        const lockAllEmpty = makeActionButton('Lock Empty', () => {
+            prioController.lockEmpty();
+        }, 'Lock all empty materia slots');
+        lockAllEmpty.classList.add('narrow-button');
+
+        const unlockAll = makeActionButton('Unlock All', () => {
+            prioController.unlockAll();
+        }, 'Unlock all slots');
+        unlockAll.classList.add('narrow-button');
+
+        const unequipAll = makeActionButton('Remove Unlocked', () => {
+            prioController.unequipUnlocked();
+        }, 'Unequip all unlocked materia');
+        unequipAll.classList.add('narrow-button');
+
+        const tips = quickElement('div', ['meld-solver-tips'], ['Tip: Ctrl-click a materia slot to lock/unlock it. Alt-click to remove materia.']);
 
         const drag = new MateriaDragList(prioController);
 
@@ -435,13 +485,20 @@ export class MateriaPriorityPicker extends HTMLElement {
                 gcd: val,
             });
         });
-        minGcdInput.pattern = '\\d\\.\\d\\d?';
         minGcdInput.title = 'Enter the minimum desired GCD in the form x.yz.\nSkS/SpS materia will be de-prioritized once this target GCD is met.';
         minGcdInput.classList.add('min-gcd-input');
-        this.replaceChildren(header, drag, document.createElement('br'),
-            minGcdText, minGcdInput, document.createElement('br'),
-            fillModeLabel, fillModeDropdown, document.createElement('br'),
-            solveMelds, fillEmptyNow, fillAllNow);
+        this.replaceChildren(header, drag,
+            document.createElement('br'),
+            minGcdText, minGcdInput,
+            document.createElement('br'),
+            fillModeLabel, fillModeDropdown,
+            document.createElement('br'),
+            fillEmptyNow, fillAllNow,
+            document.createElement('br'),
+            lockAllEquipped, lockAllEmpty, unlockAll, unequipAll,
+            document.createElement('br'),
+            tips
+        );
     }
 }
 

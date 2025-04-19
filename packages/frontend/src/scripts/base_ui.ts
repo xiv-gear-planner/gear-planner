@@ -3,7 +3,7 @@ import {NamedSection} from "./components/section";
 import {NewSheetForm} from "./components/new_sheet_form";
 import {ImportSheetArea} from "./components/import_sheet";
 import {SetExport, SheetExport} from "@xivgear/xivmath/geartypes";
-import {displayEmbedError, openEmbed} from "./embed";
+import {getEmbedDiv, openEmbed} from "./embed";
 import {LoadingBlocker} from "@xivgear/common-ui/components/loader";
 import {SheetPickerTable} from "./components/saved_sheet_picker";
 import {GearPlanSheetGui, GRAPHICAL_SHEET_PROVIDER} from "./components/sheet";
@@ -17,11 +17,16 @@ import {arrayEq} from "@xivgear/util/array_utils";
 import {extractSingleSet} from "@xivgear/core/util/sheet_utils";
 import {CharacterGearSet} from "@xivgear/core/gear";
 import {recordSheetEvent} from "./analytics/analytics";
+import {recordError} from "@xivgear/common-ui/analytics/analytics";
+import {isInIframe} from "@xivgear/common-ui/util/detect_iframe";
+import {WritableProps} from "@xivgear/common-ui/util/types";
+import {quickElement} from "@xivgear/common-ui/components/util";
 
 declare global {
     interface Document {
         planner?: GearPlanSheetGui;
     }
+
     // noinspection JSUnusedGlobalSymbols
     interface Window {
         currentSheet?: GearPlanSheetGui;
@@ -72,6 +77,45 @@ export function hideWelcomeArea() {
 export function setMainContent(title: string, ...nodes: Parameters<ParentNode['replaceChildren']>) {
     contentArea.replaceChildren(...nodes);
     setTitle(title);
+}
+
+function showBadEmbedAttemptError() {
+    const currentState = getCurrentState();
+    const newUrl = makeUrl(new NavState(currentState.path.slice(1), currentState.onlySetIndex, currentState.selectIndex));
+    const msg = "Embedding is only supported for a single set, not a full sheet. Consider embedding sets individually and/or linking to the full sheet rather than embedding it.";
+    showFatalError(msg, [
+        makeLink('Click to open this sheet', newUrl, {target: '_blank'}),
+        quickElement('br', [], []),
+        quickElement('small', [], [msg]),
+    ]);
+}
+
+
+function makeLink(text: string, href: URL, opts: Partial<WritableProps<HTMLAnchorElement>>) {
+    const a = document.createElement('a');
+    a.textContent = text;
+    a.href = href.toString();
+    Object.assign(a, opts);
+    return a;
+}
+
+export function showFatalError(errorText: string, errorElementContents?: Parameters<ParentNode['replaceChildren']>) {
+    recordError("showFatalError", errorText);
+    const errMsg = document.createElement('h1');
+    if (errorElementContents !== undefined) {
+        errMsg.replaceChildren(...errorElementContents);
+    }
+    else {
+        errMsg.textContent = errorText;
+    }
+    const embedDiv = getEmbedDiv();
+    if (embedDiv !== undefined) {
+        setTitle("Error");
+        embedDiv.replaceChildren(errMsg);
+    }
+    else {
+        setMainContent("Error", errMsg);
+    }
 }
 
 export function initTopMenu() {
@@ -168,6 +212,10 @@ export async function openExport(exportedPre: SheetExport | SetExport, viewOnly:
                 sheetUrl: makeUrl(new NavState(navState.path, undefined, navState.onlySetIndex)),
             };
             exportedPre = extractSingleSet(exportedInitial, onlySetIndex);
+            if (exportedPre === undefined) {
+                showFatalError(`Error: Set index ${onlySetIndex} is not valid.`);
+                throw new Error(`Error: Set index ${onlySetIndex} is not valid.`);
+            }
         }
     }
     const exported = exportedPre;
@@ -177,6 +225,25 @@ export async function openExport(exportedPre: SheetExport | SetExport, viewOnly:
         sheet.defaultSelectionIndex = defaultSelectionIndex;
     }
     const embed = isEmbed();
+    if (isInIframe()) {
+        const extraData: {
+            topLocation?: string,
+            referrer?: string,
+        } = {};
+        try {
+            extraData['topLocation'] = window.top.location.hostname;
+        }
+        catch (e) {
+            // Ignored
+        }
+        if (document.referrer) {
+            extraData['referrer'] = document.referrer;
+        }
+        recordSheetEvent('iframe', sheet, extraData);
+        if (!isEmbed()) {
+            recordSheetEvent('nonEmbeddedIframe', sheet, extraData);
+        }
+    }
     const analyticsData = {
         'isEmbed': embed,
         'viewOnly': viewOnly,
@@ -185,7 +252,7 @@ export async function openExport(exportedPre: SheetExport | SetExport, viewOnly:
     recordSheetEvent('openExport', sheet, analyticsData);
     if (embed) {
         if (isFullSheet) {
-            displayEmbedError("Embedding is only supported for a single set, not a full sheet. Consider embedding sets individually and/or linking to the full sheet rather than embedding it.");
+            showBadEmbedAttemptError();
         }
         else {
             sheet.setViewOnly();
@@ -230,9 +297,11 @@ export async function openSheet(planner: GearPlanSheetGui, changeHash: boolean =
         }
     }, (reason) => {
         console.error(reason);
-        contentArea.replaceChildren(document.createTextNode("Error loading sheet!"));
+        recordError("load", reason);
+        showFatalError("Error Loading Sheet!");
     });
     await loadSheetPromise;
+    // TODO: does this visibly slow down sheet access?
     await WORKER_POOL.setSheet(planner);
 }
 

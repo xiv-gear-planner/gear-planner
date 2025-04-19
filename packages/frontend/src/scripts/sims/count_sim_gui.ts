@@ -138,6 +138,6 @@ export class BaseUsageCountSimGui<ResultType extends CountSimResult, InternalSet
 
         bucketsTable.data = [new HeaderRow(), ...transposedData];
 
-        return quickElement('div', ['cycle-sim-results-table'], [mainResultsTable, bucketsTable]);
+        return quickElement('div', ['count-sim-results-area'], [mainResultsTable, bucketsTable]);
     }
 }

@@ -52,7 +52,7 @@ import {
     STAT_ABBREVIATIONS,
     SupportedLevel
 } from "@xivgear/xivmath/xivconstants";
-import {getCurrentHash, getCurrentState} from "../nav_hash";
+import {getCurrentHash, getCurrentState, processNav} from "../nav_hash";
 import {MateriaTotalsDisplay} from "./materia";
 import {FoodItemsTable, FoodItemViewTable, GearItemsTable, GearItemsViewTable} from "./items";
 import {SetViewToolbar} from "./totals_display";
@@ -87,6 +87,9 @@ import {MeldSolverDialog} from "./meld_solver_modal";
 import {insertAds} from "./ads";
 import {SETTINGS} from "@xivgear/common-ui/settings/persistent_settings";
 import {isInIframe} from "@xivgear/common-ui/util/detect_iframe";
+import {recordError, recordEvent} from "@xivgear/common-ui/analytics/analytics";
+import {ExpandableText} from "@xivgear/common-ui/components/expandy_text";
+import {setDataManagerErrorReporter} from "@xivgear/core/datamanager_new";
 
 const noSeparators = (set: CharacterGearSet) => !set.isSeparator;
 
@@ -94,6 +97,15 @@ const isSafari: boolean = (() => {
     const ua = navigator.userAgent.toLowerCase();
     return ua.includes('safari') && !ua.includes('chrome');
 })();
+
+// Set up error reporting for DataManager
+setDataManagerErrorReporter((response, params) => {
+    recordError("datamanagerfetch", `fetch error: ${response.status}: ${response.statusText} (${params[0]})`, {
+        fetchUrl: params[0],
+        statusCode: response.status,
+        statusText: response.statusText,
+    });
+});
 
 function mainStatCol(sheet: GearPlanSheet, stat: RawStatKey): CustomColumnSpec<CharacterGearSet, MultiplierStat> {
     return {
@@ -443,7 +455,15 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, SingleCellRowOr
                 renderer: (value: CharacterGearSet) => {
                     const nameSpan = document.createElement('span');
                     const elements: Element[] = [nameSpan];
-                    nameSpan.textContent = value.name;
+                    if (value.name.trim().length === 0
+                        && (value.description === undefined || value.description.trim().length === 0)) {
+                        // If length is zero, insert an NBSP so that the row doesn't collapse to 0 pixels when viewing
+                        // a separator with an empty title+desc.
+                        nameSpan.textContent = '\xa0';
+                    }
+                    else {
+                        nameSpan.textContent = value.name;
+                    }
                     const trimmedDesc = value.description?.trim();
                     let title = value.name;
                     // Description is only on view-only mode
@@ -775,6 +795,14 @@ export class SimResultMiniDisplay extends HTMLElement {
     }
 }
 
+function makeDescriptionHolder(text: string): HTMLElement {
+    const fullParagraphs = stringToParagraphs(text);
+    const out = new ExpandableText();
+    out.classList.add('set-description-holder');
+    out.setChildren(fullParagraphs);
+    return out;
+}
+
 function stringToParagraphs(text: string): HTMLParagraphElement[] {
     return text.trim().split('\n').map(line => {
         const p = document.createElement('p');
@@ -791,8 +819,9 @@ export class GearSetEditor extends HTMLElement {
     private readonly gearSet: CharacterGearSet;
     private gearTables: GearItemsTable[] = [];
     private header: HTMLHeadingElement;
-    private desc: HTMLDivElement;
+    private desc: ExpandableText;
     private issuesButtonContent: HTMLSpanElement;
+    private foodTable: FoodItemsTable;
 
     constructor(sheet: GearPlanSheet, gearSet: CharacterGearSet) {
         super();
@@ -801,19 +830,19 @@ export class GearSetEditor extends HTMLElement {
         this.setup();
     }
 
-    formatTitleDesc() {
+    formatTitleDesc(): void {
         this.header.textContent = this.gearSet.name;
         const trimmedDesc = this.gearSet.description?.trim();
         if (trimmedDesc) {
             this.desc.style.display = '';
-            this.desc.replaceChildren(...stringToParagraphs(trimmedDesc));
+            this.desc.setChildren(stringToParagraphs(trimmedDesc));
         }
         else {
             this.desc.style.display = 'none';
         }
     }
 
-    checkIssues() {
+    checkIssues(): void {
         const issues = this.gearSet.issues;
         if (issues.length >= 1) {
             this.issuesButtonContent.replaceChildren(iconForIssues(...issues), `${issues.length} issue${issues.length === 1 ? '' : 's'}`);
@@ -835,7 +864,8 @@ export class GearSetEditor extends HTMLElement {
         // this.appendChild(nameEditor);
 
         this.header = document.createElement('h2');
-        this.desc = document.createElement('div');
+        this.desc = new ExpandableText();
+        this.desc.classList.add('set-description-holder');
         this.appendChild(this.header);
         this.appendChild(this.desc);
         this.formatTitleDesc();
@@ -913,10 +943,10 @@ export class GearSetEditor extends HTMLElement {
         // this.appendChild(gearTable);
 
         // Food table
-        const foodTable = new FoodItemsTable(this.sheet, this.gearSet);
-        foodTable.classList.add('food-table');
+        this.foodTable = new FoodItemsTable(this.sheet, this.gearSet);
+        this.foodTable.classList.add('food-table');
         // foodTable.id = "food-items-table";
-        this.appendChild(foodTable);
+        this.appendChild(this.foodTable);
         this.checkIssues();
     }
 
@@ -931,6 +961,7 @@ export class GearSetEditor extends HTMLElement {
 
     refresh() {
         this.checkIssues();
+        this.foodTable.refreshFull();
     }
 
     private undoRedoHotkeyHandler = (ev: KeyboardEvent) => {
@@ -975,7 +1006,7 @@ export class SeparatorEditor extends HTMLElement {
 
     formatTitleDesc() {
 
-        this.header.textContent = this.gearSet.name;
+        this.header.textContent = this.gearSet.name.trim().length === 0 ? "<No Name>" : this.gearSet.name;
         const trimmedDesc = this.gearSet.description?.trim();
         if (trimmedDesc) {
             this.desc.style.display = '';
@@ -1041,6 +1072,9 @@ export class GearSetViewer extends HTMLElement {
             linkUrl.searchParams.delete(ONLY_SET_QUERY_PARAM);
             headingLink.href = linkUrl.toString();
             headingLink.target = '_blank';
+            headingLink.addEventListener('click', () => {
+                recordSheetEvent("openEmbedToFull", this.sheet);
+            });
             headingLink.replaceChildren(this.gearSet.name, faIcon('fa-arrow-up-right-from-square', 'fa'));
             heading.replaceChildren(headingLink);
         }
@@ -1050,7 +1084,7 @@ export class GearSetViewer extends HTMLElement {
         this.appendChild(heading);
 
         if (this.gearSet.description) {
-            const descContainer = quickElement('div', [], stringToParagraphs(this.gearSet.description));
+            const descContainer = makeDescriptionHolder(this.gearSet.description);
             this.appendChild(descContainer);
         }
 
@@ -1137,7 +1171,7 @@ export class GearSetViewer extends HTMLElement {
         // Food table TODO make readonly
         const food = this.gearSet.food;
         if (food) {
-            const foodTable = new FoodItemViewTable(this.sheet, food);
+            const foodTable = new FoodItemViewTable(this.sheet, this.gearSet, food);
             foodTable.classList.add('food-view-table');
             // foodTable.id = "food-items-table";
             this.appendChild(foodTable);
@@ -1417,7 +1451,7 @@ export class GearPlanSheetGui extends GearPlanSheet {
     }
 
 
-    setupRealGui() {
+    private setupRealGui() {
         const buttonsArea = this.buttonsArea;
         const showHideButton = makeActionButton('≡', () => {
             const cls = 'showing';
@@ -1638,6 +1672,17 @@ export class GearPlanSheetGui extends GearPlanSheet {
 
 
         const outer = this;
+
+        function doSet(f: (set: CharacterGearSet) => void): void {
+            let set;
+            if ((set = outer._editorItem) instanceof CharacterGearSet) {
+                f(set);
+                if (outer._editorAreaNode instanceof GearSetEditor) {
+                    outer._editorAreaNode.refreshMateria();
+                }
+            }
+        }
+
         const matFillCtrl: MateriaAutoFillController = {
 
             get autoFillMode() {
@@ -1654,38 +1699,56 @@ export class GearPlanSheetGui extends GearPlanSheet {
                 outer.requestSave();
             },
             fillAll(): void {
-                let set;
-                if ((set = outer._editorItem) instanceof CharacterGearSet) {
-                    set.fillMateria(outer.materiaAutoFillPrio, true);
-                    if (outer._editorAreaNode instanceof GearSetEditor) {
-                        outer._editorAreaNode.refreshMateria();
-                    }
-                }
+                doSet(set => set.fillMateria(outer.materiaAutoFillPrio, true));
             },
             fillEmpty(): void {
-                let set;
-                if ((set = outer._editorItem) instanceof CharacterGearSet) {
-                    set.fillMateria(outer.materiaAutoFillPrio, false);
-                    if (outer._editorAreaNode instanceof GearSetEditor) {
-                        outer._editorAreaNode.refreshMateria();
-                    }
-                }
+                doSet(set => set.fillMateria(outer.materiaAutoFillPrio, false));
             },
-            // TODO: remove?
-            refreshOnly() {
-                if (outer._editorAreaNode instanceof GearSetEditor) {
-                    // outer._editorAreaNode.refreshMateria();
-                }
+            lockEmpty(): void {
+                doSet(set => {
+                    set.forEachMateriaSlot((_key, _item, slot) => {
+                        if (!slot.equippedMateria) {
+                            slot.locked = true;
+                        }
+                    });
+                    // Only save - no recalc
+                    set.nonRecalcNotify();
+                });
             },
-
+            lockFilled(): void {
+                doSet(set => {
+                    set.forEachMateriaSlot((_key, _item, slot) => {
+                        if (slot.equippedMateria) {
+                            slot.locked = true;
+                        }
+                    });
+                    set.nonRecalcNotify();
+                });
+            },
+            unequipUnlocked(): void {
+                doSet(set => {
+                    set.forEachMateriaSlot((_key, _item, slot) => {
+                        if (!slot.locked) {
+                            slot.equippedMateria = null;
+                        }
+                    });
+                    set.forceRecalc();
+                });
+            },
+            unlockAll(): void {
+                doSet(set => {
+                    set.forEachMateriaSlot((_key, _item, slot) => {
+                        slot.locked = false;
+                    });
+                    set.nonRecalcNotify();
+                });
+            },
         };
         this._materiaAutoFillController = matFillCtrl;
         this._gearEditToolBar = new GearEditToolbar(
             this,
             this.itemDisplaySettings,
-            // () => this.gearUpdateTimer.ping(),
-            () => {
-            },
+            () => this.gearDisplaySettingsUpdateNow(),
             matFillCtrl
         );
 
@@ -1773,12 +1836,18 @@ export class GearPlanSheetGui extends GearPlanSheet {
         this._sheetSetupDone = true;
     }
 
+    /**
+     * Refresh all materia widgets on the current sheet.
+     */
     public refreshMateria() {
         if (this._editorAreaNode instanceof GearSetEditor) {
             this._editorAreaNode.refreshMateria();
         }
     }
 
+    /**
+     * The top-level element which is to be added to the page.
+     */
     get topLevelElement() {
         return this.element;
     }
@@ -1788,8 +1857,16 @@ export class GearPlanSheetGui extends GearPlanSheet {
         this.setupRealGui();
     }
 
-    onGearDisplaySettingsUpdate() {
+    /**
+     * Called when gear filters have been changed. It will eventually result in gear lists being refreshed, but with
+     * a delay such that multiple successive updates are coalesced into a single refresh.
+     */
+    gearDisplaySettingsUpdateLater() {
         this.gearUpdateTimer.ping();
+    }
+
+    gearDisplaySettingsUpdateNow() {
+        this.gearUpdateTimer.runNext();
     }
 
     get materiaAutoFillController() {
@@ -1870,6 +1947,9 @@ export class GearPlanSheetGui extends GearPlanSheet {
         }
     }
 
+    /**
+     * Refreshes the toolbar. Should be called when switching sets.
+     */
     refreshToolbar() {
         if (this._editorItem instanceof CharacterGearSet) {
             if (this.toolbarNode !== undefined && 'refresh' in this.toolbarNode && typeof this.toolbarNode.refresh === 'function') {
@@ -1911,12 +1991,18 @@ export class GearPlanSheetGui extends GearPlanSheet {
         this.gearPlanTable?.simsChanged();
     }
 
+    /**
+     * Show the add simulation modal.
+     */
     showAddSimDialog() {
         const addSimDialog = new AddSimDialog(this);
         document.querySelector('body').appendChild(addSimDialog);
         addSimDialog.show();
     }
 
+    /**
+     * Show the meld solving modal.
+     */
     showMeldSolveDialog() {
         if (!(this._editorItem instanceof CharacterGearSet)) {
             return;
@@ -1926,6 +2012,9 @@ export class GearPlanSheetGui extends GearPlanSheet {
         meldSolveDialog.show();
     }
 
+    /**
+     * The gear sheets table.
+     */
     get gearPlanTable(): GearPlanTable {
         return this._gearPlanTable;
     }
@@ -1966,8 +2055,23 @@ export class GearPlanSheetGui extends GearPlanSheet {
         const linkElement = document.createElement('a');
         linkElement.href = sheetUrl.toString();
         linkElement.textContent = sheetName;
+        linkElement.addEventListener('click', () => {
+            recordEvent('openNormalBacklink');
+        });
         if (isInIframe()) {
             linkElement.target = '_blank';
+        }
+        else {
+            // Don't fully reload the page for no reason
+            linkElement.addEventListener('click', (e) => {
+                const existingUrl = new URL(document.location.toString());
+                if (existingUrl.origin === sheetUrl.origin
+                    && existingUrl.pathname === sheetUrl.pathname) {
+                    e.preventDefault();
+                    history.pushState(null, null, sheetUrl);
+                    processNav();
+                }
+            });
         }
         area.replaceChildren("This set is part of a sheet: ", linkElement);
         area.style.display = '';
@@ -2079,7 +2183,7 @@ export class ImportSetsModal extends BaseModal {
                     });
                     return;
                 case "bis":
-                    this.doAsyncImport(() => getBisSheet(...parsed.path), parsed.onlySetIndex);
+                    this.doAsyncImport(() => getBisSheet(parsed.path), parsed.onlySetIndex);
                     return;
             }
         }
@@ -2265,9 +2369,9 @@ function formatSyncInfo(si: SyncInfo, level: SupportedLevel): string | null {
         if (isLvlSynced) {
             text += `lv${si.lvlSync} `;
         }
-        // If level sync isn't explicitly set, show the level anyway
-        // if item level sync is present in any way to avoid confusion.
         else if (si.ilvlSync !== null) {
+            // If level sync isn't explicitly set, show the level anyway
+            // if item level sync is present in any way to avoid confusion.
             text += `lv${level} `;
         }
         if (si.ilvlSync !== null) {

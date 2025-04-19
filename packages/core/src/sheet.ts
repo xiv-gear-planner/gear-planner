@@ -22,6 +22,7 @@ import {
     ItemDisplaySettings,
     ItemSlotExport,
     JobData,
+    JobDataConst,
     Materia,
     MateriaAutoFillController,
     MateriaAutoFillPrio,
@@ -49,12 +50,15 @@ import {getNextSheetInternalName} from "./persistence/saved_sheets";
 import {CustomItem} from "./customgear/custom_item";
 import {CustomFood} from "./customgear/custom_food";
 import {IlvlSyncInfo} from "./datamanager_xivapi";
-import {toSerializableForm} from "@xivgear/xivmath/xivstats";
+import {statsSerializationProxy} from "@xivgear/xivmath/xivstats";
 import {isMateriaAllowed} from "./materia/materia_utils";
 
 export type SheetCtorArgs = ConstructorParameters<typeof GearPlanSheet>
 export type SheetContstructor<SheetType extends GearPlanSheet> = (...values: SheetCtorArgs) => SheetType;
 
+/**
+ * SheetProvider is the base class for turning sheet exports or fresh sheets into rehydrated sheet objects.
+ */
 export class SheetProvider<SheetType extends GearPlanSheet> {
 
     constructor(private readonly sheetConstructor: SheetContstructor<SheetType>) {
@@ -64,10 +68,20 @@ export class SheetProvider<SheetType extends GearPlanSheet> {
         return this.sheetConstructor(...args);
     }
 
+    /**
+     * Produce a sheet from a SheetExport
+     *
+     * @param importedData
+     */
     fromExport(importedData: SheetExport): SheetType {
         return this.construct(undefined, importedData);
     }
 
+    /**
+     * Produce a sheet from a single-set export.
+     *
+     * @param importedData
+     */
     fromSetExport(...importedData: SetExportExternalSingle[]): SheetType {
         if (importedData.length === 0) {
             throw Error("Imported sets cannot be be empty");
@@ -95,6 +109,15 @@ export class SheetProvider<SheetType extends GearPlanSheet> {
         return gearPlanSheet;
     }
 
+    /**
+     * Create a new sheet from scratch
+     *
+     * @param sheetKey The save key for the sheet
+     * @param sheetName The name of the sheet
+     * @param classJob The class/job of the sheet
+     * @param level The level of the sheet
+     * @param ilvlSync The ilvl sync of the sheet, or undefined if the sheet should not have an ilvl sync.
+     */
     fromScratch(sheetKey: string, sheetName: string, classJob: JobName, level: SupportedLevel, ilvlSync: number | undefined): SheetType {
         const fakeExport: SheetExport = {
             job: classJob,
@@ -143,6 +166,9 @@ function loadSaved(sheetKey: string): SheetExport | null {
     }
 }
 
+/**
+ * Base class for a sheet. For graphical usage, see GearPlanSheetGui.
+ */
 export class GearPlanSheet {
     // General sheet properties
     _sheetName: string;
@@ -237,10 +263,16 @@ export class GearPlanSheet {
         this.saveTimer = new Inactivitytimer(1_000, () => this.saveData());
     }
 
+    /**
+     * The key under which this sheet should be saved in LocalStorage.
+     */
     get saveKey() {
         return this._saveKey;
     }
 
+    /**
+     * Whether to show advanced stats.
+     */
     get showAdvancedStats() {
         return this._showAdvancedStats;
     }
@@ -249,15 +281,25 @@ export class GearPlanSheet {
         this._showAdvancedStats = show;
     }
 
+    /**
+     * Whether setup/loading is done.
+     */
     get setupDone() {
         return this._setupDone;
     }
 
+    /**
+     * Whether this sheet is in view-only mode.
+     */
     get isViewOnly() {
         return this._isViewOnly;
     }
 
-    // Does not actually support any filling since the top-level sheet does not support selection
+    /**
+     * The materia autofill controller for this sheet.
+     *
+     * This only has a real implementation in GearPlanSheetGui, since materia autofilling is a gui-only feature.
+     */
     get materiaAutoFillController(): MateriaAutoFillController {
         const outer = this;
         return {
@@ -280,23 +322,44 @@ export class GearPlanSheet {
             fillEmpty(): void {
                 console.log('fillEmpty not implemented');
             },
-            refreshOnly(): void {
-                console.log('nothing to refresh');
+            lockEmpty(): void {
+                console.log('lockEmpty not implemented');
+            },
+            lockFilled(): void {
+                console.log('lockFilled not implemented');
+            },
+            unequipUnlocked(): void {
+                console.log('unequipUnlocked not implemented');
+            },
+            unlockAll(): void {
+                console.log('unlockAll not implemented');
             },
 
         };
     }
 
+    /**
+     * Enable view-only mode. Cannot be disabled once enabled.
+     */
     setViewOnly() {
         this._isViewOnly = true;
     }
 
+    /**
+     * Load the sheet data fully. Create a DataManager internally.
+     */
     async load() {
         const dataManager = makeDataManager(this.classJobName, this.level, this.ilvlSync);
         await dataManager.loadData();
         await this.loadFromDataManager(dataManager);
     }
 
+    /**
+     * Load the sheet data from a DataManager. The DataManager must already be loaded before calling this method.
+     * This can be used for things like meld solving, where a worker can load a DM once and then re-use it.
+     *
+     * @param dataManager The DataManager to use.
+     */
     async loadFromDataManager(dataManager: DataManager) {
         console.log("Loading sheet...");
         console.log("Reading data");
@@ -338,6 +401,9 @@ export class GearPlanSheet {
         this.recheckCustomItems();
     }
 
+    /**
+     * Save data for this sheet now.
+     */
     saveData() {
         if (!this.setupDone) {
             // Don't clobber a save with empty data because the sheet hasn't loaded!
@@ -353,10 +419,18 @@ export class GearPlanSheet {
         }
     }
 
+    /**
+     * Request a save to be completed asynchronously. The actual save is only performed once no more requestSave() calls
+     * have happened for a certain timeout, thus allowing multiple modifications to be coalesced into a single save
+     * operation.
+     */
     requestSave() {
         this.saveTimer.ping();
     }
 
+    /**
+     * The name of the sheet.
+     */
     get sheetName() {
         return this._sheetName;
     }
@@ -366,6 +440,9 @@ export class GearPlanSheet {
         this.requestSave();
     }
 
+    /**
+     * The description of the sheet.
+     */
     get description() {
         return this._description;
     }
@@ -417,13 +494,21 @@ export class GearPlanSheet {
     exportSheet(external: boolean, fullStats: false): SheetExport;
     exportSheet(external: boolean, fullStats: true): SheetStatsExport;
 
+    /**
+     * Export the sheet to serialized form.
+     *
+     * @param external  Whether this is an external (shared publicly) or internal (saved locally). Certain properties,
+     * such as the save key, are not useful for external exports, so they are omitted.
+     * @param fullStats Whether to include the computedStats in the result. If true, returns SheetStatsExport instead
+     * of the plain SheetExport.
+     */
     exportSheet(external: boolean = false, fullStats: boolean = false): SheetExport | SheetStatsExport {
         const sets = this._sets.map(set => {
             const rawExport = this.exportGearSet(set, false);
             if (fullStats) {
                 const augGs: SetStatsExport = {
                     ...rawExport,
-                    computedStats: toSerializableForm(set.computedStats),
+                    computedStats: statsSerializationProxy(set.computedStats),
                 };
                 return augGs;
             }
@@ -454,6 +539,12 @@ export class GearPlanSheet {
 
     }
 
+    /**
+     * Add a new gear set.
+     *
+     * @param gearSet The set to add.
+     * @param index The index at which to insert the set. If omitted, it is added to the end.
+     */
     addGearSet(gearSet: CharacterGearSet, index?: number) {
         if (index === undefined) {
             this._sets.push(gearSet);
@@ -467,11 +558,22 @@ export class GearPlanSheet {
         this.saveData();
     }
 
+    /**
+     * Delete a gear set.
+     *
+     * @param gearSet
+     */
     delGearSet(gearSet: CharacterGearSet) {
         this._sets = this._sets.filter(gs => gs !== gearSet);
         this.saveData();
     }
 
+    /**
+     * Move a gear set to a new index.
+     *
+     * @param gearSet The set to move.
+     * @param to      The index to which the gearset should be re-ordered.
+     */
     reorderSet(gearSet: CharacterGearSet, to: number) {
         const sets = [...this._sets];
         const from = sets.indexOf(gearSet);
@@ -501,6 +603,12 @@ export class GearPlanSheet {
         this.addGearSet(cloned, toIndex);
     }
 
+    /**
+     * Determine the placement index for a cloned set. Helper method of {@link #cloneAndAddGearSet}.
+     *
+     * @param originalSet The set being cloned.
+     * @protected
+     */
     protected clonedSetPlacement(originalSet: CharacterGearSet): number | undefined {
         const originalIndex = this.sets.indexOf(originalSet);
         if (originalIndex >= 0) {
@@ -537,7 +645,10 @@ export class GearPlanSheet {
                     // On the other hand, *most* real exports would have slots filled (BiS etc)
                     id: inSlot.gearItem.id,
                     materia: inSlot.melds.map(meld => {
-                        return {id: meld.equippedMateria?.id ?? -1};
+                        return {
+                            id: meld.equippedMateria?.id ?? -1,
+                            locked: meld.locked,
+                        };
                     }),
                 };
                 if (inSlot.relicStats && Object.entries(inSlot.relicStats)) {
@@ -578,6 +689,12 @@ export class GearPlanSheet {
         return out;
     }
 
+    /**
+     * Return an item from the DataManager by its ID. Returns undefined if the item could not be found.
+     *
+     * @param id The item ID. For custom items, use the custom item's fake ID.
+     * @param forceNq If true, searches for an NQ version of an otherwise-HQ item.
+     */
     itemById(id: number, forceNq: boolean = false): GearItem {
         const custom = this._customItems.find(ci => ci.id === id);
         if (custom) {
@@ -588,6 +705,11 @@ export class GearPlanSheet {
         }
     }
 
+    /**
+     * Return a food item from the DataManager by its ID. Returns undefined if the item could not be found.
+     *
+     * @param id The item IJD. FOr custom items, use the custom item's fake ID.
+     */
     foodById(id: number): FoodItem {
         const custom = this._customFoods.find(cf => cf.id === id);
         if (custom) {
@@ -598,10 +720,19 @@ export class GearPlanSheet {
         }
     }
 
+    /**
+     * Return the ilvl sync info for a particular level.
+     *
+     * @param ilvl
+     */
     ilvlSyncInfo(ilvl: number): IlvlSyncInfo | undefined {
         return this.dataManager?.getIlvlSyncInfo(ilvl);
     }
 
+    /**
+     * Get the next free custom item ID.
+     * @private
+     */
     private get nextCustomItemId() {
         if (this._customItems.length === 0) {
             return 10_000_000_000_000 + Math.floor(Math.random() * 1_000_000);
@@ -611,6 +742,10 @@ export class GearPlanSheet {
         }
     }
 
+    /**
+     * Returns the starting set of data for a new custom item.
+     * @param slot The slot for which to make the custom item.
+     */
     newCustomItem(slot: OccGearSlotKey): CustomItem {
         const item = CustomItem.fromScratch(this.nextCustomItemId, slot, this);
         this._customItems.push(item);
@@ -619,6 +754,9 @@ export class GearPlanSheet {
         return item;
     }
 
+    /**
+     * Returns the starting set of data for a new custom food.
+     */
     newCustomFood(): CustomFood {
         const food = CustomFood.fromScratch(this.nextCustomItemId);
         this._customFoods.push(food);
@@ -626,14 +764,28 @@ export class GearPlanSheet {
         return food;
     }
 
+    /**
+     * All custom items in this sheet.
+     */
     get customItems() {
         return [...this._customItems];
     }
 
+    /**
+     * All custom food items in this sheet.
+     */
     get customFood() {
         return [...this._customFoods];
     }
 
+    /**
+     * Delete the given custom item.
+     *
+     * Warning: currently DOES NOT check that the item is not equipped. Deleting an item while it is still equipped
+     * in one or more sets can cause undefined behavior!
+     *
+     * @param item The item to delete.
+     */
     deleteCustomItem(item: CustomItem) {
         // TODO: this should check if you have this item equipped on any sets, or ask
         const idx = this._customItems.indexOf(item);
@@ -644,6 +796,14 @@ export class GearPlanSheet {
         this.recalcAll();
     }
 
+    /**
+     * Delete the given custom food item.
+     *
+     * Warning: currently DOES NOT check that the item is not equipped. Deleting an item while it is still equipped
+     * in one or more sets can cause undefined behavior!
+     *
+     * @param item The food item to delete
+     */
     deleteCustomFood(item: CustomFood) {
         // TODO: this should check if you have this item equipped on any sets, or ask
         const idx = this._customFoods.indexOf(item);
@@ -653,6 +813,12 @@ export class GearPlanSheet {
         this.recalcAll();
     }
 
+    /**
+     * Import a sim from a sim export. Does not add it to the simulations - you still need to do that if you would like
+     * the sim to appear on the sheet (see {@link #addSim}).
+     *
+     * @param simExport The data to import.
+     */
     importSim(simExport: SimExport): Simulation<any, any, any> {
         const simSpec = getSimSpecByStub(simExport.stub);
         if (simSpec === undefined) {
@@ -691,12 +857,18 @@ export class GearPlanSheet {
                 }
                 const equipped = new EquippedItem(baseItem);
                 for (let i = 0; i < Math.min(equipped.melds.length, importedItem.materia.length); i++) {
-                    const id = importedItem.materia[i].id;
+                    const importedMateria = importedItem.materia[i];
+                    const id = importedMateria.id;
                     const mat = this.dataManager.materiaById(id);
+                    const slot = equipped.melds[i];
+                    if (slot === undefined) {
+                        console.error(`mismatched materia slot! i == ${i}, slots length == ${equipped.melds.length}`);
+                    }
+                    slot.locked = importedMateria.locked ?? false;
                     if (!mat) {
                         continue;
                     }
-                    equipped.melds[i].equippedMateria = mat;
+                    slot.equippedMateria = mat;
                 }
                 if (importedItem.relicStats && equipped.gearItem.isCustomRelic) {
                     Object.assign(equipped.relicStats, importedItem.relicStats);
@@ -745,20 +917,32 @@ export class GearPlanSheet {
         return out;
     }
 
+    /**
+     * Force a full recalc of every set. For example, this should be called after a custom item is edited, or
+     * after a race/party size change.
+     */
     recalcAll() {
         for (const set of this._sets) {
             set.forceRecalc();
         }
     }
 
-    get classJobStats() {
+    /**
+     * Get the class/job stats for the sheet's class/job.
+     */
+    get classJobStats(): JobData {
         return this.statsForJob(this.classJobName);
     }
 
-    private get classJobEarlyStats() {
+    private get classJobEarlyStats(): JobDataConst {
         return getClassJobStats(this.classJobName);
     }
 
+    /**
+     * Get the class/job stats for a different class/job.
+     *
+     * @param job
+     */
     statsForJob(job: JobName): JobData {
         return {
             ...getClassJobStats(job),
@@ -766,7 +950,11 @@ export class GearPlanSheet {
         };
     }
 
-    isStatRelevant(stat: RawStatKey) {
+    /**
+     * Determine whether a stat is relevant to this sheet based on its job.
+     * @param stat
+     */
+    isStatRelevant(stat: RawStatKey): boolean {
         if (!this.classJobEarlyStats) {
             // Not sure what the best way to handle this is
             return true;
@@ -782,14 +970,23 @@ export class GearPlanSheet {
         }
     }
 
+    /**
+     * Get sims which might be relevant to this sheet.
+     */
     get relevantSims() {
         return getRegisteredSimSpecs().filter(simSpec => simSpec.supportedJobs === undefined ? true : simSpec.supportedJobs.includes(this.dataManager.classJob));
     }
 
+    /**
+     * Get the currently-selected race's stats.
+     */
     get raceStats() {
         return getRaceStats(this._race);
     }
 
+    /**
+     * Get the currently-selected race.
+     */
     get race() {
         return this._race;
     }
@@ -799,32 +996,53 @@ export class GearPlanSheet {
         this.recalcAll();
     }
 
+    /**
+     * Get all sets on this sheet.
+     */
     get sets(): CharacterGearSet[] {
         return this._sets;
     }
 
+    /**
+     * Get all sims on this sheet.
+     */
     get sims(): Simulation<any, any, any>[] {
         return this._sims;
     }
 
+    /**
+     * Add a sim to this sheet.
+     *
+     * @param sim
+     */
     addSim(sim: Simulation<any, any, any>) {
         this._sims.push(sim);
         this.saveData();
     }
 
+    /**
+     * Delete a sim from this sheet.
+     *
+     * @param sim
+     */
     delSim(sim: Simulation<any, any, any>) {
         this._sims = this._sims.filter(s => s !== sim);
         this.saveData();
     }
 
-    get relevantFood(): FoodItem[] {
-        return [...this._dmRelevantFood, ...this._customFoods];
-    }
-
+    /**
+     * Get materia which are relevant to this sheet.
+     */
     get relevantMateria(): Materia[] {
         return this._relevantMateria;
     }
 
+    /**
+     * Get materia which are relevant within a specific slot. On top of needing to be class-relevant, it must fit
+     * in the slot.
+     *
+     * @param slot
+     */
     getRelevantMateriaFor(slot: MeldableMateriaSlot) {
         const materia = this._relevantMateria.filter(mat => mat.ilvl <= slot.materiaSlot.ilvl);
         // Sort materia from highest to lowest
@@ -848,6 +1066,9 @@ export class GearPlanSheet {
         return materia.filter(mat => mat.materiaGrade >= minDisplayGrade);
     }
 
+    /**
+     * Get the current party bonus amount.
+     */
     get partyBonus(): PartyBonusAmount {
         return this._partyBonus;
     }
@@ -857,6 +1078,10 @@ export class GearPlanSheet {
         this.recalcAll();
     }
 
+    /**
+     * Get all items which are relevant, and are not filtered out by display settings. Custom items are always displayed
+     * regardless of filtering.
+     */
     get itemsForDisplay(): GearItem[] {
         const settings = this._itemDisplaySettings;
         return [
@@ -869,18 +1094,38 @@ export class GearPlanSheet {
             ...this._customItems];
     }
 
-    onGearDisplaySettingsUpdate() {
+    /**
+     * Overridable hook for when gear display settings are updated.
+     */
+    gearDisplaySettingsUpdateLater() {
 
     }
 
+    gearDisplaySettingsUpdateNow() {
+
+    }
+
+    /**
+     * The item display settings. Uses a proxy which automatically calls {@link #gearDisplaySettingsUpdateLater} after
+     * any fields are modified.
+     */
     get itemDisplaySettings(): ItemDisplaySettings {
-        return writeProxy(this._itemDisplaySettings, () => this.onGearDisplaySettingsUpdate());
+        return writeProxy(this._itemDisplaySettings, () => this.gearDisplaySettingsUpdateLater());
     }
 
+    /**
+     * Food items which are relevant and pass the filter. Custom foods will be displayed regardless of filtering.
+     */
     get foodItemsForDisplay(): FoodItem[] {
         return [...this._dmRelevantFood.filter(item => item.ilvl >= this._itemDisplaySettings.minILvlFood && item.ilvl <= this._itemDisplaySettings.maxILvlFood), ...this._customFoods];
     }
 
+    /**
+     * Get the best possible materia for a particular slot of the given stat.
+     *
+     * @param stat
+     * @param meldSlot
+     */
     getBestMateria(stat: MateriaSubstat, meldSlot: MeldableMateriaSlot): Materia | undefined {
         const materiaFilter = (materia: Materia) => {
             return isMateriaAllowed(materia, meldSlot.materiaSlot) && materia.primaryStat === stat;
@@ -889,10 +1134,18 @@ export class GearPlanSheet {
         return sortedOptions.length >= 1 ? sortedOptions[0] : undefined;
     }
 
+    /**
+     * Retrieve a particular materia by its item ID. Returns undefined if the materia does not exist.
+     *
+     * @param materiaId
+     */
     getMateriaById(materiaId: number): Materia | undefined {
         return this.dataManager.materiaById(materiaId);
     }
 
+    /**
+     * Add any sims which are considered to be "default" sims for this class and level.
+     */
     addDefaultSims() {
         const sims = getDefaultSims(this.classJobName, this.level);
         for (const simSpec of sims) {
@@ -905,6 +1158,11 @@ export class GearPlanSheet {
         }
     }
 
+    /**
+     * Recompute custom item stats, and force a recalc of sets.
+     *
+     * This should be called after custom items are modified.
+     */
     recheckCustomItems() {
         for (const customItem of this._customItems) {
             customItem.recheckStats();
@@ -935,6 +1193,9 @@ export class GearPlanSheet {
         });
     }
 
+    /**
+     * Get the consolidated level/ilevel sync info.
+     */
     get syncInfo(): SyncInfo {
         const levelSync = this.level === CURRENT_MAX_LEVEL ? null : this.level;
         const explicitIlvlSync = this.ilvlSync ?? null;

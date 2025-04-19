@@ -261,7 +261,6 @@ class MeldSolverSettingsMenu extends HTMLDivElement {
 
         this.useTargetGcdCheckBox = new FieldBoundCheckBox(this.gearsetGenSettings, 'useTargetGcd');
         this.useTargetGcdCheckBox.classList.add('meld-solver-settings');
-        this.targetGcdInput.pattern = '\\d\\.\\d\\d?';
         this.targetGcdInput.title = 'Solve for the best set with this GCD';
         this.targetGcdInput.classList.add('meld-solver-target-gcd-input');
 
@@ -437,7 +436,7 @@ class MeldSolverConfirmationDialog extends BaseModal {
         this.applyButton = makeActionButton("Apply", (ev) => {
 
             if (this.newSet) {
-                this.applyResult(newSet);
+                this.applyResult();
                 this.oldSet.forceRecalc();
                 this.sheet.refreshMateria();
                 this.close();
@@ -554,14 +553,22 @@ class MeldSolverConfirmationDialog extends BaseModal {
         return result;
     }
 
-    applyResult(newSet: CharacterGearSet) {
+    applyResult() {
 
         for (const slotKey of EquipSlots) {
-            if (!this.oldSet.equipment[slotKey] || !this.newSet.equipment[slotKey]) {
+            const oldEq = this.oldSet.equipment[slotKey];
+            const newEq = this.newSet.equipment[slotKey];
+            if (!oldEq || !newEq) {
                 continue;
             }
 
-            this.oldSet.equipment[slotKey].melds = newSet.equipment[slotKey].melds;
+            for (let i = 0; i < oldEq.melds.length; i++) {
+                const oldSlot = oldEq.melds[i];
+                const newSlot = newEq.melds[i];
+                oldSlot.equippedMateria = newSlot.equippedMateria;
+            }
+
+            oldEq.melds = newEq.melds;
         }
     }
 }

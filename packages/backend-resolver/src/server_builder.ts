@@ -63,7 +63,11 @@ async function importExportSheet(request: SheetRequest, exportedPre: SheetExport
             request.log.warn("onlySetIndex does not make sense when isFullSheet is false");
         }
         else {
-            exportedPre = extractSingleSet(exportedInitial as SheetExport, onlySetIndex);
+            const singleMaybe = extractSingleSet(exportedInitial as SheetExport, onlySetIndex);
+            if (singleMaybe === undefined) {
+                throw new Error(`Error: Set index ${onlySetIndex} is not valid.`);
+            }
+            exportedPre = singleMaybe;
         }
     }
     const exported = exportedPre;
@@ -134,16 +138,78 @@ function resolveNavData(nav: NavPath | null): NavResult | null {
             };
         case "bis":
             return {
-                preloadUrl: getBisSheetFetchUrl(nav.job, nav.expac, nav.sheet),
-                sheetData: getBisSheet(nav.job, nav.expac, nav.sheet).then(JSON.parse),
+                preloadUrl: getBisSheetFetchUrl(nav.path),
+                sheetData: getBisSheet(nav.path).then(JSON.parse),
             };
     }
     throw Error(`Unable to resolve nav result: ${nav.type}`);
 }
 
+export type EmbedCheckResponse = {
+    isValid: true,
+} | {
+    isValid: false,
+    reason: string,
+}
+
 export function buildStatsServer() {
 
     const fastifyInstance = buildServerBase();
+
+    fastifyInstance.get('/validateEmbed', async (request: SheetRequest, reply) => {
+        const path = request.query?.[HASH_QUERY_PARAM] ?? '';
+        const osIndex: number | undefined = tryParseOptionalIntParam(request.query[ONLY_SET_QUERY_PARAM]);
+        const selIndex: number | undefined = tryParseOptionalIntParam(request.query[SELECTION_INDEX_QUERY_PARAM]);
+        const pathPaths = path.split(PATH_SEPARATOR);
+        const state = new NavState(pathPaths, osIndex, selIndex);
+        const nav = parsePath(state);
+        request.log.info(pathPaths, 'Path');
+        const navResult = resolveNavData(nav);
+        if (nav !== null && navResult !== null) {
+            const exported: ExportedData = await navResult.sheetData;
+            reply.header("cache-control", "max-age=7200, public");
+            if ('sets' in exported) {
+                reply.send({
+                    isValid: false,
+                    reason: "full sheets cannot be embedded",
+                } satisfies EmbedCheckResponse);
+            }
+            else if ("embed" in nav && nav.embed) {
+                reply.send({
+                    isValid: true,
+                } satisfies EmbedCheckResponse);
+            }
+            else {
+                reply.send({
+                    isValid: false,
+                    reason: "not an embed",
+                } satisfies EmbedCheckResponse);
+            }
+        }
+        else {
+            reply.send({
+                isValid: false,
+                reason: `path ${pathPaths} not found`,
+            } satisfies EmbedCheckResponse);
+        }
+    });
+
+    fastifyInstance.get('/basedata', async (request: SheetRequest, reply) => {
+        const path = request.query?.[HASH_QUERY_PARAM] ?? '';
+        const osIndex: number | undefined = tryParseOptionalIntParam(request.query[ONLY_SET_QUERY_PARAM]);
+        const selIndex: number | undefined = tryParseOptionalIntParam(request.query[SELECTION_INDEX_QUERY_PARAM]);
+        const pathPaths = path.split(PATH_SEPARATOR);
+        const state = new NavState(pathPaths, osIndex, selIndex);
+        const nav = parsePath(state);
+        request.log.info(pathPaths, 'Path');
+        const navResult = resolveNavData(nav);
+        if (nav !== null && navResult !== null) {
+            const exported: ExportedData = await navResult.sheetData;
+            reply.header("cache-control", "max-age=7200, public");
+            reply.send(exported);
+        }
+        reply.status(404);
+    });
 
     fastifyInstance.get('/fulldata', async (request: SheetRequest, reply) => {
         // TODO: deduplicate this code
@@ -156,7 +222,7 @@ export function buildStatsServer() {
         request.log.info(pathPaths, 'Path');
         const navResult = resolveNavData(nav);
         if (nav !== null && navResult !== null) {
-            const exported: object = await navResult.sheetData;
+            const exported: ExportedData = await navResult.sheetData;
             const out = await importExportSheet(request, exported as (SetExport | SheetExport), nav);
             reply.header("cache-control", "max-age=7200, public");
             reply.send(out);
@@ -181,21 +247,40 @@ export function buildStatsServer() {
         reply.send(out);
     });
 
-    fastifyInstance.get('/fulldata/bis/:job/:expac/:sheet', async (request: SheetRequest, reply) => {
+    fastifyInstance.get('/fulldata/bis/:job/:sheet', async (request: SheetRequest, reply) => {
         const osIndex: number | undefined = tryParseOptionalIntParam(request.query[ONLY_SET_QUERY_PARAM]);
         const selIndex: number | undefined = tryParseOptionalIntParam(request.query[SELECTION_INDEX_QUERY_PARAM]);
         const nav: NavPath = {
             type: 'bis',
             job: request.params['job'] as JobName,
-            expac: request.params['expac'],
             sheet: request.params['sheet'],
-            path: [request.params['job'], request.params['expac'], request.params['sheet']],
+            path: [request.params['job'], request.params['sheet']],
             onlySetIndex: osIndex,
             defaultSelectionIndex: selIndex,
             embed: false,
             viewOnly: true,
         };
-        const rawData = await getBisSheet(request.params['job'] as JobName, request.params['expac'] as string, request.params['sheet'] as string);
+        const rawData = await getBisSheet([request.params['job'] as JobName, request.params['sheet'] as string]);
+        const out = await importExportSheet(request, JSON.parse(rawData), nav);
+        reply.header("cache-control", "max-age=7200, public");
+        reply.send(out);
+    });
+
+    fastifyInstance.get('/fulldata/bis/:job/:folder/:sheet', async (request: SheetRequest, reply) => {
+        const osIndex: number | undefined = tryParseOptionalIntParam(request.query[ONLY_SET_QUERY_PARAM]);
+        const selIndex: number | undefined = tryParseOptionalIntParam(request.query[SELECTION_INDEX_QUERY_PARAM]);
+        const nav: NavPath = {
+            type: 'bis',
+            job: request.params['job'] as JobName,
+            folder: request.params['folder'],
+            sheet: request.params['sheet'],
+            path: [request.params['job'], request.params['folder'], request.params['sheet']],
+            onlySetIndex: osIndex,
+            defaultSelectionIndex: selIndex,
+            embed: false,
+            viewOnly: true,
+        };
+        const rawData = await getBisSheet([request.params['job'], request.params['folder'], request.params['sheet']]);
         const out = await importExportSheet(request, JSON.parse(rawData), nav);
         reply.header("cache-control", "max-age=7200, public");
         reply.send(out);

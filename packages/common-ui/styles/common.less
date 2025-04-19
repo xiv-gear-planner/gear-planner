@@ -971,6 +971,7 @@ div.chance-stat-display, div.multiplier-stat-display, div.multiplier-mit-stat-di
       tr {
         height: 23px;
         max-height: 23px;
+        cursor: pointer;
       }
 
       tr:first-child {
@@ -1005,6 +1006,137 @@ div.chance-stat-display, div.multiplier-stat-display, div.multiplier-mit-stat-di
         }
       }
 
+      td[col-id="sheetactions"] {
+        width: 50px;
+        max-height: 23px;
+        height: 23px;
+
+        .svg-glyph {
+          font-size: 13.2px;
+        }
+
+        i {
+          font-size: 14px;
+        }
+
+        > div {
+          display: inline-block;
+          height: 20px;
+        }
+
+        button {
+          .borderless-button;
+          padding: 0;
+          margin-left: 0;
+        }
+
+        //
+        //div {
+        //  display: flex;
+        //
+        //  button {
+        //    flex: 1;
+        //  }
+        //}
+      }
+    }
+  }
+}
+
+#content-area > .bis-browser {
+  .named-section-content-area {
+    width: 600px;
+
+    .button-row {
+
+      margin-bottom: 5px;
+      display: flex;
+
+      .up-button {
+        background-color: var(--table-bg-color);
+        flex-grow: 1;
+        text-align: left;
+        border-radius: 0;
+        padding: 5px;
+        box-sizing: content-box;
+        margin: 0;
+        cursor: pointer;
+
+        &:hover {
+          background-color: var(--table-bg-color-hover);
+        }
+
+        &:disabled {
+          visibility: hidden;
+        }
+      }
+    }
+
+    table.bis-browser-table {
+      overflow: auto;
+      padding: 0;
+      width: 100%;
+
+
+      tr {
+        height: 23px;
+        max-height: 23px;
+        cursor: pointer;
+      }
+
+      tr:first-child {
+        th {
+          position: sticky;
+          top: 0;
+          z-index: 1;
+        }
+      }
+
+      td {
+        border: none;
+        border-top: var(--standard-border);
+
+        &[col-id="type"] {
+          font-size: 30px;
+          text-align: center;
+        }
+        &[col-id="name"] {
+          padding-top: 10px;
+          padding-bottom: 10px;
+
+          div.bis-sheet-name {
+            font-weight: bold;
+            font-size: 17px;
+          }
+          div.bis-sheet-description {
+            font-size: 15px;
+            opacity: 75%;
+          }
+        }
+
+      }
+
+      th {
+        --thick-border: none;
+      }
+
+      // TODO: repurpose as the "up" row
+      .new-sheet-row:hover {
+        .svg-glyph {
+          fill: var(--action-input-hover-background-color);
+        }
+      }
+
+      .new-sheet-row th {
+        font-weight: normal;
+
+        i, svg {
+          padding-left: 8px;
+          padding-right: 8px;
+        }
+      }
+
+      // TODO: repurpose as icon row?
       td[col-id="sheetactions"] {
         width: 50px;
         max-height: 23px;
@@ -1240,6 +1372,7 @@ table.gear-items-table, table.food-items-table {
 
   [col-id='ilvl'] {
     overflow: visible;
+    text-align: center;
   }
 
   [col-id='icon'] {
@@ -1253,9 +1386,9 @@ table.gear-items-table, table.food-items-table {
   //  max-width: 1px;
   //}
   th[col-id='itemname'] {
-    width: max-content;
+    //width: max-content;
     min-width: max-content;
-    max-width: unset;
+    //max-width: unset;
     margin-left: -73px;
     position: relative;
   }
@@ -1394,6 +1527,10 @@ slot-materia-manager.editable:hover {
 
 slot-materia-manager {
   cursor: pointer;
+
+  slot-materia-popup {
+    cursor: unset;
+  }
 }
 
 slot-materia-manager, single-materia-view-only {
@@ -1432,6 +1569,10 @@ slot-materia-manager, single-materia-view-only {
     width: 100%;
     height: 100%;
     display: block;
+  }
+
+  &.materia-slot-locked {
+    box-shadow: 0 0 2px 2px #777 inset;
   }
 
   &.materia-manager-active {
@@ -1642,7 +1783,7 @@ add-sim-dialog {
   }
 }
 
-gear-set-editor {
+gear-set-editor, separator-editor {
   div.gear-set-editor-button-area {
     width: 100%;
     text-align: center;
@@ -1982,6 +2123,11 @@ div.gear-set-editor-toolbar, set-view-toolbar {
       // When a drag is active, THIS needs to be the target of pointer events so that
       // the math works right.
     }
+
+    .meld-solver-tips {
+      width: 200px;
+      padding: 5px;
+    }
   }
 
   div.stat-tier-display {
@@ -2014,6 +2160,7 @@ div.gear-set-editor-toolbar, set-view-toolbar {
     &.stat-tiering-clickable {
       cursor: pointer;
     }
+
     &.stat-tiering-unclickable {
       cursor: default;
     }
@@ -2034,32 +2181,28 @@ div.gear-set-editor-toolbar, set-view-toolbar {
       > div.single-stat-tier-display-lower-left {
         color: color-mix(in srgb, var(--stat-color) 70%, var(--stat-tiering-box-mix-color));
         line-height: 0;
-        //float: left;
       }
     }
 
     &.stat-tiering-perfect {
       .number-format-perfect;
-
-      //border-color: color-mix(in srgb, var(--stat-color) 60%, var(--border-color));
       box-shadow: 0 0 5px -1px inset color-mix(in srgb, var(--stat-color) 50%, var(--border-color));
-      //border-width: 2px;
     }
 
-    --inner-padding: 3px;
+    --inner-padding: 0px;
 
     div.single-stat-tier-display-lower-left {
       display: inline-block;
       padding-left: var(--inner-padding);
       padding-right: var(--inner-padding);
-      //float: left;
+      width: 49%;
     }
 
     div.single-stat-tier-display-lower-right {
       display: inline-block;
       padding-left: var(--inner-padding);
       padding-right: var(--inner-padding);
-      //float: right;
+      width: 49%;
     }
 
     div.single-stat-tier-display-expansion {
@@ -2350,23 +2493,59 @@ shortlink-modal {
 }
 
 food-stat-bonus {
-  display: inline;
+  display: flex;
+  flex-direction: row;
 
-  span {
-    padding-right: var(--food-stat-padding, 5px);
+  --slash-padding: 3px;
+
+  > * {
+    flex-basis: 50%;
+    flex-grow: 0;
+    flex-shrink: 0;
+    display: block;
   }
 
-  span:last-child {
-    float: right;
-    padding-right: 0;
+  .food-effective {
+    text-align: right;
+    padding-right: 4px;
+    flex-shrink: 1;
   }
+
+  .food-cap {
+    text-align: left;
+    // The '/' is part of .food-cap, so account for the extra width
+    flex-basis: calc(50% + 10px);
+    flex-shrink: 1;
+    font-weight: normal;
+
+  }
+
+  &.food-undercapped {
+    .food-cap {
+      &:before {
+        content: '/';
+        padding-left: var(--slash-padding);
+        padding-right: var(--slash-padding);
+
+      }
+      opacity: 50%;
+    }
+  }
+
+  &.food-capped {
+    .food-cap {
+      opacity: 50%;
+      text-align: center;
+    }
+  }
+
 }
 
 table.food-items-table {
   max-width: 100%;
 
   .food-stat-col {
-    --food-stat-col-width: max-content;
+    --food-stat-col-width: 80px;
     min-width: var(--food-stat-col-width);
     max-width: var(--food-stat-col-width);
     width: var(--food-stat-col-width);
@@ -2399,33 +2578,18 @@ table.food-items-table {
   }
 
   @media screen and (max-width: 900px) {
+
+    .food-stat-col {
+      --food-stat-col-width: 40px;
+    }
+
     food-stat-bonus {
-      span {
-        display: block;
+      flex-direction: column;
+      >* {
+        text-align: left;
       }
     }
-
-    .food-stat-col {
-      --food-stat-col-width: fit-content !important;
-      --food-stat-padding: 0;
-      //width: 50px;
-    }
   }
-  @media screen and (max-width: 1045px) {
-    .food-stat-narrow {
-      display: unset;
-    }
-
-    .food-stat-wide {
-      display: none;
-    }
-
-    .food-stat-col {
-      //--food-stat-col-width: 100px;
-    }
-
-  }
-
 }
 
 .round-table {
@@ -2609,7 +2773,8 @@ gear-set-viewer {
       right: 0;
       top: 0;
       bottom: 0;
-      >span {
+
+      > span {
         vertical-align: middle;
       }
     }
@@ -2853,7 +3018,7 @@ buff-settings-area {
   }
 }
 
-.cycle-sim-results-table {
+.count-sim-results-area {
   width: 100%;
 
   > table {
@@ -2877,99 +3042,6 @@ buff-settings-area {
     }
   }
 
-  .abilities-used-table {
-
-    .ability-cell {
-      height: 100%;
-      max-height: var(--abilities-row-height);
-      display: flex;
-      align-items: center;
-
-      .ffxiv-ability-icon {
-        max-height: 100%;
-        display: block;
-        aspect-ratio: 1;
-      }
-
-      .ability-name {
-        overflow-x: hidden;
-        text-overflow: ellipsis;
-        line-height: initial;
-        flex-shrink: 1;
-        flex-grow: 1;
-      }
-    }
-
-    th {
-      text-align: center;
-    }
-
-    td {
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      line-height: 1px;
-      height: var(--abilities-row-height);
-
-      &[col-id='time'] {
-        text-align: right;
-      }
-
-      &[col-id='buffs'] {
-        padding-top: 0;
-
-        .active-buffs-list {
-          height: 100%;
-          width: 100%;
-          display: inline-flex;
-          align-items: center;
-          max-height: var(--abilities-row-height);
-
-          img {
-            height: 100%;
-            flex-shrink: 0;
-            padding-right: 2px;
-          }
-
-          span {
-            flex-shrink: 1;
-            display: block;
-            min-width: 1px;
-            overflow-x: hidden;
-            text-overflow: ellipsis;
-            line-height: var(--abilities-row-height);
-          }
-        }
-      }
-    }
-
-    td, th {
-      &[col-id='time'] {
-        width: 75px;
-        max-width: 75px;
-      }
-
-      &[col-id='ability'] {
-        min-width: 150px;
-        max-width: 400px;
-      }
-
-      &[col-id='unbuffed-pot'] {
-        width: 40px;
-        max-width: 40px;
-      }
-
-      &[col-id='expected-damage'] {
-        width: 100px;
-        max-width: 100px;
-      }
-
-      &[col-id='buffs'] {
-        width: 400px;
-        max-width: 400px;
-      }
-    }
-  }
 }
 
 
@@ -3117,13 +3189,9 @@ body.modern {
         }
       }
 
-      > tr > td {
+      > tr > * {
         padding-left: 5px;
         padding-right: 5px;
-
-        &[col-id='itemname'] {
-          padding-left: 5px;
-        }
       }
     }
 
@@ -3546,9 +3614,11 @@ button[disabled] {
 settings-modal {
   .modal-content-area {
     padding: 15px;
-    >* {
+
+    > * {
       display: block;
     }
+
     #language-picker {
       width: 100%;
     }
@@ -3561,4 +3631,211 @@ input {
   border: none !important;
 }
 
+button.narrow-button {
+  width: min-content;
+  height: fit-content;
+}
+
 @import 'gauge.less';
+
+expandable-text {
+
+  p {
+    margin-top: 0;
+  }
+
+
+  &.truncated {
+    .truncatable-text-area-inner {
+      -webkit-line-clamp: var(--truncatable-line-clamp);
+      overflow: hidden;
+      -webkit-box-orient: vertical;
+      display: -webkit-box;
+      mask-image: linear-gradient(180deg, black 90%, transparent 100%);
+    }
+
+    .truncation-expand-button {
+      display: unset;
+    }
+  }
+
+  .truncation-expand-button {
+    display: none;
+    margin-bottom: 10px;
+  }
+}
+
+.set-description-holder {
+  --truncatable-line-clamp: 6;
+  margin-bottom: 16px;
+
+  button {
+    .shadow;
+    border-radius: 5px;
+  }
+}
+
+// TODO: narrow version of this
+// TODO: table is a bit too wide normally
+.cycle-sim-results {
+  display: grid;
+  grid-gap: 20px;
+  padding: 20px 20px 20px 10px;
+
+  .cycle-sim-table-holder {
+    background-color: var(--table-bg-color);
+    .standard-round-border;
+    .shadow-big;
+    width: fit-content;
+    margin: auto;
+    padding: 10px;
+    height: 100%;
+    box-sizing: border-box;
+
+    table {
+      background: none;
+      padding: 0;
+    }
+  }
+
+  &.cycle-sim-results-full {
+    grid-template-columns: 50% 50%;
+    grid-template-rows: auto auto;
+
+    @media screen and (max-width: 725px) {
+      grid-template-columns: 100%;
+      grid-template-rows: auto auto auto;
+      .cycle-sim-abilities-holder {
+        grid-column-end: span 1 !important;
+      }
+    }
+
+    .cycle-sim-abilities-holder {
+      grid-column-end: span 2;
+    }
+
+    .cycle-sim-rotations-holder {
+      min-height: 0;
+    }
+
+    .cycle-sim-main-holder {
+      > table > * > tr > td {
+        min-width: 150px;
+      }
+    }
+
+    .scroll-table-holder {
+      overflow-y: auto;
+      min-height: 0;
+      scrollbar-gutter: stable;
+      max-height: 200px;
+
+      > table {
+        position: relative;
+
+        > * > tr > th {
+          position: sticky;
+          top: 0;
+          z-index: var(--zi-sets-table-header-row);
+          background: color-mix(in srgb, var(--table-bg-color) 80%, transparent);
+
+        }
+      }
+    }
+
+  }
+}
+
+.abilities-used-table {
+
+  .ability-cell {
+    height: 100%;
+    max-height: var(--abilities-row-height);
+    display: flex;
+    align-items: center;
+
+    .ffxiv-ability-icon {
+      max-height: 100%;
+      display: block;
+      aspect-ratio: 1;
+    }
+
+    .ability-name {
+      overflow-x: hidden;
+      text-overflow: ellipsis;
+      line-height: initial;
+      flex-shrink: 1;
+      flex-grow: 1;
+    }
+  }
+
+  th {
+    text-align: center;
+  }
+
+  td {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    line-height: 1px;
+    height: var(--abilities-row-height);
+
+    &[col-id='time'] {
+      text-align: right;
+    }
+
+    &[col-id='buffs'] {
+      padding-top: 0;
+
+      .active-buffs-list {
+        height: 100%;
+        width: 100%;
+        display: inline-flex;
+        align-items: center;
+        max-height: var(--abilities-row-height);
+
+        img {
+          height: 100%;
+          flex-shrink: 0;
+          padding-right: 2px;
+        }
+
+        span {
+          flex-shrink: 1;
+          display: block;
+          min-width: 1px;
+          overflow-x: hidden;
+          text-overflow: ellipsis;
+          line-height: var(--abilities-row-height);
+        }
+      }
+    }
+  }
+
+  td, th {
+    &[col-id='time'] {
+      width: 75px;
+      max-width: 75px;
+    }
+
+    &[col-id='ability'] {
+      min-width: 150px;
+      max-width: 400px;
+    }
+
+    &[col-id='unbuffed-pot'] {
+      width: 40px;
+      max-width: 40px;
+    }
+
+    &[col-id='expected-damage'] {
+      width: 100px;
+      max-width: 100px;
+    }
+
+    &[col-id='buffs'] {
+      width: 400px;
+      max-width: 400px;
+    }
+  }
+}
