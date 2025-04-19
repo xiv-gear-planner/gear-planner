@@ -1006,7 +1006,7 @@ export class SeparatorEditor extends HTMLElement {
 
     formatTitleDesc() {
 
-        this.header.textContent = this.gearSet.name;
+        this.header.textContent = this.gearSet.name.trim().length === 0 ? "<No Name>" : this.gearSet.name;
         const trimmedDesc = this.gearSet.description?.trim();
         if (trimmedDesc) {
             this.desc.style.display = '';
@@ -2183,7 +2183,7 @@ export class ImportSetsModal extends BaseModal {
                     });
                     return;
                 case "bis":
-                    this.doAsyncImport(() => getBisSheet(...parsed.path), parsed.onlySetIndex);
+                    this.doAsyncImport(() => getBisSheet(parsed.path), parsed.onlySetIndex);
                     return;
             }
         }

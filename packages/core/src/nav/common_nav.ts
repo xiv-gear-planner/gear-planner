@@ -204,7 +204,6 @@ export function parsePath(state: NavState): NavPath | null {
         }
     }
     else if (mainNav === BIS_HASH) {
-        embedWarn();
         if (path.length === 3) {
             return {
                 type: 'bis',
@@ -212,7 +211,7 @@ export function parsePath(state: NavState): NavPath | null {
                 job: path[1] as JobName,
                 sheet: path[2],
                 viewOnly: true,
-                embed: false,
+                embed: embed,
                 onlySetIndex: state.onlySetIndex,
                 defaultSelectionIndex: state.selectIndex,
             };
@@ -223,9 +222,9 @@ export function parsePath(state: NavState): NavPath | null {
                 path: [path[1], path[2], path[3]],
                 job: path[1] as JobName,
                 folder: path[2],
-                sheet: path[3],
+                sheet: path[path.length - 1],
                 viewOnly: true,
-                embed: false,
+                embed: embed,
                 onlySetIndex: state.onlySetIndex,
                 defaultSelectionIndex: state.selectIndex,
             };

@@ -534,6 +534,7 @@ export const LEVEL_STATS: Record<SupportedLevel, LevelStats> = {
 const defaultItemDispBase = {
     showNq: false,
     higherRelics: true,
+    minILvlFood: 740,
     maxILvlFood: 999,
 } as const satisfies Partial<ItemDisplaySettings>;
 
@@ -555,7 +556,6 @@ export const LEVEL_ITEMS: Record<SupportedLevel, LevelItemInfo> = {
             ...defaultItemDispBase,
             minILvl: 380,
             maxILvl: 405,
-            minILvlFood: 640,
         },
     },
     80: {
@@ -574,7 +574,6 @@ export const LEVEL_ITEMS: Record<SupportedLevel, LevelItemInfo> = {
             // see below.
             minILvl: 450,
             maxILvl: 475,
-            minILvlFood: 640,
         },
     },
     // DAWNTRAIL TODO: cap off level 90 items
@@ -591,7 +590,6 @@ export const LEVEL_ITEMS: Record<SupportedLevel, LevelItemInfo> = {
             ...defaultItemDispBase,
             minILvl: 640,
             maxILvl: 999,
-            minILvlFood: 640,
         },
     },
     100: {
@@ -606,7 +604,6 @@ export const LEVEL_ITEMS: Record<SupportedLevel, LevelItemInfo> = {
             // Raise this when more gear is available
             minILvl: 740,
             maxILvl: 999,
-            minILvlFood: 740,
         },
     },
 };
@@ -873,7 +870,7 @@ export function bluWdfromInt(gearIntStat: number): number {
 export const defaultItemDisplaySettings: ItemDisplaySettings = {
     minILvl: 680,
     maxILvl: 999,
-    minILvlFood: 610,
+    minILvlFood: 740,
     maxILvlFood: 999,
     higherRelics: true,
     showNq: false,
