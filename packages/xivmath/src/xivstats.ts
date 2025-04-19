@@ -2,7 +2,6 @@ import {
     AttackType,
     ComputedSetStats,
     FoodBonuses,
-    FoodItem,
     FoodStatBonus,
     JobData,
     LevelStats,
