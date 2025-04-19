@@ -176,18 +176,8 @@ class FoodStatBonusDisplay extends HTMLElement {
         else {
             this.classList.add('food-undercapped');
         }
-        this.appendChild(makeSpan(`+${value.effective}`));
-        // this.appendChild(makeSpan(`+${value.percentage}%`));
-        this.appendChild(quickElement('div', ['food-cap'], [
-            document.createTextNode(' '),
-            // TODO: remove food-stat-wide/narrow
-            // makeSpan(capped ? ' (Full)' : ` / ${value.max}`, []),
-            makeSpan(capped ? ' ✔' : ` / ${value.max}`, ['food-stat-wide']),
-            makeSpan(capped ? ' ✔' : ``, ['food-stat-narrow']),
-            // makeSpan(`(max ${value.max})`, ['food-stat-wide']),
-            // makeSpan(`≤${value.max}`, ['food-stat-narrow']),
-            // makeSpan(`(max ${value.max})`, ['food-stat-wide']),
-        ]));
+        this.appendChild(makeSpan(`+${value.effective}`, ['food-effective']));
+        this.appendChild(quickElement('span', ['food-cap'], [capped ? '✔' : `${value.max}`]));
     }
 }
 
