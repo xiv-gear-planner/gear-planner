@@ -13,13 +13,14 @@ import {
 import {earlyEmbedInit} from "./embed";
 import {SetExport, SheetExport} from "@xivgear/xivmath/geartypes";
 import {getShortLink} from "@xivgear/core/external/shortlink_server";
-import {getBisSheet} from "@xivgear/core/external/static_bis";
+import {AnyNode, getBisIndex, getBisSheet} from "@xivgear/core/external/static_bis";
 
 import {
     formatTopMenu,
     hideWelcomeArea,
     openExport,
     openSheetByKey,
+    setMainContent,
     showFatalError,
     showImportSheetForm,
     showLoadingScreen,
@@ -27,6 +28,7 @@ import {
     showSheetPickerMenu
 } from "./base_ui";
 import {recordError} from "@xivgear/common-ui/analytics/analytics";
+import {BisBrowser} from "./components/bis_browser";
 
 // let expectedHash: string[] | undefined = undefined;
 
@@ -73,7 +75,8 @@ export async function processHashLegacy() {
 }
 
 /**
- * Process a potential change in navigation state.
+ * Process a potential change in navigation state. This compares the current URL to the last URL seen by this method.
+ * If there is a different, it will replace the content area with the new desired page.,
  *
  * Note that unlike the old hash-based method, there is no catch-all listener for hash changes. Rather, anything
  * wishing to change the hash should use {@link goPath} to have the navigation automatically performed (if the
@@ -102,9 +105,13 @@ export async function processNav() {
     await doNav(newNav);
 }
 
+/**
+ * doNav takes a desired NavState and renders the new "page".
+ *
+ * @param navState
+ */
 async function doNav(navState: NavState) {
     try {
-
         const nav = parsePath(navState);
         if (nav === null) {
             console.error('unknown nav', navState);
@@ -170,8 +177,8 @@ async function doNav(navState: NavState) {
                         return;
                     }
                     else {
-                        console.error('Non-existent bis, or other error', [nav.job, nav.folder, nav.sheet]);
-                        recordError("load", `Non-existent bis, or other error: ${nav.job}, ${nav.folder}, ${nav.sheet}`);
+                        console.error('Non-existent bis, or other error', nav.path);
+                        recordError("load", `Non-existent bis, or other error: ${nav.path.join("|")}`);
                     }
                 }
                 catch (e) {
@@ -180,6 +187,41 @@ async function doNav(navState: NavState) {
                     showFatalError("Error loading BiS sheet");
                 }
                 showFatalError("Error loading BiS sheet");
+                return;
+            }
+            case 'bisbrowser': {
+                showLoadingScreen();
+                try {
+                    // TODO: have it display a placeholder component until loaded
+                    const index = await getBisIndex();
+                    let current: AnyNode = index;
+                    nav.path.forEach(pathPart => {
+                        if (current.type === 'file') {
+                            showFatalError(`${pathPart} Does Not Exist`);
+                            return;
+                        }
+                        current = current.children.find(node => node.pathPart === pathPart);
+                        if (!current) {
+                            showFatalError(`${pathPart} Does Not Exist`);
+                            return;
+                        }
+                    });
+                    console.log("BiS Index", index);
+                    const bisBrowserElement = new BisBrowser((path, nav) => {
+                        if (nav) {
+                            goPath(...path);
+                        }
+                        else {
+                            setPath(...path);
+                        }
+                    });
+                    bisBrowserElement.setData(current);
+                    setMainContent('BiS', bisBrowserElement.element);
+                }
+                catch (e) {
+                    console.error(e);
+                    showFatalError('Error Loading BiS Index');
+                }
                 return;
             }
         }
@@ -192,10 +234,20 @@ async function doNav(navState: NavState) {
     showFatalError("This does not seem to be a valid page");
 }
 
+/**
+ * Get the query params of the current page.
+ */
 function getQueryParams(): URLSearchParams {
     return new URLSearchParams(location.search);
 }
 
+/**
+ * Apply a function to the current URL query parameters, then push the modified parameters onto the history.
+ * This does not perform navigation on its own. This function is rarely called on its own. It is called as part of
+ * {@link #setNav} or {@link #goNav}.
+ *
+ * @param action The modifications to apply.
+ */
 function manipulateUrlParams(action: (params: URLSearchParams) => void) {
     const params = getQueryParams();
     const before = params.toString();
@@ -206,6 +258,11 @@ function manipulateUrlParams(action: (params: URLSearchParams) => void) {
     }
 }
 
+/**
+ * Like {@link #setNav}, but takes only the ?page path parts.
+ *
+ * @param pathParts The parts of the ?path parameter.
+ */
 export function setPath(...pathParts: string[]) {
     setNav(new NavState(pathParts, undefined, undefined));
 }
@@ -242,14 +299,17 @@ export function setNav(newState: NavState) {
     }
 }
 
-export function getHash(): string[] | undefined {
+/**
+ * Get the current nav, but only the ?page path parts. Or undefined if it cannot be determined.
+ */
+export function getHash(): string[] {
     return getCurrentState().path;
 }
 
 /**
- * Change the path of the current URL. Does not perform the actual navigation (i.e. the page contents will not be
- * changed). This will, however, update the state of the top menu - that is, if you navigate to the 'new sheet' page,
- * then the 'New Sheet' button will be active.
+ * Navigate to a new URL. This is like {@link #goNav}, but takes just the "page" parameter as a list instead of a
+ * delimited string. This does perform navigation - you should not attempt to perform navigation yourself if you are
+ * using this method.
  *
  * This method is useful for when the entire page state can be determined from the path alone, and you don't need to
  * override any behavior.
@@ -266,6 +326,12 @@ export function goPath(...hashParts: string[]) {
     goNav(new NavState(hashParts, undefined, undefined));
 }
 
+/**
+ * Given a NavState, change the page URL to that nav. This performs actual navigation. You should not attempt to perform
+ * navigation yourself if you are using this method.
+ *
+ * @param nav
+ */
 export function goNav(nav: NavState) {
     const encodedPath = nav.encodedPath;
     manipulateUrlParams(params => {
@@ -286,6 +352,9 @@ export function goNav(nav: NavState) {
     processNav();
 }
 
+/**
+ * Whether not the current navigation state is an embed.
+ */
 export function isEmbed(): boolean {
     return embed;
 }

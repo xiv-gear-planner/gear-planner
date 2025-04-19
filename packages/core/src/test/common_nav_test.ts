@@ -309,6 +309,20 @@ describe('parsePath', () => {
                 defaultSelectionIndex: undefined,
             });
         });
+        it('can resolve bis with more than 3 parts', () => {
+            const result = parsePath(new NavState(['bis', 'war', 'foo', 'bar', 'baz'], 4, undefined));
+            expect(result).to.deep.equals({
+                type: 'bis',
+                path: ['war', 'foo', 'bar', 'baz'],
+                job: 'war',
+                folder: 'foo',
+                sheet: 'baz',
+                embed: false,
+                viewOnly: true,
+                onlySetIndex: 4,
+                defaultSelectionIndex: undefined,
+            });
+        });
     });
 
 });
