@@ -40,7 +40,7 @@ import {
     XivCombatItem
 } from "@xivgear/xivmath/geartypes";
 import {Inactivitytimer} from "@xivgear/util/inactivitytimer";
-import {addStats, finalizeStats} from "@xivgear/xivmath/xivstats";
+import {addStats, finalizeStats, finalizeStatsInt} from "@xivgear/xivmath/xivstats";
 import {GearPlanSheet} from "./sheet";
 import {isMateriaAllowed} from "./materia/materia_utils";
 
@@ -588,6 +588,25 @@ export class CharacterGearSet {
             issues: this.isSeparator ? [] : issues,
         };
         return this._lastResult;
+    }
+
+    /**
+     * Given a food item, get the actual bonuses it would provide.
+     *
+     * @param foodItem
+     */
+    getEffectiveFoodBonuses(foodItem: FoodItem): RawStats {
+        const stats = this.computedStats;
+        const finalized = finalizeStatsInt(
+            stats.gearStats,
+            foodItem.bonuses,
+            stats.level,
+            stats.levelStats,
+            stats.job,
+            stats.jobStats,
+            this.sheet.partyBonus
+        );
+        return finalized.effectiveFoodBonuses;
     }
 
     /**
