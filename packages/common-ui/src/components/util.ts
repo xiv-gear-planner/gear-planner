@@ -545,8 +545,12 @@ export function labeledRadioButton(label: string, radioButton: HTMLInputElement)
 
 export function quickElement<X extends keyof HTMLElementTagNameMap>(tag: X, classes: string[], nodes: Parameters<ParentNode['replaceChildren']>): HTMLElementTagNameMap[X] {
     const element = document.createElement(tag);
-    element.replaceChildren(...nodes);
-    element.classList.add(...classes);
+    if (nodes.length > 0) {
+        element.replaceChildren(...nodes);
+    }
+    if (classes.length > 0) {
+        element.classList.add(...classes);
+    }
     return element;
 }
 
