@@ -1100,6 +1100,7 @@ div.chance-stat-display, div.multiplier-stat-display, div.multiplier-mit-stat-di
           font-size: 30px;
           text-align: center;
         }
+
         &[col-id="name"] {
           padding-top: 10px;
           padding-bottom: 10px;
@@ -1108,6 +1109,7 @@ div.chance-stat-display, div.multiplier-stat-display, div.multiplier-mit-stat-di
             font-weight: bold;
             font-size: 17px;
           }
+
           div.bis-sheet-description {
             font-size: 15px;
             opacity: 75%;
@@ -2528,6 +2530,7 @@ food-stat-bonus {
         padding-right: var(--slash-padding);
 
       }
+
       opacity: 50%;
     }
   }
@@ -2585,7 +2588,8 @@ table.food-items-table {
 
     food-stat-bonus {
       flex-direction: column;
-      >* {
+
+      > * {
         text-align: left;
       }
     }
@@ -2663,12 +2667,12 @@ gear-set-viewer {
     .standard-round-border;
     background-color: var(--table-bg-color);
     padding: 5px;
-    display: grid;
-    grid-template-columns: repeat(var(--materia-total-cols, 4), auto);
     text-align: left;
     margin-left: auto;
     margin-right: auto;
     max-width: 556px;
+    min-height: 22px;
+    display: block;
     @media screen and (max-width: 550px) {
       --materia-total-cols: 3;
     }
@@ -2676,8 +2680,26 @@ gear-set-viewer {
       --materia-total-cols: 2;
     }
 
-    span.materia-totals-label {
-      padding-left: 40px;
+    .materia-totals-label {
+      text-align: center;
+      margin: auto;
+    }
+
+    &.materia-totals-expanded {
+      display: grid;
+      grid-template-columns: repeat(var(--materia-total-cols, 4), auto);
+      .materia-totals-label {
+        display: none;
+      }
+    }
+
+    &.materia-totals-collapsed {
+      &:hover {
+        background-color: var(--input-hover-background-color);
+      }
+      materia-count-display {
+        display: none;
+      }
     }
 
     materia-count-display {

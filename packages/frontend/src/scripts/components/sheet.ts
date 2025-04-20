@@ -2007,6 +2007,10 @@ export class GearPlanSheetGui extends GearPlanSheet {
         if (!(this._editorItem instanceof CharacterGearSet)) {
             return;
         }
+        if (this.sims.length === 0) {
+            alert('You must add a simulation to the sheet before you can use the meld solver.');
+            return;
+        }
         const meldSolveDialog = new MeldSolverDialog(this, this.editorItem as CharacterGearSet);
         document.querySelector('body').appendChild(meldSolveDialog);
         meldSolveDialog.show();
