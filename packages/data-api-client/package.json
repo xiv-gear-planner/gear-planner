@@ -5,7 +5,8 @@
     "./*": "./src/*.ts"
   },
   "scripts": {
-    "build": "tsc --build"
+    "build": "tsc --build",
+    "buildprod": "tsc --build"
   },
   "files": [
     "package.json",
