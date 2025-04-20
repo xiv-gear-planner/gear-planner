@@ -254,17 +254,17 @@ describe('parsePath', () => {
                 defaultSelectionIndex: undefined,
             });
         });
-        it('does not try to embed bis', () => {
-            const result = parsePath(new NavState(['embed', 'bis', 'sge', 'endwalker', 'anabaseios']));
+        it('can embed bis', () => {
+            const result = parsePath(new NavState(['embed', 'bis', 'sge', 'endwalker', 'anabaseios'], 1));
             expect(result).to.deep.equals({
                 type: 'bis',
                 path: ['sge', 'endwalker', 'anabaseios'],
                 job: 'sge',
                 folder: 'endwalker',
                 sheet: 'anabaseios',
-                embed: false,
+                embed: true,
                 viewOnly: true,
-                onlySetIndex: undefined,
+                onlySetIndex: 1,
                 defaultSelectionIndex: undefined,
             });
         });
@@ -303,6 +303,20 @@ describe('parsePath', () => {
                 path: ['war', 'current'],
                 job: 'war',
                 sheet: 'current',
+                embed: false,
+                viewOnly: true,
+                onlySetIndex: 4,
+                defaultSelectionIndex: undefined,
+            });
+        });
+        it('can resolve bis with more than 3 parts', () => {
+            const result = parsePath(new NavState(['bis', 'war', 'foo', 'bar', 'baz'], 4, undefined));
+            expect(result).to.deep.equals({
+                type: 'bis',
+                path: ['war', 'foo', 'bar', 'baz'],
+                job: 'war',
+                folder: 'foo',
+                sheet: 'baz',
                 embed: false,
                 viewOnly: true,
                 onlySetIndex: 4,

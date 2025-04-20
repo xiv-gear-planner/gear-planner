@@ -821,6 +821,7 @@ export class GearSetEditor extends HTMLElement {
     private header: HTMLHeadingElement;
     private desc: ExpandableText;
     private issuesButtonContent: HTMLSpanElement;
+    private foodTable: FoodItemsTable;
 
     constructor(sheet: GearPlanSheet, gearSet: CharacterGearSet) {
         super();
@@ -942,10 +943,10 @@ export class GearSetEditor extends HTMLElement {
         // this.appendChild(gearTable);
 
         // Food table
-        const foodTable = new FoodItemsTable(this.sheet, this.gearSet);
-        foodTable.classList.add('food-table');
+        this.foodTable = new FoodItemsTable(this.sheet, this.gearSet);
+        this.foodTable.classList.add('food-table');
         // foodTable.id = "food-items-table";
-        this.appendChild(foodTable);
+        this.appendChild(this.foodTable);
         this.checkIssues();
     }
 
@@ -960,6 +961,7 @@ export class GearSetEditor extends HTMLElement {
 
     refresh() {
         this.checkIssues();
+        this.foodTable.refreshFull();
     }
 
     private undoRedoHotkeyHandler = (ev: KeyboardEvent) => {
@@ -1004,7 +1006,7 @@ export class SeparatorEditor extends HTMLElement {
 
     formatTitleDesc() {
 
-        this.header.textContent = this.gearSet.name;
+        this.header.textContent = this.gearSet.name.trim().length === 0 ? "<No Name>" : this.gearSet.name;
         const trimmedDesc = this.gearSet.description?.trim();
         if (trimmedDesc) {
             this.desc.style.display = '';
@@ -1169,7 +1171,7 @@ export class GearSetViewer extends HTMLElement {
         // Food table TODO make readonly
         const food = this.gearSet.food;
         if (food) {
-            const foodTable = new FoodItemViewTable(this.sheet, food);
+            const foodTable = new FoodItemViewTable(this.sheet, this.gearSet, food);
             foodTable.classList.add('food-view-table');
             // foodTable.id = "food-items-table";
             this.appendChild(foodTable);
@@ -2181,7 +2183,7 @@ export class ImportSetsModal extends BaseModal {
                     });
                     return;
                 case "bis":
-                    this.doAsyncImport(() => getBisSheet(...parsed.path), parsed.onlySetIndex);
+                    this.doAsyncImport(() => getBisSheet(parsed.path), parsed.onlySetIndex);
                     return;
             }
         }

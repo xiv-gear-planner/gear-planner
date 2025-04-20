@@ -92,7 +92,7 @@ export class ImportSheetArea extends NamedSection {
                     });
                     return;
                 case "bis":
-                    this.doAsyncImport(() => getBisSheet(...parsed.path), parsed.onlySetIndex);
+                    this.doAsyncImport(() => getBisSheet(parsed.path), parsed.onlySetIndex);
                     return;
             }
         }

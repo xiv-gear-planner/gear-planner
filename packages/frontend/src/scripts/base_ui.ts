@@ -19,6 +19,8 @@ import {CharacterGearSet} from "@xivgear/core/gear";
 import {recordSheetEvent} from "./analytics/analytics";
 import {recordError} from "@xivgear/common-ui/analytics/analytics";
 import {isInIframe} from "@xivgear/common-ui/util/detect_iframe";
+import {WritableProps} from "@xivgear/common-ui/util/types";
+import {quickElement} from "@xivgear/common-ui/components/util";
 
 declare global {
     interface Document {
@@ -77,10 +79,35 @@ export function setMainContent(title: string, ...nodes: Parameters<ParentNode['r
     setTitle(title);
 }
 
-export function showFatalError(errorText: string) {
+function showBadEmbedAttemptError() {
+    const currentState = getCurrentState();
+    const newUrl = makeUrl(new NavState(currentState.path.slice(1), currentState.onlySetIndex, currentState.selectIndex));
+    const msg = "Embedding is only supported for a single set, not a full sheet. Consider embedding sets individually and/or linking to the full sheet rather than embedding it.";
+    showFatalError(msg, [
+        makeLink('Click to open this sheet', newUrl, {target: '_blank'}),
+        quickElement('br', [], []),
+        quickElement('small', [], [msg]),
+    ]);
+}
+
+
+function makeLink(text: string, href: URL, opts: Partial<WritableProps<HTMLAnchorElement>>) {
+    const a = document.createElement('a');
+    a.textContent = text;
+    a.href = href.toString();
+    Object.assign(a, opts);
+    return a;
+}
+
+export function showFatalError(errorText: string, errorElementContents?: Parameters<ParentNode['replaceChildren']>) {
     recordError("showFatalError", errorText);
     const errMsg = document.createElement('h1');
-    errMsg.textContent = errorText;
+    if (errorElementContents !== undefined) {
+        errMsg.replaceChildren(...errorElementContents);
+    }
+    else {
+        errMsg.textContent = errorText;
+    }
     const embedDiv = getEmbedDiv();
     if (embedDiv !== undefined) {
         setTitle("Error");
@@ -225,7 +252,7 @@ export async function openExport(exportedPre: SheetExport | SetExport, viewOnly:
     recordSheetEvent('openExport', sheet, analyticsData);
     if (embed) {
         if (isFullSheet) {
-            showFatalError("Embedding is only supported for a single set, not a full sheet. Consider embedding sets individually and/or linking to the full sheet rather than embedding it.");
+            showBadEmbedAttemptError();
         }
         else {
             sheet.setViewOnly();

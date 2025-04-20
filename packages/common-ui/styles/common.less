@@ -971,6 +971,7 @@ div.chance-stat-display, div.multiplier-stat-display, div.multiplier-mit-stat-di
       tr {
         height: 23px;
         max-height: 23px;
+        cursor: pointer;
       }
 
       tr:first-child {
@@ -1005,6 +1006,137 @@ div.chance-stat-display, div.multiplier-stat-display, div.multiplier-mit-stat-di
         }
       }
 
+      td[col-id="sheetactions"] {
+        width: 50px;
+        max-height: 23px;
+        height: 23px;
+
+        .svg-glyph {
+          font-size: 13.2px;
+        }
+
+        i {
+          font-size: 14px;
+        }
+
+        > div {
+          display: inline-block;
+          height: 20px;
+        }
+
+        button {
+          .borderless-button;
+          padding: 0;
+          margin-left: 0;
+        }
+
+        //
+        //div {
+        //  display: flex;
+        //
+        //  button {
+        //    flex: 1;
+        //  }
+        //}
+      }
+    }
+  }
+}
+
+#content-area > .bis-browser {
+  .named-section-content-area {
+    width: 600px;
+
+    .button-row {
+
+      margin-bottom: 5px;
+      display: flex;
+
+      .up-button {
+        background-color: var(--table-bg-color);
+        flex-grow: 1;
+        text-align: left;
+        border-radius: 0;
+        padding: 5px;
+        box-sizing: content-box;
+        margin: 0;
+        cursor: pointer;
+
+        &:hover {
+          background-color: var(--table-bg-color-hover);
+        }
+
+        &:disabled {
+          visibility: hidden;
+        }
+      }
+    }
+
+    table.bis-browser-table {
+      overflow: auto;
+      padding: 0;
+      width: 100%;
+
+
+      tr {
+        height: 23px;
+        max-height: 23px;
+        cursor: pointer;
+      }
+
+      tr:first-child {
+        th {
+          position: sticky;
+          top: 0;
+          z-index: 1;
+        }
+      }
+
+      td {
+        border: none;
+        border-top: var(--standard-border);
+
+        &[col-id="type"] {
+          font-size: 30px;
+          text-align: center;
+        }
+        &[col-id="name"] {
+          padding-top: 10px;
+          padding-bottom: 10px;
+
+          div.bis-sheet-name {
+            font-weight: bold;
+            font-size: 17px;
+          }
+          div.bis-sheet-description {
+            font-size: 15px;
+            opacity: 75%;
+          }
+        }
+
+      }
+
+      th {
+        --thick-border: none;
+      }
+
+      // TODO: repurpose as the "up" row
+      .new-sheet-row:hover {
+        .svg-glyph {
+          fill: var(--action-input-hover-background-color);
+        }
+      }
+
+      .new-sheet-row th {
+        font-weight: normal;
+
+        i, svg {
+          padding-left: 8px;
+          padding-right: 8px;
+        }
+      }
+
+      // TODO: repurpose as icon row?
       td[col-id="sheetactions"] {
         width: 50px;
         max-height: 23px;
@@ -1651,7 +1783,7 @@ add-sim-dialog {
   }
 }
 
-gear-set-editor {
+gear-set-editor, separator-editor {
   div.gear-set-editor-button-area {
     width: 100%;
     text-align: center;
@@ -2361,23 +2493,59 @@ shortlink-modal {
 }
 
 food-stat-bonus {
-  display: inline;
+  display: flex;
+  flex-direction: row;
 
-  span {
-    padding-right: var(--food-stat-padding, 5px);
+  --slash-padding: 3px;
+
+  > * {
+    flex-basis: 50%;
+    flex-grow: 0;
+    flex-shrink: 0;
+    display: block;
   }
 
-  span:last-child {
-    float: right;
-    padding-right: 0;
+  .food-effective {
+    text-align: right;
+    padding-right: 4px;
+    flex-shrink: 1;
   }
+
+  .food-cap {
+    text-align: left;
+    // The '/' is part of .food-cap, so account for the extra width
+    flex-basis: calc(50% + 10px);
+    flex-shrink: 1;
+    font-weight: normal;
+
+  }
+
+  &.food-undercapped {
+    .food-cap {
+      &:before {
+        content: '/';
+        padding-left: var(--slash-padding);
+        padding-right: var(--slash-padding);
+
+      }
+      opacity: 50%;
+    }
+  }
+
+  &.food-capped {
+    .food-cap {
+      opacity: 50%;
+      text-align: center;
+    }
+  }
+
 }
 
 table.food-items-table {
   max-width: 100%;
 
   .food-stat-col {
-    --food-stat-col-width: max-content;
+    --food-stat-col-width: 80px;
     min-width: var(--food-stat-col-width);
     max-width: var(--food-stat-col-width);
     width: var(--food-stat-col-width);
@@ -2410,33 +2578,18 @@ table.food-items-table {
   }
 
   @media screen and (max-width: 900px) {
+
+    .food-stat-col {
+      --food-stat-col-width: 40px;
+    }
+
     food-stat-bonus {
-      span {
-        display: block;
+      flex-direction: column;
+      >* {
+        text-align: left;
       }
     }
-
-    .food-stat-col {
-      --food-stat-col-width: fit-content !important;
-      --food-stat-padding: 0;
-      //width: 50px;
-    }
   }
-  @media screen and (max-width: 1045px) {
-    .food-stat-narrow {
-      display: unset;
-    }
-
-    .food-stat-wide {
-      display: none;
-    }
-
-    .food-stat-col {
-      //--food-stat-col-width: 100px;
-    }
-
-  }
-
 }
 
 .round-table {
@@ -3500,10 +3653,12 @@ expandable-text {
       display: -webkit-box;
       mask-image: linear-gradient(180deg, black 90%, transparent 100%);
     }
+
     .truncation-expand-button {
       display: unset;
     }
   }
+
   .truncation-expand-button {
     display: none;
     margin-bottom: 10px;
@@ -3513,6 +3668,7 @@ expandable-text {
 .set-description-holder {
   --truncatable-line-clamp: 6;
   margin-bottom: 16px;
+
   button {
     .shadow;
     border-radius: 5px;
