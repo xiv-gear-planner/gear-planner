@@ -15,8 +15,10 @@ module.exports = (env, argv) => {
         },
         optimization: {
             minimize: prod,
+            chunkIds: 'named',
         },
-        devtool: prod ? 'nosources-source-map' : 'source-map',
+        // devtool: prod ? 'nosources-source-map' : 'source-map',
+        devtool: 'source-map',
         module: {
             rules: [
                 {

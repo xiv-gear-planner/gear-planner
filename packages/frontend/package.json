@@ -33,13 +33,10 @@
   },
   "scripts": {
     "build": "tsc --build && lessc --source-map ./src/style.less dist/style.css && webpack --mode=development",
-    "buildprod": "tsc --build && webpack --mode=development && lessc --source-map ./src/style.less dist/style.css",
+    "buildprod": "tsc --build && lessc --source-map ./src/style.less dist/style.css && webpack --mode=production",
     "web": "webpack --mode=development",
     "webprod": "webpack --mode=production",
     "less": "lessc --source-map ./src/style.less dist/style.css",
     "test": "ts-mocha --parallel=true src/scripts/test/**/*test.ts src/scripts/test/**/*tests.ts"
-  },
-  "browser": {
-    "[module-name]": false
   }
 }

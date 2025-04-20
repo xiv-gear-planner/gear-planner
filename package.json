@@ -1,9 +1,6 @@
 {
   "name": "gearplan",
   "version": "1.0.0",
-  "browser": {
-    "[module-name]": false
-  },
   "workspaces": [
     "packages/util",
     "packages/i18n",
@@ -33,6 +30,7 @@
   },
   "scripts": {
     "build": "npm run build --workspaces",
+    "buildprod": "npm run buildprod --workspaces",
     "docs": "npx --workspaces typedoc --json build/docs.json --exclude '**/scripts/test/**/*.ts' --excludePrivate --entryPointStrategy expand src/ && npx typedoc --entryPointStrategy merge packages/*/build/docs.json --readme API_DOC.md --out packages/frontend/dist/docs",
     "test": "npm run --workspaces --if-present test",
     "serve": "npx -w @xivgear/gearplan-frontend webpack serve",

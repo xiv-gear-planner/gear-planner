@@ -5,6 +5,7 @@
   "main": "server.js",
   "scripts": {
     "build": "tsc --build",
+    "buildprod": "tsc --build",
     "test": "ts-mocha --parallel=true src/test/**/*.ts"
   },
   "dependencies": {
