@@ -2666,44 +2666,41 @@ gear-set-viewer {
   materia-totals-display {
     .standard-round-border;
     background-color: var(--table-bg-color);
-    padding: 5px;
+    padding: 10px;
     text-align: left;
     margin-left: auto;
     margin-right: auto;
     max-width: 556px;
     min-height: 22px;
-    display: block;
-    @media screen and (max-width: 550px) {
-      --materia-total-cols: 3;
-    }
-    @media screen and (max-width: 400px) {
+    display: flex;
+    flex-direction: row;
+    --materia-total-cols: auto;
+    @media screen and (max-width: 600px) {
       --materia-total-cols: 2;
     }
 
+
     .materia-totals-label {
-      text-align: center;
+      flex-basis: min-content;
+      flex-grow: 0;
       margin: auto;
     }
+    .materia-totals-inner {
+      &:has(:nth-last-child(4):first-child) {
+        --materia-total-cols: 2;
+      }
+      flex-basis: max-content;
+      flex-grow: 1;
 
-    &.materia-totals-expanded {
-      display: grid;
-      grid-template-columns: repeat(var(--materia-total-cols, 4), auto);
-      .materia-totals-label {
-        display: none;
-      }
-    }
-
-    &.materia-totals-collapsed {
-      &:hover {
-        background-color: var(--input-hover-background-color);
-      }
-      materia-count-display {
-        display: none;
-      }
+      columns: auto;
+      column-width: 150px;
+      column-gap: 3px;
+      column-fill: balance;
     }
 
     materia-count-display {
-      display: inline-block;
+      display: block;
+      padding: 3px;
 
       .materia-count-quantity {
         text-align: right;

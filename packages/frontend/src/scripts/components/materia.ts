@@ -691,21 +691,9 @@ export class MateriaTotalsDisplay extends HTMLElement {
             }
             return primary;
         });
-        this.classList.add('materia-totals-collapsed');
-        const totalsText = document.createElement('div');
-        totalsText.classList.add('materia-totals-label');
-        totalsText.textContent = 'Show Materia Totals';
-        this.appendChild(totalsText);
-        elements.forEach(element => {
-            this.appendChild(element);
-        });
-        const listener = () => {
-            this.classList.add('materia-totals-expanded');
-            this.classList.remove('materia-totals-collapsed');
-            this.removeEventListener('click', listener);
-        };
-        this.addEventListener('click', listener);
-
+        const totalsText = quickElement('div', ['materia-totals-label'], ['Totals:']);
+        const inner = quickElement('div', ['materia-totals-inner'], elements);
+        this.replaceChildren(totalsText, inner);
         this.empty = elements.length === 0;
     }
 
