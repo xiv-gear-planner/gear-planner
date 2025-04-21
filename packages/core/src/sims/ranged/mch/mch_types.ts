@@ -1,20 +1,16 @@
 import {Ability, GcdAbility, OgcdAbility, Buff, BuffController} from "@xivgear/core/sims/sim_types";
-import {MchheatGauge} from "./mch_heatgauge";
-import {MchbatteryGauge} from "./mch_batterygauge";
+import {MchGauge} from "./mch_gauge";
 import {removeSelf} from "@xivgear/core/sims/common/utils";
-import {PersonalBuff} from "@xivgear/core/sims/sim_types";
 
 export type MchAbility = Ability & Readonly<{
     /** Run if an ability needs to update the Heat gauge */
-    updateHeatGauge?(gauge: heatGauge): void;
+    updateHeatGauge?(gauge: MchGauge): void;
+
+    /** Run if an ability needs to update the battery gauge */
+    updateBatteryGauge?(gauge: MchGauge): void;
 
     /** The heat Gauge cost of the ability */
     heatGaugeCost?: number;
-}>
-
-export type MchAbility = Ability & Readonly<{
-    /** Run if an ability needs to update the battery gauge */
-    updateBatteryGauge?(gauge: batteryGauge): void;
 
     /** The battery Gauge cost of the ability */
     batteryGaugeCost?: number;
@@ -25,22 +21,18 @@ export type MchGcdAbility = GcdAbility & MchAbility;
 export type MchOgcdAbility = OgcdAbility & MchAbility;
 
 /** MCH ability that costs heat gauge */
-export type heatGaugeAbility = mchAbility & Readonly<{
+export type heatGaugeAbility = MchAbility & Readonly<{
     heatGaugeCost: number;
 }>
 
 /** MCH ability that costs heat gauge */
-export type batteryGaugeAbility = mchAbility & Readonly<{
+export type batteryGaugeAbility = MchAbility & Readonly<{
     batteryGaugeCost: number;
 }>
 
-/** Represents the heat gauge state */
-export type mchheatGaugeState = {
+/** Represents MCH's Gauge state */
+export type MchGaugeState = {
     heatGauge: number,
-}
-
-/** Represents the battery gauge state */
-export type mchbatteryGaugeState = {
     batteryGauge: number,
 }
 
@@ -48,17 +40,9 @@ export type mchbatteryGaugeState = {
 /** Represents the extra data for UsedAbility, primarily for consumption in the UI */
 export type MchExtraData = {
     /** The battery gauge data */
-    gauge: MchbatteryGaugeState,
-    automatonqueen: number,
-};
-
-export type MchExtraData = {
-    /** The heat gauge data */
-    gauge: MchHeatGaugeState,
+    gauge: MchGaugeState,
     hypercharge: number,
 };
-
-/** Buff usage */
 
 export const ReassembleBuff: Buff = {
     name: "Reassemble",
@@ -73,51 +57,61 @@ export const ReassembleBuff: Buff = {
     statusId: 851,
 };
 
-//export const AutomatonQueenBuff: PersonalBuff = {
-//    name: "Queen active",
-//    duration: n,
-//    selfOnly: true,
-//};
 
 export const HyperchargeBuff: Buff = {
-    name: "Hypercharged",
+    name: "Hypercharge",
     duration: 10,
     selfOnly: true,
     stacks: 5,
+    effects: {
+        // Adds potency to attacks.
+    },
     appliesTo: ability => ability.type === "gcd",
     beforeAbility<X extends MchAbility>(buffController: BuffController, ability: X): X {
         return {
-        ...ability,
-        potency: ability.potency + 20
-        }
-     },
-    beforeSnapshot<X extends mchAbility>(buffController: BuffController, ability: X): X {
+            ...ability,
+            potency: ability.potency + 20,
+        };
+    },
+    beforeSnapshot<X extends MchAbility>(buffController: BuffController, ability: X): X {
         buffController.subtractStacksSelf(1);
         return ability;
     },
-    statusId: 3864,
+    statusId: 688,
 };
 
-export const FullMetalFieldReadyBuff: Buff = {
-    name: "Full Metal Field ready",
+export const FullMetalMachinistBuff: Buff = {
+    name: "Full Metal Machinist",
     duration: 30,
+    effects: {
+        // Allows usage of Full Metal Field
+    },
     selfOnly: true,
     appliesTo: ability => ability.name === "Full Metal Field",
     beforeSnapshot: removeSelf,
+    statusId: 3866,
 };
 
-export const FreeHypercharge: Buff = {
-    name: "Hypercharge ready",
+export const HyperchargedBuff: Buff = {
+    name: "Hypercharged",
     selfOnly: true,
-    appliesTo: ability => ability.name === "Hypercharge"
+    effects: {
+        // Allows usage of Hypercharge
+    },
+    appliesTo: ability => ability.name === "Hypercharge",
     beforeSnapshot: removeSelf,
     duration: 30,
+    statusId: 3864,
 };
 
 export const ExcavatorReadyBuff: Buff = {
-    name: "Excavator ready",
+    name: "Excavator Ready",
     duration: 30,
+    effects: {
+        // Allows usage of Excavator
+    },
     selfOnly: true,
     appliesTo: ability => ability.name === "Excavator",
     beforeSnapshot: removeSelf,
+    statusId: 3865,
 };
