@@ -161,8 +161,9 @@ export const Wildfire: MchOgcdAbility = {
     // 1440 potency total
     attackType: "Ability",
     appDelay: 10,
- //   forceNoCrit: true,
- //   forceNoDh: true,
+    //est. time until detonation
+    forceNoCrit: true,
+    forceNoDh: true,
     cooldown: {
         time: 120,
     },
