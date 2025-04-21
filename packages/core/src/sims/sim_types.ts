@@ -258,6 +258,8 @@ export type DamagingAbility = Readonly<{
     autoDh?: boolean,
     dot?: DotInfo,
     alternativeScalings?: AlternativeScaling[],
+    forceNoCrit?: boolean,
+    forceNoDh?: boolean,
 }>;
 
 /**
