@@ -1,4 +1,4 @@
-import {closeModal, setModal} from "../modalcontrol";
+import {closeModal, Modal, setModal} from "../modalcontrol";
 import {makeActionButton, makeCloseButton} from "./util";
 
 export abstract class BaseModal extends HTMLElement {
@@ -42,6 +42,27 @@ export abstract class BaseModal extends HTMLElement {
         this.addActionButton('Close', () => this.close());
     }
 
+    /**
+     * Represents this as a {@link Modal} object.
+     * @private
+     */
+    private get modalWrapper(): Modal {
+        const outer = this;
+        return {
+            get explicitCloseOnly(): boolean {
+                return outer.explicitCloseOnly;
+            },
+            modalElement: this.inner,
+            close(): void {
+                outer.remove();
+            },
+        };
+    }
+
+    get explicitCloseOnly(): boolean {
+        return false;
+    }
+
     // eslint-disable-next-line accessor-pairs
     set headerText(text: string) {
         this.header.textContent = text;
@@ -53,13 +74,7 @@ export abstract class BaseModal extends HTMLElement {
     }
 
     show() {
-        const outer = this;
-        setModal({
-            element: outer.inner,
-            close() {
-                outer.remove();
-            },
-        });
+        setModal(this.modalWrapper);
         setTimeout(() => this.classList.add('backdrop-active'), 5);
     }
 

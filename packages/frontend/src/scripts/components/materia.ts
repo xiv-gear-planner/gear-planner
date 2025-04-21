@@ -365,7 +365,7 @@ export class SlotMateriaManagerPopup extends HTMLElement {
         this.replaceChildren(table);
         const self = this;
         setModal({
-            element: self,
+            modalElement: self,
             close() {
                 self.hide();
             },
