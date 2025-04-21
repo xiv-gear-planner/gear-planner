@@ -26,6 +26,7 @@ export class MeldSolverDialog extends BaseModal {
     private cancelButton: HTMLButtonElement;
     readonly settingsDiv: MeldSolverSettingsMenu;
     private progressDisplay: MeldSolverProgressDisplay;
+    private inProgress: boolean = false;
 
     private solver: MeldSolver;
 
@@ -106,7 +107,7 @@ export class MeldSolverDialog extends BaseModal {
                     }
 
                 });
-            solverPromise.then(([set, dps]) => this.solveResultReceived(set, dps)).catch(err => console.error(err));
+            solverPromise.then(([set, dps]) => this.solveResultReceived(set, dps));
             const timeTaken = Date.now() - (meldSolveStart);
             console.log("Time taken: " + timeTaken);
             recordSheetEvent("SolveMelds", sheet, {
@@ -117,6 +118,7 @@ export class MeldSolverDialog extends BaseModal {
         this.cancelButton = makeActionButton("Cancel", async () => {
             await this.solver.cancel();
             this.buttonArea.removeChild(this.cancelButton);
+            this.inProgress = false;
 
             this.showSettings();
         });
@@ -125,26 +127,10 @@ export class MeldSolverDialog extends BaseModal {
         this.contentArea.append(this.form);
     }
 
-    public refresh(set: CharacterGearSet) {
-        this.settingsDiv.gearsetGenSettings.gearset = set;
-    }
-
     async solveResultReceived(set: CharacterGearSet, dps: number) {
         const oldDps = (await this.settingsDiv.simSettings.sim.simulate(this.settingsDiv.gearsetGenSettings.gearset)).mainDpsResult;
         const confirm = new MeldSolverConfirmationDialog(this._sheet, this.settingsDiv.gearsetGenSettings.gearset, set, [oldDps, dps], this.close);
-        document.querySelector('body').appendChild(confirm);
-        confirm.show();
-    }
-
-    applyResult(newSet: CharacterGearSet) {
-
-        for (const slotKey of EquipSlots) {
-            if (!this.settingsDiv.gearsetGenSettings.gearset.equipment[slotKey]) {
-                continue;
-            }
-
-            this.settingsDiv.gearsetGenSettings.gearset.equipment[slotKey].melds = newSet.equipment[slotKey].melds;
-        }
+        confirm.attachAndShow();
     }
 
     showSettings() {
@@ -162,12 +148,19 @@ export class MeldSolverDialog extends BaseModal {
 
     showProgress() {
 
+        this.inProgress = true;
+
         this.closeButton.disabled = true;
         this.settingsDiv.setEnabled(false);
 
         this.progressDisplay = new MeldSolverProgressDisplay();
         this.form.replaceChildren(this.progressDisplay);
         this.addButton(this.cancelButton);
+    }
+
+    // Block accidental closing once in progress
+    get explicitCloseOnly() {
+        return this.inProgress;
     }
 }
 
@@ -602,6 +595,10 @@ class MeldSolverConfirmationDialog extends BaseModal {
 
             oldEq.melds = newEq.melds;
         }
+    }
+
+    get explicitCloseOnly(): boolean {
+        return true;
     }
 }
 
