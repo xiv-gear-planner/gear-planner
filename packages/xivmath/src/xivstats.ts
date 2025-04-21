@@ -362,7 +362,7 @@ export class ComputedSetStatsImpl implements ComputedSetStats {
             return 1;
         }
         if (this.finalBonusStats.forceNoCrit) {
-            return -100000;  
+            return 0;  
         }
         return clamp(0, 1, this.baseCritChance + this.finalBonusStats.critChance);
     }
@@ -380,7 +380,7 @@ export class ComputedSetStatsImpl implements ComputedSetStats {
             return 1;
         }
         if (this.finalBonusStats.forceNoDh) {
-            return -100000;  
+            return 0;  
         }
         return clamp(0, 1, this.baseDhitChance + this.finalBonusStats.dhitChance);   
     };
