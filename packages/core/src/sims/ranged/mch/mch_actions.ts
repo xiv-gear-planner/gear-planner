@@ -1,46 +1,45 @@
-import {MchHeat} from "./mch_heatgauge";
-import {MchBattery} from "./mch_batterygauge";
-import {MchGcdAbility, MchogcdAbility, ReassembleBuff, AutomatonQueenBuff, HyperchargeBuff, FreeHyperchargeBuff, , ExcavatorReadyBuff} from "./mch_types";
+import {MchGauge} from "./mch_gauge";
+import {MchGcdAbility, ReassembleBuff, HyperchargeBuff, HyperchargedBuff, ExcavatorReadyBuff, FullMetalMachinistBuff, MchOgcdAbility} from "./mch_types";
 
 /**
  * MCH GCD Actions
  */
 
-export const heatedsplitshot: MchGcdAbility = {
+export const HeatedSplitShot: MchGcdAbility = {
     type: 'gcd',
     name: "Heated Split Shot",
     id: 7411,
     potency: 220,
     attackType: "Weaponskill",
-    updateHeatGauge: (gauge: Heatgauge) => gauge.heatGauge += 5,
+    updateHeatGauge: (gauge: MchGauge) => gauge.heatGauge += 5,
     gcd: 2.5,
     cast: 0,
 };
 
-export const heatedslugshot: MchGcdAbility = {
+export const HeatedSlugShot: MchGcdAbility = {
     type: 'gcd',
     name: "Heated Slug Shot",
     id: 7412,
     potency: 320,
     attackType: "Weaponskill",
-    updateHeatGauge: (gauge: Heatgauge) => gauge.heatGauge += 5,
+    updateHeatGauge: (gauge: MchGauge) => gauge.heatGauge += 5,
     gcd: 2.5,
     cast: 0,
 };
 
-export const heatedcleanshot: MchGcdAbility = {
+export const HeatedCleanShot: MchGcdAbility = {
     type: 'gcd',
     name: "Heated Clean Shot",
     id: 7413,
     potency: 420,
     attackType: "Weaponskill",
-    updateHeatGauge: (gauge: Heatgauge) => gauge.heatGauge += 5,
-    updateBatteryGauge: (gauge: Batterygauge) => gauge.batteryGauge += 10,
+    updateHeatGauge: (gauge: MchGauge) => gauge.heatGauge += 5,
+    updateBatteryGauge: (gauge: MchGauge) => gauge.batteryGauge += 10,
     gcd: 2.5,
     cast: 0,
 };
 
-export const drill: MchGcdAbility = {
+export const Drill: MchGcdAbility = {
     type: 'gcd',
     name: "Drill",
     id: 16498,
@@ -55,7 +54,7 @@ export const drill: MchGcdAbility = {
     },
 };
 
-export const chainsaw: MchGcdAbility = {
+export const Chainsaw: MchGcdAbility = {
     type: 'gcd',
     name: "Chainsaw",
     id: 25788,
@@ -64,14 +63,14 @@ export const chainsaw: MchGcdAbility = {
     gcd: 2.5,
     cast: 0,
     activatesBuffs: [ExcavatorReadyBuff],
-    updateBatteryGauge: (gauge: Batterygauge) => gauge.batteryGauge += 20,
+    updateBatteryGauge: (gauge: MchGauge) => gauge.batteryGauge += 20,
     cooldown: {
         time: 60,
         reducedBy: "skillspeed",
     },
 };
 
-export const excavator: MchGcdAbility = {
+export const Excavator: MchGcdAbility = {
     type: 'gcd',
     name: "Excavator",
     id: 36981,
@@ -79,10 +78,10 @@ export const excavator: MchGcdAbility = {
     attackType: "Weaponskill",
     gcd: 2.5,
     cast: 0,
-    updateBatteryGauge: (gauge: Batterygauge) => gauge.batteryGauge += 20,
+    updateBatteryGauge: (gauge: MchGauge) => gauge.batteryGauge += 20,
 };
 
-export const airanchor: MchGcdAbility = {
+export const AirAnchor: MchGcdAbility = {
     type: 'gcd',
     name: "Air Anchor",
     id: 16500,
@@ -90,14 +89,14 @@ export const airanchor: MchGcdAbility = {
     attackType: "Weaponskill",
     gcd: 2.5,
     cast: 0,
-    updateBatteryGauge: (gauge: Batterygauge) => gauge.batteryGauge += 20,
+    updateBatteryGauge: (gauge: MchGauge) => gauge.batteryGauge += 20,
     cooldown: {
         time: 60,
         reducedBy: "skillspeed",
     },
 };
 
-export const fullmetalfield: MchGcdAbility = {
+export const FullMetalField: MchGcdAbility = {
     type: 'gcd',
     name: "Full Metal Field",
     id: 36982,
@@ -108,7 +107,7 @@ export const fullmetalfield: MchGcdAbility = {
     autoDh: true,
 };
 
-export const blazingshot: MchGcdAbility = {
+export const BlazingShot: MchGcdAbility = {
     type: 'gcd',
     name: "Blazing Shot",
     id: 36978,
@@ -121,27 +120,26 @@ export const blazingshot: MchGcdAbility = {
  * MCH oGCD Actions
  */
 
-export const hypercharge: MchoGcdAbility = {
+export const Hypercharge: MchOgcdAbility = {
     type: 'ogcd',
     name: "Hypercharge",
     id: 17209,
     potency: null,
     attackType: "Ability",
     activatesBuffs: [HyperchargeBuff],
-    updateHeatGauge: (gauge: Heatgauge) => gauge.heatGauge -= 50,
+    updateHeatGauge: (gauge: MchGauge) => gauge.heatGauge -= 50,
 };
 
-export const barrelstabilizer: MchoGcdAbility = {
+export const BarrelStabilizer: MchOgcdAbility = {
     type: 'ogcd',
     name: "Barrel Stabilizer",
     id: 7414,
     potency: null,
     attackType: "Ability",
-    activatesBuffs: [FullMetalFieldReadyBuff],
-    activatesBuffs: [FreeHyperchargeBuff],
+    activatesBuffs: [FullMetalMachinistBuff, HyperchargedBuff],
 };
 
-export const reassemble: MchoGcdAbility = {
+export const Reassemble: MchOgcdAbility = {
     type: 'ogcd',
     name: "Reassemble",
     id: 2876,
@@ -154,7 +152,7 @@ export const reassemble: MchoGcdAbility = {
     },
 };
 
-export const automatonqueen: MchoGcdAbility = {
+export const AutomatonQueen: MchOgcdAbility = {
     type: 'ogcd',
     name: "Automaton Queen",
     id: 16501,
@@ -164,12 +162,12 @@ export const automatonqueen: MchoGcdAbility = {
     cooldown: {
         time: 6,
     },
-    updateBatteryGauge: (gauge: Batterygauge) => gauge.batteryGauge = 0, 
+    updateBatteryGauge: (gauge: MchGauge) => gauge.batteryGauge = 0,
     /* need to fix this */
     /* activatesBuffs: [AutomatonQueenBuff], */
 };
 
-export const checkmate: MchoGcdAbility = {
+export const Checkmate: MchOgcdAbility = {
     type: 'ogcd',
     name: "Checkmate",
     id: 36980,
@@ -181,7 +179,7 @@ export const checkmate: MchoGcdAbility = {
     },
 };
 
-export const doublecheck: MchoGcdAbility = {
+export const DoubleCheck: MchOgcdAbility = {
     type: 'ogcd',
     name: "Double Check",
     id: 36979,
