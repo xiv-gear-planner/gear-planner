@@ -4,7 +4,7 @@ import {CycleSettings} from "@xivgear/core/sims/cycle_settings";
 import {CharacterGearSet} from "@xivgear/core/gear";
 import {STANDARD_ANIMATION_LOCK} from "@xivgear/xivmath/xivconstants";
 import {MchGauge} from "./mch_gauge";
-import {MchExtraData, MchAbility, MchGcdAbility, ReassembleBuff, HyperchargeBuff, FullMetalMachinistBuff, HyperchargedBuff, ExcavatorReadyBuff} from "./mch_types";
+import {MchExtraData, MchAbility, MchGcdAbility, ReassembleBuff, HyperchargeBuff, FullMetalFieldBuff, HyperchargedBuff, ExcavatorReadyBuff} from "./mch_types";
 import {sum} from "@xivgear/util/array_utils";
 import * as Actions from './mch_actions';
 import {BaseMultiCycleSim} from "@xivgear/core/sims/processors/sim_processors";
@@ -170,9 +170,9 @@ class MchCycleProcessor extends CycleProcessor {
         return buff !== undefined;
     }
 
-    isFullMetalMachinistBuffActive(): boolean {
+    isFullMetalFieldBuffActive(): boolean {
         const buffs = this.getActiveBuffs();
-        const buff = buffs.find(buff => buff.name === FullMetalMachinistBuff.name);
+        const buff = buffs.find(buff => buff.name === FullMetalFieldBuff.name);
         return buff !== undefined;
     }
 
@@ -260,7 +260,7 @@ export class MchSim extends BaseMultiCycleSim<MchSimResult, MchSettings, MchCycl
             return Actions.BlazingShot;
         }
 
-        if (cp.isFullMetalMachinistBuffActive() && cp.inBurst() && !cp.isHyperchargeBuffActive()) {
+        if (cp.isFullMetalFieldBuffActive() && cp.inBurst() && !cp.isHyperchargeBuffActive()) {
             return Actions.FullMetalField;
         }
 
@@ -302,12 +302,12 @@ export class MchSim extends BaseMultiCycleSim<MchSimResult, MchSettings, MchCycl
             this.use(cp, Actions.DoubleCheck);
         }
 
-        if (cp.cdTracker.canUse(Actions.Hypercharge) && (cp.canUseWithoutClipping(Actions.Hypercharge) && (cp.tillBurst() < 2.5 || cp.tillBurst() > 50 || cp.inBurst()) && (cp.gauge.heatGauge >= 50 || cp.isHyperchargeBuffActive()) &&
-        cp.cdTracker.statusOf(Actions.AirAnchor).readyAt.relative > 8 &&
-        cp.cdTracker.statusOf(Actions.Chainsaw).readyAt.relative > 8 &&
-        cp.cdTracker.statusOf(Actions.Excavator).readyAt.relative > 8 &&
-        cp.cdTracker.statusOf(Actions.Drill).readyAt.relative > 8  &&
-        !cp.isHyperchargedBuffActive())) {
+        if (cp.cdTracker.canUse(Actions.Hypercharge) && (cp.canUseWithoutClipping(Actions.Hypercharge) && (cp.tillBurst() < 2.5 || cp.tillBurst() > 30 || cp.inBurst()) && (cp.gauge.heatGauge >= 50 || cp.isHyperchargedBuffActive()) &&
+        cp.cdTracker.statusOf(Actions.AirAnchor).readyAt.relative > 6 &&
+        cp.cdTracker.statusOf(Actions.Chainsaw).readyAt.relative > 6 &&
+        cp.cdTracker.statusOf(Actions.Excavator).readyAt.relative > 6 &&
+        cp.cdTracker.statusOf(Actions.Drill).readyAt.relative > 6  &&
+        !cp.isHyperchargeBuffActive())) {
             this.use(cp, Actions.Hypercharge);
         } // figure out a way to make this work better outside of burst
 
@@ -317,7 +317,7 @@ export class MchSim extends BaseMultiCycleSim<MchSimResult, MchSettings, MchCycl
 
         if (cp.canUseWithoutClipping(Actions.AutomatonQueen) && (cp.inBurst() || cp.tillBurst() >= 50 || cp.tillBurst() <= 5.5) && cp.gauge.batteryGauge >= 80) {
             this.use(cp, Actions.AutomatonQueen);
-        } //copy the actual usage from DRK
+        }
 
         if (cp.cdTracker.canUse(Actions.Reassemble) && (cp.canUseWithoutClipping(Actions.Reassemble) && (cp.inBurst() || cp.tillBurst() > cp.getTimeUntilReassembleCapped()) && (
             cp.cdTracker.canUse(Actions.Drill, cp.nextGcdTime) ||

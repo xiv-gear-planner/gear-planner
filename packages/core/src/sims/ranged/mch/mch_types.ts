@@ -80,8 +80,8 @@ export const HyperchargeBuff: Buff = {
     statusId: 688,
 };
 
-export const FullMetalMachinistBuff: Buff = {
-    name: "Full Metal Machinist",
+export const FullMetalFieldBuff: Buff = {
+    name: "Full Metal Field",
     duration: 30,
     effects: {
         // Allows usage of Full Metal Field

@@ -1,5 +1,5 @@
 import {MchGauge} from "./mch_gauge";
-import {MchGcdAbility, ReassembleBuff, HyperchargeBuff, HyperchargedBuff, ExcavatorReadyBuff, FullMetalMachinistBuff, MchOgcdAbility} from "./mch_types";
+import {MchGcdAbility, ReassembleBuff, HyperchargeBuff, HyperchargedBuff, ExcavatorReadyBuff, FullMetalFieldBuff, MchOgcdAbility} from "./mch_types";
 
 /**
  * MCH GCD Actions
@@ -136,7 +136,7 @@ export const BarrelStabilizer: MchOgcdAbility = {
     id: 7414,
     potency: null,
     attackType: "Ability",
-    activatesBuffs: [FullMetalMachinistBuff, HyperchargedBuff],
+    activatesBuffs: [FullMetalFieldBuff, HyperchargedBuff],
 };
 
 export const Reassemble: MchOgcdAbility = {
