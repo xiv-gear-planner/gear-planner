@@ -4,6 +4,7 @@
   "description": "",
   "scripts": {
     "build": "tsc --build",
+    "buildprod": "tsc --build",
     "test": "ts-mocha src/test/**/*tests.ts"
   },
   "devDependencies": {

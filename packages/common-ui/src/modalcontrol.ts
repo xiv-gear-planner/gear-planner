@@ -1,11 +1,30 @@
+/**
+ * Model for a modal dialog. Does not need to inherit BaseModal.
+ */
 export interface Modal {
+    /**
+     * Callback to be called when the modal is closed
+     */
     close(): void;
 
-    element: HTMLElement;
+    /**
+     * The modal element.
+     */
+    modalElement: HTMLElement;
+
+    /**
+     * If true, does not allow the modal to be closed by clicking off of the modal.
+     */
+    explicitCloseOnly?: boolean;
 }
 
 let currentModal: Modal | undefined = undefined;
 
+/**
+ * Set the current modal. Always closes the current modal. If the new modal is undefined, does not open a new modal.
+ *
+ * @param modal
+ */
 export function setModal(modal: Modal | undefined) {
     if (currentModal) {
         currentModal.close();
@@ -32,7 +51,10 @@ const listener = (ev: MouseEvent) => {
         return;
     }
     else {
-        const modalElement = currentModal.element;
+        if (currentModal.explicitCloseOnly) {
+            return;
+        }
+        const modalElement = currentModal.modalElement;
         if (!(ev.target instanceof HTMLElement)) {
             return;
         }
