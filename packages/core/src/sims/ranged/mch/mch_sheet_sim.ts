@@ -264,16 +264,16 @@ export class MchSim extends BaseMultiCycleSim<MchSimResult, MchSettings, MchCycl
             return Actions.FullMetalField;
         }
 
-        if (cp.gauge.batteryGauge <= 80 && (cp.inBurst() || cp.tillBurst() >= 40)) {
+        if (cp.gauge.batteryGauge <= 80 && (cp.inBurst() || cp.tillBurst() >= 40) && cp.cdTracker.canUse(Actions.Chainsaw)) {
         return Actions.Chainsaw;}
 
-        if (cp.gauge.batteryGauge <= 80 && (cp.inBurst() || cp.tillBurst() >= 30) && cp.isExcavatorReadyBuffActive()) {
+        if (cp.gauge.batteryGauge <= 80 && (cp.inBurst() || cp.tillBurst() >= 30) && cp.isExcavatorReadyBuffActive() && cp.cdTracker.canUse(Actions.Excavator)) {
             return Actions.Excavator;}
 
-        if (cp.gauge.batteryGauge <= 80 && (cp.inBurst() || cp.tillBurst() >= 20)) {
+        if (cp.gauge.batteryGauge <= 80 && (cp.inBurst() || cp.tillBurst() >= 20) && cp.cdTracker.canUse(Actions.AirAnchor)) {
             return Actions.AirAnchor;}
 
-        if (!cp.isHyperchargeBuffActive()) {
+        if (!cp.isHyperchargeBuffActive() && cp.cdTracker.canUse(Actions.Drill) ) {
             return Actions.Drill;
         }
 
@@ -291,24 +291,24 @@ export class MchSim extends BaseMultiCycleSim<MchSimResult, MchSettings, MchCycl
             this.use(cp, Actions.Wildfire);
         } // figure out a way to force this to late weave, now just forcing it to look for hypercharged buff
 
-        if (cp.canUseWithoutClipping(Actions.Checkmate) && cp.isHyperchargedBuffActive() && (cp.cdTracker.statusOf(Actions.DoubleCheck).currentCharges < 2 || cp.cdTracker.statusOf(Actions.Checkmate).currentCharges > 2)) {
+        if (cp.cdTracker.canUse(Actions.Checkmate) && (cp.canUseWithoutClipping(Actions.Checkmate) && cp.isHyperchargedBuffActive() && (cp.cdTracker.statusOf(Actions.DoubleCheck).currentCharges < 2 || cp.cdTracker.statusOf(Actions.Checkmate).currentCharges > 2))) {
             this.use(cp, Actions.Checkmate);
         }   
 
-        if (cp.canUseWithoutClipping(Actions.DoubleCheck) && cp.isHyperchargedBuffActive()) {
+        if (cp.cdTracker.canUse(Actions.DoubleCheck) && (cp.canUseWithoutClipping(Actions.DoubleCheck) && cp.isHyperchargedBuffActive())) {
             this.use(cp, Actions.DoubleCheck);
         }    
 
-        if (cp.canUseWithoutClipping(Actions.Hypercharge) && (cp.tillBurst() < 2.5 || cp.tillBurst() > 50 || cp.inBurst()) && (cp.gauge.heatGauge >= 50 || cp.isHyperchargeBuffActive()) && 
+        if (cp.cdTracker.canUse(Actions.Hypercharge) && (cp.canUseWithoutClipping(Actions.Hypercharge) && (cp.tillBurst() < 2.5 || cp.tillBurst() > 50 || cp.inBurst()) && (cp.gauge.heatGauge >= 50 || cp.isHyperchargeBuffActive()) && 
         cp.cdTracker.statusOf(Actions.AirAnchor).readyAt.relative > 8 && 
         cp.cdTracker.statusOf(Actions.Chainsaw).readyAt.relative > 8 && 
         cp.cdTracker.statusOf(Actions.Excavator).readyAt.relative > 8 && 
         cp.cdTracker.statusOf(Actions.Drill).readyAt.relative > 8  &&
-        !cp.isHyperchargedBuffActive()) {
+        !cp.isHyperchargedBuffActive())) {
             this.use(cp, Actions.Hypercharge);
         } // figure out a way to make this work better outside of burst
 
-        if (cp.canUseWithoutClipping(Actions.BarrelStabilizer) && (cp.inBurst() || cp.tillBurst() <= 20)) {
+        if (cp.cdTracker.canUse(Actions.BarrelStabilizer) && (cp.canUseWithoutClipping(Actions.BarrelStabilizer) && (cp.inBurst() || cp.tillBurst() <= 20))) {
             this.use(cp, Actions.BarrelStabilizer);
         }
 
@@ -316,20 +316,20 @@ export class MchSim extends BaseMultiCycleSim<MchSimResult, MchSettings, MchCycl
             this.use(cp, Actions.AutomatonQueen);
         } //copy the actual usage from DRK
 
-        if (cp.canUseWithoutClipping(Actions.Reassemble) && (cp.inBurst() || cp.tillBurst() > cp.getTimeUntilReassembleCapped()) && (
+        if (cp.cdTracker.canUse(Actions.Reassemble) && (cp.canUseWithoutClipping(Actions.Reassemble) && (cp.inBurst() || cp.tillBurst() > cp.getTimeUntilReassembleCapped()) && (
          cp.cdTracker.canUse(Actions.Drill, cp.nextGcdTime) || 
          cp.cdTracker.canUse(Actions.AirAnchor, cp.nextGcdTime) || 
          cp.cdTracker.canUse(Actions.Chainsaw, cp.nextGcdTime) || 
          cp.cdTracker.canUse(Actions.Excavator, cp.nextGcdTime)) && 
-         !cp.isHyperchargeBuffActive) {
+         !cp.isHyperchargeBuffActive)) {
             this.use(cp, Actions.Reassemble);
         }
 
-        if (cp.canUseWithoutClipping(Actions.Checkmate) && (cp.inBurst() || cp.cdTracker.statusOf(Actions.Checkmate).currentCharges > 1.5)) {
+        if (cp.cdTracker.canUse(Actions.Checkmate) && (cp.canUseWithoutClipping(Actions.Checkmate) && (cp.inBurst() || cp.cdTracker.statusOf(Actions.Checkmate).currentCharges > 1.5))) {
             this.use(cp, Actions.Checkmate);
         }    
 
-        if (cp.canUseWithoutClipping(Actions.DoubleCheck) && (cp.inBurst() || cp.cdTracker.statusOf(Actions.DoubleCheck).currentCharges > 1.5)) {
+        if (cp.cdTracker.canUse(Actions.DoubleCheck) && (cp.canUseWithoutClipping(Actions.DoubleCheck) && (cp.inBurst() || cp.cdTracker.statusOf(Actions.DoubleCheck).currentCharges > 1.5))) {
             this.use(cp, Actions.DoubleCheck);
         }    
 
@@ -409,6 +409,7 @@ export class MchSim extends BaseMultiCycleSim<MchSimResult, MchSettings, MchCycl
             usageTime: cp.currentTime + automatonQueenDelay + 6 * automatonQueenDelayBetweenAbilities + 1,
             // crowned collider has a recast time of 2.5s instead of 1.5s
         });
+        cp.gauge.batteryGauge = 0;
     }
 
     use(cp: MchCycleProcessor, ability: Ability): AbilityUseResult {
