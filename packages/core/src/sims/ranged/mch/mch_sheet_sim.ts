@@ -50,6 +50,18 @@ Defaults to simulating a killtime of 8m 30s (510s).`,
     }],
 };
 
+// AutomatonQueenAbilityUsageTime is a type representing two things:
+// - a Automaton Queen ability
+// - the time it should go off at
+// This should be further enhanced to only include abilities where the
+// actor is Automaton Queen, once that has been implemented for correct stats.
+type AutomatonQueenAbilityUsageTime = {
+    // The Automaton queen ability to use
+    ability: MchAbility,
+    // The time to use the ability at
+    usageTime: number,
+}
+
 class RotationState {
     private _combo: number = 0;
 
@@ -66,6 +78,10 @@ class RotationState {
 class MchCycleProcessor extends CycleProcessor {
     gauge: MchGauge;
     rotationState: RotationState;
+    // AutomatonQueenAbilityUsageTime tracks which remaining Automaton Queen abilities we have
+    // upcoming. It's implemented this way so that the entries and buffs are correct
+    // on the timeline.
+    AutomatonQueenAbilityUsages: AutomatonQueenAbilityUsageTime[] = [];
 
     constructor(settings: MultiCycleSettings) {
         super(settings);
@@ -87,6 +103,10 @@ class MchCycleProcessor extends CycleProcessor {
         }
 
         this.advanceTo(this.currentTime + (remainingtime - totalAnimLock));
+    }
+
+    applyAutomatonQueenAbility(abilityUsage: AutomatonQueenAbilityUsageTime) {
+            const buffs = [...this.getActiveBuffs(abilityUsage.usageTime)]; 
     }
 
     override addAbilityUse(usedAbility: PreDmgAbilityUseRecordUnf) {
@@ -119,6 +139,11 @@ class MchCycleProcessor extends CycleProcessor {
         // Six seconds after every (i.e. 0:06, 2:06, etc) burst, buffs will be up,
         // and will remain up for twenty seconds.
         return 6 <= timeIntoTwoMinutes && timeIntoTwoMinutes < 26;
+    }
+
+    tillBurst(): number {
+        const timeIntoTwoMinutes = this.currentTime % 120;
+        return 120 - timeIntoTwoMinutes;
     }
 
     // If the fight is ending within the next 12 seconds (to dump resources)
@@ -212,17 +237,45 @@ export class MchSim extends BaseMultiCycleSim<MchSimResult, MchSettings, MchCycl
         };
     }
 
+    // applyAutomatonQueenAbilities should be called before and after each ability
+    // usage to ensure that Automaton Queen abilities are correctly positioned on the timeline.
+    private applyAutomatonQueenAbilities(cp: MchCycleProcessor) {
+        if (cp.AutomatonQueenAbilityUsages && cp.AutomatonQueenAbilityUsages.length > 0) {
+            const usedAbilities: number[] = [];
+            cp.AutomatonQueenAbilityUsages.forEach((abilityUsage, index) => {
+                if (abilityUsage.usageTime <= cp.currentTime) {
+                    cp.applyAutomatonQueenAbility(abilityUsage);
+                    usedAbilities.push(index);
+                }
+            });
+            usedAbilities.forEach(indexToRemove => {
+                cp.AutomatonQueenAbilityUsages.splice(indexToRemove, 1);
+            });
+        }
+    }
+
     // Note: this is stateful, and updates combos to the next combo.
     getGCDToUse(cp: MchCycleProcessor): MchGcdAbility {
-        if (cp.isHyperchargeBuffActive()) {
+        if (cp.isHyperchargedBuffActive()) {
             return Actions.BlazingShot;
         }
 
-        if (cp.isFullMetalMachinistBuffActive() && cp.inBurst()) {
+        if (cp.isFullMetalMachinistBuffActive() && cp.inBurst() && !cp.isHyperchargeBuffActive()) {
             return Actions.FullMetalField;
         }
 
-        // TODO Juliacare: fill in the rest of the priority system GCDs
+        if (cp.gauge.batteryGauge <= 80 && (cp.inBurst() || cp.tillBurst() >= 40)) {
+        return Actions.Chainsaw;}
+
+        if (cp.gauge.batteryGauge <= 80 && (cp.inBurst() || cp.tillBurst() >= 30) && cp.isExcavatorReadyBuffActive()) {
+            return Actions.Excavator;}
+
+        if (cp.gauge.batteryGauge <= 80 && (cp.inBurst() || cp.tillBurst() >= 20)) {
+            return Actions.AirAnchor;}
+
+        if (!cp.isHyperchargeBuffActive()) {
+            return Actions.Drill;
+        }
 
         // Last priority, use combo
         return cp.getComboToUse();
@@ -234,7 +287,51 @@ export class MchSim extends BaseMultiCycleSim<MchSimResult, MchSettings, MchCycl
         ///oGCDs
         ////////
 
-        // TODO Juliacare: fill in oGCDs
+         if (cp.canUseWithoutClipping(Actions.Wildfire) && cp.inBurst() && cp.isHyperchargedBuffActive()) {
+            this.use(cp, Actions.Wildfire);
+        } // figure out a way to force this to late weave, now just forcing it to look for hypercharged buff
+
+        if (cp.canUseWithoutClipping(Actions.Checkmate) && cp.isHyperchargedBuffActive() && (cp.cdTracker.statusOf(Actions.DoubleCheck).currentCharges < 2 || cp.cdTracker.statusOf(Actions.Checkmate).currentCharges > 2)) {
+            this.use(cp, Actions.Checkmate);
+        }   
+
+        if (cp.canUseWithoutClipping(Actions.DoubleCheck) && cp.isHyperchargedBuffActive()) {
+            this.use(cp, Actions.DoubleCheck);
+        }    
+
+        if (cp.canUseWithoutClipping(Actions.Hypercharge) && (cp.tillBurst() < 2.5 || cp.tillBurst() > 50 || cp.inBurst()) && (cp.gauge.heatGauge >= 50 || cp.isHyperchargeBuffActive()) && 
+        cp.cdTracker.statusOf(Actions.AirAnchor).readyAt.relative > 8 && 
+        cp.cdTracker.statusOf(Actions.Chainsaw).readyAt.relative > 8 && 
+        cp.cdTracker.statusOf(Actions.Excavator).readyAt.relative > 8 && 
+        cp.cdTracker.statusOf(Actions.Drill).readyAt.relative > 8  &&
+        !cp.isHyperchargedBuffActive()) {
+            this.use(cp, Actions.Hypercharge);
+        } // figure out a way to make this work better outside of burst
+
+        if (cp.canUseWithoutClipping(Actions.BarrelStabilizer) && (cp.inBurst() || cp.tillBurst() <= 20)) {
+            this.use(cp, Actions.BarrelStabilizer);
+        }
+
+        if (cp.canUseWithoutClipping(Actions.AutomatonQueen) && (cp.inBurst() || cp.tillBurst() >= 50 || cp.tillBurst() <= 5.5) && cp.gauge.batteryGauge >= 80) {
+            this.use(cp, Actions.AutomatonQueen);
+        } //copy the actual usage from DRK
+
+        if (cp.canUseWithoutClipping(Actions.Reassemble) && (cp.inBurst() || cp.tillBurst() > cp.getTimeUntilReassembleCapped()) && (
+         cp.cdTracker.canUse(Actions.Drill, cp.nextGcdTime) || 
+         cp.cdTracker.canUse(Actions.AirAnchor, cp.nextGcdTime) || 
+         cp.cdTracker.canUse(Actions.Chainsaw, cp.nextGcdTime) || 
+         cp.cdTracker.canUse(Actions.Excavator, cp.nextGcdTime)) && 
+         !cp.isHyperchargeBuffActive) {
+            this.use(cp, Actions.Reassemble);
+        }
+
+        if (cp.canUseWithoutClipping(Actions.Checkmate) && (cp.inBurst() || cp.cdTracker.statusOf(Actions.Checkmate).currentCharges > 1.5)) {
+            this.use(cp, Actions.Checkmate);
+        }    
+
+        if (cp.canUseWithoutClipping(Actions.DoubleCheck) && (cp.inBurst() || cp.cdTracker.statusOf(Actions.DoubleCheck).currentCharges > 1.5)) {
+            this.use(cp, Actions.DoubleCheck);
+        }    
 
         ////////
         ////GCDs
@@ -248,6 +345,70 @@ export class MchSim extends BaseMultiCycleSim<MchSimResult, MchSettings, MchCycl
     }
 
     useAutomatonQueen(cp: MchCycleProcessor) {
+        // After 5.6 delay, it does the following rotation with
+        // 2.5 seconds between each.
+        // Arm Punch * 5
+        // Pile Bunker
+        // Crowned Collider
+        const automatonQueenDelay = 5.6;
+        const automatonQueenDelayBetweenAbilities = 1.5;
+        cp.AutomatonQueenAbilityUsages.push({
+            // Arm Punch 1
+            ability: {
+                ...Actions.AutomatonQueenArmPunch,
+                potency: 2.4 * cp.gauge.batteryGauge},
+                // potency per 1 battery
+            usageTime: cp.currentTime + automatonQueenDelay,
+        });
+        cp.AutomatonQueenAbilityUsages.push({
+            // Arm Punch 2
+            ability: {
+                ...Actions.AutomatonQueenArmPunch,
+                potency: 2.4 * cp.gauge.batteryGauge},
+                // potency per 1 battery
+            usageTime: cp.currentTime + automatonQueenDelay + 1 * automatonQueenDelayBetweenAbilities,
+        });
+        cp.AutomatonQueenAbilityUsages.push({
+            // Arm Punch 3
+            ability: {
+                ...Actions.AutomatonQueenArmPunch,
+                potency: 2.4 * cp.gauge.batteryGauge},
+                // potency per 1 battery
+            usageTime: cp.currentTime + automatonQueenDelay + 2 * automatonQueenDelayBetweenAbilities,
+        });
+        cp.AutomatonQueenAbilityUsages.push({
+            // Arm Punch 4
+            ability: {
+                ...Actions.AutomatonQueenArmPunch,
+                potency: 2.4 * cp.gauge.batteryGauge},
+                // potency per 1 battery
+            usageTime: cp.currentTime + automatonQueenDelay + 3 * automatonQueenDelayBetweenAbilities,
+        });
+        cp.AutomatonQueenAbilityUsages.push({
+            // Arm Punch 5
+            ability: {
+                ...Actions.AutomatonQueenArmPunch,
+                potency: 2.4 * cp.gauge.batteryGauge},
+                // potency per 1 battery                
+            usageTime: cp.currentTime + automatonQueenDelay + 4 * automatonQueenDelayBetweenAbilities,
+        });
+        cp.AutomatonQueenAbilityUsages.push({
+            // Pile Bunker
+            ability: {
+                ...Actions.AutomatonQueenArmPunch,
+                potency: 6.8 * cp.gauge.batteryGauge},
+                // potency per 1 battery                
+            usageTime: cp.currentTime + automatonQueenDelay + 5 * automatonQueenDelayBetweenAbilities,
+        });
+        cp.AutomatonQueenAbilityUsages.push({
+            // Crowned Collider
+            ability: {
+                ...Actions.AutomatonQueenArmPunch,
+                potency: 7.8 * cp.gauge.batteryGauge},
+                // potency per 1 battery
+            usageTime: cp.currentTime + automatonQueenDelay + 6 * automatonQueenDelayBetweenAbilities + 1,
+            // crowned collider has a recast time of 2.5s instead of 1.5s
+        });
     }
 
     use(cp: MchCycleProcessor, ability: Ability): AbilityUseResult {
@@ -264,18 +425,7 @@ export class MchSim extends BaseMultiCycleSim<MchSimResult, MchSettings, MchCycl
 
         // If we try to use Automaton Queen, do it properly
         if (mchAbility.id === Actions.AutomatonQueen.id) {
-            // TODO Juliacare implement this function, copy Living Shadow.
-            // When you change it, change mchAbility to a const
-            // i.e.
-            // let mchAbility = ability as MchAbility;
-            // ->
-            // const mchAbility = ability as MchAbility;
             this.useAutomatonQueen(cp);
-            // For now, just pretend it does flat potency equal to gauge.
-            mchAbility = {
-                ...mchAbility,
-                potency: cp.gauge.batteryGauge * 24,
-            };
         }
 
         if (mchAbility.updateBatteryGauge !== undefined) {
@@ -314,8 +464,7 @@ export class MchSim extends BaseMultiCycleSim<MchSimResult, MchSettings, MchCycl
         this.use(cp, Actions.Reassemble);
         this.use(cp, Actions.Drill);
         this.use(cp, Actions.Checkmate);
-        // TODO Juliacare add Wildfire
-        //this.use(cp, Actions.Wildfire);
+        this.use(cp, Actions.Wildfire);
         this.use(cp, Actions.FullMetalField);
         this.use(cp, Actions.DoubleCheck);
         this.use(cp, Actions.Hypercharge);

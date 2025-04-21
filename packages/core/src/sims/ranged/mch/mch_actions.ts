@@ -152,19 +152,20 @@ export const Reassemble: MchOgcdAbility = {
     },
 };
 
-export const AutomatonQueen: MchOgcdAbility = {
+export const Wildfire: MchOgcdAbility = {
     type: 'ogcd',
-    name: "Automaton Queen",
-    id: 16501,
-    alternativeScalings: ["Pet Action Weapon Damage"],
-    potency: null,
+    name: "wildfire",
+    id: 2878,
+    potency: 240 * 6,
+    // 240 per GCD, 6 hits
+    // 1440 potency total
     attackType: "Ability",
+    appDelay: 10,
+ //   forceNoCrit: true,
+ //   forceNoDh: true,
     cooldown: {
-        time: 6,
+        time: 120,
     },
-    updateBatteryGauge: (gauge: MchGauge) => gauge.batteryGauge = 0,
-    /* need to fix this */
-    /* activatesBuffs: [AutomatonQueenBuff], */
 };
 
 export const Checkmate: MchOgcdAbility = {
@@ -189,4 +190,52 @@ export const DoubleCheck: MchOgcdAbility = {
         time: 30,
         charges: 3,
     },
+};
+
+// While Automaton Queen abilities are actually Weaponskills,
+// they've all been programmed to be abilities so that it doesn't roll GCD.
+export const AutomatonQueen: MchOgcdAbility = {
+    type: 'ogcd',
+    name: "Automaton Queen",
+    id: 16501,
+    potency: null,
+    // potency is calculated per action queen uses
+    attackType: "Ability",
+    cooldown: {
+        time: 20.5,
+        //Cannot summon a new Automaton Queen until the old one has been dismissed.
+    },
+};
+
+export const AutomatonQueenArmPunch: MchOgcdAbility = {
+    type: 'ogcd',
+    name: "(Automaton Queen) Arm Punch",
+    alternativeScalings: ["Pet Action Weapon Damage"],
+    animationLock: 0,
+    id: 16504,
+    potency: null,
+    // potency listed in mch_sheet_sim.ts
+    attackType: "Ability",
+};
+
+export const AutomatonQueenPileBunker: MchOgcdAbility = {
+    type: 'ogcd',
+    name: "(Automaton Queen) Pile Bunker",
+    alternativeScalings: ["Pet Action Weapon Damage"],
+    animationLock: 0,
+    id: 16503,
+    potency: null,
+    // potency listed in mch_sheet_sim.ts
+    attackType: "Ability",
+};
+
+export const AutomatonQueenCrownedCollider: MchOgcdAbility = {
+    type: 'ogcd',
+    name: "(Automaton Queen) Crowned Collider",
+    alternativeScalings: ["Pet Action Weapon Damage"],
+    animationLock: 0,
+    id: 25787,
+    potency: null,
+    // potency listed in mch_sheet_sim.ts
+    attackType: "Ability",
 };
