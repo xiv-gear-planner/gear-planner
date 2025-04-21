@@ -106,7 +106,7 @@ class MchCycleProcessor extends CycleProcessor {
     }
 
     applyAutomatonQueenAbility(abilityUsage: AutomatonQueenAbilityUsageTime) {
-            const buffs = [...this.getActiveBuffs(abilityUsage.usageTime)]; 
+        const buffs = [...this.getActiveBuffs(abilityUsage.usageTime)];
     }
 
     override addAbilityUse(usedAbility: PreDmgAbilityUseRecordUnf) {
@@ -265,13 +265,16 @@ export class MchSim extends BaseMultiCycleSim<MchSimResult, MchSettings, MchCycl
         }
 
         if (cp.gauge.batteryGauge <= 80 && (cp.inBurst() || cp.tillBurst() >= 40) && cp.cdTracker.canUse(Actions.Chainsaw)) {
-        return Actions.Chainsaw;}
+            return Actions.Chainsaw;
+        }
 
         if (cp.gauge.batteryGauge <= 80 && (cp.inBurst() || cp.tillBurst() >= 30) && cp.isExcavatorReadyBuffActive() && cp.cdTracker.canUse(Actions.Excavator)) {
-            return Actions.Excavator;}
+            return Actions.Excavator;
+        }
 
         if (cp.gauge.batteryGauge <= 80 && (cp.inBurst() || cp.tillBurst() >= 20) && cp.cdTracker.canUse(Actions.AirAnchor)) {
-            return Actions.AirAnchor;}
+            return Actions.AirAnchor;
+        }
 
         if (!cp.isHyperchargeBuffActive() && cp.cdTracker.canUse(Actions.Drill) ) {
             return Actions.Drill;
@@ -287,22 +290,22 @@ export class MchSim extends BaseMultiCycleSim<MchSimResult, MchSettings, MchCycl
         ///oGCDs
         ////////
 
-         if (cp.canUseWithoutClipping(Actions.Wildfire) && cp.inBurst() && cp.isHyperchargedBuffActive()) {
+        if (cp.canUseWithoutClipping(Actions.Wildfire) && cp.inBurst() && cp.isHyperchargedBuffActive()) {
             this.use(cp, Actions.Wildfire);
         } // figure out a way to force this to late weave, now just forcing it to look for hypercharged buff
 
         if (cp.cdTracker.canUse(Actions.Checkmate) && (cp.canUseWithoutClipping(Actions.Checkmate) && cp.isHyperchargedBuffActive() && (cp.cdTracker.statusOf(Actions.DoubleCheck).currentCharges < 2 || cp.cdTracker.statusOf(Actions.Checkmate).currentCharges > 2))) {
             this.use(cp, Actions.Checkmate);
-        }   
+        }
 
         if (cp.cdTracker.canUse(Actions.DoubleCheck) && (cp.canUseWithoutClipping(Actions.DoubleCheck) && cp.isHyperchargedBuffActive())) {
             this.use(cp, Actions.DoubleCheck);
-        }    
+        }
 
-        if (cp.cdTracker.canUse(Actions.Hypercharge) && (cp.canUseWithoutClipping(Actions.Hypercharge) && (cp.tillBurst() < 2.5 || cp.tillBurst() > 50 || cp.inBurst()) && (cp.gauge.heatGauge >= 50 || cp.isHyperchargeBuffActive()) && 
-        cp.cdTracker.statusOf(Actions.AirAnchor).readyAt.relative > 8 && 
-        cp.cdTracker.statusOf(Actions.Chainsaw).readyAt.relative > 8 && 
-        cp.cdTracker.statusOf(Actions.Excavator).readyAt.relative > 8 && 
+        if (cp.cdTracker.canUse(Actions.Hypercharge) && (cp.canUseWithoutClipping(Actions.Hypercharge) && (cp.tillBurst() < 2.5 || cp.tillBurst() > 50 || cp.inBurst()) && (cp.gauge.heatGauge >= 50 || cp.isHyperchargeBuffActive()) &&
+        cp.cdTracker.statusOf(Actions.AirAnchor).readyAt.relative > 8 &&
+        cp.cdTracker.statusOf(Actions.Chainsaw).readyAt.relative > 8 &&
+        cp.cdTracker.statusOf(Actions.Excavator).readyAt.relative > 8 &&
         cp.cdTracker.statusOf(Actions.Drill).readyAt.relative > 8  &&
         !cp.isHyperchargedBuffActive())) {
             this.use(cp, Actions.Hypercharge);
@@ -317,21 +320,21 @@ export class MchSim extends BaseMultiCycleSim<MchSimResult, MchSettings, MchCycl
         } //copy the actual usage from DRK
 
         if (cp.cdTracker.canUse(Actions.Reassemble) && (cp.canUseWithoutClipping(Actions.Reassemble) && (cp.inBurst() || cp.tillBurst() > cp.getTimeUntilReassembleCapped()) && (
-         cp.cdTracker.canUse(Actions.Drill, cp.nextGcdTime) || 
-         cp.cdTracker.canUse(Actions.AirAnchor, cp.nextGcdTime) || 
-         cp.cdTracker.canUse(Actions.Chainsaw, cp.nextGcdTime) || 
-         cp.cdTracker.canUse(Actions.Excavator, cp.nextGcdTime)) && 
-         !cp.isHyperchargeBuffActive)) {
+            cp.cdTracker.canUse(Actions.Drill, cp.nextGcdTime) ||
+            cp.cdTracker.canUse(Actions.AirAnchor, cp.nextGcdTime) ||
+            cp.cdTracker.canUse(Actions.Chainsaw, cp.nextGcdTime) ||
+            cp.cdTracker.canUse(Actions.Excavator, cp.nextGcdTime)) &&
+            !cp.isHyperchargeBuffActive)) {
             this.use(cp, Actions.Reassemble);
         }
 
         if (cp.cdTracker.canUse(Actions.Checkmate) && (cp.canUseWithoutClipping(Actions.Checkmate) && (cp.inBurst() || cp.cdTracker.statusOf(Actions.Checkmate).currentCharges > 1.5))) {
             this.use(cp, Actions.Checkmate);
-        }    
+        }
 
         if (cp.cdTracker.canUse(Actions.DoubleCheck) && (cp.canUseWithoutClipping(Actions.DoubleCheck) && (cp.inBurst() || cp.cdTracker.statusOf(Actions.DoubleCheck).currentCharges > 1.5))) {
             this.use(cp, Actions.DoubleCheck);
-        }    
+        }
 
         ////////
         ////GCDs
@@ -357,7 +360,7 @@ export class MchSim extends BaseMultiCycleSim<MchSimResult, MchSettings, MchCycl
             ability: {
                 ...Actions.AutomatonQueenArmPunch,
                 potency: 2.4 * cp.gauge.batteryGauge},
-                // potency per 1 battery
+            // potency per 1 battery
             usageTime: cp.currentTime + automatonQueenDelay,
         });
         cp.AutomatonQueenAbilityUsages.push({
@@ -365,7 +368,7 @@ export class MchSim extends BaseMultiCycleSim<MchSimResult, MchSettings, MchCycl
             ability: {
                 ...Actions.AutomatonQueenArmPunch,
                 potency: 2.4 * cp.gauge.batteryGauge},
-                // potency per 1 battery
+            // potency per 1 battery
             usageTime: cp.currentTime + automatonQueenDelay + 1 * automatonQueenDelayBetweenAbilities,
         });
         cp.AutomatonQueenAbilityUsages.push({
@@ -373,7 +376,7 @@ export class MchSim extends BaseMultiCycleSim<MchSimResult, MchSettings, MchCycl
             ability: {
                 ...Actions.AutomatonQueenArmPunch,
                 potency: 2.4 * cp.gauge.batteryGauge},
-                // potency per 1 battery
+            // potency per 1 battery
             usageTime: cp.currentTime + automatonQueenDelay + 2 * automatonQueenDelayBetweenAbilities,
         });
         cp.AutomatonQueenAbilityUsages.push({
@@ -381,7 +384,7 @@ export class MchSim extends BaseMultiCycleSim<MchSimResult, MchSettings, MchCycl
             ability: {
                 ...Actions.AutomatonQueenArmPunch,
                 potency: 2.4 * cp.gauge.batteryGauge},
-                // potency per 1 battery
+            // potency per 1 battery
             usageTime: cp.currentTime + automatonQueenDelay + 3 * automatonQueenDelayBetweenAbilities,
         });
         cp.AutomatonQueenAbilityUsages.push({
@@ -389,7 +392,7 @@ export class MchSim extends BaseMultiCycleSim<MchSimResult, MchSettings, MchCycl
             ability: {
                 ...Actions.AutomatonQueenArmPunch,
                 potency: 2.4 * cp.gauge.batteryGauge},
-                // potency per 1 battery                
+            // potency per 1 battery
             usageTime: cp.currentTime + automatonQueenDelay + 4 * automatonQueenDelayBetweenAbilities,
         });
         cp.AutomatonQueenAbilityUsages.push({
@@ -397,7 +400,7 @@ export class MchSim extends BaseMultiCycleSim<MchSimResult, MchSettings, MchCycl
             ability: {
                 ...Actions.AutomatonQueenArmPunch,
                 potency: 6.8 * cp.gauge.batteryGauge},
-                // potency per 1 battery                
+            // potency per 1 battery
             usageTime: cp.currentTime + automatonQueenDelay + 5 * automatonQueenDelayBetweenAbilities,
         });
         cp.AutomatonQueenAbilityUsages.push({
@@ -405,7 +408,7 @@ export class MchSim extends BaseMultiCycleSim<MchSimResult, MchSettings, MchCycl
             ability: {
                 ...Actions.AutomatonQueenArmPunch,
                 potency: 7.8 * cp.gauge.batteryGauge},
-                // potency per 1 battery
+            // potency per 1 battery
             usageTime: cp.currentTime + automatonQueenDelay + 6 * automatonQueenDelayBetweenAbilities + 1,
             // crowned collider has a recast time of 2.5s instead of 1.5s
         });
