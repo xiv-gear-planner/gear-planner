@@ -256,7 +256,7 @@ export class MchSim extends BaseMultiCycleSim<MchSimResult, MchSettings, MchCycl
 
     // Note: this is stateful, and updates combos to the next combo.
     getGCDToUse(cp: MchCycleProcessor): MchGcdAbility {
-        if (cp.isHyperchargedBuffActive()) {
+        if (cp.isHyperchargeBuffActive()) {
             return Actions.BlazingShot;
         }
 
