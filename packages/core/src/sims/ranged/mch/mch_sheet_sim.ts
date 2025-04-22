@@ -334,8 +334,8 @@ export class MchSim extends BaseMultiCycleSim<MchSimResult, MchSettings, MchCycl
                     (cp.gauge.heatGauge >= 50 || cp.isHyperchargedBuffActive()) &&
                     cp.cdTracker.statusOf(Actions.AirAnchor).readyAt.relative > 6 &&
                     cp.cdTracker.statusOf(Actions.Chainsaw).readyAt.relative > 6 &&
-                    cp.cdTracker.statusOf(Actions.Excavator).readyAt.relative > 6 &&
-                    cp.cdTracker.statusOf(Actions.Drill).readyAt.relative > 6  &&
+                    cp.cdTracker.statusOf(Actions.Drill).readyAt.relative > 6 &&
+                    !cp.isExcavatorReadyBuffActive() &&
                     !cp.isOverheatedBuffActive()
                 )
         ) {

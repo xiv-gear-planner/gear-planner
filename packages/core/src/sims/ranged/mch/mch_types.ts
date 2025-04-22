@@ -93,13 +93,13 @@ export const FullMetalFieldBuff: Buff = {
 
 export const HyperchargedBuff: Buff = {
     name: "Hypercharged",
+    duration: 30,
     selfOnly: true,
     effects: {
         // Allows usage of Hypercharge without spending Heat
     },
     appliesTo: ability => ability.name === "Hypercharge",
     beforeSnapshot: removeSelf,
-    duration: 30,
     statusId: 3864,
 };
 

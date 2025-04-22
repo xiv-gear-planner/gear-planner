@@ -91,7 +91,7 @@ export const AirAnchor: MchGcdAbility = {
     cast: 0,
     updateBatteryGauge: (gauge: MchGauge) => gauge.batteryGauge += 20,
     cooldown: {
-        time: 60,
+        time: 40,
         reducedBy: "skillspeed",
     },
 };
@@ -128,6 +128,9 @@ export const Hypercharge: MchOgcdAbility = {
     attackType: "Ability",
     activatesBuffs: [OverheatedBuff],
     updateHeatGauge: (gauge: MchGauge) => gauge.heatGauge -= 50,
+    cooldown: {
+        time: 10,
+    },
 };
 
 export const BarrelStabilizer: MchOgcdAbility = {
@@ -137,6 +140,9 @@ export const BarrelStabilizer: MchOgcdAbility = {
     potency: null,
     attackType: "Ability",
     activatesBuffs: [FullMetalFieldBuff, HyperchargedBuff],
+    cooldown: {
+        time: 120,
+    },
 };
 
 export const Reassemble: MchOgcdAbility = {
