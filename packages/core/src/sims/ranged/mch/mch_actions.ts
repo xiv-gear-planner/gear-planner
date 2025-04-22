@@ -161,7 +161,7 @@ export const Wildfire: MchOgcdAbility = {
     // 1440 potency total
     attackType: "Ability",
     appDelay: 10,
-    //est. time until detonation
+    // est. time until detonation
     forceNoCrit: true,
     forceNoDh: true,
     cooldown: {
@@ -204,7 +204,7 @@ export const AutomatonQueen: MchOgcdAbility = {
     attackType: "Ability",
     cooldown: {
         time: 20.5,
-        //Cannot summon a new Automaton Queen until the old one has been dismissed.
+        // Cannot summon a new Automaton Queen until the old one has been dismissed.
     },
 };
 

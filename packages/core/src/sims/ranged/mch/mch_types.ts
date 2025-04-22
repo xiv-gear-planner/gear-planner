@@ -95,7 +95,7 @@ export const HyperchargedBuff: Buff = {
     name: "Hypercharged",
     selfOnly: true,
     effects: {
-        // Allows usage of Hypercharge
+        // Allows usage of Hypercharge without spending Heat
     },
     appliesTo: ability => ability.name === "Hypercharge",
     beforeSnapshot: removeSelf,
