@@ -94,6 +94,7 @@ class MchCycleProcessor extends CycleProcessor {
     /** Advances to as late as possible.
      * NOTE: I'm adding an extra 20ms to each animation lock to make sure we don't hit anything that's impossible to achieve ingame.
      */
+    // @TODO Juliacare: this function isn't being used anywhere currently
     advanceForLateWeave(weaves: OgcdAbility[]) {
         const pingAndServerDelayAdjustment = 0.02;
         const totalAnimLock = sum(weaves.map(ability => (ability.animationLock ?? STANDARD_ANIMATION_LOCK) + pingAndServerDelayAdjustment));
@@ -160,11 +161,13 @@ class MchCycleProcessor extends CycleProcessor {
     }
 
     // If the fight is ending within the next 12 seconds (to dump resources)
+    // @TODO Juliacare: this function isn't being used anywhere currently
     fightEndingSoon(): boolean {
         return this.currentTime > (this.totalTime - 12);
     }
 
     // buff checker logic
+    // @TODO Juliacare: this function isn't being used anywhere currently
     isReassembleBuffActive(): boolean {
         const buffs = this.getActiveBuffs();
         const buff = buffs.find(buff => buff.name === ReassembledBuff.name);
@@ -196,6 +199,7 @@ class MchCycleProcessor extends CycleProcessor {
     }
 
     // Pot logic
+    // @TODO Juliacare: this function isn't being used anywhere currently
     shouldPot(): boolean {
         const sixMinutesInSeconds = 360;
         const isSixMinuteWindow = this.currentTime % sixMinutesInSeconds < 20;
@@ -206,10 +210,11 @@ class MchCycleProcessor extends CycleProcessor {
     getTimeUntilReassembleCapped(): number {
         return this.cdTracker.statusOf(Actions.Reassemble).cappedAt.relative;
     }
+    // @TODO Juliacare: this function isn't being used anywhere currently
     getTimeUntilDoubleCheckCapped(): number {
         return this.cdTracker.statusOf(Actions.DoubleCheck).cappedAt.relative;
     }
-
+    // @TODO Juliacare: this function isn't being used anywhere currently
     getTimeUntilCheckMateCapped(): number {
         return this.cdTracker.statusOf(Actions.Checkmate).cappedAt.relative;
     }
@@ -464,11 +469,6 @@ export class MchSim extends BaseMultiCycleSim<MchSimResult, MchSettings, MchCycl
 
         const mchAbility = ability as MchAbility;
 
-        // Only use potion if enabled in settings
-        if (!this.settings.usePotion && ability.name.includes("of Dexterity")) {
-            return null;
-        }
-
         // If we try to use Automaton Queen, do it properly
         if (mchAbility.id === Actions.AutomatonQueen.id) {
             this.useAutomatonQueen(cp);
@@ -478,27 +478,38 @@ export class MchSim extends BaseMultiCycleSim<MchSimResult, MchSettings, MchCycl
         // AND before we move the timeline for that ability.
         this.applyAutomatonQueenAbilities(cp);
 
+        // If an Ogcd isn't ready yet, but it can still be used without clipping, advance time until ready.
+        if (ability.type === 'ogcd' && cp.canUseWithoutClipping(ability)) {
+            const readyAt = cp.cdTracker.statusOf(ability).readyAt.absolute;
+            if (cp.totalTime > readyAt) {
+                cp.advanceTo(readyAt);
+            }
+        }
+
+        // Only use potion if enabled in settings
+        if (!this.settings.usePotion && ability.name.includes("of Dexterity")) {
+            return null;
+        }
+
+        // update Battery gauge
         if (mchAbility.updateBatteryGauge !== undefined) {
             // Prevent gauge updates showing incorrectly on autos before this ability
             if (ability.type === 'gcd' && cp.nextGcdTime > cp.currentTime) {
                 cp.advanceTo(cp.nextGcdTime);
             }
-
             mchAbility.updateBatteryGauge(cp.gauge);
         }
 
+        // update Heat gauge
         if (mchAbility.updateHeatGauge !== undefined) {
             // Don't spend Heat on Hypercharge if we have the Hypercharged buff
-            if (mchAbility.id === Actions.Hypercharge.id && cp.isHyperchargedBuffActive()) {
-                return cp.use(mchAbility);
+            if (mchAbility.id !== Actions.Hypercharge.id || !cp.isHyperchargedBuffActive()) {
+                // Prevent gauge updates showing incorrectly on autos before this ability
+                if (ability.type === 'gcd' && cp.nextGcdTime > cp.currentTime) {
+                    cp.advanceTo(cp.nextGcdTime);
+                }
+                mchAbility.updateHeatGauge(cp.gauge);
             }
-
-            // Prevent gauge updates showing incorrectly on autos before this ability
-            if (ability.type === 'gcd' && cp.nextGcdTime > cp.currentTime) {
-                cp.advanceTo(cp.nextGcdTime);
-            }
-
-            mchAbility.updateHeatGauge(cp.gauge);
         }
 
         // Lower the cooldown of Double Check and Checkmate if appropriate
@@ -506,6 +517,10 @@ export class MchSim extends BaseMultiCycleSim<MchSimResult, MchSettings, MchCycl
             cp.cdTracker.modifyCooldown(Actions.DoubleCheck, -15);
             cp.cdTracker.modifyCooldown(Actions.Checkmate, -15);
         }
+
+        // Apply Automaton Queen abilities before attempting to use an ability
+        // AND after we move the timeline for that ability.
+        this.applyAutomatonQueenAbilities(cp);
 
         return cp.use(mchAbility);
     }

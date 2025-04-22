@@ -29,7 +29,7 @@ export class MchGauge {
             console.warn(`[MCH Sim] Overcapped Heat Gauge by ${newGauge - 100}.`);
         }
         if (newGauge < 0) {
-            console.warn(`[MCH Sim] Used ${this._heatGauge - newGauge} heat gauge when you only have ${this._heatGauge}.`);
+            console.warn(`[MCH Sim] Used ${this._heatGauge - newGauge} Heat gauge when you only have ${this._heatGauge}.`);
         }
         this._heatGauge = Math.max(Math.min(newGauge, 100), 0);
     }
