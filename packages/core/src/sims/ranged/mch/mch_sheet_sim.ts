@@ -106,7 +106,7 @@ class MchCycleProcessor extends CycleProcessor {
     }
 
     applyAutomatonQueenAbility(abilityUsage: AutomatonQueenAbilityUsageTime) {
-        const buffs = [...this.getActiveBuffs(abilityUsage.usageTime)];
+        // const buffs = [...this.getActiveBuffs(abilityUsage.usageTime)];
     }
 
     override addAbilityUse(usedAbility: PreDmgAbilityUseRecordUnf) {
@@ -420,7 +420,7 @@ export class MchSim extends BaseMultiCycleSim<MchSimResult, MchSettings, MchCycl
             return null;
         }
 
-        let mchAbility = ability as MchAbility;
+        const mchAbility = ability as MchAbility;
 
         // Only use potion if enabled in settings
         if (!this.settings.usePotion && ability.name.includes("of Dexterity")) {
