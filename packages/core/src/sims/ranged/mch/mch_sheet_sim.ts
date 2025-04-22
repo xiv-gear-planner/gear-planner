@@ -1,10 +1,11 @@
 import {Ability, SimSettings, SimSpec, OgcdAbility} from "@xivgear/core/sims/sim_types";
 import {CycleProcessor, CycleSimResult, ExternalCycleSettings, MultiCycleSettings, AbilityUseResult, Rotation, PreDmgAbilityUseRecordUnf} from "@xivgear/core/sims/cycle_sim";
+import {combineBuffEffects} from "@xivgear/core/sims/sim_utils";
 import {CycleSettings} from "@xivgear/core/sims/cycle_settings";
 import {CharacterGearSet} from "@xivgear/core/gear";
 import {STANDARD_ANIMATION_LOCK} from "@xivgear/xivmath/xivconstants";
 import {MchGauge} from "./mch_gauge";
-import {MchExtraData, MchAbility, MchGcdAbility, ReassembleBuff, HyperchargeBuff, FullMetalFieldBuff, HyperchargedBuff, ExcavatorReadyBuff} from "./mch_types";
+import {MchExtraData, MchAbility, MchGcdAbility, ReassembledBuff, OverheatedBuff, FullMetalFieldBuff, HyperchargedBuff, ExcavatorReadyBuff} from "./mch_types";
 import {sum} from "@xivgear/util/array_utils";
 import * as Actions from './mch_actions';
 import {BaseMultiCycleSim} from "@xivgear/core/sims/processors/sim_processors";
@@ -106,19 +107,31 @@ class MchCycleProcessor extends CycleProcessor {
     }
 
     applyAutomatonQueenAbility(abilityUsage: AutomatonQueenAbilityUsageTime) {
-        // const buffs = [...this.getActiveBuffs(abilityUsage.usageTime)];
+        const buffs = [...this.getActiveBuffs(abilityUsage.usageTime)];
+
+        // @TODO: filter out buffs that do not apply to Automaton Queen's actions
+        const filteredBuffs = buffs.filter(buff => {
+            return buff.name !== ReassembledBuff.name && buff.name !== OverheatedBuff.name;
+        });
+
+        this.addAbilityUse({
+            usedAt: abilityUsage.usageTime,
+            ability: abilityUsage.ability,
+            buffs: filteredBuffs,
+            combinedEffects: combineBuffEffects(filteredBuffs),
+            totalTimeTaken: 0,
+            appDelay: abilityUsage.ability.appDelay,
+            appDelayFromStart: abilityUsage.ability.appDelay,
+            castTimeFromStart: 0,
+            snapshotTimeFromStart: 0,
+            lockTime: 0,
+        });
     }
 
     override addAbilityUse(usedAbility: PreDmgAbilityUseRecordUnf) {
         const extraData: MchExtraData = {
             gauge: this.gauge.getGaugeState(),
-            hypercharge: 0,
         };
-
-        const hypercharge = usedAbility.buffs.find(buff => buff.name === HyperchargeBuff.name);
-        if (hypercharge) {
-            extraData.hypercharge = hypercharge.stacks;
-        }
 
         const modified: PreDmgAbilityUseRecordUnf = {
             ...usedAbility,
@@ -154,13 +167,13 @@ class MchCycleProcessor extends CycleProcessor {
     // buff checker logic
     isReassembleBuffActive(): boolean {
         const buffs = this.getActiveBuffs();
-        const buff = buffs.find(buff => buff.name === ReassembleBuff.name);
+        const buff = buffs.find(buff => buff.name === ReassembledBuff.name);
         return buff !== undefined;
     }
 
     isHyperchargeBuffActive(): boolean {
         const buffs = this.getActiveBuffs();
-        const buff = buffs.find(buff => buff.name === HyperchargeBuff.name);
+        const buff = buffs.find(buff => buff.name === OverheatedBuff.name);
         return buff !== undefined;
     }
 
@@ -398,7 +411,7 @@ export class MchSim extends BaseMultiCycleSim<MchSimResult, MchSettings, MchCycl
         cp.AutomatonQueenAbilityUsages.push({
             // Pile Bunker
             ability: {
-                ...Actions.AutomatonQueenArmPunch,
+                ...Actions.AutomatonQueenPileBunker,
                 potency: 6.8 * cp.gauge.batteryGauge},
             // potency per 1 battery
             usageTime: cp.currentTime + automatonQueenDelay + 5 * automatonQueenDelayBetweenAbilities,
@@ -406,7 +419,7 @@ export class MchSim extends BaseMultiCycleSim<MchSimResult, MchSettings, MchCycl
         cp.AutomatonQueenAbilityUsages.push({
             // Crowned Collider
             ability: {
-                ...Actions.AutomatonQueenArmPunch,
+                ...Actions.AutomatonQueenCrownedCollider,
                 potency: 7.8 * cp.gauge.batteryGauge},
             // potency per 1 battery
             usageTime: cp.currentTime + automatonQueenDelay + 6 * automatonQueenDelayBetweenAbilities + 1,
@@ -431,6 +444,10 @@ export class MchSim extends BaseMultiCycleSim<MchSimResult, MchSettings, MchCycl
         if (mchAbility.id === Actions.AutomatonQueen.id) {
             this.useAutomatonQueen(cp);
         }
+
+        // Apply Automaton Queen abilities before attempting to use an ability
+        // AND before we move the timeline for that ability.
+        this.applyAutomatonQueenAbilities(cp);
 
         if (mchAbility.updateBatteryGauge !== undefined) {
             // Prevent gauge updates showing incorrectly on autos before this ability

@@ -1,5 +1,5 @@
 import {MchGauge} from "./mch_gauge";
-import {MchGcdAbility, ReassembleBuff, HyperchargeBuff, HyperchargedBuff, ExcavatorReadyBuff, FullMetalFieldBuff, MchOgcdAbility} from "./mch_types";
+import {MchGcdAbility, ReassembledBuff, OverheatedBuff, HyperchargedBuff, ExcavatorReadyBuff, FullMetalFieldBuff, MchOgcdAbility} from "./mch_types";
 
 /**
  * MCH GCD Actions
@@ -126,7 +126,7 @@ export const Hypercharge: MchOgcdAbility = {
     id: 17209,
     potency: null,
     attackType: "Ability",
-    activatesBuffs: [HyperchargeBuff],
+    activatesBuffs: [OverheatedBuff],
     updateHeatGauge: (gauge: MchGauge) => gauge.heatGauge -= 50,
 };
 
@@ -145,7 +145,7 @@ export const Reassemble: MchOgcdAbility = {
     id: 2876,
     potency: null,
     attackType: "Ability",
-    activatesBuffs: [ReassembleBuff],
+    activatesBuffs: [ReassembledBuff],
     cooldown: {
         time: 55,
         charges: 2,
@@ -154,7 +154,7 @@ export const Reassemble: MchOgcdAbility = {
 
 export const Wildfire: MchOgcdAbility = {
     type: 'ogcd',
-    name: "wildfire",
+    name: "Wildfire",
     id: 2878,
     potency: 240 * 6,
     // 240 per GCD, 6 hits
