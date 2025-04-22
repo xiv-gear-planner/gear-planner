@@ -52,7 +52,7 @@ Defaults to simulating a killtime of 8m 30s (510s).`,
 };
 
 // AutomatonQueenAbilityUsageTime is a type representing two things:
-// - a Automaton Queen ability
+// - an Automaton Queen ability
 // - the time it should go off at
 // This should be further enhanced to only include abilities where the
 // actor is Automaton Queen, once that has been implemented for correct stats.
