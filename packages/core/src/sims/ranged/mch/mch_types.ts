@@ -41,11 +41,10 @@ export type MchGaugeState = {
 export type MchExtraData = {
     /** The battery gauge data */
     gauge: MchGaugeState,
-    hypercharge: number,
 };
 
-export const ReassembleBuff: Buff = {
-    name: "Reassemble",
+export const ReassembledBuff: Buff = {
+    name: "Reassembled",
     duration: 5,
     selfOnly: true,
     effects: {
@@ -58,8 +57,8 @@ export const ReassembleBuff: Buff = {
 };
 
 
-export const HyperchargeBuff: Buff = {
-    name: "Hypercharge",
+export const OverheatedBuff: Buff = {
+    name: "Overheated",
     duration: 10,
     selfOnly: true,
     stacks: 5,
@@ -77,11 +76,11 @@ export const HyperchargeBuff: Buff = {
         buffController.subtractStacksSelf(1);
         return ability;
     },
-    statusId: 688,
+    statusId: 2688,
 };
 
 export const FullMetalFieldBuff: Buff = {
-    name: "Full Metal Field",
+    name: "Full Metal Machinist",
     duration: 30,
     effects: {
         // Allows usage of Full Metal Field
@@ -96,7 +95,7 @@ export const HyperchargedBuff: Buff = {
     name: "Hypercharged",
     selfOnly: true,
     effects: {
-        // Allows usage of Hypercharge
+        // Allows usage of Hypercharge without spending Heat
     },
     appliesTo: ability => ability.name === "Hypercharge",
     beforeSnapshot: removeSelf,
