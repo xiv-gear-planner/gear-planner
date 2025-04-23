@@ -27,7 +27,7 @@ jobs:
         run: |
           npm ci
           npm run test
-          npm run @xivgear/gearplan-frontend buildprod
+          npm run -w @xivgear/gearplan-frontend buildprod
 
       - name: Inject commit info
         run: |
