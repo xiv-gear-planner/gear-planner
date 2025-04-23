@@ -3,8 +3,9 @@ FROM node:20 as build
 WORKDIR /build
 COPY . .
 RUN npm ci
-# TODO: this step specifically isn't really doing anything, since it's run from the TS files
-RUN npm run build
+
+# Only build modules which are actually needed for this part of the project.
+RUN npm run -w @xivgear/backend-resolver build
 
 RUN npm run test
 
