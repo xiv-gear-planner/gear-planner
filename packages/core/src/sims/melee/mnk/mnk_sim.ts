@@ -36,6 +36,8 @@ class MNKCycleProcessor extends CycleProcessor {
 
     // this shouldn't be changed after first initialization
     private opener: Opener;
+    /* a stateful int to allow us to properly sequence our first 1 minute lunar overcap */
+    private first1MinuteBlitz: number = 0;
 
     constructor(settings: MultiCycleSettings) {
         super(settings);
@@ -252,6 +254,7 @@ class MNKCycleProcessor extends CycleProcessor {
                     // if we have no nadis we need to make a decision based on our opener goals
                     switch (this.opener) {
                         case "LL":
+                        case "LLL":
                             // an LL opener will have be empty during the 2nd blitz of a 2m burst window
                             // should use another lunar blitz (for PR > EB)
                             // want a lunar nadi
@@ -266,6 +269,11 @@ class MNKCycleProcessor extends CycleProcessor {
                 }
 
                 // we have existing gauge state
+                if (this.opener === 'LLL' && this.first1MinuteBlitz < 3) {
+                    // Statefully instruct the actor to execute one more lunar overcap
+                    this.first1MinuteBlitz++;
+                    return this.opo;
+                }
                 if (!this.gauge.solarNadi) {
                     return this.sequenceSolarNadi();
                 }
@@ -380,7 +388,7 @@ class MNKCycleProcessor extends CycleProcessor {
         }
         else {
             // riddle will be back or is currently off cooldown
-            if (this.gauge.fullNadis && this.opener === "SL") {
+            if ((this.gauge.fullNadis && this.opener === "SL") || (this.opener === "LLL" && (!this.gauge.lunarNadi || this.first1MinuteBlitz === 0))) {
                 // look for a +1 opo instead of a -2-0 opo
                 // TODO the -3 umm ackshually window takes dragon kick sequencing in to account
                 return false;
@@ -476,6 +484,17 @@ export class MnkSim extends BaseMultiCycleSim<CycleSimResult, MnkSettings, MNKCy
                 apply(cp: MNKCycleProcessor) {
                     cp.setOpener("SL");
                     cp.solarLunarOpener();
+                    while (cp.remainingGcdTime > 0) {
+                        cp.doStep();
+                    }
+                },
+            },
+            {
+                name: 'triple lunar',
+                cycleTime: 120,
+                apply(cp: MNKCycleProcessor) {
+                    cp.setOpener("LLL");
+                    cp.doubleLunarOpener();
                     while (cp.remainingGcdTime > 0) {
                         cp.doStep();
                     }
