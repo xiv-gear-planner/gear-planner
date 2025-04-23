@@ -395,7 +395,7 @@ class MNKCycleProcessor extends CycleProcessor {
             }
             return form?.statusId !== PerfectBalanceBuff.statusId // not already building a blitz
                 && OPO_ABILITIES.includes(gcd.id) // just executed an opo ability
-                && riddleStatus.readyAt.relative <= this.timeToExecuteNGcds(4) // Within 4 gcds of RoF coming off cooldown (allows our blitz to fall first gcd under RoF)
+                && riddleStatus.readyAt.relative <= this.timeToExecuteNGcds(3) // Within 3 gcds of RoF coming off cooldown
                 && this.cdTracker.canUse(PerfectBalance);
         }
     }
