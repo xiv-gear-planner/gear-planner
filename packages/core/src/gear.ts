@@ -170,6 +170,11 @@ export class SetDisplaySettings {
         this.hiddenSlots.set(slot, hidden);
     }
 
+    setAllHidden(hidden: boolean) {
+        console.log("setAllHidden: " + hidden);
+        EquipSlots.forEach(slot => this.setSlotHidden(slot, hidden));
+    }
+
     export(): SetDisplaySettingsExport {
         const hiddenSlots: EquipSlotKey[] = [];
         this.hiddenSlots.forEach((value, key) => {
@@ -887,8 +892,6 @@ export class CharacterGearSet {
         return this._sheet.isStatRelevant(stat);
     }
 
-    private collapsed: boolean;
-
     /**
      * Whether a particular slot should be collapsed on the UI.
      * @param slotId
@@ -899,6 +902,10 @@ export class CharacterGearSet {
 
     setSlotCollapsed(slotId: EquipSlotKey, val: boolean) {
         this.displaySettings.setSlotHidden(slotId, val);
+    }
+
+    setAllSlotsCollapsed(val: boolean) {
+        this.displaySettings.setAllHidden(val);
     }
 
     /*
