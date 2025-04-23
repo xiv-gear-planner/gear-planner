@@ -68,13 +68,11 @@ export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
                     if (ability instanceof Object) {
                         const out = document.createElement('div');
                         out.classList.add('ability-cell');
-                        // TODO: turn these both into ::before styles
-                        // TODO: play around with autoattack scale/rotation and find something that's more legible
                         if (ability.type === 'autoattack') {
-                            out.appendChild(document.createTextNode('🗘 '));
+                            out.classList.add('ability-autoattack');
                         }
                         else if (ability.type !== "gcd") {
-                            out.appendChild(document.createTextNode(' ⤷ '));
+                            out.classList.add('ability-ogcd');
                         }
                         if (!ability.noIcon) {
                             if (ability.itemId) {
