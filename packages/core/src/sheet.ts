@@ -74,7 +74,16 @@ export class SheetProvider<SheetType extends GearPlanSheet> {
      * @param importedData
      */
     fromExport(importedData: SheetExport): SheetType {
-        return this.construct(undefined, importedData);
+        const sheet = this.construct(undefined, importedData);
+        // If sims are not specified at all in the import, add the defaults.
+        // Note that this will not add sims if they are specified as [], only
+        // if unspecified.
+        // We check the import data here as the sheet will have sims = [] at this
+        // point.
+        if (importedData.sims === undefined) {
+            sheet.addDefaultSims();
+        }
+        return sheet;
     }
 
     /**
