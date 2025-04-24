@@ -26,8 +26,8 @@ jobs:
       - name: Build
         run: |
           npm ci
-          npm run build
           npm run test
+          npm run -w @xivgear/math-frontend buildprod
           npm run docs
 
       - name: Inject commit info

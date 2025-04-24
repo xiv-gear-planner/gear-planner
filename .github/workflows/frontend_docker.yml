@@ -26,9 +26,8 @@ jobs:
       - name: Build
         run: |
           npm ci
-          npm run buildprod
           npm run test
-          npm run docs
+          npm run -w @xivgear/gearplan-frontend buildprod
 
       - name: Inject commit info
         run: |
