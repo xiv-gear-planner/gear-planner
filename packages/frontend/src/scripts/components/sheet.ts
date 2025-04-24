@@ -906,19 +906,23 @@ export class GearSetEditor extends HTMLElement {
         const leftSideSlots = ['Head', 'Body', 'Hand', 'Legs', 'Feet'] as const;
         const rightSideSlots = ['Ears', 'Neck', 'Wrist', 'RingLeft', 'RingRight'] as const;
 
-        const weaponTable = new GearItemsTable(this.sheet, this.gearSet, itemMapping, this.sheet.classJobStats.offhand ? ['Weapon', 'OffHand'] : ['Weapon']);
+        const showHideAllCallback = () => {
+            this.gearTables.forEach(tbl => tbl.recheckHiddenSlots());
+        };
+
+        const weaponTable = new GearItemsTable(this.sheet, this.gearSet, itemMapping, this.sheet.classJobStats.offhand ? ['Weapon', 'OffHand'] : ['Weapon'], showHideAllCallback);
         const leftSideDiv = document.createElement('div');
         const rightSideDiv = document.createElement('div');
 
         this.gearTables = [weaponTable];
 
         for (const slot of leftSideSlots) {
-            const table = new GearItemsTable(this.sheet, this.gearSet, itemMapping, [slot]);
+            const table = new GearItemsTable(this.sheet, this.gearSet, itemMapping, [slot], showHideAllCallback);
             leftSideDiv.appendChild(table);
             this.gearTables.push(table);
         }
         for (const slot of rightSideSlots) {
-            const table = new GearItemsTable(this.sheet, this.gearSet, itemMapping, [slot]);
+            const table = new GearItemsTable(this.sheet, this.gearSet, itemMapping, [slot], showHideAllCallback);
             rightSideDiv.appendChild(table);
             this.gearTables.push(table);
         }
