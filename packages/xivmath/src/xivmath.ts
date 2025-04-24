@@ -54,7 +54,7 @@ export function trunc(input: number) {
  * but you should just call 'fl' directly in that case.
  * @param input The number to round.
  */
-function flp(places: number, input: number) {
+export function flp(places: number, input: number) {
     if (places % 1 !== 0 || places < 0) {
         throw Error(`Invalid places input ${places} - must be non-negative integer`);
     }

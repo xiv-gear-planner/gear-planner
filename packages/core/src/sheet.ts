@@ -109,6 +109,7 @@ export class SheetProvider<SheetType extends GearPlanSheet> {
             // TODO: make these smarter - make them deduplicate identical items
             customItems: importedData.flatMap(imp => imp.customItems ?? []),
             customFoods: importedData.flatMap(imp => imp.customFoods ?? []),
+            timestamp: importedData[0].timestamp,
         });
         if (importedData[0].sims === undefined) {
             gearPlanSheet.addDefaultSims();
@@ -222,6 +223,7 @@ export class GearPlanSheet {
     // Temporal state
     private readonly saveTimer: Inactivitytimer;
 
+    private _timestamp: Date;
 
     // Can't make ctor private for custom element, but DO NOT call this directly - use fromSaved or fromScratch
     constructor(sheetKey: string, importedData: SheetExport) {
@@ -266,6 +268,12 @@ export class GearPlanSheet {
             importedData.customFoods.forEach(ci => {
                 this._customFoods.push(CustomFood.fromExport(ci));
             });
+        }
+        if (importedData.timestamp) {
+            this._timestamp = new Date(importedData.timestamp);
+        }
+        else {
+            this._timestamp = new Date();
         }
 
         // Early gui setup
@@ -420,6 +428,7 @@ export class GearPlanSheet {
         }
         if (this.saveKey) {
             console.log("Saving sheet " + this.sheetName);
+            this._timestamp = new Date();
             const fullExport = this.exportSheet(false);
             localStorage.setItem(this.saveKey, JSON.stringify(fullExport));
         }
@@ -540,6 +549,7 @@ export class GearPlanSheet {
             description: this.description,
             customItems: this._customItems.map(ci => ci.export()),
             customFoods: this._customFoods.map(cf => cf.export()),
+            timestamp: this.timestamp.getTime(),
         };
         if (!external) {
             out.saveKey = this._saveKey;
@@ -1233,5 +1243,10 @@ export class GearPlanSheet {
                 };
             }
         }
+    }
+
+
+    get timestamp(): Date {
+        return this._timestamp;
     }
 }

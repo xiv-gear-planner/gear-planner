@@ -23,5 +23,6 @@ export function extractSingleSet(exportedInitial: SheetExport, onlySetIndex: num
         customFoods: exportedInitial.customFoods,
         partyBonus: exportedInitial.partyBonus,
         race: exportedInitial.race,
+        timestamp: exportedInitial.timestamp,
     } satisfies SetExportExternalSingle;
 }

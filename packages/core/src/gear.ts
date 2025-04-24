@@ -1097,6 +1097,36 @@ export class CharacterGearSet {
             }
         });
     }
+
+    get avgIlvl(): number {
+        /*
+        Rules:
+        Empty slots count as zero.
+        BLU mainhand is ignored.
+        2H weapon counts as two slots.
+         */
+        // Rules: Empty slots count as 0
+        const values: number[] = [];
+        this.forEachSlot((key, itemMaybe) => {
+            if (key === 'Weapon' || key === 'OffHand') {
+                // These will be computed separately
+                return;
+            }
+            values.push(itemMaybe ? itemMaybe.gearItem.ilvl : 0);
+        });
+        // ignore BLU weapon
+        if (this.sheet.classJobName !== 'BLU') {
+            const weap = this.equipment.Weapon;
+            if (weap && weap.gearItem.occGearSlotName === 'Weapon2H') {
+                values.push(weap.gearItem.ilvl, weap.gearItem.ilvl);
+            }
+            else {
+                values.push(weap?.gearItem.ilvl ?? 0);
+                values.push(this.equipment.OffHand?.gearItem.ilvl ?? 0);
+            }
+        }
+        return values.reduce((a, b) => a + b) / values.length;
+    }
 }
 
 export function applyStatCaps(stats: RawStats, statCaps: { [K in RawStatKey]?: number }): RawStats {
