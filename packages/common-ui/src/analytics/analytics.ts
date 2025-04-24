@@ -44,7 +44,7 @@ export function recordError(where: string, error: unknown, extraProps: object = 
         }
         else {
             const eventData = {
-                stringData: String(error),
+                stringData: `${where}: ${String(error)}`,
                 ...extraProps,
                 where: where,
             };
