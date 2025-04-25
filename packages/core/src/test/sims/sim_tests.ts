@@ -4,7 +4,7 @@ import 'global-jsdom/register';
 import {describe, it} from "mocha";
 import {assize, dia, exampleGearSet, filler, lily, misery, nop, pom} from "./common_values";
 import * as assert from "assert";
-import {Ability, SimSettings, SimSpec, Simulation} from "@xivgear/core/sims/sim_types";
+import {Ability, SimResult, SimSettings, SimSpec, Simulation} from "@xivgear/core/sims/sim_types";
 import {
     AbilityUseResult,
     CycleProcessor,
@@ -16,6 +16,11 @@ import {getRegisteredSimSpecs} from "@xivgear/core/sims/sim_registry";
 import {BaseMultiCycleSim} from '@xivgear/core/sims/processors/sim_processors';
 import {potRatioSimSpec} from '@xivgear/core/sims/common/potency_ratio';
 import {registerDefaultSims} from '@xivgear/core/sims/default_sims';
+import {getClassJobStats, JobName, SupportedLevel} from "@xivgear/xivmath/xivconstants";
+import {CharacterGearSet} from "../../gear";
+import {GearPlanSheet, HEADLESS_SHEET_PROVIDER} from "../../sheet";
+import {expect} from "chai";
+import {EquipSlotInfo, EquipSlotKey} from "@xivgear/xivmath/geartypes";
 
 // Example of end-to-end simulation
 // This one is testing the simulation engine itself, so it copies the full simulation code rather than
@@ -187,6 +192,25 @@ describe('Default sims', () => {
     describe('all others', () => {
         registerDefaultSims();
         const registered = getRegisteredSimSpecs();
+        const sampleSheets: GearPlanSheet[] = [];
+        const sampleSheetLoad = new Map<GearPlanSheet, Promise<void>>();
+
+        async function getSheetFor(job: JobName, level: SupportedLevel) {
+            const existing = sampleSheets.find(set => set.classJobName === job && set.level === level);
+            if (existing) {
+                await sampleSheetLoad.get(existing);
+                return existing;
+            }
+            else {
+                const newSheet = HEADLESS_SHEET_PROVIDER.fromScratch(undefined, "", job, level, undefined);
+                const promise = newSheet.load();
+                sampleSheetLoad.set(newSheet, promise);
+                sampleSheets.push(newSheet);
+                await promise;
+                return newSheet;
+            }
+        }
+
         for (const simSpec of registered) {
             describe(`sim '${simSpec.displayName}'`, () => {
                 it('Can instantiate, export, and load', () => {
@@ -194,6 +218,35 @@ describe('Default sims', () => {
                     const exported = inst.exportSettings();
                     simSpec.loadSavedSimInstance(exported);
                 });
+                it('Can run', async () => {
+                    const inst: Simulation<SimResult, any, any> = simSpec.makeNewSimInstance() as Simulation<any, any, any>;
+                    const job = simSpec.supportedJobs ? simSpec.supportedJobs[0] : 'WHM';
+                    const level = simSpec.supportedLevels ? simSpec.supportedLevels[0] : (getClassJobStats(job).maxLevel ?? 100);
+                    const sheet = await getSheetFor(job, level);
+                    const set = new CharacterGearSet(sheet);
+                    // Equip random gear in each slot
+                    set.forEachSlot((slotKey: EquipSlotKey) => {
+                        // Ignore offhand for classes which do not support it
+                        if (slotKey === 'OffHand' && !sheet.classJobStats.offhand) {
+                            return;
+                        }
+                        const gearSlot = EquipSlotInfo[slotKey].gearSlot;
+                        const item = sheet.itemsForDisplay.find((item) => item.displayGearSlot === gearSlot);
+                        expect(item).to.not.be.undefined;
+                        expect(item).to.not.be.null;
+                        set.setEquip(slotKey, item);
+                    });
+                    {
+                        const results = await inst.simulate(set);
+                        expect(results.mainDpsResult).to.be.greaterThan(0);
+                    }
+                    {
+                        const exported = inst.exportSettings();
+                        const newInst = simSpec.loadSavedSimInstance(exported);
+                        const results = await newInst.simulate(set);
+                        expect(results.mainDpsResult).to.be.greaterThan(0);
+                    }
+                }).timeout(30000);
             });
         }
     });
