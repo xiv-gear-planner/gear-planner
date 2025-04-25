@@ -24,7 +24,7 @@ export function bestEffortFormat(value: unknown): Node {
  *
  * @param result The result to display
  */
-export function simpleAutoResultTable(result: object): HTMLElement {
+export function simpleKvTable(result: object): HTMLElement {
     const data: SimpleResultEntry[] = [];
     for (const fieldKey in result) {
         data.push({

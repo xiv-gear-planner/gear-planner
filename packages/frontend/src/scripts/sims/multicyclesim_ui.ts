@@ -7,7 +7,7 @@ import {NamedSection} from "../components/section";
 import {BuffSettingsArea} from "./party_comp_settings";
 import {ResultSettingsArea} from "./components/result_settings";
 import {applyStdDev} from "@xivgear/xivmath/deviation";
-import {bestEffortFormat, simpleAutoResultTable} from "./components/simple_tables";
+import {bestEffortFormat, simpleKvTable} from "./components/simple_tables";
 import {AbilitiesUsedTable} from "./components/ability_used_table";
 import {quickElement} from "@xivgear/common-ui/components/util";
 import {BaseMultiCycleSim} from "@xivgear/core/sims/processors/sim_processors";
@@ -79,7 +79,7 @@ export class BaseMultiCycleSimGui<ResultType extends CycleSimResult, InternalSet
         if (includeRotationName) {
             data["Rotation"] = result.label;
         }
-        const mainResultsTable = simpleAutoResultTable(data);
+        const mainResultsTable = simpleKvTable(data);
         mainResultsTable.classList.add('main-results-table');
         return mainResultsTable;
     }
