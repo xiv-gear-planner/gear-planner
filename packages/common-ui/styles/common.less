@@ -2142,14 +2142,28 @@ div.gear-set-editor-toolbar, set-view-toolbar {
       margin: 0;
 
       .single-stat-tier-display {
-        min-width: unset;
-        --inner-padding: 2px;
+        min-width: 50px;
+        --inner-padding: 0px;
+        height: auto;
+
+        .single-stat-tier-display-upper-short {
+          display: block;
+        }
+
+        .single-stat-tier-display-upper-long {
+          display: none;
+        }
+
+        .single-stat-tier-display-lower-right {
+          width: unset;
+          display: block;
+        }
       }
     }
 
   }
 
-  div.single-stat-tier-display {
+  .single-stat-tier-display {
     .standard-round-border;
     position: relative;
     padding: 2px;
@@ -2167,9 +2181,16 @@ div.gear-set-editor-toolbar, set-view-toolbar {
       cursor: default;
     }
 
-    div.single-stat-tier-display-upper {
-      display: block;
+    .single-stat-tier-display-upper {
       transition: all var(--transition-time) linear;
+
+      &.single-stat-tier-display-upper-short {
+        display: none;
+      }
+
+      &.single-stat-tier-display-upper-long {
+        display: block;
+      }
     }
 
     border-color: color-mix(in srgb, var(--stat-color) 20%, var(--border-color));
@@ -2685,10 +2706,12 @@ gear-set-viewer {
       flex-grow: 0;
       margin: auto;
     }
+
     .materia-totals-inner {
       &:has(:nth-last-child(4):first-child) {
         --materia-total-cols: 2;
       }
+
       flex-basis: max-content;
       flex-grow: 1;
 

@@ -30,6 +30,8 @@ interface TieringOffset {
 
 interface TieringDisplay {
     label: string,
+    // Alt short label
+    shortLabel?: string,
     fullName: string,
     description: string,
     tieringFunc: (offset: number) => Tiering,
@@ -40,6 +42,7 @@ export class SingleStatTierDisplay extends HTMLDivElement {
     private readonly lowerLeftDiv: HTMLDivElement;
     private readonly lowerRightDiv: HTMLDivElement;
     private readonly upperDiv: HTMLDivElement;
+    private readonly upperDivShort: HTMLDivElement;
     private readonly expansionDiv: HTMLDivElement;
     private _expanded: boolean;
     private _clickable: boolean;
@@ -50,8 +53,11 @@ export class SingleStatTierDisplay extends HTMLDivElement {
         this.classList.add('single-stat-tier-display');
         this.classList.add('stat-' + stat);
         this.upperDiv = document.createElement('div');
-        this.upperDiv.classList.add('single-stat-tier-display-upper');
+        this.upperDiv.classList.add('single-stat-tier-display-upper', 'single-stat-tier-display-upper-long');
         this.appendChild(this.upperDiv);
+        this.upperDivShort = document.createElement('div');
+        this.upperDivShort.classList.add('single-stat-tier-display-upper', 'single-stat-tier-display-upper-short');
+        this.appendChild(this.upperDivShort);
 
         this.lowerLeftDiv = document.createElement('div');
         // Lower bound
@@ -74,6 +80,8 @@ export class SingleStatTierDisplay extends HTMLDivElement {
         // Formatting of the base element (always visible)
         this.upperDiv.textContent = tiering.label;
         this.upperDiv.title = `${tiering.label}: ${tiering.description}`;
+        this.upperDivShort.textContent = tiering.shortLabel ?? tiering.label;
+        this.upperDivShort.title = `${tiering.label}: ${tiering.description}`;
         {
             const baseTiering = tiering.tieringFunc(0);
             if (baseTiering.lower > 0) {
@@ -338,6 +346,7 @@ export class StatTierDisplay extends HTMLDivElement {
                 else {
                     tierDisplays.push({
                         label: abbrev + ' GCD',
+                        shortLabel: 'GCD',
                         fullName: 'GCD for spells',
                         description: 'Global cooldown (recast) time for spells',
                         tieringFunc: makeTiering(value => {
@@ -349,6 +358,7 @@ export class StatTierDisplay extends HTMLDivElement {
                 }
                 return [...tierDisplays, {
                     label: abbrev + ' DoT',
+                    shortLabel: 'DoT',
                     fullName: 'DoT scalar for spells',
                     description: 'DoT damage multiplier for spells',
                     tieringFunc: makeTiering(value => spsTickMulti(levelStats, value)),
@@ -375,6 +385,7 @@ export class StatTierDisplay extends HTMLDivElement {
                 else {
                     tierDisplays.push({
                         label: abbrev + ' GCD',
+                        shortLabel: 'GCD',
                         fullName: 'GCD for weaponskills',
                         description: 'Global cooldown (recast) time for weaponskills',
                         tieringFunc: makeTiering(value => {
@@ -387,6 +398,7 @@ export class StatTierDisplay extends HTMLDivElement {
 
                 return [...tierDisplays, {
                     label: abbrev + ' DoT',
+                    shortLabel: 'DoT',
                     fullName: 'DoT scalar for weaponskills',
                     description: 'DoT damage multiplier for weaponskills',
                     tieringFunc: makeTiering(value => sksTickMulti(levelStats, value)),
