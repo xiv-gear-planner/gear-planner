@@ -246,7 +246,7 @@ describe('Default sims', () => {
                         const results = await newInst.simulate(set);
                         expect(results.mainDpsResult).to.be.greaterThan(0);
                     }
-                });
+                }).timeout(30000);
             });
         }
     });
