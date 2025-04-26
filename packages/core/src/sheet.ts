@@ -15,7 +15,6 @@ import {
     SupportedLevel
 } from "@xivgear/xivmath/xivconstants";
 import {
-    DisplayGearSlotKey,
     EquippedItem,
     EquipSlotKey,
     FoodItem,
