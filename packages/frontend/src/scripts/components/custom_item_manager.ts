@@ -16,7 +16,7 @@ import {
 import {ALL_STATS, ALL_SUB_STATS, STAT_ABBREVIATIONS, STAT_FULL_NAMES} from "@xivgear/xivmath/xivconstants";
 import {BaseModal} from "@xivgear/common-ui/components/modal";
 import {DropdownActionMenu} from "./dropdown_actions_menu";
-import {OccGearSlots, RawStats} from "@xivgear/xivmath/geartypes";
+import {OccGearSlots, RawStats, Substat} from "@xivgear/xivmath/geartypes";
 import {confirmDelete} from "@xivgear/common-ui/components/delete_confirm";
 import {CustomItem} from "@xivgear/core/customgear/custom_item";
 import {CustomFood} from "@xivgear/core/customgear/custom_food";
@@ -146,7 +146,11 @@ export class CustomItemTable extends CustomTable<CustomItem> {
                         const ilvlSyncInfo = sheet.ilvlSyncInfo(item.ilvl);
                         const cap = ilvlSyncInfo.substatCap(item.occGearSlotName, stat);
                         // Small stat is ceil(big stat * 70%)
-                        const suggestions = [cap, Math.ceil(cap * 0.7), 0]; // TODO: small value
+                        const suggestions = [cap];
+                        if (ALL_SUB_STATS.includes(stat as Substat)) {
+                            suggestions.push(Math.ceil(cap * 0.7));
+                        }
+                        suggestions.push(0);
                         const datalist = quickElement('datalist', [], suggestions.map(sugg => {
                             const opt = document.createElement('option');
                             opt.value = sugg.toString();
