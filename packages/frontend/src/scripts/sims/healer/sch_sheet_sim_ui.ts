@@ -57,7 +57,8 @@ export class SchSimGui extends BaseMultiCycleSimGui<SchSimResult, SchSettings> {
             postValidators: [nonNegative],
         });
         edField.id = 'edField';
-        const label = labelFor('Energy Drains per Aetherflow/Dissipation', edField);
+        const label = labelFor('ED per AF/Diss', edField);
+        label.style.display = 'block';
         configDiv.appendChild(label);
         configDiv.appendChild(edField);
         return configDiv;
