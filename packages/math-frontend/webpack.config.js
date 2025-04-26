@@ -10,9 +10,10 @@ module.exports = (env, argv) => {
             clean: false
         },
         optimization: {
-            minimize: prod,
+            // Don't minimize the math stuff, formulae won't be readable
+            minimize: false,
         },
-        devtool: prod ? 'nosources-source-map' : 'source-map',
+        devtool: 'source-map',
         module: {
             rules: [
                 {
