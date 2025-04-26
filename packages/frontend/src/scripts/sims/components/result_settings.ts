@@ -8,8 +8,8 @@ export class ResultSettingsArea extends NamedSection {
         const inputField = new FieldBoundFloatField(resultSettings, 'stdDevs');
         const label = labelFor('+/- Standard Deviations', inputField);
         label.style.display = 'block';
-        this.appendChild(label);
-        this.appendChild(inputField);
+        this.contentArea.appendChild(label);
+        this.contentArea.appendChild(inputField);
     }
 }
 
