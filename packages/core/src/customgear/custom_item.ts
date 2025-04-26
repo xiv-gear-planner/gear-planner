@@ -30,7 +30,7 @@ export class CustomItem implements GearItem {
 
     primarySubstat: keyof RawStats = null;
     secondarySubstat: keyof RawStats = null;
-    statCaps = {};
+    statCaps: Partial<RawStats> = {};
     // TODO: pull this out into a constant somewhere
     iconUrl: URL = new URL(xivApiIconUrl(26270));
     syncedDownTo: number | null;
@@ -72,6 +72,7 @@ export class CustomItem implements GearItem {
             respectCaps: true,
             slot: slot,
         };
+        data.ilvl = sheet.highestIlvlForSlot(slot);
         return new CustomItem(data, sheet);
     }
 

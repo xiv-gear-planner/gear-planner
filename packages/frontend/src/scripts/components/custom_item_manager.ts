@@ -7,6 +7,7 @@ import {
     FieldBoundDataSelect,
     FieldBoundFloatField,
     FieldBoundIntField,
+    FieldBoundOrUndefIntField,
     FieldBoundTextField,
     makeActionButton,
     nonNegative,
@@ -15,7 +16,7 @@ import {
 import {ALL_STATS, ALL_SUB_STATS, STAT_ABBREVIATIONS, STAT_FULL_NAMES} from "@xivgear/xivmath/xivconstants";
 import {BaseModal} from "@xivgear/common-ui/components/modal";
 import {DropdownActionMenu} from "./dropdown_actions_menu";
-import {OccGearSlots} from "@xivgear/xivmath/geartypes";
+import {OccGearSlots, RawStats} from "@xivgear/xivmath/geartypes";
 import {confirmDelete} from "@xivgear/common-ui/components/delete_confirm";
 import {CustomItem} from "@xivgear/core/customgear/custom_item";
 import {CustomFood} from "@xivgear/core/customgear/custom_food";
@@ -29,6 +30,27 @@ function ifWeapon(fn: (item: CustomItem) => HTMLElement): (item: CustomItem) => 
             return document.createTextNode('');
         }
     };
+}
+
+// Proxy for RawStats that turns zeroes into undefined when reading, and undefined into zero when writing.
+// This is needed to allow autocompletion to work correctly - if we actually put '0' in the field, it will only show
+// autocompletion possibilities that begin with 0, which isn't very useful.
+function customStatsProxy(obj: RawStats): RawStats {
+    return new Proxy<RawStats>(obj, {
+        get(target: RawStats, prop: string | symbol): unknown {
+            // @ts-expect-error we do not know the type beforehand
+            const out = target[prop];
+            if (out === 0) {
+                return undefined;
+            }
+            return out;
+        },
+        set(target: RawStats, prop: string | symbol, value: unknown) {
+            // @ts-expect-error we do not know the type beforehand
+            target[prop] = value ?? 0;
+            return true;
+        },
+    });
 }
 
 /**
@@ -121,9 +143,26 @@ export class CustomItemTable extends CustomTable<CustomItem> {
                     displayName: STAT_ABBREVIATIONS[stat],
                     getter: item => item,
                     renderer: (item: CustomItem) => {
-                        return new FieldBoundIntField(item.customData.stats, stat, {
+                        const ilvlSyncInfo = sheet.ilvlSyncInfo(item.ilvl);
+                        const cap = ilvlSyncInfo.substatCap(item.occGearSlotName, stat);
+                        // Small stat is ceil(big stat * 70%)
+                        const suggestions = [cap, Math.ceil(cap * 0.7), 0]; // TODO: small value
+                        const datalist = quickElement('datalist', [], suggestions.map(sugg => {
+                            const opt = document.createElement('option');
+                            opt.value = sugg.toString();
+                            return opt;
+                        }));
+                        datalist.id = `custom-item-datalist-${stat}`;
+
+                        const statsProxy = customStatsProxy(item.customData.stats);
+
+                        const field = new FieldBoundOrUndefIntField(statsProxy, stat, {
                             postValidators: [nonNegative],
                         });
+                        field.placeholder = '0';
+                        field.setAttribute('list', datalist.id);
+                        field.appendChild(datalist);
+                        return field;
                     },
                     initialWidth: 40,
                 });

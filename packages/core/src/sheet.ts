@@ -15,6 +15,7 @@ import {
     SupportedLevel
 } from "@xivgear/xivmath/xivconstants";
 import {
+    DisplayGearSlotKey,
     EquippedItem,
     EquipSlotKey,
     FoodItem,
@@ -746,6 +747,16 @@ export class GearPlanSheet {
      */
     ilvlSyncInfo(ilvl: number): IlvlSyncInfo | undefined {
         return this.dataManager?.getIlvlSyncInfo(ilvl);
+    }
+
+    /**
+     * Return the highest ilvl of non-custom items in a particular slot
+     *
+     * @param slot
+     */
+    highestIlvlForSlot(slot: OccGearSlotKey): number {
+        return Math.max(...this.dataManager.allItems.filter(item => item.occGearSlotName === slot)
+            .map(item => item.ilvl));
     }
 
     /**
