@@ -749,6 +749,25 @@ export class GearPlanSheet {
     }
 
     /**
+     * Return the highest ilvl of non-custom items in a particular slot
+     *
+     * @param slot
+     */
+    highestIlvlForSlot(slot: OccGearSlotKey): number {
+        return Math.max(...this.dataManager.allItems.filter(item => item.occGearSlotName === slot)
+            .map(item => item.ilvl));
+    }
+
+    /**
+     * Returns the highest
+     * @param slot
+     */
+    highestIlvlItemForSlot(slot: OccGearSlotKey): GearItem | undefined {
+        return this.dataManager.allItems.filter(item => item.occGearSlotName === slot)
+            .sort((a, b) => b.ilvl - a.ilvl)[0];
+    }
+
+    /**
      * Get the next free custom item ID.
      * @private
      */

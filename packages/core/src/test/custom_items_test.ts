@@ -15,6 +15,7 @@ describe('Custom items support', () => {
 
         // Make custom item
         const custom = sheet.newCustomItem('Weapon2H');
+        custom.ilvl = 640;
         const customStats = custom.customData.stats;
         customStats.wdMag = 200;
         customStats.wdPhys = 200;
@@ -61,6 +62,7 @@ describe('Custom items support', () => {
 
         // Make custom item
         const custom = sheet.newCustomItem('Weapon2H');
+        custom.ilvl = 640;
         const customStats = custom.customData.stats;
         customStats.wdMag = 200;
         customStats.wdPhys = 200;

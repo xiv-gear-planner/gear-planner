@@ -7,15 +7,16 @@ import {
     FieldBoundDataSelect,
     FieldBoundFloatField,
     FieldBoundIntField,
+    FieldBoundOrUndefIntField,
     FieldBoundTextField,
     makeActionButton,
     nonNegative,
-    quickElement
+    quickElement, randomId
 } from "@xivgear/common-ui/components/util";
 import {ALL_STATS, ALL_SUB_STATS, STAT_ABBREVIATIONS, STAT_FULL_NAMES} from "@xivgear/xivmath/xivconstants";
 import {BaseModal} from "@xivgear/common-ui/components/modal";
 import {DropdownActionMenu} from "./dropdown_actions_menu";
-import {OccGearSlots} from "@xivgear/xivmath/geartypes";
+import {OccGearSlots, RawStats, Substat} from "@xivgear/xivmath/geartypes";
 import {confirmDelete} from "@xivgear/common-ui/components/delete_confirm";
 import {CustomItem} from "@xivgear/core/customgear/custom_item";
 import {CustomFood} from "@xivgear/core/customgear/custom_food";
@@ -29,6 +30,27 @@ function ifWeapon(fn: (item: CustomItem) => HTMLElement): (item: CustomItem) => 
             return document.createTextNode('');
         }
     };
+}
+
+// Proxy for RawStats that turns zeroes into undefined when reading, and undefined into zero when writing.
+// This is needed to allow autocompletion to work correctly - if we actually put '0' in the field, it will only show
+// autocompletion possibilities that begin with 0, which isn't very useful.
+function customStatsProxy(obj: RawStats): RawStats {
+    return new Proxy<RawStats>(obj, {
+        get(target: RawStats, prop: string | symbol): unknown {
+            // @ts-expect-error we do not know the type beforehand
+            const out = target[prop];
+            if (out === 0) {
+                return undefined;
+            }
+            return out;
+        },
+        set(target: RawStats, prop: string | symbol, value: unknown) {
+            // @ts-expect-error we do not know the type beforehand
+            target[prop] = value ?? 0;
+            return true;
+        },
+    });
 }
 
 /**
@@ -45,7 +67,7 @@ export class CustomItemTable extends CustomTable<CustomItem> {
                 renderer: (item: CustomItem) => {
                     const out = document.createElement('div');
                     out.appendChild(makeActionButton([faIcon('fa-trash-can')], (ev) => {
-                        if (confirmDelete(ev, `Delete custom item '${item.name}'?`)) {
+                        if (confirmDelete(ev, `Delete custom item '${item.name}'? Please make sure it is not equipped on any set.`)) {
                             this.sheet.deleteCustomItem(item);
                             this.refresh();
                         }
@@ -87,6 +109,7 @@ export class CustomItemTable extends CustomTable<CustomItem> {
                     ilvlInput.addListener(recheck);
                     capBox.addListener(() => recheck(item.ilvl));
                     recheck(item.ilvl);
+                    ilvlInput.addEventListener('focusout', () => this.refreshRowData(item));
                     const holder = quickElement("div", [], [ilvlInput, capBox]);
                     holder.style.display = 'flex';
                     ilvlInput.style.minWidth = '40px';
@@ -121,9 +144,30 @@ export class CustomItemTable extends CustomTable<CustomItem> {
                     displayName: STAT_ABBREVIATIONS[stat],
                     getter: item => item,
                     renderer: (item: CustomItem) => {
-                        return new FieldBoundIntField(item.customData.stats, stat, {
+                        const ilvlSyncInfo = sheet.ilvlSyncInfo(item.ilvl);
+                        const cap = ilvlSyncInfo.substatCap(item.occGearSlotName, stat);
+                        // Small stat is ceil(big stat * 70%)
+                        const suggestions = [cap];
+                        if (ALL_SUB_STATS.includes(stat as Substat)) {
+                            suggestions.push(Math.ceil(cap * 0.7));
+                        }
+                        suggestions.push(0);
+                        const datalist = quickElement('datalist', [], suggestions.map(sugg => {
+                            const opt = document.createElement('option');
+                            opt.value = sugg.toString();
+                            return opt;
+                        }));
+                        datalist.id = randomId('custom-item-datalist-');
+
+                        const statsProxy = customStatsProxy(item.customData.stats);
+
+                        const field = new FieldBoundOrUndefIntField(statsProxy, stat, {
                             postValidators: [nonNegative],
                         });
+                        field.placeholder = '0';
+                        field.setAttribute('list', datalist.id);
+                        field.appendChild(datalist);
+                        return field;
                     },
                     initialWidth: 40,
                 });
@@ -158,6 +202,20 @@ export class CustomItemTable extends CustomTable<CustomItem> {
                         postValidators: [nonNegative],
                     });
                     out.title = 'Enter weapon delay in seconds (e.g. 3.125)';
+
+                    const exampleWeapon = this.sheet.highestIlvlItemForSlot(item.occGearSlotName);
+                    const suggestions = [exampleWeapon.stats.weaponDelay];
+
+                    const datalist = quickElement('datalist', [], suggestions.map(sugg => {
+                        const opt = document.createElement('option');
+                        opt.value = sugg.toString();
+                        return opt;
+                    }));
+                    datalist.id = randomId('custom-item-datalist-');
+
+                    out.setAttribute('list', datalist.id);
+                    out.appendChild(datalist);
+
                     return out;
                 }),
                 initialWidth: 80,
@@ -236,7 +294,7 @@ export class CustomFoodTable extends CustomTable<CustomFood> {
                 renderer: (item: CustomFood) => {
                     const out = document.createElement('div');
                     out.appendChild(makeActionButton([faIcon('fa-trash-can')], (ev) => {
-                        if (confirmDelete(ev, `Delete custom item '${item.name}'?`)) {
+                        if (confirmDelete(ev, `Delete custom item '${item.name}'? Please make sure it is not equipped on any set.`)) {
                             this.sheet.deleteCustomFood(item);
                             this.refresh();
                         }
