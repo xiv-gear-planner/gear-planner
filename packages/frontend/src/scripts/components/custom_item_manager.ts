@@ -11,7 +11,7 @@ import {
     FieldBoundTextField,
     makeActionButton,
     nonNegative,
-    quickElement
+    quickElement, randomId
 } from "@xivgear/common-ui/components/util";
 import {ALL_STATS, ALL_SUB_STATS, STAT_ABBREVIATIONS, STAT_FULL_NAMES} from "@xivgear/xivmath/xivconstants";
 import {BaseModal} from "@xivgear/common-ui/components/modal";
@@ -67,7 +67,7 @@ export class CustomItemTable extends CustomTable<CustomItem> {
                 renderer: (item: CustomItem) => {
                     const out = document.createElement('div');
                     out.appendChild(makeActionButton([faIcon('fa-trash-can')], (ev) => {
-                        if (confirmDelete(ev, `Delete custom item '${item.name}'?`)) {
+                        if (confirmDelete(ev, `Delete custom item '${item.name}'? Please make sure it is not equipped on any set.`)) {
                             this.sheet.deleteCustomItem(item);
                             this.refresh();
                         }
@@ -109,6 +109,7 @@ export class CustomItemTable extends CustomTable<CustomItem> {
                     ilvlInput.addListener(recheck);
                     capBox.addListener(() => recheck(item.ilvl));
                     recheck(item.ilvl);
+                    ilvlInput.addEventListener('focusout', () => this.refreshRowData(item));
                     const holder = quickElement("div", [], [ilvlInput, capBox]);
                     holder.style.display = 'flex';
                     ilvlInput.style.minWidth = '40px';
@@ -156,7 +157,7 @@ export class CustomItemTable extends CustomTable<CustomItem> {
                             opt.value = sugg.toString();
                             return opt;
                         }));
-                        datalist.id = `custom-item-datalist-${stat}`;
+                        datalist.id = randomId('custom-item-datalist-');
 
                         const statsProxy = customStatsProxy(item.customData.stats);
 
@@ -201,6 +202,20 @@ export class CustomItemTable extends CustomTable<CustomItem> {
                         postValidators: [nonNegative],
                     });
                     out.title = 'Enter weapon delay in seconds (e.g. 3.125)';
+
+                    const exampleWeapon = this.sheet.highestIlvlItemForSlot(item.occGearSlotName);
+                    const suggestions = [exampleWeapon.stats.weaponDelay];
+
+                    const datalist = quickElement('datalist', [], suggestions.map(sugg => {
+                        const opt = document.createElement('option');
+                        opt.value = sugg.toString();
+                        return opt;
+                    }));
+                    datalist.id = randomId('custom-item-datalist-');
+
+                    out.setAttribute('list', datalist.id);
+                    out.appendChild(datalist);
+
                     return out;
                 }),
                 initialWidth: 80,
@@ -279,7 +294,7 @@ export class CustomFoodTable extends CustomTable<CustomFood> {
                 renderer: (item: CustomFood) => {
                     const out = document.createElement('div');
                     out.appendChild(makeActionButton([faIcon('fa-trash-can')], (ev) => {
-                        if (confirmDelete(ev, `Delete custom item '${item.name}'?`)) {
+                        if (confirmDelete(ev, `Delete custom item '${item.name}'? Please make sure it is not equipped on any set.`)) {
                             this.sheet.deleteCustomFood(item);
                             this.refresh();
                         }

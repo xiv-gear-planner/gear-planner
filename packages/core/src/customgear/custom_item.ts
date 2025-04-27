@@ -72,7 +72,19 @@ export class CustomItem implements GearItem {
             respectCaps: true,
             slot: slot,
         };
-        data.ilvl = sheet.highestIlvlForSlot(slot);
+        // Copy relevant features of the highest ilvl available for that slot
+        const highest = sheet.highestIlvlItemForSlot(slot);
+        data.ilvl = highest.ilvl;
+        data.stats.vitality = highest.stats.vitality;
+        data.stats.strength = highest.stats.strength;
+        data.stats.dexterity = highest.stats.dexterity;
+        data.stats.intelligence = highest.stats.intelligence;
+        data.stats.mind = highest.stats.mind;
+        if (slot === 'Weapon2H' || slot === 'Weapon1H') {
+            data.stats.weaponDelay = highest.stats.weaponDelay;
+            data.stats.wdMag = highest.stats.wdMag;
+            data.stats.wdPhys = highest.stats.wdPhys;
+        }
         return new CustomItem(data, sheet);
     }
 
