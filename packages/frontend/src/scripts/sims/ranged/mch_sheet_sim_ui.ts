@@ -38,7 +38,6 @@ export class MchSimGui extends BaseMultiCycleSimGui<MchSimResult, MchSettings> {
                     barOuter.style.border = '1px solid black';
 
                     const barInner = document.createElement('div');
-                    // @TODO Juliacare: pick a colour, and pick a threshold for it to be a different colour
                     barInner.style.backgroundColor = gauge >= 100 ? '#d31010': '#D35A10';
                     barInner.style.width = `${gauge}%`;
                     barInner.style.height = '100%';

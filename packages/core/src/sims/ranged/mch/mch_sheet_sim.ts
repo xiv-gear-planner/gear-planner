@@ -93,7 +93,6 @@ class MchCycleProcessor extends CycleProcessor {
     applyAutomatonQueenAbility(abilityUsage: AutomatonQueenAbilityUsageTime) {
         const buffs = [...this.getActiveBuffs(abilityUsage.usageTime)];
 
-        // @TODO Juliacare: filter out buffs that do not apply to Automaton Queen's actions
         const filteredBuffs = buffs.filter(buff => {
             return buff.name !== ReassembledBuff.name && buff.name !== OverheatedBuff.name;
         });
@@ -373,9 +372,8 @@ export class MchSim extends BaseMultiCycleSim<MchSimResult, MchSettings, MchCycl
         ////GCDs
         ////////
         // If we don't have time to use a GCD, return early.
-        if (cp.remainingGcdTime > 0) {
-            this.use(cp, this.getGCDToUse(cp));
-        }
+        if (cp.remainingGcdTime <= 0) {
+            return;}
 
         this.use(cp, (this.getGCDToUse(cp)));
     }
