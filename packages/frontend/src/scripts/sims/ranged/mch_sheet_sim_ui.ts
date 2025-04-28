@@ -39,7 +39,7 @@ export class MchSimGui extends BaseMultiCycleSimGui<MchSimResult, MchSettings> {
 
                     const barInner = document.createElement('div');
                     // @TODO Juliacare: pick a colour, and pick a threshold for it to be a different colour
-                    barInner.style.backgroundColor = gauge >= 50 ? '#ffc500' : '#e47e08';
+                    barInner.style.backgroundColor = gauge >= 100 ? '#d31010': '#D35A10';
                     barInner.style.width = `${gauge}%`;
                     barInner.style.height = '100%';
                     barOuter.appendChild(barInner);
@@ -81,8 +81,7 @@ export class MchSimGui extends BaseMultiCycleSimGui<MchSimResult, MchSettings> {
                     barOuter.style.border = '1px solid black';
 
                     const barInner = document.createElement('div');
-                    // @TODO Juliacare: pick a colour, and pick a threshold for it to be a different colour
-                    barInner.style.backgroundColor = gauge >= 50 ? '#ffc500' : '#e47e08';
+                    barInner.style.backgroundColor = gauge >= 100 ? '#005170': '#2C9FCB';
                     barInner.style.width = `${gauge}%`;
                     barInner.style.height = '100%';
                     barOuter.appendChild(barInner);

@@ -10,7 +10,6 @@ import {sum} from "@xivgear/util/array_utils";
 import * as Actions from './mch_actions';
 import {BaseMultiCycleSim} from "@xivgear/core/sims/processors/sim_processors";
 import {potionMaxDex} from "../../common/potion";
-
 export interface MchSimResult extends CycleSimResult {
 
 }
@@ -91,22 +90,6 @@ class MchCycleProcessor extends CycleProcessor {
         this.rotationState = new RotationState();
     }
 
-    /** Advances to as late as possible.
-     * NOTE: I'm adding an extra 20ms to each animation lock to make sure we don't hit anything that's impossible to achieve ingame.
-     */
-    // @TODO Juliacare: this function isn't being used anywhere currently
-    advanceForLateWeave(weaves: OgcdAbility[]) {
-        const pingAndServerDelayAdjustment = 0.02;
-        const totalAnimLock = sum(weaves.map(ability => (ability.animationLock ?? STANDARD_ANIMATION_LOCK) + pingAndServerDelayAdjustment));
-        const remainingtime = this.nextGcdTime - this.currentTime;
-
-        if (totalAnimLock > remainingtime) {
-            return;
-        }
-
-        this.advanceTo(this.currentTime + (remainingtime - totalAnimLock));
-    }
-
     applyAutomatonQueenAbility(abilityUsage: AutomatonQueenAbilityUsageTime) {
         const buffs = [...this.getActiveBuffs(abilityUsage.usageTime)];
 
@@ -162,18 +145,12 @@ class MchCycleProcessor extends CycleProcessor {
 
     // If the fight is ending within the next 12 seconds (to dump resources)
     // @TODO Juliacare: this function isn't being used anywhere currently
+    // Need to set up so gauge get dumped at the end of the fight
     fightEndingSoon(): boolean {
         return this.currentTime > (this.totalTime - 12);
     }
 
     // buff checker logic
-    // @TODO Juliacare: this function isn't being used anywhere currently
-    isReassembleBuffActive(): boolean {
-        const buffs = this.getActiveBuffs();
-        const buff = buffs.find(buff => buff.name === ReassembledBuff.name);
-        return buff !== undefined;
-    }
-
     isOverheatedBuffActive(): boolean {
         const buffs = this.getActiveBuffs();
         const buff = buffs.find(buff => buff.name === OverheatedBuff.name);
@@ -199,7 +176,6 @@ class MchCycleProcessor extends CycleProcessor {
     }
 
     // Pot logic
-    // @TODO Juliacare: this function isn't being used anywhere currently
     shouldPot(): boolean {
         const sixMinutesInSeconds = 360;
         const isSixMinuteWindow = this.currentTime % sixMinutesInSeconds < 20;
@@ -209,14 +185,6 @@ class MchCycleProcessor extends CycleProcessor {
     // Time until logic
     getTimeUntilReassembleCapped(): number {
         return this.cdTracker.statusOf(Actions.Reassemble).cappedAt.relative;
-    }
-    // @TODO Juliacare: this function isn't being used anywhere currently
-    getTimeUntilDoubleCheckCapped(): number {
-        return this.cdTracker.statusOf(Actions.DoubleCheck).cappedAt.relative;
-    }
-    // @TODO Juliacare: this function isn't being used anywhere currently
-    getTimeUntilCheckMateCapped(): number {
-        return this.cdTracker.statusOf(Actions.Checkmate).cappedAt.relative;
     }
 }
 
@@ -254,6 +222,8 @@ export class MchSim extends BaseMultiCycleSim<MchSimResult, MchSettings, MchCycl
             fightTime: (8 * 60) + 30,
         };
     }
+    //declare tool gcds
+    private toolGcds = [Actions.AirAnchor, Actions.Chainsaw, Actions.Drill,]
 
     // applyAutomatonQueenAbilities should be called before and after each ability
     // usage to ensure that Automaton Queen abilities are correctly positioned on the timeline.
@@ -274,6 +244,7 @@ export class MchSim extends BaseMultiCycleSim<MchSimResult, MchSettings, MchCycl
 
     // Note: this is stateful, and updates combos to the next combo.
     getGCDToUse(cp: MchCycleProcessor): MchGcdAbility {
+            
         if (cp.isOverheatedBuffActive()) {
             return Actions.BlazingShot;
         }
@@ -304,11 +275,24 @@ export class MchSim extends BaseMultiCycleSim<MchSimResult, MchSettings, MchCycl
 
     // Uses MCH actions as part of a rotation.
     useMchRotation(cp: MchCycleProcessor) {
+        // determine shouldHypercharge
+        const gcdsUntilBurst = Math.floor(cp.tillBurst() / cp.stats.gcdPhys(cp.gcdBase))
+        const toolsUntilBurst = this.toolGcds.reduce(
+            (total, tool) => total + (cp.cdTracker.statusOf(tool).readyAt.relative < cp.tillBurst() ? 1 : 0),
+            0,
+            );
+        const fillerGcdsUntilBurst = gcdsUntilBurst - toolsUntilBurst
+        const heatGeneratedBeforeBurst = Math.floor(fillerGcdsUntilBurst / cp.stats.gcdPhys(cp.gcdBase)*5)
+        const shouldHypercharge = cp.gauge.heatGauge + heatGeneratedBeforeBurst > 100
         ////////
         ///oGCDs
         ////////
 
-        if (cp.canUseWithoutClipping(Actions.Wildfire) && cp.inBurst() && cp.isHyperchargedBuffActive()) {
+        if (cp.shouldPot() && cp.canUseWithoutClipping(potionMaxDex)){
+            this.use(cp, potionMaxDex)
+        }
+
+        if (cp.canUseWithoutClipping(Actions.Wildfire) && cp.inBurst() && cp.isOverheatedBuffActive()) {
             this.use(cp, Actions.Wildfire);
         } // figure out a way to force this to late weave, now just forcing it to look for hypercharged buff
 
@@ -326,21 +310,23 @@ export class MchSim extends BaseMultiCycleSim<MchSimResult, MchSettings, MchCycl
         if (cp.canUseWithoutClipping(Actions.DoubleCheck) && cp.isHyperchargedBuffActive()) {
             this.use(cp, Actions.DoubleCheck);
         }
+        
 
         if (
             cp.canUseWithoutClipping(Actions.Hypercharge) &&
                 (
-                    (cp.tillBurst() < 2.5 || cp.tillBurst() > 30 || cp.inBurst()) &&
+                    (cp.tillBurst() < 2.5 || shouldHypercharge || cp.inBurst()) &&
                     (cp.gauge.heatGauge >= 50 || cp.isHyperchargedBuffActive()) &&
                     cp.cdTracker.statusOf(Actions.AirAnchor).readyAt.relative > 6 &&
                     cp.cdTracker.statusOf(Actions.Chainsaw).readyAt.relative > 6 &&
                     cp.cdTracker.statusOf(Actions.Drill).readyAt.relative > 6 &&
                     !cp.isExcavatorReadyBuffActive() &&
                     !cp.isOverheatedBuffActive()
+                    
                 )
         ) {
             this.use(cp, Actions.Hypercharge);
-        } // figure out a way to make this work better outside of burst
+        }
 
         if (cp.canUseWithoutClipping(Actions.BarrelStabilizer) && (cp.inBurst() || cp.tillBurst() <= 20)) {
             this.use(cp, Actions.BarrelStabilizer);
@@ -362,7 +348,7 @@ export class MchSim extends BaseMultiCycleSim<MchSimResult, MchSettings, MchCycl
                     cp.cdTracker.canUse(Actions.Drill, cp.nextGcdTime) ||
                     cp.cdTracker.canUse(Actions.AirAnchor, cp.nextGcdTime) ||
                     cp.cdTracker.canUse(Actions.Chainsaw, cp.nextGcdTime) ||
-                    cp.cdTracker.canUse(Actions.Excavator, cp.nextGcdTime)
+                    cp.isExcavatorReadyBuffActive()
                 ) && !cp.isOverheatedBuffActive
             )
         ) {
@@ -387,8 +373,8 @@ export class MchSim extends BaseMultiCycleSim<MchSimResult, MchSettings, MchCycl
         ////GCDs
         ////////
         // If we don't have time to use a GCD, return early.
-        if (cp.remainingGcdTime <= 0) {
-            return;
+        if (cp.remainingGcdTime > 0) {
+            this.use(cp, this.getGCDToUse(cp));
         }
 
         this.use(cp, (this.getGCDToUse(cp)));
@@ -396,10 +382,10 @@ export class MchSim extends BaseMultiCycleSim<MchSimResult, MchSettings, MchCycl
 
     useAutomatonQueen(cp: MchCycleProcessor) {
         // After 5.6 delay, it does the following rotation with
-        // 2.5 seconds between each.
+        // 1.5 seconds between each.
         // Arm Punch * 5
-        // Pile Bunker
-        // Crowned Collider
+        // Pile Bunker + 0.5
+        // Crowned Collider + 1.0
         const automatonQueenDelay = 5.6;
         const automatonQueenDelayBetweenAbilities = 1.5;
         cp.AutomatonQueenAbilityUsages.push({
@@ -448,7 +434,7 @@ export class MchSim extends BaseMultiCycleSim<MchSimResult, MchSettings, MchCycl
                 ...Actions.AutomatonQueenPileBunker,
                 potency: 6.8 * cp.gauge.batteryGauge},
             // potency per 1 battery
-            usageTime: cp.currentTime + automatonQueenDelay + 5 * automatonQueenDelayBetweenAbilities,
+            usageTime: cp.currentTime + automatonQueenDelay + 5 * automatonQueenDelayBetweenAbilities + 0.5,
         });
         cp.AutomatonQueenAbilityUsages.push({
             // Crowned Collider
@@ -456,7 +442,7 @@ export class MchSim extends BaseMultiCycleSim<MchSimResult, MchSettings, MchCycl
                 ...Actions.AutomatonQueenCrownedCollider,
                 potency: 7.8 * cp.gauge.batteryGauge},
             // potency per 1 battery
-            usageTime: cp.currentTime + automatonQueenDelay + 6 * automatonQueenDelayBetweenAbilities + 1,
+            usageTime: cp.currentTime + automatonQueenDelay + 6 * automatonQueenDelayBetweenAbilities + 1.0,
             // crowned collider has a recast time of 2.5s instead of 1.5s
         });
         cp.gauge.batteryGauge = 0;
