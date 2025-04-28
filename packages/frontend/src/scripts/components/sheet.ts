@@ -70,7 +70,7 @@ import {parseImport} from "@xivgear/core/imports/imports";
 import {getShortLink} from "@xivgear/core/external/shortlink_server";
 import {getSetFromEtro} from "@xivgear/core/external/etro_import";
 import {getBisSheet} from "@xivgear/core/external/static_bis";
-import {simpleAutoResultTable} from "../sims/components/simple_tables";
+import {simpleKvTable} from "../sims/components/simple_tables";
 import {rangeInc} from "@xivgear/util/array_utils";
 import {SimCurrentResult, SimResult, SimSettings, SimSpec, Simulation} from "@xivgear/core/sims/sim_types";
 import {getRegisteredSimSpecs} from "@xivgear/core/sims/sim_registry";
@@ -90,6 +90,7 @@ import {isInIframe} from "@xivgear/common-ui/util/detect_iframe";
 import {recordError, recordEvent} from "@xivgear/common-ui/analytics/analytics";
 import {ExpandableText} from "@xivgear/common-ui/components/expandy_text";
 import {setDataManagerErrorReporter} from "@xivgear/core/datamanager_new";
+import {SheetInfoModal} from "./sheet_info_modal";
 
 const noSeparators = (set: CharacterGearSet) => !set.isSeparator;
 
@@ -735,7 +736,7 @@ export class SimResultDetailDisplay<X extends SimResult> extends HTMLElement {
             }
             else {
                 // TODO: style this properly
-                const tbl = simpleAutoResultTable(this._result.result);
+                const tbl = simpleKvTable(this._result.result);
                 tbl.classList.add('sim-basic-result-table');
                 this.replaceChildren(tbl);
             }
@@ -906,19 +907,23 @@ export class GearSetEditor extends HTMLElement {
         const leftSideSlots = ['Head', 'Body', 'Hand', 'Legs', 'Feet'] as const;
         const rightSideSlots = ['Ears', 'Neck', 'Wrist', 'RingLeft', 'RingRight'] as const;
 
-        const weaponTable = new GearItemsTable(this.sheet, this.gearSet, itemMapping, this.sheet.classJobStats.offhand ? ['Weapon', 'OffHand'] : ['Weapon']);
+        const showHideAllCallback = () => {
+            this.gearTables.forEach(tbl => tbl.recheckHiddenSlots());
+        };
+
+        const weaponTable = new GearItemsTable(this.sheet, this.gearSet, itemMapping, this.sheet.classJobStats.offhand ? ['Weapon', 'OffHand'] : ['Weapon'], showHideAllCallback);
         const leftSideDiv = document.createElement('div');
         const rightSideDiv = document.createElement('div');
 
         this.gearTables = [weaponTable];
 
         for (const slot of leftSideSlots) {
-            const table = new GearItemsTable(this.sheet, this.gearSet, itemMapping, [slot]);
+            const table = new GearItemsTable(this.sheet, this.gearSet, itemMapping, [slot], showHideAllCallback);
             leftSideDiv.appendChild(table);
             this.gearTables.push(table);
         }
         for (const slot of rightSideSlots) {
-            const table = new GearItemsTable(this.sheet, this.gearSet, itemMapping, [slot]);
+            const table = new GearItemsTable(this.sheet, this.gearSet, itemMapping, [slot], showHideAllCallback);
             rightSideDiv.appendChild(table);
             this.gearTables.push(table);
         }
@@ -1399,6 +1404,13 @@ export class GearPlanSheetGui extends GearPlanSheet {
         this.resetEditorArea();
     }
 
+    get selectedGearSet(): CharacterGearSet | null {
+        if (this._editorItem instanceof CharacterGearSet) {
+            return this._editorItem;
+        }
+        return null;
+    }
+
     get isViewOnly() {
         return super.isViewOnly;
     }
@@ -1502,6 +1514,13 @@ export class GearPlanSheetGui extends GearPlanSheet {
             // buttonsArea.appendChild(renameButton);
             buttonsArea.appendChild(sheetOptions);
         }
+        sheetOptions.addAction({
+            label: 'Sheet/Set Info...',
+            action: () => {
+                const selectedGearSet = this.selectedGearSet;
+                new SheetInfoModal(this, selectedGearSet).attachAndShow();
+            },
+        });
 
         const siFmt = formatSyncInfo(this.syncInfo, this.level);
         if (siFmt !== null) {
@@ -1517,6 +1536,7 @@ export class GearPlanSheetGui extends GearPlanSheet {
                 modal.attachAndShow();
             });
             buttonsArea.appendChild(saveAsButton);
+            buttonsArea.appendChild(sheetOptions);
         }
         else {
             sheetOptions.addAction({
@@ -1555,12 +1575,12 @@ export class GearPlanSheetGui extends GearPlanSheet {
             exportPicker.addAction({
                 label: "Selected Set",
                 action: () => {
-                    const selection = sheet.editorItem;
-                    if (selection instanceof CharacterGearSet) {
-                        startExport(selection);
+                    const selection = sheet.selectedGearSet;
+                    if (!selection) {
+                        alert("Select a gear set first");
                     }
                     else {
-                        alert("Select a gear set first");
+                        startExport(selection);
                     }
                 },
             });
@@ -1674,8 +1694,8 @@ export class GearPlanSheetGui extends GearPlanSheet {
         const outer = this;
 
         function doSet(f: (set: CharacterGearSet) => void): void {
-            let set;
-            if ((set = outer._editorItem) instanceof CharacterGearSet) {
+            const set = outer.selectedGearSet;
+            if (set) {
                 f(set);
                 if (outer._editorAreaNode instanceof GearSetEditor) {
                     outer._editorAreaNode.refreshMateria();
@@ -1951,7 +1971,7 @@ export class GearPlanSheetGui extends GearPlanSheet {
      * Refreshes the toolbar. Should be called when switching sets.
      */
     refreshToolbar() {
-        if (this._editorItem instanceof CharacterGearSet) {
+        if (this.selectedGearSet !== null) {
             if (this.toolbarNode !== undefined && 'refresh' in this.toolbarNode && typeof this.toolbarNode.refresh === 'function') {
                 this.toolbarNode.refresh(this._editorItem);
             }
@@ -2004,14 +2024,15 @@ export class GearPlanSheetGui extends GearPlanSheet {
      * Show the meld solving modal.
      */
     showMeldSolveDialog() {
-        if (!(this._editorItem instanceof CharacterGearSet)) {
+        const selectedSet = this.selectedGearSet;
+        if (!selectedSet) {
             return;
         }
         if (this.sims.length === 0) {
             alert('You must add a simulation to the sheet before you can use the meld solver.');
             return;
         }
-        const meldSolveDialog = new MeldSolverDialog(this, this.editorItem as CharacterGearSet);
+        const meldSolveDialog = new MeldSolverDialog(this, selectedSet);
         document.querySelector('body').appendChild(meldSolveDialog);
         meldSolveDialog.show();
     }

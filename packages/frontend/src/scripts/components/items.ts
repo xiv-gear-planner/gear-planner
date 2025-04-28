@@ -46,7 +46,7 @@ import {AllSlotMateriaManager} from "./materia";
 import {shortenItemName} from "@xivgear/util/strutils";
 import {GearPlanSheet} from "@xivgear/core/sheet";
 import {makeRelicStatEditor} from "./relic_stats";
-import {ShowHideButton} from "@xivgear/common-ui/components/show_hide_chevron";
+import {ShowHideButton, ShowHideCallback} from "@xivgear/common-ui/components/show_hide_chevron";
 import {BaseModal} from "@xivgear/common-ui/components/modal";
 import {recordSheetEvent} from "../analytics/analytics";
 
@@ -451,30 +451,37 @@ function itemTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, stat: 
     };
 }
 
-function makeShowHideRow(label: string, initiallyHidden: boolean = false, setter: (newValue: boolean) => void, extraElements: HTMLElement[] = []): SpecialRow<CustomTable<GearSlotItem>> {
+function makeShowHideRow(label: string, initiallyHidden: boolean = false, setter: ShowHideCallback, extraElements: HTMLElement[] = []): {
+    row: SpecialRow<CustomTable<GearSlotItem>>,
+    setState: (hidden: boolean) => void,
+} {
 
     const showHide = new ShowHideButton(initiallyHidden, setter);
 
-    return new SpecialRow<CustomTable<GearSlotItem>>(
-        tbl => {
-            const div = document.createElement('div');
-            div.classList.add('special-row-holder');
-            const text = document.createElement('span');
-            text.textContent = label;
-            div.appendChild(text);
-            // div.classList.add('weapon-ilvl-bypass-setting');
-            div.appendChild(showHide);
-            extraElements.forEach(el => {
-                div.appendChild(el);
-            });
-            return div;
-        }, row => {
-            row.addEventListener('click', () => showHide.toggle());
-            if (row.cells.length) {
-                row.cells.item(0).classList.add('hoverable');
-            }
-        }
-    );
+    return {
+        row: new SpecialRow<CustomTable<GearSlotItem>>(
+            tbl => {
+                const div = document.createElement('div');
+                div.classList.add('special-row-holder');
+                const text = document.createElement('span');
+                text.textContent = label;
+                div.appendChild(text);
+                // div.classList.add('weapon-ilvl-bypass-setting');
+                div.appendChild(showHide);
+                extraElements.forEach(el => {
+                    div.appendChild(el);
+                });
+                return div;
+            }, row => {
+                row.addEventListener('click', (e) => {
+                    showHide.toggle(e.detail);
+                });
+                if (row.cells.length) {
+                    row.cells.item(0).classList.add('hoverable');
+                }
+            }),
+        setState: hidden => showHide.isHidden = hidden,
+    };
 }
 
 /**
@@ -483,8 +490,9 @@ function makeShowHideRow(label: string, initiallyHidden: boolean = false, setter
 export class GearItemsTable extends CustomTable<GearSlotItem, TableSelectionModel<GearSlotItem, never, never, EquipmentSet>> {
     private readonly materiaManagers: AllSlotMateriaManager[];
     private selectionTracker: Map<keyof EquipmentSet, CustomRow<GearSlotItem> | GearSlotItem>;
+    private showHideCallbacks: Map<keyof EquipmentSet, (value: boolean) => void> = new Map();
 
-    constructor(sheet: GearPlanSheet, private readonly gearSet: CharacterGearSet, itemMapping: Map<DisplayGearSlot, GearItem[]>, handledSlots?: EquipSlotKey[]) {
+    constructor(sheet: GearPlanSheet, private readonly gearSet: CharacterGearSet, itemMapping: Map<DisplayGearSlot, GearItem[]>, handledSlots: EquipSlotKey[], afterShowHideAll: () => void) {
         super();
         this.classList.add("gear-items-table");
         this.classList.add("gear-items-edit-table");
@@ -616,13 +624,24 @@ export class GearItemsTable extends CustomTable<GearSlotItem, TableSelectionMode
             }
             // TODO: initial value needs to apply to this
             // TODO: just make the getters/setters on this class instead
-            data.push(makeShowHideRow(slot.name, gearSet.isSlotCollapsed(slotId), (val) => {
-                gearSet.setSlotCollapsed(slotId, val);
-                recordSheetEvent('hideSlot', sheet, {
-                    hidden: val,
-                });
-                this.updateShowHide();
-            }, extras));
+            const showHideRow = makeShowHideRow(slot.name, gearSet.isSlotCollapsed(slotId), (val, count) => {
+                if (count === 1) {
+                    gearSet.setSlotCollapsed(slotId, val);
+                    recordSheetEvent('hideSlot', sheet, {
+                        hidden: val,
+                    });
+                    this.updateShowHide();
+                }
+                else if (count === 2) {
+                    gearSet.setAllSlotsCollapsed(val);
+                    recordSheetEvent('hideAllSlots', sheet, {
+                        hidden: val,
+                    });
+                    afterShowHideAll();
+                }
+            }, extras);
+            data.push(showHideRow.row);
+            this.showHideCallbacks.set(slotId, showHideRow.setState);
             let itemsInSlot = itemMapping.get(slot.gearSlot);
             if (itemsInSlot === undefined) {
                 itemsInSlot = [];
@@ -722,7 +741,12 @@ export class GearItemsTable extends CustomTable<GearSlotItem, TableSelectionMode
         this.materiaManagers.forEach(mgr => {
             mgr.updateDisplay();
         });
+    }
 
+    recheckHiddenSlots() {
+        this.showHideCallbacks.forEach((fn, slot) => {
+            fn(this.gearSet.isSlotCollapsed(slot));
+        });
     }
 
     private updateShowHide() {

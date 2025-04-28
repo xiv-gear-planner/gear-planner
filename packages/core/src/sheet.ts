@@ -74,7 +74,16 @@ export class SheetProvider<SheetType extends GearPlanSheet> {
      * @param importedData
      */
     fromExport(importedData: SheetExport): SheetType {
-        return this.construct(undefined, importedData);
+        const sheet = this.construct(undefined, importedData);
+        // If sims are not specified at all in the import, add the defaults.
+        // Note that this will not add sims if they are specified as [], only
+        // if unspecified.
+        // We check the import data here as the sheet will have sims = [] at this
+        // point.
+        if (importedData.sims === undefined) {
+            sheet.addDefaultSims();
+        }
+        return sheet;
     }
 
     /**
@@ -100,6 +109,7 @@ export class SheetProvider<SheetType extends GearPlanSheet> {
             // TODO: make these smarter - make them deduplicate identical items
             customItems: importedData.flatMap(imp => imp.customItems ?? []),
             customFoods: importedData.flatMap(imp => imp.customFoods ?? []),
+            timestamp: importedData[0].timestamp,
         });
         if (importedData[0].sims === undefined) {
             gearPlanSheet.addDefaultSims();
@@ -213,6 +223,7 @@ export class GearPlanSheet {
     // Temporal state
     private readonly saveTimer: Inactivitytimer;
 
+    private _timestamp: Date;
 
     // Can't make ctor private for custom element, but DO NOT call this directly - use fromSaved or fromScratch
     constructor(sheetKey: string, importedData: SheetExport) {
@@ -257,6 +268,12 @@ export class GearPlanSheet {
             importedData.customFoods.forEach(ci => {
                 this._customFoods.push(CustomFood.fromExport(ci));
             });
+        }
+        if (importedData.timestamp) {
+            this._timestamp = new Date(importedData.timestamp);
+        }
+        else {
+            this._timestamp = new Date();
         }
 
         // Early gui setup
@@ -411,6 +428,7 @@ export class GearPlanSheet {
         }
         if (this.saveKey) {
             console.log("Saving sheet " + this.sheetName);
+            this._timestamp = new Date();
             const fullExport = this.exportSheet(false);
             localStorage.setItem(this.saveKey, JSON.stringify(fullExport));
         }
@@ -531,6 +549,7 @@ export class GearPlanSheet {
             description: this.description,
             customItems: this._customItems.map(ci => ci.export()),
             customFoods: this._customFoods.map(cf => cf.export()),
+            timestamp: this.timestamp.getTime(),
         };
         if (!external) {
             out.saveKey = this._saveKey;
@@ -727,6 +746,25 @@ export class GearPlanSheet {
      */
     ilvlSyncInfo(ilvl: number): IlvlSyncInfo | undefined {
         return this.dataManager?.getIlvlSyncInfo(ilvl);
+    }
+
+    /**
+     * Return the highest ilvl of non-custom items in a particular slot
+     *
+     * @param slot
+     */
+    highestIlvlForSlot(slot: OccGearSlotKey): number {
+        return Math.max(...this.dataManager.allItems.filter(item => item.occGearSlotName === slot)
+            .map(item => item.ilvl));
+    }
+
+    /**
+     * Returns the highest
+     * @param slot
+     */
+    highestIlvlItemForSlot(slot: OccGearSlotKey): GearItem | undefined {
+        return this.dataManager.allItems.filter(item => item.occGearSlotName === slot)
+            .sort((a, b) => b.ilvl - a.ilvl)[0];
     }
 
     /**
@@ -1224,5 +1262,10 @@ export class GearPlanSheet {
                 };
             }
         }
+    }
+
+
+    get timestamp(): Date {
+        return this._timestamp;
     }
 }

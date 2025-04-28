@@ -54,11 +54,15 @@ export class DataSelect<X> extends HTMLSelectElement {
 
 let idCounter = 1;
 
+export function randomId(prefix: string = 'unique-id-') : string{
+    return prefix + (idCounter++);
+}
+
 export function labelFor(label: string, labelFor: HTMLElement) {
     const element = document.createElement("label");
     element.textContent = label;
     if (!labelFor.id) {
-        labelFor.id = 'lbl-id-' + idCounter++;
+        labelFor.id = randomId('lbl-id-');
     }
     element.htmlFor = labelFor.id;
     return element;

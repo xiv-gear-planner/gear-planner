@@ -170,6 +170,11 @@ export class SetDisplaySettings {
         this.hiddenSlots.set(slot, hidden);
     }
 
+    setAllHidden(hidden: boolean) {
+        console.log("setAllHidden: " + hidden);
+        EquipSlots.forEach(slot => this.setSlotHidden(slot, hidden));
+    }
+
     export(): SetDisplaySettingsExport {
         const hiddenSlots: EquipSlotKey[] = [];
         this.hiddenSlots.forEach((value, key) => {
@@ -887,8 +892,6 @@ export class CharacterGearSet {
         return this._sheet.isStatRelevant(stat);
     }
 
-    private collapsed: boolean;
-
     /**
      * Whether a particular slot should be collapsed on the UI.
      * @param slotId
@@ -899,6 +902,10 @@ export class CharacterGearSet {
 
     setSlotCollapsed(slotId: EquipSlotKey, val: boolean) {
         this.displaySettings.setSlotHidden(slotId, val);
+    }
+
+    setAllSlotsCollapsed(val: boolean) {
+        this.displaySettings.setAllHidden(val);
     }
 
     /*
@@ -1089,6 +1096,36 @@ export class CharacterGearSet {
                 f(key, item, item.melds[i], i);
             }
         });
+    }
+
+    get avgIlvl(): number {
+        /*
+        Rules:
+        Empty slots count as zero.
+        BLU mainhand is ignored.
+        2H weapon counts as two slots.
+         */
+        // Rules: Empty slots count as 0
+        const values: number[] = [];
+        this.forEachSlot((key, itemMaybe) => {
+            if (key === 'Weapon' || key === 'OffHand') {
+                // These will be computed separately
+                return;
+            }
+            values.push(itemMaybe ? itemMaybe.gearItem.ilvl : 0);
+        });
+        // ignore BLU weapon
+        if (this.sheet.classJobName !== 'BLU') {
+            const weap = this.equipment.Weapon;
+            if (weap && weap.gearItem.occGearSlotName === 'Weapon2H') {
+                values.push(weap.gearItem.ilvl, weap.gearItem.ilvl);
+            }
+            else {
+                values.push(weap?.gearItem.ilvl ?? 0);
+                values.push(this.equipment.OffHand?.gearItem.ilvl ?? 0);
+            }
+        }
+        return values.reduce((a, b) => a + b) / values.length;
     }
 }
 

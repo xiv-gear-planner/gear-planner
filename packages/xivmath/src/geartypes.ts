@@ -716,6 +716,11 @@ export interface SheetExport {
      * Custom foods
      */
     customFoods?: CustomFoodExport[],
+
+    /**
+     * Unix timestamp
+     */
+    timestamp?: number,
 }
 
 export type CustomItemExport = {
@@ -845,6 +850,10 @@ export interface SetExportExternalSingle extends SetExport {
      * The character clan (e.g. Wildwood or Duskwight) of the sheet.
      */
     race?: RaceName,
+    /**
+     * Unix timestamp
+     */
+    timestamp?: number,
 }
 
 /**

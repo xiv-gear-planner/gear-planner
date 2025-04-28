@@ -8,7 +8,7 @@ import {quickElement} from "@xivgear/common-ui/components/util";
 import {abilityEquals} from "@xivgear/core/sims/ability_helpers";
 import {applyStdDev} from "@xivgear/xivmath/deviation";
 import {col, CustomColumn, CustomTable, HeaderRow} from "@xivgear/common-ui/table/tables";
-import {simpleAutoResultTable} from "./components/simple_tables";
+import {simpleKvTable} from "./components/simple_tables";
 import {BaseUsageCountSim, CountSimResult, ExternalCountSettings} from "@xivgear/core/sims/processors/count_sim";
 
 export class BaseUsageCountSimGui<ResultType extends CountSimResult, InternalSettingsType extends SimSettings>
@@ -46,7 +46,7 @@ export class BaseUsageCountSimGui<ResultType extends CountSimResult, InternalSet
 
     makeResultDisplay(result: ResultType): HTMLElement {
         // noinspection JSNonASCIINames
-        const mainResultsTable = simpleAutoResultTable({
+        const mainResultsTable = simpleKvTable({
             "Expected DPS": result.mainDpsFull.expected,
             "Std Deviation": result.mainDpsFull.stdDev,
             "Expected +1σ": applyStdDev(result.mainDpsFull, 1),
