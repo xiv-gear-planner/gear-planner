@@ -19,7 +19,7 @@
     <inspection_tool class="HtmlUnknownTag" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="myValues">
         <value>
-          <list size="52">
+          <list size="54">
             <item index="0" class="java.lang.String" itemvalue="nobr" />
             <item index="1" class="java.lang.String" itemvalue="noembed" />
             <item index="2" class="java.lang.String" itemvalue="comment" />
@@ -72,6 +72,8 @@
             <item index="49" class="java.lang.String" itemvalue="separator-editor" />
             <item index="50" class="java.lang.String" itemvalue="bis-browser" />
             <item index="51" class="java.lang.String" itemvalue="sheet-info-modal" />
+            <item index="52" class="java.lang.String" itemvalue="gauge-outer" />
+            <item index="53" class="java.lang.String" itemvalue="gauge-bar" />
           </list>
         </value>
       </option>

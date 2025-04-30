@@ -492,7 +492,8 @@ export type PreDmgUsedAbility = {
      */
     lockTime: number
     /**
-     * Extra data relating to the ability used. Useful for
+     * Extra data relating to the ability used. Useful for sims which wish to attach their own gauge information
+     * for display in the results.
      */
     extraData?: object
 };

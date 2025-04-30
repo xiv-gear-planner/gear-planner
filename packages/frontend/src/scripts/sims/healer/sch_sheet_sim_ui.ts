@@ -1,4 +1,4 @@
-import {FieldBoundIntField, labelFor, nonNegative} from "@xivgear/common-ui/components/util";
+import {FieldBoundIntField, labelFor, nonNegative, quickElement} from "@xivgear/common-ui/components/util";
 import {AbilitiesUsedTable} from "../components/ability_used_table";
 import {BaseMultiCycleSimGui} from "../multicyclesim_ui";
 import {CycleSimResult, DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/core/sims/cycle_sim";
@@ -17,30 +17,13 @@ class SchGaugeGui {
                 if (usedAbility?.extraData !== undefined) {
                     const aetherflow = (usedAbility.extraData as SchExtraData).gauge.aetherflow;
 
-                    const div = document.createElement('div');
-                    div.style.height = '100%';
-                    div.style.display = 'flex';
-                    div.style.alignItems = 'center';
-                    div.style.justifyContent = 'center';
-                    div.style.gap = '4px';
-                    div.style.padding = '2px 0 2px 0';
-                    div.style.boxSizing = 'border-box';
+                    const children = [];
 
                     for (let i = 1; i <= 3; i++) {
-                        const stack = document.createElement('span');
-                        stack.style.clipPath = `polygon(0 50%, 50% 0, 100% 50%, 50% 100%, 0% 50%)`;
-                        stack.style.background = '#00000033';
-                        stack.style.height = '100%';
-                        stack.style.width = '16px';
-                        stack.style.display = 'inline-block';
-                        stack.style.overflow = 'hidden';
-                        if (i <= aetherflow) {
-                            stack.style.background = '#0FFF33';
-                        }
-                        div.appendChild(stack);
+                        children.push(quickElement('span', [i <= aetherflow ? 'sch-gauge-active' : 'sch-gauge-default'], []));
                     }
 
-                    return div;
+                    return quickElement('div', ['icon-gauge-holder'], children);
                 }
                 return document.createTextNode("");
             },

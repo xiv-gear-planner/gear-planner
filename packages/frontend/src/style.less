@@ -48,6 +48,14 @@ sim-result-detail-display {
   width: fit-content;
 }
 
+.gear-sheet-editor-area  {
+  sim-result-detail-display  {
+    width: 100%;
+    height: 100%;
+  }
+}
+
+
 meld-solver-result-dialog {
   // The main body of the results
   .meld-solver-result {
@@ -196,7 +204,7 @@ img.item-rarity-relic {
     align-items: center;
 
     .ffxiv-ability-icon {
-      max-height: 100%;
+      height: 100%;
       display: block;
       aspect-ratio: 1;
     }
@@ -254,6 +262,7 @@ img.item-rarity-relic {
           height: 100%;
           flex-shrink: 0;
           padding-right: 2px;
+          aspect-ratio: 0.75;
         }
 
         span {
