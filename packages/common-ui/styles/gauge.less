@@ -1,3 +1,8 @@
+body {
+  --default-gauge-color: #00000033;
+}
+
+// gauge-outer and gauge-bar pertain to the "bar"-style guage display
 gauge-outer {
   display: flex;
   align-items: center;
@@ -15,11 +20,148 @@ gauge-bar {
   overflow: hidden;
   width: 120px;
   border-radius: 20px;
-  background-color: #00000033;
+  background-color: var(--default-gauge-color);
   height: calc(100% - 3px);
   border: 1px solid black;
 
   .gauge-bar-inner {
     height: 100%;
   }
+}
+
+.icon-gauge-holder {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 2px 0;
+  box-sizing: border-box;
+
+  > span:empty {
+    height: 100%;
+    width: 16px;
+    display: inline-block;
+    overflow: hidden;
+  }
+}
+
+.shape-diamond {
+  clip-path: polygon(0 50%, 50% 0, 100% 50%, 50% 100%, 0% 50%);
+}
+
+.shape-circle {
+  clip-path: circle();
+}
+
+// WHM
+.whm-gauge {
+  .shape-diamond;
+}
+
+.whm-gauge-default {
+  .whm-gauge;
+  background-color: var(--default-gauge-color);
+}
+
+.whm-gauge-blue {
+  .whm-gauge;
+  background-color: #02d9c3;
+}
+
+.whm-gauge-red {
+  .whm-gauge;
+  background-color: #ff0033;
+}
+
+.sch-gauge {
+  .shape-diamond;
+}
+
+// SCH
+.sch-gauge-default {
+  .sch-gauge;
+  background-color: var(--default-gauge-color);
+}
+
+.sch-gauge-active {
+  .sch-gauge;
+  background-color: #0FFF33;
+}
+
+// MNK
+.mnk-chakra-gauge {
+  .shape-circle;
+}
+.mnk-chakra-gauge-default {
+  .mnk-chakra-gauge;
+  background-color: var(--default-gauge-color);
+}
+.mnk-chakra-gauge-red {
+  .mnk-chakra-gauge;
+  background-color: #f32908;
+}
+.mnk-chakra-gauge-orange {
+  .mnk-chakra-gauge;
+  background-color: #f37208;
+}
+
+.mnk-beastfury-gauge {
+  .shape-circle;
+}
+.mnk-beastfury-gauge-default {
+  .mnk-beastfury-gauge;
+  background-color: var(--default-gauge-color);
+}
+.mnk-beastfury-gauge-opo {
+  .mnk-beastfury-gauge;
+  background-color: #f796c6;
+}
+.mnk-beastfury-gauge-raptor {
+  .mnk-beastfury-gauge;
+  background-color: #cd9bff;
+}
+.mnk-beastfury-gauge-coeurl {
+  .mnk-beastfury-gauge;
+  background-color: #83ffaa;
+}
+
+.mnk-nadi-gauge {
+  .shape-circle;
+}
+.mnk-nadi-gauge-default {
+  .mnk-nadi-gauge;
+  background-color: var(--default-gauge-color);
+}
+.mnk-nadi-gauge-lunar {
+  .mnk-nadi-gauge;
+  background-color: #bd86ff;
+}
+.mnk-nadi-gauge-solar {
+  .mnk-nadi-gauge;
+  background-color: #ffffff;
+}
+td[col-id="nadi"] {
+  padding-left: 12px;
+  padding-right: 12px;
+}
+
+.mnk-beastchakra-gauge {
+  .shape-diamond;
+}
+.mnk-beastchakra-gauge-default {
+  .mnk-beastchakra-gauge;
+  background-color: var(--default-gauge-color);
+}
+.mnk-beastchakra-gauge-opo {
+  .mnk-beastchakra-gauge;
+  background-color: #f786bd;
+}
+.mnk-beastchakra-gauge-raptor {
+  .mnk-beastchakra-gauge;
+  background-color: #ad79d6;
+}
+.mnk-beastchakra-gauge-coeurl {
+  .mnk-beastchakra-gauge;
+  background-color: #65b291;
 }

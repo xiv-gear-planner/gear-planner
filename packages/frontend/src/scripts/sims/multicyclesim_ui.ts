@@ -144,13 +144,18 @@ export class BaseMultiCycleSimGui<ResultType extends CycleSimResult, InternalSet
                     quickElement('div', ['scroll-table-holder'], [rotationsTable]),
                 ]),
                 mainHolder,
-                quickElement('div', ['cycle-sim-table-holder', 'cycle-sim-abilities-holder'], [abilitiesUsedTable]),
+                quickElement('div', ['cycle-sim-table-holder', 'cycle-sim-abilities-holder'], [
+                    quickElement('div', ['scroll-table-holder'], [abilitiesUsedTable]),
+                ]),
             ]);
         }
         else {
-            return quickElement('div', ['cycle-sim-results', 'cycle-sim-results-simple'], [
+            mainHolder.classList.add('cycle-sim-one-rotation');
+            return quickElement('div', ['cycle-sim-results', 'cycle-sim-results-full'], [
                 mainHolder,
-                quickElement('div', ['cycle-sim-table-holder', 'cycle-sim-abilities-holder'], [abilitiesUsedTable]),
+                quickElement('div', ['cycle-sim-table-holder', 'cycle-sim-abilities-holder'], [
+                    quickElement('div', ['scroll-table-holder'], [abilitiesUsedTable]),
+                ]),
             ]);
         }
     }
