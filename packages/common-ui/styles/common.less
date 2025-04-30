@@ -3754,7 +3754,7 @@ expandable-text {
     margin: auto;
 
     @media screen and (max-width: 625px) {
-      grid-template-columns: 100%;
+      grid-template-columns: 1fr;
       grid-template-rows: auto auto 1fr;
       .cycle-sim-abilities-holder {
         grid-column-end: span 1 !important;
@@ -3783,6 +3783,9 @@ expandable-text {
     }
 
     .cycle-sim-main-holder {
+      &.cycle-sim-one-rotation {
+        grid-column: 1/-1;
+      }
       > table > * > tr > td {
         width: 150px;
       }
