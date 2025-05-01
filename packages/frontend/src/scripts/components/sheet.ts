@@ -483,8 +483,6 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, SingleCellRowOr
                         const icon = iconForIssues(...issues);
                         icon.classList.add('gear-set-issue-icon');
                         nameSpan.prepend(icon);
-                        // elements.unshift(icon);
-                        // div.appendChild(icon);
                         title += '\nThis set has problems:';
                         for (const issue of issues) {
                             let titlePart = `${capitalizeFirstLetter(issue.severity)}: ${issue.description}`;
@@ -503,9 +501,8 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, SingleCellRowOr
                     }
                     return div;
                 },
-                // initialWidth: 300,
             },
-            ...(viewOnly ? simColumns : []),
+            ...simColumns,
             ...gcdColumns,
             {
                 shortName: "wd",
@@ -610,7 +607,6 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, SingleCellRowOr
                 extraClasses: ['stat-col', 'multiplier-mit-stat-col', 'stat-col-less-important'],
                 rowCondition: noSeparators,
             }),
-            ...(viewOnly ? [] : simColumns),
         ];
     }
 
