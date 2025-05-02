@@ -10,9 +10,10 @@ import {
 } from "@xivgear/common-ui/table/tables";
 import {NamedSection} from "./section";
 import {BIS_BROWSER_HASH, BIS_HASH} from "@xivgear/core/nav/common_nav";
-import {JOB_DATA} from "@xivgear/xivmath/xivconstants";
+import {JOB_DATA, JOB_IDS, JobName} from "@xivgear/xivmath/xivconstants";
 import {makeActionButton, mySheetsIcon, quickElement} from "@xivgear/common-ui/components/util";
 import {capitalizeFirstLetter} from "@xivgear/util/strutils";
+import {JobIcon} from "./job_icon";
 
 type NodeInfo = {
     name: string,
@@ -40,12 +41,19 @@ export class BisBrowser {
                 getter(item: AnyNode): string {
                     return item.type;
                 },
-                renderer(itemType: AnyNode['type']) {
+                renderer(itemType: AnyNode['type'], node: AnyNode) {
                     if (itemType === 'file') {
                         return quickElement('b', [], ['🗋']);
                     }
                     else {
-                        return mySheetsIcon();
+                        const jobNameMaybe = node.fileName.toUpperCase() as JobName;
+                        const jobId = JOB_IDS[jobNameMaybe];
+                        if (jobId) {
+                            return new JobIcon(jobNameMaybe);
+                        }
+                        else {
+                            return mySheetsIcon();
+                        }
                     }
                 },
                 fixedWidth: 30,
