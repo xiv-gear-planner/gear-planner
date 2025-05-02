@@ -1,4 +1,5 @@
 import {
+    col,
     CustomCell,
     CustomColumn,
     CustomRow,
@@ -7,10 +8,11 @@ import {
     TitleRow
 } from "@xivgear/common-ui/table/tables";
 import {SheetExport} from "@xivgear/xivmath/geartypes";
-import {faIcon, makeActionButton} from "@xivgear/common-ui/components/util";
+import {faIcon, makeActionButton, quickElement} from "@xivgear/common-ui/components/util";
 import {deleteSheetByKey} from "@xivgear/core/persistence/saved_sheets";
 import {getHashForSaveKey, openSheetByKey, showNewSheetForm} from "../base_ui";
 import {confirmDelete} from "@xivgear/common-ui/components/delete_confirm";
+import {JobIcon} from "./job_icon";
 
 export class SheetPickerTable extends CustomTable<SheetExport, TableSelectionModel<SheetExport, never, never, SheetExport | null>> {
     constructor() {
@@ -45,22 +47,27 @@ export class SheetPickerTable extends CustomTable<SheetExport, TableSelectionMod
                     return div;
                 },
             },
+            col({
+                shortName: "sheetjob",
+                displayName: "Job",
+                getter: sheet => sheet.job,
+                renderer: job => {
+                    return document.createTextNode(job);
+                },
+            }),
+            col({
+                shortName: "sheetjobicon",
+                displayName: "Job Icon",
+                getter: sheet => sheet.job,
+                renderer: job => {
+                    return new JobIcon(job);
+                },
+            }),
             {
                 shortName: "sheetlevel",
                 displayName: "Lvl",
                 getter: sheet => sheet.level,
                 fixedWidth: 40,
-            },
-            {
-                shortName: "sheetjob",
-                displayName: "Job",
-                getter: sheet => sheet.job,
-                // renderer: job => {
-                //     const out = document.createElement('div');
-                //     out.replaceChildren(new JobIcon(job), job);
-                //     return out;
-                // },
-                fixedWidth: 60,
             },
             {
                 shortName: "sheetname",

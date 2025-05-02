@@ -985,6 +985,24 @@ div.chance-stat-display, div.multiplier-stat-display, div.multiplier-mit-stat-di
       td {
         border: none;
         border-top: var(--standard-border);
+        height: 23px;
+
+        &[col-id="sheetjob"] {
+          // Why does this work
+          width: 0;
+          text-align: right;
+          img {
+            height: 100%;
+          }
+
+        }
+        &[col-id="sheetjobicon"] {
+          width: 30px;
+          img {
+            height: 100%;
+          }
+
+        }
       }
 
       th {
