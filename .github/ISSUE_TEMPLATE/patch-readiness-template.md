@@ -9,6 +9,7 @@ assignees: ''
 
 Automated:
 - [X] Update game data from Xivapi
+  - [ ] If Xivapi has not tagged the new version, manually restart data api
 
 Manual:
 - [ ] Update sims with new potencies and other job mechanics
