@@ -592,8 +592,6 @@ class MeldSolverConfirmationDialog extends BaseModal {
                 const newSlot = newEq.melds[i];
                 oldSlot.equippedMateria = newSlot.equippedMateria;
             }
-
-            oldEq.melds = newEq.melds;
         }
     }
 
