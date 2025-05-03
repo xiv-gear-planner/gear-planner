@@ -4,11 +4,12 @@ import {
     CustomColumn,
     CustomRow,
     CustomTable,
-    SpecialRow, TableSelectionModel,
+    SpecialRow,
+    TableSelectionModel,
     TitleRow
 } from "@xivgear/common-ui/table/tables";
 import {SheetExport} from "@xivgear/xivmath/geartypes";
-import {faIcon, makeActionButton, quickElement} from "@xivgear/common-ui/components/util";
+import {faIcon, makeActionButton} from "@xivgear/common-ui/components/util";
 import {deleteSheetByKey} from "@xivgear/core/persistence/saved_sheets";
 import {getHashForSaveKey, openSheetByKey, showNewSheetForm} from "../base_ui";
 import {confirmDelete} from "@xivgear/common-ui/components/delete_confirm";
