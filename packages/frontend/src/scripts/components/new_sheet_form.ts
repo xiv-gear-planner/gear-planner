@@ -144,7 +144,7 @@ export class NewSheetForm extends HTMLFormElement {
         this.appendChild(this.submitButton);
 
         onsubmit = (ev) => {
-            this.doSubmit();
+            this.doSubmit(ev);
         };
     }
 
@@ -156,9 +156,15 @@ export class NewSheetForm extends HTMLFormElement {
         this.fieldSet.recheck();
     }
 
-    private doSubmit() {
+    private doSubmit(ev: SubmitEvent) {
         const result = this.fieldSet.validateIsync();
         if (!result) {
+            ev.preventDefault();
+            return;
+        }
+        if (this.fieldSet.jobPicker.selectedJob === null) {
+            alert("Please select a job");
+            ev.preventDefault();
             return;
         }
         const nextSheetSaveStub = getNextSheetInternalName();
@@ -232,11 +238,17 @@ function spacer() {
     return quickElement('div', ['vertical-spacer'], []);
 }
 
+/**
+ * JobPicker provides a graphical job selection UI
+ */
 class JobPicker extends HTMLElement {
 
     private _selectedJob: JobName | null = null;
     private _selectedSelector: HTMLButtonElement | null = null;
 
+    /**
+     * @param defaultJob The job to default to, or null if nothing should be selected by default.
+     */
     constructor(defaultJob: JobName | null) {
         super();
         const tankDiv = quickElement('div', ['job-picker-section', 'job-picker-section-tank'], []);

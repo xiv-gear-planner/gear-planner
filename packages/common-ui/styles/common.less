@@ -977,13 +977,13 @@ job-picker {
       --role-color: var(--role-color-dps);
     }
 
-    padding-top: 20px;
-    display: flex;
+    padding-top: 10px;
+    display: grid;
+    grid-template-columns: repeat(6, 40px);
     flex-direction: row;
     flex-wrap: wrap;
     align-items: center;
-    gap: 50px;
-    max-width: 500px;
+    gap: 5px;
 
 
     .job-picker-job-icon {
@@ -998,8 +998,8 @@ job-picker {
       filter: saturate(50%);
 
       img {
-        width: 64px;
-        height: 64px;
+        width: 100%;
+        height: 100%;
         max-height: unset;
         //opacity: 50%;
       }
@@ -1012,7 +1012,17 @@ job-picker {
         }
       }
 
+      &:active {
+        border-color: #00000000;
+        filter: brightness(80%);
+      }
+
       &.selected {
+        &:active {
+          border-color: #00000000;
+          filter: drop-shadow(0 0 10px var(--role-color)) saturate(200%) brightness(80%);
+        }
+
         // This has a LOWER z-index so that the shadows do not appear over other buttons
         z-index: 2;
         //background-color: var(--role-color);
