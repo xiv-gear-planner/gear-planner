@@ -1003,6 +1003,7 @@ export function itemIconRenderer<RowType>(): CellRenderer<RowType, XivItem> {
         image.setAttribute('intrinsicsize', '80x80');
         image.src = img.toString();
         image.classList.add('item-icon');
+        // TODO: should this behavior be part of ItemIcon + use that?
         if ('rarity' in item) {
             const rarity = item.rarity as number;
             switch (rarity) {

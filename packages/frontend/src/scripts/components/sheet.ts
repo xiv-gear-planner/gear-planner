@@ -91,6 +91,7 @@ import {recordError, recordEvent} from "@xivgear/common-ui/analytics/analytics";
 import {ExpandableText} from "@xivgear/common-ui/components/expandy_text";
 import {setDataManagerErrorReporter} from "@xivgear/core/datamanager_new";
 import {SheetInfoModal} from "./sheet_info_modal";
+import {JobIcon} from "./job_icon";
 
 const noSeparators = (set: CharacterGearSet) => !set.isSeparator;
 
@@ -2282,12 +2283,29 @@ export class AddSimDialog extends BaseModal {
         this.table.selectionModel = selModel;
         this.table.classList.add('hoverable');
         this.table.columns = [
-            {
-                shortName: 'sim-space-name',
+            col({
+                shortName: 'sim-job-icon',
+                displayName: 'Icon',
+                // fixedWidth: 500,
+                getter: item => item.supportedJobs,
+                renderer: (value) => {
+                    if (!value) {
+                        return document.createTextNode('');
+                    }
+                    if (value.length === 1) {
+                        return new JobIcon(value[0]);
+                    }
+                    // TODO: use role icon for sims that support entire roles
+                    // Role icons start at 062581
+                    return document.createTextNode('');
+                },
+            }),
+            col({
+                shortName: 'sim-name',
                 displayName: 'Name',
                 // fixedWidth: 500,
                 getter: item => item.displayName,
-            },
+            }),
         ];
         this.table.data = this.sheet.relevantSims;
         const showAllCb = labeledCheckbox('Show sims for other jobs', new FieldBoundCheckBox<AddSimDialog>(this, 'showAllSims'));

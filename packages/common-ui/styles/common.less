@@ -72,6 +72,9 @@ body {
   --issue-error-color: #9c0000;
   --toolbar-button-size: 40px;
   --toolbar-border-radius: 8px;
+  --role-color-tank: #4848ff;
+  --role-color-healer: #13a813;;
+  --role-color-dps: #ff0000;
 
 
   &.light-mode {
@@ -958,6 +961,81 @@ div.chance-stat-display, div.multiplier-stat-display, div.multiplier-mit-stat-di
   }
 }
 
+job-picker {
+  .job-picker-section {
+    &.job-picker-section-tank {
+      --role-color: var(--role-color-tank);
+    }
+
+    &.job-picker-section-healer {
+      --role-color: var(--role-color-healer);
+    }
+
+    &.job-picker-section-melee,
+    &.job-picker-section-range,
+    &.job-picker-section-caster {
+      --role-color: var(--role-color-dps);
+    }
+
+    padding-top: 10px;
+    display: grid;
+    grid-template-columns: repeat(6, 40px);
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 5px;
+
+
+    .job-picker-job-icon {
+      //flex-basis: 25%;
+      flex-grow: 0;
+      height: 40px;
+      width: 40px;
+      background: none;
+      padding: 0;
+      position: relative;
+      z-index: 5;
+      filter: saturate(50%);
+
+      img {
+        width: 100%;
+        height: 100%;
+        max-height: unset;
+        //opacity: 50%;
+      }
+
+      &:hover {
+        filter: saturate(200%);
+
+        img {
+          opacity: 100%;
+        }
+      }
+
+      &:active {
+        border-color: #00000000;
+        filter: brightness(80%);
+      }
+
+      &.selected {
+        &:active {
+          border-color: #00000000;
+          filter: drop-shadow(0 0 10px var(--role-color)) saturate(200%) brightness(80%);
+        }
+
+        // This has a LOWER z-index so that the shadows do not appear over other buttons
+        z-index: 2;
+        //background-color: var(--role-color);
+        filter: drop-shadow(0 0 10px var(--role-color)) saturate(200%);
+
+        img {
+          opacity: 100%;
+        }
+      }
+    }
+  }
+}
+
 #content-area > .my-sheets-section {
   .named-section-content-area {
     width: 600px;
@@ -985,6 +1063,27 @@ div.chance-stat-display, div.multiplier-stat-display, div.multiplier-mit-stat-di
       td {
         border: none;
         border-top: var(--standard-border);
+        height: 23px;
+
+        &[col-id="sheetjob"] {
+          // Why does this work
+          width: 0;
+          text-align: right;
+
+          img {
+            height: 100%;
+          }
+
+        }
+
+        &[col-id="sheetjobicon"] {
+          width: 30px;
+
+          img {
+            height: 100%;
+          }
+
+        }
       }
 
       th {
@@ -1099,6 +1198,10 @@ div.chance-stat-display, div.multiplier-stat-display, div.multiplier-mit-stat-di
         &[col-id="type"] {
           font-size: 30px;
           text-align: center;
+
+          img {
+            width: 100%;
+          }
         }
 
         &[col-id="name"] {
@@ -1708,6 +1811,15 @@ add-sim-dialog {
       margin-right: 0;
       max-width: 100%;
       width: 100%;
+
+      td[col-id="sim-job-icon"] {
+        width: 1px;
+        height: 23px;
+
+        img {
+          height: 100%;
+        }
+      }
     }
   }
 
@@ -1765,6 +1877,7 @@ add-sim-dialog {
     > .named-section {
       .named-section-standard;
       width: 100%;
+
       .named-section-content-area {
         overflow: visible;
         overflow-x: clip;
@@ -3157,9 +3270,41 @@ rename-dialog {
 }
 
 .ffxiv-job-icon {
-  max-height: 100%;
   display: block;
   aspect-ratio: 1;
+  box-sizing: border-box;
+  // Alt text should be white for better contrast
+  color: white;
+
+  border-radius: 20%;
+  border: 4px ridge #927d59;
+
+  &.job-picker-section-tank {
+    --role-color: var(--role-color-tank);
+  }
+
+  &.job-picker-section-healer {
+    --role-color: var(--role-color-healer);
+  }
+
+  &.job-picker-section-melee,
+  &.job-picker-section-range,
+  &.job-picker-section-caster {
+    --role-color: var(--role-color-dps);
+  }
+
+  background: linear-gradient(var(--role-color), color-mix(in srgb, var(--role-color) 50%, #000));
+
+  &.loaded {
+    border-radius: unset;
+    background: unset;
+    border: none;
+  }
+
+  &:not(.loaded) {
+    filter: saturate(40%);
+  }
+
 }
 
 .svg-glyph {
@@ -3766,6 +3911,7 @@ expandable-text {
       grid-column-end: span 2;
       max-width: 100%;
       overflow: auto;
+
       .scroll-table-holder {
         overflow-x: auto;
         min-height: 100%;
@@ -3776,6 +3922,7 @@ expandable-text {
 
     .cycle-sim-rotations-holder {
       min-height: 0;
+
       .scroll-table-holder {
         min-height: 100%;
         max-height: 150px;
@@ -3786,6 +3933,7 @@ expandable-text {
       &.cycle-sim-one-rotation {
         grid-column: 1/-1;
       }
+
       > table > * > tr > td {
         width: 150px;
       }
