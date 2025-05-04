@@ -10,9 +10,9 @@ import {
     SheetStatsExport,
     TopLevelExport
 } from "@xivgear/xivmath/geartypes";
-import {getBisSheet, getBisSheetFetchUrl} from "@xivgear/core/external/static_bis";
+import {getBisIndexAt, getBisIndexUrl, getBisSheet, getBisSheetFetchUrl} from "@xivgear/core/external/static_bis";
 import {HEADLESS_SHEET_PROVIDER} from "@xivgear/core/sheet";
-import {JobName, MAX_PARTY_BONUS} from "@xivgear/xivmath/xivconstants";
+import {JOB_DATA, JobName, MAX_PARTY_BONUS} from "@xivgear/xivmath/xivconstants";
 import cors from '@fastify/cors';
 import {
     DEFAULT_DESC,
@@ -138,6 +138,26 @@ function fillSheetData(preloadUrl: NavResult['preloadUrl'], sheetData: Promise<E
     };
 }
 
+function fillBisBrowserData(path: string[]): NavResult {
+    // const ourNode = await getBisIndex();
+    const ourNode = getBisIndexAt(path).then(idx => {
+        if (idx.type === 'dir') {
+            return idx;
+        }
+        else {
+            throw new Error(`Not valid: ${path}`);
+        }
+    });
+    const job = (path.find(element => element.toUpperCase() in JOB_DATA)?.toUpperCase() as JobName ?? undefined);
+    return {
+        description: Promise.resolve(job ? `Best-in-Slot Gear Sets for ${job} in Final Fantasy XIV` : "Best-in-Slot Gear Sets for Final Fantasy XIV"),
+        job: Promise.resolve(job),
+        name: ourNode.then(n => n.fileName),
+        preloadUrl: getBisIndexUrl(),
+        sheetData: null,
+    };
+}
+
 function resolveNavData(nav: NavPath | null): NavResult | null {
     if (nav === null) {
         return null;
@@ -155,6 +175,8 @@ function resolveNavData(nav: NavPath | null): NavResult | null {
             return fillSheetData(null, Promise.resolve(nav.jsonBlob as TopLevelExport), undefined);
         case "bis":
             return fillSheetData(getBisSheetFetchUrl(nav.path), getBisSheet(nav.path).then(JSON.parse), nav.onlySetIndex);
+        case "bisbrowser":
+            return fillBisBrowserData(nav.path);
     }
     throw Error(`Unable to resolve nav result: ${nav.type}`);
 }
