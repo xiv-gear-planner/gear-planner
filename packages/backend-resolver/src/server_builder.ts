@@ -112,7 +112,30 @@ function buildServerBase() {
 
 type NavResult = {
     preloadUrl: URL | null,
-    sheetData: Promise<(ExportedData)>
+    sheetData: Promise<ExportedData> | null,
+    name: Promise<string | undefined>,
+    description: Promise<string | undefined>,
+    job: Promise<JobName | undefined>,
+}
+
+function fillSheetData(preloadUrl: NavResult['preloadUrl'], sheetData: Promise<ExportedData>, osIndex: number | undefined): NavResult {
+    const processed: Promise<[name: string | undefined, desc: string | undefined, job: JobName | undefined]> = sheetData.then(exported => {
+        let set = undefined;
+        if (osIndex !== undefined && 'sets' in exported) {
+            set = exported.sets[osIndex] as SetExport;
+        }
+        const name = set?.['name'] || exported['name'];
+        const desc = set?.['description'] || exported['description'];
+        const job = exported.job;
+        return [name, desc, job];
+    });
+    return {
+        preloadUrl: preloadUrl,
+        sheetData: sheetData,
+        name: processed.then(p => p[0]),
+        description: processed.then(p => p[1]),
+        job: processed.then(p => p[2]),
+    };
 }
 
 function resolveNavData(nav: NavPath | null): NavResult | null {
@@ -126,21 +149,12 @@ function resolveNavData(nav: NavPath | null): NavResult | null {
             return null;
         case "shortlink":
             // TODO: combine these into one call
-            return {
-                preloadUrl: getShortlinkFetchUrl(nav.uuid),
-                sheetData: getShortLink(nav.uuid).then(JSON.parse),
-            };
+            return fillSheetData(getShortlinkFetchUrl(nav.uuid), getShortLink(nav.uuid).then(JSON.parse), nav.onlySetIndex);
         case "setjson":
         case "sheetjson":
-            return {
-                preloadUrl: null,
-                sheetData: Promise.resolve(nav.jsonBlob as TopLevelExport),
-            };
+            return fillSheetData(null, Promise.resolve(nav.jsonBlob as TopLevelExport), undefined);
         case "bis":
-            return {
-                preloadUrl: getBisSheetFetchUrl(nav.path),
-                sheetData: getBisSheet(nav.path).then(JSON.parse),
-            };
+            return fillSheetData(getBisSheetFetchUrl(nav.path), getBisSheet(nav.path).then(JSON.parse), nav.onlySetIndex);
     }
     throw Error(`Unable to resolve nav result: ${nav.type}`);
 }
@@ -165,16 +179,16 @@ export function buildStatsServer() {
         const nav = parsePath(state);
         request.log.info(pathPaths, 'Path');
         const navResult = resolveNavData(nav);
-        if (nav !== null && navResult !== null) {
+        if (nav !== null && navResult !== null && navResult.sheetData !== null) {
             const exported: ExportedData = await navResult.sheetData;
             reply.header("cache-control", "max-age=7200, public");
-            if ('sets' in exported) {
+            if ('sets' in exported && osIndex === undefined) {
                 reply.send({
                     isValid: false,
                     reason: "full sheets cannot be embedded",
                 } satisfies EmbedCheckResponse);
             }
-            else if ("embed" in nav && nav.embed) {
+            else if ('embed' in nav && nav.embed) {
                 reply.send({
                     isValid: true,
                 } satisfies EmbedCheckResponse);
@@ -203,7 +217,7 @@ export function buildStatsServer() {
         const nav = parsePath(state);
         request.log.info(pathPaths, 'Path');
         const navResult = resolveNavData(nav);
-        if (nav !== null && navResult !== null) {
+        if (nav !== null && navResult !== null && navResult.sheetData !== null) {
             const exported: ExportedData = await navResult.sheetData;
             reply.header("cache-control", "max-age=7200, public");
             reply.send(exported);
@@ -221,7 +235,7 @@ export function buildStatsServer() {
         const nav = parsePath(state);
         request.log.info(pathPaths, 'Path');
         const navResult = resolveNavData(nav);
-        if (nav !== null && navResult !== null) {
+        if (nav !== null && navResult !== null && navResult.sheetData !== null) {
             const exported: ExportedData = await navResult.sheetData;
             const out = await importExportSheet(request, exported as (SetExport | SheetExport), nav);
             reply.header("cache-control", "max-age=7200, public");
@@ -325,16 +339,9 @@ export function buildPreviewServer() {
             request.log.info(pathPaths, 'Path');
             const navResult = resolveNavData(nav);
             if (navResult !== null) {
-                const exported = await navResult.sheetData;
                 const sheetDataPreloadUrl = navResult.preloadUrl;
-                let name: string;
-                let desc: string;
-                let set = undefined;
-                if (osIndex !== undefined && 'sets' in exported) {
-                    set = exported.sets[osIndex] as SetExport;
-                }
-                name = set?.['name'] || exported['name'] || "";
-                desc = set?.['description'] || exported['description'] || "";
+                let name = await navResult.name || "";
+                let desc = await navResult.description || "";
                 if (name.length > PREVIEW_MAX_NAME_LENGTH) {
                     name = name.substring(0, PREVIEW_MAX_NAME_LENGTH) + "…";
                 }
@@ -380,7 +387,7 @@ export function buildPreviewServer() {
 
                 // Inject preload properties based on job
                 // The rest are part of the static html
-                const job = exported.job;
+                const job = await navResult.job;
                 if (job) {
                     addFetchPreload(`https://data.xivgear.app/Items?job=${job}`);
                 }

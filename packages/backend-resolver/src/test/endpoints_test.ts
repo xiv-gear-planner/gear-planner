@@ -1,6 +1,6 @@
 import '../polyfills';
 import assert from "assert";
-import {buildPreviewServer, buildStatsServer} from "../server_builder";
+import {buildPreviewServer, buildStatsServer, EmbedCheckResponse} from "../server_builder";
 import {SheetStatsExport} from "@xivgear/xivmath/geartypes";
 import {BIS_HASH, SHORTLINK_HASH} from "@xivgear/core/nav/common_nav";
 
@@ -274,5 +274,76 @@ describe("backend servers", () => {
             assert.equal(props['og:title'], setTitle);
             assert.equal(props['og:description'], setDesc);
         }).timeout(30_000);
+    });
+    describe("validateEmbed endpoint", () => {
+        const fastify = buildStatsServer();
+        it('passes BiS with onlySetIndex', async () => {
+            const response = await fastify.inject({
+                method: 'GET',
+                url: `/validateEmbed?page=embed|${BIS_HASH}|sge|endwalker|anabaseios&onlySetIndex=2`,
+            });
+            assert.equal(response.statusCode, 200);
+            const json = response.json() as EmbedCheckResponse;
+            assert.deepStrictEqual(json, {
+                isValid: true,
+            } satisfies EmbedCheckResponse);
+        });
+        it('rejects BiS without onlySetIndex', async () => {
+            const response = await fastify.inject({
+                method: 'GET',
+                url: `/validateEmbed?page=embed|${BIS_HASH}|sge|endwalker|anabaseios`,
+            });
+            const json = response.json() as EmbedCheckResponse;
+            assert.deepStrictEqual(json, {
+                isValid: false,
+                reason: 'full sheets cannot be embedded',
+            } satisfies EmbedCheckResponse);
+        });
+        it('rejects BiS without embed', async () => {
+            const response = await fastify.inject({
+                method: 'GET',
+                url: `/validateEmbed?page=${BIS_HASH}|sge|endwalker|anabaseios&onlySetIndex=2`,
+            });
+            assert.equal(response.statusCode, 200);
+            const json = response.json() as EmbedCheckResponse;
+            assert.deepStrictEqual(json, {
+                isValid: false,
+                reason: 'not an embed',
+            } satisfies EmbedCheckResponse);
+        });
+        it('passes full-sheet shortlink with onlySetIndex', async () => {
+            const response = await fastify.inject({
+                method: 'GET',
+                url: `/validateEmbed?page=embed|sl|14433fae-67c1-4727-b772-54a07914fc03&onlySetIndex=2`,
+            });
+            assert.equal(response.statusCode, 200);
+            const json = response.json() as EmbedCheckResponse;
+            assert.deepStrictEqual(json, {
+                isValid: true,
+            } satisfies EmbedCheckResponse);
+        });
+        it('rejects full-sheet shortlink without onlySetIndex', async () => {
+            const response = await fastify.inject({
+                method: 'GET',
+                url: `/validateEmbed?page=embed|sl|14433fae-67c1-4727-b772-54a07914fc03`,
+            });
+            assert.equal(response.statusCode, 200);
+            const json = response.json() as EmbedCheckResponse;
+            assert.deepStrictEqual(json, {
+                isValid: false,
+                reason: 'full sheets cannot be embedded',
+            } satisfies EmbedCheckResponse);
+        });
+        it('passes single-set shortlink with onlySetIndex', async () => {
+            const response = await fastify.inject({
+                method: 'GET',
+                url: `/validateEmbed?page=embed|sl|0cd5874c-6322-4396-99be-2089d6222d9c`,
+            });
+            assert.equal(response.statusCode, 200);
+            const json = response.json() as EmbedCheckResponse;
+            assert.deepStrictEqual(json, {
+                isValid: true,
+            } satisfies EmbedCheckResponse);
+        });
     });
 });
