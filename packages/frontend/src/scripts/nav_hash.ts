@@ -13,7 +13,7 @@ import {
 import {earlyEmbedInit} from "./embed";
 import {SetExport, SheetExport} from "@xivgear/xivmath/geartypes";
 import {getShortLink} from "@xivgear/core/external/shortlink_server";
-import {AnyNode, getBisIndex, getBisIndexAt, getBisSheet} from "@xivgear/core/external/static_bis";
+import {getBisIndexAt, getBisSheet} from "@xivgear/core/external/static_bis";
 
 import {
     formatTopMenu,
