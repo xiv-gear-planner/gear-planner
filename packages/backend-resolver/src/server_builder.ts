@@ -139,20 +139,25 @@ function fillSheetData(preloadUrl: NavResult['preloadUrl'], sheetData: Promise<E
 }
 
 function fillBisBrowserData(path: string[]): NavResult {
-    // const ourNode = await getBisIndex();
-    const ourNode = getBisIndexAt(path).then(idx => {
-        if (idx.type === 'dir') {
-            return idx;
+    const job = (path.find(element => element.toUpperCase() in JOB_DATA)?.toUpperCase() as JobName ?? undefined);
+    // Join the path parts with spaces, but make each individual part either start with a capital, or entirely capitalized
+    // if it looks like a job name. If path is empty, use undefined instead.
+    const label: string | undefined = path.length > 0 ? path.map(pathPart => {
+        const upper = pathPart.toUpperCase();
+        if (upper in JOB_DATA) {
+            return upper;
+        }
+        else if (upper) {
+            return `${pathPart.slice(0, 1).toUpperCase() + pathPart.slice(1)}`;
         }
         else {
-            throw new Error(`Not valid: ${path}`);
+            return pathPart;
         }
-    });
-    const job = (path.find(element => element.toUpperCase() in JOB_DATA)?.toUpperCase() as JobName ?? undefined);
+    }).join(" ") : undefined;
     return {
-        description: Promise.resolve(job ? `Best-in-Slot Gear Sets for ${job} in Final Fantasy XIV` : "Best-in-Slot Gear Sets for Final Fantasy XIV"),
+        description: Promise.resolve(label ? `Best-in-Slot Gear Sets for ${label} in Final Fantasy XIV` : "Best-in-Slot Gear Sets for Final Fantasy XIV"),
         job: Promise.resolve(job),
-        name: ourNode.then(n => n.fileName),
+        name: Promise.resolve(label ? label + ' BiS' : undefined),
         preloadUrl: getBisIndexUrl(),
         sheetData: null,
     };
