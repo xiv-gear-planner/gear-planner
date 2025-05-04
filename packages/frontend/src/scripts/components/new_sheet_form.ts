@@ -294,7 +294,7 @@ class JobPicker extends HTMLElement {
                 this._selectedSelector = jobSelector;
             });
         });
-        this.replaceChildren(healerDiv, tankDiv, meleeDiv, rangeDiv, casterDiv);
+        this.replaceChildren(tankDiv, healerDiv, meleeDiv, rangeDiv, casterDiv);
     }
 
     get selectedJob(): JobName | null {
