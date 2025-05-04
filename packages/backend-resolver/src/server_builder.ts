@@ -10,7 +10,7 @@ import {
     SheetStatsExport,
     TopLevelExport
 } from "@xivgear/xivmath/geartypes";
-import {getBisIndexAt, getBisIndexUrl, getBisSheet, getBisSheetFetchUrl} from "@xivgear/core/external/static_bis";
+import {getBisIndexUrl, getBisSheet, getBisSheetFetchUrl} from "@xivgear/core/external/static_bis";
 import {HEADLESS_SHEET_PROVIDER} from "@xivgear/core/sheet";
 import {JOB_DATA, JobName, MAX_PARTY_BONUS} from "@xivgear/xivmath/xivconstants";
 import cors from '@fastify/cors';
