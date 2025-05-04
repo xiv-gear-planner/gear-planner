@@ -989,8 +989,8 @@ job-picker {
     .job-picker-job-icon {
       //flex-basis: 25%;
       flex-grow: 0;
-      height: fit-content;
-      width: fit-content;
+      height: 40px;
+      width: 40px;
       background: none;
       padding: 0;
       position: relative;
@@ -3270,9 +3270,41 @@ rename-dialog {
 }
 
 .ffxiv-job-icon {
-  max-height: 100%;
   display: block;
   aspect-ratio: 1;
+  box-sizing: border-box;
+  // Alt text should be white for better contrast
+  color: white;
+
+  border-radius: 20%;
+  border: 4px ridge #927d59;
+
+  &.job-picker-section-tank {
+    --role-color: var(--role-color-tank);
+  }
+
+  &.job-picker-section-healer {
+    --role-color: var(--role-color-healer);
+  }
+
+  &.job-picker-section-melee,
+  &.job-picker-section-range,
+  &.job-picker-section-caster {
+    --role-color: var(--role-color-dps);
+  }
+
+  background: linear-gradient(var(--role-color), color-mix(in srgb, var(--role-color) 50%, #000));
+
+  &.loaded {
+    border-radius: unset;
+    background: unset;
+    border: none;
+  }
+
+  &:not(.loaded) {
+    filter: saturate(40%);
+  }
+
 }
 
 .svg-glyph {

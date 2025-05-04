@@ -30,6 +30,9 @@ export class JobIcon extends HTMLImageElement {
         // Rather, it seems that it's just 062100 + id (or 062000 if you don't want the border)
         const iconId = 62100 + id;
         this.src = xivApiIconUrl(iconId, true);
+        this.addEventListener('load', () => {
+            this.classList.add('loaded');
+        });
     }
 }
 
