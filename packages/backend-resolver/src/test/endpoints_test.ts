@@ -1,8 +1,8 @@
 import '../polyfills';
 import assert from "assert";
-import {buildPreviewServer, buildStatsServer} from "../server_builder";
+import {buildPreviewServer, buildStatsServer, EmbedCheckResponse} from "../server_builder";
 import {SheetStatsExport} from "@xivgear/xivmath/geartypes";
-import {BIS_HASH, SHORTLINK_HASH} from "@xivgear/core/nav/common_nav";
+import {BIS_BROWSER_HASH, BIS_HASH, SHORTLINK_HASH} from "@xivgear/core/nav/common_nav";
 
 function readPreviewProps(document: Document): Record<string, string> {
     const out: Record<string, string> = {};
@@ -274,5 +274,204 @@ describe("backend servers", () => {
             assert.equal(props['og:title'], setTitle);
             assert.equal(props['og:description'], setDesc);
         }).timeout(30_000);
+        it("resolves bisbrowser link with no job", async () => {
+            const response = await fastify.inject({
+                method: 'GET',
+                url: `/?page=${BIS_BROWSER_HASH}`,
+            });
+            assert.equal(response.statusCode, 200);
+            const parsed = parser.parseFromString(response.body, 'text/html');
+
+            const setTitle = 'XivGear - FFXIV Gear Planner';
+            const setDesc = 'Best-in-Slot Gear Sets for Final Fantasy XIV\n\nXivGear is an advanced and easy-to-use FFXIV gear planner/set builder with built-in simulation support.';
+
+            assert.equal(parsed.querySelector('title')?.textContent, setTitle);
+
+            // Check the preloads
+            const preloads = Array.from(parsed.querySelectorAll('link'))
+                .filter(link => link.rel === 'preload');
+
+            const bisIndexPreload = preloads[preloads.length - 1];
+            assert.equal(bisIndexPreload.getAttribute('rel'), "preload");
+            assert.equal(bisIndexPreload.getAttribute('href'), 'https://staticbis.xivgear.app/_index.json');
+            assert.equal(bisIndexPreload.getAttribute('as'), "fetch");
+            assert.equal(bisIndexPreload.hasAttribute('crossorigin'), true);
+
+            const props = readPreviewProps(parsed);
+            assert.equal(props['og:site_name'], 'XivGear');
+            assert.equal(props['og:type'], 'website');
+            assert.equal(props['og:title'], setTitle);
+            assert.equal(props['og:description'], setDesc);
+        }).timeout(30_000);
+        it("resolves bisbrowser link with a job", async () => {
+            const response = await fastify.inject({
+                method: 'GET',
+                url: `/?page=${BIS_BROWSER_HASH}|sge|endwalker`,
+            });
+            assert.equal(response.statusCode, 200);
+            const parsed = parser.parseFromString(response.body, 'text/html');
+
+            const setTitle = 'SGE Endwalker BiS - XivGear - FFXIV Gear Planner';
+            const setDesc = 'Best-in-Slot Gear Sets for SGE Endwalker in Final Fantasy XIV\n\nXivGear is an advanced and easy-to-use FFXIV gear planner/set builder with built-in simulation support.';
+
+            assert.equal(parsed.querySelector('title')?.textContent, setTitle);
+
+            // Check the preloads
+            const preloads = Array.from(parsed.querySelectorAll('link'))
+                .filter(link => link.rel === 'preload');
+
+            const bisIndexPreload = preloads[preloads.length - 1];
+            assert.equal(bisIndexPreload.getAttribute('rel'), "preload");
+            assert.equal(bisIndexPreload.getAttribute('href'), 'https://staticbis.xivgear.app/_index.json');
+            assert.equal(bisIndexPreload.getAttribute('as'), "fetch");
+            assert.equal(bisIndexPreload.hasAttribute('crossorigin'), true);
+
+            const jobPreload = preloads[preloads.length - 2];
+            assert.equal(jobPreload.getAttribute('rel'), "preload");
+            assert.equal(jobPreload.getAttribute('href'), "https://data.xivgear.app/Items?job=SGE");
+            assert.equal(jobPreload.getAttribute('as'), "fetch");
+            assert.equal(jobPreload.hasAttribute('crossorigin'), true);
+
+            const props = readPreviewProps(parsed);
+            assert.equal(props['og:site_name'], 'XivGear');
+            assert.equal(props['og:type'], 'website');
+            assert.equal(props['og:title'], setTitle);
+            assert.equal(props['og:description'], setDesc);
+        }).timeout(30_000);
+        it("resolves invalid bisbrowser link with no job", async () => {
+            const response = await fastify.inject({
+                method: 'GET',
+                url: `/?page=${BIS_BROWSER_HASH}|foo|bar`,
+            });
+            assert.equal(response.statusCode, 200);
+            const parsed = parser.parseFromString(response.body, 'text/html');
+
+            const setTitle = 'Foo Bar BiS - XivGear - FFXIV Gear Planner';
+            const setDesc = 'Best-in-Slot Gear Sets for Foo Bar in Final Fantasy XIV\n\nXivGear is an advanced and easy-to-use FFXIV gear planner/set builder with built-in simulation support.';
+
+            assert.equal(parsed.querySelector('title')?.textContent, setTitle);
+
+            // Check the preloads
+            const preloads = Array.from(parsed.querySelectorAll('link'))
+                .filter(link => link.rel === 'preload');
+
+            const bisIndexPreload = preloads[preloads.length - 1];
+            assert.equal(bisIndexPreload.getAttribute('rel'), "preload");
+            assert.equal(bisIndexPreload.getAttribute('href'), 'https://staticbis.xivgear.app/_index.json');
+            assert.equal(bisIndexPreload.getAttribute('as'), "fetch");
+            assert.equal(bisIndexPreload.hasAttribute('crossorigin'), true);
+
+            const props = readPreviewProps(parsed);
+            assert.equal(props['og:site_name'], 'XivGear');
+            assert.equal(props['og:type'], 'website');
+            assert.equal(props['og:title'], setTitle);
+            assert.equal(props['og:description'], setDesc);
+        }).timeout(30_000);
+        it("resolves invalid bisbrowser link with a job", async () => {
+            const response = await fastify.inject({
+                method: 'GET',
+                url: `/?page=${BIS_BROWSER_HASH}|sge|endwalker2`,
+            });
+            assert.equal(response.statusCode, 200);
+            const parsed = parser.parseFromString(response.body, 'text/html');
+
+            const setTitle = 'SGE Endwalker2 BiS - XivGear - FFXIV Gear Planner';
+            const setDesc = 'Best-in-Slot Gear Sets for SGE Endwalker2 in Final Fantasy XIV\n\nXivGear is an advanced and easy-to-use FFXIV gear planner/set builder with built-in simulation support.';
+
+            assert.equal(parsed.querySelector('title')?.textContent, setTitle);
+
+            // Check the preloads
+            const preloads = Array.from(parsed.querySelectorAll('link'))
+                .filter(link => link.rel === 'preload');
+
+            const bisIndexPreload = preloads[preloads.length - 1];
+            assert.equal(bisIndexPreload.getAttribute('rel'), "preload");
+            assert.equal(bisIndexPreload.getAttribute('href'), 'https://staticbis.xivgear.app/_index.json');
+            assert.equal(bisIndexPreload.getAttribute('as'), "fetch");
+            assert.equal(bisIndexPreload.hasAttribute('crossorigin'), true);
+
+            const jobPreload = preloads[preloads.length - 2];
+            assert.equal(jobPreload.getAttribute('rel'), "preload");
+            assert.equal(jobPreload.getAttribute('href'), "https://data.xivgear.app/Items?job=SGE");
+            assert.equal(jobPreload.getAttribute('as'), "fetch");
+            assert.equal(jobPreload.hasAttribute('crossorigin'), true);
+
+            const props = readPreviewProps(parsed);
+            assert.equal(props['og:site_name'], 'XivGear');
+            assert.equal(props['og:type'], 'website');
+            assert.equal(props['og:title'], setTitle);
+            assert.equal(props['og:description'], setDesc);
+        }).timeout(30_000);
+    });
+    describe("validateEmbed endpoint", () => {
+        const fastify = buildStatsServer();
+        it('passes BiS with onlySetIndex', async () => {
+            const response = await fastify.inject({
+                method: 'GET',
+                url: `/validateEmbed?page=embed|${BIS_HASH}|sge|endwalker|anabaseios&onlySetIndex=2`,
+            });
+            assert.equal(response.statusCode, 200);
+            const json = response.json() as EmbedCheckResponse;
+            assert.deepStrictEqual(json, {
+                isValid: true,
+            } satisfies EmbedCheckResponse);
+        });
+        it('rejects BiS without onlySetIndex', async () => {
+            const response = await fastify.inject({
+                method: 'GET',
+                url: `/validateEmbed?page=embed|${BIS_HASH}|sge|endwalker|anabaseios`,
+            });
+            const json = response.json() as EmbedCheckResponse;
+            assert.deepStrictEqual(json, {
+                isValid: false,
+                reason: 'full sheets cannot be embedded',
+            } satisfies EmbedCheckResponse);
+        });
+        it('rejects BiS without embed', async () => {
+            const response = await fastify.inject({
+                method: 'GET',
+                url: `/validateEmbed?page=${BIS_HASH}|sge|endwalker|anabaseios&onlySetIndex=2`,
+            });
+            assert.equal(response.statusCode, 200);
+            const json = response.json() as EmbedCheckResponse;
+            assert.deepStrictEqual(json, {
+                isValid: false,
+                reason: 'not an embed',
+            } satisfies EmbedCheckResponse);
+        });
+        it('passes full-sheet shortlink with onlySetIndex', async () => {
+            const response = await fastify.inject({
+                method: 'GET',
+                url: `/validateEmbed?page=embed|sl|14433fae-67c1-4727-b772-54a07914fc03&onlySetIndex=2`,
+            });
+            assert.equal(response.statusCode, 200);
+            const json = response.json() as EmbedCheckResponse;
+            assert.deepStrictEqual(json, {
+                isValid: true,
+            } satisfies EmbedCheckResponse);
+        });
+        it('rejects full-sheet shortlink without onlySetIndex', async () => {
+            const response = await fastify.inject({
+                method: 'GET',
+                url: `/validateEmbed?page=embed|sl|14433fae-67c1-4727-b772-54a07914fc03`,
+            });
+            assert.equal(response.statusCode, 200);
+            const json = response.json() as EmbedCheckResponse;
+            assert.deepStrictEqual(json, {
+                isValid: false,
+                reason: 'full sheets cannot be embedded',
+            } satisfies EmbedCheckResponse);
+        });
+        it('passes single-set shortlink with onlySetIndex', async () => {
+            const response = await fastify.inject({
+                method: 'GET',
+                url: `/validateEmbed?page=embed|sl|0cd5874c-6322-4396-99be-2089d6222d9c`,
+            });
+            assert.equal(response.statusCode, 200);
+            const json = response.json() as EmbedCheckResponse;
+            assert.deepStrictEqual(json, {
+                isValid: true,
+            } satisfies EmbedCheckResponse);
+        });
     });
 });

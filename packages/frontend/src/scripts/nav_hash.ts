@@ -13,7 +13,7 @@ import {
 import {earlyEmbedInit} from "./embed";
 import {SetExport, SheetExport} from "@xivgear/xivmath/geartypes";
 import {getShortLink} from "@xivgear/core/external/shortlink_server";
-import {AnyNode, getBisIndex, getBisSheet} from "@xivgear/core/external/static_bis";
+import {getBisIndexAt, getBisSheet} from "@xivgear/core/external/static_bis";
 
 import {
     formatTopMenu,
@@ -193,20 +193,15 @@ async function doNav(navState: NavState) {
                 showLoadingScreen();
                 try {
                     // TODO: have it display a placeholder component until loaded
-                    const index = await getBisIndex();
-                    let current: AnyNode = index;
-                    nav.path.forEach(pathPart => {
-                        if (current.type === 'file') {
-                            showFatalError(`${pathPart} Does Not Exist`);
-                            return;
-                        }
-                        current = current.children.find(node => node.pathPart === pathPart);
-                        if (!current) {
-                            showFatalError(`${pathPart} Does Not Exist`);
-                            return;
-                        }
-                    });
-                    console.log("BiS Index", index);
+                    const current = await getBisIndexAt(nav.path);
+                    if (current.type === 'error') {
+                        showFatalError(current.reason);
+                        return;
+                    }
+                    else if (current.type === 'file') {
+                        showFatalError(`Path ${current.pathPart} is a file, not a directory`);
+                        return;
+                    }
                     const bisBrowserElement = new BisBrowser((path, nav) => {
                         if (nav) {
                             goPath(...path);
