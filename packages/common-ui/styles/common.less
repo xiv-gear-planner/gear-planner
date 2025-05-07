@@ -3273,23 +3273,40 @@ rename-dialog {
   display: block;
   aspect-ratio: 1;
   box-sizing: border-box;
+
+  border-radius: 20%;
+  border: 4px ridge #c47b00;
+
+  // Alt text formatting
+
+  // Don't let alt text extend the boundaries of the image
+  overflow: hidden;
+
+  font-size: 40%;
+  text-align: center;
   // Alt text should be white for better contrast
   color: white;
 
-  border-radius: 20%;
-  border: 4px ridge #927d59;
+  // This applies to the alt-text, but it only works on firefox
+  &::before {
+    margin: auto;
+    display: block;
+    position: relative;
+    translate: 0 -50%;
+    top: 50%;
+    content: var(--job-name);
 
-  &.job-picker-section-tank {
+  }
+
+  &.ffxiv-role-tank {
     --role-color: var(--role-color-tank);
   }
 
-  &.job-picker-section-healer {
+  &.ffxiv-role-healer {
     --role-color: var(--role-color-healer);
   }
 
-  &.job-picker-section-melee,
-  &.job-picker-section-range,
-  &.job-picker-section-caster {
+  &.ffxiv-role-dps {
     --role-color: var(--role-color-dps);
   }
 

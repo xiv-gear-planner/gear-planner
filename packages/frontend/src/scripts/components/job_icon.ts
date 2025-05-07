@@ -30,8 +30,21 @@ export class JobIcon extends HTMLImageElement {
         // Rather, it seems that it's just 062100 + id (or 062000 if you don't want the border)
         const iconId = 62100 + id;
         this.src = xivApiIconUrl(iconId, true);
-        this.addEventListener('load', () => {
+        const loadListener = () => {
             this.classList.add('loaded');
+        };
+
+        // const jobAltHolder = quickElement('span', ['icon-alt-holder'], [job]);
+        // this.append(jobAltHolder);
+        this.style.setProperty('--job-name', job);
+
+        this.addEventListener('load', loadListener);
+        this.addEventListener('error', (e) => {
+            e.preventDefault();
+            this.classList.remove('loaded');
+            this.classList.add('image-error-loading');
+            this.removeEventListener('load', loadListener);
+            // this.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw==';
         });
     }
 }
