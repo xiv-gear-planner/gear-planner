@@ -14,6 +14,7 @@ import {deleteSheetByKey} from "@xivgear/core/persistence/saved_sheets";
 import {getHashForSaveKey, openSheetByKey, showNewSheetForm} from "../base_ui";
 import {confirmDelete} from "@xivgear/common-ui/components/delete_confirm";
 import {JobIcon} from "./job_icon";
+import {JOB_DATA} from "@xivgear/xivmath/xivconstants";
 
 export class SheetPickerTable extends CustomTable<SheetExport, TableSelectionModel<SheetExport, never, never, SheetExport | null>> {
     constructor() {
@@ -51,7 +52,12 @@ export class SheetPickerTable extends CustomTable<SheetExport, TableSelectionMod
             col({
                 shortName: "sheetjob",
                 displayName: "Job",
-                getter: sheet => sheet.job,
+                getter: sheet => {
+                    if (sheet.isMultiJob) {
+                        return JOB_DATA[sheet.job].role;
+                    }
+                    return sheet.job;
+                },
                 renderer: job => {
                     return document.createTextNode(job);
                 },
@@ -59,9 +65,14 @@ export class SheetPickerTable extends CustomTable<SheetExport, TableSelectionMod
             col({
                 shortName: "sheetjobicon",
                 displayName: "Job Icon",
-                getter: sheet => sheet.job,
-                renderer: job => {
-                    return new JobIcon(job);
+                getter: sheet => {
+                    if (sheet.isMultiJob) {
+                        return JOB_DATA[sheet.job].role;
+                    }
+                    return sheet.job;
+                },
+                renderer: jobOrRole => {
+                    return new JobIcon(jobOrRole);
                 },
             }),
             {
