@@ -9,7 +9,7 @@ import {
     TableSelectionModel
 } from "@xivgear/common-ui/table/tables";
 import {NamedSection} from "./section";
-import {BIS_BROWSER_HASH, BIS_HASH} from "@xivgear/core/nav/common_nav";
+import {BIS_BROWSER_HASH, BIS_HASH, makeUrlSimple} from "@xivgear/core/nav/common_nav";
 import {JOB_DATA, JOB_IDS, JobName} from "@xivgear/xivmath/xivconstants";
 import {makeActionButton, mySheetsIcon, quickElement} from "@xivgear/common-ui/components/util";
 import {capitalizeFirstLetter} from "@xivgear/util/strutils";
@@ -20,21 +20,12 @@ type NodeInfo = {
     description: string | null,
 }
 
-export class BisBrowser {
-
-    private readonly namedSection: NamedSection;
-    private readonly table: CustomTable<AnyNode, TableSelectionModel<AnyNode>>;
-    private readonly buttonRow: HTMLElement;
-    private readonly upButton: HTMLButtonElement;
-
-    private currentNode: DirNode;
-
-    constructor(private readonly navCallback: (path: string[], navigate: boolean) => void) {
-        const outer = this;
-        this.namedSection = new NamedSection();
-        this.namedSection.classList.add('bis-browser');
-        this.table = new CustomTable();
-        this.table.columns = [
+class BisTable extends CustomTable<AnyNode, TableSelectionModel<AnyNode>> {
+    constructor(navCallback: (path: string[], navigate: boolean) => void, cdCallback: (dir: DirNode) => void) {
+        super();
+        this.classList.add('hoverable');
+        this.classList.add('bis-browser-table');
+        this.columns = [
             col({
                 shortName: "type",
                 displayName: "Type",
@@ -69,13 +60,13 @@ export class BisBrowser {
                     if (info.description) {
                         out.push(quickElement('div', ['bis-sheet-description'], [info.description]));
                     }
-                    return quickElement('div', ['bis-sheet-info'], out);
+                    const outer = quickElement('div', ['bis-sheet-info'], out);
+                    // outer.style.display = 'relative';
+                    return outer;
                 },
             }),
         ];
-        this.table.classList.add('hoverable');
-        this.table.classList.add('bis-browser-table');
-        this.table.selectionModel = {
+        this.selectionModel = {
             clickCell(cell: CustomCell<AnyNode, never>): void {
             },
             clickColumnHeader(col: CustomColumn<AnyNode, never, never>): void {
@@ -84,7 +75,7 @@ export class BisBrowser {
                 // Open the row TODO implement this
                 const di = row.dataItem;
                 if (di.type === 'dir') {
-                    outer.setData(di);
+                    cdCallback(di);
                 }
                 else {
                     const path = di.path;
@@ -106,6 +97,33 @@ export class BisBrowser {
             clearSelection(): void {
             },
         };
+    }
+
+    protected makeDataRow(node: AnyNode): CustomRow<AnyNode> {
+        const out = super.makeDataRow(node);
+        const linkOverlay = quickElement('a', ['row-overlay-link'], []);
+        linkOverlay.href = makeUrlSimple(node.type === 'file' ? BIS_HASH : BIS_BROWSER_HASH, ...node.path).toString();
+        linkOverlay.addEventListener('click', (e) => e.preventDefault());
+        out.afterElements.push(linkOverlay);
+        // out.append(linkOverlay);
+        return out;
+    }
+}
+
+export class BisBrowser {
+
+    private readonly namedSection: NamedSection;
+    private readonly table: CustomTable<AnyNode, TableSelectionModel<AnyNode>>;
+    private readonly buttonRow: HTMLElement;
+    private readonly upButton: HTMLButtonElement;
+
+    private currentNode: DirNode;
+
+    constructor(private readonly navCallback: (path: string[], navigate: boolean) => void) {
+        this.namedSection = new NamedSection();
+        this.namedSection.classList.add('bis-browser');
+        this.table = new BisTable(navCallback, (dir) => this.setData(dir));
+
         this.upButton = makeActionButton('Up', () => {
             this.setData(this.currentNode.parent);
         });
@@ -187,3 +205,5 @@ function formatInfo(node: AnyNode): NodeInfo {
         description: null,
     };
 }
+
+customElements.define('bis-browser-table', BisTable, {extends: 'table'});
