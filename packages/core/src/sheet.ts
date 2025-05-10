@@ -497,7 +497,7 @@ export class GearPlanSheet {
      * @param ilvlSync New ilvl sync. Leave unspecified or use special value 'keep' to keep existing ilvl sync.
      * @returns The saveKey of the new sheet.
      */
-    saveAs(name: string, job: JobName, level: SupportedLevel, ilvlSync: number | 'keep' | undefined): string {
+    saveAs(name: string, job: JobName, level: SupportedLevel, ilvlSync: number | 'keep' | undefined, multiJob: boolean): string {
         const exported = this.exportSheet(true);
         if (name !== undefined) {
             exported.name = name;
@@ -510,6 +510,12 @@ export class GearPlanSheet {
         }
         if (ilvlSync !== 'keep') {
             exported.ilvlSync = ilvlSync;
+        }
+        exported.isMultiJob = multiJob;
+        if (!multiJob) {
+            exported.sets.forEach(setExport => {
+                setExport.jobOverride = null;
+            });
         }
         const newKey = getNextSheetInternalName();
         localStorage.setItem(newKey, JSON.stringify(exported));

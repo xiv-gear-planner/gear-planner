@@ -41,13 +41,14 @@ export class NewSheetFormFieldSet extends HTMLFieldSetElement {
         ilvlSyncEnabled?: boolean,
         ilvlSyncLevel?: number,
         allowedRoles?: RoleKey[],
+        multiJob?: boolean,
     }) {
         super();
 
         this.newSheetSettings = {
             ilvlSyncEnabled: settings?.ilvlSyncEnabled ?? false,
             ilvlSync: settings?.ilvlSyncLevel ?? 650,
-            multiJob: false,
+            multiJob: settings?.multiJob ?? false,
         };
 
         // Sheet Name
@@ -202,6 +203,7 @@ export class SaveAsModal extends BaseModal {
             ilvlSyncEnabled: existingSheet.ilvlSync !== undefined,
             ilvlSyncLevel: existingSheet.ilvlSync,
             allowedRoles: [JOB_DATA[existingSheet.classJobName].role],
+            multiJob: existingSheet.isMultiJob,
         });
         form.appendChild(this.fieldSet);
         this.contentArea.replaceChildren(form);
@@ -226,8 +228,15 @@ export class SaveAsModal extends BaseModal {
             const ilvlSync = this.fieldSet.newSheetSettings.ilvlSync;
             const level: SupportedLevel = this.fieldSet.levelDropdown.selectedItem;
             const newJob = this.fieldSet.jobPicker.selectedJob;
-            if (newJob !== undefined && newJob !== existingSheet.classJobName && !existingSheet.isMultiJob) {
-                const result = confirm(`You are attempting to change a sheet from ${existingSheet.classJobName} to ${newJob}. Items may need to be re-selected.`);
+            const multiJob = this.fieldSet.newSheetSettings.multiJob;
+            if (newJob !== undefined && newJob !== existingSheet.classJobName && !multiJob) {
+                const result = confirm(`You are attempting to change a sheet from ${existingSheet.classJobName} to ${newJob}. Weapons and other class-specific items will be de-selected if they are not equippable as ${newJob}.`);
+                if (!result) {
+                    return;
+                }
+            }
+            else if (existingSheet.isMultiJob && !multiJob) {
+                const result = confirm(`You are attempting to change a sheet from multi-job to single-job. Items may need to be re-selected if they are not equippable as ${newJob}.`);
                 if (!result) {
                     return;
                 }
@@ -236,7 +245,8 @@ export class SaveAsModal extends BaseModal {
                 this.fieldSet.nameInput.value,
                 newJob,
                 level,
-                ilvlSyncEnabled ? ilvlSync : undefined
+                ilvlSyncEnabled ? ilvlSync : undefined,
+                multiJob
             );
             const newSheet = GRAPHICAL_SHEET_PROVIDER.fromSaved(newSheetSaveKey);
             console.log("new sheet key", newSheet.saveKey);
