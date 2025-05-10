@@ -92,7 +92,7 @@ import {recordError, recordEvent} from "@xivgear/common-ui/analytics/analytics";
 import {ExpandableText} from "@xivgear/common-ui/components/expandy_text";
 import {setDataManagerErrorReporter} from "@xivgear/core/datamanager_new";
 import {SheetInfoModal} from "./sheet_info_modal";
-import {JobIcon} from "./job_icon";
+import {FramelessJobIcon, JobIcon} from "./job_icon";
 
 const noSeparators = (set: CharacterGearSet) => !set.isSeparator;
 
@@ -495,10 +495,8 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, SingleCellRowOr
                         }
                     }
                     if (!value.isSeparator && this.sheet.isMultiJob) {
-                        const jobIcon = new JobIcon(value.job);
+                        const jobIcon = new FramelessJobIcon(value.job);
                         jobIcon.style.display = 'inline';
-                        jobIcon.style.height = '1em';
-                        jobIcon.style.verticalAlign = '-0.125em';
                         nameSpan.prepend(jobIcon);
                     }
                     const div = document.createElement('div');

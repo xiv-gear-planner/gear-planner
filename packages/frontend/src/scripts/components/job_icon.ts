@@ -93,4 +93,23 @@ export class JobIcon extends HTMLImageElement {
     }
 }
 
+export class FramelessJobIcon extends HTMLImageElement {
+    constructor(job: JobName) {
+        super();
+        this.classList.add('ffxiv-frameless-job-icon');
+        this.setAttribute('intrinsicsize', '64x64');
+        const id = JOB_IDS[job];
+        if (!id) {
+            this.classList.add('ffxiv-job-missing');
+            return;
+        }
+        // No real sheet to map these.
+        // Rather, it seems that it's just 062100 + id (or 062000 if you don't want the border)
+        const iconId = 62000 + id;
+        this.src = xivApiIconUrl(iconId, true);
+        this.style.setProperty('--job-name', job);
+    }
+}
+
 customElements.define('job-icon', JobIcon, {extends: "img"});
+customElements.define('frameless-job-icon', FramelessJobIcon, {extends: "img"});
