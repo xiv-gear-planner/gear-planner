@@ -16,7 +16,7 @@ import {BaseModal} from "@xivgear/common-ui/components/modal";
 import {SHARED_SET_NAME} from "@xivgear/core/imports/imports";
 import {recordSheetEvent} from "@xivgear/gearplan-frontend/analytics/analytics";
 import {JobIcon} from "./job_icon";
-import {JobDataConst, RoleKey} from "@xivgear/xivmath/geartypes";
+import {RoleKey} from "@xivgear/xivmath/geartypes";
 
 export type NewSheetTempSettings = {
     ilvlSyncEnabled: boolean,
