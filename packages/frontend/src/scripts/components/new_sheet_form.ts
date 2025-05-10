@@ -282,6 +282,7 @@ class JobPicker extends HTMLElement {
             if (defaultJob === jobName) {
                 jobSelector.classList.add('selected');
                 this._selectedJob = jobName;
+                this._selectedSelector = jobSelector;
             }
             let parent: HTMLDivElement;
             switch (job.role) {
