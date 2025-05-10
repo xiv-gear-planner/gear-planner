@@ -235,6 +235,7 @@ export function previewItemStatDetail(item: GearItem, stat: RawStatKey): ItemSin
 type GearSetCheckpoint = {
     equipment: EquipmentSet;
     food: FoodItem | undefined;
+    jobOverride: JobName | null;
 }
 // GearSetCheckpointNode establishes a doubly-linked list of checkpoints.
 // This allows us to easily remove the 'redo' tree if you undo and then make a change.
@@ -981,6 +982,7 @@ export class CharacterGearSet {
         const checkpoint: GearSetCheckpoint = {
             equipment: cloneEquipmentSet(this.equipment),
             food: this._food,
+            jobOverride: this._jobOverride,
         };
         const prev = this.currentCheckpoint;
         // Initial checkpoint
@@ -1042,6 +1044,9 @@ export class CharacterGearSet {
         const newEquipment = cloneEquipmentSet(checkpoint.equipment);
         Object.assign(this.equipment, newEquipment);
         this._food = checkpoint.food;
+        if (checkpoint.jobOverride !== this._jobOverride) {
+            this.jobOverride = checkpoint.jobOverride;
+        }
         try {
             this.forceRecalc();
             this._undoHook();
