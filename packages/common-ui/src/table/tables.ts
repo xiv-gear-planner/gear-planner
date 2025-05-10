@@ -641,6 +641,8 @@ export class CustomRow<RowDataType> extends HTMLTableRowElement implements Refre
     table: CustomTable<RowDataType, any>;
     dataColMap: Map<CustomColumn<RowDataType, unknown, unknown>, CustomCell<RowDataType, unknown>> = new Map<CustomColumn<RowDataType, unknown, unknown>, CustomCell<RowDataType, unknown>>();
     private _selected: boolean = false;
+    beforeElements: Node[] = [];
+    afterElements: Node[] = [];
 
     constructor(dataItem: RowDataType, table: CustomTable<RowDataType, any>, opts?: RefreshableOpts) {
         super();
@@ -683,7 +685,7 @@ export class CustomRow<RowDataType> extends HTMLTableRowElement implements Refre
                 }
             }
         }
-        this.replaceChildren(...newColElements);
+        this.replaceChildren(...this.beforeElements, ...newColElements, ...this.afterElements);
         for (const value of this.dataColMap.values()) {
             value.refreshFull();
         }
