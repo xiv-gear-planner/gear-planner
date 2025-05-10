@@ -65,9 +65,14 @@ export class SheetPickerTable extends CustomTable<SheetExport, TableSelectionMod
             col({
                 shortName: "sheetjobicon",
                 displayName: "Job Icon",
-                getter: sheet => sheet.job,
-                renderer: job => {
-                    return new JobIcon(job);
+                getter: sheet => {
+                    if (sheet.isMultiJob) {
+                        return JOB_DATA[sheet.job].role;
+                    }
+                    return sheet.job;
+                },
+                renderer: jobOrRole => {
+                    return new JobIcon(jobOrRole);
                 },
             }),
             {
