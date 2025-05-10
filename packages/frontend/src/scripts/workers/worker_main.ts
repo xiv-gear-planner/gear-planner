@@ -47,7 +47,7 @@ onmessage = async function (event) {
             // This "sheet" is only used to get everything into the cache - it is never actually used.
             // We re-use the DataManager only.
             const sheet = HEADLESS_SHEET_PROVIDER.fromExport(request.sheet);
-            dataManager = makeDataManager(sheet.classJobName, sheet.level, sheet.ilvlSync);
+            dataManager = makeDataManager(sheet.allJobs, sheet.level, sheet.ilvlSync);
             await dataManager.loadData();
 
             const response: WorkResponseDone<AnyJobContext> = {

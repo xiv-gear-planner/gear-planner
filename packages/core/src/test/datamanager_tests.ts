@@ -15,7 +15,7 @@ function deq<T>(actual: T, expected: T) {
 
 describe('New Datamanager', () => {
     it('can load some SCH items', async () => {
-        const dm = new NewApiDataManager('SCH', 90);
+        const dm = new NewApiDataManager(['SCH'], 90);
         await dm.loadData();
         const codexOfAscension = dm.itemById(40176);
         // Basic item props
@@ -84,7 +84,7 @@ describe('New Datamanager', () => {
 
     }).timeout(20_000);
     it('can get stats of food items', async () => {
-        const dm = new NewApiDataManager('SCH', 90);
+        const dm = new NewApiDataManager(['SCH'], 90);
         await dm.loadData();
         const food = dm.foodById(44096);
         eq(food.id, 44096);
@@ -102,7 +102,7 @@ describe('New Datamanager', () => {
 
         // Test cases from https://github.com/xiv-gear-planner/gear-planner/issues/317
         describe('syncs correctly in a lvl 90 i665 instance', () => {
-            const dm = new NewApiDataManager('SGE', 90, 665);
+            const dm = new NewApiDataManager(['SGE'], 90, 665);
             before(async () => {
                 await dm.loadData();
             });
@@ -168,7 +168,7 @@ describe('New Datamanager', () => {
         });
         // See also https://docs.google.com/spreadsheets/d/1C9OgUzFBTlomSpGV7rnv-M20DEGEJ8gtQN6JLNQ336o/edit?gid=791671595#gid=791671595
         describe('syncs correctly in a lvl 90 no-isync instance', () => {
-            const dm = new NewApiDataManager('SGE', 90);
+            const dm = new NewApiDataManager(['SGE'], 90);
             before(async () => {
                 await dm.loadData();
             });

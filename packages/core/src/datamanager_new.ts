@@ -33,7 +33,7 @@ import {
     GearAcquisitionSource as AcqSrc,
     HttpResponse
 } from "@xivgear/data-api-client/dataapi";
-import {BaseParamMap, DataManager} from "./datamanager";
+import {BaseParamMap, DataManager, DmJobs} from "./datamanager";
 import {IlvlSyncInfo} from "./datamanager_xivapi";
 import {applyStatCaps} from "./gear";
 import {toTranslatable, TranslatableString} from "@xivgear/i18n/translation";
@@ -118,12 +118,14 @@ export class NewApiDataManager implements DataManager {
     private readonly _minIlvlFood: number;
     private readonly _maxIlvlFood: number;
     private readonly _classJob: JobName;
+    private readonly _allJobs: JobName[];
     private readonly _level: SupportedLevel;
     private readonly _ilvlSync: number | undefined;
     private readonly apiClient: DataApiClient<never>;
 
-    public constructor(classJob: JobName, level: SupportedLevel, ilvlSync?: number | undefined) {
-        this._classJob = classJob;
+    public constructor(classJobs: DmJobs, level: SupportedLevel, ilvlSync?: number | undefined) {
+        this._classJob = classJobs[0];
+        this._allJobs = [...classJobs];
         this._level = level;
         const lvlData = LEVEL_ITEMS[this._level];
         this._minIlvl = lvlData.minILvl;
@@ -218,6 +220,8 @@ export class NewApiDataManager implements DataManager {
 
                             }
                             const baseParamModifier = baseParams[statsKey as RawStatKey][slot];
+                            // Theoretically, this is safe even for multi-job because the item stat cap multipliers
+                            // are role-bound.
                             const jobCap = jobStats.itemStatCapMultipliers?.[statsKey];
                             if (jobCap !== undefined) {
                                 return Math.round(jobCap * Math.round(ilvlModifier * baseParamModifier / 1000));
@@ -290,7 +294,7 @@ export class NewApiDataManager implements DataManager {
         console.log("Loading items");
 
 
-        const itemsPromise = this.apiClient.items.items({job: this._classJob})
+        const itemsPromise = this.apiClient.items.items({job: this._allJobs})
             .then(async (response) => {
                 checkResponse(response);
                 console.log(`Got ${response.data.items.length} Items`);
@@ -463,8 +467,12 @@ export class NewApiDataManager implements DataManager {
         return this._level;
     }
 
-    get classJob(): JobName {
+    get primaryClassJob(): JobName {
         return this._classJob;
+    }
+
+    get allClassJobs(): JobName[] {
+        return [...this._allJobs];
     }
 
     getIlvlSyncInfo(ilvl: number): IlvlSyncInfo | undefined {
@@ -474,7 +482,6 @@ export class NewApiDataManager implements DataManager {
     getImplicitIlvlSync(level: number, isWeapon: boolean): number | undefined {
         return (isWeapon ? this._maxIlvlForEquipLevelWeapon : this._maxIlvlForEquipLevel).get(level);
     }
-
 }
 
 // noinspection RedundantIfStatementJS
@@ -496,6 +503,7 @@ export class DataApiGearInfo implements GearItem {
     readonly isUnique: boolean;
     unsyncedVersion: DataApiGearInfo;
     readonly acquisitionType: GearAcquisitionSource;
+    readonly jobs: JobName[];
     statCaps: {
         [K in RawStatKey]?: number
     };
@@ -506,6 +514,7 @@ export class DataApiGearInfo implements GearItem {
     readonly rarity: number;
 
     constructor(data: ApiItemData, forceNq: boolean = false) {
+        this.jobs = data.classJobs as JobName[];
         this.isNqVersion = forceNq;
         this.id = data.rowId;
         if (forceNq) {
@@ -758,6 +767,10 @@ export class DataApiGearInfo implements GearItem {
             this.syncedDownTo = null;
             this.isSyncedDown = false;
         }
+    }
+
+    usableByJob(job: JobName): boolean {
+        return this.jobs.includes(job);
     }
 }
 

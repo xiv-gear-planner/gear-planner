@@ -2,6 +2,7 @@ import {
     DataSelect,
     FieldBoundCheckBox,
     FieldBoundIntField,
+    labeledCheckbox,
     labelFor,
     nonNegative,
     quickElement
@@ -19,16 +20,18 @@ import {JobIcon} from "./job_icon";
 export type NewSheetTempSettings = {
     ilvlSyncEnabled: boolean,
     ilvlSync: number,
+    multiJob: boolean,
 }
 
 export class NewSheetFormFieldSet extends HTMLFieldSetElement {
     readonly nameInput: HTMLInputElement;
     // readonly jobDropdown: DataSelect<JobName>;
     readonly jobPicker: JobPicker;
+    readonly multiJobCb: FieldBoundCheckBox<NewSheetTempSettings>;
     readonly levelDropdown: DataSelect<SupportedLevel>;
-    readonly ilvlSyncCheckbox: FieldBoundCheckBox<typeof this.tempSettings>;
-    readonly ilvlSyncValue: FieldBoundIntField<typeof this.tempSettings>;
-    readonly tempSettings: NewSheetTempSettings;
+    readonly ilvlSyncCheckbox: FieldBoundCheckBox<typeof this.newSheetSettings>;
+    readonly ilvlSyncValue: FieldBoundIntField<typeof this.newSheetSettings>;
+    readonly newSheetSettings: NewSheetTempSettings;
 
     constructor(defaults: {
         name?: string,
@@ -38,6 +41,13 @@ export class NewSheetFormFieldSet extends HTMLFieldSetElement {
         ilvlSyncLevel?: number
     }) {
         super();
+
+        this.newSheetSettings = {
+            ilvlSyncEnabled: defaults?.ilvlSyncEnabled ?? false,
+            ilvlSync: defaults?.ilvlSyncLevel ?? 650,
+            multiJob: false,
+        };
+
         // Sheet Name
         this.nameInput = document.createElement("input");
         this.nameInput.id = "new-sheet-name-input";
@@ -53,6 +63,10 @@ export class NewSheetFormFieldSet extends HTMLFieldSetElement {
         this.appendChild(this.jobPicker);
         this.appendChild(spacer());
 
+        this.multiJobCb = new FieldBoundCheckBox(this.newSheetSettings, 'multiJob');
+        this.append(labeledCheckbox('Multi Job', this.multiJobCb));
+        this.appendChild(spacer());
+
         // Sheet Name
         this.appendChild(labelFor("Sheet Name: ", this.nameInput));
         this.appendChild(this.nameInput);
@@ -62,8 +76,8 @@ export class NewSheetFormFieldSet extends HTMLFieldSetElement {
         this.levelDropdown = levelSelect(newValue => {
             const isync = LEVEL_ITEMS[newValue]?.defaultIlvlSync;
             if (isync !== undefined) {
-                this.tempSettings.ilvlSyncEnabled = true;
-                this.tempSettings.ilvlSync = isync;
+                this.newSheetSettings.ilvlSyncEnabled = true;
+                this.newSheetSettings.ilvlSync = isync;
                 this.ilvlSyncValue.reloadValue();
                 this.ilvlSyncCheckbox.reloadValue();
             }
@@ -74,14 +88,10 @@ export class NewSheetFormFieldSet extends HTMLFieldSetElement {
         this.appendChild(labelFor('Level: ', this.levelDropdown));
         this.appendChild(this.levelDropdown);
         this.appendChild(spacer());
-        this.tempSettings = {
-            ilvlSyncEnabled: defaults?.ilvlSyncEnabled ?? false,
-            ilvlSync: defaults?.ilvlSyncLevel ?? 650,
-        };
-        this.ilvlSyncCheckbox = new FieldBoundCheckBox(this.tempSettings, 'ilvlSyncEnabled');
+        this.ilvlSyncCheckbox = new FieldBoundCheckBox(this.newSheetSettings, 'ilvlSyncEnabled');
         this.ilvlSyncCheckbox.id = 'new-sheet-ilvl-sync-enable';
         this.append(quickElement('div', [], [this.ilvlSyncCheckbox, labelFor("Sync Item Level", this.ilvlSyncCheckbox)]));
-        this.ilvlSyncValue = new FieldBoundIntField(this.tempSettings, 'ilvlSync', {
+        this.ilvlSyncValue = new FieldBoundIntField(this.newSheetSettings, 'ilvlSync', {
             postValidators: [
                 nonNegative,
                 (ctx) => {
@@ -106,8 +116,8 @@ export class NewSheetFormFieldSet extends HTMLFieldSetElement {
     }
 
     validateIsync(): boolean {
-        const ilvlSyncEnabled = this.tempSettings.ilvlSyncEnabled;
-        const ilvlSync = this.tempSettings.ilvlSync;
+        const ilvlSyncEnabled = this.newSheetSettings.ilvlSyncEnabled;
+        const ilvlSync = this.newSheetSettings.ilvlSync;
         const level: SupportedLevel = this.levelDropdown.selectedItem;
         if (ilvlSyncEnabled) {
             const expectedMaxIlvl = LEVEL_ITEMS[level]?.defaultIlvlSync ?? MAX_ILVL;
@@ -168,7 +178,8 @@ export class NewSheetForm extends HTMLFormElement {
             return;
         }
         const nextSheetSaveStub = getNextSheetInternalName();
-        const gearPlanSheet = GRAPHICAL_SHEET_PROVIDER.fromScratch(nextSheetSaveStub, this.fieldSet.nameInput.value, this.fieldSet.jobPicker.selectedJob, this.fieldSet.levelDropdown.selectedItem, this.fieldSet.tempSettings.ilvlSyncEnabled ? this.fieldSet.tempSettings.ilvlSync : undefined);
+        const settings = this.fieldSet.newSheetSettings;
+        const gearPlanSheet = GRAPHICAL_SHEET_PROVIDER.fromScratch(nextSheetSaveStub, this.fieldSet.nameInput.value, this.fieldSet.jobPicker.selectedJob, this.fieldSet.levelDropdown.selectedItem, settings.ilvlSyncEnabled ? settings.ilvlSync : undefined, settings.multiJob);
         recordSheetEvent("newSheet", gearPlanSheet);
         this.sheetOpenCallback(gearPlanSheet).then(() => gearPlanSheet.requestSave());
     }
@@ -208,8 +219,8 @@ export class SaveAsModal extends BaseModal {
             if (!result) {
                 return;
             }
-            const ilvlSyncEnabled = this.fieldSet.tempSettings.ilvlSyncEnabled;
-            const ilvlSync = this.fieldSet.tempSettings.ilvlSync;
+            const ilvlSyncEnabled = this.fieldSet.newSheetSettings.ilvlSyncEnabled;
+            const ilvlSync = this.fieldSet.newSheetSettings.ilvlSync;
             const level: SupportedLevel = this.fieldSet.levelDropdown.selectedItem;
             const newJob = this.fieldSet.jobPicker.selectedJob;
             if (newJob !== undefined && newJob !== existingSheet.classJobName) {

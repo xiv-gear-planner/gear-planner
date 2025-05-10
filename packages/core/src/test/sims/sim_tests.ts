@@ -202,7 +202,7 @@ describe('Default sims', () => {
                 return existing;
             }
             else {
-                const newSheet = HEADLESS_SHEET_PROVIDER.fromScratch(undefined, "", job, level, undefined);
+                const newSheet = HEADLESS_SHEET_PROVIDER.fromScratch(undefined, "", job, level, undefined, false);
                 const promise = newSheet.load();
                 sampleSheetLoad.set(newSheet, promise);
                 sampleSheets.push(newSheet);

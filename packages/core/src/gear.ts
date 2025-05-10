@@ -254,7 +254,7 @@ export class CharacterGearSet {
     listeners: (() => void)[] = [];
     private _dirtyComp: boolean = true;
     private _lastResult: GearSetResult;
-    private _jobOverride: JobName;
+    private _jobOverride: JobName | null = null;
     private _raceOverride: RaceName;
     private _food: FoodItem | undefined;
     private readonly _sheet: GearPlanSheet;
@@ -320,9 +320,38 @@ export class CharacterGearSet {
     }
 
     set food(food: FoodItem | undefined) {
-        this.invalidate();
         this._food = food;
+        this.invalidate();
         this.notifyListeners();
+    }
+
+    get jobOverride(): JobName | null {
+        return this._jobOverride;
+    }
+
+    set jobOverride(job: JobName | null) {
+        this._jobOverride = job;
+        const newEffectiveJob = this.job;
+        // Unequip items which are no longer usable under the new job
+        Object.keys(this.equipment).forEach((slot: EquipSlotKey) => {
+            const equipped = this.equipment[slot];
+            if (equipped && !equipped.gearItem.usableByJob(newEffectiveJob)) {
+                this.setEquip(slot, null);
+            }
+        });
+        // TODO: technically, this should check if it is the active sheet
+        this.sheet.gearDisplaySettingsUpdateNow();
+        this.forceRecalc();
+    }
+
+    /**
+     * Like setting jobOverride, but does not trigger any hooks. Useful when initializing an imported set, as the
+     * hooks and such will not have been configured correctly.
+     *
+     * @param job
+     */
+    earlySetJobOverride(job: JobName | null) {
+        this._jobOverride = job;
     }
 
     /**
@@ -426,12 +455,15 @@ export class CharacterGearSet {
         this.notifyListeners();
     }
 
+    toEquippedItem(item: GearItem): EquippedItem;
+    toEquippedItem(item: null): null;
+
     /**
      * Preview an item as if it were equipped
      *
      * @param item The item with relic stat memory and such applied
      */
-    toEquippedItem(item: GearItem) {
+    toEquippedItem(item: GearItem | null): EquippedItem | null {
         if (item === null) {
             return null;
         }
@@ -526,6 +558,10 @@ export class CharacterGearSet {
         return this.results.computedStats;
     }
 
+    get job(): JobName {
+        return this._jobOverride ?? this.sheet.classJobName;
+    }
+
     /**
      * Get the computed stats ({@link computedStats}) and issues ({@link issues}).
      */
@@ -535,7 +571,7 @@ export class CharacterGearSet {
             return this._lastResult;
         }
         const combinedStats = new RawStats(EMPTY_STATS);
-        const classJob = this._jobOverride ?? this._sheet.classJobName;
+        const classJob = this.job;
         const classJobStats = this._jobOverride ? this._sheet.statsForJob(this._jobOverride) : this._sheet.classJobStats;
         const raceStats = this._raceOverride ? getRaceStats(this._raceOverride) : this._sheet.raceStats;
         const level = this._sheet.level;

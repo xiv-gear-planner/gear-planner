@@ -11,7 +11,7 @@ import {
     RawStats
 } from "@xivgear/xivmath/geartypes";
 import {xivApiIconUrl} from "../external/xivapi";
-import {CURRENT_MAX_LEVEL, LEVEL_ITEMS, MATERIA_LEVEL_MAX_NORMAL} from "@xivgear/xivmath/xivconstants";
+import {CURRENT_MAX_LEVEL, JobName, LEVEL_ITEMS, MATERIA_LEVEL_MAX_NORMAL} from "@xivgear/xivmath/xivconstants";
 import {IlvlSyncInfo} from "../datamanager_xivapi";
 import {applyStatCaps} from "../gear";
 import {GearPlanSheet} from "../sheet";
@@ -251,6 +251,11 @@ export class CustomItem implements GearItem {
             this.primarySubstat = sortedStats[0][0] as keyof RawStats;
             this.secondarySubstat = sortedStats[1][0] as keyof RawStats;
         }
+    }
+
+    // Don't restrict jobs on custom items, assume the user knows what they're doing
+    usableByJob(job: JobName): boolean {
+        return true;
     }
 
 }

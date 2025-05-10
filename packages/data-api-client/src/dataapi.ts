@@ -108,7 +108,7 @@ export type FoodItemAction = XivApiObject &
 export type FoodItemBase = XivApiObject &
   XivApiBase & {
     name?: string;
-    nameTranslations?: XivApiLangString;
+    nameTranslations?: XivApiLangValueString;
     icon?: Icon;
     /** @format int32 */
     levelItem?: number;
@@ -171,7 +171,7 @@ export type ItemBase = XivApiObject &
     /** @format int32 */
     ilvl?: number;
     name?: string;
-    nameTranslations?: XivApiLangString;
+    nameTranslations?: XivApiLangValueString;
     icon?: Icon;
     equipSlotCategory?: EquipSlotCategory;
     /** @format int32 */
@@ -258,7 +258,7 @@ export interface MateriaEndpointResponse {
 export type MateriaItem = XivApiObject &
   XivApiBase & {
     name?: string;
-    nameTranslations?: XivApiLangString;
+    nameTranslations?: XivApiLangValueString;
     icon?: Icon;
     /** @format int32 */
     ilvl?: number;
@@ -268,7 +268,7 @@ export interface XivApiBase {
   schemaVersion?: XivApiSchemaVersion;
 }
 
-export interface XivApiLangString {
+export interface XivApiLangValueString {
   en?: string;
   de?: string;
   fr?: string;
@@ -563,7 +563,7 @@ export class DataApiClient<SecurityDataType extends unknown> extends HttpClient<
      */
     items: (
       query: {
-        job: string;
+        job: string[];
       },
       params: RequestParams = {},
     ) =>
