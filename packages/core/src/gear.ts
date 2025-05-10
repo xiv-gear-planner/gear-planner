@@ -274,6 +274,11 @@ export class CharacterGearSet {
         this._sheet = sheet;
         this.name = "";
         this.equipment = new EquipmentSet();
+        if (sheet.isMultiJob) {
+            // This acts as a default. For a variety of reasons, such as changing the main class of a sheet, we want
+            // this to be set to the current job upon sheet creation/import.
+            this.earlySetJobOverride(sheet.classJobName);
+        }
     }
 
 

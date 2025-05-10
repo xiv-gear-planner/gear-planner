@@ -16,6 +16,7 @@ import {BaseModal} from "@xivgear/common-ui/components/modal";
 import {SHARED_SET_NAME} from "@xivgear/core/imports/imports";
 import {recordSheetEvent} from "@xivgear/gearplan-frontend/analytics/analytics";
 import {JobIcon} from "./job_icon";
+import {JobDataConst, RoleKey} from "@xivgear/xivmath/geartypes";
 
 export type NewSheetTempSettings = {
     ilvlSyncEnabled: boolean,
@@ -33,18 +34,19 @@ export class NewSheetFormFieldSet extends HTMLFieldSetElement {
     readonly ilvlSyncValue: FieldBoundIntField<typeof this.newSheetSettings>;
     readonly newSheetSettings: NewSheetTempSettings;
 
-    constructor(defaults: {
+    constructor(settings: {
         name?: string,
         job?: JobName,
         level?: SupportedLevel,
         ilvlSyncEnabled?: boolean,
-        ilvlSyncLevel?: number
+        ilvlSyncLevel?: number,
+        allowedRoles?: RoleKey[],
     }) {
         super();
 
         this.newSheetSettings = {
-            ilvlSyncEnabled: defaults?.ilvlSyncEnabled ?? false,
-            ilvlSync: defaults?.ilvlSyncLevel ?? 650,
+            ilvlSyncEnabled: settings?.ilvlSyncEnabled ?? false,
+            ilvlSync: settings?.ilvlSyncLevel ?? 650,
             multiJob: false,
         };
 
@@ -54,12 +56,12 @@ export class NewSheetFormFieldSet extends HTMLFieldSetElement {
         this.nameInput.required = true;
         this.nameInput.type = 'text';
         this.nameInput.width = 400;
-        if (defaults?.name) {
-            this.nameInput.value = defaults.name;
+        if (settings?.name) {
+            this.nameInput.value = settings.name;
         }
 
         // Job selection
-        this.jobPicker = new JobPicker(defaults.job ?? null);
+        this.jobPicker = new JobPicker(settings.job ?? null, settings.allowedRoles);
         this.appendChild(this.jobPicker);
         this.appendChild(spacer());
 
@@ -82,7 +84,7 @@ export class NewSheetFormFieldSet extends HTMLFieldSetElement {
                 this.ilvlSyncCheckbox.reloadValue();
             }
             this.recheck();
-        }, defaults?.level);
+        }, settings?.level);
         this.levelDropdown.id = "new-sheet-level-dropdown";
         this.levelDropdown.required = true;
         this.appendChild(labelFor('Level: ', this.levelDropdown));
@@ -199,6 +201,7 @@ export class SaveAsModal extends BaseModal {
             name: defaultName,
             ilvlSyncEnabled: existingSheet.ilvlSync !== undefined,
             ilvlSyncLevel: existingSheet.ilvlSync,
+            allowedRoles: [JOB_DATA[existingSheet.classJobName].role],
         });
         form.appendChild(this.fieldSet);
         this.contentArea.replaceChildren(form);
@@ -223,7 +226,7 @@ export class SaveAsModal extends BaseModal {
             const ilvlSync = this.fieldSet.newSheetSettings.ilvlSync;
             const level: SupportedLevel = this.fieldSet.levelDropdown.selectedItem;
             const newJob = this.fieldSet.jobPicker.selectedJob;
-            if (newJob !== undefined && newJob !== existingSheet.classJobName) {
+            if (newJob !== undefined && newJob !== existingSheet.classJobName && !existingSheet.isMultiJob) {
                 const result = confirm(`You are attempting to change a sheet from ${existingSheet.classJobName} to ${newJob}. Items may need to be re-selected.`);
                 if (!result) {
                     return;
@@ -259,8 +262,9 @@ class JobPicker extends HTMLElement {
 
     /**
      * @param defaultJob The job to default to, or null if nothing should be selected by default.
+     * @param allowedRoles If specified, restrict which roles may be chosen.
      */
-    constructor(defaultJob: JobName | null) {
+    constructor(defaultJob: JobName | null, allowedRoles?: RoleKey[]) {
         super();
         const tankDiv = quickElement('div', ['job-picker-section', 'job-picker-section-tank'], []);
         const healerDiv = quickElement('div', ['job-picker-section', 'job-picker-section-healer'], []);
@@ -305,7 +309,28 @@ class JobPicker extends HTMLElement {
                 this._selectedSelector = jobSelector;
             });
         });
-        this.replaceChildren(tankDiv, healerDiv, meleeDiv, rangeDiv, casterDiv);
+        if (allowedRoles) {
+            const children = [];
+            if (allowedRoles.includes('Tank')) {
+                children.push(tankDiv);
+            }
+            if (allowedRoles.includes('Healer')) {
+                children.push(healerDiv);
+            }
+            if (allowedRoles.includes('Melee')) {
+                children.push(meleeDiv);
+            }
+            if (allowedRoles.includes('Ranged')) {
+                children.push(rangeDiv);
+            }
+            if (allowedRoles.includes('Caster')) {
+                children.push(casterDiv);
+            }
+            this.replaceChildren(...children);
+        }
+        else {
+            this.replaceChildren(tankDiv, healerDiv, meleeDiv, rangeDiv, casterDiv);
+        }
     }
 
     get selectedJob(): JobName | null {

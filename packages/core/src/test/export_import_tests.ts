@@ -167,6 +167,10 @@ describe('importing and exporting', () => {
             setJO.forceRecalc();
             sheet.addGearSet(setJO);
         });
+        it('always sets jobOverride even for default job', async () => {
+            expect(set.job).to.eq('WHM');
+            expect(set.jobOverride).to.eq('WHM');
+        });
         it('can export non-override set correctly', async () => {
             const setExport = sheet.exportGearSet(set, true);
             expect(setExport.race).to.eq('Wildwood');
@@ -235,7 +239,7 @@ describe('importing and exporting', () => {
                 expect(weapon.melds[0].equippedMateria.id).to.equal(MATERIA_ID);
 
                 expect(newSheet.isMultiJob).to.be.true;
-                expect(newSet.jobOverride).to.be.null;
+                expect(newSet.jobOverride).to.eq('WHM');
                 expect(newSet.job).to.equal('WHM');
             }
 
