@@ -16,6 +16,7 @@ import {
 } from "@xivgear/common-ui/table/tables";
 import {GearPlanSheet, SheetProvider} from "@xivgear/core/sheet";
 import {
+    DataSelect,
     faIcon,
     FieldBoundCheckBox,
     FieldBoundDataSelect,
@@ -493,6 +494,13 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, SingleCellRowOr
                             title += '\n - ' + titlePart;
                         }
                     }
+                    if (!value.isSeparator && this.sheet.isMultiJob) {
+                        const jobIcon = new JobIcon(value.job);
+                        jobIcon.style.display = 'inline';
+                        jobIcon.style.height = '1em';
+                        jobIcon.style.verticalAlign = '-0.125em';
+                        nameSpan.prepend(jobIcon);
+                    }
                     const div = document.createElement('div');
                     div.classList.add('set-name-desc-holder');
                     div.replaceChildren(...elements);
@@ -884,6 +892,14 @@ export class GearSetEditor extends HTMLElement {
             }),
             issuesButton,
         ]);
+        if (this.sheet.isMultiJob) {
+            buttonArea.prepend(new DataSelect(
+                this.sheet.allJobs,
+                job => job,
+                job => this.gearSet.jobOverride = job,
+                this.gearSet.job
+            ));
+        }
 
         this.appendChild(buttonArea);
 
@@ -891,15 +907,17 @@ export class GearSetEditor extends HTMLElement {
         // Not enough to just use the items, because rings can be in either ring slot, so we
         // need options to reflect that.
         const itemMapping: Map<DisplayGearSlot, GearItem[]> = new Map();
-        this.sheet.itemsForDisplay.forEach((item) => {
-            const slot = item.displayGearSlot;
-            if (itemMapping.has(slot)) {
-                itemMapping.get(slot).push(item);
-            }
-            else {
-                itemMapping.set(slot, [item]);
-            }
-        });
+        this.sheet.itemsForDisplay
+            .filter(item => item.usableByJob(this.gearSet.job))
+            .forEach((item) => {
+                const slot = item.displayGearSlot;
+                if (itemMapping.has(slot)) {
+                    itemMapping.get(slot).push(item);
+                }
+                else {
+                    itemMapping.set(slot, [item]);
+                }
+            });
 
         const leftSideSlots = ['Head', 'Body', 'Hand', 'Legs', 'Feet'] as const;
         const rightSideSlots = ['Ears', 'Neck', 'Wrist', 'RingLeft', 'RingRight'] as const;
@@ -2150,7 +2168,7 @@ export class ImportSetsModal extends BaseModal {
     }
 
     checkJob(plural: boolean, ...importedJobs: JobName[]): boolean {
-        const nonMatchingJobs = importedJobs.filter(job => job !== this.sheet.classJobName);
+        const nonMatchingJobs = importedJobs.filter(job => !this.sheet.allJobs.includes(job));
         if (nonMatchingJobs.length > 0) {
             const flaggedJobs = nonMatchingJobs.join(', ');
             // TODO: *try* to import some sims, or at least load up the defaults.
@@ -2381,19 +2399,19 @@ export class GraphicalSheetProvider extends SheetProvider<GearPlanSheetGui> {
         super((...args) => new GearPlanSheetGui(...args));
     }
 
-    fromExport(importedData: SheetExport): GearPlanSheetGui {
+    override fromExport(importedData: SheetExport): GearPlanSheetGui {
         const out = super.fromExport(importedData);
         out.setSelectFirstRowByDefault();
         return out;
     }
 
-    fromSetExport(...importedData: SetExport[]): GearPlanSheetGui {
+    override fromSetExport(...importedData: SetExport[]): GearPlanSheetGui {
         const out = super.fromSetExport(...importedData);
         out.setSelectFirstRowByDefault();
         return out;
     }
 
-    fromSaved(sheetKey: string): GearPlanSheetGui | null {
+    override fromSaved(sheetKey: string): GearPlanSheetGui | null {
         const out = super.fromSaved(sheetKey);
         out?.setSelectFirstRowByDefault();
         return out;

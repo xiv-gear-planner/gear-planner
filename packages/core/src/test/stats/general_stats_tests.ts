@@ -11,7 +11,7 @@ import {getScalingOverrides} from "../../sims/sim_utils";
 
 const level = 100;
 const job = 'SCH';
-const fakeSheet = HEADLESS_SHEET_PROVIDER.fromScratch("unused", "unused", job, level, undefined);
+const fakeSheet = HEADLESS_SHEET_PROVIDER.fromScratch("unused", "unused", job, level, undefined, false);
 
 const loadPromise = fakeSheet.load();
 
@@ -220,13 +220,13 @@ describe("ComputedSetStats", () => {
 
 describe("Dmg/100p for known values", () => {
     // https://docs.google.com/spreadsheets/d/1yy11-m_iWaKs8zccrjunLELEGHCDSE3YNQkhx-E_tkk/edit?gid=1658055958#gid=1658055958
-    const fakeSheetSMN = HEADLESS_SHEET_PROVIDER.fromScratch("unused", "unused", 'SMN', level, undefined);
+    const fakeSheetSMN = HEADLESS_SHEET_PROVIDER.fromScratch("unused", "unused", 'SMN', level, undefined, false);
     const loadPromiseSMN = fakeSheetSMN.load();
-    const fakeSheetSCH = HEADLESS_SHEET_PROVIDER.fromScratch("unused", "unused", 'SCH', level, undefined);
+    const fakeSheetSCH = HEADLESS_SHEET_PROVIDER.fromScratch("unused", "unused", 'SCH', level, undefined, false);
     const loadPromiseSCH = fakeSheetSCH.load();
-    const fakeSheetWAR = HEADLESS_SHEET_PROVIDER.fromScratch("unused", "unused", 'WAR', level, undefined);
+    const fakeSheetWAR = HEADLESS_SHEET_PROVIDER.fromScratch("unused", "unused", 'WAR', level, undefined, false);
     const loadPromiseWAR = fakeSheetWAR.load();
-    const fakeSheetGNB = HEADLESS_SHEET_PROVIDER.fromScratch("unused", "unused", 'GNB', level, undefined);
+    const fakeSheetGNB = HEADLESS_SHEET_PROVIDER.fromScratch("unused", "unused", 'GNB', level, undefined, false);
     const loadPromiseGNB = fakeSheetGNB.load();
     it('SMN test 1', async () => {
         await loadPromiseSMN;
@@ -732,9 +732,9 @@ describe("Dmg/100p for known values", () => {
 });
 
 describe("Final damage values for known values", () => {
-    const fakeSheetDRK = HEADLESS_SHEET_PROVIDER.fromScratch("unused", "unused", 'DRK', level, undefined);
+    const fakeSheetDRK = HEADLESS_SHEET_PROVIDER.fromScratch("unused", "unused", 'DRK', level, undefined, false);
     const loadPromiseDRK = fakeSheetDRK.load();
-    const fakeSheetWAR = HEADLESS_SHEET_PROVIDER.fromScratch("unused", "unused", 'WAR', level, undefined);
+    const fakeSheetWAR = HEADLESS_SHEET_PROVIDER.fromScratch("unused", "unused", 'WAR', level, undefined, false);
     const loadPromiseWAR = fakeSheetWAR.load();
     it('WAR test autocrit/dh', async () => {
         await loadPromiseWAR;

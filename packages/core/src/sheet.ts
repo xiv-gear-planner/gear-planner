@@ -1,12 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // TODO: get back to fixing this at some point
 import {
+    ALL_COMBAT_JOBS,
     CURRENT_MAX_LEVEL,
     defaultItemDisplaySettings,
     DefaultMateriaFillPrio,
     getClassJobStats,
     getDefaultDisplaySettings,
     getRaceStats,
+    JOB_DATA,
     JobName,
     LEVEL_ITEMS,
     MAIN_STATS,
@@ -40,7 +42,7 @@ import {
     Substat
 } from "@xivgear/xivmath/geartypes";
 import {CharacterGearSet, isSameOrBetterItem, SyncInfo} from "./gear";
-import {DataManager, makeDataManager} from "./datamanager";
+import {DataManager, DmJobs, makeDataManager} from "./datamanager";
 import {Inactivitytimer} from "@xivgear/util/inactivitytimer";
 import {writeProxy} from "@xivgear/util/proxies";
 import {SHARED_SET_NAME} from "@xivgear/core/imports/imports";
@@ -110,6 +112,7 @@ export class SheetProvider<SheetType extends GearPlanSheet> {
             customItems: importedData.flatMap(imp => imp.customItems ?? []),
             customFoods: importedData.flatMap(imp => imp.customFoods ?? []),
             timestamp: importedData[0].timestamp,
+            isMultiJob: false,
         });
         if (importedData[0].sims === undefined) {
             gearPlanSheet.addDefaultSims();
@@ -127,8 +130,9 @@ export class SheetProvider<SheetType extends GearPlanSheet> {
      * @param classJob The class/job of the sheet
      * @param level The level of the sheet
      * @param ilvlSync The ilvl sync of the sheet, or undefined if the sheet should not have an ilvl sync.
+     * @param multiJob Whether to create a multi-job sheet.
      */
-    fromScratch(sheetKey: string, sheetName: string, classJob: JobName, level: SupportedLevel, ilvlSync: number | undefined): SheetType {
+    fromScratch(sheetKey: string, sheetName: string, classJob: JobName, level: SupportedLevel, ilvlSync: number | undefined, multiJob: boolean): SheetType {
         const fakeExport: SheetExport = {
             job: classJob,
             level: level,
@@ -142,6 +146,7 @@ export class SheetProvider<SheetType extends GearPlanSheet> {
             }],
             sims: [],
             ilvlSync: ilvlSync,
+            isMultiJob: multiJob,
             // ctor will auto-fill the rest
         };
         const gearPlanSheet = this.construct(sheetKey, fakeExport);
@@ -184,6 +189,8 @@ export class GearPlanSheet {
     _sheetName: string;
     _description: string;
     readonly classJobName: JobName;
+    readonly altJobs: JobName[];
+    readonly isMultiJob: boolean;
     readonly level: SupportedLevel;
     readonly ilvlSync: number | undefined;
     private _race: RaceName | undefined;
@@ -234,7 +241,14 @@ export class GearPlanSheet {
         this.level = importedData.level ?? CURRENT_MAX_LEVEL;
         this._race = importedData.race;
         this._partyBonus = importedData.partyBonus ?? 0;
+        // TODO: why does this default to WHM? Shouldn't it just throw?
         this.classJobName = importedData.job ?? 'WHM';
+        this.isMultiJob = importedData.isMultiJob;
+        this.altJobs = this.isMultiJob ? [
+            ...ALL_COMBAT_JOBS.filter(job => JOB_DATA[job].role === JOB_DATA[this.classJobName].role
+                // Don't include the primary job in the list of alt jobs
+                && job !== this.classJobName),
+        ] : [];
         this.ilvlSync = importedData.ilvlSync;
         this._description = importedData.description;
         if (importedData.itemDisplaySettings) {
@@ -362,11 +376,15 @@ export class GearPlanSheet {
         this._isViewOnly = true;
     }
 
+    get allJobs(): DmJobs {
+        return [this.classJobName, ...this.altJobs];
+    }
+
     /**
      * Load the sheet data fully. Create a DataManager internally.
      */
     async load() {
-        const dataManager = makeDataManager(this.classJobName, this.level, this.ilvlSync);
+        const dataManager = makeDataManager(this.allJobs, this.level, this.ilvlSync);
         await dataManager.loadData();
         await this.loadFromDataManager(dataManager);
     }
@@ -550,6 +568,7 @@ export class GearPlanSheet {
             customItems: this._customItems.map(ci => ci.export()),
             customFoods: this._customFoods.map(cf => cf.export()),
             timestamp: this.timestamp.getTime(),
+            isMultiJob: this.isMultiJob,
         };
         if (!external) {
             out.saveKey = this._saveKey;
@@ -696,6 +715,7 @@ export class GearPlanSheet {
             ext.customFoods = this._customFoods.map(cf => cf.export());
             ext.partyBonus = this._partyBonus;
             ext.race = this._race;
+            ext.job = set.job;
         }
         else {
             if (set.relicStatMemory) {
@@ -703,6 +723,9 @@ export class GearPlanSheet {
             }
             if (set.materiaMemory) {
                 out.materiaMemory = set.materiaMemory.export();
+            }
+            if (set.jobOverride) {
+                out.jobOverride = set.jobOverride;
             }
         }
         return out;
@@ -922,6 +945,13 @@ export class GearPlanSheet {
             if (importedSet.materiaMemory) {
                 set.materiaMemory.import(importedSet.materiaMemory);
             }
+            if (importedSet.jobOverride) {
+                set.earlySetJobOverride(importedSet.jobOverride);
+            }
+            // When importing a single set into a multi-job sheet, set the job override
+            else if ('job' in importedSet && importedSet.job && this.isMultiJob) {
+                set.earlySetJobOverride((importedSet as SetExportExternalSingle).job);
+            }
         }
         return set;
     }
@@ -1012,7 +1042,7 @@ export class GearPlanSheet {
      * Get sims which might be relevant to this sheet.
      */
     get relevantSims() {
-        return getRegisteredSimSpecs().filter(simSpec => simSpec.supportedJobs === undefined ? true : simSpec.supportedJobs.includes(this.dataManager.classJob));
+        return getRegisteredSimSpecs().filter(simSpec => simSpec.supportedJobs === undefined ? true : simSpec.supportedJobs.includes(this.dataManager.primaryClassJob));
     }
 
     /**

@@ -57,7 +57,7 @@ let jobDataManager: Promise<DataManager>;
 
 async function getClassJobStatsFull(job: JobName) {
     if (jobDataManager === undefined) {
-        const dm = makeDataManager(job, 100);
+        const dm = makeDataManager([job], 100);
         jobDataManager = dm.loadData().then(() => dm);
     }
     const multipliers = (await jobDataManager).multipliersForJob(job);

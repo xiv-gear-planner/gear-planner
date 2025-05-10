@@ -222,8 +222,10 @@ async function doNav(navState: NavState) {
         }
     }
     catch (e) {
+        console.error(e);
         recordError('doNav', e);
         showFatalError("navigation error");
+        return;
     }
     console.error("I don't know what to do with this path", navState);
     showFatalError("This does not seem to be a valid page");

@@ -56,15 +56,17 @@ export const STANDARD_APPLICATION_DELAY = 0.6;
 // TODO: find actual value
 export const AUTOATTACK_APPLICATION_DELAY = 0.6;
 
+export const ALL_COMBAT_JOBS = [
+    'WHM', 'SGE', 'SCH', 'AST',
+    'PLD', 'WAR', 'DRK', 'GNB',
+    'DRG', 'MNK', 'NIN', 'SAM', 'RPR', 'VPR',
+    'BRD', 'MCH', 'DNC',
+    'BLM', 'SMN', 'RDM', 'BLU', 'PCT',
+] as const;
 /**
  * Supported Jobs.
  */
-export type JobName
-    = 'WHM' | 'SGE' | 'SCH' | 'AST'
-    | 'PLD' | 'WAR' | 'DRK' | 'GNB'
-    | 'DRG' | 'MNK' | 'NIN' | 'SAM' | 'RPR' | 'VPR'
-    | 'BRD' | 'MCH' | 'DNC'
-    | 'BLM' | 'SMN' | 'RDM' | 'BLU' | 'PCT';
+export type JobName = typeof ALL_COMBAT_JOBS[number];
 
 /**
  * All clans/races.
@@ -246,8 +248,8 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
                 apply: (stats) => {
                     stats.bonusHaste.push(attackType =>
                         attackType === 'Weaponskill'
-                    || attackType === 'Spell'
-                    || attackType === 'Auto-attack'
+                        || attackType === 'Spell'
+                        || attackType === 'Auto-attack'
                             ? 20 : 0);
                 },
             }],

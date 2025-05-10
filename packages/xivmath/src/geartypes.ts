@@ -198,6 +198,8 @@ export interface GearItem extends XivCombatItem {
     relicStatModel: RelicStatModel | undefined;
     isNqVersion: boolean;
     rarity: number;
+
+    usableByJob(job: JobName): boolean;
 }
 
 export interface FoodStatBonus {
@@ -721,6 +723,11 @@ export interface SheetExport {
      * Unix timestamp
      */
     timestamp?: number,
+
+    /**
+     * True if this is a multi-job sheet (within a single role)
+     */
+    isMultiJob?: boolean,
 }
 
 export type CustomItemExport = {
@@ -804,6 +811,10 @@ export interface SetExport {
      * Indicates that this set is a separator rather than an actual set
      */
     isSeparator?: boolean,
+    /**
+     * For multi-class sheets, each set can have a different job.
+     */
+    jobOverride?: JobName | null,
 }
 
 export type ItemsSlotsExport = {

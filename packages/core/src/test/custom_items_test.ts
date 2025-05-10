@@ -6,7 +6,7 @@ import 'global-jsdom/register';
 describe('Custom items support', () => {
     it('Supports a custom item with ignored caps', async () => {
         // Setup
-        const sheet = HEADLESS_SHEET_PROVIDER.fromScratch("foo", "foo", 'SGE', 100, undefined);
+        const sheet = HEADLESS_SHEET_PROVIDER.fromScratch("foo", "foo", 'SGE', 100, undefined, false);
         await sheet.load();
 
         // Make one set before adding the custom item to make sure we can still use it.
@@ -53,7 +53,7 @@ describe('Custom items support', () => {
     }).timeout(30_000);
     it('Supports a custom item with respected caps', async () => {
         // Setup
-        const sheet = HEADLESS_SHEET_PROVIDER.fromScratch("foo", "foo", 'SGE', 100, undefined);
+        const sheet = HEADLESS_SHEET_PROVIDER.fromScratch("foo", "foo", 'SGE', 100, undefined, false);
         await sheet.load();
 
         // Make one set before adding the custom item to make sure we can still use it.
@@ -98,7 +98,7 @@ describe('Custom items support', () => {
 
     it('Supports a custom item with ignored caps + isync', async () => {
         // Setup
-        const sheet = HEADLESS_SHEET_PROVIDER.fromScratch("foo", "foo", 'SGE', 100, 635);
+        const sheet = HEADLESS_SHEET_PROVIDER.fromScratch("foo", "foo", 'SGE', 100, 635, false);
         await sheet.load();
 
         // Make one set before adding the custom item to make sure we can still use it.
@@ -144,7 +144,7 @@ describe('Custom items support', () => {
     }).timeout(30_000);
     it('Supports a custom item with respected caps + isync', async () => {
         // Setup
-        const sheet = HEADLESS_SHEET_PROVIDER.fromScratch("foo", "foo", 'SGE', 100, 635);
+        const sheet = HEADLESS_SHEET_PROVIDER.fromScratch("foo", "foo", 'SGE', 100, 635, false);
         await sheet.load();
 
         // Make one set before adding the custom item to make sure we can still use it.
@@ -189,7 +189,7 @@ describe('Custom items support', () => {
 
 
     it('Supports a custom food', async () => {
-        const sheet = HEADLESS_SHEET_PROVIDER.fromScratch("foo", "foo", 'SGE', 100, undefined);
+        const sheet = HEADLESS_SHEET_PROVIDER.fromScratch("foo", "foo", 'SGE', 100, undefined, false);
         await sheet.load();
 
         // Make one set before adding the custom item to make sure we can still use it.

@@ -7,7 +7,7 @@ import {Buff, DamagingAbility, GcdAbility} from "../../sims/sim_types";
 import {abilityToDamageNew, combineBuffEffects} from "../../sims/sim_utils";
 
 const level = 100;
-const fakeSheetGNB = HEADLESS_SHEET_PROVIDER.fromScratch("unused", "unused", 'GNB', level, undefined);
+const fakeSheetGNB = HEADLESS_SHEET_PROVIDER.fromScratch("unused", "unused", 'GNB', level, undefined, false);
 const loadPromiseGNB = fakeSheetGNB.load();
 const rawStats = new RawStats({
     hp: 0,
