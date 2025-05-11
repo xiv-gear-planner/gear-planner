@@ -329,11 +329,6 @@ export type BaseAbility = Readonly<{
      */
     cast?: number,
     /**
-     * If the ability has a fixed cast and recast, rather than being reduced by sks/sps,
-     * set to true.
-     */
-    fixedGcd?: boolean,
-    /**
      * Override the default animation lock
      */
     animationLock?: number,
@@ -352,7 +347,22 @@ export type BaseAbility = Readonly<{
      * scaling or using the pet action Weapon Damage multiplier.
      */
     alternativeScalings?: AlternativeScaling[],
-} & (NonDamagingAbility | DamagingAbility)>;
+} & (NonDamagingAbility | DamagingAbility) & ({
+    /**
+        * If the ability has a fixed cast and recast, rather than being reduced by sks/sps,
+        * set to true.
+        */
+    fixedGcd: true,
+    fixedCastOnly?: never,
+} | {
+    fixedGcd?: false,
+    /**
+     * If the ability has a fixed cast _but_ a scaling recast, set to true.
+     * The only current occurrences of this in game are the Iaijutsu and Ogi Namikiri weaponskills after
+     * the level 74 talent.
+     */
+    fixedCastOnly?: boolean,
+})>;
 
 
 /**
