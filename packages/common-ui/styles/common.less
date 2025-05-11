@@ -3484,6 +3484,18 @@ body.modern {
       padding-left: var(--mmai-border-radius);
       padding-right: var(--mmai-border-radius);
 
+      a:hover {
+        .svg-glyph {
+          stroke: var(--button-hover-color);
+        }
+      }
+
+      a:hover#github-button {
+        .svg-glyph {
+          fill: var(--button-hover-color);
+        }
+      }
+
       .svg-glyph {
         //height: 1.3em;
         //width: 1.3em;
@@ -3498,7 +3510,6 @@ body.modern {
           scale: 2.0;
         }
       }
-
     }
   }
 
