@@ -102,7 +102,7 @@ export class BlmSimGui extends BaseMultiCycleSimGui<BlmSimResult, BlmSettings> {
             renderer: (usedAbility?: PreDmgUsedAbility) => {
                 if (usedAbility?.extraData !== undefined) {
                     const mp = (usedAbility.extraData as BlmExtraData).gauge.mp;
-                    
+
                     const div = document.createElement('div');
                     div.style.height = '100%';
                     div.style.display = 'flex';

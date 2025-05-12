@@ -39,7 +39,7 @@ export class BlmGauge {
     set aspect(newAspect: number) {
         this._aspect = Math.max(Math.min(newAspect, 3), -3);
     }
-    
+
     set umbralHearts(newUmbralHearts: number) {
         this._umbralHearts = Math.max(Math.min(newUmbralHearts, 3), 0);
     }
@@ -97,7 +97,7 @@ export class BlmGauge {
         // Switching from any level of AF removes all stacks of Astral Soul.
         if (this.aspect > 0) {
             this.astralSoul = 0;
-        } 
+        }
         this.aspect = -level;
     }
 
@@ -159,11 +159,14 @@ export class BlmGauge {
     getIceMpGain(): number {
         if (this.aspect === -1) {
             return 2500;
-        } else if (this.aspect === -2) {
+        }
+        else if (this.aspect === -2) {
             return 5000;
-        } else if (this.aspect === -3) {
+        }
+        else if (this.aspect === -3) {
             return 10000;
-        } else {
+        }
+        else {
             return 0;
         }
     }

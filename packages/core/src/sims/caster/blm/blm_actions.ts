@@ -1,4 +1,3 @@
-import {BlmGauge} from "./blm_gauge";
 import {BlmGcdAbility, BlmOgcdAbility, FirestarterBuff, LeyLinesBuff, SwiftcastBuff, TriplecastBuff} from "./blm_types";
 
 // GCDs

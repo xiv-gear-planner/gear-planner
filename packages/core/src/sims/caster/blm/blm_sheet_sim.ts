@@ -1,13 +1,10 @@
-import {Ability, SimSettings, SimSpec, OgcdAbility} from "@xivgear/core/sims/sim_types";
+import {Ability, SimSettings, SimSpec} from "@xivgear/core/sims/sim_types";
 import {CycleProcessor, CycleSimResult, ExternalCycleSettings, MultiCycleSettings, AbilityUseResult, Rotation, PreDmgAbilityUseRecordUnf} from "@xivgear/core/sims/cycle_sim";
-import {combineBuffEffects} from "@xivgear/core/sims/sim_utils";
 import {CycleSettings} from "@xivgear/core/sims/cycle_settings";
 import {CharacterGearSet} from "@xivgear/core/gear";
-import {formatDuration} from "@xivgear/util/strutils";
 import {STANDARD_ANIMATION_LOCK} from "@xivgear/xivmath/xivconstants";
 import {BlmGauge} from "./blm_gauge";
-import {BlmExtraData, BlmAbility, BlmGcdAbility, LeyLinesBuff, FirestarterBuff, BlmOgcdAbility, ThunderheadBuff} from "./blm_types";
-import {sum} from "@xivgear/util/array_utils";
+import {BlmExtraData, BlmAbility, BlmGcdAbility, LeyLinesBuff, FirestarterBuff, ThunderheadBuff} from "./blm_types";
 import * as Actions from './blm_actions';
 import {BaseMultiCycleSim} from "@xivgear/core/sims/processors/sim_processors";
 import {potionMaxInt} from "@xivgear/core/sims/common/potion";
@@ -74,7 +71,7 @@ class BlmCycleProcessor extends CycleProcessor {
 
     // Gets Fire/Ice spells with potency/cast time/MP cost adjusted for the current element.
     getBlmAbilityAdjusted(ability: BlmAbility): BlmAbility {
-        let mods = {
+        const mods = {
             potency: ability.potency,
             cast: ability.cast ?? 0,
             mp: ability.mp ?? 0,
@@ -128,7 +125,7 @@ class BlmCycleProcessor extends CycleProcessor {
 
         super.addAbilityUse(modified);
     }
-    
+
     override use(ability: Ability): AbilityUseResult {
         const abilityWithBuffs = this.beforeAbility(ability, this.getActiveBuffsFor(ability));
         const blmAbility = this.getBlmAbilityAdjusted(abilityWithBuffs as BlmAbility);
@@ -448,7 +445,7 @@ export class BlmSim extends BaseMultiCycleSim<BlmSimResult, BlmSettings, BlmCycl
                 }
             }
         }
-       
+
         if (this.settings.transposeFromUmbralIce) {
             // End of ice phase is: no Paradox: transpose.
             if (cp.gauge.aspect === -3 && !cp.gauge.paradox) {
@@ -465,7 +462,7 @@ export class BlmSim extends BaseMultiCycleSim<BlmSimResult, BlmSettings, BlmCycl
         if (cp.remainingGcdTime <= 0) {
             return;
         }
-        
+
         const gcdToUse = this.getGCDToUse(cp);
         this.use(cp, gcdToUse);
     }
@@ -475,7 +472,7 @@ export class BlmSim extends BaseMultiCycleSim<BlmSimResult, BlmSettings, BlmCycl
             return null;
         }
 
-        const blmAbility = ability as BlmAbility;
+        //const blmAbility = ability as BlmAbility;
 
         // If an Ogcd isn't ready yet, but it can still be used without clipping, advance time until ready.
         if (ability.type === 'ogcd' && cp.canUseWithoutClipping(ability)) {
@@ -692,9 +689,9 @@ export class BlmSim extends BaseMultiCycleSim<BlmSimResult, BlmSettings, BlmCycl
             this.use(cp, Actions.Fire4);
         }
         this.use(cp, Actions.FireParadox);
-        this.use(cp,Actions.Triplecast);
-        this.use(cp,Actions.Flare);
-        this.use(cp,Actions.FlareStar);
+        this.use(cp, Actions.Triplecast);
+        this.use(cp, Actions.Flare);
+        this.use(cp, Actions.FlareStar);
         this.use(cp, Actions.Transpose);
         this.use(cp, Actions.Blizzard3);
         this.use(cp, Actions.Blizzard4);
