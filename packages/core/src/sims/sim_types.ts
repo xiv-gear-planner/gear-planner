@@ -265,11 +265,19 @@ export type DamagingAbility = Readonly<{
  * above a certain level. Can be used to express e.g. traits increasing
  * the potency of skills, or granting new buffs.
  */
-export type LevelModifier = ({
+export type LevelModifier<X> = ({
         minLevel: number,
     })
-    & Omit<Partial<BaseAbility>, 'levelModifiers'>;
+    & Omit<Partial<X>, 'levelModifiers'>;
 
+export type LevelModifiable<X> = X & {
+    /**
+     * A list of level modifiers, that can override properties of the ability
+     * at the specified level. An action will have its properties overriden for
+     * the highest `minLevel` specified.
+     */
+    levelModifiers?: LevelModifier<X>[],
+}
 /**
  * Combo mode:
  * start: starts a combo.
@@ -285,7 +293,7 @@ export type ComboBehavior = ComboData['comboBehavior'];
  */
 export type AlternativeScaling = "Living Shadow Strength Scaling" | "Pet Action Weapon Damage";
 
-export type BaseAbility = Readonly<{
+export type BaseAbility = Readonly<LevelModifiable<{
     /**
      * Name of the ability.
      */
@@ -342,17 +350,11 @@ export type BaseAbility = Readonly<{
      */
     appDelay?: number,
     /**
-     * A list of level modifiers, that can override properties of the ability
-     * at the specified level. An action will have its properties overriden for
-     * the highest `minLevel` specified.
-     */
-    levelModifiers?: LevelModifier[],
-    /**
      * If the ability uses alternate scalings, such as Living Shadow Strength
      * scaling or using the pet action Weapon Damage multiplier.
      */
     alternativeScalings?: AlternativeScaling[],
-} & (NonDamagingAbility | DamagingAbility)>;
+}> & (LevelModifiable<NonDamagingAbility> | LevelModifiable<DamagingAbility>)>;
 
 
 /**
@@ -403,25 +405,25 @@ export type CdAbility = OriginCdAbility | SharedCdAbility;
 /**
  * Represents a GCD action
  */
-export type GcdAbility = BaseAbility & Readonly<{
+export type GcdAbility = BaseAbility & Readonly<LevelModifiable<{
     type: 'gcd';
     /**
      * If the ability's GCD can be lowered by sps/sks, put it here.
      */
     gcd: number,
-}>
+}>>
 
 /**
  * Represents an oGCD action
  */
-export type OgcdAbility = BaseAbility & Readonly<{
+export type OgcdAbility = BaseAbility & Readonly<LevelModifiable<{
     type: 'ogcd',
-}>;
+}>>;
 
-export type AutoAttack = BaseAbility & DamagingAbility & Readonly<{
+export type AutoAttack = BaseAbility & DamagingAbility & Readonly<LevelModifiable<{
     type: 'autoattack',
     // TODO
-}>;
+}>>;
 
 export type Ability = GcdAbility | OgcdAbility | AutoAttack;
 
