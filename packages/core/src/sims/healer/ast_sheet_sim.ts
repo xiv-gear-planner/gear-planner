@@ -1,14 +1,30 @@
 import {Divination} from "@xivgear/core/sims/buffs";
-import {Ability, BuffController, GcdAbility, OgcdAbility, PersonalBuff, SimSettings, SimSpec} from "@xivgear/core/sims/sim_types";
-import {CycleProcessor, CycleSimResult, ExternalCycleSettings, MultiCycleSettings, Rotation, PreDmgAbilityUseRecordUnf, AbilityUseResult} from "@xivgear/core/sims/cycle_sim";
+import {
+    Ability,
+    BuffController,
+    GcdAbility, LevelModifiable,
+    OgcdAbility,
+    PersonalBuff,
+    SimSettings,
+    SimSpec
+} from "@xivgear/core/sims/sim_types";
+import {
+    AbilityUseResult,
+    CycleProcessor,
+    CycleSimResult,
+    ExternalCycleSettings,
+    MultiCycleSettings,
+    PreDmgAbilityUseRecordUnf,
+    Rotation
+} from "@xivgear/core/sims/cycle_sim";
 import {rangeInc} from "@xivgear/util/array_utils";
 import {BaseMultiCycleSim} from "@xivgear/core/sims/processors/sim_processors";
 //import {potionMaxMind} from "@xivgear/core/sims/common/potion";
 
-type AstAbility = Ability & Readonly<{
+type AstAbility = Ability & Readonly<LevelModifiable<{
     /** Run if an ability needs to update the aetherflow gauge */
     updateGauge?(gauge: AstGauge): void;
-}>
+}>>
 
 type AstGcdAbility = GcdAbility & AstAbility;
 
@@ -40,11 +56,19 @@ const combust: AstGcdAbility = {
     potency: 0,
     dot: {
         id: 2041,
-        tickPotency: 70,
+        tickPotency: 55,
         duration: 30,
     },
     attackType: "Spell",
     gcd: 2.5,
+    levelModifiers: [{
+        minLevel: 94,
+        dot: {
+            id: 2041,
+            tickPotency: 70,
+            duration: 30,
+        },
+    }],
 };
 
 const star: AstOgcdAbility = {
@@ -214,17 +238,20 @@ class AstGauge {
     get cards() {
         return this._cards;
     }
+
     set cards(newCards: Set<string>) {
         this._cards = newCards;
     }
 
-    addCard(newCard: string){
+    addCard(newCard: string) {
         this._cards.add(newCard);
     }
-    playCard(played: string){
+
+    playCard(played: string) {
         this._cards.delete(played);
     }
-    clearCards(){
+
+    clearCards() {
         this._cards.clear();
     }
 
@@ -359,9 +386,7 @@ class AstCycleProcessor extends CycleProcessor {
 export class AstSim extends BaseMultiCycleSim<AstSimResult, AstSettings, AstCycleProcessor> {
 
     makeDefaultSettings(): AstSettings {
-        return {
-
-        };
+        return {};
     };
 
     spec = astNewSheetSpec;
@@ -405,8 +430,7 @@ export class AstSim extends BaseMultiCycleSim<AstSimResult, AstSettings, AstCycl
                     }
                 });
             },
-        },
-        ...rangeInc(10, 28, 2).map(i => ({
+        }, ...rangeInc(10, 28, 2).map(i => ({
             name: `Redot at ${i}s`,
             cycleTime: 120,
             apply(cp: AstCycleProcessor) {
@@ -449,8 +473,7 @@ export class AstSim extends BaseMultiCycleSim<AstSimResult, AstSettings, AstCycl
                     }
                 });
             },
-        })),
-        ...rangeInc(2, 16, 2).map(i => ({
+        })), ...rangeInc(2, 16, 2).map(i => ({
             name: `Delay dot to ${i}s`,
             cycleTime: 120,
             apply(cp: AstCycleProcessor) {
