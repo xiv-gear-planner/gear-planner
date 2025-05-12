@@ -43,10 +43,16 @@ const filler: AstGcdAbility = {
     id: 25871,
     type: 'gcd',
     name: "Fall Malefic",
-    potency: 270,
+    potency: 250,
     attackType: "Spell",
     gcd: 2.5,
     cast: 1.5,
+    levelModifiers: [
+        {
+            minLevel: 94,
+            potency: 270,
+        },
+    ],
 };
 
 const combust: AstGcdAbility = {
@@ -104,12 +110,18 @@ const div: AstOgcdAbility = {
     type: 'ogcd',
     name: "Divination",
     id: 16552,
-    activatesBuffs: [Divination, Divining],
+    activatesBuffs: [Divination],
     potency: null,
     attackType: "Ability",
     cooldown: {
         time: 120,
     },
+    levelModifiers: [
+        {
+            minLevel: 92,
+            activatesBuffs: [Divination, Divining],
+        },
+    ],
 };
 
 const oracle: AstOgcdAbility = {
@@ -339,6 +351,10 @@ class AstCycleProcessor extends CycleProcessor {
         return this.cdTracker.canUse(ability) ? super.useOgcd(ability) : null;
     }
 
+    isDiviningActive(): boolean {
+        return this.getActiveBuffData(Divining, this.currentTime)?.buff?.duration > 0;
+    }
+
     useDotIfWorth() {
         if (this.nextGcdTime >= this.nextCombustTime && this.remainingTime > 15) {
             this.nextCombustTime = this.nextGcdTime + 28.8;
@@ -375,7 +391,9 @@ class AstCycleProcessor extends CycleProcessor {
 
         this.useDotIfWorth();
         this.use(spear);
-        this.use(oracle);
+        if (this.isDiviningActive()) {
+            this.use(oracle);
+        }
         //oracleReady = false;
 
         this.useDotIfWorth();
