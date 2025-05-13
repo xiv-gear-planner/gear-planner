@@ -9,7 +9,7 @@ export function getJobIcons(style: 'framed' | 'frameless', condition: (job: JobN
         }
         const id = JOB_IDS[jobKey];
         if (id) {
-            out.push(new URL(xivApiIconUrl((style === 'framed' ? 62000 : 0) + id)));
+            out.push(new URL(xivApiIconUrl((style === 'framed' ? 62000 : 0) + id, true)));
         }
     }
     return out;
