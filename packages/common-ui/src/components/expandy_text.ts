@@ -29,7 +29,6 @@ export class ExpandableText extends HTMLElement {
     }
 
     private checkHeight(): void {
-        console.log("checkHeight");
         if (this.expanded) {
             this.classList.remove('truncated');
         }
