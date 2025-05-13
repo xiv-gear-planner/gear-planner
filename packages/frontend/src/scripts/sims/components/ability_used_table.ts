@@ -26,6 +26,9 @@ function roundTime(time: number): string {
     return time.toFixed(3);
 }
 
+function alignedValue(left: string, right: string): HTMLElement {
+    return quickElement('div', ['split-aligned-value'], [quickElement('span', [], [left]), quickElement('span', [], [right])]);
+}
 
 export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
 
@@ -93,7 +96,7 @@ export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
                     }
                 },
             },
-            {
+            col({
                 shortName: 'unbuffed-pot',
                 displayName: 'Pot',
                 getter: used => {
@@ -101,35 +104,38 @@ export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
                 },
                 renderer: (value: number | null, rowValue: DisplayRecordFinalized) => {
                     if (value !== null && isFinalizedAbilityUse(rowValue)) {
-                        if (rowValue.ability.type === 'autoattack') {
-                            const text = quickElement('span', [], [value + '*']);
-                            text.title = `${value} is the original potency, and does not reflect the weapon delay multiplier. However, the damage amount does reflect it.`;
-                            return text;
+                        if (isFinalizedAbilityUse(rowValue) && rowValue.ability.type === 'autoattack') {
+                            return alignedValue(value.toString(), '*');
                         }
                         else {
-                            return document.createTextNode(value.toString());
+                            return alignedValue(value.toString(), '');
                         }
                     }
                     else {
-                        return document.createTextNode('--');
+                        return alignedValue('--', '');
                     }
                 },
-            },
+                colStyler: (value: number | null, colElement, _, rowValue: DisplayRecordFinalized) => {
+                    if (isFinalizedAbilityUse(rowValue) && rowValue.ability.type === 'autoattack') {
+                        colElement.title = `${value} is the original potency, and does not reflect the weapon delay multiplier. However, the damage amount does reflect it.`;
+                        colElement.append(quickElement('span', ['extra-indicator'], ['*']));
+                    }
+                },
+            }),
             col({
                 shortName: 'expected-damage',
                 displayName: 'Damage',
                 getter: used => used,
                 renderer: (used: DisplayRecordFinalized) => {
                     if (isFinalizedAbilityUse(used)) {
-
                         if (!used.totalDamage) {
-                            return document.createTextNode('--');
+                            return alignedValue('--', '');
                         }
-                        let text = used.totalDamage.toFixed(2);
+                        const text = used.totalDamage.toFixed(1);
                         if (used.partialRate !== null || (used.dotInfo && used.dotInfo.fullDurationTicks !== "indefinite" && used.dotInfo.actualTickCount < used.dotInfo.fullDurationTicks)) {
-                            text += '*';
+                            return alignedValue(text, '*');
                         }
-                        return document.createTextNode(text);
+                        return alignedValue(text, '');
                     }
                     else {
                         return null;

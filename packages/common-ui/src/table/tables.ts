@@ -756,12 +756,14 @@ export class CustomCell<RowDataType, CellDataType> extends HTMLTableCellElement 
         }
         else {
             // Due to some of the styling, the child must be a real HTML element and not a raw text node
-            // Also, some elements don't support ::before, so insert a dummy span
             if (node.nodeType === this.TEXT_NODE) {
+                // TODO: this logic should take place above, so that colStyler can always take an HTMLElement instead
+                // of potentially being fed a raw text node and being unable to style it.
                 span.textContent = node.textContent ?? '';
                 this.replaceChildren(span);
             }
             else {
+                // Also, some elements don't support ::before, so insert a dummy span to work around this
                 this.replaceChildren(span, node);
             }
         }
