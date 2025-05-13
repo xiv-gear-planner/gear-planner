@@ -447,7 +447,7 @@ export class GnbSim extends BaseMultiCycleSim<GnbSimResult, GnbSettings, GnbCycl
                 // The 9 here counts:
                 // - The immediately following GCD (not in No Mercy)
                 // - The 8 GCDs we'll get in No Mercy
-                if (readyAt.relative + NoMercyBuff.duration <= cp.stats.gcdPhys(2.5) * 9) {
+                if (readyAt.relative + NoMercyBuff.duration <= cp.stats.gcdPhys(2.5) * 9 && cp.gauge.cartridges === 3) {
                     return Actions.BurstStrike;
                 }
             }
