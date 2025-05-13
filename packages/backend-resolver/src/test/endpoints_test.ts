@@ -3,7 +3,7 @@ import assert from "assert";
 import {buildPreviewServer, buildStatsServer, EmbedCheckResponse} from "../server_builder";
 import {SheetStatsExport} from "@xivgear/xivmath/geartypes";
 import {BIS_BROWSER_HASH, BIS_HASH, SHORTLINK_HASH} from "@xivgear/core/nav/common_nav";
-import {ALL_COMBAT_JOBS, JOB_IDS} from "@xivgear/xivmath/xivconstants";
+import {ALL_COMBAT_JOBS} from "@xivgear/xivmath/xivconstants";
 
 function readPreviewProps(document: Document): Record<string, string> {
     const out: Record<string, string> = {};
