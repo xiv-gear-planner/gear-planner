@@ -347,14 +347,7 @@ export class GnbSim extends BaseMultiCycleSim<GnbSimResult, GnbSettings, GnbCycl
         if (shouldUseGCD) {
             // We are microclipping
             if (relativeCooldown > 0) {
-                // If we pretend that microclips don't exist and we have perfect
-                // alignment, we will simply use Gnashing Fang before it comes off cooldown,
-                // essentially pretending that the SkS scaling is the same. Otherwise,
-                // we should microclip so that Gnashing Fang and Double Down
-                // do not drift.
-                if (!this.settings.pretendThatMicroclipsDontExist) {
-                    cp.advanceTo(cooldown.readyAt.absolute);
-                }
+                cp.advanceTo(cooldown.readyAt.absolute);
             }
         }
         return shouldUseGCD;
@@ -564,6 +557,24 @@ export class GnbSim extends BaseMultiCycleSim<GnbSimResult, GnbSettings, GnbCycl
                 cp.advanceTo(cp.nextGcdTime);
             }
             gnbAbility.updateCartridges(cp.gauge);
+        }
+
+        if (this.settings.pretendThatMicroclipsDontExist) {
+            const gcd = cp.stats.gcdPhys(2.5);
+            if (gnbAbility.name === Actions.GnashingFang.name || gnbAbility.name === Actions.DoubleDown.name) {
+                // Note: this pushes us forward the ability's animation lock.
+                // For e.g. Gnashing Fang at 2.48 (29.85 CD) the cooldown without having
+                // the animation lock re-added will be 29.25.
+                const result = cp.use(ability);
+                const animationLock = gnbAbility.animationLock ?? STANDARD_ANIMATION_LOCK;
+                const cooldown = cp.cdTracker.statusOf(gnbAbility).readyAt.relative + animationLock;
+                const cooldownWithoutMicroclips = (gnbAbility.cooldown.time / cp.gcdBase) * gcd;
+                // e.g. for 2.48 this will be:
+                // 29.76 - 29.85 = -0.09
+                // which will effectively 'fix' the cooldown as if it was the ideal speed.
+                cp.cdTracker.modifyCooldown(gnbAbility, cooldownWithoutMicroclips - cooldown);
+                return result;
+            }
         }
 
         return cp.use(ability);
