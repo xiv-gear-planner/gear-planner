@@ -447,7 +447,10 @@ export class GnbSim extends BaseMultiCycleSim<GnbSimResult, GnbSettings, GnbCycl
                 // The 9 here counts:
                 // - The immediately following GCD (not in No Mercy)
                 // - The 8 GCDs we'll get in No Mercy
-                if (readyAt.relative + NoMercyBuff.duration <= cp.stats.gcdPhys(2.5) * 9 && cp.gauge.cartridges === 3) {
+                // We check Ready To Reign to make sure it's a 2m burst. Otherwise the Burst Strike
+                // we're about to use would go in the No Mercy fully.
+                const aboutToStart2mBurst = cp.gauge.cartridges === 3 && cp.isReadyToReignBuffActive();
+                if (readyAt.relative + NoMercyBuff.duration <= cp.stats.gcdPhys(2.5) * 9 && aboutToStart2mBurst) {
                     return Actions.BurstStrike;
                 }
             }
