@@ -3,6 +3,7 @@ import assert from "assert";
 import {buildPreviewServer, buildStatsServer, EmbedCheckResponse} from "../server_builder";
 import {SheetStatsExport} from "@xivgear/xivmath/geartypes";
 import {BIS_BROWSER_HASH, BIS_HASH, SHORTLINK_HASH} from "@xivgear/core/nav/common_nav";
+import {ALL_COMBAT_JOBS} from "@xivgear/xivmath/xivconstants";
 
 function readPreviewProps(document: Document): Record<string, string> {
     const out: Record<string, string> = {};
@@ -291,7 +292,12 @@ describe("backend servers", () => {
             const preloads = Array.from(parsed.querySelectorAll('link'))
                 .filter(link => link.rel === 'preload');
 
-            const bisIndexPreload = preloads[preloads.length - 1];
+            const bisIndexPreload = preloads[preloads.length - 1 - (ALL_COMBAT_JOBS.length)];
+            assert.equal(bisIndexPreload.getAttribute('rel'), "preload");
+            assert.equal(bisIndexPreload.getAttribute('href'), 'https://staticbis.xivgear.app/_index.json');
+            assert.equal(bisIndexPreload.getAttribute('as'), "fetch");
+            assert.equal(bisIndexPreload.hasAttribute('crossorigin'), true);
+
             assert.equal(bisIndexPreload.getAttribute('rel'), "preload");
             assert.equal(bisIndexPreload.getAttribute('href'), 'https://staticbis.xivgear.app/_index.json');
             assert.equal(bisIndexPreload.getAttribute('as'), "fetch");
