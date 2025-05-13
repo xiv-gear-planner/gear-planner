@@ -34,6 +34,7 @@ import {getFrontendPath, getFrontendServer} from "./frontend_file_server";
 import process from "process";
 import {extractSingleSet} from "@xivgear/core/util/sheet_utils";
 import {getJobIcons} from "./preload_helpers";
+import FastifyIp, {FastifyIP} from 'fastify-ip';
 
 let initDone = false;
 
@@ -99,6 +100,8 @@ function buildServerBase() {
         ignoreDuplicateSlashes: true,
         // querystringParser: str => querystring.parse(str, '&', '=', {}),
     });
+    // Get the true IP from CF headers
+    fastifyInstance.register(FastifyIP);
     fastifyInstance.register(cors, {
         methods: ['GET', 'OPTIONS'],
         strictPreflight: false,
