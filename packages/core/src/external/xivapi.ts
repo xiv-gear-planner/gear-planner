@@ -20,6 +20,8 @@ export type XivApiSearchRequest = XivApiRequest & {
     filters?: XivApiFilter[],
 }
 
+// TODO: migrate this to v2.xivapi.com
+// TODO: put the /api/ part in here and rename to XIVAPI_BASE_URL
 export const XIVAPI_SERVER = "https://beta.xivapi.com";
 
 export type XivApiResultSingle<Cols extends readonly string[], TrnCols extends readonly string[] = []> = {
