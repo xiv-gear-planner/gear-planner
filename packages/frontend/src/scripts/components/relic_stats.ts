@@ -49,7 +49,7 @@ export function makeRelicStatEditor(equipment: EquippedItem, stat: Substat, set:
             }
             else {
                 input.classList.add('relic-validation-failed');
-                input.title = validationFailures.join('\n');
+                input.title = validationFailures.map(vf => vf.description).join('\n');
             }
         };
         reval();
@@ -93,7 +93,7 @@ export function makeRelicStatEditor(equipment: EquippedItem, stat: Substat, set:
             }
             else {
                 input.classList.add('relic-validation-failed');
-                input.title = validationFailures.join('\n');
+                input.title = validationFailures.map(vf => vf.description).join('\n');
             }
         };
         reval();
