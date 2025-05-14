@@ -114,6 +114,13 @@ function buildServerBase() {
         return 'up';
     });
 
+    process.on('uncaughtException', (reason: Error) => {
+        fastifyInstance.log.error(`uncaught exception: ${reason}`);
+    });
+    process.on('unhandledRejection', (reason, promise) => {
+        fastifyInstance.log.error(`unhandled rejection at: ${promise}, reason: ${reason}`);
+    });
+
     return fastifyInstance;
 }
 
