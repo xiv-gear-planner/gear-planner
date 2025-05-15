@@ -109,7 +109,7 @@ export function getScalingOverrides(alternativeScalings: AlternativeScaling[], s
     // Process alternative scalings for the ability. There may be multiple.
     if (alternativeScalings) {
         if (alternativeScalings.includes("Living Shadow Strength Scaling")) {
-            const livingShadowStrength = getLivingShadowStrength(stats.gearStats.strength, stats.racialStats) + strengthBuff;
+            const livingShadowStrength = getLivingShadowStrength(stats.gearStats.strength, stats.levelStats.baseMainStat, stats.baseMainStatPlusRace) + strengthBuff;
             scalings.mainStatMulti = mainStatMultiLivingShadow(stats.levelStats, livingShadowStrength);
         }
         if (alternativeScalings.includes("Pet Action Weapon Damage")) {

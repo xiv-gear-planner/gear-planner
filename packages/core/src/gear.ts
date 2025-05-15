@@ -40,7 +40,7 @@ import {
     XivCombatItem
 } from "@xivgear/xivmath/geartypes";
 import {Inactivitytimer} from "@xivgear/util/inactivitytimer";
-import {addStats, finalizeStats, finalizeStatsInt} from "@xivgear/xivmath/xivstats";
+import {addStats, finalizeStats, finalizeStatsInt, getBaseMainStat} from "@xivgear/xivmath/xivstats";
 import {GearPlanSheet} from "./sheet";
 import {isMateriaAllowed} from "./materia/materia_utils";
 
@@ -597,7 +597,7 @@ export class CharacterGearSet {
 
         // Base stats based on job and level
         for (const statKey of MAIN_STATS) {
-            combinedStats[statKey] += Math.floor(levelStats.baseMainStat * classJobStats.jobStatMultipliers[statKey] / 100);
+            combinedStats[statKey] += getBaseMainStat(levelStats, classJobStats, statKey);
         }
         for (const statKey of FAKE_MAIN_STATS) {
             combinedStats[statKey] += Math.floor(levelStats.baseMainStat);
@@ -612,7 +612,7 @@ export class CharacterGearSet {
         this._dirtyComp = false;
         // Add BLU weapon damage modifier
         combinedStats.wdMag += classJob === "BLU" ? bluWdfromInt(gearIntStat) : 0;
-        const computedStats = finalizeStats(combinedStats, this._food?.bonuses ?? {}, level, levelStats, classJob, classJobStats, this._sheet.partyBonus, this._sheet.race);
+        const computedStats = finalizeStats(combinedStats, this._food?.bonuses ?? {}, level, levelStats, classJob, classJobStats, this._sheet.partyBonus, raceStats);
         const leftRing = this.getItemInSlot('RingLeft');
         const rightRing = this.getItemInSlot('RingRight');
         if (leftRing && leftRing.isUnique && rightRing && rightRing.isUnique) {
