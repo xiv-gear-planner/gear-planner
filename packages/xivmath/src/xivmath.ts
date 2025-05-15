@@ -317,7 +317,6 @@ function usesCasterDamageFormula(stats: ComputedSetStats, attackType: AttackType
  */
 export function getLivingShadowStrength(rawStrength: number, baseMainStat: number, playerBaseMainStat: number): number {
     const livingShadowRacialBonus = 2;
-    console.log(`Violet Living Shadow rawStrength=${rawStrength} - playerBaseMainStat=${playerBaseMainStat} + baseMainStat=${baseMainStat} + livingShadowRacialBonus=${livingShadowRacialBonus}`);
     const livingShadowStrength = rawStrength - playerBaseMainStat + baseMainStat + livingShadowRacialBonus;
     return livingShadowStrength;
 }
