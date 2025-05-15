@@ -6,6 +6,23 @@ type HasValidation = {
     revalidate: () => void;
 }
 
+function refreshEditorContainers(input: HTMLElement) {
+    const row = input.closest('tr');
+    const inputs = row.querySelectorAll('select, input');
+    inputs.forEach(inp => {
+        const reval = (input as unknown as HasValidation).revalidate;
+        if (reval) {
+            reval();
+        }
+    });
+    const cells = row.querySelectorAll('td');
+    cells.forEach(cell => {
+        if ('refreshTitle' in cell) {
+            (cell.refreshTitle as () => void)();
+        }
+    });
+}
+
 export function makeRelicStatEditor(equipment: EquippedItem, stat: Substat, set: CharacterGearSet): HTMLElement {
     const gearItem = equipment.gearItem;
     // If the stat is excluded, disable editing ONLY if the user had not already entered a value. Otherwise, they'd be
@@ -58,14 +75,7 @@ export function makeRelicStatEditor(equipment: EquippedItem, stat: Substat, set:
         input.addListener(() => {
             setTimeout(() => {
                 set.forceRecalc();
-                const row = input.closest('tr');
-                const inputs = row.querySelectorAll('select, input');
-                inputs.forEach(inp => {
-                    const reval = (inp as unknown as HasValidation).revalidate;
-                    if (reval) {
-                        reval();
-                    }
-                });
+                refreshEditorContainers(input);
             }, 10);
 
         });
@@ -102,15 +112,7 @@ export function makeRelicStatEditor(equipment: EquippedItem, stat: Substat, set:
         input.addListener(() => {
             setTimeout(() => {
                 set.forceRecalc();
-                const row = input.closest('tr');
-                const inputs = row.querySelectorAll('select, input');
-                console.log('inputs', []);
-                inputs.forEach(inp => {
-                    const reval = (input as unknown as HasValidation).revalidate;
-                    if (reval) {
-                        reval();
-                    }
-                });
+                refreshEditorContainers(input);
             }, 10);
 
         });

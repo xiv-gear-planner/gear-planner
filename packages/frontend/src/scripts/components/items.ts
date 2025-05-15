@@ -49,8 +49,9 @@ import {makeRelicStatEditor} from "./relic_stats";
 import {ShowHideButton, ShowHideCallback} from "@xivgear/common-ui/components/show_hide_chevron";
 import {BaseModal} from "@xivgear/common-ui/components/modal";
 import {recordSheetEvent} from "../analytics/analytics";
+import {AnyStringIndex} from "@xivgear/util/types";
 
-function statCellStylerRemover(cell: CustomCell<GearSlotItem, unknown>) {
+function removeStatCellStyles(cell: CustomCell<GearSlotItem, unknown>) {
     cell.classList.remove("secondary");
     cell.classList.remove("primary");
     cell.classList.remove("stat-melded-overcapped");
@@ -58,6 +59,7 @@ function statCellStylerRemover(cell: CustomCell<GearSlotItem, unknown>) {
     cell.classList.remove("stat-melded");
     cell.classList.remove("stat-synced-down");
     cell.classList.remove("stat-cell");
+    delete cell.title;
 }
 
 /**
@@ -68,7 +70,7 @@ function statCellStylerRemover(cell: CustomCell<GearSlotItem, unknown>) {
  * describes meld values and whether it has overcapped or not.
  * @param stat The stat
  */
-function statCellStyler(cell: CustomCell<GearSlotItem, unknown>, value: ItemSingleStatDetail, stat: keyof RawStats) {
+function applyStatCellStyles(cell: CustomCell<GearSlotItem, unknown>, value: ItemSingleStatDetail, stat: keyof RawStats) {
 
     let isPrimary: boolean = false;
     let isSecondary: boolean = false;
@@ -112,30 +114,40 @@ function statCellStyler(cell: CustomCell<GearSlotItem, unknown>, value: ItemSing
     else {
         cell.classList.remove("stat-zero");
     }
-    cell.classList.remove("stat-melded-overcapped");
-    cell.classList.remove("stat-melded-overcapped-major");
-    cell.classList.remove("stat-melded");
-    let modeLabel;
+    cell.classList.remove("stat-melded-overcapped", "stat-melded-overcapped-major", "stat-melded", "stat-synced-down");
     if (value.mode === 'melded') {
-        modeLabel = 'Melded: \n';
         cell.classList.add("stat-melded");
     }
     else if (value.mode === 'melded-overcapped') {
-        modeLabel = 'Overcapped: \n';
         cell.classList.add("stat-melded-overcapped");
     }
     else if (value.mode === 'melded-overcapped-major') {
-        modeLabel = 'Overcapped: \n';
         cell.classList.add("stat-melded-overcapped-major");
     }
     else if (value.mode === 'synced-down') {
-        modeLabel = 'Synced Down: \n';
         cell.classList.add("stat-synced-down");
+    }
+}
+
+function applyStatCellTitle(cell: CustomCell<GearSlotItem, unknown>, value: ItemSingleStatDetail) {
+    let modeLabel;
+    if (value.mode === 'melded') {
+        modeLabel = 'Melded: \n';
+    }
+    else if (value.mode === 'melded-overcapped') {
+        modeLabel = 'Overcapped: \n';
+    }
+    else if (value.mode === 'melded-overcapped-major') {
+        modeLabel = 'Overcapped: \n';
+    }
+    else if (value.mode === 'synced-down') {
+        modeLabel = 'Synced Down: \n';
     }
     else {
         modeLabel = '';
     }
     cell.title = `${modeLabel}${value.fullAmount} / ${value.cap}`;
+    console.log(value);
 }
 
 /**
@@ -365,7 +377,11 @@ export class FoodItemViewTable extends CustomTable<FoodItem> {
 }
 
 class RelicCellInfo {
-    constructor(public set: CharacterGearSet, public item: GearItem, public slotId: EquipSlotKey, public stat: Substat) {
+    constructor(public readonly set: CharacterGearSet,
+                public readonly item: GearItem,
+                public readonly slotId: EquipSlotKey,
+                public readonly stat: Substat,
+                public readonly statDetail: ItemSingleStatDetail) {
     }
 }
 
@@ -382,14 +398,15 @@ function itemTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, stat: 
                 const currentEquipment: EquippedItem = set.equipment[slotItem.slotId];
                 // If not equipped, and there is a saved set of stats for that relic, display them
                 // after syncing down and such
-                if (currentEquipment && currentEquipment.gearItem !== item) {
+                if (!currentEquipment || currentEquipment.gearItem !== item) {
                     const preview = set.toEquippedItem(item);
-                    if (nonEmptyRelicStats(preview.relicStats)) {
-                        return set.getEquipStatDetail(preview, stat);
-                    }
+                    return set.getEquipStatDetail(preview, stat);
+                    // if (nonEmptyRelicStats(preview.relicStats)) {
+                    // }
                 }
-                // If it is equipped, then display the relic cell editor
-                return new RelicCellInfo(set, item, slotItem.slotId, stat as Substat);
+                // If it is equipped, then display the relic cell editor.
+                // Use currentEquipment so that recent changes to the relic stats will be reflecjted.
+                return new RelicCellInfo(set, currentEquipment.gearItem, slotItem.slotId, stat as Substat, set.getStatDetail(slotItem.slotId, stat));
             }
             else {
                 // Not a relic, or not an editable stat. Display normally
@@ -402,7 +419,7 @@ function itemTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, stat: 
                 }
             }
         },
-        renderer: (value: ItemSingleStatDetail | RelicCellInfo) => {
+        renderer: (value: ItemSingleStatDetail | RelicCellInfo, rowValue: GearSlotItem) => {
             // First, check if the cell is an editable relic stat
             if (value instanceof RelicCellInfo) {
                 const equipment: EquippedItem = value.set.equipment[value.slotId];
@@ -426,28 +443,52 @@ function itemTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, stat: 
                     }
                 }
                 else {
+                    // This should never happen - we only get passed in a RelicCellInfo if the relic in question is equipped.
                     return null;
                 }
             }
-            return document.createTextNode(value.effectiveAmount.toString());
+            else {
+                if (rowValue.item.isCustomRelic) {
+                    if (rowValue.item.relicStatModel.excludedStats.includes(stat as Substat)) {
+                        return document.createTextNode('-');
+                    }
+                }
+                return document.createTextNode(value.effectiveAmount.toString());
+            }
         },
         initialWidth: 33,
-        condition:
-            () => sheet.isStatRelevant(stat),
-        colStyler:
-            (value, cell, node) => {
-                if (highlightPrimarySecondary) {
-                    if (value instanceof RelicCellInfo) {
-                        statCellStylerRemover(cell);
-                    }
-                    else {
-                        statCellStyler(cell, value, stat);
-                    }
+        condition: () => sheet.isStatRelevant(stat),
+        colStyler: (value, cell, node) => {
+            if (highlightPrimarySecondary) {
+                if (value instanceof RelicCellInfo) {
+                    removeStatCellStyles(cell);
+                    applyStatCellTitle(cell, value.statDetail);
+                    // TODO: messy hack. Really should just have a "here's how to set the title" method on custom cells
+                    (cell as unknown as AnyStringIndex)['refreshTitle'] = () => {
+                        console.log("refreshTitle");
+                        const currentEquipment: EquippedItem = set.equipment[value.slotId];
+                        // If not equipped, and there is a saved set of stats for that relic, display them
+                        // after syncing down and such
+                        if (!currentEquipment || currentEquipment.gearItem !== value.item) {
+                            const preview = set.toEquippedItem(value.item);
+                            const statDetail = set.getEquipStatDetail(preview, stat);
+                            applyStatCellTitle(cell, statDetail);
+                            return;
+                        }
+                        // If it is equipped, then display the relic cell editor.
+                        // Use currentEquipment so that recent changes to the relic stats will be reflecjted.
+                        applyStatCellTitle(cell, set.getStatDetail(value.slotId, stat));
+                    };
                 }
                 else {
-                    cell.classList.add('stat-cell');
+                    applyStatCellStyles(cell, value, stat);
+                    applyStatCellTitle(cell, value);
                 }
-            },
+            }
+            else {
+                cell.classList.add('stat-cell');
+            }
+        },
     };
 }
 
