@@ -11,6 +11,7 @@ import {
     CycleSimResultFull,
     defaultResultSettings,
     ExternalCycleSettings,
+    GaugeManager,
     isFinalizedAbilityUse,
     MultiCycleSettings,
     ResultSettings,
@@ -20,12 +21,36 @@ import {BuffSettingsManager} from "@xivgear/core/sims/common/party_comp_settings
 
 export type RotationCacheKey = (number | boolean | string)[];
 
+class NoopGaugeManager implements GaugeManager<unknown> {
+    gaugeSnapshot(): {} {
+        return {};
+    }
+}
+
+/**
+ * Cycle processor type to gauge manager type
+ */
+export type GaugeManagerTypeOf<C extends CycleProcessor> = C extends CycleProcessor<infer G> ? G : never;
+/**
+ * Cycle processor type to gauge state type
+ */
+export type GaugeStateTypeOf<C extends CycleProcessor> = C extends CycleProcessor<infer G> ? G : never;
+/**
+ * Gauge manager type to to gauge state type
+ */
+export type GaugeStateTypeOfMgr<C extends GaugeManager<unknown>> = C extends GaugeManager<infer G> ? G : never;
+
 /**
  * Base class for a CycleProcessor based simulation. You should extend this class,
  * and provide your own generic types.
  */
-export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, InternalSettingsType extends SimSettings, CycleProcessorType extends CycleProcessor = CycleProcessor, FullResultType extends CycleSimResultFull<ResultType> = CycleSimResultFull<ResultType>>
-    implements Simulation<FullResultType, InternalSettingsType, ExternalCycleSettings<InternalSettingsType>> {
+export abstract class BaseMultiCycleSim<
+    ResultType extends CycleSimResult,
+    InternalSettingsType extends SimSettings,
+    CycleProcessorType extends CycleProcessor = CycleProcessor<NoopGaugeManager>,
+    FullResultType extends CycleSimResultFull<ResultType> = CycleSimResultFull<ResultType>,
+    // GaugeManagerType extends GaugeManagerTypeOf<CycleProcessorType> = NoopGaugeManager,
+> implements Simulation<FullResultType, InternalSettingsType, ExternalCycleSettings<InternalSettingsType>> {
 
     abstract displayName: string;
     abstract shortName: string;
@@ -51,7 +76,7 @@ export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, Inter
 
     readonly manualRun = false;
 
-    private cachedCycleProcessors: [string, CycleProcessor][];
+    private cachedCycleProcessors: [string, CycleProcessorType][];
     private cachedRotationKey: RotationCacheKey | undefined;
 
     protected constructor(public readonly job: JobName, settings?: ExternalCycleSettings<InternalSettingsType>) {
@@ -134,7 +159,7 @@ export abstract class BaseMultiCycleSim<ResultType extends CycleSimResult, Inter
     };
 
 
-    generateRotations(set: CharacterGearSet, simple: boolean = false): [string, CycleProcessor][] {
+    generateRotations(set: CharacterGearSet, simple: boolean = false): [string, CycleProcessorType][] {
 
         const allBuffs = this.buffManager.enabledBuffs;
         const rotations = this.getRotationsToSimulate(set);

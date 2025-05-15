@@ -410,7 +410,7 @@ class RprCycleProcessor extends CycleProcessor {
     }
 
 }
-export class RprSheetSim extends BaseMultiCycleSim<RprSheetSimResult, RprSimSettings> {
+export class RprSheetSim extends BaseMultiCycleSim<RprSheetSimResult, RprSimSettings, RprCycleProcessor> {
 
     spec = rprSheetSpec;
     shortName = "rpr-sheet-sim";
