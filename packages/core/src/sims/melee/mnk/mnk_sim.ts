@@ -5,7 +5,7 @@ import {CharacterGearSet} from "@xivgear/core/gear";
 import {BaseMultiCycleSim, RotationCacheKey} from "@xivgear/core/sims/processors/sim_processors";
 import {FuryAbility, MnkAbility, MNKExtraData, MnkGcdAbility, Opener} from "./mnk_types";
 import {MNKGauge as MnkGauge} from "./mnk_gauge";
-import {BOOTSHINE_ABILITIES, Bootshine, Brotherhood, BrotherhoodBuff, CelestialRevolution, CoeurlForm, Demolish, DragonKick, ElixirField, FiresReply, FiresRumination, ForbiddenMeditation, FormShift, FormlessFist, MeditativeBrotherhood, OGCD_PRIORITY, OPO_ABILITIES, OpoForm, PerfectBalance, PerfectBalanceBuff, PhantomRush, RaptorForm, RiddleOfFire, RiddleOfFireBuff, RiddleOfWind, RisingPhoenix, SOLAR_WEAKEST_STRONGEST, SixSidedStar, SnapPunch, TheForbiddenChakra, TrueStrike, TwinSnakes, WindsReply, WindsRumination} from "./mnk_actions";
+import {BOOTSHINE_ABILITIES, Bootshine, Brotherhood, BrotherhoodBuff, CelestialRevolution, CoeurlForm, Demolish, DragonKick, ElixirField, FiresReply, FiresRumination, FlintStrike, ForbiddenMeditation, FormShift, FormlessFist, MeditativeBrotherhood, OGCD_PRIORITY, OPO_ABILITIES, OpoForm, PerfectBalance, PerfectBalanceBuff, PhantomRush, RaptorForm, RiddleOfFire, RiddleOfFireBuff, RiddleOfWind, SOLAR_WEAKEST_STRONGEST, SixSidedStar, SnapPunch, TheForbiddenChakra, TrueStrike, TwinSnakes, WindsReply, WindsRumination} from "./mnk_actions";
 import {Brotherhood as BrotherhoodGlobalBuff} from "@xivgear/core/sims/buffs";
 import {sum} from "@xivgear/util/array_utils";
 import {STANDARD_ANIMATION_LOCK, SupportedLevel} from "@xivgear/xivmath/xivconstants";
@@ -309,7 +309,7 @@ class MNKCycleProcessor extends CycleProcessor {
             case 2:
                 return CelestialRevolution;
             case 3:
-                return RisingPhoenix;
+                return FlintStrike;
         }
         console.warn(`${this.currentTime} failed to select a blitz, choosing celestial revolution for punishment.`);
         return CelestialRevolution;
