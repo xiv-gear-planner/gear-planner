@@ -94,7 +94,9 @@ class MNKCycleProcessor extends CycleProcessor {
             const probableChakraGain = BOOTSHINE_ABILITIES.includes(usedAbility.ability.id) && usedAbility.buffs.find(buff => [PerfectBalanceBuff.statusId, FormlessFist.statusId, OpoForm.statusId].includes(buff.statusId))
                 ? 1
                 : this.stats.critChance + usedAbility.combinedEffects.critChanceIncrease;
-            const brotherhoodChakra = usedAbility.buffs.find(buff => buff.statusId === BrotherhoodBuff.statusId)
+
+            // Brotherhood only guarantees a chakra after the level 88 trait enhanced brotherhood
+            const brotherhoodChakra = this.level > 88 && usedAbility.buffs.find(buff => buff.statusId === BrotherhoodBuff.statusId)
                 ? 1
                 : 0;
             const meditativeBhChakra = usedAbility.buffs.find(buff => buff.statusId === MeditativeBrotherhood.statusId)
