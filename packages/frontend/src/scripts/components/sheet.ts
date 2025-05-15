@@ -288,7 +288,7 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, SingleCellRowOr
     // }
 
     private setupColumns() {
-        const viewOnly = this.sheet._isViewOnly;
+        const viewOnly = this.sheet.isViewOnly;
         if (viewOnly) {
             // TODO: this leaves 1px extra to the left of the name columns
             // Also messes with the selection outline
@@ -1247,7 +1247,7 @@ function formatSimulationConfigArea<SettingsType extends SimSettings>(
     // const header = document.createElement("h1");
     // header.textContent = "Configuring " + sim.displayName;
     // outerDiv.appendChild(header);
-    if (sheet._isViewOnly) {
+    if (sheet.isViewOnly) {
         const title = document.createElement('h1');
         title.textContent = simGui.sim.displayName;
     }
@@ -1411,7 +1411,7 @@ export class GearPlanSheetGui extends GearPlanSheet {
 
     private set editorItem(item: typeof this._editorItem) {
         this._editorItem = item;
-        if (this._isViewOnly) {
+        if (this.isViewOnly) {
             this.headerArea.style.display = 'none';
         }
         this.resetEditorArea();
@@ -1442,7 +1442,7 @@ export class GearPlanSheetGui extends GearPlanSheet {
                 // TODO: centralize these debugging shortcuts
                 window.currentGearSet = item;
                 if (item.isSeparator) {
-                    if (this._isViewOnly) {
+                    if (this.isViewOnly) {
                         this.setupEditorArea(new SeparatorViewer(item));
                     }
                     else {
@@ -1450,7 +1450,7 @@ export class GearPlanSheetGui extends GearPlanSheet {
                     }
                 }
                 else {
-                    if (this._isViewOnly) {
+                    if (this.isViewOnly) {
                         this.setupEditorArea(new GearSetViewer(this, item));
                     }
                     else {
@@ -1492,7 +1492,7 @@ export class GearPlanSheetGui extends GearPlanSheet {
 
         const sheetOptions = new DropdownActionMenu('More Actions...');
 
-        if (!this._isViewOnly) {
+        if (!this.isViewOnly) {
             const addRowButton = makeActionButton("New Gear Set", () => {
                 const newSet = new CharacterGearSet(this);
                 newSet.name = "New Set";
@@ -1543,7 +1543,7 @@ export class GearPlanSheetGui extends GearPlanSheet {
             buttonsArea.appendChild(ilvlSyncLabel);
         }
 
-        if (this._isViewOnly) {
+        if (this.isViewOnly) {
             const saveAsButton = makeActionButton("Save As", () => {
                 const modal = new SaveAsModal(this, newSheet => openSheetByKey(newSheet.saveKey));
                 modal.attachAndShow();
@@ -1561,7 +1561,7 @@ export class GearPlanSheetGui extends GearPlanSheet {
             });
         }
 
-        if (!this._isViewOnly) {
+        if (!this.isViewOnly) {
 
             const newSimButton = makeActionButton("Add Simulation", () => {
                 this.showAddSimDialog();
@@ -1645,7 +1645,7 @@ export class GearPlanSheetGui extends GearPlanSheet {
             this.headerArea.style.display = 'none';
         }
         else {
-            if (this._isViewOnly) {
+            if (this.isViewOnly) {
                 const heading = document.createElement('h1');
                 heading.textContent = this.sheetName;
                 this.headerArea.appendChild(heading);
@@ -2085,7 +2085,7 @@ export class GearPlanSheetGui extends GearPlanSheet {
 
     set sheetName(name: string) {
         super.sheetName = name;
-        setTitle(this._sheetName);
+        setTitle(this.sheetName);
     }
 
     configureBacklinkArea(sheetName: string, sheetUrl: URL): void {

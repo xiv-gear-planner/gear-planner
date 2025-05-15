@@ -1,6 +1,7 @@
 import {EquippedItem, RelicStats, Substat} from "@xivgear/xivmath/geartypes";
 import {CharacterGearSet} from "@xivgear/core/gear";
 import {FieldBoundDataSelect, FieldBoundIntField} from "@xivgear/common-ui/components/util";
+import {CustomCell} from "@xivgear/common-ui/table/tables";
 
 type HasValidation = {
     revalidate: () => void;
@@ -10,15 +11,15 @@ function refreshEditorContainers(input: HTMLElement) {
     const row = input.closest('tr');
     const inputs = row.querySelectorAll('select, input');
     inputs.forEach(inp => {
-        const reval = (input as unknown as HasValidation).revalidate;
+        const reval = (inp as unknown as HasValidation).revalidate;
         if (reval) {
             reval();
         }
     });
     const cells = row.querySelectorAll('td');
     cells.forEach(cell => {
-        if ('refreshTitle' in cell) {
-            (cell.refreshTitle as () => void)();
+        if (cell instanceof CustomCell) {
+            cell.refreshTitle();
         }
     });
 }
@@ -28,10 +29,11 @@ export function makeRelicStatEditor(equipment: EquippedItem, stat: Substat, set:
     // If the stat is excluded, disable editing ONLY if the user had not already entered a value. Otherwise, they'd be
     // stuck with a value that they can't clear.
     if (gearItem.relicStatModel.type && gearItem.relicStatModel.excludedStats.includes(stat) && !equipment.relicStats[stat]) {
-        const div = document.createElement('div');
-        div.classList.add('relic-stat-excluded');
-        div.title = 'You cannot use this relic stat on this class';
-        return div;
+        const out = document.createElement('span');
+        out.classList.add('relic-stat-excluded');
+        out.title = 'You cannot use this relic stat on this class';
+        out.textContent = '-';
+        return out;
     }
     else if (gearItem.relicStatModel.type === 'unknown' || gearItem.relicStatModel.type === 'customrelic') {
         const inputSubstatCap = gearItem.unsyncedVersion.statCaps[stat] ?? 1000;
