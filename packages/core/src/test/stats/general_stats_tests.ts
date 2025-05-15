@@ -844,7 +844,7 @@ describe("Final damage values for known values", () => {
             weaponDelay: 2.96,
         }),
         // Using Rava for consistency with spreadsheet
-        {}, level, getLevelStats(level), 'DRK', fakeSheetDRK.classJobStats, 0, getRaceStats("The Lost"));
+        {}, level, getLevelStats(level), 'DRK', fakeSheetDRK.classJobStats, 0, getRaceStats("Rava"));
         expect(stats.mainStatValue).to.eq(469);
         expect(stats.determination).to.eq(440);
         expect(stats.wdMag).to.eq(35);
