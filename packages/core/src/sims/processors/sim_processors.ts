@@ -21,7 +21,7 @@ import {BuffSettingsManager} from "@xivgear/core/sims/common/party_comp_settings
 
 export type RotationCacheKey = (number | boolean | string)[];
 
-class NoopGaugeManager implements GaugeManager<unknown> {
+export class NoopGaugeManager implements GaugeManager<unknown> {
     gaugeSnapshot(): {} {
         return {};
     }

@@ -13,7 +13,7 @@ export const Gyofu: SamGcdAbility = {
     potency: 240,
     gcd: 2.5,
     cast: 0,
-    updateGauge: (gauge: SAMGauge) => {
+    updateGaugeLegacy: (gauge: SAMGauge) => {
         gauge.kenkiGauge += 5;
     },
 };
@@ -26,7 +26,7 @@ export const Yukikaze: SamGcdAbility = {
     potency: 340,
     gcd: 2.5,
     cast: 0,
-    updateGauge: (gauge: SAMGauge) => {
+    updateGaugeLegacy: (gauge: SAMGauge) => {
         gauge.kenkiGauge += 15;
         gauge.addSen("Setsu");
     },
@@ -41,7 +41,7 @@ export const Jinpu: SamGcdAbility = {
     gcd: 2.5,
     cast: 0,
     activatesBuffs: [Fugetsu],
-    updateGauge: (gauge: SAMGauge) => {
+    updateGaugeLegacy: (gauge: SAMGauge) => {
         gauge.kenkiGauge += 5;
     },
 };
@@ -55,7 +55,7 @@ export const Shifu: SamGcdAbility = {
     gcd: 2.5,
     cast: 0,
     activatesBuffs: [Fuka],
-    updateGauge: (gauge: SAMGauge) => {
+    updateGaugeLegacy: (gauge: SAMGauge) => {
         gauge.kenkiGauge += 5;
     },
 };
@@ -68,7 +68,7 @@ export const Gekko: SamGcdAbility = {
     potency: 420,
     gcd: 2.5,
     cast: 0,
-    updateGauge: (gauge: SAMGauge) => {
+    updateGaugeLegacy: (gauge: SAMGauge) => {
         gauge.kenkiGauge += 10;
         gauge.addSen("Getsu");
     },
@@ -82,7 +82,7 @@ export const Kasha: SamGcdAbility = {
     potency: 420,
     gcd: 2.5,
     cast: 0,
-    updateGauge: (gauge: SAMGauge) => {
+    updateGaugeLegacy: (gauge: SAMGauge) => {
         gauge.kenkiGauge += 10;
         gauge.addSen("Ka");
     },
@@ -97,7 +97,7 @@ export const MidareSetsugekka: SamGcdAbility = {
     autoCrit: true,
     gcd: 2.5,
     cast: 1.3,
-    updateGauge: (gauge: SAMGauge) => {
+    updateGaugeLegacy: (gauge: SAMGauge) => {
         gauge.meditation++;
         gauge.spendSen();
     },
@@ -123,7 +123,7 @@ export const TendoSetsugekka: SamGcdAbility = {
     autoCrit: true,
     gcd: 2.5,
     cast: 1.3,
-    updateGauge: (gauge: SAMGauge) => {
+    updateGaugeLegacy: (gauge: SAMGauge) => {
         gauge.meditation++;
         gauge.spendSen();
     },
@@ -153,7 +153,7 @@ export const Higanbana: SamGcdAbility = {
     },
     gcd: 2.5,
     cast: 1.3,
-    updateGauge: (gauge: SAMGauge) => {
+    updateGaugeLegacy: (gauge: SAMGauge) => {
         gauge.meditation++;
         gauge.spendSen();
     },
@@ -168,7 +168,7 @@ export const OgiNamikiri: SamGcdAbility = {
     autoCrit: true,
     gcd: 2.5,
     cast: 1.3,
-    updateGauge: gauge => gauge.meditation++,
+    updateGaugeLegacy: gauge => gauge.meditation++,
 };
 
 export const KaeshiNamikiri: SamGcdAbility = {
@@ -180,7 +180,7 @@ export const KaeshiNamikiri: SamGcdAbility = {
     autoCrit: true,
     gcd: 2.5,
     cast: 0,
-    updateGauge: gauge => gauge.meditation++,
+    updateGaugeLegacy: gauge => gauge.meditation++,
 };
 
 export const Enpi: SamGcdAbility = {
@@ -191,7 +191,7 @@ export const Enpi: SamGcdAbility = {
     potency: 270,
     gcd: 2.5,
     cast: 0,
-    updateGauge: gauge => gauge.kenkiGauge += 10,
+    updateGaugeLegacy: gauge => gauge.kenkiGauge += 10,
 };
 
 /**
@@ -203,7 +203,7 @@ export const Shoha: SamOgcdAbility = {
     id: 16487,
     attackType: "Ability",
     potency: 640,
-    updateGauge: gauge => gauge.spendMeditation(),
+    updateGaugeLegacy: gauge => gauge.spendMeditation(),
 };
 
 export const Zanshin: KenkiAbility = {
@@ -212,7 +212,7 @@ export const Zanshin: KenkiAbility = {
     id: 36964,
     attackType: "Ability",
     potency: 940,
-    updateGauge: gauge => gauge.kenkiGauge -= 50,
+    updateGaugeLegacy: gauge => gauge.kenkiGauge -= 50,
     kenkiCost: 50,
 };
 
@@ -222,7 +222,7 @@ export const HissatsuShinten: KenkiAbility = {
     id: 7490,
     attackType: "Ability",
     potency: 250,
-    updateGauge: gauge => gauge.kenkiGauge -= 25,
+    updateGaugeLegacy: gauge => gauge.kenkiGauge -= 25,
     kenkiCost: 25,
 };
 
@@ -235,7 +235,7 @@ export const HissatsuSenei: KenkiAbility = {
     cooldown: {
         time: 60,
     },
-    updateGauge: gauge => gauge.kenkiGauge -= 25,
+    updateGaugeLegacy: gauge => gauge.kenkiGauge -= 25,
     kenkiCost: 25,
 };
 
@@ -248,7 +248,7 @@ export const HissatsuGyoten: KenkiAbility = {
     cooldown: {
         time: 5,
     },
-    updateGauge: gauge => gauge.kenkiGauge -= 10,
+    updateGaugeLegacy: gauge => gauge.kenkiGauge -= 10,
     kenkiCost: 10,
 };
 
@@ -261,7 +261,7 @@ export const HissatsuYaten: KenkiAbility = {
     cooldown: {
         time: 10,
     },
-    updateGauge: gauge => gauge.kenkiGauge -= 10,
+    updateGaugeLegacy: gauge => gauge.kenkiGauge -= 10,
     kenkiCost: 10,
 };
 
@@ -274,7 +274,7 @@ export const Ikishoten: SamOgcdAbility = {
     cooldown: {
         time: 120,
     },
-    updateGauge: gauge => gauge.kenkiGauge += 50,
+    updateGaugeLegacy: gauge => gauge.kenkiGauge += 50,
     activatesBuffs: [],
 };
 
@@ -300,7 +300,7 @@ export const Hagakure: SamOgcdAbility = {
     cooldown: {
         time: 5,
     },
-    updateGauge: (gauge: SAMGauge) => {
+    updateGaugeLegacy: (gauge: SAMGauge) => {
         gauge.kenkiGauge += gauge.sen.size * 10;
         gauge.spendSen();
     },

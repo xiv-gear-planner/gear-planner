@@ -34,7 +34,7 @@ import {abilityToDamageNew, combineBuffEffects, noBuffEffects} from "./sim_utils
 import {BuffSettingsExport} from "./common/party_comp_settings";
 import {CycleSettings} from "./cycle_settings";
 import {buffRelevantAtSnapshot, buffRelevantAtStart} from "./buff_helpers";
-import {GaugeStateTypeOfMgr} from "./processors/sim_processors";
+import {GaugeStateTypeOfMgr, NoopGaugeManager} from "./processors/sim_processors";
 
 /**
  * Represents the "zero" CombinedBuffEffect object, which represents not having any offensive buffs.
@@ -532,7 +532,7 @@ export class CycleProcessor<GaugeManagerType extends GaugeManager<unknown> = Gau
         };
         this.cutoffMode = settings.cutoffMode;
         this._simple = settings.simpleMode ?? false;
-        this.gaugeManager = this.initialGauge();
+        this.gaugeManager = this.createGaugeManager();
     }
 
     get cdEnforcementMode(): CooldownMode {
@@ -544,8 +544,8 @@ export class CycleProcessor<GaugeManagerType extends GaugeManager<unknown> = Gau
      *
      * @protected
      */
-    protected initialGauge(): GaugeManagerType {
-        return {} as GaugeManagerType;
+    protected createGaugeManager(): GaugeManagerType {
+        return new NoopGaugeManager() as GaugeManagerType;
     }
 
     /**

@@ -116,7 +116,7 @@ export class VprCycleProcessor extends CycleProcessor {
     override use(ability: Ability): AbilityUseResult {
         const vprAbility = ability as VprAbility;
 
-        if (vprAbility.updateGauge) {
+        if (vprAbility.updateGaugeLegacy) {
 
             /** prevent weird gauge update if an auto lands between now and nextGcdTime */
             if (ability.type === 'gcd' && this.nextGcdTime > this.currentTime) {
@@ -125,7 +125,7 @@ export class VprCycleProcessor extends CycleProcessor {
 
             /** Don't update gauge if we are awakening and ready to reawaken */
             if (!(vprAbility.id === Actions.Reawaken.id && this.getBuffIfActive(ReadyToReawaken))) {
-                vprAbility.updateGauge(this.gauge);
+                vprAbility.updateGaugeLegacy(this.gauge);
             }
         }
 

@@ -212,7 +212,7 @@ class WhmCycleProcessor extends CycleProcessor<WhmGaugeManager> {
         super(settings);
     }
 
-    override initialGauge(): WhmGaugeManager {
+    override createGaugeManager(): WhmGaugeManager {
         return new WhmGaugeManager();
     }
 
