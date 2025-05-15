@@ -4,6 +4,7 @@ import {JobName, SupportedLevel} from "@xivgear/xivmath/xivconstants";
 import {AttackType, ComputedSetStats} from "@xivgear/xivmath/geartypes";
 import {ValueWithDev} from "@xivgear/xivmath/deviation";
 import {StatModification} from "@xivgear/xivmath/xivstats";
+import {EmptyGauge} from "./cycle_sim";
 
 /**
  * Represents the final result of a simulation run. Sim implementors should extend this type with
@@ -433,12 +434,28 @@ export type DotDamageUnf = {
     actualTickCount?: number
 };
 
+export type HasGaugeCondition<GaugeManagerType> = {
+    gaugeConditionSatisfied(gaugeManager: GaugeManagerType): boolean;
+}
+
+export type HasGaugeUpdate<GaugeManagerType> = {
+    updateGauge(gaugeManager: GaugeManagerType): void;
+}
+
+export function hasGaugeCondition<GaugeManagerType>(ab: Ability): ab is Ability & HasGaugeCondition<GaugeManagerType> {
+    return 'gaugeConditionSatisfied' in ab;
+}
+
+export function hasGaugeUpdate<GaugeManagerType>(ab: Ability): ab is Ability & HasGaugeUpdate<GaugeManagerType> {
+    return 'updateGauge' in ab;
+}
+
 export type ComputedDamage = ValueWithDev;
 
 /**
  * Represents an ability actually being used
  */
-export type PreDmgUsedAbility = {
+export type PreDmgUsedAbility<GaugeDataType = {}> = {
     /**
      * The ability that was used
      */
@@ -494,13 +511,18 @@ export type PreDmgUsedAbility = {
      */
     lockTime: number
     /**
-     * Extra data relating to the ability used. Useful for sims which wish to attach their own gauge information
-     * for display in the results.
+     * Extra data relating to the ability used. Useful for sims which wish to attach their own extra information
+     * for display in the results. Deprecated for Gauge use - see gaugeAftrer.
      */
     extraData?: object
+
+    /**
+     * Gauge information.
+     */
+    gaugeAfter: GaugeDataType
 };
 
-export type PostDmgUsedAbility = PreDmgUsedAbility & {
+export type PostDmgUsedAbility<GaugeType = EmptyGauge> = PreDmgUsedAbility<GaugeType> & {
     directDamage: ComputedDamage,
     dot?: DotDamageUnf
 }
@@ -511,13 +533,13 @@ export type PostDmgUsedAbility = PreDmgUsedAbility & {
  * remaining for an entire GCD. Thus, we would have a PartialAbility with portion = (1.1s / 2.5s)
  *
  */
-export type PartiallyUsedAbility = PreDmgUsedAbility & {
+export type PartiallyUsedAbility<GaugeType = EmptyGauge> = PreDmgUsedAbility<GaugeType> & {
     portion: number
 };
 
-export type FinalizedAbility = {
+export type FinalizedAbility<GaugeType = EmptyGauge> = {
     usedAt: number,
-    original: PreDmgUsedAbility,
+    original: PreDmgUsedAbility<GaugeType>,
     totalDamage: number,
     totalDamageFull: ComputedDamage
     totalPotency: number,

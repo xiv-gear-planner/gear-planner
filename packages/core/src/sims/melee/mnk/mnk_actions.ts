@@ -245,7 +245,7 @@ export const Bootshine: FuryAbility = {
     activatesBuffs: [RaptorForm],
     fury: 'opo',
     buildsFury: false,
-    updateGauge: (gauge: MNKGauge, form) => {
+    updateGaugeLegacy: (gauge: MNKGauge, form) => {
         gauge.opoFury = 0;
         if (form && form.statusId === PerfectBalanceBuff.statusId) {
             gauge.beastChakra.push('opo');
@@ -263,7 +263,7 @@ export const TrueStrike: FuryAbility = {
     activatesBuffs: [CoeurlForm],
     fury: 'raptor',
     buildsFury: false,
-    updateGauge: (gauge: MNKGauge, form) => {
+    updateGaugeLegacy: (gauge: MNKGauge, form) => {
         gauge.raptorFury = 0;
         if (form && form.statusId === PerfectBalanceBuff.statusId) {
             gauge.beastChakra.push('raptor');
@@ -281,7 +281,7 @@ export const SnapPunch: FuryAbility = {
     activatesBuffs: [OpoForm],
     fury: 'coeurl',
     buildsFury: false,
-    updateGauge: (gauge: MNKGauge, form) => {
+    updateGaugeLegacy: (gauge: MNKGauge, form) => {
         gauge.coeurlFury -= 1;
         if (form && form.statusId === PerfectBalanceBuff.statusId) {
             gauge.beastChakra.push('coeurl');
@@ -298,7 +298,7 @@ export const ForbiddenMeditation: MnkGcdAbility = {
     potency: null,
     attackType: "Ability",
     fixedGcd: true,
-    updateGauge: (gauge: MNKGauge, form, inCombat) => {
+    updateGaugeLegacy: (gauge: MNKGauge, form, inCombat) => {
         gauge.gainChakra(inCombat ? 1 : 5);
     },
 };
@@ -313,7 +313,7 @@ export const TwinSnakes: FuryAbility = {
     activatesBuffs: [CoeurlForm],
     fury: 'raptor',
     buildsFury: true,
-    updateGauge: (gauge: MNKGauge, form) => {
+    updateGaugeLegacy: (gauge: MNKGauge, form) => {
         gauge.raptorFury = 1;
         if (form && form.statusId === PerfectBalanceBuff.statusId) {
             gauge.beastChakra.push('raptor');
@@ -331,7 +331,7 @@ export const Demolish: FuryAbility = {
     activatesBuffs: [OpoForm],
     fury: 'coeurl',
     buildsFury: true,
-    updateGauge: (gauge: MNKGauge, form) => {
+    updateGaugeLegacy: (gauge: MNKGauge, form) => {
         gauge.coeurlFury = 2;
         if (form && form.statusId === PerfectBalanceBuff.statusId) {
             gauge.beastChakra.push('coeurl');
@@ -352,7 +352,7 @@ export const DragonKick: FuryAbility = {
     activatesBuffs: [RaptorForm],
     fury: 'opo',
     buildsFury: true,
-    updateGauge: (gauge: MNKGauge, form) => {
+    updateGaugeLegacy: (gauge: MNKGauge, form) => {
         if ([FormlessFist.statusId, OpoForm.statusId, PerfectBalanceBuff.statusId].includes(form?.statusId)) {
             gauge.opoFury = 1;
         }
@@ -374,7 +374,7 @@ export const PerfectBalance: MnkOgcdAbility = {
         charges: 2,
     },
     activatesBuffs: [PerfectBalanceBuff],
-    updateGauge: (gauge: MNKGauge) => {
+    updateGaugeLegacy: (gauge: MNKGauge) => {
         gauge.beastChakra = [];
     },
 };
@@ -398,7 +398,7 @@ export const TheForbiddenChakra: MnkOgcdAbility = {
     cooldown: {
         time: 1,
     },
-    updateGauge: (gauge: MNKGauge) => {
+    updateGaugeLegacy: (gauge: MNKGauge) => {
         gauge.chakra -= 5;
     },
 };
@@ -410,7 +410,7 @@ export const ElixirField: MnkGcdAbility = {
     attackType: 'Weaponskill',
     gcd: 2.5,
     potency: 800,
-    updateGauge: (gauge: MNKGauge) => {
+    updateGaugeLegacy: (gauge: MNKGauge) => {
         gauge.lunarNadi = 1;
         gauge.beastChakra = [];
     },
@@ -424,7 +424,7 @@ export const FlintStrike: MnkGcdAbility = {
     attackType: 'Weaponskill',
     gcd: 2.5,
     potency: 800,
-    updateGauge: (gauge: MNKGauge) => {
+    updateGaugeLegacy: (gauge: MNKGauge) => {
         gauge.solarNadi = 1;
         gauge.beastChakra = [];
     },
@@ -438,7 +438,7 @@ export const CelestialRevolution: MnkGcdAbility = {
     attackType: 'Weaponskill',
     gcd: 2.5,
     potency: 600,
-    updateGauge: (gauge: MNKGauge) => {
+    updateGaugeLegacy: (gauge: MNKGauge) => {
         if (gauge.solarNadi) {
             gauge.lunarNadi = 1;
         }
@@ -457,7 +457,7 @@ export const TornadoKick: MnkGcdAbility = {
     attackType: 'Weaponskill',
     gcd: 2.5,
     potency: 1200,
-    updateGauge: (gauge: MNKGauge) => {
+    updateGaugeLegacy: (gauge: MNKGauge) => {
         gauge.lunarNadi = 0;
         gauge.solarNadi = 0;
         gauge.beastChakra = [];
@@ -507,7 +507,7 @@ export const SixSidedStar: MnkGcdAbility = {
     gcd: 5,
     attackType: 'Weaponskill',
     potency: 780, // potency adjusted in MNKCycleProcessor::use
-    updateGauge: (gauge: MNKGauge) => {
+    updateGaugeLegacy: (gauge: MNKGauge) => {
         gauge.chakra = 0;
     },
 };

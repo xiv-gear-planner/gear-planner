@@ -124,7 +124,7 @@ export const ReadyToReawaken: PersonalBuff = {
         buffController.removeSelf();
         return {
             ...ability,
-            updateGauge: null,
+            updateGaugeLegacy: null,
         };
     },
 };

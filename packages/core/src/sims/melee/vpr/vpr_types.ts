@@ -7,7 +7,7 @@ import {VprGauge} from "./vpr_gauge";
 export type VprAbility = Ability & Readonly<{
 
     /** Run if an ability needs to update the serpent offerings gauge */
-    updateGauge?(gauge: VprGauge): void;
+    updateGaugeLegacy?(gauge: VprGauge): void;
 
 }>
 

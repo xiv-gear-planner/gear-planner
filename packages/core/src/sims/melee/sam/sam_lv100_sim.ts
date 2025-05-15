@@ -156,12 +156,12 @@ export class SamSim extends BaseMultiCycleSim<SamSimResult, SamSettings, SAMCycl
         }
 
         // Update gauge from the ability itself
-        if (samAbility.updateGauge !== undefined) {
+        if (samAbility.updateGaugeLegacy !== undefined) {
             // Prevent gauge updates showing incorrectly on autos before this ability
             if (ability.type === 'gcd' && cp.nextGcdTime > cp.currentTime) {
                 cp.advanceTo(cp.nextGcdTime);
             }
-            samAbility.updateGauge(cp.gauge);
+            samAbility.updateGaugeLegacy(cp.gauge);
         }
 
         const abilityUseResult = cp.use(ability);

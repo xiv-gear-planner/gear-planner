@@ -588,6 +588,15 @@ export interface CustomColumnSpec<RowDataType, CellDataType, ColumnDataType = an
     extraClasses?: string[];
 }
 
+/**
+ * Wrapper function for a coldef. Doesn't do anything that CustomTable wouldn't do naturally when receiving a
+ * CustomColumnSpec, but helps with typing. Typescript doesn't allow an array type of generics to narrow the type
+ * parameters internally. In other words, we won't get proper validation of CellDataType nor ColDataType - i.e. won't
+ * validate that your getter's return type matches your renderer's input type (nor any of the other fields that
+ * involve the cell data type).
+ *
+ * @param cdef The column spec.
+ */
 export function col<RowDataType, CellDataType = string, ColumnDataType = any>(cdef: CustomColumnSpec<RowDataType, CellDataType, ColumnDataType>): CustomColumn<RowDataType, CellDataType, ColumnDataType> {
     return new CustomColumn<RowDataType, CellDataType, ColumnDataType>(cdef);
 }

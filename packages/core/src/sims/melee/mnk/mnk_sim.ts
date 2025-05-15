@@ -61,8 +61,8 @@ class MNKCycleProcessor extends CycleProcessor {
                 potency: SixSidedStar.potency + Math.floor(this.gauge.chakra) * 80,
             };
         }
-        if (mnkAbility.updateGauge) {
-            mnkAbility.updateGauge(this.gauge, this.getCurrentForm(), this.combatStarted);
+        if (mnkAbility.updateGaugeLegacy) {
+            mnkAbility.updateGaugeLegacy(this.gauge, this.getCurrentForm(), this.combatStarted);
         }
         return super.use(mnkAbility);
     }

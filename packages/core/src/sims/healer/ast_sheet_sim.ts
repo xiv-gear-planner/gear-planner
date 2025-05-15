@@ -23,7 +23,7 @@ import {BaseMultiCycleSim} from "@xivgear/core/sims/processors/sim_processors";
 
 type AstAbility = Ability & Readonly<LevelModifiable<{
     /** Run if an ability needs to update the aetherflow gauge */
-    updateGauge?(gauge: AstGauge): void;
+    updateGaugeLegacy?(gauge: AstGauge): void;
 }>>
 
 type AstGcdAbility = GcdAbility & AstAbility;
@@ -188,7 +188,7 @@ const astralDraw: AstOgcdAbility = {
     id: 37017,
     potency: 0,
     attackType: "Ability",
-    updateGauge: (gauge: AstGauge) => {
+    updateGaugeLegacy: (gauge: AstGauge) => {
         gauge.clearCards();
         gauge.addCard("Balance");
         gauge.addCard("Arrow");
@@ -203,7 +203,7 @@ const umbralDraw: AstOgcdAbility = {
     id: 37018,
     potency: 0,
     attackType: "Ability",
-    updateGauge: (gauge: AstGauge) => {
+    updateGaugeLegacy: (gauge: AstGauge) => {
         gauge.clearCards();
         gauge.addCard("Spear");
         gauge.addCard("Bole");
@@ -218,7 +218,7 @@ const lord: AstOgcdAbility = {
     name: "Lord of Crowns",
     potency: 400,
     attackType: "Ability",
-    updateGauge: (gauge: AstGauge) => {
+    updateGaugeLegacy: (gauge: AstGauge) => {
         gauge.playCard("Lord");
     },
 };
@@ -229,7 +229,7 @@ const balance: AstOgcdAbility = {
     id: 37023,
     potency: 0,
     attackType: "Ability",
-    updateGauge: (gauge: AstGauge) => {
+    updateGaugeLegacy: (gauge: AstGauge) => {
         gauge.playCard("Balance");
     },
 };
@@ -240,7 +240,7 @@ const spear: AstOgcdAbility = {
     id: 37026,
     potency: 0,
     attackType: "Ability",
-    updateGauge: (gauge: AstGauge) => {
+    updateGaugeLegacy: (gauge: AstGauge) => {
         gauge.playCard("Spear");
     },
 };
@@ -333,8 +333,8 @@ class AstCycleProcessor extends CycleProcessor {
         const astAbility = ability as AstAbility;
 
         // Update gauge from the ability itself
-        if (astAbility.updateGauge !== undefined) {
-            astAbility.updateGauge(this.gauge);
+        if (astAbility.updateGaugeLegacy !== undefined) {
+            astAbility.updateGaugeLegacy(this.gauge);
         }
         return super.use(ability);
     }
