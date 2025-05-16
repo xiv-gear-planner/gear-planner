@@ -714,7 +714,7 @@ export class CharacterGearSet {
      * @param stat
      * @param materiaOverride
      */
-    getStatDetail(slotId: keyof EquipmentSet, stat: RawStatKey, materiaOverride?: Materia[]): ReturnType<typeof this.getEquipStatDetail> {
+    getStatDetail(slotId: keyof EquipmentSet, stat: RawStatKey, materiaOverride?: Materia[]): ReturnType<CharacterGearSet['getEquipStatDetail']> {
         const equip = this.equipment[slotId];
         return this.getEquipStatDetail(equip, stat, materiaOverride);
     }
@@ -806,7 +806,7 @@ export class CharacterGearSet {
                 overcapAmount: 0,
                 effectiveAmount: meldedStatValue,
                 fullAmount: meldedStatValue,
-                cap: meldedStatValue,
+                cap: cap,
             };
         }
         // Overcapped

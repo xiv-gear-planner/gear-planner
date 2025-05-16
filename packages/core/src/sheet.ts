@@ -186,8 +186,8 @@ function loadSaved(sheetKey: string): SheetExport | null {
  */
 export class GearPlanSheet {
     // General sheet properties
-    _sheetName: string;
-    _description: string;
+    private _sheetName: string;
+    private _description: string;
     readonly classJobName: JobName;
     readonly altJobs: JobName[];
     readonly isMultiJob: boolean;
@@ -224,7 +224,7 @@ export class GearPlanSheet {
     private _setupDone: boolean = false;
 
     // Display state
-    _isViewOnly: boolean = false;
+    private _isViewOnly: boolean = false;
     isEmbed: boolean;
 
     // Temporal state

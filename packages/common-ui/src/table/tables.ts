@@ -586,6 +586,8 @@ export interface CustomColumnSpec<RowDataType, CellDataType, ColumnDataType = an
     dataValue?: ColumnDataType;
     headerStyler?: (value: ColumnDataType, colHeader: CustomTableHeaderCell<RowDataType, CellDataType, ColumnDataType>) => void;
     extraClasses?: string[];
+    titleSetter?: (value: CellDataType, rowValue: RowDataType, cell: CustomCell<RowDataType, CellDataType>) => string | null;
+    finisher?: (value: CellDataType, rowValue: RowDataType, cell: CustomCell<RowDataType, CellDataType>) => void;
 }
 
 /**
@@ -639,6 +641,8 @@ export class CustomColumn<RowDataType, CellDataType = string, ColumnDataType = a
     fixedWidth: number | undefined = undefined;
     dataValue?: ColumnDataType;
     headerStyler?: (value: typeof this.dataValue, colHeader: CustomTableHeaderCell<RowDataType, CellDataType, ColumnDataType>) => void;
+    titleSetter?: (value: CellDataType, rowValue: RowDataType, cell: CustomCell<RowDataType, CellDataType>) => string | null;
+    finisher?: (value: CellDataType, rowValue: RowDataType, cell: CustomCell<RowDataType, CellDataType>) => void;
 }
 
 export type RefreshableOpts = {
@@ -747,9 +751,10 @@ export class CustomCell<RowDataType, CellDataType> extends HTMLTableCellElement 
     }
 
     refreshFull() {
+        const rowValue = this.dataItem;
         let node: Node | null;
         try {
-            this._cellValue = this.colDef.getter(this.dataItem);
+            this._cellValue = this.colDef.getter(rowValue);
             node = this.colDef.renderer(this._cellValue, this.row.dataItem);
             if (node) {
                 this.colDef.colStyler(this._cellValue, this, node, this.row.dataItem);
@@ -777,6 +782,8 @@ export class CustomCell<RowDataType, CellDataType> extends HTMLTableCellElement 
             }
         }
         this.refreshSelection();
+        this.refreshTitle();
+        this.colDef.finisher?.(this._cellValue, this.row.dataItem, this);
     }
 
     refreshSelection() {
@@ -803,6 +810,17 @@ export class CustomCell<RowDataType, CellDataType> extends HTMLTableCellElement 
         return this.colDef.rowCondition(this.row.dataItem);
     }
 
+    refreshTitle() {
+        if (this.colDef.titleSetter) {
+            const newTitle = this.colDef.titleSetter(this._cellValue, this.row.dataItem, this);
+            if (newTitle) {
+                this.title = newTitle;
+            }
+            else {
+                this.removeAttribute('title');
+            }
+        }
+    }
 }
 
 export type ColDefs<RowDataType> = (CustomColumn<RowDataType> | CustomColumnSpec<RowDataType, any>)[];
