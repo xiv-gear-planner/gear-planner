@@ -1239,7 +1239,7 @@ export class GearPlanSheet {
      */
     recheckCustomItems() {
         for (const customItem of this._customItems) {
-            customItem.recheckStats();
+            customItem.recheckSync();
         }
         this._sets.forEach(set => set.forceRecalc());
     }

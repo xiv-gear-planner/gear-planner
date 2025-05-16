@@ -21,12 +21,20 @@ describe('Custom items support', () => {
         customStats.wdPhys = 200;
         customStats.spellspeed = 500;
         customStats.mind = 1000;
+        custom.customData.largeMateriaSlots = 2;
+        custom.customData.smallMateriaSlots = 1;
         custom.respectCaps = false;
         sheet.recheckCustomItems();
+
+        expect(custom.materiaSlots.length).to.equal(3);
+        expect(custom.unsyncedVersion.materiaSlots.length).to.equal(3);
 
         const gearItem = sheet.itemById(custom.id);
         // Should be exactly the same object, there's no cloning going on
         expect(gearItem).eq(custom);
+
+        expect(gearItem.materiaSlots.length).to.equal(3);
+        expect(gearItem.unsyncedVersion.materiaSlots.length).to.equal(3);
 
         const set2 = new CharacterGearSet(sheet);
         sheet.addGearSet(set2);
@@ -50,6 +58,10 @@ describe('Custom items support', () => {
         expect(set2.computedStats.wdPhys).to.eq(127);
         expect(set2.computedStats.wdMag).to.eq(127);
 
+        expect(custom.materiaSlots.length).to.equal(3);
+        expect(custom.unsyncedVersion.materiaSlots.length).to.equal(3);
+
+
     }).timeout(30_000);
     it('Supports a custom item with respected caps', async () => {
         // Setup
@@ -64,11 +76,16 @@ describe('Custom items support', () => {
         const custom = sheet.newCustomItem('Weapon2H');
         custom.ilvl = 640;
         const customStats = custom.customData.stats;
+        custom.customData.largeMateriaSlots = 2;
+        custom.customData.smallMateriaSlots = 1;
         customStats.wdMag = 200;
         customStats.wdPhys = 200;
         customStats.spellspeed = 500;
         customStats.mind = 1000;
         sheet.recheckCustomItems();
+
+        expect(custom.materiaSlots.length).to.equal(3);
+        expect(custom.unsyncedVersion.materiaSlots.length).to.equal(3);
 
         const gearItem = sheet.itemById(custom.id);
         // Should be exactly the same object, there's no cloning going on
@@ -86,6 +103,9 @@ describe('Custom items support', () => {
         expect(set2.computedStats.wdPhys).to.eq(127);
         expect(set2.computedStats.wdMag).to.eq(127);
 
+        expect(gearItem.materiaSlots.length).to.equal(3);
+        expect(gearItem.unsyncedVersion.materiaSlots.length).to.equal(3);
+
         // now make it ignore caps and expect it to change
         custom.respectCaps = false;
         sheet.recheckCustomItems();
@@ -94,6 +114,9 @@ describe('Custom items support', () => {
 
         expect(set2.computedStats.wdPhys).to.eq(200);
         expect(set2.computedStats.wdMag).to.eq(200);
+
+        expect(custom.materiaSlots.length).to.equal(3);
+        expect(custom.unsyncedVersion.materiaSlots.length).to.equal(3);
     }).timeout(30_000);
 
     it('Supports a custom item with ignored caps + isync', async () => {
@@ -112,12 +135,20 @@ describe('Custom items support', () => {
         customStats.wdPhys = 200;
         customStats.spellspeed = 500;
         customStats.mind = 1000;
+        custom.customData.largeMateriaSlots = 2;
+        custom.customData.smallMateriaSlots = 1;
         custom.respectCaps = false;
         sheet.recheckCustomItems();
+
+        expect(custom.materiaSlots.length).to.equal(3);
+        expect(custom.unsyncedVersion.materiaSlots.length).to.equal(3);
 
         const gearItem = sheet.itemById(custom.id);
         // Should be exactly the same object, there's no cloning going on
         expect(gearItem).eq(custom);
+
+        expect(gearItem.materiaSlots.length).to.equal(3);
+        expect(gearItem.unsyncedVersion.materiaSlots.length).to.equal(3);
 
         const set2 = new CharacterGearSet(sheet);
         sheet.addGearSet(set2);
@@ -141,6 +172,9 @@ describe('Custom items support', () => {
         expect(set2.computedStats.wdPhys).to.eq(126);
         expect(set2.computedStats.wdMag).to.eq(126);
 
+        expect(custom.materiaSlots.length).to.equal(0);
+        expect(custom.unsyncedVersion.materiaSlots.length).to.equal(3);
+
     }).timeout(30_000);
     it('Supports a custom item with respected caps + isync', async () => {
         // Setup
@@ -158,7 +192,12 @@ describe('Custom items support', () => {
         customStats.wdPhys = 200;
         customStats.spellspeed = 500;
         customStats.mind = 1000;
+        custom.customData.largeMateriaSlots = 2;
+        custom.customData.smallMateriaSlots = 1;
         sheet.recheckCustomItems();
+
+        expect(custom.materiaSlots.length).to.equal(0);
+        expect(custom.unsyncedVersion.materiaSlots.length).to.equal(3);
 
         const gearItem = sheet.itemById(custom.id);
         // Should be exactly the same object, there's no cloning going on
@@ -166,6 +205,9 @@ describe('Custom items support', () => {
 
         const set2 = new CharacterGearSet(sheet);
         sheet.addGearSet(set2);
+
+        expect(gearItem.materiaSlots.length).to.equal(0);
+        expect(gearItem.unsyncedVersion.materiaSlots.length).to.equal(3);
 
         set1.setEquip('Weapon', custom);
         set2.setEquip('Weapon', custom);
@@ -184,6 +226,9 @@ describe('Custom items support', () => {
 
         expect(set2.computedStats.wdPhys).to.eq(200);
         expect(set2.computedStats.wdMag).to.eq(200);
+
+        expect(custom.materiaSlots.length).to.equal(3);
+        expect(custom.unsyncedVersion.materiaSlots.length).to.equal(3);
 
     }).timeout(30_000);
 
