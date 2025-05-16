@@ -42,10 +42,10 @@ import {sum} from "@xivgear/util/array_utils";
  * @param baseStats  The base stat sheet. Will be modified.
  * @param addedStats The stats to add.
  */
-export function addStats(baseStats: RawStats, addedStats: RawStats): void {
+export function addStats(baseStats: RawStats, addedStats: Partial<RawStats>): void {
     for (const entry of Object.entries(baseStats)) {
         const stat = entry[0] as keyof RawStats;
-        baseStats[stat] = addedStats[stat] + (baseStats[stat] ?? 0);
+        baseStats[stat] = (addedStats[stat] ?? 0) + (baseStats[stat] ?? 0);
     }
 }
 
@@ -66,7 +66,7 @@ export type StatModification = (stats: ComputedSetStats, bonuses: RawBonusStats)
  * This allows you to change the "base" values rather than merely applying final bonuses.
  */
 export type StatPreModifications = {
-    extraGearBonuses?: RawStats | null,
+    extraGearBonuses?: Partial<RawStats> | null,
     newFoodBonuses?: FoodBonuses | null,
 }
 
