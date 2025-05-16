@@ -232,6 +232,48 @@ describe('Custom items support', () => {
 
     }).timeout(30_000);
 
+    it('fixed load order bug', async () => {
+        // Setup
+        const sheet = HEADLESS_SHEET_PROVIDER.fromScratch("foo", "foo", 'SGE', 100, 635, false);
+        await sheet.load();
+
+        // Make one set before adding the custom item to make sure we can still use it.
+        const set1 = new CharacterGearSet(sheet);
+        // Delete the default set
+        sheet.delGearSet(sheet.sets[0]);
+        sheet.addGearSet(set1);
+
+        // Make custom item
+        const custom = sheet.newCustomItem('Weapon2H');
+        const customStats = custom.customData.stats;
+        customStats.wdMag = 200;
+        customStats.wdPhys = 200;
+        customStats.spellspeed = 500;
+        customStats.mind = 1000;
+        custom.customData.largeMateriaSlots = 2;
+        custom.customData.smallMateriaSlots = 1;
+        sheet.recheckCustomItems();
+
+        expect(custom.materiaSlots.length).to.equal(0);
+        expect(custom.unsyncedVersion.materiaSlots.length).to.equal(3);
+
+        const gearItem = sheet.itemById(custom.id);
+        // Should be exactly the same object, there's no cloning going on
+        expect(gearItem).eq(custom);
+
+        set1.setEquip('Weapon', custom);
+
+        expect(set1.equipment.Weapon.gearItem).to.eq(gearItem);
+        expect(set1.equipment.Weapon.melds).to.have.length(0);
+
+        const exported = sheet.exportSheet();
+        const importedSheet = HEADLESS_SHEET_PROVIDER.fromExport(exported);
+        await importedSheet.load();
+
+        const setImported = importedSheet.sets[0];
+        expect(setImported.equipment.Weapon.gearItem.id).to.eq(gearItem.id);
+        expect(setImported.equipment.Weapon.melds).to.have.length(0);
+    }).timeout(30_000);
 
     it('Supports a custom food', async () => {
         const sheet = HEADLESS_SHEET_PROVIDER.fromScratch("foo", "foo", 'SGE', 100, undefined, false);

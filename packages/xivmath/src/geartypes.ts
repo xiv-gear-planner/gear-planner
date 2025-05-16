@@ -1170,6 +1170,9 @@ export class EquippedItem {
         );
         // Deep clone the materia slots
         this.melds.forEach((slot, index) => {
+            if (index >= out.melds.length) {
+                return;
+            }
             out.melds[index].equippedMateria = slot.equippedMateria;
             out.melds[index].locked = slot.locked;
         });
