@@ -401,6 +401,12 @@ export class GearPlanSheet {
         const saved = this._importedData;
         const lvlItemInfo = LEVEL_ITEMS[this.level];
         this.dataManager = dataManager;
+        this._relevantMateria = this.dataManager.allMateria.filter(mat => {
+            return mat.materiaGrade <= lvlItemInfo.maxMateria
+                // && mat.materiaGrade >= lvlItemInfo.minMateria
+                && this.isStatRelevant(mat.primaryStat);
+        });
+        this.recheckCustomItems();
         for (const importedSet of saved.sets) {
             this.addGearSet(this.importGearSet(importedSet));
         }
@@ -426,14 +432,8 @@ export class GearPlanSheet {
                 }
             }
         }
-        this._relevantMateria = this.dataManager.allMateria.filter(mat => {
-            return mat.materiaGrade <= lvlItemInfo.maxMateria
-                // && mat.materiaGrade >= lvlItemInfo.minMateria
-                && this.isStatRelevant(mat.primaryStat);
-        });
         this._dmRelevantFood = this.dataManager.allFoodItems.filter(food => this.isStatRelevant(food.primarySubStat) || this.isStatRelevant(food.secondarySubStat));
         this._setupDone = true;
-        this.recheckCustomItems();
     }
 
     /**
@@ -932,10 +932,9 @@ export class GearPlanSheet {
                         console.error(`mismatched materia slot! i == ${i}, slots length == ${equipped.melds.length}`);
                     }
                     slot.locked = importedMateria.locked ?? false;
-                    if (!mat) {
-                        continue;
+                    if (mat) {
+                        slot.equippedMateria = mat;
                     }
-                    slot.equippedMateria = mat;
                 }
                 if (importedItem.relicStats && equipped.gearItem.isCustomRelic) {
                     Object.assign(equipped.relicStats, importedItem.relicStats);
@@ -1239,7 +1238,7 @@ export class GearPlanSheet {
      */
     recheckCustomItems() {
         for (const customItem of this._customItems) {
-            customItem.recheckStats();
+            customItem.recheckSync();
         }
         this._sets.forEach(set => set.forceRecalc());
     }
