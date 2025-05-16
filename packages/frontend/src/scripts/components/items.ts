@@ -634,6 +634,10 @@ export class GearItemsTable extends CustomTable<GearSlotItem, TableSelectionMode
                 },
                 initialWidth: 33,
                 condition: () => handledSlots === undefined || handledSlots.includes('Weapon'),
+                titleSetter: (_, rowValue: GearSlotItem) => {
+                    const statDetail = gearSet.getEquipStatDetail(gearSet.toEquippedItem(rowValue.item), rowValue.item.stats.wdPhys > rowValue.item.stats.wdMag ? 'wdPhys' : 'wdMag');
+                    return statCellTitle(statDetail);
+                },
             }),
             itemTableStatColumn(sheet, gearSet, 'vitality'),
             itemTableStatColumn(sheet, gearSet, 'strength'),
