@@ -1,6 +1,6 @@
 import {Buff} from "../../sims/sim_types";
 import {expect} from "chai";
-import {buffRelevantAtSnapshot, buffRelevantAtStart} from "../../sims/buff_helpers";
+import {buffRelevantAtSnapshot, buffRelevantAtStart, noStatusId} from "../../sims/buff_helpers";
 
 describe("Buff Helpers", () => {
     describe('simple damage buff', () => {
@@ -11,6 +11,7 @@ describe("Buff Helpers", () => {
             effects: {
                 dmgIncrease: 0.5,
             },
+            statusId: noStatusId(),
         };
 
         it('is not relevant at start', () => {
@@ -31,6 +32,7 @@ describe("Buff Helpers", () => {
             effects: {
                 haste: 10,
             },
+            statusId: noStatusId(),
         };
 
         it('is relevant at start', () => {
@@ -50,6 +52,7 @@ describe("Buff Helpers", () => {
             selfOnly: true,
             name: "Test buff",
             effects: {},
+            statusId: noStatusId(),
         };
 
         it('is not relevant at start', () => {
@@ -70,6 +73,7 @@ describe("Buff Helpers", () => {
                 haste: 10,
                 dmgIncrease: 0.1,
             },
+            statusId: noStatusId(),
         };
 
         it('is relevant at start', () => {
@@ -89,6 +93,7 @@ describe("Buff Helpers", () => {
             beforeAbility() {
             },
             effects: {},
+            statusId: noStatusId(),
         };
 
         it('is relevant at start', () => {
@@ -109,6 +114,7 @@ describe("Buff Helpers", () => {
             beforeSnapshot() {
             },
             effects: {},
+            statusId: noStatusId(),
         };
 
         it('is not relevant at start', () => {
@@ -130,6 +136,7 @@ describe("Buff Helpers", () => {
             modifyDamage() {
             },
             effects: {},
+            statusId: noStatusId(),
         };
 
         it('is not relevant at start', () => {

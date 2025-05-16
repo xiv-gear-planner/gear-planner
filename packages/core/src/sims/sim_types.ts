@@ -650,9 +650,9 @@ export type BaseBuff = Readonly<{
      */
     modifyDamage?(controller: BuffController, damageResult: DamageResult, ability: Ability): DamageResult | void,
     /**
-     * Optional status effect ID. Used to provide an icon.
+     * Status effect ID. Used to provide an icon, and for equality checks. If not known/needed, use {@link }
      */
-    statusId?: number
+    statusId: number
     /**
      * Stack count of this buff. This should generally not be baked into the buff - it should be inserted at run time.
      */

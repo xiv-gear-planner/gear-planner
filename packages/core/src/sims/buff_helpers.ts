@@ -36,3 +36,13 @@ export function buffRelevantAtSnapshot(buff: Buff): boolean {
         // As a fallback, also force this to return true if the buff is not relevant at start
         || !buffRelevantAtStart(buff);
 }
+
+let nextRandomBuffId = -10_000_000;
+
+/**
+ * For status effects without a real status ID (e.g. using a status effect as a pseudo-gauge, or fake statuses used
+ * for unit tests), this will assign a unique ID that will not give it a status effect icon.
+ */
+export function noStatusId(): number {
+    return nextRandomBuffId--;
+}
