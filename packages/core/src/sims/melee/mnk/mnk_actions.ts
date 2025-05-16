@@ -1,6 +1,7 @@
 import {BuffController, PersonalBuff, PartyBuff, OgcdAbility} from "@xivgear/core/sims/sim_types";
 import {MNKGauge} from "./mnk_gauge";
 import {FuryAbility, MnkGcdAbility, MnkOgcdAbility} from "./mnk_types";
+import {noStatusId} from "../../buff_helpers";
 
 export const OpoForm: PersonalBuff = {
     name: "Opo-Opo Form",
@@ -44,6 +45,7 @@ export const OpoFury: PersonalBuff = {
             potency: ability.potency + 200,
         };
     },
+    statusId: noStatusId(),
 };
 
 export const RaptorForm: PersonalBuff = {
@@ -72,6 +74,7 @@ export const RaptorFury: PersonalBuff = {
             potency: ability.potency + 200,
         };
     },
+    statusId: noStatusId(),
 };
 
 
@@ -103,6 +106,7 @@ export const CoeurlFury: PersonalBuff = {
             potency: ability.potency + 200,
         };
     },
+    statusId: noStatusId(),
 };
 
 export const PerfectBalanceBuff: PersonalBuff = {

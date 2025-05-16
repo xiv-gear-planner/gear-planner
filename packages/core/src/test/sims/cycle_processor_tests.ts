@@ -34,6 +34,7 @@ import {BaseMultiCycleSim} from '@xivgear/core/sims/processors/sim_processors';
 import {gemdraught1mind} from "../../sims/common/potion";
 import {expect} from "chai";
 import {makeFakeSet} from "../test_utils";
+import {noStatusId} from "../../sims/buff_helpers";
 
 // Example of end-to-end simulation
 // This one is testing the simulation engine itself, so it copies the full simulation code rather than
@@ -113,6 +114,7 @@ const pom: OgcdAbility = {
             effects: {
                 haste: 20,
             },
+            statusId: noStatusId(),
         },
     ],
     attackType: "Ability",
@@ -613,6 +615,7 @@ const potBuff: Buff = {
             potency: ability.potency + 100,
         };
     },
+    statusId: noStatusId(),
 };
 
 const potBuffAbility: GcdAbility = {
@@ -681,6 +684,7 @@ const bristleBuff: Buff = {
     name: "Bristle",
     beforeSnapshot: removeSelf,
     appliesTo: ability => ability.attackType === "Spell" && ability.potency !== null,
+    statusId: noStatusId(),
 };
 
 const bristle: GcdAbility = {
@@ -708,6 +712,7 @@ const bristleBuff2: Buff = {
             return multiplyDamage(damageResult, 1.5, true, true);
         }
     },
+    statusId: noStatusId(),
 };
 
 const bristle2: GcdAbility = {

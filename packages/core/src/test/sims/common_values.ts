@@ -4,6 +4,7 @@ import {getClassJobStats, getLevelStats} from "@xivgear/xivmath/xivconstants";
 import {finalizeStats} from "@xivgear/xivmath/xivstats";
 import {GcdAbility, OgcdAbility} from "@xivgear/core/sims/sim_types";
 import {makeFakeSet} from "../test_utils";
+import {noStatusId} from "../../sims/buff_helpers";
 
 let fakeId = 0x200_0000;
 
@@ -72,6 +73,7 @@ export const pom: OgcdAbility = {
             effects: {
                 haste: 20,
             },
+            statusId: noStatusId(),
         },
     ],
     attackType: "Ability",
