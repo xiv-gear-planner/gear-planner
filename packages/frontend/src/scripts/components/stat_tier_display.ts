@@ -261,13 +261,18 @@ export class StatTierDisplay extends HTMLDivElement {
             const materiaValue = materia.primaryStatValue;
             const multipliers = [3, 2, 1, -1, -2, -3];
             extraOffsets = multipliers.map(multiplier => {
-                const value = multiplier * materiaValue;
+                const valueRaw = multiplier * materiaValue;
+                const before = computed[stat];
+                const after = computed.withModifications((stats, bonuses) => {
+                    bonuses[stat] += valueRaw;
+                })[stat];
+                const valueAdjusted = after - before;
                 const multiplierStr = multiplier < 0 ? multiplier.toString() : '+' + multiplier.toString();
                 // Get the roman numeral part of the materia name
                 const split = materia.name.split(' ');
                 const label = `${multiplierStr} ${split[split.length - 1]}:`;
                 return {
-                    offset: value,
+                    offset: valueAdjusted,
                     // Format as +5, +0, -5, etc
                     label: label,
                 };
