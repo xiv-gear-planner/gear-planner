@@ -334,11 +334,11 @@ export interface ComputedSetStats extends RawStats {
      */
     readonly gearStats: RawStats
     /**
-     * Stats coming from race. Will be the total value, after modification, e.g. 20 if unmodified
-     * or 23 if the race has a +3 modifier. Important to calculate special strength values for
-     * some abilities' alternate scalings (e.g. Living Shadow, Bunshin)
+     * Base main stat, multiplied by the job stat multiplier, plus racial bonus. For example, the main stat (e.g. 440 at level 100) multiplied by the
+     * jobStatMultiplier (e.g. 1.05 at level 100) plus the racial stat (e.g. +3 for The Lost's strength). This is useful for being able to unwind
+     * it later for abilities with different scaling, e.g. Living Shadow.
      */
-    readonly racialStats: RawStats
+    readonly baseMainStatPlusRace: number
 
     /**
      * Trait multiplier

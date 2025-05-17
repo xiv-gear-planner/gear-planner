@@ -1,4 +1,4 @@
-import {AttackType, ComputedSetStats, JobData, JobDataConst, LevelStats, RawStats, ScalingOverrides} from "./geartypes";
+import {AttackType, ComputedSetStats, JobData, JobDataConst, LevelStats, ScalingOverrides} from "./geartypes";
 import {chanceMultiplierStdDev, fixedValue, multiplyValues, ValueWithDev} from "./deviation";
 
 /*
@@ -312,20 +312,13 @@ function usesCasterDamageFormula(stats: ComputedSetStats, attackType: AttackType
  * Gets Living Shadow's strength value from a given set of gear stats and racial bonuses.
  *
  * @param rawStrength The raw strength (pre party bonus)
- * @param racialStats the (total) stats for the race performing the attack
+ * @param baseMainStat The base main stat for this level
+ * @param playerBaseMainStat The player's base main stat, i.e. main stat for this level + job mod + racial bonus
  */
-export function getLivingShadowStrength(rawStrength: number, racialStats: RawStats): number {
-    // Remove the strength racial bonus
-    if (racialStats) {
-        const strengthBonus = racialStats['strength'];
-        if (strengthBonus) {
-            rawStrength -= strengthBonus;
-        }
-    }
-
+export function getLivingShadowStrength(rawStrength: number, baseMainStat: number, playerBaseMainStat: number): number {
     const livingShadowRacialBonus = 2;
-    rawStrength += livingShadowRacialBonus;
-    return rawStrength;
+    const livingShadowStrength = rawStrength - playerBaseMainStat + baseMainStat + livingShadowRacialBonus;
+    return livingShadowStrength;
 }
 
 /**

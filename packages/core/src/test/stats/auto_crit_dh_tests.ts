@@ -1,6 +1,6 @@
 import {finalizeStats} from "@xivgear/xivmath/xivstats";
 import {RawStats} from "@xivgear/xivmath/geartypes";
-import {getLevelStats} from "@xivgear/xivmath/xivconstants";
+import {getLevelStats, getRaceStats} from "@xivgear/xivmath/xivconstants";
 import {HEADLESS_SHEET_PROVIDER} from "../../sheet";
 import {expect} from "chai";
 import {Buff, DamagingAbility, GcdAbility} from "../../sims/sim_types";
@@ -28,7 +28,7 @@ const rawStats = new RawStats({
     wdMag: 79,
     weaponDelay: 3.12,
 });
-const makeStats = loadPromiseGNB.then(() => finalizeStats(rawStats, {}, level, getLevelStats(level), 'GNB', fakeSheetGNB.classJobStats, 0, "The Lost"));
+const makeStats = loadPromiseGNB.then(() => finalizeStats(rawStats, {}, level, getLevelStats(level), 'GNB', fakeSheetGNB.classJobStats, 0, getRaceStats("The Lost")));
 
 describe("Auto Crit and Dh Bonus Multi Calculation", () => {
     it('has no bonuses by default', async () => {
