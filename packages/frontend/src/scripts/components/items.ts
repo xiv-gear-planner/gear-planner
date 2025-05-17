@@ -501,7 +501,7 @@ function itemTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, stat: 
                 return statCellTitle(value);
             }
             else {
-                return "";
+                return null;
             }
         },
         finisher: (value, rowValue, cell) => {
@@ -585,11 +585,13 @@ export class GearItemsTable extends CustomTable<GearSlotItem, TableSelectionMode
                 },
                 renderer: (name: string, rowValue: GearSlotItem) => {
                     const trashButton = quickElement('button', ['remove-item-button'], [makeTrashIcon()]);
+                    trashButton.title = 'Click to un-equip item';
                     trashButton.addEventListener('click', (ev) => {
                         gearSet.setEquip(rowValue.slotId, null);
                         selectionTracker.set(rowValue.slotId, null);
                         this.refreshSelection();
                         this.refreshMateria();
+                        this.refreshRowData(rowValue);
                     });
                     return quickElement('div', ['item-name-holder-editable'], [quickElement('span', [], [shortenItemName(name)]), trashButton]);
                 },
