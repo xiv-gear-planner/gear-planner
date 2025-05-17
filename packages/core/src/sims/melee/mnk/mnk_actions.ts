@@ -34,7 +34,7 @@ export const OpoForm: PersonalBuff = {
 export const OpoFury: PersonalBuff = {
     name: "Opo-Opo Fury",
     // fake status ID until issue 613 is fixed
-    statusId: -999,
+    statusId: noStatusId(),
     selfOnly: true,
     effects: {
         // flat 200 potency increase
@@ -47,7 +47,6 @@ export const OpoFury: PersonalBuff = {
             potency: ability.potency + 200,
         };
     },
-    statusId: noStatusId(),
 };
 
 export const RaptorForm: PersonalBuff = {
@@ -75,7 +74,7 @@ export const RaptorForm: PersonalBuff = {
 export const RaptorFury: PersonalBuff = {
     name: "Raptor Fury",
     // fake status ID until issue 613 is fixed
-    statusId: -998,
+    statusId: noStatusId(),
     selfOnly: true,
     effects: {
         // flat 200 potency increase
@@ -88,7 +87,6 @@ export const RaptorFury: PersonalBuff = {
             potency: ability.potency + 200,
         };
     },
-    statusId: noStatusId(),
 };
 
 
@@ -118,7 +116,7 @@ export const CoeurlForm: PersonalBuff = {
 export const CoeurlFury: PersonalBuff = {
     name: "Coeurl Fury",
     // fake status ID until issue 613 is fixed
-    statusId: -997,
+    statusId: noStatusId(),
     selfOnly: true,
     stacks: 2,
     effects: {
@@ -132,7 +130,6 @@ export const CoeurlFury: PersonalBuff = {
             potency: ability.potency + 150,
         };
     },
-    statusId: noStatusId(),
 };
 
 export const PerfectBalanceBuff: PersonalBuff = {
