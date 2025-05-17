@@ -7,8 +7,8 @@
     "buildprod": "tsc --build"
   },
   "devDependencies": {
-    "ts-node": "^10.9.2",
-    "ts-loader": "^9.5.1"
+    "ts-loader": "^9.5.2",
+    "ts-node": "^10.9.2"
   },
   "exports": {
     "./*": "./src/*.ts"

@@ -373,6 +373,7 @@ export function buildPreviewServer() {
 
     const fastifyInstance = buildServerBase();
 
+    // TODO: split preview and stats server into different images, since stats server does not need DOM stuff
     const parser = new DOMParser();
 
     let extraScripts: string[];

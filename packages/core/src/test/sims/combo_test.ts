@@ -1,4 +1,3 @@
-import 'global-jsdom/register';
 import {exampleGearSet} from "./common_values";
 import assert from "assert";
 import {Ability, FinalizedAbility} from "@xivgear/core/sims/sim_types";
