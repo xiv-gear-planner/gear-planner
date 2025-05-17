@@ -1,6 +1,5 @@
 import {ComputedSetStats, EquipmentSet, GearItem, RawStatKey} from "@xivgear/xivmath/geartypes";
 import {CharacterGearSet} from "../gear";
-import {AnyStringIndex} from "@xivgear/util/types";
 
 export function makeFakeSet(stats: ComputedSetStats): CharacterGearSet {
     return {
