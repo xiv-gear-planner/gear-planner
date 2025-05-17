@@ -1,7 +1,12 @@
+
 import {HEADLESS_SHEET_PROVIDER} from "../sheet";
 import {expect} from "chai";
 import {CharacterGearSet} from "../gear";
-import 'global-jsdom/register';
+import {FakeLocalStorage} from "./test_utils";
+
+// HEADLESS_SHEET_PROVIDER uses localStorage to save/load, so we still need this
+// noinspection JSConstantReassignment
+global.localStorage = new FakeLocalStorage();
 
 describe('Custom items support', () => {
     it('Supports a custom item with ignored caps', async () => {
