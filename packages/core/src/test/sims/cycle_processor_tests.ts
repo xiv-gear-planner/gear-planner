@@ -4,7 +4,7 @@ import * as assert from "assert";
 import {assertClose} from "@xivgear/util/test/test_utils";
 import {assertSimAbilityResults, setPartyBuffEnabled, UseResult} from "./sim_test_utils";
 import {JobMultipliers} from "@xivgear/xivmath/geartypes";
-import {getClassJobStats, getLevelStats, STANDARD_APPLICATION_DELAY} from "@xivgear/xivmath/xivconstants";
+import {getClassJobStats, getLevelStats, getRaceStats, STANDARD_APPLICATION_DELAY} from "@xivgear/xivmath/xivconstants";
 import {CharacterGearSet} from "@xivgear/core/gear";
 import {Divination, Litany, Dokumori} from "@xivgear/core/sims/buffs";
 import {exampleGearSet} from "./common_values";
@@ -246,7 +246,7 @@ const rawStats = {
 const stats = finalizeStats(rawStats, {}, 90, getLevelStats(90), 'WHM', {
     ...getClassJobStats('WHM'),
     jobStatMultipliers: jobStatMultipliers,
-}, 5, "The Lost");
+}, 5, getRaceStats("Wildwood"));
 
 // Turn the stats into a fake gear set. This object does not implement all of the methods that a CharacterGearSet
 // should, only the ones that would commonly be used in a simulation.

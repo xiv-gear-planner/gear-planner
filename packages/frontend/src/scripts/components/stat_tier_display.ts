@@ -1,6 +1,6 @@
 import {CharacterGearSet} from "@xivgear/core/gear";
 import {STAT_ABBREVIATIONS, STAT_DISPLAY_ORDER} from "@xivgear/xivmath/xivconstants";
-import {RawStatKey} from "@xivgear/xivmath/geartypes";
+import {RawStatKey, RawStats} from "@xivgear/xivmath/geartypes";
 import {
     critDmg,
     detDmg,
@@ -261,13 +261,22 @@ export class StatTierDisplay extends HTMLDivElement {
             const materiaValue = materia.primaryStatValue;
             const multipliers = [3, 2, 1, -1, -2, -3];
             extraOffsets = multipliers.map(multiplier => {
-                const value = multiplier * materiaValue;
+                const valueRaw = multiplier * materiaValue;
+                const before = computed[stat];
+                const bonuses: Partial<RawStats> = {};
+                bonuses[stat] = valueRaw;
+                // We need it to use this path instead of just adding, because we want to account for potential
+                // uncapped food.
+                const after = computed.withModifications(() => {}, {
+                    extraGearBonuses: bonuses,
+                } )[stat];
+                const valueAdjusted = after - before;
                 const multiplierStr = multiplier < 0 ? multiplier.toString() : '+' + multiplier.toString();
                 // Get the roman numeral part of the materia name
                 const split = materia.name.split(' ');
                 const label = `${multiplierStr} ${split[split.length - 1]}:`;
                 return {
-                    offset: value,
+                    offset: valueAdjusted,
                     // Format as +5, +0, -5, etc
                     label: label,
                 };
