@@ -29,6 +29,7 @@ import {
     TitleRow
 } from "@xivgear/common-ui/table/tables";
 import {
+    ALL_SUB_STATS,
     formatAcquisitionSource,
     MateriaSubstat,
     MateriaSubstats,
@@ -384,7 +385,7 @@ class RelicCellInfo {
     }
 }
 
-function itemTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, stat: RawStatKey, highlightPrimarySecondary: boolean = false): CustomColumnSpec<GearSlotItem, ItemSingleStatDetail | RelicCellInfo, unknown> {
+function itemTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, stat: RawStatKey, highlightPrimarySecondary: boolean = false): CustomColumnSpec<GearSlotItem, ItemSingleStatDetail | RelicCellInfo | 'relic-zero', unknown> {
     return {
         shortName: stat,
         displayName: STAT_ABBREVIATIONS[stat],
@@ -395,10 +396,18 @@ function itemTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, stat: 
                 && item.stats[stat] === 0
                 && MateriaSubstats.includes(stat as MateriaSubstat)) {
                 const currentEquipment: EquippedItem = set.equipment[slotItem.slotId];
+                const preview = set.toEquippedItem(item);
                 // If not equipped, and there is a saved set of stats for that relic, display them
                 // after syncing down and such
                 if (!currentEquipment || currentEquipment.gearItem !== item) {
-                    const preview = set.toEquippedItem(item);
+                    // If the relic has no stats configured, return a special marker value that causes all of the cells
+                    // to display blank values rather than 0.
+                    if (!(ALL_SUB_STATS.find(stat => {
+                        const statValue = preview.relicStats[stat];
+                        return statValue !== undefined && statValue !== 0;
+                    }))) {
+                        return 'relic-zero';
+                    }
                     return set.getEquipStatDetail(preview, stat);
                 }
                 // If it is equipped, then display the relic cell editor.
@@ -416,7 +425,7 @@ function itemTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, stat: 
                 }
             }
         },
-        renderer: (value: ItemSingleStatDetail | RelicCellInfo, rowValue: GearSlotItem) => {
+        renderer: (value, rowValue: GearSlotItem) => {
             // First, check if the cell is an editable relic stat
             if (value instanceof RelicCellInfo) {
                 const equipment: EquippedItem = value.set.equipment[value.slotId];
@@ -444,6 +453,9 @@ function itemTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, stat: 
                     return null;
                 }
             }
+            else if (value === 'relic-zero') {
+                return null;
+            }
             else {
                 if (rowValue.item.isCustomRelic) {
                     if (rowValue.item.relicStatModel.excludedStats.includes(stat as Substat)) {
@@ -465,7 +477,7 @@ function itemTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, stat: 
                         removeStatCellStyles(cell);
                     }
                 }
-                else {
+                else if (value !== 'relic-zero') {
                     applyStatCellStyles(cell, value, stat);
                 }
             }
@@ -473,7 +485,7 @@ function itemTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, stat: 
                 cell.classList.add('stat-cell');
             }
         },
-        titleSetter: (value: ItemSingleStatDetail | RelicCellInfo, rowValue: GearSlotItem, cell: CustomCell<GearSlotItem, ItemSingleStatDetail | RelicCellInfo>) => {
+        titleSetter: (value, rowValue: GearSlotItem) => {
             if (value instanceof RelicCellInfo) {
                 const currentEquipment: EquippedItem = set.equipment[value.slotId];
                 // If not equipped, and there is a saved set of stats for that relic, display them
@@ -485,8 +497,11 @@ function itemTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, stat: 
                 }
                 return statCellTitle(set.getStatDetail(value.slotId, stat));
             }
-            else {
+            else if (value !== 'relic-zero') {
                 return statCellTitle(value);
+            }
+            else {
+                return null;
             }
         },
         finisher: (value, rowValue, cell) => {
@@ -570,11 +585,13 @@ export class GearItemsTable extends CustomTable<GearSlotItem, TableSelectionMode
                 },
                 renderer: (name: string, rowValue: GearSlotItem) => {
                     const trashButton = quickElement('button', ['remove-item-button'], [makeTrashIcon()]);
+                    trashButton.title = 'Click to un-equip item';
                     trashButton.addEventListener('click', (ev) => {
                         gearSet.setEquip(rowValue.slotId, null);
                         selectionTracker.set(rowValue.slotId, null);
                         this.refreshSelection();
                         this.refreshMateria();
+                        this.refreshRowData(rowValue);
                     });
                     return quickElement('div', ['item-name-holder-editable'], [quickElement('span', [], [shortenItemName(name)]), trashButton]);
                 },
@@ -1016,7 +1033,7 @@ export class ILvlRangePicker<ObjType> extends HTMLElement {
 
         const lowerBoundControl = new FieldBoundIntField(obj, minField, {
             postValidators: [(ctx) => {
-                if (ctx.newValue >= (obj[maxField] as number)) {
+                if (ctx.newValue > (obj[maxField] as number)) {
                     ctx.failValidation('Minimum level must be less than the maximum level');
                 }
             }],
