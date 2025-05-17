@@ -8,10 +8,10 @@
     "test": "ts-mocha src/test/**/*tests.ts"
   },
   "devDependencies": {
-    "@types/chai": "^4.3.16",
+    "@types/chai": "^4.3.20",
     "chai": "^4.5.0",
-    "ts-loader": "^9.5.1",
-    "ts-mocha": "^10.0.0",
+    "ts-loader": "^9.5.2",
+    "ts-mocha": "^10.1.0",
     "ts-node": "^10.9.2"
   },
   "dependencies": {
