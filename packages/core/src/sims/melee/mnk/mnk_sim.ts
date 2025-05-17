@@ -27,7 +27,7 @@ export const mnkSpec: SimSpec<MnkSim, MnkSettingsExternal> = {
         return new MnkSim(exported);
     },
     supportedJobs: ['MNK'],
-    supportedLevels: [100],
+    supportedLevels: [100, 90, 80],
     isDefaultSim: true,
 };
 
