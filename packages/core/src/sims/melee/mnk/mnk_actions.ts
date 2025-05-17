@@ -582,7 +582,7 @@ export const CelestialRevolution: MnkGcdAbility = {
 };
 
 export const TornadoKick: MnkGcdAbility = {
-    name: "TornadoKick",
+    name: "Tornado Kick",
     id: 3543,
     type: 'gcd',
     attackType: 'Weaponskill',
@@ -599,7 +599,13 @@ export const TornadoKick: MnkGcdAbility = {
             minLevel: 90,
             name: "Phantom Rush",
             id: 25769,
-            potency: 1150,
+            potency: 1400,
+        },
+        {
+            minLevel: 94,
+            name: "Phantom Rush",
+            id: 25769,
+            potency: 1500,
         },
     ],
 };
