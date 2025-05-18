@@ -15,6 +15,7 @@ import {getHashForSaveKey, openSheetByKey, showNewSheetForm} from "../base_ui";
 import {confirmDelete} from "@xivgear/common-ui/components/delete_confirm";
 import {JobIcon} from "./job_icon";
 import {JOB_DATA} from "@xivgear/xivmath/xivconstants";
+import {jobAbbrevTranslated} from "./job_name_translator";
 
 export class SheetPickerTable extends CustomTable<SheetExport, TableSelectionModel<SheetExport, never, never, SheetExport | null>> {
     constructor() {
@@ -59,7 +60,7 @@ export class SheetPickerTable extends CustomTable<SheetExport, TableSelectionMod
                     return sheet.job;
                 },
                 renderer: job => {
-                    return document.createTextNode(job);
+                    return jobAbbrevTranslated(job);
                 },
             }),
             col({
