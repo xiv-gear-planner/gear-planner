@@ -90,7 +90,6 @@ export class BuffListDisplay extends HTMLDivElement {
     }
 
     reformatTooltipLazy(): void {
-        console.log('reformatLazy');
         if (!this.dirtyTooltip) {
             this.dirtyTooltip = true;
             // Unlikely that the user will try to view the tooltip within 500ms, so coalesce tooltip updates into a
@@ -100,7 +99,6 @@ export class BuffListDisplay extends HTMLDivElement {
     }
 
     reformatTooltipNow(): void {
-        console.log('reformatNow');
         this.dirtyTooltip = false;
         let tooltip = '';
         this.buffInfo.forEach(bi => {
