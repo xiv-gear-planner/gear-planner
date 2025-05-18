@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import 'global-jsdom/register';
 import {describe, it} from "mocha";
 import * as assert from "assert";
 import {assertClose} from "@xivgear/util/test/test_utils";

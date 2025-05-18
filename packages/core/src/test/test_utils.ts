@@ -23,3 +23,62 @@ export function makeFakeSet(stats: ComputedSetStats): CharacterGearSet {
         },
     } as CharacterGearSet;
 }
+
+export class FakeLocalStorage implements Storage {
+
+    private _data: Map<string, string>;
+
+    constructor() {
+        this._reset();
+        return new Proxy(this, {
+            get(target: typeof this, key: string | symbol): unknown {
+                if (key in target) {
+                    return target[String(key)];
+                }
+                return target._data.get(key as string);
+            },
+            set(target: typeof this, key: string | symbol, newValue: unknown): boolean {
+                if (!(key in target)) {
+                    target._data.set(String(key), String(newValue));
+                    return true;
+                }
+                return false;
+            },
+        });
+    }
+
+    private _reset(): void {
+        this._data = new Map();
+    }
+
+    get length(): number {
+        return this._data.size;
+    }
+
+    clear(): void {
+        this._reset();
+    }
+
+    getItem(key: string): string | null {
+        if (this._data.has(key)) {
+            return this._data.get(key);
+        }
+        return null;
+    }
+
+    key(index: number): string | null {
+        const keys = Array.from(this._data.keys());
+        return keys[index] ?? null;
+    }
+
+    removeItem(key: string): void {
+        this._data.delete(key);
+    }
+
+    setItem(key: string, value: string): void {
+        this._data.set(key, value);
+    }
+
+    [key: string]: unknown;
+
+}

@@ -1,4 +1,3 @@
-import 'global-jsdom/register';
 import 'isomorphic-fetch';
 import * as assert from "assert";
 import {RawStats} from "@xivgear/xivmath/geartypes";
