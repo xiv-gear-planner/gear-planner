@@ -3,7 +3,7 @@ import {setServerOverride} from "@xivgear/core/external/shortlink_server";
 import {setFrontendClient, setFrontendServer} from "./frontend_file_server";
 import {buildPreviewServer, buildStatsServer} from "./server_builder";
 import {FastifyInstance} from "fastify";
-import {setDataApi} from "@xivgear/core/datamanager_new";
+import {setDataApi} from "@xivgear/core/data_api_client";
 
 
 function validateUrl(url: string, description: string) {

@@ -1,9 +1,13 @@
 import {xivApiIconUrl, xivApiSingleCols} from "@xivgear/core/external/xivapi";
 import {AnyStringIndex} from "@xivgear/util/types";
+import {getCurrentLanguage} from "@xivgear/i18n/translation";
+import {Buff} from "@xivgear/core/sims/sim_types";
+import {quickElement} from "@xivgear/common-ui/components/util";
 
 export interface XivApiStatusData {
     ID: number,
-    IconFunc: (stacks: number, highRes: boolean) => string
+    IconFunc: (stacks: number, highRes: boolean) => string,
+    Name: string,
 }
 
 const statusIconMap = new Map<number, Promise<XivApiStatusData>>();
@@ -14,7 +18,7 @@ async function getDataFor(statusId: number): Promise<XivApiStatusData> {
         return statusIconMap.get(statusId);
     }
     else {
-        const dataPromise = xivApiSingleCols('Status', statusId, ['ID', 'Icon', "MaxStacks"] as const);
+        const dataPromise = xivApiSingleCols('Status', statusId, ['ID', 'Icon', 'MaxStacks', 'Name'] as const, getCurrentLanguage());
         const out: Promise<XivApiStatusData> = dataPromise.then(data => {
             return {
                 ID: data.ID as number,
@@ -27,6 +31,7 @@ async function getDataFor(statusId: number): Promise<XivApiStatusData> {
                     const iconId = ((data.Icon as AnyStringIndex).id as number) + stackOffset;
                     return xivApiIconUrl(iconId, highRes);
                 },
+                Name: data.Name as string,
             } satisfies XivApiStatusData;
         });
 
@@ -48,6 +53,30 @@ export class StatusIcon extends HTMLImageElement {
             this.srcset = `${lowRes}, ${highRes} 2x`;
             // this.sizes = `(min-width: 26px) 48w,\n24w`;
         });
+    }
+}
+
+function shouldTranslate(buff: Buff) {
+    return buff.statusId > 0 && (buff.translate ?? getCurrentLanguage() !== 'en');
+}
+
+export function statusNameTranslated(buff: Buff): HTMLSpanElement {
+    const text = quickElement('span', ['status-name'], [buff.name]);
+    // Don't translate 'auto-attack' in en, just leave it as the original string
+    if (shouldTranslate(buff)) {
+        getDataFor(buff.statusId).then(data => {
+            text.textContent = data.Name;
+        });
+    }
+    return text;
+}
+
+export async function translatedStatusName(buff: Buff): Promise<string> {
+    if (shouldTranslate(buff)) {
+        return (await getDataFor(buff.statusId)).Name;
+    }
+    else {
+        return Promise.resolve(buff.name);
     }
 }
 

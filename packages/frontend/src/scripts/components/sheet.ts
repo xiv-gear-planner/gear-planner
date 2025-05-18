@@ -90,9 +90,9 @@ import {SETTINGS} from "@xivgear/common-ui/settings/persistent_settings";
 import {isInIframe} from "@xivgear/common-ui/util/detect_iframe";
 import {recordError, recordEvent} from "@xivgear/common-ui/analytics/analytics";
 import {ExpandableText} from "@xivgear/common-ui/components/expandy_text";
-import {setDataManagerErrorReporter} from "@xivgear/core/datamanager_new";
 import {SheetInfoModal} from "./sheet_info_modal";
 import {FramelessJobIcon, JobIcon} from "./job_icon";
+import {setDataManagerErrorReporter} from "@xivgear/core/data_api_client";
 
 const noSeparators = (set: CharacterGearSet) => !set.isSeparator;
 
