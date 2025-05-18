@@ -58,9 +58,8 @@ export function randomId(prefix: string = 'unique-id-') : string{
     return prefix + (idCounter++);
 }
 
-export function labelFor(label: string, labelFor: HTMLElement) {
-    const element = document.createElement("label");
-    element.textContent = label;
+export function labelFor(label: string | Node, labelFor: HTMLElement) {
+    const element = quickElement('label', [], [label]);
     if (!labelFor.id) {
         labelFor.id = randomId('lbl-id-');
     }
@@ -520,7 +519,7 @@ export class FieldBoundDataSelect<ObjType, DataType> extends DataSelect<DataType
     }
 }
 
-export function labeledComponent(label: string, check: HTMLElement): HTMLDivElement {
+export function labeledComponent(label: string | Node, check: HTMLElement): HTMLDivElement {
     const labelElement = labelFor(label, check);
     const div = document.createElement("div");
     div.appendChild(check);
@@ -529,7 +528,7 @@ export function labeledComponent(label: string, check: HTMLElement): HTMLDivElem
     return div;
 }
 
-export function labeledCheckbox(label: string, check: HTMLInputElement): HTMLDivElement {
+export function labeledCheckbox(label: string | Node, check: HTMLInputElement): HTMLDivElement {
     const labelElement = labelFor(label, check);
     const div = document.createElement("div");
     div.appendChild(check);
@@ -538,7 +537,7 @@ export function labeledCheckbox(label: string, check: HTMLInputElement): HTMLDiv
     return div;
 }
 
-export function labeledRadioButton(label: string, radioButton: HTMLInputElement): HTMLDivElement {
+export function labeledRadioButton(label: string | Node, radioButton: HTMLInputElement): HTMLDivElement {
     const labelElement = labelFor(label, radioButton);
     const div = document.createElement("div");
     div.appendChild(radioButton);

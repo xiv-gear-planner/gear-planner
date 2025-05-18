@@ -330,8 +330,8 @@ export class StatTierDisplay extends HTMLDivElement {
             case "dhit":
                 return [{
                     label: abbrev,
-                    fullName: 'direct hit change',
-                    description: 'Change to land a direct hit',
+                    fullName: 'direct hit chance',
+                    description: 'Chance to land a direct hit',
                     tieringFunc: makeTiering(value => dhitChance(levelStats, value)),
                     extraOffsets: extraOffsets,
                 }];
