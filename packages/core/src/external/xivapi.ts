@@ -23,6 +23,7 @@ export type XivApiSearchRequest = XivApiRequest & {
 // TODO: migrate this to v2.xivapi.com
 // TODO: put the /api/ part in here and rename to XIVAPI_BASE_URL
 export const XIVAPI_SERVER = "https://beta.xivapi.com";
+export const XIVAPI_SERVER_V2 = "https://v2.xivapi.com/api/";
 
 export type XivApiResultSingle<Cols extends readonly string[], TrnCols extends readonly string[] = []> = {
     [K in Cols[number]]: unknown;
@@ -69,12 +70,15 @@ export async function xivApiSingle(sheet: string, id: number) {
     return xivApiFetch(query).then(response => response.json()).then(response => response['fields']);
 }
 
-export async function xivApiSingleCols<Columns extends readonly string[]>(sheet: string, id: number, cols: Columns): Promise<{
+export async function xivApiSingleCols<Columns extends readonly string[]>(sheet: string, id: number, cols: Columns, lang?: string): Promise<{
     [K in Columns[number]]: unknown;
 } & {
     ID: number
 }> {
-    const query = `${XIVAPI_SERVER}/api/1/sheet/${sheet}/${id}?fields=${cols.join(',')}`;
+    let query = new URL(`sheet/${sheet}/${id}?fields=${cols.join(',')}`, XIVAPI_SERVER_V2);
+    if (lang) {
+        query = new URL(`?language=${lang}`, query);
+    }
     return xivApiFetch(query).then(response => response.json()).then(response => {
         const responseOut = response['fields'];
         responseOut['ID'] = response['row_id'];

@@ -1,9 +1,12 @@
 import {xivApiIconUrl, xivApiSingleCols} from "@xivgear/core/external/xivapi";
 import {AnyStringIndex} from "@xivgear/util/types";
+import {getCurrentLanguage} from "@xivgear/i18n/translation";
+import {Buff} from "@xivgear/core/sims/sim_types";
 
 export interface XivApiStatusData {
     ID: number,
-    IconFunc: (stacks: number, highRes: boolean) => string
+    IconFunc: (stacks: number, highRes: boolean) => string,
+    Name: string,
 }
 
 const statusIconMap = new Map<number, Promise<XivApiStatusData>>();
@@ -14,7 +17,7 @@ async function getDataFor(statusId: number): Promise<XivApiStatusData> {
         return statusIconMap.get(statusId);
     }
     else {
-        const dataPromise = xivApiSingleCols('Status', statusId, ['ID', 'Icon', "MaxStacks"] as const);
+        const dataPromise = xivApiSingleCols('Status', statusId, ['ID', 'Icon', 'MaxStacks', 'Name'] as const, getCurrentLanguage());
         const out: Promise<XivApiStatusData> = dataPromise.then(data => {
             return {
                 ID: data.ID as number,
@@ -27,6 +30,7 @@ async function getDataFor(statusId: number): Promise<XivApiStatusData> {
                     const iconId = ((data.Icon as AnyStringIndex).id as number) + stackOffset;
                     return xivApiIconUrl(iconId, highRes);
                 },
+                Name: data.Name as string,
             } satisfies XivApiStatusData;
         });
 
@@ -49,6 +53,10 @@ export class StatusIcon extends HTMLImageElement {
             // this.sizes = `(min-width: 26px) 48w,\n24w`;
         });
     }
+}
+
+export async function translatedStatusName(buff: Buff): Promise<string> {
+    return (await getDataFor(buff.statusId)).Name;
 }
 
 customElements.define("ffxiv-status-icon", StatusIcon, {extends: "img"});

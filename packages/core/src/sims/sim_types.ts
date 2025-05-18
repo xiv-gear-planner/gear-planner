@@ -355,6 +355,12 @@ export type BaseAbility = Readonly<LevelModifiable<{
      * scaling or using the pet action Weapon Damage multiplier.
      */
     alternativeScalings?: AlternativeScaling[],
+
+    /**
+     * By default, actions will be translated on the UI when language is not English.
+     * You can force translation on or off via this property.
+     */
+    translate?: boolean,
 }> & (LevelModifiable<NonDamagingAbility> | LevelModifiable<DamagingAbility>)>;
 
 
