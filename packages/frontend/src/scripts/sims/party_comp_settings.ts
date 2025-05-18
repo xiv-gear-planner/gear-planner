@@ -2,6 +2,7 @@ import {NamedSection} from "../components/section";
 import {BuffSettingsManager} from "@xivgear/core/sims/common/party_comp_settings";
 import {FieldBoundCheckBox, labeledCheckbox} from "@xivgear/common-ui/components/util";
 import {jobAbbrevTranslated} from "../components/job_name_translator";
+import {statusNameTranslated, translatedStatusName} from "../components/status_effects";
 
 /**
  * Provides the settings area for configuring party buffs.
@@ -27,7 +28,7 @@ export class BuffSettingsArea extends NamedSection {
             job.allBuffs.forEach(buff => {
                 const buffCb = new FieldBoundCheckBox(buff, 'enabled');
                 buffCb.addListener(updateCallback);
-                buffsCell.append(labeledCheckbox(buff.buff.name, buffCb));
+                buffsCell.append(labeledCheckbox(statusNameTranslated(buff.buff), buffCb));
                 jobCb.addAndRunListener(val => buffCb.disabled = !val);
             });
             row.append(buffsCell);

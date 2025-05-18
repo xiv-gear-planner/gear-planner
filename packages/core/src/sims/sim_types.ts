@@ -667,6 +667,12 @@ export type BaseBuff = Readonly<{
      * Add a key for this buff for import/export functionality. If not specified, will use the name as the key.
      */
     saveKey?: string
+
+    /**
+     * By default, names will be translated on the UI when language is not English.
+     * You can force translation on or off via this property.
+     */
+    translate?: boolean,
 } & ({
     descriptionExtras?: never,
     descriptionOverride?: never,

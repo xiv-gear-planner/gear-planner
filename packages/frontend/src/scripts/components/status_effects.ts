@@ -2,6 +2,7 @@ import {xivApiIconUrl, xivApiSingleCols} from "@xivgear/core/external/xivapi";
 import {AnyStringIndex} from "@xivgear/util/types";
 import {getCurrentLanguage} from "@xivgear/i18n/translation";
 import {Buff} from "@xivgear/core/sims/sim_types";
+import {quickElement} from "@xivgear/common-ui/components/util";
 
 export interface XivApiStatusData {
     ID: number,
@@ -55,8 +56,28 @@ export class StatusIcon extends HTMLImageElement {
     }
 }
 
+function shouldTranslate(buff: Buff) {
+    return buff.statusId > 0 && (buff.translate ?? getCurrentLanguage() !== 'en');
+}
+
+export function statusNameTranslated(buff: Buff): HTMLSpanElement {
+    const text = quickElement('span', ['status-name'], [buff.name]);
+    // Don't translate 'auto-attack' in en, just leave it as the original string
+    if (shouldTranslate(buff)) {
+        getDataFor(buff.statusId).then(data => {
+            text.textContent = data.Name;
+        });
+    }
+    return text;
+}
+
 export async function translatedStatusName(buff: Buff): Promise<string> {
-    return (await getDataFor(buff.statusId)).Name;
+    if (shouldTranslate(buff)) {
+        return (await getDataFor(buff.statusId)).Name;
+    }
+    else {
+        return Promise.resolve(buff.name);
+    }
 }
 
 customElements.define("ffxiv-status-icon", StatusIcon, {extends: "img"});
