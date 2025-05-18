@@ -3,6 +3,7 @@ body {
   --fg-color: #b0b0b0;
   --border-color-default: #66666f;
   --border-color: var(--border-color-default);
+  --border-style: solid;
   --border-color-input: var(--border-color-default);
   --border-color-highlight: #888890;
   --table-bg-color: #202027;
@@ -18,11 +19,12 @@ body {
   --stat-mix-secondary-bg: 6%;
   --materia-overcap-major: #ff0000;
   --materia-overcap: #dd7700;
-  --standard-border-default: 1px solid var(--border-color);
+  --standard-border-default: 1px var(--border-style) var(--border-color);
   --standard-border: var(--standard-border-default);
+  --standard-border-part: var(--border-style) var(--border-color);
   --standard-border-input: 1px solid var(--border-color-input);
-  --soft-border: 1px solid var(--border-color);
-  --thick-border: 1px solid var(--border-color);
+  --soft-border: 1px var(--standard-border-part);
+  --thick-border: 1px var(--standard-border-part);
   //--thick-border: 2px solid var(--border-color);
   --selected-outline: 3px solid var(--table-selected-outline-color);
   --stat-color: var(--fg-color);
@@ -76,6 +78,7 @@ body {
   --role-color-healer: #13a813;;
   --role-color-dps: #ff0000;
 
+  --perfect-tiering-box-shadow: 0 0 5px -1px inset color-mix(in srgb, var(--stat-color) 50%, var(--border-color));
 
   &.light-mode {
     --bg-color: #e7dcd9;
@@ -126,13 +129,13 @@ body {
   overflow-y: hidden;
   margin: 0;
 
-  @media screen and (width <= 600px) {
-    --set-name-col-width: 150px;
+  @media screen and (max-width: 600px) {
     //color: red;
     //width: 80vw;
     //height: 80vh;
     //transform: scale(1.25);
     transform-origin: 0 0;
+    --set-name-col-width: 150px;
     //--item-name-col-width: 150px;
     [col-id='mats'] {
       display: none;
@@ -144,7 +147,7 @@ body {
     //flex: 0;
     margin: 5px;
     padding: 5px;
-    border: 1px solid var(--border-color);
+    border: 1px var(--standard-border-part);
 
     button {
       margin: 10px;
@@ -221,7 +224,10 @@ body {
 
     > *:only-child {
       position: absolute;
-      inset: 0;
+      left: 0;
+      right: 0;
+      top: 0;
+      bottom: 0;
     }
   }
 
@@ -286,7 +292,7 @@ body {
 }
 
 .borderless-button {
-  padding: 0 4px;
+  padding: 0 4px 0 4px;
   margin-left: 2px;
   background: none;
   border: none;
@@ -302,7 +308,6 @@ body {
 
 
 // Z-indices/gea
-//noinspection Stylelint
 body {
   /* Sets table z order needs to be:
   Pinned header cols >
@@ -361,7 +366,7 @@ div#editor-area {
   flex-grow: 9999;
   min-height: 60%;
   max-height: 100%;
-  border-top: 2px solid var(--border-color);
+  border-top: 2px var(--standard-border-part);
   margin-top: 5px;
   padding-top: 8px;
   padding-bottom: 8px;
@@ -443,8 +448,8 @@ table {
   }
 
   tr {
-    //border: 2px solid #666666;
-    border: 3px solid var(--border-color);
+    /*border: 2px solid #666666;*/
+    border: 3px var(--standard-border-part);
     scroll-margin: 30px;
     position: relative;
 
@@ -507,7 +512,6 @@ table {
     // Note: doesn't work on raw text nodes, so tables MUST use a span instead.
     // This is already handled in custom tables.
     td, th {
-      padding: 1px 3px 1px 3px;
       position: relative;
 
       &[is-selected="true"] {
@@ -551,6 +555,15 @@ table {
         }
       }
 
+    }
+
+
+    //td:hover {
+    //
+    //  background-color: red;
+    //}
+    th, td {
+      padding: 1px 3px 1px 3px;
     }
 
     td {
@@ -878,8 +891,7 @@ table.gear-plan-table {
     --chance-stat-col-width: 40px;
     --multi-stat-col-width: 40px;
     --multi-mit-stat-col-width: 40px;
-
-    @media screen and (width <= 800px) {
+    @media screen and (max-width: 800px) {
       .stat-col-less-important {
         display: none;
       }
@@ -1289,8 +1301,8 @@ gear-plan {
   display: flex;
   flex-direction: column;
 
-  //div#editor-area {
-  //}
+  div#editor-area {
+  }
 
   &.loading .hide-when-loading {
     display: none;
@@ -1307,8 +1319,8 @@ gear-plan {
       //margin: auto;
     }
 
-    //flex-grow: 0;
-    //flex-shrink: 9999;
+    /*flex-grow: 0;*/
+    /*flex-shrink: 9999;*/
     flex-basis: content;
     //overflow: auto;
     min-height: 0;
@@ -1318,7 +1330,6 @@ gear-plan {
     width: fit-content;
     max-width: 100%;
     margin: 0 auto 0 auto;
-
     // TODO: this also causes an ugly empty area to the right.
     // maybe just always display the scrollbar?
     //scrollbar-gutter: stable;
@@ -1402,7 +1413,7 @@ gear-plan {
     //min-height: fit-content;
     height: 60%;
     max-height: 100%;
-    border-top: 2px solid var(--border-color);
+    border-top: 2px var(--standard-border-part);
     padding-left: var(--edge-padding);
     padding-right: var(--edge-padding);
   }
@@ -1596,8 +1607,6 @@ table.gear-items-table, table.food-items-table {
 }
 
 .flex-padding-item {
-  // TODO: is this okay?
-  //noinspection Stylelint
   flex-grow: 0.00001;
 }
 
@@ -1948,7 +1957,10 @@ import-set-dialog {
 
   loading-blocker {
     position: absolute;
-    inset: 0;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
 
     .loading-spinner {
       position: relative;
@@ -2137,6 +2149,7 @@ div.gear-sheet-toolbar-holder {
 
 set-view-toolbar {
   display: contents;
+
   set-totals-display {
     border: none;
     pointer-events: none;
@@ -2338,7 +2351,7 @@ div.gear-set-editor-toolbar, set-view-toolbar {
 
     &.stat-tiering-perfect {
       .number-format-perfect();
-      box-shadow: 0 0 5px -1px inset color-mix(in srgb, var(--stat-color) 50%, var(--border-color));
+      box-shadow: var(--perfect-tiering-box-shadow);
     }
 
     --inner-padding: 0px;
@@ -2402,6 +2415,7 @@ div.gear-set-editor-toolbar, set-view-toolbar {
     }
   }
 }
+
 
 set-totals-display {
   //div.stat-tier-display {
@@ -2540,7 +2554,10 @@ show-hide-button {
 .modal-dialog {
   position: absolute;
   margin: 0;
-  inset: 0;
+  bottom: 0;
+  top: 0;
+  left: 0;
+  right: 0;
   z-index: var(--zi-true-modal);
   display: flex;
   background-color: var(--modal-backdrop-color);
@@ -2945,13 +2962,13 @@ gear-set-viewer {
 
   .food-view-table {
     td.food-stat-col {
-      --standard-border: 1px solid color-mix(in srgb, var(--stat-color) 10%, var(--border-color));
+      --standard-border: 1px var(--border-style) color-mix(in srgb, var(--stat-color) 10%, var(--border-color));
       border: var(--standard-border);
       border-top: var(--standard-border) !important;
       border-radius: 5px;
 
       &.primary {
-        --standard-border: 1px solid color-mix(in srgb, var(--stat-color) 50%, var(--border-color));
+        --standard-border: 1px var(--border-style) color-mix(in srgb, var(--stat-color) 50%, var(--border-color));
       }
     }
   }
@@ -3353,8 +3370,10 @@ sheet-export-modal, set-export-modal {
 
 body.modern {
   --border-color: #00000000;
+  --border-style: none;
   --table-extra-padding: 10px;
   --optional-border-radius: 10px;
+  --perfect-tiering-box-shadow: none;
   //--item-name-col-width: 250px;
   //--button-height: 25px;
   table {
@@ -3497,8 +3516,8 @@ body.modern {
     background-color: var(--table-bg-color);
     .shadow();
 
-    //.gear-sheet-table-holder {
-    //}
+    .gear-sheet-table-holder {
+    }
   }
 
   .gear-sheet-table-area {
@@ -3917,7 +3936,7 @@ expandable-text {
     max-width: max-content;
     margin: auto;
 
-    @media screen and (width <= 625px) {
+    @media screen and (max-width: 625px) {
       grid-template-columns: 1fr;
       grid-template-rows: auto auto 1fr;
       .cycle-sim-abilities-holder {
@@ -3982,5 +4001,8 @@ expandable-text {
 .row-overlay-link {
   display: block;
   position: absolute;
-  inset: 0;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
 }
