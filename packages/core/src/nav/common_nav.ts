@@ -203,7 +203,7 @@ export function parsePath(state: NavState): NavPath | null {
         }
         else {
             const json = path.slice(1).join(PATH_SEPARATOR);
-            const parsed = JSON.parse(decodeURIComponent(json)) as SetExport;
+            const parsed = JSON.parse(json) as SetExport;
             const viewOnly = mainNav === VIEW_SET_HASH;
             if (!viewOnly) {
                 embedWarn();
