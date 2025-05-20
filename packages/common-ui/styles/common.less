@@ -34,7 +34,10 @@ body {
   --optional-border-radius: 0;
   --action-col-width: 73px;
   --set-name-col-width: 300px;
-  --item-name-col-width: 300px;
+  //--item-name-col-width: 300px;
+  --item-name-col-width: 100%;
+  --item-name-col-max-width: 300px;
+  --item-table-max-width: 700px;
   --materia-melded-slot-blend-color: #cccccc;
   --scrollbar-fg: #666675;
   --scrollbar-bg: #444454;
@@ -240,6 +243,11 @@ body {
   ::-webkit-scrollbar-thumb {
     background-color: var(--scrollbar-fg);
   }
+}
+
+// Fix for iOS no longer respecting user-scalable=no
+* {
+  touch-action: pan-x pan-y;
 }
 
 .shadow {
@@ -1480,11 +1488,11 @@ table.gear-items-table, table.food-items-table {
     height: 100%;
   }
 
-  max-width: 100%;
+  max-width: var(--item-table-max-width);
 
   [col-id='itemname'] {
     width: var(--item-name-col-width);
-    max-width: var(--item-name-col-width);
+    max-width: var(--item-name-col-max-width);
     min-width: 100px;
   }
 
@@ -1584,7 +1592,9 @@ table.gear-items-table, table.food-items-table {
 
 .left-side-gear-table, .right-side-gear-table {
   display: inline-block;
-  vertical-align: top;
+  flex-basis: var(--item-table-max-width);
+  flex-shrink: 1;
+
   //margin-left: 5px;
   //margin-right: 5px;
   & > table.gear-items-table {
@@ -1600,7 +1610,7 @@ table.gear-items-table, table.food-items-table {
   display: flex;
   margin-left: auto;
   margin-right: auto;
-  width: fit-content;
+  width: 100%;
   gap: 10px;
   flex-wrap: wrap;
   justify-content: center;
@@ -1974,6 +1984,7 @@ div.gear-sheet-toolbar-holder {
   position: relative;
   padding-left: 8px;
   padding-right: 8px;
+  touch-action: pinch-zoom;
 
   .drag-indicator {
     content: '≡';
@@ -2703,7 +2714,6 @@ food-stat-bonus {
 }
 
 table.food-items-table {
-  max-width: 100%;
 
   .food-stat-col {
     --food-stat-col-width: 80px;
@@ -2715,9 +2725,9 @@ table.food-items-table {
 
   [col-id='itemname'] {
     //max-width: fit-content;
-    width: 300px;
+    width: var(--item-name-col-width);
     min-width: 100px;
-    max-width: var(--item-name-col-width);
+    max-width: var(--item-name-col-max-width);
 
     div {
       overflow: hidden;
@@ -2821,6 +2831,8 @@ gear-set-viewer {
     cursor: default;
   }
 
+  --item-table-max-width: 600px;
+
   materia-totals-display {
     .standard-round-border();
     background-color: var(--table-bg-color);
@@ -2828,10 +2840,11 @@ gear-set-viewer {
     text-align: left;
     margin-left: auto;
     margin-right: auto;
-    max-width: 556px;
+    max-width: var(--item-table-max-width);
     min-height: 22px;
     display: flex;
     flex-direction: row;
+    box-sizing: border-box;
     --materia-total-cols: auto;
 
     @media screen and (width <= 600px) {
@@ -2903,7 +2916,8 @@ gear-set-viewer {
     border: var(--standard-border);
     border-spacing: 5px;
     border-radius: var(--standard-border-radius);
-    --item-name-col-width: 265px;
+    //--item-name-col-width: 265px;
+    //--item-name-col-width: 265px;
     // Weird, requires this to make the colspan=9999 not cause horizontal scrollbar
     overflow: hidden;
 
