@@ -37,7 +37,7 @@ import {
     RelicStatMemoryExport,
     RelicStats,
     SetDisplaySettingsExport,
-    SlotMateriaMemoryExport,
+    SlotMateriaMemoryExport
 } from "@xivgear/xivmath/geartypes";
 import {Inactivitytimer} from "@xivgear/util/inactivitytimer";
 import {addStats, finalizeStats, finalizeStatsInt, getBaseMainStat} from "@xivgear/xivmath/xivstats";

@@ -20,7 +20,6 @@ import {OccGearSlots, RawStats, Substat} from "@xivgear/xivmath/geartypes";
 import {confirmDelete} from "@xivgear/common-ui/components/delete_confirm";
 import {CustomItem} from "@xivgear/core/customgear/custom_item";
 import {CustomFood} from "@xivgear/core/customgear/custom_food";
-import {conf} from "@xivgear/core/sims/tank/pld/pld_actions_no_sks";
 import {GearPlanSheetGui} from "./sheet";
 
 function ifWeapon(fn: (item: CustomItem) => HTMLElement): (item: CustomItem) => Node {
