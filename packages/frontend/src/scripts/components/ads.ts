@@ -195,7 +195,6 @@ function makeFixedArea(id: string, width: number, height: number): AdContainerEl
     outer.style.display = 'none';
     outer.appendChild(middle);
 
-
     return {
         inner: inner,
         middle: middle,
