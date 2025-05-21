@@ -14,7 +14,8 @@ import {
     SPECIAL_SUB_STATS
 } from "@xivgear/xivmath/xivconstants";
 import {
-    cloneEquipmentSet, CollapsibleSlot,
+    cloneEquipmentSet,
+    CollapsibleSlot,
     ComputedSetStats,
     EquipmentSet,
     EquippedItem,
@@ -37,7 +38,6 @@ import {
     RelicStats,
     SetDisplaySettingsExport,
     SlotMateriaMemoryExport,
-    XivCombatItem
 } from "@xivgear/xivmath/geartypes";
 import {Inactivitytimer} from "@xivgear/util/inactivitytimer";
 import {addStats, finalizeStats, finalizeStatsInt, getBaseMainStat} from "@xivgear/xivmath/xivstats";
@@ -245,6 +245,7 @@ type GearSetCheckpointNode = {
     prev: GearSetCheckpointNode | null;
     next: GearSetCheckpointNode | null;
 }
+
 /**
  * Class representing equipped gear, food, and other overrides.
  */
