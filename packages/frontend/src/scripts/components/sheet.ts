@@ -1973,8 +1973,13 @@ export class GearPlanSheetGui extends GearPlanSheet {
         gearSet.startCheckpoint(() => this.refreshGearEditor(gearSet));
     }
 
-    refreshGearEditor(set: CharacterGearSet) {
-        if (this._editorItem === set) {
+    /**
+     * Fully refresh the gear editor area.
+     *
+     * @param set If specified, will only perform the refresh if this is the currently selected set.
+     */
+    refreshGearEditor(set?: CharacterGearSet) {
+        if (!set || this._editorItem === set) {
             this.resetEditorArea();
             // this.refreshToolbar();
         }

@@ -368,7 +368,7 @@ export class CharacterGearSet {
      * @param item
      * @param materiaAutoFillController
      */
-    setEquip(slot: EquipSlotKey, item: GearItem, materiaAutoFillController?: MateriaAutoFillController) {
+    setEquip(slot: EquipSlotKey, item: GearItem | null, materiaAutoFillController?: MateriaAutoFillController) {
         if (this.equipment[slot]?.gearItem === item) {
             return;
         }
@@ -544,7 +544,7 @@ export class CharacterGearSet {
     /**
      * All items currently equipped (excluding food)
      */
-    get allEquippedItems(): XivCombatItem[] {
+    get allEquippedItems(): GearItem[] {
         return Object.values(this.equipment)
             .filter(slotEquipment => slotEquipment && slotEquipment.gearItem)
             .map((slotEquipment: EquippedItem) => slotEquipment.gearItem);
