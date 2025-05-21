@@ -971,12 +971,34 @@ export const MATERIA_FILL_MODES = ['leave_empty', 'autofill', 'retain_slot_else_
 export type MateriaFillMode = typeof MATERIA_FILL_MODES[number];
 
 export interface ItemDisplaySettings {
+    /**
+     * Min ilvl for gear items
+     */
     minILvl: number,
+    /**
+     * Max ilvl for gear items
+     */
     maxILvl: number,
+    /**
+     * Min ilvl for food items
+     */
     minILvlFood: number,
+    /**
+     * Max ilvl for food items
+     */
     maxILvlFood: number,
+    /**
+     * Show relics which exceed {@link #maxILvl}
+     */
     higherRelics: boolean,
+    /**
+     * Show NQ items in addition to their HQ counterparts
+     */
     showNq: boolean,
+    /**
+     * Show food with only one relevant stat
+     */
+    showOneStatFood: boolean,
 }
 
 export const AttackTypes = ['Unknown', 'Auto-attack', 'Spell', 'Weaponskill', 'Ability', 'Item'] as const;
@@ -1058,8 +1080,10 @@ export type GearSetResult = {
     readonly issues: readonly GearSetIssue[]
 }
 
+export type CollapsibleSlot = EquipSlotKey | 'food';
+
 export type SetDisplaySettingsExport = {
-    hiddenSlots: EquipSlotKey[]
+    hiddenSlots: CollapsibleSlot[]
 }
 
 export type BaseRelicStatModel = {

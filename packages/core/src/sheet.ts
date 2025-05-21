@@ -1190,7 +1190,13 @@ export class GearPlanSheet {
      * Food items which are relevant and pass the filter. Custom foods will be displayed regardless of filtering.
      */
     get foodItemsForDisplay(): FoodItem[] {
-        return [...this._dmRelevantFood.filter(item => item.ilvl >= this._itemDisplaySettings.minILvlFood && item.ilvl <= this._itemDisplaySettings.maxILvlFood), ...this._customFoods];
+        const settings = this._itemDisplaySettings;
+        return [...this._dmRelevantFood.filter(item => {
+            return item.ilvl >= settings.minILvlFood && item.ilvl <= settings.maxILvlFood
+                // Unless the user has opted into showing one-stat-relevant food, only show food with two relevant substats.
+                // _dmRelevantFood is already filtered to food which has at least one relevant stat.
+                && (settings.showOneStatFood || (this.isStatRelevant(item.primarySubStat) && this.isStatRelevant(item.secondarySubStat)));
+        }), ...this._customFoods];
     }
 
     /**

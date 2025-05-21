@@ -14,7 +14,7 @@ import {
     SPECIAL_SUB_STATS
 } from "@xivgear/xivmath/xivconstants";
 import {
-    cloneEquipmentSet,
+    cloneEquipmentSet, CollapsibleSlot,
     ComputedSetStats,
     EquipmentSet,
     EquippedItem,
@@ -159,14 +159,14 @@ export class MateriaMemory {
 
 
 export class SetDisplaySettings {
-    private readonly hiddenSlots: Map<EquipSlotKey, boolean> = new Map();
+    private readonly hiddenSlots: Map<CollapsibleSlot, boolean> = new Map();
 
-    isSlotHidden(slot: EquipSlotKey): boolean {
+    isSlotHidden(slot: CollapsibleSlot): boolean {
         const hidden = this.hiddenSlots.get(slot);
         return hidden === true;
     }
 
-    setSlotHidden(slot: EquipSlotKey, hidden: boolean) {
+    setSlotHidden(slot: CollapsibleSlot, hidden: boolean) {
         this.hiddenSlots.set(slot, hidden);
     }
 
@@ -175,8 +175,9 @@ export class SetDisplaySettings {
         EquipSlots.forEach(slot => this.setSlotHidden(slot, hidden));
     }
 
+    // these import/export methods are not needed - are they used anywhere?
     export(): SetDisplaySettingsExport {
-        const hiddenSlots: EquipSlotKey[] = [];
+        const hiddenSlots: CollapsibleSlot[] = [];
         this.hiddenSlots.forEach((value, key) => {
             if (value) {
                 hiddenSlots.push(key);
@@ -244,7 +245,6 @@ type GearSetCheckpointNode = {
     prev: GearSetCheckpointNode | null;
     next: GearSetCheckpointNode | null;
 }
-
 /**
  * Class representing equipped gear, food, and other overrides.
  */
@@ -938,11 +938,11 @@ export class CharacterGearSet {
      * Whether a particular slot should be collapsed on the UI.
      * @param slotId
      */
-    isSlotCollapsed(slotId: EquipSlotKey) {
+    isSlotCollapsed(slotId: CollapsibleSlot) {
         return this.displaySettings.isSlotHidden(slotId);
     }
 
-    setSlotCollapsed(slotId: EquipSlotKey, val: boolean) {
+    setSlotCollapsed(slotId: CollapsibleSlot, val: boolean) {
         this.displaySettings.setSlotHidden(slotId, val);
     }
 

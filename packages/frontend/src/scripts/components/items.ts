@@ -247,7 +247,7 @@ function foodTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, stat: 
 
 
 export class FoodItemsTable extends CustomTable<FoodItem, TableSelectionModel<FoodItem, never, never, FoodItem | undefined>> {
-    constructor(sheet: GearPlanSheet, gearSet: CharacterGearSet) {
+    constructor(sheet: GearPlanSheet, private readonly gearSet: CharacterGearSet) {
         super();
         this.classList.add("food-items-table");
         this.classList.add("food-items-edit-table");
@@ -322,14 +322,40 @@ export class FoodItemsTable extends CustomTable<FoodItem, TableSelectionModel<Fo
 
             },
         };
+        const osfCb = new FieldBoundCheckBox(gearSet.sheet.itemDisplaySettings, 'showOneStatFood', {
+            id: 'show-osf-cb',
+        });
+        const oneStatFoodWithLabel = labeledCheckbox('Show Food with One Relevant Stat', osfCb);
+        // This should not trigger the show/hide control
+        osfCb.addEventListener('click', e => e.stopPropagation());
+
+        const showHideRow = makeShowHideRow('Food', gearSet.isSlotCollapsed('food'), (val, count) => {
+            gearSet.setSlotCollapsed('food', val);
+            recordSheetEvent('hideFood', sheet, {
+                hidden: val,
+            });
+            this.updateShowHide();
+        }, [oneStatFoodWithLabel]);
         const displayItems = [...sheet.foodItemsForDisplay];
         displayItems.sort((left, right) => left.ilvl - right.ilvl);
         if (displayItems.length > 0) {
-            super.data = [new HeaderRow(), ...displayItems];
+            super.data = [showHideRow.row, new HeaderRow(), ...displayItems];
         }
         else {
-            super.data = [new HeaderRow(), new TitleRow('No items available - please check your filters')];
+            super.data = [showHideRow.row, new HeaderRow(), new TitleRow('No items available - please check your filters')];
         }
+        this.updateShowHide();
+    }
+
+    private updateShowHide() {
+        this.dataRowMap.forEach((row, value) => {
+            if (this.gearSet.isSlotCollapsed('food') && !this.selectionModel.isRowSelected(row)) {
+                row.style.display = 'none';
+            }
+            else {
+                row.style.display = '';
+            }
+        });
     }
 }
 
