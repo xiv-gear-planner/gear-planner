@@ -20,6 +20,7 @@ import {OccGearSlots, RawStats, Substat} from "@xivgear/xivmath/geartypes";
 import {confirmDelete} from "@xivgear/common-ui/components/delete_confirm";
 import {CustomItem} from "@xivgear/core/customgear/custom_item";
 import {CustomFood} from "@xivgear/core/customgear/custom_food";
+import {GearPlanSheetGui} from "./sheet";
 
 function ifWeapon(fn: (item: CustomItem) => HTMLElement): (item: CustomItem) => Node {
     return (item: CustomItem) => {
@@ -67,9 +68,13 @@ export class CustomItemTable extends CustomTable<CustomItem> {
                 renderer: (item: CustomItem) => {
                     const out = document.createElement('div');
                     out.appendChild(makeActionButton([faIcon('fa-trash-can')], (ev) => {
-                        if (confirmDelete(ev, `Delete custom item '${item.name}'? Please make sure it is not equipped on any set.`)) {
-                            this.sheet.deleteCustomItem(item);
-                            this.refresh();
+                        if (confirmDelete(ev, `Delete custom item '${item.name}'?`)) {
+                            const deleted = this.sheet.deleteCustomItem(item, setNames => {
+                                return confirmDelete(ev, `Some sets are still using this item:\n${setNames.map(setName => ` - ${setName}`).join('\n')}\nDelete anyway?`);
+                            });
+                            if (deleted) {
+                                this.refresh();
+                            }
                         }
                     }, 'Delete this item'));
                     return out;
@@ -237,14 +242,14 @@ export class CustomItemTable extends CustomTable<CustomItem> {
  * Modal dialog for custom item management.
  */
 export class CustomItemPopup extends BaseModal {
-    constructor(private readonly sheet: GearPlanSheet) {
+    constructor(private readonly sheet: GearPlanSheetGui) {
         super();
         this.headerText = 'Custom Items';
         const table = new CustomItemTable(sheet);
         this.contentArea.appendChild(table);
 
         const notesArea = document.createElement('p');
-        notesArea.innerHTML = 'Limitations:<br />Do not delete items that are currently equipped.<br />If you change the number of materia slots on an item, you will need to re-select the item.<br />Currently, items will not downsync - they will always get their full stat value.';
+        notesArea.innerHTML = 'Limitations:<br />If you change the number of materia slots on an item, you will need to re-select the item.';
         notesArea.classList.add('notes-area');
         this.contentArea.appendChild(notesArea);
 
@@ -271,12 +276,11 @@ export class CustomItemPopup extends BaseModal {
         this.addCloseButton();
     }
 
-    close() {
-        super.close();
+    onClose() {
         this.sheet.requestSave();
-        this.sheet.gearDisplaySettingsUpdateLater();
         this.sheet.recheckCustomItems();
         this.sheet.recalcAll();
+        this.sheet.gearDisplaySettingsUpdateNow();
     }
 }
 
@@ -294,9 +298,13 @@ export class CustomFoodTable extends CustomTable<CustomFood> {
                 renderer: (item: CustomFood) => {
                     const out = document.createElement('div');
                     out.appendChild(makeActionButton([faIcon('fa-trash-can')], (ev) => {
-                        if (confirmDelete(ev, `Delete custom item '${item.name}'? Please make sure it is not equipped on any set.`)) {
-                            this.sheet.deleteCustomFood(item);
-                            this.refresh();
+                        if (confirmDelete(ev, `Delete custom food '${item.name}'?`)) {
+                            const deleted = this.sheet.deleteCustomFood(item, setNames => {
+                                return confirmDelete(ev, `Some sets are still using this item:\n${setNames.map(setName => ` - ${setName}`).join('\n')}\nDelete anyway?`);
+                            });
+                            if (deleted) {
+                                this.refresh();
+                            }
                         }
                     }, 'Delete this item'));
                     return out;
@@ -403,16 +411,16 @@ export class CustomFoodTable extends CustomTable<CustomFood> {
  * Modal dialog for custom item management.
  */
 export class CustomFoodPopup extends BaseModal {
-    constructor(private readonly sheet: GearPlanSheet) {
+    constructor(private readonly sheet: GearPlanSheetGui) {
         super();
         this.headerText = 'Custom Food';
         const table = new CustomFoodTable(sheet);
         this.contentArea.appendChild(table);
 
-        const notesArea = document.createElement('p');
-        notesArea.innerHTML = 'Limitations:<br />Do not delete items that are currently equipped.';
-        notesArea.classList.add('notes-area');
-        this.contentArea.appendChild(notesArea);
+        // const notesArea = document.createElement('p');
+        // notesArea.innerHTML = 'Limitations:<br />Do not delete items that are currently equipped.';
+        // notesArea.classList.add('notes-area');
+        // this.contentArea.appendChild(notesArea);
 
         this.addActionButton('New Food', () => {
             sheet.newCustomFood();
@@ -422,11 +430,11 @@ export class CustomFoodPopup extends BaseModal {
         this.addCloseButton();
     }
 
-    close() {
-        super.close();
+    onClose() {
         this.sheet.requestSave();
         this.sheet.gearDisplaySettingsUpdateLater();
         this.sheet.recalcAll();
+        this.sheet.refreshGearEditor();
     }
 }
 

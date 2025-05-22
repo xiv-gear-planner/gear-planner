@@ -54,6 +54,7 @@ export abstract class BaseModal extends HTMLElement {
             },
             modalElement: this.inner,
             close(): void {
+                outer.onClose();
                 outer.remove();
             },
         };
@@ -80,5 +81,8 @@ export abstract class BaseModal extends HTMLElement {
 
     close() {
         closeModal();
+    }
+
+    protected onClose(): void {
     }
 }

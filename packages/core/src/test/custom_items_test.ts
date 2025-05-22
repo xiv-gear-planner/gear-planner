@@ -1,4 +1,3 @@
-
 import {HEADLESS_SHEET_PROVIDER} from "../sheet";
 import {expect} from "chai";
 import {CharacterGearSet} from "../gear";
@@ -322,4 +321,307 @@ describe('Custom items support', () => {
         expect(set1.computedStats.dhit).to.eq(462);
 
     }).timeout(30_000);
+
+    it('does not ask for confirmation to delete a custom item which was never equipped', async () => {
+        // Setup
+        const sheet = HEADLESS_SHEET_PROVIDER.fromScratch("foo", "foo", 'SGE', 100, undefined, false);
+        await sheet.load();
+
+        // Make one set before adding the custom item to make sure we can still use it.
+        const set1 = new CharacterGearSet(sheet);
+        sheet.addGearSet(set1);
+
+        // Make custom item
+        const custom = sheet.newCustomItem('Weapon2H');
+        custom.ilvl = 640;
+        custom.customData.stats.wdMag = 200;
+        custom.customData.stats.wdPhys = 200;
+        custom.customData.stats.spellspeed = 500;
+        custom.customData.stats.mind = 1000;
+
+        // Callback that checks whether confirmation is required
+        let callbackCalled = false;
+        const callback = () => {
+            callbackCalled = true;
+            return true;
+        };
+
+        // Attempt deletion - callback should not be called as item is not used
+        sheet.deleteCustomItem(custom, callback);
+
+        expect(callbackCalled).to.be.false;
+
+        const itemDeleted = !sheet.customItems.includes(custom);
+        expect(itemDeleted).to.be.true;
+
+    }).timeout(30_000);
+
+
+    it('does not ask for confirmation to delete a custom item which is no longer equipped', async () => {
+        // Setup
+        const sheet = HEADLESS_SHEET_PROVIDER.fromScratch("foo", "foo", 'SGE', 100, undefined, false);
+        await sheet.load();
+
+        // Make one set before adding the custom item to make sure we can still use it.
+        const set1 = new CharacterGearSet(sheet);
+        sheet.addGearSet(set1);
+
+        // Make custom item
+        const custom = sheet.newCustomItem('Weapon2H');
+        custom.ilvl = 640;
+        custom.customData.stats.wdMag = 200;
+        custom.customData.stats.wdPhys = 200;
+        custom.customData.stats.spellspeed = 500;
+        custom.customData.stats.mind = 1000;
+
+        // Equip and then unequip the custom item
+        set1.setEquip('Weapon', custom);
+        set1.setEquip('Weapon', null);
+
+        // Callback that checks whether confirmation is required
+        let callbackCalled = false;
+        const callback = () => {
+            callbackCalled = true;
+            return true;
+        };
+
+        // Attempt deletion - callback should not be called as item is not currently in use
+        sheet.deleteCustomItem(custom, callback);
+
+        expect(callbackCalled).to.be.false;
+
+        const itemDeleted = !sheet.customItems.includes(custom);
+        expect(itemDeleted).to.be.true;
+    }).timeout(30_000);
+
+
+    it('deletes a used custom item after confirmation', async () => {
+        // Setup
+        const sheet = HEADLESS_SHEET_PROVIDER.fromScratch("foo", "foo", 'SGE', 100, undefined, false);
+        await sheet.load();
+
+        // Make one set before adding the custom item to make sure we can still use it.
+        const set1 = new CharacterGearSet(sheet);
+        sheet.addGearSet(set1);
+
+        // Make custom item
+        const custom = sheet.newCustomItem('Weapon2H');
+        custom.ilvl = 640;
+        custom.customData.stats.wdMag = 200;
+        custom.customData.stats.wdPhys = 200;
+        custom.customData.stats.spellspeed = 500;
+        custom.customData.stats.mind = 1000;
+
+        // Equip the custom item
+        set1.setEquip('Weapon', custom);
+
+        // Callback that checks whether confirmation is required and answers 'true'
+        let callbackCalled = false;
+        const callback = () => {
+            callbackCalled = true;
+            return true; // Answer 'true' to the confirmation
+        };
+
+        // Attempt deletion - callback should be called as item is currently in use
+        sheet.deleteCustomItem(custom, callback);
+
+        expect(callbackCalled).to.be.true;
+
+        // Custom item should be deleted
+        const itemDeleted = !sheet.customItems.includes(custom);
+        expect(itemDeleted).to.be.true;
+
+        // After deletion of the custom item, verify that 'Weapon' slot is empty
+        expect(set1.getItemInSlot('Weapon')).to.be.null;
+
+    }).timeout(30_000);
+
+    it('does not delete a used item if confirmation returns false', async () => {
+        // Setup
+        const sheet = HEADLESS_SHEET_PROVIDER.fromScratch("foo", "foo", 'SGE', 100, undefined, false);
+        await sheet.load();
+
+        // Make one set before adding the custom item to make sure we can still use it.
+        const set1 = new CharacterGearSet(sheet);
+        sheet.addGearSet(set1);
+
+        // Make custom item
+        const custom = sheet.newCustomItem('Weapon2H');
+        custom.ilvl = 640;
+        custom.customData.stats.wdMag = 200;
+        custom.customData.stats.wdPhys = 200;
+        custom.customData.stats.spellspeed = 500;
+        custom.customData.stats.mind = 1000;
+
+        // Equip the custom item
+        set1.setEquip('Weapon', custom);
+
+        // Callback that checks whether confirmation is required and answers 'false'
+        let callbackCalled = false;
+        const callback = () => {
+            callbackCalled = true;
+            return false; // Answer 'false' to the confirmation
+        };
+
+        // Attempt deletion - callback should be called as the item is currently in use
+        sheet.deleteCustomItem(custom, callback);
+
+        expect(callbackCalled).to.be.true;
+
+        // Custom item should not be deleted
+        const itemStillExists = sheet.customItems.includes(custom);
+        expect(itemStillExists).to.be.true;
+
+        // After deletion is cancelled, verify that it is still equipped
+        expect(set1.getItemInSlot('Weapon')).to.eq(custom);
+
+    }).timeout(30_000);
+
+
+    it('does not ask for confirmation to delete a custom food which was never equipped', async () => {
+        // Setup
+        const sheet = HEADLESS_SHEET_PROVIDER.fromScratch("foo", "foo", 'SGE', 100, undefined, false);
+        await sheet.load();
+
+        // Make one set before adding the custom item to make sure we can still use it.
+        const set1 = new CharacterGearSet(sheet);
+        sheet.addGearSet(set1);
+
+        // Make custom food
+        const custom = sheet.newCustomFood();
+        custom.customData.primaryStat = 'crit';
+        custom.customData.primaryStatBonus.percentage = 12;
+        custom.customData.primaryStatBonus.max = 200;
+
+        // Callback that checks whether confirmation is required
+        let callbackCalled = false;
+        const callback = () => {
+            callbackCalled = true;
+            return true;
+        };
+
+        // Attempt deletion - callback should not be called as item is not used
+        sheet.deleteCustomFood(custom, callback);
+
+        expect(callbackCalled).to.be.false;
+
+        const itemDeleted = !sheet.customFood.includes(custom);
+        expect(itemDeleted).to.be.true;
+
+    }).timeout(30_000);
+
+    it('does not ask for confirmation to delete a custom food which is no longer equipped', async () => {
+        // Setup
+        const sheet = HEADLESS_SHEET_PROVIDER.fromScratch("foo", "foo", 'SGE', 100, undefined, false);
+        await sheet.load();
+
+        // Make one set before adding the custom item to make sure we can still use it.
+        const set1 = new CharacterGearSet(sheet);
+        sheet.addGearSet(set1);
+
+        // Make custom food
+        const custom = sheet.newCustomFood();
+        custom.customData.primaryStat = 'crit';
+        custom.customData.primaryStatBonus.percentage = 12;
+        custom.customData.primaryStatBonus.max = 200;
+
+        // Make it food and then set it to None
+        set1.food = custom;
+        set1.food = null;
+
+        // Callback that checks whether confirmation is required
+        let callbackCalled = false;
+        const callback = () => {
+            callbackCalled = true;
+            return true;
+        };
+
+        // Attempt deletion - callback should not be called as item is not currently in use
+        sheet.deleteCustomFood(custom, callback);
+
+        expect(callbackCalled).to.be.false;
+
+        const itemDeleted = !sheet.customFood.includes(custom);
+        expect(itemDeleted).to.be.true;
+
+    }).timeout(30_000);
+
+    it('deletes a used custom food after confirmation', async () => {
+        // Setup
+        const sheet = HEADLESS_SHEET_PROVIDER.fromScratch("foo", "foo", 'SGE', 100, undefined, false);
+        await sheet.load();
+
+        // Make one set before adding the custom item to make sure we can still use it.
+        const set1 = new CharacterGearSet(sheet);
+        sheet.addGearSet(set1);
+
+        // Make custom food
+        const custom = sheet.newCustomFood();
+        custom.customData.primaryStat = 'crit';
+        custom.customData.primaryStatBonus.percentage = 12;
+        custom.customData.primaryStatBonus.max = 200;
+
+        // Make it food
+        set1.food = custom;
+
+        // Callback that checks whether confirmation is required and answers 'true'
+        let callbackCalled = false;
+        const callback = () => {
+            callbackCalled = true;
+            return true; // Answer 'true' to the confirmation
+        };
+
+        // Attempt deletion - callback should be called as item is currently in use
+        sheet.deleteCustomFood(custom, callback);
+
+        expect(callbackCalled).to.be.true;
+
+        // Custom item should be deleted
+        const itemDeleted = !sheet.customFood.includes(custom);
+        expect(itemDeleted).to.be.true;
+
+        // After deletion of the custom item, verify that food is set as None
+        expect(set1.food).to.be.undefined;
+
+    }).timeout(30_000);
+
+    it('does not delete a custom food after confirmation returns false', async () => {
+        // Setup
+        const sheet = HEADLESS_SHEET_PROVIDER.fromScratch("foo", "foo", 'SGE', 100, undefined, false);
+        await sheet.load();
+
+        // Make one set before adding the custom item to make sure we can still use it.
+        const set1 = new CharacterGearSet(sheet);
+        sheet.addGearSet(set1);
+
+        // Make custom food
+        const custom = sheet.newCustomFood();
+        custom.customData.primaryStat = 'crit';
+        custom.customData.primaryStatBonus.percentage = 12;
+        custom.customData.primaryStatBonus.max = 200;
+
+        // Make it food
+        set1.food = custom;
+
+        // Callback that checks whether confirmation is required and answers 'false'
+        let callbackCalled = false;
+        const callback = () => {
+            callbackCalled = true;
+            return false; // Answer 'false' to the confirmation
+        };
+
+        // Attempt deletion - callback should be called as the item is currently in use
+        sheet.deleteCustomFood(custom, callback);
+
+        expect(callbackCalled).to.be.true;
+
+        // Custom item should not be deleted
+        const itemStillExists = sheet.customFood.includes(custom);
+        expect(itemStillExists).to.be.true;
+
+        // After deletion is cancelled, verify that it is still food
+        expect(set1.food).to.eq(custom);
+
+    }).timeout(30_000);
+
 });

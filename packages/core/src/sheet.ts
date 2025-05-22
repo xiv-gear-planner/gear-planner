@@ -19,6 +19,7 @@ import {
 import {
     EquippedItem,
     EquipSlotKey,
+    EquipSlots,
     FoodItem,
     GearItem,
     ItemDisplaySettings,
@@ -846,15 +847,38 @@ export class GearPlanSheet {
     }
 
     /**
-     * Delete the given custom item.
+     * Delete the given custom item, first asking for confirmation if the item is equipped on any set.
      *
-     * Warning: currently DOES NOT check that the item is not equipped. Deleting an item while it is still equipped
-     * in one or more sets can cause undefined behavior!
+     * @param item The item to delete.
+     * @param confirmationCallback A callback to be called to confirm the deletion of an item which is currently
+     * equipped. Receives the names of sets as the first parameter.
+     */
+    deleteCustomItem(item: CustomItem, confirmationCallback: (equipppedOnsets: string[]) => boolean): boolean {
+        const setsWithThisItem = this.sets.filter(set => set.allEquippedItems.includes(item));
+        if (setsWithThisItem.length > 0) {
+            const confirmed = confirmationCallback(setsWithThisItem.map(set => set.name));
+            if (!confirmed) {
+                return false;
+            }
+        }
+        this.forceDeleteCustomItem(item);
+        return true;
+    }
+
+    /**
+     * Delete a custom item without confirmation. Will unequip the item from any sets which currently use it.
      *
      * @param item The item to delete.
      */
-    deleteCustomItem(item: CustomItem) {
-        // TODO: this should check if you have this item equipped on any sets, or ask
+    forceDeleteCustomItem(item: CustomItem) {
+        // Unequip existing
+        this.sets.forEach(set => {
+            EquipSlots.forEach(slot => {
+                if (set.getItemInSlot(slot) === item) {
+                    set.setEquip(slot, null);
+                }
+            });
+        });
         const idx = this._customItems.indexOf(item);
         if (idx > -1) {
             this._customItems.splice(idx, 1);
@@ -864,15 +888,31 @@ export class GearPlanSheet {
     }
 
     /**
-     * Delete the given custom food item.
-     *
-     * Warning: currently DOES NOT check that the item is not equipped. Deleting an item while it is still equipped
-     * in one or more sets can cause undefined behavior!
+     * Delete the given custom food item, first asking for confirmation if the item is equipped on any set.
      *
      * @param item The food item to delete
+     * @param confirmationCallback A callback to be called to confirm the deletion of an item which is currently
+     * equipped. Receives the names of sets as the first parameter.
      */
-    deleteCustomFood(item: CustomFood) {
-        // TODO: this should check if you have this item equipped on any sets, or ask
+    deleteCustomFood(item: CustomFood, confirmationCallback: (equipppedOnsets: string[]) => boolean) {
+        const setsWithThisItem = this.sets.filter(set => set.food === item);
+        if (setsWithThisItem.length > 0) {
+            const confirmed = confirmationCallback(setsWithThisItem.map(set => set.name));
+            if (!confirmed) {
+                return false;
+            }
+        }
+        this.forceDeleteCustomFood(item);
+        return true;
+    }
+
+    forceDeleteCustomFood(item: CustomFood) {
+        // Unequip existing
+        this.sets.forEach(set => {
+            if (set.food === item) {
+                set.food = undefined;
+            }
+        });
         const idx = this._customFoods.indexOf(item);
         if (idx > -1) {
             this._customFoods.splice(idx, 1);
