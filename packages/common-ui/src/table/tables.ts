@@ -376,6 +376,7 @@ export class CustomTable<RowDataType, SelectionType extends TableSelectionModel<
     _columns!: CustomColumn<RowDataType, unknown, unknown>[];
     // TODO: should changing selection model also refresh the current selection?
     selectionModel: SelectionType = noopSelectionModel as SelectionType;
+    rowTitleSetter: ((row: RowDataType) => string | null) | null = null;
 
     constructor() {
         super();
@@ -685,7 +686,7 @@ export class CustomRow<RowDataType> extends HTMLTableRowElement implements Refre
                     newColElements.push(newCell);
                 }
                 else {
-                    const dummyCol: CustomColumn<RowDataType, null> = new CustomColumn<RowDataType, null>({
+                    const dummyCol: CustomColumn<RowDataType, unknown> = new CustomColumn<RowDataType, unknown>({
                         ...col,
                         displayName: col.displayName,
                         getter: () => null,
@@ -702,6 +703,7 @@ export class CustomRow<RowDataType> extends HTMLTableRowElement implements Refre
         for (const value of this.dataColMap.values()) {
             value.refreshFull();
         }
+        this.refreshTitle();
         this.refreshSelection();
     }
 
@@ -709,6 +711,19 @@ export class CustomRow<RowDataType> extends HTMLTableRowElement implements Refre
         this.selected = this.table.selectionModel.isRowSelected(this);
         for (const value of this.dataColMap.values()) {
             value.refreshSelection();
+        }
+    }
+
+    refreshTitle() {
+        const titleSetter = this.table.rowTitleSetter;
+        if (titleSetter) {
+            const newTitle = titleSetter(this.dataItem);
+            if (newTitle) {
+                this.title = newTitle;
+            }
+            else {
+                this.removeAttribute('title');
+            }
         }
     }
 

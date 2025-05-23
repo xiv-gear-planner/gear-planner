@@ -252,6 +252,10 @@ export class FoodItemsTable extends CustomTable<FoodItem, TableSelectionModel<Fo
         this.classList.add("food-items-table");
         this.classList.add("food-items-edit-table");
         this.classList.add("hoverable");
+        this.rowTitleSetter = (rowValue: FoodItem) => {
+            const name = rowValue.nameTranslation.asCurrentLang;
+            return `${name} (${rowValue.id})`;
+        };
         super.columns = [
             {
                 shortName: "ilvl",
@@ -327,7 +331,7 @@ export class FoodItemsTable extends CustomTable<FoodItem, TableSelectionModel<Fo
         });
         const oneStatFoodWithLabel = labeledCheckbox('Show Food with One Relevant Stat', osfCb);
         // This should not trigger the show/hide control
-        osfCb.addEventListener('click', e => e.stopPropagation());
+        oneStatFoodWithLabel.addEventListener('click', e => e.stopPropagation());
 
         const showHideRow = makeShowHideRow('Food', gearSet.isSlotCollapsed('food'), (val, count) => {
             gearSet.setSlotCollapsed('food', val);
@@ -586,6 +590,24 @@ export class GearItemsTable extends CustomTable<GearSlotItem, TableSelectionMode
         this.classList.add("gear-items-table");
         this.classList.add("gear-items-edit-table");
         this.classList.add("hoverable");
+        this.rowTitleSetter = (rowValue: GearSlotItem) => {
+            const name = rowValue.item.nameTranslation.asCurrentLang;
+            let title: string;
+            if (rowValue.item.acquisitionType === 'custom') {
+                title = `${name} (Custom Item)`;
+            }
+            else {
+                title = `${name} (${rowValue.item.id})`;
+                const formattedAcqSrc = formatAcquisitionSource(rowValue.item.acquisitionType);
+                if (formattedAcqSrc) {
+                    title += `\nAcquired from: ${formattedAcqSrc}`;
+                }
+            }
+            if (rowValue.item.isSyncedDown) {
+                title += `\nSynced to ${rowValue.item.syncedDownTo}`;
+            }
+            return title;
+        };
         super.columns = [
             {
                 shortName: "ilvl",
@@ -622,24 +644,9 @@ export class GearItemsTable extends CustomTable<GearSlotItem, TableSelectionMode
                     return quickElement('div', ['item-name-holder-editable'], [quickElement('span', [], [shortenItemName(name)]), trashButton]);
                 },
                 colStyler: (value, colElement, internalElement, rowValue) => {
-                    let title: string;
-                    if (rowValue.item.acquisitionType === 'custom') {
-                        title = `${value} (Custom Item)`;
-                    }
-                    else {
-                        title = `${value} (${rowValue.item.id})`;
-                        const formattedAcqSrc = formatAcquisitionSource(rowValue.item.acquisitionType);
-                        if (formattedAcqSrc) {
-                            title += `\nAcquired from: ${formattedAcqSrc}`;
-                        }
-                    }
-                    if (rowValue.item.isSyncedDown) {
-                        title += `\nSynced to ${rowValue.item.syncedDownTo}`;
-                    }
-                    colElement.title = title;
                 },
             }),
-            {
+            col({
                 shortName: "mats",
                 displayName: "Mat",
                 getter: item => {
@@ -652,14 +659,23 @@ export class GearItemsTable extends CustomTable<GearSlotItem, TableSelectionMode
                         span.textContent = value.unsyncedVersion.materiaSlots.length.toString();
                         span.style.textDecoration = "line-through";
                         span.style.opacity = "50%";
-                        span.title = "Melds unavailable due to ilvl sync";
                     }
                     else {
                         span.textContent = value.materiaSlots.length.toString();
                     }
                     return span;
                 },
-            },
+                titleSetter: (value, rowValue, cell) => {
+                    if (value.isSyncedDown) {
+                        return "Melds unavailable due to ilvl sync";
+                    }
+                    else {
+                        const lgCount = value.materiaSlots.filter(slot => slot.allowsHighGrade).length;
+                        const smCount = value.materiaSlots.filter(slot => !slot.allowsHighGrade).length;
+                        return `${lgCount} full + ${smCount} restricted`;
+                    }
+                },
+            }),
             col({
                 shortName: "wd",
                 displayName: "WD",
