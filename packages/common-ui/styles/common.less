@@ -3946,7 +3946,7 @@ expandable-text {
 .cycle-sim-results {
   display: grid;
   grid-gap: 20px;
-  padding: 20px 20px 20px 10px;
+  padding: 20px 5px 20px 5px;
 
   .cycle-sim-table-holder {
     background-color: var(--table-bg-color);
@@ -3964,26 +3964,41 @@ expandable-text {
     }
   }
 
+
   &.cycle-sim-results-full {
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: auto 1fr;
     height: 100%;
     width: 100%;
     box-sizing: border-box;
     max-width: max-content;
     margin: auto;
 
-    @media screen and (max-width: 625px) {
-      grid-template-columns: 1fr;
-      grid-template-rows: auto auto 1fr;
+    &.cycle-sim-results-multirotation {
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: auto 1fr;
       .cycle-sim-abilities-holder {
-        grid-column-end: span 1 !important;
+        grid-column-end: span 2;
         min-height: 100px;
+      }
+
+      @media screen and (max-width: 625px) {
+        grid-template-columns: 100%;
+        grid-template-rows: auto auto 1fr;
+        .cycle-sim-abilities-holder {
+          grid-column-end: span 1;
+          min-height: 100px;
+        }
+      }
+    }
+    &.cycle-sim-results-onerotation {
+      grid-template-rows: auto 1fr;
+      grid-template-columns: 100%;
+      .cycle-sim-abilities-holder {
+        grid-column-end: span 1;
       }
     }
 
+
     .cycle-sim-abilities-holder {
-      grid-column-end: span 2;
       max-width: 100%;
       overflow: auto;
 
@@ -4002,12 +4017,24 @@ expandable-text {
         min-height: 100%;
         max-height: 150px;
       }
+
+      td {
+        cursor: pointer;
+      }
+
+      th {
+        text-align: center;
+      }
+      td[col-id="dps"] {
+        min-width: 85px;
+        text-align: right;
+      }
     }
 
     .cycle-sim-main-holder {
-      &.cycle-sim-one-rotation {
-        grid-column: 1/-1;
-      }
+      //&.cycle-sim-one-rotation {
+      //  grid-column: 1/-1;
+      //}
 
       > table > * > tr > td {
         width: 150px;

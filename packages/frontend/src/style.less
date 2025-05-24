@@ -228,6 +228,15 @@ img.item-rarity-relic {
         transform: scale(1.2) rotate(50deg);
       }
     }
+
+    &.ability-item {
+      span {
+        // Make it so that long item names won't expand the column. This is useful because item names
+        // (e.g. "Grade 3 Gemdraught of Strength") are often very long and will expand the column.
+        // This may result in the columns "jumping" due to lazy rendering.
+        width: 100px;
+      }
+    }
   }
 
   th {
