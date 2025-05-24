@@ -5,10 +5,11 @@ import {DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/core/sims/
 import {col, CustomColumnSpec} from "@xivgear/common-ui/table/tables";
 import {PreDmgUsedAbility} from "@xivgear/core/sims/sim_types";
 import {DrkExtraData} from "@xivgear/core/sims/tank/drk/drk_types";
+import {GaugeNoText, GaugeWithText} from "@xivgear/common-ui/components/gauges";
 
 export class DrkSimGui extends BaseMultiCycleSimGui<DrkSimResult, DrkSettings> {
 
-    protected extraAbilityUsedColumns(result: DrkSimResult): CustomColumnSpec<DisplayRecordFinalized, unknown, unknown>[] {
+    protected extraAbilityUsedColumns(_: DrkSimResult): CustomColumnSpec<DisplayRecordFinalized, unknown, unknown>[] {
         return [col({
             shortName: 'bloodGauge',
             displayName: 'Blood',
@@ -17,36 +18,14 @@ export class DrkSimGui extends BaseMultiCycleSimGui<DrkSimResult, DrkSettings> {
                 if (usedAbility?.extraData !== undefined) {
                     const blood = (usedAbility.extraData as DrkExtraData).gauge.blood;
 
-                    const div = document.createElement('div');
-                    div.style.height = '100%';
-                    div.style.display = 'flex';
-                    div.style.alignItems = 'center';
-                    div.style.gap = '6px';
-                    div.style.padding = '2px 0 2px 0';
-                    div.style.boxSizing = 'border-box';
-
-                    const span = document.createElement('span');
-                    span.textContent = `${blood}`;
-
-                    const barOuter = document.createElement('div');
-                    barOuter.style.borderRadius = '20px';
-                    barOuter.style.background = '#00000033';
-                    barOuter.style.width = '120px';
-                    barOuter.style.height = 'calc(100% - 3px)';
-                    barOuter.style.display = 'inline-block';
-                    barOuter.style.overflow = 'hidden';
-                    barOuter.style.border = '1px solid black';
-
-                    const barInner = document.createElement('div');
-                    barInner.style.backgroundColor = blood >= 50 ? '#e5004e' : '#660929';
-                    barInner.style.width = `${blood}%`;
-                    barInner.style.height = '100%';
-                    barOuter.appendChild(barInner);
-
-                    div.appendChild(barOuter);
-                    div.appendChild(span);
-
-                    return div;
+                    const gauge = new GaugeWithText<number>(
+                        num => num >= 50 ? '#e5004e' : '#660929',
+                        num => num.toString(),
+                        num => num
+                    );
+                    gauge.setDataValue(blood);
+                    gauge.classList.add('sim-gauge', 'three-digit');
+                    return gauge;
                 }
                 return document.createTextNode("");
             },
@@ -57,36 +36,14 @@ export class DrkSimGui extends BaseMultiCycleSimGui<DrkSimResult, DrkSettings> {
             renderer: (usedAbility?: PreDmgUsedAbility) => {
                 if (usedAbility?.extraData !== undefined) {
                     const darksideDuration = (usedAbility.extraData as DrkExtraData).darksideDuration;
-                    const div = document.createElement('div');
-                    div.style.height = '100%';
-                    div.style.display = 'flex';
-                    div.style.alignItems = 'center';
-                    div.style.gap = '6px';
-                    div.style.padding = '2px 0 2px 0';
-                    div.style.boxSizing = 'border-box';
-
-                    const span = document.createElement('span');
-                    span.textContent = `${darksideDuration}s`;
-
-                    const barOuter = document.createElement('div');
-                    barOuter.style.borderRadius = '20px';
-                    barOuter.style.background = '#00000033';
-                    barOuter.style.width = '120px';
-                    barOuter.style.height = 'calc(100% - 3px)';
-                    barOuter.style.display = 'inline-block';
-                    barOuter.style.overflow = 'hidden';
-                    barOuter.style.border = '1px solid black';
-
-                    const barInner = document.createElement('div');
-                    barInner.style.backgroundColor = '#f913bc';
-                    barInner.style.height = '100%';
-                    barInner.style.width = `${Math.round((darksideDuration / 60) * 100)}%`;
-                    barOuter.appendChild(barInner);
-
-                    div.appendChild(barOuter);
-                    div.appendChild(span);
-
-                    return div;
+                    const gauge = new GaugeWithText<number>(
+                        () => '#f913bc',
+                        num => `${num}s`,
+                        num => num / 60 * 100
+                    );
+                    gauge.setDataValue(darksideDuration);
+                    gauge.classList.add('sim-gauge', 'three-digit');
+                    return gauge;
                 }
                 return document.createTextNode("");
             },
@@ -97,32 +54,13 @@ export class DrkSimGui extends BaseMultiCycleSimGui<DrkSimResult, DrkSettings> {
             renderer: (usedAbility?: PreDmgUsedAbility) => {
                 if (usedAbility?.extraData !== undefined) {
                     const darkArts = (usedAbility.extraData as DrkExtraData).gauge.darkArts;
-                    const div = document.createElement('div');
-                    div.style.height = '100%';
-                    div.style.display = 'flex';
-                    div.style.alignItems = 'center';
-                    div.style.gap = '6px';
-                    div.style.padding = '2px 0 2px 0';
-                    div.style.boxSizing = 'border-box';
-
-                    const barOuter = document.createElement('div');
-                    barOuter.style.borderRadius = '20px';
-                    barOuter.style.background = '#00000033';
-                    barOuter.style.width = '60px';
-                    barOuter.style.height = 'calc(100% - 3px)';
-                    barOuter.style.display = 'inline-block';
-                    barOuter.style.overflow = 'hidden';
-                    barOuter.style.border = '1px solid black';
-
-                    const barInner = document.createElement('div');
-                    barInner.style.backgroundColor = '#fffd30';
-                    barInner.style.height = '100%';
-                    barInner.style.width = darkArts ? '100%' : '0%';
-                    barOuter.appendChild(barInner);
-
-                    div.appendChild(barOuter);
-
-                    return div;
+                    const gauge = new GaugeNoText<boolean>(
+                        () => '#fffd30',
+                        active => active ? 100 : 0
+                    );
+                    gauge.setDataValue(darkArts);
+                    gauge.classList.add('sim-gauge', 'gauge-narrow');
+                    return gauge;
                 }
                 return document.createTextNode("");
             },
@@ -133,37 +71,14 @@ export class DrkSimGui extends BaseMultiCycleSimGui<DrkSimResult, DrkSettings> {
             renderer: (usedAbility?: PreDmgUsedAbility) => {
                 if (usedAbility?.extraData !== undefined) {
                     const mp = (usedAbility.extraData as DrkExtraData).gauge.mp;
-
-                    const div = document.createElement('div');
-                    div.style.height = '100%';
-                    div.style.display = 'flex';
-                    div.style.alignItems = 'center';
-                    div.style.gap = '6px';
-                    div.style.padding = '2px 0 2px 0';
-                    div.style.boxSizing = 'border-box';
-
-                    const span = document.createElement('span');
-                    span.textContent = `${mp}`;
-
-                    const barOuter = document.createElement('div');
-                    barOuter.style.borderRadius = '20px';
-                    barOuter.style.background = '#00000033';
-                    barOuter.style.width = '120px';
-                    barOuter.style.height = 'calc(100% - 3px)';
-                    barOuter.style.display = 'inline-block';
-                    barOuter.style.overflow = 'hidden';
-                    barOuter.style.border = '1px solid black';
-
-                    const barInner = document.createElement('div');
-                    barInner.style.backgroundColor = '#df5591';
-                    barInner.style.width = `${Math.round((mp / 10000) * 100)}%`;
-                    barInner.style.height = '100%';
-                    barOuter.appendChild(barInner);
-
-                    div.appendChild(barOuter);
-                    div.appendChild(span);
-
-                    return div;
+                    const gauge = new GaugeWithText<number>(
+                        () => '#df5591',
+                        num => num.toString(),
+                        num => num / 10000 * 100
+                    );
+                    gauge.classList.add('sim-gauge', 'five-digit');
+                    gauge.setDataValue(mp);
+                    return gauge;
                 }
                 return document.createTextNode("");
             },

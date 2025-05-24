@@ -31,7 +31,7 @@ function alignedValue(left: string, right: string): HTMLElement {
 }
 
 const lazy: LazyTableStrategy = {
-    immediateRows: 50,
+    immediateRows: 100,
     minRows: 250,
 };
 
@@ -72,7 +72,7 @@ export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
                     }
                 },
             }),
-            {
+            col({
                 shortName: 'ability',
                 displayName: 'Ability',
                 getter: used => isFinalizedAbilityUse(used) ? used.ability : used.label,
@@ -89,6 +89,7 @@ export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
                         if (!ability.noIcon) {
                             if (ability.itemId) {
                                 out.appendChild(new ItemIcon(ability.itemId));
+                                out.classList.add('ability-item');
                             }
                             else if (ability.id) {
                                 out.appendChild(new AbilityIcon(ability.id));
@@ -102,7 +103,21 @@ export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
                         return document.createTextNode(ability);
                     }
                 },
-            },
+                titleSetter: (ability) => {
+                    if (ability instanceof Object) {
+                        if (ability.itemId) {
+                            return `${ability.name}: Item #${ability.itemId}`;
+                        }
+                        else if (ability.id > 0) {
+                            return `${ability.name}: Action #${ability.id}`;
+                        }
+                        else {
+                            return ability.name;
+                        }
+                    }
+                    return null;
+                },
+            }),
             col({
                 shortName: 'unbuffed-pot',
                 displayName: 'Pot',

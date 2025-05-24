@@ -1,7 +1,7 @@
 import {OgcdAbility} from "../sim_types";
 import {fl} from "@xivgear/xivmath/xivmath";
 import {Mainstat} from "@xivgear/xivmath/geartypes";
-import {camel2title} from "@xivgear/util/strutils";
+import {camel2title, toRelPct} from "@xivgear/util/strutils";
 
 function potionBonus(initialValue: number, bonus: number, cap: number): number {
     return Math.min(fl(initialValue * bonus), cap);
@@ -29,6 +29,9 @@ function makePotion(name: string, stat: Mainstat, itemId: number, bonus: number,
                         bonuses[stat] = potionBonus(stats[stat], bonus, cap);
                     },
                 },
+                descriptionExtras: [
+                    `${toRelPct(bonus, 0)}% ${stat} (max ${cap})`,
+                ],
             },
         ],
 

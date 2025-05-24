@@ -1087,7 +1087,17 @@ export class GearPlanSheet {
      * Get sims which might be relevant to this sheet.
      */
     get relevantSims() {
-        return getRegisteredSimSpecs().filter(simSpec => simSpec.supportedJobs === undefined ? true : simSpec.supportedJobs.includes(this.dataManager.primaryClassJob));
+        return getRegisteredSimSpecs().filter(simSpec => {
+            const jobs = simSpec.supportedJobs;
+            // If the sim is jobless (e.g. potency ratio), always display it
+            if (jobs === undefined) {
+                return true;
+            }
+            else {
+                // Otherwise, make sure there is at least one job overlapping.
+                return jobs.find(job => this.allJobs.includes(job)) !== undefined;
+            }
+        });
     }
 
     /**
