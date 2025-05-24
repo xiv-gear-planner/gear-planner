@@ -1,9 +1,8 @@
 import {FieldBoundCheckBox, labeledCheckbox} from "@xivgear/common-ui/components/util";
 import {DrkSettings, DrkSimResult} from "@xivgear/core/sims/tank/drk/drk_sheet_sim";
 import {BaseMultiCycleSimGui} from "../multicyclesim_ui";
-import {AbilitiesUsedTable} from "../components/ability_used_table";
-import {CycleSimResult, DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/core/sims/cycle_sim";
-import {col, CustomColumn, CustomColumnSpec} from "@xivgear/common-ui/table/tables";
+import {DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/core/sims/cycle_sim";
+import {col, CustomColumnSpec} from "@xivgear/common-ui/table/tables";
 import {PreDmgUsedAbility} from "@xivgear/core/sims/sim_types";
 import {DrkExtraData} from "@xivgear/core/sims/tank/drk/drk_types";
 
