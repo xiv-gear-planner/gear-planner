@@ -227,6 +227,25 @@ td[col-id="nadi"] {
   background-color: #ff6723;
 }
 
+.gnb-cartridge {
+  .shape-circle();
+}
+
+.gnb-cartridge-default {
+  .gnb-cartridge();
+  background-color: var(--default-gauge-color);
+}
+
+.gnb-cartridge-red {
+  .gnb-cartridge();
+  background-color: #f32908;
+}
+
+.gnb-cartridge-orange {
+  .gnb-cartridge();
+  background-color: #f37208;
+}
+
 .sim-gauge {
   &.two-digit {
     --gauge-text-width: 19px;

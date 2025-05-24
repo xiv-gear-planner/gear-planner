@@ -1,4 +1,4 @@
-import {FieldBoundCheckBox, labeledCheckbox} from "@xivgear/common-ui/components/util";
+import {FieldBoundCheckBox, labeledCheckbox, quickElement} from "@xivgear/common-ui/components/util";
 import {BaseMultiCycleSimGui} from "../multicyclesim_ui";
 import {DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/core/sims/cycle_sim";
 import {CustomColumnSpec} from "@xivgear/common-ui/table/tables";
@@ -21,28 +21,23 @@ export class GnbSimGui extends BaseMultiCycleSimGui<GnbSimResult, GnbSettings> {
                     const cartridges = extra.gauge.cartridges;
                     const maxCarts = extra.gauge.maxCartridges;
                     const children = [];
-                    const span = document.createElement('span');
-                    span.textContent = `${cartridges}`;
 
                     for (let i = 1; i <= maxCarts; i++) {
-                        const stack = document.createElement('span');
-                        // TODO: Move this to css
-                        stack.style.clipPath = `circle()`;
-                        stack.style.background = '#00000033';
-                        stack.style.height = '100%';
-                        stack.style.width = '16px';
-                        stack.style.display = 'inline-block';
-                        stack.style.overflow = 'hidden';
+                        let cls: string;
                         if (i <= cartridges - 3) {
-                            stack.style.background = '#f32908';
+                            cls = 'gnb-cartridge-red';
                         }
                         else if (i <= cartridges) {
-                            stack.style.background = '#f37208';
+                            cls = 'gnb-cartridge-orange';
                         }
-                        children.push(stack);
+                        else {
+                            cls = 'gnb-cartridge-default';
+                        }
+
+                        children.push(quickElement('span', [cls]));
                     }
 
-                    children.push(span);
+                    children.push(quickElement('span', [], [`${cartridges}`]));
                     return children;
                 }),
             },
