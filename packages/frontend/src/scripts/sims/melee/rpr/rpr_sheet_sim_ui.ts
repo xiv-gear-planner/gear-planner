@@ -1,14 +1,12 @@
-import {CycleSimResult, DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/core/sims/cycle_sim";
+import {DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/core/sims/cycle_sim";
 import {PreDmgUsedAbility} from "@xivgear/core/sims/sim_types";
-import {ColDefs, CustomColumnSpec} from "@xivgear/common-ui/table/tables";
-import {AbilitiesUsedTable} from "../../components/ability_used_table";
+import {CustomColumnSpec} from "@xivgear/common-ui/table/tables";
 import {BaseMultiCycleSimGui} from "../../multicyclesim_ui";
 import {RprSheetSimResult, RprSimSettings} from "@xivgear/core/sims/melee/rpr/rpr_sheet_sim";
 import {RprExtraData} from "@xivgear/core/sims/melee/rpr/rpr_types";
 
-export class RprGaugeGui {
-
-    static generateResultColumns(result: CycleSimResult): CustomColumnSpec<DisplayRecordFinalized, unknown, unknown>[] {
+export class RprSheetSimGui extends BaseMultiCycleSimGui<RprSheetSimResult, RprSimSettings> {
+    protected extraAbilityUsedColumns(result: RprSheetSimResult): CustomColumnSpec<DisplayRecordFinalized, unknown, unknown>[] {
         return [{
             shortName: 'soulGauge',
             displayName: 'Soul',
@@ -50,8 +48,7 @@ export class RprGaugeGui {
                 }
                 return document.createTextNode("");
             },
-        },
-        {
+        }, {
             shortName: 'shroudGauge',
             displayName: 'Shroud',
             getter: used => isFinalizedAbilityUse(used) ? used.original : null,
@@ -92,20 +89,7 @@ export class RprGaugeGui {
                 }
                 return document.createTextNode("");
             },
-        },
-        ];
+        }];
     }
-}
 
-export class RprSheetSimGui extends BaseMultiCycleSimGui<RprSheetSimResult, RprSimSettings> {
-
-    // TODO: since these are all pretty much the same, just make an actual method for inserting custom columns
-    override makeAbilityUsedTable(result: RprSheetSimResult): AbilitiesUsedTable {
-        const extraColumns = RprGaugeGui.generateResultColumns(result);
-        const table = super.makeAbilityUsedTable(result);
-        const newColumns: ColDefs<DisplayRecordFinalized> = [...table.columns];
-        newColumns.splice(newColumns.findIndex(col => col.shortName === 'expected-damage') + 1, 0, ...extraColumns);
-        table.columns = newColumns;
-        return table;
-    }
 }

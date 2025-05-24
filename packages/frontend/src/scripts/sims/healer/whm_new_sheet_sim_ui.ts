@@ -1,14 +1,13 @@
 import {DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/core/sims/cycle_sim";
 import {PreDmgUsedAbility} from "@xivgear/core/sims/sim_types";
-import {col, ColDefs, CustomColumnSpec} from "@xivgear/common-ui/table/tables";
-import {AbilitiesUsedTable} from "../components/ability_used_table";
+import {col, CustomColumnSpec} from "@xivgear/common-ui/table/tables";
 import {BaseMultiCycleSimGui} from "../multicyclesim_ui";
 import {WhmGaugeState, WhmSettings, WhmSimResult} from "@xivgear/core/sims/healer/whm_new_sheet_sim";
 import {quickElement} from "@xivgear/common-ui/components/util";
 
-class WhmGaugeGui {
+export class WhmSimGui extends BaseMultiCycleSimGui<WhmSimResult, WhmSettings> {
 
-    static generateResultColumns(): CustomColumnSpec<DisplayRecordFinalized, unknown, unknown>[] {
+    protected extraAbilityUsedColumns(result: WhmSimResult): CustomColumnSpec<DisplayRecordFinalized, unknown, unknown>[] {
         return [col({
             shortName: 'lilies',
             displayName: 'Lilies',
@@ -34,17 +33,6 @@ class WhmGaugeGui {
             },
         }),
         ];
-    }
-}
-
-export class WhmSimGui extends BaseMultiCycleSimGui<WhmSimResult, WhmSettings> {
-    override makeAbilityUsedTable(result: WhmSimResult): AbilitiesUsedTable {
-        const extraColumns = WhmGaugeGui.generateResultColumns();
-        const table = super.makeAbilityUsedTable(result);
-        const newColumns: ColDefs<DisplayRecordFinalized> = [...table.columns];
-        newColumns.splice(newColumns.findIndex(col => col.shortName === 'expected-damage') + 1, 0, ...extraColumns);
-        table.columns = newColumns;
-        return table;
     }
 
 }

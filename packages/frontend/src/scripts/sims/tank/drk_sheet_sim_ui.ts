@@ -3,13 +3,13 @@ import {DrkSettings, DrkSimResult} from "@xivgear/core/sims/tank/drk/drk_sheet_s
 import {BaseMultiCycleSimGui} from "../multicyclesim_ui";
 import {AbilitiesUsedTable} from "../components/ability_used_table";
 import {CycleSimResult, DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/core/sims/cycle_sim";
-import {col, CustomColumn} from "@xivgear/common-ui/table/tables";
+import {col, CustomColumn, CustomColumnSpec} from "@xivgear/common-ui/table/tables";
 import {PreDmgUsedAbility} from "@xivgear/core/sims/sim_types";
 import {DrkExtraData} from "@xivgear/core/sims/tank/drk/drk_types";
 
 export class DrkSimGui extends BaseMultiCycleSimGui<DrkSimResult, DrkSettings> {
 
-    static generateResultColumns(result: CycleSimResult): CustomColumn<DisplayRecordFinalized, unknown, unknown>[] {
+    protected extraAbilityUsedColumns(result: DrkSimResult): CustomColumnSpec<DisplayRecordFinalized, unknown, unknown>[] {
         return [col({
             shortName: 'bloodGauge',
             displayName: 'Blood',
@@ -182,15 +182,6 @@ export class DrkSimGui extends BaseMultiCycleSimGui<DrkSimResult, DrkSettings> {
 
         configDiv.appendChild(labeledCheckbox("Use The Blackest Night prepull", prepullTBNCB));
         return configDiv;
-    }
-
-    override makeAbilityUsedTable(result: DrkSimResult): AbilitiesUsedTable {
-        const extraColumns = DrkSimGui.generateResultColumns(result);
-        const table = super.makeAbilityUsedTable(result);
-        const newColumns = [...table.columns];
-        newColumns.splice(newColumns.findIndex(col => col.shortName === 'expected-damage') + 1, 0, ...extraColumns);
-        table.columns = newColumns;
-        return table;
     }
 
 }

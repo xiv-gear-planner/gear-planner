@@ -144,7 +144,7 @@ export class BaseMultiCycleSimGui<ResultType extends CycleSimResult, InternalSet
         return [];
     }
 
-    makeAbilityUsedTable(result: ResultType, scrollRoot: HTMLElement | null = null): AbilitiesUsedTable {
+    makeAbilityUsedTable(result: ResultType, scrollRoot: HTMLElement | null): AbilitiesUsedTable {
         return new AbilitiesUsedTable(result.displayRecords, this.extraAbilityUsedColumns(result), scrollRoot);
     }
 

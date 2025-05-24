@@ -1,14 +1,13 @@
 import {FieldBoundIntField, labelFor, nonNegative, quickElement} from "@xivgear/common-ui/components/util";
-import {AbilitiesUsedTable} from "../components/ability_used_table";
 import {BaseMultiCycleSimGui} from "../multicyclesim_ui";
-import {CycleSimResult, DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/core/sims/cycle_sim";
+import {DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/core/sims/cycle_sim";
 import {PreDmgUsedAbility} from "@xivgear/core/sims/sim_types";
-import {ColDefs} from "@xivgear/common-ui/table/tables";
+import {CustomColumnSpec} from "@xivgear/common-ui/table/tables";
 import {SchExtraData, SchSettings, SchSimResult} from "@xivgear/core/sims/healer/sch_sheet_sim";
 
-class SchGaugeGui {
+export class SchSimGui extends BaseMultiCycleSimGui<SchSimResult, SchSettings> {
 
-    static generateResultColumns(result: CycleSimResult): ColDefs<DisplayRecordFinalized> {
+    protected extraAbilityUsedColumns(result: SchSimResult): CustomColumnSpec<DisplayRecordFinalized, unknown, unknown>[] {
         return [{
             shortName: 'aetherflow',
             displayName: 'Aetherflow',
@@ -30,9 +29,7 @@ class SchGaugeGui {
         },
         ];
     }
-}
 
-export class SchSimGui extends BaseMultiCycleSimGui<SchSimResult, SchSettings> {
     makeCustomConfigInterface(settings: SchSettings, updateCallback: () => void): HTMLElement | null {
         const configDiv = document.createElement("div");
         const edField = new FieldBoundIntField<SchSettings>(settings, 'edsPerAfDiss', {
@@ -45,15 +42,6 @@ export class SchSimGui extends BaseMultiCycleSimGui<SchSimResult, SchSettings> {
         configDiv.appendChild(label);
         configDiv.appendChild(edField);
         return configDiv;
-    }
-
-    makeAbilityUsedTable(result: SchSimResult): AbilitiesUsedTable {
-        const extraColumns = SchGaugeGui.generateResultColumns(result);
-        const table = super.makeAbilityUsedTable(result);
-        const newColumns: ColDefs<DisplayRecordFinalized> = [...table.columns];
-        newColumns.splice(newColumns.findIndex(col => col.shortName === 'expected-damage') + 1, 0, ...extraColumns);
-        table.columns = newColumns;
-        return table;
     }
 
 }
