@@ -1,4 +1,4 @@
-import {col, CustomColumnSpec, CustomTable, HeaderRow} from "@xivgear/common-ui/table/tables";
+import {col, CustomColumnSpec, CustomTable, HeaderRow, LazyTableStrategy} from "@xivgear/common-ui/table/tables";
 import {toRelPct} from "@xivgear/util/strutils";
 import {AbilityIcon, actionNameTranslated} from "../../components/abilities";
 import {BuffListDisplay} from "./buff_list_display";
@@ -30,10 +30,19 @@ function alignedValue(left: string, right: string): HTMLElement {
     return quickElement('div', ['split-aligned-value'], [quickElement('span', [], [left]), quickElement('span', [], [right])]);
 }
 
+const lazy: LazyTableStrategy = {
+    immediateRows: 50,
+    minRows: 250,
+};
+
 export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
 
-    constructor(abilitiesUsed: readonly DisplayRecordFinalized[], extraColumns: CustomColumnSpec<DisplayRecordFinalized, unknown, unknown>[] = []) {
+    constructor(abilitiesUsed: readonly DisplayRecordFinalized[], extraColumns: CustomColumnSpec<DisplayRecordFinalized, unknown, unknown>[], scrollRoot: HTMLElement = null) {
         super();
+        this.lazyRenderStrategy = {
+            ...lazy,
+            altRoot: scrollRoot,
+        };
         this.style.tableLayout = 'fixed';
         this.classList.add('abilities-used-table');
         this.columns = [
@@ -159,6 +168,7 @@ export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
                     }
                 },
             }),
+            ...extraColumns,
             col({
                 shortName: 'Total Buffs',
                 displayName: 'Total Buffs',
@@ -192,12 +202,13 @@ export class AbilitiesUsedTable extends CustomTable<DisplayRecordFinalized> {
                     return new BuffListDisplay(buffs);
                 },
             }),
-            ...extraColumns,
         ];
         this.setNewData(abilitiesUsed);
     }
 
     setNewData(used: readonly DisplayRecordFinalized[]) {
+        // With lazy rendering, faster to not attempt reuse
+        this.dataRowMap.clear();
         this.data = [new HeaderRow(), ...used];
     }
 }

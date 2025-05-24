@@ -1,6 +1,6 @@
 import {CycleSimResult, DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/core/sims/cycle_sim";
 import {PreDmgUsedAbility} from "@xivgear/core/sims/sim_types";
-import {col, CustomColumn} from "@xivgear/common-ui/table/tables";
+import {col, CustomColumn, CustomColumnSpec} from "@xivgear/common-ui/table/tables";
 import {AbilitiesUsedTable} from "../components/ability_used_table";
 import {BaseMultiCycleSimGui} from "../multicyclesim_ui";
 import {AstExtraData, AstSettings, AstSimResult} from "@xivgear/core/sims/healer/ast_sheet_sim";
@@ -86,6 +86,12 @@ class AstGaugeGui {
 }
 
 export class AstSheetSimGui extends BaseMultiCycleSimGui<AstSimResult, AstSettings> {
+
+    //
+    // protected extraAbilityUsedColumns(result: AstSimResult): CustomColumnSpec<DisplayRecordFinalized, unknown, unknown>[] {
+    //     return AstGaugeGui.generateResultColumns(res)
+    //     return super.extraAbilityUsedColumns(result);
+    // }
 
     override makeAbilityUsedTable(result: AstSimResult): AbilitiesUsedTable {
         const extraColumns = AstGaugeGui.generateResultColumns(result);

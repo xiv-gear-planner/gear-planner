@@ -437,7 +437,6 @@ export class MnkSim extends BaseMultiCycleSim<CycleSimResult, MnkSettings, MNKCy
     spec = mnkSpec;
     shortName = 'mnk-sim';
     displayName = mnkSpec.displayName;
-    cycleSettings: CycleSettings = this.defaultCycleSettings();
     manuallyActivatedBuffs = [BrotherhoodGlobalBuff];
 
     constructor(settings?: MnkSettingsExternal) {
