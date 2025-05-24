@@ -1,14 +1,15 @@
 import {FieldBoundCheckBox, labeledCheckbox} from "@xivgear/common-ui/components/util";
 import {BaseMultiCycleSimGui} from "../multicyclesim_ui";
-import {AbilitiesUsedTable} from "../components/ability_used_table";
-import {CycleSimResult, DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/core/sims/cycle_sim";
-import {ColDefs, CustomColumnSpec} from "@xivgear/common-ui/table/tables";
+import {DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/core/sims/cycle_sim";
+import {CustomColumnSpec} from "@xivgear/common-ui/table/tables";
 import {PreDmgUsedAbility} from "@xivgear/core/sims/sim_types";
 import {GnbExtraData} from "@xivgear/core/sims/tank/gnb/gnb_types";
 import {GnbSettings, GnbSimResult} from "@xivgear/core/sims/tank/gnb/gnb_sheet_sim";
 
 export class GnbSimGui extends BaseMultiCycleSimGui<GnbSimResult, GnbSettings> {
-    static generateResultColumns(result: CycleSimResult): CustomColumnSpec<DisplayRecordFinalized, unknown, unknown>[] {
+
+
+    protected extraAbilityUsedColumns(result: GnbSimResult): CustomColumnSpec<DisplayRecordFinalized, unknown, unknown>[] {
         return [
             {
                 shortName: 'cartridges',
@@ -109,15 +110,6 @@ export class GnbSimGui extends BaseMultiCycleSimGui<GnbSimResult, GnbSettings> {
 
         configDiv.appendChild(labeledCheckbox("Assume that Gnashing Fang microclips don't exist", pretendMicroclipsDontExistCB));
         return configDiv;
-    }
-
-    override makeAbilityUsedTable(result: GnbSimResult): AbilitiesUsedTable {
-        const extraColumns = GnbSimGui.generateResultColumns(result);
-        const table = super.makeAbilityUsedTable(result);
-        const newColumns: ColDefs<DisplayRecordFinalized> = [...table.columns];
-        newColumns.splice(newColumns.findIndex(col => col.shortName === 'expected-damage') + 1, 0, ...extraColumns);
-        table.columns = newColumns;
-        return table;
     }
 
 }

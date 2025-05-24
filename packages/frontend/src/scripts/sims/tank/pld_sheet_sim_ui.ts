@@ -1,15 +1,14 @@
 import {FieldBoundCheckBox, labeledCheckbox} from "@xivgear/common-ui/components/util";
 import {BaseMultiCycleSimGui} from "../multicyclesim_ui";
-import {AbilitiesUsedTable} from "../components/ability_used_table";
-import {CycleSimResult, DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/core/sims/cycle_sim";
-import {ColDefs, CustomColumnSpec} from "@xivgear/common-ui/table/tables";
+import {DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/core/sims/cycle_sim";
+import {CustomColumnSpec} from "@xivgear/common-ui/table/tables";
 import {PreDmgUsedAbility} from "@xivgear/core/sims/sim_types";
 import {PldExtraData} from "@xivgear/core/sims/tank/pld/pld_types";
 import {PldSettings, PldSimResult} from "@xivgear/core/sims/tank/pld/pld_sheet_sim";
 import {GaugeWithText} from "@xivgear/common-ui/components/gauges";
 
 export class PldSimGui extends BaseMultiCycleSimGui<PldSimResult, PldSettings> {
-    static generateResultColumns(result: CycleSimResult): CustomColumnSpec<DisplayRecordFinalized, unknown, unknown>[] {
+    protected extraAbilityUsedColumns(result: PldSimResult): CustomColumnSpec<DisplayRecordFinalized, unknown, unknown>[] {
         return [
             {
                 shortName: 'fight-or-flight',
@@ -36,15 +35,6 @@ export class PldSimGui extends BaseMultiCycleSimGui<PldSimResult, PldSettings> {
 
         configDiv.appendChild(labeledCheckbox("Use Potion", potCb));
         return configDiv;
-    }
-
-    override makeAbilityUsedTable(result: PldSimResult): AbilitiesUsedTable {
-        const extraColumns = PldSimGui.generateResultColumns(result);
-        const table = super.makeAbilityUsedTable(result);
-        const newColumns: ColDefs<DisplayRecordFinalized> = [...table.columns];
-        newColumns.splice(newColumns.findIndex(col => col.shortName === 'expected-damage') + 1, 0, ...extraColumns);
-        table.columns = newColumns;
-        return table;
     }
 
 }

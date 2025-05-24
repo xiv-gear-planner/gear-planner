@@ -1,29 +1,74 @@
 import {Ability, Buff, GcdAbility, OgcdAbility, SimSettings, SimSpec} from "@xivgear/core/sims/sim_types";
-import {CycleProcessor, CycleSimResult, ExternalCycleSettings, MultiCycleSettings, AbilityUseResult, Rotation, PreDmgAbilityUseRecordUnf} from "@xivgear/core/sims/cycle_sim";
-import {CycleSettings} from "@xivgear/core/sims/cycle_settings";
+import {
+    AbilityUseResult,
+    CycleProcessor,
+    CycleSimResult,
+    ExternalCycleSettings,
+    MultiCycleSettings,
+    PreDmgAbilityUseRecordUnf,
+    Rotation
+} from "@xivgear/core/sims/cycle_sim";
 import {CharacterGearSet} from "@xivgear/core/gear";
 import {BaseMultiCycleSim, RotationCacheKey} from "@xivgear/core/sims/processors/sim_processors";
 import {FuryAbility, MnkAbility, MNKExtraData, MnkGcdAbility, Opener} from "./mnk_types";
 import {MNKGauge as MnkGauge} from "./mnk_gauge";
-import {BOOTSHINE_ABILITIES, Bootshine, Brotherhood, BrotherhoodBuff, CelestialRevolution, CoeurlForm, Demolish, DragonKick, ElixirField, FiresReply, FiresRumination, FlintStrike, ForbiddenMeditation, FormShift, FormlessFist, MeditativeBrotherhood, OGCD_PRIORITY, OPO_ABILITIES, OpoForm, PerfectBalance, PerfectBalanceBuff, RaptorForm, RiddleOfFire, RiddleOfFireBuff, RiddleOfWind, SOLAR_WEAKEST_STRONGEST, SixSidedStar, SnapPunch, TheForbiddenChakra, TornadoKick, TrueStrike, TwinSnakes, WindsReply, WindsRumination} from "./mnk_actions";
+import {
+    Bootshine,
+    BOOTSHINE_ABILITIES,
+    Brotherhood,
+    BrotherhoodBuff,
+    CelestialRevolution,
+    CoeurlForm,
+    Demolish,
+    DragonKick,
+    ElixirField,
+    FiresReply,
+    FiresRumination,
+    FlintStrike,
+    ForbiddenMeditation,
+    FormlessFist,
+    FormShift,
+    MeditativeBrotherhood,
+    OGCD_PRIORITY,
+    OPO_ABILITIES,
+    OpoForm,
+    PerfectBalance,
+    PerfectBalanceBuff,
+    RaptorForm,
+    RiddleOfFire,
+    RiddleOfFireBuff,
+    RiddleOfWind,
+    SixSidedStar,
+    SnapPunch,
+    SOLAR_WEAKEST_STRONGEST,
+    TheForbiddenChakra,
+    TornadoKick,
+    TrueStrike,
+    TwinSnakes,
+    WindsReply,
+    WindsRumination
+} from "./mnk_actions";
 import {Brotherhood as BrotherhoodGlobalBuff} from "@xivgear/core/sims/buffs";
 import {sum} from "@xivgear/util/array_utils";
 import {STANDARD_ANIMATION_LOCK, SupportedLevel} from "@xivgear/xivmath/xivconstants";
 
-export interface MnkSimResult extends CycleSimResult { }
+export interface MnkSimResult extends CycleSimResult {
+}
 
-export interface MnkSettings extends SimSettings { }
+export interface MnkSettings extends SimSettings {
+}
 
-export interface MnkSettingsExternal extends ExternalCycleSettings<MnkSettings> { }
+export interface MnkSettingsExternal extends ExternalCycleSettings<MnkSettings> {
+}
 
 export const mnkSpec: SimSpec<MnkSim, MnkSettingsExternal> = {
     stub: 'mnk-sim',
     displayName: 'MNK Sim',
     description: 'Simulates a monk rotation at level 100',
-    makeNewSimInstance: function(): MnkSim {
+    makeNewSimInstance: function (): MnkSim {
         return new MnkSim();
     },
-    loadSavedSimInstance: function(exported: MnkSettingsExternal) {
+    loadSavedSimInstance: function (exported: MnkSettingsExternal) {
         return new MnkSim(exported);
     },
     supportedJobs: ['MNK'],
@@ -114,11 +159,14 @@ class MNKCycleProcessor extends CycleProcessor {
         this.useGcd(DragonKick);
         this.cleanupForms();
         this.useOgcd(PerfectBalance);
-        this.useGcd(Bootshine); this.cleanupForms();
-        this.useGcd(DragonKick); this.cleanupForms();
+        this.useGcd(Bootshine);
+        this.cleanupForms();
+        this.useGcd(DragonKick);
+        this.cleanupForms();
         this.useOgcd(Brotherhood);
         this.useOgcd(RiddleOfFire);
-        this.useGcd(Bootshine); this.cleanupForms();
+        this.useGcd(Bootshine);
+        this.cleanupForms();
         this.useOgcd(TheForbiddenChakra);
         this.useOgcd(RiddleOfWind);
 
@@ -144,11 +192,14 @@ class MNKCycleProcessor extends CycleProcessor {
         this.useGcd(DragonKick);
         this.cleanupForms();
         this.useOgcd(PerfectBalance);
-        this.useGcd(TwinSnakes); this.cleanupForms();
-        this.useGcd(Demolish); this.cleanupForms();
+        this.useGcd(TwinSnakes);
+        this.cleanupForms();
+        this.useGcd(Demolish);
+        this.cleanupForms();
         this.useOgcd(Brotherhood);
         this.useOgcd(RiddleOfFire);
-        this.useGcd(Bootshine); this.cleanupForms();
+        this.useGcd(Bootshine);
+        this.cleanupForms();
         this.useOgcd(TheForbiddenChakra);
         this.useOgcd(RiddleOfWind);
 
@@ -215,6 +266,7 @@ class MNKCycleProcessor extends CycleProcessor {
         }
         return DragonKick;
     }
+
     get raptor(): MnkGcdAbility {
         if (this.gauge.raptorFury) {
             return TrueStrike;
@@ -389,9 +441,9 @@ class MNKCycleProcessor extends CycleProcessor {
             // riddle won't be back before the end of the fight, we should do a naked blitz
             return form?.statusId !== PerfectBalanceBuff.statusId // not already building a blitz
                 && ((OPO_ABILITIES.includes(gcd.id) // just executed an opo ability
-                    // the fight is about to end and we need to blitz + SSS
-                    // this condition will skip a formless-fist opo
-                    || this.remainingGcdTime <= this.cdTracker.statusOf(PerfectBalance).currentCharges * this.timeToExecuteNGcds(5))
+                        // the fight is about to end and we need to blitz + SSS
+                        // this condition will skip a formless-fist opo
+                        || this.remainingGcdTime <= this.cdTracker.statusOf(PerfectBalance).currentCharges * this.timeToExecuteNGcds(5))
                     && this.cdTracker.canUse(PerfectBalance));
         }
         else {
@@ -437,7 +489,6 @@ export class MnkSim extends BaseMultiCycleSim<CycleSimResult, MnkSettings, MNKCy
     spec = mnkSpec;
     shortName = 'mnk-sim';
     displayName = mnkSpec.displayName;
-    cycleSettings: CycleSettings = this.defaultCycleSettings();
     manuallyActivatedBuffs = [BrotherhoodGlobalBuff];
 
     constructor(settings?: MnkSettingsExternal) {

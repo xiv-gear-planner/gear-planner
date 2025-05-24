@@ -1,4 +1,10 @@
-import {CycleProcessor, CycleSimResult, CycleSimResultFull, ExternalCycleSettings} from "@xivgear/core/sims/cycle_sim";
+import {
+    CycleProcessor,
+    CycleSimResult,
+    CycleSimResultFull,
+    DisplayRecordFinalized,
+    ExternalCycleSettings
+} from "@xivgear/core/sims/cycle_sim";
 import {SimulationGui} from "./simulation_gui";
 import {SimSettings} from "@xivgear/core/sims/sim_types";
 import {cycleSettingsGui} from "./components/cycle_settings_components";
@@ -13,9 +19,14 @@ import {quickElement} from "@xivgear/common-ui/components/util";
 import {BaseMultiCycleSim} from "@xivgear/core/sims/processors/sim_processors";
 import {AnyStringIndex} from "@xivgear/util/types";
 import {
-    col, CustomCell, CustomColumn, CustomRow,
+    col,
+    CustomCell,
+    CustomColumn,
+    CustomColumnSpec,
+    CustomRow,
     CustomTable,
-    HeaderRow, SingleCellRowOrHeaderSelection,
+    HeaderRow,
+    SingleCellRowOrHeaderSelection,
     TableSelectionModel
 } from "@xivgear/common-ui/table/tables";
 
@@ -129,14 +140,22 @@ export class BaseMultiCycleSimGui<ResultType extends CycleSimResult, InternalSet
         return out;
     }
 
-    makeAbilityUsedTable(result: ResultType): AbilitiesUsedTable {
-        return new AbilitiesUsedTable(result.displayRecords);
+    protected extraAbilityUsedColumns(result: ResultType): CustomColumnSpec<DisplayRecordFinalized, unknown, unknown>[] {
+        return [];
+    }
+
+    makeAbilityUsedTable(result: ResultType, scrollRoot: HTMLElement | null): AbilitiesUsedTable {
+        return new AbilitiesUsedTable(result.displayRecords, this.extraAbilityUsedColumns(result), scrollRoot);
     }
 
     makeResultDisplay(result: FullResultType): HTMLElement {
         const mainResultsTable = this.makeMainResultDisplay(result.best, result.all.length > 1);
-        const abilitiesUsedTable = this.makeAbilityUsedTable(result.best);
         const mainHolder = quickElement('div', ['cycle-sim-table-holder', 'cycle-sim-main-holder'], [mainResultsTable]);
+
+        const abilitiesScrollTable = quickElement('div', ['scroll-table-holder'], []);
+        const abilitiesUsedTable = this.makeAbilityUsedTable(result.best, abilitiesScrollTable);
+        abilitiesScrollTable.append(abilitiesUsedTable);
+
         if (result.all.length > 1) {
             const rotationsTable = this.makeRotationsTable(result, mainHolder, abilitiesUsedTable);
             return quickElement('div', ['cycle-sim-results', 'cycle-sim-results-full'], [
@@ -145,7 +164,7 @@ export class BaseMultiCycleSimGui<ResultType extends CycleSimResult, InternalSet
                 ]),
                 mainHolder,
                 quickElement('div', ['cycle-sim-table-holder', 'cycle-sim-abilities-holder'], [
-                    quickElement('div', ['scroll-table-holder'], [abilitiesUsedTable]),
+                    abilitiesScrollTable,
                 ]),
             ]);
         }
@@ -154,7 +173,7 @@ export class BaseMultiCycleSimGui<ResultType extends CycleSimResult, InternalSet
             return quickElement('div', ['cycle-sim-results', 'cycle-sim-results-full'], [
                 mainHolder,
                 quickElement('div', ['cycle-sim-table-holder', 'cycle-sim-abilities-holder'], [
-                    quickElement('div', ['scroll-table-holder'], [abilitiesUsedTable]),
+                    abilitiesScrollTable,
                 ]),
             ]);
         }

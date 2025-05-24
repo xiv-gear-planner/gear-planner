@@ -368,6 +368,34 @@ export interface RefreshableRow<X> {
     get element(): HTMLElement;
 }
 
+/**
+ * Describes a strategy for breaking a table load into smaller units of work by rendering only the first chunk of cells
+ * immediately, and then deferring the rest.
+ */
+export type LazyTableStrategy = {
+    /**
+     * If there are not at least minRows rows total, do not attempt to lazy render.
+     */
+    minRows: number,
+    /**
+     * Max number of rows to render immediately.
+     */
+    immediateRows: number,
+    /**
+     * Specify a scroll root to use for the IntersectionObserver
+     */
+    altRoot?: HTMLElement,
+    /**
+     * Specify the extra "buffer" around the scroll root (pixels). Defaults to 2000px if not specified.
+     */
+    rootMargin?: number,
+}
+
+export const NoLazyRender: LazyTableStrategy = {
+    minRows: Number.MAX_SAFE_INTEGER,
+    immediateRows: Number.MAX_SAFE_INTEGER,
+} as const;
+
 export class CustomTable<RowDataType, SelectionType extends TableSelectionModel<RowDataType, unknown, unknown, unknown> = TableSelectionModel<RowDataType, unknown, unknown, never>> extends HTMLTableElement {
     _data: (RowDataType | HeaderRow | TitleRow)[] = [];
     dataRowMap: Map<RowDataType, CustomRow<RowDataType>> = new Map<RowDataType, CustomRow<RowDataType>>();
@@ -377,6 +405,7 @@ export class CustomTable<RowDataType, SelectionType extends TableSelectionModel<
     // TODO: should changing selection model also refresh the current selection?
     selectionModel: SelectionType = noopSelectionModel as SelectionType;
     rowTitleSetter: ((row: RowDataType) => string | null) | null = null;
+    lazyRenderStrategy: LazyTableStrategy = NoLazyRender;
 
     constructor() {
         super();
@@ -411,13 +440,13 @@ export class CustomTable<RowDataType, SelectionType extends TableSelectionModel<
             }
         });
         // TODO: see if successive refreshFull calls can be coalesced
-        this._onDataChanged();
+        this._onRowColChange();
         this.refreshFull();
     }
 
     set data(newData: (RowDataType | HeaderRow | TitleRow)[]) {
         this._data = newData;
-        this._onDataChanged();
+        this._onRowColChange();
     }
 
     get data(): (RowDataType | HeaderRow | TitleRow)[] {
@@ -434,9 +463,32 @@ export class CustomTable<RowDataType, SelectionType extends TableSelectionModel<
      *
      * @private
      */
-    private _onDataChanged() {
+    private _onRowColChange() {
         const newRowElements: Node[] = [];
-        for (const item of this._data) {
+        const len = this._data.length;
+        const lazy = this.lazyRenderStrategy;
+        // If we have a lazy render strategy, but we haven't hit the threshold, don't lazy render
+        const enableLazy = len >= lazy.minRows;
+        let observer: IntersectionObserver | null;
+        if (enableLazy) {
+            // This tells us when a row is scrolled into view or at least within a buffer (rootMargin)
+            observer = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.intersectionRatio > 0 && entry.target instanceof CustomRow) {
+                        entry.target.refreshFull(true);
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, {
+                root: lazy.altRoot ?? null,
+                rootMargin: lazy.rootMargin ? `${lazy.rootMargin}px` : '2000px',
+            });
+        }
+        else {
+            observer = null;
+        }
+        for (let i = 0; i < len; i++) {
+            const item = this._data[i];
             if (item instanceof HeaderRow) {
                 const header = new CustomTableHeaderRow(this);
                 newRowElements.push(header);
@@ -450,14 +502,26 @@ export class CustomTable<RowDataType, SelectionType extends TableSelectionModel<
                 newRowElements.push(out);
             }
             else {
+                // Try to find existing row first
                 const row = this.dataRowMap.get(item);
                 if (row !== undefined) {
                     newRowElements.push(row);
                 }
                 else {
+                    // Otherwise, create new row
                     const newRow = this.makeDataRow(item);
                     this.dataRowMap.set(item, newRow);
-                    newRow.refreshFull();
+                    // Lazy-load outside of the threshold
+                    if (i < lazy.immediateRows) {
+                        newRow.refreshFull();
+                    }
+                    else {
+                        newRow.refreshFull(false);
+                        // setTimeout(async () => {
+                        //     // newRow.refreshFull(true);
+                        // }, lazy.delay(i));
+                        observer?.observe(newRow);
+                    }
                     newRowElements.push(newRow);
                 }
             }
@@ -672,7 +736,7 @@ export class CustomRow<RowDataType> extends HTMLTableRowElement implements Refre
         this.dataColMap.get(colDef)?.refreshFull();
     }
 
-    refreshFull() {
+    refreshFull(refreshCells: boolean = true) {
         const newColElements: CustomCell<RowDataType, unknown>[] = [];
         for (const col of this.table.columns) {
             const c = this.dataColMap.get(col);
@@ -700,8 +764,10 @@ export class CustomRow<RowDataType> extends HTMLTableRowElement implements Refre
             }
         }
         this.replaceChildren(...this.beforeElements, ...newColElements, ...this.afterElements);
-        for (const value of this.dataColMap.values()) {
-            value.refreshFull();
+        if (refreshCells) {
+            for (const value of this.dataColMap.values()) {
+                value.refreshFull();
+            }
         }
         this.refreshTitle();
         this.refreshSelection();

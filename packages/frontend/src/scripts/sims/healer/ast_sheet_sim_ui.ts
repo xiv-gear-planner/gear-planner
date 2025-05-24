@@ -1,14 +1,14 @@
-import {CycleSimResult, DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/core/sims/cycle_sim";
+import {DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/core/sims/cycle_sim";
 import {PreDmgUsedAbility} from "@xivgear/core/sims/sim_types";
-import {col, CustomColumn} from "@xivgear/common-ui/table/tables";
-import {AbilitiesUsedTable} from "../components/ability_used_table";
+import {col, CustomColumnSpec} from "@xivgear/common-ui/table/tables";
 import {BaseMultiCycleSimGui} from "../multicyclesim_ui";
 import {AstExtraData, AstSettings, AstSimResult} from "@xivgear/core/sims/healer/ast_sheet_sim";
 import {StyleSwitcher, WritableCssProp} from "@xivgear/common-ui/util/types";
 
-class AstGaugeGui {
+export class AstSheetSimGui extends BaseMultiCycleSimGui<AstSimResult, AstSettings> {
 
-    static generateResultColumns(result: CycleSimResult): CustomColumn<DisplayRecordFinalized, unknown, unknown>[] {
+
+    protected extraAbilityUsedColumns(result: AstSimResult): CustomColumnSpec<DisplayRecordFinalized, unknown, unknown>[] {
         return [col({
             shortName: 'cards',
             displayName: 'Cards',
@@ -74,7 +74,8 @@ class AstGaugeGui {
                             stack.style.background = '#00000033';
                         }
                         div.appendChild(stack);
-                    };
+                    }
+                    ;
 
                     return div;
                 }
@@ -82,17 +83,5 @@ class AstGaugeGui {
             },
         }),
         ];
-    }
-}
-
-export class AstSheetSimGui extends BaseMultiCycleSimGui<AstSimResult, AstSettings> {
-
-    override makeAbilityUsedTable(result: AstSimResult): AbilitiesUsedTable {
-        const extraColumns = AstGaugeGui.generateResultColumns(result);
-        const table = super.makeAbilityUsedTable(result);
-        const newColumns = [...table.columns];
-        newColumns.splice(newColumns.findIndex(col => col.shortName === 'expected-damage') + 1, 0, ...extraColumns);
-        table.columns = newColumns;
-        return table;
     }
 }

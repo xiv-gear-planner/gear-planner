@@ -1,15 +1,14 @@
 import {FieldBoundCheckBox, labeledCheckbox} from "@xivgear/common-ui/components/util";
 import {WarSettings, WarSimResult} from "@xivgear/core/sims/tank/war/war_sheet_sim";
 import {BaseMultiCycleSimGui} from "../multicyclesim_ui";
-import {AbilitiesUsedTable} from "../components/ability_used_table";
-import {CycleSimResult, DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/core/sims/cycle_sim";
-import {ColDefs, CustomColumnSpec} from "@xivgear/common-ui/table/tables";
+import {DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/core/sims/cycle_sim";
+import {CustomColumnSpec} from "@xivgear/common-ui/table/tables";
 import {PreDmgUsedAbility} from "@xivgear/core/sims/sim_types";
 import {WarExtraData} from "@xivgear/core/sims/tank/war/war_types";
 
 export class WarSimGui extends BaseMultiCycleSimGui<WarSimResult, WarSettings> {
 
-    static generateResultColumns(result: CycleSimResult): CustomColumnSpec<DisplayRecordFinalized, unknown, unknown>[] {
+    protected extraAbilityUsedColumns(result: WarSimResult): CustomColumnSpec<DisplayRecordFinalized, unknown, unknown>[] {
         return [{
             shortName: 'beastGauge',
             displayName: 'Beast Gauge',
@@ -51,8 +50,7 @@ export class WarSimGui extends BaseMultiCycleSimGui<WarSimResult, WarSettings> {
                 }
                 return document.createTextNode("");
             },
-        },
-        {
+        }, {
             shortName: 'surgingTempest',
             displayName: 'Surging Tempest',
             getter: used => isFinalizedAbilityUse(used) ? used.original : null,
@@ -104,14 +102,4 @@ export class WarSimGui extends BaseMultiCycleSimGui<WarSimResult, WarSettings> {
         configDiv.appendChild(labeledCheckbox("Use Potion", potCb));
         return configDiv;
     }
-
-    override makeAbilityUsedTable(result: WarSimResult): AbilitiesUsedTable {
-        const extraColumns = WarSimGui.generateResultColumns(result);
-        const table = super.makeAbilityUsedTable(result);
-        const newColumns: ColDefs<DisplayRecordFinalized> = [...table.columns];
-        newColumns.splice(newColumns.findIndex(col => col.shortName === 'expected-damage') + 1, 0, ...extraColumns);
-        table.columns = newColumns;
-        return table;
-    }
-
 }

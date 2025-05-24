@@ -1,16 +1,15 @@
-import {CycleSimResult, DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/core/sims/cycle_sim";
+import {DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/core/sims/cycle_sim";
 import {PreDmgUsedAbility} from "@xivgear/core/sims/sim_types";
-import {ColDefs, CustomColumnSpec} from "@xivgear/common-ui/table/tables";
-import {AbilitiesUsedTable} from "../../components/ability_used_table";
+import {CustomColumnSpec} from "@xivgear/common-ui/table/tables";
 import {BaseMultiCycleSimGui} from "../../multicyclesim_ui";
-import {FieldBoundFloatField, FieldBoundCheckBox, labelFor, labeledCheckbox} from "@xivgear/common-ui/components/util";
-import {SamSimResult, SamSettings} from "@xivgear/core/sims/melee/sam/sam_lv100_sim";
+import {FieldBoundCheckBox, FieldBoundFloatField, labeledCheckbox, labelFor} from "@xivgear/common-ui/components/util";
+import {SamSettings, SamSimResult} from "@xivgear/core/sims/melee/sam/sam_lv100_sim";
 import {SAMExtraData} from "@xivgear/core/sims/melee/sam/sam_types";
 import {StyleSwitcher, WritableCssProp} from "@xivgear/common-ui/util/types";
 
-class SAMGaugeGui {
+export class SamSimGui extends BaseMultiCycleSimGui<SamSimResult, SamSettings> {
 
-    static generateResultColumns(result: CycleSimResult): CustomColumnSpec<DisplayRecordFinalized, unknown, unknown>[] {
+    protected extraAbilityUsedColumns(result: SamSimResult): CustomColumnSpec<DisplayRecordFinalized, unknown, unknown>[] {
         return [{
             shortName: 'kenkiGauge',
             displayName: 'Kenki',
@@ -141,28 +140,17 @@ class SAMGaugeGui {
             },
         }];
     }
-}
-export class SamSimGui extends BaseMultiCycleSimGui<SamSimResult, SamSettings> {
 
     override makeCustomConfigInterface(settings: SamSettings, _updateCallback: () => void): HTMLElement | null {
         const configDiv = document.createElement("div");
 
-        const ppField = new FieldBoundFloatField(settings, "prePullMeikyo", { inputMode: 'number' });
+        const ppField = new FieldBoundFloatField(settings, "prePullMeikyo", {inputMode: 'number'});
         const potCb = new FieldBoundCheckBox(settings, "usePotion");
 
         configDiv.appendChild(labelFor("Meikyo Pre-Pull Time:", ppField));
         configDiv.appendChild(ppField);
         configDiv.appendChild(labeledCheckbox("Use Potion", potCb));
         return configDiv;
-    }
-
-    override makeAbilityUsedTable(result: SamSimResult): AbilitiesUsedTable {
-        const extraColumns = SAMGaugeGui.generateResultColumns(result);
-        const table = super.makeAbilityUsedTable(result);
-        const newColumns : ColDefs<DisplayRecordFinalized> = [...table.columns];
-        newColumns.splice(newColumns.findIndex(col => col.shortName === 'expected-damage') + 1, 0, ...extraColumns);
-        table.columns = newColumns;
-        return table;
     }
 
 }
