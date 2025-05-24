@@ -1087,7 +1087,15 @@ export class GearPlanSheet {
      * Get sims which might be relevant to this sheet.
      */
     get relevantSims() {
-        return getRegisteredSimSpecs().filter(simSpec => simSpec.supportedJobs === undefined ? true : simSpec.supportedJobs.includes(this.dataManager.primaryClassJob));
+        return getRegisteredSimSpecs().filter(simSpec => {
+            const jobs = simSpec.supportedJobs;
+            if (jobs === undefined) {
+                return true;
+            }
+            else {
+                return jobs.find(job => this.allJobs.includes(job)) !== undefined;
+            }
+        });
     }
 
     /**
