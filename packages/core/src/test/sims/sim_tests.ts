@@ -20,6 +20,7 @@ import {CharacterGearSet} from "../../gear";
 import {GearPlanSheet, HEADLESS_SHEET_PROVIDER} from "../../sheet";
 import {expect} from "chai";
 import {EquipSlotInfo, EquipSlotKey} from "@xivgear/xivmath/geartypes";
+import {FakeLocalStorage} from "../test_utils";
 
 // Example of end-to-end simulation
 // This one is testing the simulation engine itself, so it copies the full simulation code rather than
@@ -32,6 +33,9 @@ export interface TestSimSettings extends SimSettings {
 export interface TestSimSettingsExternal extends ExternalCycleSettings<TestSimSettings> {
 }
 
+// HEADLESS_SHEET_PROVIDER uses localStorage to save/load, so we still need this
+// noinspection JSConstantReassignment
+global.localStorage = new FakeLocalStorage();
 
 export const testSimSpec: SimSpec<TestMultiCycleSim, TestSimSettingsExternal> = {
     displayName: "Test WHM Sim",
