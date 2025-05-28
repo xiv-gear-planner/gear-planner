@@ -47,7 +47,7 @@ export class NewSheetFormFieldSet extends HTMLFieldSetElement {
 
         this.newSheetSettings = {
             ilvlSyncEnabled: settings?.ilvlSyncEnabled ?? false,
-            ilvlSync: settings?.ilvlSyncLevel ?? 650,
+            ilvlSync: settings?.ilvlSyncLevel ?? 700,
             multiJob: settings?.multiJob ?? false,
         };
 
