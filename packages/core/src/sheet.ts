@@ -55,6 +55,7 @@ import {CustomFood} from "./customgear/custom_food";
 import {IlvlSyncInfo} from "./datamanager_xivapi";
 import {statsSerializationProxy} from "@xivgear/xivmath/xivstats";
 import {isMateriaAllowed} from "./materia/materia_utils";
+import {SpecialStatType} from "@xivgear/data-api-client/dataapi";
 
 export type SheetCtorArgs = ConstructorParameters<typeof GearPlanSheet>
 export type SheetContstructor<SheetType extends GearPlanSheet> = (...values: SheetCtorArgs) => SheetType;
@@ -232,6 +233,10 @@ export class GearPlanSheet {
     private readonly saveTimer: Inactivitytimer;
 
     private _timestamp: Date;
+
+    // Occult Crescent et al
+    private _activeSpecialStat: SpecialStatType | null = null;
+
 
     // Can't make ctor private for custom element, but DO NOT call this directly - use fromSaved or fromScratch
     constructor(sheetKey: string, importedData: SheetExport) {
@@ -1358,5 +1363,17 @@ export class GearPlanSheet {
 
     get timestamp(): Date {
         return this._timestamp;
+    }
+
+    get activeSpecialStat(): SpecialStatType | null {
+        return this._activeSpecialStat;
+    }
+
+    set activeSpecialStat(value: SpecialStatType | null) {
+        this._activeSpecialStat = value;
+        this.dataManager.allItems.forEach(item => {
+            item.activeSpecialStat = value;
+        });
+        this.recalcAll();
     }
 }

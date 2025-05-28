@@ -93,6 +93,7 @@ import {ExpandableText} from "@xivgear/common-ui/components/expandy_text";
 import {SheetInfoModal} from "./sheet_info_modal";
 import {FramelessJobIcon, JobIcon} from "./job_icon";
 import {setDataManagerErrorReporter} from "@xivgear/core/data_api_client";
+import {SpecialStatType} from "@xivgear/data-api-client/dataapi";
 
 const noSeparators = (set: CharacterGearSet) => !set.isSeparator;
 
@@ -1641,6 +1642,24 @@ export class GearPlanSheetGui extends GearPlanSheet {
         });
         buttonsArea.appendChild(partySizeDropdown);
 
+        // TODO: this should only show once you select an occult crescent item
+        const specialStatDropdown = new FieldBoundDataSelect<GearPlanSheet, SpecialStatType | null>(
+            this,
+            'activeSpecialStat',
+            value => {
+                switch (value) {
+                    case null:
+                        return 'No Special Stats';
+                    // case SpecialStatType.OccultCrescent:
+                    //     return 'Occult Crescent';
+                    default:
+                        return camel2title(value);
+                }
+            },
+            [null, ...Object.values(SpecialStatType)]
+        );
+        buttonsArea.appendChild(specialStatDropdown);
+
         if (this.saveKey) {
             this.headerArea.style.display = 'none';
         }
@@ -2118,6 +2137,15 @@ export class GearPlanSheetGui extends GearPlanSheet {
         }
         area.replaceChildren("This set is part of a sheet: ", linkElement);
         area.style.display = '';
+    }
+
+    get activeSpecialStat(): SpecialStatType | null {
+        return super.activeSpecialStat;
+    }
+
+    set activeSpecialStat(value: SpecialStatType | null) {
+        super.activeSpecialStat = value;
+        this.resetEditorArea();
     }
 }
 

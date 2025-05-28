@@ -10,6 +10,7 @@ import {
 
 import {RawBonusStats, StatModification, StatPreModifications} from "./xivstats";
 import {TranslatableString} from "@xivgear/i18n/translation";
+import {SpecialStatType} from "@xivgear/data-api-client/dataapi";
 
 export interface DisplayGearSlot {
 
@@ -200,6 +201,8 @@ export interface GearItem extends XivCombatItem {
     rarity: number;
 
     usableByJob(job: JobName): boolean;
+
+    activeSpecialStat: SpecialStatType | null;
 }
 
 export interface FoodStatBonus {

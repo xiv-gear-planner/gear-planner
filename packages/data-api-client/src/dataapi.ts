@@ -10,6 +10,10 @@
  * ---------------------------------------------------------------
  */
 
+export enum SpecialStatType {
+  OccultCrescent = "OccultCrescent",
+}
+
 export enum GearAcquisitionSource {
   NormalRaid = "NormalRaid",
   SavageRaid = "SavageRaid",
@@ -161,6 +165,8 @@ export type Item = ItemBase &
   XivApiBase & {
     baseParamMap?: Record<string, number>;
     baseParamMapHQ?: Record<string, number>;
+    baseParamMapSpecial?: Record<string, number>;
+    specialStatType?: SpecialStatType | null;
     classJobs?: string[];
     /** @format int32 */
     damageMagHQ?: number;
@@ -267,6 +273,14 @@ export type MateriaItem = XivApiObject &
     ilvl?: number;
   };
 
+export interface SchemaVersionEndpointResponse {
+  schemaVersion?: string;
+}
+
+export interface VersionsEndpointResponse {
+  versions?: string[];
+}
+
 export interface XivApiBase {
   schemaVersion?: XivApiSchemaVersion;
 }
@@ -275,7 +289,7 @@ export interface XivApiLangValueString {
   en?: string;
   de?: string;
   fr?: string;
-  jp?: string;
+  ja?: string;
 }
 
 export type XivApiObject = XivApiBase & {
@@ -641,6 +655,38 @@ export class DataApiClient<
     materia: (params: RequestParams = {}) =>
       this.request<MateriaEndpointResponse, any>({
         path: `/Materia`,
+        method: "GET",
+        format: "json",
+        ...params,
+      }),
+  };
+  schemaVersion = {
+    /**
+     * No description
+     *
+     * @name Versions
+     * @summary Get the Xivapi schema version used to query the data.
+     * @request GET:/SchemaVersion
+     */
+    versions: (params: RequestParams = {}) =>
+      this.request<SchemaVersionEndpointResponse, any>({
+        path: `/SchemaVersion`,
+        method: "GET",
+        format: "json",
+        ...params,
+      }),
+  };
+  versions = {
+    /**
+     * No description
+     *
+     * @name Versions1
+     * @summary Get versions available via Xivapi at the time the data was polled.
+     * @request GET:/Versions
+     */
+    versions1: (params: RequestParams = {}) =>
+      this.request<VersionsEndpointResponse, any>({
+        path: `/Versions`,
         method: "GET",
         format: "json",
         ...params,
