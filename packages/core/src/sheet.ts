@@ -115,6 +115,7 @@ export class SheetProvider<SheetType extends GearPlanSheet> {
             customFoods: importedData.flatMap(imp => imp.customFoods ?? []),
             timestamp: importedData[0].timestamp,
             isMultiJob: false,
+            specialStats: importedData[0].specialStats ?? null,
         });
         if (importedData[0].sims === undefined) {
             gearPlanSheet.addDefaultSims();
@@ -250,6 +251,7 @@ export class GearPlanSheet {
         // TODO: why does this default to WHM? Shouldn't it just throw?
         this.classJobName = importedData.job ?? 'WHM';
         this.isMultiJob = importedData.isMultiJob;
+        this._activeSpecialStat = (importedData.specialStats ?? null) as SpecialStatType | null;
         this.altJobs = this.isMultiJob ? [
             ...ALL_COMBAT_JOBS.filter(job => JOB_DATA[job].role === JOB_DATA[this.classJobName].role
                 // Don't include the primary job in the list of alt jobs
@@ -439,6 +441,8 @@ export class GearPlanSheet {
             }
         }
         this._dmRelevantFood = this.dataManager.allFoodItems.filter(food => this.isStatRelevant(food.primarySubStat) || this.isStatRelevant(food.secondarySubStat));
+        // This is set when importing - but it needs to know about items first. Thus we have to redo this now.
+        this.activeSpecialStat = this._activeSpecialStat;
         this._setupDone = true;
     }
 
@@ -581,6 +585,7 @@ export class GearPlanSheet {
             customFoods: this._customFoods.map(cf => cf.export()),
             timestamp: this.timestamp.getTime(),
             isMultiJob: this.isMultiJob,
+            specialStats: this.activeSpecialStat ?? null,
         };
         if (!external) {
             out.saveKey = this._saveKey;
@@ -728,6 +733,7 @@ export class GearPlanSheet {
             ext.partyBonus = this._partyBonus;
             ext.race = this._race;
             ext.job = set.job;
+            ext.specialStats = this.activeSpecialStat;
         }
         else {
             if (set.relicStatMemory) {

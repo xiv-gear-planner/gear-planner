@@ -731,6 +731,8 @@ export interface SheetExport {
      * True if this is a multi-job sheet (within a single role)
      */
     isMultiJob?: boolean,
+
+    specialStats?: string | null,
 }
 
 export type CustomItemExport = {
@@ -868,6 +870,8 @@ export interface SetExportExternalSingle extends SetExport {
      * Unix timestamp
      */
     timestamp?: number,
+
+    specialStats?: string | null,
 }
 
 /**
