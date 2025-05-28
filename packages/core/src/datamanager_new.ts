@@ -27,13 +27,19 @@ import {
 import {BaseParamToStatKey, RelevantBaseParam} from "./external/xivapitypes";
 import {getRelicStatModelFor} from "./relicstats/relicstats";
 import {requireNumber, requireString} from "./external/data_validators";
-import {DataApiClient, FoodStatBonus, GearAcquisitionSource as AcqSrc} from "@xivgear/data-api-client/dataapi";
+import {
+    DataApiClient,
+    FoodStatBonus,
+    GearAcquisitionSource as AcqSrc,
+    SpecialStatType
+} from "@xivgear/data-api-client/dataapi";
 import {BaseParamMap, DataManager, DmJobs} from "./datamanager";
 import {IlvlSyncInfo} from "./datamanager_xivapi";
 import {applyStatCaps} from "./gear";
 import {toTranslatable, TranslatableString} from "@xivgear/i18n/translation";
 import {RawStatsPart} from "@xivgear/util/types";
 import {API_CLIENT, ApiFoodData, ApiItemData, ApiMateriaData, checkResponse} from "./data_api_client";
+import {addStats} from "@xivgear/xivmath/xivstats";
 
 // import {recordError} from "@xivgear/common-ui/analytics/analytics";
 
@@ -422,7 +428,8 @@ export class DataApiGearInfo implements GearItem {
     readonly displayGearSlot: DisplayGearSlot;
     readonly displayGearSlotName: DisplayGearSlotKey;
     readonly occGearSlotName: OccGearSlotKey;
-    stats: RawStats;
+    // Base stats, including caps
+    private baseStats: RawStats;
     primarySubstat: keyof RawStats | null;
     secondarySubstat: keyof RawStats | null;
     materiaSlots: MateriaSlot[];
@@ -439,6 +446,12 @@ export class DataApiGearInfo implements GearItem {
     syncedDownTo: number | null;
     isNqVersion: boolean;
     readonly rarity: number;
+    readonly specialStatType: SpecialStatType;
+    readonly specialStats: RawStats | null;
+    // activeSpecialStat: SpecialStatType | null = null;
+    private _activeSpecialStat: SpecialStatType | null = null;
+    // Actual effective stats
+    stats: RawStats;
 
     constructor(data: ApiItemData, forceNq: boolean = false) {
         this.jobs = data.classJobs as JobName[];
@@ -513,10 +526,10 @@ export class DataApiGearInfo implements GearItem {
         }
         this.displayGearSlot = this.displayGearSlotName ? DisplayGearSlotInfo[this.displayGearSlotName] : undefined;
         const weaponDelayRaw = (data.delayMs);
-        this.stats = new RawStats();
-        this.stats.wdPhys = forceNq ? data.damagePhys : data.damagePhysHQ;
-        this.stats.wdMag = forceNq ? data.damageMag : data.damageMagHQ;
-        this.stats.weaponDelay = weaponDelayRaw ? (weaponDelayRaw / 1000.0) : 0;
+        this.baseStats = new RawStats();
+        this.baseStats.wdPhys = forceNq ? data.damagePhys : data.damagePhysHQ;
+        this.baseStats.wdMag = forceNq ? data.damageMag : data.damageMagHQ;
+        this.baseStats.weaponDelay = weaponDelayRaw ? (weaponDelayRaw / 1000.0) : 0;
         const paramMap = forceNq ? data.baseParamMap : data.baseParamMapHQ;
         for (const key in paramMap) {
             const intKey = parseInt(key);
@@ -525,7 +538,23 @@ export class DataApiGearInfo implements GearItem {
                 // console.warn(`Undefined baseParam! ${key}`);
                 continue;
             }
-            this.stats[baseParam] = paramMap[key];
+            this.baseStats[baseParam] = paramMap[key];
+        }
+        if (data.specialStatType) {
+            this.specialStats = new RawStats();
+            this.specialStatType = data.specialStatType;
+            for (const key in paramMap) {
+                const intKey = parseInt(key);
+                const baseParam = statById(intKey);
+                if (baseParam === undefined) {
+                    continue;
+                }
+                this.specialStats[baseParam] = data.baseParamMapSpecial[key];
+            }
+        }
+        else {
+            this.specialStats = null;
+            this.specialStatType = null;
         }
         this.isUnique = data.unique;
         this.computeSubstats();
@@ -633,17 +662,18 @@ export class DataApiGearInfo implements GearItem {
                 break;
         }
         this.rarity = data.rarity;
+        this.recalcEffectiveStats();
     }
 
     private computeSubstats() {
         const sortedStats = Object.entries({
-            crit: this.stats.crit,
-            dhit: this.stats.dhit,
-            determination: this.stats.determination,
-            spellspeed: this.stats.spellspeed,
-            skillspeed: this.stats.skillspeed,
-            piety: this.stats.piety,
-            tenacity: this.stats.tenacity,
+            crit: this.baseStats.crit,
+            dhit: this.baseStats.dhit,
+            determination: this.baseStats.determination,
+            spellspeed: this.baseStats.spellspeed,
+            skillspeed: this.baseStats.skillspeed,
+            piety: this.baseStats.piety,
+            tenacity: this.baseStats.tenacity,
         })
             .sort((left, right) => {
                 if (left[1] > right[1]) {
@@ -668,7 +698,7 @@ export class DataApiGearInfo implements GearItem {
 
     applyIlvlData(nativeIlvlInfo: IlvlSyncInfo, syncIlvlInfo?: IlvlSyncInfo, level?: number) {
         const statCapsNative: RawStatsPart = {};
-        Object.entries(this.stats).forEach(([stat, _]) => {
+        Object.entries(this.baseStats).forEach(([stat, _]) => {
             const rsk = stat as RawStatKey;
             statCapsNative[rsk] = nativeIlvlInfo.substatCap(this.occGearSlotName, rsk);
         });
@@ -680,11 +710,11 @@ export class DataApiGearInfo implements GearItem {
             this.syncedDownTo = syncIlvlInfo.ilvl;
             this.materiaSlots = [];
             const statCapsSync: RawStatsPart = {};
-            Object.entries(this.stats).forEach(([stat, v]) => {
+            Object.entries(this.baseStats).forEach(([stat, v]) => {
                 const rsk = stat as RawStatKey;
                 statCapsSync[rsk] = syncIlvlInfo.substatCap(this.occGearSlotName, rsk);
             });
-            this.stats = applyStatCaps(this.stats, statCapsSync);
+            this.baseStats = applyStatCaps(this.baseStats, statCapsSync);
             this.statCaps = statCapsSync;
             this.computeSubstats();
             this.isSyncedDown = true;
@@ -694,11 +724,33 @@ export class DataApiGearInfo implements GearItem {
             this.syncedDownTo = null;
             this.isSyncedDown = false;
         }
+        this.recalcEffectiveStats();
     }
 
     usableByJob(job: JobName): boolean {
         return this.jobs.includes(job);
     }
+
+    get activeSpecialStat(): SpecialStatType | null {
+        return this._activeSpecialStat;
+    }
+
+    set activeSpecialStat(value: SpecialStatType | null) {
+        this._activeSpecialStat = value;
+        this.recalcEffectiveStats();
+    }
+
+    recalcEffectiveStats(): void {
+        if (this.specialStatType && this.specialStatType === this._activeSpecialStat) {
+            const stats = new RawStats(this.baseStats);
+            addStats(stats, this.specialStats);
+            this.stats = stats;
+        }
+        else {
+            this.stats = this.baseStats;
+        }
+    }
+
 }
 
 export class DataApiFoodInfo implements FoodItem {

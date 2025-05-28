@@ -93,6 +93,7 @@ import {ExpandableText} from "@xivgear/common-ui/components/expandy_text";
 import {SheetInfoModal} from "./sheet_info_modal";
 import {FramelessJobIcon, JobIcon} from "./job_icon";
 import {setDataManagerErrorReporter} from "@xivgear/core/data_api_client";
+import {SpecialStatType} from "@xivgear/data-api-client/dataapi";
 
 const noSeparators = (set: CharacterGearSet) => !set.isSeparator;
 
@@ -1319,6 +1320,7 @@ export class GearPlanSheetGui extends GearPlanSheet {
     readonly midBarArea: HTMLDivElement;
     readonly toolbarHolder: HTMLDivElement;
     private _simGuis: SimulationGui<any, any, any>[];
+    private specialStatDropdown: FieldBoundDataSelect<GearPlanSheet, SpecialStatType | null>;
 
     get simGuis() {
         return this._simGuis;
@@ -1640,6 +1642,31 @@ export class GearPlanSheetGui extends GearPlanSheet {
             });
         });
         buttonsArea.appendChild(partySizeDropdown);
+
+        // TODO: this should only show once you select an occult crescent item
+        this.specialStatDropdown = new FieldBoundDataSelect<GearPlanSheet, SpecialStatType | null>(
+            this,
+            'activeSpecialStat',
+            value => {
+                switch (value) {
+                    case null:
+                        return 'No Special Stats';
+                    // case SpecialStatType.OccultCrescent:
+                    //     return 'Occult Crescent';
+                    default:
+                        return camel2title(value);
+                }
+            },
+            [null, ...Object.values(SpecialStatType)]
+        );
+        // TODO: move this logic to xivconstants or something
+        // We only want this to show if our sheet looks like it might be for one of these duties with special bonuses,
+        // or if the user somehow got into a state where they have a special stat set despite the sheet normally
+        // not being eligible for one.
+        if (!(this.activeSpecialStat || (this.level === 100 && this.ilvlSync === 700))) {
+            this.specialStatDropdown.style.display = 'none';
+        }
+        buttonsArea.appendChild(this.specialStatDropdown);
 
         if (this.saveKey) {
             this.headerArea.style.display = 'none';
@@ -2118,6 +2145,15 @@ export class GearPlanSheetGui extends GearPlanSheet {
         }
         area.replaceChildren("This set is part of a sheet: ", linkElement);
         area.style.display = '';
+    }
+
+    get activeSpecialStat(): SpecialStatType | null {
+        return super.activeSpecialStat;
+    }
+
+    set activeSpecialStat(value: SpecialStatType | null) {
+        super.activeSpecialStat = value;
+        this.resetEditorArea();
     }
 }
 

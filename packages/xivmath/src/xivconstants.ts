@@ -775,6 +775,10 @@ export function statById(id: number): keyof RawStats | undefined {
             return "piety";
         case 7:
             return "hp";
+        case 12:
+            return "wdPhys";
+        case 13:
+            return "wdMag";
         case 19:
             return "tenacity";
         case 22:

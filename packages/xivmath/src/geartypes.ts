@@ -10,6 +10,7 @@ import {
 
 import {RawBonusStats, StatModification, StatPreModifications} from "./xivstats";
 import {TranslatableString} from "@xivgear/i18n/translation";
+import {SpecialStatType} from "@xivgear/data-api-client/dataapi";
 
 export interface DisplayGearSlot {
 
@@ -200,6 +201,8 @@ export interface GearItem extends XivCombatItem {
     rarity: number;
 
     usableByJob(job: JobName): boolean;
+
+    activeSpecialStat: SpecialStatType | null;
 }
 
 export interface FoodStatBonus {
@@ -728,6 +731,8 @@ export interface SheetExport {
      * True if this is a multi-job sheet (within a single role)
      */
     isMultiJob?: boolean,
+
+    specialStats?: string | null,
 }
 
 export type CustomItemExport = {
@@ -865,6 +870,8 @@ export interface SetExportExternalSingle extends SetExport {
      * Unix timestamp
      */
     timestamp?: number,
+
+    specialStats?: string | null,
 }
 
 /**

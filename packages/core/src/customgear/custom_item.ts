@@ -17,6 +17,7 @@ import {applyStatCaps} from "../gear";
 import {GearPlanSheet} from "../sheet";
 import {toTranslatable} from "@xivgear/i18n/translation";
 import {RawStatsPart} from "@xivgear/util/types";
+import {SpecialStatType} from "@xivgear/data-api-client/dataapi";
 
 export class CustomItem implements GearItem {
 
@@ -259,6 +260,13 @@ export class CustomItem implements GearItem {
     // Don't restrict jobs on custom items, assume the user knows what they're doing
     usableByJob(job: JobName): boolean {
         return true;
+    }
+
+    get activeSpecialStat(): null {
+        return null;
+    }
+
+    set activeSpecialStat(_ignored: SpecialStatType | null) {
     }
 
 }
