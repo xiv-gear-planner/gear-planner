@@ -538,7 +538,8 @@ export class DataApiGearInfo implements GearItem {
                 // console.warn(`Undefined baseParam! ${key}`);
                 continue;
             }
-            this.baseStats[baseParam] = paramMap[key];
+            // We need to add here, because we don't want to overwrite wdPhys/wdMag/weaponDelay
+            this.baseStats[baseParam] += paramMap[key];
         }
         if (data.specialStatType) {
             this.specialStats = new RawStats();
