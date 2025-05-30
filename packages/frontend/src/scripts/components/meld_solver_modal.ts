@@ -499,10 +499,14 @@ class MeldSolverConfirmationDialog extends BaseModal {
         oldResultElem.style.setProperty("--sim-result-relative", 0 + '%');
         newResultElem.style.setProperty("--sim-result-relative", ((newSimResult - oldSimResult) / delta * 100).toFixed(1) + '%');
         if (newSimResult > oldSimResult) {
-            newResultElem.classList.add('sim-best', 'cols-right');
+            newResultElem.classList.add('sim-best');
+            oldResultElem.style.setProperty("--sim-result-relative", 0 + '%');
+            newResultElem.style.setProperty("--sim-result-relative", ((newSimResult - oldSimResult) / delta * 100).toFixed(1) + '%');
         }
         else if (newSimResult < oldSimResult) {
-            oldResultElem.classList.add('sim-best', 'cols-right');
+            oldResultElem.classList.add('sim-best');
+            newResultElem.style.setProperty("--sim-result-relative", 0 + '%');
+            oldResultElem.style.setProperty("--sim-result-relative", ((oldSimResult - newSimResult) / delta * 100).toFixed(1) + '%');
         }
         //newResultElem.classList.add(`meld-solver-result-set-sim-${newBetter ? "better" : "worse"}`);
 
