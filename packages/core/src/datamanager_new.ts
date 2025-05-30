@@ -29,7 +29,6 @@ import {getRelicStatModelFor} from "./relicstats/relicstats";
 import {requireNumber, requireString} from "./external/data_validators";
 import {
     DataApiClient,
-    FoodStatBonus,
     GearAcquisitionSource as AcqSrc,
     SpecialStatType
 } from "@xivgear/data-api-client/dataapi";
@@ -534,8 +533,8 @@ export class DataApiGearInfo implements GearItem {
         for (const key in paramMap) {
             const intKey = parseInt(key);
             const baseParam = statById(intKey);
-            if (baseParam === undefined) {
-                // console.warn(`Undefined baseParam! ${key}`);
+            // WD is already accounted for
+            if (baseParam === undefined || baseParam === 'wdPhys' || baseParam === 'wdMag' || baseParam === 'weaponDelay') {
                 continue;
             }
             // We need to add here, because we don't want to overwrite wdPhys/wdMag/weaponDelay
@@ -780,8 +779,7 @@ export class DataApiFoodInfo implements FoodItem {
                 continue;
             }
             const actualKey = statById(parseInt(rawKey));
-            const bonus: FoodStatBonus = data.bonusesHQ[rawKey];
-            this.bonuses[actualKey] = bonus;
+            this.bonuses[actualKey] = data.bonusesHQ[rawKey];
         }
         const sortedStats = Object.entries(this.bonuses).sort((entryA, entryB) => entryB[1].max - entryA[1].max).map(entry => entry[0] as RawStatKey).filter(stat => stat !== 'vitality');
         if (sortedStats.length >= 1) {

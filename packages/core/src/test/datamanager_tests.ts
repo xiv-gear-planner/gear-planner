@@ -3,6 +3,7 @@ import * as assert from "assert";
 import {RawStats} from "@xivgear/xivmath/geartypes";
 import {NewApiDataManager} from "../datamanager_new";
 import {expect} from "chai";
+import {SpecialStatType} from "@xivgear/data-api-client/dataapi";
 
 function eq<T>(actual: T, expected: T) {
     assert.equal(actual, expected);
@@ -248,6 +249,87 @@ describe('New Datamanager', () => {
             //     expect(item.unsyncedVersion.stats.vitality).to.eq(580);
             //     expect(item.stats.vitality).to.eq(411);
             // });
+        });
+    });
+    describe('handles NQ/HQ and special stats correctly', () => {
+        const dm = new NewApiDataManager(['WHM'], 100, 700);
+        before(async () => {
+            await dm.loadData();
+        });
+        it('handles normal item, below isync', () => {
+            // Serenity
+            const item = dm.itemById(42574, false);
+            expect(item.stats.wdMag).to.eq(137);
+            expect(item.stats.mind).to.eq(493);
+            expect(item.stats.crit).to.eq(339);
+            expect(item.stats.determination).to.eq(237);
+        });
+        it('handles normal item, exactly at isync', () => {
+            // Neo Kingdom Cane
+            const item = dm.itemById(42701, false);
+            expect(item.stats.wdMag).to.eq(139);
+            expect(item.stats.mind).to.eq(520);
+            expect(item.stats.crit).to.eq(253);
+            expect(item.stats.determination).to.eq(361);
+        });
+        it('handles normal item, synced', () => {
+            // Queensknight Cane
+            const item = dm.itemById(46459, false);
+            expect(item.stats.wdMag).to.eq(139);
+            expect(item.stats.mind).to.eq(520);
+            expect(item.stats.crit).to.eq(361);
+            expect(item.stats.determination).to.eq(281);
+            expect(item.isSyncedDown).to.eq(true);
+            expect(item.unsyncedVersion.stats.wdMag).to.eq(148);
+        });
+        it('handles HQ item, below sync', () => {
+            // HQ Claro Walnut Cane
+            const item = dm.itemById(42457, false);
+            expect(item.stats.wdMag).to.eq(134);
+            expect(item.stats.mind).to.eq(449);
+            expect(item.stats.piety).to.eq(314);
+            expect(item.stats.determination).to.eq(220);
+        });
+        it('handles NQ item, below sync', () => {
+            // NQ Claro Walnut Cane
+            const item = dm.itemById(42457, true);
+            expect(item.stats.wdMag).to.eq(121);
+            expect(item.stats.mind).to.eq(404);
+            expect(item.stats.piety).to.eq(283);
+            expect(item.stats.determination).to.eq(198);
+        });
+        it('handles HQ item, above sync', () => {
+            // HQ Claro Walnut Cane
+            const item = dm.itemById(46015, false);
+            expect(item.stats.wdMag).to.eq(139);
+            expect(item.stats.mind).to.eq(520);
+            expect(item.stats.crit).to.eq(361);
+            expect(item.stats.piety).to.eq(279);
+        });
+        it('handles NQ item, above sync', () => {
+            // NQ Ceremonial Wand
+            const item = dm.itemById(46015, true);
+            expect(item.stats.wdMag).to.eq(132);
+            expect(item.stats.mind).to.eq(520);
+            expect(item.stats.crit).to.eq(358);
+            expect(item.stats.piety).to.eq(251);
+        });
+        it('handles Occult Crescent item, no bonus', () => {
+            // Arcanaut's RObe of Healing +2
+            const item = dm.itemById(47844, false);
+            expect(item.stats.wdMag).to.eq(0);
+            expect(item.stats.mind).to.eq(501);
+            expect(item.stats.crit).to.eq(348);
+            expect(item.stats.determination).to.eq(271);
+        });
+        it('handles Occult Crescent item, with bonus', () => {
+            // Arcanaut's RObe of Healing +2
+            const item = dm.itemById(47844, false);
+            item.activeSpecialStat = SpecialStatType.OccultCrescent;
+            expect(item.stats.wdMag).to.eq(0);
+            expect(item.stats.mind).to.eq(501 + 120);
+            expect(item.stats.crit).to.eq(348);
+            expect(item.stats.determination).to.eq(271);
         });
     });
 });
