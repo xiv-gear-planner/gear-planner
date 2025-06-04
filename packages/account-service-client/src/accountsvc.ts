@@ -10,17 +10,64 @@
  * ---------------------------------------------------------------
  */
 
-export type CheckAuthResponse = Record;
+export interface AccountInfo {
+  /** @format int32 */
+  uid?: number;
+  email?: string;
+  roles?: string[];
+  verified?: boolean;
+  displayName?: string;
+}
 
-export type LoginRequest = Record;
+export interface JwtResponse {
+  token?: string;
+}
 
-export type LoginResponse = Record;
+export interface LoginRequest {
+  email?: string;
+  password?: string;
+}
 
-export type Record = object;
+export interface LoginResponse {
+  accountInfo?: AccountInfo;
+  message?: string;
+}
 
-export type RegisterRequest = Record;
+export interface RegisterRequest {
+  /**
+   * @format email
+   * @minLength 1
+   */
+  email: string;
+  /** @minLength 8 */
+  password?: string;
+  /**
+   * @minLength 2
+   * @maxLength 64
+   */
+  displayName?: string;
+}
 
-export type RegisterResponse = Record;
+export interface RegisterResponse {
+  /** @format int32 */
+  uid?: number;
+}
+
+export interface ValidationErrorResponse {
+  errors?: Record<string, string>;
+}
+
+export interface VerifyEmailRequest {
+  /** @format email */
+  email?: string;
+  /** @format int32 */
+  code?: number;
+}
+
+export interface VerifyEmailResponse {
+  verified?: boolean;
+  accountInfo?: AccountInfo;
+}
 
 export type QueryParamsType = Record<string | number, any>;
 export type ResponseFormat = keyof Omit<Body, "body" | "bodyUsed">;
@@ -277,39 +324,11 @@ export class AccountServiceClient<
     /**
      * No description
      *
-     * @name Count
-     * @request GET:/account/count
-     */
-    count: (params: RequestParams = {}) =>
-      this.request<string, any>({
-        path: `/account/count`,
-        method: "GET",
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @name Demo
-     * @request GET:/account/demo
-     */
-    demo: (params: RequestParams = {}) =>
-      this.request<string, any>({
-        path: `/account/demo`,
-        method: "GET",
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @name CheckAuth
+     * @name AccountInfo
      * @request GET:/account/info
      */
-    checkAuth: (params: RequestParams = {}) =>
-      this.request<CheckAuthResponse, any>({
+    accountInfo: (params: RequestParams = {}) =>
+      this.request<AccountInfo, any>({
         path: `/account/info`,
         method: "GET",
         format: "json",
@@ -323,7 +342,7 @@ export class AccountServiceClient<
      * @request GET:/account/jwt
      */
     getJwt: (params: RequestParams = {}) =>
-      this.request<Record, any>({
+      this.request<JwtResponse, any>({
         path: `/account/jwt`,
         method: "GET",
         format: "json",
@@ -353,7 +372,7 @@ export class AccountServiceClient<
      * @request POST:/account/logout
      */
     logout: (params: RequestParams = {}) =>
-      this.request<Record, any>({
+      this.request<object, any>({
         path: `/account/logout`,
         method: "POST",
         format: "json",
@@ -367,8 +386,24 @@ export class AccountServiceClient<
      * @request POST:/account/register
      */
     register: (data: RegisterRequest, params: RequestParams = {}) =>
-      this.request<RegisterResponse, any>({
+      this.request<RegisterResponse, ValidationErrorResponse>({
         path: `/account/register`,
+        method: "POST",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @name VerifyEmail
+     * @request POST:/account/verify
+     */
+    verifyEmail: (data: VerifyEmailRequest, params: RequestParams = {}) =>
+      this.request<VerifyEmailResponse, any>({
+        path: `/account/verify`,
         method: "POST",
         body: data,
         type: ContentType.Json,
