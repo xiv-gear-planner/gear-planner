@@ -19,6 +19,11 @@ export interface AccountInfo {
   displayName?: string;
 }
 
+export interface AccountInfoResponse {
+  loggedIn?: boolean;
+  accountInfo?: AccountInfo | null;
+}
+
 export interface JwtResponse {
   token?: string;
 }
@@ -54,7 +59,13 @@ export interface RegisterResponse {
 }
 
 export interface ValidationErrorResponse {
-  errors?: Record<string, string>;
+  validationErrors?: ValidationErrorSingle[];
+}
+
+export interface ValidationErrorSingle {
+  path?: string;
+  field?: string;
+  message?: string;
 }
 
 export interface VerifyEmailRequest {
@@ -307,7 +318,6 @@ export class HttpClient<SecurityDataType = unknown> {
         this.abortControllers.delete(cancelToken);
       }
 
-      if (!response.ok) throw data;
       return data;
     });
   };
@@ -324,8 +334,24 @@ export class AccountServiceClient<
     /**
      * No description
      *
+     * @name CurrentAccount
+     * @request GET:/account/current
+     * @response `200` `AccountInfoResponse` currentAccount 200 response
+     */
+    currentAccount: (params: RequestParams = {}) =>
+      this.request<AccountInfoResponse, any>({
+        path: `/account/current`,
+        method: "GET",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
      * @name AccountInfo
      * @request GET:/account/info
+     * @response `200` `AccountInfo` accountInfo 200 response
      */
     accountInfo: (params: RequestParams = {}) =>
       this.request<AccountInfo, any>({
@@ -340,6 +366,7 @@ export class AccountServiceClient<
      *
      * @name GetJwt
      * @request GET:/account/jwt
+     * @response `200` `JwtResponse` getJwt 200 response
      */
     getJwt: (params: RequestParams = {}) =>
       this.request<JwtResponse, any>({
@@ -354,6 +381,7 @@ export class AccountServiceClient<
      *
      * @name Login
      * @request POST:/account/login
+     * @response `200` `LoginResponse` login 200 response
      */
     login: (data: LoginRequest, params: RequestParams = {}) =>
       this.request<LoginResponse, any>({
@@ -370,6 +398,7 @@ export class AccountServiceClient<
      *
      * @name Logout
      * @request POST:/account/logout
+     * @response `200` `object` logout 200 response
      */
     logout: (params: RequestParams = {}) =>
       this.request<object, any>({
@@ -384,6 +413,8 @@ export class AccountServiceClient<
      *
      * @name Register
      * @request POST:/account/register
+     * @response `200` `RegisterResponse` register 200 response
+     * @response `400` `ValidationErrorResponse` Validation error
      */
     register: (data: RegisterRequest, params: RequestParams = {}) =>
       this.request<RegisterResponse, ValidationErrorResponse>({
@@ -398,8 +429,23 @@ export class AccountServiceClient<
     /**
      * No description
      *
+     * @name ResendVerificationCode
+     * @request POST:/account/resendVerificationCode
+     * @response `200` `void` resendVerificationCode 200 response
+     */
+    resendVerificationCode: (params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/account/resendVerificationCode`,
+        method: "POST",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
      * @name VerifyEmail
      * @request POST:/account/verify
+     * @response `200` `VerifyEmailResponse` verifyEmail 200 response
      */
     verifyEmail: (data: VerifyEmailRequest, params: RequestParams = {}) =>
       this.request<VerifyEmailResponse, any>({

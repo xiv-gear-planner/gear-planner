@@ -13,6 +13,8 @@ export function makeActionButton(label: string | (Node | string)[], action: (ev:
     if (tooltip !== undefined) {
         button.title = tooltip;
     }
+    // By default, will not submit forms.
+    button.type = 'button';
     return button;
 }
 

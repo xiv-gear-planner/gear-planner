@@ -1,4 +1,9 @@
-import {AccountInfo, AccountServiceClient} from "@xivgear/account-service-client/accountsvc";
+import {
+    AccountInfo,
+    AccountServiceClient,
+    RegisterResponse,
+    ValidationErrorResponse
+} from "@xivgear/account-service-client/accountsvc";
 
 class RefreshLoop {
 
@@ -40,6 +45,7 @@ class RefreshLoop {
     }
 }
 
+// TODO: since api client is no longer configured to throw on bad response, need to manually check all of them
 export class AccountStateTracker {
 
     private readonly refreshLoop: RefreshLoop;
@@ -47,16 +53,23 @@ export class AccountStateTracker {
     private jwt: string | null = null;
 
     constructor(private readonly api: AccountServiceClient<never>) {
-        this.refreshLoop = new RefreshLoop(() => this.refresh(), 1000 * 60 * 5);
+        // 5 minute auto-refresh
+        this.refreshLoop = new RefreshLoop(async () => this.refresh(), 1000 * 60 * 5 / 30);
     }
 
     async init(): Promise<void> {
         this.refreshLoop.start();
+        await this.refresh();
     }
 
     async refresh(): Promise<void> {
         await this.refreshInfo();
-        await this.refreshToken();
+        if (this.loggedIn) {
+            await this.refreshToken();
+        }
+        else {
+            this.jwt = null;
+        }
     }
 
     async login(email: string, password: string): Promise<AccountInfo | null> {
@@ -84,15 +97,26 @@ export class AccountStateTracker {
         }
     }
 
-    async refreshInfo(): Promise<AccountInfo | null> {
-        const resp = await this.api.account.accountInfo();
-        if (resp.ok) {
-            const accInfo = resp.data;
-            this._accountState = accInfo;
-            return accInfo;
+    async logout(): Promise<void> {
+        const resp = await this.api.account.logout();
+        if (!resp.ok) {
+            console.error("Failed to log out", resp);
+            throw new Error("Failed to log out");
         }
-        else if (resp.status === 401) {
-            return null;
+        this._accountState = null;
+        this.jwt = null;
+    }
+
+    async refreshInfo(): Promise<AccountInfo | null> {
+        const resp = await this.api.account.currentAccount();
+        if (resp.ok) {
+            const data = resp.data;
+            if (data.loggedIn) {
+                return this._accountState = data.accountInfo;
+            }
+            else {
+                return this._accountState = null;
+            }
         }
         else {
             console.error("Unknown login failure", resp);
@@ -101,6 +125,9 @@ export class AccountStateTracker {
     }
 
     async refreshToken(): Promise<string> {
+        if (!this.loggedIn) {
+            return this.jwt = null;
+        }
         const resp = await this.api.account.getJwt();
         if (resp.ok) {
             const jwt = resp.data.token;
@@ -108,6 +135,7 @@ export class AccountStateTracker {
             return jwt;
         }
         else if (resp.status === 401) {
+            this.jwt = null;
             return null;
         }
         else {
@@ -122,6 +150,48 @@ export class AccountStateTracker {
 
     get accountState(): AccountInfo | null {
         return this._accountState;
+    }
+
+    async register(email: string, password: string, displayName: string): Promise<RegisterResponse | ValidationErrorResponse> {
+        const promise = await this.api.account.register({
+            email,
+            password,
+            displayName,
+        });
+        if (promise.ok) {
+            return promise.data;
+        }
+        else if (promise.status === 400) {
+            // validation failed
+            return promise.error;
+        }
+        else {
+            // other error
+            throw Error("TODO");
+        }
+    }
+
+    get token(): string | null {
+        return this.jwt;
+    }
+
+    async submitVerificationCode(number: number): Promise<boolean> {
+        const response = await this.api.account.verifyEmail({
+            code: number,
+            email: this.accountState.email,
+        });
+        if (response.ok) {
+            this._accountState = response.data.accountInfo;
+            return response.data.verified;
+        }
+        else {
+            console.error("Failed to verify email", response);
+            return false;
+        }
+    }
+
+    async resendVerificationCode(): Promise<void> {
+        await this.api.account.resendVerificationCode();
     }
 }
 
