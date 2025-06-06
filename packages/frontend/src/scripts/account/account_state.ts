@@ -212,8 +212,11 @@ declare global {
 window.accStateTracker = ACCOUNT_STATE_TRACKER;
 
 async function cookieFetch(...params: Parameters<typeof fetch>): Promise<Response> {
+    const headers = new Headers(params[1]?.headers ?? []);
+    headers.append("xivgear-csrf", "1");
     return fetch(params[0], {
         ...(params[1] ?? {}),
         credentials: 'include',
+        headers: headers,
     });
 }

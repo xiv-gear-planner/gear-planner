@@ -336,12 +336,14 @@ export class AccountServiceClient<
      *
      * @name CurrentAccount
      * @request GET:/account/current
+     * @secure
      * @response `200` `AccountInfoResponse` currentAccount 200 response
      */
     currentAccount: (params: RequestParams = {}) =>
       this.request<AccountInfoResponse, any>({
         path: `/account/current`,
         method: "GET",
+        secure: true,
         format: "json",
         ...params,
       }),
@@ -351,12 +353,14 @@ export class AccountServiceClient<
      *
      * @name AccountInfo
      * @request GET:/account/info
+     * @secure
      * @response `200` `AccountInfo` accountInfo 200 response
      */
     accountInfo: (params: RequestParams = {}) =>
       this.request<AccountInfo, any>({
         path: `/account/info`,
         method: "GET",
+        secure: true,
         format: "json",
         ...params,
       }),
@@ -366,12 +370,14 @@ export class AccountServiceClient<
      *
      * @name GetJwt
      * @request GET:/account/jwt
+     * @secure
      * @response `200` `JwtResponse` getJwt 200 response
      */
     getJwt: (params: RequestParams = {}) =>
       this.request<JwtResponse, any>({
         path: `/account/jwt`,
         method: "GET",
+        secure: true,
         format: "json",
         ...params,
       }),
@@ -381,6 +387,7 @@ export class AccountServiceClient<
      *
      * @name Login
      * @request POST:/account/login
+     * @secure
      * @response `200` `LoginResponse` login 200 response
      */
     login: (data: LoginRequest, params: RequestParams = {}) =>
@@ -388,6 +395,7 @@ export class AccountServiceClient<
         path: `/account/login`,
         method: "POST",
         body: data,
+        secure: true,
         type: ContentType.Json,
         format: "json",
         ...params,
@@ -398,12 +406,14 @@ export class AccountServiceClient<
      *
      * @name Logout
      * @request POST:/account/logout
+     * @secure
      * @response `200` `object` logout 200 response
      */
     logout: (params: RequestParams = {}) =>
       this.request<object, any>({
         path: `/account/logout`,
         method: "POST",
+        secure: true,
         format: "json",
         ...params,
       }),
@@ -413,6 +423,7 @@ export class AccountServiceClient<
      *
      * @name Register
      * @request POST:/account/register
+     * @secure
      * @response `200` `RegisterResponse` register 200 response
      * @response `400` `ValidationErrorResponse` Validation error
      */
@@ -421,6 +432,7 @@ export class AccountServiceClient<
         path: `/account/register`,
         method: "POST",
         body: data,
+        secure: true,
         type: ContentType.Json,
         format: "json",
         ...params,
@@ -431,12 +443,14 @@ export class AccountServiceClient<
      *
      * @name ResendVerificationCode
      * @request POST:/account/resendVerificationCode
+     * @secure
      * @response `200` `void` resendVerificationCode 200 response
      */
     resendVerificationCode: (params: RequestParams = {}) =>
       this.request<void, any>({
         path: `/account/resendVerificationCode`,
         method: "POST",
+        secure: true,
         ...params,
       }),
 
@@ -445,6 +459,7 @@ export class AccountServiceClient<
      *
      * @name VerifyEmail
      * @request POST:/account/verify
+     * @secure
      * @response `200` `VerifyEmailResponse` verifyEmail 200 response
      */
     verifyEmail: (data: VerifyEmailRequest, params: RequestParams = {}) =>
@@ -452,6 +467,7 @@ export class AccountServiceClient<
         path: `/account/verify`,
         method: "POST",
         body: data,
+        secure: true,
         type: ContentType.Json,
         format: "json",
         ...params,
