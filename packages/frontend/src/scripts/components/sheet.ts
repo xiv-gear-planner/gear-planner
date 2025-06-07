@@ -925,7 +925,7 @@ export class GearSetEditor extends HTMLElement {
             this.gearTables.forEach(tbl => tbl.recheckHiddenSlots());
         };
 
-        const weaponTable = new GearItemsTable(this.sheet, this.gearSet, itemMapping, this.sheet.classJobStats.offhand ? ['Weapon', 'OffHand'] : ['Weapon'], showHideAllCallback);
+        const weaponTable = new GearItemsTable(this.sheet, this.gearSet, itemMapping, this.gearSet.classJobStats.offhand ? ['Weapon', 'OffHand'] : ['Weapon'], showHideAllCallback);
         const leftSideDiv = document.createElement('div');
         const rightSideDiv = document.createElement('div');
 
@@ -1148,7 +1148,7 @@ export class GearSetViewer extends HTMLElement {
         const rightSideSlots = ['Ears', 'Neck', 'Wrist', 'RingLeft', 'RingRight'] as const;
 
         if (itemMapping.get('Weapon') || itemMapping.get('OffHand')) {
-            const weaponTable = new GearItemsViewTable(this.sheet, this.gearSet, itemMapping, this.sheet.classJobStats.offhand ? ['Weapon', 'OffHand'] : ['Weapon']);
+            const weaponTable = new GearItemsViewTable(this.sheet, this.gearSet, itemMapping, this.gearSet.classJobStats.offhand ? ['Weapon', 'OffHand'] : ['Weapon']);
             weaponTable.classList.add('weapon-table');
             this.appendChild(weaponTable);
         }
