@@ -2,9 +2,13 @@ import {BaseModal} from "@xivgear/common-ui/components/modal";
 import {ACCOUNT_STATE_TRACKER, AccountStateTracker} from "../account_state";
 import {labeledCheckbox, makeActionButton, quickElement} from "@xivgear/common-ui/components/util";
 import {LoadingBlocker} from "@xivgear/common-ui/components/loader";
+import {ValidatingForm} from "@xivgear/common-ui/components/forms/validating_form";
+import {RegisterResponse, ValidationErrorResponse} from "@xivgear/account-service-client/accountsvc";
+import {passwordWithRepeat} from "@xivgear/common-ui/components/forms/form_elements";
 
 class AccountModal extends BaseModal {
     private readonly loadingBlocker: LoadingBlocker;
+
     constructor(tracker: AccountStateTracker) {
         super();
         this.headerText = 'Account';
@@ -138,16 +142,17 @@ class AccountManagementInner extends HTMLElement {
                 email.placeholder = 'Email (Not Displayed Publicly)';
                 email.autocomplete = 'email';
                 email.setAttribute('validation-field', 'email');
-                const passwordField = quickElement('input', ['password-field'], []);
-                passwordField.type = 'password';
-                passwordField.placeholder = 'Password';
-                passwordField.autocomplete = 'new-password';
-                passwordField.setAttribute('validation-field', 'password');
-                const passwordRepeatField = quickElement('input', ['password-field'], []);
-                passwordRepeatField.type = 'password';
-                passwordRepeatField.placeholder = 'Repeat Password';
-                passwordRepeatField.autocomplete = 'new-password';
-                passwordRepeatField.setAttribute('validation-field', 'password');
+                const pwrf = passwordWithRepeat();
+                // const passwordField = quickElement('input', ['password-field'], []);
+                // passwordField.type = 'password';
+                // passwordField.placeholder = 'Password';
+                // passwordField.autocomplete = 'new-password';
+                // passwordField.setAttribute('validation-field', 'password');
+                // const passwordRepeatField = quickElement('input', ['password-field'], []);
+                // passwordRepeatField.type = 'password';
+                // passwordRepeatField.placeholder = 'Repeat Password';
+                // passwordRepeatField.autocomplete = 'new-password';
+                // passwordRepeatField.setAttribute('validation-field', 'password');
                 const displayName = quickElement('input', ['display-name-field'], []);
                 displayName.type = 'text';
                 displayName.placeholder = 'Display Name (May Be Changed)';
@@ -165,72 +170,51 @@ class AccountManagementInner extends HTMLElement {
                 const submitButton = makeActionButton('Register', () => {
                 });
                 submitButton.type = 'submit';
-                const registrationForm = quickElement('form', ['register-form'], [
-                    registerHeader,
-                    email,
-                    passwordField,
-                    passwordRepeatField,
-                    displayName,
-                    privacyCbl,
-                    submitButton,
-                ]);
-
-                function resetValidity() {
-                    // Clear existing validation highlights
-                    registrationForm.querySelectorAll('.failed').forEach(el => el.classList.remove('failed'));
-                }
-
-                // We handle the validation ourselves, so we don't want the default behavior
-                registrationForm.setAttribute("novalidate", "true");
-                registrationForm.addEventListener('invalid', () => {
-                    resetValidity();
-                    registrationForm.requestSubmit();
-                });
-                registrationForm.addEventListener('submit', this.indicateLoading(async (e) => {
-                    e.preventDefault();
-                    if (passwordField.value !== passwordRepeatField.value) {
-                        alert('Passwords do not match');
-                        return;
-                    }
-                    if (!privacyCheckbox.checked) {
-                        privacyCbl.classList.add('failed');
-                        return;
-                    }
-                    const result = await this.tracker.register(email.value, passwordField.value, displayName.value);
-                    if ('validationErrors' in result) {
-
-                        console.warn('Validation errors', result.validationErrors);
-
-                        resetValidity();
-
-                        // Check response
-                        result.validationErrors.forEach(err => {
-                            function markInvalid(el: HTMLElement) {
-                                el.classList.add('failed');
-                                if (el instanceof HTMLInputElement) {
-                                    el.focus();
-                                    el.setCustomValidity(err.message);
-                                }
-                                else {
-                                    const ele = el.querySelector('input');
-                                    ele?.focus();
-                                    ele?.setCustomValidity(err.message);
-                                }
-                            }
-
-                            registrationForm.querySelectorAll(`[validation-path="${err.path}"]`).forEach(markInvalid);
-                            registrationForm.querySelectorAll(`[validation-field="${err.field}"]`).forEach(markInvalid);
-                        });
-
-                        // Overall status
-                        registerHeader.classList.add('failed');
-                    }
-                    else {
+                const outer = this;
+                const registrationForm = new ValidatingForm<RegisterResponse>({
+                    afterSubmitAttempt(valid: boolean): void {
+                        if (valid) {
+                            registerHeader.classList.remove('failed');
+                        }
+                        else {
+                            registerHeader.classList.add('failed');
+                        }
+                    },
+                    children: [
+                        registerHeader,
+                        email,
+                        pwrf.passwordField,
+                        pwrf.passwordRepeatField,
+                        displayName,
+                        privacyCbl,
+                        submitButton,
+                    ],
+                    async onSuccess(value: RegisterResponse): Promise<void> {
                         // Login succeeded
-                        await this.tracker.refreshInfo();
-                        this.refresh();
-                    }
-                }));
+                        await outer.tracker.refreshInfo();
+                        outer.refresh();
+                    },
+                    preValidate(): boolean {
+                        let valid = pwrf.checkValid();
+                        if (!privacyCheckbox.checked) {
+                            privacyCbl.classList.add('failed');
+                            valid = false;
+                        }
+                        return valid;
+                    },
+                    submit(): Promise<ValidationErrorResponse | RegisterResponse> {
+                        return outer.tracker.register(email.value, pwrf.getValue(), displayName.value);
+                    },
+                    wrapper: {
+                        before: function () {
+                            outer.showLoadingBlocker();
+                        },
+                        after: function () {
+                            outer.hideLoadingBlocker();
+                        },
+                    },
+                });
+
                 children.push(registrationForm);
             }
             this.replaceChildren(...children);

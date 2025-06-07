@@ -156,9 +156,12 @@ export class NewSheetForm extends HTMLFormElement {
         this.submitButton.textContent = "New Sheet";
         this.appendChild(this.submitButton);
 
-        onsubmit = (ev) => {
+        this.addEventListener('submit', (ev) => {
             this.doSubmit(ev);
-        };
+        });
+        // this.onsubmit = (ev) => {
+        //     this.doSubmit(ev);
+        // };
     }
 
     takeFocus() {
