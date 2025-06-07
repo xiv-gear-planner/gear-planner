@@ -26,6 +26,7 @@ import {
     GearItem,
     GearSetIssue,
     GearSetResult,
+    JobData,
     Materia,
     MateriaAutoFillController,
     MateriaAutoFillPrio,
@@ -567,6 +568,10 @@ export class CharacterGearSet {
 
     get job(): JobName {
         return this._jobOverride ?? this.sheet.classJobName;
+    }
+
+    get classJobStats(): JobData {
+        return this.sheet.statsForJob(this.job);
     }
 
     /**
