@@ -194,6 +194,7 @@ body {
       cursor: pointer;
 
     }
+
     * {
       text-decoration: none;
     }
@@ -712,7 +713,9 @@ button {
 
 input {
   &[type="text"],
-  &[type="number"] {
+  &[type="number"],
+  &[type="password"],
+  &[type="email"] {
     color: var(--fg-color);
     //background-color: var(--input-background-color);
     .standard-border-radius();
@@ -2615,6 +2618,8 @@ show-hide-button {
     .modal-content-area {
       overflow: auto;
       margin-bottom: 10px;
+      // Padding to make sure that glow around input doesn't get cut off
+      padding: 5px;
     }
 
     .modal-close-button {
@@ -3975,6 +3980,7 @@ expandable-text {
     &.cycle-sim-results-multirotation {
       grid-template-columns: 1fr 1fr;
       grid-template-rows: auto 1fr;
+
       .cycle-sim-abilities-holder {
         grid-column-end: span 2;
         min-height: 100px;
@@ -3989,9 +3995,11 @@ expandable-text {
         }
       }
     }
+
     &.cycle-sim-results-onerotation {
       grid-template-rows: auto 1fr;
       grid-template-columns: 100%;
+
       .cycle-sim-abilities-holder {
         grid-column-end: span 1;
       }
@@ -4025,6 +4033,7 @@ expandable-text {
       th {
         text-align: center;
       }
+
       td[col-id="dps"] {
         min-width: 85px;
         text-align: right;

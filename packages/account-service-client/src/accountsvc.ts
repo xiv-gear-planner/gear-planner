@@ -10,17 +10,75 @@
  * ---------------------------------------------------------------
  */
 
-export type CheckAuthResponse = Record;
+export interface AccountInfo {
+  /** @format int32 */
+  uid?: number;
+  email?: string;
+  roles?: string[];
+  verified?: boolean;
+  displayName?: string;
+}
 
-export type LoginRequest = Record;
+export interface AccountInfoResponse {
+  loggedIn?: boolean;
+  accountInfo?: AccountInfo | null;
+}
 
-export type LoginResponse = Record;
+export interface JwtResponse {
+  token?: string;
+}
 
-export type Record = object;
+export interface LoginRequest {
+  email?: string;
+  password?: string;
+}
 
-export type RegisterRequest = Record;
+export interface LoginResponse {
+  accountInfo?: AccountInfo;
+  message?: string;
+}
 
-export type RegisterResponse = Record;
+export interface RegisterRequest {
+  /**
+   * @format email
+   * @minLength 1
+   */
+  email: string;
+  /** @minLength 8 */
+  password?: string;
+  /**
+   * @minLength 2
+   * @maxLength 64
+   */
+  displayName?: string;
+}
+
+export interface RegisterResponse {
+  /** @format int32 */
+  uid?: number;
+}
+
+export interface ValidationErrorResponse {
+  validationErrors?: ValidationErrorSingle[];
+}
+
+export interface ValidationErrorSingle {
+  path?: string;
+  field?: string;
+  message?: string;
+}
+
+export interface VerifyEmailRequest {
+  /** @format email */
+  email?: string;
+  /** @format int32 */
+  code?: number;
+}
+
+export interface VerifyEmailResponse {
+  verified?: boolean;
+  accountInfo?: AccountInfo;
+}
 
 export type QueryParamsType = Record<string | number, any>;
 export type ResponseFormat = keyof Omit<Body, "body" | "bodyUsed">;
@@ -260,7 +318,6 @@ export class HttpClient<SecurityDataType = unknown> {
         this.abortControllers.delete(cancelToken);
       }
 
-      if (!response.ok) throw data;
       return data;
     });
   };
@@ -277,13 +334,16 @@ export class AccountServiceClient<
     /**
      * No description
      *
-     * @name Count
-     * @request GET:/account/count
+     * @name CurrentAccount
+     * @request GET:/account/current
+     * @secure
+     * @response `200` `AccountInfoResponse` currentAccount 200 response
      */
-    count: (params: RequestParams = {}) =>
-      this.request<string, any>({
-        path: `/account/count`,
+    currentAccount: (params: RequestParams = {}) =>
+      this.request<AccountInfoResponse, any>({
+        path: `/account/current`,
         method: "GET",
+        secure: true,
         format: "json",
         ...params,
       }),
@@ -291,27 +351,16 @@ export class AccountServiceClient<
     /**
      * No description
      *
-     * @name Demo
-     * @request GET:/account/demo
-     */
-    demo: (params: RequestParams = {}) =>
-      this.request<string, any>({
-        path: `/account/demo`,
-        method: "GET",
-        format: "json",
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @name CheckAuth
+     * @name AccountInfo
      * @request GET:/account/info
+     * @secure
+     * @response `200` `AccountInfo` accountInfo 200 response
      */
-    checkAuth: (params: RequestParams = {}) =>
-      this.request<CheckAuthResponse, any>({
+    accountInfo: (params: RequestParams = {}) =>
+      this.request<AccountInfo, any>({
         path: `/account/info`,
         method: "GET",
+        secure: true,
         format: "json",
         ...params,
       }),
@@ -321,11 +370,14 @@ export class AccountServiceClient<
      *
      * @name GetJwt
      * @request GET:/account/jwt
+     * @secure
+     * @response `200` `JwtResponse` getJwt 200 response
      */
     getJwt: (params: RequestParams = {}) =>
-      this.request<Record, any>({
+      this.request<JwtResponse, any>({
         path: `/account/jwt`,
         method: "GET",
+        secure: true,
         format: "json",
         ...params,
       }),
@@ -335,12 +387,15 @@ export class AccountServiceClient<
      *
      * @name Login
      * @request POST:/account/login
+     * @secure
+     * @response `200` `LoginResponse` login 200 response
      */
     login: (data: LoginRequest, params: RequestParams = {}) =>
       this.request<LoginResponse, any>({
         path: `/account/login`,
         method: "POST",
         body: data,
+        secure: true,
         type: ContentType.Json,
         format: "json",
         ...params,
@@ -351,11 +406,14 @@ export class AccountServiceClient<
      *
      * @name Logout
      * @request POST:/account/logout
+     * @secure
+     * @response `200` `object` logout 200 response
      */
     logout: (params: RequestParams = {}) =>
-      this.request<Record, any>({
+      this.request<object, any>({
         path: `/account/logout`,
         method: "POST",
+        secure: true,
         format: "json",
         ...params,
       }),
@@ -365,12 +423,51 @@ export class AccountServiceClient<
      *
      * @name Register
      * @request POST:/account/register
+     * @secure
+     * @response `200` `RegisterResponse` register 200 response
+     * @response `400` `ValidationErrorResponse` Validation error
      */
     register: (data: RegisterRequest, params: RequestParams = {}) =>
-      this.request<RegisterResponse, any>({
+      this.request<RegisterResponse, ValidationErrorResponse>({
         path: `/account/register`,
         method: "POST",
         body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @name ResendVerificationCode
+     * @request POST:/account/resendVerificationCode
+     * @secure
+     * @response `200` `void` resendVerificationCode 200 response
+     */
+    resendVerificationCode: (params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/account/resendVerificationCode`,
+        method: "POST",
+        secure: true,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @name VerifyEmail
+     * @request POST:/account/verify
+     * @secure
+     * @response `200` `VerifyEmailResponse` verifyEmail 200 response
+     */
+    verifyEmail: (data: VerifyEmailRequest, params: RequestParams = {}) =>
+      this.request<VerifyEmailResponse, any>({
+        path: `/account/verify`,
+        method: "POST",
+        body: data,
+        secure: true,
         type: ContentType.Json,
         format: "json",
         ...params,
