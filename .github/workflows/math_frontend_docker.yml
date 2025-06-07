@@ -32,7 +32,8 @@ jobs:
           npm ci
           npm run test
           npm run -w @xivgear/math-frontend buildprod
-          npm run docs
+#         We can't do docs here, because most of the frontend stuff isn't part of the math build.
+#          npm run docs
 
       - name: Inject commit info
         run: |
