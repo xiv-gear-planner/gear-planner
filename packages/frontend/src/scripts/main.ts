@@ -31,6 +31,9 @@ document.addEventListener("DOMContentLoaded", () => {
     installFallbackPrivacyArea();
 
     ACCOUNT_STATE_TRACKER.init();
+
+    // TODO: remove this when there is an actual button to bring up the account management UI
+    // eslint-disable-next-line no-constant-condition
     if (false) {
         showAccountModal();
     }

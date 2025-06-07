@@ -4,7 +4,7 @@ import {
     RegisterResponse,
     ValidationErrorResponse
 } from "@xivgear/account-service-client/accountsvc";
-import {recordError, recordEvent} from "@xivgear/common-ui/analytics/analytics";
+import {recordEvent} from "@xivgear/common-ui/analytics/analytics";
 
 class RefreshLoop {
 
