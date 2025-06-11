@@ -52,10 +52,17 @@ export class AccountStateTracker {
     private readonly refreshLoop: RefreshLoop;
     private _accountState: AccountInfo | null = null;
     private jwt: string | null = null;
+    private _listeners: AccountStateListener[] = [];
 
     constructor(private readonly api: AccountServiceClient<never>) {
         // 5 minute auto-refresh
         this.refreshLoop = new RefreshLoop(async () => this.refresh(), 1000 * 60 * 5 / 30);
+    }
+
+    private notifyListeners(): void {
+        for (const listener of this._listeners) {
+            listener(this);
+        }
     }
 
     /**
@@ -98,6 +105,7 @@ export class AccountStateTracker {
             if (resp.ok) {
                 const info = resp.data.accountInfo;
                 this._accountState = info;
+                this.notifyListeners();
                 recordEvent('loginSuccess');
                 return info;
             }
@@ -135,6 +143,7 @@ export class AccountStateTracker {
         }
         this._accountState = null;
         this.jwt = null;
+        this.notifyListeners();
     }
 
     /**
@@ -147,11 +156,13 @@ export class AccountStateTracker {
         if (resp.ok) {
             const data = resp.data;
             if (data.loggedIn) {
-                return this._accountState = data.accountInfo;
+                this._accountState = data.accountInfo;
             }
             else {
-                return this._accountState = null;
+                this._accountState = null;
             }
+            this.notifyListeners();
+            return this._accountState;
         }
         else {
             console.error("Unknown login failure", resp);
@@ -170,10 +181,12 @@ export class AccountStateTracker {
         if (resp.ok) {
             const jwt = resp.data.token;
             this.jwt = jwt;
+            this.notifyListeners();
             return jwt;
         }
         else if (resp.status === 401) {
             this.jwt = null;
+            this.notifyListeners();
             return null;
         }
         else {
@@ -212,6 +225,7 @@ export class AccountStateTracker {
             password,
             displayName,
         });
+        this.notifyListeners();
         if (promise.ok) {
             recordEvent('registerSuccess');
             return promise.data;
@@ -252,11 +266,13 @@ export class AccountStateTracker {
         if (response.ok) {
             this._accountState = response.data.accountInfo;
             recordEvent('verifyEmailSuccess');
+            this.notifyListeners();
             return response.data.verified;
         }
         else {
             console.error("Failed to verify email", response);
             recordEvent('verifyEmailFailure');
+            this.notifyListeners();
             return false;
         }
     }
@@ -268,11 +284,17 @@ export class AccountStateTracker {
         recordEvent('resendVerificationCode');
         await this.api.account.resendVerificationCode();
     }
+
+    addAccountStateListener(listener: AccountStateListener): void {
+        this._listeners.push(listener);
+    }
 }
+
+export type AccountStateListener = (tracker: AccountStateTracker) => void;
 
 
 const apiClient = new AccountServiceClient<never>({
-    baseUrl: 'https://accountsvc.xivgear.app',
+    baseUrl: document.location.hostname === 'localhost' ? 'http://localhost:8086' : 'https://accountsvc.xivgear.app',
     // baseUrl: 'http://192.168.1.119:8086',
     customFetch: cookieFetch,
 });

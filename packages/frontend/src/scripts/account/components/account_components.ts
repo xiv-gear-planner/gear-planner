@@ -2,8 +2,12 @@ import {BaseModal} from "@xivgear/common-ui/components/modal";
 import {ACCOUNT_STATE_TRACKER, AccountStateTracker} from "../account_state";
 import {labeledCheckbox, makeActionButton, quickElement} from "@xivgear/common-ui/components/util";
 import {LoadingBlocker} from "@xivgear/common-ui/components/loader";
-import {ValidatingForm} from "@xivgear/common-ui/components/forms/validating_form";
-import {RegisterResponse, ValidationErrorResponse} from "@xivgear/account-service-client/accountsvc";
+import {ValidatingForm, vfWrap} from "@xivgear/common-ui/components/forms/validating_form";
+import {
+    RegisterResponse,
+    ValidationErrorResponse,
+    ValidationErrorSingle
+} from "@xivgear/account-service-client/accountsvc";
 import {passwordWithRepeat} from "@xivgear/common-ui/components/forms/form_elements";
 
 class AccountModal extends BaseModal {
@@ -166,6 +170,7 @@ class AccountManagementInner extends HTMLElement {
                 privacyCheckbox.addEventListener('change', () => {
                     privacyCbl.classList.remove('failed');
                 });
+                privacyCbl.setAttribute('validation-field', 'privacy');
 
                 const submitButton = makeActionButton('Register', () => {
                 });
@@ -194,25 +199,26 @@ class AccountManagementInner extends HTMLElement {
                         await outer.tracker.refreshInfo();
                         outer.refresh();
                     },
-                    preValidate(): boolean {
-                        let valid = pwrf.checkValid();
+                    preValidate(): ValidationErrorSingle[] | null {
+                        const out: ValidationErrorSingle[] = [];
                         if (!privacyCheckbox.checked) {
-                            privacyCbl.classList.add('failed');
-                            valid = false;
+                            out.push({
+                                field: 'privacy',
+                                message: 'You must agree to the privacy policy',
+                            });
                         }
-                        return valid;
+                        if (!pwrf.isValid()) {
+                            out.push({
+                                field: 'password',
+                                message: 'Passwords do not match',
+                            });
+                        }
+                        return out;
                     },
                     submit(): Promise<ValidationErrorResponse | RegisterResponse> {
                         return outer.tracker.register(email.value, pwrf.getValue(), displayName.value);
                     },
-                    wrapper: {
-                        before: function () {
-                            outer.showLoadingBlocker();
-                        },
-                        after: function () {
-                            outer.hideLoadingBlocker();
-                        },
-                    },
+                    wrapper: vfWrap(() => this.showLoadingBlocker(), () => this.hideLoadingBlocker()),
                 });
 
                 children.push(registrationForm);
@@ -225,6 +231,29 @@ class AccountManagementInner extends HTMLElement {
 
 export function showAccountModal() {
     new AccountModal(ACCOUNT_STATE_TRACKER).attachAndShow();
+}
+
+export function setupAccountUi() {
+    // First, find the button
+    const accountButton = document.querySelector('#account-button');
+    if (!accountButton) {
+        console.error("Could not find account button");
+        reportError('Could not find account button');
+        return;
+    }
+    accountButton.addEventListener('click', (e) => {
+        e.preventDefault();
+        showAccountModal();
+    });
+    const accountButtonText = accountButton.lastElementChild;
+    ACCOUNT_STATE_TRACKER.addAccountStateListener((tracker) => {
+        if (tracker.loggedIn) {
+            accountButtonText.textContent = 'Account';
+        }
+        else {
+            accountButtonText.textContent = 'Log In';
+        }
+    });
 }
 
 declare global {

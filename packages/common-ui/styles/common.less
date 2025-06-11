@@ -222,11 +222,15 @@ body {
       //height: 20px;
       box-sizing: border-box;
       //background-color: var(--fg-color);
-      padding: 8px 10px 12px 10px;
+      padding: 8px 8px 12px 8px;
       margin: 0;
       text-decoration: none;
       display: inline-block;
       .button-auto-transition();
+
+      span {
+        white-space: nowrap;
+      }
     }
 
     a:hover {
@@ -3449,6 +3453,11 @@ body.modern {
   --perfect-tiering-box-shadow: none;
   //--item-name-col-width: 250px;
   //--button-height: 25px;
+
+  input {
+    border: none !important;
+  }
+
   table {
 
     border-radius: 10px;
@@ -3554,7 +3563,7 @@ body.modern {
       .shadow();
       width: fit-content;
       display: flex;
-      align-items: baseline;
+      align-items: normal;
       margin-left: auto;
       margin-right: auto;
       background-color: var(--table-bg-color);
@@ -3564,13 +3573,25 @@ body.modern {
       padding-left: var(--mmai-border-radius);
       padding-right: var(--mmai-border-radius);
 
+      @media(width < 525px) {
+        a span {
+          display: none;
+        }
+        .svg-glyph {
+          padding-left: 0 !important;
+          padding-right: 0 !important;
+        }
+      }
+
       .svg-glyph {
         //height: 1.3em;
         //width: 1.3em;
         scale: 1.5;
+        padding-left: 5px;
         padding-right: 5px;
 
         &:only-child {
+          padding-left: 0;
           padding-right: 0;
         }
 
@@ -3597,7 +3618,7 @@ body.modern {
     margin-bottom: 5px;
   }
 
-  button#show-hide-menu-button {
+  button#show-hide-menu-button, button#help-button {
     .shadow();
   }
 
@@ -3930,7 +3951,6 @@ settings-modal {
 
 input {
   background: var(--input-background-color);
-  border: none !important;
 }
 
 button.narrow-button {
@@ -4109,4 +4129,32 @@ expandable-text {
   bottom: 0;
   left: 0;
   right: 0;
+}
+
+.validating-form {
+  // If needed, this could be moved to a separate anchor element
+  position: relative;
+
+  .validation-message-holder {
+    display: none;
+
+    &.failed {
+      display: block;
+      color: var(--fg-color);
+    }
+
+    position: absolute;
+    width: 100%;
+    height: min-content;
+    box-sizing: border-box;
+    translate: 0 -100%;
+    background-color: color-mix(in srgb, var(--bg-color) 90%, transparent);
+    box-shadow: var(--issue-error-color) 0 0 5px 2px;
+    border-radius: var(--standard-border-radius);
+    padding: 10px;
+  }
+
+  .validation-message-close {
+    float: right;
+  }
 }

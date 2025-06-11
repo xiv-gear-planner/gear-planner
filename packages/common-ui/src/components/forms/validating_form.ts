@@ -1,3 +1,5 @@
+import {quickElement} from "../util";
+
 export interface ValidationErrorResponse {
     validationErrors?: ValidationErrorSingle[];
 }
@@ -6,6 +8,18 @@ export interface ValidationErrorSingle {
     path?: string;
     field?: string;
     message?: string;
+}
+
+export function vfWrap(before: () => void, after: () => void): ValidatingFormWrapper {
+    return {
+        before,
+        after,
+    };
+}
+
+export type ValidatingFormWrapper = {
+    before: () => void,
+    after: () => void,
 }
 
 /**
@@ -20,9 +34,10 @@ export class ValidatingForm<Response extends object> extends HTMLFormElement {
         children?: (string | Node)[],
         // Pre-hook prior to async function
         /**
-         * Pre-hook to validate synchronously, before any async behavior is invoked
+         * Pre-hook to validate synchronously, before any async behavior is invoked.
+         * Returns the validation messages (empty list indicates no issues).
          */
-        preValidate?: () => boolean,
+        preValidate?: () => ValidationErrorSingle[],
         /**
          * Function to be called when pre-validation passes.
          */
@@ -31,10 +46,7 @@ export class ValidatingForm<Response extends object> extends HTMLFormElement {
          * wrapper.before is invoked before async processing starts, while wrapper.after is invoked
          * afterwards. This is useful for showing a loading indicator.
          */
-        wrapper?: {
-            before: () => void,
-            after: () => void
-        },
+        wrapper?: ValidatingFormWrapper,
         /**
          * Called after a submit attempt which makes it to any stage whatsoever.
          *
@@ -47,35 +59,40 @@ export class ValidatingForm<Response extends object> extends HTMLFormElement {
          * @param value The result of `submit`
          */
         onSuccess: (value: Response) => Promise<void>,
+        /**
+         * Custom function to display validity messages
+         *
+         * @param messages Messages if there are errors, empty if not.
+         */
+        validationMessageDisplayer?: (messages: ValidationErrorSingle[]) => void,
     }) {
         super();
-        if (args.children) {
-            this.replaceChildren(...args.children);
-        }
+        this.classList.add('validating-form');
+        const validationMessageInner = quickElement('div', ['validation-message-inner'], []);
+        const validationMessageClose = quickElement('button', ['validation-message-close'], ['X']);
+        validationMessageClose.type = 'button';
+        const validationMessage = quickElement('div', ['validation-message-holder'], [validationMessageClose, validationMessageInner]);
+        validationMessageClose.addEventListener('click', () => {
+            validationMessage.classList.remove('failed');
+        });
+        this.replaceChildren(validationMessage, ...args.children ?? []);
         // We handle the validation ourselves, so we don't want the default behavior
         this.setAttribute("novalidate", "true");
         this.addEventListener('invalid', () => {
             this.resetValidity();
             this.requestSubmit();
         });
+
         function makeWrapper<P extends unknown[], R>(f: (...p: P) => Promise<R>): (...p: P) => Promise<R> {
             return async (...p: P) => {
                 args.wrapper?.before();
                 return await f(...p).finally(() => args.wrapper?.after());
             };
         }
-        this.addEventListener('submit', makeWrapper(async (e) => {
-            this.resetValidity();
-            e.preventDefault();
-            if (args.preValidate && !args.preValidate()) {
-                args.afterSubmitAttempt?.(false);
-                this.reportValidity();
-                return;
-            }
-            const result: Response | ValidationErrorResponse = await args.submit();
-            if ('validationErrors' in result) {
-                console.warn('Validation errors', result.validationErrors);
-                result.validationErrors?.forEach(err => {
+
+        const processValidationErrors = (errors: ValidationErrorSingle[] | null) => {
+            if (errors !== null && errors.length > 0) {
+                errors.forEach(err => {
                     function markInvalid(el: Element) {
                         el.classList.add('failed');
                         if (el instanceof HTMLInputElement) {
@@ -93,7 +110,32 @@ export class ValidatingForm<Response extends object> extends HTMLFormElement {
                     this.querySelectorAll(`[validation-field="${err.field}"]`).forEach(markInvalid);
                 });
                 args.afterSubmitAttempt?.(false);
+                if (args.validationMessageDisplayer) {
+                    args.validationMessageDisplayer?.(errors);
+                }
+                else {
+                    validationMessageInner.textContent = errors[0].message ?? "";
+                    validationMessage.classList.add('failed');
+                }
                 this.reportValidity();
+            }
+        };
+        this.addEventListener('submit', makeWrapper(async (e) => {
+            this.resetValidity();
+            e.preventDefault();
+            if (args.preValidate) {
+                const errors = args.preValidate();
+                if (errors.length > 0) {
+                    processValidationErrors(errors);
+                    args.afterSubmitAttempt?.(false);
+                    this.reportValidity();
+                    return;
+                }
+            }
+            const result: Response | ValidationErrorResponse = await args.submit();
+            if ('validationErrors' in result) {
+                console.warn('Validation errors', result.validationErrors);
+                processValidationErrors(result.validationErrors ?? null);
             }
             else {
                 args.afterSubmitAttempt?.(true);
