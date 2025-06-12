@@ -259,7 +259,6 @@ export class SheetPickerTable extends CustomTable<SelectableSheet, TableSelectio
                 },
             }),
             // col({
-            //     // TODO remove
             //     shortName: "sort",
             //     displayName: "Sort",
             //     getter: sheet => {
