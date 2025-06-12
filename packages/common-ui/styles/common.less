@@ -1087,6 +1087,7 @@ job-picker {
 #content-area > .my-sheets-section {
   .named-section-content-area {
     width: 600px;
+    scrollbar-gutter: stable;
 
     table.gear-sheets-table {
       overflow: auto;
@@ -1098,6 +1099,10 @@ job-picker {
         height: 23px;
         max-height: 23px;
         cursor: pointer;
+        &.dragging {
+          z-index: 5;
+          opacity: 0.75;
+        }
       }
 
       tr:first-child {
@@ -1114,8 +1119,7 @@ job-picker {
         height: 23px;
 
         &[col-id="sheetjob"] {
-          // Why does this work
-          width: 0;
+          width: 60px;
           text-align: right;
 
           img {
@@ -1153,8 +1157,28 @@ job-picker {
         }
       }
 
+      .search-row-outer {
+        cursor: unset;
+      }
+
+      .search-row {
+        display: flex;
+        gap: 5px;
+        width: 100%;
+        * {
+          box-sizing: border-box;
+        }
+        input {
+          width: 100%;
+          padding-left: 5px;
+        }
+        button {
+          aspect-ratio: 1;
+        }
+      }
+
       td[col-id="sheetactions"] {
-        width: 44px;
+        width: 52px;
         max-height: 23px;
         height: 23px;
 
