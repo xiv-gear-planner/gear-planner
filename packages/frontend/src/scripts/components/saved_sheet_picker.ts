@@ -113,7 +113,6 @@ class SheetManager {
         //  so we set the sort order to be the index of the first sheet plus a very small amount.
         // 4. Sheet is dragged to itself
         //  No-op
-        // TODO: needs to re-sort this.lastData
         if (toIndex === 0) {
             // Scenario 3
             draggedSheet.sortOrder = draggedTo.sortOrder + 0.0001;
@@ -236,6 +235,8 @@ export class SheetPickerTable extends CustomTable<SelectableSheet, TableSelectio
                             });
                             if (target instanceof CustomRow) {
                                 this.mgr.reorderTo(sel, target.dataItem);
+                                // TODO: this is slow because it has to replace all of the rows, even though only one
+                                // needs to be moved.
                                 outer.readData();
                             }
                             const rect = rowBeingDragged.getBoundingClientRect();
@@ -349,10 +350,12 @@ export class SheetPickerTable extends CustomTable<SelectableSheet, TableSelectio
             const searchBox = document.createElement("input");
             searchBox.type = 'text';
             searchBox.placeholder = "Search";
+            // TODO: replace with unicode
             const clearBtn = makeActionButton('X', () => {
                 searchBox.value = '';
                 searchBox.dispatchEvent(new Event('input'));
             });
+            // TODO: hide dragger when you have a filter active
             clearBtn.disabled = true;
             searchBox.addEventListener('input', () => {
                 const searchValue = (searchBox.value ?? '').toLowerCase().trim();
