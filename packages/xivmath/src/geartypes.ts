@@ -735,6 +735,22 @@ export interface SheetExport {
     specialStats?: string | null,
 }
 
+export type SheetMetadata = {
+    currentVersion: number,
+    lastSyncedVersion: number,
+    sortOrder: number | null,
+    hasConflict: boolean,
+    forcePush: boolean,
+}
+
+export const DEFAULT_SHEET_METADATA: SheetMetadata = {
+    currentVersion: 1,
+    lastSyncedVersion: 0,
+    sortOrder: null,
+    hasConflict: false,
+    forcePush: false,
+};
+
 export type CustomItemExport = {
     ilvl: number;
     equipLvl: number;

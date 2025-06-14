@@ -17,6 +17,7 @@ import {
     SupportedLevel
 } from "@xivgear/xivmath/xivconstants";
 import {
+    DEFAULT_SHEET_METADATA,
     EquippedItem,
     EquipSlotKey,
     EquipSlots,
@@ -38,6 +39,7 @@ import {
     SetExportExternalSingle,
     SetStatsExport,
     SheetExport,
+    SheetMetadata,
     SheetStatsExport,
     SimExport,
     Substat
@@ -309,6 +311,10 @@ export class GearPlanSheet {
         return this._saveKey;
     }
 
+    get metaSaveKey() {
+        return this._saveKey + '-meta';
+    }
+
     /**
      * Whether to show advanced stats.
      */
@@ -459,6 +465,23 @@ export class GearPlanSheet {
             this._timestamp = new Date();
             const fullExport = this.exportSheet(false);
             localStorage.setItem(this.saveKey, JSON.stringify(fullExport));
+            const msk = this.metaSaveKey;
+            const metaRaw = localStorage.getItem(msk);
+            let meta: SheetMetadata;
+            if (metaRaw) {
+                meta = {
+                    ...DEFAULT_SHEET_METADATA,
+                    ...JSON.parse(metaRaw),
+                };
+            }
+            else {
+                meta = DEFAULT_SHEET_METADATA;
+            }
+            meta = {
+                ...meta,
+                currentVersion: (meta.currentVersion ?? 1) + 1,
+            };
+            localStorage.setItem(msk, JSON.stringify(meta));
         }
         else {
             console.debug("Ignoring request to save sheet because it has no save key");
