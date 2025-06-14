@@ -1,6 +1,6 @@
 import {col, CustomRow, CustomTable, SpecialRow, TableSelectionModel} from "@xivgear/common-ui/table/tables";
 import {DEFAULT_SHEET_METADATA, SheetExport, SheetMetadata} from "@xivgear/xivmath/geartypes";
-import {faIcon, makeActionButton, quickElement} from "@xivgear/common-ui/components/util";
+import {faIcon, makeActionButton, makeCloseButton, quickElement} from "@xivgear/common-ui/components/util";
 import {deleteSheetByKey} from "@xivgear/core/persistence/saved_sheets";
 import {getHashForSaveKey, openSheetByKey, showNewSheetForm} from "../base_ui";
 import {confirmDelete} from "@xivgear/common-ui/components/delete_confirm";
@@ -48,6 +48,17 @@ class SheetManager {
     constructor(private readonly storage: Storage) {
     }
 
+    /**
+     * Debug method which will reset the sort order of all sheets
+     */
+    resetAll(): void {
+        this.lastData.forEach(item => {
+            item.sortOrder = null;
+        });
+        this.readData();
+        this.flush();
+    }
+
     readData(): SelectableSheet[] {
         const items: SelectableSheet[] = [];
         const outer = this;
@@ -73,7 +84,7 @@ class SheetManager {
                             }
                             return defaultSort;
                         },
-                        set sortOrder(value: number) {
+                        set sortOrder(value: number | null) {
                             console.log("new sort", value);
                             meta.sortOrder = value;
                             dirty = true;
@@ -98,7 +109,7 @@ class SheetManager {
         return items;
     }
 
-    reorderTo(draggedSheet: SelectableSheet, draggedTo: SelectableSheet) {
+    reorderTo(draggedSheet: SelectableSheet, draggedTo: SelectableSheet): 'up' | 'down' | null {
         // Index where we want the dragged sheet to go to
         const fromIndex = this.lastData.indexOf(draggedSheet);
         const toIndex = this.lastData.indexOf(draggedTo);
@@ -113,16 +124,19 @@ class SheetManager {
         //  so we set the sort order to be the index of the first sheet plus a very small amount.
         // 4. Sheet is dragged to itself
         //  No-op
+        let out: 'down' | 'up';
         if (toIndex === 0) {
             // Scenario 3
             draggedSheet.sortOrder = draggedTo.sortOrder + 0.0001;
+            out = 'up';
         }
         else if (toIndex === lastIndex) {
             draggedSheet.sortOrder = draggedTo.sortOrder - 1;
+            out = 'down';
         }
         else if (draggedSheet === draggedTo) {
             // No-op
-            return;
+            return null;
         }
         else {
             // In-between
@@ -136,8 +150,10 @@ class SheetManager {
             const primaryBasis = draggedTo.sortOrder;
             const newSort = (primaryBasis + secondBasis) / 2;
             draggedSheet.sortOrder = newSort;
+            out = isDown ? 'down' : 'up';
         }
         this.resort();
+        return out;
     }
 
     private resort() {
@@ -234,10 +250,13 @@ export class SheetPickerTable extends CustomTable<SelectableSheet, TableSelectio
                                 return br.y < dragY && dragY < (br.y + effectiveHeight);
                             });
                             if (target instanceof CustomRow) {
-                                this.mgr.reorderTo(sel, target.dataItem);
-                                // TODO: this is slow because it has to replace all of the rows, even though only one
-                                // needs to be moved.
-                                outer.readData();
+                                const movement = this.mgr.reorderTo(sel, target.dataItem);
+                                if (movement === 'up') {
+                                    target.element.before(rowBeingDragged);
+                                }
+                                else if (movement === 'down') {
+                                    target.element.after(rowBeingDragged);
+                                }
                             }
                             const rect = rowBeingDragged.getBoundingClientRect();
                             const delta = ev.pageY - (rect.y - lastDelta) - (rect.height / 2);
@@ -251,6 +270,7 @@ export class SheetPickerTable extends CustomTable<SelectableSheet, TableSelectio
                             rowBeingDragged.classList.remove('dragging');
                             console.log('Drag end');
                             rowBeingDragged = null;
+                            outer.readData();
                             outer.mgr.flush();
                         },
                     });
@@ -349,12 +369,10 @@ export class SheetPickerTable extends CustomTable<SelectableSheet, TableSelectio
             const searchBox = document.createElement("input");
             searchBox.type = 'text';
             searchBox.placeholder = "Search";
-            // TODO: replace with unicode
-            const clearBtn = makeActionButton('X', () => {
+            const clearBtn = makeActionButton([makeCloseButton()], () => {
                 searchBox.value = '';
                 searchBox.dispatchEvent(new Event('input'));
             });
-            // TODO: hide dragger when you have a filter active
             clearBtn.disabled = true;
             searchBox.addEventListener('input', () => {
                 const searchValue = (searchBox.value ?? '').toLowerCase().trim();
@@ -373,10 +391,12 @@ export class SheetPickerTable extends CustomTable<SelectableSheet, TableSelectio
     search(searchValue: string | null) {
         this.dataRowMap.forEach(row => {
             if (!searchValue) {
+                row.classList.remove('searched');
                 // Display everything if no search value
                 row.style.display = '';
             }
             else {
+                row.classList.add('searched');
                 if (row.textContent.toLowerCase().includes(searchValue)) {
                     row.style.display = '';
                 }
