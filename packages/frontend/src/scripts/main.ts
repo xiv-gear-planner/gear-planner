@@ -4,7 +4,7 @@ import {registerDefaultSims} from "@xivgear/core/sims/default_sims";
 import {installFallbackPrivacyArea} from "./components/ads";
 import {installDoubleClickHandler} from "@xivgear/common-ui/util/stop_double_click";
 import {ACCOUNT_STATE_TRACKER} from "./account/account_state";
-import {showAccountModal} from "./account/components/account_components";
+import {setupAccountUi} from "./account/components/account_components";
 
 // Main entry point for actual browsers
 document.addEventListener("DOMContentLoaded", () => {
@@ -31,10 +31,5 @@ document.addEventListener("DOMContentLoaded", () => {
     installFallbackPrivacyArea();
 
     ACCOUNT_STATE_TRACKER.init();
-
-    // TODO: remove this when there is an actual button to bring up the account management UI
-    // eslint-disable-next-line no-constant-condition
-    if (false) {
-        showAccountModal();
-    }
+    setupAccountUi();
 });
