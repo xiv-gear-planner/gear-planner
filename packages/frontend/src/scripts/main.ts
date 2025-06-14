@@ -4,7 +4,7 @@ import {registerDefaultSims} from "@xivgear/core/sims/default_sims";
 import {installFallbackPrivacyArea} from "./components/ads";
 import {installDoubleClickHandler} from "@xivgear/common-ui/util/stop_double_click";
 import {ACCOUNT_STATE_TRACKER} from "./account/account_state";
-import {setupAccountUi, showAccountModal} from "./account/components/account_components";
+import {setupAccountUi} from "./account/components/account_components";
 
 // Main entry point for actual browsers
 document.addEventListener("DOMContentLoaded", () => {
