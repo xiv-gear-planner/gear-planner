@@ -58,6 +58,7 @@ class SettingsModal extends BaseModal {
         });
         workersCount.style.width = '100%';
         workersCount.style.boxSizing = 'border-box';
+        workersCount.placeholder = 'Leave blank to use default';
         const workersLabel = labelFor("Meld Solver Workers: ", workersCount);
         workersCount.addListener(() => this.setDisplayRefreshLabel(true));
         this.contentArea.append(document.createElement('br'));
