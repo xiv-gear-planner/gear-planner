@@ -9,12 +9,12 @@ import {recordEvent} from "@xivgear/common-ui/analytics/analytics";
 class RefreshLoop {
 
     private readonly callback: () => Promise<void>;
-    private readonly timeout: number;
+    private readonly timeoutProvider: () => number;
     private currentTimer: number | null = null;
 
-    constructor(callback: () => Promise<void>, timeout: number) {
+    constructor(callback: () => Promise<void>, timeout: () => number) {
         this.callback = callback;
-        this.timeout = timeout;
+        this.timeoutProvider = timeout;
     }
 
     start(): void {
@@ -30,6 +30,10 @@ class RefreshLoop {
         }
     }
 
+    get timeout(): number {
+        return this.timeoutProvider();
+    }
+
     async refresh(): Promise<void> {
         this.stop();
         try {
@@ -42,7 +46,9 @@ class RefreshLoop {
     }
 
     private scheduleNext(): void {
-        this.currentTimer = window.setTimeout(() => this.refresh(), this.timeout);
+        const to = this.timeout;
+        console.log(to);
+        this.currentTimer = window.setTimeout(() => this.refresh(), to);
     }
 }
 
@@ -53,16 +59,33 @@ export class AccountStateTracker {
     private _accountState: AccountInfo | null = null;
     private jwt: string | null = null;
     private _listeners: AccountStateListener[] = [];
+    private checkedOnce: boolean = false;
 
     constructor(private readonly api: AccountServiceClient<never>) {
-        // 5 minute auto-refresh
-        this.refreshLoop = new RefreshLoop(async () => this.refresh(), 1000 * 60 * 5);
+        this.refreshLoop = new RefreshLoop(async () => this.refresh(), () => {
+            if (this.definitelyNotLoggedIn) {
+                // If we know we are definitely not logged in, refresh once an hour
+                return 1000 * 60 * 60;
+            }
+            // Otherwise, refresh once every 5 minutes (15 min JWT expiration)
+            return 1000 * 60 * 5;
+        });
     }
 
     private notifyListeners(): void {
         for (const listener of this._listeners) {
             listener(this);
         }
+    }
+
+    private ingestAccountState(accountState: AccountInfo): void {
+        this._accountState = accountState;
+        this.checkedOnce = true;
+        this.notifyListeners();
+    }
+
+    private get definitelyNotLoggedIn(): boolean {
+        return !this.loggedIn && this.checkedOnce;
     }
 
     /**
@@ -104,8 +127,7 @@ export class AccountStateTracker {
             });
             if (resp.ok) {
                 const info = resp.data.accountInfo;
-                this._accountState = info;
-                this.notifyListeners();
+                this.ingestAccountState(info);
                 recordEvent('loginSuccess');
                 return info;
             }
@@ -141,9 +163,8 @@ export class AccountStateTracker {
             console.error("Failed to log out", resp);
             throw new Error("Failed to log out");
         }
-        this._accountState = null;
         this.jwt = null;
-        this.notifyListeners();
+        this.ingestAccountState(null);
     }
 
     /**
@@ -155,12 +176,7 @@ export class AccountStateTracker {
         const resp = await this.api.account.currentAccount();
         if (resp.ok) {
             const data = resp.data;
-            if (data.loggedIn) {
-                this._accountState = data.accountInfo;
-            }
-            else {
-                this._accountState = null;
-            }
+            this.ingestAccountState(data.accountInfo ?? null);
             this.notifyListeners();
             return this._accountState;
         }
@@ -264,9 +280,8 @@ export class AccountStateTracker {
             email: this.accountState.email,
         });
         if (response.ok) {
-            this._accountState = response.data.accountInfo;
+            this.ingestAccountState(response.data.accountInfo);
             recordEvent('verifyEmailSuccess');
-            this.notifyListeners();
             return response.data.verified;
         }
         else {
