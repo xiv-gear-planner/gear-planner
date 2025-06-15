@@ -47,7 +47,6 @@ class RefreshLoop {
 
     private scheduleNext(): void {
         const to = this.timeout;
-        console.log(to);
         this.currentTimer = window.setTimeout(() => this.refresh(), to);
     }
 }
