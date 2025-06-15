@@ -984,16 +984,16 @@ export class GearSetEditor extends HTMLElement {
     }
 
     private undoRedoHotkeyHandler = (ev: KeyboardEvent) => {
-        // ignore anything that would naturally handle an undo
-        if (ev.target instanceof Element
-            && (ev.target.tagName === 'input'
-                || ev.target.tagName === 'select'
-            )) {
-            return;
-        }
         // Ctrl-Z = undo
         // Ctrl-Shift-Z = redo
         if (ev.ctrlKey && ev.key.toLowerCase() === 'z') {
+            // ignore anything that would naturally handle an undo
+            if (ev.target instanceof Element) {
+                const tag = ev.target.tagName?.toLowerCase();
+                if (tag === 'input' || tag === 'select' || tag === 'textarea') {
+                    return;
+                }
+            }
             if (ev.shiftKey) {
                 this.gearSet.redo();
             }
