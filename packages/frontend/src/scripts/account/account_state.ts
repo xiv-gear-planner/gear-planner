@@ -56,7 +56,7 @@ export class AccountStateTracker {
 
     constructor(private readonly api: AccountServiceClient<never>) {
         // 5 minute auto-refresh
-        this.refreshLoop = new RefreshLoop(async () => this.refresh(), 1000 * 60 * 5 / 30);
+        this.refreshLoop = new RefreshLoop(async () => this.refresh(), 1000 * 60 * 5);
     }
 
     private notifyListeners(): void {
