@@ -5,7 +5,7 @@ import {isValidLanguage, Language, setCurrentLanguage} from "@xivgear/i18n/trans
 const DEFAULT_LIGHT_MODE = false;
 const DEFAULT_MODERN_THEME = true;
 
-class DisplaySettingsImpl {
+class DisplaySettingsImpl implements DisplaySettings {
     private _lightMode!: boolean;
     private _modernTheme!: boolean;
     private _languageOverride: Language | undefined;
@@ -45,7 +45,7 @@ class DisplaySettingsImpl {
         return this._languageOverride;
     }
 
-    set languageOverride(value: Language) {
+    set languageOverride(value: Language | undefined) {
         this._languageOverride = value;
         SETTINGS.languageOverride = value;
         this.applyLanguage();
@@ -110,6 +110,7 @@ class DisplaySettingsImpl {
     }
 }
 
+// TODO: this should only capture public members
 export interface DisplaySettings extends DisplaySettingsImpl {
 }
 

@@ -9,7 +9,7 @@ export type PersistentSettings = {
     get viewDetailedStats(): boolean | undefined;
     set viewDetailedStats(detailedStats: boolean);
     get languageOverride(): Language | undefined;
-    set languageOverride(value: Language);
+    set languageOverride(value: Language | undefined);
     workersOverride: number | undefined;
     hideWelcomeMessage: boolean;
 }
