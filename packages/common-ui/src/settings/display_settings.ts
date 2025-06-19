@@ -1,5 +1,6 @@
 import {SETTINGS} from "./persistent_settings";
 import {isValidLanguage, Language, setCurrentLanguage} from "@xivgear/i18n/translation";
+import {writeProxy} from "@xivgear/util/proxies";
 
 
 const DEFAULT_LIGHT_MODE = false;
@@ -114,4 +115,13 @@ class DisplaySettingsImpl implements DisplaySettings {
 export interface DisplaySettings extends DisplaySettingsImpl {
 }
 
-export const DISPLAY_SETTINGS: DisplaySettings = new DisplaySettingsImpl();
+let afterSettingsChange: (() => void) = () => {
+};
+
+export function setDisplaySettingsChangeCallback(cb: () => void) {
+    afterSettingsChange = cb;
+}
+
+export const DISPLAY_SETTINGS: DisplaySettings = writeProxy(new DisplaySettingsImpl(), () => {
+    afterSettingsChange();
+});

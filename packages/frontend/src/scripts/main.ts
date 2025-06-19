@@ -5,6 +5,7 @@ import {installFallbackPrivacyArea} from "./components/ads";
 import {installDoubleClickHandler} from "@xivgear/common-ui/util/stop_double_click";
 import {ACCOUNT_STATE_TRACKER} from "./account/account_state";
 import {setupAccountUi} from "./account/components/account_components";
+import {setupUserDataSync} from "./account/user_data";
 
 // Main entry point for actual browsers
 document.addEventListener("DOMContentLoaded", () => {
@@ -31,5 +32,6 @@ document.addEventListener("DOMContentLoaded", () => {
     installFallbackPrivacyArea();
 
     ACCOUNT_STATE_TRACKER.init();
+    setupUserDataSync();
     setupAccountUi();
 });

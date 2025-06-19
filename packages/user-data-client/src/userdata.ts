@@ -40,6 +40,8 @@ export interface GetSheetsResponse {
 
 export interface PutPreferencesRequest {
   preferences?: UserPreferences | null;
+  /** @format int32 */
+  nextSetId?: number;
 }
 
 export interface PutSheetRequest {

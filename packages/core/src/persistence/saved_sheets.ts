@@ -1,12 +1,27 @@
 import {DEFAULT_SHEET_METADATA, SheetExport, SheetMetadata} from "@xivgear/xivmath/geartypes";
 
-export function getNextSheetInternalName() {
+
+export function getNextSheetNumber(): number {
     const lastRaw = localStorage.getItem("last-sheet-number");
     const lastSheetNum = lastRaw ? parseInt(lastRaw) : 0;
-    const next = lastSheetNum + 1;
+    return Math.max(lastSheetNum + 1);
+}
+
+export function getNextSheetInternalName() {
+    const next = getNextSheetNumber();
     localStorage.setItem("last-sheet-number", next.toString());
     const randomStub = Math.floor(Math.random() * 16384 * 65536);
     return "sheet-save-" + next + '-' + randomStub.toString(16).toLowerCase();
+}
+
+export function syncLastSheetNumber(numFromServer: number) {
+    if (!numFromServer) {
+        return;
+    }
+    const next = getNextSheetNumber();
+    if (numFromServer > next) {
+        localStorage.setItem('last-sheet-number', numFromServer.toString());
+    }
 }
 
 export function sheetMetaKey(sheetKey: string): string {
