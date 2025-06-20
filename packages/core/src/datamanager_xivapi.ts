@@ -1,15 +1,13 @@
 import {OccGearSlotKey, RawStatKey} from "@xivgear/xivmath/geartypes";
 import {xivApiGet} from "./external/xivapi";
-// 'Item' is only there because I need to figure out how to keep the type checking happy
-// TODO: make a better way of doing this. matColsTrn represents the columns that are transitively included by way of
-// including a sub-column.
-// Food cols on the base Item table
-// Food cols on the FoodItem table
+
 export type IlvlSyncInfo = {
     readonly ilvl: number;
     substatCap(slot: OccGearSlotKey, statsKey: RawStatKey): number;
 }
 
+// TODO: this is only being used for etro imports. If that were refactored to use the data api, then most of the
+// remaining xivapi code could be deleted.
 export function queryBaseParams() {
     return xivApiGet({
         requestType: "list",
@@ -21,5 +19,3 @@ export function queryBaseParams() {
         return data;
     });
 }
-
-// noinspection RedundantIfStatementJS
