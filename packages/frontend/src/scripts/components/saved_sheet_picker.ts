@@ -1,6 +1,6 @@
 import {col, CustomRow, CustomTable, SpecialRow, TableSelectionModel} from "@xivgear/common-ui/table/tables";
 import {faIcon, makeActionButton, makeCloseButton, quickElement} from "@xivgear/common-ui/components/util";
-import {deleteSheetByKey, SelectableSheet, SheetManager} from "@xivgear/core/persistence/saved_sheets";
+import {deleteSheetByKey, SheetHandle, SheetManager} from "@xivgear/core/persistence/saved_sheets";
 import {getHashForSaveKey, openSheetByKey, showNewSheetForm} from "../base_ui";
 import {confirmDelete} from "@xivgear/common-ui/components/delete_confirm";
 import {JobIcon} from "./job_icon";
@@ -8,8 +8,9 @@ import {JOB_DATA} from "@xivgear/xivmath/xivconstants";
 import {jobAbbrevTranslated} from "./job_name_translator";
 import {CharacterGearSet} from "@xivgear/core/gear";
 import {installDragHelper} from "./draghelpers";
+import {SHEET_MANAGER} from "./saved_sheet_impl";
 
-export class SheetPickerTable extends CustomTable<SelectableSheet, TableSelectionModel<SelectableSheet, never, never, SelectableSheet | null>> {
+export class SheetPickerTable extends CustomTable<SheetHandle, TableSelectionModel<SheetHandle, never, never, SheetHandle | null>> {
     private readonly mgr: SheetManager;
 
     constructor() {
@@ -17,14 +18,14 @@ export class SheetPickerTable extends CustomTable<SelectableSheet, TableSelectio
         this.classList.add("gear-sheets-table");
         this.classList.add("hoverable");
         const outer = this;
-        this.mgr = new SheetManager(localStorage);
+        this.mgr = SHEET_MANAGER;
         this.columns = [
             col({
                 shortName: "sheetactions",
                 displayName: "",
                 getter: sheet => sheet,
-                renderer: (sel: SelectableSheet) => {
-                    const sheet = sel.sheet;
+                renderer: (sel: SheetHandle) => {
+                    const sheet = sel.data;
                     const div = document.createElement("div");
                     div.appendChild(makeActionButton([faIcon('fa-trash-can')], (ev) => {
                         if (confirmDelete(ev, `Delete sheet '${sheet.name}'?`)) {
@@ -129,13 +130,20 @@ export class SheetPickerTable extends CustomTable<SelectableSheet, TableSelectio
             //     // },
             // }),
             col({
+                shortName: "syncstatus",
+                displayName: "Sync",
+                getter: ss => {
+                    return ss.syncStatus;
+                },
+            }),
+            col({
                 shortName: "sheetjob",
                 displayName: "Job",
                 getter: sheet => {
-                    if (sheet.sheet.isMultiJob) {
-                        return JOB_DATA[sheet.sheet.job].role;
+                    if (sheet.data.isMultiJob) {
+                        return JOB_DATA[sheet.data.job].role;
                     }
-                    return sheet.sheet.job;
+                    return sheet.data.job;
                 },
                 renderer: job => {
                     return jobAbbrevTranslated(job);
@@ -145,10 +153,10 @@ export class SheetPickerTable extends CustomTable<SelectableSheet, TableSelectio
                 shortName: "sheetjobicon",
                 displayName: "Job Icon",
                 getter: sheet => {
-                    if (sheet.sheet.isMultiJob) {
-                        return JOB_DATA[sheet.sheet.job].role;
+                    if (sheet.data.isMultiJob) {
+                        return JOB_DATA[sheet.data.job].role;
                     }
-                    return sheet.sheet.job;
+                    return sheet.data.job;
                 },
                 renderer: jobOrRole => {
                     return new JobIcon(jobOrRole);
@@ -157,13 +165,13 @@ export class SheetPickerTable extends CustomTable<SelectableSheet, TableSelectio
             {
                 shortName: "sheetlevel",
                 displayName: "Lvl",
-                getter: sheet => sheet.sheet.level,
+                getter: sheet => sheet.data.level,
                 fixedWidth: 40,
             },
             {
                 shortName: "sheetname",
                 displayName: "Sheet Name",
-                getter: sheet => sheet.sheet.name,
+                getter: sheet => sheet.data.name,
             },
         ];
         this.readData();
@@ -172,7 +180,7 @@ export class SheetPickerTable extends CustomTable<SelectableSheet, TableSelectio
             },
             clickColumnHeader() {
             },
-            clickRow(row: CustomRow<SelectableSheet>) {
+            clickRow(row: CustomRow<SheetHandle>) {
                 openSheetByKey(row.dataItem.key);
             },
             getSelection(): null {
@@ -223,7 +231,7 @@ export class SheetPickerTable extends CustomTable<SelectableSheet, TableSelectio
         }, row => {
             row.classList.add('search-row-outer');
         }));
-        const items: SelectableSheet[] = this.mgr.readData();
+        const items: SheetHandle[] = this.mgr.readData();
         data.push(...items);
         this.data = data;
     }

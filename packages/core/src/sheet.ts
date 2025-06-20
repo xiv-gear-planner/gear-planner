@@ -39,7 +39,7 @@ import {
     SetExportExternalSingle,
     SetStatsExport,
     SheetExport,
-    SheetMetadata,
+    LocalSheetMetadata,
     SheetStatsExport,
     SimExport,
     Substat
@@ -466,7 +466,7 @@ export class GearPlanSheet {
             const fullExport = this.exportSheet(false);
             const msk = this.metaSaveKey;
             const metaRaw = localStorage.getItem(msk);
-            let meta: SheetMetadata;
+            let meta: LocalSheetMetadata;
             if (metaRaw) {
                 meta = {
                     ...DEFAULT_SHEET_METADATA,

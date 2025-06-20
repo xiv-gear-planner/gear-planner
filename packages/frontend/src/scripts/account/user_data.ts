@@ -1,4 +1,4 @@
-import {UserDataClient} from "@xivgear/user-data-client/userdata";
+import {RequestParams, SheetMetadata, UserDataClient} from "@xivgear/user-data-client/userdata";
 import {ACCOUNT_STATE_TRACKER, AccountStateTracker, cookieFetch} from "./account_state";
 import {
     DISPLAY_SETTINGS,
@@ -6,7 +6,9 @@ import {
     setDisplaySettingsChangeCallback
 } from "@xivgear/common-ui/settings/display_settings";
 import {Language} from "@xivgear/i18n/translation";
-import {getNextSheetNumber, syncLastSheetNumber} from "@xivgear/core/persistence/saved_sheets";
+import {getNextSheetNumber, SheetHandle, syncLastSheetNumber} from "@xivgear/core/persistence/saved_sheets";
+import {SheetExport} from "@xivgear/xivmath/geartypes";
+import {SHEET_MANAGER} from "../components/saved_sheet_impl";
 
 const userDataClient = new UserDataClient<never>({
     baseUrl: document.location.hostname === 'localhost' ? 'http://localhost:8087' : 'https://accountsvc.xivgear.app',
@@ -25,11 +27,8 @@ class UserDataSyncer {
         if (jwt === null) {
             return 'not-logged-in';
         }
-        const resp = await this.userDataClient.userdata.getPrefs({
-            headers: {
-                'Authorization': `Bearer ${jwt}`,
-            },
-        });
+        console.info("Downloading settings");
+        const resp = await this.userDataClient.userdata.getPrefs(this.buildParams());
         if (!resp) {
             return 'none-saved';
         }
@@ -46,22 +45,152 @@ class UserDataSyncer {
     }
 
     async uploadSettings(): Promise<'success' | 'not-logged-in'> {
+        // TODO: need to upload new next-sheet-id after making a new sheet
         const jwt: string | null = this.accountStateTracker.token;
         if (jwt === null) {
             return 'not-logged-in';
         }
+        console.info("Uploading settings");
         await this.userDataClient.userdata.putPrefs({
             preferences: {
                 lightMode: this.settings.lightMode,
                 languageOverride: this.settings.languageOverride,
             },
             nextSetId: getNextSheetNumber(),
-        }, {
-            headers: {
-                'Authorization': `Bearer ${jwt}`,
-            },
-        });
+        }, this.buildParams());
         return 'success';
+    }
+
+    async syncSheets(): Promise<'success' | 'not-logged-in' | 'nothing-to-do'> {
+        const result = await this.prepSheetSync();
+        if (result === 'not-logged-in') {
+            return 'not-logged-in';
+        }
+        if (result === 'nothing-to-do') {
+            return 'nothing-to-do';
+        }
+        return await this.performSync();
+    }
+
+    async prepSheetSync(): Promise<'need-sync' | 'not-logged-in' | 'nothing-to-do'> {
+        const jwt: string | null = this.accountStateTracker.token;
+        if (jwt === null) {
+            return 'not-logged-in';
+        }
+        const mgr = SHEET_MANAGER;
+        const allSheets = mgr.readData();
+        const existingSheetsMap = new Map<string, SheetHandle>();
+        const noServerVersion = new Set<SheetHandle>();
+        allSheets.forEach(sheet => {
+            existingSheetsMap.set(sheet.key, sheet);
+            noServerVersion.add(sheet);
+        });
+        const newSheets: SheetMetadata[] = [];
+        const serverData = await this.userDataClient.userdata.getSheetsList(this.buildParams());
+        serverData.data.sheets.forEach(sheetMeta => {
+            const key = sheetMeta.saveKey;
+            if (existingSheetsMap.has(key)) {
+                const handle = existingSheetsMap.get(key);
+                handle.serverVersion = sheetMeta.version;
+                noServerVersion.delete(handle);
+            }
+            else {
+                newSheets.push(sheetMeta);
+            }
+        });
+        noServerVersion.forEach(sheet => {
+            sheet.serverVersion = 0;
+        });
+        const newHandles: SheetHandle[] = [];
+        newSheets.forEach(sheetMeta => {
+            const svrVer = sheetMeta.version ?? 1;
+            // TODO: need to update logic in the application elsewhere to account for this "dummy sheet" concept.
+            // Basically, if the local version is 0, then we know that the sheet exists on the server, and we should
+            // display it iff the user is logged in. If the user wishes to open this sheet, then we need to download
+            // it on demand.
+            const newSheet = mgr.newSheet({
+                saveKey: sheetMeta.saveKey,
+                sheetMeta: {
+                    currentVersion: 0,
+                    lastSyncedVersion: 0,
+                    serverVersion: svrVer,
+                    sortOrder: null,
+                    hasConflict: false,
+                    forcePush: false,
+                },
+            });
+            newHandles.push(newSheet);
+        });
+        mgr.resort();
+        // At this point, we have only downloaded metadata. We have not synchronized any actual sheet contents.
+        mgr.flush();
+        if (mgr.lastData.find(sheet => sheet.syncStatus !== "in-sync") !== undefined) {
+            return 'need-sync';
+        }
+        else {
+            return 'nothing-to-do';
+        }
+    }
+
+    private async performSync(): Promise<'success' | 'not-logged-in' | 'nothing-to-do'> {
+        const mgr = SHEET_MANAGER;
+        const jwt: string | null = this.accountStateTracker.token;
+        if (jwt === null) {
+            return 'not-logged-in';
+        }
+        // TODO: deleted sheets
+        // TODO: send back 429 too many requests if throttled
+        // TODO: better log messages, hard to tell what's going on
+        // TODO: server should just compress
+        try {
+            for (const sheetHandle of mgr.lastData) {
+                switch (sheetHandle.syncStatus) {
+                    case "in-sync":
+                        // Nothing do do
+                        continue;
+                    case "never-uploaded":
+                    case "client-newer-than-server":
+                        console.info(`Uploading: ${sheetHandle.key}: ${sheetHandle.data?.name} ${sheetHandle.localVersion} -> ${sheetHandle.serverVersion}`);
+                        // TODO: needs to handle 409 conflict without blowing up
+                        await this.userDataClient.userdata.putSheet(sheetHandle.key, {
+                            sheetData: sheetHandle.data,
+                            sheetName: sheetHandle.data.name,
+                            sortOrder: sheetHandle.sortOrder,
+                            lastSyncedVersion: sheetHandle.lastSyncedVersion,
+                            newSheetVersion: sheetHandle.localVersion,
+                        }, this.buildParams());
+                        sheetHandle.lastSyncedVersion = sheetHandle.localVersion;
+                        sheetHandle.serverVersion = sheetHandle.localVersion;
+                        break;
+                    case "never-downloaded":
+                    case "server-newer-than-client": {
+                        console.info(`Downloading: ${sheetHandle.key}: ${sheetHandle.data?.name} ${sheetHandle.localVersion} <- ${sheetHandle.serverVersion}`);
+                        const resp = await this.userDataClient.userdata.getSheet(sheetHandle.key, this.buildParams());
+                        sheetHandle.postDownload(resp.data.metadata.version, resp.data.sheetData as SheetExport);
+                        break;
+                    }
+                    case "conflict":
+                        console.warn(`Sheet conflict! ${sheetHandle.key}: ${sheetHandle.data?.name} ${sheetHandle.localVersion} > ${sheetHandle.lastSyncedVersion} < ${sheetHandle.serverVersion}`);
+                        break;
+                    case "unknown":
+                        // Can't fix this, and would have already been logged
+                        break;
+                }
+            }
+        }
+        finally {
+            mgr.resort();
+            mgr.flush();
+        }
+        return 'success';
+    }
+
+    private buildParams(): RequestParams {
+        return {
+            headers: {
+                'Authorization': `Bearer ${this.accountStateTracker.token}`,
+            },
+        };
     }
 
 }
@@ -72,11 +201,13 @@ export const USER_DATA_SYNCER = new UserDataSyncer(ACCOUNT_STATE_TRACKER, userDa
 export async function afterLogin() {
     const result = await USER_DATA_SYNCER.downloadSettings();
     if (result === 'none-saved') {
+        console.info("No settings found, uploading ours");
         await USER_DATA_SYNCER.uploadSettings();
     }
 }
 
 export async function afterSettingsChange() {
+    console.info("afterSettingsChange");
     await USER_DATA_SYNCER.uploadSettings();
 }
 
@@ -90,13 +221,18 @@ window.userDataSyncer = USER_DATA_SYNCER;
 
 export function setupUserDataSync() {
     let lastJwt: string | null = null;
+    let wasValid: boolean = false;
     ACCOUNT_STATE_TRACKER.addAccountStateListener(t => {
         if (t.token !== lastJwt) {
-            // Only do this after we transition from logged out to logged in
-            if (t.token !== null && lastJwt === null) {
+            // Only do this after we transition from logged out to logged in and the account is verified
+            const valid = t.token !== null && t.accountState.verified;
+            if (valid && !wasValid) {
                 afterLogin();
             }
+            wasValid = valid;
             lastJwt = t.token;
+            // TODO: this is receiving our own updates from the afterLogin() call above.
+            // We need to not loopback.
             setDisplaySettingsChangeCallback(() => {
                 afterSettingsChange();
             });
