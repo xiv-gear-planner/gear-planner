@@ -22,7 +22,7 @@ import {
     EquipSlotKey,
     EquipSlots,
     FoodItem,
-    GearItem,
+    GearItem, IlvlSyncInfo,
     ItemDisplaySettings,
     ItemSlotExport,
     JobData,
@@ -54,7 +54,6 @@ import {getDefaultSims, getRegisteredSimSpecs, getSimSpecByStub} from "./sims/si
 import {getNextSheetInternalName} from "./persistence/saved_sheets";
 import {CustomItem} from "./customgear/custom_item";
 import {CustomFood} from "./customgear/custom_food";
-import {IlvlSyncInfo} from "./datamanager_xivapi";
 import {statsSerializationProxy} from "@xivgear/xivmath/xivstats";
 import {isMateriaAllowed} from "./materia/materia_utils";
 import {SpecialStatType} from "@xivgear/data-api-client/dataapi";
