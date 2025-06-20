@@ -1,7 +1,6 @@
 import {EquipSlotKey, ItemSlotExport, SetExportExternalSingle, Substat} from "@xivgear/xivmath/geartypes";
 import {JobName, MATERIA_SLOTS_MAX, SupportedLevel} from "@xivgear/xivmath/xivconstants";
 import {BaseParamToStatKey, RelevantBaseParam} from "./xivapitypes";
-import {DataApiClient} from "@xivgear/data-api-client/dataapi";
 import {DATA_API_CLIENT} from "../data_api_client";
 
 const ETRO_SLOTS = ['weapon', 'offHand', 'head', 'body', 'hands', 'legs', 'feet', 'ears', 'neck', 'wrists', 'fingerL', 'fingerR'] as const;
