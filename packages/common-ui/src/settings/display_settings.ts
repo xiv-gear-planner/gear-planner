@@ -1,11 +1,12 @@
 import {SETTINGS} from "./persistent_settings";
 import {isValidLanguage, Language, setCurrentLanguage} from "@xivgear/i18n/translation";
+import {writeProxy} from "@xivgear/util/proxies";
 
 
 const DEFAULT_LIGHT_MODE = false;
 const DEFAULT_MODERN_THEME = true;
 
-class DisplaySettingsImpl {
+class DisplaySettingsImpl implements DisplaySettings {
     private _lightMode!: boolean;
     private _modernTheme!: boolean;
     private _languageOverride: Language | undefined;
@@ -45,7 +46,7 @@ class DisplaySettingsImpl {
         return this._languageOverride;
     }
 
-    set languageOverride(value: Language) {
+    set languageOverride(value: Language | undefined) {
         this._languageOverride = value;
         SETTINGS.languageOverride = value;
         this.applyLanguage();
@@ -110,7 +111,17 @@ class DisplaySettingsImpl {
     }
 }
 
+// TODO: this should only capture public members
 export interface DisplaySettings extends DisplaySettingsImpl {
 }
 
-export const DISPLAY_SETTINGS: DisplaySettings = new DisplaySettingsImpl();
+let afterSettingsChange: (() => void) = () => {
+};
+
+export function setDisplaySettingsChangeCallback(cb: () => void) {
+    afterSettingsChange = cb;
+}
+
+export const DISPLAY_SETTINGS: DisplaySettings = writeProxy(new DisplaySettingsImpl(), () => {
+    afterSettingsChange();
+});

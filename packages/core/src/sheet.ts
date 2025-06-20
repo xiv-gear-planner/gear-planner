@@ -464,7 +464,6 @@ export class GearPlanSheet {
             console.log("Saving sheet " + this.sheetName);
             this._timestamp = new Date();
             const fullExport = this.exportSheet(false);
-            localStorage.setItem(this.saveKey, JSON.stringify(fullExport));
             const msk = this.metaSaveKey;
             const metaRaw = localStorage.getItem(msk);
             let meta: SheetMetadata;
@@ -482,6 +481,7 @@ export class GearPlanSheet {
                 currentVersion: (meta.currentVersion ?? 1) + 1,
             };
             localStorage.setItem(msk, JSON.stringify(meta));
+            localStorage.setItem(this.saveKey, JSON.stringify(fullExport));
         }
         else {
             console.debug("Ignoring request to save sheet because it has no save key");

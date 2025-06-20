@@ -5,6 +5,7 @@
     "@types/jsdom": "^21.1.7",
     "@webcomponents/webcomponentsjs": "^2.8.0",
     "@xivgear/account-service-client": "^1.0.0",
+    "@xivgear/user-data-client": "^1.0.0",
     "@xivgear/common-ui": "^1.0.0",
     "@xivgear/core": "^1.0.0",
     "@xivgear/util": "^1.0.0",

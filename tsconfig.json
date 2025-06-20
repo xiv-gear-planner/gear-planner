@@ -33,6 +33,12 @@
       "path": "./packages/data-api-client"
     },
     {
+      "path": "./packages/user-data-client"
+    },
+    {
+      "path": "./packages/account-service-client"
+    },
+    {
       "path": "./packages/frontend"
     },
     {

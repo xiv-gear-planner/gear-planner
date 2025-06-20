@@ -307,13 +307,13 @@ export class AccountStateTracker {
 export type AccountStateListener = (tracker: AccountStateTracker) => void;
 
 
-const apiClient = new AccountServiceClient<never>({
+const accountApiClient = new AccountServiceClient<never>({
     baseUrl: document.location.hostname === 'localhost' ? 'http://localhost:8086' : 'https://accountsvc.xivgear.app',
     // baseUrl: 'http://192.168.1.119:8086',
     customFetch: cookieFetch,
 });
 
-export const ACCOUNT_STATE_TRACKER = new AccountStateTracker(apiClient);
+export const ACCOUNT_STATE_TRACKER = new AccountStateTracker(accountApiClient);
 
 declare global {
     // noinspection JSUnusedGlobalSymbols
@@ -323,7 +323,7 @@ declare global {
 }
 window.accStateTracker = ACCOUNT_STATE_TRACKER;
 
-async function cookieFetch(...params: Parameters<typeof fetch>): Promise<Response> {
+export async function cookieFetch(...params: Parameters<typeof fetch>): Promise<Response> {
     const headers = new Headers(params[1]?.headers ?? []);
     // Backend requires this header to be set, to protect against simple CSRF attacks.
     // Form submission allows cross-site requests, but form submissions cannot have additional headers.

@@ -23,6 +23,9 @@
     },
     {
       "path": "../account-service-client"
+    },
+    {
+      "path": "../user-data-client"
     }
   ]
 }
