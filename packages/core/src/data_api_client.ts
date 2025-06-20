@@ -47,7 +47,7 @@ async function retryFetch(...params: Parameters<typeof fetch>): Promise<Response
     }
 }
 
-export const API_CLIENT = new DataApiClient<never>({
+export const DATA_API_CLIENT = new DataApiClient<never>({
     baseUrl: "https://data.xivgear.app",
     // baseUrl: "https://betadata.xivgear.app",
     // baseUrl: "http://localhost:8085",
@@ -55,7 +55,7 @@ export const API_CLIENT = new DataApiClient<never>({
 });
 
 export function setDataApi(baseUrl: string) {
-    API_CLIENT.baseUrl = baseUrl;
+    DATA_API_CLIENT.baseUrl = baseUrl;
 }
 
 export function checkResponse<X extends HttpResponse<unknown>>(response: X): X {

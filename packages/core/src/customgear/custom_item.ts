@@ -5,6 +5,7 @@ import {
     DisplayGearSlotKey,
     GearAcquisitionSource,
     GearItem,
+    IlvlSyncInfo,
     MateriaSlot,
     OccGearSlotKey,
     RawStatKey,
@@ -12,7 +13,6 @@ import {
 } from "@xivgear/xivmath/geartypes";
 import {xivApiIconUrl} from "../external/xivapi";
 import {CURRENT_MAX_LEVEL, JobName, LEVEL_ITEMS, MATERIA_LEVEL_MAX_NORMAL} from "@xivgear/xivmath/xivconstants";
-import {IlvlSyncInfo} from "../datamanager_xivapi";
 import {applyStatCaps} from "../gear";
 import {GearPlanSheet} from "../sheet";
 import {toTranslatable} from "@xivgear/i18n/translation";

@@ -20,10 +20,7 @@ export type XivApiSearchRequest = XivApiRequest & {
     filters?: XivApiFilter[],
 }
 
-// TODO: migrate this to v2.xivapi.com
-// TODO: put the /api/ part in here and rename to XIVAPI_BASE_URL
-export const XIVAPI_SERVER = "https://beta.xivapi.com";
-export const XIVAPI_SERVER_V2 = "https://v2.xivapi.com/api/";
+export const XIVAPI_BASE_URL = "https://v2.xivapi.com/api";
 
 export type XivApiResultSingle<Cols extends readonly string[], TrnCols extends readonly string[] = []> = {
     [K in Cols[number]]: unknown;
@@ -66,7 +63,7 @@ async function xFetchInternal(...params: Parameters<typeof fetch>): Promise<Resp
 }
 
 export async function xivApiSingle(sheet: string, id: number) {
-    const query = `${XIVAPI_SERVER}/api/1/sheet/${sheet}/${id}`;
+    const query = `${XIVAPI_BASE_URL}/sheet/${sheet}/${id}`;
     return xivApiFetch(query).then(response => response.json()).then(response => response['fields']);
 }
 
@@ -75,7 +72,7 @@ export async function xivApiSingleCols<Columns extends readonly string[]>(sheet:
 } & {
     ID: number
 }> {
-    let query = new URL(`sheet/${sheet}/${id}?fields=${cols.join(',')}`, XIVAPI_SERVER_V2);
+    let query = new URL(`sheet/${sheet}/${id}?fields=${cols.join(',')}`, XIVAPI_BASE_URL);
     if (lang) {
         query = new URL(`?language=${lang}`, query);
     }
@@ -100,7 +97,7 @@ const DEFAULT_PER_PAGE = 250;
 
 export async function xivApiSearch<RequestType extends XivApiSearchRequest>(request: RequestType): Promise<XivApiResponse<RequestType>> {
     const perPage = request.perPage ?? DEFAULT_PER_PAGE;
-    let query = `${XIVAPI_SERVER}/api/1/search?sheets=${request.sheet}&limit=${perPage}`;
+    let query = `${XIVAPI_BASE_URL}/search?sheets=${request.sheet}&limit=${perPage}`;
     if (request.columns?.length > 0) {
         query += '&fields=' + request.columns.join(',');
     }
@@ -148,7 +145,7 @@ export async function xivApiSearch<RequestType extends XivApiSearchRequest>(requ
 
 export async function xivApiGetList<RequestType extends XivApiListRequest>(request: RequestType): Promise<XivApiResponse<RequestType>> {
     const perPage = request.perPage ?? DEFAULT_PER_PAGE;
-    let query = `${XIVAPI_SERVER}/api/1/sheet/${request.sheet}?limit=${perPage}`;
+    let query = `${XIVAPI_BASE_URL}/sheet/${request.sheet}?limit=${perPage}`;
     if (request.columns?.length > 0) {
         query += '&fields=' + request.columns.join(',');
     }
@@ -200,9 +197,9 @@ export function xivApiIconUrl(iconId: number, highRes: boolean = false) {
     // Get the xivapi directory, e.g. 19581 -> 019000
     const directory = asStr.substring(0, 3) + '000';
     if (highRes) {
-        return `${XIVAPI_SERVER}/api/1/asset/ui/icon/${directory}/${asStr}_hr1.tex?format=png`;
+        return `${XIVAPI_BASE_URL}/asset/ui/icon/${directory}/${asStr}_hr1.tex?format=png`;
     }
     else {
-        return `${XIVAPI_SERVER}/api/1/asset/ui/icon/${directory}/${asStr}.tex?format=png`;
+        return `${XIVAPI_BASE_URL}/asset/ui/icon/${directory}/${asStr}.tex?format=png`;
     }
 }
