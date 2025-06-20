@@ -111,6 +111,8 @@ export class SheetPickerTable extends CustomTable<SheetHandle, TableSelectionMod
                             rowBeingDragged.classList.remove('dragging');
                             console.log('Drag end');
                             rowBeingDragged = null;
+                            // TODO: currently, a reorder will not cause a version bump, so it will never get synced.
+                            // TODO: shouldn't the flush happen before the readData call?
                             outer.readData();
                             outer.mgr.flush();
                         },
