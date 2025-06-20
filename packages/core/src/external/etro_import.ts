@@ -1,7 +1,8 @@
 import {EquipSlotKey, ItemSlotExport, SetExportExternalSingle, Substat} from "@xivgear/xivmath/geartypes";
 import {JobName, MATERIA_SLOTS_MAX, SupportedLevel} from "@xivgear/xivmath/xivconstants";
 import {BaseParamToStatKey, RelevantBaseParam} from "./xivapitypes";
-import {queryBaseParams} from "../datamanager_xivapi";
+import {DataApiClient} from "@xivgear/data-api-client/dataapi";
+import {DATA_API_CLIENT} from "../data_api_client";
 
 const ETRO_SLOTS = ['weapon', 'offHand', 'head', 'body', 'hands', 'legs', 'feet', 'ears', 'neck', 'wrists', 'fingerL', 'fingerR'] as const;
 // Works
@@ -65,10 +66,10 @@ interface EtroMateria {
     [slot: number]: number
 }
 
-export async function getSetFromEtro(etroSetId: string) {
+export async function getSetFromEtro(etroSetId: string): Promise<SetExportExternalSingle> {
     console.log('Fetching etro set', etroSetId);
+    const baseParamsPromise = DATA_API_CLIENT.baseParams.baseParams();
     const response: EtroSet = await fetch(`https://etro.gg/api/gearsets/${etroSetId}/`).then(response => response.json()) as EtroSet;
-
     const items: {
         [K in EquipSlotKey]?: ItemSlotExport
     } = {};
@@ -82,15 +83,15 @@ export async function getSetFromEtro(etroSetId: string) {
                 relicStats = {};
                 const relicData = await getEtroRelic(relicId);
                 itemId = relicData.baseItem.id;
-                // TODO: convert this to use new datamanager
-                const baseParams = (await queryBaseParams()).Results;
+                const baseParamsResponse = await baseParamsPromise;
+                const baseParams = baseParamsResponse.data.items;
                 for (let i = 0; i <= 5; i++) {
                     const paramId = relicData[`param${i}` as keyof EtroRelic];
                     if (!paramId) {
                         break;
                     }
-                    const paramData = baseParams.find(item => item.ID === paramId);
-                    const stat = BaseParamToStatKey[paramData.Name as RelevantBaseParam];
+                    const paramData = baseParams.find(item => item.rowId === paramId);
+                    const stat = BaseParamToStatKey[paramData.name as RelevantBaseParam];
                     relicStats[stat as Substat] = relicData[`param${i}Value` as keyof EtroRelic] as number;
                 }
             }

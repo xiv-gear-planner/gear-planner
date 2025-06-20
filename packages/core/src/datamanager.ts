@@ -1,7 +1,14 @@
 import {JobName, SupportedLevel} from "@xivgear/xivmath/xivconstants";
-import {FoodItem, GearItem, JobMultipliers, Materia, OccGearSlotKey, RawStatKey} from "@xivgear/xivmath/geartypes";
+import {
+    FoodItem,
+    GearItem,
+    IlvlSyncInfo,
+    JobMultipliers,
+    Materia,
+    OccGearSlotKey,
+    RawStatKey
+} from "@xivgear/xivmath/geartypes";
 import {NewApiDataManager} from "./datamanager_new";
-import {IlvlSyncInfo} from "./datamanager_xivapi";
 
 /**
  * Mapping for BaseParam to BaseParamInfo.

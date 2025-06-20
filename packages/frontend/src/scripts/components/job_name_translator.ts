@@ -1,5 +1,5 @@
 import {JobName} from "@xivgear/xivmath/xivconstants";
-import {API_CLIENT, ApiJobType, checkResponse} from "@xivgear/core/data_api_client";
+import {DATA_API_CLIENT, ApiJobType, checkResponse} from "@xivgear/core/data_api_client";
 import {RoleKey} from "@xivgear/xivmath/geartypes";
 import {quickElement} from "@xivgear/common-ui/components/util";
 import {toTranslatable} from "@xivgear/i18n/translation";
@@ -8,7 +8,7 @@ let dataPromise: Promise<Map<JobName, ApiJobType>> | null = null;
 
 function getDataPromise(): Promise<Map<JobName, ApiJobType>> {
     if (dataPromise === null) {
-        dataPromise = API_CLIENT.jobs.jobs().then(raw => {
+        dataPromise = DATA_API_CLIENT.jobs.jobs().then(raw => {
             checkResponse(raw);
             const map = new Map<JobName, ApiJobType>();
             raw.data.items.forEach(job => {

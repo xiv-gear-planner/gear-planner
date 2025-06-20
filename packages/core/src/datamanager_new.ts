@@ -15,7 +15,7 @@ import {
     DisplayGearSlotKey,
     FoodItem,
     GearAcquisitionSource,
-    GearItem,
+    GearItem, IlvlSyncInfo,
     JobMultipliers,
     Materia,
     MateriaSlot,
@@ -33,15 +33,11 @@ import {
     SpecialStatType
 } from "@xivgear/data-api-client/dataapi";
 import {BaseParamMap, DataManager, DmJobs} from "./datamanager";
-import {IlvlSyncInfo} from "./datamanager_xivapi";
 import {applyStatCaps} from "./gear";
 import {toTranslatable, TranslatableString} from "@xivgear/i18n/translation";
 import {RawStatsPart} from "@xivgear/util/types";
-import {API_CLIENT, ApiFoodData, ApiItemData, ApiMateriaData, checkResponse} from "./data_api_client";
+import {DATA_API_CLIENT, ApiFoodData, ApiItemData, ApiMateriaData, checkResponse} from "./data_api_client";
 import {addStats} from "@xivgear/xivmath/xivstats";
-
-// import {recordError} from "@xivgear/common-ui/analytics/analytics";
-
 
 export class NewApiDataManager implements DataManager {
 
@@ -65,7 +61,7 @@ export class NewApiDataManager implements DataManager {
         this._minIlvlFood = lvlData.minILvlFood;
         this._maxIlvlFood = lvlData.maxILvlFood;
         this._ilvlSync = ilvlSync;
-        this.apiClient = API_CLIENT;
+        this.apiClient = DATA_API_CLIENT;
     }
 
     private _allItems: DataApiGearInfo[];

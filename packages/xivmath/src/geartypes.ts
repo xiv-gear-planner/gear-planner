@@ -1267,3 +1267,8 @@ export type FoodMicroSlotExport = [slot: "food", foodId: number];
 export type NormalItemMicroSlotExport = [slot: EquipSlotKey, itemId: number, ...materiaIds: (number | null)[]];
 export type RelicItemMicroSlotExport = [slot: EquipSlotKey, itemId: number, "relic", relicStats: RelicStatsExport];
 export type MicroSlotExport = FoodMicroSlotExport | NormalItemMicroSlotExport | RelicItemMicroSlotExport;
+
+export type IlvlSyncInfo = {
+    readonly ilvl: number;
+    substatCap(slot: OccGearSlotKey, statsKey: RawStatKey): number;
+}
