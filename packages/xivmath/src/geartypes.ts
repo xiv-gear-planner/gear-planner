@@ -735,17 +735,37 @@ export interface SheetExport {
     specialStats?: string | null,
 }
 
-export type SheetMetadata = {
+export type LocalSheetMetadata = {
+    /**
+     * The current numeric version of the sheet. Should be incremented upon modifications.
+     */
     currentVersion: number,
+    /**
+     * The version of the sheet that was last uploaded to the server. Zero if it has never been uploaded.
+     */
     lastSyncedVersion: number,
+    /**
+     * The version of the sheet that the server is confirmed to have. Zero if the server does not have it.
+     */
+    serverVersion: number,
+    /**
+     * The sort order of the sheet. Null indicates that the sheet should use the default sort order.
+     */
     sortOrder: number | null,
+    /**
+     * True if the sheet has some kind of sync conflict.
+     */
     hasConflict: boolean,
+    /**
+     * True if the user data sync process should force push to the server.
+     */
     forcePush: boolean,
 }
 
-export const DEFAULT_SHEET_METADATA: SheetMetadata = {
+export const DEFAULT_SHEET_METADATA: LocalSheetMetadata = {
     currentVersion: 1,
     lastSyncedVersion: 0,
+    serverVersion: 0,
     sortOrder: null,
     hasConflict: false,
     forcePush: false,

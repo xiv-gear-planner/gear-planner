@@ -1103,6 +1103,7 @@ job-picker {
         height: 23px;
         max-height: 23px;
         cursor: pointer;
+
         &.dragging {
           z-index: 5;
           opacity: 0.75;
@@ -1169,13 +1170,16 @@ job-picker {
         display: flex;
         gap: 5px;
         width: 100%;
+
         * {
           box-sizing: border-box;
         }
+
         input {
           width: 100%;
           padding-left: 5px;
         }
+
         button {
           aspect-ratio: 1;
           padding: 0;
@@ -1220,6 +1224,12 @@ job-picker {
         //    flex: 1;
         //  }
         //}
+      }
+
+      td[col-id="syncstatus"] {
+        width: 50px;
+        min-width: 50px;
+        max-width: 50px;
       }
     }
   }
@@ -3573,10 +3583,11 @@ body.modern {
       padding-left: var(--mmai-border-radius);
       padding-right: var(--mmai-border-radius);
 
-      @media(width < 525px) {
+      @media (width < 525px) {
         a span {
           display: none;
         }
+
         .svg-glyph {
           padding-left: 0 !important;
           padding-right: 0 !important;

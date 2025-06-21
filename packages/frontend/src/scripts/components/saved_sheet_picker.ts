@@ -1,6 +1,6 @@
 import {col, CustomRow, CustomTable, SpecialRow, TableSelectionModel} from "@xivgear/common-ui/table/tables";
-import {faIcon, makeActionButton, makeCloseButton, quickElement} from "@xivgear/common-ui/components/util";
-import {deleteSheetByKey, SelectableSheet, SheetManager} from "@xivgear/core/persistence/saved_sheets";
+import {errorIcon, faIcon, makeActionButton, makeCloseButton, quickElement} from "@xivgear/common-ui/components/util";
+import {deleteSheetByKey, SheetHandle, SheetManagerImpl, SyncStatus} from "@xivgear/core/persistence/saved_sheets";
 import {getHashForSaveKey, openSheetByKey, showNewSheetForm} from "../base_ui";
 import {confirmDelete} from "@xivgear/common-ui/components/delete_confirm";
 import {JobIcon} from "./job_icon";
@@ -8,23 +8,30 @@ import {JOB_DATA} from "@xivgear/xivmath/xivconstants";
 import {jobAbbrevTranslated} from "./job_name_translator";
 import {CharacterGearSet} from "@xivgear/core/gear";
 import {installDragHelper} from "./draghelpers";
+import {SHEET_MANAGER} from "./saved_sheet_impl";
+import {ACCOUNT_STATE_TRACKER} from "../account/account_state";
 
-export class SheetPickerTable extends CustomTable<SelectableSheet, TableSelectionModel<SelectableSheet, never, never, SelectableSheet | null>> {
-    private readonly mgr: SheetManager;
+export class SheetPickerTable extends CustomTable<SheetHandle, TableSelectionModel<SheetHandle, never, never, SheetHandle | null>> {
+    private readonly mgr: SheetManagerImpl;
 
     constructor() {
         super();
         this.classList.add("gear-sheets-table");
         this.classList.add("hoverable");
         const outer = this;
-        this.mgr = new SheetManager(localStorage);
+        this.mgr = SHEET_MANAGER;
+        this.mgr.setUpdateHook(handle => {
+            for (const cell of (this.dataRowMap.get(handle)?.dataColMap.values() ?? [])) {
+                cell.refreshFull();
+            }
+        });
         this.columns = [
             col({
                 shortName: "sheetactions",
                 displayName: "",
                 getter: sheet => sheet,
-                renderer: (sel: SelectableSheet) => {
-                    const sheet = sel.sheet;
+                renderer: (sel: SheetHandle) => {
+                    const sheet = sel.data;
                     const div = document.createElement("div");
                     div.appendChild(makeActionButton([faIcon('fa-trash-can')], (ev) => {
                         if (confirmDelete(ev, `Delete sheet '${sheet.name}'?`)) {
@@ -110,6 +117,8 @@ export class SheetPickerTable extends CustomTable<SelectableSheet, TableSelectio
                             rowBeingDragged.classList.remove('dragging');
                             console.log('Drag end');
                             rowBeingDragged = null;
+                            // TODO: currently, a reorder will not cause a version bump, so it will never get synced.
+                            // TODO: shouldn't the flush happen before the readData call?
                             outer.readData();
                             outer.mgr.flush();
                         },
@@ -129,13 +138,54 @@ export class SheetPickerTable extends CustomTable<SelectableSheet, TableSelectio
             //     // },
             // }),
             col({
+                shortName: "syncstatus",
+                displayName: "Sync",
+                getter: ss => {
+                    if (ACCOUNT_STATE_TRACKER.loggedIn && ACCOUNT_STATE_TRACKER.accountState?.verified) {
+                        return [ss.syncStatus, ss.busy];
+                    }
+                    return null;
+                },
+                renderer: (status: [SyncStatus, boolean] | null) => {
+                    if (status === null) {
+                        return document.createTextNode('');
+                    }
+                    const out = [];
+                    const statusType = status[0];
+                    switch (statusType) {
+                        case "in-sync":
+                            out.push('✓');
+                            break;
+                        case "never-uploaded":
+                        case "client-newer-than-server":
+                            out.push('↑');
+                            break;
+                        case "never-downloaded":
+                        case "server-newer-than-client":
+                            out.push('↓');
+                            break;
+                        case "conflict":
+                            out.push(errorIcon());
+                            break;
+                        case "unknown":
+                            out.push('?');
+                            break;
+                    }
+                    const active = status[1];
+                    if (active) {
+                        out.push('...');
+                    }
+                    return quickElement('span', ['sync-status'], out);
+                },
+            }),
+            col({
                 shortName: "sheetjob",
                 displayName: "Job",
                 getter: sheet => {
-                    if (sheet.sheet.isMultiJob) {
-                        return JOB_DATA[sheet.sheet.job].role;
+                    if (sheet.data.isMultiJob) {
+                        return JOB_DATA[sheet.data.job].role;
                     }
-                    return sheet.sheet.job;
+                    return sheet.data.job;
                 },
                 renderer: job => {
                     return jobAbbrevTranslated(job);
@@ -145,10 +195,10 @@ export class SheetPickerTable extends CustomTable<SelectableSheet, TableSelectio
                 shortName: "sheetjobicon",
                 displayName: "Job Icon",
                 getter: sheet => {
-                    if (sheet.sheet.isMultiJob) {
-                        return JOB_DATA[sheet.sheet.job].role;
+                    if (sheet.data.isMultiJob) {
+                        return JOB_DATA[sheet.data.job].role;
                     }
-                    return sheet.sheet.job;
+                    return sheet.data.job;
                 },
                 renderer: jobOrRole => {
                     return new JobIcon(jobOrRole);
@@ -157,13 +207,13 @@ export class SheetPickerTable extends CustomTable<SelectableSheet, TableSelectio
             {
                 shortName: "sheetlevel",
                 displayName: "Lvl",
-                getter: sheet => sheet.sheet.level,
+                getter: sheet => sheet.data.level,
                 fixedWidth: 40,
             },
             {
                 shortName: "sheetname",
                 displayName: "Sheet Name",
-                getter: sheet => sheet.sheet.name,
+                getter: sheet => sheet.data.name,
             },
         ];
         this.readData();
@@ -172,7 +222,7 @@ export class SheetPickerTable extends CustomTable<SelectableSheet, TableSelectio
             },
             clickColumnHeader() {
             },
-            clickRow(row: CustomRow<SelectableSheet>) {
+            clickRow(row: CustomRow<SheetHandle>) {
                 openSheetByKey(row.dataItem.key);
             },
             getSelection(): null {
@@ -223,7 +273,7 @@ export class SheetPickerTable extends CustomTable<SelectableSheet, TableSelectio
         }, row => {
             row.classList.add('search-row-outer');
         }));
-        const items: SelectableSheet[] = this.mgr.readData();
+        const items: SheetHandle[] = this.mgr.readData();
         data.push(...items);
         this.data = data;
     }
