@@ -150,7 +150,7 @@ export class SheetPickerTable extends CustomTable<SheetHandle, TableSelectionMod
                     if (status === null) {
                         return document.createTextNode('');
                     }
-                    let out = [];
+                    const out = [];
                     const statusType = status[0];
                     switch (statusType) {
                         case "in-sync":
