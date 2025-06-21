@@ -1,6 +1,6 @@
 import {col, CustomRow, CustomTable, SpecialRow, TableSelectionModel} from "@xivgear/common-ui/table/tables";
-import {faIcon, makeActionButton, makeCloseButton, quickElement} from "@xivgear/common-ui/components/util";
-import {deleteSheetByKey, SheetHandle, SheetManager} from "@xivgear/core/persistence/saved_sheets";
+import {errorIcon, faIcon, makeActionButton, makeCloseButton, quickElement} from "@xivgear/common-ui/components/util";
+import {deleteSheetByKey, SheetHandle, SheetManagerImpl, SyncStatus} from "@xivgear/core/persistence/saved_sheets";
 import {getHashForSaveKey, openSheetByKey, showNewSheetForm} from "../base_ui";
 import {confirmDelete} from "@xivgear/common-ui/components/delete_confirm";
 import {JobIcon} from "./job_icon";
@@ -9,9 +9,10 @@ import {jobAbbrevTranslated} from "./job_name_translator";
 import {CharacterGearSet} from "@xivgear/core/gear";
 import {installDragHelper} from "./draghelpers";
 import {SHEET_MANAGER} from "./saved_sheet_impl";
+import {ACCOUNT_STATE_TRACKER} from "../account/account_state";
 
 export class SheetPickerTable extends CustomTable<SheetHandle, TableSelectionModel<SheetHandle, never, never, SheetHandle | null>> {
-    private readonly mgr: SheetManager;
+    private readonly mgr: SheetManagerImpl;
 
     constructor() {
         super();
@@ -19,6 +20,11 @@ export class SheetPickerTable extends CustomTable<SheetHandle, TableSelectionMod
         this.classList.add("hoverable");
         const outer = this;
         this.mgr = SHEET_MANAGER;
+        this.mgr.setUpdateHook(handle => {
+            for (const cell of (this.dataRowMap.get(handle)?.dataColMap.values() ?? [])) {
+                cell.refreshFull();
+            }
+        });
         this.columns = [
             col({
                 shortName: "sheetactions",
@@ -135,7 +141,41 @@ export class SheetPickerTable extends CustomTable<SheetHandle, TableSelectionMod
                 shortName: "syncstatus",
                 displayName: "Sync",
                 getter: ss => {
-                    return ss.syncStatus;
+                    if (ACCOUNT_STATE_TRACKER.loggedIn && ACCOUNT_STATE_TRACKER.accountState?.verified) {
+                        return [ss.syncStatus, ss.busy];
+                    }
+                    return null;
+                },
+                renderer: (status: [SyncStatus, boolean] | null) => {
+                    if (status === null) {
+                        return document.createTextNode('');
+                    }
+                    let out = [];
+                    const statusType = status[0];
+                    switch (statusType) {
+                        case "in-sync":
+                            out.push('✓');
+                            break;
+                        case "never-uploaded":
+                        case "client-newer-than-server":
+                            out.push('↑');
+                            break;
+                        case "never-downloaded":
+                        case "server-newer-than-client":
+                            out.push('↓');
+                            break;
+                        case "conflict":
+                            out.push(errorIcon());
+                            break;
+                        case "unknown":
+                            out.push('?');
+                            break;
+                    }
+                    const active = status[1];
+                    if (active) {
+                        out.push('...');
+                    }
+                    return quickElement('span', ['sync-status'], out);
                 },
             }),
             col({

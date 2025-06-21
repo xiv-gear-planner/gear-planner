@@ -94,6 +94,7 @@ import {SheetInfoModal} from "./sheet_info_modal";
 import {FramelessJobIcon, JobIcon} from "./job_icon";
 import {setDataManagerErrorReporter} from "@xivgear/core/data_api_client";
 import {SpecialStatType} from "@xivgear/data-api-client/dataapi";
+import {SHEET_MANAGER} from "./saved_sheet_impl";
 
 const noSeparators = (set: CharacterGearSet) => !set.isSeparator;
 
@@ -2120,6 +2121,25 @@ export class GearPlanSheetGui extends GearPlanSheet {
         setTitle(this.sheetName);
     }
 
+    /**
+     * Save data for this sheet now.
+     */
+    saveData() {
+        if (!this.setupDone) {
+            // Don't clobber a save with empty data because the sheet hasn't loaded!
+            return;
+        }
+        if (this.saveKey) {
+            console.log("Saving sheet " + this.sheetName);
+            this._timestamp = new Date();
+            this.sheetManager.saveData(this);
+        }
+        else {
+            console.debug("Ignoring request to save sheet because it has no save key");
+        }
+    }
+
+
     configureBacklinkArea(sheetName: string, sheetUrl: URL): void {
         const area = this.headerBacklinkArea;
         const linkElement = document.createElement('a');
@@ -2435,7 +2455,7 @@ export class AddSimDialog extends BaseModal {
 
 export class GraphicalSheetProvider extends SheetProvider<GearPlanSheetGui> {
     constructor() {
-        super((...args) => new GearPlanSheetGui(...args));
+        super((...args) => new GearPlanSheetGui(...args), SHEET_MANAGER);
     }
 
     override fromExport(importedData: SheetExport): GearPlanSheetGui {

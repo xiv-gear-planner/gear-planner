@@ -21,6 +21,7 @@ import {recordError} from "@xivgear/common-ui/analytics/analytics";
 import {isInIframe} from "@xivgear/common-ui/util/detect_iframe";
 import {WritableProps} from "@xivgear/common-ui/util/types";
 import {quickElement} from "@xivgear/common-ui/components/util";
+import {ACCOUNT_STATE_TRACKER} from "./account/account_state";
 
 declare global {
     interface Document {
@@ -305,6 +306,19 @@ export async function openSheet(planner: GearPlanSheetGui, changeHash: boolean =
     await WORKER_POOL.setSheet(planner);
 }
 
+// TODO: good use case for custom events
+let currentPicker: SheetPickerTable | null = null;
+
+ACCOUNT_STATE_TRACKER.addAccountStateListener(() => {
+    if (currentPicker !== null && currentPicker.isConnected) {
+        for (const value of currentPicker.dataRowMap.values()) {
+            for (const col of value.dataColMap.values()) {
+                col.refreshFull();
+            }
+        }
+    }
+});
+
 export function showSheetPickerMenu() {
     const picker = new SheetPickerTable();
     const section = new NamedSection('My Sheets', false);
@@ -312,6 +326,7 @@ export function showSheetPickerMenu() {
     section.contentArea.replaceChildren(picker);
     // const holderDiv = quickElement('div', ['sheet-picker-holder'], [new SheetPickerTable()]);
     setMainContent(undefined, section);
+    currentPicker = picker;
     // contentArea.replaceChildren(new SheetPickerTable());
     // setTitle(undefined);
 }

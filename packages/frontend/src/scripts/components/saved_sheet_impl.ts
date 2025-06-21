@@ -1,4 +1,4 @@
-import {SheetManager} from "@xivgear/core/persistence/saved_sheets";
+import {SheetManagerImpl} from "@xivgear/core/persistence/saved_sheets";
 
-export const SHEET_MANAGER = new SheetManager(localStorage);
+export const SHEET_MANAGER = new SheetManagerImpl(localStorage);
 

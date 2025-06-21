@@ -152,13 +152,13 @@ class UserDataSyncer {
                     case "client-newer-than-server":
                         console.info(`Uploading: ${sheetHandle.key}: ${sheetHandle.data?.name} ${sheetHandle.localVersion} -> ${sheetHandle.serverVersion}`);
                         // TODO: needs to handle 409 conflict without blowing up
-                        await this.userDataClient.userdata.putSheet(sheetHandle.key, {
+                        await sheetHandle.doAction(this.userDataClient.userdata.putSheet(sheetHandle.key, {
                             sheetData: sheetHandle.data,
                             sheetName: sheetHandle.data.name,
                             sortOrder: sheetHandle.sortOrder,
                             lastSyncedVersion: sheetHandle.lastSyncedVersion,
                             newSheetVersion: sheetHandle.localVersion,
-                        }, this.buildParams());
+                        }, this.buildParams()));
                         sheetHandle.lastSyncedVersion = sheetHandle.localVersion;
                         sheetHandle.serverVersion = sheetHandle.localVersion;
                         break;

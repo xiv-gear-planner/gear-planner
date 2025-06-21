@@ -1,4 +1,6 @@
 import {DEFAULT_SHEET_METADATA, LocalSheetMetadata, SheetExport} from "@xivgear/xivmath/geartypes";
+import {GearPlanSheet} from "../sheet";
+import {recordError} from "@xivgear/common-ui/analytics/analytics";
 
 
 export function getNextSheetNumber(): number {
@@ -74,6 +76,9 @@ export type SheetHandle = {
     get serverVersion(): number,
     set serverVersion(value: number),
     postDownload(version: number, data: SheetExport): void,
+    postLocalModification(data: SheetExport): void,
+    get busy(): boolean,
+    doAction<X>(action: Promise<X>): Promise<X>,
 }
 
 class SheetHandleImpl implements SheetHandle {
@@ -81,15 +86,35 @@ class SheetHandleImpl implements SheetHandle {
     private metaDirty: boolean = false;
     private dataDirty: boolean = false;
 
+    private pendingActions: Promise<unknown>[] = [];
+
     private _data: SheetExport;
 
     constructor(
         public readonly key: string,
         data: SheetExport,
         public readonly meta: LocalSheetMetadata,
-        private readonly storage: Storage
-    ) {
+        private readonly storage: Storage,
+        private readonly updateHook: (h: SheetHandle) => void) {
         this._data = data;
+    }
+
+    get busy(): boolean {
+        return this.pendingActions.length > 0;
+    }
+
+    doAction<X>(action: Promise<X>): Promise<X> {
+        this.pendingActions.push(action);
+        this.afterUpdate();
+        action.finally(() => {
+            this.pendingActions.splice(this.pendingActions.indexOf(action), 1);
+            this.afterUpdate();
+        });
+        return action;
+    }
+
+    private afterUpdate() {
+        this.updateHook(this);
     }
 
     get sortOrder(): number {
@@ -101,7 +126,9 @@ class SheetHandleImpl implements SheetHandle {
 
     set sortOrder(sortOrder: number | null) {
         this.meta.sortOrder = sortOrder;
+        this.meta.currentVersion++;
         this.metaDirty = true;
+        this.afterUpdate();
     }
 
     get lastSyncedVersion(): number {
@@ -111,7 +138,11 @@ class SheetHandleImpl implements SheetHandle {
     set lastSyncedVersion(version: number) {
         this.metaDirty = true;
         this.meta.lastSyncedVersion = version;
+        if (this.meta.serverVersion < version) {
+            this.meta.serverVersion = version;
+        }
         // console.trace(`Setting last synced version to ${version} for ${this.key}`);
+        this.afterUpdate();
     }
 
     get localVersion(): number {
@@ -121,6 +152,7 @@ class SheetHandleImpl implements SheetHandle {
     set localVersion(version: number) {
         this.metaDirty = true;
         this.meta.currentVersion = version;
+        this.afterUpdate();
     }
 
     get serverVersion(): number {
@@ -131,9 +163,10 @@ class SheetHandleImpl implements SheetHandle {
         this.metaDirty = true;
         this.meta.serverVersion = version;
         // If the server lost data for some reason, we should do this so that it can re-upload.
-        if (version < this.lastSyncedVersion) {
-            this.lastSyncedVersion = version;
+        if (version < this.meta.lastSyncedVersion) {
+            this.meta.lastSyncedVersion = version;
         }
+        this.afterUpdate();
     }
 
     save(): void {
@@ -188,7 +221,7 @@ class SheetHandleImpl implements SheetHandle {
             }
         }
         console.warn('Unknown sync status for sheet ' + this.key, meta, cur, lastUploaded, svrVer);
-        reportError(`Unknown sync status for sheet ${this.key}: cur ${cur}, lastUp ${lastUploaded}, svr ${svrVer}`);
+        recordError('get syncStatus', `Unknown sync status for sheet ${this.key}: cur ${cur}, lastUp ${lastUploaded}, svr ${svrVer}`);
         return 'unknown';
     }
 
@@ -199,6 +232,7 @@ class SheetHandleImpl implements SheetHandle {
         this.meta.currentVersion = version;
         this.metaDirty = true;
         this.dataDirty = true;
+        this.afterUpdate();
     }
 
     postLocalModification(data: SheetExport): void {
@@ -206,6 +240,7 @@ class SheetHandleImpl implements SheetHandle {
         this.meta.currentVersion++;
         this.metaDirty = true;
         this.dataDirty = true;
+        this.afterUpdate();
     }
 
     get data(): SheetExport {
@@ -222,11 +257,87 @@ class SheetHandleImpl implements SheetHandle {
 }
 
 
-export class SheetManager {
+export interface SheetManager {
+    readonly lastData: SheetHandle[];
+
+    setUpdateHook(hook: (handle: SheetHandle) => void): void;
+
+    callUpdateHook(handle: SheetHandle): void;
+
+    /**
+     * Debug method which will reset the sort order of all sheets
+     */
+    resetAll(): void;
+
+    readData(): SheetHandle[];
+
+    reorderTo(draggedSheet: SheetHandle, draggedTo: SheetHandle): 'up' | 'down' | null;
+
+    resort(): void;
+
+    flush(): void;
+
+    newSheet(param: {
+        saveKey: string;
+        sheetMeta: LocalSheetMetadata
+    }): SheetHandle;
+
+    getOrCreateForKey(key: string): SheetHandle;
+
+    saveData(sheet: GearPlanSheet): void;
+
+    saveAs(sheet: SheetExport): string;
+}
+
+export const DUMMY_SHEET_MGR: SheetManager = {
+    lastData: [],
+    callUpdateHook(handle: SheetHandle): void {
+    },
+    flush(): void {
+    },
+    getOrCreateForKey(key: string): SheetHandle {
+        return undefined;
+    },
+    newSheet(param: {
+        saveKey: string;
+        sheetMeta: LocalSheetMetadata
+    }): SheetHandle {
+        return undefined;
+    },
+    readData(): SheetHandle[] {
+        return [];
+    },
+    reorderTo(draggedSheet: SheetHandle, draggedTo: SheetHandle): "up" | "down" | null {
+        return undefined;
+    },
+    resetAll(): void {
+    },
+    resort(): void {
+    },
+    saveAs(sheet: SheetExport): string {
+        return "";
+    },
+    saveData(sheet: GearPlanSheet): void {
+    },
+    setUpdateHook(hook: (handle: SheetHandle) => void): void {
+    },
+};
+
+export class SheetManagerImpl implements SheetManager {
     private readonly dataMap = new Map<string, SheetHandle>();
     private _lastData: SheetHandle[] = [];
+    private _updateHook: (handle: SheetHandle) => void = () => {
+    };
 
     constructor(private readonly storage: Storage) {
+    }
+
+    setUpdateHook(hook: (handle: SheetHandle) => void) {
+        this._updateHook = hook;
+    }
+
+    callUpdateHook(handle: SheetHandle) {
+        this._updateHook(handle);
     }
 
     /**
@@ -241,7 +352,6 @@ export class SheetManager {
     }
 
     readData(): SheetHandle[] {
-        // TODO: make this re-use existing handle instances, preferring to reload them instead
         // TODO: make this able to load meta-only keys
         const items: SheetHandle[] = [];
         const outer = this;
@@ -259,7 +369,7 @@ export class SheetManager {
                         continue;
                     }
                     const meta = readSheetMeta(localStorageKey);
-                    const item = new SheetHandleImpl(localStorageKey, imported, meta, outer.storage);
+                    const item = new SheetHandleImpl(localStorageKey, imported, meta, outer.storage, (h) => this.callUpdateHook(h));
                     this.dataMap.set(localStorageKey, item);
                     items.push(item);
                 }
@@ -333,7 +443,7 @@ export class SheetManager {
         saveKey: string;
         sheetMeta: LocalSheetMetadata
     }): SheetHandle {
-        const sheet = new SheetHandleImpl(param.saveKey, null, param.sheetMeta, this.storage);
+        const sheet = new SheetHandleImpl(param.saveKey, null, param.sheetMeta, this.storage, (h) => this.callUpdateHook(h));
         console.log(`New sheet: ${sheet.key}`);
         this._lastData.push(sheet);
         sheet.markMetaDirty();
@@ -343,6 +453,32 @@ export class SheetManager {
 
     get lastData(): SheetHandle[] {
         return [...this._lastData];
+    }
+
+    getOrCreateForKey(key: string): SheetHandle {
+        if (this.dataMap.has(key)) {
+            return this.dataMap.get(key)!;
+        }
+        const meta = readSheetMeta(key);
+        const item = new SheetHandleImpl(key, null, meta, this.storage, (h) => this.callUpdateHook(h));
+        this.dataMap.set(key, item);
+        this._lastData.push(item);
+        return item;
+    }
+
+    saveData(sheet: GearPlanSheet) {
+        const saveKey = sheet.saveKey;
+        const handle = this.getOrCreateForKey(saveKey);
+        handle.postLocalModification(sheet.exportSheet(false));
+        handle.save();
+    }
+
+    saveAs(sheet: SheetExport): string {
+        const saveKey = getNextSheetInternalName();
+        const handle = this.getOrCreateForKey(saveKey);
+        handle.postLocalModification(sheet);
+        handle.save();
+        return saveKey;
     }
 }
 
