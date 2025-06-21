@@ -1,56 +1,9 @@
 import {DEFAULT_SHEET_METADATA, LocalSheetMetadata, SheetExport} from "@xivgear/xivmath/geartypes";
 import {GearPlanSheet} from "../sheet";
-import {recordError} from "@xivgear/common-ui/analytics/analytics";
 
-
-export function getNextSheetNumber(): number {
-    const lastRaw = localStorage.getItem("last-sheet-number");
-    const lastSheetNum = lastRaw ? parseInt(lastRaw) : 0;
-    return Math.max(lastSheetNum + 1);
-}
-
-export function getNextSheetInternalName() {
-    const next = getNextSheetNumber();
-    localStorage.setItem("last-sheet-number", next.toString());
-    const randomStub = Math.floor(Math.random() * 16384 * 65536);
-    return "sheet-save-" + next + '-' + randomStub.toString(16).toLowerCase();
-}
-
-export function syncLastSheetNumber(numFromServer: number) {
-    if (!numFromServer) {
-        return;
-    }
-    const next = getNextSheetNumber();
-    if (numFromServer > next) {
-        localStorage.setItem('last-sheet-number', numFromServer.toString());
-    }
-}
 
 export function sheetMetaKey(sheetKey: string): string {
     return sheetKey + '-meta';
-}
-
-export function readSheetMeta(sheetKey: string): LocalSheetMetadata {
-    const metaKey = sheetMetaKey(sheetKey);
-    const metaRaw = localStorage.getItem(metaKey);
-    let meta: LocalSheetMetadata;
-    if (metaRaw) {
-        meta = {
-            ...DEFAULT_SHEET_METADATA,
-            ...JSON.parse(metaRaw),
-        };
-    }
-    else {
-        meta = {
-            ...DEFAULT_SHEET_METADATA,
-        };
-    }
-    return meta;
-}
-
-
-export function deleteSheetByKey(saveKey: string) {
-    localStorage.removeItem(saveKey);
 }
 
 export type SyncStatus =
@@ -60,24 +13,65 @@ export type SyncStatus =
     | 'never-uploaded'
     | 'conflict'
     | 'never-downloaded'
+    | 'null-data'
     | 'unknown';
 
 export type SheetHandle = {
-    key: string,
+    readonly key: string,
+    readonly metaKey: string,
     data: SheetExport,
     meta: LocalSheetMetadata,
+    /**
+     * The sort order of this sheet.
+     */
     get sortOrder(): number,
-    set sortOrder(value: number),
+    /**
+     * Change the sort order of this sheet. Set null to use the natural/default sort.
+     *
+     * @param value
+     */
+    set sortOrder(value: number | null),
+    /**
+     * Save the sheet and metadata.
+     */
     save(): void,
     get syncStatus(): SyncStatus,
+    /**
+     * The local version of the sheet.
+     */
     get localVersion(): number,
+    /**
+     * The last version of the sheet that was uploaded to the server.
+     */
     get lastSyncedVersion(): number,
     set lastSyncedVersion(value: number),
+    /**
+     * The highest version of the sheet that the server has, but has not necessarily been downloaded.
+     */
     get serverVersion(): number,
     set serverVersion(value: number),
+    /**
+     * Update the metadata after downloading a new version of the sheet.
+     *
+     * @param version
+     * @param data
+     */
     postDownload(version: number, data: SheetExport): void,
+    /**
+     * Update the metadata after making a local change to the sheet.
+     *
+     * @param data
+     */
     postLocalModification(data: SheetExport): void,
+    /**
+     * Whether or not an action posted with {@link doAction} is currently in progress.
+     */
     get busy(): boolean,
+    /**
+     * Perform an asynchronous action. Marks the sheet handle as busy until the promise resolves.
+     *
+     * @param action
+     */
     doAction<X>(action: Promise<X>): Promise<X>,
 }
 
@@ -169,11 +163,14 @@ class SheetHandleImpl implements SheetHandle {
         this.afterUpdate();
     }
 
+    get metaKey(): string {
+        return sheetMetaKey(this.key);
+    }
+
     save(): void {
         if (this.metaDirty) {
             // TODO: make meta key a method
-            const metaKey = sheetMetaKey(this.key);
-            this.storage.setItem(metaKey, JSON.stringify(this.meta));
+            this.storage.setItem(this.metaKey, JSON.stringify(this.meta));
             this.metaDirty = false;
         }
         if (this.dataDirty) {
@@ -187,6 +184,9 @@ class SheetHandleImpl implements SheetHandle {
         // the version that the client has
         const cur = meta.currentVersion;
         if (cur === 0 || this.data === null) {
+            if (this.serverVersion === 0) {
+                return 'null-data';
+            }
             return 'never-downloaded';
         }
         const lastUploaded = meta.lastSyncedVersion;
@@ -221,7 +221,6 @@ class SheetHandleImpl implements SheetHandle {
             }
         }
         console.warn('Unknown sync status for sheet ' + this.key, meta, cur, lastUploaded, svrVer);
-        recordError('get syncStatus', `Unknown sync status for sheet ${this.key}: cur ${cur}, lastUp ${lastUploaded}, svr ${svrVer}`);
         return 'unknown';
     }
 
@@ -277,18 +276,24 @@ export interface SheetManager {
 
     flush(): void;
 
-    newSheet(param: {
-        saveKey: string;
-        sheetMeta: LocalSheetMetadata
-    }): SheetHandle;
+    newSheetFromRemote(saveKey: string, remoteVersion: number): SheetHandle;
 
     getOrCreateForKey(key: string): SheetHandle;
 
     saveData(sheet: GearPlanSheet): void;
 
     saveAs(sheet: SheetExport): string;
+
+    getNextSheetNumber(): number;
+
+    getNextSheetInternalName(): string;
+
+    syncLastSheetNumber(numFromServer: number): void;
 }
 
+/**
+ * Used for headless sheets
+ */
 export const DUMMY_SHEET_MGR: SheetManager = {
     lastData: [],
     callUpdateHook(handle: SheetHandle): void {
@@ -296,12 +301,6 @@ export const DUMMY_SHEET_MGR: SheetManager = {
     flush(): void {
     },
     getOrCreateForKey(key: string): SheetHandle {
-        return undefined;
-    },
-    newSheet(param: {
-        saveKey: string;
-        sheetMeta: LocalSheetMetadata
-    }): SheetHandle {
         return undefined;
     },
     readData(): SheetHandle[] {
@@ -320,6 +319,17 @@ export const DUMMY_SHEET_MGR: SheetManager = {
     saveData(sheet: GearPlanSheet): void {
     },
     setUpdateHook(hook: (handle: SheetHandle) => void): void {
+    },
+    newSheetFromRemote(saveKey: string, remoteVersion: number): SheetHandle {
+        throw new Error("Function not implemented.");
+    },
+    getNextSheetNumber(): number {
+        return 1;
+    },
+    getNextSheetInternalName(): string {
+        return "sheet-save-1";
+    },
+    syncLastSheetNumber(numFromServer: number): void {
     },
 };
 
@@ -352,25 +362,27 @@ export class SheetManagerImpl implements SheetManager {
     }
 
     readData(): SheetHandle[] {
-        // TODO: make this able to load meta-only keys
+        // TODO: make this able to load meta-only keys, but not ones that have been deleted, and not ones that were
+        // created but never saved.
+        // TODO: consolidate readData() with get lastData. It should just work universally.
         const items: SheetHandle[] = [];
         const outer = this;
-        for (const localStorageKey in localStorage) {
-            if (localStorageKey.startsWith("sheet-save-") && !localStorageKey.endsWith("-meta")) {
-                const imported = JSON.parse(this.storage.getItem(localStorageKey)) as SheetExport;
+        for (const storageKey in this.storage) {
+            if (storageKey.startsWith("sheet-save-") && !storageKey.endsWith("-meta")) {
+                const imported = JSON.parse(this.storage.getItem(storageKey) ?? 'null') as SheetExport;
                 if (imported === null) {
                     // Sheet has not been downloaded yet
-                    console.info(`Sheet not downloaded: ${localStorageKey}`);
+                    console.info(`Sheet not downloaded: ${storageKey}`);
                 }
                 else if (imported?.saveKey) {
-                    if (this.dataMap.has(localStorageKey)) {
-                        const existing = this.dataMap.get(localStorageKey);
+                    if (this.dataMap.has(storageKey)) {
+                        const existing = this.dataMap.get(storageKey);
                         items.push(existing);
                         continue;
                     }
-                    const meta = readSheetMeta(localStorageKey);
-                    const item = new SheetHandleImpl(localStorageKey, imported, meta, outer.storage, (h) => this.callUpdateHook(h));
-                    this.dataMap.set(localStorageKey, item);
+                    const meta = this.readSheetMeta(storageKey);
+                    const item = new SheetHandleImpl(storageKey, imported, meta, outer.storage, (h) => this.callUpdateHook(h));
+                    this.dataMap.set(storageKey, item);
                     items.push(item);
                 }
             }
@@ -439,16 +451,44 @@ export class SheetManagerImpl implements SheetManager {
         this._lastData.forEach(item => item.save());
     }
 
-    newSheet(param: {
-        saveKey: string;
-        sheetMeta: LocalSheetMetadata
-    }): SheetHandle {
-        const sheet = new SheetHandleImpl(param.saveKey, null, param.sheetMeta, this.storage, (h) => this.callUpdateHook(h));
-        console.log(`New sheet: ${sheet.key}`);
-        this._lastData.push(sheet);
-        sheet.markMetaDirty();
-        sheet.markDataDirty();
-        return sheet;
+    newSheetFromRemote(saveKey: string, remoteVersion: number): SheetHandle {
+        const sheetMeta: LocalSheetMetadata = {
+            currentVersion: 0,
+            lastSyncedVersion: 0,
+            serverVersion: remoteVersion,
+            sortOrder: null,
+            hasConflict: false,
+            forcePush: false,
+        };
+        const handle = new SheetHandleImpl(saveKey, null, sheetMeta, this.storage, (h) => this.callUpdateHook(h));
+        console.log(`New sheet: ${handle.key}`);
+        this.registerNew(handle);
+        handle.markMetaDirty();
+        handle.markDataDirty();
+        return handle;
+    }
+
+    newSheetFromScratch(): SheetHandle {
+        const sheetMeta: LocalSheetMetadata = {
+            // Starts at version 0 because we haven't actually saved anything locally at this point.
+            currentVersion: 0,
+            lastSyncedVersion: 0,
+            serverVersion: 0,
+            sortOrder: null,
+            hasConflict: false,
+            forcePush: false,
+        };
+        const handle = new SheetHandleImpl(this.getNextSheetInternalName(), null, sheetMeta, this.storage, (h) => this.callUpdateHook(h));
+        // Mark metadata as dirty
+        handle.markMetaDirty();
+        handle.markDataDirty();
+        this.registerNew(handle);
+        return handle;
+    }
+
+    private registerNew(handle: SheetHandle) {
+        this.dataMap.set(handle.key, handle);
+        this._lastData.push(handle);
     }
 
     get lastData(): SheetHandle[] {
@@ -459,7 +499,7 @@ export class SheetManagerImpl implements SheetManager {
         if (this.dataMap.has(key)) {
             return this.dataMap.get(key)!;
         }
-        const meta = readSheetMeta(key);
+        const meta = this.readSheetMeta(key);
         const item = new SheetHandleImpl(key, null, meta, this.storage, (h) => this.callUpdateHook(h));
         this.dataMap.set(key, item);
         this._lastData.push(item);
@@ -474,12 +514,62 @@ export class SheetManagerImpl implements SheetManager {
     }
 
     saveAs(sheet: SheetExport): string {
-        const saveKey = getNextSheetInternalName();
+        const saveKey = this.getNextSheetInternalName();
         const handle = this.getOrCreateForKey(saveKey);
         handle.postLocalModification(sheet);
         handle.save();
         return saveKey;
     }
+
+    getNextSheetNumber(): number {
+        const lastRaw = this.storage.getItem("last-sheet-number");
+        const lastSheetNum = lastRaw ? parseInt(lastRaw) : 0;
+        return Math.max(lastSheetNum + 1);
+    }
+
+    getNextSheetInternalName() {
+        const next = this.getNextSheetNumber();
+        this.storage.setItem("last-sheet-number", next.toString());
+        const randomStub = Math.floor(Math.random() * 16384 * 65536);
+        return "sheet-save-" + next + '-' + randomStub.toString(16).toLowerCase();
+    }
+
+    syncLastSheetNumber(numFromServer: number) {
+        if (!numFromServer) {
+            return;
+        }
+        const next = this.getNextSheetNumber();
+        if (numFromServer > next) {
+            this.storage.setItem('last-sheet-number', numFromServer.toString());
+        }
+    }
+
+    private readSheetMeta(sheetKey: string): LocalSheetMetadata {
+        const metaKey = sheetMetaKey(sheetKey);
+        const metaRaw = this.storage.getItem(metaKey);
+        let meta: LocalSheetMetadata;
+        if (metaRaw) {
+            meta = {
+                ...DEFAULT_SHEET_METADATA,
+                ...JSON.parse(metaRaw),
+            };
+        }
+        else {
+            meta = {
+                ...DEFAULT_SHEET_METADATA,
+            };
+        }
+        return meta;
+    }
+
+    deleteSheetByKey(saveKey: string) {
+        // TODO: needs to flag the sheet handle as deleted, and leave the metadata intact
+        this.storage.removeItem(saveKey);
+        this.dataMap.delete(saveKey);
+        this._lastData = this._lastData.filter(item => item.key !== saveKey);
+    }
+
+
 }
 
 

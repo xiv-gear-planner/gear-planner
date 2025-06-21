@@ -1,6 +1,6 @@
 import {col, CustomRow, CustomTable, SpecialRow, TableSelectionModel} from "@xivgear/common-ui/table/tables";
 import {errorIcon, faIcon, makeActionButton, makeCloseButton, quickElement} from "@xivgear/common-ui/components/util";
-import {deleteSheetByKey, SheetHandle, SheetManagerImpl, SyncStatus} from "@xivgear/core/persistence/saved_sheets";
+import {SheetHandle, SheetManagerImpl, SyncStatus} from "@xivgear/core/persistence/saved_sheets";
 import {getHashForSaveKey, openSheetByKey, showNewSheetForm} from "../base_ui";
 import {confirmDelete} from "@xivgear/common-ui/components/delete_confirm";
 import {JobIcon} from "./job_icon";
@@ -35,7 +35,7 @@ export class SheetPickerTable extends CustomTable<SheetHandle, TableSelectionMod
                     const div = document.createElement("div");
                     div.appendChild(makeActionButton([faIcon('fa-trash-can')], (ev) => {
                         if (confirmDelete(ev, `Delete sheet '${sheet.name}'?`)) {
-                            deleteSheetByKey(sheet.saveKey);
+                            this.mgr.deleteSheetByKey(sheet.saveKey);
                             this.readData();
                         }
                     }, `Delete sheet '${sheet.name}'`));

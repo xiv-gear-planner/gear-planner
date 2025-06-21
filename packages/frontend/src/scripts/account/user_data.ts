@@ -6,9 +6,9 @@ import {
     setDisplaySettingsChangeCallback
 } from "@xivgear/common-ui/settings/display_settings";
 import {Language} from "@xivgear/i18n/translation";
-import {getNextSheetNumber, SheetHandle, syncLastSheetNumber} from "@xivgear/core/persistence/saved_sheets";
 import {SheetExport} from "@xivgear/xivmath/geartypes";
 import {SHEET_MANAGER} from "../components/saved_sheet_impl";
+import {SheetHandle, SheetManager} from "@xivgear/core/persistence/saved_sheets";
 
 const userDataClient = new UserDataClient<never>({
     baseUrl: document.location.hostname === 'localhost' ? 'http://localhost:8087' : 'https://accountsvc.xivgear.app',
@@ -18,8 +18,7 @@ const userDataClient = new UserDataClient<never>({
 
 class UserDataSyncer {
 
-    constructor(private readonly accountStateTracker: AccountStateTracker, private readonly userDataClient: UserDataClient<never>, private readonly settings: DisplaySettings) {
-
+    constructor(private readonly accountStateTracker: AccountStateTracker, private readonly userDataClient: UserDataClient<never>, private readonly settings: DisplaySettings, private readonly sheetMgr: SheetManager) {
     }
 
     async downloadSettings(): Promise<"success" | "not-logged-in" | "none-saved"> {
@@ -40,7 +39,7 @@ class UserDataSyncer {
         this.settings.lightMode = prefs.lightMode;
         // this.settings.modernTheme = prefs.modernTheme;
         this.settings.languageOverride = (prefs.languageOverride ?? undefined) as Language;
-        syncLastSheetNumber(resp.data.nextSetId);
+        this.sheetMgr.syncLastSheetNumber(resp.data.nextSetId);
         return 'success';
     }
 
@@ -56,7 +55,7 @@ class UserDataSyncer {
                 lightMode: this.settings.lightMode,
                 languageOverride: this.settings.languageOverride,
             },
-            nextSetId: getNextSheetNumber(),
+            nextSetId: this.sheetMgr.getNextSheetNumber(),
         }, this.buildParams());
         return 'success';
     }
@@ -108,17 +107,19 @@ class UserDataSyncer {
             // Basically, if the local version is 0, then we know that the sheet exists on the server, and we should
             // display it iff the user is logged in. If the user wishes to open this sheet, then we need to download
             // it on demand.
-            const newSheet = mgr.newSheet({
-                saveKey: sheetMeta.saveKey,
-                sheetMeta: {
-                    currentVersion: 0,
-                    lastSyncedVersion: 0,
-                    serverVersion: svrVer,
-                    sortOrder: null,
-                    hasConflict: false,
-                    forcePush: false,
-                },
-            });
+            const newSheet = mgr.newSheetFromRemote(
+                sheetMeta.saveKey, svrVer
+                // saveKey: sheetMeta.saveKey,
+                // serverVersion: svrVer,
+                // sheetMeta: {
+                //     currentVersion: 0,
+                //     lastSyncedVersion: 0,
+                //     serverVersion: svrVer,
+                //     sortOrder: null,
+                //     hasConflict: false,
+                //     forcePush: false,
+                // },
+            );
             newHandles.push(newSheet);
         });
         mgr.resort();
@@ -160,7 +161,6 @@ class UserDataSyncer {
                             newSheetVersion: sheetHandle.localVersion,
                         }, this.buildParams()));
                         sheetHandle.lastSyncedVersion = sheetHandle.localVersion;
-                        sheetHandle.serverVersion = sheetHandle.localVersion;
                         break;
                     case "never-downloaded":
                     case "server-newer-than-client": {
@@ -174,6 +174,8 @@ class UserDataSyncer {
                         break;
                     case "unknown":
                         // Can't fix this, and would have already been logged
+                        break;
+                    case "null-data":
                         break;
                 }
             }
@@ -196,7 +198,7 @@ class UserDataSyncer {
 }
 
 // TODO:
-export const USER_DATA_SYNCER = new UserDataSyncer(ACCOUNT_STATE_TRACKER, userDataClient, DISPLAY_SETTINGS);
+export const USER_DATA_SYNCER = new UserDataSyncer(ACCOUNT_STATE_TRACKER, userDataClient, DISPLAY_SETTINGS, SHEET_MANAGER);
 
 export async function afterLogin() {
     const result = await USER_DATA_SYNCER.downloadSettings();

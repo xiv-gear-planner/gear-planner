@@ -174,6 +174,7 @@ export class SheetProvider<SheetType extends GearPlanSheet> {
 export const HEADLESS_SHEET_PROVIDER = new SheetProvider((...args) => new GearPlanSheet(...args), DUMMY_SHEET_MGR);
 
 
+// TODO: core shouldn't reference localStorage
 function loadSaved(sheetKey: string): SheetExport | null {
     const item = localStorage.getItem(sheetKey);
     if (item) {
