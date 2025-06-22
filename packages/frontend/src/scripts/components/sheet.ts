@@ -1500,7 +1500,6 @@ export class GearPlanSheetGui extends GearPlanSheet {
             const ilvlSyncLabel = quickElement('div', ['like-a-button', 'level-sync-info'], [span]);
             ilvlSyncLabel.title = 'To change the item level sync, click the "Save As" button to create a new sheet with a different level/ilvl.';
             ilvlSyncLabel.setAttribute("display", "inline-block");
-            //ilvlSyncLabel.classList.add('level-sync-info');
             buttonsArea.appendChild(ilvlSyncLabel);
         }
 
