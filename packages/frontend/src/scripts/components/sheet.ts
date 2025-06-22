@@ -1489,8 +1489,6 @@ export class GearPlanSheetGui extends GearPlanSheet {
 
         this._gearPlanTable = new GearPlanTable(this, item => this.editorItem = item);
         this.showAdvancedStats = SETTINGS.viewDetailedStats ?? false;
-        // Buttons and controls at the bottom of the table
-        // this.buttonRow.id = 'gear-sheet-button-row';
 
         const sheetOptions = new DropdownActionMenu('More Actions...');
 
