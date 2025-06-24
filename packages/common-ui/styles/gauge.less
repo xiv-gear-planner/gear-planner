@@ -69,6 +69,11 @@ gauge-bar {
   clip-path: circle();
 }
 
+.shape-rightchevron {
+  clip-path: polygon(75% 12%, 100% 50%, 75% 88%, 0% 88%, 25% 50%, 0% 12%);
+  margin-right: -2px;
+}
+
 // WHM
 .whm-gauge {
   .shape-diamond();
@@ -200,6 +205,73 @@ td[col-id="nadi"] {
   background-color: #65b291;
 }
 
+
+// BLM
+.blm-element {
+  .shape-diamond;
+}
+.blm-element-default {
+  .blm-element;
+  background-color: var(--default-gauge-color);
+}
+.blm-element-fire {
+  .blm-element;
+  background-color: rgba(255, 74, 101, 1);
+}
+.blm-element-ice {
+  .blm-element;
+  background-color: rgba(59, 176, 255, 1);
+}
+
+.blm-polyglot {
+  .shape-diamond;
+}
+.blm-polyglot-default {
+  .blm-polyglot;
+  background-color: var(--default-gauge-color);
+}
+.blm-polyglot-full {
+  .blm-polyglot;
+  background-color: #e06796;
+}
+
+.blm-paradox {
+  .shape-diamond;
+}
+.blm-paradox-default {
+  .blm-paradox;
+  background-color: var(--default-gauge-color);
+}
+.blm-paradox-full {
+  .blm-paradox;
+  background-color: #ff4a65;
+  background: linear-gradient(180deg, rgba(255, 74, 101, 1) 0%, rgba(254, 196, 255, 1) 50%, rgba(59, 176, 255, 1) 100%);
+}
+
+.blm-umbralhearts {
+  .shape-diamond;
+}
+.blm-umbralhearts-default {
+  .blm-umbralhearts;
+  background-color: var(--default-gauge-color);
+}
+.blm-umbralhearts-full {
+  .blm-umbralhearts;
+  background-color: #ffffff;
+}
+
+.blm-astralsoul {
+  .shape-rightchevron;
+}
+.blm-astralsoul-default {
+  .blm-astralsoul;
+  background-color: var(--default-gauge-color);
+}
+.blm-astralsoul-full {
+  .blm-astralsoul;
+  background-color: #ffc27a;
+}
+
 .vpr-rattling-gauge {
   .shape-diamond();
 }
@@ -265,3 +337,4 @@ td[col-id="nadi"] {
   //--gauge-text-width: auto;
   min-width: var(--gauge-text-width, auto);
 }
+
