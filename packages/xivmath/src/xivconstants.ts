@@ -562,6 +562,7 @@ const defaultItemDispBase = {
     higherRelics: true,
     minILvlFood: 740,
     maxILvlFood: 999,
+    showOneStatFood: false,
 } as const satisfies Partial<ItemDisplaySettings>;
 
 /**
@@ -640,7 +641,7 @@ const BLU_ITEM_DISPLAY = {
     maxILvl: 535,
 } satisfies ItemDisplaySettings;
 
-export function getDefaultDisplaySettings(level: SupportedLevel, job: JobName): ItemDisplaySettings {
+export function getDefaultDisplaySettings(level: SupportedLevel, job: JobName): Readonly<ItemDisplaySettings> {
     if (job === 'BLU' && level === JOB_DATA.BLU.maxLevel) {
         return BLU_ITEM_DISPLAY;
     }
@@ -774,6 +775,10 @@ export function statById(id: number): keyof RawStats | undefined {
             return "piety";
         case 7:
             return "hp";
+        case 12:
+            return "wdPhys";
+        case 13:
+            return "wdMag";
         case 19:
             return "tenacity";
         case 22:
@@ -900,6 +905,7 @@ export const defaultItemDisplaySettings: ItemDisplaySettings = {
     maxILvlFood: 999,
     higherRelics: true,
     showNq: false,
+    showOneStatFood: false,
 } as const;
 
 export const MAX_PARTY_BONUS: PartyBonusAmount = 5;

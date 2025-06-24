@@ -4,6 +4,10 @@ on:
   push:
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.numbner || github.ref }}
+  cancel-in-progress: true
+
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository_owner }}/xivgear-static
@@ -28,6 +32,7 @@ jobs:
           npm ci
           npm run test
           npm run -w @xivgear/gearplan-frontend buildprod
+          npm run docs
 
       - name: Inject commit info
         run: |

@@ -11,6 +11,10 @@
     </script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, height=device-height, initial-scale=0.75, user-scalable=no">
+
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+
     <title>XivGear - FFXIV Gear Planner</title>
     <script src="./main.js" type="module"></script>
     <script src="//cdn.jsdelivr.net/npm/@ungap/custom-elements"></script>
@@ -36,12 +40,16 @@
 <div id="show-hide-menu-button-area">
     <button id="show-hide-menu-button"><span>≡</span></button>
 </div>
+<div id="help-button-area">
+    <a target="_blank" href="https://github.com/xiv-gear-planner/gear-planner/blob/master/docs/Index.md"><button id="help-button">?</button></a>
+</div>
 <div id="main-menu-area">
     <div id="main-menu-area-inner">
         <a href="?page=">My Sheets</a>
         <a href="?page=newsheet" id="new-sheet-button">New Sheet</a>
         <a href="?page=importsheet">Import</a>
         <a href="" id="settings-button">Settings</a>
+        <a href="" id="account-button" style="display: none"><span id="account-text">Log In</span></a>
         <a href="./math/">Math</a><!--    <a href="." id="dev-menu-button">Dev Menu</a>-->
         <a href="https://github.com/xiv-gear-planner/gear-planner/" id="github-button" target="_blank">GitHub</a>
         <a href="https://ko-fi.com/wynnxiv" id="kofi-button" target="_blank">Ko-Fi</a>

@@ -15,6 +15,7 @@ import {
 } from "@xivgear/xivmath/xivconstants";
 import {
     cloneEquipmentSet,
+    CollapsibleSlot,
     ComputedSetStats,
     EquipmentSet,
     EquippedItem,
@@ -25,6 +26,7 @@ import {
     GearItem,
     GearSetIssue,
     GearSetResult,
+    JobData,
     Materia,
     MateriaAutoFillController,
     MateriaAutoFillPrio,
@@ -36,11 +38,10 @@ import {
     RelicStatMemoryExport,
     RelicStats,
     SetDisplaySettingsExport,
-    SlotMateriaMemoryExport,
-    XivCombatItem
+    SlotMateriaMemoryExport
 } from "@xivgear/xivmath/geartypes";
 import {Inactivitytimer} from "@xivgear/util/inactivitytimer";
-import {addStats, finalizeStats, finalizeStatsInt} from "@xivgear/xivmath/xivstats";
+import {addStats, finalizeStats, finalizeStatsInt, getBaseMainStat} from "@xivgear/xivmath/xivstats";
 import {GearPlanSheet} from "./sheet";
 import {isMateriaAllowed} from "./materia/materia_utils";
 
@@ -159,14 +160,14 @@ export class MateriaMemory {
 
 
 export class SetDisplaySettings {
-    private readonly hiddenSlots: Map<EquipSlotKey, boolean> = new Map();
+    private readonly hiddenSlots: Map<CollapsibleSlot, boolean> = new Map();
 
-    isSlotHidden(slot: EquipSlotKey): boolean {
+    isSlotHidden(slot: CollapsibleSlot): boolean {
         const hidden = this.hiddenSlots.get(slot);
         return hidden === true;
     }
 
-    setSlotHidden(slot: EquipSlotKey, hidden: boolean) {
+    setSlotHidden(slot: CollapsibleSlot, hidden: boolean) {
         this.hiddenSlots.set(slot, hidden);
     }
 
@@ -175,8 +176,9 @@ export class SetDisplaySettings {
         EquipSlots.forEach(slot => this.setSlotHidden(slot, hidden));
     }
 
+    // these import/export methods are not needed - are they used anywhere?
     export(): SetDisplaySettingsExport {
-        const hiddenSlots: EquipSlotKey[] = [];
+        const hiddenSlots: CollapsibleSlot[] = [];
         this.hiddenSlots.forEach((value, key) => {
             if (value) {
                 hiddenSlots.push(key);
@@ -236,6 +238,8 @@ type GearSetCheckpoint = {
     equipment: EquipmentSet;
     food: FoodItem | undefined;
     jobOverride: JobName | null;
+    name: string;
+    description: string;
 }
 // GearSetCheckpointNode establishes a doubly-linked list of checkpoints.
 // This allows us to easily remove the 'redo' tree if you undo and then make a change.
@@ -368,7 +372,7 @@ export class CharacterGearSet {
      * @param item
      * @param materiaAutoFillController
      */
-    setEquip(slot: EquipSlotKey, item: GearItem, materiaAutoFillController?: MateriaAutoFillController) {
+    setEquip(slot: EquipSlotKey, item: GearItem | null, materiaAutoFillController?: MateriaAutoFillController) {
         if (this.equipment[slot]?.gearItem === item) {
             return;
         }
@@ -544,7 +548,7 @@ export class CharacterGearSet {
     /**
      * All items currently equipped (excluding food)
      */
-    get allEquippedItems(): XivCombatItem[] {
+    get allEquippedItems(): GearItem[] {
         return Object.values(this.equipment)
             .filter(slotEquipment => slotEquipment && slotEquipment.gearItem)
             .map((slotEquipment: EquippedItem) => slotEquipment.gearItem);
@@ -566,6 +570,10 @@ export class CharacterGearSet {
 
     get job(): JobName {
         return this._jobOverride ?? this.sheet.classJobName;
+    }
+
+    get classJobStats(): JobData {
+        return this.sheet.statsForJob(this.job);
     }
 
     /**
@@ -597,7 +605,7 @@ export class CharacterGearSet {
 
         // Base stats based on job and level
         for (const statKey of MAIN_STATS) {
-            combinedStats[statKey] += Math.floor(levelStats.baseMainStat * classJobStats.jobStatMultipliers[statKey] / 100);
+            combinedStats[statKey] += getBaseMainStat(levelStats, classJobStats, statKey);
         }
         for (const statKey of FAKE_MAIN_STATS) {
             combinedStats[statKey] += Math.floor(levelStats.baseMainStat);
@@ -612,7 +620,7 @@ export class CharacterGearSet {
         this._dirtyComp = false;
         // Add BLU weapon damage modifier
         combinedStats.wdMag += classJob === "BLU" ? bluWdfromInt(gearIntStat) : 0;
-        const computedStats = finalizeStats(combinedStats, this._food?.bonuses ?? {}, level, levelStats, classJob, classJobStats, this._sheet.partyBonus, this._sheet.race);
+        const computedStats = finalizeStats(combinedStats, this._food?.bonuses ?? {}, level, levelStats, classJob, classJobStats, this._sheet.partyBonus, raceStats);
         const leftRing = this.getItemInSlot('RingLeft');
         const rightRing = this.getItemInSlot('RingRight');
         if (leftRing && leftRing.isUnique && rightRing && rightRing.isUnique) {
@@ -714,7 +722,7 @@ export class CharacterGearSet {
      * @param stat
      * @param materiaOverride
      */
-    getStatDetail(slotId: keyof EquipmentSet, stat: RawStatKey, materiaOverride?: Materia[]): ReturnType<typeof this.getEquipStatDetail> {
+    getStatDetail(slotId: keyof EquipmentSet, stat: RawStatKey, materiaOverride?: Materia[]): ReturnType<CharacterGearSet['getEquipStatDetail']> {
         const equip = this.equipment[slotId];
         return this.getEquipStatDetail(equip, stat, materiaOverride);
     }
@@ -806,7 +814,7 @@ export class CharacterGearSet {
                 overcapAmount: 0,
                 effectiveAmount: meldedStatValue,
                 fullAmount: meldedStatValue,
-                cap: meldedStatValue,
+                cap: cap,
             };
         }
         // Overcapped
@@ -938,11 +946,11 @@ export class CharacterGearSet {
      * Whether a particular slot should be collapsed on the UI.
      * @param slotId
      */
-    isSlotCollapsed(slotId: EquipSlotKey) {
+    isSlotCollapsed(slotId: CollapsibleSlot) {
         return this.displaySettings.isSlotHidden(slotId);
     }
 
-    setSlotCollapsed(slotId: EquipSlotKey, val: boolean) {
+    setSlotCollapsed(slotId: CollapsibleSlot, val: boolean) {
         this.displaySettings.setSlotHidden(slotId, val);
     }
 
@@ -983,6 +991,8 @@ export class CharacterGearSet {
             equipment: cloneEquipmentSet(this.equipment),
             food: this._food,
             jobOverride: this._jobOverride,
+            name: this._name,
+            description: this._description,
         };
         const prev = this.currentCheckpoint;
         // Initial checkpoint
@@ -1044,6 +1054,8 @@ export class CharacterGearSet {
         const newEquipment = cloneEquipmentSet(checkpoint.equipment);
         Object.assign(this.equipment, newEquipment);
         this._food = checkpoint.food;
+        this._name = checkpoint.name;
+        this._description = checkpoint.description;
         if (checkpoint.jobOverride !== this._jobOverride) {
             this.jobOverride = checkpoint.jobOverride;
         }

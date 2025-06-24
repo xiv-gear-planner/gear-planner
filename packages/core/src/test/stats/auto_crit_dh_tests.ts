@@ -1,10 +1,11 @@
 import {finalizeStats} from "@xivgear/xivmath/xivstats";
 import {RawStats} from "@xivgear/xivmath/geartypes";
-import {getLevelStats} from "@xivgear/xivmath/xivconstants";
+import {getLevelStats, getRaceStats} from "@xivgear/xivmath/xivconstants";
 import {HEADLESS_SHEET_PROVIDER} from "../../sheet";
 import {expect} from "chai";
 import {Buff, DamagingAbility, GcdAbility} from "../../sims/sim_types";
 import {abilityToDamageNew, combineBuffEffects} from "../../sims/sim_utils";
+import {noStatusId} from "../../sims/buff_helpers";
 
 const level = 100;
 const fakeSheetGNB = HEADLESS_SHEET_PROVIDER.fromScratch("unused", "unused", 'GNB', level, undefined, false);
@@ -27,7 +28,7 @@ const rawStats = new RawStats({
     wdMag: 79,
     weaponDelay: 3.12,
 });
-const makeStats = loadPromiseGNB.then(() => finalizeStats(rawStats, {}, level, getLevelStats(level), 'GNB', fakeSheetGNB.classJobStats, 0, "The Lost"));
+const makeStats = loadPromiseGNB.then(() => finalizeStats(rawStats, {}, level, getLevelStats(level), 'GNB', fakeSheetGNB.classJobStats, 0, getRaceStats("The Lost")));
 
 describe("Auto Crit and Dh Bonus Multi Calculation", () => {
     it('has no bonuses by default', async () => {
@@ -115,6 +116,7 @@ const critChanceBuff = {
     effects: {
         critChanceIncrease: 0.5,
     },
+    statusId: noStatusId(),
 } satisfies Buff;
 
 const critForceBuff = {
@@ -122,6 +124,7 @@ const critForceBuff = {
     effects: {
         forceCrit: true,
     },
+    statusId: noStatusId(),
 } satisfies Buff;
 
 const dhChanceBuff = {
@@ -129,6 +132,7 @@ const dhChanceBuff = {
     effects: {
         dhitChanceIncrease: 0.5,
     },
+    statusId: noStatusId(),
 } satisfies Buff;
 
 const dhForceBuff = {
@@ -136,6 +140,7 @@ const dhForceBuff = {
     effects: {
         forceDhit: true,
     },
+    statusId: noStatusId(),
 } satisfies Buff;
 
 describe("Auto Crit and Dh Damage Calculation", () => {
@@ -147,6 +152,7 @@ describe("Auto Crit and Dh Damage Calculation", () => {
                 critChanceIncrease: -1,
                 dhitChanceIncrease: -1,
             },
+            statusId: noStatusId(),
         }]));
         expect(damageResult.directDamage.expected).to.be.closeTo(633, 0.01);
         expect(damageResult.directDamage.stdDev).to.be.closeTo(18.273, 0.01);
@@ -184,6 +190,7 @@ describe("Auto Crit and Dh Damage Calculation", () => {
             effects: {
                 forceCrit: true,
             },
+            statusId: noStatusId(),
         }]));
         expect(damageResult.directDamage.expected).to.be.closeTo(1015.957, 0.01);
         expect(damageResult.directDamage.stdDev).to.be.closeTo(63.376, 0.01);
@@ -206,6 +213,7 @@ describe("Auto Crit and Dh Damage Calculation", () => {
             effects: {
                 forceDhit: true,
             },
+            statusId: noStatusId(),
         }]));
         // We're guaranteeing a 25% damage bonus, so should be about +25% over base.
         expect(damageResult.directDamage.expected).to.be.closeTo(912.166, 0.01);

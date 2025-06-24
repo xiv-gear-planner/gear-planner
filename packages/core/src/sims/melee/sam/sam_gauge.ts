@@ -22,7 +22,7 @@ class SAMGauge {
     }
 
     spendKenki(action: KenkiAbility): void {
-        action.updateGauge(this);
+        action.updateGaugeLegacy(this);
     }
 
     private _meditation: number = 0;

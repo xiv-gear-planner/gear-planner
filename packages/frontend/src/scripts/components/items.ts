@@ -1,4 +1,4 @@
-import {CharacterGearSet, ItemSingleStatDetail, nonEmptyRelicStats, previewItemStatDetail} from "@xivgear/core/gear";
+import {CharacterGearSet, ItemSingleStatDetail, previewItemStatDetail} from "@xivgear/core/gear";
 import {
     DisplayGearSlot,
     EquipmentSet,
@@ -29,6 +29,7 @@ import {
     TitleRow
 } from "@xivgear/common-ui/table/tables";
 import {
+    ALL_SUB_STATS,
     formatAcquisitionSource,
     MateriaSubstat,
     MateriaSubstats,
@@ -50,7 +51,7 @@ import {ShowHideButton, ShowHideCallback} from "@xivgear/common-ui/components/sh
 import {BaseModal} from "@xivgear/common-ui/components/modal";
 import {recordSheetEvent} from "../analytics/analytics";
 
-function statCellStylerRemover(cell: CustomCell<GearSlotItem, unknown>) {
+function removeStatCellStyles(cell: CustomCell<GearSlotItem, unknown>) {
     cell.classList.remove("secondary");
     cell.classList.remove("primary");
     cell.classList.remove("stat-melded-overcapped");
@@ -58,6 +59,7 @@ function statCellStylerRemover(cell: CustomCell<GearSlotItem, unknown>) {
     cell.classList.remove("stat-melded");
     cell.classList.remove("stat-synced-down");
     cell.classList.remove("stat-cell");
+    delete cell.title;
 }
 
 /**
@@ -68,7 +70,7 @@ function statCellStylerRemover(cell: CustomCell<GearSlotItem, unknown>) {
  * describes meld values and whether it has overcapped or not.
  * @param stat The stat
  */
-function statCellStyler(cell: CustomCell<GearSlotItem, unknown>, value: ItemSingleStatDetail, stat: keyof RawStats) {
+function applyStatCellStyles(cell: CustomCell<GearSlotItem, unknown>, value: ItemSingleStatDetail, stat: keyof RawStats) {
 
     let isPrimary: boolean = false;
     let isSecondary: boolean = false;
@@ -112,30 +114,39 @@ function statCellStyler(cell: CustomCell<GearSlotItem, unknown>, value: ItemSing
     else {
         cell.classList.remove("stat-zero");
     }
-    cell.classList.remove("stat-melded-overcapped");
-    cell.classList.remove("stat-melded-overcapped-major");
-    cell.classList.remove("stat-melded");
-    let modeLabel;
+    cell.classList.remove("stat-melded-overcapped", "stat-melded-overcapped-major", "stat-melded", "stat-synced-down");
     if (value.mode === 'melded') {
-        modeLabel = 'Melded: \n';
         cell.classList.add("stat-melded");
     }
     else if (value.mode === 'melded-overcapped') {
-        modeLabel = 'Overcapped: \n';
         cell.classList.add("stat-melded-overcapped");
     }
     else if (value.mode === 'melded-overcapped-major') {
-        modeLabel = 'Overcapped: \n';
         cell.classList.add("stat-melded-overcapped-major");
     }
     else if (value.mode === 'synced-down') {
-        modeLabel = 'Synced Down: \n';
         cell.classList.add("stat-synced-down");
+    }
+}
+
+function statCellTitle(value: ItemSingleStatDetail): string {
+    let modeLabel;
+    if (value.mode === 'melded') {
+        modeLabel = 'Melded: \n';
+    }
+    else if (value.mode === 'melded-overcapped') {
+        modeLabel = 'Overcapped: \n';
+    }
+    else if (value.mode === 'melded-overcapped-major') {
+        modeLabel = 'Overcapped: \n';
+    }
+    else if (value.mode === 'synced-down') {
+        modeLabel = 'Synced Down: \n';
     }
     else {
         modeLabel = '';
     }
-    cell.title = `${modeLabel}${value.fullAmount} / ${value.cap}`;
+    return `${modeLabel}${value.fullAmount} / ${value.cap}`;
 }
 
 /**
@@ -236,11 +247,15 @@ function foodTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, stat: 
 
 
 export class FoodItemsTable extends CustomTable<FoodItem, TableSelectionModel<FoodItem, never, never, FoodItem | undefined>> {
-    constructor(sheet: GearPlanSheet, gearSet: CharacterGearSet) {
+    constructor(sheet: GearPlanSheet, private readonly gearSet: CharacterGearSet) {
         super();
         this.classList.add("food-items-table");
         this.classList.add("food-items-edit-table");
         this.classList.add("hoverable");
+        this.rowTitleSetter = (rowValue: FoodItem) => {
+            const name = rowValue.nameTranslation.asCurrentLang;
+            return `${name} (${rowValue.id})`;
+        };
         super.columns = [
             {
                 shortName: "ilvl",
@@ -311,14 +326,40 @@ export class FoodItemsTable extends CustomTable<FoodItem, TableSelectionModel<Fo
 
             },
         };
+        const osfCb = new FieldBoundCheckBox(gearSet.sheet.itemDisplaySettings, 'showOneStatFood', {
+            id: 'show-osf-cb',
+        });
+        const oneStatFoodWithLabel = labeledCheckbox('Show Food with One Relevant Stat', osfCb);
+        // This should not trigger the show/hide control
+        oneStatFoodWithLabel.addEventListener('click', e => e.stopPropagation());
+
+        const showHideRow = makeShowHideRow('Food', gearSet.isSlotCollapsed('food'), (val, count) => {
+            gearSet.setSlotCollapsed('food', val);
+            recordSheetEvent('hideFood', sheet, {
+                hidden: val,
+            });
+            this.updateShowHide();
+        }, [oneStatFoodWithLabel]);
         const displayItems = [...sheet.foodItemsForDisplay];
         displayItems.sort((left, right) => left.ilvl - right.ilvl);
         if (displayItems.length > 0) {
-            super.data = [new HeaderRow(), ...displayItems];
+            super.data = [showHideRow.row, new HeaderRow(), ...displayItems];
         }
         else {
-            super.data = [new HeaderRow(), new TitleRow('No items available - please check your filters')];
+            super.data = [showHideRow.row, new HeaderRow(), new TitleRow('No items available - please check your filters')];
         }
+        this.updateShowHide();
+    }
+
+    private updateShowHide() {
+        this.dataRowMap.forEach((row, value) => {
+            if (this.gearSet.isSlotCollapsed('food') && !this.selectionModel.isRowSelected(row)) {
+                row.style.display = 'none';
+            }
+            else {
+                row.style.display = '';
+            }
+        });
     }
 }
 
@@ -365,11 +406,16 @@ export class FoodItemViewTable extends CustomTable<FoodItem> {
 }
 
 class RelicCellInfo {
-    constructor(public set: CharacterGearSet, public item: GearItem, public slotId: EquipSlotKey, public stat: Substat) {
+    constructor(public readonly set: CharacterGearSet,
+                public readonly item: GearItem,
+                public readonly slotId: EquipSlotKey,
+                public readonly stat: Substat,
+                public readonly statDetail: ItemSingleStatDetail,
+                public readonly supportedStat: boolean) {
     }
 }
 
-function itemTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, stat: RawStatKey, highlightPrimarySecondary: boolean = false): CustomColumnSpec<GearSlotItem, ItemSingleStatDetail | RelicCellInfo, unknown> {
+function itemTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, stat: RawStatKey, highlightPrimarySecondary: boolean = false): CustomColumnSpec<GearSlotItem, ItemSingleStatDetail | RelicCellInfo | 'relic-zero', unknown> {
     return {
         shortName: stat,
         displayName: STAT_ABBREVIATIONS[stat],
@@ -380,16 +426,23 @@ function itemTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, stat: 
                 && item.stats[stat] === 0
                 && MateriaSubstats.includes(stat as MateriaSubstat)) {
                 const currentEquipment: EquippedItem = set.equipment[slotItem.slotId];
+                const preview = set.toEquippedItem(item);
                 // If not equipped, and there is a saved set of stats for that relic, display them
                 // after syncing down and such
-                if (currentEquipment && currentEquipment.gearItem !== item) {
-                    const preview = set.toEquippedItem(item);
-                    if (nonEmptyRelicStats(preview.relicStats)) {
-                        return set.getEquipStatDetail(preview, stat);
+                if (!currentEquipment || currentEquipment.gearItem !== item) {
+                    // If the relic has no stats configured, return a special marker value that causes all of the cells
+                    // to display blank values rather than 0.
+                    if (!(ALL_SUB_STATS.find(stat => {
+                        const statValue = preview.relicStats[stat];
+                        return statValue !== undefined && statValue !== 0;
+                    }))) {
+                        return 'relic-zero';
                     }
+                    return set.getEquipStatDetail(preview, stat);
                 }
-                // If it is equipped, then display the relic cell editor
-                return new RelicCellInfo(set, item, slotItem.slotId, stat as Substat);
+                // If it is equipped, then display the relic cell editor.
+                // Use currentEquipment so that recent changes to the relic stats will be reflecjted.
+                return new RelicCellInfo(set, currentEquipment.gearItem, slotItem.slotId, stat as Substat, set.getStatDetail(slotItem.slotId, stat), !item.relicStatModel.excludedStats.includes(stat as Substat));
             }
             else {
                 // Not a relic, or not an editable stat. Display normally
@@ -402,7 +455,7 @@ function itemTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, stat: 
                 }
             }
         },
-        renderer: (value: ItemSingleStatDetail | RelicCellInfo) => {
+        renderer: (value, rowValue: GearSlotItem) => {
             // First, check if the cell is an editable relic stat
             if (value instanceof RelicCellInfo) {
                 const equipment: EquippedItem = value.set.equipment[value.slotId];
@@ -412,7 +465,7 @@ function itemTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, stat: 
                         equipment.relicStats[value.stat] = 0;
                     }
                     // If read-only, display stat normally
-                    if (sheet._isViewOnly) {
+                    if (sheet.isViewOnly) {
                         const cap = equipment.gearItem.statCaps[stat];
                         if (cap) {
                             return document.createTextNode(Math.min(equipment.relicStats[value.stat] ?? 0, cap).toString());
@@ -426,28 +479,68 @@ function itemTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, stat: 
                     }
                 }
                 else {
+                    // This should never happen - we only get passed in a RelicCellInfo if the relic in question is equipped.
                     return null;
                 }
             }
-            return document.createTextNode(value.effectiveAmount.toString());
+            else if (value === 'relic-zero') {
+                return null;
+            }
+            else {
+                if (rowValue.item.isCustomRelic) {
+                    if (rowValue.item.relicStatModel.excludedStats.includes(stat as Substat)) {
+                        return document.createTextNode('-');
+                    }
+                }
+                return document.createTextNode(value.effectiveAmount.toString());
+            }
         },
         initialWidth: 33,
-        condition:
-            () => sheet.isStatRelevant(stat),
-        colStyler:
-            (value, cell, node) => {
-                if (highlightPrimarySecondary) {
-                    if (value instanceof RelicCellInfo) {
-                        statCellStylerRemover(cell);
+        condition: () => sheet.isStatRelevant(stat),
+        colStyler: (value, cell, node) => {
+            if (highlightPrimarySecondary) {
+                if (value instanceof RelicCellInfo) {
+                    if (sheet.isViewOnly) {
+                        applyStatCellStyles(cell, value.statDetail, stat);
                     }
                     else {
-                        statCellStyler(cell, value, stat);
+                        removeStatCellStyles(cell);
                     }
                 }
-                else {
-                    cell.classList.add('stat-cell');
+                else if (value !== 'relic-zero') {
+                    applyStatCellStyles(cell, value, stat);
                 }
-            },
+            }
+            else {
+                cell.classList.add('stat-cell');
+            }
+        },
+        titleSetter: (value, rowValue: GearSlotItem) => {
+            if (value instanceof RelicCellInfo) {
+                const currentEquipment: EquippedItem = set.equipment[value.slotId];
+                // If not equipped, and there is a saved set of stats for that relic, display them
+                // after syncing down and such
+                if (!currentEquipment || currentEquipment.gearItem !== value.item) {
+                    const preview = set.toEquippedItem(value.item);
+                    const statDetail = set.getEquipStatDetail(preview, stat);
+                    return statCellTitle(statDetail);
+                }
+                return statCellTitle(set.getStatDetail(value.slotId, stat));
+            }
+            else if (value !== 'relic-zero') {
+                return statCellTitle(value);
+            }
+            else {
+                return null;
+            }
+        },
+        finisher: (value, rowValue, cell) => {
+            if (value instanceof RelicCellInfo) {
+                if (!value.supportedStat) {
+                    cell.classList.add('stat-cell', 'stat-zero');
+                }
+            }
+        },
     };
 }
 
@@ -497,6 +590,24 @@ export class GearItemsTable extends CustomTable<GearSlotItem, TableSelectionMode
         this.classList.add("gear-items-table");
         this.classList.add("gear-items-edit-table");
         this.classList.add("hoverable");
+        this.rowTitleSetter = (rowValue: GearSlotItem) => {
+            const name = rowValue.item.nameTranslation.asCurrentLang;
+            let title: string;
+            if (rowValue.item.acquisitionType === 'custom') {
+                title = `${name} (Custom Item)`;
+            }
+            else {
+                title = `${name} (${rowValue.item.id})`;
+                const formattedAcqSrc = formatAcquisitionSource(rowValue.item.acquisitionType);
+                if (formattedAcqSrc) {
+                    title += `\nAcquired from: ${formattedAcqSrc}`;
+                }
+            }
+            if (rowValue.item.isSyncedDown) {
+                title += `\nSynced to ${rowValue.item.syncedDownTo}`;
+            }
+            return title;
+        };
         super.columns = [
             {
                 shortName: "ilvl",
@@ -522,33 +633,20 @@ export class GearItemsTable extends CustomTable<GearSlotItem, TableSelectionMode
                 },
                 renderer: (name: string, rowValue: GearSlotItem) => {
                     const trashButton = quickElement('button', ['remove-item-button'], [makeTrashIcon()]);
+                    trashButton.title = 'Click to un-equip item';
                     trashButton.addEventListener('click', (ev) => {
                         gearSet.setEquip(rowValue.slotId, null);
                         selectionTracker.set(rowValue.slotId, null);
                         this.refreshSelection();
                         this.refreshMateria();
+                        this.refreshRowData(rowValue);
                     });
                     return quickElement('div', ['item-name-holder-editable'], [quickElement('span', [], [shortenItemName(name)]), trashButton]);
                 },
                 colStyler: (value, colElement, internalElement, rowValue) => {
-                    let title: string;
-                    if (rowValue.item.acquisitionType === 'custom') {
-                        title = `${value} (Custom Item)`;
-                    }
-                    else {
-                        title = `${value} (${rowValue.item.id})`;
-                        const formattedAcqSrc = formatAcquisitionSource(rowValue.item.acquisitionType);
-                        if (formattedAcqSrc) {
-                            title += `\nAcquired from: ${formattedAcqSrc}`;
-                        }
-                    }
-                    if (rowValue.item.isSyncedDown) {
-                        title += `\nSynced to ${rowValue.item.syncedDownTo}`;
-                    }
-                    colElement.title = title;
                 },
             }),
-            {
+            col({
                 shortName: "mats",
                 displayName: "Mat",
                 getter: item => {
@@ -561,14 +659,23 @@ export class GearItemsTable extends CustomTable<GearSlotItem, TableSelectionMode
                         span.textContent = value.unsyncedVersion.materiaSlots.length.toString();
                         span.style.textDecoration = "line-through";
                         span.style.opacity = "50%";
-                        span.title = "Melds unavailable due to ilvl sync";
                     }
                     else {
                         span.textContent = value.materiaSlots.length.toString();
                     }
                     return span;
                 },
-            },
+                titleSetter: (value, rowValue, cell) => {
+                    if (value.isSyncedDown) {
+                        return "Melds unavailable due to ilvl sync";
+                    }
+                    else {
+                        const lgCount = value.materiaSlots.filter(slot => slot.allowsHighGrade).length;
+                        const smCount = value.materiaSlots.filter(slot => !slot.allowsHighGrade).length;
+                        return `${lgCount} full + ${smCount} restricted`;
+                    }
+                },
+            }),
             col({
                 shortName: "wd",
                 displayName: "WD",
@@ -586,6 +693,10 @@ export class GearItemsTable extends CustomTable<GearSlotItem, TableSelectionMode
                 },
                 initialWidth: 33,
                 condition: () => handledSlots === undefined || handledSlots.includes('Weapon'),
+                titleSetter: (_, rowValue: GearSlotItem) => {
+                    const statDetail = gearSet.getEquipStatDetail(gearSet.toEquippedItem(rowValue.item), rowValue.item.stats.wdPhys > rowValue.item.stats.wdMag ? 'wdPhys' : 'wdMag');
+                    return statCellTitle(statDetail);
+                },
             }),
             itemTableStatColumn(sheet, gearSet, 'vitality'),
             itemTableStatColumn(sheet, gearSet, 'strength'),
@@ -964,7 +1075,7 @@ export class ILvlRangePicker<ObjType> extends HTMLElement {
 
         const lowerBoundControl = new FieldBoundIntField(obj, minField, {
             postValidators: [(ctx) => {
-                if (ctx.newValue >= (obj[maxField] as number)) {
+                if (ctx.newValue > (obj[maxField] as number)) {
                     ctx.failValidation('Minimum level must be less than the maximum level');
                 }
             }],

@@ -1,16 +1,16 @@
-import {Ability, Buff, GcdAbility, OgcdAbility} from "@xivgear/core/sims/sim_types";
+import {Ability, Buff, GcdAbility, LevelModifiable, OgcdAbility} from "@xivgear/core/sims/sim_types";
 import {MNKGauge} from "./mnk_gauge";
 
 /** Represents a Monk-specific Ability */
-export type MnkAbility = Ability & Readonly<{
+export type MnkAbility = Ability & Readonly<LevelModifiable<{
     /** Custom function to run to apply gauge updates relating to this ability */
-    updateGauge?(gauge: MNKGauge, form?: Buff, inCombat?: boolean): void,
-}>;
+    updateGaugeLegacy?(gauge: MNKGauge, form?: Buff, inCombat?: boolean): void,
+}>>;
 
 /** Represents a Monk-specific GCD Ability */
 export type MnkGcdAbility = GcdAbility & MnkAbility;
 
-export type FuryAbility =  MnkGcdAbility & Readonly<{
+export type FuryAbility = MnkGcdAbility & Readonly<{
     fury: FuryType;
     /** Whether the ability fills or drains balls */
     buildsFury: boolean;

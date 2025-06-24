@@ -9,11 +9,12 @@
 }
 
 div#nitropay-ccpa-modal {
-  .switch-nitro-color;
+  .switch-nitro-color();
 }
 
+//noinspection Stylelint
 div#ncmp__tool div.ncmp__banner-web {
-  .switch-nitro-color;
+  .switch-nitro-color();
 }
 
 body:not(.light-mode) {
@@ -23,6 +24,7 @@ body:not(.light-mode) {
     }
   }
 
+  //noinspection Stylelint
   div#ncmp__modal {
     div.ncmp__modal-web {
       filter: invert() hue-rotate(180deg);
@@ -55,8 +57,7 @@ body:not(.light-mode) {
   bottom: 0;
   background-color: var(--table-bg-color);
 
-  padding: 2px;
-  padding-right: 4px;
+  padding: 2px 4px 2px 2px;
 
   border-top-right-radius: 6px;
 

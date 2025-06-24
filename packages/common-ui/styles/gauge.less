@@ -3,7 +3,7 @@ body {
 }
 
 // gauge-outer and gauge-bar pertain to the "bar"-style guage display
-gauge-outer {
+.gauge-outer {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -12,6 +12,10 @@ gauge-outer {
 
   &.sim-gauge {
     padding: 2px 0 2px 0;
+  }
+
+  &.gauge-narrow {
+    width: 60px;
   }
 }
 
@@ -23,6 +27,10 @@ gauge-bar {
   background-color: var(--default-gauge-color);
   height: calc(100% - 3px);
   border: 1px solid black;
+
+  &.sim-gauge {
+    padding: 2px 0 2px 0;
+  }
 
   .gauge-bar-inner {
     height: 100%;
@@ -43,6 +51,13 @@ gauge-bar {
     width: 16px;
     display: inline-block;
     overflow: hidden;
+    flex-basis: 16px;
+    flex-shrink: 0;
+    flex-grow: 0;
+  }
+
+  > span:not(:empty) {
+    flex-grow: 1;
   }
 }
 
@@ -61,115 +76,135 @@ gauge-bar {
 
 // WHM
 .whm-gauge {
-  .shape-diamond;
+  .shape-diamond();
 }
 
 .whm-gauge-default {
-  .whm-gauge;
+  .whm-gauge();
   background-color: var(--default-gauge-color);
 }
 
 .whm-gauge-blue {
-  .whm-gauge;
+  .whm-gauge();
   background-color: #02d9c3;
 }
 
 .whm-gauge-red {
-  .whm-gauge;
+  .whm-gauge();
   background-color: #ff0033;
 }
 
 .sch-gauge {
-  .shape-diamond;
+  .shape-diamond();
 }
 
 // SCH
 .sch-gauge-default {
-  .sch-gauge;
+  .sch-gauge();
   background-color: var(--default-gauge-color);
 }
 
 .sch-gauge-active {
-  .sch-gauge;
+  .sch-gauge();
   background-color: #0FFF33;
 }
 
 // MNK
 .mnk-chakra-gauge {
-  .shape-circle;
+  .shape-circle();
 }
+
 .mnk-chakra-gauge-default {
-  .mnk-chakra-gauge;
+  .mnk-chakra-gauge();
   background-color: var(--default-gauge-color);
 }
+
 .mnk-chakra-gauge-red {
-  .mnk-chakra-gauge;
+  .mnk-chakra-gauge();
   background-color: #f32908;
 }
+
 .mnk-chakra-gauge-orange {
-  .mnk-chakra-gauge;
+  .mnk-chakra-gauge();
   background-color: #f37208;
 }
 
-.mnk-beastfury-gauge {
-  .shape-circle;
+.mnk-chakra-gauge-number {
+  min-width: 50px;
 }
+
+.mnk-beastfury-gauge {
+  .shape-circle();
+}
+
 .mnk-beastfury-gauge-default {
-  .mnk-beastfury-gauge;
+  .mnk-beastfury-gauge();
   background-color: var(--default-gauge-color);
 }
+
 .mnk-beastfury-gauge-opo {
-  .mnk-beastfury-gauge;
+  .mnk-beastfury-gauge();
   background-color: #f796c6;
 }
+
 .mnk-beastfury-gauge-raptor {
-  .mnk-beastfury-gauge;
+  .mnk-beastfury-gauge();
   background-color: #cd9bff;
 }
+
 .mnk-beastfury-gauge-coeurl {
-  .mnk-beastfury-gauge;
+  .mnk-beastfury-gauge();
   background-color: #83ffaa;
 }
 
 .mnk-nadi-gauge {
-  .shape-circle;
+  .shape-circle();
 }
+
 .mnk-nadi-gauge-default {
-  .mnk-nadi-gauge;
+  .mnk-nadi-gauge();
   background-color: var(--default-gauge-color);
 }
+
 .mnk-nadi-gauge-lunar {
-  .mnk-nadi-gauge;
+  .mnk-nadi-gauge();
   background-color: #bd86ff;
 }
+
 .mnk-nadi-gauge-solar {
-  .mnk-nadi-gauge;
+  .mnk-nadi-gauge();
   background-color: #ffffff;
 }
+
 td[col-id="nadi"] {
   padding-left: 12px;
   padding-right: 12px;
 }
 
 .mnk-beastchakra-gauge {
-  .shape-diamond;
+  .shape-diamond();
 }
+
 .mnk-beastchakra-gauge-default {
-  .mnk-beastchakra-gauge;
+  .mnk-beastchakra-gauge();
   background-color: var(--default-gauge-color);
 }
+
 .mnk-beastchakra-gauge-opo {
-  .mnk-beastchakra-gauge;
+  .mnk-beastchakra-gauge();
   background-color: #f786bd;
 }
+
 .mnk-beastchakra-gauge-raptor {
-  .mnk-beastchakra-gauge;
+  .mnk-beastchakra-gauge();
   background-color: #ad79d6;
 }
+
 .mnk-beastchakra-gauge-coeurl {
-  .mnk-beastchakra-gauge;
+  .mnk-beastchakra-gauge();
   background-color: #65b291;
 }
+
 
 // BLM
 .blm-element {
@@ -236,3 +271,70 @@ td[col-id="nadi"] {
   .blm-astralsoul;
   background-color: #ffc27a;
 }
+
+.vpr-rattling-gauge {
+  .shape-diamond();
+}
+
+.vpr-rattling-gauge-default {
+  .vpr-rattling-gauge();
+  background-color: var(--default-gauge-color);
+}
+.vpr-rattling-gauge-full {
+  .vpr-rattling-gauge();
+  background-color: #84100F;
+}
+
+.sam-meditation-gauge {
+  .shape-diamond();
+}
+
+.sam-meditation-gauge-default {
+  .sam-meditation-gauge();
+  background-color: var(--default-gauge-color);
+}
+
+.sam-meditation-gauge-full {
+  .sam-meditation-gauge();
+  background-color: #ff6723;
+}
+
+.gnb-cartridge {
+  .shape-circle();
+}
+
+.gnb-cartridge-default {
+  .gnb-cartridge();
+  background-color: var(--default-gauge-color);
+}
+
+.gnb-cartridge-red {
+  .gnb-cartridge();
+  background-color: #f32908;
+}
+
+.gnb-cartridge-orange {
+  .gnb-cartridge();
+  background-color: #f37208;
+}
+
+.sim-gauge {
+  &.two-digit {
+    --gauge-text-width: 19px;
+  }
+  &.three-digit {
+    --gauge-text-width: 28px;
+  }
+  &.four-digit {
+    // TODO: untested
+    --gauge-text-width: 37px;
+  }
+  &.five-digit {
+    --gauge-text-width: 46px;
+  }
+}
+.gauge-text-label {
+  //--gauge-text-width: auto;
+  min-width: var(--gauge-text-width, auto);
+}
+

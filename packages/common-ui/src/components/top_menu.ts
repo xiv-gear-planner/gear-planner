@@ -1,4 +1,5 @@
 import {
+    accountIcon,
     githubIcon,
     importIcon,
     makeCalcIcon,
@@ -46,6 +47,11 @@ export function applyCommonTopMenuFormatting(link: HTMLAnchorElement) {
             link.replaceChildren(makePatreonIcon());
             link.title = 'Donate on Patreon';
             break;
+        default:
+            if (link.id === 'account-button') {
+                link.replaceChildren(accountIcon(), ...link.querySelectorAll('span'));
+                break;
+            }
     }
     link.setAttribute('formatted', 'true');
 }

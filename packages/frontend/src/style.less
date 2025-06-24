@@ -19,10 +19,6 @@ custom-item-popup, custom-food-popup {
         //margin: 1px;
         text-align: center;
 
-        &.relic-validation-failed {
-          border: 2px solid red;
-        }
-
         &:hover, &:active, &:focus {
           background: var(--relic-stat-input-background-hover-color);
         }
@@ -48,8 +44,8 @@ sim-result-detail-display {
   width: fit-content;
 }
 
-.gear-sheet-editor-area  {
-  sim-result-detail-display  {
+.gear-sheet-editor-area {
+  sim-result-detail-display {
     width: 100%;
     height: 100%;
   }
@@ -218,17 +214,27 @@ img.item-rarity-relic {
     }
 
     &.ability-ogcd {
-      &:before {
+      &::before {
         content: '⤷';
         transform: scale(1.5);
         font-weight: bold;
         margin-right: 2px;
       }
     }
+
     &.ability-autoattack {
-      &:before {
+      &::before {
         content: '🗘';
         transform: scale(1.2) rotate(50deg);
+      }
+    }
+
+    &.ability-item {
+      span {
+        // Make it so that long item names won't expand the column. This is useful because item names
+        // (e.g. "Grade 3 Gemdraught of Strength") are often very long and will expand the column.
+        // This may result in the columns "jumping" due to lazy rendering.
+        width: 100px;
       }
     }
   }
@@ -279,6 +285,7 @@ img.item-rarity-relic {
 
   td, th {
     &[col-id='time'] {
+      min-width: 65px;
       width: 75px;
       max-width: 75px;
     }
@@ -291,11 +298,35 @@ img.item-rarity-relic {
     &[col-id='unbuffed-pot'] {
       width: 40px;
       max-width: 40px;
+      text-align: right;
+
+    }
+
+    .split-aligned-value {
+      display: flex;
+      padding-right: 10px;
+
+      :first-child {
+        flex-grow: 1;
+      }
+
+      :last-child {
+        display: inline-block;
+        width: 0;
+        flex-basis: 0;
+      }
+    }
+
+    .extra-indicator {
+      width: 0;
+      display: inline-block;
     }
 
     &[col-id='expected-damage'] {
       width: 100px;
       max-width: 100px;
+      text-align: right;
+      padding-right: 10px;
     }
 
     &[col-id='buffs'] {
@@ -311,8 +342,10 @@ sheet-info-modal {
     table {
       max-width: 600px;
       width: 100%;
+
       td {
         width: 50%;
+
         &[col-id='key'] {
           text-align: right;
           padding-right: 10px;
@@ -322,3 +355,64 @@ sheet-info-modal {
     }
   }
 }
+
+account-modal {
+  .modal-content-area {
+    max-width: 350px;
+    min-width: 220px;
+    width: calc(100vw - 50px);
+
+    button {
+      margin: 3px;
+    }
+
+    form {
+      input:not([type="checkbox"]) {
+        display: block;
+        margin-bottom: 5px;
+        width: 100%;
+        box-sizing: border-box;
+
+        &::placeholder {
+          color: var(--fg-color);
+          opacity: 0.8;
+        }
+      }
+    }
+
+    h3.divider {
+      width: 100%;
+      text-align: center;
+      position: relative;
+      //&::before {
+      //
+      //}
+    }
+
+    .failed {
+      color: var(--issue-error-color);
+    }
+
+    input.failed {
+      color: var(--fg-color);
+      box-shadow: 1px 1px 2px red inset, -1px -1px 2px #ff6000 inset;
+    }
+
+    .labeled-checkbox {
+      display: block;
+
+      input {
+        width: unset;
+        display: inline;
+      }
+    }
+  }
+  loading-blocker {
+    .loading-spinner {
+      position: relative;
+      top: calc(50% - 50px);
+    }
+  }
+}
+
+

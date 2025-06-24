@@ -13,6 +13,8 @@ export function makeActionButton(label: string | (Node | string)[], action: (ev:
     if (tooltip !== undefined) {
         button.title = tooltip;
     }
+    // By default, will not submit forms.
+    button.type = 'button';
     return button;
 }
 
@@ -58,9 +60,8 @@ export function randomId(prefix: string = 'unique-id-') : string{
     return prefix + (idCounter++);
 }
 
-export function labelFor(label: string, labelFor: HTMLElement) {
-    const element = document.createElement("label");
-    element.textContent = label;
+export function labelFor(label: string | Node, labelFor: HTMLElement) {
+    const element = quickElement('label', [], [label]);
     if (!labelFor.id) {
         labelFor.id = randomId('lbl-id-');
     }
@@ -520,7 +521,7 @@ export class FieldBoundDataSelect<ObjType, DataType> extends DataSelect<DataType
     }
 }
 
-export function labeledComponent(label: string, check: HTMLElement): HTMLDivElement {
+export function labeledComponent(label: string | Node, check: HTMLElement): HTMLDivElement {
     const labelElement = labelFor(label, check);
     const div = document.createElement("div");
     div.appendChild(check);
@@ -529,7 +530,7 @@ export function labeledComponent(label: string, check: HTMLElement): HTMLDivElem
     return div;
 }
 
-export function labeledCheckbox(label: string, check: HTMLInputElement): HTMLDivElement {
+export function labeledCheckbox(label: string | Node, check: HTMLInputElement): HTMLDivElement {
     const labelElement = labelFor(label, check);
     const div = document.createElement("div");
     div.appendChild(check);
@@ -538,7 +539,7 @@ export function labeledCheckbox(label: string, check: HTMLInputElement): HTMLDiv
     return div;
 }
 
-export function labeledRadioButton(label: string, radioButton: HTMLInputElement): HTMLDivElement {
+export function labeledRadioButton(label: string | Node, radioButton: HTMLInputElement): HTMLDivElement {
     const labelElement = labelFor(label, radioButton);
     const div = document.createElement("div");
     div.appendChild(radioButton);
@@ -547,7 +548,7 @@ export function labeledRadioButton(label: string, radioButton: HTMLInputElement)
     return div;
 }
 
-export function quickElement<X extends keyof HTMLElementTagNameMap>(tag: X, classes: string[], nodes: Parameters<ParentNode['replaceChildren']>): HTMLElementTagNameMap[X] {
+export function quickElement<X extends keyof HTMLElementTagNameMap>(tag: X, classes: string[] = [], nodes: Parameters<ParentNode['replaceChildren']> = []): HTMLElementTagNameMap[X] {
     const element = document.createElement(tag);
     if (nodes.length > 0) {
         element.replaceChildren(...nodes);
@@ -709,6 +710,12 @@ export function redoIcon() {
     svg.style.transform = 'scaleX(-1)';
     svg.classList.add('svg-line');
     return svg;
+}
+
+export function accountIcon() {
+    return makeSvgGlyph("0 0 128 128",
+        "M30,49c0,18.7,15.3,34,34,34s34-15.3,34-34S82.7,15,64,15S30,30.3,30,49z M90,49c0,14.3-11.7,26-26,26S38,63.3,38,49 s11.7-26,26-26S90,34.7,90,49z",
+        "M24.4,119.4C35,108.8,49,103,64,103s29,5.8,39.6,16.4l5.7-5.7C97.2,101.7,81.1,95,64,95s-33.2,6.7-45.3,18.7L24.4,119.4z");
 }
 
 customElements.define("option-data-element", OptionDataElement, {extends: "option"});

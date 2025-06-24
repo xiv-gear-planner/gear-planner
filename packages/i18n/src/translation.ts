@@ -47,6 +47,7 @@ class TranslatableImpl implements TranslatableString {
     }
 
     get ja() {
+        // TODO
         return this.data['ja'] ?? this.defaultValue;
     }
 

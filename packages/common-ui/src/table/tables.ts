@@ -368,6 +368,34 @@ export interface RefreshableRow<X> {
     get element(): HTMLElement;
 }
 
+/**
+ * Describes a strategy for breaking a table load into smaller units of work by rendering only the first chunk of cells
+ * immediately, and then deferring the rest.
+ */
+export type LazyTableStrategy = {
+    /**
+     * If there are not at least minRows rows total, do not attempt to lazy render.
+     */
+    minRows: number,
+    /**
+     * Max number of rows to render immediately.
+     */
+    immediateRows: number,
+    /**
+     * Specify a scroll root to use for the IntersectionObserver
+     */
+    altRoot?: HTMLElement,
+    /**
+     * Specify the extra "buffer" around the scroll root (pixels). Defaults to 2000px if not specified.
+     */
+    rootMargin?: number,
+}
+
+export const NoLazyRender: LazyTableStrategy = {
+    minRows: Number.MAX_SAFE_INTEGER,
+    immediateRows: Number.MAX_SAFE_INTEGER,
+} as const;
+
 export class CustomTable<RowDataType, SelectionType extends TableSelectionModel<RowDataType, unknown, unknown, unknown> = TableSelectionModel<RowDataType, unknown, unknown, never>> extends HTMLTableElement {
     _data: (RowDataType | HeaderRow | TitleRow)[] = [];
     dataRowMap: Map<RowDataType, CustomRow<RowDataType>> = new Map<RowDataType, CustomRow<RowDataType>>();
@@ -376,6 +404,8 @@ export class CustomTable<RowDataType, SelectionType extends TableSelectionModel<
     _columns!: CustomColumn<RowDataType, unknown, unknown>[];
     // TODO: should changing selection model also refresh the current selection?
     selectionModel: SelectionType = noopSelectionModel as SelectionType;
+    rowTitleSetter: ((row: RowDataType) => string | null) | null = null;
+    lazyRenderStrategy: LazyTableStrategy = NoLazyRender;
 
     constructor() {
         super();
@@ -410,13 +440,13 @@ export class CustomTable<RowDataType, SelectionType extends TableSelectionModel<
             }
         });
         // TODO: see if successive refreshFull calls can be coalesced
-        this._onDataChanged();
+        this._onRowColChange();
         this.refreshFull();
     }
 
     set data(newData: (RowDataType | HeaderRow | TitleRow)[]) {
         this._data = newData;
-        this._onDataChanged();
+        this._onRowColChange();
     }
 
     get data(): (RowDataType | HeaderRow | TitleRow)[] {
@@ -433,9 +463,32 @@ export class CustomTable<RowDataType, SelectionType extends TableSelectionModel<
      *
      * @private
      */
-    private _onDataChanged() {
+    private _onRowColChange() {
         const newRowElements: Node[] = [];
-        for (const item of this._data) {
+        const len = this._data.length;
+        const lazy = this.lazyRenderStrategy;
+        // If we have a lazy render strategy, but we haven't hit the threshold, don't lazy render
+        const enableLazy = len >= lazy.minRows;
+        let observer: IntersectionObserver | null;
+        if (enableLazy) {
+            // This tells us when a row is scrolled into view or at least within a buffer (rootMargin)
+            observer = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.intersectionRatio > 0 && entry.target instanceof CustomRow) {
+                        entry.target.refreshFull(true);
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, {
+                root: lazy.altRoot ?? null,
+                rootMargin: lazy.rootMargin ? `${lazy.rootMargin}px` : '2000px',
+            });
+        }
+        else {
+            observer = null;
+        }
+        for (let i = 0; i < len; i++) {
+            const item = this._data[i];
             if (item instanceof HeaderRow) {
                 const header = new CustomTableHeaderRow(this);
                 newRowElements.push(header);
@@ -449,14 +502,26 @@ export class CustomTable<RowDataType, SelectionType extends TableSelectionModel<
                 newRowElements.push(out);
             }
             else {
+                // Try to find existing row first
                 const row = this.dataRowMap.get(item);
                 if (row !== undefined) {
                     newRowElements.push(row);
                 }
                 else {
+                    // Otherwise, create new row
                     const newRow = this.makeDataRow(item);
                     this.dataRowMap.set(item, newRow);
-                    newRow.refreshFull();
+                    // Lazy-load outside of the threshold
+                    if (i < lazy.immediateRows) {
+                        newRow.refreshFull();
+                    }
+                    else {
+                        newRow.refreshFull(false);
+                        // setTimeout(async () => {
+                        //     // newRow.refreshFull(true);
+                        // }, lazy.delay(i));
+                        observer?.observe(newRow);
+                    }
                     newRowElements.push(newRow);
                 }
             }
@@ -586,8 +651,19 @@ export interface CustomColumnSpec<RowDataType, CellDataType, ColumnDataType = an
     dataValue?: ColumnDataType;
     headerStyler?: (value: ColumnDataType, colHeader: CustomTableHeaderCell<RowDataType, CellDataType, ColumnDataType>) => void;
     extraClasses?: string[];
+    titleSetter?: (value: CellDataType, rowValue: RowDataType, cell: CustomCell<RowDataType, CellDataType>) => string | null;
+    finisher?: (value: CellDataType, rowValue: RowDataType, cell: CustomCell<RowDataType, CellDataType>) => void;
 }
 
+/**
+ * Wrapper function for a coldef. Doesn't do anything that CustomTable wouldn't do naturally when receiving a
+ * CustomColumnSpec, but helps with typing. Typescript doesn't allow an array type of generics to narrow the type
+ * parameters internally. In other words, we won't get proper validation of CellDataType nor ColDataType - i.e. won't
+ * validate that your getter's return type matches your renderer's input type (nor any of the other fields that
+ * involve the cell data type).
+ *
+ * @param cdef The column spec.
+ */
 export function col<RowDataType, CellDataType = string, ColumnDataType = any>(cdef: CustomColumnSpec<RowDataType, CellDataType, ColumnDataType>): CustomColumn<RowDataType, CellDataType, ColumnDataType> {
     return new CustomColumn<RowDataType, CellDataType, ColumnDataType>(cdef);
 }
@@ -630,6 +706,8 @@ export class CustomColumn<RowDataType, CellDataType = string, ColumnDataType = a
     fixedWidth: number | undefined = undefined;
     dataValue?: ColumnDataType;
     headerStyler?: (value: typeof this.dataValue, colHeader: CustomTableHeaderCell<RowDataType, CellDataType, ColumnDataType>) => void;
+    titleSetter?: (value: CellDataType, rowValue: RowDataType, cell: CustomCell<RowDataType, CellDataType>) => string | null;
+    finisher?: (value: CellDataType, rowValue: RowDataType, cell: CustomCell<RowDataType, CellDataType>) => void;
 }
 
 export type RefreshableOpts = {
@@ -658,7 +736,7 @@ export class CustomRow<RowDataType> extends HTMLTableRowElement implements Refre
         this.dataColMap.get(colDef)?.refreshFull();
     }
 
-    refreshFull() {
+    refreshFull(refreshCells: boolean = true) {
         const newColElements: CustomCell<RowDataType, unknown>[] = [];
         for (const col of this.table.columns) {
             const c = this.dataColMap.get(col);
@@ -672,7 +750,7 @@ export class CustomRow<RowDataType> extends HTMLTableRowElement implements Refre
                     newColElements.push(newCell);
                 }
                 else {
-                    const dummyCol: CustomColumn<RowDataType, null> = new CustomColumn<RowDataType, null>({
+                    const dummyCol: CustomColumn<RowDataType, unknown> = new CustomColumn<RowDataType, unknown>({
                         ...col,
                         displayName: col.displayName,
                         getter: () => null,
@@ -686,9 +764,12 @@ export class CustomRow<RowDataType> extends HTMLTableRowElement implements Refre
             }
         }
         this.replaceChildren(...this.beforeElements, ...newColElements, ...this.afterElements);
-        for (const value of this.dataColMap.values()) {
-            value.refreshFull();
+        if (refreshCells) {
+            for (const value of this.dataColMap.values()) {
+                value.refreshFull();
+            }
         }
+        this.refreshTitle();
         this.refreshSelection();
     }
 
@@ -696,6 +777,19 @@ export class CustomRow<RowDataType> extends HTMLTableRowElement implements Refre
         this.selected = this.table.selectionModel.isRowSelected(this);
         for (const value of this.dataColMap.values()) {
             value.refreshSelection();
+        }
+    }
+
+    refreshTitle() {
+        const titleSetter = this.table.rowTitleSetter;
+        if (titleSetter) {
+            const newTitle = titleSetter(this.dataItem);
+            if (newTitle) {
+                this.title = newTitle;
+            }
+            else {
+                this.removeAttribute('title');
+            }
         }
     }
 
@@ -738,9 +832,10 @@ export class CustomCell<RowDataType, CellDataType> extends HTMLTableCellElement 
     }
 
     refreshFull() {
+        const rowValue = this.dataItem;
         let node: Node | null;
         try {
-            this._cellValue = this.colDef.getter(this.dataItem);
+            this._cellValue = this.colDef.getter(rowValue);
             node = this.colDef.renderer(this._cellValue, this.row.dataItem);
             if (node) {
                 this.colDef.colStyler(this._cellValue, this, node, this.row.dataItem);
@@ -756,16 +851,20 @@ export class CustomCell<RowDataType, CellDataType> extends HTMLTableCellElement 
         }
         else {
             // Due to some of the styling, the child must be a real HTML element and not a raw text node
-            // Also, some elements don't support ::before, so insert a dummy span
             if (node.nodeType === this.TEXT_NODE) {
+                // TODO: this logic should take place above, so that colStyler can always take an HTMLElement instead
+                // of potentially being fed a raw text node and being unable to style it.
                 span.textContent = node.textContent ?? '';
                 this.replaceChildren(span);
             }
             else {
+                // Also, some elements don't support ::before, so insert a dummy span to work around this
                 this.replaceChildren(span, node);
             }
         }
         this.refreshSelection();
+        this.refreshTitle();
+        this.colDef.finisher?.(this._cellValue, this.row.dataItem, this);
     }
 
     refreshSelection() {
@@ -792,6 +891,17 @@ export class CustomCell<RowDataType, CellDataType> extends HTMLTableCellElement 
         return this.colDef.rowCondition(this.row.dataItem);
     }
 
+    refreshTitle() {
+        if (this.colDef.titleSetter) {
+            const newTitle = this.colDef.titleSetter(this._cellValue, this.row.dataItem, this);
+            if (newTitle) {
+                this.title = newTitle;
+            }
+            else {
+                this.removeAttribute('title');
+            }
+        }
+    }
 }
 
 export type ColDefs<RowDataType> = (CustomColumn<RowDataType> | CustomColumnSpec<RowDataType, any>)[];

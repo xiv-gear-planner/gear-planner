@@ -17,10 +17,12 @@ import {
     SupportedLevel
 } from "@xivgear/xivmath/xivconstants";
 import {
+    DEFAULT_SHEET_METADATA,
     EquippedItem,
     EquipSlotKey,
+    EquipSlots,
     FoodItem,
-    GearItem,
+    GearItem, IlvlSyncInfo,
     ItemDisplaySettings,
     ItemSlotExport,
     JobData,
@@ -37,6 +39,7 @@ import {
     SetExportExternalSingle,
     SetStatsExport,
     SheetExport,
+    SheetMetadata,
     SheetStatsExport,
     SimExport,
     Substat
@@ -51,9 +54,9 @@ import {getDefaultSims, getRegisteredSimSpecs, getSimSpecByStub} from "./sims/si
 import {getNextSheetInternalName} from "./persistence/saved_sheets";
 import {CustomItem} from "./customgear/custom_item";
 import {CustomFood} from "./customgear/custom_food";
-import {IlvlSyncInfo} from "./datamanager_xivapi";
 import {statsSerializationProxy} from "@xivgear/xivmath/xivstats";
 import {isMateriaAllowed} from "./materia/materia_utils";
+import {SpecialStatType} from "@xivgear/data-api-client/dataapi";
 
 export type SheetCtorArgs = ConstructorParameters<typeof GearPlanSheet>
 export type SheetContstructor<SheetType extends GearPlanSheet> = (...values: SheetCtorArgs) => SheetType;
@@ -113,6 +116,7 @@ export class SheetProvider<SheetType extends GearPlanSheet> {
             customFoods: importedData.flatMap(imp => imp.customFoods ?? []),
             timestamp: importedData[0].timestamp,
             isMultiJob: false,
+            specialStats: importedData[0].specialStats ?? null,
         });
         if (importedData[0].sims === undefined) {
             gearPlanSheet.addDefaultSims();
@@ -186,8 +190,8 @@ function loadSaved(sheetKey: string): SheetExport | null {
  */
 export class GearPlanSheet {
     // General sheet properties
-    _sheetName: string;
-    _description: string;
+    private _sheetName: string;
+    private _description: string;
     readonly classJobName: JobName;
     readonly altJobs: JobName[];
     readonly isMultiJob: boolean;
@@ -224,13 +228,17 @@ export class GearPlanSheet {
     private _setupDone: boolean = false;
 
     // Display state
-    _isViewOnly: boolean = false;
+    private _isViewOnly: boolean = false;
     isEmbed: boolean;
 
     // Temporal state
     private readonly saveTimer: Inactivitytimer;
 
     private _timestamp: Date;
+
+    // Occult Crescent et al
+    private _activeSpecialStat: SpecialStatType | null = null;
+
 
     // Can't make ctor private for custom element, but DO NOT call this directly - use fromSaved or fromScratch
     constructor(sheetKey: string, importedData: SheetExport) {
@@ -244,6 +252,7 @@ export class GearPlanSheet {
         // TODO: why does this default to WHM? Shouldn't it just throw?
         this.classJobName = importedData.job ?? 'WHM';
         this.isMultiJob = importedData.isMultiJob;
+        this._activeSpecialStat = (importedData.specialStats ?? null) as SpecialStatType | null;
         this.altJobs = this.isMultiJob ? [
             ...ALL_COMBAT_JOBS.filter(job => JOB_DATA[job].role === JOB_DATA[this.classJobName].role
                 // Don't include the primary job in the list of alt jobs
@@ -299,6 +308,10 @@ export class GearPlanSheet {
      */
     get saveKey() {
         return this._saveKey;
+    }
+
+    get metaSaveKey() {
+        return this._saveKey + '-meta';
     }
 
     /**
@@ -401,6 +414,12 @@ export class GearPlanSheet {
         const saved = this._importedData;
         const lvlItemInfo = LEVEL_ITEMS[this.level];
         this.dataManager = dataManager;
+        this._relevantMateria = this.dataManager.allMateria.filter(mat => {
+            return mat.materiaGrade <= lvlItemInfo.maxMateria
+                // && mat.materiaGrade >= lvlItemInfo.minMateria
+                && this.isStatRelevant(mat.primaryStat);
+        });
+        this.recheckCustomItems();
         for (const importedSet of saved.sets) {
             this.addGearSet(this.importGearSet(importedSet));
         }
@@ -426,14 +445,10 @@ export class GearPlanSheet {
                 }
             }
         }
-        this._relevantMateria = this.dataManager.allMateria.filter(mat => {
-            return mat.materiaGrade <= lvlItemInfo.maxMateria
-                // && mat.materiaGrade >= lvlItemInfo.minMateria
-                && this.isStatRelevant(mat.primaryStat);
-        });
         this._dmRelevantFood = this.dataManager.allFoodItems.filter(food => this.isStatRelevant(food.primarySubStat) || this.isStatRelevant(food.secondarySubStat));
+        // This is set when importing - but it needs to know about items first. Thus we have to redo this now.
+        this.activeSpecialStat = this._activeSpecialStat;
         this._setupDone = true;
-        this.recheckCustomItems();
     }
 
     /**
@@ -448,6 +463,23 @@ export class GearPlanSheet {
             console.log("Saving sheet " + this.sheetName);
             this._timestamp = new Date();
             const fullExport = this.exportSheet(false);
+            const msk = this.metaSaveKey;
+            const metaRaw = localStorage.getItem(msk);
+            let meta: SheetMetadata;
+            if (metaRaw) {
+                meta = {
+                    ...DEFAULT_SHEET_METADATA,
+                    ...JSON.parse(metaRaw),
+                };
+            }
+            else {
+                meta = DEFAULT_SHEET_METADATA;
+            }
+            meta = {
+                ...meta,
+                currentVersion: (meta.currentVersion ?? 1) + 1,
+            };
+            localStorage.setItem(msk, JSON.stringify(meta));
             localStorage.setItem(this.saveKey, JSON.stringify(fullExport));
         }
         else {
@@ -575,6 +607,7 @@ export class GearPlanSheet {
             customFoods: this._customFoods.map(cf => cf.export()),
             timestamp: this.timestamp.getTime(),
             isMultiJob: this.isMultiJob,
+            specialStats: this.activeSpecialStat ?? null,
         };
         if (!external) {
             out.saveKey = this._saveKey;
@@ -722,6 +755,7 @@ export class GearPlanSheet {
             ext.partyBonus = this._partyBonus;
             ext.race = this._race;
             ext.job = set.job;
+            ext.specialStats = this.activeSpecialStat;
         }
         else {
             if (set.relicStatMemory) {
@@ -846,15 +880,38 @@ export class GearPlanSheet {
     }
 
     /**
-     * Delete the given custom item.
+     * Delete the given custom item, first asking for confirmation if the item is equipped on any set.
      *
-     * Warning: currently DOES NOT check that the item is not equipped. Deleting an item while it is still equipped
-     * in one or more sets can cause undefined behavior!
+     * @param item The item to delete.
+     * @param confirmationCallback A callback to be called to confirm the deletion of an item which is currently
+     * equipped. Receives the names of sets as the first parameter.
+     */
+    deleteCustomItem(item: CustomItem, confirmationCallback: (equipppedOnsets: string[]) => boolean): boolean {
+        const setsWithThisItem = this.sets.filter(set => set.allEquippedItems.includes(item));
+        if (setsWithThisItem.length > 0) {
+            const confirmed = confirmationCallback(setsWithThisItem.map(set => set.name));
+            if (!confirmed) {
+                return false;
+            }
+        }
+        this.forceDeleteCustomItem(item);
+        return true;
+    }
+
+    /**
+     * Delete a custom item without confirmation. Will unequip the item from any sets which currently use it.
      *
      * @param item The item to delete.
      */
-    deleteCustomItem(item: CustomItem) {
-        // TODO: this should check if you have this item equipped on any sets, or ask
+    forceDeleteCustomItem(item: CustomItem) {
+        // Unequip existing
+        this.sets.forEach(set => {
+            EquipSlots.forEach(slot => {
+                if (set.getItemInSlot(slot) === item) {
+                    set.setEquip(slot, null);
+                }
+            });
+        });
         const idx = this._customItems.indexOf(item);
         if (idx > -1) {
             this._customItems.splice(idx, 1);
@@ -864,15 +921,31 @@ export class GearPlanSheet {
     }
 
     /**
-     * Delete the given custom food item.
-     *
-     * Warning: currently DOES NOT check that the item is not equipped. Deleting an item while it is still equipped
-     * in one or more sets can cause undefined behavior!
+     * Delete the given custom food item, first asking for confirmation if the item is equipped on any set.
      *
      * @param item The food item to delete
+     * @param confirmationCallback A callback to be called to confirm the deletion of an item which is currently
+     * equipped. Receives the names of sets as the first parameter.
      */
-    deleteCustomFood(item: CustomFood) {
-        // TODO: this should check if you have this item equipped on any sets, or ask
+    deleteCustomFood(item: CustomFood, confirmationCallback: (equipppedOnsets: string[]) => boolean) {
+        const setsWithThisItem = this.sets.filter(set => set.food === item);
+        if (setsWithThisItem.length > 0) {
+            const confirmed = confirmationCallback(setsWithThisItem.map(set => set.name));
+            if (!confirmed) {
+                return false;
+            }
+        }
+        this.forceDeleteCustomFood(item);
+        return true;
+    }
+
+    forceDeleteCustomFood(item: CustomFood) {
+        // Unequip existing
+        this.sets.forEach(set => {
+            if (set.food === item) {
+                set.food = undefined;
+            }
+        });
         const idx = this._customFoods.indexOf(item);
         if (idx > -1) {
             this._customFoods.splice(idx, 1);
@@ -932,10 +1005,9 @@ export class GearPlanSheet {
                         console.error(`mismatched materia slot! i == ${i}, slots length == ${equipped.melds.length}`);
                     }
                     slot.locked = importedMateria.locked ?? false;
-                    if (!mat) {
-                        continue;
+                    if (mat) {
+                        slot.equippedMateria = mat;
                     }
-                    slot.equippedMateria = mat;
                 }
                 if (importedItem.relicStats && equipped.gearItem.isCustomRelic) {
                     Object.assign(equipped.relicStats, importedItem.relicStats);
@@ -1048,7 +1120,17 @@ export class GearPlanSheet {
      * Get sims which might be relevant to this sheet.
      */
     get relevantSims() {
-        return getRegisteredSimSpecs().filter(simSpec => simSpec.supportedJobs === undefined ? true : simSpec.supportedJobs.includes(this.dataManager.primaryClassJob));
+        return getRegisteredSimSpecs().filter(simSpec => {
+            const jobs = simSpec.supportedJobs;
+            // If the sim is jobless (e.g. potency ratio), always display it
+            if (jobs === undefined) {
+                return true;
+            }
+            else {
+                // Otherwise, make sure there is at least one job overlapping.
+                return jobs.find(job => this.allJobs.includes(job)) !== undefined;
+            }
+        });
     }
 
     /**
@@ -1191,7 +1273,13 @@ export class GearPlanSheet {
      * Food items which are relevant and pass the filter. Custom foods will be displayed regardless of filtering.
      */
     get foodItemsForDisplay(): FoodItem[] {
-        return [...this._dmRelevantFood.filter(item => item.ilvl >= this._itemDisplaySettings.minILvlFood && item.ilvl <= this._itemDisplaySettings.maxILvlFood), ...this._customFoods];
+        const settings = this._itemDisplaySettings;
+        return [...this._dmRelevantFood.filter(item => {
+            return item.ilvl >= settings.minILvlFood && item.ilvl <= settings.maxILvlFood
+                // Unless the user has opted into showing one-stat-relevant food, only show food with two relevant substats.
+                // _dmRelevantFood is already filtered to food which has at least one relevant stat.
+                && (settings.showOneStatFood || (this.isStatRelevant(item.primarySubStat) && this.isStatRelevant(item.secondarySubStat)));
+        }), ...this._customFoods];
     }
 
     /**
@@ -1239,7 +1327,7 @@ export class GearPlanSheet {
      */
     recheckCustomItems() {
         for (const customItem of this._customItems) {
-            customItem.recheckStats();
+            customItem.recheckSync();
         }
         this._sets.forEach(set => set.forceRecalc());
     }
@@ -1303,5 +1391,17 @@ export class GearPlanSheet {
 
     get timestamp(): Date {
         return this._timestamp;
+    }
+
+    get activeSpecialStat(): SpecialStatType | null {
+        return this._activeSpecialStat;
+    }
+
+    set activeSpecialStat(value: SpecialStatType | null) {
+        this._activeSpecialStat = value;
+        this.dataManager.allItems.forEach(item => {
+            item.activeSpecialStat = value;
+        });
+        this.recalcAll();
     }
 }

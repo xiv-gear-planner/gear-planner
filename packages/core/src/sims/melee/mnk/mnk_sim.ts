@@ -1,33 +1,78 @@
 import {Ability, Buff, GcdAbility, OgcdAbility, SimSettings, SimSpec} from "@xivgear/core/sims/sim_types";
-import {CycleProcessor, CycleSimResult, ExternalCycleSettings, MultiCycleSettings, AbilityUseResult, Rotation, PreDmgAbilityUseRecordUnf} from "@xivgear/core/sims/cycle_sim";
-import {CycleSettings} from "@xivgear/core/sims/cycle_settings";
+import {
+    AbilityUseResult,
+    CycleProcessor,
+    CycleSimResult,
+    ExternalCycleSettings,
+    MultiCycleSettings,
+    PreDmgAbilityUseRecordUnf,
+    Rotation
+} from "@xivgear/core/sims/cycle_sim";
 import {CharacterGearSet} from "@xivgear/core/gear";
 import {BaseMultiCycleSim, RotationCacheKey} from "@xivgear/core/sims/processors/sim_processors";
 import {FuryAbility, MnkAbility, MNKExtraData, MnkGcdAbility, Opener} from "./mnk_types";
 import {MNKGauge as MnkGauge} from "./mnk_gauge";
-import {Brotherhood, BrotherhoodBuff, CelestialRevolution, CoeurlForm, Demolish, DragonKick, ElixirBurst, FiresReply, FiresRumination, ForbiddenMeditation, FormShift, FormlessFist, LeapingOpo, MeditativeBrotherhood, OGCD_PRIORITY, OPO_ABILITIES, OpoForm, PerfectBalance, PerfectBalanceBuff, PhantomRush, PouncingCoeurl, RaptorForm, RiddleOfFire, RiddleOfFireBuff, RiddleOfWind, RisingPhoenix, RisingRaptor, SOLAR_WEAKEST_STRONGEST, SixSidedStar, TheForbiddenChakra, TwinSnakes, WindsReply, WindsRumination} from "./mnk_actions";
+import {
+    Bootshine,
+    BOOTSHINE_ABILITIES,
+    Brotherhood,
+    BrotherhoodBuff,
+    CelestialRevolution,
+    CoeurlForm,
+    Demolish,
+    DragonKick,
+    ElixirField,
+    FiresReply,
+    FiresRumination,
+    FlintStrike,
+    ForbiddenMeditation,
+    FormlessFist,
+    FormShift,
+    MeditativeBrotherhood,
+    OGCD_PRIORITY,
+    OPO_ABILITIES,
+    OpoForm,
+    PerfectBalance,
+    PerfectBalanceBuff,
+    RaptorForm,
+    RiddleOfFire,
+    RiddleOfFireBuff,
+    RiddleOfWind,
+    SixSidedStar,
+    SnapPunch,
+    SOLAR_WEAKEST_STRONGEST,
+    TheForbiddenChakra,
+    TornadoKick,
+    TrueStrike,
+    TwinSnakes,
+    WindsReply,
+    WindsRumination
+} from "./mnk_actions";
 import {Brotherhood as BrotherhoodGlobalBuff} from "@xivgear/core/sims/buffs";
 import {sum} from "@xivgear/util/array_utils";
-import {STANDARD_ANIMATION_LOCK} from "@xivgear/xivmath/xivconstants";
+import {STANDARD_ANIMATION_LOCK, SupportedLevel} from "@xivgear/xivmath/xivconstants";
 
-export interface MnkSimResult extends CycleSimResult { }
+export interface MnkSimResult extends CycleSimResult {
+}
 
-export interface MnkSettings extends SimSettings { }
+export interface MnkSettings extends SimSettings {
+}
 
-export interface MnkSettingsExternal extends ExternalCycleSettings<MnkSettings> { }
+export interface MnkSettingsExternal extends ExternalCycleSettings<MnkSettings> {
+}
 
 export const mnkSpec: SimSpec<MnkSim, MnkSettingsExternal> = {
     stub: 'mnk-sim',
     displayName: 'MNK Sim',
     description: 'Simulates a monk rotation at level 100',
-    makeNewSimInstance: function(): MnkSim {
+    makeNewSimInstance: function (): MnkSim {
         return new MnkSim();
     },
-    loadSavedSimInstance: function(exported: MnkSettingsExternal) {
+    loadSavedSimInstance: function (exported: MnkSettingsExternal) {
         return new MnkSim(exported);
     },
     supportedJobs: ['MNK'],
-    supportedLevels: [100],
+    supportedLevels: [100, 90, 80],
     isDefaultSim: true,
 };
 
@@ -61,8 +106,8 @@ class MNKCycleProcessor extends CycleProcessor {
                 potency: SixSidedStar.potency + Math.floor(this.gauge.chakra) * 80,
             };
         }
-        if (mnkAbility.updateGauge) {
-            mnkAbility.updateGauge(this.gauge, this.getCurrentForm(), this.combatStarted);
+        if (mnkAbility.updateGaugeLegacy) {
+            mnkAbility.updateGaugeLegacy(this.gauge, this.getCurrentForm(), this.combatStarted);
         }
         return super.use(mnkAbility);
     }
@@ -91,10 +136,12 @@ class MNKCycleProcessor extends CycleProcessor {
 
         super.addAbilityUse(modified);
         if (usedAbility.ability.type === 'gcd' && this.combatStarted) {
-            const probableChakraGain = usedAbility.ability.id === LeapingOpo.id && usedAbility.buffs.find(buff => [PerfectBalanceBuff.statusId, FormlessFist.statusId, OpoForm.statusId].includes(buff.statusId))
+            const probableChakraGain = BOOTSHINE_ABILITIES.includes(usedAbility.ability.id) && usedAbility.buffs.find(buff => [PerfectBalanceBuff.statusId, FormlessFist.statusId, OpoForm.statusId].includes(buff.statusId))
                 ? 1
                 : this.stats.critChance + usedAbility.combinedEffects.critChanceIncrease;
-            const brotherhoodChakra = usedAbility.buffs.find(buff => buff.statusId === BrotherhoodBuff.statusId)
+
+            // Brotherhood only guarantees a chakra after the level 88 trait enhanced brotherhood
+            const brotherhoodChakra = this.level > 88 && usedAbility.buffs.find(buff => buff.statusId === BrotherhoodBuff.statusId)
                 ? 1
                 : 0;
             const meditativeBhChakra = usedAbility.buffs.find(buff => buff.statusId === MeditativeBrotherhood.statusId)
@@ -112,11 +159,14 @@ class MNKCycleProcessor extends CycleProcessor {
         this.useGcd(DragonKick);
         this.cleanupForms();
         this.useOgcd(PerfectBalance);
-        this.useGcd(LeapingOpo); this.cleanupForms();
-        this.useGcd(DragonKick); this.cleanupForms();
+        this.useGcd(Bootshine);
+        this.cleanupForms();
+        this.useGcd(DragonKick);
+        this.cleanupForms();
         this.useOgcd(Brotherhood);
         this.useOgcd(RiddleOfFire);
-        this.useGcd(LeapingOpo); this.cleanupForms();
+        this.useGcd(Bootshine);
+        this.cleanupForms();
         this.useOgcd(TheForbiddenChakra);
         this.useOgcd(RiddleOfWind);
 
@@ -125,14 +175,14 @@ class MNKCycleProcessor extends CycleProcessor {
         // use this gcd specifically as doStep decides to re-enter perfect balance here which is fine but with
         // hardcoding costs us a formless gcd from fires reply
         this.useGcd(DragonKick);
-        this.doStep(WindsReply);
-        this.doStep(FiresReply);
-        this.doStep(LeapingOpo);
+        this.doStep(); // wind's reply but it isn't available sub-100 so we let the actor choose
+        this.doStep(); // fire's reply but it isn't available sub-100 so we let the actor choose
+        this.doStep(Bootshine);
         this.doStep(DragonKick);
-        this.doStep(LeapingOpo);
+        this.doStep(Bootshine);
         this.doStep(DragonKick);
         this.doStep(this.chooseBlitz());
-        this.doStep(LeapingOpo);
+        this.doStep(Bootshine);
     }
 
     // 5s DK opener
@@ -142,11 +192,14 @@ class MNKCycleProcessor extends CycleProcessor {
         this.useGcd(DragonKick);
         this.cleanupForms();
         this.useOgcd(PerfectBalance);
-        this.useGcd(TwinSnakes); this.cleanupForms();
-        this.useGcd(Demolish); this.cleanupForms();
+        this.useGcd(TwinSnakes);
+        this.cleanupForms();
+        this.useGcd(Demolish);
+        this.cleanupForms();
         this.useOgcd(Brotherhood);
         this.useOgcd(RiddleOfFire);
-        this.useGcd(LeapingOpo); this.cleanupForms();
+        this.useGcd(Bootshine);
+        this.cleanupForms();
         this.useOgcd(TheForbiddenChakra);
         this.useOgcd(RiddleOfWind);
 
@@ -155,18 +208,18 @@ class MNKCycleProcessor extends CycleProcessor {
         // use this gcd specifically as doStep decides to re-enter perfect balance here which is fine but with
         // hardcoding costs us a formless gcd from fires reply
         this.useGcd(DragonKick);
-        this.doStep(WindsReply);
-        this.doStep(FiresReply);
-        this.doStep(LeapingOpo);
+        this.doStep(); // wind's reply but it isn't available sub-100 so we let the actor choose
+        this.doStep(); // fire's reply but it isn't available sub-100 so we let the actor choose
+        this.doStep(Bootshine);
 
         // manual PB because
         this.cleanupForms();
         this.useOgcd(PerfectBalance);
         this.doStep(DragonKick);
-        this.doStep(LeapingOpo);
+        this.doStep(Bootshine);
         this.doStep(DragonKick);
         this.doStep(this.chooseBlitz());
-        this.doStep(LeapingOpo);
+        this.doStep(Bootshine);
     }
 
     /** gcd may be supplied by openers that want to have ogcd + buff handling done automatically */
@@ -203,22 +256,27 @@ class MNKCycleProcessor extends CycleProcessor {
         });
     }
 
+    get level(): SupportedLevel {
+        return this.stats.level;
+    }
+
     get opo(): MnkGcdAbility {
         if (this.gauge.opoFury) {
-            return LeapingOpo;
+            return Bootshine;
         }
         return DragonKick;
     }
+
     get raptor(): MnkGcdAbility {
         if (this.gauge.raptorFury) {
-            return RisingRaptor;
+            return TrueStrike;
         }
         return TwinSnakes;
     }
 
     get coeurl(): MnkGcdAbility {
         if (this.gauge.coeurlFury) {
-            return PouncingCoeurl;
+            return SnapPunch;
         }
         return Demolish;
     }
@@ -295,17 +353,17 @@ class MNKCycleProcessor extends CycleProcessor {
     chooseBlitz(): MnkGcdAbility {
         if (this.gauge.lunarNadi && this.gauge.solarNadi) {
             // regardless of correct execution (Celestial Revolution) we get a phantom rush
-            return PhantomRush;
+            return TornadoKick;
         }
 
         const s = new Set(this.gauge.beastChakra);
         switch (s.size) {
             case 1:
-                return ElixirBurst;
+                return ElixirField;
             case 2:
                 return CelestialRevolution;
             case 3:
-                return RisingPhoenix;
+                return FlintStrike;
         }
         console.warn(`${this.currentTime} failed to select a blitz, choosing celestial revolution for punishment.`);
         return CelestialRevolution;
@@ -364,6 +422,8 @@ class MNKCycleProcessor extends CycleProcessor {
     }
 
     shouldEnterBlitz(gcd: GcdAbility, form: Buff): boolean {
+        // TODO add level 90 entry as it can be slightly more optimal than doing the 100 entry
+        // it should look for a -1 to +2 opo
         const riddleActive = this.getActiveBuffs().find(buff => buff.statusId === RiddleOfFireBuff.statusId);
         const riddleStatus = this.cdTracker.statusOf(RiddleOfFire);
         if (riddleActive) {
@@ -381,9 +441,9 @@ class MNKCycleProcessor extends CycleProcessor {
             // riddle won't be back before the end of the fight, we should do a naked blitz
             return form?.statusId !== PerfectBalanceBuff.statusId // not already building a blitz
                 && ((OPO_ABILITIES.includes(gcd.id) // just executed an opo ability
-                    // the fight is about to end and we need to blitz + SSS
-                    // this condition will skip a formless-fist opo
-                    || this.remainingGcdTime <= this.cdTracker.statusOf(PerfectBalance).currentCharges * this.timeToExecuteNGcds(5))
+                        // the fight is about to end and we need to blitz + SSS
+                        // this condition will skip a formless-fist opo
+                        || this.remainingGcdTime <= this.cdTracker.statusOf(PerfectBalance).currentCharges * this.timeToExecuteNGcds(5))
                     && this.cdTracker.canUse(PerfectBalance));
         }
         else {
@@ -395,7 +455,7 @@ class MNKCycleProcessor extends CycleProcessor {
             }
             return form?.statusId !== PerfectBalanceBuff.statusId // not already building a blitz
                 && OPO_ABILITIES.includes(gcd.id) // just executed an opo ability
-                && riddleStatus.readyAt.relative <= this.timeToExecuteNGcds(3) // Within 3 gcds of RoF coming off cooldown
+                && riddleStatus.readyAt.relative <= this.timeToExecuteNGcds(4) // Within 4 gcds of RoF coming off cooldown (allows our blitz to fall first gcd under RoF)
                 && this.cdTracker.canUse(PerfectBalance);
         }
     }
@@ -429,7 +489,6 @@ export class MnkSim extends BaseMultiCycleSim<CycleSimResult, MnkSettings, MNKCy
     spec = mnkSpec;
     shortName = 'mnk-sim';
     displayName = mnkSpec.displayName;
-    cycleSettings: CycleSettings = this.defaultCycleSettings();
     manuallyActivatedBuffs = [BrotherhoodGlobalBuff];
 
     constructor(settings?: MnkSettingsExternal) {

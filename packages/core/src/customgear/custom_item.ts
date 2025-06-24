@@ -5,6 +5,7 @@ import {
     DisplayGearSlotKey,
     GearAcquisitionSource,
     GearItem,
+    IlvlSyncInfo,
     MateriaSlot,
     OccGearSlotKey,
     RawStatKey,
@@ -12,11 +13,11 @@ import {
 } from "@xivgear/xivmath/geartypes";
 import {xivApiIconUrl} from "../external/xivapi";
 import {CURRENT_MAX_LEVEL, JobName, LEVEL_ITEMS, MATERIA_LEVEL_MAX_NORMAL} from "@xivgear/xivmath/xivconstants";
-import {IlvlSyncInfo} from "../datamanager_xivapi";
 import {applyStatCaps} from "../gear";
 import {GearPlanSheet} from "../sheet";
 import {toTranslatable} from "@xivgear/i18n/translation";
 import {RawStatsPart} from "@xivgear/util/types";
+import {SpecialStatType} from "@xivgear/data-api-client/dataapi";
 
 export class CustomItem implements GearItem {
 
@@ -36,9 +37,9 @@ export class CustomItem implements GearItem {
     syncedDownTo: number | null;
     private _data: CustomItemExport;
 
-    private constructor(exportedData: CustomItemExport, private readonly sheet: GearPlanSheet) {
+    private constructor(exportedData: CustomItemExport, private readonly sheet: GearPlanSheet, private readonly isUnsyncCopy: boolean = false) {
         this._data = exportedData;
-        this.recheckStats();
+        this.recheckSync();
     }
 
     private static defaults(): Omit<CustomItemExport, 'fakeId' | 'name' | 'slot' | 'respectCaps'> {
@@ -88,7 +89,13 @@ export class CustomItem implements GearItem {
         return new CustomItem(data, sheet);
     }
 
-    recheckStats(): void {
+    recheckSync(): void {
+        // If this is a copy of an item which exists for no reason but to act as another custom item's
+        // unsyncedVersion, we do not want to apply stat caps. In fact, it will result in an infinite recursion if
+        // we try, because it will try to generate its own unsynced copy.
+        if (this.isUnsyncCopy) {
+            return;
+        }
         const nativeInfo = this.sheet.ilvlSyncInfo(this.ilvl);
         const syncIlvl = this.sheet.ilvlSync;
         const syncInfo = syncIlvl === undefined ? undefined : this.sheet.ilvlSyncInfo(syncIlvl);
@@ -105,7 +112,7 @@ export class CustomItem implements GearItem {
 
     set ilvl(ilvl: number) {
         this._data.ilvl = ilvl;
-        this.recheckStats();
+        this.recheckSync();
     }
 
     get equipLvl() {
@@ -114,7 +121,7 @@ export class CustomItem implements GearItem {
 
     set equipLvl(equipLvl: number) {
         this._data.equipLvl = equipLvl;
-        this.recheckStats();
+        this.recheckSync();
     }
 
     get respectCaps() {
@@ -123,7 +130,7 @@ export class CustomItem implements GearItem {
 
     set respectCaps(respectCaps: boolean) {
         this._data.respectCaps = respectCaps;
-        this.recheckStats();
+        this.recheckSync();
     }
 
     get isUnique() {
@@ -196,10 +203,7 @@ export class CustomItem implements GearItem {
             });
             this.statCaps = statCapsNative;
             if (syncIlvlInfo && syncIlvlInfo.ilvl < this.ilvl) {
-                this.unsyncedVersion = {
-                    ...this,
-                    stats: {...this.customData.stats},
-                };
+                this.unsyncedVersion = new CustomItem({...this._data}, this.sheet, true);
                 const statCapsSync: RawStatsPart = {};
                 Object.entries(this.stats).forEach(([stat, v]) => {
                     statCapsSync[stat as RawStatKey] = syncIlvlInfo.substatCap(this.occGearSlotName, stat as RawStatKey);
@@ -256,6 +260,13 @@ export class CustomItem implements GearItem {
     // Don't restrict jobs on custom items, assume the user knows what they're doing
     usableByJob(job: JobName): boolean {
         return true;
+    }
+
+    get activeSpecialStat(): null {
+        return null;
+    }
+
+    set activeSpecialStat(_ignored: SpecialStatType | null) {
     }
 
 }

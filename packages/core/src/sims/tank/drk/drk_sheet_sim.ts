@@ -154,6 +154,7 @@ class DrkCycleProcessor extends CycleProcessor {
             castTimeFromStart: 0,
             snapshotTimeFromStart: 0,
             lockTime: 0,
+            gaugeAfter: {},
         }, darksideDuration);
     }
 

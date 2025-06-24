@@ -1,29 +1,33 @@
-import {Ability, BuffController, GcdAbility, OgcdAbility, PersonalBuff, SimSettings, SimSpec} from "@xivgear/core/sims/sim_types";
-import {CycleProcessor, CycleSimResult, ExternalCycleSettings, MultiCycleSettings, Rotation, PreDmgAbilityUseRecordUnf, AbilityUseResult} from "@xivgear/core/sims/cycle_sim";
+import {
+    Ability,
+    BuffController,
+    GcdAbility,
+    HasGaugeCondition,
+    HasGaugeUpdate,
+    OgcdAbility,
+    PersonalBuff,
+    SimSettings,
+    SimSpec
+} from "@xivgear/core/sims/sim_types";
+import {
+    AbilityUseResult,
+    CycleProcessor,
+    CycleSimResult,
+    ExternalCycleSettings,
+    GaugeManager,
+    MultiCycleSettings,
+    Rotation
+} from "@xivgear/core/sims/cycle_sim";
 import {rangeInc} from "@xivgear/util/array_utils";
 import {BaseMultiCycleSim} from "@xivgear/core/sims/processors/sim_processors";
-//import {potionMaxMind} from "@xivgear/core/sims/common/potion";
 
-type WhmAbility = Ability & Readonly<{
-    /** Run if an ability needs to update the aetherflow gauge */
-    updateGauge?(gauge: WhmGauge): void;
-}>
-
-type WhmGcdAbility = GcdAbility & WhmAbility;
-
-type WhmOgcdAbility = OgcdAbility & WhmAbility;
-
-type WhmGaugeState = {
+export type WhmGaugeState = {
     level: number;
     blueLilies: number;
     redLilies: number;
 }
 
-export type WhmExtraData = {
-    gauge: WhmGaugeState;
-}
-
-const filler: WhmGcdAbility = {
+const filler: GcdAbility = {
     id: 25859,
     type: 'gcd',
     name: "Glare III",
@@ -33,7 +37,7 @@ const filler: WhmGcdAbility = {
     cast: 1.5,
 };
 
-const dia: WhmGcdAbility = {
+const dia: GcdAbility = {
     id: 16532,
     type: 'gcd',
     name: "Dia",
@@ -47,7 +51,7 @@ const dia: WhmGcdAbility = {
     gcd: 2.5,
 };
 
-const assize: WhmOgcdAbility = {
+const assize: OgcdAbility = {
     id: 3571,
     type: 'ogcd',
     name: "Assize",
@@ -77,7 +81,7 @@ export const SacredSight: PersonalBuff = {
     },
 };
 
-const pom: WhmOgcdAbility = {
+const pom: OgcdAbility = {
     id: 136,
     type: 'ogcd',
     name: 'Presence of Mind',
@@ -100,20 +104,23 @@ const pom: WhmOgcdAbility = {
     },
 };
 
-const lily: WhmGcdAbility = {
+const lily: GcdAbility & HasGaugeUpdate<WhmGaugeManager> & HasGaugeCondition<WhmGaugeManager> = {
     id: 16534,
     type: 'gcd',
     name: "Afflatus Rapture",
     potency: 0,
     attackType: "Spell",
     gcd: 2.5,
-    updateGauge: (gauge: WhmGauge) => {
+    gaugeConditionSatisfied(gaugeManager: WhmGaugeManager): boolean {
+        return gaugeManager.blueLilies >= 1;
+    },
+    updateGauge: (gauge: WhmGaugeManager) => {
         gauge.blueLilies -= 1;
         gauge.redLilies += 1;
     },
 };
 
-const misery: WhmGcdAbility = {
+const misery: GcdAbility & HasGaugeUpdate<WhmGaugeManager> & HasGaugeCondition<WhmGaugeManager> = {
     id: 16535,
     type: 'gcd',
     name: "Afflatus Misery",
@@ -121,9 +128,12 @@ const misery: WhmGcdAbility = {
     attackType: "Spell",
     gcd: 2.5,
     updateGauge: gauge => gauge.redLilies -= 3,
+    gaugeConditionSatisfied(gaugeManager: WhmGaugeManager): boolean {
+        return gaugeManager.redLilies >= 3;
+    },
 };
 
-const glare4: WhmGcdAbility = {
+const glare4: GcdAbility = {
     id: 37009,
     type: 'gcd',
     name: "Glare IV",
@@ -132,11 +142,15 @@ const glare4: WhmGcdAbility = {
     gcd: 2.5,
 };
 
-class WhmGauge {
+class WhmGaugeManager implements GaugeManager<WhmGaugeState> {
     private _blueLilies: number = 0;
+    private _redLilies: number = 0;
+
     get blueLilies(): number {
         return this._blueLilies;
     }
+
+    // TODO: questionable if this is still needed since we have preconditions for gauge skills
     set blueLilies(newLily: number) {
         if (newLily < 0) {
             console.warn(`Used a lily when unavailable`);
@@ -144,10 +158,10 @@ class WhmGauge {
         this._blueLilies = Math.max(Math.min(newLily, 3), 0);
     }
 
-    private _redLilies: number = 0;
     get redLilies(): number {
         return this._redLilies;
     }
+
     set redLilies(newLily: number) {
         if (newLily < 0) {
             console.warn(`Used misery with blood lily not charged`);
@@ -155,8 +169,7 @@ class WhmGauge {
         this._redLilies = Math.max(Math.min(newLily, 3), 0);
     }
 
-
-    getGaugeState(): WhmGaugeState {
+    gaugeSnapshot(): WhmGaugeState {
         return {
             level: 100,
             blueLilies: this.blueLilies,
@@ -165,7 +178,7 @@ class WhmGauge {
     }
 }
 
-export interface WhmSimResult extends CycleSimResult {
+export interface WhmSimResult extends CycleSimResult<WhmGaugeState> {
 }
 
 export interface WhmSettings extends SimSettings {
@@ -189,8 +202,7 @@ export const whmNewSheetSpec: SimSpec<WhmSim, WhmSettingsExternal> = {
     isDefaultSim: true,
 };
 
-class WhmCycleProcessor extends CycleProcessor {
-    gauge: WhmGauge;
+class WhmCycleProcessor extends CycleProcessor<WhmGaugeManager> {
     nextDiaTime: number = 0;
     nextLilyTime: number = 20;
     nextMiseryTime: number = 60;
@@ -198,33 +210,17 @@ class WhmCycleProcessor extends CycleProcessor {
 
     constructor(settings: MultiCycleSettings) {
         super(settings);
-        this.gauge = new WhmGauge();
     }
 
-    override addAbilityUse(usedAbility: PreDmgAbilityUseRecordUnf) {
-        // Add gauge data to this record for the UI
-        const extraData: WhmExtraData = {
-            gauge: this.gauge.getGaugeState(),
-        };
-
-        const modified: PreDmgAbilityUseRecordUnf = {
-            ...usedAbility,
-            extraData,
-        };
-
-        super.addAbilityUse(modified);
+    override createGaugeManager(): WhmGaugeManager {
+        return new WhmGaugeManager();
     }
 
     override use(ability: Ability): AbilityUseResult {
-        const whmAbility = ability as WhmAbility;
-
-        // Update gauge from the ability itself
-        if (whmAbility.updateGauge !== undefined) {
-            whmAbility.updateGauge(this.gauge);
-        }
+        // TODO: might be useful to include this in gaugeManager
         if (this.nextGcdTime > this.nextLilyTime) {
             this.nextLilyTime += 20;
-            this.gauge.blueLilies += 1;
+            this.gaugeManager.blueLilies += 1;
         }
         return super.use(ability);
     }
@@ -234,7 +230,7 @@ class WhmCycleProcessor extends CycleProcessor {
             this.nextDiaTime = this.nextGcdTime + 28.8;
             this.useGcd(dia);
         }
-        else if (this.gauge.redLilies === 3){
+        else if (this.gaugeManager.redLilies === 3) {
             this.useGcd(misery);
         }
         else if (this.sacredSight > 0) {
@@ -251,13 +247,13 @@ class WhmCycleProcessor extends CycleProcessor {
             this.nextDiaTime = this.nextGcdTime + 28.8;
             this.useGcd(dia);
         }
-        else if ((this.gauge.redLilies === 3 && this.nextMiseryTime % 120 === 0) //use odd minute misery ASAP
-            || (this.gauge.redLilies === 3 && this.remainingTime < 5)) { //or use misery if the fight will end now
+        else if ((this.gaugeManager.redLilies === 3 && this.nextMiseryTime % 120 === 0) //use odd minute misery ASAP
+            || (this.gaugeManager.redLilies === 3 && this.remainingTime < 5)) { //or use misery if the fight will end now
             this.useGcd(misery);
         }
-        else if (this.gauge.redLilies < 3 && this.gauge.blueLilies > 0 && this.totalTime > this.nextMiseryTime + 7) {
+        else if (this.gaugeManager.redLilies < 3 && this.gaugeManager.blueLilies > 0 && this.totalTime > this.nextMiseryTime + 7) {
             this.useGcd(lily);
-            if (this.gauge.redLilies === 3) {
+            if (this.gaugeManager.redLilies === 3) {
                 this.nextMiseryTime += 60;
             }
         }
@@ -269,7 +265,7 @@ class WhmCycleProcessor extends CycleProcessor {
     useTwoMinBurst() {
         this.use(pom);
         this.sacredSight = 3;
-        for (let i = 0; i < 12; i++){
+        for (let i = 0; i < 12; i++) {
             this.buffedGcd();
             if (this.isReady(assize)) {
                 this.use(assize);
@@ -281,9 +277,7 @@ class WhmCycleProcessor extends CycleProcessor {
 export class WhmSim extends BaseMultiCycleSim<WhmSimResult, WhmSettings, WhmCycleProcessor> {
 
     makeDefaultSettings(): WhmSettings {
-        return {
-
-        };
+        return {};
     }
 
     spec = whmNewSheetSpec;
@@ -303,6 +297,7 @@ export class WhmSim extends BaseMultiCycleSim<WhmSimResult, WhmSettings, WhmCycl
 
     getRotationsToSimulate(): Rotation[] {
         return [{
+            name: 'Normal DoT',
             cycleTime: 120,
             apply(cp: WhmCycleProcessor) {
                 cp.use(filler); //prepull glare
@@ -319,7 +314,7 @@ export class WhmSim extends BaseMultiCycleSim<WhmSimResult, WhmSettings, WhmCycl
                     }
                 });
                 cp.remainingCycles(cycle => {
-                    while (!cp.isReady(pom)){
+                    while (!cp.isReady(pom)) {
                         cp.unbuffedGCD();
                         if (cp.isReady(assize)) {
                             cp.use(assize);
@@ -334,8 +329,7 @@ export class WhmSim extends BaseMultiCycleSim<WhmSimResult, WhmSettings, WhmCycl
                     }
                 });
             },
-        },
-        ...rangeInc(10, 28, 2).map(i => ({
+        }, ...rangeInc(10, 28, 2).map(i => ({
             name: `Redot at ${i}s`,
             cycleTime: 120,
             apply(cp: WhmCycleProcessor) {
@@ -354,7 +348,7 @@ export class WhmSim extends BaseMultiCycleSim<WhmSimResult, WhmSettings, WhmCycl
                     }
                 });
                 cp.remainingCycles(cycle => {
-                    while (!cp.isReady(pom)){
+                    while (!cp.isReady(pom)) {
                         cp.unbuffedGCD();
                         if (cp.isReady(assize)) {
                             cp.use(assize);
@@ -369,8 +363,7 @@ export class WhmSim extends BaseMultiCycleSim<WhmSimResult, WhmSettings, WhmCycl
                     }
                 });
             },
-        })),
-        ...rangeInc(2, 16, 2).map(i => ({
+        })), ...rangeInc(2, 16, 2).map(i => ({
             name: `Delay dot to ${i}s`,
             cycleTime: 120,
             apply(cp: WhmCycleProcessor) {
@@ -388,7 +381,7 @@ export class WhmSim extends BaseMultiCycleSim<WhmSimResult, WhmSettings, WhmCycl
                     }
                 });
                 cp.remainingCycles(cycle => {
-                    while (!cp.isReady(pom)){
+                    while (!cp.isReady(pom)) {
                         cp.unbuffedGCD();
                         if (cp.isReady(assize)) {
                             cp.use(assize);

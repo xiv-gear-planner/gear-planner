@@ -4,7 +4,7 @@ import SAMGauge from "./sam_gauge";
 /** Represents a Samurai-specific Ability */
 export type SamAbility = Ability & Readonly<{
     /** Custom function to run to apply gauge updates relating to this ability */
-    updateGauge?(gauge: SAMGauge): void,
+    updateGaugeLegacy?(gauge: SAMGauge): void,
     /** The Kenki cost of this ability */
     kenkiCost?: number,
 }>;

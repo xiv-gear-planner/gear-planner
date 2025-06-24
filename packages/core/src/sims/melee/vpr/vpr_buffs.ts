@@ -1,5 +1,6 @@
-import {Ability, Buff, BuffController, PersonalBuff} from "@xivgear/core/sims/sim_types";
+import {Ability, BuffController, PersonalBuff} from "@xivgear/core/sims/sim_types";
 import * as Actions from "./vpr_actions";
+import {noStatusId} from "../../buff_helpers";
 
 export const HonedReavers: PersonalBuff = {
     name: "Honed Reavers",
@@ -61,9 +62,7 @@ export const Swiftscaled: PersonalBuff = {
     statusId: 3669,
 };
 
-const ComboFinisherBaseBuff: Buff = {
-    name: null,
-    saveKey: null,
+const ComboFinisherBaseBuff = {
     duration: 60,
     selfOnly: true,
     effects: {
@@ -76,7 +75,7 @@ const ComboFinisherBaseBuff: Buff = {
             potency: ability.potency + 100,
         };
     },
-};
+} as const satisfies Readonly<Partial<PersonalBuff>>;
 
 export const FlankstungVenom: PersonalBuff = {
     ...ComboFinisherBaseBuff,
@@ -124,7 +123,7 @@ export const ReadyToReawaken: PersonalBuff = {
         buffController.removeSelf();
         return {
             ...ability,
-            updateGauge: null,
+            updateGaugeLegacy: null,
         };
     },
 };
@@ -145,6 +144,7 @@ export const HuntersVenom: PersonalBuff = {
             potency: 170,
         };
     },
+    statusId: noStatusId(),
 };
 
 export const SwiftskinsVenom: PersonalBuff = {
@@ -163,6 +163,7 @@ export const SwiftskinsVenom: PersonalBuff = {
             potency: 170,
         };
     },
+    statusId: noStatusId(),
 };
 
 export const PoisedForTwinfang: PersonalBuff = {
@@ -181,6 +182,7 @@ export const PoisedForTwinfang: PersonalBuff = {
             potency: 170,
         };
     },
+    statusId: noStatusId(),
 };
 
 export const PoisedForTwinblood: PersonalBuff = {
@@ -199,4 +201,5 @@ export const PoisedForTwinblood: PersonalBuff = {
             potency: 170,
         };
     },
+    statusId: noStatusId(),
 };

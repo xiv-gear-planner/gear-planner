@@ -25,6 +25,7 @@ export class PotencyRatioSimGui extends SimulationGui<PotencyRatioSimResults, Si
         const description = makeDescriptionPanel();
         description.appendChild(tbl);
         description.style.maxWidth = '400px';
+        description.style.margin = 'auto';
         return description;
     }
 }

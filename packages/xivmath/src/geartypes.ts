@@ -10,6 +10,7 @@ import {
 
 import {RawBonusStats, StatModification, StatPreModifications} from "./xivstats";
 import {TranslatableString} from "@xivgear/i18n/translation";
+import {SpecialStatType} from "@xivgear/data-api-client/dataapi";
 
 export interface DisplayGearSlot {
 
@@ -200,6 +201,8 @@ export interface GearItem extends XivCombatItem {
     rarity: number;
 
     usableByJob(job: JobName): boolean;
+
+    activeSpecialStat: SpecialStatType | null;
 }
 
 export interface FoodStatBonus {
@@ -334,11 +337,11 @@ export interface ComputedSetStats extends RawStats {
      */
     readonly gearStats: RawStats
     /**
-     * Stats coming from race. Will be the total value, after modification, e.g. 20 if unmodified
-     * or 23 if the race has a +3 modifier. Important to calculate special strength values for
-     * some abilities' alternate scalings (e.g. Living Shadow, Bunshin)
+     * Base main stat, multiplied by the job stat multiplier, plus racial bonus. For example, the main stat (e.g. 440 at level 100) multiplied by the
+     * jobStatMultiplier (e.g. 1.05 at level 100) plus the racial stat (e.g. +3 for The Lost's strength). This is useful for being able to unwind
+     * it later for abilities with different scaling, e.g. Living Shadow.
      */
-    readonly racialStats: RawStats
+    readonly baseMainStatPlusRace: number
 
     /**
      * Trait multiplier
@@ -728,7 +731,25 @@ export interface SheetExport {
      * True if this is a multi-job sheet (within a single role)
      */
     isMultiJob?: boolean,
+
+    specialStats?: string | null,
 }
+
+export type SheetMetadata = {
+    currentVersion: number,
+    lastSyncedVersion: number,
+    sortOrder: number | null,
+    hasConflict: boolean,
+    forcePush: boolean,
+}
+
+export const DEFAULT_SHEET_METADATA: SheetMetadata = {
+    currentVersion: 1,
+    lastSyncedVersion: 0,
+    sortOrder: null,
+    hasConflict: false,
+    forcePush: false,
+};
 
 export type CustomItemExport = {
     ilvl: number;
@@ -865,6 +886,8 @@ export interface SetExportExternalSingle extends SetExport {
      * Unix timestamp
      */
     timestamp?: number,
+
+    specialStats?: string | null,
 }
 
 /**
@@ -971,12 +994,34 @@ export const MATERIA_FILL_MODES = ['leave_empty', 'autofill', 'retain_slot_else_
 export type MateriaFillMode = typeof MATERIA_FILL_MODES[number];
 
 export interface ItemDisplaySettings {
+    /**
+     * Min ilvl for gear items
+     */
     minILvl: number,
+    /**
+     * Max ilvl for gear items
+     */
     maxILvl: number,
+    /**
+     * Min ilvl for food items
+     */
     minILvlFood: number,
+    /**
+     * Max ilvl for food items
+     */
     maxILvlFood: number,
+    /**
+     * Show relics which exceed {@link #maxILvl}
+     */
     higherRelics: boolean,
+    /**
+     * Show NQ items in addition to their HQ counterparts
+     */
     showNq: boolean,
+    /**
+     * Show food with only one relevant stat
+     */
+    showOneStatFood: boolean,
 }
 
 export const AttackTypes = ['Unknown', 'Auto-attack', 'Spell', 'Weaponskill', 'Ability', 'Item'] as const;
@@ -1058,8 +1103,10 @@ export type GearSetResult = {
     readonly issues: readonly GearSetIssue[]
 }
 
+export type CollapsibleSlot = EquipSlotKey | 'food';
+
 export type SetDisplaySettingsExport = {
-    hiddenSlots: EquipSlotKey[]
+    hiddenSlots: CollapsibleSlot[]
 }
 
 export type BaseRelicStatModel = {
@@ -1170,6 +1217,9 @@ export class EquippedItem {
         );
         // Deep clone the materia slots
         this.melds.forEach((slot, index) => {
+            if (index >= out.melds.length) {
+                return;
+            }
             out.melds[index].equippedMateria = slot.equippedMateria;
             out.melds[index].locked = slot.locked;
         });
@@ -1217,3 +1267,8 @@ export type FoodMicroSlotExport = [slot: "food", foodId: number];
 export type NormalItemMicroSlotExport = [slot: EquipSlotKey, itemId: number, ...materiaIds: (number | null)[]];
 export type RelicItemMicroSlotExport = [slot: EquipSlotKey, itemId: number, "relic", relicStats: RelicStatsExport];
 export type MicroSlotExport = FoodMicroSlotExport | NormalItemMicroSlotExport | RelicItemMicroSlotExport;
+
+export type IlvlSyncInfo = {
+    readonly ilvl: number;
+    substatCap(slot: OccGearSlotKey, statsKey: RawStatKey): number;
+}

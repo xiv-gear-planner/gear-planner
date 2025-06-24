@@ -47,7 +47,7 @@ export class NewSheetFormFieldSet extends HTMLFieldSetElement {
 
         this.newSheetSettings = {
             ilvlSyncEnabled: settings?.ilvlSyncEnabled ?? false,
-            ilvlSync: settings?.ilvlSyncLevel ?? 650,
+            ilvlSync: settings?.ilvlSyncLevel ?? 700,
             multiJob: settings?.multiJob ?? false,
         };
 
@@ -156,9 +156,12 @@ export class NewSheetForm extends HTMLFormElement {
         this.submitButton.textContent = "New Sheet";
         this.appendChild(this.submitButton);
 
-        onsubmit = (ev) => {
+        this.addEventListener('submit', (ev) => {
             this.doSubmit(ev);
-        };
+        });
+        // this.onsubmit = (ev) => {
+        //     this.doSubmit(ev);
+        // };
     }
 
     takeFocus() {
@@ -195,7 +198,13 @@ export class SaveAsModal extends BaseModal {
         super();
         this.headerText = 'Save As';
         const form = document.createElement('form');
-        const defaultName = existingSheet.sheetName === SHARED_SET_NAME ? 'Imported Set' : existingSheet.sheetName + ' copy';
+
+        let defaultName = existingSheet.sheetName;
+        // Add 'copy' to the name if we're copying a sheet that has been saved, or one that's in view only mode.
+        if (existingSheet.saveKey !== undefined || existingSheet.isViewOnly) {
+            defaultName = existingSheet.sheetName === SHARED_SET_NAME ? SHARED_SET_NAME :  existingSheet.sheetName + ' copy';
+        }
+
         this.fieldSet = new NewSheetFormFieldSet({
             job: existingSheet.classJobName,
             level: existingSheet.level,

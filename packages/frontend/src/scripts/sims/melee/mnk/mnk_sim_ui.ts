@@ -1,21 +1,20 @@
-import {CycleSimResult, DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/core/sims/cycle_sim";
-import {ColDefs, CustomColumnSpec} from "@xivgear/common-ui/table/tables";
-import {AbilitiesUsedTable} from "../../components/ability_used_table";
+import {DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/core/sims/cycle_sim";
+import {CustomColumnSpec} from "@xivgear/common-ui/table/tables";
 import {BaseMultiCycleSimGui} from "../../multicyclesim_ui";
 import {MnkSettings, MnkSimResult} from "@xivgear/core/sims/melee/mnk/mnk_sim";
 import {MNKExtraData} from "@xivgear/core/sims/melee/mnk/mnk_types";
 import {quickElement} from "@xivgear/common-ui/components/util";
-import {gaugeRenderer} from "../../common/sim_ui_utils";
+import {extraDataDiscreteGaugeRenderer} from "../../common/sim_ui_utils";
 
-class MNKGaugeGui {
+export class MnkSimGui extends BaseMultiCycleSimGui<MnkSimResult, MnkSettings> {
 
-    static generateResultColumns(result: CycleSimResult): CustomColumnSpec<DisplayRecordFinalized, unknown, unknown>[] {
+    protected extraAbilityUsedColumns(_: MnkSimResult): CustomColumnSpec<DisplayRecordFinalized, unknown, unknown>[] {
         return [
             {
                 shortName: 'chakra',
                 displayName: 'Chakra',
                 getter: used => isFinalizedAbilityUse(used) ? used.original : null,
-                renderer: gaugeRenderer<MNKExtraData>((_, extra) => {
+                renderer: extraDataDiscreteGaugeRenderer<MNKExtraData>((_, extra) => {
                     const chakra = extra.gauge.chakra;
                     const children = [];
                     for (let i = 1; i < 6; i++) {
@@ -29,9 +28,7 @@ class MNKGaugeGui {
                             children.push(quickElement('span', ['mnk-chakra-gauge-default'], []));
                         }
                     }
-                    const span = document.createElement('span');
-                    span.textContent = `${chakra.toLocaleString(undefined, {minimumFractionDigits: 3})}`;
-                    children.push(span);
+                    children.push(quickElement('span', ['mnk-chakra-gauge-number'], [`${chakra.toLocaleString(undefined, {minimumFractionDigits: 3})}`]));
                     return children;
                 }),
             },
@@ -39,7 +36,7 @@ class MNKGaugeGui {
                 shortName: 'fury',
                 displayName: "Beast Fury",
                 getter: used => isFinalizedAbilityUse(used) ? used.original : null,
-                renderer: gaugeRenderer<MNKExtraData>((_, extra) => {
+                renderer: extraDataDiscreteGaugeRenderer<MNKExtraData>((_, extra) => {
                     const gauge = extra.gauge;
                     const opoFury = gauge.opoFury;
                     const raptorFury = gauge.raptorFury;
@@ -64,7 +61,7 @@ class MNKGaugeGui {
                 shortName: 'nadi',
                 displayName: "Nadi",
                 getter: used => isFinalizedAbilityUse(used) ? used.original : null,
-                renderer: gaugeRenderer<MNKExtraData>((_, extra) => {
+                renderer: extraDataDiscreteGaugeRenderer<MNKExtraData>((_, extra) => {
                     const lNadi = extra.gauge.lunarNadi;
                     const sNadi = extra.gauge.solarNadi;
 
@@ -84,7 +81,7 @@ class MNKGaugeGui {
                 shortName: 'beastChakra',
                 displayName: "Beast Chakra",
                 getter: used => isFinalizedAbilityUse(used) ? used.original : null,
-                renderer: gaugeRenderer<MNKExtraData>((_, extra) => {
+                renderer: extraDataDiscreteGaugeRenderer<MNKExtraData>((_, extra) => {
                     const chakra = extra.gauge.beastChakra;
                     const children = [];
                     for (let i = 0; i < 3; i++) {
@@ -106,24 +103,6 @@ class MNKGaugeGui {
                 }),
             },
         ];
-    }
-}
-
-export class MnkSimGui extends BaseMultiCycleSimGui<MnkSimResult, MnkSettings> {
-
-    override makeCustomConfigInterface(settings: MnkSettings, _updateCallback: () => void): HTMLElement | null {
-        const configDiv = document.createElement("div");
-
-        return configDiv;
-    }
-
-    override makeAbilityUsedTable(result: MnkSimResult): AbilitiesUsedTable {
-        const extraColumns = MNKGaugeGui.generateResultColumns(result);
-        const table = super.makeAbilityUsedTable(result);
-        const newColumns: ColDefs<DisplayRecordFinalized> = [...table.columns];
-        newColumns.splice(newColumns.findIndex(col => col.shortName === 'expected-damage') + 1, 0, ...extraColumns);
-        table.columns = newColumns;
-        return table;
     }
 
 }

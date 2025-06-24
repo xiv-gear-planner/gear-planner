@@ -1,9 +1,10 @@
 import {CharacterGearSet} from "@xivgear/core/gear";
 import {JobMultipliers} from "@xivgear/xivmath/geartypes";
-import {getClassJobStats, getLevelStats} from "@xivgear/xivmath/xivconstants";
+import {getClassJobStats, getLevelStats, getRaceStats} from "@xivgear/xivmath/xivconstants";
 import {finalizeStats} from "@xivgear/xivmath/xivstats";
 import {GcdAbility, OgcdAbility} from "@xivgear/core/sims/sim_types";
 import {makeFakeSet} from "../test_utils";
+import {noStatusId} from "../../sims/buff_helpers";
 
 let fakeId = 0x200_0000;
 
@@ -72,6 +73,7 @@ export const pom: OgcdAbility = {
             effects: {
                 haste: 20,
             },
+            statusId: noStatusId(),
         },
     ],
     attackType: "Ability",
@@ -122,13 +124,12 @@ const rawStats = {
     wdMag: 132,
     wdPhys: 132,
     weaponDelay: 3.44,
-    racialStrengthModifier: 3,
 };
 // Finalize the stats (add class modifiers, party bonus, etc)
 const stats = finalizeStats(rawStats, {}, 90, getLevelStats(90), 'WHM', {
     ...getClassJobStats('WHM'),
     jobStatMultipliers: jobStatMultipliers,
-}, 5, "The Lost");
+}, 5, getRaceStats("Wildwood"));
 
 // Turn the stats into a fake gear set. This object does not implement all of the methods that a CharacterGearSet
 // should, only the ones that would commonly be used in a simulation.

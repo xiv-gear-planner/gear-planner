@@ -3,6 +3,7 @@ import assert from "assert";
 import {buildPreviewServer, buildStatsServer, EmbedCheckResponse} from "../server_builder";
 import {SheetStatsExport} from "@xivgear/xivmath/geartypes";
 import {BIS_BROWSER_HASH, BIS_HASH, SHORTLINK_HASH} from "@xivgear/core/nav/common_nav";
+import {ALL_COMBAT_JOBS} from "@xivgear/xivmath/xivconstants";
 
 function readPreviewProps(document: Document): Record<string, string> {
     const out: Record<string, string> = {};
@@ -230,14 +231,45 @@ describe("backend servers", () => {
             assert.equal(props['og:type'], 'website');
             assert.equal(props['og:title'], bisTitle);
         }).timeout(30_000);
-        it("resolves bis link with trailing slash", async () => {
+        it("recovers from invalid bis link", async () => {
+            {
+                const badResponse = await fastify.inject({
+                    method: 'GET',
+                    url: `/?page=${BIS_HASH}|pld|`,
+                });
+                assert.equal(badResponse.statusCode, 200);
+                const parsed = parser.parseFromString(badResponse.body, 'text/html');
+                assert.equal(parsed.querySelector('title')?.textContent, 'XivGear - FFXIV Gear Planner');
+            }
+
             const response = await fastify.inject({
                 method: 'GET',
                 url: `/?page=${BIS_HASH}|sge|endwalker|anabaseios`,
             });
             assert.equal(response.statusCode, 200);
             const parsed = parser.parseFromString(response.body, 'text/html');
-            assert.equal(parsed.querySelector('title')?.textContent, '6.55 Savage SGE BiS - XivGear - FFXIV Gear Planner');
+            assert.equal(parsed.querySelector('title')?.textContent, bisTitle);
+
+            // Check the preloads
+            const preloads = Array.from(parsed.querySelectorAll('link'))
+                .filter(link => link.rel === 'preload');
+
+            const jobPreload = preloads[preloads.length - 2];
+            assert.equal(jobPreload.getAttribute('rel'), "preload");
+            assert.equal(jobPreload.getAttribute('href'), "https://data.xivgear.app/Items?job=SGE");
+            assert.equal(jobPreload.getAttribute('as'), "fetch");
+            assert.equal(jobPreload.hasAttribute('crossorigin'), true);
+
+            const shortlinkPreload = preloads[preloads.length - 1];
+            assert.equal(shortlinkPreload.getAttribute('rel'), "preload");
+            assert.equal(shortlinkPreload.getAttribute('href'), `https://staticbis.xivgear.app/sge/endwalker/anabaseios.json`);
+            assert.equal(shortlinkPreload.getAttribute('as'), "fetch");
+            assert.equal(shortlinkPreload.hasAttribute('crossorigin'), true);
+
+            const props = readPreviewProps(parsed);
+            assert.equal(props['og:site_name'], 'XivGear');
+            assert.equal(props['og:type'], 'website');
+            assert.equal(props['og:title'], bisTitle);
         }).timeout(30_000);
         it("resolves bis link with onlySetIndex", async () => {
             const response = await fastify.inject({
@@ -291,7 +323,12 @@ describe("backend servers", () => {
             const preloads = Array.from(parsed.querySelectorAll('link'))
                 .filter(link => link.rel === 'preload');
 
-            const bisIndexPreload = preloads[preloads.length - 1];
+            const bisIndexPreload = preloads[preloads.length - 1 - (ALL_COMBAT_JOBS.length)];
+            assert.equal(bisIndexPreload.getAttribute('rel'), "preload");
+            assert.equal(bisIndexPreload.getAttribute('href'), 'https://staticbis.xivgear.app/_index.json');
+            assert.equal(bisIndexPreload.getAttribute('as'), "fetch");
+            assert.equal(bisIndexPreload.hasAttribute('crossorigin'), true);
+
             assert.equal(bisIndexPreload.getAttribute('rel'), "preload");
             assert.equal(bisIndexPreload.getAttribute('href'), 'https://staticbis.xivgear.app/_index.json');
             assert.equal(bisIndexPreload.getAttribute('as'), "fetch");

@@ -15,7 +15,7 @@ import {
     DisplayGearSlotKey,
     FoodItem,
     GearAcquisitionSource,
-    GearItem,
+    GearItem, IlvlSyncInfo,
     JobMultipliers,
     Materia,
     MateriaSlot,
@@ -29,87 +29,15 @@ import {getRelicStatModelFor} from "./relicstats/relicstats";
 import {requireNumber, requireString} from "./external/data_validators";
 import {
     DataApiClient,
-    FoodStatBonus,
     GearAcquisitionSource as AcqSrc,
-    HttpResponse
+    SpecialStatType
 } from "@xivgear/data-api-client/dataapi";
 import {BaseParamMap, DataManager, DmJobs} from "./datamanager";
-import {IlvlSyncInfo} from "./datamanager_xivapi";
 import {applyStatCaps} from "./gear";
 import {toTranslatable, TranslatableString} from "@xivgear/i18n/translation";
 import {RawStatsPart} from "@xivgear/util/types";
-// import {recordError} from "@xivgear/common-ui/analytics/analytics";
-
-type ApiClientRawType<X extends keyof DataApiClient<never>, Y extends keyof DataApiClient<never>[X]> = DataApiClient<never>[X][Y]
-
-type ApiItemData = Awaited<ReturnType<ApiClientRawType<'items', 'items'>>>['data']['items'][number]
-type ApiMateriaData = Awaited<ReturnType<ApiClientRawType<'materia', 'materia'>>>['data']['items'][number]
-type ApiFoodData = Awaited<ReturnType<ApiClientRawType<'food', 'foodItems'>>>['data']['items'][number]
-// type BaseParamType = Awaited<ReturnType<ApiClientRawType<'baseParams', 'baseParams'>>>['data']['items'][number]
-// type JobType = Awaited<ReturnType<ApiClientRawType<'jobs', 'jobs'>>>['data']['items'][number]
-// type ItemLevelType = Awaited<ReturnType<ApiClientRawType<'itemLevel', 'itemLevels'>>>['data']['items'][number]
-
-export type DataManagerErrorReporter = (r: Response, params: Parameters<typeof fetch>) => void;
-
-let errorReporter: DataManagerErrorReporter = () => {
-};
-
-export function setDataManagerErrorReporter(reporter: DataManagerErrorReporter) {
-    errorReporter = reporter;
-}
-
-async function retryFetch(...params: Parameters<typeof fetch>): Promise<Response> {
-    let tries = 5;
-    while (true) {
-        tries--;
-        const result = await fetch(...params);
-        // TODO: add other errors here?
-        if (tries > 0 && result.status === 503 && result.statusText === 'Not Ready') {
-            console.log("data api not ready, retrying", params[0]);
-            await new Promise(r => setTimeout(r, 5_000 + (Math.random() * 1000)));
-            continue;
-        }
-        if (result.status >= 400) {
-            const content = JSON.stringify(await result.json());
-            console.error(`Data API error: ${result.status}: ${result.statusText}`, params[0], content);
-            const error = Error(`Data API error: ${result.status}: ${result.statusText} (${params[0]}\n${content}`);
-            // TODO: it would be nice to be able to record these, but they would create an unacceptable
-            // dependency loop.
-            // recordError("datamanager", error, {fetchUrl: String(params[0])});
-            throw error;
-        }
-        if (!result.ok) {
-            console.error(`Data API error: ${result.status}: ${result.statusText}`, params[0]);
-            errorReporter(result, params);
-            throw new Error(`Data API error: ${result.status}: ${result.statusText} (${params[0]}`);
-        }
-        return result;
-    }
-}
-
-const apiClient = new DataApiClient<never>({
-    baseUrl: "https://data.xivgear.app",
-    // baseUrl: "https://betadata.xivgear.app",
-    // baseUrl: "http://localhost:8085",
-    customFetch: retryFetch,
-});
-
-export function setDataApi(baseUrl: string) {
-    apiClient.baseUrl = baseUrl;
-}
-
-function checkResponse<X extends HttpResponse<unknown>>(response: X): X {
-    const url = response.url;
-    if (!response.ok) {
-        errorReporter(response, [url]);
-        throw new Error(`Data API error: response not ok: ${response.status}: ${response.statusText} (${url}`);
-    }
-    else if (!response.data) {
-        errorReporter(response, [url]);
-        throw new Error(`Data API error: no data: ${response.status}: ${response.statusText} (${url}`);
-    }
-    return response;
-}
+import {DATA_API_CLIENT, ApiFoodData, ApiItemData, ApiMateriaData, checkResponse} from "./data_api_client";
+import {addStats} from "@xivgear/xivmath/xivstats";
 
 export class NewApiDataManager implements DataManager {
 
@@ -133,7 +61,7 @@ export class NewApiDataManager implements DataManager {
         this._minIlvlFood = lvlData.minILvlFood;
         this._maxIlvlFood = lvlData.maxILvlFood;
         this._ilvlSync = ilvlSync;
-        this.apiClient = apiClient;
+        this.apiClient = DATA_API_CLIENT;
     }
 
     private _allItems: DataApiGearInfo[];
@@ -495,7 +423,8 @@ export class DataApiGearInfo implements GearItem {
     readonly displayGearSlot: DisplayGearSlot;
     readonly displayGearSlotName: DisplayGearSlotKey;
     readonly occGearSlotName: OccGearSlotKey;
-    stats: RawStats;
+    // Base stats, including caps
+    private baseStats: RawStats;
     primarySubstat: keyof RawStats | null;
     secondarySubstat: keyof RawStats | null;
     materiaSlots: MateriaSlot[];
@@ -512,6 +441,12 @@ export class DataApiGearInfo implements GearItem {
     syncedDownTo: number | null;
     isNqVersion: boolean;
     readonly rarity: number;
+    readonly specialStatType: SpecialStatType;
+    readonly specialStats: RawStats | null;
+    // activeSpecialStat: SpecialStatType | null = null;
+    private _activeSpecialStat: SpecialStatType | null = null;
+    // Actual effective stats
+    stats: RawStats;
 
     constructor(data: ApiItemData, forceNq: boolean = false) {
         this.jobs = data.classJobs as JobName[];
@@ -586,19 +521,36 @@ export class DataApiGearInfo implements GearItem {
         }
         this.displayGearSlot = this.displayGearSlotName ? DisplayGearSlotInfo[this.displayGearSlotName] : undefined;
         const weaponDelayRaw = (data.delayMs);
-        this.stats = new RawStats();
-        this.stats.wdPhys = forceNq ? data.damagePhys : data.damagePhysHQ;
-        this.stats.wdMag = forceNq ? data.damageMag : data.damageMagHQ;
-        this.stats.weaponDelay = weaponDelayRaw ? (weaponDelayRaw / 1000.0) : 0;
+        this.baseStats = new RawStats();
+        this.baseStats.wdPhys = forceNq ? data.damagePhys : data.damagePhysHQ;
+        this.baseStats.wdMag = forceNq ? data.damageMag : data.damageMagHQ;
+        this.baseStats.weaponDelay = weaponDelayRaw ? (weaponDelayRaw / 1000.0) : 0;
         const paramMap = forceNq ? data.baseParamMap : data.baseParamMapHQ;
         for (const key in paramMap) {
             const intKey = parseInt(key);
             const baseParam = statById(intKey);
-            if (baseParam === undefined) {
-                // console.warn(`Undefined baseParam! ${key}`);
+            // WD is already accounted for
+            if (baseParam === undefined || baseParam === 'wdPhys' || baseParam === 'wdMag' || baseParam === 'weaponDelay') {
                 continue;
             }
-            this.stats[baseParam] = paramMap[key];
+            // We need to add here, because we don't want to overwrite wdPhys/wdMag/weaponDelay
+            this.baseStats[baseParam] += paramMap[key];
+        }
+        if (data.specialStatType) {
+            this.specialStats = new RawStats();
+            this.specialStatType = data.specialStatType;
+            for (const key in paramMap) {
+                const intKey = parseInt(key);
+                const baseParam = statById(intKey);
+                if (baseParam === undefined) {
+                    continue;
+                }
+                this.specialStats[baseParam] = data.baseParamMapSpecial[key];
+            }
+        }
+        else {
+            this.specialStats = null;
+            this.specialStatType = null;
         }
         this.isUnique = data.unique;
         this.computeSubstats();
@@ -706,17 +658,18 @@ export class DataApiGearInfo implements GearItem {
                 break;
         }
         this.rarity = data.rarity;
+        this.recalcEffectiveStats();
     }
 
     private computeSubstats() {
         const sortedStats = Object.entries({
-            crit: this.stats.crit,
-            dhit: this.stats.dhit,
-            determination: this.stats.determination,
-            spellspeed: this.stats.spellspeed,
-            skillspeed: this.stats.skillspeed,
-            piety: this.stats.piety,
-            tenacity: this.stats.tenacity,
+            crit: this.baseStats.crit,
+            dhit: this.baseStats.dhit,
+            determination: this.baseStats.determination,
+            spellspeed: this.baseStats.spellspeed,
+            skillspeed: this.baseStats.skillspeed,
+            piety: this.baseStats.piety,
+            tenacity: this.baseStats.tenacity,
         })
             .sort((left, right) => {
                 if (left[1] > right[1]) {
@@ -741,7 +694,7 @@ export class DataApiGearInfo implements GearItem {
 
     applyIlvlData(nativeIlvlInfo: IlvlSyncInfo, syncIlvlInfo?: IlvlSyncInfo, level?: number) {
         const statCapsNative: RawStatsPart = {};
-        Object.entries(this.stats).forEach(([stat, _]) => {
+        Object.entries(this.baseStats).forEach(([stat, _]) => {
             const rsk = stat as RawStatKey;
             statCapsNative[rsk] = nativeIlvlInfo.substatCap(this.occGearSlotName, rsk);
         });
@@ -753,11 +706,11 @@ export class DataApiGearInfo implements GearItem {
             this.syncedDownTo = syncIlvlInfo.ilvl;
             this.materiaSlots = [];
             const statCapsSync: RawStatsPart = {};
-            Object.entries(this.stats).forEach(([stat, v]) => {
+            Object.entries(this.baseStats).forEach(([stat, v]) => {
                 const rsk = stat as RawStatKey;
                 statCapsSync[rsk] = syncIlvlInfo.substatCap(this.occGearSlotName, rsk);
             });
-            this.stats = applyStatCaps(this.stats, statCapsSync);
+            this.baseStats = applyStatCaps(this.baseStats, statCapsSync);
             this.statCaps = statCapsSync;
             this.computeSubstats();
             this.isSyncedDown = true;
@@ -767,11 +720,33 @@ export class DataApiGearInfo implements GearItem {
             this.syncedDownTo = null;
             this.isSyncedDown = false;
         }
+        this.recalcEffectiveStats();
     }
 
     usableByJob(job: JobName): boolean {
         return this.jobs.includes(job);
     }
+
+    get activeSpecialStat(): SpecialStatType | null {
+        return this._activeSpecialStat;
+    }
+
+    set activeSpecialStat(value: SpecialStatType | null) {
+        this._activeSpecialStat = value;
+        this.recalcEffectiveStats();
+    }
+
+    recalcEffectiveStats(): void {
+        if (this.specialStatType && this.specialStatType === this._activeSpecialStat) {
+            const stats = new RawStats(this.baseStats);
+            addStats(stats, this.specialStats);
+            this.stats = stats;
+        }
+        else {
+            this.stats = this.baseStats;
+        }
+    }
+
 }
 
 export class DataApiFoodInfo implements FoodItem {
@@ -800,8 +775,7 @@ export class DataApiFoodInfo implements FoodItem {
                 continue;
             }
             const actualKey = statById(parseInt(rawKey));
-            const bonus: FoodStatBonus = data.bonusesHQ[rawKey];
-            this.bonuses[actualKey] = bonus;
+            this.bonuses[actualKey] = data.bonusesHQ[rawKey];
         }
         const sortedStats = Object.entries(this.bonuses).sort((entryA, entryB) => entryB[1].max - entryA[1].max).map(entry => entry[0] as RawStatKey).filter(stat => stat !== 'vitality');
         if (sortedStats.length >= 1) {

@@ -1,58 +1,45 @@
-import {FieldBoundCheckBox, labeledCheckbox} from "@xivgear/common-ui/components/util";
+import {FieldBoundCheckBox, labeledCheckbox, quickElement} from "@xivgear/common-ui/components/util";
 import {BaseMultiCycleSimGui} from "../multicyclesim_ui";
-import {AbilitiesUsedTable} from "../components/ability_used_table";
-import {CycleSimResult, DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/core/sims/cycle_sim";
-import {ColDefs, CustomColumnSpec} from "@xivgear/common-ui/table/tables";
+import {DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/core/sims/cycle_sim";
+import {CustomColumnSpec} from "@xivgear/common-ui/table/tables";
 import {PreDmgUsedAbility} from "@xivgear/core/sims/sim_types";
 import {GnbExtraData} from "@xivgear/core/sims/tank/gnb/gnb_types";
 import {GnbSettings, GnbSimResult} from "@xivgear/core/sims/tank/gnb/gnb_sheet_sim";
+import {GaugeWithText} from "@xivgear/common-ui/components/gauges";
+import {extraDataDiscreteGaugeRenderer} from "../common/sim_ui_utils";
 
 export class GnbSimGui extends BaseMultiCycleSimGui<GnbSimResult, GnbSettings> {
-    static generateResultColumns(result: CycleSimResult): CustomColumnSpec<DisplayRecordFinalized, unknown, unknown>[] {
+
+
+    protected extraAbilityUsedColumns(_: GnbSimResult): CustomColumnSpec<DisplayRecordFinalized, unknown, unknown>[] {
         return [
             {
                 shortName: 'cartridges',
                 displayName: 'Cartridges',
                 getter: used => isFinalizedAbilityUse(used) ? used.original : null,
-                renderer: (usedAbility?: PreDmgUsedAbility) => {
-                    if (usedAbility?.extraData !== undefined) {
-                        const cartridges = (usedAbility.extraData as GnbExtraData).gauge.cartridges;
-                        const maxCarts = (usedAbility.extraData as GnbExtraData).gauge.maxCartridges;
+                renderer: extraDataDiscreteGaugeRenderer<GnbExtraData>((_, extra) => {
+                    const cartridges = extra.gauge.cartridges;
+                    const maxCarts = extra.gauge.maxCartridges;
+                    const children = [];
 
-                        const div = document.createElement('div');
-                        div.style.height = '100%';
-                        div.style.display = 'flex';
-                        div.style.alignItems = 'center';
-                        div.style.gap = '6px';
-                        div.style.padding = '2px 0 2px 0';
-                        div.style.boxSizing = 'border-box';
-
-                        const span = document.createElement('span');
-                        span.textContent = `${cartridges}`;
-
-                        for (let i = 1; i <= maxCarts; i++) {
-                            const stack = document.createElement('span');
-                            stack.style.clipPath = `circle()`;
-                            stack.style.background = '#00000033';
-                            stack.style.height = '100%';
-                            stack.style.width = '16px';
-                            stack.style.display = 'inline-block';
-                            stack.style.overflow = 'hidden';
-                            if (i <= cartridges - 3) {
-                                stack.style.background = '#f32908';
-                            }
-                            else if (i <= cartridges) {
-                                stack.style.background = '#f37208';
-                            }
-                            div.appendChild(stack);
+                    for (let i = 1; i <= maxCarts; i++) {
+                        let cls: string;
+                        if (i <= cartridges - 3) {
+                            cls = 'gnb-cartridge-red';
+                        }
+                        else if (i <= cartridges) {
+                            cls = 'gnb-cartridge-orange';
+                        }
+                        else {
+                            cls = 'gnb-cartridge-default';
                         }
 
-                        div.appendChild(span);
-
-                        return div;
+                        children.push(quickElement('span', [cls]));
                     }
-                    return document.createTextNode("");
-                },
+
+                    children.push(quickElement('span', [], [`${cartridges}`]));
+                    return children;
+                }),
             },
             {
                 shortName: 'no-mercy',
@@ -61,36 +48,14 @@ export class GnbSimGui extends BaseMultiCycleSimGui<GnbSimResult, GnbSettings> {
                 renderer: (usedAbility?: PreDmgUsedAbility) => {
                     if (usedAbility?.extraData !== undefined) {
                         const noMercyDuration = (usedAbility.extraData as GnbExtraData).noMercyDuration;
-                        const div = document.createElement('div');
-                        div.style.height = '100%';
-                        div.style.display = 'flex';
-                        div.style.alignItems = 'center';
-                        div.style.gap = '6px';
-                        div.style.padding = '2px 0 2px 0';
-                        div.style.boxSizing = 'border-box';
-
-                        const span = document.createElement('span');
-                        span.textContent = `${noMercyDuration.toFixed(1)}s`;
-
-                        const barOuter = document.createElement('div');
-                        barOuter.style.borderRadius = '20px';
-                        barOuter.style.background = '#00000033';
-                        barOuter.style.width = '120px';
-                        barOuter.style.height = 'calc(100% - 3px)';
-                        barOuter.style.display = 'inline-block';
-                        barOuter.style.overflow = 'hidden';
-                        barOuter.style.border = '1px solid black';
-
-                        const barInner = document.createElement('div');
-                        barInner.style.backgroundColor = '#00CED1';
-                        barInner.style.height = '100%';
-                        barInner.style.width = `${Math.round((noMercyDuration / 20) * 100)}%`;
-                        barOuter.appendChild(barInner);
-
-                        div.appendChild(barOuter);
-                        div.appendChild(span);
-
-                        return div;
+                        const gauge = new GaugeWithText<number>(
+                            () => '#00CED1',
+                            num => `${num.toFixed(1)}s`,
+                            num => num / 20 * 100
+                        );
+                        gauge.setDataValue(noMercyDuration);
+                        gauge.classList.add('sim-gauge', 'five-digit');
+                        return gauge;
                     }
                     return document.createTextNode("");
                 },
@@ -109,15 +74,6 @@ export class GnbSimGui extends BaseMultiCycleSimGui<GnbSimResult, GnbSettings> {
 
         configDiv.appendChild(labeledCheckbox("Assume that Gnashing Fang microclips don't exist", pretendMicroclipsDontExistCB));
         return configDiv;
-    }
-
-    override makeAbilityUsedTable(result: GnbSimResult): AbilitiesUsedTable {
-        const extraColumns = GnbSimGui.generateResultColumns(result);
-        const table = super.makeAbilityUsedTable(result);
-        const newColumns: ColDefs<DisplayRecordFinalized> = [...table.columns];
-        newColumns.splice(newColumns.findIndex(col => col.shortName === 'expected-damage') + 1, 0, ...extraColumns);
-        table.columns = newColumns;
-        return table;
     }
 
 }

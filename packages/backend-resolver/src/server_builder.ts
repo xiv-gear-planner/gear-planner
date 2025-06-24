@@ -33,6 +33,8 @@ import fastifyWebResponse from "fastify-web-response";
 import {getFrontendPath, getFrontendServer} from "./frontend_file_server";
 import process from "process";
 import {extractSingleSet} from "@xivgear/core/util/sheet_utils";
+import {getJobIcons} from "./preload_helpers";
+import FastifyIP from 'fastify-ip';
 
 let initDone = false;
 
@@ -98,6 +100,11 @@ function buildServerBase() {
         ignoreDuplicateSlashes: true,
         // querystringParser: str => querystring.parse(str, '&', '=', {}),
     });
+    // Get the true IP from CF headers
+    fastifyInstance.register(FastifyIP, {
+        order: ['cf-connecting-ip'],
+        strict: true,
+    });
     fastifyInstance.register(cors, {
         methods: ['GET', 'OPTIONS'],
         strictPreflight: false,
@@ -107,34 +114,62 @@ function buildServerBase() {
         return 'up';
     });
 
+    process.on('uncaughtException', (reason: Error) => {
+        fastifyInstance.log.error(`uncaught exception: ${reason}`);
+    });
+    process.on('unhandledRejection', (reason, promise) => {
+        fastifyInstance.log.error(`unhandled rejection at: ${promise}, reason: ${reason}`);
+    });
+
     return fastifyInstance;
 }
 
 type NavResult = {
-    preloadUrl: URL | null,
+    fetchPreloads: URL[],
+    imagePreloads: Promise<URL[]>,
     sheetData: Promise<ExportedData> | null,
     name: Promise<string | undefined>,
     description: Promise<string | undefined>,
     job: Promise<JobName | undefined>,
 }
 
-function fillSheetData(preloadUrl: NavResult['preloadUrl'], sheetData: Promise<ExportedData>, osIndex: number | undefined): NavResult {
-    const processed: Promise<[name: string | undefined, desc: string | undefined, job: JobName | undefined]> = sheetData.then(exported => {
+type SheetSummaryData = {
+    name: string | undefined,
+    desc: string | undefined,
+    job: JobName | undefined,
+    multiJob: boolean,
+}
+
+function fillSheetData(sheetPreloadUrl: URL | null, sheetData: Promise<ExportedData>, osIndex: number | undefined): NavResult {
+    const processed: Promise<SheetSummaryData> = sheetData.then(exported => {
         let set = undefined;
         if (osIndex !== undefined && 'sets' in exported) {
             set = exported.sets[osIndex] as SetExport;
         }
-        const name = set?.['name'] || exported['name'];
-        const desc = set?.['description'] || exported['description'];
-        const job = exported.job;
-        return [name, desc, job];
+        return {
+            name: set?.['name'] || exported['name'],
+            desc: set?.['description'] || exported['description'],
+            job: exported.job,
+            multiJob: ('sets' in exported && osIndex === undefined && exported.isMultiJob) ?? false,
+        };
     });
     return {
-        preloadUrl: preloadUrl,
+        fetchPreloads: sheetPreloadUrl === null ? [] : [sheetPreloadUrl],
+        // As nice as it would be to preload item images, that would require awaiting more calls, or keeping a
+        // DataManager around. Since the item icons have placeholder lookalikes anyway, it's not super important.
+        imagePreloads: processed.then(p => {
+            if (p.multiJob && p.job) {
+                const myRole = JOB_DATA[p.job].role;
+                return getJobIcons('frameless', thatJob => JOB_DATA[thatJob].role === myRole);
+            }
+            else {
+                return [];
+            }
+        }),
         sheetData: sheetData,
-        name: processed.then(p => p[0]),
-        description: processed.then(p => p[1]),
-        job: processed.then(p => p[2]),
+        name: processed.then(p => p.name),
+        description: processed.then(p => p.desc),
+        job: processed.then(p => p.job),
     };
 }
 
@@ -154,11 +189,16 @@ function fillBisBrowserData(path: string[]): NavResult {
             return pathPart;
         }
     }).join(" ") : undefined;
+    const images = [];
+    if (path.length === 0) {
+        images.push(...getJobIcons('framed'));
+    }
     return {
         description: Promise.resolve(label ? `Best-in-Slot Gear Sets for ${label} in Final Fantasy XIV` : "Best-in-Slot Gear Sets for Final Fantasy XIV"),
         job: Promise.resolve(job),
         name: Promise.resolve(label ? label + ' BiS' : undefined),
-        preloadUrl: getBisIndexUrl(),
+        fetchPreloads: [getBisIndexUrl()],
+        imagePreloads: Promise.resolve(images),
         sheetData: null,
     };
 }
@@ -333,6 +373,7 @@ export function buildPreviewServer() {
 
     const fastifyInstance = buildServerBase();
 
+    // TODO: split preview and stats server into different images, since stats server does not need DOM stuff
     const parser = new DOMParser();
 
     let extraScripts: string[];
@@ -366,7 +407,6 @@ export function buildPreviewServer() {
             request.log.info(pathPaths, 'Path');
             const navResult = resolveNavData(nav);
             if (navResult !== null) {
-                const sheetDataPreloadUrl = navResult.preloadUrl;
                 let name = await navResult.name || "";
                 let desc = await navResult.description || "";
                 if (name.length > PREVIEW_MAX_NAME_LENGTH) {
@@ -402,14 +442,22 @@ export function buildPreviewServer() {
                     head.append(newTitle);
                 }
 
-                function addFetchPreload(url: string) {
+                function addPreload(url: string, as: string) {
                     const preload = doc.createElement('link');
                     preload.rel = 'preload';
                     preload.href = url;
                     // For some reason, `.as = 'fetch'` doesn't work, but this does.
-                    preload.setAttribute("as", 'fetch');
+                    preload.setAttribute("as", as);
                     preload.setAttribute("crossorigin", "");
                     head.appendChild(preload);
+                }
+
+                function addFetchPreload(url: string) {
+                    addPreload(url, 'fetch');
+                }
+
+                function addImagePreload(url: string) {
+                    addPreload(url, 'image');
                 }
 
                 // Inject preload properties based on job
@@ -418,9 +466,8 @@ export function buildPreviewServer() {
                 if (job) {
                     addFetchPreload(`https://data.xivgear.app/Items?job=${job}`);
                 }
-                if (sheetDataPreloadUrl) {
-                    addFetchPreload(sheetDataPreloadUrl.toString());
-                }
+                navResult.fetchPreloads.forEach(preload => addFetchPreload(preload.toString()));
+                (await navResult.imagePreloads).forEach(preload => addImagePreload(preload.toString()));
                 if (extraScripts) {
                     function addExtraScript(url: string, extraProps: object = {}) {
                         const script = doc.createElement('script');
