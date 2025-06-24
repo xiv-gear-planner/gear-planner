@@ -1,3 +1,5 @@
+import {LoadingBlocker} from "./loader";
+
 export function makeActionButton(label: string | (Node | string)[], action: (ev: MouseEvent) => void, tooltip?: string) {
     const button = document.createElement("button");
     if (label instanceof Object) {
@@ -9,6 +11,40 @@ export function makeActionButton(label: string | (Node | string)[], action: (ev:
     button.addEventListener('click', ev => {
         ev.stopPropagation();
         action(ev);
+    });
+    if (tooltip !== undefined) {
+        button.title = tooltip;
+    }
+    // By default, will not submit forms.
+    button.type = 'button';
+    return button;
+}
+
+export function makeAsyncActionButton(label: string | (Node | string)[], action: (ev: MouseEvent) => Promise<void>, tooltip?: string) {
+    const button = document.createElement("button");
+    button.classList.add('async-action-button');
+    const loadingBlocker = document.createElement('div');
+    loadingBlocker.textContent = '...';
+    loadingBlocker.classList.add('loading-pane');
+    if (typeof label === 'string') {
+        button.replaceChildren(label, loadingBlocker);
+    }
+    else {
+        button.replaceChildren(...label, loadingBlocker);
+    }
+    button.addEventListener('click', async (ev) => {
+        ev.stopPropagation();
+        console.info("click")
+        button.classList.add('in-progress');
+        button.disabled = true;
+        try {
+            await action(ev);
+        }
+        finally {
+            button.classList.remove('in-progress');
+            button.disabled = false;
+        }
+        console.info("end")
     });
     if (tooltip !== undefined) {
         button.title = tooltip;
@@ -56,7 +92,7 @@ export class DataSelect<X> extends HTMLSelectElement {
 
 let idCounter = 1;
 
-export function randomId(prefix: string = 'unique-id-') : string{
+export function randomId(prefix: string = 'unique-id-'): string {
     return prefix + (idCounter++);
 }
 

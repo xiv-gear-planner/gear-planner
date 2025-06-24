@@ -1,5 +1,5 @@
 import {BaseModal} from "@xivgear/common-ui/components/modal";
-import {AnyStringIndex} from "@xivgear/util/types";
+import {AnyStringIndex} from "@xivgear/util/util_types";
 import {simpleKvTable} from "../sims/components/simple_tables";
 import {GearPlanSheet} from "@xivgear/core/sheet";
 import {CharacterGearSet} from "@xivgear/core/gear";

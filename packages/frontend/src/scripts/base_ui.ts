@@ -22,6 +22,8 @@ import {isInIframe} from "@xivgear/common-ui/util/detect_iframe";
 import {WritableProps} from "@xivgear/common-ui/util/types";
 import {quickElement} from "@xivgear/common-ui/components/util";
 import {ACCOUNT_STATE_TRACKER} from "./account/account_state";
+import {SHEET_MANAGER} from "./components/saved_sheet_impl";
+import {USER_DATA_SYNCER} from "./account/user_data";
 
 declare global {
     interface Document {
@@ -320,7 +322,7 @@ ACCOUNT_STATE_TRACKER.addAccountStateListener(() => {
 });
 
 export function showSheetPickerMenu() {
-    const picker = new SheetPickerTable();
+    const picker = new SheetPickerTable(SHEET_MANAGER, USER_DATA_SYNCER);
     const section = new NamedSection('My Sheets', false);
     section.classList.add('my-sheets-section');
     section.contentArea.replaceChildren(picker);

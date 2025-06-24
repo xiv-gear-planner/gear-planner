@@ -6,9 +6,10 @@ import {
     setDisplaySettingsChangeCallback
 } from "@xivgear/common-ui/settings/display_settings";
 import {Language} from "@xivgear/i18n/translation";
-import {SheetExport} from "@xivgear/xivmath/geartypes";
-import {SHEET_MANAGER} from "../components/saved_sheet_impl";
+import {SheetExport, SheetSummary} from "@xivgear/xivmath/geartypes";
 import {SheetHandle, SheetManager} from "@xivgear/core/persistence/saved_sheets";
+import {JobName, SupportedLevel} from "@xivgear/xivmath/xivconstants";
+import {SHEET_MANAGER} from "../components/saved_sheet_impl";
 
 const userDataClient = new UserDataClient<never>({
     baseUrl: document.location.hostname === 'localhost' ? 'http://localhost:8087' : 'https://accountsvc.xivgear.app',
@@ -16,9 +17,12 @@ const userDataClient = new UserDataClient<never>({
     customFetch: cookieFetch,
 });
 
-class UserDataSyncer {
+export class UserDataSyncer {
 
-    constructor(private readonly accountStateTracker: AccountStateTracker, private readonly userDataClient: UserDataClient<never>, private readonly settings: DisplaySettings, private readonly sheetMgr: SheetManager) {
+    constructor(private readonly accountStateTracker: AccountStateTracker,
+                private readonly userDataClient: UserDataClient<never>,
+                private readonly settings: DisplaySettings,
+                private readonly sheetMgr: SheetManager) {
     }
 
     async downloadSettings(): Promise<"success" | "not-logged-in" | "none-saved"> {
@@ -71,13 +75,16 @@ class UserDataSyncer {
         return await this.performSync();
     }
 
+    /**
+     * Asks the server about what sheets and sheet versions it has.
+     */
     async prepSheetSync(): Promise<'need-sync' | 'not-logged-in' | 'nothing-to-do'> {
         const jwt: string | null = this.accountStateTracker.token;
         if (jwt === null) {
             return 'not-logged-in';
         }
-        const mgr = SHEET_MANAGER;
-        const allSheets = mgr.readData();
+        const mgr = this.sheetMgr;
+        const allSheets = mgr.allSheets;
         const existingSheetsMap = new Map<string, SheetHandle>();
         const noServerVersion = new Set<SheetHandle>();
         allSheets.forEach(sheet => {
@@ -87,15 +94,24 @@ class UserDataSyncer {
         const newSheets: SheetMetadata[] = [];
         const serverData = await this.userDataClient.userdata.getSheetsList(this.buildParams());
         serverData.data.sheets.forEach(sheetMeta => {
+            const deletedFromServer = sheetMeta.deleted;
             const key = sheetMeta.saveKey;
             if (existingSheetsMap.has(key)) {
                 const handle = existingSheetsMap.get(key);
                 handle.serverVersion = sheetMeta.version;
                 noServerVersion.delete(handle);
+                if (deletedFromServer) {
+                    handle.deleteServer(sheetMeta.version);
+                }
+                else {
+                    handle.meta.serverDeleted = false;
+                }
             }
-            else {
+            else if (!deletedFromServer) {
                 newSheets.push(sheetMeta);
             }
+            // Don't bother creating a handle for something that we never had locally and which has already been
+            // deleted from the server.
         });
         noServerVersion.forEach(sheet => {
             sheet.serverVersion = 0;
@@ -107,25 +123,24 @@ class UserDataSyncer {
             // Basically, if the local version is 0, then we know that the sheet exists on the server, and we should
             // display it iff the user is logged in. If the user wishes to open this sheet, then we need to download
             // it on demand.
+            const svrSum = sheetMeta.summary;
+            const localSum: SheetSummary = {
+                job: svrSum.job as JobName,
+                name: svrSum.name,
+                multiJob: svrSum.multiJob,
+                level: svrSum.level as SupportedLevel,
+                isync: svrSum.isync,
+            };
             const newSheet = mgr.newSheetFromRemote(
-                sheetMeta.saveKey, svrVer
-                // saveKey: sheetMeta.saveKey,
-                // serverVersion: svrVer,
-                // sheetMeta: {
-                //     currentVersion: 0,
-                //     lastSyncedVersion: 0,
-                //     serverVersion: svrVer,
-                //     sortOrder: null,
-                //     hasConflict: false,
-                //     forcePush: false,
-                // },
+                sheetMeta.saveKey, svrVer, localSum
             );
             newHandles.push(newSheet);
         });
         mgr.resort();
         // At this point, we have only downloaded metadata. We have not synchronized any actual sheet contents.
         mgr.flush();
-        if (mgr.lastData.find(sheet => sheet.syncStatus !== "in-sync") !== undefined) {
+        mgr.afterSheetListChange();
+        if (mgr.allDisplayableSheets.find(sheet => sheet.syncStatus !== "in-sync") !== undefined) {
             return 'need-sync';
         }
         else {
@@ -134,7 +149,7 @@ class UserDataSyncer {
     }
 
     private async performSync(): Promise<'success' | 'not-logged-in' | 'nothing-to-do'> {
-        const mgr = SHEET_MANAGER;
+        const mgr = this.sheetMgr;
         const jwt: string | null = this.accountStateTracker.token;
         if (jwt === null) {
             return 'not-logged-in';
@@ -144,33 +159,49 @@ class UserDataSyncer {
         // TODO: better log messages, hard to tell what's going on
         // TODO: server should just compress
         try {
-            for (const sheetHandle of mgr.lastData) {
+            for (const sheetHandle of mgr.allDisplayableSheets) {
                 switch (sheetHandle.syncStatus) {
                     case "in-sync":
                         // Nothing do do
                         continue;
                     case "never-uploaded":
                     case "client-newer-than-server":
-                        console.info(`Uploading: ${sheetHandle.key}: ${sheetHandle.data?.name} ${sheetHandle.localVersion} -> ${sheetHandle.serverVersion}`);
-                        // TODO: needs to handle 409 conflict without blowing up
-                        await sheetHandle.doAction(this.userDataClient.userdata.putSheet(sheetHandle.key, {
-                            sheetData: sheetHandle.data,
-                            sheetName: sheetHandle.data.name,
-                            sortOrder: sheetHandle.sortOrder,
-                            lastSyncedVersion: sheetHandle.lastSyncedVersion,
-                            newSheetVersion: sheetHandle.localVersion,
-                        }, this.buildParams()));
+                        if (sheetHandle.meta.localDeleted) {
+                            console.info(`Deleting: ${sheetHandle.key}: ${sheetHandle.name} ${sheetHandle.localVersion} -> ${sheetHandle.serverVersion}`);
+                            // TODO: needs to handle 409 conflict without blowing up
+                            await sheetHandle.doAction(this.userDataClient.userdata.deleteSheet(sheetHandle.key, {
+                                lastSyncedVersion: sheetHandle.lastSyncedVersion,
+                                newSheetVersion: sheetHandle.localVersion,
+                            }, this.buildParams()));
+                        }
+                        else {
+                            console.info(`Uploading: ${sheetHandle.key}: ${sheetHandle.name} ${sheetHandle.localVersion} -> ${sheetHandle.serverVersion}`);
+                            const data = sheetHandle.dataNow;
+                            if (!data) {
+                                console.error(`Data is null for sheet ${sheetHandle.key} (${sheetHandle.name})!`);
+                                break;
+                            }
+                            // TODO: needs to handle 409 conflict without blowing up
+                            await sheetHandle.doAction(this.userDataClient.userdata.putSheet(sheetHandle.key, {
+                                sheetData: data,
+                                sheetSummary: sheetHandle.summary,
+                                sortOrder: sheetHandle.sortOrder,
+                                lastSyncedVersion: sheetHandle.lastSyncedVersion,
+                                newSheetVersion: sheetHandle.localVersion,
+                            }, this.buildParams()));
+                        }
                         sheetHandle.lastSyncedVersion = sheetHandle.localVersion;
                         break;
                     case "never-downloaded":
                     case "server-newer-than-client": {
-                        console.info(`Downloading: ${sheetHandle.key}: ${sheetHandle.data?.name} ${sheetHandle.localVersion} <- ${sheetHandle.serverVersion}`);
+                        // TODO: is there anything we need to do to "finalize" a server->client delete?
+                        console.info(`Downloading: ${sheetHandle.key}: ${sheetHandle.name} ${sheetHandle.localVersion} <- ${sheetHandle.serverVersion}`);
                         const resp = await this.userDataClient.userdata.getSheet(sheetHandle.key, this.buildParams());
                         sheetHandle.postDownload(resp.data.metadata.version, resp.data.sheetData as SheetExport);
                         break;
                     }
                     case "conflict":
-                        console.warn(`Sheet conflict! ${sheetHandle.key}: ${sheetHandle.data?.name} ${sheetHandle.localVersion} > ${sheetHandle.lastSyncedVersion} < ${sheetHandle.serverVersion}`);
+                        console.warn(`Sheet conflict! ${sheetHandle.key}: ${sheetHandle.name} ${sheetHandle.localVersion} > ${sheetHandle.lastSyncedVersion} < ${sheetHandle.serverVersion}`);
                         break;
                     case "unknown":
                         // Can't fix this, and would have already been logged
@@ -197,7 +228,6 @@ class UserDataSyncer {
 
 }
 
-// TODO:
 export const USER_DATA_SYNCER = new UserDataSyncer(ACCOUNT_STATE_TRACKER, userDataClient, DISPLAY_SETTINGS, SHEET_MANAGER);
 
 export async function afterLogin() {

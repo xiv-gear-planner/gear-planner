@@ -760,16 +760,36 @@ export type LocalSheetMetadata = {
      * True if the user data sync process should force push to the server.
      */
     forcePush: boolean,
+    /**
+     * True if the sheet is deleted from the server.
+     */
+    serverDeleted: boolean,
+    /**
+     * True if the sheet was deleted locally.
+     */
+    localDeleted: boolean,
+
+    summary: SheetSummary,
 }
 
-export const DEFAULT_SHEET_METADATA: LocalSheetMetadata = {
+export type SheetSummary = {
+    job: JobName,
+    name: string,
+    multiJob: boolean,
+    level: SupportedLevel,
+    isync?: number | undefined,
+}
+
+export const DEFAULT_SHEET_METADATA: Readonly<Omit<LocalSheetMetadata, 'summary'>> = {
     currentVersion: 1,
     lastSyncedVersion: 0,
     serverVersion: 0,
     sortOrder: null,
     hasConflict: false,
     forcePush: false,
-};
+    serverDeleted: false,
+    localDeleted: false,
+} as const;
 
 export type CustomItemExport = {
     ilvl: number;

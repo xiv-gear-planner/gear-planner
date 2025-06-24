@@ -14,3 +14,4 @@ export type AnyStringIndexOpt = Partial<AnyStringIndex>
 
 export type RawStatsPart = Partial<RawStats>;
 
+export type PublicOnly<T> = { [key in keyof T]: T[key] }

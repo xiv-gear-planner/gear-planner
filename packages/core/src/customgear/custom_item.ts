@@ -16,7 +16,7 @@ import {CURRENT_MAX_LEVEL, JobName, LEVEL_ITEMS, MATERIA_LEVEL_MAX_NORMAL} from 
 import {applyStatCaps} from "../gear";
 import {GearPlanSheet} from "../sheet";
 import {toTranslatable} from "@xivgear/i18n/translation";
-import {RawStatsPart} from "@xivgear/util/types";
+import {RawStatsPart} from "@xivgear/util/util_types";
 import {SpecialStatType} from "@xivgear/data-api-client/dataapi";
 
 export class CustomItem implements GearItem {

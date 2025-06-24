@@ -16,7 +16,7 @@ import {BaseModal} from "@xivgear/common-ui/components/modal";
 import {SHARED_SET_NAME} from "@xivgear/core/imports/imports";
 import {recordSheetEvent} from "@xivgear/gearplan-frontend/analytics/analytics";
 import {JobIcon} from "./job_icon";
-import {RoleKey} from "@xivgear/xivmath/geartypes";
+import {RoleKey, SheetSummary} from "@xivgear/xivmath/geartypes";
 import {SHEET_MANAGER} from "./saved_sheet_impl";
 
 export type NewSheetTempSettings = {
@@ -179,14 +179,27 @@ export class NewSheetForm extends HTMLFormElement {
             ev.preventDefault();
             return;
         }
-        if (this.fieldSet.jobPicker.selectedJob === null) {
+        const job = this.fieldSet.jobPicker.selectedJob;
+        if (job === null) {
             alert("Please select a job");
             ev.preventDefault();
             return;
         }
         const settings = this.fieldSet.newSheetSettings;
-        const handle: SheetHandle = SHEET_MANAGER.newSheetFromScratch();
-        const gearPlanSheet = GRAPHICAL_SHEET_PROVIDER.fromScratch(handle.key, this.fieldSet.nameInput.value, this.fieldSet.jobPicker.selectedJob, this.fieldSet.levelDropdown.selectedItem, settings.ilvlSyncEnabled ? settings.ilvlSync : undefined, settings.multiJob);
+        const sheetName = this.fieldSet.nameInput.value;
+
+        const multiJob = settings.multiJob;
+        const isync = settings.ilvlSyncEnabled ? settings.ilvlSync : undefined;
+        const level = this.fieldSet.levelDropdown.selectedItem;
+        const summary: SheetSummary = {
+            isync,
+            job,
+            level,
+            multiJob,
+            name: sheetName,
+        };
+        const handle: SheetHandle = SHEET_MANAGER.newSheetFromScratch(summary);
+        const gearPlanSheet = GRAPHICAL_SHEET_PROVIDER.fromScratch(handle.key, sheetName, job, level, isync, multiJob);
         recordSheetEvent("newSheet", gearPlanSheet);
         this.sheetOpenCallback(gearPlanSheet).then(() => gearPlanSheet.requestSave());
     }

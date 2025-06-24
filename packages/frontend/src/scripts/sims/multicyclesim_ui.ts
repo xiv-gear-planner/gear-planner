@@ -17,7 +17,7 @@ import {bestEffortFormat, simpleKvTable} from "./components/simple_tables";
 import {AbilitiesUsedTable} from "./components/ability_used_table";
 import {quickElement} from "@xivgear/common-ui/components/util";
 import {BaseMultiCycleSim} from "@xivgear/core/sims/processors/sim_processors";
-import {AnyStringIndex} from "@xivgear/util/types";
+import {AnyStringIndex} from "@xivgear/util/util_types";
 import {
     col,
     CustomCell,

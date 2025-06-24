@@ -1,6 +1,13 @@
 import {col, CustomRow, CustomTable, SpecialRow, TableSelectionModel} from "@xivgear/common-ui/table/tables";
-import {errorIcon, faIcon, makeActionButton, makeCloseButton, quickElement} from "@xivgear/common-ui/components/util";
-import {SheetHandle, SheetManagerImpl, SyncStatus} from "@xivgear/core/persistence/saved_sheets";
+import {
+    errorIcon,
+    faIcon,
+    makeActionButton,
+    makeAsyncActionButton,
+    makeCloseButton,
+    quickElement
+} from "@xivgear/common-ui/components/util";
+import {SheetHandle, SheetManager, SyncStatus} from "@xivgear/core/persistence/saved_sheets";
 import {getHashForSaveKey, openSheetByKey, showNewSheetForm} from "../base_ui";
 import {confirmDelete} from "@xivgear/common-ui/components/delete_confirm";
 import {JobIcon} from "./job_icon";
@@ -8,22 +15,28 @@ import {JOB_DATA} from "@xivgear/xivmath/xivconstants";
 import {jobAbbrevTranslated} from "./job_name_translator";
 import {CharacterGearSet} from "@xivgear/core/gear";
 import {installDragHelper} from "./draghelpers";
-import {SHEET_MANAGER} from "./saved_sheet_impl";
 import {ACCOUNT_STATE_TRACKER} from "../account/account_state";
+import {UserDataSyncer} from "../account/user_data";
 
 export class SheetPickerTable extends CustomTable<SheetHandle, TableSelectionModel<SheetHandle, never, never, SheetHandle | null>> {
-    private readonly mgr: SheetManagerImpl;
 
-    constructor() {
+    constructor(private readonly mgr: SheetManager, private readonly uds: UserDataSyncer) {
         super();
         this.classList.add("gear-sheets-table");
         this.classList.add("hoverable");
         const outer = this;
-        this.mgr = SHEET_MANAGER;
-        this.mgr.setUpdateHook(handle => {
-            for (const cell of (this.dataRowMap.get(handle)?.dataColMap.values() ?? [])) {
-                cell.refreshFull();
-            }
+        this.mgr.setUpdateHook({
+            onSheetListChange(): void {
+                // TODO: this causes flashing when the elements get re-rendered
+                outer.readData();
+            },
+            onSheetUpdate(handle: SheetHandle): void {
+                for (const cell of (outer.dataRowMap.get(handle)?.dataColMap.values() ?? [])) {
+                    if (cell.colDef.shortName === 'syncstatus' || cell.colDef.shortName === 'sheetname') {
+                        cell.refreshFull();
+                    }
+                }
+            },
         });
         this.columns = [
             col({
@@ -31,15 +44,14 @@ export class SheetPickerTable extends CustomTable<SheetHandle, TableSelectionMod
                 displayName: "",
                 getter: sheet => sheet,
                 renderer: (sel: SheetHandle) => {
-                    const sheet = sel.data;
                     const div = document.createElement("div");
                     div.appendChild(makeActionButton([faIcon('fa-trash-can')], (ev) => {
-                        if (confirmDelete(ev, `Delete sheet '${sheet.name}'?`)) {
-                            this.mgr.deleteSheetByKey(sheet.saveKey);
+                        if (confirmDelete(ev, `Delete sheet '${sel.name}'?`)) {
+                            sel.deleteLocal();
                             this.readData();
                         }
-                    }, `Delete sheet '${sheet.name}'`));
-                    const hash = getHashForSaveKey(sheet.saveKey);
+                    }, `Delete sheet '${sel.name}'`));
+                    const hash = getHashForSaveKey(sel.key);
                     const linkUrl = new URL(`#/${hash.join('/')}`, document.location.toString());
                     const newTabLink = document.createElement('a');
                     newTabLink.href = linkUrl.toString();
@@ -49,7 +61,7 @@ export class SheetPickerTable extends CustomTable<SheetHandle, TableSelectionMod
                         ev.stopPropagation();
                     }, true);
                     newTabLink.classList.add('borderless-button');
-                    newTabLink.title = `Open sheet '${sheet.name}' in a new tab/window`;
+                    newTabLink.title = `Open sheet '${sel.name}' in a new tab/window`;
                     div.appendChild(newTabLink);
                     // Reorder dragger
                     const dragger = document.createElement('button');
@@ -127,16 +139,6 @@ export class SheetPickerTable extends CustomTable<SheetHandle, TableSelectionMod
                     return div;
                 },
             }),
-            // col({
-            //     shortName: "sort",
-            //     displayName: "Sort",
-            //     getter: sheet => {
-            //         return sheet.sortOrder;
-            //     },
-            //     // renderer: job => {
-            //     //     return jobAbbrevTranslated(job);
-            //     // },
-            // }),
             col({
                 shortName: "syncstatus",
                 displayName: "Sync",
@@ -182,10 +184,10 @@ export class SheetPickerTable extends CustomTable<SheetHandle, TableSelectionMod
                 shortName: "sheetjob",
                 displayName: "Job",
                 getter: sheet => {
-                    if (sheet.data.isMultiJob) {
-                        return JOB_DATA[sheet.data.job].role;
+                    if (sheet.multiJob) {
+                        return JOB_DATA[sheet.job].role;
                     }
-                    return sheet.data.job;
+                    return sheet.job;
                 },
                 renderer: job => {
                     return jobAbbrevTranslated(job);
@@ -195,10 +197,10 @@ export class SheetPickerTable extends CustomTable<SheetHandle, TableSelectionMod
                 shortName: "sheetjobicon",
                 displayName: "Job Icon",
                 getter: sheet => {
-                    if (sheet.data.isMultiJob) {
-                        return JOB_DATA[sheet.data.job].role;
+                    if (sheet.multiJob) {
+                        return JOB_DATA[sheet.job].role;
                     }
-                    return sheet.data.job;
+                    return sheet.job;
                 },
                 renderer: jobOrRole => {
                     return new JobIcon(jobOrRole);
@@ -207,13 +209,15 @@ export class SheetPickerTable extends CustomTable<SheetHandle, TableSelectionMod
             {
                 shortName: "sheetlevel",
                 displayName: "Lvl",
-                getter: sheet => sheet.data.level,
+                // TODO: make this part of metadata
+                getter: sheet => sheet.level,
                 fixedWidth: 40,
             },
             {
                 shortName: "sheetname",
                 displayName: "Sheet Name",
-                getter: sheet => sheet.data.name,
+                // TODO: make this part of metadata
+                getter: sheet => sheet.name,
             },
         ];
         this.readData();
@@ -245,6 +249,17 @@ export class SheetPickerTable extends CustomTable<SheetHandle, TableSelectionMod
 
     readData() {
         const data: typeof this.data = [];
+        // Sync tools TODO polish this
+        data.push(new SpecialRow(() => {
+            const refreshButton = makeAsyncActionButton('Refresh', async () => {
+                await this.uds.prepSheetSync();
+            });
+            const syncButton = makeAsyncActionButton('Sync', async () => {
+                await this.uds.syncSheets();
+            });
+
+            return quickElement('div', ['sync-tools'], [refreshButton, syncButton]);
+        }));
         // "New sheet" button/row
         data.push(new SpecialRow(() => {
             const div = document.createElement("div");
@@ -273,7 +288,7 @@ export class SheetPickerTable extends CustomTable<SheetHandle, TableSelectionMod
         }, row => {
             row.classList.add('search-row-outer');
         }));
-        const items: SheetHandle[] = this.mgr.readData();
+        const items: SheetHandle[] = this.mgr.allDisplayableSheets;
         data.push(...items);
         this.data = data;
     }

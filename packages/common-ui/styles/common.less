@@ -1102,7 +1102,14 @@ job-picker {
       tr {
         height: 23px;
         max-height: 23px;
-        cursor: pointer;
+
+        &:not(:has(th)) {
+          cursor: pointer;
+        }
+
+        &.new-sheet-row {
+          cursor: pointer;
+        }
 
         &.dragging {
           z-index: 5;
@@ -4168,4 +4175,31 @@ expandable-text {
   .validation-message-close {
     float: right;
   }
+}
+
+div.sync-tools {
+  cursor: initial;
+}
+
+button.async-action-button {
+
+  position: relative;
+
+  .loading-pane {
+    display: none;
+    position: absolute;
+    inset: 0;
+  }
+
+  &.in-progress {
+    // This state represents the action that the button would perform being in progress
+    color: transparent;
+    cursor: wait;
+
+    .loading-pane {
+      display: block;
+      color: var(--fg-color);
+    }
+  }
+
 }
