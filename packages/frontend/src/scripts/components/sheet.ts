@@ -1490,10 +1490,16 @@ export class GearPlanSheetGui extends GearPlanSheet {
 
         this._gearPlanTable = new GearPlanTable(this, item => this.editorItem = item);
         this.showAdvancedStats = SETTINGS.viewDetailedStats ?? false;
-        // Buttons and controls at the bottom of the table
-        // this.buttonRow.id = 'gear-sheet-button-row';
 
         const sheetOptions = new DropdownActionMenu('More Actions...');
+
+        const siFmt = formatSyncInfo(this.syncInfo, this.level);
+        if (siFmt !== null) {
+            const span = quickElement('span', [], [siFmt]);
+            const ilvlSyncLabel = quickElement('div', ['like-a-button', 'level-sync-info'], [span]);
+            ilvlSyncLabel.title = 'To change the item level sync, click the "Save As" button to create a new sheet with a different level/ilvl.';
+            buttonsArea.appendChild(ilvlSyncLabel);
+        }
 
         if (!this.isViewOnly) {
             const addRowButton = makeActionButton("New Gear Set", () => {
@@ -1524,10 +1530,6 @@ export class GearPlanSheetGui extends GearPlanSheet {
                     this.addGearSet(set, undefined, true);
                 },
             });
-            // const renameButton = makeActionButton("Sheet Name/Description", () => {
-            //     startRenameSheet(this);
-            // });
-            // buttonsArea.appendChild(renameButton);
             buttonsArea.appendChild(sheetOptions);
         }
         sheetOptions.addAction({
@@ -1537,14 +1539,6 @@ export class GearPlanSheetGui extends GearPlanSheet {
                 new SheetInfoModal(this, selectedGearSet).attachAndShow();
             },
         });
-
-        const siFmt = formatSyncInfo(this.syncInfo, this.level);
-        if (siFmt !== null) {
-            const span = quickElement('span', [], [siFmt]);
-            const ilvlSyncLabel = quickElement('div', ['like-a-button'], [span]);
-            ilvlSyncLabel.title = 'To change the item level sync, click the "Save As" button to create a new sheet with a different level/ilvl.';
-            buttonsArea.appendChild(ilvlSyncLabel);
-        }
 
         if (this.isViewOnly) {
             const saveAsButton = makeActionButton("Save As", () => {
