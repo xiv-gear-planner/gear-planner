@@ -1,5 +1,3 @@
-import {LoadingBlocker} from "./loader";
-
 export function makeActionButton(label: string | (Node | string)[], action: (ev: MouseEvent) => void, tooltip?: string) {
     const button = document.createElement("button");
     if (label instanceof Object) {
@@ -20,6 +18,14 @@ export function makeActionButton(label: string | (Node | string)[], action: (ev:
     return button;
 }
 
+/**
+ * Create a button that performs an async action. Changes its appearance and disables clicking while the action is in
+ * progress.
+ *
+ * @param label
+ * @param action
+ * @param tooltip
+ */
 export function makeAsyncActionButton(label: string | (Node | string)[], action: (ev: MouseEvent) => Promise<void>, tooltip?: string) {
     const button = document.createElement("button");
     button.classList.add('async-action-button');

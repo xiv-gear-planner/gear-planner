@@ -19,6 +19,8 @@ const userDataClient = new UserDataClient<never>({
 
 export class UserDataSyncer {
 
+    private suppressSettingsUpload: boolean = false;
+
     constructor(private readonly accountStateTracker: AccountStateTracker,
                 private readonly userDataClient: UserDataClient<never>,
                 private readonly settings: DisplaySettings,
@@ -57,14 +59,23 @@ export class UserDataSyncer {
             return 'none-saved';
         }
         const prefs = data.preferences;
-        this.settings.lightMode = prefs.lightMode;
-        // this.settings.modernTheme = prefs.modernTheme;
-        this.settings.languageOverride = (prefs.languageOverride ?? undefined) as Language;
-        this.sheetMgr.syncLastSheetNumber(resp.data.nextSetId);
+        this.suppressSettingsUpload = true;
+        try {
+            this.settings.lightMode = prefs.lightMode;
+            // this.settings.modernTheme = prefs.modernTheme;
+            this.settings.languageOverride = (prefs.languageOverride ?? undefined) as Language;
+            this.sheetMgr.syncLastSheetNumber(resp.data.nextSetId);
+        }
+        finally {
+            this.suppressSettingsUpload = false;
+        }
         return 'success';
     }
 
-    async uploadSettings(): Promise<'success' | 'not-logged-in'> {
+    async uploadSettings(): Promise<'success' | 'not-logged-in' | 'suppressed'> {
+        if (this.suppressSettingsUpload) {
+            return 'suppressed';
+        }
         // TODO: need to upload new next-sheet-id after making a new sheet
         const jwt: string | null = this.accountStateTracker.verifiedToken;
         if (jwt === null) {
@@ -115,13 +126,17 @@ export class UserDataSyncer {
             const key = sheetMeta.saveKey;
             if (existingSheetsMap.has(key)) {
                 const handle = existingSheetsMap.get(key);
-                handle.serverVersion = sheetMeta.version;
                 noServerVersion.delete(handle);
                 if (deletedFromServer) {
                     handle.deleteServer(sheetMeta.version);
                 }
                 else {
-                    handle.meta.serverDeleted = false;
+                    handle.serverVersion = sheetMeta.version;
+                    // If this would mean that we should download, then we should trust the server's sort order.
+                    if (handle.syncStatus === 'server-newer-than-client') {
+                        handle.meta.sortOrder = sheetMeta.sortOrder ?? null;
+                        handle.markMetaDirty();
+                    }
                 }
             }
             else if (!deletedFromServer) {
@@ -173,6 +188,7 @@ export class UserDataSyncer {
             switch (sheetHandle.syncStatus) {
                 case "in-sync":
                 case "conflict":
+                case 'trash':
                     return 'nothing-to-do';
                 case "client-newer-than-server":
                 case "never-uploaded":
@@ -184,7 +200,7 @@ export class UserDataSyncer {
                     // Do the sync
                     console.info(`Downloading: ${sheetHandle.key}: ${sheetHandle.name} ${sheetHandle.localVersion} <- ${sheetHandle.serverVersion}`);
                     const resp = await this.userDataClient.userdata.getSheet(sheetHandle.key, this.buildParams());
-                    sheetHandle.postDownload(resp.data.metadata.version, resp.data.sheetData as SheetExport);
+                    sheetHandle.postDownload(resp.data.metadata.version, resp.data.sheetData as SheetExport, resp.data.metadata.sortOrder ?? null);
                     return 'success';
                 }
                 case "unknown":
@@ -207,10 +223,13 @@ export class UserDataSyncer {
             for (const sheetHandle of mgr.allSheets) {
                 switch (sheetHandle.syncStatus) {
                     case "in-sync":
+                    case 'trash':
                         // Nothing do do
                         continue;
                     case "never-uploaded":
-                    case "client-newer-than-server":
+                    case "client-newer-than-server": {
+
+                        const isForcePut = sheetHandle.hasConflict && sheetHandle.conflictResolutionStrategy === 'keep-local';
                         if (sheetHandle.meta.localDeleted) {
                             console.info(`Deleting: ${sheetHandle.key}: ${sheetHandle.name} ${sheetHandle.localVersion} -> ${sheetHandle.serverVersion}`);
                             // TODO: needs to handle 409 conflict without blowing up
@@ -218,6 +237,7 @@ export class UserDataSyncer {
                                 lastSyncedVersion: sheetHandle.lastSyncedVersion,
                                 newSheetVersion: sheetHandle.localVersion,
                             }, this.buildParams()));
+                            sheetHandle.lastSyncedVersion = sheetHandle.localVersion;
                         }
                         else {
                             console.info(`Uploading: ${sheetHandle.key}: ${sheetHandle.name} ${sheetHandle.localVersion} -> ${sheetHandle.serverVersion}`);
@@ -227,22 +247,34 @@ export class UserDataSyncer {
                                 break;
                             }
                             // TODO: needs to handle 409 conflict without blowing up
+                            /*
+                            Logic for handling force put.
+                            Example: last synced = 5, local = 6, server = 7. We need to set the local version to 8, so
+                            that the server believes that it is actually newer. We also specify 7 as the last synced
+                            version, since the server will still want to do a conflict check.
+                             */
+                            // Compute the 'effective local version' as described above.
+                            const effectiveLocalVersion: number = isForcePut ? Math.max(sheetHandle.localVersion, sheetHandle.serverVersion + 1) : sheetHandle.localVersion;
+                            const effectiveLastSynced: number = isForcePut ? sheetHandle.serverVersion : sheetHandle.lastSyncedVersion;
                             await sheetHandle.doAction(this.userDataClient.userdata.putSheet(sheetHandle.key, {
                                 sheetData: data,
                                 sheetSummary: sheetHandle.summary,
                                 sortOrder: sheetHandle.sortOrder,
-                                lastSyncedVersion: sheetHandle.lastSyncedVersion,
-                                newSheetVersion: sheetHandle.localVersion,
+                                lastSyncedVersion: effectiveLastSynced,
+                                newSheetVersion: effectiveLocalVersion,
+                                // forcePut: isForcePut,
                             }, this.buildParams()));
+                            sheetHandle.localVersion = effectiveLocalVersion;
+                            sheetHandle.lastSyncedVersion = effectiveLocalVersion;
                         }
-                        sheetHandle.lastSyncedVersion = sheetHandle.localVersion;
                         break;
+                    }
                     case "never-downloaded":
                     case "server-newer-than-client": {
                         // TODO: is there anything we need to do to "finalize" a server->client delete?
                         console.info(`Downloading: ${sheetHandle.key}: ${sheetHandle.name} ${sheetHandle.localVersion} <- ${sheetHandle.serverVersion}`);
                         const resp = await this.userDataClient.userdata.getSheet(sheetHandle.key, this.buildParams());
-                        sheetHandle.postDownload(resp.data.metadata.version, resp.data.sheetData as SheetExport);
+                        sheetHandle.postDownload(resp.data.metadata.version, resp.data.sheetData as SheetExport, resp.data.metadata.sortOrder ?? null);
                         break;
                     }
                     case "conflict":

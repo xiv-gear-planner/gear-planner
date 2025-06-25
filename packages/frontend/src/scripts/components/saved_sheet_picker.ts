@@ -5,6 +5,7 @@ import {
     makeActionButton,
     makeAsyncActionButton,
     makeCloseButton,
+    makeTrashIcon,
     quickElement
 } from "@xivgear/common-ui/components/util";
 import {SheetHandle, SheetManager, SyncStatus} from "@xivgear/core/persistence/saved_sheets";
@@ -27,15 +28,11 @@ export class SheetPickerTable extends CustomTable<SheetHandle, TableSelectionMod
         const outer = this;
         this.mgr.setUpdateHook({
             onSheetListChange(): void {
-                // TODO: this causes flashing when the elements get re-rendered
+                // TODO: this causes flashing when the job icon elements get re-rendered
                 outer.readData();
             },
             onSheetUpdate(handle: SheetHandle): void {
-                for (const cell of (outer.dataRowMap.get(handle)?.dataColMap.values() ?? [])) {
-                    if (cell.colDef.shortName === 'syncstatus' || cell.colDef.shortName === 'sheetname') {
-                        cell.refreshFull();
-                    }
-                }
+                outer.refreshCells(handle);
             },
         });
         this.columns = [
@@ -173,6 +170,10 @@ export class SheetPickerTable extends CustomTable<SheetHandle, TableSelectionMod
                         case "unknown":
                             out.push('?');
                             break;
+                        case 'trash':
+                            // This *shouldn't* happen
+                            out.push(makeTrashIcon());
+                            break;
                     }
                     const active = status[1];
                     if (active) {
@@ -248,6 +249,14 @@ export class SheetPickerTable extends CustomTable<SheetHandle, TableSelectionMod
         };
     }
 
+    refreshCells(handle: SheetHandle): void {
+        for (const cell of (this.dataRowMap.get(handle)?.dataColMap.values() ?? [])) {
+            if (cell.colDef.shortName === 'syncstatus' || cell.colDef.shortName === 'sheetname') {
+                cell.refreshFull();
+            }
+        }
+    }
+
     readData() {
         const data: typeof this.data = [];
         // Sync tools TODO polish this
@@ -258,8 +267,20 @@ export class SheetPickerTable extends CustomTable<SheetHandle, TableSelectionMod
             const syncButton = makeAsyncActionButton('Sync', async () => {
                 await this.uds.syncSheets();
             });
+            const forceDown = makeActionButton('Conflicts: Download', async () => {
+                this.mgr.allSheets.forEach(ss => {
+                    ss.conflictResolutionStrategy = 'keep-remote';
+                    this.refreshCells(ss);
+                });
+            });
+            const forceUp = makeActionButton('Conflicts: Upload', async () => {
+                this.mgr.allSheets.forEach(ss => {
+                    ss.conflictResolutionStrategy = 'keep-local';
+                    this.refreshCells(ss);
+                });
+            });
 
-            return quickElement('div', ['sync-tools'], [refreshButton, syncButton]);
+            return quickElement('div', ['sync-tools'], [refreshButton, syncButton, forceDown, forceUp]);
         }));
         // "New sheet" button/row
         data.push(new SpecialRow(() => {

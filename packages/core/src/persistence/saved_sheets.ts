@@ -16,6 +16,7 @@ export type SyncStatus =
     | 'conflict'
     | 'never-downloaded'
     | 'null-data'
+    | 'trash'
     | 'unknown';
 
 function makeSummaryFromData(data: SheetExport): SheetSummary {
@@ -28,8 +29,9 @@ function makeSummaryFromData(data: SheetExport): SheetSummary {
     };
 }
 
-class SheetHandleImpl {
+export type ConflictResolutionStrategy = 'keep-local' | 'keep-remote';
 
+class SheetHandleImpl {
     private metaDirty: boolean = false;
     private dataDirty: boolean = false;
 
@@ -38,6 +40,8 @@ class SheetHandleImpl {
     private _data: SheetExport | null;
     private readonly storage: Storage;
     private readonly updateHook: (h: SheetHandle) => void;
+
+    private _conflictResolutionStrategy: ConflictResolutionStrategy | null = null;
 
     constructor(
         public readonly key: string,
@@ -213,22 +217,54 @@ class SheetHandleImpl {
         return sheetMetaKey(this.key);
     }
 
+    get isTrash(): boolean {
+        return this.meta.localDeleted && this.meta.serverDeleted;
+    }
+
     /**
      * Save the sheet and metadata.
      */
     flush(): void {
         if (this.metaDirty) {
             // TODO: make meta key a method
-            this.storage.setItem(this.metaKey, JSON.stringify(this.meta));
+            if (this.isTrash) {
+                this.storage.removeItem(this.metaKey);
+            }
+            else {
+                this.storage.setItem(this.metaKey, JSON.stringify(this.meta));
+            }
             this.metaDirty = false;
         }
         if (this.dataDirty) {
-            this.storage.setItem(this.key, JSON.stringify(this._data));
+            if (this.isTrash) {
+                this.storage.removeItem(this.key);
+            }
+            else {
+                this.storage.setItem(this.key, JSON.stringify(this._data));
+            }
             this.dataDirty = false;
         }
     }
 
     get syncStatus(): SyncStatus {
+        const trueStatus = this.trueSyncStatus;
+        if (trueStatus === 'conflict') {
+            // We return the 'conflict' status except if the user has specifically opted for a particular conflict
+            // resolution strategy.
+            if (this._conflictResolutionStrategy === 'keep-local') {
+                return 'client-newer-than-server';
+            }
+            else if (this._conflictResolutionStrategy === 'keep-remote') {
+                return 'server-newer-than-client';
+            }
+        }
+        return trueStatus;
+    }
+
+    get trueSyncStatus(): SyncStatus {
+        if (this.isTrash) {
+            return 'trash';
+        }
         const meta = this.meta;
         // the version that the client has
         const cur = meta.currentVersion;
@@ -284,8 +320,9 @@ class SheetHandleImpl {
      *
      * @param version
      * @param data
+     * @param sortOrder
      */
-    postDownload(version: number, data: SheetExport): void {
+    postDownload(version: number, data: SheetExport, sortOrder: number | null): void {
         this._data = data;
         this.meta.serverVersion = version;
         this.meta.lastSyncedVersion = version;
@@ -293,6 +330,8 @@ class SheetHandleImpl {
         this.meta.summary = makeSummaryFromData(data);
         this.meta.localDeleted = false;
         this.meta.serverDeleted = false;
+        this.meta.sortOrder = sortOrder;
+        this._conflictResolutionStrategy = null;
         this.metaDirty = true;
         this.dataDirty = true;
         this.afterUpdate();
@@ -321,6 +360,7 @@ class SheetHandleImpl {
         this.metaDirty = true;
         this.dataDirty = true;
         this.meta.localDeleted = false;
+        this._conflictResolutionStrategy = null;
         this.afterUpdate();
     }
 
@@ -405,9 +445,11 @@ class SheetHandleImpl {
         4. serverVersion > lastSyncedVersion < localVersion - conflict. Do not mark as deleted locally unless and
             until the user resolves the conflict.
          */
+        console.log(`deleteServer ${this.key}`);
         if (serverVersion > this.meta.serverVersion) {
             if (this.lastSyncedVersion === this.localVersion) {
                 // True and proper deletion
+                console.log('deleteServer 2');
                 this.meta.serverVersion = serverVersion;
                 this.meta.lastSyncedVersion = serverVersion;
                 this.meta.currentVersion = serverVersion;
@@ -419,6 +461,22 @@ class SheetHandleImpl {
             }
         }
     }
+
+    get conflictResolutionStrategy(): ConflictResolutionStrategy | null {
+        return this._conflictResolutionStrategy;
+    }
+
+    set conflictResolutionStrategy(value: ConflictResolutionStrategy | null) {
+        if (this.syncStatus !== 'conflict') {
+            return;
+        }
+        this._conflictResolutionStrategy = value;
+    }
+
+    get hasConflict(): boolean {
+        return this.trueSyncStatus === 'conflict';
+    }
+
 }
 
 export type SheetHandle = PublicOnly<SheetHandleImpl>;
@@ -483,6 +541,7 @@ export const DUMMY_SHEET_MGR: SheetManager = {
     setUpdateHook(hook: SyncUpdateHook): void {
     },
     allDisplayableSheets: [],
+    allSheets: [],
     afterSheetUpdate(handle: SheetHandle): void {
     },
     flush(): void {
@@ -513,7 +572,6 @@ export const DUMMY_SHEET_MGR: SheetManager = {
     },
     syncLastSheetNumber(numFromServer: number): void {
     },
-    allSheets: []
 };
 
 export type SyncUpdateHook = {

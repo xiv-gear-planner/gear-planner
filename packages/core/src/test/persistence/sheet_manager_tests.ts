@@ -53,7 +53,7 @@ describe('sheet_manager', () => {
             ...summaryToPartialData(summary),
             foo: "bar",
             saveKey: handle.metaKey,
-        } as Partial<SheetExport> as SheetExport);
+        } as Partial<SheetExport> as SheetExport, null);
         handle.flush();
 
         const handleGet = mgr.getOrCreateForKey(handle.key);
@@ -63,6 +63,7 @@ describe('sheet_manager', () => {
         expect(handle.meta.serverVersion).to.equal(5);
         expect(handle.meta.lastSyncedVersion).to.equal(5);
         expect(handle.meta.currentVersion).to.equal(5);
+        expect(handle.meta.sortOrder).to.be.null;
         expect(handle.syncStatus).to.equal('in-sync' satisfies SyncStatus);
         expect(storage.getItem('sheet-save-123-foo-meta')).to.equal(JSON.stringify(handle.meta));
         expect(handle).to.be.equal(mgr.getOrCreateForKey(handle.key));
@@ -202,10 +203,11 @@ describe('sheet_manager', () => {
             name: "Modified name",
             foo: "baz",
             saveKey: key,
-        } as unknown as SheetExport);
+        } as unknown as SheetExport, 6.5);
         expect(handle.meta.serverVersion).to.equal(5);
         expect(handle.meta.lastSyncedVersion).to.equal(5);
         expect(handle.meta.currentVersion).to.equal(5);
+        expect(handle.meta.sortOrder).to.equal(6.5);
         expect(handle.syncStatus).to.equal('in-sync' satisfies SyncStatus);
         handle.flush();
         expect(JSON.parse(storage.getItem(key))['saveKey']).to.equal(key);
