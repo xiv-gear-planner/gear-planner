@@ -46,7 +46,8 @@ describe('sheet_manager', () => {
         expect(handle.syncStatus).to.equal('never-downloaded' satisfies SyncStatus);
         expect(storage.getItem('sheet-save-123-foo-meta')).to.equal(JSON.stringify(handle.meta));
         expect(handle).to.be.equal(mgr.getOrCreateForKey(handle.key));
-        expect(mgr.allDisplayableSheets).to.have.length(1);
+        expect(mgr.allSheets).to.have.length(1);
+        expect(mgr.allDisplayableSheets).to.have.length(0);
 
         // Download the actual data
         handle.postDownload(5, {
@@ -67,6 +68,8 @@ describe('sheet_manager', () => {
         expect(handle.syncStatus).to.equal('in-sync' satisfies SyncStatus);
         expect(storage.getItem('sheet-save-123-foo-meta')).to.equal(JSON.stringify(handle.meta));
         expect(handle).to.be.equal(mgr.getOrCreateForKey(handle.key));
+        expect(mgr.allSheets).to.have.length(1);
+        expect(mgr.allDisplayableSheets).to.have.length(1);
 
         // Locally modify
         handle.postLocalModification({
@@ -127,11 +130,16 @@ describe('sheet_manager', () => {
         expect(handle.meta.serverVersion).to.equal(7);
         expect(handle.meta.lastSyncedVersion).to.equal(7);
         handle.flush();
-        expect(storage.getItem('sheet-save-123-foo')).to.equal('null');
-        // TODO
-        // expect(storage.getItem('sheet-save-123-foo-meta')).to.be.null;
+        expect(storage.getItem('sheet-save-123-foo')).to.be.null;
+        expect(storage.getItem('sheet-save-123-foo-meta')).to.be.null;
         expect(mgr.allDisplayableSheets).to.have.length(0);
+        // Should still have this in-memory
+        expect(mgr.allSheets).to.have.length(1);
 
+        // But should be gone when we reload
+        const mgr3 = new SheetManagerImpl(storage);
+        expect(mgr3.allDisplayableSheets).to.have.length(0);
+        expect(mgr3.allSheets).to.have.length(0);
     });
     it('supports upload then download', () => {
         const {
@@ -223,16 +231,19 @@ describe('sheet_manager', () => {
         expect(handle.meta.serverVersion).to.equal(5);
         expect(handle.meta.lastSyncedVersion).to.equal(5);
         handle.flush();
-        expect(storage.getItem(key)).to.be.null;
+        expect(storage.getItem(key)).to.equal('null');
 
         // Simualte sending delete to server
         handle.lastSyncedVersion = 6;
         expect(handle.dataNow).to.be.null;
+        expect(handle.meta.localDeleted).to.be.true;
+        expect(handle.meta.serverDeleted).to.be.true;
         expect(handle.meta.currentVersion).to.equal(6);
         expect(handle.meta.serverVersion).to.equal(6);
         expect(handle.meta.lastSyncedVersion).to.equal(6);
         handle.flush();
         expect(storage.getItem(key)).to.be.null;
+        expect(storage.getItem(metaKey)).to.be.null;
         // TODO: should this fully delete the metadata too? No reason to keep it around if the data is gone from local
         // and the server agrees that the data is deleted.
     });

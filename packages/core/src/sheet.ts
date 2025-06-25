@@ -179,15 +179,6 @@ export const HEADLESS_SHEET_PROVIDER = new SheetProvider((...args) => new GearPl
 
 
 // TODO: core shouldn't reference localStorage
-function loadSaved(sheetKey: string): SheetExport | null {
-    const item = localStorage.getItem(sheetKey);
-    if (item) {
-        return JSON.parse(item) as SheetExport;
-    }
-    else {
-        return null;
-    }
-}
 
 /**
  * Base class for a sheet. For graphical usage, see GearPlanSheetGui.

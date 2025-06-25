@@ -52,11 +52,11 @@ export class FakeLocalStorage implements Storage {
                     return {
                         enumerable: true,
                         configurable: true,
-                        value: target._data.get(String(key))
+                        value: target._data.get(String(key)),
                     };
                 }
                 return undefined;
-            }
+            },
         });
     }
 

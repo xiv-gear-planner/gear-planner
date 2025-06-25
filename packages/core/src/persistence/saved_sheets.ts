@@ -172,6 +172,11 @@ class SheetHandleImpl {
         this.meta.lastSyncedVersion = version;
         if (this.meta.serverVersion < version) {
             this.meta.serverVersion = version;
+            // If we synced a deletion to the server, mark it as locally deleted as well.
+            if (this.meta.localDeleted) {
+                this.fullyDelete();
+                this.meta.serverDeleted = true;
+            }
         }
         // console.trace(`Setting last synced version to ${version} for ${this.key}`);
         this.afterUpdate();
