@@ -166,8 +166,12 @@ export class SheetProvider<SheetType extends GearPlanSheet> {
      * @returns The sheet if found, otherwise null
      */
     fromSaved(sheetKey: string): SheetType | null {
-        const exported = loadSaved(sheetKey);
-        return exported ? this.construct(sheetKey, exported, this.sheetManager) : null;
+        const handle = this.sheetManager.getByKey(sheetKey);
+        const data = handle?.dataNow;
+        if (data) {
+            return this.construct(sheetKey, handle.dataNow, this.sheetManager);
+        }
+        return null;
     }
 }
 
@@ -226,6 +230,7 @@ export class GearPlanSheet {
 
     // Init related
     private _setupDone: boolean = false;
+    private saveEnabled: boolean = false;
 
     // Display state
     private _isViewOnly: boolean = false;
@@ -451,13 +456,16 @@ export class GearPlanSheet {
         // This is set when importing - but it needs to know about items first. Thus we have to redo this now.
         this.activeSpecialStat = this._activeSpecialStat;
         this._setupDone = true;
+        setTimeout(() => {
+            this.saveEnabled = true;
+        }, 5_000);
     }
 
     /**
      * Save data for this sheet now.
      */
     saveData() {
-        if (!this.setupDone) {
+        if (!this.saveEnabled) {
             // Don't clobber a save with empty data because the sheet hasn't loaded!
             return;
         }
@@ -476,7 +484,13 @@ export class GearPlanSheet {
      * have happened for a certain timeout, thus allowing multiple modifications to be coalesced into a single save
      * operation.
      */
-    requestSave() {
+    requestSave(): void {
+        // We want saving to be temporarily suppressed prior to the sheet fully loading, so that we don't get a useless
+        // save if you open a sheet and don't change anything.
+        if (!this.saveEnabled) {
+            // TODO xxx
+            // return;
+        }
         this.saveTimer.ping();
     }
 

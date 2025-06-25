@@ -36,13 +36,14 @@ class SheetHandleImpl {
     private pendingActions: Promise<unknown>[] = [];
 
     private _data: SheetExport | null;
+    private readonly storage: Storage;
+    private readonly updateHook: (h: SheetHandle) => void;
 
     constructor(
         public readonly key: string,
         data: SheetExport,
         public readonly meta: LocalSheetMetadata,
-        private readonly storage: Storage,
-        private readonly updateHook: (h: SheetHandle) => void
+        private readonly mgr: SheetManagerImpl
     ) {
         this._data = data;
         if (!this.meta.summary) {
@@ -51,8 +52,16 @@ class SheetHandleImpl {
             }
             else {
                 console.error(`Missing summary for sheet ${this.key}.`);
+                this.meta.summary = {
+                    job: 'BLU',
+                    level: CURRENT_MAX_LEVEL,
+                    multiJob: false,
+                    name: "Error no summary",
+                };
             }
         }
+        this.storage = mgr.storage;
+        this.updateHook = h => mgr.afterSheetUpdate(h);
     }
 
     get summary(): SheetSummary {
@@ -73,12 +82,20 @@ class SheetHandleImpl {
         if (this.syncStatus === 'conflict') {
             return true;
         }
+        // Don't display locally-deleted sheets.
         if (this.meta.localDeleted) {
-            // Don't display locally-deleted sheets.
             return false;
         }
-        // Don't delete sheets which have been created but never saved.
-        return this.localVersion > 0 || this.serverVersion > 0;
+        // If the sheet has any local data, display it.
+        if (this.localVersion > 0) {
+            return true;
+        }
+        // If we don't have it locally, but we can load it, then that works too.
+        if (this.serverVersion > 0 && this.mgr.asyncLoader.canLoad(this)) {
+            return true;
+        }
+        // If no condition applies, don't display.
+        return false;
     }
 
     /**
@@ -219,6 +236,12 @@ class SheetHandleImpl {
             if (this.serverVersion === 0) {
                 return 'null-data';
             }
+            if (this.meta.localDeleted) {
+                if (this.meta.serverDeleted) {
+                    return 'in-sync';
+                }
+                return 'client-newer-than-server';
+            }
             return 'never-downloaded';
         }
         const lastUploaded = meta.lastSyncedVersion;
@@ -281,6 +304,17 @@ class SheetHandleImpl {
      * @param data
      */
     postLocalModification(data: SheetExport): void {
+        // Don't treat it as a local modification if the save didn't actually alter anything but the timestamp.
+        // TODO: better/more efficient way?
+        const oldData = {...this._data};
+        delete oldData.timestamp;
+        const newData = {...data};
+        delete newData.timestamp;
+
+        if (JSON.stringify(oldData) === JSON.stringify(newData)) {
+            return;
+        }
+
         this._data = data;
         this.meta.summary = makeSummaryFromData(data);
         this.meta.currentVersion++;
@@ -290,9 +324,21 @@ class SheetHandleImpl {
         this.afterUpdate();
     }
 
+    /**
+     * Read the data.
+     */
     async readData(): Promise<SheetExport> {
-        if (this._data === null) {
-            throw new Error("TODO"); // TODO load from server on-demand
+        const status = this.syncStatus;
+        if (status === 'never-downloaded' || status === 'server-newer-than-client') {
+            if (this.mgr.asyncLoader.canLoad(this)) {
+                await this.mgr.asyncLoader.load(this);
+                if (this._data === null) {
+                    throw new Error("Async loader did not load data");
+                }
+            }
+            else {
+                throw new Error("Async loader not available");
+            }
         }
         return this._data;
     }
@@ -344,9 +390,8 @@ class SheetHandleImpl {
         this.localVersion++;
         this.meta.localDeleted = true;
         this._data = null;
-        this.storage.removeItem(this.key);
         this.markMetaDirty();
-        // TODO finish
+        this.markDataDirty();
     }
 
     deleteServer(serverVersion: number): void {
@@ -413,12 +458,26 @@ export interface SheetManager {
     getNextSheetInternalName(): string;
 
     syncLastSheetNumber(numFromServer: number): void;
+
+    newSheetFromScratch(summary: SheetSummary): SheetHandle;
+
+    setAsyncLoader(loader: SheetAsyncLoader): void;
+
+    getByKey(sheetKey: string): SheetHandle | null;
 }
 
 /**
  * Used for headless sheets
  */
 export const DUMMY_SHEET_MGR: SheetManager = {
+    getByKey(sheetKey: string): SheetHandle | null {
+        return undefined;
+    },
+    setAsyncLoader(loader: SheetAsyncLoader): void {
+    },
+    newSheetFromScratch(summary: SheetSummary): SheetHandle {
+        return undefined;
+    },
     afterSheetListChange(): void {
     },
     setUpdateHook(hook: SyncUpdateHook): void {
@@ -454,7 +513,7 @@ export const DUMMY_SHEET_MGR: SheetManager = {
     },
     syncLastSheetNumber(numFromServer: number): void {
     },
-    allSheets: [],
+    allSheets: []
 };
 
 export type SyncUpdateHook = {
@@ -462,12 +521,25 @@ export type SyncUpdateHook = {
     onSheetListChange: () => void;
 }
 
+export type SheetAsyncLoader = {
+    load: (sheet: SheetHandle) => Promise<void>;
+    canLoad: (sheet: SheetHandle) => boolean;
+};
+
+const NoopAsyncLoader: SheetAsyncLoader = {
+    load: async (key: SheetHandle) => {
+        throw new Error("Noop async loader");
+    },
+    canLoad: (key: SheetHandle) => false,
+};
+
 export class SheetManagerImpl implements SheetManager {
     private readonly dataMap = new Map<string, SheetHandle>();
-    private _lastData: SheetHandle[] = [];
+    private allItems: SheetHandle[] = [];
     private _updateHook: SyncUpdateHook;
+    asyncLoader: SheetAsyncLoader = NoopAsyncLoader;
 
-    constructor(private readonly storage: Storage) {
+    constructor(readonly storage: Storage) {
     }
 
     setUpdateHook(hook: SyncUpdateHook) {
@@ -482,57 +554,62 @@ export class SheetManagerImpl implements SheetManager {
         this._updateHook?.onSheetListChange?.();
     }
 
+    setAsyncLoader(loader: SheetAsyncLoader) {
+        this.asyncLoader = loader;
+    }
+
     /**
      * Debug method which will reset the sort order of all sheets
      */
     resetAll(): void {
-        this._lastData.forEach(item => {
+        this.allItems.forEach(item => {
             item.sortOrder = null;
         });
         this.flush();
     }
 
     get allDisplayableSheets(): SheetHandle[] {
-        if (this._lastData.length === 0) {
-            this.readData();
+        if (this.allItems.length === 0) {
+            this.readAll();
         }
-        return this._lastData.filter(item => item.displayable);
+        return this.allItems.filter(item => item.displayable);
     }
 
     get allSheets(): SheetHandle[] {
-        if (this._lastData.length === 0) {
-            this.readData();
+        if (this.allItems.length === 0) {
+            this.readAll();
         }
-        return this._lastData;
+        return this.allItems;
     }
 
-    private readData(): SheetHandle[] {
-        // TODO: make this able to load meta-only keys, but not ones that have been deleted, and not ones that were
-        // created but never saved.
-        // TODO: consolidate readData() with get lastData. It should just work universally.
+    private readOne(dataKey: string): SheetHandle | null {
+        const data = JSON.parse(this.storage.getItem(dataKey) ?? 'null') as SheetExport;
+        const metaFound = sheetMetaKey(dataKey) in this.storage;
+        if (data !== null || metaFound) {
+            const out = new SheetHandleImpl(dataKey, data, this.readSheetMeta(dataKey), this);
+            this.dataMap.set(dataKey, out);
+            // We do not add it to the list because the list being empty is used as the trigger for loading the list
+            // from scratch. Plus it would be useless to display a "list" with only a single item in any circumstance.
+            // When we use this method via readAll, that method already handles assembling the list.
+            return out;
+        }
+        return null;
+    }
+
+    private readAll(): SheetHandle[] {
         const items: SheetHandle[] = [];
-        const outer = this;
         for (const storageKey in this.storage) {
             if (storageKey.startsWith("sheet-save-") && !storageKey.endsWith("-meta")) {
-                const imported = JSON.parse(this.storage.getItem(storageKey) ?? 'null') as SheetExport;
-                if (imported === null) {
-                    // Sheet has not been downloaded yet
-                    console.info(`Sheet not downloaded: ${storageKey}`);
+                if (this.dataMap.has(storageKey)) {
+                    const existing = this.dataMap.get(storageKey);
+                    items.push(existing);
+                    continue;
                 }
-                else if (imported?.saveKey) {
-                    if (this.dataMap.has(storageKey)) {
-                        const existing = this.dataMap.get(storageKey);
-                        items.push(existing);
-                        continue;
-                    }
-                    const meta = this.readSheetMeta(storageKey);
-                    const item = new SheetHandleImpl(storageKey, imported, meta, outer.storage, (h) => this.afterSheetUpdate(h));
-                    this.dataMap.set(storageKey, item);
-                    items.push(item);
-                }
+                const handle = this.readOne(storageKey);
+                items.push(handle);
             }
         }
-        this._lastData = items;
+        this.allItems = items;
         // This has the effect of also sorting items
         this.resort();
         return items;
@@ -540,9 +617,9 @@ export class SheetManagerImpl implements SheetManager {
 
     reorderTo(draggedSheet: SheetHandle, draggedTo: SheetHandle): 'up' | 'down' | null {
         // Index where we want the dragged sheet to go to
-        const fromIndex = this._lastData.indexOf(draggedSheet);
-        const toIndex = this._lastData.indexOf(draggedTo);
-        const lastIndex = this._lastData.length - 1;
+        const fromIndex = this.allItems.indexOf(draggedSheet);
+        const toIndex = this.allItems.indexOf(draggedTo);
+        const lastIndex = this.allItems.length - 1;
         // Four scenarios:
         // 1. Sheet is dragged to a position between two other sheets
         //  In this case, we can just set the sheet's sort order to be between the two other sheets
@@ -575,7 +652,7 @@ export class SheetManagerImpl implements SheetManager {
             // order value between the current index 6 and 7.
             const isDown: boolean = toIndex > fromIndex;
             const secondBasisIndex = toIndex + (isDown ? 1 : -1);
-            const secondBasis = this._lastData[secondBasisIndex].sortOrder;
+            const secondBasis = this.allItems[secondBasisIndex].sortOrder;
             const primaryBasis = draggedTo.sortOrder;
             const newSort = (primaryBasis + secondBasis) / 2;
             draggedSheet.sortOrder = newSort;
@@ -586,14 +663,14 @@ export class SheetManagerImpl implements SheetManager {
     }
 
     resort() {
-        this._lastData.sort((left, right) => {
+        this.allItems.sort((left, right) => {
             return right.sortOrder - left.sortOrder;
         });
 
     }
 
     flush(): void {
-        this._lastData.forEach(item => item.flush());
+        this.allItems.forEach(item => item.flush());
     }
 
     newSheetFromRemote(saveKey: string, remoteVersion: number, summary: SheetSummary): SheetHandle {
@@ -608,7 +685,7 @@ export class SheetManagerImpl implements SheetManager {
             localDeleted: false,
             summary: summary,
         };
-        const handle = new SheetHandleImpl(saveKey, null, sheetMeta, this.storage, (h) => this.afterSheetUpdate(h));
+        const handle = new SheetHandleImpl(saveKey, null, sheetMeta, this);
         console.log(`New sheet: ${handle.key}`);
         this.registerNew(handle);
         handle.markMetaDirty();
@@ -629,7 +706,7 @@ export class SheetManagerImpl implements SheetManager {
             forcePush: false,
             summary: summary,
         };
-        const handle = new SheetHandleImpl(this.getNextSheetInternalName(), null, sheetMeta, this.storage, (h) => this.afterSheetUpdate(h));
+        const handle = new SheetHandleImpl(this.getNextSheetInternalName(), null, sheetMeta, this);
         // Mark metadata as dirty
         handle.markMetaDirty();
         handle.markDataDirty();
@@ -639,7 +716,7 @@ export class SheetManagerImpl implements SheetManager {
 
     private registerNew(handle: SheetHandle) {
         this.dataMap.set(handle.key, handle);
-        this._lastData.push(handle);
+        this.allItems.unshift(handle);
     }
 
     getOrCreateForKey(key: string): SheetHandle {
@@ -647,9 +724,9 @@ export class SheetManagerImpl implements SheetManager {
             return this.dataMap.get(key)!;
         }
         const meta = this.readSheetMeta(key);
-        const item = new SheetHandleImpl(key, null, meta, this.storage, (h) => this.afterSheetUpdate(h));
+        const item = new SheetHandleImpl(key, null, meta, this);
         this.dataMap.set(key, item);
-        this._lastData.push(item);
+        this.allItems.push(item);
         return item;
     }
 
@@ -735,6 +812,13 @@ export class SheetManagerImpl implements SheetManager {
             }
         }
         return meta;
+    }
+
+    getByKey(sheet: string): SheetHandle | null {
+        if (!this.dataMap.has(sheet)) {
+            return this.readOne(sheet);
+        }
+        return this.dataMap.get(sheet);
     }
 }
 

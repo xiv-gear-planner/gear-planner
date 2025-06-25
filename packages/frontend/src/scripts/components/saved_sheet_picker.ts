@@ -48,6 +48,7 @@ export class SheetPickerTable extends CustomTable<SheetHandle, TableSelectionMod
                     div.appendChild(makeActionButton([faIcon('fa-trash-can')], (ev) => {
                         if (confirmDelete(ev, `Delete sheet '${sel.name}'?`)) {
                             sel.deleteLocal();
+                            sel.flush();
                             this.readData();
                         }
                     }, `Delete sheet '${sel.name}'`));

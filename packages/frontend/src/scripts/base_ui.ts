@@ -158,7 +158,7 @@ export function showLoadingScreen() {
 export function showNewSheetForm() {
     setPath('newsheet');
     const section = new NamedSection('New Gear Planning Sheet');
-    const form = new NewSheetForm(openSheet);
+    const form = new NewSheetForm(openSheet, SHEET_MANAGER, GRAPHICAL_SHEET_PROVIDER);
     section.contentArea.replaceChildren(form);
     setMainContent('New Sheet', section);
     form.takeFocus();
@@ -181,17 +181,30 @@ export function setTitle(titlePart: string | undefined) {
     }
 }
 
-export async function openSheetByKey(sheet: string) {
+export async function openSheetByKey(sheetKey: string) {
     setTitle('Loading Sheet');
-    console.log('openSheetByKey: ', sheet);
-    const planner = GRAPHICAL_SHEET_PROVIDER.fromSaved(sheet);
-    if (planner) {
-        recordSheetEvent("openSheetByKey", planner);
-        await openSheet(planner);
+    try {
+        console.log('openSheetByKey: ', sheetKey);
+        // if (!USER_DATA_SYNCER) {
+        //     console.error('No user data syncer - circular imports?');
+        // }
+        const sheet = SHEET_MANAGER.getByKey(sheetKey);
+        await sheet.readData();
+        // TODO: this should change URL first
+        const planner = GRAPHICAL_SHEET_PROVIDER.fromSaved(sheetKey);
+        if (planner) {
+            recordSheetEvent("openSheetByKey", planner);
+            await openSheet(planner);
+        }
+        else {
+            contentArea.replaceChildren(document.createTextNode("That sheet does not exist."));
+            setTitle('Error');
+        }
     }
-    else {
-        contentArea.replaceChildren(document.createTextNode("That sheet does not exist."));
-        setTitle('Error');
+    catch (e) {
+        console.error(e);
+        recordError("openSheetByKey", e);
+        showFatalError("Error Loading Sheet!");
     }
 }
 

@@ -23,10 +23,27 @@ export class UserDataSyncer {
                 private readonly userDataClient: UserDataClient<never>,
                 private readonly settings: DisplaySettings,
                 private readonly sheetMgr: SheetManager) {
+        const outer = this;
+        this.sheetMgr.setAsyncLoader({
+            load: async (sheet: SheetHandle) => {
+                // TODO: this has an issue where loading a sheet by URL (or just clicking really fast) will cause a
+                // race condition where we can't load the sheet because we don't have a token yet, but we can't
+                // just wait for a token because we don't know if one will ever come.
+                // What we need to do is introduce a 'wait for a token or a definite lack of token' async method.
+                const result = await outer.syncOne(sheet);
+                if (result === 'success' || result === 'nothing-to-do') {
+                    return;
+                }
+                throw new Error('Could not sync');
+            },
+            canLoad: () => {
+                return outer.accountStateTracker.accountState?.verified;
+            },
+        });
     }
 
     async downloadSettings(): Promise<"success" | "not-logged-in" | "none-saved"> {
-        const jwt: string | null = this.accountStateTracker.token;
+        const jwt: string | null = this.accountStateTracker.verifiedToken;
         if (jwt === null) {
             return 'not-logged-in';
         }
@@ -49,7 +66,7 @@ export class UserDataSyncer {
 
     async uploadSettings(): Promise<'success' | 'not-logged-in'> {
         // TODO: need to upload new next-sheet-id after making a new sheet
-        const jwt: string | null = this.accountStateTracker.token;
+        const jwt: string | null = this.accountStateTracker.verifiedToken;
         if (jwt === null) {
             return 'not-logged-in';
         }
@@ -79,7 +96,7 @@ export class UserDataSyncer {
      * Asks the server about what sheets and sheet versions it has.
      */
     async prepSheetSync(): Promise<'need-sync' | 'not-logged-in' | 'nothing-to-do'> {
-        const jwt: string | null = this.accountStateTracker.token;
+        const jwt: string | null = this.accountStateTracker.verifiedToken;
         if (jwt === null) {
             return 'not-logged-in';
         }
@@ -140,7 +157,7 @@ export class UserDataSyncer {
         // At this point, we have only downloaded metadata. We have not synchronized any actual sheet contents.
         mgr.flush();
         mgr.afterSheetListChange();
-        if (mgr.allDisplayableSheets.find(sheet => sheet.syncStatus !== "in-sync") !== undefined) {
+        if (mgr.allSheets.find(sheet => sheet.syncStatus !== "in-sync") !== undefined) {
             return 'need-sync';
         }
         else {
@@ -148,18 +165,46 @@ export class UserDataSyncer {
         }
     }
 
+    private async syncOne(sheetHandle: SheetHandle): Promise<'success' | 'not-logged-in' | 'nothing-to-do'> {
+        return await sheetHandle.doAction((async () => {
+            if (this.accountStateTracker.token === null) {
+                return 'not-logged-in';
+            }
+            switch (sheetHandle.syncStatus) {
+                case "in-sync":
+                case "conflict":
+                    return 'nothing-to-do';
+                case "client-newer-than-server":
+                case "never-uploaded":
+                    // TODO: this *should* sync but not in a way that the client would need to wait
+                    return 'nothing-to-do';
+                case "server-newer-than-client":
+                case "never-downloaded":
+                case "null-data": {
+                    // Do the sync
+                    console.info(`Downloading: ${sheetHandle.key}: ${sheetHandle.name} ${sheetHandle.localVersion} <- ${sheetHandle.serverVersion}`);
+                    const resp = await this.userDataClient.userdata.getSheet(sheetHandle.key, this.buildParams());
+                    sheetHandle.postDownload(resp.data.metadata.version, resp.data.sheetData as SheetExport);
+                    return 'success';
+                }
+                case "unknown":
+                    return 'nothing-to-do';
+            }
+        })());
+    }
+
     private async performSync(): Promise<'success' | 'not-logged-in' | 'nothing-to-do'> {
         const mgr = this.sheetMgr;
-        const jwt: string | null = this.accountStateTracker.token;
+        // TODO: any time we look at whether we're logged in or not, we actually need to know if we're verified or not
+        const jwt: string | null = this.accountStateTracker.verifiedToken;
         if (jwt === null) {
             return 'not-logged-in';
         }
         // TODO: deleted sheets
         // TODO: send back 429 too many requests if throttled
         // TODO: better log messages, hard to tell what's going on
-        // TODO: server should just compress
         try {
-            for (const sheetHandle of mgr.allDisplayableSheets) {
+            for (const sheetHandle of mgr.allSheets) {
                 switch (sheetHandle.syncStatus) {
                     case "in-sync":
                         // Nothing do do

@@ -8,8 +8,8 @@ import {
     quickElement
 } from "@xivgear/common-ui/components/util";
 import {JOB_DATA, JobName, LEVEL_ITEMS, MAX_ILVL, SupportedLevel} from "@xivgear/xivmath/xivconstants";
-import {SheetHandle} from "@xivgear/core/persistence/saved_sheets";
-import {GearPlanSheet} from "@xivgear/core/sheet";
+import {SheetHandle, SheetManager} from "@xivgear/core/persistence/saved_sheets";
+import {GearPlanSheet, SheetProvider} from "@xivgear/core/sheet";
 import {GRAPHICAL_SHEET_PROVIDER} from "./sheet";
 import {levelSelect} from "@xivgear/common-ui/components/level_picker";
 import {BaseModal} from "@xivgear/common-ui/components/modal";
@@ -17,7 +17,6 @@ import {SHARED_SET_NAME} from "@xivgear/core/imports/imports";
 import {recordSheetEvent} from "@xivgear/gearplan-frontend/analytics/analytics";
 import {JobIcon} from "./job_icon";
 import {RoleKey, SheetSummary} from "@xivgear/xivmath/geartypes";
-import {SHEET_MANAGER} from "./saved_sheet_impl";
 
 export type NewSheetTempSettings = {
     ilvlSyncEnabled: boolean,
@@ -140,7 +139,7 @@ export class NewSheetForm extends HTMLFormElement {
     private readonly fieldSet: NewSheetFormFieldSet;
     private readonly sheetOpenCallback: SheetOpenCallback;
 
-    constructor(sheetOpenCallback: SheetOpenCallback) {
+    constructor(sheetOpenCallback: SheetOpenCallback, private readonly sheetManager: SheetManager, private readonly sheetProvider: SheetProvider<GearPlanSheet>) {
         super();
         this.sheetOpenCallback = sheetOpenCallback;
         // Header
@@ -198,8 +197,8 @@ export class NewSheetForm extends HTMLFormElement {
             multiJob,
             name: sheetName,
         };
-        const handle: SheetHandle = SHEET_MANAGER.newSheetFromScratch(summary);
-        const gearPlanSheet = GRAPHICAL_SHEET_PROVIDER.fromScratch(handle.key, sheetName, job, level, isync, multiJob);
+        const handle: SheetHandle = this.sheetManager.newSheetFromScratch(summary);
+        const gearPlanSheet = this.sheetProvider.fromScratch(handle.key, sheetName, job, level, isync, multiJob);
         recordSheetEvent("newSheet", gearPlanSheet);
         this.sheetOpenCallback(gearPlanSheet).then(() => gearPlanSheet.requestSave());
     }

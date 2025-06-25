@@ -34,7 +34,6 @@ export function makeAsyncActionButton(label: string | (Node | string)[], action:
     }
     button.addEventListener('click', async (ev) => {
         ev.stopPropagation();
-        console.info("click")
         button.classList.add('in-progress');
         button.disabled = true;
         try {
@@ -44,7 +43,6 @@ export function makeAsyncActionButton(label: string | (Node | string)[], action:
             button.classList.remove('in-progress');
             button.disabled = false;
         }
-        console.info("end")
     });
     if (tooltip !== undefined) {
         button.title = tooltip;
