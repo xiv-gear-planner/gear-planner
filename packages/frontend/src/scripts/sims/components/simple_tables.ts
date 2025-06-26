@@ -2,7 +2,7 @@ import {CustomTable} from "@xivgear/common-ui/table/tables";
 import {camel2title} from "@xivgear/util/strutils";
 
 import {SimResult} from "@xivgear/core/sims/sim_types";
-import {AnyStringIndexOpt} from "@xivgear/util/types";
+import {AnyStringIndexOpt} from "@xivgear/util/util_types";
 
 type SimpleResultEntry = {
     name: string;

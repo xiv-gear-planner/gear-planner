@@ -35,7 +35,7 @@ export class FakeLocalStorage implements Storage {
                 if (key in target) {
                     return target[String(key)];
                 }
-                return target._data.get(key as string);
+                return target._data.get(key as string) ?? target[String(key)];
             },
             set(target: typeof this, key: string | symbol, newValue: unknown): boolean {
                 if (!(key in target)) {
@@ -44,11 +44,28 @@ export class FakeLocalStorage implements Storage {
                 }
                 return false;
             },
+            ownKeys(target: typeof this): ArrayLike<string | symbol> {
+                return Array.from(target._data.keys());
+            },
+            getOwnPropertyDescriptor(target: typeof this, key: string | symbol): PropertyDescriptor | undefined {
+                if (target._data.has(String(key))) {
+                    return {
+                        enumerable: true,
+                        configurable: true,
+                        value: target._data.get(String(key)),
+                    };
+                }
+                return undefined;
+            },
         });
     }
 
     private _reset(): void {
         this._data = new Map();
+    }
+
+    * [Symbol.iterator](): Iterator<string> {
+        yield* this._data.keys();
     }
 
     get length(): number {

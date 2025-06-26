@@ -35,7 +35,7 @@ import {
 import {BaseParamMap, DataManager, DmJobs} from "./datamanager";
 import {applyStatCaps} from "./gear";
 import {toTranslatable, TranslatableString} from "@xivgear/i18n/translation";
-import {RawStatsPart} from "@xivgear/util/types";
+import {RawStatsPart} from "@xivgear/util/util_types";
 import {DATA_API_CLIENT, ApiFoodData, ApiItemData, ApiMateriaData, checkResponse} from "./data_api_client";
 import {addStats} from "@xivgear/xivmath/xivstats";
 

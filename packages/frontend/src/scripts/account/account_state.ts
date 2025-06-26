@@ -267,6 +267,13 @@ export class AccountStateTracker {
         return this.jwt;
     }
 
+    get verifiedToken(): string | null {
+        if (this.accountState?.verified) {
+            return this.token;
+        }
+        return null;
+    }
+
     /**
      * Submits a verification code to verify the user's email address.
      *

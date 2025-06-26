@@ -1,7 +1,7 @@
 import {JobName} from "@xivgear/xivmath/xivconstants";
 import {LevelStats} from "@xivgear/xivmath/geartypes";
 import {DisplayType} from "./math_ui";
-import {PropertyOfType} from "@xivgear/util/types";
+import {PropertyOfType} from "@xivgear/util/util_types";
 
 export type GeneralSettings = {
     classJob: JobName;

@@ -1,7 +1,7 @@
 import {CharacterGearSet} from "@xivgear/core/gear";
 import {SimResult, SimSettings, SimSpec, Simulation} from "@xivgear/core/sims/sim_types";
 import {NORMAL_GCD} from "@xivgear/xivmath/xivconstants";
-import {EmptyObject} from "@xivgear/util/types";
+import {EmptyObject} from "@xivgear/util/util_types";
 
 const maxMP = 10000;
 
