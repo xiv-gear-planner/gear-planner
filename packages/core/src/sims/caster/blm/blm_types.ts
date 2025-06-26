@@ -10,7 +10,7 @@ export type BlmAbility = Ability & Readonly<{
     polyglotCost?: number;
 
     /** For element change, astral soul, and umbral hearts */
-    updateGauge?(gauge: BlmGauge): void;
+    updateGaugeLegacy?(gauge: BlmGauge): void;
 }> & {
     /** The MP cost of the ability */
     mp?: number | 'flare' | 'all';

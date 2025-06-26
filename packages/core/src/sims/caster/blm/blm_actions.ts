@@ -13,7 +13,9 @@ export const Fire3: BlmGcdAbility = {
     appDelay: 1.292,
     cast: 3.5,
     mp: 2000,
-    updateGauge: gauge => gauge.giveAstralFire(3),
+    updateGaugeLegacy: gauge => {
+        gauge.giveAstralFire(3);
+    },
 };
 
 export const Fire4: BlmGcdAbility = {
@@ -27,7 +29,7 @@ export const Fire4: BlmGcdAbility = {
     appDelay: 1.159,
     cast: 2.0,
     mp: 800,
-    updateGauge: gauge => gauge.astralSoul += 1,
+    updateGaugeLegacy: gauge => gauge.astralSoul += 1,
 };
 
 export const Flare: BlmGcdAbility = {
@@ -41,7 +43,7 @@ export const Flare: BlmGcdAbility = {
     appDelay: 1.157,
     cast: 2.0,
     mp: 'flare',
-    updateGauge: gauge => gauge.astralSoul += 3,
+    updateGaugeLegacy: gauge => gauge.astralSoul += 3,
 };
 
 export const FlareStar: BlmGcdAbility = {
@@ -55,7 +57,7 @@ export const FlareStar: BlmGcdAbility = {
     appDelay: 0.622,
     cast: 2.0,
     mp: 0,
-    updateGauge: gauge => gauge.astralSoul -= 6,
+    updateGaugeLegacy: gauge => gauge.astralSoul -= 6,
 };
 
 export const Despair: BlmGcdAbility = {
@@ -69,7 +71,7 @@ export const Despair: BlmGcdAbility = {
     appDelay: 0.556,
     cast: 2.0,
     mp: 'all',
-    updateGauge: gauge => gauge.paradox = false,
+    updateGaugeLegacy: gauge => gauge.paradox = false,
 };
 
 export const Blizzard3: BlmGcdAbility = {
@@ -83,7 +85,7 @@ export const Blizzard3: BlmGcdAbility = {
     appDelay: 0.890,
     cast: 3.5,
     mp: 800,
-    updateGauge: gauge => gauge.giveUmbralIce(3),
+    updateGaugeLegacy: gauge => gauge.giveUmbralIce(3),
 };
 
 export const Blizzard4: BlmGcdAbility = {
@@ -97,7 +99,7 @@ export const Blizzard4: BlmGcdAbility = {
     appDelay: 1.158,
     cast: 3.5,
     mp: 800,
-    updateGauge: gauge => gauge.umbralHearts += 3,
+    updateGaugeLegacy: gauge => gauge.umbralHearts += 3,
 };
 
 export const Thunder3: BlmGcdAbility = {
@@ -144,7 +146,7 @@ export const Xenoglossy: BlmGcdAbility = {
     appDelay: 0.630,
     cast: 0,
     mp: 0,
-    updateGauge: gauge => gauge.polyglot -= 1,
+    updateGaugeLegacy: gauge => gauge.polyglot -= 1,
 };
 
 export const FireParadox: BlmGcdAbility = {
@@ -158,7 +160,7 @@ export const FireParadox: BlmGcdAbility = {
     appDelay: 0.624,
     cast: 0,
     mp: 1600,
-    updateGauge: gauge => gauge.paradox = false,
+    updateGaugeLegacy: gauge => gauge.paradox = false,
 };
 
 export const IceParadox: BlmGcdAbility = {
@@ -171,7 +173,7 @@ export const IceParadox: BlmGcdAbility = {
     appDelay: 0.624,
     cast: 0,
     mp: 0,
-    updateGauge: gauge => gauge.paradox = false,
+    updateGaugeLegacy: gauge => gauge.paradox = false,
 };
 
 // oGCDs
@@ -186,7 +188,7 @@ export const Transpose: BlmOgcdAbility = {
         time: 5,
     },
     appDelay: 0,
-    updateGauge: gauge => {
+    updateGaugeLegacy: gauge => {
         if (gauge.aspect > 0) {
             // From AFx to UI1
             gauge.giveUmbralIce(1);
@@ -260,7 +262,7 @@ export const Amplifier: BlmOgcdAbility = {
         charges: 1,
     },
     appDelay: 0,
-    updateGauge: gauge => gauge.polyglot += 1,
+    updateGaugeLegacy: gauge => gauge.polyglot += 1,
 };
 
 export const Manafont: BlmOgcdAbility = {
@@ -283,7 +285,7 @@ export const Manafont: BlmOgcdAbility = {
             },
         },
     ],
-    updateGauge: gauge => {
+    updateGaugeLegacy: gauge => {
         gauge.magicPoints += 10000;
         gauge.umbralHearts += 3;
         gauge.paradox = true;

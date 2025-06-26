@@ -1,17 +1,14 @@
-
-import {FieldBoundCheckBox, labeledCheckbox} from "@xivgear/common-ui/components/util";
+import {FieldBoundCheckBox, labeledCheckbox, quickElement} from "@xivgear/common-ui/components/util";
 import {BlmSettings, BlmSimResult} from "@xivgear/core/sims/caster/blm/blm_sheet_sim";
 import {BaseMultiCycleSimGui} from "../multicyclesim_ui";
-import {AbilitiesUsedTable} from "../components/ability_used_table";
 import {CycleSimResult, DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/core/sims/cycle_sim";
 import {col, CustomColumn} from "@xivgear/common-ui/table/tables";
-import {quickElement} from "@xivgear/common-ui/components/util";
 import {PreDmgUsedAbility} from "@xivgear/core/sims/sim_types";
 import {BlmExtraData} from "@xivgear/core/sims/caster/blm/blm_types";
 
 export class BlmSimGui extends BaseMultiCycleSimGui<BlmSimResult, BlmSettings> {
 
-    static generateResultColumns(result: CycleSimResult): CustomColumn<DisplayRecordFinalized, unknown, unknown>[] {
+    protected extraAbilityUsedColumns(result: CycleSimResult): CustomColumn<DisplayRecordFinalized, unknown, unknown>[] {
         return [col({
             shortName: 'astral-fire-umbral-ice',
             displayName: 'AF/UI',
@@ -163,14 +160,4 @@ export class BlmSimGui extends BaseMultiCycleSimGui<BlmSimResult, BlmSettings> {
         configDiv.appendChild(labeledCheckbox("Transpose out of Astral Fire (instant UI1 B3)", transposeFromAFCB));
         return configDiv;
     }
-
-    override makeAbilityUsedTable(result: BlmSimResult): AbilitiesUsedTable {
-        const extraColumns = BlmSimGui.generateResultColumns(result);
-        const table = super.makeAbilityUsedTable(result);
-        const newColumns = [...table.columns];
-        newColumns.splice(newColumns.findIndex(col => col.shortName === 'expected-damage') + 1, 0, ...extraColumns);
-        table.columns = newColumns;
-        return table;
-    }
-
 }
