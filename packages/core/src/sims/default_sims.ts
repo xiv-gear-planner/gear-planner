@@ -25,6 +25,7 @@ import {warSpec} from "./tank/war/war_sheet_sim";
 import {drkSpec} from "./tank/drk/drk_sheet_sim";
 import {gnbSpec} from "./tank/gnb/gnb_sheet_sim";
 import {pldSpec} from "./tank/pld/pld_sheet_sim";
+import {blmSpec} from "./caster/blm/blm_sheet_sim";
 
 let registrationDone = false;
 
@@ -62,6 +63,7 @@ export function registerDefaultSims() {
     // Ranged
     registerSim(dncDtSheetSpec);
     // Caster
+    registerSim(blmSpec);
     registerSim(BluWinged120Spec);
     registerSim(BluFlame120Spec);
     registerSim(BluBreath60Spec);
