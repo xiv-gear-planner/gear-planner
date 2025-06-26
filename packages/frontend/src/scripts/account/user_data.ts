@@ -12,7 +12,7 @@ import {JobName, SupportedLevel} from "@xivgear/xivmath/xivconstants";
 import {SHEET_MANAGER} from "../components/saved_sheet_impl";
 
 const userDataClient = new UserDataClient<never>({
-    baseUrl: document.location.hostname === 'localhost' ? 'http://localhost:8087' : 'https://accountsvc.xivgear.app',
+    baseUrl: document.location.hostname === 'localhost' ? 'http://localhost:8087' : 'https://userdata.xivgear.app',
     // baseUrl: 'http://192.168.1.119:8086',
     customFetch: cookieFetch,
 });
