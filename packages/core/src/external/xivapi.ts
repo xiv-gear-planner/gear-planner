@@ -1,9 +1,5 @@
 export const XIVAPI_BASE_URL = "https://v2.xivapi.com/api";
 
-// export type ValidRequest<RequestType extends XivApiRequest> = RequestType['requestType'] extends 'search' ? XivApiSearchRequest : XivApiListRequest;
-
-// export async function xivApiGet<RequestType extends (XivApiListRequest | XivApiSearchRequest)>(request: RequestType | ValidRequest<RequestType>):
-
 export async function xivApiFetch(...params: Parameters<typeof fetch>): Promise<Response> {
     return xFetchInternal(...params);
 }
