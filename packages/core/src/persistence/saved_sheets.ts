@@ -86,54 +86,59 @@ export class SheetManager {
         const outer = this;
         for (const localStorageKey in localStorage) {
             if (localStorageKey.startsWith("sheet-save-")) {
-                const imported = JSON.parse(this.storage.getItem(localStorageKey)) as SheetExport;
-                if (imported.saveKey) {
-                    if (this.dataMap.has(localStorageKey)) {
-                        const existing = this.dataMap.get(localStorageKey);
-                        items.push(existing);
-                        continue;
+                try {
+                    const imported = JSON.parse(this.storage.getItem(localStorageKey)) as SheetExport;
+                    if (imported?.saveKey) {
+                        if (this.dataMap.has(localStorageKey)) {
+                            const existing = this.dataMap.get(localStorageKey);
+                            items.push(existing);
+                            continue;
+                        }
+                        const meta = readSheetMeta(localStorageKey);
+                        const defaultSort = parseInt(localStorageKey.split('-')[2]);
+                        let dirty = false;
+                        const item = {
+                            key: localStorageKey,
+                            sheet: imported,
+                            meta: meta,
+                            get sortOrder(): number {
+                                if (meta.sortOrder !== null) {
+                                    return meta.sortOrder;
+                                }
+                                return defaultSort;
+                            },
+                            set sortOrder(value: number | null) {
+                                meta.sortOrder = value;
+                                dirty = true;
+                            },
+                            save() {
+                                if (!dirty) {
+                                    return;
+                                }
+                                const metaKey = sheetMetaKey(localStorageKey);
+                                outer.storage.setItem(metaKey, JSON.stringify(this.meta));
+                                dirty = false;
+                            },
+                            isSynced: function (): boolean {
+                                return meta.currentVersion === meta.lastSyncedVersion;
+                            },
+                            get localVersion() {
+                                return meta.currentVersion;
+                            },
+                            get lastSyncedVersion() {
+                                return meta.lastSyncedVersion;
+                            },
+                            set lastSyncedVersion(value: number) {
+                                meta.lastSyncedVersion = value;
+                                dirty = true;
+                            },
+                        } satisfies SelectableSheet;
+                        this.dataMap.set(localStorageKey, item);
+                        items.push(item);
                     }
-                    const meta = readSheetMeta(localStorageKey);
-                    const defaultSort = parseInt(localStorageKey.split('-')[2]);
-                    let dirty = false;
-                    const item = {
-                        key: localStorageKey,
-                        sheet: imported,
-                        meta: meta,
-                        get sortOrder(): number {
-                            if (meta.sortOrder !== null) {
-                                return meta.sortOrder;
-                            }
-                            return defaultSort;
-                        },
-                        set sortOrder(value: number | null) {
-                            meta.sortOrder = value;
-                            dirty = true;
-                        },
-                        save() {
-                            if (!dirty) {
-                                return;
-                            }
-                            const metaKey = sheetMetaKey(localStorageKey);
-                            outer.storage.setItem(metaKey, JSON.stringify(this.meta));
-                            dirty = false;
-                        },
-                        isSynced: function (): boolean {
-                            return meta.currentVersion === meta.lastSyncedVersion;
-                        },
-                        get localVersion() {
-                            return meta.currentVersion;
-                        },
-                        get lastSyncedVersion() {
-                            return meta.lastSyncedVersion;
-                        },
-                        set lastSyncedVersion(value: number) {
-                            meta.lastSyncedVersion = value;
-                            dirty = true;
-                        },
-                    } satisfies SelectableSheet;
-                    this.dataMap.set(localStorageKey, item);
-                    items.push(item);
+                }
+                catch (e) {
+                    console.error("Error reading sheet", e);
                 }
             }
         }
