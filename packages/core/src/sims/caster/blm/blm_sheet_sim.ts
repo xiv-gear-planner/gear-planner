@@ -1,5 +1,13 @@
 import {Ability, SimSettings, SimSpec} from "@xivgear/core/sims/sim_types";
-import {CycleProcessor, CycleSimResult, ExternalCycleSettings, MultiCycleSettings, AbilityUseResult, Rotation, PreDmgAbilityUseRecordUnf} from "@xivgear/core/sims/cycle_sim";
+import {
+    CycleProcessor,
+    CycleSimResult,
+    ExternalCycleSettings,
+    MultiCycleSettings,
+    AbilityUseResult,
+    Rotation,
+    PreDmgAbilityUseRecordUnf
+} from "@xivgear/core/sims/cycle_sim";
 import {CycleSettings} from "@xivgear/core/sims/cycle_settings";
 import {CharacterGearSet} from "@xivgear/core/gear";
 import {STANDARD_ANIMATION_LOCK} from "@xivgear/xivmath/xivconstants";
@@ -163,8 +171,8 @@ class BlmCycleProcessor extends CycleProcessor {
         }
 
         // Update gauge from the ability itself
-        if (blmAbility.updateGauge !== undefined) {
-            blmAbility.updateGauge(this.gauge);
+        if (blmAbility.updateGaugeLegacy !== undefined) {
+            blmAbility.updateGaugeLegacy(this.gauge);
         }
 
         if (this.nextGcdTime > this.nextPolyglotTime) {
