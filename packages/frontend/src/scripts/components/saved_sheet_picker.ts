@@ -18,21 +18,29 @@ import {CharacterGearSet} from "@xivgear/core/gear";
 import {installDragHelper} from "./draghelpers";
 import {ACCOUNT_STATE_TRACKER} from "../account/account_state";
 import {UserDataSyncer} from "../account/user_data";
+import {showAccountModal} from "../account/components/account_components";
+import {Inactivitytimer} from "@xivgear/util/inactivitytimer";
 
 export class SheetPickerTable extends CustomTable<SheetHandle, TableSelectionModel<SheetHandle, never, never, SheetHandle | null>> {
+
+    private readonly buttonRefresh: Inactivitytimer;
+    private readonly conflictUpBtn: HTMLButtonElement;
+    private readonly conflictDnBtn: HTMLButtonElement;
 
     constructor(private readonly mgr: SheetManager, private readonly uds: UserDataSyncer) {
         super();
         this.classList.add("gear-sheets-table");
         this.classList.add("hoverable");
         const outer = this;
-        this.mgr.setUpdateHook({
+        this.mgr.setUpdateHook('sheet-picker', {
             onSheetListChange(): void {
                 // TODO: this causes flashing when the job icon elements get re-rendered
                 outer.readData();
+                outer.buttonRefresh.ping();
             },
             onSheetUpdate(handle: SheetHandle): void {
                 outer.refreshCells(handle);
+                outer.buttonRefresh.ping();
             },
         });
         this.columns = [
@@ -222,7 +230,6 @@ export class SheetPickerTable extends CustomTable<SheetHandle, TableSelectionMod
                 getter: sheet => sheet.name,
             },
         ];
-        this.readData();
         this.selectionModel = {
             clickCell() {
             },
@@ -247,6 +254,39 @@ export class SheetPickerTable extends CustomTable<SheetHandle, TableSelectionMod
 
             },
         };
+        this.conflictUpBtn = makeActionButton('Conflicts: Upload', async () => {
+            this.mgr.allSheets.forEach(ss => {
+                ss.conflictResolutionStrategy = 'keep-local';
+                this.refreshCells(ss);
+            });
+            this.refreshButtons();
+            this.uds.syncSheets();
+        });
+        this.conflictDnBtn = makeActionButton('Conflicts: Download', async () => {
+            this.mgr.allSheets.forEach(ss => {
+                ss.conflictResolutionStrategy = 'keep-remote';
+                this.refreshCells(ss);
+            });
+            this.refreshButtons();
+            this.uds.syncSheets();
+        });
+        this.buttonRefresh = new Inactivitytimer(2_000, () => {
+            this.refreshButtons();
+        });
+        this.refreshButtons();
+        this.readData();
+    }
+
+    private refreshButtons() {
+        if (this.mgr.allSheets.find(ss => ss.syncStatus === 'conflict')) {
+            this.conflictUpBtn.style.display = '';
+            this.conflictDnBtn.style.display = '';
+        }
+        else {
+            this.conflictUpBtn.style.display = 'none';
+            this.conflictDnBtn.style.display = 'none';
+        }
+
     }
 
     refreshCells(handle: SheetHandle): void {
@@ -254,6 +294,7 @@ export class SheetPickerTable extends CustomTable<SheetHandle, TableSelectionMod
             if (cell.colDef.shortName === 'syncstatus' || cell.colDef.shortName === 'sheetname') {
                 cell.refreshFull();
             }
+            this.buttonRefresh.ping();
         }
     }
 
@@ -264,23 +305,20 @@ export class SheetPickerTable extends CustomTable<SheetHandle, TableSelectionMod
             const refreshButton = makeAsyncActionButton('Refresh', async () => {
                 await this.uds.prepSheetSync();
             });
-            const syncButton = makeAsyncActionButton('Sync', async () => {
+            // Sync also refreshes, so hide this from non-power-users
+            refreshButton.style.display = 'none';
+            const syncButton = makeAsyncActionButton('Sync Now', async () => {
                 await this.uds.syncSheets();
             });
-            const forceDown = makeActionButton('Conflicts: Download', async () => {
-                this.mgr.allSheets.forEach(ss => {
-                    ss.conflictResolutionStrategy = 'keep-remote';
-                    this.refreshCells(ss);
-                });
-            });
-            const forceUp = makeActionButton('Conflicts: Upload', async () => {
-                this.mgr.allSheets.forEach(ss => {
-                    ss.conflictResolutionStrategy = 'keep-local';
-                    this.refreshCells(ss);
-                });
-            });
+            const loggedInItems = [refreshButton, syncButton, this.conflictDnBtn, this.conflictUpBtn];
+            loggedInItems.forEach(item => item.classList.add('require-logged-in'));
 
-            return quickElement('div', ['sync-tools'], [refreshButton, syncButton, forceDown, forceUp]);
+            const loginButton = makeActionButton('Login/Register', () => showAccountModal());
+            // TODO: this briefly flashes even when you're logged in
+            const loggedOutText = quickElement('span', [], ['Not logged in - sheets are only stored on this browser!']);
+            const loggedOutItems = [loginButton, loggedOutText];
+            loggedOutItems.forEach(item => item.classList.add('require-logged-out'));
+            return quickElement('div', ['sync-tools'], [...loggedInItems, ...loggedOutItems]);
         }));
         // "New sheet" button/row
         data.push(new SpecialRow(() => {
@@ -313,6 +351,7 @@ export class SheetPickerTable extends CustomTable<SheetHandle, TableSelectionMod
         const items: SheetHandle[] = this.mgr.allDisplayableSheets;
         data.push(...items);
         this.data = data;
+        this.buttonRefresh.ping();
     }
 
     search(searchValue: string | null) {

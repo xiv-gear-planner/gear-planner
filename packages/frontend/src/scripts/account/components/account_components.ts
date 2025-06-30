@@ -247,12 +247,16 @@ export function setupAccountUi() {
     });
     const accountButtonText = accountButton.lastElementChild;
     ACCOUNT_STATE_TRACKER.addAccountStateListener((tracker) => {
+        const body = document.querySelector('body');
         if (tracker.loggedIn) {
             accountButtonText.textContent = 'Account';
+            body.classList.add('logged-in');
         }
         else {
             accountButtonText.textContent = 'Log In';
+            body.classList.remove('logged-in');
         }
+        // Also update a body-level class
     });
 }
 

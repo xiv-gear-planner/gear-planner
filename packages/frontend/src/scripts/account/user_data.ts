@@ -10,6 +10,8 @@ import {SheetExport, SheetSummary} from "@xivgear/xivmath/geartypes";
 import {SheetHandle, SheetManager} from "@xivgear/core/persistence/saved_sheets";
 import {JobName, SupportedLevel} from "@xivgear/xivmath/xivconstants";
 import {SHEET_MANAGER} from "../components/saved_sheet_impl";
+import {RefreshLoop} from "@xivgear/util/refreshloop";
+import {Inactivitytimer} from "@xivgear/util/inactivitytimer";
 
 const userDataClient = new UserDataClient<never>({
     baseUrl: document.location.hostname === 'localhost' ? 'http://localhost:8087' : 'https://userdata.xivgear.app',
@@ -20,6 +22,17 @@ const userDataClient = new UserDataClient<never>({
 export class UserDataSyncer {
 
     private suppressSettingsUpload: boolean = false;
+
+    /*
+    There is a 3-way strategy for auto syncing:
+    We have a normal refresh loop which starts the first time you get a valid token.
+    When you update a set, we don't want to sync frequent tiny changes immediately, so we also have an inactivity timer
+    to only refresh every so often.
+    We also trigger it on a hash change.
+     */
+
+    private readonly sheetRefresh: RefreshLoop;
+    private readonly sheetInactivityTimer: Inactivitytimer;
 
     constructor(private readonly accountStateTracker: AccountStateTracker,
                 private readonly userDataClient: UserDataClient<never>,
@@ -41,6 +54,24 @@ export class UserDataSyncer {
             canLoad: () => {
                 return outer.accountStateTracker.accountState?.verified;
             },
+        });
+        this.sheetMgr.setUpdateHook('user-data-syncer', {
+            onSheetLocalChange: function (handle: SheetHandle): void {
+                outer.onSheetChange();
+            },
+        });
+        this.sheetRefresh = new RefreshLoop(async () => {
+            await this.syncSheets();
+        }, () => {
+            if (this.accountStateTracker.hasVerifiedToken) {
+                return 60_000;
+            }
+            else {
+                return 600_000;
+            }
+        });
+        this.sheetInactivityTimer = new Inactivitytimer(15_000, () => {
+            this.triggerRefreshNow();
         });
     }
 
@@ -128,7 +159,8 @@ export class UserDataSyncer {
                 const handle = existingSheetsMap.get(key);
                 noServerVersion.delete(handle);
                 if (deletedFromServer) {
-                    handle.deleteServer(sheetMeta.version);
+                    handle.deleteServerToClient(sheetMeta.version);
+                    existingSheetsMap.delete(key);
                 }
                 else {
                     handle.serverVersion = sheetMeta.version;
@@ -303,6 +335,24 @@ export class UserDataSyncer {
         };
     }
 
+    startRefreshLoop(): void {
+        return this.sheetRefresh.start();
+    }
+
+    async triggerRefreshNow(): Promise<void> {
+        if (this.accountStateTracker.hasVerifiedToken) {
+            await this.sheetRefresh.refresh();
+        }
+    }
+
+    onSheetChange(): void {
+        this.sheetInactivityTimer.ping();
+    }
+
+    get available(): boolean {
+        return this.accountStateTracker.hasVerifiedToken;
+    }
+
 }
 
 export const USER_DATA_SYNCER = new UserDataSyncer(ACCOUNT_STATE_TRACKER, userDataClient, DISPLAY_SETTINGS, SHEET_MANAGER);
@@ -313,6 +363,7 @@ export async function afterLogin() {
         console.info("No settings found, uploading ours");
         await USER_DATA_SYNCER.uploadSettings();
     }
+    USER_DATA_SYNCER.startRefreshLoop();
 }
 
 export async function afterSettingsChange() {
@@ -349,3 +400,39 @@ export function setupUserDataSync() {
     });
 
 }
+
+declare global {
+    interface CustomEventMap {
+        locationchange: CustomEvent<{}>; // e.g., detail is the new URL string
+    }
+
+    interface WindowEventMap extends CustomEventMap {
+    }
+}
+
+window.addEventListener('locationchange', () => {
+    USER_DATA_SYNCER.onSheetChange();
+});
+
+(function (history: History) {
+    const push = history.pushState;
+    const replace = history.replaceState;
+
+    function notify() {
+        window.dispatchEvent(new Event('locationchange'));
+    }
+
+    history.pushState = function (...args) {
+        const res = push.apply(this, args);
+        notify();
+        return res;
+    };
+    history.replaceState = function (...args) {
+        const res = replace.apply(this, args);
+        notify();
+        return res;
+    };
+
+    window.addEventListener('popstate', notify);
+})(window.history);
+

@@ -40,6 +40,7 @@ class SheetHandleImpl {
     private _data: SheetExport | null;
     private readonly storage: Storage;
     private readonly updateHook: (h: SheetHandle) => void;
+    private readonly localUpdateHook: (h: SheetHandle) => void;
 
     private _conflictResolutionStrategy: ConflictResolutionStrategy | null = null;
 
@@ -66,6 +67,7 @@ class SheetHandleImpl {
         }
         this.storage = mgr.storage;
         this.updateHook = h => mgr.afterSheetUpdate(h);
+        this.localUpdateHook = h => mgr.afterSheetLocalChange(h);
     }
 
     get summary(): SheetSummary {
@@ -127,6 +129,15 @@ class SheetHandleImpl {
             this.afterUpdate();
         });
         return action;
+    }
+
+    private afterLocalUpdate() {
+        try {
+            this.localUpdateHook(this);
+        }
+        catch (e) {
+            console.error("Error calling hook", e);
+        }
     }
 
     private afterUpdate() {
@@ -223,6 +234,7 @@ class SheetHandleImpl {
     }
 
     get isTrash(): boolean {
+        // console.log(`isTrash ${this.key} ${this.meta.localDeleted} ${this.meta.serverDeleted}`);
         return this.meta.localDeleted && this.meta.serverDeleted;
     }
 
@@ -233,6 +245,7 @@ class SheetHandleImpl {
         if (this.metaDirty) {
             // TODO: make meta key a method
             if (this.isTrash) {
+                console.log(`removing ${this.metaKey}`);
                 this.storage.removeItem(this.metaKey);
             }
             else {
@@ -242,6 +255,7 @@ class SheetHandleImpl {
         }
         if (this.dataDirty) {
             if (this.isTrash) {
+                console.log(`removing ${this.key}`);
                 this.storage.removeItem(this.key);
             }
             else {
@@ -366,6 +380,8 @@ class SheetHandleImpl {
         this.dataDirty = true;
         this.meta.localDeleted = false;
         this._conflictResolutionStrategy = null;
+        this.afterLocalUpdate();
+        this.flush();
         this.afterUpdate();
     }
 
@@ -424,11 +440,14 @@ class SheetHandleImpl {
     }
 
     private fullyDelete(): void {
+        console.info(`fullyDelete ${this.key}`);
         this.meta.serverDeleted = true;
         this.meta.localDeleted = true;
         this._data = null;
         this.markDataDirty();
         this.markMetaDirty();
+        this.flush();
+        this.mgr.remove(this);
     }
 
     deleteLocal(): void {
@@ -439,7 +458,7 @@ class SheetHandleImpl {
         this.markDataDirty();
     }
 
-    deleteServer(serverVersion: number): void {
+    deleteServerToClient(serverVersion: number): void {
         /*
         Server deletion:
         When we get word that the item was deleted on the server:
@@ -451,17 +470,16 @@ class SheetHandleImpl {
             until the user resolves the conflict.
          */
         console.log(`deleteServer ${this.key}`);
-        if (serverVersion > this.meta.serverVersion) {
+        if (serverVersion >= this.meta.serverVersion) {
             if (this.lastSyncedVersion === this.localVersion) {
                 // True and proper deletion
-                console.log('deleteServer 2');
                 this.meta.serverVersion = serverVersion;
                 this.meta.lastSyncedVersion = serverVersion;
                 this.meta.currentVersion = serverVersion;
                 this.fullyDelete();
             }
             else {
-                // Conflict!
+                console.warn(`deleteServer conflict! server ${this.serverVersion} lastSynced ${this.lastSyncedVersion} local ${this.localVersion}`);
                 // TODO
             }
         }
@@ -491,7 +509,7 @@ export interface SheetManager {
     readonly allDisplayableSheets: SheetHandle[];
     readonly allSheets: SheetHandle[];
 
-    setUpdateHook(hook: SyncUpdateHook): void;
+    setUpdateHook(key: string, hook: SyncUpdateHook): void;
 
     afterSheetUpdate(handle: SheetHandle): void;
 
@@ -543,7 +561,7 @@ export const DUMMY_SHEET_MGR: SheetManager = {
     },
     afterSheetListChange(): void {
     },
-    setUpdateHook(hook: SyncUpdateHook): void {
+    setUpdateHook(key: string, hook: SyncUpdateHook): void {
     },
     allDisplayableSheets: [],
     allSheets: [],
@@ -580,8 +598,9 @@ export const DUMMY_SHEET_MGR: SheetManager = {
 };
 
 export type SyncUpdateHook = {
-    onSheetUpdate: (handle: SheetHandle) => void;
-    onSheetListChange: () => void;
+    onSheetUpdate?: (handle: SheetHandle) => void;
+    onSheetListChange?: () => void;
+    onSheetLocalChange?: (handle: SheetHandle) => void;
 }
 
 export type SheetAsyncLoader = {
@@ -599,22 +618,32 @@ const NoopAsyncLoader: SheetAsyncLoader = {
 export class SheetManagerImpl implements SheetManager {
     private readonly dataMap = new Map<string, SheetHandle>();
     private allItems: SheetHandle[] = [];
-    private _updateHook: SyncUpdateHook;
+    private _updateHookMap: Map<string, SyncUpdateHook> = new Map();
     asyncLoader: SheetAsyncLoader = NoopAsyncLoader;
 
     constructor(readonly storage: Storage) {
     }
 
-    setUpdateHook(hook: SyncUpdateHook) {
-        this._updateHook = hook;
+    setUpdateHook(key: string, hook: SyncUpdateHook) {
+        this._updateHookMap.set(key, hook);
     }
 
     afterSheetUpdate(handle: SheetHandle) {
-        this._updateHook?.onSheetUpdate?.(handle);
+        this._updateHookMap.forEach(hook => {
+            hook.onSheetUpdate?.(handle);
+        });
     }
 
     afterSheetListChange() {
-        this._updateHook?.onSheetListChange?.();
+        this._updateHookMap.forEach(hook => {
+            hook.onSheetListChange?.();
+        });
+    }
+
+    afterSheetLocalChange(handle: SheetHandle) {
+        this._updateHookMap.forEach(hook => {
+            hook.onSheetLocalChange?.(handle);
+        });
     }
 
     setAsyncLoader(loader: SheetAsyncLoader) {
@@ -882,6 +911,11 @@ export class SheetManagerImpl implements SheetManager {
             return this.readOne(sheet);
         }
         return this.dataMap.get(sheet);
+    }
+
+    remove(toDelete: SheetHandle) {
+        this.dataMap.delete(toDelete.key);
+        this.allItems = this.allItems.filter(item => item !== toDelete);
     }
 }
 

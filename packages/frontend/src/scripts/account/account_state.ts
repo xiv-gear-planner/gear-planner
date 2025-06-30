@@ -5,51 +5,8 @@ import {
     ValidationErrorResponse
 } from "@xivgear/account-service-client/accountsvc";
 import {recordEvent} from "@xivgear/common-ui/analytics/analytics";
+import {RefreshLoop} from "@xivgear/util/refreshloop";
 
-class RefreshLoop {
-
-    private readonly callback: () => Promise<void>;
-    private readonly timeoutProvider: () => number;
-    private currentTimer: number | null = null;
-
-    constructor(callback: () => Promise<void>, timeout: () => number) {
-        this.callback = callback;
-        this.timeoutProvider = timeout;
-    }
-
-    start(): void {
-        if (this.currentTimer === null) {
-            this.scheduleNext();
-        }
-    }
-
-    stop(): void {
-        if (this.currentTimer !== null) {
-            clearTimeout(this.currentTimer);
-            this.currentTimer = null;
-        }
-    }
-
-    get timeout(): number {
-        return this.timeoutProvider();
-    }
-
-    async refresh(): Promise<void> {
-        this.stop();
-        try {
-            await this.callback();
-        }
-        catch (e) {
-            console.error("Error refreshing", e);
-        }
-        this.scheduleNext();
-    }
-
-    private scheduleNext(): void {
-        const to = this.timeout;
-        this.currentTimer = window.setTimeout(() => this.refresh(), to);
-    }
-}
 
 // TODO: since api client is no longer configured to throw on bad response, need to manually check all of them
 export class AccountStateTracker {
@@ -272,6 +229,10 @@ export class AccountStateTracker {
             return this.token;
         }
         return null;
+    }
+
+    get hasVerifiedToken(): boolean {
+        return this.verifiedToken !== null;
     }
 
     /**

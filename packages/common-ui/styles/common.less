@@ -4183,6 +4183,19 @@ expandable-text {
 
 div.sync-tools {
   cursor: initial;
+  >* {
+    margin-right: 5px;
+  }
+}
+
+body:not(.logged-in) .require-logged-in {
+  display: none;
+}
+
+body.logged-in {
+  .require-logged-out {
+    display: none;
+  }
 }
 
 button.async-action-button {

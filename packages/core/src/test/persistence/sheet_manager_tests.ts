@@ -118,11 +118,11 @@ describe('sheet_manager', () => {
 
         // Simulate server-side deletion
         // First, try no-op by specifying a version too low
-        handle.deleteServer(6);
+        handle.deleteServerToClient(6);
         expect(handle.meta.serverDeleted).to.be.false;
 
         // Now, a real deletion
-        handle.deleteServer(7);
+        handle.deleteServerToClient(7);
         expect(handle.meta.serverDeleted).to.be.true;
         expect(handle.meta.localDeleted).to.be.true;
         expect(handle.dataNow).to.be.null;
