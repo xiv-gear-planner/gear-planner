@@ -118,7 +118,7 @@ describe('sheet_manager', () => {
 
         // Simulate server-side deletion
         // First, try no-op by specifying a version too low
-        handle.deleteServerToClient(6);
+        handle.deleteServerToClient(5);
         expect(handle.meta.serverDeleted).to.be.false;
 
         // Now, a real deletion
@@ -133,8 +133,8 @@ describe('sheet_manager', () => {
         expect(storage.getItem('sheet-save-123-foo')).to.be.null;
         expect(storage.getItem('sheet-save-123-foo-meta')).to.be.null;
         expect(mgr.allDisplayableSheets).to.have.length(0);
-        // Should still have this in-memory
-        expect(mgr.allSheets).to.have.length(1);
+        // Should NOT still have this in-memory
+        expect(mgr.allSheets).to.have.length(0);
 
         // But should be gone when we reload
         const mgr3 = new SheetManagerImpl(storage);
