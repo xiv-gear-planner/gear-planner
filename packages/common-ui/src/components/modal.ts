@@ -1,5 +1,5 @@
-import {closeModal, Modal, setModal} from "../modalcontrol";
 import {makeActionButton, makeCloseButton} from "./util";
+import {Modal, MODAL_CONTROL} from "../modalcontrol";
 
 export abstract class BaseModal extends HTMLElement {
     protected readonly header: HTMLElement;
@@ -42,13 +42,17 @@ export abstract class BaseModal extends HTMLElement {
         this.addActionButton('Close', () => this.close());
     }
 
+    private _modalWrapper: Modal | undefined = undefined;
     /**
      * Represents this as a {@link Modal} object.
      * @private
      */
     private get modalWrapper(): Modal {
+        if (this._modalWrapper !== undefined) {
+            return this._modalWrapper;
+        }
         const outer = this;
-        return {
+        return this._modalWrapper = {
             get explicitCloseOnly(): boolean {
                 return outer.explicitCloseOnly;
             },
@@ -69,18 +73,28 @@ export abstract class BaseModal extends HTMLElement {
         this.header.textContent = text;
     }
 
-    attachAndShow() {
+    attachAndShowExclusively() {
         document.querySelector('body')?.appendChild(this);
-        this.show();
+        this.showExclusively();
     }
 
-    show() {
-        setModal(this.modalWrapper);
+    attachAndShowTop() {
+        document.querySelector('body')?.appendChild(this);
+        this.showTop();
+    }
+
+    showExclusively() {
+        MODAL_CONTROL.setModal(this.modalWrapper);
+        setTimeout(() => this.classList.add('backdrop-active'), 5);
+    }
+
+    showTop() {
+        MODAL_CONTROL.pushModal(this.modalWrapper);
         setTimeout(() => this.classList.add('backdrop-active'), 5);
     }
 
     close() {
-        closeModal();
+        MODAL_CONTROL.close(this.modalWrapper);
     }
 
     protected onClose(): void {

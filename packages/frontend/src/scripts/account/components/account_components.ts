@@ -9,6 +9,7 @@ import {
     ValidationErrorSingle
 } from "@xivgear/account-service-client/accountsvc";
 import {passwordWithRepeat} from "@xivgear/common-ui/components/forms/form_elements";
+import {showPrivacyPolicyModal} from "../../components/ads";
 
 class AccountModal extends BaseModal {
     private readonly loadingBlocker: LoadingBlocker;
@@ -162,11 +163,17 @@ class AccountManagementInner extends HTMLElement {
                 displayName.placeholder = 'Display Name (May Be Changed)';
                 displayName.autocomplete = 'username';
                 displayName.setAttribute('validation-field', 'displayName');
-                // TODO: captcha
+                // TODO: captcha if required
 
                 const privacyCheckbox = document.createElement('input');
                 privacyCheckbox.type = 'checkbox';
-                const privacyCbl = labeledCheckbox(quickElement('span', [], ['I agree to the Privacy Policy']), privacyCheckbox);
+                const privacyLink = quickElement('a', [], ['Privacy Policy']);
+                privacyLink.href = '#';
+                privacyLink.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    showPrivacyPolicyModal();
+                });
+                const privacyCbl = labeledCheckbox(quickElement('span', [], ['I agree to the ', privacyLink]), privacyCheckbox);
                 privacyCheckbox.addEventListener('change', () => {
                     privacyCbl.classList.remove('failed');
                 });
@@ -230,7 +237,7 @@ class AccountManagementInner extends HTMLElement {
 }
 
 export function showAccountModal() {
-    new AccountModal(ACCOUNT_STATE_TRACKER).attachAndShow();
+    new AccountModal(ACCOUNT_STATE_TRACKER).attachAndShowExclusively();
 }
 
 export function setupAccountUi() {

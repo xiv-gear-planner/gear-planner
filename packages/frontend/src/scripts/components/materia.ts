@@ -11,7 +11,6 @@ import {
     RawStatKey
 } from "@xivgear/xivmath/geartypes";
 import {MateriaSubstat, MAX_GCD, STAT_ABBREVIATIONS, STAT_FULL_NAMES} from "@xivgear/xivmath/xivconstants";
-import {closeModal, setModal} from "@xivgear/common-ui/modalcontrol";
 import {
     FieldBoundDataSelect,
     FieldBoundFloatField,
@@ -24,6 +23,7 @@ import {GearPlanSheet} from "@xivgear/core/sheet";
 import {recordEvent} from "@xivgear/common-ui/analytics/analytics";
 import {GearPlanSheetGui} from "./sheet";
 import {recordCurrentSheetEvent} from "../analytics/analytics";
+import {MODAL_CONTROL} from "@xivgear/common-ui/modalcontrol";
 
 /**
  * Component for managing all materia slots on an item
@@ -364,7 +364,7 @@ export class SlotMateriaManagerPopup extends HTMLElement {
         }
         this.replaceChildren(table);
         const self = this;
-        setModal({
+        MODAL_CONTROL.setModal({
             modalElement: self,
             close() {
                 self.hide();
@@ -379,7 +379,8 @@ export class SlotMateriaManagerPopup extends HTMLElement {
 
     submit(materia: Materia | undefined) {
         this.materiaSlot.equippedMateria = materia;
-        closeModal();
+        // TODO: should close specifically just this one
+        MODAL_CONTROL.closeAll();
         this.callback();
     }
 

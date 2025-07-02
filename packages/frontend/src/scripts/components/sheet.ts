@@ -25,7 +25,6 @@ import {
     makeActionButton,
     quickElement
 } from "@xivgear/common-ui/components/util";
-import {closeModal} from "@xivgear/common-ui/modalcontrol";
 import {
     ChanceStat,
     ComputedSetStats,
@@ -976,7 +975,7 @@ export class GearSetEditor extends HTMLElement {
     }
 
     showIssuesModal(): void {
-        new SetIssuesModal(this.gearSet).attachAndShow();
+        new SetIssuesModal(this.gearSet).attachAndShowExclusively();
     }
 
     refresh() {
@@ -1515,11 +1514,11 @@ export class GearPlanSheetGui extends GearPlanSheet {
             });
             sheetOptions.addAction({
                 label: 'Manage Custom Items',
-                action: () => new CustomItemPopup(this).attachAndShow(),
+                action: () => new CustomItemPopup(this).attachAndShowExclusively(),
             });
             sheetOptions.addAction({
                 label: 'Manage Custom Food',
-                action: () => new CustomFoodPopup(this).attachAndShow(),
+                action: () => new CustomFoodPopup(this).attachAndShowExclusively(),
             });
             sheetOptions.addAction({
                 label: 'Add Separator',
@@ -1536,14 +1535,14 @@ export class GearPlanSheetGui extends GearPlanSheet {
             label: 'Sheet/Set Info...',
             action: () => {
                 const selectedGearSet = this.selectedGearSet;
-                new SheetInfoModal(this, selectedGearSet).attachAndShow();
+                new SheetInfoModal(this, selectedGearSet).attachAndShowExclusively();
             },
         });
 
         if (this.isViewOnly) {
             const saveAsButton = makeActionButton("Save As", () => {
                 const modal = new SaveAsModal(this, newSheet => openSheetByKey(newSheet.saveKey));
-                modal.attachAndShow();
+                modal.attachAndShowExclusively();
             });
             buttonsArea.appendChild(saveAsButton);
             buttonsArea.appendChild(sheetOptions);
@@ -1553,7 +1552,7 @@ export class GearPlanSheetGui extends GearPlanSheet {
                 label: 'Save As',
                 action: () => {
                     const modal = new SaveAsModal(this, newSheet => openSheetByKey(newSheet.saveKey));
-                    modal.attachAndShow();
+                    modal.attachAndShowExclusively();
                 },
             });
         }
@@ -2057,7 +2056,7 @@ export class GearPlanSheetGui extends GearPlanSheet {
     showAddSimDialog() {
         const addSimDialog = new AddSimDialog(this);
         document.querySelector('body').appendChild(addSimDialog);
-        addSimDialog.show();
+        addSimDialog.showExclusively();
     }
 
     /**
@@ -2074,7 +2073,7 @@ export class GearPlanSheetGui extends GearPlanSheet {
         }
         const meldSolveDialog = new MeldSolverDialog(this, selectedSet);
         document.querySelector('body').appendChild(meldSolveDialog);
-        meldSolveDialog.show();
+        meldSolveDialog.showExclusively();
     }
 
     /**
@@ -2103,7 +2102,7 @@ export class GearPlanSheetGui extends GearPlanSheet {
 
     private showImportSetsDialog() {
         const dialog = new ImportSetsModal(this);
-        dialog.attachAndShow();
+        dialog.attachAndShowExclusively();
     }
 
     get sheetName() {
@@ -2323,14 +2322,14 @@ export class ImportSetsModal extends BaseModal {
                     }
                 }
             }
-            closeModal();
+            this.close();
         }
         else if ('name' in rawImport && 'items' in rawImport) {
             if (!this.checkJob(false, rawImport.job)) {
                 return;
             }
             this.sheet.addGearSet(this.sheet.importGearSet(rawImport), undefined, true);
-            closeModal();
+            this.close();
         }
         else {
             alert("That doesn't look like a valid sheet or set");
@@ -2394,7 +2393,7 @@ export class AddSimDialog extends BaseModal {
         form.appendChild(descriptionContactArea);
 
         const submitButton = makeActionButton("Add", () => this.submit());
-        const cancelButton = makeActionButton("Cancel", () => closeModal());
+        const cancelButton = makeActionButton("Cancel", () => this.close());
         this.addButton(submitButton);
         this.addButton(cancelButton);
 
@@ -2433,7 +2432,7 @@ export class AddSimDialog extends BaseModal {
         const sel = this.table.selectionModel.getSelection();
         if (sel instanceof CustomRow) {
             this.sheet.addSim(sel.dataItem.makeNewSimInstance());
-            closeModal();
+            this.close();
         }
     }
 
