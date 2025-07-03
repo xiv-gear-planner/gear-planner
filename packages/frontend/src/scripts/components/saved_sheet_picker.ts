@@ -302,6 +302,8 @@ export class SheetPickerTable extends CustomTable<SheetHandle, TableSelectionMod
         const data: typeof this.data = [];
         // Sync tools TODO polish this
         data.push(new SpecialRow(() => {
+
+            // Items that only appear for logged-in and verified users
             const refreshButton = makeAsyncActionButton('Refresh', async () => {
                 await this.uds.prepSheetSync();
             });
@@ -311,14 +313,27 @@ export class SheetPickerTable extends CustomTable<SheetHandle, TableSelectionMod
                 await this.uds.syncSheets();
             });
             const loggedInItems = [refreshButton, syncButton, this.conflictDnBtn, this.conflictUpBtn];
-            loggedInItems.forEach(item => item.classList.add('require-logged-in'));
+            loggedInItems.forEach(item => item.classList.add('require-account-state-verified'));
 
+            // Items that only appear for non-logged-in-users
             const loginButton = makeActionButton('Login/Register', () => showAccountModal());
             // TODO: this briefly flashes even when you're logged in
             const loggedOutText = quickElement('span', [], ['Not logged in - sheets are only stored on this browser!']);
             const loggedOutItems = [loginButton, loggedOutText];
-            loggedOutItems.forEach(item => item.classList.add('require-logged-out'));
-            return quickElement('div', ['sync-tools'], [...loggedInItems, ...loggedOutItems]);
+            loggedOutItems.forEach(item => item.classList.add('require-account-state-logged-out'));
+
+            // Items that only appear for logged-in but not verified users
+            const verifyButton = makeActionButton('Verify', () => showAccountModal());
+            const verifyText = quickElement('span', [], ['Not verified - sheets are only stored on this browser!']);
+            const verifyItems = [verifyButton, verifyText];
+            verifyItems.forEach(item => item.classList.add('require-account-state-unverified'));
+
+            // Items displayed when account (actually token) state has not loaded yet.
+            const accountLoadingText = quickElement('span', [], ['Checking account...']);
+            const loadingItems = [accountLoadingText];
+            loadingItems.forEach(item => item.classList.add('require-account-state-not-loaded'));
+
+            return quickElement('div', ['sync-tools'], [...loggedInItems, ...loggedOutItems, ...verifyItems, ...loadingItems]);
         }));
         // "New sheet" button/row
         data.push(new SpecialRow(() => {

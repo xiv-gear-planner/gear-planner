@@ -12,6 +12,7 @@ import {RefreshLoop} from "@xivgear/util/refreshloop";
 export class AccountStateTracker {
 
     private readonly refreshLoop: RefreshLoop;
+    private _lastAccountState: AccountInfo | null = null;
     private _accountState: AccountInfo | null = null;
     private jwt: string | null = null;
     private _listeners: AccountStateListener[] = [];
@@ -30,8 +31,14 @@ export class AccountStateTracker {
 
     private notifyListeners(): void {
         for (const listener of this._listeners) {
-            listener(this);
+            try {
+                listener(this, this._accountState, this._lastAccountState);
+            }
+            catch (e) {
+                console.error("Error notifying listener", e);
+            }
         }
+        this._lastAccountState = this._accountState;
     }
 
     private ingestAccountState(accountState: AccountInfo): void {
@@ -272,7 +279,7 @@ export class AccountStateTracker {
     }
 }
 
-export type AccountStateListener = (tracker: AccountStateTracker) => void;
+export type AccountStateListener = (tracker: AccountStateTracker, stateNow: AccountInfo | null, stateAfter: AccountInfo | null) => void;
 
 
 const accountApiClient = new AccountServiceClient<never>({

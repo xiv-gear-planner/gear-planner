@@ -253,15 +253,35 @@ export function setupAccountUi() {
         showAccountModal();
     });
     const accountButtonText = accountButton.lastElementChild;
-    ACCOUNT_STATE_TRACKER.addAccountStateListener((tracker) => {
+    ACCOUNT_STATE_TRACKER.addAccountStateListener((tracker, after, before) => {
         const body = document.querySelector('body');
+        if (!body) {
+            return;
+        }
         if (tracker.loggedIn) {
+            if (tracker.accountState.verified) {
+                body.setAttribute('data-accountstate', 'logged-in-verified');
+            }
+            else {
+                body.setAttribute('data-accountstate', 'logged-in-unverified');
+            }
             accountButtonText.textContent = 'Account';
-            body.classList.add('logged-in');
+            if (tracker.token === null) {
+                body.setAttribute('data-tokenstate', 'not-loaded');
+            }
+            else {
+                if (tracker.hasVerifiedToken) {
+                    body.setAttribute('data-tokenstate', 'verified');
+                }
+                else {
+                    body.setAttribute('data-tokenstate', 'not-verified');
+                }
+            }
         }
         else {
             accountButtonText.textContent = 'Log In';
-            body.classList.remove('logged-in');
+            body.setAttribute('data-accountstate', 'not-logged-in');
+            body.setAttribute('data-tokenstate', 'not-logged-in');
         }
         // Also update a body-level class
     });

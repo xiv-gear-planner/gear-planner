@@ -4183,20 +4183,48 @@ expandable-text {
 
 div.sync-tools {
   cursor: initial;
-  >* {
+  font-weight: normal;
+
+  > * {
     margin-right: 5px;
   }
 }
 
-body:not(.logged-in) .require-logged-in {
+body:not([data-accountstate='logged-in-verified']) .require-account-state-verified {
   display: none;
 }
 
-body.logged-in {
-  .require-logged-out {
-    display: none;
-  }
+body:not([data-accountstate='logged-in-unverified']) .require-account-state-unverified {
+  display: none;
 }
+
+body:not([data-accountstate='not-logged-in']) .require-account-state-logged-out {
+  display: none;
+}
+
+body:not([data-accountstate='not-loaded']) .require-account-state-not-loaded {
+  display: none;
+}
+
+//body:not([data-accountstate='error']) .require-account-state-error {
+//  display: none;
+//}
+
+//body:not([data-tokenstate='verified']) .require-token-state-verified {
+//  display: none;
+//}
+//
+//body:not([data-tokenstate='not-verified']) .require-token-state-not-verified {
+//  display: none;
+//}
+//
+//body:not([data-tokenstate='not-loaded']) .require-token-state-not-loaded {
+//  display: none;
+//}
+//
+//body:not([data-tokenstate='not-logged-in']) .require-token-state-not-logged-in {
+//  display: none;
+//}
 
 button.async-action-button {
 
