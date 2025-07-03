@@ -185,12 +185,8 @@ export async function openSheetByKey(sheetKey: string) {
     setTitle('Loading Sheet');
     try {
         console.log('openSheetByKey: ', sheetKey);
-        // if (!USER_DATA_SYNCER) {
-        //     console.error('No user data syncer - circular imports?');
-        // }
         const sheet = SHEET_MANAGER.getByKey(sheetKey);
         await sheet.readData();
-        // TODO: this should change URL first
         const planner = GRAPHICAL_SHEET_PROVIDER.fromSaved(sheetKey);
         if (planner) {
             recordSheetEvent("openSheetByKey", planner);

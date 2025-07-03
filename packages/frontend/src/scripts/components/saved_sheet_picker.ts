@@ -129,14 +129,11 @@ export class SheetPickerTable extends CustomTable<SheetHandle, TableSelectionMod
                             rowBeingDragged.style.top = `${delta}px`;
                         },
                         upHandler: () => {
-                            // this.sheet.requestSave();
                             lastDelta = 0;
                             rowBeingDragged.style.top = '';
                             rowBeingDragged.classList.remove('dragging');
                             console.log('Drag end');
                             rowBeingDragged = null;
-                            // TODO: currently, a reorder will not cause a version bump, so it will never get synced.
-                            // TODO: shouldn't the flush happen before the readData call?
                             outer.readData();
                             outer.mgr.flush();
                         },
@@ -219,14 +216,12 @@ export class SheetPickerTable extends CustomTable<SheetHandle, TableSelectionMod
             {
                 shortName: "sheetlevel",
                 displayName: "Lvl",
-                // TODO: make this part of metadata
                 getter: sheet => sheet.level,
                 fixedWidth: 40,
             },
             {
                 shortName: "sheetname",
                 displayName: "Sheet Name",
-                // TODO: make this part of metadata
                 getter: sheet => sheet.name,
             },
         ];
@@ -300,7 +295,6 @@ export class SheetPickerTable extends CustomTable<SheetHandle, TableSelectionMod
 
     readData() {
         const data: typeof this.data = [];
-        // Sync tools TODO polish this
         data.push(new SpecialRow(() => {
 
             // Items that only appear for logged-in and verified users
@@ -317,7 +311,6 @@ export class SheetPickerTable extends CustomTable<SheetHandle, TableSelectionMod
 
             // Items that only appear for non-logged-in-users
             const loginButton = makeActionButton('Login/Register', () => showAccountModal());
-            // TODO: this briefly flashes even when you're logged in
             const loggedOutText = quickElement('span', [], ['Not logged in - sheets are only stored on this browser!']);
             const loggedOutItems = [loginButton, loggedOutText];
             loggedOutItems.forEach(item => item.classList.add('require-account-state-logged-out'));
