@@ -17,12 +17,12 @@ import {
     SupportedLevel
 } from "@xivgear/xivmath/xivconstants";
 import {
-    DEFAULT_SHEET_METADATA,
     EquippedItem,
     EquipSlotKey,
     EquipSlots,
     FoodItem,
-    GearItem, IlvlSyncInfo,
+    GearItem,
+    IlvlSyncInfo,
     ItemDisplaySettings,
     ItemSlotExport,
     JobData,
@@ -39,7 +39,6 @@ import {
     SetExportExternalSingle,
     SetStatsExport,
     SheetExport,
-    SheetMetadata,
     SheetStatsExport,
     SimExport,
     Substat
@@ -51,7 +50,7 @@ import {writeProxy} from "@xivgear/util/proxies";
 import {SHARED_SET_NAME} from "@xivgear/core/imports/imports";
 import {SimCurrentResult, SimResult, Simulation} from "./sims/sim_types";
 import {getDefaultSims, getRegisteredSimSpecs, getSimSpecByStub} from "./sims/sim_registry";
-import {getNextSheetInternalName} from "./persistence/saved_sheets";
+import {DUMMY_SHEET_MGR, SheetManager} from "./persistence/saved_sheets";
 import {CustomItem} from "./customgear/custom_item";
 import {CustomFood} from "./customgear/custom_food";
 import {statsSerializationProxy} from "@xivgear/xivmath/xivstats";
@@ -66,7 +65,7 @@ export type SheetContstructor<SheetType extends GearPlanSheet> = (...values: She
  */
 export class SheetProvider<SheetType extends GearPlanSheet> {
 
-    constructor(private readonly sheetConstructor: SheetContstructor<SheetType>) {
+    constructor(private readonly sheetConstructor: SheetContstructor<SheetType>, private readonly sheetManager: SheetManager) {
     }
 
     private construct(...args: SheetCtorArgs): SheetType {
@@ -79,7 +78,7 @@ export class SheetProvider<SheetType extends GearPlanSheet> {
      * @param importedData
      */
     fromExport(importedData: SheetExport): SheetType {
-        const sheet = this.construct(undefined, importedData);
+        const sheet = this.construct(undefined, importedData, this.sheetManager);
         // If sims are not specified at all in the import, add the defaults.
         // Note that this will not add sims if they are specified as [], only
         // if unspecified.
@@ -153,7 +152,7 @@ export class SheetProvider<SheetType extends GearPlanSheet> {
             isMultiJob: multiJob,
             // ctor will auto-fill the rest
         };
-        const gearPlanSheet = this.construct(sheetKey, fakeExport);
+        const gearPlanSheet = this.construct(sheetKey, fakeExport, this.sheetManager);
         gearPlanSheet.addDefaultSims();
         // TODO
         // gearPlanSheet._selectFirstRowByDefault = true;
@@ -167,23 +166,19 @@ export class SheetProvider<SheetType extends GearPlanSheet> {
      * @returns The sheet if found, otherwise null
      */
     fromSaved(sheetKey: string): SheetType | null {
-        const exported = loadSaved(sheetKey);
-        return exported ? this.construct(sheetKey, exported) : null;
-    }
-}
-
-export const HEADLESS_SHEET_PROVIDER = new SheetProvider((...args) => new GearPlanSheet(...args));
-
-
-function loadSaved(sheetKey: string): SheetExport | null {
-    const item = localStorage.getItem(sheetKey);
-    if (item) {
-        return JSON.parse(item) as SheetExport;
-    }
-    else {
+        const handle = this.sheetManager.getByKey(sheetKey);
+        const data = handle?.dataNow;
+        if (data) {
+            return this.construct(sheetKey, handle.dataNow, this.sheetManager);
+        }
         return null;
     }
 }
+
+export const HEADLESS_SHEET_PROVIDER = new SheetProvider((...args) => new GearPlanSheet(...args), DUMMY_SHEET_MGR);
+
+
+// TODO: core shouldn't reference localStorage
 
 /**
  * Base class for a sheet. For graphical usage, see GearPlanSheetGui.
@@ -226,6 +221,7 @@ export class GearPlanSheet {
 
     // Init related
     private _setupDone: boolean = false;
+    private saveEnabled: boolean = false;
 
     // Display state
     private _isViewOnly: boolean = false;
@@ -234,15 +230,17 @@ export class GearPlanSheet {
     // Temporal state
     private readonly saveTimer: Inactivitytimer;
 
-    private _timestamp: Date;
+    protected _timestamp: Date;
 
     // Occult Crescent et al
     private _activeSpecialStat: SpecialStatType | null = null;
 
+    protected sheetManager: SheetManager;
 
     // Can't make ctor private for custom element, but DO NOT call this directly - use fromSaved or fromScratch
-    constructor(sheetKey: string, importedData: SheetExport) {
+    constructor(sheetKey: string, importedData: SheetExport, manager: SheetManager) {
         console.log(importedData);
+        this.sheetManager = manager;
         this._importedData = importedData;
         this._saveKey = sheetKey;
         this._sheetName = importedData.name;
@@ -449,38 +447,23 @@ export class GearPlanSheet {
         // This is set when importing - but it needs to know about items first. Thus we have to redo this now.
         this.activeSpecialStat = this._activeSpecialStat;
         this._setupDone = true;
+        setTimeout(() => {
+            this.saveEnabled = true;
+        }, 500);
     }
 
     /**
      * Save data for this sheet now.
      */
     saveData() {
-        if (!this.setupDone) {
+        if (!this.saveEnabled) {
             // Don't clobber a save with empty data because the sheet hasn't loaded!
             return;
         }
         if (this.saveKey) {
             console.log("Saving sheet " + this.sheetName);
             this._timestamp = new Date();
-            const fullExport = this.exportSheet(false);
-            const msk = this.metaSaveKey;
-            const metaRaw = localStorage.getItem(msk);
-            let meta: SheetMetadata;
-            if (metaRaw) {
-                meta = {
-                    ...DEFAULT_SHEET_METADATA,
-                    ...JSON.parse(metaRaw),
-                };
-            }
-            else {
-                meta = DEFAULT_SHEET_METADATA;
-            }
-            meta = {
-                ...meta,
-                currentVersion: (meta.currentVersion ?? 1) + 1,
-            };
-            localStorage.setItem(msk, JSON.stringify(meta));
-            localStorage.setItem(this.saveKey, JSON.stringify(fullExport));
+            this.sheetManager.saveData(this);
         }
         else {
             console.debug("Ignoring request to save sheet because it has no save key");
@@ -492,7 +475,12 @@ export class GearPlanSheet {
      * have happened for a certain timeout, thus allowing multiple modifications to be coalesced into a single save
      * operation.
      */
-    requestSave() {
+    requestSave(): void {
+        // We want saving to be temporarily suppressed prior to the sheet fully loading, so that we don't get a useless
+        // save if you open a sheet and don't change anything.
+        if (!this.saveEnabled) {
+            return;
+        }
         this.saveTimer.ping();
     }
 
@@ -549,9 +537,7 @@ export class GearPlanSheet {
                 setExport.jobOverride = null;
             });
         }
-        const newKey = getNextSheetInternalName();
-        localStorage.setItem(newKey, JSON.stringify(exported));
-        return newKey;
+        return this.sheetManager.saveAs(exported);
     }
 
     exportSims(external: boolean): SimExport[] {

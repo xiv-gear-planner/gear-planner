@@ -951,7 +951,7 @@ export class GearItemsViewTable extends CustomTable<GearSlotItem> {
                     if (alts.length > 0) {
                         const altButton = makeActionButton(`+${alts.length} alt items`, () => {
                             const modal = new AltItemsModal(slotItem, alts);
-                            modal.attachAndShow();
+                            modal.attachAndShowExclusively();
                         });
                         altButton.classList.add('gear-items-view-alts-button');
                         colHeader.appendChild(altButton);

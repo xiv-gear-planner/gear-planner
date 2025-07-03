@@ -1,4 +1,3 @@
-import {closeModal} from "@xivgear/common-ui/modalcontrol";
 import {quickElement} from "@xivgear/common-ui/components/util";
 import {CharacterGearSet} from "@xivgear/core/gear";
 import {BaseModal} from "@xivgear/common-ui/components/modal";
@@ -29,7 +28,7 @@ export function startRenameSet(set: CharacterGearSet) {
 
 function startRename(modal: RenameModal) {
     document.querySelector('body').appendChild(modal);
-    modal.show();
+    modal.showExclusively();
 }
 
 class RenameModal extends BaseModal {
@@ -60,7 +59,7 @@ class RenameModal extends BaseModal {
 
         this.cancelButton = document.createElement('button');
         this.cancelButton.textContent = 'Cancel';
-        this.cancelButton.addEventListener('click', () => closeModal());
+        this.cancelButton.addEventListener('click', () => this.close());
 
         const form = quickElement('form', [], [
             this.nameInput,
@@ -76,7 +75,7 @@ class RenameModal extends BaseModal {
     apply(ev?: SubmitEvent) {
         this.itemBeingRenamed.name = this.nameInput.value;
         this.itemBeingRenamed.description = this.descriptionInput.value;
-        closeModal();
+        this.close();
         if (ev) {
             ev.preventDefault();
             ev.stopPropagation();

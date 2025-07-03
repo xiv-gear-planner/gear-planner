@@ -130,7 +130,7 @@ export class MeldSolverDialog extends BaseModal {
     async solveResultReceived(set: CharacterGearSet, dps: number) {
         const oldDps = (await this.settingsDiv.simSettings.sim.simulate(this.settingsDiv.gearsetGenSettings.gearset)).mainDpsResult;
         const confirm = new MeldSolverConfirmationDialog(this._sheet, this.settingsDiv.gearsetGenSettings.gearset, set, [oldDps, dps], this.close);
-        confirm.attachAndShow();
+        confirm.attachAndShowExclusively();
     }
 
     showSettings() {
@@ -381,7 +381,7 @@ class MateriaEntry extends HTMLDivElement {
 // @ts-expect-error asdfsadfdsafdsafa
 window['srt'] = () => {
     new MeldSolverConfirmationDialog(window.currentSheet, window.currentGearSet, window.currentGearSet, [12345, 13579], () => {
-    }).attachAndShow();
+    }).attachAndShowExclusively();
 };
 
 type RowElements = {

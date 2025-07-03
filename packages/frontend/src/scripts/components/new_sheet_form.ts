@@ -8,15 +8,15 @@ import {
     quickElement
 } from "@xivgear/common-ui/components/util";
 import {JOB_DATA, JobName, LEVEL_ITEMS, MAX_ILVL, SupportedLevel} from "@xivgear/xivmath/xivconstants";
-import {getNextSheetInternalName} from "@xivgear/core/persistence/saved_sheets";
-import {GearPlanSheet} from "@xivgear/core/sheet";
+import {SheetHandle, SheetManager} from "@xivgear/core/persistence/saved_sheets";
+import {GearPlanSheet, SheetProvider} from "@xivgear/core/sheet";
 import {GRAPHICAL_SHEET_PROVIDER} from "./sheet";
 import {levelSelect} from "@xivgear/common-ui/components/level_picker";
 import {BaseModal} from "@xivgear/common-ui/components/modal";
 import {SHARED_SET_NAME} from "@xivgear/core/imports/imports";
 import {recordSheetEvent} from "@xivgear/gearplan-frontend/analytics/analytics";
 import {JobIcon} from "./job_icon";
-import {RoleKey} from "@xivgear/xivmath/geartypes";
+import {RoleKey, SheetSummary} from "@xivgear/xivmath/geartypes";
 
 export type NewSheetTempSettings = {
     ilvlSyncEnabled: boolean,
@@ -139,7 +139,7 @@ export class NewSheetForm extends HTMLFormElement {
     private readonly fieldSet: NewSheetFormFieldSet;
     private readonly sheetOpenCallback: SheetOpenCallback;
 
-    constructor(sheetOpenCallback: SheetOpenCallback) {
+    constructor(sheetOpenCallback: SheetOpenCallback, private readonly sheetManager: SheetManager, private readonly sheetProvider: SheetProvider<GearPlanSheet>) {
         super();
         this.sheetOpenCallback = sheetOpenCallback;
         // Header
@@ -178,21 +178,34 @@ export class NewSheetForm extends HTMLFormElement {
             ev.preventDefault();
             return;
         }
-        if (this.fieldSet.jobPicker.selectedJob === null) {
+        const job = this.fieldSet.jobPicker.selectedJob;
+        if (job === null) {
             alert("Please select a job");
             ev.preventDefault();
             return;
         }
-        const nextSheetSaveStub = getNextSheetInternalName();
         const settings = this.fieldSet.newSheetSettings;
-        const gearPlanSheet = GRAPHICAL_SHEET_PROVIDER.fromScratch(nextSheetSaveStub, this.fieldSet.nameInput.value, this.fieldSet.jobPicker.selectedJob, this.fieldSet.levelDropdown.selectedItem, settings.ilvlSyncEnabled ? settings.ilvlSync : undefined, settings.multiJob);
+        const sheetName = this.fieldSet.nameInput.value;
+
+        const multiJob = settings.multiJob;
+        const isync = settings.ilvlSyncEnabled ? settings.ilvlSync : undefined;
+        const level = this.fieldSet.levelDropdown.selectedItem;
+        const summary: SheetSummary = {
+            isync,
+            job,
+            level,
+            multiJob,
+            name: sheetName,
+        };
+        const handle: SheetHandle = this.sheetManager.newSheetFromScratch(summary);
+        const gearPlanSheet = this.sheetProvider.fromScratch(handle.key, sheetName, job, level, isync, multiJob);
         recordSheetEvent("newSheet", gearPlanSheet);
         this.sheetOpenCallback(gearPlanSheet).then(() => gearPlanSheet.requestSave());
     }
 }
 
 export class SaveAsModal extends BaseModal {
-    private fieldSet: NewSheetFormFieldSet;
+    private readonly fieldSet: NewSheetFormFieldSet;
 
     constructor(existingSheet: GearPlanSheet, callback: SheetOpenCallback) {
         super();
@@ -202,7 +215,7 @@ export class SaveAsModal extends BaseModal {
         let defaultName = existingSheet.sheetName;
         // Add 'copy' to the name if we're copying a sheet that has been saved, or one that's in view only mode.
         if (existingSheet.saveKey !== undefined || existingSheet.isViewOnly) {
-            defaultName = existingSheet.sheetName === SHARED_SET_NAME ? SHARED_SET_NAME :  existingSheet.sheetName + ' copy';
+            defaultName = existingSheet.sheetName === SHARED_SET_NAME ? SHARED_SET_NAME : existingSheet.sheetName + ' copy';
         }
 
         this.fieldSet = new NewSheetFormFieldSet({

@@ -19,6 +19,46 @@ export function makeActionButton(label: string | (Node | string)[], action: (ev:
 }
 
 /**
+ * Create a button that performs an async action. Changes its appearance and disables clicking while the action is in
+ * progress.
+ *
+ * @param label
+ * @param action
+ * @param tooltip
+ */
+export function makeAsyncActionButton(label: string | (Node | string)[], action: (ev: MouseEvent) => Promise<void>, tooltip?: string) {
+    const button = document.createElement("button");
+    button.classList.add('async-action-button');
+    const loadingBlocker = document.createElement('div');
+    loadingBlocker.textContent = '...';
+    loadingBlocker.classList.add('loading-pane');
+    if (typeof label === 'string') {
+        button.replaceChildren(label, loadingBlocker);
+    }
+    else {
+        button.replaceChildren(...label, loadingBlocker);
+    }
+    button.addEventListener('click', async (ev) => {
+        ev.stopPropagation();
+        button.classList.add('in-progress');
+        button.disabled = true;
+        try {
+            await action(ev);
+        }
+        finally {
+            button.classList.remove('in-progress');
+            button.disabled = false;
+        }
+    });
+    if (tooltip !== undefined) {
+        button.title = tooltip;
+    }
+    // By default, will not submit forms.
+    button.type = 'button';
+    return button;
+}
+
+/**
  * Html 'option' element but carries a data element with it
  */
 export class OptionDataElement<X> extends HTMLOptionElement {
@@ -56,7 +96,7 @@ export class DataSelect<X> extends HTMLSelectElement {
 
 let idCounter = 1;
 
-export function randomId(prefix: string = 'unique-id-') : string{
+export function randomId(prefix: string = 'unique-id-'): string {
     return prefix + (idCounter++);
 }
 

@@ -1,5 +1,5 @@
 import {xivApiIconUrl, xivApiSingleCols} from "@xivgear/core/external/xivapi";
-import {AnyStringIndex} from "@xivgear/util/types";
+import {AnyStringIndex} from "@xivgear/util/util_types";
 import {getCurrentLanguage} from "@xivgear/i18n/translation";
 import {Buff} from "@xivgear/core/sims/sim_types";
 import {quickElement} from "@xivgear/common-ui/components/util";

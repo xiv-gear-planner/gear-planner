@@ -4,7 +4,6 @@ import {
     labeledRadioButton,
     makeActionButton
 } from "@xivgear/common-ui/components/util";
-import {closeModal} from "@xivgear/common-ui/modalcontrol";
 import {putShortLink} from "@xivgear/core/external/shortlink_server";
 import {CharacterGearSet} from "@xivgear/core/gear";
 import {BaseModal} from "@xivgear/common-ui/components/modal";
@@ -218,7 +217,7 @@ export function startExport(sheet: GearPlanSheet | CharacterGearSet) {
     else {
         modal = new SetExportModal(sheet);
     }
-    modal.attachAndShow();
+    modal.attachAndShowExclusively();
 }
 
 declare global {
@@ -280,7 +279,6 @@ abstract class ExportModal<X> extends BaseModal {
 
         this.contentArea.appendChild(fieldset);
 
-        const closeButton = makeActionButton('Close', () => closeModal());
         const previewButton = makeActionButton('Preview', () => this.doPreview());
 
         this.textBox = document.createElement('textarea');
@@ -293,7 +291,7 @@ abstract class ExportModal<X> extends BaseModal {
 
         this.addButton(this.variableButton);
         this.addButton(previewButton);
-        this.addButton(closeButton);
+        this.addCloseButton();
 
         this.selectedOption = exportOptions[0];
     }

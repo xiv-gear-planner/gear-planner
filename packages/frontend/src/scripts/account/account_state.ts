@@ -5,56 +5,14 @@ import {
     ValidationErrorResponse
 } from "@xivgear/account-service-client/accountsvc";
 import {recordEvent} from "@xivgear/common-ui/analytics/analytics";
+import {RefreshLoop} from "@xivgear/util/refreshloop";
 
-class RefreshLoop {
-
-    private readonly callback: () => Promise<void>;
-    private readonly timeoutProvider: () => number;
-    private currentTimer: number | null = null;
-
-    constructor(callback: () => Promise<void>, timeout: () => number) {
-        this.callback = callback;
-        this.timeoutProvider = timeout;
-    }
-
-    start(): void {
-        if (this.currentTimer === null) {
-            this.scheduleNext();
-        }
-    }
-
-    stop(): void {
-        if (this.currentTimer !== null) {
-            clearTimeout(this.currentTimer);
-            this.currentTimer = null;
-        }
-    }
-
-    get timeout(): number {
-        return this.timeoutProvider();
-    }
-
-    async refresh(): Promise<void> {
-        this.stop();
-        try {
-            await this.callback();
-        }
-        catch (e) {
-            console.error("Error refreshing", e);
-        }
-        this.scheduleNext();
-    }
-
-    private scheduleNext(): void {
-        const to = this.timeout;
-        this.currentTimer = window.setTimeout(() => this.refresh(), to);
-    }
-}
 
 // TODO: since api client is no longer configured to throw on bad response, need to manually check all of them
 export class AccountStateTracker {
 
     private readonly refreshLoop: RefreshLoop;
+    private _lastAccountState: AccountInfo | null = null;
     private _accountState: AccountInfo | null = null;
     private jwt: string | null = null;
     private _listeners: AccountStateListener[] = [];
@@ -73,8 +31,14 @@ export class AccountStateTracker {
 
     private notifyListeners(): void {
         for (const listener of this._listeners) {
-            listener(this);
+            try {
+                listener(this, this._accountState, this._lastAccountState);
+            }
+            catch (e) {
+                console.error("Error notifying listener", e);
+            }
         }
+        this._lastAccountState = this._accountState;
     }
 
     private ingestAccountState(accountState: AccountInfo): void {
@@ -267,6 +231,17 @@ export class AccountStateTracker {
         return this.jwt;
     }
 
+    get verifiedToken(): string | null {
+        if (this.accountState?.verified) {
+            return this.token;
+        }
+        return null;
+    }
+
+    get hasVerifiedToken(): boolean {
+        return this.verifiedToken !== null;
+    }
+
     /**
      * Submits a verification code to verify the user's email address.
      *
@@ -304,7 +279,7 @@ export class AccountStateTracker {
     }
 }
 
-export type AccountStateListener = (tracker: AccountStateTracker) => void;
+export type AccountStateListener = (tracker: AccountStateTracker, stateNow: AccountInfo | null, stateAfter: AccountInfo | null) => void;
 
 
 const accountApiClient = new AccountServiceClient<never>({

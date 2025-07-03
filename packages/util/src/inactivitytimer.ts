@@ -23,6 +23,7 @@ export class Inactivitytimer {
         }, this._inactivityTimeMs);
     }
 
+    // TODO: this doesn't seem to necessarily work - another incoming request can "reset" this one
     runNext() {
         this.counter++;
         const expectedCount = this.counter;
@@ -32,7 +33,7 @@ export class Inactivitytimer {
     }
 
     private pingAfter(exectedCount: number) {
-        // console.debug('pingafter', exectedCount, this.counter);
+        // console.log('pingafter', exectedCount, this.counter);
         if (this.counter === exectedCount) {
             this.onInactivity();
         }

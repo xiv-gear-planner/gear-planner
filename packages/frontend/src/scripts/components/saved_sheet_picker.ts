@@ -1,6 +1,14 @@
 import {col, CustomRow, CustomTable, SpecialRow, TableSelectionModel} from "@xivgear/common-ui/table/tables";
-import {faIcon, makeActionButton, makeCloseButton, quickElement} from "@xivgear/common-ui/components/util";
-import {deleteSheetByKey, SelectableSheet, SheetManager} from "@xivgear/core/persistence/saved_sheets";
+import {
+    errorIcon,
+    faIcon,
+    makeActionButton,
+    makeAsyncActionButton,
+    makeCloseButton,
+    makeTrashIcon,
+    quickElement
+} from "@xivgear/common-ui/components/util";
+import {SheetHandle, SheetManager, SyncStatus} from "@xivgear/core/persistence/saved_sheets";
 import {getHashForSaveKey, openSheetByKey, showNewSheetForm} from "../base_ui";
 import {confirmDelete} from "@xivgear/common-ui/components/delete_confirm";
 import {JobIcon} from "./job_icon";
@@ -8,31 +16,48 @@ import {JOB_DATA} from "@xivgear/xivmath/xivconstants";
 import {jobAbbrevTranslated} from "./job_name_translator";
 import {CharacterGearSet} from "@xivgear/core/gear";
 import {installDragHelper} from "./draghelpers";
+import {ACCOUNT_STATE_TRACKER} from "../account/account_state";
+import {UserDataSyncer} from "../account/user_data";
+import {showAccountModal} from "../account/components/account_components";
+import {Inactivitytimer} from "@xivgear/util/inactivitytimer";
 
-export class SheetPickerTable extends CustomTable<SelectableSheet, TableSelectionModel<SelectableSheet, never, never, SelectableSheet | null>> {
-    private readonly mgr: SheetManager;
+export class SheetPickerTable extends CustomTable<SheetHandle, TableSelectionModel<SheetHandle, never, never, SheetHandle | null>> {
 
-    constructor() {
+    private readonly buttonRefresh: Inactivitytimer;
+    private readonly conflictUpBtn: HTMLButtonElement;
+    private readonly conflictDnBtn: HTMLButtonElement;
+
+    constructor(private readonly mgr: SheetManager, private readonly uds: UserDataSyncer) {
         super();
         this.classList.add("gear-sheets-table");
         this.classList.add("hoverable");
         const outer = this;
-        this.mgr = new SheetManager(localStorage);
+        this.mgr.setUpdateHook('sheet-picker', {
+            onSheetListChange(): void {
+                // TODO: this causes flashing when the job icon elements get re-rendered
+                outer.readData();
+                outer.buttonRefresh.ping();
+            },
+            onSheetUpdate(handle: SheetHandle): void {
+                outer.refreshCells(handle);
+                outer.buttonRefresh.ping();
+            },
+        });
         this.columns = [
             col({
                 shortName: "sheetactions",
                 displayName: "",
                 getter: sheet => sheet,
-                renderer: (sel: SelectableSheet) => {
-                    const sheet = sel.sheet;
+                renderer: (sel: SheetHandle) => {
                     const div = document.createElement("div");
                     div.appendChild(makeActionButton([faIcon('fa-trash-can')], (ev) => {
-                        if (confirmDelete(ev, `Delete sheet '${sheet.name}'?`)) {
-                            deleteSheetByKey(sheet.saveKey);
+                        if (confirmDelete(ev, `Delete sheet '${sel.name}'?`)) {
+                            sel.deleteLocal();
+                            sel.flush();
                             this.readData();
                         }
-                    }, `Delete sheet '${sheet.name}'`));
-                    const hash = getHashForSaveKey(sheet.saveKey);
+                    }, `Delete sheet '${sel.name}'`));
+                    const hash = getHashForSaveKey(sel.key);
                     const linkUrl = new URL(`#/${hash.join('/')}`, document.location.toString());
                     const newTabLink = document.createElement('a');
                     newTabLink.href = linkUrl.toString();
@@ -42,7 +67,7 @@ export class SheetPickerTable extends CustomTable<SelectableSheet, TableSelectio
                         ev.stopPropagation();
                     }, true);
                     newTabLink.classList.add('borderless-button');
-                    newTabLink.title = `Open sheet '${sheet.name}' in a new tab/window`;
+                    newTabLink.title = `Open sheet '${sel.name}' in a new tab/window`;
                     div.appendChild(newTabLink);
                     // Reorder dragger
                     const dragger = document.createElement('button');
@@ -104,7 +129,6 @@ export class SheetPickerTable extends CustomTable<SelectableSheet, TableSelectio
                             rowBeingDragged.style.top = `${delta}px`;
                         },
                         upHandler: () => {
-                            // this.sheet.requestSave();
                             lastDelta = 0;
                             rowBeingDragged.style.top = '';
                             rowBeingDragged.classList.remove('dragging');
@@ -118,24 +142,59 @@ export class SheetPickerTable extends CustomTable<SelectableSheet, TableSelectio
                     return div;
                 },
             }),
-            // col({
-            //     shortName: "sort",
-            //     displayName: "Sort",
-            //     getter: sheet => {
-            //         return sheet.sortOrder;
-            //     },
-            //     // renderer: job => {
-            //     //     return jobAbbrevTranslated(job);
-            //     // },
-            // }),
+            col({
+                shortName: "syncstatus",
+                displayName: "Sync",
+                getter: ss => {
+                    if (ACCOUNT_STATE_TRACKER.loggedIn && ACCOUNT_STATE_TRACKER.accountState?.verified) {
+                        return [ss.syncStatus, ss.busy];
+                    }
+                    return null;
+                },
+                renderer: (status: [SyncStatus, boolean] | null) => {
+                    if (status === null) {
+                        return document.createTextNode('');
+                    }
+                    const out = [];
+                    const statusType = status[0];
+                    switch (statusType) {
+                        case "in-sync":
+                            out.push('✓');
+                            break;
+                        case "never-uploaded":
+                        case "client-newer-than-server":
+                            out.push('↑');
+                            break;
+                        case "never-downloaded":
+                        case "server-newer-than-client":
+                            out.push('↓');
+                            break;
+                        case "conflict":
+                            out.push(errorIcon());
+                            break;
+                        case "unknown":
+                            out.push('?');
+                            break;
+                        case 'trash':
+                            // This *shouldn't* happen
+                            out.push(makeTrashIcon());
+                            break;
+                    }
+                    const active = status[1];
+                    if (active) {
+                        out.push('...');
+                    }
+                    return quickElement('span', ['sync-status'], out);
+                },
+            }),
             col({
                 shortName: "sheetjob",
                 displayName: "Job",
                 getter: sheet => {
-                    if (sheet.sheet.isMultiJob) {
-                        return JOB_DATA[sheet.sheet.job].role;
+                    if (sheet.multiJob) {
+                        return JOB_DATA[sheet.job].role;
                     }
-                    return sheet.sheet.job;
+                    return sheet.job;
                 },
                 renderer: job => {
                     return jobAbbrevTranslated(job);
@@ -145,10 +204,10 @@ export class SheetPickerTable extends CustomTable<SelectableSheet, TableSelectio
                 shortName: "sheetjobicon",
                 displayName: "Job Icon",
                 getter: sheet => {
-                    if (sheet.sheet.isMultiJob) {
-                        return JOB_DATA[sheet.sheet.job].role;
+                    if (sheet.multiJob) {
+                        return JOB_DATA[sheet.job].role;
                     }
-                    return sheet.sheet.job;
+                    return sheet.job;
                 },
                 renderer: jobOrRole => {
                     return new JobIcon(jobOrRole);
@@ -157,22 +216,21 @@ export class SheetPickerTable extends CustomTable<SelectableSheet, TableSelectio
             {
                 shortName: "sheetlevel",
                 displayName: "Lvl",
-                getter: sheet => sheet.sheet.level,
+                getter: sheet => sheet.level,
                 fixedWidth: 40,
             },
             {
                 shortName: "sheetname",
                 displayName: "Sheet Name",
-                getter: sheet => sheet.sheet.name,
+                getter: sheet => sheet.name,
             },
         ];
-        this.readData();
         this.selectionModel = {
             clickCell() {
             },
             clickColumnHeader() {
             },
-            clickRow(row: CustomRow<SelectableSheet>) {
+            clickRow(row: CustomRow<SheetHandle>) {
                 openSheetByKey(row.dataItem.key);
             },
             getSelection(): null {
@@ -191,10 +249,85 @@ export class SheetPickerTable extends CustomTable<SelectableSheet, TableSelectio
 
             },
         };
+        this.conflictUpBtn = makeActionButton('Conflicts: Upload', async () => {
+            this.mgr.allSheets.forEach(ss => {
+                ss.conflictResolutionStrategy = 'keep-local';
+                this.refreshCells(ss);
+            });
+            this.refreshButtons();
+            this.uds.syncSheets();
+        });
+        this.conflictDnBtn = makeActionButton('Conflicts: Download', async () => {
+            this.mgr.allSheets.forEach(ss => {
+                ss.conflictResolutionStrategy = 'keep-remote';
+                this.refreshCells(ss);
+            });
+            this.refreshButtons();
+            this.uds.syncSheets();
+        });
+        this.buttonRefresh = new Inactivitytimer(2_000, () => {
+            this.refreshButtons();
+        });
+        this.refreshButtons();
+        this.readData();
+    }
+
+    private refreshButtons() {
+        if (this.mgr.allSheets.find(ss => ss.syncStatus === 'conflict')) {
+            this.conflictUpBtn.style.display = '';
+            this.conflictDnBtn.style.display = '';
+        }
+        else {
+            this.conflictUpBtn.style.display = 'none';
+            this.conflictDnBtn.style.display = 'none';
+        }
+
+    }
+
+    refreshCells(handle: SheetHandle): void {
+        for (const cell of (this.dataRowMap.get(handle)?.dataColMap.values() ?? [])) {
+            if (cell.colDef.shortName === 'syncstatus' || cell.colDef.shortName === 'sheetname') {
+                cell.refreshFull();
+            }
+            this.buttonRefresh.ping();
+        }
     }
 
     readData() {
         const data: typeof this.data = [];
+        data.push(new SpecialRow(() => {
+
+            // Items that only appear for logged-in and verified users
+            const refreshButton = makeAsyncActionButton('Refresh', async () => {
+                await this.uds.prepSheetSync();
+            });
+            // Sync also refreshes, so hide this from non-power-users
+            refreshButton.style.display = 'none';
+            const syncButton = makeAsyncActionButton('Sync Now', async () => {
+                await this.uds.syncSheets();
+            });
+            const loggedInItems = [refreshButton, syncButton, this.conflictDnBtn, this.conflictUpBtn];
+            loggedInItems.forEach(item => item.classList.add('require-account-state-verified'));
+
+            // Items that only appear for non-logged-in-users
+            const loginButton = makeActionButton('Login/Register', () => showAccountModal());
+            const loggedOutText = quickElement('span', [], ['Not logged in - sheets are only stored on this browser!']);
+            const loggedOutItems = [loginButton, loggedOutText];
+            loggedOutItems.forEach(item => item.classList.add('require-account-state-logged-out'));
+
+            // Items that only appear for logged-in but not verified users
+            const verifyButton = makeActionButton('Verify', () => showAccountModal());
+            const verifyText = quickElement('span', [], ['Not verified - sheets are only stored on this browser!']);
+            const verifyItems = [verifyButton, verifyText];
+            verifyItems.forEach(item => item.classList.add('require-account-state-unverified'));
+
+            // Items displayed when account (actually token) state has not loaded yet.
+            const accountLoadingText = quickElement('span', [], ['Checking account...']);
+            const loadingItems = [accountLoadingText];
+            loadingItems.forEach(item => item.classList.add('require-account-state-not-loaded'));
+
+            return quickElement('div', ['sync-tools'], [...loggedInItems, ...loggedOutItems, ...verifyItems, ...loadingItems]);
+        }));
         // "New sheet" button/row
         data.push(new SpecialRow(() => {
             const div = document.createElement("div");
@@ -223,9 +356,10 @@ export class SheetPickerTable extends CustomTable<SelectableSheet, TableSelectio
         }, row => {
             row.classList.add('search-row-outer');
         }));
-        const items: SelectableSheet[] = this.mgr.readData();
+        const items: SheetHandle[] = this.mgr.allDisplayableSheets;
         data.push(...items);
         this.data = data;
+        this.buttonRefresh.ping();
     }
 
     search(searchValue: string | null) {
