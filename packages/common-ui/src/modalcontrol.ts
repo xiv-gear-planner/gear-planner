@@ -118,7 +118,6 @@ export class ModalControl {
 
     private resetListenerState() {
         // Reset to known good state
-        // TODO is this actually needed?
         document.removeEventListener('mousedown', this.listener);
         if (this.topmostModal) {
             document.addEventListener('mousedown', this.listener);

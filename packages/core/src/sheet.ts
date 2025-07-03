@@ -449,7 +449,7 @@ export class GearPlanSheet {
         this._setupDone = true;
         setTimeout(() => {
             this.saveEnabled = true;
-        }, 5_000);
+        }, 500);
     }
 
     /**
@@ -479,8 +479,7 @@ export class GearPlanSheet {
         // We want saving to be temporarily suppressed prior to the sheet fully loading, so that we don't get a useless
         // save if you open a sheet and don't change anything.
         if (!this.saveEnabled) {
-            // TODO xxx
-            // return;
+            return;
         }
         this.saveTimer.ping();
     }
