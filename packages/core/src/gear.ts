@@ -1294,11 +1294,17 @@ export function isSameOrBetterItem(candidateItem: GearItem, baseItem: GearItem):
     return true;
 }
 
-export type SyncInfo = {
+export type LvlSyncInfo = {
     lvlSync: number | null;
-} & ({
+}
+
+export type NoIsyncInfo = {
     ilvlSync: null;
-} | {
+}
+
+export type IsyncInfo = {
     ilvlSync: number;
     ilvlSyncIsExplicit: boolean;
-});
+}
+
+export type SyncInfo = LvlSyncInfo & (NoIsyncInfo | IsyncInfo);
