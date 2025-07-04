@@ -1,40 +1,34 @@
-import {Ability, GcdAbility, OgcdAbility, Buff, BuffController} from "@xivgear/core/sims/sim_types";
-import {BlmGauge} from "./blm_gauge";
+import {Ability, GcdAbility, OgcdAbility, Buff, BuffController, HasGaugeUpdate, HasGaugeCondition} from "@xivgear/core/sims/sim_types";
+import {BlmGaugeManager} from "./blm_gauge";
+
+export enum BlmElement {
+    Fire = 'Fire',
+    Ice = 'Ice',
+    Thunder = 'Thunder',
+    Unaspected = 'Unaspected'
+};
 
 /** A BLM-specific ability. */
 export type BlmAbility = Ability & Readonly<{
-    /** Fire/ice aspected element, undefined if unaspected */
-    element?: 'fire' | 'ice';
+    /** The element (fire, ice, thunder, unaspected). Not all abilities have an element. */
+    element?: BlmElement;
+}>;
 
-    /** The polyglot cost of the ability */
-    polyglotCost?: number;
-
-    /** For element change, astral soul, and umbral hearts */
-    updateGaugeLegacy?(gauge: BlmGauge): void;
-}> & {
-    /** The MP cost of the ability */
-    mp?: number | 'flare' | 'all';
-}
-
-export type BlmGcdAbility = GcdAbility & BlmAbility;
+export type BlmGcdAbility = GcdAbility & BlmAbility & HasGaugeUpdate<BlmGaugeManager> & HasGaugeCondition<BlmGaugeManager>;
 
 export type BlmOgcdAbility = OgcdAbility & BlmAbility;
 
 /** Represents the BLM gauge state */
 export type BlmGaugeState = {
-    aspect: number,
+    level: number,
+    element: BlmElement,
+    elementLevel?: number,
     umbralHearts: number,
-    mp: number,
+    magicPoints: number,
     polyglot: number,
     paradox: boolean,
     astralSoul: number,
 }
-
-/** Represents the extra data for UsedAbility, primarily for consumption in the UI */
-export type BlmExtraData = {
-    /** The BLM gauge data */
-    gauge: BlmGaugeState,
-};
 
 export const LeyLinesBuff: Buff = {
     name: "Circle of Power",
@@ -60,7 +54,12 @@ export const FirestarterBuff: Buff = {
                 ...ability,
                 id: 30896,
                 cast: 0,
-                mp: 0,
+                updateGauge: (gauge: BlmGaugeManager) => {
+                    gauge.giveAstralFire(3);
+                },
+                gaugeConditionSatisfied: (gauge: BlmGaugeManager): boolean => {
+                    return gauge.firestarter;
+                },
             };
         }
         return null;

@@ -1,110 +1,150 @@
-import {BlmGcdAbility, BlmOgcdAbility, FirestarterBuff, LeyLinesBuff, SwiftcastBuff, TriplecastBuff} from "./blm_types";
+import {HasGaugeUpdate, HasGaugeCondition} from "@xivgear/core/sims/sim_types";
+import {BlmGaugeManager} from "./blm_gauge";
+import {BlmElement, BlmGcdAbility, BlmOgcdAbility, FirestarterBuff, LeyLinesBuff, SwiftcastBuff, TriplecastBuff} from "./blm_types";
 
 // GCDs
 
 export const Fire3: BlmGcdAbility = {
     type: 'gcd',
     name: "Fire III",
-    element: 'fire',
+    element: BlmElement.Fire,
     id: 152,
     potency: 290,
     attackType: "Spell",
     gcd: 2.5,
     appDelay: 1.292,
     cast: 3.5,
-    mp: 2000,
-    updateGaugeLegacy: gauge => {
+    updateGauge: (gauge: BlmGaugeManager) => {
+        gauge.updateForFireSpell(2000);
         gauge.giveAstralFire(3);
+    },
+    gaugeConditionSatisfied: (gauge: BlmGaugeManager): boolean => {
+        return gauge.canUseFireSpell(2000);
     },
 };
 
 export const Fire4: BlmGcdAbility = {
     type: 'gcd',
     name: "Fire IV",
-    element: 'fire',
+    element: BlmElement.Fire,
     id: 3577,
     potency: 300,
     attackType: "Spell",
     gcd: 2.5,
     appDelay: 1.159,
     cast: 2.0,
-    mp: 800,
-    updateGaugeLegacy: gauge => gauge.astralSoul += 1,
+    updateGauge: (gauge: BlmGaugeManager) => {
+        gauge.updateForFireSpell(800);
+        gauge.astralSoul += 1;
+    },
+    gaugeConditionSatisfied: (gauge: BlmGaugeManager): boolean => {
+        return gauge.isInFire() && gauge.canUseFireSpell(800);
+    },
 };
 
 export const Flare: BlmGcdAbility = {
     type: 'gcd',
     name: "Flare",
-    element: 'fire',
+    element: BlmElement.Fire,
     id: 162,
     potency: 240,
     attackType: "Spell",
     gcd: 2.5,
     appDelay: 1.157,
     cast: 2.0,
-    mp: 'flare',
-    updateGaugeLegacy: gauge => gauge.astralSoul += 3,
+    updateGauge: (gauge: BlmGaugeManager) => {
+        gauge.updateForFireSpell('flare');
+        gauge.astralSoul += 3;
+    },
+    gaugeConditionSatisfied: (gauge: BlmGaugeManager): boolean => {
+        return gauge.isInFire() && gauge.canUseFireSpell('flare');
+    },
 };
 
 export const FlareStar: BlmGcdAbility = {
     type: 'gcd',
     name: "Flare Star",
-    element: 'fire',
+    element: BlmElement.Fire,
     id: 36989,
     potency: 500,
     attackType: "Spell",
     gcd: 2.5,
     appDelay: 0.622,
     cast: 2.0,
-    mp: 0,
-    updateGaugeLegacy: gauge => gauge.astralSoul -= 6,
+    updateGauge: (gauge: BlmGaugeManager) => {
+        gauge.astralSoul = 0;
+    },
+    gaugeConditionSatisfied: (gauge: BlmGaugeManager): boolean => {
+        return gauge.astralSoul === 6;
+    },
 };
 
 export const Despair: BlmGcdAbility = {
     type: 'gcd',
     name: "Despair",
-    element: 'fire',
+    element: BlmElement.Fire,
     id: 16505,
     potency: 300,
     attackType: "Spell",
     gcd: 2.5,
     appDelay: 0.556,
     cast: 2.0,
-    mp: 'all',
-    updateGaugeLegacy: gauge => gauge.paradox = false,
+    levelModifiers: [
+        {
+            minLevel: 100,
+            cast: 0,
+        },
+    ],
+    updateGauge: (gauge: BlmGaugeManager) => {
+        gauge.updateForFireSpell('despair');
+    },
+    gaugeConditionSatisfied: (gauge: BlmGaugeManager): boolean => {
+        return gauge.canUseFireSpell('despair');
+    },
 };
 
 export const Blizzard3: BlmGcdAbility = {
     type: 'gcd',
     name: "Blizzard III",
-    element: 'ice',
+    element: BlmElement.Ice,
     id: 154,
     potency: 290,
     attackType: "Spell",
     gcd: 2.5,
     appDelay: 0.890,
     cast: 3.5,
-    mp: 800,
-    updateGaugeLegacy: gauge => gauge.giveUmbralIce(3),
+    updateGauge: (gauge: BlmGaugeManager) => {
+        gauge.updateForIceSpell(800);
+        gauge.giveUmbralIce(3);
+    },
+    gaugeConditionSatisfied: (gauge: BlmGaugeManager): boolean => {
+        return gauge.canUseIceSpell(800);
+    },
 };
 
 export const Blizzard4: BlmGcdAbility = {
     type: 'gcd',
     name: "Blizzard IV",
-    element: 'ice',
+    element: BlmElement.Ice,
     id: 3576,
     potency: 300,
     attackType: "Spell",
     gcd: 2.5,
     appDelay: 1.158,
-    cast: 3.5,
-    mp: 800,
-    updateGaugeLegacy: gauge => gauge.umbralHearts += 3,
+    cast: 2.0,
+    updateGauge: (gauge: BlmGaugeManager) => {
+        gauge.updateForIceSpell(800);
+        gauge.umbralHearts += 3;
+    },
+    gaugeConditionSatisfied: (gauge: BlmGaugeManager): boolean => {
+        return gauge.isInIce() && gauge.canUseIceSpell(800);
+    },
 };
 
 export const Thunder3: BlmGcdAbility = {
     type: 'gcd',
     name: "Thunder III",
+    element: BlmElement.Thunder,
     id: 153,
     potency: 120,
     dot: {
@@ -116,12 +156,18 @@ export const Thunder3: BlmGcdAbility = {
     gcd: 2.5,
     appDelay: 1.025,
     cast: 0,
-    mp: 0,
+    updateGauge: (gauge: BlmGaugeManager) => {
+        gauge.thunderhead = false;
+    },
+    gaugeConditionSatisfied: (gauge: BlmGaugeManager): boolean => {
+        return gauge.thunderhead;
+    },
 };
 
 export const HighThunder: BlmGcdAbility = {
     type: 'gcd',
     name: "High Thunder",
+    element: BlmElement.Thunder,
     id: 36986,
     potency: 150,
     dot: {
@@ -133,25 +179,60 @@ export const HighThunder: BlmGcdAbility = {
     gcd: 2.5,
     appDelay: 0.757,
     cast: 0,
-    mp: 0,
+    updateGauge: (gauge: BlmGaugeManager) => {
+        gauge.thunderhead = false;
+    },
+    gaugeConditionSatisfied: (gauge: BlmGaugeManager): boolean => {
+        return gauge.thunderhead;
+    },
 };
 
 export const Xenoglossy: BlmGcdAbility = {
     type: 'gcd',
     name: "Xenoglossy",
+    element: BlmElement.Unaspected,
     id: 16507,
     potency: 890,
     attackType: "Spell",
     gcd: 2.5,
     appDelay: 0.630,
     cast: 0,
-    mp: 0,
-    updateGaugeLegacy: gauge => gauge.polyglot -= 1,
+    updateGauge: (gauge: BlmGaugeManager) => {
+        gauge.polyglot -= 1;
+    },
+    gaugeConditionSatisfied: (gauge: BlmGaugeManager): boolean => {
+        return gauge.polyglot > 0;
+    },
+};
+
+export const Foul: BlmGcdAbility = {
+    type: 'gcd',
+    name: "Foul",
+    element: BlmElement.Unaspected,
+    id: 7422,
+    potency: 600,
+    attackType: "Spell",
+    gcd: 2.5,
+    appDelay: 0.630,
+    cast: 2.0,
+    levelModifiers: [
+        {
+            minLevel: 80,
+            cast: 0,
+        },
+    ],
+    updateGauge: (gauge: BlmGaugeManager) => {
+        gauge.polyglot -= 1;
+    },
+    gaugeConditionSatisfied: (gauge: BlmGaugeManager): boolean => {
+        return gauge.polyglot > 0;
+    },
 };
 
 export const FireParadox: BlmGcdAbility = {
     type: 'gcd',
     name: "Paradox",
+    element: BlmElement.Unaspected,
     id: 25797,
     potency: 540,
     attackType: "Spell",
@@ -159,26 +240,37 @@ export const FireParadox: BlmGcdAbility = {
     gcd: 2.5,
     appDelay: 0.624,
     cast: 0,
-    mp: 1600,
-    updateGaugeLegacy: gauge => gauge.paradox = false,
+    updateGauge: (gauge: BlmGaugeManager) => {
+        gauge.paradox = false;
+        gauge.magicPoints -= 1600;
+        gauge.firestarter = true;
+    },
+    gaugeConditionSatisfied: (gauge: BlmGaugeManager): boolean => {
+        return gauge.isInFire() && gauge.magicPoints >= 1600 && gauge.paradox;
+    },
 };
 
 export const IceParadox: BlmGcdAbility = {
     type: 'gcd',
     name: "Paradox",
+    element: BlmElement.Unaspected,
     id: 25797,
     potency: 540,
     attackType: "Spell",
     gcd: 2.5,
     appDelay: 0.624,
     cast: 0,
-    mp: 0,
-    updateGaugeLegacy: gauge => gauge.paradox = false,
+    updateGauge: (gauge: BlmGaugeManager) => {
+        gauge.paradox = false;
+    },
+    gaugeConditionSatisfied: (gauge: BlmGaugeManager): boolean => {
+        return gauge.isInIce() && gauge.paradox;
+    },
 };
 
 // oGCDs
 
-export const Transpose: BlmOgcdAbility = {
+export const Transpose: BlmOgcdAbility & HasGaugeUpdate<BlmGaugeManager> = {
     type: 'ogcd',
     name: "Transpose",
     id: 149,
@@ -188,12 +280,12 @@ export const Transpose: BlmOgcdAbility = {
         time: 5,
     },
     appDelay: 0,
-    updateGaugeLegacy: gauge => {
-        if (gauge.aspect > 0) {
+    updateGauge: (gauge: BlmGaugeManager) => {
+        if (gauge.isInFire()) {
             // From AFx to UI1
             gauge.giveUmbralIce(1);
         }
-        else if (gauge.aspect < 0) {
+        else if (gauge.isInIce()) {
             // From UIx to AF1
             gauge.giveAstralFire(1);
         }
@@ -251,7 +343,7 @@ export const LeyLines: BlmOgcdAbility = {
     appDelay: 0.491,
 };
 
-export const Amplifier: BlmOgcdAbility = {
+export const Amplifier: BlmOgcdAbility & HasGaugeUpdate<BlmGaugeManager> & HasGaugeCondition<BlmGaugeManager> = {
     type: 'ogcd',
     name: "Amplifier",
     id: 25796,
@@ -262,10 +354,15 @@ export const Amplifier: BlmOgcdAbility = {
         charges: 1,
     },
     appDelay: 0,
-    updateGaugeLegacy: gauge => gauge.polyglot += 1,
+    updateGauge: (gauge: BlmGaugeManager) => {
+        gauge.polyglot += 1;
+    },
+    gaugeConditionSatisfied: (gauge: BlmGaugeManager): boolean => {
+        return gauge.isInIce() || gauge.isInFire();
+    },
 };
 
-export const Manafont: BlmOgcdAbility = {
+export const Manafont: BlmOgcdAbility & HasGaugeUpdate<BlmGaugeManager> & HasGaugeCondition<BlmGaugeManager> = {
     type: 'ogcd',
     name: "Manafont",
     id: 158,
@@ -285,9 +382,14 @@ export const Manafont: BlmOgcdAbility = {
             },
         },
     ],
-    updateGaugeLegacy: gauge => {
-        gauge.magicPoints += 10000;
-        gauge.umbralHearts += 3;
+    updateGauge: (gauge: BlmGaugeManager) => {
+        gauge.magicPoints = 10000;
+        gauge.giveAstralFire(3);
+        gauge.thunderhead = true;
+        gauge.umbralHearts = 3;
         gauge.paradox = true;
+    },
+    gaugeConditionSatisfied: (gauge: BlmGaugeManager): boolean => {
+        return gauge.isInFire();
     },
 };
