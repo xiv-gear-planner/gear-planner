@@ -47,7 +47,7 @@ import {isMateriaAllowed} from "./materia/materia_utils";
 
 
 export function nonEmptyRelicStats(stats: RelicStats | undefined): boolean {
-    return (stats && !Object.values(stats).every(val => !val));
+    return (stats && !Object.values(stats).every(val => !val)) ?? false;
 }
 
 export class RelicStatMemory {
@@ -114,7 +114,7 @@ export class MateriaMemory {
     set(equipSlot: EquipSlotKey, item: EquippedItem) {
         let bySlot: Map<number, SingleMateriaMemory[]>;
         if (this.memory.has(equipSlot)) {
-            bySlot = this.memory.get(equipSlot);
+            bySlot = this.memory.get(equipSlot)!;
         }
         else {
             bySlot = new Map();
@@ -195,7 +195,7 @@ export class SetDisplaySettings {
 }
 
 export function previewItemStatDetail(item: GearItem, stat: RawStatKey): ItemSingleStatDetail {
-    const cap = item.statCaps[stat];
+    const cap = item.statCaps[stat]!;
     if (item.isSyncedDown) {
         const unsynced = item.unsyncedVersion.stats[stat];
         const synced = item.stats[stat];
@@ -254,13 +254,13 @@ type GearSetCheckpointNode = {
  */
 export class CharacterGearSet {
     private _name: string;
-    private _description: string;
+    private _description: string | undefined = undefined;
     equipment: EquipmentSet;
     listeners: (() => void)[] = [];
     private _dirtyComp: boolean = true;
-    private _lastResult: GearSetResult;
+    private _lastResult!: GearSetResult;
     private _jobOverride: JobName | null = null;
-    private _raceOverride: RaceName;
+    private _raceOverride: RaceName | null = null;
     private _food: FoodItem | undefined;
     private readonly _sheet: GearPlanSheet;
     private readonly refresher = new Inactivitytimer(0, () => {
@@ -269,7 +269,7 @@ export class CharacterGearSet {
     readonly relicStatMemory: RelicStatMemory = new RelicStatMemory();
     readonly materiaMemory: MateriaMemory = new MateriaMemory();
     readonly displaySettings: SetDisplaySettings = new SetDisplaySettings();
-    currentCheckpoint: GearSetCheckpointNode;
+    currentCheckpoint: GearSetCheckpointNode | undefined = undefined;
     checkpointEnabled: boolean = false;
     private _reverting: boolean = false;
     private _undoHook: () => void = () => null;
@@ -277,7 +277,7 @@ export class CharacterGearSet {
 
     constructor(sheet: GearPlanSheet) {
         this._sheet = sheet;
-        this.name = "";
+        this._name = "";
         this.equipment = new EquipmentSet();
         if (sheet.isMultiJob) {
             // This acts as a default. For a variety of reasons, such as changing the main class of a sheet, we want
@@ -437,7 +437,7 @@ export class CharacterGearSet {
                     });
                 }
                 // We want to unconditionally restore locked materia
-                const eq = this.equipment[slot];
+                const eq = this.equipment[slot]!;
                 for (let i = 0; i < reEquip.length; i++) {
                     if (i in eq.melds) {
                         const meld = eq.melds[i];
@@ -465,8 +465,7 @@ export class CharacterGearSet {
         this.notifyListeners();
     }
 
-    toEquippedItem(item: GearItem): EquippedItem;
-    toEquippedItem(item: null): null;
+    toEquippedItem<T extends GearItem | null>(item: T): T extends GearItem ? EquippedItem : null;
 
     /**
      * Preview an item as if it were equipped
@@ -675,7 +674,7 @@ export class CharacterGearSet {
     } {
         const issues: GearSetIssue[] = [];
         const equip = this.equipment[slotId];
-        if (!equip.gearItem) {
+        if (!equip?.gearItem) {
             return {
                 stats: EMPTY_STATS,
                 issues: [],
@@ -1299,7 +1298,6 @@ export type SyncInfo = {
     lvlSync: number | null;
 } & ({
     ilvlSync: null;
-    ilvlSyncIsExplicit: never;
 } | {
     ilvlSync: number;
     ilvlSyncIsExplicit: boolean;

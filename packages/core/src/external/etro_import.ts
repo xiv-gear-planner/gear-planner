@@ -83,13 +83,16 @@ export async function getSetFromEtro(etroSetId: string): Promise<SetExportExtern
                 const relicData = await getEtroRelic(relicId);
                 itemId = relicData.baseItem.id;
                 const baseParamsResponse = await baseParamsPromise;
-                const baseParams = baseParamsResponse.data.items;
+                const baseParams = baseParamsResponse.data.items!;
                 for (let i = 0; i <= 5; i++) {
                     const paramId = relicData[`param${i}` as keyof EtroRelic];
                     if (!paramId) {
                         break;
                     }
                     const paramData = baseParams.find(item => item.rowId === paramId);
+                    if (paramData === undefined) {
+                        throw Error(`Could not find base param ${paramId} in base params`);
+                    }
                     const stat = BaseParamToStatKey[paramData.name as RelevantBaseParam];
                     relicStats[stat as Substat] = relicData[`param${i}Value` as keyof EtroRelic] as number;
                 }

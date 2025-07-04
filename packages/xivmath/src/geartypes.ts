@@ -667,7 +667,7 @@ export interface SheetExport {
     /**
      * The character clan (e.g. Wildwood or Duskwight) of the sheet.
      */
-    race: RaceName,
+    race: RaceName | undefined,
     /**
      * Party bonus percentage (0-5)
      */

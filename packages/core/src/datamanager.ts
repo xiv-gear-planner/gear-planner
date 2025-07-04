@@ -32,7 +32,7 @@ export interface DataManager {
     readonly maxIlvl: number;
     readonly minIlvlFood: number;
     readonly maxIlvlFood: number;
-    readonly ilvlSync: number;
+    readonly ilvlSync: number | undefined;
     readonly level: number;
 
     /**
