@@ -2,11 +2,14 @@ import {DataApiClient, HttpResponse} from "@xivgear/data-api-client/dataapi";
 
 export type ApiClientRawType<X extends keyof DataApiClient<never>, Y extends keyof DataApiClient<never>[X]> = DataApiClient<never>[X][Y];
 
-export type ApiItemData = Awaited<ReturnType<ApiClientRawType<'items', 'items'>>>['data']['items'][number];
-export type ApiMateriaData = Awaited<ReturnType<ApiClientRawType<'materia', 'materia'>>>['data']['items'][number];
-export type ApiFoodData = Awaited<ReturnType<ApiClientRawType<'food', 'foodItems'>>>['data']['items'][number];
+// TODO: the NonNullable part is only there because there doesn't seem to be a good way to bulk annotate fields as
+// required on the OpenAPI/Micronaut side.
+// See https://github.com/micronaut-projects/micronaut-core/issues/8822
+export type ApiItemData = NonNullable<Awaited<ReturnType<ApiClientRawType<'items', 'items'>>>['data']['items']>[number];
+export type ApiMateriaData = NonNullable<Awaited<ReturnType<ApiClientRawType<'materia', 'materia'>>>['data']['items']>[number];
+export type ApiFoodData = NonNullable<Awaited<ReturnType<ApiClientRawType<'food', 'foodItems'>>>['data']['items']>[number];
 // type BaseParamType = Awaited<ReturnType<ApiClientRawType<'baseParams', 'baseParams'>>>['data']['items'][number]
-export type ApiJobType = Awaited<ReturnType<ApiClientRawType<'jobs', 'jobs'>>>['data']['items'][number];
+export type ApiJobType = NonNullable<Awaited<ReturnType<ApiClientRawType<'jobs', 'jobs'>>>['data']['items']>[number];
 // type ItemLevelType = Awaited<ReturnType<ApiClientRawType<'itemLevel', 'itemLevels'>>>['data']['items'][number]
 
 export type DataManagerErrorReporter = (r: Response, params: Parameters<typeof fetch>) => void;

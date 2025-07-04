@@ -105,8 +105,8 @@ export class SheetProvider<SheetType extends GearPlanSheet> {
             sims: importedData[0].sims ?? [],
             name: importedData[0].name ?? SHARED_SET_NAME,
             saveKey: undefined,
-            job: importedData[0].job,
-            level: importedData[0].level,
+            job: importedData[0].job!,
+            level: importedData[0].level!,
             ilvlSync: importedData[0].ilvlSync,
             partyBonus: importedData[0].partyBonus ?? 0,
             itemDisplaySettings: defaultItemDisplaySettings,
@@ -186,7 +186,7 @@ export const HEADLESS_SHEET_PROVIDER = new SheetProvider((...args) => new GearPl
 export class GearPlanSheet {
     // General sheet properties
     private _sheetName: string;
-    private _description: string;
+    private _description: string | undefined;
     readonly classJobName: JobName;
     readonly altJobs: JobName[];
     readonly isMultiJob: boolean;
@@ -202,9 +202,9 @@ export class GearPlanSheet {
     private _sims: Simulation<any, any, any>[] = [];
 
     // Data helpers
-    private dataManager: DataManager;
-    private _relevantMateria: Materia[];
-    private _dmRelevantFood: FoodItem[];
+    private dataManager!: DataManager;
+    private _relevantMateria!: Materia[];
+    private _dmRelevantFood!: FoodItem[];
 
     // Custom items
     private _customItems: CustomItem[] = [];
@@ -216,7 +216,7 @@ export class GearPlanSheet {
     protected materiaFillMode: MateriaFillMode;
 
     // Display settings
-    private _showAdvancedStats: boolean;
+    private _showAdvancedStats: boolean = false;
     private readonly _itemDisplaySettings: ItemDisplaySettings = {...defaultItemDisplaySettings};
 
     // Init related
@@ -225,7 +225,7 @@ export class GearPlanSheet {
 
     // Display state
     private _isViewOnly: boolean = false;
-    isEmbed: boolean;
+    isEmbed: boolean = false;
 
     // Temporal state
     private readonly saveTimer: Inactivitytimer;
@@ -238,7 +238,7 @@ export class GearPlanSheet {
     protected sheetManager: SheetManager;
 
     // Can't make ctor private for custom element, but DO NOT call this directly - use fromSaved or fromScratch
-    constructor(sheetKey: string, importedData: SheetExport, manager: SheetManager) {
+    constructor(sheetKey: string | undefined, importedData: SheetExport, manager: SheetManager) {
         console.log(importedData);
         this.sheetManager = manager;
         this._importedData = importedData;
@@ -249,7 +249,7 @@ export class GearPlanSheet {
         this._partyBonus = importedData.partyBonus ?? 0;
         // TODO: why does this default to WHM? Shouldn't it just throw?
         this.classJobName = importedData.job ?? 'WHM';
-        this.isMultiJob = importedData.isMultiJob;
+        this.isMultiJob = importedData.isMultiJob ?? false;
         this._activeSpecialStat = (importedData.specialStats ?? null) as SpecialStatType | null;
         this.altJobs = this.isMultiJob ? [
             ...ALL_COMBAT_JOBS.filter(job => JOB_DATA[job].role === JOB_DATA[this.classJobName].role
@@ -499,7 +499,7 @@ export class GearPlanSheet {
     /**
      * The description of the sheet.
      */
-    get description() {
+    get description(): string | undefined {
         return this._description;
     }
 
@@ -700,7 +700,7 @@ export class GearPlanSheet {
         const items: { [K in EquipSlotKey]?: ItemSlotExport } = {};
         for (const k in set.equipment) {
             const equipmentKey = k as EquipSlotKey;
-            const inSlot: EquippedItem = set.equipment[equipmentKey];
+            const inSlot: EquippedItem | null = set.equipment[equipmentKey];
             if (inSlot) {
                 const exportedItem: ItemSlotExport = {
                     // TODO: determine if it makes more sense to just serialize empty materia slots as {}
@@ -763,7 +763,7 @@ export class GearPlanSheet {
      * @param id The item ID. For custom items, use the custom item's fake ID.
      * @param forceNq If true, searches for an NQ version of an otherwise-HQ item.
      */
-    itemById(id: number, forceNq: boolean = false): GearItem {
+    itemById(id: number, forceNq: boolean = false): GearItem | undefined {
         const custom = this._customItems.find(ci => ci.id === id);
         if (custom) {
             return custom;
@@ -776,9 +776,9 @@ export class GearPlanSheet {
     /**
      * Return a food item from the DataManager by its ID. Returns undefined if the item could not be found.
      *
-     * @param id The item IJD. FOr custom items, use the custom item's fake ID.
+     * @param id The item ID. For custom items, use the custom item's fake ID.
      */
-    foodById(id: number): FoodItem {
+    foodById(id: number): FoodItem | undefined {
         const custom = this._customFoods.find(cf => cf.id === id);
         if (custom) {
             return custom;
@@ -945,7 +945,7 @@ export class GearPlanSheet {
      *
      * @param simExport The data to import.
      */
-    importSim(simExport: SimExport): Simulation<any, any, any> {
+    importSim(simExport: SimExport): Simulation<any, any, any> | null {
         const simSpec = getSimSpecByStub(simExport.stub);
         if (simSpec === undefined) {
             return null;
@@ -973,7 +973,7 @@ export class GearPlanSheet {
         else {
 
             for (const equipmentSlot in importedSet.items) {
-                const importedItem: ItemSlotExport = importedSet.items[equipmentSlot as EquipSlotKey];
+                const importedItem: ItemSlotExport | undefined = importedSet.items[equipmentSlot as EquipSlotKey];
                 if (!importedItem) {
                     continue;
                 }
@@ -984,6 +984,9 @@ export class GearPlanSheet {
                 const equipped = new EquippedItem(baseItem);
                 for (let i = 0; i < Math.min(equipped.melds.length, importedItem.materia.length); i++) {
                     const importedMateria = importedItem.materia[i];
+                    if (importedMateria === undefined) {
+                        continue;
+                    }
                     const id = importedMateria.id;
                     const mat = this.dataManager.materiaById(id);
                     const slot = equipped.melds[i];
@@ -996,7 +999,7 @@ export class GearPlanSheet {
                     }
                 }
                 if (importedItem.relicStats && equipped.gearItem.isCustomRelic) {
-                    Object.assign(equipped.relicStats, importedItem.relicStats);
+                    Object.assign(equipped.relicStats!, importedItem.relicStats);
                 }
                 set.equipment[equipmentSlot as EquipSlotKey] = equipped;
             }
@@ -1014,7 +1017,7 @@ export class GearPlanSheet {
             }
             // When importing a single set into a multi-job sheet, set the job override
             else if ('job' in importedSet && importedSet.job && this.isMultiJob) {
-                set.earlySetJobOverride((importedSet as SetExportExternalSingle).job);
+                set.earlySetJobOverride((importedSet as SetExportExternalSingle).job ?? null);
             }
         }
         return set;
@@ -1086,7 +1089,7 @@ export class GearPlanSheet {
      * Determine whether a stat is relevant to this sheet based on its job.
      * @param stat
      */
-    isStatRelevant(stat: RawStatKey): boolean {
+    isStatRelevant(stat: RawStatKey | undefined): boolean {
         if (!this.classJobEarlyStats) {
             // Not sure what the best way to handle this is
             return true;
@@ -1358,17 +1361,25 @@ export class GearPlanSheet {
         else {
             if (levelSync !== null) {
                 // Implicit ilvl sync
-                return {
-                    lvlSync: levelSync,
-                    ilvlSync: this.dataManager.getImplicitIlvlSync(levelSync, true),
-                    ilvlSyncIsExplicit: false,
-                };
+                const implicitSync = this.dataManager.getImplicitIlvlSync(levelSync, true);
+                if (implicitSync === undefined) {
+                    return {
+                        lvlSync: levelSync,
+                        ilvlSync: null,
+                    };
+                }
+                else {
+                    return {
+                        lvlSync: levelSync,
+                        ilvlSync: implicitSync,
+                        ilvlSyncIsExplicit: false,
+                    };
+                }
             }
             else {
                 return {
                     lvlSync: levelSync,
                     ilvlSync: null,
-                    ilvlSyncIsExplicit: null,
                 };
             }
         }

@@ -138,7 +138,7 @@ export interface Simulation<ResultType extends SimResult, SettingsType extends S
     /**
      * The original sim spec.
      */
-    spec: SimSpec<typeof this, SettingsExport>
+    spec: SimSpec<Simulation<ResultType, SettingsType, SettingsExport>, SettingsExport>
 
     /**
      * If true, do not automatically re-run the sim. Currently, this is only implemented for
@@ -179,7 +179,7 @@ export interface SimCurrentResult<X extends SimResult = SimResult> {
     /**
      * Like {@link result}, but in the form of a Promise. This allows you to wait for the results.
      */
-    resultPromise: Promise<X>;
+    resultPromise: Promise<X> | undefined;
 }
 
 /**

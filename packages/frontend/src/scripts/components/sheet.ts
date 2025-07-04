@@ -2484,7 +2484,8 @@ function formatSyncInfo(si: SyncInfo, level: SupportedLevel): string | null {
             text += `lv${level} `;
         }
         if (si.ilvlSync !== null) {
-            if (si.ilvlSyncIsExplicit) {
+            // TODO: when strict mode is finished, fix this a bit.
+            if ('ilvlSyncIsExplicit' in si && si.ilvlSyncIsExplicit) {
                 text += `i${si.ilvlSync}`;
             }
             else {
