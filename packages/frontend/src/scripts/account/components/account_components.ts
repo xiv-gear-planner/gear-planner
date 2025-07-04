@@ -179,6 +179,14 @@ class AccountManagementInner extends HTMLElement {
                 });
                 privacyCbl.setAttribute('validation-field', 'privacy');
 
+                const cookieCheckbox = document.createElement('input');
+                cookieCheckbox.type = 'checkbox';
+                const cookieCbl = labeledCheckbox(quickElement('span', [], ['I consent to cookies (required for account services)']), cookieCheckbox);
+                cookieCbl.addEventListener('change', () => {
+                    cookieCbl.classList.remove('failed');
+                });
+                cookieCbl.setAttribute('validation-field', 'cookie');
+
                 const submitButton = makeActionButton('Register', () => {
                 });
                 submitButton.type = 'submit';
@@ -199,6 +207,7 @@ class AccountManagementInner extends HTMLElement {
                         pwrf.passwordRepeatField,
                         displayName,
                         privacyCbl,
+                        cookieCbl,
                         submitButton,
                     ],
                     async onSuccess(value: RegisterResponse): Promise<void> {
@@ -212,6 +221,12 @@ class AccountManagementInner extends HTMLElement {
                             out.push({
                                 field: 'privacy',
                                 message: 'You must agree to the privacy policy',
+                            });
+                        }
+                        if (!cookieCheckbox.checked) {
+                            out.push({
+                                field: 'cookie',
+                                message: 'You must consent to cookies as they are required to log in',
                             });
                         }
                         if (!pwrf.isValid()) {
