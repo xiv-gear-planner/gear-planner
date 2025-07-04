@@ -60,7 +60,7 @@ function registerGui<X extends Simulation<SimResult, unknown, unknown>>(simSpec:
     simGuiMap.set(simSpec as SimSpec<never, never>, guiCtor as SimGuiCtor<never>);
 }
 
-function getGuiCtor<X extends Simulation<never, never, never>>(simSpec: SimSpec<X, never>): SimGuiCtor<X> {
+function getGuiCtor<X extends Simulation<SimResult, unknown, unknown>>(simSpec: SimSpec<X, never>): SimGuiCtor<X> {
     return simGuiMap.get(simSpec as SimSpec<never, never>);
 }
 
