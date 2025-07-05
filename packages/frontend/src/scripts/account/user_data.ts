@@ -12,6 +12,7 @@ import {JobName, SupportedLevel} from "@xivgear/xivmath/xivconstants";
 import {SHEET_MANAGER} from "../components/saved_sheet_impl";
 import {RefreshLoop} from "@xivgear/util/refreshloop";
 import {Inactivitytimer} from "@xivgear/util/inactivitytimer";
+import {recordError} from "@xivgear/common-ui/analytics/analytics";
 
 const userDataClient = new UserDataClient<never>({
     baseUrl: document.location.hostname === 'localhost' ? 'http://localhost:8087' : 'https://userdata.xivgear.app',
@@ -64,7 +65,8 @@ export class UserDataSyncer {
             await this.syncSheets();
         }, () => {
             if (this.accountStateTracker.hasVerifiedToken) {
-                return 60_000;
+                // Refresh every 3 minutes by default
+                return 180_000;
             }
             else {
                 return 600_000;
@@ -183,8 +185,7 @@ export class UserDataSyncer {
         const newHandles: SheetHandle[] = [];
         newSheets.forEach(sheetMeta => {
             const svrVer = sheetMeta.version ?? 1;
-            // TODO: need to update logic in the application elsewhere to account for this "dummy sheet" concept.
-            // Basically, if the local version is 0, then we know that the sheet exists on the server, and we should
+            // If the local version is 0, then we know that the sheet exists on the server, and we should
             // display it iff the user is logged in. If the user wishes to open this sheet, then we need to download
             // it on demand.
             const svrSum = sheetMeta.summary;
@@ -243,81 +244,85 @@ export class UserDataSyncer {
 
     private async performSync(): Promise<'success' | 'not-logged-in' | 'nothing-to-do'> {
         const mgr = this.sheetMgr;
-        // TODO: any time we look at whether we're logged in or not, we actually need to know if we're verified or not
         const jwt: string | null = this.accountStateTracker.verifiedToken;
         if (jwt === null) {
             return 'not-logged-in';
         }
-        // TODO: deleted sheets
         // TODO: send back 429 too many requests if throttled
         // TODO: better log messages, hard to tell what's going on
         try {
             for (const sheetHandle of mgr.allSheets) {
-                switch (sheetHandle.syncStatus) {
-                    case "in-sync":
-                    case 'trash':
-                        // Nothing do do
-                        continue;
-                    case "never-uploaded":
-                    case "client-newer-than-server": {
+                const syncStatus = sheetHandle.syncStatus;
+                try {
+                    switch (syncStatus) {
+                        case "in-sync":
+                        case 'trash':
+                            // Nothing do do
+                            continue;
+                        case "never-uploaded":
+                        case "client-newer-than-server": {
 
-                        const isForcePut = sheetHandle.hasConflict && sheetHandle.conflictResolutionStrategy === 'keep-local';
-                        if (sheetHandle.meta.localDeleted) {
-                            console.info(`Deleting: ${sheetHandle.key}: ${sheetHandle.name} ${sheetHandle.localVersion} -> ${sheetHandle.serverVersion}`);
-                            // TODO: needs to handle 409 conflict without blowing up
-                            await sheetHandle.doAction(this.userDataClient.userdata.deleteSheet(sheetHandle.key, {
-                                lastSyncedVersion: sheetHandle.lastSyncedVersion,
-                                newSheetVersion: sheetHandle.localVersion,
-                            }, this.buildParams()));
-                            sheetHandle.lastSyncedVersion = sheetHandle.localVersion;
-                        }
-                        else {
-                            console.info(`Uploading: ${sheetHandle.key}: ${sheetHandle.name} ${sheetHandle.localVersion} -> ${sheetHandle.serverVersion}`);
-                            const data = sheetHandle.dataNow;
-                            if (!data) {
-                                console.error(`Data is null for sheet ${sheetHandle.key} (${sheetHandle.name})!`);
-                                break;
+                            const isForcePut = sheetHandle.hasConflict && sheetHandle.conflictResolutionStrategy === 'keep-local';
+                            if (sheetHandle.meta.localDeleted) {
+                                console.info(`Deleting: ${sheetHandle.key}: ${sheetHandle.name} ${sheetHandle.localVersion} -> ${sheetHandle.serverVersion}`);
+                                // TODO: needs to handle 409 conflict without blowing up
+                                await sheetHandle.doAction(this.userDataClient.userdata.deleteSheet(sheetHandle.key, {
+                                    lastSyncedVersion: sheetHandle.lastSyncedVersion,
+                                    newSheetVersion: sheetHandle.localVersion,
+                                }, this.buildParams()));
+                                sheetHandle.lastSyncedVersion = sheetHandle.localVersion;
                             }
-                            // TODO: needs to handle 409 conflict without blowing up
-                            /*
-                            Logic for handling force put.
-                            Example: last synced = 5, local = 6, server = 7. We need to set the local version to 8, so
-                            that the server believes that it is actually newer. We also specify 7 as the last synced
-                            version, since the server will still want to do a conflict check.
-                             */
-                            // Compute the 'effective local version' as described above.
-                            const effectiveLocalVersion: number = isForcePut ? Math.max(sheetHandle.localVersion, sheetHandle.serverVersion + 1) : sheetHandle.localVersion;
-                            const effectiveLastSynced: number = isForcePut ? sheetHandle.serverVersion : sheetHandle.lastSyncedVersion;
-                            await sheetHandle.doAction(this.userDataClient.userdata.putSheet(sheetHandle.key, {
-                                sheetData: data,
-                                sheetSummary: sheetHandle.summary,
-                                sortOrder: sheetHandle.sortOrder,
-                                lastSyncedVersion: effectiveLastSynced,
-                                newSheetVersion: effectiveLocalVersion,
-                                // forcePut: isForcePut,
-                            }, this.buildParams()));
-                            sheetHandle.localVersion = effectiveLocalVersion;
-                            sheetHandle.lastSyncedVersion = effectiveLocalVersion;
+                            else {
+                                console.info(`Uploading: ${sheetHandle.key}: ${sheetHandle.name} ${sheetHandle.localVersion} -> ${sheetHandle.serverVersion}`);
+                                const data = sheetHandle.dataNow;
+                                if (!data) {
+                                    console.error(`Data is null for sheet ${sheetHandle.key} (${sheetHandle.name})!`);
+                                    break;
+                                }
+                                // TODO: needs to handle 409 conflict without blowing up
+                                /*
+                                Logic for handling force put.
+                                Example: last synced = 5, local = 6, server = 7. We need to set the local version to 8, so
+                                that the server believes that it is actually newer. We also specify 7 as the last synced
+                                version, since the server will still want to do a conflict check.
+                                 */
+                                // Compute the 'effective local version' as described above.
+                                const effectiveLocalVersion: number = isForcePut ? Math.max(sheetHandle.localVersion, sheetHandle.serverVersion + 1) : sheetHandle.localVersion;
+                                const effectiveLastSynced: number = isForcePut ? sheetHandle.serverVersion : sheetHandle.lastSyncedVersion;
+                                await sheetHandle.doAction(this.userDataClient.userdata.putSheet(sheetHandle.key, {
+                                    sheetData: data,
+                                    sheetSummary: sheetHandle.summary,
+                                    sortOrder: sheetHandle.sortOrder,
+                                    lastSyncedVersion: effectiveLastSynced,
+                                    newSheetVersion: effectiveLocalVersion,
+                                    // forcePut: isForcePut,
+                                }, this.buildParams()));
+                                sheetHandle.localVersion = effectiveLocalVersion;
+                                sheetHandle.lastSyncedVersion = effectiveLocalVersion;
+                            }
+                            break;
                         }
-                        break;
+                        case "never-downloaded":
+                        case "server-newer-than-client": {
+                            console.info(`Downloading: ${sheetHandle.key}: ${sheetHandle.name} ${sheetHandle.localVersion} <- ${sheetHandle.serverVersion}`);
+                            const resp = await this.userDataClient.userdata.getSheet(sheetHandle.key, this.buildParams());
+                            sheetHandle.postDownload(resp.data.metadata.version, resp.data.sheetData as SheetExport, resp.data.metadata.sortOrder ?? null);
+                            break;
+                        }
+                        case "conflict":
+                            console.warn(`Sheet conflict! ${sheetHandle.key}: ${sheetHandle.name} ${sheetHandle.localVersion} > ${sheetHandle.lastSyncedVersion} < ${sheetHandle.serverVersion}`);
+                            break;
+                        case "unknown":
+                            // Can't fix this, and would have already been logged
+                            break;
+                        case "null-data":
+                            break;
                     }
-                    case "never-downloaded":
-                    case "server-newer-than-client": {
-                        // TODO: is there anything we need to do to "finalize" a server->client delete?
-                        console.info(`Downloading: ${sheetHandle.key}: ${sheetHandle.name} ${sheetHandle.localVersion} <- ${sheetHandle.serverVersion}`);
-                        const resp = await this.userDataClient.userdata.getSheet(sheetHandle.key, this.buildParams());
-                        sheetHandle.postDownload(resp.data.metadata.version, resp.data.sheetData as SheetExport, resp.data.metadata.sortOrder ?? null);
-                        break;
-                    }
-                    case "conflict":
-                        console.warn(`Sheet conflict! ${sheetHandle.key}: ${sheetHandle.name} ${sheetHandle.localVersion} > ${sheetHandle.lastSyncedVersion} < ${sheetHandle.serverVersion}`);
-                        break;
-                    case "unknown":
-                        // Can't fix this, and would have already been logged
-                        break;
-                    case "null-data":
-                        break;
                 }
+                catch (e) {
+                    recordError("performSync", e, {'syncHandle': `key: ${sheetHandle.key}, l ${sheetHandle.localVersion} ls ${sheetHandle.lastSyncedVersion} svr ${sheetHandle.serverVersion} status ${syncStatus}`});
+                }
+                sheetHandle.flush();
             }
         }
         finally {
@@ -391,8 +396,6 @@ export function setupUserDataSync() {
             }
             wasValid = valid;
             lastJwt = t.token;
-            // TODO: this is receiving our own updates from the afterLogin() call above.
-            // We need to not loopback.
             setDisplaySettingsChangeCallback(() => {
                 afterSettingsChange();
             });

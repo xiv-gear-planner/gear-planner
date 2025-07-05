@@ -340,6 +340,18 @@ export function showSheetPickerMenu() {
     currentPicker = picker;
     // contentArea.replaceChildren(new SheetPickerTable());
     // setTitle(undefined);
+    // Refresh sheets after a short delay
+    // TODO: good use case for exposing the verified token as a promise, so that we can sync as soon as the token
+    // is ready. Could be an async version of UserDataSyncer.available
+    // TODO: should also load when you log in. Really should just be a listener.
+    if (USER_DATA_SYNCER.available) {
+        USER_DATA_SYNCER.triggerRefreshNow();
+    }
+    else {
+        setTimeout(() => {
+            USER_DATA_SYNCER.triggerRefreshNow();
+        }, 3_000);
+    }
 }
 
 

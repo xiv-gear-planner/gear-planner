@@ -243,7 +243,6 @@ class SheetHandleImpl {
      */
     flush(): void {
         if (this.metaDirty) {
-            // TODO: make meta key a method
             if (this.isTrash) {
                 console.log(`removing ${this.metaKey}`);
                 this.storage.removeItem(this.metaKey);
@@ -263,6 +262,7 @@ class SheetHandleImpl {
             }
             this.dataDirty = false;
         }
+        // TODO: make this reload data if not dirty
     }
 
     get syncStatus(): SyncStatus {
