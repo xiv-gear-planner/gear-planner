@@ -64,7 +64,8 @@ export class UserDataSyncer {
             await this.syncSheets();
         }, () => {
             if (this.accountStateTracker.hasVerifiedToken) {
-                return 60_000;
+                // Refresh every 3 minutes by default
+                return 180_000;
             }
             else {
                 return 600_000;
@@ -183,8 +184,7 @@ export class UserDataSyncer {
         const newHandles: SheetHandle[] = [];
         newSheets.forEach(sheetMeta => {
             const svrVer = sheetMeta.version ?? 1;
-            // TODO: need to update logic in the application elsewhere to account for this "dummy sheet" concept.
-            // Basically, if the local version is 0, then we know that the sheet exists on the server, and we should
+            // If the local version is 0, then we know that the sheet exists on the server, and we should
             // display it iff the user is logged in. If the user wishes to open this sheet, then we need to download
             // it on demand.
             const svrSum = sheetMeta.summary;
@@ -243,12 +243,10 @@ export class UserDataSyncer {
 
     private async performSync(): Promise<'success' | 'not-logged-in' | 'nothing-to-do'> {
         const mgr = this.sheetMgr;
-        // TODO: any time we look at whether we're logged in or not, we actually need to know if we're verified or not
         const jwt: string | null = this.accountStateTracker.verifiedToken;
         if (jwt === null) {
             return 'not-logged-in';
         }
-        // TODO: deleted sheets
         // TODO: send back 429 too many requests if throttled
         // TODO: better log messages, hard to tell what's going on
         try {
@@ -303,7 +301,6 @@ export class UserDataSyncer {
                     }
                     case "never-downloaded":
                     case "server-newer-than-client": {
-                        // TODO: is there anything we need to do to "finalize" a server->client delete?
                         console.info(`Downloading: ${sheetHandle.key}: ${sheetHandle.name} ${sheetHandle.localVersion} <- ${sheetHandle.serverVersion}`);
                         const resp = await this.userDataClient.userdata.getSheet(sheetHandle.key, this.buildParams());
                         sheetHandle.postDownload(resp.data.metadata.version, resp.data.sheetData as SheetExport, resp.data.metadata.sortOrder ?? null);
@@ -391,8 +388,6 @@ export function setupUserDataSync() {
             }
             wasValid = valid;
             lastJwt = t.token;
-            // TODO: this is receiving our own updates from the afterLogin() call above.
-            // We need to not loopback.
             setDisplaySettingsChangeCallback(() => {
                 afterSettingsChange();
             });
