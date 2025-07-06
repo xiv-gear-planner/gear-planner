@@ -189,6 +189,7 @@ class SheetHandleImpl {
                 this.meta.serverDeleted = true;
             }
         }
+        this.pruneSyncRecords();
         // console.trace(`Setting last synced version to ${version} for ${this.key}`);
         this.afterUpdate();
     }
@@ -213,19 +214,50 @@ class SheetHandleImpl {
         return this.meta.serverVersion;
     }
 
+    private fixMissedSync(serverVersion: number, versionKey: number) {
+        // https://github.com/xiv-gear-planner/gear-planner/issues/687#issuecomment-3039439225
+        // If server received a push but we didn't commit that locally, then we end up in a state where
+        // e.g. server = 19, local = 20, lastSynced = 0 - realistically, the last synced version is 19.
+        // But if it was legitimately updated elsewhere, e.g. server = 21, local = 20, lastSynced = 0, then
+        // the correct state would be lastSynced = 20.
+        // Either way, the conflict is resolved.
+        if (this.meta.lastSyncedVersion === 0 && this.localVersion > 0 && serverVersion > 0) {
+            this.meta.lastSyncedVersion = Math.min(this.localVersion, serverVersion);
+        }
+        // https://github.com/xiv-gear-planner/gear-planner/issues/687
+        if (this.meta.unsyncedModifications) {
+            for (let i = 0; i < this.meta.unsyncedModifications.length; i++) {
+                const mod = this.meta.unsyncedModifications[i];
+                if (mod[1] === versionKey) {
+                    this.meta.lastSyncedVersion = Math.max(mod[0], this.meta.lastSyncedVersion);
+                    break;
+                }
+            }
+        }
+        this.pruneSyncRecords();
+    }
+
+    private pruneSyncRecords() {
+        if (this.meta.unsyncedModifications) {
+            this.meta.unsyncedModifications = this.meta.unsyncedModifications.filter(mod => mod[0] > this.meta.lastSyncedVersion);
+        }
+    }
+
     /**
-     * Inform the handle of a new server version which is NOT a deletion
+     * Inform the handle of a new server serverVersion which is NOT a deletion
      *
-     * @param version
+     * @param serverVersion
+     * @param versionKey
      */
-    set serverVersion(version: number) {
+    setServerVersion(serverVersion: number, versionKey: number) {
         this.metaDirty = true;
         this.meta.serverDeleted = false;
-        this.meta.serverVersion = version;
+        this.meta.serverVersion = serverVersion;
         // If the server lost data for some reason, we should do this so that it can re-upload.
-        if (version < this.meta.lastSyncedVersion) {
-            this.meta.lastSyncedVersion = version;
+        if (serverVersion < this.meta.lastSyncedVersion) {
+            this.meta.lastSyncedVersion = serverVersion;
         }
+        this.fixMissedSync(serverVersion, versionKey);
         this.afterUpdate();
     }
 
@@ -337,15 +369,16 @@ class SheetHandleImpl {
     /**
      * Update the metadata after downloading a new version of the sheet.
      *
-     * @param version
+     * @param serverVersion
      * @param data
      * @param sortOrder
+     * @param versionKey
      */
-    postDownload(version: number, data: SheetExport, sortOrder: number | null): void {
+    postDownload(serverVersion: number, data: SheetExport, sortOrder: number | null, versionKey: number): void {
         this._data = data;
-        this.meta.serverVersion = version;
-        this.meta.lastSyncedVersion = version;
-        this.meta.currentVersion = version;
+        this.meta.serverVersion = serverVersion;
+        this.meta.lastSyncedVersion = serverVersion;
+        this.meta.currentVersion = serverVersion;
         this.meta.summary = makeSummaryFromData(data);
         this.meta.localDeleted = false;
         this.meta.serverDeleted = false;
@@ -353,6 +386,7 @@ class SheetHandleImpl {
         this._conflictResolutionStrategy = null;
         this.metaDirty = true;
         this.dataDirty = true;
+        this.fixMissedSync(serverVersion, versionKey);
         this.afterUpdate();
     }
 
@@ -380,6 +414,11 @@ class SheetHandleImpl {
         this.dataDirty = true;
         this.meta.localDeleted = false;
         this._conflictResolutionStrategy = null;
+        if (this.meta.unsyncedModifications === undefined) {
+            this.meta.unsyncedModifications = [];
+        }
+        const randomId = Math.floor(Math.random() * 16384 * 65536) + 1;
+        this.meta.unsyncedModifications.push([this.meta.currentVersion, randomId]);
         this.afterLocalUpdate();
         this.flush();
         this.afterUpdate();

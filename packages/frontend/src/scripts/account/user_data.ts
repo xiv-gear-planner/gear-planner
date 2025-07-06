@@ -165,7 +165,7 @@ export class UserDataSyncer {
                     existingSheetsMap.delete(key);
                 }
                 else {
-                    handle.serverVersion = sheetMeta.version;
+                    handle.setServerVersion(sheetMeta.version, sheetMeta.versionKey);
                     // If this would mean that we should download, then we should trust the server's sort order.
                     if (handle.syncStatus === 'server-newer-than-client') {
                         handle.meta.sortOrder = sheetMeta.sortOrder ?? null;
@@ -180,7 +180,7 @@ export class UserDataSyncer {
             // deleted from the server.
         });
         noServerVersion.forEach(sheet => {
-            sheet.serverVersion = 0;
+            sheet.setServerVersion(0, 0);
         });
         const newHandles: SheetHandle[] = [];
         newSheets.forEach(sheetMeta => {
@@ -233,7 +233,7 @@ export class UserDataSyncer {
                     // Do the sync
                     console.info(`Downloading: ${sheetHandle.key}: ${sheetHandle.name} ${sheetHandle.localVersion} <- ${sheetHandle.serverVersion}`);
                     const resp = await this.userDataClient.userdata.getSheet(sheetHandle.key, this.buildParams());
-                    sheetHandle.postDownload(resp.data.metadata.version, resp.data.sheetData as SheetExport, resp.data.metadata.sortOrder ?? null);
+                    sheetHandle.postDownload(resp.data.metadata.version, resp.data.sheetData as SheetExport, resp.data.metadata.sortOrder ?? null, resp.data.metadata.versionKey);
                     return 'success';
                 }
                 case "unknown":
@@ -299,6 +299,7 @@ export class UserDataSyncer {
                                 }, this.buildParams()));
                                 sheetHandle.localVersion = effectiveLocalVersion;
                                 sheetHandle.lastSyncedVersion = effectiveLocalVersion;
+                                sheetHandle.conflictResolutionStrategy = null;
                             }
                             break;
                         }
@@ -306,7 +307,7 @@ export class UserDataSyncer {
                         case "server-newer-than-client": {
                             console.info(`Downloading: ${sheetHandle.key}: ${sheetHandle.name} ${sheetHandle.localVersion} <- ${sheetHandle.serverVersion}`);
                             const resp = await this.userDataClient.userdata.getSheet(sheetHandle.key, this.buildParams());
-                            sheetHandle.postDownload(resp.data.metadata.version, resp.data.sheetData as SheetExport, resp.data.metadata.sortOrder ?? null);
+                            sheetHandle.postDownload(resp.data.metadata.version, resp.data.sheetData as SheetExport, resp.data.metadata.sortOrder ?? null, resp.data.metadata.versionKey);
                             break;
                         }
                         case "conflict":
