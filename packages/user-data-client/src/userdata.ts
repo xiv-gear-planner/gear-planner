@@ -15,6 +15,8 @@ export interface DeleteSheetRequest {
   lastSyncedVersion?: number;
   /** @format int32 */
   newSheetVersion?: number;
+  /** @format int32 */
+  newSheetVersionKey?: number | null;
 }
 
 export interface DeleteSheetResponse {
@@ -49,6 +51,8 @@ export interface PutSheetRequest {
   lastSyncedVersion?: number;
   /** @format int32 */
   newSheetVersion?: number;
+  /** @format int32 */
+  newSheetVersionKey?: number | null;
   /** @format double */
   sortOrder?: number | null;
   sheetData: Record<string, any>;
@@ -64,6 +68,8 @@ export interface SheetMetadata {
   saveKey?: string;
   /** @format int32 */
   version?: number;
+  /** @format int32 */
+  versionKey?: number;
   /** @format double */
   sortOrder?: number | null;
   deleted?: boolean;

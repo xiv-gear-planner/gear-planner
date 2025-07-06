@@ -735,6 +735,10 @@ export interface SheetExport {
     specialStats?: string | null,
 }
 
+export type SheetModificationKey = number;
+
+export type SheetModificationRecord = [version: number, key: SheetModificationKey];
+
 export type LocalSheetMetadata = {
     /**
      * The current numeric version of the sheet. Should be incremented upon modifications.
@@ -770,6 +774,8 @@ export type LocalSheetMetadata = {
     localDeleted: boolean,
 
     summary: SheetSummary,
+
+    unsyncedModifications?: SheetModificationRecord[],
 }
 
 export type SheetSummary = {
