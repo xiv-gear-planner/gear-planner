@@ -283,7 +283,6 @@ export function makeUrlSimple(...path: string[]): URL {
 export function makeUrl(navState: NavState): URL {
     const joinedPath = navState.path
         .map(pp => encodeURIComponent(pp))
-        .map(pp => pp.replaceAll(PATH_SEPARATOR_LEGACY, VERTICAL_BAR_REPLACEMENT))
         .join(PATH_SEPARATOR);
     const currentLocation = document.location;
     const params = new URLSearchParams(currentLocation.search);
@@ -328,7 +327,7 @@ export function splitPath(input: string) {
     let separatorToUse = PATH_SEPARATOR;
 
     // If this link includes the old separator, use that instead.
-    if (input.includes(VERTICAL_BAR_REPLACEMENT) || input.includes(PATH_SEPARATOR_LEGACY)) {
+    if (input.includes(PATH_SEPARATOR_LEGACY)) {
         separatorToUse = PATH_SEPARATOR_LEGACY;
     }
 
@@ -336,7 +335,7 @@ export function splitPath(input: string) {
         .split(separatorToUse)
         .filter(item => item)
         .map(item => decodeURIComponent(item))
-        .map(pp => pp.replaceAll(VERTICAL_BAR_REPLACEMENT, PATH_SEPARATOR_LEGACY));
+        .map(pp => separatorToUse === PATH_SEPARATOR_LEGACY ? pp.replaceAll(VERTICAL_BAR_REPLACEMENT, PATH_SEPARATOR_LEGACY) : pp);
 }
 
 export function tryParseOptionalIntParam(input: string | undefined): number | undefined {
