@@ -154,6 +154,21 @@ describe('parsePath', () => {
             });
         });
 
+        it('resolves import with underscores', () => {
+            const setValue = {
+                name: 'foo_bar _ baz',
+                race: "The Lost",
+            };
+            const result = parsePath(new NavState(['importset', JSON.stringify(setValue)]));
+            expect(result).to.deep.equals({
+                type: 'setjson',
+                jsonBlob: setValue,
+                embed: false,
+                viewOnly: false,
+            });
+        });
+
+
         it('does not try to embed import set', () => {
             const setValue = {
                 foo: 'bar|baz',
