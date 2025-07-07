@@ -5,17 +5,26 @@ describe('path splitting and joining', () => {
     it('legacy handling converts properly', () => {
         const pathOriginal = '#/foo|bar/asdf|zxcv';
         const legacySplit = splitHashLegacy(pathOriginal);
-        expect(legacySplit).to.deep.equals(['foo|bar', 'asdf|zxcv']);
+        expect(legacySplit).to.deep.equals(['foo_bar', 'asdf_zxcv']);
     });
-    it('splitting splits properly', () => {
+    it('splitting splits properly legacy separator', () => {
         const pathOriginal = 'foo/bar|asdf/zxcv';
         const newSplit = splitPath(pathOriginal);
         expect(newSplit).to.deep.equals(['foo/bar', 'asdf/zxcv']);
     });
+    it('splitting splits properly', () => {
+        const pathOriginal = 'foo/bar_asdf/zxcv';
+        const newSplit = splitPath(pathOriginal);
+        expect(newSplit).to.deep.equals(['foo/bar', 'asdf/zxcv']);
+    });
+    it('splitting splits properly 2', () => {
+        const pathOriginal = 'foo_bar_asdf_zxcv';
+        const newSplit = splitPath(pathOriginal);
+        expect(newSplit).to.deep.equals(['foo', 'bar', 'asdf', 'zxcv']);
+    });
 });
 
 describe('parsePath', () => {
-
     describe('mysheets', () => {
         it('resolves empty path to mysheets', () => {
             const result = parsePath(new NavState([]));

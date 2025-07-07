@@ -22,8 +22,10 @@ export const VIEW_SET_HASH = 'viewset';
 export const EMBED_HASH = 'embed';
 /** Prefix for formula pages */
 export const CALC_HASH = 'math';
-/** Path separator */
-export const PATH_SEPARATOR = '|';
+/** The path separator */
+export const PATH_SEPARATOR = '_';
+/** The legacy path separator */
+export const PATH_SEPARATOR_LEGACY = '|';
 /** The query param used to represent the path */
 export const HASH_QUERY_PARAM = 'page';
 
@@ -281,7 +283,7 @@ export function makeUrlSimple(...path: string[]): URL {
 export function makeUrl(navState: NavState): URL {
     const joinedPath = navState.path
         .map(pp => encodeURIComponent(pp))
-        .map(pp => pp.replaceAll(PATH_SEPARATOR, VERTICAL_BAR_REPLACEMENT))
+        .map(pp => pp.replaceAll(PATH_SEPARATOR_LEGACY, VERTICAL_BAR_REPLACEMENT))
         .join(PATH_SEPARATOR);
     const currentLocation = document.location;
     const params = new URLSearchParams(currentLocation.search);
@@ -317,16 +319,24 @@ export function splitHashLegacy(input: string) {
 
 /**
  * Given a page path, split it into constituent parts
- * (e.g. for ?page=foo|bar, splitPath('foo|bar') => ['foo', 'bar']
+ * e.g. for ?page=foo_bar, splitPath('foo_bar') => ['foo', 'bar']
+ * or, legacy: for ?page=foo|bar, splitPath('foo|bar') => ['foo', 'bar']
  *
  * @param input The path, not including ?page=
  */
 export function splitPath(input: string) {
-    return (input.startsWith(PATH_SEPARATOR) ? input.substring(1) : input)
-        .split(PATH_SEPARATOR)
+    let separatorToUse = PATH_SEPARATOR;
+
+    // If this link includes the old separator, use that instead.
+    if (input.includes(VERTICAL_BAR_REPLACEMENT) || input.includes(PATH_SEPARATOR_LEGACY)) {
+        separatorToUse = PATH_SEPARATOR_LEGACY;
+    }
+
+    return (input.startsWith(separatorToUse) ? input.substring(1) : input)
+        .split(separatorToUse)
         .filter(item => item)
         .map(item => decodeURIComponent(item))
-        .map(pp => pp.replaceAll(VERTICAL_BAR_REPLACEMENT, PATH_SEPARATOR));
+        .map(pp => pp.replaceAll(VERTICAL_BAR_REPLACEMENT, PATH_SEPARATOR_LEGACY));
 }
 
 export function tryParseOptionalIntParam(input: string | undefined): number | undefined {
