@@ -1,11 +1,7 @@
 import {SheetExport} from "@xivgear/xivmath/geartypes";
 import {GearsetGenerationSettingsExport} from "../solving/gearset_generation";
 import {SolverSimulationSettingsExport} from "../solving/sim_runner";
-
-export type ResolveReject<T> = {
-    resolve: (res: T) => void,
-    reject: (rej: unknown) => void,
-}
+import {ResolveReject} from "@xivgear/util/async";
 
 export type SheetWorkRequest<JobType extends string, RequestDataType> = {
     jobType: JobType,

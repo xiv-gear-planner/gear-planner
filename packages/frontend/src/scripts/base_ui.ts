@@ -77,7 +77,7 @@ export function hideWelcomeArea() {
     welcomeArea.style.display = 'none';
 }
 
-export function setMainContent(title: string, ...nodes: Parameters<ParentNode['replaceChildren']>) {
+export function setMainContent(title: string | undefined, ...nodes: Parameters<ParentNode['replaceChildren']>) {
     contentArea.replaceChildren(...nodes);
     setTitle(title);
 }
@@ -185,12 +185,32 @@ export async function openSheetByKey(sheetKey: string) {
     setTitle('Loading Sheet');
     try {
         console.log('openSheetByKey: ', sheetKey);
-        const sheet = SHEET_MANAGER.getByKey(sheetKey);
-        await sheet.readData();
-        const planner = GRAPHICAL_SHEET_PROVIDER.fromSaved(sheetKey);
-        if (planner) {
-            recordSheetEvent("openSheetByKey", planner);
-            await openSheet(planner);
+        let sheet = SHEET_MANAGER.getByKey(sheetKey);
+        if (!sheet || sheet.syncStatus === 'never-downloaded') {
+            console.log(`Sheet status: ${sheet?.syncStatus ?? 'null'}, going to wait for login.`);
+            const token = await ACCOUNT_STATE_TRACKER.verifiedTokenPromise;
+            if (token) {
+                console.log('Got token, refreshing sheets');
+                await USER_DATA_SYNCER.prepSheetSync();
+                sheet = SHEET_MANAGER.getByKey(sheetKey);
+                if (sheet) {
+                    USER_DATA_SYNCER.syncOne(sheet);
+                }
+            }
+            else {
+                console.warn('Sheet does not exist, and no token available');
+                contentArea.replaceChildren(document.createTextNode("That sheet does not exist."));
+                setTitle('Error');
+            }
+        }
+        if (sheet) {
+            await sheet.readData();
+            const planner = GRAPHICAL_SHEET_PROVIDER.fromSaved(sheetKey);
+            if (planner) {
+                recordSheetEvent("openSheetByKey", planner);
+                await openSheet(planner);
+                return;
+            }
         }
         else {
             contentArea.replaceChildren(document.createTextNode("That sheet does not exist."));
@@ -338,20 +358,10 @@ export function showSheetPickerMenu() {
     // const holderDiv = quickElement('div', ['sheet-picker-holder'], [new SheetPickerTable()]);
     setMainContent(undefined, section);
     currentPicker = picker;
-    // contentArea.replaceChildren(new SheetPickerTable());
-    // setTitle(undefined);
-    // Refresh sheets after a short delay
-    // TODO: good use case for exposing the verified token as a promise, so that we can sync as soon as the token
-    // is ready. Could be an async version of UserDataSyncer.available
-    // TODO: should also load when you log in. Really should just be a listener.
-    if (USER_DATA_SYNCER.available) {
+    // Refresh sheets after getting token.
+    ACCOUNT_STATE_TRACKER.verifiedTokenPromise.then(() => {
         USER_DATA_SYNCER.triggerRefreshNow();
-    }
-    else {
-        setTimeout(() => {
-            USER_DATA_SYNCER.triggerRefreshNow();
-        }, 3_000);
-    }
+    });
 }
 
 
