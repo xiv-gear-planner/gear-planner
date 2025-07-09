@@ -1,26 +1,23 @@
 import {BaseModal} from "@xivgear/common-ui/components/modal";
 import {SheetHandle} from "@xivgear/core/persistence/saved_sheets";
-import {makeActionButton, quickElement} from "@xivgear/common-ui/components/util";
+import {quickElement} from "@xivgear/common-ui/components/util";
 
 export class ConflictResolutionDialog extends BaseModal {
 
     private currentSheet: SheetHandle;
-    private keepLocalButton: HTMLButtonElement;
-    private keepRemoteButton: HTMLButtonElement;
-    private saveAsButton: HTMLButtonElement;
 
     constructor(sheet: SheetHandle) {
         super();
         this.headerText = 'Conflict Resolution';
-        this.keepLocalButton = this.addActionButton('Keep Local', () => {
+        this.addActionButton('Keep Local', () => {
             this.currentSheet.conflictResolutionStrategy = 'keep-local';
             this.done();
         });
-        this.keepRemoteButton = this.addActionButton('Keep Remote', () => {
+        this.addActionButton('Keep Remote', () => {
             this.currentSheet.conflictResolutionStrategy = 'keep-remote';
             this.done();
         });
-        this.saveAsButton = this.addActionButton('Save Local As...', () => {
+        this.addActionButton('Save Local As...', () => {
             alert('not implemented'); // TODO
             // this.currentSheet.saveLocalAsDefault();
             // this.currentSheet.conflictResolutionStrategy = 'keep-local';
