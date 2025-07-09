@@ -321,15 +321,21 @@ class SheetHandleImpl {
         const cur = meta.currentVersion;
         if (cur === 0 || this._data === null) {
             if (this.serverVersion === 0) {
+                // Not really a valid state.
                 return 'null-data';
             }
             if (this.meta.localDeleted) {
+                // If BOTH local and server have been deleted, then we don't really care if there's technically a version
+                // mismatch.
                 if (this.meta.serverDeleted) {
                     return 'in-sync';
                 }
-                return 'client-newer-than-server';
+                // If this is not the case, then we need to fall back to normal sync behavior, because there could
+                // potentially be a conflict.
             }
-            return 'never-downloaded';
+            else {
+                return 'never-downloaded';
+            }
         }
         const lastUploaded = meta.lastSyncedVersion;
         if (lastUploaded === 0) {
@@ -519,7 +525,9 @@ class SheetHandleImpl {
             }
             else {
                 console.warn(`deleteServer conflict! server ${this.serverVersion} lastSynced ${this.lastSyncedVersion} local ${this.localVersion}`);
-                // TODO
+                this.meta.serverDeleted = true;
+                this.meta.serverVersion = serverVersion;
+                this.afterUpdate();
             }
         }
     }
@@ -533,6 +541,7 @@ class SheetHandleImpl {
             return;
         }
         this._conflictResolutionStrategy = value;
+        this.afterUpdate();
     }
 
     get hasConflict(): boolean {

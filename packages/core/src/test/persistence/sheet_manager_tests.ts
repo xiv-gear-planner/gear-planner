@@ -727,6 +727,53 @@ describe('sheet_manager', () => {
             expect(handle.meta.lastSyncedVersion).to.equal(1);
             expect(handle.meta.currentVersion).to.equal(2);
         });
+        it('deletion conflict bug, c2s', () => {
+            // Ran into this when I was messing around. It is a legitimate conflict, but the client doesn't seem to
+            // want to recognize it as a conflict for some reason.
+            const storage = new FakeLocalStorage();
+            storage.setItem('sheet-save-183-8ff2-meta', `{"currentVersion":22,"lastSyncedVersion":21,"serverVersion":34,"sortOrder":205.375,"hasConflict":false,"forcePush":false,"serverDeleted":false,"localDeleted":true,"summary":{"name":"OC Healer Test","isync":700,"level":100,"job":"WHM","multiJob":false}}`);
+            storage.setItem('sheet-save-183-8ff2', 'null');
+            const mgr = new SheetManagerImpl(storage);
+
+            expect(mgr.allSheets).to.have.length(1);
+            const theSheet = mgr.allSheets[0];
+            expect(theSheet.meta.serverDeleted).to.equal(false);
+            expect(theSheet.meta.localDeleted).to.equal(true);
+            expect(theSheet.meta.lastSyncedVersion).to.equal(21);
+            expect(theSheet.meta.currentVersion).to.equal(22);
+            expect(theSheet.meta.serverVersion).to.equal(34);
+
+            expect(theSheet.syncStatus).to.equal('conflict' satisfies SyncStatus);
+
+        });
+        it('deletion conflict bug, s2c', () => {
+            // In this test, we have a conflict when processing a server-to-client deletion
+            const storage = new FakeLocalStorage();
+            // Start with a local modification
+            storage.setItem('sheet-save-183-8ff2-meta', `{"currentVersion":35,"lastSyncedVersion":34,"serverVersion":34,"sortOrder":205.375,"hasConflict":false,"forcePush":false,"serverDeleted":false,"localDeleted":false,"summary":{"name":"OC Healer Test","isync":700,"level":100,"job":"WHM","multiJob":false}}`);
+            storage.setItem('sheet-save-183-8ff2', '{}');
+            const mgr = new SheetManagerImpl(storage);
+
+            expect(mgr.allSheets).to.have.length(1);
+            const theSheet = mgr.allSheets[0];
+            expect(theSheet.meta.serverDeleted).to.equal(false);
+            expect(theSheet.meta.localDeleted).to.equal(false);
+            expect(theSheet.meta.currentVersion).to.equal(35);
+            expect(theSheet.meta.lastSyncedVersion).to.equal(34);
+            expect(theSheet.meta.serverVersion).to.equal(34);
+
+            expect(theSheet.syncStatus).to.equal('client-newer-than-server' satisfies SyncStatus);
+
+            theSheet.deleteServerToClient(35);
+
+            expect(theSheet.syncStatus).to.equal('conflict' satisfies SyncStatus);
+            expect(theSheet.meta.serverDeleted).to.equal(true);
+            expect(theSheet.meta.localDeleted).to.equal(false);
+            expect(theSheet.meta.currentVersion).to.equal(35);
+            expect(theSheet.meta.lastSyncedVersion).to.equal(34);
+            expect(theSheet.meta.serverVersion).to.equal(35);
+
+        });
     });
 
 });

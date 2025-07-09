@@ -311,6 +311,7 @@ export function buildStatsServer() {
         reply.status(404);
     });
 
+    // DEPRECATED - use /fulldata?page=sl|<uuid> instead
     fastifyInstance.get('/fulldata/:uuid', async (request: SheetRequest, reply) => {
         const osIndex: number | undefined = tryParseOptionalIntParam(request.query[ONLY_SET_QUERY_PARAM]);
         const selIndex: number | undefined = tryParseOptionalIntParam(request.query[SELECTION_INDEX_QUERY_PARAM]);
@@ -328,6 +329,7 @@ export function buildStatsServer() {
         reply.send(out);
     });
 
+    // DEPRECATED - use /fulldata?page=bis|<job>|<sheet> instead
     fastifyInstance.get('/fulldata/bis/:job/:sheet', async (request: SheetRequest, reply) => {
         const osIndex: number | undefined = tryParseOptionalIntParam(request.query[ONLY_SET_QUERY_PARAM]);
         const selIndex: number | undefined = tryParseOptionalIntParam(request.query[SELECTION_INDEX_QUERY_PARAM]);
@@ -347,6 +349,7 @@ export function buildStatsServer() {
         reply.send(out);
     });
 
+    // DEPRECATED - use /fulldata?page=bis|<job>|<folder>|<sheet> instead
     fastifyInstance.get('/fulldata/bis/:job/:folder/:sheet', async (request: SheetRequest, reply) => {
         const osIndex: number | undefined = tryParseOptionalIntParam(request.query[ONLY_SET_QUERY_PARAM]);
         const selIndex: number | undefined = tryParseOptionalIntParam(request.query[SELECTION_INDEX_QUERY_PARAM]);
