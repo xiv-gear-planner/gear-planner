@@ -213,7 +213,7 @@ export class UserDataSyncer {
         }
     }
 
-    private async syncOne(sheetHandle: SheetHandle): Promise<'success' | 'not-logged-in' | 'nothing-to-do'> {
+    async syncOne(sheetHandle: SheetHandle): Promise<'success' | 'not-logged-in' | 'nothing-to-do'> {
         return await sheetHandle.doAction((async () => {
             if (this.accountStateTracker.token === null) {
                 return 'not-logged-in';
@@ -224,9 +224,47 @@ export class UserDataSyncer {
                 case 'trash':
                     return 'nothing-to-do';
                 case "client-newer-than-server":
-                case "never-uploaded":
-                    // TODO: this *should* sync but not in a way that the client would need to wait
-                    return 'nothing-to-do';
+                case "never-uploaded": {
+                    const isForcePut = sheetHandle.hasConflict && sheetHandle.conflictResolutionStrategy === 'keep-local';
+                    if (sheetHandle.meta.localDeleted) {
+                        console.info(`Deleting: ${sheetHandle.key}: ${sheetHandle.name} ${sheetHandle.localVersion} -> ${sheetHandle.serverVersion}`);
+                        // TODO: needs to handle 409 conflict without blowing up
+                        await sheetHandle.doAction(this.userDataClient.userdata.deleteSheet(sheetHandle.key, {
+                            lastSyncedVersion: sheetHandle.lastSyncedVersion,
+                            newSheetVersion: sheetHandle.localVersion,
+                        }, this.buildParams()));
+                        sheetHandle.lastSyncedVersion = sheetHandle.localVersion;
+                    }
+                    else {
+                        console.info(`Uploading: ${sheetHandle.key}: ${sheetHandle.name} ${sheetHandle.localVersion} -> ${sheetHandle.serverVersion}`);
+                        const data = sheetHandle.dataNow;
+                        if (!data) {
+                            throw Error(`Data is null for sheet ${sheetHandle.key} (${sheetHandle.name})!`);
+                        }
+                        // TODO: needs to handle 409 conflict without blowing up
+                        /*
+                        Logic for handling force put.
+                        Example: last synced = 5, local = 6, server = 7. We need to set the local version to 8, so
+                        that the server believes that it is actually newer. We also specify 7 as the last synced
+                        version, since the server will still want to do a conflict check.
+                         */
+                        // Compute the 'effective local version' as described above.
+                        const effectiveLocalVersion: number = isForcePut ? Math.max(sheetHandle.localVersion, sheetHandle.serverVersion + 1) : sheetHandle.localVersion;
+                        const effectiveLastSynced: number = isForcePut ? sheetHandle.serverVersion : sheetHandle.lastSyncedVersion;
+                        await sheetHandle.doAction(this.userDataClient.userdata.putSheet(sheetHandle.key, {
+                            sheetData: data,
+                            sheetSummary: sheetHandle.summary,
+                            sortOrder: sheetHandle.sortOrder,
+                            lastSyncedVersion: effectiveLastSynced,
+                            newSheetVersion: effectiveLocalVersion,
+                            // forcePut: isForcePut,
+                        }, this.buildParams()));
+                        sheetHandle.localVersion = effectiveLocalVersion;
+                        sheetHandle.lastSyncedVersion = effectiveLocalVersion;
+                        sheetHandle.conflictResolutionStrategy = null;
+                    }
+                    return 'success';
+                }
                 case "server-newer-than-client":
                 case "never-downloaded":
                 case "null-data": {

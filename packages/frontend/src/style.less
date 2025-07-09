@@ -407,6 +407,7 @@ account-modal {
       }
     }
   }
+
   loading-blocker {
     .loading-spinner {
       position: relative;
@@ -416,3 +417,26 @@ account-modal {
 }
 
 
+div.sync-tools {
+  cursor: initial;
+  font-weight: normal;
+
+  > * {
+    margin-right: 5px;
+  }
+}
+
+conflict-resolution-dialog {
+  .modal-content-area {
+
+    max-width: 600px;
+
+    .conflict-resolution-mid {
+      display: flex;
+
+      > * {
+        flex-basis: 50%;
+      }
+    }
+  }
+}

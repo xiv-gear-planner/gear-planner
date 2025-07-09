@@ -25,7 +25,6 @@ export function makeFakeSet(stats: ComputedSetStats): CharacterGearSet {
 }
 
 export class FakeLocalStorage implements Storage {
-
     private _data: Map<string, string>;
 
     constructor() {
@@ -56,6 +55,9 @@ export class FakeLocalStorage implements Storage {
                     };
                 }
                 return undefined;
+            },
+            has(target: typeof this, key: string | symbol): boolean {
+                return target._data.has(String(key)) || key in target;
             },
         });
     }

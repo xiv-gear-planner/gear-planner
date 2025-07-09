@@ -34,12 +34,14 @@ export abstract class BaseModal extends HTMLElement {
         this.buttonArea.appendChild(button);
     }
 
-    protected addActionButton(label: string, action: (ev: MouseEvent) => void) {
-        this.addButton(makeActionButton(label, action));
+    protected addActionButton(label: string, action: (ev: MouseEvent) => void): HTMLButtonElement {
+        const button = makeActionButton(label, action);
+        this.addButton(button);
+        return button;
     }
 
-    protected addCloseButton() {
-        this.addActionButton('Close', () => this.close());
+    protected addCloseButton(label: string = 'close') {
+        return this.addActionButton(label, () => this.close());
     }
 
     private _modalWrapper: Modal | undefined = undefined;

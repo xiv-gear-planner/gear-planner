@@ -20,6 +20,7 @@ import {ACCOUNT_STATE_TRACKER} from "../account/account_state";
 import {UserDataSyncer} from "../account/user_data";
 import {showAccountModal} from "../account/components/account_components";
 import {Inactivitytimer} from "@xivgear/util/inactivitytimer";
+import {ConflictResolutionDialog} from "./conflict_resolution_dialog";
 
 export class SheetPickerTable extends CustomTable<SheetHandle, TableSelectionModel<SheetHandle, never, never, SheetHandle | null>> {
 
@@ -151,29 +152,37 @@ export class SheetPickerTable extends CustomTable<SheetHandle, TableSelectionMod
                     }
                     return null;
                 },
-                renderer: (status: [SyncStatus, boolean] | null) => {
+                renderer: (status: [SyncStatus, boolean] | null, handle) => {
                     if (status === null) {
                         return document.createTextNode('');
                     }
                     const out = [];
                     const statusType = status[0];
+                    let action: 'none' | 'sync' | 'conflict' = 'none';
+                    let tooltip = '';
                     switch (statusType) {
                         case "in-sync":
                             out.push('✓');
+                            tooltip = 'This sheet is in sync';
                             break;
                         case "never-uploaded":
                         case "client-newer-than-server":
                             out.push('↑');
+                            action = 'sync';
                             break;
                         case "never-downloaded":
                         case "server-newer-than-client":
                             out.push('↓');
+                            action = 'sync';
                             break;
                         case "conflict":
                             out.push(errorIcon());
+                            action = 'conflict';
+                            tooltip = 'This sheet has been modified locally and on another device. Click to resolve conflict.';
                             break;
                         case "unknown":
                             out.push('?');
+                            tooltip = 'Unknown - possible bug';
                             break;
                         case 'trash':
                             // This *shouldn't* happen
@@ -184,7 +193,25 @@ export class SheetPickerTable extends CustomTable<SheetHandle, TableSelectionMod
                     if (active) {
                         out.push('...');
                     }
-                    return quickElement('span', ['sync-status'], out);
+                    const statusHolder = quickElement('div', ['sync-status'], out);
+                    if (action === 'conflict') {
+                        statusHolder.addEventListener('mousedown', (e) => {
+                            e.stopPropagation();
+                            outer.showConflictResolution(handle);
+                        });
+                        statusHolder.classList.add('has-sync-action');
+                    }
+                    else if (action === 'sync') {
+                        statusHolder.addEventListener('mousedown', (e) => {
+                            e.stopPropagation();
+                            uds.syncOne(handle);
+                        });
+                        statusHolder.classList.add('has-sync-action');
+                    }
+                    if (tooltip) {
+                        statusHolder.title = tooltip;
+                    }
+                    return statusHolder;
                 },
             }),
             col({
@@ -379,6 +406,10 @@ export class SheetPickerTable extends CustomTable<SheetHandle, TableSelectionMod
                 }
             }
         });
+    }
+
+    showConflictResolution(handle: SheetHandle) {
+        new ConflictResolutionDialog(handle).attachAndShowExclusively();
     }
 }
 
