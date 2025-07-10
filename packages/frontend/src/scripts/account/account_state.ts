@@ -6,6 +6,7 @@ import {
 } from "@xivgear/account-service-client/accountsvc";
 import {recordEvent} from "@xivgear/common-ui/analytics/analytics";
 import {RefreshLoop} from "@xivgear/util/refreshloop";
+import {PromiseHelper} from "@xivgear/util/async";
 
 
 // TODO: since api client is no longer configured to throw on bad response, need to manually check all of them
@@ -18,6 +19,10 @@ export class AccountStateTracker {
     private _listeners: AccountStateListener[] = [];
     private checkedOnce: boolean = false;
 
+    private _stateHelper = new PromiseHelper<AccountInfo | null>();
+    private _tokenHelper = new PromiseHelper<string | null>();
+    private _verifiedTokenHelper = new PromiseHelper<string | null>();
+
     constructor(private readonly api: AccountServiceClient<never>) {
         this.refreshLoop = new RefreshLoop(async () => this.refresh(), () => {
             if (this.definitelyNotLoggedIn) {
@@ -26,6 +31,24 @@ export class AccountStateTracker {
             }
             // Otherwise, refresh once every 5 minutes (15 min JWT expiration)
             return 1000 * 60 * 5;
+        });
+        this.addAccountStateListener((tracker, stateNow, stateAfter) => {
+            this._stateHelper.provideValue(stateNow);
+            if (stateNow !== null) {
+                if (tracker.token !== null) {
+                    this._tokenHelper.provideValue(tracker.token);
+                    if (tracker.accountState?.verified) {
+                        this._verifiedTokenHelper.provideValue(tracker.token);
+                    }
+                    else {
+                        this._verifiedTokenHelper.provideValue(null);
+                    }
+                }
+            }
+            else {
+                this._tokenHelper.provideValue(null);
+                this._verifiedTokenHelper.provideValue(null);
+            }
         });
     }
 
@@ -276,6 +299,30 @@ export class AccountStateTracker {
 
     addAccountStateListener(listener: AccountStateListener): void {
         this._listeners.push(listener);
+    }
+
+    /**
+     * Returns a promise that resolves to the most recent AccountInfo (or null if not logged in). Does not resolve
+     * until at least one attempt to check account info has been made.
+     */
+    get statePromise(): Promise<AccountInfo | null> {
+        return this._stateHelper.promise;
+    }
+
+    /**
+     * Returns a promise that resolves to the most recent token (or null if not logged in). Does not resolve
+     * until at least one attempt to retrieve a JWT token has been made, or if we know that we are not logged in.
+     */
+    get tokenPromise(): Promise<string | null> {
+        return this._tokenHelper.promise;
+    }
+
+    /**
+     * Like {@link #tokenPromise}, but resolves to null if we have a token without the 'verified' role (i.e. can't
+     * do anything with it other than verifying account).
+     */
+    get verifiedTokenPromise(): Promise<string | null> {
+        return this._verifiedTokenHelper.promise;
     }
 }
 
