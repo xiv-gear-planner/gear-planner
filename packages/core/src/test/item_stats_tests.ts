@@ -1,6 +1,8 @@
 import {previewItemStatDetail} from "../gear";
 import {GearItem, RawStats} from "@xivgear/xivmath/geartypes";
 import {expect} from 'chai';
+import {NewApiDataManager} from "../datamanager_new";
+import {ALL_COMBAT_JOBS, MAIN_STATS} from "@xivgear/xivmath/xivconstants";
 
 
 describe('Individual item math', () => {
@@ -65,3 +67,55 @@ describe('Individual item math', () => {
 });
 
 // TODO: add more tests for the gear sheet as a whole after untangling
+
+describe('bug #695 - offhands have wrong stats', () => {
+    // This test validates our stat cap calculation logic by verifying that all known items have
+    // a big substat exactly equal to their cap
+    ALL_COMBAT_JOBS.forEach(job => {
+        it(`all normal items for ${job} have big stat, main stat, vitality === stat cap`, async () => {
+            const dm = new NewApiDataManager([job], 100, undefined);
+            await dm.loadData();
+            const failures: string[] = [];
+            dm.allItems.forEach(item => {
+                if (item.isCustomRelic) {
+                    return;
+                }
+                if (item.isNqVersion) {
+                    // TODO: is there a specific pattern we can use for NQ?
+                    return;
+                }
+                if (item.id === 24855 || item.id === 24856) {
+                    // Vermillion cloak of casting/health - multi-slot items other than 2H weapon are not supported
+                    return;
+                }
+                const primarySub = item.primarySubstat;
+                const primarySubValue = item.stats[primarySub];
+                const primarySubCap = item.statCaps[primarySub];
+                if (primarySubValue !== primarySubCap) {
+                    failures.push(`Item ${item.name} i${item.ilvl} (${item.id}, ${item.occGearSlotName}) has ${primarySub} ${primarySubValue} !== ${primarySubCap} (cap)`);
+                }
+                // This includes vitality
+                MAIN_STATS.forEach(mainStat => {
+                    const value = item.stats[mainStat];
+                    if (value === 0) {
+                        return;
+                    }
+                    if (mainStat === 'vitality') {
+                        // TODO - maybe affected by role stats?
+                        // return;
+                    }
+                    const cap = item.statCaps[mainStat];
+                    if (value !== cap) {
+                        failures.push(`Item ${item.name} i${item.ilvl} (${item.id}, ${item.occGearSlotName}) has ${mainStat} ${value} !== ${cap} (cap)`);
+                    }
+                });
+            });
+            if (failures.length > 0) {
+                throw Error(failures.join('\n'));
+            }
+        });
+
+    })
+});
+
+
