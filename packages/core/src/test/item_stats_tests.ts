@@ -115,7 +115,7 @@ describe('bug #695 - offhands have wrong stats', () => {
             }
         });
 
-    })
+    });
 });
 
 
