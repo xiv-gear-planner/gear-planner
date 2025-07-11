@@ -100,10 +100,6 @@ describe('bug #695 - offhands have wrong stats', () => {
                     if (value === 0) {
                         return;
                     }
-                    if (mainStat === 'vitality') {
-                        // TODO - maybe affected by role stats?
-                        // return;
-                    }
                     const cap = item.statCaps[mainStat];
                     if (value !== cap) {
                         failures.push(`Item ${item.name} i${item.ilvl} (${item.id}, ${item.occGearSlotName}) has ${mainStat} ${value} !== ${cap} (cap)`);
