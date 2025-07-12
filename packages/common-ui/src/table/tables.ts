@@ -653,6 +653,10 @@ export interface CustomColumnSpec<RowDataType, CellDataType, ColumnDataType = an
     extraClasses?: string[];
     titleSetter?: (value: CellDataType, rowValue: RowDataType, cell: CustomCell<RowDataType, CellDataType>) => string | null;
     finisher?: (value: CellDataType, rowValue: RowDataType, cell: CustomCell<RowDataType, CellDataType>) => void;
+    /**
+     * Only allow a single refresh - after that, the item is considered "fixed" and subsequent refreshes will be ignored
+     */
+    fixedData?: boolean;
 }
 
 /**
@@ -708,9 +712,11 @@ export class CustomColumn<RowDataType, CellDataType = string, ColumnDataType = a
     headerStyler?: (value: typeof this.dataValue, colHeader: CustomTableHeaderCell<RowDataType, CellDataType, ColumnDataType>) => void;
     titleSetter?: (value: CellDataType, rowValue: RowDataType, cell: CustomCell<RowDataType, CellDataType>) => string | null;
     finisher?: (value: CellDataType, rowValue: RowDataType, cell: CustomCell<RowDataType, CellDataType>) => void;
+    fixedData?: boolean;
 }
 
 export type RefreshableOpts = {
+    // Do not perform a refresh in the constructor - must refresh manually before any data will be displayed.
     noInitialRefresh?: boolean;
 }
 
@@ -818,6 +824,9 @@ export class CustomCell<RowDataType, CellDataType> extends HTMLTableCellElement 
     row: CustomRow<RowDataType>;
     _cellValue!: CellDataType;
     private _selected: boolean = false;
+    // null indicates that we do not want "one refresh only" behavior
+    // true/false indicates whether that one refresh has already happened.
+    private _oneRefreshDone: boolean | null;
 
     constructor(dataItem: RowDataType, colDef: CustomColumn<RowDataType, CellDataType>, row: CustomRow<RowDataType>, opts?: RefreshableOpts) {
         super();
@@ -828,10 +837,19 @@ export class CustomCell<RowDataType, CellDataType> extends HTMLTableCellElement 
         if (!(opts?.noInitialRefresh)) {
             this.refreshFull();
         }
+        if (colDef?.fixedData) {
+            this._oneRefreshDone = false;
+        }
+        else {
+            this._oneRefreshDone = null;
+        }
         setCellProps(this, colDef);
     }
 
     refreshFull() {
+        if (this._oneRefreshDone === true) {
+            return;
+        }
         const rowValue = this.dataItem;
         let node: Node | null;
         try {
@@ -858,13 +876,17 @@ export class CustomCell<RowDataType, CellDataType> extends HTMLTableCellElement 
                 this.replaceChildren(span);
             }
             else {
-                // Also, some elements don't support ::before, so insert a dummy span to work around this
+                // Some elements don't support ::before (which is required for things like selection highlighting),
+                // so insert a dummy span to work around this.
                 this.replaceChildren(span, node);
             }
         }
         this.refreshSelection();
         this.refreshTitle();
         this.colDef.finisher?.(this._cellValue, this.row.dataItem, this);
+        if (this._oneRefreshDone === false) {
+            this._oneRefreshDone = true;
+        }
     }
 
     refreshSelection() {
