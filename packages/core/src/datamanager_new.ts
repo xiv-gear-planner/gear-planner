@@ -15,7 +15,8 @@ import {
     DisplayGearSlotKey,
     FoodItem,
     GearAcquisitionSource,
-    GearItem, IlvlSyncInfo,
+    GearItem,
+    IlvlSyncInfo,
     JobMultipliers,
     Materia,
     MateriaSlot,
@@ -27,16 +28,12 @@ import {
 import {BaseParamToStatKey, RelevantBaseParam} from "./external/xivapitypes";
 import {getRelicStatModelFor} from "./relicstats/relicstats";
 import {requireNumber, requireString} from "./external/data_validators";
-import {
-    DataApiClient,
-    GearAcquisitionSource as AcqSrc,
-    SpecialStatType
-} from "@xivgear/data-api-client/dataapi";
+import {DataApiClient, GearAcquisitionSource as AcqSrc, SpecialStatType} from "@xivgear/data-api-client/dataapi";
 import {BaseParamMap, DataManager, DmJobs} from "./datamanager";
 import {applyStatCaps} from "./gear";
 import {toTranslatable, TranslatableString} from "@xivgear/i18n/translation";
 import {RawStatsPart} from "@xivgear/util/util_types";
-import {DATA_API_CLIENT, ApiFoodData, ApiItemData, ApiMateriaData, checkResponse} from "./data_api_client";
+import {ApiFoodData, ApiItemData, ApiMateriaData, checkResponse, DATA_API_CLIENT} from "./data_api_client";
 import {addStats} from "@xivgear/xivmath/xivstats";
 
 export class NewApiDataManager implements DataManager {
@@ -146,16 +143,23 @@ export class NewApiDataManager implements DataManager {
                                     ilvlModifier = undefined;
                                     break;
                             }
-                            const baseParamModifier = baseParams[statsKey as RawStatKey][slot];
+
+                            function calcCap(slot: OccGearSlotKey): number {
+                                const baseParamModifier: number = baseParams[statsKey as RawStatKey][slot];
+                                const jobCap = jobStats.itemStatCapMultipliers?.[statsKey];
+                                if (jobCap !== undefined) {
+                                    return Math.round(jobCap * Math.round(ilvlModifier * baseParamModifier / 1000));
+                                }
+                                else {
+                                    return Math.round(ilvlModifier * baseParamModifier / 1000);
+                                }
+                            }
                             // Theoretically, this is safe even for multi-job because the item stat cap multipliers
                             // are role-bound.
-                            const jobCap = jobStats.itemStatCapMultipliers?.[statsKey];
-                            if (jobCap !== undefined) {
-                                return Math.round(jobCap * Math.round(ilvlModifier * baseParamModifier / 1000));
+                            if (slot === 'OffHand') {
+                                return calcCap('Weapon2H') - calcCap('Weapon1H');
                             }
-                            else {
-                                return Math.round(ilvlModifier * baseParamModifier / 1000);
-                            }
+                            return calcCap(slot);
                         },
                     } as const);
 
@@ -282,9 +286,9 @@ export class NewApiDataManager implements DataManager {
                 extraPromises.push(Promise.all([itemIlvlPromise, ilvlSyncPromise]).then(([native, sync]) => {
                     item.applyIlvlData(native, sync, this._level);
                     if (item.isCustomRelic) {
-                        console.debug('Applying relic model');
+                        // console.debug('Applying relic model');
                         item.relicStatModel = getRelicStatModelFor(item, this._baseParams, this._classJob);
-                        console.debug('Applied', item.relicStatModel);
+                        // console.debug('Applied', item.relicStatModel);
                     }
                 }));
             });
