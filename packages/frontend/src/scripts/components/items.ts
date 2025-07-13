@@ -269,6 +269,7 @@ export class FoodItemsTable extends CustomTable<FoodItem, TableSelectionModel<Fo
                     return item;
                 },
                 renderer: itemIconRenderer(),
+                fixedData: true,
             }),
             {
                 shortName: "itemname",
@@ -380,6 +381,7 @@ export class FoodItemViewTable extends CustomTable<FoodItem> {
                     return item;
                 },
                 renderer: itemIconRenderer(),
+                fixedData: true,
             }),
             {
                 shortName: "itemname",
@@ -624,6 +626,7 @@ export class GearItemsTable extends CustomTable<GearSlotItem, TableSelectionMode
                     return item.item;
                 },
                 renderer: itemIconRenderer(),
+                fixedData: true,
             }),
             col({
                 shortName: "itemname",
@@ -932,6 +935,7 @@ export class GearItemsViewTable extends CustomTable<GearSlotItem> {
                     return item.item;
                 },
                 renderer: itemIconRenderer(),
+                fixedData: true,
             }),
             col({
                 shortName: "itemname",
