@@ -10,6 +10,7 @@ import {
 } from "@xivgear/account-service-client/accountsvc";
 import {passwordWithRepeat} from "@xivgear/common-ui/components/forms/form_elements";
 import {showPrivacyPolicyModal} from "../../components/ads";
+import {ChangePasswordModal} from "./change_password_modal";
 
 class AccountModal extends BaseModal {
     private readonly loadingBlocker: LoadingBlocker;
@@ -56,12 +57,20 @@ class AccountManagementInner extends HTMLElement {
         // Logged in, not verified: Display verification code form, with option to enter code or resend code.
         // Not logged in: Display login form and registration form.
         if (this.tracker.loggedIn) {
+            const elements: Node[] = [];
             const accountState = this.tracker.accountState;
             const text = quickElement('span', [], ['Logged in as:', quickElement('br'), accountState.email]);
+            elements.push(text);
+            elements.push(quickElement('br'));
+            const chgPassButton = makeActionButton('Change Password', () => {
+                new ChangePasswordModal(this.tracker, () => this.refresh()).attachAndShowTop();
+            });
+            elements.push(chgPassButton);
             const logoutButton = makeActionButton('Log Out', this.indicateLoading(async () => {
                 await this.tracker.logout();
                 this.refresh();
             }));
+            elements.push(logoutButton);
             if (!accountState.verified) {
                 // UI for verifying email.
                 const txt = quickElement('span', [], ['You have not verified your email yet. If you have just registered, you should have received a code in your email.']);
@@ -93,12 +102,9 @@ class AccountManagementInner extends HTMLElement {
                         verificationCodeInput.classList.add('failed');
                     }
                 }));
-                this.replaceChildren(text, quickElement('br'), logoutButton, verifyForm);
+                elements.push(verifyForm);
             }
-            else {
-                this.replaceChildren(text, quickElement('br'), logoutButton);
-
-            }
+            this.replaceChildren(...elements);
         }
         else {
             // Login section
@@ -148,16 +154,6 @@ class AccountManagementInner extends HTMLElement {
                 email.autocomplete = 'email';
                 email.setAttribute('validation-field', 'email');
                 const pwrf = passwordWithRepeat();
-                // const passwordField = quickElement('input', ['password-field'], []);
-                // passwordField.type = 'password';
-                // passwordField.placeholder = 'Password';
-                // passwordField.autocomplete = 'new-password';
-                // passwordField.setAttribute('validation-field', 'password');
-                // const passwordRepeatField = quickElement('input', ['password-field'], []);
-                // passwordRepeatField.type = 'password';
-                // passwordRepeatField.placeholder = 'Repeat Password';
-                // passwordRepeatField.autocomplete = 'new-password';
-                // passwordRepeatField.setAttribute('validation-field', 'password');
                 const displayName = quickElement('input', ['display-name-field'], []);
                 displayName.type = 'text';
                 displayName.placeholder = 'Display Name (May Be Changed)';

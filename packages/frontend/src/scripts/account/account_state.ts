@@ -1,6 +1,7 @@
 import {
     AccountInfo,
     AccountServiceClient,
+    ChangePasswordResponse,
     RegisterResponse,
     ValidationErrorResponse
 } from "@xivgear/account-service-client/accountsvc";
@@ -295,6 +296,26 @@ export class AccountStateTracker {
     async resendVerificationCode(): Promise<void> {
         recordEvent('resendVerificationCode');
         await this.api.account.resendVerificationCode();
+    }
+
+    /**
+     * Change password
+     *
+     * @param existingPassword
+     * @param newPassword
+     */
+    async changePassword(existingPassword: string, newPassword: string): Promise<ChangePasswordResponse | ValidationErrorResponse> {
+        recordEvent('changePasswordAttempt');
+        const resp = await this.api.account.changePassword({
+            existingPassword,
+            newPassword,
+        });
+        if (resp.ok) {
+            return resp.data;
+        }
+        else {
+            return resp.error;
+        }
     }
 
     addAccountStateListener(listener: AccountStateListener): void {

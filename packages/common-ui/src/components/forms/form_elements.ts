@@ -8,17 +8,17 @@ export type PasswordFieldWithRepeat = {
     checkValid: () => boolean
 };
 
-export function passwordWithRepeat(): PasswordFieldWithRepeat {
+export function passwordWithRepeat(passLabel: string = 'Password', validationField: string = 'password'): PasswordFieldWithRepeat {
     const passwordField = quickElement('input', ['password-field'], []);
     passwordField.type = 'password';
-    passwordField.placeholder = 'Password';
+    passwordField.placeholder = passLabel;
     passwordField.autocomplete = 'new-password';
-    passwordField.setAttribute('validation-field', 'password');
+    passwordField.setAttribute('validation-field', validationField);
     const passwordRepeatField = quickElement('input', ['password-field'], []);
     passwordRepeatField.type = 'password';
     passwordRepeatField.placeholder = 'Repeat Password';
     passwordRepeatField.autocomplete = 'new-password';
-    passwordRepeatField.setAttribute('validation-field', 'password');
+    passwordRepeatField.setAttribute('validation-field', validationField);
 
     function getValue(): string {
         return passwordField.value;
