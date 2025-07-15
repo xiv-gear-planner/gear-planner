@@ -356,62 +356,73 @@ sheet-info-modal {
   }
 }
 
-account-modal {
-  .modal-content-area {
-    max-width: 350px;
-    min-width: 220px;
-    width: calc(100vw - 50px);
+change-password-modal {
 
-    button {
-      margin: 3px;
-    }
+}
 
-    form {
-      input:not([type="checkbox"]) {
-        display: block;
-        margin-bottom: 5px;
-        width: 100%;
-        box-sizing: border-box;
+account-modal, change-password-modal {
+  &.modal-dialog {
 
-        &::placeholder {
+    .modal-inner {
+
+      .modal-content-area {
+        overflow: visible;
+        max-width: 350px;
+        min-width: 220px;
+        width: calc(100vw - 50px);
+
+        button {
+          margin: 3px;
+        }
+
+        form {
+          input:not([type="checkbox"]) {
+            display: block;
+            margin-bottom: 5px;
+            width: 100%;
+            box-sizing: border-box;
+
+            &::placeholder {
+              color: var(--fg-color);
+              opacity: 0.8;
+            }
+          }
+        }
+
+        h3.divider {
+          width: 100%;
+          text-align: center;
+          position: relative;
+          //&::before {
+          //
+          //}
+        }
+
+        .failed {
+          color: var(--issue-error-color);
+        }
+
+        input.failed {
           color: var(--fg-color);
-          opacity: 0.8;
+          box-shadow: 1px 1px 2px red inset, -1px -1px 2px #ff6000 inset;
+        }
+
+        .labeled-checkbox {
+          display: block;
+
+          input {
+            width: unset;
+            display: inline;
+          }
         }
       }
     }
 
-    h3.divider {
-      width: 100%;
-      text-align: center;
-      position: relative;
-      //&::before {
-      //
-      //}
-    }
-
-    .failed {
-      color: var(--issue-error-color);
-    }
-
-    input.failed {
-      color: var(--fg-color);
-      box-shadow: 1px 1px 2px red inset, -1px -1px 2px #ff6000 inset;
-    }
-
-    .labeled-checkbox {
-      display: block;
-
-      input {
-        width: unset;
-        display: inline;
+    loading-blocker {
+      .loading-spinner {
+        position: relative;
+        top: calc(50% - 50px);
       }
-    }
-  }
-
-  loading-blocker {
-    .loading-spinner {
-      position: relative;
-      top: calc(50% - 50px);
     }
   }
 }
