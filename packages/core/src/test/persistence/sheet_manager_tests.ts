@@ -774,6 +774,79 @@ describe('sheet_manager', () => {
             expect(theSheet.meta.serverVersion).to.equal(35);
 
         });
+        it('save local as new copy', () => {
+            const {
+                storage,
+                mgr,
+            } = makeTestData();
+
+            const summary: SheetSummary = {
+                job: 'BLU',
+                level: 90,
+                multiJob: false,
+                name: "BLU Test",
+                isync: 666,
+            };
+
+            const handle = mgr.newSheetFromScratch(summary);
+            mgr.flush();
+            const key = handle.key;
+            const metaKey = handle.metaKey;
+            expect(storage.getItem(key)).to.equal('null');
+            expect(handle.meta.serverVersion).to.equal(0);
+            expect(handle.meta.lastSyncedVersion).to.equal(0);
+            expect(handle.meta.currentVersion).to.equal(0);
+            expect(handle.syncStatus).to.equal('null-data' satisfies SyncStatus);
+            expect(storage.getItem(metaKey)).to.equal(JSON.stringify(handle.meta));
+            // Not displayable yet
+            expect(mgr.allDisplayableSheets).to.have.length(0);
+            expect(mgr.allSheets).to.have.length(1);
+            expect(handle.meta.unsyncedModifications ?? []).to.have.length(0);
+
+            handle.postLocalModification({
+                ...summaryToPartialData(summary),
+                foo: "bar",
+                saveKey: key,
+            } as Partial<SheetExport> as SheetExport);
+            expect(handle.meta.unsyncedModifications).to.have.length(1);
+            expect(handle.syncStatus).to.equal('never-uploaded' satisfies SyncStatus);
+            expect(handle.meta.serverVersion).to.equal(0);
+            expect(handle.meta.lastSyncedVersion).to.equal(0);
+            expect(handle.meta.currentVersion).to.equal(1);
+
+            handle.lastSyncedVersion = 1;
+            expect(handle.meta.serverVersion).to.equal(1);
+            expect(handle.meta.lastSyncedVersion).to.equal(1);
+            expect(handle.meta.currentVersion).to.equal(1);
+
+            expect(handle.syncStatus).to.equal('in-sync' satisfies SyncStatus);
+            expect(handle.meta.unsyncedModifications).to.have.length(0);
+
+            handle.postLocalModification({
+                ...summaryToPartialData(summary),
+                foo: "baz",
+                saveKey: key,
+            } as Partial<SheetExport> as SheetExport);
+            expect(handle.syncStatus).to.equal('client-newer-than-server' satisfies SyncStatus);
+            expect(handle.meta.unsyncedModifications).to.have.length(1);
+            handle.setServerVersion(2, 0);
+            expect(handle.meta.serverVersion).to.equal(2);
+            expect(handle.meta.lastSyncedVersion).to.equal(1);
+            expect(handle.meta.currentVersion).to.equal(2);
+            expect(handle.syncStatus).to.equal('conflict' satisfies SyncStatus);
+
+            const newHandle = handle.saveLocalAsDefault();
+
+            // Does not affect original - you have to still set the conflict resolution strategy
+            expect(handle.syncStatus).to.equal('conflict' satisfies SyncStatus);
+
+            expect(newHandle.syncStatus).to.equal('never-uploaded' satisfies SyncStatus);
+            // Should have changed key
+            expect(newHandle.key).to.not.equal(handle.key);
+            expect(newHandle.name).to.equal(handle.name + ' Copy');
+            expect(newHandle.dataNow.saveKey).to.not.equal(handle.key);
+            expect(newHandle.dataNow.saveKey).to.eq(newHandle.key);
+        });
     });
 
 });

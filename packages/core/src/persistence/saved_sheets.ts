@@ -548,6 +548,21 @@ class SheetHandleImpl {
         return this.trueSyncStatus === 'conflict';
     }
 
+    saveLocalAsDefault(): SheetHandle {
+        const newName = this.name + " Copy";
+        const newHandle = this.mgr.newSheetFromScratch({
+            ...this.meta.summary,
+            name: newName,
+        });
+        newHandle.postLocalModification({
+            ...this._data,
+            name: newName,
+            saveKey: newHandle.key,
+        });
+        newHandle.flush();
+        this.mgr.afterSheetListChange();
+        return newHandle;
+    }
 }
 
 export type SheetHandle = PublicOnly<SheetHandleImpl>;
@@ -964,6 +979,7 @@ export class SheetManagerImpl implements SheetManager {
     remove(toDelete: SheetHandle) {
         this.dataMap.delete(toDelete.key);
         this.allItems = this.allItems.filter(item => item !== toDelete);
+        this.afterSheetListChange();
     }
 }
 

@@ -1,12 +1,14 @@
 import {BaseModal} from "@xivgear/common-ui/components/modal";
 import {SheetHandle} from "@xivgear/core/persistence/saved_sheets";
 import {quickElement} from "@xivgear/common-ui/components/util";
+import {UserDataSyncer} from "../account/user_data";
 
 export class ConflictResolutionDialog extends BaseModal {
 
     private currentSheet: SheetHandle;
+    private saveAsButton: HTMLButtonElement;
 
-    constructor(sheet: SheetHandle) {
+    constructor(sheet: SheetHandle, private readonly uds: UserDataSyncer) {
         super();
         this.headerText = 'Conflict Resolution';
         this.addActionButton('Keep Local', () => {
@@ -17,11 +19,11 @@ export class ConflictResolutionDialog extends BaseModal {
             this.currentSheet.conflictResolutionStrategy = 'keep-remote';
             this.done();
         });
-        this.addActionButton('Save Local As...', () => {
-            alert('not implemented'); // TODO
-            // this.currentSheet.saveLocalAsDefault();
-            // this.currentSheet.conflictResolutionStrategy = 'keep-local';
-            // this.done();
+        this.saveAsButton = this.addActionButton('Save Local As...', () => {
+            // Save local as a new sheet, then ditch the local data
+            this.currentSheet.saveLocalAsDefault();
+            this.currentSheet.conflictResolutionStrategy = 'keep-remote';
+            this.done();
         });
         this.addCloseButton('Cancel');
         this.setSheet(sheet);
@@ -33,13 +35,18 @@ export class ConflictResolutionDialog extends BaseModal {
         const left = conflictSubArea('Local', sheet.meta.localDeleted);
         const right = conflictSubArea('Remote', sheet.meta.serverDeleted);
         const mid = quickElement('div', ['conflict-resolution-mid'], [left, right]);
+        // If local is deleted, we can't "Save As".
+        // If server is deleted, then we can just force push instead of save as.
+        this.saveAsButton.disabled = sheet.meta.serverDeleted || sheet.meta.localDeleted;
         this.contentArea.replaceChildren(topText, mid);
     }
 
     done() {
-        // TODO: have it immediately sync the current sheet
         // TODO: this should move to the next sheet
+        this.currentSheet.flush();
         this.close();
+        console.info(`After conflict resolution: ${this.currentSheet.key} (${this.currentSheet.name}): ${this.currentSheet.syncStatus}`, this.currentSheet);
+        this.uds.syncOne(this.currentSheet);
     }
 }
 

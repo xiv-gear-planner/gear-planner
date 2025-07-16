@@ -225,15 +225,26 @@ export class UserDataSyncer {
                     return 'nothing-to-do';
                 case "client-newer-than-server":
                 case "never-uploaded": {
+                    /*
+                    Logic for handling force put.
+                    Example: last synced = 5, local = 6, server = 7. We need to set the local version to 8, so
+                    that the server believes that it is actually newer. We also specify 7 as the last synced
+                    version, since the server will still want to do a conflict check.
+                     */
+                    // Compute the 'effective local version' as described above.
                     const isForcePut = sheetHandle.hasConflict && sheetHandle.conflictResolutionStrategy === 'keep-local';
+                    const effectiveLocalVersion: number = isForcePut ? Math.max(sheetHandle.localVersion, sheetHandle.serverVersion + 1) : sheetHandle.localVersion;
+                    const effectiveLastSynced: number = isForcePut ? sheetHandle.serverVersion : sheetHandle.lastSyncedVersion;
                     if (sheetHandle.meta.localDeleted) {
                         console.info(`Deleting: ${sheetHandle.key}: ${sheetHandle.name} ${sheetHandle.localVersion} -> ${sheetHandle.serverVersion}`);
                         // TODO: needs to handle 409 conflict without blowing up
                         await sheetHandle.doAction(this.userDataClient.userdata.deleteSheet(sheetHandle.key, {
-                            lastSyncedVersion: sheetHandle.lastSyncedVersion,
-                            newSheetVersion: sheetHandle.localVersion,
+                            lastSyncedVersion: effectiveLocalVersion,
+                            newSheetVersion: effectiveLastSynced,
                         }, this.buildParams()));
-                        sheetHandle.lastSyncedVersion = sheetHandle.localVersion;
+                        sheetHandle.localVersion = effectiveLocalVersion;
+                        sheetHandle.lastSyncedVersion = effectiveLocalVersion;
+                        sheetHandle.conflictResolutionStrategy = null;
                     }
                     else {
                         console.info(`Uploading: ${sheetHandle.key}: ${sheetHandle.name} ${sheetHandle.localVersion} -> ${sheetHandle.serverVersion}`);
@@ -242,19 +253,11 @@ export class UserDataSyncer {
                             throw Error(`Data is null for sheet ${sheetHandle.key} (${sheetHandle.name})!`);
                         }
                         // TODO: needs to handle 409 conflict without blowing up
-                        /*
-                        Logic for handling force put.
-                        Example: last synced = 5, local = 6, server = 7. We need to set the local version to 8, so
-                        that the server believes that it is actually newer. We also specify 7 as the last synced
-                        version, since the server will still want to do a conflict check.
-                         */
-                        // Compute the 'effective local version' as described above.
-                        const effectiveLocalVersion: number = isForcePut ? Math.max(sheetHandle.localVersion, sheetHandle.serverVersion + 1) : sheetHandle.localVersion;
-                        const effectiveLastSynced: number = isForcePut ? sheetHandle.serverVersion : sheetHandle.lastSyncedVersion;
                         await sheetHandle.doAction(this.userDataClient.userdata.putSheet(sheetHandle.key, {
                             sheetData: data,
                             sheetSummary: sheetHandle.summary,
-                            sortOrder: sheetHandle.sortOrder,
+                            // Don't use the sheetHandle.sortOrder property - we want to only sync explicit order changes
+                            sortOrder: sheetHandle.meta.sortOrder,
                             lastSyncedVersion: effectiveLastSynced,
                             newSheetVersion: effectiveLocalVersion,
                             // forcePut: isForcePut,
@@ -300,13 +303,23 @@ export class UserDataSyncer {
                         case "never-uploaded":
                         case "client-newer-than-server": {
 
+                            // TODO: needs to handle 409 conflict without blowing up
+                            /*
+                            Logic for handling force put.
+                            Example: last synced = 5, local = 6, server = 7. We need to set the local version to 8, so
+                            that the server believes that it is actually newer. We also specify 7 as the last synced
+                            version, since the server will still want to do a conflict check.
+                             */
+                            // Compute the 'effective local version' as described above.
                             const isForcePut = sheetHandle.hasConflict && sheetHandle.conflictResolutionStrategy === 'keep-local';
+                            const effectiveLocalVersion: number = isForcePut ? Math.max(sheetHandle.localVersion, sheetHandle.serverVersion + 1) : sheetHandle.localVersion;
+                            const effectiveLastSynced: number = isForcePut ? sheetHandle.serverVersion : sheetHandle.lastSyncedVersion;
                             if (sheetHandle.meta.localDeleted) {
                                 console.info(`Deleting: ${sheetHandle.key}: ${sheetHandle.name} ${sheetHandle.localVersion} -> ${sheetHandle.serverVersion}`);
                                 // TODO: needs to handle 409 conflict without blowing up
                                 await sheetHandle.doAction(this.userDataClient.userdata.deleteSheet(sheetHandle.key, {
-                                    lastSyncedVersion: sheetHandle.lastSyncedVersion,
-                                    newSheetVersion: sheetHandle.localVersion,
+                                    lastSyncedVersion: effectiveLastSynced,
+                                    newSheetVersion: effectiveLocalVersion,
                                 }, this.buildParams()));
                                 sheetHandle.lastSyncedVersion = sheetHandle.localVersion;
                             }
@@ -317,20 +330,11 @@ export class UserDataSyncer {
                                     console.error(`Data is null for sheet ${sheetHandle.key} (${sheetHandle.name})!`);
                                     break;
                                 }
-                                // TODO: needs to handle 409 conflict without blowing up
-                                /*
-                                Logic for handling force put.
-                                Example: last synced = 5, local = 6, server = 7. We need to set the local version to 8, so
-                                that the server believes that it is actually newer. We also specify 7 as the last synced
-                                version, since the server will still want to do a conflict check.
-                                 */
-                                // Compute the 'effective local version' as described above.
-                                const effectiveLocalVersion: number = isForcePut ? Math.max(sheetHandle.localVersion, sheetHandle.serverVersion + 1) : sheetHandle.localVersion;
-                                const effectiveLastSynced: number = isForcePut ? sheetHandle.serverVersion : sheetHandle.lastSyncedVersion;
                                 await sheetHandle.doAction(this.userDataClient.userdata.putSheet(sheetHandle.key, {
                                     sheetData: data,
                                     sheetSummary: sheetHandle.summary,
-                                    sortOrder: sheetHandle.sortOrder,
+                                    // Don't use the sheetHandle.sortOrder property - we want to only sync explicit order changes
+                                    sortOrder: sheetHandle.meta.sortOrder,
                                     lastSyncedVersion: effectiveLastSynced,
                                     newSheetVersion: effectiveLocalVersion,
                                     // forcePut: isForcePut,
