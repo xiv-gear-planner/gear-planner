@@ -226,6 +226,7 @@ export class SheetPickerTable extends CustomTable<SheetHandle, TableSelectionMod
                 renderer: job => {
                     return jobAbbrevTranslated(job);
                 },
+                fixedData: true,
             }),
             col({
                 shortName: "sheetjobicon",
@@ -239,12 +240,14 @@ export class SheetPickerTable extends CustomTable<SheetHandle, TableSelectionMod
                 renderer: jobOrRole => {
                     return new JobIcon(jobOrRole);
                 },
+                fixedData: true,
             }),
             {
                 shortName: "sheetlevel",
                 displayName: "Lvl",
                 getter: sheet => sheet.level,
                 fixedWidth: 40,
+                fixedData: true,
             },
             {
                 shortName: "sheetname",
@@ -258,7 +261,17 @@ export class SheetPickerTable extends CustomTable<SheetHandle, TableSelectionMod
             clickColumnHeader() {
             },
             clickRow(row: CustomRow<SheetHandle>) {
-                openSheetByKey(row.dataItem.key);
+                if (row.dataItem.meta.localDeleted) {
+                    // Cannot open a locally-deleted sheet. This can happen if the sheet is in
+                    // a state of deletion conflict.
+                    // Instead, open the conflict resolution UI.
+                    setTimeout(() => {
+                        outer.showConflictResolution(row.dataItem);
+                    }, 20);
+                }
+                else {
+                    openSheetByKey(row.dataItem.key);
+                }
             },
             getSelection(): null {
                 return null;
@@ -409,7 +422,7 @@ export class SheetPickerTable extends CustomTable<SheetHandle, TableSelectionMod
     }
 
     showConflictResolution(handle: SheetHandle) {
-        new ConflictResolutionDialog(handle).attachAndShowExclusively();
+        new ConflictResolutionDialog(handle, this.uds).attachAndShowExclusively();
     }
 }
 
