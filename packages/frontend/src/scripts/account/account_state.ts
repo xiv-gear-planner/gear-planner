@@ -11,6 +11,17 @@ import {PromiseHelper} from "@xivgear/util/async";
 
 const LAST_UID_KEY = 'lastLoggedInUid';
 
+export type PurgeLocalDataBroadcast = {
+    type: 'purgeLocalData',
+}
+
+// Does not carry data - other windows should reload the data on their own
+export type AccountInfoChangeBroadcast = {
+    type: 'accountInfoChange',
+}
+
+type AccountStateBroadcast = PurgeLocalDataBroadcast | AccountInfoChangeBroadcast;
+
 // TODO: since api client is no longer configured to throw on bad response, need to manually check all of them
 export class AccountStateTracker {
 
@@ -27,7 +38,7 @@ export class AccountStateTracker {
     private _tokenHelper = new PromiseHelper<string | null>();
     private _verifiedTokenHelper = new PromiseHelper<string | null>();
 
-    constructor(private readonly api: AccountServiceClient<never>, private readonly storage: Storage) {
+    constructor(private readonly api: AccountServiceClient<never>, private readonly storage: Storage, private readonly broadcastChannel: BroadcastChannel) {
         this.refreshLoop = new RefreshLoop(async () => this.refresh(), () => {
             if (this.definitelyNotLoggedIn) {
                 // If we know we are definitely not logged in, refresh once an hour
@@ -54,6 +65,28 @@ export class AccountStateTracker {
                 this._verifiedTokenHelper.provideValue(null);
             }
         });
+        this.addAccountStateListener((_, after, before) => {
+            if ((after && !before) || (!after && before)) {
+                this.postBroadcastMessage({
+                    type: 'accountInfoChange',
+                });
+            }
+        });
+        broadcastChannel.onmessage = (ev) => {
+            const msg = ev.data as AccountStateBroadcast;
+            console.log("Got broadcast message", msg);
+            if (msg.type === 'purgeLocalData') {
+                this.afterPurge();
+            }
+            else if (msg.type === 'accountInfoChange') {
+                this.refreshLoop.refresh();
+            }
+        };
+    }
+
+    private postBroadcastMessage(msg: AccountStateBroadcast): void {
+        console.log("Posting broadcast message", msg);
+        this.broadcastChannel.postMessage(msg);
     }
 
     private notifyListeners(): void {
@@ -211,9 +244,22 @@ export class AccountStateTracker {
         this.jwt = null;
         await this.ingestAccountState(null);
         if (clearData) {
-            this.storage.clear();
-            location.reload();
+            this.purgeLocalData();
         }
+    }
+
+    // Purge local data then reload
+    purgeLocalData(): void {
+        this.postBroadcastMessage({
+            type: 'purgeLocalData',
+        });
+        this.storage.clear();
+        this.afterPurge();
+    }
+
+    // Called after clearing local data, or when such happened in another window
+    afterPurge(): void {
+        location.reload();
     }
 
     /**
@@ -428,7 +474,8 @@ const accountApiClient = new AccountServiceClient<never>({
     customFetch: cookieFetch,
 });
 
-export const ACCOUNT_STATE_TRACKER = new AccountStateTracker(accountApiClient, localStorage);
+export const ACCOUNT_STATE_BROADCAST_CHANNEL = new BroadcastChannel("account-state");
+export const ACCOUNT_STATE_TRACKER = new AccountStateTracker(accountApiClient, localStorage, ACCOUNT_STATE_BROADCAST_CHANNEL);
 
 declare global {
     // noinspection JSUnusedGlobalSymbols
