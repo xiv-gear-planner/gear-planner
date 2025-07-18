@@ -291,13 +291,13 @@ class SheetHandleImpl {
         else {
             const old = JSON.stringify(this.meta);
             const incoming = this.storage.getItem(this.metaKey);
-            if (old !== incoming) {
+            if (incoming && old !== incoming) {
                 this.meta = JSON.parse(incoming);
                 if (this.trueSyncStatus !== 'conflict') {
                     this._conflictResolutionStrategy = null;
                 }
+                reloaded = true;
             }
-            reloaded = true;
         }
         if (this.dataDirty) {
             if (this.isTrash) {
@@ -310,7 +310,7 @@ class SheetHandleImpl {
             this.dataDirty = false;
         }
         else {
-            this._data = JSON.parse(this.storage.getItem(this.key));
+            this._data = JSON.parse(this.storage.getItem(this.key) ?? 'null');
         }
         if (reloaded) {
             this.afterUpdate();
