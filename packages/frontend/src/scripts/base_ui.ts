@@ -340,13 +340,17 @@ export async function openSheet(planner: GearPlanSheetGui, changeHash: boolean =
 // TODO: good use case for custom events
 let currentPicker: SheetPickerTable | null = null;
 
-ACCOUNT_STATE_TRACKER.addAccountStateListener(() => {
+ACCOUNT_STATE_TRACKER.addAccountStateListener((tracker, stateNow, stateBefore) => {
     if (currentPicker !== null && currentPicker.isConnected) {
         for (const value of currentPicker.dataRowMap.values()) {
             for (const col of value.dataColMap.values()) {
                 col.refreshFull();
             }
         }
+    }
+    if (stateNow && !stateBefore) {
+        SETTINGS.hideWelcomeMessage = true;
+        hideWelcomeArea();
     }
 });
 
