@@ -126,6 +126,7 @@ export class UserDataSyncer {
     }
 
     async syncSheets(): Promise<'success' | 'not-logged-in' | 'nothing-to-do'> {
+        console.log("syncSheets");
         const result = await this.prepSheetSync();
         if (result === 'not-logged-in') {
             return 'not-logged-in';

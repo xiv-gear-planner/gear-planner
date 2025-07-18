@@ -1,7 +1,6 @@
 import {BaseModal} from "@xivgear/common-ui/components/modal";
-import {ACCOUNT_STATE_TRACKER, AccountStateTracker} from "../account_state";
+import {ACCOUNT_STATE_TRACKER, AccountStateTracker, TokenState} from "../account_state";
 import {labeledCheckbox, makeActionButton, quickElement} from "@xivgear/common-ui/components/util";
-import {LoadingBlocker} from "@xivgear/common-ui/components/loader";
 import {ValidatingForm, vfWrap} from "@xivgear/common-ui/components/forms/validating_form";
 import {
     RegisterResponse,
@@ -11,36 +10,33 @@ import {
 import {passwordWithRepeat} from "@xivgear/common-ui/components/forms/form_elements";
 import {showPrivacyPolicyModal} from "../../components/ads";
 import {ChangePasswordModal} from "./change_password_modal";
+import {LogoutModal} from "./logout_modal";
+import {SheetPickerTable} from "../../components/saved_sheet_picker";
+import {USER_DATA_SYNCER} from "../user_data";
 
 class AccountModal extends BaseModal {
-    private readonly loadingBlocker: LoadingBlocker;
 
     constructor(tracker: AccountStateTracker) {
         super();
         this.headerText = 'Account';
-        this.loadingBlocker = new LoadingBlocker();
-        this.loadingBlocker.classList.add('with-bg');
-        this.inner.appendChild(this.loadingBlocker);
-        this.contentArea.appendChild(new AccountManagementInner(tracker, this.loadingBlocker));
+        this.contentArea.appendChild(new AccountManagementInner(tracker, b => this.loadingBlockerVisible = b));
     }
 }
 
 class AccountManagementInner extends HTMLElement {
 
-    constructor(private readonly tracker: AccountStateTracker, private readonly loadingBlocker: LoadingBlocker) {
+    constructor(private readonly tracker: AccountStateTracker, private readonly loadingBlockerHook: (blocked: boolean) => void) {
         super();
         this.style.position = 'relative';
-        this.loadingBlocker.style.position = 'absolute';
-        this.loadingBlocker.style.inset = '0 0 0 0';
         this.refresh();
     }
 
     showLoadingBlocker(): void {
-        this.loadingBlocker.show();
+        this.loadingBlockerHook(true);
     }
 
     hideLoadingBlocker(): void {
-        this.loadingBlocker.hide();
+        this.loadingBlockerHook(false);
     }
 
     indicateLoading<P extends unknown[], R>(f: (...args: P) => Promise<R>): (...args: P) => Promise<R> {
@@ -67,8 +63,7 @@ class AccountManagementInner extends HTMLElement {
             });
             elements.push(chgPassButton);
             const logoutButton = makeActionButton('Log Out', this.indicateLoading(async () => {
-                await this.tracker.logout();
-                this.refresh();
+                new LogoutModal(this.tracker, () => this.refresh()).attachAndShowTop();
             }));
             elements.push(logoutButton);
             if (!accountState.verified) {
@@ -295,6 +290,18 @@ export function setupAccountUi() {
             body.setAttribute('data-tokenstate', 'not-logged-in');
         }
         // Also update a body-level class
+    });
+    // Refresh sheet picker after transitioning from logged out to logged in,
+    // but only if the sheet picker table is visible
+    ACCOUNT_STATE_TRACKER.addTokenListener((oldState: TokenState | null, newState: TokenState) => {
+        console.log('token state changed', newState, oldState);
+        if (newState.verified && !oldState?.verified) {
+            document.querySelectorAll('table').forEach(table => {
+                if (table instanceof SheetPickerTable) {
+                    USER_DATA_SYNCER.triggerRefreshNow();
+                }
+            });
+        }
     });
 }
 

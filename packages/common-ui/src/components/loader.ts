@@ -26,5 +26,10 @@ export class LoadingBlocker extends HTMLElement {
     show() {
         this.style.display = 'block';
     }
+
+    isVisible() {
+        return this.style.display !== 'none';
+    }
 }
+
 customElements.define("loading-blocker", LoadingBlocker);
