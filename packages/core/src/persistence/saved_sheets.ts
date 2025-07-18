@@ -100,6 +100,8 @@ class SheetHandleImpl {
             return true;
         }
         // If we don't have it locally, but we can load it, then that works too.
+        // When we do get a valid token, this will refresh anyway, so it's fine that this information
+        // becomes outdated.
         if (this.serverVersion > 0 && this.mgr.asyncLoader.canLoad(this)) {
             return true;
         }
@@ -456,7 +458,7 @@ class SheetHandleImpl {
     async readData(): Promise<SheetExport> {
         const status = this.syncStatus;
         if (status === 'never-downloaded' || status === 'server-newer-than-client') {
-            if (this.mgr.asyncLoader.canLoad(this)) {
+            if (await this.mgr.asyncLoader.canLoadAsync(this)) {
                 await this.mgr.asyncLoader.load(this);
                 if (this._data === null) {
                     throw new Error("Async loader did not load data");
@@ -689,6 +691,7 @@ export type SyncUpdateHook = {
 export type SheetAsyncLoader = {
     load: (sheet: SheetHandle) => Promise<void>;
     canLoad: (sheet: SheetHandle) => boolean;
+    canLoadAsync: (sheet: SheetHandle) => Promise<boolean>;
 };
 
 const NoopAsyncLoader: SheetAsyncLoader = {
@@ -696,6 +699,7 @@ const NoopAsyncLoader: SheetAsyncLoader = {
         throw new Error("Noop async loader");
     },
     canLoad: (key: SheetHandle) => false,
+    canLoadAsync: (key: SheetHandle) => Promise.resolve(false),
 };
 
 export class SheetManagerImpl implements SheetManager {

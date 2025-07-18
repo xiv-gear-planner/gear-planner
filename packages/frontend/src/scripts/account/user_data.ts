@@ -41,11 +41,10 @@ export class UserDataSyncer {
                 private readonly sheetMgr: SheetManager) {
         const outer = this;
         this.sheetMgr.setAsyncLoader({
+            // Function for loading a sheet when we don't have the data locally
             load: async (sheet: SheetHandle) => {
-                // TODO: this has an issue where loading a sheet by URL (or just clicking really fast) will cause a
-                // race condition where we can't load the sheet because we don't have a token yet, but we can't
-                // just wait for a token because we don't know if one will ever come.
-                // What we need to do is introduce a 'wait for a token or a definite lack of token' async method.
+                // Wait for token
+                await accountStateTracker.verifiedTokenPromise;
                 const result = await outer.syncOne(sheet);
                 if (result === 'success' || result === 'nothing-to-do') {
                     return;
@@ -53,7 +52,10 @@ export class UserDataSyncer {
                 throw new Error('Could not sync');
             },
             canLoad: () => {
-                return outer.accountStateTracker.accountState?.verified;
+                return accountStateTracker.hasVerifiedToken;
+            },
+            canLoadAsync: async () => {
+                return (await accountStateTracker.verifiedTokenPromise) !== null;
             },
         });
         this.sheetMgr.setUpdateHook('user-data-syncer', {
