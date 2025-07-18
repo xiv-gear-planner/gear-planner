@@ -1,5 +1,5 @@
 import {BaseModal} from "@xivgear/common-ui/components/modal";
-import {ACCOUNT_STATE_TRACKER, AccountStateTracker, ACCOUNT_STATE_BROADCAST_CHANNEL, TokenState} from "../account_state";
+import {ACCOUNT_STATE_TRACKER, AccountStateTracker, TokenState} from "../account_state";
 import {labeledCheckbox, makeActionButton, quickElement} from "@xivgear/common-ui/components/util";
 import {ValidatingForm, vfWrap} from "@xivgear/common-ui/components/forms/validating_form";
 import {
