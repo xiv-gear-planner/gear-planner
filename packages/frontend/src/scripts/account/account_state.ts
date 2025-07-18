@@ -9,6 +9,7 @@ import {recordEvent} from "@xivgear/common-ui/analytics/analytics";
 import {RefreshLoop} from "@xivgear/util/refreshloop";
 import {PromiseHelper} from "@xivgear/util/async";
 
+const LAST_UID_KEY = 'lastLoggedInUid';
 
 // TODO: since api client is no longer configured to throw on bad response, need to manually check all of them
 export class AccountStateTracker {
@@ -16,15 +17,17 @@ export class AccountStateTracker {
     private readonly refreshLoop: RefreshLoop;
     private _lastAccountState: AccountInfo | null = null;
     private _accountState: AccountInfo | null = null;
-    private jwt: string | null = null;
-    private _listeners: AccountStateListener[] = [];
+    private _jwt: string | null = null;
+    private _lastTokenState: TokenState | null = null;
+    private _accountListeners: AccountStateListener[] = [];
+    private _tokenListeners: TokenStateListener[] = [];
     private checkedOnce: boolean = false;
 
     private _stateHelper = new PromiseHelper<AccountInfo | null>();
     private _tokenHelper = new PromiseHelper<string | null>();
     private _verifiedTokenHelper = new PromiseHelper<string | null>();
 
-    constructor(private readonly api: AccountServiceClient<never>) {
+    constructor(private readonly api: AccountServiceClient<never>, private readonly storage: Storage) {
         this.refreshLoop = new RefreshLoop(async () => this.refresh(), () => {
             if (this.definitelyNotLoggedIn) {
                 // If we know we are definitely not logged in, refresh once an hour
@@ -33,7 +36,7 @@ export class AccountStateTracker {
             // Otherwise, refresh once every 5 minutes (15 min JWT expiration)
             return 1000 * 60 * 5;
         });
-        this.addAccountStateListener((tracker, stateNow, stateAfter) => {
+        this.addAccountStateListener((tracker, stateNow, stateBefore) => {
             this._stateHelper.provideValue(stateNow);
             if (stateNow !== null) {
                 if (tracker.token !== null) {
@@ -54,7 +57,7 @@ export class AccountStateTracker {
     }
 
     private notifyListeners(): void {
-        for (const listener of this._listeners) {
+        for (const listener of this._accountListeners) {
             try {
                 listener(this, this._accountState, this._lastAccountState);
             }
@@ -65,10 +68,65 @@ export class AccountStateTracker {
         this._lastAccountState = this._accountState;
     }
 
-    private ingestAccountState(accountState: AccountInfo): void {
+    private notifyTokenListeners(): void {
+        const newTokenState: TokenState = {
+            token: this.jwt,
+            verified: this.hasVerifiedToken,
+        };
+        for (const listener of this._tokenListeners) {
+            try {
+                listener(this._lastTokenState, newTokenState);
+            }
+            catch (e) {
+                console.error("Error notifying listener", e);
+            }
+        }
+        this._lastTokenState = newTokenState;
+    }
+
+    private async ingestAccountState(accountState: AccountInfo): Promise<boolean> {
         this._accountState = accountState;
         this.checkedOnce = true;
+        const lastUid = this.lastUid;
+        const newUid = accountState?.uid;
+        if (lastUid && newUid) {
+            if (newUid !== lastUid) {
+                // Warn that the user is logging in with a different account
+                const TODO = false;
+                if (TODO) {
+                    return false;
+                }
+            }
+        }
+        this.lastUid = newUid;
         this.notifyListeners();
+        return true;
+    }
+
+    get jwt(): string | null {
+        return this._jwt;
+    }
+
+    set jwt(value: string | null) {
+        this._jwt = value;
+        this.notifyTokenListeners();
+    }
+
+    private get lastUid(): number | null {
+        const lastUid = parseInt(this.storage.getItem(LAST_UID_KEY));
+        if (lastUid && typeof lastUid === 'number') {
+            return lastUid;
+        }
+        return null;
+    }
+
+    private set lastUid(uid: number | null) {
+        if (uid === null) {
+            this.storage.removeItem(LAST_UID_KEY);
+        }
+        else {
+            this.storage.setItem(LAST_UID_KEY, JSON.stringify(uid));
+        }
     }
 
     private get definitelyNotLoggedIn(): boolean {
@@ -114,7 +172,7 @@ export class AccountStateTracker {
             });
             if (resp.ok) {
                 const info = resp.data.accountInfo;
-                this.ingestAccountState(info);
+                await this.ingestAccountState(info);
                 recordEvent('loginSuccess');
                 return info;
             }
@@ -139,7 +197,7 @@ export class AccountStateTracker {
     /**
      * Log out.
      */
-    async logout(): Promise<void> {
+    async logout(clearData: boolean = false): Promise<void> {
         recordEvent('logout');
         const resp = await this.api.account.logout();
         if (!resp.ok) {
@@ -151,7 +209,11 @@ export class AccountStateTracker {
             throw new Error("Failed to log out");
         }
         this.jwt = null;
-        this.ingestAccountState(null);
+        await this.ingestAccountState(null);
+        if (clearData) {
+            this.storage.clear();
+            location.reload();
+        }
     }
 
     /**
@@ -163,8 +225,7 @@ export class AccountStateTracker {
         const resp = await this.api.account.currentAccount();
         if (resp.ok) {
             const data = resp.data;
-            this.ingestAccountState(data.accountInfo ?? null);
-            this.notifyListeners();
+            await this.ingestAccountState(data.accountInfo ?? null);
             return this._accountState;
         }
         else {
@@ -278,7 +339,7 @@ export class AccountStateTracker {
             email: this.accountState.email,
         });
         if (response.ok) {
-            this.ingestAccountState(response.data.accountInfo);
+            await this.ingestAccountState(response.data.accountInfo);
             recordEvent('verifyEmailSuccess');
             return response.data.verified;
         }
@@ -319,9 +380,14 @@ export class AccountStateTracker {
     }
 
     addAccountStateListener(listener: AccountStateListener): void {
-        this._listeners.push(listener);
+        this._accountListeners.push(listener);
     }
 
+    addTokenListener(listener: TokenStateListener): void {
+        this._tokenListeners.push(listener);
+    }
+
+    // noinspection JSUnusedGlobalSymbols
     /**
      * Returns a promise that resolves to the most recent AccountInfo (or null if not logged in). Does not resolve
      * until at least one attempt to check account info has been made.
@@ -347,7 +413,13 @@ export class AccountStateTracker {
     }
 }
 
-export type AccountStateListener = (tracker: AccountStateTracker, stateNow: AccountInfo | null, stateAfter: AccountInfo | null) => void;
+// TODO: combine these in the future
+export type AccountStateListener = (tracker: AccountStateTracker, stateNow: AccountInfo | null, stateBefore: AccountInfo | null) => void;
+export type TokenState = {
+    token: string | null,
+    verified: boolean,
+}
+export type TokenStateListener = (before: TokenState | null, after: TokenState) => void;
 
 
 const accountApiClient = new AccountServiceClient<never>({
@@ -356,7 +428,7 @@ const accountApiClient = new AccountServiceClient<never>({
     customFetch: cookieFetch,
 });
 
-export const ACCOUNT_STATE_TRACKER = new AccountStateTracker(accountApiClient);
+export const ACCOUNT_STATE_TRACKER = new AccountStateTracker(accountApiClient, localStorage);
 
 declare global {
     // noinspection JSUnusedGlobalSymbols

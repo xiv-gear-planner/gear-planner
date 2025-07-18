@@ -44,12 +44,15 @@ class SheetHandleImpl {
 
     private _conflictResolutionStrategy: ConflictResolutionStrategy | null = null;
 
+    public meta: LocalSheetMetadata;
+
     constructor(
         public readonly key: string,
         data: SheetExport,
-        public readonly meta: LocalSheetMetadata,
+        meta: LocalSheetMetadata,
         private readonly mgr: SheetManagerImpl
     ) {
+        this.meta = meta;
         this._data = data;
         if (!this.meta.summary) {
             if (this._data !== null) {
@@ -274,6 +277,7 @@ class SheetHandleImpl {
      * Save the sheet and metadata.
      */
     flush(): void {
+        let reloaded = false;
         if (this.metaDirty) {
             if (this.isTrash) {
                 console.log(`removing ${this.metaKey}`);
@@ -283,6 +287,17 @@ class SheetHandleImpl {
                 this.storage.setItem(this.metaKey, JSON.stringify(this.meta));
             }
             this.metaDirty = false;
+        }
+        else {
+            const old = JSON.stringify(this.meta);
+            const incoming = this.storage.getItem(this.metaKey);
+            if (old !== incoming) {
+                this.meta = JSON.parse(incoming);
+                if (this.trueSyncStatus !== 'conflict') {
+                    this._conflictResolutionStrategy = null;
+                }
+            }
+            reloaded = true;
         }
         if (this.dataDirty) {
             if (this.isTrash) {
@@ -294,7 +309,12 @@ class SheetHandleImpl {
             }
             this.dataDirty = false;
         }
-        // TODO: make this reload data if not dirty
+        else {
+            this._data = JSON.parse(this.storage.getItem(this.key));
+        }
+        if (reloaded) {
+            this.afterUpdate();
+        }
     }
 
     get syncStatus(): SyncStatus {

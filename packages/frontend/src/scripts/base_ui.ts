@@ -358,10 +358,10 @@ export function showSheetPickerMenu() {
     // const holderDiv = quickElement('div', ['sheet-picker-holder'], [new SheetPickerTable()]);
     setMainContent(undefined, section);
     currentPicker = picker;
-    // Refresh sheets after getting token.
-    ACCOUNT_STATE_TRACKER.verifiedTokenPromise.then(() => {
-        USER_DATA_SYNCER.triggerRefreshNow();
-    });
+    // If the user starts on this page, this will trigger before we have the token, i.e. no-op. Instead, the hook in
+    // account_components.ts:setupAccountUi() handles it. However, if the user navigates here afterwards, this will
+    // handle the refresh.
+    USER_DATA_SYNCER.triggerRefreshNow();
 }
 
 

@@ -4,20 +4,11 @@ import {makeActionButton, quickElement} from "@xivgear/common-ui/components/util
 import {ValidatingForm, ValidationErrorSingle, vfWrap} from "@xivgear/common-ui/components/forms/validating_form";
 import {ChangePasswordResponse, ValidationErrorResponse} from "@xivgear/account-service-client/accountsvc";
 import {AccountStateTracker} from "../account_state";
-import {LoadingBlocker} from "@xivgear/common-ui/components/loader";
 
 export class ChangePasswordModal extends BaseModal {
-    private readonly loadingBlocker: LoadingBlocker;
 
     constructor(private readonly acs: AccountStateTracker, private readonly afterPwChange: () => void) {
         super();
-
-        this.loadingBlocker = new LoadingBlocker();
-        this.loadingBlocker.classList.add('with-bg');
-        this.loadingBlocker.style.position = 'absolute';
-        this.loadingBlocker.style.inset = '0 0 0 0';
-        this.hideLoadingBlocker();
-        this.inner.appendChild(this.loadingBlocker);
 
         const outer = this;
         this.headerText = 'Change Password';
@@ -73,14 +64,6 @@ export class ChangePasswordModal extends BaseModal {
             wrapper: vfWrap(() => outer.showLoadingBlocker(), () => outer.hideLoadingBlocker()),
         });
         this.contentArea.appendChild(form);
-    }
-
-    showLoadingBlocker(): void {
-        this.loadingBlocker.show();
-    }
-
-    hideLoadingBlocker(): void {
-        this.loadingBlocker.hide();
     }
 }
 

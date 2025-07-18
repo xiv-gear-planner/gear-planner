@@ -254,6 +254,79 @@ describe('sheet_manager', () => {
         expect(storage.getItem(key)).to.be.null;
         expect(storage.getItem(metaKey)).to.be.null;
     });
+    it('can reload if not dirty', () => {
+        // If a handle is not dirty, then 'flush' calls the
+        const {
+            storage,
+            mgr,
+        } = makeTestData();
+        const summary: SheetSummary = {
+            job: 'BLU',
+            level: 90,
+            multiJob: false,
+            name: "BLU Test",
+            isync: 666,
+        };
+        const handle = mgr.newSheetFromScratch(summary);
+        const key = handle.key;
+        expect(handle.localVersion).to.equal(0);
+        expect(handle.lastSyncedVersion).to.equal(0);
+        expect(handle.serverVersion).to.equal(0);
+        mgr.flush();
+        handle.postLocalModification({
+            ...summaryToPartialData(summary),
+            description: "bar",
+            saveKey: key,
+        } as SheetExport);
+        expect(handle.localVersion).to.equal(1);
+        expect(handle.lastSyncedVersion).to.equal(0);
+        expect(handle.serverVersion).to.equal(0);
+
+        const newMgr = new SheetManagerImpl(storage);
+        const newHandle = newMgr.getByKey(key);
+        expect(newHandle).to.not.be.null;
+        expect(newHandle.localVersion).to.equal(1);
+        expect(newHandle.lastSyncedVersion).to.equal(0);
+        expect(newHandle.serverVersion).to.equal(0);
+
+        // Modify first handle, second handle should see it after flush
+        handle.postLocalModification({
+            ...handle.dataNow,
+            description: "bar2",
+        } as SheetExport);
+        handle.flush();
+        expect(handle.localVersion).to.equal(2);
+        expect(handle.lastSyncedVersion).to.equal(0);
+        expect(handle.serverVersion).to.equal(0);
+        // Old version should not have updated yet
+        expect(newHandle.localVersion).to.equal(1);
+        expect(newHandle.lastSyncedVersion).to.equal(0);
+        expect(newHandle.serverVersion).to.equal(0);
+
+        newHandle.flush();
+        // Now it updates
+        expect(newHandle.localVersion).to.equal(2);
+        expect(newHandle.lastSyncedVersion).to.equal(0);
+        expect(newHandle.serverVersion).to.equal(0);
+        expect(newHandle.dataNow.description).to.equal('bar2');
+
+        // Let's go the other way now
+        // Try a metadata-only change
+        newHandle.lastSyncedVersion = 2;
+        expect(newHandle.localVersion).to.equal(2);
+        expect(newHandle.lastSyncedVersion).to.equal(2);
+        expect(newHandle.serverVersion).to.equal(2);
+        newHandle.flush();
+
+        expect(handle.localVersion).to.equal(2);
+        expect(handle.lastSyncedVersion).to.equal(0);
+        expect(handle.serverVersion).to.equal(0);
+        handle.flush();
+        expect(handle.localVersion).to.equal(2);
+        expect(handle.lastSyncedVersion).to.equal(2);
+        expect(handle.serverVersion).to.equal(2);
+
+    });
     describe('bug 687', () => {
         describe('fix existing bugged clients where lastSynced==0', () => {
             it('client and server equal', () => {

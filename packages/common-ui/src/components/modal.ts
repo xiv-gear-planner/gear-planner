@@ -1,5 +1,6 @@
 import {makeActionButton, makeCloseButton} from "./util";
 import {Modal, MODAL_CONTROL} from "../modalcontrol";
+import {LoadingBlocker} from "./loader";
 
 export abstract class BaseModal extends HTMLElement {
     protected readonly header: HTMLElement;
@@ -7,6 +8,7 @@ export abstract class BaseModal extends HTMLElement {
     protected readonly closeButton: HTMLButtonElement;
     protected readonly buttonArea: HTMLDivElement;
     protected readonly contentArea: HTMLDivElement;
+    private loadingBlocker: LoadingBlocker | null = null;
 
     protected constructor() {
         super();
@@ -101,4 +103,41 @@ export abstract class BaseModal extends HTMLElement {
 
     protected onClose(): void {
     }
+
+    protected showLoadingBlocker() {
+        if (this.loadingBlocker === null) {
+            this.loadingBlocker = new LoadingBlocker();
+            this.loadingBlocker.classList.add('with-bg', 'base-modal-loading-blocker');
+            this.loadingBlocker.style.position = 'absolute';
+            this.loadingBlocker.style.inset = '0 0 0 0';
+            this.inner.appendChild(this.loadingBlocker);
+        }
+        this.loadingBlocker.show();
+    }
+
+    protected hideLoadingBlocker(): void {
+        this.loadingBlocker?.hide();
+    }
+
+    protected get loadingBlockerVisible(): boolean {
+        return this.loadingBlocker?.isVisible() ?? false;
+    }
+
+    protected set loadingBlockerVisible(visible: boolean) {
+        if (visible) {
+            this.showLoadingBlocker();
+        }
+        else {
+            this.hideLoadingBlocker();
+        }
+    }
+
+    protected showLoadingBlockerWhile<X extends Promise<unknown>>(action: () => X): X {
+        this.showLoadingBlocker();
+        const promise = action();
+        promise.finally(() => this.hideLoadingBlocker());
+        return promise;
+    }
+
+
 }
