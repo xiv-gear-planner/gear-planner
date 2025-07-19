@@ -127,7 +127,7 @@ export class UserDataSyncer {
         return 'success';
     }
 
-    async syncSheets(): Promise<'success' | 'not-logged-in' | 'nothing-to-do'> {
+    async syncSheets(): Promise<'success' | 'not-logged-in' | 'nothing-to-do' | 'cancelled'> {
         console.log("syncSheets");
         const result = await this.prepSheetSync();
         if (result === 'not-logged-in') {
@@ -136,15 +136,22 @@ export class UserDataSyncer {
         if (result === 'nothing-to-do') {
             return 'nothing-to-do';
         }
+        if (result === 'cancelled') {
+            return 'cancelled';
+        }
         return await this.performSync();
     }
 
     /**
      * Asks the server about what sheets and sheet versions it has.
      */
-    async prepSheetSync(): Promise<'need-sync' | 'not-logged-in' | 'nothing-to-do'> {
+    async prepSheetSync(): Promise<'need-sync' | 'not-logged-in' | 'nothing-to-do' | 'cancelled'> {
         const jwt: string | null = this.accountStateTracker.verifiedToken;
         if (jwt === null) {
+            return 'not-logged-in';
+        }
+        const uid = this.accountStateTracker.accountState?.uid ?? 0;
+        if (!uid) {
             return 'not-logged-in';
         }
         const mgr = this.sheetMgr;
@@ -157,6 +164,10 @@ export class UserDataSyncer {
         });
         const newSheets: SheetMetadata[] = [];
         const serverData = await this.userDataClient.userdata.getSheetsList(this.buildParams());
+        if (this.accountStateTracker.accountState.uid !== uid) {
+            console.warn('UID changed during sync');
+            return 'cancelled';
+        }
         serverData.data.sheets.forEach(sheetMeta => {
             const deletedFromServer = sheetMeta.deleted;
             const key = sheetMeta.saveKey;
@@ -286,16 +297,26 @@ export class UserDataSyncer {
         })());
     }
 
-    private async performSync(): Promise<'success' | 'not-logged-in' | 'nothing-to-do'> {
+    private async performSync(uid: number | null = null): Promise<'success' | 'not-logged-in' | 'nothing-to-do' | 'cancelled'> {
         const mgr = this.sheetMgr;
         const jwt: string | null = this.accountStateTracker.verifiedToken;
         if (jwt === null) {
             return 'not-logged-in';
         }
+        if (uid === null) {
+            uid = this.accountStateTracker.accountState?.uid ?? 0;
+            if (!uid) {
+                return 'not-logged-in';
+            }
+        }
         // TODO: send back 429 too many requests if throttled
         // TODO: better log messages, hard to tell what's going on
         try {
             for (const sheetHandle of mgr.allSheets) {
+                if (this.accountStateTracker.accountState.uid !== uid) {
+                    console.warn('UID changed during sync');
+                    return 'cancelled';
+                }
                 const syncStatus = sheetHandle.syncStatus;
                 try {
                     switch (syncStatus) {
