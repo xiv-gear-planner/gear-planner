@@ -8,6 +8,7 @@ import {
 import {recordEvent} from "@xivgear/common-ui/analytics/analytics";
 import {RefreshLoop} from "@xivgear/util/refreshloop";
 import {PromiseHelper} from "@xivgear/util/async";
+import {ConfirmAccountChangeModal} from "./components/confirm_account_change_modal";
 
 const LAST_UID_KEY = 'lastLoggedInUid';
 
@@ -38,7 +39,11 @@ export class AccountStateTracker {
     private _tokenHelper = new PromiseHelper<string | null>();
     private _verifiedTokenHelper = new PromiseHelper<string | null>();
 
-    constructor(private readonly api: AccountServiceClient<never>, private readonly storage: Storage, private readonly broadcastChannel: BroadcastChannel) {
+    constructor(private readonly api: AccountServiceClient<never>,
+                private readonly storage: Storage,
+                private readonly broadcastChannel: BroadcastChannel,
+                private readonly accountChangeConfirmation: () => Promise<boolean>
+    ) {
         this.refreshLoop = new RefreshLoop(async () => this.refresh(), () => {
             if (this.definitelyNotLoggedIn) {
                 // If we know we are definitely not logged in, refresh once an hour
@@ -117,23 +122,40 @@ export class AccountStateTracker {
         this._lastTokenState = newTokenState;
     }
 
-    private async ingestAccountState(accountState: AccountInfo): Promise<boolean> {
-        this._accountState = accountState;
-        this.checkedOnce = true;
+    private async ingestAccountState(accountState: AccountInfo): Promise<void> {
         const lastUid = this.lastUid;
         const newUid = accountState?.uid;
+        console.log(`Old: ${lastUid}, new: ${newUid}`);
         if (lastUid && newUid) {
             if (newUid !== lastUid) {
+                // If we are in the state where we have logged in with a different account, but have not yet decided
+                // whether to purge or cancel, we need to prevent the token and account state from being used.
+                this._accountState = null;
+                this._jwt = null;
                 // Warn that the user is logging in with a different account
-                const TODO = false;
-                if (TODO) {
-                    return false;
+                const result: boolean = await this.confirmAccountChange();
+                if (result) {
+                    this.purgeLocalData();
+                    // Don't need to do anything past this - this forces a refresh
+                    return;
+                }
+                else {
+                    await this.logout(false);
+                    this.checkedOnce = true;
+                    this.notifyListeners();
+                    return;
                 }
             }
         }
-        this.lastUid = newUid;
+        if (newUid) {
+            // We don't want to blank out last-UID if logging out, that defeats the purpose of tracking it,
+            // which is to require clearing data if you log in with a different account.
+            this.lastUid = newUid;
+        }
+        this._accountState = accountState;
+        this.checkedOnce = true;
         this.notifyListeners();
-        return true;
+        return;
     }
 
     get jwt(): string | null {
@@ -335,6 +357,7 @@ export class AccountStateTracker {
             password,
             displayName,
         });
+        this.refreshLoop.refresh();
         this.notifyListeners();
         if (promise.ok) {
             recordEvent('registerSuccess');
@@ -351,7 +374,7 @@ export class AccountStateTracker {
                 statusText: promise.statusText,
                 status: promise.status,
             });
-            throw Error("TODO");
+            throw Error(`${promise.status} ${promise.statusText}`);
         }
     }
 
@@ -387,6 +410,7 @@ export class AccountStateTracker {
         if (response.ok) {
             await this.ingestAccountState(response.data.accountInfo);
             recordEvent('verifyEmailSuccess');
+            this.refreshLoop.refresh();
             return response.data.verified;
         }
         else {
@@ -457,6 +481,15 @@ export class AccountStateTracker {
     get verifiedTokenPromise(): Promise<string | null> {
         return this._verifiedTokenHelper.promise;
     }
+
+    /**
+     * Ask the user to confirm that they want to switch accounts which entails clearing local data.
+     *
+     * @private
+     */
+    private async confirmAccountChange(): Promise<boolean> {
+        return await this.accountChangeConfirmation();
+    }
 }
 
 // TODO: combine these in the future
@@ -474,8 +507,17 @@ const accountApiClient = new AccountServiceClient<never>({
     customFetch: cookieFetch,
 });
 
+async function confirmAccountChange(): Promise<boolean> {
+    return await new Promise<boolean>((resolve, reject) => {
+        new ConfirmAccountChangeModal({
+            resolve,
+            reject,
+        }).attachAndShowTop();
+    });
+}
+
 export const ACCOUNT_STATE_BROADCAST_CHANNEL = new BroadcastChannel("account-state");
-export const ACCOUNT_STATE_TRACKER = new AccountStateTracker(accountApiClient, localStorage, ACCOUNT_STATE_BROADCAST_CHANNEL);
+export const ACCOUNT_STATE_TRACKER = new AccountStateTracker(accountApiClient, localStorage, ACCOUNT_STATE_BROADCAST_CHANNEL, confirmAccountChange);
 
 declare global {
     // noinspection JSUnusedGlobalSymbols
