@@ -18,6 +18,7 @@ import {mnkSpec} from "./melee/mnk/mnk_sim";
 import {samSpec} from "./melee/sam/sam_lv100_sim";
 import {vprSheetSpec} from "./melee/vpr/vpr_sheet_sim";
 import {dncDtSheetSpec} from "./ranged/dnc_sim";
+import {mchSpec} from "./ranged/mch/mch_sheet_sim";
 import {registerSim} from "./sim_registry";
 import {pldUsageSimSpec} from "./tank/pld/pld_usage_sim_no_sks";
 import {pldSKSSheetSpec} from "./tank/pld/pldsks_sim";
@@ -62,6 +63,7 @@ export function registerDefaultSims() {
     registerSim(samSpec);
     // Ranged
     registerSim(dncDtSheetSpec);
+    registerSim(mchSpec);
     // Caster
     registerSim(blmSpec);
     registerSim(BluWinged120Spec);
