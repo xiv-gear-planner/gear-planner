@@ -25,7 +25,7 @@ export type ValidatingFormWrapper = {
 /**
  * A form with some built-in validation helpers.
  */
-export class ValidatingForm<Response extends object> extends HTMLFormElement {
+export class ValidatingForm<Response> extends HTMLFormElement {
 
     constructor(args: {
         /**
@@ -133,7 +133,7 @@ export class ValidatingForm<Response extends object> extends HTMLFormElement {
                 }
             }
             const result: Response | ValidationErrorResponse = await args.submit();
-            if ('validationErrors' in result) {
+            if (result && typeof result === 'object' && 'validationErrors' in result) {
                 console.warn('Validation errors', result.validationErrors);
                 processValidationErrors(result.validationErrors ?? null);
             }

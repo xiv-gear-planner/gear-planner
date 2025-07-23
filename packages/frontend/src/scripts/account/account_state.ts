@@ -490,6 +490,35 @@ export class AccountStateTracker {
     private async confirmAccountChange(): Promise<boolean> {
         return await this.accountChangeConfirmation();
     }
+
+    async startPasswordReset(email: string): Promise<'success' | 'email-not-found'> {
+        const response = await this.api.account.initiatePasswordReset({
+            email: email,
+        });
+        if (response.ok) {
+            return 'success';
+        }
+        else if (response.status === 404) {
+            return 'email-not-found';
+        }
+        else {
+            throw new Error(`Failed to start password reset: ${response.status} ${response.statusText}`);
+        }
+    }
+
+    async finalizePasswordReset(email: string, token: number, newPassword: string): Promise<'success' | ValidationErrorResponse> {
+        const response = await this.api.account.finalizePasswordReset({
+            email: email,
+            token: token,
+            newPassword: newPassword,
+        });
+        if (response.ok) {
+            return 'success';
+        }
+        else {
+            return response.error;
+        }
+    }
 }
 
 // TODO: combine these in the future

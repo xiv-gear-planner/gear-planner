@@ -34,6 +34,26 @@ export interface ChangePasswordResponse {
   passwordCorrect?: boolean;
 }
 
+export interface FinalizePasswordResetRequest {
+  /**
+   * @format email
+   * @minLength 1
+   */
+  email: string;
+  /** @format int32 */
+  token?: number;
+  /** @minLength 8 */
+  newPassword?: string;
+}
+
+export interface InitiatePasswordResetRequest {
+  /**
+   * @format email
+   * @minLength 1
+   */
+  email: string;
+}
+
 export interface JwtResponse {
   token?: string;
 }
@@ -380,6 +400,28 @@ export class AccountServiceClient<
     /**
      * No description
      *
+     * @name FinalizePasswordReset
+     * @request POST:/account/finalizePasswordReset
+     * @secure
+     * @response `200` `object` finalizePasswordReset 200 response
+     */
+    finalizePasswordReset: (
+      data: FinalizePasswordResetRequest,
+      params: RequestParams = {},
+    ) =>
+      this.request<object, any>({
+        path: `/account/finalizePasswordReset`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
      * @name AccountInfo
      * @request GET:/account/info
      * @secure
@@ -390,6 +432,28 @@ export class AccountServiceClient<
         path: `/account/info`,
         method: "GET",
         secure: true,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @name InitiatePasswordReset
+     * @request POST:/account/initiatePasswordReset
+     * @secure
+     * @response `200` `object` initiatePasswordReset 200 response
+     */
+    initiatePasswordReset: (
+      data: InitiatePasswordResetRequest,
+      params: RequestParams = {},
+    ) =>
+      this.request<object, any>({
+        path: `/account/initiatePasswordReset`,
+        method: "POST",
+        body: data,
+        secure: true,
+        type: ContentType.Json,
         format: "json",
         ...params,
       }),
@@ -453,7 +517,7 @@ export class AccountServiceClient<
      * @name Register
      * @request POST:/account/register
      * @secure
-     * @response `200` `RegisterResponse` register 200 response
+     * @response `200` `RegisterResponse` Successful registration
      * @response `400` `ValidationErrorResponse` Validation error
      */
     register: (data: RegisterRequest, params: RequestParams = {}) =>

@@ -13,6 +13,7 @@ import {ChangePasswordModal} from "./change_password_modal";
 import {LogoutModal} from "./logout_modal";
 import {SheetPickerTable} from "../../components/saved_sheet_picker";
 import {USER_DATA_SYNCER} from "../user_data";
+import {FinalizePasswordResetModal} from "./finalize_password_reset_modal";
 
 class AccountModal extends BaseModal {
 
@@ -114,11 +115,30 @@ class AccountManagementInner extends HTMLElement {
                 passwordField.type = 'password';
                 passwordField.placeholder = 'Password';
                 passwordField.autocomplete = 'current-password';
-                const submitButton = makeActionButton('Login', () => {
+                const loginButton = makeActionButton('Log In', () => {
                 });
-                submitButton.type = 'submit';
+                loginButton.type = 'submit';
 
-                const loginForm = quickElement('form', ['login-form'], [loginHeader, email, passwordField, submitButton]);
+                const forgotButton = makeActionButton('Forgot Password', this.indicateLoading(async () => {
+                    try {
+                        const result = await this.tracker.startPasswordReset(email.value);
+                        if (result === 'success') {
+                            // Display the dialog to enter the code to reset the password
+                            new FinalizePasswordResetModal(email.value, this.tracker).attachAndShowTop();
+                        }
+                        else {
+                            email.focus();
+                            loginHeader.classList.add('failed');
+                            loginHeader.textContent = 'No Account With That Email';
+                        }
+                    }
+                    catch (e) {
+                        console.error("error starting password reset", e);
+                        alert('There was an error starting the password reset process.');
+                    }
+                }));
+
+                const loginForm = quickElement('form', ['login-form'], [loginHeader, email, passwordField, loginButton, forgotButton]);
                 loginForm.addEventListener('submit', this.indicateLoading(async (e) => {
                     e.preventDefault();
                     const accountInfo = await this.tracker.login(email.value, passwordField.value);
