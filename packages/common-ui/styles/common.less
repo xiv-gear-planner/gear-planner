@@ -1557,14 +1557,35 @@ table.gear-items-table, table.food-items-table {
     margin-left: 15px;
   }
 
-  tr, td {
-    height: 25px;
-    box-sizing: border-box;
+
+  // Match direct children only
+  > tbody {
+    // Exclude header
+    > tr:has(> td) {
+      // Don't show text selection cursor on item tables since the text doesn't
+      // allow selection.
+      cursor: pointer;
+    }
+
+    > tr, td {
+      height: 25px;
+      box-sizing: border-box;
+
+      > td {
+        height: 25px;
+        box-sizing: border-box;
+      }
+    }
+
+    th.hoverable {
+      cursor: pointer;
+    }
+
+    > * > td > img {
+      height: 100%;
+    }
   }
 
-  > tbody > * > td > img {
-    height: 100%;
-  }
 
   max-width: var(--item-table-max-width);
 
@@ -1735,7 +1756,10 @@ slot-materia-manager {
   cursor: pointer;
 
   slot-materia-popup {
-    cursor: unset;
+    cursor: default;
+    td:has(img), .materia-picker-remove {
+      cursor: pointer;
+    }
   }
 }
 
@@ -1822,21 +1846,21 @@ slot-materia-popup {
   position: absolute;
   z-index: var(--zi-slot-materia-popup);
   left: 0;
-  box-shadow: var(--shadow-color) 0 5px 10px 0;
+  .shadow-big;
 
   > table {
-    border-radius: 0 !important;
     padding: 0 !important;
   }
 
   th {
+    // For classic theme only - want to be able to see the border
     border-top: var(--standard-border) !important;
     text-align: center;
   }
 
   td {
-    width: fit-content !important;
-    height: fit-content !important;
+    //width: fit-content !important;
+    //height: fit-content !important;
     padding: 0 !important;
     z-index: var(--zi-slot-materia-popup-cell);
 
@@ -1846,6 +1870,7 @@ slot-materia-popup {
       display: block;
     }
 
+    // Raise selected item
     &[is-selected="true"] {
       z-index: 181;
     }
