@@ -333,6 +333,8 @@ export class FoodItemsTable extends CustomTable<FoodItem, TableSelectionModel<Fo
         const oneStatFoodWithLabel = labeledCheckbox('Show Food with One Relevant Stat', osfCb);
         // This should not trigger the show/hide control
         oneStatFoodWithLabel.addEventListener('click', e => e.stopPropagation());
+        // Chrome has weird behavior, this is a workaround
+        osfCb.addEventListener('click', e => e.stopPropagation());
 
         const showHideRow = makeShowHideRow('Food', gearSet.isSlotCollapsed('food'), (val, count) => {
             gearSet.setSlotCollapsed('food', val);
