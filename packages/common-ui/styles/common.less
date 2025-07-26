@@ -1548,6 +1548,17 @@ gear-plan {
   }
 }
 
+table.gear-items-edit-table, table.food-items-edit-table {
+  > tbody {
+    // Exclude header
+    > tr:has(> td) {
+      // Don't show text selection cursor on item tables since the text doesn't
+      // allow selection.
+      cursor: pointer;
+    }
+  }
+}
+
 table.gear-items-table, table.food-items-table {
   margin-left: auto;
   margin-right: auto;
@@ -1560,12 +1571,6 @@ table.gear-items-table, table.food-items-table {
 
   // Match direct children only
   > tbody {
-    // Exclude header
-    > tr:has(> td) {
-      // Don't show text selection cursor on item tables since the text doesn't
-      // allow selection.
-      cursor: pointer;
-    }
 
     > tr, td {
       height: 25px;
