@@ -10,12 +10,11 @@ import {GearPlanSheetGui} from "./sheet";
 import {SimResult, Simulation} from "@xivgear/core/sims/sim_types";
 import {MAX_GCD, STAT_ABBREVIATIONS} from "@xivgear/xivmath/xivconstants";
 import {BaseModal} from "@xivgear/common-ui/components/modal";
-import {EquipSlots, Materia} from "@xivgear/xivmath/geartypes";
+import {EquipSlots, FoodItem, Materia} from "@xivgear/xivmath/geartypes";
 import {MeldSolver} from "./meldsolver";
 import {GearsetGenerationSettings} from "@xivgear/core/solving/gearset_generation";
 import {SolverSimulationSettings} from "@xivgear/core/solving/sim_runner";
 import {recordSheetEvent} from "../analytics/analytics";
-import {Food} from "@xivgear/data-api-client/dataapi";
 
 export class MeldSolverDialog extends BaseModal {
     private _sheet: GearPlanSheetGui;
@@ -392,7 +391,7 @@ class FoodEntry extends HTMLDivElement {
     private readonly foodImgHolder: HTMLDivElement;
     private readonly nameText: HTMLSpanElement;
 
-    constructor(food: Food, count: number) {
+    constructor(food: FoodItem, count: number) {
         super();
         this.classList.add("meld-solver-result-materia-entry");
 
@@ -402,7 +401,9 @@ class FoodEntry extends HTMLDivElement {
         this.nameText.classList.add('meld-solver-result-materia-entry-stat');
         if (food) {
             const img = document.createElement('img');
-            img.src = food?.icon?.pngIconUrl?.toString();
+            img.width = 32;
+            img.height = 32;
+            img.src = food?.iconUrl.toString();
             this.foodImgHolder.appendChild(img);
 
             this.nameText.textContent = food.name;
