@@ -1079,20 +1079,8 @@ export class ILvlRangePicker<ObjType> extends HTMLElement {
             this.appendChild(labelElement);
         }
 
-        const lowerBoundControl = new FieldBoundIntField(obj, minField, {
-            postValidators: [(ctx) => {
-                if (ctx.newValue > (obj[maxField] as number)) {
-                    ctx.failValidation('Minimum level must be less than the maximum level');
-                }
-            }],
-        });
-        const upperBoundControl = new FieldBoundIntField(obj, maxField, {
-            postValidators: [(ctx) => {
-                if (ctx.newValue < (obj[minField] as number)) {
-                    ctx.failValidation('Maximum level must be greater than the minimum level');
-                }
-            }],
-        });
+        const lowerBoundControl = new FieldBoundIntField(obj, minField);
+        const upperBoundControl = new FieldBoundIntField(obj, maxField);
         lowerBoundControl.addListener(() => this.runListeners());
         upperBoundControl.addListener(() => this.runListeners());
         const hyphen = document.createElement('span');
