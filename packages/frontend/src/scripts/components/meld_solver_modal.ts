@@ -398,13 +398,18 @@ class FoodEntry extends HTMLDivElement {
 
         this.foodImgHolder = document.createElement('div');
         this.foodImgHolder.classList.add('meld-solver-result-image');
-        const img = document.createElement('img');
-        img.src = food?.icon?.pngIconUrl?.toString();
-        this.foodImgHolder.appendChild(img);
-
         this.nameText = document.createElement('span');
-        this.nameText.textContent = food.name;
         this.nameText.classList.add('meld-solver-result-materia-entry-stat');
+        if (food) {
+            const img = document.createElement('img');
+            img.src = food?.icon?.pngIconUrl?.toString();
+            this.foodImgHolder.appendChild(img);
+
+            this.nameText.textContent = food.name;
+        }
+        else {
+            this.nameText.textContent = "No food selected.";
+        }
 
         this.replaceChildren(this.foodImgHolder, this.nameText);
     }
