@@ -1272,6 +1272,17 @@ export class GearPlanSheet {
     }
 
     /**
+     * Relevant food for the meld/food solver. Will return all of the highest level food with two valid stats and all custom food.
+     */
+    get relevantFoodForSolver(): FoodItem[] {
+        return [...this._dmRelevantFood.filter(item => {
+            return item.ilvl >= defaultItemDisplaySettings.minILvlFood
+                // Filter to only two relevant substats (i.e. no tenacity for healers)
+                && (this.isStatRelevant(item.primarySubStat) && this.isStatRelevant(item.secondarySubStat));
+        }), ...this._customFoods];
+    }
+
+    /**
      * Get the best possible materia for a particular slot of the given stat.
      *
      * @param stat
