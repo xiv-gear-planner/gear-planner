@@ -27,7 +27,7 @@ const filler: SchGcdAbility = {
     type: 'gcd',
     name: "Broil IV",
     id: 25865,
-    potency: 310,
+    potency: 320,
     attackType: "Spell",
     gcd: 2.5,
     cast: 1.5,
