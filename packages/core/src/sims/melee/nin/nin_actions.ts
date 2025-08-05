@@ -97,7 +97,7 @@ export const Phantom: NinGcdAbility = {
     name: "Phantom Kamaitachi",
     id: 25774,
     attackType: "Weaponskill",
-    potency: 600, // TODO: Mark as Pet Damage Potency
+    potency: 700, // TODO: Mark as Pet Damage Potency
     gcd: 2.5,
     cast: 0,
     updateGauge: gauge => gauge.ninkiGauge += 10,
@@ -211,7 +211,7 @@ export const KunaisBane: NinOgcdAbility = {
     name: "Kunai's Bane",
     id: 36958,
     attackType: "Ability",
-    potency: 600,
+    potency: 700,
     cooldown: {
         time: 60,
     },
@@ -274,7 +274,7 @@ export const DokumoriAbility: NinOgcdAbility = {
     name: "Dokumori",
     id: 36957,
     attackType: "Ability",
-    potency: 300,
+    potency: 400,
     cooldown: {
         time: 120,
     },
