@@ -38,7 +38,7 @@ export interface SgeSheetSettings extends SimSettings {
 }
 
 export const sgeSheetSpec: SimSpec<SgeSheetSim, SgeSheetSettings> = {
-    displayName: "SGE Sheet Sim (Old)",
+    displayName: "SGE (Deprecated)",
     loadSavedSimInstance(exported: SgeSheetSettings) {
         return new SgeSheetSim(exported);
     },
