@@ -152,10 +152,6 @@ export interface FoodStatBonus {
 
 export type Icon = XivApiStruct &
   XivApiBase & {
-    /** @format int32 */
-    id?: number;
-    path?: string;
-    pathHD?: string;
     /** @format uri */
     pngIconUrl?: string;
   };
