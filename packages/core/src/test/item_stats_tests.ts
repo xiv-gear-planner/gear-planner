@@ -115,6 +115,14 @@ describe('bug #695 - offhands have wrong stats', () => {
                         return;
                     }
                     const cap = item.statCaps[mainStat];
+                    // See bug #715
+                    if (item.ilvl === 380
+                        && (item.usableByJob('WHM') || item.usableByJob('RDM'))
+                        && (item.occGearSlotName === 'Head' || item.occGearSlotName === 'Hand' || item.occGearSlotName === 'Feet')
+                        && mainStat === 'vitality'
+                    ) {
+                        return;
+                    }
                     if (value !== cap) {
                         failures.push(`Item ${item.name} i${item.ilvl} (${item.id}, ${item.occGearSlotName}) has ${mainStat} ${value} !== ${cap} (cap)`);
                     }
