@@ -27,12 +27,14 @@ export class GearsetGenerationSettings {
     overwriteExistingMateria: boolean;
     useTargetGcd: boolean;
     targetGcd: number;
+    solveFood: boolean;
 
-    constructor(gearset: CharacterGearSet, overwrite: boolean, useTargetGcd: boolean, targetGcd: number) {
+    constructor(gearset: CharacterGearSet, overwrite: boolean, useTargetGcd: boolean, targetGcd: number, solveFood?: boolean) {
         this.gearset = gearset;
         this.overwriteExistingMateria = overwrite;
         this.useTargetGcd = useTargetGcd;
         this.targetGcd = targetGcd;
+        this.solveFood = solveFood;
     }
 
     static export(settings: GearsetGenerationSettings, sheet: GearPlanSheet): GearsetGenerationSettingsExport {
@@ -48,6 +50,7 @@ export class GearsetGenerationSettingsExport {
     overwriteExistingMateria: boolean;
     useTargetGcd: boolean;
     targetGcd: number;
+    solveFood: boolean;
 }
 
 class ItemWithStats {
@@ -100,7 +103,6 @@ export class GearsetGenerator {
     }
 
     async getMeldPossibilitiesForGearset(settings: GearsetGenerationSettings, genCallback: (sets: MicroSetExport[]) => void, statusCallback: (update: Omit<GearsetGenerationStatusUpdate, "type">) => void): Promise<void> {
-
         console.log("Meld generator: Init");
         statusCallback({
             phase: 0,
@@ -233,34 +235,49 @@ export class GearsetGenerator {
             }
             count++;
 
-            const newGearset: CharacterGearSet = new CharacterGearSet(this._sheet);
-            newGearset.food = settings.gearset.food;
-            newGearset.equipment = combination.set;
 
-            for (const slotKey of EquipSlots) {
-                if (settings.gearset.equipment[slotKey]?.gearItem?.isCustomRelic) {
-                    newGearset.equipment[slotKey].relicStats = settings.gearset.equipment[slotKey].relicStats ?? undefined;
+            const foods = [settings.gearset.food];
+
+            if (settings.solveFood) {
+                const foodItems = this._sheet.relevantFoodForSolver;
+                for (let i = 0; i < foodItems.length; i++) {
+                    if (foodItems[i] !== settings.gearset.food) {
+                        const food = foodItems[i];
+                        foods.push(food);
+                    }
                 }
             }
 
-            newGearset.forceRecalc();
-            const gcd = useSks ? newGearset.computedStats.gcdPhys(NORMAL_GCD, haste)
-                : newGearset.computedStats.gcdMag(NORMAL_GCD, haste);
+            for (const food of foods) {
+                const newGearset: CharacterGearSet = new CharacterGearSet(this._sheet);
+                newGearset.food = food;
+                newGearset.equipment = combination.set;
 
-            if (settings.useTargetGcd && gcd !== settings.targetGcd) {
-                continue;
-            }
+                for (const slotKey of EquipSlots) {
+                    if (settings.gearset.equipment[slotKey]?.gearItem?.isCustomRelic) {
+                        newGearset.equipment[slotKey].relicStats = settings.gearset.equipment[slotKey].relicStats ?? undefined;
+                    }
+                }
 
-            const stats = newGearset.computedStats;
-            const cacheKey = getRotationCacheKey(stats);
-            const existing = gcdMap.get(cacheKey);
-            if (existing !== undefined) {
-                existing.push(setToMicroExport(newGearset));
+                newGearset.forceRecalc();
+                const gcd = useSks ? newGearset.computedStats.gcdPhys(NORMAL_GCD, haste)
+                    : newGearset.computedStats.gcdMag(NORMAL_GCD, haste);
+
+                if (settings.useTargetGcd && gcd !== settings.targetGcd) {
+                    continue;
+                }
+
+                const stats = newGearset.computedStats;
+                const cacheKey = getRotationCacheKey(stats);
+                const existing = gcdMap.get(cacheKey);
+                if (existing !== undefined) {
+                    existing.push(setToMicroExport(newGearset));
+                }
+                else {
+                    gcdMap.set(cacheKey, [setToMicroExport(newGearset)]);
+                }
+                possibleMeldCombinations.delete(key);
             }
-            else {
-                gcdMap.set(cacheKey, [setToMicroExport(newGearset)]);
-            }
-            possibleMeldCombinations.delete(key);
         }
 
         const gcdMapSize = gcdMap.size;

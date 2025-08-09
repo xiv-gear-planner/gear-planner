@@ -30,6 +30,7 @@ export class MeldSolverSettingsExport {
     gearset: SetExport;
     overwriteExistingMateria: boolean;
     useTargetGcd: boolean;
+    solveFood: boolean;
     targetGcd?: number;
 }
 

@@ -21,7 +21,6 @@ export class SolverSimulationRunner extends WorkerBehavior<SolverSimulationJobCo
     }
 
     async execute(request: SolverSimulationRequest) {
-
         const settings = request.data;
         const sim = this.sheet.importSim(settings.sim);
         const simRunner = new SimRunner(sim);
@@ -35,6 +34,7 @@ export class SolverSimulationRunner extends WorkerBehavior<SolverSimulationJobCo
             dps: bestDps,
             set: this.sheet.exportGearSet(bestSet),
         };
+
         this.postResult(result);
     }
 }

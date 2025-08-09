@@ -39,11 +39,6 @@ export class SimRunner<SimType extends Simulation<SimResult, unknown, unknown>> 
      * Simulate and process the best set in one function because splitting them up requires more work.
      */
     async simulateSetsAndReturnBest(sheet: GearPlanSheet, setExports: MicroSetExport[], update: (n: number) => void): Promise<[number, CharacterGearSet]> {
-        // const sets = setExports.map(s => {
-        //     const fakeImport = microExportToFullExport(s);
-        //     return sheet.importGearSet(fakeImport);
-        // });
-
         if (!setExports
             || setExports.length === 0
             || !this._sim) {

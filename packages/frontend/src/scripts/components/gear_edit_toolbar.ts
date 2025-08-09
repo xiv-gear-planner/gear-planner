@@ -220,7 +220,7 @@ export class GearEditToolbar extends HTMLDivElement {
 
         this.buttonsArea.addPanelButton(["Materia", document.createElement('br'), "Fill/Lock"], materiaPriority);
 
-        this.buttonsArea.addPanelButtonModal(["Meld", document.createElement('br'), "Solver"], () => sheet.showMeldSolveDialog());
+        this.buttonsArea.addPanelButtonModal(["Meld/Food", document.createElement('br'), "Solver"], () => sheet.showMeldSolveDialog());
 
         this.statTierDisplay = new StatTierDisplay(sheet);
         this.appendChild(this.statTierDisplay);
