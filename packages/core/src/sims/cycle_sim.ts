@@ -789,13 +789,22 @@ export class CycleProcessor<GaugeManagerType extends GaugeManager<unknown> = Gau
     }
 
     /**
+     * An amount of action usages that should be far beyond what would be needed for a reasonable sim. Acts as a circuit
+     * breaker for infinite loops.
+     */
+    get maxUses(): number {
+        // 4 actions per second should be more than enough, with a minimum of 100
+        return Math.max(this.totalTime * 4, 100);
+    }
+
+    /**
      * Add a special text row to the output records.
      *
      * @param message The text
      * @param time The time of the record. Current time will be used if not specified.
      */
     addSpecialRow(message: string, time?: number) {
-        if (this._rowCount++ > 10_000) {
+        if (this._rowCount++ > this.maxUses) {
             throw Error("Used too many special rows");
         }
         this.allRecords.push({
@@ -1374,7 +1383,7 @@ export class CycleProcessor<GaugeManagerType extends GaugeManager<unknown> = Gau
     private combatStarting: boolean = false;
 
     protected addAbilityUse(usedAbility: PreDmgAbilityUseRecordUnf<GaugeStateTypeOfMgr<GaugeManagerType>>) {
-        if (this._rowCount++ > 10_000) {
+        if (this._rowCount++ > this.maxUses) {
             throw Error("Used too many actions");
         }
         this.allRecords.push(usedAbility);
