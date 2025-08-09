@@ -242,23 +242,24 @@ class WhmCycleProcessor extends CycleProcessor<WhmGaugeManager> {
         }
     }
 
-    unbuffedGCD() {
+    unbuffedGCD(): AbilityUseResult {
         if (this.nextGcdTime >= this.nextDiaTime && this.remainingTime > 15) {
             this.nextDiaTime = this.nextGcdTime + 28.8;
-            this.useGcd(dia);
+            return this.useGcd(dia);
         }
         else if ((this.gaugeManager.redLilies === 3 && this.nextMiseryTime % 120 === 0) //use odd minute misery ASAP
             || (this.gaugeManager.redLilies === 3 && this.remainingTime < 5)) { //or use misery if the fight will end now
-            this.useGcd(misery);
+            return this.useGcd(misery);
         }
         else if (this.gaugeManager.redLilies < 3 && this.gaugeManager.blueLilies > 0 && this.totalTime > this.nextMiseryTime + 7) {
-            this.useGcd(lily);
+            const out = this.useGcd(lily);
             if (this.gaugeManager.redLilies === 3) {
                 this.nextMiseryTime += 60;
             }
+            return out;
         }
         else {
-            this.useGcd(filler);
+            return this.useGcd(filler);
         }
     }
 
@@ -307,7 +308,10 @@ export class WhmSim extends BaseMultiCycleSim<WhmSimResult, WhmSettings, WhmCycl
                     cp.unbuffedGCD();
                     cp.useTwoMinBurst();
                     while (cycle.cycleRemainingGcdTime > 0) {
-                        cp.unbuffedGCD();
+                        const result = cp.unbuffedGCD();
+                        if (result === 'none') {
+                            return;
+                        }
                         if (cp.isReady(assize)) {
                             cp.use(assize);
                         }
@@ -315,14 +319,20 @@ export class WhmSim extends BaseMultiCycleSim<WhmSimResult, WhmSettings, WhmCycl
                 });
                 cp.remainingCycles(cycle => {
                     while (!cp.isReady(pom)) {
-                        cp.unbuffedGCD();
+                        const result = cp.unbuffedGCD();
+                        if (result === 'none') {
+                            return;
+                        }
                         if (cp.isReady(assize)) {
                             cp.use(assize);
                         }
                     }
                     cp.useTwoMinBurst();
                     while (cycle.cycleRemainingGcdTime > 0) {
-                        cp.unbuffedGCD();
+                        const result = cp.unbuffedGCD();
+                        if (result === 'none') {
+                            return;
+                        }
                         if (cp.isReady(assize)) {
                             cp.use(assize);
                         }
@@ -341,7 +351,10 @@ export class WhmSim extends BaseMultiCycleSim<WhmSimResult, WhmSettings, WhmCycl
                     cp.unbuffedGCD();
                     cp.useTwoMinBurst();
                     while (cycle.cycleRemainingGcdTime > 0) {
-                        cp.unbuffedGCD();
+                        const result = cp.unbuffedGCD();
+                        if (result === 'none') {
+                            return;
+                        }
                         if (cp.isReady(assize)) {
                             cp.use(assize);
                         }
@@ -349,14 +362,20 @@ export class WhmSim extends BaseMultiCycleSim<WhmSimResult, WhmSettings, WhmCycl
                 });
                 cp.remainingCycles(cycle => {
                     while (!cp.isReady(pom)) {
-                        cp.unbuffedGCD();
+                        const result = cp.unbuffedGCD();
+                        if (result === 'none') {
+                            return;
+                        }
                         if (cp.isReady(assize)) {
                             cp.use(assize);
                         }
                     }
                     cp.useTwoMinBurst();
                     while (cycle.cycleRemainingGcdTime > 0) {
-                        cp.unbuffedGCD();
+                        const result = cp.unbuffedGCD();
+                        if (result === 'none') {
+                            return;
+                        }
                         if (cp.isReady(assize)) {
                             cp.use(assize);
                         }
@@ -374,7 +393,10 @@ export class WhmSim extends BaseMultiCycleSim<WhmSimResult, WhmSettings, WhmCycl
                     cp.unbuffedGCD();
                     cp.useTwoMinBurst();
                     while (cycle.cycleRemainingGcdTime > 0) {
-                        cp.unbuffedGCD();
+                        const result = cp.unbuffedGCD();
+                        if (result === 'none') {
+                            return;
+                        }
                         if (cp.isReady(assize)) {
                             cp.use(assize);
                         }
@@ -382,14 +404,20 @@ export class WhmSim extends BaseMultiCycleSim<WhmSimResult, WhmSettings, WhmCycl
                 });
                 cp.remainingCycles(cycle => {
                     while (!cp.isReady(pom)) {
-                        cp.unbuffedGCD();
+                        const result = cp.unbuffedGCD();
+                        if (result === 'none') {
+                            return;
+                        }
                         if (cp.isReady(assize)) {
                             cp.use(assize);
                         }
                     }
                     cp.useTwoMinBurst();
                     while (cycle.cycleRemainingGcdTime > 0) {
-                        cp.unbuffedGCD();
+                        const result = cp.unbuffedGCD();
+                        if (result === 'none') {
+                            return;
+                        }
                         if (cp.isReady(assize)) {
                             cp.use(assize);
                         }
