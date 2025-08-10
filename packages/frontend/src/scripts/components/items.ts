@@ -1079,20 +1079,20 @@ export class ILvlRangePicker<ObjType> extends HTMLElement {
             this.appendChild(labelElement);
         }
 
-        const lowerBoundControl = new FieldBoundIntField(obj, minField, {
-            postValidators: [(ctx) => {
-                if (ctx.newValue > (obj[maxField] as number)) {
-                    ctx.failValidation('Minimum level must be less than the maximum level');
-                }
-            }],
-        });
-        const upperBoundControl = new FieldBoundIntField(obj, maxField, {
-            postValidators: [(ctx) => {
-                if (ctx.newValue < (obj[minField] as number)) {
-                    ctx.failValidation('Maximum level must be greater than the minimum level');
-                }
-            }],
-        });
+        const lowerBoundControl = new FieldBoundIntField(obj, minField);
+        const upperBoundControl = new FieldBoundIntField(obj, maxField);
+        const borderListener = function(min: number, max: number) {
+            if (min > max) {
+                lowerBoundControl.classList.add("invalid-numeric-input");
+                upperBoundControl.classList.add("invalid-numeric-input");
+            }
+            else {
+                lowerBoundControl.classList.remove("invalid-numeric-input");
+                upperBoundControl.classList.remove("invalid-numeric-input");
+            }
+        };
+        this._listeners.push(borderListener);
+
         lowerBoundControl.addListener(() => this.runListeners());
         upperBoundControl.addListener(() => this.runListeners());
         const hyphen = document.createElement('span');
@@ -1100,6 +1100,7 @@ export class ILvlRangePicker<ObjType> extends HTMLElement {
         this.appendChild(lowerBoundControl);
         this.appendChild(hyphen);
         this.appendChild(upperBoundControl);
+        this.runListeners();
     }
 
     addListener(listener: (min: number, max: number) => void) {
@@ -1107,8 +1108,10 @@ export class ILvlRangePicker<ObjType> extends HTMLElement {
     }
 
     private runListeners() {
+        const minField = this.obj[this.minField] as number;
+        const maxField = this.obj[this.maxField] as number;
         for (const listener of this._listeners) {
-            listener(this.obj[this.minField] as number, this.obj[this.maxField] as number);
+            listener(minField, maxField);
         }
     }
 }
