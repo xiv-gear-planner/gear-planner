@@ -1082,13 +1082,15 @@ export class ILvlRangePicker<ObjType> extends HTMLElement {
         const lowerBoundControl = new FieldBoundIntField(obj, minField);
         const upperBoundControl = new FieldBoundIntField(obj, maxField);
         const borderListener = function(min: number, max: number) {
-            if (min >= max) {
-                lowerBoundControl.style.boxShadow = "var(--invalid-input-box-shadow)";
-                upperBoundControl.style.boxShadow = "var(--invalid-input-box-shadow)";
+            if (min > max) {
+                lowerBoundControl.classList.add("invalid-numeric-input");
+                upperBoundControl.classList.add("invalid-numeric-input");
+                //lowerBoundControl.style.boxShadow = "var(--invalid-input-box-shadow)";
+                //upperBoundControl.style.boxShadow = "var(--invalid-input-box-shadow)";
             }
             else {
-                lowerBoundControl.style.boxShadow = "";
-                upperBoundControl.style.boxShadow = "";
+                lowerBoundControl.classList.remove("invalid-numeric-input");
+                upperBoundControl.classList.remove("invalid-numeric-input");
             }
         };
         this._listeners.push(borderListener);

@@ -318,6 +318,10 @@ body {
   border: var(--standard-border);
 }
 
+.invalid-numeric-input {
+  box-shadow: var(--invalid-input-box-shadow);
+}
+
 .standard-round-border {
   .standard-border-radius();
   .standard-border();
@@ -2635,7 +2639,7 @@ input.gear-items-table-relic-stat-input, select.gear-items-table-relic-stat-inpu
   height: calc(100% - 4px);
 
   &.relic-validation-failed {
-    box-shadow: var(--invalid-input-box-shadow);
+    .invalid-numeric-input();
   }
 
   &:hover, &:active, &:focus {
