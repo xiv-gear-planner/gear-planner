@@ -80,6 +80,7 @@ body {
   --role-color-tank: #4848ff;
   --role-color-healer: #13a813;;
   --role-color-dps: #ff0000;
+  --invalid-input-box-shadow: 1px 1px 2px red inset, -1px -1px 2px #ff6000 inset;
 
   --perfect-tiering-box-shadow: 0 0 5px -1px inset color-mix(in srgb, var(--stat-color) 50%, var(--border-color));
 
@@ -714,17 +715,14 @@ button {
   padding-right: 8px;
 }
 
-
 input {
   &[type="text"],
   &[type="number"],
   &[type="password"],
   &[type="email"] {
     color: var(--fg-color);
-    //background-color: var(--input-background-color);
     .standard-border-radius();
     border-color: var(--border-color);
-
     &:invalid {
       border-color: var(--error-border-color);
     }
@@ -2637,7 +2635,7 @@ input.gear-items-table-relic-stat-input, select.gear-items-table-relic-stat-inpu
   height: calc(100% - 4px);
 
   &.relic-validation-failed {
-    box-shadow: 1px 1px 2px red inset, -1px -1px 2px #ff6000 inset;
+    box-shadow: var(--invalid-input-box-shadow);
   }
 
   &:hover, &:active, &:focus {

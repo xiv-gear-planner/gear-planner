@@ -1081,6 +1081,18 @@ export class ILvlRangePicker<ObjType> extends HTMLElement {
 
         const lowerBoundControl = new FieldBoundIntField(obj, minField);
         const upperBoundControl = new FieldBoundIntField(obj, maxField);
+        const borderListener = function(min: number, max: number) {
+            if (min >= max) {
+                lowerBoundControl.style.boxShadow = "var(--invalid-input-box-shadow)";
+                upperBoundControl.style.boxShadow = "var(--invalid-input-box-shadow)";
+            }
+            else {
+                lowerBoundControl.style.boxShadow = "";
+                upperBoundControl.style.boxShadow = "";
+            }
+        };
+        this._listeners.push(borderListener);
+
         lowerBoundControl.addListener(() => this.runListeners());
         upperBoundControl.addListener(() => this.runListeners());
         const hyphen = document.createElement('span');
@@ -1100,19 +1112,6 @@ export class ILvlRangePicker<ObjType> extends HTMLElement {
         const maxField = this.obj[this.maxField] as number;
         for (const listener of this._listeners) {
             listener(minField, maxField);
-        }
-        this.highlightIncorrectConfig(minField, maxField);
-    }
-
-    // highlightIncorrectConfig highlights, but does not block, incorrect config.
-    // it will also remove the highlight when it is correct again.
-    private highlightIncorrectConfig(minField: number, maxField: number) {
-        if (minField >= maxField) {
-            this.style.borderStyle = "solid";
-            this.style.borderColor = "var(--error-border-color)";
-        }
-        else {
-            this.style.borderStyle = "none";
         }
     }
 }
