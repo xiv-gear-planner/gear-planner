@@ -1085,8 +1085,6 @@ export class ILvlRangePicker<ObjType> extends HTMLElement {
             if (min > max) {
                 lowerBoundControl.classList.add("invalid-numeric-input");
                 upperBoundControl.classList.add("invalid-numeric-input");
-                //lowerBoundControl.style.boxShadow = "var(--invalid-input-box-shadow)";
-                //upperBoundControl.style.boxShadow = "var(--invalid-input-box-shadow)";
             }
             else {
                 lowerBoundControl.classList.remove("invalid-numeric-input");
