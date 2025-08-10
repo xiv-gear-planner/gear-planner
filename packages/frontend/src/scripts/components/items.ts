@@ -1081,26 +1081,6 @@ export class ILvlRangePicker<ObjType> extends HTMLElement {
 
         const lowerBoundControl = new FieldBoundIntField(obj, minField);
         const upperBoundControl = new FieldBoundIntField(obj, maxField);
-        // const lowerBoundControl = new FieldBoundIntField(obj, minField, {
-        //     postValidators: [(ctx) => {
-        //         if (ctx.newValue >= (obj[maxField] as number)) {
-        //             const warningMessage = "Warning: minimum item level number equal or higher than maximum item level number.";
-        //             lowerBoundControl._validationMessage = warningMessage;
-        //         } else {
-        //             lowerBoundControl._validationMessage = undefined;
-        //         }
-        //     }],
-        // });
-        // const upperBoundControl = new FieldBoundIntField(obj, maxField, {
-        //     postValidators: [(ctx) => {
-        //         if (ctx.newValue <= (obj[minField] as number)) {
-        //             const warningMessage = "Warning: minimum item level number equal or higher than maximum item level number.";
-        //             upperBoundControl._validationMessage = warningMessage;
-        //         } else {
-        //             upperBoundControl._validationMessage = undefined;
-        //         }
-        //     }],
-        // });
         lowerBoundControl.addListener(() => this.runListeners());
         upperBoundControl.addListener(() => this.runListeners());
         const hyphen = document.createElement('span');
@@ -1108,32 +1088,6 @@ export class ILvlRangePicker<ObjType> extends HTMLElement {
         this.appendChild(lowerBoundControl);
         this.appendChild(hyphen);
         this.appendChild(upperBoundControl);
-
-        // const borderListener = function(min: number, max: number) {
-
-        //     if (min >= max) {
-        //         const warningMessage = "Warning: minimum item level number equal or higher than maximum item level number.";
-        //         lowerBoundControl._validationMessage = warningMessage;
-        //         upperBoundControl._validationMessage = warningMessage;
-        //     }
-        //     else {
-        //         lowerBoundControl._validationMessage = undefined;
-        //         upperBoundControl._validationMessage = undefined;
-        //         //lowerBoundControl.setCustomValidity("");
-        //         //.setCustomValidity("");
-        //     }
-        // };
-        // this._listeners.push(borderListener);
-
-        // const minFieldNumber = minField as number;
-        // const maxFieldNumber = maxField as number;
-        // if (minFieldNumber >= maxFieldNumber) {
-        //     //lowerBoundControl
-        //     //lowerBoundControl.classList.add("invalid");
-        // }
-        // else {
-        //     this.style.borderStyle = "none";
-        // }
         this.runListeners();
     }
 
