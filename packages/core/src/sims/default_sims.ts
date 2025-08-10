@@ -26,6 +26,7 @@ import {drkSpec} from "./tank/drk/drk_sheet_sim";
 import {gnbSpec} from "./tank/gnb/gnb_sheet_sim";
 import {pldSpec} from "./tank/pld/pld_sheet_sim";
 import {blmSpec} from "./caster/blm/blm_sheet_sim";
+import {drgSpec} from "./melee/drg/drg_sim";
 
 let registrationDone = false;
 
@@ -55,6 +56,7 @@ export function registerDefaultSims() {
     registerSim(whmNewSheetSpec);
     registerSim(mpSimSpec);
     // Melee
+    registerSim(drgSpec);
     registerSim(rprSheetSpec);
     registerSim(vprSheetSpec);
     registerSim(mnkSpec);
