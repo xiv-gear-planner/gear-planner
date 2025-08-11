@@ -35,6 +35,8 @@ const filler: GcdAbility = {
         potency: 330,
     }, {
         minLevel: 94,
+        name: "Dosis III",
+        id: 24312,
         potency: 380,
     }],
 };

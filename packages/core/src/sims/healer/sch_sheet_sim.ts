@@ -25,12 +25,28 @@ export type SchExtraData = {
 
 const filler: SchGcdAbility = {
     type: 'gcd',
-    name: "Broil IV",
-    id: 25865,
-    potency: 320,
+    name: "Broil II",
+    id: 7435,
+    potency: 240,
     attackType: "Spell",
     gcd: 2.5,
     cast: 1.5,
+    levelModifiers: [{
+        minLevel: 72,
+        name: "Broil III",
+        potency: 255,
+        id: 16541,
+    }, {
+        minLevel: 82,
+        name: "Broil IV",
+        id: 25865,
+        potency: 295,
+    }, {
+        minLevel: 94,
+        name: "Broil IV",
+        id: 25865,
+        potency: 320,
+    }],
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -45,16 +61,37 @@ const r2: SchGcdAbility = {
 
 const bio: SchGcdAbility = {
     type: 'gcd',
-    name: "Biolysis",
-    id: 16540,
+    name: "Bio II",
+    id: 17865,
     potency: 0,
     dot: {
         duration: 30,
-        tickPotency: 80,
-        id: 3089,
+        tickPotency: 40,
+        id: 189,
     },
     attackType: "Spell",
     gcd: 2.5,
+    levelModifiers: [{
+        minLevel: 72,
+        name: "Biolysis",
+        id: 16540,
+        dot: {
+            duration: 30,
+            tickPotency: 70,
+            id: 3089,
+        },
+    },
+    {
+        minLevel: 94,
+        name: "Biolysis",
+        id: 16540,
+        dot: {
+            duration: 30,
+            tickPotency: 80,
+            id: 3089,
+        },
+    },
+    ],
 };
 
 export const ImpactImminent: PersonalBuff = {
@@ -79,7 +116,7 @@ const chain: SchOgcdAbility = {
     type: 'ogcd',
     name: "Chain Strategem",
     id: 7436,
-    activatesBuffs: [Chain, ImpactImminent],
+    activatesBuffs: [Chain],
     potency: null,
     attackType: "Ability",
     cooldown: {
@@ -87,7 +124,7 @@ const chain: SchOgcdAbility = {
     },
     levelModifiers: [{
         minLevel: 92,
-        activatesBuffs: [ImpactImminent],
+        activatesBuffs: [Chain, ImpactImminent],
     }],
 };
 
@@ -332,7 +369,7 @@ export class SchSim extends BaseMultiCycleSim<SchSimResult, SchSettings, Scholar
                 cp.use(filler);
                 cp.use(bio);
                 cp.nextBioTime = i;
-                cp.oneCycle(cycle =>{
+                cp.oneCycle(cycle => {
                     cp.useOgcd(diss);
                     cp.useTwoMinBurst();
                     while (cycle.cycleRemainingGcdTime > 0) {
