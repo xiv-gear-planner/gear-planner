@@ -87,31 +87,19 @@ const phlegma: GcdAbility = {
     attackType: "Spell",
     gcd: 2.5,
     cast: 1.5,
-    id: 24289,
+    // can be corrected to 24289 after #720
+    id: 24313,
     cooldown: {
         time: 40.0,
         charges: 2,
-        // this workaround can be removed when cooldown_manager#cooldownKey has been updated to understand abilities
-        // with levelModifiers
-        sharesCooldownWith: {
-            type: 'gcd',
-            gcd: 2.5,
-            name: "Phlegma III",
-            attackType: "Spell",
-            potency: 0,
-            id: 24313,
-            cooldown: {
-                time: 40.0,
-                charges: 2,
-            },
-        },
     },
     levelModifiers: [
         {
             minLevel: 72,
             name: "Phlegma II",
             potency: 490,
-            id: 24307,
+            // can be correct to 24307 after #720
+            id: 24313,
         },
         {
             minLevel: 82,
