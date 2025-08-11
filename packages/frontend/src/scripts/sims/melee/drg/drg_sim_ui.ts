@@ -5,7 +5,6 @@ import {CustomColumnSpec} from "@xivgear/common-ui/table/tables";
 import {BaseMultiCycleSimGui} from "../../multicyclesim_ui";
 import {DrgSimResult, DrgSettings} from "@xivgear/core/sims/melee/drg/drg_sim";
 import {DrgGaugeState} from "@xivgear/core/sims/melee/drg/drg_types";
-import {GaugeWithText} from "@xivgear/common-ui/components/gauges";
 
 export class DrgSimGui extends BaseMultiCycleSimGui<DrgSimResult, DrgSettings> {
     protected extraAbilityUsedColumns(_: DrgSimResult): CustomColumnSpec<DisplayRecordFinalized, unknown, unknown>[] {
