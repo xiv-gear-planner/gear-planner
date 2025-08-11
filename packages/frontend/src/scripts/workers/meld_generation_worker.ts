@@ -17,7 +17,6 @@ export class GearsetGenerationWorker extends WorkerBehavior<GearsetGenerationJob
     }
 
     override async execute(request: GearsetGenerationRequest) {
-
         const settings = request.data;
         const gearset = this.sheet.importGearSet(settings.gearset);
         const gearsetGenSettings = {

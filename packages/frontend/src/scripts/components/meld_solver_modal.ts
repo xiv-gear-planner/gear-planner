@@ -10,7 +10,7 @@ import {GearPlanSheetGui} from "./sheet";
 import {SimResult, Simulation} from "@xivgear/core/sims/sim_types";
 import {MAX_GCD, STAT_ABBREVIATIONS} from "@xivgear/xivmath/xivconstants";
 import {BaseModal} from "@xivgear/common-ui/components/modal";
-import {EquipSlots, Materia} from "@xivgear/xivmath/geartypes";
+import {EquipSlots, FoodItem, Materia} from "@xivgear/xivmath/geartypes";
 import {MeldSolver} from "./meldsolver";
 import {GearsetGenerationSettings} from "@xivgear/core/solving/gearset_generation";
 import {SolverSimulationSettings} from "@xivgear/core/solving/sim_runner";
@@ -34,10 +34,9 @@ export class MeldSolverDialog extends BaseModal {
         super();
         this._sheet = sheet;
         this.id = 'meld-solver-dialog';
-        this.headerText = 'Meld Solver';
+        this.headerText = 'Meld and Food Solver';
         this.form = document.createElement("form");
         this.form.method = 'dialog';
-        // this.inner.style.maxWidth = "25%"; // idk why this doesn't work in common-css but it don't.
 
         this.classList.add('meld-solver-area');
         this.descriptionText = document.createElement('div');
@@ -211,6 +210,8 @@ class MeldSolverSettingsMenu extends HTMLDivElement {
     private overwriteMateriaText: HTMLSpanElement;
     private overwriteMateriaCheckbox: FieldBoundCheckBox<GearsetGenerationSettings>;
     private useTargetGcdCheckBox: FieldBoundCheckBox<GearsetGenerationSettings>;
+    private solveFoodCheckbox: FieldBoundCheckBox<GearsetGenerationSettings>;
+    private solveFoodText: HTMLSpanElement;
     private targetGcdInput: FieldBoundFloatField<GearsetGenerationSettings>;
     private checkboxContainer: HTMLDivElement;
     private simDropdown: FieldBoundDataSelect<SolverSimulationSettings, Simulation<SimResult, unknown, unknown>>;
@@ -261,6 +262,11 @@ class MeldSolverSettingsMenu extends HTMLDivElement {
         targetGcdText.textContent = "Target GCD: ";
         targetGcdText.classList.add('meld-solver-settings');
 
+        this.solveFoodCheckbox = new FieldBoundCheckBox(this.gearsetGenSettings, 'solveFood');
+        this.solveFoodCheckbox.classList.add('meld-solver-settings');
+        this.solveFoodText = labelFor("Solve food? ", this.solveFoodCheckbox);
+        this.solveFoodText.classList.add('meld-solver-settings');
+
         this.overwriteMateriaCheckbox = new FieldBoundCheckBox(this.gearsetGenSettings, 'overwriteExistingMateria');
         this.overwriteMateriaCheckbox.classList.add('meld-solver-settings');
         this.overwriteMateriaText = labelFor("Overwrite existing materia?", this.overwriteMateriaCheckbox);
@@ -287,11 +293,14 @@ class MeldSolverSettingsMenu extends HTMLDivElement {
         span2.replaceChildren(this.useTargetGcdCheckBox, targetGcdText, this.targetGcdInput);
 
         const span3 = document.createElement('li');
-        span3.replaceChildren(simText, this.simDropdown);
+        span3.replaceChildren(this.solveFoodCheckbox, this.solveFoodText);
+
+        const span4 = document.createElement('li');
+        span4.replaceChildren(simText, this.simDropdown);
 
         this.checkboxContainer = document.createElement('div');
         this.checkboxContainer.classList.add('meld-solver-settings');
-        const children = [span1, span2, span3];
+        const children = [span1, span2, span3, span4];
         this.checkboxContainer.replaceChildren(...children);
 
         const pentameldWarning = document.createElement('li');
@@ -300,7 +309,7 @@ class MeldSolverSettingsMenu extends HTMLDivElement {
         pentameldWarning.style.maxWidth = "90%";
         pentameldWarning.style.width = "90%";
         const warningSpan = document.createElement('span');
-        warningSpan.textContent = "⚠️ Solving pentameld sets can take a long time. To speed it up, try filling some materia and solving without Overwrite existing materia.";
+        warningSpan.textContent = "⚠️ Solving pentameld sets can take a long time. To speed it up, try filling some materia and solving without Overwrite existing materia, or not solving food.";
         warningSpan.style.fontSize = '90%';
         warningSpan.style.display = 'inline';
         pentameldWarning.append(warningSpan);
@@ -378,6 +387,35 @@ class MateriaEntry extends HTMLDivElement {
     }
 }
 
+class FoodEntry extends HTMLDivElement {
+    private readonly foodImgHolder: HTMLDivElement;
+    private readonly nameText: HTMLSpanElement;
+
+    constructor(food: FoodItem, count: number) {
+        super();
+        this.classList.add("meld-solver-result-materia-entry");
+
+        this.foodImgHolder = document.createElement('div');
+        this.foodImgHolder.classList.add('meld-solver-result-image');
+        this.nameText = document.createElement('span');
+        this.nameText.classList.add('meld-solver-result-materia-entry-stat');
+        if (food) {
+            const img = document.createElement('img');
+            img.width = 32;
+            img.height = 32;
+            img.src = food?.iconUrl.toString();
+            this.foodImgHolder.appendChild(img);
+
+            this.nameText.textContent = food.name;
+        }
+        else {
+            this.nameText.textContent = "No food selected.";
+        }
+
+        this.replaceChildren(this.foodImgHolder, this.nameText);
+    }
+}
+
 // @ts-expect-error asdfsadfdsafdsafa
 window['srt'] = () => {
     new MeldSolverConfirmationDialog(window.currentSheet, window.currentGearSet, window.currentGearSet, [12345, 13579], () => {
@@ -391,7 +429,6 @@ type RowElements = {
 }
 
 class MeldSolverConfirmationDialog extends BaseModal {
-
     newSet: CharacterGearSet;
     oldSet: CharacterGearSet;
     sheet: GearPlanSheetGui;
@@ -425,6 +462,15 @@ class MeldSolverConfirmationDialog extends BaseModal {
 
         const elements = this.buildMateriaLists([`"${oldSet.name}"`, "Solved Set"], materiaTotals, [oldSimResult, newsimResult]);
 
+        const [oldFood, newFood] = [document.createElement('div'), document.createElement('div')];
+        oldFood.classList.add('solve-result-mat-entry-holder', 'cols-left');
+        newFood.classList.add('solve-result-mat-entry-holder', 'cols-right');
+        elements.push({
+            oldEle: new FoodEntry(this.oldSet.food, 1),
+            newEle: new FoodEntry(this.newSet.food, 1),
+            deltaEle: null,
+        });
+
         const arrow = document.createElement('span');
         arrow.textContent = "→";
         arrow.classList.add("arrow", 'meld-results-arrow');
@@ -433,7 +479,6 @@ class MeldSolverConfirmationDialog extends BaseModal {
         arrow.style.gridRowEnd = '-1';
 
         this.applyButton = makeActionButton("Apply", (ev) => {
-
             if (this.newSet) {
                 this.applyResult();
                 this.oldSet.forceRecalc();
@@ -583,7 +628,6 @@ class MeldSolverConfirmationDialog extends BaseModal {
     }
 
     applyResult() {
-
         for (const slotKey of EquipSlots) {
             const oldEq = this.oldSet.equipment[slotKey];
             const newEq = this.newSet.equipment[slotKey];
@@ -597,6 +641,9 @@ class MeldSolverConfirmationDialog extends BaseModal {
                 oldSlot.equippedMateria = newSlot.equippedMateria;
             }
         }
+
+        // Unless 'Solve food' is ticked, this will always be the same anyway
+        this.oldSet.food = this.newSet.food;
     }
 
     get explicitCloseOnly(): boolean {
@@ -609,4 +656,5 @@ customElements.define('load-bar', LoadBar, {extends: 'div'});
 customElements.define('meld-solver-progress-display', MeldSolverProgressDisplay, {extends: 'div'});
 customElements.define('meld-solver-settings-menu', MeldSolverSettingsMenu, {extends: 'div'});
 customElements.define('meld-solver-result-materia-entry', MateriaEntry, {extends: 'div'});
+customElements.define('meld-solver-result-food-entry', FoodEntry, {extends: 'div'});
 customElements.define('meld-solver-result-dialog', MeldSolverConfirmationDialog);
