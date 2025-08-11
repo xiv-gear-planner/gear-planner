@@ -1,7 +1,7 @@
-import {Ability, GcdAbility, OgcdAbility, HasGaugeUpdate, hasGaugeUpdate, Cooldown, LevelModifiable} from "@xivgear/core/sims/sim_types";
+import {HasGaugeCondition} from "@xivgear/core/sims/sim_types";
 import {DrgGaugeManager} from "./drg_gauge";
 import {
-    DrgAbility, DrgGcdAbility, DrgOgcdAbility,
+    DrgGcdAbility, DrgOgcdAbility,
     DiveReady, DraconianFire, EnhancedPiercingTalonBuff, PowerSurge,
     LanceChargeBuff,
     LifeOfTheDragon,
@@ -525,7 +525,7 @@ export const Stardiver: DrgOgcdAbility = {
     ],
 };
 
-export const WyrmwindThrust: DrgOgcdAbility = {
+export const WyrmwindThrust: DrgOgcdAbility & HasGaugeCondition<DrgGaugeManager> = {
     type: 'ogcd',
     name: "Wyrmwind Thrust",
     id: 25773,
@@ -536,6 +536,7 @@ export const WyrmwindThrust: DrgOgcdAbility = {
         time: 10,
     },
     updateGauge: gauge => gauge.firstmindsFocus -= 2,
+    gaugeConditionSatisfied: gauge => gauge.firstmindsFocus >= 2,
 };
 
 export const RiseOfTheDragon: DrgOgcdAbility = {

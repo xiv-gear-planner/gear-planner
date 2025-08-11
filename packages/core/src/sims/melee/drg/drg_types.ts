@@ -1,7 +1,6 @@
-import {Ability, GcdAbility, OgcdAbility, Buff, BuffController, HasGaugeUpdate, HasGaugeCondition, PersonalBuff} from "@xivgear/core/sims/sim_types";
+import {Ability, GcdAbility, OgcdAbility, HasGaugeUpdate, PersonalBuff} from "@xivgear/core/sims/sim_types";
 import {removeSelf} from "@xivgear/core/sims/common/utils";
 import {noStatusId} from "@xivgear/core/sims/buff_helpers";
-import {RaidenThrust, DraconianFury, EnhancedPiercingTalon} from "./drg_actions";
 import {DrgGaugeManager} from "./drg_gauge";
 // import {Litany} from "@xivgear/core/sims/buffs";
 

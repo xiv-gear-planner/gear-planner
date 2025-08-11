@@ -1,4 +1,4 @@
-import {Ability, GcdAbility, OgcdAbility, Buff, SimSettings, SimSpec} from "@xivgear/core/sims/sim_types";
+import {Ability, GcdAbility, Buff, SimSettings, SimSpec} from "@xivgear/core/sims/sim_types";
 import {
     CycleProcessor,
     CycleSimResult,
@@ -9,16 +9,15 @@ import {
 } from "@xivgear/core/sims/cycle_sim";
 import {CycleSettings} from "@xivgear/core/sims/cycle_settings";
 import {CharacterGearSet} from "@xivgear/core/gear";
-import {STANDARD_ANIMATION_LOCK} from "@xivgear/xivmath/xivconstants";
 import {DrgGaugeManager} from "./drg_gauge";
 import {
-    DrgAbility, DrgGcdAbility, DrgOgcdAbility,
+    DrgGcdAbility, DrgOgcdAbility,
     NastrondReady, StarcrossReady, DiveReady, DragonsFlight,
     LifeOfTheDragon,
     LanceChargeBuff,
     LifeSurgeBuff
 } from "./drg_types";
-import {Litany} from "@xivgear/core/sims/buffs";
+//import {Litany} from "@xivgear/core/sims/buffs"
 import * as Actions from './drg_actions';
 import {BaseMultiCycleSim} from "@xivgear/core/sims/processors/sim_processors";
 import {potionMaxStr} from "@xivgear/core/sims/common/potion";
@@ -259,7 +258,7 @@ export class DrgSim extends BaseMultiCycleSim<DrgSimResult, DrgSettings, DrgCycl
 
             // Time until Lance Charge, Geirskogul.
             const timeUntilLC = cp.timeUntilReady(Actions.LanceCharge) + Actions.LanceCharge.appDelay;
-            const timeUntilBL = cp.timeUntilReady(Actions.BattleLitany) + Actions.BattleLitany.appDelay;
+            //const timeUntilBL = cp.timeUntilReady(Actions.BattleLitany) + Actions.BattleLitany.appDelay;
             const timeUntilGsk = cp.timeUntilReady(Actions.Geirskogul) + Actions.Geirskogul.appDelay;
 
             // Maybe they are already active?
@@ -420,6 +419,12 @@ export class DrgSim extends BaseMultiCycleSim<DrgSimResult, DrgSettings, DrgCycl
         }
     }
 
+    private printUses(cp: DrgCycleProcessor, abilityName: string) {
+        const usedAbilities = cp.usedAbilities.filter(used => used.ability.name === abilityName);
+        const uses = usedAbilities.length;
+        cp.addSpecialRow(`\u00a0${abilityName} - uses: ${uses}`, 0);
+    }
+
     private printGcdClipping(cp: DrgCycleProcessor) {
         const GCD_CLIP_ALLOWED = 0.01;
 
@@ -469,13 +474,28 @@ export class DrgSim extends BaseMultiCycleSim<DrgSimResult, DrgSettings, DrgCycl
                 // Recap cooldown drift.
                 cp.addSpecialRow(">>> Recap cooldown drift:", 0);
                 outer.printCooldownDrift(cp, "Battle Litany");
+                outer.printCooldownDrift(cp, "Dragonfire Dive");
+                if (cp.stats.level >= 92) {
+                    outer.printUses(cp, "Rise of the Dragon");
+                }
                 outer.printCooldownDrift(cp, "Lance Charge");
                 outer.printCooldownDrift(cp, "Geirskogul");
+                outer.printUses(cp, "Nastrond");
+                if (cp.stats.level >= 80) {
+                    outer.printUses(cp, "Stardiver");
+                    if (cp.stats.level >= 100) {
+                        outer.printUses(cp, "Starcross");
+                    }
+                }
                 if (cp.stats.level > 76) {
                     outer.printCooldownDrift(cp, "High Jump");
                 }
                 else {
                     outer.printCooldownDrift(cp, "Jump");
+                }
+                outer.printUses(cp, "Mirage Dive");
+                if (cp.stats.level >= 90) {
+                    outer.printUses(cp, "Wyrmwind Thrust");
                 }
                 outer.printGcdClipping(cp);
             },
