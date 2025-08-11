@@ -12,8 +12,6 @@ import {
 } from "./drg_types";
 import {Litany} from "@xivgear/core/sims/buffs";
 
-// TODO: Application delays.
-
 // --- GCDs
 
 // Single-target combo (with combined combo and positional potency)
@@ -472,7 +470,7 @@ export const Geirskogul: DrgOgcdAbility = {
     type: 'ogcd',
     name: "Geirskogul",
     id: 3555,
-    potency: 280,
+    potency: 200,
     appDelay: 0.67,
     activatesBuffs: [LifeOfTheDragon, NastrondReady],
     attackType: "Ability",
@@ -480,6 +478,12 @@ export const Geirskogul: DrgOgcdAbility = {
         time: 60,
     },
     updateGauge: _ => {},
+    levelModifiers: [
+        {
+            minLevel: 90,
+            potency: 280,
+        },
+    ],
 };
 
 export const MirageDive: DrgOgcdAbility = {
@@ -496,20 +500,26 @@ export const Nastrond: DrgOgcdAbility = {
     type: 'ogcd',
     name: "Nastrond",
     id: 7400,
-    potency: 720,
+    potency: 600,
     appDelay: 0.76,
     attackType: "Ability",
     cooldown: {
         time: 10,
     },
     updateGauge: _ => {},
+    levelModifiers: [
+        {
+            minLevel: 90,
+            potency: 720,
+        },
+    ],
 };
 
 export const Stardiver: DrgOgcdAbility = {
     type: 'ogcd',
     name: "Stardiver",
     id: 16480,
-    potency: 840,
+    potency: 720,
     appDelay: 1.29,
     animationLock: 1.5,
     attackType: "Ability",
@@ -519,7 +529,12 @@ export const Stardiver: DrgOgcdAbility = {
     updateGauge: _ => {},
     levelModifiers: [
         {
+            minLevel: 94,
+            potency: 840,
+        },
+        {
             minLevel: 100,
+            potency: 840,
             activatesBuffs: [StarcrossReady],
         },
     ],
