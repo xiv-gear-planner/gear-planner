@@ -1,14 +1,14 @@
 import {Chain} from "@xivgear/core/sims/buffs";
-import {Ability, BuffController, GcdAbility, OgcdAbility, PersonalBuff, SimSettings, SimSpec} from "@xivgear/core/sims/sim_types";
+import {Ability, BuffController, GcdAbility, LevelModifiable, OgcdAbility, PersonalBuff, SimSettings, SimSpec} from "@xivgear/core/sims/sim_types";
 import {CycleProcessor, CycleSimResult, ExternalCycleSettings, MultiCycleSettings, Rotation, PreDmgAbilityUseRecordUnf, AbilityUseResult} from "@xivgear/core/sims/cycle_sim";
 import {rangeInc} from "@xivgear/util/array_utils";
 //import {potionMaxMind} from "@xivgear/core/sims/common/potion";
 import {BaseMultiCycleSim} from "@xivgear/core/sims/processors/sim_processors";
 
-type SchAbility = Ability & Readonly<{
+type SchAbility = Ability & Readonly<LevelModifiable<{
     /** Run if an ability needs to update the aetherflow gauge */
     updateGauge?(gauge: SchGauge): void;
-}>
+}>>
 
 type SchGcdAbility = GcdAbility & SchAbility;
 
@@ -85,6 +85,10 @@ const chain: SchOgcdAbility = {
     cooldown: {
         time: 120,
     },
+    levelModifiers: [{
+        minLevel: 92,
+        activatesBuffs: [ImpactImminent]
+    }]
 };
 
 const baneful: SchOgcdAbility = {
@@ -213,6 +217,11 @@ class ScholarCycleProcessor extends CycleProcessor {
         return super.use(ability);
     }
 
+    isImpactImminentActive(): boolean {
+        return this.getActiveBuffData(ImpactImminent, this.currentTime)?.buff?.duration > 0;
+    }
+
+
     useDotIfWorth() {
         if (this.nextGcdTime >= this.nextBioTime && this.remainingTime > 15) {
             this.nextBioTime = this.nextGcdTime + 28.8;
@@ -241,19 +250,18 @@ class ScholarCycleProcessor extends CycleProcessor {
     useTwoMinBurst() {
         this.useDotIfWorth();
         this.use(chain);
-        let banefulReady = true;
         if (this.remainingTime < 30) { //rush baneful if there's not enough time for it to tick
             this.use(filler);
-            this.use(baneful);
-            banefulReady = false;
+            if (this.isImpactImminentActive()) {
+                this.use(baneful);
+            }
         }
         this.spendEDs();
         this.useDotIfWorth();
         this.use(aetherflow);
-        if (banefulReady) { //if baneful was not rushed
+        if (this.isImpactImminentActive()) { //if baneful was not rushed
             this.useDotIfWorth();
             this.use(baneful);
-            banefulReady = false;
         }
         this.spendEDs();
     }
