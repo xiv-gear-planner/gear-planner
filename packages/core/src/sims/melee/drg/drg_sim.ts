@@ -77,7 +77,6 @@ Defaults to simulating a killtime of 8m 30s (510s).`,
 class RotationState {
     // Treat DRG's alternating 5+5 combo like a 10-step combo.
     private _combo: number = 1; //Start after 1st step since that could be either True Thrust or Raiden Thrust.
-    private _lsToUse: number = 0;
 
     get combo() {
         return this._combo;
@@ -85,13 +84,6 @@ class RotationState {
     set combo(newCombo) {
         this._combo = newCombo;
         if (this._combo >= 10) this._combo = 0;
-    }
-
-    get lsToUse() {
-        return this._lsToUse;
-    }
-    set lsToUse(newLsToUse) {
-        this._lsToUse = newLsToUse;
     }
 }
 
@@ -103,11 +95,15 @@ class DrgCycleProcessor extends CycleProcessor<DrgGaugeManager> {
         Actions.TrueThrust, Actions.VorpalThrust, Actions.FullThrust, Actions.FangAndClaw, Actions.Drakesbane,
     ];
 
+    // Needed to have the correct number of charges at this level.
+    lifeSurgeAction: DrgOgcdAbility;
+
     constructor(settings: MultiCycleSettings) {
         super(settings);
         this.cycleLengthMode = 'full-duration';
         this.rotationState = new RotationState();
         this.updateComboActionsForLevel(this.stats.level);
+        this.lifeSurgeAction = this.applyLevelModifiers(Actions.LifeSurge) as DrgOgcdAbility;
     }
 
     override createGaugeManager(): DrgGaugeManager {
@@ -230,14 +226,6 @@ export class DrgSim extends BaseMultiCycleSim<DrgSimResult, DrgSettings, DrgCycl
                 continue;
             }
             if (cp.canUseWithoutClipping(ogcd)) {
-                // Try to use Life Surge in Lance Charge!
-                if (ogcd.name === "Lance Charge") {
-                    cp.rotationState.lsToUse = 1;
-                    // 2 charges during 2min above level 88
-                    if (cp.stats.level >= 88 && cp.currentTime % 120 < 30) {
-                        cp.rotationState.lsToUse++;
-                    }
-                }
                 this.use(cp, ogcd);
             }
         }
@@ -251,7 +239,7 @@ export class DrgSim extends BaseMultiCycleSim<DrgSimResult, DrgSettings, DrgCycl
         const nextGCDTimeIntoOneMinute = cp.nextGcdTime % 60;
         if (lcOffset < nextGCDTimeIntoOneMinute && nextGCDTimeIntoOneMinute < lcOffset + 20) {*/
         /*if (cp.isBuffActive(LanceChargeBuff) && cp.isBuffActive(LifeOfTheDragon)) {*/
-        if (cp.rotationState.lsToUse > 0 && !cp.isBuffActive(LifeSurgeBuff)) {
+        if (!cp.isBuffActive(LifeSurgeBuff)) {
             if (cp.isBuffActive(LanceChargeBuff) && cp.isBuffActive(LifeOfTheDragon)) {
                 if (nextGCD.name === "Drakesbane" || nextGCD.name === "Heavens' Thrust") {
                     needsLsNextGcd = true;
@@ -298,10 +286,9 @@ export class DrgSim extends BaseMultiCycleSim<DrgSimResult, DrgSettings, DrgCycl
 
         if (needsLsNextGcd) {
             //console.log(`tried to LS @${Math.floor(cp.currentTime/60)}:${Math.round(100*(cp.currentTime%60))/100}`);
-            //console.log(cp.isReady(Actions.LifeSurge));
-            if (cp.canUseWithoutClipping(Actions.LifeSurge)) {
-                this.use(cp, Actions.LifeSurge);
-                cp.rotationState.lsToUse--;
+            //console.log(cp.isReady(cp.lifeSurgeAction));
+            if (cp.canUseWithoutClipping(cp.lifeSurgeAction)) {
+                this.use(cp, cp.lifeSurgeAction);
             }
         }
         else {

@@ -361,7 +361,7 @@ export const LifeSurge: DrgOgcdAbility = {
     attackType: "Ability",
     cooldown: {
         time: 40,
-        charges: 2, // FIXME: This is wrong but needed for the hardcoded fix
+        charges: 1,
     },
     updateGauge: _ => {},
     levelModifiers: [
