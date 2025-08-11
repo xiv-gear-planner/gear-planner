@@ -87,8 +87,8 @@ const chain: SchOgcdAbility = {
     },
     levelModifiers: [{
         minLevel: 92,
-        activatesBuffs: [ImpactImminent]
-    }]
+        activatesBuffs: [ImpactImminent],
+    }],
 };
 
 const baneful: SchOgcdAbility = {
