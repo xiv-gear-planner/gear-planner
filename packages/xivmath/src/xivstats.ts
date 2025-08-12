@@ -96,6 +96,8 @@ export class RawBonusStats extends RawStats {
     // TODO: These should be used when possible
     forceCrit: boolean = false;
     forceDh: boolean = false;
+    forceNoCrit: boolean = false;
+    forceNoDh: boolean = false;
 }
 
 function clamp(min: number, max: number, value: number) {
@@ -346,6 +348,9 @@ export class ComputedSetStatsImpl implements ComputedSetStats {
         if (this.finalBonusStats.forceCrit) {
             return 1;
         }
+        if (this.finalBonusStats.forceNoCrit) {
+            return 0;
+        }
         return clamp(0, 1, this.baseCritChance + this.finalBonusStats.critChance);
     }
 
@@ -360,6 +365,9 @@ export class ComputedSetStatsImpl implements ComputedSetStats {
     get dhitChance(): number {
         if (this.finalBonusStats.forceDh) {
             return 1;
+        }
+        if (this.finalBonusStats.forceNoDh) {
+            return 0;
         }
         return clamp(0, 1, this.baseDhitChance + this.finalBonusStats.dhitChance);
     };

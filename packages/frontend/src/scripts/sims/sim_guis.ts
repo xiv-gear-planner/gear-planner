@@ -35,6 +35,7 @@ import {rprSheetSpec} from "@xivgear/core/sims/melee/rpr/rpr_sheet_sim";
 import {samSpec} from "@xivgear/core/sims/melee/sam/sam_lv100_sim";
 import {vprSheetSpec} from "@xivgear/core/sims/melee/vpr/vpr_sheet_sim";
 import {dncDtSheetSpec} from "@xivgear/core/sims/ranged/dnc_sim";
+import {mchSpec} from "@xivgear/core/sims/ranged/mch/mch_sheet_sim";
 import {pldUsageSimSpec} from "@xivgear/core/sims/tank/pld/pld_usage_sim_no_sks";
 import {warSpec} from "@xivgear/core/sims/tank/war/war_sheet_sim";
 import {drkSpec} from "@xivgear/core/sims/tank/drk/drk_sheet_sim";
@@ -50,6 +51,7 @@ import {BluWinged120Spec} from "@xivgear/core/sims/blu/blu_winged120";
 import {BluWinged60Spec} from "@xivgear/core/sims/blu/blu_winged60";
 import {potRatioSimSpec} from "@xivgear/core/sims/common/potency_ratio";
 import {mpSimSpec} from "@xivgear/core/sims/healer/healer_mp";
+import {MchSimGui} from "./ranged/mch_sheet_sim_ui";
 
 
 type SimGuiCtor<X extends Simulation<SimResult, unknown, unknown>> = {
@@ -101,6 +103,7 @@ registerGui(mnkSpec, MnkSimGui);
 registerGui(samSpec, SamSimGui);
 // Ranged
 registerGui(dncDtSheetSpec, BaseUsageCountSimGui);
+registerGui(mchSpec, MchSimGui);
 // Caster
 registerGui(blmSpec, BlmSimGui);
 registerGui(BluWinged120Spec, BluSimGui);
