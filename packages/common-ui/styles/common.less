@@ -1507,6 +1507,11 @@ gear-plan {
   }
 }
 
+#embed-top-level column-cell {
+  min-width: 0px;
+}
+
+
 #embed-top-level {
   overflow: auto;
   text-align: center;
@@ -1514,26 +1519,47 @@ gear-plan {
 
   > * {
     min-height: 100%;
-    box-sizing: border-box;
+    box-sizing: content-box;
+    padding: 0px;
+    padding-bottom: 0px;
+    font-size: 75%;
   }
 
-  set-totals-display {
-    display: block;
+  table.gear-items-table, table.gear-items-view-table, table.food-items-table {
+    padding: 1px;
+    border-spacing: 2px;
+    margin-bottom: 1px;
+  }
 
-    div.stat-total {
-      background-color: var(--table-bg-color);
-      margin-top: 5px;
-      margin-bottom: 0;
-      .shadow();
-      // Save space by not showing DHT multi since it is fixed
-      &.stat-dhit {
-        min-width: 52px;
-
-        div.stat-total-lower-right {
-          display: none;
-        }
-      }
+  div.gear-table-sides-holder {
+    display: flex;
+    flex-wrap: nowrap;
+    flex-direction: row;
+    div.left-side-gear-table {
+      flex-basis: 50%;
+      box-sizing: border-box;
+      flex-grow: 1;
     }
+    div.right-side-gear-table {
+      flex-basis: 50%;
+      box-sizing: border-box;
+      flex-grow: 1;
+    }
+  }
+  
+  gear-set-viewer {
+    padding-bottom: 0px;
+    border-spacing: 2px;
+  }
+
+  gear-items-view-item-header {
+    display: none;
+  }
+  materia-totals-display {
+    display: none;
+  }
+  set-totals-display {
+    display: none;
   }
 }
 

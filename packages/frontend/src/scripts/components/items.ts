@@ -50,6 +50,7 @@ import {makeRelicStatEditor} from "./relic_stats";
 import {ShowHideButton, ShowHideCallback} from "@xivgear/common-ui/components/show_hide_chevron";
 import {BaseModal} from "@xivgear/common-ui/components/modal";
 import {recordSheetEvent} from "../analytics/analytics";
+import {isEmbed} from "../nav_hash";
 
 function removeStatCellStyles(cell: CustomCell<GearSlotItem, unknown>) {
     cell.classList.remove("secondary");
@@ -285,10 +286,6 @@ export class FoodItemsTable extends CustomTable<FoodItem, TableSelectionModel<Fo
                     });
                     return quickElement('div', ['food-name-holder-editable'], [quickElement('span', [], [name]), trashButton]);
                 },
-                // renderer: name => {
-                //     return quickElement('div', [], [document.createTextNode(name)]);
-                // }
-                // initialWidth: 200,
             },
             // TODO: VIT always gets filtered out
             foodTableStatColumn(sheet, gearSet, 'vitality'),
@@ -892,6 +889,7 @@ export class GearItemsViewTable extends CustomTable<GearSlotItem> {
         data.push(new HeaderRow());
         let slotItem: GearItem = null;
         let alts: ReturnType<typeof sheet.getAltItemsFor> = [];
+        let customRelic = false;
         for (const [name, slot] of Object.entries(EquipSlotInfo)) {
             if (handledSlots && !handledSlots.includes(name as EquipSlotKey)) {
                 continue;
@@ -910,7 +908,8 @@ export class GearItemsViewTable extends CustomTable<GearSlotItem> {
                     alts = sheet.getAltItemsFor(equippedItem);
                 }
                 data.push(item);
-                if (!equippedItem.isCustomRelic) {
+                customRelic = equippedItem.isCustomRelic;
+                if (!customRelic) {
                     const matMgr = new AllSlotMateriaManager(sheet, gearSet, slotId, false);
                     data.push(new SpecialRow(tbl => matMgr));
                 }
@@ -952,7 +951,6 @@ export class GearItemsViewTable extends CustomTable<GearSlotItem> {
                     return out;
                 },
                 headerStyler: (_, colHeader) => {
-                    // console.log("Item", item);
                     colHeader.classList.add('gear-items-view-item-header');
                     if (alts.length > 0) {
                         const altButton = makeActionButton(`+${alts.length} alt items`, () => {
@@ -964,39 +962,7 @@ export class GearItemsViewTable extends CustomTable<GearSlotItem> {
                     }
 
                 },
-                // initialWidth: 300,
             }),
-            // {
-            //     shortName: "mats",
-            //     displayName: "Mat",
-            //     getter: item => {
-            //         return item.item.materiaSlots.length;
-            //     },
-            //     initialWidth: 30,
-            // },
-            // {
-            //     shortName: "wd",
-            //     displayName: "WD",
-            //     getter: item => {
-            //         // return Math.max(item.item.stats.wdMag, item.item.stats.wdPhys);
-            //         return Math.max(item.item.stats.wdMag, item.item.stats.wdPhys);
-            //     },
-            //     renderer: value => {
-            //         if (value) {
-            //             return document.createTextNode(value);
-            //         }
-            //         else {
-            //             return document.createTextNode("");
-            //         }
-            //     },
-            //     initialWidth: 30,
-            //     condition: () => handledSlots === undefined || handledSlots.includes('Weapon'),
-            // },
-            // itemTableStatColumn(sheet, gearSet, 'vitality'),
-            // itemTableStatColumn(sheet, gearSet, 'strength'),
-            // itemTableStatColumn(sheet, gearSet, 'dexterity'),
-            // itemTableStatColumn(sheet, gearSet, 'intelligence'),
-            // itemTableStatColumn(sheet, gearSet, 'mind'),
             itemTableStatColumn(sheet, gearSet, 'crit', true),
             itemTableStatColumn(sheet, gearSet, 'dhit', true),
             itemTableStatColumn(sheet, gearSet, 'determination', true),
@@ -1005,6 +971,45 @@ export class GearItemsViewTable extends CustomTable<GearSlotItem> {
             itemTableStatColumn(sheet, gearSet, 'piety', true),
             itemTableStatColumn(sheet, gearSet, 'tenacity', true),
         ];
+
+        if (isEmbed()) {
+            super.columns = [
+                col({
+                    shortName: "icon",
+                    displayName: "",
+                    getter: item => {
+                        return item.item;
+                    },
+                    renderer: itemIconRenderer(),
+                    fixedData: true,
+                }),
+                col({
+                    shortName: "itemname",
+                    displayName: headingText,
+                    getter: item => {
+                        return item.item.nameTranslation.asCurrentLang;
+                    },
+                    renderer: (item) => {
+                        const name = item;
+                        const itemNameSpan = quickElement('span', ['item-name'], [shortenItemName(name)]);
+                        const out = quickElement('div', ['item-name-holder-view'], [itemNameSpan]);
+                        return out;
+                    },
+                }),
+            ];
+
+            if (customRelic) { // include stats for custom stat relics only
+                super.columns = [...super.columns, 
+                    itemTableStatColumn(sheet, gearSet, 'crit', true),
+                    itemTableStatColumn(sheet, gearSet, 'dhit', true),
+                    itemTableStatColumn(sheet, gearSet, 'determination', true),
+                    itemTableStatColumn(sheet, gearSet, 'spellspeed', true),
+                    itemTableStatColumn(sheet, gearSet, 'skillspeed', true),
+                    itemTableStatColumn(sheet, gearSet, 'piety', true),
+                    itemTableStatColumn(sheet, gearSet, 'tenacity', true)]
+            }
+        }
+
         this.data = data;
     }
 
