@@ -7,6 +7,7 @@ function setCellProps(cell: HTMLTableCellElement, colDef: CustomColumn<any, any>
     if (extraClasses) {
         cell.classList.add(...extraClasses);
     }
+    cell.classList.add();
     if (colDef.initialWidth !== undefined) {
         cell.style.width = cell.style.minWidth = cell.style.maxWidth = colDef.initialWidth + "px";
     }

@@ -52,7 +52,7 @@ import {
     STAT_ABBREVIATIONS,
     SupportedLevel
 } from "@xivgear/xivmath/xivconstants";
-import {getCurrentHash, getCurrentState, isEmbed, processNav} from "../nav_hash";
+import {getCurrentHash, getCurrentState, processNav} from "../nav_hash";
 import {MateriaTotalsDisplay} from "./materia";
 import {FoodItemsTable, FoodItemViewTable, GearItemsTable, GearItemsViewTable} from "./items";
 import {SetViewToolbar} from "./totals_display";

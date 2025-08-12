@@ -999,14 +999,14 @@ export class GearItemsViewTable extends CustomTable<GearSlotItem> {
             ];
 
             if (customRelic) { // include stats for custom stat relics only
-                super.columns = [...super.columns, 
+                super.columns = [...super.columns,
                     itemTableStatColumn(sheet, gearSet, 'crit', true),
                     itemTableStatColumn(sheet, gearSet, 'dhit', true),
                     itemTableStatColumn(sheet, gearSet, 'determination', true),
                     itemTableStatColumn(sheet, gearSet, 'spellspeed', true),
                     itemTableStatColumn(sheet, gearSet, 'skillspeed', true),
                     itemTableStatColumn(sheet, gearSet, 'piety', true),
-                    itemTableStatColumn(sheet, gearSet, 'tenacity', true)]
+                    itemTableStatColumn(sheet, gearSet, 'tenacity', true)];
             }
         }
 
