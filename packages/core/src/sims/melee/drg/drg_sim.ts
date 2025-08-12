@@ -238,10 +238,15 @@ export class DrgSim extends BaseMultiCycleSim<DrgSimResult, DrgSettings, DrgCycl
         const nextGCDTimeIntoOneMinute = cp.nextGcdTime % 60;
         if (lcOffset < nextGCDTimeIntoOneMinute && nextGCDTimeIntoOneMinute < lcOffset + 20) {*/
         /*if (cp.isBuffActive(LanceChargeBuff) && cp.isBuffActive(LifeOfTheDragon)) {*/
+        // These nested ifs look ugly but I think it keeps the logic readable so I'll keep it that way for now.
         if (!cp.isBuffActive(LifeSurgeBuff)) {
             if (cp.isBuffActive(LanceChargeBuff) && cp.isBuffActive(LifeOfTheDragon)) {
                 if (nextGCD.name === "Drakesbane" || nextGCD.name === "Heavens' Thrust") {
-                    needsLsNextGcd = true;
+                    //console.log(`tried to LS @${Math.floor(cp.currentTime/60)}:${Math.round(100*(cp.currentTime%60))/100}`);
+                    //console.log(cp.isReady(cp.lifeSurgeAction));
+                    if (cp.canUseWithoutClipping(Actions.LifeSurge)) {
+                        needsLsNextGcd = true;
+                    }   
                 }
             }
         }
@@ -284,11 +289,7 @@ export class DrgSim extends BaseMultiCycleSim<DrgSimResult, DrgSettings, DrgCycl
         }
 
         if (needsLsNextGcd) {
-            //console.log(`tried to LS @${Math.floor(cp.currentTime/60)}:${Math.round(100*(cp.currentTime%60))/100}`);
-            //console.log(cp.isReady(cp.lifeSurgeAction));
-            if (cp.canUseWithoutClipping(cp.lifeSurgeAction)) {
-                this.use(cp, cp.lifeSurgeAction);
-            }
+            this.use(cp, cp.lifeSurgeAction);
         }
         else {
             // Priority: Filler oGCDs (use when nothing else needs to be pressed immediately)
