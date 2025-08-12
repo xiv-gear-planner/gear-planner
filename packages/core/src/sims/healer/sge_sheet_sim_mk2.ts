@@ -17,54 +17,111 @@ import {BaseMultiCycleSim} from "@xivgear/core/sims/processors/sim_processors";
  */
 const filler: GcdAbility = {
     type: 'gcd',
-    name: "Dosis III",
-    potency: 380,
+    name: "Dosis",
+    potency: 300,
     attackType: "Spell",
     gcd: 2.5,
     cast: 1.5,
-    id: 24312,
+    id: 24283,
+    levelModifiers: [{
+        minLevel: 72,
+        name: "Dosis II",
+        potency: 320,
+        id: 24306,
+    }, {
+        minLevel: 82,
+        name: "Dosis III",
+        id: 24312,
+        potency: 330,
+    }, {
+        minLevel: 94,
+        name: "Dosis III",
+        id: 24312,
+        potency: 380,
+    }],
 };
 
 const eDosis: GcdAbility = {
     type: 'gcd',
-    name: "Eukrasian Dosis III",
+    name: "Eukrasian Dosis",
     potency: 0,
     dot: {
-        id: 2864,
+        id: 2614,
         duration: 30,
-        tickPotency: 80,
+        tickPotency: 40,
     },
     attackType: "Spell",
     fixedGcd: true,
     gcd: 2.5,
     // TODO: can this be modeled in a more accurate way? it doesn't break anything but isn't nice to work with
     cast: 1.5,
-    id: 24314,
+    id: 24293,
+    levelModifiers: [
+        {
+            minLevel: 72,
+            name: "Eukrasian Dosis II",
+            dot: {
+                id: 2615,
+                duration: 30,
+                tickPotency: 60,
+            },
+            id: 24308,
+        },
+        {
+            minLevel: 82,
+            name: "Eukrasian Dosis III",
+            dot: {
+                id: 2864,
+                duration: 30,
+                tickPotency: 80,
+            },
+            id: 24314,
+        },
+    ],
 };
 
 const phlegma: GcdAbility = {
     type: 'gcd',
     name: "Phlegma",
-    potency: 600,
+    potency: 400,
     attackType: "Spell",
     gcd: 2.5,
     cast: 1.5,
+    // can be corrected to 24289 after #720
     id: 24313,
     cooldown: {
         time: 40.0,
         charges: 2,
     },
+    levelModifiers: [
+        {
+            minLevel: 72,
+            name: "Phlegma II",
+            potency: 490,
+            // can be correct to 24307 after #720
+            id: 24313,
+        },
+        {
+            minLevel: 82,
+            name: "Phlegma III",
+            potency: 600,
+            id: 24313,
+        }],
 };
 
 const psyche: OgcdAbility = {
     type: 'ogcd',
     name: "Psyche",
     id: 37033,
-    potency: 600,
+    potency: 0,
     attackType: "Ability",
     cooldown: {
         time: 60,
     },
+    levelModifiers: [{
+        minLevel: 92,
+        potency: 600,
+    }],
 };
 
 export interface SgeSheetSimResult extends CycleSimResult {
