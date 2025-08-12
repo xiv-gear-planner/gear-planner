@@ -86,7 +86,8 @@ export const SpiralBlow: DrgGcdAbility = {
     name: "Spiral Blow",
     id: 36955,
     potency: 300,
-    appDelay: 1.38,
+    //appDelay: 1.38,// This is only *damage* delay, the buffs apply immediately and this is more important.
+    appDelay: 0,
     activatesBuffs: [PowerSurge],
     attackType: "Weaponskill",
     gcd: 2.5,
@@ -471,7 +472,8 @@ export const Geirskogul: DrgOgcdAbility = {
     name: "Geirskogul",
     id: 3555,
     potency: 200,
-    appDelay: 0.67,
+    //appDelay: 0.67, // This is only *damage* delay, the buffs apply immediately and this is more important.
+    appDelay: 0,
     activatesBuffs: [LifeOfTheDragon, NastrondReady],
     attackType: "Ability",
     cooldown: {
