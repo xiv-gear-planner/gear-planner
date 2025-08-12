@@ -21,6 +21,7 @@ import {
 import * as Actions from './drg_actions';
 import {BaseMultiCycleSim} from "@xivgear/core/sims/processors/sim_processors";
 import {potionMaxStr} from "@xivgear/core/sims/common/potion";
+//import {STANDARD_ANIMATION_LOCK} from "@xivgear/xivmath/xivconstants";
 
 function formatTime(time: number) {
     const negative = time < 0;
@@ -242,11 +243,15 @@ export class DrgSim extends BaseMultiCycleSim<DrgSimResult, DrgSettings, DrgCycl
         if (!cp.isBuffActive(LifeSurgeBuff)) {
             if (cp.isBuffActive(LanceChargeBuff) && cp.isBuffActive(LifeOfTheDragon)) {
                 if (nextGCD.name === "Drakesbane" || nextGCD.name === "Heavens' Thrust") {
-                    //console.log(`tried to LS @${Math.floor(cp.currentTime/60)}:${Math.round(100*(cp.currentTime%60))/100}`);
-                    //console.log(cp.isReady(cp.lifeSurgeAction));
-                    if (cp.canUseWithoutClipping(Actions.LifeSurge)) {
-                        needsLsNextGcd = true;
-                    }   
+                    //For debugging:
+                    /*
+                    const isLsReady = cp.isReady(cp.lifeSurgeAction);
+                    const lsReadyAt = cp.cdTracker.statusOf(cp.lifeSurgeAction).readyAt.absolute;
+                    const lsMaxDelayAt = cp.nextGcdTime - (cp.lifeSurgeAction.animationLock ?? STANDARD_ANIMATION_LOCK);
+                    console.log(`tried to LS @${formatTime(cp.currentTime)}`);
+                    console.log(`isReady: ${isLsReady}, readyAt: ${formatTime(lsReadyAt)}, maxDelay: ${formatTime(lsMaxDelayAt)}, diff: ${formatTime(lsMaxDelayAt - lsReadyAt)}`);
+                    */
+                    needsLsNextGcd = cp.canUseWithoutClipping(cp.lifeSurgeAction);
                 }
             }
         }
@@ -376,7 +381,7 @@ export class DrgSim extends BaseMultiCycleSim<DrgSimResult, DrgSettings, DrgCycl
         else {
             this.use(cp, Actions.Jump);
         }
-        this.use(cp, Actions.LifeSurge);
+        this.use(cp, cp.lifeSurgeAction);
         this.useComboGCD(cp);
         this.use(cp, Actions.DragonfireDive);
         this.use(cp, Actions.Nastrond);
@@ -389,7 +394,7 @@ export class DrgSim extends BaseMultiCycleSim<DrgSimResult, DrgSettings, DrgCycl
             this.use(cp, Actions.Starcross);
         }
         if (cp.stats.level >= 88) {
-            this.use(cp, Actions.LifeSurge);
+            this.use(cp, cp.lifeSurgeAction);
         }
         this.useComboGCD(cp);
         if (cp.stats.level >= 92) {
