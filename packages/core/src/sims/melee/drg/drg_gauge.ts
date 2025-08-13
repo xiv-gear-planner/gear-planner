@@ -23,7 +23,7 @@ export class DrgGaugeManager implements GaugeManager<DrgGaugeState> {
         if (this.level < 90) return;
 
         if (newFirstmindsFocus > 2) {
-            console.log(`[DRG Sim] Overcapped Firstminds' Focus.`);
+            console.warn(`[DRG Sim] Overcapped Firstminds' Focus.`);
         }
         if (newFirstmindsFocus < 0) {
             console.warn(`[DRG Sim] Used Firstminds' Focus with no charge.`);
