@@ -1,0 +1,239 @@
+@import "util.less";
+
+body.modern {
+  --border-color: #00000000;
+  --border-style: none;
+  --table-extra-padding: 10px;
+  --optional-border-radius: 10px;
+  --perfect-tiering-box-shadow: none;
+  //--item-name-col-width: 250px;
+  //--button-height: 25px;
+
+  input {
+    border: none !important;
+  }
+
+  table {
+
+    border-radius: 10px;
+    padding: var(--table-extra-padding);
+    background-color: var(--table-bg-color);
+
+    &.gear-items-view-table, &.food-items-view-table {
+      padding: 5px;
+      .custom-table-header-row {
+        vertical-align: bottom;
+        height: min-content;
+      }
+    }
+
+    &.gear-plan-table {
+      border-radius: 0;
+      --table-extra-padding: 0px;
+
+      tr {
+        td[col-id="actions"] {
+          button {
+            opacity: 10%;
+          }
+        }
+      }
+
+      tr:hover, tr[is-selected="true"], tr.dragging {
+        td[col-id="actions"] {
+          button {
+            opacity: 80%;
+          }
+        }
+      }
+    }
+
+    &.gear-items-table > tbody, &.food-items-table > tbody {
+      > tr:first-child > th {
+        border-top-left-radius: var(--standard-border-radius);
+        border-top-right-radius: var(--standard-border-radius);
+      }
+
+      > tr > th[col-id] {
+        font-size: small;
+        text-align: center;
+
+        &[col-id='itemname'] {
+          text-align: left;
+        }
+      }
+
+      > tr > * {
+        padding-left: 5px;
+        padding-right: 5px;
+      }
+    }
+
+    //Center wide stat columns
+    //th.stat-col {
+    //  &.chance-stat-col, &.multiplier-stat-col {
+    //    text-align: center;
+    //  }
+    //}
+
+  }
+
+  --border-color-input: #0000;
+  --tiering-color-mix: 5%;
+
+  &.light-mode {
+    --bg-color: #e5dad7;
+    --input-hover-background-color: #ddb581;
+  }
+
+  &:not(.light-mode) {
+    --table-bg-color: #24242c;
+    --input-background-color: var(--table-bg-color);
+  }
+
+  .stat-cell {
+    //border-radius: 2px;
+  }
+
+  .gear-sheet-midbar-area {
+    background-color: var(--input-background-color);
+
+    button, select {
+      --input-background-color: var(--bg-color);
+    }
+
+  }
+
+  gear-set-editor {
+    table all-slot-materia-manager {
+      padding-top: 5px;
+    }
+  }
+
+  materia-dragger:hover {
+    --stat-mix-secondary-bg: 20%;
+  }
+
+  .modal-dialog .modal-inner {
+    background-color: var(--bg-color);
+  }
+
+  div#main-menu-area {
+    background: none;
+    box-shadow: none;
+
+    div#main-menu-area-inner {
+
+      .shadow();
+      width: fit-content;
+      display: flex;
+      align-items: normal;
+      margin-left: auto;
+      margin-right: auto;
+      background-color: var(--table-bg-color);
+      --mmai-border-radius: 10px;
+      border-bottom-left-radius: var(--mmai-border-radius);
+      border-bottom-right-radius: var(--mmai-border-radius);
+      padding-left: var(--mmai-border-radius);
+      padding-right: var(--mmai-border-radius);
+
+      @media (width < 525px) {
+        a span {
+          display: none;
+        }
+
+        .svg-glyph {
+          padding-left: 0 !important;
+          padding-right: 0 !important;
+        }
+      }
+
+      .svg-glyph {
+        //height: 1.3em;
+        //width: 1.3em;
+        scale: 1.5;
+        padding-left: 5px;
+        padding-right: 5px;
+
+        &:only-child {
+          padding-left: 0;
+          padding-right: 0;
+        }
+
+        &.svg-bigger {
+          scale: 2.0;
+        }
+      }
+
+    }
+  }
+
+  .gear-sheet-table-holder-outer {
+    padding: 10px 5px;
+    border-radius: 10px;
+    margin: 5px;
+    background-color: var(--table-bg-color);
+    .shadow();
+
+    .gear-sheet-table-holder {
+    }
+  }
+
+  .gear-sheet-table-area {
+    margin-bottom: 5px;
+  }
+
+  button#show-hide-menu-button, button#help-button {
+    .shadow();
+  }
+
+  .gear-sheet-buttons-area > * {
+    height: 25px;
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  slot-materia-popup {
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  div.gear-set-editor-toolbar > * {
+    box-shadow: none;
+    padding-left: 5px;
+    padding-right: 5px;
+  }
+
+  set-view-toolbar {
+    set-totals-display {
+      div.stat-total {
+        background-color: color-mix(in srgb, var(--stat-color) 6%, var(--table-bg-color));
+        padding-left: 6px;
+        padding-right: 6px;
+        margin-left: 4px;
+        margin-right: 4px;
+        box-sizing: content-box;
+      }
+    }
+  }
+
+  .gear-set-editor-toolbar {
+    .single-stat-tier-display {
+      background-color: color-mix(in srgb, var(--stat-color) 5%, var(--table-bg-color));
+
+      box-sizing: border-box;
+      padding: 4px;
+      height: var(--toolbar-button-size);
+      border-radius: var(--toolbar-border-radius);
+
+      &.stat-tiering-perfect {
+        background-color: color-mix(in srgb, var(--stat-color) 13%, var(--table-bg-color));
+      }
+    }
+  }
+
+  .gear-set-editor-toolbar .toolbar-buttons-area .popout-area {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+  }
+}

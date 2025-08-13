@@ -1094,7 +1094,7 @@ export class GearSetViewer extends HTMLElement {
             headingLink.addEventListener('click', () => {
                 recordSheetEvent("openEmbedToFull", this.sheet);
             });
-            headingLink.replaceChildren(this.gearSet.name, faIcon('fa-arrow-up-right-from-square', 'fa'));
+            headingLink.replaceChildren(this.gearSet.name);
             heading.replaceChildren(headingLink);
         }
         else {

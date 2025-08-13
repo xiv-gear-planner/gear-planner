@@ -1,5 +1,20 @@
-@import "../../common-ui/styles/common.less";
-@import "../../common-ui/styles/ads.less";
+@import "../../common-ui/styles/util.less";
+
+@layer base {
+  @import "../../common-ui/styles/common.less";
+}
+
+@layer modern {
+  @import "../../common-ui/styles/modern.less";
+}
+
+@layer embed {
+  @import "./embed.less";
+}
+
+@layer ads {
+  @import "../../common-ui/styles/ads.less";
+}
 
 custom-item-popup, custom-food-popup {
   table {

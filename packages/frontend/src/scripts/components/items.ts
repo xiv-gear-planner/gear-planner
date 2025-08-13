@@ -3,6 +3,7 @@ import {
     DisplayGearSlot,
     EquipmentSet,
     EquippedItem,
+    EquipSlot,
     EquipSlotInfo,
     EquipSlotKey,
     EquipSlots,
@@ -23,6 +24,7 @@ import {
     CustomColumnSpec,
     CustomRow,
     CustomTable,
+    CustomTableHeaderRow,
     HeaderRow,
     SpecialRow,
     TableSelectionModel,
@@ -370,32 +372,36 @@ export class FoodItemViewTable extends CustomTable<FoodItem> {
     constructor(sheet: GearPlanSheet, gearSet: CharacterGearSet, item: FoodItem) {
         super();
         this.classList.add("food-items-table");
+        this.classList.add("food-items-view-table");
         super.columns = [
-            {
-                shortName: "ilvl",
-                displayName: "",
-                getter: item => item.ilvl,
-            },
+            // {
+            //     shortName: "ilvl",
+            //     displayName: "",
+            //     getter: item => item.ilvl,
+            // },
             col({
                 shortName: "icon",
-                displayName: "",
+                displayName: `Food: ${item.ilvl}`,
                 getter: item => {
                     return item;
                 },
                 renderer: itemIconRenderer(),
                 fixedData: true,
+                headerStyler: (cell, node) => {
+                    node.colSpan = 2;
+                    node.querySelector('div')?.classList.add('gear-items-view-item-header');
+                },
             }),
-            {
+            col({
                 shortName: "itemname",
-                displayName: "Food",
+                displayName: '',
                 getter: item => {
                     return item.nameTranslation.asCurrentLang;
                 },
-                // renderer: name => {
-                //     return quickElement('div', [], [document.createTextNode(name)]);
-                // }
-                // initialWidth: 200,
-            },
+                headerStyler: (cell, node) => {
+                    node.style.display = 'none';
+                },
+            }),
             foodTableStatViewColumn(sheet, gearSet, item, 'vitality'),
             foodTableStatViewColumn(sheet, gearSet, item, 'crit', true),
             foodTableStatViewColumn(sheet, gearSet, item, 'dhit', true),
@@ -877,21 +883,76 @@ export class GearItemsTable extends CustomTable<GearSlotItem, TableSelectionMode
     }
 }
 
+class GearViewHeaderSpec extends HeaderRow {
+    constructor(readonly item: GearItem, readonly slot: EquipSlot, readonly alts: ReturnType<(thisItem: GearItem) => GearItem[]>) {
+        super();
+    }
+}
+
+class GearViewHeaderRow extends CustomTableHeaderRow<GearSlotItem> {
+    private readonly _spec: GearViewHeaderSpec;
+
+    constructor(table: CustomTable<GearSlotItem, TableSelectionModel<unknown>>, spec: GearViewHeaderSpec) {
+        // const adjustedColumns = table.columns.map(col => {
+        //     return col;
+        // });
+        super(table);
+        this._spec = spec;
+        const firstCell = this._cells[0];
+        const headerSpec = spec;
+        let headingText: string = headerSpec.slot.name;
+        const slotItem = headerSpec.item;
+        const acqSource = formatAcquisitionSource(slotItem.acquisitionType);
+        if (acqSource) {
+            headingText = `${headingText}: i${slotItem.ilvl} ${acqSource}`;
+        }
+        else {
+            headingText = `${headingText}: i${slotItem.ilvl} `;
+        }
+        const alts = headerSpec.alts;
+        const out = quickElement('div', ['gear-items-view-item-header'], [headingText]);
+        if (alts.length > 0) {
+            const altButton = makeActionButton(`+${alts.length} alt items`, () => {
+                const modal = new AltItemsModal(slotItem, alts);
+                modal.attachAndShowExclusively();
+            });
+            altButton.classList.add('gear-items-view-alts-button');
+            out.appendChild(altButton);
+        }
+        firstCell.replaceChildren(out);
+        firstCell.colSpan = 2;
+        const secondCell = this._cells[1];
+        secondCell.style.display = 'none';
+    }
+
+    headerSpec(): GearViewHeaderSpec {
+        return this._spec;
+    }
+
+}
+
+customElements.define('gear-view-header-row', GearViewHeaderRow, {extends: 'tr'});
+
 /**
  * Table for displaying only equipped items, read-only
  */
 export class GearItemsViewTable extends CustomTable<GearSlotItem> {
 
+    protected makeHeaderRow(headerSpec: HeaderRow): CustomTableHeaderRow<GearSlotItem> {
+        if (headerSpec instanceof GearViewHeaderSpec) {
+            return new GearViewHeaderRow(this, headerSpec);
+        }
+        else {
+            return super.makeHeaderRow(headerSpec);
+        }
+    }
+
     constructor(sheet: GearPlanSheet, gearSet: CharacterGearSet, itemMapping: Map<EquipSlotKey, GearItem>, handledSlots?: EquipSlotKey[]) {
         super();
         this.classList.add("gear-items-table");
         this.classList.add("gear-items-view-table");
-        let headingText = handledSlots && handledSlots.length > 0 ? EquipSlotInfo[handledSlots[0]].name : "Name";
         const data: (TitleRow | HeaderRow | GearSlotItem)[] = [];
         // Track the selected item in every category so that it can be more quickly refreshed
-        data.push(new HeaderRow());
-        let slotItem: GearItem = null;
-        let alts: ReturnType<typeof sheet.getAltItemsFor> = [];
         for (const [name, slot] of Object.entries(EquipSlotInfo)) {
             if (handledSlots && !handledSlots.includes(name as EquipSlotKey)) {
                 continue;
@@ -905,10 +966,8 @@ export class GearItemsViewTable extends CustomTable<GearSlotItem> {
                     slotId: slotId,
                     // alts: sheet.getAltItemsFor(equippedItem)
                 };
-                if (slotItem === null) {
-                    slotItem = equippedItem;
-                    alts = sheet.getAltItemsFor(equippedItem);
-                }
+                const alts: ReturnType<typeof sheet.getAltItemsFor> = sheet.getAltItemsFor(equippedItem);
+                data.push(new GearViewHeaderSpec(equippedItem, slot, alts));
                 data.push(item);
                 if (!equippedItem.isCustomRelic) {
                     const matMgr = new AllSlotMateriaManager(sheet, gearSet, slotId, false);
@@ -916,20 +975,7 @@ export class GearItemsViewTable extends CustomTable<GearSlotItem> {
                 }
             }
         }
-        if (slotItem) {
-            const acqSource = formatAcquisitionSource(slotItem.acquisitionType);
-            if (acqSource) {
-                headingText = `${headingText}: ${acqSource}`;
-            }
-        }
         super.columns = [
-            {
-                shortName: "ilvl",
-                displayName: "",
-                getter: item => {
-                    return item.item.ilvl.toString();
-                },
-            },
             col({
                 shortName: "icon",
                 displayName: "",
@@ -941,39 +987,17 @@ export class GearItemsViewTable extends CustomTable<GearSlotItem> {
             }),
             col({
                 shortName: "itemname",
-                displayName: headingText,
+                displayName: "Name",
                 getter: item => {
                     return item.item.nameTranslation.asCurrentLang;
                 },
-                renderer: (item) => {
-                    const name = item;
-                    const itemNameSpan = quickElement('span', ['item-name'], [shortenItemName(name)]);
-                    const out = quickElement('div', ['item-name-holder-view'], [itemNameSpan]);
-                    return out;
+                renderer: (itemName, item) => {
+                    return quickElement('div', ['item-name-holder'], [quickElement('span', ['item-name'], [shortenItemName(itemName)])]);
                 },
-                headerStyler: (_, colHeader) => {
-                    // console.log("Item", item);
-                    colHeader.classList.add('gear-items-view-item-header');
-                    if (alts.length > 0) {
-                        const altButton = makeActionButton(`+${alts.length} alt items`, () => {
-                            const modal = new AltItemsModal(slotItem, alts);
-                            modal.attachAndShowExclusively();
-                        });
-                        altButton.classList.add('gear-items-view-alts-button');
-                        colHeader.appendChild(altButton);
-                    }
-
+                headerStyler: (_, colHeader, headerRow) => {
                 },
                 // initialWidth: 300,
             }),
-            // {
-            //     shortName: "mats",
-            //     displayName: "Mat",
-            //     getter: item => {
-            //         return item.item.materiaSlots.length;
-            //     },
-            //     initialWidth: 30,
-            // },
             // {
             //     shortName: "wd",
             //     displayName: "WD",

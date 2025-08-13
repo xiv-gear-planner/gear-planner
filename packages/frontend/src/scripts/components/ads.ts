@@ -249,6 +249,13 @@ function recheckAds() {
             });
             window.__cmp?.('addConsentLink');
             window.__uspapi?.('addLink', 1);
+            const showing = currentAds.filter(ad => ad.showing);
+            if (showing.length > 0) {
+                recordEvent('shownAds', {shownAds: showing.map(ad => ad.id).join(","), count: showing.length});
+            }
+            else {
+                recordEvent('shownAds', {shownAds: 'none', count: 0});
+            }
         }
         else {
             console.debug('recheckAds: not enabled');

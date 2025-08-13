@@ -201,7 +201,7 @@ export class SlotMateriaManager extends HTMLElement {
             this.image.src = currentMat.iconUrl.toString();
             this.image.style.display = 'block';
             const displayedNumber = Math.max(0, currentMat.primaryStatValue - this._overcap);
-            this.text.textContent = `+${displayedNumber} ${STAT_ABBREVIATIONS[currentMat.primaryStat]}`;
+            this.text.textContent = `${displayedNumber} ${STAT_ABBREVIATIONS[currentMat.primaryStat]}`;
             this.classList.remove("materia-slot-empty");
             this.classList.add("materia-slot-full");
             title = `${formatMateriaTitle(currentMat)}\n\nAlt-click to remove.`;
@@ -266,7 +266,7 @@ export class SingleMateriaViewOnly extends HTMLElement {
         this.image.src = currentMat.iconUrl.toString();
         this.image.style.display = 'block';
         const displayedNumber = currentMat.primaryStatValue;
-        this.text.textContent = `+${displayedNumber} ${STAT_ABBREVIATIONS[currentMat.primaryStat]}`;
+        this.text.textContent = `${displayedNumber} ${STAT_ABBREVIATIONS[currentMat.primaryStat]}`;
         this.classList.remove("materia-slot-empty");
         this.classList.add("materia-slot-full");
     }
