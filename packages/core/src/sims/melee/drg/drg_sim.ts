@@ -597,7 +597,7 @@ export class DrgSim extends BaseMultiCycleSim<DrgSimResult, DrgSettings, DrgCycl
     }
 
     getRotationsToSimulate(set: CharacterGearSet): Rotation<DrgCycleProcessor>[] {
-        const gcd = set.results.computedStats.gcdMag(2.5);
+        const gcd = set.results.computedStats.gcdPhys(2.5);
         const outer = this;
 
         console.log(`[DRG Sim] Running Rotation for ${gcd} GCD...`);
