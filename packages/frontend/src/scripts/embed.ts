@@ -38,12 +38,9 @@ export async function openEmbed(sheet: GearPlanSheetGui) {
         await sheet.load();
         console.log("openEmbed mid");
         const editorArea = sheet.editorArea;
-        // TODO: this is bad
-        // @ts-expect-error i know it's bad
-        const statTotals = sheet.editorArea.firstChild['toolbar'].firstChild;
 
         const placeHolder = editorArea.querySelector("a#embed-stats-placeholder");
-        placeHolder.parentElement.insertBefore(statTotals, placeHolder);
+        // placeHolder.parentElement.insertBefore(statTotals, placeHolder);
 
         embedDiv.replaceChildren(editorArea);
 

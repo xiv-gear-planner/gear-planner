@@ -912,7 +912,9 @@ class GearViewHeaderRow extends CustomTableHeaderRow<GearSlotItem> {
         const alts = headerSpec.alts;
         const out = quickElement('div', ['gear-items-view-item-header'], [headingText]);
         if (alts.length > 0) {
-            const altButton = makeActionButton(`+${alts.length} alt items`, () => {
+            const narrowSpan = makeSpan(`${alts.length} alts`, ['embed-narrow-only']);
+            const wideSpan = makeSpan(`+${alts.length} alt items`, ['embed-wide-only']);
+            const altButton = makeActionButton([narrowSpan, wideSpan], () => {
                 const modal = new AltItemsModal(slotItem, alts);
                 modal.attachAndShowExclusively();
             });

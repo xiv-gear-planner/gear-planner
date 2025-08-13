@@ -4,6 +4,7 @@
   overflow: auto;
   text-align: center;
   min-height: 100%;
+  position: relative;
 
   > div.gear-sheet-editor-area {
     min-height: 100%;
@@ -50,10 +51,16 @@ a.embed-open-full-link {
   border-bottom-right-radius: var(--mmai-border-radius);
 
   min-width: max-content;
-  max-width: 100%;
+  max-width: calc(100% - 20px);
+  box-sizing: border-box;
   width: 400px;
   text-align: center;
   padding: 10px;
+  position: sticky;
+
+  top: 0;
+
+  z-index: var(--zi-show-hide-menu-button);
 
   &:hover {
     background-color: var(--input-hover-background-color);
@@ -83,5 +90,21 @@ body.embed-view {
       border-spacing: 2px;
       padding: 3px;
     }
+  }
+}
+
+@media(width < 500px) {
+  gear-set-viewer {
+    padding: 0;
+
+    table.gear-items-table, table.food-view-table {
+      border-radius: 0;
+    }
+  }
+  .embed-narrow-only {
+    display: unset;
+  }
+  .embed-wide-only {
+    display: none;
   }
 }

@@ -1111,9 +1111,11 @@ export class GearSetViewer extends HTMLElement {
         anchorForEmbed.id = 'embed-stats-placeholder';
         this.appendChild(anchorForEmbed);
 
-        const matTotals = new MateriaTotalsDisplay(this.gearSet);
-        if (!matTotals.empty) {
-            this.appendChild(matTotals);
+        if (!this.sheet.isEmbed) {
+            const matTotals = new MateriaTotalsDisplay(this.gearSet);
+            if (!matTotals.empty) {
+                this.appendChild(matTotals);
+            }
         }
 
         // const buttonArea = quickElement('div', ['gear-set-editor-button-area', 'button-row'], [
