@@ -544,6 +544,9 @@ function itemTableStatColumn(sheet: GearPlanSheet, set: CharacterGearSet, stat: 
                 return null;
             }
         },
+        headerStyler: (cell, node) => {
+            node.classList.add('stat-cell-header');
+        },
         finisher: (value, rowValue, cell) => {
             if (value instanceof RelicCellInfo) {
                 if (!value.supportedStat) {
@@ -900,17 +903,18 @@ class GearViewHeaderRow extends CustomTableHeaderRow<GearSlotItem> {
         this._spec = spec;
         const firstCell = this._cells[0];
         const headerSpec = spec;
-        let headingText: string = headerSpec.slot.name;
+        const headingTextSlot = quickElement('span', ['embed-wide-only'], [`${headerSpec.slot.name}: `]);
+        let headingTextItem: string;
         const slotItem = headerSpec.item;
         const acqSource = formatAcquisitionSource(slotItem.acquisitionType);
         if (acqSource) {
-            headingText = `${headingText}: i${slotItem.ilvl} ${acqSource}`;
+            headingTextItem = `i${slotItem.ilvl} ${acqSource}`;
         }
         else {
-            headingText = `${headingText}: i${slotItem.ilvl} `;
+            headingTextItem = `i${slotItem.ilvl} `;
         }
         const alts = headerSpec.alts;
-        const out = quickElement('div', ['gear-items-view-item-header'], [headingText]);
+        const out = quickElement('div', ['gear-items-view-item-header'], [headingTextSlot, headingTextItem]);
         if (alts.length > 0) {
             const narrowSpan = makeSpan(`${alts.length} alts`, ['embed-narrow-only']);
             const wideSpan = makeSpan(`+${alts.length} alt items`, ['embed-wide-only']);
@@ -954,6 +958,7 @@ export class GearItemsViewTable extends CustomTable<GearSlotItem> {
         this.classList.add("gear-items-table");
         this.classList.add("gear-items-view-table");
         const data: (TitleRow | HeaderRow | GearSlotItem)[] = [];
+        const relevantStats = new Set<RawStatKey>();
         // Track the selected item in every category so that it can be more quickly refreshed
         for (const [name, slot] of Object.entries(EquipSlotInfo)) {
             if (handledSlots && !handledSlots.includes(name as EquipSlotKey)) {
@@ -975,8 +980,50 @@ export class GearItemsViewTable extends CustomTable<GearSlotItem> {
                     const matMgr = new AllSlotMateriaManager(sheet, gearSet, slotId, false);
                     data.push(new SpecialRow(tbl => matMgr));
                 }
+                if (equippedItem.stats) {
+                    for (const [stat, value] of Object.entries(equippedItem.stats)) {
+                        if (value) {
+                            relevantStats.add(stat as RawStatKey);
+                        }
+                    }
+                }
             }
         }
+
+        const outer = this;
+
+        function w(spec: CustomColumnSpec<GearSlotItem, ItemSingleStatDetail | RelicCellInfo | "relic-zero", unknown>): CustomColumnSpec<GearSlotItem, ItemSingleStatDetail | RelicCellInfo | "relic-zero", unknown> {
+            // If stat is irrelevant to this item, hide on narrow display
+            return {
+                ...spec,
+                // headerStyler: (value, colHeader, headerRow) => {
+                //     spec.headerStyler?.(value, colHeader, headerRow);
+                //     colHeader.classList.add('embed-wide-only');
+                // },
+                finisher: (value, rowValue, cell) => {
+                    spec.finisher?.(value, rowValue, cell);
+                    setTimeout(() => {
+
+                        // If all items lack a particular stat, then hide the column on narrow displays
+                        if (cell.classList.contains('stat-zero')) {
+                            const all = outer.querySelectorAll(`td[col-id="${spec.shortName}"]`);
+                            const allZero = Array.from(all).every(el => el.classList.contains('stat-zero'));
+                            const headers = outer.querySelectorAll(`th[col-id="${spec.shortName}"]`);
+                            const className = 'embed-zero-stat';
+                            if (allZero) {
+                                all.forEach(el => el.classList.add(className));
+                                headers.forEach(el => el.classList.add(className));
+                            }
+                            else {
+                                all.forEach(el => el.classList.remove(className));
+                                headers.forEach(el => el.classList.remove(className));
+                            }
+                        }
+                    });
+                },
+            };
+        }
+
         super.columns = [
             col({
                 shortName: "icon",
@@ -1023,13 +1070,13 @@ export class GearItemsViewTable extends CustomTable<GearSlotItem> {
             // itemTableStatColumn(sheet, gearSet, 'dexterity'),
             // itemTableStatColumn(sheet, gearSet, 'intelligence'),
             // itemTableStatColumn(sheet, gearSet, 'mind'),
-            itemTableStatColumn(sheet, gearSet, 'crit', true),
-            itemTableStatColumn(sheet, gearSet, 'dhit', true),
-            itemTableStatColumn(sheet, gearSet, 'determination', true),
-            itemTableStatColumn(sheet, gearSet, 'spellspeed', true),
-            itemTableStatColumn(sheet, gearSet, 'skillspeed', true),
-            itemTableStatColumn(sheet, gearSet, 'piety', true),
-            itemTableStatColumn(sheet, gearSet, 'tenacity', true),
+            w(itemTableStatColumn(sheet, gearSet, 'crit', true)),
+            w(itemTableStatColumn(sheet, gearSet, 'dhit', true)),
+            w(itemTableStatColumn(sheet, gearSet, 'determination', true)),
+            w(itemTableStatColumn(sheet, gearSet, 'spellspeed', true)),
+            w(itemTableStatColumn(sheet, gearSet, 'skillspeed', true)),
+            w(itemTableStatColumn(sheet, gearSet, 'piety', true)),
+            w(itemTableStatColumn(sheet, gearSet, 'tenacity', true)),
         ];
         this.data = data;
     }
