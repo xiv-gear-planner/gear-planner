@@ -21,6 +21,7 @@ import {GnbSimGui} from "./tank/gnb_sheet_sim_ui";
 import {PldSimGui} from "./tank/pld_sheet_sim_ui";
 import {pldSKSSimGui} from "./tank/pldsks_sheet_sim_ui";
 import {BlmSimGui} from "./caster/blm_sim_ui";
+import {BlmPpsGui} from "./caster/blm_pps_ui";
 import {MPSimGui} from "./healer/healer_mp_sim_ui";
 
 import {astNewSheetSpec} from "@xivgear/core/sims/healer/ast_sheet_sim";
@@ -42,6 +43,7 @@ import {gnbSpec} from "@xivgear/core/sims/tank/gnb/gnb_sheet_sim";
 import {pldSpec} from "@xivgear/core/sims/tank/pld/pld_sheet_sim";
 import {pldSKSSheetSpec} from "@xivgear/core/sims/tank/pld/pldsks_sim";
 import {blmSpec} from "@xivgear/core/sims/caster/blm/blm_sheet_sim";
+import {blmPpsSpec} from "@xivgear/core/sims/caster/blm/blm_pps_sim";
 import {BluBreath60Spec} from "@xivgear/core/sims/blu/blu_breath60";
 import {BluFlame120Spec} from "@xivgear/core/sims/blu/blu_flame120";
 import {BluFlame60Spec} from "@xivgear/core/sims/blu/blu_flame60";
@@ -103,6 +105,7 @@ registerGui(samSpec, SamSimGui);
 registerGui(dncDtSheetSpec, BaseUsageCountSimGui);
 // Caster
 registerGui(blmSpec, BlmSimGui);
+registerGui(blmPpsSpec, BlmPpsGui);
 registerGui(BluWinged120Spec, BluSimGui);
 registerGui(BluFlame120Spec, BluSimGui);
 registerGui(BluBreath60Spec, BluSimGui);
