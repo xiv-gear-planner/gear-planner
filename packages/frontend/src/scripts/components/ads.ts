@@ -40,7 +40,7 @@ declare global {
     }
 }
 
-const X_PADDING = 20;
+const X_PADDING = 10;
 const Y_PADDING = 50;
 
 /**

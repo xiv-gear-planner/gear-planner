@@ -903,7 +903,7 @@ class GearViewHeaderRow extends CustomTableHeaderRow<GearSlotItem> {
         this._spec = spec;
         const firstCell = this._cells[0];
         const headerSpec = spec;
-        const headingTextSlot = quickElement('span', ['embed-wide-only'], [`${headerSpec.slot.name}: `]);
+        const headingTextSlot = quickElement('span', ['wide-only'], [`${headerSpec.slot.name}: `]);
         let headingTextItem: string;
         const slotItem = headerSpec.item;
         const acqSource = formatAcquisitionSource(slotItem.acquisitionType);
@@ -916,8 +916,8 @@ class GearViewHeaderRow extends CustomTableHeaderRow<GearSlotItem> {
         const alts = headerSpec.alts;
         const out = quickElement('div', ['gear-items-view-item-header'], [headingTextSlot, headingTextItem]);
         if (alts.length > 0) {
-            const narrowSpan = makeSpan(`${alts.length} alts`, ['embed-narrow-only']);
-            const wideSpan = makeSpan(`+${alts.length} alt items`, ['embed-wide-only']);
+            const narrowSpan = makeSpan(`${alts.length} alts`, ['narrow-only']);
+            const wideSpan = makeSpan(`+${alts.length} alt items`, ['wide-only']);
             const altButton = makeActionButton([narrowSpan, wideSpan], () => {
                 const modal = new AltItemsModal(slotItem, alts);
                 modal.attachAndShowExclusively();

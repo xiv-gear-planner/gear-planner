@@ -2888,7 +2888,8 @@ gear-set-viewer {
     cursor: default;
   }
 
-  --item-table-max-width: 600px;
+  // Reduce a bit since there is no longer a dedicated ilvl column
+  --item-table-max-width: 580px;
 
   materia-totals-display {
     .standard-round-border();
@@ -3020,7 +3021,7 @@ gear-set-viewer {
       .gear-items-view-item-header, .food-items-view-item-header {
         display: flex;
         flex-direction: row;
-        gap: 10px;
+        gap: 3px;
         align-items: center;
         height: 16px;
 
@@ -3995,8 +3996,4 @@ button.async-action-button {
     }
   }
 
-}
-
-.embed-narrow-only {
-  display: none;
 }
