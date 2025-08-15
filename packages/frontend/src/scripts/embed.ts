@@ -3,6 +3,10 @@ import {LoadingBlocker} from "@xivgear/common-ui/components/loader";
 import {setTitle, showFatalError} from "./base_ui";
 import {GearPlanSheetGui} from "./components/sheet";
 import {recordError, recordEvent} from "@xivgear/common-ui/analytics/analytics";
+import {makeUrl, NavState, ONLY_SET_QUERY_PARAM} from "@xivgear/core/nav/common_nav";
+import {getCurrentHash, getCurrentState} from "./nav_hash";
+import {recordSheetEvent} from "./analytics/analytics";
+import {faIcon} from "@xivgear/common-ui/components/util";
 
 let embedDiv: HTMLDivElement;
 
@@ -23,6 +27,7 @@ export function earlyEmbedInit() {
     embedDiv.id = 'embed-top-level';
     embedDiv.appendChild(new LoadingBlocker());
     body.appendChild(embedDiv);
+    body.classList.add('embed-view');
 }
 
 export async function openEmbed(sheet: GearPlanSheetGui) {
@@ -33,14 +38,28 @@ export async function openEmbed(sheet: GearPlanSheetGui) {
         await sheet.load();
         console.log("openEmbed mid");
         const editorArea = sheet.editorArea;
-        // TODO: this is bad
-        // @ts-expect-error i know it's bad
-        const statTotals = sheet.editorArea.firstChild['toolbar'].firstChild;
 
-        const placeHolder = editorArea.querySelector("a#embed-stats-placeholder");
-        placeHolder.parentElement.insertBefore(statTotals, placeHolder);
+        // const placeHolder = editorArea.querySelector("a#embed-stats-placeholder");
+        // placeHolder.parentElement.insertBefore(statTotals, placeHolder);
 
         embedDiv.replaceChildren(editorArea);
+
+        const openFullLink = document.createElement('a');
+        openFullLink.classList.add('embed-open-full-link');
+        const hash = getCurrentHash();
+        const linkUrl = makeUrl(new NavState(hash.slice(1), undefined, getCurrentState().onlySetIndex));
+        linkUrl.searchParams.delete(ONLY_SET_QUERY_PARAM);
+        openFullLink.href = linkUrl.toString();
+        openFullLink.target = '_blank';
+        openFullLink.addEventListener('click', () => {
+            recordSheetEvent("openEmbedToFull", sheet);
+        });
+        openFullLink.replaceChildren('Click to open full view ', faIcon('fa-arrow-up-right-from-square', 'fa'));
+
+        // const body = document.body;
+        // body.prepend(openFullLink);
+        embedDiv.prepend(openFullLink);
+
         console.log("openEmbed end");
         setTitle('Embed');
     }

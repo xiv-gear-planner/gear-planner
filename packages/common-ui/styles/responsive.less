@@ -1,0 +1,27 @@
+.embed-narrow-only {
+  display: none;
+}
+
+.narrow-only {
+  display: none;
+}
+
+body:not(.embed-view) {
+  @media (width < 600px) {
+
+    .narrow-only {
+      display: unset;
+    }
+
+    .wide-only {
+      display: none;
+    }
+
+    gear-set-viewer {
+      .stat-cell, .stat-cell-header {
+        padding: 2px;
+      }
+
+    }
+  }
+}

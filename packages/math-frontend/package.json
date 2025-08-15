@@ -18,7 +18,7 @@
     "html-webpack-plugin": "^5.6.3",
     "isomorphic-fetch": "^3.0.0",
     "jsdom": "^25.0.1",
-    "less": "^4.3.0",
+    "less": "^4.4.0",
     "mocha": "^10.7.3",
     "ts-loader": "^9.5.2",
     "ts-mocha": "^10.1.0",

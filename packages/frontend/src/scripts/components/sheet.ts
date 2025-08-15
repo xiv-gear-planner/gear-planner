@@ -919,7 +919,7 @@ export class GearSetEditor extends HTMLElement {
             });
 
         const leftSideSlots = ['Head', 'Body', 'Hand', 'Legs', 'Feet'] as const;
-        const rightSideSlots = ['Ears', 'Neck', 'Wrist', 'RingLeft', 'RingRight'] as const;
+        const rightSideSlots = ['Ears', 'Neck', 'Wrist', 'RingRight', 'RingLeft'] as const;
 
         const showHideAllCallback = () => {
             this.gearTables.forEach(tbl => tbl.recheckHiddenSlots());
@@ -1094,7 +1094,7 @@ export class GearSetViewer extends HTMLElement {
             headingLink.addEventListener('click', () => {
                 recordSheetEvent("openEmbedToFull", this.sheet);
             });
-            headingLink.replaceChildren(this.gearSet.name, faIcon('fa-arrow-up-right-from-square', 'fa'));
+            headingLink.replaceChildren(this.gearSet.name);
             heading.replaceChildren(headingLink);
         }
         else {
@@ -1111,27 +1111,12 @@ export class GearSetViewer extends HTMLElement {
         anchorForEmbed.id = 'embed-stats-placeholder';
         this.appendChild(anchorForEmbed);
 
-        const matTotals = new MateriaTotalsDisplay(this.gearSet);
-        if (!matTotals.empty) {
-            this.appendChild(matTotals);
+        if (!this.sheet.isEmbed) {
+            const matTotals = new MateriaTotalsDisplay(this.gearSet);
+            if (!matTotals.empty) {
+                this.appendChild(matTotals);
+            }
         }
-
-        // const buttonArea = quickElement('div', ['gear-set-editor-button-area', 'button-row'], [
-        //     makeActionButton('Switch to Edit Mode', () => {
-        //         alert('Not Implemented Yet');
-        //     }),
-        //     // TODO
-        //     makeActionButton('Copy Link to Set', () => {
-        //         alert('Not Implemented Yet');
-        //         // startShortLink(JSON.stringify(this.sheet.exportGearSet(this.gearSet, true)));
-        //     }),
-        //     makeActionButton('Copy Set as JSON', () => {
-        //         alert('Not Implemented Yet');
-        //         // navigator.clipboard.writeText(JSON.stringify(this.sheet.exportGearSet(this.gearSet, true)));
-        //     })
-        // ]);
-        //
-        // this.appendChild(buttonArea);
 
         // We only care about equipped items
         const itemMapping: Map<EquipSlotKey, GearItem> = new Map();
@@ -1145,7 +1130,7 @@ export class GearSetViewer extends HTMLElement {
         }
 
         const leftSideSlots = ['Head', 'Body', 'Hand', 'Legs', 'Feet'] as const;
-        const rightSideSlots = ['Ears', 'Neck', 'Wrist', 'RingLeft', 'RingRight'] as const;
+        const rightSideSlots = ['Ears', 'Neck', 'Wrist', 'RingRight', 'RingLeft'] as const;
 
         if (itemMapping.get('Weapon') || itemMapping.get('OffHand')) {
             const weaponTable = new GearItemsViewTable(this.sheet, this.gearSet, itemMapping, this.gearSet.classJobStats.offhand ? ['Weapon', 'OffHand'] : ['Weapon']);
@@ -1171,8 +1156,6 @@ export class GearSetViewer extends HTMLElement {
                 rightEnabled = true;
             }
         }
-        // const leftSideTable = new GearItemsTable(this.sheet, this.gearSet, itemMapping, ['Head', 'Body', 'Hand', 'Legs', 'Feet']);
-        // const rightSideTable = new GearItemsTable(this.sheet, this.gearSet, itemMapping, ['Ears', 'Neck', 'Wrist', 'RingLeft', 'RingRight']);
 
         const gearTableSet = document.createElement('div');
         gearTableSet.classList.add('gear-table-sides-holder');
