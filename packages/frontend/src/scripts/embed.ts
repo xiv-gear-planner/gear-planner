@@ -39,7 +39,7 @@ export async function openEmbed(sheet: GearPlanSheetGui) {
         console.log("openEmbed mid");
         const editorArea = sheet.editorArea;
 
-        const placeHolder = editorArea.querySelector("a#embed-stats-placeholder");
+        // const placeHolder = editorArea.querySelector("a#embed-stats-placeholder");
         // placeHolder.parentElement.insertBefore(statTotals, placeHolder);
 
         embedDiv.replaceChildren(editorArea);
