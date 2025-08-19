@@ -1,7 +1,7 @@
 # Quick Debugging Tips
 
 On top of the usual debugging tools available in any web app frontend, there are additional debugging facilities
-specific to Xivgear. These are accessible from your browser's Javascript console.
+specific to XivGear. These are accessible from your browser's Javascript console.
 
 ## Builtin Global Variables
 

@@ -348,7 +348,7 @@ You can import in one of two ways:
 2. Into an existing sheet
 
 To import as a new sheet, you can click the "Import" button in the top navigation bar, and paste the link/JSON. In
-addition, if the sheet you are trying to import is a Xivgear link, you can also just use More Actions > Save As to save
+addition, if the sheet you are trying to import is an XivGear link, you can also just use More Actions > Save As to save
 the sheet into your saved sheets.
 
 To import onto an existing sheet, click the "Import" button under the sets table, and paste the link.
