@@ -8,6 +8,7 @@ import {SgeSheetSimGui} from "./healer/sge_sheet_sim_mk2_ui";
 import {AstSheetSimGui} from "./healer/ast_sheet_sim_ui";
 import {SchSimGui} from "./healer/sch_sheet_sim_ui";
 import {WhmSimGui} from "./healer/whm_new_sheet_sim_ui";
+import {DrgSimGui} from "./melee/drg/drg_sim_ui";
 import {RprSheetSimGui} from "./melee/rpr/rpr_sheet_sim_ui";
 import {VprSimGui} from "./melee/vpr/vpr_sheet_sim_ui";
 import {NinSheetSimGui} from "./melee/nin/nin_lvl100_sim_ui";
@@ -50,6 +51,7 @@ import {BluWinged120Spec} from "@xivgear/core/sims/blu/blu_winged120";
 import {BluWinged60Spec} from "@xivgear/core/sims/blu/blu_winged60";
 import {potRatioSimSpec} from "@xivgear/core/sims/common/potency_ratio";
 import {mpSimSpec} from "@xivgear/core/sims/healer/healer_mp";
+import {drgSpec} from "@xivgear/core/sims/melee/drg/drg_sim";
 
 
 type SimGuiCtor<X extends Simulation<SimResult, unknown, unknown>> = {
@@ -94,6 +96,7 @@ registerGui(schNewSheetSpec, SchSimGui);
 registerGui(whmNewSheetSpec, WhmSimGui);
 registerGui(mpSimSpec, MPSimGui);
 // Melee
+registerGui(drgSpec, DrgSimGui);
 registerGui(rprSheetSpec, RprSheetSimGui);
 registerGui(vprSheetSpec, VprSimGui);
 registerGui(ninSpec, NinSheetSimGui);
