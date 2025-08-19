@@ -40,7 +40,7 @@ export class MeldSolverDialog extends BaseModal {
 
         this.classList.add('meld-solver-area');
         this.descriptionText = document.createElement('div');
-        this.descriptionText.textContent = "Solve for the highest-dps set of melds for this gearset.\r\n"
+        this.descriptionText.textContent = "Solve for the highest-dps set of melds/food for this gearset.\r\n"
             + "Computation will be much slower without a target GCD.";
 
         this.setNameText = document.createElement('div');
