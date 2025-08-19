@@ -27,14 +27,14 @@ export class GearsetGenerationSettings {
     overwriteExistingMateria: boolean;
     useTargetGcd: boolean;
     targetGcd: number;
-    solveFood: boolean;
+    overwriteFood: boolean;
 
     constructor(gearset: CharacterGearSet, overwrite: boolean, useTargetGcd: boolean, targetGcd: number, solveFood?: boolean) {
         this.gearset = gearset;
         this.overwriteExistingMateria = overwrite;
         this.useTargetGcd = useTargetGcd;
         this.targetGcd = targetGcd;
-        this.solveFood = solveFood;
+        this.overwriteFood = solveFood;
     }
 
     static export(settings: GearsetGenerationSettings, sheet: GearPlanSheet): GearsetGenerationSettingsExport {
@@ -50,7 +50,7 @@ export class GearsetGenerationSettingsExport {
     overwriteExistingMateria: boolean;
     useTargetGcd: boolean;
     targetGcd: number;
-    solveFood: boolean;
+    overwriteFood: boolean;
 }
 
 class ItemWithStats {
@@ -237,8 +237,8 @@ export class GearsetGenerator {
 
 
             const foods = [settings.gearset.food];
-
-            if (settings.solveFood) {
+            // Solve for food if we have no food enabled, or if overwrite is ticked
+            if (!foods[0] || settings.overwriteFood) {
                 const foodItems = this._sheet.relevantFoodForSolver;
                 for (let i = 0; i < foodItems.length; i++) {
                     if (foodItems[i] !== settings.gearset.food) {
