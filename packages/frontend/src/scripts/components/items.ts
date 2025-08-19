@@ -1009,7 +1009,7 @@ export class GearItemsViewTable extends CustomTable<GearSlotItem> {
                             const all = outer.querySelectorAll(`td[col-id="${spec.shortName}"]`);
                             const allZero = Array.from(all).every(el => el.classList.contains('stat-zero'));
                             const headers = outer.querySelectorAll(`th[col-id="${spec.shortName}"]`);
-                            const className = 'embed-zero-stat';
+                            const className = 'col-zero-stat';
                             if (allZero) {
                                 all.forEach(el => el.classList.add(className));
                                 headers.forEach(el => el.classList.add(className));
