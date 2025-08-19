@@ -98,7 +98,9 @@ export abstract class BaseModal extends HTMLElement {
     }
 
     close() {
-        MODAL_CONTROL.close(this.modalWrapper);
+        if (this) {
+            MODAL_CONTROL.close(this.modalWrapper);
+        }
     }
 
     protected onClose(): void {
