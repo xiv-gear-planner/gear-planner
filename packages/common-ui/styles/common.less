@@ -1,3 +1,5 @@
+@import "util.less";
+
 body {
   --bg-color: #111113;
   --fg-color: #b0b0b0;
@@ -279,33 +281,6 @@ body {
   touch-action: pan-x pan-y;
 }
 
-.shadow {
-  box-shadow: var(--shadow-color) 0 3px 5px 0;
-}
-
-.shadow-big {
-  box-shadow: var(--shadow-color) 0 4px 10px 0;
-}
-
-.standard-border-radius {
-  border-radius: var(--standard-border-radius);
-}
-
-.standard-border {
-  border: var(--standard-border);
-}
-
-.standard-border-input {
-  border: var(--standard-border);
-}
-
-.standard-paragraph {
-  max-width: 900px;
-  margin-left: auto;
-  margin-right: auto;
-  padding-left: 20px;
-  padding-right: 20px;
-}
 
 .header-area, .gear-sheet-editor-area {
   p {
@@ -1507,35 +1482,6 @@ gear-plan {
   }
 }
 
-#embed-top-level {
-  overflow: auto;
-  text-align: center;
-  min-height: 100%;
-
-  > * {
-    min-height: 100%;
-    box-sizing: border-box;
-  }
-
-  set-totals-display {
-    display: block;
-
-    div.stat-total {
-      background-color: var(--table-bg-color);
-      margin-top: 5px;
-      margin-bottom: 0;
-      .shadow();
-      // Save space by not showing DHT multi since it is fixed
-      &.stat-dhit {
-        min-width: 52px;
-
-        div.stat-total-lower-right {
-          display: none;
-        }
-      }
-    }
-  }
-}
 
 .gear-sheet-editor-area {
   text-align: center;
@@ -1552,6 +1498,7 @@ gear-plan {
 
 table.gear-items-edit-table, table.food-items-edit-table {
   width: 100%;
+
   > tbody {
     // Exclude header
     > tr:has(> td) {
@@ -1609,20 +1556,14 @@ table.gear-items-table, table.food-items-table {
   }
 
   [col-id='icon'] {
+    box-sizing: content-box;
     width: 23px;
     max-width: 23px;
     min-width: 23px;
   }
 
-  // TODO: was this needed for some other reason? This is breaking shrinkability of item names.
-  //td[col-id='itemname'] {
-  //  max-width: 1px;
-  //}
   th[col-id='itemname'] {
-    //width: max-content;
     min-width: max-content;
-    //max-width: unset;
-    margin-left: -73px;
     position: relative;
   }
 
@@ -1739,7 +1680,7 @@ table all-slot-materia-manager {
   //display: table-caption;
   max-width: 100%;
   display: inline-block;
-  height: 23px;
+  min-height: 23px;
 
   & > span {
     vertical-align: middle;
@@ -1765,6 +1706,7 @@ slot-materia-manager {
 
   slot-materia-popup {
     cursor: default;
+
     td:has(img), .materia-picker-remove {
       cursor: pointer;
     }
@@ -2948,7 +2890,8 @@ gear-set-viewer {
     cursor: default;
   }
 
-  --item-table-max-width: 600px;
+  // Reduce a bit since there is no longer a dedicated ilvl column
+  --item-table-max-width: 580px;
 
   materia-totals-display {
     .standard-round-border();
@@ -2998,6 +2941,7 @@ gear-set-viewer {
         width: 30px;
         display: inline-block;
         margin-right: 3px;
+        vertical-align: middle;
       }
 
       single-materia-view-only {
@@ -3023,71 +2967,75 @@ gear-set-viewer {
         //.standard-border();
       }
     }
-  }
 
-  .gear-items-view-table, .food-view-table {
-    //.round-table();
-    //--standard-border: none;
-    //--thick-border: none;
-    background-color: var(--table-bg-color);
-    border: var(--standard-border);
-    border-spacing: 5px;
-    border-radius: var(--standard-border-radius);
-    //--item-name-col-width: 265px;
-    //--item-name-col-width: 265px;
-    // Weird, requires this to make the colspan=9999 not cause horizontal scrollbar
-    overflow: hidden;
-
-    > * {
-      --standard-border: none;
-      --thick-border: none;
-      background: none;
-    }
-
-    td, th {
-      border-style: none;
-      background: none;
-    }
-
-    .stat-cell {
-      border-radius: 5px;
-
-      &.primary {
-        //box-shadow: 0 0 3px 3px var(--stat-color) inset;
-      }
-
-      &.secondary {
-        //box-shadow: 0 0 3px 3px var(--stat-color) inset;
-      }
-    }
-
-    .gear-items-view-item-header {
-      display: flex;
-      flex-direction: row;
-      gap: 10px;
-      align-items: center;
+    &.gear-items-view-table, &.food-view-table {
+      //.round-table();
+      //--standard-border: none;
+      //--thick-border: none;
+      background-color: var(--table-bg-color);
+      border: var(--standard-border);
+      border-spacing: 5px;
+      border-radius: var(--standard-border-radius);
+      //--item-name-col-width: 265px;
+      //--item-name-col-width: 265px;
+      // Weird, requires this to make the colspan=9999 not cause horizontal scrollbar
+      overflow: hidden;
 
       > * {
-        display: inline-block;
+        --standard-border: none;
+        --thick-border: none;
+        background: none;
       }
 
-      > button {
-        .invert-input-colors();
+      td, th {
+        border-style: none;
+        background: none;
       }
-    }
 
-    .item-name-holder-view {
-      text-overflow: ellipsis;
-      overflow: hidden;
-      position: absolute;
-      left: 0;
-      right: 0;
-      top: 0;
-      bottom: 0;
+      .stat-cell {
+        border-radius: 5px;
 
-      > span {
-        vertical-align: middle;
+        &.primary {
+          //box-shadow: 0 0 3px 3px var(--stat-color) inset;
+        }
+
+        &.secondary {
+          //box-shadow: 0 0 3px 3px var(--stat-color) inset;
+        }
       }
+
+      tr > td[col-id='itemname'] {
+        padding-left: 0 !important;
+        .item-name-holder, .food-name-holder {
+          display: flex;
+          flex-direction: row;
+
+          span {
+            flex-basis: 1px;
+            flex-grow: 99;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            width: 1px;
+          }
+        }
+      }
+
+      .gear-items-view-item-header, .food-items-view-item-header {
+        display: flex;
+        flex-direction: row;
+        gap: 3px;
+        align-items: center;
+        height: 16px;
+
+        > * {
+          display: inline-block;
+        }
+
+        > button {
+          .invert-input-colors();
+        }
+      }
+
     }
   }
 
@@ -3506,235 +3454,6 @@ sheet-export-modal, set-export-modal {
   height: 100%;
 }
 
-
-body.modern {
-  --border-color: #00000000;
-  --border-style: none;
-  --table-extra-padding: 10px;
-  --optional-border-radius: 10px;
-  --perfect-tiering-box-shadow: none;
-  //--item-name-col-width: 250px;
-  //--button-height: 25px;
-
-  input {
-    border: none !important;
-  }
-
-  table {
-
-    border-radius: 10px;
-    padding: var(--table-extra-padding);
-    background-color: var(--table-bg-color);
-
-    &.gear-plan-table {
-      border-radius: 0;
-      --table-extra-padding: 0px;
-
-      tr {
-        td[col-id="actions"] {
-          button {
-            opacity: 10%;
-          }
-        }
-      }
-
-      tr:hover, tr[is-selected="true"], tr.dragging {
-        td[col-id="actions"] {
-          button {
-            opacity: 80%;
-          }
-        }
-      }
-    }
-
-    &.gear-items-table > tbody {
-      > tr:first-child > th {
-        border-top-left-radius: var(--standard-border-radius);
-        border-top-right-radius: var(--standard-border-radius);
-      }
-
-      > tr > th[col-id] {
-        font-size: small;
-        text-align: center;
-
-        &[col-id='itemname'] {
-          text-align: left;
-        }
-      }
-
-      > tr > * {
-        padding-left: 5px;
-        padding-right: 5px;
-      }
-    }
-
-    //Center wide stat columns
-    //th.stat-col {
-    //  &.chance-stat-col, &.multiplier-stat-col {
-    //    text-align: center;
-    //  }
-    //}
-
-  }
-
-  --border-color-input: #0000;
-  --tiering-color-mix: 5%;
-
-  &.light-mode {
-    --bg-color: #e5dad7;
-    --input-hover-background-color: #ddb581;
-  }
-
-  &:not(.light-mode) {
-    --table-bg-color: #24242c;
-    --input-background-color: var(--table-bg-color);
-  }
-
-  .stat-cell {
-    //border-radius: 2px;
-  }
-
-  .gear-sheet-midbar-area {
-    background-color: var(--input-background-color);
-
-    button, select {
-      --input-background-color: var(--bg-color);
-    }
-
-  }
-
-  gear-set-editor {
-    table all-slot-materia-manager {
-      padding-top: 5px;
-    }
-  }
-
-  materia-dragger:hover {
-    --stat-mix-secondary-bg: 20%;
-  }
-
-  .modal-dialog .modal-inner {
-    background-color: var(--bg-color);
-  }
-
-  div#main-menu-area {
-    background: none;
-    box-shadow: none;
-
-    div#main-menu-area-inner {
-      .shadow();
-      width: fit-content;
-      display: flex;
-      align-items: normal;
-      margin-left: auto;
-      margin-right: auto;
-      background-color: var(--table-bg-color);
-      --mmai-border-radius: 10px;
-      border-bottom-left-radius: var(--mmai-border-radius);
-      border-bottom-right-radius: var(--mmai-border-radius);
-      padding-left: var(--mmai-border-radius);
-      padding-right: var(--mmai-border-radius);
-
-      @media (width < 525px) {
-        a span {
-          display: none;
-        }
-
-        .svg-glyph {
-          padding-left: 0 !important;
-          padding-right: 0 !important;
-        }
-      }
-
-      .svg-glyph {
-        //height: 1.3em;
-        //width: 1.3em;
-        scale: 1.5;
-        padding-left: 5px;
-        padding-right: 5px;
-
-        &:only-child {
-          padding-left: 0;
-          padding-right: 0;
-        }
-
-        &.svg-bigger {
-          scale: 2.0;
-        }
-      }
-
-    }
-  }
-
-  .gear-sheet-table-holder-outer {
-    padding: 10px 5px;
-    border-radius: 10px;
-    margin: 5px;
-    background-color: var(--table-bg-color);
-    .shadow();
-
-    .gear-sheet-table-holder {
-    }
-  }
-
-  .gear-sheet-table-area {
-    margin-bottom: 5px;
-  }
-
-  button#show-hide-menu-button, button#help-button {
-    .shadow();
-  }
-
-  .gear-sheet-buttons-area > * {
-    height: 25px;
-    padding-left: 10px;
-    padding-right: 10px;
-  }
-
-  slot-materia-popup {
-    border-radius: 10px;
-    overflow: hidden;
-  }
-
-  div.gear-set-editor-toolbar > * {
-    box-shadow: none;
-    padding-left: 5px;
-    padding-right: 5px;
-  }
-
-  set-view-toolbar {
-    set-totals-display {
-      div.stat-total {
-        background-color: color-mix(in srgb, var(--stat-color) 6%, var(--table-bg-color));
-        padding-left: 6px;
-        padding-right: 6px;
-        margin-left: 4px;
-        margin-right: 4px;
-        box-sizing: content-box;
-      }
-    }
-  }
-
-  .gear-set-editor-toolbar {
-    .single-stat-tier-display {
-      background-color: color-mix(in srgb, var(--stat-color) 5%, var(--table-bg-color));
-
-      box-sizing: border-box;
-      padding: 4px;
-      height: var(--toolbar-button-size);
-      border-radius: var(--toolbar-border-radius);
-
-      &.stat-tiering-perfect {
-        background-color: color-mix(in srgb, var(--stat-color) 13%, var(--table-bg-color));
-      }
-    }
-  }
-
-  .gear-set-editor-toolbar .toolbar-buttons-area .popout-area {
-    border-top-left-radius: 0;
-    border-top-right-radius: 0;
-  }
-}
 
 // This is intentionally not style differently based on enabled/disabled status, since it is frequently used
 // for things that are A/B choices without a clear 'true/false' mapping.
@@ -4279,4 +3998,9 @@ button.async-action-button {
     }
   }
 
+}
+
+
+.stat-cell, .stat-cell-header {
+  opacity: 1;
 }

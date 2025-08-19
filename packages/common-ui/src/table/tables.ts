@@ -23,7 +23,7 @@ export class CustomTableHeaderCell<RowDataType, CellDataType, ColumnDataType> ex
     private table: CustomTable<RowDataType, any>;
     private readonly span: HTMLSpanElement;
 
-    constructor(table: CustomTable<RowDataType, any>, columnDef: CustomColumn<RowDataType, CellDataType, ColumnDataType>) {
+    constructor(table: CustomTable<RowDataType, any>, columnDef: CustomColumn<RowDataType, CellDataType, ColumnDataType>, row: CustomTableHeaderRow<RowDataType>) {
         super();
         this.table = table;
         this._colDef = columnDef;
@@ -32,7 +32,7 @@ export class CustomTableHeaderCell<RowDataType, CellDataType, ColumnDataType> ex
         this.refreshFull();
         setCellProps(this, columnDef);
         if (columnDef.headerStyler) {
-            columnDef.headerStyler(columnDef.dataValue, this);
+            columnDef.headerStyler(columnDef.dataValue, this, row);
         }
         this.refreshSelection();
     }
@@ -69,13 +69,19 @@ export class CustomTableHeaderCell<RowDataType, CellDataType, ColumnDataType> ex
 export class CustomTableHeaderRow<RowDataType> extends HTMLTableRowElement implements SelectionRefresh, RefreshableRow<RowDataType> {
     _cells: CustomTableHeaderCell<RowDataType, any, any>[] = [];
 
-    constructor(table: CustomTable<RowDataType, any>) {
+    constructor(table: CustomTable<RowDataType, any>, colsOverride?: CustomColumn<RowDataType, unknown, unknown>[]) {
         super();
-        for (const column of table.columns) {
-            const headerCell = new CustomTableHeaderCell(table, column);
+        this.classList.add("custom-table-header-row");
+        const cols = colsOverride ?? table.columns;
+        for (const column of cols) {
+            const headerCell = this.makeHeaderCell(table, column);
             this.appendChild(headerCell);
             this._cells.push(headerCell);
         }
+    }
+
+    protected makeHeaderCell(table: CustomTable<RowDataType, any>, column: CustomColumn<RowDataType, unknown, unknown>) {
+        return new CustomTableHeaderCell(table, column, this);
     }
 
     refreshFull() {
@@ -409,7 +415,6 @@ export class CustomTable<RowDataType, SelectionType extends TableSelectionModel<
 
     constructor() {
         super();
-        this.appendChild(this.createTHead());
         this.appendChild(this.createTBody());
         this.addEventListener('mousedown', ev => {
             this.handleClick(ev);
@@ -457,6 +462,10 @@ export class CustomTable<RowDataType, SelectionType extends TableSelectionModel<
         return new CustomRow<RowDataType>(item, this, {noInitialRefresh: true});
     }
 
+    protected makeHeaderRow(item: HeaderRow): CustomTableHeaderRow<RowDataType> {
+        return new CustomTableHeaderRow(this);
+    }
+
     /**
      * To be called when rows or columns are added, removed, or rearranged, but not
      * when only the data within cells is changed.
@@ -490,7 +499,7 @@ export class CustomTable<RowDataType, SelectionType extends TableSelectionModel<
         for (let i = 0; i < len; i++) {
             const item = this._data[i];
             if (item instanceof HeaderRow) {
-                const header = new CustomTableHeaderRow(this);
+                const header = this.makeHeaderRow(item);
                 newRowElements.push(header);
             }
             else if (item instanceof TitleRow) {
@@ -649,7 +658,7 @@ export interface CustomColumnSpec<RowDataType, CellDataType, ColumnDataType = an
     initialWidth?: number | undefined;
     fixedWidth?: number | undefined;
     dataValue?: ColumnDataType;
-    headerStyler?: (value: ColumnDataType, colHeader: CustomTableHeaderCell<RowDataType, CellDataType, ColumnDataType>) => void;
+    headerStyler?: (value: ColumnDataType, colHeader: CustomTableHeaderCell<RowDataType, CellDataType, ColumnDataType>, headerRow: CustomTableHeaderRow<RowDataType>) => void;
     extraClasses?: string[];
     titleSetter?: (value: CellDataType, rowValue: RowDataType, cell: CustomCell<RowDataType, CellDataType>) => string | null;
     finisher?: (value: CellDataType, rowValue: RowDataType, cell: CustomCell<RowDataType, CellDataType>) => void;
@@ -709,7 +718,7 @@ export class CustomColumn<RowDataType, CellDataType = string, ColumnDataType = a
     extraClasses: string[] = [];
     fixedWidth: number | undefined = undefined;
     dataValue?: ColumnDataType;
-    headerStyler?: (value: typeof this.dataValue, colHeader: CustomTableHeaderCell<RowDataType, CellDataType, ColumnDataType>) => void;
+    headerStyler?: (value: typeof this.dataValue, colHeader: CustomTableHeaderCell<RowDataType, CellDataType, ColumnDataType>, headerRow: CustomTableHeaderRow<RowDataType>) => void;
     titleSetter?: (value: CellDataType, rowValue: RowDataType, cell: CustomCell<RowDataType, CellDataType>) => string | null;
     finisher?: (value: CellDataType, rowValue: RowDataType, cell: CustomCell<RowDataType, CellDataType>) => void;
     fixedData?: boolean;

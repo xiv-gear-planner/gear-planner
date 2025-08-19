@@ -129,7 +129,7 @@ export class SlotMateriaManager extends HTMLElement {
     private readonly image: HTMLImageElement;
     private _overcap: number;
 
-    constructor(private sheet: GearPlanSheet, public materiaSlot: MeldableMateriaSlot, private callback: () => void, editable: boolean) {
+    constructor(private sheet: GearPlanSheet, public materiaSlot: MeldableMateriaSlot, private callback: () => void, readonly editable: boolean) {
         super();
         this.classList.add("slot-materia-manager");
         if (!materiaSlot.materiaSlot.allowsHighGrade) {
@@ -201,10 +201,13 @@ export class SlotMateriaManager extends HTMLElement {
             this.image.src = currentMat.iconUrl.toString();
             this.image.style.display = 'block';
             const displayedNumber = Math.max(0, currentMat.primaryStatValue - this._overcap);
-            this.text.textContent = `+${displayedNumber} ${STAT_ABBREVIATIONS[currentMat.primaryStat]}`;
+            this.text.textContent = `${displayedNumber} ${STAT_ABBREVIATIONS[currentMat.primaryStat]}`;
             this.classList.remove("materia-slot-empty");
             this.classList.add("materia-slot-full");
-            title = `${formatMateriaTitle(currentMat)}\n\nAlt-click to remove.`;
+            title = formatMateriaTitle(currentMat);
+            if (this.editable) {
+                title += `\n\nAlt-click to remove.`;
+            }
         }
         else {
             this.image.style.display = 'none';
@@ -212,13 +215,22 @@ export class SlotMateriaManager extends HTMLElement {
             this.classList.remove('materia-normal', 'materia-overcap', 'materia-overcap-major', 'materia-slot-full');
             // this.classList.remove('materia-slot-full', 'materia-normal', 'materia-overcap', 'materia-overcap-major')
             this.classList.add("materia-slot-empty");
-            title = 'Click to select materia\n';
+            if (this.editable) {
+                title = 'Click to select materia\n';
+            }
+            else {
+                title = 'Empty';
+            }
         }
-        title += `\nCtrl-click to ${this.materiaSlot.locked ? 'unlock' : 'prevent auto-fill/solving from affecting this slot.'}.`;
+        if (this.editable) {
+            title += `\nCtrl-click to ${this.materiaSlot.locked ? 'unlock' : 'prevent auto-fill/solving from affecting this slot.'}.`;
+        }
         if (this.materiaSlot.locked) {
             this.classList.add('materia-slot-locked');
             this.classList.remove('materia-slot-unlocked');
-            title = 'This slot is LOCKED. It will not be affected by auto-fill nor the solver.\n' + title;
+            if (this.editable) {
+                title = 'This slot is LOCKED. It will not be affected by auto-fill nor the solver.\n' + title;
+            }
         }
         else {
             this.classList.add('materia-slot-unlocked');
@@ -266,7 +278,7 @@ export class SingleMateriaViewOnly extends HTMLElement {
         this.image.src = currentMat.iconUrl.toString();
         this.image.style.display = 'block';
         const displayedNumber = currentMat.primaryStatValue;
-        this.text.textContent = `+${displayedNumber} ${STAT_ABBREVIATIONS[currentMat.primaryStat]}`;
+        this.text.textContent = `${displayedNumber} ${STAT_ABBREVIATIONS[currentMat.primaryStat]}`;
         this.classList.remove("materia-slot-empty");
         this.classList.add("materia-slot-full");
     }
