@@ -210,8 +210,8 @@ class MeldSolverSettingsMenu extends HTMLDivElement {
     private overwriteMateriaText: HTMLSpanElement;
     private overwriteMateriaCheckbox: FieldBoundCheckBox<GearsetGenerationSettings>;
     private useTargetGcdCheckBox: FieldBoundCheckBox<GearsetGenerationSettings>;
-    private solveFoodCheckbox: FieldBoundCheckBox<GearsetGenerationSettings>;
-    private solveFoodText: HTMLSpanElement;
+    private overwriteFoodCheckbox: FieldBoundCheckBox<GearsetGenerationSettings>;
+    private overwriteFoodText: HTMLSpanElement;
     private targetGcdInput: FieldBoundFloatField<GearsetGenerationSettings>;
     private checkboxContainer: HTMLDivElement;
     private simDropdown: FieldBoundDataSelect<SolverSimulationSettings, Simulation<SimResult, unknown, unknown>>;
@@ -262,10 +262,10 @@ class MeldSolverSettingsMenu extends HTMLDivElement {
         targetGcdText.textContent = "Target GCD: ";
         targetGcdText.classList.add('meld-solver-settings');
 
-        this.solveFoodCheckbox = new FieldBoundCheckBox(this.gearsetGenSettings, 'solveFood');
-        this.solveFoodCheckbox.classList.add('meld-solver-settings');
-        this.solveFoodText = labelFor("Solve food? ", this.solveFoodCheckbox);
-        this.solveFoodText.classList.add('meld-solver-settings');
+        this.overwriteFoodCheckbox = new FieldBoundCheckBox(this.gearsetGenSettings, 'overwriteFood');
+        this.overwriteFoodCheckbox.classList.add('meld-solver-settings');
+        this.overwriteFoodText = labelFor("Overwrite food? ", this.overwriteFoodCheckbox);
+        this.overwriteFoodText.classList.add('meld-solver-settings');
 
         this.overwriteMateriaCheckbox = new FieldBoundCheckBox(this.gearsetGenSettings, 'overwriteExistingMateria');
         this.overwriteMateriaCheckbox.classList.add('meld-solver-settings');
@@ -290,10 +290,10 @@ class MeldSolverSettingsMenu extends HTMLDivElement {
         span1.replaceChildren(this.overwriteMateriaCheckbox, this.overwriteMateriaText);
 
         const span2 = document.createElement('li');
-        span2.replaceChildren(this.useTargetGcdCheckBox, targetGcdText, this.targetGcdInput);
+        span2.replaceChildren(this.overwriteFoodCheckbox, this.overwriteFoodText);
 
         const span3 = document.createElement('li');
-        span3.replaceChildren(this.solveFoodCheckbox, this.solveFoodText);
+        span3.replaceChildren(this.useTargetGcdCheckBox, targetGcdText, this.targetGcdInput);
 
         const span4 = document.createElement('li');
         span4.replaceChildren(simText, this.simDropdown);
