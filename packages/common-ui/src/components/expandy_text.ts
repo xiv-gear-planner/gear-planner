@@ -54,6 +54,12 @@ export class ExpandableText extends HTMLElement {
         });
         this.ro.observe(this.inner);
     }
+
+    // noinspection JSUnusedGlobalSymbols - part of custom element lifecycle API
+    disconnectedCallback() {
+        this.ro?.disconnect();
+        this.ro = undefined;
+    }
 }
 
 customElements.define('expandable-text', ExpandableText);
