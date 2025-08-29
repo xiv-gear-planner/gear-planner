@@ -307,44 +307,92 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, SingleCellRowOr
         const jobData = getClassJobStats(this.sheet.classJobName);
 
         const gcdColumns: CustomColumnSpec<CharacterGearSet, any>[] = [];
-        const override = jobData.gcdDisplayOverrides?.(this.sheet.level);
-        if (override) {
-            let counter = 0;
-            for (const gcdOver of override) {
-                gcdColumns.push(col({
-                    shortName: "gcd-custom-" + counter++,
-                    displayName: gcdOver.shortLabel,
-                    getter: gearSet => {
-                        const haste = gearSet.computedStats.haste(gcdOver.attackType) + (gcdOver.haste ?? 0);
-                        switch (gcdOver.basis) {
-                            case "sks":
-                                return gearSet.computedStats.gcdPhys(2.5, haste);
-                            case "sps":
-                                return gearSet.computedStats.gcdMag(2.5, haste);
-                            default:
-                                return null;
-                        }
-                    },
-                    rowCondition: noSeparators,
-                    renderer: gcd => document.createTextNode(gcd.toFixed(2)),
-                    initialWidth: statColWidth + 10,
-                }));
+        // Define the default GCD column spec so we can reuse it alongside overrides for multi-job sheets
+        const defaultGcdCol: CustomColumnSpec<CharacterGearSet, number> = col({
+            shortName: "gcd",
+            displayName: "GCD",
+            getter: gearSet => {
+                const magHaste = gearSet.computedStats.haste('Spell');
+                const physHaste = gearSet.computedStats.haste('Weaponskill');
+                return Math.min(
+                    gearSet.computedStats.gcdMag(2.5, magHaste),
+                    gearSet.computedStats.gcdPhys(2.5, physHaste)
+                );
+            },
+            renderer: gcd => document.createTextNode(gcd.toFixed(2)),
+            rowCondition: noSeparators,
+            initialWidth: statColWidth + 10,
+        });
+
+        if (this.sheet.isMultiJob) {
+            // Include overrides from all jobs considered by this sheet
+            const jobsToConsider = this.sheet.allJobs;
+            let hasAnyOverrides = false;
+            for (const job of jobsToConsider) {
+                const jOverrides = getClassJobStats(job).gcdDisplayOverrides?.(this.sheet.level);
+                if (jOverrides && jOverrides.length > 0) {
+                    hasAnyOverrides = true;
+                    break;
+                }
+            }
+            // Always include the default GCD column on multi-job sheets
+            gcdColumns.push(defaultGcdCol);
+            if (hasAnyOverrides) {
+                let counter = 0;
+                for (const job of jobsToConsider) {
+                    const jOverrides = getClassJobStats(job).gcdDisplayOverrides?.(this.sheet.level);
+                    if (!jOverrides) continue;
+                    for (const gcdOver of jOverrides) {
+                        gcdColumns.push(col({
+                            shortName: `gcd-custom-${job}-${counter++}`,
+                            displayName: `${gcdOver.shortLabel} (${job})`,
+                            getter: gearSet => {
+                                const haste = gearSet.computedStats.haste(gcdOver.attackType) + (gcdOver.haste ?? 0);
+                                switch (gcdOver.basis) {
+                                    case "sks":
+                                        return gearSet.computedStats.gcdPhys(2.5, haste);
+                                    case "sps":
+                                        return gearSet.computedStats.gcdMag(2.5, haste);
+                                    default:
+                                        return null;
+                                }
+                            },
+                            rowCondition: noSeparators,
+                            renderer: gcd => document.createTextNode(gcd.toFixed(2)),
+                            initialWidth: statColWidth + 10,
+                        }));
+                    }
+                }
             }
         }
         else {
-            gcdColumns.push(
-                col({
-                    shortName: "gcd",
-                    displayName: "GCD",
-                    getter: gearSet => {
-                        const magHaste = gearSet.computedStats.haste('Spell');
-                        const physHaste = gearSet.computedStats.haste('Weaponskill');
-                        return Math.min(gearSet.computedStats.gcdMag(2.5, magHaste), gearSet.computedStats.gcdPhys(2.5, physHaste));
-                    },
-                    renderer: gcd => document.createTextNode(gcd.toFixed(2)),
-                    rowCondition: noSeparators,
-                    initialWidth: statColWidth + 10,
-                }));
+            const override = jobData.gcdDisplayOverrides?.(this.sheet.level);
+            if (override) {
+                let counter = 0;
+                for (const gcdOver of override) {
+                    gcdColumns.push(col({
+                        shortName: "gcd-custom-" + counter++,
+                        displayName: gcdOver.shortLabel,
+                        getter: gearSet => {
+                            const haste = gearSet.computedStats.haste(gcdOver.attackType) + (gcdOver.haste ?? 0);
+                            switch (gcdOver.basis) {
+                                case "sks":
+                                    return gearSet.computedStats.gcdPhys(2.5, haste);
+                                case "sps":
+                                    return gearSet.computedStats.gcdMag(2.5, haste);
+                                default:
+                                    return null;
+                            }
+                        },
+                        rowCondition: noSeparators,
+                        renderer: gcd => document.createTextNode(gcd.toFixed(2)),
+                        initialWidth: statColWidth + 10,
+                    }));
+                }
+            }
+            else {
+                gcdColumns.push(defaultGcdCol);
+            }
         }
 
         const simColumns: CustomColumnSpec<CharacterGearSet, SimCurrentResult, SimulationGui<any, any, any>>[] = this.simGuis.map(simGui => {
