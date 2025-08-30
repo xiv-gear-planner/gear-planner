@@ -46,6 +46,7 @@
     "accountschema": "npx -w @xivgear/account-service-client swagger-typescript-api -o=./src/ -n=accountsvc.ts -p=https://accountsvc.xivgear.app/swagger/xivgear-account-service-0.0.yml --api-class-name=AccountServiceClient --responses --disable-throw-on-error",
     "accountschemalocal": "npx -w @xivgear/account-service-client swagger-typescript-api -o=./src/ -n=accountsvc.ts -p=http://localhost:8086/swagger/xivgear-account-service-0.0.yml --api-class-name=AccountServiceClient --responses --disable-throw-on-error",
     "userdataschema": "npx -w @xivgear/user-data-client swagger-typescript-api -o=./src/ -n=userdata.ts -p=https://userdata.xivgear.app/swagger/xivgear-userdata-service-0.0.yml --api-class-name=UserDataClient --responses",
-    "userdataschemalocal": "npx -w @xivgear/user-data-client swagger-typescript-api -o=./src/ -n=userdata.ts -p=http://localhost:8087/swagger/xivgear-userdata-service-0.0.yml --api-class-name=UserDataClient --responses"
+    "userdataschemalocal": "npx -w @xivgear/user-data-client swagger-typescript-api -o=./src/ -n=userdata.ts -p=http://localhost:8087/swagger/xivgear-userdata-service-0.0.yml --api-class-name=UserDataClient --responses",
+    "proxy:userdata": "node scripts/userdata-proxy.js"
   }
 }

@@ -965,6 +965,7 @@ export class CycleProcessor<GaugeManagerType extends GaugeManager<unknown> = Gau
             ...ability,
             ...modification,
             levelModifiers: [],
+            _idForCooldown: ability.id,
         };
         return modifiedAbility;
     }
