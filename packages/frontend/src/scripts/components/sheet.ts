@@ -2154,6 +2154,10 @@ export class GearPlanSheetGui extends GearPlanSheet {
     }
 
     showChangePropertiesDialog(): void {
+        if (!this.saveKey) {
+            alert('You must save this sheet before changing its properties. Use "Save As" first.');
+            return;
+        }
         new ChangePropsModal(this).attachAndShowExclusively();
     }
 }
