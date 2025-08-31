@@ -361,6 +361,14 @@ export type BaseAbility = Readonly<LevelModifiable<{
      * You can force translation on or off via this property.
      */
     translate?: boolean,
+
+    /**
+     * Internal use only - used to keep cooldown tracking in sync when a skill has a level modifier which changes its
+     * ID. The CD tracker will use this ID to track the cooldown instead of the actual ID.
+     *
+     * See https://github.com/xiv-gear-planner/gear-planner/issues/720
+     */
+    _idForCooldown?: number,
 }> & (LevelModifiable<NonDamagingAbility> | LevelModifiable<DamagingAbility>)>;
 
 

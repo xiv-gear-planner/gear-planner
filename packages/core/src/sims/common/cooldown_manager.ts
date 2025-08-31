@@ -321,7 +321,7 @@ function cooldownKey(ability: CdAbility): number {
             seen.push(current);
         }
         else {
-            return current.id;
+            return current._idForCooldown ?? current.id;
         }
     }
     throw Error(`Ability ${ability.name} has too many layers of nested CD share.`);
