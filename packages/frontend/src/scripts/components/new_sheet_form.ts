@@ -266,6 +266,22 @@ export abstract class BaseSheetSettingsModal extends BaseModal {
         return this.fieldSet.nameInput.value;
     }
 
+    protected confirmJobMultiChange(currentJob: JobName, currentIsMultiJob: boolean, newJob: JobName, newIsMultiJob: boolean): boolean {
+        if (newJob !== currentJob && !newIsMultiJob) {
+            const result = confirm(`You are attempting to change a sheet from ${currentJob} to ${newJob}. Weapons and other class-specific items will be de-selected if they are not equippable as ${newJob}.`);
+            if (!result) {
+                return false;
+            }
+        }
+        else if (currentIsMultiJob && !newIsMultiJob) {
+            const result = confirm(`You are attempting to change a sheet from multi-job to single-job. Items may need to be re-selected if they are not equippable as ${newJob}.`);
+            if (!result) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     protected abstract onSubmit(): void;
 }
 
@@ -294,17 +310,8 @@ export class SaveAsModal extends BaseSheetSettingsModal {
         const level: SupportedLevel = this.level;
         const newJob = this.selectedJob ?? this.existingSheet.classJobName;
         const multiJob = this.multiJob;
-        if (newJob !== this.existingSheet.classJobName && !multiJob) {
-            const result = confirm(`You are attempting to change a sheet from ${this.existingSheet.classJobName} to ${newJob}. Weapons and other class-specific items will be de-selected if they are not equippable as ${newJob}.`);
-            if (!result) {
-                return;
-            }
-        }
-        else if (this.existingSheet.isMultiJob && !multiJob) {
-            const result = confirm(`You are attempting to change a sheet from multi-job to single-job. Items may need to be re-selected if they are not equippable as ${newJob}.`);
-            if (!result) {
-                return;
-            }
+        if (!this.confirmJobMultiChange(this.existingSheet.classJobName, this.existingSheet.isMultiJob, newJob, multiJob)) {
+            return;
         }
         const newSheetSaveKey: string = this.existingSheet.saveAs(
             this.nameValue,

@@ -2184,6 +2184,9 @@ export class ChangePropsModal extends BaseSheetSettingsModal {
         const newLevel = this.level;
         const newIlvl = this.ilvlSyncEnabled ? this.ilvlSync : undefined;
 
+        if (!this.confirmJobMultiChange(this.sheet.classJobName, this.sheet.isMultiJob, desiredJob, desiredMultiJob)) {
+            return;
+        }
         const jobOrMultiChanged = (desiredJob !== this.sheet.classJobName) || (desiredMultiJob !== this.sheet.isMultiJob);
         if (jobOrMultiChanged) {
             // Create a new sheet when changing job or multi-job, then open it
