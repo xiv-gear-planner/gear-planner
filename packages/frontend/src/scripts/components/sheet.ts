@@ -2187,23 +2187,10 @@ export class ChangePropsModal extends BaseSheetSettingsModal {
         if (!this.confirmJobMultiChange(this.sheet.classJobName, this.sheet.isMultiJob, desiredJob, desiredMultiJob)) {
             return;
         }
-        const jobOrMultiChanged = (desiredJob !== this.sheet.classJobName) || (desiredMultiJob !== this.sheet.isMultiJob);
-        if (jobOrMultiChanged) {
-            // Create a new sheet when changing job or multi-job, then open it
-            const newKey: string = this.sheet.saveAs(
-                newName,
-                desiredJob,
-                newLevel as SupportedLevel,
-                newIlvl,
-                desiredMultiJob
-            );
-            // Navigate to the newly created sheet
-            openSheetByKey(newKey);
-            this.close();
-            return;
-        }
 
         const changed = (this.sheet.sheetName !== newName)
+            || (this.sheet.classJobName !== desiredJob)
+            || (this.sheet.isMultiJob !== desiredMultiJob)
             || (this.sheet.level !== newLevel)
             || (this.sheet.ilvlSync !== newIlvl);
         if (!changed) {
@@ -2211,11 +2198,12 @@ export class ChangePropsModal extends BaseSheetSettingsModal {
             return;
         }
 
-        // Apply in-place updates for name/level/ilvl sync
+        // Apply in-place updates for all fields, then save and reload this sheet
         this.sheet.sheetName = newName;
+        this.sheet.classJobName = desiredJob;
+        this.sheet.isMultiJob = desiredMultiJob;
         this.sheet.level = newLevel as SupportedLevel;
         this.sheet.ilvlSync = newIlvl;
-        // Save immediately and reload the current sheet
         this.sheet.saveData();
         if (this.sheet.saveKey) {
             openSheetByKey(this.sheet.saveKey);
