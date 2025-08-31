@@ -84,6 +84,8 @@ export async function processHashLegacy() {
  * but manually replace the page contents.
  */
 export async function processNav() {
+    // Rewrite %7C to | in-place
+    window.history.replaceState(null, "", document.location.toString().replaceAll("%7C", "|"));
     // Remove the literal #
     // let hash = splitHash(location.hash);
     const qp = getQueryParams();
