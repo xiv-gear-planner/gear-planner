@@ -1,7 +1,7 @@
 import 'global-jsdom/register';
 import './polyfills';
 import Fastify, {FastifyRequest} from "fastify";
-import {getShortLink, getShortlinkFetchUrl} from "@xivgear/core/external/shortlink_server";
+import {getShortLink, getShortlinkFetchUrl, putShortLink} from "@xivgear/core/external/shortlink_server";
 import {
     PartyBonusAmount,
     SetExport,
@@ -26,7 +26,8 @@ import {
     PREVIEW_MAX_DESC_LENGTH,
     PREVIEW_MAX_NAME_LENGTH,
     SELECTION_INDEX_QUERY_PARAM,
-    tryParseOptionalIntParam
+    tryParseOptionalIntParam,
+    EMBED_HASH
 } from "@xivgear/core/nav/common_nav";
 import {nonCachedFetch} from "./polyfills";
 import fastifyWebResponse from "fastify-web-response";
@@ -57,7 +58,7 @@ type SheetRequest = FastifyRequest<{
 }>;
 
 function getMergedQueryParams(request: SheetRequest): Record<string, string | undefined> {
-    const result: Record<string, string | undefined> = { ...(request.query ?? {}) };
+    const result: Record<string, string | undefined> = {...(request.query ?? {})};
     // Try to pull from the full URL provided via ?url=
     const urlRaw = request.query?.['url'];
     if (!urlRaw) {
@@ -89,6 +90,20 @@ function getMergedQueryParams(request: SheetRequest): Record<string, string | un
 function getMergedQueryParam(request: SheetRequest, key: string): string | undefined {
     const merged = getMergedQueryParams(request);
     return merged[key];
+}
+
+function toEmbedUrl(normalUrl: URL): URL {
+    const out = new URL(normalUrl.toString());
+    const cur = out.searchParams.get(HASH_QUERY_PARAM) || '';
+    if (cur.startsWith(EMBED_HASH + PATH_SEPARATOR)) {
+        return out;
+    }
+    out.searchParams.set(HASH_QUERY_PARAM, `${EMBED_HASH}${PATH_SEPARATOR}${cur}`);
+    return out;
+}
+
+function isRecord(x: unknown): x is Record<string, unknown> {
+    return typeof x === 'object' && x !== null;
 }
 
 async function importExportSheet(request: SheetRequest, exportedPre: SheetExport | SetExport, nav?: NavPath): Promise<SheetStatsExport> {
@@ -141,7 +156,7 @@ function buildServerBase() {
         strict: true,
     });
     fastifyInstance.register(cors, {
-        methods: ['GET', 'OPTIONS'],
+        methods: ['GET', 'PUT', 'OPTIONS'],
         strictPreflight: false,
     });
 
@@ -415,6 +430,63 @@ export function buildStatsServer() {
         reply.header("cache-control", "max-age=7200, public");
         reply.send(out);
     });
+
+    // Creates a shortlink, and returns the canonical URL for it
+
+    // Creates shortlinks for a single set export; returns normal and embed URLs
+    fastifyInstance.put('/putset', async (request: FastifyRequest<{
+        Body: SetExportExternalSingle,
+    }>, reply) => {
+        try {
+            const b = request.body;
+            // Basic validation: must be an object and not contain a 'sets' array (which would indicate SheetExport)
+            if (!isRecord(b) || Array.isArray((b as {sets?: unknown}).sets)) {
+                reply.code(400).send({error: 'Body must be a single set export object'});
+                return;
+            }
+            const contentStr = JSON.stringify(b);
+            const normalUrl = await putShortLink(contentStr, false);
+            const embedUrl = toEmbedUrl(normalUrl);
+            reply.send({url: normalUrl.toString(), embedUrl: embedUrl.toString()});
+        }
+        catch (e) {
+            request.log.error(e, 'Error creating set shortlink');
+            reply.code(500).send({error: 'Failed to create set shortlink'});
+        }
+    });
+
+    // Creates a shortlink for a full sheet, and per-set links via onlySetIndex
+    fastifyInstance.put('/putsheet', async (request: FastifyRequest<{
+        Body: SheetExport,
+    }>, reply) => {
+        try {
+            const b = request.body;
+            // Basic validation: must be an object with a sets array
+            if (!isRecord(b) || !('sets' in b) || !Array.isArray((b as {sets?: unknown}).sets)) {
+                reply.code(400).send({error: 'Body must be a sheet export object with a sets array'});
+                return;
+            }
+            const contentStr = JSON.stringify(b);
+            const baseUrl = await putShortLink(contentStr, false);
+            const setsOut: { index: number, url: string, embedUrl: string }[] = [];
+            const sheet = b as unknown as SheetExport;
+            for (let i = 0; i < sheet.sets.length; i++) {
+                const set = sheet.sets[i];
+                if (set && !set.isSeparator) {
+                    const setUrl = new URL(baseUrl.toString());
+                    setUrl.searchParams.set(ONLY_SET_QUERY_PARAM, i.toString());
+                    const embedSetUrl = toEmbedUrl(setUrl);
+                    setsOut.push({index: i, url: setUrl.toString(), embedUrl: embedSetUrl.toString()});
+                }
+            }
+            reply.send({url: baseUrl.toString(), sets: setsOut});
+        }
+        catch (e) {
+            request.log.error(e, 'Error creating sheet shortlinks');
+            reply.code(500).send({error: 'Failed to create sheet shortlinks'});
+        }
+    });
+
     return fastifyInstance;
 }
 
