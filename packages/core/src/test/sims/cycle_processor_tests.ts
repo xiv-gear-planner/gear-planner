@@ -6,7 +6,7 @@ import {assertSimAbilityResults, setPartyBuffEnabled, UseResult} from "./sim_tes
 import {JobMultipliers} from "@xivgear/xivmath/geartypes";
 import {getClassJobStats, getLevelStats, getRaceStats, STANDARD_APPLICATION_DELAY} from "@xivgear/xivmath/xivconstants";
 import {CharacterGearSet} from "@xivgear/core/gear";
-import {Divination, Litany, Dokumori} from "@xivgear/core/sims/buffs";
+import {Divination, Dokumori, Litany} from "@xivgear/core/sims/buffs";
 import {exampleGearSet} from "./common_values";
 import {Swiftcast} from "@xivgear/core/sims/common/swiftcast";
 import {removeSelf} from "@xivgear/core/sims/common/utils";
@@ -1758,5 +1758,43 @@ describe('cutoff modes', () => {
         // Gets the full damage
         expect(finalAction.partialRate).to.be.null;
         expect(finalAction.directDamage).to.be.closeTo(15057.71, 0.1);
+    });
+});
+
+const levelSuperseded: OgcdAbility = {
+    type: 'ogcd',
+    name: "base skill",
+    id: 1234,
+    potency: null,
+    attackType: 'Weaponskill',
+    cooldown: {
+        time: 120,
+    },
+    levelModifiers: [{
+        minLevel: 80,
+        id: 5678,
+    }],
+};
+
+describe('additional cd tracking tests', () => {
+    it('handles when a cd changes its skill id with a level modifier', () => {
+        const cp = new CycleProcessor({
+            ...defaultSettings,
+            cycleTime: 30,
+            totalTime: 30,
+            cutoffMode: 'lax-gcd',
+        });
+
+        const modified = cp.applyLevelModifiers(levelSuperseded);
+
+        expect(cp.isReady(levelSuperseded)).to.be.true;
+        expect(cp.cdTracker.canUse(levelSuperseded)).to.be.true;
+        expect(cp.cdTracker.canUse(modified)).to.be.true;
+
+        cp.use(levelSuperseded);
+
+        expect(cp.isReady(levelSuperseded)).to.be.false;
+        expect(cp.cdTracker.canUse(levelSuperseded)).to.be.false;
+        expect(cp.cdTracker.canUse(modified)).to.be.false;
     });
 });
