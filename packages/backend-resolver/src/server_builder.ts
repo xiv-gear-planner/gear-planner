@@ -381,7 +381,7 @@ export function buildStatsServer() {
         const rawData = await getShortLink(request.params['uuid'] as string);
         const out = await importExportSheet(request, JSON.parse(rawData), nav);
         // @ts-expect-error - adding deprecation warning to response
-        out['_DEPRECATION_WARNING'] = 'This endpoint is deprecated. Use /fulldata?page= instead, e.g. /fulldata?page=sl|<uuid> instead.';
+        out['_DEPRECATION_WARNING'] = 'This endpoint is deprecated. Use /fulldata?page= or /fulldata?url= instead, e.g. /fulldata?page=sl|<uuid> instead.';
         reply.header("cache-control", "max-age=7200, public");
         reply.send(out);
     });
@@ -403,7 +403,7 @@ export function buildStatsServer() {
         const rawData = await getBisSheet([request.params['job'] as JobName, request.params['sheet'] as string]);
         const out = await importExportSheet(request, JSON.parse(rawData), nav);
         // @ts-expect-error - adding deprecation warning to response
-        out['_DEPRECATION_WARNING'] = 'This endpoint is deprecated. Use /fulldata?page= instead, e.g. /fulldata?page=bis|<job>|<sheet> instead.';
+        out['_DEPRECATION_WARNING'] = 'This endpoint is deprecated. Use /fulldata?page= or /fulldata?url= instead, e.g. /fulldata?page=bis|<job>|<sheet> instead.';
         reply.header("cache-control", "max-age=7200, public");
         reply.send(out);
     });
@@ -426,7 +426,7 @@ export function buildStatsServer() {
         const rawData = await getBisSheet([request.params['job'], request.params['folder'], request.params['sheet']]);
         const out = await importExportSheet(request, JSON.parse(rawData), nav);
         // @ts-expect-error - adding deprecation warning to response
-        out['_DEPRECATION_WARNING'] = 'This endpoint is deprecated. Use /fulldata?page= instead, e.g. /fulldata?page=bis|<job>|<folder>|<sheet> instead.';
+        out['_DEPRECATION_WARNING'] = 'This endpoint is deprecated. Use /fulldata?page= or /fulldata?url= instead, e.g. /fulldata?page=bis|<job>|<folder>|<sheet> instead.';
         reply.header("cache-control", "max-age=7200, public");
         reply.send(out);
     });
