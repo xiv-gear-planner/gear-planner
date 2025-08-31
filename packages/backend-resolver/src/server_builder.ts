@@ -56,6 +56,41 @@ type SheetRequest = FastifyRequest<{
     Params: Record<string, string>;
 }>;
 
+function getMergedQueryParams(request: SheetRequest): Record<string, string | undefined> {
+    const result: Record<string, string | undefined> = { ...(request.query ?? {}) };
+    // Try to pull from the full URL provided via ?url=
+    const urlRaw = request.query?.['url'];
+    if (!urlRaw) {
+        return result;
+    }
+    let decoded = urlRaw;
+    try {
+        decoded = decodeURIComponent(urlRaw);
+    }
+    catch (e) {
+        // If decoding fails, assume it's already decoded
+    }
+    try {
+        // Use a dummy base to handle relative URLs or bare query strings
+        const u = new URL(decoded, 'https://dummy.invalid/');
+        // Merge all params from the parsed URL, but do not override direct params
+        u.searchParams.forEach((value, key) => {
+            if (result[key] === undefined) {
+                result[key] = value;
+            }
+        });
+    }
+    catch (e) {
+        // If URL parsing fails entirely, keep existing result
+    }
+    return result;
+}
+
+function getMergedQueryParam(request: SheetRequest, key: string): string | undefined {
+    const merged = getMergedQueryParams(request);
+    return merged[key];
+}
+
 async function importExportSheet(request: SheetRequest, exportedPre: SheetExport | SetExport, nav?: NavPath): Promise<SheetStatsExport> {
     const exportedInitial: SheetExport | SetExport = exportedPre;
     const initiallyFullSheet = 'sets' in exportedPre;
@@ -238,9 +273,10 @@ export function buildStatsServer() {
     const fastifyInstance = buildServerBase();
 
     fastifyInstance.get('/validateEmbed', async (request: SheetRequest, reply) => {
-        const path = request.query?.[HASH_QUERY_PARAM] ?? '';
-        const osIndex: number | undefined = tryParseOptionalIntParam(request.query[ONLY_SET_QUERY_PARAM]);
-        const selIndex: number | undefined = tryParseOptionalIntParam(request.query[SELECTION_INDEX_QUERY_PARAM]);
+        const merged = getMergedQueryParams(request);
+        const path = merged[HASH_QUERY_PARAM] ?? '';
+        const osIndex: number | undefined = tryParseOptionalIntParam(merged[ONLY_SET_QUERY_PARAM]);
+        const selIndex: number | undefined = tryParseOptionalIntParam(merged[SELECTION_INDEX_QUERY_PARAM]);
         const pathPaths = path.split(PATH_SEPARATOR);
         const state = new NavState(pathPaths, osIndex, selIndex);
         const nav = parsePath(state);
@@ -276,9 +312,10 @@ export function buildStatsServer() {
     });
 
     fastifyInstance.get('/basedata', async (request: SheetRequest, reply) => {
-        const path = request.query?.[HASH_QUERY_PARAM] ?? '';
-        const osIndex: number | undefined = tryParseOptionalIntParam(request.query[ONLY_SET_QUERY_PARAM]);
-        const selIndex: number | undefined = tryParseOptionalIntParam(request.query[SELECTION_INDEX_QUERY_PARAM]);
+        const merged = getMergedQueryParams(request);
+        const path = merged[HASH_QUERY_PARAM] ?? '';
+        const osIndex: number | undefined = tryParseOptionalIntParam(merged[ONLY_SET_QUERY_PARAM]);
+        const selIndex: number | undefined = tryParseOptionalIntParam(merged[SELECTION_INDEX_QUERY_PARAM]);
         const pathPaths = path.split(PATH_SEPARATOR);
         const state = new NavState(pathPaths, osIndex, selIndex);
         const nav = parsePath(state);
@@ -288,15 +325,17 @@ export function buildStatsServer() {
             const exported: ExportedData = await navResult.sheetData;
             reply.header("cache-control", "max-age=7200, public");
             reply.send(exported);
+            return;
         }
         reply.status(404);
     });
 
     fastifyInstance.get('/fulldata', async (request: SheetRequest, reply) => {
         // TODO: deduplicate this code
-        const path = request.query?.[HASH_QUERY_PARAM] ?? '';
-        const osIndex: number | undefined = tryParseOptionalIntParam(request.query[ONLY_SET_QUERY_PARAM]);
-        const selIndex: number | undefined = tryParseOptionalIntParam(request.query[SELECTION_INDEX_QUERY_PARAM]);
+        const merged = getMergedQueryParams(request);
+        const path = merged[HASH_QUERY_PARAM] ?? '';
+        const osIndex: number | undefined = tryParseOptionalIntParam(merged[ONLY_SET_QUERY_PARAM]);
+        const selIndex: number | undefined = tryParseOptionalIntParam(merged[SELECTION_INDEX_QUERY_PARAM]);
         const pathPaths = path.split(PATH_SEPARATOR);
         const state = new NavState(pathPaths, osIndex, selIndex);
         const nav = parsePath(state);
@@ -307,6 +346,7 @@ export function buildStatsServer() {
             const out = await importExportSheet(request, exported as (SetExport | SheetExport), nav);
             reply.header("cache-control", "max-age=7200, public");
             reply.send(out);
+            return;
         }
         reply.status(404);
     });
@@ -325,6 +365,8 @@ export function buildStatsServer() {
         };
         const rawData = await getShortLink(request.params['uuid'] as string);
         const out = await importExportSheet(request, JSON.parse(rawData), nav);
+        // @ts-expect-error - adding deprecation warning to response
+        out['_DEPRECATION_WARNING'] = 'This endpoint is deprecated. Use /fulldata?page= instead, e.g. /fulldata?page=sl|<uuid> instead.';
         reply.header("cache-control", "max-age=7200, public");
         reply.send(out);
     });
@@ -345,6 +387,8 @@ export function buildStatsServer() {
         };
         const rawData = await getBisSheet([request.params['job'] as JobName, request.params['sheet'] as string]);
         const out = await importExportSheet(request, JSON.parse(rawData), nav);
+        // @ts-expect-error - adding deprecation warning to response
+        out['_DEPRECATION_WARNING'] = 'This endpoint is deprecated. Use /fulldata?page= instead, e.g. /fulldata?page=bis|<job>|<sheet> instead.';
         reply.header("cache-control", "max-age=7200, public");
         reply.send(out);
     });
@@ -366,6 +410,8 @@ export function buildStatsServer() {
         };
         const rawData = await getBisSheet([request.params['job'], request.params['folder'], request.params['sheet']]);
         const out = await importExportSheet(request, JSON.parse(rawData), nav);
+        // @ts-expect-error - adding deprecation warning to response
+        out['_DEPRECATION_WARNING'] = 'This endpoint is deprecated. Use /fulldata?page= instead, e.g. /fulldata?page=bis|<job>|<folder>|<sheet> instead.';
         reply.header("cache-control", "max-age=7200, public");
         reply.send(out);
     });
@@ -401,9 +447,10 @@ export function buildPreviewServer() {
         // Fetch original index.html
         const responsePromise = nonCachedFetch(serverUrl + '/index.html', undefined);
         try {
-            const path = request.query[HASH_QUERY_PARAM] ?? '';
-            const osIndex: number | undefined = tryParseOptionalIntParam(request.query[ONLY_SET_QUERY_PARAM]);
-            const selIndex: number | undefined = tryParseOptionalIntParam(request.query[SELECTION_INDEX_QUERY_PARAM]);
+            const merged = getMergedQueryParams(request);
+            const path = merged[HASH_QUERY_PARAM] ?? '';
+            const osIndex: number | undefined = tryParseOptionalIntParam(merged[ONLY_SET_QUERY_PARAM]);
+            const selIndex: number | undefined = tryParseOptionalIntParam(merged[SELECTION_INDEX_QUERY_PARAM]);
             const pathPaths = path.split(PATH_SEPARATOR);
             const state = new NavState(pathPaths, osIndex, selIndex);
             const nav = parsePath(state);

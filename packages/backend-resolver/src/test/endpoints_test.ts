@@ -1,7 +1,7 @@
 import '../polyfills';
 import assert from "assert";
 import {buildPreviewServer, buildStatsServer, EmbedCheckResponse} from "../server_builder";
-import {SheetStatsExport} from "@xivgear/xivmath/geartypes";
+import {SheetStatsExport, SheetExport, SetExportExternalSingle} from "@xivgear/xivmath/geartypes";
 import {BIS_BROWSER_HASH, BIS_HASH, SHORTLINK_HASH} from "@xivgear/core/nav/common_nav";
 import {ALL_COMBAT_JOBS} from "@xivgear/xivmath/xivconstants";
 
@@ -440,6 +440,21 @@ describe("backend servers", () => {
             assert.equal(props['og:description'], setDesc);
         }).timeout(30_000);
     });
+    describe("basedata endpoint", () => {
+        const fastify = buildStatsServer();
+        it("uses params from encoded url when not provided directly", async () => {
+            const encoded = encodeURIComponent('https://foo.bar/?page=sl|f9b260a9-650c-445a-b3eb-c56d8d968501&onlySetIndex=1');
+            const response = await fastify.inject({
+                method: 'GET',
+                url: `/basedata?url=${encoded}&onlySetIndex=2`,
+            });
+            assert.equal(response.statusCode, 200);
+            const json = response.json() as SheetExport | SetExportExternalSingle;
+            // Should resolve the same sheet as in fulldata test
+            assert.equal(json.name, 'WHM 6.4 copy');
+        }).timeout(30_000);
+    });
+
     describe("validateEmbed endpoint", () => {
         const fastify = buildStatsServer();
         it('passes BiS with onlySetIndex', async () => {
