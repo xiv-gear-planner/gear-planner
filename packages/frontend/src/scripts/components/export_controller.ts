@@ -59,9 +59,13 @@ const sheetShortlink = {
     exportInstantly: false,
     async doExport(sheet: GearPlanSheet): Promise<string> {
         const exportedSheet = JSON.stringify(sheet.exportSheet(true));
-        return await putShortLink(exportedSheet).then(link => link.toString());
+        return await putShortLink(exportedSheet).then(link => urlToString(link));
     },
 } as const as SheetExportMethod;
+
+function urlToString(url: URL): string {
+    return url.toString().replaceAll('%7C', '|');
+}
 
 /**
  * One independent shortlink for each set contained within a sheet
@@ -138,7 +142,7 @@ const setShortlink = {
     exportInstantly: false,
     async doExport(set: CharacterGearSet): Promise<string> {
         const exportedSheet = JSON.stringify(set.sheet.exportGearSet(set, true));
-        return await putShortLink(exportedSheet).then(link => link.toString());
+        return await putShortLink(exportedSheet).then(link => urlToString(link));
     },
 } as const as SetExportMethod;
 
@@ -150,7 +154,7 @@ const setEmbedShortLink = {
     exportInstantly: false,
     async doExport(set: CharacterGearSet): Promise<string> {
         const exportedSheet = JSON.stringify(set.sheet.exportGearSet(set, true));
-        return await putShortLink(exportedSheet, true).then(link => link.toString());
+        return await putShortLink(exportedSheet, true).then(link => urlToString(link));
     },
 } as const as SetExportMethod;
 
