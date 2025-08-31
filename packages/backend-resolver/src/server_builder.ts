@@ -87,11 +87,6 @@ function getMergedQueryParams(request: SheetRequest): Record<string, string | un
     return result;
 }
 
-function getMergedQueryParam(request: SheetRequest, key: string): string | undefined {
-    const merged = getMergedQueryParams(request);
-    return merged[key];
-}
-
 function toEmbedUrl(normalUrl: URL): URL {
     const out = new URL(normalUrl.toString());
     const cur = out.searchParams.get(HASH_QUERY_PARAM) || '';
