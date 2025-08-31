@@ -668,14 +668,15 @@ export class DataApiGearInfo implements GearItem {
     }
 
     private computeSubstats() {
+        const baseStats = this.unsyncedVersion?.baseStats ?? this.baseStats;
         const sortedStats = Object.entries({
-            crit: this.baseStats.crit,
-            dhit: this.baseStats.dhit,
-            determination: this.baseStats.determination,
-            spellspeed: this.baseStats.spellspeed,
-            skillspeed: this.baseStats.skillspeed,
-            piety: this.baseStats.piety,
-            tenacity: this.baseStats.tenacity,
+            crit: baseStats.crit,
+            dhit: baseStats.dhit,
+            determination: baseStats.determination,
+            spellspeed: baseStats.spellspeed,
+            skillspeed: baseStats.skillspeed,
+            piety: baseStats.piety,
+            tenacity: baseStats.tenacity,
         })
             .sort((left, right) => {
                 if (left[1] > right[1]) {
