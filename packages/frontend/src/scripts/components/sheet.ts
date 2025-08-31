@@ -50,7 +50,8 @@ import {
     RACE_STATS,
     RaceName,
     STAT_ABBREVIATIONS,
-    SupportedLevel
+    SupportedLevel,
+    JOB_DATA
 } from "@xivgear/xivmath/xivconstants";
 import {getCurrentHash, getCurrentState, processNav} from "../nav_hash";
 import {MateriaTotalsDisplay} from "./materia";
@@ -76,7 +77,7 @@ import {SimCurrentResult, SimResult, SimSettings, SimSpec, Simulation} from "@xi
 import {getRegisteredSimSpecs} from "@xivgear/core/sims/sim_registry";
 import {makeUrl, NavState, ONLY_SET_QUERY_PARAM} from "@xivgear/core/nav/common_nav";
 import {simMaintainersInfoElement} from "./sims";
-import {SaveAsModal} from "./new_sheet_form";
+import {SaveAsModal, BaseSheetSettingsModal} from "./new_sheet_form";
 import {DropdownActionMenu} from "./dropdown_actions_menu";
 import {CustomFoodPopup, CustomItemPopup} from "./custom_item_manager";
 import {confirmDelete} from "@xivgear/common-ui/components/delete_confirm";
@@ -2151,6 +2152,73 @@ export class GearPlanSheetGui extends GearPlanSheet {
         super.activeSpecialStat = value;
         this.resetEditorArea();
     }
+
+    showChangePropertiesDialog(): void {
+        new ChangePropsModal(this).attachAndShowExclusively();
+    }
+}
+
+export class ChangePropsModal extends BaseSheetSettingsModal {
+    constructor(private readonly sheet: GearPlanSheetGui) {
+        super({
+            name: sheet.sheetName,
+            job: sheet.classJobName,
+            level: sheet.level,
+            ilvlSyncEnabled: sheet.ilvlSync !== undefined,
+            ilvlSyncLevel: sheet.ilvlSync,
+            allowedRoles: [JOB_DATA[sheet.classJobName].role],
+            multiJob: sheet.isMultiJob,
+        }, 'Apply');
+        this.headerText = 'Change Sheet Properties';
+    }
+
+    protected onSubmit(): void {
+        const desiredJob = this.selectedJob ?? this.sheet.classJobName;
+        const desiredMultiJob = this.multiJob;
+
+        const newName = this.nameValue;
+        const newLevel = this.level;
+        const newIlvl = this.ilvlSyncEnabled ? this.ilvlSync : undefined;
+
+        const jobOrMultiChanged = (desiredJob !== this.sheet.classJobName) || (desiredMultiJob !== this.sheet.isMultiJob);
+        if (jobOrMultiChanged) {
+            // Create a new sheet when changing job or multi-job, then open it
+            const newKey: string = this.sheet.saveAs(
+                newName,
+                desiredJob,
+                newLevel as SupportedLevel,
+                newIlvl,
+                desiredMultiJob
+            );
+            // Navigate to the newly created sheet
+            openSheetByKey(newKey);
+            this.close();
+            return;
+        }
+
+        const changed = (this.sheet.sheetName !== newName)
+            || (this.sheet.level !== newLevel)
+            || (this.sheet.ilvlSync !== newIlvl);
+        if (!changed) {
+            this.close();
+            return;
+        }
+
+        // Apply in-place updates for name/level/ilvl sync
+        this.sheet.sheetName = newName;
+        this.sheet.level = newLevel as SupportedLevel;
+        this.sheet.ilvlSync = newIlvl;
+        // Save immediately and reload the current sheet
+        this.sheet.saveData();
+        if (this.sheet.saveKey) {
+            openSheetByKey(this.sheet.saveKey);
+        }
+        this.close();
+    }
+}
+
+if (!customElements.get('change-props-modal')) {
+    customElements.define('change-props-modal', ChangePropsModal);
 }
 
 export class ImportSetsModal extends BaseModal {

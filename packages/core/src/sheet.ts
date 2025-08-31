@@ -190,8 +190,8 @@ export class GearPlanSheet {
     readonly classJobName: JobName;
     readonly altJobs: JobName[];
     readonly isMultiJob: boolean;
-    readonly level: SupportedLevel;
-    readonly ilvlSync: number | undefined;
+    private _level: SupportedLevel;
+    private _ilvlSync: number | undefined;
     private _race: RaceName | undefined;
     private _partyBonus: PartyBonusAmount;
     private readonly _saveKey: string | undefined;
@@ -244,7 +244,7 @@ export class GearPlanSheet {
         this._importedData = importedData;
         this._saveKey = sheetKey;
         this._sheetName = importedData.name;
-        this.level = importedData.level ?? CURRENT_MAX_LEVEL;
+        this._level = importedData.level ?? CURRENT_MAX_LEVEL;
         this._race = importedData.race;
         this._partyBonus = importedData.partyBonus ?? 0;
         // TODO: why does this default to WHM? Shouldn't it just throw?
@@ -256,7 +256,7 @@ export class GearPlanSheet {
                 // Don't include the primary job in the list of alt jobs
                 && job !== this.classJobName),
         ] : [];
-        this.ilvlSync = importedData.ilvlSync;
+        this._ilvlSync = importedData.ilvlSync;
         this._description = importedData.description;
         if (importedData.itemDisplaySettings) {
             Object.assign(this._itemDisplaySettings, importedData.itemDisplaySettings);
@@ -493,6 +493,26 @@ export class GearPlanSheet {
 
     set sheetName(name: string) {
         this._sheetName = name;
+        this.requestSave();
+    }
+
+    get level(): SupportedLevel {
+        return this._level;
+    }
+
+    set level(value: SupportedLevel) {
+        this._level = value;
+        // Defer heavy reloads; caller will reload sheet if necessary
+        this.requestSave();
+    }
+
+    get ilvlSync(): number | undefined {
+        return this._ilvlSync;
+    }
+
+    set ilvlSync(value: number | undefined) {
+        this._ilvlSync = value;
+        // Defer recalculation; caller can reload
         this.requestSave();
     }
 
