@@ -321,6 +321,14 @@ export class ComputedSetStatsImpl implements ComputedSetStats {
         return this.currentStats.wdMag + this.finalBonusStats.wdMag;
     }
 
+    get defensePhys(): number {
+        return this.currentStats.defensePhys + this.finalBonusStats.defensePhys;
+    }
+
+    get defenseMag(): number {
+        return this.currentStats.defenseMag + this.finalBonusStats.defenseMag;
+    }
+
     get weaponDelay(): number {
         const result = this.currentStats.weaponDelay + this.finalBonusStats.weaponDelay;
         if (result <= 0) {

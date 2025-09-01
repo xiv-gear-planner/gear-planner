@@ -714,6 +714,8 @@ export type MateriaSubstat = typeof MateriaSubstats[number];
  */
 export const STAT_FULL_NAMES: Record<RawStatKey, string> = {
     crit: "Critical Hit",
+    defenseMag: "Magic Defense",
+    defensePhys: "Defense",
     determination: "Determination",
     dexterity: "Dexterity",
     dhit: "Direct Hit",
@@ -736,6 +738,8 @@ export const STAT_FULL_NAMES: Record<RawStatKey, string> = {
  */
 export const STAT_ABBREVIATIONS: Record<RawStatKey, string> = {
     crit: "CRT",
+    defenseMag: "MD",
+    defensePhys: "DEF",
     determination: "DET",
     dexterity: "DEX",
     dhit: "DHT",
@@ -781,8 +785,12 @@ export function statById(id: number): keyof RawStats | undefined {
             return "wdMag";
         case 19:
             return "tenacity";
+        case 21:
+            return "defensePhys";
         case 22:
             return "dhit";
+        case 24:
+            return "defenseMag";
         case 27:
             return "crit";
         case 44:

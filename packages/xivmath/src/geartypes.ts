@@ -402,6 +402,8 @@ export interface RawStats {
     wdPhys: number,
     wdMag: number,
     weaponDelay: number,
+    defenseMag: number;
+    defensePhys: number;
 }
 
 export type RawStatKey = keyof RawStats;
@@ -429,13 +431,14 @@ export class RawStats implements RawStats {
     wdPhys: number = 0;
     wdMag: number = 0;
     weaponDelay: number = 0;
+    defenseMag: number = 0;
+    defensePhys: number = 0;
 
     constructor(values: ({ [K in RawStatKey]?: number } | undefined) = undefined) {
         if (values) {
             Object.assign(this, values);
         }
     }
-
 }
 
 export interface LevelStats {
