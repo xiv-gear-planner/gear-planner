@@ -18,7 +18,6 @@ import {recordSheetEvent} from "@xivgear/gearplan-frontend/analytics/analytics";
 import {JobIcon} from "./job_icon";
 import {RoleKey, SheetSummary} from "@xivgear/xivmath/geartypes";
 import {openSheetByKey} from "../base_ui";
-import {LoadingBlocker} from "@xivgear/common-ui/components/loader";
 
 export type NewSheetTempSettings = {
     ilvlSyncEnabled: boolean,
