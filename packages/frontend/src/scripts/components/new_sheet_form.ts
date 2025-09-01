@@ -10,13 +10,15 @@ import {
 import {JOB_DATA, JobName, LEVEL_ITEMS, MAX_ILVL, SupportedLevel} from "@xivgear/xivmath/xivconstants";
 import {SheetHandle, SheetManager} from "@xivgear/core/persistence/saved_sheets";
 import {GearPlanSheet, SheetProvider} from "@xivgear/core/sheet";
-import {GRAPHICAL_SHEET_PROVIDER} from "./sheet";
+import {GearPlanSheetGui, GRAPHICAL_SHEET_PROVIDER} from "./sheet";
 import {levelSelect} from "@xivgear/common-ui/components/level_picker";
 import {BaseModal} from "@xivgear/common-ui/components/modal";
 import {SHARED_SET_NAME} from "@xivgear/core/imports/imports";
 import {recordSheetEvent} from "@xivgear/gearplan-frontend/analytics/analytics";
 import {JobIcon} from "./job_icon";
 import {RoleKey, SheetSummary} from "@xivgear/xivmath/geartypes";
+import {openSheetByKey} from "../base_ui";
+import {LoadingBlocker} from "@xivgear/common-ui/components/loader";
 
 export type NewSheetTempSettings = {
     ilvlSyncEnabled: boolean,
@@ -419,7 +421,58 @@ class JobPicker extends HTMLElement {
     }
 }
 
+export class ChangePropsModal extends BaseSheetSettingsModal {
+    constructor(private readonly sheet: GearPlanSheetGui) {
+        super({
+            name: sheet.sheetName,
+            job: sheet.classJobName,
+            level: sheet.level,
+            ilvlSyncEnabled: sheet.ilvlSync !== undefined,
+            ilvlSyncLevel: sheet.ilvlSync,
+            allowedRoles: [JOB_DATA[sheet.classJobName].role],
+            multiJob: sheet.isMultiJob,
+        }, 'Apply');
+        this.headerText = 'Change Sheet Properties';
+    }
+
+    protected onSubmit(): void {
+        const desiredJob = this.selectedJob ?? this.sheet.classJobName;
+        const desiredMultiJob = this.multiJob;
+
+        const newName = this.nameValue;
+        const newLevel = this.level;
+        const newIlvl = this.ilvlSyncEnabled ? this.ilvlSync : undefined;
+
+        if (!this.confirmJobMultiChange(this.sheet.classJobName, this.sheet.isMultiJob, desiredJob, desiredMultiJob)) {
+            return;
+        }
+
+        const changed = (this.sheet.sheetName !== newName)
+            || (this.sheet.classJobName !== desiredJob)
+            || (this.sheet.isMultiJob !== desiredMultiJob)
+            || (this.sheet.level !== newLevel)
+            || (this.sheet.ilvlSync !== newIlvl);
+        if (!changed) {
+            this.close();
+            return;
+        }
+
+        // Apply in-place updates for all fields, then save and reload this sheet
+        this.sheet.sheetName = newName;
+        this.sheet.classJobName = desiredJob;
+        this.sheet.isMultiJob = desiredMultiJob;
+        this.sheet.level = newLevel as SupportedLevel;
+        this.sheet.ilvlSync = newIlvl;
+        this.sheet.saveData();
+        if (this.sheet.saveKey) {
+            openSheetByKey(this.sheet.saveKey);
+        }
+        this.close();
+    }
+}
+
 customElements.define("save-as-modal", SaveAsModal);
 customElements.define("new-sheet-form-fieldset", NewSheetFormFieldSet, {extends: "fieldset"});
 customElements.define("new-sheet-form", NewSheetForm, {extends: "form"});
 customElements.define('job-picker', JobPicker);
+customElements.define('change-props-modal', ChangePropsModal);
