@@ -2,7 +2,7 @@ import {
     autoAttackModifier,
     autoDhitBonusDmg,
     critChance,
-    critDmg,
+    critDmg, defIncomingDmg,
     detDmg,
     dhitChance,
     dhitDmg,
@@ -182,6 +182,31 @@ export function registerFormulae() {
         primaryVariable: "det",
         makeDefaultInputs(generalSettings: GeneralSettings) {
             return {det: generalSettings.levelStats.baseMainStat};
+        },
+    });
+
+    registerFormula<{
+        'def': number
+    }>({
+        name: "Defense",
+        stub: "def",
+        functions: [formula({
+            name: "Defense/Mdef Damage Taken",
+            fn: defIncomingDmg,
+            argExtractor: async function (arg, gen: GeneralSettings) {
+                return [gen.levelStats, arg.def] as const;
+            },
+        })],
+        variables: [{
+            type: "number",
+            label: "Defense/Mdef Stat",
+            property: "def",
+            integer: true,
+            min: () => 0,
+        }],
+        primaryVariable: "def",
+        makeDefaultInputs() {
+            return {def: 0};
         },
     });
 

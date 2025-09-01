@@ -17,6 +17,7 @@ import {
     autoDhitBuffDmg,
     critChance,
     critDmg,
+    defIncomingDmg,
     detDmg,
     dhitChance,
     dhitDmg,
@@ -446,6 +447,14 @@ export class ComputedSetStatsImpl implements ComputedSetStats {
     get aaDelay(): number {
         return this.weaponDelay;
     };
+
+    get defenseDamageTaken(): number {
+        return defIncomingDmg(this.levelStats, this.defensePhys);
+    };
+
+    get magicDefenseDamageTaken(): number {
+        return defIncomingDmg(this.levelStats, this.defenseMag);
+    }
 
     get effectiveFoodBonuses(): RawStats {
         return this._effectiveFoodBonuses;

@@ -373,6 +373,16 @@ export interface ComputedSetStats extends RawStats {
      */
     readonly aaDelay: number;
 
+    /**
+     * The damage taken ratio based on the defense stat. e.g. 0.95 would mean 5% damage reduction.
+     */
+    readonly defenseDamageTaken: number;
+
+    /**
+     * The damage taken ratio based on the magic defense stat. e.g. 0.95 would mean 5% damage reduction.
+     */
+    readonly magicDefenseDamageTaken: number;
+
     readonly effectiveFoodBonuses: RawStats;
 
     withModifications(modifications: StatModification, pre?: StatPreModifications): ComputedSetStats;
