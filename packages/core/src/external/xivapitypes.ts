@@ -1,7 +1,7 @@
 import {RawStatKey} from "@xivgear/xivmath/geartypes";
 
 export const RelevantBaseParams = [
-    'Strength', 'Dexterity', 'Vitality', 'Intelligence', 'Mind', 'Piety', 'HP', 'Tenacity', 'Direct Hit Rate', 'Critical Hit', 'Skill Speed', 'Spell Speed', 'Determination', 'Physical Damage', 'Magic Damage', 'Delay',
+    'Strength', 'Dexterity', 'Vitality', 'Intelligence', 'Mind', 'Piety', 'HP', 'Tenacity', 'Direct Hit Rate', 'Critical Hit', 'Skill Speed', 'Spell Speed', 'Determination', 'Physical Damage', 'Magic Damage', 'Delay', 'Defense', 'Magic Defense',
 ] as const;
 export type RelevantBaseParam = typeof RelevantBaseParams[number];
 
@@ -22,6 +22,8 @@ export const BaseParamToStatKey: Record<RelevantBaseParam, RawStatKey> = {
     Tenacity: "tenacity",
     Vitality: "vitality",
     Delay: "weaponDelay",
+    Defense: 'defensePhys',
+    "Magic Defense": 'defenseMag',
 };
 
 // Ignoring MP and doh/dol stats

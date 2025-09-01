@@ -169,6 +169,10 @@ export type Item = ItemBase &
     /** @format int32 */
     damagePhysHQ?: number;
     acquisitionSource?: GearAcquisitionSource;
+    /** @format int32 */
+    defenseMagHQ?: number;
+    /** @format int32 */
+    defensePhysHQ?: number;
   };
 
 export type ItemBase = XivApiObject &
@@ -194,6 +198,10 @@ export type ItemBase = XivApiObject &
     rarity?: number;
     /** @format int32 */
     equipLevel?: number;
+    /** @format int32 */
+    defensePhys?: number;
+    /** @format int32 */
+    defenseMag?: number;
   };
 
 export type ItemLevel = XivApiObject &

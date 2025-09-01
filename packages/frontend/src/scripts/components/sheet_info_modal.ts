@@ -24,6 +24,10 @@ export class SheetInfoModal extends BaseModal {
             const setData: AnyStringIndex = {
                 "Set Name: ": selectedGearSet.name,
                 "Average ilvl: ": flp(3, selectedGearSet.avgIlvl).toString(),
+                "Defense: ": selectedGearSet.computedStats.defensePhys.toString(),
+                "Magic Def: ": selectedGearSet.computedStats.defenseMag.toString(),
+                "Defense Inc. Dmg.: ": selectedGearSet.computedStats.defenseDamageTaken.toFixed(2),
+                "MDef Inc. Dmg.: ": selectedGearSet.computedStats.magicDefenseDamageTaken.toFixed(2),
             };
             const setTable = simpleKvTable(setData);
             this.contentArea.appendChild(quickElement('h3', [], ['Selected Set']));
