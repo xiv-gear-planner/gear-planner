@@ -10,6 +10,15 @@ export function appDelay(ability: Ability) {
     return ability.appDelay ?? STANDARD_APPLICATION_DELAY;
 }
 
+/**
+ * Returns the buff application delay of an ability (from time of snapshot to time of damage/effects applying).
+ *
+ * @param ability The ability in question
+ */
+export function buffAppDelay(ability: Ability) {
+    return ability.buffApplicationDelay ?? appDelay(ability);
+}
+
 function defaultComboData(ability: Ability, hasOtherCombos: boolean): ComboData {
     if (ability.type === 'gcd' && hasOtherCombos) {
         return {

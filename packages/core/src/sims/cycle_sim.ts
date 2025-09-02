@@ -29,7 +29,7 @@ import {
 } from "@xivgear/xivmath/xivconstants";
 import {CooldownMode, CooldownTracker} from "./common/cooldown_manager";
 import {addValues, fixedValue, multiplyFixed, multiplyIndependent, ValueWithDev} from "@xivgear/xivmath/deviation";
-import {abilityEquals, animationLock, appDelay, completeComboData, FinalizedComboData} from "./ability_helpers";
+import {abilityEquals, animationLock, appDelay, buffAppDelay, completeComboData, FinalizedComboData} from "./ability_helpers";
 import {abilityToDamageNew, combineBuffEffects, noBuffEffects} from "./sim_utils";
 import {BuffSettingsExport} from "./common/party_comp_settings";
 import {CycleSettings} from "./cycle_settings";
@@ -1129,7 +1129,8 @@ export class CycleProcessor<GaugeManagerType extends GaugeManager<unknown> = Gau
         // is the snapshot-to-application delta only, and the animation lock also needs to have the time so far
         // subtracted.
         // TODO: fix this limitation
-        const buffDelay = Math.max(0, Math.min(appDelayFromSnapshot, effectiveAnimLock - snapshotDelayFromStart));
+        const buffApplicationDelay = buffAppDelay(ability);
+        const buffDelay = Math.max(0, Math.min(buffApplicationDelay, effectiveAnimLock - snapshotDelayFromStart));
         // Activate buffs afterwards
         if (ability.activatesBuffs) {
             ability.activatesBuffs.forEach(buff => this.activateBuffWithDelay(buff, buffDelay));
