@@ -2,7 +2,9 @@ import {STANDARD_ANIMATION_LOCK, STANDARD_APPLICATION_DELAY} from "@xivgear/xivm
 import {Ability, ComboData} from "./sim_types";
 
 /**
- * Returns the application delay of an ability (from time of snapshot to time of damage/effects applying).
+ * Returns the application delay of an ability (from time of snapshot to time of damage applying).
+ * By default, if a buffApplicationDelay is not specified, this will be used for the application
+ * delay of the buffs the ability grants, too.
  *
  * @param ability The ability in question
  */
@@ -11,7 +13,7 @@ export function appDelay(ability: Ability) {
 }
 
 /**
- * Returns the buff application delay of an ability (from time of snapshot to time of damage/effects applying).
+ * Returns the buff application delay of an ability (from time of snapshot to time of effects applying).
  *
  * @param ability The ability in question
  */
