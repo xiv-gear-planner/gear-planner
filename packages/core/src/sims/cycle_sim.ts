@@ -29,7 +29,7 @@ import {
 } from "@xivgear/xivmath/xivconstants";
 import {CooldownMode, CooldownTracker} from "./common/cooldown_manager";
 import {addValues, fixedValue, multiplyFixed, multiplyIndependent, ValueWithDev} from "@xivgear/xivmath/deviation";
-import {abilityEquals, animationLock, appDelay, buffAppDelay, completeComboData, FinalizedComboData} from "./ability_helpers";
+import {abilityEquals, animationLock, damageAppDelay, buffAppDelay, completeComboData, FinalizedComboData} from "./ability_helpers";
 import {abilityToDamageNew, combineBuffEffects, noBuffEffects} from "./sim_utils";
 import {BuffSettingsExport} from "./common/party_comp_settings";
 import {CycleSettings} from "./cycle_settings";
@@ -1092,7 +1092,7 @@ export class CycleProcessor<GaugeManagerType extends GaugeManager<unknown> = Gau
         // Enough time for entire GCD
         // if (gcdFinishedAt <= this.totalTime) {
         const dmgInfo = this.modifyDamage(abilityToDamageNew(this.stats, ability, combinedEffects), ability, buffs);
-        const appDelayFromSnapshot = appDelay(ability);
+        const appDelayFromSnapshot = damageAppDelay(ability);
         const appDelayFromStart = appDelayFromSnapshot + snapshotDelayFromStart;
         const finalBuffs: Buff[] = this._simple ? [] : Array.from(new Set<Buff>([
             ...preBuffs,

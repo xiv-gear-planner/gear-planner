@@ -8,7 +8,7 @@ import {Ability, ComboData} from "./sim_types";
  *
  * @param ability The ability in question
  */
-export function appDelay(ability: Ability) {
+export function damageAppDelay(ability: Ability) {
     return ability.appDelay ?? STANDARD_APPLICATION_DELAY;
 }
 
@@ -18,7 +18,7 @@ export function appDelay(ability: Ability) {
  * @param ability The ability in question
  */
 export function buffAppDelay(ability: Ability) {
-    return ability.buffApplicationDelay ?? appDelay(ability);
+    return ability.buffApplicationDelay ?? damageAppDelay(ability);
 }
 
 function defaultComboData(ability: Ability, hasOtherCombos: boolean): ComboData {
