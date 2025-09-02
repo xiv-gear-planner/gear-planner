@@ -76,7 +76,7 @@ import {SimCurrentResult, SimResult, SimSettings, SimSpec, Simulation} from "@xi
 import {getRegisteredSimSpecs} from "@xivgear/core/sims/sim_registry";
 import {makeUrl, NavState, ONLY_SET_QUERY_PARAM} from "@xivgear/core/nav/common_nav";
 import {simMaintainersInfoElement} from "./sims";
-import {SaveAsModal} from "./new_sheet_form";
+import {ChangePropsModal, SaveAsModal} from "./new_sheet_form";
 import {DropdownActionMenu} from "./dropdown_actions_menu";
 import {CustomFoodPopup, CustomItemPopup} from "./custom_item_manager";
 import {confirmDelete} from "@xivgear/common-ui/components/delete_confirm";
@@ -1477,10 +1477,11 @@ export class GearPlanSheetGui extends GearPlanSheet {
 
         const siFmt = formatSyncInfo(this.syncInfo, this.level);
         if (siFmt !== null) {
-            const span = quickElement('span', [], [siFmt]);
-            const ilvlSyncLabel = quickElement('div', ['like-a-button', 'level-sync-info'], [span]);
-            ilvlSyncLabel.title = 'To change the item level sync, click the "Save As" button to create a new sheet with a different level/ilvl.';
-            buttonsArea.appendChild(ilvlSyncLabel);
+            const ilvlSyncBtn = makeActionButton(siFmt, () => {
+                const modal = new ChangePropsModal(this);
+                modal.attachAndShowExclusively();
+            });
+            buttonsArea.appendChild(ilvlSyncBtn);
         }
 
         if (!this.isViewOnly) {
@@ -1532,12 +1533,22 @@ export class GearPlanSheetGui extends GearPlanSheet {
         }
         else {
             sheetOptions.addAction({
-                label: 'Save As',
+                label: 'Save As...',
                 action: () => {
                     const modal = new SaveAsModal(this, newSheet => openSheetByKey(newSheet.saveKey));
                     modal.attachAndShowExclusively();
                 },
             });
+            if (this.saveKey) {
+                sheetOptions.addAction({
+                    label: 'Change Level/Job/Sync',
+                    action: () => {
+                        const modal = new ChangePropsModal(this);
+                        modal.attachAndShowExclusively();
+                    },
+                });
+
+            }
         }
 
         if (!this.isViewOnly) {
@@ -2150,6 +2161,14 @@ export class GearPlanSheetGui extends GearPlanSheet {
     set activeSpecialStat(value: SpecialStatType | null) {
         super.activeSpecialStat = value;
         this.resetEditorArea();
+    }
+
+    showChangePropertiesDialog(): void {
+        if (!this.saveKey) {
+            alert('You must save this sheet before changing its properties. Use "Save As" first.');
+            return;
+        }
+        new ChangePropsModal(this).attachAndShowExclusively();
     }
 }
 

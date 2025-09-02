@@ -187,11 +187,11 @@ export class GearPlanSheet {
     // General sheet properties
     private _sheetName: string;
     private _description: string | undefined;
-    readonly classJobName: JobName;
+    classJobName: JobName;
     readonly altJobs: JobName[];
-    readonly isMultiJob: boolean;
-    readonly level: SupportedLevel;
-    readonly ilvlSync: number | undefined;
+    isMultiJob: boolean;
+    level: SupportedLevel;
+    ilvlSync: number | undefined;
     private _race: RaceName | undefined;
     private _partyBonus: PartyBonusAmount;
     private readonly _saveKey: string | undefined;
@@ -496,6 +496,7 @@ export class GearPlanSheet {
         this.requestSave();
     }
 
+
     /**
      * The description of the sheet.
      */
@@ -507,6 +508,7 @@ export class GearPlanSheet {
         this._description = desc;
         this.requestSave();
     }
+
 
     /**
      * Copy this sheet to a new save slot.
@@ -539,6 +541,7 @@ export class GearPlanSheet {
         }
         return this.sheetManager.saveAs(exported);
     }
+
 
     exportSims(external: boolean): SimExport[] {
         return this._sims.filter(sim => !external || sim.settings.includeInExport).map(sim =>
@@ -750,7 +753,7 @@ export class GearPlanSheet {
             if (set.materiaMemory) {
                 out.materiaMemory = set.materiaMemory.export();
             }
-            if (set.jobOverride) {
+            if (this.isMultiJob && set.jobOverride) {
                 out.jobOverride = set.jobOverride;
             }
         }
