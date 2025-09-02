@@ -472,8 +472,8 @@ export const Geirskogul: DrgOgcdAbility = {
     name: "Geirskogul",
     id: 3555,
     potency: 200,
-    //appDelay: 0.67, // This is only *damage* delay, the buffs apply immediately and this is more important.
-    appDelay: 0,
+    appDelay: 0.67,
+    buffApplicationDelay: 0,
     activatesBuffs: [LifeOfTheDragon, NastrondReady],
     attackType: "Ability",
     cooldown: {

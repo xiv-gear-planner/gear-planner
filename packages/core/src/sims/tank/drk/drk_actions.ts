@@ -217,6 +217,7 @@ export const EdgeOfDarkness: DrkOgcdAbility = {
         time: 1,
     },
     appDelay: 0.62,
+    buffApplicationDelay: 0,
     activatesBuffs: [Darkside],
     updateMP: (gauge: DrkGauge) => {
         if (gauge.darkArts) {
@@ -238,6 +239,7 @@ export const EdgeOfShadow: DrkOgcdAbility = {
         time: 1,
     },
     appDelay: 0.62,
+    buffApplicationDelay: 0,
     activatesBuffs: [Darkside],
     updateMP: (gauge: DrkGauge) => {
         if (gauge.darkArts) {

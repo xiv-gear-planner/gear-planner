@@ -351,11 +351,15 @@ export type BaseAbility = Readonly<LevelModifiable<{
      */
     appDelay?: number,
     /**
+     * If specified, will override the default application delay for abilities where the buff application delay differs
+     * from the damage application delay (e.g. Darkside, Life of the Dragon, Surging Tempest).
+     */
+    buffApplicationDelay?: number,
+    /**
      * If the ability uses alternate scalings, such as Living Shadow Strength
      * scaling or using the pet action Weapon Damage multiplier.
      */
     alternativeScalings?: AlternativeScaling[],
-
     /**
      * By default, actions will be translated on the UI when language is not English.
      * You can force translation on or off via this property.
