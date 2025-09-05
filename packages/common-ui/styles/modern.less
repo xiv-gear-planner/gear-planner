@@ -192,6 +192,16 @@ body.modern {
     height: 25px;
     padding-left: 10px;
     padding-right: 10px;
+
+    &:is(select) {
+      // Don't put the padding on select elements - the dropdown arrow
+      // on the right effectively gives it padding.
+      padding-right: 0;
+    }
+
+    .svg-glyph {
+      padding-right: 3px;
+    }
   }
 
   slot-materia-popup {

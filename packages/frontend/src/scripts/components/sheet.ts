@@ -16,13 +16,13 @@ import {
 } from "@xivgear/common-ui/table/tables";
 import {GearPlanSheet, SheetProvider} from "@xivgear/core/sheet";
 import {
-    DataSelect,
+    DataSelect, editIcon, exportIcon,
     faIcon,
     FieldBoundCheckBox,
     FieldBoundDataSelect,
-    FieldBoundTextField,
+    FieldBoundTextField, importIcon,
     labeledCheckbox,
-    makeActionButton,
+    makeActionButton, newSheetIcon,
     quickElement
 } from "@xivgear/common-ui/components/util";
 import {
@@ -883,10 +883,10 @@ export class GearSetEditor extends HTMLElement {
         issuesButton.classList.add('issues-button');
 
         const buttonArea = quickElement('div', ['gear-set-editor-button-area', 'button-row'], [
-            makeActionButton('Export This Set', () => {
+            makeActionButton([exportIcon(), 'Export Set'], () => {
                 startExport(this.gearSet);
             }),
-            makeActionButton('Change Name/Description', () => {
+            makeActionButton([editIcon(), 'Edit Name/Description'], () => {
                 startRenameSet(writeProxy(this.gearSet, () => this.formatTitleDesc()));
             }),
             issuesButton,
@@ -1485,7 +1485,7 @@ export class GearPlanSheetGui extends GearPlanSheet {
         }
 
         if (!this.isViewOnly) {
-            const addRowButton = makeActionButton("New Gear Set", () => {
+            const addRowButton = makeActionButton([newSheetIcon(), "New Set"], () => {
                 const newSet = new CharacterGearSet(this);
                 newSet.name = "New Set";
                 this.addGearSet(newSet, undefined, true);
@@ -1553,17 +1553,17 @@ export class GearPlanSheetGui extends GearPlanSheet {
 
         if (!this.isViewOnly) {
 
-            const newSimButton = makeActionButton("Add Simulation", () => {
+            const newSimButton = makeActionButton([newSheetIcon(), "Add Sim"], () => {
                 this.showAddSimDialog();
             });
             buttonsArea.appendChild(newSimButton);
 
-            const exportSheetButton = makeActionButton("Export Whole Sheet", () => {
+            const exportSheetButton = makeActionButton([exportIcon(), "Export Sheet"], () => {
                 startExport(this);
             });
             buttonsArea.appendChild(exportSheetButton);
 
-            const importGearSetButton = makeActionButton("Import Sets", () => {
+            const importGearSetButton = makeActionButton([importIcon(), "Import Sets"], () => {
                 this.showImportSetsDialog();
             });
             buttonsArea.appendChild(importGearSetButton);
