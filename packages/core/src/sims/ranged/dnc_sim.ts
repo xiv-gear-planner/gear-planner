@@ -4,7 +4,7 @@ import {TechnicalFinish} from "@xivgear/core/sims/buffs";
 import {ExternalCountSettings, CountSimResult, BaseUsageCountSim, SkillCount} from "@xivgear/core/sims/processors/count_sim";
 
 export const dncDtSheetSpec: SimSpec<DncDtSim, DncDtSimSettings> = {
-    displayName: "DNC Level 100 Sim",
+    displayName: "DNC Lv100 Sim",
     loadSavedSimInstance(exported: ExternalCountSettings<DncDtSimSettings>) {
         return new DncDtSim(exported);
     },
