@@ -40,7 +40,7 @@ export interface MPSettings extends SimSettings {
 }
 
 export const mpSimSpec: SimSpec<MPPerMinute, MPSettings> = {
-    displayName: "MP per Minute",
+    displayName: "MP/Min",
     loadSavedSimInstance(exported: MPSettings) {
         return new MPPerMinute();
     },
