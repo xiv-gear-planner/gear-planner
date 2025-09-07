@@ -47,9 +47,10 @@ describe('New Datamanager', () => {
 
         deq(codexOfAscension.statCaps, {
             // Primary stats
-            strength: 416,
-            dexterity: 416,
-            intelligence: 416,
+            // The "Wrong" primary stats are reduced to 70% due to BaseParam.MeldParam
+            strength: 291,
+            dexterity: 291,
+            intelligence: 291,
             mind: 416,
 
             // Substats
