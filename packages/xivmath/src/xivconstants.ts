@@ -110,9 +110,7 @@ const STANDARD_HEALER: JobDataConst = {
     autoAttackStat: 'strength',
     irrelevantSubstats: ['skillspeed', 'tenacity'],
     traitMulti: (level, attackType) => attackType === 'Auto-attack' ? 1.0 : 1.3, // Maim and Mend II
-    itemStatCapMultipliers: {
-        'vitality': 0.90,
-    },
+    meldParamIndex: 6,
     aaPotency: MELEE_AUTO_POTENCY,
     excludedRelicSubstats: ['dhit'],
     maxLevel: CURRENT_MAX_LEVEL,
@@ -123,12 +121,13 @@ const STANDARD_TANK: JobDataConst = {
     mainStat: 'strength',
     autoAttackStat: 'strength',
     irrelevantSubstats: ['spellspeed', 'piety'],
+    meldParamIndex: 1,
     aaPotency: MELEE_AUTO_POTENCY,
     excludedRelicSubstats: ['dhit'],
     maxLevel: CURRENT_MAX_LEVEL,
 } as const;
 
-const STANDARD_MELEE: JobDataConst = {
+const STANDARD_MELEE: Omit<JobDataConst, 'meldParamIndex'> = {
     role: 'Melee',
     mainStat: 'strength',
     autoAttackStat: 'strength',
@@ -138,12 +137,30 @@ const STANDARD_MELEE: JobDataConst = {
     maxLevel: CURRENT_MAX_LEVEL,
 } as const;
 
+const MELEE_STRIKING: JobDataConst = {
+    ...STANDARD_MELEE,
+    meldParamIndex: 3,
+} as const;
+
+const MELEE_SCOUTING: JobDataConst = {
+    ...STANDARD_MELEE,
+    mainStat: 'dexterity',
+    autoAttackStat: 'dexterity',
+    meldParamIndex: 4,
+} as const;
+
+const MELEE_MAIMING: JobDataConst = {
+    ...STANDARD_MELEE,
+    meldParamIndex: 2,
+} as const;
+
 const STANDARD_RANGED: JobDataConst = {
     role: 'Ranged',
     mainStat: 'dexterity',
     autoAttackStat: 'dexterity',
     irrelevantSubstats: ['spellspeed', 'tenacity', 'piety'],
     traitMulti: (level, attackType) => attackType === 'Auto-attack' ? 1.0 : 1.2, // Increased Action Damage II
+    meldParamIndex: 4,
     aaPotency: RANGE_AUTO_POTENCY,
     excludedRelicSubstats: [],
     maxLevel: CURRENT_MAX_LEVEL,
@@ -155,9 +172,7 @@ const STANDARD_CASTER: JobDataConst = {
     autoAttackStat: 'strength',
     irrelevantSubstats: ['skillspeed', 'tenacity', 'piety'],
     traitMulti: (level, attackType) => attackType === 'Auto-attack' ? 1.0 : 1.3, // Maim and Mend II
-    itemStatCapMultipliers: {
-        'vitality': 0.90,
-    },
+    meldParamIndex: 5,
     aaPotency: MELEE_AUTO_POTENCY,
     excludedRelicSubstats: [],
     maxLevel: CURRENT_MAX_LEVEL,
@@ -206,9 +221,9 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
     DRK: STANDARD_TANK,
     GNB: STANDARD_TANK,
     // Melee
-    DRG: STANDARD_MELEE,
+    DRG: MELEE_MAIMING,
     MNK: {
-        ...STANDARD_MELEE,
+        ...MELEE_STRIKING,
         traits: [
             {
                 minLevel: 1,
@@ -255,9 +270,7 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
             }],
     },
     NIN: {
-        ...STANDARD_MELEE,
-        mainStat: "dexterity",
-        autoAttackStat: "dexterity",
+        ...MELEE_SCOUTING,
         traits: [{
             apply: stats => {
                 stats.bonusHaste.push(attackType =>
@@ -267,7 +280,7 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
         ],
     },
     SAM: {
-        ...STANDARD_MELEE,
+        ...MELEE_STRIKING,
         gcdDisplayOverrides: (level) => {
             if (level < 78) {
                 return [{
@@ -295,11 +308,9 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
             }
         },
     },
-    RPR: STANDARD_MELEE,
+    RPR: MELEE_MAIMING,
     VPR: {
-        ...STANDARD_MELEE,
-        mainStat: 'dexterity',
-        autoAttackStat: 'dexterity',
+        ...MELEE_SCOUTING,
         gcdDisplayOverrides() {
             return [{
                 shortLabel: 'GCD',

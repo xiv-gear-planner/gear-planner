@@ -521,12 +521,20 @@ export interface JobDataConst {
      * True if this class uses 1H+Offhand rather than 2H weapons
      */
     readonly offhand?: boolean;
+    // /**
+    //  * Stat cap multipliers. e.g. Healers have a 10% VIT penalty, so it would be {'Vitality': 0.90}
+    //  */
+    // readonly itemStatCapMultipliers?: {
+    //     [K in RawStatKey]?: number
+    // };
     /**
-     * Stat cap multipliers. e.g. Healers have a 10% VIT penalty, so it would be {'Vitality': 0.90}
+     * Which BaseParam.MeldParam index to use for calculating stat caps.
+     * Makes hardcoded itemStatCapMultipliers obsolete.
+     * Since these only have numeric indices with no indication of which is which, it is derived from looking at gear
+     * pieces of the same ilvl and comparing their stats across different jobs. However, there are many rows which are
+     * identical for
      */
-    readonly itemStatCapMultipliers?: {
-        [K in RawStatKey]?: number
-    };
+    readonly meldParamIndex: number;
     /**
      * Auto-attack potency amount
      */

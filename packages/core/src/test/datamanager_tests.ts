@@ -134,9 +134,20 @@ describe('New Datamanager', () => {
                 expect(item.syncedDownTo).to.eq(660);
                 expect(item.unsyncedVersion.stats.defenseMag).to.eq(758 + 84);
                 expect(item.unsyncedVersion.stats.defensePhys).to.eq(433 + 48);
-                // Cap is high enough to not matter
-                expect(item.stats.defenseMag).to.eq(758 + 84);
-                expect(item.stats.defensePhys).to.eq(433 + 48);
+                // Tested in instance
+                expect(item.stats.defenseMag).to.eq(837);
+                expect(item.stats.defensePhys).to.eq(478);
+            });
+            it('should remove all def when downsyncing accessories', () => {
+                // Dark Horse Champion's Earring of Healing
+                const item = dm.itemById(43161);
+                expect(item.isSyncedDown).to.eq(true);
+                expect(item.syncedDownTo).to.eq(665);
+                expect(item.unsyncedVersion.stats.defenseMag).to.eq(1);
+                expect(item.unsyncedVersion.stats.defensePhys).to.eq(1);
+                // Tested in instance
+                expect(item.stats.defenseMag).to.eq(0);
+                expect(item.stats.defensePhys).to.eq(0);
             });
             it('should downsync a lvl95 i666 weapon to 665', () => {
                 // Skydeep Milpreves
