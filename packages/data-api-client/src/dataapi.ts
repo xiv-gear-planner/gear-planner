@@ -60,6 +60,7 @@ export type BaseParam = XivApiObject &
     braceletPercent?: number;
     /** @format int32 */
     ringPercent?: number;
+    meldParam?: number[];
   };
 
 export interface BaseParamEndpointResponse {

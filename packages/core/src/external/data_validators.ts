@@ -62,6 +62,7 @@ export function requireArray(input: unknown): any[] {
     }
 }
 
+// hate this
 export function requireArrayTyped<T extends BuiltinType>(input: unknown, memberType: T):
     T extends 'string' ? string[] :
         T extends 'number' ? number[] :
