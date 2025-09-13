@@ -17,11 +17,17 @@
   flex-direction: column;
   row-gap: 10px;
   width: calc(100% - 50px) !important;
-  max-width: 700px !important;
+  max-width: 800px !important;
   overflow-y: auto;
   scrollbar-width: none;
   show-hide-button {
     position: absolute;
+  }
+  .show-hide-formula-header {
+    cursor: pointer;
+    &:hover {
+      background-color: var(--input-hover-background-color);
+    }
   }
   .formula-selector-area {
     button {
