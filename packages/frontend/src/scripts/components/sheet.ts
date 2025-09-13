@@ -16,13 +16,17 @@ import {
 } from "@xivgear/common-ui/table/tables";
 import {GearPlanSheet, SheetProvider} from "@xivgear/core/sheet";
 import {
-    DataSelect, editIcon, exportIcon,
+    DataSelect,
+    editIcon,
+    exportIcon,
     faIcon,
     FieldBoundCheckBox,
     FieldBoundDataSelect,
-    FieldBoundTextField, importIcon,
+    FieldBoundTextField,
+    importIcon,
     labeledCheckbox,
-    makeActionButton, newSheetIcon,
+    makeActionButton,
+    newSheetIcon,
     quickElement
 } from "@xivgear/common-ui/components/util";
 import {
@@ -94,6 +98,7 @@ import {FramelessJobIcon, JobIcon} from "./job_icon";
 import {setDataManagerErrorReporter} from "@xivgear/core/data_api_client";
 import {SpecialStatType} from "@xivgear/data-api-client/dataapi";
 import {SHEET_MANAGER} from "./saved_sheet_impl";
+import {cleanUrl} from "@xivgear/common-ui/nav/common_frontend_nav";
 
 const noSeparators = (set: CharacterGearSet) => !set.isSeparator;
 
@@ -2145,7 +2150,7 @@ export class GearPlanSheetGui extends GearPlanSheet {
                 if (existingUrl.origin === sheetUrl.origin
                     && existingUrl.pathname === sheetUrl.pathname) {
                     e.preventDefault();
-                    history.pushState(null, null, sheetUrl);
+                    history.pushState(null, null, cleanUrl(sheetUrl));
                     processNav();
                 }
             });
