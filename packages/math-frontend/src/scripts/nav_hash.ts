@@ -3,6 +3,12 @@ import {CALC_HASH, HASH_QUERY_PARAM, PATH_SEPARATOR, splitPath} from "@xivgear/c
 import {formatTopMenu} from "./base_ui";
 import {openMath} from "./mathpage/math_ui";
 import {arrayEq} from "@xivgear/util/array_utils";
+import {
+    cleanUrl,
+    cleanUrlParams,
+    getQueryParams,
+    manipulateUrlParams
+} from "@xivgear/common-ui/nav/common_frontend_nav";
 
 let expectedHash: string[] | undefined = undefined;
 
@@ -67,20 +73,6 @@ async function doNav(pathParts: string[]) {
     }
     console.error("I don't know what to do with this path", pathParts);
     // TODO: handle remaining invalid cases
-}
-
-function getQueryParams(): URLSearchParams {
-    return new URLSearchParams(location.search);
-}
-
-function manipulateUrlParams(action: (params: URLSearchParams) => void) {
-    const params = getQueryParams();
-    const before = params.toString();
-    action(params);
-    const after = params.toString();
-    if (before !== after) {
-        history.pushState(null, "", '?' + params.toString());
-    }
 }
 
 /**

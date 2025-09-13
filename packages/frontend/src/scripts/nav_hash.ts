@@ -29,6 +29,7 @@ import {
 } from "./base_ui";
 import {recordError} from "@xivgear/common-ui/analytics/analytics";
 import {BisBrowser} from "./components/bis_browser";
+import {cleanUrlParams, getQueryParams, manipulateUrlParams} from "@xivgear/common-ui/nav/common_frontend_nav";
 
 // let expectedHash: string[] | undefined = undefined;
 
@@ -85,7 +86,7 @@ export async function processHashLegacy() {
  */
 export async function processNav() {
     // Rewrite %7C to | in-place
-    window.history.replaceState(null, "", document.location.toString().replaceAll("%7C", "|"));
+    window.history.replaceState(null, "", cleanUrlParams(document.location.search));
     // Remove the literal #
     // let hash = splitHash(location.hash);
     const qp = getQueryParams();
@@ -233,29 +234,6 @@ async function doNav(navState: NavState) {
     showFatalError("This does not seem to be a valid page");
 }
 
-/**
- * Get the query params of the current page.
- */
-function getQueryParams(): URLSearchParams {
-    return new URLSearchParams(location.search);
-}
-
-/**
- * Apply a function to the current URL query parameters, then push the modified parameters onto the history.
- * This does not perform navigation on its own. This function is rarely called on its own. It is called as part of
- * {@link #setNav} or {@link #goNav}.
- *
- * @param action The modifications to apply.
- */
-function manipulateUrlParams(action: (params: URLSearchParams) => void) {
-    const params = getQueryParams();
-    const before = params.toString();
-    action(params);
-    const after = params.toString();
-    if (before !== after) {
-        history.pushState(null, null, '?' + params.toString());
-    }
-}
 
 /**
  * Like {@link #setNav}, but takes only the ?page path parts.
@@ -288,8 +266,6 @@ export function setNav(newState: NavState) {
     expectedState = newState;
     console.log("New hash parts", hashParts);
     const hash = hashParts.map(part => encodeURIComponent(part)).join(PATH_SEPARATOR);
-    // location.hash = '#' + hashParts.map(part => '/' + encodeURIComponent(part)).join('');
-    // console.log(location.hash);
     manipulateUrlParams(params => params.set(HASH_QUERY_PARAM, hash));
     // TODO: there are redundant calls to this
     formatTopMenu(newState);
