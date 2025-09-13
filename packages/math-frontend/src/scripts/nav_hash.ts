@@ -3,12 +3,7 @@ import {CALC_HASH, HASH_QUERY_PARAM, PATH_SEPARATOR, splitPath} from "@xivgear/c
 import {formatTopMenu} from "./base_ui";
 import {openMath} from "./mathpage/math_ui";
 import {arrayEq} from "@xivgear/util/array_utils";
-import {
-    cleanUrl,
-    cleanUrlParams,
-    getQueryParams,
-    manipulateUrlParams
-} from "@xivgear/common-ui/nav/common_frontend_nav";
+import {getQueryParams, manipulateUrlParams} from "@xivgear/common-ui/nav/common_frontend_nav";
 
 let expectedHash: string[] | undefined = undefined;
 
