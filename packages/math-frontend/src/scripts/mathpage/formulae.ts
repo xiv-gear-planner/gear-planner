@@ -27,16 +27,17 @@ import {Func, GeneralSettings, MathFormula, registerFormula} from "./math_main";
 import {DataManager, makeDataManager} from "@xivgear/core/datamanager";
 import {JobData, LevelStats} from "@xivgear/xivmath/geartypes";
 
-type SksSettings = {
+type BaseSpeedSettings = {
     baseGcd: number,
-    sks: number,
     haste: number
 }
 
-type SpsSettings = {
-    baseGcd: number,
+type SksSettings = BaseSpeedSettings & {
+    sks: number,
+}
+
+type SpsSettings = BaseSpeedSettings & {
     sps: number,
-    haste: number
 }
 
 const baseGcdVar = {
@@ -283,6 +284,7 @@ export function registerFormulae() {
             formula({
                 name: 'DoT Multi',
                 fn: sksTickMulti,
+                hideableColumn: true,
                 argExtractor: async function (args, gen) {
                     return [gen.levelStats, args.sks] as const;
                 },
@@ -323,6 +325,7 @@ export function registerFormulae() {
             }),
             formula({
                 name: 'DoT Multi',
+                hideableColumn: true,
                 fn: spsTickMulti,
                 argExtractor: async function (args, gen) {
                     return [gen.levelStats, args.sps] as const;
@@ -343,6 +346,66 @@ export function registerFormulae() {
         makeDefaultInputs: (gen: GeneralSettings) => {
             return {
                 baseGcd: 2.5,
+                sps: gen.levelStats.baseSubStat,
+                haste: 0,
+            };
+        },
+    });
+
+    registerFormula<SpsSettings & {
+        secondaryGcd: number,
+    }>({
+        stub: 'gcd-comp',
+        name: 'GCD Comparison',
+        primaryVariable: 'sps',
+        functions: [
+            formula({
+                name: 'GCD 1',
+                fn: spsToGcd,
+                argExtractor: async function (args, gen) {
+                    return [args.baseGcd, gen.levelStats, args.sps, args.haste] as const;
+                },
+            }),
+            formula({
+                name: 'GCD 2',
+                excludeFormula: true,
+                fn: spsToGcd,
+                argExtractor: async function (args, gen) {
+                    return [args.secondaryGcd, gen.levelStats, args.sps, args.haste] as const;
+                },
+            }),
+            formula({
+                name: 'DoT Multi',
+                hideableColumn: true,
+                fn: spsTickMulti,
+                argExtractor: async function (args, gen) {
+                    return [gen.levelStats, args.sps] as const;
+                },
+            }),
+        ],
+        variables: [
+            {
+                ...baseGcdVar,
+                label: 'Base GCD 1',
+            },
+            {
+                ...baseGcdVar,
+                property: 'secondaryGcd',
+                label: 'Base GCD 2',
+            },
+            {
+                type: "number",
+                label: "SpS/SkS",
+                property: "sps",
+                integer: true,
+                min: baseSub,
+            },
+            hasteVar,
+        ],
+        makeDefaultInputs: (gen: GeneralSettings) => {
+            return {
+                baseGcd: 2.5,
+                secondaryGcd: 2.0,
                 sps: gen.levelStats.baseSubStat,
                 haste: 0,
             };

@@ -21,6 +21,11 @@ export type MathFormula<AllArgType, FuncType extends Func> = {
     argExtractor(arg: AllArgType, gen: GeneralSettings): Promise<Parameters<FuncType>>;
     // makeResultsDisplay: (result: ReturnType<FuncType>) => Element;
     excludeFormula?: boolean;
+    /**
+     * If true, the output column for this formula can be hidden by the user via the UI.
+     * If omitted or false, the column is always shown (unless excludeFormula is true).
+     */
+    hideableColumn?: boolean;
 }
 
 export type Variable<AllArgType extends object> =
