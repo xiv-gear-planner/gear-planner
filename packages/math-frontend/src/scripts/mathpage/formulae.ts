@@ -354,6 +354,7 @@ export function registerFormulae() {
 
     registerFormula<SpsSettings & {
         secondaryGcd: number,
+        secondaryHaste: number,
     }>({
         stub: 'gcd-comp',
         name: 'GCD Comparison',
@@ -371,7 +372,7 @@ export function registerFormulae() {
                 excludeFormula: true,
                 fn: spsToGcd,
                 argExtractor: async function (args, gen) {
-                    return [args.secondaryGcd, gen.levelStats, args.sps, args.haste] as const;
+                    return [args.secondaryGcd, gen.levelStats, args.sps, args.secondaryHaste] as const;
                 },
             }),
             formula({
@@ -400,7 +401,15 @@ export function registerFormulae() {
                 integer: true,
                 min: baseSub,
             },
-            hasteVar,
+            {
+                ...hasteVar,
+                label: 'Haste 1',
+            },
+            {
+                ...hasteVar,
+                property: 'secondaryHaste',
+                label: 'Haste 2',
+            },
         ],
         makeDefaultInputs: (gen: GeneralSettings) => {
             return {
@@ -408,6 +417,7 @@ export function registerFormulae() {
                 secondaryGcd: 2.0,
                 sps: gen.levelStats.baseSubStat,
                 haste: 0,
+                secondaryHaste: 0,
             };
         },
     });
