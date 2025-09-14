@@ -190,7 +190,7 @@ export class MathArea extends HTMLElement {
             }
         });
 
-        const formulaHeader = quickElement('h3', [], ['Show/Hide Formulae', showHide]);
+        const formulaHeader = quickElement('h3', ['show-hide-formula-header'], ['Show/Hide Formulae', showHide]);
         formulaHeader.addEventListener('click', ev => {
             showHide.toggle();
         });

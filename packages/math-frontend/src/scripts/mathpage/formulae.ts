@@ -1,11 +1,14 @@
 import {
     autoAttackModifier,
+    autoCritBuffDmg,
     autoDhitBonusDmg,
     critChance,
-    critDmg, defIncomingDmg,
+    critDmg,
+    defIncomingDmg,
     detDmg,
     dhitChance,
     dhitDmg,
+    flp,
     hpScalar,
     mainStatMulti,
     mainStatPowerMod,
@@ -110,8 +113,8 @@ export function registerFormulae() {
         primaryVariable:
             "mainstat",
         makeDefaultInputs(generalSettings
-                              :
-                              GeneralSettings
+                          :
+                          GeneralSettings
         ) {
             return {mainstat: generalSettings.levelStats.baseMainStat};
         }
@@ -376,6 +379,65 @@ export function registerFormulae() {
             property: "crit",
             integer: true,
             min: baseSub,
+        }],
+    });
+
+    registerFormula<{
+        crit: number,
+        bonusPct: number,
+    }>({
+        name: "Bonus/Auto Crit",
+        stub: "autocrit",
+        functions: [
+            formula({
+                name: "Buffed Crit Chance",
+                excludeFormula: true,
+                fn: (critChance: number, bonusCritChance: number) => flp(3, critChance + bonusCritChance),
+                argExtractor: async function (arg, gen: GeneralSettings) {
+                    return [
+                        critChance(gen.levelStats, arg.crit),
+                        flp(2, arg.bonusPct / 100),
+                    ] as const;
+                },
+            }),
+            formula({
+                name: "Autocrit Extra Multi",
+                fn: autoCritBuffDmg,
+                argExtractor: async function (arg, gen: GeneralSettings) {
+                    const cmult = critDmg(gen.levelStats, arg.crit);
+                    return [cmult, flp(2, arg.bonusPct / 100)] as const;
+                },
+            }),
+            formula({
+                name: "Autocrit Total Multi",
+                fn: (cm: number, bcm: number) => flp(5, cm * bcm),
+                excludeFormula: true,
+                argExtractor: async function (arg, gen: GeneralSettings) {
+                    const cmult = critDmg(gen.levelStats, arg.crit);
+                    return [cmult, autoCritBuffDmg(cmult, arg.bonusPct / 100)] as const;
+                },
+            }),
+        ],
+        makeDefaultInputs: (gen) => {
+            return {
+                crit: gen.levelStats.baseSubStat,
+                bonusPct: 10,
+            };
+        },
+        primaryVariable: 'crit',
+        variables: [{
+            type: "number",
+            label: "Crit Stat",
+            property: "crit",
+            integer: true,
+            min: baseSub,
+        }, {
+            type: "number",
+            label: "Crit % Buff",
+            property: "bonusPct",
+            integer: true,
+            min: () => 0,
+            max: () => 100,
         }],
     });
 
