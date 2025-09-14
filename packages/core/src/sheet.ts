@@ -262,7 +262,7 @@ export class GearPlanSheet {
             Object.assign(this._itemDisplaySettings, importedData.itemDisplaySettings);
         }
         else {
-            const defaults = getDefaultDisplaySettings(this.level, this.classJobName);
+            const defaults = getDefaultDisplaySettings(this.level, this.classJobName, this.ilvlSync);
             Object.assign(this._itemDisplaySettings, defaults);
             // TODO: investigate if this logic is worth doing
             // if (this.ilvlSync) {
