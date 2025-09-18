@@ -99,13 +99,9 @@ import {setDataManagerErrorReporter} from "@xivgear/core/data_api_client";
 import {SpecialStatType} from "@xivgear/data-api-client/dataapi";
 import {SHEET_MANAGER} from "./saved_sheet_impl";
 import {cleanUrl} from "@xivgear/common-ui/nav/common_frontend_nav";
+import {isSafari} from "@xivgear/common-ui/util/detect_safari";
 
 const noSeparators = (set: CharacterGearSet) => !set.isSeparator;
-
-const isSafari: boolean = (() => {
-    const ua = navigator.userAgent.toLowerCase();
-    return ua.includes('safari') && !ua.includes('chrome');
-})();
 
 // Set up error reporting for DataManager
 setDataManagerErrorReporter((response, params) => {
