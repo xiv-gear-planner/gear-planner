@@ -32,7 +32,7 @@ import {
 import {
     ChanceStat,
     ComputedSetStats,
-    DisplayGearSlotInfo, DisplayGearSlotKey,
+    DisplayGearSlotKey,
     EquipSlotKey,
     EquipSlots,
     GearItem,
@@ -100,6 +100,7 @@ import {SpecialStatType} from "@xivgear/data-api-client/dataapi";
 import {SHEET_MANAGER} from "./saved_sheet_impl";
 import {cleanUrl} from "@xivgear/common-ui/nav/common_frontend_nav";
 import {isSafari} from "@xivgear/common-ui/util/detect_safari";
+import {getNextPopoutContext, isPopout} from "../popout";
 
 const noSeparators = (set: CharacterGearSet) => !set.isSeparator;
 
@@ -821,7 +822,7 @@ function stringToParagraphs(text: string): HTMLParagraphElement[] {
  * The set editor portion. Includes the tab as well as controls for the set name and such.
  */
 export class GearSetEditor extends HTMLElement {
-    private readonly sheet: GearPlanSheet;
+    private readonly sheet: GearPlanSheetGui;
     private readonly gearSet: CharacterGearSet;
     private gearTables: GearItemsTable[] = [];
     private header: HTMLHeadingElement;
@@ -829,7 +830,7 @@ export class GearSetEditor extends HTMLElement {
     private issuesButtonContent: HTMLSpanElement;
     private foodTable: FoodItemsTable;
 
-    constructor(sheet: GearPlanSheet, gearSet: CharacterGearSet) {
+    constructor(sheet: GearPlanSheetGui, gearSet: CharacterGearSet) {
         super();
         this.sheet = sheet;
         this.gearSet = gearSet;
@@ -890,15 +891,12 @@ export class GearSetEditor extends HTMLElement {
             makeActionButton([editIcon(), 'Edit Name/Description'], () => {
                 startRenameSet(writeProxy(this.gearSet, () => this.formatTitleDesc()));
             }),
-            makeActionButton([exportIcon(), 'Popout Editor'], () => {
-                const url = makeUrlSimple(POPUP_HASH, this.sheet.sets.indexOf(this.gearSet).toString());
-                // dev experience - disable JetBrains auto-reload since it will result in a non-working popup
-                url.searchParams.delete('_ij_reload');
-                const popup = window.open(url, "Editor", "popout,width=1024,height=768");
-                popup.parentSheet = this.sheet;
+            isPopout() ? null : makeActionButton([exportIcon(), 'Popout Editor'], () => {
+                const sheetAny = this.sheet;
+                sheetAny.openPopoutForSet(this.gearSet);
             }),
             issuesButton,
-        ]);
+        ].filter(x => x !== null));
         if (this.sheet.isMultiJob) {
             buttonArea.prepend(new DataSelect(
                 this.sheet.allJobs,
@@ -1291,6 +1289,8 @@ export class GearPlanSheetElement extends HTMLElement {
 export class GearPlanSheetGui extends GearPlanSheet {
 
     protected _materiaAutoFillController: MateriaAutoFillController;
+    // Track open popout windows per gear set
+    private _openSetPopouts: Map<CharacterGearSet, Window> = new Map();
     private gearUpdateTimer: Inactivitytimer;
     private _sheetSetupDone: boolean = false;
     private readonly element: GearPlanSheetElement;
@@ -2020,10 +2020,75 @@ export class GearPlanSheetGui extends GearPlanSheet {
     }
 
     delGearSet(gearSet: CharacterGearSet) {
+        // Close any open popout for this set before deleting it
+        this.closePopoutForSet(gearSet);
         super.delGearSet(gearSet);
         if (this._gearPlanTable) {
             this._gearPlanTable.dataChanged();
             this._gearPlanTable.reprocessAllSimColColors();
+        }
+    }
+
+    /**
+     * Open or focus a popout window for the specified gear set.
+     */
+    openPopoutForSet(set: CharacterGearSet) {
+        const index = this.sets.indexOf(set);
+        if (index < 0) {
+            return;
+        }
+        const existing = this._openSetPopouts.get(set);
+        if (existing && !existing.closed) {
+            try {
+                existing.focus();
+            }
+            catch (e) {
+                // ignore
+            }
+            return;
+        }
+        const url = makeUrlSimple(POPUP_HASH, index.toString());
+        url.searchParams.delete('_ij_reload');
+        const popup = window.open(url, getNextPopoutContext(), "popout,width=1024,height=768");
+        if (!popup) {
+            alert('Failed to pop out editor. Your browser may be blocking popups.');
+            return;
+        }
+        (popup as any).parentSheet = this;
+        this._openSetPopouts.set(set, popup);
+        // Cleanup when popup closes
+        const interval = window.setInterval(() => {
+            if (popup.closed) {
+                window.clearInterval(interval);
+                this._openSetPopouts.delete(set);
+            }
+        }, 1000);
+        try {
+            popup.addEventListener('beforeunload', () => {
+                window.clearInterval(interval);
+                this._openSetPopouts.delete(set);
+            });
+        }
+        catch (e) {
+            // Some browsers may not allow adding listeners across windows; rely on polling
+        }
+    }
+
+    /**
+     * Close an open popout for the specified set, if present.
+     */
+    closePopoutForSet(set: CharacterGearSet) {
+        const w = this._openSetPopouts.get(set);
+        if (w) {
+            try {
+                if (!w.closed) {
+                    w.close();
+                }
+            }
+            catch (e) {
+                // ignore
+            }
+            this._openSetPopouts.delete(set);
         }
     }
 

@@ -1,9 +1,8 @@
-import {GearPlanSheet} from "@xivgear/core/sheet";
-import {GearSetEditor, GearSetViewer} from "./sheet";
+import {GearPlanSheetGui, GearSetEditor, GearSetViewer} from "./sheet";
 import {quickElement} from "@xivgear/common-ui/components/util";
 
 export class PopoutEditor extends HTMLElement {
-    constructor(sheet: GearPlanSheet, index: number) {
+    constructor(sheet: GearPlanSheetGui, index: number) {
         super();
         const set = sheet.sets[index];
         const readonly = sheet.isViewOnly;

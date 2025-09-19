@@ -99,24 +99,24 @@ body.popout-view {
     }
   }
 
-  @media (width <= 1100px) {
-    .col-zero-stat {
-      display: none;
-    }
-
-    .stat-cell, .stat-cell-header {
-      padding: 0;
-      opacity: 75%;
-    }
-
-    table {
-
-      slot-materia-manager {
-        font-size: small;
-        width: 75px;
-      }
-    }
-  }
+  //@media (width <= 1100px) {
+  //  .col-zero-stat {
+  //    display: none;
+  //  }
+  //
+  //  .stat-cell, .stat-cell-header {
+  //    padding: 0;
+  //    opacity: 75%;
+  //  }
+  //
+  //  table {
+  //
+  //    slot-materia-manager {
+  //      font-size: small;
+  //      width: 75px;
+  //    }
+  //  }
+  //}
 
   @media (width < 500px) {
 
@@ -128,12 +128,12 @@ body.popout-view {
     max-height: 125vh;
 
 
-    gear-set-viewer {
+    gear-set-viewer, gear-set-editor {
       padding: 0;
       // This gets capped to 100% width anyway
       --item-table-max-width: 800px;
 
-      table.gear-items-table, table.food-view-table {
+      table.gear-items-table, table.food-items-table {
         border-radius: 0;
       }
     }

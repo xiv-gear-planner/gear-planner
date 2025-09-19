@@ -24,7 +24,6 @@ import {quickElement} from "@xivgear/common-ui/components/util";
 import {ACCOUNT_STATE_TRACKER} from "./account/account_state";
 import {SHEET_MANAGER} from "./components/saved_sheet_impl";
 import {USER_DATA_SYNCER} from "./account/user_data";
-import {GearPlanSheet} from "@xivgear/core/sheet";
 
 declare global {
     interface Document {
@@ -35,7 +34,7 @@ declare global {
     interface Window {
         currentSheet?: GearPlanSheetGui;
         currentGearSet?: CharacterGearSet;
-        parentSheet?: GearPlanSheet;
+        parentSheet?: GearPlanSheetGui;
     }
 }
 const pageTitle = 'XivGear - FFXIV Gear Planner';
