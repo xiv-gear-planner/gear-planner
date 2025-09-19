@@ -10,8 +10,8 @@ import {
     SupportedLevel
 } from "@xivgear/xivmath/xivconstants";
 import {
-    DisplayGearSlot,
     DisplayGearSlotInfo,
+    DisplayGearSlotMapping,
     DisplayGearSlotKey,
     FoodItem,
     GearAcquisitionSource,
@@ -435,7 +435,7 @@ export class DataApiGearInfo implements GearItem {
     readonly iconUrl: URL;
     readonly equipLvl: number;
     readonly ilvl: number;
-    readonly displayGearSlot: DisplayGearSlot;
+    readonly displayGearSlot: DisplayGearSlotInfo;
     readonly displayGearSlotName: DisplayGearSlotKey;
     readonly occGearSlotName: OccGearSlotKey;
     // Base stats, including caps
@@ -534,7 +534,7 @@ export class DataApiGearInfo implements GearItem {
         else {
             console.error("Unknown slot data!", eqs);
         }
-        this.displayGearSlot = this.displayGearSlotName ? DisplayGearSlotInfo[this.displayGearSlotName] : undefined;
+        this.displayGearSlot = this.displayGearSlotName ? DisplayGearSlotMapping[this.displayGearSlotName] : undefined;
         const weaponDelayRaw = (data.delayMs);
         this.baseStats = new RawStats();
         this.baseStats.wdPhys = forceNq ? data.damagePhys : data.damagePhysHQ;
@@ -576,7 +576,7 @@ export class DataApiGearInfo implements GearItem {
         if (baseMatCount === 0) {
             // If there are no materia slots, then it might be a custom relic
             // TODO: is this branch still needed?
-            if (this.displayGearSlot !== DisplayGearSlotInfo.OffHand) {
+            if (this.displayGearSlot !== DisplayGearSlotMapping.OffHand) {
                 // Offhands never have materia slots
                 this.isCustomRelic = true;
             }

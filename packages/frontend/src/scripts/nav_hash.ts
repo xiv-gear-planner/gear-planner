@@ -30,6 +30,9 @@ import {
 import {recordError} from "@xivgear/common-ui/analytics/analytics";
 import {BisBrowser} from "./components/bis_browser";
 import {cleanUrlParams, getQueryParams, manipulateUrlParams} from "@xivgear/common-ui/nav/common_frontend_nav";
+import {GearSetEditor} from "./components/sheet";
+import {PopoutEditor} from "./components/popout_editor";
+import {openPopout} from "./popout";
 
 // let expectedHash: string[] | undefined = undefined;
 
@@ -220,6 +223,13 @@ async function doNav(navState: NavState) {
                     console.error(e);
                     showFatalError('Error Loading BiS Index');
                 }
+                return;
+            }
+            case 'popup': {
+                // TODO: validate not null
+                const sheet = window.parentSheet;
+                const editor = new PopoutEditor(sheet, nav.index);
+                openPopout(editor);
                 return;
             }
         }

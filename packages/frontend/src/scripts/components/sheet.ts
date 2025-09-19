@@ -32,7 +32,7 @@ import {
 import {
     ChanceStat,
     ComputedSetStats,
-    DisplayGearSlot,
+    DisplayGearSlotInfo, DisplayGearSlotKey,
     EquipSlotKey,
     EquipSlots,
     GearItem,
@@ -78,7 +78,7 @@ import {simpleKvTable} from "../sims/components/simple_tables";
 import {rangeInc} from "@xivgear/util/array_utils";
 import {SimCurrentResult, SimResult, SimSettings, SimSpec, Simulation} from "@xivgear/core/sims/sim_types";
 import {getRegisteredSimSpecs} from "@xivgear/core/sims/sim_registry";
-import {makeUrl, NavState, ONLY_SET_QUERY_PARAM} from "@xivgear/core/nav/common_nav";
+import {makeUrl, makeUrlSimple, NavState, ONLY_SET_QUERY_PARAM, POPUP_HASH} from "@xivgear/core/nav/common_nav";
 import {simMaintainersInfoElement} from "./sims";
 import {ChangePropsModal, SaveAsModal} from "./new_sheet_form";
 import {DropdownActionMenu} from "./dropdown_actions_menu";
@@ -890,6 +890,13 @@ export class GearSetEditor extends HTMLElement {
             makeActionButton([editIcon(), 'Edit Name/Description'], () => {
                 startRenameSet(writeProxy(this.gearSet, () => this.formatTitleDesc()));
             }),
+            makeActionButton([exportIcon(), 'Popout Editor'], () => {
+                const url = makeUrlSimple(POPUP_HASH, this.sheet.sets.indexOf(this.gearSet).toString());
+                // dev experience - disable JetBrains auto-reload since it will result in a non-working popup
+                url.searchParams.delete('_ij_reload');
+                const popup = window.open(url, "Editor", "popout,width=1024,height=768");
+                popup.parentSheet = this.sheet;
+            }),
             issuesButton,
         ]);
         if (this.sheet.isMultiJob) {
@@ -906,11 +913,11 @@ export class GearSetEditor extends HTMLElement {
         // Put items in categories by slot
         // Not enough to just use the items, because rings can be in either ring slot, so we
         // need options to reflect that.
-        const itemMapping: Map<DisplayGearSlot, GearItem[]> = new Map();
+        const itemMapping: Map<DisplayGearSlotKey, GearItem[]> = new Map();
         this.sheet.itemsForDisplay
             .filter(item => item.usableByJob(this.gearSet.job))
             .forEach((item) => {
-                const slot = item.displayGearSlot;
+                const slot = item.displayGearSlotName;
                 if (itemMapping.has(slot)) {
                     itemMapping.get(slot).push(item);
                 }
