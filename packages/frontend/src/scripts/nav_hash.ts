@@ -30,7 +30,6 @@ import {
 import {recordError} from "@xivgear/common-ui/analytics/analytics";
 import {BisBrowser} from "./components/bis_browser";
 import {cleanUrlParams, getQueryParams, manipulateUrlParams} from "@xivgear/common-ui/nav/common_frontend_nav";
-import {GearSetEditor} from "./components/sheet";
 import {PopoutEditor} from "./components/popout_editor";
 import {openPopout} from "./popout";
 
