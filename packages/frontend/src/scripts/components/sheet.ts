@@ -100,6 +100,7 @@ import {SpecialStatType} from "@xivgear/data-api-client/dataapi";
 import {SHEET_MANAGER} from "./saved_sheet_impl";
 import {cleanUrl} from "@xivgear/common-ui/nav/common_frontend_nav";
 import {isSafari} from "@xivgear/common-ui/util/detect_safari";
+import {DISPLAY_SETTINGS} from "@xivgear/common-ui/settings/display_settings";
 
 const noSeparators = (set: CharacterGearSet) => !set.isSeparator;
 

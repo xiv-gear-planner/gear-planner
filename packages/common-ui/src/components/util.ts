@@ -599,6 +599,26 @@ export function quickElement<X extends keyof HTMLElementTagNameMap>(tag: X, clas
     return element;
 }
 
+export type ElOpts<X extends keyof HTMLElementTagNameMap> = {
+    classes?: string[];
+    id?: string;
+    props?: Partial<HTMLElementTagNameMap[X]>;
+};
+
+export function el<X extends keyof HTMLElementTagNameMap>(tag: X, opts: ElOpts<X> = {}, nodes: Parameters<ParentNode['replaceChildren']> = []) {
+    const classes = opts.classes ?? [];
+    const out = quickElement(tag, classes, nodes);
+    if (opts.id) {
+        out.id = opts.id;
+    }
+    if (opts.props) {
+        for (const [key, value] of Object.entries(opts.props)) {
+            out[key as keyof typeof out] = value;
+        }
+    }
+    return out;
+}
+
 function makePath(pathD: string) {
     const path = document.createElementNS("http://www.w3.org/2000/svg", 'path');
     path.setAttribute('d', pathD);
