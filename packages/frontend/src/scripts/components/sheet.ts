@@ -1447,7 +1447,29 @@ export class GearPlanSheetGui extends GearPlanSheet {
                         this.setupEditorArea(new GearSetViewer(this, item));
                     }
                     else {
-                        this.setupEditorArea(new GearSetEditor(this, item));
+                        const existing = this._openSetPopouts.get(item);
+                        if (existing && !existing.closed) {
+                            const header = document.createElement('h3');
+                            header.textContent = `${item.name} editor is open in a popout`;
+                            const focusBtn = makeActionButton('Focus Popout', () => {
+                                try {
+                                    existing.focus();
+                                }
+                                catch (e) {
+                                    // ignore
+                                }
+                            });
+                            const closeBtn = makeActionButton('Close Popout', () => {
+                                this.closePopoutForSet(item);
+                                this.refreshGearEditor(item);
+                            });
+                            const btnArea = quickElement('div', ['gear-set-editor-button-area', 'button-row'], [focusBtn, closeBtn]);
+                            const wrapper = quickElement('div', ['gear-set-popout-open-placeholder'], [header, btnArea]);
+                            this.setupEditorArea(wrapper);
+                        }
+                        else {
+                            this.setupEditorArea(new GearSetEditor(this, item));
+                        }
                     }
                 }
                 this.refreshToolbar();
@@ -2049,24 +2071,34 @@ export class GearPlanSheetGui extends GearPlanSheet {
         }
         const url = makeUrlSimple(POPUP_HASH, index.toString());
         url.searchParams.delete('_ij_reload');
-        const popup = window.open(url, getNextPopoutContext(), "popout,width=1024,height=768");
+        const popup = window.open(url, getNextPopoutContext(), "popout,location=false,toolbar=false,status=false,width=1024,height=768");
         if (!popup) {
             alert('Failed to pop out editor. Your browser may be blocking popups.');
             return;
         }
         (popup as any).parentSheet = this;
         this._openSetPopouts.set(set, popup);
+        // Immediately swap editor area to the placeholder if this set is currently selected
+        if (this._editorItem === set) {
+            this.refreshGearEditor(set);
+        }
         // Cleanup when popup closes
         const interval = window.setInterval(() => {
             if (popup.closed) {
                 window.clearInterval(interval);
                 this._openSetPopouts.delete(set);
+                if (this._editorItem === set) {
+                    this.refreshGearEditor(set);
+                }
             }
         }, 1000);
         try {
             popup.addEventListener('beforeunload', () => {
                 window.clearInterval(interval);
                 this._openSetPopouts.delete(set);
+                if (this._editorItem === set) {
+                    this.refreshGearEditor(set);
+                }
             });
         }
         catch (e) {
