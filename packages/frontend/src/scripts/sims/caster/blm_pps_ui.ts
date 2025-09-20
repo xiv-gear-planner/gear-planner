@@ -1,10 +1,10 @@
-import {FieldBoundCheckBox, labeledCheckbox} from "@xivgear/common-ui/components/util";
+import {FieldBoundCheckBox, FieldBoundIntField, labeledCheckbox, labeledComponent} from "@xivgear/common-ui/components/util";
 import {SimulationGui} from "../simulation_gui";
 import {NamedSection} from "../../components/section";
 import {simpleKvTable} from "../components/simple_tables";
 import {BlmPpsResult, BlmPpsSettings, BlmPpsSettingsExternal} from "@xivgear/core/sims/caster/blm/blm_pps_sim";
 import {AnyStringIndex} from "@xivgear/util/util_types";
-//import {applyStdDev} from "@xivgear/xivmath/deviation";
+import {applyStdDev} from "@xivgear/xivmath/deviation";
 
 export class BlmPpsGui extends SimulationGui<BlmPpsResult, BlmPpsSettings, BlmPpsSettingsExternal> {
 
@@ -12,10 +12,10 @@ export class BlmPpsGui extends SimulationGui<BlmPpsResult, BlmPpsSettings, BlmPp
         // noinspection JSNonASCIINames
         const data: AnyStringIndex = {
             "Expected DPS": result.mainDpsFull.expected,
-            /*"Std Deviation": result.mainDpsFull.stdDev,
+            "Std Deviation": result.mainDpsFull.stdDev,
             "Expected +1σ": applyStdDev(result.mainDpsFull, 1),
             "Expected +2σ": applyStdDev(result.mainDpsFull, 2),
-            "Expected +3σ": applyStdDev(result.mainDpsFull, 3),*/
+            "Expected +3σ": applyStdDev(result.mainDpsFull, 3),
             "PPS": result.pps,
         };
         const mainResultsTable = simpleKvTable(data);
@@ -42,11 +42,14 @@ export class BlmPpsGui extends SimulationGui<BlmPpsResult, BlmPpsSettings, BlmPp
 
         configDiv.appendChild(this.makeDescriptionPanel());
 
-        const useF3PCB = new FieldBoundCheckBox(settings, "useF3P");
-        configDiv.appendChild(labeledCheckbox("Use AF1 F3P consistently to enter Astral Fire.", useF3PCB));
+        const useStandardF3PCB = new FieldBoundCheckBox(settings, "useStandardF3P");
+        configDiv.appendChild(labeledCheckbox("Use AF1 F3P consistently to enter Astral Fire. (ignored at levels 80 and below)", useStandardF3PCB));
+
+        const useColdB3CB = new FieldBoundCheckBox(settings, "useColdB3");
+        configDiv.appendChild(labeledCheckbox("Use instant cast UI1 B3 when possible. (ignored at level 70)", useColdB3CB));
 
         const spendManafontF3PCB = new FieldBoundCheckBox(settings, "spendManafontF3P");
-        configDiv.appendChild(labeledCheckbox("Spend the free F3P granted by Manafont.", spendManafontF3PCB));
+        configDiv.appendChild(labeledCheckbox("Spend the free F3P granted by Manafont. (ignored at levels 80 and below)", spendManafontF3PCB));
 
         return configDiv;
     }
