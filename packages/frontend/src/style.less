@@ -16,6 +16,10 @@
   @import "./embed.less";
 }
 
+@layer popout {
+  @import "./popout.less";
+}
+
 @layer ads {
   @import "../../common-ui/styles/ads.less";
 }
@@ -466,3 +470,12 @@ conflict-resolution-dialog {
     }
   }
 }
+
+popout-editor {
+  .popup-main-area {
+    overflow: auto;
+    height: 100%;
+  }
+}
+
+

@@ -32,7 +32,7 @@ import {
 import {
     ChanceStat,
     ComputedSetStats,
-    DisplayGearSlot,
+    DisplayGearSlotKey,
     EquipSlotKey,
     EquipSlots,
     GearItem,
@@ -78,7 +78,7 @@ import {simpleKvTable} from "../sims/components/simple_tables";
 import {rangeInc} from "@xivgear/util/array_utils";
 import {SimCurrentResult, SimResult, SimSettings, SimSpec, Simulation} from "@xivgear/core/sims/sim_types";
 import {getRegisteredSimSpecs} from "@xivgear/core/sims/sim_registry";
-import {makeUrl, NavState, ONLY_SET_QUERY_PARAM} from "@xivgear/core/nav/common_nav";
+import {makeUrl, makeUrlSimple, NavState, ONLY_SET_QUERY_PARAM, POPUP_HASH} from "@xivgear/core/nav/common_nav";
 import {simMaintainersInfoElement} from "./sims";
 import {ChangePropsModal, SaveAsModal} from "./new_sheet_form";
 import {DropdownActionMenu} from "./dropdown_actions_menu";
@@ -100,6 +100,7 @@ import {SpecialStatType} from "@xivgear/data-api-client/dataapi";
 import {SHEET_MANAGER} from "./saved_sheet_impl";
 import {cleanUrl} from "@xivgear/common-ui/nav/common_frontend_nav";
 import {isSafari} from "@xivgear/common-ui/util/detect_safari";
+import {getNextPopoutContext, isPopout} from "../popout";
 
 const noSeparators = (set: CharacterGearSet) => !set.isSeparator;
 
@@ -821,7 +822,7 @@ function stringToParagraphs(text: string): HTMLParagraphElement[] {
  * The set editor portion. Includes the tab as well as controls for the set name and such.
  */
 export class GearSetEditor extends HTMLElement {
-    private readonly sheet: GearPlanSheet;
+    private readonly sheet: GearPlanSheetGui;
     private readonly gearSet: CharacterGearSet;
     private gearTables: GearItemsTable[] = [];
     private header: HTMLHeadingElement;
@@ -829,7 +830,7 @@ export class GearSetEditor extends HTMLElement {
     private issuesButtonContent: HTMLSpanElement;
     private foodTable: FoodItemsTable;
 
-    constructor(sheet: GearPlanSheet, gearSet: CharacterGearSet) {
+    constructor(sheet: GearPlanSheetGui, gearSet: CharacterGearSet) {
         super();
         this.sheet = sheet;
         this.gearSet = gearSet;
@@ -890,8 +891,12 @@ export class GearSetEditor extends HTMLElement {
             makeActionButton([editIcon(), 'Edit Name/Description'], () => {
                 startRenameSet(writeProxy(this.gearSet, () => this.formatTitleDesc()));
             }),
+            isPopout() ? null : makeActionButton([exportIcon(), 'Popout Editor'], () => {
+                const sheetAny = this.sheet;
+                sheetAny.openPopoutForSet(this.gearSet);
+            }),
             issuesButton,
-        ]);
+        ].filter(x => x !== null));
         if (this.sheet.isMultiJob) {
             buttonArea.prepend(new DataSelect(
                 this.sheet.allJobs,
@@ -906,11 +911,11 @@ export class GearSetEditor extends HTMLElement {
         // Put items in categories by slot
         // Not enough to just use the items, because rings can be in either ring slot, so we
         // need options to reflect that.
-        const itemMapping: Map<DisplayGearSlot, GearItem[]> = new Map();
+        const itemMapping: Map<DisplayGearSlotKey, GearItem[]> = new Map();
         this.sheet.itemsForDisplay
             .filter(item => item.usableByJob(this.gearSet.job))
             .forEach((item) => {
-                const slot = item.displayGearSlot;
+                const slot = item.displayGearSlotName;
                 if (itemMapping.has(slot)) {
                     itemMapping.get(slot).push(item);
                 }
@@ -1284,6 +1289,8 @@ export class GearPlanSheetElement extends HTMLElement {
 export class GearPlanSheetGui extends GearPlanSheet {
 
     protected _materiaAutoFillController: MateriaAutoFillController;
+    // Track open popout windows per gear set
+    private _openSetPopouts: Map<CharacterGearSet, Window> = new Map();
     private gearUpdateTimer: Inactivitytimer;
     private _sheetSetupDone: boolean = false;
     private readonly element: GearPlanSheetElement;
@@ -1440,7 +1447,29 @@ export class GearPlanSheetGui extends GearPlanSheet {
                         this.setupEditorArea(new GearSetViewer(this, item));
                     }
                     else {
-                        this.setupEditorArea(new GearSetEditor(this, item));
+                        const existing = this._openSetPopouts.get(item);
+                        if (existing && !existing.closed) {
+                            const header = document.createElement('h3');
+                            header.textContent = `${item.name} editor is open in a popout`;
+                            const focusBtn = makeActionButton('Focus Popout', () => {
+                                try {
+                                    existing.focus();
+                                }
+                                catch (e) {
+                                    // ignore
+                                }
+                            });
+                            const closeBtn = makeActionButton('Close Popout', () => {
+                                this.closePopoutForSet(item);
+                                this.refreshGearEditor(item);
+                            });
+                            const btnArea = quickElement('div', ['gear-set-editor-button-area', 'button-row'], [focusBtn, closeBtn]);
+                            const wrapper = quickElement('div', ['gear-set-popout-open-placeholder'], [header, btnArea]);
+                            this.setupEditorArea(wrapper);
+                        }
+                        else {
+                            this.setupEditorArea(new GearSetEditor(this, item));
+                        }
                     }
                 }
                 this.refreshToolbar();
@@ -1595,6 +1624,11 @@ export class GearPlanSheetGui extends GearPlanSheet {
             if (this._editorAreaNode instanceof GearSetEditor) {
                 this._editorAreaNode.setup();
             }
+            this._openSetPopouts.forEach((win, set) => {
+                if (!win.closed) {
+                    win.postMessage({'type': 'filterSettingsChanged'});
+                }
+            });
             this.saveData();
         });
 
@@ -2013,10 +2047,85 @@ export class GearPlanSheetGui extends GearPlanSheet {
     }
 
     delGearSet(gearSet: CharacterGearSet) {
+        // Close any open popout for this set before deleting it
+        this.closePopoutForSet(gearSet);
         super.delGearSet(gearSet);
         if (this._gearPlanTable) {
             this._gearPlanTable.dataChanged();
             this._gearPlanTable.reprocessAllSimColColors();
+        }
+    }
+
+    /**
+     * Open or focus a popout window for the specified gear set.
+     */
+    openPopoutForSet(set: CharacterGearSet) {
+        const index = this.sets.indexOf(set);
+        if (index < 0) {
+            return;
+        }
+        const existing = this._openSetPopouts.get(set);
+        if (existing && !existing.closed) {
+            try {
+                existing.focus();
+            }
+            catch (e) {
+                // ignore
+            }
+            return;
+        }
+        const url = makeUrlSimple(POPUP_HASH, index.toString());
+        url.searchParams.delete('_ij_reload');
+        const popup = window.open(url, getNextPopoutContext(), "popout,location=false,toolbar=false,status=false,width=1024,height=768");
+        if (!popup) {
+            alert('Failed to pop out editor. Your browser may be blocking popups.');
+            return;
+        }
+        (popup as any).parentSheet = this;
+        this._openSetPopouts.set(set, popup);
+        // Immediately swap editor area to the placeholder if this set is currently selected
+        if (this._editorItem === set) {
+            this.refreshGearEditor(set);
+        }
+        // Cleanup when popup closes
+        const interval = window.setInterval(() => {
+            if (popup.closed) {
+                window.clearInterval(interval);
+                this._openSetPopouts.delete(set);
+                if (this._editorItem === set) {
+                    this.refreshGearEditor(set);
+                }
+            }
+        }, 1000);
+        try {
+            popup.addEventListener('beforeunload', () => {
+                window.clearInterval(interval);
+                this._openSetPopouts.delete(set);
+                if (this._editorItem === set) {
+                    this.refreshGearEditor(set);
+                }
+            });
+        }
+        catch (e) {
+            // Some browsers may not allow adding listeners across windows; rely on polling
+        }
+    }
+
+    /**
+     * Close an open popout for the specified set, if present.
+     */
+    closePopoutForSet(set: CharacterGearSet) {
+        const w = this._openSetPopouts.get(set);
+        if (w) {
+            try {
+                if (!w.closed) {
+                    w.close();
+                }
+            }
+            catch (e) {
+                // ignore
+            }
+            this._openSetPopouts.delete(set);
         }
     }
 
