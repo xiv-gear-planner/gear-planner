@@ -52,6 +52,7 @@ import {makeRelicStatEditor} from "./relic_stats";
 import {ShowHideButton, ShowHideCallback} from "@xivgear/common-ui/components/show_hide_chevron";
 import {BaseModal} from "@xivgear/common-ui/components/modal";
 import {recordSheetEvent} from "../analytics/analytics";
+import {DISPLAY_SETTINGS} from "@xivgear/common-ui/settings/display_settings";
 
 function removeStatCellStyles(cell: CustomCell<GearSlotItem, unknown>) {
     cell.classList.remove("secondary");
@@ -347,6 +348,9 @@ export class FoodItemsTable extends CustomTable<FoodItem, TableSelectionModel<Fo
         }, [oneStatFoodWithLabel]);
         const displayItems = [...sheet.foodItemsForDisplay];
         displayItems.sort((left, right) => left.ilvl - right.ilvl);
+        if (DISPLAY_SETTINGS.reverseItemSort) {
+            displayItems.reverse();
+        }
         if (displayItems.length > 0) {
             super.data = [showHideRow.row, new HeaderRow(), ...displayItems];
         }
@@ -781,6 +785,9 @@ export class GearItemsTable extends CustomTable<GearSlotItem, TableSelectionMode
             if (itemsInSlot && itemsInSlot.length > 0) {
                 const sortedItems = [...itemsInSlot];
                 sortedItems.sort((left, right) => left.ilvl - right.ilvl);
+                if (DISPLAY_SETTINGS.reverseItemSort) {
+                    sortedItems.reverse();
+                }
                 data.push(new HeaderRow());
                 for (const gearItem of sortedItems) {
                     const item = {

@@ -10,12 +10,14 @@ class DisplaySettingsImpl implements DisplaySettings {
     private _lightMode!: boolean;
     private _modernTheme!: boolean;
     private _languageOverride: Language | undefined;
+    private _reverseSort!: boolean;
 
     loadSettings() {
         const settings = SETTINGS;
         this._lightMode = settings.lightMode ?? DEFAULT_LIGHT_MODE;
         this._modernTheme = settings.modernTheme ?? DEFAULT_MODERN_THEME;
         this._languageOverride = settings.languageOverride;
+        this._reverseSort = settings.reverseItemSort ?? false;
         this.applyLightMode();
         this.applyModernTheme();
         this.applyLanguage();
@@ -50,6 +52,15 @@ class DisplaySettingsImpl implements DisplaySettings {
         this._languageOverride = value;
         SETTINGS.languageOverride = value;
         this.applyLanguage();
+    }
+
+    get reverseItemSort(): boolean {
+        return this._reverseSort;
+    }
+
+    set reverseItemSort(value: boolean) {
+        this._reverseSort = value;
+        SETTINGS.reverseItemSort = value;
     }
 
     private applyLightMode() {
