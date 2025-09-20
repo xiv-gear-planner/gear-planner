@@ -273,6 +273,9 @@ export function parsePath(state: NavState): NavPath | null {
         };
     }
     else if (mainNav === POPUP_HASH) {
+        // Popup is a special type of navigation, where it is expected that the GearPlanSheetGui instance is already
+        // stuffed into the window context by the opener of the window. The nav path contains the index of the set
+        // to display.
         return {
             type: 'popup',
             index: parseInt(path[1]),

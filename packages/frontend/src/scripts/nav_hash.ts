@@ -229,7 +229,7 @@ async function doNav(navState: NavState) {
                 // TODO: validate not null
                 const sheet = window.parentSheet;
                 const editor = new PopoutEditor(sheet, nav.index);
-                openPopout(editor);
+                openPopout(editor, () => editor.filterSettingsRefresh());
                 return;
             }
         }

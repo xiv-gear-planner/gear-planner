@@ -84,13 +84,21 @@ function startParentMonitor() {
     });
 }
 
-export function openPopout(element: HTMLElement) {
+export function openPopout(element: HTMLElement, displaySettingsChangedCallback?: () => void) {
     recordEvent('openPopout');
     console.log("openPopout start");
     if (!popoutElement) {
         earlyPopooutInit();
     }
     popoutElement.replaceChildren(element);
+    // Hook message receiver if provided
+    if (displaySettingsChangedCallback) {
+        window.addEventListener('message', (event: MessageEvent<{type: string}>) => {
+            if (event?.data?.type === 'filterSettingsChanged') {
+                displaySettingsChangedCallback();
+            }
+        });
+    }
     // Start monitoring the parent navigation state; if it changes, close the popup
     startParentMonitor();
 }

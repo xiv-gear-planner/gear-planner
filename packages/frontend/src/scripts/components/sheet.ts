@@ -1624,6 +1624,11 @@ export class GearPlanSheetGui extends GearPlanSheet {
             if (this._editorAreaNode instanceof GearSetEditor) {
                 this._editorAreaNode.setup();
             }
+            this._openSetPopouts.forEach((win, set) => {
+                if (!win.closed) {
+                    win.postMessage({'type': 'filterSettingsChanged'});
+                }
+            });
             this.saveData();
         });
 
