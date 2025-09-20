@@ -98,6 +98,7 @@ export function openPopout(element: HTMLElement) {
 let currentContextNumber: number = 0;
 
 export function getNextPopoutContext(): string {
+    // TODO: inline the ++ operation
     currentContextNumber++;
     return `popout-${currentContextNumber}`;
 }
