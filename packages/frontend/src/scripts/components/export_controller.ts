@@ -7,11 +7,12 @@ import {
 import {putShortLink} from "@xivgear/core/external/shortlink_server";
 import {CharacterGearSet} from "@xivgear/core/gear";
 import {BaseModal} from "@xivgear/common-ui/components/modal";
-import {EMBED_HASH, HASH_QUERY_PARAM, makeUrlSimple, ONLY_SET_QUERY_PARAM, PATH_SEPARATOR, VIEW_SET_HASH} from "@xivgear/core/nav/common_nav";
+import {EMBED_HASH, HASH_QUERY_PARAM, makeUrlSimple, ONLY_SET_QUERY_PARAM, PATH_SEPARATOR, SELECTION_INDEX_QUERY_PARAM, VIEW_SET_HASH} from "@xivgear/core/nav/common_nav";
 import {GearPlanSheet} from "@xivgear/core/sheet";
 import {writeProxy} from "@xivgear/util/proxies";
 import {EquipSlots, Materia, XivItem} from "@xivgear/xivmath/geartypes";
 import {recordSheetEvent} from "../analytics/analytics";
+import { Linter } from "eslint";
 
 type ExportMethod<X> = {
     /**
@@ -60,8 +61,12 @@ const sheetShortlink = {
     async doExport(sheet: GearPlanSheet, viewOnly: boolean): Promise<string> {
         // If we're viewOnly, we can use the URL we have. Otherwise,
         // we need to make a new one.
-        let linkToSheet = new URL(document.location.toString());
-        if (!viewOnly) {
+        let linkToSheet: URL;
+        if (viewOnly) {
+            linkToSheet = new URL(document.location.toString());
+            linkToSheet.searchParams.delete(SELECTION_INDEX_QUERY_PARAM);
+        }
+        else {
             const exportedSheet = JSON.stringify(sheet.exportSheet(true));
             linkToSheet = await putShortLink(exportedSheet);
         }
@@ -89,11 +94,15 @@ const linkPerSet = {
 
         // If we're viewOnly, we can use the URL we have. Otherwise,
         // we need to make a new one.
-        let linkToSheet = new URL(document.location.toString());
-        if (!viewOnly) {
+        let linkToSheet: URL;
+        if (viewOnly) {
+            linkToSheet = new URL(document.location.toString());
+        }
+        else {
             const exportedSheet = JSON.stringify(sheet.exportSheet(true));
             linkToSheet = await putShortLink(exportedSheet);
         }
+
 
         for (const i in sets) {
             const set = sets[i];
@@ -101,7 +110,13 @@ const linkPerSet = {
                 continue;
             }
             const linkToSet = new URL(linkToSheet);
-            linkToSet.searchParams.set(ONLY_SET_QUERY_PARAM, i);
+
+            // If ONLY_SET_QUERY_PARAM is already set, we're only looking at one set
+            // so we shouldn't overwrite it.
+            if (!linkToSet.searchParams.get(ONLY_SET_QUERY_PARAM)) {
+                linkToSet.searchParams.set(ONLY_SET_QUERY_PARAM, i);
+            }
+            linkToSet.searchParams.delete(SELECTION_INDEX_QUERY_PARAM);
             out += urlToString(linkToSet);
             out += '\n';
         }
@@ -124,8 +139,11 @@ const embedLinkPerSet = {
 
         // If we're viewOnly, we can use the URL we have. Otherwise,
         // we need to make a new one.
-        let linkToSheet = new URL(document.location.toString());
-        if (!viewOnly) {
+        let linkToSheet: URL;
+        if (viewOnly) {
+            linkToSheet = new URL(document.location.toString());
+        }
+        else {
             const exportedSheet = JSON.stringify(sheet.exportSheet(true));
             linkToSheet = await putShortLink(exportedSheet);
         }
@@ -135,8 +153,16 @@ const embedLinkPerSet = {
             if (set.isSeparator) {
                 continue;
             }
+
             const linkToSet = new URL(linkToSheet);
-            linkToSet.searchParams.set(ONLY_SET_QUERY_PARAM, i);
+
+            // If ONLY_SET_QUERY_PARAM is already set, we're only looking at one set
+            // so we shouldn't overwrite it.
+            if (!linkToSet.searchParams.get(ONLY_SET_QUERY_PARAM)) {
+                linkToSet.searchParams.set(ONLY_SET_QUERY_PARAM, i);
+            }
+            linkToSet.searchParams.delete(SELECTION_INDEX_QUERY_PARAM);
+
             const pageLink = linkToSet.searchParams.get(HASH_QUERY_PARAM);
             if (pageLink !== null && !pageLink.startsWith(EMBED_HASH)) {
                 const embed = EMBED_HASH + PATH_SEPARATOR;
@@ -169,11 +195,21 @@ const setShortlink = {
     async doExport(set: CharacterGearSet, viewOnly: boolean): Promise<string> {
         // If we're viewOnly, we can use the URL we have. Otherwise,
         // we need to make a new one.
-        let linkToSheet = new URL(document.location.toString());
-        if (!viewOnly) {
+        let linkToSheet: URL;
+        if (viewOnly) {
+            linkToSheet = new URL(document.location.toString());
+            linkToSheet.searchParams.delete(SELECTION_INDEX_QUERY_PARAM);
+            // TODO add proper set param
+            if (!linkToSheet.searchParams.get(ONLY_SET_QUERY_PARAM)) {
+                // TODO: some way of getting set.index
+                //linkToSheet.searchParams.set(ONLY_SET_QUERY_PARAM, ?);
+            }
+        }
+        else {
             const exportedSheet = JSON.stringify(set.sheet.exportGearSet(set, true));
             linkToSheet = await putShortLink(exportedSheet);
         }
+
         return urlToString(linkToSheet);
     },
 } as const as SetExportMethod;
@@ -185,17 +221,24 @@ const setEmbedShortLink = {
     name: "Embed URL for This Set",
     exportInstantly: false,
     async doExport(set: CharacterGearSet, viewOnly: boolean): Promise<string> {
-        let linkToSheet = new URL(document.location.toString());
-        if (!viewOnly) {
-            const exportedSheet = JSON.stringify(set.sheet.exportGearSet(set, true));
-            linkToSheet = await putShortLink(exportedSheet, true);
-        }
-        else {
+        let linkToSheet: URL;
+        if (viewOnly) {
+            linkToSheet = new URL(document.location.toString());
             const pageLink = linkToSheet.searchParams.get(HASH_QUERY_PARAM);
             if (pageLink !== null && !pageLink.startsWith(EMBED_HASH)) {
                 const embed = EMBED_HASH + PATH_SEPARATOR;
                 linkToSheet.searchParams.set(HASH_QUERY_PARAM, embed + pageLink);
+                linkToSheet.searchParams.delete(SELECTION_INDEX_QUERY_PARAM);
+                // TODO add proper set param
+                if (!linkToSheet.searchParams.get(ONLY_SET_QUERY_PARAM)) {
+                // TODO: some way of getting set.index
+                    //linkToSheet.searchParams.set(ONLY_SET_QUERY_PARAM, ?);
+                }
             }
+        }
+        else {
+            const exportedSheet = JSON.stringify(set.sheet.exportGearSet(set, true));
+            linkToSheet = await putShortLink(exportedSheet, true);
         }
         return urlToString(linkToSheet);
     },
