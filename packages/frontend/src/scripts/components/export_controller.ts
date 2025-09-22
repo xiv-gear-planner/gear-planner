@@ -7,7 +7,7 @@ import {
 import {putShortLink} from "@xivgear/core/external/shortlink_server";
 import {CharacterGearSet} from "@xivgear/core/gear";
 import {BaseModal} from "@xivgear/common-ui/components/modal";
-import {makeUrlSimple, ONLY_SET_QUERY_PARAM, VIEW_SET_HASH} from "@xivgear/core/nav/common_nav";
+import {EMBED_HASH, HASH_QUERY_PARAM, makeUrlSimple, ONLY_SET_QUERY_PARAM, PATH_SEPARATOR, VIEW_SET_HASH} from "@xivgear/core/nav/common_nav";
 import {GearPlanSheet} from "@xivgear/core/sheet";
 import {writeProxy} from "@xivgear/util/proxies";
 import {EquipSlots, Materia, XivItem} from "@xivgear/xivmath/geartypes";
@@ -28,7 +28,7 @@ type ExportMethod<X> = {
      *
      * @param item The item to export.
      */
-    doExport(item: X): Promise<string>;
+    doExport(item: X, isViewonly?: boolean): Promise<string>;
 
     /**
      * Whether the export should offer to open the link rather than copy it.
@@ -57,9 +57,16 @@ const sheetJson = {
 const sheetShortlink = {
     name: "Link to Whole Sheet",
     exportInstantly: false,
-    async doExport(sheet: GearPlanSheet): Promise<string> {
-        const exportedSheet = JSON.stringify(sheet.exportSheet(true));
-        return await putShortLink(exportedSheet).then(link => urlToString(link));
+    async doExport(sheet: GearPlanSheet, viewOnly: boolean): Promise<string> {
+        // If we're viewOnly, we can use the URL we have. Otherwise,
+        // we need to make a new one.
+        let linkToSheet = new URL(document.location.toString());
+        if (!viewOnly) {
+            const exportedSheet = JSON.stringify(sheet.exportSheet(true));
+            linkToSheet = await putShortLink(exportedSheet);
+        }
+
+        return urlToString(linkToSheet);
     },
 } as const as SheetExportMethod;
 
@@ -73,14 +80,21 @@ function urlToString(url: URL): string {
 const linkPerSet = {
     name: "One Link for Each Set",
     exportInstantly: false,
-    async doExport(sheet: GearPlanSheet): Promise<string> {
+    async doExport(sheet: GearPlanSheet, viewOnly:boolean ): Promise<string> {
         const sets = sheet.sets;
         if (sets.filter(set => !set.isSeparator).length === 0) {
             return "This sheet does not have any sets!";
         }
         let out = '';
-        const exportedSheet = JSON.stringify(sheet.exportSheet(true));
-        const linkToSheet = await putShortLink(exportedSheet);
+
+        // If we're viewOnly, we can use the URL we have. Otherwise,
+        // we need to make a new one.
+        let linkToSheet = new URL(document.location.toString());
+        if (!viewOnly) {
+            const exportedSheet = JSON.stringify(sheet.exportSheet(true));
+            linkToSheet = await putShortLink(exportedSheet);
+        }
+
         for (const i in sets) {
             const set = sets[i];
             if (set.isSeparator) {
@@ -88,7 +102,7 @@ const linkPerSet = {
             }
             const linkToSet = new URL(linkToSheet);
             linkToSet.searchParams.set(ONLY_SET_QUERY_PARAM, i);
-            out += linkToSet;
+            out += urlToString(linkToSet);
             out += '\n';
         }
         return out;
@@ -101,14 +115,21 @@ const linkPerSet = {
 const embedLinkPerSet = {
     name: "Embed URL for Each Set",
     exportInstantly: false,
-    async doExport(sheet: GearPlanSheet): Promise<string> {
+    async doExport(sheet: GearPlanSheet, viewOnly: boolean): Promise<string> {
         const sets = sheet.sets;
         if (sets.filter(set => !set.isSeparator).length === 0) {
             return "This sheet does not have any sets!";
         }
         let out = '';
-        const exportedSheet = JSON.stringify(sheet.exportSheet(true));
-        const linkToSheet = await putShortLink(exportedSheet, true);
+
+        // If we're viewOnly, we can use the URL we have. Otherwise,
+        // we need to make a new one.
+        let linkToSheet = new URL(document.location.toString());
+        if (!viewOnly) {
+            const exportedSheet = JSON.stringify(sheet.exportSheet(true));
+            linkToSheet = await putShortLink(exportedSheet);
+        }
+        
         for (const i in sets) {
             const set = sets[i];
             if (set.isSeparator) {
@@ -116,7 +137,12 @@ const embedLinkPerSet = {
             }
             const linkToSet = new URL(linkToSheet);
             linkToSet.searchParams.set(ONLY_SET_QUERY_PARAM, i);
-            out += linkToSet;
+            const pageLink = linkToSet.searchParams.get(HASH_QUERY_PARAM);
+            if (pageLink !== null && !pageLink.startsWith(EMBED_HASH)) {
+                const embed = EMBED_HASH + PATH_SEPARATOR;
+                linkToSet.searchParams.set(HASH_QUERY_PARAM, embed + pageLink);
+            }
+            out += urlToString(linkToSet);
             out += '\n';
         }
         return out;
@@ -140,9 +166,15 @@ const setJson = {
 const setShortlink = {
     name: "Link to This Set",
     exportInstantly: false,
-    async doExport(set: CharacterGearSet): Promise<string> {
-        const exportedSheet = JSON.stringify(set.sheet.exportGearSet(set, true));
-        return await putShortLink(exportedSheet).then(link => urlToString(link));
+    async doExport(set: CharacterGearSet, viewOnly: boolean): Promise<string> {
+        // If we're viewOnly, we can use the URL we have. Otherwise,
+        // we need to make a new one.
+        let linkToSheet = new URL(document.location.toString());
+        if (!viewOnly) {
+            const exportedSheet = JSON.stringify(set.sheet.exportGearSet(set, true));
+            linkToSheet = await putShortLink(exportedSheet);
+        }
+        return urlToString(linkToSheet);
     },
 } as const as SetExportMethod;
 
@@ -152,9 +184,20 @@ const setShortlink = {
 const setEmbedShortLink = {
     name: "Embed URL for This Set",
     exportInstantly: false,
-    async doExport(set: CharacterGearSet): Promise<string> {
-        const exportedSheet = JSON.stringify(set.sheet.exportGearSet(set, true));
-        return await putShortLink(exportedSheet, true).then(link => urlToString(link));
+    async doExport(set: CharacterGearSet, viewOnly: boolean): Promise<string> {
+        let linkToSheet = new URL(document.location.toString());
+        if (!viewOnly) {
+            const exportedSheet = JSON.stringify(set.sheet.exportGearSet(set, true));
+            linkToSheet = await putShortLink(exportedSheet, true);
+        }
+        else {
+            const pageLink = linkToSheet.searchParams.get(HASH_QUERY_PARAM);
+            if (pageLink !== null && !pageLink.startsWith(EMBED_HASH)) {
+                const embed = EMBED_HASH + PATH_SEPARATOR;
+                linkToSheet.searchParams.set(HASH_QUERY_PARAM, embed + pageLink);
+            }
+        }
+        return urlToString(linkToSheet);
     },
 } as const as SetExportMethod;
 
@@ -238,16 +281,19 @@ class SimExportChooser extends HTMLElement {
     constructor(sheet: GearPlanSheet, callback: () => void) {
         super();
         const header = document.createElement('h3');
-        header.textContent = 'Choose Sims to Export';
-        this.appendChild(header);
-        const inner = document.createElement('div');
-        sheet.sims.forEach(sim => {
-            const cb = new FieldBoundCheckBox(writeProxy(sim.settings, callback), 'includeInExport');
-            const cbFull = labeledCheckbox(sim.displayName, cb);
-            inner.appendChild(cbFull);
-        });
-        inner.classList.add('sim-export-chooser-inner');
-        this.appendChild(inner);
+        if (!sheet.isViewOnly) {
+            header.textContent = 'Choose Sims to Export';
+            this.appendChild(header);
+            const inner = document.createElement('div');
+            sheet.sims.forEach(sim => {
+                const cb = new FieldBoundCheckBox(writeProxy(sim.settings, callback), 'includeInExport');
+                const cbFull = labeledCheckbox(sim.displayName, cb);
+                inner.appendChild(cbFull);
+            });
+            inner.classList.add('sim-export-chooser-inner');
+
+            this.appendChild(inner);
+        }
     }
 }
 
@@ -313,7 +359,8 @@ abstract class ExportModal<X> extends BaseModal {
         recordSheetEvent("doExport", this.sheet, {
             'exportType': selectedType.name,
         });
-        return selectedType.doExport(this.item);
+
+        return selectedType.doExport(this.item, this.sheet.isViewOnly);
     };
 
     abstract get previewUrl(): string;
@@ -374,7 +421,16 @@ class SheetExportModal extends ExportModal<GearPlanSheet> {
         super('Export Full Sheet', SHEET_EXPORT_OPTIONS, sheet, sheet);
     }
 
+    // TODO Violet
+    // if nav path === static bis just fast path return exported set
     get previewUrl(): string {
+
+
+        if (this.sheet.isViewOnly) {
+            const baseUrl = document.location.toString();
+            return baseUrl;
+        }
+
         const exported = this.sheet.exportSheet(true);
         const url = makeUrlSimple(VIEW_SET_HASH, JSON.stringify(exported));
         console.log("Preview url", url);
@@ -388,7 +444,19 @@ class SetExportModal extends ExportModal<CharacterGearSet> {
         super('Export Individual Set', SET_EXPORT_OPTIONS, set.sheet, set);
     }
 
+
+
+
+    // TODO Violet
+    // if nav path === static bis just fast path return exported set
+
     get previewUrl(): string {
+        if (this.sheet.isViewOnly) {
+            const baseUrl = document.location.toString();
+            return baseUrl;
+        }
+
+
         const exported = this.sheet.exportGearSet(this.item, true);
         const url = makeUrlSimple(VIEW_SET_HASH, JSON.stringify(exported));
         console.log("Preview url", url);
