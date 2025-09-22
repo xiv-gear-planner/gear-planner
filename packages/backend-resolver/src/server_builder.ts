@@ -60,7 +60,6 @@ async function importExportSheet(request: SheetRequest, exportedPre: SheetExport
     const exportedInitial: SheetExport | SetExport = exportedPre;
     const initiallyFullSheet = 'sets' in exportedPre;
     const onlySetIndex: number | undefined = (nav !== undefined && "onlySetIndex" in nav) ? nav.onlySetIndex : undefined;
-
     if (onlySetIndex !== undefined) {
         if (!initiallyFullSheet) {
             request.log.warn("onlySetIndex does not make sense when isFullSheet is false");
