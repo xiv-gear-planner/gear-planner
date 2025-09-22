@@ -42,7 +42,7 @@ export abstract class BaseModal extends HTMLElement {
         return button;
     }
 
-    protected addCloseButton(label: string = 'close') {
+    protected addCloseButton(label: string = 'Close') {
         return this.addActionButton(label, () => this.close());
     }
 
