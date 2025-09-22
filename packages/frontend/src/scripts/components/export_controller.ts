@@ -372,7 +372,7 @@ abstract class ExportModal<X> extends BaseModal {
     async refreshSelection() {
         const selectedType = this.selectedOption;
         this.textValue = '';
-        if (selectedType.exportInstantly) {
+        if (selectedType.exportInstantly || this.sheet.isViewOnly) {
             const content = await this.doExport(selectedType);
             this.setResultData(selectedType, content);
         }
@@ -435,7 +435,6 @@ class SheetExportModal extends ExportModal<GearPlanSheet> {
 }
 
 class SetExportModal extends ExportModal<CharacterGearSet> {
-
     constructor(set: CharacterGearSet) {
         super('Export Individual Set', SET_EXPORT_OPTIONS, set.sheet, set);
     }
