@@ -129,7 +129,7 @@ const embedLinkPerSet = {
             const exportedSheet = JSON.stringify(sheet.exportSheet(true));
             linkToSheet = await putShortLink(exportedSheet);
         }
-        
+
         for (const i in sets) {
             const set = sets[i];
             if (set.isSeparator) {
@@ -421,11 +421,7 @@ class SheetExportModal extends ExportModal<GearPlanSheet> {
         super('Export Full Sheet', SHEET_EXPORT_OPTIONS, sheet, sheet);
     }
 
-    // TODO Violet
-    // if nav path === static bis just fast path return exported set
     get previewUrl(): string {
-
-
         if (this.sheet.isViewOnly) {
             const baseUrl = document.location.toString();
             return baseUrl;
@@ -444,18 +440,11 @@ class SetExportModal extends ExportModal<CharacterGearSet> {
         super('Export Individual Set', SET_EXPORT_OPTIONS, set.sheet, set);
     }
 
-
-
-
-    // TODO Violet
-    // if nav path === static bis just fast path return exported set
-
     get previewUrl(): string {
         if (this.sheet.isViewOnly) {
             const baseUrl = document.location.toString();
             return baseUrl;
         }
-
 
         const exported = this.sheet.exportGearSet(this.item, true);
         const url = makeUrlSimple(VIEW_SET_HASH, JSON.stringify(exported));
