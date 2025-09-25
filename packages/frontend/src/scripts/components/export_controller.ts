@@ -12,7 +12,6 @@ import {GearPlanSheet} from "@xivgear/core/sheet";
 import {writeProxy} from "@xivgear/util/proxies";
 import {EquipSlots, Materia, XivItem} from "@xivgear/xivmath/geartypes";
 import {recordSheetEvent} from "../analytics/analytics";
-import { Linter } from "eslint";
 
 type ExportMethod<X> = {
     /**
@@ -23,14 +22,12 @@ type ExportMethod<X> = {
      * Whether the export is instant (display the value as soon as is it selected) or async (must click the button)
      */
     readonly exportInstantly: boolean;
-
     /**
      * Perform the export. Should return whatever should display in the text box (typically one or more links)
      *
      * @param item The item to export.
      */
     doExport(item: X, isViewonly?: boolean): Promise<string>;
-
     /**
      * Whether the export should offer to open the link rather than copy it.
      */
@@ -102,7 +99,6 @@ const linkPerSet = {
             const exportedSheet = JSON.stringify(sheet.exportSheet(true));
             linkToSheet = await putShortLink(exportedSheet);
         }
-
 
         for (const i in sets) {
             const set = sets[i];
@@ -193,23 +189,8 @@ const setShortlink = {
     name: "Link to This Set",
     exportInstantly: false,
     async doExport(set: CharacterGearSet, viewOnly: boolean): Promise<string> {
-        // If we're viewOnly, we can use the URL we have. Otherwise,
-        // we need to make a new one.
-        let linkToSheet: URL;
-        if (viewOnly) {
-            linkToSheet = new URL(document.location.toString());
-            linkToSheet.searchParams.delete(SELECTION_INDEX_QUERY_PARAM);
-            // TODO add proper set param
-            if (!linkToSheet.searchParams.get(ONLY_SET_QUERY_PARAM)) {
-                // TODO: some way of getting set.index
-                //linkToSheet.searchParams.set(ONLY_SET_QUERY_PARAM, ?);
-            }
-        }
-        else {
-            const exportedSheet = JSON.stringify(set.sheet.exportGearSet(set, true));
-            linkToSheet = await putShortLink(exportedSheet);
-        }
-
+        const exportedSheet = JSON.stringify(set.sheet.exportGearSet(set, true));
+        const linkToSheet = await putShortLink(exportedSheet);
         return urlToString(linkToSheet);
     },
 } as const as SetExportMethod;
@@ -221,25 +202,8 @@ const setEmbedShortLink = {
     name: "Embed URL for This Set",
     exportInstantly: false,
     async doExport(set: CharacterGearSet, viewOnly: boolean): Promise<string> {
-        let linkToSheet: URL;
-        if (viewOnly) {
-            linkToSheet = new URL(document.location.toString());
-            const pageLink = linkToSheet.searchParams.get(HASH_QUERY_PARAM);
-            if (pageLink !== null && !pageLink.startsWith(EMBED_HASH)) {
-                const embed = EMBED_HASH + PATH_SEPARATOR;
-                linkToSheet.searchParams.set(HASH_QUERY_PARAM, embed + pageLink);
-                linkToSheet.searchParams.delete(SELECTION_INDEX_QUERY_PARAM);
-                // TODO add proper set param
-                if (!linkToSheet.searchParams.get(ONLY_SET_QUERY_PARAM)) {
-                // TODO: some way of getting set.index
-                    //linkToSheet.searchParams.set(ONLY_SET_QUERY_PARAM, ?);
-                }
-            }
-        }
-        else {
-            const exportedSheet = JSON.stringify(set.sheet.exportGearSet(set, true));
-            linkToSheet = await putShortLink(exportedSheet, true);
-        }
+        const exportedSheet = JSON.stringify(set.sheet.exportGearSet(set, true));
+        const linkToSheet = await putShortLink(exportedSheet, true);
         return urlToString(linkToSheet);
     },
 } as const as SetExportMethod;
@@ -415,7 +379,16 @@ abstract class ExportModal<X> extends BaseModal {
     async refreshSelection() {
         const selectedType = this.selectedOption;
         this.textValue = '';
-        if (selectedType.exportInstantly || this.sheet.isViewOnly) {
+        let isSingleSetExport = false;
+        SET_EXPORT_OPTIONS.forEach(x => {
+            if (selectedType === x) {
+                isSingleSetExport = true;
+            }
+        });
+        // View-only sets don't get re-exported, except in the case that it's a single-set export,
+        // since those intentionally reduce the size of the sheet.
+        const isExportNotRequired = this.sheet.isViewOnly && !isSingleSetExport;
+        if (selectedType.exportInstantly || isExportNotRequired) {
             const content = await this.doExport(selectedType);
             this.setResultData(selectedType, content);
         }
