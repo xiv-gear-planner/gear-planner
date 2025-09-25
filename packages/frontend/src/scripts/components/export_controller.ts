@@ -456,11 +456,6 @@ class SetExportModal extends ExportModal<CharacterGearSet> {
     }
 
     get previewUrl(): string {
-        if (this.sheet.isViewOnly) {
-            const baseUrl = document.location.toString();
-            return baseUrl;
-        }
-
         const exported = this.sheet.exportGearSet(this.item, true);
         const url = makeUrlSimple(VIEW_SET_HASH, JSON.stringify(exported));
         console.log("Preview url", url);
