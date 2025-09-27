@@ -1,7 +1,7 @@
 import {
     CustomItemExport,
-    DisplayGearSlot,
     DisplayGearSlotInfo,
+    DisplayGearSlotMapping,
     DisplayGearSlotKey,
     GearAcquisitionSource,
     GearItem,
@@ -149,8 +149,8 @@ export class CustomItem implements GearItem {
         return this._data.slot;
     }
 
-    get displayGearSlot(): DisplayGearSlot {
-        return DisplayGearSlotInfo[this.displayGearSlotName];
+    get displayGearSlot(): DisplayGearSlotInfo {
+        return DisplayGearSlotMapping[this.displayGearSlotName];
     }
 
     get stats(): RawStats {

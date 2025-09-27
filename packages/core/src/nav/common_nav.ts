@@ -20,6 +20,12 @@ export const VIEW_SHEET_HASH = 'viewsheet';
 export const VIEW_SET_HASH = 'viewset';
 /** Prefix for embeds */
 export const EMBED_HASH = 'embed';
+
+/**
+ * Prefix for pop-out editor/viewer.
+ */
+export const POPUP_HASH = 'popup';
+
 /** Prefix for formula pages */
 export const CALC_HASH = 'math';
 /** Path separator */
@@ -78,6 +84,9 @@ export type NavPath = {
     type: 'bisbrowser',
     path: string[],
     // TODO: more?
+} | {
+    type: 'popup',
+    index: number,
 } | SheetBasePath & ({
     type: 'saved',
     saveKey: string
@@ -261,6 +270,15 @@ export function parsePath(state: NavState): NavPath | null {
         return {
             type: 'bisbrowser',
             path: [...path.slice(1)],
+        };
+    }
+    else if (mainNav === POPUP_HASH) {
+        // Popup is a special type of navigation, where it is expected that the GearPlanSheetGui instance is already
+        // stuffed into the window context by the opener of the window. The nav path contains the index of the set
+        // to display.
+        return {
+            type: 'popup',
+            index: parseInt(path[1]),
         };
     }
     console.log('Unknown nav path', path);

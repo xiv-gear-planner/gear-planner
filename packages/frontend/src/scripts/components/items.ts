@@ -1,6 +1,6 @@
 import {CharacterGearSet, ItemSingleStatDetail, previewItemStatDetail} from "@xivgear/core/gear";
 import {
-    DisplayGearSlot,
+    DisplayGearSlotKey,
     EquipmentSet,
     EquippedItem,
     EquipSlot,
@@ -602,7 +602,7 @@ export class GearItemsTable extends CustomTable<GearSlotItem, TableSelectionMode
     private selectionTracker: Map<keyof EquipmentSet, CustomRow<GearSlotItem> | GearSlotItem>;
     private showHideCallbacks: Map<keyof EquipmentSet, (value: boolean) => void> = new Map();
 
-    constructor(sheet: GearPlanSheet, private readonly gearSet: CharacterGearSet, itemMapping: Map<DisplayGearSlot, GearItem[]>, handledSlots: EquipSlotKey[], afterShowHideAll: () => void) {
+    constructor(sheet: GearPlanSheet, private readonly gearSet: CharacterGearSet, itemMapping: Map<DisplayGearSlotKey, GearItem[]>, handledSlots: EquipSlotKey[], afterShowHideAll: () => void) {
         super();
         this.classList.add("gear-items-table");
         this.classList.add("gear-items-edit-table");
@@ -1161,7 +1161,7 @@ export class ILvlRangePicker<ObjType> extends HTMLElement {
 
         const lowerBoundControl = new FieldBoundIntField(obj, minField);
         const upperBoundControl = new FieldBoundIntField(obj, maxField);
-        const borderListener = function(min: number, max: number) {
+        const borderListener = function (min: number, max: number) {
             if (min > max) {
                 lowerBoundControl.classList.add("invalid-numeric-input");
                 upperBoundControl.classList.add("invalid-numeric-input");

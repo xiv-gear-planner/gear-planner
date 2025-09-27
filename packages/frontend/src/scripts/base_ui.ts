@@ -34,6 +34,7 @@ declare global {
     interface Window {
         currentSheet?: GearPlanSheetGui;
         currentGearSet?: CharacterGearSet;
+        parentSheet?: GearPlanSheetGui;
     }
 }
 const pageTitle = 'XivGear - FFXIV Gear Planner';
