@@ -1,6 +1,6 @@
 import {GearPlanSheetGui, GearSetEditor, GearSetViewer} from "./sheet";
 import {quickElement} from "@xivgear/common-ui/components/util";
-import {GearEditToolbar, PopoutGearEditToolbar} from "./gear_edit_toolbar";
+import {PopoutGearEditToolbar} from "./gear_edit_toolbar";
 import {PopoutMainElement} from "../popout";
 import {CharacterGearSet} from "@xivgear/core/gear";
 
