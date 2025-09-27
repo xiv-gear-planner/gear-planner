@@ -3,7 +3,7 @@
 body.popout-view {
 
   #popout-top-level {
-    overflow: auto;
+    //overflow: auto;
     text-align: center;
     min-height: 100%;
     position: relative;
@@ -11,6 +11,18 @@ body.popout-view {
     > div.gear-sheet-editor-area {
       //min-height: 100%;
       box-sizing: border-box;
+    }
+
+    popout-editor {
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .popup-toolbar-area {
+      .shadow-big();
+      position: relative;
+      z-index: var(--zi-toolbar-popout);
     }
 
     set-totals-display {

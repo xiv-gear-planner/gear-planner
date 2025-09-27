@@ -58,6 +58,7 @@ function startParentMonitor() {
         }
         // If we cannot read href (cross-origin) or it changed, consider it navigated away
         const href = safeGetOpenerHref();
+
         function doClose() {
             if (parentMonitorInterval !== undefined) {
                 window.clearInterval(parentMonitorInterval);
@@ -65,6 +66,7 @@ function startParentMonitor() {
             }
             window.close();
         }
+
         if (href === undefined || (initialOpenerHref !== undefined && href !== initialOpenerHref)) {
             doClose();
             return;
@@ -84,7 +86,15 @@ function startParentMonitor() {
     });
 }
 
-export function openPopout(element: HTMLElement, displaySettingsChangedCallback?: () => void) {
+export type PopoutMainElement = HTMLElement & {
+    refreshToolbar: () => void;
+    refreshContent: () => void;
+};
+
+export const MESSAGE_REFRESH_CONTENT = 'refreshContent';
+export const MESSAGE_REFRESH_TOOLBAR = 'refreshToolbar';
+
+export function openPopout(element: PopoutMainElement) {
     recordEvent('openPopout');
     console.log("openPopout start");
     if (!popoutElement) {
@@ -92,13 +102,16 @@ export function openPopout(element: HTMLElement, displaySettingsChangedCallback?
     }
     popoutElement.replaceChildren(element);
     // Hook message receiver if provided
-    if (displaySettingsChangedCallback) {
-        window.addEventListener('message', (event: MessageEvent<{type: string}>) => {
-            if (event?.data?.type === 'filterSettingsChanged') {
-                displaySettingsChangedCallback();
-            }
-        });
-    }
+    window.addEventListener('message', (event: MessageEvent<{
+        type: string
+    }>) => {
+        if (event?.data?.type === MESSAGE_REFRESH_CONTENT) {
+            element.refreshContent();
+        }
+        if (event?.data?.type === MESSAGE_REFRESH_TOOLBAR) {
+            element.refreshToolbar();
+        }
+    });
     // Start monitoring the parent navigation state; if it changes, close the popup
     startParentMonitor();
 }

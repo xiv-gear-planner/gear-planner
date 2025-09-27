@@ -100,7 +100,7 @@ import {SpecialStatType} from "@xivgear/data-api-client/dataapi";
 import {SHEET_MANAGER} from "./saved_sheet_impl";
 import {cleanUrl} from "@xivgear/common-ui/nav/common_frontend_nav";
 import {isSafari} from "@xivgear/common-ui/util/detect_safari";
-import {getNextPopoutContext, isPopout} from "../popout";
+import {getNextPopoutContext, isPopout, MESSAGE_REFRESH_CONTENT, MESSAGE_REFRESH_TOOLBAR} from "../popout";
 
 const noSeparators = (set: CharacterGearSet) => !set.isSeparator;
 
@@ -1624,11 +1624,7 @@ export class GearPlanSheetGui extends GearPlanSheet {
             if (this._editorAreaNode instanceof GearSetEditor) {
                 this._editorAreaNode.setup();
             }
-            this._openSetPopouts.forEach((win, set) => {
-                if (!win.closed) {
-                    win.postMessage({'type': 'filterSettingsChanged'});
-                }
-            });
+            this.sendMessageToPopouts({'type': MESSAGE_REFRESH_CONTENT});
             this.saveData();
         });
 
@@ -1754,79 +1750,7 @@ export class GearPlanSheetGui extends GearPlanSheet {
         // console.log(`${this._selectFirstRowByDefault} ${this.sets.length}`);
 
 
-        const outer = this;
-
-        function doSet(f: (set: CharacterGearSet) => void): void {
-            const set = outer.selectedGearSet;
-            if (set) {
-                f(set);
-                if (outer._editorAreaNode instanceof GearSetEditor) {
-                    outer._editorAreaNode.refreshMateria();
-                }
-            }
-        }
-
-        const matFillCtrl: MateriaAutoFillController = {
-
-            get autoFillMode() {
-                return outer.materiaFillMode;
-            },
-            set autoFillMode(mode: MateriaFillMode) {
-                outer.materiaFillMode = mode;
-                outer.requestSave();
-            },
-            get prio() {
-                return writeProxy<MateriaAutoFillPrio>(outer.materiaAutoFillPrio, () => outer.requestSave());
-            },
-            callback(): void {
-                outer.requestSave();
-            },
-            fillAll(): void {
-                doSet(set => set.fillMateria(outer.materiaAutoFillPrio, true));
-            },
-            fillEmpty(): void {
-                doSet(set => set.fillMateria(outer.materiaAutoFillPrio, false));
-            },
-            lockEmpty(): void {
-                doSet(set => {
-                    set.forEachMateriaSlot((_key, _item, slot) => {
-                        if (!slot.equippedMateria) {
-                            slot.locked = true;
-                        }
-                    });
-                    // Only save - no recalc
-                    set.nonRecalcNotify();
-                });
-            },
-            lockFilled(): void {
-                doSet(set => {
-                    set.forEachMateriaSlot((_key, _item, slot) => {
-                        if (slot.equippedMateria) {
-                            slot.locked = true;
-                        }
-                    });
-                    set.nonRecalcNotify();
-                });
-            },
-            unequipUnlocked(): void {
-                doSet(set => {
-                    set.forEachMateriaSlot((_key, _item, slot) => {
-                        if (!slot.locked) {
-                            slot.equippedMateria = null;
-                        }
-                    });
-                    set.forceRecalc();
-                });
-            },
-            unlockAll(): void {
-                doSet(set => {
-                    set.forEachMateriaSlot((_key, _item, slot) => {
-                        slot.locked = false;
-                    });
-                    set.nonRecalcNotify();
-                });
-            },
-        };
+        const matFillCtrl = this.makeMateriaAutoFillController(() => this.selectedGearSet);
         this._materiaAutoFillController = matFillCtrl;
         this._gearEditToolBar = new GearEditToolbar(
             this,
@@ -2004,6 +1928,83 @@ export class GearPlanSheetGui extends GearPlanSheet {
         }
     }
 
+    makeMateriaAutoFillController(setGetter: () => CharacterGearSet | undefined) {
+        const outer = this;
+
+        function doSet(f: (set: CharacterGearSet) => void): void {
+            const set = setGetter();
+            if (set) {
+                f(set);
+                if (outer._editorAreaNode instanceof GearSetEditor) {
+                    outer._editorAreaNode.refreshMateria();
+                }
+                outer.sendMessageToPopouts({'type': MESSAGE_REFRESH_CONTENT});
+            }
+        }
+
+        return {
+            get autoFillMode() {
+                return outer.materiaFillMode;
+            },
+            set autoFillMode(mode: MateriaFillMode) {
+                outer.materiaFillMode = mode;
+                outer.requestSave();
+            },
+            get prio() {
+                return writeProxy<MateriaAutoFillPrio>(outer.materiaAutoFillPrio, () => outer.requestSave());
+            },
+            callback(): void {
+                outer.requestSave();
+            },
+            fillAll(): void {
+                doSet(set => set.fillMateria(outer.materiaAutoFillPrio, true));
+            },
+            fillEmpty(): void {
+                doSet(set => set.fillMateria(outer.materiaAutoFillPrio, false));
+            },
+            lockEmpty(): void {
+                doSet(set => {
+                    set.forEachMateriaSlot((_key, _item, slot) => {
+                        if (!slot.equippedMateria) {
+                            slot.locked = true;
+                        }
+                    });
+                    // Only save - no recalc
+                    set.nonRecalcNotify();
+                });
+            },
+            lockFilled(): void {
+                doSet(set => {
+                    set.forEachMateriaSlot((_key, _item, slot) => {
+                        if (slot.equippedMateria) {
+                            slot.locked = true;
+                        }
+                    });
+                    set.nonRecalcNotify();
+                });
+            },
+            unequipUnlocked(): void {
+                doSet(set => {
+                    set.forEachMateriaSlot((_key, _item, slot) => {
+                        if (!slot.locked) {
+                            slot.equippedMateria = null;
+                        }
+                    });
+                    set.forceRecalc();
+                });
+            },
+            unlockAll(): void {
+                doSet(set => {
+                    set.forEachMateriaSlot((_key, _item, slot) => {
+                        slot.locked = false;
+                    });
+                    set.nonRecalcNotify();
+                });
+            },
+        };
+
+    }
+
     addGearSet(gearSet: CharacterGearSet, index?: number, select: boolean = false) {
         super.addGearSet(gearSet, index);
         this._gearPlanTable?.dataChanged();
@@ -2023,6 +2024,18 @@ export class GearPlanSheetGui extends GearPlanSheet {
         gearSet.startCheckpoint(() => this.refreshGearEditor(gearSet));
     }
 
+    sendMessageToSetPopout(set: CharacterGearSet, message: unknown) {
+        this._openSetPopouts.get(set)?.postMessage(message);
+    }
+
+    sendMessageToPopouts(message: unknown) {
+        this._openSetPopouts.forEach((win) => {
+            if (!win.closed) {
+                win.postMessage(message);
+            }
+        });
+    }
+
     /**
      * Fully refresh the gear editor area.
      *
@@ -2032,6 +2045,12 @@ export class GearPlanSheetGui extends GearPlanSheet {
         if (!set || this._editorItem === set) {
             this.resetEditorArea();
             // this.refreshToolbar();
+        }
+        if (set) {
+            this.sendMessageToSetPopout(set, {'type': MESSAGE_REFRESH_CONTENT});
+        }
+        else {
+            this.sendMessageToPopouts({'type': MESSAGE_REFRESH_CONTENT});
         }
     }
 
@@ -2044,6 +2063,7 @@ export class GearPlanSheetGui extends GearPlanSheet {
                 this.toolbarNode.refresh(this._editorItem);
             }
         }
+        this.sendMessageToPopouts({type: MESSAGE_REFRESH_TOOLBAR});
     }
 
     delGearSet(gearSet: CharacterGearSet) {

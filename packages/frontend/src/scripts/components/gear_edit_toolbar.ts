@@ -232,5 +232,54 @@ export class GearEditToolbar extends HTMLDivElement {
     }
 }
 
+export class PopoutGearEditToolbar extends HTMLDivElement {
+    private readonly statTierDisplay: StatTierDisplay;
+    private buttonsArea: ToolbarButtonsArea;
+
+    constructor(sheet: GearPlanSheetGui,
+                set: CharacterGearSet,
+                itemDisplaySettings: ItemDisplaySettings,
+                updateGearDisplayNow: () => void,
+                matFillCtrl: MateriaAutoFillController
+    ) {
+        super();
+        sheet = new Proxy<GearPlanSheetGui>(sheet, {
+            get(target: GearPlanSheetGui, p: string | symbol): unknown {
+                if (p === 'currentSet') {
+                    return set;
+                }
+                else {
+                    // @ts-expect-error p is not necessarily a known property
+                    return target[p];
+                }
+            },
+        });
+
+        this.classList.add('gear-set-editor-toolbar');
+
+        this.buttonsArea = new ToolbarButtonsArea();
+
+        // Gear filtering should only be done in main window
+
+        this.appendChild(this.buttonsArea);
+
+        const materiaPriority = new MateriaPriorityPicker(matFillCtrl, sheet);
+
+        this.buttonsArea.addPanelButton(["Materia", document.createElement('br'), "Fill/Lock"], materiaPriority);
+
+        // TODO: meld solver will trigger the popup on the main window
+        // this.buttonsArea.addPanelButtonModal(["Meld/Food", document.createElement('br'), "Solver"], () => sheet.showMeldSolveDialog());
+
+        this.statTierDisplay = new StatTierDisplay(sheet);
+        this.appendChild(this.statTierDisplay);
+    }
+
+    refresh(gearSet: CharacterGearSet) {
+        this.buttonsArea.currentSet = gearSet;
+        this.statTierDisplay.refresh(gearSet);
+    }
+}
+
 customElements.define('gear-edit-toolbar', GearEditToolbar, {extends: 'div'});
+customElements.define('popout-gear-edit-toolbar', PopoutGearEditToolbar, {extends: 'div'});
 customElements.define('gear-edit-toolbar-buttons-area', ToolbarButtonsArea, {extends: 'div'});
