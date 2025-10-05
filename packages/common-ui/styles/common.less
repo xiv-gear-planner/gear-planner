@@ -1427,7 +1427,9 @@ gear-plan {
     text-align: left;
     // I hate css
     margin-right: -60px;
-    width: min(100%, 100vw);
+    min-width: 100%;
+    max-width: min(100%, 100vw);
+    width: min-content;
     background-color: color-mix(in srgb, var(--bg-color) 80%, transparent);
 
     border-top: var(--standard-border);
