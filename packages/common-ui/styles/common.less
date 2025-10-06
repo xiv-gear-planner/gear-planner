@@ -1430,13 +1430,15 @@ gear-plan {
     min-width: 100%;
     max-width: min(100%, 100vw);
     width: min-content;
-    background-color: color-mix(in srgb, var(--bg-color) 80%, transparent);
+    //background-color: color-mix(in srgb, var(--table-bg-color) 80%, transparent);
+    .invert-input-colors();
+    background: linear-gradient(to bottom, transparent 0%, var(--table-bg-color) 10px);
 
     border-top: var(--standard-border);
 
     margin-top: 0;
 
-    padding: 2px 2px 0 2px;
+    padding: 12px 2px 0 2px;
 
     > * {
       margin-bottom: 2px;
