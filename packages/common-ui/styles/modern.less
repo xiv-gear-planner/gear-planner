@@ -188,19 +188,38 @@ body.modern {
     .shadow();
   }
 
-  .gear-sheet-buttons-area > * {
-    height: 25px;
-    padding-left: 10px;
-    padding-right: 10px;
+  .gear-sheet-buttons-area {
+    min-width: 100%;
+    max-width: min(100%, 100vw);
+    width: min-content;
+    //background-color: color-mix(in srgb, var(--table-bg-color) 80%, transparent);
+    .invert-input-colors();
+    background: linear-gradient(to bottom, transparent 0%, var(--table-bg-color) 10px);
 
-    &:is(select) {
-      // Don't put the padding on select elements - the dropdown arrow
-      // on the right effectively gives it padding.
-      padding-right: 0;
+    padding: 12px 2px 0 2px;
+
+    &:not(.showing) {
+      // TODO: centralize this 800px
+      @media screen and (width <= 800px) {
+        background: none;
+      }
     }
 
-    .svg-glyph {
-      padding-right: 3px;
+    > * {
+      height: 25px;
+      padding-left: 10px;
+      padding-right: 10px;
+
+      &:is(select) {
+        // Don't put the padding on select elements - the dropdown arrow
+        // on the right effectively gives it padding.
+        padding-right: 0;
+      }
+
+      .svg-glyph {
+        padding-right: 3px;
+      }
+
     }
   }
 
