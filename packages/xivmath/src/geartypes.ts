@@ -414,6 +414,7 @@ export interface RawStats {
     weaponDelay: number,
     defenseMag: number;
     defensePhys: number;
+    gearHaste: number;
 }
 
 export type RawStatKey = keyof RawStats;
@@ -443,6 +444,7 @@ export class RawStats implements RawStats {
     weaponDelay: number = 0;
     defenseMag: number = 0;
     defensePhys: number = 0;
+    gearHaste: number = 0;
 
     constructor(values: ({ [K in RawStatKey]?: number } | undefined) = undefined) {
         if (values) {

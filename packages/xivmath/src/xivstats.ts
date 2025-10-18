@@ -255,7 +255,7 @@ export class ComputedSetStatsImpl implements ComputedSetStats {
     }
 
     haste(attackType: AttackType): number {
-        return sum(this.finalBonusStats.bonusHaste.map(hb => hb(attackType)));
+        return this.gearHaste + sum(this.finalBonusStats.bonusHaste.map(hb => hb(attackType)));
     }
 
     traitMulti(attackType: AttackType): number {
@@ -328,6 +328,10 @@ export class ComputedSetStatsImpl implements ComputedSetStats {
 
     get defenseMag(): number {
         return this.currentStats.defenseMag + this.finalBonusStats.defenseMag;
+    }
+
+    get gearHaste(): number {
+        return this.currentStats.gearHaste + this.finalBonusStats.gearHaste;
     }
 
     get weaponDelay(): number {
