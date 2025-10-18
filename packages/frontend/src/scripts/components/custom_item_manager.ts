@@ -11,7 +11,8 @@ import {
     FieldBoundTextField,
     makeActionButton,
     nonNegative,
-    quickElement, randomId
+    quickElement,
+    randomId
 } from "@xivgear/common-ui/components/util";
 import {ALL_STATS, ALL_SUB_STATS, STAT_ABBREVIATIONS, STAT_FULL_NAMES} from "@xivgear/xivmath/xivconstants";
 import {BaseModal} from "@xivgear/common-ui/components/modal";
@@ -176,7 +177,18 @@ export class CustomItemTable extends CustomTable<CustomItem> {
                     },
                     initialWidth: 40,
                 });
-            }),
+            }), {
+                shortName: 'haste',
+                displayName: 'Haste',
+                getter: item => item,
+                renderer: (item: CustomItem) => {
+                    return new FieldBoundIntField(item.customData.stats, 'gearHaste', {
+                        postValidators: [clampValues(0, 99)],
+                    });
+                },
+                initialWidth: 60,
+
+            },
             {
                 shortName: 'wdPhys',
                 displayName: 'WdP',
@@ -225,7 +237,6 @@ export class CustomItemTable extends CustomTable<CustomItem> {
                 }),
                 initialWidth: 80,
             }];
-        // TODO: haste?
 
         this.refresh();
     }

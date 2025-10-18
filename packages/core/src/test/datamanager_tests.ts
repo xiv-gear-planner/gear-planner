@@ -71,6 +71,7 @@ describe('New Datamanager', () => {
             // Weapons don't have def/mdef
             defenseMag: 0,
             defensePhys: 0,
+            gearHaste: 999_999,
         });
         eq(codexOfAscension.materiaSlots.length, 2);
         eq(codexOfAscension.isCustomRelic, false);

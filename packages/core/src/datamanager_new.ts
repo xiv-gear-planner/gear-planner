@@ -144,6 +144,9 @@ export class NewApiDataManager implements DataManager {
                                 case "defenseMag":
                                     ilvlModifier = row.magicDefense;
                                     break;
+                                case "gearHaste":
+                                    // Don't bother capping haste since it doesn't work like a normal stat.
+                                    return 999_999;
                                 default:
                                     console.warn(`Bad ilvl modifer! ${statsKey}:${slot}`);
                                     ilvlModifier = undefined;
