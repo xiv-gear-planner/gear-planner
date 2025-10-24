@@ -266,12 +266,12 @@ export interface ComputedSetStats extends RawStats {
     /**
      * Physical GCD time
      */
-    gcdPhys(baseGcd: number, haste?: number): number,
+    gcdPhys(baseGcd: number, haste?: number, hasteY?: number, hasteZ?: number): number,
 
     /**
      * Magical GCD time
      */
-    gcdMag(baseGcd: number, haste?: number): number,
+    gcdMag(baseGcd: number, haste?: number, hasteY?: number, hasteZ?: number): number,
 
     /**
      * Base haste value for a given attack type

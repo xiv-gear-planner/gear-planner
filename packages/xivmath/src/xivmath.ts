@@ -33,6 +33,27 @@ export function fl(input: number) {
     }
 }
 
+/**
+ * Enhanced ceiling function which takes into account a small margin of error to account for
+ * floating point errors.
+ *
+ * e.g. 2.2 * 100 => 220.00000000000003, but cl(2.2 * 100) => 230
+ *
+ * @param input
+ */
+export function cl(input: number) {
+    const ceiled = Math.floor(input);
+    const loss = ceiled - input;
+    // e.g. if input is 2.00...1, then ceiled === 3 and loss === 0.999...
+    // so we can just return floor + 1;
+    if (loss >= 0.99999995) {
+        return ceiled - 1;
+    }
+    else {
+        return ceiled;
+    }
+}
+
 export function trunc(input: number) {
     if (input > 0) {
         return fl(input);
@@ -68,10 +89,16 @@ export function flp(places: number, input: number) {
  * @param baseGcd The base time of the ability in question (e.g. 2.5 for most abilities).
  * @param levelStats Level stats for the level at which the computation is to be performed.
  * @param sks The skill speed stat value.
- * @param haste The haste value, e.g. 15 for 15% haste, etc.
+ * @param haste The haste value as a percentage, e.g. 15 for 15% haste, etc.
+ * @param hasteY The "type Y" haste value as a percentage, e.g. 15 for 15% type-Y haste.
+ * @param hasteZ The "type Z" haste value as a percentage, e.g. 15 for 15% type-Z haste.
  */
-export function sksToGcd(baseGcd: number, levelStats: LevelStats, sks: number, haste = 0): number {
-    return fl((fl((1000 - fl(130 * (sks - levelStats.baseSubStat) / levelStats.levelDiv)) * baseGcd) * (100 - haste)) / 1000) / 100;
+export function sksToGcd(baseGcd: number, levelStats: LevelStats, sks: number, haste = 0, hasteY = 0, hasteZ = 0): number {
+    const base = fl((1000 - fl(130 * (sks - levelStats.baseSubStat) / levelStats.levelDiv)) * baseGcd);
+    const gcd2 = fl((100 - hasteY) * (100 - haste) / 100);
+    const gcd3 = (100 - hasteZ) / 100;
+    const gcd4 = fl(cl(gcd2 * gcd3) * base / 1000);
+    return flp(2, gcd4 / 100);
 }
 
 /**
@@ -80,10 +107,42 @@ export function sksToGcd(baseGcd: number, levelStats: LevelStats, sks: number, h
  * @param baseGcd The base time of the ability in question (e.g. 2.5 for most abilities).
  * @param levelStats Level stats for the level at which the computation is to be performed.
  * @param sps The spell speed stat value.
- * @param haste The haste value, e.g. 15 for 15% haste, etc.
+ * @param haste The haste value as a percentage, e.g. 15 for 15% haste, etc.
+ * @param hasteY The "type Y" haste value as a percentage, e.g. 15 for 15% type-Y haste.
+ * @param hasteZ The "type Z" haste value as a percentage, e.g. 15 for 15% type-Z haste.
  */
-export function spsToGcd(baseGcd: number, levelStats: LevelStats, sps: number, haste = 0): number {
-    return fl((fl((1000 - fl(130 * (sps - levelStats.baseSubStat) / levelStats.levelDiv)) * baseGcd) * (100 - haste)) / 1000) / 100;
+export function spsToGcd(baseGcd: number, levelStats: LevelStats, sps: number, haste = 0, hasteY = 0, hasteZ = 0): number {
+    const base = fl((1000 - fl(130 * (sps - levelStats.baseSubStat) / levelStats.levelDiv)) * baseGcd);
+    const gcd2 = fl((100 - hasteY) * (100 - haste) / 100);
+    const gcd3 = (100 - hasteZ) / 100;
+    const gcd4 = fl(cl(gcd2 * gcd3) * base / 1000);
+    return flp(2, gcd4 / 100);
+}
+
+export function effectiveAaDelay(baseAaDelay: number, haste = 0, hasteY = 0, hasteZ = 0) {
+    // input = 3.21, 0, 0, 0
+    // expected output = 3.21
+    const base = flp(3, baseAaDelay);
+    // base = 3.210
+    const gcd2 = fl((100 - hasteY) * (100 - haste) / 100);
+    // gcd2 = 100
+    const gcd3 = (100 - hasteZ) / 100;
+    // gcd3 = 1
+    const gcd4 = fl(cl(gcd2 * gcd3) * base);
+    // gcd4 = 100 * 1 * 3.210 = 321
+    return flp(2, gcd4 / 100);
+    // return = 3.21
+}
+
+export function combineHaste(hasteX: number, hasteY: number, hasteZ: number) {
+    // normalized to 100
+    const gcd2 = fl((100 - hasteY) * (100 - hasteX) / 100);
+
+    // normalized to 1
+    const gcd3 = (100 - hasteZ) / 100;
+
+    // normalized to 100
+    return cl(gcd2 * gcd3);
 }
 
 /**

@@ -599,6 +599,14 @@ export type BuffEffects = {
      */
     haste?: number,
     /**
+     * Type-Y Haste. Expressed as the percentage value, e.g. 20 = 20% faster GCD
+     */
+    hasteY?: number,
+    /**
+     * Type-Z Haste. Expressed as the percentage value, e.g. 20 = 20% faster GCD
+     */
+    hasteZ?: number,
+    /**
      * Modify stats directly
      */
     modifyStats?: StatModification;
@@ -769,6 +777,14 @@ export type CombinedBuffEffect = {
      * Haste as an integer, e.g. 20 haste = 20% lower cast/gcd time.
      */
     haste: number,
+    /**
+     * Type-Y Haste as an integer, e.g. 20 haste = 20% lower cast/gcd time.
+     */
+    hasteY: number,
+    /**
+     * Type-Z Haste as an integer, e.g. 20 haste = 20% lower cast/gcd time.
+     */
+    hasteZ: number,
     /**
      * Function for modifying a ComputedSetStats for any changes which cannot be expressed using the other fields.
      */

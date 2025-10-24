@@ -246,12 +246,12 @@ export class ComputedSetStatsImpl implements ComputedSetStats {
         return out;
     }
 
-    gcdPhys(baseGcd: number, haste?: number): number {
-        return sksToGcd(baseGcd, this.levelStats, this.skillspeed, haste);
+    gcdPhys(baseGcd: number, haste?: number, hasteY?: number, hasteZ?: number): number {
+        return sksToGcd(baseGcd, this.levelStats, this.skillspeed, haste, hasteY, hasteZ);
     }
 
-    gcdMag(baseGcd: number, haste?: number): number {
-        return spsToGcd(baseGcd, this.levelStats, this.spellspeed, haste);
+    gcdMag(baseGcd: number, haste?: number, hasteY?: number, hasteZ?: number): number {
+        return spsToGcd(baseGcd, this.levelStats, this.spellspeed, haste, hasteY, hasteZ);
     }
 
     haste(attackType: AttackType): number {

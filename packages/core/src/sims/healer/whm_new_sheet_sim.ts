@@ -92,7 +92,7 @@ const pom: OgcdAbility = {
             selfOnly: true,
             duration: 15,
             effects: {
-                haste: 20,
+                hasteY: 20,
             },
             statusId: 157,
         },

@@ -1110,6 +1110,8 @@ export class CycleProcessor<GaugeManagerType extends GaugeManager<unknown> = Gau
             combinedEffects: {
                 ...combinedEffects,
                 haste: preCombinedEffects.haste,
+                hasteY: preCombinedEffects.hasteY,
+                hasteZ: preCombinedEffects.hasteZ,
             },
             buffs: finalBuffs,
             usedAt: gcdStartsAt,
@@ -1457,8 +1459,8 @@ export class CycleProcessor<GaugeManagerType extends GaugeManager<unknown> = Gau
         const haste = effects.haste + stats.haste(ability.attackType);
         return ability.fixedGcd ? base :
             (ability.attackType === "Spell") ?
-                (stats.gcdMag(base ?? this.gcdBase, haste)) :
-                (stats.gcdPhys(base ?? this.gcdBase, haste));
+                (stats.gcdMag(base ?? this.gcdBase, haste, effects.hasteY, effects.hasteZ)) :
+                (stats.gcdPhys(base ?? this.gcdBase, haste, effects.hasteY, effects.hasteZ));
     }
 
     /**
@@ -1513,9 +1515,9 @@ export class CycleProcessor<GaugeManagerType extends GaugeManager<unknown> = Gau
             case "none":
                 return cooldown.time;
             case "spellspeed":
-                return stats.gcdMag(cooldown.time, effects.haste);
+                return stats.gcdMag(cooldown.time, effects.haste, effects.hasteY, effects.hasteZ);
             case "skillspeed":
-                return stats.gcdPhys(cooldown.time, effects.haste);
+                return stats.gcdPhys(cooldown.time, effects.haste, effects.hasteY, effects.hasteZ);
         }
     }
 
