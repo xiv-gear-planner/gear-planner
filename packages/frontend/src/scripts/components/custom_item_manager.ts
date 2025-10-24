@@ -260,7 +260,7 @@ export class CustomItemPopup extends BaseModal {
         this.contentArea.appendChild(table);
 
         const notesArea = document.createElement('p');
-        notesArea.innerHTML = 'Limitations:<br />If you change the number of materia slots on an item, you will need to re-select the item.';
+        notesArea.innerHTML = 'Limitations:<br />If you change the number of materia slots on an item, you will need to re-select the item.<br />Haste may not interact correctly with classes that have their own haste mechanic.';
         notesArea.classList.add('notes-area');
         this.contentArea.appendChild(notesArea);
 
