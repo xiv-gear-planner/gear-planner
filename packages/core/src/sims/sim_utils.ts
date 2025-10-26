@@ -11,6 +11,7 @@ import {
 import {
     applyDhCritFull,
     baseDamageFull,
+    flp,
     getDefaultScalings,
     getLivingShadowStrength,
     mainStatMultiLivingShadow
@@ -140,7 +141,11 @@ export function combineBuffEffects(buffs: Buff[]): CombinedBuffEffect {
             combinedEffects.dhitChanceIncrease += effects.dhitChanceIncrease;
         }
         if (effects.haste) {
-            combinedEffects.haste += effects.haste;
+            // 'haste' is expressed as a percentage, so we need to convert it to a modifier.
+            const existingMult = flp(2, (100 - combinedEffects.haste) / 100);
+            const thisMult = flp(2, (100 - effects.haste) / 100);
+            const combinedMult = flp(2, existingMult * thisMult);
+            combinedEffects.haste = 100 * (1 - combinedMult);
         }
         if (effects.forceCrit) {
             combinedEffects.forceCrit = true;
