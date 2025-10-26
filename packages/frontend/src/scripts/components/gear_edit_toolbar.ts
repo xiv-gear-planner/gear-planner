@@ -4,6 +4,7 @@ import {MateriaPriorityPicker} from "./materia";
 import {StatTierDisplay} from "./stat_tier_display";
 import {CharacterGearSet} from "@xivgear/core/gear";
 import {
+    el,
     FieldBoundCheckBox,
     labeledCheckbox,
     makeActionButton,
@@ -96,8 +97,7 @@ export class ToolbarButtonsArea extends HTMLDivElement {
         }, 'Redo');
         this.redoButton.classList.add('big-text-btn');
 
-        this.popoutArea = document.createElement('div');
-        this.popoutArea.classList.add('popout-area');
+        this.popoutArea = el('div', {class: 'popout-area'});
         // Don't allow clicking on the actual popout to be treated as clicking on the button
         // TODO: make sure this is happening for all events
         const evStop = (ev: MouseEvent) => {

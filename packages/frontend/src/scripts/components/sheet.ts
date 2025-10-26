@@ -1495,7 +1495,7 @@ export class GearPlanSheetGui extends GearPlanSheet {
         const buttonsArea = this.buttonsArea;
         const showHideButton = makeActionButton('≡', () => {
             const cls = 'showing';
-            buttonsArea.classList.contains(cls) ? buttonsArea.classList.remove(cls) : buttonsArea.classList.add(cls);
+            buttonsArea.classList.toggle(cls);
         });
         showHideButton.classList.add('show-hide-button');
         buttonsArea.appendChild(showHideButton);
