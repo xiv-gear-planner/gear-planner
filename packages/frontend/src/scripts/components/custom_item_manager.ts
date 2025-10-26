@@ -386,6 +386,8 @@ export class CustomFoodTable extends CustomTable<CustomFood> {
                     return new FieldBoundTextField(item.customData, 'name');
                 },
                 initialWidth: 150,
+                headerStyler: setTitle('Name of the item'),
+                colStyler: setTitle('Name of the item'),
             }, {
                 shortName: 'ilvl',
                 displayName: 'ilvl',
@@ -396,6 +398,8 @@ export class CustomFoodTable extends CustomTable<CustomFood> {
                     });
                 },
                 initialWidth: 60,
+                headerStyler: setTitle('Item level'),
+                colStyler: setTitle('Item level'),
             }, {
                 shortName: 'vitality-percent',
                 displayName: 'Vit %',
@@ -404,6 +408,8 @@ export class CustomFoodTable extends CustomTable<CustomFood> {
                     return new FieldBoundIntField(item.customData.vitalityBonus, 'percentage', {postValidators: [nonNegative]});
                 },
                 initialWidth: 60,
+                headerStyler: setTitle('Vitality bonus percentage'),
+                colStyler: setTitle('Vitality bonus percentage'),
             }, {
                 shortName: 'vitality-cap',
                 displayName: 'Vit Max',
@@ -412,6 +418,8 @@ export class CustomFoodTable extends CustomTable<CustomFood> {
                     return new FieldBoundIntField(item.customData.vitalityBonus, 'max', {postValidators: [nonNegative]});
                 },
                 initialWidth: 60,
+                headerStyler: setTitle('Vitality bonus cap'),
+                colStyler: setTitle('Vitality bonus cap'),
             }, {
                 shortName: 'primary-stat',
                 displayName: '1st Stat',
@@ -420,6 +428,8 @@ export class CustomFoodTable extends CustomTable<CustomFood> {
                     return new FieldBoundDataSelect(item.customData, 'primaryStat', value => value ? STAT_FULL_NAMES[value] : 'None', [null, ...ALL_SUB_STATS]);
                 },
                 initialWidth: 120,
+                headerStyler: setTitle('The primary sub-stat'),
+                colStyler: setTitle('The primary sub-stat'),
             }, {
                 shortName: 'primary-stat-percent',
                 displayName: '%',
@@ -428,6 +438,8 @@ export class CustomFoodTable extends CustomTable<CustomFood> {
                     return new FieldBoundIntField(item.customData.primaryStatBonus, 'percentage', {postValidators: [nonNegative]});
                 },
                 initialWidth: 60,
+                headerStyler: setTitle('The primary sub-stat bonus percentage'),
+                colStyler: setTitle('The primary sub-stat bonus percentage'),
             }, {
                 shortName: 'primary-stat-cap',
                 displayName: 'Max',
@@ -436,6 +448,8 @@ export class CustomFoodTable extends CustomTable<CustomFood> {
                     return new FieldBoundIntField(item.customData.primaryStatBonus, 'max', {postValidators: [nonNegative]});
                 },
                 initialWidth: 60,
+                headerStyler: setTitle('The primary sub-stat bonus cap'),
+                colStyler: setTitle('The primary sub-stat bonus cap'),
             }, {
                 shortName: 'secondary-stat',
                 displayName: '2nd Stat',
@@ -444,6 +458,8 @@ export class CustomFoodTable extends CustomTable<CustomFood> {
                     return new FieldBoundDataSelect(item.customData, 'secondaryStat', value => value ? STAT_FULL_NAMES[value] : 'None', [null, ...ALL_SUB_STATS]);
                 },
                 initialWidth: 120,
+                headerStyler: setTitle('The secondary sub-stat'),
+                colStyler: setTitle('The secondary sub-stat'),
             }, {
                 shortName: 'secondary-stat-percent',
                 displayName: '%',
@@ -452,6 +468,8 @@ export class CustomFoodTable extends CustomTable<CustomFood> {
                     return new FieldBoundIntField(item.customData.secondaryStatBonus, 'percentage', {postValidators: [nonNegative]});
                 },
                 initialWidth: 60,
+                headerStyler: setTitle('The secondary sub-stat bonus percentage'),
+                colStyler: setTitle('The secondary sub-stat bonus percentage'),
             }, {
                 shortName: 'secondary-stat-cap',
                 displayName: 'Max',
@@ -460,6 +478,8 @@ export class CustomFoodTable extends CustomTable<CustomFood> {
                     return new FieldBoundIntField(item.customData.secondaryStatBonus, 'max', {postValidators: [nonNegative]});
                 },
                 initialWidth: 60,
+                headerStyler: setTitle('The secondary sub-stat bonus cap'),
+                colStyler: setTitle('The secondary sub-stat bonus cap'),
             },
         ];
 
