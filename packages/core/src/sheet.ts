@@ -1093,6 +1093,9 @@ export class GearPlanSheet {
      * @param stat
      */
     isStatRelevant(stat: RawStatKey | undefined): boolean {
+        if (stat === undefined) {
+            return false;
+        }
         if (!this.classJobEarlyStats) {
             // Not sure what the best way to handle this is
             return true;
@@ -1106,6 +1109,20 @@ export class GearPlanSheet {
         else {
             return true;
         }
+    }
+
+    /**
+     * Determine whether a stat can naturally appear on gear. Like {@link #isStatRelevant}, but returns false if the
+     * stat does not appear on gear for this class. e.g. returns false for DH on tanks and healers.
+     *
+     * @param stat
+     */
+    isStatPossibleOnGear(stat: RawStatKey | undefined): boolean {
+        const role = this.classJobEarlyStats.role;
+        if (stat === 'dhit' && (role === 'Healer' || role === 'Tank')) {
+            return false;
+        }
+        return this.isStatRelevant(stat);
     }
 
     /**

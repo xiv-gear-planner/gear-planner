@@ -59,6 +59,12 @@ custom-item-popup, custom-food-popup {
     margin-left: auto;
     margin-right: auto;
   }
+
+  &:not(.show-all-stats) {
+    th.irrelevant-stat, td.irrelevant-stat {
+      display: none;
+    }
+  }
 }
 
 sim-result-detail-display {
