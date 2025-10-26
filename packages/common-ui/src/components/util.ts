@@ -563,29 +563,26 @@ export class FieldBoundDataSelect<ObjType, DataType> extends DataSelect<DataType
 
 export function labeledComponent(label: string | Node, check: HTMLElement): HTMLDivElement {
     const labelElement = labelFor(label, check);
-    const div = document.createElement("div");
-    div.appendChild(check);
-    div.appendChild(labelElement);
-    div.classList.add("labeled-component");
-    return div;
+    return el('div', {class: 'labeled-component'}, [
+        check,
+        labelElement,
+    ]);
 }
 
 export function labeledCheckbox(label: string | Node, check: HTMLInputElement): HTMLDivElement {
     const labelElement = labelFor(label, check);
-    const div = document.createElement("div");
-    div.appendChild(check);
-    div.appendChild(labelElement);
-    div.classList.add("labeled-checkbox");
-    return div;
+    return el('div', {class: 'labeled-checkbox'}, [
+        check,
+        labelElement,
+    ]);
 }
 
 export function labeledRadioButton(label: string | Node, radioButton: HTMLInputElement): HTMLDivElement {
     const labelElement = labelFor(label, radioButton);
-    const div = document.createElement("div");
-    div.appendChild(radioButton);
-    div.appendChild(labelElement);
-    div.classList.add("labeled-radio-button");
-    return div;
+    return el('div', {class: 'labeled-radio-button'}, [
+        radioButton,
+        labelElement,
+    ]);
 }
 
 export function quickElement<X extends keyof HTMLElementTagNameMap>(tag: X, classes: string[] = [], nodes: Parameters<ParentNode['replaceChildren']> = []): HTMLElementTagNameMap[X] {
@@ -600,13 +597,42 @@ export function quickElement<X extends keyof HTMLElementTagNameMap>(tag: X, clas
 }
 
 export type ElOpts<X extends keyof HTMLElementTagNameMap> = {
+    /**
+     * If specified, adds a single class to the element.
+     */
+    class?: string;
+    /**
+     * If specified, adds multiple classes to the element.
+     */
     classes?: string[];
+    /**
+     * If specified, sets the id of the element.
+     */
     id?: string;
+    /**
+     * If specified, sets any other arbitrary properties of the element.
+     */
     props?: Partial<HTMLElementTagNameMap[X]>;
+    /**
+     * If specified, sets any arbitrary attributes of the element.
+     */
+    attributes?: {
+        [K: string]: string;
+    };
 };
 
+/**
+ * Create an element with the given tag, options, and children.
+ *
+ * @param tag The tag to create
+ * @param opts The options to use
+ * @param nodes Child nodes
+ */
 export function el<X extends keyof HTMLElementTagNameMap>(tag: X, opts: ElOpts<X> = {}, nodes: Parameters<ParentNode['replaceChildren']> = []) {
     const classes = opts.classes ?? [];
+    if (opts.class) {
+        classes.push(opts.class);
+    }
     const out = quickElement(tag, classes, nodes);
     if (opts.id) {
         out.id = opts.id;
@@ -614,6 +640,11 @@ export function el<X extends keyof HTMLElementTagNameMap>(tag: X, opts: ElOpts<X
     if (opts.props) {
         for (const [key, value] of Object.entries(opts.props)) {
             out[key as keyof typeof out] = value;
+        }
+    }
+    if (opts.attributes) {
+        for (const [key, value] of Object.entries(opts.attributes)) {
+            out.setAttribute(key, value);
         }
     }
     return out;

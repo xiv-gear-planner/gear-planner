@@ -74,7 +74,7 @@ export class CustomItem implements GearItem {
             slot: slot,
         };
         // Copy relevant features of the highest ilvl available for that slot
-        const highest = sheet.highestIlvlItemForSlot(slot);
+        const highest = sheet.highestIlvlItemForSlot(slot).unsyncedVersion;
         data.ilvl = highest.ilvl;
         data.stats.vitality = highest.stats.vitality;
         data.stats.strength = highest.stats.strength;
