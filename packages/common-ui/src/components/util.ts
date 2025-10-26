@@ -1,5 +1,5 @@
 export function makeActionButton(label: string | (Node | string)[], action: (ev: MouseEvent) => void, tooltip?: string) {
-    const button = document.createElement("button");
+    const button = el("button");
     if (label instanceof Object) {
         button.replaceChildren(...label);
     }
@@ -27,11 +27,8 @@ export function makeActionButton(label: string | (Node | string)[], action: (ev:
  * @param tooltip
  */
 export function makeAsyncActionButton(label: string | (Node | string)[], action: (ev: MouseEvent) => Promise<void>, tooltip?: string) {
-    const button = document.createElement("button");
-    button.classList.add('async-action-button');
-    const loadingBlocker = document.createElement('div');
-    loadingBlocker.textContent = '...';
-    loadingBlocker.classList.add('loading-pane');
+    const button = el('button', {class: 'async-action-button'});
+    const loadingBlocker = el('div', {class: 'loading-pane'}, ['...']);
     if (typeof label === 'string') {
         button.replaceChildren(label, loadingBlocker);
     }
