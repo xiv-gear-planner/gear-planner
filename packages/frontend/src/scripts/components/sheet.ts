@@ -317,7 +317,7 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, SingleCellRowOr
                     shortName: "gcd-custom-" + counter++,
                     displayName: gcdOver.shortLabel,
                     getter: gearSet => {
-                        const haste = gearSet.computedStats.haste(gcdOver.attackType) + (gcdOver.buffHaste ?? 0);
+                        const haste = gearSet.computedStats.haste(gcdOver.attackType, gcdOver.buffHaste ?? 0);
                         switch (gcdOver.basis) {
                             case "sks":
                                 return gearSet.computedStats.gcdPhys(2.5, haste);
@@ -339,8 +339,8 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, SingleCellRowOr
                     shortName: "gcd",
                     displayName: "GCD",
                     getter: gearSet => {
-                        const magHaste = gearSet.computedStats.haste('Spell');
-                        const physHaste = gearSet.computedStats.haste('Weaponskill');
+                        const magHaste = gearSet.computedStats.haste('Spell', 0);
+                        const physHaste = gearSet.computedStats.haste('Weaponskill', 0);
                         return Math.min(gearSet.computedStats.gcdMag(2.5, magHaste), gearSet.computedStats.gcdPhys(2.5, physHaste));
                     },
                     renderer: gcd => document.createTextNode(gcd.toFixed(2)),
