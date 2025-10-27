@@ -308,8 +308,6 @@ export class CustomItemPopup extends BaseModal {
             'Limitations:',
             el('br'),
             'If you change the number of materia slots on an item, you will need to re-select the item.',
-            el('br'),
-            'Haste may not interact correctly with classes that have their own haste mechanic.',
         ]);
         this.contentArea.appendChild(notesArea);
 
