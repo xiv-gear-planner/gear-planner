@@ -1,4 +1,4 @@
-import {Buff, PersonalBuff} from "../sims/sim_types";
+import {PersonalBuff} from "../sims/sim_types";
 import {combineBuffEffects} from "../sims/sim_utils";
 import {expect} from "chai";
 import {combineHaste} from "@xivgear/xivmath/xivmath";
@@ -84,7 +84,7 @@ describe('haste', () => {
                 expect(combineHaste(13, 20, 5)).to.equal(35);
             });
 
-        })
+        });
     });
 
 });
