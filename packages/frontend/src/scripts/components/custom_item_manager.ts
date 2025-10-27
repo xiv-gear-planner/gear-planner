@@ -215,8 +215,14 @@ export class CustomItemTable extends CustomTable<CustomItem> {
                     });
                 },
                 initialWidth: 60,
-                headerStyler: setTitle('Haste (percentage)'),
-                colStyler: setTitle('Haste (percentage)'),
+                colStyler: (_, cell) => {
+                    cell.classList.add('irrelevant-stat');
+                    cell.title = 'Haste (percentage)';
+                },
+                headerStyler: (_, cell) => {
+                    cell.classList.add('irrelevant-stat');
+                    cell.title = 'Haste (percentage)';
+                },
             }),
             {
                 shortName: 'wdPhys',
