@@ -10,7 +10,7 @@ import {
 } from "./sim_types";
 import {
     applyDhCritFull,
-    baseDamageFull,
+    baseDamageFull, fl,
     flp,
     getDefaultScalings,
     getLivingShadowStrength,
@@ -145,7 +145,7 @@ export function combineBuffEffects(buffs: Buff[]): CombinedBuffEffect {
             const existingMult = flp(2, (100 - combinedEffects.haste) / 100);
             const thisMult = flp(2, (100 - effects.haste) / 100);
             const combinedMult = flp(2, existingMult * thisMult);
-            combinedEffects.haste = 100 * (1 - combinedMult);
+            combinedEffects.haste = fl(100 * (1 - combinedMult));
         }
         if (effects.forceCrit) {
             combinedEffects.forceCrit = true;
