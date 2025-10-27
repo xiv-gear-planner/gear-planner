@@ -195,7 +195,7 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
                 description: 'Standard 2.5s GCD recast time',
                 gcdTime: 2.5,
                 attackType: 'Spell',
-                haste: 0,
+                buffHaste: 0,
                 basis: 'sps',
             }, {
                 shortLabel: 'PoM GCD',
@@ -203,7 +203,7 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
                 description: '2.5s GCD recast time under Presence of Mind',
                 gcdTime: 2.5,
                 attackType: 'Spell',
-                haste: 20,
+                buffHaste: 20,
                 basis: 'sps',
             }];
         },
@@ -229,7 +229,7 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
                 minLevel: 1,
                 maxLevel: 19,
                 apply: (stats) => {
-                    stats.bonusHaste.push(attackType =>
+                    stats.traitHaste.push(attackType =>
                         attackType === 'Weaponskill'
                         || attackType === 'Spell'
                         || attackType === 'Auto-attack'
@@ -240,7 +240,7 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
                 minLevel: 20,
                 maxLevel: 39,
                 apply: (stats) => {
-                    stats.bonusHaste.push(attackType =>
+                    stats.traitHaste.push(attackType =>
                         attackType === 'Weaponskill'
                         || attackType === 'Spell'
                         || attackType === 'Auto-attack'
@@ -251,7 +251,7 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
                 minLevel: 40,
                 maxLevel: 75,
                 apply: (stats) => {
-                    stats.bonusHaste.push(attackType =>
+                    stats.traitHaste.push(attackType =>
                         attackType === 'Weaponskill'
                         || attackType === 'Spell'
                         || attackType === 'Auto-attack'
@@ -261,7 +261,7 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
             {
                 minLevel: 76,
                 apply: (stats) => {
-                    stats.bonusHaste.push(attackType =>
+                    stats.traitHaste.push(attackType =>
                         attackType === 'Weaponskill'
                         || attackType === 'Spell'
                         || attackType === 'Auto-attack'
@@ -273,7 +273,7 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
         ...MELEE_SCOUTING,
         traits: [{
             apply: stats => {
-                stats.bonusHaste.push(attackType =>
+                stats.traitHaste.push(attackType =>
                     attackType === 'Weaponskill' || attackType === 'Auto-attack' ? 15 : 0);
             },
         },
@@ -289,7 +289,7 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
                     description: 'GCD recast time w/ Fuka',
                     gcdTime: 2.5,
                     attackType: 'Weaponskill',
-                    haste: 10,
+                    buffHaste: 10,
                     basis: 'sks',
                     isPrimary: true,
                 }];
@@ -301,7 +301,7 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
                     description: 'GCD recast time w/ Fuka',
                     gcdTime: 2.5,
                     attackType: 'Weaponskill',
-                    haste: 13, // Enhanced Fugetsu and Fuka
+                    buffHaste: 13, // Enhanced Fugetsu and Fuka
                     basis: 'sks',
                     isPrimary: true,
                 }];
@@ -318,7 +318,7 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
                 description: '2.5s GCD with swiftscaled buff',
                 gcdTime: 2.5,
                 attackType: 'Weaponskill',
-                haste: 15,
+                buffHaste: 15,
                 basis: 'sks',
                 isPrimary: true,
             }];

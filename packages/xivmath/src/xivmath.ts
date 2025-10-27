@@ -529,3 +529,13 @@ export function hpScalar(levelStats: LevelStats, jobStats: JobDataConst) {
 export function mainStatPowerMod(levelStats: LevelStats, jobStats: JobDataConst) {
     return levelStats.mainStatPowerMod[jobStats.role] ?? levelStats.mainStatPowerMod.other;
 }
+
+export function combineHaste(buffHaste: number, gearHaste: number, traitHaste: number): number {
+    // Normalize each haste amount to a speed multiplier i.e. 1 = no haste, lower values = faster.
+    const buffHasteMult = flp(2, (100 - buffHaste) / 100);
+    const gearHasteMult = flp(2, (100 - gearHaste) / 100);
+    const traitHasteMult = flp(2, (100 - traitHaste) / 100);
+    const combined = flp(2, flp(2, buffHasteMult * gearHasteMult) * traitHasteMult);
+    // Convert back to a haste percentage.
+    return fl((1 - combined) * 100);
+}

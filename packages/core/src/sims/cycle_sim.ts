@@ -1322,7 +1322,8 @@ export class CycleProcessor<GaugeManagerType extends GaugeManager<unknown> = Gau
             lockTime: 0,
             gaugeAfter: this.gaugeManager.gaugeSnapshot() as GaugeStateTypeOfMgr<GaugeManagerType>,
         });
-        const aaDelay = this.stats.aaDelay * (100 - this.stats.haste('Auto-attack') - combinedEffects.haste) / 100;
+        // TODO - finalize AA rate haste math
+        const aaDelay = this.stats.aaDelay * (100 - this.stats.haste('Auto-attack', combinedEffects.haste)) / 100;
         this.nextAutoAttackTime = this.currentTime + aaDelay;
     }
 
@@ -1454,7 +1455,7 @@ export class CycleProcessor<GaugeManagerType extends GaugeManager<unknown> = Gau
     castTime(ability: Ability, effects: CombinedBuffEffect): number {
         const base = ability.cast ?? (STANDARD_ANIMATION_LOCK + CASTER_TAX);
         const stats = effects.modifyStats(this.stats);
-        const haste = effects.haste + stats.haste(ability.attackType);
+        const haste = stats.haste(ability.attackType, effects.haste);
         return ability.fixedGcd ? base :
             (ability.attackType === "Spell") ?
                 (stats.gcdMag(base ?? this.gcdBase, haste)) :
@@ -1476,7 +1477,7 @@ export class CycleProcessor<GaugeManagerType extends GaugeManager<unknown> = Gau
 
         const base = ability.gcd;
         const stats = effects.modifyStats(this.stats);
-        const haste = effects.haste + stats.haste(ability.attackType);
+        const haste = stats.haste(ability.attackType, effects.haste);
         return ability.fixedGcd ? base :
             (ability.attackType === "Spell") ?
                 (stats.gcdMag(base ?? this.gcdBase, haste)) :

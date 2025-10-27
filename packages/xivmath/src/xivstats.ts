@@ -14,7 +14,7 @@ import {
     autoAttackModifier,
     autoCritBuffDmg,
     autoDhitBonusDmg,
-    autoDhitBuffDmg,
+    autoDhitBuffDmg, combineHaste,
     critChance,
     critDmg,
     defIncomingDmg,
@@ -93,7 +93,7 @@ export class RawBonusStats extends RawStats {
     dhitChance: number = 0;
     dhitDmg: number = 0;
     detMulti: number = 0;
-    bonusHaste: HasteBonus[] = [];
+    traitHaste: HasteBonus[] = [];
     // TODO: These should be used when possible
     forceCrit: boolean = false;
     forceDh: boolean = false;
@@ -254,8 +254,9 @@ export class ComputedSetStatsImpl implements ComputedSetStats {
         return spsToGcd(baseGcd, this.levelStats, this.spellspeed, haste);
     }
 
-    haste(attackType: AttackType): number {
-        return this.gearHaste + sum(this.finalBonusStats.bonusHaste.map(hb => hb(attackType)));
+    haste(attackType: AttackType, buffHaste: number): number {
+        const traitHaste = sum(this.finalBonusStats.traitHaste.map(hb => hb(attackType)));
+        return combineHaste(buffHaste, this.gearHaste, traitHaste);
     }
 
     traitMulti(attackType: AttackType): number {
