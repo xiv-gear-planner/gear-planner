@@ -10,8 +10,8 @@ import {
 } from "./sim_types";
 import {
     applyDhCritFull,
-    baseDamageFull, combineHasteBuffs, fl,
-    flp,
+    baseDamageFull,
+    combineHasteBuffs,
     getDefaultScalings,
     getLivingShadowStrength,
     mainStatMultiLivingShadow
