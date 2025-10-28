@@ -10,7 +10,7 @@ import {
 } from "./sim_types";
 import {
     applyDhCritFull,
-    baseDamageFull, fl,
+    baseDamageFull, combineHasteBuffs, fl,
     flp,
     getDefaultScalings,
     getLivingShadowStrength,
@@ -141,11 +141,7 @@ export function combineBuffEffects(buffs: Buff[]): CombinedBuffEffect {
             combinedEffects.dhitChanceIncrease += effects.dhitChanceIncrease;
         }
         if (effects.haste) {
-            // 'haste' is expressed as a percentage, so we need to convert it to a modifier.
-            const existingMult = flp(2, (100 - combinedEffects.haste) / 100);
-            const thisMult = flp(2, (100 - effects.haste) / 100);
-            const combinedMult = flp(2, existingMult * thisMult);
-            combinedEffects.haste = fl(100 * (1 - combinedMult));
+            combinedEffects.haste = combineHasteBuffs(combinedEffects.haste, effects.haste);
         }
         if (effects.forceCrit) {
             combinedEffects.forceCrit = true;

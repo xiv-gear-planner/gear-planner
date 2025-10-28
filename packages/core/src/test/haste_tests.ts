@@ -1,7 +1,7 @@
 import {PersonalBuff} from "../sims/sim_types";
 import {combineBuffEffects} from "../sims/sim_utils";
 import {expect} from "chai";
-import {combineHaste} from "@xivgear/xivmath/xivmath";
+import {combineHasteTypes} from "@xivgear/xivmath/xivmath";
 
 let curBuffId = 1;
 
@@ -62,26 +62,26 @@ describe('haste', () => {
     });
     describe('xivmath combineHaste function', () => {
         it('computes values correctly, no roundoff', () => {
-            expect(combineHaste(20, 20, 25)).to.equal(52);
+            expect(combineHasteTypes(20, 20, 25)).to.equal(52);
         });
         describe('computes values with roundoff', () => {
             it('permutation 1', () => {
-                expect(combineHaste(5, 13, 20)).to.equal(35);
+                expect(combineHasteTypes(5, 13, 20)).to.equal(35);
             });
             it('permutation 2', () => {
-                expect(combineHaste(20, 13, 5)).to.equal(35);
+                expect(combineHasteTypes(20, 13, 5)).to.equal(35);
             });
             it('permutation 3', () => {
-                expect(combineHaste(5, 20, 13)).to.equal(34);
+                expect(combineHasteTypes(5, 20, 13)).to.equal(34);
             });
             it('permutation 4', () => {
-                expect(combineHaste(20, 5, 13)).to.equal(34);
+                expect(combineHasteTypes(20, 5, 13)).to.equal(34);
             });
             it('permutation 5', () => {
-                expect(combineHaste(13, 5, 20)).to.equal(35);
+                expect(combineHasteTypes(13, 5, 20)).to.equal(35);
             });
             it('permutation 6', () => {
-                expect(combineHaste(13, 20, 5)).to.equal(35);
+                expect(combineHasteTypes(13, 20, 5)).to.equal(35);
             });
 
         });

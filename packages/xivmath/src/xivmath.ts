@@ -530,7 +530,14 @@ export function mainStatPowerMod(levelStats: LevelStats, jobStats: JobDataConst)
     return levelStats.mainStatPowerMod[jobStats.role] ?? levelStats.mainStatPowerMod.other;
 }
 
-export function combineHaste(buffHaste: number, gearHaste: number, traitHaste: number): number {
+/**
+ * Given a total buff haste, total gear haste, and total trait haste, compute the combined haste amount.
+ *
+ * @param buffHaste Haste from buffs, as a percentage.
+ * @param gearHaste Haste from gear, as a percentage.
+ * @param traitHaste Haste from traits, as a percentage.
+ */
+export function combineHasteTypes(buffHaste: number, gearHaste: number, traitHaste: number): number {
     // Normalize each haste amount to a speed multiplier i.e. 1 = no haste, lower values = faster.
     const buffHasteMult = flp(2, (100 - buffHaste) / 100);
     const gearHasteMult = flp(2, (100 - gearHaste) / 100);
@@ -538,4 +545,19 @@ export function combineHaste(buffHaste: number, gearHaste: number, traitHaste: n
     const combined = flp(2, flp(2, buffHasteMult * gearHasteMult) * traitHasteMult);
     // Convert back to a haste percentage.
     return fl((1 - combined) * 100);
+}
+
+/**
+ * Given a running total of haste buffs so far, combine the next buff's haste with the existing haste and return
+ * the result. The result can then be plugged back into this function for the next buff, and so on.
+ *
+ * @param existingHaste
+ * @param nextBuffHaste
+ */
+export function combineHasteBuffs(existingHaste: number, nextBuffHaste: number) {
+    // incoming haste value is expressed as a percentage, so we need to convert it to a modifier.
+    const existingMult = flp(2, (100 - existingHaste) / 100);
+    const nextMult = flp(2, (100 - nextBuffHaste) / 100);
+    const combinedMult = flp(2, existingMult * nextMult);
+    return fl(100 * (1 - combinedMult));
 }

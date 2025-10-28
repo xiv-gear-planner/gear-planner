@@ -14,7 +14,7 @@ import {
     autoAttackModifier,
     autoCritBuffDmg,
     autoDhitBonusDmg,
-    autoDhitBuffDmg, combineHaste,
+    autoDhitBuffDmg, combineHasteTypes,
     critChance,
     critDmg,
     defIncomingDmg,
@@ -256,7 +256,7 @@ export class ComputedSetStatsImpl implements ComputedSetStats {
 
     haste(attackType: AttackType, buffHaste: number): number {
         const traitHaste = sum(this.finalBonusStats.traitHaste.map(hb => hb(attackType)));
-        return combineHaste(buffHaste, this.gearHaste, traitHaste);
+        return combineHasteTypes(buffHaste, this.gearHaste, traitHaste);
     }
 
     traitMulti(attackType: AttackType): number {
