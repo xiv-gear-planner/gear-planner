@@ -625,8 +625,10 @@ export interface JobData extends JobDataConst {
 export interface JobTrait {
     minLevel?: number,
     maxLevel?: number,
-    apply: (stats: RawBonusStats) => void;
+    apply: TraitFunc,
 }
+
+export type TraitFunc = (stats: RawBonusStats) => void;
 
 export type GearSlotItem = {
     slot: EquipSlot;

@@ -1,5 +1,6 @@
 import {
     GearAcquisitionSource,
+    TraitFunc,
     ItemDisplaySettings,
     JobDataConst,
     LevelItemInfo,
@@ -8,6 +9,7 @@ import {
     RawStatKey,
     RawStats
 } from "./geartypes";
+import {RawBonusStats} from "./xivstats";
 
 /**
  * Maximum number of materia slots on any item.
@@ -178,6 +180,20 @@ const STANDARD_CASTER: JobDataConst = {
     maxLevel: CURRENT_MAX_LEVEL,
 } as const;
 
+/**
+ * Create a trait applier function for a standard haste trait.
+ *
+ * @param amount
+ */
+function hasteTrait(amount: number): TraitFunc {
+    return (stats: RawBonusStats) => {
+        stats.traitHaste.push(attackType =>
+            attackType === 'Weaponskill'
+            || attackType === 'Spell'
+            || attackType === 'Auto-attack'
+                ? amount : 0);
+    };
+}
 
 /**
  * Job-specific data items.
@@ -228,54 +244,27 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
             {
                 minLevel: 1,
                 maxLevel: 19,
-                apply: (stats) => {
-                    stats.traitHaste.push(attackType =>
-                        attackType === 'Weaponskill'
-                        || attackType === 'Spell'
-                        || attackType === 'Auto-attack'
-                            ? 5 : 0);
-                },
+                apply: hasteTrait(5),
             },
             {
                 minLevel: 20,
                 maxLevel: 39,
-                apply: (stats) => {
-                    stats.traitHaste.push(attackType =>
-                        attackType === 'Weaponskill'
-                        || attackType === 'Spell'
-                        || attackType === 'Auto-attack'
-                            ? 10 : 0);
-                },
+                apply: hasteTrait(10),
             },
             {
                 minLevel: 40,
                 maxLevel: 75,
-                apply: (stats) => {
-                    stats.traitHaste.push(attackType =>
-                        attackType === 'Weaponskill'
-                        || attackType === 'Spell'
-                        || attackType === 'Auto-attack'
-                            ? 15 : 0);
-                },
+                apply: hasteTrait(15),
             },
             {
                 minLevel: 76,
-                apply: (stats) => {
-                    stats.traitHaste.push(attackType =>
-                        attackType === 'Weaponskill'
-                        || attackType === 'Spell'
-                        || attackType === 'Auto-attack'
-                            ? 20 : 0);
-                },
+                apply: hasteTrait(20),
             }],
     },
     NIN: {
         ...MELEE_SCOUTING,
         traits: [{
-            apply: stats => {
-                stats.traitHaste.push(attackType =>
-                    attackType === 'Weaponskill' || attackType === 'Auto-attack' ? 15 : 0);
-            },
+            apply: hasteTrait(15),
         },
         ],
     },
