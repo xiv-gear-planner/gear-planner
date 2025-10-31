@@ -279,6 +279,13 @@ export interface ComputedSetStats extends RawStats {
     haste(attackType: AttackType, buffHaste: number): number;
 
     /**
+     * Compute the effective auto-attack delay. Assumes the attack has the type 'Auto-attack'.
+     *
+     * @param buffHaste The amount of haste from buffs.
+     */
+    effectiveAaDelay(buffHaste: number): number;
+
+    /**
      * Crit chance. Ranges from 0 to 1.
      */
     readonly critChance: number,

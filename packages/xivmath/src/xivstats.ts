@@ -14,14 +14,15 @@ import {
     autoAttackModifier,
     autoCritBuffDmg,
     autoDhitBonusDmg,
-    autoDhitBuffDmg, combineHasteTypes,
+    autoDhitBuffDmg,
+    combineHasteTypes,
     critChance,
     critDmg,
     defIncomingDmg,
     detDmg,
     dhitChance,
     dhitDmg,
-    fl,
+    fl, flp,
     mainStatMulti,
     mpTick,
     sksTickMulti,
@@ -257,6 +258,11 @@ export class ComputedSetStatsImpl implements ComputedSetStats {
     haste(attackType: AttackType, buffHaste: number): number {
         const traitHaste = sum(this.finalBonusStats.traitHaste.map(hb => hb(attackType)));
         return combineHasteTypes(buffHaste, this.gearHaste, traitHaste);
+    }
+
+    effectiveAaDelay(buffHaste: number): number {
+        const effectiveHaste = this.haste('Auto-attack', buffHaste);
+        return flp(3, this.aaDelay * (100 - effectiveHaste) / 100);
     }
 
     traitMulti(attackType: AttackType): number {

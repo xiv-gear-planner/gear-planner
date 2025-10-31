@@ -1322,8 +1322,7 @@ export class CycleProcessor<GaugeManagerType extends GaugeManager<unknown> = Gau
             lockTime: 0,
             gaugeAfter: this.gaugeManager.gaugeSnapshot() as GaugeStateTypeOfMgr<GaugeManagerType>,
         });
-        // TODO - finalize AA rate haste math
-        const aaDelay = this.stats.aaDelay * (100 - this.stats.haste('Auto-attack', combinedEffects.haste)) / 100;
+        const aaDelay = this.stats.effectiveAaDelay(combinedEffects.haste);
         this.nextAutoAttackTime = this.currentTime + aaDelay;
     }
 
