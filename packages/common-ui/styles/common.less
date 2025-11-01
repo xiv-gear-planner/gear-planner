@@ -830,6 +830,12 @@ table.gear-plan-table {
       }
     }
 
+    th {
+      cursor: default;
+    }
+    td, th.hoverable {
+      cursor: pointer;
+    }
     td, th {
       //background-color: var(--table-bg-color);
 
@@ -982,7 +988,7 @@ div.chance-stat-display, div.multiplier-stat-display, div.multiplier-mit-stat-di
 }
 
 
-#new-sheet-form, save-as-modal {
+#new-sheet-form, save-as-modal, change-props-modal {
   fieldset {
     text-align: center;
     display: inline-grid;
@@ -1978,7 +1984,7 @@ add-sim-dialog {
   }
 }
 
-gear-set-editor, separator-editor {
+gear-set-editor, separator-editor, div.gear-set-popout-open-placeholder {
   div.gear-set-editor-button-area {
     width: 100%;
     text-align: center;
@@ -3554,6 +3560,12 @@ svg.gear-set-error-icon {
   margin-right: 5px;
 }
 
+.gear-set-editor-button-area {
+  svg {
+    margin-right: 3px;
+  }
+}
+
 gear-set-issues-modal {
 
   &.has-issues {
@@ -3612,14 +3624,6 @@ gear-set-issues-modal {
     overflow: auto;
   }
 
-}
-
-.invert-input-colors {
-  --input-background-color: var(--bg-color);
-
-  input, textarea {
-    background-color: var(--bg-color);
-  }
 }
 
 #content-area > .named-section {
@@ -3722,6 +3726,10 @@ settings-modal {
 
     > * {
       display: block;
+    }
+    > br {
+      height: 10px;
+      display: unset;
     }
 
     #language-picker {

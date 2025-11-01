@@ -168,7 +168,7 @@ function getRelicStatModelForPartial(gearItem: GearItem, baseParams: BaseParamMa
     }
     // BaseParam tells you that 2h = 140%, 1h = 100%, and shield = 40%
     // Just use crit, it should be the same for all of them
-    const slotModifier = baseParams.crit[gearItem.occGearSlotName] / 140;
+    const slotModifier = baseParams.crit.slots[gearItem.occGearSlotName] / 140;
     const statCap = gearItem.unsyncedVersion.statCaps.crit;
     switch (gearItem.ilvl) {
         // EW relics are 2 capped stats, and one 72

@@ -135,7 +135,7 @@ export interface SgeNewSheetSettingsExternal extends ExternalCycleSettings<SgeNe
 }
 
 export const sgeNewSheetSpec: SimSpec<SgeSheetSim, SgeNewSheetSettingsExternal> = {
-    displayName: "SGE Sim Mk.II",
+    displayName: "SGE Sim",
     loadSavedSimInstance(exported: SgeNewSheetSettingsExternal) {
         return new SgeSheetSim(exported);
     },

@@ -6,3 +6,4 @@
 **/tsconfig.tsbuildinfo
 **/.nyc_output/
 **/.DS_Store
+/.idea/queries/

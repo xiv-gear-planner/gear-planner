@@ -3,10 +3,10 @@ import {describe, it} from "mocha";
 import * as assert from "assert";
 import {assertClose} from "@xivgear/util/test/test_utils";
 import {assertSimAbilityResults, setPartyBuffEnabled, UseResult} from "./sim_test_utils";
-import {JobMultipliers} from "@xivgear/xivmath/geartypes";
+import {JobMultipliers, RawStats} from "@xivgear/xivmath/geartypes";
 import {getClassJobStats, getLevelStats, getRaceStats, STANDARD_APPLICATION_DELAY} from "@xivgear/xivmath/xivconstants";
 import {CharacterGearSet} from "@xivgear/core/gear";
-import {Divination, Litany, Dokumori} from "@xivgear/core/sims/buffs";
+import {Divination, Dokumori, Litany} from "@xivgear/core/sims/buffs";
 import {exampleGearSet} from "./common_values";
 import {Swiftcast} from "@xivgear/core/sims/common/swiftcast";
 import {removeSelf} from "@xivgear/core/sims/common/utils";
@@ -222,7 +222,7 @@ const jobStatMultipliers: JobMultipliers = {
     vitality: 100,
 };
 // Stats from a set. These should be the stats WITH items and race bonus, but WITHOUT party bonus
-const rawStats = {
+const rawStats = new RawStats({
     // From https://share.xivgear.app/share/74fb005d-086f-45d3-bee8-9a211559f7df
     crit: 2287,
     determination: 1806,
@@ -240,8 +240,7 @@ const rawStats = {
     wdMag: 132,
     wdPhys: 132,
     weaponDelay: 3.44,
-    racialStrengthModifier: 3,
-};
+});
 // Finalize the stats (add class modifiers, party bonus, etc)
 const stats = finalizeStats(rawStats, {}, 90, getLevelStats(90), 'WHM', {
     ...getClassJobStats('WHM'),
@@ -1758,5 +1757,43 @@ describe('cutoff modes', () => {
         // Gets the full damage
         expect(finalAction.partialRate).to.be.null;
         expect(finalAction.directDamage).to.be.closeTo(15057.71, 0.1);
+    });
+});
+
+const levelSuperseded: OgcdAbility = {
+    type: 'ogcd',
+    name: "base skill",
+    id: 1234,
+    potency: null,
+    attackType: 'Weaponskill',
+    cooldown: {
+        time: 120,
+    },
+    levelModifiers: [{
+        minLevel: 80,
+        id: 5678,
+    }],
+};
+
+describe('additional cd tracking tests', () => {
+    it('handles when a cd changes its skill id with a level modifier', () => {
+        const cp = new CycleProcessor({
+            ...defaultSettings,
+            cycleTime: 30,
+            totalTime: 30,
+            cutoffMode: 'lax-gcd',
+        });
+
+        const modified = cp.applyLevelModifiers(levelSuperseded);
+
+        expect(cp.isReady(levelSuperseded)).to.be.true;
+        expect(cp.cdTracker.canUse(levelSuperseded)).to.be.true;
+        expect(cp.cdTracker.canUse(modified)).to.be.true;
+
+        cp.use(levelSuperseded);
+
+        expect(cp.isReady(levelSuperseded)).to.be.false;
+        expect(cp.cdTracker.canUse(levelSuperseded)).to.be.false;
+        expect(cp.cdTracker.canUse(modified)).to.be.false;
     });
 });

@@ -1,6 +1,6 @@
 import {NamedSection} from "../components/section";
 import {BuffSettingsManager} from "@xivgear/core/sims/common/party_comp_settings";
-import {FieldBoundCheckBox, labeledCheckbox} from "@xivgear/common-ui/components/util";
+import {el, FieldBoundCheckBox, labeledCheckbox} from "@xivgear/common-ui/components/util";
 import {jobAbbrevTranslated} from "../components/job_name_translator";
 import {statusNameTranslated} from "../components/status_effects";
 
@@ -12,28 +12,27 @@ export class BuffSettingsArea extends NamedSection {
         super('Party Comp/Raid Buffs');
         this.classList.add('buff-settings-area');
 
-        const table = document.createElement('table');
-        const tbody = document.createElement('tbody');
-        table.append(tbody);
-        settings.allJobs.forEach(job => {
-            const row = document.createElement('tr');
+        const table = el('table', {}, [
+            el('tbody', {},
+                settings.allJobs.map(job => {
 
-            const jobCell = document.createElement('td');
-            const jobCb = new FieldBoundCheckBox(job, 'enabled');
-            jobCb.addListener(updateCallback);
-            jobCell.append(labeledCheckbox(jobAbbrevTranslated(job.job), jobCb));
-            row.append(jobCell);
+                    const jobCell = el('td');
+                    const jobCb = new FieldBoundCheckBox(job, 'enabled');
+                    jobCb.addListener(updateCallback);
+                    jobCell.append(labeledCheckbox(jobAbbrevTranslated(job.job), jobCb));
 
-            const buffsCell = document.createElement('td');
-            job.allBuffs.forEach(buff => {
-                const buffCb = new FieldBoundCheckBox(buff, 'enabled');
-                buffCb.addListener(updateCallback);
-                buffsCell.append(labeledCheckbox(statusNameTranslated(buff.buff), buffCb));
-                jobCb.addAndRunListener(val => buffCb.disabled = !val);
-            });
-            row.append(buffsCell);
-            tbody.append(row);
-        });
+                    const buffsCell = el('td');
+                    job.allBuffs.forEach(buff => {
+                        const buffCb = new FieldBoundCheckBox(buff, 'enabled');
+                        buffCb.addListener(updateCallback);
+                        buffsCell.append(labeledCheckbox(statusNameTranslated(buff.buff), buffCb));
+                        jobCb.addAndRunListener(val => buffCb.disabled = !val);
+                    });
+
+                    return el('tr', {}, [jobCell, buffsCell]);
+                })
+            ),
+        ]);
         this.contentArea.append(table);
     }
 }

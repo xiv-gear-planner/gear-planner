@@ -19,7 +19,7 @@
     <inspection_tool class="HtmlUnknownTag" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="myValues">
         <value>
-          <list size="59">
+          <list size="61">
             <item index="0" class="java.lang.String" itemvalue="nobr" />
             <item index="1" class="java.lang.String" itemvalue="noembed" />
             <item index="2" class="java.lang.String" itemvalue="comment" />
@@ -79,6 +79,8 @@
             <item index="56" class="java.lang.String" itemvalue="conflict-resolution-dialog" />
             <item index="57" class="java.lang.String" itemvalue="change-password-modal" />
             <item index="58" class="java.lang.String" itemvalue="finalize-password-reset-modal" />
+            <item index="59" class="java.lang.String" itemvalue="change-props-modal" />
+            <item index="60" class="java.lang.String" itemvalue="popout-editor" />
           </list>
         </value>
       </option>

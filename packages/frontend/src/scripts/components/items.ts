@@ -1,6 +1,6 @@
 import {CharacterGearSet, ItemSingleStatDetail, previewItemStatDetail} from "@xivgear/core/gear";
 import {
-    DisplayGearSlot,
+    DisplayGearSlotKey,
     EquipmentSet,
     EquippedItem,
     EquipSlot,
@@ -52,6 +52,7 @@ import {makeRelicStatEditor} from "./relic_stats";
 import {ShowHideButton, ShowHideCallback} from "@xivgear/common-ui/components/show_hide_chevron";
 import {BaseModal} from "@xivgear/common-ui/components/modal";
 import {recordSheetEvent} from "../analytics/analytics";
+import {DISPLAY_SETTINGS} from "@xivgear/common-ui/settings/display_settings";
 
 function removeStatCellStyles(cell: CustomCell<GearSlotItem, unknown>) {
     cell.classList.remove("secondary");
@@ -347,6 +348,9 @@ export class FoodItemsTable extends CustomTable<FoodItem, TableSelectionModel<Fo
         }, [oneStatFoodWithLabel]);
         const displayItems = [...sheet.foodItemsForDisplay];
         displayItems.sort((left, right) => left.ilvl - right.ilvl);
+        if (DISPLAY_SETTINGS.reverseItemSort) {
+            displayItems.reverse();
+        }
         if (displayItems.length > 0) {
             super.data = [showHideRow.row, new HeaderRow(), ...displayItems];
         }
@@ -598,7 +602,7 @@ export class GearItemsTable extends CustomTable<GearSlotItem, TableSelectionMode
     private selectionTracker: Map<keyof EquipmentSet, CustomRow<GearSlotItem> | GearSlotItem>;
     private showHideCallbacks: Map<keyof EquipmentSet, (value: boolean) => void> = new Map();
 
-    constructor(sheet: GearPlanSheet, private readonly gearSet: CharacterGearSet, itemMapping: Map<DisplayGearSlot, GearItem[]>, handledSlots: EquipSlotKey[], afterShowHideAll: () => void) {
+    constructor(sheet: GearPlanSheet, private readonly gearSet: CharacterGearSet, itemMapping: Map<DisplayGearSlotKey, GearItem[]>, handledSlots: EquipSlotKey[], afterShowHideAll: () => void) {
         super();
         this.classList.add("gear-items-table");
         this.classList.add("gear-items-edit-table");
@@ -781,6 +785,9 @@ export class GearItemsTable extends CustomTable<GearSlotItem, TableSelectionMode
             if (itemsInSlot && itemsInSlot.length > 0) {
                 const sortedItems = [...itemsInSlot];
                 sortedItems.sort((left, right) => left.ilvl - right.ilvl);
+                if (DISPLAY_SETTINGS.reverseItemSort) {
+                    sortedItems.reverse();
+                }
                 data.push(new HeaderRow());
                 for (const gearItem of sortedItems) {
                     const item = {
@@ -1154,7 +1161,7 @@ export class ILvlRangePicker<ObjType> extends HTMLElement {
 
         const lowerBoundControl = new FieldBoundIntField(obj, minField);
         const upperBoundControl = new FieldBoundIntField(obj, maxField);
-        const borderListener = function(min: number, max: number) {
+        const borderListener = function (min: number, max: number) {
             if (min > max) {
                 lowerBoundControl.classList.add("invalid-numeric-input");
                 upperBoundControl.classList.add("invalid-numeric-input");

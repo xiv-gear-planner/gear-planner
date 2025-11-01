@@ -1,5 +1,5 @@
 import {CharacterGearSet} from "@xivgear/core/gear";
-import {JobMultipliers} from "@xivgear/xivmath/geartypes";
+import {JobMultipliers, RawStats} from "@xivgear/xivmath/geartypes";
 import {getClassJobStats, getLevelStats, getRaceStats} from "@xivgear/xivmath/xivconstants";
 import {finalizeStats} from "@xivgear/xivmath/xivstats";
 import {GcdAbility, OgcdAbility} from "@xivgear/core/sims/sim_types";
@@ -126,7 +126,7 @@ const rawStats = {
     weaponDelay: 3.44,
 };
 // Finalize the stats (add class modifiers, party bonus, etc)
-const stats = finalizeStats(rawStats, {}, 90, getLevelStats(90), 'WHM', {
+const stats = finalizeStats(new RawStats(rawStats), {}, 90, getLevelStats(90), 'WHM', {
     ...getClassJobStats('WHM'),
     jobStatMultipliers: jobStatMultipliers,
 }, 5, getRaceStats("Wildwood"));

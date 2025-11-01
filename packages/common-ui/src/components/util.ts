@@ -1,5 +1,5 @@
 export function makeActionButton(label: string | (Node | string)[], action: (ev: MouseEvent) => void, tooltip?: string) {
-    const button = document.createElement("button");
+    const button = el("button");
     if (label instanceof Object) {
         button.replaceChildren(...label);
     }
@@ -27,11 +27,8 @@ export function makeActionButton(label: string | (Node | string)[], action: (ev:
  * @param tooltip
  */
 export function makeAsyncActionButton(label: string | (Node | string)[], action: (ev: MouseEvent) => Promise<void>, tooltip?: string) {
-    const button = document.createElement("button");
-    button.classList.add('async-action-button');
-    const loadingBlocker = document.createElement('div');
-    loadingBlocker.textContent = '...';
-    loadingBlocker.classList.add('loading-pane');
+    const button = el('button', {class: 'async-action-button'});
+    const loadingBlocker = el('div', {class: 'loading-pane'}, ['...']);
     if (typeof label === 'string') {
         button.replaceChildren(label, loadingBlocker);
     }
@@ -563,29 +560,26 @@ export class FieldBoundDataSelect<ObjType, DataType> extends DataSelect<DataType
 
 export function labeledComponent(label: string | Node, check: HTMLElement): HTMLDivElement {
     const labelElement = labelFor(label, check);
-    const div = document.createElement("div");
-    div.appendChild(check);
-    div.appendChild(labelElement);
-    div.classList.add("labeled-component");
-    return div;
+    return el('div', {class: 'labeled-component'}, [
+        check,
+        labelElement,
+    ]);
 }
 
 export function labeledCheckbox(label: string | Node, check: HTMLInputElement): HTMLDivElement {
     const labelElement = labelFor(label, check);
-    const div = document.createElement("div");
-    div.appendChild(check);
-    div.appendChild(labelElement);
-    div.classList.add("labeled-checkbox");
-    return div;
+    return el('div', {class: 'labeled-checkbox'}, [
+        check,
+        labelElement,
+    ]);
 }
 
 export function labeledRadioButton(label: string | Node, radioButton: HTMLInputElement): HTMLDivElement {
     const labelElement = labelFor(label, radioButton);
-    const div = document.createElement("div");
-    div.appendChild(radioButton);
-    div.appendChild(labelElement);
-    div.classList.add("labeled-radio-button");
-    return div;
+    return el('div', {class: 'labeled-radio-button'}, [
+        radioButton,
+        labelElement,
+    ]);
 }
 
 export function quickElement<X extends keyof HTMLElementTagNameMap>(tag: X, classes: string[] = [], nodes: Parameters<ParentNode['replaceChildren']> = []): HTMLElementTagNameMap[X] {
@@ -597,6 +591,60 @@ export function quickElement<X extends keyof HTMLElementTagNameMap>(tag: X, clas
         element.classList.add(...classes);
     }
     return element;
+}
+
+export type ElOpts<X extends keyof HTMLElementTagNameMap> = {
+    /**
+     * If specified, adds a single class to the element.
+     */
+    class?: string;
+    /**
+     * If specified, adds multiple classes to the element.
+     */
+    classes?: string[];
+    /**
+     * If specified, sets the id of the element.
+     */
+    id?: string;
+    /**
+     * If specified, sets any other arbitrary properties of the element.
+     */
+    props?: Partial<HTMLElementTagNameMap[X]>;
+    /**
+     * If specified, sets any arbitrary attributes of the element.
+     */
+    attributes?: {
+        [K: string]: string;
+    };
+};
+
+/**
+ * Create an element with the given tag, options, and children.
+ *
+ * @param tag The tag to create
+ * @param opts The options to use
+ * @param nodes Child nodes
+ */
+export function el<X extends keyof HTMLElementTagNameMap>(tag: X, opts: ElOpts<X> = {}, nodes: Parameters<ParentNode['replaceChildren']> = []) {
+    const classes = opts.classes ?? [];
+    if (opts.class) {
+        classes.push(opts.class);
+    }
+    const out = quickElement(tag, classes, nodes);
+    if (opts.id) {
+        out.id = opts.id;
+    }
+    if (opts.props) {
+        for (const [key, value] of Object.entries(opts.props)) {
+            out[key as keyof typeof out] = value;
+        }
+    }
+    if (opts.attributes) {
+        for (const [key, value] of Object.entries(opts.attributes)) {
+            out.setAttribute(key, value);
+        }
+    }
+    return out;
 }
 
 function makePath(pathD: string) {
@@ -616,6 +664,7 @@ function makeSvgGlyph(viewbox: string, ...paths: string[]) {
     return svg;
 }
 
+// DEPRECATED
 export function faIcon(faIconName: string, faType: string = 'fa-regular') {
 
     switch (faIconName) {
@@ -724,12 +773,16 @@ export function newSheetIcon() {
 
 export function importIcon() {
     const svg = makeSvgGlyph("0 0 24 24");
-    svg.innerHTML = "<g id=\"SVGRepo_bgCarrier\" stroke-width=\"0\"></g><g id=\"SVGRepo_tracerCarrier\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></g><g id=\"SVGRepo_iconCarrier\"><polyline id=\"primary\" points=\"15 13 11 13 11 9\" style=\"fill: none; stroke-linecap: round; stroke-linejoin: round; stroke-width: 2;\"></polyline><line id=\"primary-2\" data-name=\"primary\" x1=\"21\" y1=\"3\" x2=\"11\" y2=\"13\" style=\"fill: none; stroke-linecap: round; stroke-linejoin: round; stroke-width: 2;\"></line><path id=\"primary-3\" data-name=\"primary\" d=\"M19,13.89V20a1,1,0,0,1-1,1H4a1,1,0,0,1-1-1V6A1,1,0,0,1,4,5h6.11\" style=\"fill: none; stroke-linecap: round; stroke-linejoin: round; stroke-width: 2;\"></path></g>";
+    svg.innerHTML = '<g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><polyline id="primary" points="15 13 11 13 11 9" style="fill: none; stroke-linecap: round; stroke-linejoin: round; stroke-width: 2;"></polyline><line id="primary-2" data-name="primary" x1="21" y1="3" x2="11" y2="13" style="fill: none; stroke-linecap: round; stroke-linejoin: round; stroke-width: 2;"></line><path id="primary-3" data-name="primary" d="M19,13.89V20a1,1,0,0,1-1,1H4a1,1,0,0,1-1-1V6A1,1,0,0,1,4,5h6.11" style="fill: none; stroke-linecap: round; stroke-linejoin: round; stroke-width: 2;"></path></g>';
     svg.classList.add('svg-line');
     return svg;
-    // <svg fill="#000000" viewBox="0 0 24 24" id="import-left" data-name="Flat Line" xmlns="http://www.w3.org/2000/svg" class="icon flat-line"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><polyline id="primary" points="15 13 11 13 11 9" style="fill: none; stroke: #000000; stroke-linecap: round; stroke-linejoin: round; stroke-width: 2;"></polyline><line id="primary-2" data-name="primary" x1="21" y1="3" x2="11" y2="13" style="fill: none; stroke: #000000; stroke-linecap: round; stroke-linejoin: round; stroke-width: 2;"></line><path id="primary-3" data-name="primary" d="M19,13.89V20a1,1,0,0,1-1,1H4a1,1,0,0,1-1-1V6A1,1,0,0,1,4,5h6.11" style="fill: none; stroke: #000000; stroke-linecap: round; stroke-linejoin: round; stroke-width: 2;"></path></g></svg>
-    // return makeSvgGlyph("0 0 24 24",
-    //     "M19,13.89V20a1,1,0,0,1-1,1H4a1,1,0,0,1-1-1V6A1,1,0,0,1,4,5h6.11")
+}
+
+export function exportIcon() {
+    const svg = makeSvgGlyph("0 0 24 24");
+    svg.innerHTML = '<g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g><g id="SVGRepo_iconCarrier"><polyline id="primary" points="17 3 21 3 21 7" style="fill: none; stroke: #000000; stroke-linecap: round; stroke-linejoin: round; stroke-width: 2;"></polyline><line id="primary-2" data-name="primary" x1="11" y1="13" x2="21" y2="3" style="fill: none; stroke-linecap: round; stroke-linejoin: round; stroke-width: 2;"></line><path id="primary-3" data-name="primary" d="M19,13.89V20a1,1,0,0,1-1,1H4a1,1,0,0,1-1-1V6A1,1,0,0,1,4,5h6.11" style="fill: none; stroke-linecap: round; stroke-linejoin: round; stroke-width: 2;"></path></g>';
+    svg.classList.add('svg-line');
+    return svg;
 }
 
 export function discordIcon() {
@@ -756,6 +809,17 @@ export function accountIcon() {
     return makeSvgGlyph("0 0 128 128",
         "M30,49c0,18.7,15.3,34,34,34s34-15.3,34-34S82.7,15,64,15S30,30.3,30,49z M90,49c0,14.3-11.7,26-26,26S38,63.3,38,49 s11.7-26,26-26S90,34.7,90,49z",
         "M24.4,119.4C35,108.8,49,103,64,103s29,5.8,39.6,16.4l5.7-5.7C97.2,101.7,81.1,95,64,95s-33.2,6.7-45.3,18.7L24.4,119.4z");
+}
+
+export function editIcon() {
+    const svg = makeSvgGlyph("0 0 24 24",
+        "M20.0651 7.39423L7.09967 20.4114C6.72438 20.7882 6.21446 21 5.68265 21H4.00383C3.44943 21 3 20.5466 3 19.9922V18.2987C3 17.7696 3.20962 17.2621 3.58297 16.8873L16.5517 3.86681C19.5632 1.34721 22.5747 4.87462 20.0651 7.39423Z",
+        "M15.3097 5.30981L18.7274 8.72755",
+        "M13 21H21"
+    );
+    svg.classList.add('svg-line');
+    svg.style.strokeWidth = '1.8px';
+    return svg;
 }
 
 customElements.define("option-data-element", OptionDataElement, {extends: "option"});

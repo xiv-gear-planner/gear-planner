@@ -190,7 +190,7 @@ export interface WhmSettingsExternal extends ExternalCycleSettings<WhmSettings> 
 }
 
 export const whmNewSheetSpec: SimSpec<WhmSim, WhmSettingsExternal> = {
-    displayName: "WHM New Sim",
+    displayName: "WHM Sim",
     loadSavedSimInstance(exported: WhmSettingsExternal) {
         return new WhmSim(exported);
     },

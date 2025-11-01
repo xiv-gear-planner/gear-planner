@@ -107,6 +107,12 @@ function getPrimaryVarSpec<X extends object>(formulaSet: MathFormulaSet<X>): Var
     }
 }
 
+function isHideable(fn: {
+    hideableColumn?: boolean
+}): boolean {
+    return fn.hideableColumn ?? false;
+}
+
 /**
  * Top level math component.
  */
@@ -127,6 +133,7 @@ export class MathArea extends HTMLElement {
     private _loading: boolean = false;
     private readonly loader = new LoadingBlocker();
     private readonly formulaSettingsStickyHolder: Map<MathFormulaSet<object>, object> = new Map();
+    private readonly formulaVisibilityStickyHolder: Map<MathFormulaSet<object>, Map<string, boolean>> = new Map();
 
     constructor() {
         super();
@@ -190,7 +197,7 @@ export class MathArea extends HTMLElement {
             }
         });
 
-        const formulaHeader = quickElement('h3', [], ['Show/Hide Formulae', showHide]);
+        const formulaHeader = quickElement('h3', ['show-hide-formula-header'], ['Show/Hide Formulae', showHide]);
         formulaHeader.addEventListener('click', ev => {
             showHide.toggle();
         });
@@ -218,6 +225,31 @@ export class MathArea extends HTMLElement {
         }
     }
 
+    private getVisibleColumns<AllInputType extends object, FsType extends MathFormulaSet<AllInputType>>(formulaSet: FsType): Map<typeof formulaSet['functions'][number]['name'], boolean> {
+        const saved = this.formulaVisibilityStickyHolder.get(formulaSet as unknown as MathFormulaSet<object>) as Map<FsType['functions'][number]['name'], boolean> | undefined;
+        if (saved) {
+            return saved;
+        }
+        else {
+            const vis = new Map<FsType['functions'][number]['name'], boolean>();
+            formulaSet.functions.forEach(fn => {
+                if (isHideable(fn)) {
+                    vis.set(fn.name as FsType['functions'][number]['name'], true);
+                }
+            });
+            this.formulaVisibilityStickyHolder.set(formulaSet as unknown as MathFormulaSet<object>, vis as unknown as Map<string, boolean>);
+            return vis;
+        }
+    }
+
+    private isColumnVisible<AllInputType extends object, FsType extends MathFormulaSet<AllInputType>>(formulaSet: FsType, formula: (FsType['functions'][number])): boolean {
+        if (!isHideable(formula)) {
+            return true;
+        }
+        return this.getVisibleColumns<AllInputType, FsType>(formulaSet).get(formula.name) ?? true;
+    }
+
+
     /**
      * Set a new formula set
      *
@@ -235,7 +267,13 @@ export class MathArea extends HTMLElement {
             // Callback to update UI state when any settings are changed.
             const update = async () => {
                 const rows: FormulaSetInput<AllInputType>[] = [];
-                const funcs = formulaSet.functions;
+                const funcs = formulaSet.functions.filter(fn => {
+                    if (!isHideable(fn)) {
+                        return true;
+                    }
+                    const visMap = outer.getVisibleColumns<AllInputType, typeof formulaSet>(formulaSet);
+                    return visMap.get(fn.name) ?? true;
+                });
 
                 /**
                  * Make a row given a primary value - the rest of the values are assumed to be according to use
@@ -246,7 +284,9 @@ export class MathArea extends HTMLElement {
                  * values directly chosen by the user, not additional informational rows.
                  */
                 async function makeRow(primary?: number, isPrimaryRow: boolean = false): Promise<FormulaSetInput<AllInputType>> {
-                    const newPrimary: { [key: string]: unknown } = {};
+                    const newPrimary: {
+                        [key: string]: unknown
+                    } = {};
                     if (primary !== undefined) {
                         newPrimary[formulaSet!.primaryVariable as string] = primary;
                     }
@@ -513,6 +553,10 @@ export class MathArea extends HTMLElement {
             });
             // Output columns
             formulaSet.functions.forEach(fn => {
+                const shown = this.isColumnVisible<AllInputType, typeof formulaSet>(formulaSet, fn);
+                if (!shown) {
+                    return;
+                }
                 columns.push({
                     displayName: fn.name,
                     shortName: 'function-' + fn.fn.name,
@@ -525,6 +569,7 @@ export class MathArea extends HTMLElement {
                 });
             });
             table.columns = columns;
+            // noinspection JSUnusedGlobalSymbols
             table.selectionModel = {
                 getSelection(): undefined {
                     return undefined;
@@ -615,14 +660,14 @@ export class MathArea extends HTMLElement {
         this.updateHook();
     }
 
-    private makeEditorArea<AllArgType extends object>(formulaSet: MathFormulaSet<AllArgType>, settings: AllArgType, update: () => void) {
+    private makeEditorArea<AllInputType extends object>(formulaSet: MathFormulaSet<AllInputType>, settings: AllInputType, update: () => void) {
         const proxy = writeProxy(settings, update);
         const out = document.createElement('div');
         for (const variable of formulaSet.variables) {
             switch (variable.type) {
                 case "number": {
                     let editor: HTMLElement;
-                    const validators: FbctPostValidator<AllArgType, number>[] = [];
+                    const validators: FbctPostValidator<AllInputType, number>[] = [];
                     validators.push(clampValues(variable.min?.(this.generalSettings), variable.max?.(this.generalSettings)));
                     if (variable.integer) {
                         editor = new FieldBoundIntField(proxy, variable.property, {postValidators: validators});
@@ -634,6 +679,28 @@ export class MathArea extends HTMLElement {
                     break;
                 }
             }
+        }
+        // Per-formula column visibility controls
+        const vis = this.getVisibleColumns<AllInputType, typeof formulaSet>(formulaSet);
+        const hideableFns = formulaSet.functions.filter(fn => isHideable(fn));
+        if (hideableFns.length > 0) {
+            const visArea = document.createElement('div');
+            visArea.classList.add('formula-visibility-area');
+            hideableFns.forEach(fn => {
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.checked = vis.get(fn.name) ?? true;
+                checkbox.id = `formula-vis-${fn.name.replace(/\s+/g, '-')}`;
+                const label = labelFor(`Include ${fn.name}`, checkbox);
+                const line = quickElement('div', [], [checkbox, label]);
+                checkbox.addEventListener('change', () => {
+                    vis.set(fn.name, checkbox.checked);
+                    // Rebuild UI to update columns
+                    this.setFormulaSet(formulaSet);
+                });
+                visArea.appendChild(line);
+            });
+            out.appendChild(visArea);
         }
         return out;
     }

@@ -204,7 +204,7 @@ describe("backend servers", () => {
         it("resolves bis link", async () => {
             const response = await fastify.inject({
                 method: 'GET',
-                url: `/?page=${BIS_HASH}|sge|endwalker|anabaseios`,
+                url: `/?page=${BIS_HASH}|sge|archive|anabaseios`,
             });
             assert.equal(response.statusCode, 200);
             const parsed = parser.parseFromString(response.body, 'text/html');
@@ -222,7 +222,7 @@ describe("backend servers", () => {
 
             const shortlinkPreload = preloads[preloads.length - 1];
             assert.equal(shortlinkPreload.getAttribute('rel'), "preload");
-            assert.equal(shortlinkPreload.getAttribute('href'), `https://staticbis.xivgear.app/sge/endwalker/anabaseios.json`);
+            assert.equal(shortlinkPreload.getAttribute('href'), `https://staticbis.xivgear.app/sge/archive/anabaseios.json`);
             assert.equal(shortlinkPreload.getAttribute('as'), "fetch");
             assert.equal(shortlinkPreload.hasAttribute('crossorigin'), true);
 
@@ -244,7 +244,7 @@ describe("backend servers", () => {
 
             const response = await fastify.inject({
                 method: 'GET',
-                url: `/?page=${BIS_HASH}|sge|endwalker|anabaseios`,
+                url: `/?page=${BIS_HASH}|sge|archive|anabaseios`,
             });
             assert.equal(response.statusCode, 200);
             const parsed = parser.parseFromString(response.body, 'text/html');
@@ -262,7 +262,7 @@ describe("backend servers", () => {
 
             const shortlinkPreload = preloads[preloads.length - 1];
             assert.equal(shortlinkPreload.getAttribute('rel'), "preload");
-            assert.equal(shortlinkPreload.getAttribute('href'), `https://staticbis.xivgear.app/sge/endwalker/anabaseios.json`);
+            assert.equal(shortlinkPreload.getAttribute('href'), `https://staticbis.xivgear.app/sge/archive/anabaseios.json`);
             assert.equal(shortlinkPreload.getAttribute('as'), "fetch");
             assert.equal(shortlinkPreload.hasAttribute('crossorigin'), true);
 
@@ -274,7 +274,7 @@ describe("backend servers", () => {
         it("resolves bis link with onlySetIndex", async () => {
             const response = await fastify.inject({
                 method: 'GET',
-                url: `/?page=${BIS_HASH}|sge|endwalker|anabaseios&onlySetIndex=2`,
+                url: `/?page=${BIS_HASH}|sge|archive|anabaseios&onlySetIndex=2`,
             });
             assert.equal(response.statusCode, 200);
             const parsed = parser.parseFromString(response.body, 'text/html');
@@ -296,7 +296,7 @@ describe("backend servers", () => {
 
             const shortlinkPreload = preloads[preloads.length - 1];
             assert.equal(shortlinkPreload.getAttribute('rel'), "preload");
-            assert.equal(shortlinkPreload.getAttribute('href'), `https://staticbis.xivgear.app/sge/endwalker/anabaseios.json`);
+            assert.equal(shortlinkPreload.getAttribute('href'), `https://staticbis.xivgear.app/sge/archive/anabaseios.json`);
             assert.equal(shortlinkPreload.getAttribute('as'), "fetch");
             assert.equal(shortlinkPreload.hasAttribute('crossorigin'), true);
 
@@ -343,13 +343,13 @@ describe("backend servers", () => {
         it("resolves bisbrowser link with a job", async () => {
             const response = await fastify.inject({
                 method: 'GET',
-                url: `/?page=${BIS_BROWSER_HASH}|sge|endwalker`,
+                url: `/?page=${BIS_BROWSER_HASH}|sge|archive`,
             });
             assert.equal(response.statusCode, 200);
             const parsed = parser.parseFromString(response.body, 'text/html');
 
-            const setTitle = 'SGE Endwalker BiS - XivGear - FFXIV Gear Planner';
-            const setDesc = 'Best-in-Slot Gear Sets for SGE Endwalker in Final Fantasy XIV\n\nXivGear is an advanced and easy-to-use FFXIV gear planner/set builder with built-in simulation support.';
+            const setTitle = 'SGE Archive BiS - XivGear - FFXIV Gear Planner';
+            const setDesc = 'Best-in-Slot Gear Sets for SGE Archive in Final Fantasy XIV\n\nXivGear is an advanced and easy-to-use FFXIV gear planner/set builder with built-in simulation support.';
 
             assert.equal(parsed.querySelector('title')?.textContent, setTitle);
 
@@ -445,7 +445,7 @@ describe("backend servers", () => {
         it('passes BiS with onlySetIndex', async () => {
             const response = await fastify.inject({
                 method: 'GET',
-                url: `/validateEmbed?page=embed|${BIS_HASH}|sge|endwalker|anabaseios&onlySetIndex=2`,
+                url: `/validateEmbed?page=embed|${BIS_HASH}|sge|archive|anabaseios&onlySetIndex=2`,
             });
             assert.equal(response.statusCode, 200);
             const json = response.json() as EmbedCheckResponse;
@@ -456,7 +456,7 @@ describe("backend servers", () => {
         it('rejects BiS without onlySetIndex', async () => {
             const response = await fastify.inject({
                 method: 'GET',
-                url: `/validateEmbed?page=embed|${BIS_HASH}|sge|endwalker|anabaseios`,
+                url: `/validateEmbed?page=embed|${BIS_HASH}|sge|archive|anabaseios`,
             });
             const json = response.json() as EmbedCheckResponse;
             assert.deepStrictEqual(json, {
@@ -467,7 +467,7 @@ describe("backend servers", () => {
         it('rejects BiS without embed', async () => {
             const response = await fastify.inject({
                 method: 'GET',
-                url: `/validateEmbed?page=${BIS_HASH}|sge|endwalker|anabaseios&onlySetIndex=2`,
+                url: `/validateEmbed?page=${BIS_HASH}|sge|archive|anabaseios&onlySetIndex=2`,
             });
             assert.equal(response.statusCode, 200);
             const json = response.json() as EmbedCheckResponse;

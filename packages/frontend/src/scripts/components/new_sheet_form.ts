@@ -10,13 +10,14 @@ import {
 import {JOB_DATA, JobName, LEVEL_ITEMS, MAX_ILVL, SupportedLevel} from "@xivgear/xivmath/xivconstants";
 import {SheetHandle, SheetManager} from "@xivgear/core/persistence/saved_sheets";
 import {GearPlanSheet, SheetProvider} from "@xivgear/core/sheet";
-import {GRAPHICAL_SHEET_PROVIDER} from "./sheet";
+import {GearPlanSheetGui, GRAPHICAL_SHEET_PROVIDER} from "./sheet";
 import {levelSelect} from "@xivgear/common-ui/components/level_picker";
 import {BaseModal} from "@xivgear/common-ui/components/modal";
 import {SHARED_SET_NAME} from "@xivgear/core/imports/imports";
 import {recordSheetEvent} from "@xivgear/gearplan-frontend/analytics/analytics";
 import {JobIcon} from "./job_icon";
 import {RoleKey, SheetSummary} from "@xivgear/xivmath/geartypes";
+import {openSheetByKey} from "../base_ui";
 
 export type NewSheetTempSettings = {
     ilvlSyncEnabled: boolean,
@@ -204,21 +205,95 @@ export class NewSheetForm extends HTMLFormElement {
     }
 }
 
-export class SaveAsModal extends BaseModal {
-    private readonly fieldSet: NewSheetFormFieldSet;
+export abstract class BaseSheetSettingsModal extends BaseModal {
+    protected readonly fieldSet: NewSheetFormFieldSet;
+    protected readonly form: HTMLFormElement;
 
-    constructor(existingSheet: GearPlanSheet, callback: SheetOpenCallback) {
+    protected constructor(fieldSetInit: {
+        name?: string,
+        job?: JobName,
+        level?: SupportedLevel,
+        ilvlSyncEnabled?: boolean,
+        ilvlSyncLevel?: number,
+        allowedRoles?: RoleKey[],
+        multiJob?: boolean,
+    }, submitLabel: string) {
         super();
-        this.headerText = 'Save As';
         const form = document.createElement('form');
+        this.form = form;
+        this.fieldSet = new NewSheetFormFieldSet(fieldSetInit);
+        form.appendChild(this.fieldSet);
+        this.contentArea.replaceChildren(form);
 
-        let defaultName = existingSheet.sheetName;
-        // Add 'copy' to the name if we're copying a sheet that has been saved, or one that's in view only mode.
-        if (existingSheet.saveKey !== undefined || existingSheet.isViewOnly) {
-            defaultName = existingSheet.sheetName === SHARED_SET_NAME ? SHARED_SET_NAME : existingSheet.sheetName + ' copy';
+        const submitButton = quickElement("button", [], [submitLabel]);
+        submitButton.type = 'submit';
+        this.addButton(submitButton);
+        this.addCloseButton();
+        submitButton.addEventListener('click', () => {
+            form.requestSubmit();
+        });
+        const hiddenSubmit = quickElement("button", [], [submitLabel]) as HTMLButtonElement;
+        hiddenSubmit.style.display = 'none';
+        hiddenSubmit.type = 'submit';
+        form.appendChild(hiddenSubmit);
+
+        form.addEventListener('submit', (ev) => {
+            ev.preventDefault();
+            ev.stopPropagation();
+            if (!this.fieldSet.validateIsync()) {
+                return;
+            }
+            this.onSubmit();
+        });
+        this.fieldSet.recheck();
+    }
+
+    protected get ilvlSyncEnabled(): boolean {
+        return this.fieldSet.newSheetSettings.ilvlSyncEnabled;
+    }
+    protected get ilvlSync(): number {
+        return this.fieldSet.newSheetSettings.ilvlSync;
+    }
+    protected get level(): SupportedLevel {
+        return this.fieldSet.levelDropdown.selectedItem;
+    }
+    protected get selectedJob(): JobName | null {
+        return this.fieldSet.jobPicker.selectedJob;
+    }
+    protected get multiJob(): boolean {
+        return this.fieldSet.newSheetSettings.multiJob;
+    }
+    protected get nameValue(): string {
+        return this.fieldSet.nameInput.value;
+    }
+
+    protected confirmJobMultiChange(currentJob: JobName, currentIsMultiJob: boolean, newJob: JobName, newIsMultiJob: boolean): boolean {
+        if (newJob !== currentJob && !newIsMultiJob) {
+            const result = confirm(`You are attempting to change a sheet from ${currentJob} to ${newJob}. Weapons and other class-specific items will be de-selected if they are not equippable as ${newJob}.`);
+            if (!result) {
+                return false;
+            }
         }
+        else if (currentIsMultiJob && !newIsMultiJob) {
+            const result = confirm(`You are attempting to change a sheet from multi-job to single-job. Items may need to be re-selected if they are not equippable as ${newJob}.`);
+            if (!result) {
+                return false;
+            }
+        }
+        return true;
+    }
 
-        this.fieldSet = new NewSheetFormFieldSet({
+    protected abstract onSubmit(): void;
+}
+
+export class SaveAsModal extends BaseSheetSettingsModal {
+    constructor(private readonly existingSheet: GearPlanSheet, private readonly callback: SheetOpenCallback) {
+        const defaultNameBase = existingSheet.sheetName;
+        // Add 'copy' to the name if we're copying a sheet that has been saved, or one that's in view only mode.
+        const defaultName = (existingSheet.saveKey !== undefined || existingSheet.isViewOnly)
+            ? (existingSheet.sheetName === SHARED_SET_NAME ? SHARED_SET_NAME : defaultNameBase + ' copy')
+            : defaultNameBase;
+        super({
             job: existingSheet.classJobName,
             level: existingSheet.level,
             name: defaultName,
@@ -226,57 +301,31 @@ export class SaveAsModal extends BaseModal {
             ilvlSyncLevel: existingSheet.ilvlSync,
             allowedRoles: [JOB_DATA[existingSheet.classJobName].role],
             multiJob: existingSheet.isMultiJob,
-        });
-        form.appendChild(this.fieldSet);
-        this.contentArea.replaceChildren(form);
-        const submitButton = quickElement("button", [], ['New Sheet']);
-        submitButton.type = 'submit';
-        this.addButton(submitButton);
-        submitButton.addEventListener('click', () => {
-            form.requestSubmit();
-        });
-        const fakeSubmitButton = quickElement("button", [], ['New Sheet']);
-        fakeSubmitButton.style.display = 'none';
-        fakeSubmitButton.type = 'submit';
-        form.appendChild(fakeSubmitButton);
-        form.addEventListener('submit', (ev) => {
-            ev.preventDefault();
-            ev.stopPropagation();
-            const result = this.fieldSet.validateIsync();
-            if (!result) {
-                return;
-            }
-            const ilvlSyncEnabled = this.fieldSet.newSheetSettings.ilvlSyncEnabled;
-            const ilvlSync = this.fieldSet.newSheetSettings.ilvlSync;
-            const level: SupportedLevel = this.fieldSet.levelDropdown.selectedItem;
-            const newJob = this.fieldSet.jobPicker.selectedJob;
-            const multiJob = this.fieldSet.newSheetSettings.multiJob;
-            if (newJob !== undefined && newJob !== existingSheet.classJobName && !multiJob) {
-                const result = confirm(`You are attempting to change a sheet from ${existingSheet.classJobName} to ${newJob}. Weapons and other class-specific items will be de-selected if they are not equippable as ${newJob}.`);
-                if (!result) {
-                    return;
-                }
-            }
-            else if (existingSheet.isMultiJob && !multiJob) {
-                const result = confirm(`You are attempting to change a sheet from multi-job to single-job. Items may need to be re-selected if they are not equippable as ${newJob}.`);
-                if (!result) {
-                    return;
-                }
-            }
-            const newSheetSaveKey: string = existingSheet.saveAs(
-                this.fieldSet.nameInput.value,
-                newJob,
-                level,
-                ilvlSyncEnabled ? ilvlSync : undefined,
-                multiJob
-            );
-            const newSheet = GRAPHICAL_SHEET_PROVIDER.fromSaved(newSheetSaveKey);
-            console.log("new sheet key", newSheet.saveKey);
-            callback(newSheet).then(() => newSheet.requestSave());
-            recordSheetEvent("saveAs", newSheet);
-            this.close();
-        });
-        this.fieldSet.recheck();
+        }, 'New Sheet');
+        this.headerText = 'Save As';
+    }
+
+    protected onSubmit(): void {
+        const ilvlSyncEnabled = this.ilvlSyncEnabled;
+        const ilvlSync = this.ilvlSync;
+        const level: SupportedLevel = this.level;
+        const newJob = this.selectedJob ?? this.existingSheet.classJobName;
+        const multiJob = this.multiJob;
+        if (!this.confirmJobMultiChange(this.existingSheet.classJobName, this.existingSheet.isMultiJob, newJob, multiJob)) {
+            return;
+        }
+        const newSheetSaveKey: string = this.existingSheet.saveAs(
+            this.nameValue,
+            newJob,
+            level,
+            ilvlSyncEnabled ? ilvlSync : undefined,
+            multiJob
+        );
+        const newSheet = GRAPHICAL_SHEET_PROVIDER.fromSaved(newSheetSaveKey);
+        console.log("new sheet key", newSheet.saveKey);
+        this.callback(newSheet).then(() => newSheet.requestSave());
+        recordSheetEvent("saveAs", newSheet);
+        this.close();
     }
 }
 
@@ -371,7 +420,58 @@ class JobPicker extends HTMLElement {
     }
 }
 
+export class ChangePropsModal extends BaseSheetSettingsModal {
+    constructor(private readonly sheet: GearPlanSheetGui) {
+        super({
+            name: sheet.sheetName,
+            job: sheet.classJobName,
+            level: sheet.level,
+            ilvlSyncEnabled: sheet.ilvlSync !== undefined,
+            ilvlSyncLevel: sheet.ilvlSync,
+            allowedRoles: [JOB_DATA[sheet.classJobName].role],
+            multiJob: sheet.isMultiJob,
+        }, 'Apply');
+        this.headerText = 'Change Sheet Properties';
+    }
+
+    protected onSubmit(): void {
+        const desiredJob = this.selectedJob ?? this.sheet.classJobName;
+        const desiredMultiJob = this.multiJob;
+
+        const newName = this.nameValue;
+        const newLevel = this.level;
+        const newIlvl = this.ilvlSyncEnabled ? this.ilvlSync : undefined;
+
+        if (!this.confirmJobMultiChange(this.sheet.classJobName, this.sheet.isMultiJob, desiredJob, desiredMultiJob)) {
+            return;
+        }
+
+        const changed = (this.sheet.sheetName !== newName)
+            || (this.sheet.classJobName !== desiredJob)
+            || (this.sheet.isMultiJob !== desiredMultiJob)
+            || (this.sheet.level !== newLevel)
+            || (this.sheet.ilvlSync !== newIlvl);
+        if (!changed) {
+            this.close();
+            return;
+        }
+
+        // Apply in-place updates for all fields, then save and reload this sheet
+        this.sheet.sheetName = newName;
+        this.sheet.classJobName = desiredJob;
+        this.sheet.isMultiJob = desiredMultiJob;
+        this.sheet.level = newLevel as SupportedLevel;
+        this.sheet.ilvlSync = newIlvl;
+        this.sheet.saveData();
+        if (this.sheet.saveKey) {
+            openSheetByKey(this.sheet.saveKey);
+        }
+        this.close();
+    }
+}
+
 customElements.define("save-as-modal", SaveAsModal);
 customElements.define("new-sheet-form-fieldset", NewSheetFormFieldSet, {extends: "fieldset"});
 customElements.define("new-sheet-form", NewSheetForm, {extends: "form"});
 customElements.define('job-picker', JobPicker);
+customElements.define('change-props-modal', ChangePropsModal);

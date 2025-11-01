@@ -10,8 +10,8 @@ import {
     SupportedLevel
 } from "@xivgear/xivmath/xivconstants";
 import {
-    DisplayGearSlot,
     DisplayGearSlotInfo,
+    DisplayGearSlotMapping,
     DisplayGearSlotKey,
     FoodItem,
     GearAcquisitionSource,
@@ -27,7 +27,7 @@ import {
 } from "@xivgear/xivmath/geartypes";
 import {BaseParamToStatKey, RelevantBaseParam} from "./external/xivapitypes";
 import {getRelicStatModelFor} from "./relicstats/relicstats";
-import {requireNumber, requireString} from "./external/data_validators";
+import {requireArrayTyped, requireNumber, requireString} from "./external/data_validators";
 import {DataApiClient, GearAcquisitionSource as AcqSrc, SpecialStatType} from "@xivgear/data-api-client/dataapi";
 import {BaseParamMap, DataManager, DmJobs} from "./datamanager";
 import {applyStatCaps} from "./gear";
@@ -138,6 +138,15 @@ export class NewApiDataManager implements DataManager {
                                 case "weaponDelay":
                                     ilvlModifier = row.delay;
                                     break;
+                                case "defensePhys":
+                                    ilvlModifier = row.defense;
+                                    break;
+                                case "defenseMag":
+                                    ilvlModifier = row.magicDefense;
+                                    break;
+                                case "gearHaste":
+                                    // Don't bother capping haste since it doesn't work like a normal stat.
+                                    return 999_999;
                                 default:
                                     console.warn(`Bad ilvl modifer! ${statsKey}:${slot}`);
                                     ilvlModifier = undefined;
@@ -145,8 +154,9 @@ export class NewApiDataManager implements DataManager {
                             }
 
                             function calcCap(slot: OccGearSlotKey): number {
-                                const baseParamModifier: number = baseParams[statsKey as RawStatKey][slot];
-                                const jobCap = jobStats.itemStatCapMultipliers?.[statsKey];
+                                const bpInfo = baseParams[statsKey as RawStatKey];
+                                const baseParamModifier: number = bpInfo.slots[slot];
+                                const jobCap = bpInfo.meldParam[jobStats.meldParamIndex] / 100;
                                 if (jobCap !== undefined) {
                                     return Math.round(jobCap * Math.round(ilvlModifier * baseParamModifier / 1000));
                                 }
@@ -154,6 +164,7 @@ export class NewApiDataManager implements DataManager {
                                     return Math.round(ilvlModifier * baseParamModifier / 1000);
                                 }
                             }
+
                             // Theoretically, this is safe even for multi-job because the item stat cap multipliers
                             // are role-bound.
                             if (slot === 'OffHand') {
@@ -202,23 +213,24 @@ export class NewApiDataManager implements DataManager {
     async loadData() {
         const baseParamPromise = this.queryBaseParams().then(response => {
             checkResponse(response);
-            this._baseParams = response.data.items!.reduce<{
-                [rawStat in RawStatKey]?: Record<OccGearSlotKey, number>
-            }>((baseParams, value) => {
+            this._baseParams = response.data.items!.reduce<BaseParamMap>((baseParams, value) => {
                 // Each individual item also gets converted
                 baseParams[BaseParamToStatKey[value.name as RelevantBaseParam]] = {
-                    Body: requireNumber(value.chestPercent),
-                    Ears: requireNumber(value.earringPercent),
-                    Feet: requireNumber(value.feetPercent),
-                    Hand: requireNumber(value.handsPercent),
-                    Head: requireNumber(value.headPercent),
-                    Legs: requireNumber(value.legsPercent),
-                    Neck: requireNumber(value.necklacePercent),
-                    OffHand: requireNumber(value.offHandPercent),
-                    Ring: requireNumber(value.ringPercent),
-                    Weapon2H: requireNumber(value.twoHandWeaponPercent),
-                    Weapon1H: requireNumber(value.oneHandWeaponPercent),
-                    Wrist: requireNumber(value.braceletPercent),
+                    meldParam: requireArrayTyped(value.meldParam, 'number'),
+                    slots: {
+                        Body: requireNumber(value.chestPercent),
+                        Ears: requireNumber(value.earringPercent),
+                        Feet: requireNumber(value.feetPercent),
+                        Hand: requireNumber(value.handsPercent),
+                        Head: requireNumber(value.headPercent),
+                        Legs: requireNumber(value.legsPercent),
+                        Neck: requireNumber(value.necklacePercent),
+                        OffHand: requireNumber(value.offHandPercent),
+                        Ring: requireNumber(value.ringPercent),
+                        Weapon2H: requireNumber(value.twoHandWeaponPercent),
+                        Weapon1H: requireNumber(value.oneHandWeaponPercent),
+                        Wrist: requireNumber(value.braceletPercent),
+                    },
                 };
                 return baseParams;
             }, {});
@@ -426,7 +438,7 @@ export class DataApiGearInfo implements GearItem {
     readonly iconUrl: URL;
     readonly equipLvl: number;
     readonly ilvl: number;
-    readonly displayGearSlot: DisplayGearSlot;
+    readonly displayGearSlot: DisplayGearSlotInfo;
     readonly displayGearSlotName: DisplayGearSlotKey;
     readonly occGearSlotName: OccGearSlotKey;
     // Base stats, including caps
@@ -525,18 +537,20 @@ export class DataApiGearInfo implements GearItem {
         else {
             console.error("Unknown slot data!", eqs);
         }
-        this.displayGearSlot = this.displayGearSlotName ? DisplayGearSlotInfo[this.displayGearSlotName] : undefined;
+        this.displayGearSlot = this.displayGearSlotName ? DisplayGearSlotMapping[this.displayGearSlotName] : undefined;
         const weaponDelayRaw = (data.delayMs);
         this.baseStats = new RawStats();
         this.baseStats.wdPhys = forceNq ? data.damagePhys : data.damagePhysHQ;
         this.baseStats.wdMag = forceNq ? data.damageMag : data.damageMagHQ;
         this.baseStats.weaponDelay = weaponDelayRaw ? (weaponDelayRaw / 1000.0) : 0;
+        this.baseStats.defenseMag = forceNq ? data.defenseMag : data.defenseMagHQ;
+        this.baseStats.defensePhys = forceNq ? data.defensePhys : data.defensePhysHQ;
         const paramMap = forceNq ? data.baseParamMap : data.baseParamMapHQ;
         for (const key in paramMap) {
             const intKey = parseInt(key);
             const baseParam = statById(intKey);
-            // WD is already accounted for
-            if (baseParam === undefined || baseParam === 'wdPhys' || baseParam === 'wdMag' || baseParam === 'weaponDelay') {
+            // WD, delay, def are already accounted for
+            if (baseParam === undefined || baseParam === 'wdPhys' || baseParam === 'wdMag' || baseParam === 'weaponDelay' || baseParam === 'defenseMag' || baseParam === 'defensePhys') {
                 continue;
             }
             // We need to add here, because we don't want to overwrite wdPhys/wdMag/weaponDelay
@@ -565,7 +579,7 @@ export class DataApiGearInfo implements GearItem {
         if (baseMatCount === 0) {
             // If there are no materia slots, then it might be a custom relic
             // TODO: is this branch still needed?
-            if (this.displayGearSlot !== DisplayGearSlotInfo.OffHand) {
+            if (this.displayGearSlot !== DisplayGearSlotMapping.OffHand) {
                 // Offhands never have materia slots
                 this.isCustomRelic = true;
             }
@@ -668,14 +682,15 @@ export class DataApiGearInfo implements GearItem {
     }
 
     private computeSubstats() {
+        const baseStats = this.unsyncedVersion?.baseStats ?? this.baseStats;
         const sortedStats = Object.entries({
-            crit: this.baseStats.crit,
-            dhit: this.baseStats.dhit,
-            determination: this.baseStats.determination,
-            spellspeed: this.baseStats.spellspeed,
-            skillspeed: this.baseStats.skillspeed,
-            piety: this.baseStats.piety,
-            tenacity: this.baseStats.tenacity,
+            crit: baseStats.crit,
+            dhit: baseStats.dhit,
+            determination: baseStats.determination,
+            spellspeed: baseStats.spellspeed,
+            skillspeed: baseStats.skillspeed,
+            piety: baseStats.piety,
+            tenacity: baseStats.tenacity,
         })
             .sort((left, right) => {
                 if (left[1] > right[1]) {

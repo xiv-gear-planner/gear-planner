@@ -225,6 +225,16 @@ export function tenacityDmg(levelStats: LevelStats, tenacity: number) {
 }
 
 /**
+ * Convert defense (or magic defense) to a damage taken ratio (i.e. 0.95 means 5% mitigation).
+ *
+ * @param levelStats Level stats for the level at which the computation is to be performed.
+ * @param defense The defense (or magic defense) value.
+ */
+export function defIncomingDmg(levelStats: LevelStats, defense: number) {
+    return Math.max(0, (100 - fl(15 * defense / levelStats.levelDiv)) / 100);
+}
+
+/**
  * Convert a tenacity stat value to its respective incoming damage reduction. This is represented as a multiplier,
  * i.e. a return of 0.95 represents a 5% mitigation.
  *

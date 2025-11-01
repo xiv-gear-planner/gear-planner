@@ -12,7 +12,7 @@ import {RawBonusStats, StatModification, StatPreModifications} from "./xivstats"
 import {TranslatableString} from "@xivgear/i18n/translation";
 import {SpecialStatType} from "@xivgear/data-api-client/dataapi";
 
-export interface DisplayGearSlot {
+export interface DisplayGearSlotInfo {
 
 }
 
@@ -28,7 +28,7 @@ export const OccGearSlots = ['Weapon2H', 'Weapon1H', 'OffHand', 'Head', 'Body', 
 export type OccGearSlotKey = typeof OccGearSlots[number];
 
 // For future use, in the event that these actually require properties
-export const DisplayGearSlotInfo: Record<DisplayGearSlotKey, DisplayGearSlot> = {
+export const DisplayGearSlotMapping: Record<DisplayGearSlotKey, DisplayGearSlotInfo> = {
     Weapon: {},
     OffHand: {},
     Head: {},
@@ -43,7 +43,7 @@ export const DisplayGearSlotInfo: Record<DisplayGearSlotKey, DisplayGearSlot> = 
 } as const;
 
 export interface EquipSlot {
-    get gearSlot(): DisplayGearSlot;
+    get gearSlot(): DisplayGearSlotKey;
 
     slot: keyof EquipmentSet;
 
@@ -58,62 +58,62 @@ export const EquipSlotInfo: Record<EquipSlotKey, EquipSlot> = {
     Weapon: {
         slot: 'Weapon',
         name: 'Weapon',
-        gearSlot: DisplayGearSlotInfo.Weapon,
+        gearSlot: 'Weapon',
     },
     OffHand: {
         slot: 'OffHand',
         name: 'Off-Hand',
-        gearSlot: DisplayGearSlotInfo.OffHand,
+        gearSlot: 'OffHand',
     },
     Head: {
         slot: 'Head',
         name: 'Head',
-        gearSlot: DisplayGearSlotInfo.Head,
+        gearSlot: 'Head',
     },
     Body: {
         slot: 'Body',
         name: 'Body',
-        gearSlot: DisplayGearSlotInfo.Body,
+        gearSlot: 'Body',
     },
     Hand: {
         slot: 'Hand',
         name: 'Hand',
-        gearSlot: DisplayGearSlotInfo.Hand,
+        gearSlot: 'Hand',
     },
     Legs: {
         slot: 'Legs',
         name: 'Legs',
-        gearSlot: DisplayGearSlotInfo.Legs,
+        gearSlot: 'Legs',
     },
     Feet: {
         slot: 'Feet',
         name: 'Feet',
-        gearSlot: DisplayGearSlotInfo.Feet,
+        gearSlot: 'Feet',
     },
     Ears: {
         slot: 'Ears',
         name: 'Ears',
-        gearSlot: DisplayGearSlotInfo.Ears,
+        gearSlot: 'Ears',
     },
     Neck: {
         slot: 'Neck',
         name: 'Neck',
-        gearSlot: DisplayGearSlotInfo.Neck,
+        gearSlot: 'Neck',
     },
     Wrist: {
         slot: 'Wrist',
         name: 'Wrist',
-        gearSlot: DisplayGearSlotInfo.Wrist,
+        gearSlot: 'Wrist',
     },
     RingLeft: {
         slot: 'RingLeft',
         name: 'Left Ring',
-        gearSlot: DisplayGearSlotInfo.Ring,
+        gearSlot: 'Ring',
     },
     RingRight: {
         slot: 'RingRight',
         name: 'Right Ring',
-        gearSlot: DisplayGearSlotInfo.Ring,
+        gearSlot: 'Ring',
     },
 } as const;
 
@@ -152,7 +152,7 @@ export interface GearItem extends XivCombatItem {
     /**
      * Which gear slot to populate in the UI
      */
-    displayGearSlot: DisplayGearSlot;
+    displayGearSlot: DisplayGearSlotInfo;
     /**
      * Which gear slot to populate in the UI
      */
@@ -373,6 +373,16 @@ export interface ComputedSetStats extends RawStats {
      */
     readonly aaDelay: number;
 
+    /**
+     * The damage taken ratio based on the defense stat. e.g. 0.95 would mean 5% damage reduction.
+     */
+    readonly defenseDamageTaken: number;
+
+    /**
+     * The damage taken ratio based on the magic defense stat. e.g. 0.95 would mean 5% damage reduction.
+     */
+    readonly magicDefenseDamageTaken: number;
+
     readonly effectiveFoodBonuses: RawStats;
 
     withModifications(modifications: StatModification, pre?: StatPreModifications): ComputedSetStats;
@@ -402,6 +412,9 @@ export interface RawStats {
     wdPhys: number,
     wdMag: number,
     weaponDelay: number,
+    defenseMag: number;
+    defensePhys: number;
+    gearHaste: number;
 }
 
 export type RawStatKey = keyof RawStats;
@@ -429,13 +442,15 @@ export class RawStats implements RawStats {
     wdPhys: number = 0;
     wdMag: number = 0;
     weaponDelay: number = 0;
+    defenseMag: number = 0;
+    defensePhys: number = 0;
+    gearHaste: number = 0;
 
     constructor(values: ({ [K in RawStatKey]?: number } | undefined) = undefined) {
         if (values) {
             Object.assign(this, values);
         }
     }
-
 }
 
 export interface LevelStats {
@@ -508,12 +523,20 @@ export interface JobDataConst {
      * True if this class uses 1H+Offhand rather than 2H weapons
      */
     readonly offhand?: boolean;
+    // /**
+    //  * Stat cap multipliers. e.g. Healers have a 10% VIT penalty, so it would be {'Vitality': 0.90}
+    //  */
+    // readonly itemStatCapMultipliers?: {
+    //     [K in RawStatKey]?: number
+    // };
     /**
-     * Stat cap multipliers. e.g. Healers have a 10% VIT penalty, so it would be {'Vitality': 0.90}
+     * Which BaseParam.MeldParam index to use for calculating stat caps.
+     * Makes hardcoded itemStatCapMultipliers obsolete.
+     * Since these only have numeric indices with no indication of which is which, it is derived from looking at gear
+     * pieces of the same ilvl and comparing their stats across different jobs. However, there are many rows which are
+     * identical for
      */
-    readonly itemStatCapMultipliers?: {
-        [K in RawStatKey]?: number
-    };
+    readonly meldParamIndex: number;
     /**
      * Auto-attack potency amount
      */

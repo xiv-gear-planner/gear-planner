@@ -187,11 +187,11 @@ export class GearPlanSheet {
     // General sheet properties
     private _sheetName: string;
     private _description: string | undefined;
-    readonly classJobName: JobName;
+    classJobName: JobName;
     readonly altJobs: JobName[];
-    readonly isMultiJob: boolean;
-    readonly level: SupportedLevel;
-    readonly ilvlSync: number | undefined;
+    isMultiJob: boolean;
+    level: SupportedLevel;
+    ilvlSync: number | undefined;
     private _race: RaceName | undefined;
     private _partyBonus: PartyBonusAmount;
     private readonly _saveKey: string | undefined;
@@ -496,6 +496,7 @@ export class GearPlanSheet {
         this.requestSave();
     }
 
+
     /**
      * The description of the sheet.
      */
@@ -507,6 +508,7 @@ export class GearPlanSheet {
         this._description = desc;
         this.requestSave();
     }
+
 
     /**
      * Copy this sheet to a new save slot.
@@ -539,6 +541,7 @@ export class GearPlanSheet {
         }
         return this.sheetManager.saveAs(exported);
     }
+
 
     exportSims(external: boolean): SimExport[] {
         return this._sims.filter(sim => !external || sim.settings.includeInExport).map(sim =>
@@ -750,7 +753,7 @@ export class GearPlanSheet {
             if (set.materiaMemory) {
                 out.materiaMemory = set.materiaMemory.export();
             }
-            if (set.jobOverride) {
+            if (this.isMultiJob && set.jobOverride) {
                 out.jobOverride = set.jobOverride;
             }
         }
@@ -1090,6 +1093,9 @@ export class GearPlanSheet {
      * @param stat
      */
     isStatRelevant(stat: RawStatKey | undefined): boolean {
+        if (stat === undefined) {
+            return false;
+        }
         if (!this.classJobEarlyStats) {
             // Not sure what the best way to handle this is
             return true;
@@ -1103,6 +1109,20 @@ export class GearPlanSheet {
         else {
             return true;
         }
+    }
+
+    /**
+     * Determine whether a stat can naturally appear on gear. Like {@link #isStatRelevant}, but returns false if the
+     * stat does not appear on gear for this class. e.g. returns false for DH on tanks and healers.
+     *
+     * @param stat
+     */
+    isStatPossibleOnGear(stat: RawStatKey | undefined): boolean {
+        const role = this.classJobEarlyStats.role;
+        if (stat === 'dhit' && (role === 'Healer' || role === 'Tank')) {
+            return false;
+        }
+        return this.isStatRelevant(stat);
     }
 
     /**

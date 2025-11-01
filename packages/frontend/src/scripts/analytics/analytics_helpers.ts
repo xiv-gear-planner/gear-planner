@@ -16,7 +16,9 @@ function doSizeAnalytics() {
         const wh: WH = [editorArea.parentElement.clientWidth, editorArea.parentElement.clientHeight];
         if (!arrayEq(last, wh)) {
             console.log('editor area size changed', wh);
-            recordEvent('editorAreaSize', {'size': `${wh[0]}x${wh[1]}`});
+            if (wh[0] && wh[1]) {
+                recordEvent('editorAreaSize', {'size': `${wh[0]}x${wh[1]}`});
+            }
             last = wh;
         }
         return;
@@ -26,7 +28,9 @@ function doSizeAnalytics() {
         const wh: WH = [embedTop.clientWidth, embedTop.clientHeight];
         if (!arrayEq(last, wh)) {
             console.log('embed area size changed', wh);
-            recordEvent('embedAreaSize', {'size': `${wh[0]}x${wh[1]}`});
+            if (wh[0] && wh[1]) {
+                recordEvent('embedAreaSize', {'size': `${wh[0]}x${wh[1]}`});
+            }
             last = wh;
         }
         return;
@@ -36,7 +40,9 @@ function doSizeAnalytics() {
         const wh: WH = [viewerArea.parentElement.clientWidth, viewerArea.parentElement.clientHeight];
         if (!arrayEq(last, wh)) {
             console.log('view area size changed', wh);
-            recordEvent('viewerAreaSize', {'size': `${wh[0]}x${wh[1]}`});
+            if (wh[0] && wh[1]) {
+                recordEvent('viewerAreaSize', {'size': `${wh[0]}x${wh[1]}`});
+            }
             last = wh;
         }
     }

@@ -14,6 +14,7 @@ import {JOB_DATA, JOB_IDS, JobName} from "@xivgear/xivmath/xivconstants";
 import {makeActionButton, mySheetsIcon, quickElement} from "@xivgear/common-ui/components/util";
 import {capitalizeFirstLetter} from "@xivgear/util/strutils";
 import {JobIcon} from "./job_icon";
+import {isSafari} from "@xivgear/common-ui/util/detect_safari";
 
 type NodeInfo = {
     name: string,
@@ -101,10 +102,14 @@ class BisTable extends CustomTable<AnyNode, TableSelectionModel<AnyNode>> {
 
     protected makeDataRow(node: AnyNode): CustomRow<AnyNode> {
         const out = super.makeDataRow(node);
-        const linkOverlay = quickElement('a', ['row-overlay-link'], []);
-        linkOverlay.href = makeUrlSimple(node.type === 'file' ? BIS_HASH : BIS_BROWSER_HASH, ...node.path).toString();
-        linkOverlay.addEventListener('click', (e) => e.preventDefault());
-        out.afterElements.push(linkOverlay);
+        // https://bugs.webkit.org/show_bug.cgi?id=240961
+        // Can't use this on Safari because of this bug
+        if (!isSafari) {
+            const linkOverlay = quickElement('a', ['row-overlay-link'], []);
+            linkOverlay.href = makeUrlSimple(node.type === 'file' ? BIS_HASH : BIS_BROWSER_HASH, ...node.path).toString();
+            linkOverlay.addEventListener('click', (e) => e.preventDefault());
+            out.afterElements.push(linkOverlay);
+        }
         // out.append(linkOverlay);
         return out;
     }

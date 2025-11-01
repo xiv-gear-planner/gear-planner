@@ -604,10 +604,9 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
             cp.advanceTo(1 - STANDARD_ANIMATION_LOCK);
         }
         this.use(cp, Actions.Unmend);
-        cp.advanceForLateWeave([potionMaxStr]);
         this.use(cp, potionMaxStr);
-        this.use(cp, Actions.HardSlash);
         this.use(cp, cp.getEdgeAction());
+        this.use(cp, Actions.HardSlash);
         if (cp.stats.level >= 80) {
             this.use(cp, Actions.LivingShadow);
         }
@@ -649,10 +648,9 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
             cp.advanceTo(1 - STANDARD_ANIMATION_LOCK);
         }
         this.use(cp, Actions.Unmend);
-        cp.advanceForLateWeave([potionMaxStr]);
         this.use(cp, potionMaxStr);
-        this.use(cp, Actions.HardSlash);
         this.use(cp, Actions.EdgeOfShadow);
+        this.use(cp, Actions.HardSlash);
         this.use(cp, Actions.LivingShadow);
         this.use(cp, Actions.SyphonStrike);
         this.use(cp, Actions.Souleater);
@@ -695,10 +693,9 @@ export class DrkSim extends BaseMultiCycleSim<DrkSimResult, DrkSettings, DrkCycl
             cp.advanceTo(1 - STANDARD_ANIMATION_LOCK);
         }
         this.use(cp, Actions.Unmend);
-        cp.advanceForLateWeave([potionMaxStr]);
         this.use(cp, potionMaxStr);
-        this.use(cp, Actions.HardSlash);
         this.use(cp, Actions.EdgeOfShadow);
+        this.use(cp, Actions.HardSlash);
         this.use(cp, Actions.LivingShadow);
         this.use(cp, Actions.SyphonStrike);
         this.use(cp, Actions.Souleater);
