@@ -12,11 +12,11 @@ import {
 } from "@xivgear/xivmath/geartypes";
 import {MateriaSubstat, MAX_GCD, STAT_ABBREVIATIONS, STAT_FULL_NAMES} from "@xivgear/xivmath/xivconstants";
 import {
+    el,
     FieldBoundDataSelect,
     FieldBoundFloatField,
     labelFor,
     makeActionButton,
-    makeTrashIcon,
     quickElement
 } from "@xivgear/common-ui/components/util";
 import {GearPlanSheet} from "@xivgear/core/sheet";
@@ -24,6 +24,7 @@ import {recordEvent} from "@xivgear/common-ui/analytics/analytics";
 import {GearPlanSheetGui} from "./sheet";
 import {recordCurrentSheetEvent} from "../analytics/analytics";
 import {MODAL_CONTROL} from "@xivgear/common-ui/modalcontrol";
+import {makeLockIcon, makeNewSheetIcon, makePlusIcon, makeTrashIcon} from "@xivgear/common-ui/components/icons";
 
 /**
  * Component for managing all materia slots on an item
@@ -298,6 +299,14 @@ export function formatMateriaTitle(materia: Materia): string {
     return `${materia.nameTranslation}: +${materia.primaryStatValue} ${STAT_FULL_NAMES[materia.primaryStat]}`;
 }
 
+function toRomanNumeral(grade: number) {
+    const romanNumerals = [
+        'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X',
+        'XI', 'XII', 'XIII', 'XIV', 'XV', 'XVI', 'XVII', 'XVIII', 'XIX', 'XX',
+    ];
+    return romanNumerals[grade - 1] ?? '';
+}
+
 export class SlotMateriaManagerPopup extends HTMLElement {
 
     constructor(private sheet: GearPlanSheet, private materiaSlot: MeldableMateriaSlot, private callback: () => void) {
@@ -324,28 +333,56 @@ export class SlotMateriaManagerPopup extends HTMLElement {
             }
         }
         grades.sort((grade1, grade2) => grade2 - grade1);
-        const table = document.createElement("table");
+        const table = el("table");
         const body = table.createTBody();
         const headerRow = body.insertRow();
         // Blank top-left
-        const topLeftCell = document.createElement("th");
-        const trash = quickElement('div', ['materia-picker-remove'], [makeTrashIcon()]);
+        const trash = el('div', {
+            classes: ['materia-picker-remove', 'materia-picker-special-button'],
+            title: 'Remove this materia',
+        }, [makeTrashIcon()]);
         trash.addEventListener('mousedown', (ev) => {
             this.submit(undefined);
             ev.stopPropagation();
         });
-        topLeftCell.appendChild(trash);
-        headerRow.appendChild(topLeftCell);
+        const trashCell = el("th", {}, [trash]);
+
+        const lock = el('div', {
+            classes: ['materia-picker-lock', 'materia-picker-special-button'],
+        }, [makeLockIcon()]);
+        const slot = this.materiaSlot;
+        function checkLock() {
+            if (slot.locked) {
+                lock.classList.add('locked');
+                lock.classList.remove('unlocked');
+                lock.title = 'This slot is LOCKED. It will not be affected by auto-fill nor the solver.\n\nClick to unlock.';
+            }
+            else {
+                lock.classList.add('unlocked');
+                lock.classList.remove('locked');
+                lock.title = 'This slot is unlocked. It may be affected by auto-fill and the solver.\n\nClick to lock.';
+            }
+        }
+        lock.addEventListener('mousedown', (ev) => {
+            this.materiaSlot.locked = !this.materiaSlot.locked;
+            checkLock();
+            ev.stopPropagation();
+        });
+        checkLock();
+        const lockCell = el('th', {}, [lock]);
+
+        headerRow.appendChild(trashCell);
+        headerRow.appendChild(lockCell);
         for (const stat of stats) {
-            const headerCell = document.createElement("th");
-            headerCell.textContent = STAT_ABBREVIATIONS[stat];
-            headerCell.classList.add('stat-' + stat);
-            headerCell.classList.add('primary');
+            const headerCell = el("th", {classes: ['stat-' + stat, 'primary']}, [STAT_ABBREVIATIONS[stat]]);
             headerRow.appendChild(headerCell);
         }
         for (const grade of grades) {
             const row = body.insertRow();
-            row.insertCell().textContent = grade.toString();
+            const romanNumeralCell = row.insertCell();
+            romanNumeralCell.textContent = toRomanNumeral(grade);
+            romanNumeralCell.style.textAlign = 'right';
+            row.insertCell().textContent = `(${grade})`;
             for (const stat of stats) {
                 const materia = typeMap[stat]?.find(m => m.materiaGrade === grade);
                 if (materia) {
@@ -355,7 +392,7 @@ export class SlotMateriaManagerPopup extends HTMLElement {
                         ev.stopPropagation();
                     });
                     cell.title = formatMateriaTitle(materia);
-                    const image = document.createElement("img");
+                    const image = el("img", {class: 'item-rarity-normal'});
                     image.src = materia.iconUrl.toString();
                     image.setAttribute('intrinsicsize', '80x80');
                     if (this.materiaSlot.equippedMateria === materia) {
@@ -363,7 +400,6 @@ export class SlotMateriaManagerPopup extends HTMLElement {
                     }
                     // Needed in order to make selection outline work
                     cell.appendChild(document.createElement('span'));
-                    image.classList.add('item-rarity-normal');
                     image.addEventListener('load', () => {
                         image.classList.add('loaded');
                     });
@@ -441,14 +477,16 @@ export class MateriaPriorityPicker extends HTMLElement {
             });
         });
 
-        const fillEmptyNow = makeActionButton('Fill Empty', () => {
+        const fillEmptyNow = makeActionButton([makePlusIcon(), 'Fill Empty'], () => {
             prioController.fillEmpty();
             recordEvent("fillEmpty");
         }, 'Fill all empty materia slots according to the chosen priority.');
-        const fillAllNow = makeActionButton('Fill All', () => {
+        fillEmptyNow.classList.add('materia-fill-button');
+        const fillAllNow = makeActionButton([makeNewSheetIcon(), 'Fill All'], () => {
             prioController.fillAll();
             recordEvent("fillAll");
         }, 'Empty out and re-fill all materia slots according to the chosen priority.');
+        fillAllNow.classList.add('materia-fill-button');
 
         const lockAllEquipped = makeActionButton('Lock Filled', () => {
             prioController.lockFilled();

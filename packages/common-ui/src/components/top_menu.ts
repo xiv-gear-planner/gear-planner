@@ -1,14 +1,12 @@
 import {
-    accountIcon,
-    githubIcon,
-    importIcon,
+    accountIcon, githubIcon,
+    makeImportIcon,
     makeCalcIcon,
-    makeDollarIcon,
+    makeKofiIcon,
     makePatreonIcon,
     mySheetsIcon,
-    newSheetIcon,
-    settingsIcon
-} from "./util";
+    makeNewSheetIcon, settingsIcon
+} from "./icons";
 
 export function applyCommonTopMenuFormatting(link: HTMLAnchorElement) {
     if (link.getAttribute('formatted') === 'true') {
@@ -20,11 +18,11 @@ export function applyCommonTopMenuFormatting(link: HTMLAnchorElement) {
             link.title = 'View your saved sheets';
             break;
         case 'New Sheet':
-            link.replaceChildren(newSheetIcon(), textSpan(link.textContent));
+            link.replaceChildren(makeNewSheetIcon(), textSpan(link.textContent));
             link.title = 'Create a new sheet from scratch';
             break;
         case 'Import':
-            link.replaceChildren(importIcon(), textSpan(link.textContent));
+            link.replaceChildren(makeImportIcon(), textSpan(link.textContent));
             link.title = 'Import sheets, sets, or Etro links into a new sheet';
             break;
         case 'GitHub':
@@ -40,7 +38,7 @@ export function applyCommonTopMenuFormatting(link: HTMLAnchorElement) {
             link.title = 'Math center';
             break;
         case 'Ko-Fi':
-            link.replaceChildren(makeDollarIcon());
+            link.replaceChildren(makeKofiIcon());
             link.title = 'Donate on Ko-Fi';
             break;
         case 'Patreon':

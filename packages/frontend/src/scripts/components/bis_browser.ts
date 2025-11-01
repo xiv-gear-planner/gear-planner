@@ -11,10 +11,11 @@ import {
 import {NamedSection} from "./section";
 import {BIS_BROWSER_HASH, BIS_HASH, makeUrlSimple} from "@xivgear/core/nav/common_nav";
 import {JOB_DATA, JOB_IDS, JobName} from "@xivgear/xivmath/xivconstants";
-import {makeActionButton, mySheetsIcon, quickElement} from "@xivgear/common-ui/components/util";
+import {makeActionButton, quickElement} from "@xivgear/common-ui/components/util";
 import {capitalizeFirstLetter} from "@xivgear/util/strutils";
 import {JobIcon} from "./job_icon";
 import {isSafari} from "@xivgear/common-ui/util/detect_safari";
+import {mySheetsIcon} from "@xivgear/common-ui/components/icons";
 
 type NodeInfo = {
     name: string,

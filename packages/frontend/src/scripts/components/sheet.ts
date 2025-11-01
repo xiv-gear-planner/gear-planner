@@ -17,16 +17,11 @@ import {
 import {GearPlanSheet, SheetProvider} from "@xivgear/core/sheet";
 import {
     DataSelect,
-    editIcon,
-    exportIcon,
-    faIcon,
     FieldBoundCheckBox,
     FieldBoundDataSelect,
     FieldBoundTextField,
-    importIcon,
     labeledCheckbox,
     makeActionButton,
-    newSheetIcon,
     quickElement
 } from "@xivgear/common-ui/components/util";
 import {
@@ -101,6 +96,14 @@ import {SHEET_MANAGER} from "./saved_sheet_impl";
 import {cleanUrl} from "@xivgear/common-ui/nav/common_frontend_nav";
 import {isSafari} from "@xivgear/common-ui/util/detect_safari";
 import {getNextPopoutContext, isPopout, MESSAGE_REFRESH_CONTENT, MESSAGE_REFRESH_TOOLBAR} from "../popout";
+import {
+    editIcon,
+    makeExportIcon,
+    makeImportIcon,
+    makeCopyIcon,
+    makeTrashIcon,
+    makeNewSheetIcon
+} from "@xivgear/common-ui/components/icons";
 
 const noSeparators = (set: CharacterGearSet) => !set.isSeparator;
 
@@ -386,12 +389,12 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, SingleCellRowOr
                 getter: gearSet => gearSet,
                 renderer: (gearSet: CharacterGearSet) => {
                     const div = document.createElement("div");
-                    div.appendChild(makeActionButton([faIcon('fa-trash-can')], (ev) => {
+                    div.appendChild(makeActionButton([makeTrashIcon()], (ev) => {
                         if (confirmDelete(ev, `Delete gear set '${gearSet.name}'?`)) {
                             this.sheet.delGearSet(gearSet);
                         }
                     }, 'Delete this set'));
-                    div.appendChild(makeActionButton([faIcon('fa-copy')], () => this.sheet.cloneAndAddGearSet(gearSet, true), 'Clone this set'));
+                    div.appendChild(makeActionButton([makeCopyIcon()], () => this.sheet.cloneAndAddGearSet(gearSet, true), 'Clone this set'));
                     const dragger = document.createElement('button');
                     dragger.title = 'Drag to re-order this set';
                     dragger.textContent = '≡';
@@ -885,13 +888,13 @@ export class GearSetEditor extends HTMLElement {
         issuesButton.classList.add('issues-button');
 
         const buttonArea = quickElement('div', ['gear-set-editor-button-area', 'button-row'], [
-            makeActionButton([exportIcon(), 'Export Set'], () => {
+            makeActionButton([makeExportIcon(), 'Export Set'], () => {
                 startExport(this.gearSet);
             }),
             makeActionButton([editIcon(), 'Edit Name/Description'], () => {
                 startRenameSet(writeProxy(this.gearSet, () => this.formatTitleDesc()));
             }),
-            isPopout() ? null : makeActionButton([exportIcon(), 'Popout Editor'], () => {
+            isPopout() ? null : makeActionButton([makeExportIcon(), 'Popout Editor'], () => {
                 const sheetAny = this.sheet;
                 sheetAny.openPopoutForSet(this.gearSet);
             }),
@@ -1515,7 +1518,7 @@ export class GearPlanSheetGui extends GearPlanSheet {
         }
 
         if (!this.isViewOnly) {
-            const addRowButton = makeActionButton([newSheetIcon(), "New Set"], () => {
+            const addRowButton = makeActionButton([makeNewSheetIcon(), "New Set"], () => {
                 const newSet = new CharacterGearSet(this);
                 newSet.name = "New Set";
                 this.addGearSet(newSet, undefined, true);
@@ -1583,17 +1586,17 @@ export class GearPlanSheetGui extends GearPlanSheet {
 
         if (!this.isViewOnly) {
 
-            const newSimButton = makeActionButton([newSheetIcon(), "Add Sim"], () => {
+            const newSimButton = makeActionButton([makeNewSheetIcon(), "Add Sim"], () => {
                 this.showAddSimDialog();
             });
             buttonsArea.appendChild(newSimButton);
 
-            const exportSheetButton = makeActionButton([exportIcon(), "Export Sheet"], () => {
+            const exportSheetButton = makeActionButton([makeExportIcon(), "Export Sheet"], () => {
                 startExport(this);
             });
             buttonsArea.appendChild(exportSheetButton);
 
-            const importGearSetButton = makeActionButton([importIcon(), "Import Sets"], () => {
+            const importGearSetButton = makeActionButton([makeImportIcon(), "Import Sets"], () => {
                 this.showImportSetsDialog();
             });
             buttonsArea.appendChild(importGearSetButton);

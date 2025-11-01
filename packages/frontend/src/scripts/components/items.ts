@@ -42,7 +42,6 @@ import {
     FieldBoundIntField,
     labeledCheckbox,
     makeActionButton,
-    makeTrashIcon,
     quickElement
 } from "@xivgear/common-ui/components/util";
 import {AllSlotMateriaManager} from "./materia";
@@ -53,6 +52,7 @@ import {ShowHideButton, ShowHideCallback} from "@xivgear/common-ui/components/sh
 import {BaseModal} from "@xivgear/common-ui/components/modal";
 import {recordSheetEvent} from "../analytics/analytics";
 import {DISPLAY_SETTINGS} from "@xivgear/common-ui/settings/display_settings";
+import {makeTrashIcon} from "@xivgear/common-ui/components/icons";
 
 function removeStatCellStyles(cell: CustomCell<GearSlotItem, unknown>) {
     cell.classList.remove("secondary");
