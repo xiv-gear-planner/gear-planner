@@ -84,7 +84,7 @@ export const Despair: BlmGcdAbility = {
     name: "Despair",
     element: BlmElement.Fire,
     id: 16505,
-    potency: 300,
+    potency: 350,
     attackType: "Spell",
     gcd: 2.5,
     appDelay: 0.556,

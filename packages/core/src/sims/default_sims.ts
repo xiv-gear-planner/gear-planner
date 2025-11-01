@@ -27,6 +27,7 @@ import {gnbSpec} from "./tank/gnb/gnb_sheet_sim";
 import {pldSpec} from "./tank/pld/pld_sheet_sim";
 import {blmSpec} from "./caster/blm/blm_sheet_sim";
 import {drgSpec} from "./melee/drg/drg_sim";
+import {blmPpsSpec} from "./caster/blm/blm_pps_sim";
 
 let registrationDone = false;
 
@@ -66,6 +67,7 @@ export function registerDefaultSims() {
     registerSim(dncDtSheetSpec);
     // Caster
     registerSim(blmSpec);
+    registerSim(blmPpsSpec);
     registerSim(BluWinged120Spec);
     registerSim(BluFlame120Spec);
     registerSim(BluBreath60Spec);
