@@ -1810,8 +1810,8 @@ export class GearPlanSheetGui extends GearPlanSheet {
                 // would stay proportional to vertical screen size.
                 // This gives us the best of both worlds - dragging will be correct, and you'll get automatic resize
                 // when the window height changes, without any extra JS.
-                const minVh = newHeightPct - 1;
-                const maxVh = newHeightPct + 1;
+                const minVh = newHeightPct - 0.2;
+                const maxVh = newHeightPct + 0.2;
                 const newHeight = `clamp(${minVh}vh, ${newHeightPx}px, ${maxVh}vh)`;
                 this.tableArea.style.minHeight = newHeight;
                 this.tableArea.style.maxHeight = newHeight;
