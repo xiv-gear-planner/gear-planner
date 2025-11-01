@@ -1801,7 +1801,7 @@ export class GearPlanSheetGui extends GearPlanSheet {
             const initialHeight = this.tableArea.offsetHeight;
             const eventListener = (ev: MouseEvent) => {
                 const delta = ev.pageY - initialY;
-                const newHeightPx = Math.round(initialHeight + delta);
+                const newHeightPx = initialHeight + delta;
                 const newHeightPct = newHeightPx / document.body.clientHeight * 100;
                 // This has minor visual issues (due to fractional pixels resulting in inconsistent inner spacing),
                 // but seems to be the best we have.
@@ -1813,9 +1813,6 @@ export class GearPlanSheetGui extends GearPlanSheet {
                 this.tableArea.style.minHeight = newHeight;
                 this.tableArea.style.maxHeight = newHeight;
                 this.tableArea.style.flexBasis = newHeight;
-                if (isSafari) {
-                    // this.tableHolderOuter.style.maxHeight = newHeight;
-                }
             };
             const after = (ev: MouseEvent) => {
                 document.removeEventListener('pointermove', eventListener);
