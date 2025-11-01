@@ -113,7 +113,7 @@ export class GearsetGenerator {
         const useSks = settings.gearset.isStatRelevant('skillspeed');
         const over = override.find(over => over.basis === (useSks ? 'sks' : 'sps'));
         const attackType = over ? over.attackType : useSks ? 'Weaponskill' : 'Spell';
-        const haste = settings.gearset.computedStats.haste(attackType) + (over ? over.haste : 0);
+        const haste = settings.gearset.computedStats.haste(attackType, over.buffHaste ?? 0);
 
         const equipment = this.cloneEquipmentset(settings.gearset.equipment);
 

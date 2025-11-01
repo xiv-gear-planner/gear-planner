@@ -1,5 +1,6 @@
 import {
     GearAcquisitionSource,
+    TraitFunc,
     ItemDisplaySettings,
     JobDataConst,
     LevelItemInfo,
@@ -8,6 +9,7 @@ import {
     RawStatKey,
     RawStats
 } from "./geartypes";
+import {RawBonusStats} from "./xivstats";
 
 /**
  * Maximum number of materia slots on any item.
@@ -178,6 +180,20 @@ const STANDARD_CASTER: JobDataConst = {
     maxLevel: CURRENT_MAX_LEVEL,
 } as const;
 
+/**
+ * Create a trait applier function for a standard haste trait.
+ *
+ * @param amount
+ */
+function hasteTrait(amount: number): TraitFunc {
+    return (stats: RawBonusStats) => {
+        stats.traitHaste.push(attackType =>
+            attackType === 'Weaponskill'
+            || attackType === 'Spell'
+            || attackType === 'Auto-attack'
+                ? amount : 0);
+    };
+}
 
 /**
  * Job-specific data items.
@@ -195,7 +211,7 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
                 description: 'Standard 2.5s GCD recast time',
                 gcdTime: 2.5,
                 attackType: 'Spell',
-                haste: 0,
+                buffHaste: 0,
                 basis: 'sps',
             }, {
                 shortLabel: 'PoM GCD',
@@ -203,7 +219,7 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
                 description: '2.5s GCD recast time under Presence of Mind',
                 gcdTime: 2.5,
                 attackType: 'Spell',
-                haste: 20,
+                buffHaste: 20,
                 basis: 'sps',
             }];
         },
@@ -228,54 +244,27 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
             {
                 minLevel: 1,
                 maxLevel: 19,
-                apply: (stats) => {
-                    stats.bonusHaste.push(attackType =>
-                        attackType === 'Weaponskill'
-                        || attackType === 'Spell'
-                        || attackType === 'Auto-attack'
-                            ? 5 : 0);
-                },
+                apply: hasteTrait(5),
             },
             {
                 minLevel: 20,
                 maxLevel: 39,
-                apply: (stats) => {
-                    stats.bonusHaste.push(attackType =>
-                        attackType === 'Weaponskill'
-                        || attackType === 'Spell'
-                        || attackType === 'Auto-attack'
-                            ? 10 : 0);
-                },
+                apply: hasteTrait(10),
             },
             {
                 minLevel: 40,
                 maxLevel: 75,
-                apply: (stats) => {
-                    stats.bonusHaste.push(attackType =>
-                        attackType === 'Weaponskill'
-                        || attackType === 'Spell'
-                        || attackType === 'Auto-attack'
-                            ? 15 : 0);
-                },
+                apply: hasteTrait(15),
             },
             {
                 minLevel: 76,
-                apply: (stats) => {
-                    stats.bonusHaste.push(attackType =>
-                        attackType === 'Weaponskill'
-                        || attackType === 'Spell'
-                        || attackType === 'Auto-attack'
-                            ? 20 : 0);
-                },
+                apply: hasteTrait(20),
             }],
     },
     NIN: {
         ...MELEE_SCOUTING,
         traits: [{
-            apply: stats => {
-                stats.bonusHaste.push(attackType =>
-                    attackType === 'Weaponskill' || attackType === 'Auto-attack' ? 15 : 0);
-            },
+            apply: hasteTrait(15),
         },
         ],
     },
@@ -289,7 +278,7 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
                     description: 'GCD recast time w/ Fuka',
                     gcdTime: 2.5,
                     attackType: 'Weaponskill',
-                    haste: 10,
+                    buffHaste: 10,
                     basis: 'sks',
                     isPrimary: true,
                 }];
@@ -301,7 +290,7 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
                     description: 'GCD recast time w/ Fuka',
                     gcdTime: 2.5,
                     attackType: 'Weaponskill',
-                    haste: 13, // Enhanced Fugetsu and Fuka
+                    buffHaste: 13, // Enhanced Fugetsu and Fuka
                     basis: 'sks',
                     isPrimary: true,
                 }];
@@ -318,7 +307,7 @@ export const JOB_DATA: Record<JobName, JobDataConst> = {
                 description: '2.5s GCD with swiftscaled buff',
                 gcdTime: 2.5,
                 attackType: 'Weaponskill',
-                haste: 15,
+                buffHaste: 15,
                 basis: 'sks',
                 isPrimary: true,
             }];

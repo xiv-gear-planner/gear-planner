@@ -15,13 +15,14 @@ import {
     autoCritBuffDmg,
     autoDhitBonusDmg,
     autoDhitBuffDmg,
+    combineHasteTypes,
     critChance,
     critDmg,
     defIncomingDmg,
     detDmg,
     dhitChance,
     dhitDmg,
-    fl,
+    fl, flp,
     mainStatMulti,
     mpTick,
     sksTickMulti,
@@ -93,7 +94,7 @@ export class RawBonusStats extends RawStats {
     dhitChance: number = 0;
     dhitDmg: number = 0;
     detMulti: number = 0;
-    bonusHaste: HasteBonus[] = [];
+    traitHaste: HasteBonus[] = [];
     // TODO: These should be used when possible
     forceCrit: boolean = false;
     forceDh: boolean = false;
@@ -254,8 +255,14 @@ export class ComputedSetStatsImpl implements ComputedSetStats {
         return spsToGcd(baseGcd, this.levelStats, this.spellspeed, haste);
     }
 
-    haste(attackType: AttackType): number {
-        return this.gearHaste + sum(this.finalBonusStats.bonusHaste.map(hb => hb(attackType)));
+    haste(attackType: AttackType, buffHaste: number): number {
+        const traitHaste = sum(this.finalBonusStats.traitHaste.map(hb => hb(attackType)));
+        return combineHasteTypes(buffHaste, this.gearHaste, traitHaste);
+    }
+
+    effectiveAaDelay(buffHaste: number): number {
+        const effectiveHaste = this.haste('Auto-attack', buffHaste);
+        return flp(3, this.aaDelay * (100 - effectiveHaste) / 100);
     }
 
     traitMulti(attackType: AttackType): number {

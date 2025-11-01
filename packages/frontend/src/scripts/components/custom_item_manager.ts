@@ -215,8 +215,14 @@ export class CustomItemTable extends CustomTable<CustomItem> {
                     });
                 },
                 initialWidth: 60,
-                headerStyler: setTitle('Haste (percentage)'),
-                colStyler: setTitle('Haste (percentage)'),
+                colStyler: (_, cell) => {
+                    cell.classList.add('irrelevant-stat');
+                    cell.title = 'Haste (percentage)';
+                },
+                headerStyler: (_, cell) => {
+                    cell.classList.add('irrelevant-stat');
+                    cell.title = 'Haste (percentage)';
+                },
             }),
             {
                 shortName: 'wdPhys',
@@ -312,8 +318,6 @@ export class CustomItemPopup extends BaseModal {
             'Limitations:',
             el('br'),
             'If you change the number of materia slots on an item, you will need to re-select the item.',
-            el('br'),
-            'Haste may not interact correctly with classes that have their own haste mechanic.',
         ]);
         this.contentArea.appendChild(notesArea);
 

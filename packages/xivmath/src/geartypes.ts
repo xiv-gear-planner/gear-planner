@@ -274,9 +274,16 @@ export interface ComputedSetStats extends RawStats {
     gcdMag(baseGcd: number, haste?: number): number,
 
     /**
-     * Base haste value for a given attack type
+     * Combined haste value for a given attack type
      */
-    haste(attackType: AttackType): number;
+    haste(attackType: AttackType, buffHaste: number): number;
+
+    /**
+     * Compute the effective auto-attack delay. Assumes the attack has the type 'Auto-attack'.
+     *
+     * @param buffHaste The amount of haste from buffs.
+     */
+    effectiveAaDelay(buffHaste: number): number;
 
     /**
      * Crit chance. Ranges from 0 to 1.
@@ -585,9 +592,9 @@ export type GcdDisplayOverride = {
      */
     attackType: AttackType,
     /**
-     * Additional haste to use for this calculation (e.g. for PoM)
+     * Additional buff haste to use for this calculation (e.g. for PoM)
      */
-    haste?: number,
+    buffHaste?: number,
     /**
      * Whether this calc uses SpS or SkS formula
      */
@@ -618,8 +625,10 @@ export interface JobData extends JobDataConst {
 export interface JobTrait {
     minLevel?: number,
     maxLevel?: number,
-    apply: (stats: RawBonusStats) => void;
+    apply: TraitFunc,
 }
+
+export type TraitFunc = (stats: RawBonusStats) => void;
 
 export type GearSlotItem = {
     slot: EquipSlot;
