@@ -1,4 +1,4 @@
-import {col, CustomTable, HeaderRow} from "@xivgear/common-ui/table/tables";
+import {col, CustomTable, HeaderRow, SpecialRow} from "@xivgear/common-ui/table/tables";
 import {GearPlanSheet} from "@xivgear/core/sheet";
 import {
     clampValues,
@@ -278,7 +278,17 @@ export class CustomItemTable extends CustomTable<CustomItem> {
      * Refresh the table. Should be called after adding or removing an item.
      */
     refresh() {
-        this.data = [new HeaderRow(), ...this.sheet.customItems];
+        const items = this.sheet.customItems;
+        if (items.length === 0) {
+            this.data = [new HeaderRow(), new SpecialRow(() => {
+                return el('div', {class: 'no-items-message'}, [
+                    'You have no custom items. Click "New Item..." below to create one.',
+                ]);
+            })];
+        }
+        else {
+            this.data = [new HeaderRow(), ...items];
+        }
     }
 }
 
@@ -490,7 +500,17 @@ export class CustomFoodTable extends CustomTable<CustomFood> {
      * Refresh the table. Should be called after adding or removing an item.
      */
     refresh() {
-        this.data = [new HeaderRow(), ...this.sheet.customFood];
+        const items = this.sheet.customFood;
+        if (items.length === 0) {
+            this.data = [new HeaderRow(), new SpecialRow(() => {
+                return el('div', {class: 'no-items-message'}, [
+                    'You have no custom foods. Click "New Food" below to create one.',
+                ]);
+            })];
+        }
+        else {
+            this.data = [new HeaderRow(), ...items];
+        }
     }
 }
 
