@@ -1,5 +1,6 @@
 import {ContactInfo, MaintainerInfo, SimSpec} from "@xivgear/core/sims/sim_types";
-import {discordIcon, quickElement} from "@xivgear/common-ui/components/util";
+import {quickElement} from "@xivgear/common-ui/components/util";
+import {makeDiscordIcon} from "@xivgear/common-ui/components/icons";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function simMaintainersInfoElement(simSpec: SimSpec<any, any>): HTMLElement | null {
@@ -20,7 +21,7 @@ function simMaintainerSingle(info: MaintainerInfo): HTMLElement {
 function contactInfoSingle(info: ContactInfo): HTMLElement {
     switch (info.type) {
         case "discord": {
-            const discordLink = quickElement('a', ['discord-link'], [discordIcon(), info.discordTag]);
+            const discordLink = quickElement('a', ['discord-link'], [makeDiscordIcon(), info.discordTag]);
             discordLink.href = `https://discord.com/users/${info.discordUid}`;
             discordLink.target = '_blank';
             return discordLink;

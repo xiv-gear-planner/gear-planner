@@ -8,13 +8,12 @@ import {
     FieldBoundCheckBox,
     labeledCheckbox,
     makeActionButton,
-    quickElement,
-    redoIcon,
-    undoIcon
+    quickElement
 } from "@xivgear/common-ui/components/util";
 import {GearPlanSheetGui} from "./sheet";
 import {recordSheetEvent} from "../analytics/analytics";
 import {recordEvent} from "@xivgear/common-ui/analytics/analytics";
+import {redoIcon, undoIcon} from "@xivgear/common-ui/components/icons";
 
 function makeGearFiltersArea(
     sheet: GearPlanSheetGui,

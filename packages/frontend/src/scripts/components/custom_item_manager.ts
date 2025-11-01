@@ -3,7 +3,6 @@ import {GearPlanSheet} from "@xivgear/core/sheet";
 import {
     clampValues,
     el,
-    faIcon,
     FieldBoundCheckBox,
     FieldBoundDataSelect,
     FieldBoundFloatField,
@@ -24,6 +23,7 @@ import {confirmDelete} from "@xivgear/common-ui/components/delete_confirm";
 import {CustomItem} from "@xivgear/core/customgear/custom_item";
 import {CustomFood} from "@xivgear/core/customgear/custom_food";
 import {GearPlanSheetGui} from "./sheet";
+import {makeTrashIcon} from "@xivgear/common-ui/components/icons";
 
 function ifWeapon(fn: (item: CustomItem) => HTMLElement): (item: CustomItem) => Node {
     return (item: CustomItem) => {
@@ -76,7 +76,7 @@ export class CustomItemTable extends CustomTable<CustomItem> {
                 getter: item => item,
                 renderer: (item: CustomItem) => {
                     const out = document.createElement('div');
-                    out.appendChild(makeActionButton([faIcon('fa-trash-can')], (ev) => {
+                    out.appendChild(makeActionButton([makeTrashIcon()], (ev) => {
                         if (confirmDelete(ev, `Delete custom item '${item.name}'?`)) {
                             const deleted = this.sheet.deleteCustomItem(item, setNames => {
                                 return confirmDelete(ev, `Some sets are still using this item:\n${setNames.map(setName => ` - ${setName}`).join('\n')}\nDelete anyway?`);
@@ -378,7 +378,7 @@ export class CustomFoodTable extends CustomTable<CustomFood> {
                 getter: item => item,
                 renderer: (item: CustomFood) => {
                     const out = document.createElement('div');
-                    out.appendChild(makeActionButton([faIcon('fa-trash-can')], (ev) => {
+                    out.appendChild(makeActionButton([makeTrashIcon()], (ev) => {
                         if (confirmDelete(ev, `Delete custom food '${item.name}'?`)) {
                             const deleted = this.sheet.deleteCustomFood(item, setNames => {
                                 return confirmDelete(ev, `Some sets are still using this item:\n${setNames.map(setName => ` - ${setName}`).join('\n')}\nDelete anyway?`);

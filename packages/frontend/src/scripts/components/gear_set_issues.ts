@@ -1,7 +1,8 @@
 import {BaseModal} from "@xivgear/common-ui/components/modal";
 import {CharacterGearSet} from "@xivgear/core/gear";
-import {errorIcon, quickElement, warningIcon} from "@xivgear/common-ui/components/util";
+import {quickElement} from "@xivgear/common-ui/components/util";
 import {GearSetIssue} from "@xivgear/xivmath/geartypes";
+import {errorIcon, warningIcon} from "@xivgear/common-ui/components/icons";
 
 
 export function gearSetErrorIcon() {

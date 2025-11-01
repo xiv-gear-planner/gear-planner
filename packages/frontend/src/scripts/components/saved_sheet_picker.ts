@@ -1,13 +1,5 @@
 import {col, CustomRow, CustomTable, SpecialRow, TableSelectionModel} from "@xivgear/common-ui/table/tables";
-import {
-    errorIcon,
-    faIcon,
-    makeActionButton,
-    makeAsyncActionButton,
-    makeCloseButton,
-    makeTrashIcon,
-    quickElement
-} from "@xivgear/common-ui/components/util";
+import {makeActionButton, makeAsyncActionButton, quickElement} from "@xivgear/common-ui/components/util";
 import {SheetHandle, SheetManager, SyncStatus} from "@xivgear/core/persistence/saved_sheets";
 import {getHashForSaveKey, openSheetByKey, showNewSheetForm} from "../base_ui";
 import {confirmDelete} from "@xivgear/common-ui/components/delete_confirm";
@@ -21,6 +13,13 @@ import {UserDataSyncer} from "../account/user_data";
 import {showAccountModal} from "../account/components/account_components";
 import {Inactivitytimer} from "@xivgear/util/inactivitytimer";
 import {ConflictResolutionDialog} from "./conflict_resolution_dialog";
+import {
+    errorIcon,
+    makeCloseButton,
+    makeNewTabIcon,
+    makePlusIcon,
+    makeTrashIcon
+} from "@xivgear/common-ui/components/icons";
 
 export class SheetPickerTable extends CustomTable<SheetHandle, TableSelectionModel<SheetHandle, never, never, SheetHandle | null>> {
 
@@ -51,7 +50,7 @@ export class SheetPickerTable extends CustomTable<SheetHandle, TableSelectionMod
                 getter: sheet => sheet,
                 renderer: (sel: SheetHandle) => {
                     const div = document.createElement("div");
-                    div.appendChild(makeActionButton([faIcon('fa-trash-can')], (ev) => {
+                    div.appendChild(makeActionButton([makeTrashIcon()], (ev) => {
                         if (confirmDelete(ev, `Delete sheet '${sel.name}'?`)) {
                             sel.deleteLocal();
                             sel.flush();
@@ -63,7 +62,7 @@ export class SheetPickerTable extends CustomTable<SheetHandle, TableSelectionMod
                     const newTabLink = document.createElement('a');
                     newTabLink.href = linkUrl.toString();
                     newTabLink.target = '_blank';
-                    newTabLink.appendChild(faIcon('fa-arrow-up-right-from-square', 'fa'));
+                    newTabLink.appendChild(makeNewTabIcon());
                     newTabLink.addEventListener('mousedown', ev => {
                         ev.stopPropagation();
                     }, true);
@@ -371,7 +370,7 @@ export class SheetPickerTable extends CustomTable<SheetHandle, TableSelectionMod
         // "New sheet" button/row
         data.push(new SpecialRow(() => {
             const div = document.createElement("div");
-            div.replaceChildren(faIcon('fa-plus', 'fa-solid'), 'New Sheet');
+            div.replaceChildren(makePlusIcon(), 'New Sheet');
             return div;
         }, (row) => {
             row.classList.add('special-row-hoverable', 'new-sheet-row');
