@@ -19,13 +19,12 @@ import {recordEvent} from "@xivgear/common-ui/analytics/analytics";
 function makeGearFiltersArea(
     sheet: GearPlanSheetGui,
     itemDisplaySettings: ItemDisplaySettings,
-    displayUpdateCallback: () => void,
+    displayUpdateImmediate: () => void,
     closeCallback: () => void) {
     const filtersForm = document.createElement('form');
     filtersForm.style.display = 'contents';
     filtersForm.classList.add('ilvl-picker-area');
     const itemIlvlRange = new ILvlRangePicker(itemDisplaySettings, 'minILvl', 'maxILvl', 'Gear:');
-    // itemIlvlRange.addListener(displayUpdateCallback);
     itemIlvlRange.addListener((min, max) => {
         recordSheetEvent('itemIlvlRange', sheet, {
             min: min,
@@ -35,7 +34,6 @@ function makeGearFiltersArea(
     filtersForm.appendChild(itemIlvlRange);
 
     const foodIlvlRange = new ILvlRangePicker(itemDisplaySettings, 'minILvlFood', 'maxILvlFood', 'Food:');
-    // foodIlvlRange.addListener(displayUpdateCallback);
     foodIlvlRange.addListener((min, max) => {
         recordSheetEvent('foodIlvlRange', sheet, {
             min: min,
@@ -47,6 +45,7 @@ function makeGearFiltersArea(
     const nqCb = new FieldBoundCheckBox(itemDisplaySettings, 'showNq', {
         id: 'show-nq-cb',
     });
+    nqCb.addListener(displayUpdateImmediate);
     const nqCbWithLabel = labeledCheckbox('Show NQ Items', nqCb);
     filtersForm.appendChild(nqCbWithLabel);
 
@@ -61,16 +60,11 @@ function makeGearFiltersArea(
         closeCallback();
     });
 
-    return quickElement('div', ['ilvl-picker-area'], [filtersForm]);
+    const out = quickElement('div', ['ilvl-picker-area'], [filtersForm]);
+    out.addEventListener('focusout', displayUpdateImmediate);
+    return out;
 }
 
-let currentToolbarPopout: HTMLElement | null = null;
-
-document.addEventListener('resize', () => {
-    if (currentToolbarPopout !== null) {
-        // TODO
-    }
-});
 
 export class ToolbarButtonsArea extends HTMLDivElement {
     private _currentSet: CharacterGearSet;
@@ -184,12 +178,10 @@ export class ToolbarButtonsArea extends HTMLDivElement {
         if (popoutElement !== undefined) {
             this.popoutArea.replaceChildren(popoutElement);
             this.popoutArea.style.display = '';
-            currentToolbarPopout = popoutElement;
         }
         else {
             this.popoutArea.replaceChildren();
             this.popoutArea.style.display = 'none';
-            currentToolbarPopout = null;
         }
     }
 }
@@ -212,15 +204,15 @@ export class GearEditToolbar extends HTMLDivElement {
             updateGearDisplayNow();
             this.buttonsArea.closePopout();
         });
-        this.buttonsArea.addPanelButton(["Gear", document.createElement('br'), "Filters"], ilvlDiv);
+        this.buttonsArea.addPanelButton(["Gear", el('br'), "Filters"], ilvlDiv);
 
         this.appendChild(this.buttonsArea);
 
         const materiaPriority = new MateriaPriorityPicker(matFillCtrl, sheet);
 
-        this.buttonsArea.addPanelButton(["Materia", document.createElement('br'), "Fill/Lock"], materiaPriority);
+        this.buttonsArea.addPanelButton(["Materia", el('br'), "Fill/Lock"], materiaPriority);
 
-        this.buttonsArea.addPanelButtonModal(["Meld/Food", document.createElement('br'), "Solver"], () => sheet.showMeldSolveDialog());
+        this.buttonsArea.addPanelButtonModal(["Meld/Food", el('br'), "Solver"], () => sheet.showMeldSolveDialog());
 
         this.statTierDisplay = new StatTierDisplay(sheet);
         this.appendChild(this.statTierDisplay);
@@ -265,7 +257,7 @@ export class PopoutGearEditToolbar extends HTMLDivElement {
 
         const materiaPriority = new MateriaPriorityPicker(matFillCtrl, sheet);
 
-        this.buttonsArea.addPanelButton(["Materia", document.createElement('br'), "Fill/Lock"], materiaPriority);
+        this.buttonsArea.addPanelButton(["Materia", el('br'), "Fill/Lock"], materiaPriority);
 
         // TODO: meld solver will trigger the popup on the main window
         // this.buttonsArea.addPanelButtonModal(["Meld/Food", document.createElement('br'), "Solver"], () => sheet.showMeldSolveDialog());
