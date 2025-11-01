@@ -602,20 +602,20 @@ export class DrgSim extends BaseMultiCycleSim<DrgSimResult, DrgSettings, DrgCycl
 
         console.log(`[DRG Sim] Running Rotation for ${gcd} GCD...`);
 
-        return [true, false].flatMap(useEptOpener =>
-            [true, false].flatMap(useDoubleMd => ({
-                name: `${useEptOpener ? "ePT" : "TT"} Opener${useDoubleMd ? " (Double MD)" : ""}`,
-                cycleTime: 120,
-                apply(cp: DrgCycleProcessor) {
-                    outer.settings.useEptOpener = useEptOpener;
-                    outer.settings.useDoubleMd = useDoubleMd;
-                    outer.useOpener(cp, useEptOpener, useDoubleMd);
-                    cp.remainingCycles(() => {
-                        outer.useDrgRotation(cp);
-                    });
-                    outer.printDriftAndUsageSummary(cp);
-                },
-            }))
-        );
+        const useEptOpener = this.settings.useEptOpener;
+        const useDoubleMd = this.settings.useDoubleMd;
+
+        return [{
+            cycleTime: 120,
+            apply(cp: DrgCycleProcessor) {
+                outer.settings.useEptOpener = useEptOpener;
+                outer.settings.useDoubleMd = useDoubleMd;
+                outer.useOpener(cp, useEptOpener, useDoubleMd);
+                cp.remainingCycles(() => {
+                    outer.useDrgRotation(cp);
+                });
+                outer.printDriftAndUsageSummary(cp);
+            },
+        }];
     }
 }

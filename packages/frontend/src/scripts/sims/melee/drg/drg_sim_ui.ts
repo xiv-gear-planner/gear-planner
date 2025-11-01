@@ -33,7 +33,6 @@ export class DrgSimGui extends BaseMultiCycleSimGui<DrgSimResult, DrgSettings> {
 
         configDiv.appendChild(labeledCheckbox("Use Potion", potCb));
 
-        /*
         const useEptOpenerCB = new FieldBoundCheckBox(settings, "useEptOpener");
 
         configDiv.appendChild(labeledCheckbox("Use ePT opener (will use TT opener otherwise)", useEptOpenerCB));
@@ -41,7 +40,6 @@ export class DrgSimGui extends BaseMultiCycleSimGui<DrgSimResult, DrgSettings> {
         const useDoubleMdCB = new FieldBoundCheckBox(settings, "useDoubleMd");
 
         configDiv.appendChild(labeledCheckbox("Use double Mirage Dive", useDoubleMdCB));
-        */
 
         return configDiv;
     }
