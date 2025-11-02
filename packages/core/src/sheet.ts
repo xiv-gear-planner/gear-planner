@@ -55,9 +55,8 @@ import {DUMMY_SHEET_MGR, SheetManager} from "./persistence/saved_sheets";
 import {CustomItem} from "./customgear/custom_item";
 import {CustomFood} from "./customgear/custom_food";
 import {statsSerializationProxy} from "@xivgear/xivmath/xivstats";
-import {isMateriaAllowed} from "./materia/materia_utils";
+import {isMateriaAllowed, materiaShortLabel} from "./materia/materia_utils";
 import {SpecialStatType} from "@xivgear/data-api-client/dataapi";
-import {materiaShortLabel} from "@xivgear/gearplan-frontend/components/materia";
 
 export type SheetCtorArgs = ConstructorParameters<typeof GearPlanSheet>
 export type SheetContstructor<SheetType extends GearPlanSheet> = (...values: SheetCtorArgs) => SheetType;
