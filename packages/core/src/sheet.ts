@@ -1502,16 +1502,19 @@ export class GearPlanSheet {
     }
 }
 
+export type SetCompatibilityLevel = 'compatible' | 'soft-incompatible' | 'hard-incompatible';
+
 export class SetCompatibilityReport {
     constructor(readonly setA: CharacterGearSet, readonly setB: CharacterGearSet, readonly incompatibleSlots: SlotIncompatibility[]) {
     }
 
-    get isCompatible(): boolean {
-        return this.incompatibleSlots.length === 0;
-    }
-
-    get isHardBlocker(): boolean {
-        return this.incompatibleSlots.some(incomp => incomp.hardBlocker);
+    get compatibilityLevel(): SetCompatibilityLevel {
+        if (this.incompatibleSlots.length === 0) {
+            return 'compatible';
+        }
+        else {
+            return this.incompatibleSlots.some(incomp => incomp.hardBlocker) ? 'hard-incompatible' : 'soft-incompatible';
+        }
     }
 }
 
