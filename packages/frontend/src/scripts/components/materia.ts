@@ -278,11 +278,14 @@ export class SingleMateriaViewOnly extends HTMLElement {
         const currentMat = materia;
         this.image.src = currentMat.iconUrl.toString();
         this.image.style.display = 'block';
-        const displayedNumber = currentMat.primaryStatValue;
-        this.text.textContent = `${displayedNumber} ${STAT_ABBREVIATIONS[currentMat.primaryStat]}`;
+        this.text.textContent = materiaShortLabel(materia);
         this.classList.remove("materia-slot-empty");
         this.classList.add("materia-slot-full");
     }
+}
+
+export function materiaShortLabel(materia: Materia) {
+    return `${materia.primaryStatValue} ${STAT_ABBREVIATIONS[materia.primaryStat]}`;
 }
 
 export class MateriaCountDisplay extends HTMLElement {

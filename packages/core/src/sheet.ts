@@ -2,6 +2,7 @@
 // TODO: get back to fixing this at some point
 import {
     ALL_COMBAT_JOBS,
+    ALL_SUB_STATS,
     CURRENT_MAX_LEVEL,
     defaultItemDisplaySettings,
     DefaultMateriaFillPrio,
@@ -56,6 +57,7 @@ import {CustomFood} from "./customgear/custom_food";
 import {statsSerializationProxy} from "@xivgear/xivmath/xivstats";
 import {isMateriaAllowed} from "./materia/materia_utils";
 import {SpecialStatType} from "@xivgear/data-api-client/dataapi";
+import {materiaShortLabel} from "@xivgear/gearplan-frontend/components/materia";
 
 export type SheetCtorArgs = ConstructorParameters<typeof GearPlanSheet>
 export type SheetContstructor<SheetType extends GearPlanSheet> = (...values: SheetCtorArgs) => SheetType;
@@ -1432,4 +1434,86 @@ export class GearPlanSheet {
         });
         this.recalcAll();
     }
+
+    checkCompatibility(setA: CharacterGearSet, setB: CharacterGearSet): SetCompatibilityReport {
+        const incomp: SlotIncompatibility[] = [];
+        EquipSlots.forEach(slot => {
+            const itemA = setA.equipment[slot];
+            const itemB = setB.equipment[slot];
+            // One or both sets has no item in this slot.
+            if (!itemA || !itemB) {
+                return;
+            }
+            // Sets have different items - compatible
+            if (itemA.gearItem.id !== itemB.gearItem.id) {
+                return;
+            }
+            if (itemA.gearItem.isCustomRelic) {
+                // Dealing with relics
+                const badSubStats: string[] = [];
+                ALL_SUB_STATS.forEach(stat => {
+                    const statValueA = itemA.relicStats[stat];
+                    const statValueB = itemB.relicStats[stat];
+                    if (statValueA !== statValueB) {
+                        badSubStats.push(`${stat}: ${statValueA} ≠ ${statValueB}`);
+                    }
+                });
+                if (badSubStats.length > 0) {
+                    incomp.push({
+                        slotKey: slot,
+                        itemA: itemA,
+                        itemB: itemB,
+                        reason: 'relic-stat-mismatch',
+                        detail: 'Relic stats are different: ' + badSubStats.join(', '),
+                    });
+                }
+            }
+            else {
+                // Dealing with materia slots
+                const numMeldSlots = Math.max(itemA.melds.length, itemB.melds.length);
+                const issues: string[] = [];
+                for (let i = 0; i < numMeldSlots; i++) {
+                    const slotNum = i + 1;
+                    const meldA = itemA.melds[i]?.equippedMateria;
+                    const meldB = itemB.melds[i]?.equippedMateria;
+                    const descA = meldA ? materiaShortLabel(meldA) : 'empty';
+                    const descB = meldB ? materiaShortLabel(meldB) : 'empty';
+                    if (meldA?.id !== meldB?.id) {
+                        issues.push(`Slot ${slotNum}: ${descA} ≠ ${descB}`);
+                    }
+                }
+                if (issues.length > 0) {
+                    incomp.push({
+                        slotKey: slot,
+                        itemA: itemA,
+                        itemB: itemB,
+                        reason: 'materia-mismatch',
+                        detail: 'Materia do not match: ' + issues.join(', '),
+                    });
+                }
+            }
+
+        });
+        return {
+            setA: setA,
+            setB: setB,
+            incompatibleSlots: incomp,
+        };
+    }
 }
+
+export type SetCompatibilityReport = {
+    setA: CharacterGearSet;
+    setB: CharacterGearSet;
+    incompatibleSlots: SlotIncompatibility[];
+}
+
+export type SlotIncompatibility = {
+    slotKey: EquipSlotKey;
+    itemA: EquippedItem;
+    itemB: EquippedItem;
+    reason: SlotIncompatibilityReason;
+    detail: string;
+}
+
+export type SlotIncompatibilityReason = 'materia-mismatch' | 'relic-stat-mismatch';
