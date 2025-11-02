@@ -1465,6 +1465,7 @@ export class GearPlanSheet {
                         itemB: itemB,
                         reason: 'relic-stat-mismatch',
                         detail: 'Relic stats are different: ' + badSubStats.join(', '),
+                        hardBlocker: true,
                     });
                 }
             }
@@ -1489,23 +1490,29 @@ export class GearPlanSheet {
                         itemB: itemB,
                         reason: 'materia-mismatch',
                         detail: 'Materia do not match: ' + issues.join(', '),
+                        // If the item is not unique, then it's not a hard blocker since you could buy multiple of
+                        // the item and fill them with different materia.
+                        hardBlocker: itemA.gearItem.isUnique,
                     });
                 }
             }
 
         });
-        return {
-            setA: setA,
-            setB: setB,
-            incompatibleSlots: incomp,
-        };
+        return new SetCompatibilityReport(setA, setB, incomp);
     }
 }
 
-export type SetCompatibilityReport = {
-    setA: CharacterGearSet;
-    setB: CharacterGearSet;
-    incompatibleSlots: SlotIncompatibility[];
+export class SetCompatibilityReport {
+    constructor(readonly setA: CharacterGearSet, readonly setB: CharacterGearSet, readonly incompatibleSlots: SlotIncompatibility[]) {
+    }
+
+    get isCompatible(): boolean {
+        return this.incompatibleSlots.length === 0;
+    }
+
+    get isHardBlocker(): boolean {
+        return this.incompatibleSlots.some(incomp => incomp.hardBlocker);
+    }
 }
 
 export type SlotIncompatibility = {
@@ -1514,6 +1521,7 @@ export type SlotIncompatibility = {
     itemB: EquippedItem;
     reason: SlotIncompatibilityReason;
     detail: string;
+    hardBlocker: boolean;
 }
 
 export type SlotIncompatibilityReason = 'materia-mismatch' | 'relic-stat-mismatch';
