@@ -1502,8 +1502,22 @@ export class GearPlanSheet {
     }
 }
 
+/**
+ * Describes the level of compatibility between two sets.
+ *
+ * compatible: Any common items in both sets have the same melds or custom relic stats.
+ *
+ * soft-incompatible: One or more items use different melds/stats between the two sets, but the items in question
+ * are not unique. You can still assemble both sets, but you will need to buy/craft duplicate items.
+ *
+ * hard-incompatible: One or more items use different melds/stats between the two sets, and at least one such item
+ * is unique. It will not be possible to assemble both sets.
+ */
 export type SetCompatibilityLevel = 'compatible' | 'soft-incompatible' | 'hard-incompatible';
 
+/**
+ * Describes the (in)compatibility between two gear sets.
+ */
 export class SetCompatibilityReport {
     constructor(readonly setA: CharacterGearSet, readonly setB: CharacterGearSet, readonly incompatibleSlots: SlotIncompatibility[]) {
     }
@@ -1518,13 +1532,26 @@ export class SetCompatibilityReport {
     }
 }
 
+/**
+ * Describes a slot incompatibility between two gear sets.
+ */
 export type SlotIncompatibility = {
     slotKey: EquipSlotKey;
     itemA: EquippedItem;
     itemB: EquippedItem;
     reason: SlotIncompatibilityReason;
+    /**
+     * Human-readable details about the incompatibility.
+     */
     detail: string;
+    /**
+     * Whether this is a hard blocker. If true, it means that the item is not unique, and you cannot assemble both sets.
+     * If false, you can work around it using duplicate items.
+     */
     hardBlocker: boolean;
 }
 
+/**
+ * Describes the reason why two slots might be incompatible.
+ */
 export type SlotIncompatibilityReason = 'materia-mismatch' | 'relic-stat-mismatch';
