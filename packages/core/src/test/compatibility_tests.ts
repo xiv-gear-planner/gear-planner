@@ -292,6 +292,341 @@ describe('Set Compatibility Checker', () => {
         });
     });
 
+    describe('ring compatibility', () => {
+        // Ring item IDs from data
+        // Dark Horse Champion's Ring of Healing (i730 raid)
+        const UNIQUE_RING_1_ID = 43176;
+        // 40238 - Ascension Ring of Healing (i660 unique)
+        const UNIQUE_RING_2_ID = 40238;
+        // 38154 - Abyssos Ring of Healing (i630 unique)
+        const UNIQUE_RING_3_ID = 38154;
+        // 41911 - Lar Ring of Healing (i645 crafted)
+        const NON_UNIQUE_RING_ID = 41911;
+
+        it('compatible when same ring left slots with same materia', () => {
+            const setA = new CharacterGearSet(sheet);
+            setA.name = 'Set A';
+            setA.setEquip("RingLeft", sheet.itemById(UNIQUE_RING_1_ID));
+            setA.equipment.RingLeft.melds[0].equippedMateria = sheet.getMateriaById(MATERIA_CRIT_X);
+
+            const setB = new CharacterGearSet(sheet);
+            setB.name = 'Set B';
+            setB.setEquip("RingLeft", sheet.itemById(UNIQUE_RING_1_ID));
+            setB.equipment.RingLeft.melds[0].equippedMateria = sheet.getMateriaById(MATERIA_CRIT_X);
+
+            const report = sheet.checkCompatibility(setA, setB);
+
+            expect(report.compatibilityLevel).to.equal('compatible');
+            expect(report.incompatibleSlots).to.have.length(0);
+        });
+
+        it('hard-incompatible when same unique ring in left slot has different materia', () => {
+            const setA = new CharacterGearSet(sheet);
+            setA.name = 'Set A';
+            setA.setEquip("RingLeft", sheet.itemById(UNIQUE_RING_1_ID));
+            setA.equipment.RingLeft.melds[0].equippedMateria = sheet.getMateriaById(MATERIA_CRIT_X);
+
+            const setB = new CharacterGearSet(sheet);
+            setB.name = 'Set B';
+            setB.setEquip("RingLeft", sheet.itemById(UNIQUE_RING_1_ID));
+            setB.equipment.RingLeft.melds[0].equippedMateria = sheet.getMateriaById(MATERIA_DET_X);
+
+            const report = sheet.checkCompatibility(setA, setB);
+
+            expect(report.compatibilityLevel).to.equal('hard-incompatible');
+            expect(report.incompatibleSlots).to.have.length(1);
+            expect(report.incompatibleSlots[0].reason).to.equal('materia-mismatch');
+            expect(report.incompatibleSlots[0].hardBlocker).to.be.true;
+        });
+
+        it('compatible when same ring is in left slot of one set and right slot of other set with same materia', () => {
+            const setA = new CharacterGearSet(sheet);
+            setA.name = 'Set A';
+            setA.setEquip("RingLeft", sheet.itemById(UNIQUE_RING_1_ID));
+            setA.equipment.RingLeft.melds[0].equippedMateria = sheet.getMateriaById(MATERIA_CRIT_X);
+
+            const setB = new CharacterGearSet(sheet);
+            setB.name = 'Set B';
+            setB.setEquip("RingRight", sheet.itemById(UNIQUE_RING_1_ID));
+            setB.equipment.RingRight.melds[0].equippedMateria = sheet.getMateriaById(MATERIA_CRIT_X);
+
+            const report = sheet.checkCompatibility(setA, setB);
+
+            expect(report.compatibilityLevel).to.equal('compatible');
+            expect(report.incompatibleSlots).to.have.length(0);
+        });
+
+        it('hard-incompatible when same unique ring is in different slots with different materia', () => {
+            const setA = new CharacterGearSet(sheet);
+            setA.name = 'Set A';
+            setA.setEquip("RingLeft", sheet.itemById(UNIQUE_RING_1_ID));
+            setA.equipment.RingLeft.melds[0].equippedMateria = sheet.getMateriaById(MATERIA_CRIT_X);
+
+            const setB = new CharacterGearSet(sheet);
+            setB.name = 'Set B';
+            setB.setEquip("RingRight", sheet.itemById(UNIQUE_RING_1_ID));
+            setB.equipment.RingRight.melds[0].equippedMateria = sheet.getMateriaById(MATERIA_DET_X);
+
+            const report = sheet.checkCompatibility(setA, setB);
+
+            expect(report.compatibilityLevel).to.equal('hard-incompatible');
+            expect(report.incompatibleSlots).to.have.length(1);
+            expect(report.incompatibleSlots[0].hardBlocker).to.be.true;
+        });
+
+        it('compatible when both sets have two of same ring with same materia', () => {
+            const setA = new CharacterGearSet(sheet);
+            setA.name = 'Set A';
+            setA.setEquip("RingLeft", sheet.itemById(NON_UNIQUE_RING_ID));
+            setA.equipment.RingLeft.melds[0].equippedMateria = sheet.getMateriaById(MATERIA_CRIT_X);
+            setA.setEquip("RingRight", sheet.itemById(NON_UNIQUE_RING_ID));
+            setA.equipment.RingRight.melds[0].equippedMateria = sheet.getMateriaById(MATERIA_DET_X);
+
+            const setB = new CharacterGearSet(sheet);
+            setB.name = 'Set B';
+            setB.setEquip("RingLeft", sheet.itemById(NON_UNIQUE_RING_ID));
+            setB.equipment.RingLeft.melds[0].equippedMateria = sheet.getMateriaById(MATERIA_CRIT_X);
+            setB.setEquip("RingRight", sheet.itemById(NON_UNIQUE_RING_ID));
+            setB.equipment.RingRight.melds[0].equippedMateria = sheet.getMateriaById(MATERIA_DET_X);
+
+            const report = sheet.checkCompatibility(setA, setB);
+
+            expect(report.compatibilityLevel).to.equal('compatible');
+            expect(report.incompatibleSlots).to.have.length(0);
+        });
+
+        it('compatible when both sets have two of same ring with same materia, but flipped in slots', () => {
+            const setA = new CharacterGearSet(sheet);
+            setA.name = 'Set A';
+            setA.setEquip("RingLeft", sheet.itemById(NON_UNIQUE_RING_ID));
+            setA.equipment.RingLeft.melds[0].equippedMateria = sheet.getMateriaById(MATERIA_CRIT_X);
+            setA.setEquip("RingRight", sheet.itemById(NON_UNIQUE_RING_ID));
+            setA.equipment.RingRight.melds[0].equippedMateria = sheet.getMateriaById(MATERIA_DET_X);
+
+            const setB = new CharacterGearSet(sheet);
+            setB.name = 'Set B';
+            // Swapped positions
+            setB.setEquip("RingLeft", sheet.itemById(NON_UNIQUE_RING_ID));
+            setB.equipment.RingLeft.melds[0].equippedMateria = sheet.getMateriaById(MATERIA_DET_X);
+            setB.setEquip("RingRight", sheet.itemById(NON_UNIQUE_RING_ID));
+            setB.equipment.RingRight.melds[0].equippedMateria = sheet.getMateriaById(MATERIA_CRIT_X);
+
+            const report = sheet.checkCompatibility(setA, setB);
+
+            expect(report.compatibilityLevel).to.equal('compatible');
+            expect(report.incompatibleSlots).to.have.length(0);
+        });
+
+        it('compatible when both sets have same rings with same materia but flipped', () => {
+            const setA = new CharacterGearSet(sheet);
+            setA.name = 'Set A';
+            setA.setEquip("RingLeft", sheet.itemById(UNIQUE_RING_1_ID));
+            setA.equipment.RingLeft.melds[0].equippedMateria = sheet.getMateriaById(MATERIA_CRIT_X);
+            setA.setEquip("RingRight", sheet.itemById(UNIQUE_RING_2_ID));
+            setA.equipment.RingRight.melds[0].equippedMateria = sheet.getMateriaById(MATERIA_DET_X);
+
+            const setB = new CharacterGearSet(sheet);
+            setB.name = 'Set B';
+            setB.setEquip("RingLeft", sheet.itemById(UNIQUE_RING_2_ID));
+            setB.equipment.RingLeft.melds[0].equippedMateria = sheet.getMateriaById(MATERIA_DET_X);
+            setB.setEquip("RingRight", sheet.itemById(UNIQUE_RING_1_ID));
+            setB.equipment.RingRight.melds[0].equippedMateria = sheet.getMateriaById(MATERIA_CRIT_X);
+
+            const report = sheet.checkCompatibility(setA, setB);
+
+            expect(report.compatibilityLevel).to.equal('compatible');
+        });
+
+        it('incompatible when both sets have same rings with different materia but flipped', () => {
+            const setA = new CharacterGearSet(sheet);
+            setA.name = 'Set A';
+            setA.setEquip("RingLeft", sheet.itemById(UNIQUE_RING_1_ID));
+            setA.equipment.RingLeft.melds[0].equippedMateria = sheet.getMateriaById(MATERIA_CRIT_X);
+            setA.setEquip("RingRight", sheet.itemById(UNIQUE_RING_2_ID));
+            setA.equipment.RingRight.melds[0].equippedMateria = sheet.getMateriaById(MATERIA_PIETY_X);
+
+            const setB = new CharacterGearSet(sheet);
+            setB.name = 'Set B';
+            setB.setEquip("RingLeft", sheet.itemById(UNIQUE_RING_2_ID));
+            setB.equipment.RingLeft.melds[0].equippedMateria = sheet.getMateriaById(MATERIA_DET_X);
+            setB.setEquip("RingRight", sheet.itemById(UNIQUE_RING_1_ID));
+            setB.equipment.RingRight.melds[0].equippedMateria = sheet.getMateriaById(MATERIA_CRIT_X);
+
+            const report = sheet.checkCompatibility(setA, setB);
+
+            expect(report.compatibilityLevel).to.equal('hard-incompatible');
+            expect(report.incompatibleSlots).to.have.length(1);
+            expect(report.incompatibleSlots[0].hardBlocker).to.be.true;
+        });
+
+        it('hard-incompatible when both sets have two unique rings with one mismatched', () => {
+            const setA = new CharacterGearSet(sheet);
+            setA.name = 'Set A';
+            setA.setEquip("RingLeft", sheet.itemById(UNIQUE_RING_1_ID));
+            setA.equipment.RingLeft.melds[0].equippedMateria = sheet.getMateriaById(MATERIA_CRIT_X);
+            setA.setEquip("RingRight", sheet.itemById(UNIQUE_RING_2_ID));
+            setA.equipment.RingRight.melds[0].equippedMateria = sheet.getMateriaById(MATERIA_DET_X);
+
+            const setB = new CharacterGearSet(sheet);
+            setB.name = 'Set B';
+            setB.setEquip("RingLeft", sheet.itemById(UNIQUE_RING_1_ID));
+            setB.equipment.RingLeft.melds[0].equippedMateria = sheet.getMateriaById(MATERIA_CRIT_X);
+            setB.setEquip("RingRight", sheet.itemById(UNIQUE_RING_2_ID));
+            setB.equipment.RingRight.melds[0].equippedMateria = sheet.getMateriaById(MATERIA_PIETY_X); // Different
+
+            const report = sheet.checkCompatibility(setA, setB);
+
+            expect(report.compatibilityLevel).to.equal('hard-incompatible');
+            expect(report.incompatibleSlots).to.have.length(1);
+            expect(report.incompatibleSlots[0].hardBlocker).to.be.true;
+        });
+
+        it('hard-incompatible when both sets have two unique rings with both mismatched', () => {
+            const setA = new CharacterGearSet(sheet);
+            setA.name = 'Set A';
+            setA.setEquip("RingLeft", sheet.itemById(UNIQUE_RING_1_ID));
+            setA.equipment.RingLeft.melds[0].equippedMateria = sheet.getMateriaById(MATERIA_CRIT_X);
+            setA.setEquip("RingRight", sheet.itemById(UNIQUE_RING_2_ID));
+            setA.equipment.RingRight.melds[0].equippedMateria = sheet.getMateriaById(MATERIA_DET_X);
+
+            const setB = new CharacterGearSet(sheet);
+            setB.name = 'Set B';
+            setB.setEquip("RingLeft", sheet.itemById(UNIQUE_RING_1_ID));
+            setB.equipment.RingLeft.melds[0].equippedMateria = sheet.getMateriaById(MATERIA_PIETY_X);
+            setB.setEquip("RingRight", sheet.itemById(UNIQUE_RING_2_ID));
+            setB.equipment.RingRight.melds[0].equippedMateria = sheet.getMateriaById(MATERIA_PIETY_X);
+
+            const report = sheet.checkCompatibility(setA, setB);
+
+            expect(report.compatibilityLevel).to.equal('hard-incompatible');
+            expect(report.incompatibleSlots).to.have.length(2);
+            expect(report.incompatibleSlots[0].hardBlocker).to.be.true;
+            expect(report.incompatibleSlots[1].hardBlocker).to.be.true;
+        });
+
+        it('hard-incompatible when one set has unique ring once and other has it twice with different materia', () => {
+            const setA = new CharacterGearSet(sheet);
+            setA.name = 'Set A';
+            setA.setEquip("RingLeft", sheet.itemById(UNIQUE_RING_1_ID));
+            setA.equipment.RingLeft.melds[0].equippedMateria = sheet.getMateriaById(MATERIA_CRIT_X);
+
+            const setB = new CharacterGearSet(sheet);
+            setB.name = 'Set B';
+            setB.setEquip("RingLeft", sheet.itemById(UNIQUE_RING_1_ID));
+            setB.equipment.RingLeft.melds[0].equippedMateria = sheet.getMateriaById(MATERIA_DET_X);
+            setB.setEquip("RingRight", sheet.itemById(UNIQUE_RING_1_ID));
+            setB.equipment.RingRight.melds[0].equippedMateria = sheet.getMateriaById(MATERIA_PIETY_X);
+
+            const report = sheet.checkCompatibility(setA, setB);
+
+            expect(report.compatibilityLevel).to.equal('hard-incompatible');
+            expect(report.incompatibleSlots).to.have.length(2);
+            expect(report.incompatibleSlots[0].hardBlocker).to.be.true;
+            expect(report.incompatibleSlots[1].hardBlocker).to.be.true;
+        });
+
+        it('compatible when one set has non-unique ring once and other has it twice with one matching', () => {
+            const setA = new CharacterGearSet(sheet);
+            setA.name = 'Set A';
+            setA.setEquip("RingLeft", sheet.itemById(NON_UNIQUE_RING_ID));
+            setA.equipment.RingLeft.melds[0].equippedMateria = sheet.getMateriaById(MATERIA_CRIT_X);
+
+            const setB = new CharacterGearSet(sheet);
+            setB.name = 'Set B';
+            setB.setEquip("RingLeft", sheet.itemById(NON_UNIQUE_RING_ID));
+            setB.equipment.RingLeft.melds[0].equippedMateria = sheet.getMateriaById(MATERIA_CRIT_X);
+            setB.setEquip("RingRight", sheet.itemById(NON_UNIQUE_RING_ID));
+            setB.equipment.RingRight.melds[0].equippedMateria = sheet.getMateriaById(MATERIA_DET_X);
+
+            const report = sheet.checkCompatibility(setA, setB);
+
+            expect(report.compatibilityLevel).to.equal('compatible');
+            expect(report.incompatibleSlots).to.have.length(0);
+        });
+
+        it('compatible when sets have different rings', () => {
+            const setA = new CharacterGearSet(sheet);
+            setA.name = 'Set A';
+            setA.setEquip("RingLeft", sheet.itemById(UNIQUE_RING_1_ID));
+            setA.equipment.RingLeft.melds[0].equippedMateria = sheet.getMateriaById(MATERIA_CRIT_X);
+            setA.setEquip("RingRight", sheet.itemById(UNIQUE_RING_2_ID));
+            setA.equipment.RingRight.melds[0].equippedMateria = sheet.getMateriaById(MATERIA_DET_X);
+
+            const setB = new CharacterGearSet(sheet);
+            setB.name = 'Set B';
+            setB.setEquip("RingLeft", sheet.itemById(UNIQUE_RING_3_ID));
+            setB.equipment.RingLeft.melds[0].equippedMateria = sheet.getMateriaById(MATERIA_PIETY_X);
+            setB.setEquip("RingRight", sheet.itemById(NON_UNIQUE_RING_ID));
+            setB.equipment.RingRight.melds[0].equippedMateria = sheet.getMateriaById(MATERIA_CRIT_X);
+
+            const report = sheet.checkCompatibility(setA, setB);
+
+            expect(report.compatibilityLevel).to.equal('compatible');
+            expect(report.incompatibleSlots).to.have.length(0);
+        });
+
+        it('compatible when sets have one overlapping ring and one different ring with matching materia', () => {
+            const setA = new CharacterGearSet(sheet);
+            setA.name = 'Set A';
+            setA.setEquip("RingLeft", sheet.itemById(UNIQUE_RING_1_ID));
+            setA.equipment.RingLeft.melds[0].equippedMateria = sheet.getMateriaById(MATERIA_CRIT_X);
+            setA.setEquip("RingRight", sheet.itemById(UNIQUE_RING_2_ID));
+            setA.equipment.RingRight.melds[0].equippedMateria = sheet.getMateriaById(MATERIA_DET_X);
+
+            const setB = new CharacterGearSet(sheet);
+            setB.name = 'Set B';
+            setB.setEquip("RingLeft", sheet.itemById(UNIQUE_RING_1_ID));
+            setB.equipment.RingLeft.melds[0].equippedMateria = sheet.getMateriaById(MATERIA_CRIT_X);
+            setB.setEquip("RingRight", sheet.itemById(UNIQUE_RING_3_ID));
+            setB.equipment.RingRight.melds[0].equippedMateria = sheet.getMateriaById(MATERIA_PIETY_X);
+
+            const report = sheet.checkCompatibility(setA, setB);
+
+            expect(report.compatibilityLevel).to.equal('compatible');
+            expect(report.incompatibleSlots).to.have.length(0);
+        });
+
+        it('hard-incompatible when sets have one overlapping unique ring with mismatched materia', () => {
+            const setA = new CharacterGearSet(sheet);
+            setA.name = 'Set A';
+            setA.setEquip("RingLeft", sheet.itemById(UNIQUE_RING_1_ID));
+            setA.equipment.RingLeft.melds[0].equippedMateria = sheet.getMateriaById(MATERIA_CRIT_X);
+            setA.setEquip("RingRight", sheet.itemById(UNIQUE_RING_2_ID));
+            setA.equipment.RingRight.melds[0].equippedMateria = sheet.getMateriaById(MATERIA_DET_X);
+
+            const setB = new CharacterGearSet(sheet);
+            setB.name = 'Set B';
+            setB.setEquip("RingLeft", sheet.itemById(UNIQUE_RING_1_ID));
+            setB.equipment.RingLeft.melds[0].equippedMateria = sheet.getMateriaById(MATERIA_PIETY_X); // Different
+            setB.setEquip("RingRight", sheet.itemById(UNIQUE_RING_3_ID));
+            setB.equipment.RingRight.melds[0].equippedMateria = sheet.getMateriaById(MATERIA_PIETY_X);
+
+            const report = sheet.checkCompatibility(setA, setB);
+
+            expect(report.compatibilityLevel).to.equal('hard-incompatible');
+            expect(report.incompatibleSlots).to.have.length(1);
+            expect(report.incompatibleSlots[0].hardBlocker).to.be.true;
+        });
+
+        it('compatible when one set has no rings and other has rings', () => {
+            const setA = new CharacterGearSet(sheet);
+            setA.name = 'Set A';
+            // No rings
+
+            const setB = new CharacterGearSet(sheet);
+            setB.name = 'Set B';
+            setB.setEquip("RingLeft", sheet.itemById(UNIQUE_RING_1_ID));
+            setB.equipment.RingLeft.melds[0].equippedMateria = sheet.getMateriaById(MATERIA_CRIT_X);
+            setB.setEquip("RingRight", sheet.itemById(UNIQUE_RING_2_ID));
+            setB.equipment.RingRight.melds[0].equippedMateria = sheet.getMateriaById(MATERIA_DET_X);
+
+            const report = sheet.checkCompatibility(setA, setB);
+
+            expect(report.compatibilityLevel).to.equal('compatible');
+            expect(report.incompatibleSlots).to.have.length(0);
+        });
+    });
+
     describe('SetCompatibilityReport', () => {
         it('should contain references to both sets', () => {
             const setA = new CharacterGearSet(sheet);
