@@ -98,12 +98,13 @@ import {isSafari} from "@xivgear/common-ui/util/detect_safari";
 import {getNextPopoutContext, isPopout, MESSAGE_REFRESH_CONTENT, MESSAGE_REFRESH_TOOLBAR} from "../popout";
 import {
     editIcon,
+    makeCopyIcon,
     makeExportIcon,
     makeImportIcon,
-    makeCopyIcon,
-    makeTrashIcon,
-    makeNewSheetIcon
+    makeNewSheetIcon,
+    makeTrashIcon
 } from "@xivgear/common-ui/components/icons";
+import {showCompatOverview} from "./compat_checker";
 
 const noSeparators = (set: CharacterGearSet) => !set.isSeparator;
 
@@ -2296,12 +2297,8 @@ export class GearPlanSheetGui extends GearPlanSheet {
         this.resetEditorArea();
     }
 
-    showChangePropertiesDialog(): void {
-        if (!this.saveKey) {
-            alert('You must save this sheet before changing its properties. Use "Save As" first.');
-            return;
-        }
-        new ChangePropsModal(this).attachAndShowExclusively();
+    showCompatOverview(set: CharacterGearSet): void {
+        showCompatOverview(this, set);
     }
 }
 

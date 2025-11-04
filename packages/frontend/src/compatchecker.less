@@ -1,0 +1,40 @@
+@import "../../common-ui/styles/util.less";
+
+.compat-checker-common {
+  svg {
+    &.error {
+      fill: var(--issue-error-color);
+    }
+    &.warning {
+      fill: var(--issue-warning-color);
+    }
+  }
+}
+
+compat-checker-overview-modal {
+  .compat-checker-common();
+  .set-compat-good {
+    opacity: 0.5;
+  }
+  table {
+    min-width: 100%;
+    max-width: 600px;
+    tr {
+      height: 30px;
+      button {
+        .invert-input-colors();
+        font-size: unset;
+        box-sizing: content-box;
+        padding: 0 5px;
+        min-width: 80px;
+        >svg {
+          padding-right: 5px;
+        }
+      }
+    }
+  }
+}
+
+compat-checker-set-modal {
+  .compat-checker-common();
+}
