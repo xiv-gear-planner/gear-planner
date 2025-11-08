@@ -25,6 +25,7 @@ import {GearPlanSheetGui} from "./sheet";
 import {recordCurrentSheetEvent} from "../analytics/analytics";
 import {MODAL_CONTROL} from "@xivgear/common-ui/modalcontrol";
 import {makeLockIcon, makeNewSheetIcon, makePlusIcon, makeTrashIcon} from "@xivgear/common-ui/components/icons";
+import {materiaShortLabel} from "@xivgear/core/materia/materia_utils";
 
 /**
  * Component for managing all materia slots on an item
@@ -278,8 +279,7 @@ export class SingleMateriaViewOnly extends HTMLElement {
         const currentMat = materia;
         this.image.src = currentMat.iconUrl.toString();
         this.image.style.display = 'block';
-        const displayedNumber = currentMat.primaryStatValue;
-        this.text.textContent = `${displayedNumber} ${STAT_ABBREVIATIONS[currentMat.primaryStat]}`;
+        this.text.textContent = materiaShortLabel(materia);
         this.classList.remove("materia-slot-empty");
         this.classList.add("materia-slot-full");
     }
