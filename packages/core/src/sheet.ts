@@ -18,6 +18,7 @@ import {
     SupportedLevel
 } from "@xivgear/xivmath/xivconstants";
 import {
+    DisplayGearSlotKey,
     EquippedItem,
     EquipSlotKey,
     EquipSlots,
@@ -1543,7 +1544,7 @@ function checkItemCompat(itemA: EquippedItem, itemB: EquippedItem): SlotIncompat
     if (itemA.gearItem.id !== itemB.gearItem.id) {
         return 'compatible';
     }
-    const slot = itemA.gearItem.occGearSlotName;
+    const slot = itemA.gearItem.displayGearSlotName;
     if (itemA.gearItem.isCustomRelic) {
         // Dealing with relics
         const badSubStats: string[] = [];
@@ -1560,7 +1561,7 @@ function checkItemCompat(itemA: EquippedItem, itemB: EquippedItem): SlotIncompat
                 itemA: itemA,
                 itemB: itemB,
                 reason: 'relic-stat-mismatch',
-                detail: 'Relic stats are different: ' + badSubStats.join(', '),
+                subIssues: badSubStats,
                 hardBlocker: true,
             };
         }
@@ -1585,7 +1586,7 @@ function checkItemCompat(itemA: EquippedItem, itemB: EquippedItem): SlotIncompat
                 itemA: itemA,
                 itemB: itemB,
                 reason: 'materia-mismatch',
-                detail: 'Materia do not match: ' + issues.join(', '),
+                subIssues: issues,
                 // If the item is not unique, then it's not a hard blocker since you could buy multiple of
                 // the item and fill them with different materia.
                 hardBlocker: itemA.gearItem.isUnique,
@@ -1629,14 +1630,14 @@ export class SetCompatibilityReport {
  * Describes a slot incompatibility between two gear sets.
  */
 export type SlotIncompatibility = {
-    slotKey: OccGearSlotKey;
+    slotKey: DisplayGearSlotKey;
     itemA: EquippedItem;
     itemB: EquippedItem;
     reason: SlotIncompatibilityReason;
     /**
      * Human-readable details about the incompatibility.
      */
-    detail: string;
+    subIssues: string[];
     /**
      * Whether this is a hard blocker. If true, it means that the item is not unique, and you cannot assemble both sets.
      * If false, you can work around it using duplicate items.

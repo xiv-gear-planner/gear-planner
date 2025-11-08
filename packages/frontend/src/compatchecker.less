@@ -5,6 +5,7 @@
     &.error {
       fill: var(--issue-error-color);
     }
+
     &.warning {
       fill: var(--issue-warning-color);
     }
@@ -13,23 +14,39 @@
 
 compat-checker-overview-modal {
   .compat-checker-common();
+
   .set-compat-good {
     opacity: 0.5;
   }
+
+  .description {
+    // why does this work
+    display: table-caption;
+    width: 100%;
+    padding-bottom: 10px;
+  }
+
   table {
     min-width: 100%;
     max-width: 600px;
+
     tr {
       height: 30px;
+
       button {
         .invert-input-colors();
         font-size: unset;
         box-sizing: content-box;
         padding: 0 5px;
         min-width: 80px;
-        >svg {
+
+        > svg {
           padding-right: 5px;
         }
+      }
+
+      td[col-id="set"] {
+        max-width: 300px;
       }
     }
   }
@@ -37,4 +54,16 @@ compat-checker-overview-modal {
 
 compat-checker-set-modal {
   .compat-checker-common();
+
+  .modal-inner {
+    max-width: 800px;
+
+    table {
+      min-width: 100%;
+
+      td, th {
+        padding: 2px 8px;
+      }
+    }
+  }
 }

@@ -20,7 +20,7 @@ describe('Set Compatibility Checker', () => {
     // Det X materia
     const MATERIA_DET_X = 33933;
     // Piety X materia
-    const MATERIA_PIETY_X = 33938;
+    const MATERIA_PIETY_X = 33930;
 
     let sheet: GearPlanSheet;
 
@@ -129,7 +129,7 @@ describe('Set Compatibility Checker', () => {
             expect(report.incompatibleSlots[0].slotKey).to.equal('Head');
             expect(report.incompatibleSlots[0].reason).to.equal('materia-mismatch');
             expect(report.incompatibleSlots[0].hardBlocker).to.be.false;
-            expect(report.incompatibleSlots[0].detail).to.include('Materia do not match');
+            expect(report.incompatibleSlots[0].subIssues[0]).to.eq('Slot 1: 36 CRT ≠ 36 DET');
         });
 
         it('should report soft-incompatible when one set has materia and other does not', () => {
@@ -168,8 +168,8 @@ describe('Set Compatibility Checker', () => {
 
             expect(report.compatibilityLevel).to.equal('soft-incompatible');
             expect(report.incompatibleSlots).to.have.length(1);
-            expect(report.incompatibleSlots[0].detail).to.include('Slot 1');
-            expect(report.incompatibleSlots[0].detail).to.include('Slot 2');
+            expect(report.incompatibleSlots[0].subIssues[0]).to.eq('Slot 1: 36 CRT ≠ 36 DET');
+            expect(report.incompatibleSlots[0].subIssues[1]).to.eq('Slot 2: 36 DET ≠ 36 PIE');
         });
     });
 
@@ -218,8 +218,7 @@ describe('Set Compatibility Checker', () => {
             expect(report.incompatibleSlots).to.have.length(1);
             expect(report.incompatibleSlots[0].reason).to.equal('relic-stat-mismatch');
             expect(report.incompatibleSlots[0].hardBlocker).to.be.true;
-            expect(report.incompatibleSlots[0].detail).to.include('Relic stats are different');
-            expect(report.incompatibleSlots[0].detail).to.include('crit');
+            expect(report.incompatibleSlots[0].subIssues[0]).to.eq('crit: 100 ≠ 80');
         });
 
         it('should report compatible when relic has identical stats', () => {

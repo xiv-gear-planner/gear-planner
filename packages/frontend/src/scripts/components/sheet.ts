@@ -17,6 +17,7 @@ import {
 import {GearPlanSheet, SheetProvider} from "@xivgear/core/sheet";
 import {
     DataSelect,
+    el,
     FieldBoundCheckBox,
     FieldBoundDataSelect,
     FieldBoundTextField,
@@ -881,7 +882,11 @@ export class GearSetEditor extends HTMLElement {
         this.appendChild(this.desc);
         this.formatTitleDesc();
 
-        this.issuesButtonContent = document.createElement('span');
+        const compatCheckerButton = makeActionButton('Compatibility', () => {
+            this.sheet.showCompatOverview(this.gearSet);
+        });
+
+        this.issuesButtonContent = el('span');
 
         const issuesButton = makeActionButton([this.issuesButtonContent], () => {
             this.showIssuesModal();
@@ -899,6 +904,7 @@ export class GearSetEditor extends HTMLElement {
                 const sheetAny = this.sheet;
                 sheetAny.openPopoutForSet(this.gearSet);
             }),
+            compatCheckerButton,
             issuesButton,
         ].filter(x => x !== null));
         if (this.sheet.isMultiJob) {
@@ -2077,6 +2083,10 @@ export class GearPlanSheetGui extends GearPlanSheet {
         if (this._gearPlanTable) {
             this._gearPlanTable.dataChanged();
             this._gearPlanTable.reprocessAllSimColColors();
+        }
+        // Clear editor if we deleted the currently selected set
+        if (this._editorItem === gearSet) {
+            this.editorItem = undefined;
         }
     }
 
