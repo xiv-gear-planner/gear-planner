@@ -579,7 +579,7 @@ export class CycleProcessor<GaugeManagerType extends GaugeManager<unknown> = Gau
         }
 
         const activeBuffs = this.getActiveBuffsData(startTime);
-        const matchingActiveBuffIdx = activeBuffs.findIndex(b => b.buff.statusId === buff.statusId);
+        const matchingActiveBuffIdx = activeBuffs.findIndex(b => b.buff.name === buff.name);
         if (matchingActiveBuffIdx !== -1) {
             activeBuffs[matchingActiveBuffIdx].end = startTime;
             activeBuffs[matchingActiveBuffIdx].forceEnd = true;
