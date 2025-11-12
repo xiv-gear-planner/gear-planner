@@ -521,12 +521,7 @@ export class MnkSim extends BaseMultiCycleSim<CycleSimResult, MnkSettings, MNKCy
      * This means monk sim doesn't get to use the cache behavior much at all.
      */
     protected computeCacheKey(set: CharacterGearSet): RotationCacheKey {
-        return [
-            set.computedStats.weaponDelay,
-            set.computedStats.skillspeed,
-            set.computedStats.critChance,
-            set.computedStats.gearHaste,
-        ];
+        return [...super.computeCacheKey(set), set.computedStats.critChance];
     }
 
     getRotationsToSimulate(set: CharacterGearSet): Rotation<MNKCycleProcessor>[] {

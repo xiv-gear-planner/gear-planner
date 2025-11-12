@@ -242,6 +242,7 @@ export abstract class BaseMultiCycleSim<
             stats.skillspeed,
             stats.weaponDelay,
             stats.gearHaste,
+            stats.job,
         ];
     }
 
