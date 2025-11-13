@@ -15,6 +15,8 @@ import {
     MAIN_STATS,
     MateriaSubstat,
     RaceName,
+    SPECIAL_STAT_KEYS, SPECIAL_STATS_MAPPING,
+    SpecialStatKey,
     SupportedLevel
 } from "@xivgear/xivmath/xivconstants";
 import {
@@ -1451,8 +1453,7 @@ export class GearPlanSheet {
                 slotsB.set(id, [...(slotsB.get(id) ?? []), itemB]);
             }
         });
-        outer:
-        for (const [id, itemsA] of slotsA) {
+        outer: for (const [id, itemsA] of slotsA) {
             const itemsB = slotsB.get(id) ?? [];
             // Item not equipped in other set - no incompatibility
             if (itemsB.length === 0) {
@@ -1536,6 +1537,19 @@ export class GearPlanSheet {
             }
         }
         return new SetCompatibilityReport(setA, setB, incomp);
+    }
+
+    applicableSpecialStat(): SpecialStatKey | null {
+        if (!this.ilvlSync) {
+            return null;
+        }
+        for (const specialstatkey of SPECIAL_STAT_KEYS) {
+            const mapping = SPECIAL_STATS_MAPPING[specialstatkey];
+            if (mapping && mapping.level === this.level && mapping.ilvls.includes(this.ilvlSync)) {
+                return specialstatkey;
+            }
+        }
+        return null;
     }
 }
 

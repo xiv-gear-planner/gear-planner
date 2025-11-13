@@ -12,6 +12,8 @@
 
 export enum SpecialStatType {
   OccultCrescent = "OccultCrescent",
+  Bozja = "Bozja",
+  Eureka = "Eureka",
 }
 
 export enum GearAcquisitionSource {

@@ -1,13 +1,13 @@
 import {
     GearAcquisitionSource,
-    TraitFunc,
     ItemDisplaySettings,
     JobDataConst,
     LevelItemInfo,
     LevelStats,
     PartyBonusAmount,
     RawStatKey,
-    RawStats
+    RawStats,
+    TraitFunc
 } from "./geartypes";
 import {RawBonusStats} from "./xivstats";
 
@@ -795,12 +795,17 @@ export function statById(id: number): keyof RawStats | undefined {
             return "defenseMag";
         case 27:
             return "crit";
+        case 36:
+            // Eureka Elemental Bonus - not supported yet.
+            return undefined;
         case 44:
             return "determination";
         case 45:
             return "skillspeed";
         case 46:
             return "spellspeed";
+        case 47:
+            return "gearHaste";
         default:
             return undefined;
     }
@@ -919,3 +924,28 @@ export const defaultItemDisplaySettings: ItemDisplaySettings = {
 } as const;
 
 export const MAX_PARTY_BONUS: PartyBonusAmount = 5;
+
+export const SPECIAL_STAT_KEYS = ['OccultCrescent', 'Bozja', 'Eureka'] as const;
+
+export type SpecialStatKey = typeof SPECIAL_STAT_KEYS[number];
+
+export type SpecialStatInfo = {
+    level: number;
+    ilvls: number[];
+}
+
+export const SPECIAL_STATS_MAPPING: Record<SpecialStatKey, SpecialStatInfo> = {
+    Eureka: {
+        level: 70,
+        ilvls: [300],
+    },
+    Bozja: {
+        level: 80,
+        ilvls: [430],
+    },
+    OccultCrescent: {
+        level: 100,
+        ilvls: [700],
+    },
+};
+
