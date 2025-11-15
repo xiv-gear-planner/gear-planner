@@ -1,12 +1,15 @@
 import {
     CustomItemExport,
     DisplayGearSlotInfo,
-    DisplayGearSlotMapping,
     DisplayGearSlotKey,
+    DisplayGearSlotMapping,
+    EquipSlotKey,
+    EquipSlotMap,
+    EquipSlotValue,
     GearAcquisitionSource,
     GearItem,
     IlvlSyncInfo,
-    MateriaSlot,
+    MateriaSlot, NormalOccGearSlotKey,
     OccGearSlotKey,
     RawStatKey,
     RawStats
@@ -18,6 +21,48 @@ import {GearPlanSheet} from "../sheet";
 import {toTranslatable} from "@xivgear/i18n/translation";
 import {RawStatsPart} from "@xivgear/util/util_types";
 import {SpecialStatType} from "@xivgear/data-api-client/dataapi";
+
+class CustomItemSlotMapping implements EquipSlotMap {
+    readonly Body: EquipSlotValue = 'none';
+    readonly Ears: EquipSlotValue = 'none';
+    readonly Feet: EquipSlotValue = 'none';
+    readonly Hand: EquipSlotValue = 'none';
+    readonly Head: EquipSlotValue = 'none';
+    readonly Legs: EquipSlotValue = 'none';
+    readonly Neck: EquipSlotValue = 'none';
+    readonly OffHand: EquipSlotValue = 'none';
+    readonly RingLeft: EquipSlotValue = 'none';
+    readonly RingRight: EquipSlotValue = 'none';
+    readonly Weapon: EquipSlotValue = 'none';
+    readonly Wrist: EquipSlotValue = 'none';
+
+    constructor(slot: NormalOccGearSlotKey) {
+        switch (slot) {
+            case "Weapon2H":
+                this.Weapon = 'equip';
+                this.OffHand = 'block';
+                break;
+            case "Weapon1H":
+                this.Weapon = 'equip';
+                break;
+            case "Ring":
+                this.RingLeft = 'equip';
+                this.RingRight = 'equip';
+                break;
+            default:
+                this[slot] = 'equip';
+        }
+    }
+
+    canEquipTo(slot: EquipSlotKey): boolean {
+        return this[slot] === 'equip';
+    }
+
+    getBlockedSlots(): EquipSlotKey[] {
+        return [];
+    }
+
+}
 
 export class CustomItem implements GearItem {
 
@@ -36,10 +81,12 @@ export class CustomItem implements GearItem {
     iconUrl: URL = new URL(xivApiIconUrl(26270));
     syncedDownTo: number | null;
     private _data: CustomItemExport;
+    readonly slotMapping: CustomItemSlotMapping;
 
     private constructor(exportedData: CustomItemExport, private readonly sheet: GearPlanSheet, private readonly isUnsyncCopy: boolean = false) {
         this._data = exportedData;
         this.recheckSync();
+        this.slotMapping = new CustomItemSlotMapping(this.occGearSlotName);
     }
 
     private static defaults(): Omit<CustomItemExport, 'fakeId' | 'name' | 'slot' | 'respectCaps'> {
@@ -64,7 +111,7 @@ export class CustomItem implements GearItem {
         }, sheet);
     }
 
-    static fromScratch(fakeId: number, slot: OccGearSlotKey, sheet: GearPlanSheet): CustomItem {
+    static fromScratch(fakeId: number, slot: NormalOccGearSlotKey, sheet: GearPlanSheet): CustomItem {
         const data: CustomItemExport = {
             ...this.defaults(),
             fakeId: fakeId,
@@ -145,7 +192,7 @@ export class CustomItem implements GearItem {
         return toTranslatable(this.name);
     }
 
-    get occGearSlotName() {
+    get occGearSlotName(): NormalOccGearSlotKey {
         return this._data.slot;
     }
 
