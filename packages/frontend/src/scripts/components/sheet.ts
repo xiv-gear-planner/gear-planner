@@ -48,7 +48,7 @@ import {
     JobName,
     MAX_PARTY_BONUS,
     RACE_STATS,
-    RaceName,
+    RaceName, SpecialStatKey,
     STAT_ABBREVIATIONS,
     SupportedLevel
 } from "@xivgear/xivmath/xivconstants";
@@ -1321,7 +1321,7 @@ export class GearPlanSheetGui extends GearPlanSheet {
     readonly midBarArea: HTMLDivElement;
     readonly toolbarHolder: HTMLDivElement;
     private _simGuis: SimulationGui<any, any, any>[];
-    private specialStatDropdown: FieldBoundDataSelect<GearPlanSheet, SpecialStatType | null>;
+    private specialStatDropdown: FieldBoundDataSelect<GearPlanSheet, SpecialStatKey | null> | null = null;
 
     get simGuis() {
         return this._simGuis;
@@ -1673,29 +1673,30 @@ export class GearPlanSheetGui extends GearPlanSheet {
         buttonsArea.appendChild(partySizeDropdown);
 
         // TODO: this should only show once you select an occult crescent item
-        this.specialStatDropdown = new FieldBoundDataSelect<GearPlanSheet, SpecialStatType | null>(
-            this,
-            'activeSpecialStat',
-            value => {
-                switch (value) {
-                    case null:
-                        return 'No Special Stats';
-                    // case SpecialStatType.OccultCrescent:
-                    //     return 'Occult Crescent';
-                    default:
-                        return camel2title(value);
-                }
-            },
-            [null, ...Object.values(SpecialStatType)]
-        );
-        // TODO: move this logic to xivconstants or something
-        // We only want this to show if our sheet looks like it might be for one of these duties with special bonuses,
-        // or if the user somehow got into a state where they have a special stat set despite the sheet normally
-        // not being eligible for one.
-        if (!(this.activeSpecialStat || (this.level === 100 && this.ilvlSync === 700))) {
-            this.specialStatDropdown.style.display = 'none';
+        const validSpecialStats: SpecialStatKey[] = [];
+        const specialStat = this.applicableSpecialStat();
+        if (specialStat) {
+            validSpecialStats.push(specialStat);
         }
-        buttonsArea.appendChild(this.specialStatDropdown);
+        if (this.activeSpecialStat && !validSpecialStats.includes(this.activeSpecialStat)) {
+            validSpecialStats.push(specialStat);
+        }
+        if (validSpecialStats.length > 0) {
+            this.specialStatDropdown = new FieldBoundDataSelect<GearPlanSheet, SpecialStatKey | null>(
+                this,
+                'activeSpecialStat',
+                value => {
+                    switch (value) {
+                        case null:
+                            return 'No Special Stats';
+                        default:
+                            return camel2title(value);
+                    }
+                },
+                [null, ...validSpecialStats]
+            );
+            buttonsArea.appendChild(this.specialStatDropdown);
+        }
 
         if (this.saveKey) {
             this.headerArea.style.display = 'none';

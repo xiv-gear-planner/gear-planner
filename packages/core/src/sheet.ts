@@ -15,6 +15,9 @@ import {
     MAIN_STATS,
     MateriaSubstat,
     RaceName,
+    SPECIAL_STAT_KEYS,
+    SPECIAL_STATS_MAPPING,
+    SpecialStatKey,
     SupportedLevel
 } from "@xivgear/xivmath/xivconstants";
 import {
@@ -1092,6 +1095,14 @@ export class GearPlanSheet {
 
     /**
      * Determine whether a stat is relevant to this sheet based on its job.
+     *
+     * Relevant means:
+     * * The stat is not undefined.
+     * * If it is the main stat (including vit), then it is the primary stat for the job.
+     *    * Vit is not relevant for any job since it is not the main stat of any job.
+     * * If it is a substat, it is not filtered out by the job.
+     * * If it is gear haste, it is only relevant if we have an active special stat which cares about haste.
+     *
      * @param stat
      */
     isStatRelevant(stat: RawStatKey | undefined): boolean {
@@ -1104,6 +1115,10 @@ export class GearPlanSheet {
         }
         if (MAIN_STATS.includes(stat as typeof MAIN_STATS[number])) {
             return (stat === this.classJobEarlyStats.mainStat);
+        }
+        if (stat === 'gearHaste') {
+            const specialStat = this.activeSpecialStat;
+            return SPECIAL_STATS_MAPPING[specialStat]?.showHaste ?? false;
         }
         if (this.classJobEarlyStats.irrelevantSubstats) {
             return !this.classJobEarlyStats.irrelevantSubstats.includes(stat as Substat);
@@ -1451,8 +1466,7 @@ export class GearPlanSheet {
                 slotsB.set(id, [...(slotsB.get(id) ?? []), itemB]);
             }
         });
-        outer:
-        for (const [id, itemsA] of slotsA) {
+        outer: for (const [id, itemsA] of slotsA) {
             const itemsB = slotsB.get(id) ?? [];
             // Item not equipped in other set - no incompatibility
             if (itemsB.length === 0) {
@@ -1536,6 +1550,19 @@ export class GearPlanSheet {
             }
         }
         return new SetCompatibilityReport(setA, setB, incomp);
+    }
+
+    applicableSpecialStat(): SpecialStatKey | null {
+        if (!this.ilvlSync) {
+            return null;
+        }
+        for (const specialstatkey of SPECIAL_STAT_KEYS) {
+            const mapping = SPECIAL_STATS_MAPPING[specialstatkey];
+            if (mapping && mapping.level === this.level && mapping.ilvls.includes(this.ilvlSync)) {
+                return specialstatkey;
+            }
+        }
+        return null;
     }
 }
 

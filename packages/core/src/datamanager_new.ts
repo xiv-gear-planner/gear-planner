@@ -554,18 +554,31 @@ export class DataApiGearInfo implements GearItem {
                 continue;
             }
             // We need to add here, because we don't want to overwrite wdPhys/wdMag/weaponDelay
-            this.baseStats[baseParam] += paramMap[key];
+            this.baseStats[baseParam] += paramMap[key] ?? 0;
         }
         if (data.specialStatType) {
             this.specialStats = new RawStats();
             this.specialStatType = data.specialStatType;
-            for (const key in paramMap) {
+            // Previously, the assumption was that special stats would also be keys of the normal param map, but
+            // this is false for things like Bozja/Eureka haste, as haste is never present in the normal param map.
+            const allParamKeys = new Set(Object.keys(paramMap));
+            for (const baseParamMapSpecialKey in data.baseParamMapSpecial) {
+                allParamKeys.add(baseParamMapSpecialKey);
+            }
+            for (const key of allParamKeys.values()) {
                 const intKey = parseInt(key);
                 const baseParam = statById(intKey);
                 if (baseParam === undefined) {
                     continue;
                 }
-                this.specialStats[baseParam] = data.baseParamMapSpecial[key];
+                // Haste is stored in the game files as a negative, i.e. negative value = faster, but we treat it as a
+                // positive, the way it is shown in-game on the UI.
+                if (baseParam === 'gearHaste') {
+                    this.specialStats[baseParam] = -data.baseParamMapSpecial[key];
+                }
+                else {
+                    this.specialStats[baseParam] = data.baseParamMapSpecial[key];
+                }
             }
         }
         else {

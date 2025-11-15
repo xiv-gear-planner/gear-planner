@@ -38,6 +38,7 @@ import {
     STAT_ABBREVIATIONS
 } from "@xivgear/xivmath/xivconstants";
 import {
+    el,
     FieldBoundCheckBox,
     FieldBoundIntField,
     labeledCheckbox,
@@ -601,12 +602,15 @@ export class GearItemsTable extends CustomTable<GearSlotItem, TableSelectionMode
     private readonly materiaManagers: AllSlotMateriaManager[];
     private selectionTracker: Map<keyof EquipmentSet, CustomRow<GearSlotItem> | GearSlotItem>;
     private showHideCallbacks: Map<keyof EquipmentSet, (value: boolean) => void> = new Map();
+    private anyHaste: boolean = false;
 
     constructor(sheet: GearPlanSheet, private readonly gearSet: CharacterGearSet, itemMapping: Map<DisplayGearSlotKey, GearItem[]>, handledSlots: EquipSlotKey[], afterShowHideAll: () => void) {
         super();
         this.classList.add("gear-items-table");
         this.classList.add("gear-items-edit-table");
         this.classList.add("hoverable");
+        // Include haste if it is relevant to the sheet AND there are any items with haste in this table.
+        // const includeHaste: boolean = sheet.isStatRelevant('gearHaste') && handledSlots.some(slot => itemMapping.get(slot)?.some(item => item.stats.gearHaste > 0));
         this.rowTitleSetter = (rowValue: GearSlotItem) => {
             const name = rowValue.item.nameTranslation.asCurrentLang;
             let title: string;
@@ -625,110 +629,6 @@ export class GearItemsTable extends CustomTable<GearSlotItem, TableSelectionMode
             }
             return title;
         };
-        super.columns = [
-            {
-                shortName: "ilvl",
-                displayName: "iLvl",
-                getter: item => {
-                    return item.item.ilvl.toString();
-                },
-                fixedWidth: 32,
-            },
-            col({
-                shortName: "icon",
-                displayName: "",
-                getter: item => {
-                    return item.item;
-                },
-                renderer: itemIconRenderer(),
-                fixedData: true,
-            }),
-            col({
-                shortName: "itemname",
-                displayName: "Name",
-                getter: item => {
-                    return item.item.nameTranslation.asCurrentLang;
-                },
-                renderer: (name: string, rowValue: GearSlotItem) => {
-                    const trashButton = quickElement('button', ['remove-item-button'], [makeTrashIcon()]);
-                    trashButton.title = 'Click to un-equip item';
-                    trashButton.addEventListener('click', (ev) => {
-                        gearSet.setEquip(rowValue.slotId, null);
-                        selectionTracker.set(rowValue.slotId, null);
-                        this.refreshSelection();
-                        this.refreshMateria();
-                        this.refreshRowData(rowValue);
-                    });
-                    return quickElement('div', ['item-name-holder-editable'], [quickElement('span', [], [shortenItemName(name)]), trashButton]);
-                },
-                colStyler: (value, colElement, internalElement, rowValue) => {
-                },
-            }),
-            col({
-                shortName: "mats",
-                displayName: "Mat",
-                getter: item => {
-                    return item.item;
-                },
-                initialWidth: 30,
-                renderer: (value: GearItem) => {
-                    const span = document.createElement('span');
-                    if (value.isSyncedDown) {
-                        span.textContent = value.unsyncedVersion.materiaSlots.length.toString();
-                        span.style.textDecoration = "line-through";
-                        span.style.opacity = "50%";
-                    }
-                    else {
-                        span.textContent = value.materiaSlots.length.toString();
-                    }
-                    return span;
-                },
-                titleSetter: (value, rowValue, cell) => {
-                    if (value.isSyncedDown) {
-                        return "Melds unavailable due to ilvl sync";
-                    }
-                    else {
-                        const lgCount = value.materiaSlots.filter(slot => slot.allowsHighGrade).length;
-                        const smCount = value.materiaSlots.filter(slot => !slot.allowsHighGrade).length;
-                        return `${lgCount} full + ${smCount} restricted`;
-                    }
-                },
-            }),
-            col({
-                shortName: "wd",
-                displayName: "WD",
-                getter: item => {
-                    // return Math.max(item.item.stats.wdMag, item.item.stats.wdPhys);
-                    return Math.max(item.item.stats.wdMag, item.item.stats.wdPhys);
-                },
-                renderer: value => {
-                    if (value) {
-                        return document.createTextNode(String(value));
-                    }
-                    else {
-                        return document.createTextNode("");
-                    }
-                },
-                initialWidth: 33,
-                condition: () => handledSlots === undefined || handledSlots.includes('Weapon'),
-                titleSetter: (_, rowValue: GearSlotItem) => {
-                    const statDetail = gearSet.getEquipStatDetail(gearSet.toEquippedItem(rowValue.item), rowValue.item.stats.wdPhys > rowValue.item.stats.wdMag ? 'wdPhys' : 'wdMag');
-                    return statCellTitle(statDetail);
-                },
-            }),
-            itemTableStatColumn(sheet, gearSet, 'vitality'),
-            itemTableStatColumn(sheet, gearSet, 'strength'),
-            itemTableStatColumn(sheet, gearSet, 'dexterity'),
-            itemTableStatColumn(sheet, gearSet, 'intelligence'),
-            itemTableStatColumn(sheet, gearSet, 'mind'),
-            itemTableStatColumn(sheet, gearSet, 'crit', true),
-            itemTableStatColumn(sheet, gearSet, 'dhit', true),
-            itemTableStatColumn(sheet, gearSet, 'determination', true),
-            itemTableStatColumn(sheet, gearSet, 'spellspeed', true),
-            itemTableStatColumn(sheet, gearSet, 'skillspeed', true),
-            itemTableStatColumn(sheet, gearSet, 'piety', true),
-            itemTableStatColumn(sheet, gearSet, 'tenacity', true),
-        ];
         const data: (TitleRow | HeaderRow | GearSlotItem)[] = [];
         const slotMateriaManagers = new Map<keyof EquipmentSet, AllSlotMateriaManager>();
         this.materiaManagers = [];
@@ -796,6 +696,9 @@ export class GearItemsTable extends CustomTable<GearSlotItem, TableSelectionMode
                         slotId: slotId,
                     };
                     data.push(item);
+                    if (item.item.stats.gearHaste > 0) {
+                        this.anyHaste = true;
+                    }
                     if (gearSet.getItemInSlot(slotId) === gearItem) {
                         selectionTracker.set(slotId, item);
                     }
@@ -855,6 +758,124 @@ export class GearItemsTable extends CustomTable<GearSlotItem, TableSelectionMode
                 // no-op
             },
         };
+        super.columns = [
+            {
+                shortName: "ilvl",
+                displayName: "iLvl",
+                getter: item => {
+                    return item.item.ilvl.toString();
+                },
+                fixedWidth: 32,
+            },
+            col({
+                shortName: "icon",
+                displayName: "",
+                getter: item => {
+                    return item.item;
+                },
+                renderer: itemIconRenderer(),
+                fixedData: true,
+            }),
+            col({
+                shortName: "itemname",
+                displayName: "Name",
+                getter: item => {
+                    return item.item.nameTranslation.asCurrentLang;
+                },
+                renderer: (name: string, rowValue: GearSlotItem) => {
+                    const trashButton = quickElement('button', ['remove-item-button'], [makeTrashIcon()]);
+                    trashButton.title = 'Click to un-equip item';
+                    trashButton.addEventListener('click', (ev) => {
+                        gearSet.setEquip(rowValue.slotId, null);
+                        selectionTracker.set(rowValue.slotId, null);
+                        this.refreshSelection();
+                        this.refreshMateria();
+                        this.refreshRowData(rowValue);
+                    });
+                    return quickElement('div', ['item-name-holder-editable'], [quickElement('span', [], [shortenItemName(name)]), trashButton]);
+                },
+                colStyler: (value, colElement, internalElement, rowValue) => {
+                },
+            }),
+            col({
+                shortName: 'haste',
+                displayName: 'Hst',
+                getter: item => {
+                    return item.item.stats.gearHaste;
+                },
+                initialWidth: 30,
+                renderer: (haste: number) => {
+                    return el('span', {}, [haste !== 0 ? haste.toString() : '']);
+                },
+                condition: () => {
+                    return this.anyHaste;
+                },
+            }),
+            col({
+                shortName: "mats",
+                displayName: "Mat",
+                getter: item => {
+                    return item.item;
+                },
+                initialWidth: 30,
+                renderer: (value: GearItem) => {
+                    const span = document.createElement('span');
+                    if (value.isSyncedDown) {
+                        span.textContent = value.unsyncedVersion.materiaSlots.length.toString();
+                        span.style.textDecoration = "line-through";
+                        span.style.opacity = "50%";
+                    }
+                    else {
+                        span.textContent = value.materiaSlots.length.toString();
+                    }
+                    return span;
+                },
+                titleSetter: (value, rowValue, cell) => {
+                    if (value.isSyncedDown) {
+                        return "Melds unavailable due to ilvl sync";
+                    }
+                    else {
+                        const lgCount = value.materiaSlots.filter(slot => slot.allowsHighGrade).length;
+                        const smCount = value.materiaSlots.filter(slot => !slot.allowsHighGrade).length;
+                        return `${lgCount} full + ${smCount} restricted`;
+                    }
+                },
+            }),
+            col({
+                shortName: "wd",
+                displayName: "WD",
+                getter: item => {
+                    // return Math.max(item.item.stats.wdMag, item.item.stats.wdPhys);
+                    return Math.max(item.item.stats.wdMag, item.item.stats.wdPhys);
+                },
+                renderer: value => {
+                    if (value) {
+                        return document.createTextNode(String(value));
+                    }
+                    else {
+                        return document.createTextNode("");
+                    }
+                },
+                initialWidth: 33,
+                condition: () => handledSlots === undefined || handledSlots.includes('Weapon'),
+                titleSetter: (_, rowValue: GearSlotItem) => {
+                    const statDetail = gearSet.getEquipStatDetail(gearSet.toEquippedItem(rowValue.item), rowValue.item.stats.wdPhys > rowValue.item.stats.wdMag ? 'wdPhys' : 'wdMag');
+                    return statCellTitle(statDetail);
+                },
+            }),
+            itemTableStatColumn(sheet, gearSet, 'vitality'),
+            itemTableStatColumn(sheet, gearSet, 'strength'),
+            itemTableStatColumn(sheet, gearSet, 'dexterity'),
+            itemTableStatColumn(sheet, gearSet, 'intelligence'),
+            itemTableStatColumn(sheet, gearSet, 'mind'),
+            itemTableStatColumn(sheet, gearSet, 'crit', true),
+            itemTableStatColumn(sheet, gearSet, 'dhit', true),
+            itemTableStatColumn(sheet, gearSet, 'determination', true),
+            itemTableStatColumn(sheet, gearSet, 'spellspeed', true),
+            itemTableStatColumn(sheet, gearSet, 'skillspeed', true),
+            itemTableStatColumn(sheet, gearSet, 'piety', true),
+            itemTableStatColumn(sheet, gearSet, 'tenacity', true),
+        ];
         this.data = data;
         this.updateShowHide();
     }
