@@ -661,7 +661,7 @@ export function getDefaultDisplaySettings(level: SupportedLevel, job: JobName, i
     if (isync !== undefined && level === CURRENT_MAX_LEVEL) {
         return {
             ...out,
-            minILvl: isync - 15,
+            minILvl: isync - 5,
             maxILvl: isync,
         };
     }
