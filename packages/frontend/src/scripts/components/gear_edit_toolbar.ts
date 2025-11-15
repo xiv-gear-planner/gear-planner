@@ -4,27 +4,26 @@ import {MateriaPriorityPicker} from "./materia";
 import {StatTierDisplay} from "./stat_tier_display";
 import {CharacterGearSet} from "@xivgear/core/gear";
 import {
+    el,
     FieldBoundCheckBox,
     labeledCheckbox,
     makeActionButton,
-    quickElement,
-    redoIcon,
-    undoIcon
+    quickElement
 } from "@xivgear/common-ui/components/util";
 import {GearPlanSheetGui} from "./sheet";
 import {recordSheetEvent} from "../analytics/analytics";
 import {recordEvent} from "@xivgear/common-ui/analytics/analytics";
+import {redoIcon, undoIcon} from "@xivgear/common-ui/components/icons";
 
 function makeGearFiltersArea(
     sheet: GearPlanSheetGui,
     itemDisplaySettings: ItemDisplaySettings,
-    displayUpdateCallback: () => void,
+    displayUpdateImmediate: () => void,
     closeCallback: () => void) {
     const filtersForm = document.createElement('form');
     filtersForm.style.display = 'contents';
     filtersForm.classList.add('ilvl-picker-area');
     const itemIlvlRange = new ILvlRangePicker(itemDisplaySettings, 'minILvl', 'maxILvl', 'Gear:');
-    // itemIlvlRange.addListener(displayUpdateCallback);
     itemIlvlRange.addListener((min, max) => {
         recordSheetEvent('itemIlvlRange', sheet, {
             min: min,
@@ -34,7 +33,6 @@ function makeGearFiltersArea(
     filtersForm.appendChild(itemIlvlRange);
 
     const foodIlvlRange = new ILvlRangePicker(itemDisplaySettings, 'minILvlFood', 'maxILvlFood', 'Food:');
-    // foodIlvlRange.addListener(displayUpdateCallback);
     foodIlvlRange.addListener((min, max) => {
         recordSheetEvent('foodIlvlRange', sheet, {
             min: min,
@@ -46,6 +44,7 @@ function makeGearFiltersArea(
     const nqCb = new FieldBoundCheckBox(itemDisplaySettings, 'showNq', {
         id: 'show-nq-cb',
     });
+    nqCb.addListener(displayUpdateImmediate);
     const nqCbWithLabel = labeledCheckbox('Show NQ Items', nqCb);
     filtersForm.appendChild(nqCbWithLabel);
 
@@ -60,16 +59,11 @@ function makeGearFiltersArea(
         closeCallback();
     });
 
-    return quickElement('div', ['ilvl-picker-area'], [filtersForm]);
+    const out = quickElement('div', ['ilvl-picker-area'], [filtersForm]);
+    out.addEventListener('focusout', displayUpdateImmediate);
+    return out;
 }
 
-let currentToolbarPopout: HTMLElement | null = null;
-
-document.addEventListener('resize', () => {
-    if (currentToolbarPopout !== null) {
-        // TODO
-    }
-});
 
 export class ToolbarButtonsArea extends HTMLDivElement {
     private _currentSet: CharacterGearSet;
@@ -96,8 +90,7 @@ export class ToolbarButtonsArea extends HTMLDivElement {
         }, 'Redo');
         this.redoButton.classList.add('big-text-btn');
 
-        this.popoutArea = document.createElement('div');
-        this.popoutArea.classList.add('popout-area');
+        this.popoutArea = el('div', {class: 'popout-area'});
         // Don't allow clicking on the actual popout to be treated as clicking on the button
         // TODO: make sure this is happening for all events
         const evStop = (ev: MouseEvent) => {
@@ -184,12 +177,10 @@ export class ToolbarButtonsArea extends HTMLDivElement {
         if (popoutElement !== undefined) {
             this.popoutArea.replaceChildren(popoutElement);
             this.popoutArea.style.display = '';
-            currentToolbarPopout = popoutElement;
         }
         else {
             this.popoutArea.replaceChildren();
             this.popoutArea.style.display = 'none';
-            currentToolbarPopout = null;
         }
     }
 }
@@ -212,15 +203,63 @@ export class GearEditToolbar extends HTMLDivElement {
             updateGearDisplayNow();
             this.buttonsArea.closePopout();
         });
-        this.buttonsArea.addPanelButton(["Gear", document.createElement('br'), "Filters"], ilvlDiv);
+        this.buttonsArea.addPanelButton(["Gear", el('br'), "Filters"], ilvlDiv);
 
         this.appendChild(this.buttonsArea);
 
         const materiaPriority = new MateriaPriorityPicker(matFillCtrl, sheet);
 
-        this.buttonsArea.addPanelButton(["Materia", document.createElement('br'), "Fill/Lock"], materiaPriority);
+        this.buttonsArea.addPanelButton(["Materia", el('br'), "Fill/Lock"], materiaPriority);
 
-        this.buttonsArea.addPanelButtonModal(["Meld/Food", document.createElement('br'), "Solver"], () => sheet.showMeldSolveDialog());
+        this.buttonsArea.addPanelButtonModal(["Meld/Food", el('br'), "Solver"], () => sheet.showMeldSolveDialog());
+
+        this.statTierDisplay = new StatTierDisplay(sheet);
+        this.appendChild(this.statTierDisplay);
+    }
+
+    refresh(gearSet: CharacterGearSet) {
+        this.buttonsArea.currentSet = gearSet;
+        this.statTierDisplay.refresh(gearSet);
+    }
+}
+
+export class PopoutGearEditToolbar extends HTMLDivElement {
+    private readonly statTierDisplay: StatTierDisplay;
+    private buttonsArea: ToolbarButtonsArea;
+
+    constructor(sheet: GearPlanSheetGui,
+                set: CharacterGearSet,
+                itemDisplaySettings: ItemDisplaySettings,
+                updateGearDisplayNow: () => void,
+                matFillCtrl: MateriaAutoFillController
+    ) {
+        super();
+        sheet = new Proxy<GearPlanSheetGui>(sheet, {
+            get(target: GearPlanSheetGui, p: string | symbol): unknown {
+                if (p === 'currentSet') {
+                    return set;
+                }
+                else {
+                    // @ts-expect-error p is not necessarily a known property
+                    return target[p];
+                }
+            },
+        });
+
+        this.classList.add('gear-set-editor-toolbar');
+
+        this.buttonsArea = new ToolbarButtonsArea();
+
+        // Gear filtering should only be done in main window
+
+        this.appendChild(this.buttonsArea);
+
+        const materiaPriority = new MateriaPriorityPicker(matFillCtrl, sheet);
+
+        this.buttonsArea.addPanelButton(["Materia", el('br'), "Fill/Lock"], materiaPriority);
+
+        // TODO: meld solver will trigger the popup on the main window
+        // this.buttonsArea.addPanelButtonModal(["Meld/Food", document.createElement('br'), "Solver"], () => sheet.showMeldSolveDialog());
 
         this.statTierDisplay = new StatTierDisplay(sheet);
         this.appendChild(this.statTierDisplay);
@@ -233,4 +272,5 @@ export class GearEditToolbar extends HTMLDivElement {
 }
 
 customElements.define('gear-edit-toolbar', GearEditToolbar, {extends: 'div'});
+customElements.define('popout-gear-edit-toolbar', PopoutGearEditToolbar, {extends: 'div'});
 customElements.define('gear-edit-toolbar-buttons-area', ToolbarButtonsArea, {extends: 'div'});

@@ -1,17 +1,19 @@
-import {col, CustomTable, HeaderRow} from "@xivgear/common-ui/table/tables";
+import {col, CustomTable, HeaderRow, SpecialRow} from "@xivgear/common-ui/table/tables";
 import {GearPlanSheet} from "@xivgear/core/sheet";
 import {
     clampValues,
-    faIcon,
+    el,
     FieldBoundCheckBox,
     FieldBoundDataSelect,
     FieldBoundFloatField,
     FieldBoundIntField,
     FieldBoundOrUndefIntField,
     FieldBoundTextField,
+    labeledCheckbox,
     makeActionButton,
     nonNegative,
-    quickElement, randomId
+    quickElement,
+    randomId
 } from "@xivgear/common-ui/components/util";
 import {ALL_STATS, ALL_SUB_STATS, STAT_ABBREVIATIONS, STAT_FULL_NAMES} from "@xivgear/xivmath/xivconstants";
 import {BaseModal} from "@xivgear/common-ui/components/modal";
@@ -21,6 +23,7 @@ import {confirmDelete} from "@xivgear/common-ui/components/delete_confirm";
 import {CustomItem} from "@xivgear/core/customgear/custom_item";
 import {CustomFood} from "@xivgear/core/customgear/custom_food";
 import {GearPlanSheetGui} from "./sheet";
+import {makeTrashIcon} from "@xivgear/common-ui/components/icons";
 
 function ifWeapon(fn: (item: CustomItem) => HTMLElement): (item: CustomItem) => Node {
     return (item: CustomItem) => {
@@ -54,6 +57,12 @@ function customStatsProxy(obj: RawStats): RawStats {
     });
 }
 
+function setTitle(title: string) {
+    return (_: never, cell: HTMLElement) => {
+        cell.title = title;
+    };
+}
+
 /**
  * Table for managing custom items. Creating a new item is handled outside the table.
  */
@@ -67,7 +76,7 @@ export class CustomItemTable extends CustomTable<CustomItem> {
                 getter: item => item,
                 renderer: (item: CustomItem) => {
                     const out = document.createElement('div');
-                    out.appendChild(makeActionButton([faIcon('fa-trash-can')], (ev) => {
+                    out.appendChild(makeActionButton([makeTrashIcon()], (ev) => {
                         if (confirmDelete(ev, `Delete custom item '${item.name}'?`)) {
                             const deleted = this.sheet.deleteCustomItem(item, setNames => {
                                 return confirmDelete(ev, `Some sets are still using this item:\n${setNames.map(setName => ` - ${setName}`).join('\n')}\nDelete anyway?`);
@@ -89,6 +98,8 @@ export class CustomItemTable extends CustomTable<CustomItem> {
                     return new FieldBoundTextField(item.customData, 'name');
                 },
                 initialWidth: 150,
+                colStyler: setTitle('Name of the item'),
+                headerStyler: setTitle('Name of the item'),
             }, {
                 shortName: 'slot',
                 displayName: 'Slot',
@@ -111,6 +122,7 @@ export class CustomItemTable extends CustomTable<CustomItem> {
                             ilvlInput._validationMessage = undefined;
                         }
                     };
+                    capBox.title = 'Apply caps based on the ilvl of the sheet.';
                     ilvlInput.addListener(recheck);
                     capBox.addListener(() => recheck(item.ilvl));
                     recheck(item.ilvl);
@@ -118,9 +130,11 @@ export class CustomItemTable extends CustomTable<CustomItem> {
                     const holder = quickElement("div", [], [ilvlInput, capBox]);
                     holder.style.display = 'flex';
                     ilvlInput.style.minWidth = '40px';
+                    ilvlInput.title = 'Item level. Checkbox controls whether caps are applied based on the ilvl of the sheet.';
                     return holder;
                 },
                 initialWidth: 80,
+                headerStyler: setTitle('Item level. Checkbox controls whether caps are applied based on the ilvl of the sheet.'),
             },
             {
                 shortName: 'mat-large',
@@ -132,6 +146,8 @@ export class CustomItemTable extends CustomTable<CustomItem> {
                     });
                 },
                 initialWidth: 60,
+                headerStyler: setTitle('Number of normal materia slots'),
+                colStyler: setTitle('Number of normal materia slots'),
             }, {
                 shortName: 'mat-small',
                 displayName: 'Sm Mat',
@@ -142,6 +158,8 @@ export class CustomItemTable extends CustomTable<CustomItem> {
                     });
                 },
                 initialWidth: 60,
+                headerStyler: setTitle('Number of restricted materia slots'),
+                colStyler: setTitle('Number of restricted materia slots'),
             },
             ...ALL_STATS.map(stat => {
                 return col({
@@ -157,12 +175,11 @@ export class CustomItemTable extends CustomTable<CustomItem> {
                             suggestions.push(Math.ceil(cap * 0.7));
                         }
                         suggestions.push(0);
-                        const datalist = quickElement('datalist', [], suggestions.map(sugg => {
-                            const opt = document.createElement('option');
-                            opt.value = sugg.toString();
-                            return opt;
-                        }));
-                        datalist.id = randomId('custom-item-datalist-');
+                        const datalist = el('datalist',
+                            {id: randomId('custom-item-datalist-')},
+                            suggestions.map(sugg => {
+                                return el('option', {props: {value: sugg.toString()}});
+                            }));
 
                         const statsProxy = customStatsProxy(item.customData.stats);
 
@@ -175,7 +192,37 @@ export class CustomItemTable extends CustomTable<CustomItem> {
                         return field;
                     },
                     initialWidth: 40,
+                    colStyler: (_, cell) => {
+                        if (!this.sheet.isStatPossibleOnGear(stat)) {
+                            cell.classList.add('irrelevant-stat');
+                        }
+                        cell.title = STAT_FULL_NAMES[stat];
+                    },
+                    headerStyler: (_, cell) => {
+                        if (!this.sheet.isStatPossibleOnGear(stat)) {
+                            cell.classList.add('irrelevant-stat');
+                        }
+                        cell.title = STAT_FULL_NAMES[stat];
+                    },
                 });
+            }), col({
+                shortName: 'haste',
+                displayName: 'Haste',
+                getter: item => item,
+                renderer: (item: CustomItem) => {
+                    return new FieldBoundIntField(item.customData.stats, 'gearHaste', {
+                        postValidators: [clampValues(0, 99)],
+                    });
+                },
+                initialWidth: 60,
+                colStyler: (_, cell) => {
+                    cell.classList.add('irrelevant-stat');
+                    cell.title = 'Haste (percentage)';
+                },
+                headerStyler: (_, cell) => {
+                    cell.classList.add('irrelevant-stat');
+                    cell.title = 'Haste (percentage)';
+                },
             }),
             {
                 shortName: 'wdPhys',
@@ -187,6 +234,8 @@ export class CustomItemTable extends CustomTable<CustomItem> {
                     });
                 }),
                 initialWidth: 40,
+                headerStyler: setTitle('Physical Weapon Damage'),
+                colStyler: setTitle('Physical Weapon Damage'),
             }, {
                 shortName: 'wdMag',
                 displayName: 'WdM',
@@ -197,7 +246,8 @@ export class CustomItemTable extends CustomTable<CustomItem> {
                     });
                 }),
                 initialWidth: 40,
-
+                headerStyler: setTitle('Magical Weapon Damage'),
+                colStyler: setTitle('Magical Weapon Damage'),
             }, {
                 shortName: 'wDelay',
                 displayName: 'Wpn Dly',
@@ -211,12 +261,11 @@ export class CustomItemTable extends CustomTable<CustomItem> {
                     const exampleWeapon = this.sheet.highestIlvlItemForSlot(item.occGearSlotName);
                     const suggestions = [exampleWeapon.stats.weaponDelay];
 
-                    const datalist = quickElement('datalist', [], suggestions.map(sugg => {
-                        const opt = document.createElement('option');
-                        opt.value = sugg.toString();
-                        return opt;
-                    }));
-                    datalist.id = randomId('custom-item-datalist-');
+                    const datalist = el('datalist',
+                        {id: randomId('custom-item-datalist-')},
+                        suggestions.map(sugg => {
+                            return el('option', {props: {value: sugg.toString()}});
+                        }));
 
                     out.setAttribute('list', datalist.id);
                     out.appendChild(datalist);
@@ -224,8 +273,9 @@ export class CustomItemTable extends CustomTable<CustomItem> {
                     return out;
                 }),
                 initialWidth: 80,
+                headerStyler: setTitle('Weapon Delay (Seconds)'),
+                colStyler: setTitle('Weapon Delay (Seconds)'),
             }];
-        // TODO: haste?
 
         this.refresh();
     }
@@ -234,7 +284,17 @@ export class CustomItemTable extends CustomTable<CustomItem> {
      * Refresh the table. Should be called after adding or removing an item.
      */
     refresh() {
-        this.data = [new HeaderRow(), ...this.sheet.customItems];
+        const items = this.sheet.customItems;
+        if (items.length === 0) {
+            this.data = [new HeaderRow(), new SpecialRow(() => {
+                return el('div', {class: 'no-items-message'}, [
+                    'You have no custom items. Click "New Item..." below to create one.',
+                ]);
+            })];
+        }
+        else {
+            this.data = [new HeaderRow(), ...items];
+        }
     }
 }
 
@@ -242,15 +302,23 @@ export class CustomItemTable extends CustomTable<CustomItem> {
  * Modal dialog for custom item management.
  */
 export class CustomItemPopup extends BaseModal {
+
     constructor(private readonly sheet: GearPlanSheetGui) {
         super();
         this.headerText = 'Custom Items';
         const table = new CustomItemTable(sheet);
         this.contentArea.appendChild(table);
 
-        const notesArea = document.createElement('p');
-        notesArea.innerHTML = 'Limitations:<br />If you change the number of materia slots on an item, you will need to re-select the item.';
-        notesArea.classList.add('notes-area');
+        const showAllStatsCb = new FieldBoundCheckBox<CustomItemPopup>(this, 'showAllStats');
+        const lcb = labeledCheckbox('Show all stats', showAllStatsCb);
+
+        const notesArea = el('p', {class: 'notes-area'}, [
+            lcb,
+            el('br'),
+            'Limitations:',
+            el('br'),
+            'If you change the number of materia slots on an item, you will need to re-select the item.',
+        ]);
         this.contentArea.appendChild(notesArea);
 
         const newCustomItemDropdown = new DropdownActionMenu('New Item...');
@@ -282,6 +350,19 @@ export class CustomItemPopup extends BaseModal {
         this.sheet.recalcAll();
         this.sheet.gearDisplaySettingsUpdateNow();
     }
+
+    get showAllStats(): boolean {
+        return this.classList.contains('show-all-stats');
+    }
+
+    set showAllStats(value: boolean) {
+        if (value) {
+            this.classList.add('show-all-stats');
+        }
+        else {
+            this.classList.remove('show-all-stats');
+        }
+    }
 }
 
 /**
@@ -297,7 +378,7 @@ export class CustomFoodTable extends CustomTable<CustomFood> {
                 getter: item => item,
                 renderer: (item: CustomFood) => {
                     const out = document.createElement('div');
-                    out.appendChild(makeActionButton([faIcon('fa-trash-can')], (ev) => {
+                    out.appendChild(makeActionButton([makeTrashIcon()], (ev) => {
                         if (confirmDelete(ev, `Delete custom food '${item.name}'?`)) {
                             const deleted = this.sheet.deleteCustomFood(item, setNames => {
                                 return confirmDelete(ev, `Some sets are still using this item:\n${setNames.map(setName => ` - ${setName}`).join('\n')}\nDelete anyway?`);
@@ -319,6 +400,8 @@ export class CustomFoodTable extends CustomTable<CustomFood> {
                     return new FieldBoundTextField(item.customData, 'name');
                 },
                 initialWidth: 150,
+                headerStyler: setTitle('Name of the item'),
+                colStyler: setTitle('Name of the item'),
             }, {
                 shortName: 'ilvl',
                 displayName: 'ilvl',
@@ -329,6 +412,8 @@ export class CustomFoodTable extends CustomTable<CustomFood> {
                     });
                 },
                 initialWidth: 60,
+                headerStyler: setTitle('Item level'),
+                colStyler: setTitle('Item level'),
             }, {
                 shortName: 'vitality-percent',
                 displayName: 'Vit %',
@@ -337,6 +422,8 @@ export class CustomFoodTable extends CustomTable<CustomFood> {
                     return new FieldBoundIntField(item.customData.vitalityBonus, 'percentage', {postValidators: [nonNegative]});
                 },
                 initialWidth: 60,
+                headerStyler: setTitle('Vitality bonus percentage'),
+                colStyler: setTitle('Vitality bonus percentage'),
             }, {
                 shortName: 'vitality-cap',
                 displayName: 'Vit Max',
@@ -345,6 +432,8 @@ export class CustomFoodTable extends CustomTable<CustomFood> {
                     return new FieldBoundIntField(item.customData.vitalityBonus, 'max', {postValidators: [nonNegative]});
                 },
                 initialWidth: 60,
+                headerStyler: setTitle('Vitality bonus cap'),
+                colStyler: setTitle('Vitality bonus cap'),
             }, {
                 shortName: 'primary-stat',
                 displayName: '1st Stat',
@@ -353,6 +442,8 @@ export class CustomFoodTable extends CustomTable<CustomFood> {
                     return new FieldBoundDataSelect(item.customData, 'primaryStat', value => value ? STAT_FULL_NAMES[value] : 'None', [null, ...ALL_SUB_STATS]);
                 },
                 initialWidth: 120,
+                headerStyler: setTitle('The primary sub-stat'),
+                colStyler: setTitle('The primary sub-stat'),
             }, {
                 shortName: 'primary-stat-percent',
                 displayName: '%',
@@ -361,6 +452,8 @@ export class CustomFoodTable extends CustomTable<CustomFood> {
                     return new FieldBoundIntField(item.customData.primaryStatBonus, 'percentage', {postValidators: [nonNegative]});
                 },
                 initialWidth: 60,
+                headerStyler: setTitle('The primary sub-stat bonus percentage'),
+                colStyler: setTitle('The primary sub-stat bonus percentage'),
             }, {
                 shortName: 'primary-stat-cap',
                 displayName: 'Max',
@@ -369,6 +462,8 @@ export class CustomFoodTable extends CustomTable<CustomFood> {
                     return new FieldBoundIntField(item.customData.primaryStatBonus, 'max', {postValidators: [nonNegative]});
                 },
                 initialWidth: 60,
+                headerStyler: setTitle('The primary sub-stat bonus cap'),
+                colStyler: setTitle('The primary sub-stat bonus cap'),
             }, {
                 shortName: 'secondary-stat',
                 displayName: '2nd Stat',
@@ -377,6 +472,8 @@ export class CustomFoodTable extends CustomTable<CustomFood> {
                     return new FieldBoundDataSelect(item.customData, 'secondaryStat', value => value ? STAT_FULL_NAMES[value] : 'None', [null, ...ALL_SUB_STATS]);
                 },
                 initialWidth: 120,
+                headerStyler: setTitle('The secondary sub-stat'),
+                colStyler: setTitle('The secondary sub-stat'),
             }, {
                 shortName: 'secondary-stat-percent',
                 displayName: '%',
@@ -385,6 +482,8 @@ export class CustomFoodTable extends CustomTable<CustomFood> {
                     return new FieldBoundIntField(item.customData.secondaryStatBonus, 'percentage', {postValidators: [nonNegative]});
                 },
                 initialWidth: 60,
+                headerStyler: setTitle('The secondary sub-stat bonus percentage'),
+                colStyler: setTitle('The secondary sub-stat bonus percentage'),
             }, {
                 shortName: 'secondary-stat-cap',
                 displayName: 'Max',
@@ -393,6 +492,8 @@ export class CustomFoodTable extends CustomTable<CustomFood> {
                     return new FieldBoundIntField(item.customData.secondaryStatBonus, 'max', {postValidators: [nonNegative]});
                 },
                 initialWidth: 60,
+                headerStyler: setTitle('The secondary sub-stat bonus cap'),
+                colStyler: setTitle('The secondary sub-stat bonus cap'),
             },
         ];
 
@@ -403,7 +504,17 @@ export class CustomFoodTable extends CustomTable<CustomFood> {
      * Refresh the table. Should be called after adding or removing an item.
      */
     refresh() {
-        this.data = [new HeaderRow(), ...this.sheet.customFood];
+        const items = this.sheet.customFood;
+        if (items.length === 0) {
+            this.data = [new HeaderRow(), new SpecialRow(() => {
+                return el('div', {class: 'no-items-message'}, [
+                    'You have no custom foods. Click "New Food" below to create one.',
+                ]);
+            })];
+        }
+        else {
+            this.data = [new HeaderRow(), ...items];
+        }
     }
 }
 

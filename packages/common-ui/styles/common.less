@@ -830,6 +830,12 @@ table.gear-plan-table {
       }
     }
 
+    th {
+      cursor: default;
+    }
+    td, th.hoverable {
+      cursor: pointer;
+    }
     td, th {
       //background-color: var(--table-bg-color);
 
@@ -1567,7 +1573,7 @@ table.gear-items-table, table.food-items-table {
     position: relative;
   }
 
-  td[col-id='mats'], td[col-id='wd'] {
+  td[col-id='mats'], td[col-id='wd'], td[col-id='haste'] {
     text-align: center;
   }
 
@@ -1707,7 +1713,7 @@ slot-materia-manager {
   slot-materia-popup {
     cursor: default;
 
-    td:has(img), .materia-picker-remove {
+    td:has(img), .materia-picker-special-button {
       cursor: pointer;
     }
   }
@@ -1806,6 +1812,7 @@ slot-materia-popup {
     // For classic theme only - want to be able to see the border
     border-top: var(--standard-border) !important;
     text-align: center;
+    padding: 0 !important;
   }
 
   td {
@@ -1836,20 +1843,36 @@ slot-materia-popup {
     }
   }
 
-  .materia-picker-remove {
-    text-align: center;
-    font-weight: bold;
-
-    svg {
-      fill: #831818;
-    }
-
+  .materia-picker-special-button {
+    padding-top: 6px;
+    padding-bottom: 6px;
     &:hover {
-      svg {
-        fill: red;
+      background-color: var(--bg-color);
+    }
+    text-align: center;
+    &.materia-picker-lock {
+      padding-left: 5px;
+      padding-right: 8px;
+      &.unlocked {
+        opacity: 0.5;
       }
     }
+
+    &.materia-picker-remove {
+
+      svg {
+        fill: #831818;
+      }
+
+      &:hover {
+        svg {
+          fill: red;
+        }
+      }
+    }
+
   }
+
 }
 
 sim-result-display {
@@ -1978,7 +2001,7 @@ add-sim-dialog {
   }
 }
 
-gear-set-editor, separator-editor {
+gear-set-editor, separator-editor, div.gear-set-popout-open-placeholder {
   div.gear-set-editor-button-area {
     width: 100%;
     text-align: center;
@@ -2161,6 +2184,15 @@ div.gear-sheet-toolbar-holder {
         // The element can still go off the left.
         position: sticky;
       }
+
+      .materia-fill-button {
+        box-sizing: content-box;
+        padding: 5px 8px;
+        margin-bottom: 10px;
+        >svg {
+          padding-right: 5px;
+        }
+      }
     }
 
     > button {
@@ -2190,7 +2222,7 @@ div.gear-sheet-toolbar-holder {
         }
       }
 
-      svg {
+      >svg {
         margin: auto;
         width: 100%;
         height: 100%;
@@ -3620,14 +3652,6 @@ gear-set-issues-modal {
 
 }
 
-.invert-input-colors {
-  --input-background-color: var(--bg-color);
-
-  input, textarea {
-    background-color: var(--bg-color);
-  }
-}
-
 #content-area > .named-section {
   .named-section-standard();
   .top-level-widget();
@@ -3728,6 +3752,10 @@ settings-modal {
 
     > * {
       display: block;
+    }
+    > br {
+      height: 10px;
+      display: unset;
     }
 
     #language-picker {

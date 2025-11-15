@@ -10,6 +10,8 @@ export type PersistentSettings = {
     set viewDetailedStats(detailedStats: boolean);
     get languageOverride(): Language | undefined;
     set languageOverride(value: Language | undefined);
+    get reverseItemSort(): boolean | undefined;
+    set reverseItemSort(value: boolean);
     workersOverride: number | undefined;
     hideWelcomeMessage: boolean;
 }
@@ -20,6 +22,7 @@ const DETAILED_STATS_KEY = 'detailed-stats';
 const HIDE_WELCOME_KEY = 'hide-welcome-area';
 const LANGUAGE_OVERRIDE_KEY = 'language-override';
 const WORKERS_OVERRIDE_KEY = 'workers-override';
+const REVERSE_ITEM_SORT_KEY = 'reverse-item-sort';
 export const SETTINGS: PersistentSettings = {
     get lightMode(): boolean | undefined {
         return getBool(LIGHT_MODE_KEY);
@@ -70,6 +73,12 @@ export const SETTINGS: PersistentSettings = {
             throw new Error("Value must be an integer >= 2");
         }
         setInt(WORKERS_OVERRIDE_KEY, value);
+    },
+    get reverseItemSort(): boolean | undefined {
+        return getBool(REVERSE_ITEM_SORT_KEY);
+    },
+    set reverseItemSort(value: boolean) {
+        setBool(REVERSE_ITEM_SORT_KEY, value);
     },
 };
 

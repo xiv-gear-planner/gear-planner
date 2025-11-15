@@ -12,7 +12,7 @@ import {RawBonusStats, StatModification, StatPreModifications} from "./xivstats"
 import {TranslatableString} from "@xivgear/i18n/translation";
 import {SpecialStatType} from "@xivgear/data-api-client/dataapi";
 
-export interface DisplayGearSlot {
+export interface DisplayGearSlotInfo {
 
 }
 
@@ -28,7 +28,7 @@ export const OccGearSlots = ['Weapon2H', 'Weapon1H', 'OffHand', 'Head', 'Body', 
 export type OccGearSlotKey = typeof OccGearSlots[number];
 
 // For future use, in the event that these actually require properties
-export const DisplayGearSlotInfo: Record<DisplayGearSlotKey, DisplayGearSlot> = {
+export const DisplayGearSlotMapping: Record<DisplayGearSlotKey, DisplayGearSlotInfo> = {
     Weapon: {},
     OffHand: {},
     Head: {},
@@ -43,7 +43,7 @@ export const DisplayGearSlotInfo: Record<DisplayGearSlotKey, DisplayGearSlot> = 
 } as const;
 
 export interface EquipSlot {
-    get gearSlot(): DisplayGearSlot;
+    get gearSlot(): DisplayGearSlotKey;
 
     slot: keyof EquipmentSet;
 
@@ -58,62 +58,62 @@ export const EquipSlotInfo: Record<EquipSlotKey, EquipSlot> = {
     Weapon: {
         slot: 'Weapon',
         name: 'Weapon',
-        gearSlot: DisplayGearSlotInfo.Weapon,
+        gearSlot: 'Weapon',
     },
     OffHand: {
         slot: 'OffHand',
         name: 'Off-Hand',
-        gearSlot: DisplayGearSlotInfo.OffHand,
+        gearSlot: 'OffHand',
     },
     Head: {
         slot: 'Head',
         name: 'Head',
-        gearSlot: DisplayGearSlotInfo.Head,
+        gearSlot: 'Head',
     },
     Body: {
         slot: 'Body',
         name: 'Body',
-        gearSlot: DisplayGearSlotInfo.Body,
+        gearSlot: 'Body',
     },
     Hand: {
         slot: 'Hand',
         name: 'Hand',
-        gearSlot: DisplayGearSlotInfo.Hand,
+        gearSlot: 'Hand',
     },
     Legs: {
         slot: 'Legs',
         name: 'Legs',
-        gearSlot: DisplayGearSlotInfo.Legs,
+        gearSlot: 'Legs',
     },
     Feet: {
         slot: 'Feet',
         name: 'Feet',
-        gearSlot: DisplayGearSlotInfo.Feet,
+        gearSlot: 'Feet',
     },
     Ears: {
         slot: 'Ears',
         name: 'Ears',
-        gearSlot: DisplayGearSlotInfo.Ears,
+        gearSlot: 'Ears',
     },
     Neck: {
         slot: 'Neck',
         name: 'Neck',
-        gearSlot: DisplayGearSlotInfo.Neck,
+        gearSlot: 'Neck',
     },
     Wrist: {
         slot: 'Wrist',
         name: 'Wrist',
-        gearSlot: DisplayGearSlotInfo.Wrist,
+        gearSlot: 'Wrist',
     },
     RingLeft: {
         slot: 'RingLeft',
         name: 'Left Ring',
-        gearSlot: DisplayGearSlotInfo.Ring,
+        gearSlot: 'Ring',
     },
     RingRight: {
         slot: 'RingRight',
         name: 'Right Ring',
-        gearSlot: DisplayGearSlotInfo.Ring,
+        gearSlot: 'Ring',
     },
 } as const;
 
@@ -152,7 +152,7 @@ export interface GearItem extends XivCombatItem {
     /**
      * Which gear slot to populate in the UI
      */
-    displayGearSlot: DisplayGearSlot;
+    displayGearSlot: DisplayGearSlotInfo;
     /**
      * Which gear slot to populate in the UI
      */
@@ -274,9 +274,16 @@ export interface ComputedSetStats extends RawStats {
     gcdMag(baseGcd: number, haste?: number): number,
 
     /**
-     * Base haste value for a given attack type
+     * Combined haste value for a given attack type
      */
-    haste(attackType: AttackType): number;
+    haste(attackType: AttackType, buffHaste: number): number;
+
+    /**
+     * Compute the effective auto-attack delay. Assumes the attack has the type 'Auto-attack'.
+     *
+     * @param buffHaste The amount of haste from buffs.
+     */
+    effectiveAaDelay(buffHaste: number): number;
 
     /**
      * Crit chance. Ranges from 0 to 1.
@@ -414,6 +421,7 @@ export interface RawStats {
     weaponDelay: number,
     defenseMag: number;
     defensePhys: number;
+    gearHaste: number;
 }
 
 export type RawStatKey = keyof RawStats;
@@ -443,6 +451,7 @@ export class RawStats implements RawStats {
     weaponDelay: number = 0;
     defenseMag: number = 0;
     defensePhys: number = 0;
+    gearHaste: number = 0;
 
     constructor(values: ({ [K in RawStatKey]?: number } | undefined) = undefined) {
         if (values) {
@@ -583,9 +592,9 @@ export type GcdDisplayOverride = {
      */
     attackType: AttackType,
     /**
-     * Additional haste to use for this calculation (e.g. for PoM)
+     * Additional buff haste to use for this calculation (e.g. for PoM)
      */
-    haste?: number,
+    buffHaste?: number,
     /**
      * Whether this calc uses SpS or SkS formula
      */
@@ -616,8 +625,10 @@ export interface JobData extends JobDataConst {
 export interface JobTrait {
     minLevel?: number,
     maxLevel?: number,
-    apply: (stats: RawBonusStats) => void;
+    apply: TraitFunc,
 }
+
+export type TraitFunc = (stats: RawBonusStats) => void;
 
 export type GearSlotItem = {
     slot: EquipSlot;

@@ -17,22 +17,18 @@ import {
 import {GearPlanSheet, SheetProvider} from "@xivgear/core/sheet";
 import {
     DataSelect,
-    editIcon,
-    exportIcon,
-    faIcon,
+    el,
     FieldBoundCheckBox,
     FieldBoundDataSelect,
     FieldBoundTextField,
-    importIcon,
     labeledCheckbox,
     makeActionButton,
-    newSheetIcon,
     quickElement
 } from "@xivgear/common-ui/components/util";
 import {
     ChanceStat,
     ComputedSetStats,
-    DisplayGearSlot,
+    DisplayGearSlotKey,
     EquipSlotKey,
     EquipSlots,
     GearItem,
@@ -52,7 +48,7 @@ import {
     JobName,
     MAX_PARTY_BONUS,
     RACE_STATS,
-    RaceName,
+    RaceName, SpecialStatKey,
     STAT_ABBREVIATIONS,
     SupportedLevel
 } from "@xivgear/xivmath/xivconstants";
@@ -78,7 +74,7 @@ import {simpleKvTable} from "../sims/components/simple_tables";
 import {rangeInc} from "@xivgear/util/array_utils";
 import {SimCurrentResult, SimResult, SimSettings, SimSpec, Simulation} from "@xivgear/core/sims/sim_types";
 import {getRegisteredSimSpecs} from "@xivgear/core/sims/sim_registry";
-import {makeUrl, NavState, ONLY_SET_QUERY_PARAM} from "@xivgear/core/nav/common_nav";
+import {makeUrl, makeUrlSimple, NavState, ONLY_SET_QUERY_PARAM, POPUP_HASH} from "@xivgear/core/nav/common_nav";
 import {simMaintainersInfoElement} from "./sims";
 import {ChangePropsModal, SaveAsModal} from "./new_sheet_form";
 import {DropdownActionMenu} from "./dropdown_actions_menu";
@@ -99,13 +95,19 @@ import {setDataManagerErrorReporter} from "@xivgear/core/data_api_client";
 import {SpecialStatType} from "@xivgear/data-api-client/dataapi";
 import {SHEET_MANAGER} from "./saved_sheet_impl";
 import {cleanUrl} from "@xivgear/common-ui/nav/common_frontend_nav";
+import {isSafari} from "@xivgear/common-ui/util/detect_safari";
+import {getNextPopoutContext, isPopout, MESSAGE_REFRESH_CONTENT, MESSAGE_REFRESH_TOOLBAR} from "../popout";
+import {
+    editIcon,
+    makeCopyIcon,
+    makeExportIcon,
+    makeImportIcon,
+    makeNewSheetIcon,
+    makeTrashIcon
+} from "@xivgear/common-ui/components/icons";
+import {showCompatOverview} from "./compat_checker";
 
 const noSeparators = (set: CharacterGearSet) => !set.isSeparator;
-
-const isSafari: boolean = (() => {
-    const ua = navigator.userAgent.toLowerCase();
-    return ua.includes('safari') && !ua.includes('chrome');
-})();
 
 // Set up error reporting for DataManager
 setDataManagerErrorReporter((response, params) => {
@@ -320,7 +322,7 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, SingleCellRowOr
                     shortName: "gcd-custom-" + counter++,
                     displayName: gcdOver.shortLabel,
                     getter: gearSet => {
-                        const haste = gearSet.computedStats.haste(gcdOver.attackType) + (gcdOver.haste ?? 0);
+                        const haste = gearSet.computedStats.haste(gcdOver.attackType, gcdOver.buffHaste ?? 0);
                         switch (gcdOver.basis) {
                             case "sks":
                                 return gearSet.computedStats.gcdPhys(2.5, haste);
@@ -342,8 +344,8 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, SingleCellRowOr
                     shortName: "gcd",
                     displayName: "GCD",
                     getter: gearSet => {
-                        const magHaste = gearSet.computedStats.haste('Spell');
-                        const physHaste = gearSet.computedStats.haste('Weaponskill');
+                        const magHaste = gearSet.computedStats.haste('Spell', 0);
+                        const physHaste = gearSet.computedStats.haste('Weaponskill', 0);
                         return Math.min(gearSet.computedStats.gcdMag(2.5, magHaste), gearSet.computedStats.gcdPhys(2.5, physHaste));
                     },
                     renderer: gcd => document.createTextNode(gcd.toFixed(2)),
@@ -389,12 +391,12 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, SingleCellRowOr
                 getter: gearSet => gearSet,
                 renderer: (gearSet: CharacterGearSet) => {
                     const div = document.createElement("div");
-                    div.appendChild(makeActionButton([faIcon('fa-trash-can')], (ev) => {
+                    div.appendChild(makeActionButton([makeTrashIcon()], (ev) => {
                         if (confirmDelete(ev, `Delete gear set '${gearSet.name}'?`)) {
                             this.sheet.delGearSet(gearSet);
                         }
                     }, 'Delete this set'));
-                    div.appendChild(makeActionButton([faIcon('fa-copy')], () => this.sheet.cloneAndAddGearSet(gearSet, true), 'Clone this set'));
+                    div.appendChild(makeActionButton([makeCopyIcon()], () => this.sheet.cloneAndAddGearSet(gearSet, true), 'Clone this set'));
                     const dragger = document.createElement('button');
                     dragger.title = 'Drag to re-order this set';
                     dragger.textContent = '≡';
@@ -825,7 +827,7 @@ function stringToParagraphs(text: string): HTMLParagraphElement[] {
  * The set editor portion. Includes the tab as well as controls for the set name and such.
  */
 export class GearSetEditor extends HTMLElement {
-    private readonly sheet: GearPlanSheet;
+    private readonly sheet: GearPlanSheetGui;
     private readonly gearSet: CharacterGearSet;
     private gearTables: GearItemsTable[] = [];
     private header: HTMLHeadingElement;
@@ -833,7 +835,7 @@ export class GearSetEditor extends HTMLElement {
     private issuesButtonContent: HTMLSpanElement;
     private foodTable: FoodItemsTable;
 
-    constructor(sheet: GearPlanSheet, gearSet: CharacterGearSet) {
+    constructor(sheet: GearPlanSheetGui, gearSet: CharacterGearSet) {
         super();
         this.sheet = sheet;
         this.gearSet = gearSet;
@@ -880,7 +882,11 @@ export class GearSetEditor extends HTMLElement {
         this.appendChild(this.desc);
         this.formatTitleDesc();
 
-        this.issuesButtonContent = document.createElement('span');
+        const compatCheckerButton = makeActionButton('Compatibility', () => {
+            this.sheet.showCompatOverview(this.gearSet);
+        });
+
+        this.issuesButtonContent = el('span');
 
         const issuesButton = makeActionButton([this.issuesButtonContent], () => {
             this.showIssuesModal();
@@ -888,14 +894,19 @@ export class GearSetEditor extends HTMLElement {
         issuesButton.classList.add('issues-button');
 
         const buttonArea = quickElement('div', ['gear-set-editor-button-area', 'button-row'], [
-            makeActionButton([exportIcon(), 'Export Set'], () => {
+            makeActionButton([makeExportIcon(), 'Export Set'], () => {
                 startExport(this.gearSet);
             }),
             makeActionButton([editIcon(), 'Edit Name/Description'], () => {
                 startRenameSet(writeProxy(this.gearSet, () => this.formatTitleDesc()));
             }),
+            isPopout() ? null : makeActionButton([makeExportIcon(), 'Popout Editor'], () => {
+                const sheetAny = this.sheet;
+                sheetAny.openPopoutForSet(this.gearSet);
+            }),
+            compatCheckerButton,
             issuesButton,
-        ]);
+        ].filter(x => x !== null));
         if (this.sheet.isMultiJob) {
             buttonArea.prepend(new DataSelect(
                 this.sheet.allJobs,
@@ -910,11 +921,11 @@ export class GearSetEditor extends HTMLElement {
         // Put items in categories by slot
         // Not enough to just use the items, because rings can be in either ring slot, so we
         // need options to reflect that.
-        const itemMapping: Map<DisplayGearSlot, GearItem[]> = new Map();
+        const itemMapping: Map<DisplayGearSlotKey, GearItem[]> = new Map();
         this.sheet.itemsForDisplay
             .filter(item => item.usableByJob(this.gearSet.job))
             .forEach((item) => {
-                const slot = item.displayGearSlot;
+                const slot = item.displayGearSlotName;
                 if (itemMapping.has(slot)) {
                     itemMapping.get(slot).push(item);
                 }
@@ -1288,6 +1299,8 @@ export class GearPlanSheetElement extends HTMLElement {
 export class GearPlanSheetGui extends GearPlanSheet {
 
     protected _materiaAutoFillController: MateriaAutoFillController;
+    // Track open popout windows per gear set
+    private _openSetPopouts: Map<CharacterGearSet, Window> = new Map();
     private gearUpdateTimer: Inactivitytimer;
     private _sheetSetupDone: boolean = false;
     private readonly element: GearPlanSheetElement;
@@ -1308,7 +1321,7 @@ export class GearPlanSheetGui extends GearPlanSheet {
     readonly midBarArea: HTMLDivElement;
     readonly toolbarHolder: HTMLDivElement;
     private _simGuis: SimulationGui<any, any, any>[];
-    private specialStatDropdown: FieldBoundDataSelect<GearPlanSheet, SpecialStatType | null>;
+    private specialStatDropdown: FieldBoundDataSelect<GearPlanSheet, SpecialStatKey | null> | null = null;
 
     get simGuis() {
         return this._simGuis;
@@ -1444,7 +1457,29 @@ export class GearPlanSheetGui extends GearPlanSheet {
                         this.setupEditorArea(new GearSetViewer(this, item));
                     }
                     else {
-                        this.setupEditorArea(new GearSetEditor(this, item));
+                        const existing = this._openSetPopouts.get(item);
+                        if (existing && !existing.closed) {
+                            const header = document.createElement('h3');
+                            header.textContent = `${item.name} editor is open in a popout`;
+                            const focusBtn = makeActionButton('Focus Popout', () => {
+                                try {
+                                    existing.focus();
+                                }
+                                catch (e) {
+                                    // ignore
+                                }
+                            });
+                            const closeBtn = makeActionButton('Close Popout', () => {
+                                this.closePopoutForSet(item);
+                                this.refreshGearEditor(item);
+                            });
+                            const btnArea = quickElement('div', ['gear-set-editor-button-area', 'button-row'], [focusBtn, closeBtn]);
+                            const wrapper = quickElement('div', ['gear-set-popout-open-placeholder'], [header, btnArea]);
+                            this.setupEditorArea(wrapper);
+                        }
+                        else {
+                            this.setupEditorArea(new GearSetEditor(this, item));
+                        }
                     }
                 }
                 this.refreshToolbar();
@@ -1470,7 +1505,7 @@ export class GearPlanSheetGui extends GearPlanSheet {
         const buttonsArea = this.buttonsArea;
         const showHideButton = makeActionButton('≡', () => {
             const cls = 'showing';
-            buttonsArea.classList.contains(cls) ? buttonsArea.classList.remove(cls) : buttonsArea.classList.add(cls);
+            buttonsArea.classList.toggle(cls);
         });
         showHideButton.classList.add('show-hide-button');
         buttonsArea.appendChild(showHideButton);
@@ -1490,7 +1525,7 @@ export class GearPlanSheetGui extends GearPlanSheet {
         }
 
         if (!this.isViewOnly) {
-            const addRowButton = makeActionButton([newSheetIcon(), "New Set"], () => {
+            const addRowButton = makeActionButton([makeNewSheetIcon(), "New Set"], () => {
                 const newSet = new CharacterGearSet(this);
                 newSet.name = "New Set";
                 this.addGearSet(newSet, undefined, true);
@@ -1558,17 +1593,17 @@ export class GearPlanSheetGui extends GearPlanSheet {
 
         if (!this.isViewOnly) {
 
-            const newSimButton = makeActionButton([newSheetIcon(), "Add Sim"], () => {
+            const newSimButton = makeActionButton([makeNewSheetIcon(), "Add Sim"], () => {
                 this.showAddSimDialog();
             });
             buttonsArea.appendChild(newSimButton);
 
-            const exportSheetButton = makeActionButton([exportIcon(), "Export Sheet"], () => {
+            const exportSheetButton = makeActionButton([makeExportIcon(), "Export Sheet"], () => {
                 startExport(this);
             });
             buttonsArea.appendChild(exportSheetButton);
 
-            const importGearSetButton = makeActionButton([importIcon(), "Import Sets"], () => {
+            const importGearSetButton = makeActionButton([makeImportIcon(), "Import Sets"], () => {
                 this.showImportSetsDialog();
             });
             buttonsArea.appendChild(importGearSetButton);
@@ -1599,6 +1634,7 @@ export class GearPlanSheetGui extends GearPlanSheet {
             if (this._editorAreaNode instanceof GearSetEditor) {
                 this._editorAreaNode.setup();
             }
+            this.sendMessageToPopouts({'type': MESSAGE_REFRESH_CONTENT});
             this.saveData();
         });
 
@@ -1637,29 +1673,30 @@ export class GearPlanSheetGui extends GearPlanSheet {
         buttonsArea.appendChild(partySizeDropdown);
 
         // TODO: this should only show once you select an occult crescent item
-        this.specialStatDropdown = new FieldBoundDataSelect<GearPlanSheet, SpecialStatType | null>(
-            this,
-            'activeSpecialStat',
-            value => {
-                switch (value) {
-                    case null:
-                        return 'No Special Stats';
-                    // case SpecialStatType.OccultCrescent:
-                    //     return 'Occult Crescent';
-                    default:
-                        return camel2title(value);
-                }
-            },
-            [null, ...Object.values(SpecialStatType)]
-        );
-        // TODO: move this logic to xivconstants or something
-        // We only want this to show if our sheet looks like it might be for one of these duties with special bonuses,
-        // or if the user somehow got into a state where they have a special stat set despite the sheet normally
-        // not being eligible for one.
-        if (!(this.activeSpecialStat || (this.level === 100 && this.ilvlSync === 700))) {
-            this.specialStatDropdown.style.display = 'none';
+        const validSpecialStats: SpecialStatKey[] = [];
+        const specialStat = this.applicableSpecialStat();
+        if (specialStat) {
+            validSpecialStats.push(specialStat);
         }
-        buttonsArea.appendChild(this.specialStatDropdown);
+        if (this.activeSpecialStat && !validSpecialStats.includes(this.activeSpecialStat)) {
+            validSpecialStats.push(specialStat);
+        }
+        if (validSpecialStats.length > 0) {
+            this.specialStatDropdown = new FieldBoundDataSelect<GearPlanSheet, SpecialStatKey | null>(
+                this,
+                'activeSpecialStat',
+                value => {
+                    switch (value) {
+                        case null:
+                            return 'No Special Stats';
+                        default:
+                            return camel2title(value);
+                    }
+                },
+                [null, ...validSpecialStats]
+            );
+            buttonsArea.appendChild(this.specialStatDropdown);
+        }
 
         if (this.saveKey) {
             this.headerArea.style.display = 'none';
@@ -1724,79 +1761,7 @@ export class GearPlanSheetGui extends GearPlanSheet {
         // console.log(`${this._selectFirstRowByDefault} ${this.sets.length}`);
 
 
-        const outer = this;
-
-        function doSet(f: (set: CharacterGearSet) => void): void {
-            const set = outer.selectedGearSet;
-            if (set) {
-                f(set);
-                if (outer._editorAreaNode instanceof GearSetEditor) {
-                    outer._editorAreaNode.refreshMateria();
-                }
-            }
-        }
-
-        const matFillCtrl: MateriaAutoFillController = {
-
-            get autoFillMode() {
-                return outer.materiaFillMode;
-            },
-            set autoFillMode(mode: MateriaFillMode) {
-                outer.materiaFillMode = mode;
-                outer.requestSave();
-            },
-            get prio() {
-                return writeProxy<MateriaAutoFillPrio>(outer.materiaAutoFillPrio, () => outer.requestSave());
-            },
-            callback(): void {
-                outer.requestSave();
-            },
-            fillAll(): void {
-                doSet(set => set.fillMateria(outer.materiaAutoFillPrio, true));
-            },
-            fillEmpty(): void {
-                doSet(set => set.fillMateria(outer.materiaAutoFillPrio, false));
-            },
-            lockEmpty(): void {
-                doSet(set => {
-                    set.forEachMateriaSlot((_key, _item, slot) => {
-                        if (!slot.equippedMateria) {
-                            slot.locked = true;
-                        }
-                    });
-                    // Only save - no recalc
-                    set.nonRecalcNotify();
-                });
-            },
-            lockFilled(): void {
-                doSet(set => {
-                    set.forEachMateriaSlot((_key, _item, slot) => {
-                        if (slot.equippedMateria) {
-                            slot.locked = true;
-                        }
-                    });
-                    set.nonRecalcNotify();
-                });
-            },
-            unequipUnlocked(): void {
-                doSet(set => {
-                    set.forEachMateriaSlot((_key, _item, slot) => {
-                        if (!slot.locked) {
-                            slot.equippedMateria = null;
-                        }
-                    });
-                    set.forceRecalc();
-                });
-            },
-            unlockAll(): void {
-                doSet(set => {
-                    set.forEachMateriaSlot((_key, _item, slot) => {
-                        slot.locked = false;
-                    });
-                    set.nonRecalcNotify();
-                });
-            },
-        };
+        const matFillCtrl = this.makeMateriaAutoFillController(() => this.selectedGearSet);
         this._materiaAutoFillController = matFillCtrl;
         this._gearEditToolBar = new GearEditToolbar(
             this,
@@ -1974,6 +1939,83 @@ export class GearPlanSheetGui extends GearPlanSheet {
         }
     }
 
+    makeMateriaAutoFillController(setGetter: () => CharacterGearSet | undefined) {
+        const outer = this;
+
+        function doSet(f: (set: CharacterGearSet) => void): void {
+            const set = setGetter();
+            if (set) {
+                f(set);
+                if (outer._editorAreaNode instanceof GearSetEditor) {
+                    outer._editorAreaNode.refreshMateria();
+                }
+                outer.sendMessageToPopouts({'type': MESSAGE_REFRESH_CONTENT});
+            }
+        }
+
+        return {
+            get autoFillMode() {
+                return outer.materiaFillMode;
+            },
+            set autoFillMode(mode: MateriaFillMode) {
+                outer.materiaFillMode = mode;
+                outer.requestSave();
+            },
+            get prio() {
+                return writeProxy<MateriaAutoFillPrio>(outer.materiaAutoFillPrio, () => outer.requestSave());
+            },
+            callback(): void {
+                outer.requestSave();
+            },
+            fillAll(): void {
+                doSet(set => set.fillMateria(outer.materiaAutoFillPrio, true));
+            },
+            fillEmpty(): void {
+                doSet(set => set.fillMateria(outer.materiaAutoFillPrio, false));
+            },
+            lockEmpty(): void {
+                doSet(set => {
+                    set.forEachMateriaSlot((_key, _item, slot) => {
+                        if (!slot.equippedMateria) {
+                            slot.locked = true;
+                        }
+                    });
+                    // Only save - no recalc
+                    set.nonRecalcNotify();
+                });
+            },
+            lockFilled(): void {
+                doSet(set => {
+                    set.forEachMateriaSlot((_key, _item, slot) => {
+                        if (slot.equippedMateria) {
+                            slot.locked = true;
+                        }
+                    });
+                    set.nonRecalcNotify();
+                });
+            },
+            unequipUnlocked(): void {
+                doSet(set => {
+                    set.forEachMateriaSlot((_key, _item, slot) => {
+                        if (!slot.locked) {
+                            slot.equippedMateria = null;
+                        }
+                    });
+                    set.forceRecalc();
+                });
+            },
+            unlockAll(): void {
+                doSet(set => {
+                    set.forEachMateriaSlot((_key, _item, slot) => {
+                        slot.locked = false;
+                    });
+                    set.nonRecalcNotify();
+                });
+            },
+        };
+
+    }
+
     addGearSet(gearSet: CharacterGearSet, index?: number, select: boolean = false) {
         super.addGearSet(gearSet, index);
         this._gearPlanTable?.dataChanged();
@@ -1993,6 +2035,18 @@ export class GearPlanSheetGui extends GearPlanSheet {
         gearSet.startCheckpoint(() => this.refreshGearEditor(gearSet));
     }
 
+    sendMessageToSetPopout(set: CharacterGearSet, message: unknown) {
+        this._openSetPopouts.get(set)?.postMessage(message);
+    }
+
+    sendMessageToPopouts(message: unknown) {
+        this._openSetPopouts.forEach((win) => {
+            if (!win.closed) {
+                win.postMessage(message);
+            }
+        });
+    }
+
     /**
      * Fully refresh the gear editor area.
      *
@@ -2002,6 +2056,12 @@ export class GearPlanSheetGui extends GearPlanSheet {
         if (!set || this._editorItem === set) {
             this.resetEditorArea();
             // this.refreshToolbar();
+        }
+        if (set) {
+            this.sendMessageToSetPopout(set, {'type': MESSAGE_REFRESH_CONTENT});
+        }
+        else {
+            this.sendMessageToPopouts({'type': MESSAGE_REFRESH_CONTENT});
         }
     }
 
@@ -2014,13 +2074,93 @@ export class GearPlanSheetGui extends GearPlanSheet {
                 this.toolbarNode.refresh(this._editorItem);
             }
         }
+        this.sendMessageToPopouts({type: MESSAGE_REFRESH_TOOLBAR});
     }
 
     delGearSet(gearSet: CharacterGearSet) {
+        // Close any open popout for this set before deleting it
+        this.closePopoutForSet(gearSet);
         super.delGearSet(gearSet);
         if (this._gearPlanTable) {
             this._gearPlanTable.dataChanged();
             this._gearPlanTable.reprocessAllSimColColors();
+        }
+        // Clear editor if we deleted the currently selected set
+        if (this._editorItem === gearSet) {
+            this.editorItem = undefined;
+        }
+    }
+
+    /**
+     * Open or focus a popout window for the specified gear set.
+     */
+    openPopoutForSet(set: CharacterGearSet) {
+        const index = this.sets.indexOf(set);
+        if (index < 0) {
+            return;
+        }
+        const existing = this._openSetPopouts.get(set);
+        if (existing && !existing.closed) {
+            try {
+                existing.focus();
+            }
+            catch (e) {
+                // ignore
+            }
+            return;
+        }
+        const url = makeUrlSimple(POPUP_HASH, index.toString());
+        url.searchParams.delete('_ij_reload');
+        const popup = window.open(url, getNextPopoutContext(), "popout,location=false,toolbar=false,status=false,width=1024,height=768");
+        if (!popup) {
+            alert('Failed to pop out editor. Your browser may be blocking popups.');
+            return;
+        }
+        (popup as any).parentSheet = this;
+        this._openSetPopouts.set(set, popup);
+        // Immediately swap editor area to the placeholder if this set is currently selected
+        if (this._editorItem === set) {
+            this.refreshGearEditor(set);
+        }
+        // Cleanup when popup closes
+        const interval = window.setInterval(() => {
+            if (popup.closed) {
+                window.clearInterval(interval);
+                this._openSetPopouts.delete(set);
+                if (this._editorItem === set) {
+                    this.refreshGearEditor(set);
+                }
+            }
+        }, 1000);
+        try {
+            popup.addEventListener('beforeunload', () => {
+                window.clearInterval(interval);
+                this._openSetPopouts.delete(set);
+                if (this._editorItem === set) {
+                    this.refreshGearEditor(set);
+                }
+            });
+        }
+        catch (e) {
+            // Some browsers may not allow adding listeners across windows; rely on polling
+        }
+    }
+
+    /**
+     * Close an open popout for the specified set, if present.
+     */
+    closePopoutForSet(set: CharacterGearSet) {
+        const w = this._openSetPopouts.get(set);
+        if (w) {
+            try {
+                if (!w.closed) {
+                    w.close();
+                }
+            }
+            catch (e) {
+                // ignore
+            }
+            this._openSetPopouts.delete(set);
         }
     }
 
@@ -2168,12 +2308,8 @@ export class GearPlanSheetGui extends GearPlanSheet {
         this.resetEditorArea();
     }
 
-    showChangePropertiesDialog(): void {
-        if (!this.saveKey) {
-            alert('You must save this sheet before changing its properties. Use "Save As" first.');
-            return;
-        }
-        new ChangePropsModal(this).attachAndShowExclusively();
+    showCompatOverview(set: CharacterGearSet): void {
+        showCompatOverview(this, set);
     }
 }
 

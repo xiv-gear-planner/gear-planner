@@ -2,6 +2,7 @@
 // TODO: get back to fixing this at some point
 import {
     ALL_COMBAT_JOBS,
+    ALL_SUB_STATS,
     CURRENT_MAX_LEVEL,
     defaultItemDisplaySettings,
     DefaultMateriaFillPrio,
@@ -14,9 +15,13 @@ import {
     MAIN_STATS,
     MateriaSubstat,
     RaceName,
+    SPECIAL_STAT_KEYS,
+    SPECIAL_STATS_MAPPING,
+    SpecialStatKey,
     SupportedLevel
 } from "@xivgear/xivmath/xivconstants";
 import {
+    DisplayGearSlotKey,
     EquippedItem,
     EquipSlotKey,
     EquipSlots,
@@ -54,7 +59,7 @@ import {DUMMY_SHEET_MGR, SheetManager} from "./persistence/saved_sheets";
 import {CustomItem} from "./customgear/custom_item";
 import {CustomFood} from "./customgear/custom_food";
 import {statsSerializationProxy} from "@xivgear/xivmath/xivstats";
-import {isMateriaAllowed} from "./materia/materia_utils";
+import {isMateriaAllowed, materiaShortLabel} from "./materia/materia_utils";
 import {SpecialStatType} from "@xivgear/data-api-client/dataapi";
 
 export type SheetCtorArgs = ConstructorParameters<typeof GearPlanSheet>
@@ -1090,9 +1095,20 @@ export class GearPlanSheet {
 
     /**
      * Determine whether a stat is relevant to this sheet based on its job.
+     *
+     * Relevant means:
+     * * The stat is not undefined.
+     * * If it is the main stat (including vit), then it is the primary stat for the job.
+     *    * Vit is not relevant for any job since it is not the main stat of any job.
+     * * If it is a substat, it is not filtered out by the job.
+     * * If it is gear haste, it is only relevant if we have an active special stat which cares about haste.
+     *
      * @param stat
      */
     isStatRelevant(stat: RawStatKey | undefined): boolean {
+        if (stat === undefined) {
+            return false;
+        }
         if (!this.classJobEarlyStats) {
             // Not sure what the best way to handle this is
             return true;
@@ -1100,12 +1116,30 @@ export class GearPlanSheet {
         if (MAIN_STATS.includes(stat as typeof MAIN_STATS[number])) {
             return (stat === this.classJobEarlyStats.mainStat);
         }
+        if (stat === 'gearHaste') {
+            const specialStat = this.activeSpecialStat;
+            return SPECIAL_STATS_MAPPING[specialStat]?.showHaste ?? false;
+        }
         if (this.classJobEarlyStats.irrelevantSubstats) {
             return !this.classJobEarlyStats.irrelevantSubstats.includes(stat as Substat);
         }
         else {
             return true;
         }
+    }
+
+    /**
+     * Determine whether a stat can naturally appear on gear. Like {@link #isStatRelevant}, but returns false if the
+     * stat does not appear on gear for this class. e.g. returns false for DH on tanks and healers.
+     *
+     * @param stat
+     */
+    isStatPossibleOnGear(stat: RawStatKey | undefined): boolean {
+        const role = this.classJobEarlyStats.role;
+        if (stat === 'dhit' && (role === 'Healer' || role === 'Tank')) {
+            return false;
+        }
+        return this.isStatRelevant(stat);
     }
 
     /**
@@ -1415,4 +1449,230 @@ export class GearPlanSheet {
         });
         this.recalcAll();
     }
+
+    checkCompatibility(setA: CharacterGearSet, setB: CharacterGearSet): SetCompatibilityReport {
+        const incomp: SlotIncompatibility[] = [];
+        const slotsA = new Map<number, EquippedItem[]>();
+        const slotsB = new Map<number, EquippedItem[]>();
+        EquipSlots.forEach(slot => {
+            const itemA = setA.equipment[slot];
+            const itemB = setB.equipment[slot];
+            if (itemA) {
+                const id = itemA.gearItem.id;
+                slotsA.set(id, [...(slotsA.get(id) ?? []), itemA]);
+            }
+            if (itemB) {
+                const id = itemB.gearItem.id;
+                slotsB.set(id, [...(slotsB.get(id) ?? []), itemB]);
+            }
+        });
+        outer: for (const [id, itemsA] of slotsA) {
+            const itemsB = slotsB.get(id) ?? [];
+            // Item not equipped in other set - no incompatibility
+            if (itemsB.length === 0) {
+                continue;
+            }
+            if (itemsA.length === 1 && itemsB.length === 1) {
+                // Simple case for non-ring items
+                const compat = checkItemCompat(itemsA[0], itemsB[0]);
+                if (compat !== 'compatible') {
+                    incomp.push(compat);
+                }
+            }
+            else {
+                // Complex cases for rings:
+                // If both sets have two of the same ring, then we compare first-to-first, second-to-second, and then
+                // first-to-second and second-to-first, keeping whichever combination results in fewer incompatibilities.
+                // If one set has two of the same ring while the other set has one, then we compare that one to
+                // both and report both (since the user can fix this by making *either* ring compatible).
+                if (itemsA.length === 2 && itemsB.length === 2) {
+                    const compat00 = checkItemCompat(itemsA[0], itemsB[0]);
+                    const compat11 = checkItemCompat(itemsA[1], itemsB[1]);
+                    if (compat00 === 'compatible' && compat11 === 'compatible') {
+                        // Rings are compatible already
+                        continue;
+                    }
+                    const compat01 = checkItemCompat(itemsA[0], itemsB[1]);
+                    const compat10 = checkItemCompat(itemsA[1], itemsB[0]);
+                    if (compat01 === 'compatible' && compat10 === 'compatible') {
+                        // Rings are fully compatible if we switch left/right ring
+                        continue;
+                    }
+                    if (compat00 === 'compatible' || compat11 === 'compatible') {
+                        // Either 00 are compatible or 11. Case where both are compatible is already handled.
+                        if (compat00 === 'compatible') {
+                            incomp.push(compat11 as SlotIncompatibility);
+                        }
+                        else {
+                            incomp.push(compat00);
+                        }
+                    }
+                    else if (compat01 === 'compatible' || compat10 === 'compatible') {
+                        // Either 01 are compatible or 10. Case where both are compatible is already handled.
+                        if (compat01 === 'compatible') {
+                            incomp.push(compat10 as SlotIncompatibility);
+                        }
+                        else {
+                            incomp.push(compat01);
+                        }
+                    }
+                    else {
+                        // Nothing is compatible. Just go with 00 and 11.
+                        incomp.push(compat00, compat11);
+                    }
+                }
+                else {
+                    let base: EquippedItem;
+                    let others: EquippedItem[];
+                    if (itemsA.length === 1) {
+                        base = itemsA[0];
+                        others = itemsB;
+                    }
+                    else if (itemsB.length === 1) {
+                        base = itemsB[0];
+                        others = itemsA;
+                    }
+                    else {
+                        // ERROR
+                        // TODO
+                        throw new Error("TODO this is a bug");
+                    }
+                    const possibilities: SlotIncompatibility[] = [];
+                    for (const other of others) {
+                        const compat = checkItemCompat(base, other);
+                        if (compat === 'compatible') {
+                            continue outer;
+                        }
+                        possibilities.push(compat);
+                    }
+                    incomp.push(...possibilities);
+                }
+            }
+        }
+        return new SetCompatibilityReport(setA, setB, incomp);
+    }
+
+    applicableSpecialStat(): SpecialStatKey | null {
+        if (!this.ilvlSync) {
+            return null;
+        }
+        for (const specialstatkey of SPECIAL_STAT_KEYS) {
+            const mapping = SPECIAL_STATS_MAPPING[specialstatkey];
+            if (mapping && mapping.level === this.level && mapping.ilvls.includes(this.ilvlSync)) {
+                return specialstatkey;
+            }
+        }
+        return null;
+    }
 }
+
+function checkItemCompat(itemA: EquippedItem, itemB: EquippedItem): SlotIncompatibility | 'compatible' {
+
+    if (itemA.gearItem.id !== itemB.gearItem.id) {
+        return 'compatible';
+    }
+    const slot = itemA.gearItem.displayGearSlotName;
+    if (itemA.gearItem.isCustomRelic) {
+        // Dealing with relics
+        const badSubStats: string[] = [];
+        ALL_SUB_STATS.forEach(stat => {
+            const statValueA = itemA.relicStats[stat];
+            const statValueB = itemB.relicStats[stat];
+            if (statValueA !== statValueB) {
+                badSubStats.push(`${stat}: ${statValueA} ≠ ${statValueB}`);
+            }
+        });
+        if (badSubStats.length > 0) {
+            return {
+                slotKey: slot,
+                itemA: itemA,
+                itemB: itemB,
+                reason: 'relic-stat-mismatch',
+                subIssues: badSubStats,
+                hardBlocker: true,
+            };
+        }
+    }
+    else {
+        // Dealing with materia slots
+        const numMeldSlots = Math.max(itemA.melds.length, itemB.melds.length);
+        const issues: string[] = [];
+        for (let i = 0; i < numMeldSlots; i++) {
+            const slotNum = i + 1;
+            const meldA = itemA.melds[i]?.equippedMateria;
+            const meldB = itemB.melds[i]?.equippedMateria;
+            const descA = meldA ? materiaShortLabel(meldA) : 'empty';
+            const descB = meldB ? materiaShortLabel(meldB) : 'empty';
+            if (meldA?.id !== meldB?.id) {
+                issues.push(`Slot ${slotNum}: ${descA} ≠ ${descB}`);
+            }
+        }
+        if (issues.length > 0) {
+            return {
+                slotKey: slot,
+                itemA: itemA,
+                itemB: itemB,
+                reason: 'materia-mismatch',
+                subIssues: issues,
+                // If the item is not unique, then it's not a hard blocker since you could buy multiple of
+                // the item and fill them with different materia.
+                hardBlocker: itemA.gearItem.isUnique,
+            };
+        }
+    }
+    return 'compatible';
+}
+
+/**
+ * Describes the level of compatibility between two sets.
+ *
+ * compatible: Any common items in both sets have the same melds or custom relic stats.
+ *
+ * soft-incompatible: One or more items use different melds/stats between the two sets, but the items in question
+ * are not unique. You can still assemble both sets, but you will need to buy/craft duplicate items.
+ *
+ * hard-incompatible: One or more items use different melds/stats between the two sets, and at least one such item
+ * is unique. It will not be possible to assemble both sets.
+ */
+export type SetCompatibilityLevel = 'compatible' | 'soft-incompatible' | 'hard-incompatible';
+
+/**
+ * Describes the (in)compatibility between two gear sets.
+ */
+export class SetCompatibilityReport {
+    constructor(readonly setA: CharacterGearSet, readonly setB: CharacterGearSet, readonly incompatibleSlots: SlotIncompatibility[]) {
+    }
+
+    get compatibilityLevel(): SetCompatibilityLevel {
+        if (this.incompatibleSlots.length === 0) {
+            return 'compatible';
+        }
+        else {
+            return this.incompatibleSlots.some(incomp => incomp.hardBlocker) ? 'hard-incompatible' : 'soft-incompatible';
+        }
+    }
+}
+
+/**
+ * Describes a slot incompatibility between two gear sets.
+ */
+export type SlotIncompatibility = {
+    slotKey: DisplayGearSlotKey;
+    itemA: EquippedItem;
+    itemB: EquippedItem;
+    reason: SlotIncompatibilityReason;
+    /**
+     * Human-readable details about the incompatibility.
+     */
+    subIssues: string[];
+    /**
+     * Whether this is a hard blocker. If true, it means that the item is not unique, and you cannot assemble both sets.
+     * If false, you can work around it using duplicate items.
+     */
+    hardBlocker: boolean;
+}
+
+/**
+ * Describes the reason why two slots might be incompatible.
+ */
+export type SlotIncompatibilityReason = 'materia-mismatch' | 'relic-stat-mismatch';

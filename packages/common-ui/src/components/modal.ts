@@ -1,6 +1,7 @@
-import {makeActionButton, makeCloseButton} from "./util";
+import {el, makeActionButton} from "./util";
 import {Modal, MODAL_CONTROL} from "../modalcontrol";
 import {LoadingBlocker} from "./loader";
+import {makeCloseButton} from "./icons";
 
 export abstract class BaseModal extends HTMLElement {
     protected readonly header: HTMLElement;
@@ -13,22 +14,19 @@ export abstract class BaseModal extends HTMLElement {
     protected constructor() {
         super();
         this.classList.add('modal-dialog', 'base-modal-dialog');
-        this.inner = document.createElement('div');
-        this.inner.classList.add('modal-inner');
-        this.header = document.createElement('h2');
-        this.header.classList.add('modal-header');
-        this.contentArea = document.createElement('div');
-        this.contentArea.classList.add('modal-content-area');
-        this.buttonArea = document.createElement('div');
-        this.buttonArea.classList.add('lower-button-area', 'modal-lower-button-area');
+        this.header = el('h2', {class: 'modal-header'});
+        this.contentArea = el('div', {class: 'modal-content-area'});
+        this.buttonArea = el('div', {classes: ['lower-button-area', 'modal-lower-button-area']});
         this.closeButton = makeActionButton([makeCloseButton()], () => {
             this.close();
         }, 'Close');
         this.closeButton.classList.add('modal-close-button');
-        this.inner.appendChild(this.closeButton);
-        this.inner.appendChild(this.header);
-        this.inner.appendChild(this.contentArea);
-        this.inner.appendChild(this.buttonArea);
+        this.inner = el('div', {class: 'modal-inner'}, [
+            this.closeButton,
+            this.header,
+            this.contentArea,
+            this.buttonArea,
+        ]);
         this.appendChild(this.inner);
     }
 
@@ -42,7 +40,7 @@ export abstract class BaseModal extends HTMLElement {
         return button;
     }
 
-    protected addCloseButton(label: string = 'close') {
+    protected addCloseButton(label: string = 'Close') {
         return this.addActionButton(label, () => this.close());
     }
 

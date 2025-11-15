@@ -16,12 +16,24 @@
   @import "./embed.less";
 }
 
+@layer popout {
+  @import "./popout.less";
+}
+
 @layer ads {
   @import "../../common-ui/styles/ads.less";
 }
 
+@import "./compatchecker.less";
+
 custom-item-popup, custom-food-popup {
   table {
+    th {
+      text-align: center;
+      .no-items-message {
+        font-weight: normal;
+      }
+    }
     td {
       input[type="text"], input[type="number"], select {
         &input {
@@ -54,6 +66,12 @@ custom-item-popup, custom-food-popup {
     max-width: 800px;
     margin-left: auto;
     margin-right: auto;
+  }
+
+  &:not(.show-all-stats) {
+    th.irrelevant-stat, td.irrelevant-stat {
+      display: none;
+    }
   }
 }
 
@@ -466,3 +484,12 @@ conflict-resolution-dialog {
     }
   }
 }
+
+popout-editor {
+  .popup-main-area {
+    overflow: auto;
+    height: 100%;
+  }
+}
+
+

@@ -17,6 +17,7 @@ import {
 } from "@xivgear/xivmath/xivmath";
 import {GearPlanSheet} from "@xivgear/core/sheet";
 import {recordSheetEvent} from "../analytics/analytics";
+import {el} from "@xivgear/common-ui/components/util";
 
 interface Tiering {
     lower: number,
@@ -25,7 +26,9 @@ interface Tiering {
 
 interface TieringOffset {
     offset: number,
+    // Human-readable label for the offset
     label: string,
+    multiplier: number,
 }
 
 interface TieringDisplay {
@@ -52,50 +55,47 @@ export class SingleStatTierDisplay extends HTMLDivElement {
         // Upper area - name of stat/derived value
         this.classList.add('single-stat-tier-display');
         this.classList.add('stat-' + stat);
-        this.upperDiv = document.createElement('div');
-        this.upperDiv.classList.add('single-stat-tier-display-upper', 'single-stat-tier-display-upper-long');
+
+        this.upperDiv = el('div', {classes: ['single-stat-tier-display-upper', 'single-stat-tier-display-upper-long']});
         this.appendChild(this.upperDiv);
-        this.upperDivShort = document.createElement('div');
-        this.upperDivShort.classList.add('single-stat-tier-display-upper', 'single-stat-tier-display-upper-short');
+
+        this.upperDivShort = el('div', {classes: ['single-stat-tier-display-upper', 'single-stat-tier-display-upper-short']});
         this.appendChild(this.upperDivShort);
 
-        this.lowerLeftDiv = document.createElement('div');
         // Lower bound
-        this.lowerLeftDiv.classList.add('single-stat-tier-display-lower-left');
+        this.lowerLeftDiv = el('div', {class: 'single-stat-tier-display-lower-left'});
         this.appendChild(this.lowerLeftDiv);
         // Upper bound
-        this.lowerRightDiv = document.createElement('div');
-        this.lowerRightDiv.classList.add('single-stat-tier-display-lower-right');
+        this.lowerRightDiv = el('div', {class: 'single-stat-tier-display-lower-right'});
         this.appendChild(this.lowerRightDiv);
 
-        this.expansionDiv = document.createElement('div');
-        this.expansionDiv.classList.add('single-stat-tier-display-expansion');
-        this.expansionDiv.textContent = "If you can read this, it is a bug.";
+        this.expansionDiv = el('div', {class: 'single-stat-tier-display-expansion'}, ['If you can read this, it is a bug']);
         this.appendChild(this.expansionDiv);
 
         this.expanded = false;
     }
 
     refresh(tiering: TieringDisplay): void {
+        const doubleClickLabel = 'Click to see values if materia were added or removed.';
         // Formatting of the base element (always visible)
         this.upperDiv.textContent = tiering.label;
-        this.upperDiv.title = `${tiering.label}: ${tiering.description}`;
+        this.upperDiv.title = `${tiering.label}: ${tiering.description}\n\n${doubleClickLabel}`;
         this.upperDivShort.textContent = tiering.shortLabel ?? tiering.label;
-        this.upperDivShort.title = `${tiering.label}: ${tiering.description}`;
+        this.upperDivShort.title = `${tiering.label}: ${tiering.description}\n\n${doubleClickLabel}`;
         {
             const baseTiering = tiering.tieringFunc(0);
             if (baseTiering.lower > 0) {
                 this.lowerLeftDiv.textContent = '-' + baseTiering.lower;
                 this.classList.remove('stat-tiering-perfect');
-                this.lowerLeftDiv.title = `Your ${tiering.fullName} is ${baseTiering.lower} above the next-lowest tier.\nIn other words, you could lose up to ${baseTiering.lower} points without negatively impacting your ${tiering.fullName}.`;
+                this.lowerLeftDiv.title = `Your ${tiering.fullName} is ${baseTiering.lower} above the next-lowest tier.\nIn other words, you could lose up to ${baseTiering.lower} points without negatively impacting your ${tiering.fullName}.\n\n${doubleClickLabel}`;
             }
             else {
                 this.lowerLeftDiv.textContent = '✔';
-                this.lowerLeftDiv.title = `Your ${tiering.fullName} is perfectly tiered.\nIf you lose any ${this.stat}, it will negatively impact your ${tiering.fullName}.`;
+                this.lowerLeftDiv.title = `Your ${tiering.fullName} is perfectly tiered.\nIf you lose any ${this.stat}, it will negatively impact your ${tiering.fullName}.\n\n${doubleClickLabel}`;
                 this.classList.add('stat-tiering-perfect');
             }
             this.lowerRightDiv.textContent = '+' + baseTiering.upper;
-            this.lowerRightDiv.title = `You must gain ${baseTiering.upper} points of ${this.stat} in order to increase your ${tiering.fullName}.`;
+            this.lowerRightDiv.title = `You must gain ${baseTiering.upper} points of ${this.stat} in order to increase your ${tiering.fullName}.\n\n${doubleClickLabel}`;
         }
 
         // Formatting of the extra pop-down elements
@@ -104,41 +104,37 @@ export class SingleStatTierDisplay extends HTMLDivElement {
         tiering.extraOffsets.forEach((extraOffset) => {
             const tieringResult = tiering.tieringFunc(extraOffset.offset);
 
-            const div = document.createElement('div');
-            div.classList.add('single-stat-tier-display-expansion-item');
+            const div = el('div', {class: 'single-stat-tier-display-expansion-item'});
 
             if (extraOffset.offset < 0 && !hasSeenNegative) {
                 hasSeenNegative = true;
-                const separatorHolder = document.createElement('div');
-                const separator = document.createElement('div');
-                separatorHolder.classList.add('single-stat-tier-display-separator-holder');
-                separator.classList.add('single-stat-tier-display-separator-inner');
-                separatorHolder.appendChild(separator);
+                const separatorHolder = el('div', {class: 'single-stat-tier-display-separator-holder'}, [
+                    el('div', {class: 'single-stat-tier-display-separator-inner'}),
+                ]);
                 elements.push(separatorHolder);
 
             }
 
-            const upperDiv = document.createElement('div');
+            const upperDiv = el('div', {class: 'single-stat-tier-display-upper'}, [extraOffset.label]);
             upperDiv.textContent = extraOffset.label;
-            const lowerLeftDiv = document.createElement('div');
-            const lowerRightDiv = document.createElement('div');
+            const lowerLeftDiv = el('div', {class: 'single-stat-tier-display-lower-left'});
+            const lowerRightDiv = el('div', {class: 'single-stat-tier-display-lower-right'});
 
-            upperDiv.classList.add('single-stat-tier-display-upper');
-            lowerLeftDiv.classList.add('single-stat-tier-display-lower-left');
-            lowerRightDiv.classList.add('single-stat-tier-display-lower-right');
+            const descriptionPart = `${extraOffset.multiplier > 0 ? 'gain' : 'lose'} ${Math.abs(extraOffset.multiplier)}`;
+            upperDiv.title = `This shows what your tiering would be if you were to ${descriptionPart} materia.`;
 
             if (tieringResult.lower > 0) {
                 lowerLeftDiv.textContent = '-' + tieringResult.lower;
                 div.classList.remove('stat-tiering-perfect');
-                lowerLeftDiv.title = `Your ${tiering.fullName} is ${tieringResult.lower} above the next-lowest tier.\nIn other words, you could lose up to ${tieringResult.lower} points without negatively impacting your ${tiering.fullName}.`;
+                lowerLeftDiv.title = `If you were to ${descriptionPart} materia, your ${tiering.fullName} would be ${tieringResult.lower} above a tier.`;
             }
             else {
                 lowerLeftDiv.textContent = '✔';
-                lowerLeftDiv.title = `Your ${tiering.fullName} is perfectly tiered.\nIf you lose any ${this.stat}, it will negatively impact your ${tiering.fullName}.`;
+                lowerLeftDiv.title = `If you were to ${descriptionPart} materia, your ${tiering.fullName} would be perfectly tiered.`;
                 div.classList.add('stat-tiering-perfect');
             }
             lowerRightDiv.textContent = '+' + tieringResult.upper;
-            lowerRightDiv.title = `You must gain ${tieringResult.upper} points of ${this.stat} in order to increase your ${tiering.fullName}.`;
+            lowerRightDiv.title = `If you were to ${descriptionPart} materia, you would be ${tieringResult.upper} points short of the next-highest tier of ${this.stat}.`;
 
             div.replaceChildren(upperDiv, lowerLeftDiv, lowerRightDiv);
             elements.push(div);
@@ -267,9 +263,10 @@ export class StatTierDisplay extends HTMLDivElement {
                 bonuses[stat] = valueRaw;
                 // We need it to use this path instead of just adding, because we want to account for potential
                 // uncapped food.
-                const after = computed.withModifications(() => {}, {
+                const after = computed.withModifications(() => {
+                }, {
                     extraGearBonuses: bonuses,
-                } )[stat];
+                })[stat];
                 const valueAdjusted = after - before;
                 const multiplierStr = multiplier < 0 ? multiplier.toString() : '+' + multiplier.toString();
                 // Get the roman numeral part of the materia name
@@ -279,6 +276,7 @@ export class StatTierDisplay extends HTMLDivElement {
                     offset: valueAdjusted,
                     // Format as +5, +0, -5, etc
                     label: label,
+                    multiplier: multiplier,
                 };
             });
         }
@@ -345,7 +343,7 @@ export class StatTierDisplay extends HTMLDivElement {
                                 fullName: over.longLabel,
                                 description: over.description,
                                 tieringFunc: makeTiering(value => {
-                                    const haste = computed.haste(over.attackType) + over.haste;
+                                    const haste = computed.haste(over.attackType, over?.buffHaste ?? 0);
                                     return spsToGcd(over.gcdTime, levelStats, value, haste);
                                 }),
                                 extraOffsets: extraOffsets,
@@ -359,7 +357,7 @@ export class StatTierDisplay extends HTMLDivElement {
                         fullName: 'GCD for spells',
                         description: 'Global cooldown (recast) time for spells',
                         tieringFunc: makeTiering(value => {
-                            const haste = computed.haste('Spell');
+                            const haste = computed.haste('Spell', 0);
                             return spsToGcd(2.5, levelStats, value, haste);
                         }),
                         extraOffsets: extraOffsets,
@@ -384,7 +382,7 @@ export class StatTierDisplay extends HTMLDivElement {
                                 fullName: over.longLabel,
                                 description: over.description,
                                 tieringFunc: makeTiering(value => {
-                                    const haste = computed.haste(over.attackType) + over.haste;
+                                    const haste = computed.haste(over.attackType, over?.buffHaste ?? 0);
                                     return sksToGcd(over.gcdTime, levelStats, value, haste);
                                 }),
                                 extraOffsets: extraOffsets,
@@ -398,7 +396,7 @@ export class StatTierDisplay extends HTMLDivElement {
                         fullName: 'GCD for weaponskills',
                         description: 'Global cooldown (recast) time for weaponskills',
                         tieringFunc: makeTiering(value => {
-                            const haste = computed.haste('Weaponskill');
+                            const haste = computed.haste('Weaponskill', 0);
                             return sksToGcd(2.5, levelStats, value, haste);
                         }),
                         extraOffsets: extraOffsets,

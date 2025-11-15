@@ -1,4 +1,4 @@
-import {makeChevronDown} from "./util";
+import {makeChevronDown} from "./icons";
 
 export type ShowHideCallback = (newState: boolean, clickCount: number) => void;
 

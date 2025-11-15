@@ -1,9 +1,9 @@
 import {BaseModal} from "@xivgear/common-ui/components/modal";
 import {
-    clampValuesOrUndef,
+    clampValuesOrUndef, el,
     FieldBoundCheckBox,
     FieldBoundDataSelect,
-    FieldBoundOrUndefIntField,
+    FieldBoundOrUndefIntField, labeledCheckbox,
     labelFor,
     quickElement
 } from "@xivgear/common-ui/components/util";
@@ -49,9 +49,8 @@ class SettingsModal extends BaseModal {
         langDropdown.id = 'language-picker';
         const langLabel = labelFor("Game Items Language:", langDropdown);
         this.contentArea.append(langLabel);
-        this.contentArea.append(document.createElement('br'));
         this.contentArea.append(langDropdown);
-        this.contentArea.append(document.createElement('br'));
+        this.contentArea.append(el('br'));
 
         const workersCount = new FieldBoundOrUndefIntField(SETTINGS, 'workersOverride', {
             postValidators: [clampValuesOrUndef(2, 1024)],
@@ -61,10 +60,17 @@ class SettingsModal extends BaseModal {
         workersCount.placeholder = 'Leave blank to use default';
         const workersLabel = labelFor("Meld Solver Workers: ", workersCount);
         workersCount.addListener(() => this.setDisplayRefreshLabel(true));
-        this.contentArea.append(document.createElement('br'));
         this.contentArea.append(workersLabel);
         this.contentArea.append(workersCount);
-        this.contentArea.append(document.createElement('br'));
+        this.contentArea.append(el('br'));
+
+        const reverseSortCb = new FieldBoundCheckBox(displaySettings, 'reverseItemSort');
+        const reverseSort = labeledCheckbox('Reverse Item Sort', reverseSortCb);
+        reverseSortCb.addListener(() => this.setDisplayRefreshLabel(true));
+
+        this.contentArea.append(reverseSort);
+        this.contentArea.append(el('br'));
+
         this.contentArea.append(this.refreshLabel);
 
         this.addCloseButton();

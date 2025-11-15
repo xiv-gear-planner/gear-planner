@@ -1,4 +1,4 @@
-import {FieldBoundIntField, labelFor, nonNegative, quickElement} from "@xivgear/common-ui/components/util";
+import {el, FieldBoundIntField, labelFor, nonNegative, quickElement} from "@xivgear/common-ui/components/util";
 import {BaseMultiCycleSimGui} from "../multicyclesim_ui";
 import {DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/core/sims/cycle_sim";
 import {CustomColumnSpec} from "@xivgear/common-ui/table/tables";
@@ -25,17 +25,17 @@ export class SchSimGui extends BaseMultiCycleSimGui<SchSimResult, SchSettings> {
     }
 
     makeCustomConfigInterface(settings: SchSettings, _: () => void): HTMLElement | null {
-        const configDiv = document.createElement("div");
         const edField = new FieldBoundIntField<SchSettings>(settings, 'edsPerAfDiss', {
             inputMode: 'number',
+            id: 'edField',
             postValidators: [nonNegative],
         });
-        edField.id = 'edField';
         const label = labelFor('ED per AF/Diss', edField);
         label.style.display = 'block';
-        configDiv.appendChild(label);
-        configDiv.appendChild(edField);
-        return configDiv;
+        return el("div", {}, [
+            label,
+            edField,
+        ]);
     }
 
 }
