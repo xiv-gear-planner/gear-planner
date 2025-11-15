@@ -932,20 +932,24 @@ export type SpecialStatKey = typeof SPECIAL_STAT_KEYS[number];
 export type SpecialStatInfo = {
     level: number;
     ilvls: number[];
+    showHaste: boolean;
 }
 
 export const SPECIAL_STATS_MAPPING: Record<SpecialStatKey, SpecialStatInfo> = {
     Eureka: {
         level: 70,
         ilvls: [300],
+        showHaste: true,
     },
     Bozja: {
         level: 80,
         ilvls: [430],
+        showHaste: true,
     },
     OccultCrescent: {
         level: 100,
         ilvls: [700],
+        showHaste: false,
     },
 };
 
