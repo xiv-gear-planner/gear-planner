@@ -641,26 +641,21 @@ const BLU_ITEM_DISPLAY = {
     maxILvl: 535,
 } satisfies ItemDisplaySettings;
 
-export function getDefaultDisplaySettings(level: SupportedLevel, job: JobName): Readonly<ItemDisplaySettings> {
+export function getDefaultDisplaySettings(level: SupportedLevel, job: JobName, isync: number | undefined): Readonly<ItemDisplaySettings> {
     if (job === 'BLU' && level === JOB_DATA.BLU.maxLevel) {
         return BLU_ITEM_DISPLAY;
     }
-    return LEVEL_ITEMS[level].defaultDisplaySettings;
+    const out = LEVEL_ITEMS[level].defaultDisplaySettings;
+    // Special logic for current-content sync
+    if (isync !== undefined && level === CURRENT_MAX_LEVEL) {
+        return {
+            ...out,
+            minILvl: isync - 5,
+            maxILvl: isync,
+        };
+    }
+    return out;
 }
-
-// Level 70 data
-// export const MainstatModifier {
-//     tank: {
-//         70: number = 105,
-//         80: number = 115,
-//         90: number = 156
-//     }
-//     non-tank: {
-//         70: number = 125,
-//         80: number = 165,
-//         90: number = 195
-//     }
-// }
 
 /**
  * Main stats in current version of the game.
