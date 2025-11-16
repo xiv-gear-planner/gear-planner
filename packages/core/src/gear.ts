@@ -637,6 +637,17 @@ export class CharacterGearSet {
                 description: 'You must equip a weapon',
             });
         }
+        this.allEquippedItems.forEach(item => {
+            item.slotMapping.getBlockedSlots().forEach(blockedSlot => {
+                const inBlockedSlot = this.equipment[blockedSlot];
+                if (inBlockedSlot) {
+                    issues.push({
+                        severity: 'error',
+                        description: `You cannot equip ${inBlockedSlot.gearItem.nameTranslation} in ${EquipSlotInfo[blockedSlot].name} because ${item.nameTranslation} prevents it.`,
+                    });
+                }
+            });
+        });
         this._lastResult = {
             computedStats: computedStats,
             issues: this.isSeparator ? [] : issues,
