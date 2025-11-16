@@ -148,7 +148,16 @@ export type EquipSlotValue = 'none' | 'equip' | 'block';
 export type EquipSlotMap = {
     [K in EquipSlotKey]: EquipSlotValue;
 } & {
+    /**
+     * Whether the item can be equipped to the slot. Usually this is only true for a single slot, but rings can
+     * be equipped to both left and right ring slots.
+     * @param slot
+     */
     canEquipTo(slot: EquipSlotKey): boolean;
+    /**
+     * Get the list of slots which will be blocked from equipping items if this item is equipped.
+     * e.g. Vermilion Cloak blocks the head slot despite being equipped to body slot.
+     */
     getBlockedSlots(): EquipSlotKey[];
 }
 
