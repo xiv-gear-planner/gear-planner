@@ -11,7 +11,7 @@ import {
     CustomTable,
     HeaderRow,
     SingleCellRowOrHeaderSelectionModel,
-    SingleRowSelectionModel,
+    SingleRowSelectionModel, SpecialRow,
     TableSelectionModel
 } from "@xivgear/common-ui/table/tables";
 import {GearPlanSheet, SheetProvider} from "@xivgear/core/sheet";
@@ -264,7 +264,9 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, SingleCellRowOr
 
     dataChanged() {
         const curSelection = this.selectionModel.getSelection();
-        super.data = [new HeaderRow(), ...this.gearSets];
+        super.data = [new HeaderRow(), new SpecialRow(() => {
+            return el('div', {class: 'spacer-row'});
+        }), ...this.gearSets];
         // Special case for deleting the currently selected row
         if (curSelection instanceof CustomRow && !(this.gearSets.includes(curSelection.dataItem))) {
             this.selectionModel.clearSelection();
