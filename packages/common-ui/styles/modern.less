@@ -57,7 +57,7 @@ body.modern {
           //background-color: #f006;
           z-index: -999;
           //#24242c
-          background: linear-gradient(to top, var(--blended-bg) 0%, var(--blended-bg-50) calc(var(--table-top-gradient) * 0.3), #24242c var(--table-top-gradient));
+          background: linear-gradient(to top, var(--blended-bg) 0%, var(--blended-bg-50) calc(var(--table-top-gradient) * 0.3), var(--default-table-bg-color) var(--table-top-gradient));
           //background: red;
           top: 100%;
           height: var(--table-top-gradient);
@@ -159,7 +159,8 @@ body.modern {
   }
 
   &:not(.light-mode) {
-    --table-bg-color: #24242c;
+    --default-table-bg-color: #24242c;
+    --table-bg-color: var(--default-table-bg-color);
     --input-background-color: var(--table-bg-color);
   }
 

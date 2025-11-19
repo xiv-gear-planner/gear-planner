@@ -27,8 +27,15 @@ export class ItemIcon extends HTMLImageElement {
     constructor(itemId: number) {
         super();
         this.classList.add('ffxiv-ability-icon');
-        this.setAttribute('intrinsicsize', '64x64');
-        getDataFor(itemId).then(data => this.src = xivApiIconUrl(requireNumber(data.Icon['id']), false));
+        this.classList.add('item-rarity-normal');
+        this.setAttribute('intrinsicsize', '40x40');
+        getDataFor(itemId).then(data => {
+            const iconId = requireNumber(data.Icon['id']);
+            const lr = xivApiIconUrl(iconId, false);
+            const hr = xivApiIconUrl(iconId, true);
+            this.src = lr;
+            this.srcset = `${lr} 1.5x, ${hr} 2x`;
+        });
     }
 }
 

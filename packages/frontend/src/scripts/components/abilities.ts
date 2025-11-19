@@ -3,6 +3,7 @@ import {XivApiIcon} from "@xivgear/common-ui/util/types";
 import {getCurrentLanguage} from "@xivgear/i18n/translation";
 import {quickElement} from "@xivgear/common-ui/components/util";
 import {Ability} from "@xivgear/core/sims/sim_types";
+import {requireNumber} from "@xivgear/core/external/data_validators";
 
 interface XivApiAbilityData {
     Icon: XivApiIcon,
@@ -27,8 +28,14 @@ export class AbilityIcon extends HTMLImageElement {
     constructor(abilityId: number) {
         super();
         this.classList.add('ffxiv-ability-icon');
-        this.setAttribute('intrinsicsize', '64x64');
-        getDataFor(abilityId).then(data => this.src = xivApiIconUrl(data.Icon.id, false));
+        this.setAttribute('intrinsicsize', '40x40');
+        getDataFor(abilityId).then(data => {
+            const iconId = requireNumber(data.Icon.id);
+            const lr = xivApiIconUrl(iconId, false);
+            const hr = xivApiIconUrl(iconId, true);
+            this.src = lr;
+            this.srcset = `${lr} 2x, ${hr} 4x`;
+        });
     }
 }
 
