@@ -52,8 +52,8 @@ import {makeRelicStatEditor} from "./relic_stats";
 import {ShowHideButton, ShowHideCallback} from "@xivgear/common-ui/components/show_hide_chevron";
 import {BaseModal} from "@xivgear/common-ui/components/modal";
 import {recordSheetEvent} from "../analytics/analytics";
-import {DISPLAY_SETTINGS} from "@xivgear/common-ui/settings/display_settings";
 import {makeTrashIcon} from "@xivgear/common-ui/components/icons";
+import {sortItemsInPlace} from "./item_utils";
 
 function removeStatCellStyles(cell: CustomCell<GearSlotItem, unknown>) {
     cell.classList.remove("secondary");
@@ -348,10 +348,7 @@ export class FoodItemsTable extends CustomTable<FoodItem, TableSelectionModel<Fo
             this.updateShowHide();
         }, [oneStatFoodWithLabel]);
         const displayItems = [...sheet.foodItemsForDisplay];
-        displayItems.sort((left, right) => left.ilvl - right.ilvl);
-        if (DISPLAY_SETTINGS.reverseItemSort) {
-            displayItems.reverse();
-        }
+        sortItemsInPlace(displayItems);
         if (displayItems.length > 0) {
             super.data = [showHideRow.row, new HeaderRow(), ...displayItems];
         }
@@ -684,10 +681,7 @@ export class GearItemsTable extends CustomTable<GearSlotItem, TableSelectionMode
             }
             if (itemsInSlot && itemsInSlot.length > 0) {
                 const sortedItems = [...itemsInSlot];
-                sortedItems.sort((left, right) => left.ilvl - right.ilvl);
-                if (DISPLAY_SETTINGS.reverseItemSort) {
-                    sortedItems.reverse();
-                }
+                sortItemsInPlace(sortedItems);
                 data.push(new HeaderRow());
                 for (const gearItem of sortedItems) {
                     const item = {
@@ -915,7 +909,7 @@ export class GearItemsTable extends CustomTable<GearSlotItem, TableSelectionMode
 }
 
 class GearViewHeaderSpec extends HeaderRow {
-    constructor(readonly item: GearItem, readonly slot: EquipSlot, readonly alts: ReturnType<(thisItem: GearItem) => GearItem[]>) {
+    constructor(readonly item: GearItem, readonly slot: EquipSlot, readonly alts: ReturnType<(thisItem: GearItem) => GearItem[]>, readonly sheet: GearPlanSheet) {
         super();
     }
 }
@@ -947,7 +941,7 @@ class GearViewHeaderRow extends CustomTableHeaderRow<GearSlotItem> {
             const narrowSpan = makeSpan(`${alts.length} alts`, ['narrow-only']);
             const wideSpan = makeSpan(`+${alts.length} alt items`, ['wide-only']);
             const altButton = makeActionButton([narrowSpan, wideSpan], () => {
-                const modal = new AltItemsModal(slotItem, alts);
+                const modal = new AltItemsModal(slotItem, alts, spec.sheet);
                 modal.attachAndShowExclusively();
             });
             altButton.classList.add('gear-items-view-alts-button');
@@ -1002,7 +996,7 @@ export class GearItemsViewTable extends CustomTable<GearSlotItem> {
                     // alts: sheet.getAltItemsFor(equippedItem)
                 };
                 const alts: ReturnType<typeof sheet.getAltItemsFor> = sheet.getAltItemsFor(equippedItem);
-                data.push(new GearViewHeaderSpec(equippedItem, slot, alts));
+                data.push(new GearViewHeaderSpec(equippedItem, slot, alts, sheet));
                 data.push(item);
                 if (!equippedItem.isCustomRelic) {
                     const matMgr = new AllSlotMateriaManager(sheet, gearSet, slotId, false);
@@ -1112,14 +1106,18 @@ export class GearItemsViewTable extends CustomTable<GearSlotItem> {
 }
 
 export class AltItemsModal extends BaseModal {
-    constructor(baseItem: GearItem, altItems: GearItem[]) {
+    constructor(baseItem: GearItem, altItems: GearItem[], sheet: GearPlanSheet) {
         super();
         this.headerText = 'Alternative Items';
-        console.log(altItems);
 
-        const text = document.createElement('p');
-        text.textContent = `The item ${baseItem.nameTranslation} can be replaced by all of the following items, which have equivalent or better effective stats:`;
-        this.contentArea.appendChild(quickElement('div', ['alt-items-text-holder'], [text]));
+        const text = el('p');
+        if (sheet.ilvlSync) {
+            text.replaceChildren('These items are ', el('b', {}, ['equivalent to ']), baseItem.nameTranslation.asCurrentLang, ` when synced to i${baseItem.ilvl}:`);
+        }
+        else {
+            text.replaceChildren('These items are ', el('b', {}, ['equivalent to or better than ']), baseItem.nameTranslation.asCurrentLang, ':');
+        }
+        this.contentArea.appendChild(el('div', {class: 'alt-items-text-holder'}, [text]));
 
         const table: CustomTable<GearItem> = new CustomTable<GearItem>();
         table.columns = [
@@ -1154,7 +1152,14 @@ export class AltItemsModal extends BaseModal {
                 },
             }),
         ];
-        table.data = [new HeaderRow(), baseItem, ...altItems];
+        sortItemsInPlace(altItems);
+        // Now that this respects ilvl sort order, including the reverse order setting, it is awkward to include the
+        // base item as if it were any other item. Instead, there are two options - either show it at the top with
+        // a separator between the base item and the other items, or omit it entirely.
+        // Possible UI option - show a separator row.
+        // table.data = [new HeaderRow(), baseItem, new SpecialRow(() => document.createTextNode(' ')), ...altItems];
+        // Other UI option - don't show the base item at all.
+        table.data = [new HeaderRow(), ...altItems];
         this.contentArea.appendChild(table);
 
         this.addCloseButton();
@@ -1219,12 +1224,14 @@ export class ILvlRangePicker<ObjType> extends HTMLElement {
 
 export function itemIconRenderer<RowType>(): CellRenderer<RowType, XivItem> {
     return item => {
-        const img = item.iconUrl;
+        const hr = item.iconUrl.toString();
+        // TODO: move server side
+        const lr = hr.replaceAll("_hr1", "");
         const image = document.createElement('img');
-        image.setAttribute('intrinsicsize', '80x80');
-        image.src = img.toString();
+        image.setAttribute('intrinsicsize', '40x40');
+        image.src = lr;
+        image.srcset = `${lr} 1.3x, ${hr} 2x`;
         image.classList.add('item-icon');
-        // TODO: should this behavior be part of ItemIcon + use that?
         if ('rarity' in item) {
             const rarity = item.rarity as number;
             switch (rarity) {

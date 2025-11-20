@@ -1265,7 +1265,7 @@ export function isSameOrBetterItem(candidateItem: GearItem, baseItem: GearItem):
         const candidateValue = candidateStats[statKey as RawStatKey] as number;
         // For skill/spell speed, we want an exact match, since allowing extra sks/sps could cause
         // it to bump up a GCD tier.
-        if (statKey as RawStatKey === 'skillspeed' || statKey as RawStatKey === 'spellspeed') {
+        if (statKey as RawStatKey === 'skillspeed' || statKey as RawStatKey === 'spellspeed' || statKey as RawStatKey === 'gearHaste') {
             if (candidateValue !== baseValue) {
                 return false;
             }
