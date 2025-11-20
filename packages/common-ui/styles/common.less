@@ -8,7 +8,8 @@ body {
   --border-style: solid;
   --border-color-input: var(--border-color-default);
   --border-color-highlight: #888890;
-  --table-bg-color: #202027;
+  --default-table-bg-color: #202027;
+  --table-bg-color: var(--default-table-bg-color);
   --color-sps-sks: #22ff22;
   --color-crit: #ff2222;
   --color-dhit: #ff8800;
@@ -35,7 +36,7 @@ body {
   --standard-border-radius: 5px;
   --optional-border-radius: 0;
   --action-col-width: 73px;
-  --set-name-col-width: 300px;
+  --set-name-col-width: min(300px, max(calc(30vw - 100px), 150px));
   //--item-name-col-width: 300px;
   --item-name-col-width: 100%;
   --item-name-col-max-width: 300px;
@@ -91,7 +92,7 @@ body {
     --fg-color: #000000;
     --border-color: #a59083;
     --border-color-highlight: #150f0f;
-    --table-bg-color: #fff8f1;
+    --default-table-bg-color: #fff8f1;
     --table-bg-color-selected: #fdebd3;
     --table-bg-color-hover: #f1d8b8;
     --input-hover-background-color: var(--table-bg-color-hover);
@@ -136,13 +137,7 @@ body {
   margin: 0;
 
   @media screen and (max-width: 600px) {
-    //color: red;
-    //width: 80vw;
-    //height: 80vh;
-    //transform: scale(1.25);
     transform-origin: 0 0;
-    --set-name-col-width: 150px;
-    //--item-name-col-width: 150px;
     [col-id='mats'] {
       display: none;
     }
@@ -1500,6 +1495,8 @@ gear-plan {
     text-align: left;
     //padding: 5px;
   }
+  container-name: gear-sheet-editor-area;
+  container-type: scroll-state;
 }
 
 table.gear-items-edit-table, table.food-items-edit-table {
@@ -3829,10 +3826,15 @@ expandable-text {
     padding: 10px;
     height: 100%;
     box-sizing: border-box;
+    .scroll-table-holder {
+      scrollbar-width: thin;
+    }
 
     table {
       background: none;
-      padding: 0;
+      padding-top: 0 !important;
+      padding-left: 0 !important;
+      padding-bottom: 0 !important;
     }
   }
 
@@ -3853,9 +3855,12 @@ expandable-text {
         min-height: 100px;
       }
 
-      @media screen and (max-width: 625px) {
+      @media screen and (width <= 625px) {
         grid-template-columns: 100%;
-        grid-template-rows: auto auto 1fr;
+        grid-template-rows: auto 1fr;
+        .cycle-sim-main-holder {
+          display: none;
+        }
         .cycle-sim-abilities-holder {
           grid-column-end: span 1;
           min-height: 100px;

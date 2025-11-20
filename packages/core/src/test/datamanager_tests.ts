@@ -23,7 +23,7 @@ describe('New Datamanager', () => {
         eq(codexOfAscension.name, 'Codex of Ascension');
         eq(codexOfAscension.nameTranslation.en, 'Codex of Ascension');
         eq(codexOfAscension.nameTranslation.de, 'Kodex des Aufstiegs');
-        eq(codexOfAscension.iconUrl.toString(), 'https://v2.xivapi.com/api/asset/ui/icon/033000/033387_hr1.tex?format=png');
+        eq(codexOfAscension.iconUrl.toString(), 'https://v2.xivapi.com/api/asset?path=ui%2Ft cicon%2F033000%2F033387_hr1.tex&format=png');
 
         // XivCombatItem props
         deq(codexOfAscension.stats, new RawStats({
