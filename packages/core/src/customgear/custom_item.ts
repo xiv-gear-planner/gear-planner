@@ -9,8 +9,8 @@ import {
     GearAcquisitionSource,
     GearItem,
     IlvlSyncInfo,
-    MateriaSlot, NormalOccGearSlotKey,
-    OccGearSlotKey,
+    MateriaSlot,
+    NormalOccGearSlotKey,
     RawStatKey,
     RawStats
 } from "@xivgear/xivmath/geartypes";
