@@ -36,7 +36,7 @@ import {
     MateriaAutoFillController,
     MateriaAutoFillPrio,
     MateriaFillMode,
-    MeldableMateriaSlot,
+    MeldableMateriaSlot, NormalOccGearSlotKey,
     OccGearSlotKey,
     PartyBonusAmount,
     RawStatKey,
@@ -841,7 +841,7 @@ export class GearPlanSheet {
      * Returns the starting set of data for a new custom item.
      * @param slot The slot for which to make the custom item.
      */
-    newCustomItem(slot: OccGearSlotKey): CustomItem {
+    newCustomItem(slot: NormalOccGearSlotKey): CustomItem {
         const item = CustomItem.fromScratch(this.nextCustomItemId, slot, this);
         this._customItems.push(item);
         this.recheckCustomItems();

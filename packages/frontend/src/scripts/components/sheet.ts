@@ -867,15 +867,9 @@ export class GearSetEditor extends HTMLElement {
     }
 
     setup() {
-        // const header = document.createElement("h1");
-        // header.textContent = "Gear Set Editor";
-        // this.appendChild(header)
         this.replaceChildren();
 
         // Name editor
-        // const nameEditor = new FieldBoundTextField(this.gearSet, 'name');
-        // nameEditor.classList.add("gear-set-name-editor");
-        // this.appendChild(nameEditor);
 
         this.header = document.createElement('h2');
         this.desc = new ExpandableText();

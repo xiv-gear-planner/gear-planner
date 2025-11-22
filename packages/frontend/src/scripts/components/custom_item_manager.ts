@@ -18,7 +18,7 @@ import {
 import {ALL_STATS, ALL_SUB_STATS, STAT_ABBREVIATIONS, STAT_FULL_NAMES} from "@xivgear/xivmath/xivconstants";
 import {BaseModal} from "@xivgear/common-ui/components/modal";
 import {DropdownActionMenu} from "./dropdown_actions_menu";
-import {OccGearSlots, RawStats, Substat} from "@xivgear/xivmath/geartypes";
+import {NormalOccGearSlots, RawStats, Substat} from "@xivgear/xivmath/geartypes";
 import {confirmDelete} from "@xivgear/common-ui/components/delete_confirm";
 import {CustomItem} from "@xivgear/core/customgear/custom_item";
 import {CustomFood} from "@xivgear/core/customgear/custom_food";
@@ -322,7 +322,8 @@ export class CustomItemPopup extends BaseModal {
         this.contentArea.appendChild(notesArea);
 
         const newCustomItemDropdown = new DropdownActionMenu('New Item...');
-        OccGearSlots.forEach(slot => {
+        // Use normal slots to not clog the UI up with unusual options
+        NormalOccGearSlots.forEach(slot => {
             // Don't show 2H weapons for 1H/offhand classes
             if (slot === 'Weapon2H' && this.sheet.classJobStats.offhand) {
                 return;
@@ -553,3 +554,4 @@ customElements.define('custom-item-popup', CustomItemPopup);
 customElements.define('custom-item-table', CustomItemTable, {extends: 'table'});
 customElements.define('custom-food-popup', CustomFoodPopup);
 customElements.define('custom-food-table', CustomFoodTable, {extends: 'table'});
+
