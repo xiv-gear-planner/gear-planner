@@ -63,3 +63,6 @@ export function arrayEq(left: unknown[] | undefined, right: unknown[] | undefine
     return true;
 }
 
+export function arrayEqTyped<X>(left: X[] | undefined, right: X[] | undefined): boolean {
+    return arrayEq(left, right);
+}
