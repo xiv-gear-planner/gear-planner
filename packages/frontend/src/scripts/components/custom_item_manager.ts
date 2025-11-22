@@ -554,3 +554,4 @@ customElements.define('custom-item-popup', CustomItemPopup);
 customElements.define('custom-item-table', CustomItemTable, {extends: 'table'});
 customElements.define('custom-food-popup', CustomFoodPopup);
 customElements.define('custom-food-table', CustomFoodTable, {extends: 'table'});
+
