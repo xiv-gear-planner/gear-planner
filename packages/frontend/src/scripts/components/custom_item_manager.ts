@@ -18,7 +18,7 @@ import {
 import {ALL_STATS, ALL_SUB_STATS, STAT_ABBREVIATIONS, STAT_FULL_NAMES} from "@xivgear/xivmath/xivconstants";
 import {BaseModal} from "@xivgear/common-ui/components/modal";
 import {DropdownActionMenu} from "./dropdown_actions_menu";
-import {NormalOccGearSlots, OccGearSlots, RawStats, Substat} from "@xivgear/xivmath/geartypes";
+import {NormalOccGearSlots, RawStats, Substat} from "@xivgear/xivmath/geartypes";
 import {confirmDelete} from "@xivgear/common-ui/components/delete_confirm";
 import {CustomItem} from "@xivgear/core/customgear/custom_item";
 import {CustomFood} from "@xivgear/core/customgear/custom_food";
