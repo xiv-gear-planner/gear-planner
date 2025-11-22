@@ -422,7 +422,7 @@ describe('Slot blocking in gear sets', () => {
         expect(headPiece.occGearSlotName).to.eq('Head');
         set.setEquip('Head', headPiece);
 
-        // SHould generate an issue. The issue should be blamed on the head piece.
+        // Should generate an issue. The issue should be blamed on the head piece.
         const issues = set.issues;
         expect(issues.length).to.eq(1);
         const issue = issues[0];
