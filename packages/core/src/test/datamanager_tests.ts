@@ -105,6 +105,39 @@ describe('New Datamanager', () => {
         eq(food.bonuses.determination.max, 73);
         eq(food.bonuses.determination.percentage, 10);
     }).timeout(20_000);
+    it('handles multi-slot items correctly', async () => {
+        const dm = new NewApiDataManager(['BLM'], 100);
+        await dm.loadData();
+        const verm = dm.itemById(24855);
+        eq(verm.displayGearSlotName, 'Body');
+        eq(verm.occGearSlotName, 'ChestHead');
+        expect(verm.slotMapping.getBlockedSlots()).to.deep.eq(['Head']);
+        deq(verm.stats, new RawStats({
+            vitality: 157,
+            intelligence: 177,
+            crit: 125,
+            dhit: 179,
+            defensePhys: 312,
+            defenseMag: 545,
+        }));
+        deq(verm.statCaps, new RawStats({
+            vitality: 157,
+            intelligence: 177,
+            mind: 124,
+            dexterity: 124,
+            strength: 124,
+            piety: 125,
+            defensePhys: 312,
+            defenseMag: 545,
+            gearHaste: 999999,
+            crit: 179,
+            dhit: 179,
+            skillspeed: 179,
+            spellspeed: 179,
+            tenacity: 179,
+            determination: 179,
+        }));
+    });
     describe('syncs levels correctly', () => {
 
         // Test cases from https://github.com/xiv-gear-planner/gear-planner/issues/317

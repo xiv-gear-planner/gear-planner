@@ -14,7 +14,8 @@ import {
     DisplayGearSlotKey,
     DisplayGearSlotMapping,
     EquipSlotKey,
-    EquipSlotMap, EquipSlots,
+    EquipSlotMap,
+    EquipSlots,
     EquipSlotValue,
     FoodItem,
     GearAcquisitionSource,
@@ -43,6 +44,7 @@ import {toTranslatable, TranslatableString} from "@xivgear/i18n/translation";
 import {RawStatsPart} from "@xivgear/util/util_types";
 import {ApiFoodData, ApiItemData, ApiMateriaData, checkResponse, DATA_API_CLIENT} from "./data_api_client";
 import {addStats} from "@xivgear/xivmath/xivstats";
+import {arrayEqTyped} from "@xivgear/util/array_utils";
 
 export class NewApiDataManager implements DataManager {
 
@@ -513,10 +515,36 @@ export class DataApiEquipSlotMap implements EquipSlotMap {
         }
         else {
             const normalSlots: (EquipSlotKey & OccGearSlotKey & DisplayGearSlotKey)[] = ['OffHand', 'Head', 'Body', 'Hand', 'Legs', 'Feet', 'Ears', 'Neck', 'Wrist'] as const;
+            const hasBlockedSlot = this.getBlockedSlots().length > 0;
+            const eq = arrayEqTyped<EquipSlotKey>;
+            if (hasBlockedSlot) {
+                const all = this.equipOrBlockedSlots;
+                if (eq(all, ['Head', 'Body', 'Legs', 'Feet'])) {
+                    this.occGearSlotName = 'ChestHeadLegsFeet';
+                }
+                else if (eq(all, ['Head', 'Body'])) {
+                    this.occGearSlotName = 'ChestHead';
+                }
+                else if (eq(all, ['Body', 'Legs', 'Feet'])) {
+                    this.occGearSlotName = 'ChestLegsFeet';
+                }
+                else if (eq(all, ['Body', 'Hand', 'Legs'])) {
+                    this.occGearSlotName = 'ChestLegsGloves';
+                }
+                else if (eq(all, ['Head', 'Body', 'Hand', 'Legs', 'Feet'])) {
+                    this.occGearSlotName = 'HeadChestHandsLegsFeet';
+                }
+                else if (eq(all, ['Legs', 'Feet'])) {
+                    this.occGearSlotName = 'LegsFeet';
+                }
+            }
             for (const normalSlot of normalSlots) {
                 if (this.canEquipTo(normalSlot)) {
                     this.displayGearSlotName = normalSlot;
-                    this.occGearSlotName = normalSlot;
+                    // Set this if the logic above didn't find anything
+                    if (!this.occGearSlotName) {
+                        this.occGearSlotName = normalSlot;
+                    }
                     break;
                 }
             }
@@ -525,6 +553,10 @@ export class DataApiEquipSlotMap implements EquipSlotMap {
 
     canEquipTo(slot: EquipSlotKey): boolean {
         return this[slot] === 'equip';
+    }
+
+    get equipOrBlockedSlots(): EquipSlotKey[] {
+        return EquipSlots.filter(slot => this[slot] !== 'none');
     }
 
     getBlockedSlots(): EquipSlotKey[] {

@@ -644,6 +644,7 @@ export class CharacterGearSet {
                     issues.push({
                         severity: 'error',
                         description: `You cannot equip ${inBlockedSlot.gearItem.nameTranslation} in ${EquipSlotInfo[blockedSlot].name} because ${item.nameTranslation} prevents it.`,
+                        affectedSlots: [blockedSlot],
                     });
                 }
             });
