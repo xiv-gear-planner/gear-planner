@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// TODO: get back to fixing this at some point
 import {BaseModal} from "@xivgear/common-ui/components/modal";
 import {
     col,
