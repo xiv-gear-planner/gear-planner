@@ -1808,21 +1808,21 @@ export class GearPlanSheetGui extends GearPlanSheet {
             const initialHeight = this.tableArea.offsetHeight;
             const eventListener = (ev: MouseEvent) => {
                 const delta = ev.pageY - initialY;
-                const newHeightPx = Math.round(initialHeight + delta);
+                const newHeightPx = initialHeight + delta;
                 const newHeightPct = newHeightPx / document.body.clientHeight * 100;
-                // This has minor visual issues (due to fractional pixels resulting in inconsistent inner spacing),
-                // but seems to be the best we have.
-                const newHeight = newHeightPct + 'vh';
-                // Doesn't work
-                // const newHeight = `round(up, ${newHeightPct}vh, 1px)`;
-                // Doesn't resize when the viewport is resized
-                // const newHeight = newHeightPx + 'px'
+                // The logic here is:
+                // We want to use an exact pixel value if possible, to avoid the weird sub-pixel jumping that can be
+                // seen when not using a 1:1 device pixel ratio.
+                // However, the one thing the old way did better was that if you resized your window, the top part
+                // would stay proportional to vertical screen size.
+                // This gives us the best of both worlds - dragging will be correct, and you'll get automatic resize
+                // when the window height changes, without any extra JS.
+                const minVh = newHeightPct - 0.2;
+                const maxVh = newHeightPct + 0.2;
+                const newHeight = `clamp(${minVh}vh, ${newHeightPx}px, ${maxVh}vh)`;
                 this.tableArea.style.minHeight = newHeight;
                 this.tableArea.style.maxHeight = newHeight;
                 this.tableArea.style.flexBasis = newHeight;
-                if (isSafari) {
-                    // this.tableHolderOuter.style.maxHeight = newHeight;
-                }
             };
             const after = (ev: MouseEvent) => {
                 document.removeEventListener('pointermove', eventListener);

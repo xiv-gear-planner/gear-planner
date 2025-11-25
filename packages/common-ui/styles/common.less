@@ -697,6 +697,7 @@ input {
     color: var(--fg-color);
     .standard-border-radius();
     border-color: var(--border-color);
+
     &:invalid {
       border-color: var(--error-border-color);
     }
@@ -828,9 +829,11 @@ table.gear-plan-table {
     th {
       cursor: default;
     }
+
     td, th.hoverable {
       cursor: pointer;
     }
+
     td, th {
       //background-color: var(--table-bg-color);
 
@@ -1373,20 +1376,12 @@ gear-plan {
   }
 
   .gear-sheet-table-area {
-    //.gear-sheet-table-area-inner {
-    //  margin: auto;
-    //  width: fit-content;
-    //}
     .flex-transition();
+    // needed in order for the dragging to not have a small jump when you start the drag, since it is calculated using
+    // offsetHeight which does NOT include margin.
+    box-sizing: border-box;
 
-    table {
-      //margin: auto;
-    }
-
-    /*flex-grow: 0;*/
-    /*flex-shrink: 9999;*/
     flex-basis: content;
-    //overflow: auto;
     min-height: 0;
     flex-shrink: 1;
     flex-grow: 1;
@@ -3035,6 +3030,7 @@ gear-set-viewer {
 
       tr > td[col-id='itemname'] {
         padding-left: 0 !important;
+
         .item-name-holder, .food-name-holder {
           display: flex;
           flex-direction: row;
@@ -3750,6 +3746,7 @@ settings-modal {
     > * {
       display: block;
     }
+
     > br {
       height: 10px;
       display: unset;
