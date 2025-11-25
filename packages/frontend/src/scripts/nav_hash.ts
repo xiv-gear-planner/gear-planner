@@ -28,9 +28,9 @@ import {
     showSheetPickerMenu
 } from "./base_ui";
 import {recordError} from "@xivgear/common-ui/analytics/analytics";
-import {BisBrowser} from "./components/bis_browser";
+import {BisBrowser} from "./components/bisbrowser/bis_browser";
 import {cleanUrlParams, getQueryParams, manipulateUrlParams} from "@xivgear/common-ui/nav/common_frontend_nav";
-import {PopoutEditor} from "./components/popout_editor";
+import {PopoutEditor} from "./components/sheet/editor/popout_editor";
 import {openPopout} from "./popout";
 
 // let expectedHash: string[] | undefined = undefined;

@@ -1,7 +1,7 @@
 import {Ability, SimSettings} from "@xivgear/core/sims/sim_types";
 import {SimulationGui} from "./simulation_gui";
 import {writeProxy} from "@xivgear/util/proxies";
-import {NamedSection} from "../components/section";
+import {NamedSection} from "../components/general/section";
 import {ResultSettingsArea} from "./components/result_settings";
 import {BuffSettingsArea} from "./party_comp_settings";
 import {quickElement} from "@xivgear/common-ui/components/util";

@@ -1,8 +1,10 @@
-import {GearPlanSheetGui, GearSetEditor, GearSetViewer} from "./sheet";
+import {GearPlanSheetGui} from "../sheet_gui";
 import {quickElement} from "@xivgear/common-ui/components/util";
-import {PopoutGearEditToolbar} from "./gear_edit_toolbar";
-import {PopoutMainElement} from "../popout";
+import {PopoutGearEditToolbar} from "../toolbar/gear_edit_toolbar";
+import {PopoutMainElement} from "../../../popout";
 import {CharacterGearSet} from "@xivgear/core/gear";
+import {GearSetViewer} from "./set_viewer";
+import {GearSetEditor} from "./set_editor";
 
 export class PopoutEditor extends HTMLElement implements PopoutMainElement {
     private readonly sheet: GearPlanSheetGui;

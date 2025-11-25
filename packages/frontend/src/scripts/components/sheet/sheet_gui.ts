@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // TODO: get back to fixing this at some point
 import {camel2title, capitalizeFirstLetter, toRelPct} from "@xivgear/util/strutils";
-import {BaseModal} from "@xivgear/common-ui/components/modal";
 import {
     col,
     CustomCell,
@@ -11,94 +10,71 @@ import {
     CustomTable,
     HeaderRow,
     SingleCellRowOrHeaderSelectionModel,
-    SingleRowSelectionModel, SpecialRow,
-    TableSelectionModel
+    SpecialRow
 } from "@xivgear/common-ui/table/tables";
-import {GearPlanSheet, SheetProvider} from "@xivgear/core/sheet";
+import {GearPlanSheet} from "@xivgear/core/sheet";
 import {
-    DataSelect,
     el,
-    FieldBoundCheckBox,
     FieldBoundDataSelect,
     FieldBoundTextField,
-    labeledCheckbox,
     makeActionButton,
     quickElement
 } from "@xivgear/common-ui/components/util";
 import {
     ChanceStat,
     ComputedSetStats,
-    DisplayGearSlotKey,
-    EquipSlotKey,
-    EquipSlots,
-    GearItem,
     MateriaAutoFillController,
     MateriaAutoFillPrio,
     MateriaFillMode,
     MultiplierMitStat,
     MultiplierStat,
     PartyBonusAmount,
-    RawStatKey,
-    SetExport,
-    SheetExport
+    RawStatKey
 } from "@xivgear/xivmath/geartypes";
 import {CharacterGearSet, SyncInfo} from "@xivgear/core/gear";
 import {
     getClassJobStats,
-    JobName,
     MAX_PARTY_BONUS,
     RACE_STATS,
-    RaceName, SpecialStatKey,
+    RaceName,
+    SpecialStatKey,
     STAT_ABBREVIATIONS,
     SupportedLevel
 } from "@xivgear/xivmath/xivconstants";
-import {getCurrentHash, getCurrentState, processNav} from "../nav_hash";
-import {MateriaTotalsDisplay} from "./materia";
-import {FoodItemsTable, FoodItemViewTable, GearItemsTable, GearItemsViewTable} from "./items";
-import {SetViewToolbar} from "./totals_display";
+import {processNav} from "../../nav_hash";
 import {scrollIntoView} from "@xivgear/common-ui/util/scrollutil";
-import {installDragHelper} from "./draghelpers";
-import {iconForIssues, SetIssuesModal} from "./gear_set_issues";
+import {installDragHelper} from "../../util/draghelpers";
+import {iconForIssues} from "./gear_set_issues";
 import {Inactivitytimer} from "@xivgear/util/inactivitytimer";
-import {startExport} from "./export_controller";
+import {startExport} from "../export/export_controller";
 import {startRenameSet, startRenameSheet} from "./rename_dialog";
 import {writeProxy} from "@xivgear/util/proxies";
 import {LoadingBlocker} from "@xivgear/common-ui/components/loader";
-import {GearEditToolbar} from "./gear_edit_toolbar";
-import {openSheetByKey, setTitle} from "../base_ui";
-import {parseImport} from "@xivgear/core/imports/imports";
-import {getShortLink} from "@xivgear/core/external/shortlink_server";
-import {getSetFromEtro} from "@xivgear/core/external/etro_import";
-import {getBisSheet} from "@xivgear/core/external/static_bis";
-import {simpleKvTable} from "../sims/components/simple_tables";
+import {GearEditToolbar} from "./toolbar/gear_edit_toolbar";
+import {openSheetByKey, setTitle} from "../../base_ui";
+import {simpleKvTable} from "../../sims/components/simple_tables";
 import {rangeInc} from "@xivgear/util/array_utils";
-import {SimCurrentResult, SimResult, SimSettings, SimSpec, Simulation} from "@xivgear/core/sims/sim_types";
-import {getRegisteredSimSpecs} from "@xivgear/core/sims/sim_registry";
-import {makeUrl, makeUrlSimple, NavState, ONLY_SET_QUERY_PARAM, POPUP_HASH} from "@xivgear/core/nav/common_nav";
-import {simMaintainersInfoElement} from "./sims";
-import {ChangePropsModal, SaveAsModal} from "./new_sheet_form";
-import {DropdownActionMenu} from "./dropdown_actions_menu";
+import {SimCurrentResult, SimResult, SimSettings, Simulation} from "@xivgear/core/sims/sim_types";
+import {makeUrlSimple, POPUP_HASH} from "@xivgear/core/nav/common_nav";
+import {ChangePropsModal, SaveAsModal} from "../sheetpicker/new_sheet_form";
+import {DropdownActionMenu} from "../general/dropdown_actions_menu";
 import {CustomFoodPopup, CustomItemPopup} from "./custom_item_manager";
 import {confirmDelete} from "@xivgear/common-ui/components/delete_confirm";
-import {SimulationGui} from "../sims/simulation_gui";
-import {makeGui} from "../sims/sim_guis";
-import {recordSheetEvent} from "@xivgear/gearplan-frontend/analytics/analytics";
-import {MeldSolverDialog} from "./meld_solver_modal";
-import {insertAds} from "./ads";
+import {SimulationGui} from "../../sims/simulation_gui";
+import {makeGui} from "../../sims/sim_guis";
+import {MeldSolverDialog} from "./editor/meld_solver_modal";
+import {insertAds} from "../general/ads";
 import {SETTINGS} from "@xivgear/common-ui/settings/persistent_settings";
 import {isInIframe} from "@xivgear/common-ui/util/detect_iframe";
 import {recordError, recordEvent} from "@xivgear/common-ui/analytics/analytics";
-import {ExpandableText} from "@xivgear/common-ui/components/expandy_text";
 import {SheetInfoModal} from "./sheet_info_modal";
-import {FramelessJobIcon, JobIcon} from "./job_icon";
+import {FramelessJobIcon} from "../job/job_icon";
 import {setDataManagerErrorReporter} from "@xivgear/core/data_api_client";
 import {SpecialStatType} from "@xivgear/data-api-client/dataapi";
-import {SHEET_MANAGER} from "./saved_sheet_impl";
 import {cleanUrl} from "@xivgear/common-ui/nav/common_frontend_nav";
 import {isSafari} from "@xivgear/common-ui/util/detect_safari";
-import {getNextPopoutContext, isPopout, MESSAGE_REFRESH_CONTENT, MESSAGE_REFRESH_TOOLBAR} from "../popout";
+import {getNextPopoutContext, MESSAGE_REFRESH_CONTENT, MESSAGE_REFRESH_TOOLBAR} from "../../popout";
 import {
-    editIcon,
     makeCopyIcon,
     makeExportIcon,
     makeImportIcon,
@@ -106,6 +82,12 @@ import {
     makeTrashIcon
 } from "@xivgear/common-ui/components/icons";
 import {showCompatOverview} from "./compat_checker";
+import {AddSimDialog} from "../sim/add_sim_dialog";
+import {ImportSetsModal} from "../import/import_sets_modal";
+import {recordSheetEvent} from "../../analytics/analytics";
+import {GearSetViewer} from "./editor/set_viewer";
+import {stringToParagraphs, textWithToolTip} from "../../util/text_utils";
+import {GearSetEditor} from "./editor/set_editor";
 
 const noSeparators = (set: CharacterGearSet) => !set.isSeparator;
 
@@ -191,7 +173,7 @@ function multiplierMitStatDisplay(stats: MultiplierMitStat) {
     return outerDiv;
 }
 
-export class SimResultData<ResultType extends SimResult> {
+class SimResultData<ResultType extends SimResult> {
     constructor(
         public readonly simInst: SimulationGui<ResultType, any, any>,
         public readonly result: SimCurrentResult<ResultType>
@@ -206,7 +188,7 @@ export class SimResultData<ResultType extends SimResult> {
 /**
  * A table of gear sets
  */
-export class GearPlanTable extends CustomTable<CharacterGearSet, SingleCellRowOrHeaderSelectionModel<CharacterGearSet, SimCurrentResult, SimulationGui<any, any, any>>> {
+class GearPlanTable extends CustomTable<CharacterGearSet, SingleCellRowOrHeaderSelectionModel<CharacterGearSet, SimCurrentResult, SimulationGui<any, any, any>>> {
 
     private readonly sheet: GearPlanSheetGui;
 
@@ -286,23 +268,9 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, SingleCellRowOr
         this.setupColumns();
     }
 
-    //
-    // addSim(sim: Simulation<any, any, any>) {
-    //     this._sims.push(sim);
-    //     this.setupColumns();
-    // }
-    //
-    // delSim(sim: Simulation<any, any, any>) {
-    //     this._sims = this._sims.filter(s => s !== sim);
-    //     this.setupColumns();
-    // }
-
     private setupColumns() {
         const viewOnly = this.sheet.isViewOnly;
         if (viewOnly) {
-            // TODO: this leaves 1px extra to the left of the name columns
-            // Also messes with the selection outline
-            // this.style.setProperty('--action-col-width', '1px');
             this.style.setProperty('--action-col-width', '4px');
             this.classList.add('view-only');
         }
@@ -723,10 +691,9 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, SingleCellRowOr
             }
         }
     }
-
 }
 
-export class SimResultDetailDisplay<X extends SimResult> extends HTMLElement {
+class SimResultDetailDisplay<X extends SimResult> extends HTMLElement {
     private _result: SimCurrentResult<X>;
     private sim: SimulationGui<X, any, any>;
 
@@ -761,14 +728,7 @@ export class SimResultDetailDisplay<X extends SimResult> extends HTMLElement {
     }
 }
 
-export function textWithToolTip(text: string, tooltip: string): HTMLElement {
-    const span = document.createElement('span');
-    span.textContent = text;
-    span.title = tooltip;
-    return span;
-}
-
-export class SimResultMiniDisplay extends HTMLElement {
+class SimResultMiniDisplay extends HTMLElement {
     private _result: SimCurrentResult<any>;
 
     constructor(private gearPlanTable: GearPlanTable, private simGui: SimulationGui<any, any, any>, simCurrentResult: SimCurrentResult<any>) {
@@ -809,222 +769,7 @@ export class SimResultMiniDisplay extends HTMLElement {
     }
 }
 
-function makeDescriptionHolder(text: string): HTMLElement {
-    const fullParagraphs = stringToParagraphs(text);
-    const out = new ExpandableText();
-    out.classList.add('set-description-holder');
-    out.setChildren(fullParagraphs);
-    return out;
-}
-
-function stringToParagraphs(text: string): HTMLParagraphElement[] {
-    return text.trim().split('\n').map(line => {
-        const p = document.createElement('p');
-        p.textContent = line;
-        return p;
-    });
-}
-
-/**
- * The set editor portion. Includes the tab as well as controls for the set name and such.
- */
-export class GearSetEditor extends HTMLElement {
-    private readonly sheet: GearPlanSheetGui;
-    private readonly gearSet: CharacterGearSet;
-    private gearTables: GearItemsTable[] = [];
-    private header: HTMLHeadingElement;
-    private desc: ExpandableText;
-    private issuesButtonContent: HTMLSpanElement;
-    private foodTable: FoodItemsTable;
-
-    constructor(sheet: GearPlanSheetGui, gearSet: CharacterGearSet) {
-        super();
-        this.sheet = sheet;
-        this.gearSet = gearSet;
-        this.setup();
-    }
-
-    formatTitleDesc(): void {
-        this.header.textContent = this.gearSet.name;
-        const trimmedDesc = this.gearSet.description?.trim();
-        if (trimmedDesc) {
-            this.desc.style.display = '';
-            this.desc.setChildren(stringToParagraphs(trimmedDesc));
-        }
-        else {
-            this.desc.style.display = 'none';
-        }
-    }
-
-    checkIssues(): void {
-        const issues = this.gearSet.issues;
-        if (issues.length >= 1) {
-            this.issuesButtonContent.replaceChildren(iconForIssues(...issues), `${issues.length} issue${issues.length === 1 ? '' : 's'}`);
-        }
-        else {
-            this.issuesButtonContent.replaceChildren('No issues');
-        }
-    }
-
-    setup() {
-        this.replaceChildren();
-
-        // Name editor
-
-        this.header = document.createElement('h2');
-        this.desc = new ExpandableText();
-        this.desc.classList.add('set-description-holder');
-        this.appendChild(this.header);
-        this.appendChild(this.desc);
-        this.formatTitleDesc();
-
-        const compatCheckerButton = makeActionButton('Compatibility', () => {
-            this.sheet.showCompatOverview(this.gearSet);
-        });
-
-        this.issuesButtonContent = el('span');
-
-        const issuesButton = makeActionButton([this.issuesButtonContent], () => {
-            this.showIssuesModal();
-        });
-        issuesButton.classList.add('issues-button');
-
-        const buttonArea = quickElement('div', ['gear-set-editor-button-area', 'button-row'], [
-            makeActionButton([makeExportIcon(), 'Export Set'], () => {
-                startExport(this.gearSet);
-            }),
-            makeActionButton([editIcon(), 'Edit Name/Description'], () => {
-                startRenameSet(writeProxy(this.gearSet, () => this.formatTitleDesc()));
-            }),
-            isPopout() ? null : makeActionButton([makeExportIcon(), 'Popout Editor'], () => {
-                const sheetAny = this.sheet;
-                sheetAny.openPopoutForSet(this.gearSet);
-            }),
-            compatCheckerButton,
-            issuesButton,
-        ].filter(x => x !== null));
-        if (this.sheet.isMultiJob) {
-            buttonArea.prepend(new DataSelect(
-                this.sheet.allJobs,
-                job => job,
-                job => this.gearSet.jobOverride = job,
-                this.gearSet.job
-            ));
-        }
-
-        this.appendChild(buttonArea);
-
-        // Put items in categories by slot
-        // Not enough to just use the items, because rings can be in either ring slot, so we
-        // need options to reflect that.
-        const itemMapping: Map<DisplayGearSlotKey, GearItem[]> = new Map();
-        this.sheet.itemsForDisplay
-            .filter(item => item.usableByJob(this.gearSet.job))
-            .forEach((item) => {
-                const slot = item.displayGearSlotName;
-                if (itemMapping.has(slot)) {
-                    itemMapping.get(slot).push(item);
-                }
-                else {
-                    itemMapping.set(slot, [item]);
-                }
-            });
-
-        const leftSideSlots = ['Head', 'Body', 'Hand', 'Legs', 'Feet'] as const;
-        const rightSideSlots = ['Ears', 'Neck', 'Wrist', 'RingRight', 'RingLeft'] as const;
-
-        const showHideAllCallback = () => {
-            this.gearTables.forEach(tbl => tbl.recheckHiddenSlots());
-        };
-
-        const weaponTable = new GearItemsTable(this.sheet, this.gearSet, itemMapping, this.gearSet.classJobStats.offhand ? ['Weapon', 'OffHand'] : ['Weapon'], showHideAllCallback);
-        const leftSideDiv = document.createElement('div');
-        const rightSideDiv = document.createElement('div');
-
-        this.gearTables = [weaponTable];
-
-        for (const slot of leftSideSlots) {
-            const table = new GearItemsTable(this.sheet, this.gearSet, itemMapping, [slot], showHideAllCallback);
-            leftSideDiv.appendChild(table);
-            this.gearTables.push(table);
-        }
-        for (const slot of rightSideSlots) {
-            const table = new GearItemsTable(this.sheet, this.gearSet, itemMapping, [slot], showHideAllCallback);
-            rightSideDiv.appendChild(table);
-            this.gearTables.push(table);
-        }
-        // const leftSideTable = new GearItemsTable(this.sheet, this.gearSet, itemMapping, ['Head', 'Body', 'Hand', 'Legs', 'Feet']);
-        // const rightSideTable = new GearItemsTable(this.sheet, this.gearSet, itemMapping, ['Ears', 'Neck', 'Wrist', 'RingLeft', 'RingRight']);
-
-        const gearTableSet = document.createElement('div');
-        weaponTable.classList.add('weapon-table');
-        gearTableSet.classList.add('gear-table-sides-holder');
-        leftSideDiv.classList.add('left-side-gear-table');
-        rightSideDiv.classList.add('right-side-gear-table');
-
-        gearTableSet.appendChild(leftSideDiv);
-        gearTableSet.appendChild(rightSideDiv);
-        this.appendChild(weaponTable);
-        this.appendChild(gearTableSet);
-        // this.appendChild(rightSideDiv);
-
-        // // Gear table
-        // const gearTable = new GearItemsTable(sheet, gearSet, itemMapping);
-        // // gearTable.id = "gear-items-table";
-        // this.appendChild(gearTable);
-
-        // Food table
-        this.foodTable = new FoodItemsTable(this.sheet, this.gearSet);
-        this.foodTable.classList.add('food-table');
-        // foodTable.id = "food-items-table";
-        this.appendChild(this.foodTable);
-        this.checkIssues();
-    }
-
-    refreshMateria() {
-        this.gearTables.forEach(tbl => tbl.refreshMateria());
-        this.checkIssues();
-    }
-
-    showIssuesModal(): void {
-        new SetIssuesModal(this.gearSet).attachAndShowExclusively();
-    }
-
-    refresh() {
-        this.checkIssues();
-        this.foodTable.refreshFull();
-    }
-
-    private undoRedoHotkeyHandler = (ev: KeyboardEvent) => {
-        // Ctrl-Z = undo
-        // Ctrl-Shift-Z = redo
-        if (ev.ctrlKey && ev.key.toLowerCase() === 'z') {
-            // ignore anything that would naturally handle an undo
-            if (ev.target instanceof Element) {
-                const tag = ev.target.tagName?.toLowerCase();
-                if (tag === 'input' || tag === 'select' || tag === 'textarea') {
-                    return;
-                }
-            }
-            if (ev.shiftKey) {
-                this.gearSet.redo();
-            }
-            else {
-                this.gearSet.undo();
-            }
-        }
-    };
-
-    connectedCallback() {
-        window.addEventListener('keydown', this.undoRedoHotkeyHandler);
-    }
-
-    disconnectedCallback() {
-        window.removeEventListener('keydown', this.undoRedoHotkeyHandler);
-    }
-}
-
-export class SeparatorEditor extends HTMLElement {
+class SeparatorEditor extends HTMLElement {
     private readonly gearSet: CharacterGearSet;
     private header: HTMLHeadingElement;
     private desc: HTMLDivElement;
@@ -1074,134 +819,7 @@ export class SeparatorEditor extends HTMLElement {
     }
 }
 
-/**
- * A simplified, read-only view for a set
- */
-export class GearSetViewer extends HTMLElement {
-    private readonly sheet: GearPlanSheet;
-    private readonly gearSet: CharacterGearSet;
-
-    constructor(sheet: GearPlanSheet, gearSet: CharacterGearSet) {
-        super();
-        this.sheet = sheet;
-        this.gearSet = gearSet;
-        this.setup();
-    }
-
-    setup() {
-        // const header = document.createElement("h1");
-        // header.textContent = "Gear Set Editor";
-        // this.appendChild(header)
-        this.replaceChildren();
-
-        // Name editor
-        const heading = document.createElement('h1');
-        if (this.sheet.isEmbed) {
-            const headingLink = document.createElement('a');
-            const hash = getCurrentHash();
-            const linkUrl = makeUrl(new NavState(hash.slice(1), undefined, getCurrentState().onlySetIndex));
-            linkUrl.searchParams.delete(ONLY_SET_QUERY_PARAM);
-            headingLink.href = linkUrl.toString();
-            headingLink.target = '_blank';
-            headingLink.addEventListener('click', () => {
-                recordSheetEvent("openEmbedToFull", this.sheet);
-            });
-            headingLink.replaceChildren(this.gearSet.name);
-            heading.replaceChildren(headingLink);
-        }
-        else {
-            heading.textContent = this.gearSet.name;
-        }
-        this.appendChild(heading);
-
-        if (this.gearSet.description) {
-            const descContainer = makeDescriptionHolder(this.gearSet.description);
-            this.appendChild(descContainer);
-        }
-
-        const anchorForEmbed = document.createElement('a');
-        anchorForEmbed.id = 'embed-stats-placeholder';
-        this.appendChild(anchorForEmbed);
-
-        if (!this.sheet.isEmbed) {
-            const matTotals = new MateriaTotalsDisplay(this.gearSet);
-            if (!matTotals.empty) {
-                this.appendChild(matTotals);
-            }
-        }
-
-        // We only care about equipped items
-        const itemMapping: Map<EquipSlotKey, GearItem> = new Map();
-        const equippedSlots = [];
-        for (const slot of EquipSlots) {
-            const equipped: GearItem = this.gearSet.getItemInSlot(slot);
-            if (equipped) {
-                itemMapping.set(slot, equipped);
-                equippedSlots.push(slot);
-            }
-        }
-
-        const leftSideSlots = ['Head', 'Body', 'Hand', 'Legs', 'Feet'] as const;
-        const rightSideSlots = ['Ears', 'Neck', 'Wrist', 'RingRight', 'RingLeft'] as const;
-
-        if (itemMapping.get('Weapon') || itemMapping.get('OffHand')) {
-            const weaponTable = new GearItemsViewTable(this.sheet, this.gearSet, itemMapping, this.gearSet.classJobStats.offhand ? ['Weapon', 'OffHand'] : ['Weapon']);
-            weaponTable.classList.add('weapon-table');
-            this.appendChild(weaponTable);
-        }
-        const leftSideDiv = document.createElement('div');
-        const rightSideDiv = document.createElement('div');
-
-        let leftEnabled = false;
-        let rightEnabled = false;
-        for (const slot of leftSideSlots) {
-            if (itemMapping.get(slot)) {
-                const table = new GearItemsViewTable(this.sheet, this.gearSet, itemMapping, [slot]);
-                leftSideDiv.appendChild(table);
-                leftEnabled = true;
-            }
-        }
-        for (const slot of rightSideSlots) {
-            if (itemMapping.get(slot)) {
-                const table = new GearItemsViewTable(this.sheet, this.gearSet, itemMapping, [slot]);
-                rightSideDiv.appendChild(table);
-                rightEnabled = true;
-            }
-        }
-
-        const gearTableSet = document.createElement('div');
-        gearTableSet.classList.add('gear-table-sides-holder');
-        leftSideDiv.classList.add('left-side-gear-table');
-        rightSideDiv.classList.add('right-side-gear-table');
-
-        if (leftEnabled) {
-            gearTableSet.appendChild(leftSideDiv);
-        }
-        if (rightEnabled) {
-            gearTableSet.appendChild(rightSideDiv);
-        }
-        this.appendChild(gearTableSet);
-
-        // Food table TODO make readonly
-        const food = this.gearSet.food;
-        if (food) {
-            const foodTable = new FoodItemViewTable(this.sheet, this.gearSet, food);
-            foodTable.classList.add('food-view-table');
-            // foodTable.id = "food-items-table";
-            this.appendChild(foodTable);
-        }
-    }
-
-    get toolbar(): Node {
-        return new SetViewToolbar(this.gearSet);
-    }
-
-    refresh() {
-        // Avoids an error in the console in view-only mode
-    }
-}
-
-export class SeparatorViewer extends HTMLElement {
+class SeparatorViewer extends HTMLElement {
     private readonly gearSet: CharacterGearSet;
 
     constructor(gearSet: CharacterGearSet) {
@@ -1285,7 +903,9 @@ function formatSimulationConfigArea<SettingsType extends SimSettings>(
     return outerDiv;
 }
 
-export class GearPlanSheetElement extends HTMLElement {
+// Doesn't actually have any custom behavior, but this is the actual gear plan sheet element.
+// GearPlanSheetGui is not an element.
+class GearPlanSheetElement extends HTMLElement {
 
 }
 
@@ -1335,27 +955,16 @@ export class GearPlanSheetGui extends GearPlanSheet {
         const element = this.element;
         element.classList.add('gear-sheet');
         element.classList.add('loading');
-        this.headerArea = document.createElement('div');
-        this.headerArea.classList.add('header-area');
-        this.headerBacklinkArea = document.createElement('div');
-        this.headerBacklinkArea.classList.add('header-backlink-area');
+        this.headerArea = el('div', {class: 'header-area'});
+        this.headerBacklinkArea = el('div', {class: 'header-backlink-area'});
         this.headerBacklinkArea.style.display = 'none';
-        this.tableArea = document.createElement("div");
-        this.tableArea.classList.add('gear-sheet-table-area', 'hide-when-loading');
-        this.tableHolder = document.createElement('div');
-        this.tableHolder.classList.add('gear-sheet-table-holder');
-        this.tableHolderOuter = document.createElement('div');
-        this.tableHolderOuter.classList.add('gear-sheet-table-holder-outer');
-        this.tableHolderOuter.appendChild(this.tableHolder);
-        this.tableArea.appendChild(this.tableHolderOuter);
-        this.buttonsArea = document.createElement("div");
-        this.buttonsArea.classList.add('gear-sheet-buttons-area', 'hide-when-loading', 'show-hide-parent');
-        this.editorArea = document.createElement("div");
-        this.editorArea.classList.add('gear-sheet-editor-area', 'hide-when-loading');
-        this.midBarArea = document.createElement("div");
-        this.midBarArea.classList.add('gear-sheet-midbar-area', 'hide-when-loading');
-        this.toolbarHolder = document.createElement('div');
-        this.toolbarHolder.classList.add('gear-sheet-toolbar-holder', 'hide-when-loading');
+        this.tableHolder = el('div', {class: 'gear-sheet-table-holder'});
+        this.tableHolderOuter = el('div', {class: 'gear-sheet-table-holder-outer'}, [this.tableHolder]);
+        this.tableArea = el("div", {classes: ['gear-sheet-table-area', 'hide-when-loading']}, [this.tableHolderOuter]);
+        this.buttonsArea = el("div", {classes: ['gear-sheet-buttons-area', 'hide-when-loading', 'show-hide-parent']});
+        this.editorArea = el("div", {classes: ['gear-sheet-editor-area', 'hide-when-loading']});
+        this.midBarArea = el("div", {classes: ['gear-sheet-midbar-area', 'hide-when-loading']});
+        this.toolbarHolder = el('div', {classes: ['gear-sheet-toolbar-holder', 'hide-when-loading']});
         element.appendChild(this.headerArea);
         element.appendChild(this.headerBacklinkArea);
         element.appendChild(this.tableArea);
@@ -1455,8 +1064,7 @@ export class GearPlanSheetGui extends GearPlanSheet {
                     else {
                         const existing = this._openSetPopouts.get(item);
                         if (existing && !existing.closed) {
-                            const header = document.createElement('h3');
-                            header.textContent = `${item.name} editor is open in a popout`;
+                            const header = el('h3', {}, [`${item.name} editor is open in a popout`]);
                             const focusBtn = makeActionButton('Focus Popout', () => {
                                 try {
                                     existing.focus();
@@ -2106,6 +1714,7 @@ export class GearPlanSheetGui extends GearPlanSheet {
             return;
         }
         const url = makeUrlSimple(POPUP_HASH, index.toString());
+        // Get rid of IntelliJ auto-reload because refreshing closes the popout anyway
         url.searchParams.delete('_ij_reload');
         const popup = window.open(url, getNextPopoutContext(), "popout,location=false,toolbar=false,status=false,width=1024,height=768");
         if (!popup) {
@@ -2309,306 +1918,6 @@ export class GearPlanSheetGui extends GearPlanSheet {
     }
 }
 
-export class ImportSetsModal extends BaseModal {
-    private readonly loader: LoadingBlocker;
-    private readonly importButton: HTMLButtonElement;
-    private readonly textArea: HTMLTextAreaElement;
-
-    constructor(private sheet: GearPlanSheetGui) {
-        super();
-        this.headerText = 'Import Gear Set(s)';
-
-        const explanation = document.createElement('p');
-        explanation.textContent = 'This is for importing gear set(s) into this sheet. If you would like to import a full sheet export (including sim settings) to a new sheet, use the "Import Sheet" at the top of the page. '
-            + 'You can import a gear planner URL or JSON, or an Etro URL.';
-        this.contentArea.appendChild(explanation);
-
-        const textAreaDiv = document.createElement("div");
-        textAreaDiv.id = 'set-import-textarea-holder';
-
-        this.textArea = document.createElement("textarea");
-        this.textArea.id = 'set-import-textarea';
-        textAreaDiv.appendChild(this.textArea);
-        this.loader = new LoadingBlocker();
-        this.loader.classList.add('with-bg');
-
-
-        textAreaDiv.appendChild(this.loader);
-        this.contentArea.appendChild(textAreaDiv);
-        // textAreaDiv.appendChild(document.createElement("br"));
-
-        this.importButton = makeActionButton("Import", () => this.doImport());
-        this.addButton(this.importButton);
-        this.addCloseButton();
-        this.ready = true;
-    }
-
-    get ready() {
-        return !this.importButton.disabled;
-    }
-
-    set ready(ready: boolean) {
-        if (ready) {
-            this.loader.hide();
-            this.importButton.disabled = false;
-        }
-        else {
-            this.loader.show();
-            this.importButton.disabled = true;
-        }
-    }
-
-    checkJob(plural: boolean, ...importedJobs: JobName[]): boolean {
-        const nonMatchingJobs = importedJobs.filter(job => !this.sheet.allJobs.includes(job));
-        if (nonMatchingJobs.length > 0) {
-            const flaggedJobs = nonMatchingJobs.join(', ');
-            // TODO: *try* to import some sims, or at least load up the defaults.
-            let msg;
-            if (plural) {
-                msg = `You are trying to import ${flaggedJobs} set(s) into a ${this.sheet.classJobName} sheet. Class-specific items, such as weapons, will need to be re-selected.`;
-            }
-            else {
-                msg = `You are trying to import a ${flaggedJobs} set into a ${this.sheet.classJobName} sheet. Class-specific items, such as weapons, will need to be re-selected.`;
-            }
-            return confirm(msg);
-        }
-        else {
-            return true;
-        }
-
-    }
-
-    doImport() {
-        const text = this.textArea.value.trim();
-        const parsed = parseImport(text);
-        if (parsed) {
-            switch (parsed.importType) {
-                case "json":
-                    try {
-                        this.doJsonImport(parsed.rawData, undefined);
-                    }
-                    catch (e) {
-                        console.error('Import error', e);
-                        alert('Error importing');
-                    }
-                    return;
-                case "shortlink":
-                    this.doAsyncImport(() => getShortLink(decodeURIComponent(parsed.rawUuid)), parsed.onlySetIndex);
-                    return;
-                case "etro":
-                    this.ready = false;
-                    Promise.all(parsed.rawUuids.map(getSetFromEtro)).then(sets => {
-                        if (!this.checkJob(false, ...sets.map(set => set.job))) {
-                            this.ready = true;
-                            return;
-                        }
-                        sets.forEach(set => {
-                            this.sheet.addGearSet(this.sheet.importGearSet(set), undefined, true);
-                        });
-                        console.log("Imported set(s) from Etro");
-                        this.close();
-                    }, err => {
-                        this.ready = true;
-                        console.error("Error loading set from Etro", err);
-                        alert('Error loading Etro set');
-                    });
-                    return;
-                case "bis":
-                    this.doAsyncImport(() => getBisSheet(parsed.path), parsed.onlySetIndex);
-                    return;
-            }
-        }
-        console.error("Error loading imported data", text);
-        alert('That doesn\'t look like a valid import.');
-    }
-
-    doAsyncImport(provider: () => Promise<string>, onlySetIndex: number | undefined) {
-        this.ready = false;
-        provider().then(raw => {
-            this.doJsonImport(raw, onlySetIndex);
-            this.ready = true;
-        }, err => {
-            this.ready = true;
-            console.error("Error importing set/sheet", err);
-            alert('Error loading set/sheet');
-        });
-    }
-
-    doJsonImport(text: string, onlySetIndex: number | undefined) {
-        const rawImport = JSON.parse(text);
-        if ('sets' in rawImport && rawImport.sets.length) {
-            if (!this.checkJob(true, rawImport.job)) {
-                return;
-            }
-            const sets: SetExport[] = rawImport.sets;
-            if (onlySetIndex !== undefined) {
-                const theSet = sets[onlySetIndex];
-                if (!theSet) {
-                    console.error(`Index ${onlySetIndex} is not valid with sets length of ${sets.length}`);
-                    alert("Not valid");
-                }
-                const imported = this.sheet.importGearSet(theSet);
-                this.sheet.addGearSet(imported, undefined, true);
-            }
-            else {
-                // import everything
-                if (confirm(`This will import ${rawImport.sets.length} gear sets into this sheet.`)) {
-                    const imports = sets.map(set => this.sheet.importGearSet(set));
-                    for (let i = 0; i < imports.length; i++) {
-                        // Select the first imported set
-                        const set = imports[i];
-                        this.sheet.addGearSet(set, undefined, i === 0);
-                    }
-                }
-            }
-            this.close();
-        }
-        else if ('name' in rawImport && 'items' in rawImport) {
-            if (!this.checkJob(false, rawImport.job)) {
-                return;
-            }
-            this.sheet.addGearSet(this.sheet.importGearSet(rawImport), undefined, true);
-            this.close();
-        }
-        else {
-            alert("That doesn't look like a valid sheet or set");
-        }
-
-    }
-}
-
-export class AddSimDialog extends BaseModal {
-    private readonly table: CustomTable<SimSpec<any, any>, TableSelectionModel<SimSpec<any, any>>>;
-    private _showAllSims: boolean = false;
-
-    constructor(private sheet: GearPlanSheet) {
-        super();
-        this.id = 'add-sim-dialog';
-        this.headerText = 'Add Simulation';
-        const form = document.createElement("form");
-        form.method = 'dialog';
-        this.table = new CustomTable();
-        const selModel = new SingleRowSelectionModel<SimSpec<any, any>>();
-        this.table.selectionModel = selModel;
-        this.table.classList.add('hoverable');
-        this.table.columns = [
-            col({
-                shortName: 'sim-job-icon',
-                displayName: 'Icon',
-                // fixedWidth: 500,
-                getter: item => item.supportedJobs,
-                renderer: (value) => {
-                    if (!value) {
-                        return document.createTextNode('');
-                    }
-                    if (value.length === 1) {
-                        return new JobIcon(value[0]);
-                    }
-                    // TODO: use role icon for sims that support entire roles
-                    // Role icons start at 062581
-                    return document.createTextNode('');
-                },
-            }),
-            col({
-                shortName: 'sim-name',
-                displayName: 'Name',
-                // fixedWidth: 500,
-                getter: item => item.displayName,
-            }),
-        ];
-        this.table.data = this.sheet.relevantSims;
-        const showAllCb = labeledCheckbox('Show sims for other jobs', new FieldBoundCheckBox<AddSimDialog>(this, 'showAllSims'));
-        form.appendChild(showAllCb);
-        const tableHolder = quickElement('div', ['table-holder'], [this.table]);
-        form.appendChild(tableHolder);
-
-        const descriptionArea = document.createElement('div');
-        descriptionArea.classList.add('add-sim-description');
-        descriptionArea.textContent = 'Select a simulation to see a description';
-
-        const contactArea = quickElement('div', ['add-sim-contact-info-holder'], []);
-        const descriptionContactArea = quickElement('div', ['add-sim-lower-area'], [descriptionArea, contactArea]);
-
-        form.appendChild(descriptionContactArea);
-
-        const submitButton = makeActionButton("Add", () => this.submit());
-        const cancelButton = makeActionButton("Cancel", () => this.close());
-        this.addButton(submitButton);
-        this.addButton(cancelButton);
-
-        selModel.addListener({
-            onNewSelection(newSelection) {
-                if (newSelection instanceof CustomRow) {
-                    submitButton.disabled = false;
-                    const desc = newSelection.dataItem.description;
-                    if (desc !== undefined) {
-                        descriptionArea.textContent = desc;
-                        descriptionArea.classList.remove('no-desc');
-                    }
-                    else {
-                        descriptionArea.textContent = '(No Description)';
-                        descriptionArea.classList.add('no-desc');
-                    }
-                    const maintainersElement = simMaintainersInfoElement(newSelection.dataItem);
-                    if (maintainersElement) {
-                        contactArea.replaceChildren(maintainersElement);
-                        contactArea.style.display = '';
-                    }
-                    else {
-                        contactArea.replaceChildren();
-                        contactArea.style.display = 'none';
-                    }
-                }
-                else {
-                    submitButton.disabled = true;
-                }
-            },
-        });
-        this.contentArea.append(form);
-    }
-
-    submit() {
-        const sel = this.table.selectionModel.getSelection();
-        if (sel instanceof CustomRow) {
-            this.sheet.addSim(sel.dataItem.makeNewSimInstance());
-            this.close();
-        }
-    }
-
-    get showAllSims(): boolean {
-        return this._showAllSims;
-    }
-
-    set showAllSims(showAll: boolean) {
-        this._showAllSims = showAll;
-        this.table.data = showAll ? getRegisteredSimSpecs() : this.sheet.relevantSims;
-    }
-}
-
-export class GraphicalSheetProvider extends SheetProvider<GearPlanSheetGui> {
-    constructor() {
-        super((...args) => new GearPlanSheetGui(...args), SHEET_MANAGER);
-    }
-
-    override fromExport(importedData: SheetExport): GearPlanSheetGui {
-        const out = super.fromExport(importedData);
-        out.setSelectFirstRowByDefault();
-        return out;
-    }
-
-    override fromSetExport(...importedData: SetExport[]): GearPlanSheetGui {
-        const out = super.fromSetExport(...importedData);
-        out.setSelectFirstRowByDefault();
-        return out;
-    }
-
-    override fromSaved(sheetKey: string): GearPlanSheetGui | null {
-        const out = super.fromSaved(sheetKey);
-        out?.setSelectFirstRowByDefault();
-        return out;
-    }
-}
-
 function formatSyncInfo(si: SyncInfo, level: SupportedLevel): string | null {
     const isIlvlSynced = si.ilvlSync !== null;
     const isLvlSynced = si.lvlSync !== null;
@@ -2636,15 +1945,9 @@ function formatSyncInfo(si: SyncInfo, level: SupportedLevel): string | null {
     return null;
 }
 
-export const GRAPHICAL_SHEET_PROVIDER = new GraphicalSheetProvider();
-
-customElements.define("gear-set-editor", GearSetEditor);
 customElements.define("separator-editor", SeparatorEditor);
-customElements.define("gear-set-viewer", GearSetViewer);
 customElements.define("separator-viewer", SeparatorViewer);
 customElements.define("gear-plan-table", GearPlanTable, {extends: "table"});
 customElements.define("gear-plan", GearPlanSheetElement);
 customElements.define("sim-result-display", SimResultMiniDisplay);
 customElements.define("sim-result-detail-display", SimResultDetailDisplay);
-customElements.define("add-sim-dialog", AddSimDialog);
-customElements.define("import-set-dialog", ImportSetsModal);

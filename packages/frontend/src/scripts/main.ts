@@ -1,7 +1,7 @@
 import {processHashLegacy, processNav} from "./nav_hash";
 import {earlyUiSetup, initialLoad, initTopMenu} from "./base_ui";
 import {registerDefaultSims} from "@xivgear/core/sims/default_sims";
-import {installFallbackPrivacyArea} from "./components/ads";
+import {installFallbackPrivacyArea} from "./components/general/ads";
 import {installDoubleClickHandler} from "@xivgear/common-ui/util/stop_double_click";
 import {ACCOUNT_STATE_TRACKER} from "./account/account_state";
 import {setupAccountUi} from "./account/components/account_components";

@@ -48,12 +48,12 @@ import {
 import {AllSlotMateriaManager} from "./materia";
 import {shortenItemName} from "@xivgear/util/strutils";
 import {GearPlanSheet} from "@xivgear/core/sheet";
-import {makeRelicStatEditor} from "./relic_stats";
+import {makeRelicStatEditor} from "../../items/relic_stats";
 import {ShowHideButton, ShowHideCallback} from "@xivgear/common-ui/components/show_hide_chevron";
 import {BaseModal} from "@xivgear/common-ui/components/modal";
-import {recordSheetEvent} from "../analytics/analytics";
+import {recordSheetEvent} from "../../../analytics/analytics";
 import {makeTrashIcon} from "@xivgear/common-ui/components/icons";
-import {sortItemsInPlace} from "./item_utils";
+import {sortItemsInPlace} from "../../items/item_utils";
 
 function removeStatCellStyles(cell: CustomCell<GearSlotItem, unknown>) {
     cell.classList.remove("secondary");

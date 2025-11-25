@@ -1,16 +1,16 @@
 import {col, CustomRow, CustomTable, SpecialRow, TableSelectionModel} from "@xivgear/common-ui/table/tables";
 import {makeActionButton, makeAsyncActionButton, quickElement} from "@xivgear/common-ui/components/util";
 import {SheetHandle, SheetManager, SyncStatus} from "@xivgear/core/persistence/saved_sheets";
-import {getHashForSaveKey, openSheetByKey, showNewSheetForm} from "../base_ui";
+import {getHashForSaveKey, openSheetByKey, showNewSheetForm} from "../../base_ui";
 import {confirmDelete} from "@xivgear/common-ui/components/delete_confirm";
-import {JobIcon} from "./job_icon";
+import {JobIcon} from "../job/job_icon";
 import {JOB_DATA} from "@xivgear/xivmath/xivconstants";
-import {jobAbbrevTranslated} from "./job_name_translator";
+import {jobAbbrevTranslated} from "../job/job_name_translator";
 import {CharacterGearSet} from "@xivgear/core/gear";
-import {installDragHelper} from "./draghelpers";
-import {ACCOUNT_STATE_TRACKER} from "../account/account_state";
-import {UserDataSyncer} from "../account/user_data";
-import {showAccountModal} from "../account/components/account_components";
+import {installDragHelper} from "../../util/draghelpers";
+import {ACCOUNT_STATE_TRACKER} from "../../account/account_state";
+import {UserDataSyncer} from "../../account/user_data";
+import {showAccountModal} from "../../account/components/account_components";
 import {Inactivitytimer} from "@xivgear/util/inactivitytimer";
 import {ConflictResolutionDialog} from "./conflict_resolution_dialog";
 import {
