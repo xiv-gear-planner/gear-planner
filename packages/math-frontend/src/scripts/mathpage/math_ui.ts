@@ -603,13 +603,7 @@ export class MathArea extends HTMLElement {
             this.landingOuter.style.display = '';
         }
         this.menu.querySelectorAll('button').forEach(btn => {
-            const active = btn.value === formulaSet?.stub;
-            if (active) {
-                btn.classList.add('active');
-            }
-            else {
-                btn.classList.remove('active');
-            }
+            btn.classList.toggle('active', btn.value === formulaSet?.stub);
         });
 
     }

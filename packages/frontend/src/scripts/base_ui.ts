@@ -143,12 +143,7 @@ export function formatTopMenu(nav: NavState) {
         if (href?.startsWith('?page=')) {
             const expected = splitPath(href.slice(6));
             console.debug(`Expected: ${expected}, actual: ${hash}`);
-            if (arrayEq(expected, hash)) {
-                link.classList.add('current-page');
-            }
-            else {
-                link.classList.remove('current-page');
-            }
+            link.classList.toggle('current-page', arrayEq(expected, hash));
         }
     });
 }

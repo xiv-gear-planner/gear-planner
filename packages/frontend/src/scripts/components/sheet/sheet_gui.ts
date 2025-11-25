@@ -988,12 +988,7 @@ export class GearPlanSheetGui extends GearPlanSheet {
     set showAdvancedStats(show: boolean) {
         super.showAdvancedStats = show;
         SETTINGS.viewDetailedStats = show;
-        if (show) {
-            this._gearPlanTable.classList.add('show-advanced-stats');
-        }
-        else {
-            this._gearPlanTable.classList.remove('show-advanced-stats');
-        }
+        this._gearPlanTable.classList.toggle('show-advanced-stats', show);
     }
 
     setViewOnly() {

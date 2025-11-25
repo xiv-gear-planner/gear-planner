@@ -99,25 +99,10 @@ function applyStatCellStyles(cell: CustomCell<GearSlotItem, unknown>, value: Ite
             isSecondary = true;
         }
     }
-    if (isPrimary) {
-        cell.classList.add("primary");
-        cell.classList.remove("secondary");
-    }
-    else if (isSecondary) {
-        cell.classList.add("secondary");
-        cell.classList.remove("primary");
-    }
-    else {
-        cell.classList.remove("secondary");
-        cell.classList.remove("primary");
-    }
+    cell.classList.toggle('primary', isPrimary);
+    cell.classList.toggle('secondary', isSecondary && !isPrimary);
 
-    if (value.effectiveAmount === 0) {
-        cell.classList.add("stat-zero");
-    }
-    else {
-        cell.classList.remove("stat-zero");
-    }
+    cell.classList.toggle('stat-zero', value.effectiveAmount === 0);
     cell.classList.remove("stat-melded-overcapped", "stat-melded-overcapped-major", "stat-melded", "stat-synced-down");
     if (value.mode === 'melded') {
         cell.classList.add("stat-melded");

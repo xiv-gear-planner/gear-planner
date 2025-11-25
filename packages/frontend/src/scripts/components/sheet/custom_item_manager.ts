@@ -357,12 +357,7 @@ export class CustomItemPopup extends BaseModal {
     }
 
     set showAllStats(value: boolean) {
-        if (value) {
-            this.classList.add('show-all-stats');
-        }
-        else {
-            this.classList.remove('show-all-stats');
-        }
+        this.classList.toggle('show-all-stats', value);
     }
 }
 
