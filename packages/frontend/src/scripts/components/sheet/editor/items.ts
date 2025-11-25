@@ -1017,14 +1017,8 @@ export class GearItemsViewTable extends CustomTable<GearSlotItem> {
                             const allZero = Array.from(all).every(el => el.classList.contains('stat-zero'));
                             const headers = outer.querySelectorAll(`th[col-id="${spec.shortName}"]`);
                             const className = 'col-zero-stat';
-                            if (allZero) {
-                                all.forEach(el => el.classList.add(className));
-                                headers.forEach(el => el.classList.add(className));
-                            }
-                            else {
-                                all.forEach(el => el.classList.remove(className));
-                                headers.forEach(el => el.classList.remove(className));
-                            }
+                            all.forEach(el => el.classList.toggle(className, allZero));
+                            headers.forEach(el => el.classList.toggle(className, allZero));
                         }
                     });
                 },
@@ -1173,14 +1167,9 @@ export class ILvlRangePicker<ObjType> extends HTMLElement {
         const lowerBoundControl = new FieldBoundIntField(obj, minField);
         const upperBoundControl = new FieldBoundIntField(obj, maxField);
         const borderListener = function (min: number, max: number) {
-            if (min > max) {
-                lowerBoundControl.classList.add("invalid-numeric-input");
-                upperBoundControl.classList.add("invalid-numeric-input");
-            }
-            else {
-                lowerBoundControl.classList.remove("invalid-numeric-input");
-                upperBoundControl.classList.remove("invalid-numeric-input");
-            }
+            const invalid = min > max;
+            lowerBoundControl.classList.toggle("invalid-numeric-input", invalid);
+            upperBoundControl.classList.toggle("invalid-numeric-input", invalid);
         };
         this._listeners.push(borderListener);
 
