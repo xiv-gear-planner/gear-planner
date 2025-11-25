@@ -16,7 +16,7 @@ import {
     vitToHp
 } from "@xivgear/xivmath/xivmath";
 import {GearPlanSheet} from "@xivgear/core/sheet";
-import {recordSheetEvent} from "../analytics/analytics";
+import {recordSheetEvent} from "../../../analytics/analytics";
 import {el} from "@xivgear/common-ui/components/util";
 
 interface Tiering {

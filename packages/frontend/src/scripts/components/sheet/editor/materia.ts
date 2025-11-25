@@ -21,8 +21,8 @@ import {
 } from "@xivgear/common-ui/components/util";
 import {GearPlanSheet} from "@xivgear/core/sheet";
 import {recordEvent} from "@xivgear/common-ui/analytics/analytics";
-import {GearPlanSheetGui} from "./sheet";
-import {recordCurrentSheetEvent} from "../analytics/analytics";
+import {GearPlanSheetGui} from "../sheet_gui";
+import {recordCurrentSheetEvent} from "../../../analytics/analytics";
 import {MODAL_CONTROL} from "@xivgear/common-ui/modalcontrol";
 import {makeLockIcon, makeNewSheetIcon, makePlusIcon, makeTrashIcon} from "@xivgear/common-ui/components/icons";
 import {materiaShortLabel} from "@xivgear/core/materia/materia_utils";

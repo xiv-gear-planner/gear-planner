@@ -17,12 +17,12 @@ import {
 } from "@xivgear/common-ui/components/util";
 import {ALL_STATS, ALL_SUB_STATS, STAT_ABBREVIATIONS, STAT_FULL_NAMES} from "@xivgear/xivmath/xivconstants";
 import {BaseModal} from "@xivgear/common-ui/components/modal";
-import {DropdownActionMenu} from "./dropdown_actions_menu";
+import {DropdownActionMenu} from "../general/dropdown_actions_menu";
 import {NormalOccGearSlots, RawStats, Substat} from "@xivgear/xivmath/geartypes";
 import {confirmDelete} from "@xivgear/common-ui/components/delete_confirm";
 import {CustomItem} from "@xivgear/core/customgear/custom_item";
 import {CustomFood} from "@xivgear/core/customgear/custom_food";
-import {GearPlanSheetGui} from "./sheet";
+import {GearPlanSheetGui} from "./sheet_gui";
 import {makeTrashIcon} from "@xivgear/common-ui/components/icons";
 
 function ifWeapon(fn: (item: CustomItem) => HTMLElement): (item: CustomItem) => Node {

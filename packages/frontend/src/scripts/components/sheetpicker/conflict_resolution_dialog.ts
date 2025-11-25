@@ -1,7 +1,7 @@
 import {BaseModal} from "@xivgear/common-ui/components/modal";
 import {SheetHandle} from "@xivgear/core/persistence/saved_sheets";
 import {quickElement} from "@xivgear/common-ui/components/util";
-import {UserDataSyncer} from "../account/user_data";
+import {UserDataSyncer} from "../../account/user_data";
 
 export class ConflictResolutionDialog extends BaseModal {
 

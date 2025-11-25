@@ -10,14 +10,15 @@ import {
 import {JOB_DATA, JobName, LEVEL_ITEMS, MAX_ILVL, SupportedLevel} from "@xivgear/xivmath/xivconstants";
 import {SheetHandle, SheetManager} from "@xivgear/core/persistence/saved_sheets";
 import {GearPlanSheet, SheetProvider} from "@xivgear/core/sheet";
-import {GearPlanSheetGui, GRAPHICAL_SHEET_PROVIDER} from "./sheet";
+import {GearPlanSheetGui} from "../sheet/sheet_gui";
 import {levelSelect} from "@xivgear/common-ui/components/level_picker";
 import {BaseModal} from "@xivgear/common-ui/components/modal";
 import {SHARED_SET_NAME} from "@xivgear/core/imports/imports";
-import {recordSheetEvent} from "@xivgear/gearplan-frontend/analytics/analytics";
-import {JobIcon} from "./job_icon";
+import {JobIcon} from "../job/job_icon";
 import {RoleKey, SheetSummary} from "@xivgear/xivmath/geartypes";
-import {openSheetByKey} from "../base_ui";
+import {openSheetByKey} from "../../base_ui";
+import {GRAPHICAL_SHEET_PROVIDER} from "../sheet/provider";
+import {recordSheetEvent} from "../../analytics/analytics";
 
 export type NewSheetTempSettings = {
     ilvlSyncEnabled: boolean,

@@ -8,10 +8,10 @@ import {
     ValidationErrorSingle
 } from "@xivgear/account-service-client/accountsvc";
 import {passwordWithRepeat} from "@xivgear/common-ui/components/forms/form_elements";
-import {showPrivacyPolicyModal} from "../../components/ads";
+import {showPrivacyPolicyModal} from "../../components/general/ads";
 import {ChangePasswordModal} from "./change_password_modal";
 import {LogoutModal} from "./logout_modal";
-import {SheetPickerTable} from "../../components/saved_sheet_picker";
+import {SheetPickerTable} from "../../components/sheetpicker/saved_sheet_picker";
 import {USER_DATA_SYNCER} from "../user_data";
 import {FinalizePasswordResetModal} from "./finalize_password_reset_modal";
 

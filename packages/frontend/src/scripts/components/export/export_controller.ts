@@ -11,7 +11,7 @@ import {EMBED_HASH, HASH_QUERY_PARAM, makeUrlSimple, ONLY_SET_QUERY_PARAM, PATH_
 import {GearPlanSheet} from "@xivgear/core/sheet";
 import {writeProxy} from "@xivgear/util/proxies";
 import {EquipSlots, Materia, XivItem} from "@xivgear/xivmath/geartypes";
-import {recordSheetEvent} from "../analytics/analytics";
+import {recordSheetEvent} from "../../analytics/analytics";
 
 type ExportMethod<X> = {
     /**

@@ -1,10 +1,10 @@
 import {col, CustomColumnSpec, CustomTable, HeaderRow, LazyTableStrategy} from "@xivgear/common-ui/table/tables";
 import {toRelPct} from "@xivgear/util/strutils";
-import {AbilityIcon, actionNameTranslated} from "../../components/abilities";
+import {AbilityIcon, actionNameTranslated} from "../../components/sim/abilities";
 import {BuffListDisplay} from "./buff_list_display";
 import {DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/core/sims/cycle_sim";
 import {AutoAttack, Buff, CombinedBuffEffect, GcdAbility, OgcdAbility} from "@xivgear/core/sims/sim_types";
-import {ItemIcon} from "../../components/item_icon";
+import {ItemIcon} from "../../components/items/item_icon";
 import {quickElement} from "@xivgear/common-ui/components/util";
 
 /**

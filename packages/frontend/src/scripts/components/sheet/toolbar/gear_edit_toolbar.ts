@@ -1,6 +1,6 @@
-import {ILvlRangePicker} from "./items";
+import {ILvlRangePicker} from "../editor/items";
 import {ItemDisplaySettings, MateriaAutoFillController} from "@xivgear/xivmath/geartypes";
-import {MateriaPriorityPicker} from "./materia";
+import {MateriaPriorityPicker} from "../editor/materia";
 import {StatTierDisplay} from "./stat_tier_display";
 import {CharacterGearSet} from "@xivgear/core/gear";
 import {
@@ -10,8 +10,8 @@ import {
     makeActionButton,
     quickElement
 } from "@xivgear/common-ui/components/util";
-import {GearPlanSheetGui} from "./sheet";
-import {recordSheetEvent} from "../analytics/analytics";
+import {GearPlanSheetGui} from "../sheet_gui";
+import {recordSheetEvent} from "../../../analytics/analytics";
 import {recordEvent} from "@xivgear/common-ui/analytics/analytics";
 import {redoIcon, undoIcon} from "@xivgear/common-ui/components/icons";
 

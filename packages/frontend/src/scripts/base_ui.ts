@@ -1,12 +1,12 @@
 import {getCurrentState, getHash, goPath, isEmbed, processHashLegacy, processNav, setPath} from "./nav_hash";
-import {NamedSection} from "./components/section";
-import {NewSheetForm} from "./components/new_sheet_form";
-import {ImportSheetArea} from "./components/import_sheet";
+import {NamedSection} from "./components/general/section";
+import {NewSheetForm} from "./components/sheetpicker/new_sheet_form";
+import {ImportSheetArea} from "./components/import/import_sheet";
 import {SetExport, SheetExport} from "@xivgear/xivmath/geartypes";
 import {getEmbedDiv, openEmbed} from "./embed";
 import {LoadingBlocker} from "@xivgear/common-ui/components/loader";
-import {SheetPickerTable} from "./components/saved_sheet_picker";
-import {GearPlanSheetGui, GRAPHICAL_SHEET_PROVIDER} from "./components/sheet";
+import {SheetPickerTable} from "./components/sheetpicker/saved_sheet_picker";
+import {GearPlanSheetGui} from "./components/sheet/sheet_gui";
 import {makeUrl, NavState, splitPath} from "@xivgear/core/nav/common_nav";
 import {applyCommonTopMenuFormatting} from "@xivgear/common-ui/components/top_menu";
 import {WORKER_POOL} from "./workers/worker_pool";
@@ -22,8 +22,9 @@ import {isInIframe} from "@xivgear/common-ui/util/detect_iframe";
 import {WritableProps} from "@xivgear/common-ui/util/types";
 import {quickElement} from "@xivgear/common-ui/components/util";
 import {ACCOUNT_STATE_TRACKER} from "./account/account_state";
-import {SHEET_MANAGER} from "./components/saved_sheet_impl";
+import {SHEET_MANAGER} from "./saved_sheet_impl";
 import {USER_DATA_SYNCER} from "./account/user_data";
+import {GRAPHICAL_SHEET_PROVIDER} from "./components/sheet/provider";
 
 declare global {
     interface Document {

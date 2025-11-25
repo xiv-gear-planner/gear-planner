@@ -1,7 +1,7 @@
 import {LoadingBlocker} from "@xivgear/common-ui/components/loader";
 
 import {setTitle, showFatalError} from "./base_ui";
-import {GearPlanSheetGui} from "./components/sheet";
+import {GearPlanSheetGui} from "./components/sheet/sheet_gui";
 import {recordError, recordEvent} from "@xivgear/common-ui/analytics/analytics";
 import {makeUrl, NavState, ONLY_SET_QUERY_PARAM} from "@xivgear/core/nav/common_nav";
 import {getCurrentHash, getCurrentState} from "./nav_hash";

@@ -9,7 +9,7 @@ import {Language} from "@xivgear/i18n/translation";
 import {SheetExport, SheetSummary} from "@xivgear/xivmath/geartypes";
 import {SheetHandle, SheetManager} from "@xivgear/core/persistence/saved_sheets";
 import {JobName, SupportedLevel} from "@xivgear/xivmath/xivconstants";
-import {SHEET_MANAGER} from "../components/saved_sheet_impl";
+import {SHEET_MANAGER} from "../saved_sheet_impl";
 import {RefreshLoop} from "@xivgear/util/refreshloop";
 import {Inactivitytimer} from "@xivgear/util/inactivitytimer";
 import {recordError} from "@xivgear/common-ui/analytics/analytics";

@@ -6,15 +6,15 @@ import {
     makeActionButton
 } from "@xivgear/common-ui/components/util";
 import {CharacterGearSet} from "@xivgear/core/gear";
-import {GearPlanSheetGui} from "./sheet";
+import {GearPlanSheetGui} from "../sheet_gui";
 import {SimResult, Simulation} from "@xivgear/core/sims/sim_types";
 import {MAX_GCD, STAT_ABBREVIATIONS} from "@xivgear/xivmath/xivconstants";
 import {BaseModal} from "@xivgear/common-ui/components/modal";
 import {EquipSlots, FoodItem, Materia} from "@xivgear/xivmath/geartypes";
-import {MeldSolver} from "./meldsolver";
+import {MeldSolver} from "../../solver/meldsolver";
 import {GearsetGenerationSettings} from "@xivgear/core/solving/gearset_generation";
 import {SolverSimulationSettings} from "@xivgear/core/solving/sim_runner";
-import {recordSheetEvent} from "../analytics/analytics";
+import {recordSheetEvent} from "../../../analytics/analytics";
 
 export class MeldSolverDialog extends BaseModal {
     private _sheet: GearPlanSheetGui;
