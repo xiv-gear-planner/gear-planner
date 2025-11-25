@@ -1,4 +1,5 @@
 import {Materia, MateriaSlot} from "@xivgear/xivmath/geartypes";
+import {STAT_ABBREVIATIONS} from "@xivgear/xivmath/xivconstants";
 
 
 export function isMateriaAllowed(materia: Materia, materiaSlot: MateriaSlot) {
@@ -12,3 +13,8 @@ export function isMateriaAllowed(materia: Materia, materiaSlot: MateriaSlot) {
     const maxGradeAllowed = materiaSlot.maxGrade;
     return materia.materiaGrade <= maxGradeAllowed;
 }
+
+export function materiaShortLabel(materia: Materia) {
+    return `${materia.primaryStatValue} ${STAT_ABBREVIATIONS[materia.primaryStat]}`;
+}
+

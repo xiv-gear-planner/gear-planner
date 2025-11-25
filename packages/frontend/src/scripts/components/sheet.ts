@@ -11,22 +11,18 @@ import {
     CustomTable,
     HeaderRow,
     SingleCellRowOrHeaderSelectionModel,
-    SingleRowSelectionModel,
+    SingleRowSelectionModel, SpecialRow,
     TableSelectionModel
 } from "@xivgear/common-ui/table/tables";
 import {GearPlanSheet, SheetProvider} from "@xivgear/core/sheet";
 import {
     DataSelect,
-    editIcon,
-    exportIcon,
-    faIcon,
+    el,
     FieldBoundCheckBox,
     FieldBoundDataSelect,
     FieldBoundTextField,
-    importIcon,
     labeledCheckbox,
     makeActionButton,
-    newSheetIcon,
     quickElement
 } from "@xivgear/common-ui/components/util";
 import {
@@ -52,7 +48,7 @@ import {
     JobName,
     MAX_PARTY_BONUS,
     RACE_STATS,
-    RaceName,
+    RaceName, SpecialStatKey,
     STAT_ABBREVIATIONS,
     SupportedLevel
 } from "@xivgear/xivmath/xivconstants";
@@ -101,6 +97,15 @@ import {SHEET_MANAGER} from "./saved_sheet_impl";
 import {cleanUrl} from "@xivgear/common-ui/nav/common_frontend_nav";
 import {isSafari} from "@xivgear/common-ui/util/detect_safari";
 import {getNextPopoutContext, isPopout, MESSAGE_REFRESH_CONTENT, MESSAGE_REFRESH_TOOLBAR} from "../popout";
+import {
+    editIcon,
+    makeCopyIcon,
+    makeExportIcon,
+    makeImportIcon,
+    makeNewSheetIcon,
+    makeTrashIcon
+} from "@xivgear/common-ui/components/icons";
+import {showCompatOverview} from "./compat_checker";
 
 const noSeparators = (set: CharacterGearSet) => !set.isSeparator;
 
@@ -259,7 +264,9 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, SingleCellRowOr
 
     dataChanged() {
         const curSelection = this.selectionModel.getSelection();
-        super.data = [new HeaderRow(), ...this.gearSets];
+        super.data = [new HeaderRow(), new SpecialRow(() => {
+            return el('div', {class: 'spacer-row'});
+        }), ...this.gearSets];
         // Special case for deleting the currently selected row
         if (curSelection instanceof CustomRow && !(this.gearSets.includes(curSelection.dataItem))) {
             this.selectionModel.clearSelection();
@@ -386,12 +393,12 @@ export class GearPlanTable extends CustomTable<CharacterGearSet, SingleCellRowOr
                 getter: gearSet => gearSet,
                 renderer: (gearSet: CharacterGearSet) => {
                     const div = document.createElement("div");
-                    div.appendChild(makeActionButton([faIcon('fa-trash-can')], (ev) => {
+                    div.appendChild(makeActionButton([makeTrashIcon()], (ev) => {
                         if (confirmDelete(ev, `Delete gear set '${gearSet.name}'?`)) {
                             this.sheet.delGearSet(gearSet);
                         }
                     }, 'Delete this set'));
-                    div.appendChild(makeActionButton([faIcon('fa-copy')], () => this.sheet.cloneAndAddGearSet(gearSet, true), 'Clone this set'));
+                    div.appendChild(makeActionButton([makeCopyIcon()], () => this.sheet.cloneAndAddGearSet(gearSet, true), 'Clone this set'));
                     const dragger = document.createElement('button');
                     dragger.title = 'Drag to re-order this set';
                     dragger.textContent = '≡';
@@ -860,15 +867,9 @@ export class GearSetEditor extends HTMLElement {
     }
 
     setup() {
-        // const header = document.createElement("h1");
-        // header.textContent = "Gear Set Editor";
-        // this.appendChild(header)
         this.replaceChildren();
 
         // Name editor
-        // const nameEditor = new FieldBoundTextField(this.gearSet, 'name');
-        // nameEditor.classList.add("gear-set-name-editor");
-        // this.appendChild(nameEditor);
 
         this.header = document.createElement('h2');
         this.desc = new ExpandableText();
@@ -877,7 +878,11 @@ export class GearSetEditor extends HTMLElement {
         this.appendChild(this.desc);
         this.formatTitleDesc();
 
-        this.issuesButtonContent = document.createElement('span');
+        const compatCheckerButton = makeActionButton('Compatibility', () => {
+            this.sheet.showCompatOverview(this.gearSet);
+        });
+
+        this.issuesButtonContent = el('span');
 
         const issuesButton = makeActionButton([this.issuesButtonContent], () => {
             this.showIssuesModal();
@@ -885,16 +890,17 @@ export class GearSetEditor extends HTMLElement {
         issuesButton.classList.add('issues-button');
 
         const buttonArea = quickElement('div', ['gear-set-editor-button-area', 'button-row'], [
-            makeActionButton([exportIcon(), 'Export Set'], () => {
+            makeActionButton([makeExportIcon(), 'Export Set'], () => {
                 startExport(this.gearSet);
             }),
             makeActionButton([editIcon(), 'Edit Name/Description'], () => {
                 startRenameSet(writeProxy(this.gearSet, () => this.formatTitleDesc()));
             }),
-            isPopout() ? null : makeActionButton([exportIcon(), 'Popout Editor'], () => {
+            isPopout() ? null : makeActionButton([makeExportIcon(), 'Popout Editor'], () => {
                 const sheetAny = this.sheet;
                 sheetAny.openPopoutForSet(this.gearSet);
             }),
+            compatCheckerButton,
             issuesButton,
         ].filter(x => x !== null));
         if (this.sheet.isMultiJob) {
@@ -1311,7 +1317,7 @@ export class GearPlanSheetGui extends GearPlanSheet {
     readonly midBarArea: HTMLDivElement;
     readonly toolbarHolder: HTMLDivElement;
     private _simGuis: SimulationGui<any, any, any>[];
-    private specialStatDropdown: FieldBoundDataSelect<GearPlanSheet, SpecialStatType | null>;
+    private specialStatDropdown: FieldBoundDataSelect<GearPlanSheet, SpecialStatKey | null> | null = null;
 
     get simGuis() {
         return this._simGuis;
@@ -1515,7 +1521,7 @@ export class GearPlanSheetGui extends GearPlanSheet {
         }
 
         if (!this.isViewOnly) {
-            const addRowButton = makeActionButton([newSheetIcon(), "New Set"], () => {
+            const addRowButton = makeActionButton([makeNewSheetIcon(), "New Set"], () => {
                 const newSet = new CharacterGearSet(this);
                 newSet.name = "New Set";
                 this.addGearSet(newSet, undefined, true);
@@ -1583,17 +1589,17 @@ export class GearPlanSheetGui extends GearPlanSheet {
 
         if (!this.isViewOnly) {
 
-            const newSimButton = makeActionButton([newSheetIcon(), "Add Sim"], () => {
+            const newSimButton = makeActionButton([makeNewSheetIcon(), "Add Sim"], () => {
                 this.showAddSimDialog();
             });
             buttonsArea.appendChild(newSimButton);
 
-            const exportSheetButton = makeActionButton([exportIcon(), "Export Sheet"], () => {
+            const exportSheetButton = makeActionButton([makeExportIcon(), "Export Sheet"], () => {
                 startExport(this);
             });
             buttonsArea.appendChild(exportSheetButton);
 
-            const importGearSetButton = makeActionButton([importIcon(), "Import Sets"], () => {
+            const importGearSetButton = makeActionButton([makeImportIcon(), "Import Sets"], () => {
                 this.showImportSetsDialog();
             });
             buttonsArea.appendChild(importGearSetButton);
@@ -1663,29 +1669,30 @@ export class GearPlanSheetGui extends GearPlanSheet {
         buttonsArea.appendChild(partySizeDropdown);
 
         // TODO: this should only show once you select an occult crescent item
-        this.specialStatDropdown = new FieldBoundDataSelect<GearPlanSheet, SpecialStatType | null>(
-            this,
-            'activeSpecialStat',
-            value => {
-                switch (value) {
-                    case null:
-                        return 'No Special Stats';
-                    // case SpecialStatType.OccultCrescent:
-                    //     return 'Occult Crescent';
-                    default:
-                        return camel2title(value);
-                }
-            },
-            [null, ...Object.values(SpecialStatType)]
-        );
-        // TODO: move this logic to xivconstants or something
-        // We only want this to show if our sheet looks like it might be for one of these duties with special bonuses,
-        // or if the user somehow got into a state where they have a special stat set despite the sheet normally
-        // not being eligible for one.
-        if (!(this.activeSpecialStat || (this.level === 100 && this.ilvlSync === 700))) {
-            this.specialStatDropdown.style.display = 'none';
+        const validSpecialStats: SpecialStatKey[] = [];
+        const specialStat = this.applicableSpecialStat();
+        if (specialStat) {
+            validSpecialStats.push(specialStat);
         }
-        buttonsArea.appendChild(this.specialStatDropdown);
+        if (this.activeSpecialStat && !validSpecialStats.includes(this.activeSpecialStat)) {
+            validSpecialStats.push(specialStat);
+        }
+        if (validSpecialStats.length > 0) {
+            this.specialStatDropdown = new FieldBoundDataSelect<GearPlanSheet, SpecialStatKey | null>(
+                this,
+                'activeSpecialStat',
+                value => {
+                    switch (value) {
+                        case null:
+                            return 'No Special Stats';
+                        default:
+                            return camel2title(value);
+                    }
+                },
+                [null, ...validSpecialStats]
+            );
+            buttonsArea.appendChild(this.specialStatDropdown);
+        }
 
         if (this.saveKey) {
             this.headerArea.style.display = 'none';
@@ -2074,6 +2081,10 @@ export class GearPlanSheetGui extends GearPlanSheet {
             this._gearPlanTable.dataChanged();
             this._gearPlanTable.reprocessAllSimColColors();
         }
+        // Clear editor if we deleted the currently selected set
+        if (this._editorItem === gearSet) {
+            this.editorItem = undefined;
+        }
     }
 
     /**
@@ -2293,12 +2304,8 @@ export class GearPlanSheetGui extends GearPlanSheet {
         this.resetEditorArea();
     }
 
-    showChangePropertiesDialog(): void {
-        if (!this.saveKey) {
-            alert('You must save this sheet before changing its properties. Use "Save As" first.');
-            return;
-        }
-        new ChangePropsModal(this).attachAndShowExclusively();
+    showCompatOverview(set: CharacterGearSet): void {
+        showCompatOverview(this, set);
     }
 }
 

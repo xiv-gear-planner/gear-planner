@@ -38,11 +38,11 @@ import {
     STAT_ABBREVIATIONS
 } from "@xivgear/xivmath/xivconstants";
 import {
+    el,
     FieldBoundCheckBox,
     FieldBoundIntField,
     labeledCheckbox,
     makeActionButton,
-    makeTrashIcon,
     quickElement
 } from "@xivgear/common-ui/components/util";
 import {AllSlotMateriaManager} from "./materia";
@@ -52,7 +52,8 @@ import {makeRelicStatEditor} from "./relic_stats";
 import {ShowHideButton, ShowHideCallback} from "@xivgear/common-ui/components/show_hide_chevron";
 import {BaseModal} from "@xivgear/common-ui/components/modal";
 import {recordSheetEvent} from "../analytics/analytics";
-import {DISPLAY_SETTINGS} from "@xivgear/common-ui/settings/display_settings";
+import {makeTrashIcon} from "@xivgear/common-ui/components/icons";
+import {sortItemsInPlace} from "./item_utils";
 
 function removeStatCellStyles(cell: CustomCell<GearSlotItem, unknown>) {
     cell.classList.remove("secondary");
@@ -347,10 +348,7 @@ export class FoodItemsTable extends CustomTable<FoodItem, TableSelectionModel<Fo
             this.updateShowHide();
         }, [oneStatFoodWithLabel]);
         const displayItems = [...sheet.foodItemsForDisplay];
-        displayItems.sort((left, right) => left.ilvl - right.ilvl);
-        if (DISPLAY_SETTINGS.reverseItemSort) {
-            displayItems.reverse();
-        }
+        sortItemsInPlace(displayItems);
         if (displayItems.length > 0) {
             super.data = [showHideRow.row, new HeaderRow(), ...displayItems];
         }
@@ -601,12 +599,15 @@ export class GearItemsTable extends CustomTable<GearSlotItem, TableSelectionMode
     private readonly materiaManagers: AllSlotMateriaManager[];
     private selectionTracker: Map<keyof EquipmentSet, CustomRow<GearSlotItem> | GearSlotItem>;
     private showHideCallbacks: Map<keyof EquipmentSet, (value: boolean) => void> = new Map();
+    private anyHaste: boolean = false;
 
     constructor(sheet: GearPlanSheet, private readonly gearSet: CharacterGearSet, itemMapping: Map<DisplayGearSlotKey, GearItem[]>, handledSlots: EquipSlotKey[], afterShowHideAll: () => void) {
         super();
         this.classList.add("gear-items-table");
         this.classList.add("gear-items-edit-table");
         this.classList.add("hoverable");
+        // Include haste if it is relevant to the sheet AND there are any items with haste in this table.
+        // const includeHaste: boolean = sheet.isStatRelevant('gearHaste') && handledSlots.some(slot => itemMapping.get(slot)?.some(item => item.stats.gearHaste > 0));
         this.rowTitleSetter = (rowValue: GearSlotItem) => {
             const name = rowValue.item.nameTranslation.asCurrentLang;
             let title: string;
@@ -624,6 +625,132 @@ export class GearItemsTable extends CustomTable<GearSlotItem, TableSelectionMode
                 title += `\nSynced to ${rowValue.item.syncedDownTo}`;
             }
             return title;
+        };
+        const data: (TitleRow | HeaderRow | GearSlotItem)[] = [];
+        const slotMateriaManagers = new Map<keyof EquipmentSet, AllSlotMateriaManager>();
+        this.materiaManagers = [];
+        // Track the selected item in every category so that it can be more quickly refreshed
+        const selectionTracker = new Map<keyof EquipmentSet, CustomRow<GearSlotItem> | GearSlotItem>();
+        this.selectionTracker = selectionTracker;
+        const refreshSingleItem = (item: CustomRow<GearSlotItem> | GearSlotItem) => this.refreshRowData(item);
+        for (const [name, slot] of Object.entries(EquipSlotInfo)) {
+            if (handledSlots && !handledSlots.includes(name as EquipSlotKey)) {
+                continue;
+            }
+            const slotId = name as keyof EquipmentSet;
+            const extras = [];
+            if (slotId === 'Weapon') {
+                const cb = new FieldBoundCheckBox(sheet.itemDisplaySettings, 'higherRelics');
+                cb.addListener(() => {
+                    sheet.gearDisplaySettingsUpdateNow();
+                });
+                const lcb = labeledCheckbox('Display relics above max ilvl setting', cb);
+                lcb.addEventListener('click', e => e.stopPropagation());
+                extras.push(lcb);
+            }
+            // TODO: initial value needs to apply to this
+            // TODO: just make the getters/setters on this class instead
+            const showHideRow = makeShowHideRow(slot.name, gearSet.isSlotCollapsed(slotId), (val, count) => {
+                if (count === 1) {
+                    gearSet.setSlotCollapsed(slotId, val);
+                    recordSheetEvent('hideSlot', sheet, {
+                        hidden: val,
+                    });
+                    this.updateShowHide();
+                }
+                else if (count === 2) {
+                    gearSet.setAllSlotsCollapsed(val);
+                    recordSheetEvent('hideAllSlots', sheet, {
+                        hidden: val,
+                    });
+                    afterShowHideAll();
+                }
+            }, extras);
+            data.push(showHideRow.row);
+            this.showHideCallbacks.set(slotId, showHideRow.setState);
+            let itemsInSlot = itemMapping.get(slot.gearSlot);
+            if (itemsInSlot === undefined) {
+                itemsInSlot = [];
+            }
+            // Also display selected item
+            const selection = gearSet.getItemInSlot(slotId);
+            if (selection) {
+                if (!itemsInSlot.includes(selection)) {
+                    itemsInSlot.push(selection);
+                }
+            }
+            if (itemsInSlot && itemsInSlot.length > 0) {
+                const sortedItems = [...itemsInSlot];
+                sortItemsInPlace(sortedItems);
+                data.push(new HeaderRow());
+                for (const gearItem of sortedItems) {
+                    const item = {
+                        slot: slot,
+                        item: gearItem,
+                        slotId: slotId,
+                    };
+                    data.push(item);
+                    if (item.item.stats.gearHaste > 0) {
+                        this.anyHaste = true;
+                    }
+                    if (gearSet.getItemInSlot(slotId) === gearItem) {
+                        selectionTracker.set(slotId, item);
+                    }
+                }
+            }
+            else {
+                data.push(new TitleRow('No items available - please check your filters'));
+            }
+            const matMgr = new AllSlotMateriaManager(sheet, gearSet, slotId, true, () => {
+                // Update whatever was selected
+                const prevSelection = selectionTracker.get(slotId);
+                if (prevSelection) {
+                    refreshSingleItem(prevSelection);
+                }
+
+            });
+            this.materiaManagers.push(matMgr);
+            slotMateriaManagers.set(slotId, matMgr);
+            data.push(new SpecialRow(tbl => matMgr));
+        }
+        this.selectionModel = {
+            clickCell(cell: CustomCell<GearSlotItem, unknown>) {
+
+            },
+            clickColumnHeader(col: CustomColumn<GearSlotItem>) {
+
+            },
+            clickRow(newSelection: CustomRow<GearSlotItem>) {
+                // refreshSingleItem old and new items
+                gearSet.setEquip(newSelection.dataItem.slotId, newSelection.dataItem.item, sheet.materiaAutoFillController);
+                const matMgr = slotMateriaManagers.get(newSelection.dataItem.slotId);
+                if (matMgr) {
+                    matMgr.refreshFull();
+                }
+                const oldSelection = selectionTracker.get(newSelection.dataItem.slotId);
+                if (oldSelection) {
+                    refreshSingleItem(oldSelection);
+                }
+                if (newSelection) {
+                    refreshSingleItem(newSelection);
+                }
+                selectionTracker.set(newSelection.dataItem.slotId, newSelection);
+            },
+            getSelection(): EquipmentSet {
+                return gearSet.equipment;
+            },
+            isCellSelectedDirectly(cell: CustomCell<GearSlotItem, unknown>) {
+                return false;
+            },
+            isColumnHeaderSelected(col: CustomColumn<GearSlotItem>) {
+                return false;
+            },
+            isRowSelected(row: CustomRow<GearSlotItem>) {
+                return gearSet.getItemInSlot(row.dataItem.slotId) === row.dataItem.item;
+            },
+            clearSelection() {
+                // no-op
+            },
         };
         super.columns = [
             {
@@ -662,6 +789,20 @@ export class GearItemsTable extends CustomTable<GearSlotItem, TableSelectionMode
                     return quickElement('div', ['item-name-holder-editable'], [quickElement('span', [], [shortenItemName(name)]), trashButton]);
                 },
                 colStyler: (value, colElement, internalElement, rowValue) => {
+                },
+            }),
+            col({
+                shortName: 'haste',
+                displayName: 'Hst',
+                getter: item => {
+                    return item.item.stats.gearHaste;
+                },
+                initialWidth: 30,
+                renderer: (haste: number) => {
+                    return el('span', {}, [haste !== 0 ? haste.toString() : '']);
+                },
+                condition: () => {
+                    return this.anyHaste;
                 },
             }),
             col({
@@ -729,132 +870,6 @@ export class GearItemsTable extends CustomTable<GearSlotItem, TableSelectionMode
             itemTableStatColumn(sheet, gearSet, 'piety', true),
             itemTableStatColumn(sheet, gearSet, 'tenacity', true),
         ];
-        const data: (TitleRow | HeaderRow | GearSlotItem)[] = [];
-        const slotMateriaManagers = new Map<keyof EquipmentSet, AllSlotMateriaManager>();
-        this.materiaManagers = [];
-        // Track the selected item in every category so that it can be more quickly refreshed
-        const selectionTracker = new Map<keyof EquipmentSet, CustomRow<GearSlotItem> | GearSlotItem>();
-        this.selectionTracker = selectionTracker;
-        const refreshSingleItem = (item: CustomRow<GearSlotItem> | GearSlotItem) => this.refreshRowData(item);
-        for (const [name, slot] of Object.entries(EquipSlotInfo)) {
-            if (handledSlots && !handledSlots.includes(name as EquipSlotKey)) {
-                continue;
-            }
-            const slotId = name as keyof EquipmentSet;
-            const extras = [];
-            if (slotId === 'Weapon') {
-                const cb = new FieldBoundCheckBox(sheet.itemDisplaySettings, 'higherRelics');
-                cb.addListener(() => {
-                    sheet.gearDisplaySettingsUpdateNow();
-                });
-                const lcb = labeledCheckbox('Display relics above max ilvl setting', cb);
-                lcb.addEventListener('click', e => e.stopPropagation());
-                extras.push(lcb);
-            }
-            // TODO: initial value needs to apply to this
-            // TODO: just make the getters/setters on this class instead
-            const showHideRow = makeShowHideRow(slot.name, gearSet.isSlotCollapsed(slotId), (val, count) => {
-                if (count === 1) {
-                    gearSet.setSlotCollapsed(slotId, val);
-                    recordSheetEvent('hideSlot', sheet, {
-                        hidden: val,
-                    });
-                    this.updateShowHide();
-                }
-                else if (count === 2) {
-                    gearSet.setAllSlotsCollapsed(val);
-                    recordSheetEvent('hideAllSlots', sheet, {
-                        hidden: val,
-                    });
-                    afterShowHideAll();
-                }
-            }, extras);
-            data.push(showHideRow.row);
-            this.showHideCallbacks.set(slotId, showHideRow.setState);
-            let itemsInSlot = itemMapping.get(slot.gearSlot);
-            if (itemsInSlot === undefined) {
-                itemsInSlot = [];
-            }
-            // Also display selected item
-            const selection = gearSet.getItemInSlot(slotId);
-            if (selection) {
-                if (!itemsInSlot.includes(selection)) {
-                    itemsInSlot.push(selection);
-                }
-            }
-            if (itemsInSlot && itemsInSlot.length > 0) {
-                const sortedItems = [...itemsInSlot];
-                sortedItems.sort((left, right) => left.ilvl - right.ilvl);
-                if (DISPLAY_SETTINGS.reverseItemSort) {
-                    sortedItems.reverse();
-                }
-                data.push(new HeaderRow());
-                for (const gearItem of sortedItems) {
-                    const item = {
-                        slot: slot,
-                        item: gearItem,
-                        slotId: slotId,
-                    };
-                    data.push(item);
-                    if (gearSet.getItemInSlot(slotId) === gearItem) {
-                        selectionTracker.set(slotId, item);
-                    }
-                }
-            }
-            else {
-                data.push(new TitleRow('No items available - please check your filters'));
-            }
-            const matMgr = new AllSlotMateriaManager(sheet, gearSet, slotId, true, () => {
-                // Update whatever was selected
-                const prevSelection = selectionTracker.get(slotId);
-                if (prevSelection) {
-                    refreshSingleItem(prevSelection);
-                }
-
-            });
-            this.materiaManagers.push(matMgr);
-            slotMateriaManagers.set(slotId, matMgr);
-            data.push(new SpecialRow(tbl => matMgr));
-        }
-        this.selectionModel = {
-            clickCell(cell: CustomCell<GearSlotItem, unknown>) {
-
-            },
-            clickColumnHeader(col: CustomColumn<GearSlotItem>) {
-
-            },
-            clickRow(newSelection: CustomRow<GearSlotItem>) {
-                // refreshSingleItem old and new items
-                gearSet.setEquip(newSelection.dataItem.slotId, newSelection.dataItem.item, sheet.materiaAutoFillController);
-                const matMgr = slotMateriaManagers.get(newSelection.dataItem.slotId);
-                if (matMgr) {
-                    matMgr.refreshFull();
-                }
-                const oldSelection = selectionTracker.get(newSelection.dataItem.slotId);
-                if (oldSelection) {
-                    refreshSingleItem(oldSelection);
-                }
-                if (newSelection) {
-                    refreshSingleItem(newSelection);
-                }
-                selectionTracker.set(newSelection.dataItem.slotId, newSelection);
-            },
-            getSelection(): EquipmentSet {
-                return gearSet.equipment;
-            },
-            isCellSelectedDirectly(cell: CustomCell<GearSlotItem, unknown>) {
-                return false;
-            },
-            isColumnHeaderSelected(col: CustomColumn<GearSlotItem>) {
-                return false;
-            },
-            isRowSelected(row: CustomRow<GearSlotItem>) {
-                return gearSet.getItemInSlot(row.dataItem.slotId) === row.dataItem.item;
-            },
-            clearSelection() {
-                // no-op
-            },
-        };
         this.data = data;
         this.updateShowHide();
     }
@@ -894,7 +909,7 @@ export class GearItemsTable extends CustomTable<GearSlotItem, TableSelectionMode
 }
 
 class GearViewHeaderSpec extends HeaderRow {
-    constructor(readonly item: GearItem, readonly slot: EquipSlot, readonly alts: ReturnType<(thisItem: GearItem) => GearItem[]>) {
+    constructor(readonly item: GearItem, readonly slot: EquipSlot, readonly alts: ReturnType<(thisItem: GearItem) => GearItem[]>, readonly sheet: GearPlanSheet) {
         super();
     }
 }
@@ -926,7 +941,7 @@ class GearViewHeaderRow extends CustomTableHeaderRow<GearSlotItem> {
             const narrowSpan = makeSpan(`${alts.length} alts`, ['narrow-only']);
             const wideSpan = makeSpan(`+${alts.length} alt items`, ['wide-only']);
             const altButton = makeActionButton([narrowSpan, wideSpan], () => {
-                const modal = new AltItemsModal(slotItem, alts);
+                const modal = new AltItemsModal(slotItem, alts, spec.sheet);
                 modal.attachAndShowExclusively();
             });
             altButton.classList.add('gear-items-view-alts-button');
@@ -981,7 +996,7 @@ export class GearItemsViewTable extends CustomTable<GearSlotItem> {
                     // alts: sheet.getAltItemsFor(equippedItem)
                 };
                 const alts: ReturnType<typeof sheet.getAltItemsFor> = sheet.getAltItemsFor(equippedItem);
-                data.push(new GearViewHeaderSpec(equippedItem, slot, alts));
+                data.push(new GearViewHeaderSpec(equippedItem, slot, alts, sheet));
                 data.push(item);
                 if (!equippedItem.isCustomRelic) {
                     const matMgr = new AllSlotMateriaManager(sheet, gearSet, slotId, false);
@@ -1091,14 +1106,18 @@ export class GearItemsViewTable extends CustomTable<GearSlotItem> {
 }
 
 export class AltItemsModal extends BaseModal {
-    constructor(baseItem: GearItem, altItems: GearItem[]) {
+    constructor(baseItem: GearItem, altItems: GearItem[], sheet: GearPlanSheet) {
         super();
         this.headerText = 'Alternative Items';
-        console.log(altItems);
 
-        const text = document.createElement('p');
-        text.textContent = `The item ${baseItem.nameTranslation} can be replaced by all of the following items, which have equivalent or better effective stats:`;
-        this.contentArea.appendChild(quickElement('div', ['alt-items-text-holder'], [text]));
+        const text = el('p');
+        if (sheet.ilvlSync) {
+            text.replaceChildren('These items are ', el('b', {}, ['equivalent to ']), baseItem.nameTranslation.asCurrentLang, ` when synced to i${baseItem.ilvl}:`);
+        }
+        else {
+            text.replaceChildren('These items are ', el('b', {}, ['equivalent to or better than ']), baseItem.nameTranslation.asCurrentLang, ':');
+        }
+        this.contentArea.appendChild(el('div', {class: 'alt-items-text-holder'}, [text]));
 
         const table: CustomTable<GearItem> = new CustomTable<GearItem>();
         table.columns = [
@@ -1133,7 +1152,14 @@ export class AltItemsModal extends BaseModal {
                 },
             }),
         ];
-        table.data = [new HeaderRow(), baseItem, ...altItems];
+        sortItemsInPlace(altItems);
+        // Now that this respects ilvl sort order, including the reverse order setting, it is awkward to include the
+        // base item as if it were any other item. Instead, there are two options - either show it at the top with
+        // a separator between the base item and the other items, or omit it entirely.
+        // Possible UI option - show a separator row.
+        // table.data = [new HeaderRow(), baseItem, new SpecialRow(() => document.createTextNode(' ')), ...altItems];
+        // Other UI option - don't show the base item at all.
+        table.data = [new HeaderRow(), ...altItems];
         this.contentArea.appendChild(table);
 
         this.addCloseButton();
@@ -1198,12 +1224,14 @@ export class ILvlRangePicker<ObjType> extends HTMLElement {
 
 export function itemIconRenderer<RowType>(): CellRenderer<RowType, XivItem> {
     return item => {
-        const img = item.iconUrl;
+        const hr = item.iconUrl.toString();
+        // TODO: move server side
+        const lr = hr.replaceAll("_hr1", "");
         const image = document.createElement('img');
-        image.setAttribute('intrinsicsize', '80x80');
-        image.src = img.toString();
+        image.setAttribute('intrinsicsize', '40x40');
+        image.src = lr;
+        image.srcset = `${lr} 1.3x, ${hr} 2x`;
         image.classList.add('item-icon');
-        // TODO: should this behavior be part of ItemIcon + use that?
         if ('rarity' in item) {
             const rarity = item.rarity as number;
             switch (rarity) {

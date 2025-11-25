@@ -1,13 +1,13 @@
 import {
     GearAcquisitionSource,
-    TraitFunc,
     ItemDisplaySettings,
     JobDataConst,
     LevelItemInfo,
     LevelStats,
     PartyBonusAmount,
     RawStatKey,
-    RawStats
+    RawStats,
+    TraitFunc
 } from "./geartypes";
 import {RawBonusStats} from "./xivstats";
 
@@ -641,26 +641,21 @@ const BLU_ITEM_DISPLAY = {
     maxILvl: 535,
 } satisfies ItemDisplaySettings;
 
-export function getDefaultDisplaySettings(level: SupportedLevel, job: JobName): Readonly<ItemDisplaySettings> {
+export function getDefaultDisplaySettings(level: SupportedLevel, job: JobName, isync: number | undefined): Readonly<ItemDisplaySettings> {
     if (job === 'BLU' && level === JOB_DATA.BLU.maxLevel) {
         return BLU_ITEM_DISPLAY;
     }
-    return LEVEL_ITEMS[level].defaultDisplaySettings;
+    const out = LEVEL_ITEMS[level].defaultDisplaySettings;
+    // Special logic for current-content sync
+    if (isync !== undefined && level === CURRENT_MAX_LEVEL) {
+        return {
+            ...out,
+            minILvl: isync - 5,
+            maxILvl: isync,
+        };
+    }
+    return out;
 }
-
-// Level 70 data
-// export const MainstatModifier {
-//     tank: {
-//         70: number = 105,
-//         80: number = 115,
-//         90: number = 156
-//     }
-//     non-tank: {
-//         70: number = 125,
-//         80: number = 165,
-//         90: number = 195
-//     }
-// }
 
 /**
  * Main stats in current version of the game.
@@ -795,12 +790,17 @@ export function statById(id: number): keyof RawStats | undefined {
             return "defenseMag";
         case 27:
             return "crit";
+        case 36:
+            // Eureka Elemental Bonus - not supported yet.
+            return undefined;
         case 44:
             return "determination";
         case 45:
             return "skillspeed";
         case 46:
             return "spellspeed";
+        case 47:
+            return "gearHaste";
         default:
             return undefined;
     }
@@ -919,3 +919,32 @@ export const defaultItemDisplaySettings: ItemDisplaySettings = {
 } as const;
 
 export const MAX_PARTY_BONUS: PartyBonusAmount = 5;
+
+export const SPECIAL_STAT_KEYS = ['OccultCrescent', 'Bozja', 'Eureka'] as const;
+
+export type SpecialStatKey = typeof SPECIAL_STAT_KEYS[number];
+
+export type SpecialStatInfo = {
+    level: number;
+    ilvls: number[];
+    showHaste: boolean;
+}
+
+export const SPECIAL_STATS_MAPPING: Record<SpecialStatKey, SpecialStatInfo> = {
+    Eureka: {
+        level: 70,
+        ilvls: [300],
+        showHaste: true,
+    },
+    Bozja: {
+        level: 80,
+        ilvls: [430],
+        showHaste: true,
+    },
+    OccultCrescent: {
+        level: 100,
+        ilvls: [700],
+        showHaste: false,
+    },
+};
+

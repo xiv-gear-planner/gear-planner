@@ -637,6 +637,18 @@ export class CharacterGearSet {
                 description: 'You must equip a weapon',
             });
         }
+        this.allEquippedItems.forEach(item => {
+            item.slotMapping.getBlockedSlots().forEach(blockedSlot => {
+                const inBlockedSlot = this.equipment[blockedSlot];
+                if (inBlockedSlot) {
+                    issues.push({
+                        severity: 'error',
+                        description: `You cannot equip ${inBlockedSlot.gearItem.nameTranslation} in ${EquipSlotInfo[blockedSlot].name} because ${item.nameTranslation} prevents it.`,
+                        affectedSlots: [blockedSlot],
+                    });
+                }
+            });
+        });
         this._lastResult = {
             computedStats: computedStats,
             issues: this.isSeparator ? [] : issues,
@@ -889,7 +901,7 @@ export class CharacterGearSet {
                         if (stat === 'skillspeed') {
                             const over = override.find(over => over.basis === 'sks' && over.isPrimary);
                             const attackType = over ? over.attackType : 'Weaponskill';
-                            const haste = this.computedStats.haste(attackType, over.buffHaste ?? 0);
+                            const haste = this.computedStats.haste(attackType, over?.buffHaste ?? 0);
                             if (this.computedStats.gcdPhys(NORMAL_GCD, haste) <= prio.minGcd) {
                                 continue;
                             }
@@ -901,7 +913,7 @@ export class CharacterGearSet {
                         if (stat === 'spellspeed') {
                             const over = override.find(over => over.basis === 'sps' && over.isPrimary);
                             const attackType = over ? over.attackType : 'Spell';
-                            const haste = this.computedStats.haste(attackType, over.buffHaste ?? 0);
+                            const haste = this.computedStats.haste(attackType, over?.buffHaste ?? 0);
                             // Check if we're already there before forcing a recomp
                             if (this.computedStats.gcdMag(NORMAL_GCD, haste) <= prio.minGcd) {
                                 continue;
@@ -1254,7 +1266,7 @@ export function isSameOrBetterItem(candidateItem: GearItem, baseItem: GearItem):
         const candidateValue = candidateStats[statKey as RawStatKey] as number;
         // For skill/spell speed, we want an exact match, since allowing extra sks/sps could cause
         // it to bump up a GCD tier.
-        if (statKey as RawStatKey === 'skillspeed' || statKey as RawStatKey === 'spellspeed') {
+        if (statKey as RawStatKey === 'skillspeed' || statKey as RawStatKey === 'spellspeed' || statKey as RawStatKey === 'gearHaste') {
             if (candidateValue !== baseValue) {
                 return false;
             }

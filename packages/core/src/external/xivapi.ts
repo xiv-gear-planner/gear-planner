@@ -41,15 +41,14 @@ export async function xivApiSingleCols<Columns extends readonly string[]>(sheet:
     });
 }
 
+export function xivApiAsset(assetPath: string, format: 'png' | 'jpg' = 'png') {
+    return `${XIVAPI_BASE_URL}/asset?path=${encodeURIComponent(assetPath)}&format=${format}`;
+}
+
 export function xivApiIconUrl(iconId: number, highRes: boolean = false): string {
     // Pad to 6 digits, e.g. 19581 -> '019581'
     const asStr = iconId.toString(10).padStart(6, '0');
     // Get the xivapi directory, e.g. 19581 -> 019000
     const directory = asStr.substring(0, 3) + '000';
-    if (highRes) {
-        return `${XIVAPI_BASE_URL}/asset/ui/icon/${directory}/${asStr}_hr1.tex?format=png`;
-    }
-    else {
-        return `${XIVAPI_BASE_URL}/asset/ui/icon/${directory}/${asStr}.tex?format=png`;
-    }
+    return xivApiAsset(`ui/icon/${directory}/${asStr}${highRes ? '_hr1' : ''}.tex`, 'png');
 }
