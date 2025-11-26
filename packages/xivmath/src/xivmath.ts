@@ -76,7 +76,7 @@ export function flp(places: number, input: number) {
  * @param haste The haste value, e.g. 15 for 15% haste, etc.
  */
 export function sksToGcd(baseGcd: number, levelStats: LevelStats, sks: number, haste = 0): number {
-    return fl((fl((1000 - fl(130 * (sks - levelStats.baseSubStat) / levelStats.levelDiv)) * baseGcd) * (100 - haste)) / 1000) / 100;
+    return Math.max(0, fl((fl((1000 - fl(130 * (sks - levelStats.baseSubStat) / levelStats.levelDiv)) * baseGcd) * (100 - haste)) / 1000) / 100);
 }
 
 /**
@@ -88,7 +88,7 @@ export function sksToGcd(baseGcd: number, levelStats: LevelStats, sks: number, h
  * @param haste The haste value, e.g. 15 for 15% haste, etc.
  */
 export function spsToGcd(baseGcd: number, levelStats: LevelStats, sps: number, haste = 0): number {
-    return fl((fl((1000 - fl(130 * (sps - levelStats.baseSubStat) / levelStats.levelDiv)) * baseGcd) * (100 - haste)) / 1000) / 100;
+    return Math.max(0, fl((fl((1000 - fl(130 * (sps - levelStats.baseSubStat) / levelStats.levelDiv)) * baseGcd) * (100 - haste)) / 1000) / 100);
 }
 
 /**

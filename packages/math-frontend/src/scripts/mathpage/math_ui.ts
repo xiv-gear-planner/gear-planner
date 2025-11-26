@@ -379,16 +379,22 @@ export class MathArea extends HTMLElement {
                             // For tiering display, we start with the user-chosen value, and traverse both ways from
                             // there until we have filled in enough entries to satisfy the `displayEntries` property.
                             const base = await makeRow(currentPrimaryValue, true);
-                            // Hard limit of number of entries to calculate in each directly. This should never be
+                            // Hard limit of number of entries to calculate in each direction. This should never be
                             // hit in practice.
-                            const rangeLimit = 50000;
+                            const totalRangeLimit = 50_000;
+                            // Hard limit of number of entries to calculate in a single tier. If we hit this, we will
+                            // the computation to have hit a hard limit in that direction.
+                            const perTierLimit = 2_000;
                             const entriesRange = outer.displayEntries;
                             const lowerOut: typeof rows = [];
                             const upperOut: typeof rows = [];
                             // Compute lower values
                             {
                                 let last = base;
-                                for (let i = 0; i < rangeLimit; i++) {
+                                let inTier: number = 0;
+                                // Flag to ignore incomplete final entry
+                                let ignoreLast = false;
+                                for (let i = 0; i < totalRangeLimit; i++) {
                                     const nextVal = currentPrimaryValue - i;
                                     if (nextVal < hardMin) {
                                         break;
@@ -396,28 +402,41 @@ export class MathArea extends HTMLElement {
                                     const next = await makeRow(nextVal);
                                     // If any particular entry has identical results, combine it with the previous
                                     if (resultsEquals(last.results, next.results)) {
+                                        inTier++;
+                                        // Set the existing range start (i.e. minimum) to be the value we just tested.
+                                        // Leave the upper bound alone.
                                         last.inputs = next.inputs;
                                         last.isRange = true;
+                                        if (inTier > perTierLimit) {
+                                            // @ts-expect-error - idk
+                                            last.inputs[prop] = -Infinity;
+                                            break;
+                                        }
                                     }
                                     else {
+                                        inTier = 0;
                                         // Otherwise, push old previous to the output list, and set a new comparison baseline.
                                         if (last !== base) {
                                             lowerOut.push(last);
                                         }
                                         last = next;
                                         if (lowerOut.length > entriesRange) {
+                                            ignoreLast = true;
                                             break;
                                         }
                                     }
                                 }
-                                if (last !== base) {
+                                if (last !== base && !ignoreLast) {
                                     lowerOut.push(last);
                                 }
                             }
                             // Compute upper values
                             {
                                 let last = base;
-                                for (let i = 0; i < rangeLimit; i++) {
+                                let inTier: number = 0;
+                                // Flag to ignore incomplete final entry
+                                let ignoreLast = false;
+                                for (let i = 0; i < totalRangeLimit; i++) {
                                     const nextVal = currentPrimaryValue + i;
                                     if (nextVal > hardMax) {
                                         break;
@@ -425,21 +444,29 @@ export class MathArea extends HTMLElement {
                                     const next = await makeRow(nextVal);
                                     // If any particular entry has identical results, combine it with the previous
                                     if (resultsEquals(last.results, next.results)) {
+                                        inTier++;
                                         last.inputsMax = next.inputsMax;
                                         last.isRange = true;
+                                        if (inTier > perTierLimit) {
+                                            // @ts-expect-error - idk
+                                            last.inputsMax[prop] = Infinity;
+                                            break;
+                                        }
                                     }
                                     else {
+                                        inTier = 0;
                                         // Otherwise, push old previous to the output list, and set a new comparison baseline.
                                         if (last !== base) {
                                             upperOut.push(last);
                                         }
                                         last = next;
                                         if (upperOut.length > entriesRange) {
+                                            ignoreLast = true;
                                             break;
                                         }
                                     }
                                 }
-                                if (last !== base) {
+                                if (last !== base && !ignoreLast) {
                                     upperOut.push(last);
                                 }
                             }
@@ -545,10 +572,10 @@ export class MathArea extends HTMLElement {
                         },
                         renderer: value => {
                             if (value.isRange) {
-                                return document.createTextNode(`${value.min} - ${value.max}`);
+                                return document.createTextNode(`${formatInputNum(value.min)} - ${formatInputNum(value.max)}`);
                             }
                             else {
-                                return document.createTextNode(`${value.min}`);
+                                return document.createTextNode(`${formatInputNum(value.min)}`);
                             }
                         },
                     }));
@@ -724,3 +751,19 @@ export function openMath(formulaKey: string | null) {
         mathArea.setFormulaSet(null);
     }
 }
+
+function formatInputNum(value: unknown): string {
+    if (value === -Infinity) {
+        return '-∞';
+    }
+    else if (value === Infinity) {
+        return '∞';
+    }
+    else if (typeof value === 'number') {
+        return value.toLocaleString();
+    }
+    else {
+        return String(value);
+    }
+}
+
