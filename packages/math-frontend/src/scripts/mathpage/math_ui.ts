@@ -499,6 +499,9 @@ export class MathArea extends HTMLElement {
                                 case 'flp':
                                     element.setAttribute('title', 'Floor to specified number of decimal places');
                                     break;
+                                case 'trunc':
+                                    element.setAttribute('title', 'Truncate to integer, i.e. round towards zero');
+                                    break;
                             }
                         });
                     const codeOuter = quickElement('div', ['code-outer'], [codeArea]);

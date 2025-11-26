@@ -33,7 +33,12 @@ export function fl(input: number) {
     }
 }
 
-export function trunc(input: number) {
+/**
+ * Truncate to an integer value (i.e. round towards zero).
+ *
+ * @param input
+ */
+export function trunc(input: number): number {
     if (input > 0) {
         return fl(input);
     }
