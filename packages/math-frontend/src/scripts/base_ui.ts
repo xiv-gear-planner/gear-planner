@@ -53,12 +53,8 @@ export function formatTopMenu(hash: string[]) {
                 link.classList.add('current-page');
             }
             else {
-                if (hash.length >= expected.length && arrayEq(hash.slice(0, expected.length), expected)) {
-                    link.classList.add('current-page');
-                }
-                else {
-                    link.classList.remove('current-page');
-                }
+                const isCurrentPage = hash.length >= expected.length && arrayEq(hash.slice(0, expected.length), expected);
+                link.classList.toggle('current-page', isCurrentPage);
             }
         }
     });

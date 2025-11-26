@@ -186,12 +186,7 @@ export class SlotMateriaManager extends HTMLElement {
 
     // eslint-disable-next-line accessor-pairs
     set popupOpen(open: boolean) {
-        if (open) {
-            this.classList.add('materia-manager-active');
-        }
-        else {
-            this.classList.remove('materia-manager-active');
-        }
+        this.classList.toggle('materia-manager-active', open);
     }
 
 
@@ -199,6 +194,7 @@ export class SlotMateriaManager extends HTMLElement {
         const currentMat = this.materiaSlot.equippedMateria;
         // TODO: can the ordering be improved here?
         let title: string;
+        const editable = this.editable;
         if (currentMat) {
             this.image.src = currentMat.iconUrl.toString();
             this.image.style.display = 'block';
@@ -207,7 +203,7 @@ export class SlotMateriaManager extends HTMLElement {
             this.classList.remove("materia-slot-empty");
             this.classList.add("materia-slot-full");
             title = formatMateriaTitle(currentMat);
-            if (this.editable) {
+            if (editable) {
                 title += `\n\nAlt-click to remove.`;
             }
         }
@@ -217,26 +213,21 @@ export class SlotMateriaManager extends HTMLElement {
             this.classList.remove('materia-normal', 'materia-overcap', 'materia-overcap-major', 'materia-slot-full');
             // this.classList.remove('materia-slot-full', 'materia-normal', 'materia-overcap', 'materia-overcap-major')
             this.classList.add("materia-slot-empty");
-            if (this.editable) {
+            if (editable) {
                 title = 'Click to select materia\n';
             }
             else {
                 title = 'Empty';
             }
         }
-        if (this.editable) {
+        if (editable) {
             title += `\nCtrl-click to ${this.materiaSlot.locked ? 'unlock' : 'prevent auto-fill/solving from affecting this slot.'}.`;
         }
-        if (this.materiaSlot.locked) {
-            this.classList.add('materia-slot-locked');
-            this.classList.remove('materia-slot-unlocked');
-            if (this.editable) {
-                title = 'This slot is LOCKED. It will not be affected by auto-fill nor the solver.\n' + title;
-            }
-        }
-        else {
-            this.classList.add('materia-slot-unlocked');
-            this.classList.remove('materia-slot-locked');
+        const locked = this.materiaSlot.locked;
+        this.classList.toggle('materia-slot-locked', locked);
+        this.classList.toggle('materia-slot-unlocked', !locked);
+        if (locked && editable) {
+            title = 'This slot is LOCKED. It will not be affected by auto-fill nor the solver.\n' + title;
         }
         this.title = title;
     }

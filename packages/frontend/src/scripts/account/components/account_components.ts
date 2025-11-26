@@ -204,12 +204,7 @@ class AccountManagementInner extends HTMLElement {
                 const outer = this;
                 const registrationForm = new ValidatingForm<RegisterResponse>({
                     afterSubmitAttempt(valid: boolean): void {
-                        if (valid) {
-                            registerHeader.classList.remove('failed');
-                        }
-                        else {
-                            registerHeader.classList.add('failed');
-                        }
+                        registerHeader.classList.toggle('failed', !valid);
                     },
                     children: [
                         registerHeader,

@@ -29,15 +29,7 @@ export class ExpandableText extends HTMLElement {
     }
 
     private checkHeight(): void {
-        if (this.expanded) {
-            this.classList.remove('truncated');
-        }
-        else if (this.inner.clientHeight < this.inner.scrollHeight) {
-            this.classList.add('truncated');
-        }
-        else {
-            this.classList.remove('truncated');
-        }
+        this.classList.toggle('truncated', !this.expanded && this.inner.clientHeight < this.inner.scrollHeight);
     }
 
     // noinspection JSUnusedGlobalSymbols - part of custom element lifecycle API
