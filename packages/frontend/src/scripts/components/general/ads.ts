@@ -233,7 +233,7 @@ window.addEventListener('resize', recheckAds);
 
 window.currentAds = currentAds;
 
-let lastReported: ManagedAd[] | null = null;
+let lastReported: ManagedAd[] | undefined = undefined;
 
 function recheckAds() {
     setTimeout(() => {
