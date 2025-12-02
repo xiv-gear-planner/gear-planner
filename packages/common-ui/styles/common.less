@@ -2758,6 +2758,7 @@ food-stat-bonus {
     flex-grow: 0;
     flex-shrink: 0;
     display: block;
+    line-height: 1;
   }
 
   .food-effective {
@@ -2843,6 +2844,7 @@ table.food-items-table {
 
       > * {
         text-align: left;
+        line-height: normal;
       }
     }
   }
@@ -3105,7 +3107,9 @@ gear-set-viewer {
 .color-stat-column {
   &.primary {
     color: color-mix(in srgb, var(--stat-color) var(--stat-mix-primary), var(--fg-color));
-    background-color: color-mix(in srgb, var(--stat-color) var(--stat-mix-primary-bg), var(--table-bg-color));
+    --stat-bg-color-internal: color-mix(in srgb, var(--stat-color) var(--stat-mix-primary-bg), var(--table-bg-color));
+    background-color: var(--stat-bg-color-internal) !important;
+    --table-bg-color-hover: color-mix(in srgb, var(--stat-bg-color-internal) 50%, var(--table-bg-color-hover));
   }
 
   &.secondary {
