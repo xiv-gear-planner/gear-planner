@@ -56,6 +56,8 @@ export type GaugeManager<GaugeStateType> = {
 
     gaugeSnapshot(): GaugeStateType;
 
+    modifyStats?(stats: ComputedSetStats): ComputedSetStats;
+
 }
 
 /**

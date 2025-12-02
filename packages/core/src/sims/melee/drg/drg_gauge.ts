@@ -3,15 +3,11 @@ import {DrgGaugeState} from "./drg_types";
 
 export class DrgGaugeManager implements GaugeManager<DrgGaugeState> {
 
-    private _level: number;
+    readonly level: number;
     private _firstmindsFocus: number = 0;
 
     constructor(level: number) {
-        this._level = level;
-    }
-
-    get level(): number {
-        return this._level;
+        this.level = level;
     }
 
     get firstmindsFocus(): number {
