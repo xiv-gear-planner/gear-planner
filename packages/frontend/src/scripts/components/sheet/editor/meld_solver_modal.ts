@@ -225,10 +225,12 @@ class MeldSolverSettingsMenu extends HTMLDivElement {
 
         const override = sheet.classJobStats.gcdDisplayOverrides?.(sheet.level);
         let buffHaste = 0;
+        let gaugeHaste = 0;
         if (override && override.length >= 1) {
             buffHaste += (override[0].buffHaste ?? 0);
+            gaugeHaste += (override[0].gaugeHaste ?? 0);
         }
-        const haste = Math.max(set.computedStats.haste("Weaponskill", buffHaste), set.computedStats.haste("Spell", buffHaste));
+        const haste = Math.max(set.computedStats.haste("Weaponskill", buffHaste, gaugeHaste), set.computedStats.haste("Spell", buffHaste, gaugeHaste));
         const gcd = Math.min(set.computedStats.gcdPhys(2.5, haste), set.computedStats.gcdMag(2.5, haste));
 
         this.gearsetGenSettings = new GearsetGenerationSettings(set, false, true, gcd);

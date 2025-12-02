@@ -98,6 +98,9 @@ export class RawBonusStats extends RawStats {
     // TODO: These should be used when possible
     forceCrit: boolean = false;
     forceDh: boolean = false;
+    // note that **not** all haste that seems to come from a gauge is actually gauge haste. this is specifically
+    // for Paeon at this time.
+    gaugeHaste: number = 0;
 }
 
 function clamp(min: number, max: number, value: number) {
@@ -255,13 +258,13 @@ export class ComputedSetStatsImpl implements ComputedSetStats {
         return spsToGcd(baseGcd, this.levelStats, this.spellspeed, haste);
     }
 
-    haste(attackType: AttackType, buffHaste: number): number {
+    haste(attackType: AttackType, buffHaste: number, gaugeHaste: number): number {
         const traitHaste = sum(this.finalBonusStats.traitHaste.map(hb => hb(attackType)));
-        return combineHasteTypes(buffHaste, this.gearHaste, traitHaste);
+        return combineHasteTypes(buffHaste, this.gearHaste, traitHaste, this.finalBonusStats.gaugeHaste);
     }
 
-    effectiveAaDelay(buffHaste: number): number {
-        const effectiveHaste = this.haste('Auto-attack', buffHaste);
+    effectiveAaDelay(buffHaste: number, gaugeHaste: number): number {
+        const effectiveHaste = this.haste('Auto-attack', buffHaste, gaugeHaste);
         return flp(3, this.aaDelay * (100 - effectiveHaste) / 100);
     }
 

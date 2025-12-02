@@ -318,14 +318,14 @@ export interface ComputedSetStats extends RawStats {
     /**
      * Combined haste value for a given attack type
      */
-    haste(attackType: AttackType, buffHaste: number): number;
+    haste(attackType: AttackType, buffHaste: number, gaugeHaste: number): number;
 
     /**
      * Compute the effective auto-attack delay. Assumes the attack has the type 'Auto-attack'.
      *
      * @param buffHaste The amount of haste from buffs.
      */
-    effectiveAaDelay(buffHaste: number): number;
+    effectiveAaDelay(buffHaste: number, gaugeHaste: number): number;
 
     /**
      * Crit chance. Ranges from 0 to 1.
@@ -637,6 +637,10 @@ export type GcdDisplayOverride = {
      * Additional buff haste to use for this calculation (e.g. for PoM)
      */
     buffHaste?: number,
+    /**
+     * Additional gauge haste to use for this calculation (e.g. Paeon)
+     */
+    gaugeHaste?: number,
     /**
      * Whether this calc uses SpS or SkS formula
      */

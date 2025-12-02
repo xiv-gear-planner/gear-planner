@@ -343,7 +343,7 @@ export class StatTierDisplay extends HTMLDivElement {
                                 fullName: over.longLabel,
                                 description: over.description,
                                 tieringFunc: makeTiering(value => {
-                                    const haste = computed.haste(over.attackType, over?.buffHaste ?? 0);
+                                    const haste = computed.haste(over.attackType, over?.buffHaste ?? 0, over?.gaugeHaste ?? 0);
                                     return spsToGcd(over.gcdTime, levelStats, value, haste);
                                 }),
                                 extraOffsets: extraOffsets,
@@ -357,7 +357,7 @@ export class StatTierDisplay extends HTMLDivElement {
                         fullName: 'GCD for spells',
                         description: 'Global cooldown (recast) time for spells',
                         tieringFunc: makeTiering(value => {
-                            const haste = computed.haste('Spell', 0);
+                            const haste = computed.haste('Spell', 0, 0);
                             return spsToGcd(2.5, levelStats, value, haste);
                         }),
                         extraOffsets: extraOffsets,
@@ -382,7 +382,7 @@ export class StatTierDisplay extends HTMLDivElement {
                                 fullName: over.longLabel,
                                 description: over.description,
                                 tieringFunc: makeTiering(value => {
-                                    const haste = computed.haste(over.attackType, over?.buffHaste ?? 0);
+                                    const haste = computed.haste(over.attackType, over?.buffHaste ?? 0, over?.gaugeHaste ?? 0);
                                     return sksToGcd(over.gcdTime, levelStats, value, haste);
                                 }),
                                 extraOffsets: extraOffsets,
@@ -396,7 +396,7 @@ export class StatTierDisplay extends HTMLDivElement {
                         fullName: 'GCD for weaponskills',
                         description: 'Global cooldown (recast) time for weaponskills',
                         tieringFunc: makeTiering(value => {
-                            const haste = computed.haste('Weaponskill', 0);
+                            const haste = computed.haste('Weaponskill', 0, 0);
                             return sksToGcd(2.5, levelStats, value, haste);
                         }),
                         extraOffsets: extraOffsets,

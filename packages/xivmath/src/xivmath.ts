@@ -16,7 +16,7 @@ import {chanceMultiplierStdDev, fixedValue, multiplyValues, ValueWithDev} from "
  * Enhanced flooring function which takes into account a small margin of error to account for
  * floating point errors.
  *
- * e.g. 2.3 * 100 => 229.99999999999997, but fl(2.3 * 100) => 230
+ * e.g. 2.3 * 100 => 229.99999999999997, which would normally floor to 229, but fl(2.3 * 100) => 230
  *
  * @param input
  */
@@ -30,6 +30,27 @@ export function fl(input: number) {
     }
     else {
         return floored;
+    }
+}
+
+/**
+ * Enhanced ceiling function which takes into account a small margin of error to account for
+ * floating point errors.
+ *
+ * e.g. 100 * 1.1 => 110.00000000000001, which would normally ceil to 111, but cl(100 * 1.1) => 110
+ *
+ * @param input
+ */
+export function cl(input: number) {
+    const ceiled = Math.ceil(input);
+    const loss = ceiled - input;
+    // e.g. if input is 110.00000000000001, then ceiled === 111 and loss === 0.999...
+    // so we can just return ceiled - 1;
+    if (loss >= 0.99999995) {
+        return ceiled - 1;
+    }
+    else {
+        return ceiled;
     }
 }
 
@@ -67,6 +88,22 @@ export function flp(places: number, input: number) {
     return fl(input * multiplier) / multiplier;
 }
 
+/**
+ * Ceil a number to the given precision.
+ *
+ * e.g. flp(2, 1.231) => 1.24
+ *
+ * @param places The number of decimal places to keep. Must be a non-negative integer. Zero is allowed,
+ * but you should just call 'cl' directly in that case.
+ * @param input The number to round.
+ */
+export function clp(places: number, input: number) {
+    if (places % 1 !== 0 || places < 0) {
+        throw Error(`Invalid places input ${places} - must be non-negative integer`);
+    }
+    const multiplier = Math.pow(10, places);
+    return cl(input * multiplier) / multiplier;
+}
 /**
  * Convert skill speed to GCD speed.
  *
@@ -541,13 +578,20 @@ export function mainStatPowerMod(levelStats: LevelStats, jobStats: JobDataConst)
  * @param buffHaste Haste from buffs, as a percentage.
  * @param gearHaste Haste from gear, as a percentage.
  * @param traitHaste Haste from traits, as a percentage.
+ * @param gaugeHaste Haste from certain job-specific mechanics such as BRD's Paeon.
  */
-export function combineHasteTypes(buffHaste: number, gearHaste: number, traitHaste: number): number {
+export function combineHasteTypes(buffHaste: number, gearHaste: number, traitHaste: number, gaugeHaste: number): number {
     // Normalize each haste amount to a speed multiplier i.e. 1 = no haste, lower values = faster.
     const buffHasteMult = flp(2, (100 - buffHaste) / 100);
+    // Specific to Paeon.
+    // We don't actually know the order of operations for trait haste + gauge haste, but it isn't currently possible
+    // to have both.
+    const gaugeHasteMult = flp(2, (100 - gaugeHaste) / 100);
     const gearHasteMult = flp(2, (100 - gearHaste) / 100);
     const traitHasteMult = flp(2, (100 - traitHaste) / 100);
-    const combined = flp(2, flp(2, buffHasteMult * gearHasteMult) * traitHasteMult);
+    // const combined = flp(2, flp(2, buffHasteMult * gearHasteMult) * traitHasteMult);
+    // const combined = flp(2, flp(2, buffHasteMult * traitHasteMult) * gearHasteMult);
+    const combined = flp(2, clp(2, flp(2, buffHasteMult * traitHasteMult) * gaugeHasteMult) * gearHasteMult);
     // Convert back to a haste percentage.
     return fl((1 - combined) * 100);
 }
