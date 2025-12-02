@@ -2841,6 +2841,8 @@ table.food-items-table {
 
     food-stat-bonus {
       flex-direction: column;
+      padding-top: 2px;
+      padding-bottom: 2px;
 
       > * {
         text-align: left;
@@ -3107,9 +3109,7 @@ gear-set-viewer {
 .color-stat-column {
   &.primary {
     color: color-mix(in srgb, var(--stat-color) var(--stat-mix-primary), var(--fg-color));
-    --stat-bg-color-internal: color-mix(in srgb, var(--stat-color) var(--stat-mix-primary-bg), var(--table-bg-color));
-    background-color: var(--stat-bg-color-internal) !important;
-    --table-bg-color-hover: color-mix(in srgb, var(--stat-bg-color-internal) 50%, var(--table-bg-color-hover));
+    background-color: color-mix(in srgb, var(--stat-color) var(--stat-mix-primary-bg), var(--table-bg-color));
   }
 
   &.secondary {
