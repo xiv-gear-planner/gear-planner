@@ -20,7 +20,9 @@ export class DrgGaugeManager implements GaugeManager<DrgGaugeState> {
 
     set firstmindsFocus(newFirstmindsFocus: number) {
         // This gauge only exists at level 90 and above.
-        if (this.level < 90) return;
+        if (this.level < 90) {
+            return;
+        }
 
         if (newFirstmindsFocus > 2) {
             console.warn(`[DRG Sim] Overcapped Firstminds' Focus.`);

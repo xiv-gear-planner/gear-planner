@@ -59,7 +59,9 @@ class RotationState {
 
     set combo(newCombo) {
         this._combo = newCombo;
-        if (this._combo >= 3) this._combo = 0;
+        if (this._combo >= 3) {
+            this._combo = 0;
+        }
     }
 
     get confiteorCombo() {
@@ -68,7 +70,9 @@ class RotationState {
 
     set confiteorCombo(newCombo) {
         this._confiteorCombo = newCombo;
-        if (this._confiteorCombo >= 4) this._confiteorCombo = 0;
+        if (this._confiteorCombo >= 4) {
+            this._confiteorCombo = 0;
+        }
     }
 }
 

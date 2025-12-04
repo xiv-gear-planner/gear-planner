@@ -252,18 +252,23 @@ export abstract class BaseSheetSettingsModal extends BaseModal {
     protected get ilvlSyncEnabled(): boolean {
         return this.fieldSet.newSheetSettings.ilvlSyncEnabled;
     }
+
     protected get ilvlSync(): number {
         return this.fieldSet.newSheetSettings.ilvlSync;
     }
+
     protected get level(): SupportedLevel {
         return this.fieldSet.levelDropdown.selectedItem;
     }
+
     protected get selectedJob(): JobName | null {
         return this.fieldSet.jobPicker.selectedJob;
     }
+
     protected get multiJob(): boolean {
         return this.fieldSet.newSheetSettings.multiJob;
     }
+
     protected get nameValue(): string {
         return this.fieldSet.nameInput.value;
     }

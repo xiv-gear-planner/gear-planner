@@ -83,9 +83,12 @@ class RotationState {
     get combo() {
         return this._combo;
     }
+
     set combo(newCombo) {
         this._combo = newCombo;
-        if (this._combo >= 10) this._combo = 0;
+        if (this._combo >= 10) {
+            this._combo = 0;
+        }
     }
 }
 
@@ -164,7 +167,9 @@ class DrgCycleProcessor extends CycleProcessor<DrgGaugeManager> {
 
     getRemainingBuffDuration(buffToFind: Buff) {
         const buffData = this.getActiveBuffData(buffToFind);
-        if (buffData === null) return 0;
+        if (buffData === null) {
+            return 0;
+        }
         return buffData.end - this.currentTime;
     }
 }
