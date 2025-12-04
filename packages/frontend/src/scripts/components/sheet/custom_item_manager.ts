@@ -7,7 +7,7 @@ import {
     FieldBoundDataSelect,
     FieldBoundFloatField,
     FieldBoundIntField,
-    FieldBoundOrUndefIntField,
+    FieldBoundIntOrUndefField,
     FieldBoundTextField,
     labeledCheckbox,
     makeActionButton,
@@ -183,7 +183,7 @@ export class CustomItemTable extends CustomTable<CustomItem> {
 
                         const statsProxy = customStatsProxy(item.customData.stats);
 
-                        const field = new FieldBoundOrUndefIntField(statsProxy, stat, {
+                        const field = new FieldBoundIntOrUndefField(statsProxy, stat, {
                             postValidators: [nonNegative],
                         });
                         field.placeholder = '0';

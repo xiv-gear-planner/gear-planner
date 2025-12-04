@@ -3,7 +3,7 @@ import {
     clampValuesOrUndef, el,
     FieldBoundCheckBox,
     FieldBoundDataSelect,
-    FieldBoundOrUndefIntField, labeledCheckbox,
+    FieldBoundIntOrUndefField, labeledCheckbox,
     labelFor,
     quickElement
 } from "@xivgear/common-ui/components/util";
@@ -52,7 +52,7 @@ class SettingsModal extends BaseModal {
         this.contentArea.append(langDropdown);
         this.contentArea.append(el('br'));
 
-        const workersCount = new FieldBoundOrUndefIntField(SETTINGS, 'workersOverride', {
+        const workersCount = new FieldBoundIntOrUndefField(SETTINGS, 'workersOverride', {
             postValidators: [clampValuesOrUndef(2, 1024)],
         });
         workersCount.style.width = '100%';

@@ -1,11 +1,31 @@
-import {Ability, SimSettings, SimSpec, OgcdAbility} from "@xivgear/core/sims/sim_types";
-import {CycleProcessor, CycleSimResult, ExternalCycleSettings, MultiCycleSettings, AbilityUseResult, Rotation, PreDmgAbilityUseRecordUnf} from "@xivgear/core/sims/cycle_sim";
+import {Ability, OgcdAbility, SimSettings, SimSpec} from "@xivgear/core/sims/sim_types";
+import {
+    AbilityUseResult,
+    CycleProcessor,
+    CycleSimResult,
+    ExternalCycleSettings,
+    MultiCycleSettings,
+    PreDmgAbilityUseRecordUnf,
+    Rotation
+} from "@xivgear/core/sims/cycle_sim";
 import {CycleSettings} from "@xivgear/core/sims/cycle_settings";
 import {CharacterGearSet} from "@xivgear/core/gear";
 import {formatDuration} from "@xivgear/util/strutils";
 import {STANDARD_ANIMATION_LOCK} from "@xivgear/xivmath/xivconstants";
 import {GnbGauge} from "./gnb_gauge";
-import {GnbGcdAbility, GnbOgcdAbility, ReadyToBlastBuff, ReadyToRipBuff, NoMercyBuff, ReadyToTearBuff, ReadyToGougeBuff, ReadyToBreakBuff, ReadyToReignBuff, GnbExtraData, GnbAbility} from "./gnb_types";
+import {
+    GnbAbility,
+    GnbExtraData,
+    GnbGcdAbility,
+    GnbOgcdAbility,
+    NoMercyBuff,
+    ReadyToBlastBuff,
+    ReadyToBreakBuff,
+    ReadyToGougeBuff,
+    ReadyToReignBuff,
+    ReadyToRipBuff,
+    ReadyToTearBuff
+} from "./gnb_types";
 import {sum} from "@xivgear/util/array_utils";
 import * as Actions from './gnb_actions';
 import {BaseMultiCycleSim} from "@xivgear/core/sims/processors/sim_processors";
@@ -25,8 +45,8 @@ export interface GnbSettings extends SimSettings {
     // This will make the rotation consistent across sub-tiers of SKS.
     pretendThatMicroclipsDontExist: boolean;
     // How many GCDs before No Mercy comes up we should hold Gnashing.
-    // Defaults to -1 which equates to one GCD for most GCD speeds but can be manually overridden.
-    holdiness: number;
+    // Defaults to undefined which equates to one GCD for most GCD speeds but can be manually overridden.
+    holdiness: number | undefined;
 }
 
 export interface GnbSettingsExternal extends ExternalCycleSettings<GnbSettings> {
@@ -322,7 +342,7 @@ export class GnbSim extends BaseMultiCycleSim<GnbSimResult, GnbSettings, GnbCycl
             // and is somewhat even between the two main GCDs.
             fightTime: (8 * 60) + 30,
             pretendThatMicroclipsDontExist: true,
-            holdiness: -1,
+            holdiness: undefined,
         };
     }
 
@@ -348,7 +368,7 @@ export class GnbSim extends BaseMultiCycleSim<GnbSimResult, GnbSettings, GnbCycl
         // 'Normal' speeds (i.e. 2.50 -> 2.40) prefer a single GCD.
         const userSetHoldiness = this.settings.holdiness;
         let holdiness = 1;
-        if (userSetHoldiness >= 0) {
+        if (userSetHoldiness !== undefined) {
             // Holdiness has been manually set, so override
             holdiness = userSetHoldiness;
         }
@@ -365,12 +385,12 @@ export class GnbSim extends BaseMultiCycleSim<GnbSimResult, GnbSettings, GnbCycl
         }
 
         // If No Mercy isn't up AND it's coming up within the next two GCDs, we should wait.
-        if (ability.id === Actions.GnashingFang.id && (!(cp.getNoMercyDuration() > 0) &&  cp.cdTracker.statusOfAt(Actions.NoMercy, cp.nextGcdTime + gcdSpeed * holdiness).readyToUse)) {
+        if (ability.id === Actions.GnashingFang.id && (!(cp.getNoMercyDuration() > 0) && cp.cdTracker.statusOfAt(Actions.NoMercy, cp.nextGcdTime + gcdSpeed * holdiness).readyToUse)) {
             return false;
         }
 
         // (gcdSpeed / 20) is the potential amount it could be delayed by.
-        const shouldUseGCD = relativeCooldown === 0  || relativeCooldown <= (gcdSpeed / 20);
+        const shouldUseGCD = relativeCooldown === 0 || relativeCooldown <= (gcdSpeed / 20);
         if (shouldUseGCD) {
             // We are microclipping
             if (relativeCooldown > 0) {
@@ -385,7 +405,7 @@ export class GnbSim extends BaseMultiCycleSim<GnbSimResult, GnbSettings, GnbCycl
     getGCDToUse(cp: GnbCycleProcessor): GnbGcdAbility {
         const noMercyDuration = cp.getNoMercyDuration();
         // If we have less than thirty seconds, but still enough time to do our bigger attacks, use Sonic Break as soon as possible.
-        const timeRemaining =  cp.totalTime - cp.currentTime;
+        const timeRemaining = cp.totalTime - cp.currentTime;
         if (cp.isReadyToBreakBuffActive() && (timeRemaining < 30) && (noMercyDuration > 0 && timeRemaining > cp.stats.gcdPhys(2.5) * 4)) {
             return Actions.SonicBreak;
         }
@@ -510,7 +530,7 @@ export class GnbSim extends BaseMultiCycleSim<GnbSimResult, GnbSettings, GnbCycl
             // Should always be defined, but just in case.
             if (continuation) {
                 // Prefer using No Mercy -> Continuation if possible
-                if (cp.canUseOgcdsWithoutClipping([Actions.NoMercy, continuation] )) {
+                if (cp.canUseOgcdsWithoutClipping([Actions.NoMercy, continuation])) {
                     this.use(cp, Actions.NoMercy);
                     this.use(cp, continuation);
 
@@ -749,7 +769,7 @@ export class GnbSim extends BaseMultiCycleSim<GnbSimResult, GnbSettings, GnbCycl
 
     getRotationsToSimulate(set: CharacterGearSet): Rotation<GnbCycleProcessor>[] {
         const gcd = set.results.computedStats.gcdPhys(2.5);
-        const settings = { ...this.settings };
+        const settings = {...this.settings};
         const outer = this;
 
         console.log(`[GNB Sim] Running Rotation for ${gcd} GCD...`);
