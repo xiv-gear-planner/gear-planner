@@ -14,9 +14,14 @@ body.popout-view {
     }
 
     popout-editor {
-      height: 100vh;
+      height: 100%;
       display: flex;
       flex-direction: column;
+      .popup-main-area {
+        overflow: auto;
+        height: 100%;
+        padding-top: 8px;
+      }
     }
 
     .popup-toolbar-area {
