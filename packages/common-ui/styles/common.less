@@ -2758,6 +2758,7 @@ food-stat-bonus {
     flex-grow: 0;
     flex-shrink: 0;
     display: block;
+    line-height: 1;
   }
 
   .food-effective {
@@ -2840,9 +2841,12 @@ table.food-items-table {
 
     food-stat-bonus {
       flex-direction: column;
+      padding-top: 2px;
+      padding-bottom: 2px;
 
       > * {
         text-align: left;
+        line-height: normal;
       }
     }
   }
