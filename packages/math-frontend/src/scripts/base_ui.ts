@@ -24,6 +24,7 @@ export const contentArea = getRequiredElementById("content-area");
 export const devMenuArea = getRequiredElementById("dev-menu-area");
 export const topMenuArea = getRequiredElementById("main-menu-area");
 export const welcomeArea = getRequiredElementById("welcome-message");
+const body = document.querySelector('body');
 
 export function setMainContent(title: string, ...nodes: Parameters<ParentNode['replaceChildren']>) {
     contentArea.replaceChildren(...nodes);
@@ -88,7 +89,8 @@ export function earlyUiSetup() {
     });
     getRequiredElementById('show-hide-menu-button').addEventListener('click', (ev) => {
         ev.preventDefault();
-        topMenuArea.style.display = topMenuArea.style.display === 'none' ? '' : 'none';
+        body!.classList.toggle("top-menu-hidden");
+        // topMenuArea.style.display = topMenuArea.style.display === 'none' ? '' : 'none';
     });
     const header = document.createElement("span");
     header.textContent = "Dev Menu";

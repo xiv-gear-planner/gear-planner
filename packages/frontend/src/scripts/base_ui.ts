@@ -57,6 +57,7 @@ export const topMenuArea = document.getElementById("main-menu-area");
 // const editorArea = document.getElementById("editor-area");
 export const welcomeArea = document.getElementById("welcome-message");
 export const welcomeCloseButton = document.getElementById("welcome-close-button");
+const body = document.querySelector('body');
 
 export function handleWelcomeArea() {
     if (getHash()?.length > 0) {
@@ -384,7 +385,8 @@ export function earlyUiSetup() {
     });
     document.getElementById('show-hide-menu-button').addEventListener('click', (ev) => {
         ev.preventDefault();
-        topMenuArea.style.display = topMenuArea.style.display === 'none' ? '' : 'none';
+        body.classList.toggle("top-menu-hidden");
+        // topMenuArea.style.display = topMenuArea.style.display === 'none' ? '' : 'none';
     });
     const header = document.createElement("span");
     header.textContent = "Dev Menu";
