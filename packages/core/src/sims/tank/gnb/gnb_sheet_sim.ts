@@ -10,6 +10,7 @@ import {sum} from "@xivgear/util/array_utils";
 import * as Actions from './gnb_actions';
 import {BaseMultiCycleSim} from "@xivgear/core/sims/processors/sim_processors";
 import {potionMaxStr} from "@xivgear/core/sims/common/potion";
+import {undoIcon} from "@xivgear/common-ui/components/icons";
 
 export interface GnbSimResult extends CycleSimResult {
 
@@ -26,7 +27,7 @@ export interface GnbSettings extends SimSettings {
     pretendThatMicroclipsDontExist: boolean;
     // How many GCDs before No Mercy comes up we should hold Gnashing.
     // Defaults to -1 which equates to one GCD for most GCD speeds but can be manually overridden.
-    holdiness: number;
+    holdiness: number | undefined;
 }
 
 export interface GnbSettingsExternal extends ExternalCycleSettings<GnbSettings> {
@@ -322,7 +323,7 @@ export class GnbSim extends BaseMultiCycleSim<GnbSimResult, GnbSettings, GnbCycl
             // and is somewhat even between the two main GCDs.
             fightTime: (8 * 60) + 30,
             pretendThatMicroclipsDontExist: true,
-            holdiness: -1,
+            holdiness: undefined,
         };
     }
 
@@ -348,7 +349,7 @@ export class GnbSim extends BaseMultiCycleSim<GnbSimResult, GnbSettings, GnbCycl
         // 'Normal' speeds (i.e. 2.50 -> 2.40) prefer a single GCD.
         const userSetHoldiness = this.settings.holdiness;
         let holdiness = 1;
-        if (userSetHoldiness >= 0) {
+        if (userSetHoldiness !== undefined) {
             // Holdiness has been manually set, so override
             holdiness = userSetHoldiness;
         }

@@ -393,6 +393,12 @@ export class FieldBoundConvertingTextField2<ObjType, Field extends keyof ObjType
     }
 }
 
+/**
+ * Simple pre-validator that causes it to not complain about validation if you enter a single '-', since you are
+ * presumably going to type the rest of the number after that.
+ *
+ * @param ctx
+ */
 const skipMinus = (ctx: PreValidationContext<unknown>) => {
     if (ctx.newRawValue === '-') {
         ctx.ignoreChange();
@@ -425,7 +431,7 @@ export class FieldBoundIntField<ObjType> extends FieldBoundConvertingTextField<O
     }
 }
 
-export class FieldBoundOrUndefIntField<ObjType> extends FieldBoundConvertingTextField<ObjType, number | undefined> {
+export class FieldBoundIntOrUndefField<ObjType> extends FieldBoundConvertingTextField<ObjType, number | undefined> {
     constructor(obj: ObjType, field: { [K in keyof ObjType]: ObjType[K] extends (number | undefined) ? K : never }[keyof ObjType], extraArgs: FbctArgs<ObjType, number | undefined> = {}) {
         const intValidator: Exclude<typeof extraArgs.postValidators, undefined>[number] = (ctx) => {
             if (ctx.newValue !== undefined && ctx.newValue % 1 !== 0) {
@@ -435,6 +441,7 @@ export class FieldBoundOrUndefIntField<ObjType> extends FieldBoundConvertingText
         extraArgs.preValidators = [skipMinus, ...(extraArgs.preValidators ?? [])];
         extraArgs.postValidators = [intValidator, ...(extraArgs.postValidators ?? [])];
         const defaultSettings: Partial<FbctArgs<ObjType, number | undefined>> = {
+            // TODO: why do we have skipMinus but then forces a positive integer input?
             pattern: "\\d*",
             inputMode: 'number',
         };
@@ -473,6 +480,21 @@ export class FieldBoundFloatField<ObjType> extends FieldBoundConvertingTextField
             defaultSettings.pattern = `[0-9]*\\.?[0-9]{0,${extraArgs.fixDecimals}}`;
         }
         super(obj, field, (s) => toStringFunc(s), (s) => Number(s), {...defaultSettings, ...extraArgs});
+    }
+}
+
+export class FieldBoundFloatOrUndefField<ObjType> extends FieldBoundConvertingTextField<ObjType, number | undefined> {
+    constructor(obj: ObjType, field: { [K in keyof ObjType]: ObjType[K] extends (number | undefined) ? K : never }[keyof ObjType], extraArgs: FbctArgs<ObjType, number | undefined> = {}) {
+        extraArgs.preValidators = [skipMinus, ...(extraArgs.preValidators ?? [])];
+        const defaultSettings: Partial<FbctArgs<ObjType, number | undefined>> = {
+            inputMode: 'number',
+        };
+        super(obj, field, (s) => s === undefined ? "" : s.toString(), (s) => s.trim() === "" ? undefined : Number(s), {...extraArgs, ...defaultSettings});
+        if (this.type === 'numeric') {
+            if (!this.step) {
+                this.step = '1';
+            }
+        }
     }
 }
 
@@ -656,7 +678,8 @@ customElements.define("data-select", DataSelect, {extends: "select"});
 customElements.define("field-bound-converting-text-field", FieldBoundConvertingTextField, {extends: "input"});
 customElements.define("field-bound-text-field", FieldBoundTextField, {extends: "input"});
 customElements.define("field-bound-float-field", FieldBoundFloatField, {extends: "input"});
-customElements.define("field-bound-int-or-undef-field", FieldBoundOrUndefIntField, {extends: "input"});
+customElements.define("field-bound-int-or-undef-field", FieldBoundIntOrUndefField, {extends: "input"});
+customElements.define("field-bound-float-or-undef-field", FieldBoundFloatOrUndefField, {extends: "input"});
 customElements.define("field-bound-int-field", FieldBoundIntField, {extends: "input"});
 customElements.define("field-bound-checkbox", FieldBoundCheckBox, {extends: "input"});
 customElements.define("field-bound-data-select", FieldBoundDataSelect, {extends: "select"});

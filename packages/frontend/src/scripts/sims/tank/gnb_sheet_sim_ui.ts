@@ -1,4 +1,11 @@
-import {FieldBoundCheckBox, FieldBoundFloatField, labeledCheckbox, labelFor, quickElement} from "@xivgear/common-ui/components/util";
+import {
+    el,
+    FieldBoundCheckBox,
+    FieldBoundFloatOrUndefField,
+    labeledCheckbox,
+    labelFor,
+    quickElement
+} from "@xivgear/common-ui/components/util";
 import {BaseMultiCycleSimGui} from "../multicyclesim_ui";
 import {DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/core/sims/cycle_sim";
 import {CustomColumnSpec} from "@xivgear/common-ui/table/tables";
@@ -64,22 +71,22 @@ export class GnbSimGui extends BaseMultiCycleSimGui<GnbSimResult, GnbSettings> {
     }
 
     override makeCustomConfigInterface(settings: GnbSettings, _updateCallback: () => void): HTMLElement | null {
-        const configDiv = document.createElement("div");
 
         const potCb = new FieldBoundCheckBox(settings, "usePotion");
 
-        configDiv.appendChild(labeledCheckbox("Use Potion", potCb));
+        const holdiness = new FieldBoundFloatOrUndefField(settings, 'holdiness', {id: 'holdiness'});
+        const holdLabel = labelFor('# GCDs to hold Gnashing for nearby No Mercy. Leave blank for default:', holdiness);
+        holdLabel.classList.add('non-expanding-block');
 
         const pretendMicroclipsDontExistCB = new FieldBoundCheckBox(settings, "pretendThatMicroclipsDontExist");
 
-        const holdiness = new FieldBoundFloatField(settings, 'holdiness' );
-        holdiness.id = 'holdiness';
-        const label = labelFor('# GCDs to hold Gnashing for nearby No Mercy override: ', holdiness);
-        configDiv.appendChild(label);
-        configDiv.appendChild(holdiness);
-
-        configDiv.appendChild(labeledCheckbox("Assume that Gnashing Fang microclips don't exist", pretendMicroclipsDontExistCB));
-        return configDiv;
+        return el("div", {}, [
+            labeledCheckbox("Use Potion", potCb),
+            labeledCheckbox("Assume that Gnashing Fang microclips don't exist", pretendMicroclipsDontExistCB),
+            el('br'),
+            holdLabel,
+            holdiness,
+        ]);
     }
 
 }
