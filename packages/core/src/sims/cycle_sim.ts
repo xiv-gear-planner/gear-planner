@@ -56,6 +56,8 @@ export type GaugeManager<GaugeStateType> = {
 
     gaugeSnapshot(): GaugeStateType;
 
+    readonly haste?: number;
+
 }
 
 /**
@@ -1322,7 +1324,7 @@ export class CycleProcessor<GaugeManagerType extends GaugeManager<unknown> = Gau
             lockTime: 0,
             gaugeAfter: this.gaugeManager.gaugeSnapshot() as GaugeStateTypeOfMgr<GaugeManagerType>,
         });
-        const aaDelay = this.stats.effectiveAaDelay(combinedEffects.haste);
+        const aaDelay = this.stats.effectiveAaDelay(combinedEffects.haste, this.gaugeHaste);
         this.nextAutoAttackTime = this.currentTime + aaDelay;
     }
 
@@ -1444,6 +1446,10 @@ export class CycleProcessor<GaugeManagerType extends GaugeManager<unknown> = Gau
         });
     }
 
+    get gaugeHaste(): number {
+        return this.gaugeManager.haste ?? 0;
+    }
+
     /**
      * Determine the effective cast time of an ability, assuming it is cast at the current time with the given set of
      * buffs.
@@ -1454,7 +1460,7 @@ export class CycleProcessor<GaugeManagerType extends GaugeManager<unknown> = Gau
     castTime(ability: Ability, effects: CombinedBuffEffect): number {
         const base = ability.cast ?? (STANDARD_ANIMATION_LOCK + CASTER_TAX);
         const stats = effects.modifyStats(this.stats);
-        const haste = stats.haste(ability.attackType, effects.haste);
+        const haste = stats.haste(ability.attackType, effects.haste, this.gaugeHaste);
         return ability.fixedGcd ? base :
             (ability.attackType === "Spell") ?
                 (stats.gcdMag(base ?? this.gcdBase, haste)) :
@@ -1476,7 +1482,7 @@ export class CycleProcessor<GaugeManagerType extends GaugeManager<unknown> = Gau
 
         const base = ability.gcd;
         const stats = effects.modifyStats(this.stats);
-        const haste = stats.haste(ability.attackType, effects.haste);
+        const haste = stats.haste(ability.attackType, effects.haste, this.gaugeHaste);
         return ability.fixedGcd ? base :
             (ability.attackType === "Spell") ?
                 (stats.gcdMag(base ?? this.gcdBase, haste)) :

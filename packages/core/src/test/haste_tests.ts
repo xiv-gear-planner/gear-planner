@@ -62,26 +62,26 @@ describe('haste', () => {
     });
     describe('xivmath combineHaste function', () => {
         it('computes values correctly, no roundoff', () => {
-            expect(combineHasteTypes(20, 20, 25)).to.equal(52);
+            expect(combineHasteTypes(20, 20, 25, 0)).to.equal(52);
         });
         describe('computes values with roundoff', () => {
             it('permutation 1', () => {
-                expect(combineHasteTypes(5, 13, 20)).to.equal(35);
+                expect(combineHasteTypes(5, 13, 20, 0)).to.equal(34);
             });
             it('permutation 2', () => {
-                expect(combineHasteTypes(20, 13, 5)).to.equal(35);
+                expect(combineHasteTypes(20, 13, 5, 0)).to.equal(34);
             });
             it('permutation 3', () => {
-                expect(combineHasteTypes(5, 20, 13)).to.equal(34);
+                expect(combineHasteTypes(5, 20, 13, 0)).to.equal(35);
             });
             it('permutation 4', () => {
-                expect(combineHasteTypes(20, 5, 13)).to.equal(34);
+                expect(combineHasteTypes(20, 5, 13, 0)).to.equal(35);
             });
             it('permutation 5', () => {
-                expect(combineHasteTypes(13, 5, 20)).to.equal(35);
+                expect(combineHasteTypes(13, 5, 20, 0)).to.equal(35);
             });
             it('permutation 6', () => {
-                expect(combineHasteTypes(13, 20, 5)).to.equal(35);
+                expect(combineHasteTypes(13, 20, 5, 0)).to.equal(35);
             });
 
         });

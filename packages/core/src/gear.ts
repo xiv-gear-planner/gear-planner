@@ -901,7 +901,7 @@ export class CharacterGearSet {
                         if (stat === 'skillspeed') {
                             const over = override.find(over => over.basis === 'sks' && over.isPrimary);
                             const attackType = over ? over.attackType : 'Weaponskill';
-                            const haste = this.computedStats.haste(attackType, over?.buffHaste ?? 0);
+                            const haste = this.computedStats.haste(attackType, over?.buffHaste ?? 0, over?.gaugeHaste ?? 0);
                             if (this.computedStats.gcdPhys(NORMAL_GCD, haste) <= prio.minGcd) {
                                 continue;
                             }
@@ -913,7 +913,7 @@ export class CharacterGearSet {
                         if (stat === 'spellspeed') {
                             const over = override.find(over => over.basis === 'sps' && over.isPrimary);
                             const attackType = over ? over.attackType : 'Spell';
-                            const haste = this.computedStats.haste(attackType, over?.buffHaste ?? 0);
+                            const haste = this.computedStats.haste(attackType, over?.buffHaste ?? 0, over?.gaugeHaste ?? 0);
                             // Check if we're already there before forcing a recomp
                             if (this.computedStats.gcdMag(NORMAL_GCD, haste) <= prio.minGcd) {
                                 continue;
