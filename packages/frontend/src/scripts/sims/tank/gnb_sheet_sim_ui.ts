@@ -1,4 +1,4 @@
-import {FieldBoundCheckBox, labeledCheckbox, quickElement} from "@xivgear/common-ui/components/util";
+import {FieldBoundCheckBox, FieldBoundFloatField, labeledCheckbox, labelFor, quickElement} from "@xivgear/common-ui/components/util";
 import {BaseMultiCycleSimGui} from "../multicyclesim_ui";
 import {DisplayRecordFinalized, isFinalizedAbilityUse} from "@xivgear/core/sims/cycle_sim";
 import {CustomColumnSpec} from "@xivgear/common-ui/table/tables";
@@ -71,6 +71,12 @@ export class GnbSimGui extends BaseMultiCycleSimGui<GnbSimResult, GnbSettings> {
         configDiv.appendChild(labeledCheckbox("Use Potion", potCb));
 
         const pretendMicroclipsDontExistCB = new FieldBoundCheckBox(settings, "pretendThatMicroclipsDontExist");
+
+        const holdiness = new FieldBoundFloatField(settings, 'holdiness' );
+        holdiness.id = 'holdiness';
+        const label = labelFor('# GCDs to hold Gnashing for nearby No Mercy override: ', holdiness);
+        configDiv.appendChild(label);
+        configDiv.appendChild(holdiness);
 
         configDiv.appendChild(labeledCheckbox("Assume that Gnashing Fang microclips don't exist", pretendMicroclipsDontExistCB));
         return configDiv;

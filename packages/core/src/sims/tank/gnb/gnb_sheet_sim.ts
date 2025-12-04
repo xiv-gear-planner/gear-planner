@@ -24,6 +24,9 @@ export interface GnbSettings extends SimSettings {
     // Fang and Double Down align perfectly with the GCD.
     // This will make the rotation consistent across sub-tiers of SKS.
     pretendThatMicroclipsDontExist: boolean;
+    // How many GCDs before No Mercy comes up we should hold Gnashing.
+    // Defaults to -1 which equates to one GCD for most GCD speeds but can be manually overridden.
+    holdiness: number;
 }
 
 export interface GnbSettingsExternal extends ExternalCycleSettings<GnbSettings> {
@@ -319,6 +322,7 @@ export class GnbSim extends BaseMultiCycleSim<GnbSimResult, GnbSettings, GnbCycl
             // and is somewhat even between the two main GCDs.
             fightTime: (8 * 60) + 30,
             pretendThatMicroclipsDontExist: true,
+            holdiness: -1,
         };
     }
 
@@ -337,8 +341,31 @@ export class GnbSim extends BaseMultiCycleSim<GnbSimResult, GnbSettings, GnbCycl
             // we always want it to be in No Mercy.
             return false;
         }
-        // If No Mercy isn't up AND it's coming up next GCD, we should wait a GCD.
-        if (ability.id === Actions.GnashingFang.id && (!(cp.getNoMercyDuration() > 0) &&  cp.cdTracker.statusOfAt(Actions.NoMercy, cp.nextGcdTime + gcdSpeed).readyToUse)) {
+
+        // Holdiness is how many GCDs we should hold Gnashing Fang to fit it into a nearby No Mercy.
+        // For example, if holdiness is 1, we'll hold Gnashing if No Mercy is 1 GCD away.
+        // Some GCD speeds prefer not holding at all, and others prefer different levels of holdiness.
+        // 'Normal' speeds (i.e. 2.50 -> 2.40) prefer a single GCD.
+        const userSetHoldiness = this.settings.holdiness;
+        let holdiness = 1;
+        if (userSetHoldiness >= 0) {
+            // Holdiness has been manually set, so override
+            holdiness = userSetHoldiness;
+        }
+        else {
+            // Okay so I know this is really hacky, but it seems like the easiest way to solve this problem at current,
+            // there doesn't seem to be a discernable pattern and these speeds are edge cases to begin with.
+            // This will need to be revisited if potencies change.
+            if (gcdSpeed === 2.37 || gcdSpeed === 2.36 || gcdSpeed === 2.30 || gcdSpeed === 2.29) {
+                holdiness = 2;
+            }
+            if (gcdSpeed === 2.35 || gcdSpeed === 2.34 || gcdSpeed === 2.31) {
+                holdiness = 0;
+            }
+        }
+
+        // If No Mercy isn't up AND it's coming up within the next two GCDs, we should wait.
+        if (ability.id === Actions.GnashingFang.id && (!(cp.getNoMercyDuration() > 0) &&  cp.cdTracker.statusOfAt(Actions.NoMercy, cp.nextGcdTime + gcdSpeed * holdiness).readyToUse)) {
             return false;
         }
 
@@ -364,7 +391,10 @@ export class GnbSim extends BaseMultiCycleSim<GnbSimResult, GnbSettings, GnbCycl
         }
 
         // Start Gnashing Fang combo
-        if (cp.gauge.cartridges >= Actions.GnashingFang.cartridgeCost && this.shouldUseGCD(cp, Actions.GnashingFang)) {
+        if (cp.gauge.cartridges >= Actions.GnashingFang.cartridgeCost && this.shouldUseGCD(cp, Actions.GnashingFang)
+            // Gnashing and Lionheart break each other, so wait until we're finished the Lionheart combo to start it
+            && !cp.isBloodfestComboActive()
+        ) {
             return cp.getGnashingFangComboToUse();
         }
 
@@ -408,7 +438,7 @@ export class GnbSim extends BaseMultiCycleSim<GnbSimResult, GnbSettings, GnbCycl
             return Actions.SonicBreak;
         }
 
-        // Start or continue Bloodfest Combo at a higher priority if we only have that many GCDs left, since it's our biggest
+        // Start or continue Bloodfest Combo at a higher priority if we only have that many GCDs left, since it's our biggest potency
         if (noMercyDuration > 0 && (cp.isReadyToReignBuffActive() || cp.isBloodfestComboActive()) && timeRemaining < cp.stats.gcdPhys(2.5) * (4 - cp.rotationState.bloodfestCombo)) {
             return cp.getBloodfestComboToUse();
         }
@@ -420,9 +450,11 @@ export class GnbSim extends BaseMultiCycleSim<GnbSimResult, GnbSettings, GnbCycl
 
         const lionHeartNext = cp.rotationState.bloodfestCombo === 2;
         const twoPlusGCDsLeftInNoMercy = noMercyDuration >= (cp.nextGcdTime - cp.currentTime) + cp.stats.gcdPhys(2.5);
+        const threePlusGCDsLeftInNoMercy = noMercyDuration >= (cp.nextGcdTime - cp.currentTime) + cp.stats.gcdPhys(2.5) + cp.stats.gcdPhys(2.5);
+        const exactlyTwoGCDsLeftInNoMercy = twoPlusGCDsLeftInNoMercy && !threePlusGCDsLeftInNoMercy;
         // Dump resources if in burst at a higher priority than Bloodfest combo if we have time to finish our Bloodfest combo.
         // This means that Continuation will stay in No Mercy.
-        if (lionHeartNext && twoPlusGCDsLeftInNoMercy && cp.gauge.cartridges > numberOfCartSpendingGcdsUpBeforeNoMercyExpires) {
+        if (lionHeartNext && exactlyTwoGCDsLeftInNoMercy && cp.gauge.cartridges > numberOfCartSpendingGcdsUpBeforeNoMercyExpires) {
             return Actions.BurstStrike;
         }
 
