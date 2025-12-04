@@ -179,6 +179,7 @@ class SchGauge {
     get aetherflow(): number {
         return this._aetherflow;
     }
+
     set aetherflow(newAF: number) {
         if (newAF < 0) {
             console.warn(`Used Energy Drain when empty`);

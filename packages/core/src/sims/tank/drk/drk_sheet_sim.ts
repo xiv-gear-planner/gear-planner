@@ -74,18 +74,23 @@ class RotationState {
     get combo() {
         return this._combo;
     };
+
     get deliriumCombo() {
         return this._deliriumCombo;
     };
 
     set combo(newCombo) {
         this._combo = newCombo;
-        if (this._combo >= 3) this._combo = 0;
+        if (this._combo >= 3) {
+            this._combo = 0;
+        }
     }
 
     set deliriumCombo(newCombo) {
         this._deliriumCombo = newCombo;
-        if (this._deliriumCombo >= 3) this._deliriumCombo = 0;
+        if (this._deliriumCombo >= 3) {
+            this._deliriumCombo = 0;
+        }
     }
 }
 

@@ -182,8 +182,12 @@ export class MeldSolver {
         }
 
         allResults.sort((a, b) => {
-            if (!a) return 1;
-            if (!b) return -1;
+            if (!a) {
+                return 1;
+            }
+            if (!b) {
+                return -1;
+            }
             return b.dps - a.dps;
         });
 

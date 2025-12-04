@@ -600,7 +600,9 @@ class MeldSolverConfirmationDialog extends BaseModal {
         for (const slotKey of EquipSlots) {
             if (oldSet.equipment[slotKey]) {
                 for (const meldSlot of oldSet.equipment[slotKey].melds) {
-                    if (!meldSlot.equippedMateria) continue;
+                    if (!meldSlot.equippedMateria) {
+                        continue;
+                    }
 
                     const prevCount = result.get(meldSlot.equippedMateria);
                     if (!prevCount) {
@@ -614,7 +616,9 @@ class MeldSolverConfirmationDialog extends BaseModal {
 
             if (newSet.equipment[slotKey]) {
                 for (const meldSlot of newSet.equipment[slotKey].melds) {
-                    if (!meldSlot.equippedMateria) continue;
+                    if (!meldSlot.equippedMateria) {
+                        continue;
+                    }
 
                     const prevCount = result.get(meldSlot.equippedMateria);
                     if (!prevCount) {

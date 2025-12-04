@@ -67,6 +67,18 @@ export default [
                 "imports": "never",
                 "exports": "never",
             }],
+            "curly": ["error", "all"],
+            "@stylistic/js/lines-between-class-members": [
+                "error",
+                {
+                    enforce: [
+                        {
+                            blankLine: "always", prev: "*", next: "method"
+                        }
+                    ]
+                },
+                {exceptAfterSingleLine: true}
+            ],
             "getter-return": "error",
             "use-isnan": "error",
             "eqeqeq": "error",
@@ -83,7 +95,7 @@ export default [
             "prefer-const": "error",
             "camelcase": "error",
             "block-scoped-var": "error",
-            "named-import-spacing/named-import-spacing": ["error", "never"]
+            "named-import-spacing/named-import-spacing": ["error", "never"],
         }
     }
 ];

@@ -47,7 +47,9 @@ class RotationState {
 
     set combo(newCombo) {
         this._combo = newCombo;
-        if (this._combo >= 3) this._combo = 0;
+        if (this._combo >= 3) {
+            this._combo = 0;
+        }
     }
 
     oddShroudUsed: boolean = false;
@@ -58,6 +60,7 @@ class RotationState {
     get sodNumber() {
         return this._sodNumber;
     }
+
     set sodNumber(newSodNumber) {
         if (newSodNumber > 4) {
             newSodNumber = 1;

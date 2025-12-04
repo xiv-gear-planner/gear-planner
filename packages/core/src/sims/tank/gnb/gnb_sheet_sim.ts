@@ -89,7 +89,9 @@ class RotationState {
 
     set combo(newCombo) {
         this._combo = newCombo;
-        if (this._combo >= 3) this._combo = 0;
+        if (this._combo >= 3) {
+            this._combo = 0;
+        }
     }
 
     get gnashingFangCombo() {
@@ -98,7 +100,9 @@ class RotationState {
 
     set gnashingFangCombo(newCombo) {
         this._gnashingFangCombo = newCombo;
-        if (this._gnashingFangCombo >= 3) this._gnashingFangCombo = 0;
+        if (this._gnashingFangCombo >= 3) {
+            this._gnashingFangCombo = 0;
+        }
     }
 
     get bloodfestCombo() {
@@ -107,7 +111,9 @@ class RotationState {
 
     set bloodfestCombo(newCombo) {
         this._bloodfestCombo = newCombo;
-        if (this._bloodfestCombo >= 3) this._bloodfestCombo = 0;
+        if (this._bloodfestCombo >= 3) {
+            this._bloodfestCombo = 0;
+        }
     }
 }
 
