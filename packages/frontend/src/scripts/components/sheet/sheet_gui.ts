@@ -235,13 +235,26 @@ class GearPlanTable extends CustomTable<CharacterGearSet, SingleCellRowOrHeaderS
             const row: CustomRow<CharacterGearSet> = this.dataRowMap.get(set);
             if (row) {
                 this.selectionModel.clickRow(row);
-                scrollIntoView(row);
+                if (this.isConnected && this.checkVisibility()) {
+                    setTimeout(() => {
+                        scrollIntoView(row, 'center');
+                    }, 0);
+                }
+                else {
+                    setTimeout(() => {
+                        scrollIntoView(row, 'center');
+                    }, 0);
+                }
             }
             else {
                 console.log(`Tried to select set ${set.name}, but couldn't find it in our row mapping.`);
             }
         }
         this.refreshSelection();
+    }
+
+    connectedCallback() {
+
     }
 
     dataChanged() {
@@ -271,7 +284,6 @@ class GearPlanTable extends CustomTable<CharacterGearSet, SingleCellRowOrHeaderS
     private setupColumns() {
         const viewOnly = this.sheet.isViewOnly;
         if (viewOnly) {
-            this.style.setProperty('--action-col-width', '4px');
             this.classList.add('view-only');
         }
         else {
@@ -344,7 +356,8 @@ class GearPlanTable extends CustomTable<CharacterGearSet, SingleCellRowOrHeaderS
                     const span = document.createElement('span');
                     span.textContent = '⛭';
                     span.classList.add('header-cell-detail', 'header-cell-gear');
-                    colHeader.append(span);
+                    colHeader.firstElementChild?.appendChild(span);
+                    // colHeader.append(span);
                     colHeader.classList.add('hoverable');
                     colHeader.title = 'Click to configure simulation settings';
                 },
@@ -1327,7 +1340,7 @@ export class GearPlanSheetGui extends GearPlanSheet {
                 this.headerArea.style.display = (this.headerArea.style.display === 'none') ? '' : 'none';
             });
             buttonsArea.appendChild(headerButton);
-            const advancedStats = makeActionButton('Toggle Details', () => {
+            const advancedStats = makeActionButton('Stat Details', () => {
                 this.showAdvancedStats = !this.showAdvancedStats;
             });
             buttonsArea.appendChild(advancedStats);
@@ -1513,7 +1526,16 @@ export class GearPlanSheetGui extends GearPlanSheet {
             this.setToolbarNode(undefined);
         }
         else {
-            this.editorArea.replaceChildren(node);
+            // Fast-path for gear set viewer specifically.
+            // If ads are enabled, it would just make things slower to have to reload all the ads,
+            // so just replace the specific dom element.
+            if (node instanceof GearSetViewer && this.editorArea.querySelector('gear-set-viewer')) {
+                const existingViewer = this.editorArea.querySelector('gear-set-viewer');
+                existingViewer.replaceWith(node);
+            }
+            else {
+                this.editorArea.replaceChildren(node);
+            }
             this.editorArea.style.display = '';
             // midbar should be displayed no matter what since it also provides the visual delineation between
             // the top half and the bottom half, even if it isn't needed for displaying any content.

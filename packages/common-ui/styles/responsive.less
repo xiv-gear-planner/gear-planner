@@ -7,7 +7,11 @@
 }
 
 body:not(.embed-view) {
-  @media (width < 600px) {
+  @media (width < 675px) {
+
+    .gear-sheet-editor-area {
+      scrollbar-width: thin;
+    }
 
     .narrow-only {
       display: unset;
@@ -25,6 +29,61 @@ body:not(.embed-view) {
 
     .col-zero-stat {
       display: none;
+    }
+
+
+    &.top-menu-hidden {
+
+      &:has(gear-plan.view-only) {
+        #help-button-area {
+          display: none;
+        }
+      }
+
+      gear-plan {
+        &.view-only {
+
+          .gear-sheet-table-holder-outer {
+            padding: 0;
+            margin: 0;
+          }
+
+          .gear-sheet-table-area {
+            padding: 0;
+            margin: 0;
+          }
+
+          .gear-plan-table {
+            --action-col-width: 30px;
+          }
+
+        }
+      }
+    }
+
+    gear-plan {
+      &.view-only {
+
+        .gear-sheet-editor-area {
+          padding: 0;
+        }
+
+        gear-set-viewer {
+          padding: 0;
+          // This gets capped to 100% width anyway
+          --item-table-max-width: 800px;
+
+          table.gear-items-table, table.food-view-table, materia-totals-display {
+            border-radius: 0;
+          }
+
+        }
+
+        set-totals-display {
+          display: none;
+        }
+
+      }
     }
   }
 }

@@ -1012,6 +1012,7 @@ export class GearItemsViewTable extends CustomTable<GearSlotItem> {
                     setTimeout(() => {
 
                         // If all items lack a particular stat, then hide the column on narrow displays
+                        // TODO: this causes a flash before the columns are hidden
                         if (cell.classList.contains('stat-zero')) {
                             const all = outer.querySelectorAll(`td[col-id="${spec.shortName}"]`);
                             const allZero = Array.from(all).every(el => el.classList.contains('stat-zero'));

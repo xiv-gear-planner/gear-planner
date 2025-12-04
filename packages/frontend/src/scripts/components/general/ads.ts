@@ -1,4 +1,4 @@
-import {recordEvent} from "@xivgear/common-ui/analytics/analytics";
+import {recordError, recordEvent} from "@xivgear/common-ui/analytics/analytics";
 import {BaseModal} from "@xivgear/common-ui/components/modal";
 import {arrayEq} from "@xivgear/util/array_utils";
 
@@ -43,6 +43,7 @@ declare global {
 const X_PADDING = 10;
 const Y_PADDING = 50;
 
+type AdSide = 'left' | 'right';
 /**
  * Manages a single ad
  */
@@ -55,11 +56,22 @@ class ManagedAd {
     private ad: unknown;
     private readonly adSizes: AdSize[];
 
-    constructor(public readonly id: string, outerSize: AdContainerSize, condition: DisplayCondition) {
-        this.adContainer = makeFixedArea(id, outerSize[0], outerSize[1]);
+    constructor(public readonly id: string, outerSize: AdContainerSize, condition: DisplayCondition, readonly adSide: AdSide) {
+        this.adContainer = makeFixedArea(id, outerSize[0], outerSize[1], adSide);
         this.adSize = outerSize;
         this.adSizes = AdSizes.filter(size => size[0] <= outerSize[0] && size[1] <= outerSize[1]);
         this.condition = condition;
+        if (adSide === 'left') {
+            this.adContainer.outer.style.left = '0';
+            this.adContainer.middle.style.marginLeft = '-5px';
+            this.adContainer.middle.style.borderRadius = '0 10px 0 0';
+        }
+        else if (adSide === 'right') {
+            this.adContainer.outer.style.left = '100%';
+            this.adContainer.middle.style.right = '0';
+            this.adContainer.middle.style.marginRight = '-5px';
+            this.adContainer.middle.style.borderRadius = '10px 0 0 0';
+        }
     }
 
     /**
@@ -162,7 +174,7 @@ function adsEnabled(): boolean {
 }
 
 
-function makeFixedArea(id: string, width: number, height: number): AdContainerElements {
+function makeFixedArea(id: string, width: number, height: number, side: AdSide): AdContainerElements {
     const inner = document.createElement('div');
     inner.style.height = `${height}px`;
     inner.style.width = `${width}px`;
@@ -175,10 +187,14 @@ function makeFixedArea(id: string, width: number, height: number): AdContainerEl
     middle.style.display = '';
     middle.style.zIndex = '-99';
     middle.style.bottom = '0';
-    middle.style.padding = '5px';
     middle.style.boxSizing = 'content-box';
     middle.style.marginBottom = '-8px';
-    middle.style.padding = '5px';
+    if (side === 'left') {
+        middle.style.padding = '5px 5px 0 0';
+    }
+    else if (side === 'right') {
+        middle.style.padding = '5px 0 0 5px';
+    }
     middle.classList.add('shadow-big');
 
     const extraLinksHolder = document.createElement('div');
@@ -209,6 +225,11 @@ const AdSizes = [
     [320, 480],
     [160, 600],
     [300, 250],
+    [970, 250],
+    [970, 90],
+    [728, 90],
+    [320, 100],
+    [320, 50],
 ] as const;
 // Sizes of the ads themselves (predetermined)
 type AdSize = typeof AdSizes[number];
@@ -219,6 +240,7 @@ const AdContainerSizes = [
     [300, 600],
     [300, 250],
     [160, 600],
+    [320, 100],
 ] as const;
 type AdContainerSize = typeof AdContainerSizes[number];
 // const foo: AdContainerSize = [300, 250];
@@ -239,13 +261,13 @@ function recheckAds() {
     setTimeout(() => {
 
         console.debug('recheckAds');
-        let oneAdShown = false;
+        let oneLeftAdShown = false;
         if (adsEnabled()) {
             currentAds.forEach(ad => {
                 ad.recheck();
                 console.debug(`recheckAds: ${ad.id} => ${ad.showing}`);
-                if (ad.showing && !oneAdShown) {
-                    oneAdShown = true;
+                if (ad.showing && ad.adSide === 'left' && !oneLeftAdShown) {
+                    oneLeftAdShown = true;
                     ad.addExtras([extraLinksHolderInner]);
                 }
             });
@@ -255,10 +277,16 @@ function recheckAds() {
             // Debounce this reporting so it doesn't spam hundreds of events when resizing a window
             if (!arrayEq(showing, lastReported)) {
                 if (showing.length > 0) {
-                    recordEvent('shownAds', {shownAds: showing.map(ad => ad.id).join(","), count: showing.length});
+                    recordEvent('shownAds', {
+                        shownAds: showing.map(ad => ad.id).join(","),
+                        count: showing.length,
+                    });
                 }
                 else {
-                    recordEvent('shownAds', {shownAds: 'none', count: 0});
+                    recordEvent('shownAds', {
+                        shownAds: 'none',
+                        count: 0,
+                    });
                 }
                 lastReported = showing;
             }
@@ -266,7 +294,7 @@ function recheckAds() {
         else {
             console.debug('recheckAds: not enabled');
         }
-        if (oneAdShown) {
+        if (oneLeftAdShown) {
             fallbackPrivacyArea.style.display = 'none';
         }
         else {
@@ -281,10 +309,14 @@ window.recheckAds = recheckAds;
 
 let firstLoad = true;
 
-export function insertAds(element: HTMLElement) {
+let currentAdParent: HTMLElement | null = null;
+
+export function insertAds(newElement: HTMLElement) {
 
     setTimeout(
         () => {
+            const oldParent = currentAdParent;
+            currentAdParent = newElement;
             if (currentAds.length === 0) {
                 // Analytics
                 setTimeout(() => {
@@ -310,7 +342,7 @@ export function insertAds(element: HTMLElement) {
 
                     // Determines the actual width of the page content
                     function contentWidth() {
-                        const children = element.querySelectorAll('.weapon-table, .left-side-gear-table, .right-side-gear-table, .food-items-table');
+                        const children = currentAdParent.querySelectorAll('.weapon-table, .left-side-gear-table, .right-side-gear-table, .food-items-table');
                         let leftBound = 999999;
                         let rightBound = -999999;
                         children.forEach(child => {
@@ -345,136 +377,79 @@ export function insertAds(element: HTMLElement) {
                         return out as { [I in keyof X]: DisplayCondition };
                     }
 
+                    const conds = adConditions(AdContainerSizes);
                     const [
                         sideXWideCond,
                         sideXWideShortCond,
                         sideWideCond,
                         sideWideShortCond,
                         sideNarrowCond,
-                    ] = adConditions(AdContainerSizes);
+                    ] = conds;
 
                     {
                         const size: AdContainerSize = [336, 600];
-                        const adAreaLeftWide = new ManagedAd('float-area-xwide-left', size, sideXWideCond);
-                        {
-                            const outer = adAreaLeftWide.adContainer.outer;
-                            const middle = adAreaLeftWide.adContainer.middle;
-                            outer.style.left = '0';
-                            middle.style.marginLeft = '-5px';
-                            middle.style.borderRadius = '0 10px 0 0';
-                        }
+                        const adAreaLeftWide = new ManagedAd('float-area-xwide-left', size, sideXWideCond, 'left');
                         currentAds.push(adAreaLeftWide);
 
-                        const adAreaRightWide = new ManagedAd('float-area-xwide-right', size, sideXWideCond);
-                        {
-                            const outer = adAreaRightWide.adContainer.outer;
-                            const middle = adAreaRightWide.adContainer.middle;
-                            outer.style.left = '100%';
-                            middle.style.right = '0';
-                            middle.style.marginRight = '-5px';
-                            middle.style.borderRadius = '10px 0 0 0';
-                        }
+                        const adAreaRightWide = new ManagedAd('float-area-xwide-right', size, sideXWideCond, 'right');
                         currentAds.push(adAreaRightWide);
                     }
                     {
                         const size: AdContainerSize = [336, 280];
-                        const adAreaLeftWide = new ManagedAd('float-area-xwide-short-left', size, sideXWideShortCond);
-                        {
-                            const outer = adAreaLeftWide.adContainer.outer;
-                            const middle = adAreaLeftWide.adContainer.middle;
-                            outer.style.left = '0';
-                            middle.style.marginLeft = '-5px';
-                            middle.style.borderRadius = '0 10px 0 0';
-                        }
+                        const adAreaLeftWide = new ManagedAd('float-area-xwide-short-left', size, sideXWideShortCond, 'left');
                         currentAds.push(adAreaLeftWide);
 
-                        const adAreaRightWide = new ManagedAd('float-area-xwide-short-right', size, sideXWideShortCond);
-                        {
-                            const outer = adAreaRightWide.adContainer.outer;
-                            const middle = adAreaRightWide.adContainer.middle;
-                            outer.style.left = '100%';
-                            middle.style.right = '0';
-                            middle.style.marginRight = '-5px';
-                            middle.style.borderRadius = '10px 0 0 0';
-                        }
+                        const adAreaRightWide = new ManagedAd('float-area-xwide-short-right', size, sideXWideShortCond, 'right');
                         currentAds.push(adAreaRightWide);
                     }
                     {
                         const size: AdContainerSize = [300, 600];
-                        const adAreaLeftWide = new ManagedAd('float-area-wide-left', size, sideWideCond);
-                        {
-                            const outer = adAreaLeftWide.adContainer.outer;
-                            const middle = adAreaLeftWide.adContainer.middle;
-                            outer.style.left = '0';
-                            middle.style.marginLeft = '-5px';
-                            middle.style.borderRadius = '0 10px 0 0';
-                        }
+                        const adAreaLeftWide = new ManagedAd('float-area-wide-left', size, sideWideCond, 'left');
                         currentAds.push(adAreaLeftWide);
 
-                        const adAreaRightWide = new ManagedAd('float-area-wide-right', size, sideWideCond);
-                        {
-                            const outer = adAreaRightWide.adContainer.outer;
-                            const middle = adAreaRightWide.adContainer.middle;
-                            outer.style.left = '100%';
-                            middle.style.right = '0';
-                            middle.style.marginRight = '-5px';
-                            middle.style.borderRadius = '10px 0 0 0';
-                        }
+                        const adAreaRightWide = new ManagedAd('float-area-wide-right', size, sideWideCond, 'right');
                         currentAds.push(adAreaRightWide);
                     }
                     {
                         const size: AdContainerSize = [300, 250];
-                        const adAreaLeftWide = new ManagedAd('float-area-wide-short-left', size, sideWideShortCond);
-                        {
-                            const outer = adAreaLeftWide.adContainer.outer;
-                            const middle = adAreaLeftWide.adContainer.middle;
-                            outer.style.left = '0';
-                            middle.style.marginLeft = '-5px';
-                            middle.style.borderRadius = '0 10px 0 0';
-                        }
+                        const adAreaLeftWide = new ManagedAd('float-area-wide-short-left', size, sideWideShortCond, 'left');
                         currentAds.push(adAreaLeftWide);
 
-                        const adAreaRightWide = new ManagedAd('float-area-wide-short-right', size, sideWideShortCond);
-                        {
-                            const outer = adAreaRightWide.adContainer.outer;
-                            const middle = adAreaRightWide.adContainer.middle;
-                            outer.style.left = '100%';
-                            middle.style.right = '0';
-                            middle.style.marginRight = '-5px';
-                            middle.style.borderRadius = '10px 0 0 0';
-                        }
+                        const adAreaRightWide = new ManagedAd('float-area-wide-short-right', size, sideWideShortCond, 'right');
                         currentAds.push(adAreaRightWide);
                     }
                     {
                         const size: AdContainerSize = [160, 600];
-                        const adAreaLeftNarrow = new ManagedAd('float-area-narrow-left', size, sideNarrowCond);
-                        {
-                            const outer = adAreaLeftNarrow.adContainer.outer;
-                            const middle = adAreaLeftNarrow.adContainer.middle;
-                            outer.style.left = '0';
-                            middle.style.marginLeft = '-5px';
-                            middle.style.borderRadius = '0 10px 0 0';
-                        }
+                        const adAreaLeftNarrow = new ManagedAd('float-area-narrow-left', size, sideNarrowCond, 'left');
                         currentAds.push(adAreaLeftNarrow);
 
-                        const adAreaRightNarrow = new ManagedAd('float-area-narrow-right', size, sideNarrowCond);
-                        {
-                            const outer = adAreaRightNarrow.adContainer.outer;
-                            const middle = adAreaRightNarrow.adContainer.middle;
-                            outer.style.left = '100%';
-                            middle.style.right = '0';
-                            middle.style.marginRight = '-5px';
-                            middle.style.borderRadius = '10px 0 0 0';
-                        }
+                        const adAreaRightNarrow = new ManagedAd('float-area-narrow-right', size, sideNarrowCond, 'right');
                         currentAds.push(adAreaRightNarrow);
+                    }
+                    {
+                        const sideRightShortCond: DisplayCondition = (w, h) => {
+                            for (const prev of conds) {
+                                if (prev(w, h)) {
+                                    return false;
+                                }
+                            }
+                            return w > 400 && h > 400;
+                        };
+                        const size: AdContainerSize = [320, 100];
+                        const adAreaRightShortRight = new ManagedAd('float-area-narrow-short-right', size, sideRightShortCond, 'right');
+                        adAreaRightShortRight.adContainer.outer.style.zIndex = '194';
+                        currentAds.push(adAreaRightShortRight);
                     }
                 }
                 catch (e) {
+                    recordError('insertAds', e);
                     console.error(e);
                 }
             }
-            currentAds.forEach(ad => ad.showing = false);
-            element.prepend(...currentAds.map(a => a.adContainer.outer));
+            if (newElement !== oldParent) {
+                currentAds.forEach(ad => ad.showing = false);
+                currentAdParent.prepend(...currentAds.map(a => a.adContainer.outer));
+            }
             setTimeout(recheckAds);
             setTimeout(recheckAds, 2_000);
             if (firstLoad) {
