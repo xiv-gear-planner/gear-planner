@@ -45,7 +45,7 @@ export interface GnbSettings extends SimSettings {
     // This will make the rotation consistent across sub-tiers of SKS.
     pretendThatMicroclipsDontExist: boolean;
     // How many GCDs before No Mercy comes up we should hold Gnashing.
-    // Defaults to -1 which equates to one GCD for most GCD speeds but can be manually overridden.
+    // Defaults to undefined which equates to one GCD for most GCD speeds but can be manually overridden.
     holdiness: number | undefined;
 }
 
