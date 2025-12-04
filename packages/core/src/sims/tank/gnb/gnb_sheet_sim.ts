@@ -193,7 +193,6 @@ class GnbCycleProcessor extends CycleProcessor {
     }
 
     comboActions: GnbGcdAbility[] = [Actions.KeenEdge, Actions.BrutalShell, Actions.SolidBarrel];
-
     getComboToUse() {
         return this.comboActions[this.rotationState.combo++];
     }
@@ -203,7 +202,6 @@ class GnbCycleProcessor extends CycleProcessor {
     }
 
     gnashingFangComboActions: GnbGcdAbility[] = [Actions.GnashingFang, Actions.SavageClaw, Actions.WickedTalon];
-
     getGnashingFangComboToUse() {
         return this.gnashingFangComboActions[this.rotationState.gnashingFangCombo++];
     }
@@ -213,7 +211,6 @@ class GnbCycleProcessor extends CycleProcessor {
     }
 
     bloodfestComboActions: GnbGcdAbility[] = [Actions.ReignOfBeasts, Actions.NobleBlood, Actions.LionHeart];
-
     getBloodfestComboToUse() {
         return this.bloodfestComboActions[this.rotationState.bloodfestCombo++];
     }
