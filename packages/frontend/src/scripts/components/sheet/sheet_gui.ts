@@ -235,16 +235,14 @@ class GearPlanTable extends CustomTable<CharacterGearSet, SingleCellRowOrHeaderS
             const row: CustomRow<CharacterGearSet> = this.dataRowMap.get(set);
             if (row) {
                 this.selectionModel.clickRow(row);
-                if (this.isConnected && this.checkVisibility()) {
+                if (this.isConnected) {
+                    scrollIntoView(row, 'center');
+                    // Do it again just in case the element was immediately resized
                     setTimeout(() => {
                         scrollIntoView(row, 'center');
-                    }, 0);
+                    });
                 }
-                else {
-                    setTimeout(() => {
-                        scrollIntoView(row, 'center');
-                    }, 0);
-                }
+                // If not connected yet, then the connectedCallback() method will handle it.
             }
             else {
                 console.log(`Tried to select set ${set.name}, but couldn't find it in our row mapping.`);
@@ -253,8 +251,17 @@ class GearPlanTable extends CustomTable<CharacterGearSet, SingleCellRowOrHeaderS
         this.refreshSelection();
     }
 
+    // noinspection JSUnusedGlobalSymbols
     connectedCallback() {
+        const sel = this.selectionModel.getSelection();
+        if (sel instanceof CustomRow) {
+            scrollIntoView(sel, 'center');
+            // Do it again just in case the element was immediately resized
+            setTimeout(() => {
+                scrollIntoView(sel, 'center');
+            });
 
+        }
     }
 
     dataChanged() {
