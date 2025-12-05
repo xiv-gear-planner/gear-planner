@@ -264,6 +264,17 @@ class GearPlanTable extends CustomTable<CharacterGearSet, SingleCellRowOrHeaderS
         }
     }
 
+    get selectedIndex(): number | null {
+        const sel = this.selectionModel.getSelection()
+        if (sel instanceof CustomRow && sel.dataItem instanceof CharacterGearSet) {
+            const index = this.sheet.sets.indexOf(sel.dataItem);
+            if (index >= 0) {
+                return index;
+            }
+        }
+        return null;
+    }
+
     dataChanged() {
         const curSelection = this.selectionModel.getSelection();
         super.data = [new HeaderRow(), new SpecialRow(() => {

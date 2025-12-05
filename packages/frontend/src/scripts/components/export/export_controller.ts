@@ -7,11 +7,16 @@ import {
 import {putShortLink} from "@xivgear/core/external/shortlink_server";
 import {CharacterGearSet} from "@xivgear/core/gear";
 import {BaseModal} from "@xivgear/common-ui/components/modal";
-import {EMBED_HASH, HASH_QUERY_PARAM, makeUrlSimple, ONLY_SET_QUERY_PARAM, PATH_SEPARATOR, SELECTION_INDEX_QUERY_PARAM, VIEW_SET_HASH} from "@xivgear/core/nav/common_nav";
+import {
+    EMBED_HASH, HASH_QUERY_PARAM,
+    makeUrl, makeUrlSimple, NavState, ONLY_SET_QUERY_PARAM, PATH_SEPARATOR, SELECTION_INDEX_QUERY_PARAM, VIEW_SET_HASH,
+    VIEW_SHEET_HASH
+} from "@xivgear/core/nav/common_nav";
 import {GearPlanSheet} from "@xivgear/core/sheet";
 import {writeProxy} from "@xivgear/util/proxies";
 import {EquipSlots, Materia, XivItem} from "@xivgear/xivmath/geartypes";
 import {recordSheetEvent} from "../../analytics/analytics";
+import {GearPlanSheetGui} from "../sheet/sheet_gui";
 
 type ExportMethod<X> = {
     /**
@@ -444,7 +449,12 @@ class SheetExportModal extends ExportModal<GearPlanSheet> {
         }
 
         const exported = this.sheet.exportSheet(true);
-        const url = makeUrlSimple(VIEW_SET_HASH, JSON.stringify(exported));
+        let selectedIndex = undefined;
+        if (this.sheet instanceof GearPlanSheetGui) {
+            selectedIndex = this.sheet.gearPlanTable.selectedIndex ?? undefined;
+        }
+        const url = makeUrl(new NavState([VIEW_SHEET_HASH, JSON.stringify(exported)], undefined, selectedIndex))
+        // const url = makeUrlSimple(VIEW_SET_HASH, JSON.stringify(exported));
         console.log("Preview url", url);
         return url.toString();
     }
