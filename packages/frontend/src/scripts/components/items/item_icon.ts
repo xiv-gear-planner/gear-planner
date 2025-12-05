@@ -29,6 +29,7 @@ export class ItemIcon extends HTMLImageElement {
         this.classList.add('ffxiv-ability-icon');
         this.classList.add('item-rarity-normal');
         this.setAttribute('intrinsicsize', '40x40');
+        // We do not want alt text on these because it will appear as the image is loaded
         getDataFor(itemId).then(data => {
             const iconId = requireNumber(data.Icon['id']);
             const lr = xivApiIconUrl(iconId, false);

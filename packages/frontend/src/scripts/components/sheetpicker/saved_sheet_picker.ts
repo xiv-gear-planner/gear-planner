@@ -29,6 +29,7 @@ export class SheetPickerTable extends CustomTable<SheetHandle, TableSelectionMod
 
     constructor(private readonly mgr: SheetManager, private readonly uds: UserDataSyncer) {
         super();
+        this.sectionMode = 'autoheadbody';
         this.classList.add("gear-sheets-table");
         this.classList.add("hoverable");
         const outer = this;

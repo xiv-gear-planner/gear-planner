@@ -249,8 +249,6 @@ body.modern {
     background-color: var(--table-bg-color);
     .shadow();
 
-    .gear-sheet-table-holder {
-    }
   }
 
   .gear-sheet-table-area {
@@ -348,7 +346,13 @@ body:not(.modern) {
     tr:has(div.spacer-row) {
       display: none;
     }
-
   }
+}
 
+#content-area > .my-sheets-section {
+  .named-section-content-area {
+    table.gear-sheets-table {
+      padding-top: 0;
+    }
+  }
 }

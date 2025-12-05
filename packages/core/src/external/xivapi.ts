@@ -52,3 +52,12 @@ export function xivApiIconUrl(iconId: number, highRes: boolean = false): string 
     const directory = asStr.substring(0, 3) + '000';
     return xivApiAsset(`ui/icon/${directory}/${asStr}${highRes ? '_hr1' : ''}.tex`, 'png');
 }
+
+export function setXivApiIcon(img: HTMLImageElement, iconId: number, lrIntrinsicSize: [number, number], renderSize: [number, number]) {
+    const lr = xivApiIconUrl(iconId, false);
+    const hr = xivApiIconUrl(iconId, true);
+    img.setAttribute('intrinsicsize', `${lrIntrinsicSize[0]}x${lrIntrinsicSize[1]}`);
+    img.src = lr;
+    const ratio = Math.min(lrIntrinsicSize[0] / renderSize[0], lrIntrinsicSize[1] / renderSize[1]);
+    img.srcset = `${lr} ${ratio}x, ${hr} ${ratio * 2}x`;
+}

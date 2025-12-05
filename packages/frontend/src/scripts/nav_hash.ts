@@ -57,20 +57,24 @@ export function getCurrentState(): NavState {
  */
 export async function processHashLegacy() {
     const newHash = location.hash;
+    const qp = getQueryParams();
     const split = splitHashLegacy(newHash);
-    const state = new NavState(split, undefined, undefined);
+    const osIndex = tryParseOptionalIntParam(qp.get(ONLY_SET_QUERY_PARAM));
+    const selIndex = tryParseOptionalIntParam(qp.get(SELECTION_INDEX_QUERY_PARAM));
+    const state = new NavState(split, osIndex, selIndex);
     formatTopMenu(state);
     if (split.length > 0) {
-        console.log('processHashLegacy', newHash);
+        console.log('processHashLegacy', state, newHash);
         // This path allows certain things such as /viewset/<json> to continue to use the old-style hash, since the
         // URL query param method causes the whole thing to be too long of a URL for the server to handle.
         if (split[0] === NO_REDIR_HASH) {
             // The actual list is prefixed with the NO_REDIR_HASH, indicating that it should be stripped and not redirected.
-            const trueState = new NavState(split.splice(1), undefined, undefined);
+            const trueState = new NavState(split.splice(1), osIndex, selIndex);
             await doNav(trueState);
         }
         else {
             // Otherwise, redirect to a new-style hash
+            // TODO: this doesn't respect other params
             goPath(...split);
             location.hash = "";
         }
@@ -170,7 +174,7 @@ async function doNav(navState: NavState) {
                 openExport(nav.jsonBlob as SetExport, nav.viewOnly, undefined, undefined);
                 return;
             case "sheetjson":
-                openExport(nav.jsonBlob as SheetExport, nav.viewOnly, undefined, undefined);
+                openExport(nav.jsonBlob as SheetExport, nav.viewOnly, nav.onlySetIndex, nav.defaultSelectionIndex);
                 return;
             case "bis": {
                 showLoadingScreen();
