@@ -514,6 +514,14 @@ export class GnbSim extends BaseMultiCycleSim<GnbSimResult, GnbSettings, GnbCycl
             }
         }
 
+        // We've somehow managed to have Bloodfest combo up out of No Mercy. This shouldn't happen but just in case,
+        // this prevents us holding it until the next No Mercy, breaking the rules of the game.
+        if (cp.isBloodfestComboActive()) {
+            console.warn(`[GNB Sim][${formatDuration(cp.currentTime)}] attempted to use Bloodfest combo out of No Mercy (bug in rotation logic)`);
+            return cp.getBloodfestComboToUse();
+        }
+
+
         if (this.willOvercapCartsNextGCD(cp)) {
             return Actions.BurstStrike;
         }
@@ -539,7 +547,6 @@ export class GnbSim extends BaseMultiCycleSim<GnbSimResult, GnbSettings, GnbCycl
                 if (cp.canUseOgcdsWithoutClipping([Actions.NoMercy, continuation])) {
                     this.use(cp, Actions.NoMercy);
                     this.use(cp, continuation);
-
                 }
                 // Then, prioritize Continuation -> No Mercy
                 else if (cp.canUseWithoutClipping(continuation)) {
@@ -552,12 +559,14 @@ export class GnbSim extends BaseMultiCycleSim<GnbSimResult, GnbSettings, GnbCycl
             this.use(cp, Actions.NoMercy);
         }
 
-        if (cp.canUseWithoutClipping(Actions.BowShock)) {
-            this.use(cp, Actions.BowShock);
-        }
-
-        if (cp.canUseWithoutClipping(cp.blastingZoneAbility)) {
-            this.use(cp, cp.blastingZoneAbility);
+        const shouldBloodFest = cp.stats.level >= 76 && cp.gauge.cartridges === 0;
+        const ogcdsToCheck = shouldBloodFest
+            ? [Actions.Bloodfest, Actions.BowShock, cp.blastingZoneAbility]
+            : [Actions.BowShock, cp.blastingZoneAbility];
+        const ogcds = cp.getTopTwoPriorityOgcds(ogcdsToCheck);
+        if (ogcds.length === 2) {
+            this.use(cp, ogcds[0]);
+            this.use(cp, ogcds[1]);
         }
 
         // We need the cartridge check even though we unload carts before Bloodfest just in case
@@ -568,6 +577,14 @@ export class GnbSim extends BaseMultiCycleSim<GnbSimResult, GnbSettings, GnbCycl
             if (cp.canUseWithoutClipping(Actions.Bloodfest) && cp.gauge.cartridges === 0) {
                 this.use(cp, Actions.Bloodfest);
             }
+        }
+
+        if (cp.canUseWithoutClipping(Actions.BowShock)) {
+            this.use(cp, Actions.BowShock);
+        }
+
+        if (cp.canUseWithoutClipping(cp.blastingZoneAbility)) {
+            this.use(cp, cp.blastingZoneAbility);
         }
 
         if (cp.shouldPot() && cp.canUseWithoutClipping(potionMaxStr)) {

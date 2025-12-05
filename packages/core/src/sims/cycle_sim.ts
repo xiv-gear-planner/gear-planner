@@ -1192,9 +1192,30 @@ export class CycleProcessor<GaugeManagerType extends GaugeManager<unknown> = Gau
     }
 
     /**
+     * Given an ordered priority list of oGCDs, return a list of the highest priority two oGCDs that can be used.
+     *
+     * @param ogcds the Off-GCD abilities to check for
+     * @returns an empty list or a list of exactly two oGCDs that can be used
+     */
+    getTopTwoPriorityOgcds(ogcds: OgcdAbility[]) {
+        for (let i = 0; i < ogcds.length; i++) {
+            for (let j = 0; j < ogcds.length; j++) {
+                if (j === i) {
+                    continue;
+                }
+                const listToTry = [ogcds[i], ogcds[j]];
+                if (this.canUseOgcdsWithoutClipping(listToTry)) {
+                    return listToTry;
+                }
+            }
+        }
+        return [];
+    }
+
+    /**
      * Determines whether or not a list of Off-GCD abilities can be used without clipping the GCD
      *
-     * @param ogcds The Off-GCD abilitiesto check for
+     * @param ogcds The Off-GCD abilities to check for
      * @returns whether or not the abilities can be used in sequence without clipping the GCD
      */
     canUseOgcdsWithoutClipping(ogcds: OgcdAbility[]) {
